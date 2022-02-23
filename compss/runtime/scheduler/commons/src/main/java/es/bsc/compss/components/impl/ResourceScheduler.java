@@ -357,7 +357,11 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
             int implId = impl.getImplementationId();
             this.profiles[coreId][implId].accumulate(profile);
         }
+        customProfiledExecution(impl, profile);
+    }
 
+    protected void customProfiledExecution(Implementation impl, Profile profile) {
+        // To be overriden by Profile extensions
     }
 
     /*

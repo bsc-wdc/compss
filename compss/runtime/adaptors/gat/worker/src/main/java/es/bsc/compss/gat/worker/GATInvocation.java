@@ -372,6 +372,16 @@ public class GATInvocation implements Invocation {
         return null;
     }
 
+    @Override
+    public void executionStarts() {
+        // Profiles are not collected because they cannot be sent back to the master
+    }
+
+    @Override
+    public void executionEnds() {
+        // Profiles are not collected because they cannot be sent back to the master
+    }
+
 
     private static class Param implements InvocationParam {
 

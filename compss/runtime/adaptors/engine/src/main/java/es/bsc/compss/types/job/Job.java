@@ -25,6 +25,7 @@ import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.resources.Resource;
+import es.bsc.compss.worker.COMPSsException;
 
 import java.util.List;
 
@@ -218,15 +219,6 @@ public abstract class Job<T extends COMPSsWorker> {
     }
 
     /**
-     * Returns the job listener associated to the job.
-     *
-     * @return
-     */
-    public JobListener getListener() {
-        return this.listener;
-    }
-
-    /**
      * Returns the core implementation.
      *
      * @return
@@ -327,5 +319,57 @@ public abstract class Job<T extends COMPSsWorker> {
      */
     public Integer getNumSuccessors() {
         return this.numSuccessors;
+    }
+
+    public void profileArrival() {
+        this.listener.arrived(this);
+    }
+
+    public void profileArrivalAt(long ts) {
+        this.listener.arrivedAt(this, ts);
+    }
+
+    public void fetchedAllInputData() {
+        this.listener.allInputDataOnWorker(this);
+    }
+
+    public void fetchedAllInputDataAt(long ts) {
+        this.listener.allInputDataOnWorkerAt(this, ts);
+    }
+
+    public void executionStarts() {
+        this.listener.startingExecution(this);
+    }
+
+    public void executionStartedAt(long ts) {
+        this.listener.startingExecutionAt(this, ts);
+    }
+
+    public void executionEnds() {
+        this.listener.endedExecution(this);
+    }
+
+    public void executionEndsAt(long ts) {
+        this.listener.endedExecutionAt(this, ts);
+    }
+
+    public void profileEndNotification() {
+        this.listener.endNotified(this);
+    }
+
+    public void profileEndNotificationAt(long ts) {
+        this.listener.endNotifiedAt(this, ts);
+    }
+
+    public void completed() {
+        this.listener.jobCompleted(this);
+    }
+
+    public void failed(JobEndStatus status) {
+        this.listener.jobFailed(this, status);
+    }
+
+    public void exception(COMPSsException exception) {
+        this.listener.jobException(this, exception);
     }
 }

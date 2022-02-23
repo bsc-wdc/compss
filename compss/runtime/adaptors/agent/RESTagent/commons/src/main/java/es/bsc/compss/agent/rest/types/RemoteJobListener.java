@@ -31,7 +31,9 @@ public interface RemoteJobListener {
      * @param endStatus end status of the job
      * @param paramTypes array containing the Data types of all the parameters involved in the operation.
      * @param paramLocations location where to find the parameter value on the node/id on the persistent storage system
+     * @param profile Profiling information related to the job execution
      */
-    public void finishedExecution(JobEndStatus endStatus, DataType[] paramTypes, String[] paramLocations);
+    public void finishedExecution(JobEndStatus endStatus, DataType[] paramTypes, String[] paramLocations,
+        TaskProfile profile);
 
 }

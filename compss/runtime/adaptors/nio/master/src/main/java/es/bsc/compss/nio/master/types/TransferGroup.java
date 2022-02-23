@@ -18,7 +18,6 @@ package es.bsc.compss.nio.master.types;
 
 import es.bsc.compss.types.data.operation.copy.Copy;
 import es.bsc.compss.types.job.Job;
-import es.bsc.compss.types.job.JobListener;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -72,13 +71,12 @@ public class TransferGroup {
     }
 
     /**
-     * Notifies the end of the operations within the group.
+     * Returns the job bound to the group.
+     * 
+     * @return bound job
      */
-    public void notifyGroupEnd() {
-        JobListener listener = this.job.getListener();
-        if (listener != null) {
-            listener.allInputDataOnWorker(this.job);
-        }
+    public Job<?> getJob() {
+        return job;
     }
 
 }

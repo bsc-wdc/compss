@@ -19,6 +19,7 @@ package es.bsc.compss.agent.rest.master;
 import es.bsc.compss.agent.RESTAgentConfig;
 import es.bsc.compss.agent.rest.types.OrchestratorNotification;
 import es.bsc.compss.agent.rest.types.RemoteJobListener;
+import es.bsc.compss.agent.rest.types.TaskProfile;
 import es.bsc.compss.agent.rest.types.messages.StartApplicationRequest;
 import es.bsc.compss.agent.util.RemoteJobsRegistry;
 import es.bsc.compss.comm.Comm;
@@ -199,20 +200,23 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
 
         if (response.getStatusInfo().getStatusCode() != 200) {
             System.out.println(response.readEntity(String.class));
-            this.getListener().jobFailed(this, JobEndStatus.SUBMISSION_FAILED, null);
+            failed(JobEndStatus.SUBMISSION_FAILED);
         } else {
             System.out.println("SUBMISSION[" + this.getJobId() + "] Job submitted.");
             String jobId = response.readEntity(String.class);
             RemoteJobsRegistry.registerJobListener(jobId, new RemoteJobListener() {
 
                 @Override
-                public void finishedExecution(JobEndStatus endStatus, DataType[] paramTypes, String[] paramLocations) {
+                public void finishedExecution(JobEndStatus endStatus, DataType[] paramTypes, String[] paramLocations,
+                    TaskProfile profile) {
+                    RemoteRESTAgentJob.this.executionStartedAt(profile.getExecutionStart());
+                    RemoteRESTAgentJob.this.executionEndsAt(profile.getExecutionEnd());
                     System.out.println("SUBMISSION[" + getJobId() + "] Job completed.");
                     stageout(paramTypes, paramLocations);
                     if (endStatus == JobEndStatus.OK) {
-                        getListener().jobCompleted(RemoteRESTAgentJob.this);
+                        RemoteRESTAgentJob.this.completed();
                     } else {
-                        getListener().jobFailed(RemoteRESTAgentJob.this, endStatus, null);
+                        RemoteRESTAgentJob.this.failed(endStatus);
                     }
                 }
             });

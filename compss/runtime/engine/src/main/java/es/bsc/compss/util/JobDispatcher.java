@@ -19,7 +19,6 @@ package es.bsc.compss.util;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobEndStatus;
-import es.bsc.compss.worker.COMPSsException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -87,11 +86,7 @@ public class JobDispatcher {
                      */
                     System.err.println(SUBMISSION_ERROR + job.getJobId()); // NOSONAR
                     ex.printStackTrace(); // NOSONAR
-                    if (ex instanceof COMPSsException) {
-                        job.getListener().jobFailed(job, JobEndStatus.SUBMISSION_FAILED, (COMPSsException) ex);
-                    } else {
-                        job.getListener().jobFailed(job, JobEndStatus.SUBMISSION_FAILED, null);
-                    }
+                    job.failed(JobEndStatus.SUBMISSION_FAILED);
                 }
             }
             LOGGER.debug("JobDispatcher finished");

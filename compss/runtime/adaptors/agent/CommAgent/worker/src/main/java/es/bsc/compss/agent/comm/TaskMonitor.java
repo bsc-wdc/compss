@@ -56,11 +56,13 @@ class TaskMonitor extends AppMonitor {
         this.orchestrator = orchestrator;
         this.successful = false;
         this.task = request;
+        this.task.profileArrival();
     }
 
     @Override
     public void onDataReception() {
         super.onDataReception();
+        this.task.profileFetchedData();
         if (this.orchestrator != null) {
             NIONode n = new NIONode(orchestrator.getName(), orchestrator.getPort());
 
@@ -79,6 +81,26 @@ class TaskMonitor extends AppMonitor {
     }
 
     @Override
+    public void onExecutionStart() {
+        task.getProfile().executionStarts();
+    }
+
+    @Override
+    public void onExecutionStartAt(long ts) {
+        task.getProfile().executionStartsAt(ts);
+    }
+
+    @Override
+    public void onExecutionEnd() {
+        task.getProfile().executionEnds();
+    }
+
+    @Override
+    public void onExecutionEndAt(long ts) {
+        task.getProfile().executionEndsAt(ts);
+    }
+
+    @Override
     public void onSuccesfulExecution() {
         super.onSuccesfulExecution();
         this.successful = true;
@@ -87,6 +109,7 @@ class TaskMonitor extends AppMonitor {
     @Override
     public void onCompletion() {
         super.onCompletion();
+        this.task.profileEndNotification();
         if (this.orchestrator != null) {
             notifyEnd();
         }
@@ -106,8 +129,8 @@ class TaskMonitor extends AppMonitor {
         int jobId = task.getJobId();
         NIOTaskResult tr = new NIOTaskResult(jobId, super.getResults());
         Connection c = TM.startConnection(n);
-        CommandNIOTaskDone cmd =
-            new CommandNIOTaskDone(tr, successful, task.getHistory().toString(), this.getException());
+        CommandNIOTaskDone cmd = new CommandNIOTaskDone(tr, successful, task.getProfile(), task.getHistory().toString(),
+            this.getException());
         c.sendCommand(cmd);
         c.finishConnection();
     }

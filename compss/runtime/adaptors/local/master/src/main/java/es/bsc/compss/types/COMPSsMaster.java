@@ -1062,14 +1062,14 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                 for (LocalParameter p : job.getResults()) {
                     updateParameter(p);
                 }
-
+                job.profileEndNotification();
                 if (success) {
-                    job.getListener().jobCompleted(job);
+                    job.completed();
                 } else {
                     if (e != null) {
-                        job.getListener().jobFailed(job, JobEndStatus.EXCEPTION, e);
+                        job.exception(e);
                     } else {
-                        job.getListener().jobFailed(job, JobEndStatus.EXECUTION_FAILED, e);
+                        job.failed(JobEndStatus.EXECUTION_FAILED);
                     }
                 }
             }

@@ -35,6 +35,7 @@ import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOResult;
 import es.bsc.compss.nio.NIOResultCollection;
 import es.bsc.compss.nio.NIOTask;
+import es.bsc.compss.nio.NIOTaskProfile;
 import es.bsc.compss.nio.NIOTaskResult;
 import es.bsc.compss.nio.NIOTracer;
 import es.bsc.compss.nio.NIOUri;
@@ -479,7 +480,8 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     }
 
     @Override
-    public final void receivedNIOTaskDone(Connection c, NIOTaskResult ntr, boolean successful, Exception e) {
+    public final void receivedNIOTaskDone(Connection c, NIOTaskResult ntr, NIOTaskProfile profile, boolean successful,
+        Exception e) {
         int jobId = ntr.getJobId();
 
         if (LOGGER.isDebugEnabled()) {
@@ -489,8 +491,13 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         // Update running jobs
         NIOJob nj = RUNNING_JOBS.remove(jobId);
         if (nj != null) {
-            int taskId = nj.getTaskId();
+            nj.profileArrivalAt(profile.getArrivalTime());
+            nj.fetchedAllInputDataAt(profile.getFetchedDataTime());
+            nj.executionStartedAt(profile.getExecutionStartTime());
+            nj.executionEndsAt(profile.getExecutionEndTime());
+            nj.profileEndNotificationAt(profile.getEndTime());
 
+            int taskId = nj.getTaskId();
             // Update information
             List<NIOResult> taskResults = ntr.getParamResults();
             List<Parameter> taskParams = nj.getTaskParams().getParameters();
@@ -784,7 +791,8 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
                 LOGGER.debug("Actual Location is null");
             }
         }
-        group.notifyGroupEnd();
+        Job job = group.getJob();
+        job.fetchedAllInputData();
     }
 
     // Return the data that a worker should be obtaining and has not yet confirmed

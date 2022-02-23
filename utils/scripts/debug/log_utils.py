@@ -113,7 +113,7 @@ class Loggers:
             SUBMITTED = "submitted"
 
         class CompletedJob:
-            label = "completedJob"
+            label = "jobCompleted"
             COMPLETED = "Received a notification for job"
 
         class FailedJob:

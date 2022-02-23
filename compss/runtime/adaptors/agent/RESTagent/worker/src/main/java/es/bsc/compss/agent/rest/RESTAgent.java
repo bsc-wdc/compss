@@ -23,6 +23,7 @@ import es.bsc.compss.agent.AgentInterface;
 import es.bsc.compss.agent.RESTAgentConfig;
 import es.bsc.compss.agent.rest.types.ApplicationParameterImpl;
 import es.bsc.compss.agent.rest.types.RESTAgentRequestListener;
+import es.bsc.compss.agent.rest.types.TaskProfile;
 import es.bsc.compss.agent.rest.types.messages.EndApplicationNotification;
 import es.bsc.compss.agent.rest.types.messages.IncreaseNodeNotification;
 import es.bsc.compss.agent.rest.types.messages.LostNodeNotification;
@@ -414,13 +415,18 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
     @Path("endApplication/")
     @Consumes(MediaType.APPLICATION_XML)
     public Response endApplication(EndApplicationNotification notification) {
-        String jobId = notification.getJobId();
-        JobEndStatus endStatus = notification.getEndStatus();
-        DataType[] resultTypes = notification.getParamTypes();
-        String[] resultLocations = notification.getParamLocations();
-        RemoteJobsRegistry.notifyJobEnd(jobId, endStatus, resultTypes, resultLocations);
-
-        return Response.ok().build();
+        try {
+            String jobId = notification.getJobId();
+            JobEndStatus endStatus = notification.getEndStatus();
+            DataType[] resultTypes = notification.getParamTypes();
+            String[] resultLocations = notification.getParamLocations();
+            TaskProfile profile = notification.getProfile();
+            RemoteJobsRegistry.notifyJobEnd(jobId, endStatus, resultTypes, resultLocations, profile);
+            return Response.ok().build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.serverError().entity(e).build();
+        }
     }
 
     /**

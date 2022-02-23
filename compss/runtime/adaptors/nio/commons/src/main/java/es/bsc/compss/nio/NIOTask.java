@@ -23,7 +23,6 @@ import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.job.JobHistory;
 import es.bsc.compss.types.resources.MethodResourceDescription;
-import es.bsc.compss.util.Tracer;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -61,12 +60,16 @@ public class NIOTask implements Externalizable, Invocation {
     private List<Integer> predecessors;
     private Integer numSuccessors;
 
+    // Invocation Profile
+    private final NIOTaskProfile profile;
+
 
     /**
      * New NIO Task.
      */
     public NIOTask() {
         // Only for externalization
+        this.profile = new NIOTaskProfile();
     }
 
     /**
@@ -129,6 +132,7 @@ public class NIOTask implements Externalizable, Invocation {
         this.history = hist;
         this.transferGroupId = transferGroupId;
         this.numReturns = numReturns;
+        this.profile = new NIOTaskProfile();
     }
 
     /**
@@ -171,6 +175,7 @@ public class NIOTask implements Externalizable, Invocation {
         this.history = hist;
         this.transferGroupId = transferGroupId;
         this.numReturns = results.size();
+        this.profile = new NIOTaskProfile();
     }
 
     @Override
@@ -283,6 +288,32 @@ public class NIOTask implements Externalizable, Invocation {
     @Override
     public Integer getNumSuccessors() {
         return this.numSuccessors;
+    }
+
+    public void profileArrival() {
+        profile.arrived();
+    }
+
+    public void profileFetchedData() {
+        profile.dataFetched();
+    }
+
+    @Override
+    public void executionStarts() {
+        profile.executionStarts();
+    }
+
+    @Override
+    public void executionEnds() {
+        profile.executionEnds();
+    }
+
+    public void profileEndNotification() {
+        profile.end();
+    }
+
+    public NIOTaskProfile getProfile() {
+        return profile;
     }
 
     @SuppressWarnings("unchecked")

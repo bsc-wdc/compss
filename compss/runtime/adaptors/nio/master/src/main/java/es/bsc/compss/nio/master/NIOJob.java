@@ -139,16 +139,16 @@ public class NIOJob extends Job<NIOWorkerNode> {
      * Marks the task as finished with the given {@code successful} error code.
      *
      * @param successful {@code true} if the task has successfully finished, {@code false} otherwise.
-     * @param e Exception rised during the task execution, {@literal null} if no exception was rised.
+     * @param e Exception rised during the task execution, {@literal null} if no exception was raised.
      */
     public void taskFinished(boolean successful, Exception e) {
         if (successful) {
             this.listener.jobCompleted(this);
         } else {
             if (e instanceof COMPSsException) {
-                this.listener.jobFailed(this, JobEndStatus.EXCEPTION, (COMPSsException) e);
+                this.listener.jobException(this, (COMPSsException) e);
             } else {
-                this.listener.jobFailed(this, JobEndStatus.EXECUTION_FAILED, null);
+                this.listener.jobFailed(this, JobEndStatus.EXECUTION_FAILED);
             }
         }
     }

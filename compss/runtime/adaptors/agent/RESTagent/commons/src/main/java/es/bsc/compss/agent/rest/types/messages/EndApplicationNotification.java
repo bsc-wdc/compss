@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.agent.rest.types.messages;
 
+import es.bsc.compss.agent.rest.types.TaskProfile;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.job.JobEndStatus;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -31,6 +32,7 @@ public class EndApplicationNotification {
     private JobEndStatus endStatus;
     private DataType[] paramTypes;
     private String[] paramLocations;
+    private TaskProfile profile;
 
 
     public EndApplicationNotification() {
@@ -44,14 +46,16 @@ public class EndApplicationNotification {
      * @param status end status of the application execution
      * @param paramTypes array containing the types of the parameters of the job
      * @param paramLocations locations where to find the values of the job parameters
+     * @param profile Profiling information related to the job execution
      */
-    public EndApplicationNotification(String jobId, JobEndStatus status, DataType[] paramTypes,
-        String[] paramLocations) {
+    public EndApplicationNotification(String jobId, JobEndStatus status, DataType[] paramTypes, String[] paramLocations,
+        TaskProfile profile) {
 
         this.jobId = jobId;
         this.endStatus = status;
         this.paramTypes = paramTypes;
         this.paramLocations = paramLocations;
+        this.profile = profile;
     }
 
     public void setJobId(String jobId) {
@@ -84,6 +88,14 @@ public class EndApplicationNotification {
 
     public void setParamLocations(String[] paramLocations) {
         this.paramLocations = paramLocations;
+    }
+
+    public TaskProfile getProfile() {
+        return profile;
+    }
+
+    public void setProfile(TaskProfile profile) {
+        this.profile = profile;
     }
 
 }

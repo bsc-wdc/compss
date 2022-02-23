@@ -25,11 +25,80 @@ import es.bsc.compss.worker.COMPSsException;
 public interface JobListener {
 
     /**
-     * Actions to perform when all input data has been copied into the executing worker.
-     * 
+     * Actions to perform when the job has just arrived to the target worker.
+     *
+     * @param job submitted job
+     */
+    public void arrived(Job<?> job);
+
+    /**
+     * Actions to perform when the job has arrived to the target worker at a given time.
+     *
+     * @param job submitted job
+     * @param timestamp when the job arrived
+     */
+
+    public void arrivedAt(Job<?> job, long timestamp);
+
+    /**
+     * Actions to perform when all input data has just been copied into the executing worker.
+     *
      * @param job job whose data has been copied
      */
     public void allInputDataOnWorker(Job<?> job);
+
+    /**
+     * Actions to perform when all input data was copied into the executing worker at the indicated time.
+     *
+     * @param job job whose data has been copied
+     * @param timestamp when the job arrived
+     */
+    public void allInputDataOnWorkerAt(Job<?> job, long timestamp);
+
+    /**
+     * Actions to perform when a job execution has just started.
+     *
+     * @param job job whose execution just started
+     */
+    public void startingExecution(Job<?> job);
+
+    /**
+     * Actions to perform when a job execution started at a given time.
+     *
+     * @param job job whose execution just started
+     * @param timestamp when the job started executing
+     */
+    public void startingExecutionAt(Job<?> job, long timestamp);
+
+    /**
+     * Actions to perform when a job execution just ended.
+     *
+     * @param job job whose execution just ended
+     */
+    public void endedExecution(Job<?> job);
+
+    /**
+     * Actions to perform when a job execution ended at a given time.
+     *
+     * @param job job whose execution just ended
+     * @param timestamp when the job ended executing
+     */
+    public void endedExecutionAt(Job<?> job, long timestamp);
+
+    /**
+     * Actions to perform when a job end notification has just been sent.
+     *
+     * @param job job whose execution end has just been notified
+     */
+    public void endNotified(Job<?> job);
+
+    /**
+     * Actions to perform when a job end notification was sent at a given time.
+     *
+     * @param job job whose execution end has just been notified
+     * @param timestamp when the job end was sent
+     */
+    public void endNotifiedAt(Job<?> job, long timestamp);
 
     /**
      * Actions when job has successfully ended.
@@ -39,12 +108,18 @@ public interface JobListener {
     public void jobCompleted(Job<?> job);
 
     /**
-     * Actions when job has failed.
+     * Actions to perform when a job has failed.
      * 
-     * @param job Job to notify completion.
-     * @param endStatus Failure status.
-     * @param e Exception raised during the job execution
+     * @param job Failed job
+     * @param status Failure status
      */
-    public void jobFailed(Job<?> job, JobEndStatus endStatus, COMPSsException e);
+    public void jobFailed(Job<?> job, JobEndStatus status);
 
+    /**
+     * Actions to perform when a job raises an exception.
+     * 
+     * @param job Job that raised an exception
+     * @param e Exception raised
+     */
+    public void jobException(Job<?> job, COMPSsException e);
 }

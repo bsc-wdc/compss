@@ -27,10 +27,12 @@ import es.bsc.compss.scheduler.types.Score;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.util.ActionSet;
+import java.util.HashSet;
 import java.util.LinkedList;
 
 import java.util.List;
 import java.util.PriorityQueue;
+import java.util.Set;
 import org.json.JSONObject;
 
 
@@ -40,6 +42,7 @@ import org.json.JSONObject;
 public abstract class LookaheadTS extends TaskScheduler {
 
     protected final ActionSet unassignedReadyActions;
+    protected Set<AllocatableAction> upgradedActions;
 
 
     /**
@@ -48,6 +51,7 @@ public abstract class LookaheadTS extends TaskScheduler {
     public LookaheadTS() {
         super();
         this.unassignedReadyActions = new ActionSet();
+        this.upgradedActions = new HashSet<>();
     }
 
     /*
@@ -100,6 +104,14 @@ public abstract class LookaheadTS extends TaskScheduler {
         if (!action.hasDataPredecessors() && !action.hasStreamProducers()) {
             action.schedule(targetWorker, actionScore);
         }
+    }
+
+    @Override
+    public void upgradeAction(AllocatableAction action) {
+        if (DEBUG) {
+            LOGGER.debug(" Upgrading action " + action);
+        }
+        upgradedActions.add(action);
     }
 
     @Override
@@ -157,26 +169,96 @@ public abstract class LookaheadTS extends TaskScheduler {
         return executableActions;
     }
 
+    private PriorityQueue<ObjectValue<AllocatableAction>> sortActions(Iterable<AllocatableAction> actions) {
+
+        if (DEBUG) {
+            LOGGER.debug("[ReadyScheduler] Managing " + upgradedActions.size() + " upgraded actions.");
+        }
+        PriorityQueue<ObjectValue<AllocatableAction>> sortedActions = new PriorityQueue<>();
+        for (AllocatableAction action : actions) {
+            Score fullScore = this.generateActionScore(action);
+            ObjectValue<AllocatableAction> obj = new ObjectValue<>(action, fullScore);
+            sortedActions.add(obj);
+        }
+
+        return sortedActions;
+    }
+
+    private void manageUpgradedActions() {
+        if (!upgradedActions.isEmpty()) {
+            PriorityQueue<ObjectValue<AllocatableAction>> executableActions = sortActions(upgradedActions);
+
+            while (!executableActions.isEmpty()) {
+                ObjectValue<AllocatableAction> obj = executableActions.poll();
+                AllocatableAction freeAction = obj.getObject();
+                try {
+                    freeAction.schedule(freeAction.getCompatibleWorkers(), obj.getScore());
+                    tryToLaunch(freeAction);
+                    upgradedActions.remove(freeAction);
+                    this.unassignedReadyActions.removeAction(freeAction);
+                } catch (UnassignedActionException e) {
+                    // Nothing to do it could be scheduled in another resource
+                }
+            }
+        }
+    }
+
+    private void manageUpgradedActions(ResourceScheduler<?> resource) {
+        if (!upgradedActions.isEmpty()) {
+            if (DEBUG) {
+                LOGGER.debug("[ReadyScheduler] Managing " + upgradedActions.size() + " upgraded actions.");
+            }
+
+            PriorityQueue<ObjectValue<AllocatableAction>> executableActions = sortActions(upgradedActions);
+
+            while (!executableActions.isEmpty()) {
+                ObjectValue<AllocatableAction> obj = executableActions.poll();
+                AllocatableAction freeAction = obj.getObject();
+                if (freeAction.getCompatibleWorkers().contains(resource) && resource.canRunSomething()) {
+                    try {
+                        freeAction.schedule(resource, obj.getScore());
+                        tryToLaunch(freeAction);
+                        upgradedActions.remove(freeAction);
+                        this.unassignedReadyActions.removeAction(freeAction);
+                    } catch (UnassignedActionException e) {
+                        // Nothing to do it could be scheduled in another resource
+                    }
+                }
+            }
+        }
+    }
+
     private <T extends WorkerResourceDescription> void tryToLaunchFreeActions(List<AllocatableAction> dataFreeActions,
         List<AllocatableAction> resourceFreeActions, List<AllocatableAction> blockedCandidates,
         ResourceScheduler<T> resource) {
 
         PriorityQueue<ObjectValue<AllocatableAction>> executableActions;
+
+        manageUpgradedActions(resource);
+
         executableActions = getCandidateFreeActions(dataFreeActions, resourceFreeActions, this.unassignedReadyActions,
             blockedCandidates, resource);
+
+        Set<AllocatableAction> oldUpgradedActions = this.upgradedActions;
 
         while (!executableActions.isEmpty()) {
             ObjectValue<AllocatableAction> obj = executableActions.poll();
             AllocatableAction freeAction = obj.getObject();
             Score actionScore = obj.getScore();
 
+            this.upgradedActions = new HashSet<>();
             LOGGER.debug("[ReadyScheduler] Trying to launch action " + freeAction);
             try {
                 scheduleAction(freeAction, actionScore);
                 tryToLaunch(freeAction);
+                if (!upgradedActions.isEmpty()) {
+                    manageUpgradedActions();
+                    oldUpgradedActions.addAll(upgradedActions);
+                }
             } catch (BlockedActionException e) {
                 blockedCandidates.add(freeAction);
             }
         }
+        this.upgradedActions = oldUpgradedActions;
     }
 }

@@ -1,5 +1,23 @@
 #!/bin/bash
 
+# Command to simulate realpath
+if [ -z "${COMPSS_HOME}" ]; then
+  COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../.. && pwd )/"
+fi
+if [ ! "${COMPSS_HOME: -1}" = "/" ]; then
+  COMPSS_HOME="${COMPSS_HOME}/"
+fi
+
+export COMPSS_HOME=${COMPSS_HOME}
+SCRIPT_DIR="${COMPSS_HOME}/Runtime/scripts/user"
+
+# shellcheck source=../system/runtime/tracing.sh
+# shellcheck disable=SC1091
+source "${COMPSS_HOME}Runtime/scripts/system/runtime/tracing.sh"
+# shellcheck source=../system/runtime/tracing.sh
+# shellcheck disable=SC1091
+source "${COMPSS_HOME}Runtime/scripts/system/runtime/adaptors.sh"
+
 #---------------------------------------------------------------------------------------
 # SCRIPT CONSTANTS DECLARATION
 #---------------------------------------------------------------------------------------
@@ -16,7 +34,7 @@ DEFAULT_CLASSPATH=$(pwd)
 DEFAULT_PYTHONPATH=$(pwd)
 DEFAULT_DEBUG=off
 DEFAULT_DEBUG_ARG=debug
-DEFAULT_COMMUNICATION_ADAPTOR=es.bsc.compss.nio.master.NIOAdaptor
+DEFAULT_COMMUNICATION_ADAPTOR=${NIO_ADAPTOR}
 DEFAULT_TRACING=false
 DEFAULT_TRACING_ARG=true
 DEFAULT_TRACING_TASK_DEP=false
@@ -51,8 +69,8 @@ DEFAULT_PYTHON_CACHE_PROFILER=false
 DEFAULT_JUPYTER_NOTEBOOK=false
 DEFAULT_JUPYTER_NOTEBOOK_PATH=$HOME
 DEFAULT_IPYTHON=false
-DEFAULT_SHARED_DISK_SCHEDULER="es.bsc.compss.scheduler.fifodatanew.FIFODataScheduler"
-DEFAULT_LOCAL_DISK_SCHEDULER="es.bsc.compss.scheduler.fifodatalocation.FIFODataLocationScheduler"
+DEFAULT_SHARED_DISK_SCHEDULER=${LA_MT_SUCC_FIFO_LOCALITY_SCHEDULER}
+DEFAULT_LOCAL_DISK_SCHEDULER=${LA_SUCC_FIFO_LOCALITY_SCHEDULER}
 
 #---------------------------------------------------------------------------------------
 # ERROR CONSTANTS DECLARATION
@@ -2164,14 +2182,6 @@ cleanup() {
 #---------------------------------------------------------------------------------------
 # MAIN EXECUTION
 #---------------------------------------------------------------------------------------
-
-  # Set script variables
-  if [ -z "$COMPSS_HOME" ]; then
-     SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-     COMPSS_HOME=${SCRIPT_DIR}/../../../
-  else
-     SCRIPT_DIR="${COMPSS_HOME}/Runtime/scripts/user"
-  fi
 
   numPrologActions=0
   declare -a prologActions

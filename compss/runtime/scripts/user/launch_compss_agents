@@ -1,5 +1,22 @@
 #!/bin/bash
 
+if [ -z "${COMPSS_HOME}" ]; then
+  COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../.. && pwd )/"
+fi
+if [ ! "${COMPSS_HOME: -1}" = "/" ]; then
+  COMPSS_HOME="${COMPSS_HOME}/"
+fi
+
+export COMPSS_HOME=${COMPSS_HOME}
+SCRIPT_DIR="${COMPSS_HOME}/Runtime/scripts/user"
+
+# shellcheck source=../system/runtime/tracing.sh
+# shellcheck disable=SC1091
+source "${COMPSS_HOME}Runtime/scripts/system/runtime/tracing.sh"
+# shellcheck source=../system/runtime/tracing.sh
+# shellcheck disable=SC1091
+source "${COMPSS_HOME}Runtime/scripts/system/runtime/adaptors.sh"
+
 #---------------------------------------------------------------------------------------
 # SCRIPT CONSTANTS DECLARATION
 #---------------------------------------------------------------------------------------
@@ -18,7 +35,7 @@ DEFAULT_CLASSPATH=$(pwd)
 DEFAULT_PYTHONPATH=$(pwd)
 DEFAULT_DEBUG=off
 DEFAULT_LOG_LEVEL_ARG=debug
-DEFAULT_COMMUNICATION_ADAPTOR=es.bsc.compss.nio.master.NIOAdaptor
+DEFAULT_COMMUNICATION_ADAPTOR==${NIO_ADAPTOR}
 DEFAULT_TRACING=false
 DEFAULT_TRACING_ARG=true
 DEFAULT_CUSTOM_EXTRAE_FILE="null"
@@ -50,7 +67,7 @@ DEFAULT_PYTHON_CACHE_PROFILER=true
 DEFAULT_JUPYTER_NOTEBOOK=false
 DEFAULT_JUPYTER_NOTEBOOK_PATH=$HOME
 
-DEFAULT_SCHEDULER="es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler"
+DEFAULT_SCHEDULER=${LA_LOCALITY_SCHEDULER}
 
 #---------------------------------------------------------------------------------------
 # ERROR CONSTANTS DECLARATION
@@ -1347,14 +1364,6 @@ cleanup() {
 #---------------------------------------------------------------------------------------
 # MAIN EXECUTION
 #---------------------------------------------------------------------------------------
-
-  # Set script variables
-  if [ -z "$COMPSS_HOME" ]; then
-     SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-     COMPSS_HOME=${SCRIPT_DIR}/../../../
-  else
-     SCRIPT_DIR="${COMPSS_HOME}/Runtime/scripts/user"
-  fi
 
   numPrologActions=0
   declare -a prologActions

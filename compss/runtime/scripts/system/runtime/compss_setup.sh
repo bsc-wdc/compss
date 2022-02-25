@@ -1,3 +1,7 @@
+#!/bin/bash
+
+# shellcheck source=../system/commons/logger.sh
+# shellcheck disable=SC1091
 source "${COMPSS_HOME}/Runtime/scripts/system/commons/logger.sh"
 
 source "${COMPSS_HOME}/Runtime/scripts/system/runtime/analysis.sh"

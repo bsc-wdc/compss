@@ -72,6 +72,7 @@ import es.bsc.compss.worker.COMPSsException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -1202,97 +1203,187 @@ public class ExecutionAction extends AllocatableAction {
 
     @SuppressWarnings("unchecked")
     @Override
-    public final List<ResourceScheduler<?>> tryToSchedule(Score actionScore,
-        Set<ResourceScheduler<?>> availableResources) throws BlockedActionException, UnassignedActionException {
-        // COMPUTE RESOURCE CANDIDATES
-        List<ResourceScheduler<? extends WorkerResourceDescription>> candidates = new LinkedList<>();
-        List<ResourceScheduler<? extends WorkerResourceDescription>> uselessWorkers = new LinkedList<>();
-
-        if (this.isTargetResourceEnforced()) {
-            // The scheduling is forced to a given resource
-            candidates.add((ResourceScheduler<WorkerResourceDescription>) this.getEnforcedTargetResource());
-        } else {
-            if (this.isSchedulingConstrained()) {
-                // The scheduling is constrained by dependencies
-                for (AllocatableAction a : this.getConstrainingPredecessors()) {
-                    candidates.add((ResourceScheduler<WorkerResourceDescription>) a.getAssignedResource());
-                }
-            } else {
-                // Free scheduling
-                List<ResourceScheduler<? extends WorkerResourceDescription>> compatibleCandidates =
-                    getCompatibleWorkers();
-                if (compatibleCandidates.size() == 0) {
-                    throw new BlockedActionException();
-                }
-                for (ResourceScheduler<? extends WorkerResourceDescription> currentWorker : availableResources) {
-                    if (currentWorker.getResource().canRunSomething()) {
-                        if (compatibleCandidates.contains(currentWorker)) {
-                            candidates.add(currentWorker);
-                        }
-                    } else {
-                        uselessWorkers.add(currentWorker);
-                    }
-                }
-                if (candidates.size() == 0) {
-                    throw new UnassignedActionException();
-                }
-            }
-        }
-
-        Collections.shuffle(candidates);
-        schedule(actionScore, candidates);
-
-        return uselessWorkers;
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
     public final void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
         // COMPUTE RESOURCE CANDIDATES
         List<ResourceScheduler<? extends WorkerResourceDescription>> candidates = new LinkedList<>();
+        List<ResourceScheduler<? extends WorkerResourceDescription>> compatibleWorkers = this.getCompatibleWorkers();
         if (this.isTargetResourceEnforced()) {
             // The scheduling is forced to a given resource
-            candidates.add((ResourceScheduler<WorkerResourceDescription>) this.getEnforcedTargetResource());
-        } else {
-            if (isSchedulingConstrained()) {
-                // The scheduling is constrained by dependencies
-                for (AllocatableAction a : this.getConstrainingPredecessors()) {
-                    candidates.add((ResourceScheduler<WorkerResourceDescription>) a.getAssignedResource());
-                }
+            ResourceScheduler<? extends WorkerResourceDescription> target = this.getEnforcedTargetResource();
+            if (compatibleWorkers.contains(target)) {
+                candidates.add(target);
             } else {
-                // Free scheduling
-                candidates = getCompatibleWorkers();
+                throw new UnassignedActionException();
             }
+        } else if (isSchedulingConstrained()) {
+            // The scheduling is constrained by dependencies
+            for (AllocatableAction a : this.getConstrainingPredecessors()) {
+                ResourceScheduler<? extends WorkerResourceDescription> target = a.getAssignedResource();
+                if (compatibleWorkers.contains(target)) {
+                    candidates.add(target);
+                }
+            }
+        } else {
+            // Free scheduling
+            candidates = compatibleWorkers;
         }
-        this.schedule(actionScore, candidates);
 
+        if (candidates.isEmpty()) {
+            throw new BlockedActionException();
+        }
+
+        List prevExecutors = this.getExecutingResources();
+        if (candidates.size() > prevExecutors.size() && prevExecutors.size() > 0) {
+            candidates.removeAll(prevExecutors);
+        }
+        this.scheduleSecuredCandidates(actionScore, candidates);
     }
 
-    private <T extends WorkerResourceDescription> void schedule(Score actionScore,
-        List<ResourceScheduler<? extends WorkerResourceDescription>> candidates)
-        throws BlockedActionException, UnassignedActionException {
+    @Override
+    public void schedule(Collection<ResourceScheduler<? extends WorkerResourceDescription>> candidates,
+        Score actionScore) throws UnassignedActionException {
+        List<ResourceScheduler<? extends WorkerResourceDescription>> compatibleWorkers = this.getCompatibleWorkers();
+        List<ResourceScheduler<? extends WorkerResourceDescription>> verifiedCandidates = new LinkedList<>();
+
+        if (this.isTargetResourceEnforced()) {
+            // The scheduling is forced to a given resource
+            ResourceScheduler<? extends WorkerResourceDescription> target = this.getEnforcedTargetResource();
+            if (candidates.contains(target) && compatibleWorkers.contains(target)) {
+                verifiedCandidates.add(target);
+            } else {
+                throw new UnassignedActionException();
+            }
+        } else if (this.isSchedulingConstrained()) {
+            // The scheduling is constrained by dependencies
+            for (AllocatableAction a : this.getConstrainingPredecessors()) {
+                ResourceScheduler<? extends WorkerResourceDescription> target = a.getAssignedResource();
+                if (candidates.contains(target) && compatibleWorkers.contains(target)) {
+                    verifiedCandidates.add(target);
+                }
+            }
+            if (verifiedCandidates.isEmpty()) {
+                throw new UnassignedActionException();
+            }
+
+        } else {
+            for (ResourceScheduler<? extends WorkerResourceDescription> candidate : candidates) {
+                if (compatibleWorkers.contains(candidate) && compatibleWorkers.contains(candidate)) {
+                    verifiedCandidates.add(candidate);
+                }
+            }
+            if (verifiedCandidates.isEmpty()) {
+                throw new UnassignedActionException();
+            }
+        }
+        scheduleSecuredCandidates(actionScore, verifiedCandidates);
+    }
+
+    @Override
+    public final void schedule(ResourceScheduler<? extends WorkerResourceDescription> targetWorker, Score actionScore)
+        throws UnassignedActionException {
+        if (targetWorker == null || !validateWorker(targetWorker)) {
+            throw new UnassignedActionException();
+        }
+
+        Implementation bestImpl = null;
+        Score bestScore = null;
+        Score resourceScore = targetWorker.generateResourceScore(this, this.task.getTaskDescription(), actionScore);
+        if (resourceScore != null) {
+            for (Implementation impl : getCompatibleImplementations(targetWorker)) {
+                Score implScore =
+                    targetWorker.generateImplementationScore(this, this.task.getTaskDescription(), impl, resourceScore);
+                if (Score.isBetter(implScore, bestScore)) {
+                    bestImpl = impl;
+                    bestScore = implScore;
+                }
+            }
+        }
+        if (bestImpl == null) {
+            throw new UnassignedActionException();
+        }
+        assignWorkerAndImpl(targetWorker, bestImpl);
+    }
+
+    @Override
+    public final void schedule(ResourceScheduler<? extends WorkerResourceDescription> targetWorker, Implementation impl)
+        throws UnassignedActionException {
+
+        if (targetWorker == null || impl == null) {
+            this.assignResource(null); // to remove previous allocation when re-scheduling the action
+            throw new UnassignedActionException();
+        }
+
+        if (DEBUG) {
+            LOGGER.debug("Scheduling " + this + " on worker " + targetWorker.getName() + " with implementation "
+                + impl.getImplementationId());
+        }
+
+        if (!validateWorker(targetWorker)) {
+            throw new UnassignedActionException();
+        }
+
+        if (!targetWorker.getResource().canRun(impl)) {
+            LOGGER.warn("Worker " + targetWorker.getName() + " is not compatible with " + impl);
+            throw new UnassignedActionException();
+        }
+
+        assignWorkerAndImpl(targetWorker, impl);
+    }
+
+    /**
+     * Verifies that the passed-in worker is able to run the task given the task execution history.
+     * 
+     * @param targetCandidate Resource whose aptitude to run the task has to be evaluated
+     * @return {@literal true}, if the worker passed in is compatible with the action; {@literal false}, otherwise.
+     */
+    private boolean validateWorker(ResourceScheduler targetCandidate) {
+        if (this.isTargetResourceEnforced()) {
+            // The scheduling is forced to a given resource
+            ResourceScheduler<? extends WorkerResourceDescription> enforcedTarget = this.getEnforcedTargetResource();
+            if (enforcedTarget != targetCandidate) {
+                LOGGER.warn("Task " + this.getTask().getId() + " is enforced to run on " + enforcedTarget.getName());
+                return false;
+            }
+        } else if (this.isSchedulingConstrained()) {
+            boolean isPredecessor = false;
+            // The scheduling is constrained by dependencies
+            for (AllocatableAction a : this.getConstrainingPredecessors()) {
+                ResourceScheduler<? extends WorkerResourceDescription> predecessorHost = a.getAssignedResource();
+                if (targetCandidate == predecessorHost) {
+                    isPredecessor = true;
+                }
+            }
+            if (!isPredecessor) {
+                LOGGER.warn(targetCandidate.getName() + " did not host the execution of any constraining predecessor");
+                return false;
+            }
+        }
+
+        if (this.getExecutingResources().contains(targetCandidate) && this.getCompatibleWorkers().size() > 1) {
+            LOGGER.warn("Task " + this.getTask().getId() + " was already scheduled on " + targetCandidate.getName());
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Selects the best resource-Implementation pair given for an action given a score and a list of workers that could
+     * potentially host the execution of the action. All the workers within the list have been already checked to be
+     * able to host the action execution.
+     * 
+     * @param actionScore Score given by the scheduler to the action
+     * @param candidates list of compatible workers that could host the action execution
+     * @throws UnassignedActionException the action could not be assigned to any of the given candidate resources
+     */
+    private void scheduleSecuredCandidates(Score actionScore,
+        List<ResourceScheduler<? extends WorkerResourceDescription>> candidates) throws UnassignedActionException {
         // COMPUTE BEST WORKER AND IMPLEMENTATION
         StringBuilder debugString = new StringBuilder("Scheduling " + this + " execution:\n");
         ResourceScheduler<? extends WorkerResourceDescription> bestWorker = null;
         Implementation bestImpl = null;
         Score bestScore = null;
-        int usefulResources = 0;
         for (ResourceScheduler<? extends WorkerResourceDescription> worker : candidates) {
-            if (this.getExecutingResources().contains(worker)) {
-                if (DEBUG) {
-                    LOGGER.debug("Task " + this.task.getId() + " already ran on worker " + worker.getName());
-                }
-                if (candidates.size() > 1) {
-                    continue;
-                } else {
-                    LOGGER.debug("No more candidate resources for task " + this.task.getId() + ". Trying to use worker "
-                        + worker.getName() + " again ... ");
-                    extraResubmit = true;
-                }
-            }
-
             Score resourceScore = worker.generateResourceScore(this, this.task.getTaskDescription(), actionScore);
-            ++usefulResources;
             if (resourceScore != null) {
                 for (Implementation impl : getCompatibleImplementations(worker)) {
                     Score implScore =
@@ -1318,79 +1409,27 @@ public class ExecutionAction extends AllocatableAction {
         }
 
         if (bestWorker == null) {
-            if (usefulResources == 0) {
-                LOGGER.warn("No worker can run " + this);
-                throw new BlockedActionException();
-            } else {
-                throw new UnassignedActionException();
-            }
+            throw new UnassignedActionException();
         }
-        schedule(bestWorker, bestImpl);
-
+        assignWorkerAndImpl(bestWorker, bestImpl);
     }
 
-    @Override
-    public final <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker,
-        Score actionScore) throws BlockedActionException, UnassignedActionException {
-        if (targetWorker == null
-            // Resource is not compatible with the Core
-            || !targetWorker.getResource().canRun(this.task.getTaskDescription().getCoreElement().getCoreId())
-            // already ran on the resource
-            || this.getExecutingResources().contains(targetWorker)) {
-
-            String message = "Worker " + (targetWorker == null ? "null" : targetWorker.getName())
-                + " has not available resources to run " + this;
-            LOGGER.warn(message);
-            throw new UnassignedActionException();
-        }
-
-        Implementation bestImpl = null;
-        Score bestScore = null;
-        Score resourceScore = targetWorker.generateResourceScore(this, this.task.getTaskDescription(), actionScore);
-        for (Implementation impl : getCompatibleImplementations(targetWorker)) {
-            Score implScore =
-                targetWorker.generateImplementationScore(this, this.task.getTaskDescription(), impl, resourceScore);
-            if (Score.isBetter(implScore, bestScore)) {
-                bestImpl = impl;
-                bestScore = implScore;
-            }
-        }
-        schedule(targetWorker, bestImpl);
-    }
-
-    @Override
-    public final <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker,
-        Implementation impl) throws BlockedActionException, UnassignedActionException {
-        if (targetWorker == null || impl == null) {
-            this.assignResource(null); // to remove previous allocation when re-scheduling the action
-            LOGGER.debug(" Action doesn't have targetWorker or implementation: "
-                + "Throwing UnassignedActionException. action: " + this);
-            throw new UnassignedActionException();
-        }
-
-        if (DEBUG) {
-            LOGGER.debug("Scheduling " + this + " on worker " + (targetWorker == null ? "null" : targetWorker.getName())
-                + " with implementation " + (impl == null ? "null" : impl.getImplementationId()));
-        }
-
-        if (!targetWorker.getResource().canRun(impl)) { // Resource is not compatible with the implementation
-            LOGGER.warn("Worker " + targetWorker.getName() + " has not available resources to run " + this);
-            throw new UnassignedActionException();
-        }
-        if (this.getExecutingResources().contains(targetWorker) && !extraResubmit) {
-            LOGGER.warn("Task " + this.getTask().getId() + " has been scheduled to a host already used before."
-                + targetWorker.getName());
-            throw new UnassignedActionException();
-        } else {
-            extraResubmit = false;
-        }
-
-        LOGGER.info("Assigning action " + this + " to worker " + targetWorker.getName() + " with implementation "
+    /**
+     * Assigns an implementation and a worker to the action and submits the action scheduler to the corresponding
+     * ResourceScheduler. The method assumes that the worker has already been checked to be a proper candidate to host
+     * the action and the selected implementation is a compatible pick given the action, its requirements and the
+     * worker's capabilities.
+     *
+     * @param worker worker where to submit the action
+     * @param impl implementation to request the execution
+     */
+    private void assignWorkerAndImpl(ResourceScheduler worker, Implementation impl) {
+        LOGGER.info("Assigning action " + this + " to worker " + worker.getName() + " with implementation "
             + impl.getImplementationId());
 
         this.assignImplementation(impl);
-        assignResource(targetWorker);
-        targetWorker.scheduleAction(this);
+        assignResource(worker);
+        worker.scheduleAction(this);
 
         TaskMonitor monitor = this.task.getTaskMonitor();
         monitor.onSchedule();

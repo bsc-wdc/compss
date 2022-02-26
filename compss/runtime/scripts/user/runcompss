@@ -111,12 +111,15 @@ show_opts() {
                                             Default: null
     --scheduler=<className>                 Class that implements the Scheduler for COMPSs
                                             Supported schedulers:
-                                                  ├── ${DATA_SCHEDULER}
-                                                  ├── ${FIFO_SCHEDULER}
-                                                  ├── ${FIFO_DATA_SCHEDULER}
-                                                  ├── ${LIFO_SCHEDULER}
                                                   ├── ${BASE_SCHEDULER}
-                                                  └── ${LOAD_BALANCING_SCHEDULER}
+                                                  ├── ${OS_FIFO_SCHEDULER}
+                                                  ├── ${LA_FIFO_SCHEDULER}
+                                                  ├── ${LA_LIFO_SCHEDULER}
+                                                  ├── ${LA_LOCALITY_SCHEDULER}
+                                                  ├── ${LA_SUCC_CONSTRAINTS_FIFO_SCHEDULER}
+                                                  ├── ${LA_MT_SUCC_CONSTRAINTS_FIFO_SCHEDULER}
+                                                  ├── ${LA_SUCC_FIFO_LOCALITY_SCHEDULER}
+                                                  └── ${LA_MT_SUCC_FIFO_LOCALITY_SCHEDULER}
                                             Default: ${DEFAULT_SCHEDULER}
     --scheduler_config_file=<path>          Path to the file which contains the scheduler configuration.
                                             Default: Empty

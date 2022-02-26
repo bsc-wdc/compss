@@ -13,7 +13,7 @@
   # Global variables
   AGENT_PIDS=""
   exit_value=0
-  NUM_RETRIES="50"
+  NUM_RETRIES="10"
   jar_name="3_multiple_sources.jar"
   app_name="3_multiple_sources"
 
@@ -392,9 +392,27 @@
     es.bsc.compss.test.DemoClass 5 > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
 
   echo "Waiting for invocations' end" > >(tee -a "${output_log}")
-  sleep 15
+  retries="${NUM_RETRIES}"
+  completed="false"
+  while [ "${completed}" == "false" ] && [ "${retries}" -gt "0" ]; do
+    sleep 5
+    retries=$((retries - 1 ))
+    completed="true"
+    NUM_JOBS=$(find ${log_dir}*/jobs -name *NEW.out | wc -l)
+    if [ ! "${NUM_JOBS}" == "24" ]; then
+      completed="false"
+    fi
+    NUM_MAIN=$(grep -R "METHOD NAME=demoFunction" ${log_dir}*/jobs/*_NEW.out | wc -l)
+    if [ ! "${NUM_MAIN}" == "4" ]; then
+      completed="false"
+    fi  
+    NUM_TASKS=$(grep -R "METHOD NAME=addDelay" ${log_dir}*/jobs/*_NEW.out | wc -l)
+    if [ ! "${NUM_TASKS}" == "20" ]; then
+      completed="false"
+    fi  
+  done
 
-echo "Checking application execution" > >(tee -a "${output_log}")
+  echo "Checking application execution" > >(tee -a "${output_log}")
   # CHECK RESULT
   NUM_JOBS=$(find ${log_dir}*/jobs -name *NEW.out | wc -l)
   if [ ! "${NUM_JOBS}" == "24" ]; then

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- GENERAL INFORMATION -->
+    <artifactId>compss-scheduler-lookahead-successors</artifactId>
+    <packaging>pom</packaging>
+    <parent>
+        <groupId>es.bsc.compss</groupId>
+        <artifactId>compss-scheduler-lookahead</artifactId>
+        <version>2.10.rc2202</version>
+        <relativePath>..</relativePath>
+    </parent>
+
+    <!-- PROJECT INFORMATION -->
+    <name>COMPSs Scheduler Lookahead Successors</name>
+    <description>Collection of available schedulers to execute tasks on remote workers considering only ready tasks and trying to fill always empty resources giving priority to direct successors of an ended task.</description>
+    <url>http://www.bsc.es</url>
+    <inceptionYear>2015</inceptionYear>
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+        </license>
+    </licenses>
+    <organization>
+        <name>BSC</name>
+        <url>http://www.bsc.es</url>
+    </organization>
+
+    <!-- SUB-MODULES -->
+    <modules>
+        <module>constraintsfifo</module>
+        <module>fifoLocality</module>
+    </modules>
+</project>

@@ -150,13 +150,18 @@ public class ActionSet {
      */
     public void removeAction(AllocatableAction action) {
         Integer coreId = action.getCoreId();
+        boolean removed = false;
         if (coreId == null) {
-            this.noCore.remove(action);
+            removed = this.noCore.remove(action);
         } else {
-            this.coreIndexed[coreId].remove(action);
-            this.counts[coreId]--;
+            if (coreId < this.coreIndexed.length) {
+                removed = this.coreIndexed[coreId].remove(action);
+                this.counts[coreId]--;
+            }
         }
-        totalActions--;
+        if (removed) {
+            totalActions--;
+        }
     }
 
     /**

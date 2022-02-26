@@ -15,6 +15,7 @@ import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.worker.COMPSsException;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -128,14 +129,18 @@ public class Action extends AllocatableAction {
     }
 
     @Override
-    public <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker, Score actionScore)
-        throws BlockedActionException, UnassignedActionException {
+    public void schedule(Collection<ResourceScheduler<? extends WorkerResourceDescription>> candidates,
+        Score actionScore) {
 
     }
 
     @Override
-    public <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker, Implementation impl)
-        throws BlockedActionException, UnassignedActionException {
+    public void schedule(ResourceScheduler<? extends WorkerResourceDescription> targetWorker, Score actionScore) {
+
+    }
+
+    @Override
+    public void schedule(ResourceScheduler<? extends WorkerResourceDescription> targetWorker, Implementation impl) {
 
     }
 
@@ -188,11 +193,5 @@ public class Action extends AllocatableAction {
 
     @Override
     protected void stopAction() throws Exception {
-    }
-
-    @Override
-    public List<ResourceScheduler<?>> tryToSchedule(Score actionScore, Set<ResourceScheduler<?>> availableWorkers)
-        throws BlockedActionException, UnassignedActionException {
-        return null;
     }
 }

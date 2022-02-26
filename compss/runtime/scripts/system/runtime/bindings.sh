@@ -1,4 +1,10 @@
+#!/bin/bash
+
+# shellcheck source=../system/commons/logger.sh
+# shellcheck disable=SC1091
 source "${COMPSS_HOME}/Runtime/scripts/system/commons/logger.sh"
+# shellcheck source=../system/commons/utils.sh
+# shellcheck disable=SC1091
 source "${COMPSS_HOME}/Runtime/scripts/system/commons/utils.sh"
 
 ###############################################

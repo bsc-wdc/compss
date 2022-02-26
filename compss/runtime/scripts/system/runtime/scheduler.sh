@@ -1,3 +1,7 @@
+#!/bin/bash
+
+# shellcheck source=../system/commons/logger.sh
+# shellcheck disable=SC1091
 source "${COMPSS_HOME}/Runtime/scripts/system/commons/logger.sh"
 
 ###############################################
@@ -10,14 +14,31 @@ source "${COMPSS_HOME}/Runtime/scripts/system/commons/logger.sh"
 # DEFAULT VALUES
 #----------------------------------------------
 # Available Schedulers
-DATA_SCHEDULER=es.bsc.compss.scheduler.fifodatalocation.FIFODataLocationScheduler
-FIFO_SCHEDULER=es.bsc.compss.scheduler.fifonew.FIFOScheduler
-FIFO_DATA_SCHEDULER=es.bsc.compss.scheduler.fifodatanew.FIFODataScheduler
-LIFO_SCHEDULER=es.bsc.compss.scheduler.lifonew.LIFOScheduler
-BASE_SCHEDULER=es.bsc.compss.components.impl.TaskScheduler
-LOAD_BALANCING_SCHEDULER=es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler
+# DATA_SCHEDULER=es.bsc.compss.scheduler.fifodatalocation.FIFODataLocationScheduler
+# FIFO_SCHEDULER=es.bsc.compss.scheduler.fifonew.FIFOScheduler
+# FIFO_DATA_SCHEDULER=es.bsc.compss.scheduler.fifodatanew.FIFODataScheduler
+# LIFO_SCHEDULER=es.bsc.compss.scheduler.lifonew.LIFOScheduler
+# LOAD_BALANCING_SCHEDULER=es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler
 
-DEFAULT_SCHEDULER=${LOAD_BALANCING_SCHEDULER}
+BASE_SCHEDULER="es.bsc.compss.components.impl.TaskScheduler"
+SCHEDULERS_PACKAGE="es.bsc.compss.scheduler"
+
+OS_SCHEDULERS="${SCHEDULERS_PACKAGE}.orderstrict"
+OS_FIFO_SCHEDULER="${OS_SCHEDULERS}.fifo.FifoTS"
+
+LA_SCHEDULERS="${SCHEDULERS_PACKAGE}.lookahead"
+LA_MT_SCHEDULERS="${LA_SCHEDULERS}.mt"
+LA_FIFO_SCHEDULER="${LA_SCHEDULERS}.fifo.FifoTS"
+LA_LIFO_SCHEDULER="${LA_SCHEDULERS}.lifo.LifoTS"
+LA_LOCALITY_SCHEDULER="${LA_SCHEDULERS}.locality.LocalityTS"
+
+LA_SUCC_SCHEDULERS="${LA_SCHEDULERS}.successors"
+LA_MT_SUCC_SCHEDULERS="${LA_MT_SCHEDULERS}.successors"
+LA_SUCC_CONSTRAINTS_FIFO_SCHEDULER="${LA_SUCC_SCHEDULERS}.constraintsfifo.ConstraintsFifoTS"
+LA_MT_SUCC_CONSTRAINTS_FIFO_SCHEDULER="${LA_MT_SUCC_SCHEDULERS}.constraintsfifo.ConstraintsFifoTS"
+LA_SUCC_FIFO_LOCALITY_SCHEDULER="${LA_SUCC_SCHEDULERS}.fifolocality.FifoLocalityTS"
+LA_MT_SUCC_FIFO_LOCALITY_SCHEDULER="${LA_MT_SUCC_SCHEDULERS}.fifolocality.FifoLocalityTS"
+DEFAULT_SCHEDULER="${LA_LOCALITY_SCHEDULER}"
 
 # Available Cloud Connector
 DEFAULT_SSH_CONNECTOR="es.bsc.compss.connectors.DefaultSSHConnector"

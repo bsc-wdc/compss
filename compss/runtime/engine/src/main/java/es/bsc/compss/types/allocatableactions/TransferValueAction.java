@@ -47,6 +47,7 @@ import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.worker.COMPSsException;
 
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -289,18 +290,29 @@ public class TransferValueAction<T extends WorkerResourceDescription> extends Al
 
     @Override
     public void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
-        schedule(this.receiver, DUMMY_IMPL);
+        schedule(this.receiver, this.DUMMY_IMPL);
     }
 
     @Override
-    public <R extends WorkerResourceDescription> void schedule(ResourceScheduler<R> targetWorker, Score actionScore)
-        throws BlockedActionException, UnassignedActionException {
-        schedule(targetWorker, DUMMY_IMPL);
+    public void schedule(Collection<ResourceScheduler<? extends WorkerResourceDescription>> candidates,
+        Score actionScore) throws UnassignedActionException {
+        if (!candidates.contains(this.receiver)) {
+            throw new UnassignedActionException();
+        }
+        schedule(this.receiver, this.DUMMY_IMPL);
     }
 
     @Override
-    public <R extends WorkerResourceDescription> void schedule(ResourceScheduler<R> targetWorker, Implementation impl)
-        throws BlockedActionException, UnassignedActionException {
+    public void schedule(ResourceScheduler<? extends WorkerResourceDescription> targetWorker, Score actionScore)
+        throws UnassignedActionException {
+        if (targetWorker != this.receiver) {
+            schedule(targetWorker, this.DUMMY_IMPL);
+        }
+    }
+
+    @Override
+    public void schedule(ResourceScheduler<? extends WorkerResourceDescription> targetWorker, Implementation impl)
+        throws UnassignedActionException {
 
         if (targetWorker != this.receiver) {
             throw new UnassignedActionException();
@@ -415,11 +427,5 @@ public class TransferValueAction<T extends WorkerResourceDescription> extends Al
     @Override
     protected void stopAction() throws Exception {
 
-    }
-
-    @Override
-    public List<ResourceScheduler<?>> tryToSchedule(Score actionScore, Set<ResourceScheduler<?>> availableWorkers)
-        throws BlockedActionException, UnassignedActionException {
-        return null;
     }
 }

@@ -53,6 +53,13 @@ public class SchedulingInformation {
 
 
     /**
+     * Clears all the information stored statically.
+     */
+    public static void clear() {
+        CORE_TO_WORKERS.clear();
+    }
+
+    /**
      * Updates the coreCount information.
      * 
      * @param newCoreCount New coreCount value.

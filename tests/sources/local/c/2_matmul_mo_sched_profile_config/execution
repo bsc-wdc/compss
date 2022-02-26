@@ -60,7 +60,7 @@
      --input_profile=matmul_mo_in.profile \
      --output_profile=matmul_mo_out.profile \
      --scheduler_config_file=mo_config.properties \
-     --scheduler=es.bsc.compss.scheduler.multiobjective.MOScheduler \
+     --scheduler=es.bsc.compss.scheduler.fullgraph.multiobjective.MOScheduler \
      \
      "${base_app_dir}/master/${app_name}" $N $M $val > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
    

@@ -253,6 +253,7 @@
   # Schedulers
   echo "--- Copy schedulers"
   rm -r "${TMP_DIR}"/compss/runtime/scheduler/commons
+  rm -r "${TMP_DIR}"/compss/runtime/scheduler/test
   schedulers=$(find "${TMP_DIR}"/compss/runtime/scheduler/ -name "*.jar")
   for scheduler in $schedulers; do
     cp "$scheduler" "${targetDir}"/Runtime/scheduler/

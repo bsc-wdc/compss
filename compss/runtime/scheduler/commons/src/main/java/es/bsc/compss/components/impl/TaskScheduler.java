@@ -33,7 +33,6 @@ import es.bsc.compss.scheduler.types.WorkloadState;
 import es.bsc.compss.scheduler.types.allocatableactions.ReduceWorkerAction;
 import es.bsc.compss.scheduler.types.allocatableactions.StartWorkerAction;
 import es.bsc.compss.scheduler.types.allocatableactions.StopWorkerAction;
-import es.bsc.compss.scheduler.types.schedulinginformation.DataLocality;
 import es.bsc.compss.types.CloudProvider;
 import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
@@ -261,7 +260,7 @@ public class TaskScheduler {
      */
     public <T extends WorkerResourceDescription> SchedulingInformation generateSchedulingInformation(
         ResourceScheduler<T> rs, List<Parameter> params, Integer coreId) {
-        return new DataLocality(rs, params, coreId);
+        return new SchedulingInformation(rs);
     }
 
     /**
@@ -705,9 +704,11 @@ public class TaskScheduler {
                     try {
                         freeAction.schedule(freeAction.getAssignedResource(), score);
                     } catch (UnassignedActionException uae) {
-                        this.lostAllocatableAction(freeAction);
-                    } catch (BlockedActionException bae) {
-                        this.addToBlocked(freeAction);
+                        if (freeAction.getCompatibleWorkers().isEmpty()) {
+                            this.addToBlocked(freeAction);
+                        } else {
+                            this.lostAllocatableAction(freeAction);
+                        }
                     }
                 }
             } else {
@@ -821,7 +822,7 @@ public class TaskScheduler {
         try {
             action.schedule(ui, (Score) null);
             action.tryToLaunch();
-        } catch (BlockedActionException | UnassignedActionException | InvalidSchedulingException e) {
+        } catch (UnassignedActionException | InvalidSchedulingException e) {
             // Can not be blocked nor unassigned
             LOGGER.warn(" StartWorkerAction failed: " + e);
             LOGGER.warn(" Failed ResourceScheduler: " + ui.getName());
@@ -850,7 +851,7 @@ public class TaskScheduler {
         try {
             action.schedule(worker, (Score) null);
             action.tryToLaunch();
-        } catch (BlockedActionException | UnassignedActionException | InvalidSchedulingException e) {
+        } catch (UnassignedActionException | InvalidSchedulingException e) {
             // Can not be blocked nor unassigned
             LOGGER.error(" Error while reducing the worker..");
         }
@@ -931,7 +932,7 @@ public class TaskScheduler {
             try {
                 action.schedule((ResourceScheduler<WorkerResourceDescription>) worker, (Score) null);
                 action.tryToLaunch();
-            } catch (BlockedActionException | UnassignedActionException | InvalidSchedulingException e) {
+            } catch (UnassignedActionException | InvalidSchedulingException e) {
                 // Can not be blocked nor unassigned
                 LOGGER.error("WARN: Stop action has been blocked or unassigned. It should not happen!");
             }
@@ -1021,14 +1022,8 @@ public class TaskScheduler {
 
     }
 
-    /**
-     * Stop and Start the Worker.
-     *
-     * @param <T> WorkerResourceDescription.
-     * @param resource Removed worker.
-     */
-    private <T extends WorkerResourceDescription> void workerStoppedToBeRestarted(
-            Worker<T> worker, ResourceScheduler<T> resource) {
+    private <T extends WorkerResourceDescription> void workerStoppedToBeRestarted(Worker<T> worker,
+            ResourceScheduler<T> resource) {
 
         // remove the worker before re-scheduling its actions so the actions aren't
         //  assigned to the same worker before the worker is re-initialized
@@ -1184,8 +1179,7 @@ public class TaskScheduler {
      */
     public final List<AllocatableAction> getBlockedActions() {
         LOGGER.info("[TaskScheduler] Get Blocked Actions");
-        // Parameter null to get all blocked actions
-        return this.blockedActions.getActions(null);
+        return this.blockedActions.getAllActions();
     }
 
     /**

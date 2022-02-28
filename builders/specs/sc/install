@@ -139,6 +139,12 @@ get_args() {
   bindings=true
   autoparallel=true
   
+  system_os=$(uname)
+  if [[ "$system_os" == "Darwin" ]]; then
+    tracing=false
+    autoparallel=false
+  fi
+  
   get_args "$@"
   
   # WARN MESSAGE and log parameters

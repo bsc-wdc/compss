@@ -119,6 +119,9 @@ def get_serializer_priority(obj: typing.Any = ()) -> list:
     :param obj: Object to be analysed.
     :return: <List> The serializers sorted by priority in descending order.
     """
+    primitives = (int, str, bool, float)
+    if type(obj) in primitives:
+        return [json, pickle]
     serializers = [pickle]
     if DILL_AVAILABLE:
         serializers = [pickle, dill]

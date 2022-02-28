@@ -17,6 +17,7 @@
 package es.bsc.compss.util;
 
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.util.serializers.Serializer;
 
 import java.io.File;
 import java.io.IOException;

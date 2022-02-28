@@ -49,7 +49,7 @@ import es.bsc.compss.types.implementations.definition.PythonMPIDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.util.Serializer;
+import es.bsc.compss.util.serializers.Serializer;
 import es.bsc.compss.utils.execution.ExecutionManager;
 import es.bsc.compss.worker.COMPSsException;
 import es.bsc.distrostreamlib.client.DistroStreamClient;

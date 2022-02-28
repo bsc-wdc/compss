@@ -50,7 +50,7 @@ import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.util.Serializer;
+import es.bsc.compss.util.serializers.Serializer;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;

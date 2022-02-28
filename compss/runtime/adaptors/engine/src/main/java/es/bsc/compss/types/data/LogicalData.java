@@ -33,10 +33,10 @@ import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.FileOpsManager;
-import es.bsc.compss.util.Serializer;
 import es.bsc.compss.util.SharedDiskManager;
 import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
+import es.bsc.compss.util.serializers.Serializer;
 
 import java.io.File;
 import java.io.IOException;

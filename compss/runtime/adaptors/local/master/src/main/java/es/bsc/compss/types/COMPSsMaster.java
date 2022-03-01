@@ -1096,6 +1096,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             case FLOAT_T:
             case DOUBLE_T:
             case STRING_T:
+            case STRING_64_T:
                 // Primitive type parameters cannot become a PSCO nor stored. Ignoring parameter.
                 return;
             default:

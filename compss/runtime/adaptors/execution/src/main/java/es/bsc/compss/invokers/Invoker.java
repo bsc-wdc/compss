@@ -241,6 +241,7 @@ public abstract class Invoker implements ApplicationRunner {
                     np.setValueClass(double.class);
                     break;
                 case STRING_T:
+                case STRING_64_T:
                 case DIRECTORY_T:
                 case FILE_T:
                 case BINDING_OBJECT_T:

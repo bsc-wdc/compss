@@ -258,6 +258,7 @@ public abstract class NIOAgent {
                         }
                         break;
                     case STRING_T:
+                    case STRING_64_T:
                     case OBJECT_T:
                     case STREAM_T:
                     case COLLECTION_T:

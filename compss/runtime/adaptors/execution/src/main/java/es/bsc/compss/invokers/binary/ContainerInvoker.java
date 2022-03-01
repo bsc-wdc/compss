@@ -41,8 +41,8 @@ import java.io.File;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -487,6 +487,14 @@ public class ContainerInvoker extends Invoker {
                 for (String v : vals) {
                     paramArgs.add(v);
                 }
+                break;
+            case STRING_64_T:
+                // decode the string
+                byte[] decodedBytes = Base64.getDecoder().decode(np.getValue().toString());
+                String[] values = new String(decodedBytes).split(" ");
+                // add total # of strings
+                paramArgs.add(Integer.toString(values.length));
+                paramArgs.addAll(Arrays.asList(values));
                 break;
             case COLLECTION_T:
                 InvocationParamCollection<InvocationParam> ipc = (InvocationParamCollection<InvocationParam>) np;

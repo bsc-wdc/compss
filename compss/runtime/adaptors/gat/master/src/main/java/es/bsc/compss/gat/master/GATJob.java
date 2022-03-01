@@ -52,6 +52,8 @@ import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -485,7 +487,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                             sb.append("\t Direction: " + "R").append("\n");
                         }
                     }
-                } else if (type == DataType.STRING_T) {
+                } else if (type == DataType.STRING_T || type == DataType.STRING_64_T) {
                     BasicTypeParameter btParS = (BasicTypeParameter) param;
                     // Check spaces
                     String value = btParS.getValue().toString();
@@ -633,7 +635,17 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                 String value = btParS.getValue().toString();
                 int numSubStrings = value.split(" ").length;
                 paramDesc.add(Integer.toString(numSubStrings));
+                // todo: why isn't value parsed and added seprately?
                 paramDesc.add(value);
+                break;
+            case STRING_64_T:
+                BasicTypeParameter btp = (BasicTypeParameter) param;
+                // decode the string
+                byte[] decodedBytes = Base64.getDecoder().decode(btp.getValue().toString());
+                String[] values = new String(decodedBytes).split(" ");
+                // add total # of strings
+                paramDesc.add(Integer.toString(values.length));
+                paramDesc.addAll(Arrays.asList(values));
                 break;
             default:
                 // Basic Types

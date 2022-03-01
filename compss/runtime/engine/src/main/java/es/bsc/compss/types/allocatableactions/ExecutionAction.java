@@ -73,6 +73,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Base64;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -977,7 +978,7 @@ public class ExecutionAction extends AllocatableAction implements JobListener {
                 value = retValue.get(p.getName()).toString();
                 try {
                     FileWriter file = new FileWriter(dp.getDataTarget());
-                    // 4 is JSON package ID in Python binding
+                    // 0004 is the JSON package ID in Python binding
                     file.write("0004");
                     file.write(value.toString());
                     file.close();
@@ -1000,6 +1001,11 @@ public class ExecutionAction extends AllocatableAction implements JobListener {
                         break;
                     case STRING_T:
                         value = gson.fromJson(primValue, String.class);
+                        break;
+                    case STRING_64_T:
+                        String temp = gson.fromJson(primValue, String.class);
+                        byte[] encoded = Base64.getEncoder().encode(temp.getBytes());
+                        value = new String(encoded);
                         break;
                     case OBJECT_T:
                         if (dp.getContentType().equals("int")) {

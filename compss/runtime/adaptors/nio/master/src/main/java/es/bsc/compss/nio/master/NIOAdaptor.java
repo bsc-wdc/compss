@@ -609,6 +609,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             case FLOAT_T:
             case DOUBLE_T:
             case STRING_T:
+            case STRING_64_T:
                 // Primitive type parameters cannot become a PSCO nor stored. Ignoring parameter.
                 return;
             case COLLECTION_T:

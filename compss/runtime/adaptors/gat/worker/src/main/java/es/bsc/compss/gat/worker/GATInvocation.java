@@ -202,6 +202,17 @@ public class GATInvocation implements Invocation {
                     }
                     value = aux;
                     break;
+                case STRING_64_T:
+                    int total = Integer.parseInt(args[appArgsIdx++]);
+                    StringBuilder temp = new StringBuilder();
+                    for (int j = 0; j < total; j++) {
+                        if (j != 0) {
+                            temp.append(" ");
+                        }
+                        temp.append(args[appArgsIdx++]);
+                    }
+                    value = temp.toString();
+                    break;
                 case BYTE_T:
                     value = new Byte(args[appArgsIdx++]);
                     break;

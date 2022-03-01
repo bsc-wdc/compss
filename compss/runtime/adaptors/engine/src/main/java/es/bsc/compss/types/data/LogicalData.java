@@ -633,8 +633,8 @@ public class LogicalData {
                 case PERSISTENT:
                     PersistentLocation pLoc = (PersistentLocation) loc;
 
-                    if (Tracer.extraeEnabled()) {
-                        Tracer.emitEvent(TraceEvent.STORAGE_GETBYID.getId(), TraceEvent.STORAGE_GETBYID.getType());
+                    if (Tracer.isActivated()) {
+                        Tracer.emitEvent(TraceEvent.STORAGE_GETBYID);
                     }
                     try {
                         this.value[0] = StorageItf.getByID(pLoc.getId());
@@ -643,8 +643,8 @@ public class LogicalData {
                         // Check next location since cannot retrieve the object from the storage Back-end
                         continue;
                     } finally {
-                        if (Tracer.extraeEnabled()) {
-                            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.STORAGE_GETBYID.getType());
+                        if (Tracer.isActivated()) {
+                            Tracer.emitEventEnd(TraceEvent.STORAGE_GETBYID);
                         }
                     }
 

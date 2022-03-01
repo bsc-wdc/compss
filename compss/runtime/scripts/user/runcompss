@@ -32,7 +32,6 @@ source "${COMPSS_HOME}Runtime/scripts/system/runtime/compss_setup.sh"
 DEFAULT_LOG_LEVEL_ARGUMENT=${LOG_LEVEL_DEBUG}
 DEFAULT_GRAPH_ARGUMENT=true
 DEFAULT_MONITORING_INTERVAL_ARGUMENT=2000
-DEFAULT_TRACING_ARGUMENT=${TRACING_BASIC}
 DEFAULT_DEBUGGER_ARGUMENT=true
 DEFAULT_SHUTDOWN_IN_NODE_FAILURE=false
 
@@ -53,9 +52,7 @@ show_opts() {
     --graph=<bool>, --graph, -g             Generation of the complete graph (true/false)
                                             When no value is provided it is set to ${DEFAULT_GRAPH_ARGUMENT}
                                             Default: ${DEFAULT_GRAPH}
-    --tracing=<level>, --tracing, -t        Set generation of traces and/or tracing level ( [ true | basic ] | advanced | scorep | arm-map | arm-ddt | false)
-                                            True and basic levels will produce the same traces.
-                                            When no value is provided it is set to ${DEFAULT_TRACING_ARGUMENT}
+    --tracing=<bool>, --tracing, -t         Set generation of traces.
                                             Default: ${DEFAULT_TRACING}
     --monitoring=<int>, --monitoring, -m    Period between monitoring samples (milliseconds)
                                             When no value is provided it is set to ${DEFAULT_MONITORING_INTERVAL_ARGUMENT}
@@ -257,7 +254,7 @@ get_args() {
         ;;
       t)
         # Enable tracing
-        tracing=${DEFAULT_TRACING_ARGUMENT}
+        tracing=${TRACING_ENABLED}
         ;;
       m)
         # Enable monitoring with default value
@@ -356,23 +353,15 @@ get_args() {
               # Tracing level
               if [ "${tracing}" == "false" ]; then
                 tracing=${TRACING_DEACTIVATED}
-              elif [ "${tracing}" == "basic" ] || [ $tracing == "true" ]; then
-                tracing=${TRACING_BASIC}
-              elif [ "${tracing}" == "advanced" ]; then
-                tracing=${TRACING_ADVANCED}
-              elif [ "${tracing}" == "scorep" ]; then
-                tracing=${TRACING_SCOREP}
-              elif [ "${tracing}" == "arm-map" ]; then
-                tracing=${TRACING_ARM-MAP}
-              elif [ "${tracing}" == "arm-ddt" ]; then
-                tracing=${TRACING_ARM-DDT}
+              elif [ "${tracing}" == "true" ]; then
+                tracing=${TRACING_ENABLED}
               else
                 arguments_error "${TRACING_ERROR}"
               fi
             ;;
           tracing)
             # Tracing system
-            tracing=${DEFAULT_TRACING_ARGUMENT}
+            tracing=${TRACING_ENABLED}
             ;;
           extrae_config_file=*)
             # Custom extrae config file

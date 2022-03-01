@@ -94,14 +94,14 @@ public class Agent {
         LOGGER.info("Initializing agent with name: " + AGENT_NAME);
         // Start tracing system
         if (System.getProperty(COMPSsConstants.TRACING) != null
-            && Integer.parseInt(System.getProperty(COMPSsConstants.TRACING)) != 0) {
-            int tracingLevel = Integer.parseInt(System.getProperty(COMPSsConstants.TRACING));
+            && Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING))) {
+            int tracingLevel = Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING)) ? 1 : 0;
             boolean tracingTaskDep =
                 Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING_TASK_DEPENDENCIES));
             LOGGER.debug("Tracing is activated [" + tracingLevel + " " + tracingTaskDep + ']');
             Tracer.init(LoggerManager.getAppLogDirPath(), tracingLevel, tracingTaskDep);
-            if (Tracer.extraeEnabled()) {
-                Tracer.emitEvent(TraceEvent.STATIC_IT.getId(), TraceEvent.STATIC_IT.getType());
+            if (Tracer.isActivated()) {
+                Tracer.emitEvent(TraceEvent.STATIC_IT);
             }
         }
 
@@ -364,8 +364,8 @@ public class Agent {
      * Stops the runtime within the Agent.
      */
     public static void stop() {
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(TraceEvent.AGENT_STOP.getId(), TraceEvent.AGENT_STOP.getType());
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(TraceEvent.AGENT_STOP);
         }
         RUNTIME.stopIT(true);
         Iterator<AgentInterface<?>> itfs = INTERFACES.iterator();
@@ -374,8 +374,8 @@ public class Agent {
             itf.stop();
             itfs.remove();
         }
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.AGENT_STOP.getType());
+        if (Tracer.isActivated()) {
+            Tracer.emitEventEnd(TraceEvent.AGENT_STOP);
         }
     }
 
@@ -397,8 +397,8 @@ public class Agent {
     public static long runTask(Lang lang, CoreElementDefinition ced, String ceiClass, ApplicationParameter[] arguments,
         ApplicationParameter target, ApplicationParameter[] results, AppMonitor monitor, OnFailure onFailure)
         throws AgentException {
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(TraceEvent.AGENT_RUN_TASK.getId(), TraceEvent.AGENT_RUN_TASK.getType());
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(TraceEvent.AGENT_RUN_TASK);
         }
         Long appId = RUNTIME.registerApplication(ceiClass, null);
         monitor.setAppId(appId);
@@ -480,8 +480,8 @@ public class Agent {
             LOGGER.error("Error submitting task", e);
             throw new AgentException(e);
         } finally {
-            if (Tracer.extraeEnabled()) {
-                Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.AGENT_RUN_TASK.getType());
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(TraceEvent.AGENT_RUN_TASK);
             }
         }
         return appId;
@@ -636,8 +636,8 @@ public class Agent {
      * @throws AgentException could not create a configuration to start using this resource
      */
     public static void addResources(Resource<?, ?> r) throws AgentException {
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(TraceEvent.AGENT_ADD_RESOURCE.getId(), TraceEvent.AGENT_ADD_RESOURCE.getType());
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(TraceEvent.AGENT_ADD_RESOURCE);
         }
         String workerName = r.getName();
         MethodResourceDescription description = r.getDescription();
@@ -653,8 +653,8 @@ public class Agent {
             resourcesConf.put("Properties", r.getResourceConf());
             registerWorker(workerName, description, adaptor, projectConf, resourcesConf);
         }
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.AGENT_ADD_RESOURCE.getType());
+        if (Tracer.isActivated()) {
+            Tracer.emitEventEnd(TraceEvent.AGENT_ADD_RESOURCE);
         }
     }
 
@@ -701,8 +701,8 @@ public class Agent {
      * @throws AgentException the worker was not set up for the agent.
      */
     public static void removeResources(String workerName, MethodResourceDescription reduction) throws AgentException {
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(TraceEvent.AGENT_REMOVE_RESOURCES.getId(), TraceEvent.AGENT_REMOVE_RESOURCES.getType());
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(TraceEvent.AGENT_REMOVE_RESOURCES);
         }
         DynamicMethodWorker worker = ResourceManager.getDynamicResource(workerName);
         if (worker != null) {
@@ -710,8 +710,8 @@ public class Agent {
         } else {
             throw new AgentException("Resource " + workerName + " was not set up for this agent. Ignoring request.");
         }
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.AGENT_REMOVE_RESOURCES.getType());
+        if (Tracer.isActivated()) {
+            Tracer.emitEventEnd(TraceEvent.AGENT_REMOVE_RESOURCES);
         }
     }
 
@@ -722,16 +722,16 @@ public class Agent {
      * @throws AgentException the worker was not set up for the agent.
      */
     public static void removeNode(String workerName) throws AgentException {
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(TraceEvent.AGENT_REMOVE_RESOURCES.getId(), TraceEvent.AGENT_REMOVE_RESOURCES.getType());
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(TraceEvent.AGENT_REMOVE_RESOURCES);
         }
         try {
             ResourceManager.requestWholeWorkerReduction(workerName);
         } catch (NullPointerException e) {
             throw new AgentException("Resource " + workerName + " was not set up for this agent. Ignoring request.");
         } finally {
-            if (Tracer.extraeEnabled()) {
-                Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.AGENT_REMOVE_RESOURCES.getType());
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(TraceEvent.AGENT_REMOVE_RESOURCES);
             }
         }
     }

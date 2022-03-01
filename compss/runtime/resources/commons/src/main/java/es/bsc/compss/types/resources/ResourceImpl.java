@@ -374,7 +374,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
             LOGGER.debug(" Will not retrieve Tracing and Debug Data because the node: " + this.getName() + " is lost.");
             return;
         }
-        if (Tracer.extraeEnabled() || Tracer.scorepEnabled() || Tracer.mapEnabled()) {
+        if (Tracer.isActivated()) {
             if (this.node.generatePackage()) {
                 getTracingPackageToMaster();
                 if (DEBUG) {

@@ -149,7 +149,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
             pb.environment().remove(Tracer.EXTRAE_USE_POSIX_CLOCK);
 
             // Emit event for worker initialisation
-            if (Tracer.extraeEnabled()) {
+            if (Tracer.isActivated()) {
                 Tracer.emitEvent(this.size, Tracer.getSyncType());
             }
 
@@ -315,7 +315,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
         }
 
         // Emit event for end worker
-        if (Tracer.extraeEnabled()) {
+        if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getSyncType());
             Timestamp timestamp = new Timestamp(System.currentTimeMillis());
             Tracer.emitEvent((long) timestamp.getTime(), Tracer.getSyncType());

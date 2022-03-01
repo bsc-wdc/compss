@@ -48,8 +48,6 @@ public class GATTracer extends Tracer {
             LOGGER.debug("Starting trace for woker " + worker.getHost());
         }
 
-        tracingLevel = 1;
-
         int numTasks = worker.getTotalComputingUnits();
         if (numTasks <= 0) {
             if (DEBUG) {
@@ -187,13 +185,6 @@ public class GATTracer extends Tracer {
             return false;
         }
         String mode = "package";
-        if (Tracer.extraeEnabled()) {
-            mode = "package";
-        } else if (Tracer.scorepEnabled()) {
-            mode = "package-scorep";
-        } else if (Tracer.mapEnabled()) {
-            mode = "package-map";
-        }
         String pars = mode + " " + workingDir + " " + host;
 
         traceParams.add(pars);

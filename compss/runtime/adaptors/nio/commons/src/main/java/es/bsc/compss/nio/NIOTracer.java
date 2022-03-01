@@ -46,7 +46,7 @@ public class NIOTracer extends Tracer {
      */
     public static void init(int level, boolean tracingTaskDep) {
         LOGGER.debug("Initializing NIO tracing level [" + level + "," + tracingTaskDep + "]");
-        tracingLevel = level;
+        Tracer.enabled = (level != 0);
         tracingTaskDependencies = tracingTaskDep;
     }
 
@@ -64,9 +64,7 @@ public class NIOTracer extends Tracer {
         NIOTracer.nodeName = nodeName;
         NIOTracer.hostID = String.valueOf(hostID);
 
-        if (Tracer.extraeEnabled()) {
-            Tracer.setUpWrapper(hostID, hostID + 1);
-        }
+        Tracer.setUpWrapper(hostID, hostID + 1);
 
         if (DEBUG) {
             LOGGER.debug("Tracer worker for host " + hostID + " and: " + NIOTracer.scriptDir + ", "
@@ -163,29 +161,15 @@ public class NIOTracer extends Tracer {
         if (DEBUG) {
             LOGGER.debug("[NIOTracer] Generating trace package of " + nodeName);
         }
-        if (Tracer.extraeEnabled()) {
-            emitEvent(TraceEvent.STOP.getId(), TraceEvent.STOP.getType());
-            emitEvent(Tracer.EVENT_END, TraceEvent.STOP.getType());
+        emitEvent(TraceEvent.STOP.getId(), TraceEvent.STOP.getType());
+        emitEvent(Tracer.EVENT_END, TraceEvent.STOP.getType());
 
-            try {
-                Thread.sleep(10000);
-            } catch (InterruptedException e1) {
-                // Nothing to do
-            }
-            Tracer.stopWrapper();
-        } else {
-            if (Tracer.scorepEnabled()) {
-                if (DEBUG) {
-                    LOGGER.debug("[NIOTracer] Finishing scorep");
-                }
-            } else {
-                if (Tracer.mapEnabled()) {
-                    if (DEBUG) {
-                        LOGGER.debug("[NIOTracer] Finishing map");
-                    }
-                }
-            }
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e1) {
+            // Nothing to do
         }
+        Tracer.stopWrapper();
 
         generatePackage(scriptDir, workingDir, nodeName, hostID);
 

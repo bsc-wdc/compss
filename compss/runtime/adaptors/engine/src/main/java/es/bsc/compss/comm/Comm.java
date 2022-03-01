@@ -141,15 +141,13 @@ public class Comm {
         loadAdaptorsJars();
         // Start tracing system
         if (System.getProperty(COMPSsConstants.TRACING) != null
-            && Integer.parseInt(System.getProperty(COMPSsConstants.TRACING)) != 0) {
-            int tracingLevel = Integer.parseInt(System.getProperty(COMPSsConstants.TRACING));
+            && Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING))) {
+            int tracingLevel = 1;
             boolean tracingTaskDep =
                 Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING_TASK_DEPENDENCIES));
             LOGGER.debug("Tracing is activated [" + tracingLevel + " " + tracingTaskDep + ']');
             Tracer.init(Comm.getAppHost().getAppLogDirPath(), tracingLevel, tracingTaskDep);
-            if (Tracer.extraeEnabled()) {
-                Tracer.emitEvent(TraceEvent.STATIC_IT.getId(), TraceEvent.STATIC_IT.getType());
-            }
+            Tracer.emitEvent(TraceEvent.STATIC_IT.getId(), TraceEvent.STATIC_IT.getType());
         }
 
         // Start streaming library
@@ -352,13 +350,11 @@ public class Comm {
 
         FileOpsManager.shutdown();
 
-        if (Tracer.extraeEnabled()) {
+        if (Tracer.isActivated()) {
             // Emit last EVENT_END event for STOP
             Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.STOP.getType());
-        }
 
-        // Stop tracing system
-        if (Tracer.extraeEnabled() || Tracer.scorepEnabled() || Tracer.mapEnabled()) {
+            // Stop tracing system
             Tracer.fini(runtimeEvents);
         }
     }

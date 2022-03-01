@@ -62,24 +62,9 @@ public class TraceScript {
         return invokeScript(iDir, "package", traceDir, node, hostId);
     }
 
-    public static int package_scorep(String iDir, String traceDir, String node)
-        throws IOException, InterruptedException {
-        return invokeScript(iDir, "package-scorep", traceDir, node);
-    }
-
-    public static final int package_map(String iDir, String traceDir, String node)
-        throws IOException, InterruptedException {
-        return invokeScript(iDir, "package-map", traceDir, node);
-    }
-
     public static final int gentrace_extrae(String iDir, String traceDir, String appName, String numResources)
         throws IOException, InterruptedException {
         return invokeScript(iDir, "gentrace", traceDir, appName, numResources);
-    }
-
-    public static final int gentrace_scorep(String iDir, String traceDir, String appName, String numResources)
-        throws IOException, InterruptedException {
-        return invokeScript(iDir, "gentrace_scorep", traceDir, appName, numResources);
     }
 
     private static int invokeScript(String iDir, String cmd, String workingDirPath, String... args)

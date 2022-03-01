@@ -73,50 +73,6 @@
     # shellcheck disable=SC2086
     rm -rf ${files}
 
-  elif [ "$action" == "package-scorep" ]; then
-    node=$1
-    # echo "trace::packaging ${node}_compss_trace.tar.gz"
-    files=""
-    if [ "$node" != "master" ] && [ -d "./python" ] ; then
-        if [ -f ./python/pycompss.log ]; then
-            rm -f ./python/pycompss.log
-        fi
-        if ls ./python/core.* 1> /dev/null 2>&1; then
-            # Remove the current corefiles generated to avoid big package
-            # Notified this issue.
-            # TODO: remove this if block when the issue is fixed.
-            rm -f ./python/core*
-        fi
-        mv "./python" "./python_${node}"
-        files+=" ./python_${node}"
-    fi
-    # shellcheck disable=SC2086
-    tar czf "${node}_compss_trace.tar.gz" ${files}
-    echo "Package created $(ls -la  "${node}_compss_trace.tar.gz")"
-    endCode=$?
-    # shellcheck disable=SC2086
-    rm -rf ${files}
-
-  elif [ "$action" == "package-map" ]; then
-    node=$1
-    # echo "trace::packaging ${node}_compss_trace.tar.gz"
-    files=""
-    if [ "$node" != "master" ] && [ -d "./python" ] ; then
-        sleep 5 # The processes must have been killed. This waits for them.
-                # Otherwise, it raises an exception (piped mirror) - suspect map interaction.
-        if [ -f ./python/pycompss.log ]; then
-            rm -f ./python/pycompss.log
-        fi
-        mv "./python" "./python_${node}"
-        files+=" ./python_${node}"
-    fi
-    # shellcheck disable=SC2086
-    tar czf "${node}_compss_trace.tar.gz" ${files}
-    echo "Package created $(ls -la  "${node}_compss_trace.tar.gz")"
-    endCode=$?
-    # shellcheck disable=SC2086
-    rm -rf ${files}
-
   elif [ "$action" == "gentrace" ]; then
     appName=$1
     numberOfResources=$2
@@ -159,37 +115,9 @@
     fi
     endCode=$?
     rm -rf set-0/ TRACE.mpits TRACE.sym
-
-  elif [ "$action" == "gentrace-scorep" ]; then
-    appName=$1
-    numberOfResources=$2
-
-    # We require otf2-merger module loaded
-    # shellcheck source=./trace/scorep-merger.sh
-    # shellcheck disable=SC1091
-    source "${SCRIPT_DIR}"/trace/scorep-merger.sh
-
-    # Unpack the tar.gz of each worker
-    traceFiles=$(find trace/*_compss_trace.tar.gz)
-    #echo "trace::scorep_gentrace"
-    tmpDir=$(mktemp -d)
-    for file in ${traceFiles[*]}; do
-        tar -C "$tmpDir" -xzf "$file"
-        #echo "trace:: $tmpDir -xvzf $file"
-    done
-    trace_files=$(find "$tmpDir" -name "*.otf2*")
-    # Merge the traces.
-    for trace in $trace_files; do
-        params+=" --traceFile $trace"
-    done
-    # Example: otf2-merger --traceFile /path/to/trace/A.otf2 --traceFile /path/to/trace/B.otf2 --traceFile /path/to/trace/C.otf2 --outputPath /path/to/output/dir
-    # shellcheck disable=SC2086
-    otf2-merger $params --outputPath "./trace/${appName}_scorep_trace"
-    endCode=$?
-
-    # Clean the temporary directory
-    rm -rf "$tmpDir" # "$file"  # keep the original tar.gz
-
+  else 
+    echo 1>&2 "Unknown tracing action"
+    exit 1
   fi
 
   #-------------------------------------

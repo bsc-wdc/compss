@@ -192,7 +192,7 @@ public class COMPSsConstants {
 
     public static final String DEFAULT_CONNECTOR = "es.bsc.compss.connectors.DefaultSSHConnector";
 
-    public static final String DEFAULT_TRACING = "0";
+    public static final String DEFAULT_TRACING = "false";
     public static final String DEFAULT_CUSTOM_EXTRAE_FILE = "null";
     public static final String DEFAULT_PYTHON_CUSTOM_EXTRAE_FILE = "null";
 

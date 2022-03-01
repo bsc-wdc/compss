@@ -224,7 +224,10 @@ def compss_main():
     log_level = args.log_level
 
     # Setup tracing
-    tracing = int(args.tracing)
+    if args.tracing:
+        tracing = 1
+    else:
+        tracing = 0
 
     # Get storage configuration at master
     storage_conf = args.storage_configuration

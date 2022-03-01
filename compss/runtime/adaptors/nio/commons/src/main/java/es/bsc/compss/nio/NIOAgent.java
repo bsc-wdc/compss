@@ -216,7 +216,7 @@ public abstract class NIOAgent {
             NIOData source = dr.getSource();
             NIOUri uri = source.getFirstURI();
 
-            if (NIOTracer.extraeEnabled()) {
+            if (NIOTracer.isActivated()) {
                 NIOTracer.emitDataTransferEvent(source.getDataMgmtId(), false);
             }
             NIONode nn = uri.getHost();
@@ -237,7 +237,7 @@ public abstract class NIOAgent {
                 this.ongoingTransfers.put(c, dr.getSource().getDataMgmtId());
                 c.sendCommand(cdd);
 
-                if (NIOTracer.extraeEnabled()) {
+                if (NIOTracer.isActivated()) {
                     c.receive();
                 }
                 switch (dr.getType()) {
@@ -285,7 +285,7 @@ public abstract class NIOAgent {
                 }
             }
 
-            if (NIOTracer.extraeEnabled()) {
+            if (NIOTracer.isActivated()) {
                 NIOTracer.emitDataTransferEvent(source.getDataMgmtId(), true);
             }
         }
@@ -345,7 +345,7 @@ public abstract class NIOAgent {
      * @param receiverID Receiver Id.
      */
     public void sendData(Connection c, NIOData d, int receiverID) {
-        if (NIOTracer.extraeEnabled()) {
+        if (NIOTracer.isActivated()) {
             int tag = Math.abs(d.getDataMgmtId().hashCode());
             CommandTracingID cmd = new CommandTracingID(this.tracingId, tag);
             c.sendCommand(cmd);
@@ -385,7 +385,7 @@ public abstract class NIOAgent {
                 break;
         }
 
-        if (NIOTracer.extraeEnabled()) {
+        if (NIOTracer.isActivated()) {
             NIOTracer.emitDataTransferEvent(d.getDataMgmtId(), true);
         }
         c.finishConnection();
@@ -622,7 +622,7 @@ public abstract class NIOAgent {
         releaseReceiveSlot();
 
         // Add tracing event
-        if (NIOTracer.extraeEnabled()) {
+        if (NIOTracer.isActivated()) {
             int tag = Math.abs(dataId.hashCode());
             NIOTracer.emitDataTransferEvent(dataId, false);
             NIOTracer.emitCommEvent(false, this.connection2partner.get(c), tag, t.getSize());

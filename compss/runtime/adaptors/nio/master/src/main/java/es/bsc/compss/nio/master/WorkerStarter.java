@@ -191,7 +191,7 @@ public class WorkerStarter {
         // Try to launch the worker until we receive the PID or we timeout
         int pid = -1;
         String tracingHostId = "NoTracinghostID";
-        if (Tracer.extraeEnabled()) {
+        if (Tracer.isActivated()) {
             // NumSlots per host is ignored --> 0
             tracingHostId = String.valueOf(NIOTracer.registerHost(this.nw.getName(), 0));
 

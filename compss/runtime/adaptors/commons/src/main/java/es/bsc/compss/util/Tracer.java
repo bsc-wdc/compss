@@ -81,14 +81,8 @@ public abstract class Tracer {
 
     public static final int EVENT_END = 0;
 
-    // Tracing modes
-    public static final int ADVANCED_MODE = 2;
-    public static final int BASIC_MODE = 1;
-    public static final int DISABLED = 0;
-    public static final int SCOREP_MODE = -1;
-    public static final int MAP_MODE = -2;
-    protected static int tracingLevel = DISABLED;
-
+    // Tracing configuration
+    protected static boolean enabled = false;
     private static String installDir = System.getenv(COMPSsConstants.COMPSS_HOME);
     protected static boolean tracingTaskDependencies;
     private static String traceDirPath;
@@ -104,11 +98,11 @@ public abstract class Tracer {
 
 
     /**
-     * Initializes tracer creating the trace folder. If extrae's tracing is used (level > 0) then the current node
-     * (master) sets its nodeID (taskID in extrae) to 0, and its number of tasks to 1 (a single program).
+     * Initializes tracer creating the trace folder. If tracing is used then the current node (master) sets its nodeID
+     * (taskID) to 0, and its number of tasks to 1 (a single program).
      *
      * @param logDirPath Path to the log directory
-     * @param level type of tracing: -3: arm-ddt, -2: arm-map, -1: scorep, 0: off, 1: extrae-basic, 2: extrae-advanced
+     * @param level type of tracing: 0: off, 1: on
      */
     public static void init(String logDirPath, int level, boolean tracingTasks) {
         if (tracerAlreadyLoaded) {
@@ -136,21 +130,13 @@ public abstract class Tracer {
             ErrorManager.error(ERROR_TRACE_DIR);
         }
 
-        tracingLevel = level;
-
-        if (Tracer.extraeEnabled()) {
+        if (level != 0) {
+            Tracer.enabled = true;
             setUpWrapper(0, 1);
         } else {
-            if (DEBUG) {
-                if (Tracer.scorepEnabled()) {
-                    LOGGER.debug("Initializing scorep.");
-                } else {
-                    if (Tracer.mapEnabled()) {
-                        LOGGER.debug("Initializing arm-map.");
-                    }
-                }
-            }
+            Tracer.enabled = false;
         }
+
     }
 
     /**
@@ -170,57 +156,21 @@ public abstract class Tracer {
     }
 
     /**
-     * Returns if the current execution is being instrumented by extrae.
+     * Returns if any kind of tracing is activated.
      *
-     * @return true if currently instrumented by extrae
-     */
-    public static boolean extraeEnabled() {
-        return tracingLevel > 0;
-    }
-
-    /**
-     * Returns if the current execution is being instrumented by scorep.
-     *
-     * @return true if currently instrumented by scorep
-     */
-    public static boolean scorepEnabled() {
-        return tracingLevel == Tracer.SCOREP_MODE;
-    }
-
-    /**
-     * Returns if the current execution is being instrumented by arm-map.
-     *
-     * @return true if currently instrumented by arm-map
-     */
-    public static boolean mapEnabled() {
-        return tracingLevel == Tracer.MAP_MODE;
-    }
-
-    /**
-     * Returns if any kind of tracing is activated including ddt, map, scorep, or extrae).
-     *
-     * @return true if any kind of tracing is activated
+     * @return true if tracing is activated
      */
     public static boolean isActivated() {
-        return tracingLevel != 0;
-    }
-
-    /**
-     * Returns whether extrae is working and is activated in basic mode.
-     *
-     * @return true if extrae is enabled in basic mode
-     */
-    public static boolean basicModeEnabled() {
-        return tracingLevel == Tracer.BASIC_MODE;
+        return Tracer.enabled;
     }
 
     /**
      * Returns with which tracing level the Tracer has been initialized (0 if it's not active).
      *
-     * @return int with tracing level (in [-3, -2, -1, 0, 1, 2])
+     * @return int with tracing level (in [0, 1])
      */
     public static int getLevel() {
-        return tracingLevel;
+        return Tracer.enabled ? 1 : 0;
     }
 
     /**
@@ -542,7 +492,7 @@ public abstract class Tracer {
         }
 
         synchronized (Tracer.class) {
-            if (extraeEnabled()) {
+            if (enabled) {
                 defineEvents(runtimeEvents);
 
                 Tracer.stopWrapper();
@@ -550,15 +500,8 @@ public abstract class Tracer {
                 generateMasterPackage();
                 transferMasterPackage();
                 generateTrace();
-                if (basicModeEnabled()) {
-                    sortTrace();
-                }
+                sortTrace();
                 cleanMasterPackage();
-            } else {
-                if (scorepEnabled()) {
-                    // No master ScoreP trace - only Python Workers
-                    generateTrace();
-                }
             }
         }
     }
@@ -692,16 +635,11 @@ public abstract class Tracer {
     }
 
     protected static void generatePackage(String installDir, String workingDir, String nodeName, String hostId) {
+        if (!enabled) {
+            return;
+        }
         try {
-            int exitCode = 0;
-            switch (tracingLevel) {
-                case ADVANCED_MODE:
-                case BASIC_MODE:
-                    exitCode = TraceScript.package_extrae(installDir, workingDir, nodeName, hostId);
-                    break;
-                default: // DISABLED, SCOREP and ARM-MAP
-                    // Do nothing
-            }
+            int exitCode = TraceScript.package_extrae(installDir, workingDir, nodeName, hostId);
             if (exitCode != 0) {
                 ErrorManager.warn("Error generating " + nodeName + " package, exit code " + exitCode);
             }
@@ -763,21 +701,10 @@ public abstract class Tracer {
             }
         }
 
-        int exitCode = 0;
+        String appLogDir = System.getProperty(COMPSsConstants.APP_LOG_DIR);
         try {
-            switch (tracingLevel) {
-                case ADVANCED_MODE:
-                case BASIC_MODE:
-                    exitCode = TraceScript.gentrace_extrae(installDir, System.getProperty(COMPSsConstants.APP_LOG_DIR),
-                        traceName, String.valueOf(hostToSlots.size() + 1));
-                    break;
-                case SCOREP_MODE:
-                    exitCode = TraceScript.gentrace_scorep(installDir, System.getProperty(COMPSsConstants.APP_LOG_DIR),
-                        traceName, String.valueOf(hostToSlots.size() + 1));
-                    break;
-                default: // DISABLEDand ARM-MAP
-                    // Do nothing
-            }
+            int numHosts = hostToSlots.size() + 1;
+            int exitCode = TraceScript.gentrace_extrae(installDir, appLogDir, traceName, String.valueOf(numHosts));
             if (exitCode != 0) {
                 ErrorManager.warn("Error generating trace, exit code " + exitCode);
                 return;
@@ -791,9 +718,8 @@ public abstract class Tracer {
         }
 
         String lang = System.getProperty(COMPSsConstants.LANG);
-        if (lang.equalsIgnoreCase(COMPSsConstants.Lang.PYTHON.name()) && extraeEnabled()) {
+        if (lang.equalsIgnoreCase(COMPSsConstants.Lang.PYTHON.name())) {
             try {
-                String appLogDir = System.getProperty(COMPSsConstants.APP_LOG_DIR);
                 PythonTraceMerger t = new PythonTraceMerger(appLogDir);
                 t.merge();
             } catch (Exception e) {

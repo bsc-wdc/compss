@@ -189,15 +189,29 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
             job = broker.submitJob(jobDescr, this, JOB_STATUS);
             RUNNING_JOBS.add(this);
         } catch (Exception e) {
-            if (Tracer.extraeEnabled()) {
-                Tracer.freeSlot(((GATWorkerNode) worker.getNode()).getHost(),
-                    (Integer) jobDescr.getSoftwareDescription().getAttributes().get("slot"));
+            if (Tracer.isActivated()) {
+                SoftwareDescription sd = jobDescr.getSoftwareDescription();
+                releaseTracingSlot(sd);
             }
             throw e;
         }
 
         // Update mapping
         gatJob = job;
+    }
+
+    private int acquireTracingSlot(SoftwareDescription sd) {
+        int slot;
+        String host = getResourceNode().getHost();
+        slot = Tracer.getNextSlot(host);
+        sd.addAttribute("slot", slot);
+        return slot;
+    }
+
+    private void releaseTracingSlot(SoftwareDescription sd) {
+        Integer slot = (Integer) sd.getAttributes().get("slot");
+        String host = getResourceNode().getHost();
+        Tracer.freeSlot(host, slot);
     }
 
     protected static void stopAll() {
@@ -237,10 +251,8 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
          * transitions
          */
         if (newJobState == JobState.STOPPED) {
-            if (Tracer.extraeEnabled()) {
-                Integer slot = (Integer) sd.getAttributes().get("slot");
-                String host = getResourceNode().getHost();
-                Tracer.freeSlot(host, slot);
+            if (Tracer.isActivated()) {
+                releaseTracingSlot(sd);
             }
 
             /*
@@ -276,10 +288,8 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                 ErrorManager.fatal(CALLBACK_PROCESSING_ERR + ": " + this, e);
             }
         } else if (newJobState == JobState.SUBMISSION_ERROR) {
-            if (Tracer.extraeEnabled()) {
-                Integer slot = (Integer) sd.getAttributes().get("slot");
-                String host = getResourceNode().getHost();
-                Tracer.freeSlot(host, slot);
+            if (Tracer.isActivated()) {
+                releaseTracingSlot(sd);
             }
 
             try {
@@ -303,7 +313,6 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
         TaskDescription taskParams = this.taskParams;
 
         String targetPath = getResourceNode().getInstallDir();
-        String targetHost = getResourceNode().getHost();
         String targetUser = getResourceNode().getUser();
         if (userNeeded && !targetUser.isEmpty()) {
             targetUser += "@";
@@ -340,17 +349,16 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
         }
 
         // Tracing flags
-        lArgs.add(Boolean.toString(Tracer.extraeEnabled()));
-        if (Tracer.extraeEnabled()) {
+        lArgs.add(Boolean.toString(Tracer.isActivated()));
+        if (Tracer.isActivated()) {
             lArgs.add(String.valueOf(Tracer.getRuntimeEventsType())); // Runtime event type
             lArgs.add(String.valueOf(TraceEvent.CREATING_TASK_SANDBOX.getId())); // sandbox creation id
             lArgs.add(String.valueOf(TraceEvent.REMOVING_TASK_SANDBOX.getId())); // sandbox removal id
 
             lArgs.add(String.valueOf(Tracer.getTaskEventsType())); // event type
-            int slot = Tracer.getNextSlot(targetHost);
             lArgs.add(String.valueOf(this.taskId));
+            int slot = acquireTracingSlot(sd);
             lArgs.add(String.valueOf(slot)); // slot id
-            sd.addAttribute("slot", slot);
         }
 
         // Implementation Description
@@ -527,6 +535,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
             sd.setStderr(errFile);
         }
 
+        String targetHost = getResourceNode().getHost();
         Map<String, Object> attributes = new HashMap<String, Object>();
         attributes.put(RES_ATTR, ProtocolType.ANY_URI.getSchema() + targetUser + targetHost);
         attributes.put("Jobname", "compss_remote_job_" + jobId);

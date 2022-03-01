@@ -170,36 +170,30 @@ public class ExecutionPlatform implements ExecutorContext {
     }
 
     private void startTimer() {
-        if (Tracer.basicModeEnabled()) {
+        if (Tracer.isActivated()) {
             Tracer.enablePThreads(1);
         }
         this.timer = new Timer(platformName + " deadline reapper");
-        if (Tracer.extraeEnabled()) {
+        if (Tracer.isActivated()) {
             this.timer.schedule(new TimerTask() {
 
                 @Override
                 public void run() {
-                    if (Tracer.basicModeEnabled()) {
-                        Tracer.disablePThreads(1);
-                    }
-                    if (Tracer.extraeEnabled()) {
-                        Tracer.emitEvent(TraceEvent.TIMER_THREAD_ID.getId(), TraceEvent.TIMER_THREAD_ID.getType());
-                    }
+                    Tracer.disablePThreads(1);
+                    Tracer.emitEvent(TraceEvent.TIMER_THREAD_ID);
                 }
             }, 0);
         }
     }
 
     private void stopTimer() {
-        if (Tracer.extraeEnabled()) {
+        if (Tracer.isActivated()) {
             Semaphore sem = new Semaphore(0);
             this.timer.schedule(new TimerTask() {
 
                 @Override
                 public void run() {
-                    if (Tracer.extraeEnabled()) {
-                        Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.TIMER_THREAD_ID.getType());
-                    }
+                    Tracer.emitEventEnd(TraceEvent.TIMER_THREAD_ID);
                     sem.release();
                 }
             }, 0);
@@ -227,7 +221,7 @@ public class ExecutionPlatform implements ExecutorContext {
             } else {
                 startSem = this.startSemaphore;
             }
-            if (Tracer.basicModeEnabled()) {
+            if (Tracer.isActivated()) {
                 Tracer.enablePThreads(numWorkerThreads);
             }
             for (int i = 0; i < numWorkerThreads; i++) {

@@ -163,8 +163,8 @@ public class DataRegister {
             LOGGER.debug("   - Retrieving psco " + this.storageId + " from Storage");
             Object obj;
             // Get Object from its ID
-            if (NIOTracer.extraeEnabled()) {
-                NIOTracer.emitEvent(TraceEvent.STORAGE_GETBYID.getId(), TraceEvent.STORAGE_GETBYID.getType());
+            if (NIOTracer.isActivated()) {
+                NIOTracer.emitEvent(TraceEvent.STORAGE_GETBYID);
             }
             try {
                 obj = StorageItf.getByID(this.storageId);
@@ -173,8 +173,8 @@ public class DataRegister {
                 LOGGER.error("Cannot getByID PSCO " + this.storageId, e);
                 throw e;
             } finally {
-                if (NIOTracer.extraeEnabled()) {
-                    NIOTracer.emitEvent(NIOTracer.EVENT_END, TraceEvent.STORAGE_GETBYID.getType());
+                if (NIOTracer.isActivated()) {
+                    NIOTracer.emitEventEnd(TraceEvent.STORAGE_GETBYID);
                 }
             }
         }

@@ -117,8 +117,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
         }
 
         keepGoing = true;
-
-        if (Tracer.basicModeEnabled()) {
+        if (Tracer.isActivated()) {
             Tracer.enablePThreads(1);
         }
         dispatcher.start();
@@ -129,11 +128,9 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
     // Dispatcher thread
     @Override
     public void run() {
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(TraceEvent.TD_THREAD_ID.getId(), TraceEvent.TD_THREAD_ID.getType());
-            if (Tracer.basicModeEnabled()) {
-                Tracer.disablePThreads(1);
-            }
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(TraceEvent.TD_THREAD_ID);
+            Tracer.disablePThreads(1);
         }
         while (keepGoing) {
             String requestType = "Not defined";
@@ -141,38 +138,30 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
                 TDRequest request = requestQueue.take();
                 requestType = request.getType().toString();
 
-                if (Tracer.extraeEnabled()) {
+                if (Tracer.isActivated()) {
                     Tracer.emitEvent(Tracer.getTaskDispatcherRequestEvent(request.getType().name()).getId(),
                         Tracer.getRuntimeEventsType());
                 }
                 request.process(scheduler);
-                if (Tracer.extraeEnabled()) {
-                    Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
-                }
             } catch (InterruptedException ie) {
-                if (Tracer.extraeEnabled()) {
-                    Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
-                }
                 Thread.currentThread().interrupt();
                 continue;
             } catch (ShutdownException se) {
                 LOGGER.debug("Exiting dispatcher because of shutting down");
-                if (Tracer.extraeEnabled()) {
-                    Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
-                }
                 se.getSemaphore().release();
                 break;
             } catch (Exception e) {
                 LOGGER.error("Error in TaskDispatcher request:" + e.getMessage());
                 ErrorManager.error("Error in TaskDispatcher request " + requestType, e);
-                if (Tracer.extraeEnabled()) {
+                continue;
+            } finally {
+                if (Tracer.isActivated()) {
                     Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
                 }
-                continue;
             }
         }
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.TD_THREAD_ID.getType());
+        if (Tracer.isActivated()) {
+            Tracer.emitEventEnd(TraceEvent.TD_THREAD_ID);
         }
     }
 

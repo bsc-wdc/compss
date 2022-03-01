@@ -212,10 +212,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         this.tracingLevel = Integer.parseInt(traceFlag);
         this.tracingTaskDependencies = Boolean.parseBoolean(tracingTaskDependencies);
         NIOTracer.init(this.tracingLevel, this.tracingTaskDependencies);
-        if (NIOTracer.extraeEnabled()) {
+        if (NIOTracer.isActivated()) {
             NIOTracer.emitEvent(TraceEvent.START.getId(), TraceEvent.START.getType());
-        }
-        if (NIOTracer.extraeEnabled() || NIOTracer.scorepEnabled() || NIOTracer.mapEnabled()) {
             try {
                 this.tracingId = Integer.parseInt(traceHost);
                 NIOTracer.setWorkerInfo(installDir, hostName, workingDir, this.tracingId);
@@ -327,7 +325,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             }
         }
 
-        if (NIOTracer.extraeEnabled()) {
+        if (NIOTracer.isActivated()) {
             NIOTracer.emitEvent(TraceEvent.WORKER_RECEIVED_NEW_TASK.getId(),
                 TraceEvent.WORKER_RECEIVED_NEW_TASK.getType());
         }
@@ -352,7 +350,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         WORKER_LOGGER.info("Checking parameters");
         TaskFetchOperationsListener listener = new TaskFetchOperationsListener(task, this);
         int paramIdx = 0;
-        if (NIOTracer.extraeEnabled()) {
+        if (NIOTracer.isActivated()) {
             NIOTracer.emitEvent(TraceEvent.FETCH_PARAM.getId(), TraceEvent.FETCH_PARAM.getType());
         }
         for (NIOParam param : task.getParams()) {
@@ -378,15 +376,13 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             dataManager.fetchParam(targetParam, -1, listener);
 
         }
-        if (NIOTracer.extraeEnabled()) {
+        if (NIOTracer.isActivated()) {
             NIOTracer.emitEvent(NIOTracer.EVENT_END, TraceEvent.FETCH_PARAM.getType());
-        }
-        // Request the transfers
-        if (NIOTracer.extraeEnabled()) {
+            // Request the transfers
             NIOTracer.emitEvent(listener.getTask().getTaskId(), NIOTracer.getTaskTransfersType());
         }
         requestTransfers();
-        if (NIOTracer.extraeEnabled()) {
+        if (NIOTracer.isActivated()) {
             NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.getTaskTransfersType());
         }
 
@@ -402,7 +398,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         WORKER_LOGGER.debug("Enabling listener for task fetching");
         listener.enable();
 
-        if (NIOTracer.extraeEnabled()) {
+        if (NIOTracer.isActivated()) {
             NIOTracer.emitEvent(NIOTracer.EVENT_END, TraceEvent.WORKER_RECEIVED_NEW_TASK.getType());
         }
     }
@@ -492,7 +488,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
                     "Pending parameters: " + ((MultiOperationFetchListener) wdr.getListener()).getMissingOperations());
             }
         }
-        if (NIOTracer.extraeEnabled()) {
+        if (NIOTracer.isActivated()) {
             String nameId = (new File(dataId)).getName();
             NIOTracer.emitDataTransferEvent(nameId, true);
         }
@@ -691,11 +687,11 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
      * @param obsolete List of obsolete objects.
      */
     public void removeObsolete(List<String> obsolete) {
-        if (NIOTracer.extraeEnabled()) {
+        if (NIOTracer.isActivated()) {
             NIOTracer.emitEvent(TraceEvent.REMOVE_OBSOLETES.getId(), TraceEvent.REMOVE_OBSOLETES.getType());
         }
         this.dataManager.removeObsoletes(obsolete);
-        if (NIOTracer.extraeEnabled()) {
+        if (NIOTracer.isActivated()) {
             NIOTracer.emitEvent(NIOTracer.EVENT_END, TraceEvent.REMOVE_OBSOLETES.getType());
         }
     }
@@ -1174,7 +1170,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             return;
         }
 
-        if (NIOTracer.extraeEnabled()) {
+        if (NIOTracer.isActivated()) {
             NIOTracer.emitEvent(NIOTracer.EVENT_END, TraceEvent.START.getType());
         }
 

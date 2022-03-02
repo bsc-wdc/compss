@@ -24,6 +24,7 @@ import tempfile
 from pycompss.worker.container.container_worker import main
 from pycompss.api.task import task
 from pycompss.api.exceptions import COMPSsException
+from pycompss.util.serialization.serializer import serialize_to_file
 
 
 CONTAINER_WORKER = "container_worker.py"
@@ -80,31 +81,30 @@ def test_container_worker_increment_task():
     sys_argv_backup = list(sys.argv)
     sys_path_backup = list(sys.path)
     temp_file = tempfile.NamedTemporaryFile(delete=False).name
+    temp_file_name = os.path.basename(temp_file)
+    serialize_to_file(1, temp_file)
     sys.argv = [
         CONTAINER_WORKER,
         "test_container_worker",
         "increment",
-        "debug",
+        "true",
         "false",
-        "null",
-        "0",
-        "0",
-        "0",
-        "0",
+        "false",
+        "9",
         "1",
         "2",
-        "4",
-        "3",
-        "null",
-        "value",
-        "null",
-        "1",
         "9",
         "3",
         "#",
         "$return_0",
+        "FILE",
+        "null:" + temp_file_name + ":false:true:" + temp_file,
+        "4",
+        "3",
         "null",
-        temp_file,
+        "value",
+        "#UNDEFINED#:#UNDEFINED#",
+        "1"
     ]
     current_path = os.path.dirname(os.path.abspath(__file__))
     sys.path.append(current_path)
@@ -132,9 +132,10 @@ def test_container_worker_simple_task_compss_exception():
     ]
     current_path = os.path.dirname(os.path.abspath(__file__))
     sys.path.append(current_path)
-    main()
+    exit_code = main()
     sys.argv = sys_argv_backup
     sys.path = sys_path_backup
+    assert exit_code == 2, "Wrong exit code received (expected 2, received %s)" % str(exit_code)
 
 
 def test_container_worker_simple_task_exception():
@@ -155,6 +156,7 @@ def test_container_worker_simple_task_exception():
     ]
     current_path = os.path.dirname(os.path.abspath(__file__))
     sys.path.append(current_path)
-    main()
+    exit_code = main()
     sys.argv = sys_argv_backup
     sys.path = sys_path_backup
+    assert exit_code == 1, "Wrong exit code received (expected 1, received %s)" % str(exit_code)

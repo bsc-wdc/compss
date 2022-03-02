@@ -20,6 +20,7 @@ import sys
 import time
 import shutil
 import tempfile
+import unittest
 
 from pycompss.runtime.binding import barrier
 from pycompss.util.context import in_pycompss
@@ -54,6 +55,7 @@ def test_wordcount_example():
     sys.argv = argv_backup
 
 
+@unittest.skip("ERROR WITH SPACY (python 3.10 and spacy 2.3.2)")
 def test_wordcount_k_means_example():
     if sys.version_info >= (3, 0):
         current_path = os.path.dirname(os.path.abspath(__file__))

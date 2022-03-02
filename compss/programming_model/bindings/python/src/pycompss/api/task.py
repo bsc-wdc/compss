@@ -366,7 +366,7 @@ class Task(object):
         """
         Gets the module name from the user function.
         """
-        mod = inspect.getmodule(user_function)
+        mod = inspect.getmodule(user_function)  # type: typing.Any
         module_name = mod.__name__
         if module_name == "__main__":
             # The module where the function is defined was run as __main__,

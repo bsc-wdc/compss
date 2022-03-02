@@ -23,7 +23,6 @@ import es.bsc.compss.types.Task;
 import es.bsc.compss.types.TaskState;
 import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobHistory;
-import es.bsc.compss.types.job.JobStatusListener;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.util.Tracer;
@@ -129,7 +128,7 @@ public class MultiNodeExecutionAction extends ExecutionAction {
     }
 
     @Override
-    protected Job<?> submitJob(int transferGroupId, JobStatusListener listener) {
+    protected Job<?> submitJob(int transferGroupId) {
         // This part can only be executed by the master action
         if (DEBUG) {
             LOGGER.debug(this.toString() + " starts job creation");
@@ -141,7 +140,7 @@ public class MultiNodeExecutionAction extends ExecutionAction {
         Worker<? extends WorkerResourceDescription> w = this.getAssignedResource().getResource();
         List<String> slaveNames = this.group.getSlavesNames();
         Job<?> job = w.newJob(this.task.getId(), this.task.getTaskDescription(), this.getAssignedImplementation(),
-            slaveNames, listener, predecessors, this.task.getSuccessors().size());
+            slaveNames, this, predecessors, this.task.getSuccessors().size());
         if (Tracer.isActivated() && Tracer.isTracingTaskDependencies()) {
             Tracer.removePredecessor(this.task.getId());
         }

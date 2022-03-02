@@ -56,7 +56,7 @@ import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobEndStatus;
 import es.bsc.compss.types.job.JobHistory;
-import es.bsc.compss.types.job.JobStatusListener;
+import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.parameter.CollectionParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.DictCollectionParameter;
@@ -73,7 +73,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -84,7 +83,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
-public class ExecutionAction extends AllocatableAction {
+public class ExecutionAction extends AllocatableAction implements JobListener {
 
     // Fault tolerance parameters
     private static final int TRANSFER_CHANCES = 2;
@@ -406,8 +405,7 @@ public class ExecutionAction extends AllocatableAction {
      */
     public final void doSubmit(int transferGroupId) {
         JOB_LOGGER.debug("Received a notification for the transfers of task " + this.task.getId() + " with state DONE");
-        JobStatusListener listener = new JobStatusListener(this);
-        Job<?> job = submitJob(transferGroupId, listener);
+        Job<?> job = submitJob(transferGroupId);
         if (!this.cancelledBeforeSubmit) {
             // Register job
             this.jobs.add(job.getJobId());
@@ -416,13 +414,23 @@ public class ExecutionAction extends AllocatableAction {
             JOB_LOGGER.info("  * Method name: " + this.task.getTaskDescription().getName());
             JOB_LOGGER.info("  * Target host: " + this.getAssignedResource().getName());
 
-            this.profile.start();
+            this.profile.setSubmissionTime(System.currentTimeMillis());
             JobDispatcher.dispatch(job);
             JOB_LOGGER.info("Submitted Task: " + this.task.getId() + " Job: " + job.getJobId() + " Method: "
                 + this.task.getTaskDescription().getName() + " Resource: " + this.getAssignedResource().getName());
         } else {
             JOB_LOGGER.info("Job" + job.getJobId() + " cancelled before submission.");
         }
+    }
+
+    @Override
+    public void arrived(Job<?> job) {
+        arrivedAt(job, System.currentTimeMillis());
+    }
+
+    @Override
+    public void arrivedAt(Job<?> job, long ts) {
+        this.profile.setArrivalTime(ts);
     }
 
     private void removeJobTempData() {
@@ -491,7 +499,7 @@ public class ExecutionAction extends AllocatableAction {
 
     }
 
-    protected Job<?> submitJob(int transferGroupId, JobStatusListener listener) {
+    protected Job<?> submitJob(int transferGroupId) {
         // Create job
         if (DEBUG) {
             LOGGER.debug(this.toString() + " starts job creation");
@@ -505,7 +513,7 @@ public class ExecutionAction extends AllocatableAction {
             predecessors = Tracer.getPredecessors(this.task.getId());
         }
         Job<?> job = w.newJob(this.task.getId(), this.task.getTaskDescription(), this.getAssignedImplementation(),
-            slaveNames, listener, predecessors, this.task.getSuccessors().size());
+            slaveNames, this, predecessors, this.task.getSuccessors().size());
         // Remove predecessors from map for task dependency tracing
         if (Tracer.isActivated() && Tracer.isTracingTaskDependencies()) {
             Tracer.removePredecessor(this.task.getId());
@@ -515,6 +523,57 @@ public class ExecutionAction extends AllocatableAction {
         job.setHistory(JobHistory.NEW);
 
         return job;
+    }
+
+    @Override
+    public void allInputDataOnWorker(Job<?> job) {
+        allInputDataOnWorkerAt(job, System.currentTimeMillis());
+    }
+
+    @Override
+    public void allInputDataOnWorkerAt(Job<?> job, long ts) {
+        profile.setDataFetchingTime(ts);
+        TaskMonitor monitor = this.task.getTaskMonitor();
+        monitor.onDataReception();
+
+    }
+
+    @Override
+    public void startingExecution(Job<?> job) {
+        startingExecutionAt(job, System.currentTimeMillis());
+        TaskMonitor monitor = this.task.getTaskMonitor();
+        monitor.onExecutionStart();
+    }
+
+    @Override
+    public void startingExecutionAt(Job<?> job, long ts) {
+        profile.setExecutionStartTime(ts);
+        TaskMonitor monitor = this.task.getTaskMonitor();
+        monitor.onExecutionStartAt(ts);
+    }
+
+    @Override
+    public void endedExecution(Job<?> job) {
+        endedExecutionAt(job, System.currentTimeMillis());
+        TaskMonitor monitor = this.task.getTaskMonitor();
+        monitor.onExecutionEnd();
+    }
+
+    @Override
+    public void endedExecutionAt(Job<?> job, long ts) {
+        profile.setExecutionEndTime(ts);
+        TaskMonitor monitor = this.task.getTaskMonitor();
+        monitor.onExecutionEndAt(ts);
+    }
+
+    @Override
+    public void endNotified(Job<?> job) {
+        endNotifiedAt(job, System.currentTimeMillis());
+    }
+
+    @Override
+    public void endNotifiedAt(Job<?> job, long ts) {
+        profile.setEndNotificationTime(ts);
     }
 
     /**
@@ -541,9 +600,11 @@ public class ExecutionAction extends AllocatableAction {
      * Code executed when an exception has occurred on the job.
      *
      * @param job Job of exception.
+     * @param e COMPSsException raised by the job
      */
-    public final void exceptionJob(Job<?> job, COMPSsException e) {
-        this.profile.end();
+    @Override
+    public final void jobException(Job<?> job, COMPSsException e) {
+        this.profile.end(System.currentTimeMillis());
         // Remove tmpData for IN/OUTS
         removeJobTempData();
 
@@ -570,10 +631,11 @@ public class ExecutionAction extends AllocatableAction {
      * Code executed when the job execution has failed.
      *
      * @param job Failed job.
-     * @param endStatus Exit status.
+     * @param status Failure status
      */
-    public final void failedJob(Job<?> job, JobEndStatus endStatus) {
-        this.profile.end();
+    @Override
+    public final void jobFailed(Job<?> job, JobEndStatus status) {
+        this.profile.end(System.currentTimeMillis());
 
         // Remove tmpData for IN/OUTS
         removeJobTempData();
@@ -598,7 +660,7 @@ public class ExecutionAction extends AllocatableAction {
                     JOB_LOGGER.error("Resubmitting job to the same worker.");
                     ErrorManager.warn("Resubmitting job to the same worker.");
                     job.setHistory(JobHistory.RESUBMITTED);
-                    this.profile.start();
+                    this.profile.setSubmissionTime(System.currentTimeMillis());
                     JobDispatcher.dispatch(job);
                 } else {
                     if (this.task.getOnFailure() == OnFailure.IGNORE) {
@@ -617,9 +679,10 @@ public class ExecutionAction extends AllocatableAction {
      *
      * @param job Completed job.
      */
-    public final void completedJob(Job<?> job) {
+    @Override
+    public final void jobCompleted(Job<?> job) {
         // End profile
-        this.profile.end();
+        this.profile.end(System.currentTimeMillis());
 
         // Remove tmpData for IN/OUTS
         removeJobTempData();
@@ -972,16 +1035,6 @@ public class ExecutionAction extends AllocatableAction {
                 }
             }
         }
-    }
-
-    /**
-     * Notification announcing that all input data for a specific job is available on the node.
-     *
-     * @param job job whose input data is in the worker
-     */
-    public void allInputDataOnWorker(Job<?> job) {
-        TaskMonitor monitor = this.task.getTaskMonitor();
-        monitor.onDataReception();
     }
 
     /*

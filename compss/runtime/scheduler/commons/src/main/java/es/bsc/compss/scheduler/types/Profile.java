@@ -25,9 +25,9 @@ import org.json.JSONObject;
  * of executions.
  * <p>
  * To obtain the characteristics of a single execution, a new Profile is created. At the beginning of the execution, the
- * start method is invoked to obtain the necessary measurements to characterize the execution. Upon the end of the
- * execution, the end() method is called and the Profile class collects the necessary values, and analyzes their initial
- * value to prepare the execution summary.
+ * setSubmissionTime method is invoked to obtain the necessary measurements to characterize the execution. Upon the end
+ * of the execution, the end() method is called and the Profile class collects the necessary values, and analyzes their
+ * initial value to prepare the execution summary.
  * </p>
  * <p>
  * To obtain the statistic report of several executions, their profiles need to be merged using the accumulate method.
@@ -46,8 +46,17 @@ public class Profile {
 
     protected static final long DEFAULT_EXECUTION_TIME = 100L;
 
+    // One job Timestamps
+    private long submitTS;
+    private long arrivalTS;
+    private long fetchedDataTS;
+    private long executionStartTS;
+    private long executionEndTS;
+    private long endNotificationTS;
+    private long endTS;
+
+    // Global Statistics
     private long executions;
-    private long startTime;
     private long minTime;
     private long averageTime;
     private long maxTime;
@@ -111,18 +120,68 @@ public class Profile {
     }
 
     /**
-     * Marks the profile start.
+     * Marks the job submission Time.
+     *
+     * @param ts submission timestamp
      */
-    public void start() {
-        this.startTime = System.currentTimeMillis();
+    public final void setSubmissionTime(long ts) {
+        this.submitTS = ts;
     }
 
     /**
-     * Marks the profile end.
+     * Marks the job arrival time.
+     *
+     * @param ts arrival timestamp
      */
-    public void end() {
+    public final void setArrivalTime(long ts) {
+        this.arrivalTS = ts;
+    }
+
+    /**
+     * Marks the moment when all the input data of the job has been fetched.
+     *
+     * @param ts data fetching timestamp
+     */
+    public final void setDataFetchingTime(long ts) {
+        this.fetchedDataTS = ts;
+    }
+
+    /**
+     * Marks the job execution start time.
+     *
+     * @param ts execution start timestamp
+     */
+    public final void setExecutionStartTime(long ts) {
+        this.executionStartTS = ts;
+    }
+
+    /**
+     * Marks the job execution end time.
+     *
+     * @param ts execution end timestamp
+     */
+    public final void setExecutionEndTime(long ts) {
+        this.executionEndTS = ts;
+    }
+
+    /**
+     * Marks the job end notification time.
+     *
+     * @param ts end notification timestamp
+     */
+    public final void setEndNotificationTime(long ts) {
+        this.endNotificationTS = ts;
+    }
+
+    /**
+     * Marks the job end.
+     * 
+     * @param ts end timestamp
+     */
+    public void end(long ts) {
         this.executions = 1;
-        this.averageTime = System.currentTimeMillis() - startTime;
+        this.endTS = ts;
+        this.averageTime = endTS - submitTS;
         this.minTime = this.averageTime;
         this.maxTime = this.averageTime;
     }
@@ -137,12 +196,12 @@ public class Profile {
     }
 
     /**
-     * Returns the start time.
+     * Returns the setSubmissionTime time.
      * 
-     * @return The start time.
+     * @return The setSubmissionTime time.
      */
     public long getStartTime() {
-        return this.startTime;
+        return this.submitTS;
     }
 
     /**

@@ -40,6 +40,7 @@ import es.bsc.compss.nio.NIOMessageHandler;
 import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOParamCollection;
 import es.bsc.compss.nio.NIOTask;
+import es.bsc.compss.nio.NIOTaskProfile;
 import es.bsc.compss.nio.NIOTaskResult;
 import es.bsc.compss.nio.NIOTracer;
 import es.bsc.compss.nio.commands.CommandCancelTask;
@@ -308,6 +309,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     @Override
     public void receivedNewTask(NIONode master, NIOTask task, List<String> obsoleteFiles) {
         Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+        task.profileArrival();
         WORKER_LOGGER.info("Received Job " + task);
         if (WORKER_LOGGER_DEBUG) {
             WORKER_LOGGER.debug("ARGUMENTS:");
@@ -528,6 +530,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
         int jobId = nt.getJobId();
         int taskId = nt.getTaskId();
+        nt.profileEndNotification();
         NIOTaskResult tr = new NIOTaskResult(jobId, nt.getParams(), nt.getTarget(), nt.getResults());
         if (WORKER_LOGGER_DEBUG) {
             WORKER_LOGGER.debug("RESULT FOR JOB " + jobId + " (TASK ID: " + taskId + ")");
@@ -536,9 +539,10 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
         CommandNIOTaskDone cmd = null;
         if (e instanceof COMPSsException) {
-            cmd = new CommandNIOTaskDone(tr, successful, invocation.getHistory().toString(), (COMPSsException) e);
+            cmd = new CommandNIOTaskDone(tr, successful, nt.getProfile(), invocation.getHistory().toString(),
+                (COMPSsException) e);
         } else {
-            cmd = new CommandNIOTaskDone(tr, successful, invocation.getHistory().toString(), null);
+            cmd = new CommandNIOTaskDone(tr, successful, nt.getProfile(), invocation.getHistory().toString(), null);
         }
 
         // Notify task done
@@ -651,6 +655,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
      * @param task Task to execute.
      */
     public void executeTask(NIOTask task) {
+        task.profileFetchedData();
         if (WORKER_LOGGER_DEBUG) {
             WORKER_LOGGER.debug("Enqueueing job " + task.getJobId() + " for execution.");
         }
@@ -762,7 +767,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     }
 
     @Override
-    public void receivedNIOTaskDone(Connection c, NIOTaskResult tr, boolean successful, Exception e) {
+    public void receivedNIOTaskDone(Connection c, NIOTaskResult tr, NIOTaskProfile profile, boolean successful,
+        Exception e) {
         // Should not receive this call
     }
 

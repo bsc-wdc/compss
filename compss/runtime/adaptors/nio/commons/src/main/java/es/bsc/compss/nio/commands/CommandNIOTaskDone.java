@@ -19,6 +19,7 @@ package es.bsc.compss.nio.commands;
 import es.bsc.comm.Connection;
 
 import es.bsc.compss.nio.NIOAgent;
+import es.bsc.compss.nio.NIOTaskProfile;
 import es.bsc.compss.nio.NIOTaskResult;
 import es.bsc.compss.worker.COMPSsException;
 
@@ -33,6 +34,7 @@ public class CommandNIOTaskDone extends RetriableCommand {
     private NIOTaskResult tr;
     private String jobHistory;
     private COMPSsException compssException;
+    private NIOTaskProfile profile;
 
 
     /**
@@ -48,17 +50,20 @@ public class CommandNIOTaskDone extends RetriableCommand {
      *
      * @param tr Task result.
      * @param successful Whether the task has successfully finished or not.
+     * @param profile NIOTask execution times report
      */
-    public CommandNIOTaskDone(NIOTaskResult tr, boolean successful, String jobHistory, COMPSsException e) {
+    public CommandNIOTaskDone(NIOTaskResult tr, boolean successful, NIOTaskProfile profile, String jobHistory,
+        COMPSsException e) {
         this.tr = tr;
         this.jobHistory = jobHistory;
         this.successful = successful;
         this.compssException = e;
+        this.profile = profile;
     }
 
     @Override
     public void handle(NIOAgent agent, Connection c) {
-        agent.receivedNIOTaskDone(c, this.tr, this.successful, this.compssException);
+        agent.receivedNIOTaskDone(c, this.tr, this.profile, this.successful, this.compssException);
     }
 
     public COMPSsException getCompssException() {
@@ -79,6 +84,7 @@ public class CommandNIOTaskDone extends RetriableCommand {
         this.tr = (NIOTaskResult) in.readObject();
         this.jobHistory = in.readUTF();
         this.compssException = (COMPSsException) in.readObject();
+        this.profile = (NIOTaskProfile) in.readObject();
     }
 
     @Override
@@ -87,6 +93,7 @@ public class CommandNIOTaskDone extends RetriableCommand {
         out.writeObject(this.tr);
         out.writeUTF(this.jobHistory);
         out.writeObject(this.compssException);
+        out.writeObject(this.profile);
     }
 
     @Override

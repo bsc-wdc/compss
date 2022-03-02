@@ -237,6 +237,7 @@ public class Executor implements Runnable, InvocationRunner {
 
     private void processExecution(Execution execution) {
         invocation = execution.getInvocation();
+        invocation.executionStarts();
         if (invocation == null) {
             LOGGER.error("Dequeued job is null");
             return;
@@ -262,6 +263,7 @@ public class Executor implements Runnable, InvocationRunner {
         if (WORKER_DEBUG) {
             LOGGER.debug("Job " + invocation.getJobId() + " finished (success: " + success + ")");
         }
+        invocation.executionEnds();
         execution.notifyEnd(returnException, success);
 
         invocation = null;

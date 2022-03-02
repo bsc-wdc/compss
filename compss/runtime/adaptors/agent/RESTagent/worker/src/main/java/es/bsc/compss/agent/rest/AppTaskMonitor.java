@@ -81,25 +81,25 @@ public class AppTaskMonitor extends AppMonitor implements RESTAgentRequestHandle
     @Override
     public void onCreation() {
         super.onCreation();
-        profile.created();
+        profile.setTaskCreated(System.currentTimeMillis());
     }
 
     @Override
     public void onAccessesProcessed() {
         super.onAccessesProcessed();
-        profile.processedAccesses();
+        profile.setTaskAnalyzed(System.currentTimeMillis());
     }
 
     @Override
     public void onSchedule() {
         super.onSchedule();
-        profile.scheduled();
+        profile.setTaskScheduled(System.currentTimeMillis());
     }
 
     @Override
     public void onSubmission() {
         super.onSubmission();
-        profile.submitted();
+        profile.setTaskSubmitted(System.currentTimeMillis());
     }
 
     @Override
@@ -122,41 +122,61 @@ public class AppTaskMonitor extends AppMonitor implements RESTAgentRequestHandle
     }
 
     @Override
+    public void onExecutionStart() {
+        profile.setExecutionStart(System.currentTimeMillis());
+    }
+
+    @Override
+    public void onExecutionStartAt(long ts) {
+        profile.setExecutionStart(ts);
+    }
+
+    @Override
+    public void onExecutionEnd() {
+        profile.setExecutionEnd(System.currentTimeMillis());
+    }
+
+    @Override
+    public void onExecutionEndAt(long ts) {
+        profile.setExecutionEnd(ts);
+    }
+
+    @Override
     public void onAbortedExecution() {
         super.onAbortedExecution();
-        profile.finished();
+        profile.setEndNotification(System.currentTimeMillis());
     }
 
     @Override
     public void onErrorExecution() {
         super.onAbortedExecution();
-        profile.finished();
+        profile.setEndNotification(System.currentTimeMillis());
     }
 
     @Override
     public void onFailedExecution() {
         super.onFailedExecution();
-        profile.finished();
+        profile.setEndNotification(System.currentTimeMillis());
         this.successful = false;
     }
 
     @Override
     public void onException(COMPSsException e) {
         super.onException(e);
-        profile.finished();
+        profile.setEndNotification(System.currentTimeMillis());
     }
 
     @Override
     public void onSuccesfulExecution() {
         super.onSuccesfulExecution();
-        profile.finished();
+        profile.setEndNotification(System.currentTimeMillis());
         this.successful = true;
     }
 
     @Override
     public void onCancellation() {
         super.onCancellation();
-        profile.end();
+        profile.setTaskEnd(System.currentTimeMillis());
         if (this.requestListener != null) {
             this.requestListener.requestCompleted(this);
         }
@@ -166,7 +186,7 @@ public class AppTaskMonitor extends AppMonitor implements RESTAgentRequestHandle
     @Override
     public void onCompletion() {
         super.onCompletion();
-        profile.end();
+        profile.setTaskEnd(System.currentTimeMillis());
         if (this.requestListener != null) {
             this.requestListener.requestCompleted(this);
         }
@@ -176,7 +196,7 @@ public class AppTaskMonitor extends AppMonitor implements RESTAgentRequestHandle
     @Override
     public void onFailure() {
         super.onFailure();
-        profile.end();
+        profile.setTaskEnd(System.currentTimeMillis());
         if (this.requestListener != null) {
             this.requestListener.requestCompleted(this);
         }
@@ -197,9 +217,9 @@ public class AppTaskMonitor extends AppMonitor implements RESTAgentRequestHandle
             paramLocations[i] = result.getDataLocation();
             i++;
         }
-
         EndApplicationNotification ean = new EndApplicationNotification("" + getAppId(),
-            this.successful ? JobEndStatus.OK : JobEndStatus.EXECUTION_FAILED, paramTypes, paramLocations);
+            this.successful ? JobEndStatus.OK : JobEndStatus.EXECUTION_FAILED, paramTypes, paramLocations, profile);
+
         Response response = wt.request(MediaType.APPLICATION_JSON).put(Entity.xml(ean), Response.class);
         if (response.getStatusInfo().getStatusCode() != 200) {
             ErrorManager.warn("AGENT Could not notify Application " + getAppId() + " end to " + wt);

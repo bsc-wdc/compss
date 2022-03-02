@@ -32,7 +32,6 @@ import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.implementations.HTTPImplementation;
 import es.bsc.compss.types.job.JobEndStatus;
-import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.parameter.BasicTypeParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
@@ -90,9 +89,7 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
                 processResponse(job, httpResponse);
 
             } catch (Exception e) {
-                final JobListener jobListener = job.getListener();
-                jobListener.jobFailed(job, JobEndStatus.EXECUTION_FAILED, null);
-
+                job.failed(JobEndStatus.EXECUTION_FAILED);
                 LOGGER.error(SUBMIT_ERROR, e);
             }
         }
@@ -201,16 +198,13 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
     private void processResponse(HTTPJob job, final Response response) {
         int httpResponseCode = response.getResponseCode();
 
-        final JobListener jobListener = job.getListener();
-
         if (httpResponseCode >= 200 && httpResponseCode < 300) {
             LOGGER.debug("Correct HTTP response with response code " + httpResponseCode);
             job.setReturnValue(response.getResponseBody());
-            jobListener.jobCompleted(job);
+            job.completed();
         } else {
             LOGGER.debug("Job failing due to wrong HTTP response with response code " + httpResponseCode);
-
-            jobListener.jobFailed(job, JobEndStatus.EXECUTION_FAILED, null);
+            job.failed(JobEndStatus.EXECUTION_FAILED);
         }
     }
 

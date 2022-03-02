@@ -111,4 +111,14 @@ public interface Invocation {
      */
     public String getParallelismSource();
 
+    /**
+     * Registers that the invocation execution has started.
+     */
+    public void executionStarts();
+
+    /**
+     * Registers that the invocation execution has finished.
+     */
+    public void executionEnds();
+
 }

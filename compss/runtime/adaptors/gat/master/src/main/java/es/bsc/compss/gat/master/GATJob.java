@@ -256,7 +256,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                         gatJob = null;
                         RUNNING_JOBS.remove(this);
                         ErrorManager.warn("Error when creating file.");
-                        listener.jobFailed(this, JobEndStatus.EXECUTION_FAILED, null);
+                        listener.jobFailed(this, JobEndStatus.EXECUTION_FAILED);
                     } else {
                         if (!DEBUG) {
                             localFile.delete();
@@ -270,7 +270,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                 } else {
                     gatJob = null;
                     RUNNING_JOBS.remove(this);
-                    listener.jobFailed(this, JobEndStatus.EXECUTION_FAILED, null);
+                    listener.jobFailed(this, JobEndStatus.EXECUTION_FAILED);
                 }
             } catch (Exception e) {
                 ErrorManager.fatal(CALLBACK_PROCESSING_ERR + ": " + this, e);
@@ -289,7 +289,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                 } else {
                     gatJob = null;
                     RUNNING_JOBS.remove(this);
-                    listener.jobFailed(this, JobEndStatus.SUBMISSION_FAILED, null);
+                    listener.jobFailed(this, JobEndStatus.SUBMISSION_FAILED);
                 }
             } catch (GATInvocationException e) {
                 ErrorManager.fatal(CALLBACK_PROCESSING_ERR + ": " + this, e);
@@ -491,7 +491,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                 i++;
             }
             LOGGER.error(sb.toString());
-            listener.jobFailed(this, JobEndStatus.SUBMISSION_FAILED, null);
+            listener.jobFailed(this, JobEndStatus.SUBMISSION_FAILED);
         }
         sd.addAttribute("jobId", jobId);
         // JEA Changed to allow execution in MN
@@ -597,7 +597,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
             case PSCO_T:
             case EXTERNAL_PSCO_T:
                 LOGGER.error("GAT Adaptor does not support PSCO Types");
-                listener.jobFailed(this, JobEndStatus.SUBMISSION_FAILED, null);
+                listener.jobFailed(this, JobEndStatus.SUBMISSION_FAILED);
                 break;
             case OBJECT_T:
             case STREAM_T:

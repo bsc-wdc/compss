@@ -99,6 +99,30 @@ public interface TaskMonitor {
      */
     public void onFailure();
 
+    /**
+     * Actions to be performed by monitor on a task execution start.
+     */
+    public void onExecutionStart();
+
+    /**
+     * Actions to be performed by monitor on a task execution start at a given time.
+     * 
+     * @param ts execution start timestamp
+     */
+    public void onExecutionStartAt(long ts);
+
+    /**
+     * Actions to be performed by monitor on a task execution end.
+     */
+    public void onExecutionEnd();
+
+    /**
+     * Actions to be performed by monitor on a task execution end at a given time.
+     * 
+     * @param ts execution end timestamp
+     */
+    public void onExecutionEndAt(long ts);
+
 
     /**
      * Class representing a result of a task execution.

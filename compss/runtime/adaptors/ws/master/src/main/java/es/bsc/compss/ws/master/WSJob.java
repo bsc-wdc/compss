@@ -219,9 +219,9 @@ public class WSJob extends Job<ServiceInstance> {
                     job.listener.jobCompleted(job);
                 } catch (Exception e) {
                     if (e instanceof COMPSsException) {
-                        job.listener.jobFailed(job, JobEndStatus.EXECUTION_FAILED, (COMPSsException) e);
+                        job.listener.jobException(job, (COMPSsException) e);
                     } else {
-                        job.listener.jobFailed(job, JobEndStatus.EXECUTION_FAILED, null);
+                        job.listener.jobFailed(job, JobEndStatus.EXECUTION_FAILED);
                     }
                     LOGGER.error(SUBMIT_ERROR, e);
                     return;

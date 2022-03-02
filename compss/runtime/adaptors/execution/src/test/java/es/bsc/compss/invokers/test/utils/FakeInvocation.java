@@ -42,6 +42,7 @@ public class FakeInvocation implements Invocation {
     private final List<InvocationParam> results;
     private final List<String> slaves;
     private final JobHistory history;
+    private final long[] profile;
 
 
     private FakeInvocation(int jobId, int taskId, TaskType type, Lang lang, AbstractMethodImplementation impl,
@@ -59,6 +60,7 @@ public class FakeInvocation implements Invocation {
         this.results = results;
         this.slaves = slaves;
         this.history = history;
+        this.profile = new long[2];
     }
 
     @Override
@@ -146,6 +148,20 @@ public class FakeInvocation implements Invocation {
         return null;
     }
 
+    public long[] getProfileTimes() {
+        return this.profile;
+    }
+
+    @Override
+    public void executionStarts() {
+        this.profile[0] = System.currentTimeMillis();
+    }
+
+    @Override
+    public void executionEnds() {
+        this.profile[1] = System.currentTimeMillis();
+    }
+
 
     public static class Builder {
 
@@ -163,7 +179,7 @@ public class FakeInvocation implements Invocation {
 
         /**
          * Set Job Id.
-         * 
+         *
          * @param jobId Job Id
          * @return
          */
@@ -175,7 +191,7 @@ public class FakeInvocation implements Invocation {
 
         /**
          * Set task Id.
-         * 
+         *
          * @param taskId Task Id.
          * @return
          */
@@ -187,7 +203,7 @@ public class FakeInvocation implements Invocation {
 
         /**
          * Set type.
-         * 
+         *
          * @param type Type
          * @return
          */
@@ -199,7 +215,7 @@ public class FakeInvocation implements Invocation {
 
         /**
          * Set Language.
-         * 
+         *
          * @param lang Lang
          * @return
          */
@@ -211,7 +227,7 @@ public class FakeInvocation implements Invocation {
 
         /**
          * Set Implementation.
-         * 
+         *
          * @param impl Implementation
          * @return
          */
@@ -223,7 +239,7 @@ public class FakeInvocation implements Invocation {
 
         /**
          * Set Requirements.
-         * 
+         *
          * @param requirements Requirements
          * @return
          */
@@ -235,7 +251,7 @@ public class FakeInvocation implements Invocation {
 
         /**
          * Set parameters.
-         * 
+         *
          * @param params Parameters
          * @return
          */
@@ -247,7 +263,7 @@ public class FakeInvocation implements Invocation {
 
         /**
          * Set Target.
-         * 
+         *
          * @param target Target parameter
          * @return
          */
@@ -259,7 +275,7 @@ public class FakeInvocation implements Invocation {
 
         /**
          * Set result.
-         * 
+         *
          * @param results Resuts arameters
          * @return
          */
@@ -271,7 +287,7 @@ public class FakeInvocation implements Invocation {
 
         /**
          * Set Result.
-         * 
+         *
          * @param history job history
          * @return
          */
@@ -283,7 +299,7 @@ public class FakeInvocation implements Invocation {
 
         /**
          * Set slaves.
-         * 
+         *
          * @param slaves Slave nodes
          * @return
          */

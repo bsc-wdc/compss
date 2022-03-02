@@ -115,7 +115,8 @@ public class LocalJob extends Job<COMPSsMaster> implements Invocation {
 
     @Override
     public void submit() throws Exception {
-        listener.allInputDataOnWorker(this);
+        this.profileArrival();
+        this.fetchedAllInputData();
         this.getResourceNode().runJob(this);
     }
 

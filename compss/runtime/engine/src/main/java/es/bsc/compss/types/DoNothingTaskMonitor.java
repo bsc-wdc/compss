@@ -47,6 +47,22 @@ public class DoNothingTaskMonitor implements TaskMonitor {
     }
 
     @Override
+    public void onExecutionStart() {
+    }
+
+    @Override
+    public void onExecutionStartAt(long ts) {
+    }
+
+    @Override
+    public void onExecutionEnd() {
+    }
+
+    @Override
+    public void onExecutionEndAt(long ts) {
+    }
+
+    @Override
     public void onAbortedExecution() {
     }
 

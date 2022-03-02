@@ -40,6 +40,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.TimerTask;
 import java.util.concurrent.Semaphore;
+import org.junit.Assert;
 import org.junit.Test;
 
 
@@ -77,11 +78,13 @@ public class ExecutorTest {
         invBr = invBr.setImpl(new AbstractMethodImplementation(0, 0,
             new ImplementationDescription<>(new MethodDefinition(this.getClass().getCanonicalName(), "javaTest"), "",
                 new MethodResourceDescription())));
-        Invocation invocation1 = invBr.build();
+        FakeInvocation invocation1 = invBr.build();
         Execution exec = new Execution(invocation1, null);
         p.execute(exec);
         p.execute(new Execution(null, null));
         t.join();
+        Assert.assertNotEquals("Unset start time", 0, invocation1.getProfileTimes()[0]);
+        Assert.assertNotEquals("Unset end time", 0, invocation1.getProfileTimes()[1]);
     }
 
     public static void javaTest() {

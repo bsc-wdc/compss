@@ -538,9 +538,9 @@ public abstract class AllocatableAction {
     }
 
     /**
-     * Returns the start time (ms) of the Allocatable Action.
+     * Returns the setSubmissionTime time (ms) of the Allocatable Action.
      *
-     * @return The start time (ms) of the Allocatable Action.
+     * @return The setSubmissionTime time (ms) of the Allocatable Action.
      */
     public final Long getStartTime() {
         if (this.profile == null) {

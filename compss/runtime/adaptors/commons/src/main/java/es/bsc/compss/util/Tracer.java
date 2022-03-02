@@ -453,11 +453,11 @@ public abstract class Tracer {
      */
     public static void emitEvent(TraceEvent event) {
         synchronized (Tracer.class) {
-            Wrapper.Event(event.getId(), event.getType());
+            Wrapper.Event(event.getType(), event.getId());
         }
 
         if (DEBUG) {
-            LOGGER.debug("Emitting synchronized event [type, id] = [" + event.getId() + " , " + event.getType() + "]");
+            LOGGER.debug("Emitting synchronized event [type, id] = [" + event.getType() + " , " + event.getId() + "]");
         }
     }
 
@@ -502,11 +502,11 @@ public abstract class Tracer {
      */
     public static void emitEventEnd(TraceEvent event) {
         synchronized (Tracer.class) {
-            Wrapper.Event(EVENT_END, event.getType());
+            Wrapper.Event(event.getType(), EVENT_END);
         }
 
         if (DEBUG) {
-            LOGGER.debug("Emitting synchronized event [type, id] = [" + EVENT_END + " , " + event.getType() + "]");
+            LOGGER.debug("Emitting synchronized event [type, id] = [" + event.getType() + " , " + EVENT_END + "]");
         }
     }
 

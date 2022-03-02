@@ -46,6 +46,7 @@ import os
 import gc
 import json
 import struct
+import sys
 import types
 import traceback
 from pycompss.util.typing_helper import typing
@@ -77,69 +78,61 @@ else:
 
 try:
     import dill  # noqa
+    DILL_AVAILABLE = True
 except ImportError:
-    if IS_PYTHON3:
-        import pickle as dill  # type: ignore
-    else:
-        import cPickle as dill  # type: ignore
+    DILL_AVAILABLE = False
 
 try:
     import numpy
     NUMPY_AVAILABLE = True
 except ImportError:
-    if IS_PYTHON3:
-        import pickle as numpy  # type: ignore
-    else:
-        import cPickle as numpy  # type: ignore
     NUMPY_AVAILABLE = False
 
 try:
     import pyarrow
     PYARROW_AVAILABLE = True
 except ImportError:
-    pyarrow = None
     PYARROW_AVAILABLE = False
 
 # GLOBALS
 
-LIB2IDX = {
-    pickle: 0,
-    numpy: 1,
-    dill: 2,
-    pyarrow: 3,
-    json: 4
-}
+# LIB2IDX contains as key the serializer and value its associated integer
+LIB2IDX = {pickle: 0}
+if DILL_AVAILABLE:
+    LIB2IDX[dill] = 1
+if NUMPY_AVAILABLE:
+    LIB2IDX[numpy] = 2
+if PYARROW_AVAILABLE:
+    LIB2IDX[pyarrow] = 3
+LIB2IDX[json] = 4
+# IDX2LIB contains as key the integer and the value its associated serializer
 IDX2LIB = dict([(v, k) for (k, v) in LIB2IDX.items()])
-platform_c_maxint = 2 ** ((struct.Struct('i').size * 8 - 1) - 13)
-
+# Max integer
+PLATFORM_C_MAXINT = 2 ** ((struct.Struct('i').size * 8 - 1) - 13)
+# To force a specific serializer
 FORCED_SERIALIZER = -1  # make a serializer the only option for serialization
 
 
 def get_serializer_priority(obj=()):
     # type: (typing.Any) -> list
     """ Computes the priority of the serializers.
+    Returns a list with the available serializers in the most common order
+    (i.e: the order that will work for almost the 90% of our objects).
 
     :param obj: Object to be analysed.
     :return: <List> The serializers sorted by priority in descending order.
     """
-    if object_belongs_to_module(obj, 'numpy'):
-        return [numpy, pickle, dill]
-    elif object_belongs_to_module(obj, 'pyarrow'):
-        return [pyarrow, pickle, dill]
+    serializers = [pickle]
+    if DILL_AVAILABLE:
+        serializers = [pickle, dill]
+    if object_belongs_to_module(obj, 'numpy') and NUMPY_AVAILABLE:
+        return [numpy] + serializers
+    elif object_belongs_to_module(obj, 'pyarrow') and PYARROW_AVAILABLE:
+        return [pyarrow] + serializers
     else:
         if FORCED_SERIALIZER > -1:
             return [IDX2LIB.get(FORCED_SERIALIZER)]
-        return [pickle, dill]
-
-
-def get_serializers():
-    # type: () -> list
-    """ Returns a list with the available serializers in the most common order
-    (i.e: the order that will work for almost the 90% of our objects).
-
-    :return: <List> the available serializer modules.
-    """
-    return get_serializer_priority()
+        return serializers
 
 
 def serialize_to_handler(obj, handler):
@@ -157,7 +150,7 @@ def serialize_to_handler(obj, handler):
     if hasattr(handler, 'name'):
         emit_manual_event_explicit(BINDING_SERIALIZATION_OBJECT_NUM_TYPE,
                                    (abs(hash(os.path.basename(handler.name))) %
-                                    platform_c_maxint))
+                                    PLATFORM_C_MAXINT))
     if DISABLE_GC:
         # Disable the garbage collector while serializing -> more performance?
         gc.disable()
@@ -167,6 +160,7 @@ def serialize_to_handler(obj, handler):
     success = False
     original_position = handler.tell()
     # Lets try the serializers in the given priority
+    serialization_issues = []
     while i < len(serializer_priority) and not success:
         # Reset the handlers pointer to the first position
         handler.seek(original_position)
@@ -185,13 +179,13 @@ def serialize_to_handler(obj, handler):
         else:
             try:
                 # If it is a numpy object then use its saving mechanism
-                if serializer is numpy and \
-                        NUMPY_AVAILABLE and \
+                if NUMPY_AVAILABLE and \
+                        serializer is numpy and \
                         (isinstance(obj, numpy.ndarray) or
                          isinstance(obj, numpy.matrix)):
                     serializer.save(handler, obj, allow_pickle=False)
-                elif serializer is pyarrow and \
-                        PYARROW_AVAILABLE and \
+                elif PYARROW_AVAILABLE and \
+                        serializer is pyarrow and \
                         object_belongs_to_module(obj, "pyarrow"):
                     writer = pyarrow.ipc.new_file(handler, obj.schema)  # noqa
                     writer.write(obj)
@@ -209,8 +203,10 @@ def serialize_to_handler(obj, handler):
                                     handler,
                                     protocol=serializer.HIGHEST_PROTOCOL)
                 success = True
-            except Exception:  # noqa
+            except Exception as e:  # noqa
                 success = False
+                tb = traceback.format_exc()
+                serialization_issues.append((serializer, tb))
         i += 1
     emit_manual_event_explicit(BINDING_SERIALIZATION_SIZE_TYPE, handler.tell())
     emit_manual_event_explicit(BINDING_SERIALIZATION_OBJECT_NUM_TYPE, 0)
@@ -226,7 +222,10 @@ def serialize_to_handler(obj, handler):
         except AttributeError:
             # Bug fixed in 3.5 - issue10805
             pass
-        raise SerializerException('Cannot serialize object %s' % obj)
+        error_msg = "Cannot serialize object %r. Reason:\n" % obj
+        for line in serialization_issues:
+            error_msg += "ERROR with:  %s\n%s\n" % (line[0], line[1])
+        raise SerializerException(error_msg)
 
 
 def serialize_to_file(obj, file_name):
@@ -297,7 +296,7 @@ def deserialize_from_handler(handler, show_exception=True):
     if hasattr(handler, 'name'):
         emit_manual_event_explicit(BINDING_DESERIALIZATION_OBJECT_NUM_TYPE,
                                    (abs(hash(os.path.basename(handler.name))) %
-                                    platform_c_maxint))
+                                    PLATFORM_C_MAXINT))
     original_position = None
     try:
         original_position = handler.tell()
@@ -313,9 +312,9 @@ def deserialize_from_handler(handler, show_exception=True):
         if DISABLE_GC:
             # Disable the garbage collector while serializing -> performance?
             gc.disable()
-        if serializer is numpy and NUMPY_AVAILABLE:
+        if NUMPY_AVAILABLE and serializer is numpy:
             ret = serializer.load(handler, allow_pickle=False)
-        elif serializer is pyarrow and PYARROW_AVAILABLE:
+        elif PYARROW_AVAILABLE and serializer is pyarrow:
             ret = pyarrow.ipc.open_file(handler)
             if isinstance(ret, pyarrow.ipc.RecordBatchFileReader):
                 close_handler = False
@@ -344,6 +343,7 @@ def deserialize_from_handler(handler, show_exception=True):
                                    0)
         return ret, close_handler
     except Exception:
+        tb = traceback.format_exc()
         if DISABLE_GC:
             gc.enable()
         if __debug__ and show_exception:
@@ -353,7 +353,10 @@ def deserialize_from_handler(handler, show_exception=True):
             except AttributeError:
                 # Bug fixed in 3.5 - issue10805
                 pass
-        raise SerializerException('Cannot deserialize object')
+        error_msg = \
+            "ERROR: Cannot deserialize object with serializer: %s\n%s\n" % \
+            (serializer, tb)
+        raise SerializerException(error_msg)
 
 
 def deserialize_from_file(file_name):

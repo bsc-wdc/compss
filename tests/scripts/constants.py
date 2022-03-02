@@ -25,7 +25,6 @@ DEFAULT_FAMILIES = [
                     "agents",
                     "c",
                     "cloud",
-                    "gat",
                     "java",
                     "performance",
                     "pscos",

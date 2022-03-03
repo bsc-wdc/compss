@@ -139,7 +139,7 @@ public class PythonMirror extends PipedMirror {
         cmd.append(context.getWorkingDir()).append(TOKEN_SEP);
         cmd.append(context.getRuntimeAPI() != null).append(TOKEN_SEP);
         cmd.append(LOGGER.isDebugEnabled()).append(TOKEN_SEP);
-        cmd.append(Tracer.getLevel()).append(TOKEN_SEP);
+        cmd.append(Tracer.isActivated() ? 1 : 0).append(TOKEN_SEP);
         cmd.append(context.getStorageConf()).append(TOKEN_SEP);
         cmd.append(context.getStreamingBackend().name()).append(TOKEN_SEP);
         cmd.append(context.getStreamingMasterName()).append(TOKEN_SEP);

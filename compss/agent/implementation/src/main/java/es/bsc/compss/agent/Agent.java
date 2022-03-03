@@ -92,17 +92,16 @@ public class Agent {
         setAgentProperties();
         LoggerManager.init();
         LOGGER.info("Initializing agent with name: " + AGENT_NAME);
+
         // Start tracing system
-        if (System.getProperty(COMPSsConstants.TRACING) != null
-            && Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING))) {
-            int tracingLevel = Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING)) ? 1 : 0;
-            boolean tracingTaskDep =
-                Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING_TASK_DEPENDENCIES));
-            LOGGER.debug("Tracing is activated [" + tracingLevel + " " + tracingTaskDep + ']');
-            Tracer.init(LoggerManager.getAppLogDirPath(), tracingLevel, tracingTaskDep);
-            if (Tracer.isActivated()) {
-                Tracer.emitEvent(TraceEvent.STATIC_IT);
-            }
+        boolean tracing = System.getProperty(COMPSsConstants.TRACING) != null
+            && Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING));
+        boolean tracingTaskDep = Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING_TASK_DEPENDENCIES));
+        String installDir = System.getenv(COMPSsConstants.COMPSS_HOME);
+        String logDir = LoggerManager.getAppLogDirPath();
+        Tracer.init(tracing, 0, "master", installDir, ".", logDir, tracingTaskDep);
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(TraceEvent.STATIC_IT);
         }
 
         String dcConfigPath = System.getProperty(AgentConstants.DATACLAY_CONFIG_PATH);

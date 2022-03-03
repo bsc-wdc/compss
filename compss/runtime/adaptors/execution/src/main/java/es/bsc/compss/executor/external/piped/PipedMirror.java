@@ -233,7 +233,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
             LOGGER.debug("READ DATA PIPE: " + pipeBuilderPipe + ".inbound");
         }
 
-        cmd.append(Tracer.getLevel()).append(TOKEN_SEP);
+        cmd.append(Tracer.isActivated() ? "1" : "0").append(TOKEN_SEP);
 
         cmd.append(getPipeBuilderContext());
 

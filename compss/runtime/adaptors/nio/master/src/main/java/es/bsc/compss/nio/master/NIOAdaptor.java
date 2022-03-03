@@ -211,7 +211,6 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         /* Init tracing values */
         this.tracing = System.getProperty(COMPSsConstants.TRACING) != null
             && Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING));
-        this.tracingLevel = Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING)) ? 1 : 0;
         this.tracingTaskDependencies =
             Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING_TASK_DEPENDENCIES));
         // Start the server

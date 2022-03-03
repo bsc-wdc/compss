@@ -209,17 +209,18 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         WORKER_LOGGER.info("NIO Worker init");
 
         // Set tracing attributes and initialize module if needed
-        this.tracingLevel = Integer.parseInt(traceFlag);
+        this.tracing = Boolean.parseBoolean(traceFlag);
+        try {
+            this.tracingId = Integer.parseInt(traceHost);
+        } catch (Exception e) {
+            WORKER_LOGGER.error("No valid hostID provided to the tracing system. Provided ID: " + hostName);
+        }
         this.tracingTaskDependencies = Boolean.parseBoolean(tracingTaskDependencies);
-        NIOTracer.init(this.tracingLevel, this.tracingTaskDependencies);
+        String logDir = ".";
+        NIOTracer.init(this.tracing, this.tracingId, hostName, installDir, workingDir, logDir,
+            this.tracingTaskDependencies);
         if (NIOTracer.isActivated()) {
-            NIOTracer.emitEvent(TraceEvent.START.getId(), TraceEvent.START.getType());
-            try {
-                this.tracingId = Integer.parseInt(traceHost);
-                NIOTracer.setWorkerInfo(installDir, hostName, workingDir, this.tracingId);
-            } catch (Exception e) {
-                WORKER_LOGGER.error("No valid hostID provided to the tracing system. Provided ID: " + hostName);
-            }
+            NIOTracer.emitEvent(TraceEvent.START);
         }
 
         // Set attributes
@@ -1171,7 +1172,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         }
 
         if (NIOTracer.isActivated()) {
-            NIOTracer.emitEvent(NIOTracer.EVENT_END, TraceEvent.START.getType());
+            NIOTracer.emitEventEnd(TraceEvent.START);
         }
 
         /*

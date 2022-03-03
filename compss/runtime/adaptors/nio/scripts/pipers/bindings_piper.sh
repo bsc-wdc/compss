@@ -120,17 +120,6 @@ export_tracing() {
             export PYTHONPATH=${SCRIPT_DIR}/../../../../../../Dependencies/extrae/libexec/:${SCRIPT_DIR}/../../../../../../Dependencies/extrae/lib/:${PYTHONPATH}
         fi
 
-    elif [ "$tracing" -lt "-1" ]; then
-        # exporting variables required by any other tracing option (map/ddt/scorep)
-        if [ "$binding" == "PYTHON" ]; then
-            export ALLINEA_MPI_INIT=MPI_Init_thread
-            export ALLINEA_MPI_INIT_PENDING=1
-        else
-            # Only tracing with extrae is supported for other bindings
-            echo "ERROR: Unsupported tracing mode for this binding."
-            echo "QUIT" >> "${controlRESULTpipe}"
-            exit 1
-        fi
     fi
 }
 
@@ -179,47 +168,10 @@ process_pipe_commands() {
                     if [[ "${pythonInterpreter}" != coverage* ]]; then
                        pythonInterpreter=$(which "${pythonInterpreter}")
                     fi
-                    if [ "$tracing" -eq "-1" ]; then
-                        # scorep
-                        echo "[BINDINGS PIPER] Making preload call in folder $(pwd)"
-                        TRACE_SCRIPTS_PATH=${SCRIPT_DIR}/../../../../../scripts/system/trace
-                        python_version=$( ${pythonInterpreter} -c "import sys; print(sys.version_info[:][0])" )
-                        # shellcheck disable=SC1091
-                        # shellcheck source=./scorep.sh
-                        source "${TRACE_SCRIPTS_PATH}/scorep.sh" "$python_version"
-                        # Set path to the application - this even better because the submission is independent of the current working directory
-                        app_path=$(pwd)
-                        app_name=piper_worker.py
-                        rm -rf "${app_path}"/.scorep_preload
-                        ld_preload=$(scorep-preload-init --value-only --user --nocompiler --mpp=mpi --thread=pthread --io=runtime:posix "${app_path}/${app_name}")
-                        bindingArgs=" -x LD_PRELOAD=$ld_preload ${pythonInterpreter} -u -m scorep $bindingArgs"
-                        echo "[BINDINGS PIPER] ScoreP setup done"
-                    elif [ "$tracing" -eq "-2" ]; then
-                        # arm-map
-                        echo "[BINDINGS PIPER] Setting up arm-map tracing in folder $(pwd)"
-                        TRACE_SCRIPTS_PATH=${SCRIPT_DIR}/../../../../../scripts/system/trace
-                        # shellcheck disable=SC1091
-                        # shellcheck source=./arm-forge.sh
-                        source "${TRACE_SCRIPTS_PATH}"/arm-forge.sh
-                        # Set path to the application - this even better because the submission is independent of the current working directory
-                        bindingExecutable="map"
-                        bindingArgs=" --profile -o $(pwd)/$(hostname).map --mpi=generic -n ${numThreads} ${pythonInterpreter} $bindingArgs"
-                        echo "[BINDINGS PIPER] Arm setup for MAP done"
-                    elif [ "$tracing" -eq "-3" ]; then
-                        # arm-ddt
-                        echo "[BINDINGS PIPER] Setting up arm-ddt tracing in folder $(pwd)"
-                        TRACE_SCRIPTS_PATH=${SCRIPT_DIR}/../../../../../scripts/system/trace
-                        # shellcheck disable=SC1091
-                        # shellcheck source=./arm-forge.sh
-                        source "${TRACE_SCRIPTS_PATH}"/arm-forge.sh
-                        # Set path to the application - this even better because the submission is independent of the current working directory
-                        bindingExecutable="ddt"
-                        bindingArgs=" --connect --mpi=generic -n ${numThreads} ${pythonInterpreter} $bindingArgs"
-                        echo "[BINDINGS PIPER] Arm setup for DDT done"
-                    else
-                        # Extrae
-                        bindingExecutable="${workerCMD%%"$delimiter"*}$delimiter"
-                    fi
+
+                    # Extrae
+                    bindingExecutable="${workerCMD%%"$delimiter"*}$delimiter"
+
                     # Build worker command
                     workerCMD="${bindingExecutable} ${bindingArgs}"
                 fi

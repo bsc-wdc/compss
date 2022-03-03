@@ -53,11 +53,10 @@ public abstract class Tracer {
         "Cannot locate master tracing package " + "on working directory";
 
     // Tracing script and file paths
-    private static final String MASTER_TRACE_FILE = "master_compss_trace.tar.gz";
-    protected static final String TRACE_PATH = File.separator + "trace" + File.separator;
-    protected static final String TRACE_OUT_RELATIVE_PATH = TRACE_PATH + "tracer.out";
-    protected static final String TRACE_ERR_RELATIVE_PATH = TRACE_PATH + "tracer.err";
-    public static final String TRACE_SUBDIR = "trace";
+    public static final String TRACER_SUBFOLDER = "trace";
+    private static final String TRACER_OUT_FILENAME = "tracer.out";
+    private static final String TRACER_ERR_FILENAME = "tracer.err";
+
     public static final String TO_MERGE_SUBDIR = "to_merge";
 
     // Naming
@@ -65,6 +64,8 @@ public abstract class Tracer {
     public static final String TRACE_ROW_FILE_EXTENTION = ".row";
     public static final String TRACE_PRV_FILE_EXTENTION = ".prv";
     public static final String TRACE_PCF_FILE_EXTENTION = ".pcf";
+
+    private static final String MASTER_TRACE_FILE = "master_compss_trace.tar.gz";
 
     // Extrae loaded properties
     private static final boolean IS_CUSTOM_EXTRAE_FILE =
@@ -81,15 +82,19 @@ public abstract class Tracer {
 
     public static final int EVENT_END = 0;
 
-    // Tracing configuration
-    protected static boolean enabled = false;
-    private static String installDir = System.getenv(COMPSsConstants.COMPSS_HOME);
-    protected static boolean tracingTaskDependencies;
-    private static String traceDirPath;
-    private static Map<String, TraceHost> hostToSlots;
-    private static AtomicInteger hostId;
+    private static final AtomicInteger NEXT_HOST_ID = new AtomicInteger(1);
 
+    // Tracing configuration
     public static boolean tracerAlreadyLoaded = false;
+    private static boolean enabled = false;
+    private static String nodeName;
+    private static String installDir;
+    private static String workingDir;
+    private static String traceDirPath;
+    private static String hostId;
+    protected static boolean tracingTaskDependencies;
+
+    private static Map<String, TraceHost> hostToSlots;
 
     private static int numPthreadsEnabled = 0;
 
@@ -98,45 +103,73 @@ public abstract class Tracer {
 
 
     /**
-     * Initializes tracer creating the trace folder. If tracing is used then the current node (master) sets its nodeID
+     * Initializes tracer creating the trace folder.If tracing is used then the current node (master) sets its nodeID
      * (taskID) to 0, and its number of tasks to 1 (a single program).
      *
-     * @param logDirPath Path to the log directory
-     * @param level type of tracing: 0: off, 1: on
+     * @param enabled whether the tracing should be enabled or not
+     * @param hostId id of the host
+     * @param nodeName name of the node being traced
+     * @param installDir Path to the log directory
+     * @param workingDir Path to tracing system working dir
+     * @param baseLogDir Path to the installation directory
+     * @param tracingTasks whether the tracing should add dependency-related events or not
      */
-    public static void init(String logDirPath, int level, boolean tracingTasks) {
+    public static void init(boolean enabled, int hostId, String nodeName, String installDir, String workingDir,
+        String baseLogDir, boolean tracingTasks) {
         if (tracerAlreadyLoaded) {
             if (DEBUG) {
-                LOGGER.debug("Tracing already initialized " + level + "no need for a second initialization");
+                LOGGER.debug("Tracing already initialized.");
             }
             return;
         }
         tracerAlreadyLoaded = true;
+        Tracer.enabled = enabled;
+        Tracer.nodeName = nodeName;
+        Tracer.installDir = installDir;
+        Tracer.workingDir = workingDir;
+
         if (DEBUG) {
-            LOGGER.debug("Initializing tracing with level " + level);
+            LOGGER.debug("Initializing tracing: " + (enabled ? "Enabled" : "Disabled"));
             LOGGER.debug("Tracing task dependencies: " + tracingTasks);
         }
+        if (enabled) {
+            Tracer.hostId = String.valueOf(hostId);
+            hostToSlots = new HashMap<>();
+            predecessorsMap = new HashMap<>();
+            tracingTaskDependencies = tracingTasks;
 
-        hostId = new AtomicInteger(1);
-        hostToSlots = new HashMap<>();
-        predecessorsMap = new HashMap<>();
-        tracingTaskDependencies = tracingTasks;
+            if (!baseLogDir.endsWith(File.separator)) {
+                baseLogDir += File.separator;
+            }
+            baseLogDir += TRACER_SUBFOLDER;
+            if (!baseLogDir.endsWith(File.separator)) {
+                baseLogDir += File.separator;
+            }
+            Tracer.traceDirPath = baseLogDir;
+            if (!new File(traceDirPath).mkdir()) {
+                ErrorManager.error(ERROR_TRACE_DIR);
+            }
 
-        if (!logDirPath.endsWith(File.separator)) {
-            logDirPath += logDirPath;
+            setUpWrapper(hostId, hostId + 1);
+
         }
-        traceDirPath = logDirPath + "trace" + File.separator;
-        if (!new File(traceDirPath).mkdir()) {
-            ErrorManager.error(ERROR_TRACE_DIR);
-        }
+    }
 
-        if (level != 0) {
-            Tracer.enabled = true;
-            setUpWrapper(0, 1);
-        } else {
-            Tracer.enabled = false;
-        }
+    /**
+     * Returns the host Id.
+     *
+     * @return The host Id.
+     */
+    public static String getHostID() {
+        return Tracer.hostId;
+    }
 
+    public static String getTraceOutPath() {
+        return traceDirPath + TRACER_OUT_FILENAME;
+    }
+
+    public static String getTraceErrPath() {
+        return traceDirPath + TRACER_ERR_FILENAME;
     }
 
     /**
@@ -145,7 +178,7 @@ public abstract class Tracer {
      * @param taskId taskId of the node
      * @param numTasks num of tasks for that node
      */
-    protected static void setUpWrapper(int taskId, int numTasks) {
+    private static void setUpWrapper(int taskId, int numTasks) {
         synchronized (Tracer.class) {
             if (DEBUG) {
                 LOGGER.debug("Initializing extrae Wrapper.");
@@ -162,15 +195,6 @@ public abstract class Tracer {
      */
     public static boolean isActivated() {
         return Tracer.enabled;
-    }
-
-    /**
-     * Returns with which tracing level the Tracer has been initialized (0 if it's not active).
-     *
-     * @return int with tracing level (in [0, 1])
-     */
-    public static int getLevel() {
-        return Tracer.enabled ? 1 : 0;
     }
 
     /**
@@ -240,7 +264,7 @@ public abstract class Tracer {
                 }
                 return -1;
             }
-            id = hostId.getAndIncrement();
+            id = NEXT_HOST_ID.getAndIncrement();
             hostToSlots.put(name, new TraceHost(slots));
         }
         return id;
@@ -497,7 +521,7 @@ public abstract class Tracer {
 
                 Tracer.stopWrapper();
 
-                generateMasterPackage();
+                generatePackage();
                 transferMasterPackage();
                 generateTrace();
                 sortTrace();
@@ -624,20 +648,11 @@ public abstract class Tracer {
         Wrapper.defineEventType(type.code, type.desc, values, descriptions);
     }
 
-    /**
-     * Generate the tracing package for the master.
-     */
-    private static void generateMasterPackage() {
+    protected static void generatePackage() {
         if (DEBUG) {
-            LOGGER.debug("Tracing: generating master package");
+            LOGGER.debug("[Tracer] Generating trace package of " + nodeName);
         }
-        generatePackage(installDir, ".", "master", "0");
-    }
 
-    protected static void generatePackage(String installDir, String workingDir, String nodeName, String hostId) {
-        if (!enabled) {
-            return;
-        }
         try {
             int exitCode = TraceScript.package_extrae(installDir, workingDir, nodeName, hostId);
             if (exitCode != 0) {
@@ -720,7 +735,7 @@ public abstract class Tracer {
         String lang = System.getProperty(COMPSsConstants.LANG);
         if (lang.equalsIgnoreCase(COMPSsConstants.Lang.PYTHON.name())) {
             try {
-                PythonTraceMerger t = new PythonTraceMerger(appLogDir);
+                PythonTraceMerger t = new PythonTraceMerger(traceDirPath);
                 t.merge();
             } catch (Exception e) {
                 ErrorManager.warn("Error while trying to merge files", e);
@@ -742,9 +757,7 @@ public abstract class Tracer {
         File[] rowFileArray;
         File[] prvFileArray;
         try {
-            String appLogDir = System.getProperty(COMPSsConstants.APP_LOG_DIR);
-            File dir = new File(appLogDir + TRACE_SUBDIR);
-            final String traceNamePrefix = Tracer.getTraceNamePrefix();
+            File dir = new File(traceDirPath);
             rowFileArray = dir.listFiles((File d, String name) -> name.endsWith(TRACE_ROW_FILE_EXTENTION));
             prvFileArray = dir.listFiles((File d, String name) -> name.endsWith(TRACE_PRV_FILE_EXTENTION));
         } catch (Exception e) {

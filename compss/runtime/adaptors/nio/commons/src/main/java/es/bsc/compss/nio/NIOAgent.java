@@ -123,7 +123,6 @@ public abstract class NIOAgent {
 
     // Tracing
     protected boolean tracing;
-    protected int tracingLevel;
     protected boolean tracingTaskDependencies;
     protected int tracingId = 0; // unless NIOWorker sets this value; 0 -> master (NIOAdaptor)
     protected HashMap<Connection, Integer> connection2partner;

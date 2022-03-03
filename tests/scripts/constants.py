@@ -35,7 +35,7 @@ DEFAULT_CLI_FAMILIES = [
                     "environment",
                     "runapps",
                     "jupyter"]
-DEFAULT_IGNORED = [".target", "target", ".idea", ".settings", ".git"]
+DEFAULT_IGNORED = [".target", "target", ".idea", ".settings", ".git", "gat"]
 DEFAULT_TESTS = []
 
 DEFAULT_CFG_FILE = "NIO.cfg"

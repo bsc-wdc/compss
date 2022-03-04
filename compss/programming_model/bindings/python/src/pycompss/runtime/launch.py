@@ -42,7 +42,6 @@ from pycompss.runtime.commons import DEFAULT_CONN
 from pycompss.runtime.commons import DEFAULT_JVM_WORKERS
 from pycompss.runtime.commons import set_temporary_directory
 from pycompss.runtime.commons import set_object_conversion
-from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.runtime.commons import PYTHON_VERSION
 from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
 from pycompss.util.exceptions import SerializerException
@@ -155,12 +154,8 @@ def __load_user_module__(app_path, log_level):
     """
     app_name = os.path.basename(app_path).split(".")[0]
     try:
-        if IS_PYTHON3:
-            from importlib.machinery import SourceFileLoader        # noqa
-            _ = SourceFileLoader(app_name, app_path).load_module()  # type: ignore
-        else:
-            import imp                                              # noqa
-            _ = imp.load_source(app_name, app_path)                 # noqa
+        from importlib.machinery import SourceFileLoader        # noqa
+        _ = SourceFileLoader(app_name, app_path).load_module()  # type: ignore
     except Exception:                                               # noqa
         # Ignore any exception to try to run.
         # This exception can be produce for example with applications
@@ -298,11 +293,8 @@ def compss_main():
         # MAIN EXECUTION
         with event_master(APPLICATION_RUNNING_EVENT):
             # MAIN EXECUTION
-            if IS_PYTHON3:
-                with open(APP_PATH) as f:
-                    exec(compile(f.read(), APP_PATH, "exec"), globals())
-            else:
-                execfile(APP_PATH, globals())  # type: ignore
+            with open(APP_PATH) as f:
+                exec(compile(f.read(), APP_PATH, "exec"), globals())
 
         # End
         if __debug__:
@@ -612,18 +604,11 @@ def launch_pycompss_application(app,                              # type: str
     # Execution:
     with event_master(APPLICATION_RUNNING_EVENT):
         if func is None or func == "__main__":
-            if IS_PYTHON3:
-                exec(open(app).read())
-            else:
-                execfile(app)  # type: ignore
+            exec(open(app).read())
             result = None
         else:
-            if IS_PYTHON3:
-                from importlib.machinery import SourceFileLoader  # noqa
-                imported_module = SourceFileLoader(all_vars["file_name"], app).load_module()  # type: ignore
-            else:
-                import imp  # noqa
-                imported_module = imp.load_source(all_vars["file_name"], app)                 # noqa
+            from importlib.machinery import SourceFileLoader  # noqa
+            imported_module = SourceFileLoader(all_vars["file_name"], app).load_module()  # type: ignore
             method_to_call = getattr(imported_module, func)
             try:
                 result = method_to_call(*args, **kwargs)

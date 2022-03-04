@@ -9,7 +9,6 @@ CONTENT
 -------
 
 src
-  L exaqute     -> Exaqute wrappers
   L ext         -> external C module to interact with the binding-commons
   L pycompss    -> Python modules
     L api       -> API modules to be imported by the programmer in the application
@@ -24,7 +23,7 @@ src
 
 DEPENDENCIES
 ------------
-- Python 3.x (optionally Python 2.x)
+- Python 3.x
 - COMPSs Java runtime
 - COMPSs binding-commons
 

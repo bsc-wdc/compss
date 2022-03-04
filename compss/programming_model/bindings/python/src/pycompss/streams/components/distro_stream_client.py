@@ -22,14 +22,7 @@ import logging
 import socket
 from pycompss.util.typing_helper import typing
 from threading import Thread
-from pycompss.runtime.commons import IS_PYTHON3
-
-if IS_PYTHON3:
-    # Python 3
-    import queue
-else:
-    # Python 2
-    import Queue
+import queue
 
 # Project imports
 from pycompss.streams.types.requests import STOP
@@ -137,10 +130,7 @@ class DistroStreamClient(Thread):
         # Initialize internal structures
         self.running = True
         self.requests = None  # type: typing.Any
-        if IS_PYTHON3:
-            self.requests = queue.Queue()
-        else:
-            self.requests = Queue.Queue()
+        self.requests = queue.Queue()
 
     def run(self):
         # type: () -> None

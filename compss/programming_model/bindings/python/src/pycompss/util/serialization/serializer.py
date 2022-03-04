@@ -46,13 +46,11 @@ import os
 import gc
 import json
 import struct
-import sys
 import types
 import traceback
 from pycompss.util.typing_helper import typing
 from io import BytesIO
 
-from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.util.exceptions import SerializerException
 from pycompss.util.serialization.extended_support import pickle_generator
 from pycompss.util.serialization.extended_support import convert_to_generator
@@ -69,12 +67,7 @@ from pycompss.worker.commons.constants import DESERIALIZE_FROM_FILE_EVENT
 from pycompss.worker.commons.constants import SERIALIZE_TO_FILE_EVENT
 from pycompss.worker.commons.constants import SERIALIZE_TO_FILE_MPIENV_EVENT
 
-DISABLE_GC = False
-
-if IS_PYTHON3:
-    import pickle as pickle  # Uses _pickle if available
-else:
-    import cPickle as pickle  # type: ignore
+import pickle
 
 try:
     import dill  # noqa
@@ -111,6 +104,8 @@ IDX2LIB = dict([(v, k) for (k, v) in LIB2IDX.items()])
 PLATFORM_C_MAXINT = 2 ** ((struct.Struct('i').size * 8 - 1) - 13)
 # To force a specific serializer
 FORCED_SERIALIZER = -1  # make a serializer the only option for serialization
+# Control Garbage Collector
+DISABLE_GC = False
 
 
 def get_serializer_priority(obj=()):
@@ -318,7 +313,7 @@ def deserialize_from_handler(handler, show_exception=True):
             ret = pyarrow.ipc.open_file(handler)
             if isinstance(ret, pyarrow.ipc.RecordBatchFileReader):
                 close_handler = False
-        elif serializer is json and IS_PYTHON3:
+        elif serializer is json:
             # Deserialization of json files is not in binary: close handler
             h_name = handler.name
             handler.close()

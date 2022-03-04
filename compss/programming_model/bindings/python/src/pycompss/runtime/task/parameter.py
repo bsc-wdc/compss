@@ -27,7 +27,6 @@ import sys
 import copy
 from pycompss.util.typing_helper import typing
 
-from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.runtime.task.keys import PARAM_ALIAS_KEYS
 from pycompss.runtime.task.keys import PARAM_DICT_KEYS
 from pycompss.api.parameter import TYPE
@@ -58,12 +57,8 @@ except ImportError:
     pass
 
 # Python max and min integer values
-if IS_PYTHON3:
-    PYTHON_MAX_INT = sys.maxsize
-    PYTHON_MIN_INT = -sys.maxsize - 1
-else:
-    PYTHON_MAX_INT = sys.maxint       # type: ignore
-    PYTHON_MIN_INT = -sys.maxint - 1  # type: ignore
+PYTHON_MAX_INT = sys.maxsize
+PYTHON_MIN_INT = -sys.maxsize - 1
 # Java max and min integer and long values
 JAVA_MAX_INT = 2147483647
 JAVA_MIN_INT = -2147483648
@@ -634,13 +629,10 @@ def get_compss_type(value, depth=0):
             # decoration as FILE.
             return TYPE.STRING
         elif value_type is int:
-            if IS_PYTHON3:
-                if int(value) < PYTHON_MAX_INT:  # noqa
-                    return TYPE.INT
-                else:
-                    return TYPE.LONG
-            else:
+            if int(value) < PYTHON_MAX_INT:  # noqa
                 return TYPE.INT
+            else:
+                return TYPE.LONG
         elif value_type is float:
             return TYPE.DOUBLE
     elif depth > 0 and is_basic_iterable(value):

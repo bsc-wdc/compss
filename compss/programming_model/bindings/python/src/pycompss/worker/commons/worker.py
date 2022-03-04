@@ -30,7 +30,6 @@ import logging
 
 import pycompss.api.parameter as parameter
 from pycompss.api.exceptions import COMPSsException
-from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.runtime.commons import STR_ESCAPE
 from pycompss.runtime.commons import INTERACTIVE_FILE_NAME
 from pycompss.runtime.task.parameter import Parameter
@@ -152,7 +151,7 @@ def build_task_parameter(p_type,      # type: int
         else:
             deserialized_aux = new_aux
 
-        if IS_PYTHON3 and isinstance(deserialized_aux, bytes):
+        if isinstance(deserialized_aux, bytes):
             deserialized_aux = deserialized_aux.decode('utf-8')
 
         if __debug__:

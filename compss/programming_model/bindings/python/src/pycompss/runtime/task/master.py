@@ -60,7 +60,6 @@ from pycompss.api.commons.implementation_types import IMPL_PYTHON_MPI
 from pycompss.api.parameter import TYPE
 from pycompss.api.parameter import DIRECTION
 from pycompss.runtime.binding import wait_on
-from pycompss.runtime.commons import IS_PYTHON3  # noqa
 from pycompss.runtime.commons import EMPTY_STRING_KEY
 from pycompss.runtime.commons import STR_ESCAPE
 from pycompss.runtime.commons import EXTRA_CONTENT_TYPE_FORMAT
@@ -130,54 +129,29 @@ logger = logging.getLogger(__name__)
 
 # Types conversion dictionary from python to COMPSs
 _PYTHON_TO_COMPSS = dict()  # type: dict
-if IS_PYTHON3:
-    from concurrent.futures import ThreadPoolExecutor  # noqa
-    from concurrent.futures import wait                # noqa
-    _PYTHON_TO_COMPSS = {int: TYPE.INT,  # int # long
-                         float: TYPE.DOUBLE,  # float
-                         bool: TYPE.BOOLEAN,  # bool
-                         str: TYPE.STRING,  # str
-                         # The type of instances of user-defined classes
-                         # types.InstanceType: TYPE.OBJECT,
-                         # The type of methods of user-defined class instances
-                         # types.MethodType: TYPE.OBJECT,
-                         # The type of user-defined old-style classes
-                         # types.ClassType: TYPE.OBJECT,
-                         # The type of modules
-                         # types.ModuleType: TYPE.OBJECT,
-                         # The type of tuples (e.g. (1, 2, 3, "Spam"))
-                         tuple: TYPE.OBJECT,
-                         # The type of lists (e.g. [0, 1, 2, 3])
-                         list: TYPE.OBJECT,
-                         # The type of dictionaries (e.g. {"Bacon":1,"Ham":0})
-                         dict: TYPE.OBJECT,
-                         # The type of generic objects
-                         object: TYPE.OBJECT
-                         }
-else:
-    import types
-    _PYTHON_TO_COMPSS = {types.IntType: TYPE.INT,          # type: ignore # int
-                         types.LongType: TYPE.LONG,        # type: ignore # long
-                         types.FloatType: TYPE.DOUBLE,     # type: ignore # float
-                         types.BooleanType: TYPE.BOOLEAN,  # type: ignore # bool
-                         types.StringType: TYPE.STRING,    # type: ignore # str
-                         # The type of instances of user-defined classes
-                         # types.InstanceType: TYPE.OBJECT,
-                         # The type of methods of user-defined class instances
-                         # types.MethodType: TYPE.OBJECT,
-                         # The type of user-defined old-style classes
-                         # types.ClassType: TYPE.OBJECT,
-                         # The type of modules
-                         # types.ModuleType: TYPE.OBJECT,
-                         # The type of tuples (e.g. (1, 2, 3, "Spam"))
-                         types.TupleType: TYPE.OBJECT,     # type: ignore
-                         # The type of lists (e.g. [0, 1, 2, 3])
-                         types.ListType: TYPE.OBJECT,      # type: ignore
-                         # The type of dictionaries (e.g. {"Bacon":1,"Ham":0})
-                         types.DictType: TYPE.OBJECT,      # type: ignore
-                         # The type of generic objects
-                         types.ObjectType: TYPE.OBJECT     # type: ignore
-                         }
+from concurrent.futures import ThreadPoolExecutor  # noqa
+from concurrent.futures import wait                # noqa
+_PYTHON_TO_COMPSS = {int: TYPE.INT,  # int # long
+                     float: TYPE.DOUBLE,  # float
+                     bool: TYPE.BOOLEAN,  # bool
+                     str: TYPE.STRING,  # str
+                     # The type of instances of user-defined classes
+                     # types.InstanceType: TYPE.OBJECT,
+                     # The type of methods of user-defined class instances
+                     # types.MethodType: TYPE.OBJECT,
+                     # The type of user-defined old-style classes
+                     # types.ClassType: TYPE.OBJECT,
+                     # The type of modules
+                     # types.ModuleType: TYPE.OBJECT,
+                     # The type of tuples (e.g. (1, 2, 3, "Spam"))
+                     tuple: TYPE.OBJECT,
+                     # The type of lists (e.g. [0, 1, 2, 3])
+                     list: TYPE.OBJECT,
+                     # The type of dictionaries (e.g. {"Bacon":1,"Ham":0})
+                     dict: TYPE.OBJECT,
+                     # The type of generic objects
+                     object: TYPE.OBJECT
+                     }
 
 MANDATORY_ARGUMENTS = set()  # type: typing.Set[str]
 # List since the parameter names are included before checking for unexpected
@@ -650,17 +624,12 @@ class TaskMaster(object):
         :param function: Function to analyse.
         :return: args, varargs, keywords and defaults dictionaries.
         """
-        if IS_PYTHON3:
-            full_argspec = inspect.getfullargspec(function)
-            as_args = full_argspec.args
-            as_varargs = full_argspec.varargs
-            as_keywords = None  # type: typing.Any
-            as_defaults = full_argspec.defaults
-            return as_args, as_varargs, as_keywords, as_defaults
-        else:
-            # Using getargspec in python 2 (deprecated in python 3 in favour
-            # of getfullargspec).
-            return inspect.getargspec(function)  # noqa
+        full_argspec = inspect.getfullargspec(function)
+        as_args = full_argspec.args
+        as_varargs = full_argspec.varargs
+        as_keywords = None  # type: typing.Any
+        as_defaults = full_argspec.defaults
+        return as_args, as_varargs, as_keywords, as_defaults
 
     def pop_task_parameters(self, kwargs):
         # type: (dict) -> None
@@ -951,14 +920,13 @@ class TaskMaster(object):
         # for the correct registration and later invoke.
         # Since these methods don't have self, nor cls, they are considered as
         # FUNCTIONS to the runtime
-        if IS_PYTHON3:
-            name = str(self.function_name)
-            qualified_name = str(self.user_function.__qualname__)
-            if name != qualified_name:
-                # Then there is a class definition before the name in the
-                # qualified name
-                self.class_name = qualified_name[:-len(name) - 1]
-                # -1 to remove the last point
+        name = str(self.function_name)
+        qualified_name = str(self.user_function.__qualname__)
+        if name != qualified_name:
+            # Then there is a class definition before the name in the
+            # qualified name
+            self.class_name = qualified_name[:-len(name) - 1]
+            # -1 to remove the last point
 
     def get_code_strings(self):
         # type: () -> None
@@ -1491,38 +1459,37 @@ class TaskMaster(object):
         :param f: Function to check.
         :return: The number of return elements if found.
         """
-        # Check type-hinting in python3
-        if IS_PYTHON3:
-            from typing import get_type_hints
-            type_hints = get_type_hints(f)
-            if "return" in type_hints:
-                # There is a return defined as type-hint
-                ret = type_hints["return"]
-                try:
-                    if hasattr(ret, "__len__"):
-                        num_returns = len(ret)
-                    else:
-                        num_returns = 1
-                except TypeError:
-                    # Is not iterable, so consider just 1
-                    num_returns = 1
-                if num_returns > 1:
-                    for i in range(num_returns):
-                        param = Parameter(content_type=parameter.TYPE.FILE,
-                                          direction=parameter.DIRECTION.OUT)
-                        param.content = object()
-                        self.returns[get_return_name(i)] = param
+        # Check type-hinting
+        from typing import get_type_hints
+        type_hints = get_type_hints(f)
+        if "return" in type_hints:
+            # There is a return defined as type-hint
+            ret = type_hints["return"]
+            try:
+                if hasattr(ret, "__len__"):
+                    num_returns = len(ret)
                 else:
+                    num_returns = 1
+            except TypeError:
+                # Is not iterable, so consider just 1
+                num_returns = 1
+            if num_returns > 1:
+                for i in range(num_returns):
                     param = Parameter(content_type=parameter.TYPE.FILE,
                                       direction=parameter.DIRECTION.OUT)
                     param.content = object()
-                    self.returns[get_return_name(0)] = param
-                # Found return defined as type-hint
-                return num_returns
+                    self.returns[get_return_name(i)] = param
             else:
-                # The user has not defined return as type-hint
-                # So, continue searching as usual
-                pass
+                param = Parameter(content_type=parameter.TYPE.FILE,
+                                  direction=parameter.DIRECTION.OUT)
+                param.content = object()
+                self.returns[get_return_name(0)] = param
+            # Found return defined as type-hint
+            return num_returns
+        else:
+            # The user has not defined return as type-hint
+            # So, continue searching as usual
+            pass
 
         # It is python2 or could not find type-hinting
         source_code = get_wrapped_source(f).strip()
@@ -1694,7 +1661,7 @@ class TaskMaster(object):
         # for k in self.parameters:
         #     self._serialize_object(k)
         # Allow concurrent serialization if python 3 and env. var:
-        if IS_PYTHON3 and "COMPSS_THREADED_SERIALIZATION" in os.environ:
+        if "COMPSS_THREADED_SERIALIZATION" in os.environ:
             # Concurrent:
             with ThreadPoolExecutor() as executor:
                 futures = []
@@ -1862,13 +1829,7 @@ class TaskMaster(object):
         :return: the object possibly converted to string and it size in bytes.
         """
         is_future = p.is_future
-
-        base_string = None  # type: typing.Any
-        if IS_PYTHON3:
-            base_string = str
-        else:
-            base_string = str  # basestring - may not work with python2 if str # type: ignore
-
+        base_string = str
         num_bytes = 0
         real_value = None  # type: typing.Any
         if policy == "objectSize":
@@ -1919,13 +1880,7 @@ class TaskMaster(object):
                         # if max_obj_arg_size > 320000:
                         #     max_obj_arg_size = 320000
         elif policy == "serializedSize":
-            pickling_error = None  # type: typing.Any
-            if IS_PYTHON3:
-                from pickle import PicklingError as p_e_3   # noqa
-                pickling_error = p_e_3
-            else:
-                from cPickle import PicklingError as p_e_2  # noqa
-                pickling_error = p_e_2
+            from pickle import PicklingError
             # Check if the object is small in order to serialize it.
             # This alternative evaluates the size after serializing the
             # parameter
@@ -1965,7 +1920,7 @@ class TaskMaster(object):
                             # max_obj_arg_size += _bytes
                             # if max_obj_arg_size > 320000:
                             #     max_obj_arg_size = 320000
-                except pickling_error:
+                except PicklingError:
                     p.content = real_value
                     p.content_type = TYPE.OBJECT
                     if __debug__:

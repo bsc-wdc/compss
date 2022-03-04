@@ -37,7 +37,6 @@ from pycompss.api.commons.constants import LEGACY_COMPUTING_NODES
 from pycompss.api.commons.constants import LEGACY_WORKING_DIR
 from pycompss.api.commons.constants import UNASSIGNED
 from pycompss.runtime.task.core_element import CE  # noqa - used in typing
-from pycompss.runtime.commons import PYTHON_VERSION
 from pycompss.util.exceptions import MissingImplementedException
 from pycompss.util.exceptions import PyCOMPSsException
 
@@ -242,12 +241,8 @@ def run_command(cmd, args, kwargs):
                             stderr=subprocess.PIPE,
                             env=my_env)
     out, err = proc.communicate()
-    if PYTHON_VERSION < 3:
-        out_message = str(out.strip())
-        err_message = str(err.strip())
-    else:
-        out_message = out.decode().strip()
-        err_message = err.decode().strip()
+    out_message = out.decode().strip()
+    err_message = err.decode().strip()
     if out_message:
         print(out_message)
     if err_message:

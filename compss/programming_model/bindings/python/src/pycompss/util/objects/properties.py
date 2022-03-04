@@ -29,16 +29,7 @@ import sys
 import inspect
 from pycompss.util.typing_helper import typing
 from collections import OrderedDict
-
-from pycompss.runtime.commons import IS_PYTHON3
-
-_builtins = None  # type: typing.Any
-if IS_PYTHON3:
-    import builtins
-    _builtins = builtins
-else:
-    import __builtin__  # noqa
-    _builtins = __builtin__
+import builtins
 
 
 def get_module_name(path, file_name):
@@ -165,8 +156,8 @@ def create_object_by_con_type(con_type):
     :return: "empty" object of a type.
     """
     path, class_name = con_type.split(":")
-    if hasattr(_builtins, class_name):
-        _obj = getattr(_builtins, class_name)
+    if hasattr(builtins, class_name):
+        _obj = getattr(builtins, class_name)
         return _obj()
 
     directory, module_name = os.path.split(path)

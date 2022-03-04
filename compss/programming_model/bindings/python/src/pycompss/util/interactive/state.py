@@ -26,16 +26,8 @@ PyCOMPSs Interactive State
 import os
 from pycompss.util.typing_helper import typing
 from collections import defaultdict
-from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.util.exceptions import PyCOMPSsException
-
-ElementTree = None  # type: typing.Any
-if IS_PYTHON3:
-    from xml.etree import ElementTree as ET
-    ElementTree = ET
-else:
-    from xml.etree import cElementTree
-    ElementTree = cElementTree
+from xml.etree import ElementTree
 
 try:
     from IPython.display import HTML     # noqa
@@ -118,7 +110,7 @@ def parse_state_xml(log_path, field):
 
 
 def element_tree_to_dict(element_tree):
-    # type: (ElementTree) -> dict
+    # type: (typing.Any) -> dict
     """ Converts a element tree into a dictionary recursively.
 
     :param element_tree: Element tree.

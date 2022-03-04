@@ -29,7 +29,6 @@ import logging
 import os
 import sys
 
-from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.util.logger.helpers import init_logging_worker
 from pycompss.worker.commons.worker import execute_task
 from pycompss.util.tracing.helpers import trace_multiprocessing_worker
@@ -40,11 +39,6 @@ from pycompss.worker.commons.constants import FINISH_STORAGE_AT_WORKER_EVENT
 
 from pycompss.streams.components.distro_stream_client import DistroStreamClientHandler  # noqa: E501
 
-if IS_PYTHON3:
-    long = int
-else:
-    # Exception moved to built-in
-    str_escape = 'string_escape'
 
 # Uncomment the next line if you do not want to reuse pyc files.
 # sys.dont_write_bytecode = True

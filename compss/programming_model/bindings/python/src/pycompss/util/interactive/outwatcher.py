@@ -27,17 +27,11 @@ PyCOMPSs Util - Interactive Output watcher
 import os
 import time
 import threading
+from queue import Queue
 from pycompss.util.typing_helper import typing
 from pycompss.runtime.management.COMPSs import is_redirected
 from pycompss.runtime.management.COMPSs import get_redirection_file_names
 from pycompss.util.exceptions import PyCOMPSsException
-from pycompss.runtime.commons import IS_PYTHON3
-if IS_PYTHON3:
-    # Python 3
-    import queue
-else:
-    # Python 2
-    import Queue
 
 
 class StdWatcher(object):
@@ -56,11 +50,7 @@ class StdWatcher(object):
     def __init__(self):
         # type: () -> None
         self.running = False
-        self.messages = None  # type: typing.Any
-        if IS_PYTHON3:
-            self.messages = queue.Queue()
-        else:
-            self.messages = Queue.Queue()
+        self.messages = Queue()  # type: Queue
 
     @staticmethod
     def __watcher__(fd_out, fd_err):

@@ -27,7 +27,7 @@ PyCOMPSs Binding - Runnable as module
 import sys
 import argparse
 from pycompss.util.typing_helper import typing
-from pycompss.runtime.commons import PYTHON_VERSION
+from pycompss.runtime.commons import PYTHON_INTERPRETER
 from subprocess import Popen
 
 RUN_TAG = "run"
@@ -104,8 +104,8 @@ def main():
         python_interpreter = []
     else:
         # Use the same as current
-        python_interpreter = ["--python_interpreter=python" +
-                              str(PYTHON_VERSION)]
+        python_interpreter = ["--python_interpreter=" +
+                              str(PYTHON_INTERPRETER)]
 
     # Take an action
     if args.action == RUN_TAG:

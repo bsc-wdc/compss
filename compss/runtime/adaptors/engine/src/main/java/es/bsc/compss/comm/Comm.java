@@ -352,10 +352,13 @@ public class Comm {
 
         if (Tracer.isActivated()) {
             // Emit last EVENT_END event for STOP
-            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.STOP.getType());
+            Tracer.emitEventEnd(TraceEvent.STOP);
 
             // Stop tracing system
             Tracer.fini(runtimeEvents);
+
+            // Generate Trace
+            Tracer.generateCompleteTrace();
         }
     }
 

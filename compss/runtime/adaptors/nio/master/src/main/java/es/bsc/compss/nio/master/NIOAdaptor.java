@@ -906,6 +906,11 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     }
 
     @Override
+    public void generatePackage(Connection c) {
+        // Master side, nothing to do
+    }
+
+    @Override
     public void shutdown(Connection closingConnection) {
         // Master side, nothing to do
     }

@@ -518,14 +518,7 @@ public abstract class Tracer {
         synchronized (Tracer.class) {
             if (enabled) {
                 defineEvents(runtimeEvents);
-
                 Tracer.stopWrapper();
-
-                generatePackage();
-                transferMasterPackage();
-                generateTrace();
-                sortTrace();
-                cleanMasterPackage();
             }
         }
     }
@@ -533,7 +526,7 @@ public abstract class Tracer {
     /**
      * Stops the extrae wrapper.
      */
-    protected static void stopWrapper() {
+    private static void stopWrapper() {
         synchronized (Tracer.class) {
             LOGGER.debug("[Tracer] Disabling pthreads");
             Wrapper.SetOptions(Wrapper.EXTRAE_ENABLE_ALL_OPTIONS & ~Wrapper.EXTRAE_PTHREAD_OPTION);
@@ -543,6 +536,21 @@ public abstract class Tracer {
                 LOGGER.debug("[Tracer] Finishing extrae");
             }
             Wrapper.SetOptions(Wrapper.EXTRAE_DISABLE_ALL_OPTIONS);
+        }
+    }
+
+    /**
+     * Collects all the information of the tracing system and generates a trace.
+     */
+    public static void generateCompleteTrace() {
+        synchronized (Tracer.class) {
+            if (enabled) {
+                generatePackage();
+                transferMasterPackage();
+                generateTrace();
+                sortTrace();
+                cleanMasterPackage();
+            }
         }
     }
 
@@ -648,7 +656,10 @@ public abstract class Tracer {
         Wrapper.defineEventType(type.code, type.desc, values, descriptions);
     }
 
-    protected static void generatePackage() {
+    /**
+     * Constructs a package with all the necessary tracing information related to the node.
+     */
+    public static void generatePackage() {
         if (DEBUG) {
             LOGGER.debug("[Tracer] Generating trace package of " + nodeName);
         }

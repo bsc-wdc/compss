@@ -72,6 +72,7 @@ import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.TraceEvent;
+import java.io.File;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -131,8 +132,15 @@ public class NIOWorkerNode extends COMPSsWorker {
         }
 
         if (NIOTracer.isActivated()) {
-            LOGGER.debug("Initializing NIO tracer " + this.getName());
-            NIOTracer.startTracing(this.getName(), this.getUser(), this.getHost(), this.getLimitOfTasks());
+            if (DEBUG) {
+                LOGGER.debug("Initializing NIO tracer " + this.getName());
+                if (this.getLimitOfTasks() <= 0) {
+                    LOGGER.debug("Resource " + this.getName() + " has 0 slots, it won't appear in the trace");
+                } else {
+                    LOGGER.debug("NIO uri File: " + ProtocolType.ANY_URI.getSchema() + File.separator
+                        + NIOTracer.getTraceOutPath());
+                }
+            }
         }
     }
 

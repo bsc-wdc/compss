@@ -18,11 +18,9 @@ package es.bsc.compss.nio;
 
 import static java.lang.Math.abs;
 
-import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
-
-import java.io.File;
+import java.util.Map;
 
 
 public class NIOTracer extends Tracer {
@@ -32,28 +30,6 @@ public class NIOTracer extends Tracer {
     // Id for the end of a transfer event
     public static final String TRANSFER_END = "0";
 
-
-    /**
-     * Starts the tracing system at a given worker.
-     *
-     * @param workerName Worker name.
-     * @param workerUser User to connect to the worker.
-     * @param workerHost Worker host name.
-     * @param numThreads Worker number of threads.
-     */
-    public static void startTracing(String workerName, String workerUser, String workerHost, Integer numThreads) {
-        if (numThreads <= 0) {
-            if (DEBUG) {
-                LOGGER.debug("Resource " + workerName + " has 0 slots, it won't appear in the trace");
-            }
-            return;
-        }
-
-        if (DEBUG) {
-            LOGGER
-                .debug("NIO uri File: " + ProtocolType.ANY_URI.getSchema() + File.separator + Tracer.getTraceOutPath());
-        }
-    }
 
     /**
      * Emits a new data transfer event for the given data.
@@ -106,22 +82,20 @@ public class NIOTracer extends Tracer {
 
     /**
      * Generates the tracing package on the worker side.
+     * 
+     * @param runtimeEvents pairs name-event id of events not registered in the runtime
      */
-    public static void generatePackage() {
-        emitEvent(TraceEvent.STOP.getId(), TraceEvent.STOP.getType());
-        emitEvent(Tracer.EVENT_END, TraceEvent.STOP.getType());
+    public static void fini(Map<String, Integer> runtimeEvents) {
+        emitEvent(TraceEvent.STOP);
+        emitEventEnd(TraceEvent.STOP);
 
         try {
             Thread.sleep(10000);
         } catch (InterruptedException e1) {
             // Nothing to do
         }
-        Tracer.stopWrapper();
 
-        Tracer.generatePackage();
-
-        // End
-        LOGGER.debug("Finish generating");
+        Tracer.fini(runtimeEvents);
     }
 
 }

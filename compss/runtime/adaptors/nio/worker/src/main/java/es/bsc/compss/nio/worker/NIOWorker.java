@@ -1346,4 +1346,12 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         // NIO Adaptor does not support remote resource updates
     }
 
+    @Override
+    public void generatePackage(Connection c) {
+        NIOTracer.fini(new HashMap<>());
+        NIOTracer.generatePackage();
+        c.sendCommand(new CommandGenerateDone());
+        c.finishConnection();
+    }
+
 }

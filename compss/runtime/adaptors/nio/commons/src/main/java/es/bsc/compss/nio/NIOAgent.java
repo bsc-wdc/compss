@@ -1028,11 +1028,7 @@ public abstract class NIOAgent {
      *
      * @param c Requester connection.
      */
-    public void generatePackage(Connection c) {
-        NIOTracer.generatePackage();
-        c.sendCommand(new CommandGenerateDone());
-        c.finishConnection();
-    }
+    public abstract void generatePackage(Connection c);
 
     // Must be implemented on both sides (Master will do nothing)
     public abstract void setMaster(NIONode master);

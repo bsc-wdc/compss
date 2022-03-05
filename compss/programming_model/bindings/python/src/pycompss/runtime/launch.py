@@ -428,7 +428,7 @@ def launch_pycompss_application(app,                              # type: str
     :param master_name: Master Name (default: "")
     :param master_port: Master port (default: "")
     :param scheduler: Scheduler (default:
-                  es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler)
+                  es.bsc.compss.scheduler.lookahead.locality.LocalityTS)
     :param jvm_workers: Java VM parameters
                         (default: "-Xms1024m,-Xmx1024m,-Xmn400m")
     :param cpu_affinity: CPU Core affinity (default: "automatic")

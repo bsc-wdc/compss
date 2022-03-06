@@ -25,7 +25,7 @@ public class IndependentWithSync {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            
+
         }
     }
 

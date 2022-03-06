@@ -19,6 +19,13 @@ public class IndependentWithSync {
         // Final sync
         for (int i = 0; i < N; ++i) {
             System.out.println("Value " + i + " is " + values[i].getValue());
+
+            try {
+                Thread.sleep(2_000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            
         }
     }
 

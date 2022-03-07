@@ -16,7 +16,7 @@
   #SCS_SCRIPT_NAMES=("buildMN" "buildMT" "buildNord" "buildP9" "buildCTE-AMD")
 
   ENABLED_SCS=("mn" "mt" "p9" "cte-amd" "nord3")
-  SCS_SCRIPT_NAMES=("buildMN" "buildMT" "buildP9" "buildCTE-AMD" "buildNord3)
+  SCS_SCRIPT_NAMES=("buildMN" "buildMT" "buildP9" "buildCTE-AMD" "buildNord3")
   echo "Installing COMPSs branch ${BranchName} at SCs"
 
   for i in "${!ENABLED_SCS[@]}"; do

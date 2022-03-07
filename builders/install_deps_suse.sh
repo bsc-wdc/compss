@@ -1,0 +1,1 @@
+zypper install -y java-1_8_0-openjdk-headless java-1_8_0-openjdk java-1_8_0-openjdk-devel graphviz xdg-utils python python-devel libpython2_7-1_0 python-decorator libtool automake boost-devel libxml2 libxml2-devel gcc-fortran python-pip papi papi-devel gcc-c++ flex bison texinfo gnuplot 

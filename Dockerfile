@@ -1,4 +1,4 @@
-FROM compss/base18:latest
+FROM compss/base20:latest
 MAINTAINER COMPSs Support <support-compss@bsc.es>
 
 ARG release=false
@@ -16,7 +16,7 @@ ENV COMPSS_HOME=/opt/COMPSs/
 # Install COMPSs
 RUN cd /framework && \
     ./submodules_get.sh && \
-    ./submodules_patch.sh && \
+    export EXTRAE_MPI_HEADERS=/usr/include/x86_64-linux-gnu/mpi && \
     sudo -E /framework/builders/buildlocal /opt/COMPSs && \
     mv /root/.m2 /home/jenkins/ && \
     rm -rf /root/.cache && \

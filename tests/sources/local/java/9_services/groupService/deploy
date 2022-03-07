@@ -1,9 +1,0 @@
-#!/bin/bash -e
-  
-  # Obtain parameter
-  source_base_dir=$1
-  target_base_dir=$2
-  
-  # Copy files
-  cp "${source_base_dir}"/skip "${target_base_dir}"/skip
-  cp "${source_base_dir}"/execution "${target_base_dir}"/execution

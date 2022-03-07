@@ -193,7 +193,7 @@ def start(log_level="off",                     # type: str
     :param master_port: Master port
                         (default: "")
     :param scheduler: Scheduler (see runcompss)
-                      (default: es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler)  # noqa: E501
+                      (default: es.bsc.compss.scheduler.lookahead.locality.LocalityTS)  # noqa: E501
     :param jvm_workers: Java VM parameters
                         (default: "-Xms1024m,-Xmx1024m,-Xmn400m")
     :param cpu_affinity: CPU Core affinity

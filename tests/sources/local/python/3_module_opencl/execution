@@ -36,8 +36,14 @@
     mkdir -p "${exec_target_log_folder}"
     expectedTime=60s
 
+    python_mpi_worker=""
+    if [ "$python_interpreter" == 'python2_mpi' ] || [ "$python_interpreter" == 'python3_mpi' ]; then
+       echo "WARN: Test not requiered for ${python_interpreter}" | tee -a "${output_log}"
+       continue
+    fi
+
     # Check that the pycompss module is available in the environment
-    python -c "import pycompss"
+    ${python_interpreter} -c "import pycompss"
     errCode=$?
     if [ $errCode -ne  0 ] ; then
       echo "[ERROR] THE pycompss MODULE IS NOT AVAILABLE IN THE SYSTEM." | tee -a "${output_log}"
@@ -45,11 +51,6 @@
       exit $errCode
     fi
 
-    python_mpi_worker=""
-    if [ "$python_interpreter" == 'python2_mpi' ] || [ "$python_interpreter" == 'python3_mpi' ]; then
-       echo "WARN: Test not requiered for ${python_interpreter}" | tee -a "${output_log}"
-       continue
-    fi
 
     # shellcheck disable=SC2086
     # COMPSs execution

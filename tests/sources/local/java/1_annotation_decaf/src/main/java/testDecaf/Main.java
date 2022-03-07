@@ -15,7 +15,7 @@ public class Main {
 
     private static final String[] LINES = { "[DECAF] Retrieve Decaf arguments",
         "[DECAF] Executing Decaf data-flow generator",
-        "[DECAF] CMD: python " + System.getenv("PWD") + "/decaf/test.py ",
+        "[DECAF] CMD: python3 " + System.getenv("PWD") + "/decaf/test.py ",
         "Executing python script.",
         "[DECAF] Executing Decaf data-flow",
         "[DECAF] CMD: ./test.sh",

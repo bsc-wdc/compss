@@ -31,7 +31,7 @@
   # DEFINE MODULES
   modules="gcc/5.3.0 papi/5.4.3 boost/1.63.0 java/1.8.0_111"
   unload_before_python="ignore"
-  py2_modules="boost/1.63.0"
+  py2_modules=""
   run_before_py3_modules="ignore"
   py3_modules="boost/1.63.0"
   run_before_py3_other_modules="ignore"

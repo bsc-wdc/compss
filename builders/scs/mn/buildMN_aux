@@ -32,7 +32,7 @@
   modules="intel/2017.4 transfer/1.0 bsc/1.0 impi/2017.4 mkl/2017.4 java/8u131 papi/5.5.1 gcc/7.2.0 boost/1.64.0"
   unload_before_python="boost/1.64.0"
   # Plain python modules:
-  py2_modules="python/2.7.13"
+  py2_modules=""
   run_before_py3_modules="ignore"
   py3_modules="python/3.6.1"
   # Python modules with jupyter:
@@ -51,7 +51,7 @@
   openmpi_version=""
   extrae_with_impi="true"
   impi_version="/2017.4"
-  autoparallel="true"
+  autoparallel="false"
   c_binding="true"
 
   # CALL buildSC_aux

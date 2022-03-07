@@ -36,15 +36,6 @@
     mkdir -p "${exec_target_log_folder}"
     expectedTime=60s
 
-    # Check that the pycompss module is available in the environment
-    python -c "import pycompss"
-    errCode=$?
-    if [ $errCode -ne  0 ] ; then
-      echo "[ERROR] THE pycompss MODULE IS NOT AVAILABLE IN THE SYSTEM." | tee -a "${output_log}"
-      echo "CHECK THAT PYTHONPATH CONTAINS THE APPROPIATE MODULE PATH." | tee -a "${output_log}"
-      exit $errCode
-    fi
-
     python_mpi_worker=""
     if [ "$python_interpreter" == 'python2_mpi' ]; then
         python_interpreter="python2"
@@ -53,6 +44,15 @@
     if [ "$python_interpreter" == 'python3_mpi' ]; then
         python_interpreter="python3"
         python_mpi_worker="--python_mpi_worker=true"
+    fi
+
+    # Check that the pycompss module is available in the environment
+    ${python_interpreter} -c "import pycompss"
+    errCode=$?
+    if [ $errCode -ne  0 ] ; then
+      echo "[ERROR] THE pycompss MODULE IS NOT AVAILABLE IN THE SYSTEM." | tee -a "${output_log}"
+      echo "CHECK THAT PYTHONPATH CONTAINS THE APPROPIATE MODULE PATH." | tee -a "${output_log}"
+      exit $errCode
     fi
 
     # COMPSs execution

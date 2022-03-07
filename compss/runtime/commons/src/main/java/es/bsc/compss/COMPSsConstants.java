@@ -219,8 +219,8 @@ public class COMPSsConstants {
     public static final String DEFAULT_REUSE_RESOURCES_ON_BLOCK = "true";
     public static final String DEFAULT_ENABLED_NESTED_TASKS_DETECTION = "false";
 
-    public static final String DEFAULT_PYTHON_INTERPRETER = "python";
-    public static final String DEFAULT_PYTHON_VERSION = "2";
+    public static final String DEFAULT_PYTHON_INTERPRETER = "python3";
+    public static final String DEFAULT_PYTHON_VERSION = "3";
     public static final String DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT = "null";
     public static final String DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT = "true";
     public static final String DEFAULT_PYTHON_MPI_WORKER = "false";

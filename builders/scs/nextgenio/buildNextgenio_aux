@@ -29,9 +29,9 @@
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
   # DEFINE MODULES
-  modules="packages-nextgenio intel/19.0.3.199 openmpi/1.10.7-GNU gnu8/8.3.0 boost/1.69.0-GNU python2/2.7.13 papi/5.7.1.0"
+  modules="packages-nextgenio intel/19.0.3.199 openmpi/1.10.7-GNU gnu8/8.3.0 boost/1.69.0-GNU papi/5.7.1.0"
   unload_before_python="ignore"
-  py2_modules="python2/2.7.13"
+  py2_modules=""
   run_before_py3_modules="ignore"
   py3_modules="python/3.6.0"
   run_before_py3_other_modules="ignore"

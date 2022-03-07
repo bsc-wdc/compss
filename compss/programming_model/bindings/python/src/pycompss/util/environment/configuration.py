@@ -418,7 +418,7 @@ def create_init_config_file(compss_home,                    # type: str
     :param master_name: <String> Master node name
     :param master_port: <String> Master node port
     :param scheduler: <String> Scheduler (normally:
-                  es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler)
+                  es.bsc.compss.scheduler.lookahead.locality.LocalityTS)
     :param cp: <String>  Application path
     :param classpath: <String> CLASSPATH environment variable contents
     :param ld_library_path: <String> LD_LIBRARY_PATH environment

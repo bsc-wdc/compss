@@ -85,7 +85,7 @@ EXTRA_CONTENT_TYPE_FORMAT = "{}:{}"  # <module_path>:<class_name>
 INTERACTIVE_FILE_NAME = "InteractiveMode"
 
 # LONG DEFAULTS
-DEFAULT_SCHED = "es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler"
+DEFAULT_SCHED = "es.bsc.compss.scheduler.lookahead.locality.LocalityTS"
 DEFAULT_CONN = "es.bsc.compss.connectors.DefaultSSHConnector"
 DEFAULT_JVM_WORKERS = "-Xms1024m,-Xmx1024m,-Xmn400m"
 

@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
   #############################################################
-  # Name: buildMN_aux
+  # Name: buildNord3_aux
   # Description: SCRIPT FOR LOCAL COMPSs BUILD in Nord 3
   # Parameters: <targetDir>           Base Target Installation folder
   #
@@ -11,7 +11,7 @@
 
   usage() {
     echo "Incorrect number of parameters"
-    echo " Usage: buildNord_aux <FullTargetPath>"
+    echo " Usage: buildNord3_aux <FullTargetPath>"
     echo " "
     exit 1
   }
@@ -29,22 +29,22 @@
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
   # DEFINE MODULES
-  modules="intel/13.0.1 transfer/1.0 bsc/current PYTHON/2.7.3 BOOST/1.52.0 java/1.8.0u66 PAPI/5.4.1 gcc/7.2.0"
+  modules="intel/2021.4.0 bsc/current oneapi-rt/2021.4.0 impi/2021.4.0 tbb/2021.4.0 mkl/2021.4.0 boost/1.78.0 papi/6.0.0"
   unload_before_python="ignore"
-  py2_modules="PYTHON/2.7.3"
+  py2_modules=""
   run_before_py3_modules="ignore"
-  py3_modules="PYTHON/3.5.1-INTEL"
+  py3_modules="python/3.7.12"
   run_before_py3_other_modules="ignore"
-  py3_other_modules="PYTHON/3.7.4"
+  py3_other_modules=""
 
   # DEFINE CONFIGURATION PARAMETERS
-  additionalExports="export PATH=/apps/BSCTOOLS/deps/libxml/2.9.4/bin:/apps/BSCTOOLS/deps/autotools/bin:\$PATH"
-  additional_module_use_folder="ignore"
-  queues_cfg="nord.cfg"
-  extrae_with_openmpi="true"
-  openmpi_version="/1.8.1"
+  additionalExports="export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.302.b08-0.el8_4.x86_64 EXTRAE_MPI_LIBS=\${I_MPI_ROOT}/lib/release"
+  additional_module_use_folder="ignor"
+  queues_cfg="nord3.cfg"
+  extrae_with_openmpi="false"
+  openmpi_version=""
   extrae_with_impi="true"
-  impi_version=""
+  impi_version="/2021.4.0"
   autoparallel="false"
   c_binding="true"
 

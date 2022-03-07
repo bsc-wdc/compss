@@ -22,9 +22,9 @@ main() {
 
   # Execute generator
   echo "[DECAF] Executing Decaf data-flow generator"
-  echo "[DECAF] CMD: python ${df_script} -n ${num_nodes} --hostfile ${hostfile} --args \"${args}\""
+  echo "[DECAF] CMD: python3 ${df_script} -n ${num_nodes} --hostfile ${hostfile} --args \"${args}\""
 
-  python "${df_script}" -n "${num_nodes}" --hostfile "${hostfile}" --args "${args}"
+  python3 "${df_script}" -n "${num_nodes}" --hostfile "${hostfile}" --args "${args}"
   ev=$?
   if [ $ev -ne 0 ]; then
     echo "Error running data-flow generator"

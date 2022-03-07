@@ -12,7 +12,7 @@
   # FUNCTIONS
   ####################
   usage() {
-    echo " Usage: buildNord <Nord_user> <FullTmpPath> <FullTargetPath>"
+    echo " Usage: buildNord3 <Nord_user> <FullTmpPath> <FullTargetPath>"
     echo " "
   }
 
@@ -39,8 +39,8 @@
   MNuser=$1
   MNtmpDir=$2
   MNtargetDir=$3
-  MNloginNode=nord1.bsc.es
-  MNauxScript=${SCRIPT_DIR}/buildNord_aux
+  MNloginNode=nord3.bsc.es
+  MNauxScript=${SCRIPT_DIR}/buildNord3_aux
   PRELOAD_ENV=""
 
   # Perform installation

@@ -152,7 +152,7 @@ if [ "$ENABLE_CROSS" = true ]; then
     echo "[ INFO ] Building native COMPSs."
     echo "PATH: $INSTALLATION_PATH"
     native_environment 
-    $scriptDir/../../buildlocal --skip-tests --no-tracing --no-autoparallel $INSTALLATION_PATH #Install native COMPSs
+    $scriptDir/../../buildlocal --skip-tests --no-tracing $INSTALLATION_PATH #Install native COMPSs
 
     ev=$?
 
@@ -231,7 +231,7 @@ elif [ "$ONLY_BINDINGS" = true ]; then
 
 else    
     
-    $scriptDir/../../buildlocal --skip-tests --no-tracing --no-autoparallel --no-bindings $INSTALLATION_PATH #enable tracing and so on? Add them as options?.
+    $scriptDir/../../buildlocal --skip-tests --no-tracing --no-bindings $INSTALLATION_PATH #enable tracing and so on? Add them as options?.
 
     target_environment
 

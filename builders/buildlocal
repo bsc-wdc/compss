@@ -34,7 +34,6 @@ NO_MONITOR="Warning: No monitor specified. Loading default value"
 NO_BINDINGS="Warning: No bindings specified. Loading default value"
 NO_PYCOMPSS="Warning: No pycompss specified. Loading default value"
 NO_TRACING="Warning: No tracing specified. Loading default value"
-NO_AUTOPARALLEL="Warning: No autoparallel specified. Loading default value"
 NO_KAFKA="Warning: No Kafka module specified. Loading default value"
 NO_JACOCO="Warning: No jacoco module specified. Loading default value"
 NO_TARGET_DIR="Warning: No install directory specified. Loading default location"
@@ -75,10 +74,6 @@ show_opts() {
     --tracing, -t               Enable tracing system installation
     --no-tracing, -T            Disable tracing system installation
                                 Default: ${DEFAULT_TRACING}
-
-    --autoparallel, -a          Enable autoparallel module installation
-    --no-autoparallel, -A       Disable autoparallel module installation
-                                Default: ${DEFAULT_AUTOPARALLEL}
 
     --kafka, -k                 Enable Kafka module installation
     --no-kafka, -K              Disable Kafka module installation
@@ -188,14 +183,6 @@ get_args() {
         # Custom tracing value
         tracing=false
         ;;
-      a)
-        # Custom autoparallel value
-        autoparallel=true
-        ;;
-      A)
-        # Custom autoparallel value
-        autoparallel=false
-        ;;
       k)
         # Custom kafka value
         kafka=true
@@ -226,7 +213,6 @@ get_args() {
         monitor=false
         bindings=false
         pycompss=false
-        autoparallel=false
         kafka=false
 	      jacoco=false
         cli=false
@@ -282,14 +268,6 @@ get_args() {
             # Custom tracing value
             tracing=false
             ;;
-          autoparallel)
-            # Custom autoparallel value
-            autoparallel=true
-            ;;
-          no-autoparallel)
-            # Custom autoparallel value
-            autoparallel=false
-            ;;
           kafka)
             # Custom Kafka value
             kafka=true
@@ -320,7 +298,6 @@ get_args() {
             monitor=false
             bindings=false
             pycompss=false
-            autoparallel=false
             kafka=false
 	          jacoco=false
             cli=false
@@ -377,11 +354,6 @@ check_args() {
     tracing=${DEFAULT_TRACING}
   fi
 
-  if [ -z "$autoparallel" ]; then
-    display_warning "${NO_AUTOPARALLEL}"
-    autoparallel=${DEFAULT_AUTOPARALLEL}
-  fi
-
   if [ -z "${kafka}" ]; then
     display_warning "${NO_KAFKA}"
     kafka=${DEFAULT_KAFKA}
@@ -429,7 +401,6 @@ warn_and_log_parameters() {
   echo "- Bindings       = ${bindings}"
   echo "- PyCOMPSs       = ${pycompss}"
   echo "- Tracing        = ${tracing}"
-  echo "- AutoParallel   = ${autoparallel}"
   echo "- Stream Backend = ${kafka}"
   echo "- CLI            = ${cli}"
   echo "- SCRIPT_DIR     = ${SCRIPT_DIR}"
@@ -607,17 +578,6 @@ install_compss() {
     fi
     cd "${SCRIPT_DIR}"
   fi
-  # Pluto
-  if [ "$autoparallel" = "true" ]; then
-    cd "${TMP_DIR}"/dependencies/pluto
-    ./install_pluto ${targetDir}/Dependencies/pluto
-    ev=$?
-    if [ $ev -ne 0 ]; then
-      echo "ERROR: Failed to install pluto dependency"
-      exit 1
-    fi
-    cd "${SCRIPT_DIR}"
-  fi
   # Kafka
   if [ "${kafka}" = "true" ]; then
     cp -r "${TMP_DIR}"/dependencies/kafka ${targetDir}/Dependencies/
@@ -774,26 +734,14 @@ install_compss() {
     if [ "${pycompss}" == "true" ]; then
       echo "- Deploying python-binding files"
       cd "${TMP_DIR}/compss/programming_model/bindings/python"
-      if command_exists "python2" ; then
-        if command_exists "python3" ; then
-          # Install python binding for both python2 and python3
-          ./install "${targetDir}/Bindings/python" true true
-          ev=$?
-        else
-          # Install python binding only for python2
-          ./install "${targetDir}/Bindings/python" true false python2
-          ev=$?
-        fi
+      if command_exists "python3" ; then
+        # Install python binding only for python3
+        ./install "${targetDir}/Bindings/python" true false python3
+        ev=$?
       else
-        if command_exists "python3" ; then
-          # Install python binding only for python3
-          ./install "${targetDir}/Bindings/python" true false python3
-          ev=$?
-        else
-          # Error no python 2 nor 3
-          echo "ERROR: Could not find python2 nor python3 commands."
-          ev=1
-        fi
+        # Error no python 2 nor 3
+        echo "ERROR: Could not find python2 nor python3 commands."
+        ev=1
       fi
       if [ $ev -ne 0 ]; then
         echo "ERROR: Failed to install Python-binding"

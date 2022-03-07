@@ -73,7 +73,7 @@ else
 
 
     # Check result
-    python "${base_app_dir}"/result.py "${COMPSs_log_folder}/${app_name}_0${retry_num}/trace" "${COMPSs_log_folder}/${app_name}_0${retry_num}/trace"
+    python3 "${base_app_dir}"/result.py "${COMPSs_log_folder}/${app_name}_0${retry_num}/trace" "${COMPSs_log_folder}/${app_name}_0${retry_num}/trace"
     exit_value=$?
     echo "Result script finished with value ${exit_value}"
 fi

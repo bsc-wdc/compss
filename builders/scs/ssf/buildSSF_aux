@@ -31,7 +31,7 @@
   # DEFINE MODULES
   modules="autotools"
   unload_before_python="ignore"
-  py2_modules="ignore"
+  py2_modules=""
   run_before_py3_modules="ignore"
   py3_modules="ignore"
   run_before_py3_other_modules="ignore"

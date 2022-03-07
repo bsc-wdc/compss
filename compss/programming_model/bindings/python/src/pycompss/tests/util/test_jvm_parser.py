@@ -62,7 +62,7 @@ def test_jvm_parser():
         "-Dcompss.conn": "es.bsc.compss.connectors.DefaultSSHConnector",
         "-Dcompss.masterName": "",
         "-Dcompss.masterPort": "",
-        "-Dcompss.scheduler": "es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler",  # noqa: E501
+        "-Dcompss.scheduler": "es.bsc.compss.scheduler.lookahead.locality.LocalityTS",  # noqa: E501
         "-Dgat.adaptor.path": "/opt/COMPSs/Dependencies/JAVA_GAT/lib/adaptors",
         "-Dgat.debug": "true",
         "-Dgat.broker.adaptor": "sshtrilead",
@@ -121,7 +121,7 @@ def test_jvm_parser():
 -Dcompss.conn=es.bsc.compss.connectors.DefaultSSHConnector
 -Dcompss.masterName=
 -Dcompss.masterPort=
--Dcompss.scheduler=es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler
+-Dcompss.scheduler=es.bsc.compss.scheduler.lookahead.locality.LocalityTS
 -Dgat.adaptor.path=/opt/COMPSs/Dependencies/JAVA_GAT/lib/adaptors
 -Dgat.debug=true
 -Dgat.broker.adaptor=sshtrilead

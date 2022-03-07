@@ -29,9 +29,9 @@
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
   # DEFINE MODULES
-  modules="lsf/10.1 openjdk/1.8.0_131 gcc/5.4.0 python/2.7.13 PAPI/5.5.0-cuda cmake/3.7.2 m4/1.4.17 boost/1.62.0"
+  modules="lsf/10.1 openjdk/1.8.0_131 gcc/5.4.0 PAPI/5.5.0-cuda cmake/3.7.2 m4/1.4.17 boost/1.62.0"
   unload_before_python="ignore"
-  py2_modules="python/2.7.13"
+  py2_modules=""
   run_before_py3_modules="ignore"
   py3_modules="python/3.6.1"
   run_before_py3_other_modules="ignore"

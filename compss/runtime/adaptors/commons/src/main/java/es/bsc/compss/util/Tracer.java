@@ -20,17 +20,11 @@ package es.bsc.compss.util;
 import es.bsc.cepbatools.extrae.Wrapper;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.implementations.MethodType;
-import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.tracing.TraceScript;
 import es.bsc.compss.util.types.ThreadTranslator;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -65,7 +59,7 @@ public abstract class Tracer {
     public static final String TRACE_PRV_FILE_EXTENTION = ".prv";
     public static final String TRACE_PCF_FILE_EXTENTION = ".pcf";
 
-    private static final String MASTER_TRACE_FILE = "master_compss_trace.tar.gz";
+    public static final String PACKAGE_SUFFIX = "_compss_trace.tar.gz";
 
     // Extrae loaded properties
     private static final boolean IS_CUSTOM_EXTRAE_FILE =
@@ -94,12 +88,12 @@ public abstract class Tracer {
     private static String hostId;
     protected static boolean tracingTaskDependencies;
 
-    private static Map<String, TraceHost> hostToSlots;
+    private static final Map<String, TraceHost> hostToSlots = new HashMap<>();
 
     private static int numPthreadsEnabled = 0;
 
     // Hashmap of the predecessors
-    private static HashMap<Integer, ArrayList<Integer>> predecessorsMap;
+    private static final HashMap<Integer, ArrayList<Integer>> predecessorsMap = new HashMap<>();
 
 
     /**
@@ -126,6 +120,10 @@ public abstract class Tracer {
         Tracer.enabled = enabled;
         Tracer.nodeName = nodeName;
         Tracer.installDir = installDir;
+
+        if (!workingDir.endsWith(File.separator)) {
+            workingDir += File.separator;
+        }
         Tracer.workingDir = workingDir;
 
         if (DEBUG) {
@@ -134,8 +132,6 @@ public abstract class Tracer {
         }
         if (enabled) {
             Tracer.hostId = String.valueOf(hostId);
-            hostToSlots = new HashMap<>();
-            predecessorsMap = new HashMap<>();
             tracingTaskDependencies = tracingTasks;
 
             if (!baseLogDir.endsWith(File.separator)) {
@@ -545,11 +541,10 @@ public abstract class Tracer {
     public static void generateCompleteTrace() {
         synchronized (Tracer.class) {
             if (enabled) {
-                generatePackage();
-                transferMasterPackage();
+                String masterPackage = traceDirPath + "master" + PACKAGE_SUFFIX;
+                generatePackage(masterPackage);
                 generateTrace();
                 sortTrace();
-                cleanMasterPackage();
             }
         }
     }
@@ -658,14 +653,15 @@ public abstract class Tracer {
 
     /**
      * Constructs a package with all the necessary tracing information related to the node.
+     * 
+     * @param packagePath Path where to store the package with all the tracing information
      */
-    public static void generatePackage() {
+    public static void generatePackage(String packagePath) {
         if (DEBUG) {
             LOGGER.debug("[Tracer] Generating trace package of " + nodeName);
         }
-
         try {
-            int exitCode = TraceScript.package_extrae(installDir, workingDir, nodeName, hostId);
+            int exitCode = TraceScript.package_extrae(installDir, workingDir, packagePath, hostId);
             if (exitCode != 0) {
                 ErrorManager.warn("Error generating " + nodeName + " package, exit code " + exitCode);
             }
@@ -675,34 +671,6 @@ public abstract class Tracer {
         } catch (InterruptedException e) {
             ErrorManager.warn("Error generating " + nodeName + " package (interruptedException)", e);
             Thread.currentThread().interrupt();
-        }
-    }
-
-    /**
-     * Copy the tracing master package from the working directory. Node packages are transferred on NIOTracer of
-     * GATTracer.
-     */
-    private static void transferMasterPackage() {
-        if (DEBUG) {
-            LOGGER.debug("Tracing: Transferring master package");
-        }
-
-        String filename = ProtocolType.FILE_URI.getSchema() + MASTER_TRACE_FILE;
-        String filePath = "";
-        try {
-            SimpleURI uri = new SimpleURI(filename);
-            filePath = new File(uri.getPath()).getCanonicalPath();
-        } catch (Exception e) {
-            ErrorManager.error(ERROR_MASTER_PACKAGE_FILEPATH, e);
-            return;
-        }
-
-        try {
-            Path source = Paths.get(filePath);
-            Path target = Paths.get(traceDirPath + MASTER_TRACE_FILE);
-            Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException ioe) {
-            ErrorManager.error("Could not copy the master trace package into " + traceDirPath, ioe);
         }
     }
 
@@ -801,41 +769,6 @@ public abstract class Tracer {
             traceName = traceName.concat("_" + label);
         }
         return traceName + Tracer.MASTER_TRACE_SUFFIX;
-    }
-
-    /**
-     * Removing the tracing temporal packages.
-     */
-    private static void cleanMasterPackage() {
-
-        String filename = ProtocolType.FILE_URI.getSchema() + MASTER_TRACE_FILE;
-        String filePath = "";
-        try {
-            SimpleURI uri = new SimpleURI(filename);
-            filePath = new File(uri.getPath()).getCanonicalPath();
-        } catch (Exception e) {
-            ErrorManager.error(ERROR_MASTER_PACKAGE_FILEPATH, e);
-            return;
-        }
-
-        if (DEBUG) {
-            LOGGER.debug("Tracing: Removing tracing master package: " + filePath);
-        }
-
-        File f;
-        try {
-            f = new File(filePath);
-            boolean deleted = f.delete();
-            if (!deleted) {
-                ErrorManager.warn("Unable to remove tracing temporary files of master node.");
-            } else {
-                if (DEBUG) {
-                    LOGGER.debug("Deleted master tracing package.");
-                }
-            }
-        } catch (Exception e) {
-            ErrorManager.warn("Exception while trying to remove tracing temporary files of master node.", e);
-        }
     }
 
 

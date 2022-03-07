@@ -1349,7 +1349,14 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     @Override
     public void generatePackage(Connection c) {
         NIOTracer.fini(new HashMap<>());
-        NIOTracer.generatePackage();
+
+        String packagePath = this.workingDir;
+        if (!packagePath.endsWith(File.separator)) {
+            packagePath += File.separator;
+        }
+        packagePath += this.hostName + NIOTracer.PACKAGE_SUFFIX;
+        NIOTracer.generatePackage(packagePath);
+
         c.sendCommand(new CommandGenerateDone());
         c.finishConnection();
     }

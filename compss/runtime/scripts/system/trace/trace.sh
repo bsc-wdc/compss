@@ -13,6 +13,31 @@
 
   MIN_MPITS_PARALLEL_MERGE=1000
   export LD_LIBRARY_PATH=$extraeDir/lib:$LD_LIBRARY_PATH
+
+  mpi2prv() {
+    local mpits="${1}"
+    local prv="${2}"
+    # Check machine max open files
+    local openFilesLimit=$(ulimit -Sn)
+    local maxMpitNumber=0
+    if [ "$openFilesLimit" -eq "$openFilesLimit" ] 2>/dev/null; then
+      # ulimit reported a valid number of open files
+      maxMpitNumber=$((openFilesLimit - 20))
+    else
+      maxMpitNumber=$MIN_MPITS_PARALLEL_MERGE
+    fi
+
+    # Check if parallel merge is available / should be used
+    configuration=$("${extraeDir}"/etc/configured.sh | grep "enable-parallel-merge")
+
+    # Check if parallel merge is available / should be used
+    if [ -z "${configuration}" ] || [ "$(wc -l < "${mpits}")" -lt ${maxMpitNumber} ] ; then
+      "${extraeDir}/bin/mpi2prv" -f "${mpits}" -no-syn -o "${prv}"
+    else
+      mpirun -np "$numberOfResources" "${extraeDir}/bin/mpimpi2prv" -f "${mpits}" -no-syn -o "${prv}"
+    fi
+  }
+
   #-------------------------------------
   # Get common parameters
   #-------------------------------------
@@ -50,25 +75,23 @@
     endCode=$?
 
   elif [ "$action" == "package" ]; then
-    node=$1
-    # echo "trace::packaging ${node}_compss_trace.tar.gz"
+    package_path=$1
+    # echo "trace::packaging ${package_path}"
     files="TRACE.mpits set-*"
-    if [ "$node" != "master" ] && [ -d "./python" ] ; then
-        hostID=$2
+    if [ -d "./python" ] ; then
         if [ -f ./python/TRACE.mpits ]; then
-            "${extraeDir}"/bin/mpi2prv -f ./python/TRACE.mpits -no-syn -o "./${hostID}_python_trace.prv"
-            files+=" ${hostID}_python_trace.*"
-        else
-            mv "./python" "./python_${node}"
-            files+=" ./python_${node}"
+          hostID=$2
+          echo "${hostID}" >> ./python/hostID
+          files+=" ./python"
         fi
     fi
+
     if [ -f TRACE.sym ]; then
         files+=" TRACE.sym"
     fi
     # shellcheck disable=SC2086
-    tar czf "${node}_compss_trace.tar.gz" ${files}
-    echo "Package created $(ls -la  "${node}_compss_trace.tar.gz")"
+    tar czf "${package_path}" ${files}
+    echo "Package created $(ls -la  "${package_path}")"
     endCode=$?
     # shellcheck disable=SC2086
     rm -rf ${files}
@@ -77,44 +100,45 @@
     appName=$1
     numberOfResources=$2
 
-    # Check machine max open files
-    openFilesLimit=$(ulimit -Sn)
-    if [ "$openFilesLimit" -eq "$openFilesLimit" ] 2>/dev/null; then
-      # ulimit reported a valid number of open filesz
-      maxMpitNumber=$((openFilesLimit - 20))
-    else
-      maxMpitNumber=$MIN_MPITS_PARALLEL_MERGE
-    fi
+    traceDir="$(pwd)/trace/"
+    pythonDir="${traceDir}python/"
+    mpits="TRACE.mpits"
+    prv="${traceDir}/${appName}_compss.prv"
 
-    traceFiles=$(find trace/*_compss_trace.tar.gz)
+    packages=$(find ${traceDir}/*_compss_trace.tar.gz)
     #echo "trace::gentrace"
-    for file in ${traceFiles[*]}; do
-        tmpDir=$(mktemp -d)
-        tar -C "$tmpDir" -xzf "$file"
-        #echo "trace:: $tmpDir -xvzf $file"
-        cat "$tmpDir"/TRACE.mpits >> TRACE.mpits
-        cp -r "$tmpDir"/set-* .
-        files=$(find "$tmpDir" -name "*_python_trace.*")
-        if [ ! -z "$files" ]; then
-            nodeDir="$(pwd)/trace/python/"
-            mkdir -p "$nodeDir"
-            # shellcheck disable=SC2086
-            cp ${files} "$nodeDir"
-        fi
-        if [ -f "$tmpDir"/TRACE.sym ]; then
-            cp "$tmpDir"/TRACE.sym .
-        fi
-        rm -rf "$tmpDir" "$file"
+    for package in ${packages[*]}; do
+      tmpDir=$(mktemp -d)
+      tar -C "$tmpDir" -xzf "${package}"
+
+      #echo "trace:: $tmpDir -xvzf $file"
+      cat "${tmpDir}/TRACE.mpits" >> "${mpits}"
+
+      setFolder=$(ls "${tmpDir}" | grep "set" )
+      setFolder="${tmpDir}/${setFolder}"
+      cp -r "${setFolder}" . 
+
+      if [ -d "${tmpDir}/python" ]; then
+        hostId=$(cat "${tmpDir}/python/hostID")
+        python_mpits="${tmpDir}/python/TRACE.mpits"
+        python_prv="${pythonDir}/${hostId}_python_trace.prv"
+
+        mpi2prv "${python_mpits}" "${python_prv}"
+      fi
+
+      if [ -f "${tmpDir}/TRACE.sym" ]; then
+        cp "${tmpDir}/TRACE.sym" .
+      fi
+
+      rm -rf "$tmpDir" "${package}"
     done
-    # Check if parallel merge is available / should be used
-    configuration=$("${extraeDir}"/etc/configured.sh | grep "enable-parallel-merge")
-    if [ -z "${configuration}" ] || [ "$(wc -l < TRACE.mpits)" -lt ${maxMpitNumber} ] ; then
-        "${extraeDir}"/bin/mpi2prv -f TRACE.mpits -no-syn -o "./trace/${appName}_compss.prv"
-    else
-        mpirun -np "$numberOfResources" "${extraeDir}"/bin/mpimpi2prv -f TRACE.mpits -no-syn -o "./trace/${appName}_compss.prv"
-    fi
+
+    mpi2prv "${mpits}" "${prv}"
+
     endCode=$?
-    rm -rf set-0/ TRACE.mpits TRACE.sym
+    rm -rf set-0/ "${mpits}" TRACE.sym
+    
+
   else 
     echo 1>&2 "Unknown tracing action"
     exit 1

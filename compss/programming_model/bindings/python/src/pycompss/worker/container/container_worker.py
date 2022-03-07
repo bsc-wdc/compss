@@ -60,7 +60,7 @@ def main():
     timeout = 0
     cus = 1
     log_level = sys.argv[3]
-    tracing = sys.argv[4] == 'true'
+    tracing = sys.argv[4] == "true"
     has_target = str(sys.argv[5]).lower() == "true"
     return_type = str(sys.argv[6])
     return_length = int(sys.argv[7])

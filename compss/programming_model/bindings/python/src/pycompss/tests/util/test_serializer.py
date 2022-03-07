@@ -39,8 +39,8 @@ def test_get_serializer_priority():
 
 
 def test_get_serializers():
-    from pycompss.util.serialization.serializer import get_serializers
-    serializers = get_serializers()
+    from pycompss.util.serialization.serializer import get_serializer_priority
+    serializers = get_serializer_priority()
     assert serializers == [pickle, dill], "ERROR: Received wrong serializers."
 
 

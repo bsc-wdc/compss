@@ -2,6 +2,8 @@ FROM compss/compss:2.10
 
 EXPOSE 43000-44000
 
+ENV PATH /root/.local/bin:$PATH
+
 RUN pip2 install --no-cache-dir --upgrade pip && \
     pip3 install --no-cache-dir --upgrade pip && \
     pip2 install --no-cache-dir graphviz && \

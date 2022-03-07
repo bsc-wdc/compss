@@ -50,7 +50,7 @@
   run_before_py3_modules="ignore"
   py3_modules="python/3.6.5"
   run_before_py3_other_modules="module load cuda/10.2 cudnn/7.6.4 nccl/2.4.8 tensorrt/6.0.1 openmpi/4.0.1 scalapack/2.0.2 fftw/3.3.8 szip/2.1.1 ffmpeg/4.2.1 opencv/4.1.1"
-  py3_other_modules="python/3.7.4_ML"
+  py3_other_modules="python/3.7.4_ML python/3.8.2 python/3.9.0"
 
   # DEFINE CONFIGURATION PARAMETERS
   #(Environment vars must be scaped to get the correct value if not it could take a value previous to load the modules)

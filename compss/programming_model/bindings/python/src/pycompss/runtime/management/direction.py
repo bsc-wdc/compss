@@ -28,18 +28,18 @@ from pycompss.api.parameter import DIRECTION
 
 def get_compss_direction(access_mode):
     # type: (str) -> int
-    """ Get the COMPSs direction of the given access_mode string.
+    """Get the COMPSs direction of the given access_mode string.
 
     :param access_mode: String to parse and return the direction.
     :return: Direction object (IN/INOUT/OUT).
     """
-    if access_mode.startswith('w'):
+    if access_mode.startswith("w"):
         return DIRECTION.OUT
-    elif access_mode.startswith('r+') or access_mode.startswith('a'):
+    elif access_mode.startswith("r+") or access_mode.startswith("a"):
         return DIRECTION.INOUT
-    elif access_mode.startswith('cv'):
+    elif access_mode.startswith("cv"):
         return DIRECTION.COMMUTATIVE
-    elif access_mode.startswith('c'):
+    elif access_mode.startswith("c"):
         return DIRECTION.CONCURRENT
     else:
         return DIRECTION.IN

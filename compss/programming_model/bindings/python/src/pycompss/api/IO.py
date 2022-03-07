@@ -37,10 +37,11 @@ from pycompss.runtime.task.core_element import CE
 
 if __debug__:
     import logging
+
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = set()   # type: typing.Set[str]
-SUPPORTED_ARGUMENTS = set()   # type: typing.Set[str]
+MANDATORY_ARGUMENTS = set()  # type: typing.Set[str]
+SUPPORTED_ARGUMENTS = set()  # type: typing.Set[str]
 DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 
 
@@ -52,7 +53,7 @@ class IO(object):
 
     def __init__(self, *args, **kwargs):
         # type: (*typing.Any, **typing.Any) -> None
-        """ Store arguments passed to the decorator.
+        """Store arguments passed to the decorator.
 
         self = itself.
         args = not used.
@@ -71,19 +72,22 @@ class IO(object):
         self.core_element_configured = False
         if self.scope:
             # Check the arguments
-            check_arguments(MANDATORY_ARGUMENTS,
-                            DEPRECATED_ARGUMENTS,
-                            SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
-                            list(kwargs.keys()),
-                            decorator_name)
+            check_arguments(
+                MANDATORY_ARGUMENTS,
+                DEPRECATED_ARGUMENTS,
+                SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
+                list(kwargs.keys()),
+                decorator_name,
+            )
 
     def __call__(self, user_function):
         # type: (typing.Callable) -> typing.Callable
-        """ Parse and set the IO parameters within the task core element.
+        """Parse and set the IO parameters within the task core element.
 
         :param user_function: Function to decorate.
         :return: Decorated function.
         """
+
         @wraps(user_function)
         def io_f(*args, **kwargs):
             # type: (*typing.Any, **typing.Any) -> typing.Any
@@ -93,8 +97,9 @@ class IO(object):
             if __debug__:
                 logger.debug("Executing IO_f wrapper.")
 
-            if (context.in_master() or context.is_nesting_enabled()) \
-                    and not self.core_element_configured:
+            if (
+                context.in_master() or context.is_nesting_enabled()
+            ) and not self.core_element_configured:
                 # master code - or worker with nesting enabled
                 self.__configure_core_element__(kwargs)
 
@@ -109,7 +114,7 @@ class IO(object):
 
     def __configure_core_element__(self, kwargs):
         # type: (dict) -> None
-        """ Include the registering info related to @IO.
+        """Include the registering info related to @IO.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 

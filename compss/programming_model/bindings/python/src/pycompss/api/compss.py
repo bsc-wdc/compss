@@ -53,20 +53,25 @@ from pycompss.runtime.task.core_element import CE
 
 if __debug__:
     import logging
+
     logger = logging.getLogger(__name__)
 
 MANDATORY_ARGUMENTS = {APP_NAME}
-SUPPORTED_ARGUMENTS = {COMPUTING_NODES,
-                       RUNCOMPSS,
-                       FLAGS,
-                       WORKER_IN_MASTER,
-                       APP_NAME,
-                       WORKING_DIR,
-                       FAIL_BY_EXIT_VALUE}
-DEPRECATED_ARGUMENTS = {LEGACY_COMPUTING_NODES,
-                        LEGACY_WORKER_IN_MASTER,
-                        LEGACY_APP_NAME,
-                        LEGACY_WORKING_DIR}
+SUPPORTED_ARGUMENTS = {
+    COMPUTING_NODES,
+    RUNCOMPSS,
+    FLAGS,
+    WORKER_IN_MASTER,
+    APP_NAME,
+    WORKING_DIR,
+    FAIL_BY_EXIT_VALUE,
+}
+DEPRECATED_ARGUMENTS = {
+    LEGACY_COMPUTING_NODES,
+    LEGACY_WORKER_IN_MASTER,
+    LEGACY_APP_NAME,
+    LEGACY_WORKING_DIR,
+}
 
 
 class COMPSs(object):
@@ -75,12 +80,18 @@ class COMPSs(object):
     __call__ methods, useful on compss task creation.
     """
 
-    __slots__ = ["decorator_name", "args", "kwargs", "scope",
-                 "core_element", "core_element_configured"]
+    __slots__ = [
+        "decorator_name",
+        "args",
+        "kwargs",
+        "scope",
+        "core_element",
+        "core_element_configured",
+    ]
 
     def __init__(self, *args, **kwargs):
         # type: (*typing.Any, **typing.Any) -> None
-        """ Store arguments passed to the decorator.
+        """Store arguments passed to the decorator.
 
         self = itself.
         args = not used.
@@ -99,22 +110,25 @@ class COMPSs(object):
         self.core_element_configured = False
         if self.scope:
             # Check the arguments
-            check_arguments(MANDATORY_ARGUMENTS,
-                            DEPRECATED_ARGUMENTS,
-                            SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
-                            list(kwargs.keys()),
-                            decorator_name)
+            check_arguments(
+                MANDATORY_ARGUMENTS,
+                DEPRECATED_ARGUMENTS,
+                SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
+                list(kwargs.keys()),
+                decorator_name,
+            )
 
             # Get the computing nodes
             process_computing_nodes(decorator_name, self.kwargs)
 
     def __call__(self, user_function):
         # type: (typing.Callable) -> typing.Callable
-        """ Parse and set the compss parameters within the task core element.
+        """Parse and set the compss parameters within the task core element.
 
         :param user_function: Function to decorate.
         :return: Decorated function.
         """
+
         @wraps(user_function)
         def compss_f(*args, **kwargs):
             # type: (*typing.Any, **typing.Any) -> typing.Any
@@ -124,8 +138,9 @@ class COMPSs(object):
             if __debug__:
                 logger.debug("Executing compss_f wrapper.")
 
-            if (context.in_master() or context.is_nesting_enabled()) \
-                    and not self.core_element_configured:
+            if (
+                context.in_master() or context.is_nesting_enabled()
+            ) and not self.core_element_configured:
                 # master code - or worker with nesting enabled
                 self.__configure_core_element__(kwargs)
 
@@ -144,7 +159,7 @@ class COMPSs(object):
 
     def __configure_core_element__(self, kwargs):
         # type: (dict) -> None
-        """ Include the registering info related to @compss.
+        """Include the registering info related to @compss.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 
@@ -184,12 +199,14 @@ class COMPSs(object):
 
         impl_type = IMPL_COMPSs
         impl_signature = ".".join((impl_type, app_name))
-        impl_args = [runcompss,
-                     flags,
-                     app_name,
-                     worker_in_master,
-                     self.kwargs[WORKING_DIR],
-                     self.kwargs[FAIL_BY_EXIT_VALUE]]
+        impl_args = [
+            runcompss,
+            flags,
+            app_name,
+            worker_in_master,
+            self.kwargs[WORKING_DIR],
+            self.kwargs[FAIL_BY_EXIT_VALUE],
+        ]
 
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator

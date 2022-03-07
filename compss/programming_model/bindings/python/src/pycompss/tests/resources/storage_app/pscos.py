@@ -90,7 +90,7 @@ def reduce_task_pscos(final, dic2):
 
 def basic_test():
     # type: () -> bool
-    """ Basic test
+    """Basic test
 
     This Test:
         - Instantiates a SCO.
@@ -120,7 +120,7 @@ def basic_test():
 
 def basic_2_test():
     # type: () -> bool
-    """ Basic test 2
+    """Basic test 2
 
     This Test:
         - Instantiates a SCO.
@@ -152,7 +152,7 @@ def basic_2_test():
 
 def basic_3_test():
     # type: () -> bool
-    """ Basic test 3
+    """Basic test 3
 
     This Test:
         - Instantiates a SCO.
@@ -182,16 +182,18 @@ def basic_3_test():
 
 def wordcount():
     # type: () -> bool
-    """ Wordcount Test
+    """Wordcount Test
         - Wordcount task receives a PSCO and returns a dictionary.
         - Reduce task works with python dictionaries.
 
     :return: True if success. False otherwise.
     """
-    words = [Words(GENERIC_STRING),
-             Words(GENERIC_STRING),
-             Words(GENERIC_STRING),
-             Words(GENERIC_STRING)]
+    words = [
+        Words(GENERIC_STRING),
+        Words(GENERIC_STRING),
+        Words(GENERIC_STRING),
+        Words(GENERIC_STRING),
+    ]
     for w in words:
         w.makePersistent()
     result = {}
@@ -201,10 +203,12 @@ def wordcount():
         reduce_task(result, partial_results)
     result = compss_wait_on(result)
 
-    if result['This'] == 4 and \
-            result['is'] == 4 and \
-            result['a'] == 4 and \
-            result['test'] == 4:
+    if (
+        result["This"] == 4
+        and result["is"] == 4
+        and result["a"] == 4
+        and result["test"] == 4
+    ):
         print("- Python Wordcount 1 with PSCOs: OK")
         return True
     else:
@@ -214,17 +218,19 @@ def wordcount():
 
 def wordcount2():
     # type: () -> bool
-    """ Wordcount Test
+    """Wordcount Test
         - Wordcount task receives a PSCO and returns a dictionary.
         - Reduce task receives a INOUT PSCO (result) where accumulates
           the partial results.
 
     :return: True if success. False otherwise.
     """
-    words = [Words(GENERIC_STRING),
-             Words(GENERIC_STRING),
-             Words(GENERIC_STRING),
-             Words(GENERIC_STRING)]
+    words = [
+        Words(GENERIC_STRING),
+        Words(GENERIC_STRING),
+        Words(GENERIC_STRING),
+        Words(GENERIC_STRING),
+    ]
     for w in words:
         w.makePersistent()
     result = Result()
@@ -239,10 +245,12 @@ def wordcount2():
     print(final.myd)
     result = final.get()
 
-    if result['This'] == 4 and \
-            result['is'] == 4 and \
-            result['a'] == 4 and \
-            result['test'] == 4:
+    if (
+        result["This"] == 4
+        and result["is"] == 4
+        and result["a"] == 4
+        and result["test"] == 4
+    ):
         print("- Python Wordcount 2 with PSCOs: OK")
         return True
     else:
@@ -295,15 +303,19 @@ def transform3(o1, o2):
 
 def tiramisu_mockup():
     # type: () -> bool
-    """ Tiramisu Mockup Test
+    """Tiramisu Mockup Test
 
     :return: True if success. False otherwise.
     """
     my_obj = InputData()
-    my_obj.set({FIRST: [1, 1, 1, 1],
-                SECOND: [2, 2, 2, 2],
-                THIRD: [3, 3, 3, 3],
-                FOURTH: [4, 4, 4, 4]})
+    my_obj.set(
+        {
+            FIRST: [1, 1, 1, 1],
+            SECOND: [2, 2, 2, 2],
+            THIRD: [3, 3, 3, 3],
+            FOURTH: [4, 4, 4, 4],
+        }
+    )
     out1 = InputData()
     out2 = InputData()
     out3 = InputData()
@@ -322,13 +334,14 @@ def tiramisu_mockup():
     out3 = compss_wait_on(out3)
 
     print("INOUTS:")
-    return __check_transformations__("Tiramisu Mockup",
-                                     out1, out2, out3, result)  # noqa
+    return __check_transformations__(
+        "Tiramisu Mockup", out1, out2, out3, result
+    )  # noqa
 
 
 def __check_transformations__(transformation, out1, out2, out3, result):
     # type: (str, InputData, InputData, InputData, InputData) -> bool
-    """ Checks the transformation to evaluate the result.
+    """Checks the transformation to evaluate the result.
 
     :param transformation: Transformation name
     :param out1: Transformation 1 output.
@@ -342,25 +355,33 @@ def __check_transformations__(transformation, out1, out2, out3, result):
     print("Transformation 3: ", out3.get())
     print("RESULT: ", result.get())
 
-    assert out1.get() == {FIRST: [1, 1, 1, 1],
-                          SECOND: [4, 4, 4, 4],
-                          THIRD: [9, 9, 9, 9],
-                          FOURTH: [16, 16, 16, 16]}
-    assert out2.get() == {FIRST: [2, 2, 2, 2],
-                          SECOND: [5, 5, 5, 5],
-                          THIRD: [10, 10, 10, 10],
-                          FOURTH: [17, 17, 17, 17]}
-    assert out3.get() == {FIRST: [6, 6, 6, 6],
-                          SECOND: [15, 15, 15, 15],
-                          THIRD: [30, 30, 30, 30],
-                          FOURTH: [51, 51, 51, 51]}
+    assert out1.get() == {
+        FIRST: [1, 1, 1, 1],
+        SECOND: [4, 4, 4, 4],
+        THIRD: [9, 9, 9, 9],
+        FOURTH: [16, 16, 16, 16],
+    }
+    assert out2.get() == {
+        FIRST: [2, 2, 2, 2],
+        SECOND: [5, 5, 5, 5],
+        THIRD: [10, 10, 10, 10],
+        FOURTH: [17, 17, 17, 17],
+    }
+    assert out3.get() == {
+        FIRST: [6, 6, 6, 6],
+        SECOND: [15, 15, 15, 15],
+        THIRD: [30, 30, 30, 30],
+        FOURTH: [51, 51, 51, 51],
+    }
 
     final_results = result.get()
     message = "- Python " + transformation + " with PSCOs: "
-    if all(x == 6 for x in final_results[FIRST]) and \
-            all(x == 15 for x in final_results[SECOND]) and \
-            all(x == 30 for x in final_results[THIRD]) and \
-            all(x == 51 for x in final_results[FOURTH]):
+    if (
+        all(x == 6 for x in final_results[FIRST])
+        and all(x == 15 for x in final_results[SECOND])
+        and all(x == 30 for x in final_results[THIRD])
+        and all(x == 51 for x in final_results[FOURTH])
+    ):
         print(message + "OK")
         return True
     else:
@@ -413,15 +434,19 @@ def transform3_2(o1, o2):
 
 def tiramisu_mockup2():
     # type: () -> bool
-    """ Tiramisu Mockup Test 2
+    """Tiramisu Mockup Test 2
 
     :return: True if success. False otherwise.
     """
     my_obj = InputData()
-    my_obj.set({FIRST: [1, 1, 1, 1],
-                SECOND: [2, 2, 2, 2],
-                THIRD: [3, 3, 3, 3],
-                FOURTH: [4, 4, 4, 4]})
+    my_obj.set(
+        {
+            FIRST: [1, 1, 1, 1],
+            SECOND: [2, 2, 2, 2],
+            THIRD: [3, 3, 3, 3],
+            FOURTH: [4, 4, 4, 4],
+        }
+    )
     out1 = InputData()
     out2 = InputData()
     out3 = InputData()
@@ -441,8 +466,9 @@ def tiramisu_mockup2():
     out3 = compss_wait_on(out3)
 
     print("OUTPUTS:")
-    return __check_transformations__("Tiramisu Mockup 2",
-                                     out1, out2, out3, result)  # noqa
+    return __check_transformations__(
+        "Tiramisu Mockup 2", out1, out2, out3, result
+    )  # noqa
 
 
 @task(sco=INOUT)
@@ -472,7 +498,7 @@ def make_persistent_in_task_as_return(sco):
 
 def evaluate_make_persistent_in_task():
     # type: () -> bool
-    """ This Test checks what happens when a not persisted persistent object
+    """This Test checks what happens when a not persisted persistent object
     is passed an INOUT task parameter and made persistent within the task.
 
     :return: True if success. False otherwise.
@@ -491,7 +517,7 @@ def evaluate_make_persistent_in_task():
 
 def evaluate_make_persistent_in_task2():
     # type: () -> bool
-    """ This Test checks what happens when a not persisted persistent object
+    """This Test checks what happens when a not persisted persistent object
     is passed as IN task parameter, made persistent within the task, and
     returned.
 
@@ -510,16 +536,18 @@ def evaluate_make_persistent_in_task2():
 
 
 def main():
-    results = {'basic': basic_test(),
-               'basic2': basic_2_test(),
-               'basic3': basic_3_test(),
-               'wordcount': wordcount(),
-               'wordcount2': wordcount2(),
-               'tiramisu': tiramisu_mockup(),
-               'tiramisu2': tiramisu_mockup2(),
-               'persistInTask': evaluate_make_persistent_in_task(),
-               'persistInTask2': evaluate_make_persistent_in_task2()}
+    results = {
+        "basic": basic_test(),
+        "basic2": basic_2_test(),
+        "basic3": basic_3_test(),
+        "wordcount": wordcount(),
+        "wordcount2": wordcount2(),
+        "tiramisu": tiramisu_mockup(),
+        "tiramisu2": tiramisu_mockup2(),
+        "persistInTask": evaluate_make_persistent_in_task(),
+        "persistInTask2": evaluate_make_persistent_in_task2(),
+    }
 
-    assert (
-        all(x for x in list(results.values()))
+    assert all(
+        x for x in list(results.values())
     ), "PSCOs TEST FINISHED WITH ERRORS: " + str(results)

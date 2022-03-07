@@ -30,7 +30,7 @@ FILE_NAME_LENGTH = 5
 
 @task(returns=1, collection=COLLECTION_IN)
 def map_partition(func, partition, collection=list()):
-    """ Map the given function to the partition.
+    """Map the given function to the partition.
 
     :param func: a functions that returns only one argument which is an iterable
     :param partition: the partition itself or a partition generator object
@@ -48,9 +48,8 @@ def map_partition(func, partition, collection=list()):
 
 
 @task(col=COLLECTION_OUT, collection=COLLECTION_IN)
-def distribute_partition(col, func, partitioner_func, partition,
-                         collection=list()):
-    """ Distribute (key, value) structured elements of the partition on
+def distribute_partition(col, func, partitioner_func, partition, collection=list()):
+    """Distribute (key, value) structured elements of the partition on
     'buckets'.
     :param col: empty 'buckets', must be repleced with COLLECTION_OUT..
     :param func: function from DDS object to be applied to the partition before
@@ -83,7 +82,7 @@ def reduce_dicts(first, rest):
 
 @task(returns=list, iterator=IN)
 def task_dict_to_list(iterator, total_parts, partition_num):
-    """ Disctionary to (key, value) pairs.
+    """Disctionary to (key, value) pairs.
     :return:
     """
     ret = list()
@@ -91,13 +90,13 @@ def task_dict_to_list(iterator, total_parts, partition_num):
     total = len(sorted_keys)
     chunk_size = max(1, total / total_parts)
     start = chunk_size * partition_num
-    is_last = (total_parts == partition_num + 1)
+    is_last = total_parts == partition_num + 1
 
     if is_last:
         for i in sorted_keys[start:]:
             ret.append((i, iterator[i]))
     else:
-        for i in sorted_keys[start:start+chunk_size]:
+        for i in sorted_keys[start : start + chunk_size]:
             ret.append((i, iterator[i]))
 
     return ret
@@ -105,8 +104,7 @@ def task_dict_to_list(iterator, total_parts, partition_num):
 
 @task(returns=1, parts=COLLECTION_IN)
 def reduce_multiple(f, parts):
-    """
-    """
+    """ """
     partitions = iter(parts)
     try:
         res = next(partitions)[0]
@@ -122,8 +120,7 @@ def reduce_multiple(f, parts):
 
 @task(returns=list)
 def task_collect_samples(partition, num_of_samples, key_func):
-    """
-    """
+    """ """
     ret = list()
     total = len(partition)
     step = max(total // num_of_samples, 1)
@@ -135,7 +132,7 @@ def task_collect_samples(partition, num_of_samples, key_func):
 
 @task(collection=COLLECTION_IN)
 def map_and_save_text_file(func, index, path, partition, collection=list()):
-    """ Same as 'map_partition' function with the only difference that this one
+    """Same as 'map_partition' function with the only difference that this one
     saves the result as a text file.
     :param func:
     :param index: important to keep the order of the partitions
@@ -158,7 +155,7 @@ def map_and_save_text_file(func, index, path, partition, collection=list()):
 
 @task(collection=COLLECTION_IN)
 def map_and_save_pickle(func, index, path, partition, collection=list()):
-    """ Same as 'map_partition' function with the only difference that this one
+    """Same as 'map_partition' function with the only difference that this one
     saves the result as a pickle file.
     :param func:
     :param index: important to keep the order of the partitions

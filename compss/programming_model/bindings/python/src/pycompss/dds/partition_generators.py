@@ -30,12 +30,12 @@ class IPartitionGenerator(object):
     """
     Everyone implements this.
     """
+
     def retrieve_data(self):
         raise NotImplementedError
 
 
 class BasicDataLoader(IPartitionGenerator):
-
     def __init__(self, data):
         super(BasicDataLoader, self).__init__()
         self.data = data
@@ -50,7 +50,6 @@ class BasicDataLoader(IPartitionGenerator):
 
 
 class IteratorLoader(IPartitionGenerator):
-
     def __init__(self, iterable, start, end):
         super(IteratorLoader, self).__init__()
         self.iterable = iterable
@@ -66,10 +65,10 @@ class IteratorLoader(IPartitionGenerator):
         # If it's a dict
         if isinstance(self.iterable, dict):
             sorted_keys = sorted(self.iterable.keys())
-            for key in sorted_keys[self.start:self.end]:
+            for key in sorted_keys[self.start : self.end]:
                 ret.append((key, self.iterable[key]))
         elif isinstance(self.iterable, list):
-            for item in iter(self.iterable[self.start:self.end]):
+            for item in iter(self.iterable[self.start : self.end]):
                 ret.append(item)
         else:
             index = 0
@@ -83,7 +82,6 @@ class IteratorLoader(IPartitionGenerator):
 
 
 class WorkerFileLoader(IPartitionGenerator):
-
     def __init__(self, file_paths, single_file=False, start=0, chunk_size=None):
         super(WorkerFileLoader, self).__init__()
 
@@ -113,7 +111,6 @@ class WorkerFileLoader(IPartitionGenerator):
 
 
 class PickleLoader(IPartitionGenerator):
-
     def __init__(self, pickle_path):
         super(PickleLoader, self).__init__()
         self.pickle_path = pickle_path

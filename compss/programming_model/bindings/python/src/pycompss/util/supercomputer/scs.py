@@ -30,7 +30,7 @@ from pycompss.util.typing_helper import typing
 
 def get_master_node():
     # type: () -> str
-    """ Get the master node.
+    """Get the master node.
 
     TIP: The environment variable COMPSS_MASTER_NODE is defined in the
          launch_compss script.
@@ -42,7 +42,7 @@ def get_master_node():
 
 def get_master_port():
     # type: () -> str
-    """ Get the master port.
+    """Get the master port.
 
     TIP: The environment variable COMPSS_MASTER_PORT is defined in the
          launch_compss script.
@@ -54,7 +54,7 @@ def get_master_port():
 
 def get_worker_nodes():
     # type: () -> str
-    """ Get the worker nodes.
+    """Get the worker nodes.
 
     TIP: The environment variable COMPSS_WORKER_NODES is defined in the
          launch_compss script.
@@ -66,7 +66,7 @@ def get_worker_nodes():
 
 def get_xmls():
     # type: () -> typing.Tuple[str, str]
-    """ Get the project and resources.
+    """Get the project and resources.
 
     They are taken from the environment variable exported from the
     submit_jupyter_job.sh.
@@ -80,7 +80,7 @@ def get_xmls():
 
 def get_uuid():
     # type: () -> str
-    """ Get UUID.
+    """Get UUID.
 
     TIP: The environment variable COMPSS_UUID is defined in the
          launch_compss script.
@@ -92,7 +92,7 @@ def get_uuid():
 
 def get_base_log_dir():
     # type: () -> str
-    """ Get base log dir.
+    """Get base log dir.
 
     TIP: The environment variable COMPSS_BASE_LOG_DIR is defined in the
          launch_compss script.
@@ -104,7 +104,7 @@ def get_base_log_dir():
 
 def get_specific_log_dir():
     # type: () -> str
-    """ Get specific log directory.
+    """Get specific log directory.
 
     TIP: The environment variable COMPSS_SPECIFIC_LOG_DIR is defined in the
          launch_compss script.
@@ -116,7 +116,7 @@ def get_specific_log_dir():
 
 def get_log_level():
     # type: () -> str
-    """ Get log level.
+    """Get log level.
 
     TIP: The environment variable COMPSS_LOG_LEVEL is defined in the
          launch_compss script.
@@ -128,7 +128,7 @@ def get_log_level():
 
 def get_tracing():
     # type: () -> bool
-    """ Get tracing boolean.
+    """Get tracing boolean.
 
     TIP: The environment variable COMPSS_TRACING is defined in the
          launch_compss script.
@@ -140,7 +140,7 @@ def get_tracing():
 
 def get_storage_conf():
     # type: () -> str
-    """ Get storage configuration file.
+    """Get storage configuration file.
 
     TIP: The environment variable COMPSS_STORAGE_CONF is defined in the
          launch_compss script.

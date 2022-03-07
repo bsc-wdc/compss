@@ -26,8 +26,10 @@ def cluster_points_partial(xp, mu, ind):
     dic = {}
     for x in enumerate(xp):
 
-        bestmukey = min([(i[0], np.linalg.norm(x[1] - mu[i[0]]))
-                         for i in enumerate(mu)], key=lambda t: t[1])[0]
+        bestmukey = min(
+            [(i[0], np.linalg.norm(x[1] - mu[i[0]])) for i in enumerate(mu)],
+            key=lambda t: t[1],
+        )[0]
 
         if bestmukey not in dic:
             dic[bestmukey] = [x[0] + ind]
@@ -86,6 +88,7 @@ def get_similar_files(fayl, cluster, threshold=0.90):
     :return: average similarity
     """
     import spacy
+
     nlp = spacy.load("en_core_web_sm")
 
     d1 = nlp(open(fayl).read())

@@ -32,8 +32,7 @@ def not_in_pycompss(decorator_name):
     :param decorator_name: Decorator name which requires the message.
     :return: Not in PyCOMPSs error message.
     """
-    return "The %s decorator only works within PyCOMPSs framework." % \
-           decorator_name
+    return "The %s decorator only works within PyCOMPSs framework." % decorator_name
 
 
 def cast_env_to_int_error(what):
@@ -68,5 +67,4 @@ def wrong_value(value_name, decorator_name):
     :param decorator_name: Decorator name which requires the message.
     :return: Wrong value at decorator message.
     """
-    return "ERROR: Wrong %s value at %s decorator." % (value_name,
-                                                       decorator_name)
+    return "ERROR: Wrong %s value at %s decorator." % (value_name, decorator_name)

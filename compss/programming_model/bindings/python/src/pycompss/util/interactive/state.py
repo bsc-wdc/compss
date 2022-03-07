@@ -30,30 +30,34 @@ from pycompss.util.exceptions import PyCOMPSsException
 from xml.etree import ElementTree
 
 try:
-    from IPython.display import HTML     # noqa
+    from IPython.display import HTML  # noqa
     from IPython.display import display  # noqa
-    MISSING_DEPENDENCY = "tabulate"      # noqa
-    import tabulate                      # noqa
-    MISSING_DEPENDENCY = "matplotlib"    # noqa
-    import matplotlib.pyplot as plt      # noqa
-    MISSING_DEPENDENCY = "numpy"         # noqa
-    import numpy as np                   # noqa
+
+    MISSING_DEPENDENCY = "tabulate"  # noqa
+    import tabulate  # noqa
+
+    MISSING_DEPENDENCY = "matplotlib"  # noqa
+    import matplotlib.pyplot as plt  # noqa
+
+    MISSING_DEPENDENCY = "numpy"  # noqa
+    import numpy as np  # noqa
+
     np.random.seed(0)
-    MISSING_DEPENDENCY = "None"          # noqa
+    MISSING_DEPENDENCY = "None"  # noqa
 except ImportError:
     HTML = None
     display = None
     plt = None
 
 try:
-    import ipywidgets as widgets        # noqa
+    import ipywidgets as widgets  # noqa
 except ImportError:
     widgets = None
 
 
 def supports_dynamic_state():
     # type: () -> bool
-    """ Checks if the state can be displayed with widgets.
+    """Checks if the state can be displayed with widgets.
 
     :return: True if widgets available. False otherwise.
     """
@@ -62,7 +66,7 @@ def supports_dynamic_state():
 
 def check_monitoring_file(log_path):
     # type: (str) -> bool
-    """ Check if there monitoring file exists or not.
+    """Check if there monitoring file exists or not.
 
     :param log_path: Absolute path of the log folder.
     :return: True if the compss monitoring file exists. False otherwise.
@@ -73,7 +77,7 @@ def check_monitoring_file(log_path):
 
 def get_compss_state_xml(log_path):
     # type: (str) -> str
-    """ Check if there is any missing package and return the status xml
+    """Check if there is any missing package and return the status xml
     full path.
 
     :param log_path: Absolute path of the log folder.
@@ -87,7 +91,7 @@ def get_compss_state_xml(log_path):
 
 def parse_state_xml(log_path, field):
     # type: (str, str) -> typing.Any
-    """ Converts the given xml to dictionary.
+    """Converts the given xml to dictionary.
 
     :param log_path: Absolute path of the log folder.
     :param field: Field name to retrieve.
@@ -111,7 +115,7 @@ def parse_state_xml(log_path, field):
 
 def element_tree_to_dict(element_tree):
     # type: (typing.Any) -> dict
-    """ Converts a element tree into a dictionary recursively.
+    """Converts a element tree into a dictionary recursively.
 
     :param element_tree: Element tree.
     :return: Dictionary.
@@ -123,11 +127,9 @@ def element_tree_to_dict(element_tree):
         for dc in map(element_tree_to_dict, children):
             for k, v in dc.items():
                 dd[k].append(v)
-        d = {element_tree.tag: {k: v[0] if len(v) == 1 else v
-                                for k, v in dd.items()}}
+        d = {element_tree.tag: {k: v[0] if len(v) == 1 else v for k, v in dd.items()}}
     if element_tree.attrib:
-        d[element_tree.tag].update(("@" + k, v)
-                                   for k, v in element_tree.attrib.items())
+        d[element_tree.tag].update(("@" + k, v) for k, v in element_tree.attrib.items())
     if element_tree.text:
         text = element_tree.text.strip()
         if children or element_tree.attrib:
@@ -140,12 +142,13 @@ def element_tree_to_dict(element_tree):
 
 def show_tasks_info(log_path):
     # type: (str) -> None
-    """ Show tasks info.
+    """Show tasks info.
 
     :param log_path: Absolute path of the log folder.
     :return: None
     """
     if supports_dynamic_state():
+
         def f(i):  # noqa
             # type: (typing.Any) -> None
             __show_tasks_info__(log_path)
@@ -158,17 +161,19 @@ def show_tasks_info(log_path):
 
 def __show_tasks_info__(log_path):
     # type: (str) -> None
-    """ Show tasks info.
+    """Show tasks info.
 
     :param log_path: Absolute path of the log folder.
     :return: None
     """
     cores_info = parse_state_xml(log_path, "CoresInfo")
-    labels = ["Signature",
-              "ExecutedCount",
-              "MaxExecutionTime",
-              "MeanExecutionTime",
-              "MinExecutionTime"]
+    labels = [
+        "Signature",
+        "ExecutedCount",
+        "MaxExecutionTime",
+        "MeanExecutionTime",
+        "MinExecutionTime",
+    ]
     cores = []
     for core in cores_info:
         new_task = []
@@ -178,7 +183,7 @@ def __show_tasks_info__(log_path):
             elif label == "ExecutedCount":
                 new_task.append(int(core["Impl"][label]))
             else:
-                new_task.append(int(core["Impl"][label])/1000)
+                new_task.append(int(core["Impl"][label]) / 1000)
         cores.append(new_task)
     # Display graph
     task_names = [row[0] for row in cores]
@@ -200,8 +205,13 @@ def __show_tasks_info__(log_path):
     ax1.set_ylabel("Time (seconds)")
     ax1.set_xlabel("Task name")
     task_mean = [mean * 1000 for mean in task_mean]
-    ax2.scatter(task_names, task_count, s=task_mean,
-                c=np.random.rand(len(task_names)), alpha=0.5)
+    ax2.scatter(
+        task_names,
+        task_count,
+        s=task_mean,
+        c=np.random.rand(len(task_names)),
+        alpha=0.5,
+    )
     ax2.set_ylim(0, max(task_count))
     ax2.ticklabel_format(axis="y", style="plain")
     ax2.set_ylabel("Amount of tasks")
@@ -214,12 +224,13 @@ def __show_tasks_info__(log_path):
 
 def show_tasks_status(log_path):
     # type: (str) -> None
-    """ Show tasks status.
+    """Show tasks status.
 
     :param log_path: Absolute path of the log folder.
     :return: None
     """
     if supports_dynamic_state():
+
         def f(i):  # noqa
             # type: (typing.Any) -> None
             __show_tasks_status__(log_path)
@@ -232,7 +243,7 @@ def show_tasks_status(log_path):
 
 def __show_tasks_status__(log_path):
     # type: (str) -> None
-    """ Show tasks status.
+    """Show tasks status.
 
     :param log_path: Absolute path of the log folder.
     :return: None
@@ -244,8 +255,9 @@ def __show_tasks_status__(log_path):
     explode = (0, 0)
     fig1, ax1 = plt.subplots()
     colors = ["b", "g"]
-    ax1.pie(sizes, explode=explode, labels=labels,
-            colors=colors, shadow=True, startangle=90)
+    ax1.pie(
+        sizes, explode=explode, labels=labels, colors=colors, shadow=True, startangle=90
+    )
     ax1.axis("equal")
     plt.show()
     # Display table with values
@@ -255,12 +267,13 @@ def __show_tasks_status__(log_path):
 
 def show_statistics(log_path):
     # type: (str) -> None
-    """ Show statistics info.
+    """Show statistics info.
 
     :param log_path: Absolute path of the log folder.
     :return: None
     """
     if supports_dynamic_state():
+
         def f(i):  # noqa
             # type: (typing.Any) -> None
             __show_statistics__(log_path)
@@ -273,7 +286,7 @@ def show_statistics(log_path):
 
 def __show_statistics__(log_path):
     # type: (str) -> None
-    """ Show statistics info.
+    """Show statistics info.
 
     :param log_path: Absolute path of the log folder.
     :return: None
@@ -287,12 +300,13 @@ def __show_statistics__(log_path):
 
 def show_resources_status(log_path):
     # type: (str) -> None
-    """ Show resources status info.
+    """Show resources status info.
 
     :param log_path: Absolute path of the log folder.
     :return: None
     """
     if supports_dynamic_state():
+
         def f(i):  # noqa
             # type: (typing.Any) -> None
             __show_resources_status__(log_path)
@@ -305,7 +319,7 @@ def show_resources_status(log_path):
 
 def __show_resources_status__(log_path):
     # type: (str) -> None
-    """ Show resources status info.
+    """Show resources status info.
 
     :param log_path: Absolute path of the log folder.
     :return: None
@@ -318,7 +332,7 @@ def __show_resources_status__(log_path):
 
 def __plain_lists__(dictionary):
     # type: (dict) -> typing.Tuple[list, list]
-    """ Converts a dictionary to two lists.
+    """Converts a dictionary to two lists.
     Removes last element.
 
     :param dictionary: Dictionary to plain.
@@ -336,18 +350,21 @@ def __plain_lists__(dictionary):
 
 def __get_play_widget(function):
     # type: (typing.Any) -> typing.Any
-    """ Generate play widget.
+    """Generate play widget.
 
     :param function: Function to associate with Play.
     :return: Play widget.
     """
-    play = widgets.interactive(function,
-                               i=widgets.Play(value=0,
-                                              min=0,
-                                              max=500,
-                                              step=1,
-                                              interval=5000,
-                                              description="Press play",
-                                              disabled=False)
-                               )
+    play = widgets.interactive(
+        function,
+        i=widgets.Play(
+            value=0,
+            min=0,
+            max=500,
+            step=1,
+            interval=5000,
+            description="Press play",
+            disabled=False,
+        ),
+    )
     return play

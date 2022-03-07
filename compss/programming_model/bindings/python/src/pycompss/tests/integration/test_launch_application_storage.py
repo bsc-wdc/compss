@@ -23,14 +23,14 @@ import shutil
 import subprocess
 
 STORAGE_CONF = "/tmp/storage.conf"  # NOSONAR
-TEMP_DIR = "/tmp/PSCO"              # NOSONAR
+TEMP_DIR = "/tmp/PSCO"  # NOSONAR
 JAVA_API_JAR = ""
 STORAGE_API = None
 
 
 def __initialize_storage__():
     # type: () -> None
-    """ Initializes the dummy storage backend.
+    """Initializes the dummy storage backend.
     Compiles the dummy storage backend from the tests sources.
     Sets the JAVA_API_JAR on the first call to this initialization.
 
@@ -44,20 +44,31 @@ def __initialize_storage__():
     sys.path.insert(0, STORAGE_API)
     if JAVA_API_JAR == "":
         # Compile jar
-        jar_source_path = os.path.join(current_path, "..", "..", "..", "..",
-                                       "..", "..", "..", "..",
-                                       "utils", "storage")
+        jar_source_path = os.path.join(
+            current_path,
+            "..",
+            "..",
+            "..",
+            "..",
+            "..",
+            "..",
+            "..",
+            "..",
+            "utils",
+            "storage",
+        )
         compile_command = ["mvn", "clean", "package"]
-        process = subprocess.Popen(compile_command,
-                                   stdout=subprocess.PIPE,
-                                   cwd=jar_source_path)
+        process = subprocess.Popen(
+            compile_command, stdout=subprocess.PIPE, cwd=jar_source_path
+        )
         output, error = process.communicate()
         if error:
             print(output.decode())
             print(error.decode())
         # Set JAVA_API_JAR
-        JAVA_API_JAR = os.path.join(jar_source_path, "dummyPSCO", "target",
-                                    "compss-dummyPSCO.jar")
+        JAVA_API_JAR = os.path.join(
+            jar_source_path, "dummyPSCO", "target", "compss-dummyPSCO.jar"
+        )
         print("Storage api jar: " + JAVA_API_JAR)
     # Set global environment
     os.environ["CLASSPATH"] = JAVA_API_JAR + ":" + os.environ["CLASSPATH"]
@@ -84,6 +95,7 @@ def __clean_storage__():
 
 def test_launch_application():
     from pycompss.runtime.launch import launch_pycompss_application
+
     global JAVA_API_JAR
     global STORAGE_API
 
@@ -91,8 +103,13 @@ def test_launch_application():
     app = os.path.join(current_path, "..", "resources", "storage_app", "pscos.py")
     __initialize_storage__()
     launch_pycompss_application(
-        app, "main", debug=True, app_name="pscos",
-        storage_conf=STORAGE_CONF, storage_impl=JAVA_API_JAR,
-        classpath=JAVA_API_JAR, pythonpath=STORAGE_API
+        app,
+        "main",
+        debug=True,
+        app_name="pscos",
+        storage_conf=STORAGE_CONF,
+        storage_impl=JAVA_API_JAR,
+        classpath=JAVA_API_JAR,
+        pythonpath=STORAGE_API,
     )
     __clean_storage__()

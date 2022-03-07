@@ -30,9 +30,7 @@ def dummy_function(*args, **kwargs):  # noqa
 def test_ompss_instantiation():
     context.set_pycompss_context(context.MASTER)
     my_ompss = OmpSs(binary="date")
-    assert (
-        my_ompss.decorator_name == "@ompss"
-    ), "The decorator name must be @ompss."
+    assert my_ompss.decorator_name == "@ompss", "The decorator name must be @ompss."
 
 
 def test_ompss_call():

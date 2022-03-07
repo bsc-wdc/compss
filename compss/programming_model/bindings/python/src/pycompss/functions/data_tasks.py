@@ -33,7 +33,7 @@ from pycompss.api.task import task
 @task(returns=list)
 def gen_random(size, frag_size, seed):
     # type: (int, int, int) -> typing.Any
-    """ Random generator.
+    """Random generator.
 
     :param size: Size
     :param frag_size: Fragment size
@@ -47,7 +47,7 @@ def gen_random(size, frag_size, seed):
 @task(returns=list)
 def gen_normal(size, frag_size, seed):
     # type: (int, int, int) -> typing.Any
-    """ Normal generator.
+    """Normal generator.
 
     :param size: Size
     :param frag_size: Fragment size
@@ -55,14 +55,15 @@ def gen_normal(size, frag_size, seed):
     :return: a fragment of elements
     """
     random.seed(seed)
-    return [[random.gauss(mu=0.0, sigma=1.0) for _ in range(size)]
-            for _ in range(frag_size)]
+    return [
+        [random.gauss(mu=0.0, sigma=1.0) for _ in range(size)] for _ in range(frag_size)
+    ]
 
 
 @task(returns=list)
 def gen_uniform(size, frag_size, seed):
     # type: (int, int, int) -> typing.Any
-    """ Uniform generator.
+    """Uniform generator.
 
     :param size: Size
     :param frag_size: Fragment size
@@ -70,5 +71,4 @@ def gen_uniform(size, frag_size, seed):
     :return: a fragment of elements
     """
     random.seed(seed)
-    return [[random.uniform(-1.0, 1.0) for _ in range(size)]
-            for _ in range(frag_size)]
+    return [[random.uniform(-1.0, 1.0) for _ in range(size)] for _ in range(frag_size)]

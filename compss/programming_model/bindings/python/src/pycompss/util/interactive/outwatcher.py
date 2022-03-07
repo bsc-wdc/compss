@@ -55,7 +55,7 @@ class StdWatcher(object):
     @staticmethod
     def __watcher__(fd_out, fd_err):
         # type: (typing.Any, typing.Any) -> typing.Iterator[str]
-        """ Static method that checks the stderr file descriptor looking
+        """Static method that checks the stderr file descriptor looking
         for new lines added at the end.
         It is enabled to also look into the stdout file descriptor, but
         currently not being used.
@@ -73,7 +73,7 @@ class StdWatcher(object):
 
     def __std_follower__(self, out_file_name, err_file_name):
         # type: (str, str) -> None
-        """ Opens the out and error files and looks inside them thanks to the
+        """Opens the out and error files and looks inside them thanks to the
         __watcher__ generator. This function puts into the queue any line
         of the error file which starts with "[ERRMGR]".
 
@@ -95,7 +95,7 @@ class StdWatcher(object):
 
     def start_watching(self):
         # type: () -> None
-        """ Starts a new thread in charge of monitoring the stdout and stderr
+        """Starts a new thread in charge of monitoring the stdout and stderr
         files provided by the redirector.
 
         :return: None
@@ -103,15 +103,16 @@ class StdWatcher(object):
         if is_redirected():
             self.running = True
             out_file_name, err_file_name = get_redirection_file_names()
-            thread = threading.Thread(target=self.__std_follower__,
-                                      args=(out_file_name, err_file_name))
+            thread = threading.Thread(
+                target=self.__std_follower__, args=(out_file_name, err_file_name)
+            )
             thread.start()
         else:
             raise PyCOMPSsException("Can not find the stdout and stderr.")
 
     def stop_watching(self, clean=True):
         # type: (bool) -> None
-        """ Stops the monitoring thread and cleans the redirection files
+        """Stops the monitoring thread and cleans the redirection files
         if clean is True.
 
         :param clean: Remove the redirection files.
@@ -127,7 +128,7 @@ class StdWatcher(object):
 
     def get_messages(self):
         # type: () -> list
-        """ Retrieves the current messages stored in the queue as a list
+        """Retrieves the current messages stored in the queue as a list
         of strings (one per line reported by the stdout and stderr files).
 
         :return: A list with the reported messages.

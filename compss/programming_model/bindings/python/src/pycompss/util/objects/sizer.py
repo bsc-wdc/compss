@@ -29,6 +29,7 @@ from sys import getsizeof
 from sys import stderr
 from itertools import chain
 from collections import deque
+
 try:
     from collections import Iterator  # type: ignore
 except ImportError:
@@ -43,7 +44,7 @@ except ImportError:
 
 def _dict_handler(d):
     # type: (dict) -> Iterator
-    """ Dictionary to dictionary handler converter.
+    """Dictionary to dictionary handler converter.
 
     :param d: Dictionary.
     :return: Dictionary handler.
@@ -53,7 +54,7 @@ def _dict_handler(d):
 
 def _user_object_handler(d):
     # type: (typing.Any) -> Iterator
-    """ User object to dictionary handler converter.
+    """User object to dictionary handler converter.
 
     :param d: User object.
     :return: Dictionary handler.
@@ -63,7 +64,7 @@ def _user_object_handler(d):
 
 def total_sizeof(o, handlers=None, verbose=False):
     # type: (typing.Any, Iterator, bool) -> int
-    """ Calculate the size of an object.
+    """Calculate the size of an object.
 
     Returns the approximate memory footprint an object and all of its contents.
     Automatically finds the contents of the following builtin containers and
@@ -77,13 +78,14 @@ def total_sizeof(o, handlers=None, verbose=False):
     :param verbose: Verbose mode [ True | False ] (default: False).
     :return: Total size of the object.
     """
-    all_handlers = {tuple: iter,
-                    list: iter,
-                    deque: iter,
-                    dict: _dict_handler,
-                    set: iter,
-                    frozenset: iter,
-                    }  # type: typing.Dict[typing.Any, typing.Any]
+    all_handlers = {
+        tuple: iter,
+        list: iter,
+        deque: iter,
+        dict: _dict_handler,
+        set: iter,
+        frozenset: iter,
+    }  # type: typing.Dict[typing.Any, typing.Any]
     if type(o) not in all_handlers.keys() and hasattr(o, "__dict__"):
         # It is something else include its __dict__
         all_handlers[type(o)] = _user_object_handler
@@ -94,7 +96,7 @@ def total_sizeof(o, handlers=None, verbose=False):
 
     def sizeof(obj):
         # type: (typing.Any) -> int
-        """ Calculate the size o the given object in bytes.
+        """Calculate the size o the given object in bytes.
 
         :param obj: Object to measure
         :return: The object size in bytes

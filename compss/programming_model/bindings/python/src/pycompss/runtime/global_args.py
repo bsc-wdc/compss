@@ -33,7 +33,7 @@ __WORKER_ARGS__ = tuple()  # type: tuple
 
 def set_worker_args(worker_args):
     # type: (tuple) -> None
-    """ Worker arguments to save in WORKER_ARGS.
+    """Worker arguments to save in WORKER_ARGS.
 
     :param worker_args: Worker arguments
     :return: None
@@ -44,7 +44,7 @@ def set_worker_args(worker_args):
 
 def get_worker_args():
     # type: () -> tuple
-    """ Retrieve the worker arguments.
+    """Retrieve the worker arguments.
 
     :return: Worker arguments
     """
@@ -53,7 +53,7 @@ def get_worker_args():
 
 def update_worker_argument_parameter_content(name, content):
     # type: (typing.Optional[str], typing.Any) -> None
-    """ Update the Parameter's content for the given name.
+    """Update the Parameter's content for the given name.
 
     :param name: Parameter name
     :param content: New content
@@ -61,16 +61,18 @@ def update_worker_argument_parameter_content(name, content):
     """
     if name:
         for param in __WORKER_ARGS__:
-            if not param.is_collection() and \
-               not param.is_dict_collection() and \
-               param.name == name:
+            if (
+                not param.is_collection()
+                and not param.is_dict_collection()
+                and param.name == name
+            ):
                 param.content = content
                 return
 
 
 def delete_worker_args():
     # type: () -> None
-    """ Remove the worker args global variable.
+    """Remove the worker args global variable.
 
     :return: None
     """

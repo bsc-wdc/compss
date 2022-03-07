@@ -24,6 +24,7 @@ import os
 
 def test_api_calling_dummy():
     import pycompss.util.context as context
+
     context.set_pycompss_context(context.MASTER)
     # Load exposed api, not dummy
     from pycompss.api.api import compss_start
@@ -41,6 +42,7 @@ def test_api_calling_dummy():
     from pycompss.api.api import compss_request_resources
     from pycompss.api.api import compss_free_resources
     from pycompss.api.api import TaskGroup
+
     # Force to use dummies
     context.set_pycompss_context(context.OUT_OF_SCOPE)
 

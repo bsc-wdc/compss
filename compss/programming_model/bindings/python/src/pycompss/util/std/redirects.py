@@ -33,18 +33,18 @@ import sys
 from pycompss.util.typing_helper import typing
 
 LIBC = ctypes.CDLL(None)  # noqa
-if sys.platform == 'darwin':
-    C_STDOUT = ctypes.c_void_p.in_dll(LIBC, '__stdoutp')
-    C_STDERR = ctypes.c_void_p.in_dll(LIBC, '__stderrp')
+if sys.platform == "darwin":
+    C_STDOUT = ctypes.c_void_p.in_dll(LIBC, "__stdoutp")
+    C_STDERR = ctypes.c_void_p.in_dll(LIBC, "__stderrp")
 else:
-    C_STDOUT = ctypes.c_void_p.in_dll(LIBC, 'stdout')
-    C_STDERR = ctypes.c_void_p.in_dll(LIBC, 'stderr')
+    C_STDOUT = ctypes.c_void_p.in_dll(LIBC, "stdout")
+    C_STDERR = ctypes.c_void_p.in_dll(LIBC, "stderr")
 
 
 @contextmanager
 def not_std_redirector():
     # type: () -> typing.Iterator[None]
-    """ Context which does nothing.
+    """Context which does nothing.
 
     Use this context instead of the std_redirector context to avoid
     stdout and stderr redirection.
@@ -57,7 +57,7 @@ def not_std_redirector():
 @contextmanager
 def std_redirector(out_filename, err_filename):
     # type: (str, str) -> typing.Iterator[None]
-    """ Stdout and stderr redirector to the given out and err file names.
+    """Stdout and stderr redirector to the given out and err file names.
 
     :param out_filename: Output file filename (where to redirect stdout)
     :param err_filename: Error output file filename (where to redirect stderr)
@@ -68,7 +68,7 @@ def std_redirector(out_filename, err_filename):
 
     def _redirect_stdout(to_fd):
         # type: (int) -> None
-        """ Redirect stdout to the given file descriptor.
+        """Redirect stdout to the given file descriptor.
 
         :param to_fd: Destination file descriptor
         :return: None
@@ -80,11 +80,11 @@ def std_redirector(out_filename, err_filename):
         # Make stdout_fd point to_fd
         os.dup2(to_fd, stdout_fd)
         # Create a new sys.stdout that points to the redirected fd
-        sys.stdout = io.TextIOWrapper(os.fdopen(stdout_fd, 'wb'))
+        sys.stdout = io.TextIOWrapper(os.fdopen(stdout_fd, "wb"))
 
     def _redirect_stderr(to_fd):
         # type: (int) -> None
-        """ Redirect stderr to the given file descriptor.
+        """Redirect stderr to the given file descriptor.
 
         :param to_fd: Destination file descriptor
         :return: None
@@ -96,15 +96,15 @@ def std_redirector(out_filename, err_filename):
         # Make stderr_fd point to_fd
         os.dup2(to_fd, stderr_fd)
         # Create a new sys.stderr that points to the redirected fd
-        sys.stderr = io.TextIOWrapper(os.fdopen(stderr_fd, 'wb'))
+        sys.stderr = io.TextIOWrapper(os.fdopen(stderr_fd, "wb"))
 
     # Save a copy of the original stdout and stderr
     stdout_fd_backup = os.dup(stdout_fd)
     stderr_fd_backup = os.dup(stderr_fd)
 
-    f_out = open(out_filename, 'ab')
+    f_out = open(out_filename, "ab")
     _redirect_stdout(f_out.fileno())
-    f_err = open(err_filename, 'ab')
+    f_err = open(err_filename, "ab")
     _redirect_stderr(f_err.fileno())
 
     # Yield to caller
@@ -124,7 +124,7 @@ def std_redirector(out_filename, err_filename):
 @contextmanager
 def ipython_std_redirector(out_filename, err_filename):
     # type: (str, str) -> typing.Iterator[None]
-    """ Stdout and stderr redirector within ipython environments to the given
+    """Stdout and stderr redirector within ipython environments to the given
     out and err file names.
 
     :param out_filename: Output file filename (where to redirect stdout)
@@ -136,7 +136,7 @@ def ipython_std_redirector(out_filename, err_filename):
 
     def _redirect_stdout(to_fd):
         # type: (int) -> None
-        """ Redirect stdout to the given file descriptor.
+        """Redirect stdout to the given file descriptor.
 
         :param to_fd: Destination file descriptor
         :return: None
@@ -149,12 +149,12 @@ def ipython_std_redirector(out_filename, err_filename):
         # Make stdout_fd point to_fd
         os.dup2(to_fd, stdout_fd)
         # Create a new sys.__stdout__ that points to the redirected fd
-        sys.__stdout__ = io.TextIOWrapper(os.fdopen(stdout_fd, 'wb'))
+        sys.__stdout__ = io.TextIOWrapper(os.fdopen(stdout_fd, "wb"))
         sys.stdout = sys.__stdout__
 
     def _redirect_stderr(to_fd):
         # type: (int) -> None
-        """ Redirect stderr to the given file descriptor.
+        """Redirect stderr to the given file descriptor.
 
         :param to_fd: Destination file descriptor
         :return: None
@@ -167,15 +167,15 @@ def ipython_std_redirector(out_filename, err_filename):
         # Make stderr_fd point to_fd
         os.dup2(to_fd, stderr_fd)
         # Create a new sys.__stderr__ that points to the redirected fd
-        sys.__stderr__ = io.TextIOWrapper(os.fdopen(stderr_fd, 'wb'))
+        sys.__stderr__ = io.TextIOWrapper(os.fdopen(stderr_fd, "wb"))
         sys.stderr = sys.__stderr__
 
     # Save a copy of the original stdout and stderr
     stdout_fd_backup = os.dup(stdout_fd)
     stderr_fd_backup = os.dup(stderr_fd)
-    f_out = open(out_filename, 'ab')
+    f_out = open(out_filename, "ab")
     _redirect_stdout(f_out.fileno())
-    f_err = open(err_filename, 'ab')
+    f_err = open(err_filename, "ab")
     _redirect_stderr(f_err.fileno())
     # Yield to caller
     yield

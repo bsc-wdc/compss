@@ -18,6 +18,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
+
 if sys.version_info <= (3, 0):
     from cStringIO import StringIO
 else:
@@ -36,25 +37,25 @@ ERROR_EXCEPTION = "ERROR: Exception has not been raised"
 def test_check_arguments_fine():
     from pycompss.util.arguments import check_arguments
 
-    mandatory_arguments = {"mandatory_argument_1",
-                           "mandatoryArgument2"}
-    deprecated_arguments = {"deprecated_argument_1",
-                            "deprecated_argument_2"}
-    supported_arguments = {"mandatory_argument_1",
-                           "mandatoryArgument2",
-                           "optional_argument"}
-    argument_names = ["mandatory_argument_1",
-                      "mandatoryArgument2",
-                      "optional_argument"]
+    mandatory_arguments = {"mandatory_argument_1", "mandatoryArgument2"}
+    deprecated_arguments = {"deprecated_argument_1", "deprecated_argument_2"}
+    supported_arguments = {
+        "mandatory_argument_1",
+        "mandatoryArgument2",
+        "optional_argument",
+    }
+    argument_names = ["mandatory_argument_1", "mandatoryArgument2", "optional_argument"]
     decorator = "Unittest"
 
     old_stderr = sys.stderr
     sys.stderr = my_stderr = StringIO()
-    check_arguments(mandatory_arguments,
-                    deprecated_arguments,
-                    supported_arguments,
-                    argument_names,
-                    decorator)
+    check_arguments(
+        mandatory_arguments,
+        deprecated_arguments,
+        supported_arguments,
+        argument_names,
+        decorator,
+    )
     sys.stderr = old_stderr
     assert "WARNING" not in my_stderr.getvalue(), ERROR_UNEXPECTED_WARNING
     assert "ERROR" not in my_stderr.getvalue(), ERROR_UNEXPECTED_ERROR
@@ -63,25 +64,29 @@ def test_check_arguments_fine():
 def test_check_arguments_using_deprecated():
     from pycompss.util.arguments import check_arguments
 
-    mandatory_arguments = {"mandatory_argument_1",
-                           "mandatoryArgument2"}
-    deprecated_arguments = {"deprecated_argument_1",
-                            "deprecated_argument_2"}
-    supported_arguments = {"mandatory_argument_1",
-                           "mandatoryArgument2",
-                           "optional_argument"}
-    argument_names = ["mandatory_argument_1",
-                      "mandatoryArgument2",
-                      "deprecated_argument_1"]
+    mandatory_arguments = {"mandatory_argument_1", "mandatoryArgument2"}
+    deprecated_arguments = {"deprecated_argument_1", "deprecated_argument_2"}
+    supported_arguments = {
+        "mandatory_argument_1",
+        "mandatoryArgument2",
+        "optional_argument",
+    }
+    argument_names = [
+        "mandatory_argument_1",
+        "mandatoryArgument2",
+        "deprecated_argument_1",
+    ]
     decorator = "Unittest"
 
     old_stderr = sys.stderr
     sys.stderr = my_stderr = StringIO()
-    check_arguments(mandatory_arguments,
-                    deprecated_arguments,
-                    supported_arguments,
-                    argument_names,
-                    decorator)
+    check_arguments(
+        mandatory_arguments,
+        deprecated_arguments,
+        supported_arguments,
+        argument_names,
+        decorator,
+    )
     sys.stderr = old_stderr
     assert "WARNING" in my_stderr.getvalue(), ERROR_MISSING_WARNING
     assert "ERROR" not in my_stderr.getvalue(), ERROR_UNEXPECTED_ERROR
@@ -91,22 +96,24 @@ def test_check_arguments_missing_mandatory():
     from pycompss.util.arguments import check_arguments
 
     result = False
-    mandatory_arguments = {"mandatory_argument_1",
-                           "mandatoryArgument2"}
-    deprecated_arguments = {"deprecated_argument_1",
-                            "deprecated_argument_2"}
-    supported_arguments = {"mandatory_argument_1",
-                           "mandatoryArgument2",
-                           "optional_argument"}
+    mandatory_arguments = {"mandatory_argument_1", "mandatoryArgument2"}
+    deprecated_arguments = {"deprecated_argument_1", "deprecated_argument_2"}
+    supported_arguments = {
+        "mandatory_argument_1",
+        "mandatoryArgument2",
+        "optional_argument",
+    }
     argument_names = ["mandatoryArgument2"]
     decorator = "Unittest"
 
     try:
-        check_arguments(mandatory_arguments,
-                        deprecated_arguments,
-                        supported_arguments,
-                        argument_names,
-                        decorator)
+        check_arguments(
+            mandatory_arguments,
+            deprecated_arguments,
+            supported_arguments,
+            argument_names,
+            decorator,
+        )
     except PyCOMPSsException:
         # This is ok
         result = True
@@ -117,22 +124,24 @@ def test_check_arguments_missing_mandatory_no_underscore():
     from pycompss.util.arguments import check_arguments
 
     result = False
-    mandatory_arguments = {"mandatory_argument_1",
-                           "mandatoryArgument2"}
-    deprecated_arguments = {"deprecated_argument_1",
-                            "deprecated_argument_2"}
-    supported_arguments = {"mandatory_argument_1",
-                           "mandatoryArgument2",
-                           "optional_argument"}
+    mandatory_arguments = {"mandatory_argument_1", "mandatoryArgument2"}
+    deprecated_arguments = {"deprecated_argument_1", "deprecated_argument_2"}
+    supported_arguments = {
+        "mandatory_argument_1",
+        "mandatoryArgument2",
+        "optional_argument",
+    }
     argument_names = ["mandatory_argument_1"]
     decorator = "Unittest"
 
     try:
-        check_arguments(mandatory_arguments,
-                        deprecated_arguments,
-                        supported_arguments,
-                        argument_names,
-                        decorator)
+        check_arguments(
+            mandatory_arguments,
+            deprecated_arguments,
+            supported_arguments,
+            argument_names,
+            decorator,
+        )
     except PyCOMPSsException:
         # This is ok
         result = True
@@ -142,25 +151,29 @@ def test_check_arguments_missing_mandatory_no_underscore():
 def test_check_arguments_unexpected():
     from pycompss.util.arguments import check_arguments
 
-    mandatory_arguments = {"mandatory_argument_1",
-                           "mandatoryArgument2"}
-    deprecated_arguments = {"deprecated_argument_1",
-                            "deprecated_argument_2"}
-    supported_arguments = {"mandatory_argument_1",
-                           "mandatoryArgument2",
-                           "optional_argument"}
-    argument_names = ["mandatory_argument_1",
-                      "mandatoryArgument2",
-                      "unexpected_argument"]
+    mandatory_arguments = {"mandatory_argument_1", "mandatoryArgument2"}
+    deprecated_arguments = {"deprecated_argument_1", "deprecated_argument_2"}
+    supported_arguments = {
+        "mandatory_argument_1",
+        "mandatoryArgument2",
+        "optional_argument",
+    }
+    argument_names = [
+        "mandatory_argument_1",
+        "mandatoryArgument2",
+        "unexpected_argument",
+    ]
     decorator = "Unittest"
 
     old_stderr = sys.stderr
     sys.stderr = my_stderr = StringIO()
-    check_arguments(mandatory_arguments,
-                    deprecated_arguments,
-                    supported_arguments,
-                    argument_names,
-                    decorator)
+    check_arguments(
+        mandatory_arguments,
+        deprecated_arguments,
+        supported_arguments,
+        argument_names,
+        decorator,
+    )
     sys.stderr = old_stderr
     assert "WARNING" in my_stderr.getvalue(), ERROR_MISSING_WARNING
     assert "ERROR" not in my_stderr.getvalue(), ERROR_UNEXPECTED_ERROR
@@ -170,26 +183,26 @@ def test_check_arguments_using_old_is_modifier():
     from pycompss.util.arguments import check_arguments
 
     result = False
-    mandatory_arguments = {"mandatory_argument_1",
-                           "mandatoryArgument2"}
-    deprecated_arguments = {"deprecated_argument_1",
-                            "deprecated_argument_2"}
-    supported_arguments = {"mandatory_argument_1",
-                           "mandatoryArgument2",
-                           "optional_argument"}
-    argument_names = ["mandatory_argument_1",
-                      "mandatoryArgument2",
-                      "isModifier"]
+    mandatory_arguments = {"mandatory_argument_1", "mandatoryArgument2"}
+    deprecated_arguments = {"deprecated_argument_1", "deprecated_argument_2"}
+    supported_arguments = {
+        "mandatory_argument_1",
+        "mandatoryArgument2",
+        "optional_argument",
+    }
+    argument_names = ["mandatory_argument_1", "mandatoryArgument2", "isModifier"]
     decorator = "Unittest"
 
     old_stderr = sys.stderr
     sys.stderr = my_stderr = StringIO()
     try:
-        check_arguments(mandatory_arguments,
-                        deprecated_arguments,
-                        supported_arguments,
-                        argument_names,
-                        decorator)
+        check_arguments(
+            mandatory_arguments,
+            deprecated_arguments,
+            supported_arguments,
+            argument_names,
+            decorator,
+        )
     except PyCOMPSsException:
         sys.stderr = old_stderr
         assert "WARNING" not in my_stderr.getvalue(), ERROR_UNEXPECTED_WARNING

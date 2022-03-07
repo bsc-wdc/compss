@@ -41,14 +41,17 @@ from pycompss.util.exceptions import PyCOMPSsException
 
 if __debug__:
     import logging
+
     logger = logging.getLogger(__name__)
 
 
 MANDATORY_ARGUMENTS = {MANAGEMENT}
-SUPPORTED_MANAGEMENT = {MANAGEMENT_IGNORE,
-                        MANAGEMENT_RETRY,
-                        MANAGEMENT_CANCEL_SUCCESSOR,
-                        MANAGEMENT_FAIL}
+SUPPORTED_MANAGEMENT = {
+    MANAGEMENT_IGNORE,
+    MANAGEMENT_RETRY,
+    MANAGEMENT_CANCEL_SUCCESSOR,
+    MANAGEMENT_FAIL,
+}
 
 
 class OnFailure(object):
@@ -57,13 +60,20 @@ class OnFailure(object):
     __call__ methods, useful on task on_failure creation.
     """
 
-    __slots__ = ["on_failure_action", "defaults",
-                 "decorator_name", "args", "kwargs",
-                 "scope", "core_element", "core_element_configured"]
+    __slots__ = [
+        "on_failure_action",
+        "defaults",
+        "decorator_name",
+        "args",
+        "kwargs",
+        "scope",
+        "core_element",
+        "core_element_configured",
+    ]
 
     def __init__(self, *args, **kwargs):
         # type: (*typing.Any, **typing.Any) -> None
-        """ Store arguments passed to the decorator.
+        """Store arguments passed to the decorator.
 
         self = itself.
         args = not used.
@@ -82,9 +92,9 @@ class OnFailure(object):
         self.core_element_configured = False
         if self.scope:
             # Check the arguments
-            check_mandatory_arguments(MANDATORY_ARGUMENTS,
-                                      list(kwargs.keys()),
-                                      decorator_name)
+            check_mandatory_arguments(
+                MANDATORY_ARGUMENTS, list(kwargs.keys()), decorator_name
+            )
 
             # Save the parameters into self so that they can be accessed when
             # the task fails and the action needs to be taken
@@ -92,32 +102,34 @@ class OnFailure(object):
             # Check supported management values
             if self.on_failure_action not in SUPPORTED_MANAGEMENT:
                 raise PyCOMPSsException(
-                    "ERROR: Unsupported on failure action: %s" %
-                    self.on_failure_action)
+                    "ERROR: Unsupported on failure action: %s" % self.on_failure_action
+                )
             # Keep all defaults in a dictionary
             self.defaults = kwargs
 
     def __call__(self, user_function):
         # type: (typing.Callable) -> typing.Callable
-        """ Parse and set the on_failure within the task core element.
+        """Parse and set the on_failure within the task core element.
 
         :param user_function: Function to decorate.
         :return: Decorated function.
         """
+
         @wraps(user_function)
         def constrained_f(*args, **kwargs):
             # type: (*typing.Any, **typing.Any) -> typing.Any
             if not self.scope:
-                from pycompss.api.dummy.on_failure import on_failure \
-                    as dummy_on_failure
+                from pycompss.api.dummy.on_failure import on_failure as dummy_on_failure
+
                 d_c = dummy_on_failure(self.args, self.kwargs)
                 return d_c.__call__(user_function)(*args, **kwargs)
 
             if __debug__:
                 logger.debug("Executing on_failure_f wrapper.")
 
-            if (context.in_master() or context.is_nesting_enabled()) \
-                    and not self.core_element_configured:
+            if (
+                context.in_master() or context.is_nesting_enabled()
+            ) and not self.core_element_configured:
                 # master code - or worker with nesting enabled
                 self.__configure_core_element__(kwargs)
 
@@ -137,7 +149,7 @@ class OnFailure(object):
 
     def __configure_core_element__(self, kwargs):
         # type: (dict) -> None
-        """ Include the registering info related to @on_failure.
+        """Include the registering info related to @on_failure.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 

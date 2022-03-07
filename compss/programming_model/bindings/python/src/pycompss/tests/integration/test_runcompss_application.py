@@ -31,9 +31,8 @@ def test_runcompss_increment():
         cmd = ["runcompss", "--log_level=debug", "--python_interpreter=python2", app]
     else:
         cmd = ["runcompss", "--log_level=debug", "--python_interpreter=python3", app]
-    process = subprocess.Popen(" ".join(cmd),
-                               shell=True,
-                               stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE)
+    process = subprocess.Popen(
+        " ".join(cmd), shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
     process.wait()
     outs, errs = process.communicate()

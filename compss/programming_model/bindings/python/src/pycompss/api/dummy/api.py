@@ -30,7 +30,7 @@ from pycompss.util.typing_helper import typing
 
 def compss_start(log_level="off", tracing=0, interactive=False):  # noqa
     # type: (str, int, bool) -> None
-    """ Dummy runtime start.
+    """Dummy runtime start.
 
     Does nothing.
 
@@ -43,7 +43,7 @@ def compss_start(log_level="off", tracing=0, interactive=False):  # noqa
 
 def compss_stop(code=0, _hard_stop=False):  # noqa
     # type: (int, bool) -> None
-    """ Dummy runtime stop.
+    """Dummy runtime stop.
 
     Does nothing.
 
@@ -56,7 +56,7 @@ def compss_stop(code=0, _hard_stop=False):  # noqa
 
 def compss_file_exists(*file_name):
     # type: (*str) -> typing.Union[bool, typing.List[bool]]
-    """ Dummy compss_file_exists.
+    """Dummy compss_file_exists.
 
     Check if the file exists.
 
@@ -71,7 +71,7 @@ def compss_file_exists(*file_name):
 
 def compss_open(file_name, mode="r"):
     # type: (str, str) -> typing.Any
-    """ Dummy compss_open.
+    """Dummy compss_open.
 
     Open the given file with the defined mode (see builtin open).
 
@@ -85,7 +85,7 @@ def compss_open(file_name, mode="r"):
 
 def compss_delete_file(*file_name):  # noqa
     # type: (*str) -> typing.Union[bool, typing.List[bool]]
-    """ Dummy compss_delete.
+    """Dummy compss_delete.
 
     Does nothing and always return True.
 
@@ -100,7 +100,7 @@ def compss_delete_file(*file_name):  # noqa
 
 def compss_wait_on_file(*file_name):  # noqa
     # type: (*str) -> None
-    """ Dummy compss_wait_on_file.
+    """Dummy compss_wait_on_file.
 
     Does nothing.
 
@@ -112,7 +112,7 @@ def compss_wait_on_file(*file_name):  # noqa
 
 def compss_wait_on_directory(*directory_name):  # noqa
     # type: (*str) -> None
-    """ Dummy compss_wait_on_directory.
+    """Dummy compss_wait_on_directory.
 
     Does nothing.
 
@@ -124,7 +124,7 @@ def compss_wait_on_directory(*directory_name):  # noqa
 
 def compss_delete_object(*obj):  # noqa
     # type: (*typing.Any) -> typing.Union[bool, typing.List[bool]]
-    """ Dummy compss_delete_object.
+    """Dummy compss_delete_object.
 
     Does nothing and always return True.
 
@@ -139,7 +139,7 @@ def compss_delete_object(*obj):  # noqa
 
 def compss_barrier(no_more_tasks=False):  # noqa
     # type: (bool) -> None
-    """ Dummy barrier.
+    """Dummy barrier.
 
     Does nothing.
 
@@ -151,7 +151,7 @@ def compss_barrier(no_more_tasks=False):  # noqa
 
 def compss_barrier_group(group_name):  # noqa
     # type: (str) -> None
-    """ Dummy barrier for groups.
+    """Dummy barrier for groups.
 
     Does nothing.
 
@@ -163,7 +163,7 @@ def compss_barrier_group(group_name):  # noqa
 
 def compss_wait_on(*args, **kwargs):  # noqa
     # type: (*typing.Any, **typing.Any) -> typing.Any
-    """ Dummy compss_wait_on.
+    """Dummy compss_wait_on.
 
     Does nothing.
 
@@ -180,7 +180,7 @@ def compss_wait_on(*args, **kwargs):  # noqa
 
 def compss_get_number_of_resources():
     # type: () -> int
-    """ Request for the number of active resources.
+    """Request for the number of active resources.
 
     Does nothing.
 
@@ -191,7 +191,7 @@ def compss_get_number_of_resources():
 
 def compss_request_resources(num_resources, group_name):  # noqa
     # type: (int, str) -> None
-    """ Requests the creation of num_resources resources.
+    """Requests the creation of num_resources resources.
 
     Does nothing.
 
@@ -204,7 +204,7 @@ def compss_request_resources(num_resources, group_name):  # noqa
 
 def compss_free_resources(num_resources, group_name):  # noqa
     # type: (int, str) -> None
-    """ Requests the destruction of num_resources resources.
+    """Requests the destruction of num_resources resources.
 
     Does nothing.
 
@@ -217,7 +217,7 @@ def compss_free_resources(num_resources, group_name):  # noqa
 
 def compss_set_wall_clock(wall_clock_limit):  # noqa
     # type: (int) -> None
-    """ Sets the application wall_clock_limit.
+    """Sets the application wall_clock_limit.
 
     Does nothing.
 
@@ -231,9 +231,10 @@ class TaskGroup(object):
     """
     Dummy TaskGroup context manager.
     """
+
     def __init__(self, group_name, implicit_barrier=True):  # noqa
         # type: (str, bool) -> None
-        """ Define a new group of tasks.
+        """Define a new group of tasks.
 
         :param group_name: Group name.
         :param implicit_barrier: Perform implicit barrier.
@@ -242,14 +243,14 @@ class TaskGroup(object):
 
     def __enter__(self):
         # type: () -> None
-        """ Dummy: do nothing
+        """Dummy: do nothing
 
         :return: None
         """
         pass
 
     def __exit__(self, type, value, traceback):  # noqa
-        """ Dummy: do nothing
+        """Dummy: do nothing
 
         :return: None
         """

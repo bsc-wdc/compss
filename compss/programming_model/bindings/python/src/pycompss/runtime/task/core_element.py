@@ -29,17 +29,24 @@ from pycompss.util.typing_helper import typing
 
 class CE(object):
 
-    __slots__ = ["ce_signature", "impl_signature", "impl_constraints",
-                 "impl_type", "impl_io", "impl_type_args"]
+    __slots__ = [
+        "ce_signature",
+        "impl_signature",
+        "impl_constraints",
+        "impl_type",
+        "impl_io",
+        "impl_type_args",
+    ]
 
-    def __init__(self,
-                 ce_signature="",        # type: str
-                 impl_signature="",      # type: str
-                 impl_constraints=None,  # type: typing.Dict[str, str]
-                 impl_type=None,         # type: typing.Optional[str]
-                 impl_io=False,          # type: bool
-                 impl_type_args=None,    # type: typing.List[str]
-                 ):                      # type: (...) -> None
+    def __init__(
+        self,
+        ce_signature="",  # type: str
+        impl_signature="",  # type: str
+        impl_constraints=None,  # type: typing.Dict[str, str]
+        impl_type=None,  # type: typing.Optional[str]
+        impl_io=False,  # type: bool
+        impl_type_args=None,  # type: typing.List[str]
+    ):  # type: (...) -> None
         self.ce_signature = ce_signature
         self.impl_signature = impl_signature
         if impl_constraints is None:
@@ -128,7 +135,7 @@ class CE(object):
 
     def __repr__(self):
         # type: () -> str
-        """ Builds the element representation as string.
+        """Builds the element representation as string.
 
         :return: The core element representation.
         """

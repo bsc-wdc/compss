@@ -33,6 +33,7 @@ from pycompss.util.exceptions import PyCOMPSsException
 
 if __debug__:
     import logging
+
     logger = logging.getLogger(__name__)
 
 
@@ -45,10 +46,19 @@ class ObjectTracker(object):
     to keep track of the objects within the python binding.
     """
 
-    __slots__ = ["file_names", "obj_names", "pending_to_synchronize",
-                 "written_objects", "current_id", "runtime_id",
-                 "obj_id_to_obj", "address_to_obj_id",
-                 "reporting", "reporting_info", "initial_time"]
+    __slots__ = [
+        "file_names",
+        "obj_names",
+        "pending_to_synchronize",
+        "written_objects",
+        "current_id",
+        "runtime_id",
+        "obj_id_to_obj",
+        "address_to_obj_id",
+        "reporting",
+        "reporting_info",
+        "initial_time",
+    ]
 
     def __init__(self):
         # type: () -> None
@@ -56,18 +66,18 @@ class ObjectTracker(object):
         # filename where it is stored (mapping).
         # The filename will be used for requesting an object to
         # the runtime (its corresponding version).
-        self.file_names = dict()             # type: typing.Dict[str, str]
+        self.file_names = dict()  # type: typing.Dict[str, str]
         # Dictionary to contain the conversion from object id to the
         # parameter name (object name mapping).
         # The object name will be used to map the tracked objects with the
         # updated within a task (e.g. synchronize within task).
-        self.obj_names = dict()              # type: typing.Dict[str, typing.Optional[str]]
+        self.obj_names = dict()  # type: typing.Dict[str, typing.Optional[str]]
         # Set that contains the object identifiers of the objects to pending
         # to be synchronized.
         self.pending_to_synchronize = set()  # type: typing.Set[str]
         # Set of identifiers of the objects that have been accessed by the
         # main program
-        self.written_objects = set()         # type: typing.Set[str]
+        self.written_objects = set()  # type: typing.Set[str]
         # Identifier handling
         self.current_id = 1
         # Object identifiers will be of the form _runtime_id-_current_id
@@ -79,7 +89,7 @@ class ObjectTracker(object):
         # NOTE: it can not be done in the other way since the memory addresses
         #       can be reused, not guaranteeing their uniqueness, and causing
         #       weird behaviour.
-        self.obj_id_to_obj = dict()      # type: typing.Dict[str, typing.Any]
+        self.obj_id_to_obj = dict()  # type: typing.Dict[str, typing.Any]
         # Dictionary to contain the object address (currently the id(obj)) to
         # the identifier provided by the binding.
         self.address_to_obj_id = dict()  # type: typing.Dict[typing.Any, str]
@@ -96,7 +106,7 @@ class ObjectTracker(object):
 
     def track(self, obj, obj_name=None, collection=False):
         # type: (typing.Any, typing.Optional[str], bool) -> typing.Tuple[str, str]
-        """ Start tracking an object.
+        """Start tracking an object.
 
         Collections are not stored into a file. Consequently, we just register
         it to keep track of the identifier, but no file is stored. However,
@@ -119,8 +129,7 @@ class ObjectTracker(object):
             self._set_obj_name(obj_id, obj_name)
             self.set_pending_to_synchronize(obj_id)
             if __debug__:
-                logger.debug("Tracking object %s to file %s" % (obj_id,
-                                                                file_name))
+                logger.debug("Tracking object %s to file %s" % (obj_id, file_name))
         address = self._get_object_address(obj)
         self.address_to_obj_id[address] = obj_id
         if self.reporting:
@@ -139,7 +148,7 @@ class ObjectTracker(object):
 
     def stop_tracking(self, obj, collection=False):
         # type: (typing.Any, bool) -> None
-        """ Stop tracking the given object.
+        """Stop tracking the given object.
 
         :param obj: Object to stop tracking.
         :param collection: If the object to stop tracking is a collection.
@@ -162,7 +171,7 @@ class ObjectTracker(object):
 
     def get_object_id(self, obj):
         # type: (typing.Any) -> str
-        """ Returns the object identifier.
+        """Returns the object identifier.
 
         This function is a wrapper of is_tracked.
 
@@ -173,7 +182,7 @@ class ObjectTracker(object):
 
     def is_tracked(self, obj):
         # type: (typing.Any) -> str
-        """ Checks if the given object is being tracked.
+        """Checks if the given object is being tracked.
 
         Due to the length that the obj_id_to_address dictionary can reach, if
         is tracked we return the identifier in order to avoid to search again
@@ -190,7 +199,7 @@ class ObjectTracker(object):
 
     def get_all_file_names(self):
         # type: () -> tuple
-        """ Returns all files used.
+        """Returns all files used.
 
         Useful for cleanup.
 
@@ -200,7 +209,7 @@ class ObjectTracker(object):
 
     def get_file_name(self, obj_id):
         # type: (str) -> str
-        """ Get the file name associated to the given object identifier.
+        """Get the file name associated to the given object identifier.
 
         :param obj_id: Object identifier.
         :return: File name.
@@ -209,7 +218,7 @@ class ObjectTracker(object):
 
     def get_obj_name(self, obj_id):
         # type: (str) -> typing.Optional[str]
-        """ Get the object name associated to the given object identifier.
+        """Get the object name associated to the given object identifier.
 
         :param obj_id: Object identifier.
         :return: Object name.
@@ -221,7 +230,7 @@ class ObjectTracker(object):
 
     def is_obj_pending_to_synchronize(self, obj):
         # type: (typing.Any) -> bool
-        """ Checks if the given object is pending to be synchronized.
+        """Checks if the given object is pending to be synchronized.
 
         :param obj: Object to check.
         :return: True if pending. False otherwise.
@@ -234,7 +243,7 @@ class ObjectTracker(object):
 
     def is_pending_to_synchronize(self, obj_id):
         # type: (str) -> bool
-        """ Checks if the given object identifier is in pending to be
+        """Checks if the given object identifier is in pending to be
         synchronized dictionary.
 
         :param obj_id: Object identifier.
@@ -244,7 +253,7 @@ class ObjectTracker(object):
 
     def set_pending_to_synchronize(self, obj_id):
         # type: (str) -> None
-        """ Set the given filename with object identifier as pending to
+        """Set the given filename with object identifier as pending to
         synchronize.
 
         :param obj_id: Object identifier.
@@ -254,7 +263,7 @@ class ObjectTracker(object):
 
     def has_been_written(self, obj_id):
         # type: (str) -> bool
-        """ Checks if the given object identifier has been written by the
+        """Checks if the given object identifier has been written by the
         main program.
 
         :param obj_id: Object identifier.
@@ -264,7 +273,7 @@ class ObjectTracker(object):
 
     def pop_written_obj(self, obj_id):
         # type: (str) -> str
-        """ Pop a written filename with the given object identifier from
+        """Pop a written filename with the given object identifier from
         written objects.
 
         :param obj_id: Object identifier.
@@ -275,7 +284,7 @@ class ObjectTracker(object):
 
     def update_mapping(self, obj_id, obj):
         # type: (str, typing.Any) -> None
-        """ Updates the object into the object tracker.
+        """Updates the object into the object tracker.
 
         :param obj_id: Object identifier.
         :param obj: New object to track.
@@ -290,7 +299,7 @@ class ObjectTracker(object):
 
     def clean_object_tracker(self):
         # type: () -> None
-        """ Clears all object tracker internal structures.
+        """Clears all object tracker internal structures.
 
         :return: None
         """
@@ -303,7 +312,7 @@ class ObjectTracker(object):
 
     def clean_report(self):
         # type: () -> None
-        """ Clears the reporting data.
+        """Clears the reporting data.
 
         :return: None
         """
@@ -313,11 +322,9 @@ class ObjectTracker(object):
     #            PRIVATE FUNCTIONS              #
     #############################################
 
-    def _register_object(self, obj,
-                         assign_new_key=False,
-                         force_insertion=False):
+    def _register_object(self, obj, assign_new_key=False, force_insertion=False):
         # type: (typing.Any, bool, bool) -> str
-        """ Registers an object into the object tracker.
+        """Registers an object into the object tracker.
 
         If not found or we are forced to, we create a new identifier for this
         object, deleting the old one if necessary. We can also query for some
@@ -361,7 +368,7 @@ class ObjectTracker(object):
 
     def _set_file_name(self, obj_id, filename, written=False):
         # type: (str, str, bool) -> None
-        """ Set a filename for the given object identifier.
+        """Set a filename for the given object identifier.
 
         :param obj_id: Object identifier.
         :param filename: File name.
@@ -374,7 +381,7 @@ class ObjectTracker(object):
 
     def _delete_file_name(self, obj_id):
         # type: (str) -> None
-        """ Remove the file name of the given object identifier.
+        """Remove the file name of the given object identifier.
 
         :param obj_id: Object identifier.
         :return: None
@@ -383,7 +390,7 @@ class ObjectTracker(object):
 
     def _set_obj_name(self, obj_id, obj_name):
         # type: (str, typing.Optional[str]) -> None
-        """ Set the object name for the given object identifier.
+        """Set the object name for the given object identifier.
 
         :param obj_id: Object identifier.
         :param obj_name: Object name.
@@ -393,7 +400,7 @@ class ObjectTracker(object):
 
     def _delete_obj_name(self, obj_id):
         # type: (str) -> None
-        """ Remove the object name of the given object identifier.
+        """Remove the object name of the given object identifier.
 
         :param obj_id: Object identifier.
         :return: None
@@ -402,7 +409,7 @@ class ObjectTracker(object):
 
     def _remove_from_pending_to_synchronize(self, obj_id):
         # type: (str) -> None
-        """ Pop the filename of the given object identifier from pending to
+        """Pop the filename of the given object identifier from pending to
         synchronize.
 
         :param obj_id: Object identifier.
@@ -412,7 +419,7 @@ class ObjectTracker(object):
 
     def _pop_object_id(self, obj_id):
         # type: (str) -> typing.Any
-        """ Pop an object from the dictionary.
+        """Pop an object from the dictionary.
 
         :param obj_id: Object identifier to pop.
         :return: Popped object.
@@ -424,7 +431,7 @@ class ObjectTracker(object):
     @staticmethod
     def _get_object_address(obj):
         # type: (typing.Any) -> int
-        """ Retrieves the object memory address.
+        """Retrieves the object memory address.
 
         :param obj: Object to get the memory address.
         :return: Object identifier.
@@ -471,7 +478,7 @@ class ObjectTracker(object):
 
     def enable_report(self):
         # type: () -> None
-        """ Enables to keep the status in internal infrastructure so that
+        """Enables to keep the status in internal infrastructure so that
         the report can be generated afterwards.
 
         :return: None
@@ -482,7 +489,7 @@ class ObjectTracker(object):
 
     def is_report_enabled(self):
         # type: () -> bool
-        """ Retrieves if the reporting is enabled.
+        """Retrieves if the reporting is enabled.
 
         :return: If the object tracker is keeping track of the status.
         """
@@ -490,7 +497,7 @@ class ObjectTracker(object):
 
     def report_now(self, first=False):  # noqa
         # type: (bool) -> None
-        """ Updates the report with the current Object Tracker status.
+        """Updates the report with the current Object Tracker status.
 
         WARNING: This function only works if log_level=trace.
 
@@ -504,21 +511,29 @@ class ObjectTracker(object):
 
     def __log_object_tracker_status__(self):
         # type: () -> None
-        """ Logs the object tracker status.
+        """Logs the object tracker status.
 
         :return: None
         """
-        logger.debug("Object tracker status: " +
-                     " File_names=" + str(len(self.file_names)) +
-                     " Pending_to_synchronize=" + str(len(self.pending_to_synchronize)) +  # noqa: E501
-                     " Written_objs=" + str(len(self.written_objects)) +
-                     " Obj_id_to_obj=" + str(len(self.obj_id_to_obj)) +
-                     " Address_to_obj_id=" + str(len(self.address_to_obj_id)) +
-                     " Current_id=" + str(self.current_id))
+        logger.debug(
+            "Object tracker status: "
+            + " File_names="
+            + str(len(self.file_names))
+            + " Pending_to_synchronize="
+            + str(len(self.pending_to_synchronize))
+            + " Written_objs="  # noqa: E501
+            + str(len(self.written_objects))
+            + " Obj_id_to_obj="
+            + str(len(self.obj_id_to_obj))
+            + " Address_to_obj_id="
+            + str(len(self.address_to_obj_id))
+            + " Current_id="
+            + str(self.current_id)
+        )
 
     def __update_report__(self, first=False):
         # type: (bool) -> None
-        """ Updates the internal self.report_info variable with the
+        """Updates the internal self.report_info variable with the
         current object tracker status.
 
         :param first: If it is the first time reporting the status.
@@ -526,17 +541,21 @@ class ObjectTracker(object):
         """
         if first:
             self.initial_time = time.time()
-        current_status = (time.time() - self.initial_time,
-                          (len(self.file_names),
-                          len(self.pending_to_synchronize),
-                          len(self.written_objects),
-                          len(self.obj_id_to_obj),
-                          len(self.address_to_obj_id)))
+        current_status = (
+            time.time() - self.initial_time,
+            (
+                len(self.file_names),
+                len(self.pending_to_synchronize),
+                len(self.written_objects),
+                len(self.obj_id_to_obj),
+                len(self.address_to_obj_id),
+            ),
+        )
         self.reporting_info.append(current_status)
 
     def generate_report(self, target_path):
         # type: (str) -> None
-        """ Generates a plot reporting the behaviour of the object tracker.
+        """Generates a plot reporting the behaviour of the object tracker.
 
         Uses the self.report_info internal variable contents.
 
@@ -544,8 +563,9 @@ class ObjectTracker(object):
         :return: None
         """
         try:
-            import matplotlib                # noqa
-            matplotlib.use("Agg")            # avoid issues in MN
+            import matplotlib  # noqa
+
+            matplotlib.use("Agg")  # avoid issues in MN
             import matplotlib.pyplot as plt  # noqa
         except ImportError:
             print("WARNING: Could not generate the Object Tracker report")
@@ -558,11 +578,13 @@ class ObjectTracker(object):
         plt.xlabel("Time (seconds)")
         plt.ylabel("# Elements")
         plt.title("Object tracker behaviour")
-        labels = ["File names",
-                  "Pending to synchronize",
-                  "Updated mappings",
-                  "IDs",
-                  "Addresses"]
+        labels = [
+            "File names",
+            "Pending to synchronize",
+            "Updated mappings",
+            "IDs",
+            "Addresses",
+        ]
         for i in range(len(y[0])):
             plt.plot(x, [pt[i] for pt in y], label="%s" % labels[i])
         plt.legend()

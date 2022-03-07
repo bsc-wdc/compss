@@ -49,10 +49,14 @@ from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.environment.configuration import preload_user_code
 from pycompss.util.environment.configuration import export_current_flags
 from pycompss.util.environment.configuration import prepare_environment
-from pycompss.util.environment.configuration import prepare_loglevel_graph_for_monitoring  # noqa
+from pycompss.util.environment.configuration import (
+    prepare_loglevel_graph_for_monitoring,
+)  # noqa
 from pycompss.util.environment.configuration import updated_variables_in_sc
 from pycompss.util.environment.configuration import prepare_tracing_environment
-from pycompss.util.environment.configuration import check_infrastructure_variables         # noqa
+from pycompss.util.environment.configuration import (
+    check_infrastructure_variables,
+)  # noqa
 from pycompss.util.environment.configuration import create_init_config_file
 from pycompss.util.logger.helpers import get_logging_cfg_file
 from pycompss.util.logger.helpers import init_logging
@@ -92,12 +96,13 @@ initialize_multiprocessing()
 
 def stop_all(exit_code):
     # type: (int) -> None
-    """ Stop everything smoothly.
+    """Stop everything smoothly.
 
     :param exit_code: Exit code.
     :return: None
     """
     from pycompss.api.api import compss_stop
+
     global STREAMING
     global PERSISTENT_STORAGE
     global LOGGER
@@ -115,36 +120,32 @@ def stop_all(exit_code):
 
 def parse_arguments():
     # type: () -> typing.Any
-    """ Parse PyCOMPSs arguments.
+    """Parse PyCOMPSs arguments.
 
     :return: Argument's parser.
     """
-    parser = argparse.ArgumentParser(
-        description="PyCOMPSs application launcher")
-    parser.add_argument("wall_clock",
-                        help="Application Wall Clock limit [wall_clock<=0 deactivated|wall_clock>0 max duration in seconds]")  # noqa: E501
-    parser.add_argument("log_level",
-                        help="Logging level [trace|debug|api|info|off]")
-    parser.add_argument("tracing",
-                        help="Tracing [-3(ARM DDT)|-2(ARM MAP)|-1(ScoreP)|0(Deactivated)|1(Basic)|2(Advanced)]")  # noqa: E501
-    parser.add_argument("object_conversion",
-                        help="Object_conversion [true|false]")
-    parser.add_argument("storage_configuration",
-                        help="Storage configuration [null|*]")
-    parser.add_argument("streaming_backend",
-                        help="Streaming Backend [null|*]")
-    parser.add_argument("streaming_master_name",
-                        help="Streaming Master Name [*]")
-    parser.add_argument("streaming_master_port",
-                        help="Streaming Master Port [*]")
-    parser.add_argument("app_path",
-                        help="Application path")
+    parser = argparse.ArgumentParser(description="PyCOMPSs application launcher")
+    parser.add_argument(
+        "wall_clock",
+        help="Application Wall Clock limit [wall_clock<=0 deactivated|wall_clock>0 max duration in seconds]",
+    )  # noqa: E501
+    parser.add_argument("log_level", help="Logging level [trace|debug|api|info|off]")
+    parser.add_argument(
+        "tracing",
+        help="Tracing [-3(ARM DDT)|-2(ARM MAP)|-1(ScoreP)|0(Deactivated)|1(Basic)|2(Advanced)]",
+    )  # noqa: E501
+    parser.add_argument("object_conversion", help="Object_conversion [true|false]")
+    parser.add_argument("storage_configuration", help="Storage configuration [null|*]")
+    parser.add_argument("streaming_backend", help="Streaming Backend [null|*]")
+    parser.add_argument("streaming_master_name", help="Streaming Master Name [*]")
+    parser.add_argument("streaming_master_port", help="Streaming Master Port [*]")
+    parser.add_argument("app_path", help="Application path")
     return parser.parse_args()
 
 
 def __load_user_module__(app_path, log_level):
     # type: (str, str) -> None
-    """ Loads the user module (resolve all user imports).
+    """Loads the user module (resolve all user imports).
     This has shown to be necessary before doing "start_compss" in order
     to avoid segmentation fault in some libraries.
 
@@ -154,20 +155,23 @@ def __load_user_module__(app_path, log_level):
     """
     app_name = os.path.basename(app_path).split(".")[0]
     try:
-        from importlib.machinery import SourceFileLoader        # noqa
+        from importlib.machinery import SourceFileLoader  # noqa
+
         _ = SourceFileLoader(app_name, app_path).load_module()  # type: ignore
-    except Exception:                                               # noqa
+    except Exception:  # noqa
         # Ignore any exception to try to run.
         # This exception can be produce for example with applications
         # that have code replacer and have imports to code that does not
         # exist (e.g. using autoparallel)
         if log_level != "off":
-            print("WARNING: Could not load the application (this may be the cause of a running exception.")  # noqa: E501
+            print(
+                "WARNING: Could not load the application (this may be the cause of a running exception."
+            )  # noqa: E501
 
 
 def __register_implementation_core_elements__():
     # type: () -> None
-    """ Register the @implements core elements accumulated during the
+    """Register the @implements core elements accumulated during the
     initialization of the @implements decorators. They have not been
     registered because the runtime was not started. And the load is
     necessary to resolve all user imports before starting the runtime (it has
@@ -185,7 +189,7 @@ def __register_implementation_core_elements__():
 
 def compss_main():
     # type: () -> None
-    """ PyCOMPSs main function.
+    """PyCOMPSs main function.
 
     General call:
     python $PYCOMPSS_HOME/pycompss/runtime/launch.py $wall_clock $log_level
@@ -202,9 +206,9 @@ def compss_main():
     # Let the Python binding know we are at master
     context.set_pycompss_context(context.MASTER)
     # Then we can import the appropriate start and stop functions from the API
-    from pycompss.api.api import compss_start            # noqa
-    from pycompss.api.api import compss_stop             # noqa
-    from pycompss.api.api import compss_set_wall_clock   # noqa
+    from pycompss.api.api import compss_start  # noqa
+    from pycompss.api.api import compss_stop  # noqa
+    from pycompss.api.api import compss_set_wall_clock  # noqa
 
     # See parse_arguments, defined above
     # In order to avoid parsing user arguments, we are going to remove user
@@ -256,11 +260,9 @@ def compss_main():
 
     # Setup logging
     binding_log_path = get_log_path()
-    log_path = os.path.join(str(os.getenv("COMPSS_HOME")),
-                            "Bindings",
-                            "python",
-                            str(PYTHON_VERSION),
-                            "log")
+    log_path = os.path.join(
+        str(os.getenv("COMPSS_HOME")), "Bindings", "python", str(PYTHON_VERSION), "log"
+    )
     set_temporary_directory(binding_log_path)
     logging_cfg_file = get_logging_cfg_file(log_level)
     init_logging(os.path.join(log_path, logging_cfg_file), binding_log_path)
@@ -282,9 +284,11 @@ def compss_main():
         PERSISTENT_STORAGE = master_init_storage(storage_conf, LOGGER)
 
         # Start STREAMING
-        STREAMING = init_streaming(args.streaming_backend,
-                                   args.streaming_master_name,
-                                   args.streaming_master_port)
+        STREAMING = init_streaming(
+            args.streaming_backend,
+            args.streaming_master_name,
+            args.streaming_master_port,
+        )
 
         # Show module warnings
         if __debug__:
@@ -336,60 +340,63 @@ def compss_main():
 # Starts a new COMPSs runtime and calls the application. #
 # ###################################################### #
 
-def launch_pycompss_application(app,                              # type: str
-                                func,                             # type: typing.Optional[str]
-                                log_level="off",                  # type: str
-                                o_c=False,                        # type: bool
-                                debug=False,                      # type: bool
-                                graph=False,                      # type: bool
-                                trace=False,                      # type: bool
-                                monitor=-1,                       # type: int
-                                project_xml="",                   # type: str
-                                resources_xml="",                 # type: str
-                                summary=False,                    # type: bool
-                                task_execution="compss",          # type: str
-                                storage_impl="",                  # type: str
-                                storage_conf="",                  # type: str
-                                streaming_backend="",             # type: str
-                                streaming_master_name="",         # type: str
-                                streaming_master_port="",         # type: str
-                                task_count=50,                    # type: int
-                                app_name="",                      # type: str
-                                uuid="",                          # type: str
-                                base_log_dir="",                  # type: str
-                                specific_log_dir="",              # type: str
-                                extrae_cfg="",                    # type: str
-                                comm="NIO",                       # type: str
-                                conn=DEFAULT_CONN,                # type: str
-                                master_name="",                   # type: str
-                                master_port="",                   # type: str
-                                scheduler=DEFAULT_SCHED,          # type: str
-                                jvm_workers=DEFAULT_JVM_WORKERS,  # type: str
-                                cpu_affinity="automatic",         # type: str
-                                gpu_affinity="automatic",         # type: str
-                                fpga_affinity="automatic",        # type: str
-                                fpga_reprogram="",                # type: str
-                                profile_input="",                 # type: str
-                                profile_output="",                # type: str
-                                scheduler_config="",              # type: str
-                                external_adaptation=False,        # type: bool
-                                propagate_virtual_environment=True,  # type: bool
-                                mpi_worker=False,                 # type: bool
-                                worker_cache=False,               # type: typing.Union[bool, str]
-                                shutdown_in_node_failure=False,   # type: bool
-                                io_executors=0,                   # type: int
-                                env_script="",                    # type: str
-                                reuse_on_block=True,              # type: bool
-                                nested_enabled=False,             # type: bool
-                                tracing_task_dependencies=False,  # type: bool
-                                trace_label="",                   # type: str
-                                extrae_cfg_python="",             # type: str
-                                wcl=0,                            # type: int
-                                cache_profiler=False,             # type: bool
-                                *args, **kwargs
-                                ):  # NOSONAR
+
+def launch_pycompss_application(
+    app,  # type: str
+    func,  # type: typing.Optional[str]
+    log_level="off",  # type: str
+    o_c=False,  # type: bool
+    debug=False,  # type: bool
+    graph=False,  # type: bool
+    trace=False,  # type: bool
+    monitor=-1,  # type: int
+    project_xml="",  # type: str
+    resources_xml="",  # type: str
+    summary=False,  # type: bool
+    task_execution="compss",  # type: str
+    storage_impl="",  # type: str
+    storage_conf="",  # type: str
+    streaming_backend="",  # type: str
+    streaming_master_name="",  # type: str
+    streaming_master_port="",  # type: str
+    task_count=50,  # type: int
+    app_name="",  # type: str
+    uuid="",  # type: str
+    base_log_dir="",  # type: str
+    specific_log_dir="",  # type: str
+    extrae_cfg="",  # type: str
+    comm="NIO",  # type: str
+    conn=DEFAULT_CONN,  # type: str
+    master_name="",  # type: str
+    master_port="",  # type: str
+    scheduler=DEFAULT_SCHED,  # type: str
+    jvm_workers=DEFAULT_JVM_WORKERS,  # type: str
+    cpu_affinity="automatic",  # type: str
+    gpu_affinity="automatic",  # type: str
+    fpga_affinity="automatic",  # type: str
+    fpga_reprogram="",  # type: str
+    profile_input="",  # type: str
+    profile_output="",  # type: str
+    scheduler_config="",  # type: str
+    external_adaptation=False,  # type: bool
+    propagate_virtual_environment=True,  # type: bool
+    mpi_worker=False,  # type: bool
+    worker_cache=False,  # type: typing.Union[bool, str]
+    shutdown_in_node_failure=False,  # type: bool
+    io_executors=0,  # type: int
+    env_script="",  # type: str
+    reuse_on_block=True,  # type: bool
+    nested_enabled=False,  # type: bool
+    tracing_task_dependencies=False,  # type: bool
+    trace_label="",  # type: str
+    extrae_cfg_python="",  # type: str
+    wcl=0,  # type: int
+    cache_profiler=False,  # type: bool
+    *args,
+    **kwargs
+):  # NOSONAR
     # type: (...) -> typing.Any
-    """ Launch PyCOMPSs application from function.
+    """Launch PyCOMPSs application from function.
 
     :param app: Application path
     :param func: Function
@@ -462,8 +469,7 @@ def launch_pycompss_application(app,                              # type: str
     # Check that COMPSs is available
     if "COMPSS_HOME" not in os.environ:
         # Do not allow to continue if COMPSS_HOME is not defined
-        raise PyCOMPSsException(
-            "ERROR: COMPSS_HOME is not defined in the environment")
+        raise PyCOMPSsException("ERROR: COMPSS_HOME is not defined in the environment")
 
     # Let the Python binding know we are at master
     context.set_pycompss_context(context.MASTER)
@@ -478,54 +484,56 @@ def launch_pycompss_application(app,                              # type: str
         log_level = "debug"
 
     # Initial dictionary with the user defined parameters
-    all_vars = parameters_to_dict(log_level,
-                                  debug,
-                                  o_c,
-                                  graph,
-                                  trace,
-                                  monitor,
-                                  project_xml,
-                                  resources_xml,
-                                  summary,
-                                  task_execution,
-                                  storage_impl,
-                                  storage_conf,
-                                  streaming_backend,
-                                  streaming_master_name,
-                                  streaming_master_port,
-                                  task_count,
-                                  app_name,
-                                  uuid,
-                                  base_log_dir,
-                                  specific_log_dir,
-                                  extrae_cfg,
-                                  comm,
-                                  conn,
-                                  master_name,
-                                  master_port,
-                                  scheduler,
-                                  jvm_workers,
-                                  cpu_affinity,
-                                  gpu_affinity,
-                                  fpga_affinity,
-                                  fpga_reprogram,
-                                  profile_input,
-                                  profile_output,
-                                  scheduler_config,
-                                  external_adaptation,
-                                  propagate_virtual_environment,
-                                  mpi_worker,
-                                  worker_cache,
-                                  shutdown_in_node_failure,
-                                  io_executors,
-                                  env_script,
-                                  reuse_on_block,
-                                  nested_enabled,
-                                  tracing_task_dependencies,
-                                  trace_label,
-                                  extrae_cfg_python,
-                                  wcl,
-                                  cache_profiler)
+    all_vars = parameters_to_dict(
+        log_level,
+        debug,
+        o_c,
+        graph,
+        trace,
+        monitor,
+        project_xml,
+        resources_xml,
+        summary,
+        task_execution,
+        storage_impl,
+        storage_conf,
+        streaming_backend,
+        streaming_master_name,
+        streaming_master_port,
+        task_count,
+        app_name,
+        uuid,
+        base_log_dir,
+        specific_log_dir,
+        extrae_cfg,
+        comm,
+        conn,
+        master_name,
+        master_port,
+        scheduler,
+        jvm_workers,
+        cpu_affinity,
+        gpu_affinity,
+        fpga_affinity,
+        fpga_reprogram,
+        profile_input,
+        profile_output,
+        scheduler_config,
+        external_adaptation,
+        propagate_virtual_environment,
+        mpi_worker,
+        worker_cache,
+        shutdown_in_node_failure,
+        io_executors,
+        env_script,
+        reuse_on_block,
+        nested_enabled,
+        tracing_task_dependencies,
+        trace_label,
+        extrae_cfg_python,
+        wcl,
+        cache_profiler,
+    )
     # Save all vars in global current flags so that events.py can restart
     # the notebook with the same flags
     export_current_flags(all_vars)
@@ -537,31 +545,33 @@ def launch_pycompss_application(app,                              # type: str
         return None
 
     # Prepare the environment
-    env_vars = prepare_environment(False, o_c, storage_impl, app,
-                                   debug, trace, mpi_worker)
+    env_vars = prepare_environment(
+        False, o_c, storage_impl, app, debug, trace, mpi_worker
+    )
     all_vars.update(env_vars)
 
-    monitoring_vars = prepare_loglevel_graph_for_monitoring(monitor,
-                                                            graph,
-                                                            debug,
-                                                            log_level)
+    monitoring_vars = prepare_loglevel_graph_for_monitoring(
+        monitor, graph, debug, log_level
+    )
     all_vars.update(monitoring_vars)
 
     if RUNNING_IN_SUPERCOMPUTER:
         updated_vars = updated_variables_in_sc()
         all_vars.update(updated_vars)
 
-    to_update = prepare_tracing_environment(all_vars["trace"],
-                                            all_vars["extrae_lib"],
-                                            all_vars["ld_library_path"])
+    to_update = prepare_tracing_environment(
+        all_vars["trace"], all_vars["extrae_lib"], all_vars["ld_library_path"]
+    )
     all_vars["trace"], all_vars["ld_library_path"] = to_update
 
-    inf_vars = check_infrastructure_variables(all_vars["project_xml"],
-                                              all_vars["resources_xml"],
-                                              all_vars["compss_home"],
-                                              all_vars["app_name"],
-                                              all_vars["file_name"],
-                                              all_vars["external_adaptation"])
+    inf_vars = check_infrastructure_variables(
+        all_vars["project_xml"],
+        all_vars["resources_xml"],
+        all_vars["compss_home"],
+        all_vars["app_name"],
+        all_vars["file_name"],
+        all_vars["external_adaptation"],
+    )
     all_vars.update(inf_vars)
 
     create_init_config_file(**all_vars)
@@ -575,11 +585,13 @@ def launch_pycompss_application(app,                              # type: str
 
     # Setup logging
     binding_log_path = get_log_path()
-    log_path = os.path.join(all_vars["compss_home"],
-                            "Bindings",
-                            "python",
-                            str(all_vars["major_version"]),
-                            "log")
+    log_path = os.path.join(
+        all_vars["compss_home"],
+        "Bindings",
+        "python",
+        str(all_vars["major_version"]),
+        "log",
+    )
     set_temporary_directory(binding_log_path)
     logging_cfg_file = get_logging_cfg_file(log_level)
     init_logging(os.path.join(log_path, logging_cfg_file), binding_log_path)
@@ -595,9 +607,11 @@ def launch_pycompss_application(app,                              # type: str
         persistent_storage = False
 
     logger.debug("Starting streaming")
-    streaming = init_streaming(all_vars["streaming_backend"],
-                               all_vars["streaming_master_name"],
-                               all_vars["streaming_master_port"])
+    streaming = init_streaming(
+        all_vars["streaming_backend"],
+        all_vars["streaming_master_name"],
+        all_vars["streaming_master_port"],
+    )
 
     saved_argv = sys.argv
     sys.argv = list(args)
@@ -608,6 +622,7 @@ def launch_pycompss_application(app,                              # type: str
             result = None
         else:
             from importlib.machinery import SourceFileLoader  # noqa
+
             imported_module = SourceFileLoader(all_vars["file_name"], app).load_module()  # type: ignore
             method_to_call = getattr(imported_module, func)
             try:

@@ -54,21 +54,26 @@ from pycompss.runtime.task.core_element import CE
 
 if __debug__:
     import logging
+
     logger = logging.getLogger(__name__)
 
 MANDATORY_ARGUMENTS = {DF_SCRIPT}
-SUPPORTED_ARGUMENTS = {COMPUTING_NODES,
-                       WORKING_DIR,
-                       RUNNER,
-                       DF_EXECUTOR,
-                       DF_LIB,
-                       DF_SCRIPT,
-                       FAIL_BY_EXIT_VALUE}
-DEPRECATED_ARGUMENTS = {LEGACY_COMPUTING_NODES,
-                        LEGACY_WORKING_DIR,
-                        LEGACY_DF_EXECUTOR,
-                        LEGACY_DF_LIB,
-                        LEGACY_DF_SCRIPT}
+SUPPORTED_ARGUMENTS = {
+    COMPUTING_NODES,
+    WORKING_DIR,
+    RUNNER,
+    DF_EXECUTOR,
+    DF_LIB,
+    DF_SCRIPT,
+    FAIL_BY_EXIT_VALUE,
+}
+DEPRECATED_ARGUMENTS = {
+    LEGACY_COMPUTING_NODES,
+    LEGACY_WORKING_DIR,
+    LEGACY_DF_EXECUTOR,
+    LEGACY_DF_LIB,
+    LEGACY_DF_SCRIPT,
+}
 
 
 class Decaf(object):
@@ -77,12 +82,18 @@ class Decaf(object):
     __call__ methods, useful on mpi task creation.
     """
 
-    __slots__ = ["decorator_name", "args", "kwargs", "scope",
-                 "core_element", "core_element_configured"]
+    __slots__ = [
+        "decorator_name",
+        "args",
+        "kwargs",
+        "scope",
+        "core_element",
+        "core_element_configured",
+    ]
 
     def __init__(self, *args, **kwargs):
         # type: (*typing.Any, **typing.Any) -> None
-        """ Store arguments passed to the decorator
+        """Store arguments passed to the decorator
 
         self = itself.
         args = not used.
@@ -101,22 +112,25 @@ class Decaf(object):
         self.core_element_configured = False
         if self.scope:
             # Check the arguments
-            check_arguments(MANDATORY_ARGUMENTS,
-                            DEPRECATED_ARGUMENTS,
-                            SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
-                            list(kwargs.keys()),
-                            decorator_name)
+            check_arguments(
+                MANDATORY_ARGUMENTS,
+                DEPRECATED_ARGUMENTS,
+                SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
+                list(kwargs.keys()),
+                decorator_name,
+            )
 
             # Get the computing nodes
             process_computing_nodes(decorator_name, self.kwargs)
 
     def __call__(self, user_function):
         # type: (typing.Callable) -> typing.Callable
-        """ Parse and set the decaf parameters within the task core element.
+        """Parse and set the decaf parameters within the task core element.
 
         :param user_function: Function to decorate.
         :return: Decorated function.
         """
+
         @wraps(user_function)
         def decaf_f(*args, **kwargs):
             # type: (*typing.Any, **typing.Any) -> typing.Any
@@ -126,8 +140,9 @@ class Decaf(object):
             if __debug__:
                 logger.debug("Executing decaf_f wrapper.")
 
-            if (context.in_master() or context.is_nesting_enabled()) \
-                    and not self.core_element_configured:
+            if (
+                context.in_master() or context.is_nesting_enabled()
+            ) and not self.core_element_configured:
                 # master code - or worker with nesting enabled
                 self.__configure_core_element__(kwargs)
 
@@ -146,7 +161,7 @@ class Decaf(object):
 
     def __configure_core_element__(self, kwargs):
         # type: (dict) -> None
-        """ Include the registering info related to @decaf.
+        """Include the registering info related to @decaf.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 
@@ -188,12 +203,14 @@ class Decaf(object):
 
         impl_type = IMPL_DECAF
         impl_signature = ".".join((impl_type, df_script))
-        impl_args = [df_script,
-                     df_executor,
-                     df_lib,
-                     self.kwargs[WORKING_DIR],
-                     runner,
-                     self.kwargs[FAIL_BY_EXIT_VALUE]]
+        impl_args = [
+            df_script,
+            df_executor,
+            df_lib,
+            self.kwargs[WORKING_DIR],
+            runner,
+            self.kwargs[FAIL_BY_EXIT_VALUE],
+        ]
 
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator

@@ -33,7 +33,7 @@ import pycompss.util.context as context
 
 def load_loggers(debug, persistent_storage):
     # type: (bool, bool) -> typing.Tuple[typing.Any, str, typing.Any, str]
-    """ Load all loggers.
+    """Load all loggers.
 
     :param debug: is Debug enabled.
     :param persistent_storage: is persistent storage enabled.
@@ -71,8 +71,8 @@ def load_loggers(debug, persistent_storage):
     logger = logging.getLogger("pycompss.worker.piper.piper_worker")
     storage_loggers = []
     if persistent_storage:
-        storage_loggers.append(logging.getLogger('dataclay'))
-        storage_loggers.append(logging.getLogger('hecuba'))
-        storage_loggers.append(logging.getLogger('redis'))
-        storage_loggers.append(logging.getLogger('storage'))
+        storage_loggers.append(logging.getLogger("dataclay"))
+        storage_loggers.append(logging.getLogger("hecuba"))
+        storage_loggers.append(logging.getLogger("redis"))
+        storage_loggers.append(logging.getLogger("storage"))
     return logger, log_json, storage_loggers, log_dir_temp

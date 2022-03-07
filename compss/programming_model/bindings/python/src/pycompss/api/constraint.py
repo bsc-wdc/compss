@@ -34,6 +34,7 @@ from pycompss.runtime.task.core_element import CE
 
 if __debug__:
     import logging
+
     logger = logging.getLogger(__name__)
 
 
@@ -43,12 +44,18 @@ class Constraint(object):
     __call__ methods, useful on task constraint creation.
     """
 
-    __slots__ = ["decorator_name", "args", "kwargs", "scope",
-                 "core_element", "core_element_configured"]
+    __slots__ = [
+        "decorator_name",
+        "args",
+        "kwargs",
+        "scope",
+        "core_element",
+        "core_element_configured",
+    ]
 
     def __init__(self, *args, **kwargs):
         # type: (*typing.Any, **typing.Any) -> None
-        """ Store arguments passed to the decorator.
+        """Store arguments passed to the decorator.
 
         self = itself.
         args = not used.
@@ -68,25 +75,27 @@ class Constraint(object):
 
     def __call__(self, user_function):
         # type: (typing.Callable) -> typing.Callable
-        """ Parse and set the constraints within the task core element.
+        """Parse and set the constraints within the task core element.
 
         :param user_function: Function to decorate.
         :return: Decorated function.
         """
+
         @wraps(user_function)
         def constrained_f(*args, **kwargs):
             # type: (*typing.Any, **typing.Any) -> typing.Any
             if not self.scope:
-                from pycompss.api.dummy.constraint import constraint \
-                    as dummy_constraint
+                from pycompss.api.dummy.constraint import constraint as dummy_constraint
+
                 d_c = dummy_constraint(self.args, self.kwargs)
                 return d_c.__call__(user_function)(*args, **kwargs)
 
             if __debug__:
                 logger.debug("Executing constrained_f wrapper.")
 
-            if (context.in_master() or context.is_nesting_enabled()) \
-                    and not self.core_element_configured:
+            if (
+                context.in_master() or context.is_nesting_enabled()
+            ) and not self.core_element_configured:
                 # master code - or worker with nesting enabled
                 self.__configure_core_element__(kwargs)
 
@@ -101,7 +110,7 @@ class Constraint(object):
 
     def __configure_core_element__(self, kwargs):
         # type: (dict) -> None
-        """ Include the registering info related to @constraint.
+        """Include the registering info related to @constraint.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 

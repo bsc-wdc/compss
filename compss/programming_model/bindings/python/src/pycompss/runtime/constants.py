@@ -32,10 +32,10 @@ PyCOMPSs Runtime Constants
 BINDING_MASTER_TYPE = 9000300
 START_RUNTIME_EVENT = 1
 STOP_RUNTIME_EVENT = 2
-APPLICATION_RUNNING_EVENT = 3       # application running
+APPLICATION_RUNNING_EVENT = 3  # application running
 # 4 is empty
-INIT_STORAGE_EVENT = 5              # init_storage (same as worker)
-STOP_STORAGE_EVENT = 6              # stop_storage (same as worker)
+INIT_STORAGE_EVENT = 5  # init_storage (same as worker)
+STOP_STORAGE_EVENT = 6  # stop_storage (same as worker)
 # API EVENTS
 ACCESSED_FILE_EVENT = 7
 OPEN_FILE_EVENT = 8

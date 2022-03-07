@@ -66,12 +66,12 @@ def check_decorators():
     ompss_result_fd = compss_open(ompss_result)
 
     binary_content = binary_result_fd.readlines()  # noqa
-    mpi_content = mpi_result_fd.readlines()        # noqa
-    ompss_content = ompss_result_fd.readlines()    # noqa
+    mpi_content = mpi_result_fd.readlines()  # noqa
+    ompss_content = ompss_result_fd.readlines()  # noqa
 
     binary_result_fd.close()  # noqa
-    mpi_result_fd.close()     # noqa
-    ompss_result_fd.close()   # noqa
+    mpi_result_fd.close()  # noqa
+    ompss_result_fd.close()  # noqa
 
     os.remove(binary_result)
     os.remove(mpi_result)

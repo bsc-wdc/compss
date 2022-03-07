@@ -26,7 +26,6 @@ from pycompss.api.parameter import DICTIONARY_INOUT
 
 
 class Poligon(object):
-
     def __init__(self, sides):
         self.sides = sides
 
@@ -38,6 +37,7 @@ class Poligon(object):
 
 
 # COLLECTIONS
+
 
 def generate_collection(value):
     value.append(Poligon(2))
@@ -61,10 +61,11 @@ def sum_all_sides(value):
 
 # DICTIONARY COLLECTIONS
 
+
 def generate_dictionary(value):
-    value['a'] = Poligon(3)
-    value['b'] = Poligon(10)
-    value['c'] = Poligon(20)
+    value["a"] = Poligon(3)
+    value["b"] = Poligon(10)
+    value["c"] = Poligon(20)
 
 
 @task(value=DICTIONARY_INOUT)
@@ -85,6 +86,7 @@ def sum_all_sides_of_dictionary(value):
 
 # REDUCE WITH COLLECTIONS
 
+
 @reduction(chunk_size="2")
 @task(returns=1, col=COLLECTION_IN)
 def my_reduction(col):
@@ -101,9 +103,7 @@ def increment(v):
 
 @task(returns=COLLECTION)
 def generate_collection_return():
-    value = [Poligon(2),
-             Poligon(10),
-             Poligon(20)]
+    value = [Poligon(2), Poligon(10), Poligon(20)]
     return value
 
 
@@ -121,8 +121,9 @@ def main():
     keys, result = sum_all_sides_of_dictionary(initial)
     keys = compss_wait_on(keys)
     result = compss_wait_on(result)
-    assert len(keys) == 3 and "a" in keys and "b" in keys and "c" in keys,\
-        "ERROR: Unexpected keys (%s != abc (in any order))." % str(keys)
+    assert (
+        len(keys) == 3 and "a" in keys and "b" in keys and "c" in keys
+    ), "ERROR: Unexpected keys (%s != abc (in any order))." % str(keys)
     assert result == 36, "ERROR: Unexpected result (%s != 36)." % str(result)
 
     # Reduction
@@ -139,10 +140,14 @@ def main():
     # Collection return
     result = generate_collection_return()
     results = compss_wait_on(result)
-    assert len(results) == 3, "ERROR: The generated collection does not have the expected length."  # noqa: E501
-    assert results[0].get_sides() == 2 and \
-           results[1].get_sides() == 10 and \
-           results[2].get_sides() == 20, "ERROR: The collection contents are not as expected"  # noqa: E501
+    assert (
+        len(results) == 3
+    ), "ERROR: The generated collection does not have the expected length."  # noqa: E501
+    assert (
+        results[0].get_sides() == 2
+        and results[1].get_sides() == 10
+        and results[2].get_sides() == 20
+    ), "ERROR: The collection contents are not as expected"  # noqa: E501
 
 
 # Uncomment for command line check:

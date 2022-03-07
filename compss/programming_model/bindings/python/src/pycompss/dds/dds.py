@@ -51,13 +51,10 @@ def default_hash(x):
 
 
 class DDS(object):
-    """ Distributed Data Set object.
-
-    """
+    """Distributed Data Set object."""
 
     def __init__(self):
-        """
-        """
+        """ """
         super(DDS, self).__init__()
         self.partitions = list()
         self.func = None
@@ -67,8 +64,7 @@ class DDS(object):
         self.paac = False
 
     def load(self, iterator, num_of_parts=10, paac=False):
-        """ Load and distribute the iterator on partitions.
-        """
+        """Load and distribute the iterator on partitions."""
         self.paac = paac
         if num_of_parts == -1:
             self.partitions = iterator
@@ -112,13 +108,13 @@ class DDS(object):
             parsed = 0
             while parsed < total:
                 _partition_loader = WorkerFileLoader(
-                    [file_path], single_file=True,
-                    start=parsed, chunk_size=chunk_size)
+                    [file_path], single_file=True, start=parsed, chunk_size=chunk_size
+                )
 
                 self.partitions.append(_partition_loader)
                 parsed += chunk_size
         else:
-            f = open(file_path, 'r')
+            f = open(file_path, "r")
             chunk = f.read(chunk_size)
             while chunk:
                 _partition_loader = BasicDataLoader(chunk)
@@ -127,8 +123,7 @@ class DDS(object):
 
         return self
 
-    def load_text_file(self, file_name, chunk_size=1024, in_bytes=True,
-                       strip=True):
+    def load_text_file(self, file_name, chunk_size=1024, in_bytes=True, strip=True):
         """
         Load a text file into partitions with 'chunk_size' lines on each.
         :param file_name: a path to a file to be loaded
@@ -215,7 +210,7 @@ class DDS(object):
         return DDS().load(current, num_of_parts=-1)
 
     def num_of_partitions(self):
-        """ Get the total amount of partitions
+        """Get the total amount of partitions
         :return: int
 
         >>> DDS().load(range(10), 5).num_of_partitions()
@@ -224,7 +219,7 @@ class DDS(object):
         return len(self.partitions)
 
     def map(self, func, *args, **kwargs):
-        """ Apply the given function to each element of the dataset.
+        """Apply the given function to each element of the dataset.
 
         >>> dds = DDS().load(range(10), 5).map(lambda x: x * 2)
         >>> sorted(dds.collect())
@@ -240,7 +235,7 @@ class DDS(object):
         return ChildDDS(self, mapper)
 
     def map_partitions(self, func):
-        """ Apply a function to each partition of this data set.
+        """Apply a function to each partition of this data set.
 
         >>> DDS().load(range(10), 5).map_partitions(lambda x: [sum(x)]).collect(True)
         [[1], [5], [9], [13], [17]]
@@ -248,7 +243,7 @@ class DDS(object):
         return ChildDDS(self, func)
 
     def flat_map(self, f, *args, **kwargs):
-        """ Apply a function to each element of the dataset, and extend the
+        """Apply a function to each element of the dataset, and extend the
         derived element(s) if possible.
         :param f: A function that should return a list, tuple or another kind of
                   iterable
@@ -257,6 +252,7 @@ class DDS(object):
         >>> sorted(dds.flat_map(lambda x: range(1, x)).collect())
         [1, 1, 1, 2, 2, 3]
         """
+
         def mapper(iterator):
             res = list()
             for item in iterator:
@@ -266,12 +262,13 @@ class DDS(object):
         return self.map_partitions(mapper)
 
     def filter(self, f):
-        """ Filter elements of this data set by applying a given function.
+        """Filter elements of this data set by applying a given function.
 
 
         >>> DDS().load(range(10), 5).filter(lambda x: x % 2).count()
         5
         """
+
         def _filter(iterator):
             return filter(f, iterator)
 
@@ -290,6 +287,7 @@ class DDS(object):
         >>> DDS().load(range(10), 5).reduce((lambda b, a: b + a) , 100)
         145
         """
+
         def local_reducer(partition):
             """
             A function to reduce a partition and retrieve it as a partition
@@ -303,10 +301,10 @@ class DDS(object):
             except StopIteration:
                 return []
             import functools
+
             return [functools.reduce(f, iterator, init)]
 
-        local_results = self.map_partitions(local_reducer)\
-            .collect(future_objects=True)
+        local_results = self.map_partitions(local_reducer).collect(future_objects=True)
 
         local_results = deque(local_results)
 
@@ -344,8 +342,11 @@ class DDS(object):
         >>> DDS().load(test, 5).distinct().count()
         10
         """
-        return self.map(lambda x: (x, None))\
-            .reduce_by_key(lambda x, _: x).map(lambda x: x[0])
+        return (
+            self.map(lambda x: (x, None))
+            .reduce_by_key(lambda x, _: x)
+            .map(lambda x: x[0])
+        )
 
     def count_by_value(self, arity=2, as_dict=True, as_fo=False):
         """
@@ -365,8 +366,9 @@ class DDS(object):
             return counts
 
         # Count locally and create dictionary partitions
-        local_results = self.map_partitions(count_partition) \
-            .collect(future_objects=True)
+        local_results = self.map_partitions(count_partition).collect(
+            future_objects=True
+        )
 
         # Create a deque from partitions and start reduce
         future_objects = deque(local_results)
@@ -568,8 +570,7 @@ class DDS(object):
                 ret.extend(_li)
             return ret
 
-        nop = len(self.partitions) if num_of_partitions == -1 \
-            else num_of_partitions
+        nop = len(self.partitions) if num_of_partitions == -1 else num_of_partitions
 
         grouped = defaultdict(list)
 
@@ -577,8 +578,9 @@ class DDS(object):
             for collection in self.partitions:
                 col = [[] for _ in range(nop)]
                 with event_master(3002):
-                    distribute_partition(col, self.func, partitioner_func, None,
-                                         collection)
+                    distribute_partition(
+                        col, self.func, partitioner_func, None, collection
+                    )
                 cdo(collection)
                 for _i in range(nop):
                     grouped[_i].append(col[_i])
@@ -594,8 +596,7 @@ class DDS(object):
         for key in sorted(grouped.keys()):
             future_partitions.append(grouped[key])
 
-        return DDS().load(future_partitions, -1, True)\
-            .map_partitions(combine_lists)
+        return DDS().load(future_partitions, -1, True).map_partitions(combine_lists)
 
     def map_values(self, f):
         """
@@ -606,6 +607,7 @@ class DDS(object):
         >>> DDS().load([("a", 1), ("b", 1)]).map_values(lambda x: x+1).collect()
         [('a', 2), ('b', 2)]
         """
+
         def dummy(pair):
             return pair[0], f(pair[1])
 
@@ -621,6 +623,7 @@ class DDS(object):
         >>> DDS().load([('a',[1, 2]), ('b',[1])]).flatten_by_key(lambda x: x).collect()
         [('a', 1), ('a', 2), ('b', 1)]
         """
+
         def dummy(key_value):
             return ((key_value[0], x) for x in f(key_value[1]))
 
@@ -647,17 +650,20 @@ class DDS(object):
                     buf_2.append(v)
             return [(v, w) for v in buf_1 for w in buf_2]
 
-        nop = len(self.partitions) if num_of_partitions == -1 \
-            else num_of_partitions
+        nop = len(self.partitions) if num_of_partitions == -1 else num_of_partitions
 
         buf_a = self.map_values(lambda v: (1, v))
         buf_b = other.map_values(lambda y: (2, y))
 
-        return buf_a.union(buf_b).group_by_key(num_of_parts=nop)\
+        return (
+            buf_a.union(buf_b)
+            .group_by_key(num_of_parts=nop)
             .flatten_by_key(lambda x: dispatch(x.__iter__()))
+        )
 
-    def combine_by_key(self, creator_func, combiner_func, merger_function,
-                       total_parts=-1):
+    def combine_by_key(
+        self, creator_func, combiner_func, merger_function, total_parts=-1
+    ):
         """
         Combine elements of each key.
         :param creator_func: to apply to the first element of the key. Takes
@@ -678,31 +684,31 @@ class DDS(object):
         """
 
         def combine_partition(partition):
-            """
-            """
+            """ """
             res = dict()
             for key, val in partition:
-                res[key] = combiner_func(res[key], val) if key in res \
-                                                        else creator_func(val)
+                res[key] = (
+                    combiner_func(res[key], val) if key in res else creator_func(val)
+                )
             return list(res.items())
 
         def merge_partition(partition):
-            """
-            """
+            """ """
             res = dict()
             for key, val in partition:
-                res[key] = merger_function(res[key], val) if key in res \
-                                                        else val
+                res[key] = merger_function(res[key], val) if key in res else val
             return list(res.items())
 
-        ret = self.map_partitions(combine_partition)\
-            .partition_by(num_of_partitions=total_parts)\
+        ret = (
+            self.map_partitions(combine_partition)
+            .partition_by(num_of_partitions=total_parts)
             .map_partitions(merge_partition)
+        )
 
         return ret
 
     def reduce_by_key(self, f):
-        """ Reduce values for each key.
+        """Reduce values for each key.
         :param f: a reducer function which takes two parameters and returns one.
 
         >>> DDS().load([("a",1), ("a",2)]).reduce_by_key((lambda a, b: a+b)).collect()
@@ -720,8 +726,7 @@ class DDS(object):
         """
         return self.map(lambda x: x[0]).count_by_value(as_dict=as_dict)
 
-    def sort_by_key(self, ascending=True, num_of_parts=None,
-                    key_func=lambda x: x):
+    def sort_by_key(self, ascending=True, num_of_parts=None, key_func=lambda x: x):
         """
 
         :type key_func:
@@ -739,11 +744,12 @@ class DDS(object):
         for _part in col_parts:
             samples.append(task_collect_samples(_part, 20, key_func))
 
-        samples = sorted(list(
-            itertools.chain.from_iterable(cwo(samples))))
+        samples = sorted(list(itertools.chain.from_iterable(cwo(samples))))
 
-        bounds = [samples[int(len(samples) * (i + 1) / num_of_parts)]
-                  for i in range(0, num_of_parts - 1)]
+        bounds = [
+            samples[int(len(samples) * (i + 1) / num_of_parts)]
+            for i in range(0, num_of_parts - 1)
+        ]
 
         def range_partitioner(key):
             p = bisect.bisect_left(bounds, key_func(key))
@@ -768,11 +774,13 @@ class DDS(object):
                 if len(chunk) < chunk_size:
                     break
             else:
-                chunks.append(chunk.sort(key=lambda kv: key_func(kv[0]),
-                                         reverse=not ascending))
+                chunks.append(
+                    chunk.sort(key=lambda kv: key_func(kv[0]), reverse=not ascending)
+                )
 
-            return heapq3.merge(chunks, key=lambda kv: key_func(kv[0]),
-                                reverse=not ascending)
+            return heapq3.merge(
+                chunks, key=lambda kv: key_func(kv[0]), reverse=not ascending
+            )
 
         partitioned = DDS().load(col_parts, -1).partition_by(range_partitioner)
         return partitioned.map_partitions(sort_partition)
@@ -787,6 +795,7 @@ class DDS(object):
         >>> sorted(x.group_by_key().collect())
         [('a', [1, 2]), ('b', [2, 4])]
         """
+
         def _create(x):
             return [x]
 
@@ -798,8 +807,7 @@ class DDS(object):
             a.extend(b)
             return a
 
-        return self.combine_by_key(_create, _merge, _combine,
-                                   total_parts=num_of_parts)
+        return self.combine_by_key(_create, _merge, _combine, total_parts=num_of_parts)
 
     def take(self, num):
         """
@@ -827,10 +835,11 @@ class DDS(object):
 
 
 class ChildDDS(DDS):
-    """ Similar as DDS objects, with the only difference that ChildDDS objects
+    """Similar as DDS objects, with the only difference that ChildDDS objects
     inherit the partitions from their parents, and have functions to be mapped
     to the their partitions.
     """
+
     def __init__(self, parent, func):
         """
 
@@ -856,6 +865,7 @@ class ChildDDS(DDS):
 
 def _run_tests():
     import doctest
+
     doctest.testmod()
     os.remove("test.file")
     os.remove("test.txt")

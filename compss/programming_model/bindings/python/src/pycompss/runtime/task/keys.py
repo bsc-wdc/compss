@@ -28,6 +28,7 @@ class ParamAliasKeys(object):
     """
     Strings used in Tasks definition
     """
+
     IN = "IN"
     OUT = "OUT"
     INOUT = "INOUT"
@@ -91,6 +92,7 @@ class ParamDictKeys(object):
     """
     Strings used in Parameter definition as dictionary
     """
+
     # Exposed to the user (see api/parameter.py)
     TYPE = "type"
     DIRECTION = "direction"

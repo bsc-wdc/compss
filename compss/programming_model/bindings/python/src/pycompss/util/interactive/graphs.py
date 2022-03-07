@@ -28,13 +28,14 @@ import time
 from pycompss.util.typing_helper import typing
 
 
-def show_graph(log_path,               # type: str
-               name="complete_graph",  # type: str
-               fit=False,              # type: bool
-               refresh_rate=1,         # type: int
-               timeout=0               # type: int
-               ):                      # type: (...) -> None
-    """ Show graph.
+def show_graph(
+    log_path,  # type: str
+    name="complete_graph",  # type: str
+    fit=False,  # type: bool
+    refresh_rate=1,  # type: int
+    timeout=0,  # type: int
+):  # type: (...) -> None
+    """Show graph.
 
     :param log_path: Folder where the logs are.
     :param name: Graph to show (default: "complete_graph")
@@ -50,12 +51,14 @@ def show_graph(log_path,               # type: str
         print("Oops! graphviz is not available.")
         return None
     from IPython.display import clear_output  # noqa
-    from IPython.display import display       # noqa
+    from IPython.display import display  # noqa
+
     # Check refresh rate and timeout
     assert timeout >= 0, "ERROR: timeout has to be >= 0"
     if timeout > 0:
-        assert refresh_rate < timeout, \
-            "ERROR: refresh_rate can not be higher than timeout"
+        assert (
+            refresh_rate < timeout
+        ), "ERROR: refresh_rate can not be higher than timeout"
     # Set file name
     file_name = os.path.join(log_path, "monitor", name)
     # Act
@@ -76,7 +79,7 @@ def show_graph(log_path,               # type: str
 
 def __get_graph_snapshot__(file_name, fit, source):
     # type: (str, bool, typing.Any) -> typing.Any
-    """ Reads the graph file and returns it as graphviz object.
+    """Reads the graph file and returns it as graphviz object.
     It is able to fit the size if indicated.
 
     :param file_name: Absolute path to the graph to get the snapshot.
@@ -98,6 +101,7 @@ def __get_graph_snapshot__(file_name, fit, source):
             s = source(text, filename=file_name, format=extension)
             s.render()
             from IPython.display import Image  # noqa
+
             image = Image(filename=file)
             return image
         except Exception as e:

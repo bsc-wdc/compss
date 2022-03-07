@@ -68,18 +68,12 @@ def test_container_engine_image_parameters():
     f = my_bin(dummy_function)
     _ = f()
     context.set_pycompss_context(context.OUT_OF_SCOPE)
-    assert (
-        "engine" in my_bin.kwargs
-    ), "Engine is not defined in kwargs dictionary."
+    assert "engine" in my_bin.kwargs, "Engine is not defined in kwargs dictionary."
     assert (
         engine == my_bin.kwargs["engine"]
     ), "Engine parameter has not been initialized."
-    assert (
-        "image" in my_bin.kwargs
-    ), "Image is not defined in kwargs dictionary."
-    assert (
-        image == my_bin.kwargs["image"]
-    ), "image parameter has not been initialized."
+    assert "image" in my_bin.kwargs, "Image is not defined in kwargs dictionary."
+    assert image == my_bin.kwargs["image"], "image parameter has not been initialized."
 
 
 def test_container_existing_core_element():

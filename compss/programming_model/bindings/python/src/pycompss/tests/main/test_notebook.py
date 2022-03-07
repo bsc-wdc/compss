@@ -25,12 +25,13 @@ from nbconvert.preprocessors import ExecutePreprocessor
 
 def test_simple_notebook():
     current_path = os.path.dirname(os.path.abspath(__file__))
-    simple_notebook = os.path.join(current_path, "..",
-                                   "resources", "notebook", "simple.ipynb")
+    simple_notebook = os.path.join(
+        current_path, "..", "resources", "notebook", "simple.ipynb"
+    )
     with open(simple_notebook) as f:
         nb = nbformat.read(f, as_version=4)
     if sys.version_info < (3, 0):
-        ep = ExecutePreprocessor(timeout=600, kernel_name='python2')
+        ep = ExecutePreprocessor(timeout=600, kernel_name="python2")
     else:
-        ep = ExecutePreprocessor(timeout=600, kernel_name='python3')
+        ep = ExecutePreprocessor(timeout=600, kernel_name="python3")
     ep.preprocess(nb)

@@ -59,12 +59,16 @@ def evaluate_piper_worker_common(worker_thread, mpi_worker=False):
     sys_path_backup = list(sys.path)
 
     files = create_files()
-    temp_folder, executor_outbound, executor_inbound, control_worker_outbound, control_worker_inbound = files  # noqa: E501
+    (
+        temp_folder,
+        executor_outbound,
+        executor_inbound,
+        control_worker_outbound,
+        control_worker_inbound,
+    ) = files  # noqa: E501
 
     current_path = os.path.dirname(os.path.abspath(__file__))
-    python_path = (
-            current_path + "/../../tests/worker/:" + os.environ["PYTHONPATH"]
-    )
+    python_path = current_path + "/../../tests/worker/:" + os.environ["PYTHONPATH"]
 
     if mpi_worker:
         sys.argv = [
@@ -124,16 +128,31 @@ def evaluate_piper_worker_common(worker_thread, mpi_worker=False):
 
     sys.path.append(current_path)
     # Start the piper worker in a separate thread
-    worker = create_process(target=worker_thread,
-                            args=(sys.argv, current_path))
+    worker = create_process(target=worker_thread, args=(sys.argv, current_path))
     if mpi_worker:
-        evaluate_worker(worker, "test_mpi_piper", pipes, files, current_path,
-                        executor_out, executor_in,
-                        worker_out, worker_in)
+        evaluate_worker(
+            worker,
+            "test_mpi_piper",
+            pipes,
+            files,
+            current_path,
+            executor_out,
+            executor_in,
+            worker_out,
+            worker_in,
+        )
     else:
-        evaluate_worker(worker, "test_piper", pipes, files, current_path,
-                        executor_out, executor_in,
-                        worker_out, worker_in)
+        evaluate_worker(
+            worker,
+            "test_piper",
+            pipes,
+            files,
+            current_path,
+            executor_out,
+            executor_in,
+            worker_out,
+            worker_in,
+        )
 
     # Restore sys.argv and sys.path
     sys.argv = sys_argv_backup
@@ -147,13 +166,33 @@ def create_files():
     executor_inbound = tempfile.NamedTemporaryFile(delete=False).name
     control_worker_outbound = tempfile.NamedTemporaryFile(delete=False).name
     control_worker_inbound = tempfile.NamedTemporaryFile(delete=False).name
-    return temp_folder, executor_outbound, executor_inbound, control_worker_outbound, control_worker_inbound  # noqa: E501
+    return (
+        temp_folder,
+        executor_outbound,
+        executor_inbound,
+        control_worker_outbound,
+        control_worker_inbound,
+    )  # noqa: E501
 
 
-def evaluate_worker(worker, name, pipes, files, current_path,
-                    executor_out, executor_in,
-                    worker_out, worker_in):
-    temp_folder, executor_outbound, executor_inbound, control_worker_outbound, control_worker_inbound = files  # noqa: E501
+def evaluate_worker(
+    worker,
+    name,
+    pipes,
+    files,
+    current_path,
+    executor_out,
+    executor_in,
+    worker_out,
+    worker_in,
+):
+    (
+        temp_folder,
+        executor_outbound,
+        executor_inbound,
+        control_worker_outbound,
+        control_worker_inbound,
+    ) = files  # noqa: E501
     print("Starting " + name + " worker")
     worker.start()
     print("Temp folder: " + temp_folder)
@@ -268,8 +307,8 @@ def evaluate_worker(worker, name, pipes, files, current_path,
     result = deserialize_from_file(job2_result)
     if result != 2:
         raise PyCOMPSsException(
-            "Wrong result obtained for increment task. Expected 2, received: " +  # noqa: E501
-            str(result)
+            "Wrong result obtained for increment task. Expected 2, received: "
+            + str(result)  # noqa: E501
         )
 
     # Remove logs

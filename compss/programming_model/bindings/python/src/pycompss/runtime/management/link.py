@@ -72,12 +72,13 @@ SET_WALL_CLOCK = "SET_WALL_CLOCK"
 
 if __debug__:
     import logging
+
     link_logger = logging.getLogger(__name__)
 
 
 def shutdown_handler(signal, frame):  # noqa
     # type: (int, typing.Any) -> None
-    """ Shutdown handler.
+    """Shutdown handler.
 
     Do not remove the parameters.
 
@@ -89,10 +90,9 @@ def shutdown_handler(signal, frame):  # noqa
         LINK_PROCESS.terminate()
 
 
-def c_extension_link(in_queue, out_queue,
-                     redirect_std, out_file_name, err_file_name):
+def c_extension_link(in_queue, out_queue, redirect_std, out_file_name, err_file_name):
     # type: (Queue, Queue, bool, str, str) -> None
-    """ Main C extension process.
+    """Main C extension process.
 
     :param in_queue: Queue to receive messages.
     :param out_queue: Queue to send messages.
@@ -107,8 +107,9 @@ def c_extension_link(in_queue, out_queue,
     # Import C extension within the external process
     import compss
 
-    with ipython_std_redirector(out_file_name, err_file_name) \
-            if redirect_std else not_std_redirector():
+    with ipython_std_redirector(
+        out_file_name, err_file_name
+    ) if redirect_std else not_std_redirector():
         alive = True
         while alive:
             message = in_queue.get()
@@ -177,7 +178,7 @@ def c_extension_link(in_queue, out_queue,
 
 def establish_link(logger=None):  # noqa
     # type: (typing.Any) -> typing.Any
-    """ Loads the compss C extension within the same process.
+    """Loads the compss C extension within the same process.
 
     Does not implement support for stdout and stderr redirecting as the
     establish_interactive_link.
@@ -192,6 +193,7 @@ def establish_link(logger=None):  # noqa
         else:
             link_logger.debug(message)
     import compss
+
     if __debug__:
         message = "Loaded compss extension"
         if logger:
@@ -203,7 +205,7 @@ def establish_link(logger=None):  # noqa
 
 def establish_interactive_link(logger=None, redirect_std=False):  # noqa
     # type: (typing.Any, bool) -> typing.Tuple[typing.Any, str, str]
-    """ Starts a new process which will be in charge of communicating with the
+    """Starts a new process which will be in charge of communicating with the
     C-extension.
 
     It will return stdout file name and stderr file name as None if
@@ -240,10 +242,10 @@ def establish_interactive_link(logger=None, redirect_std=False):  # noqa
         else:
             link_logger.debug(message)
 
-    LINK_PROCESS = create_process(target=c_extension_link,
-                                  args=(IN_QUEUE, OUT_QUEUE,
-                                        redirect_std,
-                                        out_file_name, err_file_name))
+    LINK_PROCESS = create_process(
+        target=c_extension_link,
+        args=(IN_QUEUE, OUT_QUEUE, redirect_std, out_file_name, err_file_name),
+    )
     LINK_PROCESS.start()
 
     if __debug__:
@@ -259,7 +261,7 @@ def establish_interactive_link(logger=None, redirect_std=False):  # noqa
 
 def wait_for_interactive_link():
     # type: () -> None
-    """ Wait for interactive link finalization.
+    """Wait for interactive link finalization.
 
     :return: None
     """
@@ -278,7 +280,7 @@ def wait_for_interactive_link():
 
 def terminate_interactive_link():
     # type: () -> None
-    """ Terminate the compss C extension process.
+    """Terminate the compss C extension process.
 
     :return: None
     """
@@ -402,126 +404,141 @@ class COMPSs(object):
         IN_QUEUE.put((FREE_RESOURCES, app_id, num_resources, group_name))
 
     @staticmethod
-    def register_core_element(ce_signature,      # type: str
-                              impl_signature,    # type: typing.Optional[str]
-                              impl_constraints,  # type: typing.Optional[str]
-                              impl_type,         # type: typing.Optional[str]
-                              impl_io,           # type: str
-                              impl_type_args     # type: typing.List[str]
-                              ):                 # type: (...) -> None
-        IN_QUEUE.put((REGISTER_CORE_ELEMENT,
-                      ce_signature,
-                      impl_signature,
-                      impl_constraints,
-                      impl_type,
-                      impl_io,
-                      impl_type_args))
+    def register_core_element(
+        ce_signature,  # type: str
+        impl_signature,  # type: typing.Optional[str]
+        impl_constraints,  # type: typing.Optional[str]
+        impl_type,  # type: typing.Optional[str]
+        impl_io,  # type: str
+        impl_type_args,  # type: typing.List[str]
+    ):  # type: (...) -> None
+        IN_QUEUE.put(
+            (
+                REGISTER_CORE_ELEMENT,
+                ce_signature,
+                impl_signature,
+                impl_constraints,
+                impl_type,
+                impl_io,
+                impl_type_args,
+            )
+        )
 
     @staticmethod
-    def process_task(app_id,             # type: int
-                     signature,          # type: str
-                     on_failure,         # type: str
-                     time_out,           # type: int
-                     has_priority,       # type: bool
-                     num_nodes,          # type: int
-                     reduction,          # type: bool
-                     chunk_size,         # type: int
-                     replicated,         # type: bool
-                     distributed,        # type: bool
-                     has_target,         # type: bool
-                     num_returns,        # type: int
-                     values,             # type: list
-                     names,              # type: list
-                     compss_types,       # type: list
-                     compss_directions,  # type: list
-                     compss_streams,     # type: list
-                     compss_prefixes,    # type: list
-                     content_types,      # type: list
-                     weights,            # type: list
-                     keep_renames        # type: list
-                     ):                  # type: (...) -> None
-        IN_QUEUE.put((PROCESS_TASK,
-                      app_id,
-                      signature,
-                      on_failure,
-                      time_out,
-                      has_priority,
-                      num_nodes,
-                      reduction,
-                      chunk_size,
-                      replicated,
-                      distributed,
-                      has_target,
-                      num_returns,
-                      values,
-                      names,
-                      compss_types,
-                      compss_directions,
-                      compss_streams,
-                      compss_prefixes,
-                      content_types,
-                      weights,
-                      keep_renames))
+    def process_task(
+        app_id,  # type: int
+        signature,  # type: str
+        on_failure,  # type: str
+        time_out,  # type: int
+        has_priority,  # type: bool
+        num_nodes,  # type: int
+        reduction,  # type: bool
+        chunk_size,  # type: int
+        replicated,  # type: bool
+        distributed,  # type: bool
+        has_target,  # type: bool
+        num_returns,  # type: int
+        values,  # type: list
+        names,  # type: list
+        compss_types,  # type: list
+        compss_directions,  # type: list
+        compss_streams,  # type: list
+        compss_prefixes,  # type: list
+        content_types,  # type: list
+        weights,  # type: list
+        keep_renames,  # type: list
+    ):  # type: (...) -> None
+        IN_QUEUE.put(
+            (
+                PROCESS_TASK,
+                app_id,
+                signature,
+                on_failure,
+                time_out,
+                has_priority,
+                num_nodes,
+                reduction,
+                chunk_size,
+                replicated,
+                distributed,
+                has_target,
+                num_returns,
+                values,
+                names,
+                compss_types,
+                compss_directions,
+                compss_streams,
+                compss_prefixes,
+                content_types,
+                weights,
+                keep_renames,
+            )
+        )
 
     @staticmethod
-    def process_http_task(app_id,               # type: str
-                          signature,            # type: str
-                          service_name,         # type: str
-                          resource,             # type: str
-                          request,              # type: str
-                          payload,              # type: str
-                          payload_type,         # type: str
-                          produces,             # type: str
-                          updates,              # type: str
-                          has_target,           # type: bool
-                          names,                # type: list
-                          values,               # type: list
-                          num_returns,          # type: int
-                          compss_types,         # type: list
-                          compss_directions,    # type: list
-                          compss_streams,       # type: list
-                          compss_prefixes,      # type: list
-                          content_types,        # type: list
-                          weights,              # type: list
-                          keep_renames,         # type: list
-                          has_priority,         # type: bool
-                          num_nodes,            # type: int
-                          reduction,            # type: bool
-                          chunk_size,           # type: int
-                          replicated,           # type: bool
-                          distributed,          # type: bool
-                          on_failure,           # type: str
-                          time_out,             # type: int
-                          ):                    # type: (...) -> None
-        IN_QUEUE.put((PROCESS_HTTP_TASK,
-                      app_id,
-                      service_name,
-                      resource,
-                      request,
-                      payload,
-                      payload_type,
-                      produces,
-                      updates,
-                      signature,
-                      on_failure,
-                      time_out,
-                      has_priority,
-                      num_nodes,
-                      reduction,
-                      chunk_size,
-                      replicated,
-                      distributed,
-                      has_target,
-                      num_returns,
-                      values,
-                      names,
-                      compss_types,
-                      compss_directions,
-                      compss_streams,
-                      compss_prefixes,
-                      content_types,
-                      weights,
-                      keep_renames))
+    def process_http_task(
+        app_id,  # type: str
+        signature,  # type: str
+        service_name,  # type: str
+        resource,  # type: str
+        request,  # type: str
+        payload,  # type: str
+        payload_type,  # type: str
+        produces,  # type: str
+        updates,  # type: str
+        has_target,  # type: bool
+        names,  # type: list
+        values,  # type: list
+        num_returns,  # type: int
+        compss_types,  # type: list
+        compss_directions,  # type: list
+        compss_streams,  # type: list
+        compss_prefixes,  # type: list
+        content_types,  # type: list
+        weights,  # type: list
+        keep_renames,  # type: list
+        has_priority,  # type: bool
+        num_nodes,  # type: int
+        reduction,  # type: bool
+        chunk_size,  # type: int
+        replicated,  # type: bool
+        distributed,  # type: bool
+        on_failure,  # type: str
+        time_out,  # type: int
+    ):  # type: (...) -> None
+        IN_QUEUE.put(
+            (
+                PROCESS_HTTP_TASK,
+                app_id,
+                service_name,
+                resource,
+                request,
+                payload,
+                payload_type,
+                produces,
+                updates,
+                signature,
+                on_failure,
+                time_out,
+                has_priority,
+                num_nodes,
+                reduction,
+                chunk_size,
+                replicated,
+                distributed,
+                has_target,
+                num_returns,
+                values,
+                names,
+                compss_types,
+                compss_directions,
+                compss_streams,
+                compss_prefixes,
+                content_types,
+                weights,
+                keep_renames,
+            )
+        )
 
     @staticmethod
     def set_pipes(pipe_in, pipe_out):

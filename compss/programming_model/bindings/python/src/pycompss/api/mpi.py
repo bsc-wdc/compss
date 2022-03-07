@@ -56,21 +56,22 @@ from pycompss.util.exceptions import PyCOMPSsException
 
 if __debug__:
     import logging
+
     logger = logging.getLogger(__name__)
 
 MANDATORY_ARGUMENTS = {RUNNER}
-SUPPORTED_ARGUMENTS = {BINARY,
-                       PROCESSES,
-                       WORKING_DIR,
-                       RUNNER,
-                       FLAGS,
-                       PROCESSES_PER_NODE,
-                       SCALE_BY_CU,
-                       PARAMS,
-                       FAIL_BY_EXIT_VALUE}
-DEPRECATED_ARGUMENTS = {COMPUTING_NODES,
-                        LEGACY_COMPUTING_NODES,
-                        LEGACY_WORKING_DIR}
+SUPPORTED_ARGUMENTS = {
+    BINARY,
+    PROCESSES,
+    WORKING_DIR,
+    RUNNER,
+    FLAGS,
+    PROCESSES_PER_NODE,
+    SCALE_BY_CU,
+    PARAMS,
+    FAIL_BY_EXIT_VALUE,
+}
+DEPRECATED_ARGUMENTS = {COMPUTING_NODES, LEGACY_COMPUTING_NODES, LEGACY_WORKING_DIR}
 
 
 class Mpi(object):
@@ -81,7 +82,7 @@ class Mpi(object):
 
     def __init__(self, *args, **kwargs):
         # type: (*typing.Any, **typing.Any) -> None
-        """ Store arguments passed to the decorator.
+        """Store arguments passed to the decorator.
 
         self = itself.
         args = not used.
@@ -91,7 +92,7 @@ class Mpi(object):
         :param kwargs: Keyword arguments
         """
         self.task_type = "mpi"
-        self.decorator_name = "".join(('@', Mpi.__name__.lower()))
+        self.decorator_name = "".join(("@", Mpi.__name__.lower()))
         # super(MPI, self).__init__(decorator_name, *args, **kwargs)
         self.args = args
         self.kwargs = kwargs
@@ -109,15 +110,17 @@ class Mpi(object):
                     SUPPORTED_ARGUMENTS.add(key)
 
             # Check the arguments
-            check_arguments(MANDATORY_ARGUMENTS,
-                            DEPRECATED_ARGUMENTS,
-                            SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
-                            list(kwargs.keys()),
-                            self.decorator_name)
+            check_arguments(
+                MANDATORY_ARGUMENTS,
+                DEPRECATED_ARGUMENTS,
+                SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
+                list(kwargs.keys()),
+                self.decorator_name,
+            )
 
     def __call__(self, user_function):
         # type: (typing.Callable) -> typing.Callable
-        """ Parse and set the mpi parameters within the task core element.
+        """Parse and set the mpi parameters within the task core element.
 
         :param user_function: Function to decorate.
         :return: Decorated function.
@@ -141,14 +144,17 @@ class Mpi(object):
             if "binary" in self.kwargs:
                 return self.__run_mpi__(args, kwargs)
             else:
-                print("WARN: Python MPI as dummy is not fully supported. Executing decorated funtion.")
+                print(
+                    "WARN: Python MPI as dummy is not fully supported. Executing decorated funtion."
+                )
                 return user_function(*args, **kwargs)
 
         if __debug__:
             logger.debug("Executing mpi_f wrapper.")
 
-        if (context.in_master() or context.is_nesting_enabled()) \
-                and not self.core_element_configured:
+        if (
+            context.in_master() or context.is_nesting_enabled()
+        ) and not self.core_element_configured:
             # master code - or worker with nesting enabled
             self.__configure_core_element__(kwargs)
 
@@ -168,9 +174,13 @@ class Mpi(object):
         else:
             kwargs["processes_per_node"] = 1
         if __debug__:
-            logger.debug("This MPI task will have " +
-                         str(kwargs["computing_nodes"]) + " processes and " +
-                         str(kwargs["processes_per_node"]) + " processes per node.")
+            logger.debug(
+                "This MPI task will have "
+                + str(kwargs["computing_nodes"])
+                + " processes and "
+                + str(kwargs["processes_per_node"])
+                + " processes per node."
+            )
 
         if self.task_type == IMPL_PYTHON_MPI:
             prepend_strings = True
@@ -185,7 +195,7 @@ class Mpi(object):
 
     def __run_mpi__(self, args, kwargs):
         # type: (tuple, dict) -> int
-        """ Runs the mpi binary defined in the decorator when used as dummy.
+        """Runs the mpi binary defined in the decorator when used as dummy.
 
         :param args: Arguments received from call.
         :param kwargs: Keyword arguments received from call.
@@ -207,7 +217,7 @@ class Mpi(object):
 
     def __resolve_collection_layout_params__(self):
         # type: () -> list
-        """ Resolve the collection layout, such as blocks, strides, etc.
+        """Resolve the collection layout, such as blocks, strides, etc.
 
         :return: list(param_name, block_count, block_length, stride)
         :raises PyCOMPSsException: If the collection layout does not contain
@@ -226,21 +236,21 @@ class Mpi(object):
                 block_length = self.__get_block_length__(collection_layout)
                 stride = self.__get_stride__(collection_layout)
 
-                if (block_length != -1 and block_count == -1) or \
-                        (stride != -1 and block_count == -1):
+                if (block_length != -1 and block_count == -1) or (
+                    stride != -1 and block_count == -1
+                ):
                     msg = "Error: collection_layout must contain block_count!"
                     raise PyCOMPSsException(msg)
-                layout_params.extend([param_name,
-                                      str(block_count),
-                                      str(block_length),
-                                      str(stride)])
+                layout_params.extend(
+                    [param_name, str(block_count), str(block_length), str(stride)]
+                )
         layout_params.insert(0, str(num_layouts))
         return layout_params
 
     @staticmethod
     def __get_block_count__(collection_layout):
         # type: (dict) -> int
-        """ Get the block count from the given collection layout.
+        """Get the block count from the given collection layout.
 
         :param collection_layout: Collection layout.
         :return: Block count value.
@@ -253,7 +263,7 @@ class Mpi(object):
     @staticmethod
     def __get_block_length__(collection_layout):
         # type: (dict) -> int
-        """ Get the block length from the given collection layout.
+        """Get the block length from the given collection layout.
 
         :param collection_layout: Collection layout.
         :return: Block length value.
@@ -266,7 +276,7 @@ class Mpi(object):
     @staticmethod
     def __get_stride__(collection_layout):
         # type: (dict) -> int
-        """ Get the stride from the given collection layout.
+        """Get the stride from the given collection layout.
 
         :param collection_layout: Collection layout.
         :return: Stride value.
@@ -278,7 +288,7 @@ class Mpi(object):
 
     def __configure_core_element__(self, kwargs):
         # type: (dict) -> None
-        """ Include the registering info related to @mpi.
+        """Include the registering info related to @mpi.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 
@@ -329,19 +339,19 @@ class Mpi(object):
             ppn = "1"
 
         if binary == UNASSIGNED:
-            impl_signature = impl_type + '.'
+            impl_signature = impl_type + "."
         else:
-            impl_signature = '.'.join((impl_type,
-                                       str(proc),
-                                       binary))
-        impl_args = [binary,
-                     self.kwargs[WORKING_DIR],
-                     runner,
-                     ppn,
-                     flags,
-                     scale_by_cu_str,
-                     self.kwargs.get("params", UNASSIGNED),
-                     self.kwargs[FAIL_BY_EXIT_VALUE]]
+            impl_signature = ".".join((impl_type, str(proc), binary))
+        impl_args = [
+            binary,
+            self.kwargs[WORKING_DIR],
+            runner,
+            ppn,
+            flags,
+            scale_by_cu_str,
+            self.kwargs.get("params", UNASSIGNED),
+            self.kwargs[FAIL_BY_EXIT_VALUE],
+        ]
 
         if impl_type == IMPL_PYTHON_MPI:
             impl_args = impl_args + collection_layout_params
@@ -367,7 +377,7 @@ class Mpi(object):
 
     def __resolve_scale_by_cu__(self):
         # type: () -> str
-        """ Checks if scale_by_cu is defined and process it.
+        """Checks if scale_by_cu is defined and process it.
 
         :return: Scale by cu value as string.
         :raises PyCOMPSsException: If scale_by_cu is not bool or string.
@@ -382,8 +392,10 @@ class Mpi(object):
             elif str(scale_by_cu).lower() in ["true", "false"]:
                 scale_by_cu_str = str(scale_by_cu).lower()
             else:
-                raise PyCOMPSsException("Incorrect format for scale_by_cu property. "  # noqa: E501
-                                        "It should be boolean or 'true' or 'false'")   # noqa: E501
+                raise PyCOMPSsException(
+                    "Incorrect format for scale_by_cu property. "  # noqa: E501
+                    "It should be boolean or 'true' or 'false'"
+                )  # noqa: E501
         else:
             scale_by_cu_str = "false"
         return scale_by_cu_str

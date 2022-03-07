@@ -46,19 +46,18 @@ from pycompss.runtime.task.core_element import CE
 
 if __debug__:
     import logging
+
     logger = logging.getLogger(__name__)
 
 MANDATORY_ARGUMENTS = {CONFIG_FILE}
 SUPPORTED_ARGUMENTS = {CONFIG_FILE}
 DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 
-SUPPORTED_DECORATORS = {MPI: (mpi, mpi.mpi),
-                        BINARY: (binary, binary.binary)
-                        }
+SUPPORTED_DECORATORS = {MPI: (mpi, mpi.mpi), BINARY: (binary, binary.binary)}
 
 
 class Software(object):
-    """ @software decorator definition class.
+    """@software decorator definition class.
 
     When provided with a config file, it can replicate any existing python
     decorator by wrapping the user function with the decorator defined in
@@ -66,13 +65,23 @@ class Software(object):
     config file which is in JSON format.
     """
 
-    __slots__ = ["decorator_name", "args", "kwargs", "scope",
-                 "core_element", "core_element_configured",
-                 "task_type", "config_args", "decor", "constraints", "container"]
+    __slots__ = [
+        "decorator_name",
+        "args",
+        "kwargs",
+        "scope",
+        "core_element",
+        "core_element_configured",
+        "task_type",
+        "config_args",
+        "decor",
+        "constraints",
+        "container",
+    ]
 
     def __init__(self, *args, **kwargs):
         # type: (*typing.Any, **typing.Any) -> None
-        """ Parse the config file and store the arguments that will be used
+        """Parse the config file and store the arguments that will be used
         later to wrap the "real" decorator.
 
         self = itself.
@@ -82,7 +91,7 @@ class Software(object):
         :param args: Arguments
         :param kwargs: Keyword arguments
         """
-        decorator_name = "".join(('@', Software.__name__.lower()))
+        decorator_name = "".join(("@", Software.__name__.lower()))
         # super(Software, self).__init__(decorator_name, *args, **kwargs)
         self.task_type = None  # type: typing.Any
         self.config_args = None  # type: typing.Any
@@ -101,16 +110,18 @@ class Software(object):
             if __debug__:
                 logger.debug("Init @software decorator..")
             # Check the arguments
-            check_arguments(MANDATORY_ARGUMENTS,
-                            DEPRECATED_ARGUMENTS,
-                            SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
-                            list(kwargs.keys()),
-                            decorator_name)
+            check_arguments(
+                MANDATORY_ARGUMENTS,
+                DEPRECATED_ARGUMENTS,
+                SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
+                list(kwargs.keys()),
+                decorator_name,
+            )
             self.parse_config_file()
 
     def __call__(self, user_function):
         # type: (typing.Callable) -> typing.Callable
-        """ When called, @software decorator basically wraps the user function
+        """When called, @software decorator basically wraps the user function
         into the "real" decorator and passes the args and kwargs.
 
         :param user_function: User function to be decorated.
@@ -137,16 +148,18 @@ class Software(object):
             if self.container is not None:
                 _func = str(user_function.__name__)
                 impl_type = IMPL_CONTAINER
-                impl_signature = '.'.join((impl_type, _func))
+                impl_signature = ".".join((impl_type, _func))
 
                 ce = kwargs.get(CORE_ELEMENT_KEY, CE())
-                impl_args = [self.container[ENGINE],  # engine
-                             self.container[IMAGE],  # image
-                             UNASSIGNED,  # internal_type
-                             UNASSIGNED,  # internal_binary
-                             UNASSIGNED,  # internal_func
-                             UNASSIGNED,  # working_dir
-                             UNASSIGNED]  # fail_by_ev
+                impl_args = [
+                    self.container[ENGINE],  # engine
+                    self.container[IMAGE],  # image
+                    UNASSIGNED,  # internal_type
+                    UNASSIGNED,  # internal_binary
+                    UNASSIGNED,  # internal_func
+                    UNASSIGNED,  # working_dir
+                    UNASSIGNED,
+                ]  # fail_by_ev
                 ce.set_impl_type(impl_type)
                 ce.set_impl_signature(impl_signature)
                 ce.set_impl_type_args(impl_args)
@@ -159,7 +172,9 @@ class Software(object):
                     def f():
                         ret = decorator(**self.config_args)
                         return ret(user_function)(*args, **kwargs)
+
                     return f()
+
                 return decor_f()
             else:
                 # It's a PyCOMPSs task with only @task and @software decorators
@@ -170,7 +185,7 @@ class Software(object):
 
     def parse_config_file(self):
         # type: () -> None
-        """ Parse the config file and set self's task_type, decor, and
+        """Parse the config file and set self's task_type, decor, and
         config args.
 
         :return: None
@@ -183,8 +198,9 @@ class Software(object):
         if exec_type is None:
             print("Execution type not provided for @software task")
         elif exec_type.lower() not in SUPPORTED_DECORATORS:
-            msg = "Error: Executor Type {} is not supported for software task."\
-                .format(exec_type)
+            msg = "Error: Executor Type {} is not supported for software task.".format(
+                exec_type
+            )
             raise PyCOMPSsException(msg)
         else:
             exec_type = exec_type.lower()

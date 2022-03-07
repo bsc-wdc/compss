@@ -52,6 +52,7 @@ ENVIRONMENT = "terminal"
 IS_INTERACTIVE = False
 try:
     from IPython import get_ipython  # noqa
+
     ipy_str = str(type(get_ipython()))
     if "zmqshell" in ipy_str:
         ENVIRONMENT = "jupyter"
@@ -65,7 +66,10 @@ except ImportError:
 
 # Determine if running in a supercomputer
 RUNNING_IN_SUPERCOMPUTER = False
-if "COMPSS_RUNNING_IN_SC" in os.environ and os.environ["COMPSS_RUNNING_IN_SC"] == "true":
+if (
+    "COMPSS_RUNNING_IN_SC" in os.environ
+    and os.environ["COMPSS_RUNNING_IN_SC"] == "true"
+):
     RUNNING_IN_SUPERCOMPUTER = True
 elif "BSC_MACHINE" in os.environ and os.environ["BSC_MACHINE"] == "mn4":
     # Only supported in MN4 currently
@@ -111,7 +115,7 @@ TRACING_TASK_NAME_TO_ID = dict()  # type: typing.Dict[str, int]
 
 def get_temporary_directory():
     # type: () -> str
-    """ Temporary directory getter.
+    """Temporary directory getter.
 
     :return: Temporary directory path
     """
@@ -120,7 +124,7 @@ def get_temporary_directory():
 
 def set_temporary_directory(folder, create_tmpdir=True):
     # type: (str, bool) -> None
-    """ Set the temporary directory.
+    """Set the temporary directory.
 
     Creates the temporary directory from the folder parameter and
     sets the temporary directory variable.
@@ -131,18 +135,17 @@ def set_temporary_directory(folder, create_tmpdir=True):
     """
     global _TEMP_DIR
     if create_tmpdir:
-        temp_dir = mkdtemp(prefix=_TEMP_DIR_PREFIX,
-                           dir=os.path.join(folder,
-                                            _TEMP_DIR_FOLDER))
+        temp_dir = mkdtemp(
+            prefix=_TEMP_DIR_PREFIX, dir=os.path.join(folder, _TEMP_DIR_FOLDER)
+        )
     else:
-        temp_dir = mkdtemp(prefix=_TEMP_DIR_PREFIX,
-                           dir=folder)
+        temp_dir = mkdtemp(prefix=_TEMP_DIR_PREFIX, dir=folder)
     _TEMP_DIR = temp_dir
 
 
 def get_object_conversion():
     # type: () -> bool
-    """ Object conversion getter.
+    """Object conversion getter.
 
     :return: Boolean object conversion
     """
@@ -151,7 +154,7 @@ def get_object_conversion():
 
 def set_object_conversion(conversion=False):
     # type: (bool) -> None
-    """ Set object conversion to string.
+    """Set object conversion to string.
 
     :param conversion: Boolean. True enable, False disable.
     :return: None

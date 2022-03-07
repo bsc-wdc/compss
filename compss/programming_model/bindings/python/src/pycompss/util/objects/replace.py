@@ -28,21 +28,26 @@ from pycompss.util.typing_helper import typing
 import ctypes
 from ctypes import pythonapi as api
 import sys
-from types import (BuiltinFunctionType, GetSetDescriptorType, FrameType,
-                   MemberDescriptorType, MethodType)
+from types import (
+    BuiltinFunctionType,
+    GetSetDescriptorType,
+    FrameType,
+    MemberDescriptorType,
+    MethodType,
+)
 
 try:
     import guppy
     from guppy.heapy import Path
 except Exception:
-    raise ImportError('Cannot use local decorator without guppy!')
+    raise ImportError("Cannot use local decorator without guppy!")
 
 hp = guppy.hpy()
 
 
-def _w(x):    # NOSONAR
+def _w(x):  # NOSONAR
     def f():  # NOSONAR
-        x     # NOSONAR
+        x  # NOSONAR
 
     return f
 
@@ -79,7 +84,7 @@ def _replace_attribute(source, rel, new):
         if rel == "__mro__":
             return  # Updated via __bases__ when important, otherwise futile
     if isinstance(source, (GetSetDescriptorType, MemberDescriptorType)):
-        if rel == "__objclass__":   # NOSONAR
+        if rel == "__objclass__":  # NOSONAR
             _write_struct_attr(id(source), new, 0)
             return
     try:
@@ -123,7 +128,7 @@ _RELATIONS = {
     Path.R_INDEXVAL: _replace_indexval,
     Path.R_INDEXKEY: _replace_indexkey,
     Path.R_INTERATTR: _replace_interattr,
-    Path.R_LOCAL_VAR: _replace_local_var
+    Path.R_LOCAL_VAR: _replace_local_var,
 }
 
 

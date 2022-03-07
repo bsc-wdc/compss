@@ -52,6 +52,7 @@ from pycompss.util.objects.properties import get_module_name
 
 if __debug__:
     import logging
+
     logger = logging.getLogger(__name__)
 
 # Determine if strings should have a sharp symbol prepended or not
@@ -83,17 +84,33 @@ class Task(object):
     TaskWorker.call() and self._sequential_call()
     """
 
-    __slots__ = ["task_type", "decorator_arguments", "user_function",
-                 "registered", "signature",
-                 "interactive", "module", "function_arguments",
-                 "function_name", "module_name", "function_type", "class_name",
-                 "hints", "on_failure", "defaults",
-                 "decorator_name", "args", "kwargs",
-                 "scope", "core_element", "core_element_configured"]
+    __slots__ = [
+        "task_type",
+        "decorator_arguments",
+        "user_function",
+        "registered",
+        "signature",
+        "interactive",
+        "module",
+        "function_arguments",
+        "function_name",
+        "module_name",
+        "function_type",
+        "class_name",
+        "hints",
+        "on_failure",
+        "defaults",
+        "decorator_name",
+        "args",
+        "kwargs",
+        "scope",
+        "core_element",
+        "core_element_configured",
+    ]
 
     def __init__(self, *args, **kwargs):  # noqa
         # type: (*typing.Any, **typing.Any) -> None
-        """ Task constructor.
+        """Task constructor.
 
         This part is called in the decoration process, not as an
         explicit function call.
@@ -159,17 +176,18 @@ class Task(object):
             #   pass
             # Transform this dictionary to a Parameter object
             if isinstance(value, dict):
-                if key not in ["numba",
-                               "numba_flags",
-                               "numba_signature",
-                               "numba_declaration"]:
+                if key not in [
+                    "numba",
+                    "numba_flags",
+                    "numba_signature",
+                    "numba_declaration",
+                ]:
                     # Perform user -> instance substitution
                     # param = self.decorator_arguments[key][parameter.Type]
                     # Replace the whole dict by a single parameter object
-                    self.decorator_arguments[key] = \
-                        get_parameter_from_dictionary(
-                            self.decorator_arguments[key]
-                        )
+                    self.decorator_arguments[key] = get_parameter_from_dictionary(
+                        self.decorator_arguments[key]
+                    )
                 else:
                     # It is a reserved word that we need to keep the user
                     # defined value (not a Parameter object)
@@ -180,19 +198,19 @@ class Task(object):
         self.signature = ""
         # Saved from the initial task
         self.interactive = False
-        self.module = None                 # type: typing.Any
+        self.module = None  # type: typing.Any
         self.function_arguments = tuple()  # type: tuple
         self.function_name = ""
         self.module_name = ""
         self.function_type = -1
         self.class_name = ""
-        self.hints = tuple()               # type: tuple
+        self.hints = tuple()  # type: tuple
         self.on_failure = ""
-        self.defaults = dict()             # type: dict
+        self.defaults = dict()  # type: dict
 
     def __call__(self, user_function):
         # type: (typing.Callable) -> typing.Callable
-        """ This function is called in all explicit function calls.
+        """This function is called in all explicit function calls.
 
         Note that in PyCOMPSs a single function call will be transformed into
         two calls, as both master and worker need to call the function.
@@ -228,38 +246,57 @@ class Task(object):
             # not be shared.
             self.__check_core_element__(kwargs, user_function)
             with event_master(TASK_INSTANTIATION):
-                master = TaskMaster(self.decorator_arguments,
-                                    self.user_function,
-                                    self.core_element,
-                                    self.registered,
-                                    self.signature,
-                                    self.interactive,
-                                    self.module,
-                                    self.function_arguments,
-                                    self.function_name,
-                                    self.module_name,
-                                    self.function_type,
-                                    self.class_name,
-                                    self.hints,
-                                    self.on_failure,
-                                    self.defaults)
+                master = TaskMaster(
+                    self.decorator_arguments,
+                    self.user_function,
+                    self.core_element,
+                    self.registered,
+                    self.signature,
+                    self.interactive,
+                    self.module,
+                    self.function_arguments,
+                    self.function_name,
+                    self.module_name,
+                    self.function_type,
+                    self.class_name,
+                    self.hints,
+                    self.on_failure,
+                    self.defaults,
+                )
             result = master.call(args, kwargs)
-            fo, self.core_element, self.registered, self.signature, self.interactive, self.module, self.function_arguments, self.function_name, self.module_name, self.function_type, self.class_name, self.hints = result  # noqa: E501
+            (
+                fo,
+                self.core_element,
+                self.registered,
+                self.signature,
+                self.interactive,
+                self.module,
+                self.function_arguments,
+                self.function_name,
+                self.module_name,
+                self.function_type,
+                self.class_name,
+                self.hints,
+            ) = result  # noqa: E501
             del master
             return fo
         elif context.in_worker():
             if "compss_key" in kwargs.keys():
                 if context.is_nesting_enabled():
                     # Update the whole logger since it will be in job out/err
-                    update_logger_handlers(kwargs["compss_log_cfg"],
-                                           kwargs["compss_log_files"][0],
-                                           kwargs["compss_log_files"][1])
+                    update_logger_handlers(
+                        kwargs["compss_log_cfg"],
+                        kwargs["compss_log_files"][0],
+                        kwargs["compss_log_files"][1],
+                    )
                 # @task being executed in the worker
                 with event_inside_worker(WORKER_TASK_INSTANTIATION):
-                    worker = TaskWorker(self.decorator_arguments,
-                                        self.user_function,
-                                        self.on_failure,
-                                        self.defaults)
+                    worker = TaskWorker(
+                        self.decorator_arguments,
+                        self.user_function,
+                        self.on_failure,
+                        self.defaults,
+                    )
                 result = worker.call(*args, **kwargs)
                 # Force flush stdout and stderr
                 sys.stdout.flush()
@@ -269,6 +306,7 @@ class Task(object):
                 if context.is_nesting_enabled():
                     # Wait for all nested tasks to finish
                     from pycompss.runtime.binding import nested_barrier
+
                     nested_barrier()
                     # Reestablish logger handlers
                     update_logger_handlers(kwargs["compss_log_cfg"])
@@ -278,33 +316,52 @@ class Task(object):
                     # Each task will have a TaskMaster, so its content will
                     # not be shared.
                     with event_master(TASK_INSTANTIATION):
-                        master = TaskMaster(self.decorator_arguments,
-                                            self.user_function,
-                                            self.core_element,
-                                            self.registered,
-                                            self.signature,
-                                            self.interactive,
-                                            self.module,
-                                            self.function_arguments,
-                                            self.function_name,
-                                            self.module_name,
-                                            self.function_type,
-                                            self.class_name,
-                                            self.hints,
-                                            self.on_failure,
-                                            self.defaults)
+                        master = TaskMaster(
+                            self.decorator_arguments,
+                            self.user_function,
+                            self.core_element,
+                            self.registered,
+                            self.signature,
+                            self.interactive,
+                            self.module,
+                            self.function_arguments,
+                            self.function_name,
+                            self.module_name,
+                            self.function_type,
+                            self.class_name,
+                            self.hints,
+                            self.on_failure,
+                            self.defaults,
+                        )
                     result = master.call(args, kwargs)
-                    fo, self.core_element, self.registered, self.signature, self.interactive, self.module, self.function_arguments, self.function_name, self.module_name, self.function_type, self.class_name, self.hints = result  # noqa: E501
+                    (
+                        fo,
+                        self.core_element,
+                        self.registered,
+                        self.signature,
+                        self.interactive,
+                        self.module,
+                        self.function_arguments,
+                        self.function_name,
+                        self.module_name,
+                        self.function_type,
+                        self.class_name,
+                        self.hints,
+                    ) = result  # noqa: E501
                     del master
                     return fo
                 else:
                     # Called from another task within the worker
                     # Ignore the @task decorator and run it sequentially
-                    message = "".join(("WARNING: Calling task: ",
-                                       str(user_function.__name__),
-                                       " from this task.\n",
-                                       "         It will be executed ",
-                                       "sequentially within the caller task."))
+                    message = "".join(
+                        (
+                            "WARNING: Calling task: ",
+                            str(user_function.__name__),
+                            " from this task.\n",
+                            "         It will be executed ",
+                            "sequentially within the caller task.",
+                        )
+                    )
                     print(message, file=sys.stderr)
                     return self._sequential_call(*args, **kwargs)
         # We are neither in master nor in the worker, or the user has
@@ -315,7 +372,7 @@ class Task(object):
 
     def _sequential_call(self, *args, **kwargs):
         # type: (*typing.Any, **typing.Any) -> typing.Any
-        """ Sequential task execution.
+        """Sequential task execution.
 
         The easiest case: just call the user function and return whatever it
         returns.
@@ -328,19 +385,22 @@ class Task(object):
         # self.param_kwargs and self.param_defaults
         # And gives non-None default values to them if necessary
         from pycompss.api.dummy.task import task as dummy_task
+
         d_t = dummy_task(args, kwargs)
         return d_t.__call__(self.user_function)(*args, **kwargs)
 
     def __check_core_element__(self, kwargs, user_function):
         # type: (dict, typing.Callable) -> None
-        """ Check Core Element for containers.
+        """Check Core Element for containers.
 
         :param kwargs: Keyword arguments
         :param user_function: User function
         :return: None (updates the Core Element of the given kwargs)
         """
-        if CORE_ELEMENT_KEY in kwargs and \
-                kwargs[CORE_ELEMENT_KEY].get_impl_type() == IMPL_CONTAINER:
+        if (
+            CORE_ELEMENT_KEY in kwargs
+            and kwargs[CORE_ELEMENT_KEY].get_impl_type() == IMPL_CONTAINER
+        ):
             # The task is using a container
             impl_args = kwargs[CORE_ELEMENT_KEY].get_impl_type_args()
             _type = impl_args[2]
@@ -349,15 +409,19 @@ class Task(object):
                 _engine = impl_args[0]
                 _image = impl_args[1]
                 _type = "CET_PYTHON"
-                _func_complete = "%s&%s" % (str(self.__get_module_name__(user_function)),  # noqa: E501
-                                            str(user_function.__name__))
-                impl_args = [_engine,         # engine
-                             _image,          # image
-                             _type,           # internal_type
-                             UNASSIGNED,      # internal_binary
-                             _func_complete,  # internal_func
-                             UNASSIGNED,      # working_dir
-                             UNASSIGNED]      # fail_by_ev
+                _func_complete = "%s&%s" % (
+                    str(self.__get_module_name__(user_function)),  # noqa: E501
+                    str(user_function.__name__),
+                )
+                impl_args = [
+                    _engine,  # engine
+                    _image,  # image
+                    _type,  # internal_type
+                    UNASSIGNED,  # internal_binary
+                    _func_complete,  # internal_func
+                    UNASSIGNED,  # working_dir
+                    UNASSIGNED,
+                ]  # fail_by_ev
                 kwargs[CORE_ELEMENT_KEY].set_impl_type_args(impl_args)
 
     @staticmethod

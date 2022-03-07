@@ -42,6 +42,7 @@ from pycompss.util.exceptions import PyCOMPSsException
 
 if __debug__:
     import logging
+
     logger = logging.getLogger(__name__)
 
 # Global name to be used within kwargs for the core element.
@@ -53,8 +54,14 @@ class PyCOMPSsDecorator(object):
     This class implements all common code of the PyCOMPSs decorators.
     """
 
-    __slots__ = ["decorator_name", "args", "kwargs",
-                 "scope", "core_element", "core_element_configured"]
+    __slots__ = [
+        "decorator_name",
+        "args",
+        "kwargs",
+        "scope",
+        "core_element",
+        "core_element_configured",
+    ]
 
     def __init__(self, decorator_name, *args, **kwargs):
         # type: (str, *typing.Any, **typing.Any) -> None
@@ -90,6 +97,7 @@ class PyCOMPSsDecorator(object):
 ##############################################
 # VERY USUAL FUNCTIONS THAT MODIFY SOMETHING #
 ##############################################
+
 
 def resolve_working_dir(kwargs):
     # type: (dict) -> None
@@ -131,7 +139,8 @@ def resolve_fail_by_exit_value(kwargs):
         else:
             raise PyCOMPSsException(
                 "Incorrect format for fail_by_exit_value property. "
-                "It should be boolean or an environment variable")
+                "It should be boolean or an environment variable"
+            )
     else:
         kwargs[FAIL_BY_EXIT_VALUE] = "true"
 
@@ -165,13 +174,16 @@ def process_computing_nodes(decorator_name, kwargs):
         pass
 
     if __debug__:
-        logger.debug("This %s task will have %s computing nodes." %
-                     (decorator_name, str(kwargs[COMPUTING_NODES])))
+        logger.debug(
+            "This %s task will have %s computing nodes."
+            % (decorator_name, str(kwargs[COMPUTING_NODES]))
+        )
 
 
 ###################
 # COMMON CONTEXTS #
 ###################
+
 
 @contextmanager
 def keep_arguments(args, kwargs, prepend_strings=True):
@@ -199,6 +211,7 @@ def keep_arguments(args, kwargs, prepend_strings=True):
                 setattr(slf, k, v)
     # Set PREPEND_STRINGS
     import pycompss.api.task as t
+
     if not prepend_strings:
         t.PREPEND_STRINGS = False
     yield
@@ -215,9 +228,10 @@ def keep_arguments(args, kwargs, prepend_strings=True):
 # OTHER COMMONS #
 #################
 
+
 def run_command(cmd, args, kwargs):
     # type: (list, tuple, dict) -> int
-    """ Executes the command considering necessary the args and kwargs.
+    """Executes the command considering necessary the args and kwargs.
 
     :param cmd: Command to run.
     :param args: Decorator arguments.
@@ -236,10 +250,9 @@ def run_command(cmd, args, kwargs):
         my_env["PATH"] = kwargs[WORKING_DIR] + env_path
     elif LEGACY_WORKING_DIR in kwargs:
         my_env["PATH"] = kwargs[LEGACY_WORKING_DIR] + env_path
-    proc = subprocess.Popen(cmd,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE,
-                            env=my_env)
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=my_env
+    )
     out, err = proc.communicate()
     out_message = out.decode().strip()
     err_message = err.decode().strip()

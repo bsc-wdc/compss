@@ -26,6 +26,7 @@ PyCOMPSs Util - Context
 
 import inspect
 from contextlib import contextmanager
+
 # Typing imports
 from pycompss.util.typing_helper import typing
 
@@ -37,17 +38,18 @@ MASTER = "MASTER"
 WORKER = "WORKER"
 OUT_OF_SCOPE = "OUT_OF_SCOPE"
 
-_WHO = OUT_OF_SCOPE    # type: str
+_WHO = OUT_OF_SCOPE  # type: str
 _WHERE = OUT_OF_SCOPE  # type: str
 
 NESTING = False
 LOADING = False
-TO_REGISTER = []       # type: typing.List[typing.Any]
+TO_REGISTER = []  # type: typing.List[typing.Any]
 
 
 #############
 # FUNCTIONS #
 #############
+
 
 def in_master():
     # type: () -> bool
@@ -87,9 +89,11 @@ def set_pycompss_context(where):
     :param where: New context (MASTER or WORKER or OUT_OF_SCOPE)
     :return: None
     """
-    assert where in [MASTER, WORKER, OUT_OF_SCOPE], \
-        "PyCOMPSs context must be %s, %s or %s" % \
-        (MASTER, WORKER, OUT_OF_SCOPE)
+    assert where in [
+        MASTER,
+        WORKER,
+        OUT_OF_SCOPE,
+    ], "PyCOMPSs context must be %s, %s or %s" % (MASTER, WORKER, OUT_OF_SCOPE)
     global _WHERE
     _WHERE = where
     global _WHO
@@ -122,7 +126,7 @@ def get_who_contextualized():
 
 def is_nesting_enabled():
     # type: () -> bool
-    """ Check if nesting is enabled.
+    """Check if nesting is enabled.
 
     :returns: None
     """
@@ -131,7 +135,7 @@ def is_nesting_enabled():
 
 def enable_nesting():
     # type: () -> None
-    """ Enable nesting.
+    """Enable nesting.
 
     :returns: None
     """
@@ -141,7 +145,7 @@ def enable_nesting():
 
 def disable_nesting():
     # type: () -> None
-    """ Disable nesting.
+    """Disable nesting.
 
     :returns: None
     """
@@ -151,7 +155,7 @@ def disable_nesting():
 
 def is_loading():
     # type: () -> bool
-    """ Check if is loading is enabled.
+    """Check if is loading is enabled.
 
     :returns: None
     """
@@ -160,7 +164,7 @@ def is_loading():
 
 def __enable_loading__():
     # type: () -> None
-    """ Enable loading.
+    """Enable loading.
 
     :returns: None
     """
@@ -170,7 +174,7 @@ def __enable_loading__():
 
 def __disable_loading__():
     # type: () -> None
-    """ Enable loading.
+    """Enable loading.
 
     :returns: None
     """
@@ -181,7 +185,7 @@ def __disable_loading__():
 @contextmanager
 def loading_context():
     # type: () -> typing.Iterator[None]
-    """ Context which sets the loading mode (intended to be used only with
+    """Context which sets the loading mode (intended to be used only with
     the @implements decorators, since they try to register on loading).
 
     :return: None
@@ -193,7 +197,7 @@ def loading_context():
 
 def add_to_register_later(core_element):
     # type: (typing.Tuple[typing.Any, str]) -> None
-    """ Accumulate core elements to be registered later.
+    """Accumulate core elements to be registered later.
 
     :param core_element: Core element to be registered
     :return: None
@@ -204,7 +208,7 @@ def add_to_register_later(core_element):
 
 def get_to_register():
     # type: () -> typing.List[typing.Tuple[typing.Any, str]]
-    """ Retrieve the to register list.
+    """Retrieve the to register list.
 
     :return: To register list
     """

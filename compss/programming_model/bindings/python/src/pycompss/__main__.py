@@ -45,7 +45,7 @@ class Object(object):
 
 def setup_parser():
     # type: () -> typing.Any
-    """ Argument parser.
+    """Argument parser.
 
     - Argument defining run for runcompss or enqueue for enqueue_compss.
     - The rest of the arguments as a list.
@@ -53,21 +53,28 @@ def setup_parser():
     :return: the parser
     """
     parser = argparse.ArgumentParser(prog="python -m pycompss")
-    parser.add_argument("action", choices=TAGS, nargs="?",
-                        help="Execution mode: \"run\" for launching an" +
-                             " execution and \"enqueue\" for submitting a" +
-                             " job to the queuing system." +
-                             " Default value: \"run\"")
-    parser.add_argument("params", nargs=argparse.REMAINDER,
-                        help="COMPSs and application arguments" +
-                             " (check \"runcompss\" or \"enqueue_compss\"" +
-                             " commands help).")
+    parser.add_argument(
+        "action",
+        choices=TAGS,
+        nargs="?",
+        help='Execution mode: "run" for launching an'
+        + ' execution and "enqueue" for submitting a'
+        + " job to the queuing system."
+        + ' Default value: "run"',
+    )
+    parser.add_argument(
+        "params",
+        nargs=argparse.REMAINDER,
+        help="COMPSs and application arguments"
+        + ' (check "runcompss" or "enqueue_compss"'
+        + " commands help).",
+    )
     return parser
 
 
 def run(cmd):
     # type: (list) -> None
-    """ Execute a command line in a subprocess.
+    """Execute a command line in a subprocess.
 
     :param cmd: Command to execute <String>
     :return: None
@@ -78,7 +85,7 @@ def run(cmd):
 
 def main():
     # type: () -> None
-    """ Main method.
+    """Main method.
 
     :return: None
     """
@@ -86,9 +93,7 @@ def main():
     parser = None  # type: typing.Any
 
     # Check params
-    if len(sys.argv) > 1 and \
-            sys.argv[1] not in TAGS and \
-            sys.argv[1] not in _help:
+    if len(sys.argv) > 1 and sys.argv[1] not in TAGS and sys.argv[1] not in _help:
         # No action specified. Assume run.
         args = Object()
         args.action = RUN_TAG
@@ -104,8 +109,7 @@ def main():
         python_interpreter = []
     else:
         # Use the same as current
-        python_interpreter = ["--python_interpreter=" +
-                              str(PYTHON_INTERPRETER)]
+        python_interpreter = ["--python_interpreter=" + str(PYTHON_INTERPRETER)]
 
     # Take an action
     if args.action == RUN_TAG:

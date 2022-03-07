@@ -35,32 +35,42 @@ class PiperWorkerConfiguration(object):
     Description of the configuration parameters for the Piper Worker.
     """
 
-    __slots__ = ["nesting", "debug", "tracing", "storage_conf",
-                 "stream_backend", "stream_master_name", "stream_master_port",
-                 "tasks_x_node", "pipes", "control_pipe", "cache",
-                 "cache_profiler"]
+    __slots__ = [
+        "nesting",
+        "debug",
+        "tracing",
+        "storage_conf",
+        "stream_backend",
+        "stream_master_name",
+        "stream_master_port",
+        "tasks_x_node",
+        "pipes",
+        "control_pipe",
+        "cache",
+        "cache_profiler",
+    ]
 
     def __init__(self):
         # type: () -> None
         """
         Constructs an empty configuration description for the piper worker.
         """
-        self.nesting = False            # type: bool
-        self.debug = False              # type: bool
-        self.tracing = False            # type: bool
-        self.storage_conf = ""          # type: str
-        self.stream_backend = ""        # type: str
-        self.stream_master_name = ""    # type: str
-        self.stream_master_port = ""    # type: str
-        self.tasks_x_node = 0           # type: int
-        self.pipes = []                 # type: typing.List[Pipe]
-        self.control_pipe = None        # type: typing.Union[None, Pipe]
-        self.cache = False              # type: typing.Union[str, bool]
-        self.cache_profiler = ""        # type: str
+        self.nesting = False  # type: bool
+        self.debug = False  # type: bool
+        self.tracing = False  # type: bool
+        self.storage_conf = ""  # type: str
+        self.stream_backend = ""  # type: str
+        self.stream_master_name = ""  # type: str
+        self.stream_master_port = ""  # type: str
+        self.tasks_x_node = 0  # type: int
+        self.pipes = []  # type: typing.List[Pipe]
+        self.control_pipe = None  # type: typing.Union[None, Pipe]
+        self.cache = False  # type: typing.Union[str, bool]
+        self.cache_profiler = ""  # type: str
 
     def update_params(self, argv):
         # type: (list) -> None
-        """ Constructs a configuration description for the piper worker using
+        """Constructs a configuration description for the piper worker using
         the arguments.
 
         :param argv: arguments from the command line.
@@ -79,8 +89,8 @@ class PiperWorkerConfiguration(object):
         self.cache = argv[9]
         self.cache_profiler = argv[10]
         self.tasks_x_node = int(argv[11])
-        in_pipes = argv[12:12 + self.tasks_x_node]
-        out_pipes = argv[12 + self.tasks_x_node:-2]
+        in_pipes = argv[12 : 12 + self.tasks_x_node]
+        out_pipes = argv[12 + self.tasks_x_node : -2]
         if self.debug:
             assert self.tasks_x_node == len(in_pipes)
             assert self.tasks_x_node == len(out_pipes)
@@ -91,7 +101,7 @@ class PiperWorkerConfiguration(object):
 
     def print_on_logger(self, logger):
         # type: (typing.Any) -> None
-        """ Prints the configuration through the given logger.
+        """Prints the configuration through the given logger.
 
         :param logger: logger to output the configuration.
         :return: None
@@ -110,6 +120,10 @@ class PiperWorkerConfiguration(object):
             logger.debug(HEADER + "                 * " + str(pipe))
         logger.debug(HEADER + "Storage conf.  : " + str(self.storage_conf))
         logger.debug(HEADER + "Stream backend : " + str(self.stream_backend))
-        logger.debug(HEADER + "Stream master  : " + str(self.stream_master_name))  # noqa: E501
-        logger.debug(HEADER + "Stream port    : " + str(self.stream_master_port))  # noqa: E501
+        logger.debug(
+            HEADER + "Stream master  : " + str(self.stream_master_name)
+        )  # noqa: E501
+        logger.debug(
+            HEADER + "Stream port    : " + str(self.stream_master_port)
+        )  # noqa: E501
         logger.debug(HEADER + "-----------------------------")

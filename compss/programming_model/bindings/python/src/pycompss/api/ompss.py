@@ -47,15 +47,12 @@ from pycompss.util.arguments import check_arguments
 
 if __debug__:
     import logging
+
     logger = logging.getLogger(__name__)
 
 MANDATORY_ARGUMENTS = {BINARY}
-SUPPORTED_ARGUMENTS = {COMPUTING_NODES,
-                       WORKING_DIR,
-                       BINARY,
-                       FAIL_BY_EXIT_VALUE}
-DEPRECATED_ARGUMENTS = {LEGACY_COMPUTING_NODES,
-                        LEGACY_WORKING_DIR}
+SUPPORTED_ARGUMENTS = {COMPUTING_NODES, WORKING_DIR, BINARY, FAIL_BY_EXIT_VALUE}
+DEPRECATED_ARGUMENTS = {LEGACY_COMPUTING_NODES, LEGACY_WORKING_DIR}
 
 
 class OmpSs(object):
@@ -64,12 +61,18 @@ class OmpSs(object):
     __call__ methods, useful on mpi task creation.
     """
 
-    __slots__ = ["decorator_name", "args", "kwargs", "scope",
-                 "core_element", "core_element_configured"]
+    __slots__ = [
+        "decorator_name",
+        "args",
+        "kwargs",
+        "scope",
+        "core_element",
+        "core_element_configured",
+    ]
 
     def __init__(self, *args, **kwargs):
         # type: (*typing.Any, **typing.Any) -> None
-        """ Store arguments passed to the decorator.
+        """Store arguments passed to the decorator.
 
         self = itself.
         args = not used.
@@ -88,22 +91,25 @@ class OmpSs(object):
         self.core_element_configured = False
         if self.scope:
             # Check the arguments
-            check_arguments(MANDATORY_ARGUMENTS,
-                            DEPRECATED_ARGUMENTS,
-                            SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
-                            list(kwargs.keys()),
-                            decorator_name)
+            check_arguments(
+                MANDATORY_ARGUMENTS,
+                DEPRECATED_ARGUMENTS,
+                SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
+                list(kwargs.keys()),
+                decorator_name,
+            )
 
             # Get the computing nodes
             process_computing_nodes(decorator_name, self.kwargs)
 
     def __call__(self, user_function):
         # type: (typing.Callable) -> typing.Callable
-        """ Parse and set the ompss parameters within the task core element.
+        """Parse and set the ompss parameters within the task core element.
 
         :param user_function: Function to decorate.
         :return: Decorated function.
         """
+
         @wraps(user_function)
         def ompss_f(*args, **kwargs):
             # type: (*typing.Any, **typing.Any) -> typing.Any
@@ -113,8 +119,9 @@ class OmpSs(object):
             if __debug__:
                 logger.debug("Executing ompss_f wrapper.")
 
-            if (context.in_master() or context.is_nesting_enabled()) \
-                    and not self.core_element_configured:
+            if (
+                context.in_master() or context.is_nesting_enabled()
+            ) and not self.core_element_configured:
                 # master code - or worker with nesting enabled
                 self.__configure_core_element__(kwargs)
 
@@ -133,7 +140,7 @@ class OmpSs(object):
 
     def __configure_core_element__(self, kwargs):
         # type: (dict) -> None
-        """ Include the registering info related to @ompss.
+        """Include the registering info related to @ompss.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 
@@ -153,9 +160,7 @@ class OmpSs(object):
 
         impl_type = IMPL_OMPSS
         impl_signature = "".join((IMPL_OMPSS, ".", binary))
-        impl_args = [binary,
-                     self.kwargs[WORKING_DIR],
-                     self.kwargs[FAIL_BY_EXIT_VALUE]]
+        impl_args = [binary, self.kwargs[WORKING_DIR], self.kwargs[FAIL_BY_EXIT_VALUE]]
 
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator

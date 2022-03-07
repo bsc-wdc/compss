@@ -45,9 +45,10 @@ POST_MESSAGE = None
 #           EVENT CALLBACKS           #
 #######################################
 
+
 def __pre_execute__():
     # type: () -> None
-    """ Fires prior to interactive execution.
+    """Fires prior to interactive execution.
 
     :return: None
     """
@@ -56,7 +57,7 @@ def __pre_execute__():
 
 def __pre_run_cell__():
     # type: () -> None
-    """ Like pre_run_cell, but is triggered prior to any execution.
+    """Like pre_run_cell, but is triggered prior to any execution.
 
     Sometimes code can be executed by libraries, etc. which skipping the
     history/display mechanisms, in which cases pre_run_cell will not fire.
@@ -87,6 +88,7 @@ def __pre_run_cell__():
             error_messages_html = "<p>" + "<br>".join(popup_body) + "</p>"
             error_messages_html = error_messages_html.replace("'", "")
             popup_title_html = "COMPSs RUNTIME STOPPED"
+            # fmt: off
             popup_code = """require(["base/js/dialog"],
                                     function(dialog) OPENBRACKET
                                         function restartCOMPSs()OPENBRACKET
@@ -116,7 +118,10 @@ def __pre_run_cell__():
                                         CLOSEBRACKET);
                                     CLOSEBRACKET
                             );""".format(popup_title_html, error_messages_html, current_flags)  # noqa: E501
-            popup_js = popup_code.replace("OPENBRACKET", '{').replace("CLOSEBRACKET", '}')      # noqa: E501
+            # fmt: on
+            popup_js = popup_code.replace("OPENBRACKET", "{").replace(
+                "CLOSEBRACKET", "}"
+            )  # noqa: E501
             popup = Javascript(popup_js)
             display(popup)  # noqa
             warn_msg = "WARNING: Some objects may have not been synchronized and need to be recomputed."  # noqa: E501
@@ -139,8 +144,12 @@ def __pre_run_cell__():
                                             CLOSEBRACKET
                                         CLOSEBRACKET);
                                     CLOSEBRACKET
-                            );""".format(popup_title_html, error_messages_html)
-            popup_js = popup_code.replace("OPENBRACKET", '{').replace("CLOSEBRACKET", '}')  # noqa: E501
+                            );""".format(
+                popup_title_html, error_messages_html
+            )
+            popup_js = popup_code.replace("OPENBRACKET", "{").replace(
+                "CLOSEBRACKET", "}"
+            )  # noqa: E501
             popup = Javascript(popup_js)
             display(popup)  # noqa
             info_msg = "INFO: The runtime has recovered the failed tasks."
@@ -152,7 +161,7 @@ def __pre_run_cell__():
 
 def __post_execute__():
     # type: () -> None
-    """ Runs after interactive execution (e.g. a cell in a notebook).
+    """Runs after interactive execution (e.g. a cell in a notebook).
 
     :return: None
     """
@@ -161,7 +170,7 @@ def __post_execute__():
 
 def __post_run_cell__():
     # type: () -> None
-    """ The same as pre_execute, post_execute is like post_run_cell, but
+    """The same as pre_execute, post_execute is like post_run_cell, but
     fires for all executions, not just interactive ones.
 
     Notifies if any exception or task has been cancelled to the user.
@@ -178,9 +187,10 @@ def __post_run_cell__():
 #     EVENT MANAGEMENT FUNCTIONS      #
 #######################################
 
+
 def setup_event_manager(ipython):
     # type: (typing.Any) -> None
-    """ Instantiates an Ipython event manager and registers the event handlers.
+    """Instantiates an Ipython event manager and registers the event handlers.
 
     :param ipython: IPython instance where to register the event manager.
     :return: None
@@ -193,7 +203,7 @@ def setup_event_manager(ipython):
 
 def release_event_manager(ipython):
     # type: (typing.Any) -> None
-    """ Releases the event manager in the given ipython instance.
+    """Releases the event manager in the given ipython instance.
 
     :param ipython: IPython instance where to release the event manager.
     :return: None

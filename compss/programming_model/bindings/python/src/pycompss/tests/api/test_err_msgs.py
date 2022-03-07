@@ -28,10 +28,7 @@ DECORATOR_NAME = "@unittest"
 
 def test_err_msgs_not_in_pycompss():
     decorator_name = DECORATOR_NAME
-    expected = (
-        "The %s decorator only works within PyCOMPSs framework."
-        % decorator_name
-    )
+    expected = "The %s decorator only works within PyCOMPSs framework." % decorator_name
     error = not_in_pycompss(decorator_name=decorator_name)
     assert error == expected, "Received wrong NOT IN PYCOMPSS error message."
 

@@ -28,21 +28,23 @@ from collections import OrderedDict
 
 from pycompss.util.typing_helper import typing
 from pycompss.util.process.manager import Process  # just typing
-from pycompss.util.process.manager import Queue    # just typing
+from pycompss.util.process.manager import Queue  # just typing
 from pycompss.util.process.manager import new_queue
 from pycompss.util.process.manager import new_manager
 from pycompss.util.process.manager import create_process
 from pycompss.worker.piper.cache.tracker import CacheTrackerConf
 from pycompss.worker.piper.cache.tracker import cache_tracker
-from pycompss.worker.piper.cache.tracker import start_shared_memory_manager \
-    as __start_smm__
-from pycompss.worker.piper.cache.tracker import stop_shared_memory_manager \
-    as __stop_smm__
+from pycompss.worker.piper.cache.tracker import (
+    start_shared_memory_manager as __start_smm__,
+)
+from pycompss.worker.piper.cache.tracker import (
+    stop_shared_memory_manager as __stop_smm__,
+)
 
 
 def is_cache_enabled(cache_config):
     # type: (str) -> bool
-    """ Check if the cache is enabled.
+    """Check if the cache is enabled.
 
     :param cache_config: Cache configuration defined on startup.
     :return: True if enabled, False otherwise. And size if enabled.
@@ -55,13 +57,14 @@ def is_cache_enabled(cache_config):
     return cache_status
 
 
-def start_cache(logger,          # type: typing.Any
-                cache_config,    # type: str
-                cache_profiler,  # type: bool
-                log_dir          # type: str
-                ):
+def start_cache(
+    logger,  # type: typing.Any
+    cache_config,  # type: str
+    cache_profiler,  # type: bool
+    log_dir,  # type: str
+):
     # type: (...) -> typing.Tuple[typing.Any, Process, Queue, typing.Any]
-    """ Setup the cache process which keeps the consistency of the cache.
+    """Setup the cache process which keeps the consistency of the cache.
 
     :param logger: Logger.
     :param cache_config: Cache configuration defined on startup.
@@ -73,23 +76,29 @@ def start_cache(logger,          # type: typing.Any
     cache_size = __get_cache_size__(cache_config)
     # Cache can be used - Create proxy dict
     cache_ids = __create_proxy_dict__()  # type: typing.Any
-    cache_hits = dict()                  # type: typing.Dict[int, typing.Dict[str, int]]
-    profiler_dict = dict()               # type: dict
-    profiler_get_struct = [[], [], []]   # type: typing.List[typing.List[str]]
+    cache_hits = dict()  # type: typing.Dict[int, typing.Dict[str, int]]
+    profiler_dict = dict()  # type: dict
+    profiler_get_struct = [[], [], []]  # type: typing.List[typing.List[str]]
     # profiler_get_struct structure: Filename, Parameter, Function
     smm = __start_smm__()
-    conf = CacheTrackerConf(logger, cache_size, "default",
-                            cache_ids, cache_hits,
-                            profiler_dict, profiler_get_struct, log_dir,
-                            cache_profiler)
-    cache_process, cache_queue = \
-        __create_cache_tracker_process__("cache_tracker", conf)
+    conf = CacheTrackerConf(
+        logger,
+        cache_size,
+        "default",
+        cache_ids,
+        cache_hits,
+        profiler_dict,
+        profiler_get_struct,
+        log_dir,
+        cache_profiler,
+    )
+    cache_process, cache_queue = __create_cache_tracker_process__("cache_tracker", conf)
     return smm, cache_process, cache_queue, cache_ids
 
 
 def stop_cache(shared_memory_manager, cache_queue, cache_profiler, cache_process):
     # type: (typing.Any, Queue, bool, Process) -> None
-    """ Stops the cache process and performs the necessary cleanup.
+    """Stops the cache process and performs the necessary cleanup.
 
     :param shared_memory_manager: Shared memory manager.
     :param cache_queue: Cache messaging queue.
@@ -105,7 +114,7 @@ def stop_cache(shared_memory_manager, cache_queue, cache_profiler, cache_process
 
 def __get_cache_size__(cache_config):
     # type: (str) -> int
-    """ Retrieve the cache size for the given config.
+    """Retrieve the cache size for the given config.
 
     :param cache_config: Cache configuration defined on startup.
     :return: The cache size
@@ -120,49 +129,50 @@ def __get_cache_size__(cache_config):
 
 def __get_default_cache_size__():
     # type: () -> int
-    """ Returns the default cache size.
+    """Returns the default cache size.
 
     :return: The size in bytes.
     """
     # Default cache_size (bytes) = total_memory (bytes) / 4
-    mem_info = dict((i.split()[0].rstrip(":"), int(i.split()[1]))
-                    for i in open("/proc/meminfo").readlines())
+    mem_info = dict(
+        (i.split()[0].rstrip(":"), int(i.split()[1]))
+        for i in open("/proc/meminfo").readlines()
+    )
     cache_size = int(mem_info["MemTotal"] * 1024 / 4)
     return cache_size
 
 
 def __create_cache_tracker_process__(process_name, conf):
     # type: (str, CacheTrackerConf) -> typing.Tuple[Process, Queue]
-    """ Starts a new cache tracker process.
+    """Starts a new cache tracker process.
 
     :param process_name: Process name.
     :param conf: cache config.
     :return: None
     """
     queue = new_queue()
-    process = create_process(target=cache_tracker,
-                             args=(queue, process_name, conf))
+    process = create_process(target=cache_tracker, args=(queue, process_name, conf))
     process.start()
     return process, queue
 
 
 def __destroy_cache_tracker_process__(cache_process, cache_queue):
     # type: (Process, Queue) -> None
-    """ Stops the given cache tracker process.
+    """Stops the given cache tracker process.
 
     :param cache_process: Cache process
     :param cache_queue: Cache messaging queue.
     :return: None
     """
-    cache_queue.put("QUIT")    # noqa
-    cache_process.join()       # noqa
-    cache_queue.close()        # noqa
+    cache_queue.put("QUIT")  # noqa
+    cache_process.join()  # noqa
+    cache_queue.close()  # noqa
     cache_queue.join_thread()  # noqa
 
 
 def __create_proxy_dict__():
     # type: () -> typing.Any
-    """ Create a proxy dictionary to share the information across workers
+    """Create a proxy dictionary to share the information across workers
     within the same node.
 
     WARNING: This code is in a separate function without typing

@@ -49,16 +49,12 @@ from pycompss.runtime.task.core_element import CE
 
 if __debug__:
     import logging
+
     logger = logging.getLogger(__name__)
 
 MANDATORY_ARGUMENTS = {BINARY}
-SUPPORTED_ARGUMENTS = {BINARY,
-                       WORKING_DIR,
-                       PARAMS,
-                       FAIL_BY_EXIT_VALUE}
-DEPRECATED_ARGUMENTS = {LEGACY_WORKING_DIR,
-                        ENGINE,
-                        IMAGE}
+SUPPORTED_ARGUMENTS = {BINARY, WORKING_DIR, PARAMS, FAIL_BY_EXIT_VALUE}
+DEPRECATED_ARGUMENTS = {LEGACY_WORKING_DIR, ENGINE, IMAGE}
 
 
 class Binary(object):
@@ -67,12 +63,18 @@ class Binary(object):
     __call__ methods, useful on binary task creation.
     """
 
-    __slots__ = ["decorator_name", "args", "kwargs", "scope",
-                 "core_element", "core_element_configured"]
+    __slots__ = [
+        "decorator_name",
+        "args",
+        "kwargs",
+        "scope",
+        "core_element",
+        "core_element_configured",
+    ]
 
     def __init__(self, *args, **kwargs):
         # type: (*typing.Any, **typing.Any) -> None
-        """ Store arguments passed to the decorator.
+        """Store arguments passed to the decorator.
 
         self = itself.
         args = not used.
@@ -91,15 +93,17 @@ class Binary(object):
         self.core_element_configured = False
         if self.scope:
             # Check the arguments
-            check_arguments(MANDATORY_ARGUMENTS,
-                            DEPRECATED_ARGUMENTS,
-                            SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
-                            list(kwargs.keys()),
-                            decorator_name)
+            check_arguments(
+                MANDATORY_ARGUMENTS,
+                DEPRECATED_ARGUMENTS,
+                SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
+                list(kwargs.keys()),
+                decorator_name,
+            )
 
     def __call__(self, user_function):
         # type: (typing.Callable) -> typing.Callable
-        """ Parse and set the binary parameters within the task core element.
+        """Parse and set the binary parameters within the task core element.
 
         :param user_function: Function to decorate
         :return: Decorated function.
@@ -118,8 +122,9 @@ class Binary(object):
             if __debug__:
                 logger.debug("Executing binary_f wrapper.")
 
-            if (context.in_master() or context.is_nesting_enabled()) \
-                    and not self.core_element_configured:
+            if (
+                context.in_master() or context.is_nesting_enabled()
+            ) and not self.core_element_configured:
                 # master code - or worker with nesting enabled
                 self.__configure_core_element__(kwargs)
 
@@ -134,7 +139,7 @@ class Binary(object):
 
     def __run_binary__(self, args, kwargs):
         # type: (tuple, dict) -> int
-        """ Runs the binary defined in the decorator when used as dummy.
+        """Runs the binary defined in the decorator when used as dummy.
 
         :param args: Arguments received from call.
         :param kwargs: Keyword arguments received from call.
@@ -146,7 +151,7 @@ class Binary(object):
 
     def __configure_core_element__(self, kwargs):
         # type: (dict) -> None
-        """ Include the registering info related to @binary.
+        """Include the registering info related to @binary.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 
@@ -167,8 +172,10 @@ class Binary(object):
         # Resolve binary
         _binary = str(self.kwargs[BINARY])
 
-        if CORE_ELEMENT_KEY in kwargs and \
-                kwargs[CORE_ELEMENT_KEY].get_impl_type() == IMPL_CONTAINER:
+        if (
+            CORE_ELEMENT_KEY in kwargs
+            and kwargs[CORE_ELEMENT_KEY].get_impl_type() == IMPL_CONTAINER
+        ):
             # @container decorator sits on top of @binary decorator
             # Note: impl_type and impl_signature are NOT modified
             # (IMPL_CONTAINER and "CONTAINER.function_name" respectively)
@@ -178,13 +185,15 @@ class Binary(object):
             _engine = impl_args[0]
             _image = impl_args[1]
 
-            impl_args = [_engine,  # engine
-                         _image,  # image
-                         IMPL_CET_BINARY,  # internal_type
-                         _binary,  # internal_binary
-                         UNASSIGNED,  # internal_func
-                         _working_dir,  # working_dir
-                         _fail_by_ev]  # fail_by_ev
+            impl_args = [
+                _engine,  # engine
+                _image,  # image
+                IMPL_CET_BINARY,  # internal_type
+                _binary,  # internal_binary
+                UNASSIGNED,  # internal_func
+                _working_dir,  # working_dir
+                _fail_by_ev,
+            ]  # fail_by_ev
 
             kwargs[CORE_ELEMENT_KEY].set_impl_type_args(impl_args)
         else:
@@ -195,10 +204,12 @@ class Binary(object):
             impl_type = IMPL_BINARY
             impl_signature = ".".join((impl_type, _binary))
 
-            impl_args = [_binary,       # internal_binary
-                         _working_dir,  # working_dir
-                         self.kwargs.get('params', UNASSIGNED),  # params
-                         _fail_by_ev]  # fail_by_ev
+            impl_args = [
+                _binary,  # internal_binary
+                _working_dir,  # working_dir
+                self.kwargs.get("params", UNASSIGNED),  # params
+                _fail_by_ev,
+            ]  # fail_by_ev
 
             if CORE_ELEMENT_KEY in kwargs:
                 # Core element has already been created in a higher level

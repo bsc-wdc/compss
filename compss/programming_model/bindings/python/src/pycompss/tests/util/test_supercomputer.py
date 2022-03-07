@@ -22,97 +22,107 @@ import os
 
 def test_get_master_node():
     from pycompss.util.supercomputer.scs import get_master_node
+
     master_node = "my_master_node"
-    os.environ['COMPSS_MASTER_NODE'] = master_node
+    os.environ["COMPSS_MASTER_NODE"] = master_node
     result = get_master_node()
-    del os.environ['COMPSS_MASTER_NODE']
+    del os.environ["COMPSS_MASTER_NODE"]
     assert result == master_node, "ERROR: Wrong master node."
 
 
 def test_get_master_port():
     from pycompss.util.supercomputer.scs import get_master_port
+
     master_port = "1234"
-    os.environ['COMPSS_MASTER_PORT'] = master_port
+    os.environ["COMPSS_MASTER_PORT"] = master_port
     result = get_master_port()
-    del os.environ['COMPSS_MASTER_PORT']
+    del os.environ["COMPSS_MASTER_PORT"]
     assert result == master_port, "ERROR: Wrong master port."
 
 
 def test_get_worker_nodes():
     from pycompss.util.supercomputer.scs import get_worker_nodes
+
     worker_nodes = "my_worker_nodes"
-    os.environ['COMPSS_WORKER_NODES'] = worker_nodes
+    os.environ["COMPSS_WORKER_NODES"] = worker_nodes
     result = get_worker_nodes()
-    del os.environ['COMPSS_WORKER_NODES']
+    del os.environ["COMPSS_WORKER_NODES"]
     assert result == worker_nodes, "ERROR: Wrong worker nodes."
 
 
 def test_get_xmls():
     from pycompss.util.supercomputer.scs import get_xmls
+
     project = "my_project.xml"
     resources = "my_resources.xml"
-    os.environ['COMPSS_PROJECT_XML'] = project
-    os.environ['COMPSS_RESOURCES_XML'] = resources
+    os.environ["COMPSS_PROJECT_XML"] = project
+    os.environ["COMPSS_RESOURCES_XML"] = resources
     result_project, result_resources = get_xmls()
-    del os.environ['COMPSS_PROJECT_XML']
-    del os.environ['COMPSS_RESOURCES_XML']
+    del os.environ["COMPSS_PROJECT_XML"]
+    del os.environ["COMPSS_RESOURCES_XML"]
     assert result_project == project, "ERROR: Wrong project XML."
     assert result_resources == resources, "ERROR: Wrong resources XML."
 
 
 def test_get_uuid():
     from pycompss.util.supercomputer.scs import get_uuid
+
     uuid = "my_uuid"
-    os.environ['COMPSS_UUID'] = uuid
+    os.environ["COMPSS_UUID"] = uuid
     result = get_uuid()
-    del os.environ['COMPSS_UUID']
+    del os.environ["COMPSS_UUID"]
     assert result == uuid, "ERROR: Wrong UUID."
 
 
 def test_get_base_log_dir():
     from pycompss.util.supercomputer.scs import get_base_log_dir
+
     base_log_dir = "my_base_log_dir"
-    os.environ['COMPSS_BASE_LOG_DIR'] = base_log_dir
+    os.environ["COMPSS_BASE_LOG_DIR"] = base_log_dir
     result = get_base_log_dir()
-    del os.environ['COMPSS_BASE_LOG_DIR']
+    del os.environ["COMPSS_BASE_LOG_DIR"]
     assert result == base_log_dir, "ERROR: Wrong base log directory."
 
 
 def test_get_specific_log_dir():
     from pycompss.util.supercomputer.scs import get_specific_log_dir
+
     specific_log_dir = "my_specific_log_dir"
-    os.environ['COMPSS_SPECIFIC_LOG_DIR'] = specific_log_dir
+    os.environ["COMPSS_SPECIFIC_LOG_DIR"] = specific_log_dir
     result = get_specific_log_dir()
-    del os.environ['COMPSS_SPECIFIC_LOG_DIR']
+    del os.environ["COMPSS_SPECIFIC_LOG_DIR"]
     assert result == specific_log_dir, "ERROR: Wrong specific log directory."
 
 
 def test_get_log_level():
     from pycompss.util.supercomputer.scs import get_log_level
+
     log_level = "my_log_level"
-    os.environ['COMPSS_LOG_LEVEL'] = log_level
+    os.environ["COMPSS_LOG_LEVEL"] = log_level
     result = get_log_level()
-    del os.environ['COMPSS_LOG_LEVEL']
+    del os.environ["COMPSS_LOG_LEVEL"]
     assert result == log_level, "ERROR: Wrong log level."
 
 
 def test_get_tracing():
     from pycompss.util.supercomputer.scs import get_tracing
+
     tracing = "true"
-    os.environ['COMPSS_TRACING'] = tracing
+    os.environ["COMPSS_TRACING"] = tracing
     result = get_tracing()
     assert result, "ERROR: Expected tracing enabled."
     tracing = "fakse"
-    os.environ['COMPSS_TRACING'] = tracing
+    os.environ["COMPSS_TRACING"] = tracing
     result = get_tracing()
-    del os.environ['COMPSS_TRACING']
+    del os.environ["COMPSS_TRACING"]
     assert not result, "ERROR: Expected tracing disabled."
 
 
 def test_get_storage_conf():
     from pycompss.util.supercomputer.scs import get_storage_conf
+
     storage_conf = "my_storage_conf"
-    os.environ['COMPSS_STORAGE_CONF'] = storage_conf
+    os.environ["COMPSS_STORAGE_CONF"] = storage_conf
     result = get_storage_conf()
-    del os.environ['COMPSS_STORAGE_CONF']
+    del os.environ["COMPSS_STORAGE_CONF"]
     assert result == storage_conf, "ERROR: Wrong storage conf."

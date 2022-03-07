@@ -34,12 +34,13 @@ from pycompss.util.typing_helper import typing
 UNASSIGNED = "[unassigned]"
 
 
-def check_arguments(mandatory_arguments,   # type: typing.Set[str]
-                    deprecated_arguments,  # type: typing.Set[str]
-                    supported_arguments,   # type: typing.Set[str]
-                    argument_names,        # type: typing.List[str]
-                    decorator              # type: str
-                    ):                     # type: (...) -> None
+def check_arguments(
+    mandatory_arguments,  # type: typing.Set[str]
+    deprecated_arguments,  # type: typing.Set[str]
+    supported_arguments,  # type: typing.Set[str]
+    argument_names,  # type: typing.List[str]
+    decorator,  # type: str
+):  # type: (...) -> None
     """
     Performs all needed checks to the decorator definition:
         1.- Checks that the mandatory arguments are present (otherwise, raises
@@ -55,23 +56,18 @@ def check_arguments(mandatory_arguments,   # type: typing.Set[str]
     """
     decorator_str = decorator + " decorator"
     # Look for mandatory arguments
-    check_mandatory_arguments(mandatory_arguments,
-                              argument_names,
-                              decorator_str)
+    check_mandatory_arguments(mandatory_arguments, argument_names, decorator_str)
     # Look for deprecated arguments
-    __check_deprecated_arguments__(deprecated_arguments,
-                                   argument_names,
-                                   decorator_str)
+    __check_deprecated_arguments__(deprecated_arguments, argument_names, decorator_str)
     # Look for unexpected arguments
-    __check_unexpected_arguments__(supported_arguments,
-                                   argument_names,
-                                   decorator_str)
+    __check_unexpected_arguments__(supported_arguments, argument_names, decorator_str)
 
 
-def check_mandatory_arguments(mandatory_arguments,  # type: typing.Set[str]
-                              argument_names,       # type: typing.List[str]
-                              where                 # type: str
-                              ):                    # type: (...) -> None
+def check_mandatory_arguments(
+    mandatory_arguments,  # type: typing.Set[str]
+    argument_names,  # type: typing.List[str]
+    where,  # type: str
+):  # type: (...) -> None
     """
     This method checks that all mandatory arguments are in arguments.
 
@@ -82,8 +78,10 @@ def check_mandatory_arguments(mandatory_arguments,  # type: typing.Set[str]
     """
     for argument in mandatory_arguments:
         if "_" in argument:
-            if argument not in argument_names and \
-                    __to_camel_case__(argument) not in argument_names:
+            if (
+                argument not in argument_names
+                and __to_camel_case__(argument) not in argument_names
+            ):
                 # The mandatory argument or it converted to camel case is
                 # not in the arguments
                 __error_mandatory_argument__(where, argument)
@@ -111,14 +109,16 @@ def __error_mandatory_argument__(decorator, argument):
                               the error
     """
     raise PyCOMPSsException(
-        "The argument %s is mandatory in the %s decorator." % (str(argument),
-                                                               str(decorator)))
+        "The argument %s is mandatory in the %s decorator."
+        % (str(argument), str(decorator))
+    )
 
 
-def __check_deprecated_arguments__(deprecated_arguments,  # type: typing.Set[str]
-                                   argument_names,        # type: typing.List[str]
-                                   where                  # type: str
-                                   ):                     # type: (...) -> None
+def __check_deprecated_arguments__(
+    deprecated_arguments,  # type: typing.Set[str]
+    argument_names,  # type: typing.List[str]
+    where,  # type: str
+):  # type: (...) -> None
     """
     This method looks for deprecated arguments and displays a warning
     if found.
@@ -131,17 +131,20 @@ def __check_deprecated_arguments__(deprecated_arguments,  # type: typing.Set[str
     """
     for argument in argument_names:
         if argument == "isModifier":
-            message = "ERROR: Unsupported argument: isModifier Found in %s.\n" \
-                      "       Please, use: target_direction" % str(where)
+            message = (
+                "ERROR: Unsupported argument: isModifier Found in %s.\n"
+                "       Please, use: target_direction" % str(where)
+            )
             print(message, file=sys.stderr)  # also show the warn in stderr
             raise PyCOMPSsException("Unsupported argument: " + str(argument))
 
         if argument in deprecated_arguments:
             current_argument = re.sub("([A-Z]+)", r"_\1", argument).lower()
-            message = "WARNING: Deprecated argument: %s Found in %s.\n" \
-                      "         Please, use: %s" % (str(argument),
-                                                    str(where),
-                                                    current_argument)
+            message = (
+                "WARNING: Deprecated argument: %s Found in %s.\n"
+                "         Please, use: %s"
+                % (str(argument), str(where), current_argument)
+            )
 
             # The print through stdout is disabled to prevent the message to
             # appear twice in the console. So the warning message will only
@@ -150,10 +153,11 @@ def __check_deprecated_arguments__(deprecated_arguments,  # type: typing.Set[str
             print(message, file=sys.stderr)  # also show the warn in stderr
 
 
-def __check_unexpected_arguments__(supported_arguments,  # type: typing.Set[str]
-                                   argument_names,       # type: typing.List[str]
-                                   where                 # type: str
-                                   ):                    # type: (...) -> None
+def __check_unexpected_arguments__(
+    supported_arguments,  # type: typing.Set[str]
+    argument_names,  # type: typing.List[str]
+    where,  # type: str
+):  # type: (...) -> None
     """
     This method looks for unexpected arguments and displays a warning
     if found.
@@ -165,8 +169,10 @@ def __check_unexpected_arguments__(supported_arguments,  # type: typing.Set[str]
     """
     for argument in argument_names:
         if argument not in supported_arguments:
-            message = "WARNING: Unexpected argument: %s Found in %s." % \
-                      (str(argument), str(where))
+            message = "WARNING: Unexpected argument: %s Found in %s." % (
+                str(argument),
+                str(where),
+            )
             # The print through stdout is disabled to prevent the message to
             # appear twice in the console. So the warning message will only
             # appear in STDERR.

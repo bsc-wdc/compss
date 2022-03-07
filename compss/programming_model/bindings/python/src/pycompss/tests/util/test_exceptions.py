@@ -33,14 +33,10 @@ def test_pycompss_exception():
         raise PyCOMPSsException(GENERIC_MESSAGE)
     except Exception as e:  # NOSONAR
         is_ok = True
-        assert (
-            str(e) == GENERIC_MESSAGE
-        ), GENERIC_MESSAGE_ERROR
+        assert str(e) == GENERIC_MESSAGE, GENERIC_MESSAGE_ERROR
     else:
         is_ok = False
-    assert (
-        is_ok
-    ), "ERROR: The PyCOMPSsException has not been correctly raised"
+    assert is_ok, "ERROR: The PyCOMPSsException has not been correctly raised"
 
 
 def test_not_in_pycompss_exception():
@@ -53,9 +49,7 @@ def test_not_in_pycompss_exception():
         ), GENERIC_MESSAGE_ERROR
     else:
         is_ok = False
-    assert (
-        is_ok
-    ), "ERROR: The NotInPyCOMPSsException has not been correctly raised"
+    assert is_ok, "ERROR: The NotInPyCOMPSsException has not been correctly raised"
 
 
 def test_not_implemented_exception():
@@ -64,13 +58,14 @@ def test_not_implemented_exception():
     except Exception as e:  # NOSONAR
         is_ok = True
         assert (
-            str(e) == "Functionality " + GENERIC_MESSAGE + " not implemented yet."  # noqa: E501
+            str(e)
+            == "Functionality "
+            + GENERIC_MESSAGE
+            + " not implemented yet."  # noqa: E501
         ), GENERIC_MESSAGE_ERROR
     else:
         is_ok = False
-    assert (
-        is_ok
-    ), "ERROR: The NotImplementedException has not been correctly raised"
+    assert is_ok, "ERROR: The NotImplementedException has not been correctly raised"
 
 
 def test_missing_implemented_exception():
@@ -79,13 +74,12 @@ def test_missing_implemented_exception():
     except Exception as e:  # NOSONAR
         is_ok = True
         assert (
-            str(e) == "Missing " + GENERIC_MESSAGE + ". Needs to be overridden."  # noqa: E501
+            str(e)
+            == "Missing " + GENERIC_MESSAGE + ". Needs to be overridden."  # noqa: E501
         ), GENERIC_MESSAGE_ERROR
     else:
         is_ok = False
-    assert (
-        is_ok
-    ), "ERROR: The MissingImplementedException has not been correctly raised"
+    assert is_ok, "ERROR: The MissingImplementedException has not been correctly raised"
 
 
 def test_dds_exception():
@@ -93,11 +87,7 @@ def test_dds_exception():
         raise DDSException(GENERIC_MESSAGE)
     except Exception as e:  # NOSONAR
         is_ok = True
-        assert (
-            str(e) == GENERIC_MESSAGE
-        ), GENERIC_MESSAGE_ERROR
+        assert str(e) == GENERIC_MESSAGE, GENERIC_MESSAGE_ERROR
     else:
         is_ok = False
-    assert (
-        is_ok
-    ), "ERROR: The DDSException has not been correctly raised"
+    assert is_ok, "ERROR: The DDSException has not been correctly raised"

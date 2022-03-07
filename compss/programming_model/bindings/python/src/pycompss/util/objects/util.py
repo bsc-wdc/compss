@@ -39,4 +39,4 @@ def group_iterable(iterable, n):
     :param n: Number of elements per group
     :return: A list of lists where the inner contain n elements.
     """
-    return zip(*[iter(iterable)]*n)
+    return zip(*[iter(iterable)] * n)

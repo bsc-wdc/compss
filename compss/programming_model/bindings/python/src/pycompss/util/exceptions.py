@@ -30,6 +30,7 @@ class SerializerException(Exception):
     """
     Exception on serialization
     """
+
     pass
 
 
@@ -80,6 +81,7 @@ class TimeOutError(Exception):
     """
     Time out error exception
     """
+
     pass
 
 
@@ -87,12 +89,13 @@ class CancelError(Exception):
     """
     Cancel error exception
     """
+
     pass
 
 
 def task_timed_out(signum, frame):  # noqa
     # type: (int, typing.Any) -> None
-    """ Task time out signal handler
+    """Task time out signal handler
 
     Do not remove the parameters.
 
@@ -106,7 +109,7 @@ def task_timed_out(signum, frame):  # noqa
 
 def task_cancel(signum, frame):  # noqa
     # type: (int, typing.Any) -> None
-    """ Task cancel signal handler.
+    """Task cancel signal handler.
 
     Do not remove the parameters.
 

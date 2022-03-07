@@ -22,28 +22,36 @@ GENERIC_ERROR = "ERROR: Unexpected result from heapq."
 
 
 def test_heapq_1():
-    result = list(merge([[1, 3, 5, 7], [0, 2, 4, 8], [5, 10, 15, 20], [], [25]],
-                        key=None,
-                        reverse=False))
+    result = list(
+        merge(
+            [[1, 3, 5, 7], [0, 2, 4, 8], [5, 10, 15, 20], [], [25]],
+            key=None,
+            reverse=False,
+        )
+    )
     assert result == [0, 1, 2, 3, 4, 5, 5, 7, 8, 10, 15, 20, 25], GENERIC_ERROR
 
 
 def test_heapq_reverse():
-    result = list(merge([[1, 3, 5, 7], [0, 2, 4, 8], [5, 10, 15, 20], [], [25]],
-                        key=None,
-                        reverse=True))
+    result = list(
+        merge(
+            [[1, 3, 5, 7], [0, 2, 4, 8], [5, 10, 15, 20], [], [25]],
+            key=None,
+            reverse=True,
+        )
+    )
     assert result == [25, 5, 10, 15, 20, 1, 3, 5, 7, 0, 2, 4, 8], GENERIC_ERROR
 
 
 def test_heapq_key():
-    result = list(merge([['dog', 'horse'], ['cat', 'fish', 'kangaroo']],
-                        key=len,
-                        reverse=False))
-    assert result == ['dog', 'cat', 'fish', 'horse', 'kangaroo'], GENERIC_ERROR
+    result = list(
+        merge([["dog", "horse"], ["cat", "fish", "kangaroo"]], key=len, reverse=False)
+    )
+    assert result == ["dog", "cat", "fish", "horse", "kangaroo"], GENERIC_ERROR
 
 
 def test_heapq_key_reversed():
-    result = list(merge([['dog', 'horse'], ['cat', 'fish', 'kangaroo']],
-                        key=len,
-                        reverse=True))
-    assert result == ['dog', 'horse', 'cat', 'fish', 'kangaroo'], GENERIC_ERROR
+    result = list(
+        merge([["dog", "horse"], ["cat", "fish", "kangaroo"]], key=len, reverse=True)
+    )
+    assert result == ["dog", "horse", "cat", "fish", "kangaroo"], GENERIC_ERROR

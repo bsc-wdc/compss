@@ -55,8 +55,13 @@ REQUIRED_FLAGS = {
     "specific_log_dir": [[str, NONE_TYPE]],
     "extrae_cfg": [[str, NONE_TYPE]],
     "comm": [[str], ["NIO", "GAT"]],
-    "conn": [[str], ["es.bsc.compss.connectors.DefaultSSHConnector",
-                     "es.bsc.compss.connectors.DefaultNoSSHConnector"]],
+    "conn": [
+        [str],
+        [
+            "es.bsc.compss.connectors.DefaultSSHConnector",
+            "es.bsc.compss.connectors.DefaultNoSSHConnector",
+        ],
+    ],
     "master_name": [[str]],
     "master_port": [[str]],
     "scheduler": [[str]],
@@ -76,7 +81,7 @@ REQUIRED_FLAGS = {
 
 def check_flags(all_vars):
     # type: (dict) -> typing.Tuple[bool, list]
-    """ Checks that the provided flags are supported.
+    """Checks that the provided flags are supported.
 
     :param all_vars: Flags dictionary
     :return: If all flags are supported and the issues if exist.
@@ -104,7 +109,7 @@ def check_flags(all_vars):
 
 def __check_flag__(all_vars, flag, requirements):
     # type: (dict, str, typing.Any) -> list
-    """ Checks the given flag against the requirements looking for issues.
+    """Checks the given flag against the requirements looking for issues.
 
     :param all_vars: All variables.
     :param flag: Flag to check.
@@ -128,15 +133,20 @@ def __check_flag__(all_vars, flag, requirements):
         else:
             # Check that it is also one of the options
             if not all_vars[flag] in req_values:
-                issues.append(flag_header + flag + "=" + all_vars[flag] +
-                              " is not supported. Available values: " +
-                              str(req_values))
+                issues.append(
+                    flag_header
+                    + flag
+                    + "="
+                    + all_vars[flag]
+                    + " is not supported. Available values: "
+                    + str(req_values)
+                )
     return issues
 
 
 def print_flag_issues(issues):
     # type: (list) -> None
-    """ Displays the given issues on stdout.
+    """Displays the given issues on stdout.
 
     :param issues: Flag issues
     :return: None

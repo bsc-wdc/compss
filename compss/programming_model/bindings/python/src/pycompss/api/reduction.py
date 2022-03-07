@@ -41,11 +41,11 @@ from pycompss.util.exceptions import PyCOMPSsException
 
 if __debug__:
     import logging
+
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = set()   # type: typing.Set[str]
-SUPPORTED_ARGUMENTS = {CHUNK_SIZE,
-                       IS_REDUCE}
+MANDATORY_ARGUMENTS = set()  # type: typing.Set[str]
+SUPPORTED_ARGUMENTS = {CHUNK_SIZE, IS_REDUCE}
 DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 
 
@@ -55,9 +55,15 @@ class Reduction(object):
     __call__ methods, useful on Reduction task creation.
     """
 
-    __slots__ = ["decorator_name", "args", "kwargs", "scope",
-                 "core_element", "core_element_configured",
-                 "__configure_core_element__"]
+    __slots__ = [
+        "decorator_name",
+        "args",
+        "kwargs",
+        "scope",
+        "core_element",
+        "core_element_configured",
+        "__configure_core_element__",
+    ]
 
     def __init__(self, *args, **kwargs):
         # type: (*typing.Any, **typing.Any) -> None
@@ -83,22 +89,25 @@ class Reduction(object):
         self.__configure_core_element__ = pd.__configure_core_element__
         if self.scope:
             # Check the arguments
-            check_arguments(MANDATORY_ARGUMENTS,
-                            DEPRECATED_ARGUMENTS,
-                            SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
-                            list(kwargs.keys()),
-                            decorator_name)
+            check_arguments(
+                MANDATORY_ARGUMENTS,
+                DEPRECATED_ARGUMENTS,
+                SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
+                list(kwargs.keys()),
+                decorator_name,
+            )
 
             # Get the computing nodes
             self.__process_reduction_params__()
 
     def __call__(self, func):
         # type: (typing.Callable) -> typing.Callable
-        """ Parse and set the reduce parameters within the task core element.
+        """Parse and set the reduce parameters within the task core element.
 
         :param func: Function to decorate
         :return: Decorated function.
         """
+
         @wraps(func)
         def reduce_f(*args, **kwargs):
             # type: (*typing.Any, **typing.Any) -> typing.Any
@@ -124,7 +133,7 @@ class Reduction(object):
 
     def __process_reduction_params__(self):
         # type: () -> None
-        """ Processes the chunk size and is reduce from the decorator.
+        """Processes the chunk size and is reduce from the decorator.
 
         :return: None
         """
@@ -140,7 +149,8 @@ class Reduction(object):
                 chunk_size = self.__parse_chunk_size__(chunk_size_kw)
             else:
                 raise PyCOMPSsException(
-                    "ERROR: Wrong chunk_size value at @reduction decorator.")
+                    "ERROR: Wrong chunk_size value at @reduction decorator."
+                )
 
         if IS_REDUCE not in self.kwargs:
             is_reduce = True
@@ -148,10 +158,10 @@ class Reduction(object):
             is_reduce = self.kwargs[IS_REDUCE]
 
         if __debug__:
-            logger.debug("The task is_reduce flag is set to: %s" %
-                         str(is_reduce))
-            logger.debug("This Reduction task will have %s sized chunks" %
-                         str(chunk_size))
+            logger.debug("The task is_reduce flag is set to: %s" % str(is_reduce))
+            logger.debug(
+                "This Reduction task will have %s sized chunks" % str(chunk_size)
+            )
 
         # Set the chunk_size variable in kwargs for its usage in @task
         self.kwargs[CHUNK_SIZE] = chunk_size
@@ -160,7 +170,7 @@ class Reduction(object):
     @staticmethod
     def __parse_chunk_size__(chunk_size):
         # type: (str) -> int
-        """ Parses chunk size as string and returns its value as integer.
+        """Parses chunk size as string and returns its value as integer.
 
         :param chunk_size: Chunk size as string.
         :return: Chunk size as integer.

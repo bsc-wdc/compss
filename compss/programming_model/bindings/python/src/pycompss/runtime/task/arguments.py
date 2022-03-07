@@ -26,28 +26,28 @@ PyCOMPSs runtime - Task - Arguments
 
 def is_vararg(param_name):
     # type: (str) -> bool
-    """ Determine if a parameter is named as a (internal) vararg.
+    """Determine if a parameter is named as a (internal) vararg.
 
     :param param_name: String with a parameter name
     :returns: True if the name has the form of an internal vararg name
     """
-    return param_name.startswith('*')
+    return param_name.startswith("*")
 
 
 def get_name_from_vararg(full_name):
     # type: (str) -> str
-    """ Extract the vararg name from the name given with full_name.
+    """Extract the vararg name from the name given with full_name.
     Part before "*".
 
     :param full_name: Complete vararg name.
     :return: The vararg name
     """
-    return full_name.split('*')[1]
+    return full_name.split("*")[1]
 
 
 def is_kwarg(param_name):
     # type: (str) -> bool
-    """ Determine if a parameter is named as a (internal) kwargs.
+    """Determine if a parameter is named as a (internal) kwargs.
 
     :param param_name: String with a parameter name
     :return: True if the name has the form of an internal kwarg name
@@ -57,7 +57,7 @@ def is_kwarg(param_name):
 
 def is_return(param_name):
     # type: (str) -> bool
-    """ Determine if a parameter is named as a (internal) return.
+    """Determine if a parameter is named as a (internal) return.
 
     :param param_name: String with a parameter name
     :returns: True if the name has the form of an internal return name
@@ -67,7 +67,7 @@ def is_return(param_name):
 
 def get_vararg_name(varargs_name, i):
     # type: (str, int) -> str
-    """ Given some integer i, return the name of the ith vararg.
+    """Given some integer i, return the name of the ith vararg.
 
     Note that the given internal names to these parameters are
     impossible to be assigned by the user because they are invalid
@@ -83,7 +83,7 @@ def get_vararg_name(varargs_name, i):
 
 def get_kwarg_name(var):
     # type: (str) -> str
-    """ Given some variable name, get the kwarg identifier.
+    """Given some variable name, get the kwarg identifier.
 
     :param var: A string with a variable name
     :return: The name of the kwarg according to our internal naming convention
@@ -93,7 +93,7 @@ def get_kwarg_name(var):
 
 def get_name_from_kwarg(var):
     # type: (str) -> str
-    """ Given some kwarg name, return the original variable name.
+    """Given some kwarg name, return the original variable name.
 
     :param var: A string with a (internal) kwarg name
     :return: The original variable name
@@ -103,7 +103,7 @@ def get_name_from_kwarg(var):
 
 def get_return_name(i):
     # type: (int) -> str
-    """ Given some integer i, return the name of the ith return.
+    """Given some integer i, return the name of the ith return.
 
     :param i: A non negative integer
     :return: The name of the return identifier according to our internal naming

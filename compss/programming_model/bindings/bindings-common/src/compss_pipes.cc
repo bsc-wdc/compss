@@ -182,6 +182,7 @@ void process_param(void** params, int i, stringstream& ss) {
             ss << " { \"Value\" : \"" << *(char**)parVal << "\", ";
             break;
         case string_dt:
+        case string_64_dt:
             debug_printf ("[BINDING-COMMONS] - @process_param - String: %s\n", *(char **)parVal);
             ss << " { \"Value\" : \"" << *(char**)parVal << "\", ";
             break;

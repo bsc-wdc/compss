@@ -137,7 +137,7 @@ public class PyBindingSerializer {
         return content.toString();
     }
 
-    private static String decodeBase64(String encoded){
+    private static String decodeBase64(String encoded) {
         byte[] decoded = Base64.getDecoder().decode(encoded);
         return new String(decoded);
     }

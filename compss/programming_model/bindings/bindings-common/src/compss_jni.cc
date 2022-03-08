@@ -679,6 +679,15 @@ void process_param(ThreadStatus* status, void** params, int i, jobjectArray jobj
             jobjParType = status->localJniEnv->CallStaticObjectMethod(clsParType, midParTypeCon, status->localJniEnv->NewStringUTF("STRING_T"));
             check_exception(status, "Exception calling string constructor");
             break;
+        case string_64_dt:
+            jobjParVal = status->localJniEnv->NewStringUTF(*(char **)parVal);
+            check_exception(status, "Cannot instantiate new string object");
+
+            debug_printf ("[BINDING-COMMONS] - @process_param - String: %s\n", *(char **)parVal);
+
+            jobjParType = status->localJniEnv->CallStaticObjectMethod(clsParType, midParTypeCon, status->localJniEnv->NewStringUTF("STRING_64_T"));
+            check_exception(status, "Exception calling string constructor");
+            break;
         case binding_object_dt:
             jobjParVal = status->localJniEnv->NewStringUTF(*(char **)parVal);
             check_exception(status, "Cannot instantiate new string object (for binding object)");

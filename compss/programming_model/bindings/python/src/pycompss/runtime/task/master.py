@@ -455,11 +455,12 @@ class TaskMaster(object):
 
         # Process the parameters, give them a proper direction
         with event_master(PROCESS_PARAMETERS):
-            self.process_parameters(args, kwargs)
-
+            self.process_parameters(args, kwargs,
+                                    code_strings=self.user_function.__code_strings__)
         # Deal with the return part.
         with event_master(PROCESS_RETURN):
-            num_returns = self.add_return_parameters(self.explicit_num_returns)
+            num_returns = self.add_return_parameters(
+                self.explicit_num_returns, code_strings=self.user_function.__code_strings__)
             if not self.returns:
                 num_returns = self.update_return_if_no_returns(
                     self.user_function
@@ -752,7 +753,7 @@ class TaskMaster(object):
         else:
             self.chunk_size = 0
 
-    def process_parameters(self, args: tuple, kwargs: dict) -> None:
+    def process_parameters(self, args: tuple, kwargs: dict, code_strings=True) -> None:
         """Process all the input parameters.
 
         Basically, processing means "build a dictionary of <name, parameter>,
@@ -761,6 +762,7 @@ class TaskMaster(object):
 
         :param args: Arguments.
         :param kwargs: Keyword arguments.
+        :param code_strings:
         :return: None, it only modifies self.parameters.
         """
         # It is important to know the name of the first argument to determine
@@ -775,8 +777,8 @@ class TaskMaster(object):
         arg_objects = args[:num_positionals]
         for (arg_name, arg_object) in zip(arg_names, arg_objects):
             self.parameters[arg_name] = self.build_parameter_object(
-                arg_name, arg_object
-            )
+                arg_name, arg_object, code_strings=code_strings)
+
         # Check defaults
         if self.param_defaults:
             num_defaults = len(self.param_defaults)
@@ -809,14 +811,16 @@ class TaskMaster(object):
         supported_varargs = []
         for (i, var_arg) in enumerate(args[num_positionals:]):
             arg_name = get_vararg_name(self.param_varargs, i)
-            self.parameters[arg_name] = self.build_parameter_object(arg_name, var_arg)
+            self.parameters[arg_name] = self.build_parameter_object(
+                arg_name, var_arg, code_strings=code_strings)
             if self.param_varargs not in supported_varargs:
                 supported_varargs.append(self.param_varargs)
         # Process keyword arguments
         supported_kwargs = []
         for (name, value) in kwargs.items():
             arg_name = get_kwarg_name(name)
-            self.parameters[arg_name] = self.build_parameter_object(arg_name, value)
+            self.parameters[arg_name] = self.build_parameter_object(
+                arg_name, value, code_strings=code_strings)
             if name not in supported_kwargs:
                 supported_kwargs.append(name)
         # Check the arguments - Look for mandatory and unexpected arguments
@@ -831,7 +835,7 @@ class TaskMaster(object):
             "@task",
         )
 
-    def build_parameter_object(
+    def build_parameter_object(self, arg_name: str, arg_object: typing.Any, code_strings=True):
         self, arg_name: str, arg_object: typing.Any
     ) -> Parameter:
         """Creates the Parameter object from an argument name and object.
@@ -842,6 +846,7 @@ class TaskMaster(object):
 
         :param arg_name: Argument name.
         :param arg_object: Argument object.
+        :param code_strings:
         :return: Parameter object.
         """
         # Is the argument a vararg? or a kwarg? Then check the direction
@@ -874,7 +879,8 @@ class TaskMaster(object):
         # If the parameter is a FILE then its type will already be defined,
         # and get_compss_type will misslabel it as a parameter.TYPE.STRING
         if param.is_object():
-            param.content_type = get_compss_type(arg_object)
+            param.content_type = get_compss_type(arg_object,
+                                                 code_strings=code_strings)
 
         # Set if the object is really a future.
         if isinstance(arg_object, Future):
@@ -1427,7 +1433,7 @@ class TaskMaster(object):
             has_target,
         )  # noqa: E501
 
-    def add_return_parameters(self, returns: typing.Any) -> int:
+    def add_return_parameters(self, returns: typing.Any, code_strings=True) -> int:
         """Modify the return parameters accordingly to the return statement.
 
         :return: Creates and modifies self.returns and returns the number of
@@ -1485,13 +1491,13 @@ class TaskMaster(object):
         ret_dir = DIRECTION.OUT
         if defined_type:
             if to_return == 1:
-                ret_type = get_compss_type(_returns)
+                ret_type = get_compss_type(_returns, code_strings=code_strings)
                 self.returns[get_return_name(0)] = Parameter(
                     content=_returns, content_type=ret_type, direction=ret_dir
                 )
             else:
                 for i, elem in enumerate(to_return):  # noqa
-                    ret_type = get_compss_type(elem)
+                    ret_type = get_compss_type(elem, code_strings=code_strings)
                     self.returns[get_return_name(i)] = Parameter(
                         content=elem, content_type=ret_type, direction=ret_dir
                     )
@@ -1803,7 +1809,7 @@ class TaskMaster(object):
             # Convert small objects to string if OBJECT_CONVERSION enabled
             # Check if the object is small in order not to serialize it.
             if get_object_conversion():
-                p, written_bytes = self._convert_parameter_obj_to_string(
+                # todo: fix this case too
                     p, max_obj_arg_size, policy="objectSize"  # noqa: E501
                 )  # noqa: E501
                 max_obj_arg_size -= written_bytes
@@ -2095,7 +2101,7 @@ def _manage_persistent_object(p: Parameter) -> None:
         logger.debug("Managed persistent object: %s" % obj_id)
 
 
-def _serialize_object_into_file(name: str, p: Parameter) -> Parameter:
+def _serialize_object_into_file(name: str, p: Parameter, code_strings=True) -> Parameter:
     """Serialize an object into a file if necessary.
 
     :param name: Name of the object.
@@ -2154,7 +2160,7 @@ def _serialize_object_into_file(name: str, p: Parameter) -> Parameter:
             p.content_type = TYPE.OBJECT
             _skip_file_creation = p.direction == DIRECTION.OUT
             _turn_into_file(p, name, _skip_file_creation)
-    elif p.content_type == TYPE.STRING:
+    elif p.content_type in (TYPE.STRING, TYPE.STRING_64):
         # Do not move this import to the top
         from pycompss.api.task import PREPEND_STRINGS  # noqa
 
@@ -2184,7 +2190,8 @@ def _serialize_object_into_file(name: str, p: Parameter) -> Parameter:
                     name,
                     Parameter(
                         content=x,
-                        content_type=get_compss_type(x, p.depth - 1),
+                        content_type=get_compss_type(x, p.depth - 1,
+                                                     code_strings=code_strings),
                         direction=p.direction,
                         depth=p.depth - 1,
                         extra_content_type=str(type(x).__name__),
@@ -2206,7 +2213,7 @@ def _serialize_object_into_file(name: str, p: Parameter) -> Parameter:
                 name,
                 Parameter(
                     content=k,
-                    content_type=get_compss_type(k, p.depth - 1),
+                    content_type=get_compss_type(k, p.depth - 1, code_strings=code_strings),
                     direction=p.direction,
                     depth=p.depth - 1,
                     extra_content_type=str(type(p).__name__),
@@ -2216,7 +2223,7 @@ def _serialize_object_into_file(name: str, p: Parameter) -> Parameter:
                 name,
                 Parameter(
                     content=v,
-                    content_type=get_compss_type(v, p.depth - 1),
+                    content_type=get_compss_type(v, p.depth - 1, code_strings=code_strings),
                     direction=p.direction,
                     depth=p.depth - 1,
                     extra_content_type=str(type(v).__name__),
@@ -2275,13 +2282,12 @@ def _extract_parameter(
     """Extract the information of a single parameter.
 
     :param param: Parameter object.
-    :param code_strings: <Boolean> Encode strings.
     :return: value, typ, direction, stream, prefix, extra_content_type, weight,
             keep_rename of the given parameter.
     """
     con_type = UNDEFINED_CONTENT_TYPE
-    if (
-        param.content_type == TYPE.STRING and not param.is_future and code_strings
+
+    if param.content_type == TYPE.STRING_64 and not param.is_future:  # noqa: E501
     ):  # noqa: E501
         # Encode the string in order to preserve the source
         # Checks that it is not a future (which is indicated with a path)
@@ -2292,6 +2298,11 @@ def _extract_parameter(
             # Checked and substituted by empty string in the worker.py and
             # piper_worker.py
             param.content = b64encode(EMPTY_STRING_KEY.encode()).decode()  # noqa: E501
+        con_type = EXTRA_CONTENT_TYPE_FORMAT.format(
+            "builtins", str(param.content.__class__.__name__))
+    elif param.content_type == TYPE.STRING and not param.is_future:  # noqa: E501
+        if len(param.content) == 0:
+            param.content = EMPTY_STRING_KEY    # noqa: E501
         con_type = EXTRA_CONTENT_TYPE_FORMAT.format(
             "builtins", str(param.content.__class__.__name__)
         )

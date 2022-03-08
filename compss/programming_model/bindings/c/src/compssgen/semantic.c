@@ -334,6 +334,7 @@ void add_argument(enum direction dir, enum datatype dt, char *classname, char *n
         new_argument->classname = strdup(classname);
         break;
     case string_dt:
+    case string_64_dt:
     case wstring_dt:
         new_argument->elements = "0";
         new_argument->type = dt;

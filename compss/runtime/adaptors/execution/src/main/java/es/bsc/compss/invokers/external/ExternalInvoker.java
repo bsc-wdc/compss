@@ -261,6 +261,7 @@ public abstract class ExternalInvoker extends Invoker {
                 paramArgs.add(Integer.toString(bo.getType()));
                 paramArgs.add(Integer.toString(bo.getElements()));
                 break;
+            case STRING_64_T:
             case STRING_T:
                 String value = np.getValue().toString();
                 String[] vals = value.split(" ");
@@ -269,14 +270,6 @@ public abstract class ExternalInvoker extends Invoker {
                 for (String v : vals) {
                     paramArgs.add(v);
                 }
-                break;
-            case STRING_64_T:
-                // decode the string
-                byte[] decodedBytes = Base64.getDecoder().decode(np.getValue().toString());
-                String[] values = new String(decodedBytes).split(" ");
-                // add total # of strings
-                paramArgs.add(Integer.toString(values.length));
-                paramArgs.addAll(Arrays.asList(values));
                 break;
             case COLLECTION_T:
                 InvocationParamCollection<InvocationParam> ipc = (InvocationParamCollection<InvocationParam>) np;

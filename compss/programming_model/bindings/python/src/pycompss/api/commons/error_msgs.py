@@ -24,8 +24,7 @@ PyCOMPSs API - COMMONS - ERROR MESSAGES
 """
 
 
-def not_in_pycompss(decorator_name):
-    # type: (str) -> str
+def not_in_pycompss(decorator_name: str) -> str:
     """
     Retrieves the "not in PyCOMPSs scope" error message.
 
@@ -35,8 +34,7 @@ def not_in_pycompss(decorator_name):
     return "The %s decorator only works within PyCOMPSs framework." % decorator_name
 
 
-def cast_env_to_int_error(what):
-    # type: (str) -> str
+def cast_env_to_int_error(what: str) -> str:
     """
     Retrieves the "can not cast from environment variable to integer" error
     message.
@@ -47,8 +45,7 @@ def cast_env_to_int_error(what):
     return "ERROR: %s value cannot be cast from ENV variable to int" % what
 
 
-def cast_string_to_int_error(what):
-    # type: (str) -> str
+def cast_string_to_int_error(what: str) -> str:
     """
     Retrieves the "can not cast from string to integer" error message.
 
@@ -58,8 +55,7 @@ def cast_string_to_int_error(what):
     return "ERROR: %s value cannot be cast from string to int" % what
 
 
-def wrong_value(value_name, decorator_name):
-    # type: (str, str) -> str
+def wrong_value(value_name: str, decorator_name: str) -> str:
     """
     Retrieves the "wrong value at decorator" error message.
 

@@ -42,8 +42,7 @@ class ODSPublisher(object):
             + type: KafkaProducer
     """
 
-    def __init__(self, bootstrap_server):
-        # type: (str) -> None
+    def __init__(self, bootstrap_server: str) -> None:
         """Creates a new ODSPublisher instance.
 
         :param bootstrap_server: Associated boostrap server.
@@ -57,9 +56,7 @@ class ODSPublisher(object):
         from kafka import KafkaProducer
 
         bootstrap_server_info = str(bootstrap_server).split(":")
-        bootstrap_server_ip = str(
-            socket.gethostbyname(bootstrap_server_info[0])
-        )  # noqa: E501
+        bootstrap_server_ip = str(socket.gethostbyname(bootstrap_server_info[0]))
         bootstrap_server_port = str(bootstrap_server_info[1])
         self.kafka_producer = KafkaProducer(
             bootstrap_servers="%s:%s"
@@ -77,8 +74,7 @@ class ODSPublisher(object):
 
         logger.debug("DONE Creating Publisher")
 
-    def publish(self, topic, message):
-        # type: (typing.Union[bytes, str], str) -> None
+    def publish(self, topic: typing.Union[bytes, str], message: str) -> None:
         """Publishes the given message to the given topic.
 
         :param topic: Message topic.
@@ -123,8 +119,7 @@ class ODSConsumer(object):
             + type: KafkaConsumer
     """
 
-    def __init__(self, bootstrap_server, topic, access_mode):
-        # type: (str, str, str) -> None
+    def __init__(self, bootstrap_server: str, topic: str, access_mode: str) -> None:
         """Creates a new ODSConsumer instance.
 
         :param bootstrap_server: Associated boostrap server.
@@ -172,8 +167,7 @@ class ODSConsumer(object):
 
         logger.debug("DONE Creating Consumer")
 
-    def poll(self, timeout):
-        # type: (int) -> list
+    def poll(self, timeout: int) -> list:
         """Polls messages from the subscribed topics.
 
         :param timeout: Poll timeout.

@@ -31,8 +31,7 @@ from pycompss.runtime.task.parameter import Parameter  # noqa # typing purposes
 __WORKER_ARGS__ = tuple()  # type: tuple
 
 
-def set_worker_args(worker_args):
-    # type: (tuple) -> None
+def set_worker_args(worker_args: tuple) -> None:
     """Worker arguments to save in WORKER_ARGS.
 
     :param worker_args: Worker arguments
@@ -42,8 +41,7 @@ def set_worker_args(worker_args):
     __WORKER_ARGS__ = worker_args
 
 
-def get_worker_args():
-    # type: () -> tuple
+def get_worker_args() -> tuple:
     """Retrieve the worker arguments.
 
     :return: Worker arguments
@@ -51,8 +49,9 @@ def get_worker_args():
     return __WORKER_ARGS__
 
 
-def update_worker_argument_parameter_content(name, content):
-    # type: (typing.Optional[str], typing.Any) -> None
+def update_worker_argument_parameter_content(
+    name: typing.Optional[str], content: typing.Any
+) -> None:
     """Update the Parameter's content for the given name.
 
     :param name: Parameter name
@@ -70,8 +69,7 @@ def update_worker_argument_parameter_content(name, content):
                 return
 
 
-def delete_worker_args():
-    # type: () -> None
+def delete_worker_args() -> None:
     """Remove the worker args global variable.
 
     :return: None

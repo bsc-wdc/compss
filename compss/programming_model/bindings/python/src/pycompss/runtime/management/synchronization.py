@@ -31,7 +31,7 @@ from pycompss.runtime.management.classes import Future
 from pycompss.runtime.management.object_tracker import OT
 from pycompss.runtime.global_args import (
     update_worker_argument_parameter_content,
-)  # noqa: E501
+)
 import pycompss.util.context as context
 from pycompss.util.storages.persistent import is_psco
 from pycompss.util.storages.persistent import get_by_id
@@ -47,8 +47,7 @@ if __debug__:
     logger = logging.getLogger(__name__)
 
 
-def wait_on_object(obj, mode):
-    # type: (typing.Any, str) -> object
+def wait_on_object(obj: typing.Any, mode: str) -> typing.Any:
     """Waits on an object.
 
     :param obj: Object to wait on.
@@ -68,8 +67,7 @@ def wait_on_object(obj, mode):
             return _wait_on_iterable(obj, compss_mode)
 
 
-def _synchronize(obj, mode):
-    # type: (typing.Any, int) -> typing.Any
+def _synchronize(obj: typing.Any, mode: int) -> typing.Any:
     """Synchronization function.
 
     This method retrieves the value of a future object.
@@ -150,8 +148,7 @@ def _synchronize(obj, mode):
     return new_obj
 
 
-def _wait_on_iterable(iter_obj, compss_mode):
-    # type: (typing.Any, int) -> typing.Any
+def _wait_on_iterable(iter_obj: typing.Any, compss_mode: int) -> typing.Any:
     """Wait on an iterable object (Recursive).
 
     Currently supports lists and dictionaries (syncs the values).

@@ -79,8 +79,7 @@ class MPMDMPI(object):
         "processes",
     ]
 
-    def __init__(self, *args, **kwargs):
-        # type: (*typing.Any, **typing.Any) -> None
+    def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         """Store arguments passed to the decorator.
 
         self = itself.
@@ -119,8 +118,7 @@ class MPMDMPI(object):
                 self.decorator_name,
             )
 
-    def __call__(self, user_function):
-        # type: (typing.Callable) -> typing.Callable
+    def __call__(self, user_function: typing.Callable) -> typing.Callable:
         """Parse and set the mpmd mpi parameters within the task core element.
 
         :param user_function: User function to be decorated.
@@ -128,15 +126,15 @@ class MPMDMPI(object):
         """
 
         @wraps(user_function)
-        def mpmd_mpi_f(*args, **kwargs):
-            # type: (*typing.Any, **typing.Any) -> typing.Any
+        def mpmd_mpi_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             return self.__decorator_body__(user_function, args, kwargs)
 
         mpmd_mpi_f.__doc__ = user_function.__doc__
         return mpmd_mpi_f
 
-    def __decorator_body__(self, user_function, args, kwargs):
-        # type: (typing.Callable, tuple, dict) -> typing.Any
+    def __decorator_body__(
+        self, user_function: typing.Callable, args: tuple, kwargs: dict
+    ) -> typing.Any:
         if not self.scope:
             raise NotImplementedError
 
@@ -158,8 +156,7 @@ class MPMDMPI(object):
 
         return ret
 
-    def __get_programs_params__(self):
-        # type: () -> list
+    def __get_programs_params__(self) -> list:
         """Resolve the collection layout, such as blocks, strides, etc.
 
         :return: list(programs_length, binary, params, processes)
@@ -185,8 +182,7 @@ class MPMDMPI(object):
 
         return programs_params
 
-    def __configure_core_element__(self, kwargs):
-        # type: (dict) -> None
+    def __configure_core_element__(self, kwargs: dict) -> None:
         """Include the registering info related to @mpmd_mpi.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].

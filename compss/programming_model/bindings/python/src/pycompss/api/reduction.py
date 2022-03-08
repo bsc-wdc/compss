@@ -65,8 +65,7 @@ class Reduction(object):
         "__configure_core_element__",
     ]
 
-    def __init__(self, *args, **kwargs):
-        # type: (*typing.Any, **typing.Any) -> None
+    def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         """
         Store arguments passed to the decorator
         # self = itself.
@@ -100,8 +99,7 @@ class Reduction(object):
             # Get the computing nodes
             self.__process_reduction_params__()
 
-    def __call__(self, func):
-        # type: (typing.Callable) -> typing.Callable
+    def __call__(self, func: typing.Callable) -> typing.Callable:
         """Parse and set the reduce parameters within the task core element.
 
         :param func: Function to decorate
@@ -109,8 +107,7 @@ class Reduction(object):
         """
 
         @wraps(func)
-        def reduce_f(*args, **kwargs):
-            # type: (*typing.Any, **typing.Any) -> typing.Any
+        def reduce_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             if not self.scope:
                 raise PyCOMPSsException(not_in_pycompss("reduction"))
 
@@ -131,8 +128,7 @@ class Reduction(object):
         reduce_f.__doc__ = func.__doc__
         return reduce_f
 
-    def __process_reduction_params__(self):
-        # type: () -> None
+    def __process_reduction_params__(self) -> None:
         """Processes the chunk size and is reduce from the decorator.
 
         :return: None
@@ -168,8 +164,7 @@ class Reduction(object):
         self.kwargs[IS_REDUCE] = is_reduce
 
     @staticmethod
-    def __parse_chunk_size__(chunk_size):
-        # type: (str) -> int
+    def __parse_chunk_size__(chunk_size: str) -> int:
         """Parses chunk size as string and returns its value as integer.
 
         :param chunk_size: Chunk size as string.

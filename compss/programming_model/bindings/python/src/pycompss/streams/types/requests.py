@@ -65,8 +65,7 @@ class Request(object):
             + type: string
     """
 
-    def __init__(self, rt):
-        # type: (str) -> None
+    def __init__(self, rt: str) -> None:
         """Creates a new Request instance.
 
         :param rt: Request type (RequestType)
@@ -80,48 +79,42 @@ class Request(object):
         self.error_msg = "None"
         self.response_msg = "None"
 
-    def get_type(self):
-        # type: () -> str
+    def get_type(self) -> str:
         """Returns the request type.
 
         :return: The request type (RequestType).
         """
         return self.rt
 
-    def is_processed(self):
-        # type: () -> bool
+    def is_processed(self) -> bool:
         """Returns whether the request has been processed or not.
 
         :return: True if the request has been processed, False otherwise.
         """
         return self.has_been_processed
 
-    def wait_processed(self):
-        # type: () -> None
+    def wait_processed(self) -> None:
         """Locks the current thread until the request has been processed.
 
         :return: None.
         """
         self.wait_sem.acquire()
 
-    def get_error_code(self):
-        # type: () -> int
+    def get_error_code(self) -> int:
         """Returns the request error code.
 
         :return: The request error code.
         """
         return self.error_code
 
-    def get_error_msg(self):
-        # type: () -> str
+    def get_error_msg(self) -> str:
         """Returns the request error message.
 
         :return: The request error message.
         """
         return self.error_msg
 
-    def get_response_msg(self):
-        # type: () -> str
+    def get_response_msg(self) -> str:
         """Returns the request response message.
 
         :return: The request response message.
@@ -129,16 +122,14 @@ class Request(object):
         return self.response_msg
 
     @abstractmethod
-    def get_request_msg(self):
-        # type: () -> str
+    def get_request_msg(self) -> str:
         """Returns the request message to send to the server.
 
         :return: The request message to send to the server.
         """
         pass
 
-    def set_processed(self):
-        # type: () -> None
+    def set_processed(self) -> None:
         """Marks the request as processed.
 
         :return: None.
@@ -146,8 +137,7 @@ class Request(object):
         self.has_been_processed = True
         self.wait_sem.release()
 
-    def set_error(self, error_code, error_msg):
-        # type: (int, str) -> None
+    def set_error(self, error_code: int, error_msg: str) -> None:
         """Sets a new error code and message to the current request.
 
         :param error_code: Error code.

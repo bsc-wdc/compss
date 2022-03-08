@@ -71,8 +71,7 @@ class OnFailure(object):
         "core_element_configured",
     ]
 
-    def __init__(self, *args, **kwargs):
-        # type: (*typing.Any, **typing.Any) -> None
+    def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         """Store arguments passed to the decorator.
 
         self = itself.
@@ -107,8 +106,7 @@ class OnFailure(object):
             # Keep all defaults in a dictionary
             self.defaults = kwargs
 
-    def __call__(self, user_function):
-        # type: (typing.Callable) -> typing.Callable
+    def __call__(self, user_function: typing.Callable) -> typing.Callable:
         """Parse and set the on_failure within the task core element.
 
         :param user_function: Function to decorate.
@@ -116,8 +114,7 @@ class OnFailure(object):
         """
 
         @wraps(user_function)
-        def constrained_f(*args, **kwargs):
-            # type: (*typing.Any, **typing.Any) -> typing.Any
+        def constrained_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             if not self.scope:
                 from pycompss.api.dummy.on_failure import on_failure as dummy_on_failure
 
@@ -147,8 +144,7 @@ class OnFailure(object):
         constrained_f.__doc__ = user_function.__doc__
         return constrained_f
 
-    def __configure_core_element__(self, kwargs):
-        # type: (dict) -> None
+    def __configure_core_element__(self, kwargs: dict) -> None:
         """Include the registering info related to @on_failure.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].

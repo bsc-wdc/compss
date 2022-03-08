@@ -50,8 +50,7 @@ class PiperWorkerConfiguration(object):
         "cache_profiler",
     ]
 
-    def __init__(self):
-        # type: () -> None
+    def __init__(self) -> None:
         """
         Constructs an empty configuration description for the piper worker.
         """
@@ -68,8 +67,7 @@ class PiperWorkerConfiguration(object):
         self.cache = False  # type: typing.Union[str, bool]
         self.cache_profiler = ""  # type: str
 
-    def update_params(self, argv):
-        # type: (list) -> None
+    def update_params(self, argv: list) -> None:
         """Constructs a configuration description for the piper worker using
         the arguments.
 
@@ -99,8 +97,7 @@ class PiperWorkerConfiguration(object):
             self.pipes.append(Pipe(in_pipes[i], out_pipes[i]))
         self.control_pipe = Pipe(argv[-2], argv[-1])
 
-    def print_on_logger(self, logger):
-        # type: (typing.Any) -> None
+    def print_on_logger(self, logger: typing.Any) -> None:
         """Prints the configuration through the given logger.
 
         :param logger: logger to output the configuration.

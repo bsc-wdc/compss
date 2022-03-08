@@ -83,8 +83,7 @@ class COMPSsFile(object):
         "original_path",
     ]
 
-    def __init__(self, file_name="None"):
-        # type: (str) -> None
+    def __init__(self, file_name: str = "None") -> None:
         self.source_path = "None"  # type: str
         self.destination_name = "None"  # type: str
         self.keep_source = False  # type: bool
@@ -101,8 +100,7 @@ class COMPSsFile(object):
             # Can be a collection wrapper or a stream
             pass
 
-    def __repr__(self):
-        # type: () -> str
+    def __repr__(self) -> str:
         return (
             "Source: %s, Destination: %s, "
             "Keep source: %s, Is write final: %s, "
@@ -144,23 +142,23 @@ class Parameter(object):
 
     def __init__(
         self,
-        name="None",  # type: str
-        content="",  # type: typing.Any
-        content_type=-1,  # type: int
-        direction=DIRECTION.IN,  # type: int
-        stream=IOSTREAM.UNSPECIFIED,  # type: int
-        prefix=PREFIX.PREFIX,  # type: str
-        file_name=COMPSsFile(),  # type: COMPSsFile
-        is_future=False,  # type: bool
-        is_file_collection=False,  # type: bool
-        collection_content="",  # type: typing.Any
-        dict_collection_content=None,  # type: typing.Optional[dict]
-        depth=PYTHON_MAX_INT,  # type: int
-        extra_content_type=UNDEFINED_CONTENT_TYPE,  # type: str
-        weight="1.0",  # type: str
-        keep_rename=True,  # type: bool
-        cache=True,  # type: bool
-    ):
+        name: str = "None",
+        content: typing.Any = "",
+        content_type: int = -1,
+        direction: int = DIRECTION.IN,
+        stream: int = IOSTREAM.UNSPECIFIED,
+        prefix: str = PREFIX.PREFIX,
+        file_name: COMPSsFile = COMPSsFile(),
+        is_future: bool = False,
+        is_file_collection: bool = False,
+        collection_content: typing.Any = "",
+        dict_collection_content: typing.Optional[dict] = None,
+        depth: int = PYTHON_MAX_INT,
+        extra_content_type: str = UNDEFINED_CONTENT_TYPE,
+        weight: str = "1.0",
+        keep_rename: bool = True,
+        cache: bool = True,
+    ) -> None:
         if dict_collection_content is None:
             dict_collection_content = dict()
         self.name = name
@@ -180,8 +178,7 @@ class Parameter(object):
         self.keep_rename = keep_rename
         self.cache = cache
 
-    def __repr__(self):
-        # type: () -> str
+    def __repr__(self) -> str:
         return (
             "Parameter(name=%s\n"
             "          type=%s, direction=%s, stream=%s, prefix=%s\n"
@@ -211,40 +208,35 @@ class Parameter(object):
             )
         )
 
-    def is_object(self):
-        # type: () -> bool
+    def is_object(self) -> bool:
         """Determine if parameter is an object (not a FILE).
 
         :return: True if param represents an object (IN, INOUT, OUT).
         """
         return self.content_type == -1
 
-    def is_file(self):
-        # type: () -> bool
+    def is_file(self) -> bool:
         """Determine if parameter is a FILE.
 
         :return: True if param represents an FILE (IN, INOUT, OUT).
         """
         return self.content_type is TYPE.FILE
 
-    def is_directory(self):
-        # type: () -> bool
+    def is_directory(self) -> bool:
         """Determine if parameter is a DIRECTORY.
 
         :return: True if param represents an DIRECTORY.
         """
         return self.content_type is TYPE.DIRECTORY
 
-    def is_collection(self):
-        # type: () -> bool
+    def is_collection(self) -> bool:
         """Determine if parameter is a COLLECTION.
 
         :return: True if param represents an COLLECTION.
         """
         return self.content_type is TYPE.COLLECTION
 
-    def is_dict_collection(self):
-        # type: () -> bool
+    def is_dict_collection(self) -> bool:
         """Determine if parameter is a DICT_COLLECTION.
 
         :return: True if param represents an DICT_COLLECTION.
@@ -526,8 +518,7 @@ _param_conversion_dict_ = {
 }  # type: dict
 
 
-def is_param(obj):
-    # type: (typing.Any) -> bool
+def is_param(obj: typing.Any) -> bool:
     """Check if given object is a parameter.
     Avoids internal _param_ import.
 
@@ -537,8 +528,7 @@ def is_param(obj):
     return isinstance(obj, Param)
 
 
-def is_parameter(obj):
-    # type: (typing.Any) -> bool
+def is_parameter(obj: typing.Any) -> bool:
     """Check if given object is a parameter.
     Avoids internal Parameter import.
 
@@ -548,8 +538,7 @@ def is_parameter(obj):
     return isinstance(obj, Parameter)
 
 
-def get_new_parameter(key):
-    # type: (str) -> Parameter
+def get_new_parameter(key: str) -> Parameter:
     """Returns a brand new parameter (no copies!)
 
     :param key: A string that is a key of a valid Parameter template.
@@ -558,8 +547,7 @@ def get_new_parameter(key):
     return Parameter(**_param_conversion_dict_[key])
 
 
-def get_parameter_copy(parameter):
-    # type: (Parameter) -> Parameter
+def get_parameter_copy(parameter: Parameter) -> Parameter:
     """Copies the given parameter into a new one.
 
     :param parameter: Parameter object.
@@ -572,8 +560,7 @@ def get_parameter_copy(parameter):
     return copy.deepcopy(parameter)
 
 
-def is_dict_specifier(value):
-    # type: (typing.Any) -> bool
+def is_dict_specifier(value: typing.Any) -> bool:
     """Check if value is a supported dictionary.
     Check if a parameter of the task decorator is a dictionary that specifies
     at least Type (and therefore can include things like Prefix, see binary
@@ -586,8 +573,7 @@ def is_dict_specifier(value):
     return isinstance(value, dict) and Type in value
 
 
-def get_parameter_from_dictionary(d):
-    # type: (dict) -> Parameter
+def get_parameter_from_dictionary(d: dict) -> Parameter:
     """Convert a dictionary to Parameter
     Given a dictionary with fields like Type, Direction, etc.
     returns an actual Parameter object.
@@ -620,8 +606,7 @@ def get_parameter_from_dictionary(d):
         return parameter
 
 
-def get_compss_type(value, depth=0):
-    # type: (typing.Any, int) -> int
+def get_compss_type(value: typing.Any, depth: int = 0) -> int:
     """Retrieve the value type mapped to COMPSs types.
 
     :param value: Value to analyse.

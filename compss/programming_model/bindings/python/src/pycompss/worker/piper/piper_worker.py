@@ -67,8 +67,7 @@ CACHE = None
 CACHE_PROCESS = None
 
 
-def shutdown_handler(signal, frame):  # noqa
-    # type: (int, typing.Any) -> None
+def shutdown_handler(signal: int, frame: typing.Any) -> None:
     """Shutdown handler.
 
     Do not remove the parameters.
@@ -89,8 +88,7 @@ def shutdown_handler(signal, frame):  # noqa
 ######################
 
 
-def compss_persistent_worker(config):
-    # type: (PiperWorkerConfiguration) -> None
+def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
     """Persistent worker main function.
 
     Retrieves the initial configuration and spawns the worker processes.
@@ -262,8 +260,9 @@ def compss_persistent_worker(config):
     control_pipe.close()
 
 
-def create_executor_process(process_name, conf, pipe):
-    # type: (str, ExecutorConf, Pipe) -> typing.Tuple[int, Queue]
+def create_executor_process(
+    process_name: str, conf: ExecutorConf, pipe: Pipe
+) -> typing.Tuple[int, Queue]:
     """Starts a new executor.
 
     :param process_name: Process name.
@@ -283,8 +282,7 @@ def create_executor_process(process_name, conf, pipe):
 ############################
 
 
-def main():
-    # type: () -> None
+def main() -> None:
     """Main piper worker
 
     :return: None

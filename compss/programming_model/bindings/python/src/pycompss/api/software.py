@@ -79,8 +79,7 @@ class Software(object):
         "container",
     ]
 
-    def __init__(self, *args, **kwargs):
-        # type: (*typing.Any, **typing.Any) -> None
+    def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         """Parse the config file and store the arguments that will be used
         later to wrap the "real" decorator.
 
@@ -119,8 +118,7 @@ class Software(object):
             )
             self.parse_config_file()
 
-    def __call__(self, user_function):
-        # type: (typing.Callable) -> typing.Callable
+    def __call__(self, user_function: typing.Callable) -> typing.Callable:
         """When called, @software decorator basically wraps the user function
         into the "real" decorator and passes the args and kwargs.
 
@@ -129,8 +127,7 @@ class Software(object):
         """
 
         @wraps(user_function)
-        def software_f(*args, **kwargs):
-            # type: (*typing.Any, **typing.Any) -> typing.Any
+        def software_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             if not self.scope or not context.in_master():
                 # Execute the software as with PyCOMPSs so that sequential
                 # execution performs as parallel.
@@ -183,8 +180,7 @@ class Software(object):
         software_f.__doc__ = user_function.__doc__
         return software_f
 
-    def parse_config_file(self):
-        # type: () -> None
+    def parse_config_file(self) -> None:
         """Parse the config file and set self's task_type, decor, and
         config args.
 

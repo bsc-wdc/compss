@@ -111,8 +111,7 @@ FORCED_SERIALIZER = -1  # make a serializer the only option for serialization
 DISABLE_GC = False
 
 
-def get_serializer_priority(obj=()):
-    # type: (typing.Any) -> list
+def get_serializer_priority(obj: typing.Any = ()) -> list:
     """Computes the priority of the serializers.
     Returns a list with the available serializers in the most common order
     (i.e: the order that will work for almost the 90% of our objects).
@@ -133,8 +132,7 @@ def get_serializer_priority(obj=()):
         return serializers
 
 
-def serialize_to_handler(obj, handler):
-    # type: (typing.Any, typing.Any) -> None
+def serialize_to_handler(obj: typing.Any, handler: typing.Any) -> None:
     """Serialize an object to a handler.
 
     :param obj: Object to be serialized.
@@ -230,8 +228,7 @@ def serialize_to_handler(obj, handler):
         raise SerializerException(error_msg)
 
 
-def serialize_to_file(obj, file_name):
-    # type: (typing.Any, str) -> None
+def serialize_to_file(obj: typing.Any, file_name: str) -> None:
     """Serialize an object to a file.
 
     :param obj: Object to be serialized.
@@ -245,8 +242,9 @@ def serialize_to_file(obj, file_name):
         handler.close()
 
 
-def serialize_to_file_mpienv(obj, file_name, rank_zero_reduce):
-    # type: (typing.Any, str, bool) -> None
+def serialize_to_file_mpienv(
+    obj: typing.Any, file_name: str, rank_zero_reduce: bool
+) -> None:
     """Serialize an object to a file for Python MPI Tasks.
 
     :param obj: Object to be serialized.
@@ -269,8 +267,7 @@ def serialize_to_file_mpienv(obj, file_name, rank_zero_reduce):
             serialize_to_file(obj, file_name)
 
 
-def serialize_to_bytes(obj):
-    # type: (typing.Any) -> bytes
+def serialize_to_bytes(obj: typing.Any) -> bytes:
     """Serialize an object to a byte array.
 
     :param obj: Object to be serialized.
@@ -283,8 +280,9 @@ def serialize_to_bytes(obj):
     return ret
 
 
-def deserialize_from_handler(handler, show_exception=True):
-    # type: (typing.Any, bool) -> typing.Any
+def deserialize_from_handler(
+    handler: typing.Any, show_exception: bool = True
+) -> typing.Any:
     """Deserialize an object from a file.
 
     :param handler: File name from where the object is going to be
@@ -359,8 +357,7 @@ def deserialize_from_handler(handler, show_exception=True):
         raise SerializerException(error_msg)
 
 
-def deserialize_from_file(file_name):
-    # type: (str) -> typing.Any
+def deserialize_from_file(file_name: str) -> typing.Any:
     """Deserialize the contents in a given file.
 
     :param file_name: Name of the file with the contents to be deserialized
@@ -374,8 +371,9 @@ def deserialize_from_file(file_name):
         return ret
 
 
-def deserialize_from_bytes(serialized_content_bytes, show_exception=True):
-    # type: (bytes, bool) -> typing.Any
+def deserialize_from_bytes(
+    serialized_content_bytes: bytes, show_exception: bool = True
+) -> typing.Any:
     """Deserialize the contents in a given byte array.
 
     :param serialized_content_bytes: A byte array with serialized contents
@@ -392,8 +390,7 @@ def deserialize_from_bytes(serialized_content_bytes, show_exception=True):
         return ret
 
 
-def serialize_objects(to_serialize):
-    # type: (list) -> None
+def serialize_objects(to_serialize: list) -> None:
     """Serialize a list of objects to file.
 
     If a single object fails to be serialized, then an Exception by

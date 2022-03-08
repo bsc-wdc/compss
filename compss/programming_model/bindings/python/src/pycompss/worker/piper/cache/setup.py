@@ -36,14 +36,11 @@ from pycompss.worker.piper.cache.tracker import CacheTrackerConf
 from pycompss.worker.piper.cache.tracker import cache_tracker
 from pycompss.worker.piper.cache.tracker import (
     start_shared_memory_manager as __start_smm__,
-)
-from pycompss.worker.piper.cache.tracker import (
     stop_shared_memory_manager as __stop_smm__,
 )
 
 
-def is_cache_enabled(cache_config):
-    # type: (str) -> bool
+def is_cache_enabled(cache_config: str) -> bool:
     """Check if the cache is enabled.
 
     :param cache_config: Cache configuration defined on startup.
@@ -58,12 +55,11 @@ def is_cache_enabled(cache_config):
 
 
 def start_cache(
-    logger,  # type: typing.Any
-    cache_config,  # type: str
-    cache_profiler,  # type: bool
-    log_dir,  # type: str
-):
-    # type: (...) -> typing.Tuple[typing.Any, Process, Queue, typing.Any]
+    logger: typing.Any,
+    cache_config: str,
+    cache_profiler: bool,
+    log_dir: str,
+) -> typing.Tuple[typing.Any, Process, Queue, typing.Any]:
     """Setup the cache process which keeps the consistency of the cache.
 
     :param logger: Logger.
@@ -96,8 +92,12 @@ def start_cache(
     return smm, cache_process, cache_queue, cache_ids
 
 
-def stop_cache(shared_memory_manager, cache_queue, cache_profiler, cache_process):
-    # type: (typing.Any, Queue, bool, Process) -> None
+def stop_cache(
+    shared_memory_manager: typing.Any,
+    cache_queue: Queue,
+    cache_profiler: bool,
+    cache_process: Process,
+) -> None:
     """Stops the cache process and performs the necessary cleanup.
 
     :param shared_memory_manager: Shared memory manager.
@@ -112,8 +112,7 @@ def stop_cache(shared_memory_manager, cache_queue, cache_profiler, cache_process
     __stop_smm__(shared_memory_manager)
 
 
-def __get_cache_size__(cache_config):
-    # type: (str) -> int
+def __get_cache_size__(cache_config: str) -> int:
     """Retrieve the cache size for the given config.
 
     :param cache_config: Cache configuration defined on startup.
@@ -127,8 +126,7 @@ def __get_cache_size__(cache_config):
     return cache_size
 
 
-def __get_default_cache_size__():
-    # type: () -> int
+def __get_default_cache_size__() -> int:
     """Returns the default cache size.
 
     :return: The size in bytes.
@@ -142,8 +140,9 @@ def __get_default_cache_size__():
     return cache_size
 
 
-def __create_cache_tracker_process__(process_name, conf):
-    # type: (str, CacheTrackerConf) -> typing.Tuple[Process, Queue]
+def __create_cache_tracker_process__(
+    process_name: str, conf: CacheTrackerConf
+) -> typing.Tuple[Process, Queue]:
     """Starts a new cache tracker process.
 
     :param process_name: Process name.
@@ -156,8 +155,9 @@ def __create_cache_tracker_process__(process_name, conf):
     return process, queue
 
 
-def __destroy_cache_tracker_process__(cache_process, cache_queue):
-    # type: (Process, Queue) -> None
+def __destroy_cache_tracker_process__(
+    cache_process: Process, cache_queue: Queue
+) -> None:
     """Stops the given cache tracker process.
 
     :param cache_process: Cache process
@@ -170,8 +170,7 @@ def __destroy_cache_tracker_process__(cache_process, cache_queue):
     cache_queue.join_thread()  # noqa
 
 
-def __create_proxy_dict__():
-    # type: () -> typing.Any
+def __create_proxy_dict__() -> typing.Any:
     """Create a proxy dictionary to share the information across workers
     within the same node.
 

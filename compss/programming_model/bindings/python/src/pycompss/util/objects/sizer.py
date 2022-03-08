@@ -42,8 +42,7 @@ except ImportError:
     pass
 
 
-def _dict_handler(d):
-    # type: (dict) -> Iterator
+def _dict_handler(d: dict) -> Iterator:
     """Dictionary to dictionary handler converter.
 
     :param d: Dictionary.
@@ -52,8 +51,7 @@ def _dict_handler(d):
     return chain.from_iterable(d.items())
 
 
-def _user_object_handler(d):
-    # type: (typing.Any) -> Iterator
+def _user_object_handler(d: typing.Any) -> Iterator:
     """User object to dictionary handler converter.
 
     :param d: User object.
@@ -62,8 +60,9 @@ def _user_object_handler(d):
     return chain.from_iterable(d.__dict__.items())
 
 
-def total_sizeof(o, handlers=None, verbose=False):
-    # type: (typing.Any, Iterator, bool) -> int
+def total_sizeof(
+    o: typing.Any, handlers: typing.Optional[Iterator] = None, verbose: bool = False
+) -> int:
     """Calculate the size of an object.
 
     Returns the approximate memory footprint an object and all of its contents.
@@ -94,8 +93,7 @@ def total_sizeof(o, handlers=None, verbose=False):
     seen = set()  # track which object id's have already been seen
     default_size = getsizeof(0)  # estimate sizeof object without __sizeof__
 
-    def sizeof(obj):
-        # type: (typing.Any) -> int
+    def sizeof(obj: typing.Any) -> int:
         """Calculate the size o the given object in bytes.
 
         :param obj: Object to measure

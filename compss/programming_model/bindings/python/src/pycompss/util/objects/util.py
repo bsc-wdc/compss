@@ -26,8 +26,7 @@ PyCOMPSs Util - Utils
 from pycompss.util.typing_helper import typing
 
 
-def group_iterable(iterable, n):
-    # type: (typing.Iterable, int) -> typing.Iterator[typing.Any]
+def group_iterable(iterable: typing.Iterable, n: int) -> typing.Iterator[typing.Any]:
     """
     Return a list of lists containing n elements:
     s -> [(s0, s1, s2, ..., sn-1),

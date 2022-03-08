@@ -41,17 +41,15 @@ from pycompss.runtime.commons import DEFAULT_JVM_WORKERS
 from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
 from pycompss.runtime.commons import INTERACTIVE_FILE_NAME
 from pycompss.runtime.commons import set_temporary_directory
-from pycompss.util.environment.configuration import export_current_flags
-from pycompss.util.environment.configuration import prepare_environment
 from pycompss.util.environment.configuration import (
+    export_current_flags,
+    prepare_environment,
     prepare_loglevel_graph_for_monitoring,
-)  # noqa: E501
-from pycompss.util.environment.configuration import updated_variables_in_sc
-from pycompss.util.environment.configuration import prepare_tracing_environment
-from pycompss.util.environment.configuration import (
+    updated_variables_in_sc,
+    prepare_tracing_environment,
     check_infrastructure_variables,
-)  # noqa: E501
-from pycompss.util.environment.configuration import create_init_config_file
+    create_init_config_file,
+)
 from pycompss.util.logger.helpers import get_logging_cfg_file
 from pycompss.util.logger.helpers import init_logging
 from pycompss.util.interactive.events import setup_event_manager
@@ -95,56 +93,56 @@ initialize_multiprocessing()
 
 
 def start(
-    log_level="off",  # type: str
-    debug=False,  # type: bool
-    o_c=False,  # type: bool
-    graph=False,  # type: bool
-    trace=False,  # type: bool
-    monitor=-1,  # type: int
-    project_xml="",  # type: str
-    resources_xml="",  # type: str
-    summary=False,  # type: bool
-    task_execution="compss",  # type: str
-    storage_impl="",  # type: str
-    storage_conf="",  # type: str
-    streaming_backend="",  # type: str
-    streaming_master_name="",  # type: str
-    streaming_master_port="",  # type: str
-    task_count=50,  # type: int
-    app_name=INTERACTIVE_FILE_NAME,  # type: str
-    uuid="",  # type: str
-    base_log_dir="",  # type: str
-    specific_log_dir="",  # type: str
-    extrae_cfg="",  # type: str
-    comm="NIO",  # type: str
-    conn=DEFAULT_CONN,  # type: str
-    master_name="",  # type: str
-    master_port="",  # type: str
-    scheduler=DEFAULT_SCHED,  # type: str
-    jvm_workers=DEFAULT_JVM_WORKERS,  # type: str
-    cpu_affinity="automatic",  # type: str
-    gpu_affinity="automatic",  # type: str
-    fpga_affinity="automatic",  # type: str
-    fpga_reprogram="",  # type: str
-    profile_input="",  # type: str
-    profile_output="",  # type: str
-    scheduler_config="",  # type: str
-    external_adaptation=False,  # type: bool
-    propagate_virtual_environment=True,  # type: bool
-    mpi_worker=False,  # type: bool
-    worker_cache=False,  # type: typing.Union[bool, str]
-    shutdown_in_node_failure=False,  # type: bool
-    io_executors=0,  # type: int
-    env_script="",  # type: str
-    reuse_on_block=True,  # type: bool
-    nested_enabled=False,  # type: bool
-    tracing_task_dependencies=False,  # type: bool
-    trace_label="",  # type: str
-    extrae_cfg_python="",  # type: str
-    wcl=0,  # type: int
-    cache_profiler=False,  # type: bool
-    verbose=False,  # type: bool
-):  # type: (...) -> None
+    log_level: str = "off",
+    debug: bool = False,
+    o_c: bool = False,
+    graph: bool = False,
+    trace: bool = False,
+    monitor: int = -1,
+    project_xml: str = "",
+    resources_xml: str = "",
+    summary: bool = False,
+    task_execution: str = "compss",
+    storage_impl: str = "",
+    storage_conf: str = "",
+    streaming_backend: str = "",
+    streaming_master_name: str = "",
+    streaming_master_port: str = "",
+    task_count: int = 50,
+    app_name: str = INTERACTIVE_FILE_NAME,
+    uuid: str = "",
+    base_log_dir: str = "",
+    specific_log_dir: str = "",
+    extrae_cfg: str = "",
+    comm: str = "NIO",
+    conn: str = DEFAULT_CONN,
+    master_name: str = "",
+    master_port: str = "",
+    scheduler: str = DEFAULT_SCHED,
+    jvm_workers: str = DEFAULT_JVM_WORKERS,
+    cpu_affinity: str = "automatic",
+    gpu_affinity: str = "automatic",
+    fpga_affinity: str = "automatic",
+    fpga_reprogram: str = "",
+    profile_input: str = "",
+    profile_output: str = "",
+    scheduler_config: str = "",
+    external_adaptation: bool = False,
+    propagate_virtual_environment: bool = True,
+    mpi_worker: bool = False,
+    worker_cache: typing.Union[bool, str] = False,
+    shutdown_in_node_failure=False,
+    io_executors: int = 0,
+    env_script: str = "",
+    reuse_on_block: bool = True,
+    nested_enabled: bool = False,
+    tracing_task_dependencies: bool = False,
+    trace_label: str = "",
+    extrae_cfg_python: str = "",
+    wcl: int = 0,
+    cache_profiler: bool = False,
+    verbose: bool = False,
+) -> None:
     """Start the runtime in interactive mode.
 
     :param log_level: Logging level [ "trace"|"debug"|"info"|"api"|"off" ]
@@ -445,8 +443,7 @@ def start(
     emit_manual_event(APPLICATION_RUNNING_EVENT)
 
 
-def __show_flower__():
-    # type: () -> None
+def __show_flower__() -> None:
     """Shows the flower and version through stdout.
 
     :return: None
@@ -473,8 +470,7 @@ def __show_flower__():
     print(LINE_SEPARATOR)  # NOSONAR # noqa
 
 
-def __print_setup__(verbose, all_vars):
-    # type: (bool, dict) -> None
+def __print_setup__(verbose: bool, all_vars: typing.Dict[str, typing.Any]) -> None:
     """Print the setup variables through stdout (only if verbose is True).
 
     :param verbose: Verbose mode [True | False]
@@ -493,13 +489,12 @@ def __print_setup__(verbose, all_vars):
     logger.debug(output)
 
 
-def stop(sync=False, _hard_stop=False):
-    # type: (bool, bool) -> None
+def stop(sync: bool = False, _hard_stop: bool = False) -> None:
     """Runtime stop.
 
     :param sync: Scope variables synchronization [ True | False ]
                  (default: False)
-    :param _hard_stop: Stop compss when runtime has died [ True | False ].
+    :param _hard_stop: Stop COMPSs when runtime has died [ True | False ].
                        (default: False)
     :return: None
     """
@@ -559,25 +554,15 @@ def stop(sync=False, _hard_stop=False):
                 elif k not in reserved_names:
                     try:
                         if OT.is_pending_to_synchronize(obj_k):
-                            print(
-                                "Found an object to synchronize: %s" % str(k)
-                            )  # noqa: E501
-                            logger.debug(
-                                "Found an object to synchronize: %s" % (k,)
-                            )  # noqa: E501
-                            ipython.__dict__["user_ns"][k] = compss_wait_on(
-                                obj_k
-                            )  # noqa: E501
+                            print("Found an object to synchronize: %s" % str(k))
+                            logger.debug("Found an object to synchronize: %s" % (k,))
+                            ipython.__dict__["user_ns"][k] = compss_wait_on(obj_k)
                     except TypeError:
                         # Unhashable type: List - could be a collection
                         if isinstance(obj_k, list):
                             print("Found a list to synchronize: %s" % str(k))
-                            logger.debug(
-                                "Found a list to synchronize: %s" % (k,)
-                            )  # noqa: E501
-                            ipython.__dict__["user_ns"][k] = compss_wait_on(
-                                obj_k
-                            )  # noqa: E501
+                            logger.debug("Found a list to synchronize: %s" % (k,))
+                            ipython.__dict__["user_ns"][k] = compss_wait_on(obj_k)
     else:
         print("Warning: some of the variables used with PyCOMPSs may")
         print("         have not been brought to the master.")
@@ -617,8 +602,9 @@ def stop(sync=False, _hard_stop=False):
     # --- Execution finished ---
 
 
-def __hard_stop__(debug, sync, logger, ipython):
-    # type: (bool, bool, typing.Any, typing.Any) -> None
+def __hard_stop__(
+    debug: bool, sync: bool, logger: typing.Any, ipython: typing.Any
+) -> None:
     """The runtime has been stopped by any error and this method stops the
     remaining things in the binding.
 
@@ -659,8 +645,9 @@ def __hard_stop__(debug, sync, logger, ipython):
     return None
 
 
-def current_task_graph(fit=False, refresh_rate=1, timeout=0):
-    # type: (bool, int, int) -> typing.Any
+def current_task_graph(
+    fit: bool = False, refresh_rate: int = 1, timeout: int = 0
+) -> typing.Any:
     """Show current graph.
 
     :param fit: Fit to width [ True | False ] (default: False)
@@ -685,8 +672,9 @@ def current_task_graph(fit=False, refresh_rate=1, timeout=0):
         )
 
 
-def complete_task_graph(fit=False, refresh_rate=1, timeout=0):
-    # type: (bool, int, int) -> typing.Any
+def complete_task_graph(
+    fit: bool = False, refresh_rate: int = 1, timeout: int = 0
+) -> typing.Any:
     """Show complete graph.
 
     :param fit: Fit to width [ True | False ] (default: False)
@@ -712,8 +700,7 @@ def complete_task_graph(fit=False, refresh_rate=1, timeout=0):
         return None
 
 
-def tasks_info():
-    # type: () -> None
+def tasks_info() -> None:
     """Show tasks info.
 
     :return: None
@@ -729,8 +716,7 @@ def tasks_info():
         return None
 
 
-def tasks_status():
-    # type: () -> None
+def tasks_status() -> None:
     """Show tasks status.
 
     :return: None
@@ -746,8 +732,7 @@ def tasks_status():
         return None
 
 
-def statistics():
-    # type: () -> None
+def statistics() -> None:
     """Show statistics info.
 
     :return: None
@@ -763,8 +748,7 @@ def statistics():
         return None
 
 
-def resources_status():
-    # type: () -> None
+def resources_status() -> None:
     """Show resources status info.
 
     :return: None
@@ -785,8 +769,7 @@ def resources_status():
 # ########################################################################### #
 
 
-def __export_globals__():
-    # type: () -> None
+def __export_globals__() -> None:
     """Export globals into interactive environment.
 
     :return: None
@@ -817,8 +800,7 @@ def __export_globals__():
     APP_PATH = temp_app_filename
 
 
-def __clean_temp_files__():
-    # type: () -> None
+def __clean_temp_files__() -> None:
     """Remove any temporary files that may exist.
 
     Currently: APP_PATH, which contains the file path where all interactive

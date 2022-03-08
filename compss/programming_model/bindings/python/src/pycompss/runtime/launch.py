@@ -46,18 +46,16 @@ from pycompss.runtime.commons import PYTHON_VERSION
 from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
 from pycompss.util.exceptions import SerializerException
 from pycompss.util.exceptions import PyCOMPSsException
-from pycompss.util.environment.configuration import preload_user_code
-from pycompss.util.environment.configuration import export_current_flags
-from pycompss.util.environment.configuration import prepare_environment
 from pycompss.util.environment.configuration import (
+    preload_user_code,
+    export_current_flags,
+    prepare_environment,
     prepare_loglevel_graph_for_monitoring,
-)  # noqa
-from pycompss.util.environment.configuration import updated_variables_in_sc
-from pycompss.util.environment.configuration import prepare_tracing_environment
-from pycompss.util.environment.configuration import (
+    updated_variables_in_sc,
+    prepare_tracing_environment,
     check_infrastructure_variables,
-)  # noqa
-from pycompss.util.environment.configuration import create_init_config_file
+    create_init_config_file,
+)
 from pycompss.util.logger.helpers import get_logging_cfg_file
 from pycompss.util.logger.helpers import init_logging
 from pycompss.util.logger.helpers import clean_log_configs
@@ -94,8 +92,7 @@ gc.set_threshold(150000)
 initialize_multiprocessing()
 
 
-def stop_all(exit_code):
-    # type: (int) -> None
+def stop_all(exit_code: int) -> None:
     """Stop everything smoothly.
 
     :param exit_code: Exit code.
@@ -118,8 +115,7 @@ def stop_all(exit_code):
     sys.exit(exit_code)
 
 
-def parse_arguments():
-    # type: () -> typing.Any
+def parse_arguments() -> typing.Any:
     """Parse PyCOMPSs arguments.
 
     :return: Argument's parser.
@@ -143,8 +139,7 @@ def parse_arguments():
     return parser.parse_args()
 
 
-def __load_user_module__(app_path, log_level):
-    # type: (str, str) -> None
+def __load_user_module__(app_path: str, log_level: str) -> None:
     """Loads the user module (resolve all user imports).
     This has shown to be necessary before doing "start_compss" in order
     to avoid segmentation fault in some libraries.
@@ -169,8 +164,7 @@ def __load_user_module__(app_path, log_level):
             )  # noqa: E501
 
 
-def __register_implementation_core_elements__():
-    # type: () -> None
+def __register_implementation_core_elements__() -> None:
     """Register the @implements core elements accumulated during the
     initialization of the @implements decorators. They have not been
     registered because the runtime was not started. And the load is
@@ -187,8 +181,7 @@ def __register_implementation_core_elements__():
         task.signature = impl_signature
 
 
-def compss_main():
-    # type: () -> None
+def compss_main() -> None:
     """PyCOMPSs main function.
 
     General call:
@@ -342,60 +335,59 @@ def compss_main():
 
 
 def launch_pycompss_application(
-    app,  # type: str
-    func,  # type: typing.Optional[str]
-    log_level="off",  # type: str
-    o_c=False,  # type: bool
-    debug=False,  # type: bool
-    graph=False,  # type: bool
-    trace=False,  # type: bool
-    monitor=-1,  # type: int
-    project_xml="",  # type: str
-    resources_xml="",  # type: str
-    summary=False,  # type: bool
-    task_execution="compss",  # type: str
-    storage_impl="",  # type: str
-    storage_conf="",  # type: str
-    streaming_backend="",  # type: str
-    streaming_master_name="",  # type: str
-    streaming_master_port="",  # type: str
-    task_count=50,  # type: int
-    app_name="",  # type: str
-    uuid="",  # type: str
-    base_log_dir="",  # type: str
-    specific_log_dir="",  # type: str
-    extrae_cfg="",  # type: str
-    comm="NIO",  # type: str
-    conn=DEFAULT_CONN,  # type: str
-    master_name="",  # type: str
-    master_port="",  # type: str
-    scheduler=DEFAULT_SCHED,  # type: str
-    jvm_workers=DEFAULT_JVM_WORKERS,  # type: str
-    cpu_affinity="automatic",  # type: str
-    gpu_affinity="automatic",  # type: str
-    fpga_affinity="automatic",  # type: str
-    fpga_reprogram="",  # type: str
-    profile_input="",  # type: str
-    profile_output="",  # type: str
-    scheduler_config="",  # type: str
-    external_adaptation=False,  # type: bool
-    propagate_virtual_environment=True,  # type: bool
-    mpi_worker=False,  # type: bool
-    worker_cache=False,  # type: typing.Union[bool, str]
-    shutdown_in_node_failure=False,  # type: bool
-    io_executors=0,  # type: int
-    env_script="",  # type: str
-    reuse_on_block=True,  # type: bool
-    nested_enabled=False,  # type: bool
-    tracing_task_dependencies=False,  # type: bool
-    trace_label="",  # type: str
-    extrae_cfg_python="",  # type: str
-    wcl=0,  # type: int
-    cache_profiler=False,  # type: bool
-    *args,
-    **kwargs
-):  # NOSONAR
-    # type: (...) -> typing.Any
+    app: str,
+    func: typing.Optional[str],
+    log_level: str = "off",
+    o_c: bool = False,
+    debug: bool = False,
+    graph: bool = False,
+    trace: bool = False,
+    monitor: int = -1,
+    project_xml: str = "",
+    resources_xml: str = "",
+    summary: bool = False,
+    task_execution: str = "compss",
+    storage_impl: str = "",
+    storage_conf: str = "",
+    streaming_backend: str = "",
+    streaming_master_name: str = "",
+    streaming_master_port: str = "",
+    task_count: int = 50,
+    app_name: str = "",
+    uuid: str = "",
+    base_log_dir: str = "",
+    specific_log_dir: str = "",
+    extrae_cfg: str = "",
+    comm: str = "NIO",
+    conn: str = DEFAULT_CONN,
+    master_name: str = "",
+    master_port: str = "",
+    scheduler: str = DEFAULT_SCHED,
+    jvm_workers: str = DEFAULT_JVM_WORKERS,
+    cpu_affinity: str = "automatic",
+    gpu_affinity: str = "automatic",
+    fpga_affinity: str = "automatic",
+    fpga_reprogram: str = "",
+    profile_input: str = "",
+    profile_output: str = "",
+    scheduler_config: str = "",
+    external_adaptation: bool = False,
+    propagate_virtual_environment: bool = True,
+    mpi_worker: bool = False,
+    worker_cache: typing.Union[bool, str] = False,
+    shutdown_in_node_failure: bool = False,
+    io_executors: int = 0,
+    env_script: str = "",
+    reuse_on_block: bool = True,
+    nested_enabled: bool = False,
+    tracing_task_dependencies: bool = False,
+    trace_label: str = "",
+    extrae_cfg_python: str = "",
+    wcl: int = 0,
+    cache_profiler: bool = False,
+    *args: typing.Any,
+    **kwargs: typing.Any
+) -> typing.Any:
     """Launch PyCOMPSs application from function.
 
     :param app: Application path

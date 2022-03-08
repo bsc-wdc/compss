@@ -31,8 +31,9 @@ from pycompss.util.logger.helpers import init_logging_worker_piper
 import pycompss.util.context as context
 
 
-def load_loggers(debug, persistent_storage):
-    # type: (bool, bool) -> typing.Tuple[typing.Any, str, typing.Any, str]
+def load_loggers(
+    debug: bool, persistent_storage: bool
+) -> typing.Tuple[typing.Any, str, typing.Any, str]:
     """Load all loggers.
 
     :param debug: is Debug enabled.

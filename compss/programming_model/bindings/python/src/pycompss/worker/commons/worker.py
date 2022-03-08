@@ -59,18 +59,17 @@ default_logger = logging.getLogger(__name__)
 
 
 def build_task_parameter(
-    p_type,  # type: int
-    p_stream,  # type: int
-    p_prefix,  # type: str
-    p_name,  # type: str
-    p_value,  # type: str
-    p_c_type,  # type: str
-    args=None,  # type: list
-    pos=0,  # type: int
-    logger=default_logger,  # type: logging.Logger
-):  # type: (...) -> typing.Tuple[Parameter, int]
-    """
-    Build task parameter object from the given parameters.
+    p_type: int,
+    p_stream: int,
+    p_prefix: str,
+    p_name: str,
+    p_value: str,
+    p_c_type: str,
+    args: typing.Optional[list] = None,
+    pos: int = 0,
+    logger: logging.Logger = default_logger,
+) -> typing.Tuple[Parameter, int]:
+    """Build task parameter object from the given parameters.
 
     :param p_type: Parameter type.
     :param p_stream: Parameter stream.
@@ -212,8 +211,7 @@ def build_task_parameter(
         )
 
 
-def get_task_params(num_params, logger, args):  # noqa
-    # type: (int, typing.Any, list) -> list
+def get_task_params(num_params: int, logger: typing.Any, args: list) -> list:
     """Get and prepare the input parameters from string to lists.
 
     :param num_params: Number of parameters
@@ -259,18 +257,17 @@ def get_task_params(num_params, logger, args):  # noqa
 
 
 def task_execution(
-    logger,  # type: typing.Any
-    process_name,  # type: str
-    module,  # type: typing.Any
-    method_name,  # type: str
-    time_out,  # type: int
-    types,  # type: list
-    values,  # type: list
-    compss_kwargs,  # type: dict
-    persistent_storage,  # type: bool
-    storage_conf,  # type: str
-):
-    # type: (...) -> typing.Tuple[int, list, list, typing.Union[None, Parameter], bool, str]
+    logger: typing.Any,
+    process_name: str,
+    module: typing.Any,
+    method_name: str,
+    time_out: int,
+    types: list,
+    values: list,
+    compss_kwargs: dict,
+    persistent_storage: bool,
+    storage_conf: str,
+) -> typing.Tuple[int, list, list, typing.Union[None, Parameter], bool, str]:
     """Task execution function.
 
     :param logger: Logger
@@ -395,8 +392,7 @@ def task_execution(
     return task_returns(0, new_types, new_values, target_direction, False, "", logger)
 
 
-def _get_return_values_for_exception(types, values):
-    # type: (list, list) -> list
+def _get_return_values_for_exception(types: list, values: list) -> list:
     """Builds the values list to retrieve on an exception.
 
     It takes the input types and returns a list of 'null' for each type
@@ -416,14 +412,14 @@ def _get_return_values_for_exception(types, values):
 
 
 def task_returns(
-    exit_code,  # type: int
-    new_types,  # type: list
-    new_values,  # type: list
-    target_direction,  # type: typing.Union[None, Parameter]
-    timed_out,  # type: bool
-    return_message,  # type: str
-    logger,  # type: typing.Any
-):  # type: (...) -> typing.Tuple[int, list, list, typing.Union[None, Parameter], bool, str]
+    exit_code: int,
+    new_types: list,
+    new_values: list,
+    target_direction: typing.Union[None, Parameter],
+    timed_out: bool,
+    return_message: str,
+    logger: typing.Any,
+) -> typing.Tuple[int, list, list, typing.Union[None, Parameter], bool, str]:
     """Unified task return function.
 
     :param exit_code: Exit value (0 ok, 1 error).
@@ -456,8 +452,7 @@ def task_returns(
     )
 
 
-def import_user_module(path, logger):
-    # type: (str, typing.Any) -> typing.Any
+def import_user_module(path: str, logger: typing.Any) -> typing.Any:
     """Import the user module.
 
     :param path: Path to the user module.
@@ -491,20 +486,19 @@ def import_user_module(path, logger):
 
 
 def execute_task(
-    process_name,  # type: str
-    storage_conf,  # type: str
-    params,  # type: list
-    tracing,  # type: bool
-    logger,  # type: typing.Any
-    logger_cfg,  # type: str
-    log_files,  # type: tuple
-    python_mpi=False,  # type: bool
-    collections_layouts=None,  # type: dict
-    cache_queue=None,  # type: typing.Any
-    cache_ids=None,  # type: typing.Any
-    cache_profiler=False,  # type: bool
-):
-    # type: (...) -> typing.Tuple[int, list, list, typing.Optional[bool], str]
+    process_name: str,
+    storage_conf: str,
+    params: list,
+    tracing: bool,
+    logger: typing.Any,
+    logger_cfg: str,
+    log_files: tuple,
+    python_mpi: bool = False,
+    collections_layouts: typing.Optional[dict] = None,
+    cache_queue: typing.Any = None,
+    cache_ids: typing.Any = None,
+    cache_profiler: bool = False,
+) -> typing.Tuple[int, list, list, typing.Optional[bool], str]:
     """ExecuteTask main method.
 
     :param process_name: Process name.

@@ -102,11 +102,11 @@ class TaskWorker(object):
 
     def __init__(
         self,
-        decorator_arguments,  # type: typing.Dict[str, typing.Any]
-        user_function,  # type: typing.Callable
-        on_failure,  # type: str
-        defaults,  # type: dict
-    ):  # type: (...) -> None
+        decorator_arguments: typing.Dict[str, typing.Any],
+        user_function: typing.Callable,
+        on_failure: str,
+        defaults: dict,
+    ) -> None:
         # Initialize TaskCommons
         self.user_function = user_function
         self.decorator_arguments = decorator_arguments
@@ -123,8 +123,9 @@ class TaskWorker(object):
         self.cache_profiler = False
         # placeholder to keep the object references and avoid garbage collector
 
-    def call(self, *args, **kwargs):
-        # type: (*typing.Any, **typing.Any) -> typing.Tuple[list, list, Parameter, tuple]
+    def call(
+        self, *args: typing.Any, **kwargs: typing.Any
+    ) -> typing.Tuple[list, list, Parameter, tuple]:
         """Main task code at worker side.
 
         This function deals with task calls in the worker"s side
@@ -303,8 +304,7 @@ class TaskWorker(object):
         )  # noqa: E501
 
     @staticmethod
-    def __release_memory__():  # noqa
-        # type: () -> None
+    def __release_memory__() -> None:
         """Release memory after task execution explicitly.
 
         :return: None
@@ -324,8 +324,7 @@ class TaskWorker(object):
                 logger.warning("Could NOT deallocate memory.")
 
     @staticmethod
-    def __report_heap__():  # noqa
-        # type: () -> None
+    def __report_heap__() -> None:
         """Prints the heap status.
 
         :return: None
@@ -343,12 +342,12 @@ class TaskWorker(object):
 
     def reveal_objects(
         self,
-        args,  # type: tuple
-        collections_layouts,  # type: typing.Any
+        args: tuple,
+        collections_layouts: typing.Any,
         # typing.Union[typing.Dict[str, typing.Union[tuple, list]], None]
-        python_mpi=False,  # type: typing.Any
+        python_mpi: typing.Any = False,
         # typing.Union[bool, None]
-    ):  # type: (...) -> None
+    ) -> None:
         """Get the objects from the args message.
 
         This function takes the arguments passed from the persistent worker
@@ -380,8 +379,7 @@ class TaskWorker(object):
             self.retrieve_content(arg, "", python_mpi, collections_layouts)
 
     @staticmethod
-    def storage_supports_pipelining():
-        # type: () -> bool
+    def storage_supports_pipelining() -> bool:
         """Check if storage supports pipelining.
 
         Some storage implementations use pipelining
@@ -401,14 +399,14 @@ class TaskWorker(object):
 
     def retrieve_content(
         self,
-        argument,  # type: Parameter
-        name_prefix,  # type: str
-        python_mpi,  # type: typing.Any
+        argument: Parameter,
+        name_prefix: str,
+        python_mpi: typing.Any,
         # Union[bool, None]
-        collections_layouts,  # type: typing.Any
+        collections_layouts: typing.Any,
         # typing.Union[typing.Dict[str, typing.Union[tuple, list]], typing.Any]
-        depth=0,  # type: int
-    ):  # type: (...) -> None
+        depth: int = 0,
+    ) -> None:
         """Retrieve the content of a particular argument.
 
         :param argument: Argument.
@@ -852,11 +850,12 @@ class TaskWorker(object):
 
     def execute_user_code(
         self,
-        user_args,  # type: list
-        user_kwargs,  # type: dict
-        tracing,  # type: bool
-    ):
-        # type: (...) -> typing.Tuple[typing.Any, typing.Optional[COMPSsException], typing.Optional[dict]]
+        user_args: list,
+        user_kwargs: dict,
+        tracing: bool,
+    ) -> typing.Tuple[
+        typing.Any, typing.Optional[COMPSsException], typing.Optional[dict]
+    ]:
         """Executes the user code.
 
         Disables the tracing hook if tracing is enabled. Restores it
@@ -998,8 +997,9 @@ class TaskWorker(object):
 
             return user_returns, compss_exception, default_values
 
-    def manage_exception(self):
-        # type: () -> typing.Tuple[typing.Optional[int], typing.Optional[dict]]
+    def manage_exception(
+        self,
+    ) -> typing.Tuple[typing.Optional[int], typing.Optional[dict]]:
         """Deal with exceptions (on failure action).
 
         :return: The default return and values.
@@ -1013,8 +1013,7 @@ class TaskWorker(object):
             default_values = self.defaults
         return user_returns, default_values
 
-    def manage_defaults(self, args, default_values):
-        # type: (tuple, dict) -> None
+    def manage_defaults(self, args: tuple, default_values: dict) -> None:
         """Deal with default values. Updates args with the appropriate object
         or file.
 
@@ -1038,8 +1037,7 @@ class TaskWorker(object):
                 # Update file
                 copyfile(str(default_values[arg.name]), str(arg.content))
 
-    def manage_inouts(self, args, python_mpi):
-        # type: (tuple, bool) -> None
+    def manage_inouts(self, args: tuple, python_mpi: bool) -> None:
         """Deal with INOUTS. Serializes the result of INOUT parameters.
 
         :param args: Argument list.
@@ -1172,8 +1170,7 @@ class TaskWorker(object):
                     serialize_to_file(arg.content, f_name)
                     self.update_object_in_cache(arg.content, arg)
 
-    def update_object_in_cache(self, content, argument):
-        # type: (typing.Any, Parameter) -> None
+    def update_object_in_cache(self, content: typing.Any, argument: Parameter) -> None:
         """Updates the object into cache if possible
 
         :param content: Object to be updated.
@@ -1211,8 +1208,13 @@ class TaskWorker(object):
                     self.user_function,
                 )
 
-    def manage_returns(self, num_returns, user_returns, ret_params, python_mpi):
-        # type: (int, typing.Any, list, bool) -> typing.Any
+    def manage_returns(
+        self,
+        num_returns: int,
+        user_returns: typing.Any,
+        ret_params: list,
+        python_mpi: bool,
+    ) -> typing.Any:
         """Manage task returns.
 
         WARNING: Modifies ret_params, which is included into args.
@@ -1275,8 +1277,7 @@ class TaskWorker(object):
                         )
         return user_returns
 
-    def is_parameter_an_object(self, name):
-        # type: (str) -> bool
+    def is_parameter_an_object(self, name: str) -> bool:
         """Given the name of a parameter, determine if it is an object or not.
 
         :param name: Name of the parameter.
@@ -1304,8 +1305,7 @@ class TaskWorker(object):
         # return True
         return True
 
-    def is_parameter_file_collection(self, name):
-        # type: (str) -> bool
+    def is_parameter_file_collection(self, name: str) -> bool:
         """Given the name of a parameter, determine if it is a file
         collection or not.
 
@@ -1328,14 +1328,14 @@ class TaskWorker(object):
 
     def manage_new_types_values(
         self,
-        num_returns,  # type: int
-        user_returns,  # type: typing.Any
-        args,  # type: tuple
-        has_self,  # type: bool
-        target_label,  # type: str
-        self_type,  # type: int
-        self_value,  # type: typing.Any
-    ):  # type: (...) -> typing.Tuple[list, list]
+        num_returns: int,
+        user_returns: typing.Any,
+        args: tuple,
+        has_self: bool,
+        target_label: str,
+        self_type: int,
+        self_value: typing.Any,
+    ) -> typing.Tuple[list, list]:
         """Manage new types and values.
 
         We must notify COMPSs when types are updated
@@ -1493,8 +1493,9 @@ class TaskWorker(object):
 #######################
 
 
-def __get_collection_objects__(content, argument):
-    # type: (typing.Any, Parameter) -> typing.Generator[typing.Tuple[typing.Any, Parameter], None, None]
+def __get_collection_objects__(
+    content: typing.Any, argument: Parameter
+) -> typing.Generator[typing.Tuple[typing.Any, Parameter], None, None]:
     """Retrieve collection objects recursively generator.
     Updates the collection with any modification from content.
     """
@@ -1522,8 +1523,9 @@ def __get_collection_objects__(content, argument):
         yield content, argument
 
 
-def __get_dict_collection_objects__(content, argument):
-    # type: (typing.Any, Parameter) -> typing.Generator[typing.Tuple[typing.Any, Parameter], None, None]
+def __get_dict_collection_objects__(
+    content: typing.Any, argument: Parameter
+) -> typing.Generator[typing.Tuple[typing.Any, Parameter], None, None]:
     """Retrieve dictionary collection objects recursively generator.
     Updates the dictionary collection with any modification from content."""
     if argument.content_type == parameter.TYPE.DICT_COLLECTION:
@@ -1563,8 +1565,7 @@ def __get_dict_collection_objects__(content, argument):
         yield content, argument
 
 
-def __get_ret_rank__(_ret_params):
-    # type: (list) -> list
+def __get_ret_rank__(_ret_params: list) -> list:
     """Retrieve the rank id within MPI.
 
     :param _ret_params: Return parameters.

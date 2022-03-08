@@ -32,8 +32,7 @@ OPTIONAL_MODULES = {
 }
 
 
-def get_optional_module_warning(module_name, module_description):
-    # type: (str, str) -> str
+def get_optional_module_warning(module_name: str, module_description: str) -> str:
     """Get optional modules warning message.
 
     :param module_name: Module name.
@@ -44,15 +43,14 @@ def get_optional_module_warning(module_name, module_description):
         "\n[ WARNING ]:\t%s module is not installed." % module_name,
         "\t\t%s" % module_description.replace("\n", "\n\t\t"),
         "\t\tPyCOMPSs can work without %s, but it is recommended to have it installed."
-        % module_name,  # noqa: E501
+        % module_name,
         "\t\tYou can install it via pip typing pip install %s, or (probably) with your package manager.\n"
-        % module_name,  # noqa: E501
+        % module_name,
     ]
     return "\n".join(ret)
 
 
-def show_optional_module_warnings():
-    # type: () -> None
+def show_optional_module_warnings() -> None:
     """Display the optional modules warnings if not available.
 
     :return: None

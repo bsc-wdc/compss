@@ -67,8 +67,7 @@ CACHE_IDS = None
 CACHE_QUEUE = None
 
 
-def is_worker():
-    # type: () -> bool
+def is_worker() -> bool:
     """Returns whether the process should act as a worker.
 
     :return: the process should act as a worker.
@@ -76,8 +75,7 @@ def is_worker():
     return RANK == 0
 
 
-def shutdown_handler(signal, frame):  # noqa
-    # type: (int, typing.Any) -> None
+def shutdown_handler(signal: int, frame: typing.Any) -> None:
     """Shutdown handler.
 
     Do not remove the parameters.
@@ -92,8 +90,7 @@ def shutdown_handler(signal, frame):  # noqa
         print("[PYTHON EXECUTOR %s] Shutdown signal handler" % RANK)
 
 
-def user_signal_handler(signal, frame):  # noqa
-    # type: (int, typing.Any) -> None
+def user_signal_handler(signal: int, frame: typing.Any) -> None:
     """User signal handler.
 
     Do not remove the parameters.
@@ -113,8 +110,7 @@ def user_signal_handler(signal, frame):  # noqa
 ######################
 
 
-def compss_persistent_worker(config):
-    # type: (PiperWorkerConfiguration) -> None
+def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
     """Persistent worker main function.
 
     Retrieves the initial configuration and spawns the worker processes.
@@ -232,8 +228,7 @@ def compss_persistent_worker(config):
     control_pipe.close()
 
 
-def compss_persistent_executor(config):
-    # type: (PiperWorkerConfiguration) -> None
+def compss_persistent_executor(config: PiperWorkerConfiguration) -> None:
     """Persistent executor main function.
 
     Retrieves the initial configuration and spawns the worker processes.
@@ -304,8 +299,7 @@ def compss_persistent_executor(config):
 ############################
 
 
-def main():
-    # type: () -> None
+def main() -> None:
     """Main mpi piper worker
 
     :return: None

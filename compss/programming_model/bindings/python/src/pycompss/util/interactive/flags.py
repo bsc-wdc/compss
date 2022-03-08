@@ -79,8 +79,7 @@ REQUIRED_FLAGS = {
 }
 
 
-def check_flags(all_vars):
-    # type: (dict) -> typing.Tuple[bool, list]
+def check_flags(all_vars: dict) -> typing.Tuple[bool, list]:
     """Checks that the provided flags are supported.
 
     :param all_vars: Flags dictionary
@@ -107,8 +106,7 @@ def check_flags(all_vars):
     return is_ok, issues
 
 
-def __check_flag__(all_vars, flag, requirements):
-    # type: (dict, str, typing.Any) -> list
+def __check_flag__(all_vars: dict, flag: str, requirements: typing.Any) -> list:
     """Checks the given flag against the requirements looking for issues.
 
     :param all_vars: All variables.
@@ -144,8 +142,7 @@ def __check_flag__(all_vars, flag, requirements):
     return issues
 
 
-def print_flag_issues(issues):
-    # type: (list) -> None
+def print_flag_issues(issues: list) -> None:
     """Displays the given issues on stdout.
 
     :param issues: Flag issues

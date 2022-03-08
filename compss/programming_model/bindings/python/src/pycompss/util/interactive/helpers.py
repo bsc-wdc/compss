@@ -58,8 +58,7 @@ PREFIXES = (
 # ################################################################# #
 
 
-def update_tasks_code_file(f, file_path):
-    # type: (typing.Any, str) -> None
+def update_tasks_code_file(f: typing.Any, file_path: str) -> None:
     """Main interactive helper function.
 
     Analyses the user code that has been executed and parses it looking for:
@@ -117,8 +116,7 @@ def update_tasks_code_file(f, file_path):
 # CODE INTERCEPTION FUNCTIONS
 
 
-def _create_tasks_code_file(file_path):
-    # type: (str) -> None
+def _create_tasks_code_file(file_path: str) -> None:
     """Creates a file where to store the user code.
 
     :param file_path: File location and name.
@@ -137,8 +135,7 @@ def _create_tasks_code_file(file_path):
     user_code_file.close()
 
 
-def _get_raw_code():
-    # type: () -> list
+def _get_raw_code() -> list:
     """Retrieve the raw code from interactive session.
 
     :return: the list of the blocks defined by the user that are currently
@@ -151,8 +148,7 @@ def _get_raw_code():
     return raw_code
 
 
-def _get_ipython_imports():
-    # type: () -> list
+def _get_ipython_imports() -> list:
     """Finds the user imports.
 
     :return: A list of imports: [import\n, import\n, ...].
@@ -172,8 +168,7 @@ def _get_ipython_imports():
     return imports
 
 
-def _get_ipython_globals():
-    # type: () -> dict
+def _get_ipython_globals() -> dict:
     """Finds the user global variables.
 
     WARNING: Assignations using any of the master api calls will be ignored
@@ -233,8 +228,7 @@ def _get_ipython_globals():
     return glob_lines
 
 
-def _is_variable_assignation(line):
-    # type: (str) -> bool
+def _is_variable_assignation(line: str) -> bool:
     """Check if the line is a variable assignation.
 
     This function is used to check if a line of code represents a variable
@@ -269,8 +263,7 @@ def _is_variable_assignation(line):
         return False
 
 
-def _get_classes():
-    # type: () -> dict
+def _get_classes() -> dict:
     """Finds the user defined classes in the code.
 
     Output dictionary: {"name": str(line\nline\n...)}
@@ -313,8 +306,7 @@ def _get_classes():
     return plain_classes
 
 
-def _get_functions():
-    # type: () -> dict
+def _get_functions() -> dict:
     """Finds the user defined functions in the code.
 
     Output dictionary: {"name": str(line\nline\n...)}
@@ -381,8 +373,7 @@ def _get_functions():
     return plain_functions
 
 
-def _get_task_code(f):
-    # type: (typing.Any) -> dict
+def _get_task_code(f: typing.Any) -> dict:
     """Finds the task code.
 
     :param f: Task function
@@ -406,8 +397,7 @@ def _get_task_code(f):
         return {name: task_code}
 
 
-def _clean(lines_list):
-    # type: (list) -> list
+def _clean(lines_list: list) -> list:
     """Removes the blank lines from a list of strings.
 
     * _get_old_code auxiliary method - Clean imports list.
@@ -427,8 +417,7 @@ def _clean(lines_list):
         return result
 
 
-def _get_old_code(file_path):
-    # type: (str) -> dict
+def _get_old_code(file_path: str) -> dict:
     """Retrieve the old code from a file.
 
     :param file_path: The file where the code is located.
@@ -593,8 +582,7 @@ def _get_old_code(file_path):
 # #######################
 
 
-def _update_imports(new_imports, old_imports):
-    # type: (list, list) -> list
+def _update_imports(new_imports: list, old_imports: list) -> list:
     """Update imports.
 
     Compare the old imports against the new ones and returns the old imports
@@ -617,8 +605,7 @@ def _update_imports(new_imports, old_imports):
     return imports
 
 
-def _update_globals(new_globals, old_globals):
-    # type: (dict, dict) -> dict
+def _update_globals(new_globals: dict, old_globals: dict) -> dict:
     """Update global variables.
 
     Compare the old globals against the new ones and returns the old globals
@@ -646,8 +633,7 @@ def _update_globals(new_globals, old_globals):
         return old_globals
 
 
-def _update_classes(new_classes, old_classes):
-    # type: (dict, dict) -> dict
+def _update_classes(new_classes: dict, old_classes: dict) -> dict:
     """Update classes.
 
     Compare the old classes against the new ones. This function is essential
@@ -673,8 +659,7 @@ def _update_classes(new_classes, old_classes):
         return old_classes
 
 
-def _update_functions(new_functions, old_functions):
-    # type: (dict, dict) -> dict
+def _update_functions(new_functions: dict, old_functions: dict) -> dict:
     """Update functions.
 
     Compare the old functions against the new ones. This function is essential
@@ -686,7 +671,6 @@ def _update_functions(new_functions, old_functions):
     :return: dictionary with the merging result (keeping all functions and
              updating the old ones).
     """
-
     if len(old_functions) == 0:
         return new_functions
     else:
@@ -701,8 +685,7 @@ def _update_functions(new_functions, old_functions):
         return old_functions
 
 
-def _update_tasks(new_tasks, old_tasks):
-    # type: (dict, dict) -> dict
+def _update_tasks(new_tasks: dict, old_tasks: dict) -> dict:
     """Update task decorated functions.
 
     Compare the old tasks against the new ones. This function is essential due
@@ -730,8 +713,7 @@ def _update_tasks(new_tasks, old_tasks):
     return old_tasks
 
 
-def __show_redefinition_warning__(kind, name):
-    # type: (str, str) -> None
+def __show_redefinition_warning__(kind: str, name: str) -> None:
     """Shows a warning notifying the redefinition of "kind" type."""
     print(
         "WARNING! %s %s has been redefined (the previous will be deprecated)."
@@ -745,9 +727,13 @@ def __show_redefinition_warning__(kind, name):
 
 
 def _update_code_file(
-    new_imports, new_globals, new_classes, new_functions, new_tasks, file_path
-):
-    # type: (list, dict, dict, dict, dict, str) -> None
+    new_imports: list,
+    new_globals: dict,
+    new_classes: dict,
+    new_functions: dict,
+    new_tasks: dict,
+    file_path: str,
+) -> None:
     """Writes the results to the code file used by the workers.
 
     :param new_imports: new imports.

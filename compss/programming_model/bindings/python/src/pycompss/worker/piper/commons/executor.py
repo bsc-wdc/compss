@@ -88,8 +88,7 @@ from pycompss.streams.components.distro_stream_client import (
 HEADER = "*[PYTHON EXECUTOR] "
 
 
-def shutdown_handler(signal, frame):  # noqa
-    # type: (int, typing.Any) -> None
+def shutdown_handler(signal: int, frame: typing.Any) -> None:
     """Shutdown handler
 
     Do not remove the parameters.
@@ -109,8 +108,7 @@ class Pipe(object):
 
     __slots__ = ["input_pipe", "input_pipe_open", "output_pipe"]
 
-    def __init__(self, input_pipe, output_pipe):
-        # type: (str, str) -> None
+    def __init__(self, input_pipe: str, output_pipe: str) -> None:
         """Constructs a new Pipe.
 
         :param input_pipe: Input pipe for the thread. To receive messages from
@@ -122,8 +120,7 @@ class Pipe(object):
         self.input_pipe_open = None  # type: typing.Any
         self.output_pipe = output_pipe
 
-    def read_command(self, retry_period=0.5):
-        # type: (float) -> str
+    def read_command(self, retry_period: float = 0.5) -> str:
         """Returns the first command on the pipe.
 
         :param retry_period: time (ms) that the thread sleeps if EOF is read
@@ -143,8 +140,7 @@ class Pipe(object):
 
         return line
 
-    def write(self, message):
-        # type: (str) -> None
+    def write(self, message: str) -> None:
         """Writes a message through the pipe.
 
         :param message: message sent through the pipe
@@ -153,8 +149,7 @@ class Pipe(object):
         with open(self.output_pipe, "w") as out_pipe:
             out_pipe.write("".join((message, "\n")))
 
-    def close(self):
-        # type: () -> None
+    def close(self) -> None:
         """Closes the pipe, if open.
 
         :return: None
@@ -163,8 +158,7 @@ class Pipe(object):
             self.input_pipe_open.close()
             self.input_pipe_open = None
 
-    def __str__(self):
-        # type: () -> str
+    def __str__(self) -> str:
         """Representation of the Pipe.
 
         :return: String representing the Pipe object.
@@ -196,21 +190,21 @@ class ExecutorConf(object):
 
     def __init__(
         self,
-        debug,  # type: bool
-        tmp_dir,  # type: str
-        tracing,  # type: bool
-        storage_conf,  # type: str
-        logger,  # type: typing.Any
-        logger_cfg,  # type: str
-        persistent_storage,  # type: bool
-        storage_loggers,  # type: typing.Any
-        stream_backend,  # type: str
-        stream_master_ip,  # type: str
-        stream_master_port,  # type: str
-        cache_ids=None,  # type: typing.Any
-        cache_queue=None,  # type: Queue
-        cache_profiler=False,  # type: bool
-    ):  # type: (...) -> None
+        debug: bool,
+        tmp_dir: str,
+        tracing: bool,
+        storage_conf: str,
+        logger: typing.Any,
+        logger_cfg: str,
+        persistent_storage: bool,
+        storage_loggers: typing.Any,
+        stream_backend: str,
+        stream_master_ip: str,
+        stream_master_port: str,
+        cache_ids: typing.Any = None,
+        cache_queue: Queue = None,
+        cache_profiler: bool = False,
+    ) -> None:
         """
         Constructs a new executor configuration.
 
@@ -251,8 +245,9 @@ class ExecutorConf(object):
 ######################
 
 
-def executor(queue, process_name, pipe, conf):
-    # type: (typing.Union[None, Queue], str, Pipe, typing.Any) -> None
+def executor(
+    queue: typing.Union[None, Queue], process_name: str, pipe: Pipe, conf: typing.Any
+) -> None:
     """Thread main body - Overrides Threading run method.
 
     Iterates over the input pipe in order to receive tasks (with their
@@ -406,23 +401,23 @@ def executor(queue, process_name, pipe, conf):
 
 
 def process_message(
-    current_line,  # type: str
-    process_name,  # type: str
-    pipe,  # type: Pipe
-    queue,  # type: typing.Optional[Queue]
-    tracing,  # type: bool
-    logger,  # type: typing.Any
-    logger_cfg,  # type: str
-    logger_handlers,  # type: list
-    logger_level,  # type: int
-    logger_formatter,  # type: typing.Any
-    storage_conf,  # type: str
-    storage_loggers,  # type: list
-    storage_loggers_handlers,  # type: list
-    cache_queue=None,  # type: typing.Optional[Queue]
-    cache_ids=None,  # type: typing.Any
-    cache_profiler=False,  # type: bool
-):  # type: (...) -> bool
+    current_line: str,
+    process_name: str,
+    pipe: Pipe,
+    queue: typing.Optional[Queue],
+    tracing: bool,
+    logger: typing.Any,
+    logger_cfg: str,
+    logger_handlers: list,
+    logger_level: int,
+    logger_formatter: typing.Any,
+    storage_conf: str,
+    storage_loggers: list,
+    storage_loggers_handlers: list,
+    cache_queue: typing.Optional[Queue] = None,
+    cache_ids: typing.Any = None,
+    cache_profiler: bool = False,
+) -> bool:
     """Process command received from the runtime through a pipe.
 
     :param current_line: Current command (line) to process
@@ -487,23 +482,23 @@ def process_message(
 
 
 def process_task(
-    current_line,  # type: list
-    process_name,  # type: str
-    pipe,  # type: Pipe
-    queue,  # type: typing.Optional[Queue]
-    tracing,  # type: bool
-    logger,  # type: typing.Any
-    logger_cfg,  # type: str
-    logger_handlers,  # type: list
-    logger_level,  # type: int
-    logger_formatter,  # type: typing.Any
-    storage_conf,  # type: str
-    storage_loggers,  # type: list
-    storage_loggers_handlers,  # type: list
-    cache_queue,  # type: typing.Optional[Queue]
-    cache_ids,  # type: typing.Any
-    cache_profiler,  # type: bool
-):  # type: (...) -> bool
+    current_line: list,
+    process_name: str,
+    pipe: Pipe,
+    queue: typing.Optional[Queue],
+    tracing: bool,
+    logger: typing.Any,
+    logger_cfg: str,
+    logger_handlers: list,
+    logger_level: int,
+    logger_formatter: typing.Any,
+    storage_conf: str,
+    storage_loggers: list,
+    storage_loggers_handlers: list,
+    cache_queue: typing.Optional[Queue],
+    cache_ids: typing.Any,
+    cache_profiler: bool,
+) -> bool:
     """Process command received from the runtime through a pipe.
 
     :param current_line: Current command (line) to process.
@@ -750,8 +745,7 @@ def process_task(
         return True
 
 
-def process_ping(pipe, logger, process_name):  # noqa
-    # type: (Pipe, typing.Any, str) -> bool
+def process_ping(pipe: Pipe, logger: typing.Any, process_name: str) -> bool:
     """Process ping message.
 
     Response: Pong.
@@ -771,8 +765,7 @@ def process_ping(pipe, logger, process_name):  # noqa
         return True
 
 
-def process_quit(logger, process_name):  # noqa
-    # type: (typing.Any, str) -> bool
+def process_quit(logger: typing.Any, process_name: str) -> bool:
     """Process quit message.
 
     Response: False.
@@ -787,8 +780,7 @@ def process_quit(logger, process_name):  # noqa
         return False
 
 
-def bind_cpus(cpus, process_name, logger):  # noqa
-    # type: (str, str, typing.Any) -> bool
+def bind_cpus(cpus: str, process_name: str, logger: typing.Any) -> bool:
     """Bind the given CPUs for core affinity to this process.
 
     :param cpus: Target CPUs.
@@ -818,8 +810,7 @@ def bind_cpus(cpus, process_name, logger):  # noqa
         return True
 
 
-def bind_gpus(gpus, process_name, logger):  # noqa
-    # type: (str, str, typing.Any) -> None
+def bind_gpus(gpus: str, process_name: str, logger: typing.Any) -> None:
     """Bind the given GPUs to this process.
 
     :param gpus: Target GPUs.
@@ -837,8 +828,7 @@ def bind_gpus(gpus, process_name, logger):  # noqa
             )
 
 
-def setup_environment(cn, cn_names, cu):
-    # type: (int, str, str) -> None
+def setup_environment(cn: int, cn_names: str, cu: str) -> None:
     """Sets the environment (mainly environment variables).
 
     :param cn: Number of COMPSs nodes.
@@ -853,8 +843,9 @@ def setup_environment(cn, cn_names, cu):
         os.environ["OMP_NUM_THREADS"] = cu
 
 
-def build_successful_message(new_types, new_values, job_id, exit_value):
-    # type: (list, list, str, int) -> str
+def build_successful_message(
+    new_types: list, new_values: list, job_id: str, exit_value: int
+) -> str:
     """Generate a successful message.
 
     :param new_types: New types (can change if INOUT).
@@ -873,8 +864,9 @@ def build_successful_message(new_types, new_values, job_id, exit_value):
         return message
 
 
-def build_compss_exception_message(except_msg, job_id):
-    # type: (str, str) -> typing.Tuple[str, str]
+def build_compss_exception_message(
+    except_msg: str, job_id: str
+) -> typing.Tuple[str, str]:
     """Generate a COMPSs exception message.
 
     :param except_msg: Exception stacktrace.
@@ -887,8 +879,7 @@ def build_compss_exception_message(except_msg, job_id):
         return except_msg, message
 
 
-def build_exception_message(job_id, exit_value):
-    # type: (str, int) -> str
+def build_exception_message(job_id: str, exit_value: int) -> str:
     """Generate an exception message.
 
     :param job_id: Job identifier.
@@ -900,8 +891,7 @@ def build_exception_message(job_id, exit_value):
         return message
 
 
-def clean_environment(cpus, gpus):
-    # type: (bool, bool) -> None
+def clean_environment(cpus: bool, gpus: bool) -> None:
     """Clean the environment
 
     Mainly unset environment variables.

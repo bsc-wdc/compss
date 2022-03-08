@@ -24,8 +24,7 @@ PyCOMPSs PYTHONPATH Fixer
 import sys
 
 
-def fix_pythonpath():
-    # type: () -> None
+def fix_pythonpath() -> None:
     """Resets the PYTHONPATH for clean container environments
 
     :return: None

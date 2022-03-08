@@ -31,8 +31,7 @@ from pycompss.api.task import task
 
 
 @task(returns=list)
-def gen_random(size, frag_size, seed):
-    # type: (int, int, int) -> typing.Any
+def gen_random(size: int, frag_size: int, seed: int) -> typing.Any:
     """Random generator.
 
     :param size: Size
@@ -45,8 +44,7 @@ def gen_random(size, frag_size, seed):
 
 
 @task(returns=list)
-def gen_normal(size, frag_size, seed):
-    # type: (int, int, int) -> typing.Any
+def gen_normal(size: int, frag_size: int, seed: int) -> typing.Any:
     """Normal generator.
 
     :param size: Size
@@ -61,8 +59,7 @@ def gen_normal(size, frag_size, seed):
 
 
 @task(returns=list)
-def gen_uniform(size, frag_size, seed):
-    # type: (int, int, int) -> typing.Any
+def gen_uniform(size: int, frag_size: int, seed: int) -> typing.Any:
     """Uniform generator.
 
     :param size: Size

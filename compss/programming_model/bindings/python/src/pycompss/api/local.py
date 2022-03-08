@@ -35,8 +35,7 @@ from pycompss.runtime.management.object_tracker import OT
 import pycompss.util.context as context
 
 
-def local(input_function):
-    # type: (typing.Callable) -> typing.Callable
+def local(input_function: typing.Callable) -> typing.Callable:
     """Local decorator.
 
     :param input_function: Input function.
@@ -45,22 +44,19 @@ def local(input_function):
     if not context.in_pycompss():
         # Return dummy local decorator
 
-        def wrapped_function(*args, **kwargs):
-            # type: (*typing.Any, **typing.Any) -> typing.Any
+        def wrapped_function(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             return input_function(*args, **kwargs)
 
         return wrapped_function
 
     else:
 
-        def sync_if_needed(obj):
-            # type: (typing.Any) -> None
+        def sync_if_needed(obj: typing.Any) -> None:
             if OT.is_obj_pending_to_synchronize(obj):
                 new_val = compss_wait_on(obj)
                 replace(obj, new_val)
 
-        def wrapped_function(*args, **kwargs):
-            # type: (*typing.Any, **typing.Any) -> typing.Any
+        def wrapped_function(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             gc.collect()
             _args = []
             _kwargs = {}

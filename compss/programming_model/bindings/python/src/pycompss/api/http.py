@@ -56,8 +56,7 @@ class HTTP(object):
     __call__ methods, useful on mpi task creation.
     """
 
-    def __init__(self, *args, **kwargs):
-        # type: (*typing.Any, **typing.Any) -> None
+    def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         """Store arguments passed to the decorator.
 
         self = itself.
@@ -86,8 +85,7 @@ class HTTP(object):
                 decorator_name,
             )
 
-    def __call__(self, user_function):
-        # type: (typing.Callable) -> typing.Callable
+    def __call__(self, user_function: typing.Callable) -> typing.Callable:
         """Parse and set the http parameters within the task core element.
 
         :param user_function: Function to decorate.
@@ -95,15 +93,15 @@ class HTTP(object):
         """
 
         @wraps(user_function)
-        def http_f(*args, **kwargs):
-            # type: (*typing.Any, **typing.Any) -> typing.Any
+        def http_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             return self.__decorator_body__(user_function, args, kwargs)
 
         http_f.__doc__ = user_function.__doc__
         return http_f
 
-    def __decorator_body__(self, user_function, args, kwargs):
-        # type: (typing.Callable, tuple, dict) -> typing.Any
+    def __decorator_body__(
+        self, user_function: typing.Callable, args: tuple, kwargs: dict
+    ) -> typing.Any:
         # force to serialize with JSON
         serializer.FORCED_SERIALIZER = 4
         if not self.scope:
@@ -125,8 +123,7 @@ class HTTP(object):
 
         return ret
 
-    def __run_http__(self, *args, **kwargs):
-        # type: (*typing.Any, **typing.Any) -> int
+    def __run_http__(self, *args: typing.Any, **kwargs: typing.Any) -> int:
         """HTTP tasks are meant to be dummy.
 
         :param args: Arguments received from call.
@@ -136,8 +133,7 @@ class HTTP(object):
         print("running http")
         return 200
 
-    def __configure_core_element__(self, kwargs):
-        # type: (dict) -> None
+    def __configure_core_element__(self, kwargs: dict) -> None:
         """Include the registering info related to @http.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].

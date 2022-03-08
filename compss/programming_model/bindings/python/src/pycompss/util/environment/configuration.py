@@ -49,8 +49,7 @@ DEFAULT_LOG_PATH = "/Runtime/configuration/log/"
 DEFAULT_TRACING_PATH = "/Runtime/configuration/xml/tracing/"
 
 
-def preload_user_code():
-    # type: () -> bool
+def preload_user_code() -> bool:
     """Checks if the user code has to be preloaded before starting the runtime
     or has been disabled by the user through environment variable.
 
@@ -68,8 +67,7 @@ def preload_user_code():
         return False
 
 
-def export_current_flags(all_vars):
-    # type: (dict) -> None
+def export_current_flags(all_vars: dict) -> None:
     """Save all vars in global current flags so that events.py can restart
     the notebook with the same flags.
     Removes b" and " to avoid issues with javascript
@@ -83,14 +81,14 @@ def export_current_flags(all_vars):
 
 
 def prepare_environment(
-    interactive,  # type: bool
-    o_c,  # type: bool
-    storage_impl,  # type: str
-    app,  # type: str
-    debug,  # type: bool
-    trace,  # type: bool
-    mpi_worker,  # type: bool
-):  # type: (...) -> dict
+    interactive: bool,
+    o_c: bool,
+    storage_impl: str,
+    app: str,
+    debug: bool,
+    trace: bool,
+    mpi_worker: bool,
+) -> dict:
     """Setup the environment variable and retrieve their content.
 
     :param interactive: True | False If the environment is interactive or not.
@@ -179,16 +177,16 @@ def prepare_environment(
     return env_vars
 
 
-def control_binding_commons_debug(debug):
-    # type: (bool) -> None
+def control_binding_commons_debug(debug: bool) -> None:
     """Enables the binding-commons debug mode."""
     if debug:
         # Add environment variable to get binding-commons debug information
         os.environ["COMPSS_BINDINGS_DEBUG"] = "1"
 
 
-def prepare_loglevel_graph_for_monitoring(monitor, graph, debug, log_level):
-    # type: (typing.Union[None, int], bool, bool, str) -> dict
+def prepare_loglevel_graph_for_monitoring(
+    monitor: typing.Union[None, int], graph: bool, debug: bool, log_level: str
+) -> dict:
     """Checks if monitor is enabled and updates graph and log level.
     If monitor is True, then the log_level and graph are set to debug.
 
@@ -213,8 +211,7 @@ def prepare_loglevel_graph_for_monitoring(monitor, graph, debug, log_level):
     return monitoring_vars
 
 
-def updated_variables_in_sc():
-    # type: () -> dict
+def updated_variables_in_sc() -> dict:
     """Retrieve the updated variable values within SCs.
 
     :return: Dictionary containing the updated variables (project_xml,
@@ -258,8 +255,9 @@ def updated_variables_in_sc():
     return updated_vars
 
 
-def prepare_tracing_environment(trace, extrae_lib, ld_library_path):
-    # type: (bool, str, str) -> typing.Tuple[int, str]
+def prepare_tracing_environment(
+    trace: bool, extrae_lib: str, ld_library_path: str
+) -> typing.Tuple[int, str]:
     """Prepare the environment for tracing.
     Also retrieves the appropriate trace value for the initial configuration
     file (which is an integer).
@@ -286,9 +284,13 @@ def prepare_tracing_environment(trace, extrae_lib, ld_library_path):
 
 
 def check_infrastructure_variables(
-    project_xml, resources_xml, compss_home, app_name, file_name, external_adaptation
-):
-    # type: (str, str, str, str, str, bool) -> dict
+    project_xml: str,
+    resources_xml: str,
+    compss_home: str,
+    app_name: str,
+    file_name: str,
+    external_adaptation: bool,
+) -> dict:
     """Checks the infrastructure variables and updates them if None.
 
     :param project_xml: Project xml file path (None if not defined)
@@ -332,62 +334,62 @@ def check_infrastructure_variables(
 
 
 def create_init_config_file(
-    compss_home,  # type: str
-    debug,  # type: bool
-    log_level,  # type: str
-    project_xml,  # type: str
-    resources_xml,  # type: str
-    summary,  # type: bool
-    task_execution,  # type: str
-    storage_conf,  # type: str
-    streaming_backend,  # type: str
-    streaming_master_name,  # type: str
-    streaming_master_port,  # type: str
-    task_count,  # type: int
-    app_name,  # type: str
-    uuid,  # type: str
-    base_log_dir,  # type: str
-    specific_log_dir,  # type: str
-    graph,  # type: bool
-    monitor,  # type: int
-    trace,  # type: int
-    extrae_cfg,  # type: str
-    comm,  # type: str
-    conn,  # type: str
-    master_name,  # type: str
-    master_port,  # type: str
-    scheduler,  # type: str
-    cp,  # type: str
-    classpath,  # type: str
-    ld_library_path,  # type: str
-    pythonpath,  # type: str
-    jvm_workers,  # type: str
-    cpu_affinity,  # type: str
-    gpu_affinity,  # type: str
-    fpga_affinity,  # type: str
-    fpga_reprogram,  # type: str
-    profile_input,  # type: str
-    profile_output,  # type: str
-    scheduler_config,  # type: str
-    external_adaptation,  # type: str
-    python_interpreter,  # type: str
-    python_version,  # type: str
-    python_virtual_environment,  # type: str
-    propagate_virtual_environment,  # type: bool
-    mpi_worker,  # type: bool
-    worker_cache,  # type: typing.Union[bool, str]
-    shutdown_in_node_failure,  # type: bool
-    io_executors,  # type: int
-    env_script,  # type: str
-    reuse_on_block,  # type: bool
-    nested_enabled,  # type: bool
-    tracing_task_dependencies,  # type: bool
-    trace_label,  # type: str
-    extrae_cfg_python,  # type: str
-    wcl,  # type: int
-    cache_profiler,  # type: bool
-    **kwargs  # type: dict
-):  # type: (...) -> None
+    compss_home: str,
+    debug: bool,
+    log_level: str,
+    project_xml: str,
+    resources_xml: str,
+    summary: bool,
+    task_execution: str,
+    storage_conf: str,
+    streaming_backend: str,
+    streaming_master_name: str,
+    streaming_master_port: str,
+    task_count: int,
+    app_name: str,
+    uuid: str,
+    base_log_dir: str,
+    specific_log_dir: str,
+    graph: bool,
+    monitor: int,
+    trace: int,
+    extrae_cfg: str,
+    comm: str,
+    conn: str,
+    master_name: str,
+    master_port: str,
+    scheduler: str,
+    cp: str,
+    classpath: str,
+    ld_library_path: str,
+    pythonpath: str,
+    jvm_workers: str,
+    cpu_affinity: str,
+    gpu_affinity: str,
+    fpga_affinity: str,
+    fpga_reprogram: str,
+    profile_input: str,
+    profile_output: str,
+    scheduler_config: str,
+    external_adaptation: str,
+    python_interpreter: str,
+    python_version: str,
+    python_virtual_environment: str,
+    propagate_virtual_environment: bool,
+    mpi_worker: bool,
+    worker_cache: typing.Union[bool, str],
+    shutdown_in_node_failure: bool,
+    io_executors: int,
+    env_script: str,
+    reuse_on_block: bool,
+    nested_enabled: bool,
+    tracing_task_dependencies: bool,
+    trace_label: str,
+    extrae_cfg_python: str,
+    wcl: int,
+    cache_profiler: bool,
+    **kwargs: typing.Any
+) -> None:
     """
     Creates the initialization files for the runtime start (java options file).
 

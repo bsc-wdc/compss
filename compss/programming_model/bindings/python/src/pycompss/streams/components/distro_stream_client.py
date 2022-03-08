@@ -51,8 +51,7 @@ class DistroStreamClientHandler(object):
 
     CLIENT = None  # type: typing.Any
 
-    def __init__(self):
-        # type: () -> None
+    def __init__(self) -> None:
         """Creates a new handler instance.
         Should never be called directly since all attributes are static.
         """
@@ -60,8 +59,7 @@ class DistroStreamClientHandler(object):
         pass
 
     @staticmethod
-    def init_and_start(master_ip="", master_port=""):
-        # type: (str, str) -> None
+    def init_and_start(master_ip: str = "", master_port: str = "") -> None:
         """Initializes and starts the client.
 
         :param master_ip: Master IP.
@@ -74,8 +72,7 @@ class DistroStreamClientHandler(object):
         DistroStreamClientHandler.CLIENT.start()
 
     @staticmethod
-    def set_stop():
-        # type: () -> None
+    def set_stop() -> None:
         """Marks the client to stop.
 
         :return: None.
@@ -84,8 +81,7 @@ class DistroStreamClientHandler(object):
         DistroStreamClientHandler.CLIENT.add_request(req)
 
     @staticmethod
-    def request(req):
-        # type: (typing.Any) -> None
+    def request(req: typing.Any) -> None:
         """Adds a new request to the client.
 
         :param req: Client request (Subclass of Request)
@@ -114,8 +110,7 @@ class DistroStreamClient(Thread):
 
     BUFFER_SIZE = 4096
 
-    def __init__(self, master_ip, master_port):
-        # type: (str, str) -> None
+    def __init__(self, master_ip: str, master_port: str) -> None:
         """Creates a new Client associated to the given master properties.
 
         :param master_ip: Master IP address.
@@ -134,8 +129,7 @@ class DistroStreamClient(Thread):
         self.requests = None  # type: typing.Any
         self.requests = queue.Queue()
 
-    def run(self):
-        # type: () -> None
+    def run(self) -> None:
         """Running method of the internal thread.
 
         :return: None.
@@ -162,8 +156,7 @@ class DistroStreamClient(Thread):
 
         logger.info("DS Client stopped")
 
-    def _process_request(self, req):
-        # type: (typing.Any) -> None
+    def _process_request(self, req: typing.Any) -> None:
         """Process requests to the server.
 
         :param req: Request
@@ -207,8 +200,7 @@ class DistroStreamClient(Thread):
             # Some error occurred, mark request as failed and keep going
             req.set_error(1, str(e))
 
-    def add_request(self, req):
-        # type: (typing.Any) -> None
+    def add_request(self, req: typing.Any) -> None:
         """Adds a new request to the client.
 
         :param req: Request to add (Request subclass).

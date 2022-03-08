@@ -42,8 +42,7 @@ except ImportError:
     SharedMemoryManager = None  # type: ignore
 
 
-def initialize_multiprocessing():
-    # type: () -> None
+def initialize_multiprocessing() -> None:
     """Set global mechanism to start multiprocessing processes.
     https://docs.python.org/3/library/multiprocessing.html#contexts-and-start-methods  # noqa: E501
     Using fork even in MacOS.
@@ -63,8 +62,7 @@ def initialize_multiprocessing():
         pass
 
 
-def new_process():
-    # type: () -> Process
+def new_process() -> Process:
     """Instantiate a new empty process.
 
     :return: Empty process
@@ -72,8 +70,7 @@ def new_process():
     return multiprocessing.Process()
 
 
-def new_queue():
-    # type: () -> Queue
+def new_queue() -> Queue:
     """Instantiate a new queue.
 
     :return: New queue
@@ -81,8 +78,7 @@ def new_queue():
     return multiprocessing.Queue()
 
 
-def new_manager():
-    # type: () -> typing.Any
+def new_manager() -> typing.Any:
     """Instantiate a new empty multiprocessing manager.
 
     :return: Empty multiprocessing manager
@@ -90,8 +86,7 @@ def new_manager():
     return Manager()
 
 
-def create_process(target, args=()):
-    # type: (typing.Any, tuple) -> Process
+def create_process(target: typing.Any, args: tuple = ()) -> Process:
     """Create a new process instance for the given target with the provided
     arguments.
 
@@ -103,8 +98,9 @@ def create_process(target, args=()):
     return process
 
 
-def create_shared_memory_manager(address, authkey):
-    # type: (typing.Tuple[str, int], typing.Optional[bytes]) -> SharedMemoryManager
+def create_shared_memory_manager(
+    address: typing.Tuple[str, int], authkey: typing.Optional[bytes]
+) -> SharedMemoryManager:
     """Create a new shared memory manager process at the given address with
     the provided authkey.
 

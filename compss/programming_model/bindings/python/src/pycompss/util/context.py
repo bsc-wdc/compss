@@ -51,40 +51,32 @@ TO_REGISTER = []  # type: typing.List[typing.Any]
 #############
 
 
-def in_master():
-    # type: () -> bool
-    """
-    Determine if the execution is being performed in the master node
+def in_master() -> bool:
+    """Determine if the execution is being performed in the master node
 
     :return:  <Boolean> - True if in master. False on the contrary.
     """
     return _WHERE == MASTER
 
 
-def in_worker():
-    # type: () -> bool
-    """
-    Determine if the execution is being performed in a worker node.
+def in_worker() -> bool:
+    """Determine if the execution is being performed in a worker node.
 
     :return:  <Boolean> - True if in worker. False on the contrary.
     """
     return _WHERE == WORKER
 
 
-def in_pycompss():
-    # type: () -> bool
-    """
-    Determine if the execution is being performed within the PyCOMPSs scope.
+def in_pycompss() -> bool:
+    """Determine if the execution is being performed within the PyCOMPSs scope.
 
     :return:  <Boolean> - True if under scope. False on the contrary.
     """
     return _WHERE != OUT_OF_SCOPE
 
 
-def set_pycompss_context(where):
-    # type: (str) -> None
-    """
-    Set the Python Binding context (MASTER or WORKER or OUT_OF_SCOPE)
+def set_pycompss_context(where: str) -> None:
+    """Set the Python Binding context (MASTER or WORKER or OUT_OF_SCOPE)
 
     :param where: New context (MASTER or WORKER or OUT_OF_SCOPE)
     :return: None
@@ -102,8 +94,7 @@ def set_pycompss_context(where):
     _WHO = str(caller_module)
 
 
-def get_pycompss_context():
-    # type: () -> str
+def get_pycompss_context() -> str:
     """
     Returns PyCOMPSs context name.
     * For debugging purposes.
@@ -113,8 +104,7 @@ def get_pycompss_context():
     return _WHERE
 
 
-def get_who_contextualized():
-    # type: () -> str
+def get_who_contextualized() -> str:
     """
     Returns PyCOMPSs contextualization caller.
     * For debugging purposes.
@@ -124,8 +114,7 @@ def get_who_contextualized():
     return _WHO
 
 
-def is_nesting_enabled():
-    # type: () -> bool
+def is_nesting_enabled() -> bool:
     """Check if nesting is enabled.
 
     :returns: None
@@ -133,8 +122,7 @@ def is_nesting_enabled():
     return NESTING is True
 
 
-def enable_nesting():
-    # type: () -> None
+def enable_nesting() -> None:
     """Enable nesting.
 
     :returns: None
@@ -143,8 +131,7 @@ def enable_nesting():
     NESTING = True
 
 
-def disable_nesting():
-    # type: () -> None
+def disable_nesting() -> None:
     """Disable nesting.
 
     :returns: None
@@ -153,8 +140,7 @@ def disable_nesting():
     NESTING = False
 
 
-def is_loading():
-    # type: () -> bool
+def is_loading() -> bool:
     """Check if is loading is enabled.
 
     :returns: None
@@ -162,8 +148,7 @@ def is_loading():
     return LOADING is True
 
 
-def __enable_loading__():
-    # type: () -> None
+def __enable_loading__() -> None:
     """Enable loading.
 
     :returns: None
@@ -172,8 +157,7 @@ def __enable_loading__():
     LOADING = True
 
 
-def __disable_loading__():
-    # type: () -> None
+def __disable_loading__() -> None:
     """Enable loading.
 
     :returns: None
@@ -183,8 +167,7 @@ def __disable_loading__():
 
 
 @contextmanager
-def loading_context():
-    # type: () -> typing.Iterator[None]
+def loading_context() -> typing.Iterator[None]:
     """Context which sets the loading mode (intended to be used only with
     the @implements decorators, since they try to register on loading).
 
@@ -195,8 +178,7 @@ def loading_context():
     __disable_loading__()
 
 
-def add_to_register_later(core_element):
-    # type: (typing.Tuple[typing.Any, str]) -> None
+def add_to_register_later(core_element: typing.Tuple[typing.Any, str]) -> None:
     """Accumulate core elements to be registered later.
 
     :param core_element: Core element to be registered
@@ -206,8 +188,7 @@ def add_to_register_later(core_element):
     TO_REGISTER.append(core_element)
 
 
-def get_to_register():
-    # type: () -> typing.List[typing.Tuple[typing.Any, str]]
+def get_to_register() -> typing.List[typing.Tuple[typing.Any, str]]:
     """Retrieve the to register list.
 
     :return: To register list

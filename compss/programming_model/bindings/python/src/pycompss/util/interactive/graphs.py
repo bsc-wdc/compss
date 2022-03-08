@@ -29,12 +29,12 @@ from pycompss.util.typing_helper import typing
 
 
 def show_graph(
-    log_path,  # type: str
-    name="complete_graph",  # type: str
-    fit=False,  # type: bool
-    refresh_rate=1,  # type: int
-    timeout=0,  # type: int
-):  # type: (...) -> None
+    log_path: str,
+    name: str = "complete_graph",
+    fit: bool = False,
+    refresh_rate: int = 1,
+    timeout: int = 0,
+) -> None:
     """Show graph.
 
     :param log_path: Folder where the logs are.
@@ -77,8 +77,7 @@ def show_graph(
             display(__get_graph_snapshot__(file_name, fit, Source))
 
 
-def __get_graph_snapshot__(file_name, fit, source):
-    # type: (str, bool, typing.Any) -> typing.Any
+def __get_graph_snapshot__(file_name: str, fit: bool, source: typing.Any) -> typing.Any:
     """Reads the graph file and returns it as graphviz object.
     It is able to fit the size if indicated.
 

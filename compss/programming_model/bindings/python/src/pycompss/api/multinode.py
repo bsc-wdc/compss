@@ -72,8 +72,7 @@ class MultiNode(object):
         "core_element_configured",
     ]
 
-    def __init__(self, *args, **kwargs):
-        # type: (*typing.Any, **typing.Any) -> None
+    def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         """Store arguments passed to the decorator.
 
         self = itself.
@@ -104,8 +103,7 @@ class MultiNode(object):
             # Get the computing nodes
             process_computing_nodes(decorator_name, self.kwargs)
 
-    def __call__(self, user_function):
-        # type: (typing.Callable) -> typing.Callable
+    def __call__(self, user_function: typing.Callable) -> typing.Callable:
         """Parse and set the multinode parameters within the task core element.
 
         :param user_function: Function to decorate.
@@ -113,8 +111,7 @@ class MultiNode(object):
         """
 
         @wraps(user_function)
-        def multinode_f(*args, **kwargs):
-            # type: (*typing.Any, **typing.Any) -> typing.Any
+        def multinode_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             if not self.scope:
                 raise NotInPyCOMPSsException(not_in_pycompss("MultiNode"))
 
@@ -146,8 +143,7 @@ class MultiNode(object):
         multinode_f.__doc__ = user_function.__doc__
         return multinode_f
 
-    def __configure_core_element__(self, kwargs):
-        # type: (dict) -> None
+    def __configure_core_element__(self, kwargs: dict) -> None:
         """Include the registering info related to @multinode.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
@@ -177,8 +173,7 @@ class MultiNode(object):
         self.core_element_configured = True
 
 
-def set_slurm_environment():
-    # type: () -> dict
+def set_slurm_environment() -> dict:
     """Set SLURM environment.
 
     :return: old Slurm environment
@@ -204,8 +199,7 @@ def set_slurm_environment():
     return old_slurm_env
 
 
-def remove_slurm_environment():
-    # type: () -> dict
+def remove_slurm_environment() -> dict:
     """Removes the Slurm vars from environment
 
     :return: removed Slurm vars
@@ -220,8 +214,7 @@ def remove_slurm_environment():
     return old_slurm_env
 
 
-def reset_slurm_environment(old_slurm_env=None):
-    # type: (dict) -> None
+def reset_slurm_environment(old_slurm_env: typing.Optional[dict] = None) -> None:
     """Reestablishes SLURM environment.
 
     :return: None

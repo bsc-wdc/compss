@@ -38,15 +38,12 @@ class dummy_mypyc_attr(object):
     Dummy on mypy_attr class (decorator style)
     """
 
-    def __init__(self, *args, **kwargs):
-        # type: (*typing.Any, **typing.Any) -> None
+    def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         self.args = args
         self.kwargs = kwargs
 
-    def __call__(self, f):
-        # type: (typing.Any) -> typing.Any
-        def wrapped_mypyc_attr(*args, **kwargs):
-            # type: (*typing.Any, **typing.Any) -> typing.Any
+    def __call__(self, f: typing.Any) -> typing.Any:
+        def wrapped_mypyc_attr(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             return f(*args, **kwargs)
 
         return wrapped_mypyc_attr
@@ -72,6 +69,5 @@ else:
 ######################################
 
 
-def dummy_function():
-    # type: () -> None
+def dummy_function() -> None:
     pass

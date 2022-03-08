@@ -28,8 +28,9 @@ from pycompss.runtime.task.parameter import get_new_parameter
 from pycompss.runtime.task.parameter import Parameter
 
 
-def get_varargs_direction(param_varargs, decorator_arguments):
-    # type: (typing.Any, typing.Any) -> typing.Tuple[typing.Any, Parameter]
+def get_varargs_direction(
+    param_varargs: typing.Any, decorator_arguments: typing.Any
+) -> typing.Tuple[typing.Any, Parameter]:
     """Returns the direction of the varargs arguments.
 
     Can be defined in the decorator in two ways:
@@ -48,8 +49,11 @@ def get_varargs_direction(param_varargs, decorator_arguments):
     return param_varargs, decorator_arguments[param_varargs]
 
 
-def get_default_direction(var_name, decorator_arguments, param_args):
-    # type: (str, typing.Dict[str, typing.Any], typing.List[typing.Any]) -> Parameter
+def get_default_direction(
+    var_name: str,
+    decorator_arguments: typing.Dict[str, typing.Any],
+    param_args: typing.List[typing.Any],
+) -> Parameter:
     """Returns the default direction for a given parameter.
 
     :param var_name: Variable name.

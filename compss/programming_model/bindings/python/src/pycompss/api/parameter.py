@@ -107,8 +107,7 @@ class _Param(object):
 
     __slots__ = ["key"]
 
-    def __init__(self, key):
-        # type: (str) -> None
+    def __init__(self, key: str) -> None:
         self.key = key
 
 

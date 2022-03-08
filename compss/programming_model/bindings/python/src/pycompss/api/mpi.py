@@ -80,8 +80,7 @@ class Mpi(object):
     __call__ methods, useful on mpi task creation.
     """
 
-    def __init__(self, *args, **kwargs):
-        # type: (*typing.Any, **typing.Any) -> None
+    def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         """Store arguments passed to the decorator.
 
         self = itself.
@@ -118,8 +117,7 @@ class Mpi(object):
                 self.decorator_name,
             )
 
-    def __call__(self, user_function):
-        # type: (typing.Callable) -> typing.Callable
+    def __call__(self, user_function: typing.Callable) -> typing.Callable:
         """Parse and set the mpi parameters within the task core element.
 
         :param user_function: Function to decorate.
@@ -127,15 +125,15 @@ class Mpi(object):
         """
 
         @wraps(user_function)
-        def mpi_f(*args, **kwargs):
-            # type: (*typing.Any, **typing.Any) -> typing.Any
+        def mpi_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             return self.__decorator_body__(user_function, args, kwargs)
 
         mpi_f.__doc__ = user_function.__doc__
         return mpi_f
 
-    def __decorator_body__(self, user_function, args, kwargs):
-        # type: (typing.Callable, tuple, dict) -> typing.Any
+    def __decorator_body__(
+        self, user_function: typing.Callable, args: tuple, kwargs: dict
+    ) -> typing.Any:
         if not self.scope:
             # Execute the mpi as with PyCOMPSs so that sequential
             # execution performs as parallel.
@@ -193,8 +191,7 @@ class Mpi(object):
 
         return ret
 
-    def __run_mpi__(self, args, kwargs):
-        # type: (tuple, dict) -> int
+    def __run_mpi__(self, args: tuple, kwargs: dict) -> int:
         """Runs the mpi binary defined in the decorator when used as dummy.
 
         :param args: Arguments received from call.
@@ -215,8 +212,7 @@ class Mpi(object):
 
         return run_command(cmd, args, kwargs)
 
-    def __resolve_collection_layout_params__(self):
-        # type: () -> list
+    def __resolve_collection_layout_params__(self) -> list:
         """Resolve the collection layout, such as blocks, strides, etc.
 
         :return: list(param_name, block_count, block_length, stride)
@@ -248,8 +244,7 @@ class Mpi(object):
         return layout_params
 
     @staticmethod
-    def __get_block_count__(collection_layout):
-        # type: (dict) -> int
+    def __get_block_count__(collection_layout: dict) -> int:
         """Get the block count from the given collection layout.
 
         :param collection_layout: Collection layout.
@@ -261,8 +256,7 @@ class Mpi(object):
             return -1
 
     @staticmethod
-    def __get_block_length__(collection_layout):
-        # type: (dict) -> int
+    def __get_block_length__(collection_layout: dict) -> int:
         """Get the block length from the given collection layout.
 
         :param collection_layout: Collection layout.
@@ -274,8 +268,7 @@ class Mpi(object):
             return -1
 
     @staticmethod
-    def __get_stride__(collection_layout):
-        # type: (dict) -> int
+    def __get_stride__(collection_layout: dict) -> int:
         """Get the stride from the given collection layout.
 
         :param collection_layout: Collection layout.
@@ -286,8 +279,7 @@ class Mpi(object):
         else:
             return -1
 
-    def __configure_core_element__(self, kwargs):
-        # type: (dict) -> None
+    def __configure_core_element__(self, kwargs: dict) -> None:
         """Include the registering info related to @mpi.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
@@ -375,8 +367,7 @@ class Mpi(object):
         # Set as configured
         self.core_element_configured = True
 
-    def __resolve_scale_by_cu__(self):
-        # type: () -> str
+    def __resolve_scale_by_cu__(self) -> str:
         """Checks if scale_by_cu is defined and process it.
 
         :return: Scale by cu value as string.

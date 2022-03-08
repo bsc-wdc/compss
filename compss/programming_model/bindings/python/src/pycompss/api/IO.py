@@ -51,8 +51,7 @@ class IO(object):
     __call__ methods, useful on IO task creation.
     """
 
-    def __init__(self, *args, **kwargs):
-        # type: (*typing.Any, **typing.Any) -> None
+    def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         """Store arguments passed to the decorator.
 
         self = itself.
@@ -80,8 +79,7 @@ class IO(object):
                 decorator_name,
             )
 
-    def __call__(self, user_function):
-        # type: (typing.Callable) -> typing.Callable
+    def __call__(self, user_function: typing.Callable) -> typing.Callable:
         """Parse and set the IO parameters within the task core element.
 
         :param user_function: Function to decorate.
@@ -89,8 +87,7 @@ class IO(object):
         """
 
         @wraps(user_function)
-        def io_f(*args, **kwargs):
-            # type: (*typing.Any, **typing.Any) -> typing.Any
+        def io_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             if not self.scope:
                 raise NotInPyCOMPSsException(not_in_pycompss("IO"))
 
@@ -112,8 +109,7 @@ class IO(object):
         io_f.__doc__ = user_function.__doc__
         return io_f
 
-    def __configure_core_element__(self, kwargs):
-        # type: (dict) -> None
+    def __configure_core_element__(self, kwargs: dict) -> None:
         """Include the registering info related to @IO.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].

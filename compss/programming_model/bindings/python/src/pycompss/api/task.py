@@ -108,8 +108,7 @@ class Task(object):
         "core_element_configured",
     ]
 
-    def __init__(self, *args, **kwargs):  # noqa
-        # type: (*typing.Any, **typing.Any) -> None
+    def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         """Task constructor.
 
         This part is called in the decoration process, not as an
@@ -208,8 +207,7 @@ class Task(object):
         self.on_failure = ""
         self.defaults = dict()  # type: dict
 
-    def __call__(self, user_function):
-        # type: (typing.Callable) -> typing.Callable
+    def __call__(self, user_function: typing.Callable) -> typing.Callable:
         """This function is called in all explicit function calls.
 
         Note that in PyCOMPSs a single function call will be transformed into
@@ -231,14 +229,14 @@ class Task(object):
         self.user_function = user_function
 
         @wraps(user_function)
-        def task_decorator(*args, **kwargs):
-            # type: (*typing.Any, **typing.Any) -> typing.Any
+        def task_decorator(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             return self.__decorator_body__(user_function, args, kwargs)
 
         return task_decorator
 
-    def __decorator_body__(self, user_function, args, kwargs):
-        # type: (typing.Callable, tuple, dict) -> typing.Any
+    def __decorator_body__(
+        self, user_function: typing.Callable, args: tuple, kwargs: dict
+    ) -> typing.Any:
         # Determine the context and decide what to do
         if context.in_master():
             # @task being executed in the master
@@ -370,8 +368,7 @@ class Task(object):
         # launch_compss/enqueue_compss/runcompss/interactive session
         return self._sequential_call(*args, **kwargs)
 
-    def _sequential_call(self, *args, **kwargs):
-        # type: (*typing.Any, **typing.Any) -> typing.Any
+    def _sequential_call(self, *args: typing.Any, **kwargs: typing.Any) -> typing.Any:
         """Sequential task execution.
 
         The easiest case: just call the user function and return whatever it
@@ -389,8 +386,9 @@ class Task(object):
         d_t = dummy_task(args, kwargs)
         return d_t.__call__(self.user_function)(*args, **kwargs)
 
-    def __check_core_element__(self, kwargs, user_function):
-        # type: (dict, typing.Callable) -> None
+    def __check_core_element__(
+        self, kwargs: dict, user_function: typing.Callable
+    ) -> None:
         """Check Core Element for containers.
 
         :param kwargs: Keyword arguments
@@ -425,8 +423,7 @@ class Task(object):
                 kwargs[CORE_ELEMENT_KEY].set_impl_type_args(impl_args)
 
     @staticmethod
-    def __get_module_name__(user_function):
-        # type: (typing.Callable) -> str
+    def __get_module_name__(user_function: typing.Callable) -> str:
         """
         Gets the module name from the user function.
         """

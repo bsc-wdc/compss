@@ -26,8 +26,7 @@ PyCOMPSs Binding - Management - Direction
 from pycompss.api.parameter import DIRECTION
 
 
-def get_compss_direction(access_mode):
-    # type: (str) -> int
+def get_compss_direction(access_mode: str) -> int:
     """Get the COMPSs direction of the given access_mode string.
 
     :param access_mode: String to parse and return the direction.

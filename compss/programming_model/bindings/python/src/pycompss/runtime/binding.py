@@ -78,8 +78,9 @@ object_conversion = False
 # ########################################################################### #
 
 
-def start_runtime(log_level="off", tracing=0, interactive=False):
-    # type: (str, int, bool) -> None
+def start_runtime(
+    log_level: str = "off", tracing: int = 0, interactive: bool = False
+) -> None:
     """Starts the COMPSs runtime.
 
     Starts the runtime by calling the external python library that calls
@@ -115,8 +116,7 @@ def start_runtime(log_level="off", tracing=0, interactive=False):
         logger.info("COMPSs started")
 
 
-def stop_runtime(code=0, hard_stop=False):
-    # type: (int, bool) -> None
+def stop_runtime(code: int = 0, hard_stop: bool = False) -> None:
     """Stops the COMPSs runtime.
 
     Stops the runtime by calling the external python library that calls
@@ -167,8 +167,7 @@ def stop_runtime(code=0, hard_stop=False):
             logger.info("COMPSs stopped")
 
 
-def accessed_file(file_name):
-    # type: (str) -> bool
+def accessed_file(file_name: str) -> bool:
     """Check if the file has been accessed.
 
     Calls the external python library (that calls the bindings-common)
@@ -187,8 +186,7 @@ def accessed_file(file_name):
             return COMPSs.accessed_file(app_id, file_name)
 
 
-def open_file(file_name, mode):
-    # type: (str, str) -> str
+def open_file(file_name: str, mode: str) -> str:
     """Opens a file (retrieves if necessary).
 
     Calls the external python library (that calls the bindings-common)
@@ -210,8 +208,7 @@ def open_file(file_name, mode):
         return compss_name
 
 
-def delete_file(file_name):
-    # type: (str) -> bool
+def delete_file(file_name: str) -> bool:
     """Remove a file.
 
     Calls the external python library (that calls the bindings-common)
@@ -233,8 +230,7 @@ def delete_file(file_name):
         return result
 
 
-def get_file(file_name):
-    # type: (str) -> None
+def get_file(file_name: str) -> None:
     """Retrieve a file.
 
     Calls the external python library (that calls the bindings-common)
@@ -250,8 +246,7 @@ def get_file(file_name):
         COMPSs.get_file(app_id, file_name)
 
 
-def get_directory(dir_name):
-    # type: (str) -> None
+def get_directory(dir_name: str) -> None:
     """Retrieve a directory.
 
     Calls the external python library (that calls the bindings-common)
@@ -267,8 +262,7 @@ def get_directory(dir_name):
         COMPSs.get_directory(app_id, dir_name)
 
 
-def delete_object(obj):
-    # type: (object) -> bool
+def delete_object(obj: typing.Any) -> bool:
     """Remove object.
 
     Removes a used object from the internal structures and calls the
@@ -294,8 +288,7 @@ def delete_object(obj):
             return True
 
 
-def barrier(no_more_tasks=False):
-    # type: (bool) -> None
+def barrier(no_more_tasks: bool = False) -> None:
     """Wait for all submitted tasks.
 
     Calls the external python library (that calls the bindings-common)
@@ -317,8 +310,7 @@ def barrier(no_more_tasks=False):
         COMPSs.barrier(app_id, no_more_tasks)
 
 
-def nested_barrier():
-    # type: () -> None
+def nested_barrier() -> None:
     """Wait for all submitted tasks within nested task.
 
     Calls the external python library (that calls the bindings-common)
@@ -342,8 +334,7 @@ def nested_barrier():
         COMPSs.barrier(0, True)
 
 
-def barrier_group(group_name):
-    # type: (str) -> str
+def barrier_group(group_name: str) -> str:
     """Wait for all tasks of the given group.
 
     Calls the external python library (that calls the bindings-common)
@@ -358,8 +349,7 @@ def barrier_group(group_name):
         return str(COMPSs.barrier_group(app_id, group_name))
 
 
-def open_task_group(group_name, implicit_barrier):
-    # type: (str, bool) -> None
+def open_task_group(group_name: str, implicit_barrier: bool) -> None:
     """Open task group.
 
     Calls the external python library (that calls the bindings-common)
@@ -374,8 +364,7 @@ def open_task_group(group_name, implicit_barrier):
         COMPSs.open_task_group(group_name, implicit_barrier, app_id)
 
 
-def close_task_group(group_name):
-    # type: (str) -> None
+def close_task_group(group_name: str) -> None:
     """Close task group.
 
     Calls the external python library (that calls the bindings-common)
@@ -389,8 +378,7 @@ def close_task_group(group_name):
         COMPSs.close_task_group(group_name, app_id)
 
 
-def get_log_path():
-    # type: () -> str
+def get_log_path() -> str:
     """Get logging path.
 
     Requests the logging path to the external python library (that calls
@@ -407,8 +395,7 @@ def get_log_path():
         return log_path
 
 
-def get_number_of_resources():
-    # type: () -> int
+def get_number_of_resources() -> int:
     """Get the number of resources.
 
     Calls the external python library (that calls the bindings-common)
@@ -425,8 +412,7 @@ def get_number_of_resources():
         return COMPSs.get_number_of_resources(app_id)
 
 
-def request_resources(num_resources, group_name):
-    # type: (int, str) -> None
+def request_resources(num_resources: int, group_name: str) -> None:
     """Request new resources.
 
     Calls the external python library (that calls the bindings-common)
@@ -452,8 +438,7 @@ def request_resources(num_resources, group_name):
         COMPSs.request_resources(app_id, num_resources, group_name)
 
 
-def free_resources(num_resources, group_name):
-    # type: (int, str) -> None
+def free_resources(num_resources: int, group_name: str) -> None:
     """Liberate resources.
 
     Calls the external python library (that calls the bindings-common)
@@ -479,8 +464,7 @@ def free_resources(num_resources, group_name):
         COMPSs.free_resources(app_id, num_resources, group_name)
 
 
-def set_wall_clock(wall_clock_limit):
-    # type: (int) -> None
+def set_wall_clock(wall_clock_limit: int) -> None:
     """Sets the application wall clock limit.
 
     :param wall_clock_limit: Wall clock limit in seconds.
@@ -499,8 +483,7 @@ def set_wall_clock(wall_clock_limit):
         COMPSs.set_wall_clock(app_id, wall_clock_limit)
 
 
-def register_ce(core_element):  # noqa
-    # type: (CE) -> None
+def register_ce(core_element: CE) -> None:
     """Register a core element.
 
     Calls the external python library (that calls the bindings-common)
@@ -643,8 +626,7 @@ def register_ce(core_element):  # noqa
             logger.debug("CE with signature %s registered." % ce_signature)
 
 
-def wait_on(*args, **kwargs):
-    # type: (*typing.Any, **typing.Any) -> typing.Any
+def wait_on(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
     """Wait on a set of objects.
 
     Waits on a set of objects defined in args with the options defined in
@@ -668,8 +650,7 @@ def wait_on(*args, **kwargs):
             return __wait_on__(*args, **kwargs)
 
 
-def __wait_on__(*args, **kwargs):
-    # type: (*typing.Any, **typing.Any) -> typing.Any
+def __wait_on__(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
     """Wait on a set of objects.
 
     Waits on a set of objects defined in args with the options defined in
@@ -694,28 +675,28 @@ def __wait_on__(*args, **kwargs):
 
 
 def process_task(
-    signature,  # type: str
-    has_target,  # type: bool
-    names,  # type: list
-    values,  # type: list
-    num_returns,  # type: int
-    compss_types,  # type: list
-    compss_directions,  # type: list
-    compss_streams,  # type: list
-    compss_prefixes,  # type: list
-    content_types,  # type: list
-    weights,  # type: list
-    keep_renames,  # type: list
-    has_priority,  # type: bool
-    num_nodes,  # type: int
-    reduction,  # type: bool
-    chunk_size,  # type: int
-    replicated,  # type: bool
-    distributed,  # type: bool
-    on_failure,  # type: str
-    time_out,  # type: int
-    is_http=False,  # type: bool
-):  # type: (...) -> None
+    signature: str,
+    has_target: bool,
+    names: list,
+    values: list,
+    num_returns: int,
+    compss_types: list,
+    compss_directions: list,
+    compss_streams: list,
+    compss_prefixes: list,
+    content_types: list,
+    weights: list,
+    keep_renames: list,
+    has_priority: bool,
+    num_nodes: int,
+    reduction: bool,
+    chunk_size: int,
+    replicated: bool,
+    distributed: bool,
+    on_failure: str,
+    time_out: int,
+    is_http: bool = False,
+) -> None:
     """Submit a task to the runtime.
 
     :param signature: Task signature
@@ -876,8 +857,7 @@ def process_task(
 # ########################################################################### #
 
 
-def _clean_objects(hard_stop=False):
-    # type: (bool) -> None
+def _clean_objects(hard_stop: bool = False) -> None:
     """Clean all objects.
 
     Clean the objects stored in the global dictionaries:
@@ -896,8 +876,7 @@ def _clean_objects(hard_stop=False):
     OT.clean_object_tracker()
 
 
-def _clean_temps():
-    # type: () -> None
+def _clean_temps() -> None:
     """Clean temporary files.
 
     The temporary files end with the IT extension.
@@ -912,8 +891,7 @@ def _clean_temps():
             os.remove(os.path.join(cwd, f))
 
 
-def _wall_clock_exceed(signum, frame):
-    # type: (int, typing.Any) -> None
+def _wall_clock_exceed(signum: int, frame: typing.Any) -> None:
     """Task wall clock exceeded action: raise PyCOMPSs exception.
 
     Do not remove the parameters.

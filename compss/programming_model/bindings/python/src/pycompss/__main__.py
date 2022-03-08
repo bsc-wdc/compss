@@ -39,12 +39,11 @@ TAGS = [RUN_TAG, ENQUEUE_TAG]
 
 class Object(object):
     # Dummy class to mimic argparse return object
-    action = None  # type: typing.Any
-    params = None  # type: typing.Any
+    action = "None"
+    params = []
 
 
-def setup_parser():
-    # type: () -> typing.Any
+def setup_parser() -> argparse.ArgumentParser:
     """Argument parser.
 
     - Argument defining run for runcompss or enqueue for enqueue_compss.
@@ -72,25 +71,23 @@ def setup_parser():
     return parser
 
 
-def run(cmd):
-    # type: (list) -> None
+def run(cmd: typing.List[str]) -> None:
     """Execute a command line in a subprocess.
 
-    :param cmd: Command to execute <String>
+    :param cmd: Command to execute (list of <String>)
     :return: None
     """
     p = Popen(cmd, stdout=sys.stdout, stderr=sys.stderr)
     p.communicate()
 
 
-def main():
-    # type: () -> None
+def main() -> None:
     """Main method.
 
     :return: None
     """
     _help = ["-h", "--help"]
-    parser = None  # type: typing.Any
+    parser = None  # type: typing.Optional[argparse.ArgumentParser]
 
     # Check params
     if len(sys.argv) > 1 and sys.argv[1] not in TAGS and sys.argv[1] not in _help:

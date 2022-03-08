@@ -45,8 +45,7 @@ from pycompss.util.logger.helpers import init_logging_worker
 #
 # Main method for Python task execution inside a Container
 #
-def main():
-    # type: () -> int
+def main() -> int:
     """Main method to process the task execution.
 
     :return: Exit value

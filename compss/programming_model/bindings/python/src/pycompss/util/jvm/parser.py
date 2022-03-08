@@ -26,8 +26,7 @@ PyCOMPSs Util - JVM Configuration Parser
 from pycompss.util.typing_helper import typing
 
 
-def convert_to_dict(jvm_opt_file):
-    # type: (str) -> typing.Dict[str, typing.Union[bool, str]]
+def convert_to_dict(jvm_opt_file: str) -> typing.Dict[str, typing.Union[bool, str]]:
     """JVM parameter file converter to dictionary.
 
     :param jvm_opt_file: JVM parameters file.

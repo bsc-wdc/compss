@@ -31,8 +31,7 @@ size = comm.size
 rank = comm.rank
 
 
-def rank_distributor(collection_layout):
-    # type: (typing.Union[tuple, list]) -> list
+def rank_distributor(collection_layout: typing.Union[tuple, list]) -> list:
     """
     Distributes mpi ranks to data given a collection layout
 

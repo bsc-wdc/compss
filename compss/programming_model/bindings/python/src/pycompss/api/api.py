@@ -44,45 +44,26 @@ PyCOMPSs API
 """
 
 from pycompss.util.typing_helper import typing
-
 import pycompss.util.context as context
 
 # Dummy imports
-from pycompss.api.dummy.api import compss_start as __dummy_compss_start__
-from pycompss.api.dummy.api import compss_stop as __dummy_compss_stop__
 from pycompss.api.dummy.api import (
+    compss_start as __dummy_compss_start__,
+    compss_stop as __dummy_compss_stop__,
     compss_file_exists as __dummy_compss_file_exists__,
-)  # noqa: E501
-from pycompss.api.dummy.api import compss_open as __dummy_compss_open__
-from pycompss.api.dummy.api import (
+    compss_open as __dummy_compss_open__,
     compss_delete_file as __dummy_compss_delete_file__,
-)  # noqa: E501
-from pycompss.api.dummy.api import (
     compss_wait_on_file as __dummy_compss_wait_on_file__,
-)  # noqa: E501
-from pycompss.api.dummy.api import (
     compss_wait_on_directory as __dummy_compss_wait_on_directory__,
-)  # noqa: E501
-from pycompss.api.dummy.api import (
     compss_delete_object as __dummy_compss_delete_object__,
-)  # noqa: E501
-from pycompss.api.dummy.api import compss_barrier as __dummy_compss_barrier__
-from pycompss.api.dummy.api import (
+    compss_barrier as __dummy_compss_barrier__,
     compss_barrier_group as __dummy_compss_barrier_group__,
-)  # noqa: E501
-from pycompss.api.dummy.api import compss_wait_on as __dummy_compss_wait_on__
-from pycompss.api.dummy.api import (
+    compss_wait_on as __dummy_compss_wait_on__,
     compss_get_number_of_resources as __dummy_compss_get_number_of_resources__,
-)  # noqa: E501
-from pycompss.api.dummy.api import (
     compss_request_resources as __dummy_compss_request_resources__,
-)  # noqa: E501
-from pycompss.api.dummy.api import (
     compss_free_resources as __dummy_compss_free_resources__,
-)  # noqa: E501
-from pycompss.api.dummy.api import (
     compss_set_wall_clock as __dummy_compss_set_wall_clock__,
-)  # noqa: E501
+)
 
 
 if context.in_pycompss():
@@ -91,34 +72,31 @@ if context.in_pycompss():
     # Any change on this API must be considered within the dummy API.   #
     # ################################################################# #
 
-    from pycompss.runtime.binding import start_runtime as __start_runtime__
-    from pycompss.runtime.binding import stop_runtime as __stop_runtime__
-    from pycompss.runtime.binding import accessed_file as __accessed_file__
-    from pycompss.runtime.binding import open_file as __open_file__
-    from pycompss.runtime.binding import delete_file as __delete_file__
-    from pycompss.runtime.binding import get_file as __get_file__
-    from pycompss.runtime.binding import get_directory as __get_directory__
-    from pycompss.runtime.binding import delete_object as __delete_object__
-    from pycompss.runtime.binding import barrier as __barrier__
-    from pycompss.runtime.binding import barrier_group as __barrier_group__
-    from pycompss.runtime.binding import open_task_group as __open_task_group__
     from pycompss.runtime.binding import (
+        start_runtime as __start_runtime__,
+        stop_runtime as __stop_runtime__,
+        accessed_file as __accessed_file__,
+        open_file as __open_file__,
+        delete_file as __delete_file__,
+        get_file as __get_file__,
+        get_directory as __get_directory__,
+        delete_object as __delete_object__,
+        barrier as __barrier__,
+        barrier_group as __barrier_group__,
+        open_task_group as __open_task_group__,
         close_task_group as __close_task_group__,
-    )  # noqa: E501
-    from pycompss.runtime.binding import (
         get_number_of_resources as __get_number_of_resources__,
-    )  # noqa: E501
-    from pycompss.runtime.binding import (
         request_resources as __request_resources__,
-    )  # noqa: E501
-    from pycompss.runtime.binding import free_resources as __free_resources__
-    from pycompss.runtime.binding import set_wall_clock as __set_wall_clock__
-    from pycompss.runtime.binding import wait_on as __wait_on__
+        free_resources as __free_resources__,
+        set_wall_clock as __set_wall_clock__,
+        wait_on as __wait_on__,
+    )
     from pycompss.api.exceptions import COMPSsException as __COMPSsException__
 
 
-def compss_start(log_level="off", tracing=0, interactive=False):
-    # type: (str, int, bool) -> None
+def compss_start(
+    log_level: str = "off", tracing: int = 0, interactive: bool = False
+) -> None:
     """Starts the runtime.
 
     :param log_level: Log level ["trace"|"debug"|"info"|"api"|"off"].
@@ -132,8 +110,7 @@ def compss_start(log_level="off", tracing=0, interactive=False):
         __dummy_compss_start__(log_level, tracing, interactive)
 
 
-def compss_stop(code=0, _hard_stop=False):
-    # type: (int, bool) -> None
+def compss_stop(code: int = 0, _hard_stop: bool = False) -> None:
     """Stops the runtime.
 
     :param code: Stop code.
@@ -146,8 +123,7 @@ def compss_stop(code=0, _hard_stop=False):
         __dummy_compss_stop__(code, _hard_stop)
 
 
-def compss_file_exists(*file_name):
-    # type: (*str) -> typing.Union[bool, typing.List[bool]]
+def compss_file_exists(*file_name: str) -> typing.Union[bool, typing.List[bool]]:
     """Check if a file exists.
 
     If it does not exist, it checks if the given file name has been
@@ -166,8 +142,7 @@ def compss_file_exists(*file_name):
         return __dummy_compss_file_exists__(*file_name)
 
 
-def compss_open(file_name, mode="r"):
-    # type: (str, str) -> typing.Any
+def compss_open(file_name: str, mode: str = "r") -> typing.Any:
     """Open a remotely produced file.
 
     Calls the runtime to bring the file to the master and opens it.
@@ -188,8 +163,7 @@ def compss_open(file_name, mode="r"):
         return __dummy_compss_open__(file_name, mode)
 
 
-def compss_delete_file(*file_name):
-    # type: (*str) -> typing.Union[bool, typing.List[bool]]
+def compss_delete_file(*file_name: str) -> typing.Union[bool, typing.List[bool]]:
     """Delete a file.
 
     Calls the runtime to delete the file everywhere in the infrastructure.
@@ -208,8 +182,7 @@ def compss_delete_file(*file_name):
         return __dummy_compss_delete_file__(*file_name)
 
 
-def compss_wait_on_file(*file_name):
-    # type: (*str) -> None
+def compss_wait_on_file(*file_name: str) -> None:
     """Wait and get a file.
 
     Calls the runtime to bring the file to the master when possible
@@ -228,8 +201,7 @@ def compss_wait_on_file(*file_name):
         __dummy_compss_wait_on_file__(*file_name)
 
 
-def compss_wait_on_directory(*directory_name):
-    # type: (*str) -> None
+def compss_wait_on_directory(*directory_name: str) -> None:
     """Wait and get a directory.
 
     Calls the runtime to bring the directory to the master when possible
@@ -248,8 +220,7 @@ def compss_wait_on_directory(*directory_name):
         __dummy_compss_wait_on_directory__(*directory_name)
 
 
-def compss_delete_object(*obj):
-    # type: (*typing.Any) -> typing.Union[bool, typing.List[bool]]
+def compss_delete_object(*obj: typing.Any) -> typing.Union[bool, typing.List[bool]]:
     """Delete object.
 
     Removes a used object from the internal structures and calls the
@@ -268,8 +239,7 @@ def compss_delete_object(*obj):
         return __dummy_compss_delete_object__(*obj)
 
 
-def compss_barrier(no_more_tasks=False):
-    # type: (bool) -> None
+def compss_barrier(no_more_tasks: bool = False) -> None:
     """Wait for all tasks.
 
     Perform a barrier waiting until all the submitted tasks have finished.
@@ -283,8 +253,7 @@ def compss_barrier(no_more_tasks=False):
         __dummy_compss_barrier__(no_more_tasks)
 
 
-def compss_barrier_group(group_name):
-    # type: (str) -> None
+def compss_barrier_group(group_name: str) -> None:
     """Perform a barrier to a group.
 
     Stop until all the tasks of a group have finished.
@@ -300,8 +269,7 @@ def compss_barrier_group(group_name):
         __dummy_compss_barrier_group__(group_name)
 
 
-def compss_wait_on(*args, **kwargs):
-    # type: (*typing.Any, **typing.Any) -> typing.Any
+def compss_wait_on(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
     """Wait for objects.
 
     Waits on a set of objects defined in args with the options defined in
@@ -319,8 +287,7 @@ def compss_wait_on(*args, **kwargs):
         return __dummy_compss_wait_on__(*args, **kwargs)
 
 
-def compss_get_number_of_resources():
-    # type: () -> int
+def compss_get_number_of_resources() -> int:
     """Request for the number of active resources.
 
     :return: The number of active resources.
@@ -331,8 +298,7 @@ def compss_get_number_of_resources():
         return __dummy_compss_get_number_of_resources__()
 
 
-def compss_request_resources(num_resources, group_name):
-    # type: (int, str) -> None
+def compss_request_resources(num_resources: int, group_name: str) -> None:
     """Requests the creation of num_resources resources.
 
     :param num_resources: Number of resources to create.
@@ -346,8 +312,7 @@ def compss_request_resources(num_resources, group_name):
         __dummy_compss_request_resources__(num_resources, group_name)
 
 
-def compss_free_resources(num_resources, group_name):
-    # type: (int, str) -> None
+def compss_free_resources(num_resources: int, group_name: str) -> None:
     """Requests the destruction of num_resources resources.
 
     :param num_resources: Number of resources to destroy.
@@ -360,8 +325,7 @@ def compss_free_resources(num_resources, group_name):
         __dummy_compss_free_resources__(num_resources, group_name)
 
 
-def compss_set_wall_clock(wall_clock_limit):
-    # type: (int) -> None
+def compss_set_wall_clock(wall_clock_limit: int) -> None:
     """Sets the application wall clock limit.
 
     :param wall_clock_limit: Wall clock limit in seconds.
@@ -391,8 +355,7 @@ class TaskGroup(object):
 
     __slots__ = ["group_name", "implicit_barrier"]
 
-    def __init__(self, group_name, implicit_barrier=True):
-        # type: (str, bool) -> None
+    def __init__(self, group_name: str, implicit_barrier: bool = True) -> None:
         """Define a new group of tasks.
 
         :param group_name: Group name.
@@ -404,16 +367,16 @@ class TaskGroup(object):
         else:
             pass
 
-    def __enter__(self):
-        # type: () -> None
+    def __enter__(self) -> None:
         """Group creation"""
         if context.in_pycompss():
             __open_task_group__(self.group_name, self.implicit_barrier)
         else:
             pass
 
-    def __exit__(self, type, value, traceback):
-        # type: (typing.Any, typing.Any, typing.Any) -> None
+    def __exit__(
+        self, type: typing.Any, value: typing.Any, traceback: typing.Any
+    ) -> None:
         """Group closing"""
         if context.in_pycompss():
             __close_task_group__(self.group_name)

@@ -27,55 +27,55 @@ from pycompss.util.typing_helper import typing
 
 
 def parameters_to_dict(
-    log_level,  # type: str
-    debug,  # type: bool
-    o_c,  # type: bool
-    graph,  # type: bool
-    trace,  # type: bool
-    monitor,  # type: int
-    project_xml,  # type: str
-    resources_xml,  # type: str
-    summary,  # type: bool
-    task_execution,  # type: str
-    storage_impl,  # type: str
-    storage_conf,  # type: str
-    streaming_backend,  # type: str
-    streaming_master_name,  # type: str
-    streaming_master_port,  # type: str
-    task_count,  # type: int
-    app_name,  # type: str
-    uuid,  # type: str
-    base_log_dir,  # type: str
-    specific_log_dir,  # type: str
-    extrae_cfg,  # type: str
-    comm,  # type: str
-    conn,  # type: str
-    master_name,  # type: str
-    master_port,  # type: str
-    scheduler,  # type: str
-    jvm_workers,  # type: str
-    cpu_affinity,  # type: str
-    gpu_affinity,  # type: str
-    fpga_affinity,  # type: str
-    fpga_reprogram,  # type: str
-    profile_input,  # type: str
-    profile_output,  # type: str
-    scheduler_config,  # type: str
-    external_adaptation,  # type: bool
-    propagate_virtual_environment,  # type: bool
-    mpi_worker,  # type: bool
-    worker_cache,  # type: typing.Union[bool, str]
-    shutdown_in_node_failure,  # type: bool
-    io_executors,  # type: int
-    env_script,  # type: str
-    reuse_on_block,  # type: bool
-    nested_enabled,  # type: bool
-    tracing_task_dependencies,  # type: bool
-    trace_label,  # type: str
-    extrae_cfg_python,  # type: str
-    wcl,  # type: int
-    cache_profiler,  # type: bool
-):  # type: (...) -> dict
+    log_level: str,
+    debug: bool,
+    o_c: bool,
+    graph: bool,
+    trace: bool,
+    monitor: int,
+    project_xml: str,
+    resources_xml: str,
+    summary: bool,
+    task_execution: str,
+    storage_impl: str,
+    storage_conf: str,
+    streaming_backend: str,
+    streaming_master_name: str,
+    streaming_master_port: str,
+    task_count: int,
+    app_name: str,
+    uuid: str,
+    base_log_dir: str,
+    specific_log_dir: str,
+    extrae_cfg: str,
+    comm: str,
+    conn: str,
+    master_name: str,
+    master_port: str,
+    scheduler: str,
+    jvm_workers: str,
+    cpu_affinity: str,
+    gpu_affinity: str,
+    fpga_affinity: str,
+    fpga_reprogram: str,
+    profile_input: str,
+    profile_output: str,
+    scheduler_config: str,
+    external_adaptation: bool,
+    propagate_virtual_environment: bool,
+    mpi_worker: bool,
+    worker_cache: typing.Union[bool, str],
+    shutdown_in_node_failure: bool,
+    io_executors: int,
+    env_script: str,
+    reuse_on_block: bool,
+    nested_enabled: bool,
+    tracing_task_dependencies: bool,
+    trace_label: str,
+    extrae_cfg_python: str,
+    wcl: int,
+    cache_profiler: bool,
+) -> dict:
     """Converts the given parameters into a dictionary"""
     all_vars = {
         "log_level": log_level,

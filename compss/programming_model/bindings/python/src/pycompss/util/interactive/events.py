@@ -46,8 +46,7 @@ POST_MESSAGE = None
 #######################################
 
 
-def __pre_execute__():
-    # type: () -> None
+def __pre_execute__() -> None:
     """Fires prior to interactive execution.
 
     :return: None
@@ -55,8 +54,7 @@ def __pre_execute__():
     print("pre_execute")
 
 
-def __pre_run_cell__():
-    # type: () -> None
+def __pre_run_cell__() -> None:
     """Like pre_run_cell, but is triggered prior to any execution.
 
     Sometimes code can be executed by libraries, etc. which skipping the
@@ -159,8 +157,7 @@ def __pre_run_cell__():
             pass
 
 
-def __post_execute__():
-    # type: () -> None
+def __post_execute__() -> None:
     """Runs after interactive execution (e.g. a cell in a notebook).
 
     :return: None
@@ -168,8 +165,7 @@ def __post_execute__():
     print("post_execute")
 
 
-def __post_run_cell__():
-    # type: () -> None
+def __post_run_cell__() -> None:
     """The same as pre_execute, post_execute is like post_run_cell, but
     fires for all executions, not just interactive ones.
 
@@ -188,8 +184,7 @@ def __post_run_cell__():
 #######################################
 
 
-def setup_event_manager(ipython):
-    # type: (typing.Any) -> None
+def setup_event_manager(ipython: typing.Any) -> None:
     """Instantiates an Ipython event manager and registers the event handlers.
 
     :param ipython: IPython instance where to register the event manager.
@@ -201,8 +196,7 @@ def setup_event_manager(ipython):
     ipython.events.register("post_run_cell", __post_run_cell__)
 
 
-def release_event_manager(ipython):
-    # type: (typing.Any) -> None
+def release_event_manager(ipython: typing.Any) -> None:
     """Releases the event manager in the given ipython instance.
 
     :param ipython: IPython instance where to release the event manager.

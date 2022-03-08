@@ -46,8 +46,9 @@ from pycompss.streams.components.distro_stream_client import (
 # sys.dont_write_bytecode = True
 
 
-def compss_worker(tracing, task_id, storage_conf, params, log_json):
-    # type: (bool, str, str, list, str) -> int
+def compss_worker(
+    tracing: bool, task_id: str, storage_conf: str, params: list, log_json: str
+) -> int:
     """Worker main method (invoked from __main__).
 
     :param tracing: Tracing boolean
@@ -90,8 +91,7 @@ def compss_worker(tracing, task_id, storage_conf, params, log_json):
     return exit_code
 
 
-def main():
-    # type: () -> None
+def main() -> None:
     """GAT worker main code.
 
     Executes the task provided by parameters.

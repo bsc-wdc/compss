@@ -35,12 +35,12 @@ UNASSIGNED = "[unassigned]"
 
 
 def check_arguments(
-    mandatory_arguments,  # type: typing.Set[str]
-    deprecated_arguments,  # type: typing.Set[str]
-    supported_arguments,  # type: typing.Set[str]
-    argument_names,  # type: typing.List[str]
-    decorator,  # type: str
-):  # type: (...) -> None
+    mandatory_arguments: typing.Set[str],
+    deprecated_arguments: typing.Set[str],
+    supported_arguments: typing.Set[str],
+    argument_names: typing.List[str],
+    decorator: str,
+) -> None:
     """
     Performs all needed checks to the decorator definition:
         1.- Checks that the mandatory arguments are present (otherwise, raises
@@ -64,10 +64,10 @@ def check_arguments(
 
 
 def check_mandatory_arguments(
-    mandatory_arguments,  # type: typing.Set[str]
-    argument_names,  # type: typing.List[str]
-    where,  # type: str
-):  # type: (...) -> None
+    mandatory_arguments: typing.Set[str],
+    argument_names: typing.List[str],
+    where: str,
+) -> None:
     """
     This method checks that all mandatory arguments are in arguments.
 
@@ -91,14 +91,18 @@ def check_mandatory_arguments(
                 __error_mandatory_argument__(where, argument)
 
 
-def __to_camel_case__(argument):
-    # type: (str) -> str
+def __to_camel_case__(argument: str) -> str:
+    """
+    Convert the given argument to camel case.
+
+    :param argument: String to convert to camel case
+    :return: Camel case string
+    """
     components = argument.split("_")
     return components[0] + "".join(x.title() for x in components[1:])
 
 
-def __error_mandatory_argument__(decorator, argument):
-    # type: (str, str) -> None
+def __error_mandatory_argument__(decorator: str, argument: str) -> None:
     """
     Raises an exception when the argument is mandatory in the decorator
 
@@ -115,10 +119,10 @@ def __error_mandatory_argument__(decorator, argument):
 
 
 def __check_deprecated_arguments__(
-    deprecated_arguments,  # type: typing.Set[str]
-    argument_names,  # type: typing.List[str]
-    where,  # type: str
-):  # type: (...) -> None
+    deprecated_arguments: typing.Set[str],
+    argument_names: typing.List[str],
+    where: str,
+) -> None:
     """
     This method looks for deprecated arguments and displays a warning
     if found.
@@ -154,10 +158,10 @@ def __check_deprecated_arguments__(
 
 
 def __check_unexpected_arguments__(
-    supported_arguments,  # type: typing.Set[str]
-    argument_names,  # type: typing.List[str]
-    where,  # type: str
-):  # type: (...) -> None
+    supported_arguments: typing.Set[str],
+    argument_names: typing.List[str],
+    where: str,
+) -> None:
     """
     This method looks for unexpected arguments and displays a warning
     if found.

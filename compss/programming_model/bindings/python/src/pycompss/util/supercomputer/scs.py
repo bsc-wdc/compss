@@ -28,8 +28,7 @@ import os
 from pycompss.util.typing_helper import typing
 
 
-def get_master_node():
-    # type: () -> str
+def get_master_node() -> str:
     """Get the master node.
 
     TIP: The environment variable COMPSS_MASTER_NODE is defined in the
@@ -40,8 +39,7 @@ def get_master_node():
     return os.environ["COMPSS_MASTER_NODE"]
 
 
-def get_master_port():
-    # type: () -> str
+def get_master_port() -> str:
     """Get the master port.
 
     TIP: The environment variable COMPSS_MASTER_PORT is defined in the
@@ -52,8 +50,7 @@ def get_master_port():
     return os.environ["COMPSS_MASTER_PORT"]
 
 
-def get_worker_nodes():
-    # type: () -> str
+def get_worker_nodes() -> str:
     """Get the worker nodes.
 
     TIP: The environment variable COMPSS_WORKER_NODES is defined in the
@@ -64,8 +61,7 @@ def get_worker_nodes():
     return os.environ["COMPSS_WORKER_NODES"]
 
 
-def get_xmls():
-    # type: () -> typing.Tuple[str, str]
+def get_xmls() -> typing.Tuple[str, str]:
     """Get the project and resources.
 
     They are taken from the environment variable exported from the
@@ -78,8 +74,7 @@ def get_xmls():
     return project, resources
 
 
-def get_uuid():
-    # type: () -> str
+def get_uuid() -> str:
     """Get UUID.
 
     TIP: The environment variable COMPSS_UUID is defined in the
@@ -90,8 +85,7 @@ def get_uuid():
     return os.environ["COMPSS_UUID"]
 
 
-def get_base_log_dir():
-    # type: () -> str
+def get_base_log_dir() -> str:
     """Get base log dir.
 
     TIP: The environment variable COMPSS_BASE_LOG_DIR is defined in the
@@ -102,8 +96,7 @@ def get_base_log_dir():
     return os.environ["COMPSS_BASE_LOG_DIR"]
 
 
-def get_specific_log_dir():
-    # type: () -> str
+def get_specific_log_dir() -> str:
     """Get specific log directory.
 
     TIP: The environment variable COMPSS_SPECIFIC_LOG_DIR is defined in the
@@ -114,8 +107,7 @@ def get_specific_log_dir():
     return os.environ["COMPSS_SPECIFIC_LOG_DIR"]
 
 
-def get_log_level():
-    # type: () -> str
+def get_log_level() -> str:
     """Get log level.
 
     TIP: The environment variable COMPSS_LOG_LEVEL is defined in the
@@ -126,8 +118,7 @@ def get_log_level():
     return os.environ["COMPSS_LOG_LEVEL"]
 
 
-def get_tracing():
-    # type: () -> bool
+def get_tracing() -> bool:
     """Get tracing boolean.
 
     TIP: The environment variable COMPSS_TRACING is defined in the
@@ -138,8 +129,7 @@ def get_tracing():
     return "true" == os.environ["COMPSS_TRACING"]
 
 
-def get_storage_conf():
-    # type: () -> str
+def get_storage_conf() -> str:
     """Get storage configuration file.
 
     TIP: The environment variable COMPSS_STORAGE_CONF is defined in the

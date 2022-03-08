@@ -31,8 +31,7 @@ class COMPSsException(Exception):
 
     __slots__ = ["message", "target_direction"]
 
-    def __init__(self, message, target_direction=-1):
-        # type: (str, int) -> None
+    def __init__(self, message: str, target_direction: int = -1) -> None:
         super(COMPSsException, self).__init__(message)  # show traceback
         self.message = message
         self.target_direction = target_direction

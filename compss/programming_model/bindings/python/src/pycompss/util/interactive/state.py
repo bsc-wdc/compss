@@ -55,8 +55,7 @@ except ImportError:
     widgets = None
 
 
-def supports_dynamic_state():
-    # type: () -> bool
+def supports_dynamic_state() -> bool:
     """Checks if the state can be displayed with widgets.
 
     :return: True if widgets available. False otherwise.
@@ -64,8 +63,7 @@ def supports_dynamic_state():
     return widgets is not None
 
 
-def check_monitoring_file(log_path):
-    # type: (str) -> bool
+def check_monitoring_file(log_path: str) -> bool:
     """Check if there monitoring file exists or not.
 
     :param log_path: Absolute path of the log folder.
@@ -75,8 +73,7 @@ def check_monitoring_file(log_path):
     return os.path.exists(compss_state_xml)
 
 
-def get_compss_state_xml(log_path):
-    # type: (str) -> str
+def get_compss_state_xml(log_path: str) -> str:
     """Check if there is any missing package and return the status xml
     full path.
 
@@ -89,8 +86,7 @@ def get_compss_state_xml(log_path):
     return compss_state_xml
 
 
-def parse_state_xml(log_path, field):
-    # type: (str, str) -> typing.Any
+def parse_state_xml(log_path: str, field: str) -> typing.Any:
     """Converts the given xml to dictionary.
 
     :param log_path: Absolute path of the log folder.
@@ -113,8 +109,7 @@ def parse_state_xml(log_path, field):
         raise PyCOMPSsException("Unsupported status field")
 
 
-def element_tree_to_dict(element_tree):
-    # type: (typing.Any) -> dict
+def element_tree_to_dict(element_tree: typing.Any) -> dict:
     """Converts a element tree into a dictionary recursively.
 
     :param element_tree: Element tree.
@@ -140,8 +135,7 @@ def element_tree_to_dict(element_tree):
     return d
 
 
-def show_tasks_info(log_path):
-    # type: (str) -> None
+def show_tasks_info(log_path: str) -> None:
     """Show tasks info.
 
     :param log_path: Absolute path of the log folder.
@@ -159,8 +153,7 @@ def show_tasks_info(log_path):
         __show_tasks_info__(log_path)
 
 
-def __show_tasks_info__(log_path):
-    # type: (str) -> None
+def __show_tasks_info__(log_path: str) -> None:
     """Show tasks info.
 
     :param log_path: Absolute path of the log folder.
@@ -222,8 +215,7 @@ def __show_tasks_info__(log_path):
     display(HTML(tabulate.tabulate(cores, tablefmt="html", headers=labels)))  # noqa
 
 
-def show_tasks_status(log_path):
-    # type: (str) -> None
+def show_tasks_status(log_path: str) -> None:
     """Show tasks status.
 
     :param log_path: Absolute path of the log folder.
@@ -241,8 +233,7 @@ def show_tasks_status(log_path):
         __show_tasks_info__(log_path)
 
 
-def __show_tasks_status__(log_path):
-    # type: (str) -> None
+def __show_tasks_status__(log_path: str) -> None:
     """Show tasks status.
 
     :param log_path: Absolute path of the log folder.
@@ -265,8 +256,7 @@ def __show_tasks_status__(log_path):
     display(HTML(tabulate.tabulate([values], tablefmt="html", headers=labels)))  # noqa
 
 
-def show_statistics(log_path):
-    # type: (str) -> None
+def show_statistics(log_path: str) -> None:
     """Show statistics info.
 
     :param log_path: Absolute path of the log folder.
@@ -284,8 +274,7 @@ def show_statistics(log_path):
         __show_statistics__(log_path)
 
 
-def __show_statistics__(log_path):
-    # type: (str) -> None
+def __show_statistics__(log_path: str) -> None:
     """Show statistics info.
 
     :param log_path: Absolute path of the log folder.
@@ -298,8 +287,7 @@ def __show_statistics__(log_path):
     display(HTML(tabulate.tabulate([values], tablefmt="html", headers=labels)))  # noqa
 
 
-def show_resources_status(log_path):
-    # type: (str) -> None
+def show_resources_status(log_path: str) -> None:
     """Show resources status info.
 
     :param log_path: Absolute path of the log folder.
@@ -317,8 +305,7 @@ def show_resources_status(log_path):
         __show_resources_status__(log_path)
 
 
-def __show_resources_status__(log_path):
-    # type: (str) -> None
+def __show_resources_status__(log_path: str) -> None:
     """Show resources status info.
 
     :param log_path: Absolute path of the log folder.
@@ -330,8 +317,7 @@ def __show_resources_status__(log_path):
     display(HTML(tabulate.tabulate([values], tablefmt="html", headers=labels)))  # noqa
 
 
-def __plain_lists__(dictionary):
-    # type: (dict) -> typing.Tuple[list, list]
+def __plain_lists__(dictionary: dict) -> typing.Tuple[list, list]:
     """Converts a dictionary to two lists.
     Removes last element.
 
@@ -348,8 +334,7 @@ def __plain_lists__(dictionary):
     return labels, values
 
 
-def __get_play_widget(function):
-    # type: (typing.Any) -> typing.Any
+def __get_play_widget(function: typing.Any) -> typing.Any:
     """Generate play widget.
 
     :param function: Function to associate with Play.

@@ -113,8 +113,7 @@ TRACING_TASK_NAME_TO_ID = dict()  # type: typing.Dict[str, int]
 ##########################################################
 
 
-def get_temporary_directory():
-    # type: () -> str
+def get_temporary_directory() -> str:
     """Temporary directory getter.
 
     :return: Temporary directory path
@@ -122,8 +121,7 @@ def get_temporary_directory():
     return _TEMP_DIR
 
 
-def set_temporary_directory(folder, create_tmpdir=True):
-    # type: (str, bool) -> None
+def set_temporary_directory(folder: str, create_tmpdir: bool = True) -> None:
     """Set the temporary directory.
 
     Creates the temporary directory from the folder parameter and
@@ -143,8 +141,7 @@ def set_temporary_directory(folder, create_tmpdir=True):
     _TEMP_DIR = temp_dir
 
 
-def get_object_conversion():
-    # type: () -> bool
+def get_object_conversion() -> bool:
     """Object conversion getter.
 
     :return: Boolean object conversion
@@ -152,8 +149,7 @@ def get_object_conversion():
     return _OBJECT_CONVERSION
 
 
-def set_object_conversion(conversion=False):
-    # type: (bool) -> None
+def set_object_conversion(conversion: bool = False) -> None:
     """Set object conversion to string.
 
     :param conversion: Boolean. True enable, False disable.

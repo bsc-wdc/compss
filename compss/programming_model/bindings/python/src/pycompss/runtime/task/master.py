@@ -249,22 +249,22 @@ class TaskMaster(object):
 
     def __init__(
         self,
-        decorator_arguments,  # type: typing.Dict[str, typing.Any]
-        user_function,  # type: typing.Callable
-        core_element,  # type: CE
-        registered,  # type: bool
-        signature,  # type: str
-        interactive,  # type: bool
-        module,  # type: typing.Any
-        function_arguments,  # type: tuple
-        function_name,  # type: str
-        module_name,  # type: str
-        function_type,  # type: int
-        class_name,  # type: str
-        hints,  # type: tuple
-        on_failure,  # type: str
-        defaults,  # type: dict
-    ):  # type: (...) -> None
+        decorator_arguments: typing.Dict[str, typing.Any],
+        user_function: typing.Callable,
+        core_element: CE,
+        registered: bool,
+        signature: str,
+        interactive: bool,
+        module: typing.Any,
+        function_arguments: tuple,
+        function_name: str,
+        module_name: str,
+        function_type: int,
+        class_name: str,
+        hints: tuple,
+        on_failure: str,
+        defaults: dict,
+    ) -> None:
         """Task at master constructor.
 
         :param decorator_arguments: Decorator arguments
@@ -322,8 +322,7 @@ class TaskMaster(object):
         self.function_arguments = function_arguments
         self.hints = hints
 
-    def call(self, args, kwargs):
-        # type: (tuple, dict) -> tuple
+    def call(self, args: tuple, kwargs: dict) -> tuple:
         """Main task code at master side.
 
         This part deals with task calls in the master's side
@@ -561,8 +560,7 @@ class TaskMaster(object):
             self.hints,
         )
 
-    def check_if_interactive(self):
-        # type: () -> typing.Tuple[bool, typing.Any]
+    def check_if_interactive(self) -> typing.Tuple[bool, typing.Any]:
         """Check if running in interactive mode.
 
         :return: True if interactive. False otherwise.
@@ -578,8 +576,7 @@ class TaskMaster(object):
         else:
             return False, None
 
-    def update_if_interactive(self, mod):
-        # type: (typing.Any) -> None
+    def update_if_interactive(self, mod: typing.Any) -> None:
         """Update the code for jupyter notebook.
 
         Update the user code if in interactive mode and the session has
@@ -608,8 +605,9 @@ class TaskMaster(object):
             update_tasks_code_file(self.user_function, path)
             print("Found task: " + str(self.user_function.__name__))
 
-    def extract_core_element(self, cek):
-        # type: (typing.Optional[CE]) -> typing.Tuple[bool, bool]
+    def extract_core_element(
+        self, cek: typing.Optional[CE]
+    ) -> typing.Tuple[bool, bool]:
         """Get or instantiate the Task's core element.
 
         Extract the core element if created in a higher level decorator,
@@ -635,8 +633,7 @@ class TaskMaster(object):
             self.core_element = CE()
         return pre_defined_core_element, upper_decorator
 
-    def inspect_user_function_arguments(self):
-        # type: () -> None
+    def inspect_user_function_arguments(self) -> None:
         """Get user function arguments.
 
         Inspect the arguments of the user function and store them.
@@ -658,8 +655,7 @@ class TaskMaster(object):
             arguments = self._getargspec(py_func)
         self.param_args, self.param_varargs, _, self.param_defaults = arguments
 
-    def get_user_function_py_func(self):
-        # type: () -> typing.Callable
+    def get_user_function_py_func(self) -> typing.Callable:
         """Retrieve py_func from self.user_function.
         WARNING!!! Only available in numba wrapped functions.
 
@@ -667,8 +663,7 @@ class TaskMaster(object):
         """
         return self.user_function.py_func  # type: ignore
 
-    def user_func_py_func_glob_getter(self, field):
-        # type: (str) -> typing.Any
+    def user_func_py_func_glob_getter(self, field) -> typing.Any:
         """Retrieve a field from __globals__ from py_func of
         self.user_function.
         WARNING!!! Only available in numba wrapped functions.
@@ -678,8 +673,7 @@ class TaskMaster(object):
         py_func = self.get_user_function_py_func()
         return py_func.__globals__.get(field)  # type: ignore
 
-    def user_func_glob_getter(self, field):
-        # type: (str) -> typing.Any
+    def user_func_glob_getter(self, field: str) -> typing.Any:
         """Retrieve a field from __globals__ from py_func of
         self.user_function.
         WARNING!!! Only available in numba wrapped functions.
@@ -689,8 +683,7 @@ class TaskMaster(object):
         return self.user_function.__globals__.get(field)  # type: ignore
 
     @staticmethod
-    def _getargspec(function):
-        # type: (typing.Any) -> tuple
+    def _getargspec(function: typing.Any) -> tuple:
         """Private method that retrieves the function argspec.
 
         :param function: Function to analyse.
@@ -703,8 +696,7 @@ class TaskMaster(object):
         as_defaults = full_argspec.defaults
         return as_args, as_varargs, as_keywords, as_defaults
 
-    def pop_task_parameters(self, kwargs):
-        # type: (dict) -> None
+    def pop_task_parameters(self, kwargs: dict) -> None:
         """Extracts all @task related parameters.
         Updates:
             - self.explicit_num_returns
@@ -760,8 +752,7 @@ class TaskMaster(object):
         else:
             self.chunk_size = 0
 
-    def process_parameters(self, args, kwargs):
-        # type: (tuple, dict) -> None
+    def process_parameters(self, args: tuple, kwargs: dict) -> None:
         """Process all the input parameters.
 
         Basically, processing means "build a dictionary of <name, parameter>,
@@ -840,8 +831,9 @@ class TaskMaster(object):
             "@task",
         )
 
-    def build_parameter_object(self, arg_name, arg_object):
-        # type: (str, typing.Any) -> Parameter
+    def build_parameter_object(
+        self, arg_name: str, arg_object: typing.Any
+    ) -> Parameter:
         """Creates the Parameter object from an argument name and object.
 
         WARNING: Any modification in the param object will modify the
@@ -902,8 +894,7 @@ class TaskMaster(object):
             param.content = arg_object
         return param
 
-    def compute_user_function_information(self, args):
-        # type: (tuple) -> None
+    def compute_user_function_information(self, args: tuple) -> None:
         """Get the user function path and name.
 
         Compute the function path p and the name n such that
@@ -926,8 +917,7 @@ class TaskMaster(object):
         # Get the function type (function, instance method, class method)
         self.compute_function_type(first_object)
 
-    def compute_module_name(self, first_object):
-        # type: (typing.Any) -> None
+    def compute_module_name(self, first_object: typing.Any) -> None:
         """Compute the user's function module name.
 
         There are various cases:
@@ -966,8 +956,7 @@ class TaskMaster(object):
             # Get the module
             self.module_name = get_module_name(path, file_name)
 
-    def compute_function_type(self, first_object):
-        # type: (typing.Any) -> None
+    def compute_function_type(self, first_object: typing.Any) -> None:
         """Compute user function type.
 
         Compute some properties of the user function, as its name,
@@ -1005,8 +994,7 @@ class TaskMaster(object):
             self.class_name = qualified_name[: -len(name) - 1]
             # -1 to remove the last point
 
-    def get_code_strings(self):
-        # type: () -> None
+    def get_code_strings(self) -> None:
         """This function is used to get if the strings must be coded or not.
 
         IMPORTANT! modify f adding __code_strings__ which is used in binding.
@@ -1035,8 +1023,7 @@ class TaskMaster(object):
                 % (self.function_name, self.module_name, str(ce_type))
             )
 
-    def get_signature(self):
-        # type: () -> typing.Tuple[str, list]
+    def get_signature(self) -> typing.Tuple[str, list]:
         """This function is used to find out the function signature.
 
         The information is needed in order to compare the implementation
@@ -1062,8 +1049,12 @@ class TaskMaster(object):
             impl_type_args = [module_name, function_name]
         return impl_signature, impl_type_args
 
-    def update_core_element(self, impl_signature, impl_type_args, pre_defined_ce):
-        # type: (str, list, typing.Tuple[bool, bool]) -> None
+    def update_core_element(
+        self,
+        impl_signature: str,
+        impl_type_args: list,
+        pre_defined_ce: typing.Tuple[bool, bool],
+    ) -> None:
         """Adds the @task decorator information to the core element.
 
         CAUTION: Modifies the core_element parameter.
@@ -1143,8 +1134,7 @@ class TaskMaster(object):
                 impl_type_args,
             )
 
-    def check_layout_params(self, impl_type_args):
-        # type: (list) -> None
+    def check_layout_params(self, impl_type_args: list) -> None:
         """Checks the layout parameter format.
 
         :param impl_type_args: Parameter arguments.
@@ -1169,8 +1159,7 @@ class TaskMaster(object):
                             "Parameter %s does not exist!" % param_name
                         )  # noqa: E501
 
-    def register_task(self):
-        # type: () -> None
+    def register_task(self) -> None:
         """This function is used to register the task in the runtime.
 
         This registration must be done only once on the task decorator
@@ -1186,8 +1175,7 @@ class TaskMaster(object):
             )
         binding.register_ce(self.core_element)
 
-    def validate_processes_per_node(self):
-        # type: () -> None
+    def validate_processes_per_node(self) -> None:
         """Checks the processes per node property.
 
         :return: None
@@ -1199,8 +1187,9 @@ class TaskMaster(object):
                 "Processes is not a multiple of processes_per_node."
             )
 
-    def parse_processes_per_node(self, processes_per_node):
-        # type: (typing.Union[int, str]) -> int
+    def parse_processes_per_node(
+        self, processes_per_node: typing.Union[int, str]
+    ) -> int:
         """Retrieve the number of processes per node.
 
         This value can be defined by upper decorators and can also be defined
@@ -1264,8 +1253,7 @@ class TaskMaster(object):
 
         return parsed_processes_per_node
 
-    def parse_computing_nodes(self, computing_nodes):
-        # type: (typing.Union[int, str]) -> int
+    def parse_computing_nodes(self, computing_nodes: typing.Union[int, str]) -> int:
         """Retrieve the number of computing nodes.
 
         This value can be defined by upper decorators and can also be defined
@@ -1329,8 +1317,7 @@ class TaskMaster(object):
 
         return parsed_computing_nodes
 
-    def parse_chunk_size(self, chunk_size):
-        # type: (typing.Union[str, int]) -> int
+    def parse_chunk_size(self, chunk_size: typing.Union[str, int]) -> int:
         """Parses the chunk size value.
 
         :param chunk_size: Chunk size defined in the @task decorator
@@ -1377,8 +1364,7 @@ class TaskMaster(object):
         raise PyCOMPSsException("Unreachable code at parse_chunk_size")
 
     @staticmethod
-    def parse_is_reduce(is_reduce):
-        # type: (typing.Union[bool, str]) -> bool
+    def parse_is_reduce(is_reduce: typing.Union[bool, str]) -> bool:
         """Parse the is_reduce parameter.
 
         :return: If it is a reduction or not.
@@ -1399,8 +1385,7 @@ class TaskMaster(object):
             )  # noqa: E501
         raise PyCOMPSsException("Unreachable code at parse_is_reduce")
 
-    def check_task_hints(self):
-        # type: () -> tuple
+    def check_task_hints(self) -> tuple:
         """Process the @task hints.
 
         :return: The value of all possible hints.
@@ -1442,8 +1427,7 @@ class TaskMaster(object):
             has_target,
         )  # noqa: E501
 
-    def add_return_parameters(self, returns):
-        # type: (typing.Any) -> int
+    def add_return_parameters(self, returns: typing.Any) -> int:
         """Modify the return parameters accordingly to the return statement.
 
         :return: Creates and modifies self.returns and returns the number of
@@ -1528,8 +1512,7 @@ class TaskMaster(object):
         else:
             return to_return
 
-    def get_num_returns_from_string(self, returns):
-        # type: (str) -> int
+    def get_num_returns_from_string(self, returns: str) -> int:
         """Converts the returns to integer.
 
         :param returns: Returns as string.
@@ -1565,8 +1548,7 @@ class TaskMaster(object):
                     num_rets = self.user_func_py_func_glob_getter(returns)
                 return int(num_rets)
 
-    def update_return_if_no_returns(self, f):
-        # type: (typing.Any) -> int
+    def update_return_if_no_returns(self, f: typing.Callable) -> int:
         """Look for returns if no returns is specified.
 
         Checks the code looking for return statements if no returns is
@@ -1639,8 +1621,7 @@ class TaskMaster(object):
             max_num_returns = 0
             if self.first_arg_name == "self" or source_code.startswith("@classmethod"):
                 # Parse code as string (it is a task defined within a class)
-                def _has_multireturn(statement):
-                    # type: (str) -> bool
+                def _has_multireturn(statement: str) -> bool:
                     v = ast.parse(statement.strip())  # type: typing.Any
                     try:
                         if len(v.body[0].value.elts) > 1:
@@ -1652,8 +1633,7 @@ class TaskMaster(object):
                         # "Ask forgiveness not permission"
                         return False
 
-                def _get_return_elements(statement):
-                    # type: (str) -> int
+                def _get_return_elements(statement: str) -> int:
                     v = ast.parse(statement.strip())  # type: typing.Any
                     return len(v.body[0].value.elts)
 
@@ -1695,8 +1675,7 @@ class TaskMaster(object):
             pass
         return len(self.returns)
 
-    def _build_return_objects(self, num_returns):
-        # type: (int) -> typing.Any
+    def _build_return_objects(self, num_returns: int) -> typing.Any:
         """Build the return objects.
 
         Build the return object from the self.return dictionary and include
@@ -1777,8 +1756,7 @@ class TaskMaster(object):
                 return_k.file_name = COMPSsFile(ret_filename)
         return fo
 
-    def _serialize_objects(self):
-        # type: () -> None
+    def _serialize_objects(self) -> None:
         """Infer COMPSs types for the task parameters and serialize them.
 
         :return: None
@@ -1810,8 +1788,7 @@ class TaskMaster(object):
             # for thread in threads:
             #     thread.join()
 
-    def _serialize_object(self, k):
-        # type: (str) -> None
+    def _serialize_object(self, k: str) -> None:
         """Infer COMPSs types for a single task parameter and serializes it.
 
         WARNING: Updates self.parameters dictionary.
@@ -1841,8 +1818,7 @@ class TaskMaster(object):
                     "Final type for parameter %s: %d" % (k, p.content_type)
                 )  # noqa: E501
 
-    def _build_values_types_directions(self):
-        # type: () -> tuple
+    def _build_values_types_directions(self) -> tuple:
         """
         Build the values list, the values types list and the values directions
         list.
@@ -1947,8 +1923,9 @@ class TaskMaster(object):
         )  # noqa
 
     @staticmethod
-    def _convert_parameter_obj_to_string(p, max_obj_arg_size, policy="objectSize"):
-        # type: (Parameter, int, str) -> typing.Tuple[Parameter, int]
+    def _convert_parameter_obj_to_string(
+        p: Parameter, max_obj_arg_size: int, policy: str = "objectSize"
+    ) -> typing.Tuple[Parameter, int]:
         """Convert object to string.
 
         Convert small objects into strings that can fit into the task
@@ -2093,16 +2070,14 @@ class TaskMaster(object):
         return p, num_bytes
 
 
-def _get_object_property(param_ref, obj):
-    # type: (list, typing.Any) -> typing.Any
+def _get_object_property(param_ref: list, obj: typing.Any) -> typing.Any:
     if len(param_ref) == 1:
         return obj
     else:
         return _get_object_property(param_ref[1:], getattr(obj, param_ref[1]))
 
 
-def _manage_persistent_object(p):
-    # type: (Parameter) -> None
+def _manage_persistent_object(p: Parameter) -> None:
     """Manage a persistent object within a Parameter.
 
     Does the necessary actions over a persistent object used as task parameter.
@@ -2120,8 +2095,7 @@ def _manage_persistent_object(p):
         logger.debug("Managed persistent object: %s" % obj_id)
 
 
-def _serialize_object_into_file(name, p):
-    # type: (str, Parameter) -> Parameter
+def _serialize_object_into_file(name: str, p: Parameter) -> Parameter:
     """Serialize an object into a file if necessary.
 
     :param name: Name of the object.
@@ -2256,8 +2230,7 @@ def _serialize_object_into_file(name, p):
     return p
 
 
-def _turn_into_file(p, name, skip_creation=False):
-    # type: (Parameter, str, bool) -> None
+def _turn_into_file(p: Parameter, name: str, skip_creation: bool = False) -> None:
     """Write a object into a file if the object has not been already written.
 
     Consults the obj_id_to_filename to check if it has already been written
@@ -2296,8 +2269,9 @@ def _turn_into_file(p, name, skip_creation=False):
     p.file_name = COMPSsFile(file_name)
 
 
-def _extract_parameter(param, code_strings, collection_depth=0):
-    # type: (Parameter, bool, int) -> tuple
+def _extract_parameter(
+    param: Parameter, code_strings: bool, collection_depth: int = 0
+) -> tuple:
     """Extract the information of a single parameter.
 
     :param param: Parameter object.

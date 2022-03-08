@@ -31,15 +31,13 @@ from pycompss.util.typing_helper import typing
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.objects.sizer import total_sizeof
 from pycompss.util.tracing.helpers import event_inside_worker
-from pycompss.worker.commons.constants import RETRIEVE_OBJECT_FROM_CACHE_EVENT
-from pycompss.worker.commons.constants import INSERT_OBJECT_INTO_CACHE_EVENT
-from pycompss.worker.commons.constants import REMOVE_OBJECT_FROM_CACHE_EVENT
 from pycompss.worker.commons.constants import (
+    RETRIEVE_OBJECT_FROM_CACHE_EVENT,
+    INSERT_OBJECT_INTO_CACHE_EVENT,
+    REMOVE_OBJECT_FROM_CACHE_EVENT,
     BINDING_SERIALIZATION_CACHE_SIZE_TYPE,
-)  # noqa: E501
-from pycompss.worker.commons.constants import (
     BINDING_DESERIALIZATION_CACHE_SIZE_TYPE,
-)  # noqa: E501
+)
 from pycompss.util.tracing.helpers import emit_manual_event_explicit
 
 
@@ -101,16 +99,16 @@ class CacheTrackerConf(object):
 
     def __init__(
         self,
-        logger,  # type: typing.Any
-        size,  # type: int
-        policy,  # type: str
-        cache_ids,  # type: typing.Any
-        cache_hits,  # type: typing.Dict[int, typing.Dict[str, int]]
-        profiler_dict,  # type: dict
-        profiler_get_struct,  # type: typing.Any
-        log_dir,  # type: str
-        cache_profiler,  # type: bool
-    ):  # type: (...) -> None
+        logger: typing.Any,
+        size: int,
+        policy: str,
+        cache_ids: typing.Any,
+        cache_hits: typing.Dict[int, typing.Dict[str, int]],
+        profiler_dict: dict,
+        profiler_get_struct: typing.Any,
+        log_dir: str,
+        cache_profiler: bool,
+    ) -> None:
         """
         Constructs a new cache tracker configuration.
 
@@ -136,8 +134,7 @@ class CacheTrackerConf(object):
         self.cache_profiler = cache_profiler
 
 
-def cache_tracker(queue, process_name, conf):
-    # type: (Queue, str, CacheTrackerConf) -> None
+def cache_tracker(queue: Queue, process_name: str, conf: CacheTrackerConf) -> None:
     """Process main body
 
     :param queue: Queue where to put exception messages.
@@ -275,8 +272,9 @@ def cache_tracker(queue, process_name, conf):
                 alive = False
 
 
-def check_cache_status_old(conf, used_size, requested_size):
-    # type: (CacheTrackerConf, int, int) -> int
+def check_cache_status_old(
+    conf: CacheTrackerConf, used_size: int, requested_size: int
+) -> int:
     """Checks the cache status looking into the shared dictionary.
 
     :param conf: configuration of the cache tracker.
@@ -320,8 +318,9 @@ def check_cache_status_old(conf, used_size, requested_size):
     return used_size - recovered_size
 
 
-def check_cache_status(conf, used_size, requested_size):
-    # type: (CacheTrackerConf, int, int) -> int
+def check_cache_status(
+    conf: CacheTrackerConf, used_size: int, requested_size: int
+) -> int:
     """Checks the cache status looking into the shared dictionary.
 
     :param conf: configuration of the cache tracker.
@@ -352,7 +351,11 @@ def check_cache_status(conf, used_size, requested_size):
     return used_size - recovered_size
 
 
-def __evict__(sorted_hits, cache_hits, size_to_recover):
+def __evict__(
+    sorted_hits: typing.List[int],
+    cache_hits: typing.Dict[int, typing.Dict[str, int]],
+    size_to_recover: int,
+) -> typing.Tuple[list, int]:
     """Select how many to evict.
 
     :param sorted_hits: List of current hits sorted from lower to higher.
@@ -372,10 +375,10 @@ def __evict__(sorted_hits, cache_hits, size_to_recover):
             total_recovered_size += recovered_size
             if size_to_recover <= 0:
                 return to_evict, total_recovered_size
+    return to_evict, total_recovered_size
 
 
-def load_shared_memory_manager():
-    # type: () -> None
+def load_shared_memory_manager() -> None:
     """Connects to the main shared memory manager initiated in piper_worker.py.
 
     :return: None
@@ -387,8 +390,7 @@ def load_shared_memory_manager():
     SHARED_MEMORY_MANAGER.connect()
 
 
-def start_shared_memory_manager():
-    # type: () -> SharedMemoryManager
+def start_shared_memory_manager() -> SharedMemoryManager:
     """Starts the shared memory manager.
 
     :return: Shared memory manager instance.
@@ -398,8 +400,7 @@ def start_shared_memory_manager():
     return smm
 
 
-def stop_shared_memory_manager(smm):
-    # type: (SharedMemoryManager) -> None
+def stop_shared_memory_manager(smm: SharedMemoryManager) -> None:
     """Stops the given shared memory manager, releasing automatically the
     objects contained in it.
 
@@ -413,15 +414,14 @@ def stop_shared_memory_manager(smm):
 
 
 def retrieve_object_from_cache(
-    logger,
-    cache_ids,
-    cache_queue,
-    identifier,
-    parameter_name,
-    user_function,
-    cache_profiler,
-):  # noqa
-    # type: (typing.Any, typing.Any, Queue, str, str, typing.Callable, bool) -> typing.Any
+    logger: typing.Any,
+    cache_ids: typing.Any,
+    cache_queue: Queue,
+    identifier: str,
+    parameter_name: str,
+    user_function: typing.Callable,
+    cache_profiler: bool,
+) -> typing.Any:
     """Retrieve an object from the given cache proxy dict.
 
     :param logger: Logger where to push messages.
@@ -480,9 +480,13 @@ def retrieve_object_from_cache(
 
 
 def insert_object_into_cache_wrapper(
-    logger, cache_queue, obj, f_name, parameter, user_function
-):  # noqa
-    # type: (typing.Any, Queue, typing.Any, str, str, typing.Callable) -> None
+    logger: typing.Any,
+    cache_queue: Queue,
+    obj: typing.Any,
+    f_name: str,
+    parameter: str,
+    user_function: typing.Callable,
+) -> None:
     """Put an object into cache filter to avoid event emission when not
     supported.
 
@@ -511,9 +515,13 @@ def insert_object_into_cache_wrapper(
 
 
 def insert_object_into_cache(
-    logger, cache_queue, obj, f_name, parameter, user_function
-):  # noqa
-    # type: (typing.Any, Queue, typing.Any, str, str, typing.Callable) -> None
+    logger: typing.Any,
+    cache_queue: Queue,
+    obj: typing.Any,
+    f_name: str,
+    parameter: str,
+    user_function: typing.Callable,
+) -> None:
     """Put an object into cache.
 
     :param logger: Logger where to push messages.
@@ -633,8 +641,9 @@ def insert_object_into_cache(
                 logger.debug(str(e))
 
 
-def remove_object_from_cache(logger, cache_queue, f_name):  # noqa
-    # type: (typing.Any, Queue, str) -> None
+def remove_object_from_cache(
+    logger: typing.Any, cache_queue: Queue, f_name: str
+) -> None:
     """Removes an object from cache.
 
     :param logger: Logger where to push messages.
@@ -652,9 +661,13 @@ def remove_object_from_cache(logger, cache_queue, f_name):  # noqa
 
 
 def replace_object_into_cache(
-    logger, cache_queue, obj, f_name, parameter, user_function
-):  # noqa
-    # type: (typing.Any, Queue, typing.Any, str, str, typing.Callable) -> None
+    logger: typing.Any,
+    cache_queue: Queue,
+    obj: typing.Any,
+    f_name: str,
+    parameter: str,
+    user_function: typing.Callable,
+) -> None:
     """Put an object into cache.
 
     :param logger: Logger where to push messages.
@@ -674,8 +687,7 @@ def replace_object_into_cache(
         logger.debug(HEADER + "Replaced from cache: " + str(f_name))
 
 
-def in_cache(f_name, cache):
-    # type: (str, typing.Any) -> bool
+def in_cache(f_name: str, cache: typing.Any) -> bool:
     """Checks if the given file name is in the cache
 
     :param f_name: Absolute file name.
@@ -689,8 +701,7 @@ def in_cache(f_name, cache):
         return False
 
 
-def __get_file_name__(f_name):
-    # type: (str) -> str
+def __get_file_name__(f_name: str) -> str:
     """Convert a full path with file name to the file name (removes the path).
     Example: /a/b/c.py -> c.py
 
@@ -700,8 +711,7 @@ def __get_file_name__(f_name):
     return os.path.basename(f_name)
 
 
-def filename_cleaned(f_name):
-    # type: (str) -> str
+def filename_cleaned(f_name: str) -> str:
     """
     # TODO: Complete documentation (PVB)
 
@@ -711,8 +721,7 @@ def filename_cleaned(f_name):
     return f_name.rsplit("/", 1)[-1]
 
 
-def function_cleaned(function):
-    # type: (typing.Callable) -> str
+def function_cleaned(function: typing.Callable) -> str:
     """
     # TODO: Complete documentation (PVB)
 
@@ -722,8 +731,9 @@ def function_cleaned(function):
     return str(function)[10:].rsplit(" ", 3)[0]
 
 
-def add_profiler_get_put(profiler_dict, function, parameter, filename, type):
-    # type: (dict, str, str, str, str) -> None
+def add_profiler_get_put(
+    profiler_dict: dict, function: str, parameter: str, filename: str, type: str
+) -> None:
     """
     # TODO: Complete documentation (PVB)
 
@@ -743,8 +753,9 @@ def add_profiler_get_put(profiler_dict, function, parameter, filename, type):
     profiler_dict[function][parameter][filename][type] += 1
 
 
-def add_profiler_get_struct(profiler_get_struct, function, parameter, filename):
-    # type: (list, str, str, str) -> None
+def add_profiler_get_struct(
+    profiler_get_struct: list, function: str, parameter: str, filename: str
+) -> None:
     """
     # TODO: Complete documentation (PVB)
 
@@ -763,8 +774,9 @@ def add_profiler_get_struct(profiler_get_struct, function, parameter, filename):
         profiler_get_struct[2].append(function)
 
 
-def profiler_print_message(profiler_dict, profiler_get_struct, log_dir):
-    # type: (dict, list, str) -> None
+def profiler_print_message(
+    profiler_dict: dict, profiler_get_struct: list, log_dir: str
+) -> None:
     """
     # TODO: Complete documentation (PVB)
 

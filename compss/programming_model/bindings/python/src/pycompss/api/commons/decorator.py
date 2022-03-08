@@ -63,8 +63,9 @@ class PyCOMPSsDecorator(object):
         "core_element_configured",
     ]
 
-    def __init__(self, decorator_name, *args, **kwargs):
-        # type: (str, *typing.Any, **typing.Any) -> None
+    def __init__(
+        self, decorator_name: str, *args: typing.Any, **kwargs: typing.Any
+    ) -> None:
         self.decorator_name = decorator_name
         self.args = args
         self.kwargs = kwargs
@@ -81,8 +82,9 @@ class PyCOMPSsDecorator(object):
             # Log only in the master
             logger.debug("Init %s decorator..." % decorator_name)
 
-    def __configure_core_element__(self, kwargs, user_function):
-        # type: (dict, typing.Any) -> None
+    def __configure_core_element__(
+        self, kwargs: dict, user_function: typing.Any
+    ) -> None:
         """
         Include the registering info related to the decorator which inherits
 
@@ -99,8 +101,7 @@ class PyCOMPSsDecorator(object):
 ##############################################
 
 
-def resolve_working_dir(kwargs):
-    # type: (dict) -> None
+def resolve_working_dir(kwargs: dict) -> None:
     """
     Resolve the working directory considering deprecated naming.
     Updates kwargs:
@@ -118,8 +119,7 @@ def resolve_working_dir(kwargs):
         kwargs[WORKING_DIR] = UNASSIGNED
 
 
-def resolve_fail_by_exit_value(kwargs):
-    # type: (dict) -> None
+def resolve_fail_by_exit_value(kwargs: dict) -> None:
     """
     Resolve the fail by exit value.
     Updates kwargs:
@@ -145,8 +145,7 @@ def resolve_fail_by_exit_value(kwargs):
         kwargs[FAIL_BY_EXIT_VALUE] = "true"
 
 
-def process_computing_nodes(decorator_name, kwargs):
-    # type: (str, dict) -> None
+def process_computing_nodes(decorator_name: str, kwargs: dict) -> None:
     """
     Processes the computing_nodes from the decorator.
     We only ensure that the correct self.kwargs entry exists since its
@@ -160,6 +159,8 @@ def process_computing_nodes(decorator_name, kwargs):
 
     WARNING: Updates kwargs.
 
+    :param decorator_name: Decorator name
+    :param kwargs: Key word arguments
     :return: None
     """
     if COMPUTING_NODES not in kwargs:
@@ -186,8 +187,9 @@ def process_computing_nodes(decorator_name, kwargs):
 
 
 @contextmanager
-def keep_arguments(args, kwargs, prepend_strings=True):
-    # type: (tuple, dict, bool) -> typing.Iterator[None]
+def keep_arguments(
+    args: tuple, kwargs: dict, prepend_strings: bool = True
+) -> typing.Iterator[None]:
     """
     Context which saves and restores the function arguments.
     It also enables or disables the PREPEND_STRINGS property from @task.
@@ -229,8 +231,7 @@ def keep_arguments(args, kwargs, prepend_strings=True):
 #################
 
 
-def run_command(cmd, args, kwargs):
-    # type: (list, tuple, dict) -> int
+def run_command(cmd: typing.List[str], args: tuple, kwargs: dict) -> int:
     """Executes the command considering necessary the args and kwargs.
 
     :param cmd: Command to run.

@@ -28,34 +28,34 @@ import os
 from pycompss.util.typing_helper import typing
 
 
-def compss_start(log_level="off", tracing=0, interactive=False):  # noqa
-    # type: (str, int, bool) -> None
+def compss_start(
+    log_level: str = "off", tracing: int = 0, interactive: bool = False
+) -> None:
     """Dummy runtime start.
 
     Does nothing.
 
     :param log_level: Log level ["trace"|"debug"|"info"|"api"|"off"].
+    :param tracing: Tracing mode [0=None, 1=Extrae]
     :param interactive: Boolean if interactive (ipython or jupyter).
     :return: None
     """
     pass
 
 
-def compss_stop(code=0, _hard_stop=False):  # noqa
-    # type: (int, bool) -> None
+def compss_stop(code: int = 0, _hard_stop: bool = False) -> None:
     """Dummy runtime stop.
 
     Does nothing.
 
     :param code: Stop code.
-    :param _hard_stop: Stop compss when runtime has died.
+    :param _hard_stop: Stop COMPSs when runtime has died.
     :return: None
     """
     pass
 
 
-def compss_file_exists(*file_name):
-    # type: (*str) -> typing.Union[bool, typing.List[bool]]
+def compss_file_exists(*file_name: str) -> typing.Union[bool, typing.List[bool]]:
     """Dummy compss_file_exists.
 
     Check if the file exists.
@@ -69,8 +69,7 @@ def compss_file_exists(*file_name):
         return [os.path.exists(f_name) for f_name in file_name]
 
 
-def compss_open(file_name, mode="r"):
-    # type: (str, str) -> typing.Any
+def compss_open(file_name: str, mode: str = "r") -> typing.Any:
     """Dummy compss_open.
 
     Open the given file with the defined mode (see builtin open).
@@ -83,8 +82,7 @@ def compss_open(file_name, mode="r"):
     return open(file_name, mode)
 
 
-def compss_delete_file(*file_name):  # noqa
-    # type: (*str) -> typing.Union[bool, typing.List[bool]]
+def compss_delete_file(*file_name: str) -> typing.Union[bool, typing.List[bool]]:
     """Dummy compss_delete.
 
     Does nothing and always return True.
@@ -98,8 +96,7 @@ def compss_delete_file(*file_name):  # noqa
         return [True] * len(file_name)
 
 
-def compss_wait_on_file(*file_name):  # noqa
-    # type: (*str) -> None
+def compss_wait_on_file(*file_name: str) -> None:
     """Dummy compss_wait_on_file.
 
     Does nothing.
@@ -110,8 +107,7 @@ def compss_wait_on_file(*file_name):  # noqa
     return None
 
 
-def compss_wait_on_directory(*directory_name):  # noqa
-    # type: (*str) -> None
+def compss_wait_on_directory(*directory_name: str) -> None:
     """Dummy compss_wait_on_directory.
 
     Does nothing.
@@ -122,8 +118,7 @@ def compss_wait_on_directory(*directory_name):  # noqa
     return None
 
 
-def compss_delete_object(*obj):  # noqa
-    # type: (*typing.Any) -> typing.Union[bool, typing.List[bool]]
+def compss_delete_object(*obj: typing.Any) -> typing.Union[bool, typing.List[bool]]:
     """Dummy compss_delete_object.
 
     Does nothing and always return True.
@@ -137,8 +132,7 @@ def compss_delete_object(*obj):  # noqa
         return [True] * len(obj)
 
 
-def compss_barrier(no_more_tasks=False):  # noqa
-    # type: (bool) -> None
+def compss_barrier(no_more_tasks: bool = False) -> None:
     """Dummy barrier.
 
     Does nothing.
@@ -149,8 +143,7 @@ def compss_barrier(no_more_tasks=False):  # noqa
     pass
 
 
-def compss_barrier_group(group_name):  # noqa
-    # type: (str) -> None
+def compss_barrier_group(group_name: str) -> None:
     """Dummy barrier for groups.
 
     Does nothing.
@@ -161,8 +154,7 @@ def compss_barrier_group(group_name):  # noqa
     pass
 
 
-def compss_wait_on(*args, **kwargs):  # noqa
-    # type: (*typing.Any, **typing.Any) -> typing.Any
+def compss_wait_on(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
     """Dummy compss_wait_on.
 
     Does nothing.
@@ -178,8 +170,7 @@ def compss_wait_on(*args, **kwargs):  # noqa
         return ret
 
 
-def compss_get_number_of_resources():
-    # type: () -> int
+def compss_get_number_of_resources() -> int:
     """Request for the number of active resources.
 
     Does nothing.
@@ -189,8 +180,7 @@ def compss_get_number_of_resources():
     return 1
 
 
-def compss_request_resources(num_resources, group_name):  # noqa
-    # type: (int, str) -> None
+def compss_request_resources(num_resources: int, group_name: str) -> None:
     """Requests the creation of num_resources resources.
 
     Does nothing.
@@ -202,8 +192,7 @@ def compss_request_resources(num_resources, group_name):  # noqa
     pass
 
 
-def compss_free_resources(num_resources, group_name):  # noqa
-    # type: (int, str) -> None
+def compss_free_resources(num_resources: int, group_name: str) -> None:
     """Requests the destruction of num_resources resources.
 
     Does nothing.
@@ -215,8 +204,7 @@ def compss_free_resources(num_resources, group_name):  # noqa
     pass
 
 
-def compss_set_wall_clock(wall_clock_limit):  # noqa
-    # type: (int) -> None
+def compss_set_wall_clock(wall_clock_limit: int) -> None:
     """Sets the application wall_clock_limit.
 
     Does nothing.
@@ -232,8 +220,7 @@ class TaskGroup(object):
     Dummy TaskGroup context manager.
     """
 
-    def __init__(self, group_name, implicit_barrier=True):  # noqa
-        # type: (str, bool) -> None
+    def __init__(self, group_name: str, implicit_barrier: bool = True):
         """Define a new group of tasks.
 
         :param group_name: Group name.
@@ -241,15 +228,16 @@ class TaskGroup(object):
         """
         pass
 
-    def __enter__(self):
-        # type: () -> None
+    def __enter__(self) -> None:
         """Dummy: do nothing
 
         :return: None
         """
         pass
 
-    def __exit__(self, type, value, traceback):  # noqa
+    def __exit__(
+        self, type: typing.Any, value: typing.Any, traceback: typing.Any
+    ) -> None:
         """Dummy: do nothing
 
         :return: None

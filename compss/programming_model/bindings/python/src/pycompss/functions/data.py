@@ -30,8 +30,13 @@ from pycompss.functions.data_tasks import gen_normal as _gen_normal
 from pycompss.functions.data_tasks import gen_uniform as _gen_uniform
 
 
-def generator(size, num_frag, seed=0, distribution="random", wait=False):
-    # type: (typing.Tuple[int, int], int, int, str, bool) -> typing.Any
+def generator(
+    size: typing.Tuple[int, int],
+    num_frag: int,
+    seed: int = 0,
+    distribution: str = "random",
+    wait: bool = False,
+) -> typing.Any:
     """Data generator.
 
     Generates a list of fragments.
@@ -58,8 +63,9 @@ def generator(size, num_frag, seed=0, distribution="random", wait=False):
     return data
 
 
-def chunks(lst, n, balanced=False):
-    # type: (list, int, bool) -> typing.Iterator[typing.List[int]]
+def chunks(
+    lst: list, n: int, balanced: bool = False
+) -> typing.Iterator[typing.List[int]]:
     """List splitter into fragments.
 
     WARNING: Not tested!

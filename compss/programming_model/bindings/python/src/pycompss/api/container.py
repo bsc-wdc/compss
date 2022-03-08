@@ -59,8 +59,7 @@ class Container(object):
     __call__ methods, useful on mpi task creation.
     """
 
-    def __init__(self, *args, **kwargs):
-        # type: (*typing.Any, **typing.Any) -> None
+    def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         """
         Store arguments passed to the decorator
         # self = itself.
@@ -90,8 +89,7 @@ class Container(object):
                 decorator_name,
             )
 
-    def __call__(self, user_function):
-        # type: (typing.Callable) -> typing.Callable
+    def __call__(self, user_function: typing.Callable) -> typing.Callable:
         """
         Parse and set the container parameters within the task core element.
 
@@ -100,8 +98,7 @@ class Container(object):
         """
 
         @wraps(user_function)
-        def container_f(*args, **kwargs):
-            # type: (*typing.Any, **typing.Any) -> typing.Any
+        def container_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             if not self.scope:
                 raise NotInPyCOMPSsException(not_in_pycompss("container"))
 
@@ -123,8 +120,9 @@ class Container(object):
         container_f.__doc__ = user_function.__doc__
         return container_f
 
-    def __configure_core_element__(self, kwargs, user_function):
-        # type: (dict, typing.Callable) -> None
+    def __configure_core_element__(
+        self, kwargs: dict, user_function: typing.Callable
+    ) -> None:
         """Include the registering info related to @container.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].

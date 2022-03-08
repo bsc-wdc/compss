@@ -47,14 +47,12 @@ class StdWatcher(object):
 
     __slots__ = ["running", "messages"]
 
-    def __init__(self):
-        # type: () -> None
+    def __init__(self) -> None:
         self.running = False
         self.messages = Queue()  # type: Queue
 
     @staticmethod
-    def __watcher__(fd_out, fd_err):
-        # type: (typing.Any, typing.Any) -> typing.Iterator[str]
+    def __watcher__(fd_out: typing.Any, fd_err: typing.Any) -> typing.Iterator[str]:
         """Static method that checks the stderr file descriptor looking
         for new lines added at the end.
         It is enabled to also look into the stdout file descriptor, but
@@ -71,8 +69,7 @@ class StdWatcher(object):
             else:
                 time.sleep(0.1)
 
-    def __std_follower__(self, out_file_name, err_file_name):
-        # type: (str, str) -> None
+    def __std_follower__(self, out_file_name: str, err_file_name: str) -> None:
         """Opens the out and error files and looks inside them thanks to the
         __watcher__ generator. This function puts into the queue any line
         of the error file which starts with "[ERRMGR]".
@@ -93,8 +90,7 @@ class StdWatcher(object):
                 fd_err.close()
                 return None
 
-    def start_watching(self):
-        # type: () -> None
+    def start_watching(self) -> None:
         """Starts a new thread in charge of monitoring the stdout and stderr
         files provided by the redirector.
 
@@ -110,8 +106,7 @@ class StdWatcher(object):
         else:
             raise PyCOMPSsException("Can not find the stdout and stderr.")
 
-    def stop_watching(self, clean=True):
-        # type: (bool) -> None
+    def stop_watching(self, clean: bool = True) -> None:
         """Stops the monitoring thread and cleans the redirection files
         if clean is True.
 
@@ -126,8 +121,7 @@ class StdWatcher(object):
             if os.path.exists(err_file_name):
                 os.remove(err_file_name)
 
-    def get_messages(self):
-        # type: () -> list
+    def get_messages(self) -> list:
         """Retrieves the current messages stored in the queue as a list
         of strings (one per line reported by the stdout and stderr files).
 

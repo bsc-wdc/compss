@@ -42,8 +42,7 @@ else:
 
 
 @contextmanager
-def not_std_redirector():
-    # type: () -> typing.Iterator[None]
+def not_std_redirector() -> typing.Iterator[None]:
     """Context which does nothing.
 
     Use this context instead of the std_redirector context to avoid
@@ -55,8 +54,7 @@ def not_std_redirector():
 
 
 @contextmanager
-def std_redirector(out_filename, err_filename):
-    # type: (str, str) -> typing.Iterator[None]
+def std_redirector(out_filename: str, err_filename: str) -> typing.Iterator[None]:
     """Stdout and stderr redirector to the given out and err file names.
 
     :param out_filename: Output file filename (where to redirect stdout)
@@ -66,8 +64,7 @@ def std_redirector(out_filename, err_filename):
     stdout_fd = sys.stdout.fileno()
     stderr_fd = sys.stderr.fileno()
 
-    def _redirect_stdout(to_fd):
-        # type: (int) -> None
+    def _redirect_stdout(to_fd: int) -> None:
         """Redirect stdout to the given file descriptor.
 
         :param to_fd: Destination file descriptor
@@ -82,8 +79,7 @@ def std_redirector(out_filename, err_filename):
         # Create a new sys.stdout that points to the redirected fd
         sys.stdout = io.TextIOWrapper(os.fdopen(stdout_fd, "wb"))
 
-    def _redirect_stderr(to_fd):
-        # type: (int) -> None
+    def _redirect_stderr(to_fd: int) -> None:
         """Redirect stderr to the given file descriptor.
 
         :param to_fd: Destination file descriptor
@@ -122,8 +118,9 @@ def std_redirector(out_filename, err_filename):
 
 
 @contextmanager
-def ipython_std_redirector(out_filename, err_filename):
-    # type: (str, str) -> typing.Iterator[None]
+def ipython_std_redirector(
+    out_filename: str, err_filename: str
+) -> typing.Iterator[None]:
     """Stdout and stderr redirector within ipython environments to the given
     out and err file names.
 
@@ -134,8 +131,7 @@ def ipython_std_redirector(out_filename, err_filename):
     stdout_fd = sys.__stdout__.fileno()
     stderr_fd = sys.__stderr__.fileno()
 
-    def _redirect_stdout(to_fd):
-        # type: (int) -> None
+    def _redirect_stdout(to_fd: int) -> None:
         """Redirect stdout to the given file descriptor.
 
         :param to_fd: Destination file descriptor
@@ -152,8 +148,7 @@ def ipython_std_redirector(out_filename, err_filename):
         sys.__stdout__ = io.TextIOWrapper(os.fdopen(stdout_fd, "wb"))
         sys.stdout = sys.__stdout__
 
-    def _redirect_stderr(to_fd):
-        # type: (int) -> None
+    def _redirect_stderr(to_fd: int) -> None:
         """Redirect stderr to the given file descriptor.
 
         :param to_fd: Destination file descriptor

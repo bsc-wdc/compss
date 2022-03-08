@@ -49,8 +49,7 @@ from pycompss.worker.commons.worker import execute_task
 # UNEXPECTED_SIG = 2
 
 
-def shutdown_handler(signal, frame):  # noqa
-    # type: (int, typing.Any) -> None
+def shutdown_handler(signal: int, frame: typing.Any) -> None:
     """MPI exception signal handler
 
     Do not remove the parameters.
@@ -67,8 +66,7 @@ def shutdown_handler(signal, frame):  # noqa
 ######################
 
 
-def executor(process_name, command):
-    # type: (str, str) -> None
+def executor(process_name: str, command: str) -> None:
     """Execution main method.
 
     Iterates over the input pipe in order to receive tasks (with their
@@ -132,14 +130,14 @@ def executor(process_name, command):
 
 
 def process_task(
-    current_line,  # type: str
-    process_name,  # type: str
-    logger,  # type: typing.Any
-    log_json,  # type: str
-    logger_handlers,  # type: typing.Any
-    logger_level,  # type: int
-    logger_formatter,  # type: typing.Any
-):  # type: (...) -> typing.Tuple[int, str]
+    current_line: str,
+    process_name: str,
+    logger: typing.Any,
+    log_json: str,
+    logger_handlers: typing.Any,
+    logger_level: int,
+    logger_formatter: typing.Any,
+) -> typing.Tuple[int, str]:
     """Process command received from the current_line.
 
     :param current_line: Current command (line) to process.
@@ -379,8 +377,7 @@ def process_task(
         return exit_value, message
 
 
-def main():
-    # type: () -> None
+def main() -> None:
     # Set the binding in worker mode
     context.set_pycompss_context(context.WORKER)
 

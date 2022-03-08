@@ -26,7 +26,7 @@ It is called from interactive.py and launch.py scripts.
 
 from pycompss.streams.components.distro_stream_client import (
     DistroStreamClientHandler,
-)  # noqa: E501
+)
 
 if __debug__:
     import logging
@@ -34,8 +34,9 @@ if __debug__:
     logger = logging.getLogger(__name__)
 
 
-def init_streaming(streaming_backend, streaming_master_name, streaming_master_port):
-    # type: (str, str, str) -> bool
+def init_streaming(
+    streaming_backend: str, streaming_master_name: str, streaming_master_port: str
+) -> bool:
     """Initialize the streaming client.
 
     :param streaming_backend: Streaming backend.
@@ -81,8 +82,7 @@ def init_streaming(streaming_backend, streaming_master_name, streaming_master_po
     return streaming_enabled
 
 
-def stop_streaming():
-    # type: () -> None
+def stop_streaming() -> None:
     """Stop the streaming backend.
 
     :return: None

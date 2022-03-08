@@ -65,8 +65,7 @@ class Implement(object):
         "core_element_configured",
     ]
 
-    def __init__(self, *args, **kwargs):
-        # type: (*typing.Any, **typing.Any) -> None
+    def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         """Store arguments passed to the decorator.
 
         self = itself.
@@ -95,8 +94,7 @@ class Implement(object):
                 decorator_name,
             )
 
-    def __call__(self, user_function):
-        # type: (typing.Callable) -> typing.Callable
+    def __call__(self, user_function: typing.Callable) -> typing.Callable:
         """Parse and set the implement parameters within the task core element.
 
         :param user_function: Function to decorate.
@@ -104,8 +102,7 @@ class Implement(object):
         """
 
         @wraps(user_function)
-        def implement_f(*args, **kwargs):
-            # type: (*typing.Any, **typing.Any) -> typing.Any
+        def implement_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             # This is executed only when called.
             if not self.scope:
                 raise NotInPyCOMPSsException(not_in_pycompss("implement"))
@@ -137,8 +134,7 @@ class Implement(object):
 
         return implement_f
 
-    def __configure_core_element__(self, kwargs):
-        # type: (dict) -> None
+    def __configure_core_element__(self, kwargs: dict) -> None:
         """Include the registering info related to @implement.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].

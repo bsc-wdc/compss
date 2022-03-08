@@ -20,8 +20,7 @@
 from pycompss.api.parameter import TYPE
 
 
-def build_return_params_message(types, values):
-    # type: (list, list) -> str
+def build_return_params_message(types: list, values: list) -> str:
     """Build the return message with the parameters output.
 
     :param types: List of the parameter's types.

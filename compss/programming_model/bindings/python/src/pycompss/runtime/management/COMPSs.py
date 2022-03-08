@@ -50,8 +50,7 @@ _STDERR = ""
 ######################################################
 
 
-def load_runtime(external_process=False, _logger=None):
-    # type: (bool, typing.Any) -> None
+def load_runtime(external_process: bool = False, _logger: typing.Any = None) -> None:
     """Loads the external C extension module.
 
     :param external_process: Loads the runtime in an external process if true.
@@ -71,8 +70,7 @@ def load_runtime(external_process=False, _logger=None):
         _COMPSs = establish_link(_logger)
 
 
-def is_redirected():
-    # type: () -> bool
+def is_redirected() -> bool:
     """Check if the stdout and stderr are being redirected.
 
     :return: If stdout/stderr are being redirected.
@@ -85,8 +83,7 @@ def is_redirected():
         raise PyCOMPSsException("Inconsistent status of _STDOUT and _STDERR")
 
 
-def get_redirection_file_names():
-    # type: () -> typing.Tuple[str, str]
+def get_redirection_file_names() -> typing.Tuple[str, str]:
     """Retrieves the stdout and stderr file names.
 
     :return: The stdout and stderr file names.
@@ -103,8 +100,7 @@ def get_redirection_file_names():
 ######################################################
 
 
-def start_runtime():
-    # type: () -> None
+def start_runtime() -> None:
     """Call to start_runtime.
 
     :return: None
@@ -112,8 +108,7 @@ def start_runtime():
     _COMPSs.start_runtime()  # noqa
 
 
-def set_debug(mode):
-    # type: (bool) -> None
+def set_debug(mode: bool) -> None:
     """Call to set_debug.
 
     :param mode: Debug mode
@@ -122,8 +117,7 @@ def set_debug(mode):
     _COMPSs.set_debug(mode)  # noqa
 
 
-def stop_runtime(code):
-    # type: (int) -> None
+def stop_runtime(code: int) -> None:
     """Call to stop_runtime.
 
     :param code: Code
@@ -132,8 +126,7 @@ def stop_runtime(code):
     _COMPSs.stop_runtime(code)  # noqa
 
 
-def cancel_application_tasks(app_id, value):
-    # type: (int, int) -> None
+def cancel_application_tasks(app_id: int, value: int) -> None:
     """Call to cancel_application_tasks.
 
     :param app_id: Application identifier.
@@ -143,8 +136,7 @@ def cancel_application_tasks(app_id, value):
     _COMPSs.cancel_application_tasks(app_id, value)  # noqa
 
 
-def accessed_file(app_id, file_name):
-    # type: (int, str) -> bool
+def accessed_file(app_id: int, file_name: str) -> bool:
     """Call to accessed_file.
 
     :param app_id: Application identifier.
@@ -154,8 +146,7 @@ def accessed_file(app_id, file_name):
     return _COMPSs.accessed_file(app_id, file_name)  # noqa
 
 
-def open_file(app_id, file_name, mode):
-    # type: (int, str, int) -> str
+def open_file(app_id: int, file_name: str, mode: int) -> str:
     """Call to open_file.
 
     :param app_id: Application identifier.
@@ -166,8 +157,7 @@ def open_file(app_id, file_name, mode):
     return _COMPSs.open_file(app_id, file_name, mode)  # noqa
 
 
-def close_file(app_id, file_name, mode):
-    # type: (int, str, int) -> None
+def close_file(app_id: int, file_name: str, mode: int) -> None:
     """Call to close_file.
 
     :param app_id: Application identifier.
@@ -178,8 +168,7 @@ def close_file(app_id, file_name, mode):
     _COMPSs.close_file(app_id, file_name, mode)  # noqa
 
 
-def delete_file(app_id, file_name, mode):
-    # type: (int, str, bool) -> bool
+def delete_file(app_id: int, file_name: str, mode: bool) -> bool:
     """Call to delete_file.
 
     :param app_id: Application identifier.
@@ -194,8 +183,7 @@ def delete_file(app_id, file_name, mode):
         return result
 
 
-def get_file(app_id, file_name):
-    # type: (int, str) -> None
+def get_file(app_id: int, file_name: str) -> None:
     """Call to get_file.
 
     :param app_id: Application identifier.
@@ -205,8 +193,7 @@ def get_file(app_id, file_name):
     _COMPSs.get_file(app_id, file_name)  # noqa
 
 
-def get_directory(app_id, file_name):
-    # type: (int, str) -> None
+def get_directory(app_id: int, file_name: str) -> None:
     """Call to get_directory.
 
     :param app_id: Application identifier.
@@ -216,8 +203,7 @@ def get_directory(app_id, file_name):
     _COMPSs.get_directory(app_id, file_name)  # noqa
 
 
-def barrier(app_id, no_more_tasks):
-    # type: (int, bool) -> None
+def barrier(app_id: int, no_more_tasks: bool) -> None:
     """Call to barrier.
 
     :param app_id: Application identifier.
@@ -227,8 +213,7 @@ def barrier(app_id, no_more_tasks):
     _COMPSs.barrier(app_id, no_more_tasks)  # noqa
 
 
-def barrier_group(app_id, group_name):
-    # type: (int, str) -> str
+def barrier_group(app_id: int, group_name: str) -> str:
     """Call barrier_group.
 
     :param app_id: Application identifier.
@@ -238,8 +223,7 @@ def barrier_group(app_id, group_name):
     return str(_COMPSs.barrier_group(app_id, group_name))  # noqa
 
 
-def open_task_group(group_name, implicit_barrier, app_id):
-    # type: (str, bool, int) -> None
+def open_task_group(group_name: str, implicit_barrier: bool, app_id: int) -> None:
     """Call to open_task_group.
 
     :param group_name: Group name.
@@ -250,8 +234,7 @@ def open_task_group(group_name, implicit_barrier, app_id):
     _COMPSs.open_task_group(group_name, implicit_barrier, app_id)  # noqa
 
 
-def close_task_group(group_name, app_id):
-    # type: (str, int) -> None
+def close_task_group(group_name: str, app_id: int) -> None:
     """Call to close_task_group.
 
     :param group_name: Group name.
@@ -261,8 +244,7 @@ def close_task_group(group_name, app_id):
     _COMPSs.close_task_group(group_name, app_id)  # noqa
 
 
-def get_logging_path():
-    # type: () -> str
+def get_logging_path() -> str:
     """Call to get_logging_path.
 
     :return: The COMPSs log path
@@ -270,8 +252,7 @@ def get_logging_path():
     return _COMPSs.get_logging_path()  # noqa
 
 
-def get_number_of_resources(app_id):
-    # type: (int) -> int
+def get_number_of_resources(app_id: int) -> int:
     """Call to number_of_resources.
 
     :param app_id: Application identifier
@@ -280,8 +261,7 @@ def get_number_of_resources(app_id):
     return _COMPSs.get_number_of_resources(app_id)  # noqa
 
 
-def request_resources(app_id, num_resources, group_name):
-    # type: (int, int, str) -> None
+def request_resources(app_id: int, num_resources: int, group_name: str) -> None:
     """Call to request_resources.
 
     :param app_id: Application identifier.
@@ -292,8 +272,7 @@ def request_resources(app_id, num_resources, group_name):
     _COMPSs.request_resources(app_id, num_resources, group_name)  # noqa
 
 
-def free_resources(app_id, num_resources, group_name):
-    # type: (int, int, str) -> None
+def free_resources(app_id: int, num_resources: int, group_name: str) -> None:
     """Call to free_resources.
 
     :param app_id: Application identifier.
@@ -304,8 +283,7 @@ def free_resources(app_id, num_resources, group_name):
     _COMPSs.free_resources(app_id, num_resources, group_name)  # noqa
 
 
-def set_wall_clock(app_id, wcl):
-    # type: (float, float) -> None
+def set_wall_clock(app_id: float, wcl: float) -> None:
     """Call to set_wall_clock.
 
     :param app_id: Application identifier.
@@ -316,13 +294,13 @@ def set_wall_clock(app_id, wcl):
 
 
 def register_core_element(
-    ce_signature,  # type: str
-    impl_signature,  # type: typing.Optional[str]
-    impl_constraints,  # type: typing.Optional[str]
-    impl_type,  # type: typing.Optional[str]
-    impl_io,  # type: str
-    impl_type_args,  # type: typing.List[str]
-):  # type: (...) -> None
+    ce_signature: str,
+    impl_signature: typing.Optional[str],
+    impl_constraints: typing.Optional[str],
+    impl_type: typing.Optional[str],
+    impl_io: str,
+    impl_type_args: typing.List[str],
+) -> None:
     """Call to register_core_element.
 
     :param ce_signature: Core element signature
@@ -344,28 +322,28 @@ def register_core_element(
 
 
 def process_task(
-    app_id,  # type: int
-    signature,  # type: str
-    on_failure,  # type: str
-    time_out,  # type: int
-    has_priority,  # type: bool
-    num_nodes,  # type: int
-    reduction,  # type: bool
-    chunk_size,  # type: int
-    replicated,  # type: bool
-    distributed,  # type: bool
-    has_target,  # type: bool
-    num_returns,  # type: int
-    values,  # type: list
-    names,  # type: list
-    compss_types,  # type: list
-    compss_directions,  # type: list
-    compss_streams,  # type: list
-    compss_prefixes,  # type: list
-    content_types,  # type: list
-    weights,  # type: list
-    keep_renames,  # type: list
-):  # type: (...) -> None
+    app_id: int,
+    signature: str,
+    on_failure: str,
+    time_out: int,
+    has_priority: bool,
+    num_nodes: int,
+    reduction: bool,
+    chunk_size: int,
+    replicated: bool,
+    distributed: bool,
+    has_target: bool,
+    num_returns: int,
+    values: list,
+    names: list,
+    compss_types: list,
+    compss_directions: list,
+    compss_streams: list,
+    compss_prefixes: list,
+    content_types: list,
+    weights: list,
+    keep_renames: list,
+) -> None:
     """Call to process_task.
 
     :param app_id: Application identifier
@@ -417,28 +395,28 @@ def process_task(
 
 
 def process_http_task(
-    app_id,  # type: int
-    signature,  # type: str
-    on_failure,  # type: str
-    time_out,  # type: int
-    has_priority,  # type: bool
-    num_nodes,  # type: int
-    reduction,  # type: bool
-    chunk_size,  # type: int
-    replicated,  # type: bool
-    distributed,  # type: bool
-    has_target,  # type: bool
-    num_returns,  # type: int
-    values,  # type: list
-    names,  # type: list
-    compss_types,  # type: list
-    compss_directions,  # type: list
-    compss_streams,  # type: list
-    compss_prefixes,  # type: list
-    content_types,  # type: list
-    weights,  # type: list
-    keep_renames,  # type: list
-):  # type: (...) -> None
+    app_id: int,
+    signature: str,
+    on_failure: str,
+    time_out: int,
+    has_priority: bool,
+    num_nodes: int,
+    reduction: bool,
+    chunk_size: int,
+    replicated: bool,
+    distributed: bool,
+    has_target: bool,
+    num_returns: int,
+    values: list,
+    names: list,
+    compss_types: list,
+    compss_directions: list,
+    compss_streams: list,
+    compss_prefixes: list,
+    content_types: list,
+    weights: list,
+    keep_renames: list,
+) -> None:
     """Call to process_http_task.
 
     :param app_id: Application identifier
@@ -489,8 +467,7 @@ def process_http_task(
     )
 
 
-def set_pipes(pipe_in, pipe_out):
-    # type: (str, str) -> None
+def set_pipes(pipe_in: str, pipe_out: str) -> None:
     """Set nesting pipes.
 
     :param pipe_in: Input pipe.
@@ -500,8 +477,7 @@ def set_pipes(pipe_in, pipe_out):
     _COMPSs.set_pipes(pipe_in, pipe_out)  # noqa
 
 
-def read_pipes():
-    # type: () -> str
+def read_pipes() -> str:
     """Call to read_pipes.
 
     :return: The command read from the pipe

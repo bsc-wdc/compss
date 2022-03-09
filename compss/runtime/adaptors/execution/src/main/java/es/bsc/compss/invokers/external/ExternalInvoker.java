@@ -107,7 +107,7 @@ public abstract class ExternalInvoker extends Invoker {
 
         // Add general task arguments
         ArrayList<String> lArgs = new ArrayList<>();
-        lArgs.add(Integer.toString(Tracer.isActivated() ? 1 : 0));
+        lArgs.add(Boolean.toString(Tracer.isActivated()));
         lArgs.add(Integer.toString(invocation.getTaskId()));
         lArgs.add(Boolean.toString(invocation.isDebugEnabled()));
         lArgs.add(context.getStorageConf());

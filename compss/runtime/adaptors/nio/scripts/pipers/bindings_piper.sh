@@ -70,7 +70,7 @@ create_pipe() {
 }
 
 export_tracing() {
-    if [ "$tracing" -gt "0" ]; then
+    if [ "$tracing" == "true" ]; then
         echo "Initializing python tracing with extrae..."
         if [[ "$pythonExtraeFile" == "" || "$pythonExtraeFile" == "null" || "$pythonExtraeFile" == "false" ]]; then
             configPath="${SCRIPT_DIR}/../../../../../configuration/xml/tracing"

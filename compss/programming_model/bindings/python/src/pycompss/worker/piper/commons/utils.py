@@ -71,7 +71,7 @@ class PiperWorkerConfiguration(object):
             context.enable_nesting()
             self.nesting = True
         self.debug = argv[3] == "true"
-        self.tracing = argv[4] == "1"
+        self.tracing = argv[4] == "true"
         self.storage_conf = argv[5]
         self.stream_backend = argv[6]
         self.stream_master_name = argv[7]

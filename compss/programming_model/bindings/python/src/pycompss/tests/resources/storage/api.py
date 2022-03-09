@@ -56,8 +56,7 @@ def init(config_file_path=None, **kwargs):  # noqa
     pass
 
 
-def finish(**kwargs):  # noqa
-    # type: (dict) -> None
+def finish(**kwargs: dict) -> None:
     """Finalize dummy storage
 
     print "-----------------------------------------------------"
@@ -73,8 +72,7 @@ def finish(**kwargs):  # noqa
     pass
 
 
-def init_worker(config_file_path=None, **kwargs):  # noqa
-    # type: (str, dict) -> None
+def init_worker(config_file_path: str = None, **kwargs: dict) -> None:
     """Initialize dummy storage at worker
 
     print "-----------------------------------------------------"
@@ -92,8 +90,7 @@ def init_worker(config_file_path=None, **kwargs):  # noqa
     pass
 
 
-def finish_worker(**kwargs):  # noqa
-    # type: (dict) -> None
+def finish_worker(**kwargs: dict) -> None:
     """Finalize dummy storage at worker
 
     print "-----------------------------------------------------"
@@ -109,8 +106,7 @@ def finish_worker(**kwargs):  # noqa
     pass
 
 
-def get_by_id(id):  # noqa
-    # type: (str) -> typing.Any
+def get_by_id(id: str) -> typing.Any:
     """This functions retrieves an object from an external storage
     technology from the obj object.
     This dummy returns the same object as submited by the parameter obj.
@@ -148,8 +144,7 @@ def get_by_id(id):  # noqa
         raise ValueError("Using the dummy storage API get_by_id with None id.")
 
 
-def make_persistent(obj, *args):  # noqa
-    # type: (typing.Any, dict) -> None
+def make_persistent(obj: typing.Any, *args: dict) -> None:
     """Persist the given object.
 
     :param obj: object to persist.
@@ -183,8 +178,7 @@ def make_persistent(obj, *args):  # noqa
         pass
 
 
-def update_persistent(obj, *args):  # noqa
-    # type: (typing.Any, dict) -> None
+def update_persistent(obj: typing.Any, *args: dict) -> None:
     """Update the given object.
 
     :param obj: object to update.
@@ -205,8 +199,7 @@ def update_persistent(obj, *args):  # noqa
         pass
 
 
-def remove_by_id(obj):  # noqa
-    # type: (str) -> None
+def remove_by_id(obj: str) -> None:
     """Remove the given object.
 
     :param obj: Object to remove.

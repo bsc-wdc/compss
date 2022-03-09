@@ -28,8 +28,7 @@ JAVA_API_JAR = ""
 STORAGE_API = None
 
 
-def __initialize_storage__():
-    # type: () -> None
+def __initialize_storage__() -> None:
     """Initializes the dummy storage backend.
     Compiles the dummy storage backend from the tests sources.
     Sets the JAVA_API_JAR on the first call to this initialization.

@@ -88,8 +88,7 @@ def reduce_task_pscos(final, dic2):
     final.set(dic1)
 
 
-def basic_test():
-    # type: () -> bool
+def basic_test() -> bool:
     """Basic test
 
     This Test:
@@ -118,8 +117,7 @@ def basic_test():
         return False
 
 
-def basic_2_test():
-    # type: () -> bool
+def basic_2_test() -> bool:
     """Basic test 2
 
     This Test:
@@ -150,8 +148,7 @@ def basic_2_test():
         return False
 
 
-def basic_3_test():
-    # type: () -> bool
+def basic_3_test() -> bool:
     """Basic test 3
 
     This Test:
@@ -180,8 +177,7 @@ def basic_3_test():
         return False
 
 
-def wordcount():
-    # type: () -> bool
+def wordcount() -> bool:
     """Wordcount Test
         - Wordcount task receives a PSCO and returns a dictionary.
         - Reduce task works with python dictionaries.
@@ -216,8 +212,7 @@ def wordcount():
         return False
 
 
-def wordcount2():
-    # type: () -> bool
+def wordcount2() -> bool:
     """Wordcount Test
         - Wordcount task receives a PSCO and returns a dictionary.
         - Reduce task receives a INOUT PSCO (result) where accumulates
@@ -301,8 +296,7 @@ def transform3(o1, o2):
     return o2
 
 
-def tiramisu_mockup():
-    # type: () -> bool
+def tiramisu_mockup() -> bool:
     """Tiramisu Mockup Test
 
     :return: True if success. False otherwise.
@@ -339,8 +333,13 @@ def tiramisu_mockup():
     )  # noqa
 
 
-def __check_transformations__(transformation, out1, out2, out3, result):
-    # type: (str, InputData, InputData, InputData, InputData) -> bool
+def __check_transformations__(
+    transformation: str,
+    out1: InputData,
+    out2: InputData,
+    out3: InputData,
+    result: InputData,
+) -> bool:
     """Checks the transformation to evaluate the result.
 
     :param transformation: Transformation name
@@ -432,8 +431,7 @@ def transform3_2(o1, o2):
     return o2
 
 
-def tiramisu_mockup2():
-    # type: () -> bool
+def tiramisu_mockup2() -> bool:
     """Tiramisu Mockup Test 2
 
     :return: True if success. False otherwise.
@@ -496,8 +494,7 @@ def make_persistent_in_task_as_return(sco):
     return sco
 
 
-def evaluate_make_persistent_in_task():
-    # type: () -> bool
+def evaluate_make_persistent_in_task() -> bool:
     """This Test checks what happens when a not persisted persistent object
     is passed an INOUT task parameter and made persistent within the task.
 
@@ -515,8 +512,7 @@ def evaluate_make_persistent_in_task():
         return False
 
 
-def evaluate_make_persistent_in_task2():
-    # type: () -> bool
+def evaluate_make_persistent_in_task2() -> bool:
     """This Test checks what happens when a not persisted persistent object
     is passed as IN task parameter, made persistent within the task, and
     returned.

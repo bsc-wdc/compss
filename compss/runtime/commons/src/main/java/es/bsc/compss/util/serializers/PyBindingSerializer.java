@@ -109,7 +109,7 @@ public class PyBindingSerializer {
     private static Object stringToJSON(String in) {
         JsonElement jsonElement = JsonParser.parseString(in);
         if (jsonElement.isJsonPrimitive()) {
-            return jsonElement.getAsJsonPrimitive().toString();
+            return jsonElement.getAsJsonPrimitive().getAsString();
         } else if (jsonElement.isJsonObject()) {
             return jsonElement.toString();
         } else if (jsonElement.isJsonArray()) {

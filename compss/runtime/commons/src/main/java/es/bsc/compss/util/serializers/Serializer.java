@@ -129,13 +129,17 @@ public class Serializer {
      */
     public static Object deserialize(String file, Format[] priorities) throws IOException, ClassNotFoundException {
         for (Format serializer : priorities) {
-            switch (serializer) {
-                case PYBINDING:
-                    return PyBindingSerializer.deserialize(file);
-                case BINARY:
-                    return BinarySerializer.deserialize(file);
-                case XML:
-                    return XMLSerializer.deserialize(file);
+            try {
+                switch (serializer) {
+                    case PYBINDING:
+                        return PyBindingSerializer.deserialize(file);
+                    case BINARY:
+                        return BinarySerializer.deserialize(file);
+                    case XML:
+                        return XMLSerializer.deserialize(file);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
         throw new IOException();

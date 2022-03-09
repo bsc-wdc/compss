@@ -28,20 +28,24 @@ import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.util.ExternalStreamHandler;
 import es.bsc.compss.util.StreamGobbler;
 import es.bsc.compss.util.Tracer;
+import es.bsc.compss.util.serializers.Serializer;
 import es.bsc.distrostreamlib.api.DistroStream;
 import es.bsc.distrostreamlib.api.files.FileDistroStream;
 import es.bsc.distrostreamlib.api.objects.ObjectDistroStream;
 import es.bsc.distrostreamlib.client.DistroStreamClient;
 import es.bsc.distrostreamlib.requests.CloseStreamRequest;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.lang.ProcessBuilder.Redirect;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -296,6 +300,11 @@ public class BinaryRunner {
                     }
                     binaryParamFields.add(param.getPrefix() + baseDir);
                     break;
+                case STRING_64_T:
+                    byte[] decodedBytes = Base64.getDecoder().decode(param.getValue().toString());
+                    String tmp = param.getPrefix() + new String(decodedBytes);
+                    binaryParamFields.add(tmp);
+                    break;
                 default:
                     binaryParamFields.add(param.getPrefix() + String.valueOf(param.getValue()));
                     break;
@@ -305,7 +314,18 @@ public class BinaryRunner {
             switch (param.getType()) {
                 case FILE_T:
                     // Add file name
-                    binaryParamFields.add(param.getOriginalName());
+                    try {
+                        if (param.getContentType().equals("Future")) {
+                            Serializer.Format[] priorities = new Serializer.Format[1];
+                            priorities[0] = Serializer.Format.PYBINDING;
+                            String val = Serializer.deserialize(param.getValue().toString(), priorities).toString();
+                            binaryParamFields.add(val);
+                        } else {
+                            binaryParamFields.add(param.getOriginalName());
+                        }
+                    } catch (Exception e) {
+                        throw new InvokeExecutionException(ERROR_PARAM_NOT_STRING, e);
+                    }
                     break;
                 case COLLECTION_T:
                     // TODO: Handle collections instead of passing the collection dXvY
@@ -346,6 +366,11 @@ public class BinaryRunner {
                         throw new InvokeExecutionException(ERROR_EXT_STREAM_BASE_DIR);
                     }
                     binaryParamFields.add(baseDir);
+                    break;
+                case STRING_64_T:
+                    byte[] decodedBytes = Base64.getDecoder().decode(param.getValue().toString());
+                    String tmp = new String(decodedBytes);
+                    binaryParamFields.add(tmp);
                     break;
                 default:
                     binaryParamFields.add(String.valueOf(param.getValue()));

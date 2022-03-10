@@ -18,94 +18,18 @@ package es.bsc.compss.nio;
 
 import static java.lang.Math.abs;
 
-import es.bsc.compss.COMPSsConstants;
-import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
-
-import java.io.File;
+import java.util.Map;
 
 
 public class NIOTracer extends Tracer {
-
-    private static String scriptDir = "";
-    private static String workingDir = "";
-    private static String nodeName = "master"; // while no worker sets the Tracer info we assume we are on master
-    private static String hostID = "0"; // while no worker sets the Tracer info we assume we are on master
 
     // Random value for the transfer events
     private static final int ID = 121;
     // Id for the end of a transfer event
     public static final String TRANSFER_END = "0";
 
-
-    /**
-     * Initializes the tracing at the given level.
-     *
-     * @param level Tracing level.
-     */
-    public static void init(int level, boolean tracingTaskDep) {
-        LOGGER.debug("Initializing NIO tracing level [" + level + "," + tracingTaskDep + "]");
-        tracingLevel = level;
-        tracingTaskDependencies = tracingTaskDep;
-    }
-
-    /**
-     * Initializes the tracing structures.
-     *
-     * @param scriptDir COMPSs scripts directory.
-     * @param nodeName Node name.
-     * @param workingDir Node working directory.
-     * @param hostID Tracing host Id.
-     */
-    public static void setWorkerInfo(String scriptDir, String nodeName, String workingDir, int hostID) {
-        NIOTracer.scriptDir = scriptDir;
-        NIOTracer.workingDir = workingDir;
-        NIOTracer.nodeName = nodeName;
-        NIOTracer.hostID = String.valueOf(hostID);
-
-        if (Tracer.extraeEnabled()) {
-            Tracer.setUpWrapper(hostID, hostID + 1);
-        }
-
-        if (DEBUG) {
-            LOGGER.debug("Tracer worker for host " + hostID + " and: " + NIOTracer.scriptDir + ", "
-                + NIOTracer.workingDir + ", " + NIOTracer.nodeName);
-        }
-    }
-
-    /**
-     * Starts the tracing system at a given worker.
-     *
-     * @param workerName Worker name.
-     * @param workerUser User to connect to the worker.
-     * @param workerHost Worker host name.
-     * @param numThreads Worker number of threads.
-     */
-    public static void startTracing(String workerName, String workerUser, String workerHost, Integer numThreads) {
-        if (numThreads <= 0) {
-            if (DEBUG) {
-                LOGGER.debug("Resource " + workerName + " has 0 slots, it won't appear in the trace");
-            }
-            return;
-        }
-
-        if (DEBUG) {
-            LOGGER.debug("NIO uri File: " + ProtocolType.ANY_URI.getSchema() + File.separator
-                + System.getProperty(COMPSsConstants.APP_LOG_DIR) + TRACE_OUT_RELATIVE_PATH);
-            LOGGER.debug(ProtocolType.ANY_URI.getSchema() + File.separator
-                + System.getProperty(COMPSsConstants.APP_LOG_DIR) + TRACE_OUT_RELATIVE_PATH);
-        }
-    }
-
-    /**
-     * Returns the host Id.
-     *
-     * @return The host Id.
-     */
-    public static String getHostID() {
-        return hostID;
-    }
 
     /**
      * Emits a new data transfer event for the given data.
@@ -158,39 +82,20 @@ public class NIOTracer extends Tracer {
 
     /**
      * Generates the tracing package on the worker side.
+     * 
+     * @param runtimeEvents pairs name-event id of events not registered in the runtime
      */
-    public static void generatePackage() {
-        if (DEBUG) {
-            LOGGER.debug("[NIOTracer] Generating trace package of " + nodeName);
-        }
-        if (Tracer.extraeEnabled()) {
-            emitEvent(TraceEvent.STOP.getId(), TraceEvent.STOP.getType());
-            emitEvent(Tracer.EVENT_END, TraceEvent.STOP.getType());
+    public static void fini(Map<String, Integer> runtimeEvents) {
+        emitEvent(TraceEvent.STOP);
+        emitEventEnd(TraceEvent.STOP);
 
-            try {
-                Thread.sleep(10000);
-            } catch (InterruptedException e1) {
-                // Nothing to do
-            }
-            Tracer.stopWrapper();
-        } else {
-            if (Tracer.scorepEnabled()) {
-                if (DEBUG) {
-                    LOGGER.debug("[NIOTracer] Finishing scorep");
-                }
-            } else {
-                if (Tracer.mapEnabled()) {
-                    if (DEBUG) {
-                        LOGGER.debug("[NIOTracer] Finishing map");
-                    }
-                }
-            }
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e1) {
+            // Nothing to do
         }
 
-        generatePackage(scriptDir, workingDir, nodeName, hostID);
-
-        // End
-        LOGGER.debug("Finish generating");
+        Tracer.fini(runtimeEvents);
     }
 
 }

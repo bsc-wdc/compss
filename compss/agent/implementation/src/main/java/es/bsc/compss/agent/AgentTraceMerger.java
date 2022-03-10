@@ -65,7 +65,7 @@ public class AgentTraceMerger extends TraceMerger {
         List<File> workersFiles = new ArrayList<>();
         LOGGER.debug("Searching for trace files");
         for (String oneAgentDir : agentsDirs) {
-            File traceDirFile = new File(oneAgentDir + File.separator + Tracer.TRACE_SUBDIR);
+            File traceDirFile = new File(oneAgentDir + File.separator + Tracer.TRACER_SUBFOLDER);
             File tracesToMergeDirFile = new File(oneAgentDir + File.separator + Tracer.TO_MERGE_SUBDIR);
             tracesToMergeDirFile.mkdirs();
             File[] allFilesInFolder = traceDirFile.listFiles();

@@ -35,8 +35,6 @@ DEFAULT_PYTHONPATH=$(pwd)
 DEFAULT_DEBUG=off
 DEFAULT_DEBUG_ARG=debug
 DEFAULT_COMMUNICATION_ADAPTOR=${NIO_ADAPTOR}
-DEFAULT_TRACING=false
-DEFAULT_TRACING_ARG=true
 DEFAULT_TRACING_TASK_DEP=false
 DEFAULT_CUSTOM_EXTRAE_FILE="null"
 DEFAULT_CUSTOM_EXTRAE_FILE_PYTHON="null"
@@ -409,7 +407,7 @@ worker_cmd() {
             ${library_path} \
             ${cp} \
             ${pythonpath} \
-            ${w_tracing} \
+            ${tracing} \
             ${custom_extrae_file} \
             ${nodeId} \
             ${tracing_task_dependencies} \
@@ -967,7 +965,7 @@ get_args() {
         args_pass="$args_pass -$flag"
         ;;
       t)
-        tracing=${DEFAULT_TRACING_ARG}
+        tracing=${TRACING_ENABLED}
         #Keep it for runcompss (to add them to master)
         args_pass="$args_pass -$flag"
         ;;
@@ -1115,7 +1113,7 @@ get_args() {
           args_pass="$args_pass --$OPTARG"
           ;;
         tracing)
-          tracing=${DEFAULT_TRACING_ARG}
+          tracing=${TRACING_ENABLED}
           # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
           ;;
@@ -1829,22 +1827,8 @@ set_variables() {
   # Load tracing and debug only for NIO
   if [ "${comm/NIO}" != "${comm}" ]; then
     # Adapting tracing flag to worker tracing level
-    if [ -z "$tracing" ]; then
-        w_tracing=0
-    elif [ $tracing == "false" ]; then
-        w_tracing=0
-    elif [ $tracing == "basic" ] || [ $tracing == "true" ]; then
-        w_tracing=1
+    if [ "${tracing}" == "${TRACING_ENABLED}" ]; then
         load_tracing_env
-    elif [ $tracing == "advanced" ]; then
-        w_tracing=2
-        load_tracing_env
-    elif [ $tracing == "scorep" ]; then
-        w_tracing=-1
-    elif [ $tracing == "arm-map" ]; then
-        w_tracing=-2
-    elif [ $tracing == "arm-ddt" ]; then
-        w_tracing=-3
     fi
 
     # Adapt debug flag to worker script

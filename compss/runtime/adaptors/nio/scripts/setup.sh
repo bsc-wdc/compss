@@ -188,13 +188,10 @@
 
   setup_extrae() {
     # Trace initialization
-    if [ "$tracing" -gt 0 ]; then
+    if [ "${tracing}" == "true" ]; then
       if [ -z "${extraeFile}" ] || [ "${extraeFile}" == "null" ]; then
         # Only define extraeFile if it is not a custom location
         extraeFile=${SCRIPT_DIR}/../../../../configuration/xml/tracing/extrae_basic.xml
-        if [ "$tracing" -gt 1 ]; then
-          extraeFile=${SCRIPT_DIR}/../../../../configuration/xml/tracing/extrae_advanced.xml
-        fi
       fi
 
       if [ -z "$EXTRAE_HOME" ]; then
@@ -328,7 +325,7 @@ EOT
   }
 
   post_launch() {
-    if [ "$tracing" -gt 0 ]; then
+    if [ "${tracing}" == "true" ]; then
       unset LD_PRELOAD
     fi
   }

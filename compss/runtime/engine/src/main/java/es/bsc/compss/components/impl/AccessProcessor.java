@@ -137,7 +137,7 @@ public class AccessProcessor implements Runnable {
         keepGoing = true;
         processor = new Thread(this);
         processor.setName("Access Processor");
-        if (Tracer.basicModeEnabled()) {
+        if (Tracer.isActivated()) {
             Tracer.enablePThreads(1);
         }
         processor.start();
@@ -154,41 +154,33 @@ public class AccessProcessor implements Runnable {
 
     @Override
     public void run() {
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(TraceEvent.AP_THREAD_ID.getId(), TraceEvent.AP_THREAD_ID.getType());
-            if (Tracer.basicModeEnabled()) {
-                Tracer.disablePThreads(1);
-            }
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(TraceEvent.AP_THREAD_ID);
+            Tracer.disablePThreads(1);
         }
         while (keepGoing) {
             APRequest request = null;
             try {
                 request = this.requestQueue.take();
-
-                if (Tracer.extraeEnabled()) {
+                if (Tracer.isActivated()) {
                     Tracer.emitEvent(Tracer.getAcessProcessorRequestEvent(request.getRequestType().name()).getId(),
                         Tracer.getRuntimeEventsType());
                 }
                 request.process(this, this.taskAnalyser, this.dataInfoProvider, this.taskDispatcher);
-                if (Tracer.extraeEnabled()) {
-                    Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
-                }
-
             } catch (ShutdownException se) {
-                if (Tracer.extraeEnabled()) {
-                    Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
-                }
                 se.getSemaphore().release();
                 break;
             } catch (Exception e) {
                 ErrorManager.error("Exception", e);
-                if (Tracer.extraeEnabled()) {
+            } finally {
+                if (Tracer.isActivated()) {
                     Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
                 }
             }
+
         }
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.AP_THREAD_ID.getType());
+        if (Tracer.isActivated()) {
+            Tracer.emitEventEnd(TraceEvent.AP_THREAD_ID);
         }
 
         LOGGER.info("AccessProcessor shutdown");

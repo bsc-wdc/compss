@@ -48,10 +48,8 @@ public class FileOpsManager {
     private static final ExecutorService LOW_PRIORITY;
 
     static {
-        if (Tracer.extraeEnabled()) {
-            if (Tracer.basicModeEnabled()) {
-                Tracer.enablePThreads(2);
-            }
+        if (Tracer.isActivated()) {
+            Tracer.enablePThreads(2);
         }
         LOW_PRIORITY = Executors.newSingleThreadExecutor();
         HIGH_PRIORITY = Executors.newFixedThreadPool(1);
@@ -62,17 +60,11 @@ public class FileOpsManager {
             public Object call() {
                 Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
                 Thread.currentThread().setName("Low priority FS");
-                if (Tracer.extraeEnabled()) {
-                    if (Tracer.basicModeEnabled()) {
-                        Tracer.disablePThreads(1);
-                    }
-
-                    Tracer.emitEvent(TraceEvent.LOW_FILE_SYS_THREAD_ID.getId(),
-                        TraceEvent.LOW_FILE_SYS_THREAD_ID.getType());
-
-                    final TraceEvent teInit = TraceEvent.INIT_FS;
-                    Tracer.emitEvent(teInit.getId(), teInit.getType());
-                    Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.INIT_FS.getType());
+                if (Tracer.isActivated()) {
+                    Tracer.disablePThreads(1);
+                    Tracer.emitEvent(TraceEvent.LOW_FILE_SYS_THREAD_ID);
+                    Tracer.emitEvent(TraceEvent.INIT_FS);
+                    Tracer.emitEventEnd(TraceEvent.INIT_FS);
                 }
 
                 return new Object();
@@ -84,17 +76,11 @@ public class FileOpsManager {
             @Override
             public Object call() {
                 Thread.currentThread().setName("High priority FS");
-                if (Tracer.extraeEnabled()) {
-                    if (Tracer.basicModeEnabled()) {
-                        Tracer.disablePThreads(1);
-                    }
-
-                    Tracer.emitEvent(TraceEvent.HIGH_FILE_SYS_THREAD_ID.getId(),
-                        TraceEvent.HIGH_FILE_SYS_THREAD_ID.getType());
-
-                    final TraceEvent teInit = TraceEvent.INIT_FS;
-                    Tracer.emitEvent(teInit.getId(), teInit.getType());
-                    Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.INIT_FS.getType());
+                if (Tracer.isActivated()) {
+                    Tracer.disablePThreads(1);
+                    Tracer.emitEvent(TraceEvent.HIGH_FILE_SYS_THREAD_ID);
+                    Tracer.emitEvent(TraceEvent.INIT_FS);
+                    Tracer.emitEventEnd(TraceEvent.INIT_FS);
                 }
                 return new Object();
             }
@@ -445,16 +431,16 @@ public class FileOpsManager {
         if (DEBUG) {
             LOGGER.debug("Serializing object to " + target);
         }
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(TraceEvent.LOCAL_SERIALIZE.getId(), TraceEvent.LOCAL_SERIALIZE.getType());
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(TraceEvent.LOCAL_SERIALIZE);
         }
         try {
             Serializer.serialize(o, target);
         } catch (IOException ioe) {
             throw ioe;
         } finally {
-            if (Tracer.extraeEnabled()) {
-                Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.LOCAL_SERIALIZE.getType());
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(TraceEvent.LOCAL_SERIALIZE);
             }
         }
     }
@@ -463,8 +449,8 @@ public class FileOpsManager {
         if (DEBUG) {
             LOGGER.debug("Copying file " + source.getAbsolutePath() + " to " + target.getAbsolutePath());
         }
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(TraceEvent.LOCAL_COPY.getId(), TraceEvent.LOCAL_COPY.getType());
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(TraceEvent.LOCAL_COPY);
         }
         Path tgtPath = (target).toPath();
         Path sourcePath = (source).toPath();
@@ -483,8 +469,8 @@ public class FileOpsManager {
         } catch (IOException ioe) {
             throw ioe;
         } finally {
-            if (Tracer.extraeEnabled()) {
-                Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.LOCAL_COPY.getType());
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(TraceEvent.LOCAL_COPY);
             }
         }
     }
@@ -493,16 +479,16 @@ public class FileOpsManager {
         if (DEBUG) {
             LOGGER.debug("Copying directory " + source.getAbsolutePath() + " to " + target.getAbsolutePath());
         }
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(TraceEvent.LOCAL_COPY.getId(), TraceEvent.LOCAL_COPY.getType());
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(TraceEvent.LOCAL_COPY);
         }
         try {
             FileUtils.copyDirectory(source, target);
         } catch (IOException ioe) {
             throw ioe;
         } finally {
-            if (Tracer.extraeEnabled()) {
-                Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.LOCAL_COPY.getType());
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(TraceEvent.LOCAL_COPY);
             }
         }
     }
@@ -512,8 +498,8 @@ public class FileOpsManager {
         if (DEBUG) {
             LOGGER.debug("Deleting file " + f.getAbsolutePath());
         }
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(TraceEvent.LOCAL_DELETE.getId(), TraceEvent.LOCAL_DELETE.getType());
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(TraceEvent.LOCAL_DELETE);
         }
         try {
             if (!Files.deleteIfExists(f.toPath()) && DEBUG) {
@@ -540,17 +526,13 @@ public class FileOpsManager {
             } catch (IOException e) {
                 LOGGER.error("Cannot delete directory " + f.getAbsolutePath(), e);
                 throw e;
-            } finally {
-                if (Tracer.extraeEnabled()) {
-                    Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.LOCAL_DELETE.getType());
-                }
             }
         } catch (Exception e) {
             LOGGER.error("Cannot delete file " + f.getAbsolutePath(), e);
             throw e;
         } finally {
-            if (Tracer.extraeEnabled()) {
-                Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.LOCAL_DELETE.getType());
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(TraceEvent.LOCAL_DELETE);
             }
         }
     }
@@ -559,8 +541,8 @@ public class FileOpsManager {
         if (DEBUG) {
             LOGGER.debug("Moving file " + source.getAbsolutePath() + " to " + target.getAbsolutePath());
         }
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(TraceEvent.LOCAL_MOVE.getId(), TraceEvent.LOCAL_MOVE.getType());
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(TraceEvent.LOCAL_MOVE);
         }
         Path tgtPath = target.toPath();
         Path sourcePath = source.toPath();
@@ -583,8 +565,8 @@ public class FileOpsManager {
         } catch (IOException ioe) {
             throw ioe;
         } finally {
-            if (Tracer.extraeEnabled()) {
-                Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.LOCAL_MOVE.getType());
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(TraceEvent.LOCAL_MOVE);
             }
         }
     }
@@ -593,8 +575,8 @@ public class FileOpsManager {
         if (DEBUG) {
             LOGGER.debug("Moving directory " + source.getAbsolutePath() + " to " + target.getAbsolutePath());
         }
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(TraceEvent.LOCAL_MOVE.getId(), TraceEvent.LOCAL_MOVE.getType());
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(TraceEvent.LOCAL_MOVE);
         }
 
         try {
@@ -605,8 +587,8 @@ public class FileOpsManager {
         } catch (IOException ioe) {
             throw ioe;
         } finally {
-            if (Tracer.extraeEnabled()) {
-                Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.LOCAL_MOVE.getType());
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(TraceEvent.LOCAL_MOVE);
             }
         }
     }

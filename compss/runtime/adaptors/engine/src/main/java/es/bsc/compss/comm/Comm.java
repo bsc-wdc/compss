@@ -49,7 +49,6 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -116,7 +115,7 @@ public class Comm {
 
         ADAPTORS = new ConcurrentHashMap<>();
 
-        DATA = Collections.synchronizedMap(new TreeMap<String, LogicalData>());
+        DATA = Collections.synchronizedMap(new TreeMap<>());
 
     }
 
@@ -140,16 +139,14 @@ public class Comm {
         // Load communication adaptors
         loadAdaptorsJars();
         // Start tracing system
-        if (System.getProperty(COMPSsConstants.TRACING) != null
-            && Integer.parseInt(System.getProperty(COMPSsConstants.TRACING)) != 0) {
-            int tracingLevel = Integer.parseInt(System.getProperty(COMPSsConstants.TRACING));
-            boolean tracingTaskDep =
-                Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING_TASK_DEPENDENCIES));
-            LOGGER.debug("Tracing is activated [" + tracingLevel + " " + tracingTaskDep + ']');
-            Tracer.init(Comm.getAppHost().getAppLogDirPath(), tracingLevel, tracingTaskDep);
-            if (Tracer.extraeEnabled()) {
-                Tracer.emitEvent(TraceEvent.STATIC_IT.getId(), TraceEvent.STATIC_IT.getType());
-            }
+        boolean tracing = System.getProperty(COMPSsConstants.TRACING) != null
+            && Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING));
+        boolean tracingTaskDep = Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING_TASK_DEPENDENCIES));
+        String installDir = System.getenv(COMPSsConstants.COMPSS_HOME);
+        String logDir = Comm.getAppHost().getAppLogDirPath();
+        Tracer.init(tracing, 0, "master", installDir, ".", logDir, tracingTaskDep);
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(TraceEvent.STATIC_IT.getId(), TraceEvent.STATIC_IT.getType());
         }
 
         // Start streaming library
@@ -209,6 +206,7 @@ public class Comm {
     /**
      * Returns the active adaptor with name {@code adaptorName}.
      *
+     * @param adaptorName name of the adaptor to retrieve.
      * @return the active adaptor associated to that name.
      */
     public static CommAdaptor getAdaptor(String adaptorName) {
@@ -352,14 +350,15 @@ public class Comm {
 
         FileOpsManager.shutdown();
 
-        if (Tracer.extraeEnabled()) {
+        if (Tracer.isActivated()) {
             // Emit last EVENT_END event for STOP
-            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.STOP.getType());
-        }
+            Tracer.emitEventEnd(TraceEvent.STOP);
 
-        // Stop tracing system
-        if (Tracer.extraeEnabled() || Tracer.scorepEnabled() || Tracer.mapEnabled()) {
+            // Stop tracing system
             Tracer.fini(runtimeEvents);
+
+            // Generate Trace
+            Tracer.generateCompleteTrace();
         }
     }
 

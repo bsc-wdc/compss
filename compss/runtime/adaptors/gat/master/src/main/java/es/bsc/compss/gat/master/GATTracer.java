@@ -16,7 +16,6 @@
  */
 package es.bsc.compss.gat.master;
 
-import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.gat.master.utils.GATScriptExecutor;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.util.ErrorManager;
@@ -48,8 +47,6 @@ public class GATTracer extends Tracer {
             LOGGER.debug("Starting trace for woker " + worker.getHost());
         }
 
-        tracingLevel = 1;
-
         int numTasks = worker.getTotalComputingUnits();
         if (numTasks <= 0) {
             if (DEBUG) {
@@ -78,11 +75,12 @@ public class GATTracer extends Tracer {
 
         if (DEBUG) {
             try {
-                org.gridlab.gat.io.File outFile = GAT.createFile(worker.getContext(), ProtocolType.ANY_URI.getSchema()
-                    + File.separator + System.getProperty(COMPSsConstants.APP_LOG_DIR) + TRACE_OUT_RELATIVE_PATH);
+                String outFilePath = ProtocolType.ANY_URI.getSchema() + File.separator + Tracer.getTraceOutPath();
+                org.gridlab.gat.io.File outFile = GAT.createFile(worker.getContext(), outFilePath);
                 sd.setStdout(outFile);
-                org.gridlab.gat.io.File errFile = GAT.createFile(worker.getContext(), ProtocolType.ANY_URI.getSchema()
-                    + File.separator + System.getProperty(COMPSsConstants.APP_LOG_DIR) + TRACE_ERR_RELATIVE_PATH);
+
+                String errFilePath = ProtocolType.ANY_URI.getSchema() + File.separator + Tracer.getTraceErrPath();
+                org.gridlab.gat.io.File errFile = GAT.createFile(worker.getContext(), errFilePath);
                 sd.setStderr(errFile);
             } catch (Exception e) {
                 ErrorManager.warn("Error initializing tracing system in node " + worker.getHost(), e);
@@ -187,13 +185,6 @@ public class GATTracer extends Tracer {
             return false;
         }
         String mode = "package";
-        if (Tracer.extraeEnabled()) {
-            mode = "package";
-        } else if (Tracer.scorepEnabled()) {
-            mode = "package-scorep";
-        } else if (Tracer.mapEnabled()) {
-            mode = "package-map";
-        }
         String pars = mode + " " + workingDir + " " + host;
 
         traceParams.add(pars);

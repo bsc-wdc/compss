@@ -13,12 +13,9 @@ source "${COMPSS_HOME}/Runtime/scripts/system/commons/logger.sh"
 # DEFAULT VALUES
 #----------------------------------------------
 #Tracing
-TRACING_ARM_DDT="-3"
-TRACING_ARM_MAP="-2"
-TRACING_SCOREP="-1"
-TRACING_DEACTIVATED="0"
-TRACING_BASIC="1"
-TRACING_ADVANCED="2"
+TRACING_DEACTIVATED="false"
+TRACING_ENABLED="true"
+
 
 DEFAULT_TRACING="${TRACING_DEACTIVATED}"
 DEFAULT_TRACE_LABEL="None"
@@ -75,10 +72,8 @@ check_tracing_setup () {
     trace_label="${DEFAULT_TRACE_LABEL}"
   fi
 
-  if [ "${tracing}" -eq "${TRACING_BASIC}" ]; then
+  if [ "${tracing}" == "${TRACING_ENABLED}" ]; then
     extraeFile=${COMPSS_HOME}/Runtime/configuration/xml/tracing/extrae_basic.xml
-  elif [ "${tracing}" -eq "${TRACING_ADVANCED}" ]; then
-    extraeFile="${COMPSS_HOME}/Runtime/configuration/xml/tracing/extrae_advanced.xml"
   fi
 
   # Overwrite extraeFile if already defined
@@ -89,7 +84,7 @@ check_tracing_setup () {
   extraeWDir="${specific_log_dir}/trace"
 
   # Set tracing env
-  if [ "${tracing}" -gt "${TRACING_DEACTIVATED}" ]; then
+  if [ "${tracing}" == "${TRACING_ENABLED}" ]; then
     export LD_LIBRARY_PATH=${EXTRAE_LIB}:${LD_LIBRARY_PATH}
     export EXTRAE_HOME=${EXTRAE_HOME}
     export EXTRAE_CONFIG_FILE=${extraeFile}
@@ -129,7 +124,7 @@ EOT
 # STARTS TRACING ENGINE
 #----------------------------------------------
 start_tracing() {
-  if [ "${tracing}" -gt "${TRACING_DEACTIVATED}" ]; then   
+  if [ "${tracing}" == "${TRACING_ENABLED}" ]; then   
     export LD_PRELOAD=${EXTRAE_LIB}/libpttrace.so
     if [ "${lang}" == "python" ]; then
       export PYTHONPATH=${EXTRAE_HOME}/libexec/:${EXTRAE_HOME}/lib/:${PYTHONPATH}
@@ -141,7 +136,7 @@ start_tracing() {
 # STOP TRACING ENGINE
 #----------------------------------------------
 stop_tracing() {
-  if [ "${tracing}" -gt "0" ]; then
+  if [ "${tracing}" == "${TRACING_ENABLED}" ]; then
     unset LD_PRELOAD
   fi
 }

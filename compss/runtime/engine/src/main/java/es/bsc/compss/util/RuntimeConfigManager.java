@@ -518,8 +518,8 @@ public class RuntimeConfigManager {
      * 
      * @return The tracing flag value.
      */
-    public int getTracing() {
-        return config.getInt(COMPSsConstants.TRACING, 0);
+    public boolean getTracing() {
+        return config.getBoolean(COMPSsConstants.TRACING, false);
     }
 
     /**
@@ -527,7 +527,7 @@ public class RuntimeConfigManager {
      * 
      * @param tracing New tracing flag value.
      */
-    public void setTracing(int tracing) {
+    public void setTracing(boolean tracing) {
         config.setProperty(COMPSsConstants.TRACING, tracing);
     }
 

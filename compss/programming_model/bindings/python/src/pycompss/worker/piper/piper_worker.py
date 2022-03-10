@@ -288,7 +288,7 @@ def main():
     global TRACING
     global WORKER_CONF
     # Configure the global tracing variable from the argument
-    TRACING = (int(sys.argv[4]) > 0)
+    TRACING = sys.argv[4] == "true"
     with trace_multiprocessing_worker() if TRACING else dummy_context():
         # Configure the piper worker with the arguments
         WORKER_CONF = PiperWorkerConfiguration()

@@ -347,8 +347,8 @@ public class TaskScheduler {
         LOGGER.debug("[TaskScheduler] Add action " + action + " to ready count");
         Integer coreId = action.getCoreId();
         if (coreId != null) {
-            if (Tracer.extraeEnabled()) {
-                Tracer.emitEvent(TraceEvent.READY_COUNT.getId(), TraceEvent.READY_COUNT.getType());
+            if (Tracer.isActivated()) {
+                Tracer.emitEvent(TraceEvent.READY_COUNT);
             }
             this.readyCounts[coreId]++;
         }
@@ -365,8 +365,8 @@ public class TaskScheduler {
             if (action.getImplementations().length > 0) {
                 Integer coreId = action.getImplementations()[0].getCoreId();
                 if (coreId != null) {
-                    if (Tracer.extraeEnabled()) {
-                        Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.READY_COUNT.getType());
+                    if (Tracer.isActivated()) {
+                        Tracer.emitEventEnd(TraceEvent.READY_COUNT);
                     }
                     this.readyCounts[coreId]--;
                 }

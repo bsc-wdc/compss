@@ -18,19 +18,22 @@ package es.bsc.compss.util.tracing;
 
 public enum Threads {
 
-    APP(1, "APP", "App thread", ExtraeTaskType.APPLICATION), MAIN(1, "MAIN", "Main thread", ExtraeTaskType.RUNTIME),
-    AP(2, "RUNTIME AP", "Access Processor thread", ExtraeTaskType.RUNTIME),
-    TD(3, "RUNTIME TD", "Task Dispacher thread", ExtraeTaskType.RUNTIME),
-    FSL(4, "RUNTIME FS L", "File system thread", ExtraeTaskType.RUNTIME),
-    FSH(5, "RUNTIME FS H", "File system thread", ExtraeTaskType.RUNTIME),
-    TIMER(6, "RUNTIME TIMER", "Timer thread", ExtraeTaskType.RUNTIME),
-    WC(7, "RUNTIME WALLCLOCK", "WallClock thread", ExtraeTaskType.RUNTIME),
-    EXEC(8, "EXECUTOR", "Executor thread", ExtraeTaskType.EXECUTOR),;
+    APP(1, "APP", "App thread", ExtraeTaskType.APPLICATION), //
+    MAIN(1, "MAIN", "Main thread", ExtraeTaskType.RUNTIME), //
+    AP(2, "RUNTIME AP", "Access Processor thread", ExtraeTaskType.RUNTIME), //
+    TD(3, "RUNTIME TD", "Task Dispacher thread", ExtraeTaskType.RUNTIME), //
+    FSL(4, "RUNTIME FS L", "File system thread", ExtraeTaskType.RUNTIME), //
+    FSH(5, "RUNTIME FS H", "File system thread", ExtraeTaskType.RUNTIME), //
+    TIMER(6, "RUNTIME TIMER", "Timer thread", ExtraeTaskType.RUNTIME), //
+    WC(7, "RUNTIME WALLCLOCK", "WallClock thread", ExtraeTaskType.RUNTIME), //
+    EXEC(8, "EXECUTOR", "Executor thread", ExtraeTaskType.EXECUTOR); //
 
 
     public static enum ExtraeTaskType {
 
-        APPLICATION("1"), RUNTIME("1"), EXECUTOR("2");
+        APPLICATION("1"), //
+        RUNTIME("1"), //
+        EXECUTOR("2"); //
 
 
         private final String label;

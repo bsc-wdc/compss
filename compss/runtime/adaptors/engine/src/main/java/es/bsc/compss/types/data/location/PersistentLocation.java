@@ -57,19 +57,7 @@ public class PersistentLocation extends DataLocation {
     @Override
     public List<MultiURI> getURIs() {
         // Retrieve locations from Back-end
-        List<String> locations = null;
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(TraceEvent.STORAGE_GETLOCATIONS.getId(), TraceEvent.STORAGE_GETLOCATIONS.getType());
-        }
-        try {
-            locations = StorageItf.getLocations(this.id);
-        } catch (StorageException e) {
-            ErrorManager.error("ERROR: Cannot retrieve locations of " + this.id + " from Storage Back-end");
-        } finally {
-            if (Tracer.extraeEnabled()) {
-                Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.STORAGE_GETLOCATIONS.getType());
-            }
-        }
+        List<String> locations = getLocations();
         if (locations == null) {
             ErrorManager.error("ERROR: Cannot retrieve locations of " + this.id + " from Storage Back-end");
         }
@@ -93,22 +81,7 @@ public class PersistentLocation extends DataLocation {
         LOGGER.debug("Get PSCO locations for " + this.id);
 
         // Retrieve locations from Back-end
-        List<String> locations = null;
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(TraceEvent.STORAGE_GETLOCATIONS.getId(), TraceEvent.STORAGE_GETLOCATIONS.getType());
-        }
-        try {
-            locations = StorageItf.getLocations(this.id);
-        } catch (StorageException e) {
-            ErrorManager.error("ERROR: Cannot retrieve locations of " + this.id + " from Storage Back-end");
-        } finally {
-            if (Tracer.extraeEnabled()) {
-                Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.STORAGE_GETLOCATIONS.getType());
-            }
-        }
-        if (locations == null) {
-            ErrorManager.error("ERROR: Cannot retrieve locations of " + this.id + " from Storage Back-end");
-        }
+        List<String> locations = getLocations();
 
         // Get hosts
         List<Resource> hosts = new LinkedList<>();
@@ -127,19 +100,7 @@ public class PersistentLocation extends DataLocation {
     @Override
     public MultiURI getURIInHost(Resource targetHost) {
         // Retrieve locations from Back-end
-        List<String> locations = null;
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(TraceEvent.STORAGE_GETLOCATIONS.getId(), TraceEvent.STORAGE_GETLOCATIONS.getType());
-        }
-        try {
-            locations = StorageItf.getLocations(this.id);
-        } catch (StorageException e) {
-            ErrorManager.error("ERROR: Cannot retrieve locations of " + this.id + " from Storage Back-end");
-        } finally {
-            if (Tracer.extraeEnabled()) {
-                Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.STORAGE_GETLOCATIONS.getType());
-            }
-        }
+        List<String> locations = getLocations();
         if (locations == null) {
             ErrorManager.error("ERROR: Cannot retrieve locations of " + this.id + " from Storage Back-end");
         }
@@ -152,6 +113,23 @@ public class PersistentLocation extends DataLocation {
         }
 
         return null;
+    }
+
+    private List<String> getLocations() {
+        List<String> locations = null;
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(TraceEvent.STORAGE_GETLOCATIONS);
+        }
+        try {
+            locations = StorageItf.getLocations(this.id);
+        } catch (StorageException e) {
+            ErrorManager.error("ERROR: Cannot retrieve locations of " + this.id + " from Storage Back-end");
+        } finally {
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(TraceEvent.STORAGE_GETLOCATIONS);
+            }
+        }
+        return locations;
     }
 
     @Override

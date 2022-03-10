@@ -209,19 +209,18 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         WORKER_LOGGER.info("NIO Worker init");
 
         // Set tracing attributes and initialize module if needed
-        this.tracingLevel = Integer.parseInt(traceFlag);
-        this.tracingTaskDependencies = Boolean.parseBoolean(tracingTaskDependencies);
-        NIOTracer.init(this.tracingLevel, this.tracingTaskDependencies);
-        if (NIOTracer.extraeEnabled()) {
-            NIOTracer.emitEvent(TraceEvent.START.getId(), TraceEvent.START.getType());
+        this.tracing = Boolean.parseBoolean(traceFlag);
+        try {
+            this.tracingId = Integer.parseInt(traceHost);
+        } catch (Exception e) {
+            WORKER_LOGGER.error("No valid hostID provided to the tracing system. Provided ID: " + hostName);
         }
-        if (NIOTracer.extraeEnabled() || NIOTracer.scorepEnabled() || NIOTracer.mapEnabled()) {
-            try {
-                this.tracingId = Integer.parseInt(traceHost);
-                NIOTracer.setWorkerInfo(installDir, hostName, workingDir, this.tracingId);
-            } catch (Exception e) {
-                WORKER_LOGGER.error("No valid hostID provided to the tracing system. Provided ID: " + hostName);
-            }
+        this.tracingTaskDependencies = Boolean.parseBoolean(tracingTaskDependencies);
+        String logDir = ".";
+        NIOTracer.init(this.tracing, this.tracingId, hostName, installDir, workingDir, logDir,
+            this.tracingTaskDependencies);
+        if (NIOTracer.isActivated()) {
+            NIOTracer.emitEvent(TraceEvent.START);
         }
 
         // Set attributes
@@ -327,7 +326,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             }
         }
 
-        if (NIOTracer.extraeEnabled()) {
+        if (NIOTracer.isActivated()) {
             NIOTracer.emitEvent(TraceEvent.WORKER_RECEIVED_NEW_TASK.getId(),
                 TraceEvent.WORKER_RECEIVED_NEW_TASK.getType());
         }
@@ -352,7 +351,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         WORKER_LOGGER.info("Checking parameters");
         TaskFetchOperationsListener listener = new TaskFetchOperationsListener(task, this);
         int paramIdx = 0;
-        if (NIOTracer.extraeEnabled()) {
+        if (NIOTracer.isActivated()) {
             NIOTracer.emitEvent(TraceEvent.FETCH_PARAM.getId(), TraceEvent.FETCH_PARAM.getType());
         }
         for (NIOParam param : task.getParams()) {
@@ -378,15 +377,13 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             dataManager.fetchParam(targetParam, -1, listener);
 
         }
-        if (NIOTracer.extraeEnabled()) {
+        if (NIOTracer.isActivated()) {
             NIOTracer.emitEvent(NIOTracer.EVENT_END, TraceEvent.FETCH_PARAM.getType());
-        }
-        // Request the transfers
-        if (NIOTracer.extraeEnabled()) {
+            // Request the transfers
             NIOTracer.emitEvent(listener.getTask().getTaskId(), NIOTracer.getTaskTransfersType());
         }
         requestTransfers();
-        if (NIOTracer.extraeEnabled()) {
+        if (NIOTracer.isActivated()) {
             NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.getTaskTransfersType());
         }
 
@@ -402,7 +399,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         WORKER_LOGGER.debug("Enabling listener for task fetching");
         listener.enable();
 
-        if (NIOTracer.extraeEnabled()) {
+        if (NIOTracer.isActivated()) {
             NIOTracer.emitEvent(NIOTracer.EVENT_END, TraceEvent.WORKER_RECEIVED_NEW_TASK.getType());
         }
     }
@@ -492,7 +489,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
                     "Pending parameters: " + ((MultiOperationFetchListener) wdr.getListener()).getMissingOperations());
             }
         }
-        if (NIOTracer.extraeEnabled()) {
+        if (NIOTracer.isActivated()) {
             String nameId = (new File(dataId)).getName();
             NIOTracer.emitDataTransferEvent(nameId, true);
         }
@@ -691,11 +688,11 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
      * @param obsolete List of obsolete objects.
      */
     public void removeObsolete(List<String> obsolete) {
-        if (NIOTracer.extraeEnabled()) {
+        if (NIOTracer.isActivated()) {
             NIOTracer.emitEvent(TraceEvent.REMOVE_OBSOLETES.getId(), TraceEvent.REMOVE_OBSOLETES.getType());
         }
         this.dataManager.removeObsoletes(obsolete);
-        if (NIOTracer.extraeEnabled()) {
+        if (NIOTracer.isActivated()) {
             NIOTracer.emitEvent(NIOTracer.EVENT_END, TraceEvent.REMOVE_OBSOLETES.getType());
         }
     }
@@ -1174,8 +1171,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             return;
         }
 
-        if (NIOTracer.extraeEnabled()) {
-            NIOTracer.emitEvent(NIOTracer.EVENT_END, TraceEvent.START.getType());
+        if (NIOTracer.isActivated()) {
+            NIOTracer.emitEventEnd(TraceEvent.START);
         }
 
         /*
@@ -1347,6 +1344,21 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     @Override
     public void reactivatedReservedResourcesDetected(ResourceDescription resources) {
         // NIO Adaptor does not support remote resource updates
+    }
+
+    @Override
+    public void generatePackage(Connection c) {
+        NIOTracer.fini(new HashMap<>());
+
+        String packagePath = this.workingDir;
+        if (!packagePath.endsWith(File.separator)) {
+            packagePath += File.separator;
+        }
+        packagePath += this.hostName + NIOTracer.PACKAGE_SUFFIX;
+        NIOTracer.generatePackage(packagePath);
+
+        c.sendCommand(new CommandGenerateDone());
+        c.finishConnection();
     }
 
 }

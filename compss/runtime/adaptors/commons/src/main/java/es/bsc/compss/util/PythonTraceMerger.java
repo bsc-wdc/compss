@@ -36,9 +36,8 @@ public class PythonTraceMerger extends TraceMerger {
      * @throws IOException Error managing files
      */
     public PythonTraceMerger(String workingDir) throws IOException {
-        final String masterDir = workingDir + File.separator + Tracer.TRACE_SUBDIR;
-        final String workersDir =
-            workingDir + File.separator + Tracer.TRACE_SUBDIR + File.separator + PythonTraceMerger.PYTHON_WORKER_SUBDIR;
+        final String masterDir = workingDir;
+        final String workersDir = workingDir + File.separator + PythonTraceMerger.PYTHON_WORKER_SUBDIR;
 
         this.workingDir = workingDir;
 
@@ -71,8 +70,7 @@ public class PythonTraceMerger extends TraceMerger {
      */
     public void removeTemporalFiles() {
         if (!DEBUG) {
-            String workerFolder =
-                workingDir + File.separator + Tracer.TRACE_SUBDIR + File.separator + PYTHON_WORKER_SUBDIR;
+            String workerFolder = workingDir + File.separator + PYTHON_WORKER_SUBDIR;
             LOGGER.debug("Removing folder " + workerFolder);
             try {
                 removeFolder(workerFolder);

@@ -101,8 +101,8 @@ public class StorageInvoker extends JavaInvoker {
             LOGGER.info("External ExecuteTask " + method.getName());
         }
 
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(TraceEvent.STORAGE_EXECUTETASK.getId(), TraceEvent.STORAGE_EXECUTETASK.getType());
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(TraceEvent.STORAGE_EXECUTETASK);
         }
 
         List<? extends InvocationParam> params = invocation.getParams();
@@ -126,8 +126,8 @@ public class StorageInvoker extends JavaInvoker {
             Thread.currentThread().interrupt();
             throw new JobExecutionException(ERROR_CALLBACK_INTERRUPTED, e);
         } finally {
-            if (Tracer.extraeEnabled()) {
-                Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.STORAGE_EXECUTETASK.getType());
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(TraceEvent.STORAGE_EXECUTETASK);
             }
         }
 

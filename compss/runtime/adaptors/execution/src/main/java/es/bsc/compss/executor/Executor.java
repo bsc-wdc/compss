@@ -173,12 +173,10 @@ public class Executor implements Runnable, InvocationRunner {
      */
     @Override
     public void run() {
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(TraceEvent.EXECUTOR_COUNTS.getId(), TraceEvent.EXECUTOR_COUNTS.getType());
-            Tracer.emitEvent(TraceEvent.EXECUTOR_THREAD_ID.getId(), TraceEvent.EXECUTOR_THREAD_ID.getType());
-            if (Tracer.basicModeEnabled()) {
-                Tracer.disablePThreads(1);
-            }
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(TraceEvent.EXECUTOR_COUNTS);
+            Tracer.emitEvent(TraceEvent.EXECUTOR_THREAD_ID);
+            Tracer.disablePThreads(1);
         }
         start();
 
@@ -188,9 +186,9 @@ public class Executor implements Runnable, InvocationRunner {
         // Close language specific properties
         finish();
 
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.EXECUTOR_COUNTS.getType());
-            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.EXECUTOR_THREAD_ID.getType());
+        if (Tracer.isActivated()) {
+            Tracer.emitEventEnd(TraceEvent.EXECUTOR_COUNTS);
+            Tracer.emitEventEnd(TraceEvent.EXECUTOR_THREAD_ID);
         }
     }
 
@@ -199,7 +197,7 @@ public class Executor implements Runnable, InvocationRunner {
      */
     public void finish() {
         // Nothing to do since everything is deleted in each task execution
-        if (Tracer.extraeEnabled()) {
+        if (Tracer.isActivated()) {
             emitAffinityEndEvents();
         }
         LOGGER.info("Executor " + this.id + " finished");
@@ -295,7 +293,7 @@ public class Executor implements Runnable, InvocationRunner {
     }
 
     private void totalTimerAndTracingWrapperAndRun() throws Exception {
-        if (Tracer.extraeEnabled()) {
+        if (Tracer.isActivated()) {
             emitingTaskStartEvents();
         }
 
@@ -307,7 +305,7 @@ public class Executor implements Runnable, InvocationRunner {
             resourcesWrapperAndRun();
         } finally {
             // Always end task tracing
-            if (Tracer.extraeEnabled()) {
+            if (Tracer.isActivated()) {
                 emitTaskEndEvents();
             }
             // Write timer if needed
@@ -533,8 +531,8 @@ public class Executor implements Runnable, InvocationRunner {
 
     private boolean checkOutParam(InvocationParam param) {
         if (param.getType().equals(DataType.FILE_T)) {
-            if (Tracer.extraeEnabled()) {
-                Tracer.emitEvent(TraceEvent.CHECK_OUT_PARAM.getId(), TraceEvent.CHECK_OUT_PARAM.getType());
+            if (Tracer.isActivated()) {
+                Tracer.emitEvent(TraceEvent.CHECK_OUT_PARAM);
             }
             String filepath = (String) param.getValue();
             File f = new File(filepath);
@@ -550,8 +548,8 @@ public class Executor implements Runnable, InvocationRunner {
                 err.println(errMsg.toString());
                 return false;
             }
-            if (Tracer.extraeEnabled()) {
-                Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.CHECK_OUT_PARAM.getType());
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(TraceEvent.CHECK_OUT_PARAM);
             }
         }
         return true;
@@ -683,7 +681,7 @@ public class Executor implements Runnable, InvocationRunner {
     }
 
     private void assignExecutionResources() {
-        if (Tracer.extraeEnabled()) {
+        if (Tracer.isActivated()) {
             emitAffinityChangeEvents();
         }
         if (this.resources.getAssignedCPUs() != null && this.resources.getAssignedCPUs().length > 0) {
@@ -831,8 +829,8 @@ public class Executor implements Runnable, InvocationRunner {
                     specificWD = null;
                     break;
             }
-            if (Tracer.extraeEnabled()) {
-                Tracer.emitEvent(TraceEvent.CREATING_TASK_SANDBOX.getId(), TraceEvent.CREATING_TASK_SANDBOX.getType());
+            if (Tracer.isActivated()) {
+                Tracer.emitEvent(TraceEvent.CREATING_TASK_SANDBOX);
             }
             if (specificWD != null && !specificWD.isEmpty() && !specificWD.equals(Constants.UNASSIGNED)) {
                 // Binary has an specific working dir, set it
@@ -859,8 +857,8 @@ public class Executor implements Runnable, InvocationRunner {
                 // Create structures
                 Files.createDirectories(workingDir.toPath());
             }
-            if (Tracer.extraeEnabled()) {
-                Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.CREATING_TASK_SANDBOX.getType());
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(TraceEvent.CREATING_TASK_SANDBOX);
             }
         } catch (Exception e) {
             logExecutionException(e);
@@ -892,9 +890,8 @@ public class Executor implements Runnable, InvocationRunner {
             // Only clean task sandbox if it is not specific
             File workingDir = twd.getWorkingDir();
             if (workingDir != null && workingDir.exists() && workingDir.isDirectory()) {
-                if (Tracer.extraeEnabled()) {
-                    Tracer.emitEvent(TraceEvent.REMOVING_TASK_SANDBOX.getId(),
-                        TraceEvent.REMOVING_TASK_SANDBOX.getType());
+                if (Tracer.isActivated()) {
+                    Tracer.emitEvent(TraceEvent.REMOVING_TASK_SANDBOX);
                 }
                 try {
                     LOGGER.debug("Deleting sandbox " + workingDir.toPath());
@@ -902,8 +899,8 @@ public class Executor implements Runnable, InvocationRunner {
                 } catch (IOException e) {
                     LOGGER.warn("Error deleting sandbox " + e.getMessage(), e);
                 }
-                if (Tracer.extraeEnabled()) {
-                    Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.REMOVING_TASK_SANDBOX.getType());
+                if (Tracer.isActivated()) {
+                    Tracer.emitEventEnd(TraceEvent.REMOVING_TASK_SANDBOX);
                 }
             }
         }
@@ -1011,8 +1008,8 @@ public class Executor implements Runnable, InvocationRunner {
 
     private void bindOriginalFilenameToRenames(InvocationParam param, File sandbox) throws IOException {
 
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(TraceEvent.BIND_ORIG_NAME.getId(), TraceEvent.BIND_ORIG_NAME.getType());
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(TraceEvent.BIND_ORIG_NAME);
         }
 
         if (param.getType().equals(DataType.COLLECTION_T)) {
@@ -1042,8 +1039,8 @@ public class Executor implements Runnable, InvocationRunner {
                 }
             }
         }
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.BIND_ORIG_NAME.getType());
+        if (Tracer.isActivated()) {
+            Tracer.emitEventEnd(TraceEvent.BIND_ORIG_NAME);
         }
     }
 
@@ -1196,8 +1193,8 @@ public class Executor implements Runnable, InvocationRunner {
             // Nothing to do
             return;
         }
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(TraceEvent.UNBIND_ORIG_NAME.getId(), TraceEvent.UNBIND_ORIG_NAME.getType());
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(TraceEvent.UNBIND_ORIG_NAME);
         }
         if (param.getType().equals(DataType.COLLECTION_T)) {
             @SuppressWarnings("unchecked")
@@ -1282,8 +1279,8 @@ public class Executor implements Runnable, InvocationRunner {
                 param.setOriginalName(originalFileName);
             }
         }
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.UNBIND_ORIG_NAME.getType());
+        if (Tracer.isActivated()) {
+            Tracer.emitEventEnd(TraceEvent.UNBIND_ORIG_NAME);
         }
     }
 
@@ -1354,7 +1351,7 @@ public class Executor implements Runnable, InvocationRunner {
         Tracer.emitEvent(diskBW, Tracer.getDiskBWEventsType());
         int taskType = invocation.getMethodImplementation().getMethodType().ordinal() + 1;
         Tracer.emitEvent(taskType, Tracer.getTaskTypeEventsType());
-        Tracer.emitEvent(TraceEvent.TASK_RUNNING.getId(), TraceEvent.TASK_RUNNING.getType());
+        Tracer.emitEvent(TraceEvent.TASK_RUNNING);
     }
 
     private void emitTaskEndEvents() {
@@ -1368,7 +1365,7 @@ public class Executor implements Runnable, InvocationRunner {
         Tracer.emitEvent(Tracer.EVENT_END, Tracer.getMemoryEventsType());
         Tracer.emitEvent(Tracer.EVENT_END, Tracer.getDiskBWEventsType());
         Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTaskTypeEventsType());
-        Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.TASK_RUNNING.getType());
+        Tracer.emitEventEnd(TraceEvent.TASK_RUNNING);
     }
 
     private void emitAffinityChangeEvents() {

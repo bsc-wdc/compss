@@ -1179,17 +1179,16 @@ public class DataInfoProvider {
                     for (DataLocation loc : data.getLocations()) {
                         if (loc instanceof PersistentLocation) {
                             String pscoId = ((PersistentLocation) loc).getId();
-                            if (Tracer.extraeEnabled()) {
-                                Tracer.emitEvent(TraceEvent.STORAGE_CONSOLIDATE.getId(),
-                                    TraceEvent.STORAGE_CONSOLIDATE.getType());
+                            if (Tracer.isActivated()) {
+                                Tracer.emitEvent(TraceEvent.STORAGE_CONSOLIDATE);
                             }
                             try {
                                 StorageItf.consolidateVersion(pscoId);
                             } catch (StorageException e) {
                                 LOGGER.error("Cannot consolidate PSCO " + pscoId, e);
                             } finally {
-                                if (Tracer.extraeEnabled()) {
-                                    Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.STORAGE_CONSOLIDATE.getType());
+                                if (Tracer.isActivated()) {
+                                    Tracer.emitEventEnd(TraceEvent.STORAGE_CONSOLIDATE);
                                 }
                             }
                             LOGGER.debug("Returned because persistent object");

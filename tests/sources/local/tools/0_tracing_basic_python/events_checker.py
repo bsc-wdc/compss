@@ -15,6 +15,7 @@ FAMILY_LABEL = "Family"
 EVENT_LABEL = "event"
 RANGE_LABEL = "range"
 
+
 def parse_file(expected_events_file):
     """
     Reads the expected_events_file and builds the families and event_definitions
@@ -30,7 +31,7 @@ def parse_file(expected_events_file):
     :return: Families and event definitions.
     """
     print("\n- Parsing expected events file: %s" % expected_events_file)
-    with open(expected_events_file, 'r') as fd:
+    with open(expected_events_file, "r") as fd:
         lines = fd.readlines()
     families = []
     event_definitions = {}
@@ -64,15 +65,17 @@ def parse_file(expected_events_file):
                 else:
                     d_appearances = int(d_appearances)
                 if d_appearances > 0 or d_appearances == -1:
-                    if d_type not in event_definitions.keys():
+                    if d_type not in list(event_definitions.keys()):
                         # create new type
                         event_definitions[d_type] = {}
-                    if EVENT_LABEL not in event_definitions[d_type].keys():
+                    if EVENT_LABEL not in list(event_definitions[d_type].keys()):
                         # create event label
                         event_definitions[d_type][EVENT_LABEL] = {}
-                    if d_event in event_definitions[d_type][EVENT_LABEL].keys():
+                    if d_event in list(event_definitions[d_type][EVENT_LABEL].keys()):
                         # redefined event
-                        raise Exception("ERROR: Event defined twice: %s %s" % (d_type, d_event))
+                        raise Exception(
+                            "ERROR: Event defined twice: %s %s" % (d_type, d_event)
+                        )
                     else:
                         # include event
                         event_definitions[d_type][EVENT_LABEL][d_event] = d_appearances
@@ -87,35 +90,44 @@ def parse_file(expected_events_file):
                     d_appearances = [int(d_app) for d_app in d_appearances_values]
                 else:
                     d_appearances = int(d_appearances)
-                if (isinstance(d_appearances, int) and (d_appearances > 0 or d_appearances == -1)) or \
-                   (isinstance(d_appearances, list)):
-                    if d_type not in event_definitions.keys():
+                if (
+                    isinstance(d_appearances, int)
+                    and (d_appearances > 0 or d_appearances == -1)
+                ) or (isinstance(d_appearances, list)):
+                    if d_type not in list(event_definitions.keys()):
                         # create new type
                         event_definitions[d_type] = {}
-                    if RANGE_LABEL not in event_definitions[d_type].keys():
+                    if RANGE_LABEL not in list(event_definitions[d_type].keys()):
                         # create range label
                         event_definitions[d_type][RANGE_LABEL] = []
                     else:
                         # redefined erange
                         raise Exception("ERROR: Event range defined twice: %s" % d_type)
                     # include event
-                    event_definitions[d_type][RANGE_LABEL] = (d_min_event, d_max_event, d_appearances)
+                    event_definitions[d_type][RANGE_LABEL] = (
+                        d_min_event,
+                        d_max_event,
+                        d_appearances,
+                    )
             if d_mode != EVENT_LABEL and d_mode != RANGE_LABEL:
-                raise Exception("Unsupported event mode: %s (supported are: event or range)" % d_mode)
+                raise Exception(
+                    "Unsupported event mode: %s (supported are: event or range)"
+                    % d_mode
+                )
     print("\t- Rules:")
     print(event_definitions)
     return families, event_definitions
 
 
 def __pairwise__(iterable):
-    """ Converts a list of elements in a list of pairs like:
+    """Converts a list of elements in a list of pairs like:
     list -> (list[0], list[1]), (list[2], list[3]), (list[4], list[5]), ...
 
     :param iterable: Input list.
     :return: List of pairs of the given list elements.
     """
     a = iter(iterable)
-    return zip(a, a)
+    return list(zip(a, a))
 
 
 def parse_trace(trace_file, families):
@@ -128,7 +140,7 @@ def parse_trace(trace_file, families):
     :param families: Families to look for.
     :return: Trace events (list of pairs (type, event))
     """
-    print("\n- Parsing trace file... %s" %trace_file)
+    print("\n- Parsing trace file... %s" % trace_file)
     with open(trace_file, "r") as fd:
         trace = fd.readlines()
     parsed_trace = []
@@ -138,7 +150,9 @@ def parse_trace(trace_file, families):
             event_elements = elements[6:]  # remove the headers
             # Parse the rest by pairs
             for event_type, event_number in __pairwise__(event_elements):
-                parsed_trace.append((int(event_type.strip()), int(event_number.strip())))
+                parsed_trace.append(
+                    (int(event_type.strip()), int(event_number.strip()))
+                )
     print("\t- Filtering families... %s" % str(families))
     filtered_trace = []
     for line in parsed_trace:
@@ -159,7 +173,7 @@ def check_families(trace_events, families, event_definitions):
     :param event_definitions: Event definitions.
     :return: Message report list
     """
-    print("\n- Checking families... %s" %families)
+    print("\n- Checking families... %s" % families)
     report = []
     trace_event_types = []
     for line in trace_events:
@@ -168,16 +182,20 @@ def check_families(trace_events, families, event_definitions):
     trace_event_types.sort()
     print("\t- Found event types:")
     print(str(trace_event_types))
-    event_types = event_definitions.keys()
+    event_types = list(event_definitions.keys())
     event_types = sorted(event_types)
     print("\t- Expected event types:")
     print(str(event_types))
     for event_type in trace_event_types:
         if event_type not in event_types:
-            report.append("ERROR: Unexpected event type %d found in check_families" % event_type)
+            report.append(
+                "ERROR: Unexpected event type %d found in check_families" % event_type
+            )
     for event in event_types:
         if event not in trace_event_types:
-            report.append("ERROR: Missing event type %d found in check_families" % event)
+            report.append(
+                "ERROR: Missing event type %d found in check_families" % event
+            )
     return report
 
 
@@ -197,36 +215,47 @@ def check_events(trace_events, event_definitions):
         print("\t- Event type: %d Rule: %s" % (event_type, str(rule)))
         ok = True
         if event_type not in unique_events:
-            report.append("ERROR: Missing event type %d found in check_events" % event_type)
+            report.append(
+                "ERROR: Missing event type %d found in check_events" % event_type
+            )
         else:
             unique_events_type = unique_events[event_type]
             unique_events_type.sort()
             if EVENT_LABEL in rule:
-                expected_events = rule[EVENT_LABEL].keys()
+                expected_events = list(rule[EVENT_LABEL].keys())
                 expected_events = sorted(expected_events)
                 # Check that all expected events are found
                 for ev in expected_events:
                     if ev not in unique_events_type:
-                        report.append("ERROR: Missing event %d:%d found" % (event_type, ev))
+                        report.append(
+                            "ERROR: Missing event %d:%d found" % (event_type, ev)
+                        )
                         ok = False
                 # Check if there are events not defined in expected events
                 if RANGE_LABEL not in rule:
                     for ev in unique_events_type:
                         if ev not in expected_events:
-                            report.append("ERROR: Unexpected event %d:%d found" % (event_type, ev))
+                            report.append(
+                                "ERROR: Unexpected event %d:%d found" % (event_type, ev)
+                            )
                             ok = False
             if RANGE_LABEL in rule:
-                ## falta aqui comprobar que la suma de eventos equivale al 0
+                # TODO: Falta aqui comprobar que la suma de eventos equivale al 0
                 expected_range = (rule[RANGE_LABEL][0], rule[RANGE_LABEL][1])
                 unique_events_type.pop(0)  # remove 0
                 for ev in unique_events_type:
                     min_ev = expected_range[0]
                     max_ev = expected_range[1]
                     if ev < min_ev or ev > max_ev:
-                        report.append("ERROR: Event out of range of type %d found with value %d (Expected range: %d-%d)" % (event_type, ev, min_ev, max_ev))
+                        report.append(
+                            "ERROR: Event out of range of type %d found with value %d (Expected range: %d-%d)"
+                            % (event_type, ev, min_ev, max_ev)
+                        )
                         ok = False
-                if not EVENT_LABEL in rule:
-                    report.append("ERROR: 0 events undefined for range %d" % (event_type))
+                if EVENT_LABEL not in rule:
+                    report.append(
+                        "ERROR: 0 events undefined for range %d" % (event_type)
+                    )
                     ok = False
         if not ok:
             print("\t\t- ERROR found")
@@ -242,7 +271,7 @@ def __unique_trace_events__(trace_events):
     """
     unique_events = {}
     for line in trace_events:
-        if line[0] not in unique_events.keys():
+        if line[0] not in list(unique_events.keys()):
             unique_events[line[0]] = [line[1]]
         else:
             if line[1] not in unique_events[line[0]]:
@@ -268,22 +297,38 @@ def check_rules(trace_events, event_definitions):
         filtered_trace_events = __filter_event_type__(trace_events, event_type)
         if EVENT_LABEL in rule:
             event_ok = True
-            accumulated_events = __accumulate_events__(filtered_trace_events, rule[EVENT_LABEL])
+            accumulated_events = __accumulate_events__(
+                filtered_trace_events, rule[EVENT_LABEL]
+            )
             for event, appearances in accumulated_events.items():
                 if rule[EVENT_LABEL][event] == -1:
                     is_undefined = True
                     undefined_appearances = appearances
                 elif isinstance(rule[EVENT_LABEL][event], list):
                     if appearances not in rule[EVENT_LABEL][event]:
-                        report.append("ERROR: Unexpected type %d event %d appearances found: %d (Expected %d)" % (event_type, event, appearances, str(rule[EVENT_LABEL][event])))
+                        report.append(
+                            "ERROR: Unexpected type %d event %d appearances found: %d (Expected %d)"
+                            % (
+                                event_type,
+                                event,
+                                appearances,
+                                str(rule[EVENT_LABEL][event]),
+                            )
+                        )
                         event_ok = False
                 elif appearances != rule[EVENT_LABEL][event]:
-                    report.append("ERROR: Unexpected type %d event %d appearances found: %d (Expected %d)" % (event_type, event, appearances, rule[EVENT_LABEL][event]))
+                    report.append(
+                        "ERROR: Unexpected type %d event %d appearances found: %d (Expected %d)"
+                        % (event_type, event, appearances, rule[EVENT_LABEL][event])
+                    )
                     event_ok = False
                 else:
                     pass  # ok
             if is_undefined:
-                print("\t\t- UNDEFINED appearances (%s) %d" % (EVENT_LABEL, undefined_appearances))
+                print(
+                    "\t\t- UNDEFINED appearances (%s) %d"
+                    % (EVENT_LABEL, undefined_appearances)
+                )
             elif event_ok:
                 print("\t\t- OK appearances (%s)" % EVENT_LABEL)
             else:
@@ -310,13 +355,22 @@ def check_rules(trace_events, event_definitions):
                 undefined_appearances_range = found_appearances
             elif isinstance(expected_amount, list):
                 if found_appearances not in expected_amount:
-                    report.append("ERROR: Unexpected event range of type %d found: %d (Expected %d)" % (event_type, found_appearances, str(expected_amount)))
+                    report.append(
+                        "ERROR: Unexpected event range of type %d found: %d (Expected %d)"
+                        % (event_type, found_appearances, str(expected_amount))
+                    )
                     range_ok = False
             elif found_appearances != expected_amount:
-                report.append("ERROR: Unexpected event range of type %d found: %d (Expected %d)" % (event_type, found_appearances, expected_amount))
+                report.append(
+                    "ERROR: Unexpected event range of type %d found: %d (Expected %d)"
+                    % (event_type, found_appearances, expected_amount)
+                )
                 range_ok = False
             if is_undefined_range:
-                print("\t\t- UNDEFINED appearances (%s) %d" % (RANGE_LABEL, undefined_appearances_range))
+                print(
+                    "\t\t- UNDEFINED appearances (%s) %d"
+                    % (RANGE_LABEL, undefined_appearances_range)
+                )
             elif range_ok:
                 print("\t\t- OK appearances (%s)" % RANGE_LABEL)
             else:
@@ -336,6 +390,7 @@ def check_rules(trace_events, event_definitions):
             pass
     return report
 
+
 def __filter_event_type__(trace_events, event_type):
     """
     Looks for the events in the trace matching the event type
@@ -349,6 +404,7 @@ def __filter_event_type__(trace_events, event_type):
         if line[0] == event_type:
             filtered.append(line)
     return filtered
+
 
 def __accumulate_events__(trace_events, events):
     """
@@ -385,7 +441,6 @@ def __accumulate_range__(trace_events):
     return accumulated
 
 
-
 def main(expected_events_file, trace_file):
     print("############################")
     print("### STARTING TRACE CHECK ###")
@@ -406,7 +461,7 @@ def main(expected_events_file, trace_file):
         print("- REPORT: ")
         i = 0
         for message in report:
-            print("MESSAGE %d: %s" %(i, message))
+            print("MESSAGE %d: %s" % (i, message))
             i += 1
             ok = False
     print("----------------------------")
@@ -417,7 +472,6 @@ def main(expected_events_file, trace_file):
         print("- FAILED! ERRORS FOUND. Please check the report.")
     print("----------------------------")
     return ok
-
 
 
 if __name__ == "__main__":

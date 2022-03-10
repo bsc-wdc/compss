@@ -87,7 +87,8 @@ def parse_file(expected_events_file):
                     d_appearances = [int(d_app) for d_app in d_appearances_values]
                 else:
                     d_appearances = int(d_appearances)
-                if d_appearances > 0 or d_appearances == -1:
+                if (isinstance(d_appearances, int) and (d_appearances > 0 or d_appearances == -1)) or \
+                   (isinstance(d_appearances, list)):
                     if d_type not in event_definitions.keys():
                         # create new type
                         event_definitions[d_type] = {}
@@ -168,7 +169,7 @@ def check_families(trace_events, families, event_definitions):
     print("\t- Found event types:")
     print(str(trace_event_types))
     event_types = event_definitions.keys()
-    event_types.sort()
+    event_types = sorted(event_types)
     print("\t- Expected event types:")
     print(str(event_types))
     for event_type in trace_event_types:
@@ -202,7 +203,7 @@ def check_events(trace_events, event_definitions):
             unique_events_type.sort()
             if EVENT_LABEL in rule:
                 expected_events = rule[EVENT_LABEL].keys()
-                expected_events.sort()
+                expected_events = sorted(expected_events)
                 # Check that all expected events are found
                 for ev in expected_events:
                     if ev not in unique_events_type:

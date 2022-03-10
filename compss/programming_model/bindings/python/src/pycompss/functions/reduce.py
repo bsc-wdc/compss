@@ -47,7 +47,7 @@ def merge_reduce(f: typing.Callable, data: list) -> typing.Any:
             return data[x]
 
 
-def merge_n_reduce(f: typing.Callable, arity: int, data, list) -> typing.Any:
+def merge_n_reduce(f: typing.Callable, arity: int, data: list) -> typing.Any:
     """Apply f cumulatively to the items of data,
     from left to right in n-tree structure, so as to
     reduce the data.

@@ -22,14 +22,7 @@ import logging
 import socket
 from pycompss.util.typing_helper import typing
 from threading import Thread
-from pycompss.runtime.commons import IS_PYTHON3
-
-if IS_PYTHON3:
-    # Python 3
-    import queue
-else:
-    # Python 2
-    import Queue
+import queue
 
 # Project imports
 from pycompss.streams.types.requests import STOP
@@ -46,6 +39,7 @@ logger = logging.getLogger("pycompss.streams.distro_stream_client")
 # Client Handler
 #
 
+
 class DistroStreamClientHandler(object):
     """
     Handler to use the DistroStreamClient. This is a static class.
@@ -57,30 +51,29 @@ class DistroStreamClientHandler(object):
 
     CLIENT = None  # type: typing.Any
 
-    def __init__(self):
-        # type: () -> None
-        """ Creates a new handler instance.
+    def __init__(self) -> None:
+        """Creates a new handler instance.
         Should never be called directly since all attributes are static.
         """
         # Nothing to do since this is a static handler
         pass
 
     @staticmethod
-    def init_and_start(master_ip="", master_port=""):
-        # type: (str, str) -> None
-        """ Initializes and starts the client.
+    def init_and_start(master_ip: str = "", master_port: str = "") -> None:
+        """Initializes and starts the client.
 
         :param master_ip: Master IP.
         :param master_port: Master port.
         :return: None.
         """
-        DistroStreamClientHandler.CLIENT = DistroStreamClient(master_ip=master_ip, master_port=master_port)  # noqa: E501
+        DistroStreamClientHandler.CLIENT = DistroStreamClient(
+            master_ip=master_ip, master_port=master_port
+        )  # noqa: E501
         DistroStreamClientHandler.CLIENT.start()
 
     @staticmethod
-    def set_stop():
-        # type: () -> None
-        """ Marks the client to stop.
+    def set_stop() -> None:
+        """Marks the client to stop.
 
         :return: None.
         """
@@ -88,9 +81,8 @@ class DistroStreamClientHandler(object):
         DistroStreamClientHandler.CLIENT.add_request(req)
 
     @staticmethod
-    def request(req):
-        # type: (typing.Any) -> None
-        """ Adds a new request to the client.
+    def request(req: typing.Any) -> None:
+        """Adds a new request to the client.
 
         :param req: Client request (Subclass of Request)
         :return: None.
@@ -118,17 +110,15 @@ class DistroStreamClient(Thread):
 
     BUFFER_SIZE = 4096
 
-    def __init__(self, master_ip, master_port):
-        # type: (str, str) -> None
-        """ Creates a new Client associated to the given master properties.
+    def __init__(self, master_ip: str, master_port: str) -> None:
+        """Creates a new Client associated to the given master properties.
 
         :param master_ip: Master IP address.
         :param master_port: Master port.
         """
         super(DistroStreamClient, self).__init__()
 
-        logger.info("Initializing DS Client on %s:%s" % (master_ip,
-                                                         master_port))
+        logger.info("Initializing DS Client on %s:%s" % (master_ip, master_port))
 
         # Register information
         self.master_ip = master_ip
@@ -137,14 +127,10 @@ class DistroStreamClient(Thread):
         # Initialize internal structures
         self.running = True
         self.requests = None  # type: typing.Any
-        if IS_PYTHON3:
-            self.requests = queue.Queue()
-        else:
-            self.requests = Queue.Queue()
+        self.requests = queue.Queue()
 
-    def run(self):
-        # type: () -> None
-        """ Running method of the internal thread.
+    def run(self) -> None:
+        """Running method of the internal thread.
 
         :return: None.
         """
@@ -170,9 +156,8 @@ class DistroStreamClient(Thread):
 
         logger.info("DS Client stopped")
 
-    def _process_request(self, req):
-        # type: (typing.Any) -> None
-        """ Process requests to the server.
+    def _process_request(self, req: typing.Any) -> None:
+        """Process requests to the server.
 
         :param req: Request
         :return: None
@@ -197,14 +182,16 @@ class DistroStreamClient(Thread):
             answer = chunk
             if __debug__:
                 logger.debug("Received answer from server: %s" % str(answer))
-            while chunk is not None and \
-                    chunk and not chunk.endswith("\n".encode()):
+            while chunk is not None and chunk and not chunk.endswith("\n".encode()):
                 if __debug__:
-                    logger.debug("Received chunk answer from server with size = %s" % str(len(chunk)))  # noqa: E501
+                    logger.debug(
+                        "Received chunk answer from server with size = %s"
+                        % str(len(chunk))
+                    )  # noqa: E501
                 chunk = s.recv(DistroStreamClient.BUFFER_SIZE)
                 if chunk is not None and chunk:
                     answer = answer + chunk
-            answer_str = answer.decode(encoding='UTF-8').strip()
+            answer_str = answer.decode(encoding="UTF-8").strip()
             if __debug__:
                 logger.debug("Received answer from server: %s" % str(answer_str))
             req.set_response(answer_str)
@@ -213,14 +200,12 @@ class DistroStreamClient(Thread):
             # Some error occurred, mark request as failed and keep going
             req.set_error(1, str(e))
 
-    def add_request(self, req):
-        # type: (typing.Any) -> None
-        """ Adds a new request to the client.
+    def add_request(self, req: typing.Any) -> None:
+        """Adds a new request to the client.
 
         :param req: Request to add (Request subclass).
         :return: None.
         """
         if __debug__:
-            logger.debug("Adding new request to client queue: %s" %
-                         str(req.get_type()))
+            logger.debug("Adding new request to client queue: %s" % str(req.get_type()))
         self.requests.put(req, block=True)

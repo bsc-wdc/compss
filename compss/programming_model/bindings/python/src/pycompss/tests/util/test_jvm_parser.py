@@ -35,11 +35,11 @@ def test_jvm_parser():
         "+UseG1GC": True,
         "+UseThreadPriorities": True,
         "ThreadPriorityPolicy=42": True,
-        "-Dlog4j.configurationFile": "/opt/COMPSs/Runtime/configuration/log/COMPSsMaster-log4j.debug",        # noqa: E501
+        "-Dlog4j.configurationFile": "/opt/COMPSs/Runtime/configuration/log/COMPSsMaster-log4j.debug",  # noqa: E501
         "-Dcompss.to.file": "false",
-        "-Dcompss.project.file": "/opt/COMPSs/Runtime/configuration/xml/projects/default_project.xml",        # noqa: E501
-        "-Dcompss.resources.file": "/opt/COMPSs/Runtime/configuration/xml/resources/default_resources.xml",   # noqa: E501
-        "-Dcompss.project.schema": "/opt/COMPSs/Runtime/configuration/xml/projects/project_schema.xsd",       # noqa: E501
+        "-Dcompss.project.file": "/opt/COMPSs/Runtime/configuration/xml/projects/default_project.xml",  # noqa: E501
+        "-Dcompss.resources.file": "/opt/COMPSs/Runtime/configuration/xml/resources/default_resources.xml",  # noqa: E501
+        "-Dcompss.project.schema": "/opt/COMPSs/Runtime/configuration/xml/projects/project_schema.xsd",  # noqa: E501
         "-Dcompss.resources.schema": "/opt/COMPSs/Runtime/configuration/xml/resources/resources_schema.xsd",  # noqa: E501
         "-Dcompss.lang": "python",
         "-Dcompss.summary": "false",
@@ -145,7 +145,9 @@ def test_jvm_parser():
 -Dcompss.python.propagate_virtualenvironment=true
 -Dcompss.python.mpi_worker=false
 other
-""".format(temp_folder)  # noqa
+""".format(
+                temp_folder
+            )  # noqa
         )
     result = convert_to_dict(jvm_opt_file)
     assert len(result) == len(
@@ -154,10 +156,9 @@ other
     for k, v in jvm_expected_result.items():
         if k not in result:
             raise PyCOMPSsException("Key: %s is not in the result dictionary" % k)
-        assert v == result[k], (
-            "The value of key: %s does not match the expected value: %s"
-            % (k, str(v))
-        )
+        assert (
+            v == result[k]
+        ), "The value of key: %s does not match the expected value: %s" % (k, str(v))
     assert (
         result == jvm_expected_result
     ), "The jvm opts file has not been parsed as expected"

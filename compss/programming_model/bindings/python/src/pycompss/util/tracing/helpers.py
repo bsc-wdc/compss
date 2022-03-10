@@ -44,9 +44,8 @@ TRACING = False  # type: bool
 
 
 @contextmanager
-def dummy_context():
-    # type: () -> typing.Iterator[None]
-    """ Context which deactivates the tracing flag and nothing else.
+def dummy_context() -> typing.Iterator[None]:
+    """Context which deactivates the tracing flag and nothing else.
 
     :return: None
     """
@@ -56,15 +55,15 @@ def dummy_context():
 
 
 @contextmanager
-def trace_multiprocessing_worker():
-    # type: () -> typing.Iterator[None]
-    """ Sets up the tracing for the multiprocessing worker.
+def trace_multiprocessing_worker() -> typing.Iterator[None]:
+    """Sets up the tracing for the multiprocessing worker.
 
     :return: None
     """
     global PYEXTRAE
     global TRACING
     import pyextrae.multiprocessing as pyextrae  # noqa
+
     PYEXTRAE = pyextrae
     TRACING = True
     pyextrae.eventandcounters(SYNC_EVENTS, 1)
@@ -77,15 +76,15 @@ def trace_multiprocessing_worker():
 
 
 @contextmanager
-def trace_mpi_worker():
-    # type: () -> typing.Iterator[None]
-    """ Sets up the tracing for the mpi worker.
+def trace_mpi_worker() -> typing.Iterator[None]:
+    """Sets up the tracing for the mpi worker.
 
     :return: None
     """
     global PYEXTRAE
     global TRACING
     import pyextrae.mpi as pyextrae  # noqa
+
     PYEXTRAE = pyextrae
     TRACING = True
     pyextrae.eventandcounters(SYNC_EVENTS, 1)
@@ -98,15 +97,15 @@ def trace_mpi_worker():
 
 
 @contextmanager
-def trace_mpi_executor():
-    # type: () -> typing.Iterator[None]
-    """ Sets up the tracing for each mpi executor.
+def trace_mpi_executor() -> typing.Iterator[None]:
+    """Sets up the tracing for each mpi executor.
 
     :return: None
     """
     global PYEXTRAE
     global TRACING
     import pyextrae.mpi as pyextrae  # noqa
+
     PYEXTRAE = pyextrae
     TRACING = True
     yield  # here the mpi executor runs
@@ -115,12 +114,12 @@ def trace_mpi_executor():
 # class EmitEvent(object):  # noqa
 #
 #     def __init__(self,
-#                  event_id,            # type: int
-#                  master=False,        # type: bool
-#                  inside=False,        # type: bool
-#                  cpu_affinity=False,  # type: bool
-#                  gpu_affinity=False   # type: bool
-#                  ):                   # type: (...) -> None
+#                  event_id: int,
+#                  master: bool = False,
+#                  inside: bool = False,
+#                  cpu_affinity: bool = False,
+#                  gpu_affinity: bool = False
+#                  ) -> None:
 #         self.event_id = event_id
 #         self.master = master
 #         self.inside = inside
@@ -143,12 +142,12 @@ def trace_mpi_executor():
 
 
 # @contextmanager
-# def event(event_id,            # type: int
-#           master=False,        # type: bool
-#           inside=False,        # type: bool
-#           cpu_affinity=False,  # type: bool
-#           gpu_affinity=False   # type: bool
-#           ):                   # type: (...) -> typing.Iterator[None]
+# def event(event_id: int,
+#           master: bool = False,
+#           inside: bool = False,
+#           cpu_affinity: bool = False,
+#           gpu_affinity: bool = False
+#           ) -> typing.Iterator[None]:
 #     """ Emits an event wrapping the desired code.
 #
 #     Does nothing if tracing is disabled.
@@ -178,34 +177,36 @@ def trace_mpi_executor():
 #     if emit:
 #         PYEXTRAE.eventandcounters(event_group, 0)         # noqa
 
+
 class event_master(object):
-    """ Emits an event at master wrapping the desired code.
+    """Emits an event at master wrapping the desired code.
 
     Does nothing if tracing is disabled.
 
     :param event_id: Event identifier to emit.
     :return: None
     """
+
     __slots__ = ["emitted"]
 
-    def __init__(self, event_id):
-        # type: (int) -> None
+    def __init__(self, event_id: int) -> None:
         self.emitted = False
         if TRACING and in_master():
             PYEXTRAE.eventandcounters(BINDING_MASTER_TYPE, event_id)
             self.emitted = True
 
-    def __enter__(self):
-        # type: () -> None
+    def __enter__(self) -> None:
         pass
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(
+        self, type: typing.Any, value: typing.Any, traceback: typing.Any
+    ) -> None:
         if TRACING and self.emitted:
             PYEXTRAE.eventandcounters(BINDING_MASTER_TYPE, 0)
 
 
 class event_worker(object):
-    """ Emits an event at worker wrapping the desired code.
+    """Emits an event at worker wrapping the desired code.
 
     Does nothing if tracing is disabled.
 
@@ -215,56 +216,58 @@ class event_worker(object):
 
     __slots__ = ["emitted"]
 
-    def __init__(self, event_id):
-        # type: (int) -> None
+    def __init__(self, event_id: int) -> None:
         self.emitted = False
         if TRACING and in_worker():
             PYEXTRAE.eventandcounters(INSIDE_WORKER_TYPE, event_id)  # noqa
             self.emitted = True
 
-    def __enter__(self):
-        # type: () -> None
+    def __enter__(self) -> None:
         pass
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(
+        self, type: typing.Any, value: typing.Any, traceback: typing.Any
+    ) -> None:
         if TRACING and self.emitted:
-            PYEXTRAE.eventandcounters(INSIDE_WORKER_TYPE, 0)         # noqa
+            PYEXTRAE.eventandcounters(INSIDE_WORKER_TYPE, 0)  # noqa
 
 
 class event_inside_worker(object):
-    """ Emits an event at worker (inside task) wrapping the desired code.
+    """Emits an event at worker (inside task) wrapping the desired code.
 
     Does nothing if tracing is disabled.
 
     :param event_id: Event identifier to emit.
     :return: None
     """
+
     __slots__ = ["emitted"]
 
-    def __init__(self, event_id):
-        # type: (int) -> None
+    def __init__(self, event_id: int) -> None:
         self.emitted = False
         if TRACING and in_worker():
             PYEXTRAE.eventandcounters(INSIDE_TASKS_TYPE, event_id)  # noqa
             self.emitted = True
 
-    def __enter__(self):
-        # type: () -> None
+    def __enter__(self) -> None:
         pass
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(
+        self, type: typing.Any, value: typing.Any, traceback: typing.Any
+    ) -> None:
         if TRACING and self.emitted:
-            PYEXTRAE.eventandcounters(INSIDE_TASKS_TYPE, 0)         # noqa
+            PYEXTRAE.eventandcounters(INSIDE_TASKS_TYPE, 0)  # noqa
 
 
-def emit_manual_event(event_id,            # type: int
-                      master=False,        # type: bool
-                      inside=False,        # type: bool
-                      cpu_affinity=False,  # type: bool
-                      gpu_affinity=False,  # type: bool
-                      cpu_number=False     # type: bool
-                      ):                   # type: (...) -> None
-    """ Emits a single event with the desired code.
+def emit_manual_event(
+    event_id: int,
+    master: bool = False,
+    inside: bool = False,
+    cpu_affinity: bool = False,
+    gpu_affinity: bool = False,
+    cpu_number: bool = False,
+) -> None:
+    """Emits a single event with the desired code.
 
     Does nothing if tracing is disabled.
 
@@ -280,18 +283,14 @@ def emit_manual_event(event_id,            # type: int
     :return: None
     """
     if TRACING:
-        event_group, event_id = __get_proper_type_event__(event_id,
-                                                          master,
-                                                          inside,
-                                                          cpu_affinity,
-                                                          gpu_affinity,
-                                                          cpu_number)
+        event_group, event_id = __get_proper_type_event__(
+            event_id, master, inside, cpu_affinity, gpu_affinity, cpu_number
+        )
         PYEXTRAE.eventandcounters(event_group, event_id)  # noqa
 
 
-def emit_manual_event_explicit(event_group, event_id):
-    # type: (int, int) -> None
-    """ Emits a single event for a group.
+def emit_manual_event_explicit(event_group: int, event_id: int) -> None:
+    """Emits a single event for a group.
 
     Does nothing if tracing is disabled.
 
@@ -303,14 +302,15 @@ def emit_manual_event_explicit(event_group, event_id):
         PYEXTRAE.eventandcounters(event_group, event_id)  # noqa
 
 
-def __get_proper_type_event__(event_id,      # type: int
-                              master,        # type: bool
-                              inside,        # type: bool
-                              cpu_affinity,  # type: bool
-                              gpu_affinity,  # type: bool
-                              cpu_number,    # type: bool
-                              ):             # type: (...) -> typing.Tuple[int, int]
-    """ Parses the flags to retrieve the appropriate event_group.
+def __get_proper_type_event__(
+    event_id: int,
+    master: bool,
+    inside: bool,
+    cpu_affinity: bool,
+    gpu_affinity: bool,
+    cpu_number: bool,
+) -> typing.Tuple[int, int]:
+    """Parses the flags to retrieve the appropriate event_group.
     It also parses the event_id in case of affinity since it is received
     as string.
 
@@ -345,9 +345,8 @@ def __get_proper_type_event__(event_id,      # type: int
     return event_group, event_id
 
 
-def __parse_affinity_event_id__(event_id):
-    # type: (typing.Any) -> int
-    """ Parses the affinity event identifier.
+def __parse_affinity_event_id__(event_id: typing.Any) -> int:
+    """Parses the affinity event identifier.
 
     :param event_id: Event identifier
     :return: The parsed event identifier as integer
@@ -363,14 +362,14 @@ def __parse_affinity_event_id__(event_id):
     return event_id
 
 
-def enable_trace_master():
-    # type: () -> None
-    """ Enables tracing for the master process.
+def enable_trace_master() -> None:
+    """Enables tracing for the master process.
 
     :return: None
     """
     global PYEXTRAE
     global TRACING
     import pyextrae.sequential as pyextrae  # noqa
+
     PYEXTRAE = pyextrae
     TRACING = True

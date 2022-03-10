@@ -41,12 +41,11 @@ from pycompss.runtime.task.core_element import CE
 
 if __debug__:
     import logging
+
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {SOURCE_CLASS,
-                       METHOD}
-SUPPORTED_ARGUMENTS = {SOURCE_CLASS,
-                       METHOD}
+MANDATORY_ARGUMENTS = {SOURCE_CLASS, METHOD}
+SUPPORTED_ARGUMENTS = {SOURCE_CLASS, METHOD}
 DEPRECATED_ARGUMENTS = {LEGACY_SOURCE_CLASS}
 
 
@@ -56,12 +55,18 @@ class Implement(object):
     __call__ methods, useful on mpi task creation.
     """
 
-    __slots__ = ["first_register", "decorator_name", "args", "kwargs",
-                 "scope", "core_element", "core_element_configured"]
+    __slots__ = [
+        "first_register",
+        "decorator_name",
+        "args",
+        "kwargs",
+        "scope",
+        "core_element",
+        "core_element_configured",
+    ]
 
-    def __init__(self, *args, **kwargs):
-        # type: (*typing.Any, **typing.Any) -> None
-        """ Store arguments passed to the decorator.
+    def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
+        """Store arguments passed to the decorator.
 
         self = itself.
         args = not used.
@@ -81,22 +86,23 @@ class Implement(object):
         self.core_element_configured = False
         if self.scope:
             # Check the arguments
-            check_arguments(MANDATORY_ARGUMENTS,
-                            DEPRECATED_ARGUMENTS,
-                            SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
-                            list(kwargs.keys()),
-                            decorator_name)
+            check_arguments(
+                MANDATORY_ARGUMENTS,
+                DEPRECATED_ARGUMENTS,
+                SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
+                list(kwargs.keys()),
+                decorator_name,
+            )
 
-    def __call__(self, user_function):
-        # type: (typing.Callable) -> typing.Callable
-        """ Parse and set the implement parameters within the task core element.
+    def __call__(self, user_function: typing.Callable) -> typing.Callable:
+        """Parse and set the implement parameters within the task core element.
 
         :param user_function: Function to decorate.
         :return: Decorated function.
         """
+
         @wraps(user_function)
-        def implement_f(*args, **kwargs):
-            # type: (*typing.Any, **typing.Any) -> typing.Any
+        def implement_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             # This is executed only when called.
             if not self.scope:
                 raise NotInPyCOMPSsException(not_in_pycompss("implement"))
@@ -104,8 +110,9 @@ class Implement(object):
             if __debug__:
                 logger.debug("Executing implement_f wrapper.")
 
-            if (context.in_master() or context.is_nesting_enabled()) \
-                    and not self.core_element_configured:
+            if (
+                context.in_master() or context.is_nesting_enabled()
+            ) and not self.core_element_configured:
                 # master code - or worker with nesting enabled
                 self.__configure_core_element__(kwargs)
 
@@ -119,6 +126,7 @@ class Implement(object):
 
         if context.in_master() and not self.first_register:
             import pycompss.api.task as t
+
             self.first_register = True
             t.REGISTER_ONLY = True
             self.__call__(user_function)(self)
@@ -126,9 +134,8 @@ class Implement(object):
 
         return implement_f
 
-    def __configure_core_element__(self, kwargs):
-        # type: (dict) -> None
-        """ Include the registering info related to @implement.
+    def __configure_core_element__(self, kwargs: dict) -> None:
+        """Include the registering info related to @implement.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 

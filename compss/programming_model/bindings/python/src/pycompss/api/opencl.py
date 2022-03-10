@@ -42,11 +42,11 @@ from pycompss.util.arguments import check_arguments
 
 if __debug__:
     import logging
+
     logger = logging.getLogger(__name__)
 
 MANDATORY_ARGUMENTS = {KERNEL}
-SUPPORTED_ARGUMENTS = {KERNEL,
-                       WORKING_DIR}
+SUPPORTED_ARGUMENTS = {KERNEL, WORKING_DIR}
 DEPRECATED_ARGUMENTS = {LEGACY_WORKING_DIR}
 
 
@@ -56,9 +56,8 @@ class OpenCL(object):
     __call__ methods, useful on opencl task creation.
     """
 
-    def __init__(self, *args, **kwargs):
-        # type: (*typing.Any, **typing.Any) -> None
-        """ Store arguments passed to the decorator.
+    def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
+        """Store arguments passed to the decorator.
 
         self = itself.
         args = not used.
@@ -77,30 +76,32 @@ class OpenCL(object):
         self.core_element_configured = False
         if self.scope:
             # Check the arguments
-            check_arguments(MANDATORY_ARGUMENTS,
-                            DEPRECATED_ARGUMENTS,
-                            SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
-                            list(kwargs.keys()),
-                            decorator_name)
+            check_arguments(
+                MANDATORY_ARGUMENTS,
+                DEPRECATED_ARGUMENTS,
+                SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
+                list(kwargs.keys()),
+                decorator_name,
+            )
 
-    def __call__(self, user_function):
-        # type: (typing.Callable) -> typing.Callable
-        """ Parse and set the opencl parameters within the task core element.
+    def __call__(self, user_function: typing.Callable) -> typing.Callable:
+        """Parse and set the opencl parameters within the task core element.
 
         :param user_function: Function to decorate.
         :return: Decorated function.
         """
+
         @wraps(user_function)
-        def opencl_f(*args, **kwargs):
-            # type: (*typing.Any, **typing.Any) -> typing.Any
+        def opencl_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             if not self.scope:
                 raise NotInPyCOMPSsException(not_in_pycompss("opencl"))
 
             if __debug__:
                 logger.debug("Executing opencl_f wrapper.")
 
-            if (context.in_master() or context.is_nesting_enabled()) \
-                    and not self.core_element_configured:
+            if (
+                context.in_master() or context.is_nesting_enabled()
+            ) and not self.core_element_configured:
                 # master code - or worker with nesting enabled
                 self.__configure_core_element__(kwargs)
 
@@ -113,9 +114,8 @@ class OpenCL(object):
         opencl_f.__doc__ = user_function.__doc__
         return opencl_f
 
-    def __configure_core_element__(self, kwargs):
-        # type: (dict) -> None
-        """ Include the registering info related to @opencl.
+    def __configure_core_element__(self, kwargs: dict) -> None:
+        """Include the registering info related to @opencl.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 

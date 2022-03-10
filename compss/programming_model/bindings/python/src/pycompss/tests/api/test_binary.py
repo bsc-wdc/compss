@@ -31,9 +31,7 @@ def test_binary_instantiation():
     context.set_pycompss_context(context.MASTER)
     my_bin = Binary(binary="date")
     context.set_pycompss_context(context.OUT_OF_SCOPE)
-    assert (
-        my_bin.decorator_name == "@binary"
-    ), "The decorator name must be @binary."
+    assert my_bin.decorator_name == "@binary", "The decorator name must be @binary."
 
 
 def test_binary_call():
@@ -66,9 +64,7 @@ def test_binary_engine_parameter():
     my_bin = Binary(binary="date", engine=engine)
     f = my_bin(dummy_function)
     _ = f()
-    assert (
-        "engine" in my_bin.kwargs
-    ), "Engine is not defined in kwargs dictionary."
+    assert "engine" in my_bin.kwargs, "Engine is not defined in kwargs dictionary."
     assert (
         engine == my_bin.kwargs["engine"]
     ), "Engine parameter has not been initialized."
@@ -80,12 +76,8 @@ def test_binary_image_parameter():
     my_bin = Binary(binary="date", image=image)
     f = my_bin(dummy_function)
     _ = f()
-    assert (
-        "image" in my_bin.kwargs
-    ), "Image is not defined in kwargs dictionary."
-    assert (
-        image == my_bin.kwargs["image"]
-    ), "Image parameter has not been initialized."
+    assert "image" in my_bin.kwargs, "Image is not defined in kwargs dictionary."
+    assert image == my_bin.kwargs["image"], "Image parameter has not been initialized."
 
 
 def test_binary_existing_core_element():

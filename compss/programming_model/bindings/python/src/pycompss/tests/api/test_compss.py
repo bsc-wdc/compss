@@ -31,9 +31,7 @@ def test_compss_instantiation():
     context.set_pycompss_context(context.MASTER)
     my_compss = COMPSs(app_name="date")
     context.set_pycompss_context(context.OUT_OF_SCOPE)
-    assert (
-        my_compss.decorator_name == "@compss"
-    ), "The decorator name must be @compss."
+    assert my_compss.decorator_name == "@compss", "The decorator name must be @compss."
 
 
 def test_compss_call():
@@ -67,9 +65,7 @@ def test_compss_appName_parameter():  # NOSONAR
     f = my_compss(dummy_function)
     _ = f()
     context.set_pycompss_context(context.OUT_OF_SCOPE)
-    assert (
-        "appName" in my_compss.kwargs
-    ), "appName is not defined in kwargs dictionary."
+    assert "appName" in my_compss.kwargs, "appName is not defined in kwargs dictionary."
     assert (
         app_name == my_compss.kwargs["appName"]
     ), "appName parameter has not been initialized."
@@ -97,9 +93,7 @@ def test_compss_flags_parameter():
     f = my_compss(dummy_function)
     _ = f()
     context.set_pycompss_context(context.OUT_OF_SCOPE)
-    assert (
-        "flags" in my_compss.kwargs
-    ), "flags is not defined in kwargs dictionary."
+    assert "flags" in my_compss.kwargs, "flags is not defined in kwargs dictionary."
     assert (
         flags == my_compss.kwargs["flags"]
     ), "flags parameter has not been initialized."

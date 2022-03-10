@@ -72,17 +72,19 @@ def _invert_files(pair):
 
 def has_converged(mu, old_mu, epsilon):
     import numpy as np
+
     if not old_mu:
         return False
 
     aux = [np.linalg.norm(old_mu[i] - mu[i]) for i in range(len(mu))]
     distance = sum(aux)
     print("Distance_T: " + str(distance))
-    return distance < (epsilon ** 2)
+    return distance < (epsilon**2)
 
 
 def merge_reduce(f, data):
     from collections import deque
+
     q = deque(list(range(len(data))))
     while len(q):
         x = q.popleft()
@@ -92,6 +94,7 @@ def merge_reduce(f, data):
             q.append(x)
         else:
             return data[x]
+
 
 # # Used only in step 2 of wordcount k-means
 # def __count_locally__(element):
@@ -125,24 +128,26 @@ def wordcount_k_means(dim=742):
 
     start_time = time.time()
 
-    vocab = DDS().load_files_from_dir(f_path, num_of_parts=4)\
-        .flat_map(lambda x: x[1].split()) \
-        .map(lambda x: ''.join(e for e in x if e.isalnum())) \
+    vocab = (
+        DDS()
+        .load_files_from_dir(f_path, num_of_parts=4)
+        .flat_map(lambda x: x[1].split())
+        .map(lambda x: "".join(e for e in x if e.isalnum()))
         .count_by_value(arity=2, as_dict=True, as_fo=True)
+    )
 
     total = len(os.listdir(f_path))
     max_iter = 2
     frags = 4
     epsilon = 1e-10
-    size = total/frags
+    size = total / frags
     k = 4
     # The number of dimensions corresponds to: dim = len(vocabulary)
     # dim = 742  # added as parameter to allow unittests with different dataset
 
     # to access file names by index returned from the clusters..
     # load_files_from_list will also sort them alphabetically
-    indexes = [os.path.join(f_path, f)
-               for f in sorted(os.listdir(f_path))]
+    indexes = [os.path.join(f_path, f) for f in sorted(os.listdir(f_path))]
 
     # step 2
     # wc_per_file = DDS().load_files_from_dir(files_path, num_of_parts=frags)\
@@ -162,10 +167,14 @@ def wordcount_k_means(dim=742):
 
     while n < max_iter and not has_converged(mu, old_mu, epsilon):
         old_mu = mu
-        clusters = [cluster_points_partial([wc_per_file[f]], mu, int(f * size))
-                    for f in range(frags)]
-        partial_result = [partial_sum([wc_per_file[f]], clusters[f], int(f * size))
-                          for f in range(frags)]
+        clusters = [
+            cluster_points_partial([wc_per_file[f]], mu, int(f * size))
+            for f in range(frags)
+        ]
+        partial_result = [
+            partial_sum([wc_per_file[f]], clusters[f], int(f * size))
+            for f in range(frags)
+        ]
         mu = merge_reduce(reduce_centers, partial_result)
         mu = cwo(mu)
         mu = [mu[c][1] / mu[c][0] for c in mu]
@@ -177,6 +186,7 @@ def wordcount_k_means(dim=742):
     clusters_with_frag = cwo(clusters)
 
     from collections import defaultdict
+
     cluster_sets = defaultdict(list)
 
     for _d in clusters_with_frag:
@@ -208,13 +218,16 @@ def word_count():
     path_file = sys.argv[1]
     start = time.time()
 
-    results = DDS().load_files_from_dir(path_file) \
-        .flat_map(lambda x: x[1].split()) \
-        .map(lambda x: ''.join(e for e in x if e.isalnum())) \
+    results = (
+        DDS()
+        .load_files_from_dir(path_file)
+        .flat_map(lambda x: x[1].split())
+        .map(lambda x: "".join(e for e in x if e.isalnum()))
         .count_by_value(as_dict=True)
+    )
 
     print("Results: " + str(results))
-    print("Elapsed Time: ", time.time()-start)
+    print("Elapsed Time: ", time.time() - start)
 
 
 def pi_estimation():
@@ -225,8 +238,7 @@ def pi_estimation():
     tries = 100000
     print("Number of tries: {}".format(tries))
 
-    count = DDS().load(range(0, tries), 10) \
-        .filter(inside).count()
+    count = DDS().load(range(0, tries), 10).filter(inside).count()
     print("Pi is roughly %f" % (4.0 * count / tries))
 
 
@@ -242,9 +254,13 @@ def terasort():
 
     start_time = time.time()
 
-    dds = DDS().load_files_from_dir(dir_path) \
-        .flat_map(files_to_pairs) \
-        .sort_by_key().save_as_text_file(dest_path)
+    dds = (
+        DDS()
+        .load_files_from_dir(dir_path)
+        .flat_map(files_to_pairs)
+        .sort_by_key()
+        .save_as_text_file(dest_path)
+    )
 
     # Commented out code for unknown reason:
     # compss_barrier()
@@ -261,8 +277,13 @@ def inverted_indexing():
     """
     path = sys.argv[1]
     start_time = time.time()
-    result = DDS().load_files_from_dir(path).flat_map(_invert_files)\
-        .reduce_by_key(lambda a, b: a + b).collect()
+    result = (
+        DDS()
+        .load_files_from_dir(path)
+        .flat_map(_invert_files)
+        .reduce_by_key(lambda a, b: a + b)
+        .collect()
+    )
     print(result[-1:])
     print("Elapsed Time {} (s)".format(time.time() - start_time))
 
@@ -290,10 +311,10 @@ def transitive_closure(partitions=None):
         old_count = next_count
         # Perform the join, obtaining an RDD of (y, (z, x)) pairs,
         # then project the result to obtain the new (x, z) paths.
-        new_edges = DDS().load(od, -1).join(edges)\
-            .map(lambda __a_b: (__a_b[1][1], __a_b[1][0]))
-        od = DDS().load(od, -1).union(new_edges).distinct()\
-            .collect(future_objects=True)
+        new_edges = (
+            DDS().load(od, -1).join(edges).map(lambda __a_b: (__a_b[1][1], __a_b[1][0]))
+        )
+        od = DDS().load(od, -1).union(new_edges).distinct().collect(future_objects=True)
 
         next_count = DDS().load(od, -1).count()
 
@@ -317,5 +338,5 @@ def main_program():
     wordcount_k_means()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main_program()

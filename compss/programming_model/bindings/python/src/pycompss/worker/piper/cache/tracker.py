@@ -31,15 +31,18 @@ from pycompss.util.typing_helper import typing
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.objects.sizer import total_sizeof
 from pycompss.util.tracing.helpers import event_inside_worker
-from pycompss.worker.commons.constants import RETRIEVE_OBJECT_FROM_CACHE_EVENT
-from pycompss.worker.commons.constants import INSERT_OBJECT_INTO_CACHE_EVENT
-from pycompss.worker.commons.constants import REMOVE_OBJECT_FROM_CACHE_EVENT
-from pycompss.worker.commons.constants import BINDING_SERIALIZATION_CACHE_SIZE_TYPE    # noqa: E501
-from pycompss.worker.commons.constants import BINDING_DESERIALIZATION_CACHE_SIZE_TYPE  # noqa: E501
+from pycompss.worker.commons.constants import (
+    RETRIEVE_OBJECT_FROM_CACHE_EVENT,
+    INSERT_OBJECT_INTO_CACHE_EVENT,
+    REMOVE_OBJECT_FROM_CACHE_EVENT,
+    BINDING_SERIALIZATION_CACHE_SIZE_TYPE,
+    BINDING_DESERIALIZATION_CACHE_SIZE_TYPE,
+)
 from pycompss.util.tracing.helpers import emit_manual_event_explicit
 
 
 from multiprocessing import Queue
+
 try:
     from pycompss.util.process.manager import SharedMemory
     from pycompss.util.process.manager import ShareableList
@@ -47,14 +50,15 @@ try:
     from pycompss.util.process.manager import create_shared_memory_manager
 except ImportError:
     # Unsupported in python < 3.8
-    SharedMemory = None         # type: ignore
-    ShareableList = None        # type: ignore
+    SharedMemory = None  # type: ignore
+    ShareableList = None  # type: ignore
     SharedMemoryManager = None  # type: ignore
 
 # Try to import numpy
 np = None  # type: typing.Any
 try:
     import numpy  # noqa
+
     np = numpy
 except ImportError:
     pass
@@ -81,21 +85,30 @@ class CacheTrackerConf(object):
     Cache tracker configuration
     """
 
-    __slots__ = ["logger", "size", "policy", "cache_ids", "cache_hits",
-                 "profiler_dict", "profiler_get_struct", "log_dir",
-                 "cache_profiler"]
+    __slots__ = [
+        "logger",
+        "size",
+        "policy",
+        "cache_ids",
+        "cache_hits",
+        "profiler_dict",
+        "profiler_get_struct",
+        "log_dir",
+        "cache_profiler",
+    ]
 
-    def __init__(self,
-                 logger,               # type: typing.Any
-                 size,                 # type: int
-                 policy,               # type: str
-                 cache_ids,            # type: typing.Any
-                 cache_hits,           # type: typing.Dict[int, typing.Dict[str, int]]
-                 profiler_dict,        # type: dict
-                 profiler_get_struct,  # type: typing.Any
-                 log_dir,              # type: str
-                 cache_profiler        # type: bool
-                 ):                    # type: (...) -> None
+    def __init__(
+        self,
+        logger: typing.Any,
+        size: int,
+        policy: str,
+        cache_ids: typing.Any,
+        cache_hits: typing.Dict[int, typing.Dict[str, int]],
+        profiler_dict: dict,
+        profiler_get_struct: typing.Any,
+        log_dir: str,
+        cache_profiler: bool,
+    ) -> None:
         """
         Constructs a new cache tracker configuration.
 
@@ -113,7 +126,7 @@ class CacheTrackerConf(object):
         self.logger = logger
         self.size = size
         self.policy = policy  # currently no policies defined.
-        self.cache_ids = cache_ids    # key - (id, shape, dtype, size, hits, shared_type)
+        self.cache_ids = cache_ids  # key - (id, shape, dtype, size, hits, shared_type)
         self.cache_hits = cache_hits  # hits - {key1: size1, key2: size2, etc.}
         self.profiler_dict = profiler_dict
         self.profiler_get_struct = profiler_get_struct
@@ -121,9 +134,8 @@ class CacheTrackerConf(object):
         self.cache_profiler = cache_profiler
 
 
-def cache_tracker(queue, process_name, conf):
-    # type: (Queue, str, CacheTrackerConf) -> None
-    """ Process main body
+def cache_tracker(queue: Queue, process_name: str, conf: CacheTrackerConf) -> None:
+    """Process main body
 
     :param queue: Queue where to put exception messages.
     :param process_name: Process name.
@@ -142,8 +154,7 @@ def cache_tracker(queue, process_name, conf):
     cache_profiler = conf.cache_profiler
 
     if __debug__:
-        logger.debug(HEADER + "[%s] Starting Cache Tracker" %
-                     str(process_name))
+        logger.debug(HEADER + "[%s] Starting Cache Tracker" % str(process_name))
 
     # MAIN CACHE TRACKER LOOP
     used_size = 0
@@ -151,8 +162,10 @@ def cache_tracker(queue, process_name, conf):
         msg = queue.get()
         if msg == "QUIT":
             if __debug__:
-                logger.debug(HEADER + "[%s] Stopping Cache Tracker: %s" %
-                             (str(process_name), str(msg)))
+                logger.debug(
+                    HEADER
+                    + "[%s] Stopping Cache Tracker: %s" % (str(process_name), str(msg))
+                )
             alive = False
         elif msg == "END PROFILING":
             if cache_profiler:
@@ -164,19 +177,37 @@ def cache_tracker(queue, process_name, conf):
                     if cache_profiler:
                         filename, parameter, function = message
                         # PROFILER GET
-                        add_profiler_get_put(profiler_dict, function, parameter, filename, 'GET')
+                        add_profiler_get_put(
+                            profiler_dict, function, parameter, filename, "GET"
+                        )
                         # PROFILER GET STRUCTURE
-                        add_profiler_get_struct(profiler_get_struct, function, parameter, filename)
+                        add_profiler_get_struct(
+                            profiler_get_struct, function, parameter, filename
+                        )
                 if action == "PUT":
-                    f_name, cache_id, shape, dtype, obj_size, shared_type, parameter, function = message  # noqa: E501
+                    (
+                        f_name,
+                        cache_id,
+                        shape,
+                        dtype,
+                        obj_size,
+                        shared_type,
+                        parameter,
+                        function,
+                    ) = message  # noqa: E501
                     if f_name in cache_ids:
                         if cache_profiler:
                             # PROFILER PUT
-                            add_profiler_get_put(profiler_dict, function, parameter, filename_cleaned(f_name), 'PUT')
+                            add_profiler_get_put(
+                                profiler_dict,
+                                function,
+                                parameter,
+                                filename_cleaned(f_name),
+                                "PUT",
+                            )
                         # Any executor has already put the id
                         if __debug__:
-                            logger.debug(HEADER + "[%s] Cache hit" %
-                                         str(process_name))
+                            logger.debug(HEADER + "[%s] Cache hit" % str(process_name))
                         # Increment hits
                         current = cache_ids[f_name]
                         current_hits = current[4]
@@ -192,19 +223,26 @@ def cache_tracker(queue, process_name, conf):
                     else:
                         # Add new entry request
                         if __debug__:
-                            logger.debug(HEADER + "[%s] Cache add entry: %s" %
-                                         (str(process_name), str(msg)))
+                            logger.debug(
+                                HEADER
+                                + "[%s] Cache add entry: %s"
+                                % (str(process_name), str(msg))
+                            )
                         if cache_profiler:
                             # PROFILER PUT
-                            add_profiler_get_put(profiler_dict, function, parameter, filename_cleaned(f_name), 'PUT')
+                            add_profiler_get_put(
+                                profiler_dict,
+                                function,
+                                parameter,
+                                filename_cleaned(f_name),
+                                "PUT",
+                            )
 
                         # Check if it is going to fit and remove if necessary
                         obj_size = int(obj_size)
                         if used_size + obj_size > max_size:
                             # Cache is full, need to evict
-                            used_size = check_cache_status(conf,
-                                                           used_size,
-                                                           obj_size)
+                            used_size = check_cache_status(conf, used_size, obj_size)
                             # used_size = check_cache_status_old(conf,
                             #                                    used_size,
                             #                                    obj_size)
@@ -213,28 +251,31 @@ def cache_tracker(queue, process_name, conf):
                         # Initial hits
                         hits = 0
                         # Add without problems
-                        cache_ids[f_name] = [cache_id,
-                                             shape,
-                                             dtype,
-                                             obj_size,
-                                             hits,
-                                             shared_type]
+                        cache_ids[f_name] = [
+                            cache_id,
+                            shape,
+                            dtype,
+                            obj_size,
+                            hits,
+                            shared_type,
+                        ]
                         # Register in hits dictionary
                         cache_hits[hits] = {f_name: obj_size}
                 elif action == "REMOVE":
                     f_name = __get_file_name__(message)
-                    logger.debug(HEADER + "[%s] Removing: %s" %
-                                 (str(process_name), str(f_name)))
+                    logger.debug(
+                        HEADER + "[%s] Removing: %s" % (str(process_name), str(f_name))
+                    )
                     cache_ids.pop(f_name)
             except Exception as e:
-                logger.exception("%s - Exception %s" % (str(process_name),
-                                                        str(e)))
+                logger.exception("%s - Exception %s" % (str(process_name), str(e)))
                 alive = False
 
 
-def check_cache_status_old(conf, used_size, requested_size):
-    # type: (CacheTrackerConf, int, int) -> int
-    """ Checks the cache status looking into the shared dictionary.
+def check_cache_status_old(
+    conf: CacheTrackerConf, used_size: int, requested_size: int
+) -> int:
+    """Checks the cache status looking into the shared dictionary.
 
     :param conf: configuration of the cache tracker.
     :param used_size: Current used size of the cache.
@@ -246,12 +287,14 @@ def check_cache_status_old(conf, used_size, requested_size):
     cache_ids = conf.cache_ids
 
     if __debug__:
-        logger.debug(HEADER + "Checking cache status: Requested %s" %
-                     str(requested_size))
+        logger.debug(
+            HEADER + "Checking cache status: Requested %s" % str(requested_size)
+        )
 
     # Sort by number of hits (from lower to higher)
-    sorted_cache_ids = OrderedDict(sorted(cache_ids.items(),
-                                          key=lambda item: item[1][4]))
+    sorted_cache_ids = OrderedDict(
+        sorted(cache_ids.items(), key=lambda item: item[1][4])
+    )
 
     size_to_recover = used_size + requested_size - max_size
     # Select how many to evict
@@ -275,9 +318,10 @@ def check_cache_status_old(conf, used_size, requested_size):
     return used_size - recovered_size
 
 
-def check_cache_status(conf, used_size, requested_size):
-    # type: (CacheTrackerConf, int, int) -> int
-    """ Checks the cache status looking into the shared dictionary.
+def check_cache_status(
+    conf: CacheTrackerConf, used_size: int, requested_size: int
+) -> int:
+    """Checks the cache status looking into the shared dictionary.
 
     :param conf: configuration of the cache tracker.
     :param used_size: Current used size of the cache.
@@ -289,8 +333,9 @@ def check_cache_status(conf, used_size, requested_size):
     cache_ids = conf.cache_ids
     cache_hits = conf.cache_hits
     if __debug__:
-        logger.debug(HEADER + "Checking cache status: Requested %s bytes" %
-                     str(requested_size))
+        logger.debug(
+            HEADER + "Checking cache status: Requested %s bytes" % str(requested_size)
+        )
 
     # Sort by number of hits (from lower to higher)
     sorted_hits = sorted(cache_hits.keys())
@@ -306,8 +351,12 @@ def check_cache_status(conf, used_size, requested_size):
     return used_size - recovered_size
 
 
-def __evict__(sorted_hits, cache_hits, size_to_recover):
-    """ Select how many to evict.
+def __evict__(
+    sorted_hits: typing.List[int],
+    cache_hits: typing.Dict[int, typing.Dict[str, int]],
+    size_to_recover: int,
+) -> typing.Tuple[list, int]:
+    """Select how many to evict.
 
     :param sorted_hits: List of current hits sorted from lower to higher.
     :param cache_hits: Cache hits structure.
@@ -326,35 +375,33 @@ def __evict__(sorted_hits, cache_hits, size_to_recover):
             total_recovered_size += recovered_size
             if size_to_recover <= 0:
                 return to_evict, total_recovered_size
+    return to_evict, total_recovered_size
 
 
-def load_shared_memory_manager():
-    # type: () -> None
-    """ Connects to the main shared memory manager initiated in piper_worker.py.
+def load_shared_memory_manager() -> None:
+    """Connects to the main shared memory manager initiated in piper_worker.py.
 
     :return: None
     """
     global SHARED_MEMORY_MANAGER
-    SHARED_MEMORY_MANAGER = create_shared_memory_manager(address=(IP, PORT),
-                                                         authkey=AUTH_KEY)
+    SHARED_MEMORY_MANAGER = create_shared_memory_manager(
+        address=(IP, PORT), authkey=AUTH_KEY
+    )
     SHARED_MEMORY_MANAGER.connect()
 
 
-def start_shared_memory_manager():
-    # type: () -> SharedMemoryManager
-    """ Starts the shared memory manager.
+def start_shared_memory_manager() -> SharedMemoryManager:
+    """Starts the shared memory manager.
 
     :return: Shared memory manager instance.
     """
-    smm = create_shared_memory_manager(address=("", PORT),
-                                       authkey=AUTH_KEY)
+    smm = create_shared_memory_manager(address=("", PORT), authkey=AUTH_KEY)
     smm.start()
     return smm
 
 
-def stop_shared_memory_manager(smm):
-    # type: (SharedMemoryManager) -> None
-    """ Stops the given shared memory manager, releasing automatically the
+def stop_shared_memory_manager(smm: SharedMemoryManager) -> None:
+    """Stops the given shared memory manager, releasing automatically the
     objects contained in it.
 
     Only needed to be stopped from the main worker process. It is not
@@ -366,9 +413,16 @@ def stop_shared_memory_manager(smm):
     smm.shutdown()
 
 
-def retrieve_object_from_cache(logger, cache_ids, cache_queue, identifier, parameter_name, user_function, cache_profiler):  # noqa
-    # type: (typing.Any, typing.Any, Queue, str, str, typing.Callable, bool) -> typing.Any
-    """ Retrieve an object from the given cache proxy dict.
+def retrieve_object_from_cache(
+    logger: typing.Any,
+    cache_ids: typing.Any,
+    cache_queue: Queue,
+    identifier: str,
+    parameter_name: str,
+    user_function: typing.Callable,
+    cache_profiler: bool,
+) -> typing.Any:
+    """Retrieve an object from the given cache proxy dict.
 
     :param logger: Logger where to push messages.
     :param cache_ids: Cache proxy dictionary.
@@ -384,13 +438,17 @@ def retrieve_object_from_cache(logger, cache_ids, cache_queue, identifier, param
         identifier = __get_file_name__(identifier)
         if __debug__:
             logger.debug(HEADER + "Retrieving: " + str(identifier))
-        obj_id, obj_shape, obj_d_type, _, obj_hits, shared_type = cache_ids[identifier]  # noqa: E501
-        output = None        # type: typing.Any
+        obj_id, obj_shape, obj_d_type, _, obj_hits, shared_type = cache_ids[
+            identifier
+        ]  # noqa: E501
+        output = None  # type: typing.Any
         existing_shm = None  # type: typing.Any
         object_size = 0
         if shared_type == SHARED_MEMORY_TAG:
             existing_shm = SharedMemory(name=obj_id)
-            output = np.ndarray(obj_shape, dtype=obj_d_type, buffer=existing_shm.buf)    # noqa: E501
+            output = np.ndarray(
+                obj_shape, dtype=obj_d_type, buffer=existing_shm.buf
+            )  # noqa: E501
             object_size = len(existing_shm.buf)
         elif shared_type == SHAREABLE_LIST_TAG:
             existing_shm = ShareableList(name=obj_id)
@@ -421,9 +479,15 @@ def retrieve_object_from_cache(logger, cache_ids, cache_queue, identifier, param
         return output, existing_shm
 
 
-def insert_object_into_cache_wrapper(logger, cache_queue, obj, f_name, parameter, user_function):  # noqa
-    # type: (typing.Any, Queue, typing.Any, str, str, typing.Callable) -> None
-    """ Put an object into cache filter to avoid event emission when not
+def insert_object_into_cache_wrapper(
+    logger: typing.Any,
+    cache_queue: Queue,
+    obj: typing.Any,
+    f_name: str,
+    parameter: str,
+    user_function: typing.Callable,
+) -> None:
+    """Put an object into cache filter to avoid event emission when not
     supported.
 
     :param logger: Logger where to push messages.
@@ -435,17 +499,30 @@ def insert_object_into_cache_wrapper(logger, cache_queue, obj, f_name, parameter
     :return: None
     """
 
-    if np and cache_queue is not None and ((isinstance(obj, np.ndarray)
-                                            and not obj.dtype == object)
-                                           or isinstance(obj, list)
-                                           or isinstance(obj, tuple)):
+    if (
+        np
+        and cache_queue is not None
+        and (
+            (isinstance(obj, np.ndarray) and not obj.dtype == object)
+            or isinstance(obj, list)
+            or isinstance(obj, tuple)
+        )
+    ):
         # or isinstance(obj, dict)):
-        insert_object_into_cache(logger, cache_queue, obj, f_name, parameter, user_function)
+        insert_object_into_cache(
+            logger, cache_queue, obj, f_name, parameter, user_function
+        )
 
 
-def insert_object_into_cache(logger, cache_queue, obj, f_name, parameter, user_function):  # noqa
-    # type: (typing.Any, Queue, typing.Any, str, str, typing.Callable) -> None
-    """ Put an object into cache.
+def insert_object_into_cache(
+    logger: typing.Any,
+    cache_queue: Queue,
+    obj: typing.Any,
+    f_name: str,
+    parameter: str,
+    user_function: typing.Callable,
+) -> None:
+    """Put an object into cache.
 
     :param logger: Logger where to push messages.
     :param cache_queue: Cache notification queue.
@@ -459,8 +536,9 @@ def insert_object_into_cache(logger, cache_queue, obj, f_name, parameter, user_f
         function = function_cleaned(user_function)
         f_name = __get_file_name__(f_name)
         if __debug__:
-            logger.debug(HEADER + "Inserting into cache (%s): %s" %
-                         (str(type(obj)), str(f_name)))
+            logger.debug(
+                HEADER + "Inserting into cache (%s): %s" % (str(type(obj)), str(f_name))
+            )
         try:
             inserted = True
             if isinstance(obj, np.ndarray):
@@ -472,19 +550,61 @@ def insert_object_into_cache(logger, cache_queue, obj, f_name, parameter, user_f
                 within_cache = np.ndarray(shape, dtype=d_type, buffer=shm.buf)
                 within_cache[:] = obj[:]  # Copy contents
                 new_cache_id = shm.name
-                cache_queue.put(("PUT", (f_name, new_cache_id, shape, d_type, size, SHARED_MEMORY_TAG, parameter, function)))  # noqa: E501
+                cache_queue.put(
+                    (
+                        "PUT",
+                        (
+                            f_name,
+                            new_cache_id,
+                            shape,
+                            d_type,
+                            size,
+                            SHARED_MEMORY_TAG,
+                            parameter,
+                            function,
+                        ),
+                    )
+                )  # noqa: E501
             elif isinstance(obj, list):
                 emit_manual_event_explicit(BINDING_SERIALIZATION_CACHE_SIZE_TYPE, 0)
                 sl = SHARED_MEMORY_MANAGER.ShareableList(obj)  # noqa
                 new_cache_id = sl.shm.name
                 size = total_sizeof(obj)
-                cache_queue.put(("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_LIST_TAG, parameter, function)))  # noqa: E501
+                cache_queue.put(
+                    (
+                        "PUT",
+                        (
+                            f_name,
+                            new_cache_id,
+                            0,
+                            0,
+                            size,
+                            SHAREABLE_LIST_TAG,
+                            parameter,
+                            function,
+                        ),
+                    )
+                )  # noqa: E501
             elif isinstance(obj, tuple):
                 emit_manual_event_explicit(BINDING_SERIALIZATION_CACHE_SIZE_TYPE, 0)
                 sl = SHARED_MEMORY_MANAGER.ShareableList(obj)  # noqa
                 new_cache_id = sl.shm.name
                 size = total_sizeof(obj)
-                cache_queue.put(("PUT", (f_name, new_cache_id, 0, 0, size, SHAREABLE_TUPLE_TAG, parameter, function)))  # noqa: E501
+                cache_queue.put(
+                    (
+                        "PUT",
+                        (
+                            f_name,
+                            new_cache_id,
+                            0,
+                            0,
+                            size,
+                            SHAREABLE_TUPLE_TAG,
+                            parameter,
+                            function,
+                        ),
+                    )
+                )  # noqa: E501
             # Unsupported dicts since they are lists of lists when converted.
             # elif isinstance(obj, dict):
             #     # Convert dict to list of tuples
@@ -496,20 +616,35 @@ def insert_object_into_cache(logger, cache_queue, obj, f_name, parameter, user_f
             else:
                 inserted = False
                 if __debug__:
-                    logger.debug(HEADER + "Can not put into cache: Not a [np.ndarray | list | tuple ] object")  # noqa: E501
+                    logger.debug(
+                        HEADER
+                        + "Can not put into cache: Not a [np.ndarray | list | tuple ] object"
+                    )  # noqa: E501
             if inserted:
                 emit_manual_event_explicit(BINDING_SERIALIZATION_CACHE_SIZE_TYPE, size)
             if __debug__ and inserted:
-                logger.debug(HEADER + "Inserted into cache: " + str(f_name) + " as " + str(new_cache_id))  # noqa: E501
+                logger.debug(
+                    HEADER
+                    + "Inserted into cache: "
+                    + str(f_name)
+                    + " as "
+                    + str(new_cache_id)
+                )  # noqa: E501
         except KeyError as e:  # noqa
             if __debug__:
-                logger.debug(HEADER + "Can not put into cache. It may be a [np.ndarray | list | tuple ] object containing an unsupported type")  # noqa: E501
+                logger.debug(
+                    HEADER
+                    + "Can not put into cache. It may be a "
+                    + "[np.ndarray | list | tuple ] object containing "
+                    + "an unsupported type"
+                )  # noqa: E501
                 logger.debug(str(e))
 
 
-def remove_object_from_cache(logger, cache_queue, f_name):  # noqa
-    # type: (typing.Any, Queue, str) -> None
-    """ Removes an object from cache.
+def remove_object_from_cache(
+    logger: typing.Any, cache_queue: Queue, f_name: str
+) -> None:
+    """Removes an object from cache.
 
     :param logger: Logger where to push messages.
     :param cache_queue: Cache notification queue.
@@ -525,9 +660,15 @@ def remove_object_from_cache(logger, cache_queue, f_name):  # noqa
             logger.debug(HEADER + "Removed from cache: " + str(f_name))
 
 
-def replace_object_into_cache(logger, cache_queue, obj, f_name, parameter, user_function):  # noqa
-    # type: (typing.Any, Queue, typing.Any, str, str, typing.Callable) -> None
-    """ Put an object into cache.
+def replace_object_into_cache(
+    logger: typing.Any,
+    cache_queue: Queue,
+    obj: typing.Any,
+    f_name: str,
+    parameter: str,
+    user_function: typing.Callable,
+) -> None:
+    """Put an object into cache.
 
     :param logger: Logger where to push messages.
     :param cache_queue: Cache notification queue.
@@ -546,9 +687,8 @@ def replace_object_into_cache(logger, cache_queue, obj, f_name, parameter, user_
         logger.debug(HEADER + "Replaced from cache: " + str(f_name))
 
 
-def in_cache(f_name, cache):
-    # type: (str, typing.Any) -> bool
-    """ Checks if the given file name is in the cache
+def in_cache(f_name: str, cache: typing.Any) -> bool:
+    """Checks if the given file name is in the cache
 
     :param f_name: Absolute file name.
     :param cache: Proxy dictionary cache.
@@ -561,9 +701,8 @@ def in_cache(f_name, cache):
         return False
 
 
-def __get_file_name__(f_name):
-    # type: (str) -> str
-    """ Convert a full path with file name to the file name (removes the path).
+def __get_file_name__(f_name: str) -> str:
+    """Convert a full path with file name to the file name (removes the path).
     Example: /a/b/c.py -> c.py
 
     :param f_name: Absolute file name path
@@ -572,30 +711,29 @@ def __get_file_name__(f_name):
     return os.path.basename(f_name)
 
 
-def filename_cleaned(f_name):
-    # type: (str) -> str
+def filename_cleaned(f_name: str) -> str:
     """
     # TODO: Complete documentation (PVB)
 
     :param f_name:
     :return:
     """
-    return f_name.rsplit('/', 1)[-1]
+    return f_name.rsplit("/", 1)[-1]
 
 
-def function_cleaned(function):
-    # type: (typing.Callable) -> str
+def function_cleaned(function: typing.Callable) -> str:
     """
     # TODO: Complete documentation (PVB)
 
     :param function:
     :return:
     """
-    return str(function)[10:].rsplit(' ', 3)[0]
+    return str(function)[10:].rsplit(" ", 3)[0]
 
 
-def add_profiler_get_put(profiler_dict, function, parameter, filename, type):
-    # type: (dict, str, str, str, str) -> None
+def add_profiler_get_put(
+    profiler_dict: dict, function: str, parameter: str, filename: str, type: str
+) -> None:
     """
     # TODO: Complete documentation (PVB)
 
@@ -611,12 +749,13 @@ def add_profiler_get_put(profiler_dict, function, parameter, filename, type):
     if parameter not in profiler_dict[function]:
         profiler_dict[function][parameter] = {}
     if filename not in profiler_dict[function][parameter]:
-        profiler_dict[function][parameter][filename] = {'PUT': 0, 'GET': 0}
+        profiler_dict[function][parameter][filename] = {"PUT": 0, "GET": 0}
     profiler_dict[function][parameter][filename][type] += 1
 
 
-def add_profiler_get_struct(profiler_get_struct, function, parameter, filename):
-    # type: (list, str, str, str) -> None
+def add_profiler_get_struct(
+    profiler_get_struct: list, function: str, parameter: str, filename: str
+) -> None:
     """
     # TODO: Complete documentation (PVB)
 
@@ -626,14 +765,18 @@ def add_profiler_get_struct(profiler_get_struct, function, parameter, filename):
     :param filename:
     :return:
     """
-    if function not in profiler_get_struct[2] and parameter not in profiler_get_struct[1]:
+    if (
+        function not in profiler_get_struct[2]
+        and parameter not in profiler_get_struct[1]
+    ):
         profiler_get_struct[0].append(filename)
         profiler_get_struct[1].append(parameter)
         profiler_get_struct[2].append(function)
 
 
-def profiler_print_message(profiler_dict, profiler_get_struct, log_dir):
-    # type: (dict, list, str) -> None
+def profiler_print_message(
+    profiler_dict: dict, profiler_get_struct: list, log_dir: str
+) -> None:
     """
     # TODO: Complete documentation (PVB)
 
@@ -662,7 +805,9 @@ def profiler_print_message(profiler_dict, profiler_get_struct, log_dir):
     :param log_dir:
     :return:
     """
-    d = {}  # type: typing.Dict[str, typing.Dict[str, typing.Dict[str, typing.Union[str, int, bool, typing.List[str]]]]]
+    d = (
+        {}
+    )  # type: typing.Dict[str, typing.Dict[str, typing.Dict[str, typing.Union[str, int, bool, typing.List[str]]]]]
     final_dict = d
     for function in profiler_dict:
         final_dict[function] = {}
@@ -673,24 +818,29 @@ def profiler_print_message(profiler_dict, profiler_get_struct, log_dir):
             filenames = profiler_dict[function][parameter]
             final_dict[function][parameter] = {}
             for filename in filenames:
-                puts = filenames[filename]['PUT']
+                puts = filenames[filename]["PUT"]
                 if puts > 0:
                     try:
                         index = profiler_get_struct[0].index(filename)
-                        is_used.append(profiler_get_struct[2][index] + '#' + profiler_get_struct[1][index])
+                        is_used.append(
+                            profiler_get_struct[2][index]
+                            + "#"
+                            + profiler_get_struct[1][index]
+                        )
                     except ValueError:
                         pass
                 total_put += puts
-                total_get += filenames[filename]['GET']
-            final_dict[function][parameter]['GET'] = total_get
-            final_dict[function][parameter]['PUT'] = total_put
+                total_get += filenames[filename]["GET"]
+            final_dict[function][parameter]["GET"] = total_get
+            final_dict[function][parameter]["PUT"] = total_put
 
             if len(is_used) > 0:
-                final_dict[function][parameter]['USED'] = is_used
+                final_dict[function][parameter]["USED"] = is_used
             elif total_get > 0:
-                final_dict[function][parameter]['USED'] = [function+"#"+parameter]
+                final_dict[function][parameter]["USED"] = [function + "#" + parameter]
             else:
-                final_dict[function][parameter]['USED'] = []
+                final_dict[function][parameter]["USED"] = []
     import json
+
     with open(log_dir + "/../" + PROFILER_LOG, "a") as json_file:
         json.dump(final_dict, json_file)

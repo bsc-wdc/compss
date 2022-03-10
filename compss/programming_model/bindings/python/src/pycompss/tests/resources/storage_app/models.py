@@ -31,7 +31,7 @@ from pycompss.util.serialization.serializer import serialize_to_file
 
 def update_file(obj):
     if obj.getID() is not None:
-        storage_path = '/tmp/PSCO/' + str(socket.gethostname()) + '/'  # NOSONAR
+        storage_path = "/tmp/PSCO/" + str(socket.gethostname()) + "/"  # NOSONAR
         serialize_to_file(obj, storage_path + obj.getID() + ".PSCO")
 
 
@@ -39,6 +39,7 @@ class MySO(SCO):
     """
     @ClassField value int
     """
+
     # For simple PSCO test
     value = 0
 
@@ -62,8 +63,9 @@ class Words(SCO):
     """
     @ClassField text dict <<position:int>, word_info:str>
     """
+
     # For Wordcount Test
-    text = ''
+    text = ""
 
     def __init__(self, t):  # noqa
         self.text = t
@@ -76,6 +78,7 @@ class Result(SCO):
     """
     @ClassField myd dict <<word:str>,instances:atomicint>
     """
+
     myd = {}
 
     def get(self):
@@ -88,10 +91,12 @@ class Result(SCO):
 
 # For Tiramisu mockup test
 
+
 class InputData(SCO):
     """
     @ClassField images dict <<image_id:str>, value:list>
     """
+
     images = {}
 
     def get(self):

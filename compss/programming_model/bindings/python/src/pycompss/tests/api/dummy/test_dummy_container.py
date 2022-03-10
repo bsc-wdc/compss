@@ -28,6 +28,6 @@ def increment(value):
 def test_dummy_task():
     result = increment(1)
     assert result == 2, (
-        "Unexpected result provided by the dummy container decorator. Expected: 2 Received: " +  # noqa: E501
-        str(result)
+        "Unexpected result provided by the dummy container decorator. Expected: 2 Received: "
+        + str(result)  # noqa: E501
     )

@@ -67,9 +67,8 @@ CACHE = None
 CACHE_PROCESS = None
 
 
-def shutdown_handler(signal, frame):  # noqa
-    # type: (int, typing.Any) -> None
-    """ Shutdown handler.
+def shutdown_handler(signal: int, frame: typing.Any) -> None:
+    """Shutdown handler.
 
     Do not remove the parameters.
 
@@ -81,16 +80,16 @@ def shutdown_handler(signal, frame):  # noqa
         if proc.is_alive():
             proc.terminate()
     if CACHE and CACHE_PROCESS.is_alive():  # noqa
-        CACHE_PROCESS.terminate()           # noqa
+        CACHE_PROCESS.terminate()  # noqa
 
 
 ######################
 # Main method
 ######################
 
-def compss_persistent_worker(config):
-    # type: (PiperWorkerConfiguration) -> None
-    """ Persistent worker main function.
+
+def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
+    """Persistent worker main function.
 
     Retrieves the initial configuration and spawns the worker processes.
 
@@ -106,9 +105,11 @@ def compss_persistent_worker(config):
     # Set the binding in worker mode
     context.set_pycompss_context(context.WORKER)
 
-    persistent_storage = (config.storage_conf != 'null')
+    persistent_storage = config.storage_conf != "null"
 
-    logger, logger_cfg, storage_loggers, log_dir = load_loggers(config.debug, persistent_storage)
+    logger, logger_cfg, storage_loggers, log_dir = load_loggers(
+        config.debug, persistent_storage
+    )
 
     if __debug__:
         logger.debug(HEADER + "piper_worker.py wake up")
@@ -119,13 +120,14 @@ def compss_persistent_worker(config):
         logger.debug(HEADER + "Starting persistent storage")
         with event_worker(INIT_STORAGE_AT_WORKER_EVENT):
             from storage.api import initWorker as initStorageAtWorker  # noqa
+
             initStorageAtWorker(config_file_path=config.storage_conf)
 
     # Create new processes
     queues = []
 
     cache_profiler = False
-    if config.cache_profiler.lower() == 'true':
+    if config.cache_profiler.lower() == "true":
         cache_profiler = True
 
     # Setup cache
@@ -140,20 +142,22 @@ def compss_persistent_worker(config):
     smm, CACHE_PROCESS, cache_queue, cache_ids = cache_params
 
     # Create new executor processes
-    conf = ExecutorConf(config.debug,
-                        get_temporary_directory(),
-                        TRACING,
-                        config.storage_conf,
-                        logger,
-                        logger_cfg,
-                        persistent_storage,
-                        storage_loggers,
-                        config.stream_backend,
-                        config.stream_master_name,
-                        config.stream_master_port,
-                        cache_ids,
-                        cache_queue,
-                        cache_profiler)
+    conf = ExecutorConf(
+        config.debug,
+        get_temporary_directory(),
+        TRACING,
+        config.storage_conf,
+        logger,
+        logger_cfg,
+        persistent_storage,
+        storage_loggers,
+        config.stream_backend,
+        config.stream_master_name,
+        config.stream_master_port,
+        cache_ids,
+        cache_queue,
+        cache_profiler,
+    )
 
     for i in range(0, config.tasks_x_node):
         if __debug__:
@@ -179,29 +183,33 @@ def compss_persistent_worker(config):
                 pipe = Pipe(in_pipe, out_pipe)
                 pid, queue = create_executor_process(process_name, conf, pipe)
                 queues.append(queue)
-                control_pipe.write(" ".join((ADDED_EXECUTOR_TAG,
-                                             out_pipe,
-                                             in_pipe,
-                                             str(pid))))
+                control_pipe.write(
+                    " ".join((ADDED_EXECUTOR_TAG, out_pipe, in_pipe, str(pid)))
+                )
 
             elif line[0] == QUERY_EXECUTOR_ID_TAG:
                 in_pipe = line[1]
                 out_pipe = line[2]
                 proc = PROCESSES.get(in_pipe)  # type: typing.Any
                 pid = proc.pid
-                control_pipe.write(" ".join((REPLY_EXECUTOR_ID_TAG,
-                                             out_pipe,
-                                             in_pipe,
-                                             str(pid))))
+                control_pipe.write(
+                    " ".join((REPLY_EXECUTOR_ID_TAG, out_pipe, in_pipe, str(pid)))
+                )
 
             elif line[0] == CANCEL_TASK_TAG:
                 in_pipe = line[1]
                 cancel_proc = PROCESSES.get(in_pipe)  # type: typing.Any
                 cancel_pid = cancel_proc.pid
                 if __debug__:
-                    logger.debug(HEADER + "Signaling process with PID " +
-                                 str(cancel_pid) + " to cancel a task")
-                os.kill(cancel_pid, signal.SIGUSR2)  # NOSONAR cancellation produced by COMPSs
+                    logger.debug(
+                        HEADER
+                        + "Signaling process with PID "
+                        + str(cancel_pid)
+                        + " to cancel a task"
+                    )
+                os.kill(
+                    cancel_pid, signal.SIGUSR2
+                )  # NOSONAR cancellation produced by COMPSs
 
             elif line[0] == REMOVE_EXECUTOR_TAG:
                 in_pipe = line[1]
@@ -209,13 +217,10 @@ def compss_persistent_worker(config):
                 proc = PROCESSES.pop(in_pipe, None)
                 if proc:
                     if proc.is_alive():
-                        logger.warn(HEADER + "Forcing terminate on : " +
-                                    proc.name)
+                        logger.warn(HEADER + "Forcing terminate on : " + proc.name)
                         proc.terminate()
                     proc.join()
-                control_pipe.write(" ".join((REMOVED_EXECUTOR_TAG,
-                                             out_pipe,
-                                             in_pipe)))
+                control_pipe.write(" ".join((REMOVED_EXECUTOR_TAG, out_pipe, in_pipe)))
 
             elif line[0] == PING_TAG:
                 control_pipe.write(PONG_TAG)
@@ -230,8 +235,7 @@ def compss_persistent_worker(config):
     # Check if there is any exception message from the threads
     for i in range(0, config.tasks_x_node):
         if not queues[i].empty:
-            logger.error(HEADER + "Exception in threads queue: " +
-                         str(queues[i].get()))
+            logger.error(HEADER + "Exception in threads queue: " + str(queues[i].get()))
 
     for queue in queues:
         queue.close()
@@ -246,6 +250,7 @@ def compss_persistent_worker(config):
             logger.debug(HEADER + "Stopping persistent storage")
         with event_worker(FINISH_STORAGE_AT_WORKER_EVENT):
             from storage.api import finishWorker as finishStorageAtWorker  # noqa
+
             finishStorageAtWorker()
 
     if __debug__:
@@ -255,9 +260,10 @@ def compss_persistent_worker(config):
     control_pipe.close()
 
 
-def create_executor_process(process_name, conf, pipe):
-    # type: (str, ExecutorConf, Pipe) -> typing.Tuple[int, Queue]
-    """ Starts a new executor.
+def create_executor_process(
+    process_name: str, conf: ExecutorConf, pipe: Pipe
+) -> typing.Tuple[int, Queue]:
+    """Starts a new executor.
 
     :param process_name: Process name.
     :param conf: executor config.
@@ -265,11 +271,7 @@ def create_executor_process(process_name, conf, pipe):
     :return: Process identifier and queue used by the process
     """
     queue = new_queue()
-    process = create_process(target=executor,
-                             args=(queue,
-                                   process_name,
-                                   pipe,
-                                   conf))
+    process = create_process(target=executor, args=(queue, process_name, pipe, conf))
     PROCESSES[pipe.input_pipe] = process
     process.start()
     return int(str(process.pid)), queue
@@ -279,9 +281,9 @@ def create_executor_process(process_name, conf, pipe):
 # Main -> Calls main method
 ############################
 
-def main():
-    # type: () -> None
-    """ Main piper worker
+
+def main() -> None:
+    """Main piper worker
 
     :return: None
     """
@@ -296,7 +298,7 @@ def main():
         compss_persistent_worker(WORKER_CONF)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Initialize multiprocessing
     initialize_multiprocessing()
     # Then start the main function

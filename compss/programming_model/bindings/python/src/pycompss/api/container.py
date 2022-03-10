@@ -45,16 +45,12 @@ from pycompss.runtime.task.core_element import CE
 
 if __debug__:
     import logging
+
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {ENGINE,
-                       IMAGE}
-SUPPORTED_ARGUMENTS = {ENGINE,
-                       IMAGE}
-DEPRECATED_ARGUMENTS = {FAIL_BY_EXIT_VALUE,
-                        WORKING_DIR,
-                        LEGACY_WORKING_DIR,
-                        BINARY}
+MANDATORY_ARGUMENTS = {ENGINE, IMAGE}
+SUPPORTED_ARGUMENTS = {ENGINE, IMAGE}
+DEPRECATED_ARGUMENTS = {FAIL_BY_EXIT_VALUE, WORKING_DIR, LEGACY_WORKING_DIR, BINARY}
 
 
 class Container(object):
@@ -63,8 +59,7 @@ class Container(object):
     __call__ methods, useful on mpi task creation.
     """
 
-    def __init__(self, *args, **kwargs):
-        # type: (*typing.Any, **typing.Any) -> None
+    def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         """
         Store arguments passed to the decorator
         # self = itself.
@@ -86,14 +81,15 @@ class Container(object):
             if __debug__:
                 logger.debug("Init @container decorator...")
             # Check the arguments
-            check_arguments(MANDATORY_ARGUMENTS,
-                            DEPRECATED_ARGUMENTS,
-                            SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
-                            list(kwargs.keys()),
-                            decorator_name)
+            check_arguments(
+                MANDATORY_ARGUMENTS,
+                DEPRECATED_ARGUMENTS,
+                SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
+                list(kwargs.keys()),
+                decorator_name,
+            )
 
-    def __call__(self, user_function):
-        # type: (typing.Callable) -> typing.Callable
+    def __call__(self, user_function: typing.Callable) -> typing.Callable:
         """
         Parse and set the container parameters within the task core element.
 
@@ -102,16 +98,16 @@ class Container(object):
         """
 
         @wraps(user_function)
-        def container_f(*args, **kwargs):
-            # type: (*typing.Any, **typing.Any) -> typing.Any
+        def container_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             if not self.scope:
                 raise NotInPyCOMPSsException(not_in_pycompss("container"))
 
             if __debug__:
                 logger.debug("Executing container_f wrapper.")
 
-            if (context.in_master() or context.is_nesting_enabled()) \
-                    and not self.core_element_configured:
+            if (
+                context.in_master() or context.is_nesting_enabled()
+            ) and not self.core_element_configured:
                 # master code - or worker with nesting enabled
                 self.__configure_core_element__(kwargs, user_function)
 
@@ -124,9 +120,10 @@ class Container(object):
         container_f.__doc__ = user_function.__doc__
         return container_f
 
-    def __configure_core_element__(self, kwargs, user_function):
-        # type: (dict, typing.Callable) -> None
-        """ Include the registering info related to @container.
+    def __configure_core_element__(
+        self, kwargs: dict, user_function: typing.Callable
+    ) -> None:
+        """Include the registering info related to @container.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 
@@ -147,13 +144,15 @@ class Container(object):
         impl_type = IMPL_CONTAINER
         impl_signature = ".".join([impl_type, _func])
 
-        impl_args = [_engine,     # engine
-                     _image,      # image
-                     UNASSIGNED,  # internal_type
-                     UNASSIGNED,  # internal_binary
-                     UNASSIGNED,  # internal_func
-                     UNASSIGNED,  # working_dir
-                     UNASSIGNED]  # fail_by_ev
+        impl_args = [
+            _engine,  # engine
+            _image,  # image
+            UNASSIGNED,  # internal_type
+            UNASSIGNED,  # internal_binary
+            UNASSIGNED,  # internal_func
+            UNASSIGNED,  # working_dir
+            UNASSIGNED,
+        ]  # fail_by_ev
 
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator

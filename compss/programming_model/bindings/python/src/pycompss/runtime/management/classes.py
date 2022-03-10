@@ -28,6 +28,7 @@ class SupportedFunctionTypes(object):
     """
     Used as enum to identify the function type
     """
+
     FUNCTION = 1
     INSTANCE_METHOD = 2
     CLASS_METHOD = 3
@@ -37,6 +38,7 @@ class Future(object):
     """
     Future object class definition.
     """
+
     pass
 
 
@@ -44,6 +46,7 @@ class EmptyReturn(object):
     """
     For functions with empty return
     """
+
     pass
 
 

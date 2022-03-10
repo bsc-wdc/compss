@@ -74,12 +74,8 @@ def test_reduction_chunk_size_parameter():
     f = my_reduction(dummy_function)
     _ = f()
     context.set_pycompss_context(context.OUT_OF_SCOPE)
-    assert (
-        "chunk_size" in my_reduction.kwargs
-    ), CHUNK_SIZE_ERROR
-    assert (
-        chunk_size == my_reduction.kwargs["chunk_size"]
-    ), CHUNK_SIZE_NOT_INIT_ERROR
+    assert "chunk_size" in my_reduction.kwargs, CHUNK_SIZE_ERROR
+    assert chunk_size == my_reduction.kwargs["chunk_size"], CHUNK_SIZE_NOT_INIT_ERROR
 
 
 def test_reduction_chunk_size_str_parameter():
@@ -89,9 +85,7 @@ def test_reduction_chunk_size_str_parameter():
     f = my_reduction(dummy_function)
     _ = f()
     context.set_pycompss_context(context.OUT_OF_SCOPE)
-    assert (
-        "chunk_size" in my_reduction.kwargs
-    ), CHUNK_SIZE_ERROR
+    assert "chunk_size" in my_reduction.kwargs, CHUNK_SIZE_ERROR
     assert (
         int(chunk_size) == my_reduction.kwargs["chunk_size"]
     ), CHUNK_SIZE_NOT_INIT_ERROR
@@ -106,9 +100,7 @@ def test_reduction_chunk_size_str_exception_parameter():
     except PyCOMPSsException:
         ok = True
     context.set_pycompss_context(context.OUT_OF_SCOPE)
-    assert (
-        ok
-    ), EXPECTED_EXCEPTION_ERROR
+    assert ok, EXPECTED_EXCEPTION_ERROR
 
 
 def test_reduction_chunk_size_other_exception_parameter():
@@ -120,9 +112,7 @@ def test_reduction_chunk_size_other_exception_parameter():
     except PyCOMPSsException:
         ok = True
     context.set_pycompss_context(context.OUT_OF_SCOPE)
-    assert (
-        ok
-    ), EXPECTED_EXCEPTION_ERROR
+    assert ok, EXPECTED_EXCEPTION_ERROR
 
 
 def test_reduction_chunk_size_str_env_var_parameter():
@@ -133,9 +123,7 @@ def test_reduction_chunk_size_str_env_var_parameter():
     f = my_reduction(dummy_function)
     _ = f()
     context.set_pycompss_context(context.OUT_OF_SCOPE)
-    assert (
-        "chunk_size" in my_reduction.kwargs
-    ), CHUNK_SIZE_ERROR
+    assert "chunk_size" in my_reduction.kwargs, CHUNK_SIZE_ERROR
     assert (
         int(os.environ[chunk_size[1:]]) == my_reduction.kwargs["chunk_size"]
     ), CHUNK_SIZE_NOT_INIT_ERROR
@@ -149,9 +137,7 @@ def test_reduction_chunk_size_str_env_var_brackets_parameter():
     f = my_reduction(dummy_function)
     _ = f()
     context.set_pycompss_context(context.OUT_OF_SCOPE)
-    assert (
-        "chunk_size" in my_reduction.kwargs
-    ), CHUNK_SIZE_ERROR
+    assert "chunk_size" in my_reduction.kwargs, CHUNK_SIZE_ERROR
     assert (
         int(os.environ[chunk_size[2:-1]]) == my_reduction.kwargs["chunk_size"]
     ), CHUNK_SIZE_NOT_INIT_ERROR
@@ -167,9 +153,7 @@ def test_reduction_chunk_size_str_env_var_exception_parameter():
     except PyCOMPSsException:
         ok = True
     context.set_pycompss_context(context.OUT_OF_SCOPE)
-    assert (
-        ok
-    ), EXPECTED_EXCEPTION_ERROR
+    assert ok, EXPECTED_EXCEPTION_ERROR
 
 
 def test_reduction_is_reduce_parameter():

@@ -56,8 +56,9 @@ def test_mpi_call_outside():
     except Exception:  # noqa
         thrown = True  # this is OK!
     context.set_pycompss_context(context.OUT_OF_SCOPE)
-    assert thrown, \
-        "The mpi decorator did not raise an exception when invoked out of scope."  # noqa: E501
+    assert (
+        thrown
+    ), "The mpi decorator did not raise an exception when invoked out of scope."  # noqa: E501
 
 
 def test_mpi_call_outside_with_computing_nodes_old_style():
@@ -70,8 +71,9 @@ def test_mpi_call_outside_with_computing_nodes_old_style():
     except Exception:  # noqa
         thrown = True  # this is OK!
     context.set_pycompss_context(context.OUT_OF_SCOPE)
-    assert thrown, \
-        "The mpi decorator did not raise an exception when invoked out of scope (computingNodes)."  # noqa: E501
+    assert (
+        thrown
+    ), "The mpi decorator did not raise an exception when invoked out of scope (computingNodes)."  # noqa: E501
 
 
 def test_mpi_call_outside_with_computing_nodes():
@@ -84,8 +86,9 @@ def test_mpi_call_outside_with_computing_nodes():
     except Exception:  # noqa
         thrown = True  # this is OK!
     context.set_pycompss_context(context.OUT_OF_SCOPE)
-    assert thrown, \
-        "The mpi decorator did not raise an exception when invoked out of scope (computing_nodes)."  # noqa: E501
+    assert (
+        thrown
+    ), "The mpi decorator did not raise an exception when invoked out of scope (computing_nodes)."  # noqa: E501
 
 
 def test_mpi_layout_empty_parameter():
@@ -95,9 +98,7 @@ def test_mpi_layout_empty_parameter():
     f = my_mpi(dummy_function)
     _ = f()
     context.set_pycompss_context(context.OUT_OF_SCOPE)
-    assert (
-        "_layout" in my_mpi.kwargs
-    ), "_layout is not defined in kwargs dictionary."
+    assert "_layout" in my_mpi.kwargs, "_layout is not defined in kwargs dictionary."
 
 
 def test_mpi_binary():

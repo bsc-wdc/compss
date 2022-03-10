@@ -28,6 +28,7 @@ from pycompss.api.api import compss_delete_object
 from pycompss.api.api import compss_barrier
 from pycompss.api.api import compss_barrier_group
 from pycompss.api.api import compss_wait_on
+
 # from pycompss.api.api import compss_get_number_of_resources
 # from pycompss.api.api import compss_request_resources
 # from pycompss.api.api import compss_free_resources
@@ -38,7 +39,7 @@ from pycompss.api.api import TaskGroup
 def file_in(fin):
     print("TEST FILE IN")
     # Open the file and read the content
-    fin_d = open(fin, 'r')
+    fin_d = open(fin, "r")
     content = fin_d.read()
     print("- In file content:\n", content)
     # Close and return the content
@@ -50,7 +51,7 @@ def file_in(fin):
 def file_inout(finout):
     print("TEST FILE INOUT")
     # Open the file and read the content
-    finout_d = open(finout, 'r+')
+    finout_d = open(finout, "r+")
     content = finout_d.read()
     print("- Inout file content:\n", content)
     # Add some content
@@ -66,7 +67,7 @@ def file_inout(finout):
 def file_out(fout, content):
     print("TEST FILE OUT")
     # Open the file for writing and write some content
-    with open(fout, 'w') as fout_d:
+    with open(fout, "w") as fout_d:
         fout_d.write(content)
     print("- Out file content added:\n", content)
     return content
@@ -86,15 +87,19 @@ def multiple_file_checker(filenames, directions):
     must_exist = compss_file_exists(*filenames)
     compss_delete_file(*filenames)
     must_not_exist = compss_file_exists(*filenames)
-    assert all(must_exist), "Multiple files %s that must exist not found." % str(directions)
-    assert not any(must_not_exist), "Multiple files %s that must NOT exist is found." % str(directions)
+    assert all(must_exist), "Multiple files %s that must exist not found." % str(
+        directions
+    )
+    assert not any(
+        must_not_exist
+    ), "Multiple files %s that must NOT exist is found." % str(directions)
 
 
 def files():
-    """ Test FILE_IN """
+    """Test FILE_IN"""
     fin = "infile"
     content = "IN FILE CONTENT"
-    with open(fin, 'w') as f:
+    with open(fin, "w") as f:
         f.write(content)
     res = file_in(fin)
     res = compss_wait_on(res)
@@ -113,7 +118,7 @@ def files():
     content = "IN FILE CONTENT"
     results = []
     for fin in fins:
-        with open(fin, 'w') as f:
+        with open(fin, "w") as f:
             f.write(content)
         results.append(file_in(fin))
     results = compss_wait_on(results)
@@ -128,16 +133,18 @@ def files():
     """ Test FILE_INOUT """
     finout = "inoutfile"
     content = "INOUT FILE CONTENT"
-    with open(finout, 'w') as f:
+    with open(finout, "w") as f:
         f.write(content)
     res = file_inout(finout)
     res = compss_wait_on(res)
     compss_wait_on_file(finout)
-    with compss_open(finout, 'r') as finout_r:
+    with compss_open(finout, "r") as finout_r:
         content_r = finout_r.read()
     content += "\n===> INOUT FILE ADDED CONTENT"
     assert res == content, "strings are not equal: {}, {}".format(res, content)
-    assert content_r == content, "strings are not equal: {}, {}".format(content_r, content)
+    assert content_r == content, "strings are not equal: {}, {}".format(
+        content_r, content
+    )
 
     # Check if file exists:
     file_checker(finout, "INOUT")
@@ -152,7 +159,7 @@ def files():
     content = "INOUT FILE CONTENT"
     results = []
     for finout in finouts:
-        with open(finout, 'w') as f:
+        with open(finout, "w") as f:
             f.write(content)
         results.append(file_inout(finout))
     results = compss_wait_on(results)
@@ -160,10 +167,14 @@ def files():
     i = 0
     content += "\n===> INOUT FILE ADDED CONTENT"
     for finout in finouts:
-        with compss_open(finout, 'r') as finout_r:
+        with compss_open(finout, "r") as finout_r:
             content_r = finout_r.read()
-        assert results[i] == content, "strings are not equal: {}, {}".format(results[i], content)
-        assert content_r == content, "strings are not equal: {}, {}".format(content_r, content)
+        assert results[i] == content, "strings are not equal: {}, {}".format(
+            results[i], content
+        )
+        assert content_r == content, "strings are not equal: {}, {}".format(
+            content_r, content
+        )
         i += 1
 
     # Check if file exists:
@@ -177,7 +188,7 @@ def files():
     res = file_out(fout, content)
     res = compss_wait_on(res)
     compss_wait_on_file(fout)
-    with compss_open(fout, 'r') as fout_r:
+    with compss_open(fout, "r") as fout_r:
         content_r = fout_r.read()
     # The final file is only stored after the execution.
     # During the execution, you have to use the compss_open, which will
@@ -185,7 +196,9 @@ def files():
     # fileInFolder = os.path.exists(fout)
     # assert fileInFolder is True, "FILE_OUT is not in the final location"
     assert res == content, "strings are not equal: {}, {}".format(res, content)
-    assert content_r == content, "strings are not equal: {}, {}".format(content_r, content)
+    assert content_r == content, "strings are not equal: {}, {}".format(
+        content_r, content
+    )
 
     # Check if file exists:
     file_checker(fout, "OUT")
@@ -205,15 +218,19 @@ def files():
     compss_wait_on_file(*fouts)
     i = 0
     for fout in fouts:
-        with compss_open(fout, 'r') as fout_r:
+        with compss_open(fout, "r") as fout_r:
             content_r = fout_r.read()
         # The final file is only stored after the execution.
         # During the execution, you have to use the compss_open, which will
         # provide the real file where the output file is.
         # fileInFolder = os.path.exists(fout)
         # assert fileInFolder is True, "FILE_OUT is not in the final location"
-        assert results[i] == content, "strings are not equal: {}, {}".format(results[i], content)
-        assert content_r == content, "strings are not equal: {}, {}".format(content_r, content)
+        assert results[i] == content, "strings are not equal: {}, {}".format(
+            results[i], content
+        )
+        assert content_r == content, "strings are not equal: {}, {}".format(
+            content_r, content
+        )
         i += 1
 
     # Check if file exists:
@@ -226,10 +243,10 @@ def files():
 def dir_inout_task(dir_inout, i):
     res = list()
     for _ in os.listdir(dir_inout):
-        with(open("{}{}{}".format(dir_inout, os.sep, _), 'r')) as fd:
+        with (open("{}{}{}".format(dir_inout, os.sep, _), "r")) as fd:
             res.append(fd.read())
     f_inout = "{}{}{}".format(dir_inout, os.sep, i)
-    with(open(f_inout, 'w')) as fd:
+    with (open(f_inout, "w")) as fd:
         fd.write("written by inout task #" + str(i))
     return res
 
@@ -239,8 +256,8 @@ def dir_in_task(dir_in):
     res = list()
     for _ in os.listdir(dir_in):
         _fp = dir_in + os.sep + _
-        with(open(_fp, 'r')) as fd:
-            res .append(fd.read())
+        with (open(_fp, "r")) as fd:
+            res.append(fd.read())
     return res
 
 
@@ -250,7 +267,7 @@ def dir_out_task(dir_out, i):
         shutil.rmtree(dir_out)
     os.mkdir(dir_out)
     f_out = "{}{}{}".format(dir_out, os.sep, i)
-    with(open(f_out, 'w')) as fd:
+    with (open(f_out, "w")) as fd:
         fd.write("written in dir out #{}".format(i))
 
 
@@ -308,27 +325,34 @@ def directories():
     compss_wait_on_directory(*dir_ts)
 
     for i, res in enumerate(res_phase_0):
-        assert len(res) == i, \
-            "ERROR in task #{} of phase 0: {} != {}".format(i, len(res), i)
+        assert len(res) == i, "ERROR in task #{} of phase 0: {} != {}".format(
+            i, len(res), i
+        )
 
     for res in res_multiple_dirs:
-        assert len(res) == 0, \
-            "ERROR in task of phase 0 multiple: {} != {}".format(len(res), 0)
+        assert len(res) == 0, "ERROR in task of phase 0 multiple: {} != {}".format(
+            len(res), 0
+        )
 
     for i, res in enumerate(res_phase_1):
-        assert len(res) == 5, \
-            "ERROR in task #{} of phase 1: {} != 5".format(i, len(res))
+        assert len(res) == 5, "ERROR in task #{} of phase 1: {} != 5".format(
+            i, len(res)
+        )
 
     for i, res in enumerate(res_phase_2):
-        assert len(res) == i + 5, \
-            "ERROR in task #{} of phase 2: {} != {}".format(i, len(res), i + 5)
+        assert len(res) == i + 5, "ERROR in task #{} of phase 2: {} != {}".format(
+            i, len(res), i + 5
+        )
 
     for i, res in enumerate(res_phase_3):
-        assert len(res) == 10, \
-            "ERROR in task #{} of phase 3: {} != 10".format(i, len(res))
+        assert len(res) == 10, "ERROR in task #{} of phase 3: {} != 10".format(
+            i, len(res)
+        )
 
     time.sleep(3)  # TODO: Why it is needed a sleep to find the directory?
-    assert 1 == len(os.listdir(dir_t)), "Directory has fewer or more files than 1: {}".format(len(os.listdir(dir_t)))
+    assert 1 == len(
+        os.listdir(dir_t)
+    ), "Directory has fewer or more files than 1: {}".format(len(os.listdir(dir_t)))
     shutil.rmtree(dir_t)
     compressed_dir = "some_dir_t.zip"
     if os.path.exists(compressed_dir):
@@ -336,8 +360,9 @@ def directories():
 
     i = 1
     for dir_t in dir_ts:
-        assert 1 == len(os.listdir(dir_t)),\
-            "Directory has fewer or more files than 1: {}".format(len(os.listdir(dir_t)))
+        assert 1 == len(
+            os.listdir(dir_t)
+        ), "Directory has fewer or more files than 1: {}".format(len(os.listdir(dir_t)))
         shutil.rmtree(dir_t)
         compressed_dir = "some_dir_t_" + str(i) + ".zip"
         if os.path.exists(compressed_dir):
@@ -357,7 +382,7 @@ def test_task_groups():
     with TaskGroup("bigGroup", True):
         # Inside a big group, more groups are created
         for i in range(num_groups):
-            with(TaskGroup("group" + str(i), False)):
+            with (TaskGroup("group" + str(i), False)):
                 for j in range(num_tasks):
                     results.append(increment(i))
 

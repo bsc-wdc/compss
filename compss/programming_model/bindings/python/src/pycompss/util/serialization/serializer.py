@@ -46,13 +46,11 @@ import os
 import gc
 import json
 import struct
-import sys
 import types
 import traceback
 from pycompss.util.typing_helper import typing
 from io import BytesIO
 
-from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.util.exceptions import SerializerException
 from pycompss.util.serialization.extended_support import pickle_generator
 from pycompss.util.serialization.extended_support import convert_to_generator
@@ -69,27 +67,25 @@ from pycompss.worker.commons.constants import DESERIALIZE_FROM_FILE_EVENT
 from pycompss.worker.commons.constants import SERIALIZE_TO_FILE_EVENT
 from pycompss.worker.commons.constants import SERIALIZE_TO_FILE_MPIENV_EVENT
 
-DISABLE_GC = False
-
-if IS_PYTHON3:
-    import pickle as pickle  # Uses _pickle if available
-else:
-    import cPickle as pickle  # type: ignore
+import pickle
 
 try:
     import dill  # noqa
+
     DILL_AVAILABLE = True
 except ImportError:
     DILL_AVAILABLE = False
 
 try:
     import numpy
+
     NUMPY_AVAILABLE = True
 except ImportError:
     NUMPY_AVAILABLE = False
 
 try:
     import pyarrow
+
     PYARROW_AVAILABLE = True
 except ImportError:
     PYARROW_AVAILABLE = False
@@ -108,14 +104,15 @@ LIB2IDX[json] = 4
 # IDX2LIB contains as key the integer and the value its associated serializer
 IDX2LIB = dict([(v, k) for (k, v) in LIB2IDX.items()])
 # Max integer
-PLATFORM_C_MAXINT = 2 ** ((struct.Struct('i').size * 8 - 1) - 13)
+PLATFORM_C_MAXINT = 2 ** ((struct.Struct("i").size * 8 - 1) - 13)
 # To force a specific serializer
 FORCED_SERIALIZER = -1  # make a serializer the only option for serialization
+# Control Garbage Collector
+DISABLE_GC = False
 
 
-def get_serializer_priority(obj=()):
-    # type: (typing.Any) -> list
-    """ Computes the priority of the serializers.
+def get_serializer_priority(obj: typing.Any = ()) -> list:
+    """Computes the priority of the serializers.
     Returns a list with the available serializers in the most common order
     (i.e: the order that will work for almost the 90% of our objects).
 
@@ -125,9 +122,9 @@ def get_serializer_priority(obj=()):
     serializers = [pickle]
     if DILL_AVAILABLE:
         serializers = [pickle, dill]
-    if object_belongs_to_module(obj, 'numpy') and NUMPY_AVAILABLE:
+    if object_belongs_to_module(obj, "numpy") and NUMPY_AVAILABLE:
         return [numpy] + serializers
-    elif object_belongs_to_module(obj, 'pyarrow') and PYARROW_AVAILABLE:
+    elif object_belongs_to_module(obj, "pyarrow") and PYARROW_AVAILABLE:
         return [pyarrow] + serializers
     else:
         if FORCED_SERIALIZER > -1:
@@ -135,9 +132,8 @@ def get_serializer_priority(obj=()):
         return serializers
 
 
-def serialize_to_handler(obj, handler):
-    # type: (typing.Any, typing.Any) -> None
-    """ Serialize an object to a handler.
+def serialize_to_handler(obj: typing.Any, handler: typing.Any) -> None:
+    """Serialize an object to a handler.
 
     :param obj: Object to be serialized.
     :param handler: A handler object. It must implement methods like write,
@@ -147,10 +143,11 @@ def serialize_to_handler(obj, handler):
                                  serialization.
     """
     emit_manual_event_explicit(BINDING_SERIALIZATION_SIZE_TYPE, 0)
-    if hasattr(handler, 'name'):
-        emit_manual_event_explicit(BINDING_SERIALIZATION_OBJECT_NUM_TYPE,
-                                   (abs(hash(os.path.basename(handler.name))) %
-                                    PLATFORM_C_MAXINT))
+    if hasattr(handler, "name"):
+        emit_manual_event_explicit(
+            BINDING_SERIALIZATION_OBJECT_NUM_TYPE,
+            (abs(hash(os.path.basename(handler.name))) % PLATFORM_C_MAXINT),
+        )
     if DISABLE_GC:
         # Disable the garbage collector while serializing -> more performance?
         gc.disable()
@@ -165,7 +162,7 @@ def serialize_to_handler(obj, handler):
         # Reset the handlers pointer to the first position
         handler.seek(original_position)
         serializer = serializer_priority[i]
-        handler.write(bytearray('%04d' % LIB2IDX[serializer], 'utf8'))
+        handler.write(bytearray("%04d" % LIB2IDX[serializer], "utf8"))
 
         # Special case: obj is a generator
         if isinstance(obj, types.GeneratorType):
@@ -179,14 +176,19 @@ def serialize_to_handler(obj, handler):
         else:
             try:
                 # If it is a numpy object then use its saving mechanism
-                if NUMPY_AVAILABLE and \
-                        serializer is numpy and \
-                        (isinstance(obj, numpy.ndarray) or
-                         isinstance(obj, numpy.matrix)):
+                if (
+                    NUMPY_AVAILABLE
+                    and serializer is numpy
+                    and (
+                        isinstance(obj, numpy.ndarray) or isinstance(obj, numpy.matrix)
+                    )
+                ):
                     serializer.save(handler, obj, allow_pickle=False)
-                elif PYARROW_AVAILABLE and \
-                        serializer is pyarrow and \
-                        object_belongs_to_module(obj, "pyarrow"):
+                elif (
+                    PYARROW_AVAILABLE
+                    and serializer is pyarrow
+                    and object_belongs_to_module(obj, "pyarrow")
+                ):
                     writer = pyarrow.ipc.new_file(handler, obj.schema)  # noqa
                     writer.write(obj)
                     writer.close()
@@ -196,12 +198,10 @@ def serialize_to_handler(obj, handler):
                     handler.close()
                     # Open the handler in normal mode
                     handler = open(h_name, "w")
-                    handler.write('%04d' % LIB2IDX[serializer])
+                    handler.write("%04d" % LIB2IDX[serializer])
                     serializer.dump(obj, handler)
                 else:
-                    serializer.dump(obj,
-                                    handler,
-                                    protocol=serializer.HIGHEST_PROTOCOL)
+                    serializer.dump(obj, handler, protocol=serializer.HIGHEST_PROTOCOL)
                 success = True
             except Exception as e:  # noqa
                 success = False
@@ -228,9 +228,8 @@ def serialize_to_handler(obj, handler):
         raise SerializerException(error_msg)
 
 
-def serialize_to_file(obj, file_name):
-    # type: (typing.Any, str) -> None
-    """ Serialize an object to a file.
+def serialize_to_file(obj: typing.Any, file_name: str) -> None:
+    """Serialize an object to a file.
 
     :param obj: Object to be serialized.
     :param file_name: File name where the object is going to be serialized.
@@ -238,14 +237,15 @@ def serialize_to_file(obj, file_name):
     """
     with event_inside_worker(SERIALIZE_TO_FILE_EVENT):
         # todo: can we make the binary mode optional?
-        handler = open(file_name, 'wb')
+        handler = open(file_name, "wb")
         serialize_to_handler(obj, handler)
         handler.close()
 
 
-def serialize_to_file_mpienv(obj, file_name, rank_zero_reduce):
-    # type: (typing.Any, str, bool) -> None
-    """ Serialize an object to a file for Python MPI Tasks.
+def serialize_to_file_mpienv(
+    obj: typing.Any, file_name: str, rank_zero_reduce: bool
+) -> None:
+    """Serialize an object to a file for Python MPI Tasks.
 
     :param obj: Object to be serialized.
     :param file_name: File name where the object is going to be serialized.
@@ -267,9 +267,8 @@ def serialize_to_file_mpienv(obj, file_name, rank_zero_reduce):
             serialize_to_file(obj, file_name)
 
 
-def serialize_to_bytes(obj):
-    # type: (typing.Any) -> bytes
-    """ Serialize an object to a byte array.
+def serialize_to_bytes(obj: typing.Any) -> bytes:
+    """Serialize an object to a byte array.
 
     :param obj: Object to be serialized.
     :return: The serialized content
@@ -281,9 +280,10 @@ def serialize_to_bytes(obj):
     return ret
 
 
-def deserialize_from_handler(handler, show_exception=True):
-    # type: (typing.Any, bool) -> typing.Any
-    """ Deserialize an object from a file.
+def deserialize_from_handler(
+    handler: typing.Any, show_exception: bool = True
+) -> typing.Any:
+    """Deserialize an object from a file.
 
     :param handler: File name from where the object is going to be
                     deserialized.
@@ -293,10 +293,11 @@ def deserialize_from_handler(handler, show_exception=True):
     """
     # Retrieve the used library (if possible)
     emit_manual_event_explicit(BINDING_DESERIALIZATION_SIZE_TYPE, 0)
-    if hasattr(handler, 'name'):
-        emit_manual_event_explicit(BINDING_DESERIALIZATION_OBJECT_NUM_TYPE,
-                                   (abs(hash(os.path.basename(handler.name))) %
-                                    PLATFORM_C_MAXINT))
+    if hasattr(handler, "name"):
+        emit_manual_event_explicit(
+            BINDING_DESERIALIZATION_OBJECT_NUM_TYPE,
+            (abs(hash(os.path.basename(handler.name))) % PLATFORM_C_MAXINT),
+        )
     original_position = None
     try:
         original_position = handler.tell()
@@ -304,7 +305,7 @@ def deserialize_from_handler(handler, show_exception=True):
     except KeyError:
         # The first 4 bytes return a value that is not within IDX2LIB
         handler.seek(original_position)
-        error_message = 'Handler does not refer to a valid PyCOMPSs object'
+        error_message = "Handler does not refer to a valid PyCOMPSs object"
         raise SerializerException(error_message)
 
     close_handler = True
@@ -318,7 +319,7 @@ def deserialize_from_handler(handler, show_exception=True):
             ret = pyarrow.ipc.open_file(handler)
             if isinstance(ret, pyarrow.ipc.RecordBatchFileReader):
                 close_handler = False
-        elif serializer is json and IS_PYTHON3:
+        elif serializer is json:
             # Deserialization of json files is not in binary: close handler
             h_name = handler.name
             handler.close()
@@ -329,54 +330,51 @@ def deserialize_from_handler(handler, show_exception=True):
         else:
             ret = serializer.load(handler)
         # Special case: deserialized obj wraps a generator
-        if isinstance(ret, tuple) and \
-                ret and \
-                isinstance(ret[0], GeneratorIndicator):
+        if isinstance(ret, tuple) and ret and isinstance(ret[0], GeneratorIndicator):
             ret = convert_to_generator(ret[1])
         if DISABLE_GC:
             # Enable the garbage collector and force to clean the memory
             gc.enable()
             gc.collect()
-        emit_manual_event_explicit(BINDING_DESERIALIZATION_SIZE_TYPE,
-                                   handler.tell())
-        emit_manual_event_explicit(BINDING_DESERIALIZATION_OBJECT_NUM_TYPE,
-                                   0)
+        emit_manual_event_explicit(BINDING_DESERIALIZATION_SIZE_TYPE, handler.tell())
+        emit_manual_event_explicit(BINDING_DESERIALIZATION_OBJECT_NUM_TYPE, 0)
         return ret, close_handler
     except Exception:
         tb = traceback.format_exc()
         if DISABLE_GC:
             gc.enable()
         if __debug__ and show_exception:
-            print('ERROR! Deserialization with %s failed.' % str(serializer))
+            print("ERROR! Deserialization with %s failed." % str(serializer))
             try:
                 traceback.print_exc()
             except AttributeError:
                 # Bug fixed in 3.5 - issue10805
                 pass
-        error_msg = \
-            "ERROR: Cannot deserialize object with serializer: %s\n%s\n" % \
-            (serializer, tb)
+        error_msg = "ERROR: Cannot deserialize object with serializer: %s\n%s\n" % (
+            serializer,
+            tb,
+        )
         raise SerializerException(error_msg)
 
 
-def deserialize_from_file(file_name):
-    # type: (str) -> typing.Any
-    """ Deserialize the contents in a given file.
+def deserialize_from_file(file_name: str) -> typing.Any:
+    """Deserialize the contents in a given file.
 
     :param file_name: Name of the file with the contents to be deserialized
     :return: A deserialized object
     """
     with event_inside_worker(DESERIALIZE_FROM_FILE_EVENT):
-        handler = open(file_name, 'rb')
+        handler = open(file_name, "rb")
         ret, close_handler = deserialize_from_handler(handler)
         if close_handler:
             handler.close()
         return ret
 
 
-def deserialize_from_bytes(serialized_content_bytes, show_exception=True):
-    # type: (bytes, bool) -> typing.Any
-    """ Deserialize the contents in a given byte array.
+def deserialize_from_bytes(
+    serialized_content_bytes: bytes, show_exception: bool = True
+) -> typing.Any:
+    """Deserialize the contents in a given byte array.
 
     :param serialized_content_bytes: A byte array with serialized contents
     :param show_exception: Show exception if happen (only with debug).
@@ -384,16 +382,16 @@ def deserialize_from_bytes(serialized_content_bytes, show_exception=True):
     """
     with event_inside_worker(DESERIALIZE_FROM_BYTES_EVENT):
         handler = BytesIO(serialized_content_bytes)
-        ret, close_handler = deserialize_from_handler(handler,
-                                                      show_exception=show_exception)  # noqa: E501
+        ret, close_handler = deserialize_from_handler(
+            handler, show_exception=show_exception
+        )  # noqa: E501
         if close_handler:
             handler.close()
         return ret
 
 
-def serialize_objects(to_serialize):
-    # type: (list) -> None
-    """ Serialize a list of objects to file.
+def serialize_objects(to_serialize: list) -> None:
+    """Serialize a list of objects to file.
 
     If a single object fails to be serialized, then an Exception by
     serialize_to_file will be thrown (and not caught).

@@ -30,6 +30,7 @@ class SerializerException(Exception):
     """
     Exception on serialization
     """
+
     pass
 
 
@@ -38,8 +39,7 @@ class PyCOMPSsException(Exception):
     Generic PyCOMPSs exception
     """
 
-    def __init__(self, message):
-        # type: (str) -> None
+    def __init__(self, message: str) -> None:
         super(PyCOMPSsException, self).__init__(message)
 
 
@@ -48,8 +48,7 @@ class NotInPyCOMPSsException(Exception):
     Not within PyCOMPSs scope exception.
     """
 
-    def __init__(self, message):
-        # type: (str) -> None
+    def __init__(self, message: str) -> None:
         msg = "Outside PyCOMPSs scope: %s" % message
         super(NotInPyCOMPSsException, self).__init__(msg)
 
@@ -59,8 +58,7 @@ class NotImplementedException(Exception):
     Not implemented exception.
     """
 
-    def __init__(self, functionality):
-        # type: (str) -> None
+    def __init__(self, functionality: str) -> None:
         msg = "Functionality %s not implemented yet." % functionality
         super(NotImplementedException, self).__init__(msg)
 
@@ -70,8 +68,7 @@ class MissingImplementedException(Exception):
     Not implemented exception
     """
 
-    def __init__(self, functionality):
-        # type: (str) -> None
+    def __init__(self, functionality: str) -> None:
         msg = "Missing %s. Needs to be overridden." % functionality
         super(MissingImplementedException, self).__init__(msg)
 
@@ -80,6 +77,7 @@ class TimeOutError(Exception):
     """
     Time out error exception
     """
+
     pass
 
 
@@ -87,12 +85,12 @@ class CancelError(Exception):
     """
     Cancel error exception
     """
+
     pass
 
 
-def task_timed_out(signum, frame):  # noqa
-    # type: (int, typing.Any) -> None
-    """ Task time out signal handler
+def task_timed_out(signum: int, frame: typing.Any) -> None:
+    """Task time out signal handler
 
     Do not remove the parameters.
 
@@ -104,9 +102,8 @@ def task_timed_out(signum, frame):  # noqa
     raise TimeOutError
 
 
-def task_cancel(signum, frame):  # noqa
-    # type: (int, typing.Any) -> None
-    """ Task cancel signal handler.
+def task_cancel(signum: int, frame: typing.Any) -> None:
+    """Task cancel signal handler.
 
     Do not remove the parameters.
 
@@ -123,6 +120,5 @@ class DDSException(Exception):
     Generic DDS exception
     """
 
-    def __init__(self, message):
-        # type: (str) -> None
+    def __init__(self, message: str) -> None:
         super(DDSException, self).__init__(message)

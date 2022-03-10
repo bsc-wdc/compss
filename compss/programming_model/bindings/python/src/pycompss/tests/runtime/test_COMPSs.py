@@ -48,9 +48,7 @@ def test_is_redirected():
     assert (
         something_something
     ), "ERROR: Failed second case of is_redirected. Must return True."
-    assert (
-        is_ok
-    ), "ERROR: Failed third case of is_redirected. Must raise an Exception."
+    assert is_ok, "ERROR: Failed third case of is_redirected. Must raise an Exception."
     # Restore status
     COMPSs._STDOUT = old_stdout
     COMPSs._STDERR = old_stderr

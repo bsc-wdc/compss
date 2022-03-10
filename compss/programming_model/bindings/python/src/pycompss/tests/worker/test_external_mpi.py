@@ -23,6 +23,7 @@ import tempfile
 
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.api.task import task
+
 using_mypy = False
 try:
     from pycompss.worker.external.mpi_executor import main
@@ -131,7 +132,9 @@ def test_external_mpi_worker_increment_task():
                 "#",
                 "$return_0",
                 "null",
-                job2_result + ":d1v2_1599560599402.IT:false:true:" + job2_result,  # noqa: E501
+                job2_result
+                + ":d1v2_1599560599402.IT:false:true:"
+                + job2_result,  # noqa: E501
                 "-",
                 "0",
                 "0",

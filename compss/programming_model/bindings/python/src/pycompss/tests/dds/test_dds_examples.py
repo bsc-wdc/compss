@@ -25,6 +25,4 @@ def test_launch_dds_examples():
 
     current_path = os.path.dirname(os.path.abspath(__file__))
     app = os.path.join(current_path, "dds_examples.py")
-    launch_pycompss_application(
-        app, "main", debug=True, app_name="main"
-    )
+    launch_pycompss_application(app, "main", debug=True, app_name="main")

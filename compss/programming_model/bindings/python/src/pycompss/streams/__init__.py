@@ -16,4 +16,4 @@
 #
 
 # For * imports
-__all__ = ['distro_stream', 'environment']
+__all__ = ["distro_stream", "environment"]

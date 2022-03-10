@@ -29,7 +29,9 @@ import pycompss.runtime.management.COMPSs as COMPSs
 from pycompss.runtime.management.direction import get_compss_direction
 from pycompss.runtime.management.classes import Future
 from pycompss.runtime.management.object_tracker import OT
-from pycompss.runtime.global_args import update_worker_argument_parameter_content  # noqa: E501
+from pycompss.runtime.global_args import (
+    update_worker_argument_parameter_content,
+)
 import pycompss.util.context as context
 from pycompss.util.storages.persistent import is_psco
 from pycompss.util.storages.persistent import get_by_id
@@ -41,20 +43,21 @@ from pycompss.runtime.commons import DICT_TYPE
 # Setup logger
 if __debug__:
     import logging
+
     logger = logging.getLogger(__name__)
 
 
-def wait_on_object(obj, mode):
-    # type: (typing.Any, str) -> object
-    """ Waits on an object.
+def wait_on_object(obj: typing.Any, mode: str) -> typing.Any:
+    """Waits on an object.
 
     :param obj: Object to wait on.
     :param mode: Read or write mode
     :return: An object of "file" type.
     """
     compss_mode = get_compss_direction(mode)
-    if isinstance(obj, Future) or not (isinstance(obj, LIST_TYPE) or
-                                       isinstance(obj, DICT_TYPE)):
+    if isinstance(obj, Future) or not (
+        isinstance(obj, LIST_TYPE) or isinstance(obj, DICT_TYPE)
+    ):
         return _synchronize(obj, compss_mode)
     else:
         if len(obj) == 0:  # FUTURE OBJECT
@@ -64,9 +67,8 @@ def wait_on_object(obj, mode):
             return _wait_on_iterable(obj, compss_mode)
 
 
-def _synchronize(obj, mode):
-    # type: (typing.Any, int) -> typing.Any
-    """ Synchronization function.
+def _synchronize(obj: typing.Any, mode: int) -> typing.Any:
+    """Synchronization function.
 
     This method retrieves the value of a future object.
     Calls the runtime in order to wait for the value and returns it when
@@ -90,9 +92,9 @@ def _synchronize(obj, mode):
         else:
             # file_path is of the form storage://pscoId or
             # file://sys_path_to_file
-            file_path = COMPSs.open_file(app_id,
-                                         "".join(("storage://", str(obj_id))),
-                                         mode)
+            file_path = COMPSs.open_file(
+                app_id, "".join(("storage://", str(obj_id))), mode
+            )
             # TODO: Add switch on protocol (first parameter returned currently ignored)
             _, file_name = file_path.split("://")
             new_obj = get_by_id(file_name)
@@ -113,14 +115,18 @@ def _synchronize(obj, mode):
     compss_file = COMPSs.open_file(app_id, file_name, mode)
 
     # Runtime can return a path or a PSCOId
-    if compss_file.startswith('/'):
+    if compss_file.startswith("/"):
         # If the real filename is null, then return None. The task that
         # produces the output file may have been ignored or cancelled, so its
         # result does not exist.
-        real_file_name = compss_file.split('/')[-1]
+        real_file_name = compss_file.split("/")[-1]
         if real_file_name == "null":
-            print("WARNING: Could not retrieve the object " + str(file_name) +
-                  " since the task that produces it may have been IGNORED or CANCELLED. Please, check the logs. Returning None.")  # noqa: E501
+            print(
+                "WARNING: Could not retrieve the object "
+                + str(file_name)
+                + " since the task that produces it may have been IGNORED or"
+                + "CANCELLED. Please, check the logs. Returning None."
+            )  # noqa: E501
             return None
         new_obj = deserialize_from_file(compss_file)
         COMPSs.close_file(app_id, file_name, mode)
@@ -132,19 +138,18 @@ def _synchronize(obj, mode):
         # So it is necessary to update the parameter with the new object.
         update_worker_argument_parameter_content(obj_name, new_obj)
 
-    if mode == 'r':
+    if mode == "r":
         OT.update_mapping(obj_id, new_obj)
 
-    if mode != 'r':
+    if mode != "r":
         COMPSs.delete_file(app_id, OT.get_file_name(obj_id), False)
         OT.stop_tracking(obj)
 
     return new_obj
 
 
-def _wait_on_iterable(iter_obj, compss_mode):
-    # type: (typing.Any, int) -> typing.Any
-    """ Wait on an iterable object (Recursive).
+def _wait_on_iterable(iter_obj: typing.Any, compss_mode: int) -> typing.Any:
+    """Wait on an iterable object (Recursive).
 
     Currently supports lists and dictionaries (syncs the values).
 
@@ -157,10 +162,11 @@ def _wait_on_iterable(iter_obj, compss_mode):
         return _synchronize(iter_obj, compss_mode)
     else:
         if type(iter_obj) == list:
-            return [_wait_on_iterable(x, compss_mode)
-                    for x in iter_obj]
+            return [_wait_on_iterable(x, compss_mode) for x in iter_obj]
         elif type(iter_obj) == dict:
-            return {_wait_on_iterable(k, compss_mode): _wait_on_iterable(v, compss_mode)
-                    for k, v in iter_obj.items()}
+            return {
+                _wait_on_iterable(k, compss_mode): _wait_on_iterable(v, compss_mode)
+                for k, v in iter_obj.items()
+            }
         else:
             return _synchronize(iter_obj, compss_mode)

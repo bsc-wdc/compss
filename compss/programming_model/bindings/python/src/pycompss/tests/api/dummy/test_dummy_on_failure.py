@@ -18,11 +18,12 @@
 # -*- coding: utf-8 -*-
 
 import pycompss.util.context as context
+
 context.set_pycompss_context(context.OUT_OF_SCOPE)
 
-from pycompss.api.api import compss_wait_on     # noqa
+from pycompss.api.api import compss_wait_on  # noqa
 from pycompss.api.on_failure import on_failure  # noqa
-from pycompss.api.task import Task              # noqa
+from pycompss.api.task import Task  # noqa
 
 
 @on_failure(management="IGNORE")  # NOSONAR

@@ -29,6 +29,7 @@ from sys import getsizeof
 from sys import stderr
 from itertools import chain
 from collections import deque
+
 try:
     from collections import Iterator  # type: ignore
 except ImportError:
@@ -41,9 +42,8 @@ except ImportError:
     pass
 
 
-def _dict_handler(d):
-    # type: (dict) -> Iterator
-    """ Dictionary to dictionary handler converter.
+def _dict_handler(d: dict) -> Iterator:
+    """Dictionary to dictionary handler converter.
 
     :param d: Dictionary.
     :return: Dictionary handler.
@@ -51,9 +51,8 @@ def _dict_handler(d):
     return chain.from_iterable(d.items())
 
 
-def _user_object_handler(d):
-    # type: (typing.Any) -> Iterator
-    """ User object to dictionary handler converter.
+def _user_object_handler(d: typing.Any) -> Iterator:
+    """User object to dictionary handler converter.
 
     :param d: User object.
     :return: Dictionary handler.
@@ -61,9 +60,10 @@ def _user_object_handler(d):
     return chain.from_iterable(d.__dict__.items())
 
 
-def total_sizeof(o, handlers=None, verbose=False):
-    # type: (typing.Any, Iterator, bool) -> int
-    """ Calculate the size of an object.
+def total_sizeof(
+    o: typing.Any, handlers: typing.Optional[Iterator] = None, verbose: bool = False
+) -> int:
+    """Calculate the size of an object.
 
     Returns the approximate memory footprint an object and all of its contents.
     Automatically finds the contents of the following builtin containers and
@@ -77,13 +77,14 @@ def total_sizeof(o, handlers=None, verbose=False):
     :param verbose: Verbose mode [ True | False ] (default: False).
     :return: Total size of the object.
     """
-    all_handlers = {tuple: iter,
-                    list: iter,
-                    deque: iter,
-                    dict: _dict_handler,
-                    set: iter,
-                    frozenset: iter,
-                    }  # type: typing.Dict[typing.Any, typing.Any]
+    all_handlers = {
+        tuple: iter,
+        list: iter,
+        deque: iter,
+        dict: _dict_handler,
+        set: iter,
+        frozenset: iter,
+    }  # type: typing.Dict[typing.Any, typing.Any]
     if type(o) not in all_handlers.keys() and hasattr(o, "__dict__"):
         # It is something else include its __dict__
         all_handlers[type(o)] = _user_object_handler
@@ -92,9 +93,8 @@ def total_sizeof(o, handlers=None, verbose=False):
     seen = set()  # track which object id's have already been seen
     default_size = getsizeof(0)  # estimate sizeof object without __sizeof__
 
-    def sizeof(obj):
-        # type: (typing.Any) -> int
-        """ Calculate the size o the given object in bytes.
+    def sizeof(obj: typing.Any) -> int:
+        """Calculate the size o the given object in bytes.
 
         :param obj: Object to measure
         :return: The object size in bytes

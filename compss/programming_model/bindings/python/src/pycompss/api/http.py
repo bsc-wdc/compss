@@ -42,15 +42,11 @@ from pycompss.util.serialization import serializer
 
 if __debug__:
     import logging
+
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {SERVICE_NAME,
-                       RESOURCE,
-                       REQUEST}
-SUPPORTED_ARGUMENTS = {PAYLOAD,
-                       PAYLOAD_TYPE,
-                       PRODUCES,
-                       UPDATES}
+MANDATORY_ARGUMENTS = {SERVICE_NAME, RESOURCE, REQUEST}
+SUPPORTED_ARGUMENTS = {PAYLOAD, PAYLOAD_TYPE, PRODUCES, UPDATES}
 DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 
 
@@ -60,9 +56,8 @@ class HTTP(object):
     __call__ methods, useful on mpi task creation.
     """
 
-    def __init__(self, *args, **kwargs):
-        # type: (*typing.Any, **typing.Any) -> None
-        """ Store arguments passed to the decorator.
+    def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
+        """Store arguments passed to the decorator.
 
         self = itself.
         args = not used.
@@ -82,30 +77,31 @@ class HTTP(object):
         self.task_type = "http"
         if self.scope:
             # Check the arguments
-            check_arguments(MANDATORY_ARGUMENTS,
-                            DEPRECATED_ARGUMENTS,
-                            SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
-                            list(kwargs.keys()),
-                            decorator_name)
+            check_arguments(
+                MANDATORY_ARGUMENTS,
+                DEPRECATED_ARGUMENTS,
+                SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
+                list(kwargs.keys()),
+                decorator_name,
+            )
 
-    def __call__(self, user_function):
-        # type: (typing.Callable) -> typing.Callable
-        """ Parse and set the http parameters within the task core element.
+    def __call__(self, user_function: typing.Callable) -> typing.Callable:
+        """Parse and set the http parameters within the task core element.
 
         :param user_function: Function to decorate.
         :return: Decorated function.
         """
 
         @wraps(user_function)
-        def http_f(*args, **kwargs):
-            # type: (*typing.Any, **typing.Any) -> typing.Any
+        def http_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             return self.__decorator_body__(user_function, args, kwargs)
 
         http_f.__doc__ = user_function.__doc__
         return http_f
 
-    def __decorator_body__(self, user_function, args, kwargs):
-        # type: (typing.Callable, tuple, dict) -> typing.Any
+    def __decorator_body__(
+        self, user_function: typing.Callable, args: tuple, kwargs: dict
+    ) -> typing.Any:
         # force to serialize with JSON
         serializer.FORCED_SERIALIZER = 4
         if not self.scope:
@@ -115,8 +111,9 @@ class HTTP(object):
         if __debug__:
             logger.debug("Executing http_f wrapper.")
 
-        if (context.in_master() or context.is_nesting_enabled()) \
-                and not self.core_element_configured:
+        if (
+            context.in_master() or context.is_nesting_enabled()
+        ) and not self.core_element_configured:
             # master code - or worker with nesting enabled
             self.__configure_core_element__(kwargs)
 
@@ -126,9 +123,8 @@ class HTTP(object):
 
         return ret
 
-    def __run_http__(self, *args, **kwargs):
-        # type: (*typing.Any, **typing.Any) -> int
-        """ HTTP tasks are meant to be dummy.
+    def __run_http__(self, *args: typing.Any, **kwargs: typing.Any) -> int:
+        """HTTP tasks are meant to be dummy.
 
         :param args: Arguments received from call.
         :param kwargs: Keyword arguments received from call.
@@ -137,9 +133,8 @@ class HTTP(object):
         print("running http")
         return 200
 
-    def __configure_core_element__(self, kwargs):
-        # type: (dict) -> None
-        """ Include the registering info related to @http.
+    def __configure_core_element__(self, kwargs: dict) -> None:
+        """Include the registering info related to @http.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 
@@ -149,13 +144,15 @@ class HTTP(object):
         if __debug__:
             logger.debug("Configuring @http core element.")
         impl_type = "HTTP"
-        impl_args = [self.kwargs["service_name"],
-                     self.kwargs["resource"],
-                     self.kwargs["request"],
-                     self.kwargs.get("payload", '#'),
-                     self.kwargs.get("payload_type", "application/json"),
-                     self.kwargs.get("produces", '#'),
-                     self.kwargs.get("updates", '#')]
+        impl_args = [
+            self.kwargs["service_name"],
+            self.kwargs["resource"],
+            self.kwargs["request"],
+            self.kwargs.get("payload", "#"),
+            self.kwargs.get("payload_type", "application/json"),
+            self.kwargs.get("produces", "#"),
+            self.kwargs.get("updates", "#"),
+        ]
 
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator

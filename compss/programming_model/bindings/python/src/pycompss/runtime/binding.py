@@ -39,6 +39,7 @@ from pycompss.runtime.task.core_element import CE
 from pycompss.runtime.commons import LIST_TYPE
 from pycompss.util.exceptions import PyCOMPSsException
 import pycompss.util.context as context
+
 # Tracing imports
 from pycompss.util.tracing.helpers import enable_trace_master
 from pycompss.util.tracing.helpers import event_master
@@ -66,6 +67,7 @@ from pycompss.runtime.constants import WALL_CLOCK_LIMIT_EVENT
 
 if __debug__:
     import logging
+
     logger = logging.getLogger(__name__)
 
 object_conversion = False
@@ -75,22 +77,24 @@ object_conversion = False
 # ############ FUNCTIONS THAT COMMUNICATE WITH THE RUNTIME ################## #
 # ########################################################################### #
 
-def start_runtime(log_level="off", tracing=0, interactive=False):
-    # type: (str, int, bool) -> None
-    """ Starts the COMPSs runtime.
+
+def start_runtime(
+    log_level: str = "off", tracing: bool = False, interactive: bool = False
+) -> None:
+    """Starts the COMPSs runtime.
 
     Starts the runtime by calling the external python library that calls
     the bindings-common.
 
     :param log_level: Log level [ "trace" | "debug" | "info" | "api" | "off" ].
-    :param tracing: Tracing level [0 (deactivated) | 1 (basic) | 2 (advanced)].
+    :param tracing: Tracing level [ True | False ].
     :param interactive: Boolean if interactive (ipython or jupyter).
     :return: None
     """
     if __debug__:
         logger.info("Starting COMPSs...")
 
-    if tracing > 0 and not interactive:
+    if tracing and not interactive:
         # Enabled only if not interactive - extrae issues within jupyter.
         enable_trace_master()
 
@@ -112,9 +116,8 @@ def start_runtime(log_level="off", tracing=0, interactive=False):
         logger.info("COMPSs started")
 
 
-def stop_runtime(code=0, hard_stop=False):
-    # type: (int, bool) -> None
-    """ Stops the COMPSs runtime.
+def stop_runtime(code: int = 0, hard_stop: bool = False) -> None:
+    """Stops the COMPSs runtime.
 
     Stops the runtime by calling the external python library that calls
     the bindings-common.
@@ -164,9 +167,8 @@ def stop_runtime(code=0, hard_stop=False):
             logger.info("COMPSs stopped")
 
 
-def accessed_file(file_name):
-    # type: (str) -> bool
-    """ Check if the file has been accessed.
+def accessed_file(file_name: str) -> bool:
+    """Check if the file has been accessed.
 
     Calls the external python library (that calls the bindings-common)
     in order to check if a file has been accessed.
@@ -184,9 +186,8 @@ def accessed_file(file_name):
             return COMPSs.accessed_file(app_id, file_name)
 
 
-def open_file(file_name, mode):
-    # type: (str, str) -> str
-    """ Opens a file (retrieves if necessary).
+def open_file(file_name: str, mode: str) -> str:
+    """Opens a file (retrieves if necessary).
 
     Calls the external python library (that calls the bindings-common)
     in order to request a file.
@@ -207,9 +208,8 @@ def open_file(file_name, mode):
         return compss_name
 
 
-def delete_file(file_name):
-    # type: (str) -> bool
-    """ Remove a file.
+def delete_file(file_name: str) -> bool:
+    """Remove a file.
 
     Calls the external python library (that calls the bindings-common)
     in order to request a file removal.
@@ -230,9 +230,8 @@ def delete_file(file_name):
         return result
 
 
-def get_file(file_name):
-    # type: (str) -> None
-    """ Retrieve a file.
+def get_file(file_name: str) -> None:
+    """Retrieve a file.
 
     Calls the external python library (that calls the bindings-common)
     in order to request last version of file.
@@ -247,9 +246,8 @@ def get_file(file_name):
         COMPSs.get_file(app_id, file_name)
 
 
-def get_directory(dir_name):
-    # type: (str) -> None
-    """ Retrieve a directory.
+def get_directory(dir_name: str) -> None:
+    """Retrieve a directory.
 
     Calls the external python library (that calls the bindings-common)
     in order to request last version of file.
@@ -264,9 +262,8 @@ def get_directory(dir_name):
         COMPSs.get_directory(app_id, dir_name)
 
 
-def delete_object(obj):
-    # type: (object) -> bool
-    """ Remove object.
+def delete_object(obj: typing.Any) -> bool:
+    """Remove object.
 
     Removes a used object from the internal structures and calls the
     external python library (that calls the bindings-common)
@@ -291,9 +288,8 @@ def delete_object(obj):
             return True
 
 
-def barrier(no_more_tasks=False):
-    # type: (bool) -> None
-    """ Wait for all submitted tasks.
+def barrier(no_more_tasks: bool = False) -> None:
+    """Wait for all submitted tasks.
 
     Calls the external python library (that calls the bindings-common)
     in order to request a barrier.
@@ -314,9 +310,8 @@ def barrier(no_more_tasks=False):
         COMPSs.barrier(app_id, no_more_tasks)
 
 
-def nested_barrier():
-    # type: () -> None
-    """ Wait for all submitted tasks within nested task.
+def nested_barrier() -> None:
+    """Wait for all submitted tasks within nested task.
 
     Calls the external python library (that calls the bindings-common)
     in order to request a barrier.
@@ -339,9 +334,8 @@ def nested_barrier():
         COMPSs.barrier(0, True)
 
 
-def barrier_group(group_name):
-    # type: (str) -> str
-    """ Wait for all tasks of the given group.
+def barrier_group(group_name: str) -> str:
+    """Wait for all tasks of the given group.
 
     Calls the external python library (that calls the bindings-common)
     in order to request a barrier of a group.
@@ -355,9 +349,8 @@ def barrier_group(group_name):
         return str(COMPSs.barrier_group(app_id, group_name))
 
 
-def open_task_group(group_name, implicit_barrier):
-    # type: (str, bool) -> None
-    """ Open task group.
+def open_task_group(group_name: str, implicit_barrier: bool) -> None:
+    """Open task group.
 
     Calls the external python library (that calls the bindings-common)
     in order to request an opening of a group.
@@ -371,9 +364,8 @@ def open_task_group(group_name, implicit_barrier):
         COMPSs.open_task_group(group_name, implicit_barrier, app_id)
 
 
-def close_task_group(group_name):
-    # type: (str) -> None
-    """ Close task group.
+def close_task_group(group_name: str) -> None:
+    """Close task group.
 
     Calls the external python library (that calls the bindings-common)
     in order to request a group closure.
@@ -386,9 +378,8 @@ def close_task_group(group_name):
         COMPSs.close_task_group(group_name, app_id)
 
 
-def get_log_path():
-    # type: () -> str
-    """ Get logging path.
+def get_log_path() -> str:
+    """Get logging path.
 
     Requests the logging path to the external python library (that calls
     the bindings-common).
@@ -404,9 +395,8 @@ def get_log_path():
         return log_path
 
 
-def get_number_of_resources():
-    # type: () -> int
-    """ Get the number of resources.
+def get_number_of_resources() -> int:
+    """Get the number of resources.
 
     Calls the external python library (that calls the bindings-common)
     in order to request for the number of active resources.
@@ -422,9 +412,8 @@ def get_number_of_resources():
         return COMPSs.get_number_of_resources(app_id)
 
 
-def request_resources(num_resources, group_name):
-    # type: (int, str) -> None
-    """ Request new resources.
+def request_resources(num_resources: int, group_name: str) -> None:
+    """Request new resources.
 
     Calls the external python library (that calls the bindings-common)
     in order to request for the creation of the given resources.
@@ -438,18 +427,19 @@ def request_resources(num_resources, group_name):
         if group_name is None:
             group_name = "NULL"
         if __debug__:
-            logger.debug("Request the creation of " +
-                         str(num_resources) +
-                         " resources with notification to task group " +
-                         str(group_name))
+            logger.debug(
+                "Request the creation of "
+                + str(num_resources)
+                + " resources with notification to task group "
+                + str(group_name)
+            )
 
         # Call the Runtime
         COMPSs.request_resources(app_id, num_resources, group_name)
 
 
-def free_resources(num_resources, group_name):
-    # type: (int, str) -> None
-    """ Liberate resources.
+def free_resources(num_resources: int, group_name: str) -> None:
+    """Liberate resources.
 
     Calls the external python library (that calls the bindings-common)
     in order to request for the destruction of the given resources.
@@ -463,18 +453,19 @@ def free_resources(num_resources, group_name):
         if group_name is None:
             group_name = "NULL"
         if __debug__:
-            logger.debug("Request the destruction of " +
-                         str(num_resources) +
-                         " resources with notification to task group " +
-                         str(group_name))
+            logger.debug(
+                "Request the destruction of "
+                + str(num_resources)
+                + " resources with notification to task group "
+                + str(group_name)
+            )
 
         # Call the Runtime
         COMPSs.free_resources(app_id, num_resources, group_name)
 
 
-def set_wall_clock(wall_clock_limit):
-    # type: (int) -> None
-    """ Sets the application wall clock limit.
+def set_wall_clock(wall_clock_limit: int) -> None:
+    """Sets the application wall clock limit.
 
     :param wall_clock_limit: Wall clock limit in seconds.
     :return: None
@@ -482,8 +473,7 @@ def set_wall_clock(wall_clock_limit):
     with event_master(WALL_CLOCK_LIMIT_EVENT):
         app_id = 0
         if __debug__:
-            logger.debug("Set a wall clock limit of " +
-                         str(wall_clock_limit))
+            logger.debug("Set a wall clock limit of " + str(wall_clock_limit))
 
         # Activate wall clock limit alarm
         signal.signal(signal.SIGALRM, _wall_clock_exceed)
@@ -493,9 +483,8 @@ def set_wall_clock(wall_clock_limit):
         COMPSs.set_wall_clock(app_id, wall_clock_limit)
 
 
-def register_ce(core_element):  # noqa
-    # type: (CE) -> None
-    """ Register a core element.
+def register_ce(core_element: CE) -> None:
+    """Register a core element.
 
     Calls the external python library (that calls the bindings-common)
     in order to notify the runtime about a core element that needs to be
@@ -608,35 +597,37 @@ def register_ce(core_element):  # noqa
             elif isinstance(value, str):
                 val = value
             elif isinstance(value, list):
-                val = str(value).replace('\'', '')
+                val = str(value).replace("'", "")
             else:
-                raise PyCOMPSsException("Implementation constraints items must be str, int or list.")
-            kv_constraint = "".join((key, ':', str(val), ';'))
+                raise PyCOMPSsException(
+                    "Implementation constraints items must be str, int or list."
+                )
+            kv_constraint = "".join((key, ":", str(val), ";"))
             impl_constraints_lst.append(kv_constraint)
         impl_constraints_str = "".join(impl_constraints_lst)
 
         if __debug__:
-            logger.debug("\t - Implementation constraints: %s" %
-                         impl_constraints_str)
-            logger.debug("\t - Implementation type: %s" %
-                         impl_type)
-            logger.debug("\t - Implementation type arguments: %s" %
-                         " ".join(impl_type_args))
+            logger.debug("\t - Implementation constraints: %s" % impl_constraints_str)
+            logger.debug("\t - Implementation type: %s" % impl_type)
+            logger.debug(
+                "\t - Implementation type arguments: %s" % " ".join(impl_type_args)
+            )
 
         # Call runtime with the appropriate parameters
-        COMPSs.register_core_element(ce_signature,
-                                     impl_signature,
-                                     impl_constraints_str,
-                                     impl_type,
-                                     impl_io,
-                                     impl_type_args)
+        COMPSs.register_core_element(
+            ce_signature,
+            impl_signature,
+            impl_constraints_str,
+            impl_type,
+            impl_io,
+            impl_type_args,
+        )
         if __debug__:
             logger.debug("CE with signature %s registered." % ce_signature)
 
 
-def wait_on(*args, **kwargs):
-    # type: (*typing.Any, **typing.Any) -> typing.Any
-    """ Wait on a set of objects.
+def wait_on(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
+    """Wait on a set of objects.
 
     Waits on a set of objects defined in args with the options defined in
     kwargs.
@@ -659,9 +650,8 @@ def wait_on(*args, **kwargs):
             return __wait_on__(*args, **kwargs)
 
 
-def __wait_on__(*args, **kwargs):
-    # type: (*typing.Any, **typing.Any) -> typing.Any
-    """ Wait on a set of objects.
+def __wait_on__(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
+    """Wait on a set of objects.
 
     Waits on a set of objects defined in args with the options defined in
     kwargs.
@@ -670,8 +660,7 @@ def __wait_on__(*args, **kwargs):
     :param kwargs: Options: Write enable? [True | False] Default = True.
     :return: Real value of the objects requested.
     """
-    ret = list(map(wait_on_object, args,
-                   [kwargs.get("mode", "rw")] * len(args)))
+    ret = list(map(wait_on_object, args, [kwargs.get("mode", "rw")] * len(args)))
     if len(ret) == 1:
         ret_lst = ret[0]
     else:
@@ -685,29 +674,30 @@ def __wait_on__(*args, **kwargs):
     return ret_lst
 
 
-def process_task(signature,             # type: str
-                 has_target,            # type: bool
-                 names,                 # type: list
-                 values,                # type: list
-                 num_returns,           # type: int
-                 compss_types,          # type: list
-                 compss_directions,     # type: list
-                 compss_streams,        # type: list
-                 compss_prefixes,       # type: list
-                 content_types,         # type: list
-                 weights,               # type: list
-                 keep_renames,          # type: list
-                 has_priority,          # type: bool
-                 num_nodes,             # type: int
-                 reduction,             # type: bool
-                 chunk_size,            # type: int
-                 replicated,            # type: bool
-                 distributed,           # type: bool
-                 on_failure,            # type: str
-                 time_out,              # type: int
-                 is_http=False          # type: bool
-                 ):                     # type: (...) -> None
-    """ Submit a task to the runtime.
+def process_task(
+    signature: str,
+    has_target: bool,
+    names: list,
+    values: list,
+    num_returns: int,
+    compss_types: list,
+    compss_directions: list,
+    compss_streams: list,
+    compss_prefixes: list,
+    content_types: list,
+    weights: list,
+    keep_renames: list,
+    has_priority: bool,
+    num_nodes: int,
+    reduction: bool,
+    chunk_size: int,
+    replicated: bool,
+    distributed: bool,
+    on_failure: str,
+    time_out: int,
+    is_http: bool = False,
+) -> None:
+    """Submit a task to the runtime.
 
     :param signature: Task signature
     :param has_target: Boolean if the task has self
@@ -770,9 +760,16 @@ def process_task(signature,             # type: str
 
         # Check that there is the same amount of values as their types, as well
         # as their directions, streams and prefixes.
-        assert (len(values) == len(compss_types) == len(compss_directions) ==
-                len(compss_streams) == len(compss_prefixes) ==
-                len(content_types) == len(weights) == len(keep_renames))
+        assert (
+            len(values)
+            == len(compss_types)
+            == len(compss_directions)
+            == len(compss_streams)
+            == len(compss_prefixes)
+            == len(content_types)
+            == len(weights)
+            == len(keep_renames)
+        )
 
         # Submit task to the runtime (call to the C extension):
         # Parameters:
@@ -806,49 +803,53 @@ def process_task(signature,             # type: str
         #
 
         if not is_http:
-            COMPSs.process_task(app_id,
-                                signature,
-                                on_failure,
-                                time_out,
-                                has_priority,
-                                num_nodes,
-                                reduction,
-                                chunk_size,
-                                replicated,
-                                distributed,
-                                has_target,
-                                num_returns,
-                                values,
-                                names,
-                                compss_types,
-                                compss_directions,
-                                compss_streams,
-                                compss_prefixes,
-                                content_types,
-                                weights,
-                                keep_renames)
+            COMPSs.process_task(
+                app_id,
+                signature,
+                on_failure,
+                time_out,
+                has_priority,
+                num_nodes,
+                reduction,
+                chunk_size,
+                replicated,
+                distributed,
+                has_target,
+                num_returns,
+                values,
+                names,
+                compss_types,
+                compss_directions,
+                compss_streams,
+                compss_prefixes,
+                content_types,
+                weights,
+                keep_renames,
+            )
         else:
-            COMPSs.process_http_task(app_id,
-                                     signature,
-                                     on_failure,
-                                     time_out,
-                                     has_priority,
-                                     num_nodes,
-                                     reduction,
-                                     chunk_size,
-                                     replicated,
-                                     distributed,
-                                     has_target,
-                                     num_returns,
-                                     values,
-                                     names,
-                                     compss_types,
-                                     compss_directions,
-                                     compss_streams,
-                                     compss_prefixes,
-                                     content_types,
-                                     weights,
-                                     keep_renames)
+            COMPSs.process_http_task(
+                app_id,
+                signature,
+                on_failure,
+                time_out,
+                has_priority,
+                num_nodes,
+                reduction,
+                chunk_size,
+                replicated,
+                distributed,
+                has_target,
+                num_returns,
+                values,
+                names,
+                compss_types,
+                compss_directions,
+                compss_streams,
+                compss_prefixes,
+                content_types,
+                weights,
+                keep_renames,
+            )
 
 
 # ########################################################################### #
@@ -856,9 +857,8 @@ def process_task(signature,             # type: str
 # ########################################################################### #
 
 
-def _clean_objects(hard_stop=False):
-    # type: (bool) -> None
-    """ Clean all objects.
+def _clean_objects(hard_stop: bool = False) -> None:
+    """Clean all objects.
 
     Clean the objects stored in the global dictionaries:
         - pending_to_synchronize dict.
@@ -876,9 +876,8 @@ def _clean_objects(hard_stop=False):
     OT.clean_object_tracker()
 
 
-def _clean_temps():
-    # type: () -> None
-    """ Clean temporary files.
+def _clean_temps() -> None:
+    """Clean temporary files.
 
     The temporary files end with the IT extension.
 
@@ -888,13 +887,12 @@ def _clean_temps():
     rmtree(temp_directory, True)
     cwd = os.getcwd()
     for f in os.listdir(cwd):
-        if re.search(r'd\d+v\d+_\d+\.IT', f):  # NOSONAR
+        if re.search(r"d\d+v\d+_\d+\.IT", f):  # NOSONAR
             os.remove(os.path.join(cwd, f))
 
 
-def _wall_clock_exceed(signum, frame):
-    # type: (int, typing.Any) -> None
-    """ Task wall clock exceeded action: raise PyCOMPSs exception.
+def _wall_clock_exceed(signum: int, frame: typing.Any) -> None:
+    """Task wall clock exceeded action: raise PyCOMPSs exception.
 
     Do not remove the parameters.
 

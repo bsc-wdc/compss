@@ -54,13 +54,13 @@ def test_methods():
 
     data = list(range(10))
 
-    dds = DDS().load(data).map(lambda x: x*2).collect()
+    dds = DDS().load(data).map(lambda x: x * 2).collect()
     assert 18 in dds
 
     unified = DDS().load(data).union(DDS().load(data)).collect()
     assert len(unified) == 20
 
-    dds = DDS().load(data).flat_map(lambda x: [x, x*2]).collect()
+    dds = DDS().load(data).flat_map(lambda x: [x, x * 2]).collect()
     assert 18 in dds
 
     dds = DDS().load(data).filter(lambda x: x > 5).collect()
@@ -72,9 +72,13 @@ def test_methods():
     dds = DDS().load(data).flat_map(lambda x: list(range(x)))
     assert dds.count_by_value().get(0, 0) == 9
 
-    dds = DDS().load([("a", 1), ("b", 3)])\
-        .join(DDS().load([("a", 2), ("b", 4)])).collect()
-    assert ('a', (1, 2)) in dds
+    dds = (
+        DDS()
+        .load([("a", 1), ("b", 3)])
+        .join(DDS().load([("a", 2), ("b", 4)]))
+        .collect()
+    )
+    assert ("a", (1, 2)) in dds
 
     dds = DDS().load(data).take(4)
     assert len(dds) == 4
@@ -83,20 +87,24 @@ def test_methods():
 def test_k_v_operations():
 
     data = list(range(10))
-    dds = DDS().load(data).map(lambda x: (x, x*2))\
-        .map_values(lambda x: x/2).collect()
+    dds = (
+        DDS().load(data).map(lambda x: (x, x * 2)).map_values(lambda x: x / 2).collect()
+    )
     for i in dds:
         assert i[0] == i[1]
 
-    dds = DDS().load(data, num_of_parts=2).map(lambda x: (x, x))\
-        .partition_by(lambda x: x % 2).collect(keep_partitions=True)
+    dds = (
+        DDS()
+        .load(data, num_of_parts=2)
+        .map(lambda x: (x, x))
+        .partition_by(lambda x: x % 2)
+        .collect(keep_partitions=True)
+    )
     for i in range(5):
-        assert abs(dds[0][i][0]-dds[1][i][0]) == 1
+        assert abs(dds[0][i][0] - dds[1][i][0]) == 1
 
-    dds = DDS().load([('a', [1, 2]), ('b', [1])])\
-        .flatten_by_key(lambda x: x).collect()
+    dds = DDS().load([("a", [1, 2]), ("b", [1])]).flatten_by_key(lambda x: x).collect()
     assert len(dds) == 3
 
-    dds = DDS().load([("z", 1), ("b", 3), ("a", 1), ("c", 3)])\
-        .sort_by_key().collect()
-    assert dds[0][0] == 'a'
+    dds = DDS().load([("z", 1), ("b", 3), ("a", 1), ("c", 3)]).sort_by_key().collect()
+    assert dds[0][0] == "a"

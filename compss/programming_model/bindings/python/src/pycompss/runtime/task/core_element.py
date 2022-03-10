@@ -29,17 +29,24 @@ from pycompss.util.typing_helper import typing
 
 class CE(object):
 
-    __slots__ = ["ce_signature", "impl_signature", "impl_constraints",
-                 "impl_type", "impl_io", "impl_type_args"]
+    __slots__ = [
+        "ce_signature",
+        "impl_signature",
+        "impl_constraints",
+        "impl_type",
+        "impl_io",
+        "impl_type_args",
+    ]
 
-    def __init__(self,
-                 ce_signature="",        # type: str
-                 impl_signature="",      # type: str
-                 impl_constraints=None,  # type: typing.Dict[str, str]
-                 impl_type=None,         # type: typing.Optional[str]
-                 impl_io=False,          # type: bool
-                 impl_type_args=None,    # type: typing.List[str]
-                 ):                      # type: (...) -> None
+    def __init__(
+        self,
+        ce_signature: str = "",
+        impl_signature: str = "",
+        impl_constraints: typing.Optional[typing.Dict[str, str]] = None,
+        impl_type: typing.Optional[str] = None,
+        impl_io: bool = False,
+        impl_type_args: typing.Optional[typing.List[str]] = None,
+    ) -> None:
         self.ce_signature = ce_signature
         self.impl_signature = impl_signature
         if impl_constraints is None:
@@ -57,8 +64,7 @@ class CE(object):
     # METHODS #
     ###########
 
-    def reset(self):
-        # type: () -> None
+    def reset(self) -> None:
         self.ce_signature = ""
         self.impl_signature = ""
         self.impl_constraints = dict()
@@ -70,65 +76,52 @@ class CE(object):
     # GETTERS #
     ###########
 
-    def get_ce_signature(self):
-        # type: () -> str
+    def get_ce_signature(self) -> str:
         return self.ce_signature
 
-    def get_impl_signature(self):
-        # type: () -> str
+    def get_impl_signature(self) -> str:
         return self.impl_signature
 
-    def get_impl_constraints(self):
-        # type: () -> typing.Dict[str, str]
+    def get_impl_constraints(self) -> typing.Dict[str, str]:
         return self.impl_constraints
 
-    def get_impl_type(self):
-        # type: () -> typing.Optional[str]
+    def get_impl_type(self) -> typing.Optional[str]:
         return self.impl_type
 
-    def get_impl_io(self):
-        # type: () -> bool
+    def get_impl_io(self) -> bool:
         return self.impl_io
 
-    def get_impl_type_args(self):
-        # type: () -> typing.List[str]
+    def get_impl_type_args(self) -> typing.List[str]:
         return self.impl_type_args
 
     ###########
     # SETTERS #
     ###########
 
-    def set_ce_signature(self, ce_signature):
-        # type: (str) -> None
+    def set_ce_signature(self, ce_signature: str) -> None:
         self.ce_signature = ce_signature
 
-    def set_impl_signature(self, impl_signature):
-        # type: (str) -> None
+    def set_impl_signature(self, impl_signature: str) -> None:
         self.impl_signature = impl_signature
 
-    def set_impl_constraints(self, impl_constraints):
-        # type: (dict) -> None
+    def set_impl_constraints(self, impl_constraints: dict) -> None:
         self.impl_constraints = impl_constraints
 
-    def set_impl_type(self, impl_type):
-        # type: (str) -> None
+    def set_impl_type(self, impl_type: str) -> None:
         self.impl_type = impl_type
 
-    def set_impl_io(self, impl_io):
-        # type: (bool) -> None
+    def set_impl_io(self, impl_io: bool) -> None:
         self.impl_io = impl_io
 
-    def set_impl_type_args(self, impl_type_args):
-        # type: (list) -> None
+    def set_impl_type_args(self, impl_type_args: list) -> None:
         self.impl_type_args = impl_type_args
 
     ##################
     # REPRESENTATION #
     ##################
 
-    def __repr__(self):
-        # type: () -> str
-        """ Builds the element representation as string.
+    def __repr__(self) -> str:
+        """Builds the element representation as string.
 
         :return: The core element representation.
         """

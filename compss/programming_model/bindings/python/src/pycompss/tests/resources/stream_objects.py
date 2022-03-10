@@ -40,8 +40,8 @@ POLLING_OBJECTS = "Polling objects"
 # Model #
 #########
 
-class MyObject(object):
 
+class MyObject(object):
     def __init__(self, name=None, age=None):
         self.name = name
         self.age = age
@@ -56,6 +56,7 @@ class MyObject(object):
 ####################
 # Task definitions #
 ####################
+
 
 @task(ods=STREAM_OUT, sleep=IN)
 def write_objects(ods, sleep):
@@ -111,6 +112,7 @@ def process_object(obj):
 #########
 # TESTS #
 #########
+
 
 def test_produce_consume(num_producers, producer_sleep, num_consumers, consumer_sleep):
     # Create stream

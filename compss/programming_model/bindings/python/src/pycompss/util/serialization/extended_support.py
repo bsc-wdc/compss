@@ -24,12 +24,12 @@ class GeneratorIndicator(object):
     """
     GeneratorIndicator Class
     """
+
     pass
 
 
-def pickle_generator(f_gen, f, serializer):
-    # type: (typing.Any, typing.Any, typing.Any) -> None
-    """ Pickle a generator and store the serialization result in a file.
+def pickle_generator(f_gen: typing.Any, f: str, serializer: typing.Any) -> None:
+    """Pickle a generator and store the serialization result in a file.
 
     :param f_gen: Generator object.
     :param f: Destination file for pickling generator.
@@ -44,9 +44,8 @@ def pickle_generator(f_gen, f, serializer):
     serializer.dump(gen_snapshot, f)
 
 
-def convert_to_generator(lst):
-    # type: (list) -> typing.Generator
-    """ Converts a list into a generator.
+def convert_to_generator(lst: list) -> typing.Generator:
+    """Converts a list into a generator.
 
     :param lst: List to be converted.
     :return: the generator from the list.

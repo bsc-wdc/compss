@@ -29,7 +29,9 @@ from pycompss.streams.types.requests import StreamStatusRequest
 from pycompss.streams.types.requests import BootstrapServerRequest
 from pycompss.streams.types.requests import PollRequest
 from pycompss.streams.types.requests import PublishRequest
-from pycompss.streams.components.distro_stream_client import DistroStreamClientHandler  # noqa: E501
+from pycompss.streams.components.distro_stream_client import (
+    DistroStreamClientHandler,
+)
 
 #
 # Logger definition
@@ -53,9 +55,8 @@ AT_LEAST_ONCE = "AT_LEAST_ONCE"
 POLLING_MSG = "Polling new stream items..."
 
 
-def str2bool(val):
-    # type: (str) -> bool
-    """ Convert string to boolean.
+def str2bool(val: str) -> bool:
+    """Convert string to boolean.
 
     :param val: String to analyse.
     :return: If val means true or false.
@@ -67,6 +68,7 @@ def str2bool(val):
 # Interface definition
 #
 
+
 class DistroStream(object):
     """
     Interface for File and Object Distributed Streams.
@@ -74,42 +76,37 @@ class DistroStream(object):
     Attributes:
     """
 
-    def __init__(self):
-        # type: () -> None
-        """ Creates a new DistroStream instance """
+    def __init__(self) -> None:
+        """Creates a new DistroStream instance"""
         pass
 
     @abstractmethod
-    def get_stream_id(self):
-        # type: () -> str
-        """ Returns the internal stream id.
+    def get_stream_id(self) -> str:
+        """Returns the internal stream id.
 
         :return: The internal stream id (str)
         """
         pass
 
     @abstractmethod
-    def get_stream_alias(self):
-        # type: () -> str
-        """ Returns the internal stream alias.
+    def get_stream_alias(self) -> str:
+        """Returns the internal stream alias.
 
         :return: The internal stream alias (str)
         """
         pass
 
     @abstractmethod
-    def get_stream_type(self):
-        # type: () -> str
-        """ Returns the internal stream type.
+    def get_stream_type(self) -> str:
+        """Returns the internal stream type.
 
         :return: The internal stream type (StreamType)
         """
         pass
 
     @abstractmethod
-    def publish(self, message):
-        # type: (str) -> None
-        """ Publishes the given message on the stream.
+    def publish(self, message: str) -> None:
+        """Publishes the given message on the stream.
 
         :param message: Message to publish.
         :return: None
@@ -117,9 +114,8 @@ class DistroStream(object):
         pass
 
     @abstractmethod
-    def publish_list(self, messages):
-        # type: (list) -> None
-        """ Publishes the given list of messages on the stream.
+    def publish_list(self, messages: list) -> None:
+        """Publishes the given list of messages on the stream.
 
         :param messages: List of messages to publish.
         :return: None
@@ -127,9 +123,8 @@ class DistroStream(object):
         pass
 
     @abstractmethod
-    def poll(self, timeout=0):
-        # type: (int) -> list
-        """ Polls the produced messages.
+    def poll(self, timeout: int = 0) -> list:
+        """Polls the produced messages.
         If there are registered messages, returns immediately. Otherwise,
         waits until a record is produced or the timeout is exceeded.
 
@@ -139,18 +134,16 @@ class DistroStream(object):
         return []
 
     @abstractmethod
-    def close(self):
-        # type: () -> None
-        """ Closes the current stream.
+    def close(self) -> None:
+        """Closes the current stream.
 
         :return: None
         """
         pass
 
     @abstractmethod
-    def is_closed(self):
-        # type: () -> bool
-        """ Returns whether the stream is closed or not.
+    def is_closed(self) -> bool:
+        """Returns whether the stream is closed or not.
 
         :return: True if the stream is closed, False otherwise. (boolean)
         """
@@ -160,6 +153,7 @@ class DistroStream(object):
 #
 # Common Implementation
 #
+
 
 class DistroStreamImpl(DistroStream):
     """
@@ -176,9 +170,13 @@ class DistroStreamImpl(DistroStream):
             + type: ConsumerMode
     """
 
-    def __init__(self, alias=None, stream_type=None,
-                 internal_stream_info=None, access_mode=AT_MOST_ONCE):
-        # type: (typing.Optional[str], typing.Optional[str], typing.Optional[list], str) -> None
+    def __init__(
+        self,
+        alias: typing.Optional[str] = None,
+        stream_type: typing.Optional[str] = None,
+        internal_stream_info: typing.Optional[list] = None,
+        access_mode: str = AT_MOST_ONCE,
+    ) -> None:
         """
         Creates a new DistroStream instance.
 
@@ -200,10 +198,9 @@ class DistroStreamImpl(DistroStream):
         self.access_mode = access_mode
 
         # Retrieve registration id
-        req = RegisterStreamRequest(self.alias,
-                                    self.stream_type,
-                                    self.access_mode,
-                                    internal_stream_info)
+        req = RegisterStreamRequest(
+            self.alias, self.stream_type, self.access_mode, internal_stream_info
+        )
         DistroStreamClientHandler.request(req)
 
         req.wait_processed()
@@ -212,35 +209,28 @@ class DistroStreamImpl(DistroStream):
             raise RegistrationException(error, req.get_error_msg())
         self.id = req.get_response_msg()
 
-    def get_stream_id(self):
-        # type: () -> str
+    def get_stream_id(self) -> str:
         return self.id
 
-    def get_stream_alias(self):
-        # type: () -> str
+    def get_stream_alias(self) -> str:
         return self.alias
 
-    def get_stream_type(self):
-        # type: () -> str
+    def get_stream_type(self) -> str:
         return self.stream_type
 
     @abstractmethod
-    def publish(self, message):
-        # type: (str) -> None
+    def publish(self, message: str) -> None:
         pass
 
     @abstractmethod
-    def publish_list(self, messages):
-        # type: (list) -> None
+    def publish_list(self, messages: list) -> None:
         pass
 
     @abstractmethod
-    def poll(self, timeout=0):
-        # type: (int) -> list
+    def poll(self, timeout: int = 0) -> list:
         return []
 
-    def close(self):
-        # type: () -> None
+    def close(self) -> None:
         if __debug__:
             logger.debug("Closing stream " + str(self.id))
 
@@ -257,8 +247,7 @@ class DistroStreamImpl(DistroStream):
 
         # No need to process the answer message, checking the error is enough.
 
-    def is_closed(self):
-        # type: () -> bool
+    def is_closed(self) -> bool:
         if __debug__:
             logger.debug("Checking if stream " + str(self.id) + " is closed")
 
@@ -280,6 +269,7 @@ class DistroStreamImpl(DistroStream):
 # FileDistroStream definition
 #
 
+
 class FileDistroStream(DistroStreamImpl):
     """
     File Distributed Stream implementation.
@@ -289,8 +279,12 @@ class FileDistroStream(DistroStreamImpl):
             + type: string
     """
 
-    def __init__(self, alias=None, base_dir=None, access_mode=AT_MOST_ONCE):
-        # type: (typing.Optional[str], typing.Optional[str], str) -> None
+    def __init__(
+        self,
+        alias: typing.Optional[str] = None,
+        base_dir: typing.Optional[str] = None,
+        access_mode: str = AT_MOST_ONCE,
+    ) -> None:
         """
         Creates a new FileDistroStream instance.
 
@@ -300,15 +294,16 @@ class FileDistroStream(DistroStreamImpl):
         :raise RegistrationException: When client cannot register the stream
                                       into the server.
         """
-        super(FileDistroStream, self).__init__(alias=alias,
-                                               stream_type=FILE,
-                                               internal_stream_info=[base_dir],
-                                               access_mode=access_mode)
+        super(FileDistroStream, self).__init__(
+            alias=alias,
+            stream_type=FILE,
+            internal_stream_info=[base_dir],
+            access_mode=access_mode,
+        )
         self.base_dir = base_dir
 
-    def publish(self, message):
-        # type: (str) -> None
-        """ Publish message.
+    def publish(self, message: str) -> None:
+        """Publish message.
         Nothing to do since server automatically publishes the written files.
 
         :param message: Message to publish.
@@ -316,9 +311,8 @@ class FileDistroStream(DistroStreamImpl):
         """
         logger.warning("WARN: Unnecessary call on publish on FileDistroStream")
 
-    def publish_list(self, messages):
-        # type: (list) -> None
-        """ Publish message.
+    def publish_list(self, messages: list) -> None:
+        """Publish message.
         Nothing to do since server automatically publishes the written files.
 
         :param messages: List of messages to publish.
@@ -326,9 +320,8 @@ class FileDistroStream(DistroStreamImpl):
         """
         logger.warning("WARN: Unnecessary call on publish on FileDistroStream")
 
-    def poll(self, timeout=0):
-        # type: (int) -> list
-        """ Poll stream.
+    def poll(self, timeout: int = 0) -> list:
+        """Poll stream.
 
         :param timeout: Waiting time.
         :return: List of messages
@@ -359,6 +352,7 @@ class FileDistroStream(DistroStreamImpl):
 # ObjectDistroStream definition
 #
 
+
 class ObjectDistroStream(DistroStreamImpl):
     """
     Object Distributed Stream implementation.
@@ -378,8 +372,7 @@ class ObjectDistroStream(DistroStreamImpl):
     TOPIC_SYSTEM_MESSAGES = "system-messages"
     DEFAULT_KAFKA_TIMEOUT = 200  # ms
 
-    def __init__(self, alias="", access_mode=AT_MOST_ONCE):
-        # type: (str, str) -> None
+    def __init__(self, alias: str = "", access_mode: str = AT_MOST_ONCE) -> None:
         """
         Creates a new ObjectDistroStream instance.
 
@@ -388,52 +381,63 @@ class ObjectDistroStream(DistroStreamImpl):
         :raise RegistrationException: When client cannot register the stream
                                       into the server.
         """
-        super(ObjectDistroStream, self).__init__(alias=alias,
-                                                 stream_type=OBJECT,
-                                                 internal_stream_info=[],
-                                                 access_mode=access_mode)
+        super(ObjectDistroStream, self).__init__(
+            alias=alias,
+            stream_type=OBJECT,
+            internal_stream_info=[],
+            access_mode=access_mode,
+        )
         self.kafka_topic_name = alias
         if alias != "":
-            self.kafka_topic_name = ObjectDistroStream.TOPIC_REGULAR_MESSAGES_PREFIX + "-" + self.id  # noqa: E501
+            self.kafka_topic_name = (
+                ObjectDistroStream.TOPIC_REGULAR_MESSAGES_PREFIX + "-" + self.id
+            )  # noqa: E501
 
         self.bootstrap_server = "None"  # type: str
-        self.publisher = None           # type: typing.Any
-        self.consumer = None            # type: typing.Any
+        self.publisher = None  # type: typing.Any
+        self.consumer = None  # type: typing.Any
 
-    def _register_publisher(self):
-        # type: () -> None
-        """ Register publisher.
+    def _register_publisher(self) -> None:
+        """Register publisher.
 
         :return: None
         """
-        from pycompss.streams.components.objects.kafka_connectors import ODSPublisher  # noqa: E501
+        from pycompss.streams.components.objects.kafka_connectors import (
+            ODSPublisher,
+        )
+
         if self.publisher is None:
             if self.bootstrap_server == "None":
-                self.bootstrap_server = ObjectDistroStream._request_bootstrap_server_info()  # noqa: E501
+                self.bootstrap_server = (
+                    ObjectDistroStream._request_bootstrap_server_info()
+                )  # noqa: E501
 
             logger.info("Creating internal producer...")
             self.publisher = ODSPublisher(self.bootstrap_server)
 
-    def _register_consumer(self):
-        # type: () -> None
-        """ Register consumer.
+    def _register_consumer(self) -> None:
+        """Register consumer.
 
         :return: None
         """
-        from pycompss.streams.components.objects.kafka_connectors import ODSConsumer  # noqa: E501
+        from pycompss.streams.components.objects.kafka_connectors import (
+            ODSConsumer,
+        )
+
         if self.consumer is None:
             if self.bootstrap_server == "None":
-                self.bootstrap_server = ObjectDistroStream._request_bootstrap_server_info()  # noqa: E501
+                self.bootstrap_server = (
+                    ObjectDistroStream._request_bootstrap_server_info()
+                )  # noqa: E501
 
             logger.info("Creating internal consumer...")
-            self.consumer = ODSConsumer(self.bootstrap_server,
-                                        self.kafka_topic_name,
-                                        self.access_mode)
+            self.consumer = ODSConsumer(
+                self.bootstrap_server, self.kafka_topic_name, self.access_mode
+            )
 
     @staticmethod
-    def _request_bootstrap_server_info():
-        # type: () -> str
-        """ Request bootstrap server information.
+    def _request_bootstrap_server_info() -> str:
+        """Request bootstrap server information.
 
         :return: String with the retrieved information.
         """
@@ -454,9 +458,8 @@ class ObjectDistroStream(DistroStreamImpl):
 
         return answer
 
-    def publish(self, message):
-        # type: (str) -> None
-        """ Publish message.
+    def publish(self, message: str) -> None:
+        """Publish message.
 
         :param message: Message to publish.
         :return: None
@@ -466,9 +469,8 @@ class ObjectDistroStream(DistroStreamImpl):
         self.publisher.publish(self.kafka_topic_name, message)
         logger.info("Publishing new object")
 
-    def publish_list(self, messages):
-        # type: (list) -> None
-        """ Publish message.
+    def publish_list(self, messages: list) -> None:
+        """Publish message.
 
         :param messages: List of messages to publish.
         :return: None
@@ -479,9 +481,8 @@ class ObjectDistroStream(DistroStreamImpl):
             self.publisher.publish(self.kafka_topic_name, msg)
         logger.info("Published new List of objects")
 
-    def poll(self, timeout=DEFAULT_KAFKA_TIMEOUT):
-        # type: (int) -> list
-        """ Poll server.
+    def poll(self, timeout: int = DEFAULT_KAFKA_TIMEOUT) -> list:
+        """Poll server.
 
         :param timeout: Maximum waiting time.
         :return: None
@@ -496,6 +497,7 @@ class ObjectDistroStream(DistroStreamImpl):
 # PscoDistroStream definition
 #
 
+
 class PscoDistroStream(DistroStreamImpl):
     """
     PSCO Distributed Stream implementation.
@@ -504,23 +506,23 @@ class PscoDistroStream(DistroStreamImpl):
 
     """
 
-    def __init__(self, alias, access_mode=AT_MOST_ONCE):
-        # type: (str, str) -> None
-        """ Creates a new PscoDistroStream instance.
+    def __init__(self, alias: str, access_mode: str = AT_MOST_ONCE) -> None:
+        """Creates a new PscoDistroStream instance.
 
         :param alias: Stream alias.
         :param access_mode: Stream access mode (ConsumerMode).
         :raise RegistrationException: When client cannot register the stream
                                       into the server.
         """
-        super(PscoDistroStream, self).__init__(alias=alias,
-                                               stream_type=PSCO,
-                                               internal_stream_info=[],
-                                               access_mode=access_mode)
+        super(PscoDistroStream, self).__init__(
+            alias=alias,
+            stream_type=PSCO,
+            internal_stream_info=[],
+            access_mode=access_mode,
+        )
 
-    def publish(self, message):
-        # type: (str) -> None
-        """ Publish message.
+    def publish(self, message: str) -> None:
+        """Publish message.
 
         :param message: Message to publish.
         :return: None
@@ -529,9 +531,8 @@ class PscoDistroStream(DistroStreamImpl):
         self._psco_publish(message)
         logger.info("Publishing new PSCO object")
 
-    def publish_list(self, messages):
-        # type: (list) -> None
-        """ Publish message.
+    def publish_list(self, messages: list) -> None:
+        """Publish message.
 
         :param messages: List of messages to publish.
         :return: None
@@ -541,9 +542,8 @@ class PscoDistroStream(DistroStreamImpl):
             self._psco_publish(msg)
         logger.info("Published new List of PSCOs")
 
-    def _psco_publish(self, psco):
-        # type: (typing.Any) -> None
-        """ Publish message.
+    def _psco_publish(self, psco: typing.Any) -> None:
+        """Publish message.
 
         :param psco: Persistent object to publish.
         :return: None
@@ -553,6 +553,7 @@ class PscoDistroStream(DistroStreamImpl):
             logger.debug("Persisting user PSCO...")
         if psco.getID() is None:
             import uuid
+
             alias = str(uuid.uuid4())
             psco.makePersistent(alias)
         psco_id = psco.getID()
@@ -574,9 +575,8 @@ class PscoDistroStream(DistroStreamImpl):
         if __debug__:
             logger.debug("Publish stream answer: " + str(answer))
 
-    def poll(self, timeout=0):
-        # type: (int) -> list
-        """ Poll server.
+    def poll(self, timeout: int = 0) -> list:
+        """Poll server.
 
         :param timeout: Maximum waiting time.
         :return: None
@@ -599,6 +599,7 @@ class PscoDistroStream(DistroStreamImpl):
             logger.debug("Retrieved stream items: " + str(info))
 
         from pycompss.util.storages.persistent import get_by_id
+
         retrieved_pscos = []
         if info is not None and info and info != "null":
             for psco_id in info.split():
@@ -611,11 +612,12 @@ class PscoDistroStream(DistroStreamImpl):
 # Exception Class
 #
 
-class RegistrationException(Exception):
 
-    def __init__(self, code=None, message=None):
-        # type: (int, str) -> None
-        """ Creates a new RegistrationException instance.
+class RegistrationException(Exception):
+    def __init__(
+        self, code: typing.Optional[int] = None, message: typing.Optional[str] = None
+    ) -> None:
+        """Creates a new RegistrationException instance.
 
         :param code: Internal request error code.
         :param message: Internal request error message.
@@ -623,24 +625,24 @@ class RegistrationException(Exception):
         self.code = code
         self.message = message
 
-    def __str__(self):
-        # type: () -> str
-        """ String representation of the RegistrationException object.
+    def __str__(self) -> str:
+        """String representation of the RegistrationException object.
 
         :return: The string representation
         """
-        s = "ERROR: Registration Exception.\n" \
-            " - Internal error code: %s\n" \
-            " - Internal error message: %s" % (str(self.code),
-                                               str(self.message))
+        s = (
+            "ERROR: Registration Exception.\n"
+            " - Internal error code: %s\n"
+            " - Internal error message: %s" % (str(self.code), str(self.message))
+        )
         return s
 
 
 class BackendException(Exception):
-
-    def __init__(self, code=None, message=None):
-        # type: (int, str) -> None
-        """ Creates a new BackendException instance.
+    def __init__(
+        self, code: typing.Optional[int] = None, message: typing.Optional[str] = None
+    ) -> None:
+        """Creates a new BackendException instance.
 
         :param code: Internal request error code.
         :param message: Internal request error message.
@@ -648,14 +650,14 @@ class BackendException(Exception):
         self.code = code
         self.message = message
 
-    def __str__(self):
-        # type: () -> str
-        """ String representation of the BackendException object.
+    def __str__(self) -> str:
+        """String representation of the BackendException object.
 
         :return: The string representation
         """
-        s = "ERROR: Backend Exception.\n" \
-            " - Internal error code: %s\n" \
-            " - Internal error message: %s" % (str(self.code),
-                                               str(self.message))
+        s = (
+            "ERROR: Backend Exception.\n"
+            " - Internal error code: %s\n"
+            " - Internal error message: %s" % (str(self.code), str(self.message))
+        )
         return s

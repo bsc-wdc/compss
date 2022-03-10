@@ -30,9 +30,14 @@ from pycompss.functions.data_tasks import gen_normal as _gen_normal
 from pycompss.functions.data_tasks import gen_uniform as _gen_uniform
 
 
-def generator(size, num_frag, seed=0, distribution="random", wait=False):
-    # type: (typing.Tuple[int, int], int, int, str, bool) -> typing.Any
-    """ Data generator.
+def generator(
+    size: typing.Tuple[int, int],
+    num_frag: int,
+    seed: int = 0,
+    distribution: str = "random",
+    wait: bool = False,
+) -> typing.Any:
+    """Data generator.
 
     Generates a list of fragments.
 
@@ -46,23 +51,22 @@ def generator(size, num_frag, seed=0, distribution="random", wait=False):
     data = None
     frag_size = int(size[0] / num_frag)
     if distribution == "random":
-        data = [_gen_random(size[1], frag_size, seed)
-                for _ in range(num_frag)]
+        data = [_gen_random(size[1], frag_size, seed) for _ in range(num_frag)]
     elif distribution == "normal":
-        data = [_gen_normal(size[1], frag_size, seed)
-                for _ in range(num_frag)]
+        data = [_gen_normal(size[1], frag_size, seed) for _ in range(num_frag)]
     elif distribution == "uniform":
-        data = [_gen_uniform(size[1], frag_size, seed)
-                for _ in range(num_frag)]
+        data = [_gen_uniform(size[1], frag_size, seed) for _ in range(num_frag)]
     if wait:
         from pycompss.api.api import compss_wait_on
+
         data = compss_wait_on(data)
     return data
 
 
-def chunks(lst, n, balanced=False):
-    # type: (list, int, bool) -> typing.Iterator[typing.List[int]]
-    """ List splitter into fragments.
+def chunks(
+    lst: list, n: int, balanced: bool = False
+) -> typing.Iterator[typing.List[int]]:
+    """List splitter into fragments.
 
     WARNING: Not tested!
 
@@ -73,13 +77,13 @@ def chunks(lst, n, balanced=False):
     """
     if not balanced or not len(lst) % n:
         for i in range(0, len(lst), n):
-            yield lst[i:i + n]
+            yield lst[i : i + n]
     else:
         rest = len(lst) % n
         start = 0
         while rest:
-            yield lst[start: start + n + 1]
+            yield lst[start : start + n + 1]
             rest -= 1
             start += n + 1
         for i in range(start, len(lst), n):
-            yield lst[i:i + n]
+            yield lst[i : i + n]

@@ -67,18 +67,16 @@ CACHE_IDS = None
 CACHE_QUEUE = None
 
 
-def is_worker():
-    # type: () -> bool
-    """ Returns whether the process should act as a worker.
+def is_worker() -> bool:
+    """Returns whether the process should act as a worker.
 
     :return: the process should act as a worker.
     """
     return RANK == 0
 
 
-def shutdown_handler(signal, frame):  # noqa
-    # type: (int, typing.Any) -> None
-    """ Shutdown handler.
+def shutdown_handler(signal: int, frame: typing.Any) -> None:
+    """Shutdown handler.
 
     Do not remove the parameters.
 
@@ -92,9 +90,8 @@ def shutdown_handler(signal, frame):  # noqa
         print("[PYTHON EXECUTOR %s] Shutdown signal handler" % RANK)
 
 
-def user_signal_handler(signal, frame):  # noqa
-    # type: (int, typing.Any) -> None
-    """ User signal handler.
+def user_signal_handler(signal: int, frame: typing.Any) -> None:
+    """User signal handler.
 
     Do not remove the parameters.
 
@@ -112,9 +109,9 @@ def user_signal_handler(signal, frame):  # noqa
 # Main method
 ######################
 
-def compss_persistent_worker(config):
-    # type: (PiperWorkerConfiguration) -> None
-    """ Persistent worker main function.
+
+def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
+    """Persistent worker main function.
 
     Retrieves the initial configuration and spawns the worker processes.
 
@@ -132,15 +129,15 @@ def compss_persistent_worker(config):
 
     # Set the binding in worker mode
     import pycompss.util.context as context
+
     context.set_pycompss_context(context.WORKER)
 
-    persistent_storage = (config.storage_conf != "null")
+    persistent_storage = config.storage_conf != "null"
 
     logger, _, _, _ = load_loggers(config.debug, persistent_storage)
 
     if __debug__:
-        logger.debug(HEADER + "mpi_piper_worker.py rank: " + str(RANK) +
-                     " wake up")
+        logger.debug(HEADER + "mpi_piper_worker.py rank: " + str(RANK) + " wake up")
         config.print_on_logger(logger)
 
     # Start storage
@@ -149,6 +146,7 @@ def compss_persistent_worker(config):
         if __debug__:
             logger.debug(HEADER + "Starting persistent storage")
         from storage.api import initWorker as initStorageAtWorker  # noqa
+
         initStorageAtWorker(config_file_path=config.storage_conf)
 
     for i in range(0, config.tasks_x_node):
@@ -172,34 +170,37 @@ def compss_persistent_worker(config):
             if line[0] == ADD_EXECUTOR_TAG:
                 in_pipe = line[1]
                 out_pipe = line[2]
-                control_pipe.write(" ".join((ADD_EXECUTOR_FAILED_TAG,
-                                             out_pipe,
-                                             in_pipe,
-                                             str(0))))
+                control_pipe.write(
+                    " ".join((ADD_EXECUTOR_FAILED_TAG, out_pipe, in_pipe, str(0)))
+                )
 
             elif line[0] == REMOVE_EXECUTOR_TAG:
                 in_pipe = line[1]
                 out_pipe = line[2]
                 PROCESSES.pop(in_pipe, None)
-                control_pipe.write(" ".join((REMOVED_EXECUTOR_TAG,
-                                             out_pipe,
-                                             in_pipe)))
+                control_pipe.write(" ".join((REMOVED_EXECUTOR_TAG, out_pipe, in_pipe)))
 
             elif line[0] == QUERY_EXECUTOR_ID_TAG:
                 in_pipe = line[1]
                 out_pipe = line[2]
                 pid = PROCESSES.get(in_pipe)
-                control_pipe.write(" ".join((REPLY_EXECUTOR_ID_TAG,
-                                             out_pipe,
-                                             in_pipe,
-                                             str(pid))))
+                control_pipe.write(
+                    " ".join((REPLY_EXECUTOR_ID_TAG, out_pipe, in_pipe, str(pid)))
+                )
 
             elif line[0] == CANCEL_TASK_TAG:
                 in_pipe = line[1]
                 cancel_pid = str(PROCESSES.get(in_pipe))
                 if __debug__:
-                    logger.debug(HEADER + "Signaling process with PID " + cancel_pid + " to cancel a task")
-                os.kill(int(cancel_pid), signal.SIGUSR2)  # NOSONAR cancellation produced by COMPSs
+                    logger.debug(
+                        HEADER
+                        + "Signaling process with PID "
+                        + cancel_pid
+                        + " to cancel a task"
+                    )
+                os.kill(
+                    int(cancel_pid), signal.SIGUSR2
+                )  # NOSONAR cancellation produced by COMPSs
 
             elif line[0] == PING_TAG:
                 control_pipe.write(PONG_TAG)
@@ -217,6 +218,7 @@ def compss_persistent_worker(config):
         if __debug__:
             logger.debug(HEADER + "Stopping persistent storage")
         from storage.api import finishWorker as finishStorageAtWorker  # noqa
+
         finishStorageAtWorker()
 
     if __debug__:
@@ -226,9 +228,8 @@ def compss_persistent_worker(config):
     control_pipe.close()
 
 
-def compss_persistent_executor(config):
-    # type: (PiperWorkerConfiguration) -> None
-    """ Persistent executor main function.
+def compss_persistent_executor(config: PiperWorkerConfiguration) -> None:
+    """Persistent executor main function.
 
     Retrieves the initial configuration and spawns the worker processes.
 
@@ -244,37 +245,43 @@ def compss_persistent_executor(config):
 
     # Set the binding in worker mode
     import pycompss.util.context as context
+
     context.set_pycompss_context(context.WORKER)
 
-    persistent_storage = (config.storage_conf != "null")
+    persistent_storage = config.storage_conf != "null"
 
-    logger, logger_cfg, storage_loggers, _ = load_loggers(config.debug, persistent_storage)
+    logger, logger_cfg, storage_loggers, _ = load_loggers(
+        config.debug, persistent_storage
+    )
 
     cache_profiler = False
-    if config.cache_profiler.lower() == 'true':
+    if config.cache_profiler.lower() == "true":
         cache_profiler = True
 
     if persistent_storage:
         # Initialize storage
         with event_worker(INIT_STORAGE_AT_WORKER_EVENT):
             from storage.api import initWorker as initStorageAtWorker  # noqa
+
             initStorageAtWorker(config_file_path=config.storage_conf)
 
     process_name = "".join(("Rank-", str(RANK)))
-    conf = ExecutorConf(config.debug,
-                        get_temporary_directory(),
-                        TRACING,
-                        config.storage_conf,
-                        logger,
-                        logger_cfg,
-                        persistent_storage,
-                        storage_loggers,
-                        config.stream_backend,
-                        config.stream_master_name,
-                        config.stream_master_port,
-                        CACHE_IDS,
-                        CACHE_QUEUE,
-                        cache_profiler)
+    conf = ExecutorConf(
+        config.debug,
+        get_temporary_directory(),
+        TRACING,
+        config.storage_conf,
+        logger,
+        logger_cfg,
+        persistent_storage,
+        storage_loggers,
+        config.stream_backend,
+        config.stream_master_name,
+        config.stream_master_port,
+        CACHE_IDS,
+        CACHE_QUEUE,
+        cache_profiler,
+    )
     executor(None, process_name, config.pipes[RANK - 1], conf)
 
     if persistent_storage:
@@ -283,6 +290,7 @@ def compss_persistent_executor(config):
             logger.debug(HEADER + "Stopping persistent storage")
         with event_worker(FINISH_STORAGE_AT_WORKER_EVENT):
             from storage.api import finishWorker as finishStorageAtWorker  # noqa
+
             finishStorageAtWorker()
 
 
@@ -290,9 +298,9 @@ def compss_persistent_executor(config):
 # Main -> Calls main method
 ############################
 
-def main():
-    # type: () -> None
-    """ Main mpi piper worker
+
+def main() -> None:
+    """Main mpi piper worker
 
     :return: None
     """
@@ -302,22 +310,23 @@ def main():
     global CACHE_IDS
     global CACHE_QUEUE
 
-    TRACING = (int(sys.argv[4]) > 0)
+    TRACING = int(sys.argv[4]) > 0
 
     # Enable coverage if performed
     if "COVERAGE_PROCESS_START" in os.environ:
         import coverage
+
         coverage.process_startup()
 
     # Configure the piper worker with the arguments
     WORKER_CONF = PiperWorkerConfiguration()
     WORKER_CONF.update_params(sys.argv)
 
-    persistent_storage = (WORKER_CONF.storage_conf != 'null')
+    persistent_storage = WORKER_CONF.storage_conf != "null"
     _, _, _, log_dir = load_loggers(WORKER_CONF.debug, persistent_storage)
 
     cache_profiler = False
-    if WORKER_CONF.cache_profiler.lower() == 'true':
+    if WORKER_CONF.cache_profiler.lower() == "true":
         cache_profiler = True
 
     if is_worker():
@@ -325,10 +334,9 @@ def main():
         if is_cache_enabled(str(WORKER_CONF.cache)):
             # Deploy the necessary processes
             cache = True
-            cache_params = start_cache(None,
-                                       str(WORKER_CONF.cache),
-                                       cache_profiler,
-                                       log_dir)
+            cache_params = start_cache(
+                None, str(WORKER_CONF.cache), cache_profiler, log_dir
+            )
         else:
             # No cache
             cache = False

@@ -38,15 +38,12 @@ class dummy_mypyc_attr(object):
     Dummy on mypy_attr class (decorator style)
     """
 
-    def __init__(self, *args, **kwargs):
-        # type: (*typing.Any, **typing.Any) -> None
+    def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         self.args = args
         self.kwargs = kwargs
 
-    def __call__(self, f):
-        # type: (typing.Any) -> typing.Any
-        def wrapped_mypyc_attr(*args, **kwargs):
-            # type: (*typing.Any, **typing.Any) -> typing.Any
+    def __call__(self, f: typing.Any) -> typing.Any:
+        def wrapped_mypyc_attr(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             return f(*args, **kwargs)
 
         return wrapped_mypyc_attr
@@ -55,6 +52,7 @@ class dummy_mypyc_attr(object):
 import_ok = True
 try:
     from mypy_extensions import mypyc_attr as real_mypyc_attr
+
     # https://mypyc.readthedocs.io/en/latest/native_classes.html#inheritance
 except ImportError:
     # Dummy mypyc_attr just in case mypy_extensions is not installed
@@ -70,6 +68,6 @@ else:
 # Boilerplate to mimic user fuctions #
 ######################################
 
-def dummy_function():
-    # type: () -> None
+
+def dummy_function() -> None:
     pass

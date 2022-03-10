@@ -37,9 +37,8 @@ CONFIG_FUNC = config.dictConfig
 CONFIGS = dict()  # type: typing.Dict[str, dict]
 
 
-def get_logging_cfg_file(log_level):
-    # type: (str) -> str
-    """ Retrieves the logging configuration file.
+def get_logging_cfg_file(log_level: str) -> str:
+    """Retrieves the logging configuration file.
 
     :param log_level: Log level [ "trace"|"debug"|"info"|"api"|"off" ].
     :return: Logging configuration file.
@@ -49,8 +48,8 @@ def get_logging_cfg_file(log_level):
         "trace": "logging_debug.json",  # trace level == debug level
         "debug": "logging_debug.json",
         "info": "logging_info.json",
-        "api": "logging_off.json",      # api level == off level
-        "off": "logging_off.json"
+        "api": "logging_off.json",  # api level == off level
+        "off": "logging_off.json",
     }
     if log_level in cfg_files:
         logging_cfg_file = cfg_files[log_level]
@@ -59,18 +58,16 @@ def get_logging_cfg_file(log_level):
         raise PyCOMPSsException("Unsupported logging level.")
 
 
-def clean_log_configs():
-    # type: () -> None
-    """ Removes all stored log configurations.
+def clean_log_configs() -> None:
+    """Removes all stored log configurations.
 
     :return: None
     """
     CONFIGS.clear()
 
 
-def __read_log_config_file__(log_config_file):
-    # type: (str) -> dict
-    """ Reads the given config file.
+def __read_log_config_file__(log_config_file: str) -> dict:
+    """Reads the given config file.
     If already read, retrieves from global dictionary.
 
     :param log_config_file: Configuration file to read.
@@ -79,15 +76,14 @@ def __read_log_config_file__(log_config_file):
     if log_config_file in CONFIGS:
         conf = CONFIGS[log_config_file]
     else:
-        with open(log_config_file, 'rt') as lcf_fd:
+        with open(log_config_file, "rt") as lcf_fd:
             conf = json.loads(lcf_fd.read())
         CONFIGS[log_config_file] = conf
     return conf
 
 
-def init_logging(log_config_file, log_path):
-    # type: (str, str) -> None
-    """ Master logging initialization.
+def init_logging(log_config_file: str, log_path: str) -> None:
+    """Master logging initialization.
 
     :param log_config_file: Log file name.
     :param log_path: Json log files path.
@@ -112,9 +108,8 @@ def init_logging(log_config_file, log_path):
         logging.basicConfig(level=logging.INFO)  # NOSONAR
 
 
-def init_logging_worker(log_config_file, tracing):
-    # type: (str, bool) -> None
-    """ Worker logging initialization.
+def init_logging_worker(log_config_file: str, tracing: bool) -> None:
+    """Worker logging initialization.
 
     :param log_config_file: Log file name.
     :param tracing: If tracing is enabled (the log dir changes).
@@ -142,9 +137,8 @@ def init_logging_worker(log_config_file, tracing):
         logging.basicConfig(level=logging.INFO)  # NOSONAR
 
 
-def init_logging_worker_piper(log_config_file, log_dir):
-    # type: (str, str) -> None
-    """ Worker logging initialization.
+def init_logging_worker_piper(log_config_file: str, log_dir: str) -> None:
+    """Worker logging initialization.
 
     :param log_config_file: Log file name.
     :param log_dir: Log directory.
@@ -169,9 +163,10 @@ def init_logging_worker_piper(log_config_file, log_dir):
         logging.basicConfig(level=logging.INFO)  # NOSONAR
 
 
-def update_logger_handlers(log_config_file, job_out=None, job_err=None):
-    # type: (str, str, str) -> None
-    """ Worker logging update.
+def update_logger_handlers(
+    log_config_file: str, job_out: str = None, job_err: str = None
+) -> None:
+    """Worker logging update.
 
     :param log_config_file: Log file name.
     :param job_out: out file path.
@@ -197,9 +192,8 @@ def update_logger_handlers(log_config_file, job_out=None, job_err=None):
 
 
 @contextmanager
-def swap_logger_name(logger, new_name):
-    # type: (typing.Any, str) -> typing.Iterator[None]
-    """ Swaps the current logger with the new one
+def swap_logger_name(logger: typing.Any, new_name: str) -> typing.Iterator[None]:
+    """Swaps the current logger with the new one
 
     :param logger: Logger facility.
     :param new_name: Logger name.
@@ -212,9 +206,8 @@ def swap_logger_name(logger, new_name):
 
 
 @contextmanager
-def keep_logger():
-    # type: () -> typing.Iterator[None]
-    """ Do nothing with the logger.
+def keep_logger() -> typing.Iterator[None]:
+    """Do nothing with the logger.
     It is used when the swap_logger_name does not need to be applied.
 
     :return: None

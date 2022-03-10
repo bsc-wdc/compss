@@ -41,13 +41,15 @@ from pycompss.runtime.commons import DEFAULT_JVM_WORKERS
 from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
 from pycompss.runtime.commons import INTERACTIVE_FILE_NAME
 from pycompss.runtime.commons import set_temporary_directory
-from pycompss.util.environment.configuration import export_current_flags
-from pycompss.util.environment.configuration import prepare_environment
-from pycompss.util.environment.configuration import prepare_loglevel_graph_for_monitoring  # noqa: E501
-from pycompss.util.environment.configuration import updated_variables_in_sc
-from pycompss.util.environment.configuration import prepare_tracing_environment
-from pycompss.util.environment.configuration import check_infrastructure_variables         # noqa: E501
-from pycompss.util.environment.configuration import create_init_config_file
+from pycompss.util.environment.configuration import (
+    export_current_flags,
+    prepare_environment,
+    prepare_loglevel_graph_for_monitoring,
+    updated_variables_in_sc,
+    prepare_tracing_environment,
+    check_infrastructure_variables,
+    create_init_config_file,
+)
 from pycompss.util.logger.helpers import get_logging_cfg_file
 from pycompss.util.logger.helpers import init_logging
 from pycompss.util.interactive.events import setup_event_manager
@@ -90,57 +92,58 @@ LINE_SEPARATOR = "********************************************************"
 initialize_multiprocessing()
 
 
-def start(log_level="off",                     # type: str
-          debug=False,                         # type: bool
-          o_c=False,                           # type: bool
-          graph=False,                         # type: bool
-          trace=False,                         # type: bool
-          monitor=-1,                          # type: int
-          project_xml="",                      # type: str
-          resources_xml="",                    # type: str
-          summary=False,                       # type: bool
-          task_execution="compss",             # type: str
-          storage_impl="",                     # type: str
-          storage_conf="",                     # type: str
-          streaming_backend="",                # type: str
-          streaming_master_name="",            # type: str
-          streaming_master_port="",            # type: str
-          task_count=50,                       # type: int
-          app_name=INTERACTIVE_FILE_NAME,      # type: str
-          uuid="",                             # type: str
-          base_log_dir="",                     # type: str
-          specific_log_dir="",                 # type: str
-          extrae_cfg="",                       # type: str
-          comm="NIO",                          # type: str
-          conn=DEFAULT_CONN,                   # type: str
-          master_name="",                      # type: str
-          master_port="",                      # type: str
-          scheduler=DEFAULT_SCHED,             # type: str
-          jvm_workers=DEFAULT_JVM_WORKERS,     # type: str
-          cpu_affinity="automatic",            # type: str
-          gpu_affinity="automatic",            # type: str
-          fpga_affinity="automatic",           # type: str
-          fpga_reprogram="",                   # type: str
-          profile_input="",                    # type: str
-          profile_output="",                   # type: str
-          scheduler_config="",                 # type: str
-          external_adaptation=False,           # type: bool
-          propagate_virtual_environment=True,  # type: bool
-          mpi_worker=False,                    # type: bool
-          worker_cache=False,                  # type: typing.Union[bool, str]
-          shutdown_in_node_failure=False,      # type: bool
-          io_executors=0,                      # type: int
-          env_script="",                       # type: str
-          reuse_on_block=True,                 # type: bool
-          nested_enabled=False,                # type: bool
-          tracing_task_dependencies=False,     # type: bool
-          trace_label="",                      # type: str
-          extrae_cfg_python="",                # type: str
-          wcl=0,                               # type: int
-          cache_profiler=False,                # type: bool
-          verbose=False                        # type: bool
-          ):  # type: (...) -> None
-    """ Start the runtime in interactive mode.
+def start(
+    log_level: str = "off",
+    debug: bool = False,
+    o_c: bool = False,
+    graph: bool = False,
+    trace: bool = False,
+    monitor: int = -1,
+    project_xml: str = "",
+    resources_xml: str = "",
+    summary: bool = False,
+    task_execution: str = "compss",
+    storage_impl: str = "",
+    storage_conf: str = "",
+    streaming_backend: str = "",
+    streaming_master_name: str = "",
+    streaming_master_port: str = "",
+    task_count: int = 50,
+    app_name: str = INTERACTIVE_FILE_NAME,
+    uuid: str = "",
+    base_log_dir: str = "",
+    specific_log_dir: str = "",
+    extrae_cfg: str = "",
+    comm: str = "NIO",
+    conn: str = DEFAULT_CONN,
+    master_name: str = "",
+    master_port: str = "",
+    scheduler: str = DEFAULT_SCHED,
+    jvm_workers: str = DEFAULT_JVM_WORKERS,
+    cpu_affinity: str = "automatic",
+    gpu_affinity: str = "automatic",
+    fpga_affinity: str = "automatic",
+    fpga_reprogram: str = "",
+    profile_input: str = "",
+    profile_output: str = "",
+    scheduler_config: str = "",
+    external_adaptation: bool = False,
+    propagate_virtual_environment: bool = True,
+    mpi_worker: bool = False,
+    worker_cache: typing.Union[bool, str] = False,
+    shutdown_in_node_failure=False,
+    io_executors: int = 0,
+    env_script: str = "",
+    reuse_on_block: bool = True,
+    nested_enabled: bool = False,
+    tracing_task_dependencies: bool = False,
+    trace_label: str = "",
+    extrae_cfg_python: str = "",
+    wcl: int = 0,
+    cache_profiler: bool = False,
+    verbose: bool = False,
+) -> None:
+    """Start the runtime in interactive mode.
 
     :param log_level: Logging level [ "trace"|"debug"|"info"|"api"|"off" ]
                       (default: "off")
@@ -150,7 +153,7 @@ def start(log_level="off",                     # type: str
                 (default: False)
     :param graph: Generate graph [ True|False ]
                   (default: False)
-    :param trace: Generate trace [ True|False|"scorep"|"arm-map"|"arm-ddt" ]
+    :param trace: Generate trace [ True | False ]
                   (default: False)
     :param monitor: Monitor refresh rate
                     (default: None)
@@ -265,54 +268,56 @@ def start(log_level="off",                     # type: str
     ##############################################################
 
     # Initial dictionary with the user defined parameters
-    all_vars = parameters_to_dict(log_level,
-                                  debug,
-                                  o_c,
-                                  graph,
-                                  trace,
-                                  monitor,
-                                  project_xml,
-                                  resources_xml,
-                                  summary,
-                                  task_execution,
-                                  storage_impl,
-                                  storage_conf,
-                                  streaming_backend,
-                                  streaming_master_name,
-                                  streaming_master_port,
-                                  task_count,
-                                  app_name,
-                                  uuid,
-                                  base_log_dir,
-                                  specific_log_dir,
-                                  extrae_cfg,
-                                  comm,
-                                  conn,
-                                  master_name,
-                                  master_port,
-                                  scheduler,
-                                  jvm_workers,
-                                  cpu_affinity,
-                                  gpu_affinity,
-                                  fpga_affinity,
-                                  fpga_reprogram,
-                                  profile_input,
-                                  profile_output,
-                                  scheduler_config,
-                                  external_adaptation,
-                                  propagate_virtual_environment,
-                                  mpi_worker,
-                                  worker_cache,
-                                  shutdown_in_node_failure,
-                                  io_executors,
-                                  env_script,
-                                  reuse_on_block,
-                                  nested_enabled,
-                                  tracing_task_dependencies,
-                                  trace_label,
-                                  extrae_cfg_python,
-                                  wcl,
-                                  cache_profiler)
+    all_vars = parameters_to_dict(
+        log_level,
+        debug,
+        o_c,
+        graph,
+        trace,
+        monitor,
+        project_xml,
+        resources_xml,
+        summary,
+        task_execution,
+        storage_impl,
+        storage_conf,
+        streaming_backend,
+        streaming_master_name,
+        streaming_master_port,
+        task_count,
+        app_name,
+        uuid,
+        base_log_dir,
+        specific_log_dir,
+        extrae_cfg,
+        comm,
+        conn,
+        master_name,
+        master_port,
+        scheduler,
+        jvm_workers,
+        cpu_affinity,
+        gpu_affinity,
+        fpga_affinity,
+        fpga_reprogram,
+        profile_input,
+        profile_output,
+        scheduler_config,
+        external_adaptation,
+        propagate_virtual_environment,
+        mpi_worker,
+        worker_cache,
+        shutdown_in_node_failure,
+        io_executors,
+        env_script,
+        reuse_on_block,
+        nested_enabled,
+        tracing_task_dependencies,
+        trace_label,
+        extrae_cfg_python,
+        wcl,
+        cache_profiler,
+    )
     # Save all vars in global current flags so that events.py can restart
     # the notebook with the same flags
     export_current_flags(all_vars)
@@ -324,15 +329,15 @@ def start(log_level="off",                     # type: str
         return None
 
     # Prepare the environment
-    env_vars = prepare_environment(True, o_c, storage_impl,
-                                   "undefined", debug, trace, mpi_worker)
+    env_vars = prepare_environment(
+        True, o_c, storage_impl, "undefined", debug, mpi_worker
+    )
     all_vars.update(env_vars)
 
     # Update the log level and graph values if monitoring is enabled
-    monitoring_vars = prepare_loglevel_graph_for_monitoring(monitor,
-                                                            graph,
-                                                            debug,
-                                                            log_level)
+    monitoring_vars = prepare_loglevel_graph_for_monitoring(
+        monitor, graph, debug, log_level
+    )
     all_vars.update(monitoring_vars)
 
     # Check if running in supercomputer and update the variables accordingly
@@ -340,44 +345,37 @@ def start(log_level="off",                     # type: str
     if RUNNING_IN_SUPERCOMPUTER:
         updated_vars = updated_variables_in_sc()
         if verbose:
-            print("- Overridden project xml with: %s" %
-                  updated_vars["project_xml"])
-            print("- Overridden resources xml with: %s" %
-                  updated_vars["resources_xml"])
-            print("- Overridden master name with: %s" %
-                  updated_vars["master_name"])
-            print("- Overridden master port with: %s" %
-                  updated_vars["master_port"])
-            print("- Overridden uuid with: %s" %
-                  updated_vars["uuid"])
-            print("- Overridden base log dir with: %s" %
-                  updated_vars["base_log_dir"])
-            print("- Overridden specific log dir with: %s" %
-                  updated_vars["specific_log_dir"])
-            print("- Overridden storage conf with: %s" %
-                  updated_vars["storage_conf"])
-            print("- Overridden log level with: %s" %
-                  str(updated_vars["log_level"]))
-            print("- Overridden debug with: %s" %
-                  str(updated_vars["debug"]))
-            print("- Overridden trace with: %s" %
-                  str(updated_vars["trace"]))
+            print("- Overridden project xml with: %s" % updated_vars["project_xml"])
+            print("- Overridden resources xml with: %s" % updated_vars["resources_xml"])
+            print("- Overridden master name with: %s" % updated_vars["master_name"])
+            print("- Overridden master port with: %s" % updated_vars["master_port"])
+            print("- Overridden uuid with: %s" % updated_vars["uuid"])
+            print("- Overridden base log dir with: %s" % updated_vars["base_log_dir"])
+            print(
+                "- Overridden specific log dir with: %s"
+                % updated_vars["specific_log_dir"]
+            )
+            print("- Overridden storage conf with: %s" % updated_vars["storage_conf"])
+            print("- Overridden log level with: %s" % str(updated_vars["log_level"]))
+            print("- Overridden debug with: %s" % str(updated_vars["debug"]))
+            print("- Overridden trace with: %s" % str(updated_vars["trace"]))
         all_vars.update(updated_vars)
 
     # Update the tracing environment if set and set the appropriate trace
     # integer value
-    tracing_vars = prepare_tracing_environment(all_vars["trace"],
-                                               all_vars["extrae_lib"],
-                                               all_vars["ld_library_path"])
-    all_vars["trace"], all_vars["ld_library_path"] = tracing_vars
+    all_vars["ld_library_path"] = prepare_tracing_environment(
+        all_vars["trace"], all_vars["extrae_lib"], all_vars["ld_library_path"]
+    )
 
     # Update the infrastructure variables if necessary
-    inf_vars = check_infrastructure_variables(all_vars["project_xml"],
-                                              all_vars["resources_xml"],
-                                              all_vars["compss_home"],
-                                              all_vars["app_name"],
-                                              all_vars["file_name"],
-                                              all_vars["external_adaptation"])
+    inf_vars = check_infrastructure_variables(
+        all_vars["project_xml"],
+        all_vars["resources_xml"],
+        all_vars["compss_home"],
+        all_vars["app_name"],
+        all_vars["file_name"],
+        all_vars["external_adaptation"],
+    )
     all_vars.update(inf_vars)
 
     # With all this information, create the configuration file for the
@@ -403,11 +401,13 @@ def start(log_level="off",                     # type: str
 
     # Setup logging
     binding_log_path = get_log_path()
-    log_path = os.path.join(all_vars["compss_home"],
-                            "Bindings",
-                            "python",
-                            str(all_vars["major_version"]),
-                            "log")
+    log_path = os.path.join(
+        all_vars["compss_home"],
+        "Bindings",
+        "python",
+        str(all_vars["major_version"]),
+        "log",
+    )
     set_temporary_directory(binding_log_path)
     logging_cfg_file = get_logging_cfg_file(log_level)
     init_logging(os.path.join(log_path, logging_cfg_file), binding_log_path)
@@ -424,9 +424,11 @@ def start(log_level="off",                     # type: str
 
     logger.debug("Starting streaming")
     global STREAMING
-    STREAMING = init_streaming(all_vars["streaming_backend"],
-                               all_vars["streaming_master_name"],
-                               all_vars["streaming_master_port"])
+    STREAMING = init_streaming(
+        all_vars["streaming_backend"],
+        all_vars["streaming_master_name"],
+        all_vars["streaming_master_port"],
+    )
 
     # Start monitoring the stdout and stderr
     STDW.start_watching()
@@ -440,15 +442,14 @@ def start(log_level="off",                     # type: str
     emit_manual_event(APPLICATION_RUNNING_EVENT)
 
 
-def __show_flower__():
-    # type: () -> None
-    """ Shows the flower and version through stdout.
+def __show_flower__() -> None:
+    """Shows the flower and version through stdout.
 
     :return: None
     """
-    print(LINE_SEPARATOR)                                              # NOSONAR # noqa
+    print(LINE_SEPARATOR)  # NOSONAR # noqa
     print("**************** PyCOMPSs Interactive ******************")  # NOSONAR # noqa
-    print(LINE_SEPARATOR)                                              # NOSONAR # noqa
+    print(LINE_SEPARATOR)  # NOSONAR # noqa
     print("*          .-~~-.--.           _____      __   ______  *")  # NOSONAR # noqa
     print("*         :         )         |____ \    /  | /  __  \ *")  # NOSONAR # noqa
     print("*   .~ ~ -.\       /.- ~~ .     ___) |  /_  | | |  | | *")  # NOSONAR # noqa
@@ -465,12 +466,11 @@ def __show_flower__():
     print("*     .' .-~      .-~       :/~-.~-./:                 *")  # NOSONAR # noqa
     print("*    /_~_ _ . - ~                 ~-.~-._              *")  # NOSONAR # noqa
     print("*                                     ~-.<             *")  # NOSONAR # noqa
-    print(LINE_SEPARATOR)                                              # NOSONAR # noqa
+    print(LINE_SEPARATOR)  # NOSONAR # noqa
 
 
-def __print_setup__(verbose, all_vars):
-    # type: (bool, dict) -> None
-    """ Print the setup variables through stdout (only if verbose is True).
+def __print_setup__(verbose: bool, all_vars: typing.Dict[str, typing.Any]) -> None:
+    """Print the setup variables through stdout (only if verbose is True).
 
     :param verbose: Verbose mode [True | False]
     :param all_vars: Dictionary containing all variables.
@@ -488,13 +488,12 @@ def __print_setup__(verbose, all_vars):
     logger.debug(output)
 
 
-def stop(sync=False, _hard_stop=False):
-    # type: (bool, bool) -> None
-    """ Runtime stop.
+def stop(sync: bool = False, _hard_stop: bool = False) -> None:
+    """Runtime stop.
 
     :param sync: Scope variables synchronization [ True | False ]
                  (default: False)
-    :param _hard_stop: Stop compss when runtime has died [ True | False ].
+    :param _hard_stop: Stop COMPSs when runtime has died [ True | False ].
                        (default: False)
     :return: None
     """
@@ -528,12 +527,20 @@ def stop(sync=False, _hard_stop=False):
         print(sync_msg)
         logger.debug(sync_msg)
         from pycompss.api.api import compss_wait_on
-        reserved_names = ("quit", "exit", "get_ipython",
-                          "APP_PATH", "ipycompss", "In", "Out")
+
+        reserved_names = (
+            "quit",
+            "exit",
+            "get_ipython",
+            "APP_PATH",
+            "ipycompss",
+            "In",
+            "Out",
+        )
         raw_code = ipython.__dict__["user_ns"]
         for k in raw_code:
             obj_k = raw_code[k]
-            if not k.startswith('_'):   # not internal objects
+            if not k.startswith("_"):  # not internal objects
                 if type(obj_k) == Future:
                     print("Found a future object: %s" % str(k))
                     logger.debug("Found a future object: %s" % str(k))
@@ -546,15 +553,15 @@ def stop(sync=False, _hard_stop=False):
                 elif k not in reserved_names:
                     try:
                         if OT.is_pending_to_synchronize(obj_k):
-                            print("Found an object to synchronize: %s" % str(k))       # noqa: E501
-                            logger.debug("Found an object to synchronize: %s" % (k,))  # noqa: E501
-                            ipython.__dict__["user_ns"][k] = compss_wait_on(obj_k)     # noqa: E501
+                            print("Found an object to synchronize: %s" % str(k))
+                            logger.debug("Found an object to synchronize: %s" % (k,))
+                            ipython.__dict__["user_ns"][k] = compss_wait_on(obj_k)
                     except TypeError:
                         # Unhashable type: List - could be a collection
                         if isinstance(obj_k, list):
                             print("Found a list to synchronize: %s" % str(k))
-                            logger.debug("Found a list to synchronize: %s" % (k,))     # noqa: E501
-                            ipython.__dict__["user_ns"][k] = compss_wait_on(obj_k)     # noqa: E501
+                            logger.debug("Found a list to synchronize: %s" % (k,))
+                            ipython.__dict__["user_ns"][k] = compss_wait_on(obj_k)
     else:
         print("Warning: some of the variables used with PyCOMPSs may")
         print("         have not been brought to the master.")
@@ -594,9 +601,10 @@ def stop(sync=False, _hard_stop=False):
     # --- Execution finished ---
 
 
-def __hard_stop__(debug, sync, logger, ipython):
-    # type: (bool, bool, typing.Any, typing.Any) -> None
-    """ The runtime has been stopped by any error and this method stops the
+def __hard_stop__(
+    debug: bool, sync: bool, logger: typing.Any, ipython: typing.Any
+) -> None:
+    """The runtime has been stopped by any error and this method stops the
     remaining things in the binding.
 
     :param debug: If debugging.
@@ -636,9 +644,10 @@ def __hard_stop__(debug, sync, logger, ipython):
     return None
 
 
-def current_task_graph(fit=False, refresh_rate=1, timeout=0):
-    # type: (bool, int, int) -> typing.Any
-    """ Show current graph.
+def current_task_graph(
+    fit: bool = False, refresh_rate: int = 1, timeout: int = 0
+) -> typing.Any:
+    """Show current graph.
 
     :param fit: Fit to width [ True | False ] (default: False)
     :param refresh_rate: Update the current task graph every "refresh_rate"
@@ -647,20 +656,25 @@ def current_task_graph(fit=False, refresh_rate=1, timeout=0):
     :return: None
     """
     if GRAPHING:
-        return show_graph(log_path=LOG_PATH,
-                          name="current_graph",
-                          fit=fit,
-                          refresh_rate=refresh_rate,
-                          timeout=timeout)
+        return show_graph(
+            log_path=LOG_PATH,
+            name="current_graph",
+            fit=fit,
+            refresh_rate=refresh_rate,
+            timeout=timeout,
+        )
     else:
         print("Oops! Graph is not enabled in this execution.")
-        print("      Please, enable it by setting the graph flag when" +
-              " starting PyCOMPSs.")
+        print(
+            "      Please, enable it by setting the graph flag when"
+            + " starting PyCOMPSs."
+        )
 
 
-def complete_task_graph(fit=False, refresh_rate=1, timeout=0):
-    # type: (bool, int, int) -> typing.Any
-    """ Show complete graph.
+def complete_task_graph(
+    fit: bool = False, refresh_rate: int = 1, timeout: int = 0
+) -> typing.Any:
+    """Show complete graph.
 
     :param fit: Fit to width [ True | False ] (default: False)
     :param refresh_rate: Update the current task graph every "refresh_rate"
@@ -669,21 +683,24 @@ def complete_task_graph(fit=False, refresh_rate=1, timeout=0):
     :return: None
     """
     if GRAPHING:
-        return show_graph(log_path=LOG_PATH,
-                          name="complete_graph",
-                          fit=fit,
-                          refresh_rate=refresh_rate,
-                          timeout=timeout)
+        return show_graph(
+            log_path=LOG_PATH,
+            name="complete_graph",
+            fit=fit,
+            refresh_rate=refresh_rate,
+            timeout=timeout,
+        )
     else:
         print("Oops! Graph is not enabled in this execution.")
-        print("      Please, enable it by setting the graph flag when" +
-              " starting PyCOMPSs.")
+        print(
+            "      Please, enable it by setting the graph flag when"
+            + " starting PyCOMPSs."
+        )
         return None
 
 
-def tasks_info():
-    # type: () -> None
-    """ Show tasks info.
+def tasks_info() -> None:
+    """Show tasks info.
 
     :return: None
     """
@@ -691,14 +708,15 @@ def tasks_info():
         show_tasks_info(LOG_PATH)
     else:
         print("Oops! Monitoring is not enabled in this execution.")
-        print("      Please, enable it by setting the monitor flag when" +
-              " starting PyCOMPSs.")
+        print(
+            "      Please, enable it by setting the monitor flag when"
+            + " starting PyCOMPSs."
+        )
         return None
 
 
-def tasks_status():
-    # type: () -> None
-    """ Show tasks status.
+def tasks_status() -> None:
+    """Show tasks status.
 
     :return: None
     """
@@ -706,14 +724,15 @@ def tasks_status():
         show_tasks_status(LOG_PATH)
     else:
         print("Oops! Monitoring is not enabled in this execution.")
-        print("      Please, enable it by setting the monitor flag when" +
-              " starting PyCOMPSs.")
+        print(
+            "      Please, enable it by setting the monitor flag when"
+            + " starting PyCOMPSs."
+        )
         return None
 
 
-def statistics():
-    # type: () -> None
-    """ Show statistics info.
+def statistics() -> None:
+    """Show statistics info.
 
     :return: None
     """
@@ -721,14 +740,15 @@ def statistics():
         show_statistics(LOG_PATH)
     else:
         print("Oops! Monitoring is not enabled in this execution.")
-        print("      Please, enable it by setting the monitor flag when" +
-              " starting PyCOMPSs.")
+        print(
+            "      Please, enable it by setting the monitor flag when"
+            + " starting PyCOMPSs."
+        )
         return None
 
 
-def resources_status():
-    # type: () -> None
-    """ Show resources status info.
+def resources_status() -> None:
+    """Show resources status info.
 
     :return: None
     """
@@ -736,8 +756,10 @@ def resources_status():
         show_resources_status(LOG_PATH)
     else:
         print("Oops! Monitoring is not enabled in this execution.")
-        print("      Please, enable it by setting the monitor flag when" +
-              " starting PyCOMPSs.")
+        print(
+            "      Please, enable it by setting the monitor flag when"
+            + " starting PyCOMPSs."
+        )
         return None
 
 
@@ -746,9 +768,8 @@ def resources_status():
 # ########################################################################### #
 
 
-def __export_globals__():
-    # type: () -> None
-    """ Export globals into interactive environment.
+def __export_globals__() -> None:
+    """Export globals into interactive environment.
 
     :return: None
     """
@@ -766,18 +787,20 @@ def __export_globals__():
     user_globals = ipython.__dict__["ns_table"]["user_global"]
     # Inject APP_PATH variable to user globals so that task and constraint
     # decorators can get it.
-    temp_app_filename = "".join((os.path.join(os.getcwd(),
-                                              INTERACTIVE_FILE_NAME),
-                                 '_',
-                                 str(time.strftime("%d%m%y_%H%M%S")),
-                                 ".py"))
+    temp_app_filename = "".join(
+        (
+            os.path.join(os.getcwd(), INTERACTIVE_FILE_NAME),
+            "_",
+            str(time.strftime("%d%m%y_%H%M%S")),
+            ".py",
+        )
+    )
     user_globals["APP_PATH"] = temp_app_filename
     APP_PATH = temp_app_filename
 
 
-def __clean_temp_files__():
-    # type: () -> None
-    """ Remove any temporary files that may exist.
+def __clean_temp_files__() -> None:
+    """Remove any temporary files that may exist.
 
     Currently: APP_PATH, which contains the file path where all interactive
                code required by the worker is.
@@ -787,7 +810,7 @@ def __clean_temp_files__():
     try:
         if os.path.exists(APP_PATH):
             os.remove(APP_PATH)
-        if os.path.exists(APP_PATH + 'c'):
-            os.remove(APP_PATH + 'c')
+        if os.path.exists(APP_PATH + "c"):
+            os.remove(APP_PATH + "c")
     except OSError:
         print("[ERROR] An error has occurred when cleaning temporary files.")

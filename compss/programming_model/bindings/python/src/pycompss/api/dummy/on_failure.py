@@ -31,15 +31,12 @@ class OnFailure(object):
     Dummy on failure class (decorator style)
     """
 
-    def __init__(self, *args, **kwargs):
-        # type: (*typing.Any, **typing.Any) -> None
+    def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         self.args = args
         self.kwargs = kwargs
 
-    def __call__(self, f):
-        # type: (typing.Any) -> typing.Any
-        def wrapped_f(*args, **kwargs):
-            # type: (*typing.Any, **typing.Any) -> typing.Any
+    def __call__(self, f: typing.Any) -> typing.Any:
+        def wrapped_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             return f(*args, **kwargs)
 
         return wrapped_f

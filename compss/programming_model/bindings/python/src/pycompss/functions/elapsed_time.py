@@ -29,15 +29,12 @@ from functools import wraps
 
 
 class TimeIt(object):
-
-    def __init__(self, *args, **kwargs):
-        # type: (*typing.Any, **typing.Any) -> None
+    def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         self.args = args
         self.kwargs = kwargs
 
-    def __call__(self, f):
-        # type: (typing.Any) -> typing.Any
-        """ Elapsed time decorator.
+    def __call__(self, f: typing.Any) -> typing.Any:
+        """Elapsed time decorator.
 
         :param f: Function to be time measured (can be a decorated function,
                   usually with @task decorator).
@@ -45,9 +42,8 @@ class TimeIt(object):
         """
 
         @wraps(f)
-        def wrapped_f(*args, **kwargs):
-            # type: (*typing.Any, **typing.Any) -> typing.Any
-            """ Elapsed time decorator.
+        def wrapped_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
+            """Elapsed time decorator.
 
             :param args: args
             :param kwargs: kwargs

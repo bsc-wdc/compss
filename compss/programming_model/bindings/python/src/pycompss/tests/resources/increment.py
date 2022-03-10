@@ -53,6 +53,7 @@ def main():
     local_result = power(partial, param=partial)
     assert local_result == 8, "ERROR: Unexpected local result."
 
+
 # Uncomment for command line check:
 # if __name__ == '__main__':
 #     main()

@@ -26,16 +26,10 @@ from pycompss.util.exceptions import PyCOMPSsException
 def test_get_optional_module_warning():
     from pycompss.util.warnings.modules import get_optional_module_warning
 
-    warning = get_optional_module_warning(
-        "UNITTEST_NAME", "UNITTEST_DESCRIPTION"
-    )
-    assert isinstance(
-        warning, str
-    ), "Optional module warning does NOT return a string"
+    warning = get_optional_module_warning("UNITTEST_NAME", "UNITTEST_DESCRIPTION")
+    assert isinstance(warning, str), "Optional module warning does NOT return a string"
     assert warning != "", "Optional module warning can not be empty"
-    assert (
-        "UNITTEST_NAME" in warning
-    ), "Module name not in optional module warning"
+    assert "UNITTEST_NAME" in warning, "Module name not in optional module warning"
     assert (
         "UNITTEST_DESCRIPTION" in warning
     ), "Module description not in optional module warning"

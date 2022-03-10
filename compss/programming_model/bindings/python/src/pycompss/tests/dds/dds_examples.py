@@ -59,8 +59,9 @@ def test_wordcount_example():
 def test_wordcount_k_means_example():
     if sys.version_info >= (3, 0):
         current_path = os.path.dirname(os.path.abspath(__file__))
-        wordcount_k_means_dataset_path = os.path.join(current_path,
-                                                      "dataset", "wordcount")
+        wordcount_k_means_dataset_path = os.path.join(
+            current_path, "dataset", "wordcount"
+        )
         argv_backup = sys.argv
         sys.argv = [EXAMPLES_NAME, wordcount_k_means_dataset_path]
         wordcount_k_means(dim=155)
@@ -86,8 +87,7 @@ def test_terasort_example():
 
 def test_inverted_indexing_example():
     current_path = os.path.dirname(os.path.abspath(__file__))
-    inverted_indexing_dataset_path = os.path.join(current_path,
-                                                  "dataset", "wordcount")
+    inverted_indexing_dataset_path = os.path.join(current_path, "dataset", "wordcount")
     argv_backup = sys.argv
     sys.argv = [EXAMPLES_NAME, inverted_indexing_dataset_path]
     inverted_indexing()

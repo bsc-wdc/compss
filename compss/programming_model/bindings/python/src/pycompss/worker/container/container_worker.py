@@ -45,9 +45,8 @@ from pycompss.util.logger.helpers import init_logging_worker
 #
 # Main method for Python task execution inside a Container
 #
-def main():
-    # type: () -> int
-    """ Main method to process the task execution.
+def main() -> int:
+    """Main method to process the task execution.
 
     :return: Exit value
     """
@@ -72,24 +71,31 @@ def main():
     worker_path = os.path.dirname(os.path.realpath(__file__))
     if log_level == "true" or log_level == "debug":
         # Debug
-        log_json = "".join((worker_path,
-                            "/log/logging_container_worker_debug.json"))
+        log_json = "".join((worker_path, "/log/logging_container_worker_debug.json"))
     elif log_level == "info" or log_level == "off":
         # Info or no debug
-        log_json = "".join((worker_path,
-                            "/log/logging_container_worker_off.json"))
+        log_json = "".join((worker_path, "/log/logging_container_worker_off.json"))
     else:
         # Default
-        log_json = "".join((worker_path,
-                            "/log/logging_container_worker.json"))
+        log_json = "".join((worker_path, "/log/logging_container_worker.json"))
     init_logging_worker(log_json, tracing)
     if __debug__:
-        logger = logging.getLogger('pycompss.worker.container.container_worker')  # noqa: E501
+        logger = logging.getLogger(
+            "pycompss.worker.container.container_worker"
+        )  # noqa: E501
         logger.debug("Initialising Python worker inside the container...")
 
-    task_params = [func_file_path, func_name, num_slaves,
-                   timeout, cus, has_target, return_type,
-                   return_length, num_params]  # type: typing.List[typing.Any]
+    task_params = [
+        func_file_path,
+        func_name,
+        num_slaves,
+        timeout,
+        cus,
+        has_target,
+        return_type,
+        return_length,
+        num_params,
+    ]  # type: typing.List[typing.Any]
     execute_task_params = task_params + func_params
 
     if __debug__:
@@ -113,16 +119,17 @@ def main():
     python_mpi = False
     collections_layouts = None  # type: typing.Optional[dict]
     context.set_pycompss_context(context.WORKER)
-    result = execute_task(process_name,
-                          storage_conf,
-                          execute_task_params,
-                          tracing,
-                          logger,
-                          "None",
-                          log_files,           # noqa
-                          python_mpi,
-                          collections_layouts  # noqa
-                          )
+    result = execute_task(
+        process_name,
+        storage_conf,
+        execute_task_params,
+        tracing,
+        logger,
+        "None",
+        log_files,  # noqa
+        python_mpi,
+        collections_layouts,  # noqa
+    )
     # The ignored result is time out
     exit_value, new_types, new_values, _, except_msg = result
 
@@ -147,18 +154,19 @@ def main():
         # Task has finished with a COMPSs Exception
         if __debug__:
             except_msg = except_msg.replace(" ", "_")
-            logger.debug("Registered COMPSs Exception: %s" %
-                         str(except_msg))
+            logger.debug("Registered COMPSs Exception: %s" % str(except_msg))
     else:
         # An exception has been raised in task
         if __debug__:
             except_msg = except_msg.replace(" ", "_")
-            logger.debug("Registered Exception in task execution %s" %
-                         str(except_msg))
+            logger.debug("Registered Exception in task execution %s" % str(except_msg))
 
     # Return
     if exit_value != 0:
-        logger.debug("ERROR: Task execution finished with non-zero exit value (%s != 0)" % str(exit_value))  # noqa: E501
+        logger.debug(
+            "ERROR: Task execution finished with non-zero exit value (%s != 0)"
+            % str(exit_value)
+        )  # noqa: E501
     else:
         logger.debug("Task execution finished SUCCESSFULLY!")
     return exit_value

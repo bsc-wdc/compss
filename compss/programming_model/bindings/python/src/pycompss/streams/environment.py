@@ -24,18 +24,20 @@ This file contains the methods to setup the environment when using streaming.
 It is called from interactive.py and launch.py scripts.
 """
 
-from pycompss.streams.components.distro_stream_client import DistroStreamClientHandler  # noqa: E501
+from pycompss.streams.components.distro_stream_client import (
+    DistroStreamClientHandler,
+)
 
 if __debug__:
     import logging
+
     logger = logging.getLogger(__name__)
 
 
-def init_streaming(streaming_backend,
-                   streaming_master_name,
-                   streaming_master_port):
-    # type: (str, str, str) -> bool
-    """ Initialize the streaming client.
+def init_streaming(
+    streaming_backend: str, streaming_master_name: str, streaming_master_port: str
+) -> bool:
+    """Initialize the streaming client.
 
     :param streaming_backend: Streaming backend.
     :param streaming_master_name: Streaming backend master node name.
@@ -43,20 +45,26 @@ def init_streaming(streaming_backend,
     :return: True if initialized successfully, False otherwise.
     """
     # Fix options if necessary
-    if streaming_master_name == "" or \
-            not streaming_master_name or \
-            streaming_master_name == "null":
+    if (
+        streaming_master_name == ""
+        or not streaming_master_name
+        or streaming_master_name == "null"
+    ):
         streaming_master_name = "localhost"
-    if streaming_master_port == "" or \
-            not streaming_master_port or \
-            streaming_master_port == "null":
+    if (
+        streaming_master_port == ""
+        or not streaming_master_port
+        or streaming_master_port == "null"
+    ):
         streaming_master_port = "49049"
 
     # Check if the stream backend is enabled
-    if streaming_backend != "" \
-            and streaming_backend != "null" \
-            and streaming_backend != "None" \
-            and streaming_backend != "NONE":
+    if (
+        streaming_backend != ""
+        and streaming_backend != "null"
+        and streaming_backend != "None"
+        and streaming_backend != "NONE"
+    ):
         streaming_enabled = True
     else:
         streaming_enabled = False
@@ -65,16 +73,17 @@ def init_streaming(streaming_backend,
     if streaming_enabled:
         if __debug__:
             logger.debug("Starting DistroStream library")
-        DistroStreamClientHandler.init_and_start(master_ip=streaming_master_name,    # noqa: E501
-                                                 master_port=streaming_master_port)  # noqa: E501
+        DistroStreamClientHandler.init_and_start(
+            master_ip=streaming_master_name,  # noqa: E501
+            master_port=streaming_master_port,
+        )  # noqa: E501
 
     # Return whether the streaming backend is enabled or not
     return streaming_enabled
 
 
-def stop_streaming():
-    # type: () -> None
-    """ Stop the streaming backend.
+def stop_streaming() -> None:
+    """Stop the streaming backend.
 
     :return: None
     """

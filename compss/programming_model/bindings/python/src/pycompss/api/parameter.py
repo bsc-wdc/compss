@@ -65,6 +65,7 @@ class SupportedDirections(object):
     """
     Used as enum for direction types
     """
+
     IN = 0
     OUT = 1
     INOUT = 2
@@ -78,6 +79,7 @@ class SupportedIoStreams(object):
     """
     Used as enum for stream types
     """
+
     STDIN = 0
     STDOUT = 1
     STDERR = 2
@@ -89,6 +91,7 @@ class SupportedPrefixes(object):
     """
     Used as enum for prefix
     """
+
     PREFIX = "null"  # NOSONAR
 
 
@@ -104,8 +107,7 @@ class _Param(object):
 
     __slots__ = ["key"]
 
-    def __init__(self, key):
-        # type: (str) -> None
+    def __init__(self, key: str) -> None:
         self.key = key
 
 
@@ -181,14 +183,14 @@ STDOUT = IOSTREAM.STDOUT
 STDERR = IOSTREAM.STDERR
 
 # Aliases for parameter definition as dictionary
-Type = _PARAM_DICT_KEYS.TYPE                # parameter type
-Direction = _PARAM_DICT_KEYS.DIRECTION      # parameter direction
+Type = _PARAM_DICT_KEYS.TYPE  # parameter type
+Direction = _PARAM_DICT_KEYS.DIRECTION  # parameter direction
 StdIOStream = _PARAM_DICT_KEYS.STDIOSTREAM  # parameter stream
-Prefix = _PARAM_DICT_KEYS.PREFIX            # parameter prefix
-Depth = _PARAM_DICT_KEYS.DEPTH              # collection recursive depth
-Weight = _PARAM_DICT_KEYS.WEIGHT            # parameter weight
+Prefix = _PARAM_DICT_KEYS.PREFIX  # parameter prefix
+Depth = _PARAM_DICT_KEYS.DEPTH  # collection recursive depth
+Weight = _PARAM_DICT_KEYS.WEIGHT  # parameter weight
 Keep_rename = _PARAM_DICT_KEYS.KEEP_RENAME  # parameter keep rename property
-Cache = _PARAM_DICT_KEYS.CACHE              # enable/disable store in cache
+Cache = _PARAM_DICT_KEYS.CACHE  # enable/disable store in cache
 
 # Aliases for collection layout for native mpi tasks
 block_count = _MPI_LAYOUT_KEYS.block_count

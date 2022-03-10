@@ -18,12 +18,15 @@
 # -*- coding: utf-8 -*-
 
 import pycompss.util.context as context
+
 using_mypy = False
 try:
     from pycompss.api.local import local
 except ImportError:
+
     def local(func):
         return func
+
     using_mypy = True
 
 

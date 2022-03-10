@@ -29,7 +29,6 @@ import logging
 import os
 import sys
 
-from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.util.logger.helpers import init_logging_worker
 from pycompss.worker.commons.worker import execute_task
 from pycompss.util.tracing.helpers import trace_multiprocessing_worker
@@ -38,21 +37,19 @@ from pycompss.util.tracing.helpers import event_worker
 from pycompss.worker.commons.constants import INIT_STORAGE_AT_WORKER_EVENT
 from pycompss.worker.commons.constants import FINISH_STORAGE_AT_WORKER_EVENT
 
-from pycompss.streams.components.distro_stream_client import DistroStreamClientHandler  # noqa: E501
+from pycompss.streams.components.distro_stream_client import (
+    DistroStreamClientHandler,
+)  # noqa: E501
 
-if IS_PYTHON3:
-    long = int
-else:
-    # Exception moved to built-in
-    str_escape = 'string_escape'
 
 # Uncomment the next line if you do not want to reuse pyc files.
 # sys.dont_write_bytecode = True
 
 
-def compss_worker(tracing, task_id, storage_conf, params, log_json):
-    # type: (bool, str, str, list, str) -> int
-    """ Worker main method (invoked from __main__).
+def compss_worker(
+    tracing: bool, task_id: str, storage_conf: str, params: list, log_json: str
+) -> int:
+    """Worker main method (invoked from __main__).
 
     :param tracing: Tracing boolean
     :param task_id: Task identifier
@@ -63,24 +60,27 @@ def compss_worker(tracing, task_id, storage_conf, params, log_json):
     """
 
     if __debug__:
-        logger = logging.getLogger('pycompss.worker.gat.worker')
+        logger = logging.getLogger("pycompss.worker.gat.worker")
         logger.debug("Starting Worker")
 
     # Set the binding in worker mode
     import pycompss.util.context as context
+
     context.set_pycompss_context(context.WORKER)
 
-    result = execute_task("".join(("Task ", task_id)),
-                          storage_conf,
-                          params,
-                          tracing,
-                          logger,
-                          log_json,
-                          (),
-                          False,
-                          dict(),
-                          None,
-                          None)
+    result = execute_task(
+        "".join(("Task ", task_id)),
+        storage_conf,
+        params,
+        tracing,
+        logger,
+        log_json,
+        (),
+        False,
+        dict(),
+        None,
+        None,
+    )
     # Result contains:
     # exit_code, new_types, new_values, timed_out, except_msg = result
     exit_code, _, _, _, _ = result
@@ -91,16 +91,15 @@ def compss_worker(tracing, task_id, storage_conf, params, log_json):
     return exit_code
 
 
-def main():
-    # type: () -> None
-    """ GAT worker main code.
+def main() -> None:
+    """GAT worker main code.
 
     Executes the task provided by parameters.
 
     :return: None
     """
     # Emit sync event if tracing is enabled
-    tracing = sys.argv[1] == 'true'
+    tracing = sys.argv[1] == "true"
     task_id = int(sys.argv[2])
     log_level = sys.argv[3]
     storage_conf = sys.argv[4]
@@ -139,37 +138,35 @@ def main():
         if streaming:
             # Start streaming
             DistroStreamClientHandler.init_and_start(
-                master_ip=stream_master_name,
-                master_port=stream_master_port)
+                master_ip=stream_master_name, master_port=stream_master_port
+            )
 
         # Load log level configuration file
         worker_path = os.path.dirname(os.path.realpath(__file__))
         if log_level == "true" or log_level == "debug":
             # Debug
-            log_json = "".join((worker_path,
-                                "/../../../log/logging_gat_worker_debug.json"))
+            log_json = "".join(
+                (worker_path, "/../../../log/logging_gat_worker_debug.json")
+            )
         elif log_level == "info" or log_level == "off":
             # Info or no debug
-            log_json = "".join((worker_path,
-                                "/../../../log/logging_gat_worker_off.json"))
+            log_json = "".join(
+                (worker_path, "/../../../log/logging_gat_worker_off.json")
+            )
         else:
             # Default
-            log_json = "".join((worker_path,
-                                "/../../../log/logging_gat_worker.json"))
+            log_json = "".join((worker_path, "/../../../log/logging_gat_worker.json"))
         init_logging_worker(log_json, tracing)
 
         if persistent_storage:
             # Initialize storage
             with event_worker(INIT_STORAGE_AT_WORKER_EVENT):
                 from storage.api import initWorker as initStorageAtWorker  # noqa
+
                 initStorageAtWorker(config_file_path=storage_conf)
 
         # Init worker
-        exit_code = compss_worker(tracing,
-                                  str(task_id),
-                                  storage_conf,
-                                  params,
-                                  log_json)
+        exit_code = compss_worker(tracing, str(task_id), storage_conf, params, log_json)
 
         if streaming:
             # Finish streaming
@@ -179,11 +176,12 @@ def main():
             # Finish storage
             with event_worker(FINISH_STORAGE_AT_WORKER_EVENT):
                 from storage.api import finishWorker as finishStorageAtWorker  # noqa
+
                 finishStorageAtWorker()
 
     if exit_code == 1:
         exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

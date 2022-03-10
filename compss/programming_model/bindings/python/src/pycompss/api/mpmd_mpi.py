@@ -52,11 +52,13 @@ if __debug__:
     logger = logging.getLogger(__name__)
 
 MANDATORY_ARGUMENTS = {RUNNER}
-SUPPORTED_ARGUMENTS = {RUNNER,
-                       PROGRAMS,
-                       WORKING_DIR,
-                       PROCESSES_PER_NODE,
-                       FAIL_BY_EXIT_VALUE}
+SUPPORTED_ARGUMENTS = {
+    RUNNER,
+    PROGRAMS,
+    WORKING_DIR,
+    PROCESSES_PER_NODE,
+    FAIL_BY_EXIT_VALUE,
+}
 DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 
 
@@ -66,13 +68,19 @@ class MPMDMPI(object):
     __call__ methods, useful on mpmd_mpi task creation.
     """
 
-    __slots__ = ["decorator_name", "args", "kwargs", "scope",
-                 "core_element", "core_element_configured",
-                 "task_type", "processes"]
+    __slots__ = [
+        "decorator_name",
+        "args",
+        "kwargs",
+        "scope",
+        "core_element",
+        "core_element_configured",
+        "task_type",
+        "processes",
+    ]
 
-    def __init__(self, *args, **kwargs):
-        # type: (*typing.Any, **typing.Any) -> None
-        """ Store arguments passed to the decorator.
+    def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
+        """Store arguments passed to the decorator.
 
         self = itself.
         args = not used.
@@ -102,38 +110,40 @@ class MPMDMPI(object):
                     SUPPORTED_ARGUMENTS.add(key)
 
             # Check the arguments
-            check_arguments(MANDATORY_ARGUMENTS,
-                            DEPRECATED_ARGUMENTS,
-                            SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
-                            list(kwargs.keys()),
-                            self.decorator_name)
+            check_arguments(
+                MANDATORY_ARGUMENTS,
+                DEPRECATED_ARGUMENTS,
+                SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
+                list(kwargs.keys()),
+                self.decorator_name,
+            )
 
-    def __call__(self, user_function):
-        # type: (typing.Callable) -> typing.Callable
-        """ Parse and set the mpmd mpi parameters within the task core element.
+    def __call__(self, user_function: typing.Callable) -> typing.Callable:
+        """Parse and set the mpmd mpi parameters within the task core element.
 
         :param user_function: User function to be decorated.
         :return: Decorated dummy user function, which will invoke MPMD MPI task.
         """
 
         @wraps(user_function)
-        def mpmd_mpi_f(*args, **kwargs):
-            # type: (*typing.Any, **typing.Any) -> typing.Any
+        def mpmd_mpi_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             return self.__decorator_body__(user_function, args, kwargs)
 
         mpmd_mpi_f.__doc__ = user_function.__doc__
         return mpmd_mpi_f
 
-    def __decorator_body__(self, user_function, args, kwargs):
-        # type: (typing.Callable, tuple, dict) -> typing.Any
+    def __decorator_body__(
+        self, user_function: typing.Callable, args: tuple, kwargs: dict
+    ) -> typing.Any:
         if not self.scope:
             raise NotImplementedError
 
         if __debug__:
             logger.debug("Executing mpmd_mpi_f wrapper.")
 
-        if (context.in_master() or context.is_nesting_enabled()) \
-                and not self.core_element_configured:
+        if (
+            context.in_master() or context.is_nesting_enabled()
+        ) and not self.core_element_configured:
             # master code - or worker with nesting enabled
             self.__configure_core_element__(kwargs)
 
@@ -146,9 +156,8 @@ class MPMDMPI(object):
 
         return ret
 
-    def __get_programs_params__(self):
-        # type: () -> list
-        """ Resolve the collection layout, such as blocks, strides, etc.
+    def __get_programs_params__(self) -> list:
+        """Resolve the collection layout, such as blocks, strides, etc.
 
         :return: list(programs_length, binary, params, processes)
         :raises PyCOMPSsException: If programs are not dict objects.
@@ -173,9 +182,8 @@ class MPMDMPI(object):
 
         return programs_params
 
-    def __configure_core_element__(self, kwargs):
-        # type: (dict) -> None
-        """ Include the registering info related to @mpmd_mpi.
+    def __configure_core_element__(self, kwargs: dict) -> None:
+        """Include the registering info related to @mpmd_mpi.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 
@@ -195,14 +203,16 @@ class MPMDMPI(object):
         resolve_fail_by_exit_value(self.kwargs)
 
         ppn = str(self.kwargs.get(PROCESSES_PER_NODE, 1))
-        impl_signature = '.'.join((impl_type, str(ppn)))
+        impl_signature = ".".join((impl_type, str(ppn)))
 
         prog_params = self.__get_programs_params__()
 
-        impl_args = [runner,
-                     self.kwargs[WORKING_DIR],
-                     ppn,
-                     self.kwargs[FAIL_BY_EXIT_VALUE]]
+        impl_args = [
+            runner,
+            self.kwargs[WORKING_DIR],
+            ppn,
+            self.kwargs[FAIL_BY_EXIT_VALUE],
+        ]
         impl_args.extend(prog_params)
 
         if CORE_ELEMENT_KEY in kwargs:

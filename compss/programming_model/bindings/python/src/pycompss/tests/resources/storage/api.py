@@ -35,11 +35,11 @@ from pycompss.util.serialization.serializer import deserialize_from_file
 from pycompss.util.typing_helper import typing
 
 
-STORAGE_PATH = '/tmp/PSCO/' + str(socket.gethostname()) + '/'  # NOSONAR
+STORAGE_PATH = "/tmp/PSCO/" + str(socket.gethostname()) + "/"  # NOSONAR
 
 
 def init(config_file_path=None, **kwargs):  # noqa
-    """ Initialize dummy storage
+    """Initialize dummy storage
 
     print "-----------------------------------------------------"
     print "| WARNING!!! - YOU ARE USING THE DUMMY STORAGE API. |"
@@ -56,9 +56,8 @@ def init(config_file_path=None, **kwargs):  # noqa
     pass
 
 
-def finish(**kwargs):  # noqa
-    # type: (dict) -> None
-    """ Finalize dummy storage
+def finish(**kwargs: dict) -> None:
+    """Finalize dummy storage
 
     print "-----------------------------------------------------"
     print "| WARNING!!! - YOU ARE USING THE DUMMY STORAGE API. |"
@@ -73,9 +72,8 @@ def finish(**kwargs):  # noqa
     pass
 
 
-def init_worker(config_file_path=None, **kwargs):  # noqa
-    # type: (str, dict) -> None
-    """ Initialize dummy storage at worker
+def init_worker(config_file_path: str = None, **kwargs: dict) -> None:
+    """Initialize dummy storage at worker
 
     print "-----------------------------------------------------"
     print "| WARNING!!! - YOU ARE USING THE DUMMY STORAGE API. |"
@@ -92,9 +90,8 @@ def init_worker(config_file_path=None, **kwargs):  # noqa
     pass
 
 
-def finish_worker(**kwargs):  # noqa
-    # type: (dict) -> None
-    """ Finalize dummy storage at worker
+def finish_worker(**kwargs: dict) -> None:
+    """Finalize dummy storage at worker
 
     print "-----------------------------------------------------"
     print "| WARNING!!! - YOU ARE USING THE DUMMY STORAGE API. |"
@@ -109,9 +106,8 @@ def finish_worker(**kwargs):  # noqa
     pass
 
 
-def get_by_id(id):  # noqa
-    # type: (str) -> typing.Any
-    """ This functions retrieves an object from an external storage
+def get_by_id(id: str) -> typing.Any:
+    """This functions retrieves an object from an external storage
     technology from the obj object.
     This dummy returns the same object as submited by the parameter obj.
 
@@ -129,24 +125,27 @@ def get_by_id(id):  # noqa
     # print "-----------------------------------------------------"
     if id is not None:
         try:
-            file_name = id + '.PSCO'
+            file_name = id + ".PSCO"
             file_path = STORAGE_PATH + file_name
             obj = deserialize_from_file(file_path)
             obj.setID(id)  # noqa
             return obj
         except ValueError:
             # The id does not complain uuid4 --> raise an exception
-            print("Error: the ID for get_by_id does not complain the uuid4 format.")  # noqa: E501
-            raise ValueError('Using the dummy storage API get_by_id with wrong id.')  # noqa: E501
+            print(
+                "Error: the ID for get_by_id does not complain the uuid4 format."
+            )  # noqa: E501
+            raise ValueError(
+                "Using the dummy storage API get_by_id with wrong id."
+            )  # noqa: E501
     else:
         # Using a None id --> raise an exception
         print("Error: the ID for get_by_id is None.")
-        raise ValueError('Using the dummy storage API get_by_id with None id.')
+        raise ValueError("Using the dummy storage API get_by_id with None id.")
 
 
-def make_persistent(obj, *args):  # noqa
-    # type: (typing.Any, dict) -> None
-    """ Persist the given object.
+def make_persistent(obj: typing.Any, *args: dict) -> None:
+    """Persist the given object.
 
     :param obj: object to persist.
     :param args: Extra arguments.
@@ -160,17 +159,17 @@ def make_persistent(obj, *args):  # noqa
             # The user has indicated the id
             uid = args[0]
         else:
-            raise ValueError('Too many arguments when calling makePersistent.')
+            raise ValueError("Too many arguments when calling makePersistent.")
         obj.id = str(uid)
         # Write ID file
-        file_name = str(uid) + '.ID'
+        file_name = str(uid) + ".ID"
         file_path = STORAGE_PATH + file_name
         print("MAKE PERSISTENT: Creating ID file " + file_path)
-        with open(file_path, 'w') as f:
+        with open(file_path, "w") as f:
             f.write(obj.id)
 
         # Write PSCO file
-        file_name = str(uid) + '.PSCO'
+        file_name = str(uid) + ".PSCO"
         file_path = STORAGE_PATH + file_name
         print("MAKE PERSISTENT: Serializing object to file " + file_path)
         serialize_to_file(obj, file_path)
@@ -179,9 +178,8 @@ def make_persistent(obj, *args):  # noqa
         pass
 
 
-def update_persistent(obj, *args):  # noqa
-    # type: (typing.Any, dict) -> None
-    """ Update the given object.
+def update_persistent(obj: typing.Any, *args: dict) -> None:
+    """Update the given object.
 
     :param obj: object to update.
     :param args: Extra arguments.
@@ -190,7 +188,7 @@ def update_persistent(obj, *args):  # noqa
     if obj.id is not None:
         # The psco is already persistent
         # Update PSCO file
-        file_name = str(obj.id) + '.PSCO'
+        file_name = str(obj.id) + ".PSCO"
         file_path = STORAGE_PATH + file_name
         # Remove old file
         os.remove(file_path)
@@ -201,16 +199,15 @@ def update_persistent(obj, *args):  # noqa
         pass
 
 
-def remove_by_id(obj):  # noqa
-    # type: (str) -> None
-    """ Remove the given object.
+def remove_by_id(obj: str) -> None:
+    """Remove the given object.
 
     :param obj: Object to remove.
     :return: None
     """
     if obj.id is not None:
         # Remove ID file from /tmp/PSCO
-        file_name = str(obj.id) + '.ID'
+        file_name = str(obj.id) + ".ID"
         file_path = STORAGE_PATH + file_name
         try:
             print("Removing ID file: " + file_path)
@@ -219,7 +216,7 @@ def remove_by_id(obj):  # noqa
             print("PSCO: " + file_path + " Does not exist!")
 
         # Remove PSCO file from /tmp/PSCO
-        file_name = str(obj.id) + '.PSCO'
+        file_name = str(obj.id) + ".PSCO"
         file_path = STORAGE_PATH + file_name
         try:
             print("Removing Object file: " + file_path)
@@ -233,7 +230,6 @@ def remove_by_id(obj):  # noqa
 
 
 class TaskContext(object):
-
     def __init__(self, logger, values, config_file_path=None):
         self.logger = logger
         self.values = values

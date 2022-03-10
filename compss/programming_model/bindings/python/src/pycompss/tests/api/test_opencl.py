@@ -31,9 +31,7 @@ def test_opencl_instantiation():
     context.set_pycompss_context(context.MASTER)
     my_opencl = OpenCL(kernel="date")
     context.set_pycompss_context(context.OUT_OF_SCOPE)
-    assert (
-        my_opencl.decorator_name == "@opencl"
-    ), "The decorator name must be @opencl."
+    assert my_opencl.decorator_name == "@opencl", "The decorator name must be @opencl."
 
 
 def test_opencl_call():

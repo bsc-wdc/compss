@@ -72,12 +72,12 @@ SET_WALL_CLOCK = "SET_WALL_CLOCK"
 
 if __debug__:
     import logging
+
     link_logger = logging.getLogger(__name__)
 
 
-def shutdown_handler(signal, frame):  # noqa
-    # type: (int, typing.Any) -> None
-    """ Shutdown handler.
+def shutdown_handler(signal: int, frame: typing.Any) -> None:
+    """Shutdown handler.
 
     Do not remove the parameters.
 
@@ -89,10 +89,14 @@ def shutdown_handler(signal, frame):  # noqa
         LINK_PROCESS.terminate()
 
 
-def c_extension_link(in_queue, out_queue,
-                     redirect_std, out_file_name, err_file_name):
-    # type: (Queue, Queue, bool, str, str) -> None
-    """ Main C extension process.
+def c_extension_link(
+    in_queue: Queue,
+    out_queue: Queue,
+    redirect_std: bool,
+    out_file_name: str,
+    err_file_name: str,
+) -> None:
+    """Main C extension process.
 
     :param in_queue: Queue to receive messages.
     :param out_queue: Queue to send messages.
@@ -107,8 +111,9 @@ def c_extension_link(in_queue, out_queue,
     # Import C extension within the external process
     import compss
 
-    with ipython_std_redirector(out_file_name, err_file_name) \
-            if redirect_std else not_std_redirector():
+    with ipython_std_redirector(
+        out_file_name, err_file_name
+    ) if redirect_std else not_std_redirector():
         alive = True
         while alive:
             message = in_queue.get()
@@ -175,9 +180,8 @@ def c_extension_link(in_queue, out_queue,
                 raise PyCOMPSsException("Unknown link command")
 
 
-def establish_link(logger=None):  # noqa
-    # type: (typing.Any) -> typing.Any
-    """ Loads the compss C extension within the same process.
+def establish_link(logger: typing.Any = None) -> typing.Any:
+    """Loads the compss C extension within the same process.
 
     Does not implement support for stdout and stderr redirecting as the
     establish_interactive_link.
@@ -192,6 +196,7 @@ def establish_link(logger=None):  # noqa
         else:
             link_logger.debug(message)
     import compss
+
     if __debug__:
         message = "Loaded compss extension"
         if logger:
@@ -201,9 +206,10 @@ def establish_link(logger=None):  # noqa
     return compss
 
 
-def establish_interactive_link(logger=None, redirect_std=False):  # noqa
-    # type: (typing.Any, bool) -> typing.Tuple[typing.Any, str, str]
-    """ Starts a new process which will be in charge of communicating with the
+def establish_interactive_link(
+    logger: typing.Any = None, redirect_std: bool = False
+) -> typing.Tuple[typing.Any, str, str]:
+    """Starts a new process which will be in charge of communicating with the
     C-extension.
 
     It will return stdout file name and stderr file name as None if
@@ -240,10 +246,10 @@ def establish_interactive_link(logger=None, redirect_std=False):  # noqa
         else:
             link_logger.debug(message)
 
-    LINK_PROCESS = create_process(target=c_extension_link,
-                                  args=(IN_QUEUE, OUT_QUEUE,
-                                        redirect_std,
-                                        out_file_name, err_file_name))
+    LINK_PROCESS = create_process(
+        target=c_extension_link,
+        args=(IN_QUEUE, OUT_QUEUE, redirect_std, out_file_name, err_file_name),
+    )
     LINK_PROCESS.start()
 
     if __debug__:
@@ -257,9 +263,8 @@ def establish_interactive_link(logger=None, redirect_std=False):  # noqa
     return compss_link, out_file_name, err_file_name
 
 
-def wait_for_interactive_link():
-    # type: () -> None
-    """ Wait for interactive link finalization.
+def wait_for_interactive_link() -> None:
+    """Wait for interactive link finalization.
 
     :return: None
     """
@@ -276,9 +281,8 @@ def wait_for_interactive_link():
     RELOAD = True
 
 
-def terminate_interactive_link():
-    # type: () -> None
-    """ Terminate the compss C extension process.
+def terminate_interactive_link() -> None:
+    """Terminate the compss C extension process.
 
     :return: None
     """
@@ -295,49 +299,41 @@ class COMPSs(object):
     """
 
     @staticmethod
-    def start_runtime():
-        # type: () -> None
+    def start_runtime() -> None:
         IN_QUEUE.put([START])
 
     @staticmethod
-    def set_debug(mode):
-        # type: (bool) -> None
+    def set_debug(mode: bool) -> None:
         IN_QUEUE.put((SET_DEBUG, mode))
 
     @staticmethod
-    def stop_runtime(code):
-        # type: (int) -> None
+    def stop_runtime(code: int) -> None:
         IN_QUEUE.put([STOP, code])
         wait_for_interactive_link()
         # terminate_interactive_link()
 
     @staticmethod
-    def cancel_application_tasks(app_id, value):
-        # type: (int, int) -> None
+    def cancel_application_tasks(app_id: int, value: int) -> None:
         IN_QUEUE.put((CANCEL_TASKS, app_id, value))
 
     @staticmethod
-    def accessed_file(app_id, file_name):
-        # type: (int, str) -> bool
+    def accessed_file(app_id: int, file_name: str) -> bool:
         IN_QUEUE.put((ACCESSED_FILE, app_id, file_name))
         accessed = OUT_QUEUE.get(block=True)
         return accessed
 
     @staticmethod
-    def open_file(app_id, file_name, mode):
-        # type: (int, str, int) -> str
+    def open_file(app_id: int, file_name: str, mode: int) -> str:
         IN_QUEUE.put((OPEN_FILE, app_id, file_name, mode))
         compss_name = OUT_QUEUE.get(block=True)
         return compss_name
 
     @staticmethod
-    def close_file(app_id, file_name, mode):
-        # type: (int, str, int) -> None
+    def close_file(app_id: int, file_name: str, mode: int) -> None:
         IN_QUEUE.put((CLOSE_FILE, app_id, file_name, mode))
 
     @staticmethod
-    def delete_file(app_id, file_name, mode):
-        # type: (int, str, bool) -> bool
+    def delete_file(app_id: int, file_name: str, mode: bool) -> bool:
         IN_QUEUE.put((DELETE_FILE, app_id, file_name, mode))
         result = OUT_QUEUE.get(block=True)
         if result is None:
@@ -346,196 +342,198 @@ class COMPSs(object):
             return result
 
     @staticmethod
-    def get_file(app_id, file_name):
-        # type: (int, str) -> None
+    def get_file(app_id: int, file_name: str) -> None:
         IN_QUEUE.put((GET_FILE, app_id, file_name))
 
     @staticmethod
-    def get_directory(app_id, file_name):
-        # type: (int, str) -> None
+    def get_directory(app_id: int, file_name: str) -> None:
         IN_QUEUE.put((GET_DIRECTORY, app_id, file_name))
 
     @staticmethod
-    def barrier(app_id, no_more_tasks):
-        # type: (int, bool) -> None
+    def barrier(app_id: int, no_more_tasks: bool) -> None:
         IN_QUEUE.put((BARRIER, app_id, no_more_tasks))
 
     @staticmethod
-    def barrier_group(app_id, group_name):
-        # type: (int, str) -> str
+    def barrier_group(app_id: int, group_name: str) -> str:
         IN_QUEUE.put((BARRIER_GROUP, app_id, group_name))
         exception_message = OUT_QUEUE.get(block=True)
         return exception_message
 
     @staticmethod
-    def open_task_group(group_name, implicit_barrier, app_id):
-        # type: (str, bool, int) -> None
+    def open_task_group(group_name: str, implicit_barrier: bool, app_id: int) -> None:
         IN_QUEUE.put((OPEN_TASK_GROUP, group_name, implicit_barrier, app_id))
 
     @staticmethod
-    def close_task_group(group_name, app_id):
-        # type: (str, int) -> None
+    def close_task_group(group_name: str, app_id: int) -> None:
         IN_QUEUE.put((CLOSE_TASK_GROUP, group_name, app_id))
 
     @staticmethod
-    def get_logging_path():
-        # type: () -> str
+    def get_logging_path() -> str:
         IN_QUEUE.put([GET_LOGGING_PATH])
         log_path = OUT_QUEUE.get(block=True)
         return log_path
 
     @staticmethod
-    def get_number_of_resources(app_id):
-        # type: (int) -> int
+    def get_number_of_resources(app_id: int) -> int:
         IN_QUEUE.put((GET_NUMBER_OF_RESOURCES, app_id))
         num_resources = OUT_QUEUE.get(block=True)
         return num_resources
 
     @staticmethod
-    def request_resources(app_id, num_resources, group_name):
-        # type: (int, int, str) -> None
+    def request_resources(app_id: int, num_resources: int, group_name: str) -> None:
         IN_QUEUE.put((REQUEST_RESOURCES, app_id, num_resources, group_name))
 
     @staticmethod
-    def free_resources(app_id, num_resources, group_name):
-        # type: (int, int, str) -> None
+    def free_resources(app_id: int, num_resources: int, group_name: str) -> None:
         IN_QUEUE.put((FREE_RESOURCES, app_id, num_resources, group_name))
 
     @staticmethod
-    def register_core_element(ce_signature,      # type: str
-                              impl_signature,    # type: typing.Optional[str]
-                              impl_constraints,  # type: typing.Optional[str]
-                              impl_type,         # type: typing.Optional[str]
-                              impl_io,           # type: str
-                              impl_type_args     # type: typing.List[str]
-                              ):                 # type: (...) -> None
-        IN_QUEUE.put((REGISTER_CORE_ELEMENT,
-                      ce_signature,
-                      impl_signature,
-                      impl_constraints,
-                      impl_type,
-                      impl_io,
-                      impl_type_args))
+    def register_core_element(
+        ce_signature: str,
+        impl_signature: typing.Optional[str],
+        impl_constraints: typing.Optional[str],
+        impl_type: typing.Optional[str],
+        impl_io: str,
+        impl_type_args: typing.List[str],
+    ) -> None:
+        IN_QUEUE.put(
+            (
+                REGISTER_CORE_ELEMENT,
+                ce_signature,
+                impl_signature,
+                impl_constraints,
+                impl_type,
+                impl_io,
+                impl_type_args,
+            )
+        )
 
     @staticmethod
-    def process_task(app_id,             # type: int
-                     signature,          # type: str
-                     on_failure,         # type: str
-                     time_out,           # type: int
-                     has_priority,       # type: bool
-                     num_nodes,          # type: int
-                     reduction,          # type: bool
-                     chunk_size,         # type: int
-                     replicated,         # type: bool
-                     distributed,        # type: bool
-                     has_target,         # type: bool
-                     num_returns,        # type: int
-                     values,             # type: list
-                     names,              # type: list
-                     compss_types,       # type: list
-                     compss_directions,  # type: list
-                     compss_streams,     # type: list
-                     compss_prefixes,    # type: list
-                     content_types,      # type: list
-                     weights,            # type: list
-                     keep_renames        # type: list
-                     ):                  # type: (...) -> None
-        IN_QUEUE.put((PROCESS_TASK,
-                      app_id,
-                      signature,
-                      on_failure,
-                      time_out,
-                      has_priority,
-                      num_nodes,
-                      reduction,
-                      chunk_size,
-                      replicated,
-                      distributed,
-                      has_target,
-                      num_returns,
-                      values,
-                      names,
-                      compss_types,
-                      compss_directions,
-                      compss_streams,
-                      compss_prefixes,
-                      content_types,
-                      weights,
-                      keep_renames))
+    def process_task(
+        app_id: int,
+        signature: str,
+        on_failure: str,
+        time_out: int,
+        has_priority: bool,
+        num_nodes: int,
+        reduction: bool,
+        chunk_size: int,
+        replicated: bool,
+        distributed: bool,
+        has_target: bool,
+        num_returns: int,
+        values: list,
+        names: list,
+        compss_types: list,
+        compss_directions: list,
+        compss_streams: list,
+        compss_prefixes: list,
+        content_types: list,
+        weights: list,
+        keep_renames: list,
+    ) -> None:
+        IN_QUEUE.put(
+            (
+                PROCESS_TASK,
+                app_id,
+                signature,
+                on_failure,
+                time_out,
+                has_priority,
+                num_nodes,
+                reduction,
+                chunk_size,
+                replicated,
+                distributed,
+                has_target,
+                num_returns,
+                values,
+                names,
+                compss_types,
+                compss_directions,
+                compss_streams,
+                compss_prefixes,
+                content_types,
+                weights,
+                keep_renames,
+            )
+        )
 
     @staticmethod
-    def process_http_task(app_id,               # type: str
-                          signature,            # type: str
-                          service_name,         # type: str
-                          resource,             # type: str
-                          request,              # type: str
-                          payload,              # type: str
-                          payload_type,         # type: str
-                          produces,             # type: str
-                          updates,              # type: str
-                          has_target,           # type: bool
-                          names,                # type: list
-                          values,               # type: list
-                          num_returns,          # type: int
-                          compss_types,         # type: list
-                          compss_directions,    # type: list
-                          compss_streams,       # type: list
-                          compss_prefixes,      # type: list
-                          content_types,        # type: list
-                          weights,              # type: list
-                          keep_renames,         # type: list
-                          has_priority,         # type: bool
-                          num_nodes,            # type: int
-                          reduction,            # type: bool
-                          chunk_size,           # type: int
-                          replicated,           # type: bool
-                          distributed,          # type: bool
-                          on_failure,           # type: str
-                          time_out,             # type: int
-                          ):                    # type: (...) -> None
-        IN_QUEUE.put((PROCESS_HTTP_TASK,
-                      app_id,
-                      service_name,
-                      resource,
-                      request,
-                      payload,
-                      payload_type,
-                      produces,
-                      updates,
-                      signature,
-                      on_failure,
-                      time_out,
-                      has_priority,
-                      num_nodes,
-                      reduction,
-                      chunk_size,
-                      replicated,
-                      distributed,
-                      has_target,
-                      num_returns,
-                      values,
-                      names,
-                      compss_types,
-                      compss_directions,
-                      compss_streams,
-                      compss_prefixes,
-                      content_types,
-                      weights,
-                      keep_renames))
+    def process_http_task(
+        app_id: str,
+        signature: str,
+        service_name: str,
+        resource: str,
+        request: str,
+        payload: str,
+        payload_type: str,
+        produces: str,
+        updates: str,
+        has_target: bool,
+        names: list,
+        values: list,
+        num_returns: int,
+        compss_types: list,
+        compss_directions: list,
+        compss_streams: list,
+        compss_prefixes: list,
+        content_types: list,
+        weights: list,
+        keep_renames: list,
+        has_priority: bool,
+        num_nodes: int,
+        reduction: bool,
+        chunk_size: int,
+        replicated: bool,
+        distributed: bool,
+        on_failure: str,
+        time_out: int,
+    ) -> None:
+        IN_QUEUE.put(
+            (
+                PROCESS_HTTP_TASK,
+                app_id,
+                service_name,
+                resource,
+                request,
+                payload,
+                payload_type,
+                produces,
+                updates,
+                signature,
+                on_failure,
+                time_out,
+                has_priority,
+                num_nodes,
+                reduction,
+                chunk_size,
+                replicated,
+                distributed,
+                has_target,
+                num_returns,
+                values,
+                names,
+                compss_types,
+                compss_directions,
+                compss_streams,
+                compss_prefixes,
+                content_types,
+                weights,
+                keep_renames,
+            )
+        )
 
     @staticmethod
-    def set_pipes(pipe_in, pipe_out):
-        # type: (str, str) -> None
+    def set_pipes(pipe_in: str, pipe_out: str) -> None:
         IN_QUEUE.put((SET_PIPES, pipe_in, pipe_out))
 
     @staticmethod
-    def read_pipes():
-        # type: () -> str
+    def read_pipes() -> str:
         IN_QUEUE.put([READ_PIPES])
         command = OUT_QUEUE.get(block=True)
         return command
 
     @staticmethod
-    def set_wall_clock(app_id, wcl):
-        # type: (int, int) -> None
+    def set_wall_clock(app_id: int, wcl: int) -> None:
         IN_QUEUE.put((SET_WALL_CLOCK, app_id, wcl))

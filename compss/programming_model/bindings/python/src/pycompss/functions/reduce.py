@@ -27,9 +27,8 @@ from pycompss.util.typing_helper import typing
 from collections import deque
 
 
-def merge_reduce(f, data):
-    # type: (typing.Any, list) -> typing.Any
-    """ Apply function cumulatively to the items of data,
+def merge_reduce(f: typing.Callable, data: list) -> typing.Any:
+    """Apply function cumulatively to the items of data,
     from left to right in binary tree structure, so as to
     reduce the data to a single value.
 
@@ -48,9 +47,8 @@ def merge_reduce(f, data):
             return data[x]
 
 
-def merge_n_reduce(f, arity, data):
-    # type: (typing.Any, int, list) -> typing.Any
-    """ Apply f cumulatively to the items of data,
+def merge_n_reduce(f: typing.Callable, arity: int, data: list) -> typing.Any:
+    """Apply f cumulatively to the items of data,
     from left to right in n-tree structure, so as to
     reduce the data.
 

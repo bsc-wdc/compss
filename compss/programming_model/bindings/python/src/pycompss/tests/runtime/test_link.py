@@ -31,6 +31,4 @@ def test_c_extension_link_wrong_message():
         c_extension_link(in_queue, out_queue, False, "None", "None")
     except PyCOMPSsException:
         is_ok = True
-    assert (
-        is_ok
-    ), "ERROR: Exception not raised when undefined message received in link."
+    assert is_ok, "ERROR: Exception not raised when undefined message received in link."

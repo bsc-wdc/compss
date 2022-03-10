@@ -29,21 +29,11 @@ import sys
 import inspect
 from pycompss.util.typing_helper import typing
 from collections import OrderedDict
-
-from pycompss.runtime.commons import IS_PYTHON3
-
-_builtins = None  # type: typing.Any
-if IS_PYTHON3:
-    import builtins
-    _builtins = builtins
-else:
-    import __builtin__  # noqa
-    _builtins = __builtin__
+import builtins
 
 
-def get_module_name(path, file_name):
-    # type: (str, str) -> str
-    """ Get the module name considering its path and filename.
+def get_module_name(path: str, file_name: str) -> str:
+    """Get the module name considering its path and filename.
 
     Example: runcompss -d src/kmeans.py
              path = "test/kmeans.py"
@@ -71,9 +61,8 @@ def get_module_name(path, file_name):
     return mod_name
 
 
-def get_wrapped_source(f):
-    # type: (typing.Callable) -> str
-    """ Gets the text of the source code for the given function.
+def get_wrapped_source(f: typing.Callable) -> str:
+    """Gets the text of the source code for the given function.
 
     :param f: Input function.
     :return: Source.
@@ -93,9 +82,8 @@ def get_wrapped_source(f):
         return source
 
 
-def is_module_available(module_name):
-    # type: (str) -> bool
-    """ Checks if a module is available in the current Python installation.
+def is_module_available(module_name: str) -> bool:
+    """Checks if a module is available in the current Python installation.
 
     :param module_name: Name of the module.
     :return: True if the module is available. False otherwise.
@@ -105,14 +93,17 @@ def is_module_available(module_name):
         if py_version > (3, 4):
             try:
                 import importlib
+
                 _importlib = importlib  # type: typing.Any
                 module = _importlib.util.find_spec(module_name)  # noqa
             except AttributeError:
                 # This can only happen in conda
                 import imp  # noqa # Deprecated in python 3
+
                 module = imp.find_module(module_name)  # noqa
         else:
             import imp  # noqa
+
             module = imp.find_module(module_name)  # noqa
         if module:
             return True
@@ -122,9 +113,8 @@ def is_module_available(module_name):
         return False
 
 
-def is_basic_iterable(obj):
-    # type: (typing.Any) -> bool
-    """ Checks if an object is a basic iterable.
+def is_basic_iterable(obj: typing.Any) -> bool:
+    """Checks if an object is a basic iterable.
 
     By basic iterable we want to mean objects that are iterable and from a
     basic type.
@@ -135,8 +125,7 @@ def is_basic_iterable(obj):
     return isinstance(obj, (list, tuple, bytearray, set, frozenset))
 
 
-def is_dict(obj):
-    # type: (typing.Any) -> bool
+def is_dict(obj: typing.Any) -> bool:
     """
     Checks if an object is a dictionary.
 
@@ -146,9 +135,8 @@ def is_dict(obj):
     return isinstance(obj, (dict, OrderedDict))
 
 
-def object_belongs_to_module(obj, module_name):
-    # type: (typing.Any, str) -> bool
-    """ Checks if a given object belongs to a given module (or some sub-module).
+def object_belongs_to_module(obj: typing.Any, module_name: str) -> bool:
+    """Checks if a given object belongs to a given module (or some sub-module).
 
     :param obj: Object to be analysed
     :param module_name: Name of the module we want to check
@@ -157,16 +145,15 @@ def object_belongs_to_module(obj, module_name):
     return any(module_name == x for x in type(obj).__module__.split("."))
 
 
-def create_object_by_con_type(con_type):
-    # type: (str) -> typing.Any
-    """ Knowing its class name create an "empty" object.
+def create_object_by_con_type(con_type: str) -> typing.Any:
+    """Knowing its class name create an "empty" object.
 
     :param con_type: object type info in <path_to_module>:<class_name> format.
     :return: "empty" object of a type.
     """
     path, class_name = con_type.split(":")
-    if hasattr(_builtins, class_name):
-        _obj = getattr(_builtins, class_name)
+    if hasattr(builtins, class_name):
+        _obj = getattr(builtins, class_name)
         return _obj()
 
     directory, module_name = os.path.split(path)

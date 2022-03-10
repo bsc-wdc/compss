@@ -52,7 +52,7 @@ def test_on_failure_unsupported_call():
     except Exception:  # noqa
         thrown = True
     context.set_pycompss_context(context.OUT_OF_SCOPE)
-    assert(
+    assert (
         thrown
     ), "The on_failure decorator did not raised an exception with unsupported management value."  # noqa: E501
 

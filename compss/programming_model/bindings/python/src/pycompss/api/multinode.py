@@ -42,16 +42,19 @@ from pycompss.runtime.task.core_element import CE
 
 if __debug__:
     import logging
+
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = set()   # type: typing.Set[str]
+MANDATORY_ARGUMENTS = set()  # type: typing.Set[str]
 SUPPORTED_ARGUMENTS = {COMPUTING_NODES}
 DEPRECATED_ARGUMENTS = {LEGACY_COMPUTING_NODES}
-SLURM_SKIP_VARS = ["SLURM_JOBID",
-                   "SLURM_JOB_ID",
-                   "SLURM_USER",
-                   "SLURM_QOS",
-                   "SLURM_PARTITION"]
+SLURM_SKIP_VARS = [
+    "SLURM_JOBID",
+    "SLURM_JOB_ID",
+    "SLURM_USER",
+    "SLURM_QOS",
+    "SLURM_PARTITION",
+]
 
 
 class MultiNode(object):
@@ -60,12 +63,17 @@ class MultiNode(object):
     __call__ methods, useful on MultiNode task creation.
     """
 
-    __slots__ = ["decorator_name", "args", "kwargs", "scope",
-                 "core_element", "core_element_configured"]
+    __slots__ = [
+        "decorator_name",
+        "args",
+        "kwargs",
+        "scope",
+        "core_element",
+        "core_element_configured",
+    ]
 
-    def __init__(self, *args, **kwargs):
-        # type: (*typing.Any, **typing.Any) -> None
-        """ Store arguments passed to the decorator.
+    def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
+        """Store arguments passed to the decorator.
 
         self = itself.
         args = not used.
@@ -84,34 +92,35 @@ class MultiNode(object):
         self.core_element_configured = False
         if self.scope:
             # Check the arguments
-            check_arguments(MANDATORY_ARGUMENTS,
-                            DEPRECATED_ARGUMENTS,
-                            SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
-                            list(kwargs.keys()),
-                            decorator_name)
+            check_arguments(
+                MANDATORY_ARGUMENTS,
+                DEPRECATED_ARGUMENTS,
+                SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
+                list(kwargs.keys()),
+                decorator_name,
+            )
 
             # Get the computing nodes
             process_computing_nodes(decorator_name, self.kwargs)
 
-    def __call__(self, user_function):
-        # type: (typing.Callable) -> typing.Callable
-        """ Parse and set the multinode parameters within the task core element.
+    def __call__(self, user_function: typing.Callable) -> typing.Callable:
+        """Parse and set the multinode parameters within the task core element.
 
         :param user_function: Function to decorate.
         :return: Decorated function.
         """
 
         @wraps(user_function)
-        def multinode_f(*args, **kwargs):
-            # type: (*typing.Any, **typing.Any) -> typing.Any
+        def multinode_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             if not self.scope:
                 raise NotInPyCOMPSsException(not_in_pycompss("MultiNode"))
 
             if __debug__:
                 logger.debug("Executing multinode_f wrapper.")
 
-            if (context.in_master() or context.is_nesting_enabled()) \
-                    and not self.core_element_configured:
+            if (
+                context.in_master() or context.is_nesting_enabled()
+            ) and not self.core_element_configured:
                 # master code - or worker with nesting enabled
                 self.__configure_core_element__(kwargs)
 
@@ -134,9 +143,8 @@ class MultiNode(object):
         multinode_f.__doc__ = user_function.__doc__
         return multinode_f
 
-    def __configure_core_element__(self, kwargs):
-        # type: (dict) -> None
-        """ Include the registering info related to @multinode.
+    def __configure_core_element__(self, kwargs: dict) -> None:
+        """Include the registering info related to @multinode.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 
@@ -165,9 +173,8 @@ class MultiNode(object):
         self.core_element_configured = True
 
 
-def set_slurm_environment():
-    # type: () -> dict
-    """ Set SLURM environment.
+def set_slurm_environment() -> dict:
+    """Set SLURM environment.
 
     :return: old Slurm environment
     """
@@ -181,22 +188,19 @@ def set_slurm_environment():
     os.environ["SLURM_NTASKS"] = str(total_processes)
     os.environ["SLURM_NNODES"] = str(num_nodes)
     os.environ["SLURM_JOB_NUM_NODES"] = str(num_nodes)
-    os.environ["SLURM_NODELIST"] = ','.join(nodes)
-    os.environ["SLURM_JOB_NODELIST"] = ','.join(nodes)
-    os.environ["SLURM_TASKS_PER_NODE"] = "".join((str(num_threads),
-                                                  "(x",
-                                                  str(num_nodes),
-                                                  ")"))
-    os.environ["SLURM_CPUS_PER_NODE"] = "".join((str(num_threads),
-                                                 "(x",
-                                                 str(num_nodes),
-                                                 ")"))
+    os.environ["SLURM_NODELIST"] = ",".join(nodes)
+    os.environ["SLURM_JOB_NODELIST"] = ",".join(nodes)
+    os.environ["SLURM_TASKS_PER_NODE"] = "".join(
+        (str(num_threads), "(x", str(num_nodes), ")")
+    )
+    os.environ["SLURM_CPUS_PER_NODE"] = "".join(
+        (str(num_threads), "(x", str(num_nodes), ")")
+    )
     return old_slurm_env
 
 
-def remove_slurm_environment():
-    # type: () -> dict
-    """ Removes the Slurm vars from environment
+def remove_slurm_environment() -> dict:
+    """Removes the Slurm vars from environment
 
     :return: removed Slurm vars
     """
@@ -210,9 +214,8 @@ def remove_slurm_environment():
     return old_slurm_env
 
 
-def reset_slurm_environment(old_slurm_env=None):
-    # type: (dict) -> None
-    """ Reestablishes SLURM environment.
+def reset_slurm_environment(old_slurm_env: typing.Optional[dict] = None) -> None:
+    """Reestablishes SLURM environment.
 
     :return: None
     """

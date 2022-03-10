@@ -153,7 +153,7 @@ def start(
                 (default: False)
     :param graph: Generate graph [ True|False ]
                   (default: False)
-    :param trace: Generate trace [ True|False|"scorep"|"arm-map"|"arm-ddt" ]
+    :param trace: Generate trace [ True | False ]
                   (default: False)
     :param monitor: Monitor refresh rate
                     (default: None)
@@ -330,7 +330,7 @@ def start(
 
     # Prepare the environment
     env_vars = prepare_environment(
-        True, o_c, storage_impl, "undefined", debug, trace, mpi_worker
+        True, o_c, storage_impl, "undefined", debug, mpi_worker
     )
     all_vars.update(env_vars)
 
@@ -363,10 +363,9 @@ def start(
 
     # Update the tracing environment if set and set the appropriate trace
     # integer value
-    tracing_vars = prepare_tracing_environment(
+    all_vars["ld_library_path"] = prepare_tracing_environment(
         all_vars["trace"], all_vars["extrae_lib"], all_vars["ld_library_path"]
     )
-    all_vars["trace"], all_vars["ld_library_path"] = tracing_vars
 
     # Update the infrastructure variables if necessary
     inf_vars = check_infrastructure_variables(

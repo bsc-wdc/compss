@@ -124,12 +124,9 @@ def parse_arguments() -> typing.Any:
     parser.add_argument(
         "wall_clock",
         help="Application Wall Clock limit [wall_clock<=0 deactivated|wall_clock>0 max duration in seconds]",
-    )  # noqa: E501
+    )
     parser.add_argument("log_level", help="Logging level [trace|debug|api|info|off]")
-    parser.add_argument(
-        "tracing",
-        help="Tracing [-3(ARM DDT)|-2(ARM MAP)|-1(ScoreP)|0(Deactivated)|1(Basic)|2(Advanced)]",
-    )  # noqa: E501
+    parser.add_argument("tracing", help="Tracing [True | False]")
     parser.add_argument("object_conversion", help="Object_conversion [true|false]")
     parser.add_argument("storage_configuration", help="Storage configuration [null|*]")
     parser.add_argument("streaming_backend", help="Streaming Backend [null|*]")
@@ -217,9 +214,9 @@ def compss_main() -> None:
     print(str(args))
     # Setup tracing
     if args.tracing == "true":
-        tracing = 1
+        tracing = True
     else:
-        tracing = 0
+        tracing = False
 
     # Get storage configuration at master
     storage_conf = args.storage_configuration
@@ -398,9 +395,7 @@ def launch_pycompss_application(
     :param debug: Debug mode [ True | False ] (default: False)
                   (overrides log_level)
     :param graph: Generate graph [ True | False ] (default: False)
-    :param trace: Generate trace
-                  [ True | False | "scorep" | "arm-map" | "arm-ddt"]
-                  (default: False)
+    :param trace: Generate trace [ True | False ] (default: False)
     :param monitor: Monitor refresh rate (default: None)
     :param project_xml: Project xml file path
     :param resources_xml: Resources xml file path
@@ -537,9 +532,7 @@ def launch_pycompss_application(
         return None
 
     # Prepare the environment
-    env_vars = prepare_environment(
-        False, o_c, storage_impl, app, debug, trace, mpi_worker
-    )
+    env_vars = prepare_environment(False, o_c, storage_impl, app, debug, mpi_worker)
     all_vars.update(env_vars)
 
     monitoring_vars = prepare_loglevel_graph_for_monitoring(
@@ -551,10 +544,9 @@ def launch_pycompss_application(
         updated_vars = updated_variables_in_sc()
         all_vars.update(updated_vars)
 
-    to_update = prepare_tracing_environment(
+    all_vars["ld_library_path"] = prepare_tracing_environment(
         all_vars["trace"], all_vars["extrae_lib"], all_vars["ld_library_path"]
     )
-    all_vars["trace"], all_vars["ld_library_path"] = to_update
 
     inf_vars = check_infrastructure_variables(
         all_vars["project_xml"],

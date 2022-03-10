@@ -29,13 +29,13 @@ from pycompss.util.typing_helper import typing
 
 
 def compss_start(
-    log_level: str = "off", tracing: int = 0, interactive: bool = False
+    log_level: str = "off", tracing: bool = False, interactive: bool = False
 ) -> None:
     """Dummy runtime start.
 
     Does nothing.
 
-    :param log_level: Log level ["trace"|"debug"|"info"|"api"|"off"].
+    :param log_level: Log level [ True | False ].
     :param tracing: Tracing mode [0=None, 1=Extrae]
     :param interactive: Boolean if interactive (ipython or jupyter).
     :return: None

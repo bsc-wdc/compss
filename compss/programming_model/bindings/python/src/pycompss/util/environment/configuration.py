@@ -86,7 +86,6 @@ def prepare_environment(
     storage_impl: str,
     app: str,
     debug: bool,
-    trace: bool,
     mpi_worker: bool,
 ) -> dict:
     """Setup the environment variable and retrieve their content.
@@ -96,7 +95,6 @@ def prepare_environment(
     :param storage_impl: Storage implementation
     :param app: Application name
     :param debug: True | False If debug is enabled
-    :param trace: Trace mode (True | False | "scorep" | "arm-map" | "arm-ddt")
     :param mpi_worker: True | False if mpi worker is enabled
     :return: Dictionary which contains the compss_home, pythonpath, classpath,
              ld_library_path, cp, extrae_home, extrae_lib and file_name values.
@@ -158,10 +156,6 @@ def prepare_environment(
     os.environ["EXTRAE_USE_POSIX_CLOCK"] = "0"
 
     control_binding_commons_debug(debug)
-
-    # Force mpi worker if using ScoreP, ARM-MAP or ARM-DDT
-    if trace in ["scorep", "arm-map", "arm-ddt"]:
-        mpi_worker = True
 
     env_vars = {
         "compss_home": compss_home,
@@ -257,30 +251,19 @@ def updated_variables_in_sc() -> dict:
 
 def prepare_tracing_environment(
     trace: bool, extrae_lib: str, ld_library_path: str
-) -> typing.Tuple[int, str]:
+) -> str:
     """Prepare the environment for tracing.
     Also retrieves the appropriate trace value for the initial configuration
     file (which is an integer).
 
-    :param trace: [ True | basic ] | advanced | False Tracing mode.
+    :param trace: [ True | False ] Tracing mode.
     :param extrae_lib: Extrae lib path.
     :param ld_library_path: LD_LIBRARY_PATH environment content
     :return: Trace mode (as integer)
     """
-    if trace is False:
-        trace_value = 0
-    elif trace == "basic" or trace is True:
-        trace_value = 1
+    if trace is True:
         ld_library_path = ld_library_path + ":" + extrae_lib
-    elif trace == "advanced":
-        trace_value = 2
-        ld_library_path = ld_library_path + ":" + extrae_lib
-    else:
-        msg = (
-            "ERROR: Wrong tracing parameter " + "( [ True | basic ] | advanced | False)"
-        )
-        raise PyCOMPSsException(msg)
-    return trace_value, ld_library_path
+    return ld_library_path
 
 
 def check_infrastructure_variables(

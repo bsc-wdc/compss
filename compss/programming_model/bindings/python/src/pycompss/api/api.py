@@ -95,11 +95,11 @@ if context.in_pycompss():
 
 
 def compss_start(
-    log_level: str = "off", tracing: int = 0, interactive: bool = False
+    log_level: str = "off", tracing: bool = False, interactive: bool = False
 ) -> None:
     """Starts the runtime.
 
-    :param log_level: Log level ["trace"|"debug"|"info"|"api"|"off"].
+    :param log_level: Log level [ True | False ].
     :param tracing: Tracing level [0 (deactivated)|1 (basic)|2 (advanced)].
     :param interactive: Boolean if interactive (ipython or jupyter).
     :return: None

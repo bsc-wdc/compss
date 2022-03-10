@@ -79,7 +79,7 @@ object_conversion = False
 
 
 def start_runtime(
-    log_level: str = "off", tracing: int = 0, interactive: bool = False
+    log_level: str = "off", tracing: bool = False, interactive: bool = False
 ) -> None:
     """Starts the COMPSs runtime.
 
@@ -87,14 +87,14 @@ def start_runtime(
     the bindings-common.
 
     :param log_level: Log level [ "trace" | "debug" | "info" | "api" | "off" ].
-    :param tracing: Tracing level [0 (deactivated) | 1 (basic) | 2 (advanced)].
+    :param tracing: Tracing level [ True | False ].
     :param interactive: Boolean if interactive (ipython or jupyter).
     :return: None
     """
     if __debug__:
         logger.info("Starting COMPSs...")
 
-    if tracing > 0 and not interactive:
+    if tracing and not interactive:
         # Enabled only if not interactive - extrae issues within jupyter.
         enable_trace_master()
 

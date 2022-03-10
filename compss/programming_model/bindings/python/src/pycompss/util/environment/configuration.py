@@ -662,29 +662,15 @@ def create_init_config_file(compss_home,                    # type: str
     # TOOLS SPECIFIC
     if not trace or trace == 0:
         # Deactivated
-        jvm_options_file.write('-Dcompss.tracing=0' + '\n')
+        jvm_options_file.write('-Dcompss.tracing=false' + '\n')
     elif trace == 1:
         # Basic
-        jvm_options_file.write('-Dcompss.tracing=1\n')
+        jvm_options_file.write('-Dcompss.tracing=true\n')
         basic = compss_home + DEFAULT_TRACING_PATH + 'extrae_basic.xml'
         os.environ['EXTRAE_CONFIG_FILE'] = basic
-    elif trace == 2:
-        # Advanced
-        jvm_options_file.write('-Dcompss.tracing=2\n')
-        advanced = compss_home + DEFAULT_TRACING_PATH + 'extrae_advanced.xml'
-        os.environ['EXTRAE_CONFIG_FILE'] = advanced
-    elif trace == "scorep":
-        # ScoreP tracing
-        jvm_options_file.write('-Dcompss.tracing=-1\n')
-    elif trace == "arm-map":
-        # ARM-MAP profiling
-        jvm_options_file.write('-Dcompss.tracing=-2\n')
-    elif trace == "arm-ddt":
-        # ARM-DDT debuger
-        jvm_options_file.write('-Dcompss.tracing=-3\n')
     else:
         # Any other case: deactivated
-        jvm_options_file.write('-Dcompss.tracing=0' + '\n')
+        jvm_options_file.write('-Dcompss.tracing=false' + '\n')
     if tracing_task_dependencies:
         jvm_options_file.write('-Dcompss.tracing.task.dependencies=true\n')
     else:

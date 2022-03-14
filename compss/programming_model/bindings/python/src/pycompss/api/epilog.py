@@ -103,7 +103,7 @@ class Epilog(PyCOMPSsDecorator):
                 and not self.core_element_configured:
             self.__configure_core_element__(kwargs, user_function)
 
-        with keep_arguments(args, kwargs, prepend_strings=False):
+        with keep_arguments(args, kwargs, prepend_strings=True):
             # Call the method
             ret = user_function(*args, **kwargs)
 

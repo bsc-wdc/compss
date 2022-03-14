@@ -370,7 +370,8 @@ public class BinaryRunner {
                 case STRING_64_T:
                     byte[] decodedBytes = Base64.getDecoder().decode(param.getValue().toString());
                     String tmp = new String(decodedBytes);
-                    binaryParamFields.add(tmp);
+                    // encoded strings have and extra character ('#') to avoid empty string errors
+                    binaryParamFields.add(tmp.substring(1));
                     break;
                 default:
                     binaryParamFields.add(String.valueOf(param.getValue()));

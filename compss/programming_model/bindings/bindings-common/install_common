@@ -76,7 +76,7 @@
 
   os=$(uname)
   if [ "$os" == "Linux" ]; then
-	  export CPP_OS="-I\$(JAVA_HOME)/include/linux/"
+	  export CPP_OS="-fcompare-debug-second -I\$(JAVA_HOME)/include/linux/"
   elif [ "$os" == "Darwin" ]; then
 	  export CPP_OS="-stdlib=libc++ -I\$(JAVA_HOME)/include/darwin/"
   else

@@ -24,6 +24,7 @@ import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.invokers.types.StdIOStream;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.Constants;
+import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.util.ExternalStreamHandler;
 import es.bsc.compss.util.StreamGobbler;
@@ -179,6 +180,10 @@ public class BinaryRunner {
                 pv = param.getPrefix() + String.valueOf(param.getValue());
             } else {
                 pv = String.valueOf(param.getValue());
+            }
+            if (param.getType().equals(DataType.STRING_64_T)) {
+                byte[] encoded = Base64.getEncoder().encode(pv.getBytes());
+                pv = new String(encoded).substring(1);
             }
             String replacement =
                 APP_PARAMETER_OPEN_TOKEN + param.getName().replaceFirst("#kwarg_", "") + APP_PARAMETER_CLOSE_TOKEN;

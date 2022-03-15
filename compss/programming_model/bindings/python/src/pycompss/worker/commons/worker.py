@@ -124,7 +124,7 @@ def build_task_parameter(
                 name=p_name,
                 file_name=COMPSsFile(p_value),
                 extra_content_type=str(p_c_type),
-            ), 1
+            ), 1)
     elif p_type in (parameter.TYPE.STRING, parameter.TYPE.STRING_64):
         if args is not None:
             num_substrings = int(p_value)  # noqa

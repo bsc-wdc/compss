@@ -835,8 +835,8 @@ class TaskMaster(object):
             "@task",
         )
 
-    def build_parameter_object(self, arg_name: str, arg_object: typing.Any, code_strings=True):
-        self, arg_name: str, arg_object: typing.Any
+    def build_parameter_object(
+        self, arg_name: str, arg_object: typing.Any, code_strings=True
     ) -> Parameter:
         """Creates the Parameter object from an argument name and object.
 
@@ -1810,8 +1810,8 @@ class TaskMaster(object):
             # Check if the object is small in order not to serialize it.
             if get_object_conversion():
                 # todo: fix this case too
-                    p, max_obj_arg_size, policy="objectSize"  # noqa: E501
-                )  # noqa: E501
+                p, written_bytes = self._convert_parameter_obj_to_string(
+                    p, max_obj_arg_size, policy="objectSize")  # noqa: E501
                 max_obj_arg_size -= written_bytes
             else:
                 # Serialize objects into files
@@ -2287,8 +2287,7 @@ def _extract_parameter(
     """
     con_type = UNDEFINED_CONTENT_TYPE
 
-    if param.content_type == TYPE.STRING_64 and not param.is_future:  # noqa: E501
-    ):  # noqa: E501
+    if param.content_type == TYPE.STRING_64 and not param.is_future:
         # Encode the string in order to preserve the source
         # Checks that it is not a future (which is indicated with a path)
         # Considers multiple spaces between words

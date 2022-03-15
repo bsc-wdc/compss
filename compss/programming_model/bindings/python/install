@@ -135,7 +135,7 @@
         echo "* Installing python 2 version."
         # within 2.X site-packages
         install 2
-      elif [[ "$targetDir" = *python3* ]] || [["$targetDir" = *python/3*]]; then
+      elif [[ "$targetDir" = *python3* ]] || [[ "$targetDir" = *python/3* ]]; then
         echo "* Installing python 3 version."
         # within 3.X site-packages
         install 3

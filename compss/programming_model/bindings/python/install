@@ -126,11 +126,11 @@
     # Check $targetDir = site-packages usual, dist-packages in deb based distributions.
     if [[ "$targetDir" = *site-packages* ]] || [[ "$targetDir" = *dist-packages* ]]; then
       # If it is within site-packages, install only the appropriate version.
-      if [[ "$targetDir" = *python2* ]] || [[ "$targetDir" = *python/2* ]]; then
+      if [[ "$targetDir" = *python2* ]] || [[ "$targetDir" = *Python/2* ]]; then
         echo "* Installing python 2 version."
         # within 2.X site-packages
         install 2
-      elif [[ "$targetDir" = *python3* ]] || [["$targetDir" = *python/3*]]; then
+      elif [[ "$targetDir" = *python3* ]] || [[ "$targetDir" = *Python/3* ]]; then
         echo "* Installing python 3 version."
         # within 3.X site-packages
         install 3

@@ -132,4 +132,30 @@
     exit 1
   fi
 
+  # testOutParam
+  p_str=$(grep -r -l "AAA_BBB" "$jobs_logs")
+  if [ "$p_str" = "" ]; then
+    echo "ERROR: TASK FAILED: testOutParam function failed." | tee -a "${output_file}"
+    echo "  - Prolog params not of task_1 printed!" | tee -a "${output_file}"
+    exit 1
+  fi
+  e_str=$(grep -r -l "CCC_DDD" "$jobs_logs")
+  if [ "$e_str" = "" ]; then
+    echo "ERROR: TASK FAILED: testOutParam function failed." | tee -a "${output_file}"
+    echo "  - Epilog params not of task_1 printed!" | tee -a "${output_file}"
+    exit 1
+  fi
+  p_str=$(grep -r -l "prolog_BBB" "$jobs_logs")
+  if [ "$p_str" = "" ]; then
+    echo "ERROR: TASK FAILED: testOutParam function failed." | tee -a "${output_file}"
+    echo "  - Prolog params not of task_2 printed!" | tee -a "${output_file}"
+    exit 1
+  fi
+  e_str=$(grep -r -l "epilog_DDD" "$jobs_logs")
+  if [ "$e_str" = "" ]; then
+    echo "ERROR: TASK FAILED: testOutParam function failed." | tee -a "${output_file}"
+    echo "  - Epilog params not of task_2 printed!" | tee -a "${output_file}"
+    exit 1
+  fi
+  echo "________________________"
 exit 0

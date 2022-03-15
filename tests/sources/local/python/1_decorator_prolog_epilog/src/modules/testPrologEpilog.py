@@ -55,7 +55,8 @@ def mpi_skip_failure():
 
 
 @prolog(binary="date", params="-wrong", fail_by_exit_value=False)
-@binary(binary="echo", params="prolog failed successfully")
+@binary(binary="echo", params="prolog failed successfully",
+        fail_by_exit_value=False)
 @task(returns=1)
 def mpi_skip_failure():
     pass
@@ -75,9 +76,24 @@ def std_out(ret_value, text, file_out):
     return ret_value
 
 
+@prolog(binary="echo", params="{{a}}_{{b}}")
+@epilog(binary="echo", params="{{c}}_{{d}}")
+@task(returns=4)
+def task_1(a, b, c, d):
+    return a, b, c, d
+
+
+@prolog(binary="echo", params="prolog_{{b}}")
+@epilog(binary="echo", params="epilog_{{d}}")
+@mpi(binary="echo", runner="mpirun", params="mpi_{{a}}")
+@task(returns=1)
+def task_2(a, b, c, d):
+    pass
+
+
 class TestPrologEpilog(unittest.TestCase):
 
-    def _testFBEV(self):
+    def testFBEV(self):
         ev = cwo(skip_failure())
         self.assertTrue(ev, "ERROR: Prolog / Epilog failure shouldn't have "
                             "stopped the task execution")
@@ -106,3 +122,8 @@ class TestPrologEpilog(unittest.TestCase):
     def testMpiSkipFailure(self):
         cwo(mpi_skip_failure())
         cb()
+
+    def testOutParam(self):
+        t_1 = task_1("AAA", "BBB", "CCC", "DDD")
+        t_2 = cwo(task_2(*t_1))
+        self.assertEqual(t_2, 0, "ERROR: testOutParam exit value not 0.")

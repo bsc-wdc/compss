@@ -23,7 +23,9 @@ public abstract class ResourceUpdate<T extends ResourceDescription> {
 
     public static enum Type {
         INCREASE, // Increasing resource capabilities
-        REDUCE // Reducing resource capabilities
+        REDUCE, // Reducing resource capabilities
+        IDLE, // Idle resources in the worker (due to a compss_wait_on for example)
+        BUSY // Reclaim previously idle resources
     }
 
 

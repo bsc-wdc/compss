@@ -30,6 +30,7 @@ import es.bsc.compss.scheduler.types.Profile;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.scheduler.types.Score;
 import es.bsc.compss.scheduler.types.WorkloadState;
+import es.bsc.compss.scheduler.types.allocatableactions.BusyWorkerAction;
 import es.bsc.compss.scheduler.types.allocatableactions.ReduceWorkerAction;
 import es.bsc.compss.scheduler.types.allocatableactions.StartWorkerAction;
 import es.bsc.compss.scheduler.types.allocatableactions.StopWorkerAction;
@@ -43,6 +44,7 @@ import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.resources.description.CloudInstanceTypeDescription;
+import es.bsc.compss.types.resources.updates.IdleResources;
 import es.bsc.compss.types.resources.updates.PerformedReduction;
 import es.bsc.compss.types.resources.updates.ResourceUpdate;
 import es.bsc.compss.util.ActionSet;
@@ -624,7 +626,7 @@ public class TaskScheduler {
 
     protected final void tryToLaunch(AllocatableAction action) {
         try {
-            LOGGER.debug("[TaskScheduler] Trying to launch" + action);
+            LOGGER.debug("[TaskScheduler] Trying to launch " + action);
             action.tryToLaunch();
         } catch (InvalidSchedulingException ise) {
             // Unschedule the task from that resource
@@ -838,8 +840,11 @@ public class TaskScheduler {
             case REDUCE:
                 reduceWorkerResources(worker, modification);
                 break;
+            case BUSY:
+                busyWorkerResources(worker, modification);
+                break;
             default:
-
+            
         }
     }
 
@@ -854,6 +859,20 @@ public class TaskScheduler {
         } catch (UnassignedActionException | InvalidSchedulingException e) {
             // Can not be blocked nor unassigned
             LOGGER.error(" Error while reducing the worker..");
+        }
+    }
+
+    private <T extends WorkerResourceDescription> void busyWorkerResources(ResourceScheduler<T> worker,
+        ResourceUpdate<T> modification) {
+
+        SchedulingInformation schedInfo = generateSchedulingInformation(worker, null, null);
+        BusyWorkerAction<T> action = new BusyWorkerAction<>(schedInfo, worker, this, modification);
+        try {
+            action.schedule(worker, (Score) null);
+            action.tryToLaunch();
+        } catch (UnassignedActionException | InvalidSchedulingException e) {
+            // Can not be blocked nor unassigned
+            LOGGER.error(" Error while reserving resources on the worker..");
         }
     }
 
@@ -876,10 +895,14 @@ public class TaskScheduler {
             case REDUCE:
                 reducedWorkerResources(worker, (PerformedReduction<T>) modification);
                 break;
+            case IDLE:
+                idleWorkerResources(worker, (IdleResources<T>) modification);
+                break;
             default:
-
         }
     }
+
+
 
     private <T extends WorkerResourceDescription> void increasedWorkerResources(ResourceScheduler<T> worker,
         ResourceUpdate<T> modification) {
@@ -938,6 +961,34 @@ public class TaskScheduler {
             }
         } else {
             dynamicWorker.destroyResources(modification.getModification());
+        }
+    }
+
+
+    private <T extends WorkerResourceDescription> void idleWorkerResources(ResourceScheduler<T> worker,
+        IdleResources<T> modification) {
+        
+        LOGGER.debug("Releasing idle resources in the worker  " + worker.getName());
+
+        worker.getResource().endTask(modification.getModification());
+        worker.tryToLaunchBlockedActions();
+
+        // We update the worker load
+        workerLoadUpdate(worker);
+
+        // Schedule data free actions
+        List<AllocatableAction> blockedCandidates = new LinkedList<>();
+        List<AllocatableAction> dataFreeActions = new LinkedList<>();
+        List<AllocatableAction> resourceFree = new LinkedList<>();
+        // Actions can only be scheduled and those that remain blocked must be added to the blockedCandidates list
+        // and those that remain unassigned must be added to the unassigned list
+
+        handleDependencyFreeActions(dataFreeActions, resourceFree, blockedCandidates, worker);
+        for (AllocatableAction aa : blockedCandidates) {
+            if (!aa.hasDataPredecessors() && !aa.hasStreamProducers()) {
+                removeFromReady(aa);
+            }
+            addToBlocked(aa);
         }
     }
 

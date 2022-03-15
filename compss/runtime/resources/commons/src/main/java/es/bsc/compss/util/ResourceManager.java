@@ -38,6 +38,8 @@ import es.bsc.compss.types.resources.description.CloudImageDescription;
 import es.bsc.compss.types.resources.description.CloudInstanceTypeDescription;
 import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
 import es.bsc.compss.types.resources.exceptions.ResourcesFileValidationException;
+import es.bsc.compss.types.resources.updates.BusyResources;
+import es.bsc.compss.types.resources.updates.IdleResources;
 import es.bsc.compss.types.resources.updates.PendingReduction;
 import es.bsc.compss.types.resources.updates.PerformedIncrease;
 import es.bsc.compss.types.resources.updates.PerformedReduction;
@@ -592,9 +594,9 @@ public class ResourceManager {
      * @param resources amount of resources that are idle
      */
     public static void notifyIdleResources(MethodWorker worker, MethodResourceDescription resources) {
-        worker.endTask(resources);
+
         RUNTIME_LOGGER.info("Node with idle resources. Name = " + worker.getName());
-        resourceUser.updatedResource(worker, new PerformedIncrease<>(resources));
+        resourceUser.updatedResource(worker, new IdleResources<>(resources));
     }
 
     /**
@@ -604,9 +606,14 @@ public class ResourceManager {
      * @param resources amount of resources that are no longer idle
      */
     public static void notifyResourcesReacquisition(MethodWorker worker, MethodResourceDescription resources) {
-        ResourceUpdate<MethodResourceDescription> ru = new PerformedReduction<>(resources);
         RUNTIME_LOGGER.info("Node reacquires resources. Name = " + worker.getName());
-        worker.runTask(resources);
+        BusyResources<MethodResourceDescription> ru = new BusyResources<>(resources);
+        resourceUser.updatedResource(worker, ru);
+        try {
+            ru.waitForCompletion();
+        } catch (InterruptedException e) {
+            // shouldn't be possible
+        }
     }
 
     /**

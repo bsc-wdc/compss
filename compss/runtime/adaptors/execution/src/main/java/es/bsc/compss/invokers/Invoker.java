@@ -409,7 +409,7 @@ public abstract class Invoker implements ApplicationRunner {
     protected abstract void cancelMethod();
 
     private Object executeBinary(ExecType executable) throws InvokeExecutionException {
-        if (!executable.isAssigned()) {
+        if (executable == null || !executable.isAssigned()) {
             return new Object();
         }
         BinaryRunner br = new BinaryRunner();

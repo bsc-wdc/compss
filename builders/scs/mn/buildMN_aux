@@ -38,7 +38,7 @@
   # Python modules with jupyter:
   # py2_modules="ANACONDA/5.0.1_python2"  # python 2.7.14
   # py3_modules="ANACONDA/5.1.0_py3"      # "ANACONDA/5.1.0.py3conda" # python 3.6.3
-  run_before_py3_other_modules="ignore"
+  run_before_py3_other_modules="openssl/1.1.1f"
   py3_other_modules="python/3.7.4 python/3-intel-2018.2 python/3-intel-2019.2 python/3.8.2 python/3.9.10"
 
   # DEFINE CONFIGURATION PARAMETERS

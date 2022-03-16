@@ -341,7 +341,7 @@ class Mpi(object):
             ppn,
             flags,
             scale_by_cu_str,
-            self.kwargs.get("params", UNASSIGNED),
+            self.kwargs.get(PARAMS, UNASSIGNED),
             self.kwargs[FAIL_BY_EXIT_VALUE],
         ]
 

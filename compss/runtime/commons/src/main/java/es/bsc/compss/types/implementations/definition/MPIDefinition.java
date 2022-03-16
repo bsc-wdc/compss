@@ -187,6 +187,6 @@ public class MPIDefinition extends CommonMPIDefinition implements AbstractMethod
     }
 
     public boolean hasParamsString() {
-        return this.params != null && !this.params.isEmpty() && !this.params.equals(Constants.UNASSIGNED);
+        return this.params != null && !this.params.equals(Constants.UNASSIGNED);
     }
 }

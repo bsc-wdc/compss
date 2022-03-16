@@ -126,8 +126,11 @@ public class BinaryRunner {
     public static String[] buildAppParams(List<? extends InvocationParam> parameters, String params,
         String pythonInterpreter) throws InvokeExecutionException {
 
-        StdIOStream streamValues = new StdIOStream();
+        if (params == null || params.isEmpty()) {
+            return new String[0];
+        }
 
+        StdIOStream streamValues = new StdIOStream();
         // mark spaces from the original 'params' string and don't mix them with spaces
         // occurring in parameter strings
         String paramsString = String.join(DUMMY_SPACE_REPLACE, params.split(" "));
@@ -158,9 +161,6 @@ public class BinaryRunner {
             if (param.getStdIOStream() != es.bsc.compss.types.annotations.parameter.StdIOStream.UNSPECIFIED) {
                 continue;
             }
-            if (param.getPrefix().equals(Constants.PREFIX_SKIP)) {
-                continue;
-            }
             if (param.getValue() != null && param.getValue().getClass().isArray()) {
                 continue;
             }
@@ -174,13 +174,7 @@ public class BinaryRunner {
                 case EXTERNAL_STREAM_T:
                     continue;
             }
-            String pv;
-            if (param.getPrefix() != null && !param.getPrefix().isEmpty()
-                && !param.getPrefix().equals(Constants.PREFIX_EMPTY)) {
-                pv = param.getPrefix() + String.valueOf(param.getValue());
-            } else {
-                pv = String.valueOf(param.getValue());
-            }
+            String pv = String.valueOf(param.getValue());
             if (param.getType().equals(DataType.STRING_64_T)) {
                 byte[] encoded = Base64.getEncoder().encode(pv.getBytes());
                 pv = new String(encoded).substring(1);

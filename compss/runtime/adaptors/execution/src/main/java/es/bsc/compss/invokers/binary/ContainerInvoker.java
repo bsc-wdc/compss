@@ -203,8 +203,7 @@ public class ContainerInvoker extends Invoker {
         // Setup PyCOMPSs directory
         String pyCompssDir = this.context.getInstallDir();
         pyCompssDir = pyCompssDir.endsWith(File.separator) ? pyCompssDir : pyCompssDir + File.separator;
-        // TODO: FORCED TO USE PYTHON 2 SINCE 3 HAS A SYMBOLIC LINK AND IT IS NOT MOUNTED
-        pyCompssDir = pyCompssDir + "Bindings" + File.separator + "python" + File.separator + "2";
+        pyCompssDir = pyCompssDir + "Bindings" + File.separator + "python" + File.separator + "3";
 
         // Setup Python CET execution flags
         boolean hasTarget = false;

@@ -226,7 +226,7 @@ def serialize_to_handler(obj, handler):
         except AttributeError:
             # Bug fixed in 3.5 - issue10805
             pass
-        raise SerializerException('Cannot serialize object %s' % obj)
+        raise SerializerException('Cannot serialize object %r' % (obj,))
 
 
 def serialize_to_file(obj, file_name):

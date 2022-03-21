@@ -149,7 +149,7 @@ def __load_user_module__(app_path: str, log_level: str) -> None:
     try:
         from importlib.machinery import SourceFileLoader  # noqa
 
-        _ = SourceFileLoader(app_name, app_path).load_module()  # type: ignore
+        _ = SourceFileLoader(app_name, app_path).load_module()
     except Exception:  # noqa
         # Ignore any exception to try to run.
         # This exception can be produce for example with applications
@@ -607,7 +607,7 @@ def launch_pycompss_application(
         else:
             from importlib.machinery import SourceFileLoader  # noqa
 
-            imported_module = SourceFileLoader(all_vars["file_name"], app).load_module()  # type: ignore
+            imported_module = SourceFileLoader(all_vars["file_name"], app).load_module()
             method_to_call = getattr(imported_module, func)
             try:
                 result = method_to_call(*args, **kwargs)

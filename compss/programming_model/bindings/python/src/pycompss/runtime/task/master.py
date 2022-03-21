@@ -2150,12 +2150,12 @@ def _serialize_object_into_file(name: str, p: Parameter, code_strings=True) -> P
     elif p.content_type == TYPE.EXTERNAL_PSCO:
         _manage_persistent_object(p)
     elif p.content_type == TYPE.INT:
-        if p.content > JAVA_MAX_INT or p.content < JAVA_MIN_INT:  # type: ignore
+        if p.content > JAVA_MAX_INT or p.content < JAVA_MIN_INT:
             # This must go through Java as a long to prevent overflow with
             # Java integer
             p.content_type = TYPE.LONG
     elif p.content_type == TYPE.LONG:
-        if p.content > JAVA_MAX_LONG or p.content < JAVA_MIN_LONG:  # type: ignore
+        if p.content > JAVA_MAX_LONG or p.content < JAVA_MIN_LONG:
             # This must be serialized to prevent overflow with Java long
             p.content_type = TYPE.OBJECT
             _skip_file_creation = p.direction == DIRECTION.OUT

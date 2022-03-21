@@ -195,7 +195,7 @@ def build_task_parameter(
             val = float(p_value)  # noqa
             p_type = parameter.TYPE.FLOAT
             if __debug__:
-                logger.debug("Changing type from DOUBLE to FLOAT")  # type: ignore
+                logger.debug("Changing type from DOUBLE to FLOAT")
         elif p_type == parameter.TYPE.BOOLEAN:
             val = p_value == "true"
         return (

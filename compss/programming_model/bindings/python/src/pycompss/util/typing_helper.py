@@ -23,14 +23,7 @@ PyCOMPSs Binding - Utils - typing_helper
     This file contains the typing helpers.
 """
 
-try:
-    import typing
-except ImportError:
-    # No typing if not available - will not compile with mypyc
-    typing = None  # type: ignore
-    # message = "WARNING: Typing is not available!!!"
-    # print(message)
-    # raise Exception(message)
+import typing
 
 
 class dummy_mypyc_attr(object):
@@ -61,7 +54,7 @@ except ImportError:
 if import_ok:
     mypyc_attr = real_mypyc_attr
 else:
-    mypyc_attr = dummy_mypyc_attr  # type: ignore
+    mypyc_attr = dummy_mypyc_attr
 
 
 ######################################

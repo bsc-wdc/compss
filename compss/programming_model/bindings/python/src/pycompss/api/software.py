@@ -201,7 +201,7 @@ class Software(object):
         else:
             exec_type = exec_type.lower()
             self.task_type, self.decor = SUPPORTED_DECORATORS[exec_type]
-            mand_args = self.task_type.MANDATORY_ARGUMENTS  # type: ignore
+            mand_args = self.task_type.MANDATORY_ARGUMENTS
             if not all(arg in properties for arg in mand_args):
                 msg = "Error: Missing arguments for '{}'.".format(self.task_type)
                 raise PyCOMPSsException(msg)

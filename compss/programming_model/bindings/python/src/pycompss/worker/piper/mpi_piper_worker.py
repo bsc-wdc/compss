@@ -329,23 +329,17 @@ def main() -> None:
     if WORKER_CONF.cache_profiler.lower() == "true":
         cache_profiler = True
 
+    # No cache or it is an executor
+    cache = False
     if is_worker():
-        # Setup cache
+        # Setup cache if enabled
         if is_cache_enabled(str(WORKER_CONF.cache)):
             # Deploy the necessary processes
             cache = True
-            cache_params = start_cache(
+            smm, cache_process, cache_queue, CACHE_IDS = start_cache(
                 None, str(WORKER_CONF.cache), cache_profiler, log_dir
             )
-        else:
-            # No cache
-            cache = False
-            cache_params = (None, None, None, None)  # type: ignore
-    else:
-        # Otherwise it is an executor
-        cache = False  # to stop only the cache from the main process
-        cache_params = (None, None, None, None)  # type: ignore
-    smm, cache_process, CACHE_QUEUE, CACHE_IDS = cache_params
+            CACHE_QUEUE = cache_queue
 
     if is_worker():
         with trace_mpi_worker() if TRACING else dummy_context():
@@ -355,7 +349,10 @@ def main() -> None:
             compss_persistent_executor(WORKER_CONF)
 
     if cache and is_worker():
-        stop_cache(smm, CACHE_QUEUE, cache_profiler, cache_process)  # noqa
+        # Beware of smm, cache_queue and cache_process variables, since they
+        # are only initialized when is_worker() and cache is enabled.
+        # Reason for noqa.
+        stop_cache(smm, cache_queue, cache_profiler, cache_process)  # noqa
 
 
 if __name__ == "__main__":

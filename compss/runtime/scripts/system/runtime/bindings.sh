@@ -100,7 +100,10 @@ check_bindings_setup () {
       if [ -z "$libjava" ]; then
         libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.dylib | head -n 1)
         if [ -z "$libjava" ]; then
-          fatal_error "${JAVA_JRE_ERROR}" 1
+          libjava=$(find "${JAVA_HOME}"/lib/server -name libjvm.dylib | head -n 1)
+          if [ -z "$libjava" ]; then
+            fatal_error "${JAVA_JRE_ERROR}" 1
+          fi
         fi
       fi
     fi

@@ -310,7 +310,7 @@ def main() -> None:
     global CACHE_IDS
     global CACHE_QUEUE
 
-    TRACING = int(sys.argv[4]) > 0
+    TRACING = sys.argv[4] == "true"
 
     # Enable coverage if performed
     if "COVERAGE_PROCESS_START" in os.environ:

@@ -132,6 +132,7 @@ def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
 
     # Setup cache
     CACHE = False
+    cache_ids, cache_queue = None, None
     if is_cache_enabled(str(config.cache)):
         # Deploy the necessary processes
         CACHE = True
@@ -215,7 +216,7 @@ def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
                 proc = PROCESSES.pop(in_pipe, None)
                 if proc:
                     if proc.is_alive():
-                        logger.warn(HEADER + "Forcing terminate on : " + proc.name)
+                        logger.warning(HEADER + "Forcing terminate on : " + proc.name)
                         proc.terminate()
                     proc.join()
                 control_pipe.write(" ".join((REMOVED_EXECUTOR_TAG, out_pipe, in_pipe)))

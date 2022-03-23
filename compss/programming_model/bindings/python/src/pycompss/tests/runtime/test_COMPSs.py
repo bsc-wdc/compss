@@ -17,9 +17,9 @@
 
 # -*- coding: utf-8 -*-
 
-from pycompss.runtime.management.COMPSs import is_redirected
-from pycompss.runtime.management.COMPSs import get_redirection_file_names
 import pycompss.runtime.management.COMPSs as COMPSs
+from pycompss.runtime.management.COMPSs import get_redirection_file_names
+from pycompss.runtime.management.COMPSs import is_redirected
 from pycompss.util.exceptions import PyCOMPSsException
 
 

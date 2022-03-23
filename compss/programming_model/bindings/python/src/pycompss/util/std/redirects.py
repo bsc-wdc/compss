@@ -25,11 +25,12 @@ PyCOMPSs Utils - Std redirects
     or child processes).
 """
 
-from contextlib import contextmanager
 import ctypes
 import io
 import os
 import sys
+from contextlib import contextmanager
+
 from pycompss.util.typing_helper import typing
 
 LIBC = ctypes.CDLL(None)  # noqa

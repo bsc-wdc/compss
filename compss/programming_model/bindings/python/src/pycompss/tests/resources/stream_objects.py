@@ -15,17 +15,16 @@
 #  limitations under the License.
 #
 
+import time
 # Imports
 import uuid
-import time
 
 from pycompss.api.api import compss_wait_on
-from pycompss.streams.distro_stream import ObjectDistroStream
-from pycompss.api.task import task
 from pycompss.api.parameter import IN
-from pycompss.api.parameter import STREAM_OUT
 from pycompss.api.parameter import STREAM_IN
-
+from pycompss.api.parameter import STREAM_OUT
+from pycompss.api.task import task
+from pycompss.streams.distro_stream import ObjectDistroStream
 
 # Constant values
 NUM_OBJECTS = 10

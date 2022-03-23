@@ -23,10 +23,11 @@ PyCOMPSs Binding - Commons
     This file contains the common definitions of the Python binding.
 """
 
-import sys
 import os
-from pycompss.util.typing_helper import typing
+import sys
 from tempfile import mkdtemp
+
+from pycompss.util.typing_helper import typing
 
 #######################################
 # Global variables set in this module #

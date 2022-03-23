@@ -25,23 +25,24 @@ PyCOMPSs PYTHON MPI Executor
 """
 
 import copy
-import signal
 import logging
 import os
+import signal
 import sys
-from pycompss.util.typing_helper import typing
-from mpi4py import MPI
 
 import pycompss.util.context as context
+from mpi4py import MPI
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.logger.helpers import init_logging_worker
 from pycompss.util.tracing.helpers import event_worker
+from pycompss.util.typing_helper import typing
 from pycompss.worker.commons.constants import PROCESS_TASK_EVENT
-from pycompss.worker.piper.commons.constants import EXECUTE_TASK_TAG
-from pycompss.worker.piper.commons.constants import END_TASK_TAG
-from pycompss.worker.piper.commons.constants import COMPSS_EXCEPTION_TAG
 from pycompss.worker.commons.executor import build_return_params_message
 from pycompss.worker.commons.worker import execute_task
+from pycompss.worker.piper.commons.constants import COMPSS_EXCEPTION_TAG
+from pycompss.worker.piper.commons.constants import END_TASK_TAG
+from pycompss.worker.piper.commons.constants import EXECUTE_TASK_TAG
+
 
 # noqa TODO: Comments about exit value and return following values was in another branch need to be reviewed if it works in trunk
 # SUCCESS_SIG = 0

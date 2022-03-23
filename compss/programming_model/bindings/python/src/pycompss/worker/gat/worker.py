@@ -29,17 +29,16 @@ import logging
 import os
 import sys
 
-from pycompss.util.logger.helpers import init_logging_worker
-from pycompss.worker.commons.worker import execute_task
-from pycompss.util.tracing.helpers import trace_multiprocessing_worker
-from pycompss.util.tracing.helpers import dummy_context
-from pycompss.util.tracing.helpers import event_worker
-from pycompss.worker.commons.constants import INIT_STORAGE_AT_WORKER_EVENT
-from pycompss.worker.commons.constants import FINISH_STORAGE_AT_WORKER_EVENT
-
 from pycompss.streams.components.distro_stream_client import (
     DistroStreamClientHandler,
 )  # noqa: E501
+from pycompss.util.logger.helpers import init_logging_worker
+from pycompss.util.tracing.helpers import dummy_context
+from pycompss.util.tracing.helpers import event_worker
+from pycompss.util.tracing.helpers import trace_multiprocessing_worker
+from pycompss.worker.commons.constants import FINISH_STORAGE_AT_WORKER_EVENT
+from pycompss.worker.commons.constants import INIT_STORAGE_AT_WORKER_EVENT
+from pycompss.worker.commons.worker import execute_task
 
 
 # Uncomment the next line if you do not want to reuse pyc files.

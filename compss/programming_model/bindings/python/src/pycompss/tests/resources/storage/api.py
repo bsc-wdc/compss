@@ -27,13 +27,12 @@ Storage dummy connector
 """
 
 import os
-import uuid
 import socket
+import uuid
 
-from pycompss.util.serialization.serializer import serialize_to_file
 from pycompss.util.serialization.serializer import deserialize_from_file
+from pycompss.util.serialization.serializer import serialize_to_file
 from pycompss.util.typing_helper import typing
-
 
 STORAGE_PATH = "/tmp/PSCO/" + str(socket.gethostname()) + "/"  # NOSONAR
 

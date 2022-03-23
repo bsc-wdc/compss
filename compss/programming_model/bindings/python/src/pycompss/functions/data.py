@@ -23,11 +23,10 @@ PyCOMPSs Functions: Data generators
     This file defines the common data producing functions.
 """
 
-from pycompss.util.typing_helper import typing
-
-from pycompss.functions.data_tasks import gen_random as _gen_random
 from pycompss.functions.data_tasks import gen_normal as _gen_normal
+from pycompss.functions.data_tasks import gen_random as _gen_random
 from pycompss.functions.data_tasks import gen_uniform as _gen_uniform
+from pycompss.util.typing_helper import typing
 
 
 def generator(

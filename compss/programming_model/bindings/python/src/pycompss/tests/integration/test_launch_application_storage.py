@@ -18,9 +18,9 @@
 # -*- coding: utf-8 -*-
 
 import os
-import sys
 import shutil
 import subprocess
+import sys
 
 STORAGE_CONF = "/tmp/storage.conf"  # NOSONAR
 TEMP_DIR = "/tmp/PSCO"  # NOSONAR

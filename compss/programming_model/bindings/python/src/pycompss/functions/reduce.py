@@ -23,8 +23,9 @@ PyCOMPSs Functions: Reduce
     This file defines the common reduce functions.
 """
 
-from pycompss.util.typing_helper import typing
 from collections import deque
+
+from pycompss.util.typing_helper import typing
 
 
 def merge_reduce(f: typing.Callable, data: list) -> typing.Any:

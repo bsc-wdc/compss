@@ -24,11 +24,12 @@ PyCOMPSs Binding - Runnable as module
     e.g. python -m pycompss run -dgt myapp.py
 """
 
-import sys
 import argparse
-from pycompss.util.typing_helper import typing
-from pycompss.runtime.commons import PYTHON_INTERPRETER
+import sys
 from subprocess import Popen
+
+from pycompss.runtime.commons import PYTHON_INTERPRETER
+from pycompss.util.typing_helper import typing
 
 RUN_TAG = "run"
 ENQUEUE_TAG = "enqueue"

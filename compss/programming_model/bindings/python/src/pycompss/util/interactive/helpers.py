@@ -23,8 +23,9 @@ PyCOMPSs Util - Interactive Mode Helpers
     Provides auxiliary methods for the interactive mode.
 """
 
-import os
 import inspect
+import os
+
 from pycompss.util.typing_helper import typing
 
 # Debug mode: Changed to true from interactive.py if specified by the user

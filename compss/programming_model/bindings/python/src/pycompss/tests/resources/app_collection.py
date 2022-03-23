@@ -15,14 +15,14 @@
 #  limitations under the License.
 #
 
-from pycompss.api.task import task
-from pycompss.api.reduction import reduction
 from pycompss.api.api import compss_wait_on
 from pycompss.api.parameter import COLLECTION
 from pycompss.api.parameter import COLLECTION_IN
 from pycompss.api.parameter import COLLECTION_INOUT
 from pycompss.api.parameter import DICTIONARY_IN
 from pycompss.api.parameter import DICTIONARY_INOUT
+from pycompss.api.reduction import reduction
+from pycompss.api.task import task
 
 
 class Poligon(object):

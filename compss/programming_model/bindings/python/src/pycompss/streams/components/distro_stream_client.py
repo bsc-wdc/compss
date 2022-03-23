@@ -19,14 +19,14 @@
 
 # Imports
 import logging
-import socket
-from pycompss.util.typing_helper import typing
-from threading import Thread
 import queue
+import socket
+from threading import Thread
 
 # Project imports
 from pycompss.streams.types.requests import STOP
 from pycompss.streams.types.requests import StopRequest
+from pycompss.util.typing_helper import typing
 
 #
 # Logger definition

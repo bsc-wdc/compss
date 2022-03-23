@@ -25,19 +25,19 @@ PyCOMPSs Tracing helpers
 """
 
 import time
-from pycompss.util.typing_helper import typing
 from contextlib import contextmanager
 
+from pycompss.runtime.constants import BINDING_MASTER_TYPE
 from pycompss.util.context import in_master
 from pycompss.util.context import in_worker
-from pycompss.worker.commons.constants import SYNC_EVENTS
-from pycompss.worker.commons.constants import INSIDE_TASKS_TYPE
+from pycompss.util.typing_helper import typing
 from pycompss.worker.commons.constants import INSIDE_TASKS_CPU_AFFINITY_TYPE
 from pycompss.worker.commons.constants import INSIDE_TASKS_CPU_COUNT_TYPE
 from pycompss.worker.commons.constants import INSIDE_TASKS_GPU_AFFINITY_TYPE
+from pycompss.worker.commons.constants import INSIDE_TASKS_TYPE
 from pycompss.worker.commons.constants import INSIDE_WORKER_TYPE
+from pycompss.worker.commons.constants import SYNC_EVENTS
 from pycompss.worker.commons.constants import WORKER_RUNNING_EVENT
-from pycompss.runtime.constants import BINDING_MASTER_TYPE
 
 PYEXTRAE = None  # type: typing.Any
 TRACING = False  # type: bool

@@ -23,22 +23,21 @@ PyCOMPSs Binding - Management - Object Synchronization
     This file contains the object synchronization core methods.
 """
 
-from pycompss.util.typing_helper import typing
-
 import pycompss.runtime.management.COMPSs as COMPSs
-from pycompss.runtime.management.direction import get_compss_direction
-from pycompss.runtime.management.classes import Future
-from pycompss.runtime.management.object_tracker import OT
+import pycompss.util.context as context
+from pycompss.runtime.commons import DICT_TYPE
+from pycompss.runtime.commons import LIST_TYPE
 from pycompss.runtime.global_args import (
     update_worker_argument_parameter_content,
 )
-import pycompss.util.context as context
-from pycompss.util.storages.persistent import is_psco
+from pycompss.runtime.management.classes import Future
+from pycompss.runtime.management.direction import get_compss_direction
+from pycompss.runtime.management.object_tracker import OT
+from pycompss.util.serialization.serializer import deserialize_from_file
 from pycompss.util.storages.persistent import get_by_id
 from pycompss.util.storages.persistent import get_id
-from pycompss.util.serialization.serializer import deserialize_from_file
-from pycompss.runtime.commons import LIST_TYPE
-from pycompss.runtime.commons import DICT_TYPE
+from pycompss.util.storages.persistent import is_psco
+from pycompss.util.typing_helper import typing
 
 # Setup logger
 if __debug__:

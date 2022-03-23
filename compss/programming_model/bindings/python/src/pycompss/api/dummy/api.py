@@ -25,6 +25,7 @@ PyCOMPSs Dummy API
 """
 
 import os
+
 from pycompss.util.typing_helper import typing
 
 

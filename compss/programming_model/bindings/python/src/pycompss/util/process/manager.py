@@ -24,10 +24,11 @@ PyCOMPSs Util - process/manager
     homogenize the behaviour between linux and mac.
 """
 
-from pycompss.util.typing_helper import typing
 import multiprocessing
-from multiprocessing import Queue  # Used only for typing
 from multiprocessing import Process  # Used only for typing
+from multiprocessing import Queue  # Used only for typing
+
+from pycompss.util.typing_helper import typing
 
 try:
     from multiprocessing import Manager

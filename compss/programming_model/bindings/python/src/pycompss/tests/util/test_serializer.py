@@ -19,9 +19,10 @@
 
 import os
 import sys
-import numpy as np
-import numpy
+
 import dill
+import numpy
+import numpy as np
 
 if sys.version_info >= (3, 0):
     import pickle as pickle  # Uses _pickle if available

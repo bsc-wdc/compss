@@ -22,44 +22,43 @@ import os
 import sys
 from shutil import copyfile
 
-from pycompss.util.typing_helper import typing
-import pycompss.util.context as context
 import pycompss.api.parameter as parameter
+import pycompss.util.context as context
 from pycompss.api.exceptions import COMPSsException
 from pycompss.runtime.binding import wait_on
-from pycompss.runtime.task.commons import get_varargs_direction
-from pycompss.runtime.task.commons import get_default_direction
 from pycompss.runtime.commons import TRACING_HOOK_ENV_VAR
-from pycompss.runtime.global_args import set_worker_args
 from pycompss.runtime.global_args import delete_worker_args
-from pycompss.runtime.task.parameter import Parameter
-from pycompss.runtime.task.parameter import get_compss_type
-from pycompss.runtime.task.arguments import get_name_from_vararg
+from pycompss.runtime.global_args import set_worker_args
 from pycompss.runtime.task.arguments import get_name_from_kwarg
-from pycompss.runtime.task.arguments import is_vararg
+from pycompss.runtime.task.arguments import get_name_from_vararg
 from pycompss.runtime.task.arguments import is_kwarg
 from pycompss.runtime.task.arguments import is_return
+from pycompss.runtime.task.arguments import is_vararg
+from pycompss.runtime.task.commons import get_default_direction
+from pycompss.runtime.task.commons import get_varargs_direction
+from pycompss.runtime.task.parameter import Parameter
+from pycompss.runtime.task.parameter import get_compss_type
 from pycompss.util.exceptions import PyCOMPSsException
-from pycompss.util.objects.properties import create_object_by_con_type
 from pycompss.util.logger.helpers import swap_logger_name
-from pycompss.util.storages.persistent import is_psco
+from pycompss.util.objects.properties import create_object_by_con_type
+from pycompss.util.objects.util import group_iterable
 from pycompss.util.serialization.serializer import deserialize_from_file
 from pycompss.util.serialization.serializer import serialize_to_file
 from pycompss.util.serialization.serializer import serialize_to_file_mpienv
-from pycompss.util.std.redirects import std_redirector
 from pycompss.util.std.redirects import not_std_redirector
-from pycompss.util.objects.util import group_iterable
+from pycompss.util.std.redirects import std_redirector
+from pycompss.util.storages.persistent import is_psco
 from pycompss.util.tracing.helpers import event_inside_worker
+from pycompss.util.typing_helper import typing
 from pycompss.worker.commons.constants import EXECUTE_USER_CODE_EVENT
 from pycompss.worker.commons.worker import build_task_parameter
-
+from pycompss.worker.piper.cache.tracker import in_cache
+from pycompss.worker.piper.cache.tracker import insert_object_into_cache_wrapper
+from pycompss.worker.piper.cache.tracker import replace_object_into_cache
 # The cache is only available currently for piper_worker.py and python >= 3.8
 # If supported in the future by another worker, add a common interface
 # with these two functions and import the appropriate.
 from pycompss.worker.piper.cache.tracker import retrieve_object_from_cache
-from pycompss.worker.piper.cache.tracker import insert_object_into_cache_wrapper
-from pycompss.worker.piper.cache.tracker import replace_object_into_cache
-from pycompss.worker.piper.cache.tracker import in_cache
 
 if __debug__:
     import logging

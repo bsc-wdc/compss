@@ -20,15 +20,15 @@
 import shutil
 import tempfile
 
-from pycompss.api.commons.decorator import PyCOMPSsDecorator
-from pycompss.api.commons.decorator import resolve_working_dir
-from pycompss.api.commons.decorator import resolve_fail_by_exit_value
-from pycompss.api.commons.decorator import process_computing_nodes
-from pycompss.api.commons.decorator import run_command
-from pycompss.api.commons.constants import WORKING_DIR
-from pycompss.api.commons.constants import LEGACY_WORKING_DIR
-from pycompss.util.exceptions import MissingImplementedException
 import pycompss.util.context as context
+from pycompss.api.commons.constants import LEGACY_WORKING_DIR
+from pycompss.api.commons.constants import WORKING_DIR
+from pycompss.api.commons.decorator import PyCOMPSsDecorator
+from pycompss.api.commons.decorator import process_computing_nodes
+from pycompss.api.commons.decorator import resolve_fail_by_exit_value
+from pycompss.api.commons.decorator import resolve_working_dir
+from pycompss.api.commons.decorator import run_command
+from pycompss.util.exceptions import MissingImplementedException
 
 DECORATOR_NAME = "@decorator"
 

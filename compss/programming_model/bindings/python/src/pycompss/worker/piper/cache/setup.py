@@ -24,14 +24,12 @@ PyCOMPSs Cache setup
     IMPORTANT: Only used with python >= 3.8.
 """
 
-from collections import OrderedDict
-
-from pycompss.util.typing_helper import typing
 from pycompss.util.process.manager import Process  # just typing
 from pycompss.util.process.manager import Queue  # just typing
-from pycompss.util.process.manager import new_queue
-from pycompss.util.process.manager import new_manager
 from pycompss.util.process.manager import create_process
+from pycompss.util.process.manager import new_manager
+from pycompss.util.process.manager import new_queue
+from pycompss.util.typing_helper import typing
 from pycompss.worker.piper.cache.tracker import CacheTrackerConf
 from pycompss.worker.piper.cache.tracker import cache_tracker
 from pycompss.worker.piper.cache.tracker import (

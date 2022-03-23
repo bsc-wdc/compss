@@ -24,20 +24,20 @@ PyCOMPSs API - ON_FAILURE
     management definition through the decorator.
 """
 
-from pycompss.util.typing_helper import typing
 from functools import wraps
 
 import pycompss.util.context as context
 from pycompss.api.commons.constants import MANAGEMENT
-from pycompss.api.commons.constants import MANAGEMENT_IGNORE
-from pycompss.api.commons.constants import MANAGEMENT_RETRY
 from pycompss.api.commons.constants import MANAGEMENT_CANCEL_SUCCESSOR
 from pycompss.api.commons.constants import MANAGEMENT_FAIL
-from pycompss.util.arguments import check_mandatory_arguments
-from pycompss.api.commons.decorator import keep_arguments
+from pycompss.api.commons.constants import MANAGEMENT_IGNORE
+from pycompss.api.commons.constants import MANAGEMENT_RETRY
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
+from pycompss.api.commons.decorator import keep_arguments
 from pycompss.runtime.task.core_element import CE
+from pycompss.util.arguments import check_mandatory_arguments
 from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.util.typing_helper import typing
 
 if __debug__:
     import logging

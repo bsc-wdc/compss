@@ -17,8 +17,8 @@
 
 # -*- coding: utf-8 -*-
 
-from pycompss.tests.worker.common_piper_tester import setup_argv
 from pycompss.tests.worker.common_piper_tester import evaluate_piper_worker_common
+from pycompss.tests.worker.common_piper_tester import setup_argv
 
 
 def worker_thread(argv, current_path):

@@ -18,8 +18,8 @@
 # -*- coding: utf-8 -*-
 
 from pycompss.util.context import MASTER
-from pycompss.util.context import WORKER
 from pycompss.util.context import OUT_OF_SCOPE
+from pycompss.util.context import WORKER
 
 PRE_CONTEXT_ERROR = "ERROR: The context was in pycompss (OUT_OF_SCOPE)."
 MASTER_CONTEXT_ERROR = "ERROR: The context was not in pycompss (MASTER)."

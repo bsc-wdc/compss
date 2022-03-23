@@ -43,9 +43,7 @@ PyCOMPSs API
              automatically.
 """
 
-from pycompss.util.typing_helper import typing
 import pycompss.util.context as context
-
 # Dummy imports
 from pycompss.api.dummy.api import (
     compss_start as __dummy_compss_start__,
@@ -64,7 +62,7 @@ from pycompss.api.dummy.api import (
     compss_free_resources as __dummy_compss_free_resources__,
     compss_set_wall_clock as __dummy_compss_set_wall_clock__,
 )
-
+from pycompss.util.typing_helper import typing
 
 if context.in_pycompss():
     # ################################################################# #

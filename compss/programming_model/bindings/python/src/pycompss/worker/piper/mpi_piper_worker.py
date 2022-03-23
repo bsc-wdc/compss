@@ -24,37 +24,37 @@ PyCOMPSs Persistent Worker
 """
 
 import os
-import sys
 import signal
-from pycompss.util.typing_helper import typing
+import sys
+
+from mpi4py import MPI
 from pycompss.runtime.commons import get_temporary_directory
-from pycompss.util.tracing.helpers import trace_mpi_worker
-from pycompss.util.tracing.helpers import trace_mpi_executor
+from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.tracing.helpers import dummy_context
 from pycompss.util.tracing.helpers import event_worker
-from pycompss.worker.commons.constants import INIT_STORAGE_AT_WORKER_EVENT
+from pycompss.util.tracing.helpers import trace_mpi_executor
+from pycompss.util.tracing.helpers import trace_mpi_worker
+from pycompss.util.typing_helper import typing
 from pycompss.worker.commons.constants import FINISH_STORAGE_AT_WORKER_EVENT
-from pycompss.worker.piper.commons.executor import ExecutorConf
-from pycompss.worker.piper.commons.executor import executor
-from pycompss.worker.piper.commons.utils_logger import load_loggers
-from pycompss.worker.piper.commons.utils import PiperWorkerConfiguration
-from pycompss.worker.piper.commons.constants import CANCEL_TASK_TAG
-from pycompss.worker.piper.commons.constants import PING_TAG
-from pycompss.worker.piper.commons.constants import PONG_TAG
-from pycompss.worker.piper.commons.constants import ADD_EXECUTOR_TAG
-from pycompss.worker.piper.commons.constants import ADD_EXECUTOR_FAILED_TAG
-from pycompss.worker.piper.commons.constants import QUERY_EXECUTOR_ID_TAG
-from pycompss.worker.piper.commons.constants import REPLY_EXECUTOR_ID_TAG
-from pycompss.worker.piper.commons.constants import REMOVE_EXECUTOR_TAG
-from pycompss.worker.piper.commons.constants import REMOVED_EXECUTOR_TAG
-from pycompss.worker.piper.commons.constants import QUIT_TAG
-from pycompss.worker.piper.commons.constants import HEADER
+from pycompss.worker.commons.constants import INIT_STORAGE_AT_WORKER_EVENT
 from pycompss.worker.piper.cache.setup import is_cache_enabled
 from pycompss.worker.piper.cache.setup import start_cache
 from pycompss.worker.piper.cache.setup import stop_cache
-from pycompss.util.exceptions import PyCOMPSsException
-
-from mpi4py import MPI
+from pycompss.worker.piper.commons.constants import ADD_EXECUTOR_FAILED_TAG
+from pycompss.worker.piper.commons.constants import ADD_EXECUTOR_TAG
+from pycompss.worker.piper.commons.constants import CANCEL_TASK_TAG
+from pycompss.worker.piper.commons.constants import HEADER
+from pycompss.worker.piper.commons.constants import PING_TAG
+from pycompss.worker.piper.commons.constants import PONG_TAG
+from pycompss.worker.piper.commons.constants import QUERY_EXECUTOR_ID_TAG
+from pycompss.worker.piper.commons.constants import QUIT_TAG
+from pycompss.worker.piper.commons.constants import REMOVED_EXECUTOR_TAG
+from pycompss.worker.piper.commons.constants import REMOVE_EXECUTOR_TAG
+from pycompss.worker.piper.commons.constants import REPLY_EXECUTOR_ID_TAG
+from pycompss.worker.piper.commons.executor import ExecutorConf
+from pycompss.worker.piper.commons.executor import executor
+from pycompss.worker.piper.commons.utils import PiperWorkerConfiguration
+from pycompss.worker.piper.commons.utils_logger import load_loggers
 
 # Persistent worker global variables
 COMM = MPI.COMM_WORLD

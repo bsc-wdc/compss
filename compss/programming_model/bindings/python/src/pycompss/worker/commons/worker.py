@@ -21,32 +21,32 @@ PyCOMPSs Worker Commons
     This file contains the common code of all workers.
 """
 
-import sys
-import signal
-import traceback
 import base64
-from pycompss.util.typing_helper import typing
 import logging
+import signal
+import sys
+import traceback
 
 import pycompss.api.parameter as parameter
 from pycompss.api.exceptions import COMPSsException
-from pycompss.runtime.commons import STR_ESCAPE
 from pycompss.runtime.commons import INTERACTIVE_FILE_NAME
-from pycompss.runtime.task.parameter import Parameter
-from pycompss.runtime.task.parameter import JAVA_MIN_INT
-from pycompss.runtime.task.parameter import JAVA_MAX_INT
+from pycompss.runtime.commons import STR_ESCAPE
 from pycompss.runtime.task.parameter import COMPSsFile
-from pycompss.util.tracing.helpers import event_inside_worker
-from pycompss.worker.commons.constants import GET_TASK_PARAMS_EVENT
-from pycompss.worker.commons.constants import IMPORT_USER_MODULE_EVENT
+from pycompss.runtime.task.parameter import JAVA_MAX_INT
+from pycompss.runtime.task.parameter import JAVA_MIN_INT
+from pycompss.runtime.task.parameter import Parameter
+from pycompss.util.exceptions import SerializerException
+from pycompss.util.exceptions import TimeOutError
+from pycompss.util.exceptions import task_cancel
+from pycompss.util.exceptions import task_timed_out
 from pycompss.util.serialization.serializer import deserialize_from_bytes
 from pycompss.util.serialization.serializer import deserialize_from_file
 from pycompss.util.serialization.serializer import serialize_to_file
-from pycompss.util.exceptions import SerializerException
-from pycompss.util.exceptions import TimeOutError
-from pycompss.util.exceptions import task_timed_out
-from pycompss.util.exceptions import task_cancel
 from pycompss.util.storages.persistent import load_storage_library
+from pycompss.util.tracing.helpers import event_inside_worker
+from pycompss.util.typing_helper import typing
+from pycompss.worker.commons.constants import GET_TASK_PARAMS_EVENT
+from pycompss.worker.commons.constants import IMPORT_USER_MODULE_EVENT
 
 # First load the storage library
 load_storage_library()

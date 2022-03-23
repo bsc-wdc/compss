@@ -18,8 +18,8 @@
 # -*- coding: utf-8 -*-
 
 import os
-from pycompss.runtime.management.object_tracker import ObjectTracker
 
+from pycompss.runtime.management.object_tracker import ObjectTracker
 
 ERROR_ID_NONE = "The identifier can not be None."
 ERROR_ID_STRING = "The identifier must be a string."

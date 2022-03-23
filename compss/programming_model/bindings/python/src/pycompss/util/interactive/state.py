@@ -24,10 +24,11 @@ PyCOMPSs Interactive State
 """
 
 import os
-from pycompss.util.typing_helper import typing
 from collections import defaultdict
-from pycompss.util.exceptions import PyCOMPSsException
 from xml.etree import ElementTree
+
+from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.util.typing_helper import typing
 
 try:
     from IPython.display import HTML  # noqa

@@ -17,16 +17,14 @@
 
 # -*- coding: utf-8 -*-
 
-from pycompss.api.task import task
-from pycompss.api.parameter import OUT
-from pycompss.api.parameter import INOUT
 from pycompss.api.api import compss_wait_on
-
-from pycompss.tests.resources.storage_app.models import MySO
-from pycompss.tests.resources.storage_app.models import Words
-from pycompss.tests.resources.storage_app.models import Result
+from pycompss.api.parameter import INOUT
+from pycompss.api.parameter import OUT
+from pycompss.api.task import task
 from pycompss.tests.resources.storage_app.models import InputData
-
+from pycompss.tests.resources.storage_app.models import MySO
+from pycompss.tests.resources.storage_app.models import Result
+from pycompss.tests.resources.storage_app.models import Words
 
 GENERIC_STRING = "This is a test"
 FIRST = "first"

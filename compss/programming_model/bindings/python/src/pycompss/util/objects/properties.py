@@ -24,12 +24,13 @@ PyCOMPSs Util - Object properties
     For example, check if an object belongs to a module and so on.
 """
 
+import builtins
+import inspect
 import os
 import sys
-import inspect
-from pycompss.util.typing_helper import typing
 from collections import OrderedDict
-import builtins
+
+from pycompss.util.typing_helper import typing
 
 
 def get_module_name(path: str, file_name: str) -> str:

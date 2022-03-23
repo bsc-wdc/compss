@@ -24,35 +24,35 @@ PyCOMPSs API - MPI
     definition through the decorator.
 """
 
-from pycompss.util.typing_helper import typing
 from functools import wraps
 
 import pycompss.util.context as context
-from pycompss.api.commons.constants import RUNNER
 from pycompss.api.commons.constants import BINARY
-from pycompss.api.commons.constants import PROCESSES
-from pycompss.api.commons.constants import WORKING_DIR
-from pycompss.api.commons.constants import PARAMS
-from pycompss.api.commons.constants import FLAGS
-from pycompss.api.commons.constants import PROCESSES_PER_NODE
-from pycompss.api.commons.constants import SCALE_BY_CU
-from pycompss.api.commons.constants import FAIL_BY_EXIT_VALUE
 from pycompss.api.commons.constants import COMPUTING_NODES
+from pycompss.api.commons.constants import FAIL_BY_EXIT_VALUE
+from pycompss.api.commons.constants import FLAGS
 from pycompss.api.commons.constants import LEGACY_COMPUTING_NODES
 from pycompss.api.commons.constants import LEGACY_WORKING_DIR
+from pycompss.api.commons.constants import PARAMS
+from pycompss.api.commons.constants import PROCESSES
+from pycompss.api.commons.constants import PROCESSES_PER_NODE
+from pycompss.api.commons.constants import RUNNER
+from pycompss.api.commons.constants import SCALE_BY_CU
 from pycompss.api.commons.constants import UNASSIGNED
+from pycompss.api.commons.constants import WORKING_DIR
+from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
+from pycompss.api.commons.decorator import keep_arguments
+from pycompss.api.commons.decorator import process_computing_nodes
+from pycompss.api.commons.decorator import resolve_fail_by_exit_value
+from pycompss.api.commons.decorator import resolve_working_dir
+from pycompss.api.commons.decorator import run_command
 from pycompss.api.commons.implementation_types import IMPL_MPI
 from pycompss.api.commons.implementation_types import IMPL_PYTHON_MPI
-from pycompss.api.commons.decorator import resolve_working_dir
-from pycompss.api.commons.decorator import resolve_fail_by_exit_value
-from pycompss.api.commons.decorator import process_computing_nodes
-from pycompss.api.commons.decorator import keep_arguments
-from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
-from pycompss.api.commons.decorator import run_command
 from pycompss.runtime.task.core_element import CE
-from pycompss.util.arguments import check_arguments
 from pycompss.util.arguments import UNASSIGNED
+from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.util.typing_helper import typing
 
 if __debug__:
     import logging

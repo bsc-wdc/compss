@@ -25,19 +25,19 @@ PyCOMPSs API - Reduction
 """
 
 import os
-from pycompss.util.typing_helper import typing
 from functools import wraps
 
 import pycompss.util.context as context
 from pycompss.api.commons.constants import CHUNK_SIZE
 from pycompss.api.commons.constants import IS_REDUCE
-from pycompss.api.commons.error_msgs import not_in_pycompss
-from pycompss.api.commons.error_msgs import cast_env_to_int_error
-from pycompss.api.commons.error_msgs import cast_string_to_int_error
 from pycompss.api.commons.decorator import PyCOMPSsDecorator
 from pycompss.api.commons.decorator import keep_arguments
+from pycompss.api.commons.error_msgs import cast_env_to_int_error
+from pycompss.api.commons.error_msgs import cast_string_to_int_error
+from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.util.typing_helper import typing
 
 if __debug__:
     import logging

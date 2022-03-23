@@ -24,21 +24,21 @@ PyCOMPSs DECORATOR COMMONS
 """
 
 import os
-import sys
 import subprocess
-from pycompss.util.typing_helper import typing
+import sys
 from contextlib import contextmanager
 
 import pycompss.util.context as context
 from pycompss.api.commons.constants import COMPUTING_NODES
-from pycompss.api.commons.constants import WORKING_DIR
 from pycompss.api.commons.constants import FAIL_BY_EXIT_VALUE
 from pycompss.api.commons.constants import LEGACY_COMPUTING_NODES
 from pycompss.api.commons.constants import LEGACY_WORKING_DIR
 from pycompss.api.commons.constants import UNASSIGNED
+from pycompss.api.commons.constants import WORKING_DIR
 from pycompss.runtime.task.core_element import CE  # noqa - used in typing
 from pycompss.util.exceptions import MissingImplementedException
 from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.util.typing_helper import typing
 
 if __debug__:
     import logging

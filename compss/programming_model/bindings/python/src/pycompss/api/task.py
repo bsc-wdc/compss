@@ -24,31 +24,32 @@ PyCOMPSs API - Task
 """
 
 from __future__ import print_function
+
+import inspect
 import os
 import sys
-import inspect
-from pycompss.util.typing_helper import typing
-from pycompss.util.typing_helper import dummy_function
 from functools import wraps
 
 import pycompss.api.parameter as parameter
 import pycompss.util.context as context
 from pycompss.api.commons.constants import UNASSIGNED
-from pycompss.api.commons.implementation_types import IMPL_METHOD
+from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.implementation_types import IMPL_CONTAINER
+from pycompss.api.commons.implementation_types import IMPL_METHOD
 from pycompss.runtime.constants import TASK_INSTANTIATION
-from pycompss.worker.commons.constants import WORKER_TASK_INSTANTIATION
+from pycompss.runtime.task.core_element import CE
 from pycompss.runtime.task.master import TaskMaster
-from pycompss.runtime.task.worker import TaskWorker
-from pycompss.runtime.task.parameter import is_param
 from pycompss.runtime.task.parameter import get_new_parameter
 from pycompss.runtime.task.parameter import get_parameter_from_dictionary
-from pycompss.runtime.task.core_element import CE
-from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
+from pycompss.runtime.task.parameter import is_param
+from pycompss.runtime.task.worker import TaskWorker
 from pycompss.util.logger.helpers import update_logger_handlers
-from pycompss.util.tracing.helpers import event_master
-from pycompss.util.tracing.helpers import event_inside_worker
 from pycompss.util.objects.properties import get_module_name
+from pycompss.util.tracing.helpers import event_inside_worker
+from pycompss.util.tracing.helpers import event_master
+from pycompss.util.typing_helper import dummy_function
+from pycompss.util.typing_helper import typing
+from pycompss.worker.commons.constants import WORKER_TASK_INSTANTIATION
 
 if __debug__:
     import logging

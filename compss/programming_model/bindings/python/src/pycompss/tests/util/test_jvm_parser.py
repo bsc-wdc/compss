@@ -18,8 +18,8 @@
 # -*- coding: utf-8 -*-
 
 import os
-import tempfile
 import shutil
+import tempfile
 
 from pycompss.util.exceptions import PyCOMPSsException
 

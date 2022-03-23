@@ -24,11 +24,10 @@ PyCOMPSs Binding - Management - Runtime
     Loads the external C module.
 """
 
-from pycompss.util.typing_helper import typing
-
 from pycompss.runtime.management.link import establish_interactive_link
 from pycompss.runtime.management.link import establish_link
 from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.util.typing_helper import typing
 
 if __debug__:
     import logging

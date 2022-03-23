@@ -21,8 +21,8 @@ import os
 import sys
 import tempfile
 
-from pycompss.worker.gat.worker import main
 from pycompss.api.task import task
+from pycompss.worker.gat.worker import main
 
 
 @task()

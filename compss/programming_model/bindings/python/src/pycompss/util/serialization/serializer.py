@@ -42,32 +42,31 @@ PyCOMPSs Util - Data serializer/deserializer
                                            end of the serialized object
 """
 
-import os
 import gc
 import json
+import os
+import pickle
 import struct
-import types
 import traceback
-from pycompss.util.typing_helper import typing
+import types
 from io import BytesIO
 
-from pycompss.util.exceptions import SerializerException
-from pycompss.util.serialization.extended_support import pickle_generator
-from pycompss.util.serialization.extended_support import convert_to_generator
-from pycompss.util.serialization.extended_support import GeneratorIndicator
-from pycompss.util.objects.properties import object_belongs_to_module
-from pycompss.runtime.constants import BINDING_SERIALIZATION_SIZE_TYPE
+from pycompss.runtime.constants import BINDING_DESERIALIZATION_OBJECT_NUM_TYPE
 from pycompss.runtime.constants import BINDING_DESERIALIZATION_SIZE_TYPE
 from pycompss.runtime.constants import BINDING_SERIALIZATION_OBJECT_NUM_TYPE
-from pycompss.runtime.constants import BINDING_DESERIALIZATION_OBJECT_NUM_TYPE
+from pycompss.runtime.constants import BINDING_SERIALIZATION_SIZE_TYPE
+from pycompss.util.exceptions import SerializerException
+from pycompss.util.objects.properties import object_belongs_to_module
+from pycompss.util.serialization.extended_support import GeneratorIndicator
+from pycompss.util.serialization.extended_support import convert_to_generator
+from pycompss.util.serialization.extended_support import pickle_generator
 from pycompss.util.tracing.helpers import emit_manual_event_explicit
 from pycompss.util.tracing.helpers import event_inside_worker
+from pycompss.util.typing_helper import typing
 from pycompss.worker.commons.constants import DESERIALIZE_FROM_BYTES_EVENT
 from pycompss.worker.commons.constants import DESERIALIZE_FROM_FILE_EVENT
 from pycompss.worker.commons.constants import SERIALIZE_TO_FILE_EVENT
 from pycompss.worker.commons.constants import SERIALIZE_TO_FILE_MPIENV_EVENT
-
-import pickle
 
 try:
     import dill  # noqa

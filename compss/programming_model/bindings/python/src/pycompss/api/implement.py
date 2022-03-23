@@ -24,20 +24,20 @@ PyCOMPSs API - Implement (Versioning)
     definition through the decorator.
 """
 
-from pycompss.util.typing_helper import typing
 from functools import wraps
 
 import pycompss.util.context as context
-from pycompss.api.commons.constants import SOURCE_CLASS
-from pycompss.api.commons.constants import METHOD
 from pycompss.api.commons.constants import LEGACY_SOURCE_CLASS
-from pycompss.api.commons.implementation_types import IMPL_METHOD
-from pycompss.api.commons.error_msgs import not_in_pycompss
-from pycompss.util.exceptions import NotInPyCOMPSsException
-from pycompss.util.arguments import check_arguments
-from pycompss.api.commons.decorator import keep_arguments
+from pycompss.api.commons.constants import METHOD
+from pycompss.api.commons.constants import SOURCE_CLASS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
+from pycompss.api.commons.decorator import keep_arguments
+from pycompss.api.commons.error_msgs import not_in_pycompss
+from pycompss.api.commons.implementation_types import IMPL_METHOD
 from pycompss.runtime.task.core_element import CE
+from pycompss.util.arguments import check_arguments
+from pycompss.util.exceptions import NotInPyCOMPSsException
+from pycompss.util.typing_helper import typing
 
 if __debug__:
     import logging

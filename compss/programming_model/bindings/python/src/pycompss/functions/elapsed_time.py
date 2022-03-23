@@ -23,9 +23,10 @@ PyCOMPSs Functions: Elapsed time decorator
     This file defines the time it decorator to be used over the task decorator.
 """
 
-from pycompss.util.typing_helper import typing
 import time
 from functools import wraps
+
+from pycompss.util.typing_helper import typing
 
 
 class TimeIt(object):

@@ -21,11 +21,10 @@ import os
 import sys
 import tempfile
 
-from pycompss.worker.container.container_worker import main
-from pycompss.api.task import task
 from pycompss.api.exceptions import COMPSsException
+from pycompss.api.task import task
 from pycompss.util.serialization.serializer import serialize_to_file
-
+from pycompss.worker.container.container_worker import main
 
 CONTAINER_WORKER = "container_worker.py"
 

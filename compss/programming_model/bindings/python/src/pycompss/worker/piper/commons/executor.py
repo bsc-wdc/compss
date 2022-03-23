@@ -25,13 +25,14 @@ PyCOMPSs Persistent Worker Pipe Executor
 """
 
 import copy
-import signal
 import logging
 import os
+import signal
 import sys
 import time
-from pycompss.util.typing_helper import typing
 from multiprocessing import Queue
+
+from pycompss.util.typing_helper import typing
 
 try:
     THREAD_AFFINITY = True

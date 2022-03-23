@@ -16,18 +16,17 @@
 #
 
 import os
-import tempfile
 import shutil
+import tempfile
 
-from pycompss.api.task import task
-from pycompss.api.parameter import Type
-from pycompss.api.parameter import FILE_OUT_STDOUT
-from pycompss.api.binary import binary
-from pycompss.api.ompss import ompss
-from pycompss.api.mpi import mpi
 from pycompss.api.api import compss_open
 from pycompss.api.api import compss_wait_on_file
-
+from pycompss.api.binary import binary
+from pycompss.api.mpi import mpi
+from pycompss.api.ompss import ompss
+from pycompss.api.parameter import FILE_OUT_STDOUT
+from pycompss.api.parameter import Type
+from pycompss.api.task import task
 
 TEMPORARY_DIRECTORY = tempfile.mkdtemp()
 

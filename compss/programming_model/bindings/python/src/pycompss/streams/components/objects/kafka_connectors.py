@@ -19,6 +19,7 @@
 
 # Imports
 import logging
+
 from pycompss.util.typing_helper import typing
 
 #

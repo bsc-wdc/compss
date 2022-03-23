@@ -26,11 +26,13 @@ PyCOMPSs Cache tracker
 
 import os
 from collections import OrderedDict
+from multiprocessing import Queue
 
-from pycompss.util.typing_helper import typing
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.objects.sizer import total_sizeof
+from pycompss.util.tracing.helpers import emit_manual_event_explicit
 from pycompss.util.tracing.helpers import event_inside_worker
+from pycompss.util.typing_helper import typing
 from pycompss.worker.commons.constants import (
     RETRIEVE_OBJECT_FROM_CACHE_EVENT,
     INSERT_OBJECT_INTO_CACHE_EVENT,
@@ -38,10 +40,6 @@ from pycompss.worker.commons.constants import (
     BINDING_SERIALIZATION_CACHE_SIZE_TYPE,
     BINDING_DESERIALIZATION_CACHE_SIZE_TYPE,
 )
-from pycompss.util.tracing.helpers import emit_manual_event_explicit
-
-
-from multiprocessing import Queue
 
 try:
     from pycompss.util.process.manager import SharedMemory

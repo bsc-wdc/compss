@@ -24,24 +24,23 @@ PyCOMPSs Util - configurators
     Currently it is used by interactive.py and launch.py
 """
 
-import os
-import sys
 import base64
 import json
-from pycompss.util.typing_helper import typing
+import os
+import sys
 from tempfile import mkstemp
 
 import pycompss.runtime.binding as binding
-from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.util.supercomputer.scs import get_base_log_dir
+from pycompss.util.supercomputer.scs import get_log_level
 from pycompss.util.supercomputer.scs import get_master_node
 from pycompss.util.supercomputer.scs import get_master_port
-from pycompss.util.supercomputer.scs import get_xmls
-from pycompss.util.supercomputer.scs import get_uuid
-from pycompss.util.supercomputer.scs import get_base_log_dir
 from pycompss.util.supercomputer.scs import get_specific_log_dir
-from pycompss.util.supercomputer.scs import get_log_level
-from pycompss.util.supercomputer.scs import get_tracing
 from pycompss.util.supercomputer.scs import get_storage_conf
+from pycompss.util.supercomputer.scs import get_tracing
+from pycompss.util.supercomputer.scs import get_uuid
+from pycompss.util.supercomputer.scs import get_xmls
+from pycompss.util.typing_helper import typing
 
 DEFAULT_PROJECT_PATH = "/Runtime/configuration/xml/projects/"
 DEFAULT_RESOURCES_PATH = "/Runtime/configuration/xml/resources/"

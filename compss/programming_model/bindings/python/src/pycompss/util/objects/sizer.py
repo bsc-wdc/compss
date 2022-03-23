@@ -24,11 +24,13 @@ PyCOMPSs Util - Object sizing algorithm
 """
 
 from __future__ import print_function
-from pycompss.util.typing_helper import typing
+
+from collections import deque
+from itertools import chain
 from sys import getsizeof
 from sys import stderr
-from itertools import chain
-from collections import deque
+
+from pycompss.util.typing_helper import typing
 
 try:
     from collections import Iterator  # type: ignore

@@ -18,12 +18,12 @@
 # -*- coding: utf-8 -*-
 
 import os
+
+import pycompss.util.context as context
+from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.reduction import reduction
 from pycompss.runtime.task.core_element import CE
-from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
-import pycompss.util.context as context
 from pycompss.util.exceptions import PyCOMPSsException
-
 
 CHUNK_SIZE_ERROR = "chunk_size is not defined in kwargs dictionary."
 CHUNK_SIZE_NOT_INIT_ERROR = "chunk_size parameter has not been initialized."

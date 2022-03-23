@@ -17,21 +17,21 @@
 
 # -*- coding: utf-8 -*-
 
-# Imports
-from pycompss.util.typing_helper import typing
 import logging
 from abc import abstractmethod
 
-# Project imports
-from pycompss.streams.types.requests import RegisterStreamRequest
-from pycompss.streams.types.requests import CloseStreamRequest
-from pycompss.streams.types.requests import StreamStatusRequest
-from pycompss.streams.types.requests import BootstrapServerRequest
-from pycompss.streams.types.requests import PollRequest
-from pycompss.streams.types.requests import PublishRequest
 from pycompss.streams.components.distro_stream_client import (
     DistroStreamClientHandler,
 )
+from pycompss.streams.types.requests import BootstrapServerRequest
+from pycompss.streams.types.requests import CloseStreamRequest
+from pycompss.streams.types.requests import PollRequest
+from pycompss.streams.types.requests import PublishRequest
+# Project imports
+from pycompss.streams.types.requests import RegisterStreamRequest
+from pycompss.streams.types.requests import StreamStatusRequest
+# Imports
+from pycompss.util.typing_helper import typing
 
 #
 # Logger definition

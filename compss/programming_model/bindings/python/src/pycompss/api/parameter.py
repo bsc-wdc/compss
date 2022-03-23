@@ -51,9 +51,9 @@ PyCOMPSs API - Parameter
 """
 
 from pycompss.api.commons.data_type import DataType as _DataType
+from pycompss.runtime.mpi.keys import MPI_LAYOUT_KEYS as _MPI_LAYOUT_KEYS
 from pycompss.runtime.task.keys import PARAM_ALIAS_KEYS as _PARAM_ALIAS_KEYS
 from pycompss.runtime.task.keys import PARAM_DICT_KEYS as _PARAM_DICT_KEYS
-from pycompss.runtime.mpi.keys import MPI_LAYOUT_KEYS as _MPI_LAYOUT_KEYS
 
 # Type definitions -> Numbers match both C and Java enums and are generated
 #                     during the installation.

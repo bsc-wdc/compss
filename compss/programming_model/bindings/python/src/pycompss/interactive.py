@@ -23,24 +23,27 @@ PyCOMPSs Binding - Interactive API
     Provides the current start and stop for the use of PyCOMPSs interactively.
 """
 
+import logging
 import os
 import sys
-import logging
-import time
 import tempfile
-from pycompss.util.typing_helper import typing
+import time
 
 import pycompss.util.context as context
 import pycompss.util.interactive.helpers as interactive_helpers
 from pycompss.runtime.binding import get_log_path
-from pycompss.runtime.management.object_tracker import OT
-from pycompss.runtime.management.classes import Future
-from pycompss.runtime.commons import DEFAULT_SCHED
 from pycompss.runtime.commons import DEFAULT_CONN
 from pycompss.runtime.commons import DEFAULT_JVM_WORKERS
-from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
+from pycompss.runtime.commons import DEFAULT_SCHED
 from pycompss.runtime.commons import INTERACTIVE_FILE_NAME
+from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
 from pycompss.runtime.commons import set_temporary_directory
+from pycompss.runtime.constants import APPLICATION_RUNNING_EVENT
+from pycompss.runtime.management.classes import Future
+from pycompss.runtime.management.object_tracker import OT
+# Streaming imports
+from pycompss.streams.environment import init_streaming
+from pycompss.streams.environment import stop_streaming
 from pycompss.util.environment.configuration import (
     export_current_flags,
     prepare_environment,
@@ -50,34 +53,27 @@ from pycompss.util.environment.configuration import (
     check_infrastructure_variables,
     create_init_config_file,
 )
-from pycompss.util.logger.helpers import get_logging_cfg_file
-from pycompss.util.logger.helpers import init_logging
-from pycompss.util.interactive.events import setup_event_manager
 from pycompss.util.interactive.events import release_event_manager
+from pycompss.util.interactive.events import setup_event_manager
 from pycompss.util.interactive.flags import check_flags
 from pycompss.util.interactive.flags import print_flag_issues
-from pycompss.util.interactive.utils import parameters_to_dict
-from pycompss.util.interactive.outwatcher import STDW
 from pycompss.util.interactive.graphs import show_graph
+from pycompss.util.interactive.outwatcher import STDW
+from pycompss.util.interactive.state import check_monitoring_file
+from pycompss.util.interactive.state import show_resources_status
+from pycompss.util.interactive.state import show_statistics
 from pycompss.util.interactive.state import show_tasks_info
 from pycompss.util.interactive.state import show_tasks_status
-from pycompss.util.interactive.state import show_statistics
-from pycompss.util.interactive.state import show_resources_status
-from pycompss.util.interactive.state import check_monitoring_file
+from pycompss.util.interactive.utils import parameters_to_dict
+from pycompss.util.logger.helpers import get_logging_cfg_file
+from pycompss.util.logger.helpers import init_logging
 from pycompss.util.process.manager import initialize_multiprocessing
-
-# Tracing imports
-from pycompss.util.tracing.helpers import emit_manual_event
-from pycompss.runtime.constants import APPLICATION_RUNNING_EVENT
-
 # Storage imports
 from pycompss.util.storages.persistent import master_init_storage
 from pycompss.util.storages.persistent import master_stop_storage
-
-# Streaming imports
-from pycompss.streams.environment import init_streaming
-from pycompss.streams.environment import stop_streaming
-
+# Tracing imports
+from pycompss.util.tracing.helpers import emit_manual_event
+from pycompss.util.typing_helper import typing
 
 # GLOBAL VARIABLES
 APP_PATH = INTERACTIVE_FILE_NAME

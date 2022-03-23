@@ -17,11 +17,10 @@
 
 # -*- coding: utf-8 -*-
 
-from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.api.commons.error_msgs import cast_env_to_int_error
 from pycompss.api.commons.error_msgs import cast_string_to_int_error
+from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.api.commons.error_msgs import wrong_value
-
 
 DECORATOR_NAME = "@unittest"
 

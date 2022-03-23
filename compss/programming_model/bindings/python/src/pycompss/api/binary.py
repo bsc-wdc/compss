@@ -24,28 +24,28 @@ PyCOMPSs API - BINARY
     definition through the decorator.
 """
 
-from pycompss.util.typing_helper import typing
 from functools import wraps
 
 import pycompss.util.context as context
-from pycompss.util.arguments import check_arguments
 from pycompss.api.commons.constants import BINARY
-from pycompss.api.commons.constants import WORKING_DIR
-from pycompss.api.commons.constants import PARAMS
-from pycompss.api.commons.constants import FAIL_BY_EXIT_VALUE
-from pycompss.api.commons.constants import LEGACY_WORKING_DIR
 from pycompss.api.commons.constants import ENGINE
+from pycompss.api.commons.constants import FAIL_BY_EXIT_VALUE
 from pycompss.api.commons.constants import IMAGE
+from pycompss.api.commons.constants import LEGACY_WORKING_DIR
+from pycompss.api.commons.constants import PARAMS
 from pycompss.api.commons.constants import UNASSIGNED
-from pycompss.api.commons.implementation_types import IMPL_BINARY
-from pycompss.api.commons.implementation_types import IMPL_CONTAINER
-from pycompss.api.commons.implementation_types import IMPL_CET_BINARY
-from pycompss.api.commons.decorator import resolve_working_dir
-from pycompss.api.commons.decorator import resolve_fail_by_exit_value
-from pycompss.api.commons.decorator import keep_arguments
+from pycompss.api.commons.constants import WORKING_DIR
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
+from pycompss.api.commons.decorator import keep_arguments
+from pycompss.api.commons.decorator import resolve_fail_by_exit_value
+from pycompss.api.commons.decorator import resolve_working_dir
 from pycompss.api.commons.decorator import run_command
+from pycompss.api.commons.implementation_types import IMPL_BINARY
+from pycompss.api.commons.implementation_types import IMPL_CET_BINARY
+from pycompss.api.commons.implementation_types import IMPL_CONTAINER
 from pycompss.runtime.task.core_element import CE
+from pycompss.util.arguments import check_arguments
+from pycompss.util.typing_helper import typing
 
 if __debug__:
     import logging

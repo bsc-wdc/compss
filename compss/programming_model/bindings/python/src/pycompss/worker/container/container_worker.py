@@ -22,20 +22,20 @@ PyCOMPSs Worker for Containers
 inside containers.
 """
 
-# Fix PYTHONPATH setup
-import pycompss.worker.container.pythonpath_fixer  # noqa
-
+import logging
 # Regular imports
 import os
 import sys
-import logging
-from pycompss.util.typing_helper import typing
 
 # PyCOMPSs imports
 import pycompss.util.context as context
-from pycompss.worker.commons.worker import execute_task
-from pycompss.worker.commons.executor import build_return_params_message
+# Fix PYTHONPATH setup
+import pycompss.worker.container.pythonpath_fixer  # noqa
 from pycompss.util.logger.helpers import init_logging_worker
+from pycompss.util.typing_helper import typing
+from pycompss.worker.commons.executor import build_return_params_message
+from pycompss.worker.commons.worker import execute_task
+
 
 # Define static logger
 # logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)  # NOSONAR

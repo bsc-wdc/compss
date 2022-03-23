@@ -16,21 +16,20 @@
 #
 
 import os
-import sys
-import time
 import shutil
+import sys
 import tempfile
+import time
 import unittest
 
-from pycompss.runtime.binding import barrier
-from pycompss.util.context import in_pycompss
+from pycompss.dds.examples import inverted_indexing
 from pycompss.dds.examples import pi_estimation
+from pycompss.dds.examples import terasort
 from pycompss.dds.examples import transitive_closure
 from pycompss.dds.examples import word_count
 from pycompss.dds.examples import wordcount_k_means
-from pycompss.dds.examples import terasort
-from pycompss.dds.examples import inverted_indexing
-
+from pycompss.runtime.binding import barrier
+from pycompss.util.context import in_pycompss
 
 # The DDS examples unittest only checks functionality (not the validity of the results).
 # TODO: check that the results are OK.

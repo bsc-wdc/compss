@@ -23,14 +23,14 @@ PyCOMPSs Util - logs
     This file contains all logging methods.
 """
 
-import os
-import logging
 import json
-from pycompss.util.typing_helper import typing
+import logging
+import os
 from contextlib import contextmanager
 from logging import config
-from pycompss.util.exceptions import PyCOMPSsException
 
+from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.util.typing_helper import typing
 
 CONFIG_FUNC = config.dictConfig
 # Keep configs to avoid read the cfg many times

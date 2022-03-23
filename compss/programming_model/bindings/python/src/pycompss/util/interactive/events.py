@@ -25,9 +25,9 @@ PyCOMPSs Util - Interactive Events
 """
 
 import os
-from pycompss.util.typing_helper import typing
 
 from pycompss.util.interactive.outwatcher import STDW
+from pycompss.util.typing_helper import typing
 
 try:
     # IPython imports

@@ -23,30 +23,30 @@ PyCOMPSs runtime - Parameter
     This file contains the classes needed for the parameter definition.
 """
 
-import sys
 import copy
-from pycompss.util.typing_helper import typing
+import sys
 
-from pycompss.runtime.task.keys import PARAM_ALIAS_KEYS
-from pycompss.runtime.task.keys import PARAM_DICT_KEYS
-from pycompss.api.parameter import TYPE
+from pycompss.api.parameter import Cache
 from pycompss.api.parameter import DIRECTION
-from pycompss.api.parameter import IOSTREAM
-from pycompss.api.parameter import PREFIX
-from pycompss.api.parameter import Type
+from pycompss.api.parameter import Depth
 from pycompss.api.parameter import Direction
+from pycompss.api.parameter import IOSTREAM
+from pycompss.api.parameter import Keep_rename
+from pycompss.api.parameter import PREFIX
 from pycompss.api.parameter import Prefix
 from pycompss.api.parameter import StdIOStream
-from pycompss.api.parameter import Depth
+from pycompss.api.parameter import TYPE
+from pycompss.api.parameter import Type
 from pycompss.api.parameter import Weight
-from pycompss.api.parameter import Keep_rename
-from pycompss.api.parameter import Cache
 from pycompss.api.parameter import _Param as Param  # noqa
+from pycompss.runtime.task.keys import PARAM_ALIAS_KEYS
+from pycompss.runtime.task.keys import PARAM_DICT_KEYS
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.objects.properties import is_basic_iterable
 from pycompss.util.objects.properties import is_dict
-from pycompss.util.storages.persistent import has_id
 from pycompss.util.storages.persistent import get_id
+from pycompss.util.storages.persistent import has_id
+from pycompss.util.typing_helper import typing
 
 # Try to import numpy
 np = None  # type: typing.Union[None, typing.Any]

@@ -17,8 +17,6 @@
 
 import os
 
-from pycompss.util.exceptions import PyCOMPSsException
-
 
 def test_launch_dds_examples():
     from pycompss.runtime.launch import launch_pycompss_application

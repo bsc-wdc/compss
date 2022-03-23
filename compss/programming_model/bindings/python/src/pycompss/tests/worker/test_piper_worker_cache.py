@@ -18,21 +18,8 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import time
-import logging
-import numpy as np
 
 from pycompss.worker.piper.cache.setup import is_cache_enabled
-from pycompss.worker.piper.cache.setup import start_cache
-from pycompss.worker.piper.cache.setup import stop_cache
-from pycompss.worker.piper.cache.tracker import load_shared_memory_manager
-from pycompss.worker.piper.cache.tracker import insert_object_into_cache_wrapper
-from pycompss.worker.piper.cache.tracker import retrieve_object_from_cache
-from pycompss.worker.piper.cache.tracker import remove_object_from_cache
-from pycompss.worker.piper.cache.tracker import replace_object_into_cache
-from pycompss.worker.piper.cache.tracker import in_cache
-from pycompss.util.exceptions import PyCOMPSsException
-
 
 NOT_PYTHON_3_8 = "WARNING: Could not perform cache test since python version is lower than 3.8"  # noqa: E501
 

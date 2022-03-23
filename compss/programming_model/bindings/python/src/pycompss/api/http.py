@@ -23,22 +23,22 @@ PyCOMPSs API - HTTP
     HTTP Task decorator class.
 """
 
-from pycompss.util.typing_helper import typing
 from functools import wraps
+
 import pycompss.util.context as context
-from pycompss.api.commons.constants import SERVICE_NAME
-from pycompss.api.commons.constants import RESOURCE
-from pycompss.api.commons.constants import REQUEST
 from pycompss.api.commons.constants import PAYLOAD
 from pycompss.api.commons.constants import PAYLOAD_TYPE
 from pycompss.api.commons.constants import PRODUCES
+from pycompss.api.commons.constants import REQUEST
+from pycompss.api.commons.constants import RESOURCE
+from pycompss.api.commons.constants import SERVICE_NAME
 from pycompss.api.commons.constants import UPDATES
-from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
+from pycompss.api.commons.decorator import keep_arguments
 from pycompss.runtime.task.core_element import CE
 from pycompss.util.arguments import check_arguments
 from pycompss.util.serialization import serializer
-
+from pycompss.util.typing_helper import typing
 
 if __debug__:
     import logging

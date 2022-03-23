@@ -24,13 +24,13 @@ PyCOMPSs API - CONSTRAINT
     definition through the decorator.
 """
 
-from pycompss.util.typing_helper import typing
 from functools import wraps
 
 import pycompss.util.context as context
-from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
+from pycompss.api.commons.decorator import keep_arguments
 from pycompss.runtime.task.core_element import CE
+from pycompss.util.typing_helper import typing
 
 if __debug__:
     import logging

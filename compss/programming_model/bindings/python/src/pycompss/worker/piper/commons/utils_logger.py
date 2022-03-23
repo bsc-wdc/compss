@@ -23,12 +23,13 @@ PyCOMPSs Common piper utils logger
     This file contains the common pipers methods related to logging.
 """
 
-import os
 import logging
-from pycompss.util.typing_helper import typing
+import os
+
+import pycompss.util.context as context
 from pycompss.runtime.commons import get_temporary_directory
 from pycompss.util.logger.helpers import init_logging_worker_piper
-import pycompss.util.context as context
+from pycompss.util.typing_helper import typing
 
 
 def load_loggers(

@@ -23,9 +23,10 @@ PyCOMPSs Functions: Profiling decorator
     This file defines the time it decorator to be used below the task decorator.
 """
 
-from pycompss.util.typing_helper import typing
 from functools import wraps
+
 from memory_profiler import profile as mem_profile
+from pycompss.util.typing_helper import typing
 
 
 class Profile(object):

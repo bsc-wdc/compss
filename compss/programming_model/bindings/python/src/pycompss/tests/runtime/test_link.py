@@ -18,8 +18,8 @@
 # -*- coding: utf-8 -*-
 
 from pycompss.runtime.management.link import c_extension_link
-from pycompss.util.process.manager import new_queue
 from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.util.process.manager import new_queue
 
 
 def test_c_extension_link_wrong_message():

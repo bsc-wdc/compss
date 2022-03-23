@@ -18,7 +18,6 @@
 # -*- coding: utf-8 -*-
 
 import os
-import sys
 
 APPLICATION_NAME = "increment"
 APPLICATION = "increment.py"

@@ -25,13 +25,14 @@ PyCOMPSs Util - Interactive Output watcher
 """
 
 import os
-import time
 import threading
+import time
 from queue import Queue
-from pycompss.util.typing_helper import typing
-from pycompss.runtime.management.COMPSs import is_redirected
+
 from pycompss.runtime.management.COMPSs import get_redirection_file_names
+from pycompss.runtime.management.COMPSs import is_redirected
 from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.util.typing_helper import typing
 
 
 class StdWatcher(object):

@@ -24,23 +24,21 @@ PyCOMPSs Utils - External Storage
     Isolates the API signature calls.
 """
 
-from pycompss.util.typing_helper import typing
-
+from pycompss.runtime.constants import INIT_STORAGE_EVENT as MASTER_INIT_STORAGE_EVENT
+from pycompss.runtime.constants import STOP_STORAGE_EVENT as MASTER_STOP_STORAGE_EVENT
 from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.util.tracing.helpers import event_inside_worker
 from pycompss.util.tracing.helpers import event_master
 from pycompss.util.tracing.helpers import event_worker
-from pycompss.util.tracing.helpers import event_inside_worker
+from pycompss.util.typing_helper import typing
 from pycompss.worker.commons.constants import (
     GETID_EVENT,
     GET_BY_ID_EVENT,
-    MAKE_PERSISTENT_EVENT,  # noqa Expose make persistent event id
-    DELETE_PERSISTENT_EVENT,  # noqa Expose delete persistent event id
+    # noqa Expose make persistent event id
+    # noqa Expose delete persistent event id
     INIT_STORAGE_EVENT,
     STOP_STORAGE_EVENT,
 )
-from pycompss.runtime.constants import INIT_STORAGE_EVENT as MASTER_INIT_STORAGE_EVENT
-from pycompss.runtime.constants import STOP_STORAGE_EVENT as MASTER_STOP_STORAGE_EVENT
-
 
 # Globals
 # Contain the actual storage api functions set on initialization

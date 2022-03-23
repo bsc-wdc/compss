@@ -17,8 +17,8 @@
 
 # -*- coding: utf-8 -*-
 
-from pycompss.util.process.manager import create_process
 from pycompss.streams.distro_stream import DistroStreamClientHandler
+from pycompss.util.process.manager import create_process
 
 
 def test_client_handler():

@@ -19,6 +19,7 @@
 
 import os
 import sys
+
 from pycompss.__main__ import main
 from pycompss.util.exceptions import PyCOMPSsException
 

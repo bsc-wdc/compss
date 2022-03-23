@@ -25,27 +25,29 @@ PyCOMPSs Binding - Launch
     environment parameters.
 """
 
+import argparse
+import gc
+import logging
 # Imports
 import os
 import sys
-import logging
 import traceback
-import argparse
-from pycompss.util.typing_helper import typing
-import gc
 
 # Project imports
 import pycompss.util.context as context
+from pycompss.api.exceptions import COMPSsException
 from pycompss.runtime.binding import get_log_path
-from pycompss.runtime.commons import DEFAULT_SCHED
 from pycompss.runtime.commons import DEFAULT_CONN
 from pycompss.runtime.commons import DEFAULT_JVM_WORKERS
-from pycompss.runtime.commons import set_temporary_directory
-from pycompss.runtime.commons import set_object_conversion
+from pycompss.runtime.commons import DEFAULT_SCHED
 from pycompss.runtime.commons import PYTHON_VERSION
 from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
-from pycompss.util.exceptions import SerializerException
-from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.runtime.commons import set_object_conversion
+from pycompss.runtime.commons import set_temporary_directory
+from pycompss.runtime.constants import APPLICATION_RUNNING_EVENT
+# Streaming imports
+from pycompss.streams.environment import init_streaming
+from pycompss.streams.environment import stop_streaming
 from pycompss.util.environment.configuration import (
     preload_user_code,
     export_current_flags,
@@ -56,28 +58,23 @@ from pycompss.util.environment.configuration import (
     check_infrastructure_variables,
     create_init_config_file,
 )
-from pycompss.util.logger.helpers import get_logging_cfg_file
-from pycompss.util.logger.helpers import init_logging
-from pycompss.util.logger.helpers import clean_log_configs
-from pycompss.util.process.manager import initialize_multiprocessing
-from pycompss.util.warnings.modules import show_optional_module_warnings
+from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.util.exceptions import SerializerException
 from pycompss.util.interactive.flags import check_flags
 from pycompss.util.interactive.flags import print_flag_issues
 from pycompss.util.interactive.utils import parameters_to_dict
-from pycompss.api.exceptions import COMPSsException
-
-# Tracing imports
-from pycompss.util.tracing.helpers import event_master
-from pycompss.runtime.constants import APPLICATION_RUNNING_EVENT
-
-# Storage imports
-from pycompss.util.storages.persistent import use_storage
+from pycompss.util.logger.helpers import clean_log_configs
+from pycompss.util.logger.helpers import get_logging_cfg_file
+from pycompss.util.logger.helpers import init_logging
+from pycompss.util.process.manager import initialize_multiprocessing
 from pycompss.util.storages.persistent import master_init_storage
 from pycompss.util.storages.persistent import master_stop_storage
-
-# Streaming imports
-from pycompss.streams.environment import init_streaming
-from pycompss.streams.environment import stop_streaming
+# Storage imports
+from pycompss.util.storages.persistent import use_storage
+# Tracing imports
+from pycompss.util.tracing.helpers import event_master
+from pycompss.util.typing_helper import typing
+from pycompss.util.warnings.modules import show_optional_module_warnings
 
 # Global variable also task-master decorator
 APP_PATH = None

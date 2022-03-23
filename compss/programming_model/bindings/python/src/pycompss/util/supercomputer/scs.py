@@ -25,6 +25,7 @@ PyCOMPSs Utils - Supercomputer helpers
 """
 
 import os
+
 from pycompss.util.typing_helper import typing
 
 

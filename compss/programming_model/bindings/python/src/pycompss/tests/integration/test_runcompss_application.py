@@ -18,8 +18,8 @@
 # -*- coding: utf-8 -*-
 
 import os
-import sys
 import subprocess
+import sys
 
 
 def test_runcompss_increment():

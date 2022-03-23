@@ -26,44 +26,43 @@ PyCOMPSs Binding - Binding
 import os
 import re
 import signal
-from pycompss.util.typing_helper import typing
 from shutil import rmtree
 
 import pycompss.runtime.management.COMPSs as COMPSs
-from pycompss.runtime.commons import get_temporary_directory
-from pycompss.runtime.management.object_tracker import OT
-from pycompss.runtime.management.synchronization import wait_on_object
-from pycompss.runtime.management.direction import get_compss_direction
-from pycompss.runtime.management.classes import EmptyReturn
-from pycompss.runtime.task.core_element import CE
-from pycompss.runtime.commons import LIST_TYPE
-from pycompss.util.exceptions import PyCOMPSsException
 import pycompss.util.context as context
-
-# Tracing imports
-from pycompss.util.tracing.helpers import enable_trace_master
-from pycompss.util.tracing.helpers import event_master
-from pycompss.util.tracing.helpers import event_inside_worker
-from pycompss.runtime.constants import START_RUNTIME_EVENT
-from pycompss.runtime.constants import STOP_RUNTIME_EVENT
+from pycompss.runtime.commons import LIST_TYPE
+from pycompss.runtime.commons import get_temporary_directory
 from pycompss.runtime.constants import ACCESSED_FILE_EVENT
-from pycompss.runtime.constants import OPEN_FILE_EVENT
-from pycompss.runtime.constants import DELETE_FILE_EVENT
-from pycompss.runtime.constants import GET_FILE_EVENT
-from pycompss.runtime.constants import GET_DIRECTORY_EVENT
-from pycompss.runtime.constants import DELETE_OBJECT_EVENT
 from pycompss.runtime.constants import BARRIER_EVENT
 from pycompss.runtime.constants import BARRIER_GROUP_EVENT
-from pycompss.runtime.constants import OPEN_TASK_GROUP_EVENT
 from pycompss.runtime.constants import CLOSE_TASK_GROUP_EVENT
+from pycompss.runtime.constants import DELETE_FILE_EVENT
+from pycompss.runtime.constants import DELETE_OBJECT_EVENT
+from pycompss.runtime.constants import FREE_RESOURCES_EVENT
+from pycompss.runtime.constants import GET_DIRECTORY_EVENT
+from pycompss.runtime.constants import GET_FILE_EVENT
 from pycompss.runtime.constants import GET_LOG_PATH_EVENT
 from pycompss.runtime.constants import GET_NUMBER_RESOURCES_EVENT
-from pycompss.runtime.constants import REQUEST_RESOURCES_EVENT
-from pycompss.runtime.constants import FREE_RESOURCES_EVENT
-from pycompss.runtime.constants import REGISTER_CORE_ELEMENT_EVENT
-from pycompss.runtime.constants import WAIT_ON_EVENT
+from pycompss.runtime.constants import OPEN_FILE_EVENT
+from pycompss.runtime.constants import OPEN_TASK_GROUP_EVENT
 from pycompss.runtime.constants import PROCESS_TASK_EVENT
+from pycompss.runtime.constants import REGISTER_CORE_ELEMENT_EVENT
+from pycompss.runtime.constants import REQUEST_RESOURCES_EVENT
+from pycompss.runtime.constants import START_RUNTIME_EVENT
+from pycompss.runtime.constants import STOP_RUNTIME_EVENT
+from pycompss.runtime.constants import WAIT_ON_EVENT
 from pycompss.runtime.constants import WALL_CLOCK_LIMIT_EVENT
+from pycompss.runtime.management.classes import EmptyReturn
+from pycompss.runtime.management.direction import get_compss_direction
+from pycompss.runtime.management.object_tracker import OT
+from pycompss.runtime.management.synchronization import wait_on_object
+from pycompss.runtime.task.core_element import CE
+from pycompss.util.exceptions import PyCOMPSsException
+# Tracing imports
+from pycompss.util.tracing.helpers import enable_trace_master
+from pycompss.util.tracing.helpers import event_inside_worker
+from pycompss.util.tracing.helpers import event_master
+from pycompss.util.typing_helper import typing
 
 if __debug__:
     import logging

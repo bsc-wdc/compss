@@ -22,27 +22,26 @@ PyCOMPSs API - Software
 ==================
     Software Task decorator class.
 """
-from pycompss.util.typing_helper import typing
 import json
-
 from functools import wraps
+
+import pycompss.util.context as context
 from pycompss.api import binary
 from pycompss.api import mpi
-from pycompss.api.commons.constants import CONFIG_FILE
-from pycompss.api.commons.constants import MPI
 from pycompss.api.commons.constants import BINARY
+from pycompss.api.commons.constants import CONFIG_FILE
 from pycompss.api.commons.constants import ENGINE
 from pycompss.api.commons.constants import IMAGE
-from pycompss.api.commons.constants import UNASSIGNED
+from pycompss.api.commons.constants import MPI
 from pycompss.api.commons.constants import PROPERTIES
 from pycompss.api.commons.constants import TYPE
-from pycompss.api.commons.implementation_types import IMPL_CONTAINER
-from pycompss.util.arguments import check_arguments
-import pycompss.util.context as context
-from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.api.commons.constants import UNASSIGNED
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
+from pycompss.api.commons.implementation_types import IMPL_CONTAINER
 from pycompss.runtime.task.core_element import CE
-
+from pycompss.util.arguments import check_arguments
+from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.util.typing_helper import typing
 
 if __debug__:
     import logging

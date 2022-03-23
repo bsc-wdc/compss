@@ -19,7 +19,6 @@ import os
 
 from pycompss.dds.dds import DDS
 
-
 GENERIC_ERROR = "ERROR: Unexpected result from DDS."
 
 current_path = os.path.dirname(os.path.abspath(__file__))

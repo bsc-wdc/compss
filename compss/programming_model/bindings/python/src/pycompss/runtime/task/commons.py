@@ -21,11 +21,10 @@
 This module includes all API commons
 """
 
-from pycompss.util.typing_helper import typing
-
 import pycompss.api.parameter as parameter
-from pycompss.runtime.task.parameter import get_new_parameter
 from pycompss.runtime.task.parameter import Parameter
+from pycompss.runtime.task.parameter import get_new_parameter
+from pycompss.util.typing_helper import typing
 
 
 def get_varargs_direction(

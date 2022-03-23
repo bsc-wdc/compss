@@ -17,10 +17,10 @@
 
 # -*- coding: utf-8 -*-
 
-from pycompss.api.IO import IO
-from pycompss.runtime.task.core_element import CE
-from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 import pycompss.util.context as context
+from pycompss.api.IO import IO
+from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
+from pycompss.runtime.task.core_element import CE
 
 
 def dummy_function(*args, **kwargs):  # noqa

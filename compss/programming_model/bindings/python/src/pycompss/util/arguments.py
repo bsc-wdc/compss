@@ -25,8 +25,9 @@ PyCOMPSs Util - Arguments
 """
 
 from __future__ import print_function
-import sys
+
 import re
+import sys
 
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.typing_helper import typing

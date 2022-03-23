@@ -17,22 +17,22 @@
 import os
 import shutil
 import time
-from pycompss.api.task import task
-from pycompss.api.parameter import *
-from pycompss.api.api import compss_file_exists
-from pycompss.api.api import compss_open
-from pycompss.api.api import compss_delete_file
-from pycompss.api.api import compss_wait_on_file
-from pycompss.api.api import compss_wait_on_directory
-from pycompss.api.api import compss_delete_object
-from pycompss.api.api import compss_barrier
-from pycompss.api.api import compss_barrier_group
-from pycompss.api.api import compss_wait_on
 
 # from pycompss.api.api import compss_get_number_of_resources
 # from pycompss.api.api import compss_request_resources
 # from pycompss.api.api import compss_free_resources
 from pycompss.api.api import TaskGroup
+from pycompss.api.api import compss_barrier
+from pycompss.api.api import compss_barrier_group
+from pycompss.api.api import compss_delete_file
+from pycompss.api.api import compss_delete_object
+from pycompss.api.api import compss_file_exists
+from pycompss.api.api import compss_open
+from pycompss.api.api import compss_wait_on
+from pycompss.api.api import compss_wait_on_directory
+from pycompss.api.api import compss_wait_on_file
+from pycompss.api.parameter import *
+from pycompss.api.task import task
 
 
 @task(fin=FILE, returns=str)

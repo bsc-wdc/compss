@@ -18,16 +18,15 @@
 # -*- coding: utf-8 -*-
 
 import os
-import sys
-import time
-import tempfile
 import shutil
+import sys
+import tempfile
+import time
 
-from pycompss.util.process.manager import create_process
-from pycompss.util.exceptions import PyCOMPSsException
-from pycompss.util.serialization.serializer import deserialize_from_file
 from pycompss.api.task import task
-
+from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.util.process.manager import create_process
+from pycompss.util.serialization.serializer import deserialize_from_file
 
 # Globals
 STD_OUT_FILE = "/../../../../std.out"

@@ -17,12 +17,11 @@
 
 # -*- coding: utf-8 -*-
 
-from pycompss.util.exceptions import PyCOMPSsException
-from pycompss.util.exceptions import NotInPyCOMPSsException
-from pycompss.util.exceptions import NotImplementedException
-from pycompss.util.exceptions import MissingImplementedException
 from pycompss.util.exceptions import DDSException
-
+from pycompss.util.exceptions import MissingImplementedException
+from pycompss.util.exceptions import NotImplementedException
+from pycompss.util.exceptions import NotInPyCOMPSsException
+from pycompss.util.exceptions import PyCOMPSsException
 
 GENERIC_MESSAGE = "Message to show"
 GENERIC_MESSAGE_ERROR = "ERROR: Received unexpected exception message."

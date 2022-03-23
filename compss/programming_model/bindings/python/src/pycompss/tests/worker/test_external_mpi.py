@@ -21,8 +21,8 @@ import os
 import sys
 import tempfile
 
-from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.api.task import task
+from pycompss.util.exceptions import PyCOMPSsException
 
 using_mypy = False
 try:

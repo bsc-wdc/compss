@@ -20,16 +20,10 @@ struct module_state {
     PyObject *error;
 };
 
-#if PY_MAJOR_VERSION >= 3
 #define GETSTATE(m) ((struct module_state*)PyModule_GetState(m))
 #define PyInt_AsLong PyLong_AsLong
-#else
-#define GETSTATE(m) (&_state)
-static struct module_state _state;
-#endif
 
-static PyObject *
-error_out(PyObject *m) {
+static PyObject * error_out(PyObject *m) {
     struct module_state *st = GETSTATE(m);
     PyErr_SetString(st->error, "Thread affinity extension module: Something bad happened");
     return NULL;
@@ -88,19 +82,13 @@ static PyObject* pysched_getaffinity(PyObject* self, PyObject* args) {
 
 
 static PyMethodDef ThreadAffinityMethods[] = {
-
     { "error_out", (PyCFunction)error_out, METH_NOARGS, NULL},
-
     { "setaffinity", pysched_setaffinity, METH_VARARGS, "Args: (mask, [pid=0]) -> set the affinity for the thread with given pid to given mask. If pid equals zero, then the current thread's affinity will be changed." },
-
     { "getaffinity", pysched_getaffinity, METH_VARARGS, "Args: ([pid=0]) -> returns the affinity for the thread with given pid. If not specified, returns the affinity for the current thread."},
-
     { NULL, NULL } /* sentinel */
-
 };
 
 
-#if PY_MAJOR_VERSION >= 3
 static int thread_affinity_traverse(PyObject *m, visitproc visit, void *arg) {
     Py_VISIT(GETSTATE(m)->error);
     return 0;
@@ -121,18 +109,8 @@ static struct PyModuleDef cModThAPy = {
     NULL
 };
 #define INITERROR return NULL
-PyMODINIT_FUNC
-PyInit_thread_affinity(void)
-#else
-#define INITERROR return
-void initthread_affinity(void)
-#endif
-{
-#if PY_MAJOR_VERSION >= 3
+PyMODINIT_FUNC PyInit_thread_affinity(void) {
     PyObject *module = PyModule_Create(&cModThAPy);
-#else
-    PyObject *module = Py_InitModule("thread_affinity", ThreadAffinityMethods);
-#endif
 
     if (module == NULL)
         INITERROR;
@@ -146,7 +124,5 @@ void initthread_affinity(void)
 
     sched_getaffinity(0, sizeof(cpu_set_t), &default_affinity);
 
-#if PY_MAJOR_VERSION >= 3
     return module;
-#endif
 }

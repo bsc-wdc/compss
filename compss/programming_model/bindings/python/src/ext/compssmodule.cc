@@ -71,17 +71,12 @@ struct parameter {
 };
 
 /*
-  Python3 compatibility macros.
+  Python3 compatibility only.
   See https://docs.python.org/3/howto/cporting.html
 */
-#if PY_MAJOR_VERSION >= 3
 #define GETSTATE(m) ((struct module_state*)PyModule_GetState(m))
 #define PyInt_FromLong PyLong_FromLong
 #define PyInt_AsLong PyLong_AsLong
-#else
-#define GETSTATE(m) (&_state)
-static struct module_state _state;
-#endif
 
 //////////////////////////////////////////////////////////////
 // Debugging functions
@@ -126,8 +121,6 @@ static PyObject* error_out(PyObject *m) {
 /*
   Auxiliary function that allows us to translate a PyStringObject
   (which is also a PyObject) to a char*
-  As we can see, the functions body varies depending on the Python version,
-  making it compatible for both Py2 and Py3
 
   W A R N I N G
 
@@ -136,11 +129,7 @@ static PyObject* error_out(PyObject *m) {
 */
 static char* _pystring_to_char(PyObject* c) {
     return
-#if PY_MAJOR_VERSION >= 3
         PyBytes_AsString(PyUnicode_AsEncodedString(c, "utf-8", "Error ~"));
-#else
-        PyString_AsString(c);
-#endif
 }
 
 /*
@@ -148,11 +137,7 @@ static char* _pystring_to_char(PyObject* c) {
 */
 static std::string _pystring_to_string(PyObject* c) {
     return std::string(
-#if PY_MAJOR_VERSION >= 3
-    PyBytes_AsString(PyUnicode_AsEncodedString(c, "utf-8", "Error ~"))
-#else
-    PyString_AsString(c)
-#endif
+        PyBytes_AsString(PyUnicode_AsEncodedString(c, "utf-8", "Error ~"))
     );
 }
 
@@ -960,7 +945,6 @@ static PyMethodDef CompssMethods[] = {
 
 extern "C" {
 
-#if PY_MAJOR_VERSION >= 3
     static int compss_traverse(PyObject *m, visitproc visit, void *arg) {
         Py_VISIT(GETSTATE(m)->error);
         return 0;
@@ -980,19 +964,9 @@ extern "C" {
         compss_clear,
         NULL
     };
-#define INITERROR return NULL
-    PyMODINIT_FUNC
-    PyInit_compss(void)
-#else
-#define INITERROR return
-    void initcompss(void)
-#endif
-    {
-#if PY_MAJOR_VERSION >= 3
+    #define INITERROR return NULL
+    PyMODINIT_FUNC PyInit_compss(void) {
         PyObject *module = PyModule_Create(&cModPy);
-#else
-        PyObject *module = Py_InitModule("compss", CompssMethods);
-#endif
 
         if (module == NULL)
             INITERROR;
@@ -1004,9 +978,6 @@ extern "C" {
             INITERROR;
         }
 
-#if PY_MAJOR_VERSION >= 3
         return module;
-#endif
     }
-
 };

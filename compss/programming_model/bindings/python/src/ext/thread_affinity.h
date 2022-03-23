@@ -46,10 +46,6 @@ static PyObject* pysched_getaffinity(PyObject* self, PyObject* args);
 
 
 extern "C" {
-#if PY_MAJOR_VERSION >= 3
     PyMODINIT_FUNC
     PyInit_thread_affinity(void);
-#else
-    void initthread_affinity(void);
-#endif
 }

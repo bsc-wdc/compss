@@ -27,9 +27,11 @@ from pycompss.streams.types.requests import BootstrapServerRequest
 from pycompss.streams.types.requests import CloseStreamRequest
 from pycompss.streams.types.requests import PollRequest
 from pycompss.streams.types.requests import PublishRequest
+
 # Project imports
 from pycompss.streams.types.requests import RegisterStreamRequest
 from pycompss.streams.types.requests import StreamStatusRequest
+
 # Imports
 from pycompss.util.typing_helper import typing
 

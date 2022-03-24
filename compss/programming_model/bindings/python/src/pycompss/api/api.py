@@ -44,6 +44,7 @@ PyCOMPSs API
 """
 
 import pycompss.util.context as context
+
 # Dummy imports
 from pycompss.api.dummy.api import (
     compss_start as __dummy_compss_start__,
@@ -98,7 +99,7 @@ def compss_start(
     """Starts the runtime.
 
     :param log_level: Log level [ True | False ].
-    :param tracing: Tracing level [0 (deactivated)|1 (basic)|2 (advanced)].
+    :param tracing: Activate or disable tracing.
     :param interactive: Boolean if interactive (ipython or jupyter).
     :return: None
     """
@@ -149,7 +150,7 @@ def compss_open(file_name: str, mode: str = "r") -> typing.Any:
              function.
 
     :param file_name: File name.
-    :param mode: Open mode. Options = [w, r+ or a , r or empty].
+    :param mode: Open mode. Options = [w, r+ or a, r or empty].
                  Default = "r"
     :return: An object of "file" type.
     :raise IOError: If the file can not be opened.
@@ -165,7 +166,7 @@ def compss_delete_file(*file_name: str) -> typing.Union[bool, typing.List[bool]]
     """Delete a file.
 
     Calls the runtime to delete the file everywhere in the infrastructure.
-    The delete is asynchronous and will be performed when the file is not
+    Deletion is asynchronous and will be performed when the file is not
     necessary anymore.
 
     :param file_name: File/s name.
@@ -223,7 +224,7 @@ def compss_delete_object(*obj: typing.Any) -> typing.Union[bool, typing.List[boo
 
     Removes a used object from the internal structures and calls the
     external python library (that calls the bindings-common)
-    in order to request a its corresponding file removal.
+    in order to request its corresponding file removal.
 
     :param obj: Object/s to delete.
     :return: True if success. False otherwise.
@@ -358,6 +359,9 @@ class TaskGroup(object):
 
         :param group_name: Group name.
         :param implicit_barrier: Perform implicit barrier.
+
+        :attr str group_name: Group name.
+        :attr bool implicit_barrier: Perform implicit barrier.
         """
         if context.in_pycompss():
             self.group_name = group_name

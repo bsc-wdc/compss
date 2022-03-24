@@ -23,12 +23,14 @@ inside containers.
 """
 
 import logging
+
 # Regular imports
 import os
 import sys
 
 # PyCOMPSs imports
 import pycompss.util.context as context
+
 # Fix PYTHONPATH setup
 import pycompss.worker.container.pythonpath_fixer  # noqa
 from pycompss.util.logger.helpers import init_logging_worker

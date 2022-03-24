@@ -37,7 +37,7 @@ def compss_start(
     Does nothing.
 
     :param log_level: Log level [ True | False ].
-    :param tracing: Tracing mode [0=None, 1=Extrae]
+    :param tracing: Activate or disable tracing.
     :param interactive: Boolean if interactive (ipython or jupyter).
     :return: None
     """
@@ -76,7 +76,7 @@ def compss_open(file_name: str, mode: str = "r") -> typing.Any:
     Open the given file with the defined mode (see builtin open).
 
     :param file_name: The file name to open.
-    :param mode: Open mode. Options = [w, r+ or a , r or empty]. Default=r.
+    :param mode: Open mode. Options = [w, r+ or a, r or empty]. Default=r.
     :return: An object of "file" type.
     :raise IOError: If the file can not be opened.
     """

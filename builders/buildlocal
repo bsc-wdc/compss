@@ -438,7 +438,7 @@ install_adaptor() {
 }
 
 # PRIVATE FUNCTION TO CHECK IF A COMMAND IS AVAILABLE
-# Currently to check if python2 and/or python3 exist, to decide wether
+# Currently to check if python3 exist, to decide wether
 # to install one, the other, or both.
 command_exists () {
     type "$1" &> /dev/null ;
@@ -736,11 +736,11 @@ install_compss() {
       cd "${TMP_DIR}/compss/programming_model/bindings/python"
       if command_exists "python3" ; then
         # Install python binding only for python3
-        ./install "${targetDir}/Bindings/python" true false python3
+        ./install "${targetDir}/Bindings/python" true python3
         ev=$?
       else
-        # Error no python 2 nor 3
-        echo "ERROR: Could not find python2 nor python3 commands."
+        # Error no python 3
+        echo "ERROR: Could not find python3 command."
         ev=1
       fi
       if [ $ev -ne 0 ]; then
@@ -797,9 +797,9 @@ install_compss() {
     echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:${targetDir}/Bindings/bindings-common/lib:\$JAVA_HOME/lib/amd64/server:\$JAVA_HOME/jre/lib/amd64/server" >> $envFile
     echo "- binding-common library added to user profile"
     echo " "
-    # Instead of importing it in the envFile, it is done with softlinks from site-packages in both python2 a python3 (if available) on the installation
+    # Instead of importing it in the envFile, it is done with softlinks from site-packages in python3 (if available) on the installation
     # echo "- Adding PyCOMPSs to user profile..."
-    # echo "export PYTHONPATH=\$PYTHONPATH:${targetDir}/Bindings/python/$( python -c "import sys; print(sys.version_info[:][0])" )/" >> $envFile
+    # echo "export PYTHONPATH=\$PYTHONPATH:${targetDir}/Bindings/python/$( python3 -c "import sys; print(sys.version_info[:][0])" )/" >> $envFile
     # echo "- PyCOMPSs added to user profile"
     echo " "
   fi

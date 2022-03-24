@@ -28,7 +28,7 @@ def test_runcompss_increment():
     # Call to runcompss for increment application
     app = os.path.join(current_path, "..", "resources", "increment.py")
     if sys.version_info < (3, 0):
-        cmd = ["runcompss", "--log_level=debug", "--python_interpreter=python2", app]
+        raise Exception("Unsupported python version. Required Python 3.X")
     else:
         cmd = ["runcompss", "--log_level=debug", "--python_interpreter=python3", app]
     process = subprocess.Popen(

@@ -32,7 +32,7 @@ def test_simple_notebook():
     with open(simple_notebook) as f:
         nb = nbformat.read(f, as_version=4)
     if sys.version_info < (3, 0):
-        ep = ExecutePreprocessor(timeout=600, kernel_name="python2")
+        raise Exception("Unsupported python version. Required Python 3.X")
     else:
         ep = ExecutePreprocessor(timeout=600, kernel_name="python3")
     ep.preprocess(nb)

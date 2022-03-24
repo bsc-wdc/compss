@@ -31,7 +31,6 @@
   # DEFINE MODULES
   modules="gcc/5.3.0 papi/5.4.3 boost/1.63.0 java/1.8.0_111"
   unload_before_python="ignore"
-  py2_modules=""
   run_before_py3_modules="ignore"
   py3_modules="boost/1.63.0"
   run_before_py3_other_modules="ignore"
@@ -57,7 +56,7 @@
   # CALL buildSC_aux
   # shellcheck source=../commons/buildSC_aux
   # shellcheck disable=SC1091
-  "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${unload_before_python}" "${py2_modules}" "${run_before_py3_modules}" "${py3_modules}" "${run_before_py3_other_modules}" "${py3_other_modules}" "${additionalExports}" "${additional_module_use_folder}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "${autoparallel}" "${c_binding}"
+  "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${unload_before_python}" "${run_before_py3_modules}" "${py3_modules}" "${run_before_py3_other_modules}" "${py3_other_modules}" "${additionalExports}" "${additional_module_use_folder}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "${autoparallel}" "${c_binding}"
   ev=$?
 
   # End

@@ -31,7 +31,6 @@
   # DEFINE MODULES
   modules="autotools"
   unload_before_python="ignore"
-  py2_modules=""
   run_before_py3_modules="ignore"
   py3_modules="ignore"
   run_before_py3_other_modules="ignore"
@@ -50,7 +49,7 @@
   c_binding="true"
 
   # CALL buildSC_aux
-  "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${unload_before_python}" "${py2_modules}" "${run_before_py3_modules}" "${py3_modules}" "${run_before_py3_other_modules}" "${py3_other_modules}" "${additionalExports}" "${additional_module_use_folder}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "${autoparallel}" "${c_binding}"
+  "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${unload_before_python}" "${run_before_py3_modules}" "${py3_modules}" "${run_before_py3_other_modules}" "${py3_other_modules}" "${additionalExports}" "${additional_module_use_folder}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "${autoparallel}" "${c_binding}"
   ev=$?
 
   # End

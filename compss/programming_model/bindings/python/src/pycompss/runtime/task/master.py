@@ -1601,7 +1601,7 @@ class TaskMaster(object):
             # So, continue searching as usual
             pass
 
-        # It is python2 or could not find type-hinting
+        # Could not find type-hinting
         source_code = get_wrapped_source(f).strip()
 
         code = []  # type: list

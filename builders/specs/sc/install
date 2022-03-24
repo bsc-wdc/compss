@@ -13,7 +13,7 @@
   # FUNCTIONS
   ####################
 usage() {
-    exitValue=$1	  
+    exitValue=$1
     echo " "
     echo " Usage:  install [options] <targetFolder> [<queues_cfg>]"
     echo " "
@@ -63,14 +63,14 @@ get_args() {
         tracing=false
         ;;
       C)
-	# Custom C++ binding value
-	c_binding=false
-	;;
+        # Custom C++ binding value
+        c_binding=false
+        ;;
       N)
         # Disables all flags
         tracing=false
         bindings=false
-	c_binding=false
+        c_binding=false
         ;;
       -)
         # Check more complex arguments
@@ -87,21 +87,21 @@ get_args() {
             # Custom tracing value
             tracing=false
             ;;
-	  no-c-binding)
+          no-c-binding)
             c_binding=false
-	    ;;
-	  nothing)
+            ;;
+          nothing)
             # Disables all flags
             tracing=false
             bindings=false
-	    c_binding=false
+            c_binding=false
             ;;
-    	  *)
-	  # Flag didn't match any patern. End of COMPSs flags
-          display_error "${INCORRECT_PARAMETER}"
-          break
-          ;;
-	          esac
+          *)
+            # Flag didn't match any patern. End of COMPSs flags
+            display_error "${INCORRECT_PARAMETER}"
+            break
+            ;;
+        esac
         ;;
       *)
         # Flag didn't match any patern. End of COMPSs flags
@@ -112,7 +112,7 @@ get_args() {
   done
   # Shift option arguments
   shift $((OPTIND-1))
-  
+
   # Get parameters
   if [ $# -lt 1 ] || [ $# -gt 2 ]; then
     echo "Incorrect number of parameters ($#)"
@@ -136,7 +136,7 @@ get_args() {
   fi
 
   get_args "$@"
-  
+
   # WARN MESSAGE and log parameters
   echo " "
   echo "Options:"
@@ -146,7 +146,7 @@ get_args() {
   echo " "
   echo "Parameters:"
   echo "  - Target Installation Folder = $targetDir"
-  echo "  - SC CFG file = $queues_cfg" 
+  echo "  - SC CFG file = $queues_cfg"
   echo " "
   echo "ATTENTION: The target folder will be completely removed to avoid"
   echo "           conflicts between installations. Please save any configuration files."
@@ -193,7 +193,7 @@ get_args() {
     # Install Python-binding
     echo "- Install Python binding"
     cd "${SCRIPT_DIR}"/Bindings/python
-    ./install "${targetDir}"/Bindings/python false false python3
+    ./install "${targetDir}"/Bindings/python false python3
     cd "${SCRIPT_DIR}"
     echo "   Success"
   fi
@@ -204,7 +204,7 @@ get_args() {
     ./install_extrae.sh "${SCRIPT_DIR}"/Dependencies/extrae "${targetDir}"/Dependencies/extrae true
     cd "${SCRIPT_DIR}"
     echo "   Success"
-  fi 
+  fi
   # Set permissions
   echo "- Set COMPSs permissions"
   chmod -R 755 "${targetDir}"

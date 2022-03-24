@@ -29,84 +29,79 @@
     rm -rf "${SCRIPT_DIR}"/build
   }
 
-  # It is possible to install Python3 version within the same folder (python code is compatible), but:
-  #   - The extensions have different names, so that the most appropriate can be selected dynamically.
-  #   - pyc and pyo files are in different folders (for python2 within the same as .py files, while
-  #     in python 3 they are within __pycache__ folder).
-  # However, we keep them in different folders with the python major version as subfolder.
   install () {
-    local python_version=$1
-    local python_command="python${python_version}"
+    local python_command=$1
+    local target_directory=$2
     local python_complete_version
-    local python_collapsed_version
+    local python_major_version
 
-    PYCOMPSS_HOME="${targetDir}/$1"
-    export PYTHONPATH=$PYCOMPSS_HOME:$OLD_PYTHONPATH
+    python_complete_version=$(${python_command} -V 2>&1)
+    python_major_version=$(echo "${python_complete_version}" | sed 's/.* \([0-9]\).\([0-9]\).*/\1/')
+
+    pycompss_home="${target_directory}/${python_major_version}"
+    export PYTHONPATH=${pycompss_home}:${OLD_PYTHONPATH}
     #export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-armhf
 
-    if command_exists "${python_command}" ; then
-      echo "INFO: Installing PyCOMPSs for ${python_command}"
+    echo "INFO: Installation parameters:"
+    echo "      - Current script directory: ${SCRIPT_DIR}"
+    echo "      - Python command: ${python_command}"
+    echo "      - Target directory: ${target_directory}"
+    echo "      - PyCOMPSs home: ${pycompss_home}"
+    echo "      - Python complete version: ${python_complete_version}"
+    echo "      - Python major version: ${python_major_version}"
 
-      # Check that the python version used is higher than 2.6.
-      python_complete_version=$(${python_command} -V 2>&1)
-      python_collapsed_version=$(echo "${python_complete_version}" | sed 's/.* \([0-9]\).\([0-9]\).*/\1\2/')
-      if [ "${python_collapsed_version}" -lt "27" ]; then
-        echo "ERROR: Cannot install PyCOMPSs for Python version: ${python_complete_version}"
-        echo "       PyCOMPSs requires python 2.7 or greater"
-        exit 1
-      fi
-
-      # Check that the sources can be byte-compiled - this avoids syntax errors
-      # that are not checked on the installation
-      ${python_command} -m compileall "${SCRIPT_DIR}"/src/pycompss
-      exitCode=$?
-      if [ $exitCode -ne 0 ]; then
-        echo "ERROR: Cannot install PyCOMPSs for Python ${python_version} - Could not byte-compile."
-        exit $exitCode
-      fi
-
-      # Do the installation
-      ${python_command} "${SCRIPT_DIR}"/setup.py install --install-lib="${PYCOMPSS_HOME}" -O2
-      exitCode=$?
-      if [ $exitCode -ne 0 ]; then
-        echo "ERROR: Cannot install PyCOMPSs for Python ${python_version}"
-        exit $exitCode
-      fi
-      if [ $(uname) == "Darwin" ]; then
-        BINDING_PY="$( dirname "${targetDir}")"
-        echo ${targetDir}
-        echo ${BINDING_PY}
-        BINDING_LIB="$( dirname "${BINDING_PY}")"
-        echo ${BINDING_LIB}
-        install_name_tool -change ${BINDING_DIR}/bindings-common/lib/libbindings_common.0.dylib ${BINDING_PY}/bindings-common/lib/libbindings_common.dylib ${targetDir}/${python_version}/compss*.so
-      fi
-
-      # Clean unnecessary files
-      rm ${PYCOMPSS_HOME}/nose_tests.*
-      rm ${PYCOMPSS_HOME}/sitecustomize.*
-      if [ -d "${PYCOMPSS_HOME}/__pycache__" ]
-      then
-          rm -rf ${PYCOMPSS_HOME}/__pycache__
-      fi
-
-      # Unify installed versions
-      if [ "${python_version}" == "3" ] && [ -d "${targetDir}/2" ] && [ "$unify_installs" = "true" ]; then
-        unify_installed_versions "${targetDir}"
-      fi
-      if [ "$create_symlinks" = "true" ]; then
-        # Expected when installing with buildlocal. Not from buildsc.
-        # Pip package sets these symbolic links and updates the 'activate' script accordingly.
-        create_symbolic_links "${python_version}" "${PYCOMPSS_HOME}"
-      fi
-
-      # Copy mypy compiling script
-      if [ "${python_version}" == "3" ]; then
-        cp "${SCRIPT_DIR}/src/mypy_compile.sh" "${targetDir}/3"
-      fi
-    else
-      echo "ERROR! ${python_command} IS NOT AVAILABLE."
-      exit 1
+    # Check that the sources can be byte-compiled - this avoids syntax errors
+    # that are not checked on the installation
+    ${python_command} -m compileall "${SCRIPT_DIR}"/src/pycompss
+    exitCode=$?
+    if [ $exitCode -ne 0 ]; then
+      echo "ERROR: Cannot install PyCOMPSs. REASON: Could not byte-compile."
+      exit $exitCode
     fi
+
+    # Do the installation
+    echo "INFO: Starting the installation... Please wait..."
+    ${python_command} "${SCRIPT_DIR}"/setup.py install --install-lib="${pycompss_home}" -O2
+    exitCode=$?
+    if [ $exitCode -ne 0 ]; then
+      echo "ERROR: Cannot install PyCOMPSs using ${python_command}"
+      exit $exitCode
+    fi
+
+    # Extra installation steps only for Mac
+    if [ $(uname) == "Darwin" ]; then
+      binding_py="$( dirname "${target_directory}")"
+      echo "INFO: Extra installation steps for Mac..."
+      echo "      - binding_py: ${binding_py}"
+      install_name_tool -change ${BINDING_DIR}/bindings-common/lib/libbindings_common.0.dylib ${binding_py}/bindings-common/lib/libbindings_common.dylib ${target_directory}/${python_major_version}/compss*.so
+    fi
+
+    # Clean unnecessary files
+    echo "INFO: Cleaning unnecessary files..."
+    rm ${pycompss_home}/nose_tests.*
+    rm ${pycompss_home}/sitecustomize.*
+    if [ -d "${pycompss_home}/__pycache__" ]
+    then
+        rm -rf ${pycompss_home}/__pycache__
+    fi
+
+    # Create symbolic links
+    if [ "${create_symlinks}" = "true" ]; then
+      echo "INFO: Creating symbolic links to site-packages or dist-packages..."
+      # Expected when installing with buildlocal. Not from buildsc.
+      # Pip package sets these symbolic links and updates the 'activate' script accordingly.
+      create_symbolic_links "${python_command}" "${pycompss_home}"
+    fi
+
+    # Copy mypy compiling script
+    if [ "${python_major_version}" == "3" ]; then
+      echo "INFO: Copying compilation script..."
+      cp "${SCRIPT_DIR}/src/mypy_compile.sh" "${target_directory}/3"
+    fi
+
+    # Copy cleaning and commons scripts for setup or uninstalling
+    cp "${SCRIPT_DIR}/commons" "${target_directory}"
+    cp "${SCRIPT_DIR}/clean" "${target_directory}"
   }
 
 
@@ -115,55 +110,55 @@
   #
 
   # Retrieve script arguments
-  targetDir=$1            # Target directory where to install the python binding.
-  create_symlinks=$2      # true or false. Create symbolic links within site/dist-packages folders.
-  unify_installs=$3       # true or false. Remove sources from 3 and link to 2 if exists.
-  only_python_version=$4  # Optional argument
+  target_dir=$1                # Target directory where to install the python binding.
+  create_symlinks=$2          # true or false. Create symbolic links within site/dist-packages folders.
+  specific_python_command=$3  # Optional argument
 
   # Add trap for clean
   trap clean EXIT
   export TARGET_OS=$(uname)
   # Install
-  OLD_PYTHONPATH=$PYTHONPATH
+  OLD_PYTHONPATH=${PYTHONPATH}
 
-  if [ -z "$only_python_version" ]; then
-    # Try to install all
-    # Check $targetDir = site-packages usual, dist-packages in deb based distributions.
-    if [[ "$targetDir" = *site-packages* ]] || [[ "$targetDir" = *dist-packages* ]]; then
-      # If it is within site-packages, install only the appropriate version.
-      if [[ "$targetDir" = *python2* ]] || [[ "$targetDir" = *Python/2* ]]; then
-        echo "* Installing python 2 version."
-        # within 2.X site-packages
-        install 2
-      elif [[ "$targetDir" = *python3* ]] || [[ "$targetDir" = *Python/3* ]]; then
-        echo "* Installing python 3 version."
-        # within 3.X site-packages
-        install 3
+  echo "INFO: Starting Python binding installation"
+
+  if [ -z "$specific_python_command" ]; then
+    # Install using python3
+    if [[ "${target_dir}" = *site-packages* ]] || [[ "${target_dir}" = *dist-packages* ]]; then
+      # Check ${target_dir} = site-packages usual, dist-packages in deb based distributions.
+      if [[ "${target_dir}" = *python3* ]] || [[ "${target_dir}" = *Python/3* ]]; then
+        echo "INFO: Installing within python 3.X site-packages or dist-packages."
+        install "python3" "${target_dir}"
       else
-        echo "ERROR! UNSUPPORTED TARGET DIRECTORY WITHIN site-packages OR dist-packages."
+        echo "ERROR! Unsupported target directory within site-packages OR dist-packages. Must be Python 3."
         exit 1
       fi
     else
-      # Install all
-      install 2
-      install 3
+      # Given target dir not in site-pakages nor dist-packages
+      echo "INFO: Installing within ${target_dir}"
+      install "python3" "${target_dir}"
     fi
-  elif [ "$only_python_version" == "python2" ]; then
-    echo "* Installing JUST python 2 version."
-    # Install only python 2 version
-    install 2
-  elif [ "$only_python_version" == "python3" ]; then
-    echo "* Installing JUST python 3 version."
-    # Install only python 3 version
-    install 3
   else
-    echo "ERROR! UNSUPPORTED PYTHON VERSION."
-    exit 1
+    # Given a specific python command
+    if command_exists "${specific_python_command}" ; then
+      echo "INFO: Installing PyCOMPSs for ${specific_python_command}"
+      # Check that the python version used is higher than 3.5.
+      specific_python_command_complete_version=$(${specific_python_command} -V 2>&1)
+      specific_python_collapsed_version=$(echo "${specific_python_command_complete_version}" | sed 's/.* \([0-9]\).\([0-9]\).*/\1\2/')
+      if [ "${specific_python_collapsed_version}" -lt "30" ]; then
+        echo "ERROR: Cannot install PyCOMPSs for Python version: ${specific_python_command_complete_version}"
+        echo "       PyCOMPSs requires Python 3.X or greater"
+        exit 1
+      else
+        echo "INFO: Installing using ${specific_python_command} within ${target_dir}"
+        install "${specific_python_command}" "${target_dir}"
+      fi
+    else
+      echo "ERROR! ${specific_python_command} IS NOT AVAILABLE."
+      exit 1
+    fi
   fi
 
-  # Copy cleaning and commons scripts for setup or uninstalling
-  cp "${SCRIPT_DIR}/commons" "$targetDir"
-  cp "${SCRIPT_DIR}/clean" "$targetDir"
-
+  echo "INFO: SUCCESS: Python binding installed"
   # Normal exit
   exit 0

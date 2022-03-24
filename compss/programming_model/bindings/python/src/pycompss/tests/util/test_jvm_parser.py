@@ -80,8 +80,8 @@ def test_jvm_parser():
         "-Djava.class.path": "/home/user/gitlab/framework/compss/programming_model/bindings/python/src/pycompss/tests/runtime/../resources:/opt/COMPSs/Runtime/compss-engine.jar::/opt/COMPSs/Runtime/compss-engine.jar",  # noqa: E501
         "-Djava.library.path": "/opt/COMPSs/Bindings/bindings-common/lib/:/opt/COMPSs/Runtime/compss-engine.jar:/usr/lib64/jvm/java-1.8.0/jre/lib/amd64/server/:/usr/lib64/mpi/gcc/openmpi/lib64/:/opt/COMPSs/Bindings/bindings-common/lib/:/opt/COMPSs/Runtime/compss-engine.jar:/usr/lib64/jvm/java-1.8.0/jre/lib/amd64/server/:/usr/lib64/mpi/gcc/openmpi/lib64/:/usr/lib64/mpi/gcc/openmpi/lib64::/opt/COMPSs/Bindings/bindings-common/lib:/usr/lib64/jvm/java/jre/lib/amd64/server",  # noqa: E501
         "-Dcompss.worker.pythonpath": "/home/user/gitlab/framework/compss/programming_model/bindings/python/src/pycompss/tests/runtime/../resources:/home/user/gitlab/framework/compss/programming_model/bindings/python:.:/opt/COMPSs/Bindings/python/:/opt/COMPSs/Bindings/bindings-common/lib/:/opt/COMPSs/Bindings/python/:/opt/COMPSs/Bindings/bindings-common/lib/:",  # noqa: E501
-        "-Dcompss.python.interpreter": "python2",
-        "-Dcompss.python.version": "2",
+        "-Dcompss.python.interpreter": "python3",
+        "-Dcompss.python.version": "3",
         "-Dcompss.python.virtualenvironment": "null",
         "-Dcompss.python.propagate_virtualenvironment": "true",
         "-Dcompss.python.mpi_worker": "false",
@@ -139,8 +139,8 @@ def test_jvm_parser():
 -Djava.class.path=/home/user/gitlab/framework/compss/programming_model/bindings/python/src/pycompss/tests/runtime/../resources:/opt/COMPSs/Runtime/compss-engine.jar::/opt/COMPSs/Runtime/compss-engine.jar
 -Djava.library.path=/opt/COMPSs/Bindings/bindings-common/lib/:/opt/COMPSs/Runtime/compss-engine.jar:/usr/lib64/jvm/java-1.8.0/jre/lib/amd64/server/:/usr/lib64/mpi/gcc/openmpi/lib64/:/opt/COMPSs/Bindings/bindings-common/lib/:/opt/COMPSs/Runtime/compss-engine.jar:/usr/lib64/jvm/java-1.8.0/jre/lib/amd64/server/:/usr/lib64/mpi/gcc/openmpi/lib64/:/usr/lib64/mpi/gcc/openmpi/lib64::/opt/COMPSs/Bindings/bindings-common/lib:/usr/lib64/jvm/java/jre/lib/amd64/server
 -Dcompss.worker.pythonpath=/home/user/gitlab/framework/compss/programming_model/bindings/python/src/pycompss/tests/runtime/../resources:/home/user/gitlab/framework/compss/programming_model/bindings/python:.:/opt/COMPSs/Bindings/python/:/opt/COMPSs/Bindings/bindings-common/lib/:/opt/COMPSs/Bindings/python/:/opt/COMPSs/Bindings/bindings-common/lib/:
--Dcompss.python.interpreter=python2
--Dcompss.python.version=2
+-Dcompss.python.interpreter=python3
+-Dcompss.python.version=3
 -Dcompss.python.virtualenvironment=null
 -Dcompss.python.propagate_virtualenvironment=true
 -Dcompss.python.mpi_worker=false

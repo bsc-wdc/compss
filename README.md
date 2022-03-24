@@ -39,7 +39,7 @@ of applications at execution time.
 <!-- DOCUMENTATION -->
 # Documentation
 
-COMPSs documentation can be found at the [COMPSs Webpage][1] or at 
+COMPSs documentation can be found at the [COMPSs Webpage][1] or at
 the `doc/` folder.
 
   * COMPSs_Installation_Manual.pdf
@@ -53,7 +53,7 @@ the `doc/` folder.
 <!-- PACKAGES -->
 # Packages
 
-The COMP Superscalar Framework packages are available at the [COMPSs Webpage][1] or 
+The COMP Superscalar Framework packages are available at the [COMPSs Webpage][1] or
 can be found on the `builders/packages/` directory.
 
 
@@ -73,15 +73,15 @@ can be found on the `builders/packages/` directory.
 <!-- SAMPLE APPLICATIONS -->
 # Sample Applications
 
-You can find extended information about COMPSs Sample applications at the 
-Sample_Applications manual available at the [COMPSs Webpage][1] or at the 
+You can find extended information about COMPSs Sample applications at the
+Sample_Applications manual available at the [COMPSs Webpage][1] or at the
 `doc/Sample_applications.pdf`.
 
 
 <!-- BUILDING COMPSS -->
 # Building COMPSs
 
-Follow the next steps to build COMPSs in your current machine. 
+Follow the next steps to build COMPSs in your current machine.
 
 ## 1. Install dependencies
 
@@ -100,7 +100,7 @@ Install the listed dependencies for each component you wish to install. For a co
   * curl
   * jq
   * OSX dependencies(use Brew to install it)
-    * libtool 
+    * libtool
     * coreutils
     * boost
     * util-linux
@@ -111,17 +111,17 @@ Install the listed dependencies for each component you wish to install. For a co
   * autotools-dev
   * libtool
 * C-binding dependencies
-  * libboost-all-dev 
-  * libxml2-dev 
+  * libboost-all-dev
+  * libxml2-dev
   * csh
 * Python-binding dependencies
   * python-dev | python3-dev
-  * python-pip | python3-pip 
+  * python-pip | python3-pip
   * python-setuptools | python3-setuptools
-  * libpython2.7
-  * wheel 
+  * libpython3
+  * wheel
   * numpy
-  * dill 
+  * dill
   * guppy
 * Extrae dependencies
   * libxml2
@@ -146,7 +146,7 @@ Install the listed dependencies for each component you wish to install. For a co
   * openmpi-doc
   * libopenmpi-dev
   * bc
-  * decorator 
+  * decorator
   * mpi4py
   * redis-py-cluster
   * enum34
@@ -203,7 +203,7 @@ cd builders
 ```
 
 <!-- RUNNING DOCKER TESTS -->
-# Running docker tests 
+# Running docker tests
 
 ## 1. Install Docker and docker-py
 
@@ -216,9 +216,9 @@ Follow these instructions
 Add user to docker group to run docker as non-root user.
 
  - [Instructions](https://docs.docker.com/install/linux/linux-postinstall/).
-    
 
-## 2. Build the docker image 
+
+## 2. Build the docker image
 
 Run the following command at the root of the project to build the image that will used for testing. The command create an image named **compss** and install the current branch into the image.
 
@@ -240,7 +240,7 @@ The docker main command creates a new docker container each time you run it (rep
 and runs its tests. **Note**: the testing scripts assumes you have named the testing image `compss`.
 
 **Please be aware that:**
- 
+
 * Code changes affecting the tests sources, config files (e.g. `local.cfg`, and scripts (like `./local`) __will be__ visible inside the newly created container.
 * Code changes affecting the installation __will not be__ visible in the installation because framework is not reinstalled. To do that rebuild the docker image as explained in step 3.
 * If you run the command once, the container will be available for manual inspection (such as logs). You can log into in issuing `docker exec --user jenkins -it compss_test bash` and use the CLI as usual.
@@ -257,7 +257,7 @@ Workflows and Distributed Computing Group (WDC)
 
 Department of Computer Science (CS)
 
-Barcelona Supercomputing Center (BSC) 
+Barcelona Supercomputing Center (BSC)
 
 
 <!-- LINKS -->

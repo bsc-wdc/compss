@@ -3,22 +3,21 @@
   #############################################################
   # Name: buildSC_aux
   # Description: SCRIPT FOR LOCAL COMPSs BUILD in SuperComputers
-  # Parameters: <targetDir>           		Base Target Installation folder
-  #             <modules>             		Modules needed to perform installation
-  #             <unload_modules>      		Modules to be unloaded before python binding installation
-  #             <py2_module>          		Modules needed to perform python2 binding installation
-  #		<run_before_py3_modules>        Command to run before py3 module load   
-  #             <py3_modules>         		Modules needed to perform python3 binding installation
-  #		<run_before_py3_other_modules>  Command to run before other py3 module load
-  #             <py3_other_modules>   		Modules needed to perform additional python3 binding installations
-  #             <additionalExports>   		Additional exports to perform installation
-  #             <queues_cfg>	        	CFG to set as default
-  #             <extrae_with_openmpi> 		Extrae with openmpi enabled
-  #             <openmpi_version>     		OpenMPI module version
-  #             <extrae_with_impi>    		Extrae with impi enabled
-  #             <impi_version>        		IMPI module version
-  #             <autoparallel>        		Install the AutoParallel module
-  #		<c_binding>			Install the c-binding
+  # Parameters: <targetDir>               Base Target Installation folder
+  #             <modules>                 Modules needed to perform installation
+  #             <unload_modules>          Modules to be unloaded before python binding installation
+  #             <run_before_py3_modules>        Command to run before py3 module load
+  #             <py3_modules>                   Modules needed to perform python3 binding installation
+  #             <run_before_py3_other_modules>  Command to run before other py3 module load
+  #             <py3_other_modules>             Modules needed to perform additional python3 binding installations
+  #             <additionalExports>       Additional exports to perform installation
+  #             <queues_cfg>              CFG to set as default
+  #             <extrae_with_openmpi>     Extrae with openmpi enabled
+  #             <openmpi_version>         OpenMPI module version
+  #             <extrae_with_impi>        Extrae with impi enabled
+  #             <impi_version>            IMPI module version
+  #             <autoparallel>            Install the AutoParallel module
+  #             <c_binding>               Install the c-binding
   #
   # ATTENTION: DO NOT EXECUTE THIS FILE. IT IS AUTOMATICALLY
   #            EXECUTED FROM buildSC script
@@ -26,7 +25,7 @@
 
   usage() {
     echo "Incorrect number of parameters"
-    echo " Usage: buildSC_aux <FullTargetPath> <modules> <unload_modules> <py2_modules> <run_before_py3_modules> <py3_modules> <run_before_py3_other_modules> <py3_other_modules> <additionalExports> <queues_cfg> <extrae_with_openmpi> <openmpi_version> <extrae_with_impi> <impi_version> <autoparallel> <c_binding>"
+    echo " Usage: buildSC_aux <FullTargetPath> <modules> <unload_modules> <run_before_py3_modules> <py3_modules> <run_before_py3_other_modules> <py3_other_modules> <additionalExports> <queues_cfg> <extrae_with_openmpi> <openmpi_version> <extrae_with_impi> <impi_version> <autoparallel> <c_binding>"
     echo " "
     exit 1
   }
@@ -68,7 +67,7 @@
   ####################
 
   # Get parameters
-  if [ $# -ne 17 ]; then
+  if [ $# -ne 16 ]; then
     usage
   fi
 
@@ -76,20 +75,19 @@
   targetDir=$1
   modules=$2
   unload_modules_before_python=$3
-  py2_modules=$4
-  run_before_py3_modules=$5
-  py3_modules=$6
-  run_before_py3_other_modules=$7
-  py3_other_modules=$8
-  additionalExports=$9
-  additional_module_use_folder=${10}
-  queues_cfg=${11}
-  extrae_with_openmpi=${12}
-  openmpi_version=${13}
-  extrae_with_impi=${14}
-  impi_version=${15}
-  autoparallel=${16}
-  c_binding=${17}
+  run_before_py3_modules=$4
+  py3_modules=$5
+  run_before_py3_other_modules=$6
+  py3_other_modules=$7
+  additionalExports=$8
+  additional_module_use_folder=$9
+  queues_cfg=${10}
+  extrae_with_openmpi=${11}
+  openmpi_version=${12}
+  extrae_with_impi=${13}
+  impi_version=${14}
+  autoparallel=${15}
+  c_binding=${16}
 
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
   TMP_DIR=${SCRIPT_DIR}/tmp
@@ -318,26 +316,9 @@
     module unload ${unload_modules_before_python}
   fi
   cd "${TMP_DIR}"/compss/programming_model/bindings/python || exit 1
-  if [ -n "$py2_modules" ]; then
-    echo "    - For python 2"
-    if [ "$py2_modules" != "ignore" ]; then
-      #shellcheck disable=SC2086
-      module load ${py2_modules}
-    fi
-    ./install "${targetDir}"/Bindings/python false false python2
-    ev=$?
-    if [ $ev -ne 0 ]; then
-      echo "ERROR: Failed to install Python-binding for Python 2"
-      exit $ev
-    fi
-    if [ "$py2_modules" != "ignore" ]; then
-      #shellcheck disable=SC2086
-      module unload ${py2_modules}
-    fi
-  fi
   if [ -n "$run_before_py3_modules" ]; then
     if [ "$run_before_py3_modules" != "ignore" ]; then
-       echo " Running : ${run_before_py3_modules}"   
+       echo " Running : ${run_before_py3_modules}"
        eval "${run_before_py3_modules}"
     fi
   fi
@@ -348,7 +329,7 @@
       module load ${py3_modules}
     fi
     # If installed, unify installations (second boolean to true)
-    ./install "${targetDir}"/Bindings/python false true python3
+    ./install "${targetDir}"/Bindings/python false python3
     ev=$?
     if [ $ev -ne 0 ]; then
       echo "ERROR: Failed to install Python-binding for Python 3"
@@ -373,7 +354,7 @@
             #shellcheck disable=SC2086
             module load ${py3_mod}
             # If installed, unify installations (second boolean to true)
-            ./install "${targetDir}"/Bindings/python false true python3
+            ./install "${targetDir}"/Bindings/python false python3
             ev=$?
             if [ $ev -ne 0 ]; then
               echo "ERROR: Failed to install Python-binding for Python 3"
@@ -390,7 +371,7 @@
   echo "- Deploying cli"
   cd "${TMP_DIR}"/cli || exit 1
   module load ${py3_modules}
-  ./install_sc.sh "${targetDir}"/cli 
+  ./install_sc.sh "${targetDir}"/cli
   cd "${SCRIPT_DIR}" || exit 1
 
   # ADD RUNCOMPSS TO PROFILE

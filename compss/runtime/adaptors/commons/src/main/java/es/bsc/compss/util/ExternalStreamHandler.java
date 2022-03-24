@@ -29,7 +29,7 @@ public class ExternalStreamHandler {
 
     /**
      * Launches a ProcessBuilder with a Python command to deserialize and retrieve the value of the given property.
-     * 
+     *
      * @param pythonInterpreter Python Interpreter.
      * @param fileName File containing the serialized object.
      * @param property Property name.
@@ -43,8 +43,6 @@ public class ExternalStreamHandler {
         // Checking if running in coverage mode
         if (pythonInterpreter.startsWith("coverage ") || pythonInterpreter.startsWith("coverage#")) {
             pythonInterpreter = COMPSsConstants.DEFAULT_PYTHON_INTERPRETER;
-        } else if (pythonInterpreter.startsWith("coverage2")) {
-            pythonInterpreter = "python2";
         } else if (pythonInterpreter.startsWith("coverage3")) {
             pythonInterpreter = "python3";
         }
@@ -101,7 +99,7 @@ public class ExternalStreamHandler {
 
     /**
      * Processes the content of an input stream.
-     * 
+     *
      * @param is Input stream to process.
      * @return String representing the content of the input stream.
      * @throws IOException When an IO error occurs reading the input stream.

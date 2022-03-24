@@ -32,11 +32,9 @@
   modules="intel/2018.3 bsc/1.0 impi/2018.3 mkl/2018.3 java/1.8.0_212 papi/5.6.0 boost/1.67.0"
   unload_before_python="ignore"
   # Plain python modules:
-  py2_modules=""
   run_before_py3_modules="ignore"
   py3_modules="impi/2018.3 python/3.6.5 boost/1.67.0"
   # Python modules with jupyter:
-  # py2_modules="ANACONDA/5.0.1_python2"  # python 2.7.14
   # py3_modules="ANACONDA/5.1.0_py3"      # "ANACONDA/5.1.0.py3conda" # python 3.6.3
   run_before_py3_other_modules="ignore"
   py3_other_modules="ignore"
@@ -54,7 +52,7 @@
   c_binding="true"
 
   # CALL buildSC_aux
-  "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${unload_before_python}" "${py2_modules}" "${run_before_py3_modules}" "${py3_modules}" "${run_before_py3_other_modules}" "${py3_other_modules}" "${additionalExports}" "${additional_module_use_folder}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "${autoparallel}" "${c_binding}"
+  "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${unload_before_python}" "${run_before_py3_modules}" "${py3_modules}" "${run_before_py3_other_modules}" "${py3_other_modules}" "${additionalExports}" "${additional_module_use_folder}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "${autoparallel}" "${c_binding}"
   ev=$?
 
   # End

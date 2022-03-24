@@ -50,7 +50,6 @@ public class COMPSsConstants {
      */
     public static enum Pythons {
         python, // For systemwide python interpreter
-        python2, // For Python 2 interpreter
         python3 // For python 3 interpreter
     }
 

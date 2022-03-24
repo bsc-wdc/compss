@@ -1,9 +1,14 @@
-FROM compss/base20:latest
-MAINTAINER COMPSs Support <support-compss@bsc.es>
+ARG DEBIAN_FRONTEND=noninteractive
 
-ARG release=false
+ARG BASE=base20
 
-# Copy framework files for installation and testing
+FROM compss/${BASE}_ci as ci
+
+ENV GRADLE_HOME /opt/gradle
+ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
+ENV PATH $PATH:/opt/gradle/bin
+ENV EXTRAE_MPI_HEADERS /usr/include/x86_64-linux-gnu/mpi
+
 COPY . /framework
 
 ENV GRADLE_HOME /opt/gradle
@@ -17,13 +22,59 @@ ENV COMPSS_HOME=/opt/COMPSs/
 RUN cd /framework && \
     ./submodules_get.sh && \
     export EXTRAE_MPI_HEADERS=/usr/include/x86_64-linux-gnu/mpi && \
-    sudo -E /framework/builders/buildlocal /opt/COMPSs && \
-    mv /root/.m2 /home/jenkins/ && \
-    rm -rf /root/.cache && \
-    sudo chown -R jenkins: /framework && \
-    sudo chown -R jenkins: /home/jenkins/ && \
-    if [ "$release" = "true" ]; then rm -rf /framework /home/jenkins/.m2 /root/.m2; fi
+    /framework/builders/buildlocal /opt/COMPSs \
+    mv /root/.m2 /home/jenkins && \
+    chown -R jenkins: /framework && \
+    chown -R jenkins: /home/jenkins/ && \
 
 # Expose SSH port and run SSHD
 EXPOSE 22
 CMD ["/usr/sbin/sshd","-D"]
+
+FROM compss/${BASE}_all as compss
+
+COPY --from=build_compss /opt/COMPSs /opt/COMPSs
+
+ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
+ENV PATH $PATH:/opt/COMPSs/Runtime/scripts/user:/opt/COMPSs/Bindings/c/bin:/opt/COMPSs/Runtime/scripts/utils
+ENV CLASSPATH $CLASSPATH:/opt/COMPSs/Runtime/compss-engine.jar
+ENV LD_LIBRARY_PATH /opt/COMPSs/Bindings/bindings-common/lib:$JAVA_HOME/jre/lib/amd64/server
+ENV COMPSS_HOME=/opt/COMPSs/
+
+EXPOSE 22
+CMD ["/usr/sbin/sshd","-D"]
+
+FROM compss/${BASE}_tutorial as compss-tutorial
+
+COPY --from=build_compss /opt/COMPSs /opt/COMPSs
+
+ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
+ENV PATH $PATH:/opt/COMPSs/Runtime/scripts/user:/opt/COMPSs/Bindings/c/bin:/opt/COMPSs/Runtime/scripts/utils
+ENV CLASSPATH $CLASSPATH:/opt/COMPSs/Runtime/compss-engine.jar
+ENV LD_LIBRARY_PATH /opt/COMPSs/Bindings/bindings-common/lib:$JAVA_HOME/jre/lib/amd64/server
+ENV COMPSS_HOME=/opt/COMPSs/
+
+EXPOSE 22
+CMD ["/usr/sbin/sshd","-D"]
+
+FROM compss/${BASE}_rt as minimal
+
+COPY --from=build_compss /opt/COMPSs /opt/COMPSs
+
+ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
+ENV PATH $PATH:/opt/COMPSs/Runtime/scripts/user:/opt/COMPSs/Bindings/c/bin:/opt/COMPSs/Runtime/scripts/utils
+ENV CLASSPATH $CLASSPATH:/opt/COMPSs/Runtime/compss-engine.jar
+ENV LD_LIBRARY_PATH /opt/COMPSs/Bindings/bindings-common/lib:$JAVA_HOME/jre/lib/amd64/server
+ENV COMPSS_HOME=/opt/COMPSs/
+
+
+FROM compss/${BASE}_python as pycompss 
+
+COPY --from=build_compss /opt/COMPSs /opt/COMPSs
+
+ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
+ENV PATH $PATH:/opt/COMPSs/Runtime/scripts/user:/opt/COMPSs/Bindings/c/bin:/opt/COMPSs/Runtime/scripts/utils
+ENV CLASSPATH $CLASSPATH:/opt/COMPSs/Runtime/compss-engine.jar
+ENV LD_LIBRARY_PATH /opt/COMPSs/Bindings/bindings-common/lib:$JAVA_HOME/jre/lib/amd64/server
+ENV COMPSS_HOME=/opt/COMPSs/
+

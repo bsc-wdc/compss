@@ -25,7 +25,7 @@ RUN cd /framework && \
     /framework/builders/buildlocal /opt/COMPSs \
     mv /root/.m2 /home/jenkins && \
     chown -R jenkins: /framework && \
-    chown -R jenkins: /home/jenkins/ && \
+    chown -R jenkins: /home/jenkins/ 
 
 # Expose SSH port and run SSHD
 EXPOSE 22

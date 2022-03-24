@@ -60,7 +60,7 @@ EOF
 
     python_mpi_worker=""
     
-    if [ "$python_interpreter" == 'python2_mpi' ] || [ "$python_interpreter" == 'python3_mpi' ]; then
+    if [ "$python_interpreter" == 'python3_mpi' ]; then
        echo "WARN: Test not requiered for ${python_interpreter}" | tee -a "${output_log}"
        continue
     fi 

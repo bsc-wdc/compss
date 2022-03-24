@@ -59,24 +59,15 @@
         exit 1
       fi
     else
-      if [ "$python_interpreter" == 'python2' ]; then
-        if grep -q "ImportError: No module named bad" "${job_file}"; then
-          echo "Exception found - OK" | tee -a "${output_file}"
-        else
-          echo "Exception not found - ERROR" | tee -a "${output_file}"
-          exit 1
-        fi
+      if grep -q "ModuleNotFoundError: No module named 'bad'" "${job_file}"; then
+        # Python >= 3.6
+        echo "Exception found - OK" | tee -a "${output_file}"
+      elif grep -q "ImportError: No module named 'bad'" "${job_file}"; then
+        # Python < 3.6
+        echo "Exception found - OK" | tee -a "${output_file}"
       else
-        if grep -q "ModuleNotFoundError: No module named 'bad'" "${job_file}"; then
-          # Python >= 3.6
-          echo "Exception found - OK" | tee -a "${output_file}"
-        elif grep -q "ImportError: No module named 'bad'" "${job_file}"; then
-          # Python < 3.6
-          echo "Exception found - OK" | tee -a "${output_file}"
-        else
-          echo "Exception not found - ERROR" | tee -a "${output_file}"
-          exit 1
-        fi
+        echo "Exception not found - ERROR" | tee -a "${output_file}"
+        exit 1
       fi
     fi
   else
@@ -95,24 +86,15 @@
         exit 1
       fi
     else
-      if [ "$python_interpreter" == 'python2' ]; then
-        if grep -q "ImportError: No module named bad" "${job_file}"; then
-          echo "Exception found - OK" | tee -a "${output_file}"
-        else
-          echo "Exception not found - ERROR" | tee -a "${output_file}"
-          exit 1
-        fi
+      if grep -q "ModuleNotFoundError: No module named 'bad'" "${job_file}"; then
+        # Python >= 3.6
+        echo "Exception found - OK" | tee -a "${output_file}"
+      elif grep -q "ImportError: No module named 'bad'" "${job_file}"; then
+        # Python < 3.6
+        echo "Exception found - OK" | tee -a "${output_file}"
       else
-        if grep -q "ModuleNotFoundError: No module named 'bad'" "${job_file}"; then
-          # Python >= 3.6
-          echo "Exception found - OK" | tee -a "${output_file}"
-        elif grep -q "ImportError: No module named 'bad'" "${job_file}"; then
-          # Python < 3.6
-          echo "Exception found - OK" | tee -a "${output_file}"
-        else
-          echo "Exception not found - ERROR" | tee -a "${output_file}"
-          exit 1
-        fi
+        echo "Exception not found - ERROR" | tee -a "${output_file}"
+        exit 1
       fi
     fi
   else

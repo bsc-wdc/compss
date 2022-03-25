@@ -22,7 +22,7 @@ ENV COMPSS_HOME=/opt/COMPSs/
 RUN cd /framework && \
     ./submodules_get.sh && \
     export EXTRAE_MPI_HEADERS=/usr/include/x86_64-linux-gnu/mpi && \
-    /framework/builders/buildlocal /opt/COMPSs \
+    /framework/builders/buildlocal /opt/COMPSs && \
     mv /root/.m2 /home/jenkins && \
     chown -R jenkins: /framework && \
     chown -R jenkins: /home/jenkins/ 

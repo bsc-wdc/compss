@@ -29,6 +29,7 @@ RUN apt-get update && \
     mpi4py kafka-python && \ 
     apt-get autoclean && \
     rm -rf /var/lib/apt/lists/*
+RUN mkdir /run/sshd
 
 FROM base_all as base_tutorial
 

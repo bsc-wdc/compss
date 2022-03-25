@@ -138,7 +138,8 @@ def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
         # Deploy the necessary processes
         CACHE = True
         cache_params = start_cache(logger, str(config.cache), cache_profiler, log_dir)
-        smm, cache_process, cache_queue, cache_ids = cache_params
+        smm, cache_process, cache_queue_act, cache_ids = cache_params
+        cache_queue = cache_queue_act
         CACHE_PROCESS = cache_process
 
     # Create new executor processes
@@ -242,9 +243,9 @@ def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
         queue.join_thread()
 
     if CACHE:
-        # Beware of smm, cache_queue and cache_process variables, since they
+        # Beware of smm, cache_queue_act and cache_process variables, since they
         # are only initialized when cache is enabled. Reason for noqa.
-        stop_cache(smm, cache_queue, cache_profiler, cache_process)  # noqa
+        stop_cache(smm, cache_queue_act, cache_profiler, cache_process)  # noqa
 
     if persistent_storage:
         # Finish storage

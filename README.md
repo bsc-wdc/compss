@@ -159,7 +159,6 @@ Before installing COMPSs you need to download the git submodules that contain it
 
 ```
 ./submodules_get.sh
-./submodules_patch.sh
 ```
 
 ## 3. Build COMPSs
@@ -192,7 +191,7 @@ export LIBTOOL=`which glibtool`
 export LIBTOOLIZE=`which glibtoolize`
 
 INSTALL_DIR=$HOME/opt/COMPSs/
-./buildlocal -A -K -T -M ${INSTALL_DIR}
+./buildlocal -K -T -M ${INSTALL_DIR}
 ```
 
 
@@ -224,7 +223,7 @@ Add user to docker group to run docker as non-root user.
 Run the following command at the root of the project to build the image that will used for testing. The command create an image named **compss** and install the current branch into the image.
 
 ```
-docker build -t compss .
+docker build --target= ci -t compss .
 ```
 
 
@@ -234,7 +233,7 @@ To run the tests inside the docker image use the script found in `./tests/script
 so it has de the syntax and options. For example, you can run the first test without retrials as follows:
 
 ```
-./docker_main -R local_1 local.cfg
+./docker_main -R -t 1
 ```
 
 The docker main command creates a new docker container each time you run it (replacing the last one used). It copies the current framework inside it

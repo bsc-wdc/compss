@@ -31,6 +31,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.logging.log4j.core.script.Script;
+
 
 public class Adaptor implements CommAdaptor {
 
@@ -86,7 +88,8 @@ public class Adaptor implements CommAdaptor {
     @Override
     public StarterCommand getStarterCommand(String workerName, int workerPort, String masterName, String workingDir,
         String installDir, String appDir, String classpathFromFile, String pythonpathFromFile, String libPathFromFile,
-        String envScriptFromFile, int totalCPU, int totalGPU, int totalFPGA, int limitOfTasks, String hostId) {
+        String envScriptFromFile, String pythonInterpreterFromFile, int totalCPU, int totalGPU, int totalFPGA,
+        int limitOfTasks, String hostId) {
         return null;
     }
 

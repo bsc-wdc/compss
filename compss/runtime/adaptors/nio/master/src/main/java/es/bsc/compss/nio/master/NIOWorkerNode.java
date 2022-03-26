@@ -232,6 +232,15 @@ public class NIOWorkerNode extends COMPSsWorker {
     }
 
     /**
+     * Returns the python interpreter.
+     *
+     * @return The python interpreter.
+     */
+    public String getPythonInterpreter() {
+        return this.config.getPythonInterpreter();
+    }
+
+    /**
      * Returns the limit of tasks of the worker node.
      *
      * @return The limit of tasks of the worker node.

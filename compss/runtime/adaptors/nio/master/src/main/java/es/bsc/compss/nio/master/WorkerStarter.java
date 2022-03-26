@@ -116,7 +116,7 @@ public class WorkerStarter {
         String user = this.nw.getUser();
         int minPort = this.nw.getConfiguration().getMinPort();
         int maxPort = this.nw.getConfiguration().getMaxPort();
-        int port = minPort;
+        int workerport = minPort;
         String masterName = COMPSsNode.getMasterName();
 
         // Solves exit error 143
@@ -127,15 +127,15 @@ public class WorkerStarter {
 
         NIONode n = null;
         int pid = -1;
-        while (port <= maxPort && !this.toStop) {
+        while (workerport <= maxPort && !this.toStop) {
             // Kill previous worker processes if any
             killPreviousWorker(user, name, pid);
 
             // Instantiate the node
-            n = new NIONode(name, port);
+            n = new NIONode(name, workerport);
 
             // Start the worker
-            pid = startWorker(user, name, port, masterName);
+            pid = startWorker(user, name, workerport, masterName);
 
             // Check worker status
             LOGGER.info("[WorkerStarter] Worker process started. Checking connectivity...");
@@ -145,11 +145,11 @@ public class WorkerStarter {
             LOGGER.debug("[WorkerStarter] Retries for " + name + " have finished.");
             if (!this.workerIsReady) {
                 // Try next port
-                ++port;
+                ++workerport;
             } else {
                 // Success, return node
                 try {
-                    Runtime.getRuntime().addShutdownHook(new Ender(this, this.nw, pid));
+                    Runtime.getRuntime().addShutdownHook(new Ender(this, pid));
                 } catch (IllegalStateException e) {
                     LOGGER.warn("Tried to shutdown vm while it was already being shutdown", e);
                 }
@@ -179,7 +179,7 @@ public class WorkerStarter {
         }
     }
 
-    private int startWorker(String user, String name, int port, String masterName) throws InitNodeException {
+    private int startWorker(String user, String name, int workerPort, String masterName) throws InitNodeException {
         // Initial wait
         try {
             Thread.sleep(START_WORKER_INITIAL_WAIT);
@@ -196,7 +196,7 @@ public class WorkerStarter {
             tracingHostId = String.valueOf(NIOTracer.registerHost(this.nw.getName(), 0));
 
         }
-        String[] command = generateStartCommand(port, masterName, tracingHostId);
+        String[] command = generateStartCommand(workerPort, masterName, tracingHostId);
         do {
             boolean error = false;
             ProcessOut po = executeCommand(user, name, command);
@@ -304,6 +304,7 @@ public class WorkerStarter {
         String pythonpathFromFile = this.nw.getPythonpath();
         String libPathFromFile = this.nw.getLibPath();
         String envScriptPathFromFile = this.nw.getEnvScriptPaht();
+        String pythonInterpreterFromFile = this.nw.getPythonInterpreter();
         String workerName = this.nw.getName();
         int totalCPU = this.nw.getTotalComputingUnits();
         int totalGPU = this.nw.getTotalGPUs();
@@ -312,8 +313,8 @@ public class WorkerStarter {
         int limitOfTasks = this.nw.getLimitOfTasks();
         try {
             return new NIOStarterCommand(workerName, workerPort, masterName, workingDir, installDir, appDir,
-                classpathFromFile, pythonpathFromFile, libPathFromFile, envScriptPathFromFile, totalCPU, totalGPU,
-                totalFPGA, limitOfTasks, hostId).getStartCommand();
+                classpathFromFile, pythonpathFromFile, libPathFromFile, envScriptPathFromFile,
+                pythonInterpreterFromFile, totalCPU, totalGPU, totalFPGA, limitOfTasks, hostId).getStartCommand();
         } catch (Exception e) {
             throw new InitNodeException(e);
         }
@@ -394,25 +395,23 @@ public class WorkerStarter {
     /**
      * Ender function called from the JVM Ender Hook.
      *
-     * @param node Worker node.
      * @param pid Process PID.
      */
-    public void ender(NIOWorkerNode node, int pid) {
+    public void ender(int pid) {
         if (pid > 0) {
-            String user = node.getUser();
 
             // Clean worker working directory
             String jvmWorkerOpts = System.getProperty(COMPSsConstants.WORKER_JVM_OPTS);
             String removeWDFlagDisabled = COMPSsConstants.WORKER_REMOVE_WD + "=false";
             if (jvmWorkerOpts != null && jvmWorkerOpts.contains(removeWDFlagDisabled)) {
                 // User requested not to clean workers WD
-                LOGGER.warn("RemoveWD set to false. Not Cleaning " + node.getName() + " working directory");
+                LOGGER.warn("RemoveWD set to false. Not Cleaning " + this.nw.getName() + " working directory");
             } else {
                 // Regular clean up
-                String sandboxWorkingDir = node.getWorkingDir();
+                String sandboxWorkingDir = this.nw.getWorkingDir();
                 String[] command = getCleanWorkerWorkingDir(sandboxWorkingDir);
                 if (command != null) {
-                    executeCommand(user, node.getName(), command);
+                    executeCommand(this.nw.getUser(), this.nw.getName(), command);
                 }
             }
 
@@ -420,7 +419,7 @@ public class WorkerStarter {
             String[] command = getStopCommand(pid);
             LOGGER.info("getStopCommand generated this: " + command);
             if (command != null) {
-                executeCommand(user, node.getName(), command);
+                executeCommand(this.nw.getUser(), this.nw.getName(), command);
             }
 
         }

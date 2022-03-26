@@ -62,6 +62,7 @@ public interface CommAdaptor {
      * @param pythonpathFromFile Pythonpath.
      * @param libPathFromFile Librarypath.
      * @param envScriptFromFile Environment script path.
+     * @param pythonInterpreterFromFile Python interpreter.
      * @param totalCPU Total number of CPUs.
      * @param totalGPU Total number of GPUs.
      * @param totalFPGA Total number of FPGAs.
@@ -71,7 +72,8 @@ public interface CommAdaptor {
      */
     public StarterCommand getStarterCommand(String workerName, int workerPort, String masterName, String workingDir,
         String installDir, String appDir, String classpathFromFile, String pythonpathFromFile, String libPathFromFile,
-        String envScriptFromFile, int totalCPU, int totalGPU, int totalFPGA, int limitOfTasks, String hostId);
+        String envScriptFromFile, String pythonInterpreterFromFile, int totalCPU, int totalGPU, int totalFPGA,
+        int limitOfTasks, String hostId);
 
     /**
      * Initializes a worker through an adaptor.

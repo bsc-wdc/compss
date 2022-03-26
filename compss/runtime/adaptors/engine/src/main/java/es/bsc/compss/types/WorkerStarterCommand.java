@@ -81,6 +81,13 @@ public abstract class WorkerStarterCommand implements StarterCommand {
             && !System.getProperty(COMPSsConstants.WORKER_ENV_SCRIPT).isEmpty()
                 ? System.getProperty(COMPSsConstants.WORKER_ENV_SCRIPT)
                 : "";
+    private static final String WORKER_PYTHON_INTERPRETER_FROM_ENVIRONMENT =
+        System.getProperty(COMPSsConstants.PYTHON_INTERPRETER) != null
+            && !System.getProperty(COMPSsConstants.PYTHON_INTERPRETER).isEmpty()
+            && !System.getProperty(COMPSsConstants.PYTHON_INTERPRETER).equals("null")
+                ? System.getProperty(COMPSsConstants.PYTHON_INTERPRETER)
+                : "";
+
     // Deployment ID
     protected static final String DEPLOYMENT_ID = System.getProperty(COMPSsConstants.DEPLOYMENT_ID);
 
@@ -128,8 +135,9 @@ public abstract class WorkerStarterCommand implements StarterCommand {
      * @param appDir worker application install directory
      * @param classpathFromFile worker classpath in projects.xml file
      * @param pythonpathFromFile worker python path in projects.xml file
-     * @param libPathFromFile worker library path path in project.xml file
-     * @param envScriptPathFromFile worker
+     * @param libPathFromFile worker library path in project.xml file
+     * @param envScriptPathFromFile worker environment script path in project.xml file
+     * @param pythonInterpreterFromFile worker python interpreter in project.xml file
      * @param totalCPU total CPU computing units
      * @param totalGPU total GPU
      * @param totalFPGA total FPGA
@@ -138,7 +146,8 @@ public abstract class WorkerStarterCommand implements StarterCommand {
      */
     public WorkerStarterCommand(String workerName, int workerPort, String masterName, String workingDir,
         String installDir, String appDir, String classpathFromFile, String pythonpathFromFile, String libPathFromFile,
-        String envScriptPathFromFile, int totalCPU, int totalGPU, int totalFPGA, int limitOfTasks, String hostId) {
+        String envScriptPathFromFile, String pythonInterpreterFromFile, int totalCPU, int totalGPU, int totalFPGA,
+        int limitOfTasks, String hostId) {
 
         this.workerName = workerName;
         this.workerPort = workerPort;
@@ -159,7 +168,7 @@ public abstract class WorkerStarterCommand implements StarterCommand {
                 this.appDir = WORKER_APPDIR_FROM_ENVIRONMENT;
             }
         }
-
+        // Configure environment script
         if (!envScriptPathFromFile.isEmpty()) {
             if (!WORKER_ENV_SCRIPT_FROM_ENVIRONMENT.isEmpty()) {
                 LOGGER.warn("Path passed via env_script option and xml EnvironmentPath field."
@@ -170,6 +179,22 @@ public abstract class WorkerStarterCommand implements StarterCommand {
         } else {
             if (!WORKER_ENV_SCRIPT_FROM_ENVIRONMENT.isEmpty()) {
                 this.workerEnvScriptPath = WORKER_ENV_SCRIPT_FROM_ENVIRONMENT;
+            }
+        }
+
+        // Configure python interpreter
+        if (!pythonInterpreterFromFile.isEmpty()) {
+            if (!WORKER_PYTHON_INTERPRETER_FROM_ENVIRONMENT.isEmpty()) {
+                LOGGER.warn("Path passed via python_interpreter option and xml PythonInterpreter field."
+                    + "The interpreter provided by the xml will be used");
+            }
+            this.pythonInterpreter = pythonInterpreterFromFile;
+
+        } else {
+            if (!WORKER_PYTHON_INTERPRETER_FROM_ENVIRONMENT.isEmpty()) {
+                this.pythonInterpreter = WORKER_PYTHON_INTERPRETER_FROM_ENVIRONMENT;
+            } else {
+                this.pythonInterpreter = COMPSsConstants.DEFAULT_PYTHON_INTERPRETER;
             }
         }
 
@@ -235,13 +260,6 @@ public abstract class WorkerStarterCommand implements StarterCommand {
         if (this.workerPersistentC == null || this.workerPersistentC.isEmpty()
             || this.workerPersistentC.equals("null")) {
             this.workerPersistentC = COMPSsConstants.DEFAULT_PERSISTENT_C;
-        }
-
-        // Configure python interpreter
-        this.pythonInterpreter = System.getProperty(COMPSsConstants.PYTHON_INTERPRETER);
-        if (this.pythonInterpreter == null || this.pythonInterpreter.isEmpty()
-            || this.pythonInterpreter.equals("null")) {
-            this.pythonInterpreter = COMPSsConstants.DEFAULT_PYTHON_INTERPRETER;
         }
 
         // Configure python version

@@ -54,6 +54,7 @@ public class NIOStarterCommand extends WorkerStarterCommand {
      * @param pythonpathFromFile worker python path in projects.xml file
      * @param libPathFromFile worker library path in project.xml file
      * @param envScriptPathFromFile worker environment script path in project.xml file
+     * @param pythonInterpreterFromFile worker python interpreter in project.xml file
      * @param totalCPU total CPU computing units
      * @param totalGPU total GPU
      * @param totalFPGA total FPGA
@@ -62,10 +63,12 @@ public class NIOStarterCommand extends WorkerStarterCommand {
      */
     public NIOStarterCommand(String workerName, int workerPort, String masterName, String workingDir, String installDir,
         String appDir, String classpathFromFile, String pythonpathFromFile, String libPathFromFile,
-        String envScriptPathFromFile, int totalCPU, int totalGPU, int totalFPGA, int limitOfTasks, String hostId) {
+        String envScriptPathFromFile, String pythonInterpreterFromFile, int totalCPU, int totalGPU, int totalFPGA,
+        int limitOfTasks, String hostId) {
 
         super(workerName, workerPort, masterName, workingDir, installDir, appDir, classpathFromFile, pythonpathFromFile,
-            libPathFromFile, envScriptPathFromFile, totalCPU, totalGPU, totalFPGA, limitOfTasks, hostId);
+            libPathFromFile, envScriptPathFromFile, pythonInterpreterFromFile, totalCPU, totalGPU, totalFPGA,
+            limitOfTasks, hostId);
 
         this.scriptName = installDir + (installDir.endsWith(File.separator) ? "" : File.separator) + SCRIPT_PATH
             + STARTER_SCRIPT_NAME;

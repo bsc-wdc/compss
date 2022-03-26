@@ -268,6 +268,11 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         LOGGER.info("NIO MAX Port: " + maxFinal);
         config.setMinPort(minFinal);
         config.setMaxPort(maxFinal);
+        int spawnerPort = 22;
+        if (propsResources != null && propsResources.getSpawnerPort() > 0) {
+            spawnerPort = propsResources.getSpawnerPort();
+        }
+        config.setSpawnerPort(spawnerPort);
 
     }
 
@@ -1172,11 +1177,12 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     @Override
     public StarterCommand getStarterCommand(String workerName, int workerPort, String masterName, String workingDir,
         String installDir, String appDir, String classpathFromFile, String pythonpathFromFile, String libPathFromFile,
-        String envScriptFromFile, int totalCPU, int totalGPU, int totalFPGA, int limitOfTasks, String hostId) {
+        String envScriptFromFile, String pythonInterpreterFromFile, int totalCPU, int totalGPU, int totalFPGA,
+        int limitOfTasks, String hostId) {
 
         return new NIOStarterCommand(workerName, workerPort, masterName, workingDir, installDir, appDir,
-            classpathFromFile, pythonpathFromFile, libPathFromFile, envScriptFromFile, totalCPU, totalGPU, totalFPGA,
-            limitOfTasks, hostId);
+            classpathFromFile, pythonpathFromFile, libPathFromFile, envScriptFromFile, pythonInterpreterFromFile,
+            totalCPU, totalGPU, totalFPGA, limitOfTasks, hostId);
     }
 
 }

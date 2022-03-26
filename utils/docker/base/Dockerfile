@@ -36,8 +36,8 @@ FROM base_all as base_tutorial
 RUN apt-get update && \
     apt-get install -y --no-install-recommends git vim wget ca-certificates maven curl unzip && \ 
     
-    pip3 install --no-cache-dir graphviz matplotlib numpy scipy scikit-learn pandas \
-    llvmlite numba jupyter ipykernel nbconvert && \
+    pip3 install --no-cache-dir graphviz matplotlib numba numpy==1.21.5 scipy scikit-learn pandas \
+    jupyter ipykernel && \
     python3 -m ipykernel install && \
     apt-get autoclean && \
     rm -rf /var/lib/apt/lists/*
@@ -45,19 +45,23 @@ RUN apt-get update && \
 FROM base_tutorial as base_ci 
 
 RUN apt-get update && \
-    #Required for compilation
-    apt-get install -y --no-install-recommends libxml2-dev libpapi-dev python3-setuptools python3-dev gfortran && \
-    pip3 --no-cache-dir install install pycodestyle && \
+    
+    #Required for compilation and tests
+    apt-get install -y --no-install-recommends libxml2-dev libpapi-dev python3-setuptools python3-dev gfortran \
+    sudo jq bc firefox gnupg lsb-release && \ 
+    apt-get autoclean && \
+    rm -rf /var/lib/apt/lists/* && \
+    pip3 --no-cache-dir install install pycodestyle \
+    selenium redis==2.10.6 redis-py-cluster enum34 tabulate pytest pytest-cov \
+    pytest-notebook nbval coverage nbconvert \
+    #for fixing a nbcovert jinja2 compatibility problem
+    jinja2==3.0.3 && \
     # Mypy
     # pip3 --no-cache-dir install install mypy mypy-extensions types-tabulate types-decorator
     wget https://services.gradle.org/distributions/gradle-5.4.1-bin.zip && \
     unzip -d /opt gradle-5.4.1-bin.zip && \
     rm gradle-5.4.1-bin.zip && \
     mv /opt/gradle-5.4.1 /opt/gradle && \ 
-    
-    #Required for tests
-    apt-get install -y --no-install-recommends sudo jq bc firefox gnupg lsb-release && \
-    pip3 install --no-cache-dir selenium redis==2.10.6 redis-py-cluster enum34 tabulate pytest pytest-cov pytest-notebook nbval coverage && \
 
     # Docker-CLI
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg && \
@@ -67,14 +71,12 @@ RUN apt-get update && \
    apt-get install -y docker-ce-cli && \
    apt-get autoclean && \
    rm -rf /var/lib/apt/lists/* && \
-   
    # Geckodriver
    curl -s https://api.github.com/repos/mozilla/geckodriver/releases/latest | grep "browser_download_url.*linux64.tar.gz" | cut -d : -f 2,3 | tr -d '\"' | head -1 | wget -i - && \
    tar -xvf *linux64.tar.gz && \
    rm *linux64.tar.gz && \
    mv geckodriver /usr/local/bin/ && \
-
-   # Create Jenkins User     
+   # Create Jenkins User      
    useradd jenkins -m -s /bin/bash && \ 
    # Add the jenkins user to sudoers 
    echo "jenkins  ALL=(ALL)  NOPASSWD:ALL" >> /etc/sudoers && \

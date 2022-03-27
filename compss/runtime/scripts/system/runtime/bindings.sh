@@ -94,11 +94,18 @@ check_bindings_setup () {
 
   if [ "${enable_bindings}" = "true" ]; then
     # Look for the JVM Library
-    libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.so | head -n 1)
-    if [ -z "$libjava" ]; then
+    if [ -d "${JAVA_HOME}/jre/lib/" ]; then #Java 8 case 
+      libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.so | head -n 1)
+      if [ -z "$libjava" ]; then
+	libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.dylib | head -n 1)
+        if [ -z "$libjava" ]; then
+          fatal_error "${JAVA_JRE_ERROR}" 1
+	fi
+      fi
+    else # Java 9+
       libjava=$(find "${JAVA_HOME}"/lib/ -name libjvm.so | head -n 1)
       if [ -z "$libjava" ]; then
-        libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.dylib | head -n 1)
+        libjava=$(find "${JAVA_HOME}"/lib/ -name libjvm.dylib | head -n 1)
         if [ -z "$libjava" ]; then
           libjava=$(find "${JAVA_HOME}"/lib/server -name libjvm.dylib | head -n 1)
           if [ -z "$libjava" ]; then

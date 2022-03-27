@@ -57,20 +57,26 @@
   fi
 
   # Look for the JVM Library
-  libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.so | head -n 1)
-  if [ -z "$libjava" ]; then
-    libjava=$(find "${JAVA_HOME}"/lib/ -name libjvm.so | head -n 1)
-    if [ -z "${libjava}" ]; then
-      libjava=$(find "${JAVA_HOME}"/jre/lib/server -name libjvm.dylib | head -n 1)
+  if [ -d "${JAVA_HOME}/jre/lib/" ]; then #Java 8 case 
+      libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.so | head -n 1)
       if [ -z "$libjava" ]; then
-        libjava=$(find "${JAVA_HOME}"/lib/server -name libjvm.dylib | head -n 1)
+        libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.dylib | head -n 1)
         if [ -z "$libjava" ]; then
           echo "${JAVA_JRE_ERROR}"
-          exit 1
+	  exit 1
         fi
       fi
-    fi
+  else # Java 9+
+      libjava=$(find "${JAVA_HOME}"/lib/ -name libjvm.so | head -n 1)
+      if [ -z "$libjava" ]; then
+        libjava=$(find "${JAVA_HOME}"/lib/ -name libjvm.dylib | head -n 1)
+        if [ -z "$libjava" ]; then
+         echo "${JAVA_JRE_ERROR}" 
+	 exit 1
+        fi
+      fi
   fi
+  
   JAVA_LIB_DIR=$(dirname "$libjava")
   export JAVA_LIB_DIR
 

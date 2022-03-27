@@ -90,7 +90,7 @@ ERROR_NODE_STORAGE_BANDWIDTH_TOO_HIGH="Parameter node_storage_bandwidth exceeds 
 ERROR_PROLOG_ACTION="Exception executing prolog action"
 ERROR_EPILOG_ACTION="Exception executing epilog action"
 ERROR_LANGUAGE="Value of option --lang must be: java, c or python"
-
+JAVA_JRE_ERROR="Can't find JVM libraries in JAVA_HOME. Please check your Java JRE Installation."
 
 #---------------------------------------------------------------------------------------
 # GENERIC HELPER FUNCTIONS
@@ -450,6 +450,29 @@ master_cmd() {
             --jvm_workers_opts=${jvm_workers_opts}"
 }
 
+export_jvm_library(){
+  local libjava
+  # Look for the JVM Library
+    if [ -d "${JAVA_HOME}/jre/lib/" ]; then #Java 8 case
+      libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.so | head -n 1)
+      if [ -z "$libjava" ]; then
+        libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.dylib | head -n 1)
+        if [ -z "$libjava" ]; then
+          action_error "${JAVA_JRE_ERROR}"
+        fi
+      fi
+    else # Java 9+
+      libjava=$(find "${JAVA_HOME}"/lib/ -name libjvm.so | head -n 1)
+      if [ -z "$libjava" ]; then
+        libjava=$(find "${JAVA_HOME}"/lib/ -name libjvm.dylib | head -n 1)
+        if [ -z "$libjava" ]; then
+          action_error "${JAVA_JRE_ERROR}"
+        fi
+      fi
+    fi
+    local libjavafolder=$(dirname "$libjava")
+    export LD_LIBRARY_PATH=$libjavafolder:${LD_LIBRARY_PATH}
+}
 
 #---------------------------------------------------------------------------------------
 # XML HELPER FUNCTIONS (PROJECT.XML)
@@ -2057,7 +2080,8 @@ launch() {
 load_external_compss_environment() {
       export PYTHONPATH=${jupyter_notebook_path}:${COMPSS_HOME}/Bindings/python/${python_version}/:${COMPSS_HOME}/Bindings/bindings-common/lib/:$PYTHONPATH
       # JAVA_HOME variable must exist
-      export LD_LIBRARY_PATH=${COMPSS_HOME}/Bindings/bindings-common/lib/:${COMPSS_HOME}/Runtime/compss-engine.jar:${JAVA_HOME}/lib/amd64/server/:${JAVA_HOME}/jre/lib/amd64/server/:$LD_LIBRARY_PATH
+      export LD_LIBRARY_PATH=${COMPSS_HOME}/Bindings/bindings-common/lib/:${COMPSS_HOME}/Runtime/compss-engine.jar:$LD_LIBRARY_PATH
+      export_jvm_library
       unset XDG_RUNTIME_DIR  # Required for Jupyter in MN4. Supposed to be necessary also in other supercomputers. Otherwise, move this line to the supercomputer "module"
       export COMPSS_LOG_LEVEL=${log_level}
       export COMPSS_TRACING=${tracing}

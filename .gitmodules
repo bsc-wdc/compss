@@ -1,7 +1,7 @@
 [submodule "dependencies/extrae"]
 	path = dependencies/extrae
 	url = https://github.com/bsc-wdc/extrae.git
-	branch = compss_modifications
+	branch = compss_master
 
 [submodule "kafka"]
 	path = dependencies/kafka

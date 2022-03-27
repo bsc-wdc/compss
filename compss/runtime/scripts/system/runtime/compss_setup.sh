@@ -215,11 +215,17 @@ generate_jvm_opts_file() {
 
   cat >> "${jvm_options_file}" << EOT
 ${jvm_master_opts}
+EOT
+  if [ "$(uname -m)" != "riscv64" ]; then
+     cat >> "${jvm_options_file}" << EOT
 -XX:+PerfDisableSharedMem
 -XX:-UsePerfData
 -XX:+UseG1GC
 -XX:+UseThreadPriorities
 -XX:ThreadPriorityPolicy=0
+EOT
+  fi
+  cat >> "${jvm_options_file}" << EOT
 -javaagent:${COMPSS_HOME}/Runtime/compss-engine.jar
 -Dcompss.to.file=false
 -Dcompss.appName=${appName}

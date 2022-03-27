@@ -21,6 +21,7 @@ usage() {
     echo " --help, -h                  Print this help message"
     echo " --no-bindings, -B           Disable bindings installation"
     echo " --no-tracing, -T            Disable tracing system installation"
+    echo " --no-c-binding, -C          Disable C++ binding installation"
     echo " --nothing, -N               Disable all previous options"
     echo " "
     echo " Parameters:"
@@ -46,7 +47,7 @@ display_error() {
 
 get_args() {
   # Parse COMPSs Options
-  while getopts hvBTA-: flag; do
+  while getopts hvBTAC-: flag; do
     # Treat the argument
     case "$flag" in
       h)
@@ -61,10 +62,15 @@ get_args() {
         # Custom tracing value
         tracing=false
         ;;
+      C)
+	# Custom C++ binding value
+	c_binding=false
+	;;
       N)
         # Disables all flags
         tracing=false
         bindings=false
+	c_binding=false
         ;;
       -)
         # Check more complex arguments
@@ -81,10 +87,14 @@ get_args() {
             # Custom tracing value
             tracing=false
             ;;
+	  no-c-binding)
+            c_binding=false
+	    ;;
 	  nothing)
             # Disables all flags
             tracing=false
             bindings=false
+	    c_binding=false
             ;;
     	  *)
 	  # Flag didn't match any patern. End of COMPSs flags
@@ -117,13 +127,14 @@ get_args() {
   ####################
   tracing=true
   bindings=true
-  
+  c_binding=true
+
   system_os=$(uname)
   if [[ "$system_os" == "Darwin" ]]; then
     tracing=false
     autoparallel=false
   fi
-  
+
   get_args "$@"
   
   # WARN MESSAGE and log parameters
@@ -131,6 +142,7 @@ get_args() {
   echo "Options:"
   echo "  - Tracing: $tracing"
   echo "  - Bindings: $bindings"
+  echo "  - C_Binding: $c_binding"
   echo " "
   echo "Parameters:"
   echo "  - Target Installation Folder = $targetDir"
@@ -140,7 +152,7 @@ get_args() {
   echo "           conflicts between installations. Please save any configuration files."
   echo " "
   echo "  You can abort the installation within 5s..."
-  sleep 5
+  #sleep 5
 
   # Begin installation
   echo " "
@@ -167,14 +179,16 @@ get_args() {
     echo "   Success"
 
     # Install C-binding
-    echo "- Install C-binding"
-    cd "${SCRIPT_DIR}"/Bindings/c
-    ./install "${targetDir}"/Bindings/c true
-    mkdir -p "${targetDir}"/Runtime/scripts/system/c/
-    cp "${targetDir}"/Bindings/c/bin/* "${targetDir}"/Runtime/scripts/system/c
-    cp ./compss_build_app "${targetDir}"/Runtime/scripts/user/
-    cd "${SCRIPT_DIR}"
-    echo "   Success"
+    if [ "${c_binding}" == "true" ]; then
+      echo "- Install C-binding"
+      cd "${SCRIPT_DIR}"/Bindings/c
+      ./install "${targetDir}"/Bindings/c true
+      mkdir -p "${targetDir}"/Runtime/scripts/system/c/
+      cp "${targetDir}"/Bindings/c/bin/* "${targetDir}"/Runtime/scripts/system/c
+      cp ./compss_build_app "${targetDir}"/Runtime/scripts/user/
+      cd "${SCRIPT_DIR}"
+      echo "   Success"
+    fi
 
     # Install Python-binding
     echo "- Install Python binding"

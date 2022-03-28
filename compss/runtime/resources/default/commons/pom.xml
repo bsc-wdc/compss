@@ -36,6 +36,7 @@
         <dependency>
             <groupId>es.bsc.conn</groupId>
             <artifactId>connectors-all</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>es.bsc.compss</groupId>

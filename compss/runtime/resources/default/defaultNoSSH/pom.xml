@@ -34,13 +34,10 @@
     <!-- DEPENDENCIES -->
     <dependencies>
         <dependency>
-            <groupId>es.bsc.conn</groupId>
-            <artifactId>connectors-all</artifactId>
-        </dependency>
-        <dependency>
             <groupId>es.bsc.compss</groupId>
             <artifactId>compss-connector-default-commons</artifactId>
             <version>${compss.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>es.bsc.compss</groupId>

@@ -128,6 +128,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
      */
     private static final int BASE_MASTER_PORT = 43_000;
     private static final int MAX_RANDOM_VALUE = 1_000;
+    private static final int DEFAULT_SPAWNER_PORT = 22;
     public static final int MASTER_PORT;
 
     // Final jobs log directory
@@ -268,10 +269,9 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         LOGGER.info("NIO MAX Port: " + maxFinal);
         config.setMinPort(minFinal);
         config.setMaxPort(maxFinal);
-        int spawnerPort = 22;
-        if (propsResources != null && propsResources.getSpawnerPort() > 0) {
-            spawnerPort = propsResources.getSpawnerPort();
-        }
+        int spawnerPort = (propsResources.getSpawnerPort() != null && propsResources.getSpawnerPort() > 0)
+            ? propsResources.getSpawnerPort()
+            : DEFAULT_SPAWNER_PORT;
         config.setSpawnerPort(spawnerPort);
 
     }

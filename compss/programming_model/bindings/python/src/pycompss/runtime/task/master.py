@@ -420,122 +420,107 @@ class TaskMaster(object):
         from pycompss.api.task import REGISTER_ONLY
 
         if REGISTER_ONLY:
-            MASTER_LOCK.release()
-            return (
-                None,
-                self.core_element,
-                self.registered,
-                self.signature,
-                self.interactive,
-                self.module,
-                self.function_arguments,
-                self.function_name,
-                self.module_name,
-                self.function_type,
-                self.class_name,
-                self.hints,
-            )
-
-        # Extract task related parameters (e.g. returns, computing_nodes, etc.)
-        with event_master(POP_TASK_PARAMETERS):
-            self.pop_task_parameters(kwargs)
-            # this is total # of processes for this task
-        with event_master(PROCESS_OTHER_ARGUMENTS):
-            # Get other arguments if exist
-            if not self.hints:
-                self.hints = self.check_task_hints()
-            (
-                is_replicated,
-                is_distributed,
-                time_out,
-                has_priority,
-                has_target,
-            ) = self.hints  # noqa: E501
-            is_http = self.core_element.get_impl_type() == "HTTP"
-
-        # Process the parameters, give them a proper direction
-        with event_master(PROCESS_PARAMETERS):
-            self.process_parameters(args, kwargs,
-                                    code_strings=self.user_function.__code_strings__)
-        # Deal with the return part.
-        with event_master(PROCESS_RETURN):
-            num_returns = self.add_return_parameters(
-                self.explicit_num_returns, code_strings=self.user_function.__code_strings__)
-            if not self.returns:
-                num_returns = self.update_return_if_no_returns(
-                    self.user_function
-                )  # noqa: E501
-
-        # Build return objects
-        with event_master(BUILD_RETURN_OBJECTS):
+            # Only register, no launch
             fo = None
-            if self.returns:
-                fo = self._build_return_objects(num_returns)
+        else:
+            # Launch task to the runtime
+            # Extract task related parameters (e.g. returns, computing_nodes, etc.)
+            with event_master(POP_TASK_PARAMETERS):
+                self.pop_task_parameters(kwargs)
+                # this is total # of processes for this task
+            with event_master(PROCESS_OTHER_ARGUMENTS):
+                # Get other arguments if exist
+                if not self.hints:
+                    self.hints = self.check_task_hints()
+                (
+                    is_replicated,
+                    is_distributed,
+                    time_out,
+                    has_priority,
+                    has_target,
+                ) = self.hints
+                is_http = self.core_element.get_impl_type() == "HTTP"
 
-        # Infer COMPSs types from real types, except for files
-        self._serialize_objects()
-        # todo: should it go somewhere else?
-        serializer.FORCED_SERIALIZER = -1  # reset the forced serializer
+            # Process the parameters, give them a proper direction
+            with event_master(PROCESS_PARAMETERS):
+                self.process_parameters(args, kwargs, code_strings=self.user_function.__code_strings__)
 
-        # Build values and COMPSs types and directions
-        with event_master(BUILD_COMPSS_TYPES_DIRECTIONS):
-            vtdsc = self._build_values_types_directions()
-            (
-                values,
-                names,
-                compss_types,
-                compss_directions,
-                compss_streams,
-                compss_prefixes,
-                content_types,
-                weights,
-                keep_renames,
-            ) = vtdsc  # noqa
+            # Deal with the return part.
+            with event_master(PROCESS_RETURN):
+                num_returns = self.add_return_parameters(self.explicit_num_returns, code_strings=self.user_function.__code_strings__)
+                if not self.returns:
+                    num_returns = self.update_return_if_no_returns(self.user_function)
 
-        if __debug__:
-            logger.debug(
-                "TASK: %s of type %s, in module %s, in class %s"
-                % (
-                    self.function_name,
-                    self.function_type,
-                    self.module_name,
-                    self.class_name,
+            # Build return objects
+            with event_master(BUILD_RETURN_OBJECTS):
+                fo = None
+                if self.returns:
+                    fo = self._build_return_objects(num_returns)
+
+            # Infer COMPSs types from real types, except for files
+            self._serialize_objects()
+            # todo: should it go somewhere else?
+            serializer.FORCED_SERIALIZER = -1  # reset the forced serializer
+
+            # Build values and COMPSs types and directions
+            with event_master(BUILD_COMPSS_TYPES_DIRECTIONS):
+                vtdsc = self._build_values_types_directions()
+                (
+                    values,
+                    names,
+                    compss_types,
+                    compss_directions,
+                    compss_streams,
+                    compss_prefixes,
+                    content_types,
+                    weights,
+                    keep_renames,
+                ) = vtdsc  # noqa
+
+            if __debug__:
+                logger.debug(
+                    "TASK: %s of type %s, in module %s, in class %s"
+                    % (
+                        self.function_name,
+                        self.function_type,
+                        self.module_name,
+                        self.class_name,
+                    )
                 )
-            )
 
-        # Process the task
-        with event_master(PROCESS_TASK_BINDING):
-            binding.process_task(
-                impl_signature,
-                has_target,
-                names,
-                values,
-                num_returns,
-                compss_types,
-                compss_directions,
-                compss_streams,
-                compss_prefixes,
-                content_types,
-                weights,
-                keep_renames,
-                has_priority,
-                self.computing_nodes,
-                self.is_reduce,
-                self.chunk_size,
-                is_replicated,
-                is_distributed,
-                self.on_failure,
-                time_out,
-                is_http,
-            )
+            # Process the task
+            with event_master(PROCESS_TASK_BINDING):
+                binding.process_task(
+                    impl_signature,
+                    has_target,
+                    names,
+                    values,
+                    num_returns,
+                    compss_types,
+                    compss_directions,
+                    compss_streams,
+                    compss_prefixes,
+                    content_types,
+                    weights,
+                    keep_renames,
+                    has_priority,
+                    self.computing_nodes,
+                    self.is_reduce,
+                    self.chunk_size,
+                    is_replicated,
+                    is_distributed,
+                    self.on_failure,
+                    time_out,
+                    is_http,
+                )
 
-        # Remove unused attributes from the memory
-        with event_master(ATTRIBUTES_CLEANUP):
-            for at in ATTRIBUTES_TO_BE_REMOVED:
-                if hasattr(self, at):
-                    delattr(self, at)
+            # Remove unused attributes from the memory
+            with event_master(ATTRIBUTES_CLEANUP):
+                for at in ATTRIBUTES_TO_BE_REMOVED:
+                    if hasattr(self, at):
+                        delattr(self, at)
 
-        emit_manual_event_explicit(BINDING_TASKS_FUNC_TYPE, 0)
+            emit_manual_event_explicit(BINDING_TASKS_FUNC_TYPE, 0)
 
         # Release the lock
         MASTER_LOCK.release()

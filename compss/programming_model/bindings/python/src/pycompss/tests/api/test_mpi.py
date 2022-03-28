@@ -112,9 +112,7 @@ def test_mpi_binary():
 
 def test_mpi_binary_scale_bool_true():
     context.set_pycompss_context(context.MASTER)
-    my_mpi = Mpi(
-        runner=MPI_RUNNER, binary="date", flags="flags", scale_by_cu=True
-    )  # noqa: E501
+    my_mpi = Mpi(runner=MPI_RUNNER, binary="date", flags="flags", scale_by_cu=True)
     f = my_mpi(dummy_function)
     result = f()
     context.set_pycompss_context(context.OUT_OF_SCOPE)
@@ -123,9 +121,7 @@ def test_mpi_binary_scale_bool_true():
 
 def test_mpi_binary_scale_bool_false():
     context.set_pycompss_context(context.MASTER)
-    my_mpi = Mpi(
-        runner=MPI_RUNNER, binary="date", flags="flags", scale_by_cu=False
-    )  # noqa: E501
+    my_mpi = Mpi(runner=MPI_RUNNER, binary="date", flags="flags", scale_by_cu=False)
     f = my_mpi(dummy_function)
     result = f()
     context.set_pycompss_context(context.OUT_OF_SCOPE)
@@ -134,9 +130,7 @@ def test_mpi_binary_scale_bool_false():
 
 def test_mpi_binary_scale_str():
     context.set_pycompss_context(context.MASTER)
-    my_mpi = Mpi(
-        runner=MPI_RUNNER, binary="date", flags="flags", scale_by_cu="true"
-    )  # noqa: E501
+    my_mpi = Mpi(runner=MPI_RUNNER, binary="date", flags="flags", scale_by_cu="true")
     f = my_mpi(dummy_function)
     result = f()
     context.set_pycompss_context(context.OUT_OF_SCOPE)

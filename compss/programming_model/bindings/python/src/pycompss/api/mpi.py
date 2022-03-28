@@ -384,9 +384,9 @@ class Mpi(object):
                 scale_by_cu_str = str(scale_by_cu).lower()
             else:
                 raise PyCOMPSsException(
-                    "Incorrect format for scale_by_cu property. "  # noqa: E501
+                    "Incorrect format for scale_by_cu property. "
                     "It should be boolean or 'true' or 'false'"
-                )  # noqa: E501
+                )
         else:
             scale_by_cu_str = "false"
         return scale_by_cu_str

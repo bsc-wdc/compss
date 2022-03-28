@@ -84,7 +84,7 @@ from pycompss.worker.piper.cache.tracker import load_shared_memory_manager
 # Streaming imports
 from pycompss.streams.components.distro_stream_client import (
     DistroStreamClientHandler,
-)  # noqa: E501
+)
 
 HEADER = "*[PYTHON EXECUTOR] "
 
@@ -271,7 +271,12 @@ def executor(
             # Logger has not been inherited correctly. Happens in MacOS.
             set_temporary_directory(conf.tmp_dir, create_tmpdir=False)
             # Reload logger
-            conf.logger, conf.logger_cfg, conf.storage_loggers, _ = load_loggers(
+            (
+                conf.logger,
+                conf.logger_cfg,
+                conf.storage_loggers,
+                _,
+            ) = load_loggers(  # noqa: E501
                 conf.debug, conf.persistent_storage
             )
             # Set the binding in worker mode too
@@ -297,7 +302,7 @@ def executor(
                 HEADER
                 + "Establishing link with runtime in process "
                 + str(process_name)
-            )  # noqa: E501
+            )
         COMPSs.load_runtime(external_process=False, _logger=logger)
         COMPSs.set_pipes(pipe.output_pipe, pipe.input_pipe)
 
@@ -311,8 +316,8 @@ def executor(
                 if __debug__:
                     logger.info(
                         HEADER
-                        + "[%s] Could not find initWorkerPostFork storage call. Ignoring it."
-                        % str(process_name)  # noqa: E501
+                        + "[%s] Could not find initWorkerPostFork storage call. Ignoring it."  # noqa: E501
+                        % str(process_name)
                     )
 
         # Start the streaming backend if necessary
@@ -322,10 +327,13 @@ def executor(
 
         if streaming:
             # Initialize streaming
-            logger.debug(HEADER + "Starting streaming for process " + str(process_name))
+            logger.debug(
+                HEADER + "Starting streaming for process " + str(process_name)
+            )  # noqa: E501
             try:
                 DistroStreamClientHandler.init_and_start(
-                    master_ip=conf.stream_master_ip, master_port=conf.stream_master_port
+                    master_ip=conf.stream_master_ip,
+                    master_port=conf.stream_master_port,  # noqa: E501
                 )
             except Exception as e:
                 logger.error(e)
@@ -349,7 +357,8 @@ def executor(
                 if __debug__:
                     logger.debug(
                         HEADER
-                        + "[%s] Received command %s" % (str(process_name), str(command))
+                        + "[%s] Received command %s"
+                        % (str(process_name), str(command))  # noqa: E501
                     )
                 # Process the command
                 alive = process_message(
@@ -381,13 +390,15 @@ def executor(
                 if __debug__:
                     logger.info(
                         HEADER
-                        + "[%s] Could not find finishWorkerPostFork storage call. Ignoring it."
-                        % str(process_name)  # noqa: E501
+                        + "[%s] Could not find finishWorkerPostFork storage call. Ignoring it."  # noqa: E501
+                        % str(process_name)
                     )
 
         # Stop streaming
         if streaming:
-            logger.debug(HEADER + "Stopping streaming for process " + str(process_name))
+            logger.debug(
+                HEADER + "Stopping streaming for process " + str(process_name)
+            )  # noqa: E501
             DistroStreamClientHandler.set_stop()
 
         sys.stdout.flush()
@@ -442,7 +453,8 @@ def process_message(
     if __debug__:
         logger.debug(
             HEADER
-            + "[%s] Processing message: %s" % (str(process_name), str(current_line))
+            + "[%s] Processing message: %s"
+            % (str(process_name), str(current_line))  # noqa: E501
         )
 
     current_line_split = current_line.split()
@@ -479,7 +491,9 @@ def process_message(
                 + "[%s] Unexpected message: %s"
                 % (str(process_name), str(current_line_split))
             )
-        raise PyCOMPSsException("Unexpected message: %s" % str(current_line_split))
+        raise PyCOMPSsException(
+            "Unexpected message: %s" % str(current_line_split)
+        )  # noqa: E501
 
 
 def process_task(
@@ -529,8 +543,8 @@ def process_task(
         cpus = current_line[-3]
         if cpus != "-" and THREAD_AFFINITY:
             # The cpu affinity event is already emitted in Java.
-            # Instead of emitting what we receive, we are emitting what whe check
-            # after setting the affinity.
+            # Instead of emitting what we receive, we are emitting what we
+            # check after setting the affinity.
             binded_cpus = bind_cpus(cpus, process_name, logger)
 
         # GPU binding
@@ -565,10 +579,13 @@ def process_task(
         if __debug__:
             logger.debug(
                 HEADER
-                + "[%s] Received task with id: %s" % (str(process_name), str(job_id))
+                + "[%s] Received task with id: %s"
+                % (str(process_name), str(job_id))  # noqa: E501
             )
             logger.debug(
-                HEADER + "[%s] - TASK CMD: %s" % (str(process_name), str(current_line))
+                HEADER
+                + "[%s] - TASK CMD: %s"
+                % (str(process_name), str(current_line))  # noqa: E501
             )
 
         # Swap logger from stream handler to file handler
@@ -609,8 +626,8 @@ def process_task(
                 affinity_event_emit = True
                 if not binded_cpus:
                     logger.warning(
-                        "This task is going to be executed with default thread affinity %s"
-                        % str(real_affinity)  # noqa: E501
+                        "This task is going to be executed with default thread affinity %s"  # noqa: E501
+                        % str(real_affinity)
                     )
 
             # Setup process environment
@@ -647,11 +664,15 @@ def process_task(
                 # endTask jobId exitValue message
                 message = build_successful_message(
                     new_types, new_values, job_id, exit_value
-                )  # noqa: E501
+                )
                 if __debug__:
                     logger.debug(
                         "%s - Pipe %s END TASK MESSAGE: %s"
-                        % (str(process_name), str(pipe.output_pipe), str(message))
+                        % (
+                            str(process_name),
+                            str(pipe.output_pipe),
+                            str(message),
+                        )  # noqa: E501
                     )
             elif exit_value == 2:
                 # Task has finished with a COMPSs Exception
@@ -662,7 +683,11 @@ def process_task(
                 if __debug__:
                     logger.debug(
                         "%s - Pipe %s COMPSS EXCEPTION TASK MESSAGE: %s"
-                        % (str(process_name), str(pipe.output_pipe), str(except_msg))
+                        % (
+                            str(process_name),
+                            str(pipe.output_pipe),
+                            str(except_msg),
+                        )  # noqa: E501
                     )
             else:
                 # An exception other than COMPSsException has been raised
@@ -671,7 +696,11 @@ def process_task(
                 if __debug__:
                     logger.debug(
                         "%s - Pipe %s END TASK MESSAGE: %s"
-                        % (str(process_name), str(pipe.output_pipe), str(message))
+                        % (
+                            str(process_name),
+                            str(pipe.output_pipe),
+                            str(message),
+                        )  # noqa: E501
                     )
 
             # The return message is:
@@ -737,7 +766,8 @@ def process_task(
         if __debug__:
             logger.debug(
                 HEADER
-                + "[%s] Finished task with id: %s" % (str(process_name), str(job_id))
+                + "[%s] Finished task with id: %s"
+                % (str(process_name), str(job_id))  # noqa: E501
             )
 
         # Notify the runtime that the task has finished
@@ -792,7 +822,9 @@ def bind_cpus(cpus: str, process_name: str, logger: typing.Any) -> bool:
     with event_inside_worker(BIND_CPUS_EVENT):
         if __debug__:
             logger.debug(
-                HEADER + "[%s] Assigning affinity %s" % (str(process_name), str(cpus))
+                HEADER
+                + "[%s] Assigning affinity %s"
+                % (str(process_name), str(cpus))  # noqa: E501
             )
         cpus_list = cpus.split(",")
         cpus_map = list(map(int, cpus_list))
@@ -876,7 +908,9 @@ def build_compss_exception_message(
     """
     with event_inside_worker(BUILD_COMPSS_EXCEPTION_MESSAGE_EVENT):
         except_msg = except_msg.replace(" ", "_")
-        message = " ".join((COMPSS_EXCEPTION_TAG, str(job_id), str(except_msg) + "\n"))
+        message = " ".join(
+            (COMPSS_EXCEPTION_TAG, str(job_id), str(except_msg) + "\n")
+        )  # noqa: E501
         return except_msg, message
 
 

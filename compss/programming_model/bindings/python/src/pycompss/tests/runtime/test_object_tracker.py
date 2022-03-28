@@ -39,10 +39,10 @@ def test_track():
     object_tracker = ObjectTracker()
     do = DummyObject()
     do_id, do_file_name = object_tracker.track(do)
-    assert object_tracker.is_tracked(do) is not None, ERROR_ID_NONE  # noqa: E501
-    assert isinstance(object_tracker.is_tracked(do), str), ERROR_ID_STRING  # noqa: E501
-    assert object_tracker.is_tracked(do) != "", ERROR_ID_EMPTY  # noqa: E501
-    assert object_tracker.is_tracked(do) == do_id, ERROR_ID_DIFFERENT  # noqa: E501
+    assert object_tracker.is_tracked(do) is not None, ERROR_ID_NONE
+    assert isinstance(object_tracker.is_tracked(do), str), ERROR_ID_STRING
+    assert object_tracker.is_tracked(do) != "", ERROR_ID_EMPTY
+    assert object_tracker.is_tracked(do) == do_id, ERROR_ID_DIFFERENT
     assert do_file_name != "", ERROR_FILENAME_EMPTY
 
 
@@ -51,10 +51,10 @@ def test_track_twice():
     do = DummyObject()
     _ = object_tracker.track(do)
     do_id, do_file_name = object_tracker.track(do)
-    assert object_tracker.is_tracked(do) is not None, ERROR_ID_NONE  # noqa: E501
-    assert isinstance(object_tracker.is_tracked(do), str), ERROR_ID_STRING  # noqa: E501
-    assert object_tracker.is_tracked(do) != "", ERROR_ID_EMPTY  # noqa: E501
-    assert object_tracker.is_tracked(do) == do_id, ERROR_ID_DIFFERENT  # noqa: E501
+    assert object_tracker.is_tracked(do) is not None, ERROR_ID_NONE
+    assert isinstance(object_tracker.is_tracked(do), str), ERROR_ID_STRING
+    assert object_tracker.is_tracked(do) != "", ERROR_ID_EMPTY
+    assert object_tracker.is_tracked(do) == do_id, ERROR_ID_DIFFERENT
     assert do_file_name != "", ERROR_FILENAME_EMPTY
 
 
@@ -63,23 +63,21 @@ def test_track_collection():
     my_collection = [DummyObject(), DummyObject()]
     collection_id, collection_file_name = object_tracker.track(
         my_collection, collection=True
-    )  # noqa: E501
-    assert (
-        object_tracker.is_tracked(my_collection) is not None
-    ), ERROR_ID_NONE  # noqa: E501
+    )
+    assert object_tracker.is_tracked(my_collection) is not None, ERROR_ID_NONE
     assert isinstance(
         object_tracker.is_tracked(my_collection), str
     ), ERROR_ID_STRING  # noqa: E501
     assert (
         object_tracker.is_tracked(my_collection) != ""
         and object_tracker.is_tracked(my_collection) != "None"
-    ), ERROR_ID_EMPTY  # noqa: E501
+    ), ERROR_ID_EMPTY
     assert (
         object_tracker.is_tracked(my_collection) == collection_id
     ), ERROR_ID_DIFFERENT  # noqa: E501
     assert (
         collection_file_name != "" or collection_file_name != "None"
-    ), "The file name must be None for collections."  # noqa: E501
+    ), "The file name must be None for collections."
 
 
 def test_stop_tracking():
@@ -87,18 +85,21 @@ def test_stop_tracking():
     do = DummyObject()
     do_id, do_file_name = object_tracker.track(do)
     assert (
-        object_tracker.is_tracked(do) != "" and object_tracker.is_tracked(do) != "None"
-    ), ERROR_ID_NONE  # noqa: E501
-    assert isinstance(object_tracker.is_tracked(do), str), ERROR_ID_STRING  # noqa: E501
+        object_tracker.is_tracked(do) != ""
+        and object_tracker.is_tracked(do) != "None"  # noqa: E501
+    ), ERROR_ID_NONE
+    assert isinstance(object_tracker.is_tracked(do), str), ERROR_ID_STRING
     assert (
-        object_tracker.is_tracked(do) != "" and object_tracker.is_tracked(do) != "None"
-    ), ERROR_ID_EMPTY  # noqa: E501
-    assert object_tracker.is_tracked(do) == do_id, ERROR_ID_DIFFERENT  # noqa: E501
+        object_tracker.is_tracked(do) != ""
+        and object_tracker.is_tracked(do) != "None"  # noqa: E501
+    ), ERROR_ID_EMPTY
+    assert object_tracker.is_tracked(do) == do_id, ERROR_ID_DIFFERENT
     # The object do is being tracked
     object_tracker.stop_tracking(do)
     assert (
-        object_tracker.is_tracked(do) == "" or object_tracker.is_tracked(do) == "None"
-    ), "The identifier must be None after stop tracking"  # noqa: E501
+        object_tracker.is_tracked(do) == ""
+        or object_tracker.is_tracked(do) == "None"  # noqa: E501
+    ), "The identifier must be None after stop tracking"
     assert do_file_name != "", ERROR_FILENAME_EMPTY
 
 
@@ -108,14 +109,14 @@ def test_stop_tracking_collection():
     collection_id, collection_file_name = object_tracker.track(
         my_collection, collection=True
     )
-    assert object_tracker.is_tracked(my_collection) != "", ERROR_ID_NONE  # noqa: E501
+    assert object_tracker.is_tracked(my_collection) != "", ERROR_ID_NONE
     assert isinstance(
         object_tracker.is_tracked(my_collection), str
     ), ERROR_ID_STRING  # noqa: E501
     assert (
         object_tracker.is_tracked(my_collection) != ""
         and object_tracker.is_tracked(my_collection) != "None"
-    ), ERROR_ID_EMPTY  # noqa: E501
+    ), ERROR_ID_EMPTY
     assert (
         object_tracker.is_tracked(my_collection) == collection_id
     ), ERROR_ID_DIFFERENT  # noqa: E501
@@ -123,7 +124,7 @@ def test_stop_tracking_collection():
     object_tracker.stop_tracking(my_collection, collection=True)
     assert (
         object_tracker.is_tracked(my_collection) == ""
-    ), "The identifier must be None after stop tracking"  # noqa: E501
+    ), "The identifier must be None after stop tracking"
     assert (
         collection_file_name == "None"
     ), "The file name must be None for collections."  # noqa: E501
@@ -163,7 +164,9 @@ def test_get_all_file_names():
     _, _ = object_tracker.track(do)
     _, _ = object_tracker.track(do2)
     file_names = object_tracker.get_all_file_names()
-    assert len(file_names) == 2, "Two elements should be being tracked: %s" % str(
+    assert (
+        len(file_names) == 2
+    ), "Two elements should be being tracked: %s" % str(  # noqa: E501
         file_names
     )
 

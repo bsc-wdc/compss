@@ -41,7 +41,7 @@ def test_get_serializer_priority():
         numpy,
         pickle,
         dill,
-    ], "ERROR: Received wrong priority with numpy object."  # noqa: E501
+    ], "ERROR: Received wrong priority with numpy object."
 
 
 def test_get_serializers():
@@ -142,9 +142,7 @@ def test_serialize_objects():
     os.remove(obj1[1])
     os.remove(obj2[1])
     os.remove(obj3[1])
-    assert len(result) == len(
-        objects
-    ), "ERROR: Wrong number of objects retrieved."  # noqa: E501
+    assert len(result) == len(objects), "ERROR: Wrong number of objects retrieved."
     assert result[0] == obj1[0], "ERROR: Wrong first object."
     assert result[1] == obj2[0], "ERROR: Wrong second object."
     assert np.array_equal(result[2], obj3[0]), "ERROR: Wrong third object."

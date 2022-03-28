@@ -64,7 +64,7 @@ def evaluate_piper_worker_common(worker_thread, mpi_worker=False):
         executor_inbound,
         control_worker_outbound,
         control_worker_inbound,
-    ) = files  # noqa: E501
+    ) = files
 
     current_path = os.path.dirname(os.path.abspath(__file__))
     python_path = current_path + "/../../tests/worker/:" + os.environ["PYTHONPATH"]
@@ -93,7 +93,7 @@ def evaluate_piper_worker_common(worker_thread, mpi_worker=False):
             executor_inbound,
             control_worker_outbound,
             control_worker_inbound,
-        ]  # noqa: E501
+        ]
     else:
         sys.argv = [
             "piper_worker.py",
@@ -112,7 +112,7 @@ def evaluate_piper_worker_common(worker_thread, mpi_worker=False):
             executor_inbound,
             control_worker_outbound,
             control_worker_inbound,
-        ]  # noqa: E501
+        ]
     pipes = sys.argv[-4:]
     # Create pipes
     for pipe in pipes:
@@ -171,7 +171,7 @@ def create_files():
         executor_inbound,
         control_worker_outbound,
         control_worker_inbound,
-    )  # noqa: E501
+    )
 
 
 def evaluate_worker(
@@ -191,7 +191,7 @@ def evaluate_worker(
         executor_inbound,
         control_worker_outbound,
         control_worker_inbound,
-    ) = files  # noqa: E501
+    ) = files
     print("Starting " + name + " worker")
     worker.start()
     print("Temp folder: " + temp_folder)

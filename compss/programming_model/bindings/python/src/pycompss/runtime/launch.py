@@ -158,8 +158,9 @@ def __load_user_module__(app_path: str, log_level: str) -> None:
         # exist (e.g. using autoparallel)
         if log_level != "off":
             print(
-                "WARNING: Could not load the application (this may be the cause of a running exception."
-            )  # noqa: E501
+                "WARNING: Could not load the application "
+                "(this may be the cause of a running exception."
+            )
 
 
 def __register_implementation_core_elements__() -> None:

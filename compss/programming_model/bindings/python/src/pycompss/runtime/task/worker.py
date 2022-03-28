@@ -301,7 +301,7 @@ class TaskWorker(object):
             new_values,
             self.decorator_arguments[target_label],
             args,
-        )  # noqa: E501
+        )
 
     @staticmethod
     def __release_memory__() -> None:

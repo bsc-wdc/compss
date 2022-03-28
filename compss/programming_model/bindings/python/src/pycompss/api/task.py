@@ -276,7 +276,7 @@ class Task(object):
                 self.function_type,
                 self.class_name,
                 self.hints,
-            ) = result  # noqa: E501
+            ) = result
             del master
             return fo
         elif context.in_worker():
@@ -346,7 +346,7 @@ class Task(object):
                         self.function_type,
                         self.class_name,
                         self.hints,
-                    ) = result  # noqa: E501
+                    ) = result
                     del master
                     return fo
                 else:
@@ -409,7 +409,7 @@ class Task(object):
                 _image = impl_args[1]
                 _type = "CET_PYTHON"
                 _func_complete = "%s&%s" % (
-                    str(self.__get_module_name__(user_function)),  # noqa: E501
+                    str(self.__get_module_name__(user_function)),
                     str(user_function.__name__),
                 )
                 impl_args = [

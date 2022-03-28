@@ -32,12 +32,8 @@ import time
 import pycompss.util.context as context
 import pycompss.util.interactive.helpers as interactive_helpers
 from pycompss.runtime.binding import get_log_path
-from pycompss.runtime.commons import DEFAULT_CONN
-from pycompss.runtime.commons import DEFAULT_JVM_WORKERS
-from pycompss.runtime.commons import DEFAULT_SCHED
-from pycompss.runtime.commons import INTERACTIVE_FILE_NAME
-from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
-from pycompss.runtime.commons import set_temporary_directory
+from pycompss.runtime.commons import CONSTANTS
+from pycompss.runtime.commons import GLOBALS
 from pycompss.runtime.constants import APPLICATION_RUNNING_EVENT
 from pycompss.runtime.management.classes import Future
 from pycompss.runtime.management.object_tracker import OT
@@ -79,7 +75,7 @@ from pycompss.util.tracing.helpers import emit_manual_event
 from pycompss.util.typing_helper import typing
 
 # GLOBAL VARIABLES
-APP_PATH = INTERACTIVE_FILE_NAME
+APP_PATH = CONSTANTS.interactive_file_name
 PERSISTENT_STORAGE = False
 STREAMING = False
 LOG_PATH = tempfile.mkdtemp()
@@ -108,17 +104,17 @@ def start(
     streaming_master_name: str = "",
     streaming_master_port: str = "",
     task_count: int = 50,
-    app_name: str = INTERACTIVE_FILE_NAME,
+    app_name: str = CONSTANTS.interactive_file_name,
     uuid: str = "",
     base_log_dir: str = "",
     specific_log_dir: str = "",
     extrae_cfg: str = "",
     comm: str = "NIO",
-    conn: str = DEFAULT_CONN,
+    conn: str = CONSTANTS.default_conn,
     master_name: str = "",
     master_port: str = "",
-    scheduler: str = DEFAULT_SCHED,
-    jvm_workers: str = DEFAULT_JVM_WORKERS,
+    scheduler: str = CONSTANTS.default_sched,
+    jvm_workers: str = CONSTANTS.default_jvm_workers,
     cpu_affinity: str = "automatic",
     gpu_affinity: str = "automatic",
     fpga_affinity: str = "automatic",
@@ -177,7 +173,7 @@ def start(
     :param task_count: Task count
                        (default: 50)
     :param app_name: Application name
-                     default: INTERACTIVE_FILE_NAME)
+                     (default: CONSTANTS.interactive_file_name)
     :param uuid: UUId
                  (default: None)
     :param base_log_dir: Base logging directory
@@ -341,7 +337,7 @@ def start(
 
     # Check if running in supercomputer and update the variables accordingly
     # with the defined in the launcher and exported in environment variables.
-    if RUNNING_IN_SUPERCOMPUTER:
+    if CONSTANTS.running_in_supercomputer:
         updated_vars = updated_variables_in_sc()
         if verbose:
             print("- Overridden project xml with: %s" % updated_vars["project_xml"])
@@ -395,7 +391,7 @@ def start(
 
     global LOG_PATH
     LOG_PATH = get_log_path()
-    set_temporary_directory(LOG_PATH)
+    GLOBALS.set_temporary_directory(LOG_PATH)
     print("* - Log path : " + LOG_PATH)
 
     # Setup logging
@@ -407,7 +403,7 @@ def start(
         str(all_vars["major_version"]),
         "log",
     )
-    set_temporary_directory(binding_log_path)
+    GLOBALS.set_temporary_directory(binding_log_path)
     logging_cfg_file = get_logging_cfg_file(log_level)
     init_logging(os.path.join(log_path, logging_cfg_file), binding_log_path)
     logger = logging.getLogger("pycompss.runtime.launch")
@@ -788,7 +784,7 @@ def __export_globals__() -> None:
     # decorators can get it.
     temp_app_filename = "".join(
         (
-            os.path.join(os.getcwd(), INTERACTIVE_FILE_NAME),
+            os.path.join(os.getcwd(), CONSTANTS.interactive_file_name),
             "_",
             str(time.strftime("%d%m%y_%H%M%S")),
             ".py",

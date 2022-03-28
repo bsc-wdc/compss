@@ -64,12 +64,8 @@ from pycompss.api.commons.implementation_types import IMPL_PYTHON_MPI
 from pycompss.api.parameter import DIRECTION
 from pycompss.api.parameter import TYPE
 from pycompss.runtime.binding import wait_on
-from pycompss.runtime.commons import EMPTY_STRING_KEY
-from pycompss.runtime.commons import EXTRA_CONTENT_TYPE_FORMAT
-from pycompss.runtime.commons import INTERACTIVE_FILE_NAME
-from pycompss.runtime.commons import STR_ESCAPE
-from pycompss.runtime.commons import TRACING_TASK_NAME_TO_ID
-from pycompss.runtime.commons import get_object_conversion
+from pycompss.runtime.commons import CONSTANTS
+from pycompss.runtime.commons import GLOBALS
 from pycompss.runtime.constants import ATTRIBUTES_CLEANUP
 from pycompss.runtime.constants import BUILD_COMPSS_TYPES_DIRECTIONS
 from pycompss.runtime.constants import BUILD_RETURN_OBJECTS
@@ -373,11 +369,13 @@ class TaskMaster(object):
                     )
                 )
 
-        if impl_signature not in TRACING_TASK_NAME_TO_ID:
-            TRACING_TASK_NAME_TO_ID[impl_signature] = len(TRACING_TASK_NAME_TO_ID) + 1
+        if not GLOBALS.in_tracing_task_name_to_id(impl_signature):
+            GLOBALS.set_tracing_task_name_to_id(
+                impl_signature, GLOBALS.len_tracing_task_name_to_id() + 1
+            )
 
         emit_manual_event_explicit(
-            BINDING_TASKS_FUNC_TYPE, TRACING_TASK_NAME_TO_ID[impl_signature]
+            BINDING_TASKS_FUNC_TYPE, GLOBALS.get_tracing_task_name_id(impl_signature)
         )
 
         # Check if we are in interactive mode and update if needed
@@ -580,7 +578,10 @@ class TaskMaster(object):
         # Get the file name
         file_name = os.path.splitext(os.path.basename(path))[0]
         # Do any necessary pre processing action before executing any code
-        if file_name.startswith(INTERACTIVE_FILE_NAME) and not self.registered:
+        if (
+            file_name.startswith(CONSTANTS.interactive_file_name)
+            and not self.registered
+        ):
             # If the file_name starts with "InteractiveMode" means that
             # the user is using PyCOMPSs from jupyter-notebook.
             # Convention between this file and interactive.py
@@ -1793,10 +1794,11 @@ class TaskMaster(object):
             p = self.parameters[k]
             # Convert small objects to string if OBJECT_CONVERSION enabled
             # Check if the object is small in order not to serialize it.
-            if get_object_conversion():
+            if GLOBALS.get_object_conversion():
                 # todo: fix this case too
                 p, written_bytes = self._convert_parameter_obj_to_string(
-                    p, max_obj_arg_size, policy="objectSize")  # noqa: E501
+                    p, max_obj_arg_size, policy="objectSize"
+                )  # noqa: E501
                 max_obj_arg_size -= written_bytes
             else:
                 # Serialize objects into files
@@ -1968,7 +1970,7 @@ class TaskMaster(object):
                     real_value = p.content
                     try:
                         v = serialize_to_bytes(p.content)
-                        p.content = str(v).encode(STR_ESCAPE)  # noqa
+                        p.content = str(v).encode(CONSTANTS.str_escape)  # noqa
                         p.content_type = TYPE.STRING
                         if __debug__:
                             logger.debug(
@@ -2008,7 +2010,7 @@ class TaskMaster(object):
                 real_value = p.content
                 try:
                     v = serialize_to_bytes(p.content)
-                    v_str = str(str(v).encode(STR_ESCAPE))  # noqa
+                    v_str = str(str(v).encode(CONSTANTS.str_escape))  # noqa
                     # check object size
                     num_bytes = sys.getsizeof(v_str)
                     if __debug__:
@@ -2281,13 +2283,15 @@ def _extract_parameter(
             # Empty string - use escape string to avoid padding
             # Checked and substituted by empty string in the worker.py and
             # piper_worker.py
-            param.content = b64encode(EMPTY_STRING_KEY.encode()).decode()  # noqa: E501
-        con_type = EXTRA_CONTENT_TYPE_FORMAT.format(
+            param.content = b64encode(
+                CONSTANTS.empty_string_key.encode()
+            ).decode()  # noqa: E501
+        con_type = CONSTANTS.extra_content_type_format.format(
             "builtins", str(param.content.__class__.__name__))
     elif param.content_type == TYPE.STRING and not param.is_future:  # noqa: E501
         if len(param.content) == 0:
-            param.content = EMPTY_STRING_KEY    # noqa: E501
-        con_type = EXTRA_CONTENT_TYPE_FORMAT.format(
+            param.content = CONSTANTS.empty_string_key
+        con_type = CONSTANTS.extra_content_type_format.format(
             "builtins", str(param.content.__class__.__name__)
         )
 
@@ -2330,7 +2334,7 @@ def _extract_parameter(
             # "builtin" modules do not have __file__ attribute!
             _mf = "builtins"
         _class_name = str(param.content.__class__.__name__)
-        con_type = EXTRA_CONTENT_TYPE_FORMAT.format(_mf, _class_name)
+        con_type = CONSTANTS.extra_content_type_format.format(_mf, _class_name)
     elif param.content_type == TYPE.EXTERNAL_STREAM:
         # If the parameter type is stream, its value is stored in a file but
         # we keep the type
@@ -2353,7 +2357,7 @@ def _extract_parameter(
         #     ...
         #     typeN IdN pyTypeN
         _class_name = str(param.content.__class__.__name__)
-        con_type = EXTRA_CONTENT_TYPE_FORMAT.format("collection", _class_name)
+        con_type = CONSTANTS.extra_content_type_format.format("collection", _class_name)
         value = "{} {} {}".format(
             OT.is_tracked(param.content), len(param.content), con_type
         )
@@ -2386,7 +2390,9 @@ def _extract_parameter(
         #     ...
         #     typeN(value) IdN(value) pyTypeN(value)
         _class_name = str(param.content.__class__.__name__)
-        con_type = EXTRA_CONTENT_TYPE_FORMAT.format("dict_collection", _class_name)
+        con_type = CONSTANTS.extra_content_type_format.format(
+            "dict_collection", _class_name
+        )
         value = "{} {} {}".format(
             OT.is_tracked(param.content), len(param.content), con_type
         )

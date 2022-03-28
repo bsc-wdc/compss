@@ -24,7 +24,7 @@ PyCOMPSs Common piper utils
 """
 
 import pycompss.util.context as context
-from pycompss.runtime.commons import set_temporary_directory
+from pycompss.runtime.commons import GLOBALS
 from pycompss.util.typing_helper import typing
 from pycompss.worker.piper.commons.constants import HEADER
 from pycompss.worker.piper.commons.executor import Pipe
@@ -74,7 +74,7 @@ class PiperWorkerConfiguration(object):
         :param argv: arguments from the command line.
         :return: None
         """
-        set_temporary_directory(argv[1], create_tmpdir=False)
+        GLOBALS.set_temporary_directory(argv[1], create_tmpdir=False)
         if argv[2] == "true":
             context.enable_nesting()
             self.nesting = True

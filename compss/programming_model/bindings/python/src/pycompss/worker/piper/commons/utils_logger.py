@@ -27,7 +27,7 @@ import logging
 import os
 
 import pycompss.util.context as context
-from pycompss.runtime.commons import get_temporary_directory
+from pycompss.runtime.commons import GLOBALS
 from pycompss.util.logger.helpers import init_logging_worker_piper
 from pycompss.util.typing_helper import typing
 
@@ -55,7 +55,7 @@ def load_loggers(
     else:
         # Default
         log_json = "/".join((log_cfg_path, "logging_worker_off.json"))
-    log_dir = get_temporary_directory()
+    log_dir = GLOBALS.get_temporary_directory()
     log_dir_temp = log_dir
     # log_dir is of the form:
     #    With agents or worker in master: /path/to/working_directory/tmpFiles/pycompssID/../../log

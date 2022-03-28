@@ -38,13 +38,8 @@ import traceback
 import pycompss.util.context as context
 from pycompss.api.exceptions import COMPSsException
 from pycompss.runtime.binding import get_log_path
-from pycompss.runtime.commons import DEFAULT_CONN
-from pycompss.runtime.commons import DEFAULT_JVM_WORKERS
-from pycompss.runtime.commons import DEFAULT_SCHED
-from pycompss.runtime.commons import PYTHON_VERSION
-from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
-from pycompss.runtime.commons import set_object_conversion
-from pycompss.runtime.commons import set_temporary_directory
+from pycompss.runtime.commons import CONSTANTS
+from pycompss.runtime.commons import GLOBALS
 from pycompss.runtime.constants import APPLICATION_RUNNING_EVENT
 
 # Streaming imports
@@ -245,7 +240,7 @@ def compss_main() -> None:
         compss_set_wall_clock(wall_clock)
 
     # Get object_conversion boolean
-    set_object_conversion(args.object_conversion == "true")
+    GLOBALS.set_object_conversion(args.object_conversion == "true")
 
     # Get application execution path
     APP_PATH = args.app_path
@@ -253,9 +248,9 @@ def compss_main() -> None:
     # Setup logging
     binding_log_path = get_log_path()
     log_path = os.path.join(
-        str(os.getenv("COMPSS_HOME")), "Bindings", "python", str(PYTHON_VERSION), "log"
+        str(os.getenv("COMPSS_HOME")), "Bindings", "python", "3", "log"
     )
-    set_temporary_directory(binding_log_path)
+    GLOBALS.set_temporary_directory(binding_log_path)
     logging_cfg_file = get_logging_cfg_file(log_level)
     init_logging(os.path.join(log_path, logging_cfg_file), binding_log_path)
     LOGGER = logging.getLogger("pycompss.runtime.launch")
@@ -358,11 +353,11 @@ def launch_pycompss_application(
     specific_log_dir: str = "",
     extrae_cfg: str = "",
     comm: str = "NIO",
-    conn: str = DEFAULT_CONN,
+    conn: str = CONSTANTS.default_conn,
     master_name: str = "",
     master_port: str = "",
-    scheduler: str = DEFAULT_SCHED,
-    jvm_workers: str = DEFAULT_JVM_WORKERS,
+    scheduler: str = CONSTANTS.default_sched,
+    jvm_workers: str = CONSTANTS.default_jvm_workers,
     cpu_affinity: str = "automatic",
     gpu_affinity: str = "automatic",
     fpga_affinity: str = "automatic",
@@ -542,7 +537,7 @@ def launch_pycompss_application(
     )
     all_vars.update(monitoring_vars)
 
-    if RUNNING_IN_SUPERCOMPUTER:
+    if CONSTANTS.running_in_supercomputer:
         updated_vars = updated_variables_in_sc()
         all_vars.update(updated_vars)
 
@@ -578,7 +573,7 @@ def launch_pycompss_application(
         str(all_vars["major_version"]),
         "log",
     )
-    set_temporary_directory(binding_log_path)
+    GLOBALS.set_temporary_directory(binding_log_path)
     logging_cfg_file = get_logging_cfg_file(log_level)
     init_logging(os.path.join(log_path, logging_cfg_file), binding_log_path)
     logger = logging.getLogger("pycompss.runtime.launch")

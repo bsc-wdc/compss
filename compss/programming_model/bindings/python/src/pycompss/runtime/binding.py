@@ -30,8 +30,7 @@ from shutil import rmtree
 
 import pycompss.runtime.management.COMPSs as COMPSs
 import pycompss.util.context as context
-from pycompss.runtime.commons import LIST_TYPE
-from pycompss.runtime.commons import get_temporary_directory
+from pycompss.runtime.commons import GLOBALS
 from pycompss.runtime.constants import ACCESSED_FILE_EVENT
 from pycompss.runtime.constants import BARRIER_EVENT
 from pycompss.runtime.constants import BARRIER_GROUP_EVENT
@@ -670,7 +669,7 @@ def __wait_on__(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
     else:
         ret_lst = ret
     # Check if there are empty elements return elements that need to be removed
-    if isinstance(ret_lst, LIST_TYPE):
+    if isinstance(ret_lst, list):
         # Look backwards the list removing the first EmptyReturn elements
         for elem in reversed(ret_lst):
             if isinstance(elem, EmptyReturn):
@@ -887,7 +886,7 @@ def _clean_temps() -> None:
 
     :return: None
     """
-    temp_directory = get_temporary_directory()
+    temp_directory = GLOBALS.get_temporary_directory()
     rmtree(temp_directory, True)
     cwd = os.getcwd()
     for f in os.listdir(cwd):

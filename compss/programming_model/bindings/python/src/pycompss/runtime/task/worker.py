@@ -26,7 +26,7 @@ import pycompss.api.parameter as parameter
 import pycompss.util.context as context
 from pycompss.api.exceptions import COMPSsException
 from pycompss.runtime.binding import wait_on
-from pycompss.runtime.commons import TRACING_HOOK_ENV_VAR
+from pycompss.runtime.commons import CONSTANTS
 from pycompss.runtime.global_args import delete_worker_args
 from pycompss.runtime.global_args import set_worker_args
 from pycompss.runtime.task.arguments import get_name_from_kwarg
@@ -875,8 +875,8 @@ class TaskWorker(object):
             pro_f = None
             if tracing:
                 global_tracing_hook = False
-                if TRACING_HOOK_ENV_VAR in os.environ:
-                    hook_enabled = os.environ[TRACING_HOOK_ENV_VAR] == "true"
+                if CONSTANTS.tracing_hook_env_var in os.environ:
+                    hook_enabled = os.environ[CONSTANTS.tracing_hook_env_var] == "true"
                     global_tracing_hook = hook_enabled
                 if self.decorator_arguments["tracing_hook"] or global_tracing_hook:
                     # The user wants to keep the tracing hook

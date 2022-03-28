@@ -29,8 +29,7 @@ import traceback
 
 import pycompss.api.parameter as parameter
 from pycompss.api.exceptions import COMPSsException
-from pycompss.runtime.commons import INTERACTIVE_FILE_NAME
-from pycompss.runtime.commons import STR_ESCAPE
+from pycompss.runtime.commons import CONSTANTS
 from pycompss.runtime.task.parameter import COMPSsFile
 from pycompss.runtime.task.parameter import JAVA_MAX_INT
 from pycompss.runtime.task.parameter import JAVA_MIN_INT
@@ -152,7 +151,7 @@ def build_task_parameter(
                 # try to recover the real object
                 # Decode removes double backslash, and encode returns
                 # the result as binary
-                p_bin = new_aux.decode(STR_ESCAPE).encode()
+                p_bin = new_aux.decode(CONSTANTS.str_escape).encode()
                 deserialized_aux = deserialize_from_bytes(p_bin, show_exception=False)
             except (SerializerException, ValueError, EOFError):
                 # was not an object
@@ -465,7 +464,7 @@ def import_user_module(path: str, logger: typing.Any) -> typing.Any:
             import importlib
 
             module = importlib.import_module(path)  # Python 2.7
-            if path.startswith(INTERACTIVE_FILE_NAME):
+            if path.startswith(CONSTANTS.interactive_file_name):
                 # Force reload in interactive mode. The user may have
                 # overwritten a function or task.
                 if py_version < (3, 4):

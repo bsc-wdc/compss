@@ -28,7 +28,7 @@ import signal
 import sys
 
 from mpi4py import MPI
-from pycompss.runtime.commons import get_temporary_directory
+from pycompss.runtime.commons import GLOBALS
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.tracing.helpers import dummy_context
 from pycompss.util.tracing.helpers import event_worker
@@ -268,7 +268,7 @@ def compss_persistent_executor(config: PiperWorkerConfiguration) -> None:
     process_name = "".join(("Rank-", str(RANK)))
     conf = ExecutorConf(
         config.debug,
-        get_temporary_directory(),
+        GLOBALS.get_temporary_directory(),
         TRACING,
         config.storage_conf,
         logger,

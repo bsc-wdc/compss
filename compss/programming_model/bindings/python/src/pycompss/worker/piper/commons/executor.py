@@ -53,7 +53,7 @@ except ImportError:
 
 import pycompss.runtime.management.COMPSs as COMPSs
 import pycompss.util.context as context
-from pycompss.runtime.commons import set_temporary_directory
+from pycompss.runtime.commons import GLOBALS
 from pycompss.worker.piper.commons.constants import EXECUTE_TASK_TAG
 from pycompss.worker.piper.commons.constants import END_TASK_TAG
 from pycompss.worker.piper.commons.constants import COMPSS_EXCEPTION_TAG
@@ -269,7 +269,7 @@ def executor(
 
         if len(conf.logger.handlers) == 0:
             # Logger has not been inherited correctly. Happens in MacOS.
-            set_temporary_directory(conf.tmp_dir, create_tmpdir=False)
+            GLOBALS.set_temporary_directory(conf.tmp_dir, create_tmpdir=False)
             # Reload logger
             (
                 conf.logger,

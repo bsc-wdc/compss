@@ -28,7 +28,7 @@ import argparse
 import sys
 from subprocess import Popen
 
-from pycompss.runtime.commons import PYTHON_INTERPRETER
+from pycompss.runtime.commons import CONSTANTS
 from pycompss.util.typing_helper import typing
 
 RUN_TAG = "run"
@@ -107,7 +107,9 @@ def main() -> None:
         python_interpreter = []
     else:
         # Use the same as current
-        python_interpreter = ["--python_interpreter=" + str(PYTHON_INTERPRETER)]
+        python_interpreter = [
+            "--python_interpreter=%s" % str(CONSTANTS.python_interpreter)
+        ]
 
     # Take an action
     if args.action == RUN_TAG:

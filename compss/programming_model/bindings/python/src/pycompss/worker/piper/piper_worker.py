@@ -28,7 +28,7 @@ import signal
 import sys
 
 import pycompss.util.context as context
-from pycompss.runtime.commons import get_temporary_directory
+from pycompss.runtime.commons import GLOBALS
 from pycompss.util.process.manager import Queue  # just typing
 from pycompss.util.process.manager import create_process
 from pycompss.util.process.manager import initialize_multiprocessing
@@ -145,7 +145,7 @@ def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
     # Create new executor processes
     conf = ExecutorConf(
         config.debug,
-        get_temporary_directory(),
+        GLOBALS.get_temporary_directory(),
         TRACING,
         config.storage_conf,
         logger,

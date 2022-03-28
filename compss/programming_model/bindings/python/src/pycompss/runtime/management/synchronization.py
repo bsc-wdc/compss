@@ -25,8 +25,6 @@ PyCOMPSs Binding - Management - Object Synchronization
 
 import pycompss.runtime.management.COMPSs as COMPSs
 import pycompss.util.context as context
-from pycompss.runtime.commons import DICT_TYPE
-from pycompss.runtime.commons import LIST_TYPE
 from pycompss.runtime.global_args import (
     update_worker_argument_parameter_content,
 )
@@ -54,9 +52,7 @@ def wait_on_object(obj: typing.Any, mode: str) -> typing.Any:
     :return: An object of "file" type.
     """
     compss_mode = get_compss_direction(mode)
-    if isinstance(obj, Future) or not (
-        isinstance(obj, LIST_TYPE) or isinstance(obj, DICT_TYPE)
-    ):
+    if isinstance(obj, Future) or not (isinstance(obj, list) or isinstance(obj, dict)):
         return _synchronize(obj, compss_mode)
     else:
         if len(obj) == 0:  # FUTURE OBJECT

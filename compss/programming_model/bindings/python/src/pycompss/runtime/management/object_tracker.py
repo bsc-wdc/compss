@@ -27,7 +27,7 @@ import os
 import time
 import uuid
 
-from pycompss.runtime.commons import get_temporary_directory
+from pycompss.runtime.commons import GLOBALS
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.typing_helper import typing
 
@@ -127,7 +127,7 @@ class ObjectTracker(object):
                 logger.debug("Tracking collection %s" % obj_id)
         else:
             obj_id = self._register_object(obj, True)
-            file_name = "%s/%s" % (get_temporary_directory(), str(obj_id))
+            file_name = "%s/%s" % (GLOBALS.get_temporary_directory(), str(obj_id))
             self._set_file_name(obj_id, file_name)
             self._set_obj_name(obj_id, obj_name)
             self.set_pending_to_synchronize(obj_id)
@@ -144,7 +144,7 @@ class ObjectTracker(object):
         if collection:
             file_name = "None"
         else:
-            file_name = "%s/%s" % (get_temporary_directory(), str(obj_id))
+            file_name = "%s/%s" % (GLOBALS.get_temporary_directory(), str(obj_id))
         self.current_id += 1
         return obj_id, file_name
 

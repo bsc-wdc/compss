@@ -33,13 +33,7 @@ from pycompss.util.objects.sizer import total_sizeof
 from pycompss.util.tracing.helpers import emit_manual_event_explicit
 from pycompss.util.tracing.helpers import event_inside_worker
 from pycompss.util.typing_helper import typing
-from pycompss.worker.commons.constants import (
-    RETRIEVE_OBJECT_FROM_CACHE_EVENT,
-    INSERT_OBJECT_INTO_CACHE_EVENT,
-    REMOVE_OBJECT_FROM_CACHE_EVENT,
-    BINDING_SERIALIZATION_CACHE_SIZE_TYPE,
-    BINDING_DESERIALIZATION_CACHE_SIZE_TYPE,
-)
+from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 
 try:
     from pycompss.util.process.manager import SharedMemory
@@ -431,8 +425,8 @@ def retrieve_object_from_cache(
     :param cache_profiler: If cache profiling is enabled.
     :return: The object from cache.
     """
-    with event_inside_worker(RETRIEVE_OBJECT_FROM_CACHE_EVENT):
-        emit_manual_event_explicit(BINDING_DESERIALIZATION_CACHE_SIZE_TYPE, 0)
+    with event_inside_worker(TRACING_WORKER.retrieve_object_from_cache_event):
+        emit_manual_event_explicit(TRACING_WORKER.binding_deserialization_cache_size_type, 0)
         identifier = __get_file_name__(identifier)
         if __debug__:
             logger.debug(HEADER + "Retrieving: " + str(identifier))
@@ -464,7 +458,7 @@ def retrieve_object_from_cache(
             raise PyCOMPSsException("Unknown cacheable type.")
         if __debug__:
             logger.debug(HEADER + "Retrieved: " + str(identifier))
-        emit_manual_event_explicit(BINDING_DESERIALIZATION_CACHE_SIZE_TYPE, object_size)
+        emit_manual_event_explicit(TRACING_WORKER.binding_deserialization_cache_size_type, object_size)
 
         # Profiling
         filename = filename_cleaned(identifier)
@@ -530,7 +524,7 @@ def insert_object_into_cache(
     :param user_function: Function.
     :return: None
     """
-    with event_inside_worker(INSERT_OBJECT_INTO_CACHE_EVENT):
+    with event_inside_worker(TRACING_WORKER.insert_object_into_cache_event):
         function = function_cleaned(user_function)
         f_name = __get_file_name__(f_name)
         if __debug__:
@@ -540,7 +534,7 @@ def insert_object_into_cache(
         try:
             inserted = True
             if isinstance(obj, np.ndarray):
-                emit_manual_event_explicit(BINDING_SERIALIZATION_CACHE_SIZE_TYPE, 0)
+                emit_manual_event_explicit(TRACING_WORKER.binding_serialization_cache_size_type, 0)
                 shape = obj.shape
                 d_type = obj.dtype
                 size = obj.nbytes
@@ -564,7 +558,7 @@ def insert_object_into_cache(
                     )
                 )  # noqa: E501
             elif isinstance(obj, list):
-                emit_manual_event_explicit(BINDING_SERIALIZATION_CACHE_SIZE_TYPE, 0)
+                emit_manual_event_explicit(TRACING_WORKER.binding_serialization_cache_size_type, 0)
                 sl = SHARED_MEMORY_MANAGER.ShareableList(obj)  # noqa
                 new_cache_id = sl.shm.name
                 size = total_sizeof(obj)
@@ -584,7 +578,7 @@ def insert_object_into_cache(
                     )
                 )  # noqa: E501
             elif isinstance(obj, tuple):
-                emit_manual_event_explicit(BINDING_SERIALIZATION_CACHE_SIZE_TYPE, 0)
+                emit_manual_event_explicit(TRACING_WORKER.binding_serialization_cache_size_type, 0)
                 sl = SHARED_MEMORY_MANAGER.ShareableList(obj)  # noqa
                 new_cache_id = sl.shm.name
                 size = total_sizeof(obj)
@@ -619,7 +613,7 @@ def insert_object_into_cache(
                         + "Can not put into cache: Not a [np.ndarray | list | tuple ] object"
                     )  # noqa: E501
             if inserted:
-                emit_manual_event_explicit(BINDING_SERIALIZATION_CACHE_SIZE_TYPE, size)
+                emit_manual_event_explicit(TRACING_WORKER.binding_serialization_cache_size_type, size)
             if __debug__ and inserted:
                 logger.debug(
                     HEADER
@@ -649,7 +643,7 @@ def remove_object_from_cache(
     :param f_name: File name that corresponds to the object (used as id).
     :return: None
     """
-    with event_inside_worker(REMOVE_OBJECT_FROM_CACHE_EVENT):
+    with event_inside_worker(TRACING_WORKER.remove_object_from_cache_event):
         f_name = __get_file_name__(f_name)
         if __debug__:
             logger.debug(HEADER + "Removing from cache: " + str(f_name))

@@ -40,7 +40,7 @@ from pycompss.api.exceptions import COMPSsException
 from pycompss.runtime.binding import get_log_path
 from pycompss.runtime.commons import CONSTANTS
 from pycompss.runtime.commons import GLOBALS
-from pycompss.runtime.constants import APPLICATION_RUNNING_EVENT
+from pycompss.util.tracing.types_events_master import TRACING_MASTER
 
 # Streaming imports
 from pycompss.streams.environment import init_streaming
@@ -282,7 +282,7 @@ def compss_main() -> None:
             show_optional_module_warnings()
 
         # MAIN EXECUTION
-        with event_master(APPLICATION_RUNNING_EVENT):
+        with event_master(TRACING_MASTER.application_running_event):
             # MAIN EXECUTION
             with open(APP_PATH) as f:
                 exec(compile(f.read(), APP_PATH, "exec"), globals())
@@ -597,7 +597,7 @@ def launch_pycompss_application(
     saved_argv = sys.argv
     sys.argv = list(args)
     # Execution:
-    with event_master(APPLICATION_RUNNING_EVENT):
+    with event_master(TRACING_MASTER.application_running_event):
         if func is None or func == "__main__":
             exec(open(app).read())
             result = None

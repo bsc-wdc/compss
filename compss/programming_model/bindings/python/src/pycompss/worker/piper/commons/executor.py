@@ -61,24 +61,13 @@ from pycompss.worker.piper.commons.constants import PING_TAG
 from pycompss.worker.piper.commons.constants import PONG_TAG
 from pycompss.worker.piper.commons.constants import QUIT_TAG
 from pycompss.worker.piper.commons.utils_logger import load_loggers
-from pycompss.worker.commons.constants import BIND_CPUS_EVENT
-from pycompss.worker.commons.constants import BIND_GPUS_EVENT
-from pycompss.worker.commons.constants import SETUP_ENVIRONMENT_EVENT
-from pycompss.worker.commons.constants import BUILD_SUCCESSFUL_MESSAGE_EVENT
-from pycompss.worker.commons.constants import BUILD_COMPSS_EXCEPTION_MESSAGE_EVENT
-from pycompss.worker.commons.constants import BUILD_EXCEPTION_MESSAGE_EVENT
-from pycompss.worker.commons.constants import CLEAN_ENVIRONMENT_EVENT
 from pycompss.worker.commons.executor import build_return_params_message
 from pycompss.worker.commons.worker import execute_task
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.tracing.helpers import emit_manual_event
 from pycompss.util.tracing.helpers import event_worker
 from pycompss.util.tracing.helpers import event_inside_worker
-from pycompss.worker.commons.constants import PROCESS_TASK_EVENT
-from pycompss.worker.commons.constants import PROCESS_PING_EVENT
-from pycompss.worker.commons.constants import PROCESS_QUIT_EVENT
-from pycompss.worker.commons.constants import INIT_WORKER_POSTFORK_EVENT
-from pycompss.worker.commons.constants import FINISH_WORKER_POSTFORK_EVENT
+from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.worker.piper.cache.tracker import load_shared_memory_manager
 
 # Streaming imports
@@ -310,7 +299,7 @@ def executor(
             try:
                 from storage.api import initWorkerPostFork  # noqa
 
-                with event_worker(INIT_WORKER_POSTFORK_EVENT):
+                with event_worker(TRACING_WORKER.init_worker_postfork_event):
                     initWorkerPostFork()
             except (ImportError, AttributeError):
                 if __debug__:
@@ -384,7 +373,7 @@ def executor(
             try:
                 from storage.api import finishWorkerPostFork  # noqa
 
-                with event_worker(FINISH_WORKER_POSTFORK_EVENT):
+                with event_worker(TRACING_WORKER.finish_worker_postfork_event):
                     finishWorkerPostFork()
             except (ImportError, AttributeError):
                 if __debug__:
@@ -534,7 +523,7 @@ def process_task(
     :param cache_profiler: Cache profiler
     :return: True if processed successfully, False otherwise.
     """
-    with event_worker(PROCESS_TASK_EVENT):
+    with event_worker(TRACING_WORKER.process_task_event):
         affinity_event_emit = False
         binded_cpus = False
         binded_gpus = False
@@ -786,7 +775,7 @@ def process_ping(pipe: Pipe, logger: typing.Any, process_name: str) -> bool:
     :param process_name: Process name.
     :return: True if success. False otherwise.
     """
-    with event_worker(PROCESS_PING_EVENT):
+    with event_worker(TRACING_WORKER.process_ping_event):
         if __debug__:
             logger.debug(HEADER + "[%s] Received ping." % str(process_name))
         try:
@@ -805,7 +794,7 @@ def process_quit(logger: typing.Any, process_name: str) -> bool:
     :param process_name: Process name.
     :return: Always false.
     """
-    with event_worker(PROCESS_QUIT_EVENT):
+    with event_worker(TRACING_WORKER.process_quit_event):
         if __debug__:
             logger.debug(HEADER + "[%s] Received quit." % str(process_name))
         return False
@@ -819,7 +808,7 @@ def bind_cpus(cpus: str, process_name: str, logger: typing.Any) -> bool:
     :param logger: Logger.
     :return: True if success, False otherwise.
     """
-    with event_inside_worker(BIND_CPUS_EVENT):
+    with event_inside_worker(TRACING_WORKER.bind_cpus_event):
         if __debug__:
             logger.debug(
                 HEADER
@@ -851,7 +840,7 @@ def bind_gpus(gpus: str, process_name: str, logger: typing.Any) -> None:
     :param logger: Logger.
     :return: None
     """
-    with event_inside_worker(BIND_GPUS_EVENT):
+    with event_inside_worker(TRACING_WORKER.bind_gpus_event):
         os.environ["COMPSS_BINDED_GPUS"] = gpus
         os.environ["CUDA_VISIBLE_DEVICES"] = gpus
         os.environ["GPU_DEVICE_ORDINAL"] = gpus
@@ -869,7 +858,7 @@ def setup_environment(cn: int, cn_names: str, cu: str) -> None:
     :param cu: Number of COMPSs threads.
     :return: None
     """
-    with event_inside_worker(SETUP_ENVIRONMENT_EVENT):
+    with event_inside_worker(TRACING_WORKER.setup_environment_event):
         os.environ["COMPSS_NUM_NODES"] = str(cn)
         os.environ["COMPSS_HOSTNAMES"] = cn_names
         os.environ["COMPSS_NUM_THREADS"] = cu
@@ -887,7 +876,7 @@ def build_successful_message(
     :param exit_value: Exit value.
     :return: Successful message.
     """
-    with event_inside_worker(BUILD_SUCCESSFUL_MESSAGE_EVENT):
+    with event_inside_worker(TRACING_WORKER.build_successful_message_event):
         # Task has finished without exceptions
         # endTask jobId exitValue message
         params = build_return_params_message(new_types, new_values)
@@ -906,7 +895,7 @@ def build_compss_exception_message(
     :param job_id: Job identifier.
     :return: Exception message and message.
     """
-    with event_inside_worker(BUILD_COMPSS_EXCEPTION_MESSAGE_EVENT):
+    with event_inside_worker(TRACING_WORKER.build_compss_exception_message_event):
         except_msg = except_msg.replace(" ", "_")
         message = " ".join(
             (COMPSS_EXCEPTION_TAG, str(job_id), str(except_msg) + "\n")
@@ -921,7 +910,7 @@ def build_exception_message(job_id: str, exit_value: int) -> str:
     :param exit_value: Exit value.
     :return: Exception message.
     """
-    with event_inside_worker(BUILD_EXCEPTION_MESSAGE_EVENT):
+    with event_inside_worker(TRACING_WORKER.build_exception_message_event):
         message = " ".join((END_TASK_TAG, str(job_id), str(exit_value) + "\n"))
         return message
 
@@ -935,7 +924,7 @@ def clean_environment(cpus: bool, gpus: bool) -> None:
     :param gpus: If binded gpus.
     :return: None
     """
-    with event_inside_worker(CLEAN_ENVIRONMENT_EVENT):
+    with event_inside_worker(TRACING_WORKER.clean_environment_event):
         if cpus:
             del os.environ["COMPSS_BINDED_CPUS"]
         if gpus:

@@ -66,22 +66,8 @@ from pycompss.api.parameter import TYPE
 from pycompss.runtime.binding import wait_on
 from pycompss.runtime.commons import CONSTANTS
 from pycompss.runtime.commons import GLOBALS
-from pycompss.runtime.constants import ATTRIBUTES_CLEANUP
-from pycompss.runtime.constants import BUILD_COMPSS_TYPES_DIRECTIONS
-from pycompss.runtime.constants import BUILD_RETURN_OBJECTS
-from pycompss.runtime.constants import CHECK_INTERACTIVE
-from pycompss.runtime.constants import EXTRACT_CORE_ELEMENT
-from pycompss.runtime.constants import GET_FUNCTION_INFORMATION
-from pycompss.runtime.constants import GET_FUNCTION_SIGNATURE
-from pycompss.runtime.constants import INSPECT_FUNCTION_ARGUMENTS
-from pycompss.runtime.constants import POP_TASK_PARAMETERS
-from pycompss.runtime.constants import PREPARE_CORE_ELEMENT
-from pycompss.runtime.constants import PROCESS_OTHER_ARGUMENTS
-from pycompss.runtime.constants import PROCESS_PARAMETERS
-from pycompss.runtime.constants import PROCESS_RETURN
-from pycompss.runtime.constants import PROCESS_TASK_BINDING
-from pycompss.runtime.constants import SERIALIZE_OBJECT
-from pycompss.runtime.constants import UPDATE_CORE_ELEMENT
+from pycompss.util.tracing.types_events_master import TRACING_MASTER
+from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.runtime.management.classes import FunctionType
 from pycompss.runtime.management.classes import Future
 from pycompss.runtime.management.direction import get_compss_direction
@@ -120,7 +106,6 @@ from pycompss.util.storages.persistent import get_id
 from pycompss.util.tracing.helpers import emit_manual_event_explicit
 from pycompss.util.tracing.helpers import event_master
 from pycompss.util.typing_helper import typing
-from pycompss.worker.commons.constants import BINDING_TASKS_FUNC_TYPE
 
 logger = logging.getLogger(__name__)
 
@@ -335,7 +320,7 @@ class TaskMaster(object):
         # their names. This defines self.param_args, self.param_varargs,
         # and self.param_defaults. And gives non-None default
         # values to them if necessary
-        with event_master(INSPECT_FUNCTION_ARGUMENTS):
+        with event_master(TRACING_MASTER.inspect_function_arguments):
             if not self.function_arguments:
                 self.inspect_user_function_arguments()
             # It will be easier to deal with functions if we pretend that all
@@ -353,10 +338,10 @@ class TaskMaster(object):
                 self.param_defaults = ()
 
         # Compute the function path, class (if any), and name
-        with event_master(GET_FUNCTION_INFORMATION):
+        with event_master(TRACING_MASTER.get_function_information):
             self.compute_user_function_information(args)
 
-        with event_master(GET_FUNCTION_SIGNATURE):
+        with event_master(TRACING_MASTER.get_function_signature):
             impl_signature, impl_type_args = self.get_signature()
             if __debug__:
                 logger.debug(
@@ -375,11 +360,12 @@ class TaskMaster(object):
             )
 
         emit_manual_event_explicit(
-            BINDING_TASKS_FUNC_TYPE, GLOBALS.get_tracing_task_name_id(impl_signature)
+            TRACING_WORKER.binding_tasks_func_type,
+            GLOBALS.get_tracing_task_name_id(impl_signature)
         )
 
         # Check if we are in interactive mode and update if needed
-        with event_master(CHECK_INTERACTIVE):
+        with event_master(TRACING_MASTER.check_interactive):
             if self.interactive:
                 self.update_if_interactive(self.module)
             else:
@@ -389,19 +375,19 @@ class TaskMaster(object):
 
         # Extract the core element (has to be extracted before processing
         # the kwargs to avoid issues processing the parameters)
-        with event_master(EXTRACT_CORE_ELEMENT):
+        with event_master(TRACING_MASTER.extract_core_element):
             cek = kwargs.pop(CORE_ELEMENT_KEY, None)
             pre_defined_ce = self.extract_core_element(cek)
 
         # Prepare the core element registration information
-        with event_master(PREPARE_CORE_ELEMENT):
+        with event_master(TRACING_MASTER.prepare_core_element):
             self.get_code_strings()
 
         # It is necessary to decide whether to register or not (the task may
         # be inherited, and in this case it has to be registered again with
         # the new implementation signature).
         if not self.registered or self.signature != impl_signature:
-            with event_master(UPDATE_CORE_ELEMENT):
+            with event_master(TRACING_MASTER.update_core_element):
                 self.update_core_element(impl_signature, impl_type_args, pre_defined_ce)
                 if context.is_loading():
                     # This case will only happen with @implements since it calls
@@ -423,10 +409,10 @@ class TaskMaster(object):
         else:
             # Launch task to the runtime
             # Extract task related parameters (e.g. returns, computing_nodes, etc.)
-            with event_master(POP_TASK_PARAMETERS):
+            with event_master(TRACING_MASTER.pop_task_parameters):
                 self.pop_task_parameters(kwargs)
                 # this is total # of processes for this task
-            with event_master(PROCESS_OTHER_ARGUMENTS):
+            with event_master(TRACING_MASTER.process_other_arguments):
                 # Get other arguments if exist
                 if not self.hints:
                     self.hints = self.check_task_hints()
@@ -440,17 +426,17 @@ class TaskMaster(object):
                 is_http = self.core_element.get_impl_type() == "HTTP"
 
             # Process the parameters, give them a proper direction
-            with event_master(PROCESS_PARAMETERS):
+            with event_master(TRACING_MASTER.process_parameters):
                 self.process_parameters(args, kwargs, code_strings=self.user_function.__code_strings__)
 
             # Deal with the return part.
-            with event_master(PROCESS_RETURN):
+            with event_master(TRACING_MASTER.process_return):
                 num_returns = self.add_return_parameters(self.explicit_num_returns, code_strings=self.user_function.__code_strings__)
                 if not self.returns:
                     num_returns = self.update_return_if_no_returns(self.user_function)
 
             # Build return objects
-            with event_master(BUILD_RETURN_OBJECTS):
+            with event_master(TRACING_MASTER.build_return_objects):
                 fo = None
                 if self.returns:
                     fo = self._build_return_objects(num_returns)
@@ -461,7 +447,7 @@ class TaskMaster(object):
             serializer.FORCED_SERIALIZER = -1  # reset the forced serializer
 
             # Build values and COMPSs types and directions
-            with event_master(BUILD_COMPSS_TYPES_DIRECTIONS):
+            with event_master(TRACING_MASTER.build_compss_types_directions):
                 vtdsc = self._build_values_types_directions()
                 (
                     values,
@@ -487,7 +473,7 @@ class TaskMaster(object):
                 )
 
             # Process the task
-            with event_master(PROCESS_TASK_BINDING):
+            with event_master(TRACING_MASTER.process_task_binding):
                 binding.process_task(
                     impl_signature,
                     has_target,
@@ -513,12 +499,13 @@ class TaskMaster(object):
                 )
 
             # Remove unused attributes from the memory
-            with event_master(ATTRIBUTES_CLEANUP):
+            with event_master(TRACING_MASTER.attributes_cleanup):
                 for at in ATTRIBUTES_TO_BE_REMOVED:
                     if hasattr(self, at):
                         delattr(self, at)
 
-            emit_manual_event_explicit(BINDING_TASKS_FUNC_TYPE, 0)
+            emit_manual_event_explicit(TRACING_WORKER.binding_tasks_func_type,
+                                       0)
 
         # Release the lock
         MASTER_LOCK.release()
@@ -1789,7 +1776,7 @@ class TaskMaster(object):
         :return: None
         """
         max_obj_arg_size = 320000
-        with event_master(SERIALIZE_OBJECT):
+        with event_master(TRACING_MASTER.serialize_object):
             # Check user annotations concerning this argument
             p = self.parameters[k]
             # Convert small objects to string if OBJECT_CONVERSION enabled

@@ -34,7 +34,7 @@ import pycompss.util.interactive.helpers as interactive_helpers
 from pycompss.runtime.binding import get_log_path
 from pycompss.runtime.commons import CONSTANTS
 from pycompss.runtime.commons import GLOBALS
-from pycompss.runtime.constants import APPLICATION_RUNNING_EVENT
+from pycompss.util.tracing.types_events_master import TRACING_MASTER
 from pycompss.runtime.management.classes import Future
 from pycompss.runtime.management.object_tracker import OT
 
@@ -434,7 +434,7 @@ def start(
     print(LINE_SEPARATOR)
 
     # Emit the application start event (the 0 is in the stop function)
-    emit_manual_event(APPLICATION_RUNNING_EVENT)
+    emit_manual_event(TRACING_MASTER.application_running_event)
 
 
 def __show_flower__() -> None:
@@ -569,7 +569,7 @@ def stop(sync: bool = False, _hard_stop: bool = False) -> None:
     if PERSISTENT_STORAGE:
         master_stop_storage(logger)
 
-    # Emit the 0 for the APPLICATION_RUNNING_EVENT emitted on start function.
+    # Emit the 0 for the TRACING_MASTER.*_event emitted on start function.
     emit_manual_event(0)
 
     # Stop runtime

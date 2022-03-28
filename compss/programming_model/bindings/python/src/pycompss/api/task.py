@@ -36,7 +36,6 @@ from pycompss.api.commons.constants import UNASSIGNED
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.implementation_types import IMPL_CONTAINER
 from pycompss.api.commons.implementation_types import IMPL_METHOD
-from pycompss.runtime.constants import TASK_INSTANTIATION
 from pycompss.runtime.task.core_element import CE
 from pycompss.runtime.task.master import TaskMaster
 from pycompss.runtime.task.parameter import get_new_parameter
@@ -47,9 +46,10 @@ from pycompss.util.logger.helpers import update_logger_handlers
 from pycompss.util.objects.properties import get_module_name
 from pycompss.util.tracing.helpers import event_inside_worker
 from pycompss.util.tracing.helpers import event_master
+from pycompss.util.tracing.types_events_master import TRACING_MASTER
+from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.util.typing_helper import dummy_function
 from pycompss.util.typing_helper import typing
-from pycompss.worker.commons.constants import WORKER_TASK_INSTANTIATION
 
 if __debug__:
     import logging
@@ -244,7 +244,7 @@ class Task(object):
             # Each task will have a TaskMaster, so its content will
             # not be shared.
             self.__check_core_element__(kwargs, user_function)
-            with event_master(TASK_INSTANTIATION):
+            with event_master(TRACING_MASTER.task_instantiation):
                 master = TaskMaster(
                     self.decorator_arguments,
                     self.user_function,
@@ -289,7 +289,7 @@ class Task(object):
                         kwargs["compss_log_files"][1],
                     )
                 # @task being executed in the worker
-                with event_inside_worker(WORKER_TASK_INSTANTIATION):
+                with event_inside_worker(TRACING_WORKER.worker_task_instantiation):
                     worker = TaskWorker(
                         self.decorator_arguments,
                         self.user_function,
@@ -314,7 +314,7 @@ class Task(object):
                 if context.is_nesting_enabled():
                     # Each task will have a TaskMaster, so its content will
                     # not be shared.
-                    with event_master(TASK_INSTANTIATION):
+                    with event_master(TRACING_MASTER.task_instantiation):
                         master = TaskMaster(
                             self.decorator_arguments,
                             self.user_function,

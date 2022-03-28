@@ -36,8 +36,7 @@ from pycompss.util.logger.helpers import init_logging_worker
 from pycompss.util.tracing.helpers import dummy_context
 from pycompss.util.tracing.helpers import event_worker
 from pycompss.util.tracing.helpers import trace_multiprocessing_worker
-from pycompss.worker.commons.constants import FINISH_STORAGE_AT_WORKER_EVENT
-from pycompss.worker.commons.constants import INIT_STORAGE_AT_WORKER_EVENT
+from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.worker.commons.worker import execute_task
 
 
@@ -159,7 +158,7 @@ def main() -> None:
 
         if persistent_storage:
             # Initialize storage
-            with event_worker(INIT_STORAGE_AT_WORKER_EVENT):
+            with event_worker(TRACING_WORKER.init_storage_at_worker_event):
                 from storage.api import initWorker as initStorageAtWorker  # noqa
 
                 initStorageAtWorker(config_file_path=storage_conf)
@@ -173,7 +172,7 @@ def main() -> None:
 
         if persistent_storage:
             # Finish storage
-            with event_worker(FINISH_STORAGE_AT_WORKER_EVENT):
+            with event_worker(TRACING_WORKER.finish_storage_at_worker_event):
                 from storage.api import finishWorker as finishStorageAtWorker  # noqa
 
                 finishStorageAtWorker()

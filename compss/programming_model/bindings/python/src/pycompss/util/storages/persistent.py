@@ -24,21 +24,13 @@ PyCOMPSs Utils - External Storage
     Isolates the API signature calls.
 """
 
-from pycompss.runtime.constants import INIT_STORAGE_EVENT as MASTER_INIT_STORAGE_EVENT
-from pycompss.runtime.constants import STOP_STORAGE_EVENT as MASTER_STOP_STORAGE_EVENT
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.tracing.helpers import event_inside_worker
 from pycompss.util.tracing.helpers import event_master
 from pycompss.util.tracing.helpers import event_worker
+from pycompss.util.tracing.types_events_master import TRACING_MASTER
+from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.util.typing_helper import typing
-from pycompss.worker.commons.constants import (
-    GETID_EVENT,
-    GET_BY_ID_EVENT,
-    # noqa Expose make persistent event id
-    # noqa Expose delete persistent event id
-    INIT_STORAGE_EVENT,
-    STOP_STORAGE_EVENT,
-)
 
 # Globals
 # Contain the actual storage api functions set on initialization
@@ -163,7 +155,7 @@ def get_id(psco: typing.Any) -> typing.Union[str, None]:
     :param psco: Persistent object.
     :return: Persistent object identifier.
     """
-    with event_inside_worker(GETID_EVENT):
+    with event_inside_worker(TRACING_WORKER.getid_event):
         return psco.getID()
 
 
@@ -173,7 +165,7 @@ def get_by_id(id: str) -> typing.Any:
     :param id: Persistent object identifier.
     :return: object associated to the persistent object identifier.
     """
-    with event_inside_worker(GET_BY_ID_EVENT):
+    with event_inside_worker(TRACING_WORKER.get_by_id_event):
         return GET_BY_ID(id)
 
 
@@ -186,7 +178,7 @@ def master_init_storage(storage_conf: str, logger: typing.Any) -> bool:
     :param logger: Logger where to log the messages.
     :return: True if initialized. False on the contrary.
     """
-    with event_master(MASTER_INIT_STORAGE_EVENT):
+    with event_master(TRACING_MASTER.init_storage_event):
         return __init_storage__(storage_conf, logger)
 
 
@@ -209,7 +201,7 @@ def init_storage(storage_conf: str, logger: typing.Any) -> bool:
     :param logger: Logger where to log the messages.
     :return: True if initialized. False on the contrary.
     """
-    with event_worker(INIT_STORAGE_EVENT):
+    with event_worker(TRACING_WORKER.init_storage_event):
         return __init_storage__(storage_conf, logger)
 
 
@@ -243,7 +235,7 @@ def master_stop_storage(logger: typing.Any) -> None:
     :param logger: Logger where to log the messages.
     :return: None
     """
-    with event_master(MASTER_STOP_STORAGE_EVENT):
+    with event_master(TRACING_MASTER.stop_storage_event):
         __stop_storage__(logger)
 
 
@@ -255,7 +247,7 @@ def stop_storage(logger: typing.Any) -> None:
     :param logger: Logger where to log the messages.
     :return: None
     """
-    with event_worker(STOP_STORAGE_EVENT):
+    with event_worker(TRACING_WORKER.stop_storage_event):
         __stop_storage__(logger)
 
 

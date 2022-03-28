@@ -36,7 +36,7 @@ from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.logger.helpers import init_logging_worker
 from pycompss.util.tracing.helpers import event_worker
 from pycompss.util.typing_helper import typing
-from pycompss.worker.commons.constants import PROCESS_TASK_EVENT
+from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.worker.commons.executor import build_return_params_message
 from pycompss.worker.commons.worker import execute_task
 from pycompss.worker.piper.commons.constants import COMPSS_EXCEPTION_TAG
@@ -150,7 +150,7 @@ def process_task(
     :param logger_formatter: Logger formatter.
     :return: exit_value and message.
     """
-    with event_worker(PROCESS_TASK_EVENT):
+    with event_worker(TRACING_WORKER.process_task_event):
         # Process properties
         stdout = sys.stdout
         stderr = sys.stderr

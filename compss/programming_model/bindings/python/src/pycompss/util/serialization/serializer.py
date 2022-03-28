@@ -51,10 +51,6 @@ import traceback
 import types
 from io import BytesIO
 
-from pycompss.runtime.constants import BINDING_DESERIALIZATION_OBJECT_NUM_TYPE
-from pycompss.runtime.constants import BINDING_DESERIALIZATION_SIZE_TYPE
-from pycompss.runtime.constants import BINDING_SERIALIZATION_OBJECT_NUM_TYPE
-from pycompss.runtime.constants import BINDING_SERIALIZATION_SIZE_TYPE
 from pycompss.util.exceptions import SerializerException
 from pycompss.util.objects.properties import object_belongs_to_module
 from pycompss.util.serialization.extended_support import GeneratorIndicator
@@ -62,11 +58,9 @@ from pycompss.util.serialization.extended_support import convert_to_generator
 from pycompss.util.serialization.extended_support import pickle_generator
 from pycompss.util.tracing.helpers import emit_manual_event_explicit
 from pycompss.util.tracing.helpers import event_inside_worker
+from pycompss.util.tracing.types_events_master import TRACING_MASTER
+from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.util.typing_helper import typing
-from pycompss.worker.commons.constants import DESERIALIZE_FROM_BYTES_EVENT
-from pycompss.worker.commons.constants import DESERIALIZE_FROM_FILE_EVENT
-from pycompss.worker.commons.constants import SERIALIZE_TO_FILE_EVENT
-from pycompss.worker.commons.constants import SERIALIZE_TO_FILE_MPIENV_EVENT
 
 try:
     import dill  # noqa
@@ -144,10 +138,10 @@ def serialize_to_handler(obj: typing.Any, handler: typing.Any) -> None:
     :raises SerializerException: If something wrong happens during
                                  serialization.
     """
-    emit_manual_event_explicit(BINDING_SERIALIZATION_SIZE_TYPE, 0)
+    emit_manual_event_explicit(TRACING_MASTER.binding_serialization_size_type, 0)
     if hasattr(handler, "name"):
         emit_manual_event_explicit(
-            BINDING_SERIALIZATION_OBJECT_NUM_TYPE,
+            TRACING_MASTER.binding_serialization_object_num_type,
             (abs(hash(os.path.basename(handler.name))) % PLATFORM_C_MAXINT),
         )
     if DISABLE_GC:
@@ -210,8 +204,8 @@ def serialize_to_handler(obj: typing.Any, handler: typing.Any) -> None:
                 tb = traceback.format_exc()
                 serialization_issues.append((serializer, tb))
         i += 1
-    emit_manual_event_explicit(BINDING_SERIALIZATION_SIZE_TYPE, handler.tell())
-    emit_manual_event_explicit(BINDING_SERIALIZATION_OBJECT_NUM_TYPE, 0)
+    emit_manual_event_explicit(TRACING_MASTER.binding_serialization_size_type, handler.tell())
+    emit_manual_event_explicit(TRACING_MASTER.binding_serialization_object_num_type, 0)
     if DISABLE_GC:
         # Enable the garbage collector and force to clean the memory
         gc.enable()
@@ -237,7 +231,7 @@ def serialize_to_file(obj: typing.Any, file_name: str) -> None:
     :param file_name: File name where the object is going to be serialized.
     :return: Nothing, it just serializes the object.
     """
-    with event_inside_worker(SERIALIZE_TO_FILE_EVENT):
+    with event_inside_worker(TRACING_WORKER.serialize_to_file_event):
         # todo: can we make the binary mode optional?
         handler = open(file_name, "wb")
         serialize_to_handler(obj, handler)
@@ -256,7 +250,7 @@ def serialize_to_file_mpienv(
                              False for INOUT objects and True otherwise.
     :return: Nothing, it just serializes the object.
     """
-    with event_inside_worker(SERIALIZE_TO_FILE_MPIENV_EVENT):
+    with event_inside_worker(TRACING_WORKER.serialize_to_file_mpienv_event):
         from mpi4py import MPI
 
         if rank_zero_reduce:
@@ -294,10 +288,10 @@ def deserialize_from_handler(
     :raises SerializerException: If deserialization can not be done.
     """
     # Retrieve the used library (if possible)
-    emit_manual_event_explicit(BINDING_DESERIALIZATION_SIZE_TYPE, 0)
+    emit_manual_event_explicit(TRACING_MASTER.binding_deserialization_size_type, 0)
     if hasattr(handler, "name"):
         emit_manual_event_explicit(
-            BINDING_DESERIALIZATION_OBJECT_NUM_TYPE,
+            TRACING_MASTER.binding_deserialization_object_num_type,
             (abs(hash(os.path.basename(handler.name))) % PLATFORM_C_MAXINT),
         )
     original_position = None
@@ -338,8 +332,8 @@ def deserialize_from_handler(
             # Enable the garbage collector and force to clean the memory
             gc.enable()
             gc.collect()
-        emit_manual_event_explicit(BINDING_DESERIALIZATION_SIZE_TYPE, handler.tell())
-        emit_manual_event_explicit(BINDING_DESERIALIZATION_OBJECT_NUM_TYPE, 0)
+        emit_manual_event_explicit(TRACING_MASTER.binding_deserialization_size_type, handler.tell())
+        emit_manual_event_explicit(TRACING_MASTER.binding_deserialization_object_num_type, 0)
         return ret, close_handler
     except Exception:
         tb = traceback.format_exc()
@@ -365,7 +359,7 @@ def deserialize_from_file(file_name: str) -> typing.Any:
     :param file_name: Name of the file with the contents to be deserialized
     :return: A deserialized object
     """
-    with event_inside_worker(DESERIALIZE_FROM_FILE_EVENT):
+    with event_inside_worker(TRACING_WORKER.deserialize_from_file_event):
         handler = open(file_name, "rb")
         ret, close_handler = deserialize_from_handler(handler)
         if close_handler:
@@ -382,7 +376,7 @@ def deserialize_from_bytes(
     :param show_exception: Show exception if happen (only with debug).
     :return: A deserialized object
     """
-    with event_inside_worker(DESERIALIZE_FROM_BYTES_EVENT):
+    with event_inside_worker(TRACING_WORKER.deserialize_from_bytes_event):
         handler = BytesIO(serialized_content_bytes)
         ret, close_handler = deserialize_from_handler(
             handler, show_exception=show_exception

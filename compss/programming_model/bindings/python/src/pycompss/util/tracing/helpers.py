@@ -27,17 +27,11 @@ PyCOMPSs Tracing helpers
 import time
 from contextlib import contextmanager
 
-from pycompss.runtime.constants import BINDING_MASTER_TYPE
 from pycompss.util.context import in_master
 from pycompss.util.context import in_worker
+from pycompss.util.tracing.types_events_master import TRACING_MASTER
+from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.util.typing_helper import typing
-from pycompss.worker.commons.constants import INSIDE_TASKS_CPU_AFFINITY_TYPE
-from pycompss.worker.commons.constants import INSIDE_TASKS_CPU_COUNT_TYPE
-from pycompss.worker.commons.constants import INSIDE_TASKS_GPU_AFFINITY_TYPE
-from pycompss.worker.commons.constants import INSIDE_TASKS_TYPE
-from pycompss.worker.commons.constants import INSIDE_WORKER_TYPE
-from pycompss.worker.commons.constants import SYNC_EVENTS
-from pycompss.worker.commons.constants import WORKER_RUNNING_EVENT
 
 PYEXTRAE = None  # type: typing.Any
 TRACING = False  # type: bool
@@ -66,13 +60,13 @@ def trace_multiprocessing_worker() -> typing.Iterator[None]:
 
     PYEXTRAE = pyextrae
     TRACING = True
-    pyextrae.eventandcounters(SYNC_EVENTS, 1)
-    pyextrae.eventandcounters(INSIDE_WORKER_TYPE, WORKER_RUNNING_EVENT)
+    pyextrae.eventandcounters(TRACING_WORKER.sync_type, 1)
+    pyextrae.eventandcounters(TRACING_WORKER.inside_worker_type, TRACING_WORKER.worker_running_event)
     yield  # here the worker runs
-    pyextrae.eventandcounters(INSIDE_WORKER_TYPE, 0)
-    pyextrae.eventandcounters(SYNC_EVENTS, 0)
-    pyextrae.eventandcounters(SYNC_EVENTS, int(time.time()))
-    pyextrae.eventandcounters(SYNC_EVENTS, 0)
+    pyextrae.eventandcounters(TRACING_WORKER.inside_worker_type, 0)
+    pyextrae.eventandcounters(TRACING_WORKER.sync_type, 0)
+    pyextrae.eventandcounters(TRACING_WORKER.sync_type, int(time.time()))
+    pyextrae.eventandcounters(TRACING_WORKER.sync_type, 0)
 
 
 @contextmanager
@@ -87,13 +81,13 @@ def trace_mpi_worker() -> typing.Iterator[None]:
 
     PYEXTRAE = pyextrae
     TRACING = True
-    pyextrae.eventandcounters(SYNC_EVENTS, 1)
-    pyextrae.eventandcounters(INSIDE_WORKER_TYPE, WORKER_RUNNING_EVENT)
+    pyextrae.eventandcounters(TRACING_WORKER.sync_type, 1)
+    pyextrae.eventandcounters(TRACING_WORKER.inside_worker_type, TRACING_WORKER.worker_running_event)
     yield  # here the worker runs
-    pyextrae.eventandcounters(INSIDE_WORKER_TYPE, 0)
-    pyextrae.eventandcounters(SYNC_EVENTS, 0)
-    pyextrae.eventandcounters(SYNC_EVENTS, int(time.time()))
-    pyextrae.eventandcounters(SYNC_EVENTS, 0)
+    pyextrae.eventandcounters(TRACING_WORKER.inside_worker_type, 0)
+    pyextrae.eventandcounters(TRACING_WORKER.sync_type, 0)
+    pyextrae.eventandcounters(TRACING_WORKER.sync_type, int(time.time()))
+    pyextrae.eventandcounters(TRACING_WORKER.sync_type, 0)
 
 
 @contextmanager
@@ -192,7 +186,7 @@ class event_master(object):
     def __init__(self, event_id: int) -> None:
         self.emitted = False
         if TRACING and in_master():
-            PYEXTRAE.eventandcounters(BINDING_MASTER_TYPE, event_id)
+            PYEXTRAE.eventandcounters(TRACING_MASTER.binding_master_type, event_id)
             self.emitted = True
 
     def __enter__(self) -> None:
@@ -202,7 +196,7 @@ class event_master(object):
         self, type: typing.Any, value: typing.Any, traceback: typing.Any
     ) -> None:
         if TRACING and self.emitted:
-            PYEXTRAE.eventandcounters(BINDING_MASTER_TYPE, 0)
+            PYEXTRAE.eventandcounters(TRACING_MASTER.binding_master_type, 0)
 
 
 class event_worker(object):
@@ -219,7 +213,7 @@ class event_worker(object):
     def __init__(self, event_id: int) -> None:
         self.emitted = False
         if TRACING and in_worker():
-            PYEXTRAE.eventandcounters(INSIDE_WORKER_TYPE, event_id)  # noqa
+            PYEXTRAE.eventandcounters(TRACING_WORKER.inside_worker_type, event_id)  # noqa
             self.emitted = True
 
     def __enter__(self) -> None:
@@ -229,7 +223,7 @@ class event_worker(object):
         self, type: typing.Any, value: typing.Any, traceback: typing.Any
     ) -> None:
         if TRACING and self.emitted:
-            PYEXTRAE.eventandcounters(INSIDE_WORKER_TYPE, 0)  # noqa
+            PYEXTRAE.eventandcounters(TRACING_WORKER.inside_worker_type, 0)  # noqa
 
 
 class event_inside_worker(object):
@@ -246,7 +240,7 @@ class event_inside_worker(object):
     def __init__(self, event_id: int) -> None:
         self.emitted = False
         if TRACING and in_worker():
-            PYEXTRAE.eventandcounters(INSIDE_TASKS_TYPE, event_id)  # noqa
+            PYEXTRAE.eventandcounters(TRACING_WORKER.inside_tasks_type, event_id)  # noqa
             self.emitted = True
 
     def __enter__(self) -> None:
@@ -256,7 +250,7 @@ class event_inside_worker(object):
         self, type: typing.Any, value: typing.Any, traceback: typing.Any
     ) -> None:
         if TRACING and self.emitted:
-            PYEXTRAE.eventandcounters(INSIDE_TASKS_TYPE, 0)  # noqa
+            PYEXTRAE.eventandcounters(TRACING_WORKER.inside_tasks_type, 0)  # noqa
 
 
 def emit_manual_event(
@@ -326,22 +320,22 @@ def __get_proper_type_event__(
     :return: Retrieves the appropriate event_group and event_id
     """
     if master:
-        event_group = BINDING_MASTER_TYPE
+        event_group = TRACING_MASTER.binding_master_type
     else:
         if inside:
             if cpu_affinity:
-                event_group = INSIDE_TASKS_CPU_AFFINITY_TYPE
+                event_group = TRACING_WORKER.inside_tasks_cpu_affinity_type
                 event_id = __parse_affinity_event_id__(event_id)
             elif gpu_affinity:
-                event_group = INSIDE_TASKS_GPU_AFFINITY_TYPE
+                event_group = TRACING_WORKER.inside_tasks_gpu_affinity_type
                 event_id = __parse_affinity_event_id__(event_id)
             elif cpu_number:
-                event_group = INSIDE_TASKS_CPU_COUNT_TYPE
+                event_group = TRACING_WORKER.inside_tasks_cpu_count_type
                 event_id = int(event_id)
             else:
-                event_group = INSIDE_TASKS_TYPE
+                event_group = TRACING_WORKER.inside_tasks_type
         else:
-            event_group = INSIDE_WORKER_TYPE
+            event_group = TRACING_WORKER.inside_worker_type
     return event_group, event_id
 
 

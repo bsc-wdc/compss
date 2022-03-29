@@ -61,7 +61,9 @@ def trace_multiprocessing_worker() -> typing.Iterator[None]:
     PYEXTRAE = pyextrae
     TRACING = True
     pyextrae.eventandcounters(TRACING_WORKER.sync_type, 1)
-    pyextrae.eventandcounters(TRACING_WORKER.inside_worker_type, TRACING_WORKER.worker_running_event)
+    pyextrae.eventandcounters(
+        TRACING_WORKER.inside_worker_type, TRACING_WORKER.worker_running_event
+    )
     yield  # here the worker runs
     pyextrae.eventandcounters(TRACING_WORKER.inside_worker_type, 0)
     pyextrae.eventandcounters(TRACING_WORKER.sync_type, 0)
@@ -82,7 +84,9 @@ def trace_mpi_worker() -> typing.Iterator[None]:
     PYEXTRAE = pyextrae
     TRACING = True
     pyextrae.eventandcounters(TRACING_WORKER.sync_type, 1)
-    pyextrae.eventandcounters(TRACING_WORKER.inside_worker_type, TRACING_WORKER.worker_running_event)
+    pyextrae.eventandcounters(
+        TRACING_WORKER.inside_worker_type, TRACING_WORKER.worker_running_event
+    )
     yield  # here the worker runs
     pyextrae.eventandcounters(TRACING_WORKER.inside_worker_type, 0)
     pyextrae.eventandcounters(TRACING_WORKER.sync_type, 0)
@@ -213,7 +217,9 @@ class event_worker(object):
     def __init__(self, event_id: int) -> None:
         self.emitted = False
         if TRACING and in_worker():
-            PYEXTRAE.eventandcounters(TRACING_WORKER.inside_worker_type, event_id)  # noqa
+            PYEXTRAE.eventandcounters(
+                TRACING_WORKER.inside_worker_type, event_id
+            )  # noqa
             self.emitted = True
 
     def __enter__(self) -> None:
@@ -240,7 +246,9 @@ class event_inside_worker(object):
     def __init__(self, event_id: int) -> None:
         self.emitted = False
         if TRACING and in_worker():
-            PYEXTRAE.eventandcounters(TRACING_WORKER.inside_tasks_type, event_id)  # noqa
+            PYEXTRAE.eventandcounters(
+                TRACING_WORKER.inside_tasks_type, event_id
+            )  # noqa
             self.emitted = True
 
     def __enter__(self) -> None:

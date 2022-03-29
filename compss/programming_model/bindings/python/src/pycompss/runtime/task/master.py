@@ -361,7 +361,7 @@ class TaskMaster(object):
 
         emit_manual_event_explicit(
             TRACING_WORKER.binding_tasks_func_type,
-            GLOBALS.get_tracing_task_name_id(impl_signature)
+            GLOBALS.get_tracing_task_name_id(impl_signature),
         )
 
         # Check if we are in interactive mode and update if needed
@@ -504,8 +504,7 @@ class TaskMaster(object):
                     if hasattr(self, at):
                         delattr(self, at)
 
-            emit_manual_event_explicit(TRACING_WORKER.binding_tasks_func_type,
-                                       0)
+            emit_manual_event_explicit(TRACING_WORKER.binding_tasks_func_type, 0)
 
         # Release the lock
         MASTER_LOCK.release()

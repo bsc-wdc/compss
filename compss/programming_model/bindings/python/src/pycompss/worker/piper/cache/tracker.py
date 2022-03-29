@@ -426,7 +426,9 @@ def retrieve_object_from_cache(
     :return: The object from cache.
     """
     with event_inside_worker(TRACING_WORKER.retrieve_object_from_cache_event):
-        emit_manual_event_explicit(TRACING_WORKER.binding_deserialization_cache_size_type, 0)
+        emit_manual_event_explicit(
+            TRACING_WORKER.binding_deserialization_cache_size_type, 0
+        )
         identifier = __get_file_name__(identifier)
         if __debug__:
             logger.debug(HEADER + "Retrieving: " + str(identifier))
@@ -458,7 +460,9 @@ def retrieve_object_from_cache(
             raise PyCOMPSsException("Unknown cacheable type.")
         if __debug__:
             logger.debug(HEADER + "Retrieved: " + str(identifier))
-        emit_manual_event_explicit(TRACING_WORKER.binding_deserialization_cache_size_type, object_size)
+        emit_manual_event_explicit(
+            TRACING_WORKER.binding_deserialization_cache_size_type, object_size
+        )
 
         # Profiling
         filename = filename_cleaned(identifier)
@@ -534,7 +538,9 @@ def insert_object_into_cache(
         try:
             inserted = True
             if isinstance(obj, np.ndarray):
-                emit_manual_event_explicit(TRACING_WORKER.binding_serialization_cache_size_type, 0)
+                emit_manual_event_explicit(
+                    TRACING_WORKER.binding_serialization_cache_size_type, 0
+                )
                 shape = obj.shape
                 d_type = obj.dtype
                 size = obj.nbytes
@@ -558,7 +564,9 @@ def insert_object_into_cache(
                     )
                 )  # noqa: E501
             elif isinstance(obj, list):
-                emit_manual_event_explicit(TRACING_WORKER.binding_serialization_cache_size_type, 0)
+                emit_manual_event_explicit(
+                    TRACING_WORKER.binding_serialization_cache_size_type, 0
+                )
                 sl = SHARED_MEMORY_MANAGER.ShareableList(obj)  # noqa
                 new_cache_id = sl.shm.name
                 size = total_sizeof(obj)
@@ -578,7 +586,9 @@ def insert_object_into_cache(
                     )
                 )  # noqa: E501
             elif isinstance(obj, tuple):
-                emit_manual_event_explicit(TRACING_WORKER.binding_serialization_cache_size_type, 0)
+                emit_manual_event_explicit(
+                    TRACING_WORKER.binding_serialization_cache_size_type, 0
+                )
                 sl = SHARED_MEMORY_MANAGER.ShareableList(obj)  # noqa
                 new_cache_id = sl.shm.name
                 size = total_sizeof(obj)
@@ -613,7 +623,9 @@ def insert_object_into_cache(
                         + "Can not put into cache: Not a [np.ndarray | list | tuple ] object"
                     )  # noqa: E501
             if inserted:
-                emit_manual_event_explicit(TRACING_WORKER.binding_serialization_cache_size_type, size)
+                emit_manual_event_explicit(
+                    TRACING_WORKER.binding_serialization_cache_size_type, size
+                )
             if __debug__ and inserted:
                 logger.debug(
                     HEADER

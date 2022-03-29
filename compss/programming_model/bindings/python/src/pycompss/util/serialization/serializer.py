@@ -204,7 +204,9 @@ def serialize_to_handler(obj: typing.Any, handler: typing.Any) -> None:
                 tb = traceback.format_exc()
                 serialization_issues.append((serializer, tb))
         i += 1
-    emit_manual_event_explicit(TRACING_MASTER.binding_serialization_size_type, handler.tell())
+    emit_manual_event_explicit(
+        TRACING_MASTER.binding_serialization_size_type, handler.tell()
+    )
     emit_manual_event_explicit(TRACING_MASTER.binding_serialization_object_num_type, 0)
     if DISABLE_GC:
         # Enable the garbage collector and force to clean the memory
@@ -332,8 +334,12 @@ def deserialize_from_handler(
             # Enable the garbage collector and force to clean the memory
             gc.enable()
             gc.collect()
-        emit_manual_event_explicit(TRACING_MASTER.binding_deserialization_size_type, handler.tell())
-        emit_manual_event_explicit(TRACING_MASTER.binding_deserialization_object_num_type, 0)
+        emit_manual_event_explicit(
+            TRACING_MASTER.binding_deserialization_size_type, handler.tell()
+        )
+        emit_manual_event_explicit(
+            TRACING_MASTER.binding_deserialization_object_num_type, 0
+        )
         return ret, close_handler
     except Exception:
         tb = traceback.format_exc()

@@ -34,10 +34,6 @@
     <!-- DEPENDENCIES -->
     <dependencies>
         <dependency>
-            <groupId>es.bsc.conn</groupId>
-            <artifactId>connectors-all</artifactId>
-        </dependency>
-        <dependency>
             <groupId>es.bsc.compss</groupId>
             <artifactId>compss-resources-commons</artifactId>
             <scope>provided</scope>

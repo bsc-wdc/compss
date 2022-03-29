@@ -42,10 +42,13 @@ public class MethodConfiguration extends Configuration {
     private String pythonpath = "";
     private String libraryPath = "";
     private String envScript = "";
+    private String pythonInterpreter = "";
 
     // Only used for NIO but declared here for connectors
     private int minPort;
     private int maxPort;
+
+    private int spawnerPort;
 
 
     /**
@@ -81,9 +84,12 @@ public class MethodConfiguration extends Configuration {
         this.pythonpath = clone.pythonpath;
         this.libraryPath = clone.libraryPath;
         this.envScript = clone.envScript;
+        this.pythonInterpreter = clone.pythonInterpreter;
 
         this.minPort = clone.minPort;
         this.maxPort = clone.maxPort;
+
+        this.spawnerPort = clone.spawnerPort;
     }
 
     /**
@@ -407,13 +413,35 @@ public class MethodConfiguration extends Configuration {
     /**
      * Set the application required environment script path.
      * 
-     * @param envScriptPath Application environment script path
+     * @param envScriptPath Application environment script path.
      */
     public void setEnvScript(String envScriptPath) {
         if (envScriptPath == null) {
             this.envScript = "";
         } else {
             this.envScript = envScriptPath;
+        }
+    }
+
+    /**
+     * Get the application's Python Interpreter.
+     * 
+     * @return The application's Python Interpreter.
+     */
+    public String getPythonInterpreter() {
+        return this.pythonInterpreter;
+    }
+
+    /**
+     * Set the application required Python Interpreter.
+     * 
+     * @param pythonInterpreter Application Python Interpreter.
+     */
+    public void setPythonInterpreter(String pythonInterpreter) {
+        if (pythonInterpreter == null) {
+            this.pythonInterpreter = "";
+        } else {
+            this.pythonInterpreter = pythonInterpreter;
         }
     }
 
@@ -451,6 +479,24 @@ public class MethodConfiguration extends Configuration {
      */
     public void setMaxPort(int maxPort) {
         this.maxPort = maxPort;
+    }
+
+    /**
+     * Returns the ssh spawner port.
+     * 
+     * @return The spawner port.
+     */
+    public int getSpawnerPort() {
+        return this.spawnerPort;
+    }
+
+    /**
+     * Sets a new value for the spawner port.
+     * 
+     * @param spawnerPort New spawner port.
+     */
+    public void setSpawnerPort(int spawnerPort) {
+        this.spawnerPort = spawnerPort;
     }
 
 }

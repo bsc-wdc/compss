@@ -36,6 +36,7 @@
         <dependency>
             <groupId>es.bsc.conn</groupId>
             <artifactId>connectors-all</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>es.bsc.compss</groupId>
@@ -116,15 +117,6 @@
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>es.bsc.conn</groupId>
-                                    <artifactId>vmm-conn</artifactId>
-                                    <version>${conn.version}</version>
-                                    <type>jar</type>
-                                    <overWrite>false</overWrite>
-                                    <outputDirectory>${project.build.directory}/cloud-conn/</outputDirectory>
-                                    <destFileName>vmm-conn.jar</destFileName>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>es.bsc.conn</groupId>
                                     <artifactId>slurm-conn</artifactId>
                                     <version>${conn.version}</version>
                                     <type>jar</type>
@@ -140,7 +132,17 @@
                                     <overWrite>false</overWrite>
                                     <outputDirectory>${project.build.directory}/cloud-conn/</outputDirectory>
                                     <destFileName>docker-conn.jar</destFileName>
-                                </artifactItem>
+			        </artifactItem>
+			        <!--artifactItem>
+                                    <groupId>es.bsc.conn</groupId>
+                                    <artifactId>vmm-conn</artifactId>
+                                    <version>${conn.version}</version>
+                                    <type>jar</type>
+                                    <overWrite>false</overWrite>
+                                    <outputDirectory>${project.build.directory}/cloud-conn/</outputDirectory>
+                                    <destFileName>vmm-conn.jar</destFileName>
+                                </artifactItem-->
+
                             </artifactItems>
                             <overWriteReleases>false</overWriteReleases>
                             <overWriteSnapshots>true</overWriteSnapshots>

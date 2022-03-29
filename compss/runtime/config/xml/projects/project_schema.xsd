@@ -29,7 +29,7 @@
 			<xsd:element name="Storage" type="StorageType" minOccurs="0" maxOccurs="1" />
 			<xsd:element name="OperatingSystem" type="OSType" minOccurs="0" maxOccurs="1" />
 			<xsd:element name="Software" type="SoftwareListType" minOccurs="0" maxOccurs="1" />
-                        <xsd:element name="SharedDisks" type="AttachedDisksListType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="SharedDisks" type="AttachedDisksListType" minOccurs="0" maxOccurs="1" />
 			<xsd:element name="Price" type="PriceType" minOccurs="0" maxOccurs="1" />
                 </xsd:choice>
         </xsd:complexType>
@@ -211,6 +211,7 @@
 			<xsd:element name="Classpath" type="xsd:string" minOccurs="0" maxOccurs="1" />
 			<xsd:element name="Pythonpath" type="xsd:string" minOccurs="0" maxOccurs="1" />
 			<xsd:element name="EnvironmentScript" type="xsd:string" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="PythonInterpreter" type="xsd:string" minOccurs="0" maxOccurs="1" />
                 </xsd:all>
 	</xsd:complexType>
 
@@ -315,7 +316,7 @@
                         <xsd:element name="InstallDir" type="xsd:string" minOccurs="1" maxOccurs="1" />
                         <xsd:element name="WorkingDir" type="xsd:string" minOccurs="1" maxOccurs="1" />
                         <!-- NOT mandatory -->
-			<xsd:element name="User" type="xsd:string" minOccurs="0" maxOccurs="1" />
+						<xsd:element name="User" type="xsd:string" minOccurs="0" maxOccurs="1" />
                         <xsd:element name="Application" type="ApplicationType" minOccurs="0" maxOccurs="1" />
                         <xsd:element name="LimitOfTasks" type="xsd:int" minOccurs="0" maxOccurs="1" />
 			<xsd:element name="Package" type="PackageType" minOccurs="0" maxOccurs="unbounded" />

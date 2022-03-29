@@ -75,6 +75,7 @@ public class NIOConfiguration extends MethodConfiguration {
      * @return Complete remote execution command.
      */
     public String[] getRemoteExecutionCommand(String user, String resource, String[] command) {
+
         String[] cmd = null;
         switch (this.remoteExecutionCommand) {
             case NO_REMOTE_EXECUTION_COMMAND:
@@ -104,13 +105,14 @@ public class NIOConfiguration extends MethodConfiguration {
             case SSH_REMOTE_EXECUTION_COMMAND:
             default:
                 // SSH OR Default
-                cmd = new String[5 + command.length];
+                cmd = new String[6 + command.length];
                 cmd[0] = "ssh";
                 cmd[1] = "-o StrictHostKeyChecking=no";
                 cmd[2] = "-o BatchMode=yes";
                 cmd[3] = "-o ChallengeResponseAuthentication=no";
-                cmd[4] = ((user == null || user.isEmpty()) ? "" : user + "@") + resource;
-                System.arraycopy(command, 0, cmd, 5, command.length);
+                cmd[4] = "-p " + this.getSpawnerPort();
+                cmd[5] = ((user == null || user.isEmpty()) ? "" : user + "@") + resource;
+                System.arraycopy(command, 0, cmd, 6, command.length);
                 break;
         }
         return cmd;

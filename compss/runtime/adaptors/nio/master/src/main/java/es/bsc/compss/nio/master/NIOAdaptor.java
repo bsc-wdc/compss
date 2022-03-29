@@ -128,6 +128,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
      */
     private static final int BASE_MASTER_PORT = 43_000;
     private static final int MAX_RANDOM_VALUE = 1_000;
+    private static final int DEFAULT_SPAWNER_PORT = 22;
     public static final int MASTER_PORT;
 
     // Final jobs log directory
@@ -268,6 +269,10 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         LOGGER.info("NIO MAX Port: " + maxFinal);
         config.setMinPort(minFinal);
         config.setMaxPort(maxFinal);
+        int spawnerPort = (propsResources.getSpawnerPort() != null && propsResources.getSpawnerPort() > 0)
+            ? propsResources.getSpawnerPort()
+            : DEFAULT_SPAWNER_PORT;
+        config.setSpawnerPort(spawnerPort);
 
     }
 
@@ -1172,11 +1177,12 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     @Override
     public StarterCommand getStarterCommand(String workerName, int workerPort, String masterName, String workingDir,
         String installDir, String appDir, String classpathFromFile, String pythonpathFromFile, String libPathFromFile,
-        String envScriptFromFile, int totalCPU, int totalGPU, int totalFPGA, int limitOfTasks, String hostId) {
+        String envScriptFromFile, String pythonInterpreterFromFile, int totalCPU, int totalGPU, int totalFPGA,
+        int limitOfTasks, String hostId) {
 
         return new NIOStarterCommand(workerName, workerPort, masterName, workingDir, installDir, appDir,
-            classpathFromFile, pythonpathFromFile, libPathFromFile, envScriptFromFile, totalCPU, totalGPU, totalFPGA,
-            limitOfTasks, hostId);
+            classpathFromFile, pythonpathFromFile, libPathFromFile, envScriptFromFile, pythonInterpreterFromFile,
+            totalCPU, totalGPU, totalFPGA, limitOfTasks, hostId);
     }
 
 }

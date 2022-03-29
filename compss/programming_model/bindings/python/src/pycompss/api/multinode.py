@@ -28,8 +28,8 @@ import os
 from functools import wraps
 
 import pycompss.util.context as context
-from pycompss.api.commons.constants import COMPUTING_NODES
-from pycompss.api.commons.constants import LEGACY_COMPUTING_NODES
+from pycompss.api.commons.constants import LABELS
+from pycompss.api.commons.constants import LEGACY_LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.decorator import process_computing_nodes
@@ -46,8 +46,8 @@ if __debug__:
     logger = logging.getLogger(__name__)
 
 MANDATORY_ARGUMENTS = set()  # type: typing.Set[str]
-SUPPORTED_ARGUMENTS = {COMPUTING_NODES}
-DEPRECATED_ARGUMENTS = {LEGACY_COMPUTING_NODES}
+SUPPORTED_ARGUMENTS = {LABELS.computing_nodes}
+DEPRECATED_ARGUMENTS = {LEGACY_LABELS.computing_nodes}
 SLURM_SKIP_VARS = [
     "SLURM_JOBID",
     "SLURM_JOB_ID",
@@ -129,7 +129,7 @@ class MultiNode(object):
 
             # Set the computing_nodes variable in kwargs for its usage
             # in @task decorator
-            kwargs[COMPUTING_NODES] = self.kwargs[COMPUTING_NODES]
+            kwargs[LABELS.computing_nodes] = self.kwargs[LABELS.computing_nodes]
 
             with keep_arguments(args, kwargs, prepend_strings=True):
                 # Call the method

@@ -27,19 +27,9 @@ PyCOMPSs API - MPI
 from functools import wraps
 
 import pycompss.util.context as context
-from pycompss.api.commons.constants import BINARY
-from pycompss.api.commons.constants import COMPUTING_NODES
-from pycompss.api.commons.constants import FAIL_BY_EXIT_VALUE
-from pycompss.api.commons.constants import FLAGS
-from pycompss.api.commons.constants import LEGACY_COMPUTING_NODES
-from pycompss.api.commons.constants import LEGACY_WORKING_DIR
-from pycompss.api.commons.constants import PARAMS
-from pycompss.api.commons.constants import PROCESSES
-from pycompss.api.commons.constants import PROCESSES_PER_NODE
-from pycompss.api.commons.constants import RUNNER
-from pycompss.api.commons.constants import SCALE_BY_CU
-from pycompss.api.commons.constants import UNASSIGNED
-from pycompss.api.commons.constants import WORKING_DIR
+from pycompss.api.commons.constants import INTERNAL_LABELS
+from pycompss.api.commons.constants import LABELS
+from pycompss.api.commons.constants import LEGACY_LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.decorator import process_computing_nodes
@@ -49,7 +39,6 @@ from pycompss.api.commons.decorator import run_command
 from pycompss.api.commons.implementation_types import IMPL_MPI
 from pycompss.api.commons.implementation_types import IMPL_PYTHON_MPI
 from pycompss.runtime.task.core_element import CE
-from pycompss.util.arguments import UNASSIGNED
 from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.typing_helper import typing
@@ -59,19 +48,23 @@ if __debug__:
 
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {RUNNER}
+MANDATORY_ARGUMENTS = {LABELS.runner}
 SUPPORTED_ARGUMENTS = {
-    BINARY,
-    PROCESSES,
-    WORKING_DIR,
-    RUNNER,
-    FLAGS,
-    PROCESSES_PER_NODE,
-    SCALE_BY_CU,
-    PARAMS,
-    FAIL_BY_EXIT_VALUE,
+    LABELS.binary,
+    LABELS.processes,
+    LABELS.working_dir,
+    LABELS.runner,
+    LABELS.flags,
+    LABELS.processes_per_node,
+    LABELS.scale_by_cu,
+    LABELS.params,
+    LABELS.fail_by_exit_value,
 }
-DEPRECATED_ARGUMENTS = {COMPUTING_NODES, LEGACY_COMPUTING_NODES, LEGACY_WORKING_DIR}
+DEPRECATED_ARGUMENTS = {
+    LABELS.computing_nodes,
+    LEGACY_LABELS.computing_nodes,
+    LEGACY_LABELS.working_dir,
+}
 
 
 class Mpi(object):
@@ -198,17 +191,17 @@ class Mpi(object):
         :param kwargs: Keyword arguments received from call.
         :return: Execution return code.
         """
-        cmd = [self.kwargs[RUNNER]]
-        if PROCESSES in self.kwargs:
-            cmd += ["-np", self.kwargs[PROCESSES]]
-        elif COMPUTING_NODES in self.kwargs:
-            cmd += ["-np", self.kwargs[COMPUTING_NODES]]
-        elif LEGACY_COMPUTING_NODES in self.kwargs:
-            cmd += ["-np", self.kwargs[LEGACY_COMPUTING_NODES]]
+        cmd = [self.kwargs[LABELS.runner]]
+        if LABELS.processes in self.kwargs:
+            cmd += ["-np", self.kwargs[LABELS.processes]]
+        elif LABELS.computing_nodes in self.kwargs:
+            cmd += ["-np", self.kwargs[LABELS.computing_nodes]]
+        elif LEGACY_LABELS.computing_nodes in self.kwargs:
+            cmd += ["-np", self.kwargs[LEGACY_LABELS.computing_nodes]]
 
-        if FLAGS in self.kwargs:
-            cmd += self.kwargs[FLAGS].split()
-        cmd += [self.kwargs[BINARY]]
+        if LABELS.flags in self.kwargs:
+            cmd += self.kwargs[LABELS.flags].split()
+        cmd += [self.kwargs[LABELS.binary]]
 
         return run_command(cmd, args, kwargs)
 
@@ -291,20 +284,20 @@ class Mpi(object):
             logger.debug("Configuring @mpi core element.")
 
         # Resolve @mpi specific parameters
-        if BINARY in self.kwargs:
-            binary = self.kwargs[BINARY]
+        if LABELS.binary in self.kwargs:
+            binary = self.kwargs[LABELS.binary]
             impl_type = IMPL_MPI
         else:
-            binary = UNASSIGNED
+            binary = INTERNAL_LABELS.unassigned
             impl_type = IMPL_PYTHON_MPI
             self.task_type = impl_type
 
-        runner = self.kwargs[RUNNER]
+        runner = self.kwargs[LABELS.runner]
 
-        if FLAGS in self.kwargs:
-            flags = self.kwargs[FLAGS]
+        if LABELS.flags in self.kwargs:
+            flags = self.kwargs[LABELS.flags]
         else:
-            flags = UNASSIGNED  # Empty or UNASSIGNED
+            flags = INTERNAL_LABELS.unassigned  # Empty or INTERNAL_LABELS.unassigned
 
         # Check if scale by cu is defined
         scale_by_cu_str = self.__resolve_scale_by_cu__()
@@ -330,19 +323,19 @@ class Mpi(object):
         else:
             ppn = "1"
 
-        if binary == UNASSIGNED:
+        if binary == INTERNAL_LABELS.unassigned:
             impl_signature = impl_type + "."
         else:
             impl_signature = ".".join((impl_type, str(proc), binary))
         impl_args = [
             binary,
-            self.kwargs[WORKING_DIR],
+            self.kwargs[LABELS.working_dir],
             runner,
             ppn,
             flags,
             scale_by_cu_str,
-            self.kwargs.get(PARAMS, UNASSIGNED),
-            self.kwargs[FAIL_BY_EXIT_VALUE],
+            self.kwargs.get("params", INTERNAL_LABELS.unassigned),
+            self.kwargs[LABELS.fail_by_exit_value],
         ]
 
         if impl_type == IMPL_PYTHON_MPI:
@@ -373,8 +366,8 @@ class Mpi(object):
         :return: Scale by cu value as string.
         :raises PyCOMPSsException: If scale_by_cu is not bool or string.
         """
-        if SCALE_BY_CU in self.kwargs:
-            scale_by_cu = self.kwargs[SCALE_BY_CU]
+        if LABELS.scale_by_cu in self.kwargs:
+            scale_by_cu = self.kwargs[LABELS.scale_by_cu]
             if isinstance(scale_by_cu, bool):
                 if scale_by_cu:
                     scale_by_cu_str = "true"

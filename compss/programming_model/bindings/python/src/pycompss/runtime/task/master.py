@@ -32,29 +32,8 @@ from threading import Lock
 import pycompss.api.parameter as parameter
 import pycompss.runtime.binding as binding
 import pycompss.util.context as context
-from pycompss.api.commons.constants import CHUNK_SIZE
-from pycompss.api.commons.constants import COMPUTING_NODES
-from pycompss.api.commons.constants import DEFAULTS
-from pycompss.api.commons.constants import IS_DISTRIBUTED
-from pycompss.api.commons.constants import IS_REDUCE
-from pycompss.api.commons.constants import IS_REPLICATED
-from pycompss.api.commons.constants import LEGACY_IS_DISTRIBUTED
-from pycompss.api.commons.constants import LEGACY_IS_REPLICATED
-from pycompss.api.commons.constants import LEGACY_TARGET_DIRECTION
-from pycompss.api.commons.constants import LEGACY_TIME_OUT
-from pycompss.api.commons.constants import LEGACY_VARARGS_TYPE
-from pycompss.api.commons.constants import NUMBA
-from pycompss.api.commons.constants import NUMBA_DECLARATION
-from pycompss.api.commons.constants import NUMBA_FLAGS
-from pycompss.api.commons.constants import NUMBA_SIGNATURE
-from pycompss.api.commons.constants import ON_FAILURE
-from pycompss.api.commons.constants import PRIORITY
-from pycompss.api.commons.constants import PROCESSES_PER_NODE
-from pycompss.api.commons.constants import RETURNS
-from pycompss.api.commons.constants import TARGET_DIRECTION
-from pycompss.api.commons.constants import TIME_OUT
-from pycompss.api.commons.constants import TRACING_HOOK
-from pycompss.api.commons.constants import VARARGS_TYPE
+from pycompss.api.commons.constants import LABELS
+from pycompss.api.commons.constants import LEGACY_LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.error_msgs import cast_env_to_int_error
 from pycompss.api.commons.implementation_types import IMPL_METHOD
@@ -142,32 +121,32 @@ MANDATORY_ARGUMENTS = set()  # type: typing.Set[str]
 # arguments (the user can define a=INOUT in the task decorator and this is not
 # an unexpected argument)
 SUPPORTED_ARGUMENTS = {
-    RETURNS,
-    "cache_returns",
-    PRIORITY,
-    ON_FAILURE,
-    DEFAULTS,
-    TIME_OUT,
-    IS_REPLICATED,
-    IS_DISTRIBUTED,
-    VARARGS_TYPE,
-    TARGET_DIRECTION,
-    COMPUTING_NODES,
-    IS_REDUCE,
-    CHUNK_SIZE,
-    NUMBA,
-    NUMBA_FLAGS,
-    NUMBA_SIGNATURE,
-    NUMBA_DECLARATION,
-    TRACING_HOOK,
+    LABELS.returns,
+    LABELS.cache_returns,
+    LABELS.priority,
+    LABELS.on_failure,
+    LABELS.defaults,
+    LABELS.time_out,
+    LABELS.is_replicated,
+    LABELS.is_distributed,
+    LABELS.varargs_type,
+    LABELS.target_direction,
+    LABELS.computing_nodes,
+    LABELS.is_reduce,
+    LABELS.chunk_size,
+    LABELS.numba,
+    LABELS.numba_flags,
+    LABELS.numba_signature,
+    LABELS.numba_declaration,
+    LABELS.tracing_hook,
 }  # type: typing.Set[str]
 # Deprecated arguments. Still supported but shows a message when used.
 DEPRECATED_ARGUMENTS = {
-    LEGACY_IS_REPLICATED,
-    LEGACY_IS_DISTRIBUTED,
-    LEGACY_VARARGS_TYPE,
-    LEGACY_TARGET_DIRECTION,
-    LEGACY_TIME_OUT,
+    LEGACY_LABELS.is_replicated,
+    LEGACY_LABELS.is_distributed,
+    LEGACY_LABELS.varargs_type,
+    LEGACY_LABELS.target_direction,
+    LEGACY_LABELS.time_out,
 }  # type: typing.Set[str]
 # All supported arguments
 ALL_SUPPORTED_ARGUMENTS = SUPPORTED_ARGUMENTS.union(DEPRECATED_ARGUMENTS)
@@ -180,7 +159,7 @@ ATTRIBUTES_TO_BE_REMOVED = {
     "param_defaults",
     "first_arg_name",
     "parameters",
-    RETURNS,
+    LABELS.returns,
     "multi_return",
 }
 
@@ -333,7 +312,7 @@ class TaskMaster(object):
             # how we should treat user functions, as most wrappers return a
             # function f(*a, **k)
             if self.param_varargs is None:
-                self.param_varargs = VARARGS_TYPE
+                self.param_varargs = LABELS.varargs_type
             if self.param_defaults is None:
                 self.param_defaults = ()
 
@@ -683,19 +662,19 @@ class TaskMaster(object):
         :return: None
         """
         # Pop returns from kwargs
-        self.explicit_num_returns = kwargs.pop(RETURNS, None)
+        self.explicit_num_returns = kwargs.pop(LABELS.returns, None)
 
         # Deal with dynamic computing nodes
         # If we have an MPI, COMPSs or MultiNode decorator above us we should
         # have computing_nodes as a kwarg, we should detect it and remove it.
         # Otherwise we set it to 1
-        cns = kwargs.pop(COMPUTING_NODES, 1)
+        cns = kwargs.pop(LABELS.computing_nodes, 1)
         if cns != 1:
             # Non default => parse
             self.computing_nodes = self.parse_computing_nodes(cns)
         else:
             self.computing_nodes = 1
-        processes_per_node = kwargs.pop(PROCESSES_PER_NODE, 1)
+        processes_per_node = kwargs.pop(LABELS.processes_per_node, 1)
         if processes_per_node != 1:
             # Non default => parse
             self.processes_per_node = self.parse_processes_per_node(processes_per_node)
@@ -706,20 +685,20 @@ class TaskMaster(object):
             self.validate_processes_per_node()
             self.computing_nodes = int(self.computing_nodes / self.processes_per_node)
         # Deal with on_failure
-        if ON_FAILURE in self.decorator_arguments:
-            self.on_failure = self.decorator_arguments[ON_FAILURE]
+        if LABELS.on_failure in self.decorator_arguments:
+            self.on_failure = self.decorator_arguments[LABELS.on_failure]
             # if task defines on_failure property the decorator is ignored
-            kwargs.pop(ON_FAILURE, None)
+            kwargs.pop(LABELS.on_failure, None)
         else:
-            self.on_failure = kwargs.pop(ON_FAILURE, "RETRY")
-        self.defaults = kwargs.pop(DEFAULTS, {})
+            self.on_failure = kwargs.pop(LABELS.on_failure, "RETRY")
+        self.defaults = kwargs.pop(LABELS.defaults, {})
         # Deal with reductions
-        is_reduce = kwargs.pop(IS_REDUCE, False)
+        is_reduce = kwargs.pop(LABELS.is_reduce, False)
         if is_reduce is not False:
             self.is_reduce = self.parse_is_reduce(is_reduce)
         else:
             self.is_reduce = False
-        chunk_size = kwargs.pop(CHUNK_SIZE, 0)
+        chunk_size = kwargs.pop(LABELS.chunk_size, 0)
         if chunk_size != 0:
             self.chunk_size = self.parse_chunk_size(chunk_size)
         else:
@@ -1369,31 +1348,31 @@ class TaskMaster(object):
         :return: The value of all possible hints.
         """
         deco_arg_getter = self.decorator_arguments.get
-        if LEGACY_IS_REPLICATED in self.decorator_arguments:
-            is_replicated = deco_arg_getter(LEGACY_IS_REPLICATED)
+        if LEGACY_LABELS.is_replicated in self.decorator_arguments:
+            is_replicated = deco_arg_getter(LEGACY_LABELS.is_replicated)
             logger.warning(
                 "Detected deprecated isReplicated. Please, change it to is_replicated"
             )  # noqa: E501
         else:
-            is_replicated = deco_arg_getter(IS_REPLICATED)
+            is_replicated = deco_arg_getter(LABELS.is_replicated)
         # Get is distributed
-        if LEGACY_IS_DISTRIBUTED in self.decorator_arguments:
-            is_distributed = deco_arg_getter(LEGACY_IS_DISTRIBUTED)
+        if LEGACY_LABELS.is_distributed in self.decorator_arguments:
+            is_distributed = deco_arg_getter(LEGACY_LABELS.is_distributed)
             logger.warning(
                 "Detected deprecated isDistributed. Please, change it to is_distributed"
             )  # noqa: E501
         else:
-            is_distributed = deco_arg_getter(IS_DISTRIBUTED)
+            is_distributed = deco_arg_getter(LABELS.is_distributed)
         # Get time out
-        if LEGACY_TIME_OUT in self.decorator_arguments:
-            time_out = deco_arg_getter(LEGACY_TIME_OUT)
+        if LEGACY_LABELS.time_out in self.decorator_arguments:
+            time_out = deco_arg_getter(LEGACY_LABELS.time_out)
             logger.warning(
                 "Detected deprecated timeOut. Please, change it to time_out"
             )  # noqa: E501
         else:
-            time_out = deco_arg_getter(TIME_OUT)
+            time_out = deco_arg_getter(LABELS.time_out)
         # Get priority
-        has_priority = deco_arg_getter(PRIORITY)
+        has_priority = deco_arg_getter(LABELS.priority)
         # Check if the function is an instance method or a class method.
         has_target = self.function_type == FunctionType.INSTANCE_METHOD
 
@@ -1414,7 +1393,7 @@ class TaskMaster(object):
         if returns:
             _returns = returns  # type: typing.Any
         else:
-            _returns = self.decorator_arguments[RETURNS]
+            _returns = self.decorator_arguments[LABELS.returns]
 
         # Note that RETURNS is by default False
         if not _returns:

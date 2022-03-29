@@ -32,7 +32,7 @@ from functools import wraps
 
 import pycompss.api.parameter as parameter
 import pycompss.util.context as context
-from pycompss.api.commons.constants import UNASSIGNED
+from pycompss.api.commons.constants import INTERNAL_LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.implementation_types import IMPL_CONTAINER
 from pycompss.api.commons.implementation_types import IMPL_METHOD
@@ -403,7 +403,7 @@ class Task(object):
             # The task is using a container
             impl_args = kwargs[CORE_ELEMENT_KEY].get_impl_type_args()
             _type = impl_args[2]
-            if _type == UNASSIGNED:
+            if _type == INTERNAL_LABELS.unassigned:
                 # The task is not invoking a binary
                 _engine = impl_args[0]
                 _image = impl_args[1]
@@ -416,10 +416,10 @@ class Task(object):
                     _engine,  # engine
                     _image,  # image
                     _type,  # internal_type
-                    UNASSIGNED,  # internal_binary
+                    INTERNAL_LABELS.unassigned,  # internal_binary
                     _func_complete,  # internal_func
-                    UNASSIGNED,  # working_dir
-                    UNASSIGNED,
+                    INTERNAL_LABELS.unassigned,  # working_dir
+                    INTERNAL_LABELS.unassigned,
                 ]  # fail_by_ev
                 kwargs[CORE_ELEMENT_KEY].set_impl_type_args(impl_args)
 

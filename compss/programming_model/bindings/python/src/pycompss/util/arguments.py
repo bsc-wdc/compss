@@ -32,8 +32,6 @@ import sys
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.typing_helper import typing
 
-UNASSIGNED = "[unassigned]"
-
 
 def check_arguments(
     mandatory_arguments: typing.Set[str],

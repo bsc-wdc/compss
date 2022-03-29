@@ -26,13 +26,7 @@ PyCOMPSs API - HTTP
 from functools import wraps
 
 import pycompss.util.context as context
-from pycompss.api.commons.constants import PAYLOAD
-from pycompss.api.commons.constants import PAYLOAD_TYPE
-from pycompss.api.commons.constants import PRODUCES
-from pycompss.api.commons.constants import REQUEST
-from pycompss.api.commons.constants import RESOURCE
-from pycompss.api.commons.constants import SERVICE_NAME
-from pycompss.api.commons.constants import UPDATES
+from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.runtime.task.core_element import CE
@@ -45,8 +39,13 @@ if __debug__:
 
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {SERVICE_NAME, RESOURCE, REQUEST}
-SUPPORTED_ARGUMENTS = {PAYLOAD, PAYLOAD_TYPE, PRODUCES, UPDATES}
+MANDATORY_ARGUMENTS = {LABELS.service_name, LABELS.resource, LABELS.request}
+SUPPORTED_ARGUMENTS = {
+    LABELS.payload,
+    LABELS.payload_type,
+    LABELS.produces,
+    LABELS.updates,
+}
 DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 
 

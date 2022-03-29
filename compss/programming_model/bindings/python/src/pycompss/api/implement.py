@@ -27,9 +27,8 @@ PyCOMPSs API - Implement (Versioning)
 from functools import wraps
 
 import pycompss.util.context as context
-from pycompss.api.commons.constants import LEGACY_SOURCE_CLASS
-from pycompss.api.commons.constants import METHOD
-from pycompss.api.commons.constants import SOURCE_CLASS
+from pycompss.api.commons.constants import LABELS
+from pycompss.api.commons.constants import LEGACY_LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.error_msgs import not_in_pycompss
@@ -44,9 +43,9 @@ if __debug__:
 
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {SOURCE_CLASS, METHOD}
-SUPPORTED_ARGUMENTS = {SOURCE_CLASS, METHOD}
-DEPRECATED_ARGUMENTS = {LEGACY_SOURCE_CLASS}
+MANDATORY_ARGUMENTS = {LABELS.source_class, LABELS.method}
+SUPPORTED_ARGUMENTS = {LABELS.source_class, LABELS.method}
+DEPRECATED_ARGUMENTS = {LEGACY_LABELS.source_class}
 
 
 class Implement(object):
@@ -146,12 +145,14 @@ class Implement(object):
             logger.debug("Configuring @implement core element.")
 
         # Resolve @implement specific parameters
-        if LEGACY_SOURCE_CLASS in self.kwargs:
-            another_class = self.kwargs[LEGACY_SOURCE_CLASS]
-            self.kwargs[SOURCE_CLASS] = self.kwargs.pop(LEGACY_SOURCE_CLASS)
+        if LEGACY_LABELS.source_class in self.kwargs:
+            another_class = self.kwargs[LEGACY_LABELS.source_class]
+            self.kwargs[LABELS.source_class] = self.kwargs.pop(
+                LEGACY_LABELS.source_class
+            )
         else:
-            another_class = self.kwargs[SOURCE_CLASS]
-        another_method = self.kwargs[METHOD]
+            another_class = self.kwargs[LABELS.source_class]
+        another_method = self.kwargs[LABELS.method]
         ce_signature = ".".join((another_class, another_method))
         impl_type = IMPL_METHOD
         # impl_args = [another_class, another_method] - set by @task

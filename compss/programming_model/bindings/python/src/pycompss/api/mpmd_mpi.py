@@ -27,15 +27,8 @@ PyCOMPSs API - MPMD MPI
 from functools import wraps
 
 import pycompss.util.context as context
-from pycompss.api.commons.constants import BINARY
-from pycompss.api.commons.constants import COMPUTING_NODES
-from pycompss.api.commons.constants import FAIL_BY_EXIT_VALUE
-from pycompss.api.commons.constants import PARAMS
-from pycompss.api.commons.constants import PROCESSES
-from pycompss.api.commons.constants import PROCESSES_PER_NODE
-from pycompss.api.commons.constants import PROGRAMS
-from pycompss.api.commons.constants import RUNNER
-from pycompss.api.commons.constants import WORKING_DIR
+from pycompss.api.commons.constants import INTERNAL_LABELS
+from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.decorator import resolve_fail_by_exit_value
@@ -50,13 +43,13 @@ if __debug__:
 
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {RUNNER}
+MANDATORY_ARGUMENTS = {LABELS.runner}
 SUPPORTED_ARGUMENTS = {
-    RUNNER,
-    PROGRAMS,
-    WORKING_DIR,
-    PROCESSES_PER_NODE,
-    FAIL_BY_EXIT_VALUE,
+    LABELS.runner,
+    LABELS.programs,
+    LABELS.working_dir,
+    LABELS.processes_per_node,
+    LABELS.fail_by_exit_value,
 }
 DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 
@@ -146,8 +139,10 @@ class MPMDMPI(object):
             # master code - or worker with nesting enabled
             self.__configure_core_element__(kwargs)
 
-        kwargs[PROCESSES_PER_NODE] = self.kwargs.get(PROCESSES_PER_NODE, 1)
-        kwargs[COMPUTING_NODES] = self.processes
+        kwargs[LABELS.processes_per_node] = self.kwargs.get(
+            LABELS.processes_per_node, 1
+        )
+        kwargs[LABELS.computing_nodes] = self.processes
 
         with keep_arguments(args, kwargs, prepend_strings=False):
             # Call the method
@@ -161,23 +156,23 @@ class MPMDMPI(object):
         :return: list(programs_length, binary, params, processes)
         :raises PyCOMPSsException: If programs are not dict objects.
         """
-        programs = self.kwargs[PROGRAMS]
+        programs = self.kwargs[LABELS.programs]
         programs_params = [str(len(programs))]
 
         for program in programs:
             if not isinstance(program, dict):
                 raise PyCOMPSsException("Incorrect 'program' param in MPMD MPI")
 
-            binary = program.get(BINARY, None)
+            binary = program.get(LABELS.binary, None)
             if not binary:
                 raise PyCOMPSsException("No binary file provided for MPMD MPI")
 
-            params = program.get(PARAMS, "[unassigned]")
-            procs = str(program.get(PROCESSES, 1))
+            params = program.get(LABELS.params, INTERNAL_LABELS.unassigned)
+            procs = str(program.get(LABELS.processes, 1))
             programs_params.extend([binary, params, procs])
 
             # increase total # of processes for this mpmd task
-            self.processes += program.get(PROCESSES, 1)
+            self.processes += program.get(LABELS.processes, 1)
 
         return programs_params
 
@@ -194,23 +189,23 @@ class MPMDMPI(object):
 
         # Resolve @mpmd_mpi specific parameters
         impl_type = "MPMDMPI"
-        runner = self.kwargs[RUNNER]
+        runner = self.kwargs[LABELS.runner]
 
         # Resolve the working directory
         resolve_working_dir(self.kwargs)
         # Resolve the fail by exit value
         resolve_fail_by_exit_value(self.kwargs)
 
-        ppn = str(self.kwargs.get(PROCESSES_PER_NODE, 1))
+        ppn = str(self.kwargs.get(LABELS.processes_per_node, 1))
         impl_signature = ".".join((impl_type, str(ppn)))
 
         prog_params = self.__get_programs_params__()
 
         impl_args = [
             runner,
-            self.kwargs[WORKING_DIR],
+            self.kwargs[LABELS.working_dir],
             ppn,
-            self.kwargs[FAIL_BY_EXIT_VALUE],
+            self.kwargs[LABELS.fail_by_exit_value],
         ]
         impl_args.extend(prog_params)
 

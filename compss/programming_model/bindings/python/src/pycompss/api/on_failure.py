@@ -27,11 +27,7 @@ PyCOMPSs API - ON_FAILURE
 from functools import wraps
 
 import pycompss.util.context as context
-from pycompss.api.commons.constants import MANAGEMENT
-from pycompss.api.commons.constants import MANAGEMENT_CANCEL_SUCCESSOR
-from pycompss.api.commons.constants import MANAGEMENT_FAIL
-from pycompss.api.commons.constants import MANAGEMENT_IGNORE
-from pycompss.api.commons.constants import MANAGEMENT_RETRY
+from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.runtime.task.core_element import CE
@@ -45,12 +41,12 @@ if __debug__:
     logger = logging.getLogger(__name__)
 
 
-MANDATORY_ARGUMENTS = {MANAGEMENT}
-SUPPORTED_MANAGEMENT = {
-    MANAGEMENT_IGNORE,
-    MANAGEMENT_RETRY,
-    MANAGEMENT_CANCEL_SUCCESSOR,
-    MANAGEMENT_FAIL,
+MANDATORY_ARGUMENTS = {LABELS.management}
+SUPPORTED_ARGUMENTS = {
+    LABELS.management_ignore,
+    LABELS.management_retry,
+    LABELS.management_cancel_successor,
+    LABELS.management_fail,
 }
 
 
@@ -97,9 +93,9 @@ class OnFailure(object):
 
             # Save the parameters into self so that they can be accessed when
             # the task fails and the action needs to be taken
-            self.on_failure_action = kwargs.pop(MANAGEMENT)
+            self.on_failure_action = kwargs.pop(LABELS.management)
             # Check supported management values
-            if self.on_failure_action not in SUPPORTED_MANAGEMENT:
+            if self.on_failure_action not in SUPPORTED_ARGUMENTS:
                 raise PyCOMPSsException(
                     "ERROR: Unsupported on failure action: %s" % self.on_failure_action
                 )

@@ -28,14 +28,8 @@ from functools import wraps
 import pycompss.util.context as context
 from pycompss.api import binary
 from pycompss.api import mpi
-from pycompss.api.commons.constants import BINARY
-from pycompss.api.commons.constants import CONFIG_FILE
-from pycompss.api.commons.constants import ENGINE
-from pycompss.api.commons.constants import IMAGE
-from pycompss.api.commons.constants import MPI
-from pycompss.api.commons.constants import PROPERTIES
-from pycompss.api.commons.constants import TYPE
-from pycompss.api.commons.constants import UNASSIGNED
+from pycompss.api.commons.constants import INTERNAL_LABELS
+from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.implementation_types import IMPL_CONTAINER
 from pycompss.runtime.task.core_element import CE
@@ -48,11 +42,14 @@ if __debug__:
 
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {CONFIG_FILE}
-SUPPORTED_ARGUMENTS = {CONFIG_FILE}
+MANDATORY_ARGUMENTS = {LABELS.config_file}
+SUPPORTED_ARGUMENTS = {LABELS.config_file}
 DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 
-SUPPORTED_DECORATORS = {MPI: (mpi, mpi.mpi), BINARY: (binary, binary.binary)}
+SUPPORTED_DECORATORS = {
+    LABELS.mpi: (mpi, mpi.mpi),
+    LABELS.binary: (binary, binary.binary),
+}
 
 
 class Software(object):
@@ -130,7 +127,7 @@ class Software(object):
             if not self.scope or not context.in_master():
                 # Execute the software as with PyCOMPSs so that sequential
                 # execution performs as parallel.
-                # To disable: raise Exception(not_in_pycompss(BINARY))
+                # To disable: raise Exception(not_in_pycompss(LABELS.binary))
                 return user_function(*args, **kwargs)
 
             if __debug__:
@@ -148,13 +145,13 @@ class Software(object):
 
                 ce = kwargs.get(CORE_ELEMENT_KEY, CE())
                 impl_args = [
-                    self.container[ENGINE],  # engine
-                    self.container[IMAGE],  # image
-                    UNASSIGNED,  # internal_type
-                    UNASSIGNED,  # internal_binary
-                    UNASSIGNED,  # internal_func
-                    UNASSIGNED,  # working_dir
-                    UNASSIGNED,
+                    self.container[LABELS.engine],  # engine
+                    self.container[LABELS.image],  # image
+                    INTERNAL_LABELS.unassigned,  # internal_type
+                    INTERNAL_LABELS.unassigned,  # internal_binary
+                    INTERNAL_LABELS.unassigned,  # internal_func
+                    INTERNAL_LABELS.unassigned,  # working_dir
+                    INTERNAL_LABELS.unassigned,
                 ]  # fail_by_ev
                 ce.set_impl_type(impl_type)
                 ce.set_impl_signature(impl_signature)
@@ -185,11 +182,11 @@ class Software(object):
 
         :return: None
         """
-        file_path = self.kwargs[CONFIG_FILE]
+        file_path = self.kwargs[LABELS.config_file]
         config = json.load(open(file_path, "r"))
 
-        properties = config.get(PROPERTIES, {})
-        exec_type = config.get(TYPE, None)
+        properties = config.get(LABELS.properties, {})
+        exec_type = config.get(LABELS.type, None)
         if exec_type is None:
             print("Execution type not provided for @software task")
         elif exec_type.lower() not in SUPPORTED_DECORATORS:

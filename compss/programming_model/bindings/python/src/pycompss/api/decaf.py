@@ -27,19 +27,9 @@ PyCOMPSs API - DECAF
 from functools import wraps
 
 import pycompss.util.context as context
-from pycompss.api.commons.constants import COMPUTING_NODES
-from pycompss.api.commons.constants import DF_EXECUTOR
-from pycompss.api.commons.constants import DF_LIB
-from pycompss.api.commons.constants import DF_SCRIPT
-from pycompss.api.commons.constants import FAIL_BY_EXIT_VALUE
-from pycompss.api.commons.constants import LEGACY_COMPUTING_NODES
-from pycompss.api.commons.constants import LEGACY_DF_EXECUTOR
-from pycompss.api.commons.constants import LEGACY_DF_LIB
-from pycompss.api.commons.constants import LEGACY_DF_SCRIPT
-from pycompss.api.commons.constants import LEGACY_WORKING_DIR
-from pycompss.api.commons.constants import RUNNER
-from pycompss.api.commons.constants import UNASSIGNED
-from pycompss.api.commons.constants import WORKING_DIR
+from pycompss.api.commons.constants import INTERNAL_LABELS
+from pycompss.api.commons.constants import LABELS
+from pycompss.api.commons.constants import LEGACY_LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.decorator import process_computing_nodes
@@ -57,22 +47,22 @@ if __debug__:
 
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {DF_SCRIPT}
+MANDATORY_ARGUMENTS = {LABELS.df_script}
 SUPPORTED_ARGUMENTS = {
-    COMPUTING_NODES,
-    WORKING_DIR,
-    RUNNER,
-    DF_EXECUTOR,
-    DF_LIB,
-    DF_SCRIPT,
-    FAIL_BY_EXIT_VALUE,
+    LABELS.computing_nodes,
+    LABELS.working_dir,
+    LABELS.runner,
+    LABELS.df_executor,
+    LABELS.df_lib,
+    LABELS.df_script,
+    LABELS.fail_by_exit_value,
 }
 DEPRECATED_ARGUMENTS = {
-    LEGACY_COMPUTING_NODES,
-    LEGACY_WORKING_DIR,
-    LEGACY_DF_EXECUTOR,
-    LEGACY_DF_LIB,
-    LEGACY_DF_SCRIPT,
+    LEGACY_LABELS.computing_nodes,
+    LEGACY_LABELS.working_dir,
+    LEGACY_LABELS.df_executor,
+    LEGACY_LABELS.df_lib,
+    LEGACY_LABELS.df_script,
 }
 
 
@@ -146,7 +136,7 @@ class Decaf(object):
 
             # Set the computing_nodes variable in kwargs for its usage
             # in @task decorator
-            kwargs[COMPUTING_NODES] = self.kwargs[COMPUTING_NODES]
+            kwargs[LABELS.computing_nodes] = self.kwargs[LABELS.computing_nodes]
 
             with keep_arguments(args, kwargs, prepend_strings=False):
                 # Call the method
@@ -169,29 +159,31 @@ class Decaf(object):
             logger.debug("Configuring @decaf core element.")
 
         # Resolve @decaf specific parameters
-        if RUNNER in self.kwargs:
-            runner = self.kwargs[RUNNER]
+        if LABELS.runner in self.kwargs:
+            runner = self.kwargs[LABELS.runner]
         else:
             runner = "mpirun"
 
-        if LEGACY_DF_SCRIPT in self.kwargs:
-            df_script = self.kwargs[LEGACY_DF_SCRIPT]
+        if LEGACY_LABELS.df_script in self.kwargs:
+            df_script = self.kwargs[LEGACY_LABELS.df_script]
         else:
-            df_script = self.kwargs[DF_SCRIPT]
+            df_script = self.kwargs[LABELS.df_script]
 
-        if DF_EXECUTOR in self.kwargs:
-            df_executor = self.kwargs[DF_EXECUTOR]
-        elif LEGACY_DF_EXECUTOR in self.kwargs:
-            df_executor = self.kwargs[LEGACY_DF_EXECUTOR]
+        if LABELS.df_executor in self.kwargs:
+            df_executor = self.kwargs[LABELS.df_executor]
+        elif LEGACY_LABELS.df_executor in self.kwargs:
+            df_executor = self.kwargs[LEGACY_LABELS.df_executor]
         else:
-            df_executor = UNASSIGNED  # Empty or UNASSIGNED
+            df_executor = (
+                INTERNAL_LABELS.unassigned
+            )  # Empty or INTERNAL_LABELS.unassigned
 
-        if DF_LIB in self.kwargs:
-            df_lib = self.kwargs[DF_LIB]
-        elif LEGACY_DF_LIB in self.kwargs:
-            df_lib = self.kwargs[LEGACY_DF_LIB]
+        if LABELS.df_lib in self.kwargs:
+            df_lib = self.kwargs[LABELS.df_lib]
+        elif LEGACY_LABELS.df_lib in self.kwargs:
+            df_lib = self.kwargs[LEGACY_LABELS.df_lib]
         else:
-            df_lib = UNASSIGNED  # Empty or UNASSIGNED
+            df_lib = INTERNAL_LABELS.unassigned  # Empty or INTERNAL_LABELS.unassigned
 
         # Resolve the working directory
         resolve_working_dir(self.kwargs)
@@ -204,9 +196,9 @@ class Decaf(object):
             df_script,
             df_executor,
             df_lib,
-            self.kwargs[WORKING_DIR],
+            self.kwargs[LABELS.working_dir],
             runner,
-            self.kwargs[FAIL_BY_EXIT_VALUE],
+            self.kwargs[LABELS.fail_by_exit_value],
         ]
 
         if CORE_ELEMENT_KEY in kwargs:

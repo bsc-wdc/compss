@@ -27,18 +27,9 @@ PyCOMPSs API - COMPSs
 from functools import wraps
 
 import pycompss.util.context as context
-from pycompss.api.commons.constants import APP_NAME
-from pycompss.api.commons.constants import COMPUTING_NODES
-from pycompss.api.commons.constants import FAIL_BY_EXIT_VALUE
-from pycompss.api.commons.constants import FLAGS
-from pycompss.api.commons.constants import LEGACY_APP_NAME
-from pycompss.api.commons.constants import LEGACY_COMPUTING_NODES
-from pycompss.api.commons.constants import LEGACY_WORKER_IN_MASTER
-from pycompss.api.commons.constants import LEGACY_WORKING_DIR
-from pycompss.api.commons.constants import RUNCOMPSS
-from pycompss.api.commons.constants import UNASSIGNED
-from pycompss.api.commons.constants import WORKER_IN_MASTER
-from pycompss.api.commons.constants import WORKING_DIR
+from pycompss.api.commons.constants import INTERNAL_LABELS
+from pycompss.api.commons.constants import LABELS
+from pycompss.api.commons.constants import LEGACY_LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.decorator import process_computing_nodes
@@ -56,21 +47,21 @@ if __debug__:
 
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {APP_NAME}
+MANDATORY_ARGUMENTS = {LABELS.app_name}
 SUPPORTED_ARGUMENTS = {
-    COMPUTING_NODES,
-    RUNCOMPSS,
-    FLAGS,
-    WORKER_IN_MASTER,
-    APP_NAME,
-    WORKING_DIR,
-    FAIL_BY_EXIT_VALUE,
+    LABELS.computing_nodes,
+    LABELS.runcompss,
+    LABELS.flags,
+    LABELS.worker_in_master,
+    LABELS.app_name,
+    LABELS.working_dir,
+    LABELS.fail_by_exit_value,
 }
 DEPRECATED_ARGUMENTS = {
-    LEGACY_COMPUTING_NODES,
-    LEGACY_WORKER_IN_MASTER,
-    LEGACY_APP_NAME,
-    LEGACY_WORKING_DIR,
+    LEGACY_LABELS.computing_nodes,
+    LEGACY_LABELS.worker_in_master,
+    LEGACY_LABELS.app_name,
+    LEGACY_LABELS.working_dir,
 }
 
 
@@ -143,7 +134,7 @@ class COMPSs(object):
 
             # Set the computing_nodes variable in kwargs for its usage
             # in @task decorator
-            kwargs[COMPUTING_NODES] = self.kwargs[COMPUTING_NODES]
+            kwargs[LABELS.computing_nodes] = self.kwargs[LABELS.computing_nodes]
 
             with keep_arguments(args, kwargs, prepend_strings=False):
                 # Call the method
@@ -166,27 +157,29 @@ class COMPSs(object):
             logger.debug("Configuring @compss core element.")
 
         # Resolve @compss specific parameters
-        if RUNCOMPSS in self.kwargs:
-            runcompss = self.kwargs[RUNCOMPSS]
+        if LABELS.runcompss in self.kwargs:
+            runcompss = self.kwargs[LABELS.runcompss]
         else:
-            runcompss = UNASSIGNED  # Empty or UNASSIGNED
+            runcompss = (
+                INTERNAL_LABELS.unassigned
+            )  # Empty or INTERNAL_LABELS.unassigned
 
-        if FLAGS in self.kwargs:
-            flags = self.kwargs[FLAGS]
+        if LABELS.flags in self.kwargs:
+            flags = self.kwargs[LABELS.flags]
         else:
-            flags = UNASSIGNED  # Empty or UNASSIGNED
+            flags = INTERNAL_LABELS.unassigned  # Empty or INTERNAL_LABELS.unassigned
 
-        if WORKER_IN_MASTER in self.kwargs:
-            worker_in_master = self.kwargs[WORKER_IN_MASTER]
-        elif LEGACY_WORKER_IN_MASTER in self.kwargs:
-            worker_in_master = self.kwargs[LEGACY_WORKER_IN_MASTER]
+        if LABELS.worker_in_master in self.kwargs:
+            worker_in_master = self.kwargs[LABELS.worker_in_master]
+        elif LEGACY_LABELS.worker_in_master in self.kwargs:
+            worker_in_master = self.kwargs[LEGACY_LABELS.worker_in_master]
         else:
-            worker_in_master = "true"  # Empty or UNASSIGNED
+            worker_in_master = "true"  # Empty or INTERNAL_LABELS.unassigned
 
-        if LEGACY_APP_NAME in self.kwargs:
-            app_name = self.kwargs[LEGACY_APP_NAME]
+        if LEGACY_LABELS.app_name in self.kwargs:
+            app_name = self.kwargs[LEGACY_LABELS.app_name]
         else:
-            app_name = self.kwargs[APP_NAME]
+            app_name = self.kwargs[LABELS.app_name]
 
         # Resolve the working directory
         resolve_working_dir(self.kwargs)
@@ -200,8 +193,8 @@ class COMPSs(object):
             flags,
             app_name,
             worker_in_master,
-            self.kwargs[WORKING_DIR],
-            self.kwargs[FAIL_BY_EXIT_VALUE],
+            self.kwargs[LABELS.working_dir],
+            self.kwargs[LABELS.fail_by_exit_value],
         ]
 
         if CORE_ELEMENT_KEY in kwargs:

@@ -21,8 +21,8 @@ import shutil
 import tempfile
 
 import pycompss.util.context as context
-from pycompss.api.commons.constants import LEGACY_WORKING_DIR
-from pycompss.api.commons.constants import WORKING_DIR
+from pycompss.api.commons.constants import LABELS
+from pycompss.api.commons.constants import LEGACY_LABELS
 from pycompss.api.commons.decorator import PyCOMPSsDecorator
 from pycompss.api.commons.decorator import process_computing_nodes
 from pycompss.api.commons.decorator import resolve_fail_by_exit_value
@@ -160,8 +160,8 @@ def test_run_command():
     cmd = ["date"]
     args = ("+%s",)
     kwargs = {
-        WORKING_DIR: "/path/to/working_dir",
-        LEGACY_WORKING_DIR: "/path/to/legacy_working_dir",
+        LABELS.working_dir: "/path/to/working_dir",
+        LEGACY_LABELS.working_dir: "/path/to/legacy_working_dir",
     }
     result = run_command(cmd, args, kwargs)
     assert result == 0, "Wrong exit code on run_command. Expected %d - Received %d" % (

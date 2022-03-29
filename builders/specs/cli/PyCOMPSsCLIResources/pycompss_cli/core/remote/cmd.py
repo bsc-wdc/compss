@@ -79,7 +79,7 @@ def remote_run_app(remote_dir: str, login_info: str, env_name: str, command: str
         *modules,
         command
     ]
-    return utils.ssh_run_commands(login_info, commands)
+    return utils.ssh_run_commands(login_info, commands)[0]
 
 def remote_submit_job(login_info: str, remote_dir: str, app_args: str, modules, envars=None) -> None:
     """ Execute the given command in the remote COMPSs environment.
@@ -106,13 +106,20 @@ def remote_submit_job(login_info: str, remote_dir: str, app_args: str, modules, 
             print('\t', '->', cmd)
         print('***************************')
 
-    stdout = utils.ssh_run_commands(login_info, commands)
+    stdout, stderr = utils.ssh_run_commands(login_info, commands)
+    if utils.is_debug():
+        print('Remote submit job stdout:')
+        print(stdout.strip())
+        print('***************************')
+        print('Remote submit job stderr:')
+        print(stderr.strip())
+        print('***************************')
     job_id = stdout.strip().split('\n')[-1].split(' ')[-1]
     print('Job submitted:', job_id)
     return job_id
 
 def remote_get_home(login_info: str):
-    return utils.ssh_run_commands(login_info, ['echo $HOME']).strip()
+    return utils.ssh_run_commands(login_info, ['echo $HOME'])[0].strip()
 
 def remote_list_apps(env_id: str, login_info: str, remote_home: str):
     commands = [
@@ -120,7 +127,7 @@ def remote_list_apps(env_id: str, login_info: str, remote_home: str):
         f'ls ~/.COMPSsApps/{env_id}/',
     ]
 
-    stdout = utils.ssh_run_commands(login_info, commands).strip()
+    stdout = utils.ssh_run_commands(login_info, commands)[0].strip()
     apps = stdout.split('\n')
     if 'NO_APPS' in stdout or (len(apps) == 1 and apps[0] == ''):
         return []
@@ -142,7 +149,7 @@ def remote_list_job(login_info: str, modules):
         f'python3 ~/.COMPSs/job_scripts/find.py',
     ]
 
-    stdout = utils.ssh_run_commands(login_info, commands).strip()
+    stdout = utils.ssh_run_commands(login_info, commands)[0].strip()
     if stdout != 'SUCCESS':
         print(stdout)
     else:
@@ -154,8 +161,8 @@ def remote_cancel_job(login_info: str, job_id: str, modules):
         f'python3 ~/.COMPSs/job_scripts/cancel.py {job_id}',
     ]
 
-    stdout = utils.ssh_run_commands(login_info, commands).strip()
+    stdout = utils.ssh_run_commands(login_info, commands)[0].strip()
     print(stdout)
 
 def remote_exec_app(login_info: str, exec_cmd: str):
-   return utils.ssh_run_commands(login_info, [exec_cmd]).strip()
+    return utils.ssh_run_commands(login_info, [exec_cmd])[0].strip()

@@ -19,7 +19,13 @@ def main():
 
     if utils.is_debug():
         print(LINE)
+        
+        if 'enqueue_args' in arguments:
+            del arguments.enqueue_args
+        if 'runcompss_args' in arguments:
+            del arguments.runcompss_args
         print("Calling pycompss-cli for action: " + arguments.action)
+        print()
         print("Arguments: " + str(arguments))
 
     ActionsDispatcher().run_action(arguments, DEBUG)

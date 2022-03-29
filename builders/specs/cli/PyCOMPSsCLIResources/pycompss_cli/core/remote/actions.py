@@ -142,10 +142,6 @@ class RemoteActions(Actions):
         
         job_id = remote_submit_job(login_info, remote_dir, app_args, modules, envars=env_vars)
 
-        if self.arguments.verbose:
-            print('\t-\tenvars:', env_vars)
-            print('\t-\tenqueue_compss:', app_args)
-
         self.past_jobs[job_id] = {
             'app_name': app_name,
             'env_vars': '; '.join(env_vars) if env_vars else 'None',

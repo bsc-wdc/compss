@@ -30,7 +30,7 @@ setuptools.setup(
                  "Topic :: Scientific/Engineering",
                  "Topic :: System :: Distributed Computing",
                  "Topic :: Utilities"],
-    install_requires=["setuptools", "tabulate"],
+    install_requires=["setuptools"],
 
     # Executable
     entry_points={

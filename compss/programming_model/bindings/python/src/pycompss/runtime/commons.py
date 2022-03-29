@@ -28,6 +28,7 @@ from tempfile import mkdtemp
 
 from pycompss.util.typing_helper import typing
 
+
 #######################################
 # Global variables set in this module #
 #######################################

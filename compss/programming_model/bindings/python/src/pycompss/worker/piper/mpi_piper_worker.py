@@ -34,8 +34,8 @@ from pycompss.util.tracing.helpers import dummy_context
 from pycompss.util.tracing.helpers import event_worker
 from pycompss.util.tracing.helpers import trace_mpi_executor
 from pycompss.util.tracing.helpers import trace_mpi_worker
-from pycompss.util.typing_helper import typing
 from pycompss.util.tracing.types_events_worker import TRACING_WORKER
+from pycompss.util.typing_helper import typing
 from pycompss.worker.piper.cache.setup import is_cache_enabled
 from pycompss.worker.piper.cache.setup import start_cache
 from pycompss.worker.piper.cache.setup import stop_cache

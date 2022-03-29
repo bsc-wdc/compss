@@ -32,8 +32,8 @@ from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.objects.sizer import total_sizeof
 from pycompss.util.tracing.helpers import emit_manual_event_explicit
 from pycompss.util.tracing.helpers import event_inside_worker
-from pycompss.util.typing_helper import typing
 from pycompss.util.tracing.types_events_worker import TRACING_WORKER
+from pycompss.util.typing_helper import typing
 
 try:
     from pycompss.util.process.manager import SharedMemory

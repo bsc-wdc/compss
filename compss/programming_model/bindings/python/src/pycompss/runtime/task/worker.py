@@ -55,7 +55,6 @@ from pycompss.worker.commons.worker import build_task_parameter
 from pycompss.worker.piper.cache.tracker import in_cache
 from pycompss.worker.piper.cache.tracker import insert_object_into_cache_wrapper
 from pycompss.worker.piper.cache.tracker import replace_object_into_cache
-
 # The cache is only available currently for piper_worker.py and python >= 3.8
 # If supported in the future by another worker, add a common interface
 # with these two functions and import the appropriate.

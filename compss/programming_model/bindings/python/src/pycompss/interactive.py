@@ -34,10 +34,8 @@ import pycompss.util.interactive.helpers as interactive_helpers
 from pycompss.runtime.binding import get_log_path
 from pycompss.runtime.commons import CONSTANTS
 from pycompss.runtime.commons import GLOBALS
-from pycompss.util.tracing.types_events_master import TRACING_MASTER
 from pycompss.runtime.management.classes import Future
 from pycompss.runtime.management.object_tracker import OT
-
 # Streaming imports
 from pycompss.streams.environment import init_streaming
 from pycompss.streams.environment import stop_streaming
@@ -65,13 +63,12 @@ from pycompss.util.interactive.utils import parameters_to_dict
 from pycompss.util.logger.helpers import get_logging_cfg_file
 from pycompss.util.logger.helpers import init_logging
 from pycompss.util.process.manager import initialize_multiprocessing
-
 # Storage imports
 from pycompss.util.storages.persistent import master_init_storage
 from pycompss.util.storages.persistent import master_stop_storage
-
 # Tracing imports
 from pycompss.util.tracing.helpers import emit_manual_event
+from pycompss.util.tracing.types_events_master import TRACING_MASTER
 from pycompss.util.typing_helper import typing
 
 # GLOBAL VARIABLES

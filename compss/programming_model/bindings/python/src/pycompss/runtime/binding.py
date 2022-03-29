@@ -31,18 +31,17 @@ from shutil import rmtree
 import pycompss.runtime.management.COMPSs as COMPSs
 import pycompss.util.context as context
 from pycompss.runtime.commons import GLOBALS
-from pycompss.util.tracing.types_events_master import TRACING_MASTER
 from pycompss.runtime.management.classes import EmptyReturn
 from pycompss.runtime.management.direction import get_compss_direction
 from pycompss.runtime.management.object_tracker import OT
 from pycompss.runtime.management.synchronization import wait_on_object
 from pycompss.runtime.task.core_element import CE
 from pycompss.util.exceptions import PyCOMPSsException
-
 # Tracing imports
 from pycompss.util.tracing.helpers import enable_trace_master
 from pycompss.util.tracing.helpers import event_inside_worker
 from pycompss.util.tracing.helpers import event_master
+from pycompss.util.tracing.types_events_master import TRACING_MASTER
 from pycompss.util.typing_helper import typing
 
 if __debug__:

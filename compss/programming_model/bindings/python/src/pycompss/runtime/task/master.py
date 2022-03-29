@@ -66,8 +66,6 @@ from pycompss.api.parameter import TYPE
 from pycompss.runtime.binding import wait_on
 from pycompss.runtime.commons import CONSTANTS
 from pycompss.runtime.commons import GLOBALS
-from pycompss.util.tracing.types_events_master import TRACING_MASTER
-from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.runtime.management.classes import FunctionType
 from pycompss.runtime.management.classes import Future
 from pycompss.runtime.management.direction import get_compss_direction
@@ -105,6 +103,8 @@ from pycompss.util.serialization.serializer import serialize_to_file
 from pycompss.util.storages.persistent import get_id
 from pycompss.util.tracing.helpers import emit_manual_event_explicit
 from pycompss.util.tracing.helpers import event_master
+from pycompss.util.tracing.types_events_master import TRACING_MASTER
+from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.util.typing_helper import typing
 
 logger = logging.getLogger(__name__)

@@ -115,7 +115,7 @@ public class Serializer {
     public static Object deserialize(String file) throws IOException, ClassNotFoundException {
         try {
             return BinarySerializer.deserialize(file);
-        } catch (NotSerializableException e) {
+        } catch (Exception e) {
             return XMLSerializer.deserialize(file);
         }
     }
@@ -155,7 +155,7 @@ public class Serializer {
     public static Object deserialize(byte[] data) throws IOException, ClassNotFoundException {
         try {
             return BinarySerializer.deserialize(data);
-        } catch (NotSerializableException e) {
+        } catch (Exception e) {
             return XMLSerializer.deserialize(data);
         }
     }

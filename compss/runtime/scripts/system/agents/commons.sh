@@ -142,7 +142,7 @@ get_parameters(){
         <prefix></prefix>
         <contentType></contentType>
         <stdIOStream>UNSPECIFIED</stdIOStream>
-        <type>STRING_T</type>
+        <type>STRING_64_T</type>
         <element paramId=\"${param_id}\">
           <className>java.lang.String</className>
           <value xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xsi:type=\"xs:string\">"

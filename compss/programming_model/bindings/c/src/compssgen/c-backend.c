@@ -48,6 +48,7 @@ static char *c_types[] = {
     "float",			    // float_dt
     "double",			    // double_dt
     "char *",			    // string_dt
+    "char *",			    // string_64_dt
     "file",			        // file_dt
     "void *",			    // object_dt
     "void *",			    // psco_dt
@@ -82,6 +83,7 @@ static char *c_out_types[] = {
     "float",			    // float_dt
     "double",			    // double_dt
     "char *",			    // string_dt
+    "char *",			    // string_64_dt
     "file",			        // file_dt
     "void *",			    // object_dt
     "void *",			    // psco_dt

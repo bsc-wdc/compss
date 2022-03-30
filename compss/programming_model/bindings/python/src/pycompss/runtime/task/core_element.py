@@ -65,8 +65,8 @@ class CE(object):
         else:
             self.impl_type_args = impl_type_args
 
-        self.prolog = [UNASSIGNED]*3 if prolog is None else prolog
-        self.epilog = [UNASSIGNED]*3 if epilog is None else epilog
+        self.prolog = [UNASSIGNED] * 3 if prolog is None else prolog
+        self.epilog = [UNASSIGNED] * 3 if epilog is None else epilog
 
     ###########
     # METHODS #

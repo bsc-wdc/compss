@@ -20,8 +20,8 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOTracer;
 import es.bsc.compss.nio.exceptions.NoSourcesException;
 import es.bsc.compss.util.FileOpsManager;
-import es.bsc.compss.util.Serializer;
 import es.bsc.compss.util.TraceEvent;
+import es.bsc.compss.util.serializers.Serializer;
 
 import java.io.File;
 import java.io.IOException;

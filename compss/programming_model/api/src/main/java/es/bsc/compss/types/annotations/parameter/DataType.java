@@ -29,6 +29,7 @@ public enum DataType {
     FLOAT_T, // Float
     DOUBLE_T, // Double
     STRING_T, // String
+    STRING_64_T, // String
     FILE_T, // File
     OBJECT_T, // Java Object
     PSCO_T, // Java PSCO

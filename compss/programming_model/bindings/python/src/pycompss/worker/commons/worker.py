@@ -124,10 +124,8 @@ def build_task_parameter(
                 name=p_name,
                 file_name=COMPSsFile(p_value),
                 extra_content_type=str(p_c_type),
-            ),
-            1,
-        )
-    elif p_type == parameter.TYPE.STRING:
+            ), 1)
+    elif p_type in (parameter.TYPE.STRING, parameter.TYPE.STRING_64):
         if args is not None:
             num_substrings = int(p_value)  # noqa
             aux_str = []
@@ -136,11 +134,13 @@ def build_task_parameter(
             aux = " ".join(aux_str)
         else:
             aux = str(p_value)
-        # Decode the received string
-        # Note that we prepend a sharp to all strings in order to avoid
-        # getting empty encodings in the case of empty strings, so we need
-        # to remove it when decoding
-        new_aux = base64.b64decode(aux.encode())[1:]
+        if p_type == parameter.TYPE.STRING_64:
+            # Decode the received string
+            # Note that we prepend a sharp to all strings in order to avoid
+            # getting empty encodings in the case of empty strings, so we need
+            # to remove it when decoding
+            aux = base64.b64decode(aux.encode())
+        new_aux = aux[1:]
 
         if new_aux:
             #######

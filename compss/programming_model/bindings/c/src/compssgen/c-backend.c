@@ -48,6 +48,7 @@ static char *c_types[] = {
     "float",			    // float_dt
     "double",			    // double_dt
     "char *",			    // string_dt
+    "char *",			    // string_64_dt
     "file",			        // file_dt
     "void *",			    // object_dt
     "void *",			    // psco_dt
@@ -82,6 +83,7 @@ static char *c_out_types[] = {
     "float",			    // float_dt
     "double",			    // double_dt
     "char *",			    // string_dt
+    "char *",			    // string_64_dt
     "file",			        // file_dt
     "void *",			    // object_dt
     "void *",			    // psco_dt
@@ -582,6 +584,7 @@ static char* construct_type_and_name(argument* arg) {
                 printed_chars = asprintf(&ret, "%s *%s", arg->classname, arg->name);
                 break;
             case string_dt:
+            case string_64_dt:
             case wstring_dt:
                 printed_chars = asprintf(&ret, "%s %s", c_out_types[arg->type], arg->name);
                 break;
@@ -625,6 +628,7 @@ static char* construct_type_and_name(argument* arg) {
                 printed_chars = asprintf(&ret, "%s* %s", arg->classname, arg->name);
                 break;
             case string_dt:
+            case string_64_dt:
             case wstring_dt:
                 printed_chars = asprintf(&ret, "%s *%s", c_out_types[arg->type], arg->name);
                 break;
@@ -804,7 +808,7 @@ static void deserialize_array(FILE *outFile, argument *arg){
 */
 
 static void add_serialization(FILE *outFile, enum datatype type, char* object, char* filename, char *elements, char *tabs) {
-    if (type == string_dt || type == wstring_dt) {
+    if (type == string_dt || type == wstring_dt || type== string_64_dt) {
         fprintf(outFile, "%s  int %s_res = compss_object_serialize(%s, %s);\n",tabs, object, object, filename);
     } else if(type >= array_char_dt && type <= array_double_dt) {
         fprintf(outFile, "%s  int %s_res = compss_array_serialize(%s, %s, %s);\n",tabs, object, object, filename, elements);
@@ -818,7 +822,7 @@ static void add_serialization(FILE *outFile, enum datatype type, char* object, c
 }
 
 static void add_deserialization(FILE *outFile, enum datatype type, char* object, char* filename, char *elements, char *tabs) {
-    if (type == string_dt || type == wstring_dt) {
+    if (type == string_dt || type == wstring_dt || type== string_64_dt) {
         fprintf(outFile, "%s  int %s_res = compss_object_deserialize(%s, %s);\n",tabs, object, object, filename);
     } else if(type >= array_char_dt && type <= array_double_dt) {
         fprintf(outFile, "%s  int %s_res = compss_array_deserialize(%s, %s, %s);\n",tabs, object, object, filename, elements);
@@ -832,7 +836,7 @@ static void add_deserialization(FILE *outFile, enum datatype type, char* object,
 }
 
 static void add_copy(FILE *outFile, enum datatype type, char* object_from, char* object_to, char *elements, char *tabs) {
-    if (type == string_dt || type == wstring_dt) {
+    if (type == string_dt || type == wstring_dt || type== string_64_dt) {
         fprintf(outFile, "%s { int %s_res = compss_object_copy(%s, %s);\n", tabs, object_from, object_from, object_to);
     } else if(type >= array_char_dt && type <= array_double_dt) {
         fprintf(outFile, "%s { int %s_res = compss_array_copy(%s, %s, %s);\n",tabs, object_from, object_from, object_to, elements);
@@ -1259,6 +1263,7 @@ static void treat_master_argument(FILE *outFile, argument *arg, int i, Types cur
     case float_dt:
     case double_dt:
     case string_dt:
+    case string_64_dt:
     case wstring_dt:
         if ( arg->dir == in_dir) {
             fprintf(outFile, "\t // Add treatment for argument %s;\n", arg->name);
@@ -1658,6 +1663,7 @@ static void add_other_arg_worker_treatment(FILE *outFile, argument *arg, Types c
             fprintf(outFile, "\t\t\t \n}");
             break;
         case string_dt:
+        case string_64_dt:
         case wstring_dt:
             fprintf(outFile, "\t\t\t int %s_nwords = atoi(argv[arg_offset]);\n", arg->name);
             fprintf(outFile, "\t\t\t int word_i_%s;\n", arg->name);
@@ -1712,6 +1718,7 @@ static void treat_worker_argument(FILE *outFile, argument *arg, Types current_ty
     case float_dt:
     case double_dt:
     case string_dt:
+    case string_64_dt:
     case wstring_dt:
         fprintf(outFile, "\t\t\t %s %s;\n", c_out_types[arg->type], arg->name);
         add_other_arg_worker_treatment(outFile, arg, current_types, is_return);
@@ -1761,6 +1768,7 @@ static void add_argument_worker_taskcall(FILE *outFile, argument *arg) {
             fprintf(outFile, "%s", arg->name);
             break;
         case string_dt:
+        case string_64_dt:
         case wstring_dt:
             fprintf(outFile, "%s", arg->name);
             break;
@@ -1800,6 +1808,7 @@ static void add_argument_worker_taskcall(FILE *outFile, argument *arg) {
             fprintf(outFile, "%s", arg->name);
             break;
         case string_dt:
+        case string_64_dt:
         case wstring_dt:
             fprintf(outFile, "&%s", arg->name);
             break;
@@ -1839,6 +1848,7 @@ static void add_argument_serialization_worker(FILE *outFile, argument *arg, char
         case double_dt:
         case object_dt:
         case string_dt:
+        case string_64_dt:
         case wstring_dt:
         case array_char_dt:
         case array_byte_dt:
@@ -1889,6 +1899,7 @@ static void add_argument_free(FILE *outFile, argument *arg) {
         fprintf(outFile, "\t\t\t free(%s_og);\n", arg->name);
         break;
     case string_dt:
+    case string_64_dt:
     case wstring_dt:
         if (arg->dir != in_dir) {
             fprintf(outFile, "\t\t\t free(%s_filename_og);\n", arg->name);

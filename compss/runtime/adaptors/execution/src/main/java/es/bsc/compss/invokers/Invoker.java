@@ -17,8 +17,11 @@
 package es.bsc.compss.invokers;
 
 import es.bsc.compss.api.ApplicationRunner;
+import es.bsc.compss.exceptions.InvokeExecutionException;
 import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.executor.InvocationRunner;
+import es.bsc.compss.invokers.types.StdIOStream;
+import es.bsc.compss.invokers.util.BinaryRunner;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.Invocation;
@@ -26,6 +29,7 @@ import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
+import es.bsc.compss.types.implementations.ExecType;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.resources.MethodResourceDescription;
@@ -237,6 +241,7 @@ public abstract class Invoker implements ApplicationRunner {
                     np.setValueClass(double.class);
                     break;
                 case STRING_T:
+                case STRING_64_T:
                 case DIRECTORY_T:
                 case FILE_T:
                 case BINDING_OBJECT_T:
@@ -340,11 +345,20 @@ public abstract class Invoker implements ApplicationRunner {
         emitStartTask();
         try {
             setEnvironmentVariables();
+            ExecType prolog = this.invocation.getMethodImplementation().getDescription().getProlog();
+            executeBinary(prolog);
+
             invokeMethod();
+
+            ExecType epilog = this.invocation.getMethodImplementation().getDescription().getEpilog();
+            executeBinary(epilog);
+
         } catch (JobExecutionException jee) {
             throw jee;
         } catch (COMPSsException e) {
             throw e;
+        } catch (InvokeExecutionException e) {
+            throw new JobExecutionException(e);
         } finally {
             emitEndTask();
         }
@@ -393,6 +407,19 @@ public abstract class Invoker implements ApplicationRunner {
     protected abstract void invokeMethod() throws JobExecutionException, COMPSsException;
 
     protected abstract void cancelMethod();
+
+    private Object executeBinary(ExecType executable) throws InvokeExecutionException {
+        if (executable == null || !executable.isAssigned()) {
+            return new Object();
+        }
+        BinaryRunner br = new BinaryRunner();
+        String[] params = BinaryRunner.buildAppParams(this.invocation.getParams(), executable.getParams(), null);
+        String[] cmd = new String[1 + params.length];
+        cmd[0] = executable.getBinary();
+        System.arraycopy(params, 0, cmd, 1, params.length);
+        return br.executeCMD(cmd, new StdIOStream(), this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
+            this.context.getThreadErrStream(), null, executable.isFailByExitValue());
+    }
 
     @Override
     public void stalledApplication() {

@@ -49,7 +49,7 @@ import es.bsc.compss.types.implementations.definition.PythonMPIDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.util.Serializer;
+import es.bsc.compss.util.serializers.Serializer;
 import es.bsc.compss.utils.execution.ExecutionManager;
 import es.bsc.compss.worker.COMPSsException;
 import es.bsc.distrostreamlib.client.DistroStreamClient;
@@ -289,7 +289,7 @@ public class GATWorker implements InvocationContext {
     private static GATInvocation genImplemenationDefinition(AbstractMethodImplementationDefinition implDef,
         boolean debug, String[] args, int argPosition) {
         ImplementationDescription<MethodResourceDescription, AbstractMethodImplementationDefinition> implDesc =
-            new ImplementationDescription<>(implDef, "", null);
+            new ImplementationDescription<>(implDef, "", null, null, null);
         AbstractMethodImplementation impl = new AbstractMethodImplementation(0, 0, implDesc);
         return new GATInvocation(debug, impl, args, argPosition);
     }

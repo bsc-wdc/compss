@@ -182,6 +182,7 @@ void process_param(void** params, int i, stringstream& ss) {
             ss << " { \"Value\" : \"" << *(char**)parVal << "\", ";
             break;
         case string_dt:
+        case string_64_dt:
             debug_printf ("[BINDING-COMMONS] - @process_param - String: %s\n", *(char **)parVal);
             ss << " { \"Value\" : \"" << *(char**)parVal << "\", ";
             break;
@@ -451,7 +452,7 @@ void PIPE_ExecuteTaskNew(long appId, char* signature, char* onFailure, int timeo
     debug_printf ("[BINDING-COMMONS] - @PIPE_ExecuteTaskNew - Task processed.\n");
 }
 
-void PIPE_RegisterCE(char* ceSignature, char* implSignature, char* implConstraints, char* implType, char* implIO, int numArgs, char** implTypeArgs) {
+void PIPE_RegisterCE(char* ceSignature, char* implSignature, char* implConstraints, char* implType, char* implIO, char** prolog, char** epilog, int numArgs, char** implTypeArgs) {
     //debug_printf ("[BINDING-COMMONS] - @PIPE_RegisterCE - ceSignature:     %s\n", ceSignature);
     //debug_printf ("[BINDING-COMMONS] - @PIPE_RegisterCE - implSignature:   %s\n", implSignature);
     //debug_printf ("[BINDING-COMMONS] - @PIPE_RegisterCE - implConstraints: %s\n", implConstraints);
@@ -465,7 +466,18 @@ void PIPE_RegisterCE(char* ceSignature, char* implSignature, char* implConstrain
 	// NO RETURN
 
 	stringstream ss;
-	ss << "REGISTER_CE " << ceSignature << " " << implSignature << " " << implConstraints << " " << implType << " " << implIO << " " << numArgs;
+	ss << "REGISTER_CE " << ceSignature << " " << implSignature << " " << implConstraints << " " << implType << " " << implIO;
+
+    for (int i = 0; i < 3; i++) {
+    	ss << " " << prolog[i];
+    }
+
+    for (int i = 0; i < 3; i++) {
+    	ss << " " << epilog[i];
+
+    }
+
+	ss << " " << numArgs;
 
     for (int i = 0; i < numArgs; i++) {
     	ss << " " << implTypeArgs[i];

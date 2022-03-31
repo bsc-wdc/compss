@@ -148,7 +148,7 @@ public interface COMPSsRuntime {
      * @param implTypeArgs The implementation specific arguments.
      */
     public void registerCoreElement(String coreElementSignature, String implSignature, String implConstraints,
-        String implType, String implIO, String... implTypeArgs);
+        String implType, String implIO, String[] prolog, String[] epilog, String... implTypeArgs);
 
     /**
      * New Method task for C Binding.

@@ -50,7 +50,7 @@ import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.util.Serializer;
+import es.bsc.compss.util.serializers.Serializer;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -258,6 +258,7 @@ public abstract class NIOAgent {
                         }
                         break;
                     case STRING_T:
+                    case STRING_64_T:
                     case OBJECT_T:
                     case STREAM_T:
                     case COLLECTION_T:

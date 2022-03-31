@@ -39,6 +39,8 @@ import es.bsc.compss.util.Tracer;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -259,6 +261,7 @@ public abstract class ExternalInvoker extends Invoker {
                 paramArgs.add(Integer.toString(bo.getType()));
                 paramArgs.add(Integer.toString(bo.getElements()));
                 break;
+            case STRING_64_T:
             case STRING_T:
                 String value = np.getValue().toString();
                 String[] vals = value.split(" ");

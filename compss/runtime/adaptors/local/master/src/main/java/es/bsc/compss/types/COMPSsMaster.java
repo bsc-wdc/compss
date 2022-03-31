@@ -67,7 +67,7 @@ import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.FileOpsManager;
 import es.bsc.compss.util.FileOpsManager.FileOpListener;
-import es.bsc.compss.util.Serializer;
+import es.bsc.compss.util.serializers.Serializer;
 import es.bsc.compss.utils.execution.ExecutionManager;
 import es.bsc.compss.utils.execution.ThreadedPrintStream;
 import es.bsc.compss.worker.COMPSsException;
@@ -1096,6 +1096,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             case FLOAT_T:
             case DOUBLE_T:
             case STRING_T:
+            case STRING_64_T:
                 // Primitive type parameters cannot become a PSCO nor stored. Ignoring parameter.
                 return;
             default:

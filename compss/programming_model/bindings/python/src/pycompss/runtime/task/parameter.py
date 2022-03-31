@@ -606,11 +606,12 @@ def get_parameter_from_dictionary(d: dict) -> Parameter:
         return parameter
 
 
-def get_compss_type(value: typing.Any, depth: int = 0) -> int:
+def get_compss_type(value: typing.Any, depth: int = 0, code_strings=True) -> int:
     """Retrieve the value type mapped to COMPSs types.
 
     :param value: Value to analyse.
     :param depth: Collections depth.
+    :param code_strings: if strings will be encoded
     :return: The Type of the value.
     """
     # First check if it is a PSCO since a StorageNumpy can be detected
@@ -645,7 +646,7 @@ def get_compss_type(value: typing.Any, depth: int = 0) -> int:
             # Files will be detected as string, since it is a path.
             # The difference among them is defined by the parameter
             # decoration as FILE.
-            return TYPE.STRING
+            return TYPE.STRING if not code_strings else TYPE.STRING_64
         elif value_type is int:
             if int(value) < PYTHON_MAX_INT:  # noqa
                 return TYPE.INT

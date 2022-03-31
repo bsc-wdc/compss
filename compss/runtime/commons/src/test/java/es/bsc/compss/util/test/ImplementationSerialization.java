@@ -21,7 +21,7 @@ import es.bsc.compss.types.implementations.ImplementationDescription;
 import es.bsc.compss.types.implementations.definition.AbstractMethodImplementationDefinition;
 import es.bsc.compss.types.implementations.definition.MethodDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
-import es.bsc.compss.util.Serializer;
+import es.bsc.compss.util.serializers.Serializer;
 
 import java.io.IOException;
 
@@ -35,7 +35,7 @@ public class ImplementationSerialization {
         MethodDefinition md = new MethodDefinition("class", "method");
         MethodDefinition md2 = (MethodDefinition) Serializer.deserialize(Serializer.serialize(md));
         ImplementationDescription<MethodResourceDescription, AbstractMethodImplementationDefinition> id =
-            new ImplementationDescription<>(md, "signature", new MethodResourceDescription());
+            new ImplementationDescription<>(md, "signature", new MethodResourceDescription(), null, null);
         ImplementationDescription<MethodResourceDescription, AbstractMethodImplementationDefinition> id2 =
             (ImplementationDescription<MethodResourceDescription, AbstractMethodImplementationDefinition>) Serializer
                 .deserialize(Serializer.serialize(id));

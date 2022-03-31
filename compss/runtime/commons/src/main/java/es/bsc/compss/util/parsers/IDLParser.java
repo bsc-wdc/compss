@@ -328,7 +328,7 @@ public class IDLParser {
         ImplementationDescription<?, ?> implDef = null;
         try {
             implDef = ImplementationDescription.defineImplementation(MethodType.METHOD.toString(),
-                implementationSignature, currConstraints, declaringClass, methodName);
+                implementationSignature, currConstraints, null, null, declaringClass, methodName);
         } catch (Exception e) {
             ErrorManager.error(e.getMessage());
         }

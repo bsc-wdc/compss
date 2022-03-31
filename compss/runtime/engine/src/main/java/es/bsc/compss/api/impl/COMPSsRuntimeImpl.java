@@ -48,6 +48,8 @@ import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.PersistentLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
+import es.bsc.compss.types.implementations.ExecType;
+import es.bsc.compss.types.implementations.ExecutionOrder;
 import es.bsc.compss.types.implementations.ImplementationDescription;
 import es.bsc.compss.types.listeners.CancelTaskGroupOnResourceCreation;
 import es.bsc.compss.types.parameter.BasicTypeParameter;
@@ -557,14 +559,31 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public void registerCoreElement(String coreElementSignature, String implSignature, String implConstraints,
-        String implType, String implIO, String... implTypeArgs) {
+        String implType, String implIO, String[] prolog, String[] epilog, String... implTypeArgs) {
 
         LOGGER.info("Registering CoreElement " + coreElementSignature);
+        if (prolog.length != ExecType.ARRAY_LENGTH) {
+            throw new IllegalArgumentException("Incorrect number of parameters in prolog.");
+        }
+
+        if (epilog.length != ExecType.ARRAY_LENGTH) {
+            throw new IllegalArgumentException("Incorrect number of parameters in epilog.");
+        }
+
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("\t - Implementation: " + implSignature);
             LOGGER.debug("\t - Constraints   : " + implConstraints);
             LOGGER.debug("\t - Type          : " + implType);
-            LOGGER.debug("\t - I/O            : " + implIO);
+            LOGGER.debug("\t - I/O           : " + implIO);
+            LOGGER.debug("\t - Prolog        : ");
+            for (String pro : prolog) {
+                LOGGER.debug("\t\t -- : " + pro);
+            }
+            LOGGER.debug("\t - Epliog        : ");
+            for (String epi : epilog) {
+                LOGGER.debug("\t\t -- : " + epi);
+            }
+
             LOGGER.debug("\t - ImplTypeArgs  : ");
             for (String implTypeArg : implTypeArgs) {
                 LOGGER.debug("\t\t Arg: " + implTypeArg);
@@ -583,8 +602,12 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
         CoreElementDefinition ced = new CoreElementDefinition();
         ced.setCeSignature(coreElementSignature);
+
+        ExecType pro = new ExecType(ExecutionOrder.PROLOG, prolog[0], prolog[1], Boolean.parseBoolean(prolog[2]));
+        ExecType epi = new ExecType(ExecutionOrder.EPILOG, epilog[0], epilog[1], Boolean.parseBoolean(epilog[2]));
+
         ImplementationDescription<?, ?> implDef =
-            ImplementationDescription.defineImplementation(implType, implSignature, mrd, implTypeArgs);
+            ImplementationDescription.defineImplementation(implType, implSignature, mrd, pro, epi, implTypeArgs);
         ced.addImplementation(implDef);
 
         td.registerNewCoreElement(ced);

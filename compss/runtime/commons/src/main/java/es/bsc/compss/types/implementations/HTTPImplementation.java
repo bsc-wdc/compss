@@ -38,7 +38,7 @@ public class HTTPImplementation extends Implementation {
     public static HTTPImplementation generateDummy() {
         return new HTTPImplementation(null, null,
             new ImplementationDescription<>(new HTTPDefinition("", "", "", "", "", "", ""), "",
-                new HTTPResourceDescription(new ArrayList<String>(), 0)));
+                new HTTPResourceDescription(new ArrayList<String>(), 0), null, null));
     }
 
     public HTTPImplementation() {

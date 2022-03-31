@@ -16,6 +16,9 @@
  */
 package es.bsc.compss.executor.external.commands;
 
+import es.bsc.compss.types.implementations.ExecType;
+
+
 /**
  * Command to request the registration of a new CE.
  */
@@ -27,6 +30,8 @@ public class RegisterCEExternalCommand implements ExternalCommand {
     protected String implType;
     protected String implIO;
     protected String[] typeArgs;
+    protected String[] prolog;
+    protected String[] epilog;
 
 
     public String getCESignature() {
@@ -51,6 +56,14 @@ public class RegisterCEExternalCommand implements ExternalCommand {
 
     public String[] getTypeArgs() {
         return this.typeArgs;
+    }
+
+    public String[] getProlog() {
+        return prolog;
+    }
+
+    public String[] getEpilog() {
+        return epilog;
     }
 
     @Override

@@ -119,7 +119,7 @@ def resolve_working_dir(kwargs: dict) -> None:
         kwargs[WORKING_DIR] = UNASSIGNED
 
 
-def resolve_fail_by_exit_value(kwargs: dict) -> None:
+def resolve_fail_by_exit_value(kwargs: dict, def_val="true") -> None:
     """
     Resolve the fail by exit value.
     Updates kwargs:
@@ -142,7 +142,7 @@ def resolve_fail_by_exit_value(kwargs: dict) -> None:
                 "It should be boolean or an environment variable"
             )
     else:
-        kwargs[FAIL_BY_EXIT_VALUE] = "true"
+        kwargs[FAIL_BY_EXIT_VALUE] = def_val
 
 
 def process_computing_nodes(decorator_name: str, kwargs: dict) -> None:

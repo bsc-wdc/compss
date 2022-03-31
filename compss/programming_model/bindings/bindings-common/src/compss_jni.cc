@@ -364,7 +364,7 @@ void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
     check_exception(status, "Cannot find cancelApplicationTasks");
 
     // RegisterCE method
-    midRegisterCE = status->localJniEnv->GetMethodID(clsITimpl, "registerCoreElement", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;)V");
+    midRegisterCE = status->localJniEnv->GetMethodID(clsITimpl, "registerCoreElement", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;[Ljava/lang/String;[Ljava/lang/String;)V");
     check_exception(status, "Cannot find registerCoreElement");
 
     // isFileAccessed method
@@ -677,6 +677,15 @@ void process_param(ThreadStatus* status, void** params, int i, jobjectArray jobj
             debug_printf ("[BINDING-COMMONS] - @process_param - String: %s\n", *(char **)parVal);
 
             jobjParType = status->localJniEnv->CallStaticObjectMethod(clsParType, midParTypeCon, status->localJniEnv->NewStringUTF("STRING_T"));
+            check_exception(status, "Exception calling string constructor");
+            break;
+        case string_64_dt:
+            jobjParVal = status->localJniEnv->NewStringUTF(*(char **)parVal);
+            check_exception(status, "Cannot instantiate new string object");
+
+            debug_printf ("[BINDING-COMMONS] - @process_param - String: %s\n", *(char **)parVal);
+
+            jobjParType = status->localJniEnv->CallStaticObjectMethod(clsParType, midParTypeCon, status->localJniEnv->NewStringUTF("STRING_64_T"));
             check_exception(status, "Exception calling string constructor");
             break;
         case binding_object_dt:
@@ -1198,7 +1207,7 @@ void JNI_ExecuteHttpTask(long appId, char* signature, char* onFailure, int timeo
 }
 
 
-void JNI_RegisterCE(char* ceSignature, char* implSignature, char* implConstraints, char* implType, char* implIO, int numParams, char** implTypeArgs) {
+void JNI_RegisterCE(char* ceSignature, char* implSignature, char* implConstraints, char* implType, char* implIO, char** prolog, char** epilog, int numParams, char** implTypeArgs) {
     //debug_printf ("[BINDING-COMMONS] - @JNI_RegisterCE - ceSignature:     %s\n", ceSignature);
     //debug_printf ("[BINDING-COMMONS] - @JNI_RegisterCE - implSignature:   %s\n", implSignature);
     //debug_printf ("[BINDING-COMMONS] - @JNI_RegisterCE - implConstraints: %s\n", implConstraints);
@@ -1208,6 +1217,19 @@ void JNI_RegisterCE(char* ceSignature, char* implSignature, char* implConstraint
 
     // Request thread access to JVM
     ThreadStatus* status = access_request();
+
+    // Array of Objects to pass to the register
+    jobjectArray prologArr;
+    jobjectArray epilogArr;
+    prologArr = (jobjectArray)status->localJniEnv->NewObjectArray(3, clsString, status->localJniEnv->NewStringUTF(""));
+    epilogArr = (jobjectArray)status->localJniEnv->NewObjectArray(3, clsString, status->localJniEnv->NewStringUTF(""));
+    for (int i = 0; i < 3; i++) {
+        //debug_printf("[BINDING-COMMONS] - @JNI_RegisterCE -   Processing pos %d\n", i);
+        jstring tmpro = status->localJniEnv->NewStringUTF(prolog[i]);
+        jstring tmpepi = status->localJniEnv->NewStringUTF(epilog[i]);
+        status->localJniEnv->SetObjectArrayElement(prologArr, i, tmpro);
+        status->localJniEnv->SetObjectArrayElement(epilogArr, i, tmpepi);
+    }
 
     // Array of Objects to pass to the register
     jobjectArray implArgs;
@@ -1226,6 +1248,8 @@ void JNI_RegisterCE(char* ceSignature, char* implSignature, char* implConstraint
                               status->localJniEnv->NewStringUTF(implConstraints),
                               status->localJniEnv->NewStringUTF(implType),
                               status->localJniEnv->NewStringUTF(implIO),
+                              prologArr,
+                              epilogArr,
                               implArgs);
     check_exception(status, "Exception received when calling registerCE");
 

@@ -38,7 +38,7 @@ class CE(object):
         "impl_io",
         "prolog",
         "epilog",
-        "impl_type_args"
+        "impl_type_args",
     ]
 
     def __init__(
@@ -50,7 +50,7 @@ class CE(object):
         impl_io: bool = False,
         prolog: typing.List[str] = None,
         epilog: typing.List[str] = None,
-        impl_type_args: typing.Optional[typing.List[str]] = None
+        impl_type_args: typing.Optional[typing.List[str]] = None,
     ) -> None:
         self.ce_signature = ce_signature
         self.impl_signature = impl_signature

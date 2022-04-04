@@ -300,7 +300,7 @@ def register_core_element(
     impl_io: str,
     prolog: typing.List[str],
     epilog: typing.List[str],
-    impl_type_args: typing.List[str]
+    impl_type_args: typing.List[str],
 ) -> None:
     """Call to register_core_element.
 

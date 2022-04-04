@@ -406,11 +406,16 @@ class TaskMaster(object):
 
             # Process the parameters, give them a proper direction
             with event_master(TRACING_MASTER.process_parameters):
-                self.process_parameters(args, kwargs, code_strings=self.user_function.__code_strings__)
+                self.process_parameters(
+                    args, kwargs, code_strings=self.user_function.__code_strings__
+                )
 
             # Deal with the return part.
             with event_master(TRACING_MASTER.process_return):
-                num_returns = self.add_return_parameters(self.explicit_num_returns, code_strings=self.user_function.__code_strings__)
+                num_returns = self.add_return_parameters(
+                    self.explicit_num_returns,
+                    code_strings=self.user_function.__code_strings__,
+                )
                 if not self.returns:
                     num_returns = self.update_return_if_no_returns(self.user_function)
 
@@ -728,7 +733,8 @@ class TaskMaster(object):
         arg_objects = args[:num_positionals]
         for (arg_name, arg_object) in zip(arg_names, arg_objects):
             self.parameters[arg_name] = self.build_parameter_object(
-                arg_name, arg_object, code_strings=code_strings)
+                arg_name, arg_object, code_strings=code_strings
+            )
 
         # Check defaults
         if self.param_defaults:
@@ -763,7 +769,8 @@ class TaskMaster(object):
         for (i, var_arg) in enumerate(args[num_positionals:]):
             arg_name = get_vararg_name(self.param_varargs, i)
             self.parameters[arg_name] = self.build_parameter_object(
-                arg_name, var_arg, code_strings=code_strings)
+                arg_name, var_arg, code_strings=code_strings
+            )
             if self.param_varargs not in supported_varargs:
                 supported_varargs.append(self.param_varargs)
         # Process keyword arguments
@@ -771,7 +778,8 @@ class TaskMaster(object):
         for (name, value) in kwargs.items():
             arg_name = get_kwarg_name(name)
             self.parameters[arg_name] = self.build_parameter_object(
-                arg_name, value, code_strings=code_strings)
+                arg_name, value, code_strings=code_strings
+            )
             if name not in supported_kwargs:
                 supported_kwargs.append(name)
         # Check the arguments - Look for mandatory and unexpected arguments
@@ -830,8 +838,7 @@ class TaskMaster(object):
         # If the parameter is a FILE then its type will already be defined,
         # and get_compss_type will misslabel it as a parameter.TYPE.STRING
         if param.is_object():
-            param.content_type = get_compss_type(arg_object,
-                                                 code_strings=code_strings)
+            param.content_type = get_compss_type(arg_object, code_strings=code_strings)
 
         # Set if the object is really a future.
         if isinstance(arg_object, Future):
@@ -2053,7 +2060,9 @@ def _manage_persistent_object(p: Parameter) -> None:
         logger.debug("Managed persistent object: %s" % obj_id)
 
 
-def _serialize_object_into_file(name: str, p: Parameter, code_strings=True) -> Parameter:
+def _serialize_object_into_file(
+    name: str, p: Parameter, code_strings=True
+) -> Parameter:
     """Serialize an object into a file if necessary.
 
     :param name: Name of the object.
@@ -2142,8 +2151,9 @@ def _serialize_object_into_file(name: str, p: Parameter, code_strings=True) -> P
                     name,
                     Parameter(
                         content=x,
-                        content_type=get_compss_type(x, p.depth - 1,
-                                                     code_strings=code_strings),
+                        content_type=get_compss_type(
+                            x, p.depth - 1, code_strings=code_strings
+                        ),
                         direction=p.direction,
                         depth=p.depth - 1,
                         extra_content_type=str(type(x).__name__),
@@ -2165,7 +2175,9 @@ def _serialize_object_into_file(name: str, p: Parameter, code_strings=True) -> P
                 name,
                 Parameter(
                     content=k,
-                    content_type=get_compss_type(k, p.depth - 1, code_strings=code_strings),
+                    content_type=get_compss_type(
+                        k, p.depth - 1, code_strings=code_strings
+                    ),
                     direction=p.direction,
                     depth=p.depth - 1,
                     extra_content_type=str(type(p).__name__),
@@ -2175,7 +2187,9 @@ def _serialize_object_into_file(name: str, p: Parameter, code_strings=True) -> P
                 name,
                 Parameter(
                     content=v,
-                    content_type=get_compss_type(v, p.depth - 1, code_strings=code_strings),
+                    content_type=get_compss_type(
+                        v, p.depth - 1, code_strings=code_strings
+                    ),
                     direction=p.direction,
                     depth=p.depth - 1,
                     extra_content_type=str(type(v).__name__),
@@ -2252,7 +2266,8 @@ def _extract_parameter(
                 CONSTANTS.empty_string_key.encode()
             ).decode()  # noqa: E501
         con_type = CONSTANTS.extra_content_type_format.format(
-            "builtins", str(param.content.__class__.__name__))
+            "builtins", str(param.content.__class__.__name__)
+        )
     elif param.content_type == TYPE.STRING and not param.is_future:  # noqa: E501
         if len(param.content) == 0:
             param.content = CONSTANTS.empty_string_key

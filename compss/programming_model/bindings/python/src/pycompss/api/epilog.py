@@ -54,7 +54,7 @@ class Epilog(PyCOMPSsDecorator):
     __slots__ = []
 
     def __init__(self, *args, **kwargs):
-        """ Store arguments passed to the decorator.
+        """Store arguments passed to the decorator.
 
         self = itself.
         args = not used.
@@ -63,7 +63,7 @@ class Epilog(PyCOMPSsDecorator):
         :param args: Arguments
         :param kwargs: Keyword arguments
         """
-        self.decorator_name = "".join(('@', Epilog.__name__.lower()))
+        self.decorator_name = "".join(("@", Epilog.__name__.lower()))
 
         super(Epilog, self).__init__(self.decorator_name, *args, **kwargs)
         if self.scope:
@@ -71,11 +71,13 @@ class Epilog(PyCOMPSsDecorator):
                 logger.debug("Init @epilog decorator...")
 
             # Check the arguments
-            check_arguments(MANDATORY_ARGUMENTS,
-                            DEPRECATED_ARGUMENTS,
-                            SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
-                            list(kwargs.keys()),
-                            self.decorator_name)
+            check_arguments(
+                MANDATORY_ARGUMENTS,
+                DEPRECATED_ARGUMENTS,
+                SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
+                list(kwargs.keys()),
+                self.decorator_name,
+            )
 
     def __call__(self, user_function):
         # type: (typing.Callable) -> typing.Callable
@@ -99,8 +101,9 @@ class Epilog(PyCOMPSsDecorator):
         if __debug__:
             logger.debug("Executing epilog wrapper.")
 
-        if (context.in_master() or context.is_nesting_enabled()) \
-                and not self.core_element_configured:
+        if (
+            context.in_master() or context.is_nesting_enabled()
+        ) and not self.core_element_configured:
             self.__configure_core_element__(kwargs, user_function)
 
         with keep_arguments(args, kwargs, prepend_strings=True):
@@ -111,7 +114,7 @@ class Epilog(PyCOMPSsDecorator):
 
     def __configure_core_element__(self, kwargs, user_function):
         # type: (dict, ...) -> None
-        """ Include the registering info related to @epilog.
+        """Include the registering info related to @epilog.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 

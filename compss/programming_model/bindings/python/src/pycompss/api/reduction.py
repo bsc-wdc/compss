@@ -29,7 +29,6 @@ from functools import wraps
 
 import pycompss.util.context as context
 from pycompss.api.commons.constants import LABELS
-from pycompss.api.commons.decorator import PyCOMPSsDecorator
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.error_msgs import cast_env_to_int_error
 from pycompss.api.commons.error_msgs import cast_string_to_int_error
@@ -61,7 +60,6 @@ class Reduction(object):
         "scope",
         "core_element",
         "core_element_configured",
-        "__configure_core_element__",
     ]
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
@@ -74,17 +72,14 @@ class Reduction(object):
         :param args: Arguments
         :param kwargs: Keyword arguments
         """
-        decorator_name = "".join(("@", self.__class__.__name__.lower()))
-        # super(self.__class__, self).__init__(decorator_name, *args, **kwargs)
-        # Instantiate superclass explicitly to support mypy.
-        pd = PyCOMPSsDecorator(decorator_name, *args, **kwargs)
+        decorator_name = "".join(("@", Reduction.__name__.lower()))
+        # super(Reduction, self).__init__(decorator_name, *args, **kwargs)
         self.decorator_name = decorator_name
         self.args = args
         self.kwargs = kwargs
         self.scope = context.in_pycompss()
         self.core_element = None  # type: typing.Any
         self.core_element_configured = False
-        self.__configure_core_element__ = pd.__configure_core_element__
         if self.scope:
             # Check the arguments
             check_arguments(

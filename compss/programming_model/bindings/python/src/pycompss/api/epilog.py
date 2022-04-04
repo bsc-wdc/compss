@@ -27,7 +27,6 @@ from functools import wraps
 
 from pycompss.api.commons.constants import INTERNAL_LABELS
 from pycompss.api.commons.constants import LABELS
-from pycompss.api.commons.decorator import PyCOMPSsDecorator
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.decorator import resolve_fail_by_exit_value
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
@@ -47,37 +46,46 @@ SUPPORTED_ARGUMENTS = {LABELS.params, LABELS.fail_by_exit_value}
 DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 
 
-class Epilog(PyCOMPSsDecorator):
+class Epilog(object):
     """
     todo: write comments
     """
 
-    __slots__ = ["decorator_name"]
+    __slots__ = [
+        "decorator_name",
+        "args",
+        "kwargs",
+        "scope",
+        "core_element",
+        "core_element_configured",
+    ]
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         """Store arguments passed to the decorator.
 
         self = itself.
         args = not used.
-        kwargs = dictionary with the given binary and params strgins.
+        kwargs = dictionary with the given binary and params strings.
 
         :param args: Arguments
         :param kwargs: Keyword arguments
         """
-        self.decorator_name = "".join(("@", Epilog.__name__.lower()))
-
-        super(Epilog, self).__init__(self.decorator_name, *args, **kwargs)
+        decorator_name = "".join(("@", Epilog.__name__.lower()))
+        # super(Epilog, self).__init__(decorator_name, *args, **kwargs)
+        self.decorator_name = decorator_name
+        self.args = args
+        self.kwargs = kwargs
+        self.scope = context.in_pycompss()
+        self.core_element = None  # type: typing.Any
+        self.core_element_configured = False
         if self.scope:
-            if __debug__:
-                logger.debug("Init @epilog decorator...")
-
             # Check the arguments
             check_arguments(
                 MANDATORY_ARGUMENTS,
                 DEPRECATED_ARGUMENTS,
                 SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
                 list(kwargs.keys()),
-                self.decorator_name,
+                decorator_name,
             )
 
     def __call__(self, user_function: typing.Callable) -> typing.Callable:
@@ -88,7 +96,7 @@ class Epilog(PyCOMPSsDecorator):
         """
 
         @wraps(user_function)
-        def epilog_f(*args, **kwargs):
+        def epilog_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             return self.__decorator_body__(user_function, args, kwargs)
 
         epilog_f.__doc__ = user_function.__doc__
@@ -106,7 +114,7 @@ class Epilog(PyCOMPSsDecorator):
         if (
             context.in_master() or context.is_nesting_enabled()
         ) and not self.core_element_configured:
-            self.__configure_core_element__(kwargs, user_function)
+            self.__configure_core_element__(kwargs)
 
         with keep_arguments(args, kwargs, prepend_strings=True):
             # Call the method
@@ -114,15 +122,12 @@ class Epilog(PyCOMPSsDecorator):
 
         return ret
 
-    def __configure_core_element__(
-        self, kwargs: dict, user_function: typing.Callable
-    ) -> None:
+    def __configure_core_element__(self, kwargs: dict) -> None:
         """Include the registering info related to @epilog.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 
         :param kwargs: Keyword arguments received from call.
-        :param user_function: Decorated function.
         :return: None
         """
         if __debug__:
@@ -144,7 +149,7 @@ class Epilog(PyCOMPSsDecorator):
 
 
 # ########################################################################### #
-# ##################### MPI DECORATOR ALTERNATIVE NAME ###################### #
+# ################### EPILOG DECORATOR ALTERNATIVE NAME ##################### #
 # ########################################################################### #
 
 epilog = Epilog

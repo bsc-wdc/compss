@@ -20,7 +20,7 @@
 """
 PyCOMPSs DECORATOR COMMONS
 ==========================
-    This file contains the main decorator class.
+    This file contains very usual functions for the decorators.
 """
 
 import os
@@ -28,12 +28,9 @@ import subprocess
 import sys
 from contextlib import contextmanager
 
-import pycompss.util.context as context
 from pycompss.api.commons.constants import INTERNAL_LABELS
 from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.constants import LEGACY_LABELS
-from pycompss.runtime.task.core_element import CE  # noqa - used in typing
-from pycompss.util.exceptions import MissingImplementedException
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.typing_helper import typing
 
@@ -44,58 +41,6 @@ if __debug__:
 
 # Global name to be used within kwargs for the core element.
 CORE_ELEMENT_KEY = "compss_core_element"
-
-
-class PyCOMPSsDecorator(object):
-    """
-    This class implements all common code of the PyCOMPSs decorators.
-    """
-
-    __slots__ = [
-        "decorator_name",
-        "args",
-        "kwargs",
-        "scope",
-        "core_element",
-        "core_element_configured",
-    ]
-
-    def __init__(
-        self, decorator_name: str, *args: typing.Any, **kwargs: typing.Any
-    ) -> None:
-        self.decorator_name = decorator_name
-        self.args = args
-        self.kwargs = kwargs
-        self.scope = context.in_pycompss()
-        self.core_element = None  # type: typing.Optional[CE]
-        self.core_element_configured = False
-        # This enables the decorator to get info from the caller
-        # (e.g. self.source_frame_info.filename or
-        #       self.source_frame_info.lineno)
-        # import inspect
-        # self.source_frame_info = inspect.getframeinfo(inspect.stack()[1][0])
-
-        if __debug__ and self.scope:
-            # Log only in the master
-            logger.debug("Init %s decorator..." % decorator_name)
-
-    def __configure_core_element__(
-        self, kwargs: dict, user_function: typing.Any
-    ) -> None:
-        """
-        Include the registering info related to the decorator which inherits
-
-        :param kwargs: Current keyword arguments to be updated with the core
-                       element information.
-        :param user_function: Decorated function.
-        :return: None
-        """
-        raise MissingImplementedException("__configure_core_element__")
-
-
-##############################################
-# VERY USUAL FUNCTIONS THAT MODIFY SOMETHING #
-##############################################
 
 
 def resolve_working_dir(kwargs: dict) -> None:

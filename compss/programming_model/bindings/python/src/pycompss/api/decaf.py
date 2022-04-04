@@ -120,8 +120,7 @@ class Decaf(object):
         """
 
         @wraps(user_function)
-        def decaf_f(*args, **kwargs):
-            # type: (*typing.Any, **typing.Any) -> typing.Any
+        def decaf_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             if not self.scope:
                 raise NotInPyCOMPSsException(not_in_pycompss("decaf"))
 

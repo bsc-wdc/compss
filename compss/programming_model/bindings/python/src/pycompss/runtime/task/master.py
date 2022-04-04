@@ -159,7 +159,7 @@ ATTRIBUTES_TO_BE_REMOVED = {
     "param_defaults",
     "first_arg_name",
     "parameters",
-    LABELS.returns,
+    "returns",
     "multi_return",
 }
 
@@ -485,7 +485,11 @@ class TaskMaster(object):
             with event_master(TRACING_MASTER.attributes_cleanup):
                 for at in ATTRIBUTES_TO_BE_REMOVED:
                     if hasattr(self, at):
-                        delattr(self, at)
+                        try:
+                            delattr(self, at)
+                        except AttributeError:
+                            # Only happens when compiled
+                            pass
 
             emit_manual_event_explicit(TRACING_WORKER.binding_tasks_func_type, 0)
 

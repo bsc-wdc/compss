@@ -96,7 +96,7 @@
     # Copy mypy compiling script
     if [ "${python_major_version}" == "3" ]; then
       echo "INFO: Copying compilation script..."
-      cp "${SCRIPT_DIR}/src/mypy_compile.sh" "${target_directory}/3"
+      cp "${SCRIPT_DIR}/scripts/compilation/compile.sh" "${target_directory}/3"
     fi
 
     # Copy cleaning and commons scripts for setup or uninstalling

@@ -67,7 +67,7 @@ class PyCOMPSsDecorator(object):
         self.args = args
         self.kwargs = kwargs
         self.scope = context.in_pycompss()
-        self.core_element = None  # type: typing.Any
+        self.core_element = None  # type: typing.Optional[CE]
         self.core_element_configured = False
         # This enables the decorator to get info from the caller
         # (e.g. self.source_frame_info.filename or

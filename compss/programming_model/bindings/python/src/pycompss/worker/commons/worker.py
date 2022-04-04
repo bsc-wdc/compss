@@ -126,6 +126,7 @@ def build_task_parameter(
             1,
         )
     elif p_type in (parameter.TYPE.STRING, parameter.TYPE.STRING_64):
+        aux = ""  # type: typing.Union[str, bytes]
         if args is not None:
             num_substrings = int(p_value)  # noqa
             aux_str = []
@@ -152,11 +153,11 @@ def build_task_parameter(
                 # try to recover the real object
                 # Decode removes double backslash, and encode returns
                 # the result as binary
-                p_bin = new_aux.decode(CONSTANTS.str_escape).encode()
+                p_bin = new_aux.decode(CONSTANTS.str_escape).encode()  # type: ignore
                 deserialized_aux = deserialize_from_bytes(p_bin, show_exception=False)
             except (SerializerException, ValueError, EOFError):
                 # was not an object
-                deserialized_aux = str(real_value.decode())
+                deserialized_aux = str(real_value.decode())  # type: ignore
             #######
         else:
             deserialized_aux = new_aux
@@ -165,7 +166,7 @@ def build_task_parameter(
             deserialized_aux = deserialized_aux.decode("utf-8")
 
         if __debug__:
-            logger.debug("\t * Value: %s" % aux)
+            logger.debug("\t * Value: %s" % str(aux))
 
         return (
             Parameter(

@@ -406,15 +406,14 @@ class TaskMaster(object):
 
             # Process the parameters, give them a proper direction
             with event_master(TRACING_MASTER.process_parameters):
-                self.process_parameters(
-                    args, kwargs, code_strings=self.user_function.__code_strings__
-                )
+                code_strings = self.user_function.__code_strings__  # type: ignore
+                self.process_parameters(args, kwargs, code_strings=code_strings)
 
             # Deal with the return part.
             with event_master(TRACING_MASTER.process_return):
                 num_returns = self.add_return_parameters(
                     self.explicit_num_returns,
-                    code_strings=self.user_function.__code_strings__,
+                    code_strings=code_strings,
                 )
                 if not self.returns:
                     num_returns = self.update_return_if_no_returns(self.user_function)
@@ -709,7 +708,9 @@ class TaskMaster(object):
         else:
             self.chunk_size = 0
 
-    def process_parameters(self, args: tuple, kwargs: dict, code_strings=True) -> None:
+    def process_parameters(
+        self, args: tuple, kwargs: dict, code_strings: bool = True
+    ) -> None:
         """Process all the input parameters.
 
         Basically, processing means "build a dictionary of <name, parameter>,
@@ -1391,7 +1392,9 @@ class TaskMaster(object):
             has_target,
         )  # noqa: E501
 
-    def add_return_parameters(self, returns: typing.Any, code_strings=True) -> int:
+    def add_return_parameters(
+        self, returns: typing.Any, code_strings: bool = True
+    ) -> int:
         """Modify the return parameters accordingly to the return statement.
 
         :return: Creates and modifies self.returns and returns the number of

@@ -28,11 +28,12 @@ clean_integration_unittests() {
 
 CURRENT_DIR="$(pwd)"
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-# shellcheck disable=SC2164
-cd "${SCRIPT_DIR}"
 
 # Set coverage configuration
 export COVERAGE_PROCESS_START=${SCRIPT_DIR}/coverage.cfg
+
+# shellcheck disable=SC2164
+cd "${SCRIPT_DIR}/../../src/"
 
 # Run unittests
 pytest --verbose --cov=pycompss pycompss/tests/unittests/

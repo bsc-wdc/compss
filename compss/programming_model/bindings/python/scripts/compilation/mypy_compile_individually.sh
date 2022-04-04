@@ -1,4 +1,9 @@
-#!/bin/bash
+#!/bin/bash -e
+
+CURRENT_DIR="$(pwd)"
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+# shellcheck disable=SC2164
+cd "${SCRIPT_DIR}/../../src/"
 
 ###################################
 ## Compilation with mypyc script ##
@@ -110,3 +115,9 @@ mypyc --scripts-are-modules --ignore-missing-imports ./pycompss/worker/gat/worke
 #mypyc --scripts-are-modules --ignore-missing-imports ./pycompss/streams/components/distro_stream_client.py
 #mypyc --scripts-are-modules --ignore-missing-imports ./pycompss/streams/environment.py
 #mypyc --scripts-are-modules --ignore-missing-imports ./pycompss/streams/types/requests.py
+
+# shellcheck disable=SC2164
+cd "${CURRENT_DIR}"
+
+# Exit all ok
+exit 0

@@ -72,6 +72,7 @@ class TypesEventsWorker(object):
         "worker_task_instantiation",
         "binding_serialization_cache_size_type",
         "binding_deserialization_cache_size_type",
+        "wait_on_event",
     )
 
     def __init__(self):
@@ -106,6 +107,7 @@ class TypesEventsWorker(object):
         self.retrieve_object_from_cache_event = 19
         self.insert_object_into_cache_event = 20
         self.remove_object_from_cache_event = 21
+        self.wait_on_event = 22
 
         # Task affinity events:
         self.inside_tasks_cpu_affinity_type = 9000150

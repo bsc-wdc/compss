@@ -43,6 +43,7 @@ from pycompss.util.tracing.helpers import enable_trace_master
 from pycompss.util.tracing.helpers import event_inside_worker
 from pycompss.util.tracing.helpers import event_master
 from pycompss.util.tracing.types_events_master import TRACING_MASTER
+from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.util.typing_helper import typing
 
 if __debug__:
@@ -630,7 +631,7 @@ def wait_on(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
         with event_master(TRACING_MASTER.wait_on_event):
             return __wait_on__(*args, **kwargs)
     else:
-        with event_inside_worker(TRACING_MASTER.wait_on_event):
+        with event_inside_worker(TRACING_WORKER.wait_on_event):
             return __wait_on__(*args, **kwargs)
 
 

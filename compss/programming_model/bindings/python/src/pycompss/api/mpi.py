@@ -334,7 +334,7 @@ class Mpi(object):
             ppn,
             flags,
             scale_by_cu_str,
-            self.kwargs.get("params", INTERNAL_LABELS.unassigned),
+            self.kwargs.get(LABELS.params, INTERNAL_LABELS.unassigned),
             self.kwargs[LABELS.fail_by_exit_value],
         ]
 

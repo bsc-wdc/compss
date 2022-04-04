@@ -24,7 +24,7 @@ PyCOMPSs Core Element
     registration.
 """
 
-from pycompss.api.commons.constants import UNASSIGNED
+from pycompss.api.commons.constants import INTERNAL_LABELS
 from pycompss.util.typing_helper import typing
 
 
@@ -65,8 +65,8 @@ class CE(object):
         else:
             self.impl_type_args = impl_type_args
 
-        self.prolog = [UNASSIGNED] * 3 if prolog is None else prolog
-        self.epilog = [UNASSIGNED] * 3 if epilog is None else epilog
+        self.prolog = [INTERNAL_LABELS.unassigned] * 3 if prolog is None else prolog
+        self.epilog = [INTERNAL_LABELS.unassigned] * 3 if epilog is None else epilog
 
     ###########
     # METHODS #

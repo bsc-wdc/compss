@@ -25,13 +25,15 @@ todo: write a proper description
 
 from functools import wraps
 
-from pycompss.api.commons.constants import *
+from pycompss.api.commons.constants import INTERNAL_LABELS
+from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.decorator import PyCOMPSsDecorator
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.decorator import resolve_fail_by_exit_value
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.runtime.task.core_element import CE
 from pycompss.util.arguments import check_arguments
+from pycompss.util.typing_helper import typing
 
 import pycompss.util.context as context
 
@@ -41,9 +43,9 @@ if __debug__:
 
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {BINARY}
-SUPPORTED_ARGUMENTS = {PARAMS, FAIL_BY_EXIT_VALUE}
-DEPRECATED_ARGUMENTS = set()
+MANDATORY_ARGUMENTS = {LABELS.binary}
+SUPPORTED_ARGUMENTS = {LABELS.params, LABELS.fail_by_exit_value}
+DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 
 
 class Prolog(PyCOMPSsDecorator):
@@ -51,14 +53,14 @@ class Prolog(PyCOMPSsDecorator):
     todo: write comments
     """
 
-    __slots__ = []
+    __slots__ = ["decorator_name"]
 
     def __init__(self, *args, **kwargs):
         """Store arguments passed to the decorator.
 
         self = itself.
         args = not used.
-        kwargs = dictionary with the given binary and params strgins.
+        kwargs = dictionary with the given binary and params strings.
 
         :param args: Arguments
         :param kwargs: Keyword arguments
@@ -79,8 +81,7 @@ class Prolog(PyCOMPSsDecorator):
                 self.decorator_name,
             )
 
-    def __call__(self, user_function):
-        # type: (typing.Callable) -> typing.Callable
+    def __call__(self, user_function: typing.Callable) -> typing.Callable:
         """
         todo: write
         :param user_function: User function to be decorated.
@@ -94,7 +95,9 @@ class Prolog(PyCOMPSsDecorator):
         prolog_f.__doc__ = user_function.__doc__
         return prolog_f
 
-    def __decorator_body__(self, user_function, args, kwargs):
+    def __decorator_body__(
+        self, user_function: typing.Callable, args: tuple, kwargs: dict
+    ):
         if not self.scope:
             raise NotImplementedError
 
@@ -112,8 +115,9 @@ class Prolog(PyCOMPSsDecorator):
 
         return ret
 
-    def __configure_core_element__(self, kwargs, user_function):
-        # type: (dict, ...) -> None
+    def __configure_core_element__(
+        self, kwargs: dict, user_function: typing.Callable
+    ) -> None:
         """Include the registering info related to @prolog.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
@@ -128,9 +132,9 @@ class Prolog(PyCOMPSsDecorator):
         # Resolve the fail by exit value
         resolve_fail_by_exit_value(self.kwargs)
 
-        binary = self.kwargs[BINARY]
-        params = self.kwargs.get(PARAMS, UNASSIGNED)
-        fail_by = self.kwargs.get(FAIL_BY_EXIT_VALUE)
+        binary = self.kwargs[LABELS.binary]
+        params = self.kwargs.get(LABELS.params, INTERNAL_LABELS.unassigned)
+        fail_by = self.kwargs.get(LABELS.fail_by_exit_value)
         _prolog = [binary, params, fail_by]
 
         ce = kwargs.get(CORE_ELEMENT_KEY, CE())

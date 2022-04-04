@@ -30,13 +30,13 @@ def test_launch_streaming_application():
 
     # Start streaming server
     start_script = os.path.join(
-        current_path, "..", "resources", "streaming", "start_server.sh"
+        current_path, "resources", "streaming", "start_server.sh"
     )
     subprocess.check_call([start_script, stream_type, server_name, server_port])
 
     from pycompss.runtime.launch import launch_pycompss_application
 
-    app = os.path.join(current_path, "..", "resources", "stream_objects.py")
+    app = os.path.join(current_path, "resources", "stream_objects.py")
     launch_pycompss_application(
         app,
         "main",
@@ -49,6 +49,6 @@ def test_launch_streaming_application():
 
     # Stop the streaming server
     stop_script = os.path.join(
-        current_path, "..", "resources", "streaming", "stop_server.sh"
+        current_path, "resources", "streaming", "stop_server.sh"
     )
     subprocess.check_call([stop_script, stream_type])

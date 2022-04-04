@@ -16,18 +16,3 @@
 #
 
 # -*- coding: utf-8 -*-
-
-from pycompss.tests.worker.common_piper_tester import evaluate_piper_worker_common
-from pycompss.tests.worker.common_piper_tester import setup_argv
-
-
-def worker_thread(argv, current_path):
-    from pycompss.worker.piper.piper_worker import main
-
-    # Start the piper worker
-    setup_argv(argv, current_path)
-    main()
-
-
-def test_piper_worker():
-    evaluate_piper_worker_common(worker_thread, mpi_worker=False)

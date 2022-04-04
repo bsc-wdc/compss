@@ -25,7 +25,7 @@ WARNING! Only for testing purposes.
          Considers the persistence within the /tmp folder of the localhost.
 """
 
-from pycompss.tests.resources.storage import api
+from pycompss.tests.integration.resources.storage import api
 
 
 class SCO(object):

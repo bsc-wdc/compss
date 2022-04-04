@@ -66,7 +66,7 @@ def test_who_contextualized():
     set_pycompss_context(MASTER)
     who = get_who_contextualized()
     assert (
-        __name__ in who or "nose.case" in who
+        __name__ in who or "None" in who
     ), "ERROR: Wrong who (%s) contextualized." % str(who)
     set_pycompss_context(OUT_OF_SCOPE)
 

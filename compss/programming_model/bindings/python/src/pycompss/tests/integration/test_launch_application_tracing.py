@@ -24,7 +24,7 @@ def test_launch_application():
     from pycompss.runtime.launch import launch_pycompss_application
 
     current_path = os.path.dirname(os.path.abspath(__file__))
-    app = os.path.join(current_path, "..", "resources", "increment.py")
+    app = os.path.join(current_path, "resources", "increment.py")
     launch_pycompss_application(
         app, "main", debug=True, app_name="increment", trace=True
     )
@@ -34,7 +34,7 @@ def test_launch_application_with_mpi_worker():
     from pycompss.runtime.launch import launch_pycompss_application
 
     current_path = os.path.dirname(os.path.abspath(__file__))
-    app = os.path.join(current_path, "..", "resources", "increment.py")
+    app = os.path.join(current_path, "resources", "increment.py")
     launch_pycompss_application(
         app, "main", debug=True, app_name="increment", trace=True, mpi_worker=True
     )

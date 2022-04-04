@@ -39,7 +39,7 @@ def __initialize_storage__() -> None:
     global STORAGE_API
     current_path = os.path.dirname(os.path.abspath(__file__))
     # Add python storage api to sys.path
-    STORAGE_API = os.path.join(current_path, "..", "resources")
+    STORAGE_API = os.path.join(current_path, "resources")
     sys.path.insert(0, STORAGE_API)
     if JAVA_API_JAR == "":
         # Compile jar
@@ -99,7 +99,7 @@ def test_launch_application():
     global STORAGE_API
 
     current_path = os.path.dirname(os.path.abspath(__file__))
-    app = os.path.join(current_path, "..", "resources", "storage_app", "pscos.py")
+    app = os.path.join(current_path, "resources", "storage_app", "pscos.py")
     __initialize_storage__()
     launch_pycompss_application(
         app,

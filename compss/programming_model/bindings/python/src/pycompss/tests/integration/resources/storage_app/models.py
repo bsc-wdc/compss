@@ -26,7 +26,7 @@ import socket
 
 from pycompss.api.parameter import INOUT
 from pycompss.api.task import task
-from pycompss.tests.resources.storage.Object import SCO
+from pycompss.tests.integration.resources.storage.Object import SCO
 from pycompss.util.serialization.serializer import serialize_to_file
 
 

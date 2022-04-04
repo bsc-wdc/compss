@@ -17,31 +17,17 @@
 
 # -*- coding: utf-8 -*-
 
-import subprocess
-
-from pycompss.tests.worker.common_piper_tester import evaluate_piper_worker_common
-from pycompss.tests.worker.common_piper_tester import setup_argv
+from pycompss.tests.unittests.worker.common_piper_tester import evaluate_piper_worker_common
+from pycompss.tests.unittests.worker.common_piper_tester import setup_argv
 
 
 def worker_thread(argv, current_path):
-    try:
-        from pycompss.worker.piper.mpi_piper_worker import main  # noqa
-    except AttributeError:
-        raise Exception("UNSUPPORTED WITH MYPY")
+    from pycompss.worker.piper.piper_worker import main
+
     # Start the piper worker
     setup_argv(argv, current_path)
-    p = subprocess.Popen(
-        " ".join(argv),
-        shell=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-    )
-    p.wait()
+    main()
 
 
 def test_piper_worker():
-    try:
-        evaluate_piper_worker_common(worker_thread, mpi_worker=True)
-    except Exception as e:
-        print("EXCEPTION: " + str(e))
-        # raise Exception("UNSUPPORTED WITH MYPY - Happened because the worker can not start with mpi")
+    evaluate_piper_worker_common(worker_thread, mpi_worker=False)

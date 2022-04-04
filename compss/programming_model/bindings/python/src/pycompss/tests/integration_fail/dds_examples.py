@@ -37,17 +37,17 @@ from pycompss.util.context import in_pycompss
 EXAMPLES_NAME = "examples.py"
 
 
-def test_pi_estimation_example():
+def pi_estimation_example():
     pi_estimation()
 
 
-def test_transitive_closure_example():
+def transitive_closure_example():
     transitive_closure(2)
 
 
-def test_wordcount_example():
+def wordcount_example():
     current_path = os.path.dirname(os.path.abspath(__file__))
-    wordcount_dataset_path = os.path.join(current_path, "dataset", "wordcount")
+    wordcount_dataset_path = os.path.join(current_path, "../unittests/dds/dataset", "wordcount")
     argv_backup = sys.argv
     sys.argv = [EXAMPLES_NAME, wordcount_dataset_path]
     word_count()
@@ -55,11 +55,11 @@ def test_wordcount_example():
 
 
 @unittest.skip("ERROR WITH SPACY (python 3.10 and spacy 2.3.2)")
-def test_wordcount_k_means_example():
+def wordcount_k_means_example():
     if sys.version_info >= (3, 0):
         current_path = os.path.dirname(os.path.abspath(__file__))
         wordcount_k_means_dataset_path = os.path.join(
-            current_path, "dataset", "wordcount"
+            current_path, "../unittests/dds/dataset", "wordcount"
         )
         argv_backup = sys.argv
         sys.argv = [EXAMPLES_NAME, wordcount_k_means_dataset_path]
@@ -69,10 +69,10 @@ def test_wordcount_k_means_example():
         print("NOTE: Spacy fails in Python 2 [deprecating].")
 
 
-def test_terasort_example():
+def terasort_example():
     result_path = tempfile.mkdtemp()
     current_path = os.path.dirname(os.path.abspath(__file__))
-    terasort_dataset_path = os.path.join(current_path, "dataset", "terasort")
+    terasort_dataset_path = os.path.join(current_path, "../unittests/dds/dataset", "terasort")
     argv_backup = sys.argv
     sys.argv = [EXAMPLES_NAME, terasort_dataset_path, result_path]
     terasort()
@@ -84,9 +84,9 @@ def test_terasort_example():
     shutil.rmtree(result_path)
 
 
-def test_inverted_indexing_example():
+def inverted_indexing_example():
     current_path = os.path.dirname(os.path.abspath(__file__))
-    inverted_indexing_dataset_path = os.path.join(current_path, "dataset", "wordcount")
+    inverted_indexing_dataset_path = os.path.join(current_path, "../unittests/dds/dataset", "wordcount")
     argv_backup = sys.argv
     sys.argv = [EXAMPLES_NAME, inverted_indexing_dataset_path]
     inverted_indexing()
@@ -95,9 +95,9 @@ def test_inverted_indexing_example():
 
 def main():
     # Examples to run
-    test_pi_estimation_example()
-    test_transitive_closure_example()
-    test_wordcount_example()
-    test_wordcount_k_means_example()
-    test_terasort_example()
-    test_inverted_indexing_example()
+    pi_estimation_example()
+    transitive_closure_example()
+    wordcount_example()
+    wordcount_k_means_example()
+    terasort_example()
+    inverted_indexing_example()

@@ -26,7 +26,7 @@ def test_runcompss_increment():
     current_path = os.path.dirname(os.path.abspath(__file__))
 
     # Call to runcompss for increment application
-    app = os.path.join(current_path, "..", "resources", "increment.py")
+    app = os.path.join(current_path, "resources", "increment.py")
     if sys.version_info < (3, 0):
         raise Exception("Unsupported python version. Required Python 3.X")
     else:

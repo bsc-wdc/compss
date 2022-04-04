@@ -29,7 +29,7 @@ def test_launch_increment():
     from pycompss.runtime.launch import launch_pycompss_application
 
     current_path = os.path.dirname(os.path.abspath(__file__))
-    app = os.path.join(current_path, "..", FOLDER, APPLICATION)
+    app = os.path.join(current_path, FOLDER, APPLICATION)
     launch_pycompss_application(
         app, PACKAGE, debug=True, trace=False, app_name=APPLICATION_NAME
     )
@@ -39,7 +39,7 @@ def test_launch_application():
     from pycompss.runtime.launch import launch_pycompss_application
 
     current_path = os.path.dirname(os.path.abspath(__file__))
-    app = os.path.join(current_path, "..", FOLDER, "api_tester.py")
+    app = os.path.join(current_path, FOLDER, "api_tester.py")
     launch_pycompss_application(
         app, PACKAGE, debug=True, trace=False, app_name=APPLICATION_NAME
     )

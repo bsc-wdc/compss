@@ -48,7 +48,5 @@ def test_launch_streaming_application():
     )
 
     # Stop the streaming server
-    stop_script = os.path.join(
-        current_path, "resources", "streaming", "stop_server.sh"
-    )
+    stop_script = os.path.join(current_path, "resources", "streaming", "stop_server.sh")
     subprocess.check_call([stop_script, stream_type])

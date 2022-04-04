@@ -47,7 +47,9 @@ def transitive_closure_example():
 
 def wordcount_example():
     current_path = os.path.dirname(os.path.abspath(__file__))
-    wordcount_dataset_path = os.path.join(current_path, "../unittests/dds/dataset", "wordcount")
+    wordcount_dataset_path = os.path.join(
+        current_path, "../unittests/dds/dataset", "wordcount"
+    )
     argv_backup = sys.argv
     sys.argv = [EXAMPLES_NAME, wordcount_dataset_path]
     word_count()
@@ -72,7 +74,9 @@ def wordcount_k_means_example():
 def terasort_example():
     result_path = tempfile.mkdtemp()
     current_path = os.path.dirname(os.path.abspath(__file__))
-    terasort_dataset_path = os.path.join(current_path, "../unittests/dds/dataset", "terasort")
+    terasort_dataset_path = os.path.join(
+        current_path, "../unittests/dds/dataset", "terasort"
+    )
     argv_backup = sys.argv
     sys.argv = [EXAMPLES_NAME, terasort_dataset_path, result_path]
     terasort()
@@ -86,7 +90,9 @@ def terasort_example():
 
 def inverted_indexing_example():
     current_path = os.path.dirname(os.path.abspath(__file__))
-    inverted_indexing_dataset_path = os.path.join(current_path, "../unittests/dds/dataset", "wordcount")
+    inverted_indexing_dataset_path = os.path.join(
+        current_path, "../unittests/dds/dataset", "wordcount"
+    )
     argv_backup = sys.argv
     sys.argv = [EXAMPLES_NAME, inverted_indexing_dataset_path]
     inverted_indexing()

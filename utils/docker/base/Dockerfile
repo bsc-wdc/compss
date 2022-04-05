@@ -36,9 +36,8 @@ RUN mkdir /run/sshd && \
 FROM base_all as base_tutorial
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends git vim wget ca-certificates maven curl unzip && \
-
-    pip3 install --no-cache-dir graphviz matplotlib numba numpy==1.21.5 scipy scikit-learn pandas \
+    apt-get install -y --no-install-recommends git vim wget ca-certificates maven curl unzip && \ 
+    pip3 install --no-cache-dir graphviz matplotlib numba numpy==1.21.5 scipy scikit-learn python-dateutil==2.8.2 pandas \
     jupyter ipykernel && \
     python3 -m ipykernel install && \
     apt-get autoclean && \

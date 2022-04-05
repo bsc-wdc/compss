@@ -23,6 +23,7 @@ import es.bsc.compss.components.impl.TaskDispatcher;
 //import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.ObjectInfo;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
+import es.bsc.compss.types.tracing.TraceEvent;
 
 
 public class DeregisterObject extends APRequest {
@@ -40,8 +41,8 @@ public class DeregisterObject extends APRequest {
     }
 
     @Override
-    public APRequestType getRequestType() {
-        return APRequestType.DEREGISTER_OBJECT;
+    public TraceEvent getEvent() {
+        return TraceEvent.DEREGISTER_OBJECT;
     }
 
     @Override

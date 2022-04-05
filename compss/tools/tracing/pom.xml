@@ -1,0 +1,60 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+    <!-- GENERAL INFORMATION -->
+    <artifactId>compss-tracing</artifactId>
+    <packaging>jar</packaging>
+    <parent>
+        <groupId>es.bsc.compss</groupId>
+        <artifactId>compss-tools</artifactId>
+        <version>2.10.rc2205</version>
+        <relativePath>..</relativePath>
+    </parent>
+
+	<!-- PROJECT INFORMATION -->
+	<name>COMPSs Tracing</name>
+	<description>COMPSs Tracing</description>
+	<url>http://www.bsc.es</url>
+
+	<!-- DEPENDENCIES -->
+	<dependencies>
+        <!-- Common Runtime Dependencies -->
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-commons</artifactId>
+            <version>2.10.rc2205</version>
+		</dependency>
+        
+		<!-- JUnit -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- Log4j -->
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+		</dependency>
+	</dependencies>
+
+	<!-- BUILD -->
+	<build>
+		<finalName>${project.artifactId}</finalName>
+		<resources>
+			<resource>
+				<directory>src/main/resources/</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${maven-compiler-plugin.version}</version>
+			</plugin>
+		</plugins>
+	</build>
+</project>

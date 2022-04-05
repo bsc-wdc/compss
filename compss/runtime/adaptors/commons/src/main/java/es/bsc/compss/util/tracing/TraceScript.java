@@ -33,13 +33,12 @@ import org.apache.logging.log4j.Logger;
 public class TraceScript {
 
     // Installation Path
-
     public static final String RELATIVE_PATH = "Runtime" + File.separator + "scripts" + File.separator + "system"
         + File.separator + "trace" + File.separator + "trace.sh";
 
     // Logger
-    protected static final Logger LOGGER = LogManager.getLogger(Loggers.TRACING);
-    protected static final boolean DEBUG = LOGGER.isDebugEnabled();
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.TRACING);
+    private static final boolean DEBUG = LOGGER.isDebugEnabled();
 
 
     public static final int start(String iDir, String traceDir, String eventType, String taskId, String slot)
@@ -62,9 +61,9 @@ public class TraceScript {
         return invokeScript(iDir, "package", traceDir, packagePath, hostId);
     }
 
-    public static final int gentrace_extrae(String iDir, String traceDir, String appName, String numResources)
-        throws IOException, InterruptedException {
-        return invokeScript(iDir, "gentrace", traceDir, appName, numResources);
+    public static final int gentrace_extrae(String iDir, String inDir, String outDir, String traceName,
+        int numParallelMergeProcs) throws IOException, InterruptedException {
+        return invokeScript(iDir, "gentrace", inDir, outDir, traceName, Integer.toString(numParallelMergeProcs));
     }
 
     private static int invokeScript(String iDir, String cmd, String workingDirPath, String... args)
@@ -76,14 +75,16 @@ public class TraceScript {
         for (String arg : args) {
             command.add(arg);
         }
-        pb.environment().remove(Tracer.LD_PRELOAD);
+        for (String env : Tracer.ENVIRONMENT_VARIABLES) {
+            pb.environment().remove(env);
+        }
         Process p;
 
         p = pb.start();
 
         if (DEBUG) {
-            StreamGobbler outputGobbler = new StreamGobbler(p.getInputStream(), System.out, LOGGER, false);
-            StreamGobbler errorGobbler = new StreamGobbler(p.getErrorStream(), System.err, LOGGER, true);
+            StreamGobbler outputGobbler = new StreamGobbler(p.getInputStream(), null, LOGGER, false);
+            StreamGobbler errorGobbler = new StreamGobbler(p.getErrorStream(), null, LOGGER, true);
             outputGobbler.start();
             errorGobbler.start();
         }

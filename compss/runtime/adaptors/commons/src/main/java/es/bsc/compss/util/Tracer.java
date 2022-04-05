@@ -21,8 +21,9 @@ import es.bsc.cepbatools.extrae.Wrapper;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.implementations.MethodType;
+import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.TraceEventType;
 import es.bsc.compss.util.tracing.TraceScript;
-import es.bsc.compss.util.types.ThreadTranslator;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -43,36 +44,22 @@ public abstract class Tracer {
     protected static final boolean DEBUG = LOGGER.isDebugEnabled();
 
     private static final String ERROR_TRACE_DIR = "ERROR: Cannot create trace directory";
-    private static final String ERROR_MASTER_PACKAGE_FILEPATH =
-        "Cannot locate master tracing package " + "on working directory";
 
     // Tracing script and file paths
-    public static final String TRACER_SUBFOLDER = "trace";
+    public static final String TRACE_SUBFOLDER = "trace";
+
     private static final String TRACER_OUT_FILENAME = "tracer.out";
     private static final String TRACER_ERR_FILENAME = "tracer.err";
 
-    public static final String TO_MERGE_SUBDIR = "to_merge";
-
-    // Naming
-    public static final String MASTER_TRACE_SUFFIX = "_compss";
-    public static final String TRACE_ROW_FILE_EXTENTION = ".row";
-    public static final String TRACE_PRV_FILE_EXTENTION = ".prv";
-    public static final String TRACE_PCF_FILE_EXTENTION = ".pcf";
-
     public static final String PACKAGE_SUFFIX = "_compss_trace.tar.gz";
 
-    // Extrae loaded properties
-    private static final boolean IS_CUSTOM_EXTRAE_FILE =
-        (System.getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE) != null)
-            && !System.getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE).isEmpty()
-            && !System.getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE).equals("null");
-    private static final String EXTRAE_FILE =
-        IS_CUSTOM_EXTRAE_FILE ? System.getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE) : "null";
+    private static final String EXTRAE_FILE;
+    private static final String EXTRAE_OUTPUT_DIR;
 
     // Extrae environment flags
-    public static final String LD_PRELOAD = "LD_PRELOAD";
-    public static final String EXTRAE_CONFIG_FILE = "EXTRAE_CONFIG_FILE";
-    public static final String EXTRAE_USE_POSIX_CLOCK = "EXTRAE_USE_POSIX_CLOCK";
+    public static final String[] ENVIRONMENT_VARIABLES = new String[] { "LD_PRELOAD",
+        "EXTRAE_CONFIG_FILE",
+        "EXTRAE_USE_POSIX_CLOCK" };
 
     public static final int EVENT_END = 0;
 
@@ -83,8 +70,6 @@ public abstract class Tracer {
     private static boolean enabled = false;
     private static String nodeName;
     private static String installDir;
-    private static String workingDir;
-    private static String traceDirPath;
     private static String hostId;
     protected static boolean tracingTaskDependencies;
 
@@ -95,6 +80,20 @@ public abstract class Tracer {
     // Hashmap of the predecessors
     private static final HashMap<Integer, ArrayList<Integer>> predecessorsMap = new HashMap<>();
 
+    static {
+        String file = System.getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE);
+        boolean customFile = (file != null) && !file.isEmpty() && file.compareTo("null") != 0;
+        EXTRAE_FILE = customFile ? file : "null";
+
+        String folder = System.getProperty(COMPSsConstants.EXTRAE_WORKING_DIR);
+        boolean customFolder = (folder != null) && !folder.isEmpty() && folder.compareTo("null") != 0;
+        folder = customFolder ? folder : ".";
+        if (!folder.endsWith(File.separator)) {
+            folder += File.separator;
+        }
+        EXTRAE_OUTPUT_DIR = folder;
+    }
+
 
     /**
      * Initializes tracer creating the trace folder.If tracing is used then the current node (master) sets its nodeID
@@ -103,13 +102,10 @@ public abstract class Tracer {
      * @param enabled whether the tracing should be enabled or not
      * @param hostId id of the host
      * @param nodeName name of the node being traced
-     * @param installDir Path to the log directory
-     * @param workingDir Path to tracing system working dir
-     * @param baseLogDir Path to the installation directory
+     * @param installDir Path to the installation directory
      * @param tracingTasks whether the tracing should add dependency-related events or not
      */
-    public static void init(boolean enabled, int hostId, String nodeName, String installDir, String workingDir,
-        String baseLogDir, boolean tracingTasks) {
+    public static void init(boolean enabled, int hostId, String nodeName, String installDir, boolean tracingTasks) {
         if (tracerAlreadyLoaded) {
             if (DEBUG) {
                 LOGGER.debug("Tracing already initialized.");
@@ -121,33 +117,25 @@ public abstract class Tracer {
         Tracer.nodeName = nodeName;
         Tracer.installDir = installDir;
 
-        if (!workingDir.endsWith(File.separator)) {
-            workingDir += File.separator;
-        }
-        Tracer.workingDir = workingDir;
-
         if (DEBUG) {
             LOGGER.debug("Initializing tracing: " + (enabled ? "Enabled" : "Disabled"));
-            LOGGER.debug("Tracing task dependencies: " + tracingTasks);
         }
+
         if (enabled) {
             Tracer.hostId = String.valueOf(hostId);
+            LOGGER.debug("\t Tracing Host ID: " + Tracer.hostId);
             tracingTaskDependencies = tracingTasks;
+            LOGGER.debug("\t Task dependencies: " + (tracingTasks ? "Enabled" : "Disabled"));
 
-            if (!baseLogDir.endsWith(File.separator)) {
-                baseLogDir += File.separator;
+            LOGGER.debug("\t Extrae file: " + Tracer.EXTRAE_FILE);
+            LOGGER.debug("\t Tracing Ouput folder: " + Tracer.EXTRAE_OUTPUT_DIR);
+            File traceOutDir = new File(Tracer.EXTRAE_OUTPUT_DIR);
+            if (!traceOutDir.exists()) {
+                if (!new File(Tracer.EXTRAE_OUTPUT_DIR).mkdir()) {
+                    ErrorManager.error(ERROR_TRACE_DIR);
+                }
             }
-            baseLogDir += TRACER_SUBFOLDER;
-            if (!baseLogDir.endsWith(File.separator)) {
-                baseLogDir += File.separator;
-            }
-            Tracer.traceDirPath = baseLogDir;
-            if (!new File(traceDirPath).mkdir()) {
-                ErrorManager.error(ERROR_TRACE_DIR);
-            }
-
             setUpWrapper(hostId, hostId + 1);
-
         }
     }
 
@@ -161,11 +149,11 @@ public abstract class Tracer {
     }
 
     public static String getTraceOutPath() {
-        return traceDirPath + TRACER_OUT_FILENAME;
+        return EXTRAE_OUTPUT_DIR + TRACER_OUT_FILENAME;
     }
 
     public static String getTraceErrPath() {
-        return traceDirPath + TRACER_ERR_FILENAME;
+        return EXTRAE_OUTPUT_DIR + TRACER_ERR_FILENAME;
     }
 
     /**
@@ -210,6 +198,15 @@ public abstract class Tracer {
      */
     public static String getExtraeFile() {
         return EXTRAE_FILE;
+    }
+
+    /**
+     * Returns the folder where extrae will leave the traces.
+     *
+     * @return path of extrae's output directory
+     */
+    public static String getExtraeOutputDir() {
+        return EXTRAE_OUTPUT_DIR;
     }
 
     /**
@@ -293,90 +290,6 @@ public abstract class Tracer {
         hostToSlots.get(host).freeSlot(slot);
     }
 
-    public static int getRuntimeEventsType() {
-        return TraceEventType.RUNTIME.code;
-    }
-
-    public static int getSyncType() {
-        return TraceEventType.SYNC.code;
-    }
-
-    public static int getTaskTransfersType() {
-        return TraceEventType.TASK_TRANSFERS.code;
-    }
-
-    public static int getDataTransfersType() {
-        return TraceEventType.DATA_TRANSFERS.code;
-    }
-
-    public static int getTaskEventsType() {
-        return TraceEventType.TASKS_FUNC.code;
-    }
-
-    public static int getTaskSchedulingType() {
-        return TraceEventType.TASKS_ID.code;
-    }
-
-    public static int getInsideTasksEventsType() {
-        return TraceEventType.BINDING_INSIDE_TASKS.code;
-    }
-
-    public static int getTasksCPUAffinityEventsType() {
-        return TraceEventType.TASKS_CPU_AFFINITY.code;
-    }
-
-    public static int getTasksGPUAffinityEventsType() {
-        return TraceEventType.TASKS_GPU_AFFINITY.code;
-    }
-
-    public static int getInsideTasksCPUAffinityEventsType() {
-        return TraceEventType.BINDING_INSIDE_TASKS_CPU_AFFINITY.code;
-    }
-
-    public static int getInsideTasksGPUAffinityEventsType() {
-        return TraceEventType.BINDING_INSIDE_TASKS_GPU_AFFINITY.code;
-    }
-
-    public static int getBindingInsideWorkerEventsType() {
-        return TraceEventType.BINDING_INSIDE_WORKER.code;
-    }
-
-    public static int getBindingMasterEventsType() {
-        return TraceEventType.BINDING_MASTER.code;
-    }
-
-    public static int getTaskTypeEventsType() {
-        return TraceEventType.TASKTYPE.code;
-    }
-
-    public static int getCPUCountEventsType() {
-        return TraceEventType.CPU_COUNTS.code;
-    }
-
-    public static int getGPUCountEventsType() {
-        return TraceEventType.GPU_COUNTS.code;
-    }
-
-    public static int getReadyCountEventsType() {
-        return TraceEventType.READY_COUNTS.code;
-    }
-
-    public static int getMemoryEventsType() {
-        return TraceEventType.MEMORY.code;
-    }
-
-    public static int getDiskBWEventsType() {
-        return TraceEventType.DISK_BW.code;
-    }
-
-    public static int getThreadIdEventsType() {
-        return TraceEventType.THREAD_IDENTIFICATION.code;
-    }
-
-    public static TraceEvent getAcessProcessorRequestEvent(String eventType) {
-        return TraceEvent.valueOf(eventType);
-    }
-
     public static ArrayList<Integer> getPredecessors(int taskId) {
         return predecessorsMap.get(taskId);
     }
@@ -401,49 +314,37 @@ public abstract class Tracer {
     }
 
     /**
-     * Returns the corresponding event ID for a TD request event type.
-     *
-     * @param eventType of the TD
-     * @return the tracing event ID associated with eventType
-     */
-    public static TraceEvent getTaskDispatcherRequestEvent(String eventType) {
-        TraceEvent event = null;
-        try {
-            event = TraceEvent.valueOf(eventType);
-        } catch (Exception e) {
-            LOGGER.error("Task Dispatcher event " + eventType + " is not present in Tracer's list ");
-        }
-        return event;
-    }
-
-    /**
      * Emits an event using extrae's Wrapper. Requires that Tracer has been initialized with lvl >0
      *
      * @param event event being emitted
      */
     public static void emitEvent(TraceEvent event) {
-        synchronized (Tracer.class) {
-            Wrapper.Event(event.getType(), event.getId());
-        }
-
-        if (DEBUG) {
-            LOGGER.debug("Emitting synchronized event [type, id] = [" + event.getType() + " , " + event.getId() + "]");
-        }
+        emitEvent(event.getType(), event.getId());
     }
 
     /**
      * Emits an event using extrae's Wrapper. Requires that Tracer has been initialized with lvl >0
      *
-     * @param eventID ID of the event
-     * @param eventType type of the event.
+     * @param type type of the event.
+     * @param value ID of the event
      */
-    public static void emitEvent(long eventID, int eventType) {
-        synchronized (Tracer.class) {
-            Wrapper.Event(eventType, eventID);
-        }
+    public static final void emitEvent(TraceEventType type, long value) {
+        int eventType = type.code;
+        emitEvent(eventType, value);
+    }
 
+    /**
+     * Emits an event using extrae's Wrapper. Requires that Tracer has been initialized with lvl >0
+     *
+     * @param eventType type of the event.
+     * @param value ID of the event
+     */
+    public static final void emitEvent(int eventType, long value) {
         if (DEBUG) {
-            LOGGER.debug("Emitting synchronized event [type, id] = [" + eventType + " , " + eventID + "]");
+            LOGGER.debug("Emitting synchronized event [type, id] = [" + eventType + " , " + value + "]");
+        }
+        synchronized (Tracer.class) {
+            Wrapper.Event(eventType, value);
         }
     }
 
@@ -451,17 +352,17 @@ public abstract class Tracer {
      * Emits an event and the current PAPI counters activated using extrae's Wrapper. Requires that Tracer has been
      * initialized with lvl >0.
      *
-     * @param taskId ID of the event
-     * @param eventType type of the event.
+     * @param type type of the event.
+     * @param value ID of the event
      */
-    public static void emitEventAndCounters(int taskId, int eventType) {
-        synchronized (Tracer.class) {
-            Wrapper.Eventandcounters(eventType, taskId);
-        }
-
+    public static final void emitEventAndCounters(TraceEventType type, int value) {
+        int eventType = type.code;
         if (DEBUG) {
             LOGGER.debug(
-                "Emitting synchronized event with HW counters [type, taskId] = [" + eventType + " , " + taskId + "]");
+                "Emitting synchronized event with HW counters [type, taskId] = [" + eventType + " , " + value + "]");
+        }
+        synchronized (Tracer.class) {
+            Wrapper.Eventandcounters(eventType, value);
         }
     }
 
@@ -470,14 +371,28 @@ public abstract class Tracer {
      *
      * @param event event being emitted
      */
-    public static void emitEventEnd(TraceEvent event) {
-        synchronized (Tracer.class) {
-            Wrapper.Event(event.getType(), EVENT_END);
-        }
+    public static final void emitEventEnd(TraceEvent event) {
+        emitEventEnd(event.getType());
+    }
 
-        if (DEBUG) {
-            LOGGER.debug("Emitting synchronized event [type, id] = [" + event.getType() + " , " + EVENT_END + "]");
-        }
+    /**
+     * Emits the end of an event using extrae's Wrapper. Requires that Tracer has been initialized with lvl >0
+     *
+     * @param type event being emitted
+     */
+    public static final void emitEventEnd(TraceEventType type) {
+        final int typeCode = type.code;
+        emitEvent(typeCode, EVENT_END);
+    }
+
+    /**
+     * Emits the end of an event and the current PAPI counters activated using extrae's Wrapper. Requires that Tracer
+     * has been initialized with lvl >0
+     *
+     * @param type event being emitted
+     */
+    public static final void emitEventEndAndCounters(TraceEventType type) {
+        emitEventAndCounters(type, EVENT_END);
     }
 
     /**
@@ -538,13 +453,11 @@ public abstract class Tracer {
     /**
      * Collects all the information of the tracing system and generates a trace.
      */
-    public static void generateCompleteTrace() {
+    public static void generateMasterPackage() {
         synchronized (Tracer.class) {
             if (enabled) {
-                String masterPackage = traceDirPath + "master" + PACKAGE_SUFFIX;
+                String masterPackage = Tracer.EXTRAE_OUTPUT_DIR + "master" + PACKAGE_SUFFIX;
                 generatePackage(masterPackage);
-                generateTrace();
-                sortTrace();
             }
         }
     }
@@ -653,7 +566,7 @@ public abstract class Tracer {
 
     /**
      * Constructs a package with all the necessary tracing information related to the node.
-     * 
+     *
      * @param packagePath Path where to store the package with all the tracing information
      */
     public static void generatePackage(String packagePath) {
@@ -661,7 +574,7 @@ public abstract class Tracer {
             LOGGER.debug("[Tracer] Generating trace package of " + nodeName);
         }
         try {
-            int exitCode = TraceScript.package_extrae(installDir, workingDir, packagePath, hostId);
+            int exitCode = TraceScript.package_extrae(installDir, EXTRAE_OUTPUT_DIR, packagePath, hostId);
             if (exitCode != 0) {
                 ErrorManager.warn("Error generating " + nodeName + " package, exit code " + exitCode);
             }
@@ -672,103 +585,6 @@ public abstract class Tracer {
             ErrorManager.warn("Error generating " + nodeName + " package (interruptedException)", e);
             Thread.currentThread().interrupt();
         }
-    }
-
-    private static void generateTrace() {
-        if (DEBUG) {
-            LOGGER.debug("Tracing: Generating trace");
-        }
-
-        String traceName = "";
-        String appName = System.getProperty(COMPSsConstants.APP_NAME);
-        String label = System.getProperty(COMPSsConstants.TRACE_LABEL);
-
-        if (appName != null && !appName.isEmpty() && !appName.equals("None")) {
-            if (label != null && !label.isEmpty() && !label.equals("None")) {
-                traceName = appName.concat("_" + label);
-            } else {
-                traceName = appName;
-            }
-        } else {
-            if (label != null && !label.isEmpty() && !label.equals("None")) {
-                traceName = label;
-            }
-        }
-
-        String appLogDir = System.getProperty(COMPSsConstants.APP_LOG_DIR);
-        try {
-            int numHosts = hostToSlots.size() + 1;
-            int exitCode = TraceScript.gentrace_extrae(installDir, appLogDir, traceName, String.valueOf(numHosts));
-            if (exitCode != 0) {
-                ErrorManager.warn("Error generating trace, exit code " + exitCode);
-                return;
-            }
-        } catch (IOException e) {
-            ErrorManager.warn("Error generating trace", e);
-            return;
-        } catch (InterruptedException e) {
-            ErrorManager.warn("Error generating trace (interruptedException)", e);
-            return;
-        }
-
-        String lang = System.getProperty(COMPSsConstants.LANG);
-        if (lang.equalsIgnoreCase(COMPSsConstants.Lang.PYTHON.name())) {
-            try {
-                PythonTraceMerger t = new PythonTraceMerger(traceDirPath);
-                t.merge();
-            } catch (Exception e) {
-                ErrorManager.warn("Error while trying to merge files", e);
-            }
-        }
-    }
-
-    /**
-     * Updates the threads in .prv and .row classifying them in runtime or non runtime and assigning the corresponding
-     * labels
-     */
-    private static void sortTrace() {
-        String disable = System.getProperty(COMPSsConstants.DISABLE_CUSTOM_THREADS_TRACING);
-        if (disable != null) {
-            LOGGER.debug("Custom thread translation disabled");
-            return;
-        }
-        LOGGER.debug("Tracing: Updating thread labels");
-        File[] rowFileArray;
-        File[] prvFileArray;
-        try {
-            File dir = new File(traceDirPath);
-            rowFileArray = dir.listFiles((File d, String name) -> name.endsWith(TRACE_ROW_FILE_EXTENTION));
-            prvFileArray = dir.listFiles((File d, String name) -> name.endsWith(TRACE_PRV_FILE_EXTENTION));
-        } catch (Exception e) {
-            ErrorManager.error(ERROR_MASTER_PACKAGE_FILEPATH, e);
-            return;
-        }
-        try {
-            if (rowFileArray != null && rowFileArray.length > 0) {
-                File rowFile = rowFileArray[0];
-                File prvFile = prvFileArray[0];
-                ThreadTranslator thTranslator = new ThreadTranslator(prvFile);
-                thTranslator.translatePrvFile(prvFile);
-                thTranslator.translateRowFile(rowFile);
-            }
-        } catch (Exception e) {
-            LOGGER.debug(e);
-            LOGGER.debug(e.toString());
-            ErrorManager.error("Could not update thread labels " + traceDirPath, e);
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Returns the beginning of the name of the trace files.
-     */
-    public static String getTraceNamePrefix() {
-        String traceName = System.getProperty(COMPSsConstants.APP_NAME);
-        String label = System.getProperty(COMPSsConstants.TRACE_LABEL);
-        if (label != null && !label.isEmpty() && !label.equals("None")) {
-            traceName = traceName.concat("_" + label);
-        }
-        return traceName + Tracer.MASTER_TRACE_SUFFIX;
     }
 
 

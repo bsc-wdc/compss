@@ -23,6 +23,7 @@ import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.ResultFile;
 import es.bsc.compss.types.data.operation.ResultListener;
+import es.bsc.compss.types.tracing.TraceEvent;
 
 import java.util.LinkedList;
 import java.util.Set;
@@ -97,8 +98,8 @@ public class GetResultFilesRequest extends APRequest {
     }
 
     @Override
-    public APRequestType getRequestType() {
-        return APRequestType.BLOCK_AND_GET_RESULT_FILES;
+    public TraceEvent getEvent() {
+        return TraceEvent.BLOCK_AND_GET_RESULT_FILES;
     }
 
 }

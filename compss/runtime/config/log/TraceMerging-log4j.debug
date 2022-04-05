@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration name="TraceMerger" status="WARN">
+
+  <!-- Logger console and files configuration -->
+  <Appenders>
+    <Console name="console" target="SYSTEM_OUT">
+      <PatternLayout pattern="[(%r) %6c{1}]  -  %m%n"/>
+    </Console>
+    <File name="logfile" fileName="${sys:compss.appLogDir}/traceMerger.log" immediateFlush="true" append="false">
+      <PatternLayout pattern="[(%r)(%d) %19c{1}]    @%-15.15M  -  %m%n"/>
+    </File>
+  </Appenders>
+
+  <!-- Configure runtime loggers -->
+  <Loggers>
+    <Root level="debug">
+      <AppenderRef ref="console"/>
+    </Root>
+
+    <!-- RUNTIME ROOT -->
+    <!-- es.bsc.compss: DEFAULT = DEBUG -->
+    <Logger name="es.bsc.compss" additivity="FALSE" level="debug">
+      <AppenderRef ref="logfile"/>
+    </Logger>
+
+
+    <!-- es.bsc.compss.Components.Tracing: DEFAULT = DEBUG -->
+    <Logger name="es.bsc.compss.Components.Tracing" additivity="FALSE" level="debug">
+      <AppenderRef ref="logfile"/>
+    </Logger>
+
+    <!-- es.bsc.compss.Components.Tracing: DEFAULT = DEBUG -->
+    <Logger name="script" additivity="FALSE" level="debug">
+      <AppenderRef ref="console"/>
+    </Logger>
+    
+  </Loggers>
+</Configuration>
+

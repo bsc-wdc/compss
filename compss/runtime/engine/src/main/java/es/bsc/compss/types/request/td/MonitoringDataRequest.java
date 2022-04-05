@@ -20,6 +20,7 @@ import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
+import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.util.ResourceManager;
 
 import java.util.concurrent.Semaphore;
@@ -107,8 +108,8 @@ public class MonitoringDataRequest extends TDRequest {
     }
 
     @Override
-    public TDRequestType getType() {
-        return TDRequestType.MONITORING_DATA;
+    public TraceEvent getEvent() {
+        return TraceEvent.MONITORING_DATA;
     }
 
 }

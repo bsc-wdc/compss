@@ -21,6 +21,7 @@ import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.AbstractTask;
+import es.bsc.compss.types.tracing.TraceEvent;
 
 
 public class TaskEndNotification extends APRequest {
@@ -56,8 +57,8 @@ public class TaskEndNotification extends APRequest {
     }
 
     @Override
-    public APRequestType getRequestType() {
-        return APRequestType.UPDATE_GRAPH;
+    public TraceEvent getEvent() {
+        return TraceEvent.UPDATE_GRAPH;
     }
 
 }

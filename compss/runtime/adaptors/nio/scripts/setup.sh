@@ -190,10 +190,23 @@
   setup_extrae() {
     # Trace initialization
     if [ "${tracing}" == "true" ]; then
-      if [ -z "${extraeFile}" ] || [ "${extraeFile}" == "null" ]; then
+
+      configPath="${SCRIPT_DIR}/../../../../configuration/xml/tracing"
+      
+      # Determine source extrae config file
+      if [ -z "${extraeFile}" ] || [ "${extraeFile}" == "null" ] || [ "${extraeFile}" == "false" ]; then
         # Only define extraeFile if it is not a custom location
-        extraeFile=${SCRIPT_DIR}/../../../../configuration/xml/tracing/extrae_basic.xml
+          baseConfigFile="${configPath}/extrae_basic.xml"
+      else
+          baseConfigFile="${extraeFile}"
       fi
+      
+      
+      tracing_output_dir="${workingDir}"
+      mkdir -p "${tracing_output_dir}"
+      extraeFile="${workingDir}/extrae.xml"
+      escaped_tracing_output_dir=$(echo "${tracing_output_dir}" | sed 's_/_\\/_g')
+      sed "s/{{TRACE_OUTPUT_DIR}}/${escaped_tracing_output_dir}/g" "${baseConfigFile}" > "${extraeFile}"
 
       if [ -z "$EXTRAE_HOME" ]; then
         export EXTRAE_HOME=${SCRIPT_DIR}/../../../../../Dependencies/extrae/
@@ -233,16 +246,16 @@
     if [ -d "${JAVA_HOME}/jre/lib/" ]; then #Java 8 case
     	libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.so | head -n 1)
     	if [ -z "$libjava" ]; then
-		libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.dylib | head -n 1)
-                if [ -z "$libjava" ]; then
-                   error_msg "${JAVA_JRE_ERROR}" 
-                fi
-	fi
+            libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.dylib | head -n 1)
+            if [ -z "$libjava" ]; then
+                error_msg "${JAVA_JRE_ERROR}" 
+            fi
+        fi
     else # Java 9+
       	libjava=$(find "${JAVA_HOME}"/lib/ -name libjvm.so | head -n 1)
       	if [ -z "$libjava" ]; then
            libjava=$(find "${JAVA_HOME}"/lib/ -name libjvm.dylib | head -n 1)
-	   if [ -z "$libjava" ]; then
+	          if [ -z "$libjava" ]; then
                error_msg "${JAVA_JRE_ERROR}"
            fi
         fi

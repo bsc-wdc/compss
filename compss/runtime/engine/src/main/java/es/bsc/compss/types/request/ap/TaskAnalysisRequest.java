@@ -24,8 +24,8 @@ import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.AbstractTask;
-import es.bsc.compss.types.ReduceTask;
 import es.bsc.compss.types.Task;
+import es.bsc.compss.types.tracing.TraceEvent;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -88,8 +88,8 @@ public class TaskAnalysisRequest extends APRequest {
     }
 
     @Override
-    public APRequestType getRequestType() {
-        return APRequestType.ANALYSE_TASK;
+    public TraceEvent getEvent() {
+        return TraceEvent.ANALYSE_TASK;
     }
 
 }

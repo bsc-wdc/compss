@@ -18,6 +18,7 @@ package es.bsc.compss.types.request.td;
 
 import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
+import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.util.ResourceManager;
 
 
@@ -40,8 +41,8 @@ public class PrintCurrentLoadRequest extends TDRequest {
     }
 
     @Override
-    public TDRequestType getType() {
-        return TDRequestType.PRINT_CURRENT_GRAPH;
+    public TraceEvent getEvent() {
+        return TraceEvent.PRINT_CURRENT_GRAPH;
     }
 
 }

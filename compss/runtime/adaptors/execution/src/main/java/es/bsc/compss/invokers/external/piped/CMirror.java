@@ -50,6 +50,11 @@ public class CMirror extends PipedMirror {
     }
 
     @Override
+    public String getMirrorName() {
+        return "C";
+    }
+
+    @Override
     public String getPipeBuilderContext() {
         StringBuilder cmd = new StringBuilder();
         return cmd.toString();

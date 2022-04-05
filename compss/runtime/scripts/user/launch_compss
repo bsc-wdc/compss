@@ -1,14 +1,14 @@
 #!/bin/bash
 
-# Command to simulate realpath
+# Setting up COMPSs_HOME
 if [ -z "${COMPSS_HOME}" ]; then
   COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../.. && pwd )/"
 fi
 if [ ! "${COMPSS_HOME: -1}" = "/" ]; then
   COMPSS_HOME="${COMPSS_HOME}/"
 fi
-
 export COMPSS_HOME=${COMPSS_HOME}
+
 SCRIPT_DIR="${COMPSS_HOME}/Runtime/scripts/user"
 
 # shellcheck source=../system/runtime/tracing.sh
@@ -49,6 +49,8 @@ DEFAULT_FPGA_REPROGRAM=""
 DEFAULT_TASK_EXECUTION=compss
 DEFAULT_STORAGE_CONF=null
 DEFAULT_STREAMING="null"
+DEFAULT_TRACE_GENERATION="false"
+DEFAULT_TRACE_DELETE_PACKAGE="false"
 BASE_STREAMING_PORT=49049
 STREAMING_PORT_RAND_RANGE=100
 DEFAULT_PERSISTENT_WORKER_C=false
@@ -211,7 +213,11 @@ show_opts() {
   Runcompss configuration:
 
 EOT
-    "${SCRIPT_DIR}"/runcompss --opts
+
+  export DEFAULT_GENERATE_TRACE="false"
+  export DEFAULT_TRACING_DELETE_PACKAGES="false"
+
+  "${SCRIPT_DIR}"/runcompss --opts
 
   exit "$exitValue"
 }
@@ -983,7 +989,7 @@ get_args() {
         display_version 0
         ;;
       d)
-	log_level=${DEFAULT_DEBUG_ARG}
+	      log_level=${DEFAULT_DEBUG_ARG}
         #Keep it for runcompss (to add them to master)
         args_pass="$args_pass -$flag"
         ;;
@@ -1154,10 +1160,26 @@ get_args() {
           trace_label=${OPTARG//trace_label=/}
           ;;
         tracing_task_dependencies=*)
-            # Activates the communication tracing of task dependencies for the first worker node
-            tracing_task_dependencies=${OPTARG//tracing_task_dependencies=/}
-            # Keep it for runcompss (to add them to master)
-            args_pass="$args_pass --$OPTARG"
+          # Activates the communication tracing of task dependencies for the first worker node
+          tracing_task_dependencies=${OPTARG//tracing_task_dependencies=/}
+          # Keep it for runcompss (to add them to master)
+          args_pass="$args_pass --$OPTARG"
+          ;;
+        generate_trace=*)
+          # Specify if the tracing system merges the events in a trace file
+          tracing_generate_trace=${OPTARG//generate_trace=/}
+          args_pass="$args_pass --$OPTARG"
+          ;;
+        delete_trace_packages=*)
+          # Specify if the tracing system re-organizes the threads
+          tracing_delete_packages=${OPTARG//delete_trace_packages=/}
+          args_pass="$args_pass --$OPTARG"
+          ;; 
+        custom_threads=*)
+          # Specify if the tracing system re-organizes the threads
+          tracing_custom_threads=${OPTARG//custom_threads=/}
+          # Keep it for runcompss (to add them to master)
+          args_pass="$args_pass --$OPTARG"
           ;;
         comm=*)
           comm=${OPTARG//comm=/}
@@ -1254,7 +1276,7 @@ get_args() {
           # Remove from runcompss since launcher will add it
           master_port=${OPTARG//master_port=/}
           ;;
-	worker_port_range=*)
+	      worker_port_range=*)
           # Remove from runcompss since launcher will add it
           worker_port_range=${OPTARG//worker_port_range=/}
           ;;
@@ -1304,9 +1326,9 @@ get_args() {
         ipython)
           ipython=true
           ;;
-	command)
-	  run_command=true
-	  ;;
+        command)
+          run_command=true
+          ;;
         xmls_phase=*)
           # Added for heterogeneity
           xmls_phase=${OPTARG//xmls_phase=/}
@@ -1319,16 +1341,16 @@ get_args() {
           # Added for tracing in heterogeneity
           initial_hostid=${OPTARG//initial_hostid=/}
           ;;
-	gen_coredump)
-	  # Generate the coredump
-	  gen_coredump=true
+        gen_coredump)
+          # Generate the coredump
+          gen_coredump=true
+                args_pass="$args_pass --$OPTARG"
+          ;;
+        keep_workingdir)
+          #Keep the working dir after execution
+          keep_wd=true
           args_pass="$args_pass --$OPTARG"
-	  ;;
-	keep_workingdir)
-	  #Keep the working dir after execution
-	  keep_wd=true
-	  args_pass="$args_pass --$OPTARG"
-	  ;;
+          ;;
         *)
           # Flag didn't match any patern. Add to COMPSs
           args_pass="$args_pass --$OPTARG"
@@ -1348,7 +1370,13 @@ get_args() {
   # Wrap full app path for lang inference
   fullAppPath=$1
   
-  
+  if [ -z "${tracing_generate_trace}" ]; then
+    args_pass="$args_pass --generate_trace=${DEFAULT_TRACE_GENERATION}"
+  fi
+
+  if [ -z "${tracing_delete_packages}" ]; then
+    args_pass="$args_pass --delete_trace_packages=${DEFAULT_TRACE_DELETE_PACKAGE}"
+  fi
   # Pass application name and args
   args_pass="$args_pass $*"
   command_to_run="$*"

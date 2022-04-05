@@ -32,6 +32,7 @@ import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.data.operation.DirectoryTransferable;
 import es.bsc.compss.types.data.operation.OneOpWithSemListener;
+import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 
@@ -156,8 +157,8 @@ public class TransferOpenDirectoryRequest extends APRequest {
     }
 
     @Override
-    public APRequestType getRequestType() {
-        return APRequestType.TRANSFER_OPEN_FILE;
+    public TraceEvent getEvent() {
+        return TraceEvent.TRANSFER_OPEN_FILE;
     }
 
 

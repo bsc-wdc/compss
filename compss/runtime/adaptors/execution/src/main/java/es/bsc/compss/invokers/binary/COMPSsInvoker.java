@@ -361,7 +361,9 @@ public class COMPSsInvoker extends Invoker {
         // Prepare command execution
         ProcessBuilder builder = new ProcessBuilder(cmd);
         builder.directory(this.taskSandboxWorkingDir);
-        builder.environment().remove(Tracer.LD_PRELOAD);
+        for (String env : Tracer.ENVIRONMENT_VARIABLES) {
+            builder.environment().remove(env);
+        }
 
         // Launch command
         Process process = builder.start();

@@ -22,6 +22,7 @@ import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
+import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.worker.COMPSsException;
 
 import org.apache.logging.log4j.LogManager;
@@ -38,11 +39,11 @@ public abstract class APRequest {
 
 
     /**
-     * Returns the type of request for this instance.
-     *
-     * @return The request type name of this instance.
+     * Returns the event to be traced for this instance.
+     * 
+     * @return event to trace
      */
-    public abstract APRequestType getRequestType();
+    public abstract TraceEvent getEvent();
 
     /**
      * Processes the Request.

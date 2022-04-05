@@ -1,13 +1,14 @@
 #!/bin/bash
 
+# Setting up COMPSs_HOME
 if [ -z "${COMPSS_HOME}" ]; then
   COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../.. && pwd )/"
 fi
 if [ ! "${COMPSS_HOME: -1}" = "/" ]; then
   COMPSS_HOME="${COMPSS_HOME}/"
 fi
-
 export COMPSS_HOME=${COMPSS_HOME}
+
 SCRIPT_DIR="${COMPSS_HOME}/Runtime/scripts/user"
 
 # shellcheck source=../system/runtime/tracing.sh

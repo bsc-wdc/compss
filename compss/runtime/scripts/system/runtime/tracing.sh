@@ -2,6 +2,10 @@
 # shellcheck disable=SC1091
 source "${COMPSS_HOME}/Runtime/scripts/system/commons/logger.sh"
 
+# shellcheck source=../trace/generatePRVs.sh
+# shellcheck disable=SC1091
+source "${COMPSS_HOME}/Runtime/scripts/system/trace/generatePRVs.sh"
+
 
 ###############################################
 ###############################################
@@ -19,9 +23,16 @@ TRACING_ENABLED="true"
 
 DEFAULT_TRACING="${TRACING_DEACTIVATED}"
 DEFAULT_TRACE_LABEL="None"
-DEFAULT_EXTRAE_CONFIG_FILE="null"
+DEFAULT_EXTRAE_CONFIG_FILE="${COMPSS_HOME}/Runtime/configuration/xml/tracing/extrae_basic.xml"
 DEFAULT_EXTRAE_CONFIG_FILE_PYTHON="null"
 DEFAULT_TRACING_TASK_DEPENDENCIES="false"
+if [ -z "${DEFAULT_GENERATE_TRACE}" ]; then
+  DEFAULT_GENERATE_TRACE="true"
+fi
+if [ -z "${DEFAULT_TRACING_DELETE_PACKAGES}" ]; then
+  DEFAULT_TRACING_DELETE_PACKAGES="true"
+fi
+DEFAULT_CUSTOM_THREAD_ORDER="true"
 #----------------------------------------------
 # ERROR MESSAGES
 #----------------------------------------------
@@ -29,7 +40,7 @@ DEFAULT_TRACING_TASK_DEPENDENCIES="false"
 
 ###############################################
 ###############################################
-#        STREAM HANDLING FUNCTIONS
+#        TRACING HANDLING FUNCTIONS
 ###############################################
 ###############################################
 
@@ -72,16 +83,33 @@ check_tracing_setup () {
     trace_label="${DEFAULT_TRACE_LABEL}"
   fi
 
+  if [ -z "${tracing_custom_threads}" ]; then
+    tracing_custom_threads="${DEFAULT_CUSTOM_THREAD_ORDER}"
+  fi
+
+  if [ -z "${tracing_generate_trace}" ]; then
+    tracing_generate_trace="${DEFAULT_GENERATE_TRACE}"
+  fi
+   
+  if [ -z "${tracing_delete_packages}" ]; then
+    tracing_delete_packages="${DEFAULT_TRACING_DELETE_PACKAGES}"
+  fi
+
+  # Determine extrae directories
+  extraeFile="${DEFAULT_EXTRAE_CONFIG_FILE}"
   if [ "${tracing}" == "${TRACING_ENABLED}" ]; then
-    extraeFile=${COMPSS_HOME}/Runtime/configuration/xml/tracing/extrae_basic.xml
+    if [ -z "${custom_extrae_config_file}" ]; then
+      extraeFile="${custom_extrae_config_file}"
+    fi
+    extrae_xml_final_path="${specific_log_dir}/cfgfiles/extrae.xml"
+    mkdir -p "${specific_log_dir}/cfgfiles"
+    sed "s+{{TRACE_OUTPUT_DIR}}+${specific_log_dir}/trace+g" "${extraeFile}" > "${extrae_xml_final_path}"
+    extraeFile="${extrae_xml_final_path}"
+    extraeWDir=$(grep "final-directory" "${extraeFile}" | cut -d'>' -f2 | rev| cut -c18- |rev)
+  else
+    extraeFile="null"
+    extraeWDir="null"
   fi
-
-  # Overwrite extraeFile if already defined
-  if [ "${custom_extrae_config_file}" != "${DEFAULT_EXTRAE_CONFIG_FILE}" ]; then
-    extraeFile="${custom_extrae_config_file}"
-  fi
-
-  extraeWDir="${specific_log_dir}/trace"
 
   # Set tracing env
   if [ "${tracing}" == "${TRACING_ENABLED}" ]; then
@@ -89,11 +117,6 @@ check_tracing_setup () {
     export EXTRAE_HOME=${EXTRAE_HOME}
     export EXTRAE_CONFIG_FILE=${extraeFile}
     export EXTRAE_USE_POSIX_CLOCK=0
-
-    # Where the intermediate trace files will be stored during the execution of the application
-    export EXTRAE_DIR=${extraeWDir}
-    # Where the intermediate trace files will be stored once the execution has been finished.
-    export EXTRAE_FINAL_DIR=${extraeWDir}
   fi
 }
 
@@ -112,9 +135,8 @@ append_tracing_jvm_options_to_file() {
   local jvm_options_file=${1}
   cat >> "${jvm_options_file}" << EOT
 -Dcompss.tracing=${tracing}
--Dcompss.extrae.working_dir=${extraeWDir}
 -Dcompss.tracing.task.dependencies=${tracing_task_dependencies}
--Dcompss.trace.label=${trace_label}
+-Dcompss.extrae.working_dir=${extraeWDir}
 -Dcompss.extrae.file=${custom_extrae_config_file}
 -Dcompss.extrae.file.python=${custom_extrae_config_file_python}
 EOT
@@ -126,9 +148,7 @@ EOT
 start_tracing() {
   if [ "${tracing}" == "${TRACING_ENABLED}" ]; then   
     export LD_PRELOAD=${EXTRAE_LIB}/libpttrace.so
-    if [ "${lang}" == "python" ]; then
-      export PYTHONPATH=${EXTRAE_HOME}/libexec/:${EXTRAE_HOME}/lib/:${PYTHONPATH}
-    fi
+    export PYTHONPATH=${EXTRAE_HOME}/libexec/:${EXTRAE_HOME}/lib/:${PYTHONPATH}
   fi
 }
 
@@ -138,8 +158,56 @@ start_tracing() {
 stop_tracing() {
   if [ "${tracing}" == "${TRACING_ENABLED}" ]; then
     unset LD_PRELOAD
+
+    if [ "${tracing_generate_trace}" == "true" ]; then
+      # Generate all traces from packages
+      trace_name="${appName}"
+      if [ ! "${trace_label}" == "None" ]; then
+        trace_name="${trace_name}_${trace_label}"
+      fi
+      trace_name="${trace_name}_compss"
+      echo "Creating trace..."
+      
+      log_level="${LOG_LEVEL_DEBUG}"
+      if [ ! "${log_level}" == "${LOG_LEVEL_OFF}" ]; then
+        out_redirect="${specific_log_dir}/traceMerger.log"
+        err_redirect="${specific_log_dir}/traceMerger.log"
+      else
+        out_redirect="/dev/null"
+        err_redirect="/dev/null"
+      fi
+      out_redirect="${specific_log_dir}/traceMerger.log"
+      err_redirect="${specific_log_dir}/traceMerger.log"
+      generate_trace 1>>${out_redirect} 2>>${err_redirect}
+      echo "Trace generation completed"
+    fi
+
+    if [ "${tracing_delete_packages}" == "true" ]; then
+        if [ "${tracing_generate_trace}" == "false" ]; then
+          echo "Dismissing tracing package removal. Traces were requested but not generated."
+        else
+          rm -rf ${packages}
+        fi
+    fi
   fi
 }
+
+generate_trace() {
+  echo "Creating prvs "
+  packages=$(find "${extraeWDir}" -name "*.tar.gz")
+  gen_traces "${extraeWDir}" "${trace_name}" "1" ${packages}
+
+  echo "Joining python traces"
+  python_traces=$(find "${extraeWDir}/python" -name "*.prv")
+  merge_python_traces "${extraeWDir}" "${trace_name}" ${python_traces}
+  rm -rf "${extraeWDir}/python"
+
+  if [ "${tracing_custom_threads}" == "true" ]; then
+    echo "Customizing threads"
+    rearrange_trace_threads "${extraeWDir}" "${trace_name}"
+  fi
+}
+
 #----------------------------------------------
 # CLEAN ENV
 #----------------------------------------------
@@ -147,3 +215,5 @@ clean_tracing_env () {
   # No need to do anything
   :
 }
+
+

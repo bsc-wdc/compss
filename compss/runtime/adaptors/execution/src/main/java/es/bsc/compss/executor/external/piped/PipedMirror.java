@@ -38,6 +38,7 @@ import es.bsc.compss.executor.external.piped.commands.WorkerStartedPipeCommand;
 import es.bsc.compss.executor.external.piped.exceptions.ClosedPipeException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.execution.InvocationContext;
+import es.bsc.compss.types.tracing.TraceEventType;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.StreamGobbler;
 import es.bsc.compss.util.Tracer;
@@ -144,13 +145,14 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
 
             // Clean the EXTRAE environment
             pb.environment().put("EXTRAE_SKIP_AUTO_LIBRARY_INITIALIZE", "1");
-            pb.environment().remove(Tracer.LD_PRELOAD);
-            pb.environment().remove(Tracer.EXTRAE_CONFIG_FILE);
-            pb.environment().remove(Tracer.EXTRAE_USE_POSIX_CLOCK);
+
+            for (String envVar : Tracer.ENVIRONMENT_VARIABLES) {
+                pb.environment().remove(envVar);
+            }
 
             // Emit event for worker initialisation
             if (Tracer.isActivated()) {
-                Tracer.emitEvent(this.size, Tracer.getSyncType());
+                Tracer.emitEvent(TraceEventType.SYNC, this.size);
             }
 
             // Launch process builder
@@ -234,13 +236,15 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
         }
 
         cmd.append(Tracer.isActivated()).append(TOKEN_SEP);
-
+        cmd.append(Tracer.getExtraeOutputDir()).append(getMirrorName()).append(File.separator).append(TOKEN_SEP);
         cmd.append(getPipeBuilderContext());
 
         // General Args are of the form: controlPipeW controlPipeR workerPipeW workerPipeR 2 pipeW1 pipeW2 2 pipeR1
         // pipeR2
         return cmd.toString();
     }
+
+    public abstract String getMirrorName();
 
     public abstract String getPipeBuilderContext();
 
@@ -316,10 +320,10 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
 
         // Emit event for end worker
         if (Tracer.isActivated()) {
-            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getSyncType());
+            Tracer.emitEventEnd(TraceEventType.SYNC);
             Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-            Tracer.emitEvent((long) timestamp.getTime(), Tracer.getSyncType());
-            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getSyncType());
+            Tracer.emitEvent(TraceEventType.SYNC, (long) timestamp.getTime());
+            Tracer.emitEventEnd(TraceEventType.SYNC);
         }
         waitForWorkerEnd();
         // Unregister worker and delete pipe

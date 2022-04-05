@@ -29,12 +29,12 @@ import es.bsc.compss.types.data.location.PersistentLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.operation.copy.Copy;
 import es.bsc.compss.types.resources.Resource;
+import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.FileOpsManager;
 import es.bsc.compss.util.SharedDiskManager;
-import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.util.serializers.Serializer;
 

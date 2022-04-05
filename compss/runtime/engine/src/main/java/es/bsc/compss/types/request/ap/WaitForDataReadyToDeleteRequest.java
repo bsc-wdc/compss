@@ -22,6 +22,7 @@ import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.location.DataLocation;
+import es.bsc.compss.types.tracing.TraceEvent;
 
 import java.util.concurrent.Semaphore;
 
@@ -78,8 +79,8 @@ public class WaitForDataReadyToDeleteRequest extends APRequest {
     }
 
     @Override
-    public APRequestType getRequestType() {
-        return APRequestType.DELETE_FILE;
+    public TraceEvent getEvent() {
+        return TraceEvent.DELETE_FILE;
     }
 
 }

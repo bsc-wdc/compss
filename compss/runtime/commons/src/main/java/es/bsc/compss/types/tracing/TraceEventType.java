@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.util;
+package es.bsc.compss.types.tracing;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -33,6 +33,8 @@ public enum TraceEventType {
     THREAD_IDENTIFICATION(8_001_003, "Thread type identifier", true),
     // Marks the life and end of an executor thread
     EXECUTOR_COUNTS(8_001_004, "Executor threads count", true),
+    // Marks the life and end of an executor thread
+    EXECUTOR_IDENTIFICATION(8_001_005, "Executor threads identifiers", true),
     // Task Ids
     TASKS_ID(8_000_002, "Task IDs", false),
 

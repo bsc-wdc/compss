@@ -65,7 +65,9 @@ public class ExternalStreamHandler {
 
         // Build ProcessBuilder
         ProcessBuilder builder = new ProcessBuilder(cmd);
-        builder.environment().remove(Tracer.LD_PRELOAD);
+        for (String env : Tracer.ENVIRONMENT_VARIABLES) {
+            builder.environment().remove(env);
+        }
 
         // Execute command
         Process process;

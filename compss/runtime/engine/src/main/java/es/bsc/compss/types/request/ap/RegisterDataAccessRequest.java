@@ -25,6 +25,7 @@ import es.bsc.compss.types.TaskListener;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
+import es.bsc.compss.types.tracing.TraceEvent;
 
 import java.util.concurrent.Semaphore;
 
@@ -144,8 +145,8 @@ public class RegisterDataAccessRequest extends APRequest implements TaskListener
     }
 
     @Override
-    public APRequestType getRequestType() {
-        return APRequestType.REGISTER_DATA_ACCESS;
+    public TraceEvent getEvent() {
+        return TraceEvent.REGISTER_DATA_ACCESS;
     }
 
 }

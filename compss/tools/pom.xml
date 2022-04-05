@@ -33,5 +33,6 @@
     <!-- SUB-MODULES -->
     <modules>
         <module>monitor</module>
+        <module>tracing</module>
     </modules>
 </project>

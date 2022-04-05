@@ -14,10 +14,7 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.util;
-
-import es.bsc.compss.util.tracing.Threads;
-
+package es.bsc.compss.types.tracing;
 
 /**
  * Representation of a tracing event.
@@ -107,6 +104,7 @@ public enum TraceEvent {
     UPDATE_CEI_LOCAL(52, TraceEventType.RUNTIME, "Task Dispatcher: Update CEI local"), //
     WORKER_UPDATE_REQUEST(53, TraceEventType.RUNTIME, "Task Dispatcher: Worker update request"), //
     CANCEL_TASKS(57, TraceEventType.RUNTIME, "Task Dispatcher: Cancel tasks"), //
+    WORKER_RESTART_REQUEST(59, TraceEventType.RUNTIME, "Task Dispatcher: Re-starting worker"), //
 
     // Timer events
     TASK_TIMEOUT(58, TraceEventType.RUNTIME, "Timer: Task timed out"), //
@@ -239,8 +237,8 @@ public enum TraceEvent {
         return this.type;
     }
 
-    public int getType() {
-        return this.type.code;
+    public TraceEventType getType() {
+        return this.type;
     }
 
     public String getSignature() {

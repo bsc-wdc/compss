@@ -42,11 +42,12 @@ import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.resources.updates.PerformedIncrease;
 import es.bsc.compss.types.resources.updates.ResourceUpdate;
+import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.TraceEventType;
 import es.bsc.compss.util.CEIParser;
 import es.bsc.compss.util.Classpath;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
-import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
 
@@ -136,11 +137,10 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
             String requestType = "Not defined";
             try {
                 TDRequest request = requestQueue.take();
-                requestType = request.getType().toString();
+                requestType = request.getEvent().toString();
 
                 if (Tracer.isActivated()) {
-                    Tracer.emitEvent(Tracer.getTaskDispatcherRequestEvent(request.getType().name()).getId(),
-                        Tracer.getRuntimeEventsType());
+                    Tracer.emitEvent(request.getEvent());
                 }
                 request.process(scheduler);
             } catch (InterruptedException ie) {
@@ -156,7 +156,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
                 continue;
             } finally {
                 if (Tracer.isActivated()) {
-                    Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+                    Tracer.emitEventEnd(TraceEventType.RUNTIME);
                 }
             }
         }

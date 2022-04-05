@@ -21,6 +21,7 @@ import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
+import es.bsc.compss.types.tracing.TraceEvent;
 
 import java.util.concurrent.Semaphore;
 
@@ -56,8 +57,7 @@ public class ShutdownRequest extends APRequest {
     }
 
     @Override
-    public APRequestType getRequestType() {
-        return APRequestType.SHUTDOWN;
+    public TraceEvent getEvent() {
+        return TraceEvent.SHUTDOWN;
     }
-
 }

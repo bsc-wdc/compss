@@ -21,6 +21,7 @@ import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.resources.updates.ResourceUpdate;
+import es.bsc.compss.types.tracing.TraceEvent;
 
 
 /**
@@ -58,8 +59,8 @@ public class WorkerRestartRequest<T extends WorkerResourceDescription> extends T
     }
 
     @Override
-    public TDRequestType getType() {
-        return TDRequestType.WORKER_RESTART_REQUEST;
+    public TraceEvent getEvent() {
+        return TraceEvent.WORKER_RESTART_REQUEST;
     }
 
 }

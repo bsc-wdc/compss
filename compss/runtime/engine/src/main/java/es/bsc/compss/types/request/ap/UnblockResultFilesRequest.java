@@ -21,6 +21,7 @@ import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.data.ResultFile;
+import es.bsc.compss.types.tracing.TraceEvent;
 
 import java.util.List;
 
@@ -56,8 +57,8 @@ public class UnblockResultFilesRequest extends APRequest {
     }
 
     @Override
-    public APRequestType getRequestType() {
-        return APRequestType.UNBLOCK_RESULT_FILES;
+    public TraceEvent getEvent() {
+        return TraceEvent.UNBLOCK_RESULT_FILES;
     }
 
 }

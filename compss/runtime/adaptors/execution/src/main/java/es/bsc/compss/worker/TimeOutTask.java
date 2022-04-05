@@ -17,7 +17,7 @@
 package es.bsc.compss.worker;
 
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.util.TraceEvent;
+import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.util.Tracer;
 
 import java.util.TimerTask;

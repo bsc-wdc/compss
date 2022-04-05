@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Command to simulate realpath
+# Setting up COMPSs_HOME
 if [ -z "${COMPSS_HOME}" ]; then
   COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../.. && pwd )/"
 fi
@@ -63,7 +63,7 @@ show_opts() {
     --jmx_port=<int>                        Enable JVM profiling on specified port
 
   Runtime configuration options:
-    --task_execution=<compss|storage>	    Task execution under COMPSs or Storage.
+    --task_execution=<compss|storage>	      Task execution under COMPSs or Storage.
                                             Default: ${DEFAULT_TASK_EXECUTION}
     --storage_impl=<string>                 Path to an storage implementation. Shortcut to setting pypath and classpath. See Runtime/storage in your installation folder.
     --storage_conf=<path>                   Path to the storage configuration file
@@ -87,8 +87,15 @@ show_opts() {
                                             Default: ${DEFAULT_EXTRAE_CONFIG_FILE_PYTHON}
     --trace_label=<string>                  Add a label in the generated trace file. Only used in the case of tracing is activated.
                                             Default: None
-    --tracing_task_dependencies             Adds communication lines for the task dependencies ( [ true | false ] )
-                                            Default: false
+    --tracing_task_dependencies=<bool>      Adds communication lines for the task dependencies (true/false)
+                                            Default: ${DEFAULT_TRACING_TASK_DEPENDENCIES}
+    --generate_trace=<bool>                 Converts the events register into a trace file. Only used in the case of activated tracing.
+                                            Default: ${DEFAULT_GENERATE_TRACE}
+    --delete_trace_packages=<bool>          If true, deletes the tracing packages created by the run.
+                                            Default: ${DEFAULT_TRACING_DELETE_PACKAGES}. Automatically, disabled if the trace is not generated.
+    --custom_threads=<bool>                 Threads in the trace file are re-ordered and customized to indicate the function of the thread.
+                                            Only used when the tracing is activated and a trace file generated.
+                                            Default: ${DEFAULT_CUSTOM_THREAD_ORDER}
     --comm=<ClassName>                      Class that implements the adaptor for communications
                                             Supported adaptors:
                                                   ├── ${NIO_ADAPTOR}
@@ -523,9 +530,21 @@ get_args() {
             scheduler_config=${OPTARG//scheduler_config_file=/}
             ;;
           tracing_task_dependencies=*)
-              # Specify the file where COMPSs will store the tasks profile
-              tracing_task_dependencies=${OPTARG//tracing_task_dependencies=/}
+            # Specify if the tracing system registers task dependencies
+            tracing_task_dependencies=${OPTARG//tracing_task_dependencies=/}
             ;;
+          generate_trace=*)
+            # Specify if the tracing system merges the events in a trace file
+            tracing_generate_trace=${OPTARG//generate_trace=/}
+            ;;
+          delete_trace_packages=*)
+            # Specify if the tracing system re-organizes the threads
+            tracing_delete_packages=${OPTARG//delete_trace_packages=/}
+            ;; 
+          custom_threads=*)
+            # Specify if the tracing system re-organizes the threads
+            tracing_custom_threads=${OPTARG//custom_threads=/}
+            ;;           
           enable_external_adaptation=*)
             # Enable the external adaptation (disables de Resource Optimizer)
             external_adaptation=${OPTARG//enable_external_adaptation=/}
@@ -558,7 +577,7 @@ get_args() {
             # Enable coredump generation
             gen_core=true
             ;;
-	  keep_workingdir)
+	        keep_workingdir)
             # Enable coredump generation
             keepWD=true
             ;;

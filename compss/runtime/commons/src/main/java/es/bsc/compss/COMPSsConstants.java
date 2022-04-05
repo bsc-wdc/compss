@@ -99,18 +99,19 @@ public class COMPSsConstants {
     public static final String CONSTR_FILE = "compss.constraints.file";
     public static final String SCHEDULER = "compss.scheduler";
     public static final String SCHEDULER_CONFIG_FILE = "compss.scheduler.config";
-    public static final String TRACING = "compss.tracing";
-    public static final String TRACING_TASK_DEPENDENCIES = "compss.tracing.task.dependencies";
-    public static final String TRACE_LABEL = "compss.trace.label";
-    public static final String EXTRAE_WORKING_DIR = "compss.extrae.working_dir";
-    public static final String EXTRAE_CONFIG_FILE = "compss.extrae.file";
     public static final String PRESCHED = "compss.presched";
     public static final String GRAPH = "compss.graph";
     public static final String MONITOR = "compss.monitor";
     public static final String INPUT_PROFILE = "compss.profile.input";
     public static final String OUTPUT_PROFILE = "compss.profile.output";
     public static final String EXTERNAL_ADAPTATION = "compss.external.adaptation";
+
     public static final String DATA_PROVENANCE = "compss.data_provenance";
+
+    public static final String TRACING = "compss.tracing";
+    public static final String TRACING_TASK_DEPENDENCIES = "compss.tracing.task.dependencies";
+    public static final String EXTRAE_WORKING_DIR = "compss.extrae.working_dir";
+    public static final String EXTRAE_CONFIG_FILE = "compss.extrae.file";
 
     public static final String WORKER_CP = "compss.worker.cp";
     public static final String WORKER_PP = "compss.worker.pythonpath";
@@ -226,8 +227,6 @@ public class COMPSsConstants {
     public static final String DEFAULT_PYTHON_MPI_WORKER = "false";
     public static final String DEFAULT_PYTHON_WORKER_CACHE = "false";
     public static final String DEFAULT_PYTHON_CACHE_PROFILER = "false";
-
-    public static final String DISABLE_CUSTOM_THREADS_TRACING = "compss.tracing.disableCustomThreads";
 
 
     /**

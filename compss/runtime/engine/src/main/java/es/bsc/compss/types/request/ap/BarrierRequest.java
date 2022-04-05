@@ -22,6 +22,7 @@ import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.Barrier;
+import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.worker.COMPSsException;
 
 import java.util.concurrent.Semaphore;
@@ -64,8 +65,8 @@ public class BarrierRequest extends APRequest implements Barrier {
     }
 
     @Override
-    public APRequestType getRequestType() {
-        return APRequestType.WAIT_FOR_ALL_TASKS;
+    public TraceEvent getEvent() {
+        return TraceEvent.WAIT_FOR_ALL_TASKS;
     }
 
     /**

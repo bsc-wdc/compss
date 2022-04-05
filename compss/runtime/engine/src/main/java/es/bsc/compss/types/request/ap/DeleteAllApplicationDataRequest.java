@@ -22,6 +22,7 @@ import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
+import es.bsc.compss.types.tracing.TraceEvent;
 
 
 public class DeleteAllApplicationDataRequest extends APRequest {
@@ -39,8 +40,8 @@ public class DeleteAllApplicationDataRequest extends APRequest {
     }
 
     @Override
-    public APRequestType getRequestType() {
-        return APRequestType.REMOVE_APP_DATA;
+    public TraceEvent getEvent() {
+        return TraceEvent.REMOVE_APP_DATA;
     }
 
     @Override

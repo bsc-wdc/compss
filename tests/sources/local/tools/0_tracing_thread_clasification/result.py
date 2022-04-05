@@ -55,47 +55,46 @@ def parsePrvs(runcompssPrv, agentPrv):
         line = reader.readline().rstrip()
 
 def checkHeader(header, threads):
-    threadsPerCpuPerNode = [[]]  #list of number of threads per each node of each app
+    threadsPerTaskPerApp = [[]]  #list of number of threads per each node of each app
     for thId in threads:
         values = thId.split(":")
         # -1 to app and node because we use it as a position for the array and the threads number start from 1
         app = int(values[0])-1
-        node = int(values[1])-1
+        task = int(values[1])-1
         thread = int(values[2])
-        while app >= len(threadsPerCpuPerNode):
-            threadsPerCpuPerNode.append([])
-        while node >= len(threadsPerCpuPerNode[app]):
-            threadsPerCpuPerNode[app].append(0)
-        if threadsPerCpuPerNode[app][node] < thread:
-            threadsPerCpuPerNode[app][node] = thread
+        while app >= len(threadsPerTaskPerApp):
+            threadsPerTaskPerApp.append([])
+        while task >= len(threadsPerTaskPerApp[app]):
+            threadsPerTaskPerApp[app].append(0)
+        if threadsPerTaskPerApp[app][task] < thread:
+            threadsPerTaskPerApp[app][task] = thread
 
 
     prvHeader = PrvHeader(header)
-    if prvHeader.getAppNum() != len(threadsPerCpuPerNode):
-        raise Exception("Malformed .prv header, threre's threads from  " + str(len(threadsPerCpuPerNode)) + " apps but the header indicates " + str(prvHeader.getAppNum()) + " apps")
+    ## Commented until infrastructure is properly managed in the traces
+    # if prvHeader.getNodeNum() != len(threadsPerTaskPerApp):
+    #    raise Exception("Malformed .prv header, threre's threads from  " + str(len(threadsPerTaskPerApp)) + " nodes but the header indicates " + str(prvHeader.getNodeNum()) + " nodes.")
+    # cpusPerNode = prvHeader.getCpusPerNode()
+    # for i in range(0,len(cpusPerNode)):
+    #    cpusInThisNode = 0
+    #    for j in range(0,len(threadsPerTaskPerApp[i])):
+    #        cpusInThisNode = cpusInThisNode + threadsPerTaskPerApp[i][j]
+    #    if int(cpusPerNode[i]) != cpusInThisNode:
+    #        raise Exception("Malformed .prv header, there seems to be  " + str(cpusInThisNode) + " cpus in node " + str(i) + " but header indicates " + cpusPerNode[i])
 
-    if prvHeader.getNodeNum() != len(threadsPerCpuPerNode):
-        raise Exception("Malformed .prv header, threre's threads from  " + str(len(threadsPerCpuPerNode)) + " nodes but the header indicates " + str(prvHeader.getNodeNum()) + " nodes.")
-
-    cpusPerNode = prvHeader.getCpusPerNode()
-    for i in range(0,len(cpusPerNode)):
-        cpusInThisNode = 0
-        for j in range(0,len(threadsPerCpuPerNode[i])):
-            cpusInThisNode = cpusInThisNode + threadsPerCpuPerNode[i][j]
-        if int(cpusPerNode[i]) != cpusInThisNode:
-            raise Exception("Malformed .prv header, there seems to be  " + str(cpusInThisNode) + " cpus in node " + str(i) + " but header indicates " + cpusPerNode[i])
-
+    if prvHeader.getAppNum() != len(threadsPerTaskPerApp):
+        raise Exception("Malformed .prv header, threre's threads from  " + str(len(threadsPerTaskPerApp)) + " apps but the header indicates " + str(prvHeader.getAppNum()) + " apps")    
     appList = prvHeader.getAppsList()
-    if len(appList) != len(threadsPerCpuPerNode):
-        raise Exception("Malformed .prv header, application list has  " + str(len(appList)) + " elements. Expected " + str(len(threadsPerCpuPerNode[i])))
+    if len(appList) != len(threadsPerTaskPerApp):
+        raise Exception("Malformed .prv header, application list has  " + str(len(appList)) + " elements. Expected " + str(len(threadsPerTaskPerApp)))
 
     for i in range(0,len(appList)):
-        if int(prvHeader.getNumTasksApp(i)) != len(threadsPerCpuPerNode[i]):
-            raise Exception("Malformed .prv header, application number  " + str(i+1) + " has "+ str(prvHeader.getNumTasksApp(i)) + " tasks. Expected " + str(len(threadsPerCpuPerNode[i])))
+        if int(prvHeader.getNumTasksApp(i)) != len(threadsPerTaskPerApp[i]):
+            raise Exception("Malformed .prv header, application number  " + str(i+1) + " has "+ str(prvHeader.getNumTasksApp(i)) + " tasks. Expected " + str(len(threadsPerTaskPerApp[i])))
         numThreadsPerApp = prvHeader.getNThreadsPerApp(i)
         for j in range(0,len(numThreadsPerApp)):
-            if int(numThreadsPerApp[j]) != threadsPerCpuPerNode[i][j]:
-                raise Exception("Malformed .prv header, application number  " + str(i+1) + " has "+ numThreadsPerApp[j] + " tasks  in the " + str(j+1) + " node. Expected " + str(threadsPerCpuPerNode[i][j]))
+            if int(numThreadsPerApp[j]) != threadsPerTaskPerApp[i][j]:
+                raise Exception("Malformed .prv header, application number  " + str(i+1) + " has "+ numThreadsPerApp[j] + " tasks  in the " + str(j+1) + " node. Expected " + str(threadsPerTaskPerApp[i][j]))
 
 
 
@@ -185,14 +184,14 @@ def main():
     print("#####################################")
     print("#####  CHECKING RUNCOMPSS TRACE  ####")
     print("#####################################")
-    checkHeader(runcompssHeader, runcompssThreads)
+    # checkHeader(runcompssHeader, runcompssThreads)
     checkThreadTranslations(runcompssThreads, runcompssThIdentEvents, getRow(runcompssDir))
 
     print("")
     print("#####################################")
     print("######  CHECKING AGENT TRACE  #######")
     print("#####################################")
-    checkHeader(agentHeader, agentThreads)
+    # checkHeader(agentHeader, agentThreads)
     checkThreadTranslations(agentThreads, agentThIdentEvents, getRow(agentDir))
 
 if __name__ == "__main__":

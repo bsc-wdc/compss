@@ -21,6 +21,7 @@ import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.data.DataInstanceId;
+import es.bsc.compss.types.tracing.TraceEvent;
 
 import java.util.concurrent.Semaphore;
 
@@ -73,8 +74,8 @@ public class IsObjectHereRequest extends APRequest {
     }
 
     @Override
-    public APRequestType getRequestType() {
-        return APRequestType.IS_OBJECT_HERE;
+    public TraceEvent getEvent() {
+        return TraceEvent.IS_OBJECT_HERE;
     }
 
 }

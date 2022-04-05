@@ -23,6 +23,7 @@ import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
+import es.bsc.compss.types.tracing.TraceEvent;
 
 
 public class RegisterRemoteFileDataRequest extends APRequest {
@@ -46,8 +47,8 @@ public class RegisterRemoteFileDataRequest extends APRequest {
     }
 
     @Override
-    public APRequestType getRequestType() {
-        return APRequestType.REGISTER_REMOTE_OBJECT;
+    public TraceEvent getEvent() {
+        return TraceEvent.REGISTER_REMOTE_OBJECT;
     }
 
     @Override

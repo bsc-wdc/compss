@@ -43,7 +43,8 @@ get_args() {
     shift "${numPipesRESULT}"
 
     tracing=${1}
-    shift 1
+    tracing_output_dir=${2}
+    shift 2
 
     # Get binding
     binding=$1
@@ -71,20 +72,26 @@ create_pipe() {
 
 export_tracing() {
     if [ "$tracing" == "true" ]; then
+        configPath="${SCRIPT_DIR}/../../../../../configuration/xml/tracing"
         echo "Initializing python tracing with extrae..."
+        # Determine source extrae config file
         if [[ "$pythonExtraeFile" == "" || "$pythonExtraeFile" == "null" || "$pythonExtraeFile" == "false" ]]; then
-            configPath="${SCRIPT_DIR}/../../../../../configuration/xml/tracing"
-            escapedConfigPath=$(echo "$configPath" | sed 's_/_\\/_g')
             baseConfigFile="${configPath}/extrae_python_worker.xml"
-            workerConfigFile="$(pwd)/extrae_python_worker.xml"
-            sed "s/{{PATH}}/${escapedConfigPath}/g" "${baseConfigFile}" > "${workerConfigFile}"
         else
-            configPath="${SCRIPT_DIR}/../../../../../configuration/xml/tracing"
-            escapedConfigPath=$(echo "$configPath" | sed 's_/_\\/_g')
-            workerConfigFile=${pythonExtraeFile}
-            sed -i "s/{{PATH}}/${escapedConfigPath}/g" "${workerConfigFile}"
+            baseConfigFile="${pythonExtraeFile}"
         fi
+
+        # determine path for customized extrae config file
+        workerConfigFile="$(pwd)/extrae_python_worker.xml"
+        
+        escapedConfigPath=$(echo "${configPath}" | sed 's_/_\\/_g')
+        sed "s/{{PATH}}/${escapedConfigPath}/g" "${baseConfigFile}" > "${workerConfigFile}"
+
+        escaped_tracing_output_dir=$(echo "${tracing_output_dir}" | sed 's_/_\\/_g')
+        sed  -i "s/{{TRACE_OUTPUT_DIR}}/${escaped_tracing_output_dir}/g" "${workerConfigFile}"
+
         echo "Using extrae config file: $workerConfigFile"
+        echo "Using extrae output directory: ${tracing_output_dir}"
 
         if [ "$mpiWorker" == "true" ]; then
             # Exporting variables for MPI Python worker

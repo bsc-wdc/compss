@@ -21,6 +21,7 @@ import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.Application;
+import es.bsc.compss.types.tracing.TraceEvent;
 
 
 public class OpenTaskGroupRequest extends APRequest {
@@ -49,8 +50,7 @@ public class OpenTaskGroupRequest extends APRequest {
     }
 
     @Override
-    public APRequestType getRequestType() {
-        return APRequestType.WAIT_FOR_ALL_TASKS;
+    public TraceEvent getEvent() {
+        return TraceEvent.WAIT_FOR_ALL_TASKS;
     }
-
 }

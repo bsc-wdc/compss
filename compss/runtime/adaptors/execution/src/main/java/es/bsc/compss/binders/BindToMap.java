@@ -105,7 +105,9 @@ public class BindToMap implements ThreadBinder {
         String cmdOutput = null;
         ProcessBuilder pb = new ProcessBuilder("lscpu");
         try {
-            pb.environment().remove(Tracer.LD_PRELOAD);
+            for (String env : Tracer.ENVIRONMENT_VARIABLES) {
+                pb.environment().remove(env);
+            }
             Process process = pb.start();
 
             // Disable inputs to process

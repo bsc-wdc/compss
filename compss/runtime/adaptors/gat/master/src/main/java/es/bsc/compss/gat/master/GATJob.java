@@ -46,9 +46,10 @@ import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Resource;
+import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.TraceEventType;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
 
 import java.util.ArrayList;
@@ -353,11 +354,11 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
         // Tracing flags
         lArgs.add(Boolean.toString(Tracer.isActivated()));
         if (Tracer.isActivated()) {
-            lArgs.add(String.valueOf(Tracer.getRuntimeEventsType())); // Runtime event type
+            lArgs.add(String.valueOf(TraceEventType.RUNTIME.code)); // Runtime event type
             lArgs.add(String.valueOf(TraceEvent.CREATING_TASK_SANDBOX.getId())); // sandbox creation id
             lArgs.add(String.valueOf(TraceEvent.REMOVING_TASK_SANDBOX.getId())); // sandbox removal id
 
-            lArgs.add(String.valueOf(Tracer.getTaskEventsType())); // event type
+            lArgs.add(String.valueOf(TraceEventType.TASKS_FUNC.code)); // event type
             lArgs.add(String.valueOf(this.taskId));
             int slot = acquireTracingSlot(sd);
             lArgs.add(String.valueOf(slot)); // slot id

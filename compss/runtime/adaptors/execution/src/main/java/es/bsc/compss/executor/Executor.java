@@ -66,7 +66,8 @@ import es.bsc.compss.types.implementations.definition.OpenCLDefinition;
 import es.bsc.compss.types.implementations.definition.PythonMPIDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
-import es.bsc.compss.util.TraceEvent;
+import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.TraceEventType;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
 import es.bsc.compss.worker.TimeOutTask;
@@ -1338,21 +1339,21 @@ public class Executor implements Runnable, InvocationRunner {
             numNodes = invocation.getSlaveNodesNames().size() + 1;
         }
         int nCPUs = ((MethodResourceDescription) invocation.getRequirements()).getTotalCPUComputingUnits() * numNodes;
-        Tracer.emitEvent(nCPUs, Tracer.getCPUCountEventsType());
+        Tracer.emitEvent(TraceEventType.CPU_COUNTS, nCPUs);
         int nGPUs = ((MethodResourceDescription) invocation.getRequirements()).getTotalGPUComputingUnits() * numNodes;
-        Tracer.emitEvent(nGPUs, Tracer.getGPUCountEventsType());
+        Tracer.emitEvent(TraceEventType.GPU_COUNTS, nGPUs);
         int memory = (int) ((MethodResourceDescription) invocation.getRequirements()).getMemorySize() * numNodes;
         if (memory < 0) {
             memory = 0;
         }
-        Tracer.emitEvent(memory, Tracer.getMemoryEventsType());
+        Tracer.emitEvent(TraceEventType.MEMORY, memory);
         int diskBW = ((MethodResourceDescription) invocation.getRequirements()).getStorageBW() * numNodes;
         if (diskBW < 0) {
             diskBW = 0;
         }
-        Tracer.emitEvent(diskBW, Tracer.getDiskBWEventsType());
+        Tracer.emitEvent(TraceEventType.DISK_BW, diskBW);
         int taskType = invocation.getMethodImplementation().getMethodType().ordinal() + 1;
-        Tracer.emitEvent(taskType, Tracer.getTaskTypeEventsType());
+        Tracer.emitEvent(TraceEventType.TASKTYPE, taskType);
         Tracer.emitEvent(TraceEvent.TASK_RUNNING);
     }
 
@@ -1362,11 +1363,11 @@ public class Executor implements Runnable, InvocationRunner {
                 Tracer.emitCommEvent(true, 123, 1, invocation.getTaskId(), 0);
             }
         }
-        Tracer.emitEvent(Tracer.EVENT_END, Tracer.getCPUCountEventsType());
-        Tracer.emitEvent(Tracer.EVENT_END, Tracer.getGPUCountEventsType());
-        Tracer.emitEvent(Tracer.EVENT_END, Tracer.getMemoryEventsType());
-        Tracer.emitEvent(Tracer.EVENT_END, Tracer.getDiskBWEventsType());
-        Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTaskTypeEventsType());
+        Tracer.emitEventEnd(TraceEventType.CPU_COUNTS);
+        Tracer.emitEventEnd(TraceEventType.GPU_COUNTS);
+        Tracer.emitEventEnd(TraceEventType.MEMORY);
+        Tracer.emitEventEnd(TraceEventType.DISK_BW);
+        Tracer.emitEventEnd(TraceEventType.TASKTYPE);
         Tracer.emitEventEnd(TraceEvent.TASK_RUNNING);
     }
 
@@ -1377,28 +1378,28 @@ public class Executor implements Runnable, InvocationRunner {
                 if (this.firstTimeAffinityCPU) {
                     this.firstTimeAffinityCPU = false;
                 } else {
-                    Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTasksCPUAffinityEventsType());
+                    Tracer.emitEventEnd(TraceEventType.TASKS_CPU_AFFINITY);
                 }
-                Tracer.emitEvent(cpus[0] + 1L, Tracer.getTasksCPUAffinityEventsType());
+                Tracer.emitEvent(TraceEventType.TASKS_CPU_AFFINITY, cpus[0] + 1L);
             }
             int[] gpus = this.resources.getAssignedGPUs();
             if (gpus != null && gpus.length > 0) {
                 if (this.firstTimeAffinityGPU) {
                     this.firstTimeAffinityGPU = false;
                 } else {
-                    Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTasksGPUAffinityEventsType());
+                    Tracer.emitEventEnd(TraceEventType.TASKS_GPU_AFFINITY);
                 }
-                Tracer.emitEvent(gpus[0] + 1L, Tracer.getTasksGPUAffinityEventsType());
+                Tracer.emitEvent(TraceEventType.TASKS_GPU_AFFINITY, gpus[0] + 1L);
             }
         }
     }
 
     private void emitAffinityEndEvents() {
         if (!this.firstTimeAffinityCPU) {
-            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTasksCPUAffinityEventsType());
+            Tracer.emitEvent(TraceEventType.TASKS_CPU_AFFINITY, 0);
         }
         if (!this.firstTimeAffinityGPU) {
-            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTasksGPUAffinityEventsType());
+            Tracer.emitEvent(TraceEventType.TASKS_GPU_AFFINITY, 0);
         }
     }
 

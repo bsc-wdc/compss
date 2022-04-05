@@ -1,10 +1,13 @@
 #!/bin/bash
 
+if [ -z "${COMPSS_HOME}" ]; then
+  echo "\${COMPSS_HOME} not yet defined."
+  exit 1
+fi
+
 #---------------------------------------------------
 # SCRIPT CONSTANTS DECLARATION
 #---------------------------------------------------
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
 DEFAULT_SC_CFG="default"
 DEFAULT_JOB_NAME="COMPSs"
 DEFAULT_CPUS_PER_TASK="false"
@@ -72,11 +75,11 @@ show_opts() {
   local exitValue=$1
 
   # Load default CFG for default values
-  local defaultSC_cfg="${SCRIPT_DIR}/../supercomputers/${DEFAULT_SC_CFG}.cfg"
+  local defaultSC_cfg="${COMPSS_HOME}Runtime/scripts/queues/supercomputers/${DEFAULT_SC_CFG}.cfg"
   # shellcheck source=../supercomputers/default.cfg
   # shellcheck disable=SC1091
   source "${defaultSC_cfg}"
-  local defaultQS_cfg="${SCRIPT_DIR}/../queue_systems/${QUEUE_SYSTEM}.cfg"
+  local defaultQS_cfg="${COMPSS_HOME}Runtime/scripts/queues/queue_systems/${QUEUE_SYSTEM}.cfg"
   # shellcheck source=../queue_systems/slurm.cfg
   # shellcheck disable=SC1091
   source "${defaultQS_cfg}"
@@ -188,9 +191,9 @@ EOT
   Launch configuration:
 EOT
   if [ "${agents_enabled}" = "enabled" ]; then
-    "${SCRIPT_DIR}"/../../user/launch_compss_agents --opts
+    "${COMPSS_HOME}/Runtime/scripts/user/launch_compss_agents" --opts
   else
-    "${SCRIPT_DIR}"/../../user/launch_compss --opts
+    "${COMPSS_HOME}/Runtime/scripts/user/launch_compss" --opts
   fi
 
   exit "$exitValue"
@@ -202,7 +205,7 @@ EOT
 display_version() {
   local exitValue=$1
 
-  "${SCRIPT_DIR}"/../../user/runcompss --version
+  "${COMPSS_HOME}/Runtime/scripts/queues/user/runcompss" --version
 
   exit "$exitValue"
 }
@@ -961,7 +964,7 @@ add_master_and_worker_nodes(){
   # Host list parsing
   cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
   if [ "${HOSTLIST_CMD}" == "nodes.sh" ]; then
-    source "${SCRIPT_DIR}/../../system/${HOSTLIST_CMD}"
+    source "${COMPSS_HOME}/Runtime/scripts/system/${HOSTLIST_CMD}"
   else
     host_list=\$(${HOSTLIST_CMD} \$${ENV_VAR_NODE_LIST} ${HOSTLIST_TREATMENT})
     master_node=\$(${MASTER_NAME_CMD})
@@ -977,7 +980,7 @@ add_only_master_node(){
   cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
 
   if [ "${HOSTLIST_CMD}" == "nodes.sh" ]; then
-    source "${SCRIPT_DIR}/../../system/${HOSTLIST_CMD}"
+    source "${COMPSS_HOME}/Runtime/scripts/system/${HOSTLIST_CMD}"
   else
     host_list=\$(${HOSTLIST_CMD} \$${ENV_VAR_NODE_LIST} ${HOSTLIST_TREATMENT})
     master_node=\$(${MASTER_NAME_CMD})
@@ -992,7 +995,7 @@ add_only_worker_nodes(){
   local env_var_suffix=$1
   cat >> "$TMP_SUBMIT_SCRIPT" << EOT
   if [ "${HOSTLIST_CMD}" == "nodes.sh" ]; then
-    source "${SCRIPT_DIR}/../../system/${HOSTLIST_CMD}"
+    source "${COMPSS_HOME}/Runtime/scripts/system/${HOSTLIST_CMD}"
   else
     host_list=\$(${HOSTLIST_CMD} \$${ENV_VAR_NODE_LIST}${env_var_suffix} ${HOSTLIST_TREATMENT})
     worker_nodes=\$(echo \${host_list})
@@ -1023,7 +1026,7 @@ if [ -f "\${variables_to_be_sourced}" ]; then
     rm "\${variables_to_be_sourced}"
 fi
 
-${SCRIPT_DIR}/../../user/launch_compss${AGENTS_SUFFIX} ${AGENTS_HIERARCHY}--master_node="\${master_node}" --worker_nodes="\${worker_nodes}" --node_memory=${node_memory} --node_storage_bandwidth=${node_storage_bandwidth} --storage_conf=\${storage_conf} ${args_pass}
+${COMPSS_HOME}/Runtime/scripts/user/launch_compss${AGENTS_SUFFIX} ${AGENTS_HIERARCHY}--master_node="\${master_node}" --worker_nodes="\${worker_nodes}" --node_memory=${node_memory} --node_storage_bandwidth=${node_storage_bandwidth} --storage_conf=\${storage_conf} ${args_pass}
 
 ${storage_home}/scripts/storage_stop.sh \$${ENV_VAR_JOB_ID} "\${master_node}" "\${storage_master_node}" "\${worker_nodes}" ${network} ${storage_props}
 
@@ -1032,7 +1035,7 @@ EOT
     # ONLY ADD EXECUTE COMMAND
     cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
 
-${SCRIPT_DIR}/../../user/launch_compss${AGENTS_SUFFIX} ${AGENTS_HIERARCHY} --master_node="\${master_node}" --worker_nodes="\${worker_nodes}" --node_memory=${node_memory} --node_storage_bandwidth=${node_storage_bandwidth} ${args_pass}
+${COMPSS_HOME}/Runtime/scripts/user/launch_compss${AGENTS_SUFFIX} ${AGENTS_HIERARCHY} --master_node="\${master_node}" --worker_nodes="\${worker_nodes}" --node_memory=${node_memory} --node_storage_bandwidth=${node_storage_bandwidth} ${args_pass}
 EOT
   fi
 }

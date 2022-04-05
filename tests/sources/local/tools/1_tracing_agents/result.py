@@ -148,7 +148,10 @@ def checkPrvFiles(agentTraceFolders, mergedFolder):
     for folder in agentTraceFolders:
         agentReaders.append(open(getPrv(folder), "r"))
 
-    checkPrvHeader(agentReaders, mergedReader)
+    #checkPrvHeader(agentReaders, mergedReader)
+    for agentReader in agentReaders:
+        agentReader.readline()
+    mergedReader.readline()
     checkPrvBody(agentReaders, mergedReader)
 
 def checkRowFiles(agentTraceFolders, mergedFolder):

@@ -46,7 +46,12 @@
   <cpu-events enabled="yes" frequency="10u" emit-always="no"/>
    -->
 
-<storage enabled="no"/>
+   <storage enabled="yes">
+    <trace-prefix enabled="no">TRACE</trace-prefix>
+    <size enabled="no">5</size>
+    <temporal-directory enabled="yes">{{TRACE_OUTPUT_DIR}}</temporal-directory>
+    <final-directory enabled="yes">{{TRACE_OUTPUT_DIR}}</final-directory>
+  </storage>
 
   <buffer enabled="yes">
     <size enabled="yes">100000</size>

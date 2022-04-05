@@ -33,6 +33,7 @@ import es.bsc.compss.types.allocatableactions.MultiNodeGroup;
 import es.bsc.compss.types.allocatableactions.ReduceExecutionAction;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
+import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
 
@@ -202,8 +203,8 @@ public class ExecuteTasksRequest extends TDRequest {
     }
 
     @Override
-    public TDRequestType getType() {
-        return TDRequestType.EXECUTE_TASKS;
+    public TraceEvent getEvent() {
+        return TraceEvent.EXECUTE_TASKS;
     }
 
 }

@@ -374,7 +374,9 @@ class ObjectDistroStream(DistroStreamImpl):
     TOPIC_SYSTEM_MESSAGES = "system-messages"
     DEFAULT_KAFKA_TIMEOUT = 200  # ms
 
-    def __init__(self, alias: str = "", access_mode: str = AT_MOST_ONCE) -> None:
+    def __init__(
+        self, alias: typing.Optional[str] = None, access_mode: str = AT_MOST_ONCE
+    ) -> None:
         """
         Creates a new ObjectDistroStream instance.
 

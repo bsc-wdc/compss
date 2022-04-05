@@ -74,7 +74,7 @@ def init_streaming(
         if __debug__:
             logger.debug("Starting DistroStream library")
         DistroStreamClientHandler.init_and_start(
-            master_ip=streaming_master_name,  # noqa: E501
+            master_ip=streaming_master_name,
             master_port=streaming_master_port,
         )  # noqa: E501
 

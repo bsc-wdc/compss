@@ -42,7 +42,11 @@ if __debug__:
     logger = logging.getLogger(__name__)
 
 MANDATORY_ARGUMENTS = {LABELS.binary}
-SUPPORTED_ARGUMENTS = {LABELS.params, LABELS.fail_by_exit_value}
+SUPPORTED_ARGUMENTS = {
+    LABELS.binary,
+    LABELS.params,
+    LABELS.fail_by_exit_value,
+}
 DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 
 

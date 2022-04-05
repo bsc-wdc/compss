@@ -141,9 +141,9 @@ get_args() {
     # Treat the argument
     case "$flag" in
       h)
-	# Display help
-	usage 0
-	;;
+        # Display help
+        usage 0
+        ;;
       v)
         # Display version
         show_version
@@ -218,12 +218,12 @@ get_args() {
         cli=false
         ;;
       -)
-	# Check more complex arguments
-	case "$OPTARG" in
-	  help)
-	    # Display help
-	    usage 0
-	    ;;
+        # Check more complex arguments
+        case "$OPTARG" in
+          help)
+            # Display help
+            usage 0
+            ;;
           version)
             # Show version
             show_version
@@ -311,17 +311,17 @@ get_args() {
             mvnTests=${MVN_SKIP_TESTS_OPT}
             ;;
           *)
-          # Flag didn't match any patern. End of COMPSs flags
-          display_error "${INCORRECT_PARAMETER}"
-          break
-          ;;
-	esac
-	;;
+            # Flag didn't match any patern. End of COMPSs flags
+            display_error "${INCORRECT_PARAMETER}"
+            break
+            ;;
+        esac
+        ;;
       *)
-	# Flag didn't match any patern. End of COMPSs flags
-	display_error "${INCORRECT_PARAMETER}"
-	break
-	;;
+        # Flag didn't match any patern. End of COMPSs flags
+        display_error "${INCORRECT_PARAMETER}"
+        break
+        ;;
     esac
   done
   # Shift option arguments

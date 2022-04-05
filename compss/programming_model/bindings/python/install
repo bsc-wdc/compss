@@ -32,6 +32,7 @@
   install () {
     local python_command=$1
     local target_directory=$2
+    local compile=$3
     local python_complete_version
     local python_major_version
 
@@ -96,8 +97,13 @@
     # Copy mypy compiling script
     if [ "${python_major_version}" == "3" ]; then
       echo "INFO: Copying compilation script..."
-      cp "${SCRIPT_DIR}/scripts/compilation/compile.sh" "${target_directory}/3"
-      sed -i "s/cd \"\${SCRIPT\_DIR}\/..\/..\/src\/\"/cd \"\${SCRIPT\_DIR}\"/g" "${target_directory}/3/compile.sh"
+      cp "${SCRIPT_DIR}/scripts/compilation/compile.sh" "${pycompss_home}"
+      sed -i "s/cd \"\${SCRIPT\_DIR}\/..\/..\/src\/\"/cd \"\${SCRIPT\_DIR}\"/g" "${pycompss_home}/compile.sh"
+      if [ "${compile}" = "true" ]; then
+        cd "${pycompss_home}" || exit 1
+        ./compile.sh
+        cd "${SCRIPT_DIR}" || exit 1
+      fi
     fi
 
     # Copy cleaning and commons scripts for setup or uninstalling
@@ -111,9 +117,10 @@
   #
 
   # Retrieve script arguments
-  target_dir=$1                # Target directory where to install the python binding.
+  target_dir=$1               # Target directory where to install the python binding.
   create_symlinks=$2          # true or false. Create symbolic links within site/dist-packages folders.
   specific_python_command=$3  # Optional argument
+  compile=$4                  # true or false. Compile the installation
 
   # Add trap for clean
   trap clean EXIT
@@ -123,21 +130,34 @@
 
   echo "INFO: Starting Python binding installation"
 
-  if [ -z "$specific_python_command" ]; then
+  # Check if compile
+  not_compiling_msg="INFO: Not compiling."
+  if [ -z "${compile}" ]; then
+    echo "${not_compiling_msg}"
+    compile="false"
+  else
+    if [ "${compile}" != "true" ]; then
+      echo "${not_compiling_msg}"
+      compile="false"
+    fi
+  fi
+
+  # Install
+  if [ -z "${specific_python_command}" ]; then
     # Install using python3
     if [[ "${target_dir}" = *site-packages* ]] || [[ "${target_dir}" = *dist-packages* ]]; then
       # Check ${target_dir} = site-packages usual, dist-packages in deb based distributions.
       if [[ "${target_dir}" = *python3* ]] || [[ "${target_dir}" = *Python/3* ]]; then
         echo "INFO: Installing within python 3.X site-packages or dist-packages."
-        install "python3" "${target_dir}"
+        install "python3" "${target_dir}" "${compile}"
       else
         echo "ERROR! Unsupported target directory within site-packages OR dist-packages. Must be Python 3."
         exit 1
       fi
     else
-      # Given target dir not in site-pakages nor dist-packages
+      # Given target dir not in site-packages nor dist-packages
       echo "INFO: Installing within ${target_dir}"
-      install "python3" "${target_dir}"
+      install "python3" "${target_dir}" "${compile}"
     fi
   else
     # Given a specific python command
@@ -152,7 +172,7 @@
         exit 1
       else
         echo "INFO: Installing using ${specific_python_command} within ${target_dir}"
-        install "${specific_python_command}" "${target_dir}"
+        install "${specific_python_command}" "${target_dir}" "${compile}"
       fi
     else
       echo "ERROR! ${specific_python_command} IS NOT AVAILABLE."

@@ -22,5 +22,5 @@ def test_launch_dds_examples():
     from pycompss.runtime.launch import launch_pycompss_application
 
     current_path = os.path.dirname(os.path.abspath(__file__))
-    app = os.path.join(current_path, "dds_examples.py")
+    app = os.path.join(current_path, "dds/dds_examples.py")
     launch_pycompss_application(app, "main", debug=True, app_name="main")

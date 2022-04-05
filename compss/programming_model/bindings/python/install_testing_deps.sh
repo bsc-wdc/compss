@@ -12,9 +12,10 @@ python3 -m pip install jupyter pytest nbval pytest-cov pytest-notebook ipyparall
 python3 -m ipykernel install --user
 
 # Jupyter specific
-python3 -m pip install nbval --user
 python3 -m pip install pytest --user
+python3 -m pip install nbval --user
 python3 -m pip install pytest-cov --user
+python3 -m pip install pytest-html-profiling pytest-metadata pytest-profiling pytest-subprocess pytest-sugar --user
 
 # DDS specific
 python3 -m pip install spacy --user

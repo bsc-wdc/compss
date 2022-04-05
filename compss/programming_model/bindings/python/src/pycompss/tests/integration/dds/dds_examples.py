@@ -48,7 +48,7 @@ def transitive_closure_example():
 def wordcount_example():
     current_path = os.path.dirname(os.path.abspath(__file__))
     wordcount_dataset_path = os.path.join(
-        current_path, "../unittests/dds/dataset", "wordcount"
+        current_path, "../../unittests/dds/dataset", "wordcount"
     )
     argv_backup = sys.argv
     sys.argv = [EXAMPLES_NAME, wordcount_dataset_path]
@@ -56,12 +56,11 @@ def wordcount_example():
     sys.argv = argv_backup
 
 
-@unittest.skip("ERROR WITH SPACY (python 3.10 and spacy 2.3.2)")
 def wordcount_k_means_example():
     if sys.version_info >= (3, 0):
         current_path = os.path.dirname(os.path.abspath(__file__))
         wordcount_k_means_dataset_path = os.path.join(
-            current_path, "../unittests/dds/dataset", "wordcount"
+            current_path, "../../unittests/dds/dataset", "wordcount"
         )
         argv_backup = sys.argv
         sys.argv = [EXAMPLES_NAME, wordcount_k_means_dataset_path]
@@ -75,7 +74,7 @@ def terasort_example():
     result_path = tempfile.mkdtemp()
     current_path = os.path.dirname(os.path.abspath(__file__))
     terasort_dataset_path = os.path.join(
-        current_path, "../unittests/dds/dataset", "terasort"
+        current_path, "../../unittests/dds/dataset", "terasort"
     )
     argv_backup = sys.argv
     sys.argv = [EXAMPLES_NAME, terasort_dataset_path, result_path]
@@ -91,7 +90,7 @@ def terasort_example():
 def inverted_indexing_example():
     current_path = os.path.dirname(os.path.abspath(__file__))
     inverted_indexing_dataset_path = os.path.join(
-        current_path, "../unittests/dds/dataset", "wordcount"
+        current_path, "../../unittests/dds/dataset", "wordcount"
     )
     argv_backup = sys.argv
     sys.argv = [EXAMPLES_NAME, inverted_indexing_dataset_path]
@@ -104,6 +103,6 @@ def main():
     pi_estimation_example()
     transitive_closure_example()
     wordcount_example()
-    wordcount_k_means_example()
+    # wordcount_k_means_example() -- @unittest.skip("ERROR WITH SPACY (python 3.10 and spacy 2.3.2)")
     terasort_example()
     inverted_indexing_example()

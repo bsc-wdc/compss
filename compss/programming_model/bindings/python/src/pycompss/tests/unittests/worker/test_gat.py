@@ -97,7 +97,7 @@ def test_gat_worker_increment_task():
         "value",
         "null",
         "1",
-        "9",
+        "10",
         "3",
         "#",
         "$return_0",

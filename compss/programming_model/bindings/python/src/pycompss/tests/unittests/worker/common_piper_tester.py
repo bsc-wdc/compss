@@ -67,7 +67,7 @@ def evaluate_piper_worker_common(worker_thread, mpi_worker=False):
     ) = files
 
     current_path = os.path.dirname(os.path.abspath(__file__))
-    python_path = current_path + "/../../tests/worker/:" + os.environ["PYTHONPATH"]
+    python_path = current_path + "/../../../tests/unittests/worker/:" + os.environ["PYTHONPATH"]
 
     if mpi_worker:
         sys.argv = [
@@ -77,7 +77,7 @@ def evaluate_piper_worker_common(worker_thread, mpi_worker=False):
             "-x",
             "PYTHONPATH=" + python_path,
             "python",
-            current_path + "/../../worker/piper/mpi_piper_worker.py",
+            current_path + "/../../../worker/piper/mpi_piper_worker.py",
             temp_folder,
             "false",
             "true",
@@ -250,7 +250,7 @@ def evaluate_worker(
         "localhost",
         "1",
         "false",
-        "9",
+        "10",
         "1",
         "2",
         "4",
@@ -259,7 +259,7 @@ def evaluate_worker(
         "value",
         "null",
         "1",
-        "9",
+        "10",
         "3",
         "#",
         "$return_0",

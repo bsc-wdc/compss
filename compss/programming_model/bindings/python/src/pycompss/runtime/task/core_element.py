@@ -36,8 +36,8 @@ class CE(object):
         "impl_constraints",
         "impl_type",
         "impl_io",
-        "prolog",
-        "epilog",
+        "impl_prolog",
+        "impl_epilog",
         "impl_type_args",
     ]
 
@@ -48,8 +48,8 @@ class CE(object):
         impl_constraints: typing.Optional[typing.Dict[str, str]] = None,
         impl_type: typing.Optional[str] = None,
         impl_io: bool = False,
-        prolog: typing.List[str] = None,
-        epilog: typing.List[str] = None,
+        impl_prolog: typing.List[str] = None,
+        impl_epilog: typing.List[str] = None,
         impl_type_args: typing.Optional[typing.List[str]] = None,
     ) -> None:
         self.ce_signature = ce_signature
@@ -65,8 +65,12 @@ class CE(object):
         else:
             self.impl_type_args = impl_type_args
 
-        self.prolog = [INTERNAL_LABELS.unassigned] * 3 if prolog is None else prolog
-        self.epilog = [INTERNAL_LABELS.unassigned] * 3 if epilog is None else epilog
+        self.impl_prolog = (
+            [INTERNAL_LABELS.unassigned] * 3 if impl_prolog is None else impl_prolog
+        )
+        self.impl_epilog = (
+            [INTERNAL_LABELS.unassigned] * 3 if impl_epilog is None else impl_epilog
+        )
 
     ###########
     # METHODS #
@@ -79,8 +83,8 @@ class CE(object):
         self.impl_type = ""
         self.impl_io = False
         self.impl_type_args = list()
-        self.prolog = list()
-        self.epilog = list()
+        self.impl_prolog = list()
+        self.impl_epilog = list()
 
     ###########
     # GETTERS #
@@ -104,13 +108,13 @@ class CE(object):
     def get_impl_type_args(self) -> typing.List[str]:
         return self.impl_type_args
 
-    def get_prolog(self):
+    def get_impl_prolog(self):
         # type: () -> typing.List[str]
-        return self.prolog
+        return self.impl_prolog
 
-    def get_epilog(self):
+    def get_impl_epilog(self):
         # type: () -> typing.List[str]
-        return self.epilog
+        return self.impl_epilog
 
     ###########
     # SETTERS #
@@ -134,13 +138,13 @@ class CE(object):
     def set_impl_type_args(self, impl_type_args: list) -> None:
         self.impl_type_args = impl_type_args
 
-    def set_prolog(self, prolog):
+    def set_impl_prolog(self, impl_prolog):
         # type: (list) -> None
-        self.prolog = prolog
+        self.impl_prolog = impl_prolog
 
-    def set_epilog(self, epilog):
+    def set_impl_epilog(self, impl_epilog):
         # type: (list) -> None
-        self.epilog = epilog
+        self.impl_epilog = impl_epilog
 
     ##################
     # REPRESENTATION #
@@ -163,7 +167,7 @@ class CE(object):
         _repr += "\t - Impl. constraints: " + impl_constraints + "\n"
         _repr += "\t - Impl. type       : " + str(self.impl_type) + "\n"
         _repr += "\t - Impl. io         : " + str(self.impl_io) + "\n"
-        _repr += "\t - Prolog           : " + str(self.prolog) + "\n"
-        _repr += "\t - Epilog           : " + str(self.epilog) + "\n"
+        _repr += "\t - Impl. prolog     : " + str(self.impl_prolog) + "\n"
+        _repr += "\t - Impl. epilog     : " + str(self.impl_epilog) + "\n"
         _repr += "\t - Impl. type args  : " + str(self.impl_type_args) + "\n"
         return _repr

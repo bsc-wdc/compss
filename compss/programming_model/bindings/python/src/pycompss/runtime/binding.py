@@ -565,8 +565,8 @@ def register_ce(core_element: CE) -> None:
         impl_type = None if impl_type_base == "" else str(impl_type_base)
         impl_io = str(core_element.get_impl_io())
         impl_type_args = core_element.get_impl_type_args()
-        prolog = core_element.get_prolog()
-        epilog = core_element.get_epilog()
+        prolog = core_element.get_impl_prolog()
+        epilog = core_element.get_impl_epilog()
 
         if __debug__:
             logger.debug("Registering CE with signature: %s" % ce_signature)

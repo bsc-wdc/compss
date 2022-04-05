@@ -24,6 +24,8 @@ ERROR_IMPL_SIGNATURE = "ERROR: Wrong impl_signature value."
 ERROR_IMPL_CONSTRAINTS = "ERROR: Wrong impl_constraints value."
 ERROR_IMPL_TYPE = "ERROR: Wrong impl_type value."
 ERROR_IMPL_IO = "ERROR: Wrong impl_io value."
+ERROR_IMPL_PROLOG = "ERROR: Wrong impl_prolog value."
+ERROR_IMPL_EPILOG = "ERROR: Wrong impl_epilog value."
 ERROR_IMPL_TYPE_ARGS = "ERROR: Wrong impl_type_args value."
 
 
@@ -33,9 +35,18 @@ def test_core_element():
     impl_constraints = {"impl_constraints": ""}
     impl_type = "impl_type"
     impl_io = False
+    impl_prolog = "impl_prolog"
+    impl_epilog = "impl_epilog"
     impl_type_args = ["impl_type_args"]
     core_element = CE(
-        signature, impl_signature, impl_constraints, impl_type, impl_io, impl_type_args
+        signature,
+        impl_signature,
+        impl_constraints,
+        impl_type,
+        impl_io,
+        impl_prolog,
+        impl_epilog,
+        impl_type_args,
     )
 
     # Check signature
@@ -78,6 +89,22 @@ def test_core_element():
     result = core_element.get_impl_io()
     assert result == new_impl_io, ERROR_IMPL_IO
 
+    # Check impl_prolog
+    result = core_element.get_impl_prolog()
+    assert result == impl_prolog, ERROR_IMPL_PROLOG
+    new_impl_prolog = "my_new_impl_prolog"
+    core_element.set_impl_prolog(new_impl_prolog)
+    result = core_element.get_impl_prolog()
+    assert result == new_impl_prolog, ERROR_IMPL_PROLOG
+
+    # Check impl_epilog
+    result = core_element.get_impl_epilog()
+    assert result == impl_epilog, ERROR_IMPL_EPILOG
+    new_impl_epilog = "my_new_impl_epilog"
+    core_element.set_impl_epilog(new_impl_epilog)
+    result = core_element.get_impl_epilog()
+    assert result == new_impl_epilog, ERROR_IMPL_EPILOG
+
     # Check impl_type_args
     result = core_element.get_impl_type_args()
     assert result == impl_type_args, ERROR_IMPL_TYPE_ARGS
@@ -98,7 +125,9 @@ def test_core_element():
         "\t - Impl. constraints: my_new_impl_constraints:value;\n"
         "\t - Impl. type       : my_new_impl_type\n"
         "\t - Impl. io         : True\n"
-        "\t - Impl. type args  : ['my_new_impl_type_args']"
+        "\t - Impl. prolog     : my_new_impl_prolog\n"
+        "\t - Impl. epilog     : my_new_impl_epilog\n"
+        "\t - Impl. type args  : ['my_new_impl_type_args']\n"
     )
     assert representation == expected, "ERROR: Wrong representation."
 
@@ -117,6 +146,8 @@ def test_core_element():
         "\t - Impl. constraints: {}\n"
         "\t - Impl. type       : \n"
         "\t - Impl. io         : False\n"
-        "\t - Impl. type args  : []"
+        "\t - Impl. prolog     : []\n"
+        "\t - Impl. epilog     : []\n"
+        "\t - Impl. type args  : []\n"
     )
     assert representation == expected, "ERROR: Wrong empty representation."

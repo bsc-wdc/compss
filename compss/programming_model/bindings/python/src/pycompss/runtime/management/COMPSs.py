@@ -309,8 +309,8 @@ def register_core_element(
     :param impl_constraints: Implementation constraints
     :param impl_type: Implementation type
     :param impl_io: Implementation IO
-    :param prolog: Prolog; a list containing the binary and params
-    :param epilog: epilog; a list containing the binary and params
+    :param prolog: [binary, params, fail_by_exit_value] of the prolog
+    :param epilog: [binary, params, fail_by_exit_value] of the epilog
     :param impl_type_args: Implementation type arguments
     :return: None
     """

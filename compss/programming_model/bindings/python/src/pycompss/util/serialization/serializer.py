@@ -113,6 +113,8 @@ def get_serializer_priority(obj: typing.Any = ()) -> list:
     :return: <List> The serializers sorted by priority in descending order.
     """
     primitives = (int, str, bool, float)
+    # primitives should be (de)serialized with for the compatibility with the
+    # Runtime- only JSON objects can be deserialized in Java.
     if type(obj) in primitives:
         return [json, pickle]
     serializers = [pickle]

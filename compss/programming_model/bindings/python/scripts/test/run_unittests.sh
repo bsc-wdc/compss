@@ -29,14 +29,18 @@ clean_integration_unittests() {
 CURRENT_DIR="$(pwd)"
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-# Set coverage configuration
-export COVERAGE_PROCESS_START=${SCRIPT_DIR}/coverage.cfg
+# Coverage configuration
+COVERAGE_PROCESS_START=${SCRIPT_DIR}/coverage.cfg
 
+RUN_DIR="${SCRIPT_DIR}/../../src/"
 # shellcheck disable=SC2164
-cd "${SCRIPT_DIR}/../../src/"
+cd "${RUN_DIR}"
+
+# Prepare PYTHONPATH
+export PYTHONPATH=${RUN_DIR}:${PYTHONPATH}
 
 # Run unittests
-pytest --verbose pycompss/tests/unittests/
+pytest -c ${COVERAGE_PROCESS_START} --verbose pycompss/tests/unittests/
 exit_code=$?
 if [ ${exit_code} -ne 0 ]; then
   echo "ERROR: FAILED unittests"
@@ -45,7 +49,7 @@ fi
 clean_unittests
 
 # Run integration unittests
-pytest --verbose pycompss/tests/integration/test_*.py
+pytest -c ${COVERAGE_PROCESS_START} --verbose pycompss/tests/integration/test_*.py
 exit_code=$?
 if [ ${exit_code} -ne 0 ]; then
   echo "ERROR: FAILED integration unittests"
@@ -53,19 +57,8 @@ if [ ${exit_code} -ne 0 ]; then
 fi
 clean_integration_unittests
 
-# FAILS
-# pytest pycompss/tests/integration/test_dds_examples.py
-# pytest pycompss/tests/integration_fail/test_launch_stream_objects.py
-# RUN NOTEBOOKS
-# pytest --nbval -v src/pycompss/tests/resources/notebook/simple.ipynb
-
-# Generate xml report for coverage upload
-python3 -m coverage xml
-ev=$?
-if [ "$ev" -ne 0 ]; then
-  echo "[ERROR] XML generation failed with exit value: $ev"
-  exit $ev
-fi
+# Run notebooks unittesting
+pytest -c ${COVERAGE_PROCESS_START} --verbose --nbval pycompss/tests/jupyter/notebook/simple.ipynb
 
 # shellcheck disable=SC2164
 cd "${CURRENT_DIR}"

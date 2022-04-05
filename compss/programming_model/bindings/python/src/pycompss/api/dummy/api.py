@@ -30,7 +30,7 @@ from pycompss.util.typing_helper import typing
 
 
 def compss_start(
-    log_level: str = "off", tracing: bool = False, interactive: bool = False
+    log_level: str = "off", tracing: bool = False, interactive: bool = False, disable_external: bool = False
 ) -> None:
     """Dummy runtime start.
 
@@ -39,6 +39,7 @@ def compss_start(
     :param log_level: Log level [ True | False ].
     :param tracing: Activate or disable tracing.
     :param interactive: Boolean if interactive (ipython or jupyter).
+    :param disable_external: To avoid to load compss in external process.
     :return: None
     """
     pass

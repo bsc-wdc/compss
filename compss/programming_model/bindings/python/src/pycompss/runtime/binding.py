@@ -60,7 +60,7 @@ object_conversion = False
 
 
 def start_runtime(
-    log_level: str = "off", tracing: bool = False, interactive: bool = False
+    log_level: str = "off", tracing: bool = False, interactive: bool = False, disable_external: bool = False,
 ) -> None:
     """Starts the COMPSs runtime.
 
@@ -70,6 +70,7 @@ def start_runtime(
     :param log_level: Log level [ "trace" | "debug" | "info" | "api" | "off" ].
     :param tracing: Tracing level [ True | False ].
     :param interactive: Boolean if interactive (ipython or jupyter).
+    :param disable_external: To avoid to load compss in external process.
     :return: None
     """
     if __debug__:
@@ -80,7 +81,7 @@ def start_runtime(
         enable_trace_master()
 
     with event_master(TRACING_MASTER.start_runtime_event):
-        if interactive and context.in_master():
+        if interactive and context.in_master() and not disable_external:
             COMPSs.load_runtime(external_process=True)
         else:
             COMPSs.load_runtime(external_process=False)

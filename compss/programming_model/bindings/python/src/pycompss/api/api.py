@@ -94,19 +94,20 @@ if context.in_pycompss():
 
 
 def compss_start(
-    log_level: str = "off", tracing: bool = False, interactive: bool = False
+    log_level: str = "off", tracing: bool = False, interactive: bool = False, disable_external: bool = False,
 ) -> None:
     """Starts the runtime.
 
     :param log_level: Log level [ True | False ].
     :param tracing: Activate or disable tracing.
     :param interactive: Boolean if interactive (ipython or jupyter).
+    :param disable_external: To avoid to load compss in external process.
     :return: None
     """
     if context.in_pycompss():
-        __start_runtime__(log_level, tracing, interactive)
+        __start_runtime__(log_level, tracing, interactive, disable_external)
     else:
-        __dummy_compss_start__(log_level, tracing, interactive)
+        __dummy_compss_start__(log_level, tracing, interactive, disable_external)
 
 
 def compss_stop(code: int = 0, _hard_stop: bool = False) -> None:

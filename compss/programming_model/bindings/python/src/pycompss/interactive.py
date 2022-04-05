@@ -81,6 +81,7 @@ STREAMING = False
 LOG_PATH = tempfile.mkdtemp()
 GRAPHING = False
 LINE_SEPARATOR = "********************************************************"
+DISABLE_EXTERNAL = False
 
 
 # Initialize multiprocessing
@@ -137,6 +138,7 @@ def start(
     wcl: int = 0,
     cache_profiler: bool = False,
     verbose: bool = False,
+    disable_external: bool = False,
 ) -> None:
     """Start the runtime in interactive mode.
 
@@ -235,16 +237,23 @@ def start(
                          (default: False)
     :param verbose: Verbose mode [ True|False ]
                     (default: False)
+    :param disable_external: To avoid to load compss in external process [ True | False ]
+                             Necessary in scenarios like pytest which fails with
+                             multiprocessing. It also disables the outwatcher
+                             since pytest also captures stdout and stderr.
+                             (default: False)
     :return: None
     """
     # Export global variables
     global GRAPHING
+    global DISABLE_EXTERNAL
 
     if context.in_pycompss():
         print("The runtime is already running")
         return None
 
     GRAPHING = graph
+    DISABLE_EXTERNAL = disable_external
     __export_globals__()
 
     interactive_helpers.DEBUG = debug
@@ -387,7 +396,7 @@ def start(
 
     print("* - Starting COMPSs runtime...                         *")
     sys.stdout.flush()  # Force flush
-    compss_start(log_level, all_vars["trace"], True)
+    compss_start(log_level, all_vars["trace"], True, disable_external)
 
     global LOG_PATH
     LOG_PATH = get_log_path()
@@ -426,7 +435,8 @@ def start(
     )
 
     # Start monitoring the stdout and stderr
-    STDW.start_watching()
+    if not disable_external:
+        STDW.start_watching()
 
     # MAIN EXECUTION
     # let the user write an interactive application
@@ -503,15 +513,16 @@ def stop(sync: bool = False, _hard_stop: bool = False) -> None:
     print(LINE_SEPARATOR)
     print("*************** STOPPING PyCOMPSs ******************")
     print(LINE_SEPARATOR)
-    # Wait 5 seconds to give some time to process the remaining messages
-    # of the STDW and check if there is some error that could have stopped
-    # the runtime before continuing.
-    print("Checking if any issue happened.")
-    time.sleep(5)
-    messages = STDW.get_messages()
-    if messages:
-        for message in messages:
-            sys.stderr.write("".join((message, "\n")))
+    if not DISABLE_EXTERNAL:
+        # Wait 5 seconds to give some time to process the remaining messages
+        # of the STDW and check if there is some error that could have stopped
+        # the runtime before continuing.
+        print("Checking if any issue happened.")
+        time.sleep(5)
+        messages = STDW.get_messages()
+        if messages:
+            for message in messages:
+                sys.stderr.write("".join((message, "\n")))
 
     # Uncomment the following lines to see the ipython dictionary
     # in a structured way:
@@ -580,12 +591,13 @@ def stop(sync: bool = False, _hard_stop: bool = False) -> None:
     __clean_temp_files__()
 
     # Stop watching stdout and stderr
-    STDW.stop_watching(clean=True)
-    # Retrieve the remaining messages that could have been captured.
-    last_messages = STDW.get_messages()
-    if last_messages:
-        for message in last_messages:
-            print(message)
+    if not DISABLE_EXTERNAL:
+        STDW.stop_watching(clean=True)
+        # Retrieve the remaining messages that could have been captured.
+        last_messages = STDW.get_messages()
+        if last_messages:
+            for message in last_messages:
+                print(message)
 
     # Let the Python binding know we are not at master anymore
     context.set_pycompss_context(context.OUT_OF_SCOPE)
@@ -627,12 +639,13 @@ def __hard_stop__(
     __clean_temp_files__()
 
     # Stop watching stdout and stderr
-    STDW.stop_watching(clean=not debug)
-    # Retrieve the remaining messages that could have been captured.
-    last_messages = STDW.get_messages()
-    if last_messages:
-        for message in last_messages:
-            print(message)
+    if not DISABLE_EXTERNAL:
+        STDW.stop_watching(clean=not debug)
+        # Retrieve the remaining messages that could have been captured.
+        last_messages = STDW.get_messages()
+        if last_messages:
+            for message in last_messages:
+                print(message)
 
     if sync:
         print("* Can not synchronize any future object.")

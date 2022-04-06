@@ -59,7 +59,9 @@ class DistroStreamClientHandler(object):
         pass
 
     @staticmethod
-    def init_and_start(master_ip: typing.Optional[str] = None, master_port: typing.Optional[str] = None) -> None:
+    def init_and_start(
+        master_ip: typing.Optional[str] = None, master_port: typing.Optional[str] = None
+    ) -> None:
         """Initializes and starts the client.
 
         :param master_ip: Master IP.
@@ -110,7 +112,9 @@ class DistroStreamClient(Thread):
 
     BUFFER_SIZE = 4096
 
-    def __init__(self, master_ip: typing.Optional[str], master_port: typing.Optional[str]) -> None:
+    def __init__(
+        self, master_ip: typing.Optional[str], master_port: typing.Optional[str]
+    ) -> None:
         """Creates a new Client associated to the given master properties.
 
         :param master_ip: Master IP address.

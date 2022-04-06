@@ -60,7 +60,10 @@ object_conversion = False
 
 
 def start_runtime(
-    log_level: str = "off", tracing: bool = False, interactive: bool = False, disable_external: bool = False,
+    log_level: str = "off",
+    tracing: bool = False,
+    interactive: bool = False,
+    disable_external: bool = False,
 ) -> None:
     """Starts the COMPSs runtime.
 

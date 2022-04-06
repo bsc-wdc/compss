@@ -94,7 +94,10 @@ if context.in_pycompss():
 
 
 def compss_start(
-    log_level: str = "off", tracing: bool = False, interactive: bool = False, disable_external: bool = False,
+    log_level: str = "off",
+    tracing: bool = False,
+    interactive: bool = False,
+    disable_external: bool = False,
 ) -> None:
     """Starts the runtime.
 

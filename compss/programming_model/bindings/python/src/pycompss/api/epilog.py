@@ -146,7 +146,7 @@ class Epilog(object):
         _epilog = [binary, params, fail_by]
 
         ce = kwargs.get(CORE_ELEMENT_KEY, CE())
-        ce.set_epilog(_epilog)
+        ce.set_impl_epilog(_epilog)
         kwargs[CORE_ELEMENT_KEY] = ce
         # Set as configured
         self.core_element_configured = True

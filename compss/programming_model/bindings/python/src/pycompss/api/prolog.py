@@ -147,7 +147,7 @@ class Prolog(object):
         _prolog = [binary, params, fail_by]
 
         ce = kwargs.get(CORE_ELEMENT_KEY, CE())
-        ce.set_prolog(_prolog)
+        ce.set_impl_prolog(_prolog)
         kwargs[CORE_ELEMENT_KEY] = ce
         # Set as configured
         self.core_element_configured = True

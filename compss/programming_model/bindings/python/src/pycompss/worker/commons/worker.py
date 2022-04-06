@@ -155,9 +155,9 @@ def build_task_parameter(
                 # the result as binary
                 p_bin = new_aux.decode(CONSTANTS.str_escape).encode()  # type: ignore
                 deserialized_aux = deserialize_from_bytes(p_bin, show_exception=False)
-            except (SerializerException, ValueError, EOFError):
+            except (SerializerException, ValueError, EOFError, AttributeError):
                 # was not an object
-                deserialized_aux = str(real_value.decode())  # type: ignore
+                deserialized_aux = real_value  # type: ignore
             #######
         else:
             deserialized_aux = new_aux

@@ -59,7 +59,7 @@ class DistroStreamClientHandler(object):
         pass
 
     @staticmethod
-    def init_and_start(master_ip: str = "", master_port: str = "") -> None:
+    def init_and_start(master_ip: typing.Optional[str] = None, master_port: typing.Optional[str] = None) -> None:
         """Initializes and starts the client.
 
         :param master_ip: Master IP.

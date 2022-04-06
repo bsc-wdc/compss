@@ -110,7 +110,7 @@ class DistroStreamClient(Thread):
 
     BUFFER_SIZE = 4096
 
-    def __init__(self, master_ip: str, master_port: str) -> None:
+    def __init__(self, master_ip: typing.Optional[str], master_port: typing.Optional[str]) -> None:
         """Creates a new Client associated to the given master properties.
 
         :param master_ip: Master IP address.
@@ -122,7 +122,7 @@ class DistroStreamClient(Thread):
 
         # Register information
         self.master_ip = master_ip
-        self.master_port = int(master_port)
+        self.master_port = int(str(master_port))
 
         # Initialize internal structures
         self.running = True

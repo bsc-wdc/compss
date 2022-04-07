@@ -610,10 +610,23 @@ class TaskMaster(object):
         try:
             arguments = self._getargspec(self.user_function)
         except TypeError:
-            # This is a numba jit declared task
-            py_func = self.get_user_function_py_func()
-            arguments = self._getargspec(py_func)
+            func_attrs = dir(self.user_function)
+            if "py_func" in func_attrs:
+                # This is a numba jit declared task
+                py_func = self.get_user_function_py_func()
+                arguments = self._getargspec(py_func)
+            else:
+                # This is a compiled function
+                wrapped_func = self.get_user_function_wrapped()
+                arguments = self._getargspec(wrapped_func)
         self.param_args, self.param_varargs, _, self.param_defaults = arguments
+
+    def is_numba_function(self) -> bool:
+        """Checks if self.user_function is in reality a numba compiled function
+
+        :return: True if has py_func
+        """
+        return "py_func" in dir(self.user_function)
 
     def get_user_function_py_func(self) -> typing.Callable:
         """Retrieve py_func from self.user_function.
@@ -632,6 +645,24 @@ class TaskMaster(object):
         """
         py_func = self.get_user_function_py_func()
         return py_func.__globals__.get(field)  # type: ignore
+
+    def get_user_function_wrapped(self) -> typing.Callable:
+        """Retrieve __wrapped__ from self.user_function.
+        WARNING!!! Only available in compiled functions.
+
+        :return: function
+        """
+        return self.user_function.__wrapped__  # type: ignore
+
+    def user_func_wrapped_glob_getter(self, field) -> typing.Any:
+        """Retrieve a field from __globals__ from __wrapped__ of
+        self.user_function.
+        WARNING!!! Only available in compiled functions.
+
+        :return: __globals__ getter for the given field
+        """
+        wrapped_func = self.get_user_function_wrapped()
+        return wrapped_func.__globals__.get(field)  # type: ignore
 
     def user_func_glob_getter(self, field: str) -> typing.Any:
         """Retrieve a field from __globals__ from py_func of
@@ -1198,9 +1229,14 @@ class TaskMaster(object):
                     except AttributeError:
                         # This is a numba jit declared task
                         try:
-                            parsed_processes_per_node = (
-                                self.user_func_py_func_glob_getter(processes_per_node)
-                            )
+                            if self.is_numba_function():
+                                parsed_processes_per_node = (
+                                    self.user_func_py_func_glob_getter(processes_per_node)
+                                )
+                            else:
+                                parsed_processes_per_node = (
+                                    self.user_func_wrapped_glob_getter(processes_per_node)
+                                )
                         except AttributeError:
                             # No more chances
                             # Ignore error and parsed_processes_per_node will
@@ -1262,9 +1298,14 @@ class TaskMaster(object):
                     except AttributeError:
                         # This is a numba jit declared task
                         try:
-                            parsed_computing_nodes = self.user_func_py_func_glob_getter(
-                                computing_nodes
-                            )
+                            if self.is_numba_function():
+                                parsed_computing_nodes = self.user_func_py_func_glob_getter(
+                                    computing_nodes
+                                )
+                            else:
+                                parsed_computing_nodes = self.user_func_wrapped_glob_getter(
+                                    computing_nodes
+                                )
                         except AttributeError:
                             # No more chances
                             # Ignore error and parsed_computing_nodes will
@@ -1320,7 +1361,10 @@ class TaskMaster(object):
                     except AttributeError:
                         # This is a numba jit declared task
                         try:
-                            return self.user_func_py_func_glob_getter(chunk_size)
+                            if self.is_numba_function():
+                                return self.user_func_py_func_glob_getter(chunk_size)
+                            else:
+                                return self.user_func_wrapped_glob_getter(chunk_size)
                         except AttributeError:
                             # No more chances
                             # Ignore error and parsed_chunk_size will
@@ -1515,8 +1559,12 @@ class TaskMaster(object):
                 try:
                     num_rets = self.user_func_glob_getter(returns)
                 except AttributeError:
-                    # This is a numba jit declared task
-                    num_rets = self.user_func_py_func_glob_getter(returns)
+                    if self.is_numba_function():
+                        # This is a numba jit declared task
+                        num_rets = self.user_func_py_func_glob_getter(returns)
+                    else:
+                        # This is a compiled task
+                        num_rets = self.user_func_wrapped_glob_getter(returns)
                 return int(num_rets)
 
     def update_return_if_no_returns(self, f: typing.Callable) -> int:

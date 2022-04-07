@@ -397,7 +397,7 @@ def get_number_of_resources() -> int:
         return COMPSs.get_number_of_resources(app_id)
 
 
-def request_resources(num_resources: int, group_name: str) -> None:
+def request_resources(num_resources: int, group_name: typing.Optional[str]) -> None:
     """Request new resources.
 
     Calls the external python library (that calls the bindings-common)
@@ -423,7 +423,7 @@ def request_resources(num_resources: int, group_name: str) -> None:
         COMPSs.request_resources(app_id, num_resources, group_name)
 
 
-def free_resources(num_resources: int, group_name: str) -> None:
+def free_resources(num_resources: int, group_name: typing.Optional[str]) -> None:
     """Liberate resources.
 
     Calls the external python library (that calls the bindings-common)

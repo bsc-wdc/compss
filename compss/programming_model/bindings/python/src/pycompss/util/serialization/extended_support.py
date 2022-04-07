@@ -28,7 +28,7 @@ class GeneratorIndicator(object):
     pass
 
 
-def pickle_generator(f_gen: typing.Any, f: str, serializer: typing.Any) -> None:
+def pickle_generator(f_gen: typing.Any, f: typing.Any, serializer: typing.Any) -> None:
     """Pickle a generator and store the serialization result in a file.
 
     :param f_gen: Generator object.

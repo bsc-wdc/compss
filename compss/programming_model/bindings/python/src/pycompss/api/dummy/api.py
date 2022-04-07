@@ -185,7 +185,7 @@ def compss_get_number_of_resources() -> int:
     return 1
 
 
-def compss_request_resources(num_resources: int, group_name: str) -> None:
+def compss_request_resources(num_resources: int, group_name: typing.Optional[str]) -> None:
     """Requests the creation of num_resources resources.
 
     Does nothing.
@@ -197,7 +197,7 @@ def compss_request_resources(num_resources: int, group_name: str) -> None:
     pass
 
 
-def compss_free_resources(num_resources: int, group_name: str) -> None:
+def compss_free_resources(num_resources: int, group_name: typing.Optional[str]) -> None:
     """Requests the destruction of num_resources resources.
 
     Does nothing.

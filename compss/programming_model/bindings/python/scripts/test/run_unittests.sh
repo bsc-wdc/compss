@@ -31,10 +31,6 @@ if [ ${exit_code} -ne 0 ]; then
 fi
 clean_integration_unittests
 
-# FAILS
-# pytest --cov=pycompss --cov-append pycompss/tests/integration/test_dds_examples.py
-# pytest --cov=pycompss --cov-append pycompss/tests/integration_fail/test_launch_stream_objects.py
-
 # Run notebooks unittesting
 pytest -c ${COVERAGE_PROCESS_START} --verbose --nbval pycompss/tests/jupyter/notebook/simple.ipynb
 exit_code=$?

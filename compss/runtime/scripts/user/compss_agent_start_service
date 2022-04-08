@@ -151,7 +151,7 @@ EOT
 ###############################################
 get_args() {
   verbose_level="1"
-  while getopts hvsgtmd-: flag; do
+  while getopts hvsgtmdp-: flag; do
     case "$flag" in
       h)
         # Display help

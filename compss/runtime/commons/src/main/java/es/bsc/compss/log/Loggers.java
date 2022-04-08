@@ -82,6 +82,9 @@ public final class Loggers {
     // Timers
     public static final String TIMER = IT + ".Timers";
 
+    // Data Provenance
+    public static final String DATA_PROVENANCE = IT + ".DataProvenance";
+
 
     private Loggers() {
         throw new NonInstantiableException("Loggers should not be instantiated");

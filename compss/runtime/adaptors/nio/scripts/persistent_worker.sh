@@ -52,7 +52,7 @@
 
       echo "[persistent_worker.sh] Calling NIOWorker of host ${hostName}"
       echo "Calling NIOWorker"
-      echo "Cmd: $cmd ${paramsToCOMPSsWorker}"
+      # echo "Cmd: $cmd ${paramsToCOMPSsWorker}"
   fi
 
   # Prepare binding log files

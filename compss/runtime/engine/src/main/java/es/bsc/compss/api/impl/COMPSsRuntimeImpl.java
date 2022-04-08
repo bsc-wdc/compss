@@ -142,6 +142,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     // Logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.API);
+    // Data Provenance logger
+    private static final Logger DP_LOGGER = LogManager.getLogger(Loggers.DATA_PROVENANCE);
 
     // External Task monitor
     private static final TaskMonitor DO_NOTHING_MONITOR = new DoNothingTaskMonitor();
@@ -456,6 +458,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             Tracer.emitEventEnd(TraceEvent.START);
         }
 
+        if (Boolean.parseBoolean(System.getProperty(COMPSsConstants.DATA_PROVENANCE))) {
+            DP_LOGGER.info(COMPSs_VERSION);
+            DP_LOGGER.info(System.getProperty(COMPSsConstants.APP_NAME));
+            DP_LOGGER.info(System.getProperty(COMPSsConstants.OUTPUT_PROFILE));
+        }
     }
 
     @Override
@@ -888,6 +895,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         }
 
         Application app = Application.registerApplication(appId);
+
         // Process the parameters
         List<Parameter> pars = processParameters(app, parameterCount, parameters);
 
@@ -1585,6 +1593,22 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     DataLocation location = createLocation(ProtocolType.FILE_URI, content.toString());
                     pars.add(new FileParameter(direction, stream, prefix, name, pyType, weight, keepRename, location,
                         originalName));
+
+                    if (Boolean.parseBoolean(System.getProperty(COMPSsConstants.DATA_PROVENANCE))) {
+                        // Log access to file in the dataprovenance.log.
+                        // Corner case: PyCOMPSs objects are passed as files to the runtime
+                        String finalPath = location.toString();
+                        if (!finalPath.contains("tmpFiles/pycompss")) {
+                            if (finalPath.contains("shared:shared_disk")) { // Need to fix URI
+                                int firstSlash = finalPath.indexOf("/");
+                                String fixedFinalPath = "file://localhost" + finalPath.substring(firstSlash);
+                                DP_LOGGER.info(fixedFinalPath + " " + direction.toString());
+
+                            } else {
+                                DP_LOGGER.info(finalPath + " " + direction.toString());
+                            }
+                        }
+                    }
                 } catch (Exception e) {
                     LOGGER.error(ERROR_FILE_NAME, e);
                     ErrorManager.fatal(ERROR_FILE_NAME, e);

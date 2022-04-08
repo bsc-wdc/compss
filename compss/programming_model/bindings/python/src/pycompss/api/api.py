@@ -301,7 +301,9 @@ def compss_get_number_of_resources() -> int:
         return __dummy_compss_get_number_of_resources__()
 
 
-def compss_request_resources(num_resources: int, group_name: typing.Optional[str]) -> None:
+def compss_request_resources(
+    num_resources: int, group_name: typing.Optional[str]
+) -> None:
     """Requests the creation of num_resources resources.
 
     :param num_resources: Number of resources to create.

@@ -1,127 +1,322 @@
 #!/bin/bash
 
-  #
-  # SCRIPT GLOBAL CONSTANTS
-  #
+#####################################################################
+# Name:         install
+# Description:  COMPSs' Python binding install script
+# Parameters:
+#		[--unittests]                 Enable unittests
+#		[--no-unittests]              Disable unittests
+#		target_dir                    Target directory where to install the python binding
+#		create_symlinks               Create symbolic links within site/dist-packages folders (true or false)
+#		specific_python_command       Use specific python command (usually python3)
+#		compile                       Compile the installation (true or false)
+######################################################################
 
-  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+#---------------------------------------------------
+# SCRIPT CONSTANTS DECLARATION
+#---------------------------------------------------
+DEFAULT_UNITTESTS=false
+DEFAULT_CREATE_SYMLINKS=true
+DEFAULT_SPECIFIC_PYTHON_COMMAND=python3
+DEFAULT_COMPILE=false
+
+INCORRECT_PARAMETER="Error: No such parameter"
+INCORRECT_TARGET_DIR="Error: No target directory"
+NO_UNITTESTS="Warning: No unittests specified. Loading default value"
 
 
-  #
-  # SCRIPT GLOBAL HELPERS
-  #
+#---------------------------------------------------
+# SET SCRIPT VARIABLES
+#---------------------------------------------------
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+# shellcheck source=./commons
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}"/commons
+BINDING_DIR="$( dirname "${SCRIPT_DIR}")"
 
-  # shellcheck source=./commons
-  # shellcheck disable=SC1091
-  source "${SCRIPT_DIR}"/commons
-  BINDING_DIR="$( dirname "${SCRIPT_DIR}")"
 
+#---------------------------------------------------
+# FUNCTIONS DECLARATION
+#---------------------------------------------------
+show_opts() {
+  cat <<EOT
+* Options:
+    --help, -h                  Print this help message
 
-  #
-  # HELPER FUNCTIONS
-  #
+    --opts                      Show available options
 
-  command_exists () {
-    type "$1" &> /dev/null ;
-  }
+    --unittests, -u             Enable Monitor installation
+    --no-unittests, -U          Disable Monitor installation
+                                Default: ${DEFAULT_UNITTESTS}
 
-  clean() {
-    rm -rf "${SCRIPT_DIR}"/build
-  }
+* Parameters:
+    target_dir                  COMPSs' Python Binding installation directory
+    create_symlinks             Create symbolic links within site/dist-packages folders (true or false)
+                                Default: ${DEFAULT_CREATE_SYMLINKS}
+    specific_python_command     Use specific python command (usually python3)
+                                Default: ${DEFAULT_SPECIFIC_PYTHON_COMMAND}
+    compile                     Compile the installation (true or false)
+                                Default: ${DEFAULT_COMPILE}
 
-  install () {
-    local python_command=$1
-    local target_directory=$2
-    local compile=$3
-    local python_complete_version
-    local python_major_version
+EOT
+}
 
-    python_complete_version=$(${python_command} -V 2>&1)
-    python_major_version=$(echo "${python_complete_version}" | sed 's/.* \([0-9]\).\([0-9]\).*/\1/')
+usage() {
+  exitValue=$1
 
-    pycompss_home="${target_directory}/${python_major_version}"
-    export PYTHONPATH=${pycompss_home}:${OLD_PYTHONPATH}
-    #export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-armhf
+  cat <<EOT
+Usage: $0 [options] target_dir [create_symlinks] [specific_python_command] [compile]
+EOT
+  show_opts
+  exit "$exitValue"
+}
 
-    echo "INFO: Installation parameters:"
-    echo "      - Current script directory: ${SCRIPT_DIR}"
-    echo "      - Python command: ${python_command}"
-    echo "      - Target directory: ${target_directory}"
-    echo "      - PyCOMPSs home: ${pycompss_home}"
-    echo "      - Python complete version: ${python_complete_version}"
-    echo "      - Python major version: ${python_major_version}"
+# Displays arguments warnings
+display_warning() {
+  local warn_msg=$1
+  echo "$warn_msg"
+}
 
-    # Check that the sources can be byte-compiled - this avoids syntax errors
-    # that are not checked on the installation
-    ${python_command} -m compileall "${SCRIPT_DIR}"/src/pycompss
-    exitCode=$?
-    if [ $exitCode -ne 0 ]; then
-      echo "ERROR: Cannot install PyCOMPSs. REASON: Could not byte-compile."
-      exit $exitCode
+# Displays parsing arguments errors
+display_error() {
+  local error_msg=$1
+  echo "$error_msg"
+
+  echo " "
+  usage 1
+}
+
+get_args() {
+  # Parse COMPSs' Binding Options
+  while getopts hvmMbBpPtTaAkKjJN-: flag; do
+    # Treat the argument
+    case "$flag" in
+      h)
+        # Display help
+        usage 0
+        ;;
+      u)
+        # Custom unittests value
+        unittests=true
+        ;;
+      U)
+        # Custom unittests value
+        unittests=false
+        ;;
+      -)
+        # Check more complex arguments
+        case "$OPTARG" in
+          help)
+            # Display help
+            usage 0
+            ;;
+          opts)
+            # Display help
+            show_opts
+            exit 0
+            ;;
+          unittests)
+            # Custom unittests value
+            unittests=true
+            ;;
+          no-unittests)
+            # Custom unittests value
+            unittests=false
+            ;;
+          *)
+            # Flag didn't match any patern. End of COMPSs' Python Binding flags
+            display_error "${INCORRECT_PARAMETER}"
+            break
+            ;;
+        esac
+        ;;
+      *)
+        # Flag didn't match any patern. End of COMPSs flags
+        display_error "${INCORRECT_PARAMETER}"
+        break
+        ;;
+    esac
+  done
+  # Shift option arguments
+  shift $((OPTIND-1))
+
+  # Parse target directory location
+  if [ $# -gt 0 ]; then
+    target_dir=$1
+  else
+    display_error "${INCORRECT_TARGET_DIR}"
+    exit 1
+  fi
+  shift 1
+  if [ $# -ne 0 ]; then
+    if [ $# -eq 1 ]; then
+      create_symlinks=$1
+      specific_python_command=${DEFAULT_SPECIFIC_PYTHON_COMMAND}
+      compile=${DEFAULT_COMPILE}
     fi
-
-    # Do the installation
-    echo "INFO: Starting the installation... Please wait..."
-    ${python_command} "${SCRIPT_DIR}"/setup.py install --install-lib="${pycompss_home}" -O2
-    exitCode=$?
-    if [ $exitCode -ne 0 ]; then
-      echo "ERROR: Cannot install PyCOMPSs using ${python_command}"
-      exit $exitCode
+    if [ $# -eq 2 ]; then
+      create_symlinks=$1
+      specific_python_command=$2
+      compile=${DEFAULT_COMPILE}
     fi
-
-    # Extra installation steps only for Mac
-    if [ $(uname) == "Darwin" ]; then
-      binding_py="$( dirname "${target_directory}")"
-      echo "INFO: Extra installation steps for Mac..."
-      echo "      - binding_py: ${binding_py}"
-      install_name_tool -change ${BINDING_DIR}/bindings-common/lib/libbindings_common.0.dylib ${binding_py}/bindings-common/lib/libbindings_common.dylib ${target_directory}/${python_major_version}/compss*.so
+    if [ $# -eq 3 ]; then
+      create_symlinks=$1
+      specific_python_command=$2
+      compile=$3
     fi
+  else
+    create_symlinks=${DEFAULT_CREATE_SYMLINKS}
+    specific_python_command=${DEFAULT_SPECIFIC_PYTHON_COMMAND}
+    compile=${DEFAULT_COMPILE}
+  fi
 
-    # Clean unnecessary files
-    echo "INFO: Cleaning unnecessary files..."
-    rm ${pycompss_home}/nose_tests.*
-    rm ${pycompss_home}/sitecustomize.*
-    if [ -d "${pycompss_home}/__pycache__" ]
-    then
-        rm -rf ${pycompss_home}/__pycache__
-    fi
+  # Check if create symlinks and compile
+  if [ "${create_symlinks}" != "true" ]; then
+    create_symlinks="false"
+  fi
+  if [ "${compile}" != "true" ]; then
+    compile="false"
+  fi
+}
 
-    # Create symbolic links
-    if [ "${create_symlinks}" = "true" ]; then
-      echo "INFO: Creating symbolic links to site-packages or dist-packages..."
-      # Expected when installing with buildlocal. Not from buildsc.
-      # Pip package sets these symbolic links and updates the 'activate' script accordingly.
-      create_symbolic_links "${python_command}" "${pycompss_home}"
-    fi
+check_args() {
+  if [ -z "$unittests" ]; then
+    display_warning "${NO_UNITTESTS}"
+    unittests=${DEFAULT_UNITTESTS}
+  fi
+}
 
-    # Copy mypy compiling script
-    if [ "${python_major_version}" == "3" ]; then
-      echo "INFO: Copying compilation script..."
-      cp "${SCRIPT_DIR}/scripts/compilation/compile.sh" "${pycompss_home}"
-      sed -i "s/cd \"\${SCRIPT\_DIR}\/..\/..\/src\/\"/cd \"\${SCRIPT\_DIR}\"/g" "${pycompss_home}/compile.sh"
-      if [ "${compile}" = "true" ]; then
-        cd "${pycompss_home}" || exit 1
-        ./compile.sh
-        cd "${SCRIPT_DIR}" || exit 1
+log_parameters() {
+  echo "PARAMETERS:"
+  echo "- Unittests       = ${unittests}"
+  echo "- Target directoy = ${target_dir}"
+  echo "- Create symlinks = ${create_symlinks}"
+  echo "- Python command  = ${specific_python_command}"
+  echo "- Compile         = ${compile}"
+  sleep 5
+}
+
+#---------------------------------------------------
+# HELPER FUNCTIONS
+#---------------------------------------------------
+
+command_exists () {
+  type "$1" &> /dev/null ;
+}
+
+clean() {
+  rm -rf "${SCRIPT_DIR}"/build
+}
+
+install () {
+  local python_command=$1
+  local target_directory=$2
+  local compile=$3
+  local python_complete_version
+  local python_major_version
+
+  python_complete_version=$(${python_command} -V 2>&1)
+  python_major_version=$(echo "${python_complete_version}" | sed 's/.* \([0-9]\).\([0-9]\).*/\1/')
+
+  pycompss_home="${target_directory}/${python_major_version}"
+  export PYTHONPATH=${pycompss_home}:${OLD_PYTHONPATH}
+  #export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-armhf
+
+  echo "INFO: Installation parameters:"
+  echo "      - Current script directory: ${SCRIPT_DIR}"
+  echo "      - Python command: ${python_command}"
+  echo "      - Target directory: ${target_directory}"
+  echo "      - PyCOMPSs home: ${pycompss_home}"
+  echo "      - Python complete version: ${python_complete_version}"
+  echo "      - Python major version: ${python_major_version}"
+
+  # Check that the sources can be byte-compiled - this avoids syntax errors
+  # that are not checked on the installation
+  ${python_command} -m compileall "${SCRIPT_DIR}"/src/pycompss
+  exitCode=$?
+  if [ $exitCode -ne 0 ]; then
+    echo "ERROR: Cannot install PyCOMPSs. REASON: Could not byte-compile."
+    exit $exitCode
+  fi
+
+  # Do the installation
+  echo "INFO: Starting the installation... Please wait..."
+  ${python_command} "${SCRIPT_DIR}"/setup.py install --install-lib="${pycompss_home}" -O2
+  exitCode=$?
+  if [ $exitCode -ne 0 ]; then
+    echo "ERROR: Cannot install PyCOMPSs using ${python_command}"
+    exit $exitCode
+  fi
+
+  # Extra installation steps only for Mac
+  if [ $(uname) == "Darwin" ]; then
+    binding_py="$( dirname "${target_directory}")"
+    echo "INFO: Extra installation steps for Mac..."
+    echo "      - binding_py: ${binding_py}"
+    install_name_tool -change ${BINDING_DIR}/bindings-common/lib/libbindings_common.0.dylib ${binding_py}/bindings-common/lib/libbindings_common.dylib ${target_directory}/${python_major_version}/compss*.so
+  fi
+
+  # Clean unnecessary files
+  echo "INFO: Cleaning unnecessary files..."
+  rm ${pycompss_home}/sitecustomize.*
+  if [ -d "${pycompss_home}/__pycache__" ]
+  then
+      rm -rf ${pycompss_home}/__pycache__
+  fi
+
+  # Create symbolic links
+  if [ "${create_symlinks}" = "true" ]; then
+    echo "INFO: Creating symbolic links to site-packages or dist-packages..."
+    # Expected when installing with buildlocal. Not from buildsc.
+    # Pip package sets these symbolic links and updates the 'activate' script accordingly.
+    create_symbolic_links "${python_command}" "${pycompss_home}"
+  fi
+
+  # Copy mypy compiling script
+  if [ "${python_major_version}" == "3" ]; then
+    echo "INFO: Copying compilation script..."
+    cp "${SCRIPT_DIR}/scripts/compilation/compile.sh" "${pycompss_home}"
+    sed -i "s/cd \"\${SCRIPT\_DIR}\/..\/..\/src\/\"/cd \"\${SCRIPT\_DIR}\"/g" "${pycompss_home}/compile.sh"
+    if [ "${compile}" = "true" ]; then
+      cd "${pycompss_home}" || exit 1
+      ./compile.sh
+      ev=$?
+      if [ $ev -ne 0 ]; then
+        echo "ERROR: Cannot compile with Mypy."
+        exit $exitCode
       fi
+      cd "${SCRIPT_DIR}" || exit 1
     fi
+  fi
 
-    # Copy cleaning and commons scripts for setup or uninstalling
-    cp "${SCRIPT_DIR}/commons" "${target_directory}"
-    cp "${SCRIPT_DIR}/clean" "${target_directory}"
-  }
+  # Copy cleaning and commons scripts for setup or uninstalling
+  cp "${SCRIPT_DIR}/commons" "${target_directory}"
+  cp "${SCRIPT_DIR}/clean" "${target_directory}"
+}
 
 
-  #
-  # MAIN
-  #
+#---------------------------------------------------
+# UNITTESTING FUNCTION
+#---------------------------------------------------
 
-  # Retrieve script arguments
-  target_dir=$1               # Target directory where to install the python binding.
-  create_symlinks=$2          # true or false. Create symbolic links within site/dist-packages folders.
-  specific_python_command=$3  # Optional argument
-  compile=$4                  # true or false. Compile the installation
+run_unittests () {
+  if [ "${unittests}" = "true" ]; then
+    cd "${SCRIPT_DIR}/scripts/test" || exit 1
+    ./run_unittests.sh
+    ev=$?
+    if [ $ev -ne 0 ]; then
+      echo "ERROR: Unittests FAILED! Please check!"
+      exit $exitCode
+    fi
+    cd "${SCRIPT_DIR}" || exit 1
+  fi
+}
 
+#---------------------------------------------------
+# MAIN INSTALLATION FUNCTION
+#---------------------------------------------------
+
+install_python_binding () {
   # Add trap for clean
   trap clean EXIT
   export TARGET_OS=$(uname)
@@ -129,18 +324,6 @@
   OLD_PYTHONPATH=${PYTHONPATH}
 
   echo "INFO: Starting Python binding installation"
-
-  # Check if compile
-  not_compiling_msg="INFO: Not compiling."
-  if [ -z "${compile}" ]; then
-    echo "${not_compiling_msg}"
-    compile="false"
-  else
-    if [ "${compile}" != "true" ]; then
-      echo "${not_compiling_msg}"
-      compile="false"
-    fi
-  fi
 
   # Install
   if [ -z "${specific_python_command}" ]; then
@@ -179,7 +362,18 @@
       exit 1
     fi
   fi
+}
 
-  echo "INFO: SUCCESS: Python binding installed"
-  # Normal exit
-  exit 0
+#---------------------------------------------------
+# MAIN EXECUTION
+#---------------------------------------------------
+get_args "$@"
+check_args
+log_parameters
+run_unittests
+install_python_binding
+
+# END
+echo "INFO: SUCCESS: Python binding installed"
+# Normal exit
+exit 0

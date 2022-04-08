@@ -28,6 +28,7 @@ DEFAULT_USER=false
 DEFAULT_TARGET_DIR=/opt/COMPSs
 DEFAULT_MVN_TESTS=""
 MVN_SKIP_TESTS_OPT="-Dmaven.test.skip=true"
+DEFAULT_PYTHON_TESTS=true
 
 INCORRECT_PARAMETER="Error: No such parameter"
 NO_MONITOR="Warning: No monitor specified. Loading default value"
@@ -309,6 +310,7 @@ get_args() {
           skip-tests)
             # Disable mvn unit tests
             mvnTests=${MVN_SKIP_TESTS_OPT}
+            pythonTests=false
             ;;
           *)
             # Flag didn't match any patern. End of COMPSs flags
@@ -380,6 +382,10 @@ check_args() {
 
   if [ -z "${mvnTests}" ]; then
     mvnTests=${DEFAULT_MVN_TESTS}
+  fi
+
+  if [ -z "${pythonTests}" ]; then
+    pythonTests=${DEFAULT_PYTHON_TESTS}
   fi
 
   if [ -z "$targetDir" ]; then
@@ -488,10 +494,44 @@ install_compss() {
     else
       echo "WARNING: Could not check pycodestyle format of Python Binding (pycodestyle not installed)."
     fi
+
+    echo "- Checking Black in Python Binding"
+    if command_exists "black" ; then
+      cd "${SOURCES_DIR}/compss/programming_model/bindings/python/src/pycompss/"
+      env $PATH=PATH black --check .
+      ev=$?
+      if [ $ev -ne 0 ]; then
+        echo "ERROR: Python binding Black errors. Please, fix them and reinstall."
+        cd "${SCRIPT_DIR}"
+        exit 1
+      fi
+      echo "  - Python Binding Black format is OK."
+      cd "${SCRIPT_DIR}"
+    else
+      echo "WARNING: Could not check Black format of Python Binding (pycodestyle not installed)."
+    fi
+
+    # Run unittests
+    if [ "${pythonTests}" == "true" ]; then
+      echo " - Run Python Binding Unittests"
+      # These tests do not need to be installed
+      cd "${SOURCES_DIR}/compss/programming_model/bindings/python/scripts/test"
+      env $PATH=PATH ./run_unittests.sh --no-integration-unittests --no-jupyter-unittests
+      ev=$?
+      if [ $ev -ne 0 ]; then
+        echo "ERROR: Python binding unittests failed. Please, fix them and reinstall."
+        cd "${SCRIPT_DIR}"
+        exit 1
+      fi
+      echo "  - Python Binding unittests is OK."
+      cd "${SCRIPT_DIR}"
+    fi
+
+    # Check
     echo "- Checking mypy in Python Binding"
-    if command_exists "/opt/python/bin/mypy" ; then
-      cd "${SOURCES_DIR}/compss/programming_model/bindings/python/src/"
-      ./mypy_check.sh
+    if command_exists "mypy" ; then
+      cd "${SOURCES_DIR}/compss/programming_model/bindings/python/scripts/compilation"
+      env $PATH=PATH ./check.sh
       ev=$?
       if [ $ev -ne 0 ]; then
         echo "ERROR: Python binding mypy errors. Please, fix them and reinstall."
@@ -736,7 +776,7 @@ install_compss() {
       cd "${TMP_DIR}/compss/programming_model/bindings/python"
       if command_exists "python3" ; then
         # Install python binding only for python3
-        ./install "${targetDir}/Bindings/python" true python3
+        ./install "${targetDir}/Bindings/python" true python3 && :
         ev=$?
       else
         # Error no python 3

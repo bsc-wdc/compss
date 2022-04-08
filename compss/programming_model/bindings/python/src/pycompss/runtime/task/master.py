@@ -1231,11 +1231,15 @@ class TaskMaster(object):
                         try:
                             if self.is_numba_function():
                                 parsed_processes_per_node = (
-                                    self.user_func_py_func_glob_getter(processes_per_node)
+                                    self.user_func_py_func_glob_getter(
+                                        processes_per_node
+                                    )
                                 )
                             else:
                                 parsed_processes_per_node = (
-                                    self.user_func_wrapped_glob_getter(processes_per_node)
+                                    self.user_func_wrapped_glob_getter(
+                                        processes_per_node
+                                    )
                                 )
                         except AttributeError:
                             # No more chances
@@ -1299,12 +1303,12 @@ class TaskMaster(object):
                         # This is a numba jit declared task
                         try:
                             if self.is_numba_function():
-                                parsed_computing_nodes = self.user_func_py_func_glob_getter(
-                                    computing_nodes
+                                parsed_computing_nodes = (
+                                    self.user_func_py_func_glob_getter(computing_nodes)
                                 )
                             else:
-                                parsed_computing_nodes = self.user_func_wrapped_glob_getter(
-                                    computing_nodes
+                                parsed_computing_nodes = (
+                                    self.user_func_wrapped_glob_getter(computing_nodes)
                                 )
                         except AttributeError:
                             # No more chances

@@ -15,6 +15,9 @@
     <File name="COMPSsAgentLog" fileName="${sys:compss.appLogDir}/agent.log" immediateFlush="false" append="false">
       <PatternLayout pattern="%m%n"/>
     </File>
+    <File name="COMPSsDataProvenanceLog" fileName="${sys:compss.appLogDir}/dataprovenance.log" immediateFlush="true" append="false">
+      <PatternLayout pattern="%m%n"/>
+    </File>
   </Appenders>
 
   <!-- Configure runtime loggers -->
@@ -168,6 +171,10 @@
       <AppenderRef ref="COMPSsRuntimeLog"/>
     </Logger>
 
+    <!-- DATA PROVENANCE -->
+    <Logger name="es.bsc.compss.DataProvenance" additivity="FALSE" level="info">
+      <AppenderRef ref="COMPSsDataProvenanceLog"/>
+    </Logger>
+
   </Loggers>
 </Configuration>
-

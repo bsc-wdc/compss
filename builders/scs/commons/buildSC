@@ -68,7 +68,7 @@
   echo "- Generic AuxScript = ${SCauxScript_generic}"
   echo "- Sources Dir       = ${SOURCES_DIR}"
   echo "- Local tmp Dir     = ${TMP_DIR}"
-  sleep 5s
+  sleep 5
 
   # Compile sources
   echo "- Compile sources"
@@ -148,8 +148,8 @@
   tar czf COMPSs_TMPDIR.tgz *
   cd "${SCRIPT_DIR}"
   echo "COPYING RUNTIME FILES TO THE SUPERCOMPUTER"
-  scp -r -q -o StrictHostKeyChecking=no "${TMP_DIR}/COMPSs_TMPDIR.tgz" "${SCuser}"@"${SCloginNode}":"${SCTMP_DIR}"
 
+  scp -r -q -o StrictHostKeyChecking=no "${TMP_DIR}/COMPSs_TMPDIR.tgz" "${SCuser}"@"${SCloginNode}":"${SCTMP_DIR}"
   scp -r -q -o StrictHostKeyChecking=no "${SCauxScript}" "${SCuser}"@"${SCloginNode}":"${SCTMP_DIR}"
   scp -r -q -o StrictHostKeyChecking=no "${SCauxScript_generic}" "${SCuser}"@"${SCloginNode}":"${SCTMP_DIR}"
 

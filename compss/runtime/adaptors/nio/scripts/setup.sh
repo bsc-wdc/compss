@@ -233,7 +233,7 @@
     if [ -d "${JAVA_HOME}/jre/lib/" ]; then #Java 8 case
     	libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.so | head -n 1)
     	if [ -z "$libjava" ]; then
-		ibjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.dylib | head -n 1)
+		libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.dylib | head -n 1)
                 if [ -z "$libjava" ]; then
                    error_msg "${JAVA_JRE_ERROR}" 
                 fi

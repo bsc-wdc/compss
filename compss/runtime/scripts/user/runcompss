@@ -194,6 +194,8 @@ show_opts() {
     					    Default: ${DEFAULT_WALL_CLOCK_LIMIT}
     --shutdown_in_node_failure=<bool>       Stop the whole execution in case of Node Failure.
                                             Default: ${DEFAULT_SHUTDOWN_IN_NODE_FAILURE}
+    --provenance, -p                        Generate COMPSs workflow provenance data in RO-Crate format from YAML file. Automatically activates -graph and -output_profile.
+                                            Default: false
 
 * Application name:
     For Java applications:   Fully qualified name of the application
@@ -236,7 +238,7 @@ arguments_error() {
 # Parses arguments from the command line
 get_args() {
   # Parse COMPSs Options
-  while getopts hvgtmd-: flag; do
+  while getopts hvgtmdp-: flag; do
     # Treat the argument
     case "$flag" in
       h)
@@ -263,6 +265,18 @@ get_args() {
       d)
         # Enable debug in log level
         log_level=${DEFAULT_LOG_LEVEL_ARGUMENT}
+        ;;
+      p)
+        # Enable provenance
+        provenance=true
+        if [ -z "$output_profile" ] ; then
+          echo "PROVENANCE: Setting output_profile to App_Profile.json by default"
+          output_profile="App_Profile.json"
+        fi
+        if [ -z "$graph" ] ; then
+          echo "PROVENANCE: Setting --graph to true by default"
+          graph=${DEFAULT_GRAPH_ARGUMENT}
+        fi
         ;;
       -)
         # Check more complex arguments
@@ -552,6 +566,18 @@ get_args() {
             # Set wall_clock_limit
             wall_clock_limit=${OPTARG//wall_clock_limit=/}
             ;;
+          provenance)
+            # Enable provenance
+        	provenance=true
+        	if [ -z "$output_profile" ] ; then
+        	  echo "PROVENANCE: Setting output_profile to App_Profile.json by default"
+        	  output_profile="App_Profile.json"
+        	fi
+        	if [ -z "$graph" ] ; then
+        	  echo "PROVENANCE: Setting --graph to true by default"
+        	  graph=${DEFAULT_GRAPH_ARGUMENT}
+        	fi
+            ;;
   	  *)
 	    # Flag didn't match any patern. Raise exception
 	    arguments_error "Bad argument: $OPTARG"
@@ -581,6 +607,9 @@ get_args() {
 
   # Parse application arguments
   application_args=$*
+  if [ $provenance ]; then
+    echo $application_args > compss_command_line_arguments.txt
+  fi
 }
 
 check_args() {
@@ -632,3 +661,16 @@ if [ -n "${env_script_path}" ]; then
 fi       
 # Real runtime execution
 start_compss_app
+
+if [ $provenance ]; then
+  echo "GENERATING GRAPH FOR DATA PROVENANCE"
+  ${COMPSS_HOME}Runtime/scripts/utils/compss_gengraph ${specific_log_dir}/monitor/complete_graph.dot
+  echo "ENDED GENERATING GRAPH FOR DATA PROVENANCE"
+  
+  echo "RUNNING DATA PROVENANCE SCRIPT"
+  python "${COMPSS_HOME}Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py" ro-crate-info.yaml ${specific_log_dir}/dataprovenance.log
+  if [ "${output_profile}" == "App_Profile.json" ]; then # Auto-generated, user doesn't want it
+    rm -f App_Profile.json
+  fi
+  echo "ENDED DATA PROVENANCE SCRIPT"
+fi

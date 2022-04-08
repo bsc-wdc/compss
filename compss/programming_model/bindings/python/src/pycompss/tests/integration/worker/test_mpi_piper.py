@@ -19,10 +19,10 @@
 
 import subprocess
 
-from pycompss.tests.unittests.worker.common_piper_tester import (
+from pycompss.tests.integration.worker.common_piper_tester import (
     evaluate_piper_worker_common,
 )
-from pycompss.tests.unittests.worker.common_piper_tester import setup_argv
+from pycompss.tests.integration.worker.common_piper_tester import setup_argv
 
 
 def worker_thread(argv, current_path):

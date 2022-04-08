@@ -35,6 +35,7 @@ def test_launch_test_0_basic1():
         "..",
         "..",
         "..",
+        "..",
         "tests",
         "sources",
         "local",

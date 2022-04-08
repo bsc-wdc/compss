@@ -27,7 +27,7 @@ run_unittests_coverage () {
 
   if [ "${integration_unittests}" = "true" ]; then
     # Run integration unittests
-    python3 -m pytest -c ${COVERAGE_PROCESS_START} --verbose --cov=pycompss --cov-append pycompss/tests/integration/test_*.py
+    python3 -m pytest -c ${COVERAGE_PROCESS_START} --verbose --cov=pycompss --cov-append pycompss/tests/integration/
     exit_code=$?
     if [ ${exit_code} -ne 0 ]; then
       echo "ERROR: FAILED integration unittests"

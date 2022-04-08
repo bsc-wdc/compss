@@ -68,7 +68,7 @@ def evaluate_piper_worker_common(worker_thread, mpi_worker=False):
 
     current_path = os.path.dirname(os.path.abspath(__file__))
     python_path = (
-        current_path + "/../../../tests/unittests/worker/:" + os.environ["PYTHONPATH"]
+        current_path + "/../../../tests/integration/worker/:" + os.environ["PYTHONPATH"]
     )
 
     if mpi_worker:

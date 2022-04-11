@@ -18,10 +18,10 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - MPMD MPI
-==================
-    This file contains the class mpmd mpi, needed for the multiple program mpi
-    definition through the decorator.
+PyCOMPSs API - MPMD MPI decorator.
+
+This file contains the mpmd mpi class, needed for the multiple program mpi
+task definition through the decorator.
 """
 
 from functools import wraps
@@ -55,7 +55,8 @@ DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 
 
 class MPMDMPI(object):
-    """
+    """MPMDMPI decorator class.
+
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on mpmd_mpi task creation.
     """
@@ -127,6 +128,13 @@ class MPMDMPI(object):
     def __decorator_body__(
         self, user_function: typing.Callable, args: tuple, kwargs: dict
     ) -> typing.Any:
+        """Body of the mpmd_mpi decorator.
+
+        :param user_function: Decorated function.
+        :param args: Function arguments.
+        :param kwargs: Function keyword arguments.
+        :returns: Result of executing the user_function with the given args and kwargs.
+        """
         if not self.scope:
             raise NotImplementedError
 

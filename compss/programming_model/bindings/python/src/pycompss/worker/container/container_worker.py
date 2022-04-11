@@ -16,9 +16,9 @@
 #
 
 """
-PyCOMPSs Worker for Containers
-=======================
-    This file contains the code of a fake worker to execute Python tasks
+PyCOMPSs Worker - Container - Worker.
+
+This file contains the code of a fake worker to execute Python tasks
 inside containers.
 """
 
@@ -44,15 +44,11 @@ from pycompss.worker.commons.worker import execute_task
 # logger = logging.getLogger()
 
 
-#
-# Main method for Python task execution inside a Container
-#
 def main() -> int:
-    """Main method to process the task execution.
+    """Process python task inside a container main method.
 
-    :return: Exit value
+    :return: Exit value.
     """
-
     # Parse arguments
     # TODO: Enhance the received parameters from ContainerInvoker.java
     func_file_path = str(sys.argv[1])

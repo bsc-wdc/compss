@@ -18,10 +18,10 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Util - Object properties
-=================================
-    Offers some functions that check properties about objects.
-    For example, check if an object belongs to a module and so on.
+PyCOMPSs Util - Objects - Properties.
+
+Offers some functions that check properties about objects.
+For example, check if an object belongs to a module and so on.
 """
 
 import builtins
@@ -63,7 +63,7 @@ def get_module_name(path: str, file_name: str) -> str:
 
 
 def get_wrapped_source(f: typing.Callable) -> str:
-    """Gets the text of the source code for the given function.
+    """Get the text of the source code for the given function.
 
     :param f: Input function.
     :return: Source.
@@ -84,7 +84,7 @@ def get_wrapped_source(f: typing.Callable) -> str:
 
 
 def is_module_available(module_name: str) -> bool:
-    """Checks if a module is available in the current Python installation.
+    """Check if a module is available in the current Python installation.
 
     :param module_name: Name of the module.
     :return: True if the module is available. False otherwise.
@@ -115,7 +115,7 @@ def is_module_available(module_name: str) -> bool:
 
 
 def is_basic_iterable(obj: typing.Any) -> bool:
-    """Checks if an object is a basic iterable.
+    """Check if an object is a basic iterable.
 
     By basic iterable we want to mean objects that are iterable and from a
     basic type.
@@ -127,27 +127,26 @@ def is_basic_iterable(obj: typing.Any) -> bool:
 
 
 def is_dict(obj: typing.Any) -> bool:
-    """
-    Checks if an object is a dictionary.
+    """Check if an object is a dictionary.
 
-    :param obj: Object to be analysed
-    :return: True if obj is of dict type. False otherwise
+    :param obj: Object to be analysed.
+    :return: True if obj is of dict type. False otherwise.
     """
     return isinstance(obj, (dict, OrderedDict))
 
 
 def object_belongs_to_module(obj: typing.Any, module_name: str) -> bool:
-    """Checks if a given object belongs to a given module (or some sub-module).
+    """Check if a given object belongs to a given module (or some sub-module).
 
-    :param obj: Object to be analysed
-    :param module_name: Name of the module we want to check
-    :return: True if obj belongs to the given module. False otherwise
+    :param obj: Object to be analysed.
+    :param module_name: Name of the module we want to check.
+    :return: True if obj belongs to the given module. False otherwise.
     """
     return any(module_name == x for x in type(obj).__module__.split("."))
 
 
 def create_object_by_con_type(con_type: str) -> typing.Any:
-    """Knowing its class name create an "empty" object.
+    """Create an "empty" object knowing its class name.
 
     :param con_type: object type info in <path_to_module>:<class_name> format.
     :return: "empty" object of a type.

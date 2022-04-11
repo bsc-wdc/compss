@@ -18,10 +18,12 @@
 # -*- coding: utf-8 -*-
 
 """
-SOURCE CODE TAKEN FROM BEN KURTOVIC'S GITHUB REPO replace.py FILE
+SOURCE CODE TAKEN FROM BEN KURTOVIC'S GITHUB REPO replace.py FILE.
+
 https://gist.github.com/earwig/28a64ffb94d51a608e3d
 
 + Added typing
++ pydocstyle
 """
 
 import ctypes
@@ -136,6 +138,12 @@ def _path_key_func(path):
 
 
 def replace(old, new):
+    """Replace the old object with the new object.
+
+    :param old: Old object.
+    :param new: New object.
+    :returns: None.
+    """
     for path in sorted(hp.iso(old).pathsin, key=_path_key_func):
         relation = path.path[1]
         try:

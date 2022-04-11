@@ -17,6 +17,12 @@
 
 # -*- coding: utf-8 -*-
 
+"""
+PyCOMPSs - Streams - Components - Objects.
+
+This file contains the distro stream components objects code.
+"""
+
 # Imports
 import logging
 
@@ -35,8 +41,7 @@ logger = logging.getLogger("pycompss.streams.distro_stream")
 
 
 class ODSPublisher(object):
-    """
-    ODS Publisher connector implementation.
+    """ODS Publisher connector implementation.
 
     Attributes:
         - kafka_producer: KafkaProducer instance
@@ -44,7 +49,7 @@ class ODSPublisher(object):
     """
 
     def __init__(self, bootstrap_server: str) -> None:
-        """Creates a new ODSPublisher instance.
+        """Create a new ODSPublisher instance.
 
         :param bootstrap_server: Associated boostrap server.
         """
@@ -76,11 +81,11 @@ class ODSPublisher(object):
         logger.debug("DONE Creating Publisher")
 
     def publish(self, topic: typing.Union[bytes, str], message: str) -> None:
-        """Publishes the given message to the given topic.
+        """Publish the given message to the given topic.
 
         :param topic: Message topic.
         :param message: Message to publish.
-        :return: None
+        :return: None.
         """
         if __debug__:
             logger.debug("Publishing Message to %s ..." % str(topic))
@@ -108,8 +113,7 @@ class ODSPublisher(object):
 
 
 class ODSConsumer(object):
-    """
-    ODS Consumer connector implementation.
+    """ODS Consumer connector implementation.
 
     Attributes:
         - topic: Registered topic name on the Kafka backend
@@ -121,7 +125,7 @@ class ODSConsumer(object):
     """
 
     def __init__(self, bootstrap_server: str, topic: str, access_mode: str) -> None:
-        """Creates a new ODSConsumer instance.
+        """Create a new ODSConsumer instance.
 
         :param bootstrap_server: Associated boostrap server.
         :param topic: Topic where to consume records.
@@ -169,10 +173,10 @@ class ODSConsumer(object):
         logger.debug("DONE Creating Consumer")
 
     def poll(self, timeout: int) -> list:
-        """Polls messages from the subscribed topics.
+        """Poll messages from the subscribed topics.
 
         :param timeout: Poll timeout.
-        :return: List of polled messages (strings - can be empty but not None)
+        :return: List of polled messages (strings - can be empty but not None).
         """
         if __debug__:
             logger.debug("Polling Messages from " + str(self.topic) + " ...")

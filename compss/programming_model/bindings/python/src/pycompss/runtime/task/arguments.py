@@ -18,27 +18,28 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs runtime - Task - Arguments
-===================================
-    This file contains the classes needed for the arguments identification.
+PyCOMPSs runtime - Task - Arguments.
+
+This file contains the classes needed for the arguments identification.
 """
 
 
 def is_vararg(param_name: str) -> bool:
     """Determine if a parameter is named as a (internal) vararg.
 
-    :param param_name: String with a parameter name
-    :returns: True if the name has the form of an internal vararg name
+    :param param_name: String with a parameter name.
+    :returns: True if the name has the form of an internal vararg name.
     """
     return param_name.startswith("*")
 
 
 def get_name_from_vararg(full_name: str) -> str:
     """Extract the vararg name from the name given with full_name.
+
     Part before "*".
 
     :param full_name: Complete vararg name.
-    :return: The vararg name
+    :return: The vararg name.
     """
     return full_name.split("*")[1]
 
@@ -46,8 +47,8 @@ def get_name_from_vararg(full_name: str) -> str:
 def is_kwarg(param_name: str) -> bool:
     """Determine if a parameter is named as a (internal) kwargs.
 
-    :param param_name: String with a parameter name
-    :return: True if the name has the form of an internal kwarg name
+    :param param_name: String with a parameter name.
+    :return: True if the name has the form of an internal kwarg name.
     """
     return param_name.startswith("#kwarg")
 
@@ -55,8 +56,8 @@ def is_kwarg(param_name: str) -> bool:
 def is_return(param_name: str) -> bool:
     """Determine if a parameter is named as a (internal) return.
 
-    :param param_name: String with a parameter name
-    :returns: True if the name has the form of an internal return name
+    :param param_name: String with a parameter name.
+    :returns: True if the name has the form of an internal return name.
     """
     return param_name.startswith("$return")
 
@@ -68,10 +69,10 @@ def get_vararg_name(varargs_name: str, i: int) -> str:
     impossible to be assigned by the user because they are invalid
     Python variable names, as they start with a star
 
-    :param varargs_name: Vararg names
-    :param i: A non negative integer
+    :param varargs_name: Vararg names.
+    :param i: A non negative integer.
     :return: The name of the ith vararg according to our internal naming
-             convention
+             convention.
     """
     return "*%s*_%d" % (str(varargs_name), i)
 
@@ -79,8 +80,8 @@ def get_vararg_name(varargs_name: str, i: int) -> str:
 def get_kwarg_name(var: str) -> str:
     """Given some variable name, get the kwarg identifier.
 
-    :param var: A string with a variable name
-    :return: The name of the kwarg according to our internal naming convention
+    :param var: A string with a variable name.
+    :return: The name of the kwarg according to our internal naming convention.
     """
     return "#kwarg_%s" % var
 
@@ -88,8 +89,8 @@ def get_kwarg_name(var: str) -> str:
 def get_name_from_kwarg(var: str) -> str:
     """Given some kwarg name, return the original variable name.
 
-    :param var: A string with a (internal) kwarg name
-    :return: The original variable name
+    :param var: A string with a (internal) kwarg name.
+    :return: The original variable name.
     """
     return var.replace("#kwarg_", "")
 
@@ -97,7 +98,7 @@ def get_name_from_kwarg(var: str) -> str:
 def get_return_name(i: int) -> str:
     """Given some integer i, return the name of the ith return.
 
-    :param i: A non negative integer
-    :return: The name of the return identifier according to our internal naming
+    :param i: A non-negative integer.
+    :return: The name of the return identifier according to our internal naming.
     """
     return "$return_%d" % i

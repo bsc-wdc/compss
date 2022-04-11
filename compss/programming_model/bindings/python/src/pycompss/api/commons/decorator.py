@@ -18,9 +18,9 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs DECORATOR COMMONS
-==========================
-    This file contains very usual functions for the decorators.
+PyCOMPSs API - commons - decorator.
+
+This file contains very usual functions for the decorators.
 """
 
 import os
@@ -44,8 +44,8 @@ CORE_ELEMENT_KEY = "compss_core_element"
 
 
 def resolve_working_dir(kwargs: dict) -> None:
-    """
-    Resolve the working directory considering deprecated naming.
+    """Resolve the working directory considering deprecated naming.
+
     Updates kwargs:
         - Removes workingDir if exists.
         - Updates working_dir with the working directory.
@@ -62,8 +62,8 @@ def resolve_working_dir(kwargs: dict) -> None:
 
 
 def resolve_fail_by_exit_value(kwargs: dict, def_val="true") -> None:
-    """
-    Resolve the fail by exit value.
+    """Resolve the fail by exit value.
+
     Updates kwargs:
         - Updates fail_by_exit_value if necessary.
 
@@ -88,8 +88,8 @@ def resolve_fail_by_exit_value(kwargs: dict, def_val="true") -> None:
 
 
 def process_computing_nodes(decorator_name: str, kwargs: dict) -> None:
-    """
-    Processes the computing_nodes from the decorator.
+    """Process the computing_nodes from the decorator.
+
     We only ensure that the correct self.kwargs entry exists since its
     value will be parsed and resolved by the
     master.process_computing_nodes.
@@ -134,8 +134,8 @@ def process_computing_nodes(decorator_name: str, kwargs: dict) -> None:
 def keep_arguments(
     args: tuple, kwargs: dict, prepend_strings: bool = True
 ) -> typing.Iterator[None]:
-    """
-    Context which saves and restores the function arguments.
+    """Context which saves and restores the function arguments.
+
     It also enables or disables the PREPEND_STRINGS property from @task.
 
     :param args: Arguments.
@@ -176,7 +176,7 @@ def keep_arguments(
 
 
 def run_command(cmd: typing.List[str], args: tuple, kwargs: dict) -> int:
-    """Executes the command considering necessary the args and kwargs.
+    """Execute the command considering necessary the args and kwargs.
 
     :param cmd: Command to run.
     :param args: Decorator arguments.

@@ -18,17 +18,18 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Tracing types and events in master
-===========================================
-    This file contains a set of constants that identify the types and events
-    emitted from when the binding acts as master.
+PyCOMPSs Util - Tracing - Types and events in master.
 
-    IMPORTANT!!!
-    Must be equal to Tracer.java and TraceEvent.java definitions
+This file contains a set of constants that identify the types and events
+emitted from when the binding acts as master.
+
+IMPORTANT!!!
+Must be equal to Tracer.java and TraceEvent.java definitions
 """
 
 
 class TypesEventsMaster(object):
+    """Constant events that can be emitted for the master group."""
 
     __slots__ = (
         "binding_master_type",
@@ -79,6 +80,7 @@ class TypesEventsMaster(object):
     )
 
     def __init__(self):
+        """Create a new instance of TypesEventsWorker."""
         # Binding master type
         self.binding_master_type = 9000300
 

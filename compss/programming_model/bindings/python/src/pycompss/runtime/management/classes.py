@@ -18,16 +18,14 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Binding - Management - Classes
-=======================================
-    This file contains the internal classes.
+PyCOMPSs Binding - Management - Classes.
+
+This file contains the internal classes.
 """
 
 
 class SupportedFunctionTypes(object):
-    """
-    Used as enum to identify the function type
-    """
+    """Used as enum to identify the function type."""
 
     FUNCTION = 1
     INSTANCE_METHOD = 2
@@ -35,17 +33,13 @@ class SupportedFunctionTypes(object):
 
 
 class Future(object):
-    """
-    Future object class definition.
-    """
+    """Future object class definition."""
 
     pass
 
 
 class EmptyReturn(object):
-    """
-    For functions with empty return
-    """
+    """For functions with empty return."""
 
     pass
 

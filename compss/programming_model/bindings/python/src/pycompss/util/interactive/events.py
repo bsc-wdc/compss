@@ -18,10 +18,9 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Util - Interactive Events
-==================================
-    Provides the event handlers for the cell execution and registers the
-    callbacks.
+PyCOMPSs Util - Interactive - Events.
+
+Provides the event handlers for the cell execution and registers the callbacks.
 """
 
 import os
@@ -47,9 +46,9 @@ POST_MESSAGE = None
 
 
 def __pre_execute__() -> None:
-    """Fires prior to interactive execution.
+    """Fire prior to interactive execution.
 
-    :return: None
+    :return: None.
     """
     print("pre_execute")
 
@@ -60,7 +59,7 @@ def __pre_run_cell__() -> None:
     Sometimes code can be executed by libraries, etc. which skipping the
     history/display mechanisms, in which cases pre_run_cell will not fire.
 
-    :return: None
+    :return: None.
     """
     global POST_MESSAGE
     messages = STDW.get_messages()
@@ -158,20 +157,22 @@ def __pre_run_cell__() -> None:
 
 
 def __post_execute__() -> None:
-    """Runs after interactive execution (e.g. a cell in a notebook).
+    """Run after interactive execution (e.g. a cell in a notebook).
 
-    :return: None
+    :return: None.
     """
     print("post_execute")
 
 
 def __post_run_cell__() -> None:
-    """The same as pre_execute, post_execute is like post_run_cell, but
+    """Run for all cells after execution.
+
+    The same as pre_execute, post_execute is like post_run_cell, but
     fires for all executions, not just interactive ones.
 
     Notifies if any exception or task has been cancelled to the user.
 
-    :return: None
+    :return: None.
     """
     global POST_MESSAGE
     if POST_MESSAGE:
@@ -185,10 +186,10 @@ def __post_run_cell__() -> None:
 
 
 def setup_event_manager(ipython: typing.Any) -> None:
-    """Instantiates an Ipython event manager and registers the event handlers.
+    """Instantiate an Ipython event manager and registers the event handlers.
 
     :param ipython: IPython instance where to register the event manager.
-    :return: None
+    :return: None.
     """
     # ipython.events.register("pre_execute", __pre_execute__)
     ipython.events.register("pre_run_cell", __pre_run_cell__)
@@ -200,7 +201,7 @@ def release_event_manager(ipython: typing.Any) -> None:
     """Releases the event manager in the given ipython instance.
 
     :param ipython: IPython instance where to release the event manager.
-    :return: None
+    :return: None.
     """
     try:
         # ipython.events.unregister("pre_execute", __pre_execute__)

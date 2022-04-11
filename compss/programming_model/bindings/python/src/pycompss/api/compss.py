@@ -18,10 +18,10 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - COMPSs
-==================
-    This file contains the class COMPSs, needed for the compss
-    definition through the decorator.
+PyCOMPSs API - COMPSs decorator.
+
+This file contains the COMPSs class, needed for the COMPSs task definition
+through the decorator.
 """
 
 from functools import wraps
@@ -66,7 +66,8 @@ DEPRECATED_ARGUMENTS = {
 
 
 class COMPSs(object):
-    """
+    """COMPSs decorator class.
+
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on compss task creation.
     """

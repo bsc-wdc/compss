@@ -18,9 +18,10 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - HTTP
-==================
-    HTTP Task decorator class.
+PyCOMPSs API - Http decorator.
+
+This file contains the HTTP class, needed for the http task definition
+through the decorator.
 """
 
 from functools import wraps
@@ -50,9 +51,10 @@ DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 
 
 class HTTP(object):
-    """
+    """HTTP decorator class.
+
     This decorator also preserves the argspec, but includes the __init__ and
-    __call__ methods, useful on mpi task creation.
+    __call__ methods, useful on http task creation.
     """
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
@@ -93,34 +95,29 @@ class HTTP(object):
 
         @wraps(user_function)
         def http_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
-            return self.__decorator_body__(user_function, args, kwargs)
+            # force to serialize with JSON
+            serializer.FORCED_SERIALIZER = 4
+            if not self.scope:
+                # run http
+                self.__run_http__(args, kwargs)
+
+            if __debug__:
+                logger.debug("Executing http_f wrapper.")
+
+            if (
+                    context.in_master() or context.is_nesting_enabled()
+            ) and not self.core_element_configured:
+                # master code - or worker with nesting enabled
+                self.__configure_core_element__(kwargs)
+
+            with keep_arguments(args, kwargs):
+                # Call the method
+                ret = user_function(*args, **kwargs)
+
+            return ret
 
         http_f.__doc__ = user_function.__doc__
         return http_f
-
-    def __decorator_body__(
-        self, user_function: typing.Callable, args: tuple, kwargs: dict
-    ) -> typing.Any:
-        # force to serialize with JSON
-        serializer.FORCED_SERIALIZER = 4
-        if not self.scope:
-            # run http
-            self.__run_http__(args, kwargs)
-
-        if __debug__:
-            logger.debug("Executing http_f wrapper.")
-
-        if (
-            context.in_master() or context.is_nesting_enabled()
-        ) and not self.core_element_configured:
-            # master code - or worker with nesting enabled
-            self.__configure_core_element__(kwargs)
-
-        with keep_arguments(args, kwargs):
-            # Call the method
-            ret = user_function(*args, **kwargs)
-
-        return ret
 
     def __run_http__(self, *args: typing.Any, **kwargs: typing.Any) -> int:
         """HTTP tasks are meant to be dummy.

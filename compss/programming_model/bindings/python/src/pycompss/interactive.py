@@ -18,9 +18,9 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Binding - Interactive API
-==================================
-    Provides the current start and stop for the use of PyCOMPSs interactively.
+PyCOMPSs Binding - Interactive API.
+
+Provides the functions for the use of PyCOMPSs interactively.
 """
 
 import logging
@@ -448,7 +448,7 @@ def start(
 
 
 def __show_flower__() -> None:
-    """Shows the flower and version through stdout.
+    """Show the flower and version through stdout.
 
     :return: None
     """
@@ -611,7 +611,9 @@ def stop(sync: bool = False, _hard_stop: bool = False) -> None:
 def __hard_stop__(
     debug: bool, sync: bool, logger: typing.Any, ipython: typing.Any
 ) -> None:
-    """The runtime has been stopped by any error and this method stops the
+    """Stop the binding securely when the runtime crashes.
+
+    If the runtime has been stopped by any error, this method stops the
     remaining things in the binding.
 
     :param debug: If debugging.

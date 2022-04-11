@@ -18,10 +18,10 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - MultiNode
-==================
-    This file contains the class MultiNode, needed for the MultiNode
-    definition through the decorator.
+PyCOMPSs API - Multinode decorator.
+
+This file contains the Multinode class, needed for the MultiNode task
+definition through the decorator.
 """
 
 import os
@@ -58,7 +58,8 @@ SLURM_SKIP_VARS = [
 
 
 class MultiNode(object):
-    """
+    """MultiNode decorator class.
+
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on MultiNode task creation.
     """
@@ -200,9 +201,9 @@ def set_slurm_environment() -> dict:
 
 
 def remove_slurm_environment() -> dict:
-    """Removes the Slurm vars from environment
+    """Remove the Slurm variables from the environment.
 
-    :return: removed Slurm vars
+    :return: removed Slurm variables.
     """
     old_slurm_env = dict()
     for key, value in os.environ.items():
@@ -215,7 +216,7 @@ def remove_slurm_environment() -> dict:
 
 
 def reset_slurm_environment(old_slurm_env: typing.Optional[dict] = None) -> None:
-    """Reestablishes SLURM environment.
+    """Reestablish SLURM environment.
 
     :return: None
     """

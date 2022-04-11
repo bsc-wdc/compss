@@ -18,10 +18,10 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - Implement (Versioning)
-=====================================
-    This file contains the class constraint, needed for the implement
-    definition through the decorator.
+PyCOMPSs API - Implement (Versioning) decorator.
+
+This file contains the Implement class, needed for the implement definition
+through the decorator.
 """
 
 from functools import wraps
@@ -49,9 +49,10 @@ DEPRECATED_ARGUMENTS = {LEGACY_LABELS.source_class}
 
 
 class Implement(object):
-    """
+    """Implement decorator class.
+
     This decorator also preserves the argspec, but includes the __init__ and
-    __call__ methods, useful on mpi task creation.
+    __call__ methods, useful on implementation task creation.
     """
 
     __slots__ = [

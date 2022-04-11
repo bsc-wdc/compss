@@ -18,16 +18,14 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs runtime - Task - Keys
-==============================
-    This file contains the task keys.
+PyCOMPSs runtime - Task - Keys.
+
+This file contains the task keys.
 """
 
 
 class ParamAliasKeys(object):
-    """
-    Strings used in Tasks definition
-    """
+    """Strings used in Tasks definition."""
 
     IN = "IN"
     OUT = "OUT"
@@ -89,9 +87,7 @@ class ParamAliasKeys(object):
 
 
 class ParamDictKeys(object):
-    """
-    Strings used in Parameter definition as dictionary
-    """
+    """Strings used in Parameter definition as dictionary."""
 
     # Exposed to the user (see api/parameter.py)
     TYPE = "type"

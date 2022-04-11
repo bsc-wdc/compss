@@ -18,29 +18,29 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API
-============
-    This file defines the public PyCOMPSs API functions.
-    It implements the:
-        - start
-        - stop
-        - open
-        - delete file
-        - wait on file
-        - delete object
-        - barrier
-        - barrier group
-        - get_number_of_resources
-        - request_resources_creation
-        - request_resources_destruction
-        - set_wall_clock
-        - wait_on
-        - TaskGroup (class)
-    functions.
-    Also includes the redirection to the dummy API.
+PyCOMPSs API.
 
-    CAUTION: If the context has not been defined, it will load the dummy API
-             automatically.
+This file defines the public PyCOMPSs API functions.
+It implements the:
+    - start
+    - stop
+    - open
+    - delete file
+    - wait on file
+    - delete object
+    - barrier
+    - barrier group
+    - get_number_of_resources
+    - request_resources_creation
+    - request_resources_destruction
+    - set_wall_clock
+    - wait_on
+    - TaskGroup (class)
+functions.
+Also includes the redirection to the dummy API.
+
+CAUTION: If the context has not been defined, it will load the dummy API
+         automatically.
 """
 
 import pycompss.util.context as context
@@ -99,7 +99,7 @@ def compss_start(
     interactive: bool = False,
     disable_external: bool = False,
 ) -> None:
-    """Starts the runtime.
+    """Start the COMPSs runtime.
 
     :param log_level: Log level [ True | False ].
     :param tracing: Activate or disable tracing.
@@ -114,7 +114,7 @@ def compss_start(
 
 
 def compss_stop(code: int = 0, _hard_stop: bool = False) -> None:
-    """Stops the runtime.
+    """Stop the COMPSs runtime.
 
     :param code: Stop code.
     :param _hard_stop: Stop compss when runtime has died.
@@ -304,7 +304,7 @@ def compss_get_number_of_resources() -> int:
 def compss_request_resources(
     num_resources: int, group_name: typing.Optional[str]
 ) -> None:
-    """Requests the creation of num_resources resources.
+    """Request the creation of num_resources resources.
 
     :param num_resources: Number of resources to create.
     :param group_name: Task group to notify upon resource creation.
@@ -318,7 +318,7 @@ def compss_request_resources(
 
 
 def compss_free_resources(num_resources: int, group_name: typing.Optional[str]) -> None:
-    """Requests the destruction of num_resources resources.
+    """Request the destruction of num_resources resources.
 
     :param num_resources: Number of resources to destroy.
     :param group_name: Task group to notify upon resource creation
@@ -331,7 +331,7 @@ def compss_free_resources(num_resources: int, group_name: typing.Optional[str]) 
 
 
 def compss_set_wall_clock(wall_clock_limit: int) -> None:
-    """Sets the application wall clock limit.
+    """Set the application wall clock limit.
 
     :param wall_clock_limit: Wall clock limit in seconds.
     :return: None
@@ -376,7 +376,7 @@ class TaskGroup(object):
             pass
 
     def __enter__(self) -> None:
-        """Group creation"""
+        """Group creation."""
         if context.in_pycompss():
             __open_task_group__(self.group_name, self.implicit_barrier)
         else:
@@ -385,7 +385,7 @@ class TaskGroup(object):
     def __exit__(
         self, type: typing.Any, value: typing.Any, traceback: typing.Any
     ) -> None:
-        """Group closing"""
+        """Group closing."""
         if context.in_pycompss():
             __close_task_group__(self.group_name)
             if self.implicit_barrier:

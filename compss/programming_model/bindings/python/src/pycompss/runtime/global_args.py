@@ -18,9 +18,9 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Binding - Globals
-==========================
-    This file contains the global variables used in the Python binding.
+PyCOMPSs Binding - Globals.
+
+This file contains the global variables used in the Python binding.
 """
 
 from pycompss.runtime.task.parameter import Parameter  # noqa # typing purposes
@@ -34,8 +34,8 @@ __WORKER_ARGS__ = tuple()  # type: tuple
 def set_worker_args(worker_args: tuple) -> None:
     """Worker arguments to save in WORKER_ARGS.
 
-    :param worker_args: Worker arguments
-    :return: None
+    :param worker_args: Worker arguments.
+    :return: None.
     """
     global __WORKER_ARGS__
     __WORKER_ARGS__ = worker_args
@@ -44,7 +44,7 @@ def set_worker_args(worker_args: tuple) -> None:
 def get_worker_args() -> tuple:
     """Retrieve the worker arguments.
 
-    :return: Worker arguments
+    :return: Worker arguments.
     """
     return __WORKER_ARGS__
 
@@ -54,9 +54,9 @@ def update_worker_argument_parameter_content(
 ) -> None:
     """Update the Parameter's content for the given name.
 
-    :param name: Parameter name
-    :param content: New content
-    :return: None
+    :param name: Parameter name.
+    :param content: New content.
+    :return: None.
     """
     if name:
         for param in __WORKER_ARGS__:
@@ -72,7 +72,7 @@ def update_worker_argument_parameter_content(
 def delete_worker_args() -> None:
     """Remove the worker args global variable.
 
-    :return: None
+    :return: None.
     """
     global __WORKER_ARGS__
     del __WORKER_ARGS__

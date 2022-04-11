@@ -17,6 +17,12 @@
 
 # -*- coding: utf-8 -*-
 
+"""
+PyCOMPSs runtime - Task - Master.
+
+This file contains the task core functions when acting as master.
+"""
+
 from __future__ import print_function
 
 import ast
@@ -170,8 +176,7 @@ VALUE_OF = "value_of"
 
 
 class TaskMaster(object):
-    """
-    Task code for the Master:
+    """Task class representation for the Master.
 
     Process the task decorator and prepare all information to call binding
     runtime.
@@ -227,21 +232,21 @@ class TaskMaster(object):
     ) -> None:
         """Task at master constructor.
 
-        :param decorator_arguments: Decorator arguments
-        :param user_function: User function
-        :param core_element: Core Element
-        :param registered: If it is already registered
-        :param signature: Function signature
-        :param interactive: If interactive mode
-        :param module: Module where the function belongs to
-        :param function_arguments: Function arguments
-        :param function_name: Function name
-        :param module_name: Module name
-        :param function_type: Function type
-        :param class_name: Class name
-        :param hints: Task hints
-        :param on_failure: On failure management
-        :param defaults: Default values
+        :param decorator_arguments: Decorator arguments.
+        :param user_function: User function.
+        :param core_element: Core Element.
+        :param registered: If it is already registered.
+        :param signature: Function signature.
+        :param interactive: If interactive mode.
+        :param module: Module where the function belongs to.
+        :param function_arguments: Function arguments.
+        :param function_name: Function name.
+        :param module_name: Module name.
+        :param function_type: Function type.
+        :param class_name: Class name.
+        :param hints: Task hints.
+        :param on_failure: On failure management.
+        :param defaults: Default values.
         """
         # Initialize TaskCommons
         self.user_function = user_function
@@ -283,7 +288,7 @@ class TaskMaster(object):
         self.hints = hints
 
     def call(self, args: tuple, kwargs: dict) -> tuple:
-        """Main task code at master side.
+        """Run the task as master.
 
         This part deals with task calls in the master's side
         Also, this function must return an appropriate number of
@@ -540,7 +545,7 @@ class TaskMaster(object):
         been started.
 
         :param mod: Source module.
-        :return: None
+        :return: None.
         """
         # We need to find out the real module name
         # Get the real module name from our launch.py APP_PATH global
@@ -576,7 +581,7 @@ class TaskMaster(object):
         IMPORTANT! extract the core element from kwargs if pre-defined
                    in decorators defined on top of @task.
 
-        :return: If previously created and if created in higher level decorator
+        :return: If previously created and if created in higher level decorator.
         """
         pre_defined_core_element = False
         upper_decorator = False
@@ -603,9 +608,9 @@ class TaskMaster(object):
         This will be useful when pairing arguments with the direction
         the user has specified for them in the decorator.
 
-        # The third return value was self.param_kwargs - not used (removed)
+        The third return value was self.param_kwargs - not used (removed).
 
-        :return: the attributes to be reused
+        :return: the attributes to be reused.
         """
         try:
             arguments = self._getargspec(self.user_function)
@@ -622,54 +627,56 @@ class TaskMaster(object):
         self.param_args, self.param_varargs, _, self.param_defaults = arguments
 
     def is_numba_function(self) -> bool:
-        """Checks if self.user_function is in reality a numba compiled function
+        """Check if self.user_function is in reality a numba compiled function.
 
-        :return: True if has py_func
+        :return: True if self.user_function has py_func.
         """
         return "py_func" in dir(self.user_function)
 
     def get_user_function_py_func(self) -> typing.Callable:
         """Retrieve py_func from self.user_function.
+
         WARNING!!! Only available in numba wrapped functions.
 
-        :return: py_func
+        :return: The self.user_function py_func.
         """
         return self.user_function.py_func  # type: ignore
 
     def user_func_py_func_glob_getter(self, field) -> typing.Any:
-        """Retrieve a field from __globals__ from py_func of
-        self.user_function.
+        """Retrieve a field from __globals__ from py_func of self.user_function.
+
         WARNING!!! Only available in numba wrapped functions.
 
-        :return: __globals__ getter for the given field
+        :return: __globals__ getter for the given field.
         """
         py_func = self.get_user_function_py_func()
         return py_func.__globals__.get(field)  # type: ignore
 
     def get_user_function_wrapped(self) -> typing.Callable:
         """Retrieve __wrapped__ from self.user_function.
+
         WARNING!!! Only available in compiled functions.
 
-        :return: function
+        :return: The user function from __wrapped__.
         """
         return self.user_function.__wrapped__  # type: ignore
 
     def user_func_wrapped_glob_getter(self, field) -> typing.Any:
-        """Retrieve a field from __globals__ from __wrapped__ of
-        self.user_function.
+        """Retrieve a field from __globals__ from __wrapped__ of self.user_function.
+
         WARNING!!! Only available in compiled functions.
 
-        :return: __globals__ getter for the given field
+        :return: __globals__ getter for the given field result.
         """
         wrapped_func = self.get_user_function_wrapped()
         return wrapped_func.__globals__.get(field)  # type: ignore
 
     def user_func_glob_getter(self, field: str) -> typing.Any:
-        """Retrieve a field from __globals__ from py_func of
-        self.user_function.
+        """Retrieve a field from __globals__ from py_func of self.user_function.
+
         WARNING!!! Only available in numba wrapped functions.
 
-        :return: __globals__ getter for the given field
+        :return: __globals__ getter for the given field result.
         """
         return self.user_function.__globals__.get(field)  # type: ignore
 
@@ -688,7 +695,8 @@ class TaskMaster(object):
         return as_args, as_varargs, as_keywords, as_defaults
 
     def pop_task_parameters(self, kwargs: dict) -> None:
-        """Extracts all @task related parameters.
+        """Extract all @task related parameters.
+
         Updates:
             - self.explicit_num_returns
             - self.cns
@@ -698,7 +706,7 @@ class TaskMaster(object):
             - self.chunk_size
 
         :param kwargs: Keyword arguments.
-        :return: None
+        :return: None.
         """
         # Pop returns from kwargs
         self.explicit_num_returns = kwargs.pop(LABELS.returns, None)
@@ -754,7 +762,7 @@ class TaskMaster(object):
 
         :param args: Arguments.
         :param kwargs: Keyword arguments.
-        :param code_strings:
+        :param code_strings: Code strings.
         :return: None, it only modifies self.parameters.
         """
         # It is important to know the name of the first argument to determine
@@ -833,7 +841,7 @@ class TaskMaster(object):
     def build_parameter_object(
         self, arg_name: str, arg_object: typing.Any, code_strings=True
     ) -> Parameter:
-        """Creates the Parameter object from an argument name and object.
+        """Create the Parameter object from an argument name and object.
 
         WARNING: Any modification in the param object will modify the
                  original Parameter set in the task.py __init__ constructor
@@ -841,7 +849,7 @@ class TaskMaster(object):
 
         :param arg_name: Argument name.
         :param arg_object: Argument object.
-        :param code_strings:
+        :param code_strings: Code strings.
         :return: Parameter object.
         """
         # Is the argument a vararg? or a kwarg? Then check the direction
@@ -995,11 +1003,11 @@ class TaskMaster(object):
             # -1 to remove the last point
 
     def get_code_strings(self) -> None:
-        """This function is used to get if the strings must be coded or not.
+        """Get if the strings must be coded or not.
 
         IMPORTANT! modify f adding __code_strings__ which is used in binding.
 
-        :return: None
+        :return: None.
         """
         ce_type = self.core_element.get_impl_type()
         default = IMPL_METHOD
@@ -1024,7 +1032,7 @@ class TaskMaster(object):
             )
 
     def get_signature(self) -> typing.Tuple[str, list]:
-        """This function is used to find out the function signature.
+        """Find out the function signature.
 
         The information is needed in order to compare the implementation
         signature, so that if it has been registered with a different
@@ -1055,7 +1063,7 @@ class TaskMaster(object):
         impl_type_args: list,
         pre_defined_ce: typing.Tuple[bool, bool],
     ) -> None:
-        """Adds the @task decorator information to the core element.
+        """Add the @task decorator information to the core element.
 
         CAUTION: Modifies the core_element parameter.
 
@@ -1064,7 +1072,7 @@ class TaskMaster(object):
         :param pre_defined_ce: Two boolean (if core element contains predefined
                                fields and if they have been predefined by
                                upper decorators).
-        :return: None
+        :return: None.
         """
         pre_defined_core_element = pre_defined_ce[0]
         upper_decorator = pre_defined_ce[1]
@@ -1135,10 +1143,10 @@ class TaskMaster(object):
             )
 
     def check_layout_params(self, impl_type_args: list) -> None:
-        """Checks the layout parameter format.
+        """Check the layout parameter format.
 
         :param impl_type_args: Parameter arguments.
-        :return: None
+        :return: None.
         """
         # todo: replace these INDEXES with CONSTANTS
         num_layouts = int(impl_type_args[8])
@@ -1160,13 +1168,13 @@ class TaskMaster(object):
                         )  # noqa: E501
 
     def register_task(self) -> None:
-        """This function is used to register the task in the runtime.
+        """Register the task in the runtime.
 
         This registration must be done only once on the task decorator
         initialization, unless there is a signature change (this will mean
         that the user has changed the implementation interactively).
 
-        :return: None
+        :return: None.
         """
         if __debug__:
             logger.debug(
@@ -1176,9 +1184,9 @@ class TaskMaster(object):
         binding.register_ce(self.core_element)
 
     def validate_processes_per_node(self) -> None:
-        """Checks the processes per node property.
+        """Check the processes per node property.
 
-        :return: None
+        :return: None.
         """
         if self.computing_nodes < self.processes_per_node:
             raise PyCOMPSsException("Processes is smaller than processes_per_node.")
@@ -1332,7 +1340,7 @@ class TaskMaster(object):
         return parsed_computing_nodes
 
     def parse_chunk_size(self, chunk_size: typing.Union[str, int]) -> int:
-        """Parses the chunk size value.
+        """Parse the chunk size value.
 
         :param chunk_size: Chunk size defined in the @task decorator
         :return: Chunk size as integer.
@@ -1532,7 +1540,7 @@ class TaskMaster(object):
             return to_return
 
     def get_num_returns_from_string(self, returns: str) -> int:
-        """Converts the returns to integer.
+        """Convert the number of returns from string to integer.
 
         :param returns: Returns as string.
         :return: Number of returned parameters.
@@ -1782,7 +1790,7 @@ class TaskMaster(object):
     def _serialize_objects(self) -> None:
         """Infer COMPSs types for the task parameters and serialize them.
 
-        :return: None
+        :return: None.
         """
         # # Old school:
         # for k in self.parameters:
@@ -1817,7 +1825,7 @@ class TaskMaster(object):
         WARNING: Updates self.parameters dictionary.
 
         :param k: Name of the element in self.parameters
-        :return: None
+        :return: None.
         """
         max_obj_arg_size = 320000
         with event_master(TRACING_MASTER.serialize_object):
@@ -1843,9 +1851,7 @@ class TaskMaster(object):
                 )  # noqa: E501
 
     def _build_values_types_directions(self) -> tuple:
-        """
-        Build the values list, the values types list and the values directions
-        list.
+        """Build the values, the values types and the values directions lists.
 
         Uses:
             - self.function_type: task function type. If it is an instance
@@ -1956,12 +1962,12 @@ class TaskMaster(object):
         parameters call.
 
         :param p: Parameter.
-        :param max_obj_arg_size: max size of the object to be converted.
-        :param policy: policy to use:
+        :param max_obj_arg_size: Max size of the object to be converted.
+        :param policy: Policy to use:
                        - "objectSize" for considering the size of the object.
                        - "serializedSize" for considering the size of the
                          object serialized.
-        :return: the object possibly converted to string and it size in bytes.
+        :return: The object possibly converted to string and its size in bytes.
         """
         is_future = p.is_future
         base_string = str
@@ -2095,6 +2101,12 @@ class TaskMaster(object):
 
 
 def _get_object_property(param_ref: list, obj: typing.Any) -> typing.Any:
+    """Get the object property from the given parameter references.
+
+    :param param_ref: List of parameter references.
+    :param obj: Target object.
+    :returns: The object property from the given parameters.
+    """
     if len(param_ref) == 1:
         return obj
     else:
@@ -2109,7 +2121,7 @@ def _manage_persistent_object(p: Parameter) -> None:
     (getID()) into the pending_to_synchronize dictionary.
 
     :param p: Parameter.
-    :return: None
+    :return: None.
     """
     p.content_type = TYPE.EXTERNAL_PSCO
     obj_id = str(get_id(p.content))
@@ -2273,7 +2285,7 @@ def _turn_into_file(p: Parameter, name: str, skip_creation: bool = False) -> Non
     :param p: Wrapper of the object to turn into file.
     :param name: Name of the object.
     :param skip_creation: Skips the serialization to file.
-    :return: None
+    :return: None.
     """
     obj_id = OT.is_tracked(p.content)
     if obj_id == "":

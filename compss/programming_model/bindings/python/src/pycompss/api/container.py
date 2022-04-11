@@ -18,10 +18,10 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - CONTAINER
-=====================
-    This file contains the class constraint, needed for the container task
-    definition through the decorator.
+PyCOMPSs API - Container decorator.
+
+This file contains the Container class, needed for the container task
+definition through the decorator.
 """
 
 from functools import wraps
@@ -55,17 +55,18 @@ DEPRECATED_ARGUMENTS = {
 
 
 class Container(object):
-    """
+    """Container decorator class.
+
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on mpi task creation.
     """
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
-        """
-        Store arguments passed to the decorator
-        # self = itself.
-        # args = not used.
-        # kwargs = dictionary with the given constraints.
+        """Store arguments passed to the decorator.
+
+        self = itself.
+        args = not used.
+        kwargs = dictionary with the given constraints.
 
         :param args: Arguments
         :param kwargs: Keyword arguments
@@ -91,8 +92,7 @@ class Container(object):
             )
 
     def __call__(self, user_function: typing.Callable) -> typing.Callable:
-        """
-        Parse and set the container parameters within the task core element.
+        """Parse and set the container parameters within the task core element.
 
         :param user_function: Function to decorate
         :return: Decorated function.

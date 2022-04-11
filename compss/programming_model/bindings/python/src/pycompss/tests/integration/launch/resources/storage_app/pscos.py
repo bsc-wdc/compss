@@ -17,6 +17,8 @@
 
 # -*- coding: utf-8 -*-
 
+"""PyCOMPSs Testbench for PSCOs."""
+
 from pycompss.api.api import compss_wait_on
 from pycompss.api.parameter import INOUT
 from pycompss.api.parameter import OUT
@@ -36,6 +38,11 @@ SCO_GET = "sco.get = "
 
 @task(returns=int)
 def simple_task(r):
+    """Get r value and it by itself.
+
+    :param r: Storage object to multiply.
+    :returns: r value * r value
+    """
     val = r.get()
     print("R: ", r)
     print("R.get = ", val)
@@ -44,6 +51,11 @@ def simple_task(r):
 
 @task(returns=MySO)
 def complex_task(p):
+    """Persist p with the value multiplied by 10.
+
+    :param p: Storage object to multiply and persist.
+    :returns: r value * r value
+    """
     v = p.get()
     print("P: ", p)
     print("P.get: ", v)
@@ -56,6 +68,11 @@ def complex_task(p):
 
 @task(returns=dict)
 def wordcount_task(words):
+    """Word count task.
+
+    :param words: String.
+    :returns: Dictionary with the number of appearances per word.
+    """
     partial_result = {}
     data = words.get()
     for entry in data.split():
@@ -68,6 +85,14 @@ def wordcount_task(words):
 
 @task(dic1=INOUT)
 def reduce_task(dic1, dic2):
+    """Word count reduction task.
+
+    CAUTION! Modifies dic1.
+
+    :param dic1: First partial dictionary.
+    :param dic2: Second partial dictionary.
+    :returns: None.
+    """
     for k in dic2:
         if k in dic1:
             dic1[k] += dic2[k]
@@ -77,6 +102,14 @@ def reduce_task(dic1, dic2):
 
 @task(final=INOUT)
 def reduce_task_pscos(final, dic2):
+    """Word count reduction task with persistent objects.
+
+    CAUTION! Modifies final.
+
+    :param final: First partial dictionary.
+    :param dic2: Second partial dictionary.
+    :returns: None.
+    """
     dic1 = final.get()
     for k in dic2:
         if k in dic1:
@@ -87,7 +120,7 @@ def reduce_task_pscos(final, dic2):
 
 
 def basic_test() -> bool:
-    """Basic test
+    """Test basic functionalities.
 
     This Test:
         - Instantiates a SCO.
@@ -116,7 +149,7 @@ def basic_test() -> bool:
 
 
 def basic_2_test() -> bool:
-    """Basic test 2
+    """Test more basic functionalities.
 
     This Test:
         - Instantiates a SCO.
@@ -147,7 +180,7 @@ def basic_2_test() -> bool:
 
 
 def basic_3_test() -> bool:
-    """Basic test 3
+    """Test even more basic functionalities.
 
     This Test:
         - Instantiates a SCO.
@@ -176,7 +209,8 @@ def basic_3_test() -> bool:
 
 
 def wordcount() -> bool:
-    """Wordcount Test
+    """Wordcount Test.
+
         - Wordcount task receives a PSCO and returns a dictionary.
         - Reduce task works with python dictionaries.
 
@@ -211,7 +245,8 @@ def wordcount() -> bool:
 
 
 def wordcount2() -> bool:
-    """Wordcount Test
+    """Wordcount Test.
+
         - Wordcount task receives a PSCO and returns a dictionary.
         - Reduce task receives a INOUT PSCO (result) where accumulates
           the partial results.
@@ -253,6 +288,14 @@ def wordcount2() -> bool:
 
 @task(o2=INOUT)
 def transform1(o1, o2):
+    """Do first transformation (INOUT).
+
+    CAUTION! Modifies o2.
+
+    :param o1: First persistent object.
+    :param o2: Second persistent object.
+    :results: None.
+    """
     pow2 = {}
     images = o1.get()
     for k, v in images.items():
@@ -267,6 +310,14 @@ def transform1(o1, o2):
 
 @task(o2=INOUT)
 def transform2(o2, o1):
+    """Do second transformation (INOUT).
+
+    CAUTION! Modifies o2.
+
+    :param o1: First persistent object.
+    :param o2: Second persistent object.
+    :results: None.
+    """
     add1 = {}
     images = o1.get()
     for k, v in images.items():
@@ -281,6 +332,14 @@ def transform2(o2, o1):
 
 @task(returns=InputData, o2=INOUT)
 def transform3(o1, o2):
+    """Do third transformation (returns and INOUT).
+
+    CAUTION! Modifies o2.
+
+    :param o1: First persistent object.
+    :param o2: Second persistent object.
+    :results: Updated o2.
+    """
     mult3 = {}
     images = o1.get()
     for k, v in images.items():
@@ -295,7 +354,7 @@ def transform3(o1, o2):
 
 
 def tiramisu_mockup() -> bool:
-    """Tiramisu Mockup Test
+    """Tiramisu Mockup Test.
 
     :return: True if success. False otherwise.
     """
@@ -338,7 +397,7 @@ def __check_transformations__(
     out3: InputData,
     result: InputData,
 ) -> bool:
-    """Checks the transformation to evaluate the result.
+    """Check the transformation to evaluate the result.
 
     :param transformation: Transformation name
     :param out1: Transformation 1 output.
@@ -388,6 +447,14 @@ def __check_transformations__(
 
 @task(o2=OUT)
 def transform1_2(o1, o2):
+    """Do first transformation second version (OUT).
+
+    CAUTION! Modifies o2.
+
+    :param o1: First persistent object.
+    :param o2: Second persistent object.
+    :results: None.
+    """
     pow2 = {}
     images = o1.get()
     for k, v in images.items():
@@ -402,6 +469,14 @@ def transform1_2(o1, o2):
 
 @task(o2=OUT)
 def transform2_2(o2, o1):
+    """Do second transformation second version (OUT).
+
+    CAUTION! Modifies o2.
+
+    :param o1: First persistent object.
+    :param o2: Second persistent object.
+    :results: None.
+    """
     add1 = {}
     images = o1.get()
     for k, v in images.items():
@@ -416,6 +491,14 @@ def transform2_2(o2, o1):
 
 @task(returns=InputData, o2=OUT)
 def transform3_2(o1, o2):
+    """Do third transformation second version (OUT).
+
+    CAUTION! Modifies o2.
+
+    :param o1: First persistent object.
+    :param o2: Second persistent object.
+    :results: None.
+    """
     mult3 = {}
     images = o1.get()
     for k, v in images.items():
@@ -430,7 +513,7 @@ def transform3_2(o1, o2):
 
 
 def tiramisu_mockup2() -> bool:
-    """Tiramisu Mockup Test 2
+    """Tiramisu Mockup Test 2.
 
     :return: True if success. False otherwise.
     """
@@ -469,6 +552,11 @@ def tiramisu_mockup2() -> bool:
 
 @task(sco=INOUT)
 def make_persistent_in_task_as_parameter(sco):
+    """Make persistent the sco within the task as INOUT.
+
+    :param sco: Non persisted persistent object.
+    :returns: None.
+    """
     print("sco: ", sco)
     print(SCO_GET, sco.get())
     sco.put(27)
@@ -481,6 +569,11 @@ def make_persistent_in_task_as_parameter(sco):
 
 @task(returns=MySO)
 def make_persistent_in_task_as_return(sco):
+    """Make persistent the sco within the task as return.
+
+    :param sco: Non persisted persistent object.
+    :returns: None.
+    """
     print("sco: ", sco)
     print(SCO_GET, sco.get())
     sco.put(37)
@@ -493,7 +586,9 @@ def make_persistent_in_task_as_return(sco):
 
 
 def evaluate_make_persistent_in_task() -> bool:
-    """This Test checks what happens when a not persisted persistent object
+    """Check sco persistence within task (as INOUT).
+
+    This Test checks what happens when a not persisted persistent object
     is passed an INOUT task parameter and made persistent within the task.
 
     :return: True if success. False otherwise.
@@ -511,7 +606,9 @@ def evaluate_make_persistent_in_task() -> bool:
 
 
 def evaluate_make_persistent_in_task2() -> bool:
-    """This Test checks what happens when a not persisted persistent object
+    """Check sco persistence within task (as return).
+
+    This Test checks what happens when a not persisted persistent object
     is passed as IN task parameter, made persistent within the task, and
     returned.
 
@@ -530,6 +627,10 @@ def evaluate_make_persistent_in_task2() -> bool:
 
 
 def main():
+    """Run all pscos tests.
+
+    :returns: None.
+    """
     results = {
         "basic": basic_test(),
         "basic2": basic_2_test(),

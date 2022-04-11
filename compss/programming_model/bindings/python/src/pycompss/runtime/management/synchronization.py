@@ -18,9 +18,9 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Binding - Management - Object Synchronization
-======================================================
-    This file contains the object synchronization core methods.
+PyCOMPSs Binding - Management - Object Synchronization.
+
+This file contains the object synchronization core methods.
 """
 
 import pycompss.runtime.management.COMPSs as COMPSs
@@ -45,7 +45,7 @@ if __debug__:
 
 
 def wait_on_object(obj: typing.Any, mode: str) -> typing.Any:
-    """Waits on an object.
+    """Wait on an object (synchronize).
 
     :param obj: Object to wait on.
     :param mode: Read or write mode
@@ -63,7 +63,7 @@ def wait_on_object(obj: typing.Any, mode: str) -> typing.Any:
 
 
 def _synchronize(obj: typing.Any, mode: int) -> typing.Any:
-    """Synchronization function.
+    """Synchronize the given object.
 
     This method retrieves the value of a future object.
     Calls the runtime in order to wait for the value and returns it when

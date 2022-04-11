@@ -18,24 +18,31 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Binding - Utils - typing_helper
-========================================
-    This file contains the typing helpers.
+PyCOMPSs Utils - typing_helper.
+
+This file contains the typing helpers.
 """
 
 import typing
 
 
 class dummy_mypyc_attr(object):
-    """
-    Dummy on mypy_attr class (decorator style)
-    """
+    """Dummy on mypy_attr class (decorator style)."""
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
+        """Create a new dummy mypy attribute.
+
+        :returns: None.
+        """
         self.args = args
         self.kwargs = kwargs
 
     def __call__(self, f: typing.Any) -> typing.Any:
+        """Execute the given function.
+
+        :param f: Decorated function.
+        :returns: Decorated function execution result.
+        """
         def wrapped_mypyc_attr(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             return f(*args, **kwargs)
 
@@ -63,4 +70,8 @@ else:
 
 
 def dummy_function() -> None:
+    """Do nothing function.
+
+    :returns: None
+    """
     pass

@@ -18,9 +18,9 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs runtime - Parameter
-============================
-    This file contains the classes needed for the parameter definition.
+PyCOMPSs runtime - Task - Parameter.
+
+This file contains the classes needed for the task parameter definition.
 """
 
 import copy
@@ -71,9 +71,7 @@ UNDEFINED_CONTENT_TYPE = "#UNDEFINED#:#UNDEFINED#"
 
 
 class COMPSsFile(object):
-    """
-    Class that represents a file in the worker.
-    """
+    """Class that represents a file in the worker."""
 
     __slots__ = [
         "source_path",
@@ -84,6 +82,10 @@ class COMPSsFile(object):
     ]
 
     def __init__(self, file_name: str = "None") -> None:
+        """Compss File constructor.
+
+        :param file_name: File name.
+        """
         self.source_path = "None"  # type: str
         self.destination_name = "None"  # type: str
         self.keep_source = False  # type: bool
@@ -101,6 +103,10 @@ class COMPSsFile(object):
             pass
 
     def __repr__(self) -> str:
+        """Compss File object representation.
+
+        :returns: The COMPSsFile representation as string.
+        """
         return (
             "Source: %s, Destination: %s, "
             "Keep source: %s, Is write final: %s, "
@@ -116,7 +122,8 @@ class COMPSsFile(object):
 
 
 class Parameter(object):
-    """
+    """Class that represents a file in the worker.
+
     Internal Parameter class
     Used to group all parameter variables.
     """
@@ -159,6 +166,26 @@ class Parameter(object):
         keep_rename: bool = True,
         cache: bool = True,
     ) -> None:
+        """Parameter constructor.
+
+        :param name: Parameter name.
+        :param content: Object represented by the parameter.
+        :param content_type: Object type.
+        :param direction: Parameter direction.
+        :param stream: Parameter stream type.
+        :param prefix: Parameter prefix.
+        :param file_name: Parameter associated file name.
+        :param is_future: If is future or not.
+        :param is_file_collection: If is a collection of files or not.
+        :param collection_content: Collection contents (list of Parameters).
+        :param dict_collection_content: Dictionary collection contents
+                                        (dictionary of parameters).
+        :param depth: Collection or dictionary collection depth.
+        :param extra_content_type: Extra content types.
+        :param weight: Parameter weight.
+        :param keep_rename: Keep rename.
+        :param cache: If cache the parameter.
+        """
         if dict_collection_content is None:
             dict_collection_content = dict()
         self.name = name
@@ -179,6 +206,10 @@ class Parameter(object):
         self.cache = cache
 
     def __repr__(self) -> str:
+        """Parameter object representation.
+
+        :returns: The parameter representation as string.
+        """
         return (
             "Parameter(name=%s\n"
             "          type=%s, direction=%s, stream=%s, prefix=%s\n"
@@ -520,6 +551,7 @@ _param_conversion_dict_ = {
 
 def is_param(obj: typing.Any) -> bool:
     """Check if given object is a parameter.
+
     Avoids internal _param_ import.
 
     :param obj: Object to check.
@@ -530,6 +562,7 @@ def is_param(obj: typing.Any) -> bool:
 
 def is_parameter(obj: typing.Any) -> bool:
     """Check if given object is a parameter.
+
     Avoids internal Parameter import.
 
     :param obj: Object to check.
@@ -539,7 +572,7 @@ def is_parameter(obj: typing.Any) -> bool:
 
 
 def get_new_parameter(key: str) -> Parameter:
-    """Returns a brand new parameter (no copies!)
+    """Return a new parameter (no copies!).
 
     :param key: A string that is a key of a valid Parameter template.
     :return: A new Parameter from the given key.
@@ -548,7 +581,7 @@ def get_new_parameter(key: str) -> Parameter:
 
 
 def get_parameter_copy(parameter: Parameter) -> Parameter:
-    """Copies the given parameter into a new one.
+    """Copy the given parameter into a new one.
 
     :param parameter: Parameter object.
     :return: An equivalent Parameter copy of this object (note that it will
@@ -562,6 +595,7 @@ def get_parameter_copy(parameter: Parameter) -> Parameter:
 
 def is_dict_specifier(value: typing.Any) -> bool:
     """Check if value is a supported dictionary.
+
     Check if a parameter of the task decorator is a dictionary that specifies
     at least Type (and therefore can include things like Prefix, see binary
     decorator test for some examples).
@@ -574,7 +608,8 @@ def is_dict_specifier(value: typing.Any) -> bool:
 
 
 def get_parameter_from_dictionary(d: dict) -> Parameter:
-    """Convert a dictionary to Parameter
+    """Convert a dictionary to Parameter.
+
     Given a dictionary with fields like Type, Direction, etc.
     returns an actual Parameter object.
 
@@ -611,7 +646,7 @@ def get_compss_type(value: typing.Any, depth: int = 0, code_strings=True) -> int
 
     :param value: Value to analyse.
     :param depth: Collections depth.
-    :param code_strings: if strings will be encoded
+    :param code_strings: If strings will be encoded.
     :return: The Type of the value.
     """
     # First check if it is a PSCO since a StorageNumpy can be detected

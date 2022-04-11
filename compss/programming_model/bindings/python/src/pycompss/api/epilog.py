@@ -18,9 +18,10 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - Epilog
-==================
-    Epilog definition for PyCOMPSs tasks.
+PyCOMPSs API - Epilog decorator.
+
+This file contains the Epilog class, needed for the task epilog definition
+through the decorator.
 """
 import typing
 from functools import wraps
@@ -51,10 +52,10 @@ DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 
 
 class Epilog(object):
-    """
-    Epilog decorator of the task. If defined, will execute the binary after the
-    task execution on the worker. Should always be added on top of the 'task'
-    definition.
+    """Epilog decorator class.
+
+    If defined, will execute the binary after the task execution on the worker.
+    Should always be added on top of the 'task' definition.
     """
 
     __slots__ = [
@@ -95,38 +96,33 @@ class Epilog(object):
             )
 
     def __call__(self, user_function: typing.Callable) -> typing.Callable:
-        """
-        Calling Epilog simply updates the CE and saves Epilog parameters.
+        """Call Epilog simply updates the CE and saves Epilog parameters.
+
         :param user_function: User function to be decorated.
         :return: Decorated dummy user function.
         """
 
         @wraps(user_function)
         def epilog_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
-            return self.__decorator_body__(user_function, args, kwargs)
+            if not self.scope:
+                raise NotImplementedError
+
+            if __debug__:
+                logger.debug("Executing epilog wrapper.")
+
+            if (
+                    context.in_master() or context.is_nesting_enabled()
+            ) and not self.core_element_configured:
+                self.__configure_core_element__(kwargs)
+
+            with keep_arguments(args, kwargs, prepend_strings=True):
+                # Call the method
+                ret = user_function(*args, **kwargs)
+
+            return ret
 
         epilog_f.__doc__ = user_function.__doc__
         return epilog_f
-
-    def __decorator_body__(
-        self, user_function: typing.Callable, args: tuple, kwargs: dict
-    ) -> typing.Any:
-        if not self.scope:
-            raise NotImplementedError
-
-        if __debug__:
-            logger.debug("Executing epilog wrapper.")
-
-        if (
-            context.in_master() or context.is_nesting_enabled()
-        ) and not self.core_element_configured:
-            self.__configure_core_element__(kwargs)
-
-        with keep_arguments(args, kwargs, prepend_strings=True):
-            # Call the method
-            ret = user_function(*args, **kwargs)
-
-        return ret
 
     def __configure_core_element__(self, kwargs: dict) -> None:
         """Include the registering info related to @epilog.

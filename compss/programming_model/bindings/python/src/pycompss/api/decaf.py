@@ -18,10 +18,10 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - DECAF
-====================
-    This file contains the class decaf, needed for the @decaf task
-    definition through the decorator.
+PyCOMPSs API - Decaf decorator.
+
+This file contains the Decaf class, needed for the Decaf task definition
+through the decorator.
 """
 
 from functools import wraps
@@ -67,9 +67,10 @@ DEPRECATED_ARGUMENTS = {
 
 
 class Decaf(object):
-    """
+    """Decaf decorator class.
+
     This decorator also preserves the argspec, but includes the __init__ and
-    __call__ methods, useful on mpi task creation.
+    __call__ methods, useful on decaf task creation.
     """
 
     __slots__ = [
@@ -82,7 +83,7 @@ class Decaf(object):
     ]
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
-        """Store arguments passed to the decorator
+        """Store arguments passed to the decorator.
 
         self = itself.
         args = not used.

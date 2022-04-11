@@ -16,9 +16,10 @@
 #
 
 """
-PyCOMPSs Worker Commons
-=======================
-    This file contains the common code of all workers.
+PyCOMPSs Worker - Commons - Worker.
+
+This file contains the common worker methods.
+Currently, it is used by all worker types (container, external, gat and piper).
 """
 
 import base64
@@ -215,11 +216,11 @@ def build_task_parameter(
 def get_task_params(num_params: int, logger: typing.Any, args: list) -> list:
     """Get and prepare the input parameters from string to lists.
 
-    :param num_params: Number of parameters
-    :param logger: Logger
+    :param num_params: Number of parameters.
+    :param logger: Logger.
     :param args: Arguments (complete list of parameters with type, stream,
-                            prefix and value)
-    :return: A list of TaskParameter objects
+                            prefix and value).
+    :return: A list of TaskParameter objects.
     """
     with event_inside_worker(TRACING_WORKER.get_task_params_event):
         pos = 0
@@ -269,20 +270,20 @@ def task_execution(
     persistent_storage: bool,
     storage_conf: str,
 ) -> typing.Tuple[int, list, list, typing.Union[None, Parameter], bool, str]:
-    """Task execution function.
+    """Execute task.
 
-    :param logger: Logger
-    :param process_name: Process name
-    :param module: Module which contains the function
-    :param method_name: Function to invoke
-    :param time_out: Time out
-    :param types: List of the parameter's types
-    :param values: List of the parameter's values
-    :param compss_kwargs: PyCOMPSs keywords
-    :param persistent_storage: If persistent storage is enabled
-    :param storage_conf: Persistent storage configuration file
+    :param logger: Logger.
+    :param process_name: Process name.
+    :param module: Module which contains the function.
+    :param method_name: Function to invoke.
+    :param time_out: Time out.
+    :param types: List of the parameter's types.
+    :param values: List of the parameter's values.
+    :param compss_kwargs: PyCOMPSs keywords.
+    :param persistent_storage: If persistent storage is enabled.
+    :param storage_conf: Persistent storage configuration file.
     :return: exit_code, new_types, new_values, target_direction, timed_out
-             and return_message
+             and return_message.
     """
     if __debug__:
         logger.debug("Starting task execution")
@@ -394,14 +395,14 @@ def task_execution(
 
 
 def _get_return_values_for_exception(types: list, values: list) -> list:
-    """Builds the values list to retrieve on an exception.
+    """Build the values list to retrieve on an exception.
 
     It takes the input types and returns a list of 'null' for each type
     unless it is a PSCO, where it puts the psco identifier.
 
     :param types: List of input types.
     :param values: List of input values.
-    :return: List of values to return
+    :return: List of values to return.
     """
     new_values = []
     for i in range(len(types)):
@@ -421,7 +422,7 @@ def task_returns(
     return_message: str,
     logger: typing.Any,
 ) -> typing.Tuple[int, list, list, typing.Union[None, Parameter], bool, str]:
-    """Unified task return function.
+    """Log return.
 
     :param exit_code: Exit value (0 ok, 1 error).
     :param new_types: New types to be returned.
@@ -500,23 +501,23 @@ def execute_task(
     cache_ids: typing.Any = None,
     cache_profiler: bool = False,
 ) -> typing.Tuple[int, list, list, typing.Optional[bool], str]:
-    """ExecuteTask main method.
+    """Execute task main method.
 
     :param process_name: Process name.
     :param storage_conf: Storage configuration file path.
     :param params: List of parameters.
     :param tracing: Tracing flag.
     :param logger: Logger to use.
-    :param logger_cfg: Logger configuration file
+    :param logger_cfg: Logger configuration file.
     :param log_files: Tuple with (out filename, err filename).
                       None to avoid stdout and sdterr fd redirection.
     :param python_mpi: If it is a MPI task.
-    :param collections_layouts: collections layouts for python MPI tasks
-    :param cache_queue: Cache tracker communication queue
-    :param cache_ids: Cache proxy dictionary (read-only)
-    :param cache_profiler: Cache profiler
+    :param collections_layouts: collections layouts for python MPI tasks.
+    :param cache_queue: Cache tracker communication queue.
+    :param cache_ids: Cache proxy dictionary (read-only).
+    :param cache_profiler: Cache profiler.
     :return: updated_args, exit_code, new_types, new_values, timed_out
-             and except_msg
+             and except_msg.
     """
     if __debug__:
         logger.debug("BEGIN TASK execution in %s" % process_name)

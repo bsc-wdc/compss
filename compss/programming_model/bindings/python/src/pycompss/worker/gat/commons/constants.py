@@ -18,9 +18,9 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs GAT Worker Constants
-=============================
-    This file contains a set of constants used whit GAT worker.
+PyCOMPSs Worker - GAT - Commons - Constants.
+
+This file contains a set of constants used whit GAT worker.
 """
 
 # ###################### #

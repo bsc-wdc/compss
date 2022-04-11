@@ -18,9 +18,9 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Binding - Binding
-==========================
-    This file contains the Python binding auxiliary classes and methods.
+PyCOMPSs Binding - Binding core module.
+
+This file contains the Python binding core classes and methods.
 """
 
 import os
@@ -65,7 +65,7 @@ def start_runtime(
     interactive: bool = False,
     disable_external: bool = False,
 ) -> None:
-    """Starts the COMPSs runtime.
+    """Start the COMPSs runtime.
 
     Starts the runtime by calling the external python library that calls
     the bindings-common.
@@ -74,7 +74,7 @@ def start_runtime(
     :param tracing: Tracing level [ True | False ].
     :param interactive: Boolean if interactive (ipython or jupyter).
     :param disable_external: To avoid to load compss in external process.
-    :return: None
+    :return: None.
     """
     if __debug__:
         logger.info("Starting COMPSs...")
@@ -102,7 +102,7 @@ def start_runtime(
 
 
 def stop_runtime(code: int = 0, hard_stop: bool = False) -> None:
-    """Stops the COMPSs runtime.
+    """Stop the COMPSs runtime.
 
     Stops the runtime by calling the external python library that calls
     the bindings-common.
@@ -112,7 +112,7 @@ def stop_runtime(code: int = 0, hard_stop: bool = False) -> None:
 
     :parameter code: Stop code (if code != 0 ==> cancel application tasks).
     :param hard_stop: Stop compss when runtime has died.
-    :return: None
+    :return: None.
     """
     with event_master(TRACING_MASTER.stop_runtime_event):
         app_id = 0
@@ -172,7 +172,7 @@ def accessed_file(file_name: str) -> bool:
 
 
 def open_file(file_name: str, mode: str) -> str:
-    """Opens a file (retrieves if necessary).
+    """Open a file (retrieves if necessary).
 
     Calls the external python library (that calls the bindings-common)
     in order to request a file.
@@ -222,7 +222,7 @@ def get_file(file_name: str) -> None:
     in order to request last version of file.
 
     :param file_name: File name to remove.
-    :return: None
+    :return: None.
     """
     with event_master(TRACING_MASTER.get_file_event):
         app_id = 0
@@ -238,7 +238,7 @@ def get_directory(dir_name: str) -> None:
     in order to request last version of file.
 
     :param dir_name: dir name to retrieve.
-    :return: None
+    :return: None.
     """
     with event_master(TRACING_MASTER.get_directory_event):
         app_id = 0
@@ -281,7 +281,7 @@ def barrier(no_more_tasks: bool = False) -> None:
 
     :param no_more_tasks: If no more tasks are going to be submitted, remove
                           all objects.
-    :return: None
+    :return: None.
     """
     with event_master(TRACING_MASTER.barrier_event):
         if __debug__:
@@ -307,7 +307,7 @@ def nested_barrier() -> None:
     with (no_more_tasks==False). In this case, it is necessary to perform a
     smart object tracker cleanup (remove in, but not inout nor out).
 
-    :return: None
+    :return: None.
     """
     with event_master(TRACING_MASTER.barrier_event):
         if __debug__:
@@ -342,7 +342,7 @@ def open_task_group(group_name: str, implicit_barrier: bool) -> None:
 
     :param group_name: Group name.
     :param implicit_barrier: Perform a wait on all group tasks before closing.
-    :return: None
+    :return: None.
     """
     with event_master(TRACING_MASTER.open_task_group_event):
         app_id = 0
@@ -356,7 +356,7 @@ def close_task_group(group_name: str) -> None:
     in order to request a group closure.
 
     :param group_name: Group name.
-    :return: None
+    :return: None.
     """
     with event_master(TRACING_MASTER.close_task_group_event):
         app_id = 0
@@ -405,7 +405,7 @@ def request_resources(num_resources: int, group_name: typing.Optional[str]) -> N
 
     :param num_resources: Number of resources to create.
     :param group_name: Task group to notify upon resource creation.
-    :return: None
+    :return: None.
     """
     with event_master(TRACING_MASTER.request_resources_event):
         app_id = 0
@@ -431,7 +431,7 @@ def free_resources(num_resources: int, group_name: typing.Optional[str]) -> None
 
     :param num_resources: Number of resources to destroy.
     :param group_name: Task group to notify upon resource creation.
-    :return: None
+    :return: None.
     """
     with event_master(TRACING_MASTER.free_resources_event):
         app_id = 0
@@ -450,10 +450,10 @@ def free_resources(num_resources: int, group_name: typing.Optional[str]) -> None
 
 
 def set_wall_clock(wall_clock_limit: int) -> None:
-    """Sets the application wall clock limit.
+    """Set the application wall clock limit.
 
     :param wall_clock_limit: Wall clock limit in seconds.
-    :return: None
+    :return: None.
     """
     with event_master(TRACING_MASTER.wall_clock_limit_event):
         app_id = 0
@@ -552,7 +552,7 @@ def register_ce(core_element: CE) -> None:
     impl_type_args: <List(Strings)> Implementation arguments (e.g.- ["methodClass", "methodName"])  # noqa: E501
 
     :param core_element: <CE> Core Element to register.
-    :return: None
+    :return: None.
     """
     with event_master(TRACING_MASTER.register_core_element_event):
         # Retrieve Core element fields
@@ -688,28 +688,28 @@ def process_task(
 ) -> None:
     """Submit a task to the runtime.
 
-    :param signature: Task signature
-    :param has_target: Boolean if the task has self
-    :param names: Task parameter names
-    :param values: Task parameter values
-    :param num_returns: Number of returns
-    :param compss_types: List of parameter types
-    :param compss_directions: List of parameter directions
-    :param compss_streams: List of parameter streams
-    :param compss_prefixes: List of parameter prefixes
-    :param content_types: Content types
-    :param weights: List of parameter weights
-    :param keep_renames: Boolean keep renaming
-    :param has_priority: Boolean has priority
-    :param num_nodes: Number of nodes that the task must use
-    :param reduction: Boolean indicating if the task is of type reduce
-    :param chunk_size: Size of chunks for executing the reduce operation
-    :param replicated: Boolean indicating if the task must be replicated
-    :param distributed: Boolean indicating if the task must be distributed
-    :param on_failure: Action on failure
-    :param time_out: Time for a task time out
-    :param is_http: If it is an http task (service)
-    :return: The future object related to the task return
+    :param signature: Task signature.
+    :param has_target: Boolean if the task has self.
+    :param names: Task parameter names.
+    :param values: Task parameter values.
+    :param num_returns: Number of returns.
+    :param compss_types: List of parameter types.
+    :param compss_directions: List of parameter directions.
+    :param compss_streams: List of parameter streams.
+    :param compss_prefixes: List of parameter prefixes.
+    :param content_types: Content types.
+    :param weights: List of parameter weights.
+    :param keep_renames: Boolean keep renaming.
+    :param has_priority: Boolean has priority.
+    :param num_nodes: Number of nodes that the task must use.
+    :param reduction: Boolean indicating if the task is of type reduce.
+    :param chunk_size: Size of chunks for executing the reduce operation.
+    :param replicated: Boolean indicating if the task must be replicated.
+    :param distributed: Boolean indicating if the task must be distributed.
+    :param on_failure: Action on failure.
+    :param time_out: Time for a task time out.
+    :param is_http: If it is a http task (service).
+    :return: The future object related to the task return.
     """
     with event_master(TRACING_MASTER.process_task_event):
         app_id = 0
@@ -856,7 +856,7 @@ def _clean_objects(hard_stop: bool = False) -> None:
         - _objs_written_by_mp dict.
 
     :param hard_stop: avoid call to delete_file when the runtime has died.
-    :return: None
+    :return: None.
     """
     app_id = 0
     if not hard_stop:
@@ -870,7 +870,7 @@ def _clean_temps() -> None:
 
     The temporary files end with the IT extension.
 
-    :return: None
+    :return: None.
     """
     temp_directory = GLOBALS.get_temporary_directory()
     rmtree(temp_directory, True)
@@ -887,7 +887,7 @@ def _wall_clock_exceed(signum: int, frame: typing.Any) -> None:
 
     :param signum: Signal number.
     :param frame: Frame.
-    :return: None
+    :return: None.
     :raises: PyCOMPSsException exception.
     """
     raise PyCOMPSsException("Application has reached its wall clock limit")

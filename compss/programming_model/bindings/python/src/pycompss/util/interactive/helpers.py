@@ -18,9 +18,9 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Util - Interactive Mode Helpers
-========================================
-    Provides auxiliary methods for the interactive mode.
+PyCOMPSs Util - Interactive - Mode Helpers.
+
+Provides auxiliary methods for the interactive mode.
 """
 
 import inspect
@@ -60,7 +60,9 @@ PREFIXES = (
 
 
 def update_tasks_code_file(f: typing.Any, file_path: str) -> None:
-    """Main interactive helper function.
+    """Update the file where the tasks code is stored.
+
+    IMPORTANT! Main interactive helper function.
 
     Analyses the user code that has been executed and parses it looking for:
         - imports
@@ -71,7 +73,7 @@ def update_tasks_code_file(f: typing.Any, file_path: str) -> None:
 
     :param f: New task function.
     :param file_path: File where the code is stored.
-    :return: None
+    :return: None.
     """
     if not os.path.exists(file_path):
         _create_tasks_code_file(file_path)
@@ -118,10 +120,10 @@ def update_tasks_code_file(f: typing.Any, file_path: str) -> None:
 
 
 def _create_tasks_code_file(file_path: str) -> None:
-    """Creates a file where to store the user code.
+    """Create a file where to store the user code.
 
     :param file_path: File location and name.
-    :return: None
+    :return: None.
     """
     user_code_file = open(file_path, "a")
     user_code_file.write("\n")
@@ -150,7 +152,7 @@ def _get_raw_code() -> list:
 
 
 def _get_ipython_imports() -> list:
-    """Finds the user imports.
+    r"""Find the user imports.
 
     :return: A list of imports: [import\n, import\n, ...].
     """
@@ -170,7 +172,7 @@ def _get_ipython_imports() -> list:
 
 
 def _get_ipython_globals() -> dict:
-    """Finds the user global variables.
+    r"""Find the user global variables.
 
     WARNING: Assignations using any of the master api calls will be ignored
     in order to avoid the worker to try to call the runtime.
@@ -238,8 +240,8 @@ def _is_variable_assignation(line: str) -> bool:
       nor def, nor class.
     * then it is ==> is a global variable assignation.
 
-    :param line: Line to parse
-    :return: <Boolean>
+    :param line: Line to parse.
+    :return: If is a variable assignation.
     """
     if "=" in line:
         parts = line.split()
@@ -265,13 +267,12 @@ def _is_variable_assignation(line: str) -> bool:
 
 
 def _get_classes() -> dict:
-    """Finds the user defined classes in the code.
+    r"""Find the user defined classes in the code.
 
     Output dictionary: {"name": str(line\nline\n...)}
 
-    :return: A dictionary with the user classes code:
+    :return: A dictionary with the user classes code.
     """
-
     raw_code = _get_raw_code()
     classes = {}
     for block in raw_code:
@@ -308,11 +309,11 @@ def _get_classes() -> dict:
 
 
 def _get_functions() -> dict:
-    """Finds the user defined functions in the code.
+    r"""Find the user defined functions in the code.
 
     Output dictionary: {"name": str(line\nline\n...)}
 
-    :return: A dictionary with the user functions code
+    :return: A dictionary with the user functions code.
     """
     raw_code = _get_raw_code()
     functions = {}
@@ -375,10 +376,10 @@ def _get_functions() -> dict:
 
 
 def _get_task_code(f: typing.Any) -> dict:
-    """Finds the task code.
+    r"""Find the task code.
 
-    :param f: Task function
-    :return: A dictionary with the task code: {"name": str(line\nline\n...)}
+    :param f: Task function.
+    :return: A dictionary with the task code: {"name": str(line\nline\n...)}.
     """
     try:
         task_code = inspect.getsource(f)
@@ -399,7 +400,7 @@ def _get_task_code(f: typing.Any) -> dict:
 
 
 def _clean(lines_list: list) -> list:
-    """Removes the blank lines from a list of strings.
+    r"""Remove the blank lines from a list of strings.
 
     * _get_old_code auxiliary method - Clean imports list.
 
@@ -587,7 +588,7 @@ def _update_imports(new_imports: list, old_imports: list) -> list:
     """Update imports.
 
     Compare the old imports against the new ones and returns the old imports
-    with the new imports that did not existed previously.
+    with the new imports that did not exist previously.
 
     :param new_imports: All new imports.
     :param old_imports: All old imports.
@@ -610,7 +611,7 @@ def _update_globals(new_globals: dict, old_globals: dict) -> dict:
     """Update global variables.
 
     Compare the old globals against the new ones and returns the old globals
-    with the new globals that did not existed previously.
+    with the new globals that did not exist previously.
 
     :param new_globals: All new globals.
     :param old_globals: All old globals.
@@ -715,7 +716,10 @@ def _update_tasks(new_tasks: dict, old_tasks: dict) -> dict:
 
 
 def __show_redefinition_warning__(kind: str, name: str) -> None:
-    """Shows a warning notifying the redefinition of "kind" type."""
+    """Show a warning notifying the redefinition of "kind" type.
+
+    :returns: None.
+    """
     print(
         "WARNING! %s %s has been redefined (the previous will be deprecated)."
         % (kind, name)
@@ -735,7 +739,7 @@ def _update_code_file(
     new_tasks: dict,
     file_path: str,
 ) -> None:
-    """Writes the results to the code file used by the workers.
+    """Write the results to the code file used by the workers.
 
     :param new_imports: new imports.
     :param new_globals: new global variables.
@@ -743,7 +747,7 @@ def _update_code_file(
     :param new_functions: new functions.
     :param new_tasks: new tasks.
     :param file_path: File to update.
-    :return: None
+    :return: None.
     """
     code_file = open(file_path, "w")
     # Write imports

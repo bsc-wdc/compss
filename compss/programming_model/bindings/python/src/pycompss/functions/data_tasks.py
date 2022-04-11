@@ -18,11 +18,11 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Functions: Data generators
-===================================
-    This file defines the common data producing functions.
+PyCOMPSs Functions: Data generators.
 
-    WARNING: This file can not be compiled with mypyc since contains tasks.
+This file defines the common data producing functions.
+
+WARNING: This file can not be compiled with mypyc since contains tasks.
 """
 
 import random
@@ -33,7 +33,7 @@ from pycompss.util.typing_helper import typing
 
 @task(returns=list)
 def gen_random(size: int, frag_size: int, seed: int) -> typing.Any:
-    """Random generator.
+    """Generate random distribution fragment.
 
     :param size: Size
     :param frag_size: Fragment size
@@ -46,7 +46,7 @@ def gen_random(size: int, frag_size: int, seed: int) -> typing.Any:
 
 @task(returns=list)
 def gen_normal(size: int, frag_size: int, seed: int) -> typing.Any:
-    """Normal generator.
+    """Generate normal distribution fragment.
 
     :param size: Size
     :param frag_size: Fragment size
@@ -61,7 +61,7 @@ def gen_normal(size: int, frag_size: int, seed: int) -> typing.Any:
 
 @task(returns=list)
 def gen_uniform(size: int, frag_size: int, seed: int) -> typing.Any:
-    """Uniform generator.
+    """Generate uniform distribution fragment.
 
     :param size: Size
     :param frag_size: Fragment size

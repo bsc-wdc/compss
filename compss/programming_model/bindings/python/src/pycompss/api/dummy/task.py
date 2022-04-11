@@ -18,24 +18,33 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Dummy API - task
-=========================
-    This file contains the dummy class task used as decorator.
+PyCOMPSs API - dummy - task.
+
+This file contains the dummy class task used as decorator.
 """
 
 from pycompss.util.typing_helper import typing
 
 
 class Task(object):
-    """
-    Dummy task class (decorator style)
-    """
+    """Dummy task class (decorator style)."""
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
+        """Construct a dummy Task decorator.
+
+        :param args: Task decorator arguments.
+        :param kwargs: Task decorator keyword arguments.
+        :returns: None
+        """
         self.args = args
         self.kwargs = kwargs
 
     def __call__(self, f: typing.Any) -> typing.Any:
+        """Invoke the dummy Task decorator.
+
+        :param f: Decorated function.
+        :returns: Result of executing function f.
+        """
         def wrapped_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             if "returns" in kwargs:
                 kwargs.pop("returns")

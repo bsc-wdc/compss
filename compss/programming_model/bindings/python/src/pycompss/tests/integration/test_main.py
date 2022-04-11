@@ -17,6 +17,12 @@
 
 # -*- coding: utf-8 -*-
 
+"""
+PyCOMPSs Tests - Integration - Main.
+
+This file contains the integration tests using __main__.py module.
+"""
+
 import os
 import sys
 

@@ -15,12 +15,17 @@
 #  limitations under the License.
 #
 
+"""
+PyCOMPSs Tests - Integration - DDS - Examples.
+
+This file contains the dds integration examples tests.
+"""
+
 import os
 import shutil
 import sys
 import tempfile
 import time
-import unittest
 
 from pycompss.dds.examples import inverted_indexing
 from pycompss.dds.examples import pi_estimation
@@ -38,14 +43,26 @@ EXAMPLES_NAME = "examples.py"
 
 
 def pi_estimation_example():
+    """Run the pi estimation example.
+
+    :returns: None.
+    """
     pi_estimation()
 
 
 def transitive_closure_example():
+    """Run the transitive closure example.
+
+    :returns: None.
+    """
     transitive_closure(2)
 
 
 def wordcount_example():
+    """Run the wordcount example.
+
+    :returns: None.
+    """
     current_path = os.path.dirname(os.path.abspath(__file__))
     wordcount_dataset_path = os.path.join(
         current_path, "../../../unittests/dds/dataset", "wordcount"
@@ -57,6 +74,10 @@ def wordcount_example():
 
 
 def wordcount_k_means_example():
+    """Run the wordcount K-means example.
+
+    :returns: None.
+    """
     if sys.version_info >= (3, 0):
         current_path = os.path.dirname(os.path.abspath(__file__))
         wordcount_k_means_dataset_path = os.path.join(
@@ -71,6 +92,10 @@ def wordcount_k_means_example():
 
 
 def terasort_example():
+    """Run the terasort example.
+
+    :returns: None.
+    """
     result_path = tempfile.mkdtemp()
     current_path = os.path.dirname(os.path.abspath(__file__))
     terasort_dataset_path = os.path.join(
@@ -88,6 +113,10 @@ def terasort_example():
 
 
 def inverted_indexing_example():
+    """Run the inverted indexing example.
+
+    :returns: None.
+    """
     current_path = os.path.dirname(os.path.abspath(__file__))
     inverted_indexing_dataset_path = os.path.join(
         current_path, "../../../unittests/dds/dataset", "wordcount"
@@ -99,6 +128,10 @@ def inverted_indexing_example():
 
 
 def main():
+    """Run all examples.
+
+    :returns: None.
+    """
     # Examples to run
     pi_estimation_example()
     transitive_closure_example()

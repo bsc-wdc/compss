@@ -15,10 +15,18 @@
 #  limitations under the License.
 #
 
+# -*- coding: utf-8 -*-
+
+"""PyCOMPSs Testbench for functions."""
+
 from pycompss.functions.data import generator
 
 
 def check_generator():
+    """Check the generator function.
+
+    :returns: None.
+    """
     random_data = generator((12, 12), 4, 5, "random", True)
     normal_data = generator((12, 12), 4, 5, "normal", True)
     uniform_data = generator((12, 12), 4, 5, "uniform", True)
@@ -29,6 +37,10 @@ def check_generator():
 
 
 def main():
+    """Execute all function tests.
+
+    :returns: None.
+    """
     check_generator()
 
 

@@ -18,10 +18,10 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - MPI
-==================
-    This file contains the class mpi, needed for the mpi
-    definition through the decorator.
+PyCOMPSs API - Mpi decorator.
+
+This file contains the MPI class, needed for the mpi task definition through
+the decorator.
 """
 
 from functools import wraps
@@ -68,7 +68,8 @@ DEPRECATED_ARGUMENTS = {
 
 
 class Mpi(object):
-    """
+    """Mpi decorator class.
+
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on mpi task creation.
     """
@@ -127,6 +128,13 @@ class Mpi(object):
     def __decorator_body__(
         self, user_function: typing.Callable, args: tuple, kwargs: dict
     ) -> typing.Any:
+        """Body of the mpi decorator.
+
+        :param user_function: Decorated function.
+        :param args: Function arguments.
+        :param kwargs: Function keyword arguments.
+        :returns: Result of executing the user_function with the given args and kwargs.
+        """
         if not self.scope:
             # Execute the mpi as with PyCOMPSs so that sequential
             # execution performs as parallel.
@@ -185,7 +193,7 @@ class Mpi(object):
         return ret
 
     def __run_mpi__(self, args: tuple, kwargs: dict) -> int:
-        """Runs the mpi binary defined in the decorator when used as dummy.
+        """Run the mpi binary defined in the decorator when used as dummy.
 
         :param args: Arguments received from call.
         :param kwargs: Keyword arguments received from call.
@@ -209,10 +217,8 @@ class Mpi(object):
         """Resolve the collection layout, such as blocks, strides, etc.
 
         :return: list(param_name, block_count, block_length, stride)
-        :raises PyCOMPSsException: If the collection layout does not contain
-                                   block_count.
+        :raises PyCOMPSsException: If the collection layout does not contain block_count.
         """
-
         num_layouts = 0
         layout_params = []
         for key, value in self.kwargs.items():
@@ -361,7 +367,7 @@ class Mpi(object):
         self.core_element_configured = True
 
     def __resolve_scale_by_cu__(self) -> str:
-        """Checks if scale_by_cu is defined and process it.
+        """Check if scale_by_cu is defined and process it.
 
         :return: Scale by cu value as string.
         :raises PyCOMPSsException: If scale_by_cu is not bool or string.

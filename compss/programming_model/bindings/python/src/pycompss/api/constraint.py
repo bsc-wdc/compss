@@ -18,10 +18,10 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - CONSTRAINT
-=========================
-    This file contains the class constraint, needed for the constraint
-    definition through the decorator.
+PyCOMPSs API - Constraint decorator.
+
+This file contains the Constraint class, needed for the task constraint
+definition through the decorator.
 """
 
 from functools import wraps
@@ -39,7 +39,8 @@ if __debug__:
 
 
 class Constraint(object):
-    """
+    """Constraint decorator class.
+
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on task constraint creation.
     """

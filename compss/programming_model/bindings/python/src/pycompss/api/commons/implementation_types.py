@@ -18,9 +18,9 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - COMMONS - Implementation types
-=============================================
-    This file contains the implementation types definitions.
+PyCOMPSs API - commons - implementation types.
+
+This file contains the implementation types definitions.
 """
 
 # Supported implementation types

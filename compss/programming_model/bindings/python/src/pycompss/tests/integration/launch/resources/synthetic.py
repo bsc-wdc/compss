@@ -15,6 +15,10 @@
 #  limitations under the License.
 #
 
+# -*- coding: utf-8 -*-
+
+"""PyCOMPSs Testbench synthetic functions."""
+
 import os
 import shutil
 import tempfile
@@ -50,6 +54,10 @@ def check_ompss(result):  # noqa
 
 
 def check_decorators():
+    """Check the binary, mpi and ompss decorators.
+
+    :returns: None.
+    """
     binary_result = "binary_result.out"
     mpi_result = "mpi_result.out"
     ompss_result = "ompss_result.out"
@@ -88,6 +96,10 @@ def check_decorators():
 
 
 def main():
+    """Execute all synthetic functionalities.
+
+    :returns: None.
+    """
     check_decorators()
     # add more to be tested
 

@@ -18,10 +18,10 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Cache setup
-====================
-    This file contains the cache setup and instantiation.
-    IMPORTANT: Only used with python >= 3.8.
+PyCOMPSs Worker - Piper - Cache Setup.
+
+This file contains the cache setup and instantiation.
+IMPORTANT: Only used with python >= 3.8.
 """
 
 from pycompss.util.process.manager import Process  # just typing
@@ -58,14 +58,14 @@ def start_cache(
     cache_profiler: bool,
     log_dir: str,
 ) -> typing.Tuple[typing.Any, Process, Queue, typing.Any]:
-    """Setup the cache process which keeps the consistency of the cache.
+    """Set up the cache process which keeps the consistency of the cache.
 
     :param logger: Logger.
     :param cache_config: Cache configuration defined on startup.
     :param cache_profiler: If cache profiling is enabled or not.
     :param log_dir: Log directory where to store the profiling.
     :return: Shared memory manager, cache process, cache message queue and
-             cache ids dictionary
+             cache ids dictionary.
     """
     cache_size = __get_cache_size__(cache_config)
     # Cache can be used - Create proxy dict
@@ -96,13 +96,13 @@ def stop_cache(
     cache_profiler: bool,
     cache_process: Process,
 ) -> None:
-    """Stops the cache process and performs the necessary cleanup.
+    """Stop the cache process and performs the necessary cleanup.
 
     :param shared_memory_manager: Shared memory manager.
     :param cache_queue: Cache messaging queue.
     :param cache_profiler: If cache profiling is enabled or not.
-    :param cache_process: Cache process
-    :return: None
+    :param cache_process: Cache process.
+    :return: None.
     """
     if cache_profiler:
         cache_queue.put("END PROFILING")
@@ -114,7 +114,7 @@ def __get_cache_size__(cache_config: str) -> int:
     """Retrieve the cache size for the given config.
 
     :param cache_config: Cache configuration defined on startup.
-    :return: The cache size
+    :return: The cache size.
     """
     if ":" in cache_config:
         _, cache_s = cache_config.split(":")
@@ -125,7 +125,7 @@ def __get_cache_size__(cache_config: str) -> int:
 
 
 def __get_default_cache_size__() -> int:
-    """Returns the default cache size.
+    """Return the default cache size.
 
     :return: The size in bytes.
     """
@@ -141,11 +141,11 @@ def __get_default_cache_size__() -> int:
 def __create_cache_tracker_process__(
     process_name: str, conf: CacheTrackerConf
 ) -> typing.Tuple[Process, Queue]:
-    """Starts a new cache tracker process.
+    """Start a new cache tracker process.
 
     :param process_name: Process name.
     :param conf: cache config.
-    :return: None
+    :return: None.
     """
     queue = new_queue()
     process = create_process(target=cache_tracker, args=(queue, process_name, conf))
@@ -156,11 +156,11 @@ def __create_cache_tracker_process__(
 def __destroy_cache_tracker_process__(
     cache_process: Process, cache_queue: Queue
 ) -> None:
-    """Stops the given cache tracker process.
+    """Stop the given cache tracker process.
 
-    :param cache_process: Cache process
+    :param cache_process: Cache process.
     :param cache_queue: Cache messaging queue.
-    :return: None
+    :return: None.
     """
     cache_queue.put("QUIT")  # noqa
     cache_process.join()  # noqa
@@ -169,15 +169,14 @@ def __destroy_cache_tracker_process__(
 
 
 def __create_proxy_dict__() -> typing.Any:
-    """Create a proxy dictionary to share the information across workers
-    within the same node.
+    """Create a proxy dictionary to share the information across workers within the same node.
 
     WARNING: This code is in a separate function without typing
              to avoid mypy issue with the DictProxy (typeshed issue) in
              execution time:
              TypeError: dict object expected; got multiprocessing.managers.DictProxy
 
-    :return: Proxy dictionary
+    :return: Proxy dictionary.
     """
     manager = new_manager()
     cache_ids = manager.dict()  # type: typing.Any

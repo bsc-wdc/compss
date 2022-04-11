@@ -17,6 +17,12 @@
 
 # -*- coding: utf-8 -*-
 
+"""
+PyCOMPSs runtime - Task - Worker.
+
+This file contains the task core functions when acting as worker.
+"""
+
 import gc
 import os
 import sys
@@ -81,8 +87,7 @@ if __debug__:
 
 
 class TaskWorker(object):
-    """
-    Task code for the Worker:
+    """Task class representation for the Worker.
 
     Process the task decorator and prepare call the user function.
     """
@@ -107,6 +112,13 @@ class TaskWorker(object):
         on_failure: str,
         defaults: dict,
     ) -> None:
+        """Task at worker constructor.
+
+        :param decorator_arguments: Decorator arguments.
+        :param user_function: User function (target function to execute).
+        :param on_failure: On failure action.
+        :param defaults: Default values for on failure action.
+        """
         # Initialize TaskCommons
         self.user_function = user_function
         self.decorator_arguments = decorator_arguments
@@ -126,12 +138,14 @@ class TaskWorker(object):
     def call(
         self, *args: typing.Any, **kwargs: typing.Any
     ) -> typing.Tuple[list, list, Parameter, tuple]:
-        """Main task code at worker side.
+        """Run the task as worker.
 
-        This function deals with task calls in the worker"s side
+        This function deals with task calls in the worker's side
         Note that the call to the user function is made by the worker,
         not by the user code.
 
+        :param args: Arguments.
+        :param kwargs: Keyword arguments.
         :return: A function that calls the user function with the given
                  parameters and does the proper serializations and updates
                  the affected objects.
@@ -307,7 +321,7 @@ class TaskWorker(object):
     def __release_memory__() -> None:
         """Release memory after task execution explicitly.
 
-        :return: None
+        :return: None.
         """
         delete_worker_args()
         # Call garbage collector: The memory may not be freed to the SO,
@@ -325,9 +339,9 @@ class TaskWorker(object):
 
     @staticmethod
     def __report_heap__() -> None:
-        """Prints the heap status.
+        """Print the heap status.
 
-        :return: None
+        :return: None.
         """
         if __debug__:
             logger.debug("Memory heap report:")
@@ -357,7 +371,7 @@ class TaskWorker(object):
         :param python_mpi: If the task is python MPI.
         :param collections_layouts: Layouts of collections params for python
                                     MPI tasks.
-        :return: None
+        :return: None.
         """
         if self.storage_supports_pipelining():
             if __debug__:
@@ -734,7 +748,7 @@ class TaskWorker(object):
 
     def recover_object(self, argument):
         # type: (Parameter) -> typing.Any
-        """Recovers the object within a file.
+        """Recover the object within a file.
 
         :param argument: Parameter object for the argument to recover.
         :return: The object associated to the given argument Parameter.
@@ -856,7 +870,7 @@ class TaskWorker(object):
     ) -> typing.Tuple[
         typing.Any, typing.Optional[COMPSsException], typing.Optional[dict]
     ]:
-        """Executes the user code.
+        """Execute the user code.
 
         Disables the tracing hook if tracing is enabled. Restores it
         at the end of the user code execution.
@@ -1014,12 +1028,13 @@ class TaskWorker(object):
         return user_returns, default_values
 
     def manage_defaults(self, args: tuple, default_values: dict) -> None:
-        """Deal with default values. Updates args with the appropriate object
-        or file.
+        """Deal with default values.
+
+        WARNING! Updates args with the appropriate object or file.
 
         :param args: Argument list.
         :param default_values: Dictionary containing the default values.
-        :return: None
+        :return: None.
         """
         if __debug__:
             logger.debug("Dealing with default values")
@@ -1038,11 +1053,13 @@ class TaskWorker(object):
                 copyfile(str(default_values[arg.name]), str(arg.content))
 
     def manage_inouts(self, args: tuple, python_mpi: bool) -> None:
-        """Deal with INOUTS. Serializes the result of INOUT parameters.
+        """Deal with INOUTS.
+
+        Serializes the result of INOUT parameters.
 
         :param args: Argument list.
         :param python_mpi: Boolean if python mpi.
-        :return: None
+        :return: None.
         """
         if __debug__:
             logger.debug("Dealing with INOUTs and OUTS")
@@ -1171,11 +1188,11 @@ class TaskWorker(object):
                     self.update_object_in_cache(arg.content, arg)
 
     def update_object_in_cache(self, content: typing.Any, argument: Parameter) -> None:
-        """Updates the object into cache if possible
+        """Update the object into cache if possible.
 
         :param content: Object to be updated.
-        :param argument: Parameter object for the argument to be update.
-        :return: None
+        :param argument: Parameter object for the argument to be updated.
+        :return: None.
         """
         name = argument.name
         original_path = argument.file_name.original_path
@@ -1306,8 +1323,7 @@ class TaskWorker(object):
         return True
 
     def is_parameter_file_collection(self, name: str) -> bool:
-        """Given the name of a parameter, determine if it is a file
-        collection or not.
+        """Determine if the given parameter name it is a file collection or not.
 
         :param name: Name of the parameter.
         :return: True if the parameter is a file collection.
@@ -1358,7 +1374,13 @@ class TaskWorker(object):
 
         def build_collection_types_values(_content, _arg, direction):
             # type: (typing.Any, Parameter, int) -> list
-            """Retrieve collection type-value recursively"""
+            """Retrieve collection type-value recursively.
+
+            :param _content: Object or list of objects.
+            :param _arg: Argument or list of arguments of the given objects.
+            :param direction: Direction of the object/s.
+            :returns: The collection representation.
+            """
             coll = []  # type: list
             for (_cont, _elem) in zip(_arg.content, _arg.collection_content):
                 if isinstance(_elem, str):
@@ -1497,7 +1519,12 @@ def __get_collection_objects__(
     content: typing.Any, argument: Parameter
 ) -> typing.Generator[typing.Tuple[typing.Any, Parameter], None, None]:
     """Retrieve collection objects recursively generator.
-    Updates the collection with any modification from content.
+
+    WARNING! Updates the collection with any modification from content.
+
+    :param content: Object or list of objects.
+    :param argument: Argument or list of arguments of the given objects.
+    :returns: The collection representation.
     """
     if argument.content_type == parameter.TYPE.COLLECTION:
         for (new_con, _elem) in zip(argument.content, argument.collection_content):
@@ -1526,8 +1553,14 @@ def __get_collection_objects__(
 def __get_dict_collection_objects__(
     content: typing.Any, argument: Parameter
 ) -> typing.Generator[typing.Tuple[typing.Any, Parameter], None, None]:
-    """Retrieve dictionary collection objects recursively generator.
-    Updates the dictionary collection with any modification from content."""
+    """Retrieve the dictionary collection objects recursively generator.
+
+    WARNING! Updates the dictionary collection with any modification from content.
+
+    :param content: Object or list of objects.
+    :param argument: Argument or list of arguments of the given objects.
+    :returns: The collection representation.
+    """
     if argument.content_type == parameter.TYPE.DICT_COLLECTION:
         elements = []
         for k, v in argument.content.items():

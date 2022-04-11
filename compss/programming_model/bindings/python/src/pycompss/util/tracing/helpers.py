@@ -18,10 +18,10 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Tracing helpers
-=========================
-    This file contains a set of context managers and decorators to ease the
-    tracing events emission.
+PyCOMPSs Util - Tracing - Helpers.
+
+This file contains a set of context managers and decorators to ease the
+tracing events emission.
 """
 
 import time
@@ -41,7 +41,7 @@ TRACING = False  # type: bool
 def dummy_context() -> typing.Iterator[None]:
     """Context which deactivates the tracing flag and nothing else.
 
-    :return: None
+    :return: None.
     """
     global TRACING
     TRACING = False
@@ -50,9 +50,9 @@ def dummy_context() -> typing.Iterator[None]:
 
 @contextmanager
 def trace_multiprocessing_worker() -> typing.Iterator[None]:
-    """Sets up the tracing for the multiprocessing worker.
+    """Set up the tracing for the multiprocessing worker.
 
-    :return: None
+    :return: None.
     """
     global PYEXTRAE
     global TRACING
@@ -73,9 +73,9 @@ def trace_multiprocessing_worker() -> typing.Iterator[None]:
 
 @contextmanager
 def trace_mpi_worker() -> typing.Iterator[None]:
-    """Sets up the tracing for the mpi worker.
+    """Set up the tracing for the mpi worker.
 
-    :return: None
+    :return: None.
     """
     global PYEXTRAE
     global TRACING
@@ -96,9 +96,9 @@ def trace_mpi_worker() -> typing.Iterator[None]:
 
 @contextmanager
 def trace_mpi_executor() -> typing.Iterator[None]:
-    """Sets up the tracing for each mpi executor.
+    """Set up the tracing for each mpi executor.
 
-    :return: None
+    :return: None.
     """
     global PYEXTRAE
     global TRACING
@@ -177,44 +177,67 @@ def trace_mpi_executor() -> typing.Iterator[None]:
 
 
 class event_master(object):
-    """Emits an event at master wrapping the desired code.
+    """Decorator that emits an event at master wrapping the desired code.
 
     Does nothing if tracing is disabled.
 
     :param event_id: Event identifier to emit.
-    :return: None
+    :return: None.
     """
 
     __slots__ = ["emitted"]
 
     def __init__(self, event_id: int) -> None:
+        """Emit the given event identifier in the master group.
+
+        :param event_id: Event identifier.
+        :returns: None.
+        """
         self.emitted = False
         if TRACING and in_master():
             PYEXTRAE.eventandcounters(TRACING_MASTER.binding_master_type, event_id)
             self.emitted = True
 
     def __enter__(self) -> None:
+        """Do nothing.
+
+        :returns: None.
+        """
         pass
 
     def __exit__(
         self, type: typing.Any, value: typing.Any, traceback: typing.Any
     ) -> None:
+        """Emit the 0 event in the master group when the context is finished.
+
+        * Signature from context structure.
+
+        :param type: Type.
+        :param value: Value.
+        :param traceback: Traceback.
+        :returns: None.
+        """
         if TRACING and self.emitted:
             PYEXTRAE.eventandcounters(TRACING_MASTER.binding_master_type, 0)
 
 
 class event_worker(object):
-    """Emits an event at worker wrapping the desired code.
+    """Decorator that emits an event at worker wrapping the desired code.
 
     Does nothing if tracing is disabled.
 
     :param event_id: Event identifier to emit.
-    :return: None
+    :return: None.
     """
 
     __slots__ = ["emitted"]
 
     def __init__(self, event_id: int) -> None:
+        """Emit the given event identifier in the worker group.
+
+        :param event_id: Event identifier.
+        :returns: None.
+        """
         self.emitted = False
         if TRACING and in_worker():
             PYEXTRAE.eventandcounters(
@@ -223,27 +246,45 @@ class event_worker(object):
             self.emitted = True
 
     def __enter__(self) -> None:
+        """Do nothing.
+
+        :returns: None.
+        """
         pass
 
     def __exit__(
         self, type: typing.Any, value: typing.Any, traceback: typing.Any
     ) -> None:
+        """Emit the 0 event in the worker group when the context is finished.
+
+        * Signature from context structure.
+
+        :param type: Type.
+        :param value: Value.
+        :param traceback: Traceback.
+        :returns: None.
+        """
         if TRACING and self.emitted:
             PYEXTRAE.eventandcounters(TRACING_WORKER.inside_worker_type, 0)  # noqa
 
 
 class event_inside_worker(object):
-    """Emits an event at worker (inside task) wrapping the desired code.
+    """Decorator that emits an event at worker (inside task) wrapping the desired code.
 
     Does nothing if tracing is disabled.
 
     :param event_id: Event identifier to emit.
-    :return: None
+    :return: None.
     """
 
     __slots__ = ["emitted"]
 
     def __init__(self, event_id: int) -> None:
+        """Emit the given event identifier in the inside worker group.
+
+        :param event_id: Event identifier.
+        :returns: None.
+        """
         self.emitted = False
         if TRACING and in_worker():
             PYEXTRAE.eventandcounters(
@@ -252,11 +293,24 @@ class event_inside_worker(object):
             self.emitted = True
 
     def __enter__(self) -> None:
+        """Do nothing.
+
+        :returns: None.
+        """
         pass
 
     def __exit__(
         self, type: typing.Any, value: typing.Any, traceback: typing.Any
     ) -> None:
+        """Emit the 0 event in the inside worker group when the context is finished.
+
+        * Signature from context structure.
+
+        :param type: Type.
+        :param value: Value.
+        :param traceback: Traceback.
+        :returns: None.
+        """
         if TRACING and self.emitted:
             PYEXTRAE.eventandcounters(TRACING_WORKER.inside_tasks_type, 0)  # noqa
 
@@ -269,7 +323,7 @@ def emit_manual_event(
     gpu_affinity: bool = False,
     cpu_number: bool = False,
 ) -> None:
-    """Emits a single event with the desired code.
+    """Emit a single event with the desired code.
 
     Does nothing if tracing is disabled.
 
@@ -282,7 +336,7 @@ def emit_manual_event(
                          gpu affinity.
     :param cpu_number: If the event is produced inside the worker for
                        cpu number.
-    :return: None
+    :return: None.
     """
     if TRACING:
         event_group, event_id = __get_proper_type_event__(
@@ -292,13 +346,13 @@ def emit_manual_event(
 
 
 def emit_manual_event_explicit(event_group: int, event_id: int) -> None:
-    """Emits a single event for a group.
+    """Emit a single event for a group.
 
     Does nothing if tracing is disabled.
 
     :param event_group: Event group to emit.
     :param event_id: Event identifier to emit.
-    :return: None
+    :return: None.
     """
     if TRACING:
         PYEXTRAE.eventandcounters(event_group, event_id)  # noqa
@@ -312,7 +366,8 @@ def __get_proper_type_event__(
     gpu_affinity: bool,
     cpu_number: bool,
 ) -> typing.Tuple[int, int]:
-    """Parses the flags to retrieve the appropriate event_group.
+    """Parse the flags to retrieve the appropriate event_group.
+
     It also parses the event_id in case of affinity since it is received
     as string.
 
@@ -325,7 +380,7 @@ def __get_proper_type_event__(
                          gpu affinity.
     :param cpu_number: If the event is produced inside the worker for
                        cpu number.
-    :return: Retrieves the appropriate event_group and event_id
+    :return: Retrieves the appropriate event_group and event_id.
     """
     if master:
         event_group = TRACING_MASTER.binding_master_type
@@ -348,10 +403,10 @@ def __get_proper_type_event__(
 
 
 def __parse_affinity_event_id__(event_id: typing.Any) -> int:
-    """Parses the affinity event identifier.
+    """Parse the affinity event identifier.
 
-    :param event_id: Event identifier
-    :return: The parsed event identifier as integer
+    :param event_id: Event identifier.
+    :return: The parsed event identifier as integer.
     """
     if isinstance(event_id, str):
         try:
@@ -365,9 +420,9 @@ def __parse_affinity_event_id__(event_id: typing.Any) -> int:
 
 
 def enable_trace_master() -> None:
-    """Enables tracing for the master process.
+    """Enable tracing for the master process.
 
-    :return: None
+    :return: None.
     """
     global PYEXTRAE
     global TRACING

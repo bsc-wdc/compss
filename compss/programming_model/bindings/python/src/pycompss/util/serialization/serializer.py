@@ -18,28 +18,28 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Util - Data serializer/deserializer
-============================================
-    This file implements the main serialization/deserialization functions.
-    All serialization/deserialization calls should be made using one of the
-    following functions:
+PyCOMPSs Util - Serialization - Serializer/deserializer.
 
-    - serialize_to_file(obj, file_name) -> dumps the object "obj" to the file
-                                           "file_name"
-    - serialize_to_string(obj) -> dumps the object "obj" to a string
-    - serialize_to_handler(obj, handler) -> writes the serialized object using
-                                            the specified handler it also moves
-                                            the handler's pointer to the end of
-                                            the dump
+This file implements the main serialization/deserialization functions.
+All serialization/deserialization calls should be made using one of the
+following functions:
 
-    - deserialize_from_file(file_name) -> loads the first object from the tile
-                                          "file_name"
-    - deserialize_from_string(serialized_content) -> loads the first object
-                                                     from the given string
-    - deserialize_from_handler(handler) -> deserializes an object using the
-                                           given handler, it also leaves the
-                                           handler's pointer pointing to the
-                                           end of the serialized object
+- serialize_to_file(obj, file_name) -> dumps the object "obj" to the file
+                                       "file_name"
+- serialize_to_string(obj) -> dumps the object "obj" to a string
+- serialize_to_handler(obj, handler) -> writes the serialized object using
+                                        the specified handler it also moves
+                                        the handler's pointer to the end of
+                                        the dump
+
+- deserialize_from_file(file_name) -> loads the first object from the tile
+                                      "file_name"
+- deserialize_from_string(serialized_content) -> loads the first object
+                                                 from the given string
+- deserialize_from_handler(handler) -> deserializes an object using the
+                                       given handler, it also leaves the
+                                       handler's pointer pointing to the
+                                       end of the serialized object
 """
 
 import gc
@@ -105,7 +105,8 @@ DISABLE_GC = False
 
 
 def get_serializer_priority(obj: typing.Any = ()) -> list:
-    """Computes the priority of the serializers.
+    """Compute the priority of the serializers.
+
     Returns a list with the available serializers in the most common order
     (i.e: the order that will work for almost the 90% of our objects).
 
@@ -136,7 +137,7 @@ def serialize_to_handler(obj: typing.Any, handler: typing.Any) -> None:
     :param obj: Object to be serialized.
     :param handler: A handler object. It must implement methods like write,
                     writeline and similar stuff.
-    :return: none
+    :return: None.
     :raises SerializerException: If something wrong happens during
                                  serialization.
     """
@@ -271,7 +272,7 @@ def serialize_to_bytes(obj: typing.Any) -> bytes:
     """Serialize an object to a byte array.
 
     :param obj: Object to be serialized.
-    :return: The serialized content
+    :return: The serialized content.
     """
     handler = BytesIO()
     serialize_to_handler(obj, handler)
@@ -382,7 +383,7 @@ def deserialize_from_bytes(
 
     :param serialized_content_bytes: A byte array with serialized contents
     :param show_exception: Show exception if happen (only with debug).
-    :return: A deserialized object
+    :return: A deserialized object.
     """
     with event_inside_worker(TRACING_WORKER.deserialize_from_bytes_event):
         handler = BytesIO(serialized_content_bytes)
@@ -404,7 +405,7 @@ def serialize_objects(to_serialize: list) -> None:
 
     :param to_serialize: List of lists to be serialized. Each sublist is a
                          pair of the form ['object','file name']
-    :return: None
+    :return: None.
     """
     for obj_and_file in to_serialize:
         serialize_to_file(*obj_and_file)

@@ -18,9 +18,9 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Common piper utils logger
-==================================
-    This file contains the common pipers methods related to logging.
+PyCOMPSs Worker - Piper - Commons - Utils logger.
+
+This file contains the common pipers methods related to logging.
 """
 
 import logging
@@ -37,9 +37,9 @@ def load_loggers(
 ) -> typing.Tuple[typing.Any, str, typing.Any, str]:
     """Load all loggers.
 
-    :param debug: is Debug enabled.
-    :param persistent_storage: is persistent storage enabled.
-    :return: main logger of the application, the log config file (json),
+    :param debug: Is Debug enabled.
+    :param persistent_storage: Is persistent storage enabled.
+    :return: Main logger of the application, the log config file (json),
              a list of loggers for the persistent data framework, and
              the temporary log directory.
     """

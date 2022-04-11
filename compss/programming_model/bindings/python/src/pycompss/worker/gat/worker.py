@@ -18,11 +18,11 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Worker for GAT
-=======================
-    This file contains the worker code for GAT.
-    Args: debug full_path (method_class)
-    method_name has_target num_params par_type_1 par_1 ... par_type_n par_n
+PyCOMPSs Worker - GAT - Worker.
+
+This file contains the worker code for GAT.
+Args: debug full_path (method_class)
+method_name has_target num_params par_type_1 par_1 ... par_type_n par_n
 """
 
 import logging
@@ -49,14 +49,13 @@ def compss_worker(
 ) -> int:
     """Worker main method (invoked from __main__).
 
-    :param tracing: Tracing boolean
-    :param task_id: Task identifier
-    :param storage_conf: Storage configuration file
-    :param params: Parameters following the common order of the workers
+    :param tracing: Tracing boolean.
+    :param task_id: Task identifier.
+    :param storage_conf: Storage configuration file.
+    :param params: Parameters following the common order of the workers.
     :param log_json: Logger configuration file.
-    :return: Exit code
+    :return: Exit code.
     """
-
     if __debug__:
         logger = logging.getLogger("pycompss.worker.gat.worker")
         logger.debug("Starting Worker")
@@ -94,7 +93,7 @@ def main() -> None:
 
     Executes the task provided by parameters.
 
-    :return: None
+    :return: None.
     """
     # Emit sync event if tracing is enabled
     tracing = sys.argv[1] == "true"

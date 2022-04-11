@@ -18,9 +18,9 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Interactive utils Graphs
-=================================
-    Provides auxiliary methods for the interactive mode with regard to graphs
+PyCOMPSs Util - Interactive - Graphs.
+
+Provides auxiliary methods for the interactive mode with regard to graphs
 """
 
 import os
@@ -39,12 +39,12 @@ def show_graph(
     """Show graph.
 
     :param log_path: Folder where the logs are.
-    :param name: Graph to show (default: "complete_graph")
-    :param fit: Fit to width [ True | False ] (default: False)
+    :param name: Graph to show (default: "complete_graph").
+    :param fit: Fit to width [ True | False ] (default: False).
     :param refresh_rate: Update the current task graph every "refresh_rate"
-                         seconds. Default 1 second if timeout != 0
+                         seconds. Default 1 second if timeout != 0.
     :param timeout: Time during the current task graph is going to be updated.
-    :return: None
+    :return: None.
     """
     try:
         from graphviz import Source  # noqa
@@ -79,13 +79,14 @@ def show_graph(
 
 
 def __get_graph_snapshot__(file_name: str, fit: bool, source: typing.Any) -> typing.Any:
-    """Reads the graph file and returns it as graphviz object.
+    """Read the graph file and returns it as graphviz object.
+
     It is able to fit the size if indicated.
 
     :param file_name: Absolute path to the graph to get the snapshot.
     :param fit: Fit to size or not.
     :param source: Graphviz Source object
-    :return: The graph snapshot to be rendered
+    :return: The graph snapshot to be rendered.
     """
     # Read graph file
     monitor_file = open(file_name + ".dot", "r")

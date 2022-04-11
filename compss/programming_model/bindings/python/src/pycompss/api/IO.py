@@ -18,10 +18,10 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - IO
-=================
-    This file contains the class constraint, needed for the IO task
-    definition through the decorator.
+PyCOMPSs API - IO decorator.
+
+This file contains the IO class, needed for the IO task definition through
+the decorator.
 """
 
 from functools import wraps
@@ -46,7 +46,8 @@ DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 
 
 class IO(object):
-    """
+    """IO decorator class.
+
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on IO task creation.
     """

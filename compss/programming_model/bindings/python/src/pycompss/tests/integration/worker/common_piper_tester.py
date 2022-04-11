@@ -17,6 +17,8 @@
 
 # -*- coding: utf-8 -*-
 
+"""PyCOMPSs Testbench commons for the worker pipers testing."""
+
 import os
 import shutil
 import sys
@@ -36,24 +38,45 @@ ERROR_MESSAGE = "An error happened. Please check: "
 
 @task()
 def simple():
-    # Do nothing task
+    """Do nothing task.
+
+    :returns: None.
+    """
     pass
 
 
 @task(returns=1)
 def increment(value):
+    """Increment the given value with 1.
+
+    :param value: Integer to increment.
+    :returns: Incremented value with 1.
+    """
     return value + 1
 
 
 def setup_argv(argv, current_path):
+    """Set up the argv required with the given current path.
+    
+    :param argv: System argv.
+    :param current_path: Directory where to redirect stdout and stderr.
+    :returns: None.
+    """
     sys.argv = argv
     sys.path.append(current_path)
     sys.stdout = open(current_path + STD_OUT_FILE, "w")
     sys.stderr = open(current_path + STD_ERR_FILE, "w")
 
 
-def evaluate_piper_worker_common(worker_thread, mpi_worker=False):
-    # Override sys.argv to mimic runtime call
+def evaluate_piper_worker_common(worker_process, mpi_worker=False):
+    """Evaluate the piper worker result.
+    
+    Override sys.argv to mimic runtime call
+    
+    :params worker_process: Worker process.
+    :params mpi_worker: If the piper worker uses MPI for process spawning.
+    :returns: None.
+    """
     sys_argv_backup = list(sys.argv)
     sys_path_backup = list(sys.path)
 
@@ -129,7 +152,7 @@ def evaluate_piper_worker_common(worker_thread, mpi_worker=False):
 
     sys.path.append(current_path)
     # Start the piper worker in a separate thread
-    worker = create_process(target=worker_thread, args=(sys.argv, current_path))
+    worker = create_process(target=worker_process, args=(sys.argv, current_path))
     if mpi_worker:
         evaluate_worker(
             worker,
@@ -161,6 +184,10 @@ def evaluate_piper_worker_common(worker_thread, mpi_worker=False):
 
 
 def create_files():
+    """Create initial testing files.
+
+    :returns: A list with the temporary folder containing files.
+    """
     temp_folder = tempfile.mkdtemp()
     os.mkdir(os.path.join(temp_folder, "log"))
     executor_outbound = tempfile.NamedTemporaryFile(delete=False).name
@@ -187,6 +214,19 @@ def evaluate_worker(
     worker_out,
     worker_in,
 ):
+    """Evaluate a worker.
+
+    :param worker: Worker process.
+    :param name: Worker name.
+    :param pipes: Worker pipes.
+    :param files: Worker files.
+    :param current_path: Current working path.
+    :param executor_out: Executor output file.
+    :param executor_in: Executor input file.
+    :param worker_out: Worker output file.
+    :param worker_in: Worker input file.
+    :returns: None.
+    """
     (
         temp_folder,
         executor_outbound,
@@ -338,6 +378,13 @@ def evaluate_worker(
 
 
 def check_task(job_out, job_err):
+    """Check task output looking for errors.
+
+    :param job_out: Task stdout file.
+    :param job_err: Task stderr file.
+    :returns: None.
+    :raises PyCOMPSsException: if error is found.
+    """
     if os.path.exists(job_err) and os.path.getsize(job_err) > 0:  # noqa
         # Non empty file exists
         raise PyCOMPSsException(

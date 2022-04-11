@@ -18,12 +18,12 @@
 # -*- coding: utf-8 -*-
 
 """
-Storage dummy connector
-=======================
-    This file contains the functions that any storage that wants to be used
-    with PyCOMPSs must implement
+Storage dummy connector.
 
-    storage.api code example.
+This file contains the functions that any storage that wants to be used
+with PyCOMPSs must implement.
+
+storage.api code example.
 """
 
 import os
@@ -38,82 +38,78 @@ STORAGE_PATH = "/tmp/PSCO/" + str(socket.gethostname()) + "/"  # NOSONAR
 
 
 def init(config_file_path=None, **kwargs):  # noqa
-    """Initialize dummy storage
-
-    print "-----------------------------------------------------"
-    print "| WARNING!!! - YOU ARE USING THE DUMMY STORAGE API. |"
-    print "| Call to: init function.                           |"
-    print "| Parameters: config_file_path = None"
-    for key in kwargs:
-        print "| Kwargs: Key %s - Value %s" % (key, kwargs[key])
-    print "-----------------------------------------------------"
+    """Initialize dummy storage.
 
     :param config_file_path: Storage conf.
-    :param kwargs: Other arguments
-    :return: None
+    :param kwargs: Other arguments.
+    :return: None.
     """
+    # print("-----------------------------------------------------")
+    # print("| WARNING!!! - YOU ARE USING THE DUMMY STORAGE API. |")
+    # print("| Call to: init function.                           |")
+    # print("| Parameters: config_file_path = None")
+    # for key in kwargs:
+    #     print("| Kwargs: Key %s - Value %s" % (key, kwargs[key]))
+    # print("-----------------------------------------------------")
     pass
 
 
 def finish(**kwargs: dict) -> None:
-    """Finalize dummy storage
+    """Finalize dummy storage.
 
-    print "-----------------------------------------------------"
-    print "| WARNING!!! - YOU ARE USING THE DUMMY STORAGE API. |"
-    print "| Call to: finish function.                         |"
-    for key in kwargs:
-        print "| Kwargs: Key %s - Value %s" % (key, kwargs[key])
-    print "-----------------------------------------------------"
-
-    :param kwargs: Other arguments
-    :return: None
+    :param kwargs: Other arguments.
+    :return: None.
     """
+    # print("-----------------------------------------------------")
+    # print("| WARNING!!! - YOU ARE USING THE DUMMY STORAGE API. |")
+    # print("| Call to: finish function.                         |")
+    # for key in kwargs:
+    #     print("| Kwargs: Key %s - Value %s" % (key, kwargs[key]))
+    # print("-----------------------------------------------------")
     pass
 
 
 def init_worker(config_file_path: str = None, **kwargs: dict) -> None:
-    """Initialize dummy storage at worker
-
-    print "-----------------------------------------------------"
-    print "| WARNING!!! - YOU ARE USING THE DUMMY STORAGE API. |"
-    print "| Call to: init Worker function.                    |"
-    print "| Parameters: config_file_path = None"
-    for key in kwargs:
-        print "| Kwargs: Key %s - Value %s" % (key, kwargs[key])
-    print "-----------------------------------------------------"
+    """Initialize dummy storage at worker.
 
     :param config_file_path: Storage conf.
-    :param kwargs: Other arguments
-    :return: None
+    :param kwargs: Other arguments.
+    :return: None.
     """
+    # print("-----------------------------------------------------")
+    # print("| WARNING!!! - YOU ARE USING THE DUMMY STORAGE API. |")
+    # print("| Call to: init Worker function.                    |")
+    # print("| Parameters: config_file_path = None")
+    # for key in kwargs:
+    #     print("| Kwargs: Key %s - Value %s" % (key, kwargs[key]))
+    # print("-----------------------------------------------------")
     pass
 
 
 def finish_worker(**kwargs: dict) -> None:
-    """Finalize dummy storage at worker
+    """Finalize dummy storage at worker.
 
-    print "-----------------------------------------------------"
-    print "| WARNING!!! - YOU ARE USING THE DUMMY STORAGE API. |"
-    print "| Call to: finish Worker function.                  |"
-    for key in kwargs:
-        print "| Kwargs: Key %s - Value %s" % (key, kwargs[key])
-    print "-----------------------------------------------------"
-
-    :param kwargs: Other arguments
-    :return: None
+    :param kwargs: Other arguments.
+    :return: None.
     """
+    # print("-----------------------------------------------------")
+    # print("| WARNING!!! - YOU ARE USING THE DUMMY STORAGE API. |")
+    # print("| Call to: finish Worker function.                  |")
+    # for key in kwargs:
+    #     print("| Kwargs: Key %s - Value %s" % (key, kwargs[key]))
+    # print("-----------------------------------------------------")
     pass
 
 
 def get_by_id(id: str) -> typing.Any:
-    """This functions retrieves an object from an external storage
-    technology from the obj object.
-    This dummy returns the same object as submited by the parameter obj.
+    """Retrieve an object from an external storage.
 
-    :param id: key of the object to be retrieved.
-    :return: the real object.
+    This dummy returns the same object as submitted by the parameter obj.
+
+    :param id: Key of the object to be retrieved.
+    :return: The real object.
     """
-    # Warning message:
+    # # Warning message:
     # print "-----------------------------------------------------"
     # print "| WARNING!!! - YOU ARE USING THE DUMMY STORAGE API. |"
     # print "| Call to: get_by_id                                  |"
@@ -148,7 +144,7 @@ def make_persistent(obj: typing.Any, *args: dict) -> None:
 
     :param obj: object to persist.
     :param args: Extra arguments.
-    :return: None
+    :return: None.
     """
     if obj.id is None:
         if len(args) == 0:
@@ -182,7 +178,7 @@ def update_persistent(obj: typing.Any, *args: dict) -> None:
 
     :param obj: object to update.
     :param args: Extra arguments.
-    :return: None
+    :return: None.
     """
     if obj.id is not None:
         # The psco is already persistent
@@ -202,7 +198,7 @@ def remove_by_id(obj: str) -> None:
     """Remove the given object.
 
     :param obj: Object to remove.
-    :return: None
+    :return: None.
     """
     if obj.id is not None:
         # Remove ID file from /tmp/PSCO
@@ -229,20 +225,34 @@ def remove_by_id(obj: str) -> None:
 
 
 class TaskContext(object):
+    """Dummy task context."""
+
     def __init__(self, logger, values, config_file_path=None):
+        """Do nothing init.
+
+        :param logger: Logger.
+        :param values: Values.
+        :param config_file_path: Configuration file path.
+        """
         self.logger = logger
         self.values = values
         self.config_file_path = config_file_path
 
     def __enter__(self):
-        # Do something prolog
+        """Do nothing at enter.
 
+        :returns: None.
+        """
+        # Do something prolog
         # Ready to start the task
         self.logger.info("Prolog finished")
 
     def __exit__(self, type, value, traceback):
-        # Do something epilog
+        """Do nothing at exit.
 
+        :returns: None.
+        """
+        # Do something epilog
         # Finished
         self.logger.info("Epilog finished")
 

@@ -18,11 +18,11 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Binding - Launch
-=========================
-    This file contains the __main__ method.
-    It is called from the runcompss/enqueue_compss script with the user and
-    environment parameters.
+PyCOMPSs Binding - Launch.
+
+This file contains the __main__ method.
+It is called from the runcompss/enqueue_compss/cli script with the user and
+environment parameters.
 """
 
 import argparse
@@ -92,7 +92,7 @@ def stop_all(exit_code: int) -> None:
     """Stop everything smoothly.
 
     :param exit_code: Exit code.
-    :return: None
+    :return: None.
     """
     from pycompss.api.api import compss_stop
 
@@ -133,13 +133,14 @@ def parse_arguments() -> typing.Any:
 
 
 def __load_user_module__(app_path: str, log_level: str) -> None:
-    """Loads the user module (resolve all user imports).
+    """Load the user module (resolve all user imports).
+
     This has shown to be necessary before doing "start_compss" in order
     to avoid segmentation fault in some libraries.
 
-    :param app_path: Path to the file to be imported
-    :param log_level: Logging level
-    :return: None
+    :param app_path: Path to the file to be imported.
+    :param log_level: Logging level.
+    :return: None.
     """
     app_name = os.path.basename(app_path).split(".")[0]
     try:
@@ -159,7 +160,9 @@ def __load_user_module__(app_path: str, log_level: str) -> None:
 
 
 def __register_implementation_core_elements__() -> None:
-    """Register the @implements core elements accumulated during the
+    """Register all implementations accumulated during initialization.
+
+    Register the @implements core elements accumulated during the
     initialization of the @implements decorators. They have not been
     registered because the runtime was not started. And the load is
     necessary to resolve all user imports before starting the runtime (it has
@@ -176,7 +179,7 @@ def __register_implementation_core_elements__() -> None:
 
 
 def compss_main() -> None:
-    """PyCOMPSs main function.
+    """Execute the given application and flags with PyCOMPSs.
 
     General call:
     python $PYCOMPSS_HOME/pycompss/runtime/launch.py $wall_clock $log_level
@@ -184,7 +187,7 @@ def compss_main() -> None:
            $streaming_master_name $streaming_master_port
            $fullAppPath $application_args
 
-    :return: None
+    :return: None.
     """
     global APP_PATH
     global STREAMING

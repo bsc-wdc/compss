@@ -18,9 +18,10 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - Prolog
-==================
-    Prolog definition for PyCOMPSs tasks.
+PyCOMPSs API - Prolog decorator.
+
+This file contains the Prolog class, needed for the task prolog definition
+through the decorator.
 """
 
 from functools import wraps
@@ -52,10 +53,10 @@ DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 
 
 class Prolog(object):
-    """
-    Prolog decorator of the task. If defined, will execute the binary before the
-    task execution on the worker. Should always be added on top of the 'task'
-    definition.
+    """Prolog decorator class.
+
+    If defined, will execute the binary before the task execution on the worker.
+    Should always be added on top of the 'task' definition.
     """
 
     __slots__ = [
@@ -96,38 +97,33 @@ class Prolog(object):
             )
 
     def __call__(self, user_function: typing.Callable) -> typing.Callable:
-        """
-        Calling Prolog simply updates the CE and saves Prolog parameters.
+        """Call Prolog simply updates the CE and saves Prolog parameters.
+
         :param user_function: User function to be decorated.
         :return: Decorated dummy user function.
         """
 
         @wraps(user_function)
-        def prolog_f(*args, **kwargs):
-            return self.__decorator_body__(user_function, args, kwargs)
+        def prolog_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
+            if not self.scope:
+                raise NotImplementedError
+
+            if __debug__:
+                logger.debug("Executing prolog wrapper.")
+
+            if (
+                    context.in_master() or context.is_nesting_enabled()
+            ) and not self.core_element_configured:
+                self.__configure_core_element__(kwargs)
+
+            with keep_arguments(args, kwargs, prepend_strings=True):
+                # Call the method
+                ret = user_function(*args, **kwargs)
+
+            return ret
 
         prolog_f.__doc__ = user_function.__doc__
         return prolog_f
-
-    def __decorator_body__(
-        self, user_function: typing.Callable, args: tuple, kwargs: dict
-    ) -> typing.Any:
-        if not self.scope:
-            raise NotImplementedError
-
-        if __debug__:
-            logger.debug("Executing prolog wrapper.")
-
-        if (
-            context.in_master() or context.is_nesting_enabled()
-        ) and not self.core_element_configured:
-            self.__configure_core_element__(kwargs)
-
-        with keep_arguments(args, kwargs, prepend_strings=True):
-            # Call the method
-            ret = user_function(*args, **kwargs)
-
-        return ret
 
     def __configure_core_element__(self, kwargs: dict) -> None:
         """Include the registering info related to @prolog.

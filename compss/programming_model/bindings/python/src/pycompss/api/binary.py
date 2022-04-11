@@ -18,10 +18,10 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - BINARY
-=====================
-    This file contains the class constraint, needed for the binary task
-    definition through the decorator.
+PyCOMPSs API - Binary decorator.
+
+This file contains the Binary class, needed for the binary task definition
+through the decorator.
 """
 
 from functools import wraps
@@ -58,8 +58,9 @@ DEPRECATED_ARGUMENTS = {LEGACY_LABELS.working_dir, LABELS.engine, LABELS.image}
 
 
 class Binary(object):
-    """
-    This decorator also preserves the argspec, but includes the __init__ and
+    """Binary decorator class.
+
+    This decorator preserves the argspec, but includes the __init__ and
     __call__ methods, useful on binary task creation.
     """
 
@@ -135,7 +136,7 @@ class Binary(object):
         return binary_f
 
     def __run_binary__(self, args: tuple, kwargs: dict) -> int:
-        """Runs the binary defined in the decorator when used as dummy.
+        """Run the binary defined in the decorator when used as dummy.
 
         :param args: Arguments received from call.
         :param kwargs: Keyword arguments received from call.

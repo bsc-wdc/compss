@@ -15,6 +15,14 @@
 #  limitations under the License.
 #
 
+# -*- coding: utf-8 -*-
+
+"""
+PyCOMPSs DDS - Tasks example.
+
+This file contains the DDS tasks example.
+"""
+
 import numpy as np
 from pycompss.api.parameter import COLLECTION_IN
 
@@ -23,6 +31,13 @@ from pycompss.api.task import task
 
 @task(returns=dict, xp=COLLECTION_IN)
 def cluster_points_partial(xp, mu, ind):
+    """Measure the distance from the centers to the given points.
+
+    :param xp: Points.
+    :param mu: Centers.
+    :param ind: Offset.
+    :returns: Dictionary with the distances.
+    """
     dic = {}
     for x in enumerate(xp):
 
@@ -41,6 +56,13 @@ def cluster_points_partial(xp, mu, ind):
 
 @task(returns=dict, xp=COLLECTION_IN)
 def partial_sum(xp, clusters, ind):
+    """Accumulates the distances.
+
+    :param xp: Points.
+    :param clusters: Clusters (points associated to each cluster).
+    :param ind: Offset.
+    :returns: Dictionary with the accumulated distance.
+    """
     p = [(i, [(xp[j - ind]) for j in clusters[i]]) for i in clusters]
     dic = {}
     for i, l in p:
@@ -50,6 +72,12 @@ def partial_sum(xp, clusters, ind):
 
 @task()
 def task_count_locally(file_path, vocab):
+    """Task count task.
+
+    :param file_path: Input file.
+    :param vocab: Words filter.
+    :returns: np array with the appearances.
+    """
     from collections import Counter
     import numpy as np
 
@@ -70,6 +98,12 @@ def task_count_locally(file_path, vocab):
 # dict inout??
 @task(returns=dict, priority=True)
 def reduce_centers(a, b):
+    """Reduce centers.
+
+    :param a: First dictionary.
+    :param b: Second dictionary.
+    :results: Updated a
+    """
     for key in b:
         if key not in a:
             a[key] = b[key]
@@ -80,12 +114,12 @@ def reduce_centers(a, b):
 
 @task(returns=list)
 def get_similar_files(fayl, cluster, threshold=0.90):
-    """
-    Calculate average similarity of a file againt a list of files
-    :param threshold:
-    :param fayl: file to be compared with its cluster
-    :param cluster: file names to be compared with the file
-    :return: average similarity
+    """Calculate average similarity of a file against a list of files.
+
+    :param threshold: Threshold level.
+    :param fayl: File to be compared with its cluster.
+    :param cluster: File names to be compared with the file.
+    :return: Average similarity.
     """
     import spacy
 

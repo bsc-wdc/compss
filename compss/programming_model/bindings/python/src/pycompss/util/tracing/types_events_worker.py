@@ -18,17 +18,18 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Tracing types and events in worker
-===========================================
-    This file contains a set of constants that identify the types and events
-    emitted from when the binding acts as worker.
+PyCOMPSs Util - Tracing - Types and events in worker.
 
-    IMPORTANT!!!
-    Must be equal to Tracer.java and TraceEvent.java definitions
+This file contains a set of constants that identify the types and events
+emitted from when the binding acts as worker.
+
+IMPORTANT!!!
+Must be equal to Tracer.java and TraceEvent.java definitions
 """
 
 
 class TypesEventsWorker(object):
+    """Constant events that can be emitted for the worker group."""
 
     __slots__ = (
         "sync_type",
@@ -76,6 +77,7 @@ class TypesEventsWorker(object):
     )
 
     def __init__(self):
+        """Create a new instance of TypesEventsWorker."""
         # Binding worker type
         self.sync_type = 8000666
 

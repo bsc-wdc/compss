@@ -15,6 +15,10 @@
 #  limitations under the License.
 #
 
+# -*- coding: utf-8 -*-
+
+"""PyCOMPSs Testbench for Collections."""
+
 from pycompss.api.api import compss_wait_on
 from pycompss.api.parameter import COLLECTION
 from pycompss.api.parameter import COLLECTION_IN
@@ -25,14 +29,30 @@ from pycompss.api.reduction import reduction
 from pycompss.api.task import task
 
 
-class Poligon(object):
+class Polygon(object):
+    """Polygon class."""
+
     def __init__(self, sides):
+        """Create a new Polygon with the given sides.
+
+        :param sides: Number of sides.
+        :returns: None.
+        """
         self.sides = sides
 
     def increment(self, amount):
+        """Increment the number of sides.
+
+        :param amount: Number of sides to be incremented.
+        :returns: None
+        """
         self.sides += amount
 
     def get_sides(self):
+        """Retrieve the number of sides.
+
+        :returns: The number of sides.
+        """
         return self.sides
 
 
@@ -40,19 +60,34 @@ class Poligon(object):
 
 
 def generate_collection(value):
-    value.append(Poligon(2))
-    value.append(Poligon(10))
-    value.append(Poligon(20))
+    """Populate the given list with three polygons.
+
+    :param value: List to be populated with three polygons.
+    :returns: None.
+    """
+    value.append(Polygon(2))
+    value.append(Polygon(10))
+    value.append(Polygon(20))
 
 
 @task(value=COLLECTION_INOUT)
 def update_collection(value):
+    """Update the number of sides of all polygons in the given collection.
+
+    :param value: List of polygons.
+    :returns: None.
+    """
     for c in value:
         c.increment(1)
 
 
 @task(returns=1, value=COLLECTION_IN)
 def sum_all_sides(value):
+    """Sum all sides from all polygons from the given collection.
+
+    :param value: List of polygons.
+    :returns: Total number of sides of all polygons.
+    """
     result = 0
     for c in value:
         result += c.get_sides()
@@ -63,19 +98,34 @@ def sum_all_sides(value):
 
 
 def generate_dictionary(value):
-    value["a"] = Poligon(3)
-    value["b"] = Poligon(10)
-    value["c"] = Poligon(20)
+    """Populate the given dictionary with three polygons.
+
+    :param value: Dictionary to be populated with three polygons.
+    :returns: None.
+    """
+    value["a"] = Polygon(3)
+    value["b"] = Polygon(10)
+    value["c"] = Polygon(20)
 
 
 @task(value=DICTIONARY_INOUT)
 def update_dictionary(value):
+    """Update the number of sides of all polygons in the given dictionary.
+
+    :param value: Dictionary of polygons.
+    :returns: None.
+    """
     for key in value.keys():
         value[key].increment(1)
 
 
 @task(returns=2, value=DICTIONARY_IN)
 def sum_all_sides_of_dictionary(value):
+    """Sum all sides from all polygons from the given dictionary.
+
+    :param value: Dictionary of polygons.
+    :returns: Total number of sides of all polygons.
+    """
     keys = ""
     result = 0
     for k, v in value.items():
@@ -90,6 +140,11 @@ def sum_all_sides_of_dictionary(value):
 @reduction(chunk_size="2")
 @task(returns=1, col=COLLECTION_IN)
 def my_reduction(col):
+    """Accumulate all elements in the given collection.
+
+    :param col: Collection of integers.
+    :returns: Accumulated value of all integers in the given collection.
+    """
     r = 0
     for i in col:
         r += i
@@ -98,16 +153,29 @@ def my_reduction(col):
 
 @task(returns=1)
 def increment(v):
+    """Increment the given value with 1.
+
+    :param v: Integer to increment.
+    :returns: Incremented value with 1.
+    """
     return v + 1
 
 
 @task(returns=COLLECTION)
 def generate_collection_return():
-    value = [Poligon(2), Poligon(10), Poligon(20)]
+    """Create a return collection with three polygons.
+
+    :returns: A collection with three polygons.
+    """
+    value = [Polygon(2), Polygon(10), Polygon(20)]
     return value
 
 
 def main():
+    """Execute all collection tests.
+
+    :returns: None.
+    """
     initial = []
     generate_collection(initial)
     update_collection(initial)

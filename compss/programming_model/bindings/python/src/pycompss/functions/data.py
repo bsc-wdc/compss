@@ -18,9 +18,9 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Functions: Data generators
-===================================
-    This file defines the common data producing functions.
+PyCOMPSs Functions: Data generators.
+
+This file defines the common data producing functions.
 """
 
 from pycompss.functions.data_tasks import gen_normal as _gen_normal
@@ -36,9 +36,7 @@ def generator(
     distribution: str = "random",
     wait: bool = False,
 ) -> typing.Any:
-    """Data generator.
-
-    Generates a list of fragments.
+    """Generate a list of fragments with random data.
 
     :param size: (numElements, dim)
     :param num_frag: dataset number of fragments

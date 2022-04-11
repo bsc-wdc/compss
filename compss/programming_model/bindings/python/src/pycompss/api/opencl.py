@@ -18,10 +18,10 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - OPENCL
-=====================
-    This file contains the class constraint, needed for the opencl task
-    definition through the decorator.
+PyCOMPSs API - OpenCL decorator.
+
+This file contains the OpenCL class, needed for the opencl task definition
+through the decorator.
 """
 
 from functools import wraps
@@ -50,7 +50,8 @@ DEPRECATED_ARGUMENTS = {LEGACY_LABELS.working_dir}
 
 
 class OpenCL(object):
-    """
+    """OpenCL decorator class.
+
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on opencl task creation.
     """

@@ -18,10 +18,10 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Persistent Worker Pipe Executor
-========================================
-    This file contains the code of an executor running the commands that it
-    reads from a pipe.
+PyCOMPSs Worker - Piper - Commons - Executor.
+
+This file contains the code of an executor running the commands that it
+reads from a pipe (for mpi and multiprocessing piped workers).
 """
 
 import copy
@@ -79,9 +79,9 @@ HEADER = "*[PYTHON EXECUTOR] "
 
 
 def shutdown_handler(signal: int, frame: typing.Any) -> None:
-    """Shutdown handler
+    """Handle shutdown - Shutdown handler.
 
-    Do not remove the parameters.
+    CAUTION! Do not remove the parameters.
 
     :param signal: shutdown signal.
     :param frame: Frame.
@@ -92,14 +92,12 @@ def shutdown_handler(signal: int, frame: typing.Any) -> None:
 
 
 class Pipe(object):
-    """
-    Bi-directional communication channel
-    """
+    """Bi-directional communication channel class."""
 
     __slots__ = ["input_pipe", "input_pipe_open", "output_pipe"]
 
     def __init__(self, input_pipe: str, output_pipe: str) -> None:
-        """Constructs a new Pipe.
+        """Construct a new Pipe.
 
         :param input_pipe: Input pipe for the thread. To receive messages from
                            the runtime.
@@ -111,11 +109,11 @@ class Pipe(object):
         self.output_pipe = output_pipe
 
     def read_command(self, retry_period: float = 0.5) -> str:
-        """Returns the first command on the pipe.
+        """Return the first command on the pipe.
 
-        :param retry_period: time (ms) that the thread sleeps if EOF is read
+        :param retry_period: Time (ms) that the thread sleeps if EOF is read
                              from pipe.
-        :return: the first command available on the pipe.
+        :return: The first command available on the pipe.
         """
         if self.input_pipe_open is None:
             self.input_pipe_open = open(self.input_pipe, "r")
@@ -131,25 +129,25 @@ class Pipe(object):
         return line
 
     def write(self, message: str) -> None:
-        """Writes a message through the pipe.
+        """Write a message through the pipe.
 
-        :param message: message sent through the pipe
-        :return: None
+        :param message: Message sent through the pipe.
+        :return: None.
         """
         with open(self.output_pipe, "w") as out_pipe:
             out_pipe.write("".join((message, "\n")))
 
     def close(self) -> None:
-        """Closes the pipe, if open.
+        """Close the pipe, if open.
 
-        :return: None
+        :return: None.
         """
         if self.input_pipe_open:
             self.input_pipe_open.close()
             self.input_pipe_open = None
 
     def __str__(self) -> str:
-        """Representation of the Pipe.
+        """Representation of the Pipe object.
 
         :return: String representing the Pipe object.
         """
@@ -157,9 +155,7 @@ class Pipe(object):
 
 
 class ExecutorConf(object):
-    """
-    Executor configuration
-    """
+    """Executor configuration class."""
 
     __slots__ = [
         "debug",
@@ -195,8 +191,7 @@ class ExecutorConf(object):
         cache_queue: Queue = None,
         cache_profiler: bool = False,
     ) -> None:
-        """
-        Constructs a new executor configuration.
+        """Construct a new executor configuration.
 
         :param debug: If debug is enabled.
         :param tmp_dir: Temporary directory for logging purposes.
@@ -249,8 +244,8 @@ def executor(
     :param queue: Queue where to put exception messages.
     :param process_name: Process name (Thread-X, where X is the thread id).
     :param pipe: Pipe to receive and send messages from/to the runtime.
-    :param conf: configuration of the executor.
-    :return: None
+    :param conf: Executor configuration.
+    :return: None.
     """
     try:
         # Replace Python Worker's SIGTERM handler.
@@ -421,23 +416,23 @@ def process_message(
 ) -> bool:
     """Process command received from the runtime through a pipe.
 
-    :param current_line: Current command (line) to process
-    :param process_name: Process name for logger messages
-    :param pipe: Pipe where to write the result
-    :param queue: Queue where to drop the process exceptions
-    :param tracing: Tracing
-    :param logger: Logger
-    :param logger_cfg: Logger configuration file
-    :param logger_handlers: Logger handlers
-    :param logger_level: Logger level
-    :param logger_formatter: Logger formatter
-    :param storage_conf: Storage configuration
-    :param storage_loggers: Storage loggers
-    :param storage_loggers_handlers: Storage loggers handlers
-    :param cache_queue: Cache tracker communication queue
-    :param cache_ids: Cache proxy dictionary (read-only)
-    :param cache_profiler: Cache profiler
-    :return: <Boolean> True if processed successfully, False otherwise.
+    :param current_line: Current command (line) to process.
+    :param process_name: Process name for logger messages.
+    :param pipe: Pipe where to write the result.
+    :param queue: Queue where to drop the process exceptions.
+    :param tracing: Tracing.
+    :param logger: Logger.
+    :param logger_cfg: Logger configuration file.
+    :param logger_handlers: Logger handlers.
+    :param logger_level: Logger level.
+    :param logger_formatter: Logger formatter.
+    :param storage_conf: Storage configuration.
+    :param storage_loggers: Storage loggers.
+    :param storage_loggers_handlers: Storage loggers handlers.
+    :param cache_queue: Cache tracker communication queue.
+    :param cache_ids: Cache proxy dictionary (read-only).
+    :param cache_profiler: Cache profiler.
+    :return: True if processed successfully, False otherwise.
     """
     if __debug__:
         logger.debug(
@@ -520,7 +515,7 @@ def process_task(
     :param storage_loggers_handlers: Storage loggers handlers.
     :param cache_queue: Cache tracker communication queue.
     :param cache_ids: Cache proxy dictionary (read-only).
-    :param cache_profiler: Cache profiler
+    :param cache_profiler: Cache profiler.
     :return: True if processed successfully, False otherwise.
     """
     with event_worker(TRACING_WORKER.process_task_event):
@@ -838,7 +833,7 @@ def bind_gpus(gpus: str, process_name: str, logger: typing.Any) -> None:
     :param gpus: Target GPUs.
     :param process_name: Process name for logger messages.
     :param logger: Logger.
-    :return: None
+    :return: None.
     """
     with event_inside_worker(TRACING_WORKER.bind_gpus_event):
         os.environ["COMPSS_BINDED_GPUS"] = gpus
@@ -851,12 +846,12 @@ def bind_gpus(gpus: str, process_name: str, logger: typing.Any) -> None:
 
 
 def setup_environment(cn: int, cn_names: str, cu: str) -> None:
-    """Sets the environment (mainly environment variables).
+    """Set the environment (mainly environment variables).
 
     :param cn: Number of COMPSs nodes.
     :param cn_names: COMPSs hostnames.
     :param cu: Number of COMPSs threads.
-    :return: None
+    :return: None.
     """
     with event_inside_worker(TRACING_WORKER.setup_environment_event):
         os.environ["COMPSS_NUM_NODES"] = str(cn)
@@ -916,7 +911,7 @@ def build_exception_message(job_id: str, exit_value: int) -> str:
 
 
 def clean_environment(cpus: bool, gpus: bool) -> None:
-    """Clean the environment
+    """Clean the environment.
 
     Mainly unset environment variables.
 

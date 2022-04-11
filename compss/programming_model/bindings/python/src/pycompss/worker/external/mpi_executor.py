@@ -18,10 +18,10 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs PYTHON MPI Executor
-===========================
-    This file contains the code of an executor running Python MPI execution
-    command that is passed from the runtime worker.
+PyCOMPSs Worker - External - MPI Executor.
+
+This file contains the code of an executor running Python MPI execution
+command that is passed from the runtime worker.
 """
 
 import copy
@@ -51,9 +51,9 @@ from pycompss.worker.piper.commons.constants import EXECUTE_TASK_TAG
 
 
 def shutdown_handler(signal: int, frame: typing.Any) -> None:
-    """MPI exception signal handler
+    """Handle shutdown - MPI exception signal handler.
 
-    Do not remove the parameters.
+    CAUTION! Do not remove the parameters.
 
     :param signal: shutdown signal
     :param frame: Frame
@@ -68,7 +68,7 @@ def shutdown_handler(signal: int, frame: typing.Any) -> None:
 
 
 def executor(process_name: str, command: str) -> None:
-    """Execution main method.
+    """Executor main method.
 
     Iterates over the input pipe in order to receive tasks (with their
     parameters) and process them.
@@ -379,6 +379,10 @@ def process_task(
 
 
 def main() -> None:
+    """MPI executor main method.
+
+    :returns: None.
+    """
     # Set the binding in worker mode
     context.set_pycompss_context(context.WORKER)
 

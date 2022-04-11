@@ -18,10 +18,10 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - OMPSS
-==================
-    This file contains the class constraint, needed for the OmpSs task
-    definition through the decorator.
+PyCOMPSs API - OmpSs decorator.
+
+This file contains the OmpSs class, needed for the OmpSs task definition
+through the decorator.
 """
 
 from functools import wraps
@@ -57,9 +57,10 @@ DEPRECATED_ARGUMENTS = {LEGACY_LABELS.computing_nodes, LEGACY_LABELS.working_dir
 
 
 class OmpSs(object):
-    """
+    """OmpSs decorator class.
+
     This decorator also preserves the argspec, but includes the __init__ and
-    __call__ methods, useful on mpi task creation.
+    __call__ methods, useful on OmpSs task creation.
     """
 
     __slots__ = [

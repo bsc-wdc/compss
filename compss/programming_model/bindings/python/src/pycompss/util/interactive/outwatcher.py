@@ -18,10 +18,10 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Util - Interactive Output watcher
-==========================================
-    Keeps track of the stdout/stderr and saves all ERRORs or ISSUEs into a
-    queue that can be checked with the events or on the runtime closing.
+PyCOMPSs Util - Interactive - Output watcher.
+
+Keeps track of the stdout/stderr and saves all ERRORs or ISSUEs into a
+queue that can be checked with the events or on the runtime closing.
 """
 
 import os
@@ -36,7 +36,8 @@ from pycompss.util.typing_helper import typing
 
 
 class StdWatcher(object):
-    """
+    """Standard output and standard error watcher class.
+
     This class implements the stdout and stderr files watcher for the
     interactive executions.
 
@@ -49,12 +50,18 @@ class StdWatcher(object):
     __slots__ = ["running", "messages"]
 
     def __init__(self) -> None:
+        """Create a new StdWatcher object.
+
+        :returns: None.
+        """
         self.running = False
         self.messages = Queue()  # type: Queue
 
     @staticmethod
     def __watcher__(fd_out: typing.Any, fd_err: typing.Any) -> typing.Iterator[str]:
-        """Static method that checks the stderr file descriptor looking
+        """Look for new lines in fd_out and fd_err.
+
+        Static method that checks the stderr file descriptor looking
         for new lines added at the end.
         It is enabled to also look into the stdout file descriptor, but
         currently not being used.
@@ -71,13 +78,15 @@ class StdWatcher(object):
                 time.sleep(0.1)
 
     def __std_follower__(self, out_file_name: str, err_file_name: str) -> None:
-        """Opens the out and error files and looks inside them thanks to the
+        """Look for errors within out_file_name and err_file_name.
+
+        Opens the out and error files and looks inside them thanks to the
         __watcher__ generator. This function puts into the queue any line
         of the error file which starts with "[ERRMGR]".
 
         :param out_file_name: Output file name.
         :param err_file_name: Error file name.
-        :return: None
+        :return: None.
         """
         fd_out = open(out_file_name, "r")
         fd_err = open(err_file_name, "r")
@@ -92,10 +101,9 @@ class StdWatcher(object):
                 return None
 
     def start_watching(self) -> None:
-        """Starts a new thread in charge of monitoring the stdout and stderr
-        files provided by the redirector.
+        """Start a new thread to monitor the stdout and stderr files provided.
 
-        :return: None
+        :return: None.
         """
         if is_redirected():
             self.running = True
@@ -108,11 +116,10 @@ class StdWatcher(object):
             raise PyCOMPSsException("Can not find the stdout and stderr.")
 
     def stop_watching(self, clean: bool = True) -> None:
-        """Stops the monitoring thread and cleans the redirection files
-        if clean is True.
+        """Stop the monitoring thread and cleans the redirection files if clean is True.
 
         :param clean: Remove the redirection files.
-        :return: None
+        :return: None.
         """
         self.running = False
         if clean:
@@ -123,7 +130,9 @@ class StdWatcher(object):
                 os.remove(err_file_name)
 
     def get_messages(self) -> list:
-        """Retrieves the current messages stored in the queue as a list
+        """Get messages found in standard output and standard error.
+
+        Retrieves the current messages stored in the queue as a list
         of strings (one per line reported by the stdout and stderr files).
 
         :return: A list with the reported messages.

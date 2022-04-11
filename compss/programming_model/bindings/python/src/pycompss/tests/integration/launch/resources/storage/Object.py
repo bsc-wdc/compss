@@ -18,8 +18,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Dummy SCO class
----------------
+Dummy SCO class.
 
 WARNING! Only for testing purposes.
          Considers the persistence within the /tmp folder of the localhost.
@@ -29,11 +28,13 @@ from pycompss.tests.integration.launch.resources.storage import api
 
 
 class SCO(object):
+    """Self-contained object representative."""
 
     id = None
     alias = None
 
     def __init__(self):
+        """Do nothing constructor."""
         pass
 
     # Functionality Not Supported! use getByName instead.
@@ -41,18 +42,40 @@ class SCO(object):
     #     self.alias = alias
 
     def get_id(self):
+        """Retrieve the object identifier.
+
+        :returns: Object identifier.
+        """
         return self.id
 
     def set_id(self, id):  # noqa
+        """Set the object identifier.
+
+        :param id: Object identifier.
+        :returns: None.
+        """
         self.id = id
 
     def make_persistent(self, *args):
+        """Persist the object.
+
+        :param args: Arguments redirected to api.makePersistent.
+        :returns: None.
+        """
         api.makePersistent(self, *args)
 
     def delete_persistent(self):
+        """Delete persistent object.
+
+        :returns: None.
+        """
         api.removeById(self)  # noqa
 
     def update_persistent(self):
+        """Update persistent object.
+
+        :returns: None.
+        """
         api.updatePersistent(self)
 
     # Renaming

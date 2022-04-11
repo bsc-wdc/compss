@@ -14,6 +14,11 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+
+# -*- coding: utf-8 -*-
+
+"""PyCOMPSs Testbench increment functions."""
+
 from pycompss.api.api import compss_wait_on
 from pycompss.api.constraint import constraint
 from pycompss.api.implement import implement
@@ -25,26 +30,51 @@ from pycompss.api.task import task
 @constraint(computing_units=2)
 @task(returns=1)
 def super_increment(value):
+    """Increment the given value with 1 (implementation with 2 CUs).
+
+    :param value: Integer to increment.
+    :returns: Incremented value with 1.
+    """
     return value + 1
 
 
 @task(returns=1)
 def increment(value):
+    """Increment the given value with 1.
+
+    :param value: Integer to increment.
+    :returns: Incremented value with 1.
+    """
     return value + 1
 
 
 @constraint(computing_units=1)
 @task(returns=1)
 def decrement(value):
+    """Decrement the given value with 1.
+
+    :param value: Integer to decrement.
+    :returns: Decremented value with 1.
+    """
     return value - 1
 
 
 @local
 def power(value, **kwarg):
+    """Power the given value and multiply with kwarg["param"].
+
+    :param value: Integer to multiply.
+    :param kwarg: Dictionary containing "param" value.
+    :returns: The power of the given value multiplied by kwarg["param"].
+    """
     return value * value * kwarg["param"]
 
 
 def main():
+    """Execute all increment/decrement/power functions.
+
+    :returns: None.
+    """
     initial = 1
     partial = increment(initial)
     result = decrement(partial)

@@ -18,9 +18,9 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Util - logs
-====================
-    This file contains all logging methods.
+PyCOMPSs Util - Logger - Helpers.
+
+This file contains all logging methods.
 """
 
 import json
@@ -38,7 +38,7 @@ CONFIGS = dict()  # type: typing.Dict[str, dict]
 
 
 def get_logging_cfg_file(log_level: str) -> str:
-    """Retrieves the logging configuration file.
+    """Retrieve the logging configuration file.
 
     :param log_level: Log level [ "trace"|"debug"|"info"|"api"|"off" ].
     :return: Logging configuration file.
@@ -59,7 +59,7 @@ def get_logging_cfg_file(log_level: str) -> str:
 
 
 def clean_log_configs() -> None:
-    """Removes all stored log configurations.
+    """Remove all stored log configurations.
 
     :return: None
     """
@@ -67,7 +67,8 @@ def clean_log_configs() -> None:
 
 
 def __read_log_config_file__(log_config_file: str) -> dict:
-    """Reads the given config file.
+    """Read the given config file.
+
     If already read, retrieves from global dictionary.
 
     :param log_config_file: Configuration file to read.
@@ -83,11 +84,11 @@ def __read_log_config_file__(log_config_file: str) -> dict:
 
 
 def init_logging(log_config_file: str, log_path: str) -> None:
-    """Master logging initialization.
+    """Initialize logging in master.
 
     :param log_config_file: Log file name.
     :param log_path: Json log files path.
-    :return: None
+    :return: None.
     """
     if os.path.exists(log_config_file):
         conf = __read_log_config_file__(log_config_file)
@@ -109,11 +110,11 @@ def init_logging(log_config_file: str, log_path: str) -> None:
 
 
 def init_logging_worker(log_config_file: str, tracing: bool) -> None:
-    """Worker logging initialization.
+    """Initialize logger in worker.
 
     :param log_config_file: Log file name.
     :param tracing: If tracing is enabled (the log dir changes).
-    :return: None
+    :return: None.
     """
     if os.path.exists(log_config_file):
         conf = __read_log_config_file__(log_config_file)
@@ -138,11 +139,11 @@ def init_logging_worker(log_config_file: str, tracing: bool) -> None:
 
 
 def init_logging_worker_piper(log_config_file: str, log_dir: str) -> None:
-    """Worker logging initialization.
+    """Initialize logger in piper worker.
 
     :param log_config_file: Log file name.
     :param log_dir: Log directory.
-    :return: None
+    :return: None.
     """
     if os.path.exists(log_config_file):
         conf = __read_log_config_file__(log_config_file)
@@ -166,12 +167,12 @@ def init_logging_worker_piper(log_config_file: str, log_dir: str) -> None:
 def update_logger_handlers(
     log_config_file: str, job_out: str = None, job_err: str = None
 ) -> None:
-    """Worker logging update.
+    """Update worker logger handlers.
 
     :param log_config_file: Log file name.
     :param job_out: out file path.
     :param job_err: err file path.
-    :return: None
+    :return: None.
     """
     if os.path.exists(log_config_file):
         conf = __read_log_config_file__(log_config_file)
@@ -193,11 +194,11 @@ def update_logger_handlers(
 
 @contextmanager
 def swap_logger_name(logger: typing.Any, new_name: str) -> typing.Iterator[None]:
-    """Swaps the current logger with the new one
+    """Swap the current logger with the new one.
 
     :param logger: Logger facility.
     :param new_name: Logger name.
-    :return: None
+    :return: None.
     """
     previous_name = logger.name
     logger.name = new_name
@@ -208,6 +209,7 @@ def swap_logger_name(logger: typing.Any, new_name: str) -> typing.Iterator[None]
 @contextmanager
 def keep_logger() -> typing.Iterator[None]:
     """Do nothing with the logger.
+
     It is used when the swap_logger_name does not need to be applied.
 
     :return: None

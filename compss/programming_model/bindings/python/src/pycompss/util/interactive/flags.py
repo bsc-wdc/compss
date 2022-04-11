@@ -18,9 +18,9 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Util - Interactive Mode Flags checker
-==============================================
-    Provides auxiliary methods for the interactive mode flags checking
+PyCOMPSs Util - Interactive - Mode Flags checker.
+
+Provides auxiliary methods for the interactive mode flags checking
 """
 
 from pycompss.util.typing_helper import typing
@@ -80,10 +80,10 @@ REQUIRED_FLAGS = {
 
 
 def check_flags(all_vars: dict) -> typing.Tuple[bool, list]:
-    """Checks that the provided flags are supported.
+    """Check that the provided flags are supported.
 
-    :param all_vars: Flags dictionary
-    :return: If all flags are supported and the issues if exist.
+    :param all_vars: Flags dictionary.
+    :return: If all flags are supported and the issues if exists.
     """
     is_ok = True
     issues = []
@@ -107,7 +107,7 @@ def check_flags(all_vars: dict) -> typing.Tuple[bool, list]:
 
 
 def __check_flag__(all_vars: dict, flag: str, requirements: typing.Any) -> list:
-    """Checks the given flag against the requirements looking for issues.
+    """Check the given flag against the requirements looking for issues.
 
     :param all_vars: All variables.
     :param flag: Flag to check.
@@ -143,10 +143,10 @@ def __check_flag__(all_vars: dict, flag: str, requirements: typing.Any) -> list:
 
 
 def print_flag_issues(issues: list) -> None:
-    """Displays the given issues on stdout.
+    """Display the given issues on stdout.
 
-    :param issues: Flag issues
-    :return: None
+    :param issues: Flag issues.
+    :return: None.
     """
     print("[ERROR] The following flag issues were detected:")
     for issue in issues:

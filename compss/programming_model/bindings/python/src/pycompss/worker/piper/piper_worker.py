@@ -18,9 +18,9 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Persistent Worker
-===========================
-    This file contains the worker code.
+PyCOMPSs Worker - Piper - Multiprocessing worker.
+
+This file contains the multiprocessing piper worker code.
 """
 
 import os
@@ -68,11 +68,11 @@ CACHE_PROCESS = None
 
 
 def shutdown_handler(signal: int, frame: typing.Any) -> None:
-    """Shutdown handler.
+    """Handle shutdown - Shutdown handler.
 
-    Do not remove the parameters.
+    CAUTION! Do not remove the parameters.
 
-    :param signal: shutdown signal.
+    :param signal: Shutdown signal.
     :param frame: Frame.
     :return: None
     """
@@ -89,12 +89,12 @@ def shutdown_handler(signal: int, frame: typing.Any) -> None:
 
 
 def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
-    """Persistent worker main function.
+    """Retrieve the initial configuration and spawns the worker processes.
 
-    Retrieves the initial configuration and spawns the worker processes.
+    Persistent worker main function.
 
     :param config: Piper Worker Configuration description.
-    :return: None
+    :return: None.
     """
     global CACHE
     global CACHE_PROCESS
@@ -265,12 +265,12 @@ def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
 def create_executor_process(
     process_name: str, conf: ExecutorConf, pipe: Pipe
 ) -> typing.Tuple[int, Queue]:
-    """Starts a new executor.
+    """Start a new executor.
 
     :param process_name: Process name.
     :param conf: executor config.
     :param pipe: Communication pipes (in, out).
-    :return: Process identifier and queue used by the process
+    :return: Process identifier and queue used by the process.
     """
     queue = new_queue()
     process = create_process(target=executor, args=(queue, process_name, pipe, conf))
@@ -285,9 +285,9 @@ def create_executor_process(
 
 
 def main() -> None:
-    """Main piper worker
+    """Start the multiprocessing worker.
 
-    :return: None
+    :return: None.
     """
     global TRACING
     global WORKER_CONF

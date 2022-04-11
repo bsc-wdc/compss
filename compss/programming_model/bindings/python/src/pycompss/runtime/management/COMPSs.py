@@ -18,10 +18,10 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Binding - Management - Runtime
-=======================================
-    This file contains the COMPSs runtime connection.
-    Loads the external C module.
+PyCOMPSs Binding - Management - COMPSs Runtime.
+
+This file contains the COMPSs runtime connection.
+Loads the external C module.
 """
 
 from pycompss.runtime.management.link import establish_interactive_link
@@ -50,7 +50,7 @@ _STDERR = ""
 
 
 def load_runtime(external_process: bool = False, _logger: typing.Any = None) -> None:
-    """Loads the external C extension module.
+    """Load the external C extension module.
 
     :param external_process: Loads the runtime in an external process if true.
                              Within this python process if false.
@@ -83,7 +83,7 @@ def is_redirected() -> bool:
 
 
 def get_redirection_file_names() -> typing.Tuple[str, str]:
-    """Retrieves the stdout and stderr file names.
+    """Retrieve the stdout and stderr file names.
 
     :return: The stdout and stderr file names.
     """
@@ -110,8 +110,8 @@ def start_runtime() -> None:
 def set_debug(mode: bool) -> None:
     """Call to set_debug.
 
-    :param mode: Debug mode
-    :return: None
+    :param mode: Debug mode ( True | False ).
+    :return: None.
     """
     _COMPSs.set_debug(mode)  # noqa
 
@@ -119,8 +119,8 @@ def set_debug(mode: bool) -> None:
 def stop_runtime(code: int) -> None:
     """Call to stop_runtime.
 
-    :param code: Code
-    :return: None
+    :param code: Stopping code.
+    :return: None.
     """
     _COMPSs.stop_runtime(code)  # noqa
 
@@ -129,8 +129,8 @@ def cancel_application_tasks(app_id: int, value: int) -> None:
     """Call to cancel_application_tasks.
 
     :param app_id: Application identifier.
-    :param value: Value
-    :return: None
+    :param value:  Task identifier.
+    :return: None.
     """
     _COMPSs.cancel_application_tasks(app_id, value)  # noqa
 
@@ -139,7 +139,7 @@ def accessed_file(app_id: int, file_name: str) -> bool:
     """Call to accessed_file.
 
     :param app_id: Application identifier.
-    :param file_name: File name.
+    :param file_name: File name to check if accessed.
     :return: If the file has been accessed.
     """
     return _COMPSs.accessed_file(app_id, file_name)  # noqa
@@ -148,8 +148,10 @@ def accessed_file(app_id: int, file_name: str) -> bool:
 def open_file(app_id: int, file_name: str, mode: int) -> str:
     """Call to open_file.
 
+    Synchronizes if necessary.
+
     :param app_id: Application identifier.
-    :param file_name: File name reference.
+    :param file_name: File name reference to open.
     :param mode: Open mode.
     :return: The real file name.
     """
@@ -160,7 +162,7 @@ def close_file(app_id: int, file_name: str, mode: int) -> None:
     """Call to close_file.
 
     :param app_id: Application identifier.
-    :param file_name: File name reference.
+    :param file_name: File name reference to close.
     :param mode: Close mode.
     :return: None
     """
@@ -171,7 +173,7 @@ def delete_file(app_id: int, file_name: str, mode: bool) -> bool:
     """Call to delete_file.
 
     :param app_id: Application identifier.
-    :param file_name: File name reference.
+    :param file_name: File name reference to delete.
     :param mode: Delete mode.
     :return: The deletion result.
     """
@@ -183,23 +185,23 @@ def delete_file(app_id: int, file_name: str, mode: bool) -> bool:
 
 
 def get_file(app_id: int, file_name: str) -> None:
-    """Call to get_file.
+    """Call to (synchronize) get_file.
 
     :param app_id: Application identifier.
-    :param file_name: File name.
-    :return: None
+    :param file_name: File name reference to get.
+    :return: None.
     """
     _COMPSs.get_file(app_id, file_name)  # noqa
 
 
-def get_directory(app_id: int, file_name: str) -> None:
-    """Call to get_directory.
+def get_directory(app_id: int, directory_name: str) -> None:
+    """Call to (synchronize) get_directory.
 
     :param app_id: Application identifier.
-    :param file_name: File name.
-    :return: None
+    :param directory_name: Directory name reference to get.
+    :return: None.
     """
-    _COMPSs.get_directory(app_id, file_name)  # noqa
+    _COMPSs.get_directory(app_id, directory_name)  # noqa
 
 
 def barrier(app_id: int, no_more_tasks: bool) -> None:
@@ -213,7 +215,7 @@ def barrier(app_id: int, no_more_tasks: bool) -> None:
 
 
 def barrier_group(app_id: int, group_name: str) -> str:
-    """Call barrier_group.
+    """Call to barrier_group.
 
     :param app_id: Application identifier.
     :param group_name: Group name.
@@ -228,7 +230,7 @@ def open_task_group(group_name: str, implicit_barrier: bool, app_id: int) -> Non
     :param group_name: Group name.
     :param implicit_barrier: Implicit barrier boolean.
     :param app_id: Application identifier.
-    :return: None
+    :return: None.
     """
     _COMPSs.open_task_group(group_name, implicit_barrier, app_id)  # noqa
 
@@ -238,7 +240,7 @@ def close_task_group(group_name: str, app_id: int) -> None:
 
     :param group_name: Group name.
     :param app_id: Application identifier.
-    :return: None
+    :return: None.
     """
     _COMPSs.close_task_group(group_name, app_id)  # noqa
 
@@ -246,7 +248,7 @@ def close_task_group(group_name: str, app_id: int) -> None:
 def get_logging_path() -> str:
     """Call to get_logging_path.
 
-    :return: The COMPSs log path
+    :return: The COMPSs log path.
     """
     return _COMPSs.get_logging_path()  # noqa
 
@@ -254,8 +256,8 @@ def get_logging_path() -> str:
 def get_number_of_resources(app_id: int) -> int:
     """Call to number_of_resources.
 
-    :param app_id: Application identifier
-    :return: Number of resources
+    :param app_id: Application identifier.
+    :return: Number of resources.
     """
     return _COMPSs.get_number_of_resources(app_id)  # noqa
 
@@ -266,7 +268,7 @@ def request_resources(app_id: int, num_resources: int, group_name: str) -> None:
     :param app_id: Application identifier.
     :param num_resources: Number of resources.
     :param group_name: Group name.
-    :return: None
+    :return: None.
     """
     _COMPSs.request_resources(app_id, num_resources, group_name)  # noqa
 
@@ -277,7 +279,7 @@ def free_resources(app_id: int, num_resources: int, group_name: str) -> None:
     :param app_id: Application identifier.
     :param num_resources: Number of resources.
     :param group_name: Group name.
-    :return: None
+    :return: None.
     """
     _COMPSs.free_resources(app_id, num_resources, group_name)  # noqa
 
@@ -287,7 +289,7 @@ def set_wall_clock(app_id: float, wcl: float) -> None:
 
     :param app_id: Application identifier.
     :param wcl: Wall Clock limit in seconds.
-    :return: None
+    :return: None.
     """
     _COMPSs.set_wall_clock(app_id, wcl)  # noqa
 
@@ -304,15 +306,15 @@ def register_core_element(
 ) -> None:
     """Call to register_core_element.
 
-    :param ce_signature: Core element signature
-    :param impl_signature: Implementation signature
-    :param impl_constraints: Implementation constraints
-    :param impl_type: Implementation type
-    :param impl_io: Implementation IO
-    :param prolog: [binary, params, fail_by_exit_value] of the prolog
-    :param epilog: [binary, params, fail_by_exit_value] of the epilog
-    :param impl_type_args: Implementation type arguments
-    :return: None
+    :param ce_signature: Core element signature.
+    :param impl_signature: Implementation signature.
+    :param impl_constraints: Implementation constraints.
+    :param impl_type: Implementation type.
+    :param impl_io: Implementation IO.
+    :param prolog: [binary, params, fail_by_exit_value] of the prolog.
+    :param epilog: [binary, params, fail_by_exit_value] of the epilog.
+    :param impl_type_args: Implementation type arguments.
+    :return: None.
     """
     _COMPSs.register_core_element(
         ce_signature,  # noqa
@@ -351,28 +353,28 @@ def process_task(
 ) -> None:
     """Call to process_task.
 
-    :param app_id: Application identifier
-    :param signature: Task signature
-    :param on_failure: On failure action
-    :param time_out: Task time out
-    :param has_priority: Boolean has priority
-    :param num_nodes: Number of nodes
-    :param reduction: Boolean indicating if the task is of type reduce
-    :param chunk_size: Size of chunks for executing the reduce operation
-    :param replicated: Boolean is replicated
-    :param distributed: Boolean is distributed
-    :param has_target: Boolean has target
-    :param num_returns: Number of returns
-    :param values: Values
-    :param names: Names
-    :param compss_types: COMPSs types
-    :param compss_directions: COMPSs directions
-    :param compss_streams: COMPSs streams
-    :param compss_prefixes: COMPSs prefixes
-    :param content_types: COMPSs types
-    :param weights: Parameter weights
-    :param keep_renames: Boolean keep renames
-    :return: None
+    :param app_id: Application identifier.
+    :param signature: Task signature.
+    :param on_failure: On failure action.
+    :param time_out: Task time out.
+    :param has_priority: Boolean has priority.
+    :param num_nodes: Number of nodes.
+    :param reduction: Boolean indicating if the task is of type reduce.
+    :param chunk_size: Size of chunks for executing the reduce operation.
+    :param replicated: Boolean is replicated.
+    :param distributed: Boolean is distributed.
+    :param has_target: Boolean has target.
+    :param num_returns: Number of returns.
+    :param values: Values.
+    :param names: Names.
+    :param compss_types: COMPSs types.
+    :param compss_directions: COMPSs directions.
+    :param compss_streams: COMPSs streams.
+    :param compss_prefixes: COMPSs prefixes.
+    :param content_types: COMPSs types.
+    :param weights: Parameter weights.
+    :param keep_renames: Boolean keep renames.
+    :return: None.
     """
     _COMPSs.process_task(
         app_id,  # noqa
@@ -402,6 +404,13 @@ def process_task(
 def process_http_task(
     app_id: int,
     signature: str,
+    service_name: str,
+    resource: str,
+    request: str,
+    payload: str,
+    payload_type: str,
+    produces: str,
+    updates: str,
     on_failure: str,
     time_out: int,
     has_priority: bool,
@@ -424,31 +433,45 @@ def process_http_task(
 ) -> None:
     """Call to process_http_task.
 
-    :param app_id: Application identifier
-    :param signature: Task signature
-    :param on_failure: On failure action
-    :param time_out: Task time out
-    :param has_priority: Boolean has priority
-    :param num_nodes: Number of nodes
-    :param reduction: Boolean indicating if the task is of type reduce
-    :param chunk_size: Size of chunks for executing the reduce operation
-    :param replicated: Boolean is replicated
-    :param distributed: Boolean is distributed
-    :param has_target: Boolean has target
-    :param num_returns: Number of returns
-    :param values: Values
-    :param names: Names
-    :param compss_types: COMPSs types
-    :param compss_directions: COMPSs directions
-    :param compss_streams: COMPSs streams
-    :param compss_prefixes: COMPSs prefixes
-    :param content_types: COMPSs types
-    :param weights: Parameter weights
-    :param keep_renames: Boolean keep renames
-    :return: None
+    :param app_id: Application identifier.
+    :param signature: Task signature.
+    :param service_name: Http service name.
+    :param resource: Http service resource.
+    :param request: Http service request.
+    :param payload: Http service payload.
+    :param payload_type: Http service payload type.
+    :param produces: Http service produces.
+    :param updates: Http service updates.
+    :param on_failure: On failure action.
+    :param time_out: Task time out.
+    :param has_priority: Boolean has priority.
+    :param num_nodes: Number of nodes.
+    :param reduction: Boolean indicating if the task is of type reduce.
+    :param chunk_size: Size of chunks for executing the reduce operation.
+    :param replicated: Boolean is replicated.
+    :param distributed: Boolean is distributed.
+    :param has_target: Boolean has target.
+    :param num_returns: Number of returns.
+    :param values: Values.
+    :param names: Names.
+    :param compss_types: COMPSs types.
+    :param compss_directions: COMPSs directions.
+    :param compss_streams: COMPSs streams.
+    :param compss_prefixes: COMPSs prefixes.
+    :param content_types: COMPSs types.
+    :param weights: Parameter weights.
+    :param keep_renames: Boolean keep renames.
+    :return: None.
     """
     _COMPSs.process_http_task(
         app_id,  # noqa
+        service_name,
+        resource,
+        request,
+        payload,
+        payload_type,
+        produces,
+        updates,
         signature,
         on_failure,
         time_out,
@@ -477,7 +500,7 @@ def set_pipes(pipe_in: str, pipe_out: str) -> None:
 
     :param pipe_in: Input pipe.
     :param pipe_out: Output pipe.
-    :return: None
+    :return: None.
     """
     _COMPSs.set_pipes(pipe_in, pipe_out)  # noqa
 
@@ -485,7 +508,7 @@ def set_pipes(pipe_in: str, pipe_out: str) -> None:
 def read_pipes() -> str:
     """Call to read_pipes.
 
-    :return: The command read from the pipe
+    :return: The command read from the pipe.
     """
     o = _COMPSs.read_pipes()  # noqa
     return o

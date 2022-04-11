@@ -17,10 +17,7 @@
 
 # -*- coding: utf-8 -*-
 
-"""
-PyCOMPSs Testbench PSCO Models
-========================
-"""
+"""PyCOMPSs Testbench PSCO Models."""
 
 import socket
 
@@ -31,13 +28,19 @@ from pycompss.util.serialization.serializer import serialize_to_file
 
 
 def update_file(obj):
+    """Update the object in its file (serialized).
+
+    :param obj: Object to update.
+    :returns: None
+    """
     if obj.getID() is not None:
         storage_path = "/tmp/PSCO/" + str(socket.gethostname()) + "/"  # NOSONAR
         serialize_to_file(obj, storage_path + obj.getID() + ".PSCO")
 
 
 class MySO(SCO):
-    """
+    """Storage object.
+
     @ClassField value int
     """
 
@@ -45,23 +48,42 @@ class MySO(SCO):
     value = 0
 
     def __init__(self, v):  # noqa
+        """Create a MySO object containing an integer value.
+
+        :param v: Integer value to be contained.
+        :returns: None.
+        """
         self.value = v
 
     def get(self):
+        """Retrieve the inner value.
+
+        :returns: The inner value.
+        """
         return self.value
 
     def put(self, v):
+        """Put an inner value.
+
+        :param v: Integer value to be contained.
+        :returns: None.
+        """
         self.value = v
         update_file(self)
 
     @task(target_direction=INOUT)
     def increment(self):
+        """Increment the inner value.
+
+        :returns: None.
+        """
         self.value += 1
         self.updatePersistent()
 
 
 class Words(SCO):
-    """
+    """Words storage object.
+
     @ClassField text dict <<position:int>, word_info:str>
     """
 
@@ -69,23 +91,42 @@ class Words(SCO):
     text = ""
 
     def __init__(self, t):  # noqa
+        """Create a Words object containing the given text.
+
+        :param t: Text to be contained.
+        :returns: None.
+        """
         self.text = t
 
     def get(self):
+        """Retrieve the inner text.
+
+        :returns: The inner text.
+        """
         return self.text
 
 
 class Result(SCO):
-    """
+    """Result storage object.
+
     @ClassField myd dict <<word:str>,instances:atomicint>
     """
 
     myd = {}
 
     def get(self):
+        """Retrieve the inner result.
+
+        :returns: The inner result.
+        """
         return self.myd
 
     def set(self, d):
+        """Set the inner result.
+
+        :param d: Result to be contained.
+        :returns: None.
+        """
         self.myd = d
         update_file(self)
 
@@ -94,15 +135,25 @@ class Result(SCO):
 
 
 class InputData(SCO):
-    """
+    """Input data storage object.
+
     @ClassField images dict <<image_id:str>, value:list>
     """
 
     images = {}
 
     def get(self):
+        """Retrieve the inner input data.
+
+        :returns: The inner input data.
+        """
         return self.images
 
     def set(self, i):
+        """Set the inner input data.
+
+        :param i: Data to be contained.
+        :returns: None.
+        """
         self.images = i
         update_file(self)

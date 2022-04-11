@@ -18,10 +18,9 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Persistent Worker Pipe Constants
-=========================================
-    This file contains a set of constants used when communication through
-    pipes.
+PyCOMPSs Worker - Piper - Commons - Constants.
+
+This file contains a set of constants used when communication through pipes.
 """
 
 # ############### #

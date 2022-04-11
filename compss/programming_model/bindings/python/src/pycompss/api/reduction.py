@@ -18,10 +18,10 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - Reduction
-========================
-    This file contains the class Reduction, needed for the reduction
-    of data elements.
+PyCOMPSs API - Reduction decorator.
+
+This file contains the Reduction class, needed for the reduction of data
+elements task definition.
 """
 
 import os
@@ -48,7 +48,8 @@ DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 
 
 class Reduction(object):
-    """
+    """Reduction decorator class.
+
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on Reduction task creation.
     """
@@ -63,11 +64,11 @@ class Reduction(object):
     ]
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
-        """
-        Store arguments passed to the decorator
-        # self = itself.
-        # args = not used.
-        # kwargs = dictionary with the given Reduce parameters
+        """Store arguments passed to the decorator.
+
+        self = itself.
+        args = not used.
+        kwargs = dictionary with the given Reduce parameters
 
         :param args: Arguments
         :param kwargs: Keyword arguments
@@ -123,7 +124,7 @@ class Reduction(object):
         return reduce_f
 
     def __process_reduction_params__(self) -> None:
-        """Processes the chunk size and is reduce from the decorator.
+        """Process the chunk size and is_reduce from the decorator.
 
         :return: None
         """
@@ -159,7 +160,7 @@ class Reduction(object):
 
     @staticmethod
     def __parse_chunk_size__(chunk_size: str) -> int:
-        """Parses chunk size as string and returns its value as integer.
+        """Parse chunk size as string and returns its value as integer.
 
         :param chunk_size: Chunk size as string.
         :return: Chunk size as integer.

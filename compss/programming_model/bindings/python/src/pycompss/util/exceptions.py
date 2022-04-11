@@ -18,79 +18,92 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Exceptions
-====================
-    This file defines the internal PyCOMPSs exceptions.
+PyCOMPSs Util - Exceptions.
+
+This file defines the internal PyCOMPSs exceptions.
 """
 
 from pycompss.util.typing_helper import typing
 
 
 class SerializerException(Exception):
-    """
-    Exception on serialization
-    """
+    """Exception on serialization class."""
 
     pass
 
 
 class PyCOMPSsException(Exception):
-    """
-    Generic PyCOMPSs exception
-    """
+    """Generic PyCOMPSs exception class."""
 
     def __init__(self, message: str) -> None:
+        """Create a new PyCOMPSsException instance.
+
+        :param message: Exception message.
+        """
         super(PyCOMPSsException, self).__init__(message)
 
 
 class NotInPyCOMPSsException(Exception):
-    """
-    Not within PyCOMPSs scope exception.
-    """
+    """Not within PyCOMPSs scope exception class."""
 
     def __init__(self, message: str) -> None:
+        """Create a new NotInPyCOMPSsException instance.
+
+        :param message: Exception message.
+        """
         msg = "Outside PyCOMPSs scope: %s" % message
         super(NotInPyCOMPSsException, self).__init__(msg)
 
 
 class NotImplementedException(Exception):
-    """
-    Not implemented exception.
-    """
+    """Not implemented exception class."""
 
     def __init__(self, functionality: str) -> None:
+        """Create a new NotImplementedException instance.
+
+        :param message: Exception message.
+        """
         msg = "Functionality %s not implemented yet." % functionality
         super(NotImplementedException, self).__init__(msg)
 
 
 class MissingImplementedException(Exception):
-    """
-    Not implemented exception
-    """
+    """Missing implemented exception class."""
 
     def __init__(self, functionality: str) -> None:
+        """Create a new MissingImplementedException instance.
+
+        :param message: Exception message.
+        """
         msg = "Missing %s. Needs to be overridden." % functionality
         super(MissingImplementedException, self).__init__(msg)
 
 
 class TimeOutError(Exception):
-    """
-    Time out error exception
-    """
+    """Time out error exception class."""
 
     pass
 
 
 class CancelError(Exception):
-    """
-    Cancel error exception
-    """
+    """Cancel error exception class."""
 
     pass
 
 
+class DDSException(Exception):
+    """Generic DDS exception class."""
+
+    def __init__(self, message: str) -> None:
+        """Create a new DDSException instance.
+
+        :param message: Exception message.
+        """
+        super(DDSException, self).__init__(message)
+
+
 def task_timed_out(signum: int, frame: typing.Any) -> None:
-    """Task time out signal handler
+    """Task time out signal handler.
 
     Do not remove the parameters.
 
@@ -113,12 +126,3 @@ def task_cancel(signum: int, frame: typing.Any) -> None:
     :raises: CancelError exception.
     """
     raise CancelError
-
-
-class DDSException(Exception):
-    """
-    Generic DDS exception
-    """
-
-    def __init__(self, message: str) -> None:
-        super(DDSException, self).__init__(message)

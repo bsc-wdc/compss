@@ -18,9 +18,9 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Binding - Commons
-==========================
-    This file contains the common definitions of the Python binding.
+PyCOMPSs Binding - Commons.
+
+This file contains the common definitions of the Python binding.
 """
 
 import os
@@ -35,6 +35,7 @@ from pycompss.util.typing_helper import typing
 
 
 class Constants(object):
+    """Common constants definitions."""
 
     __slots__ = (
         "empty_string_key",
@@ -55,6 +56,10 @@ class Constants(object):
     )
 
     def __init__(self):
+        """Constant constructor.
+
+        :returns: None.
+        """
         # Empty string substitution key
         self.empty_string_key = "3mPtY57r1Ng"
         # Default python interpreter
@@ -115,10 +120,15 @@ CONSTANTS = Constants()
 
 
 class Globals(object):
+    """Common global definitions."""
 
     __slots__ = ("temp_dir", "object_conversion", "tracing_task_name_to_id")
 
     def __init__(self):
+        """Global object constructor.
+
+        :returns: None.
+        """
         self.temp_dir = ""
         self.object_conversion = False
         self.tracing_task_name_to_id = dict()  # type: typing.Dict[str, int]
@@ -126,7 +136,7 @@ class Globals(object):
     def get_temporary_directory(self) -> str:
         """Temporary directory getter.
 
-        :return: Temporary directory path
+        :return: Temporary directory path.
         """
         return self.temp_dir
 
@@ -136,9 +146,9 @@ class Globals(object):
         Creates the temporary directory from the folder parameter and
         sets the temporary directory variable.
 
-        :param folder: Temporary directory path
+        :param folder: Temporary directory path.
         :param create_tmpdir: Create temporary directory within folder.
-        :return: None
+        :return: None.
         """
         if create_tmpdir:
             temp_dir = mkdtemp(
@@ -152,7 +162,7 @@ class Globals(object):
     def get_object_conversion(self) -> bool:
         """Object conversion getter.
 
-        :return: Boolean object conversion
+        :return: Boolean object conversion.
         """
         return self.object_conversion
 
@@ -160,15 +170,15 @@ class Globals(object):
         """Set object conversion to string.
 
         :param conversion: Boolean. True enable, False disable.
-        :return: None
+        :return: None.
         """
         self.object_conversion = conversion
 
     def in_tracing_task_name_to_id(self, task_name: str) -> bool:
-        """Checks if task_name is in tracing_task_name_to_id dictionary.
+        """Check if task_name is in tracing_task_name_to_id dictionary.
 
         :param task_name: Traced task name.
-        :return: Boolean if exists
+        :return: Boolean if exists.
         """
         return task_name in self.tracing_task_name_to_id
 
@@ -176,7 +186,7 @@ class Globals(object):
         """Retrieve the identifier of the given task_name.
 
         :param task_name: Traced task name.
-        :return: The task_name identifier
+        :return: The task_name identifier.
         """
         return self.tracing_task_name_to_id[task_name]
 
@@ -185,14 +195,14 @@ class Globals(object):
 
         :param task_name: Traced task name.
         :param value: Traced task identifier.
-        :return: None
+        :return: None.
         """
         self.tracing_task_name_to_id[task_name] = value
 
     def len_tracing_task_name_to_id(self) -> int:
         """Retrieve the amount of identifier registered.
 
-        :return: The number of entries
+        :return: The number of entries.
         """
         return len(self.tracing_task_name_to_id)
 

@@ -14,6 +14,11 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+
+# -*- coding: utf-8 -*-
+
+"""PyCOMPSs Testbench for the API."""
+
 import os
 import shutil
 import time
@@ -37,6 +42,11 @@ from pycompss.api.task import task
 
 @task(fin=FILE, returns=str)
 def file_in(fin):
+    """Read the given file.
+
+    :param fin: Input file path.
+    :returns: The input file contents.
+    """
     print("TEST FILE IN")
     # Open the file and read the content
     fin_d = open(fin, "r")
@@ -49,6 +59,13 @@ def file_in(fin):
 
 @task(finout=FILE_INOUT, returns=str)
 def file_inout(finout):
+    """Read and modify the given file.
+
+    CAUTION! Modifies finout.
+
+    :param finout: Input output file path.
+    :returns: The given file contents.
+    """
     print("TEST FILE INOUT")
     # Open the file and read the content
     finout_d = open(finout, "r+")
@@ -65,6 +82,12 @@ def file_inout(finout):
 
 @task(fout=FILE_OUT, returns=str)
 def file_out(fout, content):
+    """Read the given file and returns as OUT and in return.
+
+    :param fout: Input file path.
+    :param content: Output content.
+    :returns: The given file contents.
+    """
     print("TEST FILE OUT")
     # Open the file for writing and write some content
     with open(fout, "w") as fout_d:
@@ -74,7 +97,12 @@ def file_out(fout, content):
 
 
 def file_checker(filename, direction):
-    # Check if file exists:
+    """Check if file exists.
+
+    :param filename: File to be checked.
+    :param direction: File direction.
+    :returns: None.
+    """
     must_exist = compss_file_exists(filename)
     compss_delete_file(filename)
     must_not_exist = compss_file_exists(filename)
@@ -83,7 +111,12 @@ def file_checker(filename, direction):
 
 
 def multiple_file_checker(filenames, directions):
-    # Check if multiple file exists:
+    """Check if multiple files exist.
+
+    :param filenames: Files to be checked.
+    :param directions: Files direction.
+    :returns: None.
+    """
     must_exist = compss_file_exists(*filenames)
     compss_delete_file(*filenames)
     must_not_exist = compss_file_exists(*filenames)
@@ -96,7 +129,11 @@ def multiple_file_checker(filenames, directions):
 
 
 def files():
-    """Test FILE_IN"""
+    """Test files functionality.
+
+    :returns: None.
+    """
+    # Test FILE_IN
     fin = "infile"
     content = "IN FILE CONTENT"
     with open(fin, "w") as f:
@@ -110,7 +147,7 @@ def files():
     # Remove object
     compss_delete_object(res)
 
-    """ Test Multiple FILE_IN """
+    # Test Multiple FILE_IN
     fin_1 = "infile_1"
     fin_2 = "infile_2"
     fin_3 = "infile_3"
@@ -130,7 +167,7 @@ def files():
     # Remove objects
     compss_delete_object(*results)
 
-    """ Test FILE_INOUT """
+    # Test FILE_INOUT
     finout = "inoutfile"
     content = "INOUT FILE CONTENT"
     with open(finout, "w") as f:
@@ -151,7 +188,7 @@ def files():
     # Remove object
     compss_delete_object(res)
 
-    """ Test Multiple FILE_INOUT """
+    # Test Multiple FILE_INOUT
     finout_1 = "inoutfile_1"
     finout_2 = "inoutfile_2"
     finout_3 = "inoutfile_3"
@@ -182,7 +219,7 @@ def files():
     # Remove objects
     compss_delete_object(*results)
 
-    """ Test FILE_OUT """
+    # Test FILE_OUT
     fout = "outfile"
     content = "OUT FILE CONTENT"
     res = file_out(fout, content)
@@ -205,7 +242,7 @@ def files():
     # Remove object
     compss_delete_object(res)
 
-    """ Test Multiple FILE_OUT """
+    # Test Multiple FILE_OUT
     fout_1 = "outfile_1"
     fout_2 = "outfile_2"
     fout_3 = "outfile_3"
@@ -241,6 +278,12 @@ def files():
 
 @task(dir_inout=DIRECTORY_INOUT, returns=list)
 def dir_inout_task(dir_inout, i):
+    """Write to an INOUT directory.
+
+    :param dir_inout: Directory with INOUT direction.
+    :param i: Value to be written in the file within the directory.
+    :returns: None.
+    """
     res = list()
     for _ in os.listdir(dir_inout):
         with (open("{}{}{}".format(dir_inout, os.sep, _), "r")) as fd:
@@ -253,6 +296,11 @@ def dir_inout_task(dir_inout, i):
 
 @task(dir_in=DIRECTORY_IN)
 def dir_in_task(dir_in):
+    """Read all files within the given directory.
+
+    :param dir_in: Source directory.
+    :returns: List with the contents per file.
+    """
     res = list()
     for _ in os.listdir(dir_in):
         _fp = dir_in + os.sep + _
@@ -263,6 +311,12 @@ def dir_in_task(dir_in):
 
 @task(dir_out=DIRECTORY_OUT)
 def dir_out_task(dir_out, i):
+    """Write to an OUT directory.
+
+    :param dir_out: Directory with OUT direction.
+    :param i: Value to be written in the file within the directory.
+    :returns: None.
+    """
     if os.path.exists(dir_out):
         shutil.rmtree(dir_out)
     os.mkdir(dir_out)
@@ -272,6 +326,10 @@ def dir_out_task(dir_out, i):
 
 
 def directories():
+    """Check directories functionalities.
+
+    :returns: None.
+    """
     cur_path = "{}{}".format(os.getcwd(), os.sep)
     dir_t = "{}{}".format(cur_path, "some_dir_t")
     dir_t_1 = "{}{}".format(cur_path, "some_dir_t_1")
@@ -372,10 +430,19 @@ def directories():
 
 @task(returns=1)
 def increment(value):
+    """Increment the given value with 1.
+
+    :param value: Integer value.
+    :returns: value incremented with 1.
+    """
     return value + 1
 
 
 def test_task_groups():
+    """Check task groups functionalities.
+
+    :returns: None.
+    """
     num_tasks = 3
     num_groups = 3
     results = []
@@ -392,6 +459,10 @@ def test_task_groups():
 
 
 def main():
+    """Check all API functionalities.
+
+    :returns: None.
+    """
     files()
     compss_barrier()
     directories()

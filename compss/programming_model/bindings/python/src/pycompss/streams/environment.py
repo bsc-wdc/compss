@@ -18,8 +18,8 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Binding - Streams - Environment
-========================================
+PyCOMPSs Binding - Streams - Environment.
+
 This file contains the methods to setup the environment when using streaming.
 It is called from interactive.py and launch.py scripts.
 """
@@ -85,7 +85,7 @@ def init_streaming(
 def stop_streaming() -> None:
     """Stop the streaming backend.
 
-    :return: None
+    :return: None.
     """
     if __debug__:
         logger.debug("Stopping DistroStream library")

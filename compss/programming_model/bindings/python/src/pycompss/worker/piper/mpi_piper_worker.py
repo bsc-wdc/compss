@@ -18,9 +18,9 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Persistent Worker
-==========================
-    This file contains the worker code.
+PyCOMPSs Worker - Piper - MPI Worker.
+
+This file contains the mpi piper worker code.
 """
 
 import os
@@ -67,21 +67,21 @@ CACHE_QUEUE = None
 
 
 def is_worker() -> bool:
-    """Returns whether the process should act as a worker.
+    """Return whether the process should act as a worker.
 
-    :return: the process should act as a worker.
+    :return: The process should act as a worker.
     """
     return RANK == 0
 
 
 def shutdown_handler(signal: int, frame: typing.Any) -> None:
-    """Shutdown handler.
+    """Handle shutdown - Shutdown handler.
 
-    Do not remove the parameters.
+    CAUTION! Do not remove the parameters.
 
-    :param signal: shutdown signal.
+    :param signal: Shutdown signal.
     :param frame: Frame.
-    :return: None
+    :return: None.
     """
     if is_worker():
         print(HEADER + "Shutdown signal handler")
@@ -90,13 +90,13 @@ def shutdown_handler(signal: int, frame: typing.Any) -> None:
 
 
 def user_signal_handler(signal: int, frame: typing.Any) -> None:
-    """User signal handler.
+    """Handle user signal - User signal handler.
 
-    Do not remove the parameters.
+    CAUTION! Do not remove the parameters.
 
-    :param signal: shutdown signal.
+    :param signal: Shutdown signal.
     :param frame: Frame.
-    :return: None
+    :return: None.
     """
     if is_worker():
         print(HEADER + "Default user signal handler")
@@ -110,12 +110,12 @@ def user_signal_handler(signal: int, frame: typing.Any) -> None:
 
 
 def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
-    """Persistent worker main function.
+    """Retrieve the initial configuration and represents the main worker process.
 
-    Retrieves the initial configuration and spawns the worker processes.
+    Persistent worker main function.
 
     :param config: Piper Worker Configuration description.
-    :return: None
+    :return: None.
     """
     pids = COMM.gather(str(os.getpid()), root=0)
     if not pids:
@@ -228,12 +228,12 @@ def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
 
 
 def compss_persistent_executor(config: PiperWorkerConfiguration) -> None:
-    """Persistent executor main function.
+    """Retrieve the initial configuration and performs executor process functionality.
 
-    Retrieves the initial configuration and spawns the worker processes.
+    Persistent MPI executor main function.
 
     :param config: Piper Worker Configuration description.
-    :return: None
+    :return: None.
     """
     COMM.gather(str(os.getpid()), root=0)
 
@@ -299,9 +299,9 @@ def compss_persistent_executor(config: PiperWorkerConfiguration) -> None:
 
 
 def main() -> None:
-    """Main mpi piper worker
+    """Start the MPI piper worker.
 
-    :return: None
+    :return: None.
     """
     # Configure the global tracing variable from the argument
     global TRACING

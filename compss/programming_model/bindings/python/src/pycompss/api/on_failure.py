@@ -18,10 +18,10 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - ON_FAILURE
-=========================
-    This file contains the class on_failure, needed for the on failure
-    management definition through the decorator.
+PyCOMPSs API - on_failure decorator.
+
+This file contains the on_failure class, needed for the on failure management
+definition through the decorator.
 """
 
 from functools import wraps
@@ -51,9 +51,10 @@ SUPPORTED_ARGUMENTS = {
 
 
 class OnFailure(object):
-    """
+    """OnFailure decorator class.
+
     This decorator also preserves the argspec, but includes the __init__ and
-    __call__ methods, useful on task on_failure creation.
+    __call__ methods, useful on task on_failure task management definition.
     """
 
     __slots__ = [

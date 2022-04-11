@@ -18,9 +18,9 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Functions: Profiling decorator
-=======================================
-    This file defines the time it decorator to be used below the task decorator.
+PyCOMPSs Functions: Profiling decorator.
+
+This file defines the profiling decorator to be used below the task decorator.
 """
 
 from functools import wraps
@@ -30,7 +30,14 @@ from pycompss.util.typing_helper import typing
 
 
 class Profile(object):
+    """Profile decorator class."""
+
     def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
+        """Store arguments passed to the decorator.
+
+        :param args: Arguments.
+        :param kwargs: Keyword arguments.
+        """
         self.args = args
         self.kwargs = kwargs
 
@@ -56,5 +63,8 @@ class Profile(object):
         return wrapped_f
 
 
-# For lower-case usage:
+# ########################################################################### #
+# ################### Profile DECORATOR ALTERNATIVE NAME #################### #
+# ########################################################################### #
+
 profile = Profile

@@ -18,9 +18,9 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - Task
-===================
-    This file contains the class task, needed for the task definition.
+PyCOMPSs API - Task decorator.
+
+This file contains the Task class, needed for the task definition.
 """
 
 from __future__ import print_function
@@ -63,8 +63,8 @@ REGISTER_ONLY = False
 
 
 class Task(object):
-    """
-    This is the Task decorator implementation.
+    """This is the Task decorator implementation.
+
     It is implemented as a class and consequently this implementation can be
     divided into two natural steps: decoration process and function call.
 
@@ -209,8 +209,9 @@ class Task(object):
         self.defaults = dict()  # type: dict
 
     def __call__(self, user_function: typing.Callable) -> typing.Callable:
-        """This function is called in all explicit function calls.
+        """Perform the task processing.
 
+        This function is called in all explicit function calls.
         Note that in PyCOMPSs a single function call will be transformed into
         two calls, as both master and worker need to call the function.
 
@@ -238,6 +239,13 @@ class Task(object):
     def __decorator_body__(
         self, user_function: typing.Callable, args: tuple, kwargs: dict
     ) -> typing.Any:
+        """Body of the task decorator.
+
+        :param user_function: Decorated function.
+        :param args: Function arguments.
+        :param kwargs: Function keyword arguments.
+        :returns: Result of executing the user_function with the given args and kwargs.
+        """
         # Determine the context and decide what to do
         if context.in_master():
             # @task being executed in the master
@@ -392,9 +400,9 @@ class Task(object):
     ) -> None:
         """Check Core Element for containers.
 
-        :param kwargs: Keyword arguments
-        :param user_function: User function
-        :return: None (updates the Core Element of the given kwargs)
+        :param kwargs: Keyword arguments.
+        :param user_function: User function.
+        :return: None (updates the Core Element of the given kwargs).
         """
         if (
             CORE_ELEMENT_KEY in kwargs
@@ -425,8 +433,10 @@ class Task(object):
 
     @staticmethod
     def __get_module_name__(user_function: typing.Callable) -> str:
-        """
-        Gets the module name from the user function.
+        """Get the module name from the user function.
+
+        :param user_function: User function.
+        :returns: The module name where the user function is defined.
         """
         mod = inspect.getmodule(user_function)  # type: typing.Any
         module_name = mod.__name__

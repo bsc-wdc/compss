@@ -18,9 +18,10 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - Software
-==================
-    Software Task decorator class.
+PyCOMPSs API - Software decorator.
+
+This file contains the Software class, needed for the software task definition
+through the decorator.
 """
 import json
 from functools import wraps
@@ -53,7 +54,7 @@ SUPPORTED_DECORATORS = {
 
 
 class Software(object):
-    """@software decorator definition class.
+    """Software decorator class.
 
     When provided with a config file, it can replicate any existing python
     decorator by wrapping the user function with the decorator defined in
@@ -76,8 +77,7 @@ class Software(object):
     ]
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
-        """Parse the config file and store the arguments that will be used
-        later to wrap the "real" decorator.
+        """Parse the config file and store arguments passed to the decorator.
 
         self = itself.
         args = not used.
@@ -115,7 +115,9 @@ class Software(object):
             self.parse_config_file()
 
     def __call__(self, user_function: typing.Callable) -> typing.Callable:
-        """When called, @software decorator basically wraps the user function
+        """Parse and set the software parameters within the task core element.
+
+        When called, @software decorator basically wraps the user function
         into the "real" decorator and passes the args and kwargs.
 
         :param user_function: User function to be decorated.
@@ -177,8 +179,7 @@ class Software(object):
         return software_f
 
     def parse_config_file(self) -> None:
-        """Parse the config file and set self's task_type, decor, and
-        config args.
+        """Parse the config file and set self's task_type, decor, and config args.
 
         :return: None
         """

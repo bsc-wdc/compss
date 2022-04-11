@@ -18,13 +18,14 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - COMMONS - Constants
-==================================
-    This file contains the common decorator labels.
+PyCOMPSs API - commons - constants.
+
+This file contains the common decorator labels.
 """
 
 
-class Labels(object):
+class _Labels(object):
+    """Currently supported labels in all decorators."""
 
     __slots__ = (
         "returns",
@@ -144,7 +145,8 @@ class Labels(object):
         self.type = "type"
 
 
-class LegacyLabels(object):
+class _LegacyLabels(object):
+    """Supported labels in all decorators but sensitive to be removed."""
 
     __slots__ = (
         "is_replicated",
@@ -178,7 +180,8 @@ class LegacyLabels(object):
         self.source_class = "sourceClass"
 
 
-class InternalLabels(object):
+class _InternalLabels(object):
+    """Internal labels."""
 
     __slots__ = "unassigned"
 
@@ -186,6 +189,6 @@ class InternalLabels(object):
         self.unassigned = "[unassigned]"
 
 
-LABELS = Labels()
-LEGACY_LABELS = LegacyLabels()
-INTERNAL_LABELS = InternalLabels()
+LABELS = _Labels()
+LEGACY_LABELS = _LegacyLabels()
+INTERNAL_LABELS = _InternalLabels()

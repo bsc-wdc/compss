@@ -18,9 +18,9 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Functions: Reduce
-==========================
-    This file defines the common reduce functions.
+PyCOMPSs Functions: Reduce.
+
+This file defines the common reduction functions.
 """
 
 from collections import deque
@@ -29,9 +29,10 @@ from pycompss.util.typing_helper import typing
 
 
 def merge_reduce(f: typing.Callable, data: list) -> typing.Any:
-    """Apply function cumulatively to the items of data,
-    from left to right in binary tree structure, so as to
-    reduce the data to a single value.
+    """Reduce the given data applying f as an inverted binary tree.
+
+    Apply function cumulatively to the items of data, from left to right in
+    binary tree structure, so as to reduce the data to a single value.
 
     :param f: function to apply to reduce data
     :param data: List of items to be reduced
@@ -49,9 +50,10 @@ def merge_reduce(f: typing.Callable, data: list) -> typing.Any:
 
 
 def merge_n_reduce(f: typing.Callable, arity: int, data: list) -> typing.Any:
-    """Apply f cumulatively to the items of data,
-    from left to right in n-tree structure, so as to
-    reduce the data.
+    """Reduce the given data applying f as an inverted N-ary tree.
+
+    Apply f cumulatively to the items of data, from left to right in n-tree
+    tructure, so as to reduce the data.
 
     :param f: function to apply to reduce data
     :param arity: Number of elements in group

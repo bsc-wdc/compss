@@ -18,24 +18,24 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Util - Utils
-=====================
-    This file contains the utilities that could be needed.
+PyCOMPSs Util - Objects - Utils.
+
+This file contains the utilities that could be needed for the objects.
 """
 
 from pycompss.util.typing_helper import typing
 
 
 def group_iterable(iterable: typing.Iterable, n: int) -> typing.Iterator[typing.Any]:
-    """
-    Return a list of lists containing n elements:
+    """Return a list of lists containing n elements.
+
     s -> [(s0, s1, s2, ..., sn-1),
           (sn, sn+1, sn+2, ..., s2n-1),
           (s2n, s2n+1, s2n+2, ..., s3n-1),
           ...,
           (sNn, sNn+1, sNn+2, ..., sMn-1)]"
-    :param iterable: Iterable to group
-    :param n: Number of elements per group
+    :param iterable: Iterable to group.
+    :param n: Number of elements per group.
     :return: A list of lists where the inner contain n elements.
     """
     return zip(*[iter(iterable)] * n)

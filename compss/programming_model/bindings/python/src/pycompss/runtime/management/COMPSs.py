@@ -404,13 +404,6 @@ def process_task(
 def process_http_task(
     app_id: int,
     signature: str,
-    service_name: str,
-    resource: str,
-    request: str,
-    payload: str,
-    payload_type: str,
-    produces: str,
-    updates: str,
     on_failure: str,
     time_out: int,
     has_priority: bool,
@@ -435,13 +428,6 @@ def process_http_task(
 
     :param app_id: Application identifier.
     :param signature: Task signature.
-    :param service_name: Http service name.
-    :param resource: Http service resource.
-    :param request: Http service request.
-    :param payload: Http service payload.
-    :param payload_type: Http service payload type.
-    :param produces: Http service produces.
-    :param updates: Http service updates.
     :param on_failure: On failure action.
     :param time_out: Task time out.
     :param has_priority: Boolean has priority.
@@ -465,13 +451,6 @@ def process_http_task(
     """
     _COMPSs.process_http_task(
         app_id,  # noqa
-        service_name,
-        resource,
-        request,
-        payload,
-        payload_type,
-        produces,
-        updates,
         signature,
         on_failure,
         time_out,

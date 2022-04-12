@@ -51,8 +51,9 @@ RUN apt-get update && \
     sudo jq bc firefox gnupg lsb-release libgraphviz-dev && \
     apt-get autoclean && \
     rm -rf /var/lib/apt/lists/* && \
-    pip3 --no-cache-dir install pycodestyle selenium redis==3.5.3 redis-py-cluster==2.1.3 enum34 tabulate black black[jupyter] memory-profiler && \
-    pip3 --no-cache-dir install pytest pytest-cov nbval nbconvert coverage pytest-html-profiling pytest-metadata pytest-profiling pytest-subprocess pytest-sugar pydocstyle \
+    pip3 --no-cache-dir install pycodestyle selenium redis==3.5.3 redis-py-cluster==2.1.3 enum34 tabulate black memory-profiler && \
+    pip3 --no-cache-dir install pytest pytest-cov nbval nbconvert coverage pytest-html-profiling pytest-metadata pytest-profiling pytest-subprocess pytest-sugar pydocstyle && \
+    pip3 --no-cache-dir install black[jupyter] && \
     #for fixing a nbcovert jinja2 compatibility problem
     jinja2==3.0.3 && \
     pip3 --no-cache-dir install install mypy mypy-extensions types-tabulate types-decorator && \

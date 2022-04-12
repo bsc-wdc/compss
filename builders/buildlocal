@@ -481,8 +481,8 @@ install_compss() {
   if [ "${pycompss}" == "true" ]; then
     echo "- Checking pycodestyle in Python Binding"
     if command_exists "pycodestyle" ; then
-      cd "${SOURCES_DIR}/compss/programming_model/bindings/python/src/pycompss/"
-      env $PATH=PATH pycodestyle . --max-line-length=120 --exclude=dds/heapq3.py --statistics --count  --ignore=E203,W503
+      cd "${SOURCES_DIR}/compss/programming_model/bindings/python/scripts/style"
+      env $PATH=PATH ./check_code.sh
       ev=$?
       if [ $ev -ne 0 ]; then
         echo "ERROR: Python binding pycodestyle errors. Please, fix them and reinstall."
@@ -497,8 +497,8 @@ install_compss() {
 
     echo "- Checking pydocstyle in Python Binding"
     if command_exists "pydocstyle" ; then
-      cd "${SOURCES_DIR}/compss/programming_model/bindings/python/src/pycompss/"
-      env $PATH=PATH pydocstyle --match='(?!data_type|test_|heapq3).*\.py' .
+      cd "${SOURCES_DIR}/compss/programming_model/bindings/python/scripts/style"
+      env $PATH=PATH ./check_documentation.sh
       ev=$?
       if [ $ev -ne 0 ]; then
         echo "ERROR: Python binding pydocstyle errors. Please, fix them and reinstall."
@@ -513,8 +513,8 @@ install_compss() {
 
     echo "- Checking Black in Python Binding"
     if command_exists "black" ; then
-      cd "${SOURCES_DIR}/compss/programming_model/bindings/python/src/pycompss/"
-      env $PATH=PATH black --check .
+      cd "${SOURCES_DIR}/compss/programming_model/bindings/python/scripts/style"
+      env $PATH=PATH ./check_black.sh
       ev=$?
       if [ $ev -ne 0 ]; then
         echo "ERROR: Python binding Black errors. Please, fix them and reinstall."
@@ -543,7 +543,6 @@ install_compss() {
       cd "${SCRIPT_DIR}"
     fi
 
-    # Check
     echo "- Checking mypy in Python Binding"
     if command_exists "mypy" ; then
       cd "${SOURCES_DIR}/compss/programming_model/bindings/python/scripts/compilation"

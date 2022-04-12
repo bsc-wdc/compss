@@ -4,7 +4,7 @@ echo "Installing required dependencies to run the unittests..."
 
 # General
 python3 -m pip install coverage --user
-python3 -m pip install pycodestyle --user
+python3 -m pip install pycodestyle pydocstyle--user
 python3 -m pip install mpi4py --user
 python3 -m pip install numpy dill guppy3 memory_profiler matplotlib decorator --user
 python3 -m pip install jupyter pytest nbval pytest-cov pytest-notebook ipyparallel jupyter_nbextensions_configurator jupyterlab --user

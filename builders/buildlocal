@@ -495,6 +495,22 @@ install_compss() {
       echo "WARNING: Could not check pycodestyle format of Python Binding (pycodestyle not installed)."
     fi
 
+    echo "- Checking pydocstyle in Python Binding"
+    if command_exists "pydocstyle" ; then
+      cd "${SOURCES_DIR}/compss/programming_model/bindings/python/src/pycompss/"
+      env $PATH=PATH  pydocstyle --match='(?!data_type|test_|heapq3).*\.py' .
+      ev=$?
+      if [ $ev -ne 0 ]; then
+        echo "ERROR: Python binding pydocstyle errors. Please, fix them and reinstall."
+        cd "${SCRIPT_DIR}"
+        exit 1
+      fi
+      echo "  - Python Binding code documentation is OK."
+      cd "${SCRIPT_DIR}"
+    else
+      echo "WARNING: Could not check pydocstyle format of Python Binding (pydocstyle not installed)."
+    fi
+
     echo "- Checking Black in Python Binding"
     if command_exists "black" ; then
       cd "${SOURCES_DIR}/compss/programming_model/bindings/python/src/pycompss/"

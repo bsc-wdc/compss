@@ -111,7 +111,7 @@ class Epilog(object):
                 logger.debug("Executing epilog wrapper.")
 
             if (
-                    context.in_master() or context.is_nesting_enabled()
+                context.in_master() or context.is_nesting_enabled()
             ) and not self.core_element_configured:
                 self.__configure_core_element__(kwargs)
 

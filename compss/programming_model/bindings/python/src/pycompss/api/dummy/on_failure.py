@@ -45,6 +45,7 @@ class OnFailure(object):
         :param f: Decorated function.
         :returns: Result of executing function f.
         """
+
         def wrapped_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             return f(*args, **kwargs)
 

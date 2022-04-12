@@ -57,7 +57,7 @@ def increment(value):
 
 def setup_argv(argv, current_path):
     """Set up the argv required with the given current path.
-    
+
     :param argv: System argv.
     :param current_path: Directory where to redirect stdout and stderr.
     :returns: None.
@@ -70,9 +70,9 @@ def setup_argv(argv, current_path):
 
 def evaluate_piper_worker_common(worker_process, mpi_worker=False):
     """Evaluate the piper worker result.
-    
+
     Override sys.argv to mimic runtime call
-    
+
     :params worker_process: Worker process.
     :params mpi_worker: If the piper worker uses MPI for process spawning.
     :returns: None.

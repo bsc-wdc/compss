@@ -182,7 +182,9 @@ class RegisterStreamRequest(Request):
             + type: List<string>
     """
 
-    def __init__(self, alias: str, stream_type: str, access_mode: str, internal_stream_info: list) -> None:
+    def __init__(
+        self, alias: str, stream_type: str, access_mode: str, internal_stream_info: list
+    ) -> None:
         """Create a new RegisterStreamRequest instance.
 
         :param alias: Associated stream alias.

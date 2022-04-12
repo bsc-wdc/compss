@@ -43,6 +43,7 @@ class dummy_mypyc_attr(object):
         :param f: Decorated function.
         :returns: Decorated function execution result.
         """
+
         def wrapped_mypyc_attr(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             return f(*args, **kwargs)
 

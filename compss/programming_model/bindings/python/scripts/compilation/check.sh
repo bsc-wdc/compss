@@ -19,5 +19,7 @@ fi
 # shellcheck disable=SC2164
 cd "${CURRENT_DIR}"
 
+echo "[OK] Mypy check success"
+
 # Exit all ok
 exit 0

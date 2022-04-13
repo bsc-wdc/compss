@@ -32,7 +32,7 @@ from pycompss.api.commons.constants import LEGACY_LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.error_msgs import not_in_pycompss
-from pycompss.api.commons.implementation_types import IMPL_METHOD
+from pycompss.api.commons.implementation_types import IMPLEMENTATION_TYPES
 from pycompss.runtime.task.core_element import CE
 from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import NotInPyCOMPSsException
@@ -155,7 +155,7 @@ class Implement(object):
             another_class = self.kwargs[LABELS.source_class]
         another_method = self.kwargs[LABELS.method]
         ce_signature = ".".join((another_class, another_method))
-        impl_type = IMPL_METHOD
+        impl_type = IMPLEMENTATION_TYPES.method
         # impl_args = [another_class, another_method] - set by @task
 
         if CORE_ELEMENT_KEY in kwargs:

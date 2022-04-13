@@ -110,9 +110,7 @@ def main() -> None:
         python_interpreter = []
     else:
         # Use the same as current
-        python_interpreter = [
-            f"--python_interpreter={CONSTANTS.python_interpreter}"
-        ]
+        python_interpreter = [f"--python_interpreter={CONSTANTS.python_interpreter}"]
 
     # Take an action
     if args.action == RUN_TAG:

@@ -34,7 +34,7 @@ from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.decorator import process_computing_nodes
 from pycompss.api.commons.error_msgs import not_in_pycompss
-from pycompss.api.commons.implementation_types import IMPL_MULTI_NODE
+from pycompss.api.commons.implementation_types import IMPLEMENTATION_TYPES
 from pycompss.runtime.task.core_element import CE
 from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import NotInPyCOMPSsException
@@ -156,7 +156,7 @@ class MultiNode(object):
             logger.debug("Configuring @multinode core element.")
 
         # Resolve @multinode specific parameters
-        impl_type = IMPL_MULTI_NODE
+        impl_type = IMPLEMENTATION_TYPES.multi_node
 
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator

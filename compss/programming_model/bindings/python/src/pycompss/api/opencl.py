@@ -33,7 +33,7 @@ from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.decorator import resolve_working_dir
 from pycompss.api.commons.error_msgs import not_in_pycompss
-from pycompss.api.commons.implementation_types import IMPL_OPENCL
+from pycompss.api.commons.implementation_types import IMPLEMENTATION_TYPES
 from pycompss.runtime.task.core_element import CE
 from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import NotInPyCOMPSsException
@@ -131,7 +131,7 @@ class OpenCL(object):
         # Resolve the working directory
         resolve_working_dir(self.kwargs)
 
-        impl_type = IMPL_OPENCL
+        impl_type = IMPLEMENTATION_TYPES.opencl
         impl_signature = ".".join((impl_type, kernel))
         impl_args = [kernel, self.kwargs[LABELS.working_dir]]
 

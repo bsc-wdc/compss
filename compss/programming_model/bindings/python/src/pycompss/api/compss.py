@@ -36,7 +36,7 @@ from pycompss.api.commons.decorator import process_computing_nodes
 from pycompss.api.commons.decorator import resolve_fail_by_exit_value
 from pycompss.api.commons.decorator import resolve_working_dir
 from pycompss.api.commons.error_msgs import not_in_pycompss
-from pycompss.api.commons.implementation_types import IMPL_COMPSs
+from pycompss.api.commons.implementation_types import IMPLEMENTATION_TYPES
 from pycompss.runtime.task.core_element import CE
 from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import NotInPyCOMPSsException
@@ -187,7 +187,7 @@ class COMPSs(object):
         # Resolve the fail by exit value
         resolve_fail_by_exit_value(self.kwargs)
 
-        impl_type = IMPL_COMPSs
+        impl_type = IMPLEMENTATION_TYPES.compss
         impl_signature = ".".join((impl_type, app_name))
         impl_args = [
             runcompss,

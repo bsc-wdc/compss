@@ -36,8 +36,7 @@ from pycompss.api.commons.decorator import process_computing_nodes
 from pycompss.api.commons.decorator import resolve_fail_by_exit_value
 from pycompss.api.commons.decorator import resolve_working_dir
 from pycompss.api.commons.decorator import run_command
-from pycompss.api.commons.implementation_types import IMPL_MPI
-from pycompss.api.commons.implementation_types import IMPL_PYTHON_MPI
+from pycompss.api.commons.implementation_types import IMPLEMENTATION_TYPES
 from pycompss.runtime.task.core_element import CE
 from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import PyCOMPSsException
@@ -181,7 +180,7 @@ class Mpi(object):
                 + " processes per node."
             )
 
-        if self.task_type == IMPL_PYTHON_MPI:
+        if self.task_type == IMPLEMENTATION_TYPES.python_mpi:
             prepend_strings = True
         else:
             prepend_strings = False
@@ -292,10 +291,10 @@ class Mpi(object):
         # Resolve @mpi specific parameters
         if LABELS.binary in self.kwargs:
             binary = self.kwargs[LABELS.binary]
-            impl_type = IMPL_MPI
+            impl_type = IMPLEMENTATION_TYPES.mpi
         else:
             binary = INTERNAL_LABELS.unassigned
-            impl_type = IMPL_PYTHON_MPI
+            impl_type = IMPLEMENTATION_TYPES.python_mpi
             self.task_type = impl_type
 
         runner = self.kwargs[LABELS.runner]
@@ -344,7 +343,7 @@ class Mpi(object):
             self.kwargs[LABELS.fail_by_exit_value],
         ]
 
-        if impl_type == IMPL_PYTHON_MPI:
+        if impl_type == IMPLEMENTATION_TYPES.python_mpi:
             impl_args = impl_args + collection_layout_params
 
         if CORE_ELEMENT_KEY in kwargs:

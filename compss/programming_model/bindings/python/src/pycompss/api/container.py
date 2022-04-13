@@ -33,7 +33,7 @@ from pycompss.api.commons.constants import LEGACY_LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.error_msgs import not_in_pycompss
-from pycompss.api.commons.implementation_types import IMPL_CONTAINER
+from pycompss.api.commons.implementation_types import IMPLEMENTATION_TYPES
 from pycompss.runtime.task.core_element import CE
 from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import NotInPyCOMPSsException
@@ -142,7 +142,7 @@ class Container(object):
         _func = str(user_function.__name__)
 
         # Type and signature
-        impl_type = IMPL_CONTAINER
+        impl_type = IMPLEMENTATION_TYPES.container
         impl_signature = ".".join([impl_type, _func])
 
         impl_args = [

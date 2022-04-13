@@ -42,10 +42,7 @@ from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.constants import LEGACY_LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.error_msgs import cast_env_to_int_error
-from pycompss.api.commons.implementation_types import IMPL_METHOD
-from pycompss.api.commons.implementation_types import IMPL_MPI
-from pycompss.api.commons.implementation_types import IMPL_MULTI_NODE
-from pycompss.api.commons.implementation_types import IMPL_PYTHON_MPI
+from pycompss.api.commons.implementation_types import IMPLEMENTATION_TYPES
 from pycompss.api.parameter import DIRECTION
 from pycompss.api.parameter import TYPE
 from pycompss.runtime.binding import wait_on
@@ -1010,13 +1007,13 @@ class TaskMaster(object):
         :return: None.
         """
         ce_type = self.core_element.get_impl_type()
-        default = IMPL_METHOD
+        default = IMPLEMENTATION_TYPES.method
         if ce_type is None or (isinstance(ce_type, str) and ce_type == ""):
             ce_type = default
         if (
             ce_type == default
-            or ce_type == IMPL_PYTHON_MPI
-            or ce_type == IMPL_MULTI_NODE
+            or ce_type == IMPLEMENTATION_TYPES.python_mpi
+            or ce_type == IMPLEMENTATION_TYPES.multi_node
         ):
             code_strings = True
         else:
@@ -1078,7 +1075,7 @@ class TaskMaster(object):
         upper_decorator = pre_defined_ce[1]
 
         # Include the registering info related to @task
-        impl_type = IMPL_METHOD
+        impl_type = IMPLEMENTATION_TYPES.method
         impl_constraints = dict()  # type: dict
         impl_io = False
 
@@ -1121,9 +1118,9 @@ class TaskMaster(object):
                 set_impl_type_args(impl_type_args)
             # Need to update impl_type_args if task is PYTHON_MPI and
             # if the parameter with layout exists.
-            if _impl_type == IMPL_PYTHON_MPI:
+            if _impl_type == IMPLEMENTATION_TYPES.python_mpi:
                 self.check_layout_params(_impl_type_args)
-                set_impl_signature(".".join([IMPL_MPI, impl_signature]))
+                set_impl_signature(".".join([IMPLEMENTATION_TYPES.mpi, impl_signature]))
                 if _impl_type_args:
                     set_impl_type_args(impl_type_args + _impl_type_args[1:])
                 else:

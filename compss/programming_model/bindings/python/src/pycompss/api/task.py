@@ -34,8 +34,7 @@ import pycompss.api.parameter as parameter
 import pycompss.util.context as context
 from pycompss.api.commons.constants import INTERNAL_LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
-from pycompss.api.commons.implementation_types import IMPL_CONTAINER
-from pycompss.api.commons.implementation_types import IMPL_METHOD
+from pycompss.api.commons.implementation_types import IMPLEMENTATION_TYPES
 from pycompss.runtime.task.core_element import CE
 from pycompss.runtime.task.master import TaskMaster
 from pycompss.runtime.task.parameter import get_new_parameter
@@ -125,7 +124,7 @@ class Task(object):
         :param kwargs: Decorator parameters. A task decorator has no positional
                        arguments.
         """
-        self.task_type = IMPL_METHOD
+        self.task_type = IMPLEMENTATION_TYPES.method
         self.decorator_name = "".join(("@", Task.__name__.lower()))
         self.args = args
         self.kwargs = kwargs
@@ -409,7 +408,8 @@ class Task(object):
         """
         if (
             CORE_ELEMENT_KEY in kwargs
-            and kwargs[CORE_ELEMENT_KEY].get_impl_type() == IMPL_CONTAINER
+            and kwargs[CORE_ELEMENT_KEY].get_impl_type()
+            == IMPLEMENTATION_TYPES.container
         ):
             # The task is using a container
             impl_args = kwargs[CORE_ELEMENT_KEY].get_impl_type_args()

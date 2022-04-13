@@ -24,7 +24,7 @@ This file contains the common decorator labels.
 """
 
 
-class _Labels(object):
+class _Labels:  # pylint: disable=too-few-public-methods, too-many-instance-attributes
     """Currently supported labels in all decorators."""
 
     __slots__ = (
@@ -85,7 +85,7 @@ class _Labels(object):
         "type",
     )
 
-    def __init__(self):
+    def __init__(self):  # pylint: disable=too-many-statements
         # Expected labels
         self.returns = "returns"
         self.priority = "priority"
@@ -145,7 +145,7 @@ class _Labels(object):
         self.type = "type"
 
 
-class _LegacyLabels(object):
+class _LegacyLabels:  # pylint: disable=too-few-public-methods, too-many-instance-attributes
     """Supported labels in all decorators but sensitive to be removed."""
 
     __slots__ = (
@@ -180,10 +180,10 @@ class _LegacyLabels(object):
         self.source_class = "sourceClass"
 
 
-class _InternalLabels(object):
+class _InternalLabels:  # pylint: disable=too-few-public-methods
     """Internal labels."""
 
-    __slots__ = "unassigned"
+    __slots__ = ["unassigned"]
 
     def __init__(self):
         self.unassigned = "[unassigned]"

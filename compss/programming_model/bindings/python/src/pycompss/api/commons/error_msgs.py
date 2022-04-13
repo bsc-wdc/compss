@@ -30,7 +30,7 @@ def not_in_pycompss(decorator_name: str) -> str:
     :param decorator_name: Decorator name which requires the message.
     :return: Not in PyCOMPSs error message.
     """
-    return "The %s decorator only works within PyCOMPSs framework." % decorator_name
+    return f"The {decorator_name} decorator only works within PyCOMPSs framework."
 
 
 def cast_env_to_int_error(what: str) -> str:
@@ -39,7 +39,7 @@ def cast_env_to_int_error(what: str) -> str:
     :param what: Environment variable name.
     :return: Can not cast from environment variable to integer.
     """
-    return "ERROR: %s value cannot be cast from ENV variable to int" % what
+    return f"ERROR: {what} value cannot be cast from ENV variable to int"
 
 
 def cast_string_to_int_error(what: str) -> str:
@@ -48,7 +48,7 @@ def cast_string_to_int_error(what: str) -> str:
     :param what: Environment variable name.
     :return: Can not cast from string to integer.
     """
-    return "ERROR: %s value cannot be cast from string to int" % what
+    return f"ERROR: {what} value cannot be cast from string to int"
 
 
 def wrong_value(value_name: str, decorator_name: str) -> str:
@@ -58,4 +58,4 @@ def wrong_value(value_name: str, decorator_name: str) -> str:
     :param decorator_name: Decorator name which requires the message.
     :return: Wrong value at decorator message.
     """
-    return "ERROR: Wrong %s value at %s decorator." % (value_name, decorator_name)
+    return f"ERROR: Wrong {value_name} value at {decorator_name} decorator."

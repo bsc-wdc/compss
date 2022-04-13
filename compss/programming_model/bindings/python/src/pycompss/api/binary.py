@@ -35,9 +35,7 @@ from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.decorator import resolve_fail_by_exit_value
 from pycompss.api.commons.decorator import resolve_working_dir
 from pycompss.api.commons.decorator import run_command
-from pycompss.api.commons.implementation_types import IMPL_BINARY
-from pycompss.api.commons.implementation_types import IMPL_CET_BINARY
-from pycompss.api.commons.implementation_types import IMPL_CONTAINER
+from pycompss.api.commons.implementation_types import IMPLEMENTATION_TYPES
 from pycompss.runtime.task.core_element import CE
 from pycompss.util.arguments import check_arguments
 from pycompss.util.typing_helper import typing
@@ -170,11 +168,12 @@ class Binary(object):
 
         if (
             CORE_ELEMENT_KEY in kwargs
-            and kwargs[CORE_ELEMENT_KEY].get_impl_type() == IMPL_CONTAINER
+            and kwargs[CORE_ELEMENT_KEY].get_impl_type()
+            == IMPLEMENTATION_TYPES.container
         ):
             # @container decorator sits on top of @binary decorator
             # Note: impl_type and impl_signature are NOT modified
-            # (IMPL_CONTAINER and "CONTAINER.function_name" respectively)
+            # (IMPLEMENTATION_TYPES.container and "CONTAINER.function_name" respectively)
 
             impl_args = kwargs[CORE_ELEMENT_KEY].get_impl_type_args()
 
@@ -184,7 +183,7 @@ class Binary(object):
             impl_args = [
                 _engine,  # engine
                 _image,  # image
-                IMPL_CET_BINARY,  # internal_type
+                IMPLEMENTATION_TYPES.cet_binary,  # internal_type
                 _binary,  # internal_binary
                 INTERNAL_LABELS.unassigned,  # internal_func
                 _working_dir,  # working_dir
@@ -197,7 +196,7 @@ class Binary(object):
 
             _binary = str(self.kwargs[LABELS.binary])
 
-            impl_type = IMPL_BINARY
+            impl_type = IMPLEMENTATION_TYPES.binary
             impl_signature = ".".join((impl_type, _binary))
 
             impl_args = [

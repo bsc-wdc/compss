@@ -15,32 +15,50 @@
 #  limitations under the License.
 #
 
+# -*- coding: utf-8 -*-
+
 """
+PyCOMPSs DDS - Partition generators.
+
 Partitions should be loaded with data in the last step only. Thus, generator
 objects are necessary. Inside 'task' functions we will call their 'generate'
 method in order to retrieve the partition. These partitions can previously be
 loaded on master and sent to workers, or read from files on worker nodes.
 """
+
 import pickle
 import sys
 from pycompss.util.exceptions import DDSException
 
 
 class IPartitionGenerator(object):
-    """
-    Everyone implements this.
-    """
+    """Everyone implements this."""
 
     def retrieve_data(self):
+        """Retrieve data.
+
+        :raises NotImplementedError: Not implemented function.
+        """
         raise NotImplementedError
 
 
 class BasicDataLoader(IPartitionGenerator):
+    """Basic data loader."""
+
     def __init__(self, data):
+        """Create a new BasicDataLoader object.
+
+        :param data: Data.
+        :returns: None.
+        """
         super(BasicDataLoader, self).__init__()
         self.data = data
 
     def retrieve_data(self):
+        """Retrieve data.
+
+        :returns: Data.
+        """
         ret = list()
         if isinstance(self.data, list):
             ret.extend(self.data)
@@ -50,16 +68,25 @@ class BasicDataLoader(IPartitionGenerator):
 
 
 class IteratorLoader(IPartitionGenerator):
+    """Iterator Loader."""
+
     def __init__(self, iterable, start, end):
+        """Create new IteratorLoader object.
+
+        :param iterable: Iterable object.
+        :param start: Start position.
+        :param end: End Position.
+        :returns: None.
+        """
         super(IteratorLoader, self).__init__()
         self.iterable = iterable
         self.start = start
         self.end = end
 
     def retrieve_data(self):
-        """
-        Divide and retrieve the next partition.
-        :return:
+        """Divide and retrieve the next partition.
+
+        :returns: Data.
         """
         ret = list()
         # If it's a dict
@@ -82,9 +109,18 @@ class IteratorLoader(IPartitionGenerator):
 
 
 class WorkerFileLoader(IPartitionGenerator):
-    def __init__(self, file_paths, single_file=False, start=0, chunk_size=None):
-        super(WorkerFileLoader, self).__init__()
+    """Worker file loader."""
 
+    def __init__(self, file_paths, single_file=False, start=0, chunk_size=None):
+        """Create new WorkerFileLoader object.
+
+        :param file_paths: List of file paths.
+        :param single_file: Is a single file?
+        :param start: Start position.
+        :param chunk_size: Chunk size.
+        :returns: None.
+        """
+        super(WorkerFileLoader, self).__init__()
         self.file_paths = file_paths
         self.single_file = single_file
         self.start = start
@@ -94,7 +130,10 @@ class WorkerFileLoader(IPartitionGenerator):
             raise DDSException("Missing chunk_size argument...")
 
     def retrieve_data(self):
+        """Retrieve data.
 
+        :returns: Data.
+        """
         if self.single_file:
             fp = open(self.file_paths[0])
             fp.seek(self.start)
@@ -111,18 +150,34 @@ class WorkerFileLoader(IPartitionGenerator):
 
 
 class PickleLoader(IPartitionGenerator):
+    """Pickle loader."""
+
     def __init__(self, pickle_path):
+        """Create new WorkerFileLoader object.
+
+        :param pickle_path: Pickled file path.
+        :returns: None.
+        """
         super(PickleLoader, self).__init__()
         self.pickle_path = pickle_path
 
     def retrieve_data(self):
+        """Retrieve data.
+
+        :returns: Data.
+        """
         ret = pickle.load(open(self.pickle_path, "rb"))
         return ret
 
 
 def read_in_chunks(file_name, chunk_size=1024, strip=True):
     """Lazy function (generator) to read a file piece by piece.
-    Default chunk size: 1k."""
+
+    :param file_name: File name to read.
+    :param chunk_size: Chunk size (Default: 1k).
+    :param strip: If it requires stripping.
+    :returns: Next partition.
+    """
     partition = list()
     f = open(file_name)
     collected = 0
@@ -140,11 +195,12 @@ def read_in_chunks(file_name, chunk_size=1024, strip=True):
 
 
 def read_lines(file_name, num_of_lines=1024, strip=True):
-    """
-    Lazy function (generator) to read a file line by line.
-    :param file_name:
-    :param num_of_lines: total number of lines in each partition
-    :param strip: if line separators should be stripped from lines
+    """Lazy function (generator) to read a file line by line.
+
+    :param file_name: File to read.
+    :param num_of_lines: Total number of lines in each partition.
+    :param strip: If line separators should be stripped from lines.
+    :returns: Next partition.
     """
     partition = list()
     f = open(file_name)

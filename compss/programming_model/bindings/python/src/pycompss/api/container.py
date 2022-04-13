@@ -18,53 +18,55 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - CONTAINER
-=====================
-    This file contains the class constraint, needed for the container task
-    definition through the decorator.
+PyCOMPSs API - Container decorator.
+
+This file contains the Container class, needed for the container task
+definition through the decorator.
 """
 
-from pycompss.util.typing_helper import typing
 from functools import wraps
 
 import pycompss.util.context as context
-from pycompss.api.commons.constants import BINARY
-from pycompss.api.commons.constants import WORKING_DIR
-from pycompss.api.commons.constants import FAIL_BY_EXIT_VALUE
-from pycompss.api.commons.constants import LEGACY_WORKING_DIR
-from pycompss.api.commons.constants import ENGINE
-from pycompss.api.commons.constants import IMAGE
-from pycompss.api.commons.constants import UNASSIGNED
-from pycompss.api.commons.implementation_types import IMPL_CONTAINER
-from pycompss.api.commons.error_msgs import not_in_pycompss
-from pycompss.util.exceptions import NotInPyCOMPSsException
-from pycompss.util.arguments import check_arguments
-from pycompss.api.commons.decorator import keep_arguments
+from pycompss.api.commons.constants import INTERNAL_LABELS
+from pycompss.api.commons.constants import LABELS
+from pycompss.api.commons.constants import LEGACY_LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
+from pycompss.api.commons.decorator import keep_arguments
+from pycompss.api.commons.error_msgs import not_in_pycompss
+from pycompss.api.commons.implementation_types import IMPL_CONTAINER
 from pycompss.runtime.task.core_element import CE
+from pycompss.util.arguments import check_arguments
+from pycompss.util.exceptions import NotInPyCOMPSsException
+from pycompss.util.typing_helper import typing
 
 if __debug__:
     import logging
 
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {ENGINE, IMAGE}
-SUPPORTED_ARGUMENTS = {ENGINE, IMAGE}
-DEPRECATED_ARGUMENTS = {FAIL_BY_EXIT_VALUE, WORKING_DIR, LEGACY_WORKING_DIR, BINARY}
+MANDATORY_ARGUMENTS = {LABELS.engine, LABELS.image}
+SUPPORTED_ARGUMENTS = {LABELS.engine, LABELS.image}
+DEPRECATED_ARGUMENTS = {
+    LABELS.fail_by_exit_value,
+    LABELS.working_dir,
+    LEGACY_LABELS.working_dir,
+    LABELS.binary,
+}
 
 
 class Container(object):
-    """
+    """Container decorator class.
+
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on mpi task creation.
     """
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
-        """
-        Store arguments passed to the decorator
-        # self = itself.
-        # args = not used.
-        # kwargs = dictionary with the given constraints.
+        """Store arguments passed to the decorator.
+
+        self = itself.
+        args = not used.
+        kwargs = dictionary with the given constraints.
 
         :param args: Arguments
         :param kwargs: Keyword arguments
@@ -90,8 +92,7 @@ class Container(object):
             )
 
     def __call__(self, user_function: typing.Callable) -> typing.Callable:
-        """
-        Parse and set the container parameters within the task core element.
+        """Parse and set the container parameters within the task core element.
 
         :param user_function: Function to decorate
         :return: Decorated function.
@@ -135,8 +136,8 @@ class Container(object):
             logger.debug("Configuring @container core element.")
 
         # Resolve @container (mandatory) specific parameters
-        _engine = self.kwargs[ENGINE]
-        _image = self.kwargs[IMAGE]
+        _engine = self.kwargs[LABELS.engine]
+        _image = self.kwargs[LABELS.image]
 
         _func = str(user_function.__name__)
 
@@ -147,11 +148,11 @@ class Container(object):
         impl_args = [
             _engine,  # engine
             _image,  # image
-            UNASSIGNED,  # internal_type
-            UNASSIGNED,  # internal_binary
-            UNASSIGNED,  # internal_func
-            UNASSIGNED,  # working_dir
-            UNASSIGNED,
+            INTERNAL_LABELS.unassigned,  # internal_type
+            INTERNAL_LABELS.unassigned,  # internal_binary
+            INTERNAL_LABELS.unassigned,  # internal_func
+            INTERNAL_LABELS.unassigned,  # working_dir
+            INTERNAL_LABELS.unassigned,
         ]  # fail_by_ev
 
         if CORE_ELEMENT_KEY in kwargs:

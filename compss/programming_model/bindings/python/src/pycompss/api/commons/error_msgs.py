@@ -18,15 +18,14 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - COMMONS - ERROR MESSAGES
-=======================================
-    This file defines the public PyCOMPSs error messages displayed by the api.
+PyCOMPSs API - commons - error messages.
+
+This file defines the public PyCOMPSs error messages displayed by the API.
 """
 
 
 def not_in_pycompss(decorator_name: str) -> str:
-    """
-    Retrieves the "not in PyCOMPSs scope" error message.
+    """Retrieve the "not in PyCOMPSs scope" error message.
 
     :param decorator_name: Decorator name which requires the message.
     :return: Not in PyCOMPSs error message.
@@ -35,9 +34,7 @@ def not_in_pycompss(decorator_name: str) -> str:
 
 
 def cast_env_to_int_error(what: str) -> str:
-    """
-    Retrieves the "can not cast from environment variable to integer" error
-    message.
+    """Retrieve the "can not cast from environment variable to integer" error message.
 
     :param what: Environment variable name.
     :return: Can not cast from environment variable to integer.
@@ -46,8 +43,7 @@ def cast_env_to_int_error(what: str) -> str:
 
 
 def cast_string_to_int_error(what: str) -> str:
-    """
-    Retrieves the "can not cast from string to integer" error message.
+    """Retrieve the "can not cast from string to integer" error message.
 
     :param what: Environment variable name.
     :return: Can not cast from string to integer.
@@ -56,8 +52,7 @@ def cast_string_to_int_error(what: str) -> str:
 
 
 def wrong_value(value_name: str, decorator_name: str) -> str:
-    """
-    Retrieves the "wrong value at decorator" error message.
+    """Retrieve the "wrong value at decorator" error message.
 
     :param value_name: Wrong value's name
     :param decorator_name: Decorator name which requires the message.

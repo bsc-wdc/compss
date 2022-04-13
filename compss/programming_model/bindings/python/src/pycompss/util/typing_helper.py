@@ -18,31 +18,32 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Binding - Utils - typing_helper
-========================================
-    This file contains the typing helpers.
+PyCOMPSs Utils - typing_helper.
+
+This file contains the typing helpers.
 """
 
-try:
-    import typing
-except ImportError:
-    # No typing if not available - will not compile with mypyc
-    typing = None  # type: ignore
-    # message = "WARNING: Typing is not available!!!"
-    # print(message)
-    # raise Exception(message)
+import typing
 
 
 class dummy_mypyc_attr(object):
-    """
-    Dummy on mypy_attr class (decorator style)
-    """
+    """Dummy on mypy_attr class (decorator style)."""
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
+        """Create a new dummy mypy attribute.
+
+        :returns: None.
+        """
         self.args = args
         self.kwargs = kwargs
 
     def __call__(self, f: typing.Any) -> typing.Any:
+        """Execute the given function.
+
+        :param f: Decorated function.
+        :returns: Decorated function execution result.
+        """
+
         def wrapped_mypyc_attr(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             return f(*args, **kwargs)
 
@@ -61,7 +62,7 @@ except ImportError:
 if import_ok:
     mypyc_attr = real_mypyc_attr
 else:
-    mypyc_attr = dummy_mypyc_attr  # type: ignore
+    mypyc_attr = dummy_mypyc_attr
 
 
 ######################################
@@ -70,4 +71,8 @@ else:
 
 
 def dummy_function() -> None:
+    """Do nothing function.
+
+    :returns: None
+    """
     pass

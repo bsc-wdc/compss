@@ -18,9 +18,9 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Interactive utils
-==========================
-    Provides auxiliary methods for the interactive mode
+PyCOMPSs Util - Interactive - Utils.
+
+Provides auxiliary methods for the interactive mode.
 """
 
 from pycompss.util.typing_helper import typing
@@ -76,7 +76,7 @@ def parameters_to_dict(
     wcl: int,
     cache_profiler: bool,
 ) -> dict:
-    """Converts the given parameters into a dictionary"""
+    """Convert all given parameters into a dictionary."""
     all_vars = {
         "log_level": log_level,
         "debug": debug,

@@ -18,15 +18,16 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - Epilog
-==================
-todo: write a proper description
-"""
+PyCOMPSs API - Epilog decorator.
 
+This file contains the Epilog class, needed for the task epilog definition
+through the decorator.
+"""
+import typing
 from functools import wraps
 
-from pycompss.api.commons.constants import *
-from pycompss.api.commons.decorator import PyCOMPSsDecorator
+from pycompss.api.commons.constants import INTERNAL_LABELS
+from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.decorator import resolve_fail_by_exit_value
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
@@ -41,82 +42,94 @@ if __debug__:
 
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {BINARY}
-SUPPORTED_ARGUMENTS = {PARAMS, FAIL_BY_EXIT_VALUE}
-DEPRECATED_ARGUMENTS = set()
+MANDATORY_ARGUMENTS = {LABELS.binary}
+SUPPORTED_ARGUMENTS = {
+    LABELS.binary,
+    LABELS.params,
+    LABELS.fail_by_exit_value,
+}
+DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 
 
-class Epilog(PyCOMPSsDecorator):
+class Epilog(object):
+    """Epilog decorator class.
+
+    If defined, will execute the binary after the task execution on the worker.
+    Should always be added on top of the 'task' definition.
     """
-    todo: write comments
-    """
 
-    __slots__ = []
+    __slots__ = [
+        "decorator_name",
+        "args",
+        "kwargs",
+        "scope",
+        "core_element",
+        "core_element_configured",
+    ]
 
-    def __init__(self, *args, **kwargs):
-        """ Store arguments passed to the decorator.
+    def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
+        """Store arguments passed to the decorator.
 
         self = itself.
         args = not used.
-        kwargs = dictionary with the given binary and params strgins.
+        kwargs = dictionary with the given binary and params strings.
 
         :param args: Arguments
         :param kwargs: Keyword arguments
         """
-        self.decorator_name = "".join(('@', Epilog.__name__.lower()))
-
-        super(Epilog, self).__init__(self.decorator_name, *args, **kwargs)
+        decorator_name = "".join(("@", Epilog.__name__.lower()))
+        # super(Epilog, self).__init__(decorator_name, *args, **kwargs)
+        self.decorator_name = decorator_name
+        self.args = args
+        self.kwargs = kwargs
+        self.scope = context.in_pycompss()
+        self.core_element = None  # type: typing.Any
+        self.core_element_configured = False
         if self.scope:
-            if __debug__:
-                logger.debug("Init @epilog decorator...")
-
             # Check the arguments
-            check_arguments(MANDATORY_ARGUMENTS,
-                            DEPRECATED_ARGUMENTS,
-                            SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
-                            list(kwargs.keys()),
-                            self.decorator_name)
+            check_arguments(
+                MANDATORY_ARGUMENTS,
+                DEPRECATED_ARGUMENTS,
+                SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
+                list(kwargs.keys()),
+                decorator_name,
+            )
 
-    def __call__(self, user_function):
-        # type: (typing.Callable) -> typing.Callable
-        """
-        todo: write
+    def __call__(self, user_function: typing.Callable) -> typing.Callable:
+        """Call Epilog simply updates the CE and saves Epilog parameters.
+
         :param user_function: User function to be decorated.
         :return: Decorated dummy user function.
         """
 
         @wraps(user_function)
-        def epilog_f(*args, **kwargs):
-            return self.__decorator_body__(user_function, args, kwargs)
+        def epilog_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
+            if not self.scope:
+                raise NotImplementedError
+
+            if __debug__:
+                logger.debug("Executing epilog wrapper.")
+
+            if (
+                context.in_master() or context.is_nesting_enabled()
+            ) and not self.core_element_configured:
+                self.__configure_core_element__(kwargs)
+
+            with keep_arguments(args, kwargs, prepend_strings=True):
+                # Call the method
+                ret = user_function(*args, **kwargs)
+
+            return ret
 
         epilog_f.__doc__ = user_function.__doc__
         return epilog_f
 
-    def __decorator_body__(self, user_function, args, kwargs):
-        if not self.scope:
-            raise NotImplementedError
-
-        if __debug__:
-            logger.debug("Executing epilog wrapper.")
-
-        if (context.in_master() or context.is_nesting_enabled()) \
-                and not self.core_element_configured:
-            self.__configure_core_element__(kwargs, user_function)
-
-        with keep_arguments(args, kwargs, prepend_strings=True):
-            # Call the method
-            ret = user_function(*args, **kwargs)
-
-        return ret
-
-    def __configure_core_element__(self, kwargs, user_function):
-        # type: (dict, ...) -> None
-        """ Include the registering info related to @epilog.
+    def __configure_core_element__(self, kwargs: dict) -> None:
+        """Include the registering info related to @epilog.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 
         :param kwargs: Keyword arguments received from call.
-        :param user_function: Decorated function.
         :return: None
         """
         if __debug__:
@@ -125,20 +138,20 @@ class Epilog(PyCOMPSsDecorator):
         # Resolve the fail by exit value
         resolve_fail_by_exit_value(self.kwargs, def_val="false")
 
-        binary = self.kwargs[BINARY]
-        params = self.kwargs.get(PARAMS, UNASSIGNED)
-        fail_by = self.kwargs.get(FAIL_BY_EXIT_VALUE)
+        binary = self.kwargs[LABELS.binary]
+        params = self.kwargs.get(LABELS.params, INTERNAL_LABELS.unassigned)
+        fail_by = self.kwargs.get(LABELS.fail_by_exit_value)
         _epilog = [binary, params, fail_by]
 
         ce = kwargs.get(CORE_ELEMENT_KEY, CE())
-        ce.set_epilog(_epilog)
+        ce.set_impl_epilog(_epilog)
         kwargs[CORE_ELEMENT_KEY] = ce
         # Set as configured
         self.core_element_configured = True
 
 
 # ########################################################################### #
-# ##################### MPI DECORATOR ALTERNATIVE NAME ###################### #
+# ################### EPILOG DECORATOR ALTERNATIVE NAME ##################### #
 # ########################################################################### #
 
 epilog = Epilog

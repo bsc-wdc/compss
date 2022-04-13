@@ -18,24 +18,34 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Dummy API - Container
-==============================
-    This file contains the dummy class container used as decorator.
+PyCOMPSs API - dummy - container.
+
+This file contains the dummy class container used as decorator.
 """
 
 from pycompss.util.typing_helper import typing
 
 
 class Container(object):
-    """
-    Dummy Container class (decorator style)
-    """
+    """Dummy Container class (decorator style)."""
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
+        """Construct a dummy Container decorator.
+
+        :param args: Task decorator arguments.
+        :param kwargs: Task decorator keyword arguments.
+        :returns: None
+        """
         self.args = args
         self.kwargs = kwargs
 
     def __call__(self, f: typing.Any) -> typing.Any:
+        """Invoke the dummy Container decorator.
+
+        :param f: Decorated function.
+        :returns: Result of executing function f.
+        """
+
         def wrapped_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             return f(*args, **kwargs)
 

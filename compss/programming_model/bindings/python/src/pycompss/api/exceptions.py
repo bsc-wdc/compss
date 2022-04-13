@@ -18,20 +18,26 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - Exceptions
-=========================
-    This file defines the public PyCOMPSs exceptions.
+PyCOMPSs API - Exception.
+
+This file defines the public PyCOMPSs exception.
 """
 
 
 class COMPSsException(Exception):
-    """
-    Raised by the user code
+    """COMPSs generic exception.
+
+    Raised by the user code.
     """
 
     __slots__ = ["message", "target_direction"]
 
     def __init__(self, message: str, target_direction: int = -1) -> None:
+        """Store the arguments passed to the constructor.
+
+        :param message: Exception message.
+        :param target_direction: Target direction.
+        """
         super(COMPSsException, self).__init__(message)  # show traceback
         self.message = message
         self.target_direction = target_direction

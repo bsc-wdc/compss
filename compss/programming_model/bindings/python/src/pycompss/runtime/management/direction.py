@@ -18,9 +18,9 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Binding - Management - Direction
-=========================================
-    This file contains the Direction management functions.
+PyCOMPSs Binding - Management - Direction.
+
+This file contains the Direction management functions.
 """
 
 from pycompss.api.parameter import DIRECTION

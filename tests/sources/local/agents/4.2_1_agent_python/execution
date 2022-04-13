@@ -9,13 +9,13 @@
   target_log_folder=$6
   retry_num=$7
   execution_envs=$8
-  
+
   # Global variables
   AGENT_PIDS=""
   exit_value=0
   NUM_RETRIES="50"
   app_name="1agent"
-  
+
   # Traps and Handlers
   function kill_agents() {
     for pid in ${AGENT_PIDS}; do
@@ -29,7 +29,7 @@
     ends="${2}"
     min_parallel_tasks=${3}
     limit_parallel_tasks=${4}
-    
+
     already_started=0
     max_parallel_tasks=0
     for start in ${starts}; do
@@ -59,11 +59,11 @@
   #----------------------------------------------------------------------------------
   # Generate Project.xml according to system
   sed -i '/<InstallDir>/c<InstallDir>'"${COMPSS_HOME}"'<\/InstallDir>' "${base_app_dir}"/project.xml
-  
+
   #----------------------------------------------------------------------------------
   # Create all working dir folders
   mkdir -p /tmp/COMPSsWorker01/
-  
+
   #----------------------------------------------------------------------------------
   # Run application
   echo ""
@@ -82,16 +82,12 @@
 
     # Starting agent
     agent1_log_dir="${log_dir}/agent1/"
-    mkdir -p "${agent1_log_dir}" 
+    mkdir -p "${agent1_log_dir}"
     agent1_output_log="${log_dir}agent1.outputlog"
     agent1_error_log="${log_dir}agent1.errorlog"
 
 
     python_mpi_worker="--python_mpi_worker=false"
-    if [ "$python_interpreter" == 'python2_mpi' ]; then
-        python_interpreter="python2"
-        python_mpi_worker="--python_mpi_worker=true"
-    fi
     if [ "$python_interpreter" == 'python3_mpi' ]; then
         python_interpreter="python3"
         python_mpi_worker="--python_mpi_worker=true"
@@ -128,7 +124,7 @@
     done
 
     RESULT=$(grep "test invoked" "${agent1_output_log}")
-    if [ -z "${RESULT}" ]; then  
+    if [ -z "${RESULT}" ]; then
         echo "Agent failed to start" > >(tee -a "${error_log}")
         exit 1
     fi
@@ -238,7 +234,7 @@
     echo "All task executed as expected and with the expected values."  > >(tee -a "${output_log}")
 
     kill_agents
-    rm -rf /tmp/COMPSsWorker01/*    
+    rm -rf /tmp/COMPSsWorker01/*
     AGENT_PIDS=""
 
     # Copy LOG files
@@ -249,4 +245,3 @@
   #----------------------------------------------------------------------------------
   # Return execution status
   exit ${exit_value}
-

@@ -18,142 +18,193 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Binding - Commons
-==========================
-    This file contains the common definitions of the Python binding.
+PyCOMPSs Binding - Commons.
+
+This file contains the common definitions of the Python binding.
 """
 
-import sys
 import os
-from pycompss.util.typing_helper import typing
 from tempfile import mkdtemp
+
+from pycompss.util.typing_helper import typing
+
 
 #######################################
 # Global variables set in this module #
 #######################################
 
-# Empty string substitution key
-EMPTY_STRING_KEY = "3mPtY57r1Ng"
 
-PYTHON_INTERPRETER = "python3"
+class Constants(object):
+    """Common constants definitions."""
 
-# Coding/decoding escape
-STR_ESCAPE = "unicode_escape"
-LIST_TYPE = list
-DICT_TYPE = dict
-# Global python 3 variable
-if sys.version_info >= (3, 0):
-    PYTHON_VERSION = 3
-else:
-    PYTHON_VERSION = 2
+    __slots__ = (
+        "empty_string_key",
+        "python_interpreter",
+        "str_escape",
+        "environment",
+        "is_interactive",
+        "running_in_supercomputer",
+        "tracing_hook_env_var",
+        "extra_content_type_format",
+        "interactive_file_name",
+        "default_sched",
+        "default_conn",
+        "default_jvm_workers",
+        "temp_dir_prefix",
+        "temp_dir_folder",
+        "temp_obj_prefix",
+    )
 
-# Determine the environment
-ENVIRONMENT = "terminal"
-IS_INTERACTIVE = False
-try:
-    from IPython import get_ipython  # noqa
+    def __init__(self):
+        """Constant constructor.
 
-    ipy_str = str(type(get_ipython()))
-    if "zmqshell" in ipy_str:
-        ENVIRONMENT = "jupyter"
-        IS_INTERACTIVE = True
-    if "terminal" in ipy_str:
-        ENVIRONMENT = "ipython"
-        IS_INTERACTIVE = True
-except ImportError:
-    ENVIRONMENT = "terminal"
-    IS_INTERACTIVE = False
+        :returns: None.
+        """
+        # Empty string substitution key
+        self.empty_string_key = "3mPtY57r1Ng"
+        # Default python interpreter
+        self.python_interpreter = "python3"
+        # Coding/decoding escape
+        self.str_escape = "unicode_escape"
+        # Determine the environment
+        environment = "terminal"
+        is_interactive = False
+        try:
+            from IPython import get_ipython  # noqa
 
-# Determine if running in a supercomputer
-RUNNING_IN_SUPERCOMPUTER = False
-if (
-    "COMPSS_RUNNING_IN_SC" in os.environ
-    and os.environ["COMPSS_RUNNING_IN_SC"] == "true"
-):
-    RUNNING_IN_SUPERCOMPUTER = True
-elif "BSC_MACHINE" in os.environ and os.environ["BSC_MACHINE"] == "mn4":
-    # Only supported in MN4 currently
-    RUNNING_IN_SUPERCOMPUTER = True
+            ipy_str = str(type(get_ipython()))
+            if "zmqshell" in ipy_str:
+                environment = "jupyter"
+                is_interactive = True
+            if "terminal" in ipy_str:
+                environment = "ipython"
+                is_interactive = True
+        except ImportError:
+            environment = "terminal"
+            is_interactive = False
+        self.environment = environment
+        self.is_interactive = is_interactive
+        # Determine if running in a supercomputer
+        self.running_in_supercomputer = False
+        if (
+            "COMPSS_RUNNING_IN_SC" in os.environ
+            and os.environ["COMPSS_RUNNING_IN_SC"] == "true"
+        ):
+            self.running_in_supercomputer = True
+        elif "BSC_MACHINE" in os.environ and os.environ["BSC_MACHINE"] == "mn4":
+            # Only supported in MN4 currently
+            self.running_in_supercomputer = True
+        # Tracing hook environment variable
+        self.tracing_hook_env_var = "COMPSS_TRACING_HOOK"
+        # Extra content type format
+        self.extra_content_type_format = "{}:{}"  # <module_path>:<class_name>
+        # Interactive mode file name
+        self.interactive_file_name = "InteractiveMode"
+        # LONG DEFAULTS
+        self.default_sched = "es.bsc.compss.scheduler.lookahead.locality.LocalityTS"
+        self.default_conn = "es.bsc.compss.connectors.DefaultSSHConnector"
+        self.default_jvm_workers = "-Xms1024m,-Xmx1024m,-Xmn400m"
+        # Temporary directory/objects info
+        self.temp_dir_prefix = "pycompss"
+        self.temp_dir_folder = "tmpFiles/"
+        self.temp_obj_prefix = "/compss-serialized-obj_"
 
-# Tracing hook environment variable
-TRACING_HOOK_ENV_VAR = "COMPSS_TRACING_HOOK"
 
-# Extra content type format
-EXTRA_CONTENT_TYPE_FORMAT = "{}:{}"  # <module_path>:<class_name>
+# Placeholder for all constant variables
+CONSTANTS = Constants()
 
-# Interactive mode file name
-INTERACTIVE_FILE_NAME = "InteractiveMode"
-
-# LONG DEFAULTS
-DEFAULT_SCHED = "es.bsc.compss.scheduler.lookahead.locality.LocalityTS"
-DEFAULT_CONN = "es.bsc.compss.connectors.DefaultSSHConnector"
-DEFAULT_JVM_WORKERS = "-Xms1024m,-Xmx1024m,-Xmn400m"
-
-#####################################################
-# Builtin functions depending on the python version #
-#####################################################
 
 ###############################################
 # Global variables set from different modules #
 ###############################################
 
-# Set temporary dir
-_TEMP_DIR = ""
-_TEMP_DIR_PREFIX = "pycompss"
-_TEMP_DIR_FOLDER = "tmpFiles/"
-_TEMP_OBJ_PREFIX = "/compss-serialized-obj_"
 
-# Enable or disable small objects conversion to strings
-# cross-module variable (set/modified from launch.py)
-_OBJECT_CONVERSION = False
-TRACING_TASK_NAME_TO_ID = dict()  # type: typing.Dict[str, int]
+class Globals(object):
+    """Common global definitions."""
 
-##########################################################
-# GETTERS AND SETTERS (see launch.py and interactive.py) #
-##########################################################
+    __slots__ = ("temp_dir", "object_conversion", "tracing_task_name_to_id")
+
+    def __init__(self):
+        """Global object constructor.
+
+        :returns: None.
+        """
+        self.temp_dir = ""
+        self.object_conversion = False
+        self.tracing_task_name_to_id = dict()  # type: typing.Dict[str, int]
+
+    def get_temporary_directory(self) -> str:
+        """Temporary directory getter.
+
+        :return: Temporary directory path.
+        """
+        return self.temp_dir
+
+    def set_temporary_directory(self, folder: str, create_tmpdir: bool = True) -> None:
+        """Set the temporary directory.
+
+        Creates the temporary directory from the folder parameter and
+        sets the temporary directory variable.
+
+        :param folder: Temporary directory path.
+        :param create_tmpdir: Create temporary directory within folder.
+        :return: None.
+        """
+        if create_tmpdir:
+            temp_dir = mkdtemp(
+                prefix=CONSTANTS.temp_dir_prefix,
+                dir=os.path.join(folder, CONSTANTS.temp_dir_folder),
+            )
+        else:
+            temp_dir = mkdtemp(prefix=CONSTANTS.temp_dir_prefix, dir=folder)
+        self.temp_dir = temp_dir
+
+    def get_object_conversion(self) -> bool:
+        """Object conversion getter.
+
+        :return: Boolean object conversion.
+        """
+        return self.object_conversion
+
+    def set_object_conversion(self, conversion: bool = False) -> None:
+        """Set object conversion to string.
+
+        :param conversion: Boolean. True enable, False disable.
+        :return: None.
+        """
+        self.object_conversion = conversion
+
+    def in_tracing_task_name_to_id(self, task_name: str) -> bool:
+        """Check if task_name is in tracing_task_name_to_id dictionary.
+
+        :param task_name: Traced task name.
+        :return: Boolean if exists.
+        """
+        return task_name in self.tracing_task_name_to_id
+
+    def get_tracing_task_name_id(self, task_name: str) -> int:
+        """Retrieve the identifier of the given task_name.
+
+        :param task_name: Traced task name.
+        :return: The task_name identifier.
+        """
+        return self.tracing_task_name_to_id[task_name]
+
+    def set_tracing_task_name_to_id(self, task_name: str, value: int) -> None:
+        """Set value as the identifier for the given task_name.
+
+        :param task_name: Traced task name.
+        :param value: Traced task identifier.
+        :return: None.
+        """
+        self.tracing_task_name_to_id[task_name] = value
+
+    def len_tracing_task_name_to_id(self) -> int:
+        """Retrieve the amount of identifier registered.
+
+        :return: The number of entries.
+        """
+        return len(self.tracing_task_name_to_id)
 
 
-def get_temporary_directory() -> str:
-    """Temporary directory getter.
-
-    :return: Temporary directory path
-    """
-    return _TEMP_DIR
-
-
-def set_temporary_directory(folder: str, create_tmpdir: bool = True) -> None:
-    """Set the temporary directory.
-
-    Creates the temporary directory from the folder parameter and
-    sets the temporary directory variable.
-
-    :param folder: Temporary directory path
-    :param create_tmpdir: Create temporary directory within folder.
-    :return: None
-    """
-    global _TEMP_DIR
-    if create_tmpdir:
-        temp_dir = mkdtemp(
-            prefix=_TEMP_DIR_PREFIX, dir=os.path.join(folder, _TEMP_DIR_FOLDER)
-        )
-    else:
-        temp_dir = mkdtemp(prefix=_TEMP_DIR_PREFIX, dir=folder)
-    _TEMP_DIR = temp_dir
-
-
-def get_object_conversion() -> bool:
-    """Object conversion getter.
-
-    :return: Boolean object conversion
-    """
-    return _OBJECT_CONVERSION
-
-
-def set_object_conversion(conversion: bool = False) -> None:
-    """Set object conversion to string.
-
-    :param conversion: Boolean. True enable, False disable.
-    :return: None
-    """
-    global _OBJECT_CONVERSION
-    _OBJECT_CONVERSION = conversion
+GLOBALS = Globals()

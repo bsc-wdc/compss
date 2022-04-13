@@ -18,45 +18,45 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Persistent Worker
-===========================
-    This file contains the worker code.
+PyCOMPSs Worker - Piper - Multiprocessing worker.
+
+This file contains the multiprocessing piper worker code.
 """
 
 import os
-import sys
 import signal
-from pycompss.util.typing_helper import typing
-from pycompss.util.process.manager import initialize_multiprocessing
+import sys
+
+import pycompss.util.context as context
+from pycompss.runtime.commons import GLOBALS
 from pycompss.util.process.manager import Queue  # just typing
-from pycompss.util.process.manager import new_queue
 from pycompss.util.process.manager import create_process
-from pycompss.runtime.commons import get_temporary_directory
-from pycompss.util.tracing.helpers import trace_multiprocessing_worker
+from pycompss.util.process.manager import initialize_multiprocessing
+from pycompss.util.process.manager import new_queue
 from pycompss.util.tracing.helpers import dummy_context
 from pycompss.util.tracing.helpers import event_worker
-from pycompss.worker.commons.constants import INIT_STORAGE_AT_WORKER_EVENT
-from pycompss.worker.commons.constants import FINISH_STORAGE_AT_WORKER_EVENT
-from pycompss.worker.piper.commons.constants import CANCEL_TASK_TAG
-from pycompss.worker.piper.commons.constants import PING_TAG
-from pycompss.worker.piper.commons.constants import PONG_TAG
-from pycompss.worker.piper.commons.constants import ADD_EXECUTOR_TAG
-from pycompss.worker.piper.commons.constants import ADDED_EXECUTOR_TAG
-from pycompss.worker.piper.commons.constants import QUERY_EXECUTOR_ID_TAG
-from pycompss.worker.piper.commons.constants import REPLY_EXECUTOR_ID_TAG
-from pycompss.worker.piper.commons.constants import REMOVE_EXECUTOR_TAG
-from pycompss.worker.piper.commons.constants import REMOVED_EXECUTOR_TAG
-from pycompss.worker.piper.commons.constants import QUIT_TAG
-from pycompss.worker.piper.commons.constants import HEADER
-from pycompss.worker.piper.commons.executor import Pipe
-from pycompss.worker.piper.commons.executor import ExecutorConf
-from pycompss.worker.piper.commons.executor import executor
-from pycompss.worker.piper.commons.utils_logger import load_loggers
-from pycompss.worker.piper.commons.utils import PiperWorkerConfiguration
+from pycompss.util.tracing.helpers import trace_multiprocessing_worker
+from pycompss.util.tracing.types_events_worker import TRACING_WORKER
+from pycompss.util.typing_helper import typing
 from pycompss.worker.piper.cache.setup import is_cache_enabled
 from pycompss.worker.piper.cache.setup import start_cache
 from pycompss.worker.piper.cache.setup import stop_cache
-import pycompss.util.context as context
+from pycompss.worker.piper.commons.constants import ADDED_EXECUTOR_TAG
+from pycompss.worker.piper.commons.constants import ADD_EXECUTOR_TAG
+from pycompss.worker.piper.commons.constants import CANCEL_TASK_TAG
+from pycompss.worker.piper.commons.constants import HEADER
+from pycompss.worker.piper.commons.constants import PING_TAG
+from pycompss.worker.piper.commons.constants import PONG_TAG
+from pycompss.worker.piper.commons.constants import QUERY_EXECUTOR_ID_TAG
+from pycompss.worker.piper.commons.constants import QUIT_TAG
+from pycompss.worker.piper.commons.constants import REMOVED_EXECUTOR_TAG
+from pycompss.worker.piper.commons.constants import REMOVE_EXECUTOR_TAG
+from pycompss.worker.piper.commons.constants import REPLY_EXECUTOR_ID_TAG
+from pycompss.worker.piper.commons.executor import ExecutorConf
+from pycompss.worker.piper.commons.executor import Pipe
+from pycompss.worker.piper.commons.executor import executor
+from pycompss.worker.piper.commons.utils import PiperWorkerConfiguration
+from pycompss.worker.piper.commons.utils_logger import load_loggers
 
 # Persistent worker global variables
 # PROCESSES = IN_PIPE -> PROCESS
@@ -68,11 +68,11 @@ CACHE_PROCESS = None
 
 
 def shutdown_handler(signal: int, frame: typing.Any) -> None:
-    """Shutdown handler.
+    """Handle shutdown - Shutdown handler.
 
-    Do not remove the parameters.
+    CAUTION! Do not remove the parameters.
 
-    :param signal: shutdown signal.
+    :param signal: Shutdown signal.
     :param frame: Frame.
     :return: None
     """
@@ -89,12 +89,12 @@ def shutdown_handler(signal: int, frame: typing.Any) -> None:
 
 
 def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
-    """Persistent worker main function.
+    """Retrieve the initial configuration and spawns the worker processes.
 
-    Retrieves the initial configuration and spawns the worker processes.
+    Persistent worker main function.
 
     :param config: Piper Worker Configuration description.
-    :return: None
+    :return: None.
     """
     global CACHE
     global CACHE_PROCESS
@@ -118,7 +118,7 @@ def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
     if persistent_storage:
         # Initialize storage
         logger.debug(HEADER + "Starting persistent storage")
-        with event_worker(INIT_STORAGE_AT_WORKER_EVENT):
+        with event_worker(TRACING_WORKER.init_storage_at_worker_event):
             from storage.api import initWorker as initStorageAtWorker  # noqa
 
             initStorageAtWorker(config_file_path=config.storage_conf)
@@ -131,20 +131,20 @@ def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
         cache_profiler = True
 
     # Setup cache
+    CACHE = False
+    cache_ids, cache_queue = None, None
     if is_cache_enabled(str(config.cache)):
         # Deploy the necessary processes
         CACHE = True
         cache_params = start_cache(logger, str(config.cache), cache_profiler, log_dir)
-    else:
-        # No cache
-        CACHE = False
-        cache_params = (None, None, None, None)  # type: ignore
-    smm, CACHE_PROCESS, cache_queue, cache_ids = cache_params
+        smm, cache_process, cache_queue_act, cache_ids = cache_params
+        cache_queue = cache_queue_act
+        CACHE_PROCESS = cache_process
 
     # Create new executor processes
     conf = ExecutorConf(
         config.debug,
-        get_temporary_directory(),
+        GLOBALS.get_temporary_directory(),
         TRACING,
         config.storage_conf,
         logger,
@@ -217,7 +217,7 @@ def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
                 proc = PROCESSES.pop(in_pipe, None)
                 if proc:
                     if proc.is_alive():
-                        logger.warn(HEADER + "Forcing terminate on : " + proc.name)
+                        logger.warning(HEADER + "Forcing terminate on : " + proc.name)
                         proc.terminate()
                     proc.join()
                 control_pipe.write(" ".join((REMOVED_EXECUTOR_TAG, out_pipe, in_pipe)))
@@ -242,13 +242,15 @@ def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
         queue.join_thread()
 
     if CACHE:
-        stop_cache(smm, cache_queue, cache_profiler, CACHE_PROCESS)  # noqa
+        # Beware of smm, cache_queue_act and cache_process variables, since they
+        # are only initialized when cache is enabled. Reason for noqa.
+        stop_cache(smm, cache_queue_act, cache_profiler, cache_process)  # noqa
 
     if persistent_storage:
         # Finish storage
         if __debug__:
             logger.debug(HEADER + "Stopping persistent storage")
-        with event_worker(FINISH_STORAGE_AT_WORKER_EVENT):
+        with event_worker(TRACING_WORKER.finish_storage_at_worker_event):
             from storage.api import finishWorker as finishStorageAtWorker  # noqa
 
             finishStorageAtWorker()
@@ -263,12 +265,12 @@ def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
 def create_executor_process(
     process_name: str, conf: ExecutorConf, pipe: Pipe
 ) -> typing.Tuple[int, Queue]:
-    """Starts a new executor.
+    """Start a new executor.
 
     :param process_name: Process name.
     :param conf: executor config.
     :param pipe: Communication pipes (in, out).
-    :return: Process identifier and queue used by the process
+    :return: Process identifier and queue used by the process.
     """
     queue = new_queue()
     process = create_process(target=executor, args=(queue, process_name, pipe, conf))
@@ -283,9 +285,9 @@ def create_executor_process(
 
 
 def main() -> None:
-    """Main piper worker
+    """Start the multiprocessing worker.
 
-    :return: None
+    :return: None.
     """
     global TRACING
     global WORKER_CONF

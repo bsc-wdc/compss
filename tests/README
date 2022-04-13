@@ -19,7 +19,7 @@ This is the README for: COMPSs Tests
     * Adding a new Configuration
     * Adding a new Test
 
-    
+
 == Description ==
 
 This package contains all the test applications for the COMPSs Framework.
@@ -40,7 +40,7 @@ To successfully execute the test suite please install the following dependencies
     * Python decorator
     * Python redis
 
-    
+
 == Configuration instructions ==
 
 1. Please check that all the dependencies described on the "Dependencies" section are installed.
@@ -62,24 +62,24 @@ Skip it if you already have passwordless access or you know how to do it.
 
 You only need to execute the following commands on your local machine:
     $ cd ~/.ssh
-    $ ssh-keygen -t rsa                                    
+    $ ssh-keygen -t rsa
        (press enter, enter, enter. Leave all questions empty)
-    $ scp id_rsa.pub ${bscgrid20_user}@bscgrid20.bsc.es:.  
+    $ scp id_rsa.pub ${bscgrid20_user}@bscgrid20.bsc.es:.
        (enter your password)
-    $ ssh ${bscgrid20_user}@bscgrid20.bsc.es "cat ~/id_rsa.pub >> ~/.ssh/authorized_keys; rm ~/id_rsa.pub" 
+    $ ssh ${bscgrid20_user}@bscgrid20.bsc.es "cat ~/id_rsa.pub >> ~/.ssh/authorized_keys; rm ~/id_rsa.pub"
        (enter your password)
 
 You can check your access by executing the following command:
     $ ssh ${bscgrid20_user}@bscgrid20.bsc.es
        (access is granted without asking for any password)
 
-       
+
 == Usage instructions ==
 
 The COMPSs Tests infrastructure contains many scripts but the only one that must be executed is the tests.py file. You can retrieve all its options by running:
 
 $ cd scripts
-$ python2 tests.py -h
+$ python3 tests.py -h
 
 
 == Tests structure ==
@@ -93,11 +93,11 @@ Next, we describe the COMPSs Tests file structure:
             * ./sources/{family_name}/N_{test_name}/execution   : Test execution script
             * ./sources/{family_name}/N_{test_name}/result      : Test result checker script
             * ./sources/{family_name}/N_{test_name}/pom.xml     : Maven base pom description (only for java tests)
-            
+
 * ./configurations                                              : Contains the configuration files for the tests execution
      ./configurations/*.cfg                                     : ONE FILE per configuration. The extension must always be ".cfg". Follow the exact same format than the example local.cfg file
-     
-* ./scripts                                                     : Contains all the scripts to run the tests suite 
+
+* ./scripts                                                     : Contains all the scripts to run the tests suite
                !!!!!!!! DO NOT MODIFY UNLESS YOU KNOW WHAT YOU ARE DOING !!!!!!!
 
 * ./README  : This file
@@ -108,15 +108,15 @@ Next, we describe the COMPSs Tests file structure:
 1. Create your configuration file named whatEver.cfg by copying the default configuration file
     $ cd configurations
     $ cp local.cfg whatEver.cfg
-    
+
     !!! WARN: If you do not save the cfg file under the configurations folder you will need to provide the configuration full path to the tests main script
 
 2. Edit your configuration file
 
-    !!! WARN: DEFINE THE EXACT SAME VARIABLES THAN THE DEFAULT local.cfg CONFIGURATION FILE 
+    !!! WARN: DEFINE THE EXACT SAME VARIABLES THAN THE DEFAULT local.cfg CONFIGURATION FILE
     !!! It's recommended to base your new configuration file in an already existing one (local.cfg)
 
-    
+
 === Adding a new Test ===
 
 1. Create your new test application folder (named newTestFolder) inside any family
@@ -128,5 +128,5 @@ Next, we describe the COMPSs Tests file structure:
                      !In case of a C-app you need to compile it in this step and only deploy compiled files
     - execution  : Describes all the commands needed to run and check the result of your application
     - pom.xml    : [Only Java] Describes your application dependencies for maven project build
-    
+
     !!! WARN: WE HIGHLY RECOMMEND TO COPY THESE FILES FROM A PREVIOUS TEST SINCE THEY ARE COMPLEX

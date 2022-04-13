@@ -18,21 +18,20 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - LocalTask
-========================
-    This file contains the @local decorator, which is intended to be a
-    decorator for non-task functions that may receive future objects
-    as parameters (i.e: their inputs are pycompss task outputs).
-    It also handles INOUTs
+PyCOMPSs API - Local decorator.
+
+This file contains the @local decorator, which is intended to be a decorator
+for non-task functions that may receive future objects as parameters
+(i.e: their inputs are pycompss task outputs). It also handles INOUTs
 """
 
 import gc
-from pycompss.util.typing_helper import typing
 
-from pycompss.api.api import compss_wait_on
-from pycompss.util.objects.replace import replace
-from pycompss.runtime.management.object_tracker import OT
 import pycompss.util.context as context
+from pycompss.api.api import compss_wait_on
+from pycompss.runtime.management.object_tracker import OT
+from pycompss.util.objects.replace import replace
+from pycompss.util.typing_helper import typing
 
 
 def local(input_function: typing.Callable) -> typing.Callable:

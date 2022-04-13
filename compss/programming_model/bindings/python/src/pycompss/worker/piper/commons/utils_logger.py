@@ -18,17 +18,18 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Common piper utils logger
-==================================
-    This file contains the common pipers methods related to logging.
+PyCOMPSs Worker - Piper - Commons - Utils logger.
+
+This file contains the common pipers methods related to logging.
 """
 
-import os
 import logging
-from pycompss.util.typing_helper import typing
-from pycompss.runtime.commons import get_temporary_directory
-from pycompss.util.logger.helpers import init_logging_worker_piper
+import os
+
 import pycompss.util.context as context
+from pycompss.runtime.commons import GLOBALS
+from pycompss.util.logger.helpers import init_logging_worker_piper
+from pycompss.util.typing_helper import typing
 
 
 def load_loggers(
@@ -36,9 +37,9 @@ def load_loggers(
 ) -> typing.Tuple[typing.Any, str, typing.Any, str]:
     """Load all loggers.
 
-    :param debug: is Debug enabled.
-    :param persistent_storage: is persistent storage enabled.
-    :return: main logger of the application, the log config file (json),
+    :param debug: Is Debug enabled.
+    :param persistent_storage: Is persistent storage enabled.
+    :return: Main logger of the application, the log config file (json),
              a list of loggers for the persistent data framework, and
              the temporary log directory.
     """
@@ -54,7 +55,7 @@ def load_loggers(
     else:
         # Default
         log_json = "/".join((log_cfg_path, "logging_worker_off.json"))
-    log_dir = get_temporary_directory()
+    log_dir = GLOBALS.get_temporary_directory()
     log_dir_temp = log_dir
     # log_dir is of the form:
     #    With agents or worker in master: /path/to/working_directory/tmpFiles/pycompssID/../../log

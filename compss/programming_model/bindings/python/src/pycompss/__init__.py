@@ -16,3 +16,5 @@
 #
 
 # -*- coding: utf-8 -*-
+
+"""This package contains the COMPSs Python Binding, known as PyCOMPSs."""

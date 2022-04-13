@@ -18,46 +18,43 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - Software
-==================
-    Software Task decorator class.
-"""
-from pycompss.util.typing_helper import typing
-import json
+PyCOMPSs API - Software decorator.
 
+This file contains the Software class, needed for the software task definition
+through the decorator.
+"""
+import json
 from functools import wraps
+
+import pycompss.util.context as context
 from pycompss.api import binary
 from pycompss.api import mpi
-from pycompss.api.commons.constants import CONFIG_FILE
-from pycompss.api.commons.constants import MPI
-from pycompss.api.commons.constants import BINARY
-from pycompss.api.commons.constants import ENGINE
-from pycompss.api.commons.constants import IMAGE
-from pycompss.api.commons.constants import UNASSIGNED
-from pycompss.api.commons.constants import PROPERTIES
-from pycompss.api.commons.constants import TYPE
-from pycompss.api.commons.implementation_types import IMPL_CONTAINER
-from pycompss.util.arguments import check_arguments
-import pycompss.util.context as context
-from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.api.commons.constants import INTERNAL_LABELS
+from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
+from pycompss.api.commons.implementation_types import IMPL_CONTAINER
 from pycompss.runtime.task.core_element import CE
-
+from pycompss.util.arguments import check_arguments
+from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.util.typing_helper import typing
 
 if __debug__:
     import logging
 
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {CONFIG_FILE}
-SUPPORTED_ARGUMENTS = {CONFIG_FILE}
+MANDATORY_ARGUMENTS = {LABELS.config_file}
+SUPPORTED_ARGUMENTS = {LABELS.config_file}
 DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 
-SUPPORTED_DECORATORS = {MPI: (mpi, mpi.mpi), BINARY: (binary, binary.binary)}
+SUPPORTED_DECORATORS = {
+    LABELS.mpi: (mpi, mpi.mpi),
+    LABELS.binary: (binary, binary.binary),
+}
 
 
 class Software(object):
-    """@software decorator definition class.
+    """Software decorator class.
 
     When provided with a config file, it can replicate any existing python
     decorator by wrapping the user function with the decorator defined in
@@ -80,8 +77,7 @@ class Software(object):
     ]
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
-        """Parse the config file and store the arguments that will be used
-        later to wrap the "real" decorator.
+        """Parse the config file and store arguments passed to the decorator.
 
         self = itself.
         args = not used.
@@ -119,7 +115,9 @@ class Software(object):
             self.parse_config_file()
 
     def __call__(self, user_function: typing.Callable) -> typing.Callable:
-        """When called, @software decorator basically wraps the user function
+        """Parse and set the software parameters within the task core element.
+
+        When called, @software decorator basically wraps the user function
         into the "real" decorator and passes the args and kwargs.
 
         :param user_function: User function to be decorated.
@@ -131,7 +129,7 @@ class Software(object):
             if not self.scope or not context.in_master():
                 # Execute the software as with PyCOMPSs so that sequential
                 # execution performs as parallel.
-                # To disable: raise Exception(not_in_pycompss(BINARY))
+                # To disable: raise Exception(not_in_pycompss(LABELS.binary))
                 return user_function(*args, **kwargs)
 
             if __debug__:
@@ -149,13 +147,13 @@ class Software(object):
 
                 ce = kwargs.get(CORE_ELEMENT_KEY, CE())
                 impl_args = [
-                    self.container[ENGINE],  # engine
-                    self.container[IMAGE],  # image
-                    UNASSIGNED,  # internal_type
-                    UNASSIGNED,  # internal_binary
-                    UNASSIGNED,  # internal_func
-                    UNASSIGNED,  # working_dir
-                    UNASSIGNED,
+                    self.container[LABELS.engine],  # engine
+                    self.container[LABELS.image],  # image
+                    INTERNAL_LABELS.unassigned,  # internal_type
+                    INTERNAL_LABELS.unassigned,  # internal_binary
+                    INTERNAL_LABELS.unassigned,  # internal_func
+                    INTERNAL_LABELS.unassigned,  # working_dir
+                    INTERNAL_LABELS.unassigned,
                 ]  # fail_by_ev
                 ce.set_impl_type(impl_type)
                 ce.set_impl_signature(impl_signature)
@@ -181,16 +179,15 @@ class Software(object):
         return software_f
 
     def parse_config_file(self) -> None:
-        """Parse the config file and set self's task_type, decor, and
-        config args.
+        """Parse the config file and set self's task_type, decor, and config args.
 
         :return: None
         """
-        file_path = self.kwargs[CONFIG_FILE]
+        file_path = self.kwargs[LABELS.config_file]
         config = json.load(open(file_path, "r"))
 
-        properties = config.get(PROPERTIES, {})
-        exec_type = config.get(TYPE, None)
+        properties = config.get(LABELS.properties, {})
+        exec_type = config.get(LABELS.type, None)
         if exec_type is None:
             print("Execution type not provided for @software task")
         elif exec_type.lower() not in SUPPORTED_DECORATORS:
@@ -201,7 +198,7 @@ class Software(object):
         else:
             exec_type = exec_type.lower()
             self.task_type, self.decor = SUPPORTED_DECORATORS[exec_type]
-            mand_args = self.task_type.MANDATORY_ARGUMENTS  # type: ignore
+            mand_args = self.task_type.MANDATORY_ARGUMENTS
             if not all(arg in properties for arg in mand_args):
                 msg = "Error: Missing arguments for '{}'.".format(self.task_type)
                 raise PyCOMPSsException(msg)

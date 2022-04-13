@@ -17,23 +17,28 @@
 
 # -*- coding: utf-8 -*-
 
+"""
+PyCOMPSs Util - Serialization - Extended support.
+
+This file contains the serialization extensions.
+"""
+
+
 from pycompss.util.typing_helper import typing
 
 
 class GeneratorIndicator(object):
-    """
-    GeneratorIndicator Class
-    """
+    """GeneratorIndicator class."""
 
     pass
 
 
-def pickle_generator(f_gen: typing.Any, f: str, serializer: typing.Any) -> None:
+def pickle_generator(f_gen: typing.Any, f: typing.Any, serializer: typing.Any) -> None:
     """Pickle a generator and store the serialization result in a file.
 
     :param f_gen: Generator object.
     :param f: Destination file for pickling generator.
-    :param serializer: Serializer to use
+    :param serializer: Serializer to use.
     """
     # Convert generator to list and pickle (less efficient but more reliable)
     # The tuple will be useful to determine when to call unplickle generator.
@@ -45,7 +50,7 @@ def pickle_generator(f_gen: typing.Any, f: str, serializer: typing.Any) -> None:
 
 
 def convert_to_generator(lst: list) -> typing.Generator:
-    """Converts a list into a generator.
+    """Convert a list into a generator.
 
     :param lst: List to be converted.
     :return: the generator from the list.

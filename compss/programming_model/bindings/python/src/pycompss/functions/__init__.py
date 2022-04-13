@@ -16,3 +16,5 @@
 #
 
 # -*- coding: utf-8 -*-
+
+"""This package contains common functions that can be used by users."""

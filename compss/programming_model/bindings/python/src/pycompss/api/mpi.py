@@ -18,64 +18,58 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - MPI
-==================
-    This file contains the class mpi, needed for the mpi
-    definition through the decorator.
+PyCOMPSs API - Mpi decorator.
+
+This file contains the MPI class, needed for the mpi task definition through
+the decorator.
 """
 
-from pycompss.util.typing_helper import typing
 from functools import wraps
 
 import pycompss.util.context as context
-from pycompss.api.commons.constants import RUNNER
-from pycompss.api.commons.constants import BINARY
-from pycompss.api.commons.constants import PROCESSES
-from pycompss.api.commons.constants import WORKING_DIR
-from pycompss.api.commons.constants import PARAMS
-from pycompss.api.commons.constants import FLAGS
-from pycompss.api.commons.constants import PROCESSES_PER_NODE
-from pycompss.api.commons.constants import SCALE_BY_CU
-from pycompss.api.commons.constants import FAIL_BY_EXIT_VALUE
-from pycompss.api.commons.constants import COMPUTING_NODES
-from pycompss.api.commons.constants import LEGACY_COMPUTING_NODES
-from pycompss.api.commons.constants import LEGACY_WORKING_DIR
-from pycompss.api.commons.constants import UNASSIGNED
+from pycompss.api.commons.constants import INTERNAL_LABELS
+from pycompss.api.commons.constants import LABELS
+from pycompss.api.commons.constants import LEGACY_LABELS
+from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
+from pycompss.api.commons.decorator import keep_arguments
+from pycompss.api.commons.decorator import process_computing_nodes
+from pycompss.api.commons.decorator import resolve_fail_by_exit_value
+from pycompss.api.commons.decorator import resolve_working_dir
+from pycompss.api.commons.decorator import run_command
 from pycompss.api.commons.implementation_types import IMPL_MPI
 from pycompss.api.commons.implementation_types import IMPL_PYTHON_MPI
-from pycompss.api.commons.decorator import resolve_working_dir
-from pycompss.api.commons.decorator import resolve_fail_by_exit_value
-from pycompss.api.commons.decorator import process_computing_nodes
-from pycompss.api.commons.decorator import keep_arguments
-from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
-from pycompss.api.commons.decorator import run_command
 from pycompss.runtime.task.core_element import CE
 from pycompss.util.arguments import check_arguments
-from pycompss.util.arguments import UNASSIGNED
 from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.util.typing_helper import typing
 
 if __debug__:
     import logging
 
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {RUNNER}
+MANDATORY_ARGUMENTS = {LABELS.runner}
 SUPPORTED_ARGUMENTS = {
-    BINARY,
-    PROCESSES,
-    WORKING_DIR,
-    RUNNER,
-    FLAGS,
-    PROCESSES_PER_NODE,
-    SCALE_BY_CU,
-    PARAMS,
-    FAIL_BY_EXIT_VALUE,
+    LABELS.binary,
+    LABELS.processes,
+    LABELS.working_dir,
+    LABELS.runner,
+    LABELS.flags,
+    LABELS.processes_per_node,
+    LABELS.scale_by_cu,
+    LABELS.params,
+    LABELS.fail_by_exit_value,
 }
-DEPRECATED_ARGUMENTS = {COMPUTING_NODES, LEGACY_COMPUTING_NODES, LEGACY_WORKING_DIR}
+DEPRECATED_ARGUMENTS = {
+    LABELS.computing_nodes,
+    LEGACY_LABELS.computing_nodes,
+    LEGACY_LABELS.working_dir,
+}
 
 
 class Mpi(object):
-    """
+    """Mpi decorator class.
+
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on mpi task creation.
     """
@@ -134,6 +128,13 @@ class Mpi(object):
     def __decorator_body__(
         self, user_function: typing.Callable, args: tuple, kwargs: dict
     ) -> typing.Any:
+        """Body of the mpi decorator.
+
+        :param user_function: Decorated function.
+        :param args: Function arguments.
+        :param kwargs: Function keyword arguments.
+        :returns: Result of executing the user_function with the given args and kwargs.
+        """
         if not self.scope:
             # Execute the mpi as with PyCOMPSs so that sequential
             # execution performs as parallel.
@@ -192,23 +193,23 @@ class Mpi(object):
         return ret
 
     def __run_mpi__(self, args: tuple, kwargs: dict) -> int:
-        """Runs the mpi binary defined in the decorator when used as dummy.
+        """Run the mpi binary defined in the decorator when used as dummy.
 
         :param args: Arguments received from call.
         :param kwargs: Keyword arguments received from call.
         :return: Execution return code.
         """
-        cmd = [self.kwargs[RUNNER]]
-        if PROCESSES in self.kwargs:
-            cmd += ["-np", self.kwargs[PROCESSES]]
-        elif COMPUTING_NODES in self.kwargs:
-            cmd += ["-np", self.kwargs[COMPUTING_NODES]]
-        elif LEGACY_COMPUTING_NODES in self.kwargs:
-            cmd += ["-np", self.kwargs[LEGACY_COMPUTING_NODES]]
+        cmd = [self.kwargs[LABELS.runner]]
+        if LABELS.processes in self.kwargs:
+            cmd += ["-np", self.kwargs[LABELS.processes]]
+        elif LABELS.computing_nodes in self.kwargs:
+            cmd += ["-np", self.kwargs[LABELS.computing_nodes]]
+        elif LEGACY_LABELS.computing_nodes in self.kwargs:
+            cmd += ["-np", self.kwargs[LEGACY_LABELS.computing_nodes]]
 
-        if FLAGS in self.kwargs:
-            cmd += self.kwargs[FLAGS].split()
-        cmd += [self.kwargs[BINARY]]
+        if LABELS.flags in self.kwargs:
+            cmd += self.kwargs[LABELS.flags].split()
+        cmd += [self.kwargs[LABELS.binary]]
 
         return run_command(cmd, args, kwargs)
 
@@ -216,10 +217,8 @@ class Mpi(object):
         """Resolve the collection layout, such as blocks, strides, etc.
 
         :return: list(param_name, block_count, block_length, stride)
-        :raises PyCOMPSsException: If the collection layout does not contain
-                                   block_count.
+        :raises PyCOMPSsException: If the collection layout does not contain block_count.
         """
-
         num_layouts = 0
         layout_params = []
         for key, value in self.kwargs.items():
@@ -291,20 +290,20 @@ class Mpi(object):
             logger.debug("Configuring @mpi core element.")
 
         # Resolve @mpi specific parameters
-        if BINARY in self.kwargs:
-            binary = self.kwargs[BINARY]
+        if LABELS.binary in self.kwargs:
+            binary = self.kwargs[LABELS.binary]
             impl_type = IMPL_MPI
         else:
-            binary = UNASSIGNED
+            binary = INTERNAL_LABELS.unassigned
             impl_type = IMPL_PYTHON_MPI
             self.task_type = impl_type
 
-        runner = self.kwargs[RUNNER]
+        runner = self.kwargs[LABELS.runner]
 
-        if FLAGS in self.kwargs:
-            flags = self.kwargs[FLAGS]
+        if LABELS.flags in self.kwargs:
+            flags = self.kwargs[LABELS.flags]
         else:
-            flags = UNASSIGNED  # Empty or UNASSIGNED
+            flags = INTERNAL_LABELS.unassigned  # Empty or INTERNAL_LABELS.unassigned
 
         # Check if scale by cu is defined
         scale_by_cu_str = self.__resolve_scale_by_cu__()
@@ -330,19 +329,19 @@ class Mpi(object):
         else:
             ppn = "1"
 
-        if binary == UNASSIGNED:
+        if binary == INTERNAL_LABELS.unassigned:
             impl_signature = impl_type + "."
         else:
             impl_signature = ".".join((impl_type, str(proc), binary))
         impl_args = [
             binary,
-            self.kwargs[WORKING_DIR],
+            self.kwargs[LABELS.working_dir],
             runner,
             ppn,
             flags,
             scale_by_cu_str,
-            self.kwargs.get(PARAMS, UNASSIGNED),
-            self.kwargs[FAIL_BY_EXIT_VALUE],
+            self.kwargs.get(LABELS.params, INTERNAL_LABELS.unassigned),
+            self.kwargs[LABELS.fail_by_exit_value],
         ]
 
         if impl_type == IMPL_PYTHON_MPI:
@@ -368,13 +367,13 @@ class Mpi(object):
         self.core_element_configured = True
 
     def __resolve_scale_by_cu__(self) -> str:
-        """Checks if scale_by_cu is defined and process it.
+        """Check if scale_by_cu is defined and process it.
 
         :return: Scale by cu value as string.
         :raises PyCOMPSsException: If scale_by_cu is not bool or string.
         """
-        if SCALE_BY_CU in self.kwargs:
-            scale_by_cu = self.kwargs[SCALE_BY_CU]
+        if LABELS.scale_by_cu in self.kwargs:
+            scale_by_cu = self.kwargs[LABELS.scale_by_cu]
             if isinstance(scale_by_cu, bool):
                 if scale_by_cu:
                     scale_by_cu_str = "true"
@@ -384,9 +383,9 @@ class Mpi(object):
                 scale_by_cu_str = str(scale_by_cu).lower()
             else:
                 raise PyCOMPSsException(
-                    "Incorrect format for scale_by_cu property. "  # noqa: E501
+                    "Incorrect format for scale_by_cu property. "
                     "It should be boolean or 'true' or 'false'"
-                )  # noqa: E501
+                )
         else:
             scale_by_cu_str = "false"
         return scale_by_cu_str

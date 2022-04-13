@@ -18,32 +18,31 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API
-============
-    This file defines the public PyCOMPSs API functions.
-    It implements the:
-        - start
-        - stop
-        - open
-        - delete file
-        - wait on file
-        - delete object
-        - barrier
-        - barrier group
-        - get_number_of_resources
-        - request_resources_creation
-        - request_resources_destruction
-        - set_wall_clock
-        - wait_on
-        - TaskGroup (class)
-    functions.
-    Also includes the redirection to the dummy API.
+PyCOMPSs API.
 
-    CAUTION: If the context has not been defined, it will load the dummy API
-             automatically.
+This file defines the public PyCOMPSs API functions.
+It implements the:
+    - start
+    - stop
+    - open
+    - delete file
+    - wait on file
+    - delete object
+    - barrier
+    - barrier group
+    - get_number_of_resources
+    - request_resources_creation
+    - request_resources_destruction
+    - set_wall_clock
+    - wait_on
+    - TaskGroup (class)
+functions.
+Also includes the redirection to the dummy API.
+
+CAUTION: If the context has not been defined, it will load the dummy API
+         automatically.
 """
 
-from pycompss.util.typing_helper import typing
 import pycompss.util.context as context
 
 # Dummy imports
@@ -64,7 +63,7 @@ from pycompss.api.dummy.api import (
     compss_free_resources as __dummy_compss_free_resources__,
     compss_set_wall_clock as __dummy_compss_set_wall_clock__,
 )
-
+from pycompss.util.typing_helper import typing
 
 if context.in_pycompss():
     # ################################################################# #
@@ -95,23 +94,27 @@ if context.in_pycompss():
 
 
 def compss_start(
-    log_level: str = "off", tracing: bool = False, interactive: bool = False
+    log_level: str = "off",
+    tracing: bool = False,
+    interactive: bool = False,
+    disable_external: bool = False,
 ) -> None:
-    """Starts the runtime.
+    """Start the COMPSs runtime.
 
     :param log_level: Log level [ True | False ].
-    :param tracing: Tracing level [0 (deactivated)|1 (basic)|2 (advanced)].
+    :param tracing: Activate or disable tracing.
     :param interactive: Boolean if interactive (ipython or jupyter).
+    :param disable_external: To avoid to load compss in external process.
     :return: None
     """
     if context.in_pycompss():
-        __start_runtime__(log_level, tracing, interactive)
+        __start_runtime__(log_level, tracing, interactive, disable_external)
     else:
-        __dummy_compss_start__(log_level, tracing, interactive)
+        __dummy_compss_start__(log_level, tracing, interactive, disable_external)
 
 
 def compss_stop(code: int = 0, _hard_stop: bool = False) -> None:
-    """Stops the runtime.
+    """Stop the COMPSs runtime.
 
     :param code: Stop code.
     :param _hard_stop: Stop compss when runtime has died.
@@ -151,7 +154,7 @@ def compss_open(file_name: str, mode: str = "r") -> typing.Any:
              function.
 
     :param file_name: File name.
-    :param mode: Open mode. Options = [w, r+ or a , r or empty].
+    :param mode: Open mode. Options = [w, r+ or a, r or empty].
                  Default = "r"
     :return: An object of "file" type.
     :raise IOError: If the file can not be opened.
@@ -167,7 +170,7 @@ def compss_delete_file(*file_name: str) -> typing.Union[bool, typing.List[bool]]
     """Delete a file.
 
     Calls the runtime to delete the file everywhere in the infrastructure.
-    The delete is asynchronous and will be performed when the file is not
+    Deletion is asynchronous and will be performed when the file is not
     necessary anymore.
 
     :param file_name: File/s name.
@@ -225,7 +228,7 @@ def compss_delete_object(*obj: typing.Any) -> typing.Union[bool, typing.List[boo
 
     Removes a used object from the internal structures and calls the
     external python library (that calls the bindings-common)
-    in order to request a its corresponding file removal.
+    in order to request its corresponding file removal.
 
     :param obj: Object/s to delete.
     :return: True if success. False otherwise.
@@ -298,8 +301,10 @@ def compss_get_number_of_resources() -> int:
         return __dummy_compss_get_number_of_resources__()
 
 
-def compss_request_resources(num_resources: int, group_name: str) -> None:
-    """Requests the creation of num_resources resources.
+def compss_request_resources(
+    num_resources: int, group_name: typing.Optional[str]
+) -> None:
+    """Request the creation of num_resources resources.
 
     :param num_resources: Number of resources to create.
     :param group_name: Task group to notify upon resource creation.
@@ -312,8 +317,8 @@ def compss_request_resources(num_resources: int, group_name: str) -> None:
         __dummy_compss_request_resources__(num_resources, group_name)
 
 
-def compss_free_resources(num_resources: int, group_name: str) -> None:
-    """Requests the destruction of num_resources resources.
+def compss_free_resources(num_resources: int, group_name: typing.Optional[str]) -> None:
+    """Request the destruction of num_resources resources.
 
     :param num_resources: Number of resources to destroy.
     :param group_name: Task group to notify upon resource creation
@@ -326,7 +331,7 @@ def compss_free_resources(num_resources: int, group_name: str) -> None:
 
 
 def compss_set_wall_clock(wall_clock_limit: int) -> None:
-    """Sets the application wall clock limit.
+    """Set the application wall clock limit.
 
     :param wall_clock_limit: Wall clock limit in seconds.
     :return: None
@@ -360,6 +365,9 @@ class TaskGroup(object):
 
         :param group_name: Group name.
         :param implicit_barrier: Perform implicit barrier.
+
+        :attr str group_name: Group name.
+        :attr bool implicit_barrier: Perform implicit barrier.
         """
         if context.in_pycompss():
             self.group_name = group_name
@@ -368,7 +376,7 @@ class TaskGroup(object):
             pass
 
     def __enter__(self) -> None:
-        """Group creation"""
+        """Group creation."""
         if context.in_pycompss():
             __open_task_group__(self.group_name, self.implicit_barrier)
         else:
@@ -377,7 +385,7 @@ class TaskGroup(object):
     def __exit__(
         self, type: typing.Any, value: typing.Any, traceback: typing.Any
     ) -> None:
-        """Group closing"""
+        """Group closing."""
         if context.in_pycompss():
             __close_task_group__(self.group_name)
             if self.implicit_barrier:

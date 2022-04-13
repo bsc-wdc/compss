@@ -18,9 +18,9 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Util - MPI
-===================
-    This file contains all MPI helper methods.
+PyCOMPSs Util - MPI - Helper.
+
+This file contains all MPI helper methods.
 """
 
 from mpi4py import MPI
@@ -32,8 +32,7 @@ rank = comm.rank
 
 
 def rank_distributor(collection_layout: typing.Union[tuple, list]) -> list:
-    """
-    Distributes mpi ranks to data given a collection layout
+    """Distribute mpi ranks to data given a collection layout.
 
     :param collection_layout: Layout of the collection.
     :return distribution: distribution of rank x

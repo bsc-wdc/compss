@@ -18,20 +18,21 @@
 # -*- coding: utf-8 -*-
 
 """
-This module includes all API commons
+PyCOMPSs runtime - Task - Arguments commons.
+
+This file contains the task  arguments commons.
 """
 
-from pycompss.util.typing_helper import typing
-
 import pycompss.api.parameter as parameter
-from pycompss.runtime.task.parameter import get_new_parameter
 from pycompss.runtime.task.parameter import Parameter
+from pycompss.runtime.task.parameter import get_new_parameter
+from pycompss.util.typing_helper import typing
 
 
 def get_varargs_direction(
     param_varargs: typing.Any, decorator_arguments: typing.Any
 ) -> typing.Tuple[typing.Any, Parameter]:
-    """Returns the direction of the varargs arguments.
+    """Return the direction of the varargs arguments.
 
     Can be defined in the decorator in two ways:
         args = dir, where args is the name of the variadic args tuple.
@@ -54,7 +55,7 @@ def get_default_direction(
     decorator_arguments: typing.Dict[str, typing.Any],
     param_args: typing.List[typing.Any],
 ) -> Parameter:
-    """Returns the default direction for a given parameter.
+    """Return the default direction for a given parameter.
 
     :param var_name: Variable name.
     :param decorator_arguments: Decorator arguments.

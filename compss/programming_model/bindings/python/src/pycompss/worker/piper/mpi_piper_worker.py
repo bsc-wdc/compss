@@ -18,43 +18,42 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Persistent Worker
-==========================
-    This file contains the worker code.
+PyCOMPSs Worker - Piper - MPI Worker.
+
+This file contains the mpi piper worker code.
 """
 
 import os
-import sys
 import signal
-from pycompss.util.typing_helper import typing
-from pycompss.runtime.commons import get_temporary_directory
-from pycompss.util.tracing.helpers import trace_mpi_worker
-from pycompss.util.tracing.helpers import trace_mpi_executor
+import sys
+
+from mpi4py import MPI
+from pycompss.runtime.commons import GLOBALS
+from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.tracing.helpers import dummy_context
 from pycompss.util.tracing.helpers import event_worker
-from pycompss.worker.commons.constants import INIT_STORAGE_AT_WORKER_EVENT
-from pycompss.worker.commons.constants import FINISH_STORAGE_AT_WORKER_EVENT
-from pycompss.worker.piper.commons.executor import ExecutorConf
-from pycompss.worker.piper.commons.executor import executor
-from pycompss.worker.piper.commons.utils_logger import load_loggers
-from pycompss.worker.piper.commons.utils import PiperWorkerConfiguration
-from pycompss.worker.piper.commons.constants import CANCEL_TASK_TAG
-from pycompss.worker.piper.commons.constants import PING_TAG
-from pycompss.worker.piper.commons.constants import PONG_TAG
-from pycompss.worker.piper.commons.constants import ADD_EXECUTOR_TAG
-from pycompss.worker.piper.commons.constants import ADD_EXECUTOR_FAILED_TAG
-from pycompss.worker.piper.commons.constants import QUERY_EXECUTOR_ID_TAG
-from pycompss.worker.piper.commons.constants import REPLY_EXECUTOR_ID_TAG
-from pycompss.worker.piper.commons.constants import REMOVE_EXECUTOR_TAG
-from pycompss.worker.piper.commons.constants import REMOVED_EXECUTOR_TAG
-from pycompss.worker.piper.commons.constants import QUIT_TAG
-from pycompss.worker.piper.commons.constants import HEADER
+from pycompss.util.tracing.helpers import trace_mpi_executor
+from pycompss.util.tracing.helpers import trace_mpi_worker
+from pycompss.util.tracing.types_events_worker import TRACING_WORKER
+from pycompss.util.typing_helper import typing
 from pycompss.worker.piper.cache.setup import is_cache_enabled
 from pycompss.worker.piper.cache.setup import start_cache
 from pycompss.worker.piper.cache.setup import stop_cache
-from pycompss.util.exceptions import PyCOMPSsException
-
-from mpi4py import MPI
+from pycompss.worker.piper.commons.constants import ADD_EXECUTOR_FAILED_TAG
+from pycompss.worker.piper.commons.constants import ADD_EXECUTOR_TAG
+from pycompss.worker.piper.commons.constants import CANCEL_TASK_TAG
+from pycompss.worker.piper.commons.constants import HEADER
+from pycompss.worker.piper.commons.constants import PING_TAG
+from pycompss.worker.piper.commons.constants import PONG_TAG
+from pycompss.worker.piper.commons.constants import QUERY_EXECUTOR_ID_TAG
+from pycompss.worker.piper.commons.constants import QUIT_TAG
+from pycompss.worker.piper.commons.constants import REMOVED_EXECUTOR_TAG
+from pycompss.worker.piper.commons.constants import REMOVE_EXECUTOR_TAG
+from pycompss.worker.piper.commons.constants import REPLY_EXECUTOR_ID_TAG
+from pycompss.worker.piper.commons.executor import ExecutorConf
+from pycompss.worker.piper.commons.executor import executor
+from pycompss.worker.piper.commons.utils import PiperWorkerConfiguration
+from pycompss.worker.piper.commons.utils_logger import load_loggers
 
 # Persistent worker global variables
 COMM = MPI.COMM_WORLD
@@ -68,21 +67,21 @@ CACHE_QUEUE = None
 
 
 def is_worker() -> bool:
-    """Returns whether the process should act as a worker.
+    """Return whether the process should act as a worker.
 
-    :return: the process should act as a worker.
+    :return: The process should act as a worker.
     """
     return RANK == 0
 
 
 def shutdown_handler(signal: int, frame: typing.Any) -> None:
-    """Shutdown handler.
+    """Handle shutdown - Shutdown handler.
 
-    Do not remove the parameters.
+    CAUTION! Do not remove the parameters.
 
-    :param signal: shutdown signal.
+    :param signal: Shutdown signal.
     :param frame: Frame.
-    :return: None
+    :return: None.
     """
     if is_worker():
         print(HEADER + "Shutdown signal handler")
@@ -91,13 +90,13 @@ def shutdown_handler(signal: int, frame: typing.Any) -> None:
 
 
 def user_signal_handler(signal: int, frame: typing.Any) -> None:
-    """User signal handler.
+    """Handle user signal - User signal handler.
 
-    Do not remove the parameters.
+    CAUTION! Do not remove the parameters.
 
-    :param signal: shutdown signal.
+    :param signal: Shutdown signal.
     :param frame: Frame.
-    :return: None
+    :return: None.
     """
     if is_worker():
         print(HEADER + "Default user signal handler")
@@ -111,12 +110,12 @@ def user_signal_handler(signal: int, frame: typing.Any) -> None:
 
 
 def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
-    """Persistent worker main function.
+    """Retrieve the initial configuration and represents the main worker process.
 
-    Retrieves the initial configuration and spawns the worker processes.
+    Persistent worker main function.
 
     :param config: Piper Worker Configuration description.
-    :return: None
+    :return: None.
     """
     pids = COMM.gather(str(os.getpid()), root=0)
     if not pids:
@@ -229,12 +228,12 @@ def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
 
 
 def compss_persistent_executor(config: PiperWorkerConfiguration) -> None:
-    """Persistent executor main function.
+    """Retrieve the initial configuration and performs executor process functionality.
 
-    Retrieves the initial configuration and spawns the worker processes.
+    Persistent MPI executor main function.
 
     :param config: Piper Worker Configuration description.
-    :return: None
+    :return: None.
     """
     COMM.gather(str(os.getpid()), root=0)
 
@@ -260,7 +259,7 @@ def compss_persistent_executor(config: PiperWorkerConfiguration) -> None:
 
     if persistent_storage:
         # Initialize storage
-        with event_worker(INIT_STORAGE_AT_WORKER_EVENT):
+        with event_worker(TRACING_WORKER.init_storage_at_worker_event):
             from storage.api import initWorker as initStorageAtWorker  # noqa
 
             initStorageAtWorker(config_file_path=config.storage_conf)
@@ -268,7 +267,7 @@ def compss_persistent_executor(config: PiperWorkerConfiguration) -> None:
     process_name = "".join(("Rank-", str(RANK)))
     conf = ExecutorConf(
         config.debug,
-        get_temporary_directory(),
+        GLOBALS.get_temporary_directory(),
         TRACING,
         config.storage_conf,
         logger,
@@ -288,7 +287,7 @@ def compss_persistent_executor(config: PiperWorkerConfiguration) -> None:
         # Finish storage
         if __debug__:
             logger.debug(HEADER + "Stopping persistent storage")
-        with event_worker(FINISH_STORAGE_AT_WORKER_EVENT):
+        with event_worker(TRACING_WORKER.finish_storage_at_worker_event):
             from storage.api import finishWorker as finishStorageAtWorker  # noqa
 
             finishStorageAtWorker()
@@ -300,9 +299,9 @@ def compss_persistent_executor(config: PiperWorkerConfiguration) -> None:
 
 
 def main() -> None:
-    """Main mpi piper worker
+    """Start the MPI piper worker.
 
-    :return: None
+    :return: None.
     """
     # Configure the global tracing variable from the argument
     global TRACING
@@ -310,7 +309,7 @@ def main() -> None:
     global CACHE_IDS
     global CACHE_QUEUE
 
-    TRACING = int(sys.argv[4]) > 0
+    TRACING = sys.argv[4] == "true"
 
     # Enable coverage if performed
     if "COVERAGE_PROCESS_START" in os.environ:
@@ -329,23 +328,17 @@ def main() -> None:
     if WORKER_CONF.cache_profiler.lower() == "true":
         cache_profiler = True
 
+    # No cache or it is an executor
+    cache = False
     if is_worker():
-        # Setup cache
+        # Setup cache if enabled
         if is_cache_enabled(str(WORKER_CONF.cache)):
             # Deploy the necessary processes
             cache = True
-            cache_params = start_cache(
+            smm, cache_process, cache_queue, CACHE_IDS = start_cache(
                 None, str(WORKER_CONF.cache), cache_profiler, log_dir
             )
-        else:
-            # No cache
-            cache = False
-            cache_params = (None, None, None, None)  # type: ignore
-    else:
-        # Otherwise it is an executor
-        cache = False  # to stop only the cache from the main process
-        cache_params = (None, None, None, None)  # type: ignore
-    smm, cache_process, CACHE_QUEUE, CACHE_IDS = cache_params
+            CACHE_QUEUE = cache_queue
 
     if is_worker():
         with trace_mpi_worker() if TRACING else dummy_context():
@@ -355,7 +348,10 @@ def main() -> None:
             compss_persistent_executor(WORKER_CONF)
 
     if cache and is_worker():
-        stop_cache(smm, CACHE_QUEUE, cache_profiler, cache_process)  # noqa
+        # Beware of smm, cache_queue and cache_process variables, since they
+        # are only initialized when is_worker() and cache is enabled.
+        # Reason for noqa.
+        stop_cache(smm, cache_queue, cache_profiler, cache_process)  # noqa
 
 
 if __name__ == "__main__":

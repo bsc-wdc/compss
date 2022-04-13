@@ -35,9 +35,6 @@ remove_symbolic_links (){
 # MAIN
 #
 
-if [ -d "${SCRIPT_DIR}/2" ]; then
-    remove_symbolic_links python2
-fi
 if [ -d "${SCRIPT_DIR}/3" ]; then
     remove_symbolic_links python3
 fi

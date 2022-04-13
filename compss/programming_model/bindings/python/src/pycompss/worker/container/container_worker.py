@@ -16,41 +16,39 @@
 #
 
 """
-PyCOMPSs Worker for Containers
-=======================
-    This file contains the code of a fake worker to execute Python tasks
+PyCOMPSs Worker - Container - Worker.
+
+This file contains the code of a fake worker to execute Python tasks
 inside containers.
 """
 
-# Fix PYTHONPATH setup
-import pycompss.worker.container.pythonpath_fixer  # noqa
+import logging
 
 # Regular imports
 import os
 import sys
-import logging
-from pycompss.util.typing_helper import typing
 
 # PyCOMPSs imports
 import pycompss.util.context as context
-from pycompss.worker.commons.worker import execute_task
-from pycompss.worker.commons.executor import build_return_params_message
+
+# Fix PYTHONPATH setup
+import pycompss.worker.container.pythonpath_fixer  # noqa
 from pycompss.util.logger.helpers import init_logging_worker
+from pycompss.util.typing_helper import typing
+from pycompss.worker.commons.executor import build_return_params_message
+from pycompss.worker.commons.worker import execute_task
+
 
 # Define static logger
 # logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)  # NOSONAR
 # logger = logging.getLogger()
 
 
-#
-# Main method for Python task execution inside a Container
-#
 def main() -> int:
-    """Main method to process the task execution.
+    """Process python task inside a container main method.
 
-    :return: Exit value
+    :return: Exit value.
     """
-
     # Parse arguments
     # TODO: Enhance the received parameters from ContainerInvoker.java
     func_file_path = str(sys.argv[1])

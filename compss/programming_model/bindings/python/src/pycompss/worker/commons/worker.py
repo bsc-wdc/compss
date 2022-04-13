@@ -16,37 +16,36 @@
 #
 
 """
-PyCOMPSs Worker Commons
-=======================
-    This file contains the common code of all workers.
+PyCOMPSs Worker - Commons - Worker.
+
+This file contains the common worker methods.
+Currently, it is used by all worker types (container, external, gat and piper).
 """
 
-import sys
-import signal
-import traceback
 import base64
-from pycompss.util.typing_helper import typing
 import logging
+import signal
+import sys
+import traceback
 
 import pycompss.api.parameter as parameter
 from pycompss.api.exceptions import COMPSsException
-from pycompss.runtime.commons import STR_ESCAPE
-from pycompss.runtime.commons import INTERACTIVE_FILE_NAME
-from pycompss.runtime.task.parameter import Parameter
-from pycompss.runtime.task.parameter import JAVA_MIN_INT
-from pycompss.runtime.task.parameter import JAVA_MAX_INT
+from pycompss.runtime.commons import CONSTANTS
 from pycompss.runtime.task.parameter import COMPSsFile
-from pycompss.util.tracing.helpers import event_inside_worker
-from pycompss.worker.commons.constants import GET_TASK_PARAMS_EVENT
-from pycompss.worker.commons.constants import IMPORT_USER_MODULE_EVENT
+from pycompss.runtime.task.parameter import JAVA_MAX_INT
+from pycompss.runtime.task.parameter import JAVA_MIN_INT
+from pycompss.runtime.task.parameter import Parameter
+from pycompss.util.exceptions import SerializerException
+from pycompss.util.exceptions import TimeOutError
+from pycompss.util.exceptions import task_cancel
+from pycompss.util.exceptions import task_timed_out
 from pycompss.util.serialization.serializer import deserialize_from_bytes
 from pycompss.util.serialization.serializer import deserialize_from_file
 from pycompss.util.serialization.serializer import serialize_to_file
-from pycompss.util.exceptions import SerializerException
-from pycompss.util.exceptions import TimeOutError
-from pycompss.util.exceptions import task_timed_out
-from pycompss.util.exceptions import task_cancel
 from pycompss.util.storages.persistent import load_storage_library
+from pycompss.util.tracing.helpers import event_inside_worker
+from pycompss.util.tracing.types_events_worker import TRACING_WORKER
+from pycompss.util.typing_helper import typing
 
 # First load the storage library
 load_storage_library()
@@ -124,8 +123,11 @@ def build_task_parameter(
                 name=p_name,
                 file_name=COMPSsFile(p_value),
                 extra_content_type=str(p_c_type),
-            ), 1)
+            ),
+            1,
+        )
     elif p_type in (parameter.TYPE.STRING, parameter.TYPE.STRING_64):
+        aux = ""  # type: typing.Union[str, bytes]
         if args is not None:
             num_substrings = int(p_value)  # noqa
             aux_str = []
@@ -152,11 +154,11 @@ def build_task_parameter(
                 # try to recover the real object
                 # Decode removes double backslash, and encode returns
                 # the result as binary
-                p_bin = new_aux.decode(STR_ESCAPE).encode()
+                p_bin = new_aux.decode(CONSTANTS.str_escape).encode()  # type: ignore
                 deserialized_aux = deserialize_from_bytes(p_bin, show_exception=False)
-            except (SerializerException, ValueError, EOFError):
+            except (SerializerException, ValueError, EOFError, AttributeError):
                 # was not an object
-                deserialized_aux = str(real_value.decode())
+                deserialized_aux = real_value  # type: ignore
             #######
         else:
             deserialized_aux = new_aux
@@ -165,7 +167,7 @@ def build_task_parameter(
             deserialized_aux = deserialized_aux.decode("utf-8")
 
         if __debug__:
-            logger.debug("\t * Value: %s" % aux)
+            logger.debug("\t * Value: %s" % str(aux))
 
         return (
             Parameter(
@@ -195,7 +197,7 @@ def build_task_parameter(
             val = float(p_value)  # noqa
             p_type = parameter.TYPE.FLOAT
             if __debug__:
-                logger.debug("Changing type from DOUBLE to FLOAT")  # type: ignore
+                logger.debug("Changing type from DOUBLE to FLOAT")
         elif p_type == parameter.TYPE.BOOLEAN:
             val = p_value == "true"
         return (
@@ -214,13 +216,13 @@ def build_task_parameter(
 def get_task_params(num_params: int, logger: typing.Any, args: list) -> list:
     """Get and prepare the input parameters from string to lists.
 
-    :param num_params: Number of parameters
-    :param logger: Logger
+    :param num_params: Number of parameters.
+    :param logger: Logger.
     :param args: Arguments (complete list of parameters with type, stream,
-                            prefix and value)
-    :return: A list of TaskParameter objects
+                            prefix and value).
+    :return: A list of TaskParameter objects.
     """
-    with event_inside_worker(GET_TASK_PARAMS_EVENT):
+    with event_inside_worker(TRACING_WORKER.get_task_params_event):
         pos = 0
         ret = []
         for i in range(0, num_params):  # noqa
@@ -268,20 +270,20 @@ def task_execution(
     persistent_storage: bool,
     storage_conf: str,
 ) -> typing.Tuple[int, list, list, typing.Union[None, Parameter], bool, str]:
-    """Task execution function.
+    """Execute task.
 
-    :param logger: Logger
-    :param process_name: Process name
-    :param module: Module which contains the function
-    :param method_name: Function to invoke
-    :param time_out: Time out
-    :param types: List of the parameter's types
-    :param values: List of the parameter's values
-    :param compss_kwargs: PyCOMPSs keywords
-    :param persistent_storage: If persistent storage is enabled
-    :param storage_conf: Persistent storage configuration file
+    :param logger: Logger.
+    :param process_name: Process name.
+    :param module: Module which contains the function.
+    :param method_name: Function to invoke.
+    :param time_out: Time out.
+    :param types: List of the parameter's types.
+    :param values: List of the parameter's values.
+    :param compss_kwargs: PyCOMPSs keywords.
+    :param persistent_storage: If persistent storage is enabled.
+    :param storage_conf: Persistent storage configuration file.
     :return: exit_code, new_types, new_values, target_direction, timed_out
-             and return_message
+             and return_message.
     """
     if __debug__:
         logger.debug("Starting task execution")
@@ -393,14 +395,14 @@ def task_execution(
 
 
 def _get_return_values_for_exception(types: list, values: list) -> list:
-    """Builds the values list to retrieve on an exception.
+    """Build the values list to retrieve on an exception.
 
     It takes the input types and returns a list of 'null' for each type
     unless it is a PSCO, where it puts the psco identifier.
 
     :param types: List of input types.
     :param values: List of input values.
-    :return: List of values to return
+    :return: List of values to return.
     """
     new_values = []
     for i in range(len(types)):
@@ -420,7 +422,7 @@ def task_returns(
     return_message: str,
     logger: typing.Any,
 ) -> typing.Tuple[int, list, list, typing.Union[None, Parameter], bool, str]:
-    """Unified task return function.
+    """Log return.
 
     :param exit_code: Exit value (0 ok, 1 error).
     :param new_types: New types to be returned.
@@ -459,13 +461,13 @@ def import_user_module(path: str, logger: typing.Any) -> typing.Any:
     :param logger: Logger.
     :return: The loaded module.
     """
-    with event_inside_worker(IMPORT_USER_MODULE_EVENT):
+    with event_inside_worker(TRACING_WORKER.import_user_module_event):
         py_version = sys.version_info
         if py_version >= (2, 7):
             import importlib
 
             module = importlib.import_module(path)  # Python 2.7
-            if path.startswith(INTERACTIVE_FILE_NAME):
+            if path.startswith(CONSTANTS.interactive_file_name):
                 # Force reload in interactive mode. The user may have
                 # overwritten a function or task.
                 if py_version < (3, 4):
@@ -499,23 +501,23 @@ def execute_task(
     cache_ids: typing.Any = None,
     cache_profiler: bool = False,
 ) -> typing.Tuple[int, list, list, typing.Optional[bool], str]:
-    """ExecuteTask main method.
+    """Execute task main method.
 
     :param process_name: Process name.
     :param storage_conf: Storage configuration file path.
     :param params: List of parameters.
     :param tracing: Tracing flag.
     :param logger: Logger to use.
-    :param logger_cfg: Logger configuration file
+    :param logger_cfg: Logger configuration file.
     :param log_files: Tuple with (out filename, err filename).
                       None to avoid stdout and sdterr fd redirection.
     :param python_mpi: If it is a MPI task.
-    :param collections_layouts: collections layouts for python MPI tasks
-    :param cache_queue: Cache tracker communication queue
-    :param cache_ids: Cache proxy dictionary (read-only)
-    :param cache_profiler: Cache profiler
+    :param collections_layouts: collections layouts for python MPI tasks.
+    :param cache_queue: Cache tracker communication queue.
+    :param cache_ids: Cache proxy dictionary (read-only).
+    :param cache_profiler: Cache profiler.
     :return: updated_args, exit_code, new_types, new_values, timed_out
-             and except_msg
+             and except_msg.
     """
     if __debug__:
         logger.debug("BEGIN TASK execution in %s" % process_name)

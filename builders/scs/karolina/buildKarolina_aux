@@ -27,11 +27,10 @@
   # SET SCRIPT VARIABLES
   targetDir=$1
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-  
+
   # DEFINE MODULES
   modules="GCC/10.2.0 libxml2/2.9.10-GCCcore-10.2.0 binutils/2.35-GCCcore-10.2.0 bzip2/1.0.8-GCCcore-10.2.0 zlib/1.2.11-GCCcore-10.2.0 impi/2019.9.304-iccifort-2020.4.304 Java/1.8.0_221"
   unload_before_python="ignore"
-  py2_modules=""
   run_before_py3_modules="ignore"
   py3_modules="Python/3.8.6-GCCcore-10.2.0"
   run_before_py3_other_modules="ignore"
@@ -50,7 +49,7 @@
   c_binding="false"
 
   # CALL buildSC_aux
-  "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${unload_before_python}" "${py2_modules}" "${run_before_py3_modules}" "${py3_modules}" "${run_before_py3_other_modules}" "${py3_other_modules}" "${additionalExports}" "${additional_module_use_folder}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "${autoparallel}" "${c_binding}"
+  "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${unload_before_python}" "${run_before_py3_modules}" "${py3_modules}" "${run_before_py3_other_modules}" "${py3_other_modules}" "${additionalExports}" "${additional_module_use_folder}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "${autoparallel}" "${c_binding}"
   ev=$?
 
   # End

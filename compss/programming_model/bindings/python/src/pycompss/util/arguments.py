@@ -18,20 +18,19 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Util - Arguments
-=========================
-    This file contains the common methods to do any argument (used in a
-    decorator) check or management.
+PyCOMPSs Util - Arguments.
+
+This file contains the common methods to do any argument (used in a decorator)
+check or management.
 """
 
 from __future__ import print_function
-import sys
+
 import re
+import sys
 
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.typing_helper import typing
-
-UNASSIGNED = "[unassigned]"
 
 
 def check_arguments(
@@ -41,18 +40,19 @@ def check_arguments(
     argument_names: typing.List[str],
     decorator: str,
 ) -> None:
-    """
-    Performs all needed checks to the decorator definition:
+    """Perform all needed checks to the decorator definition.
+
+    The checks are:
         1.- Checks that the mandatory arguments are present (otherwise, raises
             an exception).
         2.- Looks for unexpected arguments (displays a warning through stderr).
 
-    :param mandatory_arguments: Set of mandatory argument names
-    :param deprecated_arguments: Set of deprecated argument names
-    :param supported_arguments: Set of supported argument names
-    :param argument_names: List of argument names to check
-    :param decorator: String - Decorator name
-    :return: None
+    :param mandatory_arguments: Set of mandatory argument names.
+    :param deprecated_arguments: Set of deprecated argument names.
+    :param supported_arguments: Set of supported argument names.
+    :param argument_names: List of argument names to check.
+    :param decorator: String - Decorator name.
+    :return: None.
     """
     decorator_str = decorator + " decorator"
     # Look for mandatory arguments
@@ -68,13 +68,12 @@ def check_mandatory_arguments(
     argument_names: typing.List[str],
     where: str,
 ) -> None:
-    """
-    This method checks that all mandatory arguments are in arguments.
+    """Check that all mandatory arguments are in arguments.
 
-    :param mandatory_arguments: Set of supported arguments
-    :param argument_names: List of arguments to check
-    :param where: Location of the argument
-    :return: None
+    :param mandatory_arguments: Set of supported arguments.
+    :param argument_names: List of arguments to check.
+    :param where: Location of the argument.
+    :return: None.
     """
     for argument in mandatory_arguments:
         if "_" in argument:
@@ -92,25 +91,23 @@ def check_mandatory_arguments(
 
 
 def __to_camel_case__(argument: str) -> str:
-    """
-    Convert the given argument to camel case.
+    """Convert the given argument to camel case.
 
-    :param argument: String to convert to camel case
-    :return: Camel case string
+    :param argument: String to convert to camel case.
+    :return: Camel case string.
     """
     components = argument.split("_")
     return components[0] + "".join(x.title() for x in components[1:])
 
 
 def __error_mandatory_argument__(decorator: str, argument: str) -> None:
-    """
-    Raises an exception when the argument is mandatory in the decorator
+    """Raise an exception when the argument is mandatory in the decorator.
 
-    :param argument: Argument name
-    :param decorator: Decorator name
-    :return: None
+    :param argument: Argument name.
+    :param decorator: Decorator name.
+    :return: None.
     :raise PyCOMPSsException: With the decorator and argument that produced
-                              the error
+                              the error.
     """
     raise PyCOMPSsException(
         "The argument %s is mandatory in the %s decorator."
@@ -123,15 +120,13 @@ def __check_deprecated_arguments__(
     argument_names: typing.List[str],
     where: str,
 ) -> None:
-    """
-    This method looks for deprecated arguments and displays a warning
-    if found.
+    """Look for deprecated arguments and displays a warning if found.
 
-    :param deprecated_arguments: Set of deprecated arguments
-    :param argument_names: List of arguments to check
-    :param where: Location of the argument
-    :return: None
-    :raise PyCOMPSsException: With the unsupported argument
+    :param deprecated_arguments: Set of deprecated arguments.
+    :param argument_names: List of arguments to check.
+    :param where: Location of the argument.
+    :return: None.
+    :raise PyCOMPSsException: With the unsupported argument.
     """
     for argument in argument_names:
         if argument == "isModifier":
@@ -162,14 +157,12 @@ def __check_unexpected_arguments__(
     argument_names: typing.List[str],
     where: str,
 ) -> None:
-    """
-    This method looks for unexpected arguments and displays a warning
-    if found.
+    """Look for unexpected arguments and displays a warning if found.
 
-    :param supported_arguments: Set of supported arguments
-    :param argument_names: List of arguments to check
-    :param where: Location of the argument
-    :return: None
+    :param supported_arguments: Set of supported arguments.
+    :param argument_names: List of arguments to check.
+    :param where: Location of the argument.
+    :return: None.
     """
     for argument in argument_names:
         if argument not in supported_arguments:

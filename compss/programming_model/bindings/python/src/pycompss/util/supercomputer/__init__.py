@@ -16,3 +16,5 @@
 #
 
 # -*- coding: utf-8 -*-
+
+"""This package contains the supercomputer utils functions, constants and classes."""

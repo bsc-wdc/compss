@@ -18,30 +18,24 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Cache tracker
-======================
-    This file contains the cache object tracker.
-    IMPORTANT: Only used with python >= 3.8.
+PyCOMPSs Worker - Piper - Cache Tracker.
+
+This file contains the cache object tracker.
+IMPORTANT: Only used with python >= 3.8.
 """
 
+
+import json
 import os
 from collections import OrderedDict
+from multiprocessing import Queue
 
-from pycompss.util.typing_helper import typing
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.objects.sizer import total_sizeof
-from pycompss.util.tracing.helpers import event_inside_worker
-from pycompss.worker.commons.constants import (
-    RETRIEVE_OBJECT_FROM_CACHE_EVENT,
-    INSERT_OBJECT_INTO_CACHE_EVENT,
-    REMOVE_OBJECT_FROM_CACHE_EVENT,
-    BINDING_SERIALIZATION_CACHE_SIZE_TYPE,
-    BINDING_DESERIALIZATION_CACHE_SIZE_TYPE,
-)
 from pycompss.util.tracing.helpers import emit_manual_event_explicit
-
-
-from multiprocessing import Queue
+from pycompss.util.tracing.helpers import event_inside_worker
+from pycompss.util.tracing.types_events_worker import TRACING_WORKER
+from pycompss.util.typing_helper import typing
 
 try:
     from pycompss.util.process.manager import SharedMemory
@@ -81,9 +75,7 @@ PROFILER_LOG = "cache_profiler.json"
 
 
 class CacheTrackerConf(object):
-    """
-    Cache tracker configuration
-    """
+    """Cache tracker configuration class."""
 
     __slots__ = [
         "logger",
@@ -109,8 +101,7 @@ class CacheTrackerConf(object):
         log_dir: str,
         cache_profiler: bool,
     ) -> None:
-        """
-        Constructs a new cache tracker configuration.
+        """Construct a new cache tracker configuration.
 
         :param logger: Main logger.
         :param size: Total cache size supported.
@@ -118,10 +109,10 @@ class CacheTrackerConf(object):
         :param cache_ids: Shared dictionary proxy where the ids and
                           (size, hits) as its value are.
         :param cache_hits: Dictionary containing size and keys to ease management.
-        :param profiler_dict:
-        :param profiler_get_struct:
-        :param log_dir:
-        :param cache_profiler:
+        :param profiler_dict: Profiling dictionary.
+        :param profiler_get_struct: Profiling get structure.
+        :param log_dir: Log directory.
+        :param cache_profiler: Cache profiler.
         """
         self.logger = logger
         self.size = size
@@ -135,12 +126,12 @@ class CacheTrackerConf(object):
 
 
 def cache_tracker(queue: Queue, process_name: str, conf: CacheTrackerConf) -> None:
-    """Process main body
+    """Process main body.
 
     :param queue: Queue where to put exception messages.
     :param process_name: Process name.
     :param conf: configuration of the cache tracker.
-    :return: None
+    :return: None.
     """
     # Process properties
     alive = True
@@ -275,12 +266,12 @@ def cache_tracker(queue: Queue, process_name: str, conf: CacheTrackerConf) -> No
 def check_cache_status_old(
     conf: CacheTrackerConf, used_size: int, requested_size: int
 ) -> int:
-    """Checks the cache status looking into the shared dictionary.
+    """Check the cache status looking into the shared dictionary.
 
     :param conf: configuration of the cache tracker.
     :param used_size: Current used size of the cache.
     :param requested_size: Size needed to fit the new object.
-    :return: new used size
+    :return: New used size.
     """
     logger = conf.logger  # noqa
     max_size = conf.size
@@ -321,12 +312,12 @@ def check_cache_status_old(
 def check_cache_status(
     conf: CacheTrackerConf, used_size: int, requested_size: int
 ) -> int:
-    """Checks the cache status looking into the shared dictionary.
+    """Check the cache status looking into the shared dictionary.
 
     :param conf: configuration of the cache tracker.
     :param used_size: Current used size of the cache.
     :param requested_size: Size needed to fit the new object.
-    :return: new used size
+    :return: New used size.
     """
     logger = conf.logger  # noqa
     max_size = conf.size
@@ -356,7 +347,7 @@ def __evict__(
     cache_hits: typing.Dict[int, typing.Dict[str, int]],
     size_to_recover: int,
 ) -> typing.Tuple[list, int]:
-    """Select how many to evict.
+    """Select how many entries to evict.
 
     :param sorted_hits: List of current hits sorted from lower to higher.
     :param cache_hits: Cache hits structure.
@@ -379,9 +370,9 @@ def __evict__(
 
 
 def load_shared_memory_manager() -> None:
-    """Connects to the main shared memory manager initiated in piper_worker.py.
+    """Connect to the main shared memory manager initiated in piper_worker.py.
 
-    :return: None
+    :return: None.
     """
     global SHARED_MEMORY_MANAGER
     SHARED_MEMORY_MANAGER = create_shared_memory_manager(
@@ -391,7 +382,7 @@ def load_shared_memory_manager() -> None:
 
 
 def start_shared_memory_manager() -> SharedMemoryManager:
-    """Starts the shared memory manager.
+    """Start the shared memory manager.
 
     :return: Shared memory manager instance.
     """
@@ -401,14 +392,14 @@ def start_shared_memory_manager() -> SharedMemoryManager:
 
 
 def stop_shared_memory_manager(smm: SharedMemoryManager) -> None:
-    """Stops the given shared memory manager, releasing automatically the
-    objects contained in it.
+    """Stop the given shared memory manager.
 
-    Only needed to be stopped from the main worker process. It is not
-    necessary to disconnect each executor.
+    Releases automatically the objects contained in it.
+    Only needed to be stopped from the main worker process.
+    It is not necessary to disconnect each executor.
 
     :param smm: Shared memory manager.
-    :return: None
+    :return: None.
     """
     smm.shutdown()
 
@@ -433,8 +424,10 @@ def retrieve_object_from_cache(
     :param cache_profiler: If cache profiling is enabled.
     :return: The object from cache.
     """
-    with event_inside_worker(RETRIEVE_OBJECT_FROM_CACHE_EVENT):
-        emit_manual_event_explicit(BINDING_DESERIALIZATION_CACHE_SIZE_TYPE, 0)
+    with event_inside_worker(TRACING_WORKER.retrieve_object_from_cache_event):
+        emit_manual_event_explicit(
+            TRACING_WORKER.binding_deserialization_cache_size_type, 0
+        )
         identifier = __get_file_name__(identifier)
         if __debug__:
             logger.debug(HEADER + "Retrieving: " + str(identifier))
@@ -466,7 +459,9 @@ def retrieve_object_from_cache(
             raise PyCOMPSsException("Unknown cacheable type.")
         if __debug__:
             logger.debug(HEADER + "Retrieved: " + str(identifier))
-        emit_manual_event_explicit(BINDING_DESERIALIZATION_CACHE_SIZE_TYPE, object_size)
+        emit_manual_event_explicit(
+            TRACING_WORKER.binding_deserialization_cache_size_type, object_size
+        )
 
         # Profiling
         filename = filename_cleaned(identifier)
@@ -487,8 +482,7 @@ def insert_object_into_cache_wrapper(
     parameter: str,
     user_function: typing.Callable,
 ) -> None:
-    """Put an object into cache filter to avoid event emission when not
-    supported.
+    """Put an object into cache filtering supported types.
 
     :param logger: Logger where to push messages.
     :param cache_queue: Cache notification queue.
@@ -496,9 +490,8 @@ def insert_object_into_cache_wrapper(
     :param f_name: File name that corresponds to the object (used as id).
     :param parameter: Parameter name.
     :param user_function: Function.
-    :return: None
+    :return: None.
     """
-
     if (
         np
         and cache_queue is not None
@@ -530,9 +523,9 @@ def insert_object_into_cache(
     :param f_name: File name that corresponds to the object (used as id).
     :param parameter: Parameter name.
     :param user_function: Function.
-    :return: None
+    :return: None.
     """
-    with event_inside_worker(INSERT_OBJECT_INTO_CACHE_EVENT):
+    with event_inside_worker(TRACING_WORKER.insert_object_into_cache_event):
         function = function_cleaned(user_function)
         f_name = __get_file_name__(f_name)
         if __debug__:
@@ -542,7 +535,9 @@ def insert_object_into_cache(
         try:
             inserted = True
             if isinstance(obj, np.ndarray):
-                emit_manual_event_explicit(BINDING_SERIALIZATION_CACHE_SIZE_TYPE, 0)
+                emit_manual_event_explicit(
+                    TRACING_WORKER.binding_serialization_cache_size_type, 0
+                )
                 shape = obj.shape
                 d_type = obj.dtype
                 size = obj.nbytes
@@ -566,7 +561,9 @@ def insert_object_into_cache(
                     )
                 )  # noqa: E501
             elif isinstance(obj, list):
-                emit_manual_event_explicit(BINDING_SERIALIZATION_CACHE_SIZE_TYPE, 0)
+                emit_manual_event_explicit(
+                    TRACING_WORKER.binding_serialization_cache_size_type, 0
+                )
                 sl = SHARED_MEMORY_MANAGER.ShareableList(obj)  # noqa
                 new_cache_id = sl.shm.name
                 size = total_sizeof(obj)
@@ -586,7 +583,9 @@ def insert_object_into_cache(
                     )
                 )  # noqa: E501
             elif isinstance(obj, tuple):
-                emit_manual_event_explicit(BINDING_SERIALIZATION_CACHE_SIZE_TYPE, 0)
+                emit_manual_event_explicit(
+                    TRACING_WORKER.binding_serialization_cache_size_type, 0
+                )
                 sl = SHARED_MEMORY_MANAGER.ShareableList(obj)  # noqa
                 new_cache_id = sl.shm.name
                 size = total_sizeof(obj)
@@ -621,7 +620,9 @@ def insert_object_into_cache(
                         + "Can not put into cache: Not a [np.ndarray | list | tuple ] object"
                     )  # noqa: E501
             if inserted:
-                emit_manual_event_explicit(BINDING_SERIALIZATION_CACHE_SIZE_TYPE, size)
+                emit_manual_event_explicit(
+                    TRACING_WORKER.binding_serialization_cache_size_type, size
+                )
             if __debug__ and inserted:
                 logger.debug(
                     HEADER
@@ -644,14 +645,14 @@ def insert_object_into_cache(
 def remove_object_from_cache(
     logger: typing.Any, cache_queue: Queue, f_name: str
 ) -> None:
-    """Removes an object from cache.
+    """Remove an object from cache.
 
     :param logger: Logger where to push messages.
     :param cache_queue: Cache notification queue.
     :param f_name: File name that corresponds to the object (used as id).
-    :return: None
+    :return: None.
     """
-    with event_inside_worker(REMOVE_OBJECT_FROM_CACHE_EVENT):
+    with event_inside_worker(TRACING_WORKER.remove_object_from_cache_event):
         f_name = __get_file_name__(f_name)
         if __debug__:
             logger.debug(HEADER + "Removing from cache: " + str(f_name))
@@ -676,7 +677,7 @@ def replace_object_into_cache(
     :param f_name: File name that corresponds to the object (used as id).
     :param parameter: Parameter name.
     :param user_function: Function.
-    :return: None
+    :return: None.
     """
     f_name = __get_file_name__(f_name)
     if __debug__:
@@ -688,7 +689,7 @@ def replace_object_into_cache(
 
 
 def in_cache(f_name: str, cache: typing.Any) -> bool:
-    """Checks if the given file name is in the cache
+    """Check if the given file name is in the cache.
 
     :param f_name: Absolute file name.
     :param cache: Proxy dictionary cache.
@@ -703,30 +704,29 @@ def in_cache(f_name: str, cache: typing.Any) -> bool:
 
 def __get_file_name__(f_name: str) -> str:
     """Convert a full path with file name to the file name (removes the path).
+
     Example: /a/b/c.py -> c.py
 
-    :param f_name: Absolute file name path
-    :return: File name
+    :param f_name: Absolute file name path.
+    :return: File name.
     """
     return os.path.basename(f_name)
 
 
 def filename_cleaned(f_name: str) -> str:
-    """
-    # TODO: Complete documentation (PVB)
+    """Retrieve filename given the absolute path.
 
-    :param f_name:
-    :return:
+    :param f_name: Absolute file path.
+    :return: File name.
     """
     return f_name.rsplit("/", 1)[-1]
 
 
 def function_cleaned(function: typing.Callable) -> str:
-    """
-    # TODO: Complete documentation (PVB)
+    """Retrieve the clean function name.
 
-    :param function:
-    :return:
+    :param function: Function.
+    :return: Function name.
     """
     return str(function)[10:].rsplit(" ", 3)[0]
 
@@ -734,15 +734,14 @@ def function_cleaned(function: typing.Callable) -> str:
 def add_profiler_get_put(
     profiler_dict: dict, function: str, parameter: str, filename: str, type: str
 ) -> None:
-    """
-    # TODO: Complete documentation (PVB)
+    """Add get and put entry to the profiler.
 
-    :param profiler_dict:
-    :param function:
-    :param parameter:
-    :param filename:
-    :param type:
-    :return:
+    :param profiler_dict: Profiling dictionary.
+    :param function: Function to include.
+    :param parameter: Function parameter to include.
+    :param filename: File name associated to the parameter.
+    :param type: Parameter type.
+    :return: None.
     """
     if function not in profiler_dict:
         profiler_dict[function] = {}
@@ -756,14 +755,13 @@ def add_profiler_get_put(
 def add_profiler_get_struct(
     profiler_get_struct: list, function: str, parameter: str, filename: str
 ) -> None:
-    """
-    # TODO: Complete documentation (PVB)
+    """Add info to profiling struct entry.
 
-    :param profiler_get_struct:
-    :param function:
-    :param parameter:
-    :param filename:
-    :return:
+    :param profiler_get_struct: Profiling struct.
+    :param function: Function to include
+    :param parameter: Function parameter to include.
+    :param filename: File name associated to the parameter.
+    :return: None.
     """
     if (
         function not in profiler_get_struct[2]
@@ -777,8 +775,7 @@ def add_profiler_get_struct(
 def profiler_print_message(
     profiler_dict: dict, profiler_get_struct: list, log_dir: str
 ) -> None:
-    """
-    # TODO: Complete documentation (PVB)
+    r"""Export profiling information to json.
 
     for function in profiler_dict:
         f.write('\t' + "FUNCTION: " + str(function))
@@ -800,10 +797,10 @@ def profiler_print_message(
         logger.debug('\t' + "FILENAME: " + profiler_get_struct[0][i] + ". PARAMETER: " + profiler_get_struct[1][i]
                      + ". FUNCTION: " + profiler_get_struct[2][i])
 
-    :param profiler_dict:
-    :param profiler_get_struct:
-    :param log_dir:
-    :return:
+    :param profiler_dict: Profiling dictionary.
+    :param profiler_get_struct: Profiling struct.
+    :param log_dir: Log directory.
+    :return: None.
     """
     d = (
         {}
@@ -840,7 +837,6 @@ def profiler_print_message(
                 final_dict[function][parameter]["USED"] = [function + "#" + parameter]
             else:
                 final_dict[function][parameter]["USED"] = []
-    import json
 
     with open(log_dir + "/../" + PROFILER_LOG, "a") as json_file:
         json.dump(final_dict, json_file)

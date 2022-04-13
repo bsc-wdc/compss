@@ -17,6 +17,12 @@
 
 # -*- coding: utf-8 -*-
 
+"""
+PyCOMPSs Worker - Commons - Executor.
+
+This file contains the common worker executor methods.
+"""
+
 from pycompss.api.parameter import TYPE
 
 

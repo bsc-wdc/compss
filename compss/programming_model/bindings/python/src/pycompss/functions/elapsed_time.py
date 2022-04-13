@@ -18,18 +18,26 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Functions: Elapsed time decorator
-==========================================
-    This file defines the time it decorator to be used over the task decorator.
+PyCOMPSs Functions: Elapsed time decorator.
+
+This file defines the time it decorator to be used over the task decorator.
 """
 
-from pycompss.util.typing_helper import typing
 import time
 from functools import wraps
 
+from pycompss.util.typing_helper import typing
+
 
 class TimeIt(object):
+    """TimeIT decorator class."""
+
     def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
+        """Store arguments passed to the decorator.
+
+        :param args: Arguments.
+        :param kwargs: Keyword arguments.
+        """
         self.args = args
         self.kwargs = kwargs
 
@@ -43,7 +51,7 @@ class TimeIt(object):
 
         @wraps(f)
         def wrapped_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
-            """Elapsed time decorator.
+            """Elapsed time decorator body.
 
             :param args: args
             :param kwargs: kwargs
@@ -56,6 +64,10 @@ class TimeIt(object):
 
         return wrapped_f
 
+
+# ########################################################################### #
+# ################### TimeIT DECORATOR ALTERNATIVE NAMES #################### #
+# ########################################################################### #
 
 timeit = TimeIt
 TimeIT = TimeIt

@@ -28,6 +28,7 @@ DEFAULT_USER=false
 DEFAULT_TARGET_DIR=/opt/COMPSs
 DEFAULT_MVN_TESTS=""
 MVN_SKIP_TESTS_OPT="-Dmaven.test.skip=true"
+DEFAULT_PYTHON_TESTS=true
 
 INCORRECT_PARAMETER="Error: No such parameter"
 NO_MONITOR="Warning: No monitor specified. Loading default value"
@@ -141,9 +142,9 @@ get_args() {
     # Treat the argument
     case "$flag" in
       h)
-	# Display help
-	usage 0
-	;;
+        # Display help
+        usage 0
+        ;;
       v)
         # Display version
         show_version
@@ -218,12 +219,12 @@ get_args() {
         cli=false
         ;;
       -)
-	# Check more complex arguments
-	case "$OPTARG" in
-	  help)
-	    # Display help
-	    usage 0
-	    ;;
+        # Check more complex arguments
+        case "$OPTARG" in
+          help)
+            # Display help
+            usage 0
+            ;;
           version)
             # Show version
             show_version
@@ -309,19 +310,20 @@ get_args() {
           skip-tests)
             # Disable mvn unit tests
             mvnTests=${MVN_SKIP_TESTS_OPT}
+            pythonTests=false
             ;;
           *)
-          # Flag didn't match any patern. End of COMPSs flags
-          display_error "${INCORRECT_PARAMETER}"
-          break
-          ;;
-	esac
-	;;
+            # Flag didn't match any patern. End of COMPSs flags
+            display_error "${INCORRECT_PARAMETER}"
+            break
+            ;;
+        esac
+        ;;
       *)
-	# Flag didn't match any patern. End of COMPSs flags
-	display_error "${INCORRECT_PARAMETER}"
-	break
-	;;
+        # Flag didn't match any patern. End of COMPSs flags
+        display_error "${INCORRECT_PARAMETER}"
+        break
+        ;;
     esac
   done
   # Shift option arguments
@@ -382,6 +384,10 @@ check_args() {
     mvnTests=${DEFAULT_MVN_TESTS}
   fi
 
+  if [ -z "${pythonTests}" ]; then
+    pythonTests=${DEFAULT_PYTHON_TESTS}
+  fi
+
   if [ -z "$targetDir" ]; then
     display_warning "${NO_TARGET_DIR}"
     targetDir=${DEFAULT_TARGET_DIR}
@@ -438,7 +444,7 @@ install_adaptor() {
 }
 
 # PRIVATE FUNCTION TO CHECK IF A COMMAND IS AVAILABLE
-# Currently to check if python2 and/or python3 exist, to decide wether
+# Currently to check if python3 exist, to decide wether
 # to install one, the other, or both.
 command_exists () {
     type "$1" &> /dev/null ;
@@ -475,8 +481,8 @@ install_compss() {
   if [ "${pycompss}" == "true" ]; then
     echo "- Checking pycodestyle in Python Binding"
     if command_exists "pycodestyle" ; then
-      cd "${SOURCES_DIR}/compss/programming_model/bindings/python/src/pycompss/"
-      env $PATH=PATH pycodestyle . --max-line-length=120 --exclude=dds/heapq3.py --statistics --count  --ignore=E203,W503
+      cd "${SOURCES_DIR}/compss/programming_model/bindings/python/scripts/style"
+      env $PATH=PATH ./check_code.sh
       ev=$?
       if [ $ev -ne 0 ]; then
         echo "ERROR: Python binding pycodestyle errors. Please, fix them and reinstall."
@@ -488,10 +494,59 @@ install_compss() {
     else
       echo "WARNING: Could not check pycodestyle format of Python Binding (pycodestyle not installed)."
     fi
+
+    echo "- Checking pydocstyle in Python Binding"
+    if command_exists "pydocstyle" ; then
+      cd "${SOURCES_DIR}/compss/programming_model/bindings/python/scripts/style"
+      env $PATH=PATH ./check_documentation.sh
+      ev=$?
+      if [ $ev -ne 0 ]; then
+        echo "ERROR: Python binding pydocstyle errors. Please, fix them and reinstall."
+        cd "${SCRIPT_DIR}"
+        exit 1
+      fi
+      echo "  - Python Binding code documentation is OK."
+      cd "${SCRIPT_DIR}"
+    else
+      echo "WARNING: Could not check pydocstyle format of Python Binding (pydocstyle not installed)."
+    fi
+
+    echo "- Checking Black in Python Binding"
+    if command_exists "black" ; then
+      cd "${SOURCES_DIR}/compss/programming_model/bindings/python/scripts/style"
+      env $PATH=PATH ./check_black.sh
+      ev=$?
+      if [ $ev -ne 0 ]; then
+        echo "ERROR: Python binding Black errors. Please, fix them and reinstall."
+        cd "${SCRIPT_DIR}"
+        exit 1
+      fi
+      echo "  - Python Binding Black format is OK."
+      cd "${SCRIPT_DIR}"
+    else
+      echo "WARNING: Could not check Black format of Python Binding (black not installed)."
+    fi
+
+    # Run unittests
+    if [ "${pythonTests}" == "true" ]; then
+      echo " - Run Python Binding Unittests"
+      # These tests do not need to be installed
+      cd "${SOURCES_DIR}/compss/programming_model/bindings/python/scripts/test"
+      env $PATH=PATH ./run_unittests.sh --no-integration-unittests --no-jupyter-unittests
+      ev=$?
+      if [ $ev -ne 0 ]; then
+        echo "ERROR: Python binding unittests failed. Please, fix them and reinstall."
+        cd "${SCRIPT_DIR}"
+        exit 1
+      fi
+      echo "  - Python Binding unittests is OK."
+      cd "${SCRIPT_DIR}"
+    fi
+
     echo "- Checking mypy in Python Binding"
-    if command_exists "/opt/python/bin/mypy" ; then
-      cd "${SOURCES_DIR}/compss/programming_model/bindings/python/src/"
-      ./mypy_check.sh
+    if command_exists "mypy" ; then
+      cd "${SOURCES_DIR}/compss/programming_model/bindings/python/scripts/compilation"
+      env $PATH=PATH ./check.sh
       ev=$?
       if [ $ev -ne 0 ]; then
         echo "ERROR: Python binding mypy errors. Please, fix them and reinstall."
@@ -736,11 +791,11 @@ install_compss() {
       cd "${TMP_DIR}/compss/programming_model/bindings/python"
       if command_exists "python3" ; then
         # Install python binding only for python3
-        ./install "${targetDir}/Bindings/python" true false python3
+        ./install "${targetDir}/Bindings/python" true python3 && :
         ev=$?
       else
-        # Error no python 2 nor 3
-        echo "ERROR: Could not find python2 nor python3 commands."
+        # Error no python 3
+        echo "ERROR: Could not find python3 command."
         ev=1
       fi
       if [ $ev -ne 0 ]; then
@@ -797,9 +852,9 @@ install_compss() {
     echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:${targetDir}/Bindings/bindings-common/lib:\$JAVA_HOME/lib/amd64/server:\$JAVA_HOME/jre/lib/amd64/server" >> $envFile
     echo "- binding-common library added to user profile"
     echo " "
-    # Instead of importing it in the envFile, it is done with softlinks from site-packages in both python2 a python3 (if available) on the installation
+    # Instead of importing it in the envFile, it is done with softlinks from site-packages in python3 (if available) on the installation
     # echo "- Adding PyCOMPSs to user profile..."
-    # echo "export PYTHONPATH=\$PYTHONPATH:${targetDir}/Bindings/python/$( python -c "import sys; print(sys.version_info[:][0])" )/" >> $envFile
+    # echo "export PYTHONPATH=\$PYTHONPATH:${targetDir}/Bindings/python/$( python3 -c "import sys; print(sys.version_info[:][0])" )/" >> $envFile
     # echo "- PyCOMPSs added to user profile"
     echo " "
   fi

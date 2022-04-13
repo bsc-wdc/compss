@@ -18,13 +18,14 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Utils - Supercomputer helpers
-======================================
-    This file contains the methods used within Supercomputers.
-    They are used when running a notebook in interactive mode within a SC.
+PyCOMPSs Utils - Supercomputer - Helpers.
+
+This file contains the methods used within Supercomputers.
+They are used when running a notebook in interactive mode within a SC.
 """
 
 import os
+
 from pycompss.util.typing_helper import typing
 
 

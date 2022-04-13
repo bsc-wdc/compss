@@ -176,7 +176,7 @@ show_opts() {
                                             Default: false
     --keep_workingdir                       Do not remove the worker working directory after the execution
                                             Default: false
-    --python_interpreter=<string>           Python interpreter to use (python/python2/python3).
+    --python_interpreter=<string>           Python interpreter to use (python/python3).
                                             Default: ${DEFAULT_PYTHON_INTERPRETER} Version: ${DEFAULT_PYTHON_VERSION}
     --python_propagate_virtual_environment=<bool>  Propagate the master virtual environment to the workers (true/false).
                                                    Default: ${DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT}
@@ -658,7 +658,7 @@ trap clean_env EXIT
 
 if [ -n "${env_script_path}" ]; then
   source "${env_script_path}"
-fi       
+fi
 # Real runtime execution
 start_compss_app
 

@@ -18,47 +18,49 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - OMPSS
-==================
-    This file contains the class constraint, needed for the OmpSs task
-    definition through the decorator.
+PyCOMPSs API - OmpSs decorator.
+
+This file contains the OmpSs class, needed for the OmpSs task definition
+through the decorator.
 """
 
-from pycompss.util.typing_helper import typing
 from functools import wraps
 
 import pycompss.util.context as context
-from pycompss.api.commons.constants import BINARY
-from pycompss.api.commons.constants import COMPUTING_NODES
-from pycompss.api.commons.constants import WORKING_DIR
-from pycompss.api.commons.constants import FAIL_BY_EXIT_VALUE
-from pycompss.api.commons.constants import LEGACY_COMPUTING_NODES
-from pycompss.api.commons.constants import LEGACY_WORKING_DIR
-from pycompss.api.commons.implementation_types import IMPL_OMPSS
-from pycompss.api.commons.error_msgs import not_in_pycompss
-from pycompss.util.exceptions import NotInPyCOMPSsException
-from pycompss.api.commons.decorator import resolve_working_dir
-from pycompss.api.commons.decorator import resolve_fail_by_exit_value
-from pycompss.api.commons.decorator import process_computing_nodes
-from pycompss.api.commons.decorator import keep_arguments
+from pycompss.api.commons.constants import LABELS
+from pycompss.api.commons.constants import LEGACY_LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
+from pycompss.api.commons.decorator import keep_arguments
+from pycompss.api.commons.decorator import process_computing_nodes
+from pycompss.api.commons.decorator import resolve_fail_by_exit_value
+from pycompss.api.commons.decorator import resolve_working_dir
+from pycompss.api.commons.error_msgs import not_in_pycompss
+from pycompss.api.commons.implementation_types import IMPL_OMPSS
 from pycompss.runtime.task.core_element import CE
 from pycompss.util.arguments import check_arguments
+from pycompss.util.exceptions import NotInPyCOMPSsException
+from pycompss.util.typing_helper import typing
 
 if __debug__:
     import logging
 
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {BINARY}
-SUPPORTED_ARGUMENTS = {COMPUTING_NODES, WORKING_DIR, BINARY, FAIL_BY_EXIT_VALUE}
-DEPRECATED_ARGUMENTS = {LEGACY_COMPUTING_NODES, LEGACY_WORKING_DIR}
+MANDATORY_ARGUMENTS = {LABELS.binary}
+SUPPORTED_ARGUMENTS = {
+    LABELS.computing_nodes,
+    LABELS.working_dir,
+    LABELS.binary,
+    LABELS.fail_by_exit_value,
+}
+DEPRECATED_ARGUMENTS = {LEGACY_LABELS.computing_nodes, LEGACY_LABELS.working_dir}
 
 
 class OmpSs(object):
-    """
+    """OmpSs decorator class.
+
     This decorator also preserves the argspec, but includes the __init__ and
-    __call__ methods, useful on mpi task creation.
+    __call__ methods, useful on OmpSs task creation.
     """
 
     __slots__ = [
@@ -124,7 +126,7 @@ class OmpSs(object):
 
             # Set the computing_nodes variable in kwargs for its usage
             # in @task decorator
-            kwargs[COMPUTING_NODES] = self.kwargs[COMPUTING_NODES]
+            kwargs[LABELS.computing_nodes] = self.kwargs[LABELS.computing_nodes]
 
             with keep_arguments(args, kwargs, prepend_strings=False):
                 # Call the method
@@ -147,7 +149,7 @@ class OmpSs(object):
             logger.debug("Configuring @ompss core element.")
 
         # Resolve @ompss specific parameters
-        binary = self.kwargs[BINARY]
+        binary = self.kwargs[LABELS.binary]
 
         # Resolve the working directory
         resolve_working_dir(self.kwargs)
@@ -156,7 +158,11 @@ class OmpSs(object):
 
         impl_type = IMPL_OMPSS
         impl_signature = "".join((IMPL_OMPSS, ".", binary))
-        impl_args = [binary, self.kwargs[WORKING_DIR], self.kwargs[FAIL_BY_EXIT_VALUE]]
+        impl_args = [
+            binary,
+            self.kwargs[LABELS.working_dir],
+            self.kwargs[LABELS.fail_by_exit_value],
+        ]
 
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator

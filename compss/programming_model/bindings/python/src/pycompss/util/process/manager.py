@@ -18,16 +18,17 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Util - process/manager
-============================================
-    This file centralizes the multiprocessing management. It helps to
-    homogenize the behaviour between linux and mac.
+PyCOMPSs Util - Process - Manager.
+
+This file centralizes the multiprocessing management.
+It helps to homogenize the behaviour between linux and mac.
 """
 
-from pycompss.util.typing_helper import typing
 import multiprocessing
-from multiprocessing import Queue  # Used only for typing
 from multiprocessing import Process  # Used only for typing
+from multiprocessing import Queue  # Used only for typing
+
+from pycompss.util.typing_helper import typing
 
 try:
     from multiprocessing import Manager
@@ -44,9 +45,10 @@ except ImportError:
 
 def initialize_multiprocessing() -> None:
     """Set global mechanism to start multiprocessing processes.
-    https://docs.python.org/3/library/multiprocessing.html#contexts-and-start-methods  # noqa: E501
-    Using fork even in MacOS.
 
+    https://docs.python.org/3/library/multiprocessing.html#contexts-and-start-methods
+
+    CAUTION: Using fork even in MacOS.
     WARNING: This method must be called only once and at the very beginning.
 
     :return: None
@@ -65,7 +67,7 @@ def initialize_multiprocessing() -> None:
 def new_process() -> Process:
     """Instantiate a new empty process.
 
-    :return: Empty process
+    :return: Empty process.
     """
     return multiprocessing.Process()
 
@@ -81,18 +83,17 @@ def new_queue() -> Queue:
 def new_manager() -> typing.Any:
     """Instantiate a new empty multiprocessing manager.
 
-    :return: Empty multiprocessing manager
+    :return: Empty multiprocessing manager.
     """
     return Manager()
 
 
 def create_process(target: typing.Any, args: tuple = ()) -> Process:
-    """Create a new process instance for the given target with the provided
-    arguments.
+    """Create a new process instance for the given target with the provided arguments.
 
-    :param target: Target function to execute in a multiprocessing process
-    :param args: Target function arguments
-    :return: New process
+    :param target: Target function to execute in a multiprocessing process.
+    :param args: Target function arguments.
+    :return: New process.
     """
     process = multiprocessing.Process(target=target, args=args)
     return process
@@ -101,12 +102,11 @@ def create_process(target: typing.Any, args: tuple = ()) -> Process:
 def create_shared_memory_manager(
     address: typing.Tuple[str, int], authkey: typing.Optional[bytes]
 ) -> SharedMemoryManager:
-    """Create a new shared memory manager process at the given address with
-    the provided authkey.
+    """Create a new shared memory manager process at the given address with the provided authkey.
 
-    :param address: Shared memory manager address (IP, PORT)
-    :param authkey: Shared memory manager authentication key
-    :return: New process
+    :param address: Shared memory manager address (IP, PORT).
+    :param authkey: Shared memory manager authentication key.
+    :return: New process.
     """
     smm = SharedMemoryManager(address=address, authkey=authkey)
     return smm

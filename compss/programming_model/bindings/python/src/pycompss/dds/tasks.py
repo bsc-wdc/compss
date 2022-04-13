@@ -14,6 +14,11 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+
+# -*- coding: utf-8 -*-
+
+"""PyCOMPSs DDS - Tasks."""
+
 import os
 import pickle
 
@@ -32,12 +37,11 @@ FILE_NAME_LENGTH = 5
 def map_partition(func, partition, collection=list()):
     """Map the given function to the partition.
 
-    :param func: a functions that returns only one argument which is an iterable
-    :param partition: the partition itself or a partition generator object
-    :param collection: partition when partition is a collection
-    :return: the transformed partition
+    :param func: A function that return only one argument which is iterable.
+    :param partition: The partition itself or a partition generator object.
+    :param collection: Partition when partition is a collection.
+    :return: The transformed partition.
     """
-
     partition = partition or collection
     if isinstance(partition, IPartitionGenerator):
         partition = partition.retrieve_data()
@@ -49,15 +53,15 @@ def map_partition(func, partition, collection=list()):
 
 @task(col=COLLECTION_OUT, collection=COLLECTION_IN)
 def distribute_partition(col, func, partitioner_func, partition, collection=list()):
-    """Distribute (key, value) structured elements of the partition on
-    'buckets'.
-    :param col: empty 'buckets', must be repleced with COLLECTION_OUT..
-    :param func: function from DDS object to be applied to the partition before
+    """Distribute (key, value) structured elements of the partition on 'buckets'.
+
+    :param col: Empty 'buckets', must be repleced with COLLECTION_OUT.
+    :param func: Function from DDS object to be applied to the partition before
                  the distribution.
-    :param partitioner_func: a function to find element's corresponding bucket
-    :param partition: the partition itself or a partition generator object
-    :param collection: if the partition is a collection of future objects, it
-    :return: fill the empty 'buckets' with the elements of the partition.
+    :param partitioner_func: A function to find element's corresponding bucket.
+    :param partition: The partition itself or a partition generator object.
+    :param collection: If the partition is a collection of future objects.
+    :return: Fill the empty 'buckets' with the elements of the partition.
     """
     partition = partition or collection
 
@@ -73,6 +77,14 @@ def distribute_partition(col, func, partitioner_func, partition, collection=list
 
 @task(first=INOUT, rest=COLLECTION_IN)
 def reduce_dicts(first, rest):
+    """Reduce dictionaries.
+
+    CAUTION! Modifies first dictionary.
+
+    :param first: First dictionary.
+    :param rest: Second dictionary.
+    :return: None.
+    """
     dicts = iter(rest)
 
     for _dict in dicts:
@@ -82,8 +94,12 @@ def reduce_dicts(first, rest):
 
 @task(returns=list, iterator=IN)
 def task_dict_to_list(iterator, total_parts, partition_num):
-    """Disctionary to (key, value) pairs.
-    :return:
+    """Convert dictionary to (key, value) pairs.
+
+    :param iterator: Iterator object.
+    :param total_parts: Total parts.
+    :param partition_num: Number of partitions.
+    :return: List of (key, value) pairs
     """
     ret = list()
     sorted_keys = sorted(iterator.keys())
@@ -104,7 +120,12 @@ def task_dict_to_list(iterator, total_parts, partition_num):
 
 @task(returns=1, parts=COLLECTION_IN)
 def reduce_multiple(f, parts):
-    """ """
+    """Reduce multiple.
+
+    :param f: Reducing function.
+    :param parts: List of elements.
+    :returns: Reduction result.
+    """
     partitions = iter(parts)
     try:
         res = next(partitions)[0]
@@ -120,7 +141,13 @@ def reduce_multiple(f, parts):
 
 @task(returns=list)
 def task_collect_samples(partition, num_of_samples, key_func):
-    """ """
+    """Collect samples.
+
+    :param partition: List of elements.
+    :param num_of_samples: Number of samples.
+    :param key_func: Key function.
+    :return: Collected samples.
+    """
     ret = list()
     total = len(partition)
     step = max(total // num_of_samples, 1)
@@ -132,14 +159,17 @@ def task_collect_samples(partition, num_of_samples, key_func):
 
 @task(collection=COLLECTION_IN)
 def map_and_save_text_file(func, index, path, partition, collection=list()):
-    """Same as 'map_partition' function with the only difference that this one
+    """Map and save text file.
+
+    Same as 'map_partition' function with the only difference that this one
     saves the result as a text file.
-    :param func:
-    :param index: important to keep the order of the partitions
-    :param path: directory to save the partition
-    :param partition:
-    :param collection:
-    :return: no return value skips the serialization phase
+
+    :param func: Function to apply.
+    :param index: Important to keep the order of the partitions.
+    :param path: Directory to save the partition.
+    :param partition: Partition.
+    :param collection: Is collection?
+    :return: No return value skips the serialization phase.
     """
     partition = partition or list(collection)
 
@@ -155,13 +185,17 @@ def map_and_save_text_file(func, index, path, partition, collection=list()):
 
 @task(collection=COLLECTION_IN)
 def map_and_save_pickle(func, index, path, partition, collection=list()):
-    """Same as 'map_partition' function with the only difference that this one
+    """Map and save pickled file.
+
+    Same as 'map_partition' function with the only difference that this one
     saves the result as a pickle file.
-    :param func:
-    :param index: important to keep the order of the partitions
-    :param path: directory to save the partition
-    :param partition:
-    :param collection:
+
+    :param func: Function to apply.
+    :param index: Important to keep the order of the partitions.
+    :param path: Directory to save the partition.
+    :param partition: Partition.
+    :param collection: Is collection?
+    :return: None.
     """
     partition = partition or list(collection)
 

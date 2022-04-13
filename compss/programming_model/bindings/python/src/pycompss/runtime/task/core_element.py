@@ -18,17 +18,17 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Core Element
-=====================
-    This file contains the Core Element class, needed for the task
-    registration.
+PyCOMPSs runtime - Task - Core element.
+
+This file contains the Core Element class, needed for the task registration.
 """
 
-from pycompss.api.commons.constants import UNASSIGNED
+from pycompss.api.commons.constants import INTERNAL_LABELS
 from pycompss.util.typing_helper import typing
 
 
 class CE(object):
+    """Core Element class."""
 
     __slots__ = [
         "ce_signature",
@@ -36,9 +36,9 @@ class CE(object):
         "impl_constraints",
         "impl_type",
         "impl_io",
-        "prolog",
-        "epilog",
-        "impl_type_args"
+        "impl_prolog",
+        "impl_epilog",
+        "impl_type_args",
     ]
 
     def __init__(
@@ -48,10 +48,21 @@ class CE(object):
         impl_constraints: typing.Optional[typing.Dict[str, str]] = None,
         impl_type: typing.Optional[str] = None,
         impl_io: bool = False,
-        prolog: typing.List[str] = None,
-        epilog: typing.List[str] = None,
-        impl_type_args: typing.Optional[typing.List[str]] = None
+        impl_prolog: typing.List[str] = None,
+        impl_epilog: typing.List[str] = None,
+        impl_type_args: typing.Optional[typing.List[str]] = None,
     ) -> None:
+        """Core Element constructor.
+
+        :param ce_signature: Core element signature.
+        :param impl_signature: Implementation signature.
+        :param impl_constraints: Implementation constraints.
+        :param impl_type: Implementation type.
+        :param impl_io: If the implementation has IO requirements.
+        :param impl_prolog: Implementation prolog.
+        :param impl_epilog: Implementation epilog.
+        :param impl_type_args: Implementation type arguments.
+        """
         self.ce_signature = ce_signature
         self.impl_signature = impl_signature
         if impl_constraints is None:
@@ -65,89 +76,165 @@ class CE(object):
         else:
             self.impl_type_args = impl_type_args
 
-        self.prolog = [UNASSIGNED] * 3 if prolog is None else prolog
-        self.epilog = [UNASSIGNED] * 3 if epilog is None else epilog
+        self.impl_prolog = (
+            [INTERNAL_LABELS.unassigned] * 3 if impl_prolog is None else impl_prolog
+        )
+        self.impl_epilog = (
+            [INTERNAL_LABELS.unassigned] * 3 if impl_epilog is None else impl_epilog
+        )
 
     ###########
     # METHODS #
     ###########
 
     def reset(self) -> None:
+        """Reset the core element.
+
+        :returns: None.
+        """
         self.ce_signature = ""
         self.impl_signature = ""
         self.impl_constraints = dict()
         self.impl_type = ""
         self.impl_io = False
         self.impl_type_args = list()
-        self.prolog = list()
-        self.epilog = list()
+        self.impl_prolog = list()
+        self.impl_epilog = list()
 
     ###########
     # GETTERS #
     ###########
 
     def get_ce_signature(self) -> str:
+        """Get the core element signature.
+
+        :return: The core element signature.
+        """
         return self.ce_signature
 
     def get_impl_signature(self) -> str:
+        """Get the core element implementation signature.
+
+        :return: The core element implementation signature.
+        """
         return self.impl_signature
 
     def get_impl_constraints(self) -> typing.Dict[str, str]:
+        """Get the core element implementation constraints.
+
+        :return: The core element implementation constraints.
+        """
         return self.impl_constraints
 
     def get_impl_type(self) -> typing.Optional[str]:
+        """Get the core element implementation type.
+
+        :return: The core element implementation type.
+        """
         return self.impl_type
 
     def get_impl_io(self) -> bool:
+        """Get the core element implementation IO.
+
+        :return: The core element implementation IO.
+        """
         return self.impl_io
 
     def get_impl_type_args(self) -> typing.List[str]:
+        """Get the core element implementation type arguments.
+
+        :return: The core element implementation type arguments.
+        """
         return self.impl_type_args
 
-    def get_prolog(self):
-        # type: () -> typing.List[str]
-        return self.prolog
+    def get_impl_prolog(self) -> typing.List[str]:
+        """Get the core element implementation prolog.
 
-    def get_epilog(self):
-        # type: () -> typing.List[str]
-        return self.epilog
+        :return: The core element implementation prolog.
+        """
+        return self.impl_prolog
+
+    def get_impl_epilog(self) -> typing.List[str]:
+        """Get the core element implementation epilog.
+
+        :return: The core element implementation epilog.
+        """
+        return self.impl_epilog
 
     ###########
     # SETTERS #
     ###########
 
     def set_ce_signature(self, ce_signature: str) -> None:
+        """Set the core element signature.
+
+        :param ce_signature: The core element signature.
+        :returns: None.
+        """
         self.ce_signature = ce_signature
 
     def set_impl_signature(self, impl_signature: str) -> None:
+        """Set the core element implementation signature.
+
+        :param impl_signature: The implementation signature.
+        :return: None.
+        """
         self.impl_signature = impl_signature
 
     def set_impl_constraints(self, impl_constraints: dict) -> None:
+        """Set the core element implementation constraints.
+
+        :param impl_constraints: The implementation constraints.
+        :return: None.
+        """
         self.impl_constraints = impl_constraints
 
     def set_impl_type(self, impl_type: str) -> None:
+        """Set the core element implementation type.
+
+        :param impl_type: The implementation type.
+        :return: None.
+        """
         self.impl_type = impl_type
 
     def set_impl_io(self, impl_io: bool) -> None:
+        """Set the core element implementation IO.
+
+        :param impl_io: The implementation IO.
+        :return: None.
+        """
         self.impl_io = impl_io
 
     def set_impl_type_args(self, impl_type_args: list) -> None:
+        """Set the core element implementation type arguments.
+
+        :param impl_type_args: The implementation type arguments.
+        :return: None.
+        """
         self.impl_type_args = impl_type_args
 
-    def set_prolog(self, prolog):
-        # type: (list) -> None
-        self.prolog = prolog
+    def set_impl_prolog(self, impl_prolog: list) -> None:
+        """Set the core element implementation prolog.
 
-    def set_epilog(self, epilog):
-        # type: (list) -> None
-        self.epilog = epilog
+        :param impl_prolog: The implementation prolog.
+        :return: None.
+        """
+        self.impl_prolog = impl_prolog
+
+    def set_impl_epilog(self, impl_epilog: list) -> None:
+        """Set the core element implementation epilog.
+
+        :param impl_epilog: The implementation epilog.
+        :return: None.
+        """
+        self.impl_epilog = impl_epilog
 
     ##################
     # REPRESENTATION #
     ##################
 
     def __repr__(self) -> str:
-        """Builds the element representation as string.
+        """Build the element representation as string.
 
         :return: The core element representation.
         """
@@ -163,7 +250,7 @@ class CE(object):
         _repr += "\t - Impl. constraints: " + impl_constraints + "\n"
         _repr += "\t - Impl. type       : " + str(self.impl_type) + "\n"
         _repr += "\t - Impl. io         : " + str(self.impl_io) + "\n"
-        _repr += "\t - Prolog           : " + str(self.prolog) + "\n"
-        _repr += "\t - Epilog           : " + str(self.epilog) + "\n"
+        _repr += "\t - Impl. prolog     : " + str(self.impl_prolog) + "\n"
+        _repr += "\t - Impl. epilog     : " + str(self.impl_epilog) + "\n"
         _repr += "\t - Impl. type args  : " + str(self.impl_type_args) + "\n"
         return _repr

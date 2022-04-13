@@ -18,22 +18,20 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Common piper utils
-===========================
-    This file contains the common pipers methods.
+PyCOMPSs Worker - Piper - Commons - Utils.
+
+This file contains the common pipers methods.
 """
 
+import pycompss.util.context as context
+from pycompss.runtime.commons import GLOBALS
 from pycompss.util.typing_helper import typing
-from pycompss.runtime.commons import set_temporary_directory
 from pycompss.worker.piper.commons.constants import HEADER
 from pycompss.worker.piper.commons.executor import Pipe
-import pycompss.util.context as context
 
 
 class PiperWorkerConfiguration(object):
-    """
-    Description of the configuration parameters for the Piper Worker.
-    """
+    """Description of the configuration parameters for the Piper Worker class."""
 
     __slots__ = [
         "nesting",
@@ -51,8 +49,9 @@ class PiperWorkerConfiguration(object):
     ]
 
     def __init__(self) -> None:
-        """
-        Constructs an empty configuration description for the piper worker.
+        """Construct an empty configuration description for the piper worker.
+
+        :returns: None.
         """
         self.nesting = False  # type: bool
         self.debug = False  # type: bool
@@ -68,13 +67,12 @@ class PiperWorkerConfiguration(object):
         self.cache_profiler = ""  # type: str
 
     def update_params(self, argv: list) -> None:
-        """Constructs a configuration description for the piper worker using
-        the arguments.
+        """Construct a configuration description for the piper worker using the arguments.
 
-        :param argv: arguments from the command line.
-        :return: None
+        :param argv: Arguments from the command line.
+        :return: None.
         """
-        set_temporary_directory(argv[1], create_tmpdir=False)
+        GLOBALS.set_temporary_directory(argv[1], create_tmpdir=False)
         if argv[2] == "true":
             context.enable_nesting()
             self.nesting = True
@@ -98,10 +96,10 @@ class PiperWorkerConfiguration(object):
         self.control_pipe = Pipe(argv[-2], argv[-1])
 
     def print_on_logger(self, logger: typing.Any) -> None:
-        """Prints the configuration through the given logger.
+        """Print the configuration through the given logger.
 
-        :param logger: logger to output the configuration.
-        :return: None
+        :param logger: Logger to output the configuration.
+        :return: None.
         """
         logger.debug(HEADER + "-----------------------------")
         logger.debug(HEADER + "Persistent worker parameters:")

@@ -18,27 +18,27 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - MultiNode
-==================
-    This file contains the class MultiNode, needed for the MultiNode
-    definition through the decorator.
+PyCOMPSs API - Multinode decorator.
+
+This file contains the Multinode class, needed for the MultiNode task
+definition through the decorator.
 """
 
 import os
-from pycompss.util.typing_helper import typing
 from functools import wraps
 
 import pycompss.util.context as context
-from pycompss.api.commons.constants import COMPUTING_NODES
-from pycompss.api.commons.constants import LEGACY_COMPUTING_NODES
-from pycompss.api.commons.implementation_types import IMPL_MULTI_NODE
-from pycompss.api.commons.error_msgs import not_in_pycompss
-from pycompss.util.exceptions import NotInPyCOMPSsException
-from pycompss.util.arguments import check_arguments
-from pycompss.api.commons.decorator import process_computing_nodes
-from pycompss.api.commons.decorator import keep_arguments
+from pycompss.api.commons.constants import LABELS
+from pycompss.api.commons.constants import LEGACY_LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
+from pycompss.api.commons.decorator import keep_arguments
+from pycompss.api.commons.decorator import process_computing_nodes
+from pycompss.api.commons.error_msgs import not_in_pycompss
+from pycompss.api.commons.implementation_types import IMPL_MULTI_NODE
 from pycompss.runtime.task.core_element import CE
+from pycompss.util.arguments import check_arguments
+from pycompss.util.exceptions import NotInPyCOMPSsException
+from pycompss.util.typing_helper import typing
 
 if __debug__:
     import logging
@@ -46,8 +46,8 @@ if __debug__:
     logger = logging.getLogger(__name__)
 
 MANDATORY_ARGUMENTS = set()  # type: typing.Set[str]
-SUPPORTED_ARGUMENTS = {COMPUTING_NODES}
-DEPRECATED_ARGUMENTS = {LEGACY_COMPUTING_NODES}
+SUPPORTED_ARGUMENTS = {LABELS.computing_nodes}
+DEPRECATED_ARGUMENTS = {LEGACY_LABELS.computing_nodes}
 SLURM_SKIP_VARS = [
     "SLURM_JOBID",
     "SLURM_JOB_ID",
@@ -58,7 +58,8 @@ SLURM_SKIP_VARS = [
 
 
 class MultiNode(object):
-    """
+    """MultiNode decorator class.
+
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on MultiNode task creation.
     """
@@ -129,7 +130,7 @@ class MultiNode(object):
 
             # Set the computing_nodes variable in kwargs for its usage
             # in @task decorator
-            kwargs[COMPUTING_NODES] = self.kwargs[COMPUTING_NODES]
+            kwargs[LABELS.computing_nodes] = self.kwargs[LABELS.computing_nodes]
 
             with keep_arguments(args, kwargs, prepend_strings=True):
                 # Call the method
@@ -200,9 +201,9 @@ def set_slurm_environment() -> dict:
 
 
 def remove_slurm_environment() -> dict:
-    """Removes the Slurm vars from environment
+    """Remove the Slurm variables from the environment.
 
-    :return: removed Slurm vars
+    :return: removed Slurm variables.
     """
     old_slurm_env = dict()
     for key, value in os.environ.items():
@@ -215,7 +216,7 @@ def remove_slurm_environment() -> dict:
 
 
 def reset_slurm_environment(old_slurm_env: typing.Optional[dict] = None) -> None:
-    """Reestablishes SLURM environment.
+    """Reestablish SLURM environment.
 
     :return: None
     """

@@ -18,37 +18,38 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - Task
-===================
-    This file contains the class task, needed for the task definition.
+PyCOMPSs API - Task decorator.
+
+This file contains the Task class, needed for the task definition.
 """
 
 from __future__ import print_function
+
+import inspect
 import os
 import sys
-import inspect
-from pycompss.util.typing_helper import typing
-from pycompss.util.typing_helper import dummy_function
 from functools import wraps
 
 import pycompss.api.parameter as parameter
 import pycompss.util.context as context
-from pycompss.api.commons.constants import UNASSIGNED
-from pycompss.api.commons.implementation_types import IMPL_METHOD
+from pycompss.api.commons.constants import INTERNAL_LABELS
+from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.implementation_types import IMPL_CONTAINER
-from pycompss.runtime.constants import TASK_INSTANTIATION
-from pycompss.worker.commons.constants import WORKER_TASK_INSTANTIATION
+from pycompss.api.commons.implementation_types import IMPL_METHOD
+from pycompss.runtime.task.core_element import CE
 from pycompss.runtime.task.master import TaskMaster
-from pycompss.runtime.task.worker import TaskWorker
-from pycompss.runtime.task.parameter import is_param
 from pycompss.runtime.task.parameter import get_new_parameter
 from pycompss.runtime.task.parameter import get_parameter_from_dictionary
-from pycompss.runtime.task.core_element import CE
-from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
+from pycompss.runtime.task.parameter import is_param
+from pycompss.runtime.task.worker import TaskWorker
 from pycompss.util.logger.helpers import update_logger_handlers
-from pycompss.util.tracing.helpers import event_master
-from pycompss.util.tracing.helpers import event_inside_worker
 from pycompss.util.objects.properties import get_module_name
+from pycompss.util.tracing.helpers import event_inside_worker
+from pycompss.util.tracing.helpers import event_master
+from pycompss.util.tracing.types_events_master import TRACING_MASTER
+from pycompss.util.tracing.types_events_worker import TRACING_WORKER
+from pycompss.util.typing_helper import dummy_function
+from pycompss.util.typing_helper import typing
 
 if __debug__:
     import logging
@@ -62,8 +63,8 @@ REGISTER_ONLY = False
 
 
 class Task(object):
-    """
-    This is the Task decorator implementation.
+    """This is the Task decorator implementation.
+
     It is implemented as a class and consequently this implementation can be
     divided into two natural steps: decoration process and function call.
 
@@ -208,8 +209,9 @@ class Task(object):
         self.defaults = dict()  # type: dict
 
     def __call__(self, user_function: typing.Callable) -> typing.Callable:
-        """This function is called in all explicit function calls.
+        """Perform the task processing.
 
+        This function is called in all explicit function calls.
         Note that in PyCOMPSs a single function call will be transformed into
         two calls, as both master and worker need to call the function.
 
@@ -237,13 +239,20 @@ class Task(object):
     def __decorator_body__(
         self, user_function: typing.Callable, args: tuple, kwargs: dict
     ) -> typing.Any:
+        """Body of the task decorator.
+
+        :param user_function: Decorated function.
+        :param args: Function arguments.
+        :param kwargs: Function keyword arguments.
+        :returns: Result of executing the user_function with the given args and kwargs.
+        """
         # Determine the context and decide what to do
         if context.in_master():
             # @task being executed in the master
             # Each task will have a TaskMaster, so its content will
             # not be shared.
             self.__check_core_element__(kwargs, user_function)
-            with event_master(TASK_INSTANTIATION):
+            with event_master(TRACING_MASTER.task_instantiation):
                 master = TaskMaster(
                     self.decorator_arguments,
                     self.user_function,
@@ -275,7 +284,7 @@ class Task(object):
                 self.function_type,
                 self.class_name,
                 self.hints,
-            ) = result  # noqa: E501
+            ) = result
             del master
             return fo
         elif context.in_worker():
@@ -288,7 +297,7 @@ class Task(object):
                         kwargs["compss_log_files"][1],
                     )
                 # @task being executed in the worker
-                with event_inside_worker(WORKER_TASK_INSTANTIATION):
+                with event_inside_worker(TRACING_WORKER.worker_task_instantiation):
                     worker = TaskWorker(
                         self.decorator_arguments,
                         self.user_function,
@@ -313,7 +322,7 @@ class Task(object):
                 if context.is_nesting_enabled():
                     # Each task will have a TaskMaster, so its content will
                     # not be shared.
-                    with event_master(TASK_INSTANTIATION):
+                    with event_master(TRACING_MASTER.task_instantiation):
                         master = TaskMaster(
                             self.decorator_arguments,
                             self.user_function,
@@ -345,7 +354,7 @@ class Task(object):
                         self.function_type,
                         self.class_name,
                         self.hints,
-                    ) = result  # noqa: E501
+                    ) = result
                     del master
                     return fo
                 else:
@@ -391,9 +400,9 @@ class Task(object):
     ) -> None:
         """Check Core Element for containers.
 
-        :param kwargs: Keyword arguments
-        :param user_function: User function
-        :return: None (updates the Core Element of the given kwargs)
+        :param kwargs: Keyword arguments.
+        :param user_function: User function.
+        :return: None (updates the Core Element of the given kwargs).
         """
         if (
             CORE_ELEMENT_KEY in kwargs
@@ -402,30 +411,32 @@ class Task(object):
             # The task is using a container
             impl_args = kwargs[CORE_ELEMENT_KEY].get_impl_type_args()
             _type = impl_args[2]
-            if _type == UNASSIGNED:
+            if _type == INTERNAL_LABELS.unassigned:
                 # The task is not invoking a binary
                 _engine = impl_args[0]
                 _image = impl_args[1]
                 _type = "CET_PYTHON"
                 _func_complete = "%s&%s" % (
-                    str(self.__get_module_name__(user_function)),  # noqa: E501
+                    str(self.__get_module_name__(user_function)),
                     str(user_function.__name__),
                 )
                 impl_args = [
                     _engine,  # engine
                     _image,  # image
                     _type,  # internal_type
-                    UNASSIGNED,  # internal_binary
+                    INTERNAL_LABELS.unassigned,  # internal_binary
                     _func_complete,  # internal_func
-                    UNASSIGNED,  # working_dir
-                    UNASSIGNED,
+                    INTERNAL_LABELS.unassigned,  # working_dir
+                    INTERNAL_LABELS.unassigned,
                 ]  # fail_by_ev
                 kwargs[CORE_ELEMENT_KEY].set_impl_type_args(impl_args)
 
     @staticmethod
     def __get_module_name__(user_function: typing.Callable) -> str:
-        """
-        Gets the module name from the user function.
+        """Get the module name from the user function.
+
+        :param user_function: User function.
+        :returns: The module name where the user function is defined.
         """
         mod = inspect.getmodule(user_function)  # type: typing.Any
         module_name = mod.__name__

@@ -16,3 +16,5 @@
 #
 
 # -*- coding: utf-8 -*-
+
+"""This package contains the interactive utils functions, constants and classes."""

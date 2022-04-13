@@ -18,22 +18,22 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - IO
-=================
-    This file contains the class constraint, needed for the IO task
-    definition through the decorator.
+PyCOMPSs API - IO decorator.
+
+This file contains the IO class, needed for the IO task definition through
+the decorator.
 """
 
-from pycompss.util.typing_helper import typing
 from functools import wraps
 
 import pycompss.util.context as context
-from pycompss.api.commons.error_msgs import not_in_pycompss
-from pycompss.util.exceptions import NotInPyCOMPSsException
-from pycompss.util.arguments import check_arguments
-from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
+from pycompss.api.commons.decorator import keep_arguments
+from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.runtime.task.core_element import CE
+from pycompss.util.arguments import check_arguments
+from pycompss.util.exceptions import NotInPyCOMPSsException
+from pycompss.util.typing_helper import typing
 
 if __debug__:
     import logging
@@ -46,7 +46,8 @@ DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 
 
 class IO(object):
-    """
+    """IO decorator class.
+
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on IO task creation.
     """

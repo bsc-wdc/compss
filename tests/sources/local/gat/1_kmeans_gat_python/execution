@@ -37,10 +37,6 @@
     expectedTime=240s
 
     python_mpi_worker=""
-    if [ "$python_interpreter" == 'python2_mpi' ]; then
-	echo "WARN: UNSUPPORTED FOR ${python_interpreter}" | tee -a "${output_log}"
-        continue
-    fi
     if [ "$python_interpreter" == 'python3_mpi' ]; then
         echo "WARN: UNSUPPORTED FOR ${python_interpreter}" | tee -a "${output_log}"
         continue

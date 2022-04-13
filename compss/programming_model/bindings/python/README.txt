@@ -1,24 +1,29 @@
-===========
+========
 PyCOMPSs
-===========
+========
 
-PyCOMPSs is the Python binding for the COMP Superscalar (COMPSs) framework. It allows to run Python applications with COMPSs.
+PyCOMPSs is the Python binding for the COMP Superscalar (COMPSs) framework.
+It allows to run Python applications with COMPSs.
 
 
 CONTENT
 -------
 
 src
-  L ext         -> external C module to interact with the binding-commons
-  L pycompss    -> Python modules
-    L api       -> API modules to be imported by the programmer in the application
-    L dds       -> DDS library
-    L functions -> Helper functions
-    L runtime   -> Master runtime
-    L streams   -> Streaming functions
-    L util      -> utilities
-    L worker    -> Worker runtime
-    L interactive.py -> Integration with jupyter utilities.
+├── ext                     -> External C modules
+│   ├── compssmodule.cc     -> C module to interact with the binding-commons
+│   ├── thread_affinity.cc  -> C module to set the affinity
+│   └── thread_affinity.h   -> C module to set the affinity header
+└── pycompss                -> Python modules
+    ├── api                 -> API modules to be imported by the programmer in the application
+    ├── dds                 -> DDS library
+    ├── functions           -> Helper functions
+    ├── interactive.py      -> Integration with Jupyter
+    ├── runtime             -> Runtime modules
+    ├── streams             -> Streaming functions
+    ├── tests               -> Unittests
+    ├── util                -> Utilities
+    └── worker              -> Worker modules
 
 
 DEPENDENCIES
@@ -37,9 +42,8 @@ INSTALLATION
 This will install PyCOMPSs in /usr/local/lib/pythonX.Y/site-packages.
 
 - Alternatively, specify an installation directory:
-    ./install <install_dir> <create_symlinks> <unify_installs> <only_python_version>
+    ./install <install_dir> <create_symlinks> <specific_python_version>
 
     <install_dir>: Target directory to install.
     <create_symlinks>: Create symbolic links within site-packages (options: true | false).
-    <unify_installs>: Remove sources from 3 and link to 2 if exists.
-    <only_python_version>: Install a specific version (options: python2 | python 3).
+    <specific_python_version>: Install a specific version (e.g. python3.10).

@@ -18,18 +18,19 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Utils - Std redirects
-================================
-    This file contains the methods required to redirect the standard output
-    and standard error grabbing all kind of output and error (e.g. from C
-    or child processes).
+PyCOMPSs Utils - Std - Redirects.
+
+This file contains the methods required to redirect the standard output
+and standard error grabbing all kind of output and error (e.g. from C
+or child processes).
 """
 
-from contextlib import contextmanager
 import ctypes
 import io
 import os
 import sys
+from contextlib import contextmanager
+
 from pycompss.util.typing_helper import typing
 
 LIBC = ctypes.CDLL(None)  # noqa
@@ -48,7 +49,7 @@ def not_std_redirector() -> typing.Iterator[None]:
     Use this context instead of the std_redirector context to avoid
     stdout and stderr redirection.
 
-    :return: None
+    :return: None.
     """
     yield
 
@@ -121,8 +122,7 @@ def std_redirector(out_filename: str, err_filename: str) -> typing.Iterator[None
 def ipython_std_redirector(
     out_filename: str, err_filename: str
 ) -> typing.Iterator[None]:
-    """Stdout and stderr redirector within ipython environments to the given
-    out and err file names.
+    """Stdout and stderr redirector within ipython environments to the given out and err file names.
 
     :param out_filename: Output file filename (where to redirect stdout)
     :param err_filename: Error output file filename (where to redirect stderr)

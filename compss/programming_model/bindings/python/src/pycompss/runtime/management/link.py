@@ -18,25 +18,24 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Binding - Link
-=======================
-    This file contains the functions to link with the binding-commons.
-    In particular, manages a separate process which handles the compss
-    extension, so that the process can be removed when shutting off
-    and restarted (interactive usage of PyCOMPSs - ipython and jupyter).
+PyCOMPSs Binding - Management - Link.
+
+This file contains the functions to link with the binding-commons.
+In particular, manages a separate process which handles the compss
+extension, so that the process can be removed when shutting off
+and restarted (interactive usage of PyCOMPSs - ipython and jupyter).
 """
 
 import os
-from pycompss.util.typing_helper import typing
 
+from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.process.manager import Queue
+from pycompss.util.process.manager import create_process
 from pycompss.util.process.manager import new_process
 from pycompss.util.process.manager import new_queue
-from pycompss.util.process.manager import create_process
 from pycompss.util.std.redirects import ipython_std_redirector
 from pycompss.util.std.redirects import not_std_redirector
-from pycompss.util.exceptions import PyCOMPSsException
-
+from pycompss.util.typing_helper import typing
 
 # Global variables
 LINK_PROCESS = new_process()
@@ -96,7 +95,7 @@ def c_extension_link(
     out_file_name: str,
     err_file_name: str,
 ) -> None:
-    """Main C extension process.
+    """Establish C extension within an external process and communicates through queues.
 
     :param in_queue: Queue to receive messages.
     :param out_queue: Queue to send messages.
@@ -181,7 +180,7 @@ def c_extension_link(
 
 
 def establish_link(logger: typing.Any = None) -> typing.Any:
-    """Loads the compss C extension within the same process.
+    """Load the compss C extension within the same process.
 
     Does not implement support for stdout and stderr redirecting as the
     establish_interactive_link.
@@ -209,8 +208,7 @@ def establish_link(logger: typing.Any = None) -> typing.Any:
 def establish_interactive_link(
     logger: typing.Any = None, redirect_std: bool = False
 ) -> typing.Tuple[typing.Any, str, str]:
-    """Starts a new process which will be in charge of communicating with the
-    C-extension.
+    """Start a new process which will be in charge of communicating with the C-extension.
 
     It will return stdout file name and stderr file name as None if
     redirect_std is False. Otherwise, returns the names which are the
@@ -259,7 +257,7 @@ def establish_interactive_link(
         else:
             link_logger.debug(message)
 
-    compss_link = COMPSs  # object that mimics compss library
+    compss_link = _COMPSs  # object that mimics compss library
     return compss_link, out_file_name, err_file_name
 
 
@@ -289,9 +287,9 @@ def terminate_interactive_link() -> None:
     LINK_PROCESS.terminate()
 
 
-class COMPSs(object):
-    """
-    Class that mimics the compss extension library.
+class _COMPSs(object):
+    """Class that mimics the compss extension library.
+
     Each function puts into the queue a list or set composed by:
          (COMMAND_TAG, parameter1, parameter2, ...)
 
@@ -300,40 +298,89 @@ class COMPSs(object):
 
     @staticmethod
     def start_runtime() -> None:
+        """Call to start_runtime.
+
+        :return: None
+        """
         IN_QUEUE.put([START])
 
     @staticmethod
     def set_debug(mode: bool) -> None:
+        """Call to set_debug.
+
+        :param mode: Debug mode ( True | False ).
+        :return: None.
+        """
         IN_QUEUE.put((SET_DEBUG, mode))
 
     @staticmethod
     def stop_runtime(code: int) -> None:
+        """Call to stop_runtime.
+
+        :param code: Stopping code.
+        :return: None.
+        """
         IN_QUEUE.put([STOP, code])
         wait_for_interactive_link()
         # terminate_interactive_link()
 
     @staticmethod
     def cancel_application_tasks(app_id: int, value: int) -> None:
+        """Call to cancel_application_tasks.
+
+        :param app_id: Application identifier.
+        :param value:  Task identifier.
+        :return: None.
+        """
         IN_QUEUE.put((CANCEL_TASKS, app_id, value))
 
     @staticmethod
     def accessed_file(app_id: int, file_name: str) -> bool:
+        """Call to accessed_file.
+
+        :param app_id: Application identifier.
+        :param file_name: File name to check if accessed.
+        :return: If the file has been accessed.
+        """
         IN_QUEUE.put((ACCESSED_FILE, app_id, file_name))
         accessed = OUT_QUEUE.get(block=True)
         return accessed
 
     @staticmethod
     def open_file(app_id: int, file_name: str, mode: int) -> str:
+        """Call to open_file.
+
+        Synchronizes if necessary.
+
+        :param app_id: Application identifier.
+        :param file_name: File name to open.
+        :param mode: Open mode.
+        :return: The real file name.
+        """
         IN_QUEUE.put((OPEN_FILE, app_id, file_name, mode))
         compss_name = OUT_QUEUE.get(block=True)
         return compss_name
 
     @staticmethod
     def close_file(app_id: int, file_name: str, mode: int) -> None:
+        """Call to close_file.
+
+        :param app_id: Application identifier.
+        :param file_name: File name reference to close.
+        :param mode: Close mode.
+        :return: None.
+        """
         IN_QUEUE.put((CLOSE_FILE, app_id, file_name, mode))
 
     @staticmethod
     def delete_file(app_id: int, file_name: str, mode: bool) -> bool:
+        """Call to delete_file.
+
+        :param app_id: Application identifier.
+        :param file_name: File name reference to delete.
+        :param mode: Delete mode.
+        :return: The deletion result.
+        """
         IN_QUEUE.put((DELETE_FILE, app_id, file_name, mode))
         result = OUT_QUEUE.get(block=True)
         if result is None:
@@ -343,49 +390,119 @@ class COMPSs(object):
 
     @staticmethod
     def get_file(app_id: int, file_name: str) -> None:
+        """Call to (synchronize file) get_file.
+
+        :param app_id: Application identifier.
+        :param file_name: File name reference to get.
+        :return: None.
+        """
         IN_QUEUE.put((GET_FILE, app_id, file_name))
 
     @staticmethod
-    def get_directory(app_id: int, file_name: str) -> None:
-        IN_QUEUE.put((GET_DIRECTORY, app_id, file_name))
+    def get_directory(app_id: int, directory_name: str) -> None:
+        """Call to (synchronize directory) get_directory.
+
+        :param app_id: Application identifier.
+        :param directory_name: Directory name reference to get.
+        :return: None.
+        """
+        IN_QUEUE.put((GET_DIRECTORY, app_id, directory_name))
 
     @staticmethod
     def barrier(app_id: int, no_more_tasks: bool) -> None:
+        """Call to barrier.
+
+        :param app_id: Application identifier.
+        :param no_more_tasks: No more tasks boolean.
+        :return: None
+        """
         IN_QUEUE.put((BARRIER, app_id, no_more_tasks))
 
     @staticmethod
     def barrier_group(app_id: int, group_name: str) -> str:
+        """Call to barrier_group.
+
+        :param app_id: Application identifier.
+        :param group_name: Group name.
+        :return: Exception message.
+        """
         IN_QUEUE.put((BARRIER_GROUP, app_id, group_name))
         exception_message = OUT_QUEUE.get(block=True)
         return exception_message
 
     @staticmethod
     def open_task_group(group_name: str, implicit_barrier: bool, app_id: int) -> None:
+        """Call to open_task_group.
+
+        :param group_name: Group name.
+        :param implicit_barrier: Implicit barrier boolean.
+        :param app_id: Application identifier.
+        :return: None.
+        """
         IN_QUEUE.put((OPEN_TASK_GROUP, group_name, implicit_barrier, app_id))
 
     @staticmethod
     def close_task_group(group_name: str, app_id: int) -> None:
+        """Call to close_task_group.
+
+        :param group_name: Group name.
+        :param app_id: Application identifier.
+        :return: None.
+        """
         IN_QUEUE.put((CLOSE_TASK_GROUP, group_name, app_id))
 
     @staticmethod
     def get_logging_path() -> str:
+        """Call to get_logging_path.
+
+        :return: The COMPSs log path.
+        """
         IN_QUEUE.put([GET_LOGGING_PATH])
         log_path = OUT_QUEUE.get(block=True)
         return log_path
 
     @staticmethod
     def get_number_of_resources(app_id: int) -> int:
+        """Call to number_of_resources.
+
+        :param app_id: Application identifier.
+        :return: Number of resources.
+        """
         IN_QUEUE.put((GET_NUMBER_OF_RESOURCES, app_id))
         num_resources = OUT_QUEUE.get(block=True)
         return num_resources
 
     @staticmethod
     def request_resources(app_id: int, num_resources: int, group_name: str) -> None:
+        """Call to request_resources.
+
+        :param app_id: Application identifier.
+        :param num_resources: Number of resources.
+        :param group_name: Group name.
+        :return: None.
+        """
         IN_QUEUE.put((REQUEST_RESOURCES, app_id, num_resources, group_name))
 
     @staticmethod
     def free_resources(app_id: int, num_resources: int, group_name: str) -> None:
+        """Call to free_resources.
+
+        :param app_id: Application identifier.
+        :param num_resources: Number of resources.
+        :param group_name: Group name.
+        :return: None.
+        """
         IN_QUEUE.put((FREE_RESOURCES, app_id, num_resources, group_name))
+
+    @staticmethod
+    def set_wall_clock(app_id: int, wcl: int) -> None:
+        """Call to set_wall_clock.
+
+        :param app_id: Application identifier.
+        :param wcl: Wall Clock limit in seconds.
+        :return: None.
+        """
+        IN_QUEUE.put((SET_WALL_CLOCK, app_id, wcl))
 
     @staticmethod
     def register_core_element(
@@ -394,10 +511,22 @@ class COMPSs(object):
         impl_constraints: typing.Optional[str],
         impl_type: typing.Optional[str],
         impl_io: str,
-        prolog: typing.List[str],
-        epilog: typing.List[str],
-        impl_type_args: typing.List[str]
+        impl_prolog: typing.List[str],
+        impl_epilog: typing.List[str],
+        impl_type_args: typing.List[str],
     ) -> None:
+        """Call to register_core_element.
+
+        :param ce_signature: Core element signature.
+        :param impl_signature: Implementation signature.
+        :param impl_constraints: Implementation constraints.
+        :param impl_type: Implementation type.
+        :param impl_io: Implementation IO.
+        :param impl_prolog: [binary, params, fail_by_exit_value] of the prolog.
+        :param impl_epilog: [binary, params, fail_by_exit_value] of the epilog.
+        :param impl_type_args: Implementation type arguments.
+        :return: None.
+        """
         IN_QUEUE.put(
             (
                 REGISTER_CORE_ELEMENT,
@@ -406,8 +535,8 @@ class COMPSs(object):
                 impl_constraints,
                 impl_type,
                 impl_io,
-                prolog,
-                epilog,
+                impl_prolog,
+                impl_epilog,
                 impl_type_args,
             )
         )
@@ -436,6 +565,31 @@ class COMPSs(object):
         weights: list,
         keep_renames: list,
     ) -> None:
+        """Call to process_task.
+
+        :param app_id: Application identifier.
+        :param signature: Task signature.
+        :param on_failure: On failure action.
+        :param time_out: Task time out.
+        :param has_priority: Boolean has priority.
+        :param num_nodes: Number of nodes.
+        :param reduction: Boolean indicating if the task is of type reduce.
+        :param chunk_size: Size of chunks for executing the reduce operation.
+        :param replicated: Boolean is replicated.
+        :param distributed: Boolean is distributed.
+        :param has_target: Boolean has target.
+        :param num_returns: Number of returns.
+        :param values: Values.
+        :param names: Names.
+        :param compss_types: COMPSs types.
+        :param compss_directions: COMPSs directions.
+        :param compss_streams: COMPSs streams.
+        :param compss_prefixes: COMPSs prefixes.
+        :param content_types: COMPSs types.
+        :param weights: Parameter weights.
+        :param keep_renames: Boolean keep renames.
+        :return: None.
+        """
         IN_QUEUE.put(
             (
                 PROCESS_TASK,
@@ -465,19 +619,20 @@ class COMPSs(object):
 
     @staticmethod
     def process_http_task(
-        app_id: str,
+        app_id: int,
         signature: str,
-        service_name: str,
-        resource: str,
-        request: str,
-        payload: str,
-        payload_type: str,
-        produces: str,
-        updates: str,
+        on_failure: str,
+        time_out: int,
+        has_priority: bool,
+        num_nodes: int,
+        reduction: bool,
+        chunk_size: int,
+        replicated: bool,
+        distributed: bool,
         has_target: bool,
-        names: list,
-        values: list,
         num_returns: int,
+        values: list,
+        names: list,
         compss_types: list,
         compss_directions: list,
         compss_streams: list,
@@ -485,26 +640,36 @@ class COMPSs(object):
         content_types: list,
         weights: list,
         keep_renames: list,
-        has_priority: bool,
-        num_nodes: int,
-        reduction: bool,
-        chunk_size: int,
-        replicated: bool,
-        distributed: bool,
-        on_failure: str,
-        time_out: int,
     ) -> None:
+        """Call to process_http_task.
+
+        :param app_id: Application identifier.
+        :param signature: Task signature.
+        :param on_failure: On failure action.
+        :param time_out: Task time out.
+        :param has_priority: Boolean has priority.
+        :param num_nodes: Number of nodes.
+        :param reduction: Boolean indicating if the task is of type reduce.
+        :param chunk_size: Size of chunks for executing the reduce operation.
+        :param replicated: Boolean is replicated.
+        :param distributed: Boolean is distributed.
+        :param has_target: Boolean has target.
+        :param num_returns: Number of returns.
+        :param values: Values.
+        :param names: Names.
+        :param compss_types: COMPSs types.
+        :param compss_directions: COMPSs directions.
+        :param compss_streams: COMPSs streams.
+        :param compss_prefixes: COMPSs prefixes.
+        :param content_types: COMPSs types.
+        :param weights: Parameter weights.
+        :param keep_renames: Boolean keep renames.
+        :return: None.
+        """
         IN_QUEUE.put(
             (
                 PROCESS_HTTP_TASK,
                 app_id,
-                service_name,
-                resource,
-                request,
-                payload,
-                payload_type,
-                produces,
-                updates,
                 signature,
                 on_failure,
                 time_out,
@@ -530,14 +695,20 @@ class COMPSs(object):
 
     @staticmethod
     def set_pipes(pipe_in: str, pipe_out: str) -> None:
+        """Set nesting pipes.
+
+        :param pipe_in: Input pipe.
+        :param pipe_out: Output pipe.
+        :return: None.
+        """
         IN_QUEUE.put((SET_PIPES, pipe_in, pipe_out))
 
     @staticmethod
     def read_pipes() -> str:
+        """Call to read_pipes.
+
+        :return: The command read from the pipe.
+        """
         IN_QUEUE.put([READ_PIPES])
         command = OUT_QUEUE.get(block=True)
         return command
-
-    @staticmethod
-    def set_wall_clock(app_id: int, wcl: int) -> None:
-        IN_QUEUE.put((SET_WALL_CLOCK, app_id, wcl))

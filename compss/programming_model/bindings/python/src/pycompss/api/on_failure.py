@@ -18,26 +18,22 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - ON_FAILURE
-=========================
-    This file contains the class on_failure, needed for the on failure
-    management definition through the decorator.
+PyCOMPSs API - on_failure decorator.
+
+This file contains the on_failure class, needed for the on failure management
+definition through the decorator.
 """
 
-from pycompss.util.typing_helper import typing
 from functools import wraps
 
 import pycompss.util.context as context
-from pycompss.api.commons.constants import MANAGEMENT
-from pycompss.api.commons.constants import MANAGEMENT_IGNORE
-from pycompss.api.commons.constants import MANAGEMENT_RETRY
-from pycompss.api.commons.constants import MANAGEMENT_CANCEL_SUCCESSOR
-from pycompss.api.commons.constants import MANAGEMENT_FAIL
-from pycompss.util.arguments import check_mandatory_arguments
-from pycompss.api.commons.decorator import keep_arguments
+from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
+from pycompss.api.commons.decorator import keep_arguments
 from pycompss.runtime.task.core_element import CE
+from pycompss.util.arguments import check_mandatory_arguments
 from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.util.typing_helper import typing
 
 if __debug__:
     import logging
@@ -45,19 +41,20 @@ if __debug__:
     logger = logging.getLogger(__name__)
 
 
-MANDATORY_ARGUMENTS = {MANAGEMENT}
-SUPPORTED_MANAGEMENT = {
-    MANAGEMENT_IGNORE,
-    MANAGEMENT_RETRY,
-    MANAGEMENT_CANCEL_SUCCESSOR,
-    MANAGEMENT_FAIL,
+MANDATORY_ARGUMENTS = {LABELS.management}
+SUPPORTED_ARGUMENTS = {
+    LABELS.management_ignore,
+    LABELS.management_retry,
+    LABELS.management_cancel_successor,
+    LABELS.management_fail,
 }
 
 
 class OnFailure(object):
-    """
+    """OnFailure decorator class.
+
     This decorator also preserves the argspec, but includes the __init__ and
-    __call__ methods, useful on task on_failure creation.
+    __call__ methods, useful on task on_failure task management definition.
     """
 
     __slots__ = [
@@ -97,9 +94,9 @@ class OnFailure(object):
 
             # Save the parameters into self so that they can be accessed when
             # the task fails and the action needs to be taken
-            self.on_failure_action = kwargs.pop(MANAGEMENT)
+            self.on_failure_action = kwargs.pop(LABELS.management)
             # Check supported management values
-            if self.on_failure_action not in SUPPORTED_MANAGEMENT:
+            if self.on_failure_action not in SUPPORTED_ARGUMENTS:
                 raise PyCOMPSsException(
                     "ERROR: Unsupported on failure action: %s" % self.on_failure_action
                 )

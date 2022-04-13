@@ -58,9 +58,7 @@
     html="${base_app_dir}/src/${html}"
 
     kernel=""
-    if [[ $python_interpreter == "python2"* ]]; then
-      kernel="python2"
-    elif [[ $python_interpreter == "python3"* ]]; then
+    if [[ $python_interpreter == "python3"* ]]; then
       kernel="python3"
     else
       echo "[ERROR] KERNEL NOT DEFINED FOR INTERPRETER: ${python_interpreter}" >> "${error_log}"

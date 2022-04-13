@@ -18,42 +18,42 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - Parameter
-========================
-    This file contains the classes needed for the parameter definition.
-    1. DIRECTION.
-        - IN
-        - OUT
-        - INOUT
-        - CONCURRENT
-        - COMMUTATIVE
-        - IN_DELETE
-    2. TYPE.
-        - FILE
-        - BOOLEAN
-        - STRING
-        - INT
-        - LONG
-        - FLOAT
-        - OBJECT
-        - COLLECTION
-        - DICTIONARY
-        - EXTERNAL_PSCO
-        - EXTERNAL_STREAM
-        - ... (check _DataType generated during installation)
-    3. IOSTREAM.
-        - STDIN
-        - STDOUT
-        - STDERR
-        - UNSPECIFIED
-    4. PREFIX.
-    5. ALIASES.
+PyCOMPSs API - Parameter definitions.
+
+This file contains the classes needed for the parameter definition.
+1. DIRECTION.
+    - IN
+    - OUT
+    - INOUT
+    - CONCURRENT
+    - COMMUTATIVE
+    - IN_DELETE
+2. TYPE.
+    - FILE
+    - BOOLEAN
+    - STRING
+    - INT
+    - LONG
+    - FLOAT
+    - OBJECT
+    - COLLECTION
+    - DICTIONARY
+    - EXTERNAL_PSCO
+    - EXTERNAL_STREAM
+    - ... (check _DataType generated during installation)
+3. IOSTREAM.
+    - STDIN
+    - STDOUT
+    - STDERR
+    - UNSPECIFIED
+4. PREFIX.
+5. ALIASES.
 """
 
 from pycompss.api.commons.data_type import DataType as _DataType
+from pycompss.runtime.mpi.keys import MPI_LAYOUT_KEYS as _MPI_LAYOUT_KEYS
 from pycompss.runtime.task.keys import PARAM_ALIAS_KEYS as _PARAM_ALIAS_KEYS
 from pycompss.runtime.task.keys import PARAM_DICT_KEYS as _PARAM_DICT_KEYS
-from pycompss.runtime.mpi.keys import MPI_LAYOUT_KEYS as _MPI_LAYOUT_KEYS
 
 # Type definitions -> Numbers match both C and Java enums and are generated
 #                     during the installation.
@@ -62,9 +62,7 @@ TYPE = _DataType
 
 # Numbers match both C and Java enums
 class SupportedDirections(object):
-    """
-    Used as enum for direction types
-    """
+    """Used as enum for direction types."""
 
     IN = 0
     OUT = 1
@@ -76,9 +74,7 @@ class SupportedDirections(object):
 
 # Numbers match both C and Java enums
 class SupportedIoStreams(object):
-    """
-    Used as enum for stream types
-    """
+    """Used as enum for stream types."""
 
     STDIN = 0
     STDOUT = 1
@@ -88,9 +84,7 @@ class SupportedIoStreams(object):
 
 # String that identifies the prefix
 class SupportedPrefixes(object):
-    """
-    Used as enum for prefix
-    """
+    """Used as enum for prefix."""
 
     PREFIX = "null"  # NOSONAR
 
@@ -101,9 +95,7 @@ PREFIX = SupportedPrefixes()
 
 
 class _Param(object):
-    """
-    Private class which hides the parameter key to be used.
-    """
+    """Private class which hides the parameter key to be used."""
 
     __slots__ = ["key"]
 

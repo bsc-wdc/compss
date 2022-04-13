@@ -15,6 +15,14 @@
 #  limitations under the License.
 #
 
+# -*- coding: utf-8 -*-
+
+"""
+PyCOMPSs DDS - Examples.
+
+This file contains the DDS examples.
+"""
+
 import os
 import sys
 import time
@@ -31,6 +39,10 @@ from pycompss.dds.example_tasks import get_similar_files
 
 
 def inside(_):
+    """Check if inside.
+
+    :returns: If inside.
+    """
     x = random.random()  # NOSONAR
     y = random.random()  # NOSONAR
     if (x * x) + (y * y) < 1:
@@ -38,6 +50,10 @@ def inside(_):
 
 
 def _generate_graph():
+    """Generate graph.
+
+    :returns: Set of edges.
+    """
     num_edges = 10
     num_vertices = 5
     rand = random.Random(42)
@@ -52,6 +68,11 @@ def _generate_graph():
 
 
 def files_to_pairs(element):
+    """Pair files.
+
+    :param element: String of elements.
+    :returns: List of pairs.
+    """
     tuples = list()
     lines = element[1].split("\n")
     for _l in lines:
@@ -64,6 +85,11 @@ def files_to_pairs(element):
 
 
 def _invert_files(pair):
+    """Invert files.
+
+    :param pair: Pair.
+    :results: List of items.
+    """
     res = dict()
     for word in pair[1].split():
         res[word] = [pair[0]]
@@ -71,6 +97,16 @@ def _invert_files(pair):
 
 
 def has_converged(mu, old_mu, epsilon):
+    """Check if Kmeans has converged.
+
+    Checks the distance difference between centers and old centers and
+    compares with epsilon.
+
+    :param mu: Centers.
+    :param old_mu: Old centers.
+    :param epsilon: Epsilon.
+    :returns: If has converged.
+    """
     import numpy as np
 
     if not old_mu:
@@ -83,6 +119,12 @@ def has_converged(mu, old_mu, epsilon):
 
 
 def merge_reduce(f, data):
+    """Merge reducing as binary tree.
+
+    :param f: Merging function.
+    :param data: List of elements to reduce.
+    :results: Reduced result.
+    """
     from collections import deque
 
     q = deque(list(range(len(data))))
@@ -119,8 +161,12 @@ def merge_reduce(f, data):
 
 
 def wordcount_k_means(dim=742):
-    """
-    TODO: Missing documentation
+    """Wordcount Kmeans.
+
+    TODO: Missing documentation.
+
+    :param dim:
+    :returns:
     """
     import numpy as np
 
@@ -212,8 +258,11 @@ def wordcount_k_means(dim=742):
 
 
 def word_count():
-    """
+    """Word count.
+
     TODO: Missing documentation
+
+    :results:
     """
     path_file = sys.argv[1]
     start = time.time()
@@ -231,8 +280,11 @@ def word_count():
 
 
 def pi_estimation():
-    """
+    """Pi estimation.
+
     Example is taken from: https://spark.apache.org/examples.html
+
+    :returns: The estimated pi value.
     """
     print("Estimating Pi by 'throwing darts' algorithm.")
     tries = 100000
@@ -243,10 +295,12 @@ def pi_estimation():
 
 
 def terasort():
-    """
-    TODO: Missing documentation
-    """
+    """Terasort.
 
+    TODO: Missing documentation
+
+    :returns: Sorting result.
+    """
     dir_path = sys.argv[1]
     dest_path = sys.argv[2]
     # Commented out code for unknown reason:
@@ -272,8 +326,11 @@ def terasort():
 
 
 def inverted_indexing():
-    """
+    """Inverted indexing.
+
     TODO: Missing documentation
+
+    :results: Inverted indexing result.
     """
     path = sys.argv[1]
     start_time = time.time()
@@ -289,8 +346,12 @@ def inverted_indexing():
 
 
 def transitive_closure(partitions=None):
-    """
+    """Transitive closure.
+
     TODO: Missing documentation
+
+    :param partitions:
+    :results: Transitive closure result.
     """
     if not partitions:
         partitions = int(sys.argv[2]) if len(sys.argv) > 2 else 2
@@ -325,8 +386,11 @@ def transitive_closure(partitions=None):
 
 
 def main_program():
-    """
+    """Run all examples.
+
     TODO: Missing documentation
+
+    :returns: None.
     """
     print("________RUNNING EXAMPLES_________")
     # Available examples:

@@ -18,33 +18,37 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Dummy API
-==================
-    This file defines the public PyCOMPSs API functions without functionality.
-    It implements a dummy compss_open and compss_wait_on functions.
+PyCOMPSs - dummy - api.
+
+This file defines the public PyCOMPSs API functions without functionality.
 """
 
 import os
+
 from pycompss.util.typing_helper import typing
 
 
 def compss_start(
-    log_level: str = "off", tracing: bool = False, interactive: bool = False
+    log_level: str = "off",
+    tracing: bool = False,
+    interactive: bool = False,
+    disable_external: bool = False,
 ) -> None:
-    """Dummy runtime start.
+    """Start runtime dummy.
 
     Does nothing.
 
     :param log_level: Log level [ True | False ].
-    :param tracing: Tracing mode [0=None, 1=Extrae]
+    :param tracing: Activate or disable tracing.
     :param interactive: Boolean if interactive (ipython or jupyter).
+    :param disable_external: To avoid to load compss in external process.
     :return: None
     """
     pass
 
 
 def compss_stop(code: int = 0, _hard_stop: bool = False) -> None:
-    """Dummy runtime stop.
+    """Stop runtime dummy.
 
     Does nothing.
 
@@ -56,7 +60,7 @@ def compss_stop(code: int = 0, _hard_stop: bool = False) -> None:
 
 
 def compss_file_exists(*file_name: str) -> typing.Union[bool, typing.List[bool]]:
-    """Dummy compss_file_exists.
+    """Check if file used in task exists dummy.
 
     Check if the file exists.
 
@@ -70,12 +74,12 @@ def compss_file_exists(*file_name: str) -> typing.Union[bool, typing.List[bool]]
 
 
 def compss_open(file_name: str, mode: str = "r") -> typing.Any:
-    """Dummy compss_open.
+    """Open a file used in task dummy.
 
     Open the given file with the defined mode (see builtin open).
 
     :param file_name: The file name to open.
-    :param mode: Open mode. Options = [w, r+ or a , r or empty]. Default=r.
+    :param mode: Open mode. Options = [w, r+ or a, r or empty]. Default=r.
     :return: An object of "file" type.
     :raise IOError: If the file can not be opened.
     """
@@ -83,7 +87,7 @@ def compss_open(file_name: str, mode: str = "r") -> typing.Any:
 
 
 def compss_delete_file(*file_name: str) -> typing.Union[bool, typing.List[bool]]:
-    """Dummy compss_delete.
+    """Delete a file used in task dummy.
 
     Does nothing and always return True.
 
@@ -97,7 +101,7 @@ def compss_delete_file(*file_name: str) -> typing.Union[bool, typing.List[bool]]
 
 
 def compss_wait_on_file(*file_name: str) -> None:
-    """Dummy compss_wait_on_file.
+    """Wait on file used in task dummy.
 
     Does nothing.
 
@@ -108,7 +112,7 @@ def compss_wait_on_file(*file_name: str) -> None:
 
 
 def compss_wait_on_directory(*directory_name: str) -> None:
-    """Dummy compss_wait_on_directory.
+    """Wait on directory used in task dummy.
 
     Does nothing.
 
@@ -119,7 +123,7 @@ def compss_wait_on_directory(*directory_name: str) -> None:
 
 
 def compss_delete_object(*obj: typing.Any) -> typing.Union[bool, typing.List[bool]]:
-    """Dummy compss_delete_object.
+    """Delete object used in task dummy.
 
     Does nothing and always return True.
 
@@ -133,7 +137,7 @@ def compss_delete_object(*obj: typing.Any) -> typing.Union[bool, typing.List[boo
 
 
 def compss_barrier(no_more_tasks: bool = False) -> None:
-    """Dummy barrier.
+    """Wait for all submitted tasks dummy.
 
     Does nothing.
 
@@ -144,7 +148,7 @@ def compss_barrier(no_more_tasks: bool = False) -> None:
 
 
 def compss_barrier_group(group_name: str) -> None:
-    """Dummy barrier for groups.
+    """Wait for all submitted tasks of a group dummy.
 
     Does nothing.
 
@@ -155,7 +159,7 @@ def compss_barrier_group(group_name: str) -> None:
 
 
 def compss_wait_on(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
-    """Dummy compss_wait_on.
+    """Synchronize an object used in task dummy.
 
     Does nothing.
 
@@ -171,7 +175,7 @@ def compss_wait_on(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
 
 
 def compss_get_number_of_resources() -> int:
-    """Request for the number of active resources.
+    """Request for the number of active resources dummy.
 
     Does nothing.
 
@@ -180,8 +184,10 @@ def compss_get_number_of_resources() -> int:
     return 1
 
 
-def compss_request_resources(num_resources: int, group_name: str) -> None:
-    """Requests the creation of num_resources resources.
+def compss_request_resources(
+    num_resources: int, group_name: typing.Optional[str]
+) -> None:
+    """Request the creation of num_resources resources dummy.
 
     Does nothing.
 
@@ -192,8 +198,8 @@ def compss_request_resources(num_resources: int, group_name: str) -> None:
     pass
 
 
-def compss_free_resources(num_resources: int, group_name: str) -> None:
-    """Requests the destruction of num_resources resources.
+def compss_free_resources(num_resources: int, group_name: typing.Optional[str]) -> None:
+    """Request the destruction of num_resources resources dummy.
 
     Does nothing.
 
@@ -205,7 +211,7 @@ def compss_free_resources(num_resources: int, group_name: str) -> None:
 
 
 def compss_set_wall_clock(wall_clock_limit: int) -> None:
-    """Sets the application wall_clock_limit.
+    """Set the application wall_clock_limit dummy.
 
     Does nothing.
 
@@ -216,9 +222,7 @@ def compss_set_wall_clock(wall_clock_limit: int) -> None:
 
 
 class TaskGroup(object):
-    """
-    Dummy TaskGroup context manager.
-    """
+    """Dummy TaskGroup context manager."""
 
     def __init__(self, group_name: str, implicit_barrier: bool = True):
         """Define a new group of tasks.
@@ -229,7 +233,7 @@ class TaskGroup(object):
         pass
 
     def __enter__(self) -> None:
-        """Dummy: do nothing
+        """Do nothing.
 
         :return: None
         """
@@ -238,7 +242,7 @@ class TaskGroup(object):
     def __exit__(
         self, type: typing.Any, value: typing.Any, traceback: typing.Any
     ) -> None:
-        """Dummy: do nothing
+        """Do nothing.
 
         :return: None
         """

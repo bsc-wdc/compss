@@ -147,7 +147,7 @@ show_opts() {
     --pythonpath=<path>                     Additional folders or paths to add to the PYTHONPATH
                                             Default: ${DEFAULT_PYTHONPATH}
 
-    --python_interpreter=<string>           Python interpreter to use (python/python2/python3).
+    --python_interpreter=<string>           Python interpreter to use (python/python3).
                                             Default: $DEFAULT_PYTHON_INTERPRETER Version: ${DEFAULT_PYTHON_VERSION}
 
     --python_propagate_virtual_environment=<true>   Propagate the master virtual environment to the workers (true/false).

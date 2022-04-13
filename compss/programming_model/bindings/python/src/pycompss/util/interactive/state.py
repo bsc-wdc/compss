@@ -18,16 +18,17 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Interactive State
-==========================
-    Provides auxiliary methods for the interactive mode to get the state
+PyCOMPSs Util - Interactive - State.
+
+Provides auxiliary methods for the interactive mode to get the state.
 """
 
 import os
-from pycompss.util.typing_helper import typing
 from collections import defaultdict
-from pycompss.util.exceptions import PyCOMPSsException
 from xml.etree import ElementTree
+
+from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.util.typing_helper import typing
 
 try:
     from IPython.display import HTML  # noqa
@@ -56,7 +57,7 @@ except ImportError:
 
 
 def supports_dynamic_state() -> bool:
-    """Checks if the state can be displayed with widgets.
+    """Check if the state can be displayed with widgets.
 
     :return: True if widgets available. False otherwise.
     """
@@ -74,8 +75,7 @@ def check_monitoring_file(log_path: str) -> bool:
 
 
 def get_compss_state_xml(log_path: str) -> str:
-    """Check if there is any missing package and return the status xml
-    full path.
+    """Check if there is any missing package and return the status xml full path.
 
     :param log_path: Absolute path of the log folder.
     :return: The compss state full path.
@@ -87,11 +87,11 @@ def get_compss_state_xml(log_path: str) -> str:
 
 
 def parse_state_xml(log_path: str, field: str) -> typing.Any:
-    """Converts the given xml to dictionary.
+    """Convert the given xml to dictionary.
 
     :param log_path: Absolute path of the log folder.
     :param field: Field name to retrieve.
-    :return: The content as dictionary (unless CoresInfo, which is a list)
+    :return: The content as dictionary (unless CoresInfo, which is a list).
     """
     state_xml = get_compss_state_xml(log_path)
     tree = ElementTree.parse(state_xml)
@@ -110,7 +110,7 @@ def parse_state_xml(log_path: str, field: str) -> typing.Any:
 
 
 def element_tree_to_dict(element_tree: typing.Any) -> dict:
-    """Converts a element tree into a dictionary recursively.
+    """Convert an element tree into a dictionary recursively.
 
     :param element_tree: Element tree.
     :return: Dictionary.
@@ -139,7 +139,7 @@ def show_tasks_info(log_path: str) -> None:
     """Show tasks info.
 
     :param log_path: Absolute path of the log folder.
-    :return: None
+    :return: None.
     """
     if supports_dynamic_state():
 
@@ -157,7 +157,7 @@ def __show_tasks_info__(log_path: str) -> None:
     """Show tasks info.
 
     :param log_path: Absolute path of the log folder.
-    :return: None
+    :return: None.
     """
     cores_info = parse_state_xml(log_path, "CoresInfo")
     labels = [
@@ -219,7 +219,7 @@ def show_tasks_status(log_path: str) -> None:
     """Show tasks status.
 
     :param log_path: Absolute path of the log folder.
-    :return: None
+    :return: None.
     """
     if supports_dynamic_state():
 
@@ -237,7 +237,7 @@ def __show_tasks_status__(log_path: str) -> None:
     """Show tasks status.
 
     :param log_path: Absolute path of the log folder.
-    :return: None
+    :return: None.
     """
     tasks_info_dict = parse_state_xml(log_path, "TasksInfo")
     # Display graph
@@ -260,7 +260,7 @@ def show_statistics(log_path: str) -> None:
     """Show statistics info.
 
     :param log_path: Absolute path of the log folder.
-    :return: None
+    :return: None.
     """
     if supports_dynamic_state():
 
@@ -278,7 +278,7 @@ def __show_statistics__(log_path: str) -> None:
     """Show statistics info.
 
     :param log_path: Absolute path of the log folder.
-    :return: None
+    :return: None.
     """
     statistics_dict = parse_state_xml(log_path, "Statistics")
     # Display table with values
@@ -291,7 +291,7 @@ def show_resources_status(log_path: str) -> None:
     """Show resources status info.
 
     :param log_path: Absolute path of the log folder.
-    :return: None
+    :return: None.
     """
     if supports_dynamic_state():
 
@@ -309,7 +309,7 @@ def __show_resources_status__(log_path: str) -> None:
     """Show resources status info.
 
     :param log_path: Absolute path of the log folder.
-    :return: None
+    :return: None.
     """
     resource_info_dict = parse_state_xml(log_path, "ResourceInfo")
     # Display table with values
@@ -318,11 +318,12 @@ def __show_resources_status__(log_path: str) -> None:
 
 
 def __plain_lists__(dictionary: dict) -> typing.Tuple[list, list]:
-    """Converts a dictionary to two lists.
-    Removes last element.
+    """Convert a dictionary to two lists.
+
+    IMPORTANT! Removes last element.
 
     :param dictionary: Dictionary to plain.
-    :return: Labels and values
+    :return: Labels and values.
     """
     labels = []
     values = []

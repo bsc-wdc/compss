@@ -18,48 +18,49 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - BINARY
-=====================
-    This file contains the class constraint, needed for the binary task
-    definition through the decorator.
+PyCOMPSs API - Binary decorator.
+
+This file contains the Binary class, needed for the binary task definition
+through the decorator.
 """
 
-from pycompss.util.typing_helper import typing
 from functools import wraps
 
 import pycompss.util.context as context
-from pycompss.util.arguments import check_arguments
-from pycompss.api.commons.constants import BINARY
-from pycompss.api.commons.constants import WORKING_DIR
-from pycompss.api.commons.constants import PARAMS
-from pycompss.api.commons.constants import FAIL_BY_EXIT_VALUE
-from pycompss.api.commons.constants import LEGACY_WORKING_DIR
-from pycompss.api.commons.constants import ENGINE
-from pycompss.api.commons.constants import IMAGE
-from pycompss.api.commons.constants import UNASSIGNED
-from pycompss.api.commons.implementation_types import IMPL_BINARY
-from pycompss.api.commons.implementation_types import IMPL_CONTAINER
-from pycompss.api.commons.implementation_types import IMPL_CET_BINARY
-from pycompss.api.commons.decorator import resolve_working_dir
-from pycompss.api.commons.decorator import resolve_fail_by_exit_value
-from pycompss.api.commons.decorator import keep_arguments
+from pycompss.api.commons.constants import INTERNAL_LABELS
+from pycompss.api.commons.constants import LABELS
+from pycompss.api.commons.constants import LEGACY_LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
+from pycompss.api.commons.decorator import keep_arguments
+from pycompss.api.commons.decorator import resolve_fail_by_exit_value
+from pycompss.api.commons.decorator import resolve_working_dir
 from pycompss.api.commons.decorator import run_command
+from pycompss.api.commons.implementation_types import IMPL_BINARY
+from pycompss.api.commons.implementation_types import IMPL_CET_BINARY
+from pycompss.api.commons.implementation_types import IMPL_CONTAINER
 from pycompss.runtime.task.core_element import CE
+from pycompss.util.arguments import check_arguments
+from pycompss.util.typing_helper import typing
 
 if __debug__:
     import logging
 
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {BINARY}
-SUPPORTED_ARGUMENTS = {BINARY, WORKING_DIR, PARAMS, FAIL_BY_EXIT_VALUE}
-DEPRECATED_ARGUMENTS = {LEGACY_WORKING_DIR, ENGINE, IMAGE}
+MANDATORY_ARGUMENTS = {LABELS.binary}
+SUPPORTED_ARGUMENTS = {
+    LABELS.binary,
+    LABELS.working_dir,
+    LABELS.params,
+    LABELS.fail_by_exit_value,
+}
+DEPRECATED_ARGUMENTS = {LEGACY_LABELS.working_dir, LABELS.engine, LABELS.image}
 
 
 class Binary(object):
-    """
-    This decorator also preserves the argspec, but includes the __init__ and
+    """Binary decorator class.
+
+    This decorator preserves the argspec, but includes the __init__ and
     __call__ methods, useful on binary task creation.
     """
 
@@ -112,7 +113,7 @@ class Binary(object):
             if not self.scope:
                 # Execute the binary as with PyCOMPSs so that sequential
                 # execution performs as parallel.
-                # To disable: raise Exception(not_in_pycompss(BINARY))
+                # To disable: raise Exception(not_in_pycompss(LABELS.binary))
                 # TODO: Intercept @task parameters to get stream redirection
                 return self.__run_binary__(args, kwargs)
 
@@ -135,13 +136,13 @@ class Binary(object):
         return binary_f
 
     def __run_binary__(self, args: tuple, kwargs: dict) -> int:
-        """Runs the binary defined in the decorator when used as dummy.
+        """Run the binary defined in the decorator when used as dummy.
 
         :param args: Arguments received from call.
         :param kwargs: Keyword arguments received from call.
         :return: Execution return code.
         """
-        cmd = [self.kwargs[BINARY]]
+        cmd = [self.kwargs[LABELS.binary]]
         return_code = run_command(cmd, args, kwargs)
         return return_code
 
@@ -158,14 +159,14 @@ class Binary(object):
 
         # Resolve the working directory
         resolve_working_dir(self.kwargs)
-        _working_dir = self.kwargs[WORKING_DIR]
+        _working_dir = self.kwargs[LABELS.working_dir]
 
         # Resolve the fail by exit value
         resolve_fail_by_exit_value(self.kwargs)
-        _fail_by_ev = self.kwargs[FAIL_BY_EXIT_VALUE]
+        _fail_by_ev = self.kwargs[LABELS.fail_by_exit_value]
 
         # Resolve binary
-        _binary = str(self.kwargs[BINARY])
+        _binary = str(self.kwargs[LABELS.binary])
 
         if (
             CORE_ELEMENT_KEY in kwargs
@@ -185,7 +186,7 @@ class Binary(object):
                 _image,  # image
                 IMPL_CET_BINARY,  # internal_type
                 _binary,  # internal_binary
-                UNASSIGNED,  # internal_func
+                INTERNAL_LABELS.unassigned,  # internal_func
                 _working_dir,  # working_dir
                 _fail_by_ev,
             ]  # fail_by_ev
@@ -194,7 +195,7 @@ class Binary(object):
         else:
             # @container decorator does NOT sit on top of @binary decorator
 
-            _binary = str(self.kwargs[BINARY])
+            _binary = str(self.kwargs[LABELS.binary])
 
             impl_type = IMPL_BINARY
             impl_signature = ".".join((impl_type, _binary))
@@ -202,9 +203,9 @@ class Binary(object):
             impl_args = [
                 _binary,  # internal_binary
                 _working_dir,  # working_dir
-                self.kwargs.get("params", UNASSIGNED),  # params
-                _fail_by_ev,
-            ]  # fail_by_ev
+                self.kwargs.get(LABELS.params, INTERNAL_LABELS.unassigned),  # params
+                _fail_by_ev,  # fail_by_ev
+            ]
 
             if CORE_ELEMENT_KEY in kwargs:
                 # Core element has already been created in a higher level

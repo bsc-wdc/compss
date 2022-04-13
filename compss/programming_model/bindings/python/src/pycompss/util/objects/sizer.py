@@ -18,17 +18,19 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Util - Object sizing algorithm
-===============================
-    This file contains the object sizing algorithm method.
+PyCOMPSs Util - Objects - Sizing algorithms.
+
+This file contains the object sizing algorithm method.
 """
 
 from __future__ import print_function
-from pycompss.util.typing_helper import typing
+
+from collections import deque
+from itertools import chain
 from sys import getsizeof
 from sys import stderr
-from itertools import chain
-from collections import deque
+
+from pycompss.util.typing_helper import typing
 
 try:
     from collections import Iterator  # type: ignore
@@ -43,7 +45,7 @@ except ImportError:
 
 
 def _dict_handler(d: dict) -> Iterator:
-    """Dictionary to dictionary handler converter.
+    """Convert dictionary to dictionary handler.
 
     :param d: Dictionary.
     :return: Dictionary handler.
@@ -52,7 +54,7 @@ def _dict_handler(d: dict) -> Iterator:
 
 
 def _user_object_handler(d: typing.Any) -> Iterator:
-    """User object to dictionary handler converter.
+    """Convert user object to dictionary handler.
 
     :param d: User object.
     :return: Dictionary handler.

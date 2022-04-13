@@ -39,7 +39,7 @@
     expectedTime=80s
 
     python_mpi_worker=""
-    if [ "$python_interpreter" == 'python2_mpi' ] || [ "$python_interpreter" == 'python3_mpi' ]; then
+    if [ "$python_interpreter" == 'python3_mpi' ]; then
        echo "WARN: Test not requiered for ${python_interpreter}" | tee -a "${output_log}"
        continue
     fi
@@ -102,10 +102,6 @@
     expectedTime=80s
 
     python_mpi_worker=""
-    if [ "$python_interpreter" == 'python2_mpi' ]; then
-        python_interpreter="python2"
-        python_mpi_worker="--python_mpi_worker=true"
-    fi
     if [ "$python_interpreter" == 'python3_mpi' ]; then
         python_interpreter="python3"
         python_mpi_worker="--python_mpi_worker=true"
@@ -169,10 +165,6 @@
     expectedTime=80s
 
     python_mpi_worker=""
-    if [ "$python_interpreter" == 'python2_mpi' ]; then
-        python_interpreter="python2"
-        python_mpi_worker="--python_mpi_worker=true"
-    fi
     if [ "$python_interpreter" == 'python3_mpi' ]; then
         python_interpreter="python3"
         python_mpi_worker="--python_mpi_worker=true"

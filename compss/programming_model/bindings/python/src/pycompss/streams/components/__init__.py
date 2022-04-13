@@ -14,4 +14,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+
+"""This package contains the Streaming components functions, constants and classes."""
+
 __all__ = ["distro_stream_client"]

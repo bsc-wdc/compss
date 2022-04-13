@@ -53,21 +53,17 @@
 
   targetDir=$1
 
-  # Install runtime and bindings (only with python 2)
+  # Install runtime and bindings
   module purge
-  module load gcc/6.3.0 slurm/17.02.10 tcltk/gcc/8.5.9 intel/mkl/64/11.0/2015.1.133 intel/compiler/64/15.0/1.133 python/intel/2.7.12
+  module load gcc/6.3.0 slurm/17.02.10 tcltk/gcc/8.5.9 intel/compiler/64/2017/17.0.2 python3/intel/3.6.2
 
-  ./install --no-tracing --no-autoparallel --only-python-2 ${targetDir} scapad.cfg
+  ./install --no-tracing --no-autoparallel ${targetDir} scapad.cfg
 
   # Install binding for python 3 (and other python 3 modules)
-  module purge
-  module load gcc/6.3.0 slurm/17.02.10
-  cd Bindings/python
-  module load intel/compiler/64/2017/17.0.2 python3/intel/3.6.2
-  ./install "${targetDir}"/Bindings/python false true python3
   module unload python3/intel/3.6.2 intel/compiler/64/2017/17.0.2
   module load python-intel-19.5/3.6-with-tensorflow
-  ./install "${targetDir}"/Bindings/python false true python3
+  cd Bindings/python
+  ./install "${targetDir}"/Bindings/python false python3
   module unload python-intel-19.5/3.6-with-tensorflow
   cd ../..
 
@@ -92,4 +88,3 @@
   #./install_pluto "${targetDir}"/pluto
   #module unload gmp/intel/5.1.2
   #cd ../..
-  #

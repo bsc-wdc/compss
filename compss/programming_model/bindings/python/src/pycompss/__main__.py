@@ -18,17 +18,18 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Binding - Runnable as module
-=====================================
-    Provides the current functionality to be run as a module.
-    e.g. python -m pycompss run -dgt myapp.py
+PyCOMPSs Binding - Runnable as module.
+
+Provides the functionality to be run as a module:
+e.g. python -m pycompss run -dgt myapp.py
 """
 
-import sys
 import argparse
-from pycompss.util.typing_helper import typing
-from pycompss.runtime.commons import PYTHON_INTERPRETER
+import sys
 from subprocess import Popen
+
+from pycompss.runtime.commons import CONSTANTS
+from pycompss.util.typing_helper import typing
 
 RUN_TAG = "run"
 ENQUEUE_TAG = "enqueue"
@@ -38,7 +39,8 @@ TAGS = [RUN_TAG, ENQUEUE_TAG]
 
 
 class Object(object):
-    # Dummy class to mimic argparse return object
+    """Dummy class to mimic argparse return object."""
+
     action = "None"
     params = []
 
@@ -82,7 +84,9 @@ def run(cmd: typing.List[str]) -> None:
 
 
 def main() -> None:
-    """Main method.
+    """Run PyCOMPSs as module.
+
+    SAMPLE: python -m pycompss run <COMPSs_FLAGS> myapp.py
 
     :return: None
     """
@@ -106,7 +110,9 @@ def main() -> None:
         python_interpreter = []
     else:
         # Use the same as current
-        python_interpreter = ["--python_interpreter=" + str(PYTHON_INTERPRETER)]
+        python_interpreter = [
+            "--python_interpreter=%s" % str(CONSTANTS.python_interpreter)
+        ]
 
     # Take an action
     if args.action == RUN_TAG:

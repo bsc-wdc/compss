@@ -15,5 +15,7 @@
 #  limitations under the License.
 #
 
+"""This package contains the Streaming API functions, constants and classes."""
+
 # For * imports
 __all__ = ["distro_stream", "environment"]

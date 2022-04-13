@@ -18,10 +18,10 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Util - Context
-=======================
-    This file contains the methods to detect the origin of the call stack.
-    Useful to detect if we are in the master or in the worker.
+PyCOMPSs Util - Context.
+
+This file contains the methods to detect the origin of the call stack.
+Useful to detect if we are in the master or in the worker.
 """
 
 import inspect
@@ -52,9 +52,9 @@ TO_REGISTER = []  # type: typing.List[typing.Any]
 
 
 def in_master() -> bool:
-    """Determine if the execution is being performed in the master node
+    """Determine if the execution is being performed in the master node.
 
-    :return:  <Boolean> - True if in master. False on the contrary.
+    :return: True if in master. False on the contrary.
     """
     return _WHERE == MASTER
 
@@ -62,7 +62,7 @@ def in_master() -> bool:
 def in_worker() -> bool:
     """Determine if the execution is being performed in a worker node.
 
-    :return:  <Boolean> - True if in worker. False on the contrary.
+    :return: True if in worker. False on the contrary.
     """
     return _WHERE == WORKER
 
@@ -70,16 +70,16 @@ def in_worker() -> bool:
 def in_pycompss() -> bool:
     """Determine if the execution is being performed within the PyCOMPSs scope.
 
-    :return:  <Boolean> - True if under scope. False on the contrary.
+    :return: True if under scope. False on the contrary.
     """
     return _WHERE != OUT_OF_SCOPE
 
 
 def set_pycompss_context(where: str) -> None:
-    """Set the Python Binding context (MASTER or WORKER or OUT_OF_SCOPE)
+    """Set the Python Binding context (MASTER or WORKER or OUT_OF_SCOPE).
 
-    :param where: New context (MASTER or WORKER or OUT_OF_SCOPE)
-    :return: None
+    :param where: New context (MASTER or WORKER or OUT_OF_SCOPE).
+    :return: None.
     """
     assert where in [
         MASTER,
@@ -95,18 +95,18 @@ def set_pycompss_context(where: str) -> None:
 
 
 def get_pycompss_context() -> str:
-    """
-    Returns PyCOMPSs context name.
+    """Return the PyCOMPSs context name.
+
     * For debugging purposes.
 
-    :return: PyCOMPSs context name
+    :return: PyCOMPSs context name.
     """
     return _WHERE
 
 
 def get_who_contextualized() -> str:
-    """
-    Returns PyCOMPSs contextualization caller.
+    """Return the PyCOMPSs contextualization caller.
+
     * For debugging purposes.
 
     :return: PyCOMPSs contextualization caller name
@@ -117,7 +117,7 @@ def get_who_contextualized() -> str:
 def is_nesting_enabled() -> bool:
     """Check if nesting is enabled.
 
-    :returns: None
+    :returns: None.
     """
     return NESTING is True
 
@@ -125,7 +125,7 @@ def is_nesting_enabled() -> bool:
 def enable_nesting() -> None:
     """Enable nesting.
 
-    :returns: None
+    :returns: None.
     """
     global NESTING
     NESTING = True
@@ -134,14 +134,14 @@ def enable_nesting() -> None:
 def disable_nesting() -> None:
     """Disable nesting.
 
-    :returns: None
+    :returns: None.
     """
     global NESTING
     NESTING = False
 
 
 def is_loading() -> bool:
-    """Check if is loading is enabled.
+    """Check if is loading.
 
     :returns: None
     """
@@ -151,7 +151,7 @@ def is_loading() -> bool:
 def __enable_loading__() -> None:
     """Enable loading.
 
-    :returns: None
+    :returns: None.
     """
     global LOADING
     LOADING = True
@@ -160,7 +160,7 @@ def __enable_loading__() -> None:
 def __disable_loading__() -> None:
     """Enable loading.
 
-    :returns: None
+    :returns: None.
     """
     global LOADING
     LOADING = False
@@ -168,10 +168,12 @@ def __disable_loading__() -> None:
 
 @contextmanager
 def loading_context() -> typing.Iterator[None]:
-    """Context which sets the loading mode (intended to be used only with
-    the @implements decorators, since they try to register on loading).
+    """Context which sets the loading mode.
 
-    :return: None
+    Intended to be used only with the @implements decorators, since they
+    try to register on loading.
+
+    :return: None.
     """
     __enable_loading__()
     yield
@@ -181,8 +183,8 @@ def loading_context() -> typing.Iterator[None]:
 def add_to_register_later(core_element: typing.Tuple[typing.Any, str]) -> None:
     """Accumulate core elements to be registered later.
 
-    :param core_element: Core element to be registered
-    :return: None
+    :param core_element: Core element to be registered.
+    :return: None.
     """
     global TO_REGISTER
     TO_REGISTER.append(core_element)
@@ -191,6 +193,6 @@ def add_to_register_later(core_element: typing.Tuple[typing.Any, str]) -> None:
 def get_to_register() -> typing.List[typing.Tuple[typing.Any, str]]:
     """Retrieve the to register list.
 
-    :return: To register list
+    :return: To register list.
     """
     return TO_REGISTER

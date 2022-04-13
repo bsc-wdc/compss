@@ -18,30 +18,29 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Util - configurators
-=============================
-    This file contains the configurator methods.
-    Currently it is used by interactive.py and launch.py
+PyCOMPSs Util - Environment - Configuration.
+
+This file contains the configurator methods.
+Currently, it is used by interactive.py and launch.py.
 """
 
-import os
-import sys
 import base64
 import json
-from pycompss.util.typing_helper import typing
+import os
+import sys
 from tempfile import mkstemp
 
 import pycompss.runtime.binding as binding
-from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.util.supercomputer.scs import get_base_log_dir
+from pycompss.util.supercomputer.scs import get_log_level
 from pycompss.util.supercomputer.scs import get_master_node
 from pycompss.util.supercomputer.scs import get_master_port
-from pycompss.util.supercomputer.scs import get_xmls
-from pycompss.util.supercomputer.scs import get_uuid
-from pycompss.util.supercomputer.scs import get_base_log_dir
 from pycompss.util.supercomputer.scs import get_specific_log_dir
-from pycompss.util.supercomputer.scs import get_log_level
-from pycompss.util.supercomputer.scs import get_tracing
 from pycompss.util.supercomputer.scs import get_storage_conf
+from pycompss.util.supercomputer.scs import get_tracing
+from pycompss.util.supercomputer.scs import get_uuid
+from pycompss.util.supercomputer.scs import get_xmls
+from pycompss.util.typing_helper import typing
 
 DEFAULT_PROJECT_PATH = "/Runtime/configuration/xml/projects/"
 DEFAULT_RESOURCES_PATH = "/Runtime/configuration/xml/resources/"
@@ -50,7 +49,9 @@ DEFAULT_TRACING_PATH = "/Runtime/configuration/xml/tracing/"
 
 
 def preload_user_code() -> bool:
-    """Checks if the user code has to be preloaded before starting the runtime
+    """Check if the user code has to be preloaded or not.
+
+    Check if the user code has to be preloaded before starting the runtime
     or has been disabled by the user through environment variable.
 
     :return: True if preload. False otherwise.
@@ -68,12 +69,14 @@ def preload_user_code() -> bool:
 
 
 def export_current_flags(all_vars: dict) -> None:
-    """Save all vars in global current flags so that events.py can restart
-    the notebook with the same flags.
-    Removes b" and " to avoid issues with javascript
+    """Export current flags to PYCOMPSS_CURRENT_FLAGS environment variable.
 
-    :param all_vars: Dictionary containing all flags
-    :return: None
+    Save all vars in global environment variable current flags so that
+    events.py can restart the notebook with the same flags.
+    Removes b" and " to avoid issues with javascript.
+
+    :param all_vars: Dictionary containing all flags.
+    :return: None.
     """
     environment_variable_current_flags = "PYCOMPSS_CURRENT_FLAGS"
     all_flags = str(base64.b64encode(json.dumps(all_vars).encode()))[2:-1]
@@ -88,14 +91,14 @@ def prepare_environment(
     debug: bool,
     mpi_worker: bool,
 ) -> dict:
-    """Setup the environment variable and retrieve their content.
+    """Set up the environment variable and retrieve their content.
 
     :param interactive: True | False If the environment is interactive or not.
-    :param o_c: Object conversion to string
-    :param storage_impl: Storage implementation
-    :param app: Application name
-    :param debug: True | False If debug is enabled
-    :param mpi_worker: True | False if mpi worker is enabled
+    :param o_c: Object conversion to string.
+    :param storage_impl: Storage implementation.
+    :param app: Application name.
+    :param debug: True | False If debug is enabled.
+    :param mpi_worker: True | False if mpi worker is enabled.
     :return: Dictionary which contains the compss_home, pythonpath, classpath,
              ld_library_path, cp, extrae_home, extrae_lib and file_name values.
     """
@@ -172,7 +175,10 @@ def prepare_environment(
 
 
 def control_binding_commons_debug(debug: bool) -> None:
-    """Enables the binding-commons debug mode."""
+    """Enable the binding-commons debug mode.
+
+    :returns: None.
+    """
     if debug:
         # Add environment variable to get binding-commons debug information
         os.environ["COMPSS_BINDINGS_DEBUG"] = "1"
@@ -181,13 +187,14 @@ def control_binding_commons_debug(debug: bool) -> None:
 def prepare_loglevel_graph_for_monitoring(
     monitor: typing.Union[None, int], graph: bool, debug: bool, log_level: str
 ) -> dict:
-    """Checks if monitor is enabled and updates graph and log level.
+    """Check if monitor is enabled and updates graph and log level.
+
     If monitor is True, then the log_level and graph are set to debug.
 
     :param monitor: Monitor refresh frequency. None if disabled.
     :param graph: True | False If graph is enabled or disabled.
     :param debug: True | False If debug is enabled or disabled.
-    :param log_level: Defined log level
+    :param log_level: Defined log level.
     :return: Dictionary containing the updated monitor, graph and log_level
              values.
     """
@@ -253,6 +260,7 @@ def prepare_tracing_environment(
     trace: bool, extrae_lib: str, ld_library_path: str
 ) -> str:
     """Prepare the environment for tracing.
+
     Also retrieves the appropriate trace value for the initial configuration
     file (which is an integer).
 
@@ -274,18 +282,18 @@ def check_infrastructure_variables(
     file_name: str,
     external_adaptation: bool,
 ) -> dict:
-    """Checks the infrastructure variables and updates them if None.
+    """Check the infrastructure variables and updates them if None.
 
-    :param project_xml: Project xml file path (None if not defined)
-    :param resources_xml: Resources xml file path (None if not defined)
-    :param compss_home: Compss home path
-    :param app_name: Application name (if None, it changes it with filename)
-    :param file_name: Application file name
-    :param external_adaptation: External adaptation
+    :param project_xml: Project xml file path (None if not defined).
+    :param resources_xml: Resources xml file path (None if not defined).
+    :param compss_home: Compss home path.
+    :param app_name: Application name (if None, it changes it with filename).
+    :param file_name: Application file name.
+    :param external_adaptation: External adaptation.
     :return: Updated variables (project_xml, resources_xml, app_name,
                                 external_adaptation, major_version,
                                 python_interpreter, python_version and
-                                python_virtual_environment)
+                                python_virtual_environment).
     """
     if project_xml == "":
         project_xml = compss_home + DEFAULT_PROJECT_PATH + "default_project.xml"
@@ -373,86 +381,84 @@ def create_init_config_file(
     cache_profiler: bool,
     **kwargs: typing.Any
 ) -> None:
-    """
-    Creates the initialization files for the runtime start (java options file).
+    """Create the initialization files for the runtime start (java options file).
 
-    :param compss_home: <String> COMPSs installation path
+    :param compss_home: <String> COMPSs installation path.
     :param debug:  <Boolean> Enable/Disable debugging
-                   (True|False) (overrides log_level)
+                   (True|False) (overrides log_level).
     :param log_level: <String> Define the log level
-                      ("off" (default) | "info" | "debug")
-    :param project_xml: <String> Specific project.xml path
-    :param resources_xml: <String> Specific resources.xml path
-    :param summary: <Boolean> Enable/Disable summary (True|False)
+                      ("off" (default) | "info" | "debug").
+    :param project_xml: <String> Specific project.xml path.
+    :param resources_xml: <String> Specific resources.xml path.
+    :param summary: <Boolean> Enable/Disable summary (True|False).
     :param task_execution: <String> Who performs the task execution
-                           (normally "compss")
-    :param storage_conf: None|<String> Storage configuration file path
-    :param streaming_backend: Streaming backend (default: None => "null")
+                           (normally "compss").
+    :param storage_conf: None|<String> Storage configuration file path.
+    :param streaming_backend: Streaming backend (default: None => "null").
     :param streaming_master_name: Streaming master name
-                                  (default: None => "null")
+                                  (default: None => "null").
     :param streaming_master_port: Streaming master port
-                                  (default: None => "null")
+                                  (default: None => "null").
     :param task_count: <Integer> Number of tasks
-                       (for structure initialization purposes)
-    :param app_name: <String> Application name
-    :param uuid: None|<String> Application UUID
-    :param base_log_dir: None|<String> Base log path
-    :param specific_log_dir: None|<String> Specific log path
-    :param graph: <Boolean> Enable/Disable graph generation
-    :param monitor: None|<Integer> Disable/Frequency of the monitor
-    :param trace: <Boolean> Enable/Disable trace generation. Also accepts
-                  String (scorep, arm-map, arm-ddt)
+                       (for structure initialization purposes).
+    :param app_name: <String> Application name.
+    :param uuid: None|<String> Application UUID.
+    :param base_log_dir: None|<String> Base log path.
+    :param specific_log_dir: None|<String> Specific log path.
+    :param graph: <Boolean> Enable/Disable graph generation.
+    :param monitor: None|<Integer> Disable/Frequency of the monitor.
+    :param trace: <Boolean> Enable/Disable trace generation.
     :param extrae_cfg: None|<String> Default extrae configuration/user
-                       specific extrae configuration
-    :param comm: <String> GAT/NIO
+                       specific extrae configuration.
+    :param comm: <String> GAT/NIO.
     :param conn: <String> Connector
-                 (normally: es.bsc.compss.connectors.DefaultSSHConnector)
-    :param master_name: <String> Master node name
-    :param master_port: <String> Master node port
+                 (normally: es.bsc.compss.connectors.DefaultSSHConnector).
+    :param master_name: <String> Master node name.
+    :param master_port: <String> Master node port.
     :param scheduler: <String> Scheduler (normally:
-                  es.bsc.compss.scheduler.lookahead.locality.LocalityTS)
-    :param cp: <String>  Application path
-    :param classpath: <String> CLASSPATH environment variable contents
+                  es.bsc.compss.scheduler.lookahead.locality.LocalityTS).
+    :param cp: <String>  Application path.
+    :param classpath: <String> CLASSPATH environment variable contents.
     :param ld_library_path: <String> LD_LIBRARY_PATH environment
-                            variable contents
-    :param pythonpath: <String> PYTHONPATH environment variable contents
+                            variable contents.
+    :param pythonpath: <String> PYTHONPATH environment variable contents.
     :param jvm_workers: <String> Worker"s jvm configuration
-                        (example: "-Xms1024m,-Xmx1024m,-Xmn400m")
-    :param cpu_affinity: <String> CPU affinity (default: automatic)
-    :param gpu_affinity: <String> GPU affinity (default: automatic)
-    :param fpga_affinity: <String> FPGA affinity (default: automatic)
-    :param fpga_reprogram: <String> FPGA reprogram command (default: "")
-    :param profile_input: <String> profiling input
-    :param profile_output: <String> profiling output
+                        (example: "-Xms1024m,-Xmx1024m,-Xmn400m").
+    :param cpu_affinity: <String> CPU affinity (default: automatic).
+    :param gpu_affinity: <String> GPU affinity (default: automatic).
+    :param fpga_affinity: <String> FPGA affinity (default: automatic).
+    :param fpga_reprogram: <String> FPGA reprogram command (default: "").
+    :param profile_input: <String> profiling input.
+    :param profile_output: <String> profiling output.
     :param scheduler_config: <String> Path to the file which contains the
-                             scheduler configuration.
+                             scheduler configuration..
     :param external_adaptation: <String> Enable external adaptation.
-                                This option will disable the Resource Optimizer
-    :param python_interpreter: <String> Python interpreter
-    :param python_version: <String> Python interpreter version
-    :param python_virtual_environment: <String> Python virtual environment path
+                                This option will disable the Resource Optimizer.
+    :param python_interpreter: <String> Python interpreter.
+    :param python_version: <String> Python interpreter version.
+    :param python_virtual_environment: <String> Python virtual environment path.
     :param propagate_virtual_environment: <Boolean> Propagate python virtual
-                                          environment to workers
-    :param mpi_worker: Use the MPI worker [ True | False ] (default: False)
+                                          environment to workers.
+    :param mpi_worker: Use the MPI worker [ True | False ] (default: False).
     :param worker_cache: Use the worker cache [ True | int(size) | False ]
-                         (default: False)
+                         (default: False).
     :param shutdown_in_node_failure: Shutdown in node failure [ True | False]
-                                     (default: False)
-    :param io_executors: <Integer> Number of IO executors
-    :param env_script: <String> Environment script to be sourced in workers
-    :param reuse_on_block: Reuse on block [ True | False] (default: True)
-    :param nested_enabled: Nested enabled [ True | False] (default: False)
+                                     (default: False).
+    :param io_executors: <Integer> Number of IO executors.
+    :param env_script: <String> Environment script to be sourced in workers.
+    :param reuse_on_block: Reuse on block [ True | False] (default: True).
+    :param nested_enabled: Nested enabled [ True | False] (default: False).
     :param tracing_task_dependencies: Include task dependencies in trace
-                                      [ True | False] (default: False)
-    :param trace_label: <String> Add trace label
+                                      [ True | False] (default: False).
+    :param trace_label: <String> Add trace label.
     :param extrae_cfg_python: <String> Extrae configuration file for the
-                              workers
+                              workers.
     :param wcl: <Integer> Wall clock limit. Stops the runtime if reached.
                 0 means forever.
     :param cache_profiler: Use the cache profiler [ True | False ]
-                         (default: False)
-    :param kwargs: Any other parameter
-    :return: None
+                           (default: False).
+    :param kwargs: Any other parameter.
+    :return: None.
     """
     fd, temp_path = mkstemp()
     jvm_options_file = open(temp_path, "w")

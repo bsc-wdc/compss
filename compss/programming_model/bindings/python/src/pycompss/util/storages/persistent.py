@@ -18,29 +18,19 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Utils - External Storage
-=================================
-    This file contains the methods required to manage PSCOs.
-    Isolates the API signature calls.
+PyCOMPSs Utils - Storage - Persistent.
+
+This file contains the methods required to manage PSCOs.
+Isolates the API signature calls.
 """
 
-from pycompss.util.typing_helper import typing
-
 from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.util.tracing.helpers import event_inside_worker
 from pycompss.util.tracing.helpers import event_master
 from pycompss.util.tracing.helpers import event_worker
-from pycompss.util.tracing.helpers import event_inside_worker
-from pycompss.worker.commons.constants import (
-    GETID_EVENT,
-    GET_BY_ID_EVENT,
-    MAKE_PERSISTENT_EVENT,  # noqa Expose make persistent event id
-    DELETE_PERSISTENT_EVENT,  # noqa Expose delete persistent event id
-    INIT_STORAGE_EVENT,
-    STOP_STORAGE_EVENT,
-)
-from pycompss.runtime.constants import INIT_STORAGE_EVENT as MASTER_INIT_STORAGE_EVENT
-from pycompss.runtime.constants import STOP_STORAGE_EVENT as MASTER_STOP_STORAGE_EVENT
-
+from pycompss.util.tracing.types_events_master import TRACING_MASTER
+from pycompss.util.tracing.types_events_worker import TRACING_WORKER
+from pycompss.util.typing_helper import typing
 
 # Globals
 # Contain the actual storage api functions set on initialization
@@ -52,13 +42,18 @@ DUMMY_STORAGE = False  # type: bool
 
 
 class dummy_task_context(object):
-    """
-    Dummy task context to be used with storage frameworks.
-    """
+    """Dummy task context to be used with storage frameworks."""
 
     def __init__(
         self, logger: typing.Any, values: typing.Any, config_file_path: str = None
     ) -> None:
+        """Create a new instance of dummy_task_context.
+
+        :param logger: Logger facility.
+        :param values: Values.
+        :param config_file_path: Configuration file path.
+        :returns: None
+        """
         self.logger = logger
         err_msg = "Unexpected call to dummy storage task context."
         self.logger.error(err_msg)
@@ -67,6 +62,11 @@ class dummy_task_context(object):
         raise PyCOMPSsException(err_msg)
 
     def __enter__(self) -> None:
+        """Execute before starting the task.
+
+        :returns: None.
+        :raises: PyCOMPSsException: If dummy task context is used.
+        """
         # Ready to start the task
         err_msg = "Unexpected call to dummy storage task context __enter__"
         self.logger.error(err_msg)
@@ -75,6 +75,16 @@ class dummy_task_context(object):
     def __exit__(
         self, type: typing.Any, value: typing.Any, traceback: typing.Any
     ) -> None:
+        """Execute when the task has finished.
+
+        Signature from context.
+
+        :param type: Type.
+        :param value: Value.
+        :param traceback: Traceback.
+        :returns: None.
+        :raises: PyCOMPSsException: If dummy task context is used.
+        """
         # Task finished
         err_msg = "Unexpected call to dummy storage task context __exit__"
         self.logger.error(err_msg)
@@ -82,9 +92,9 @@ class dummy_task_context(object):
 
 
 def load_storage_library() -> None:
-    """Import the proper storage libraries
+    """Import the proper storage libraries.
 
-    :return: None
+    :return: None.
     """
     global INIT
     global FINISH
@@ -94,16 +104,31 @@ def load_storage_library() -> None:
     error_msg = "UNDEFINED"
 
     def dummy_init(config_file_path: str = None) -> None:
+        """Initialize the storage library.
+
+        :returns: None.
+        :raises: PyCOMPSsException: If dummy task context is used.
+        """
         raise PyCOMPSsException(
             "Unexpected call to init from storage. Reason: %s" % error_msg
         )
 
     def dummy_finish() -> None:
+        """Finish the storage library.
+
+        :returns: None.
+        :raises: PyCOMPSsException: If dummy task context is used.
+        """
         raise PyCOMPSsException(
             "Unexpected call to finish from storage. Reason: %s" % error_msg
         )
 
     def dummy_get_by_id(id: str) -> None:
+        """Get object by id from the storage library.
+
+        :returns: None.
+        :raises: PyCOMPSsException: If dummy task context is used.
+        """
         raise PyCOMPSsException("Unexpected call to getByID. Reason: %s" % error_msg)
 
     try:
@@ -135,7 +160,7 @@ def load_storage_library() -> None:
 
 
 def is_psco(obj: typing.Any) -> bool:
-    """Checks if obj is a persistent object (external storage).
+    """Check if obj is a persistent object (external storage).
 
     :param obj: Object to check.
     :return: True if is persistent object. False otherwise.
@@ -148,7 +173,7 @@ def is_psco(obj: typing.Any) -> bool:
 
 
 def has_id(obj: typing.Any) -> bool:
-    """Checks if the object has a getID method.
+    """Check if the object has a getID method.
 
     :param obj: Object to check.
     :return: True if is persistent object. False otherwise.
@@ -165,7 +190,7 @@ def get_id(psco: typing.Any) -> typing.Union[str, None]:
     :param psco: Persistent object.
     :return: Persistent object identifier.
     """
-    with event_inside_worker(GETID_EVENT):
+    with event_inside_worker(TRACING_WORKER.getid_event):
         return psco.getID()
 
 
@@ -175,7 +200,7 @@ def get_by_id(id: str) -> typing.Any:
     :param id: Persistent object identifier.
     :return: object associated to the persistent object identifier.
     """
-    with event_inside_worker(GET_BY_ID_EVENT):
+    with event_inside_worker(TRACING_WORKER.get_by_id_event):
         return GET_BY_ID(id)
 
 
@@ -188,12 +213,13 @@ def master_init_storage(storage_conf: str, logger: typing.Any) -> bool:
     :param logger: Logger where to log the messages.
     :return: True if initialized. False on the contrary.
     """
-    with event_master(MASTER_INIT_STORAGE_EVENT):
+    with event_master(TRACING_MASTER.init_storage_event):
         return __init_storage__(storage_conf, logger)
 
 
 def use_storage(storage_conf: str) -> bool:
-    """Evaluates if the storage_conf is defined.
+    """Evaluate if the storage_conf is defined.
+
     The storage will be used if storage_conf is not None nor "null".
 
     :param storage_conf: Storage configuration file.
@@ -211,7 +237,7 @@ def init_storage(storage_conf: str, logger: typing.Any) -> bool:
     :param logger: Logger where to log the messages.
     :return: True if initialized. False on the contrary.
     """
-    with event_worker(INIT_STORAGE_EVENT):
+    with event_worker(TRACING_WORKER.init_storage_event):
         return __init_storage__(storage_conf, logger)
 
 
@@ -238,34 +264,34 @@ def __init_storage__(storage_conf: str, logger: typing.Any) -> bool:
 
 
 def master_stop_storage(logger: typing.Any) -> None:
-    """Stops the persistent storage.
+    """Stop the persistent storage.
 
     This function emits the event in the master.
 
     :param logger: Logger where to log the messages.
     :return: None
     """
-    with event_master(MASTER_STOP_STORAGE_EVENT):
+    with event_master(TRACING_MASTER.stop_storage_event):
         __stop_storage__(logger)
 
 
 def stop_storage(logger: typing.Any) -> None:
-    """Stops the persistent storage.
+    """Stop the persistent storage.
 
     This function emits the event in the worker.
 
     :param logger: Logger where to log the messages.
     :return: None
     """
-    with event_worker(STOP_STORAGE_EVENT):
+    with event_worker(TRACING_WORKER.stop_storage_event):
         __stop_storage__(logger)
 
 
 def __stop_storage__(logger: typing.Any) -> None:
-    """Stops the persistent storage.
+    """Stop the persistent storage.
 
     :param logger: Logger where to log the messages.
-    :return: None
+    :return: None.
     """
     global FINISH
     if __debug__:

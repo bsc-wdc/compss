@@ -18,27 +18,24 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Binding - Management - Object Synchronization
-======================================================
-    This file contains the object synchronization core methods.
+PyCOMPSs Binding - Management - Object Synchronization.
+
+This file contains the object synchronization core methods.
 """
 
-from pycompss.util.typing_helper import typing
-
 import pycompss.runtime.management.COMPSs as COMPSs
-from pycompss.runtime.management.direction import get_compss_direction
-from pycompss.runtime.management.classes import Future
-from pycompss.runtime.management.object_tracker import OT
+import pycompss.util.context as context
 from pycompss.runtime.global_args import (
     update_worker_argument_parameter_content,
 )
-import pycompss.util.context as context
-from pycompss.util.storages.persistent import is_psco
+from pycompss.runtime.management.classes import Future
+from pycompss.runtime.management.direction import get_compss_direction
+from pycompss.runtime.management.object_tracker import OT
+from pycompss.util.serialization.serializer import deserialize_from_file
 from pycompss.util.storages.persistent import get_by_id
 from pycompss.util.storages.persistent import get_id
-from pycompss.util.serialization.serializer import deserialize_from_file
-from pycompss.runtime.commons import LIST_TYPE
-from pycompss.runtime.commons import DICT_TYPE
+from pycompss.util.storages.persistent import is_psco
+from pycompss.util.typing_helper import typing
 
 # Setup logger
 if __debug__:
@@ -48,16 +45,14 @@ if __debug__:
 
 
 def wait_on_object(obj: typing.Any, mode: str) -> typing.Any:
-    """Waits on an object.
+    """Wait on an object (synchronize).
 
     :param obj: Object to wait on.
     :param mode: Read or write mode
     :return: An object of "file" type.
     """
     compss_mode = get_compss_direction(mode)
-    if isinstance(obj, Future) or not (
-        isinstance(obj, LIST_TYPE) or isinstance(obj, DICT_TYPE)
-    ):
+    if isinstance(obj, Future) or not (isinstance(obj, list) or isinstance(obj, dict)):
         return _synchronize(obj, compss_mode)
     else:
         if len(obj) == 0:  # FUTURE OBJECT
@@ -68,7 +63,7 @@ def wait_on_object(obj: typing.Any, mode: str) -> typing.Any:
 
 
 def _synchronize(obj: typing.Any, mode: int) -> typing.Any:
-    """Synchronization function.
+    """Synchronize the given object.
 
     This method retrieves the value of a future object.
     Calls the runtime in order to wait for the value and returns it when

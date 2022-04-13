@@ -18,11 +18,11 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Utils - Optional Modules
-=================================
-    This file contains a list, alongside with some functions, of the
-    optional modules that are required in order to be able to use some
-    PyCOMPSs features.
+PyCOMPSs Utils - Warnings - Optional Modules.
+
+This file contains a list, alongside with some functions, of the
+optional modules that are required in order to be able to use some
+PyCOMPSs features.
 """
 
 from pycompss.util.objects.properties import is_module_available
@@ -53,7 +53,7 @@ def get_optional_module_warning(module_name: str, module_description: str) -> st
 def show_optional_module_warnings() -> None:
     """Display the optional modules warnings if not available.
 
-    :return: None
+    :return: None.
     """
     for (name, description) in OPTIONAL_MODULES.items():
         if not is_module_available(name):

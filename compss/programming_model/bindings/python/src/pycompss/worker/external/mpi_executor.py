@@ -18,30 +18,31 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs PYTHON MPI Executor
-===========================
-    This file contains the code of an executor running Python MPI execution
-    command that is passed from the runtime worker.
+PyCOMPSs Worker - External - MPI Executor.
+
+This file contains the code of an executor running Python MPI execution
+command that is passed from the runtime worker.
 """
 
 import copy
-import signal
 import logging
 import os
+import signal
 import sys
-from pycompss.util.typing_helper import typing
-from mpi4py import MPI
 
 import pycompss.util.context as context
+from mpi4py import MPI
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.logger.helpers import init_logging_worker
 from pycompss.util.tracing.helpers import event_worker
-from pycompss.worker.commons.constants import PROCESS_TASK_EVENT
-from pycompss.worker.piper.commons.constants import EXECUTE_TASK_TAG
-from pycompss.worker.piper.commons.constants import END_TASK_TAG
-from pycompss.worker.piper.commons.constants import COMPSS_EXCEPTION_TAG
+from pycompss.util.tracing.types_events_worker import TRACING_WORKER
+from pycompss.util.typing_helper import typing
 from pycompss.worker.commons.executor import build_return_params_message
 from pycompss.worker.commons.worker import execute_task
+from pycompss.worker.piper.commons.constants import COMPSS_EXCEPTION_TAG
+from pycompss.worker.piper.commons.constants import END_TASK_TAG
+from pycompss.worker.piper.commons.constants import EXECUTE_TASK_TAG
+
 
 # noqa TODO: Comments about exit value and return following values was in another branch need to be reviewed if it works in trunk
 # SUCCESS_SIG = 0
@@ -50,9 +51,9 @@ from pycompss.worker.commons.worker import execute_task
 
 
 def shutdown_handler(signal: int, frame: typing.Any) -> None:
-    """MPI exception signal handler
+    """Handle shutdown - MPI exception signal handler.
 
-    Do not remove the parameters.
+    CAUTION! Do not remove the parameters.
 
     :param signal: shutdown signal
     :param frame: Frame
@@ -67,7 +68,7 @@ def shutdown_handler(signal: int, frame: typing.Any) -> None:
 
 
 def executor(process_name: str, command: str) -> None:
-    """Execution main method.
+    """Executor main method.
 
     Iterates over the input pipe in order to receive tasks (with their
     parameters) and process them.
@@ -149,7 +150,7 @@ def process_task(
     :param logger_formatter: Logger formatter.
     :return: exit_value and message.
     """
-    with event_worker(PROCESS_TASK_EVENT):
+    with event_worker(TRACING_WORKER.process_task_event):
         # Process properties
         stdout = sys.stdout
         stderr = sys.stderr
@@ -378,6 +379,10 @@ def process_task(
 
 
 def main() -> None:
+    """MPI executor main method.
+
+    :returns: None.
+    """
     # Set the binding in worker mode
     context.set_pycompss_context(context.WORKER)
 

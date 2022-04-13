@@ -16,18 +16,18 @@
 #
 
 """
-PyCOMPSs PYTHONPATH Fixer
-=========================
-    Fixes the PYTHONPATH for Container environments.
+PyCOMPSs Worker - Container - PYTHONPATH Fixer.
+
+Fixes the PYTHONPATH for Container environments.
 """
 
 import sys
 
 
 def fix_pythonpath() -> None:
-    """Resets the PYTHONPATH for clean container environments
+    """Reset the PYTHONPATH for clean container environments.
 
-    :return: None
+    :return: None.
     """
     version = "%s.%s" % sys.version_info[0:2]
     # Default Python installation in Docker containers

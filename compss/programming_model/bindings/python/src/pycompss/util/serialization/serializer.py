@@ -18,56 +18,49 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Util - Data serializer/deserializer
-============================================
-    This file implements the main serialization/deserialization functions.
-    All serialization/deserialization calls should be made using one of the
-    following functions:
+PyCOMPSs Util - Serialization - Serializer/deserializer.
 
-    - serialize_to_file(obj, file_name) -> dumps the object "obj" to the file
-                                           "file_name"
-    - serialize_to_string(obj) -> dumps the object "obj" to a string
-    - serialize_to_handler(obj, handler) -> writes the serialized object using
-                                            the specified handler it also moves
-                                            the handler's pointer to the end of
-                                            the dump
+This file implements the main serialization/deserialization functions.
+All serialization/deserialization calls should be made using one of the
+following functions:
 
-    - deserialize_from_file(file_name) -> loads the first object from the tile
-                                          "file_name"
-    - deserialize_from_string(serialized_content) -> loads the first object
-                                                     from the given string
-    - deserialize_from_handler(handler) -> deserializes an object using the
-                                           given handler, it also leaves the
-                                           handler's pointer pointing to the
-                                           end of the serialized object
+- serialize_to_file(obj, file_name) -> dumps the object "obj" to the file
+                                       "file_name"
+- serialize_to_string(obj) -> dumps the object "obj" to a string
+- serialize_to_handler(obj, handler) -> writes the serialized object using
+                                        the specified handler it also moves
+                                        the handler's pointer to the end of
+                                        the dump
+
+- deserialize_from_file(file_name) -> loads the first object from the tile
+                                      "file_name"
+- deserialize_from_string(serialized_content) -> loads the first object
+                                                 from the given string
+- deserialize_from_handler(handler) -> deserializes an object using the
+                                       given handler, it also leaves the
+                                       handler's pointer pointing to the
+                                       end of the serialized object
 """
 
-import os
 import gc
 import json
+import os
+import pickle
 import struct
-import types
 import traceback
-from pycompss.util.typing_helper import typing
+import types
 from io import BytesIO
 
 from pycompss.util.exceptions import SerializerException
-from pycompss.util.serialization.extended_support import pickle_generator
-from pycompss.util.serialization.extended_support import convert_to_generator
-from pycompss.util.serialization.extended_support import GeneratorIndicator
 from pycompss.util.objects.properties import object_belongs_to_module
-from pycompss.runtime.constants import BINDING_SERIALIZATION_SIZE_TYPE
-from pycompss.runtime.constants import BINDING_DESERIALIZATION_SIZE_TYPE
-from pycompss.runtime.constants import BINDING_SERIALIZATION_OBJECT_NUM_TYPE
-from pycompss.runtime.constants import BINDING_DESERIALIZATION_OBJECT_NUM_TYPE
+from pycompss.util.serialization.extended_support import GeneratorIndicator
+from pycompss.util.serialization.extended_support import convert_to_generator
+from pycompss.util.serialization.extended_support import pickle_generator
 from pycompss.util.tracing.helpers import emit_manual_event_explicit
 from pycompss.util.tracing.helpers import event_inside_worker
-from pycompss.worker.commons.constants import DESERIALIZE_FROM_BYTES_EVENT
-from pycompss.worker.commons.constants import DESERIALIZE_FROM_FILE_EVENT
-from pycompss.worker.commons.constants import SERIALIZE_TO_FILE_EVENT
-from pycompss.worker.commons.constants import SERIALIZE_TO_FILE_MPIENV_EVENT
-
-import pickle
+from pycompss.util.tracing.types_events_master import TRACING_MASTER
+from pycompss.util.tracing.types_events_worker import TRACING_WORKER
+from pycompss.util.typing_helper import typing
 
 try:
     import dill  # noqa
@@ -112,7 +105,8 @@ DISABLE_GC = False
 
 
 def get_serializer_priority(obj: typing.Any = ()) -> list:
-    """Computes the priority of the serializers.
+    """Compute the priority of the serializers.
+
     Returns a list with the available serializers in the most common order
     (i.e: the order that will work for almost the 90% of our objects).
 
@@ -120,6 +114,8 @@ def get_serializer_priority(obj: typing.Any = ()) -> list:
     :return: <List> The serializers sorted by priority in descending order.
     """
     primitives = (int, str, bool, float)
+    # primitives should be (de)serialized with for the compatibility with the
+    # Runtime- only JSON objects can be deserialized in Java.
     if type(obj) in primitives:
         return [json, pickle]
     serializers = [pickle]
@@ -141,14 +137,14 @@ def serialize_to_handler(obj: typing.Any, handler: typing.Any) -> None:
     :param obj: Object to be serialized.
     :param handler: A handler object. It must implement methods like write,
                     writeline and similar stuff.
-    :return: none
+    :return: None.
     :raises SerializerException: If something wrong happens during
                                  serialization.
     """
-    emit_manual_event_explicit(BINDING_SERIALIZATION_SIZE_TYPE, 0)
+    emit_manual_event_explicit(TRACING_MASTER.binding_serialization_size_type, 0)
     if hasattr(handler, "name"):
         emit_manual_event_explicit(
-            BINDING_SERIALIZATION_OBJECT_NUM_TYPE,
+            TRACING_MASTER.binding_serialization_object_num_type,
             (abs(hash(os.path.basename(handler.name))) % PLATFORM_C_MAXINT),
         )
     if DISABLE_GC:
@@ -211,8 +207,10 @@ def serialize_to_handler(obj: typing.Any, handler: typing.Any) -> None:
                 tb = traceback.format_exc()
                 serialization_issues.append((serializer, tb))
         i += 1
-    emit_manual_event_explicit(BINDING_SERIALIZATION_SIZE_TYPE, handler.tell())
-    emit_manual_event_explicit(BINDING_SERIALIZATION_OBJECT_NUM_TYPE, 0)
+    emit_manual_event_explicit(
+        TRACING_MASTER.binding_serialization_size_type, handler.tell()
+    )
+    emit_manual_event_explicit(TRACING_MASTER.binding_serialization_object_num_type, 0)
     if DISABLE_GC:
         # Enable the garbage collector and force to clean the memory
         gc.enable()
@@ -238,7 +236,7 @@ def serialize_to_file(obj: typing.Any, file_name: str) -> None:
     :param file_name: File name where the object is going to be serialized.
     :return: Nothing, it just serializes the object.
     """
-    with event_inside_worker(SERIALIZE_TO_FILE_EVENT):
+    with event_inside_worker(TRACING_WORKER.serialize_to_file_event):
         # todo: can we make the binary mode optional?
         handler = open(file_name, "wb")
         serialize_to_handler(obj, handler)
@@ -257,7 +255,7 @@ def serialize_to_file_mpienv(
                              False for INOUT objects and True otherwise.
     :return: Nothing, it just serializes the object.
     """
-    with event_inside_worker(SERIALIZE_TO_FILE_MPIENV_EVENT):
+    with event_inside_worker(TRACING_WORKER.serialize_to_file_mpienv_event):
         from mpi4py import MPI
 
         if rank_zero_reduce:
@@ -274,7 +272,7 @@ def serialize_to_bytes(obj: typing.Any) -> bytes:
     """Serialize an object to a byte array.
 
     :param obj: Object to be serialized.
-    :return: The serialized content
+    :return: The serialized content.
     """
     handler = BytesIO()
     serialize_to_handler(obj, handler)
@@ -295,10 +293,10 @@ def deserialize_from_handler(
     :raises SerializerException: If deserialization can not be done.
     """
     # Retrieve the used library (if possible)
-    emit_manual_event_explicit(BINDING_DESERIALIZATION_SIZE_TYPE, 0)
+    emit_manual_event_explicit(TRACING_MASTER.binding_deserialization_size_type, 0)
     if hasattr(handler, "name"):
         emit_manual_event_explicit(
-            BINDING_DESERIALIZATION_OBJECT_NUM_TYPE,
+            TRACING_MASTER.binding_deserialization_object_num_type,
             (abs(hash(os.path.basename(handler.name))) % PLATFORM_C_MAXINT),
         )
     original_position = None
@@ -339,8 +337,12 @@ def deserialize_from_handler(
             # Enable the garbage collector and force to clean the memory
             gc.enable()
             gc.collect()
-        emit_manual_event_explicit(BINDING_DESERIALIZATION_SIZE_TYPE, handler.tell())
-        emit_manual_event_explicit(BINDING_DESERIALIZATION_OBJECT_NUM_TYPE, 0)
+        emit_manual_event_explicit(
+            TRACING_MASTER.binding_deserialization_size_type, handler.tell()
+        )
+        emit_manual_event_explicit(
+            TRACING_MASTER.binding_deserialization_object_num_type, 0
+        )
         return ret, close_handler
     except Exception:
         tb = traceback.format_exc()
@@ -366,7 +368,7 @@ def deserialize_from_file(file_name: str) -> typing.Any:
     :param file_name: Name of the file with the contents to be deserialized
     :return: A deserialized object
     """
-    with event_inside_worker(DESERIALIZE_FROM_FILE_EVENT):
+    with event_inside_worker(TRACING_WORKER.deserialize_from_file_event):
         handler = open(file_name, "rb")
         ret, close_handler = deserialize_from_handler(handler)
         if close_handler:
@@ -381,9 +383,9 @@ def deserialize_from_bytes(
 
     :param serialized_content_bytes: A byte array with serialized contents
     :param show_exception: Show exception if happen (only with debug).
-    :return: A deserialized object
+    :return: A deserialized object.
     """
-    with event_inside_worker(DESERIALIZE_FROM_BYTES_EVENT):
+    with event_inside_worker(TRACING_WORKER.deserialize_from_bytes_event):
         handler = BytesIO(serialized_content_bytes)
         ret, close_handler = deserialize_from_handler(
             handler, show_exception=show_exception
@@ -403,7 +405,7 @@ def serialize_objects(to_serialize: list) -> None:
 
     :param to_serialize: List of lists to be serialized. Each sublist is a
                          pair of the form ['object','file name']
-    :return: None
+    :return: None.
     """
     for obj_and_file in to_serialize:
         serialize_to_file(*obj_and_file)

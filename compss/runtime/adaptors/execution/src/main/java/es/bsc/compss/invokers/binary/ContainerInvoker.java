@@ -392,25 +392,7 @@ public class ContainerInvoker extends Invoker {
     }
 
     private void addParamInfo(List<String> paramsList, InvocationParam p) {
-        ///// TODO: AQUI HABRIA QUE LLAMAR AL convertParameter
-
         paramsList.addAll(convertParameter(p));
-
-        // paramsList.add(String.valueOf(p.getType().ordinal()));
-        // paramsList.add(String.valueOf(p.getStdIOStream().ordinal()));
-        // paramsList.add(p.getPrefix());
-        // paramsList.add(p.getName());
-        // paramsList.add("null");
-        // String value = String.valueOf(p.getValue());
-        // if (p.getType().equals(DataType.STRING_T)) {
-        // // TODO: There is always one substring (legacy code)
-        // paramsList.add("1");
-        // byte[] sharpedValue = ("#" + value).getBytes(); // Pre-pend # to avoid empty strings on binding
-        // String encodedValue = Base64.getEncoder().encodeToString(sharpedValue);
-        // paramsList.add(encodedValue);
-        // } else {
-        // paramsList.add(value);
-        // }
     }
 
     @SuppressWarnings("unchecked")

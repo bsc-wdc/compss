@@ -31,7 +31,6 @@
   # DEFINE MODULES
   modules="intel/2021.4.0 bsc/current oneapi-rt/2021.4.0 impi/2021.4.0 tbb/2021.4.0 mkl/2021.4.0 boost/1.78.0 papi/6.0.0"
   unload_before_python="ignore"
-  py2_modules=""
   run_before_py3_modules="ignore"
   py3_modules="python/3.7.12"
   run_before_py3_other_modules="ignore"
@@ -49,7 +48,7 @@
   c_binding="true"
 
   # CALL buildSC_aux
-  "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${unload_before_python}" "${py2_modules}" "${run_before_py3_modules}" "${py3_modules}" "${run_before_py3_other_modules}" "${py3_other_modules}" "${additionalExports}" "${additional_module_use_folder}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "${autoparallel}" "${c_binding}"
+  "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${unload_before_python}" "${run_before_py3_modules}" "${py3_modules}" "${run_before_py3_other_modules}" "${py3_other_modules}" "${additionalExports}" "${additional_module_use_folder}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "${autoparallel}" "${c_binding}"
   ev=$?
 
   # End

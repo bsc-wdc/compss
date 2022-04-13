@@ -32,11 +32,9 @@
   modules="intel/2017.4 transfer/1.0 bsc/1.0 impi/2017.4 mkl/2017.4 java/8u131 papi/5.5.1 gcc/7.2.0 boost/1.64.0"
   unload_before_python="boost/1.64.0"
   # Plain python modules:
-  py2_modules=""
   run_before_py3_modules="ignore"
   py3_modules="python/3.6.1"
   # Python modules with jupyter:
-  # py2_modules="ANACONDA/5.0.1_python2"  # python 2.7.14
   # py3_modules="ANACONDA/5.1.0_py3"      # "ANACONDA/5.1.0.py3conda" # python 3.6.3
   run_before_py3_other_modules="module load openssl/1.1.1f"
   py3_other_modules="python/3.7.4 python/3-intel-2018.2 python/3-intel-2019.2 python/3.8.2 python/3.9.10"
@@ -55,7 +53,7 @@
   c_binding="true"
 
   # CALL buildSC_aux
-  "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${unload_before_python}" "${py2_modules}" "${run_before_py3_modules}" "${py3_modules}" "${run_before_py3_other_modules}" "${py3_other_modules}" "${additionalExports}" "${additional_module_use_folder}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "${autoparallel}" "${c_binding}"
+  "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${unload_before_python}" "${run_before_py3_modules}" "${py3_modules}" "${run_before_py3_other_modules}" "${py3_other_modules}" "${additionalExports}" "${additional_module_use_folder}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "${autoparallel}" "${c_binding}"
   ev=$?
 
   # End

@@ -17,16 +17,22 @@
 
 # -*- coding: utf-8 -*-
 
+"""
+PyCOMPSs - Streams - Components.
+
+This file contains the distro stream components code.
+"""
+
 # Imports
 import logging
-import socket
-from pycompss.util.typing_helper import typing
-from threading import Thread
 import queue
+import socket
+from threading import Thread
 
 # Project imports
 from pycompss.streams.types.requests import STOP
 from pycompss.streams.types.requests import StopRequest
+from pycompss.util.typing_helper import typing
 
 #
 # Logger definition
@@ -41,8 +47,9 @@ logger = logging.getLogger("pycompss.streams.distro_stream_client")
 
 
 class DistroStreamClientHandler(object):
-    """
-    Handler to use the DistroStreamClient. This is a static class.
+    """Handler to use the DistroStreamClient.
+
+    This is a static class.
 
     Attributes:
         - CLIENT: Distributed Stream Client to handle.
@@ -52,15 +59,18 @@ class DistroStreamClientHandler(object):
     CLIENT = None  # type: typing.Any
 
     def __init__(self) -> None:
-        """Creates a new handler instance.
+        """Create a new handler instance.
+
         Should never be called directly since all attributes are static.
         """
         # Nothing to do since this is a static handler
         pass
 
     @staticmethod
-    def init_and_start(master_ip: str = "", master_port: str = "") -> None:
-        """Initializes and starts the client.
+    def init_and_start(
+        master_ip: typing.Optional[str] = None, master_port: typing.Optional[str] = None
+    ) -> None:
+        """Initialize and starts the client.
 
         :param master_ip: Master IP.
         :param master_port: Master port.
@@ -73,7 +83,7 @@ class DistroStreamClientHandler(object):
 
     @staticmethod
     def set_stop() -> None:
-        """Marks the client to stop.
+        """Mark the client to stop.
 
         :return: None.
         """
@@ -82,7 +92,7 @@ class DistroStreamClientHandler(object):
 
     @staticmethod
     def request(req: typing.Any) -> None:
-        """Adds a new request to the client.
+        """Add a new request to the client.
 
         :param req: Client request (Subclass of Request)
         :return: None.
@@ -94,8 +104,7 @@ class DistroStreamClientHandler(object):
 # Client definition
 #
 class DistroStreamClient(Thread):
-    """
-    Distro Stream Client definition.
+    """Distro Stream Client definition.
 
     Attributes:
         - master_ip: Master IP address.
@@ -110,8 +119,10 @@ class DistroStreamClient(Thread):
 
     BUFFER_SIZE = 4096
 
-    def __init__(self, master_ip: str, master_port: str) -> None:
-        """Creates a new Client associated to the given master properties.
+    def __init__(
+        self, master_ip: typing.Optional[str], master_port: typing.Optional[str]
+    ) -> None:
+        """Create a new Client associated to the given master properties.
 
         :param master_ip: Master IP address.
         :param master_port: Master port.
@@ -122,7 +133,7 @@ class DistroStreamClient(Thread):
 
         # Register information
         self.master_ip = master_ip
-        self.master_port = int(master_port)
+        self.master_port = int(str(master_port))
 
         # Initialize internal structures
         self.running = True
@@ -130,7 +141,7 @@ class DistroStreamClient(Thread):
         self.requests = queue.Queue()
 
     def run(self) -> None:
-        """Running method of the internal thread.
+        """Run method of the internal thread.
 
         :return: None.
         """
@@ -159,8 +170,8 @@ class DistroStreamClient(Thread):
     def _process_request(self, req: typing.Any) -> None:
         """Process requests to the server.
 
-        :param req: Request
-        :return: None
+        :param req: Request.
+        :return: None.
         """
         # Open socket connection
         try:
@@ -201,7 +212,7 @@ class DistroStreamClient(Thread):
             req.set_error(1, str(e))
 
     def add_request(self, req: typing.Any) -> None:
-        """Adds a new request to the client.
+        """Add a new request to the client.
 
         :param req: Request to add (Request subclass).
         :return: None.

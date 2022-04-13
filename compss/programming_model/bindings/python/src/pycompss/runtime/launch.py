@@ -18,34 +18,32 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Binding - Launch
-=========================
-    This file contains the __main__ method.
-    It is called from the runcompss/enqueue_compss script with the user and
-    environment parameters.
+PyCOMPSs Binding - Launch.
+
+This file contains the __main__ method.
+It is called from the runcompss/enqueue_compss/cli script with the user and
+environment parameters.
 """
+
+import argparse
+import gc
+import logging
 
 # Imports
 import os
 import sys
-import logging
 import traceback
-import argparse
-from pycompss.util.typing_helper import typing
-import gc
 
 # Project imports
 import pycompss.util.context as context
+from pycompss.api.exceptions import COMPSsException
 from pycompss.runtime.binding import get_log_path
-from pycompss.runtime.commons import DEFAULT_SCHED
-from pycompss.runtime.commons import DEFAULT_CONN
-from pycompss.runtime.commons import DEFAULT_JVM_WORKERS
-from pycompss.runtime.commons import set_temporary_directory
-from pycompss.runtime.commons import set_object_conversion
-from pycompss.runtime.commons import PYTHON_VERSION
-from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
-from pycompss.util.exceptions import SerializerException
-from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.runtime.commons import CONSTANTS
+from pycompss.runtime.commons import GLOBALS
+
+# Streaming imports
+from pycompss.streams.environment import init_streaming
+from pycompss.streams.environment import stop_streaming
 from pycompss.util.environment.configuration import (
     preload_user_code,
     export_current_flags,
@@ -56,28 +54,26 @@ from pycompss.util.environment.configuration import (
     check_infrastructure_variables,
     create_init_config_file,
 )
-from pycompss.util.logger.helpers import get_logging_cfg_file
-from pycompss.util.logger.helpers import init_logging
-from pycompss.util.logger.helpers import clean_log_configs
-from pycompss.util.process.manager import initialize_multiprocessing
-from pycompss.util.warnings.modules import show_optional_module_warnings
+from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.util.exceptions import SerializerException
 from pycompss.util.interactive.flags import check_flags
 from pycompss.util.interactive.flags import print_flag_issues
 from pycompss.util.interactive.utils import parameters_to_dict
-from pycompss.api.exceptions import COMPSsException
-
-# Tracing imports
-from pycompss.util.tracing.helpers import event_master
-from pycompss.runtime.constants import APPLICATION_RUNNING_EVENT
-
-# Storage imports
-from pycompss.util.storages.persistent import use_storage
+from pycompss.util.logger.helpers import clean_log_configs
+from pycompss.util.logger.helpers import get_logging_cfg_file
+from pycompss.util.logger.helpers import init_logging
+from pycompss.util.process.manager import initialize_multiprocessing
 from pycompss.util.storages.persistent import master_init_storage
 from pycompss.util.storages.persistent import master_stop_storage
 
-# Streaming imports
-from pycompss.streams.environment import init_streaming
-from pycompss.streams.environment import stop_streaming
+# Storage imports
+from pycompss.util.storages.persistent import use_storage
+
+# Tracing imports
+from pycompss.util.tracing.helpers import event_master
+from pycompss.util.tracing.types_events_master import TRACING_MASTER
+from pycompss.util.typing_helper import typing
+from pycompss.util.warnings.modules import show_optional_module_warnings
 
 # Global variable also task-master decorator
 APP_PATH = None
@@ -96,7 +92,7 @@ def stop_all(exit_code: int) -> None:
     """Stop everything smoothly.
 
     :param exit_code: Exit code.
-    :return: None
+    :return: None.
     """
     from pycompss.api.api import compss_stop
 
@@ -137,19 +133,20 @@ def parse_arguments() -> typing.Any:
 
 
 def __load_user_module__(app_path: str, log_level: str) -> None:
-    """Loads the user module (resolve all user imports).
+    """Load the user module (resolve all user imports).
+
     This has shown to be necessary before doing "start_compss" in order
     to avoid segmentation fault in some libraries.
 
-    :param app_path: Path to the file to be imported
-    :param log_level: Logging level
-    :return: None
+    :param app_path: Path to the file to be imported.
+    :param log_level: Logging level.
+    :return: None.
     """
     app_name = os.path.basename(app_path).split(".")[0]
     try:
         from importlib.machinery import SourceFileLoader  # noqa
 
-        _ = SourceFileLoader(app_name, app_path).load_module()  # type: ignore
+        _ = SourceFileLoader(app_name, app_path).load_module()
     except Exception:  # noqa
         # Ignore any exception to try to run.
         # This exception can be produce for example with applications
@@ -157,12 +154,15 @@ def __load_user_module__(app_path: str, log_level: str) -> None:
         # exist (e.g. using autoparallel)
         if log_level != "off":
             print(
-                "WARNING: Could not load the application (this may be the cause of a running exception."
-            )  # noqa: E501
+                "WARNING: Could not load the application "
+                "(this may be the cause of a running exception."
+            )
 
 
 def __register_implementation_core_elements__() -> None:
-    """Register the @implements core elements accumulated during the
+    """Register all implementations accumulated during initialization.
+
+    Register the @implements core elements accumulated during the
     initialization of the @implements decorators. They have not been
     registered because the runtime was not started. And the load is
     necessary to resolve all user imports before starting the runtime (it has
@@ -179,7 +179,7 @@ def __register_implementation_core_elements__() -> None:
 
 
 def compss_main() -> None:
-    """PyCOMPSs main function.
+    """Execute the given application and flags with PyCOMPSs.
 
     General call:
     python $PYCOMPSS_HOME/pycompss/runtime/launch.py $wall_clock $log_level
@@ -187,7 +187,7 @@ def compss_main() -> None:
            $streaming_master_name $streaming_master_port
            $fullAppPath $application_args
 
-    :return: None
+    :return: None.
     """
     global APP_PATH
     global STREAMING
@@ -243,7 +243,7 @@ def compss_main() -> None:
         compss_set_wall_clock(wall_clock)
 
     # Get object_conversion boolean
-    set_object_conversion(args.object_conversion == "true")
+    GLOBALS.set_object_conversion(args.object_conversion == "true")
 
     # Get application execution path
     APP_PATH = args.app_path
@@ -251,9 +251,9 @@ def compss_main() -> None:
     # Setup logging
     binding_log_path = get_log_path()
     log_path = os.path.join(
-        str(os.getenv("COMPSS_HOME")), "Bindings", "python", str(PYTHON_VERSION), "log"
+        str(os.getenv("COMPSS_HOME")), "Bindings", "python", "3", "log"
     )
-    set_temporary_directory(binding_log_path)
+    GLOBALS.set_temporary_directory(binding_log_path)
     logging_cfg_file = get_logging_cfg_file(log_level)
     init_logging(os.path.join(log_path, logging_cfg_file), binding_log_path)
     LOGGER = logging.getLogger("pycompss.runtime.launch")
@@ -285,7 +285,7 @@ def compss_main() -> None:
             show_optional_module_warnings()
 
         # MAIN EXECUTION
-        with event_master(APPLICATION_RUNNING_EVENT):
+        with event_master(TRACING_MASTER.application_running_event):
             # MAIN EXECUTION
             with open(APP_PATH) as f:
                 exec(compile(f.read(), APP_PATH, "exec"), globals())
@@ -356,11 +356,11 @@ def launch_pycompss_application(
     specific_log_dir: str = "",
     extrae_cfg: str = "",
     comm: str = "NIO",
-    conn: str = DEFAULT_CONN,
+    conn: str = CONSTANTS.default_conn,
     master_name: str = "",
     master_port: str = "",
-    scheduler: str = DEFAULT_SCHED,
-    jvm_workers: str = DEFAULT_JVM_WORKERS,
+    scheduler: str = CONSTANTS.default_sched,
+    jvm_workers: str = CONSTANTS.default_jvm_workers,
     cpu_affinity: str = "automatic",
     gpu_affinity: str = "automatic",
     fpga_affinity: str = "automatic",
@@ -540,7 +540,7 @@ def launch_pycompss_application(
     )
     all_vars.update(monitoring_vars)
 
-    if RUNNING_IN_SUPERCOMPUTER:
+    if CONSTANTS.running_in_supercomputer:
         updated_vars = updated_variables_in_sc()
         all_vars.update(updated_vars)
 
@@ -576,7 +576,7 @@ def launch_pycompss_application(
         str(all_vars["major_version"]),
         "log",
     )
-    set_temporary_directory(binding_log_path)
+    GLOBALS.set_temporary_directory(binding_log_path)
     logging_cfg_file = get_logging_cfg_file(log_level)
     init_logging(os.path.join(log_path, logging_cfg_file), binding_log_path)
     logger = logging.getLogger("pycompss.runtime.launch")
@@ -600,14 +600,14 @@ def launch_pycompss_application(
     saved_argv = sys.argv
     sys.argv = list(args)
     # Execution:
-    with event_master(APPLICATION_RUNNING_EVENT):
+    with event_master(TRACING_MASTER.application_running_event):
         if func is None or func == "__main__":
             exec(open(app).read())
             result = None
         else:
             from importlib.machinery import SourceFileLoader  # noqa
 
-            imported_module = SourceFileLoader(all_vars["file_name"], app).load_module()  # type: ignore
+            imported_module = SourceFileLoader(all_vars["file_name"], app).load_module()
             method_to_call = getattr(imported_module, func)
             try:
                 result = method_to_call(*args, **kwargs)

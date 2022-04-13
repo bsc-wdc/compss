@@ -18,29 +18,28 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Binding - Interactive API
-==================================
-    Provides the current start and stop for the use of PyCOMPSs interactively.
+PyCOMPSs Binding - Interactive API.
+
+Provides the functions for the use of PyCOMPSs interactively.
 """
 
+import logging
 import os
 import sys
-import logging
-import time
 import tempfile
-from pycompss.util.typing_helper import typing
+import time
 
 import pycompss.util.context as context
 import pycompss.util.interactive.helpers as interactive_helpers
 from pycompss.runtime.binding import get_log_path
-from pycompss.runtime.management.object_tracker import OT
+from pycompss.runtime.commons import CONSTANTS
+from pycompss.runtime.commons import GLOBALS
 from pycompss.runtime.management.classes import Future
-from pycompss.runtime.commons import DEFAULT_SCHED
-from pycompss.runtime.commons import DEFAULT_CONN
-from pycompss.runtime.commons import DEFAULT_JVM_WORKERS
-from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
-from pycompss.runtime.commons import INTERACTIVE_FILE_NAME
-from pycompss.runtime.commons import set_temporary_directory
+from pycompss.runtime.management.object_tracker import OT
+
+# Streaming imports
+from pycompss.streams.environment import init_streaming
+from pycompss.streams.environment import stop_streaming
 from pycompss.util.environment.configuration import (
     export_current_flags,
     prepare_environment,
@@ -50,42 +49,39 @@ from pycompss.util.environment.configuration import (
     check_infrastructure_variables,
     create_init_config_file,
 )
-from pycompss.util.logger.helpers import get_logging_cfg_file
-from pycompss.util.logger.helpers import init_logging
-from pycompss.util.interactive.events import setup_event_manager
 from pycompss.util.interactive.events import release_event_manager
+from pycompss.util.interactive.events import setup_event_manager
 from pycompss.util.interactive.flags import check_flags
 from pycompss.util.interactive.flags import print_flag_issues
-from pycompss.util.interactive.utils import parameters_to_dict
-from pycompss.util.interactive.outwatcher import STDW
 from pycompss.util.interactive.graphs import show_graph
+from pycompss.util.interactive.outwatcher import STDW
+from pycompss.util.interactive.state import check_monitoring_file
+from pycompss.util.interactive.state import show_resources_status
+from pycompss.util.interactive.state import show_statistics
 from pycompss.util.interactive.state import show_tasks_info
 from pycompss.util.interactive.state import show_tasks_status
-from pycompss.util.interactive.state import show_statistics
-from pycompss.util.interactive.state import show_resources_status
-from pycompss.util.interactive.state import check_monitoring_file
+from pycompss.util.interactive.utils import parameters_to_dict
+from pycompss.util.logger.helpers import get_logging_cfg_file
+from pycompss.util.logger.helpers import init_logging
 from pycompss.util.process.manager import initialize_multiprocessing
-
-# Tracing imports
-from pycompss.util.tracing.helpers import emit_manual_event
-from pycompss.runtime.constants import APPLICATION_RUNNING_EVENT
 
 # Storage imports
 from pycompss.util.storages.persistent import master_init_storage
 from pycompss.util.storages.persistent import master_stop_storage
 
-# Streaming imports
-from pycompss.streams.environment import init_streaming
-from pycompss.streams.environment import stop_streaming
-
+# Tracing imports
+from pycompss.util.tracing.helpers import emit_manual_event
+from pycompss.util.tracing.types_events_master import TRACING_MASTER
+from pycompss.util.typing_helper import typing
 
 # GLOBAL VARIABLES
-APP_PATH = INTERACTIVE_FILE_NAME
+APP_PATH = CONSTANTS.interactive_file_name
 PERSISTENT_STORAGE = False
 STREAMING = False
 LOG_PATH = tempfile.mkdtemp()
 GRAPHING = False
 LINE_SEPARATOR = "********************************************************"
+DISABLE_EXTERNAL = False
 
 
 # Initialize multiprocessing
@@ -109,17 +105,17 @@ def start(
     streaming_master_name: str = "",
     streaming_master_port: str = "",
     task_count: int = 50,
-    app_name: str = INTERACTIVE_FILE_NAME,
+    app_name: str = CONSTANTS.interactive_file_name,
     uuid: str = "",
     base_log_dir: str = "",
     specific_log_dir: str = "",
     extrae_cfg: str = "",
     comm: str = "NIO",
-    conn: str = DEFAULT_CONN,
+    conn: str = CONSTANTS.default_conn,
     master_name: str = "",
     master_port: str = "",
-    scheduler: str = DEFAULT_SCHED,
-    jvm_workers: str = DEFAULT_JVM_WORKERS,
+    scheduler: str = CONSTANTS.default_sched,
+    jvm_workers: str = CONSTANTS.default_jvm_workers,
     cpu_affinity: str = "automatic",
     gpu_affinity: str = "automatic",
     fpga_affinity: str = "automatic",
@@ -142,6 +138,7 @@ def start(
     wcl: int = 0,
     cache_profiler: bool = False,
     verbose: bool = False,
+    disable_external: bool = False,
 ) -> None:
     """Start the runtime in interactive mode.
 
@@ -178,7 +175,7 @@ def start(
     :param task_count: Task count
                        (default: 50)
     :param app_name: Application name
-                     default: INTERACTIVE_FILE_NAME)
+                     (default: CONSTANTS.interactive_file_name)
     :param uuid: UUId
                  (default: None)
     :param base_log_dir: Base logging directory
@@ -240,16 +237,23 @@ def start(
                          (default: False)
     :param verbose: Verbose mode [ True|False ]
                     (default: False)
+    :param disable_external: To avoid to load compss in external process [ True | False ]
+                             Necessary in scenarios like pytest which fails with
+                             multiprocessing. It also disables the outwatcher
+                             since pytest also captures stdout and stderr.
+                             (default: False)
     :return: None
     """
     # Export global variables
     global GRAPHING
+    global DISABLE_EXTERNAL
 
     if context.in_pycompss():
         print("The runtime is already running")
         return None
 
     GRAPHING = graph
+    DISABLE_EXTERNAL = disable_external
     __export_globals__()
 
     interactive_helpers.DEBUG = debug
@@ -342,7 +346,7 @@ def start(
 
     # Check if running in supercomputer and update the variables accordingly
     # with the defined in the launcher and exported in environment variables.
-    if RUNNING_IN_SUPERCOMPUTER:
+    if CONSTANTS.running_in_supercomputer:
         updated_vars = updated_variables_in_sc()
         if verbose:
             print("- Overridden project xml with: %s" % updated_vars["project_xml"])
@@ -392,11 +396,11 @@ def start(
 
     print("* - Starting COMPSs runtime...                         *")
     sys.stdout.flush()  # Force flush
-    compss_start(log_level, all_vars["trace"], True)
+    compss_start(log_level, all_vars["trace"], True, disable_external)
 
     global LOG_PATH
     LOG_PATH = get_log_path()
-    set_temporary_directory(LOG_PATH)
+    GLOBALS.set_temporary_directory(LOG_PATH)
     print("* - Log path : " + LOG_PATH)
 
     # Setup logging
@@ -408,7 +412,7 @@ def start(
         str(all_vars["major_version"]),
         "log",
     )
-    set_temporary_directory(binding_log_path)
+    GLOBALS.set_temporary_directory(binding_log_path)
     logging_cfg_file = get_logging_cfg_file(log_level)
     init_logging(os.path.join(log_path, logging_cfg_file), binding_log_path)
     logger = logging.getLogger("pycompss.runtime.launch")
@@ -431,7 +435,8 @@ def start(
     )
 
     # Start monitoring the stdout and stderr
-    STDW.start_watching()
+    if not disable_external:
+        STDW.start_watching()
 
     # MAIN EXECUTION
     # let the user write an interactive application
@@ -439,11 +444,11 @@ def start(
     print(LINE_SEPARATOR)
 
     # Emit the application start event (the 0 is in the stop function)
-    emit_manual_event(APPLICATION_RUNNING_EVENT)
+    emit_manual_event(TRACING_MASTER.application_running_event)
 
 
 def __show_flower__() -> None:
-    """Shows the flower and version through stdout.
+    """Show the flower and version through stdout.
 
     :return: None
     """
@@ -508,15 +513,16 @@ def stop(sync: bool = False, _hard_stop: bool = False) -> None:
     print(LINE_SEPARATOR)
     print("*************** STOPPING PyCOMPSs ******************")
     print(LINE_SEPARATOR)
-    # Wait 5 seconds to give some time to process the remaining messages
-    # of the STDW and check if there is some error that could have stopped
-    # the runtime before continuing.
-    print("Checking if any issue happened.")
-    time.sleep(5)
-    messages = STDW.get_messages()
-    if messages:
-        for message in messages:
-            sys.stderr.write("".join((message, "\n")))
+    if not DISABLE_EXTERNAL:
+        # Wait 5 seconds to give some time to process the remaining messages
+        # of the STDW and check if there is some error that could have stopped
+        # the runtime before continuing.
+        print("Checking if any issue happened.")
+        time.sleep(5)
+        messages = STDW.get_messages()
+        if messages:
+            for message in messages:
+                sys.stderr.write("".join((message, "\n")))
 
     # Uncomment the following lines to see the ipython dictionary
     # in a structured way:
@@ -574,7 +580,7 @@ def stop(sync: bool = False, _hard_stop: bool = False) -> None:
     if PERSISTENT_STORAGE:
         master_stop_storage(logger)
 
-    # Emit the 0 for the APPLICATION_RUNNING_EVENT emitted on start function.
+    # Emit the 0 for the TRACING_MASTER.*_event emitted on start function.
     emit_manual_event(0)
 
     # Stop runtime
@@ -585,12 +591,13 @@ def stop(sync: bool = False, _hard_stop: bool = False) -> None:
     __clean_temp_files__()
 
     # Stop watching stdout and stderr
-    STDW.stop_watching(clean=True)
-    # Retrieve the remaining messages that could have been captured.
-    last_messages = STDW.get_messages()
-    if last_messages:
-        for message in last_messages:
-            print(message)
+    if not DISABLE_EXTERNAL:
+        STDW.stop_watching(clean=True)
+        # Retrieve the remaining messages that could have been captured.
+        last_messages = STDW.get_messages()
+        if last_messages:
+            for message in last_messages:
+                print(message)
 
     # Let the Python binding know we are not at master anymore
     context.set_pycompss_context(context.OUT_OF_SCOPE)
@@ -604,7 +611,9 @@ def stop(sync: bool = False, _hard_stop: bool = False) -> None:
 def __hard_stop__(
     debug: bool, sync: bool, logger: typing.Any, ipython: typing.Any
 ) -> None:
-    """The runtime has been stopped by any error and this method stops the
+    """Stop the binding securely when the runtime crashes.
+
+    If the runtime has been stopped by any error, this method stops the
     remaining things in the binding.
 
     :param debug: If debugging.
@@ -632,12 +641,13 @@ def __hard_stop__(
     __clean_temp_files__()
 
     # Stop watching stdout and stderr
-    STDW.stop_watching(clean=not debug)
-    # Retrieve the remaining messages that could have been captured.
-    last_messages = STDW.get_messages()
-    if last_messages:
-        for message in last_messages:
-            print(message)
+    if not DISABLE_EXTERNAL:
+        STDW.stop_watching(clean=not debug)
+        # Retrieve the remaining messages that could have been captured.
+        last_messages = STDW.get_messages()
+        if last_messages:
+            for message in last_messages:
+                print(message)
 
     if sync:
         print("* Can not synchronize any future object.")
@@ -789,7 +799,7 @@ def __export_globals__() -> None:
     # decorators can get it.
     temp_app_filename = "".join(
         (
-            os.path.join(os.getcwd(), INTERACTIVE_FILE_NAME),
+            os.path.join(os.getcwd(), CONSTANTS.interactive_file_name),
             "_",
             str(time.strftime("%d%m%y_%H%M%S")),
             ".py",

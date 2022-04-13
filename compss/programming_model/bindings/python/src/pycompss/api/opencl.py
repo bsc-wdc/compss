@@ -18,40 +18,40 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - OPENCL
-=====================
-    This file contains the class constraint, needed for the opencl task
-    definition through the decorator.
+PyCOMPSs API - OpenCL decorator.
+
+This file contains the OpenCL class, needed for the opencl task definition
+through the decorator.
 """
 
-from pycompss.util.typing_helper import typing
 from functools import wraps
 
 import pycompss.util.context as context
-from pycompss.api.commons.constants import KERNEL
-from pycompss.api.commons.constants import WORKING_DIR
-from pycompss.api.commons.constants import LEGACY_WORKING_DIR
-from pycompss.api.commons.implementation_types import IMPL_OPENCL
-from pycompss.api.commons.error_msgs import not_in_pycompss
-from pycompss.util.exceptions import NotInPyCOMPSsException
-from pycompss.api.commons.decorator import resolve_working_dir
-from pycompss.api.commons.decorator import keep_arguments
+from pycompss.api.commons.constants import LABELS
+from pycompss.api.commons.constants import LEGACY_LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
+from pycompss.api.commons.decorator import keep_arguments
+from pycompss.api.commons.decorator import resolve_working_dir
+from pycompss.api.commons.error_msgs import not_in_pycompss
+from pycompss.api.commons.implementation_types import IMPL_OPENCL
 from pycompss.runtime.task.core_element import CE
 from pycompss.util.arguments import check_arguments
+from pycompss.util.exceptions import NotInPyCOMPSsException
+from pycompss.util.typing_helper import typing
 
 if __debug__:
     import logging
 
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {KERNEL}
-SUPPORTED_ARGUMENTS = {KERNEL, WORKING_DIR}
-DEPRECATED_ARGUMENTS = {LEGACY_WORKING_DIR}
+MANDATORY_ARGUMENTS = {LABELS.kernel}
+SUPPORTED_ARGUMENTS = {LABELS.kernel, LABELS.working_dir}
+DEPRECATED_ARGUMENTS = {LEGACY_LABELS.working_dir}
 
 
 class OpenCL(object):
-    """
+    """OpenCL decorator class.
+
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on opencl task creation.
     """
@@ -126,14 +126,14 @@ class OpenCL(object):
             logger.debug("Configuring @opencl core element.")
 
         # Resolve @opencl specific parameters
-        kernel = self.kwargs[KERNEL]
+        kernel = self.kwargs[LABELS.kernel]
 
         # Resolve the working directory
         resolve_working_dir(self.kwargs)
 
         impl_type = IMPL_OPENCL
         impl_signature = ".".join((impl_type, kernel))
-        impl_args = [kernel, self.kwargs[WORKING_DIR]]
+        impl_args = [kernel, self.kwargs[LABELS.working_dir]]
 
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator

@@ -6,10 +6,9 @@ echo "Installing COMPSs in $TARGET"
 source env.sh
 cd COMPSs
 
-./install -A --only-python-3 $TARGET cte-arm.cfg
+./install -A $TARGET cte-arm.cfg
 if [ $? -ne 0 ]; then
 	echo "ERROR installing COMPSs"
 	exit 1
 fi
 echo "COMPSs INSTALLED!"
-

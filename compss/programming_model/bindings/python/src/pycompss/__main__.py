@@ -38,7 +38,7 @@ ENQUEUE_EXECUTABLE = "enqueue_compss"
 TAGS = [RUN_TAG, ENQUEUE_TAG]
 
 
-class Object(object):
+class Object:  # pylint: disable=too-few-public-methods
     """Dummy class to mimic argparse return object."""
 
     action = "None"
@@ -79,8 +79,8 @@ def run(cmd: typing.List[str]) -> None:
     :param cmd: Command to execute (list of <String>)
     :return: None
     """
-    p = Popen(cmd, stdout=sys.stdout, stderr=sys.stderr)
-    p.communicate()
+    with Popen(cmd, stdout=sys.stdout, stderr=sys.stderr) as command_process:
+        command_process.communicate()
 
 
 def main() -> None:
@@ -111,7 +111,7 @@ def main() -> None:
     else:
         # Use the same as current
         python_interpreter = [
-            "--python_interpreter=%s" % str(CONSTANTS.python_interpreter)
+            f"--python_interpreter={CONSTANTS.python_interpreter}"
         ]
 
     # Take an action

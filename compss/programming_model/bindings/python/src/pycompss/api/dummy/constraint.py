@@ -23,33 +23,7 @@ PyCOMPSs API - dummy - constraint.
 This file contains the dummy class constraint used as decorator.
 """
 
-from pycompss.util.typing_helper import typing
+from pycompss.api.dummy._decorator import _Dummy as Dummy
 
-
-class Constraint(object):
-    """Dummy Constraint class (decorator style)."""
-
-    def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
-        """Construct a dummy Constraint decorator.
-
-        :param args: Task decorator arguments.
-        :param kwargs: Task decorator keyword arguments.
-        :returns: None
-        """
-        self.args = args
-        self.kwargs = kwargs
-
-    def __call__(self, f: typing.Any) -> typing.Any:
-        """Invoke the dummy Constraint decorator.
-
-        :param f: Decorated function.
-        :returns: Result of executing function f.
-        """
-
-        def wrapped_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
-            return f(*args, **kwargs)
-
-        return wrapped_f
-
-
-constraint = Constraint
+Constraint = Dummy  # pylint: disable=invalid-name
+constraint = Dummy  # pylint: disable=invalid-name

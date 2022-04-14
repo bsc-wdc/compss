@@ -23,34 +23,8 @@ PyCOMPSs API - dummy - on failure.
 This file contains the dummy class on failure used as decorator.
 """
 
-from pycompss.util.typing_helper import typing
+from pycompss.api.dummy._decorator import _Dummy as Dummy
 
-
-class OnFailure(object):
-    """Dummy on failure class (decorator style)."""
-
-    def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
-        """Construct a dummy OnFailure decorator.
-
-        :param args: Task decorator arguments.
-        :param kwargs: Task decorator keyword arguments.
-        :returns: None
-        """
-        self.args = args
-        self.kwargs = kwargs
-
-    def __call__(self, f: typing.Any) -> typing.Any:
-        """Invoke the dummy OnFailure decorator.
-
-        :param f: Decorated function.
-        :returns: Result of executing function f.
-        """
-
-        def wrapped_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
-            return f(*args, **kwargs)
-
-        return wrapped_f
-
-
-on_failure = OnFailure
-onFailure = OnFailure
+OnFailure = Dummy  # pylint: disable=invalid-name
+on_failure = Dummy  # pylint: disable=invalid-name
+onFailure = Dummy  # pylint: disable=invalid-name

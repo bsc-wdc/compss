@@ -29,11 +29,11 @@ from pycompss.util.typing_helper import typing
 
 
 def compss_start(
-    log_level: str = "off",
-    tracing: bool = False,
-    interactive: bool = False,
-    disable_external: bool = False,
-) -> None:
+    log_level: str = "off",  # pylint: disable=unused-argument
+    tracing: bool = False,  # pylint: disable=unused-argument
+    interactive: bool = False,  # pylint: disable=unused-argument
+    disable_external: bool = False,  # pylint: disable=unused-argument
+) -> None:  # pylint: disable=unused-argument
     """Start runtime dummy.
 
     Does nothing.
@@ -44,10 +44,11 @@ def compss_start(
     :param disable_external: To avoid to load compss in external process.
     :return: None
     """
-    pass
 
 
-def compss_stop(code: int = 0, _hard_stop: bool = False) -> None:
+def compss_stop(
+    code: int = 0, _hard_stop: bool = False  # pylint: disable=unused-argument
+) -> None:
     """Stop runtime dummy.
 
     Does nothing.
@@ -56,7 +57,6 @@ def compss_stop(code: int = 0, _hard_stop: bool = False) -> None:
     :param _hard_stop: Stop COMPSs when runtime has died.
     :return: None
     """
-    pass
 
 
 def compss_file_exists(*file_name: str) -> typing.Union[bool, typing.List[bool]]:
@@ -69,8 +69,7 @@ def compss_file_exists(*file_name: str) -> typing.Union[bool, typing.List[bool]]
     """
     if len(file_name) == 1:
         return os.path.exists(file_name[0])
-    else:
-        return [os.path.exists(f_name) for f_name in file_name]
+    return [os.path.exists(f_name) for f_name in file_name]
 
 
 def compss_open(file_name: str, mode: str = "r") -> typing.Any:
@@ -83,7 +82,7 @@ def compss_open(file_name: str, mode: str = "r") -> typing.Any:
     :return: An object of "file" type.
     :raise IOError: If the file can not be opened.
     """
-    return open(file_name, mode)
+    return open(file_name, mode)  # pylint: disable=unspecified-encoding
 
 
 def compss_delete_file(*file_name: str) -> typing.Union[bool, typing.List[bool]]:
@@ -96,11 +95,10 @@ def compss_delete_file(*file_name: str) -> typing.Union[bool, typing.List[bool]]
     """
     if len(file_name) == 1:
         return True
-    else:
-        return [True] * len(file_name)
+    return [True] * len(file_name)
 
 
-def compss_wait_on_file(*file_name: str) -> None:
+def compss_wait_on_file(*file_name: str) -> None:  # pylint: disable=unused-argument
     """Wait on file used in task dummy.
 
     Does nothing.
@@ -111,7 +109,9 @@ def compss_wait_on_file(*file_name: str) -> None:
     return None
 
 
-def compss_wait_on_directory(*directory_name: str) -> None:
+def compss_wait_on_directory(
+    *directory_name: str,  # pylint: disable=unused-argument
+) -> None:
     """Wait on directory used in task dummy.
 
     Does nothing.
@@ -132,11 +132,12 @@ def compss_delete_object(*obj: typing.Any) -> typing.Union[bool, typing.List[boo
     """
     if len(obj) == 1:
         return True
-    else:
-        return [True] * len(obj)
+    return [True] * len(obj)
 
 
-def compss_barrier(no_more_tasks: bool = False) -> None:
+def compss_barrier(
+    no_more_tasks: bool = False,  # pylint: disable=unused-argument
+) -> None:
     """Wait for all submitted tasks dummy.
 
     Does nothing.
@@ -144,10 +145,9 @@ def compss_barrier(no_more_tasks: bool = False) -> None:
     :param no_more_tasks: No more tasks boolean.
     :return: None
     """
-    pass
 
 
-def compss_barrier_group(group_name: str) -> None:
+def compss_barrier_group(group_name: str) -> None:  # pylint: disable=unused-argument
     """Wait for all submitted tasks of a group dummy.
 
     Does nothing.
@@ -155,10 +155,11 @@ def compss_barrier_group(group_name: str) -> None:
     :param group_name: Name of the group.
     :return: None
     """
-    pass
 
 
-def compss_wait_on(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
+def compss_wait_on(
+    *args: typing.Any, **kwargs: typing.Any  # pylint: disable=unused-argument
+) -> typing.Any:
     """Synchronize an object used in task dummy.
 
     Does nothing.
@@ -170,8 +171,7 @@ def compss_wait_on(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
     ret = list(map(lambda o: o, args))
     if len(ret) == 1:
         return ret[0]
-    else:
-        return ret
+    return ret
 
 
 def compss_get_number_of_resources() -> int:
@@ -185,7 +185,8 @@ def compss_get_number_of_resources() -> int:
 
 
 def compss_request_resources(
-    num_resources: int, group_name: typing.Optional[str]
+    num_resources: int,  # pylint: disable=unused-argument
+    group_name: typing.Optional[str],  # pylint: disable=unused-argument
 ) -> None:
     """Request the creation of num_resources resources dummy.
 
@@ -195,10 +196,12 @@ def compss_request_resources(
     :param group_name: Task group to notify upon resource creation
     :return: None
     """
-    pass
 
 
-def compss_free_resources(num_resources: int, group_name: typing.Optional[str]) -> None:
+def compss_free_resources(
+    num_resources: int,  # pylint: disable=unused-argument
+    group_name: typing.Optional[str],  # pylint: disable=unused-argument
+) -> None:
     """Request the destruction of num_resources resources dummy.
 
     Does nothing.
@@ -207,10 +210,11 @@ def compss_free_resources(num_resources: int, group_name: typing.Optional[str]) 
     :param group_name: Task group to notify upon resource creation
     :return: None
     """
-    pass
 
 
-def compss_set_wall_clock(wall_clock_limit: int) -> None:
+def compss_set_wall_clock(
+    wall_clock_limit: int,  # pylint: disable=unused-argument
+) -> None:
     """Set the application wall_clock_limit dummy.
 
     Does nothing.
@@ -218,32 +222,33 @@ def compss_set_wall_clock(wall_clock_limit: int) -> None:
     :param wall_clock_limit: Wall clock limit in seconds.
     :return: None
     """
-    pass
 
 
-class TaskGroup(object):
+class TaskGroup:
     """Dummy TaskGroup context manager."""
 
-    def __init__(self, group_name: str, implicit_barrier: bool = True):
+    def __init__(
+        self, group_name: str, implicit_barrier: bool = True
+    ):  # pylint: disable=unused-argument
         """Define a new group of tasks.
 
         :param group_name: Group name.
         :param implicit_barrier: Perform implicit barrier.
         """
-        pass
 
     def __enter__(self) -> None:
         """Do nothing.
 
         :return: None
         """
-        pass
 
     def __exit__(
-        self, type: typing.Any, value: typing.Any, traceback: typing.Any
+        self,
+        type: typing.Any,  # pylint: disable=redefined-builtin
+        value: typing.Any,
+        traceback: typing.Any,
     ) -> None:
         """Do nothing.
 
         :return: None
         """
-        pass

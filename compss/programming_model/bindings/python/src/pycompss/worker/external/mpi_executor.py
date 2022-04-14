@@ -88,14 +88,15 @@ def executor(process_name: str, command: str) -> None:
     if log_level == "true" or log_level == "debug":
         # Debug
         log_json = "".join((worker_path, "/../../../log/logging_mpi_worker_debug.json"))
-    elif log_level == "info" or log_level == "off":
-        log_json = "".join((worker_path, "/../../../log/logging_mpi_worker_off.json"))
+    elif log_level == "info":
+        # Info
+        log_json = "".join((worker_path, "/../../../log/logging_mpi_worker_info.json"))
     else:
-        # Default
-        log_json = "".join((worker_path, "/../../../log/logging_mpi_worker.json"))
+        # Default (off)
+        log_json = "".join((worker_path, "/../../../log/logging_mpi_worker_off.json"))
     init_logging_worker(log_json, tracing)
 
-    logger = logging.getLogger("pycompss.worker.external.mpi_worker")
+    logger = logging.getLogger("pycompss.worker.external.mpi_executor")
     logger_handlers = copy.copy(logger.handlers)
     logger_level = logger.getEffectiveLevel()
     try:

@@ -145,14 +145,16 @@ def main() -> None:
             log_json = "".join(
                 (worker_path, "/../../../log/logging_gat_worker_debug.json")
             )
-        elif log_level == "info" or log_level == "off":
-            # Info or no debug
+        elif log_level == "info":
+            # Info
+            log_json = "".join(
+                (worker_path, "/../../../log/logging_gat_worker_info.json")
+            )
+        else:
+            # Default (off)
             log_json = "".join(
                 (worker_path, "/../../../log/logging_gat_worker_off.json")
             )
-        else:
-            # Default
-            log_json = "".join((worker_path, "/../../../log/logging_gat_worker.json"))
         init_logging_worker(log_json, tracing)
 
         if persistent_storage:

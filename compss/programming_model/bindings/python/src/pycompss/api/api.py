@@ -43,7 +43,7 @@ CAUTION: If the context has not been defined, it will load the dummy API
          automatically.
 """
 
-import pycompss.util.context as context
+from pycompss.util import context
 
 # Dummy imports
 from pycompss.api.dummy.api import (
@@ -139,10 +139,8 @@ def compss_file_exists(*file_name: str) -> typing.Union[bool, typing.List[bool]]
     if context.in_pycompss():
         if len(file_name) == 1:
             return __accessed_file__(file_name[0])
-        else:
-            return [__accessed_file__(f_name) for f_name in file_name]
-    else:
-        return __dummy_compss_file_exists__(*file_name)
+        return [__accessed_file__(f_name) for f_name in file_name]
+    return __dummy_compss_file_exists__(*file_name)
 
 
 def compss_open(file_name: str, mode: str = "r") -> typing.Any:
@@ -161,9 +159,8 @@ def compss_open(file_name: str, mode: str = "r") -> typing.Any:
     """
     if context.in_pycompss():
         compss_name = __open_file__(file_name, mode)
-        return open(compss_name, mode)
-    else:
-        return __dummy_compss_open__(file_name, mode)
+        return open(compss_name, mode)  # pylint: disable=unspecified-encoding
+    return __dummy_compss_open__(file_name, mode)
 
 
 def compss_delete_file(*file_name: str) -> typing.Union[bool, typing.List[bool]]:
@@ -179,10 +176,8 @@ def compss_delete_file(*file_name: str) -> typing.Union[bool, typing.List[bool]]
     if context.in_pycompss():
         if len(file_name) == 1:
             return __delete_file__(file_name[0])
-        else:
-            return [__delete_file__(f_name) for f_name in file_name]
-    else:
-        return __dummy_compss_delete_file__(*file_name)
+        return [__delete_file__(f_name) for f_name in file_name]
+    return __dummy_compss_delete_file__(*file_name)
 
 
 def compss_wait_on_file(*file_name: str) -> None:
@@ -236,10 +231,8 @@ def compss_delete_object(*obj: typing.Any) -> typing.Union[bool, typing.List[boo
     if context.in_pycompss():
         if len(obj) == 1:
             return __delete_object__(obj[0])
-        else:
-            return [__delete_object__(i_obj) for i_obj in obj]
-    else:
-        return __dummy_compss_delete_object__(*obj)
+        return [__delete_object__(i_obj) for i_obj in obj]
+    return __dummy_compss_delete_object__(*obj)
 
 
 def compss_barrier(no_more_tasks: bool = False) -> None:
@@ -286,8 +279,7 @@ def compss_wait_on(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
     """
     if context.in_pycompss():
         return __wait_on__(*args, **kwargs)
-    else:
-        return __dummy_compss_wait_on__(*args, **kwargs)
+    return __dummy_compss_wait_on__(*args, **kwargs)
 
 
 def compss_get_number_of_resources() -> int:
@@ -297,8 +289,7 @@ def compss_get_number_of_resources() -> int:
     """
     if context.in_pycompss():
         return __get_number_of_resources__()
-    else:
-        return __dummy_compss_get_number_of_resources__()
+    return __dummy_compss_get_number_of_resources__()
 
 
 def compss_request_resources(
@@ -342,7 +333,7 @@ def compss_set_wall_clock(wall_clock_limit: int) -> None:
         __dummy_compss_set_wall_clock__(wall_clock_limit)
 
 
-class TaskGroup(object):
+class TaskGroup:
     """
     A context-like class used to represent a group of tasks.
 
@@ -383,7 +374,10 @@ class TaskGroup(object):
             pass
 
     def __exit__(
-        self, type: typing.Any, value: typing.Any, traceback: typing.Any
+        self,
+        type: typing.Any,  # pylint: disable=redefined-builtin
+        value: typing.Any,
+        traceback: typing.Any,
     ) -> None:
         """Group closing."""
         if context.in_pycompss():

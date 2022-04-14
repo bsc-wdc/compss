@@ -26,7 +26,7 @@ through the decorator.
 
 from functools import wraps
 
-import pycompss.util.context as context
+from pycompss.util import context
 from pycompss.api.commons.constants import INTERNAL_LABELS
 from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.constants import LEGACY_LABELS
@@ -55,7 +55,7 @@ SUPPORTED_ARGUMENTS = {
 DEPRECATED_ARGUMENTS = {LEGACY_LABELS.working_dir, LABELS.engine, LABELS.image}
 
 
-class Binary(object):
+class Binary:  # pylint: disable=too-few-public-methods
     """Binary decorator class.
 
     This decorator preserves the argspec, but includes the __init__ and
@@ -230,4 +230,4 @@ class Binary(object):
 # ################### BINARY DECORATOR ALTERNATIVE NAME ##################### #
 # ########################################################################### #
 
-binary = Binary
+binary = Binary  # pylint: disable=invalid-name

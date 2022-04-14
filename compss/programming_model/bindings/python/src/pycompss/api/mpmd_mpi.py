@@ -26,7 +26,7 @@ task definition through the decorator.
 
 from functools import wraps
 
-import pycompss.util.context as context
+from pycompss.util import context
 from pycompss.api.commons.constants import INTERNAL_LABELS
 from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
@@ -54,7 +54,7 @@ SUPPORTED_ARGUMENTS = {
 DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 
 
-class MPMDMPI(object):
+class MPMDMPI:  # pylint: disable=too-few-public-methods, too-many-instance-attributes
     """MPMDMPI decorator class.
 
     This decorator also preserves the argspec, but includes the __init__ and
@@ -98,7 +98,7 @@ class MPMDMPI(object):
                 logger.debug("Init @mpmd_mpi decorator...")
 
             # Add <param_name>_layout params to SUPPORTED_ARGUMENTS
-            for key in self.kwargs.keys():
+            for key in self.kwargs:
                 if "_layout" in key:
                     SUPPORTED_ARGUMENTS.add(key)
 
@@ -236,4 +236,4 @@ class MPMDMPI(object):
 # ##################### MPI DECORATOR ALTERNATIVE NAME ###################### #
 # ########################################################################### #
 
-mpmd_mpi = MPMDMPI
+mpmd_mpi = MPMDMPI  # pylint: disable=invalid-name

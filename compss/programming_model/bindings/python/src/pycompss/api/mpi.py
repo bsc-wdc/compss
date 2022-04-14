@@ -26,7 +26,7 @@ the decorator.
 
 from functools import wraps
 
-import pycompss.util.context as context
+from pycompss.util import context
 from pycompss.api.commons.constants import INTERNAL_LABELS
 from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.constants import LEGACY_LABELS
@@ -66,7 +66,7 @@ DEPRECATED_ARGUMENTS = {
 }
 
 
-class Mpi(object):
+class Mpi:  # pylint: disable=too-few-public-methods
     """Mpi decorator class.
 
     This decorator also preserves the argspec, but includes the __init__ and
@@ -97,7 +97,7 @@ class Mpi(object):
 
             # noqa TODO: Maybe add here the collection layout to avoid iterate twice per elements
             # Add <param_name>_layout params to SUPPORTED_ARGUMENTS
-            for key in self.kwargs.keys():
+            for key in self.kwargs:
                 if "_layout" in key:
                     SUPPORTED_ARGUMENTS.add(key)
 
@@ -141,11 +141,10 @@ class Mpi(object):
             # TODO: Intercept @task parameters to get stream redirection
             if "binary" in self.kwargs:
                 return self.__run_mpi__(args, kwargs)
-            else:
-                print(
-                    "WARN: Python MPI as dummy is not fully supported. Executing decorated funtion."
-                )
-                return user_function(*args, **kwargs)
+            print(
+                "WARN: Python MPI as dummy is not fully supported. Executing decorated function."
+            )
+            return user_function(*args, **kwargs)
 
         if __debug__:
             logger.debug("Executing mpi_f wrapper.")
@@ -173,17 +172,12 @@ class Mpi(object):
             kwargs["processes_per_node"] = 1
         if __debug__:
             logger.debug(
-                "This MPI task will have "
-                + str(kwargs["computing_nodes"])
-                + " processes and "
-                + str(kwargs["processes_per_node"])
-                + " processes per node."
+                "This MPI task will have %s processes and %s processes per node.",
+                str(kwargs["computing_nodes"]),
+                str(kwargs["processes_per_node"]),
             )
 
-        if self.task_type == IMPLEMENTATION_TYPES.python_mpi:
-            prepend_strings = True
-        else:
-            prepend_strings = False
+        prepend_strings = self.task_type == IMPLEMENTATION_TYPES.python_mpi
 
         with keep_arguments(args, kwargs, prepend_strings=prepend_strings):
             # Call the method
@@ -250,8 +244,7 @@ class Mpi(object):
         """
         if "block_count" in collection_layout:
             return collection_layout["block_count"]
-        else:
-            return -1
+        return -1
 
     @staticmethod
     def __get_block_length__(collection_layout: dict) -> int:
@@ -262,8 +255,7 @@ class Mpi(object):
         """
         if "block_length" in collection_layout:
             return collection_layout["block_length"]
-        else:
-            return -1
+        return -1
 
     @staticmethod
     def __get_stride__(collection_layout: dict) -> int:
@@ -274,8 +266,7 @@ class Mpi(object):
         """
         if "stride" in collection_layout:
             return collection_layout["stride"]
-        else:
-            return -1
+        return -1
 
     def __configure_core_element__(self, kwargs: dict) -> None:
         """Include the registering info related to @mpi.
@@ -332,6 +323,7 @@ class Mpi(object):
             impl_signature = impl_type + "."
         else:
             impl_signature = ".".join((impl_type, str(proc), binary))
+
         impl_args = [
             binary,
             self.kwargs[LABELS.working_dir],
@@ -394,4 +386,4 @@ class Mpi(object):
 # ##################### MPI DECORATOR ALTERNATIVE NAME ###################### #
 # ########################################################################### #
 
-mpi = Mpi
+mpi = Mpi  # pylint: disable=invalid-name

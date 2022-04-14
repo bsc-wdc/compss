@@ -26,7 +26,7 @@ through the decorator.
 
 from functools import wraps
 
-import pycompss.util.context as context
+from pycompss.util import context
 from pycompss.api.commons.constants import INTERNAL_LABELS
 from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.constants import LEGACY_LABELS
@@ -65,7 +65,7 @@ DEPRECATED_ARGUMENTS = {
 }
 
 
-class COMPSs(object):
+class COMPSs:  # pylint: disable=too-few-public-methods
     """COMPSs decorator class.
 
     This decorator also preserves the argspec, but includes the __init__ and
@@ -222,4 +222,4 @@ class COMPSs(object):
 # #################### COMPSs DECORATOR ALTERNATIVE NAME #################### #
 # ########################################################################### #
 
-compss = COMPSs
+compss = COMPSs  # pylint: disable=invalid-name

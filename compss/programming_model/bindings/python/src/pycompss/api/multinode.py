@@ -27,7 +27,7 @@ definition through the decorator.
 import os
 from functools import wraps
 
-import pycompss.util.context as context
+from pycompss.util import context
 from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.constants import LEGACY_LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
@@ -57,7 +57,7 @@ SLURM_SKIP_VARS = [
 ]
 
 
-class MultiNode(object):
+class MultiNode:  # pylint: disable=too-few-public-methods
     """MultiNode decorator class.
 
     This decorator also preserves the argspec, but includes the __init__ and
@@ -205,7 +205,7 @@ def remove_slurm_environment() -> dict:
 
     :return: removed Slurm variables.
     """
-    old_slurm_env = dict()
+    old_slurm_env = {}
     for key, value in os.environ.items():
         if key.startswith("SLURM"):
             if key not in SLURM_SKIP_VARS:
@@ -229,4 +229,4 @@ def reset_slurm_environment(old_slurm_env: typing.Optional[dict] = None) -> None
 # ################## MultiNode DECORATOR ALTERNATIVE NAME ################### #
 # ########################################################################### #
 
-multinode = MultiNode
+multinode = MultiNode  # pylint: disable=invalid-name

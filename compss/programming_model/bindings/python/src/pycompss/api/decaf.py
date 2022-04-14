@@ -26,7 +26,7 @@ through the decorator.
 
 from functools import wraps
 
-import pycompss.util.context as context
+from pycompss.util import context
 from pycompss.api.commons.constants import INTERNAL_LABELS
 from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.constants import LEGACY_LABELS
@@ -66,7 +66,7 @@ DEPRECATED_ARGUMENTS = {
 }
 
 
-class Decaf(object):
+class Decaf:  # pylint: disable=too-few-public-methods
     """Decaf decorator class.
 
     This decorator also preserves the argspec, but includes the __init__ and
@@ -159,10 +159,9 @@ class Decaf(object):
             logger.debug("Configuring @decaf core element.")
 
         # Resolve @decaf specific parameters
+        runner = "mpirun"
         if LABELS.runner in self.kwargs:
             runner = self.kwargs[LABELS.runner]
-        else:
-            runner = "mpirun"
 
         if LEGACY_LABELS.df_script in self.kwargs:
             df_script = self.kwargs[LEGACY_LABELS.df_script]
@@ -225,4 +224,4 @@ class Decaf(object):
 # #################### DECAF DECORATOR ALTERNATIVE NAME ##################### #
 # ########################################################################### #
 
-decaf = Decaf
+decaf = Decaf  # pylint: disable=invalid-name

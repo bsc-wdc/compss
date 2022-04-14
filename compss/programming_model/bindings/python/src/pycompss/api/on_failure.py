@@ -26,10 +26,11 @@ definition through the decorator.
 
 from functools import wraps
 
-import pycompss.util.context as context
+from pycompss.util import context
 from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.decorator import keep_arguments
+from pycompss.api.dummy.on_failure import on_failure as dummy_on_failure
 from pycompss.runtime.task.core_element import CE
 from pycompss.util.arguments import check_mandatory_arguments
 from pycompss.util.exceptions import PyCOMPSsException
@@ -50,7 +51,7 @@ SUPPORTED_ARGUMENTS = {
 }
 
 
-class OnFailure(object):
+class OnFailure:  # pylint: disable=too-few-public-methods, too-many-instance-attributes
     """OnFailure decorator class.
 
     This decorator also preserves the argspec, but includes the __init__ and
@@ -98,7 +99,7 @@ class OnFailure(object):
             # Check supported management values
             if self.on_failure_action not in SUPPORTED_ARGUMENTS:
                 raise PyCOMPSsException(
-                    "ERROR: Unsupported on failure action: %s" % self.on_failure_action
+                    f"ERROR: Unsupported on failure action: {self.on_failure_action}"
                 )
             # Keep all defaults in a dictionary
             self.defaults = kwargs
@@ -113,8 +114,6 @@ class OnFailure(object):
         @wraps(user_function)
         def constrained_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             if not self.scope:
-                from pycompss.api.dummy.on_failure import on_failure as dummy_on_failure
-
                 d_c = dummy_on_failure(self.args, self.kwargs)
                 return d_c.__call__(user_function)(*args, **kwargs)
 
@@ -167,5 +166,5 @@ class OnFailure(object):
 # ################### ON FAILURE DECORATOR ALTERNATIVE NAME ################# #
 # ########################################################################### #
 
-on_failure = OnFailure
-onFailure = OnFailure
+on_failure = OnFailure  # pylint: disable=invalid-name
+onFailure = OnFailure  # pylint: disable=invalid-name

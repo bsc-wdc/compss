@@ -26,7 +26,7 @@ through the decorator.
 
 from functools import wraps
 
-import pycompss.util.context as context
+from pycompss.util import context
 from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.constants import LEGACY_LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
@@ -48,7 +48,7 @@ SUPPORTED_ARGUMENTS = {LABELS.source_class, LABELS.method}
 DEPRECATED_ARGUMENTS = {LEGACY_LABELS.source_class}
 
 
-class Implement(object):
+class Implement:  # pylint: disable=too-few-public-methods
     """Implement decorator class.
 
     This decorator also preserves the argspec, but includes the __init__ and
@@ -125,7 +125,7 @@ class Implement(object):
         implement_f.__doc__ = user_function.__doc__
 
         if context.in_master() and not self.first_register:
-            import pycompss.api.task as t
+            import pycompss.api.task as t  # pylint: disable=import-outside-toplevel
 
             self.first_register = True
             t.REGISTER_ONLY = True
@@ -184,4 +184,4 @@ class Implement(object):
 # ################## IMPLEMENT DECORATOR ALTERNATIVE NAME ################### #
 # ########################################################################### #
 
-implement = Implement
+implement = Implement  # pylint: disable=invalid-name

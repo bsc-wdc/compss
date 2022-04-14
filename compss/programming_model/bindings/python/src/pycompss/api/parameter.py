@@ -61,7 +61,7 @@ TYPE = _DataType
 
 
 # Numbers match both C and Java enums
-class SupportedDirections(object):
+class SupportedDirections:  # pylint: disable=too-few-public-methods
     """Used as enum for direction types."""
 
     IN = 0
@@ -73,7 +73,7 @@ class SupportedDirections(object):
 
 
 # Numbers match both C and Java enums
-class SupportedIoStreams(object):
+class SupportedIoStreams:  # pylint: disable=too-few-public-methods
     """Used as enum for stream types."""
 
     STDIN = 0
@@ -83,7 +83,7 @@ class SupportedIoStreams(object):
 
 
 # String that identifies the prefix
-class SupportedPrefixes(object):
+class SupportedPrefixes:  # pylint: disable=too-few-public-methods
     """Used as enum for prefix."""
 
     PREFIX = "null"  # NOSONAR
@@ -94,7 +94,7 @@ IOSTREAM = SupportedIoStreams()
 PREFIX = SupportedPrefixes()
 
 
-class _Param(object):
+class _Param:  # pylint: disable=too-few-public-methods
     """Private class which hides the parameter key to be used."""
 
     __slots__ = ["key"]
@@ -175,16 +175,24 @@ STDOUT = IOSTREAM.STDOUT
 STDERR = IOSTREAM.STDERR
 
 # Aliases for parameter definition as dictionary
-Type = _PARAM_DICT_KEYS.TYPE  # parameter type
-Direction = _PARAM_DICT_KEYS.DIRECTION  # parameter direction
-StdIOStream = _PARAM_DICT_KEYS.STDIOSTREAM  # parameter stream
-Prefix = _PARAM_DICT_KEYS.PREFIX  # parameter prefix
-Depth = _PARAM_DICT_KEYS.DEPTH  # collection recursive depth
-Weight = _PARAM_DICT_KEYS.WEIGHT  # parameter weight
-Keep_rename = _PARAM_DICT_KEYS.KEEP_RENAME  # parameter keep rename property
-Cache = _PARAM_DICT_KEYS.CACHE  # enable/disable store in cache
+# - Parameter type
+Type = _PARAM_DICT_KEYS.TYPE  # pylint: disable=invalid-name
+# - Parameter direction
+Direction = _PARAM_DICT_KEYS.DIRECTION  # pylint: disable=invalid-name
+# - Parameter stream
+StdIOStream = _PARAM_DICT_KEYS.STDIOSTREAM  # pylint: disable=invalid-name
+# - Parameter prefix
+Prefix = _PARAM_DICT_KEYS.PREFIX  # pylint: disable=invalid-name
+# - Collection recursive depth
+Depth = _PARAM_DICT_KEYS.DEPTH  # pylint: disable=invalid-name
+# - Parameter weight
+Weight = _PARAM_DICT_KEYS.WEIGHT  # pylint: disable=invalid-name
+# - Parameter keep rename property
+Keep_rename = _PARAM_DICT_KEYS.KEEP_RENAME  # pylint: disable=invalid-name
+# - Enable/disable store in cache
+Cache = _PARAM_DICT_KEYS.CACHE  # pylint: disable=invalid-name
 
 # Aliases for collection layout for native mpi tasks
-block_count = _MPI_LAYOUT_KEYS.block_count
-block_length = _MPI_LAYOUT_KEYS.block_length
-stride = _MPI_LAYOUT_KEYS.stride
+block_count = _MPI_LAYOUT_KEYS.block_count  # pylint: disable=invalid-name
+block_length = _MPI_LAYOUT_KEYS.block_length  # pylint: disable=invalid-name
+stride = _MPI_LAYOUT_KEYS.stride  # pylint: disable=invalid-name

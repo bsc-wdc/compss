@@ -30,11 +30,13 @@ import os
 import sys
 from functools import wraps
 
-import pycompss.api.parameter as parameter
-import pycompss.util.context as context
+from pycompss.api import parameter
+from pycompss.util import context
 from pycompss.api.commons.constants import INTERNAL_LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.implementation_types import IMPLEMENTATION_TYPES
+from pycompss.api.dummy.task import task as dummy_task
+from pycompss.runtime.binding import nested_barrier
 from pycompss.runtime.task.core_element import CE
 from pycompss.runtime.task.master import TaskMaster
 from pycompss.runtime.task.parameter import get_new_parameter
@@ -61,7 +63,7 @@ PREPEND_STRINGS = True
 REGISTER_ONLY = False
 
 
-class Task(object):
+class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attributes
     """This is the Task decorator implementation.
 
     It is implemented as a class and consequently this implementation can be
@@ -205,7 +207,7 @@ class Task(object):
         self.class_name = ""
         self.hints = tuple()  # type: tuple
         self.on_failure = ""
-        self.defaults = dict()  # type: dict
+        self.defaults = {}  # type: dict
 
     def __call__(self, user_function: typing.Callable) -> typing.Callable:
         """Perform the task processing.
@@ -271,7 +273,7 @@ class Task(object):
                 )
             result = master.call(args, kwargs)
             (
-                fo,
+                future_object,
                 self.core_element,
                 self.registered,
                 self.signature,
@@ -285,8 +287,8 @@ class Task(object):
                 self.hints,
             ) = result
             del master
-            return fo
-        elif context.in_worker():
+            return future_object
+        if context.in_worker():
             if "compss_key" in kwargs.keys():
                 is_nesting_enabled = context.is_nesting_enabled()
                 if is_nesting_enabled:
@@ -313,38 +315,22 @@ class Task(object):
                 del worker
                 if is_nesting_enabled:
                     # Wait for all nested tasks to finish
-                    from pycompss.runtime.binding import nested_barrier
-
                     nested_barrier()
                     if __debug__:
                         # Reestablish logger handlers
                         update_logger_handlers(kwargs["compss_log_cfg"])
                 return result
-            else:
-                if context.is_nesting_enabled():
-                    # Each task will have a TaskMaster, so its content will
-                    # not be shared.
-                    with event_master(TRACING_MASTER.task_instantiation):
-                        master = TaskMaster(
-                            self.decorator_arguments,
-                            self.user_function,
-                            self.core_element,
-                            self.registered,
-                            self.signature,
-                            self.interactive,
-                            self.module,
-                            self.function_arguments,
-                            self.function_name,
-                            self.module_name,
-                            self.function_type,
-                            self.class_name,
-                            self.hints,
-                            self.on_failure,
-                            self.defaults,
-                        )
-                    result = master.call(args, kwargs)
-                    (
-                        fo,
+
+            # There is no compss_key in kwargs.keys() => task invocation within task:
+            #  - submit the task to the runtime if nesting is enabled.
+            #  - execute sequentially if nested is not enabled.
+            if context.is_nesting_enabled():
+                # Each task will have a TaskMaster, so its content will
+                # not be shared.
+                with event_master(TRACING_MASTER.task_instantiation):
+                    master = TaskMaster(
+                        self.decorator_arguments,
+                        self.user_function,
                         self.core_element,
                         self.registered,
                         self.signature,
@@ -356,23 +342,34 @@ class Task(object):
                         self.function_type,
                         self.class_name,
                         self.hints,
-                    ) = result
-                    del master
-                    return fo
-                else:
-                    # Called from another task within the worker
-                    # Ignore the @task decorator and run it sequentially
-                    message = "".join(
-                        (
-                            "WARNING: Calling task: ",
-                            str(user_function.__name__),
-                            " from this task.\n",
-                            "         It will be executed ",
-                            "sequentially within the caller task.",
-                        )
+                        self.on_failure,
+                        self.defaults,
                     )
-                    print(message, file=sys.stderr)
-                    return self._sequential_call(*args, **kwargs)
+                result = master.call(args, kwargs)
+                (
+                    future_object,
+                    self.core_element,
+                    self.registered,
+                    self.signature,
+                    self.interactive,
+                    self.module,
+                    self.function_arguments,
+                    self.function_name,
+                    self.module_name,
+                    self.function_type,
+                    self.class_name,
+                    self.hints,
+                ) = result
+                del master
+                return future_object
+            # Called from another task within the worker
+            # Ignore the @task decorator and run it sequentially
+            message = (
+                f"WARNING: Calling task: {str(user_function.__name__)} from this task.\n"
+                f"         It will be executed sequentially within the caller task."
+            )
+            print(message, file=sys.stderr)
+            return self._sequential_call(*args, **kwargs)
         # We are neither in master nor in the worker, or the user has
         # stopped the interactive session.
         # Therefore, the user code is being executed with no
@@ -392,8 +389,6 @@ class Task(object):
         # This defines self.param_args, self.param_varargs,
         # self.param_kwargs and self.param_defaults
         # And gives non-None default values to them if necessary
-        from pycompss.api.dummy.task import task as dummy_task
-
         d_t = dummy_task(args, kwargs)
         return d_t.__call__(self.user_function)(*args, **kwargs)
 
@@ -419,10 +414,9 @@ class Task(object):
                 _engine = impl_args[0]
                 _image = impl_args[1]
                 _type = "CET_PYTHON"
-                _func_complete = "%s&%s" % (
-                    str(self.__get_module_name__(user_function)),
-                    str(user_function.__name__),
-                )
+                _module_name = str(self.__get_module_name__(user_function))
+                _function_name = str(user_function.__name__)
+                _func_complete = f"{_module_name}&{_function_name}"
                 impl_args = [
                     _engine,  # engine
                     _image,  # image
@@ -459,4 +453,4 @@ class Task(object):
 
 
 # task can be also typed as Task
-task = Task
+task = Task  # pylint: disable=invalid-name

@@ -26,6 +26,7 @@ through the decorator.
 
 from functools import wraps
 
+from pycompss.util import context
 from pycompss.api.commons.constants import INTERNAL_LABELS
 from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.decorator import keep_arguments
@@ -34,9 +35,6 @@ from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.runtime.task.core_element import CE
 from pycompss.util.arguments import check_arguments
 from pycompss.util.typing_helper import typing
-
-import pycompss.util.context as context
-
 
 if __debug__:
     import logging
@@ -52,7 +50,7 @@ SUPPORTED_ARGUMENTS = {
 DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 
 
-class Prolog(object):
+class Prolog:  # pylint: disable=too-few-public-methods
     """Prolog decorator class.
 
     If defined, will execute the binary before the task execution on the worker.
@@ -144,9 +142,9 @@ class Prolog(object):
         fail_by = self.kwargs.get(LABELS.fail_by_exit_value)
         _prolog = [binary, params, fail_by]
 
-        ce = kwargs.get(CORE_ELEMENT_KEY, CE())
-        ce.set_impl_prolog(_prolog)
-        kwargs[CORE_ELEMENT_KEY] = ce
+        core_element = kwargs.get(CORE_ELEMENT_KEY, CE())
+        core_element.set_impl_prolog(_prolog)
+        kwargs[CORE_ELEMENT_KEY] = core_element
         # Set as configured
         self.core_element_configured = True
 
@@ -155,4 +153,4 @@ class Prolog(object):
 # ################### PROLOG DECORATOR ALTERNATIVE NAME ##################### #
 # ########################################################################### #
 
-prolog = Prolog
+prolog = Prolog  # pylint: disable=invalid-name

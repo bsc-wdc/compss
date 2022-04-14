@@ -26,7 +26,7 @@ through the decorator.
 
 from functools import wraps
 
-import pycompss.util.context as context
+from pycompss.util import context
 from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.constants import LEGACY_LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
@@ -49,7 +49,7 @@ SUPPORTED_ARGUMENTS = {LABELS.kernel, LABELS.working_dir}
 DEPRECATED_ARGUMENTS = {LEGACY_LABELS.working_dir}
 
 
-class OpenCL(object):
+class OpenCL:  # pylint: disable=too-few-public-methods
     """OpenCL decorator class.
 
     This decorator also preserves the argspec, but includes the __init__ and
@@ -159,4 +159,4 @@ class OpenCL(object):
 # ################### OPENCL DECORATOR ALTERNATIVE NAME ##################### #
 # ########################################################################### #
 
-opencl = OpenCL
+opencl = OpenCL  # pylint: disable=invalid-name

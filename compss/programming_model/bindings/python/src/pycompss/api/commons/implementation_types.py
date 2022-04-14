@@ -24,7 +24,7 @@ This file contains the implementation types definitions.
 """
 
 
-class ImplementationTypes:  # pylint: disable=too-few-public-methods, too-many-instance-attributes
+class _ImplementationTypes:  # pylint: disable=too-few-public-methods, too-many-instance-attributes
     """Supported implementation types."""
 
     __slots__ = [
@@ -55,16 +55,4 @@ class ImplementationTypes:  # pylint: disable=too-few-public-methods, too-many-i
         self.python_mpi = "PYTHON_MPI"
 
 
-IMPLEMENTATION_TYPES = ImplementationTypes()
-
-# IMPL_BINARY = "BINARY"
-# IMPL_CET_BINARY = "CET_BINARY"
-# IMPL_COMPSs = "COMPSs"
-# IMPL_CONTAINER = "CONTAINER"
-# IMPL_DECAF = "DECAF"
-# IMPL_METHOD = "METHOD"
-# IMPL_MPI = "MPI"
-# IMPL_MULTI_NODE = "MULTI_NODE"
-# IMPL_OMPSS = "OMPSS"
-# IMPL_OPENCL = "OPENCL"
-# IMPL_PYTHON_MPI = "PYTHON_MPI"
+IMPLEMENTATION_TYPES = _ImplementationTypes()

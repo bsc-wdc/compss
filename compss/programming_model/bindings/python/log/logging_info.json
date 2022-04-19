@@ -175,7 +175,7 @@
     "redis":                        { "level": "INFO", "handlers": ["info_file_handler", "error_file_handler"], "propagate": "no" },
     "storage":                      { "level": "INFO", "handlers": ["info_file_handler", "error_file_handler"], "propagate": "no" },
 
-    "user":                         { "level": "INFO", "handlers": ["info_file_handler", "error_file_handler"], "propagate": "no" }
+    "user":                         { "level": "INFO", "handlers": ["console", "error_console"], "propagate": "no" }
   },
   "root": {
     "level": "INFO"

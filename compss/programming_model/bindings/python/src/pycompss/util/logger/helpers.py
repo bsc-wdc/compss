@@ -23,6 +23,7 @@ PyCOMPSs Util - Logger - Helpers.
 This file contains all logging methods.
 """
 
+import copy
 import json
 import logging
 import os
@@ -190,6 +191,25 @@ def update_logger_handlers(
         CONFIG_FUNC(conf)
     else:
         logging.basicConfig(level=logging.INFO)  # NOSONAR
+
+
+def add_new_logger(logger_name: str) -> None:
+    """Add a new logger for the user in the master.
+
+    Creates a copy of the "user" or "piper_worker" logger and renames it with
+    the given logger_name.
+
+    :param logger_name: New logger name.
+    :returns: None
+    """
+    # Get "user" logger information (used as source)
+    log_config_file = list(CONFIGS.keys())[0]
+    users_logger = CONFIGS[log_config_file]["loggers"]["user"]
+    # Copy "user" logger and set its new name
+    new_logger = copy.deepcopy(users_logger)
+    CONFIGS[log_config_file]["loggers"][logger_name] = new_logger
+    # Update the logger with the new handler
+    CONFIG_FUNC(CONFIGS[log_config_file])
 
 
 @contextmanager

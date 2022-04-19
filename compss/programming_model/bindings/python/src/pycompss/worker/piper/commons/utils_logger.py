@@ -67,6 +67,7 @@ def load_loggers(
         log_dir = os.path.join(log_dir, "..", "..", "log")
     else:
         log_dir = os.path.join(log_dir, "..", "log")
+
     init_logging_worker_piper(log_json, log_dir)
 
     # Define logger facilities

@@ -37,6 +37,7 @@ from pycompss.runtime.management.object_tracker import OT
 from pycompss.runtime.management.synchronization import wait_on_object
 from pycompss.runtime.task.core_element import CE
 from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.util.logger.helpers import add_new_logger
 
 # Tracing imports
 from pycompss.util.tracing.helpers import enable_trace_master
@@ -839,6 +840,15 @@ def process_task(
                 weights,
                 keep_renames,
             )
+
+
+def add_logger(logger_name: str) -> None:
+    """Add a new logger for the user.
+
+    :param logger_name: New logger name.
+    :returns: None
+    """
+    add_new_logger(logger_name)
 
 
 # ########################################################################### #

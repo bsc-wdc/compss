@@ -63,6 +63,7 @@ from pycompss.api.dummy.api import (
     compss_free_resources as __dummy_compss_free_resources__,
     compss_set_wall_clock as __dummy_compss_set_wall_clock__,
 )
+from pycompss.util.exceptions import NotInPyCOMPSsException
 from pycompss.util.typing_helper import typing
 
 if context.in_pycompss():
@@ -89,6 +90,7 @@ if context.in_pycompss():
         free_resources as __free_resources__,
         set_wall_clock as __set_wall_clock__,
         wait_on as __wait_on__,
+        add_logger as __add_logger__,
     )
     from pycompss.api.exceptions import COMPSsException as __COMPSsException__
 
@@ -331,6 +333,22 @@ def compss_set_wall_clock(wall_clock_limit: int) -> None:
         __set_wall_clock__(wall_clock_limit)
     else:
         __dummy_compss_set_wall_clock__(wall_clock_limit)
+
+
+def compss_add_logger(logger_name: str) -> None:
+    """Add a new logger for the user.
+
+    Enables users to redirect their output messages through the PyCOMPSs
+    logger, ensuring that they are correctly flushed.
+    Will be added to the current loggers with the current configuration.
+
+    :param logger_name: New logger name.
+    :returns: None
+    """
+    if context.in_pycompss():
+        __add_logger__(logger_name)
+    else:
+        raise NotInPyCOMPSsException("Add logger is only supported within PyCOMPSs")
 
 
 class TaskGroup:

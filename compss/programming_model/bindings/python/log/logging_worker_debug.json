@@ -32,6 +32,18 @@
       "backupCount": 20,
       "encoding": "utf8",
       "delay": "true"
+    },
+    "console": {
+      "class": "logging.StreamHandler",
+      "level": "DEBUG",
+      "formatter": "medium",
+      "stream": "ext://sys.stdout"
+    },
+    "error_console": {
+      "class": "logging.StreamHandler",
+      "level": "ERROR",
+      "formatter": "medium",
+      "stream": "ext://sys.stderr"
     }
   },
   "loggers": {
@@ -163,7 +175,7 @@
     "redis":                        { "level": "DEBUG", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },
     "storage":                      { "level": "DEBUG", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" },
 
-    "user":                         { "level": "DEBUG", "handlers": ["debug_worker_file_handler", "error_worker_file_handler"], "propagate": "no" }
+    "user":                         { "level": "DEBUG", "handlers": ["console", "error_console"], "propagate": "no" }
   },
   "root": {
     "level": "DEBUG"

@@ -282,11 +282,35 @@ def add_file_to_crate(
 
 def main():
     # First, read values defined by user from ro-crate-info.yaml
-    with open(info_yaml, "r", encoding="utf-8") as fp:
-        try:
-            yaml_content = yaml.safe_load(fp)
-        except yaml.YAMLError as exc:
-            print(exc)
+    try:
+        with open(info_yaml, "r", encoding="utf-8") as fp:
+            try:
+                yaml_content = yaml.safe_load(fp)
+            except yaml.YAMLError as exc:
+                print(exc)
+    except IOError:
+        with open("ro-crate-info_TEMPLATE.yaml", "w", encoding="utf-8") as ft:
+            template = """COMPSs Workflow Information:
+  name: Name of your COMPSs application
+  description: Detailed description of your COMPSs application
+  license: Apache-2.0 #Provide better a URL, but these strings are accepted:
+                  # https://about.workflowhub.eu/Workflow-RO-Crate/#supported-licenses
+  files: [main_file.py, aux_file_1.py, aux_file_1.py] # List of application files
+Author:
+  name: Your Name
+  e-mail: your@email.es
+  orcid: https://orcid.org/XXXX-XXXX-XXXX-XXXX
+
+Organisation:
+  name: Your insititution name
+  ror: https://ror.org/05sd8tv96 # Find yours in ror.org
+            """
+            ft.write(template)
+            print(
+                f"ERROR: YAML file ro-crate-info.yaml not found in your working directory. A template has been generated"
+                f" in file ro-crate-info_TEMPLATE.yaml"
+            )
+        raise
 
     # Get Sections
     compss_wf_info = yaml_content["COMPSs Workflow Information"]

@@ -118,11 +118,9 @@ def process_accessed_files() -> typing.Tuple[list, list]:
                         file_record[0] not in outputs
                     ):  # A true INPUT, not an intermediate file
                         inputs.add(file_record[0])
-                    else:  # Else, it is an intermediate file, not a true INPUT or OUTPUT. May be a bit radical in
-                        # some cases
-                        outputs.remove(
-                            file_record[0]
-                        )  # discard() may be used to avoid remove() failure
+                    #  Else, it is an intermediate file, not a true INPUT or OUTPUT. Not adding it as an input may
+                    # be enough in most cases, since removing it as an output may be a bit radical
+                    #     outputs.remove(file_record[0])
                 elif file_record[1] == "OUT":
                     outputs.add(file_record[0])
                 else:  # INOUT

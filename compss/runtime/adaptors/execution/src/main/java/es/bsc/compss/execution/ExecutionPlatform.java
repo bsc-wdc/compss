@@ -387,6 +387,11 @@ public class ExecutionPlatform implements ExecutorContext {
     }
 
     @Override
+    public Execution newThread() {
+        return this.queue.newThreadDequeue();
+    }
+
+    @Override
     public ExecutionPlatformMirror<?> getMirror(Class<?> invoker) {
         return this.mirrors.get(invoker);
     }

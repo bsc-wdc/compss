@@ -67,7 +67,12 @@ public class JobQueue {
 
             // Wake up the last executor thread if any
             if (!this.waitingLocks.isEmpty()) {
-                Object lock = this.waitingLocks.pop();
+                Object lock;
+                if (request.getInvocation() != null) {
+                    lock = this.waitingLocks.removeFirst();
+                } else {
+                    lock = this.waitingLocks.removeLast();
+                }
                 synchronized (lock) {
                     LOGGER.debug("Releasing lock " + lock.hashCode());
                     lock.notify();
@@ -90,7 +95,7 @@ public class JobQueue {
                 synchronized (this) {
                     exec = this.queue.poll();
                     if (exec != null) {
-                        continue;
+                        break;
                     }
                     // The queue is empty, register the thread on the waiting stack
                     this.waitingLocks.push(lock);
@@ -103,12 +108,38 @@ public class JobQueue {
                 }
             }
         }
-        /*
-         * while ((exec = this.queue.poll()) == null) { // The queue is empty, register the thread on the waiting stack
-         * Object lock = new Object(); this.waitingLocks.push(lock); try { synchronized (lock) { lock.wait(); } } catch
-         * (InterruptedException ie) { LOGGER.error("ERROR: Job Thread was interrupted while waiting for next job", ie);
-         * return null; } }
-         */
+
+        // The queue is not empty, take the first available job
+        return exec;
+    }
+
+    /**
+     * Dequeues a request from the queue. If there are no pending requests, the current Thread falls asleep until a new
+     * Request is added. This request will be return value of the method.
+     * 
+     * @return the first request from the queue
+     */
+    public Execution newThreadDequeue() {
+        Execution exec = null;
+        Object lock = new Object();
+        while (exec == null) {
+            synchronized (lock) {
+                synchronized (this) {
+                    exec = this.queue.poll();
+                    if (exec != null) {
+                        break;
+                    }
+                    // The queue is empty, register the thread on the waiting stack
+                    this.waitingLocks.addLast(lock);
+                }
+                try {
+                    lock.wait();
+                } catch (InterruptedException ie) {
+                    LOGGER.error("ERROR: Job Thread was interrupted while waiting for next job", ie);
+                    return null;
+                }
+            }
+        }
 
         // The queue is not empty, take the first available job
         return exec;

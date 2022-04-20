@@ -295,15 +295,18 @@ def main():
   description: Detailed description of your COMPSs application
   license: Apache-2.0 #Provide better a URL, but these strings are accepted:
                   # https://about.workflowhub.eu/Workflow-RO-Crate/#supported-licenses
-  files: [main_file.py, aux_file_1.py, aux_file_1.py] # List of application files
-Author:
-  name: Your Name
-  e-mail: your@email.es
-  orcid: https://orcid.org/XXXX-XXXX-XXXX-XXXX
-
-Organisation:
-  name: Your insititution name
-  ror: https://ror.org/05sd8tv96 # Find yours in ror.org
+  files: [main_file.py, aux_file_1.py, aux_file_2.py] # List of application files
+Authors:
+  - name: Author_1 Name
+    e-mail: author_1@email.com
+    orcid: https://orcid.org/XXXX-XXXX-XXXX-XXXX
+    organisation_name: Institution_1 name
+    ror: https://ror.org/XXXXXXXXX # Find them in ror.org
+  - name: Author_2 Name
+    e-mail: author2@email.com
+    orcid: https://orcid.org/YYYY-YYYY-YYYY-YYYY
+    organisation_name: Institution_2 name
+    ror: https://ror.org/YYYYYYYYY # Find them in ror.org
             """
             ft.write(template)
             print(
@@ -314,18 +317,58 @@ Organisation:
 
     # Get Sections
     compss_wf_info = yaml_content["COMPSs Workflow Information"]
-    author_info = yaml_content["Author"]
-    organisation_info = yaml_content["Organisation"]
+    authors_info = yaml_content["Authors"]  # Now a list of authors
 
     # COMPSs Workflow RO Crate generation
 
     # Root Entity
     CRATE.name = compss_wf_info["name"]
-    # print(f"Name: {CRATE.name}")
     CRATE.description = compss_wf_info["description"]
     CRATE.license = compss_wf_info["license"]  # Faltarà el detall de la llicència????
-    CRATE.publisher = {"@id": organisation_info["ror"]}
-    CRATE.creator = {"@id": author_info["orcid"]}
+    authors_set = set()
+    organisations_set = set()
+    for author in authors_info:
+        authors_set.add(author["orcid"])
+        organisations_set.add(author["ror"])
+        CRATE.add(
+            Person(
+                CRATE,
+                author["orcid"],
+                {
+                    "name": author["name"],
+                    "contactPoint": {"@id": "mailto:" + author["e-mail"]},
+                    "affiliation": {"@id": author["ror"]},
+                },
+            )
+        )
+        CRATE.add(
+            ContextEntity(
+                CRATE,
+                "mailto:" + author["e-mail"],
+                {
+                    "@type": "ContactPoint",
+                    "contactType": "Author",
+                    "email": author["e-mail"],
+                    "identifier": author["e-mail"],
+                    "url": author["orcid"],
+                },
+            )
+        )
+        CRATE.add(
+            ContextEntity(
+                CRATE,
+                author["ror"],
+                {"@type": "Organization", "name": author["organisation_name"]},
+            )
+        )
+    author_list = list()
+    for creator in authors_set:
+        author_list.append({"@id": creator})
+    CRATE.creator = author_list
+    org_list = list()
+    for org in organisations_set:
+        org_list.append({"@id": org})
+    CRATE.publisher = org_list
 
     # Get mainEntity from COMPSs runtime report dataprovenance.log
 
@@ -354,42 +397,6 @@ Organisation:
     for item in outs:
         hp_crate = add_file_not_in_crate(item)
         CRATE.root_dataset._jsonld["hasPart"] = hp_crate
-
-    # Contextual Entities
-
-    CRATE.add(
-        Person(
-            CRATE,
-            author_info["orcid"],
-            {
-                "name": author_info["name"],
-                "contactPoint": {"@id": "mailto:" + author_info["e-mail"]},
-                "affiliation": {"@id": organisation_info["ror"]},
-            },
-        )
-    )
-
-    CRATE.add(
-        ContextEntity(
-            CRATE,
-            "mailto:" + author_info["e-mail"],
-            {
-                "@type": "ContactPoint",
-                "contactType": "Author",
-                "email": author_info["e-mail"],
-                "identifier": author_info["e-mail"],
-                "url": author_info["orcid"],
-            },
-        )
-    )
-
-    CRATE.add(
-        ContextEntity(
-            CRATE,
-            organisation_info["ror"],
-            {"@type": "Organization", "name": organisation_info["name"]},
-        )
-    )
 
     # COMPSs RO-Crate Provenance Info can be directly hardcoded by now
 

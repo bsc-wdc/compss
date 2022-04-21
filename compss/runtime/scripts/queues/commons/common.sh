@@ -29,6 +29,11 @@ ERROR_STORAGE_PROPS_FILE="storage_props file doesn't exist"
 ERROR_PROJECT_NAME_NA="Project name not defined (use --project_name flag)"
 ERROR_CLUSTER_NA="Cluster not defined (use --cluster flag)"
 
+#---------------------------------------------------
+# GLOBAL VARIABLE NAME DECLARATION
+#---------------------------------------------------
+STORAGE_HOME_ENV_VAR="STORAGE_HOME"
+
 #---------------------------------------------------------------------------------------
 # HELPER FUNCTIONS
 #---------------------------------------------------------------------------------------
@@ -144,10 +149,11 @@ EOT
     cat <<EOT
     --job_dependency=<jobID>                Postpone job execution until the job dependency has ended.
                                             Default: ${DEFAULT_DEPENDENCY_JOB}
-    --forward_time_limit=<true|false>	    Forward the queue system time limit to the runtime. 
+    --forward_time_limit=<true|false>	    Forward the queue system time limit to the runtime.
 					    It will stop the application in a controlled way.
-					    Default: ${DEFAULT_FORWARD_TIME_LIMIT} 
-    --storage_home=<string>                 Root installation dir of the storage implementation
+					    Default: ${DEFAULT_FORWARD_TIME_LIMIT}
+    --storage_home=<string>                 Root installation dir of the storage implementation.
+                                            Can be defined with the ${STORAGE_HOME_ENV_VAR} environment variable.
                                             Default: ${DEFAULT_STORAGE_HOME}
     --storage_props=<string>                Absolute path of the storage properties file
                                             Mandatory if storage_home is defined
@@ -156,7 +162,7 @@ EOT
                                             Default: ${DEFAULT_AGENTS_HIERARCHY}
     --agents                                Deploys the runtime as agents instead of the classic Master-Worker deployment.
                                             Default: ${DEFAULT_AGENTS_ENABLED}
-    
+
   Homogeneous submission arguments:
     --num_nodes=<int>                       Number of nodes to use
                                             Default: ${DEFAULT_NUM_NODES}
@@ -646,7 +652,12 @@ check_args() {
   # Storage checks
   ###############################################################
   if [ -z "${storage_home}" ]; then
-    storage_home=${DEFAULT_STORAGE_HOME}
+    # Check if STORAGE_HOME_ENV_VAR is defined in the environment
+    if [ -z "${STORAGE_HOME_ENV_VAR}" ]; then
+      storage_home=${DEFAULT_STORAGE_HOME}
+    else
+      storage_home=${STORAGE_HOME_ENV_VAR}
+    fi
   fi
 
   if [ "${storage_home}" != "${DISABLED_STORAGE_HOME}" ]; then

@@ -144,6 +144,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     private static final Logger LOGGER = LogManager.getLogger(Loggers.API);
     // Data Provenance logger
     private static final Logger DP_LOGGER = LogManager.getLogger(Loggers.DATA_PROVENANCE);
+    private static boolean DataProvenanceEnabled =
+        Boolean.parseBoolean(System.getProperty(COMPSsConstants.DATA_PROVENANCE));
 
     // External Task monitor
     private static final TaskMonitor DO_NOTHING_MONITOR = new DoNothingTaskMonitor();
@@ -458,7 +460,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             Tracer.emitEventEnd(TraceEvent.START);
         }
 
-        if (Boolean.parseBoolean(System.getProperty(COMPSsConstants.DATA_PROVENANCE))) {
+        if (DataProvenanceEnabled) {
             DP_LOGGER.info(COMPSs_VERSION);
             DP_LOGGER.info(System.getProperty(COMPSsConstants.APP_NAME));
             DP_LOGGER.info(System.getProperty(COMPSsConstants.OUTPUT_PROFILE));
@@ -1594,7 +1596,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     pars.add(new FileParameter(direction, stream, prefix, name, pyType, weight, keepRename, location,
                         originalName));
 
-                    if (Boolean.parseBoolean(System.getProperty(COMPSsConstants.DATA_PROVENANCE))) {
+                    if (DataProvenanceEnabled) {
                         // Log access to file in the dataprovenance.log.
                         // Corner case: PyCOMPSs objects are passed as files to the runtime
                         String finalPath = location.toString();

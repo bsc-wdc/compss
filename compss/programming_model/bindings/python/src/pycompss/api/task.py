@@ -289,13 +289,15 @@ class Task(object):
             return fo
         elif context.in_worker():
             if "compss_key" in kwargs.keys():
-                if context.is_nesting_enabled():
-                    # Update the whole logger since it will be in job out/err
-                    update_logger_handlers(
-                        kwargs["compss_log_cfg"],
-                        kwargs["compss_log_files"][0],
-                        kwargs["compss_log_files"][1],
-                    )
+                is_nesting_enabled = context.is_nesting_enabled()
+                if is_nesting_enabled:
+                    if __debug__:
+                        # Update the whole logger since it will be in job out/err
+                        update_logger_handlers(
+                            kwargs["compss_log_cfg"],
+                            kwargs["compss_log_files"][0],
+                            kwargs["compss_log_files"][1],
+                        )
                 # @task being executed in the worker
                 with event_inside_worker(TRACING_WORKER.worker_task_instantiation):
                     worker = TaskWorker(
@@ -310,13 +312,14 @@ class Task(object):
                 sys.stderr.flush()
                 # Remove worker
                 del worker
-                if context.is_nesting_enabled():
+                if is_nesting_enabled:
                     # Wait for all nested tasks to finish
                     from pycompss.runtime.binding import nested_barrier
 
                     nested_barrier()
-                    # Reestablish logger handlers
-                    update_logger_handlers(kwargs["compss_log_cfg"])
+                    if __debug__:
+                        # Reestablish logger handlers
+                        update_logger_handlers(kwargs["compss_log_cfg"])
                 return result
             else:
                 if context.is_nesting_enabled():

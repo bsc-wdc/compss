@@ -112,6 +112,10 @@ public class PythonMirror extends PipedMirror {
 
         // Add Python interpreter call
         cmd.append(this.pyParams.getPythonInterpreter()).append(TOKEN_SEP).append("-u").append(TOKEN_SEP);
+        if (!LOGGER.isDebugEnabled()) {
+            // If not logging, then use the optimized flag
+            cmd.append("-O").append(TOKEN_SEP);
+        }
 
         String profilePath = System.getenv("COMPSS_WORKER_PROFILE_PATH");
         if (profilePath != null) {

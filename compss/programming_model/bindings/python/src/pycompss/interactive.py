@@ -29,8 +29,8 @@ import sys
 import tempfile
 import time
 
-import pycompss.util.context as context
 import pycompss.util.interactive.helpers as interactive_helpers
+from pycompss.util import context
 from pycompss.runtime.binding import get_log_path
 from pycompss.runtime.commons import CONSTANTS
 from pycompss.runtime.commons import GLOBALS
@@ -88,7 +88,7 @@ DISABLE_EXTERNAL = False
 initialize_multiprocessing()
 
 
-def start(
+def start(  # pylint: disable=too-many-arguments, too-many-locals
     log_level: str = "off",
     debug: bool = False,
     o_c: bool = False,
@@ -265,7 +265,7 @@ def start(
     # Let the Python binding know we are at master
     context.set_pycompss_context(context.MASTER)
     # Then we can import the appropriate start and stop functions from the API
-    from pycompss.api.api import compss_start
+    from pycompss.api.api import compss_start  # pylint: disable=import-outside-toplevel
 
     ##############################################################
     # INITIALIZATION
@@ -349,20 +349,19 @@ def start(
     if CONSTANTS.running_in_supercomputer:
         updated_vars = updated_variables_in_sc()
         if verbose:
-            print("- Overridden project xml with: %s" % updated_vars["project_xml"])
-            print("- Overridden resources xml with: %s" % updated_vars["resources_xml"])
-            print("- Overridden master name with: %s" % updated_vars["master_name"])
-            print("- Overridden master port with: %s" % updated_vars["master_port"])
-            print("- Overridden uuid with: %s" % updated_vars["uuid"])
-            print("- Overridden base log dir with: %s" % updated_vars["base_log_dir"])
+            print(f"- Overridden project xml with: {updated_vars['project_xml']}")
+            print(f"- Overridden resources xml with: {updated_vars['resources_xml']}")
+            print(f"- Overridden master name with: {updated_vars['master_name']}")
+            print(f"- Overridden master port with: {updated_vars['master_port']}")
+            print(f"- Overridden uuid with: {updated_vars['uuid']}")
+            print(f"- Overridden base log dir with: {updated_vars['base_log_dir']}")
             print(
-                "- Overridden specific log dir with: %s"
-                % updated_vars["specific_log_dir"]
+                f"- Overridden specific log dir with: {updated_vars['specific_log_dir']}"
             )
-            print("- Overridden storage conf with: %s" % updated_vars["storage_conf"])
-            print("- Overridden log level with: %s" % str(updated_vars["log_level"]))
-            print("- Overridden debug with: %s" % str(updated_vars["debug"]))
-            print("- Overridden trace with: %s" % str(updated_vars["trace"]))
+            print(f"- Overridden storage conf with: {updated_vars['storage_conf']}")
+            print(f"- Overridden log level with: {str(updated_vars['log_level'])}")
+            print(f"- Overridden debug with: {str(updated_vars['debug'])}")
+            print(f"- Overridden trace with: {str(updated_vars['trace'])}")
         all_vars.update(updated_vars)
 
     # Update the tracing environment if set and set the appropriate trace
@@ -420,7 +419,7 @@ def start(
     __print_setup__(verbose, all_vars)
 
     logger.debug("--- START ---")
-    logger.debug("PyCOMPSs Log path: %s" % LOG_PATH)
+    logger.debug("PyCOMPSs Log path: %s", LOG_PATH)
 
     logger.debug("Starting storage")
     global PERSISTENT_STORAGE
@@ -445,6 +444,7 @@ def start(
 
     # Emit the application start event (the 0 is in the stop function)
     emit_manual_event(TRACING_MASTER.application_running_event)
+    return None
 
 
 def __show_flower__() -> None:
@@ -453,24 +453,24 @@ def __show_flower__() -> None:
     :return: None
     """
     print(LINE_SEPARATOR)  # NOSONAR # noqa
-    print("**************** PyCOMPSs Interactive ******************")  # NOSONAR # noqa
+    print(r"**************** PyCOMPSs Interactive ******************")  # NOSONAR # noqa
     print(LINE_SEPARATOR)  # NOSONAR # noqa
-    print("*          .-~~-.--.           _____      __   ______  *")  # NOSONAR # noqa
-    print("*         :         )         |____ \    /  | /  __  \ *")  # NOSONAR # noqa
-    print("*   .~ ~ -.\       /.- ~~ .     ___) |  /_  | | |  | | *")  # NOSONAR # noqa
-    print("*   >       `.   .'       <    / ___/     | | | |  | | *")  # NOSONAR # noqa
-    print("*  (         .- -.         )  | |___   _  | | | |__| | *")  # NOSONAR # noqa
-    print("*   `- -.-~  `- -'  ~-.- -'   |_____| |_| |_| \______/ *")  # NOSONAR # noqa
-    print("*     (        :        )           _ _ .-:            *")  # NOSONAR # noqa
-    print("*      ~--.    :    .--~        .-~  .-~  }            *")  # NOSONAR # noqa
-    print("*          ~-.-^-.-~ \_      .~  .-~   .~              *")  # NOSONAR # noqa
-    print("*                   \ \ '     \ '_ _ -~                *")  # NOSONAR # noqa
-    print("*                    \`.\`.    //                      *")  # NOSONAR # noqa
-    print("*           . - ~ ~-.__\`.\`-.//                       *")  # NOSONAR # noqa
-    print("*       .-~   . - ~  }~ ~ ~-.~-.                       *")  # NOSONAR # noqa
-    print("*     .' .-~      .-~       :/~-.~-./:                 *")  # NOSONAR # noqa
-    print("*    /_~_ _ . - ~                 ~-.~-._              *")  # NOSONAR # noqa
-    print("*                                     ~-.<             *")  # NOSONAR # noqa
+    print(r"*          .-~~-.--.           _____      __   ______  *")  # NOSONAR # noqa
+    print(r"*         :         )         |____ \    /  | /  __  \ *")  # NOSONAR # noqa
+    print(r"*   .~ ~ -.\       /.- ~~ .     ___) |  /_  | | |  | | *")  # NOSONAR # noqa
+    print(r"*   >       `.   .'       <    / ___/     | | | |  | | *")  # NOSONAR # noqa
+    print(r"*  (         .- -.         )  | |___   _  | | | |__| | *")  # NOSONAR # noqa
+    print(r"*   `- -.-~  `- -'  ~-.- -'   |_____| |_| |_| \______/ *")  # NOSONAR # noqa
+    print(r"*     (        :        )           _ _ .-:            *")  # NOSONAR # noqa
+    print(r"*      ~--.    :    .--~        .-~  .-~  }            *")  # NOSONAR # noqa
+    print(r"*          ~-.-^-.-~ \_      .~  .-~   .~              *")  # NOSONAR # noqa
+    print(r"*                   \ \ '     \ '_ _ -~                *")  # NOSONAR # noqa
+    print(r"*                    \`.\`.    //                      *")  # NOSONAR # noqa
+    print(r"*           . - ~ ~-.__\`.\`-.//                       *")  # NOSONAR # noqa
+    print(r"*       .-~   . - ~  }~ ~ ~-.~-.                       *")  # NOSONAR # noqa
+    print(r"*     .' .-~      .-~       :/~-.~-./:                 *")  # NOSONAR # noqa
+    print(r"*    /_~_ _ . - ~                 ~-.~-._              *")  # NOSONAR # noqa
+    print(r"*                                     ~-.<             *")  # NOSONAR # noqa
     print(LINE_SEPARATOR)  # NOSONAR # noqa
 
 
@@ -485,8 +485,8 @@ def __print_setup__(verbose: bool, all_vars: typing.Dict[str, typing.Any]) -> No
     output = ""
     output += LINE_SEPARATOR + "\n"
     output += " CONFIGURATION: \n"
-    for k, v in sorted(all_vars.items()):
-        output += "  - {0:20} : {1} \n".format(k, v)
+    for key, value in sorted(all_vars.items()):
+        output += f"  - {key} : {value} \n"
     output += LINE_SEPARATOR
     if verbose:
         print(output)
@@ -508,7 +508,7 @@ def stop(sync: bool = False, _hard_stop: bool = False) -> None:
     if not context.in_pycompss():
         return __hard_stop__(interactive_helpers.DEBUG, sync, logger, ipython)
 
-    from pycompss.api.api import compss_stop
+    from pycompss.api.api import compss_stop  # pylint: disable=import-outside-toplevel
 
     print(LINE_SEPARATOR)
     print("*************** STOPPING PyCOMPSs ******************")
@@ -532,7 +532,9 @@ def stop(sync: bool = False, _hard_stop: bool = False) -> None:
         sync_msg = "Synchronizing all future objects left on the user scope."
         print(sync_msg)
         logger.debug(sync_msg)
-        from pycompss.api.api import compss_wait_on
+        from pycompss.api.api import (  # pylint: disable=import-outside-toplevel
+            compss_wait_on,
+        )
 
         reserved_names = (
             "quit",
@@ -547,26 +549,26 @@ def stop(sync: bool = False, _hard_stop: bool = False) -> None:
         for k in raw_code:
             obj_k = raw_code[k]
             if not k.startswith("_"):  # not internal objects
-                if type(obj_k) == Future:
-                    print("Found a future object: %s" % str(k))
-                    logger.debug("Found a future object: %s" % str(k))
+                if isinstance(obj_k, Future):
+                    print(f"Found a future object: {str(k)}")
+                    logger.debug("Found a future object: %s", str(k))
                     new_obj_k = compss_wait_on(obj_k)
                     if new_obj_k == obj_k:
-                        print("\t - Could not retrieve object: %s" % str(k))
-                        logger.debug("\t - Could not retrieve object: %s" % str(k))
+                        print(f"\t - Could not retrieve object: {str(k)}")
+                        logger.debug("\t - Could not retrieve object: %s", str(k))
                     else:
                         ipython.__dict__["user_ns"][k] = new_obj_k
                 elif k not in reserved_names:
                     try:
                         if OT.is_pending_to_synchronize(obj_k):
-                            print("Found an object to synchronize: %s" % str(k))
-                            logger.debug("Found an object to synchronize: %s" % (k,))
+                            print(f"Found an object to synchronize: {str(k)}")
+                            logger.debug("Found an object to synchronize: %s", str(k))
                             ipython.__dict__["user_ns"][k] = compss_wait_on(obj_k)
                     except TypeError:
                         # Unhashable type: List - could be a collection
                         if isinstance(obj_k, list):
-                            print("Found a list to synchronize: %s" % str(k))
-                            logger.debug("Found a list to synchronize: %s" % (k,))
+                            print(f"Found a list to synchronize: {str(k)}")
+                            logger.debug("Found a list to synchronize: %s", str(k))
                             ipython.__dict__["user_ns"][k] = compss_wait_on(obj_k)
     else:
         print("Warning: some of the variables used with PyCOMPSs may")
@@ -604,8 +606,8 @@ def stop(sync: bool = False, _hard_stop: bool = False) -> None:
 
     print(LINE_SEPARATOR)
     logger.debug("--- END ---")
-
     # --- Execution finished ---
+    return None
 
 
 def __hard_stop__(
@@ -651,7 +653,6 @@ def __hard_stop__(
 
     if sync:
         print("* Can not synchronize any future object.")
-    return None
 
 
 def current_task_graph(
@@ -665,20 +666,20 @@ def current_task_graph(
     :param timeout: Time during the current task graph is going to be updated.
     :return: None
     """
-    if GRAPHING:
-        return show_graph(
-            log_path=LOG_PATH,
-            name="current_graph",
-            fit=fit,
-            refresh_rate=refresh_rate,
-            timeout=timeout,
-        )
-    else:
+    if not GRAPHING:
         print("Oops! Graph is not enabled in this execution.")
         print(
             "      Please, enable it by setting the graph flag when"
             + " starting PyCOMPSs."
         )
+        return None
+    return show_graph(
+        log_path=LOG_PATH,
+        name="current_graph",
+        fit=fit,
+        refresh_rate=refresh_rate,
+        timeout=timeout,
+    )
 
 
 def complete_task_graph(
@@ -692,21 +693,20 @@ def complete_task_graph(
     :param timeout: Time during the current task graph is going to be updated.
     :return: None
     """
-    if GRAPHING:
-        return show_graph(
-            log_path=LOG_PATH,
-            name="complete_graph",
-            fit=fit,
-            refresh_rate=refresh_rate,
-            timeout=timeout,
-        )
-    else:
+    if not GRAPHING:
         print("Oops! Graph is not enabled in this execution.")
         print(
             "      Please, enable it by setting the graph flag when"
             + " starting PyCOMPSs."
         )
         return None
+    return show_graph(
+        log_path=LOG_PATH,
+        name="complete_graph",
+        fit=fit,
+        refresh_rate=refresh_rate,
+        timeout=timeout,
+    )
 
 
 def tasks_info() -> None:
@@ -722,7 +722,6 @@ def tasks_info() -> None:
             "      Please, enable it by setting the monitor flag when"
             + " starting PyCOMPSs."
         )
-        return None
 
 
 def tasks_status() -> None:
@@ -738,7 +737,6 @@ def tasks_status() -> None:
             "      Please, enable it by setting the monitor flag when"
             + " starting PyCOMPSs."
         )
-        return None
 
 
 def statistics() -> None:
@@ -754,7 +752,6 @@ def statistics() -> None:
             "      Please, enable it by setting the monitor flag when"
             + " starting PyCOMPSs."
         )
-        return None
 
 
 def resources_status() -> None:
@@ -770,7 +767,6 @@ def resources_status() -> None:
             "      Please, enable it by setting the monitor flag when"
             + " starting PyCOMPSs."
         )
-        return None
 
 
 # ########################################################################### #

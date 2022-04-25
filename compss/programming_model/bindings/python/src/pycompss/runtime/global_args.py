@@ -23,7 +23,6 @@ PyCOMPSs Binding - Globals.
 This file contains the global variables used in the Python binding.
 """
 
-from pycompss.runtime.task.parameter import Parameter  # noqa # typing purposes
 from pycompss.util.typing_helper import typing
 
 # GLOBALS

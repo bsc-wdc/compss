@@ -27,7 +27,7 @@ from pycompss.api.commons.constants import INTERNAL_LABELS
 from pycompss.util.typing_helper import typing
 
 
-class CE(object):
+class CE:  # pylint: disable=too-many-instance-attributes
     """Core Element class."""
 
     __slots__ = [
@@ -41,7 +41,7 @@ class CE(object):
         "impl_type_args",
     ]
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
         self,
         ce_signature: str = "",
         impl_signature: str = "",
@@ -66,13 +66,13 @@ class CE(object):
         self.ce_signature = ce_signature
         self.impl_signature = impl_signature
         if impl_constraints is None:
-            self.impl_constraints = dict()
+            self.impl_constraints = {}
         else:
             self.impl_constraints = impl_constraints
         self.impl_type = impl_type
         self.impl_io = impl_io
         if impl_type_args is None:
-            self.impl_type_args = list()
+            self.impl_type_args = []
         else:
             self.impl_type_args = impl_type_args
 
@@ -94,12 +94,12 @@ class CE(object):
         """
         self.ce_signature = ""
         self.impl_signature = ""
-        self.impl_constraints = dict()
+        self.impl_constraints = {}
         self.impl_type = ""
         self.impl_io = False
-        self.impl_type_args = list()
-        self.impl_prolog = list()
-        self.impl_epilog = list()
+        self.impl_type_args = []
+        self.impl_prolog = []
+        self.impl_epilog = []
 
     ###########
     # GETTERS #
@@ -239,18 +239,18 @@ class CE(object):
         :return: The core element representation.
         """
         _repr = "CORE ELEMENT: \n"
-        _repr += "\t - CE signature     : " + str(self.ce_signature) + "\n"
-        _repr += "\t - Impl. signature  : " + str(self.impl_signature) + "\n"
+        _repr += f"\t - CE signature     : {str(self.ce_signature)}\n"
+        _repr += f"\t - Impl. signature  : {str(self.impl_signature)}\n"
         if self.impl_constraints:
             impl_constraints = ""
             for key, value in self.impl_constraints.items():
-                impl_constraints += key + ":" + str(value) + ";"
+                impl_constraints += f"{key}:{str(value)};"
         else:
             impl_constraints = str(self.impl_constraints)
-        _repr += "\t - Impl. constraints: " + impl_constraints + "\n"
-        _repr += "\t - Impl. type       : " + str(self.impl_type) + "\n"
-        _repr += "\t - Impl. io         : " + str(self.impl_io) + "\n"
-        _repr += "\t - Impl. prolog     : " + str(self.impl_prolog) + "\n"
-        _repr += "\t - Impl. epilog     : " + str(self.impl_epilog) + "\n"
-        _repr += "\t - Impl. type args  : " + str(self.impl_type_args) + "\n"
+        _repr += f"\t - Impl. constraints: {impl_constraints}\n"
+        _repr += f"\t - Impl. type       : {str(self.impl_type)}\n"
+        _repr += f"\t - Impl. io         : {str(self.impl_io)}\n"
+        _repr += f"\t - Impl. prolog     : {str(self.impl_prolog)}\n"
+        _repr += f"\t - Impl. epilog     : {str(self.impl_epilog)}\n"
+        _repr += f"\t - Impl. type args  : {str(self.impl_type_args)}\n"
         return _repr

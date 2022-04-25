@@ -24,7 +24,7 @@ This file contains the task keys.
 """
 
 
-class ParamAliasKeys(object):
+class ParamAliasKeys:  # pylint: disable=too-few-public-methods
     """Strings used in Tasks definition."""
 
     IN = "IN"
@@ -86,7 +86,7 @@ class ParamAliasKeys(object):
     STREAM_OUT = "STREAM_OUT"
 
 
-class ParamDictKeys(object):
+class ParamDictKeys:  # pylint: disable=too-few-public-methods
     """Strings used in Parameter definition as dictionary."""
 
     # Exposed to the user (see api/parameter.py)

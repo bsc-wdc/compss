@@ -35,7 +35,7 @@ import sys
 import traceback
 
 # Project imports
-import pycompss.util.context as context
+from pycompss.util import context
 from pycompss.api.exceptions import COMPSsException
 from pycompss.runtime.binding import get_log_path
 from pycompss.runtime.commons import CONSTANTS
@@ -119,7 +119,8 @@ def parse_arguments() -> typing.Any:
     parser = argparse.ArgumentParser(description="PyCOMPSs application launcher")
     parser.add_argument(
         "wall_clock",
-        help="Application Wall Clock limit [wall_clock<=0 deactivated|wall_clock>0 max duration in seconds]",
+        help="Application Wall Clock limit "
+             "[wall_clock<=0 deactivated|wall_clock>0 max duration in seconds]",
     )
     parser.add_argument("log_level", help="Logging level [trace|debug|api|info|off]")
     parser.add_argument("tracing", help="Tracing [True | False]")
@@ -213,10 +214,7 @@ def compss_main() -> None:
     log_level = args.log_level
     print(str(args))
     # Setup tracing
-    if args.tracing == "true":
-        tracing = True
-    else:
-        tracing = False
+    tracing = args.tracing == "true"
 
     # Get storage configuration at master
     storage_conf = args.storage_configuration
@@ -268,7 +266,7 @@ def compss_main() -> None:
     try:
         if __debug__:
             LOGGER.debug("--- START ---")
-            LOGGER.debug("PyCOMPSs Log path: %s" % binding_log_path)
+            LOGGER.debug("PyCOMPSs Log path: %s", binding_log_path)
 
         # Start persistent storage
         PERSISTENT_STORAGE = master_init_storage(storage_conf, LOGGER)
@@ -287,17 +285,17 @@ def compss_main() -> None:
         # MAIN EXECUTION
         with event_master(TRACING_MASTER.application_running_event):
             # MAIN EXECUTION
-            with open(APP_PATH) as f:
-                exec(compile(f.read(), APP_PATH, "exec"), globals())
+            with open(APP_PATH) as user_file:
+                exec(compile(user_file.read(), APP_PATH, "exec"), globals())
 
         # End
         if __debug__:
             LOGGER.debug("--- END ---")
-    except SystemExit as e:  # NOSONAR - reraising would not allow to stop the runtime gracefully.
-        if e.code != 0:
-            print("[ ERROR ]: User program ended with exitcode %s." % e.code)
+    except SystemExit as system_exit:  # Re-raising would not allow to stop the runtime gracefully.
+        if system_exit.code != 0:
+            print("[ ERROR ]: User program ended with exitcode %s.", system_exit.code)
             print("\t\tShutting down runtime...")
-            exit_code = e.code
+            exit_code = system_exit.code
     except SerializerException:
         exit_code = 1
         # If an object that can not be serialized has been used as a parameter.
@@ -308,14 +306,14 @@ def compss_main() -> None:
             if APP_PATH in line:
                 print("[ ERROR ]: In: %s", line)
         exit_code = 1
-    except COMPSsException as e:
+    except COMPSsException as compss_exception:
         # Any other exception occurred
-        print("[ ERROR ]: A COMPSs exception occurred: " + str(e))
+        print("[ ERROR ]: A COMPSs exception occurred: %s", str(compss_exception))
         traceback.print_exc()
         exit_code = 0  # COMPSs exception is not considered an error
-    except Exception as e:
+    except Exception as general_exception:
         # Any other exception occurred
-        print("[ ERROR ]: An exception occurred: " + str(e))
+        print("[ ERROR ]: An exception occurred: %s" + str(general_exception))
         traceback.print_exc()
         exit_code = 1
     finally:
@@ -582,7 +580,7 @@ def launch_pycompss_application(
     logger = logging.getLogger("pycompss.runtime.launch")
 
     logger.debug("--- START ---")
-    logger.debug("PyCOMPSs Log path: %s" % log_path)
+    logger.debug("PyCOMPSs Log path: %s", log_path)
 
     if storage_impl and storage_conf:
         logger.debug("Starting storage")
@@ -602,7 +600,8 @@ def launch_pycompss_application(
     # Execution:
     with event_master(TRACING_MASTER.application_running_event):
         if func is None or func == "__main__":
-            exec(open(app).read())
+            with open(app, "r") as app_fd:
+                exec(app_fd.read())
             result = None
         else:
             from importlib.machinery import SourceFileLoader  # noqa
@@ -638,7 +637,5 @@ def launch_pycompss_application(
 
 
 if __name__ == "__main__":
-    """
-    This is the PyCOMPSs entry point.
-    """
+    # This is the PyCOMPSs entry point.
     compss_main()

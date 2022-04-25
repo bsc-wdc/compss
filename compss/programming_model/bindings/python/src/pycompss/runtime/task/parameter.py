@@ -49,11 +49,11 @@ from pycompss.util.storages.persistent import has_id
 from pycompss.util.typing_helper import typing
 
 # Try to import numpy
-np = None  # type: typing.Union[None, typing.Any]
+NP = None  # type: typing.Union[None, typing.Any]
 try:
     import numpy
 
-    np = numpy
+    NP = numpy
 except ImportError:
     pass
 
@@ -70,7 +70,7 @@ JAVA_MIN_LONG = PYTHON_MIN_INT
 UNDEFINED_CONTENT_TYPE = "#UNDEFINED#:#UNDEFINED#"
 
 
-class COMPSsFile(object):
+class COMPSsFile:
     """Class that represents a file in the worker."""
 
     __slots__ = [
@@ -95,8 +95,8 @@ class COMPSsFile(object):
             fields = file_name.split(":")
             self.source_path = fields[0]
             self.destination_name = fields[1]
-            self.keep_source = True if fields[2] == "true" else False
-            self.is_write_final = True if fields[3] == "true" else False
+            self.keep_source = fields[2] == "true"
+            self.is_write_final = fields[3] == "true"
             self.original_path = fields[4]
         else:
             # Can be a collection wrapper or a stream
@@ -108,20 +108,15 @@ class COMPSsFile(object):
         :returns: The COMPSsFile representation as string.
         """
         return (
-            "Source: %s, Destination: %s, "
-            "Keep source: %s, Is write final: %s, "
-            "Original path: %s"
-            % (
-                self.source_path,
-                self.destination_name,
-                self.keep_source,
-                self.is_write_final,
-                self.original_path,
-            )
+            f"Source: {self.source_path}, "
+            f"Destination: {self.destination_name}, "
+            f"Keep source: {self.keep_source}, "
+            f"Is write final: {self.is_write_final}, "
+            f"Original path: {self.original_path}"
         )
 
 
-class Parameter(object):
+class Parameter:
     """Class that represents a file in the worker.
 
     Internal Parameter class
@@ -187,7 +182,7 @@ class Parameter(object):
         :param cache: If cache the parameter.
         """
         if dict_collection_content is None:
-            dict_collection_content = dict()
+            dict_collection_content = {}
         self.name = name
         self.content = content  # placeholder for parameter content
         self.content_type = content_type
@@ -211,32 +206,20 @@ class Parameter(object):
         :returns: The parameter representation as string.
         """
         return (
-            "Parameter(name=%s\n"
-            "          type=%s, direction=%s, stream=%s, prefix=%s\n"
-            "          extra_content_type=%s\n"
-            "          file_name=%s\n"
-            "          is_future=%s\n"
-            "          is_file_collection=%s, depth=%s\n"
-            "          weight=%s\n"
-            "          keep_rename=%s\n"
-            "          cache=%s\n"
-            "          content=%s)"
-            % (
-                str(self.name),
-                str(self.content_type),
-                str(self.direction),
-                str(self.stream),
-                str(self.prefix),  # noqa: E501
-                str(self.extra_content_type),
-                str(self.file_name),
-                str(self.is_future),
-                str(self.is_file_collection),
-                str(self.depth),
-                str(self.weight),
-                str(self.keep_rename),
-                str(self.cache),
-                str(self.content),
-            )
+            f"Parameter(name={str(self.name)}\n"
+            f"          type={str(self.content_type)}, "
+            f"direction={str(self.direction)}, "
+            f"stream={str(self.stream)}, "
+            f"prefix={str(self.prefix)}\n"
+            f"          extra_content_type={str(self.extra_content_type)}\n"
+            f"          file_name={str(self.file_name)}\n"
+            f"          is_future={str(self.is_future)}\n"
+            f"          is_file_collection={str(self.is_file_collection)}, "
+            f"depth={str(self.depth)}\n"
+            f"          weight={str(self.weight)}\n"
+            f"          keep_rename={str(self.keep_rename)}\n"
+            f"          cache={str(self.cache)}\n"
+            f"          content={str(self.content)})"
         )
 
     def is_object(self) -> bool:
@@ -587,9 +570,9 @@ def get_parameter_copy(parameter: Parameter) -> Parameter:
     :return: An equivalent Parameter copy of this object (note that it will
              be equivalent, but not equal).
     """
-    assert is_parameter(parameter), (
-        "Input parameter is not Parameter (is %s)" % parameter.__class__.__name__
-    )
+    assert is_parameter(
+        parameter
+    ), f"Input parameter is not Parameter (is {parameter.__class__.__name__})"
     return copy.deepcopy(parameter)
 
 
@@ -607,38 +590,37 @@ def is_dict_specifier(value: typing.Any) -> bool:
     return isinstance(value, dict) and Type in value
 
 
-def get_parameter_from_dictionary(d: dict) -> Parameter:
+def get_parameter_from_dictionary(dictionary: dict) -> Parameter:
     """Convert a dictionary to Parameter.
 
     Given a dictionary with fields like Type, Direction, etc.
     returns an actual Parameter object.
 
-    :param d: Parameter description as dictionary.
+    :param dictionary: Parameter description as dictionary.
     :return: an actual Parameter object.
     """
-    if not isinstance(d, dict):
+    if not isinstance(dictionary, dict):
         raise PyCOMPSsException("Unexpected type for parameter.")
+    if Type not in dictionary:  # If no Type specified => IN
+        parameter = Parameter()
     else:
-        if Type not in d:  # If no Type specified => IN
-            parameter = Parameter()
-        else:
-            parameter = get_new_parameter(d[Type].key)
-        # Add other modifiers
-        if Direction in d:
-            parameter.direction = d[Direction]
-        if StdIOStream in d:
-            parameter.stream = d[StdIOStream]
-        if Prefix in d:
-            parameter.prefix = d[Prefix]
-        if Depth in d:
-            parameter.depth = d[Depth]
-        if Weight in d:
-            parameter.weight = d[Weight]
-        if Keep_rename in d:
-            parameter.keep_rename = d[Keep_rename]
-        if Cache in d:
-            parameter.cache = d[Cache]
-        return parameter
+        parameter = get_new_parameter(dictionary[Type].key)
+    # Add other modifiers
+    if Direction in dictionary:
+        parameter.direction = dictionary[Direction]
+    if StdIOStream in dictionary:
+        parameter.stream = dictionary[StdIOStream]
+    if Prefix in dictionary:
+        parameter.prefix = dictionary[Prefix]
+    if Depth in dictionary:
+        parameter.depth = dictionary[Depth]
+    if Weight in dictionary:
+        parameter.weight = dictionary[Weight]
+    if Keep_rename in dictionary:
+        parameter.keep_rename = dictionary[Keep_rename]
+    if Cache in dictionary:
+        parameter.cache = dictionary[Cache]
+    return parameter
 
 
 def get_compss_type(value: typing.Any, depth: int = 0, code_strings=True) -> int:
@@ -657,8 +639,7 @@ def get_compss_type(value: typing.Any, depth: int = 0, code_strings=True) -> int
             if get_id(value) not in [None, "None"]:
                 # the "getID" + id == criteria for persistent object
                 return TYPE.EXTERNAL_PSCO
-            else:
-                return TYPE.OBJECT
+            return TYPE.OBJECT
         except TypeError:
             # A PSCO class has been used to check its type (when checking
             # the return). Since we still don't know if it is going to be
@@ -667,27 +648,26 @@ def get_compss_type(value: typing.Any, depth: int = 0, code_strings=True) -> int
             return TYPE.OBJECT
 
     # If it is a numpy scalar, we manage it as all objects to avoid to
-    # infer its type wrong. For instance isinstance(np.float64 object, float)
+    # infer its type wrong. For instance isinstance(NP.float64 object, float)
     # returns true
-    if np and isinstance(value, np.generic):
+    if NP and isinstance(value, NP.generic):
         return TYPE.OBJECT
 
     if isinstance(value, (bool, str, int, float)):
         value_type = type(value)
         if value_type is bool:
             return TYPE.BOOLEAN
-        elif value_type is str:
+        if value_type is str:
             # Char does not exist as char, only strings.
             # Files will be detected as string, since it is a path.
             # The difference among them is defined by the parameter
             # decoration as FILE.
             return TYPE.STRING if not code_strings else TYPE.STRING_64
-        elif value_type is int:
+        if value_type is int:
             if int(value) < PYTHON_MAX_INT:  # noqa
                 return TYPE.INT
-            else:
-                return TYPE.LONG
-        elif value_type is float:
+            return TYPE.LONG
+        if value_type is float:
             return TYPE.DOUBLE
     elif depth > 0 and is_basic_iterable(value):
         return TYPE.COLLECTION

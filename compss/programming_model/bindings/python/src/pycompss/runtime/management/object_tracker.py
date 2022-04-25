@@ -34,10 +34,10 @@ from pycompss.util.typing_helper import typing
 if __debug__:
     import logging
 
-    logger = logging.getLogger(__name__)
+    LOGGER = logging.getLogger(__name__)
 
 
-class ObjectTracker(object):
+class ObjectTracker:
     """Object tracker class.
 
     This class has all needed data structures and functionalities
@@ -67,12 +67,12 @@ class ObjectTracker(object):
         # filename where it is stored (mapping).
         # The filename will be used for requesting an object to
         # the runtime (its corresponding version).
-        self.file_names = dict()  # type: typing.Dict[str, str]
+        self.file_names = {}  # type: typing.Dict[str, str]
         # Dictionary to contain the conversion from object id to the
         # parameter name (object name mapping).
         # The object name will be used to map the tracked objects with the
         # updated within a task (e.g. synchronize within task).
-        self.obj_names = dict()  # type: typing.Dict[str, typing.Optional[str]]
+        self.obj_names = {}  # type: typing.Dict[str, typing.Optional[str]]
         # Set that contains the object identifiers of the objects to pending
         # to be synchronized.
         self.pending_to_synchronize = set()  # type: typing.Set[str]
@@ -90,10 +90,10 @@ class ObjectTracker(object):
         # NOTE: it can not be done in the other way since the memory addresses
         #       can be reused, not guaranteeing their uniqueness, and causing
         #       weird behaviour.
-        self.obj_id_to_obj = dict()  # type: typing.Dict[str, typing.Any]
+        self.obj_id_to_obj = {}  # type: typing.Dict[str, typing.Any]
         # Dictionary to contain the object address (currently the id(obj)) to
         # the identifier provided by the binding.
-        self.address_to_obj_id = dict()  # type: typing.Dict[typing.Any, str]
+        self.address_to_obj_id = {}  # type: typing.Dict[typing.Any, str]
 
         # Boolean to store tracking information
         # CAUTION: Enabling reporting increases the memory usage since
@@ -126,15 +126,15 @@ class ObjectTracker(object):
             obj_id = self._register_object(obj, True)
             file_name = "None"
             if __debug__:
-                logger.debug("Tracking collection %s" % obj_id)
+                LOGGER.debug("Tracking collection %s", obj_id)
         else:
             obj_id = self._register_object(obj, True)
-            file_name = "%s/%s" % (GLOBALS.get_temporary_directory(), str(obj_id))
+            file_name = f"{GLOBALS.get_temporary_directory()}/{str(obj_id)}"
             self._set_file_name(obj_id, file_name)
             self._set_obj_name(obj_id, obj_name)
             self.set_pending_to_synchronize(obj_id)
             if __debug__:
-                logger.debug("Tracking object %s to file %s" % (obj_id, file_name))
+                LOGGER.debug("Tracking object %s to file %s", obj_id, file_name)
         address = self._get_object_address(obj)
         self.address_to_obj_id[address] = obj_id
         if self.reporting:
@@ -147,11 +147,11 @@ class ObjectTracker(object):
         :param collection: If the object is a collection.
         :returns: Object identifier and file name.
         """
-        obj_id = "%s-%d" % (self.runtime_id, self.current_id)
+        obj_id = f"{self.runtime_id}-{self.current_id}"
         if collection:
             file_name = "None"
         else:
-            file_name = "%s/%s" % (GLOBALS.get_temporary_directory(), str(obj_id))
+            file_name = f"{GLOBALS.get_temporary_directory()}/{str(obj_id)}"
         self.current_id += 1
         return obj_id, file_name
 
@@ -166,11 +166,11 @@ class ObjectTracker(object):
         if obj_id != "":
             if collection:
                 if __debug__:
-                    logger.debug("Stop tracking collection %s" % obj_id)
+                    LOGGER.debug("Stop tracking collection %s", obj_id)
                 self._pop_object_id(obj_id)
             else:
                 if __debug__:
-                    logger.debug("Stop tracking object %s" % obj_id)
+                    LOGGER.debug("Stop tracking object %s", obj_id)
                 self._delete_file_name(obj_id)
                 self._delete_obj_name(obj_id)
                 self._remove_from_pending_to_synchronize(obj_id)
@@ -200,8 +200,7 @@ class ObjectTracker(object):
         address = self._get_object_address(obj)
         if address in self.address_to_obj_id:
             return self.address_to_obj_id[address]
-        else:
-            return ""
+        return ""
 
     def get_all_file_names(self) -> tuple:
         """Return all used files names.
@@ -228,8 +227,7 @@ class ObjectTracker(object):
         """
         if obj_id:
             return self.obj_names[obj_id]
-        else:
-            return None
+        return None
 
     def is_obj_pending_to_synchronize(self, obj: typing.Any) -> bool:
         """Check if the given object is pending to be synchronized.
@@ -240,8 +238,7 @@ class ObjectTracker(object):
         obj_id = self.is_tracked(obj)
         if obj_id == "":
             return False
-        else:
-            return self.is_pending_to_synchronize(obj_id)
+        return self.is_pending_to_synchronize(obj_id)
 
     def is_pending_to_synchronize(self, obj_id: str) -> bool:
         """Check if the given object id is in pending to be synchronized dict.
@@ -352,7 +349,7 @@ class ObjectTracker(object):
             # This object was not in our object database or we were forced to
             # remove it, lets assign it an identifier and store it.
             # Generate a new identifier
-            new_id = "%s-%d" % (self.runtime_id, self.current_id)
+            new_id = f"{self.runtime_id}-{self.current_id}"
             self.current_id += 1
             self.obj_id_to_obj[new_id] = obj
             address = self._get_object_address(obj)
@@ -453,9 +450,9 @@ class ObjectTracker(object):
         #     # they are not affected.
         #     import hashlib
         #     hash_id = hashlib.md5()
-        #     hash_id.update(str(id(obj)).encode())            # Consider the memory pointer        # noqa: E501
-        #     hash_id.update(str(total_sizeof(obj)).encode())  # Include the object size            # noqa: E501
-        #     hash_id.update(repr(obj).encode())               # Include the object representation  # noqa: E501
+        #     hash_id.update(str(id(obj)).encode())            # Consider the memory pointer
+        #     hash_id.update(str(total_sizeof(obj)).encode())  # Include the object size
+        #     hash_id.update(repr(obj).encode())               # Include the object representation
         #     obj_address = str(hash_id.hexdigest())
         # return obj_address
 
@@ -500,20 +497,20 @@ class ObjectTracker(object):
 
         :return: None
         """
-        logger.debug(
-            "Object tracker status: "
-            + " File_names="
-            + str(len(self.file_names))
-            + " Pending_to_synchronize="
-            + str(len(self.pending_to_synchronize))
-            + " Written_objs="
-            + str(len(self.written_objects))
-            + " Obj_id_to_obj="
-            + str(len(self.obj_id_to_obj))
-            + " Address_to_obj_id="
-            + str(len(self.address_to_obj_id))
-            + " Current_id="
-            + str(self.current_id)
+        LOGGER.debug(
+            "Object tracker status:\n"
+            " - File_names=%s\n"
+            " - Pending_to_synchronize=%s\n"
+            " - Written_objs=%s\n"
+            " - Obj_id_to_obj=%s\n"
+            " - Address_to_obj_id=%s\n"
+            " - Current_id=%s",
+            str(len(self.file_names)),
+            str(len(self.pending_to_synchronize)),
+            str(len(self.written_objects)),
+            str(len(self.obj_id_to_obj)),
+            str(len(self.address_to_obj_id)),
+            str(self.current_id),
         )
 
     def __update_report__(self, first: bool = False) -> None:
@@ -548,18 +545,19 @@ class ObjectTracker(object):
         :return: None
         """
         try:
-            import matplotlib  # noqa
+            import matplotlib  # pylint: disable=import-outside-toplevel
 
-            matplotlib.use("Agg")  # avoid issues in MN
-            import matplotlib.pyplot as plt  # noqa
+            # Agg avoid issues in MN
+            matplotlib.use("Agg")
+            import matplotlib.pyplot as plt  # pylint: disable=import-outside-toplevel
         except ImportError:
             print("WARNING: Could not generate the Object Tracker report")
             print("REASON : matplotlib not available.")
             return None
         if __debug__:
-            logger.debug("Generating object tracker report...")
-        x = [status[0] for status in self.reporting_info]
-        y = [status[1] for status in self.reporting_info]
+            LOGGER.debug("Generating object tracker report...")
+        x_axis = [status[0] for status in self.reporting_info]
+        y_axis = [status[1] for status in self.reporting_info]
         plt.xlabel("Time (seconds)")
         plt.ylabel("# Elements")
         plt.title("Object tracker behaviour")
@@ -570,13 +568,14 @@ class ObjectTracker(object):
             "IDs",
             "Addresses",
         ]
-        for i in range(len(y[0])):
-            plt.plot(x, [pt[i] for pt in y], label="%s" % labels[i])
+        for i in range(len(y_axis[0])):
+            plt.plot(x_axis, [pt[i] for pt in y_axis], label=f"{labels[i]}")
         plt.legend()
         target = os.path.join(target_path, "object_tracker.png")
         plt.savefig(target)
         if __debug__:
-            logger.debug("Object tracker report stored in " + target)
+            LOGGER.debug("Object tracker report stored in %s", target)
+        return None
 
 
 # Instantiation of the Object tracker class to be shared among

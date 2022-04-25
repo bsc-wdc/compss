@@ -75,7 +75,9 @@ if __debug__:
     link_logger = logging.getLogger(__name__)
 
 
-def shutdown_handler(signal: int, frame: typing.Any) -> None:
+def shutdown_handler(
+    signal: int, frame: typing.Any
+) -> None:  # pylint: disable=unused-argument
     """Shutdown handler.
 
     Do not remove the parameters.
@@ -108,7 +110,7 @@ def c_extension_link(
     :return: None
     """
     # Import C extension within the external process
-    import compss
+    import compss  # pylint: disable=import-outside-toplevel
 
     with ipython_std_redirector(
         out_file_name, err_file_name
@@ -194,7 +196,7 @@ def establish_link(logger: typing.Any = None) -> typing.Any:
             logger.debug(message)
         else:
             link_logger.debug(message)
-    import compss
+    import compss  # pylint: disable=import-outside-toplevel
 
     if __debug__:
         message = "Loaded compss extension"
@@ -287,7 +289,7 @@ def terminate_interactive_link() -> None:
     LINK_PROCESS.terminate()
 
 
-class _COMPSs(object):
+class _COMPSs:
     """Class that mimics the compss extension library.
 
     Each function puts into the queue a list or set composed by:
@@ -385,8 +387,7 @@ class _COMPSs(object):
         result = OUT_QUEUE.get(block=True)
         if result is None:
             return False
-        else:
-            return result
+        return result
 
     @staticmethod
     def get_file(app_id: int, file_name: str) -> None:

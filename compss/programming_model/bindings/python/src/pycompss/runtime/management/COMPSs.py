@@ -32,16 +32,16 @@ from pycompss.util.typing_helper import typing
 if __debug__:
     import logging
 
-    logger = logging.getLogger(__name__)
+    LOGGER = logging.getLogger(__name__)
 
 # C module extension for the communication with the runtime
 # See ext/compssmodule.cc
 # Keep the COMPSs runtime link in this module so that any module can access
 # it through the module methods.
-_COMPSs = None  # type: typing.Any
+COMPSS = None  # type: typing.Any
 # Files where the std may be redirected with interactive
-_STDOUT = ""
-_STDERR = ""
+STDOUT = ""
+STDERR = ""
 
 
 ######################################################
@@ -54,19 +54,19 @@ def load_runtime(external_process: bool = False, _logger: typing.Any = None) -> 
 
     :param external_process: Loads the runtime in an external process if true.
                              Within this python process if false.
-    :param _logger: Use this logger instead of the module logger.
+    :param _logger: Use this logger instead of the module LOGGER.
     :return: None
     """
-    global _COMPSs
-    global _STDOUT
-    global _STDERR
+    global COMPSS
+    global STDOUT
+    global STDERR
 
     if external_process:
         # For interactive python environments
-        _COMPSs, _STDOUT, _STDERR = establish_interactive_link(_logger, True)
+        COMPSS, STDOUT, STDERR = establish_interactive_link(_logger, True)
     else:
         # Normal python environments
-        _COMPSs = establish_link(_logger)
+        COMPSS = establish_link(_logger)
 
 
 def is_redirected() -> bool:
@@ -74,12 +74,12 @@ def is_redirected() -> bool:
 
     :return: If stdout/stderr are being redirected.
     """
-    if _STDOUT == "" and _STDERR == "":
+    if STDOUT == "" and STDERR == "":
         return False
-    elif _STDOUT != "" and _STDERR != "":
+    if STDOUT != "" and STDERR != "":
         return True
-    else:
-        raise PyCOMPSsException("Inconsistent status of _STDOUT and _STDERR")
+    message = "Inconsistent status of STDOUT and STDERR"
+    raise PyCOMPSsException(message)
 
 
 def get_redirection_file_names() -> typing.Tuple[str, str]:
@@ -88,10 +88,9 @@ def get_redirection_file_names() -> typing.Tuple[str, str]:
     :return: The stdout and stderr file names.
     """
     if is_redirected():
-        return _STDOUT, _STDERR
-    else:
-        message = "The runtime stdout and stderr are  not being redirected."
-        raise PyCOMPSsException(message)
+        return STDOUT, STDERR
+    message = "The runtime STDOUT and STDERR are not being redirected."
+    raise PyCOMPSsException(message)
 
 
 ######################################################
@@ -104,7 +103,7 @@ def start_runtime() -> None:
 
     :return: None
     """
-    _COMPSs.start_runtime()  # noqa
+    COMPSS.start_runtime()  # noqa
 
 
 def set_debug(mode: bool) -> None:
@@ -113,7 +112,7 @@ def set_debug(mode: bool) -> None:
     :param mode: Debug mode ( True | False ).
     :return: None.
     """
-    _COMPSs.set_debug(mode)  # noqa
+    COMPSS.set_debug(mode)  # noqa
 
 
 def stop_runtime(code: int) -> None:
@@ -122,7 +121,7 @@ def stop_runtime(code: int) -> None:
     :param code: Stopping code.
     :return: None.
     """
-    _COMPSs.stop_runtime(code)  # noqa
+    COMPSS.stop_runtime(code)  # noqa
 
 
 def cancel_application_tasks(app_id: int, value: int) -> None:
@@ -132,7 +131,7 @@ def cancel_application_tasks(app_id: int, value: int) -> None:
     :param value:  Task identifier.
     :return: None.
     """
-    _COMPSs.cancel_application_tasks(app_id, value)  # noqa
+    COMPSS.cancel_application_tasks(app_id, value)  # noqa
 
 
 def accessed_file(app_id: int, file_name: str) -> bool:
@@ -142,7 +141,7 @@ def accessed_file(app_id: int, file_name: str) -> bool:
     :param file_name: File name to check if accessed.
     :return: If the file has been accessed.
     """
-    return _COMPSs.accessed_file(app_id, file_name)  # noqa
+    return COMPSS.accessed_file(app_id, file_name)  # noqa
 
 
 def open_file(app_id: int, file_name: str, mode: int) -> str:
@@ -155,7 +154,7 @@ def open_file(app_id: int, file_name: str, mode: int) -> str:
     :param mode: Open mode.
     :return: The real file name.
     """
-    return _COMPSs.open_file(app_id, file_name, mode)  # noqa
+    return COMPSS.open_file(app_id, file_name, mode)  # noqa
 
 
 def close_file(app_id: int, file_name: str, mode: int) -> None:
@@ -166,7 +165,7 @@ def close_file(app_id: int, file_name: str, mode: int) -> None:
     :param mode: Close mode.
     :return: None
     """
-    _COMPSs.close_file(app_id, file_name, mode)  # noqa
+    COMPSS.close_file(app_id, file_name, mode)  # noqa
 
 
 def delete_file(app_id: int, file_name: str, mode: bool) -> bool:
@@ -177,11 +176,10 @@ def delete_file(app_id: int, file_name: str, mode: bool) -> bool:
     :param mode: Delete mode.
     :return: The deletion result.
     """
-    result = _COMPSs.delete_file(app_id, file_name, mode)  # noqa
+    result = COMPSS.delete_file(app_id, file_name, mode)  # noqa
     if result is None:
         return False
-    else:
-        return result
+    return result
 
 
 def get_file(app_id: int, file_name: str) -> None:
@@ -191,7 +189,7 @@ def get_file(app_id: int, file_name: str) -> None:
     :param file_name: File name reference to get.
     :return: None.
     """
-    _COMPSs.get_file(app_id, file_name)  # noqa
+    COMPSS.get_file(app_id, file_name)  # noqa
 
 
 def get_directory(app_id: int, directory_name: str) -> None:
@@ -201,7 +199,7 @@ def get_directory(app_id: int, directory_name: str) -> None:
     :param directory_name: Directory name reference to get.
     :return: None.
     """
-    _COMPSs.get_directory(app_id, directory_name)  # noqa
+    COMPSS.get_directory(app_id, directory_name)  # noqa
 
 
 def barrier(app_id: int, no_more_tasks: bool) -> None:
@@ -211,7 +209,7 @@ def barrier(app_id: int, no_more_tasks: bool) -> None:
     :param no_more_tasks: No more tasks boolean.
     :return: None
     """
-    _COMPSs.barrier(app_id, no_more_tasks)  # noqa
+    COMPSS.barrier(app_id, no_more_tasks)  # noqa
 
 
 def barrier_group(app_id: int, group_name: str) -> str:
@@ -221,7 +219,7 @@ def barrier_group(app_id: int, group_name: str) -> str:
     :param group_name: Group name.
     :return: Exception message.
     """
-    return str(_COMPSs.barrier_group(app_id, group_name))  # noqa
+    return str(COMPSS.barrier_group(app_id, group_name))  # noqa
 
 
 def open_task_group(group_name: str, implicit_barrier: bool, app_id: int) -> None:
@@ -232,7 +230,7 @@ def open_task_group(group_name: str, implicit_barrier: bool, app_id: int) -> Non
     :param app_id: Application identifier.
     :return: None.
     """
-    _COMPSs.open_task_group(group_name, implicit_barrier, app_id)  # noqa
+    COMPSS.open_task_group(group_name, implicit_barrier, app_id)  # noqa
 
 
 def close_task_group(group_name: str, app_id: int) -> None:
@@ -242,7 +240,7 @@ def close_task_group(group_name: str, app_id: int) -> None:
     :param app_id: Application identifier.
     :return: None.
     """
-    _COMPSs.close_task_group(group_name, app_id)  # noqa
+    COMPSS.close_task_group(group_name, app_id)  # noqa
 
 
 def get_logging_path() -> str:
@@ -250,7 +248,7 @@ def get_logging_path() -> str:
 
     :return: The COMPSs log path.
     """
-    return _COMPSs.get_logging_path()  # noqa
+    return COMPSS.get_logging_path()  # noqa
 
 
 def get_number_of_resources(app_id: int) -> int:
@@ -259,7 +257,7 @@ def get_number_of_resources(app_id: int) -> int:
     :param app_id: Application identifier.
     :return: Number of resources.
     """
-    return _COMPSs.get_number_of_resources(app_id)  # noqa
+    return COMPSS.get_number_of_resources(app_id)  # noqa
 
 
 def request_resources(app_id: int, num_resources: int, group_name: str) -> None:
@@ -270,7 +268,7 @@ def request_resources(app_id: int, num_resources: int, group_name: str) -> None:
     :param group_name: Group name.
     :return: None.
     """
-    _COMPSs.request_resources(app_id, num_resources, group_name)  # noqa
+    COMPSS.request_resources(app_id, num_resources, group_name)  # noqa
 
 
 def free_resources(app_id: int, num_resources: int, group_name: str) -> None:
@@ -281,7 +279,7 @@ def free_resources(app_id: int, num_resources: int, group_name: str) -> None:
     :param group_name: Group name.
     :return: None.
     """
-    _COMPSs.free_resources(app_id, num_resources, group_name)  # noqa
+    COMPSS.free_resources(app_id, num_resources, group_name)  # noqa
 
 
 def set_wall_clock(app_id: float, wcl: float) -> None:
@@ -291,7 +289,7 @@ def set_wall_clock(app_id: float, wcl: float) -> None:
     :param wcl: Wall Clock limit in seconds.
     :return: None.
     """
-    _COMPSs.set_wall_clock(app_id, wcl)  # noqa
+    COMPSS.set_wall_clock(app_id, wcl)  # noqa
 
 
 def register_core_element(
@@ -316,7 +314,7 @@ def register_core_element(
     :param impl_type_args: Implementation type arguments.
     :return: None.
     """
-    _COMPSs.register_core_element(
+    COMPSS.register_core_element(
         ce_signature,  # noqa
         impl_signature,
         impl_constraints,
@@ -376,7 +374,7 @@ def process_task(
     :param keep_renames: Boolean keep renames.
     :return: None.
     """
-    _COMPSs.process_task(
+    COMPSS.process_task(
         app_id,  # noqa
         signature,
         on_failure,
@@ -449,7 +447,7 @@ def process_http_task(
     :param keep_renames: Boolean keep renames.
     :return: None.
     """
-    _COMPSs.process_http_task(
+    COMPSS.process_http_task(
         app_id,  # noqa
         signature,
         on_failure,
@@ -481,7 +479,7 @@ def set_pipes(pipe_in: str, pipe_out: str) -> None:
     :param pipe_out: Output pipe.
     :return: None.
     """
-    _COMPSs.set_pipes(pipe_in, pipe_out)  # noqa
+    COMPSS.set_pipes(pipe_in, pipe_out)  # noqa
 
 
 def read_pipes() -> str:
@@ -489,5 +487,5 @@ def read_pipes() -> str:
 
     :return: The command read from the pipe.
     """
-    o = _COMPSs.read_pipes()  # noqa
-    return o
+    command = COMPSS.read_pipes()  # noqa
+    return command

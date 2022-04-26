@@ -26,7 +26,7 @@ Provides auxiliary methods for the interactive mode flags checking
 from pycompss.util.typing_helper import typing
 
 # None type
-NONE_TYPE = type(None)
+NONETYPE = type(None)
 
 # Required flags - Structure:
 #   - key = flag name
@@ -38,22 +38,22 @@ REQUIRED_FLAGS = {
     "o_c": [[bool]],
     "graph": [[bool]],
     "trace": [[bool, str], [True, False, "scorep", "arm-map", "arm-ddt"]],
-    "monitor": [[int, NONE_TYPE]],
-    "project_xml": [[str, NONE_TYPE]],
-    "resources_xml": [[str, NONE_TYPE]],
+    "monitor": [[int, NONETYPE]],
+    "project_xml": [[str, NONETYPE]],
+    "resources_xml": [[str, NONETYPE]],
     "summary": [[bool]],
     "task_execution": [[str]],
-    "storage_impl": [[str, NONE_TYPE]],
-    "storage_conf": [[str, NONE_TYPE]],
-    "streaming_backend": [[str, NONE_TYPE]],
-    "streaming_master_name": [[str, NONE_TYPE]],
-    "streaming_master_port": [[str, NONE_TYPE]],
+    "storage_impl": [[str, NONETYPE]],
+    "storage_conf": [[str, NONETYPE]],
+    "streaming_backend": [[str, NONETYPE]],
+    "streaming_master_name": [[str, NONETYPE]],
+    "streaming_master_port": [[str, NONETYPE]],
     "task_count": [[int]],
     "app_name": [[str]],
-    "uuid": [[str, NONE_TYPE]],
-    "base_log_dir": [[str, NONE_TYPE]],
-    "specific_log_dir": [[str, NONE_TYPE]],
-    "extrae_cfg": [[str, NONE_TYPE]],
+    "uuid": [[str, NONETYPE]],
+    "base_log_dir": [[str, NONETYPE]],
+    "specific_log_dir": [[str, NONETYPE]],
+    "extrae_cfg": [[str, NONETYPE]],
     "comm": [[str], ["NIO", "GAT"]],
     "conn": [
         [str],
@@ -89,13 +89,12 @@ def check_flags(all_vars: dict) -> typing.Tuple[bool, list]:
     issues = []
     flags = all_vars.keys()
 
-    missing_flags = [key for key in REQUIRED_FLAGS.keys() if key not in flags]
+    missing_flags = [key for key in REQUIRED_FLAGS if key not in flags]
     if missing_flags:
         # There are missing flags
         is_ok = False
         for missing_flag in missing_flags:
-            issues.append("Missing flag: %s" % missing_flag)
-        return is_ok, issues
+            issues.append(f"Missing flag: {missing_flag}")
     else:
         # Check that each element is of the correct type and supported value
         for flag, requirements in REQUIRED_FLAGS.items():
@@ -150,4 +149,4 @@ def print_flag_issues(issues: list) -> None:
     """
     print("[ERROR] The following flag issues were detected:")
     for issue in issues:
-        print("\t - %s" % issue)
+        print(f"\t - {issue}")

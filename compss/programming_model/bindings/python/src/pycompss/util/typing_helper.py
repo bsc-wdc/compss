@@ -26,7 +26,7 @@ This file contains the typing helpers.
 import typing
 
 
-class dummy_mypyc_attr(object):
+class DummyMypycAttr:
     """Dummy on mypy_attr class (decorator style)."""
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
@@ -37,32 +37,32 @@ class dummy_mypyc_attr(object):
         self.args = args
         self.kwargs = kwargs
 
-    def __call__(self, f: typing.Any) -> typing.Any:
+    def __call__(self, function: typing.Any) -> typing.Any:
         """Execute the given function.
 
-        :param f: Decorated function.
+        :param function: Decorated function.
         :returns: Decorated function execution result.
         """
 
         def wrapped_mypyc_attr(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
-            return f(*args, **kwargs)
+            return function(*args, **kwargs)
 
         return wrapped_mypyc_attr
 
 
-import_ok = True
+IMPORT_OK = True
 try:
     from mypy_extensions import mypyc_attr as real_mypyc_attr
 
     # https://mypyc.readthedocs.io/en/latest/native_classes.html#inheritance
 except ImportError:
     # Dummy mypyc_attr just in case mypy_extensions is not installed
-    import_ok = False
+    IMPORT_OK = False
 
-if import_ok:
-    mypyc_attr = real_mypyc_attr
+if IMPORT_OK:
+    mypyc_attr = real_mypyc_attr  # pylint: disable=invalid-name
 else:
-    mypyc_attr = dummy_mypyc_attr
+    mypyc_attr = DummyMypycAttr  # pylint: disable=invalid-name
 
 
 ######################################
@@ -75,4 +75,3 @@ def dummy_function() -> None:
 
     :returns: None
     """
-    pass

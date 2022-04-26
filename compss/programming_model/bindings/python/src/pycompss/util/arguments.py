@@ -54,7 +54,7 @@ def check_arguments(
     :param decorator: String - Decorator name.
     :return: None.
     """
-    decorator_str = decorator + " decorator"
+    decorator_str = f"{decorator} decorator"
     # Look for mandatory arguments
     check_mandatory_arguments(mandatory_arguments, argument_names, decorator_str)
     # Look for deprecated arguments
@@ -110,8 +110,7 @@ def __error_mandatory_argument__(decorator: str, argument: str) -> None:
                               the error.
     """
     raise PyCOMPSsException(
-        "The argument %s is mandatory in the %s decorator."
-        % (str(argument), str(decorator))
+        f"The argument {str(argument)} is mandatory in the {str(decorator)} decorator."
     )
 
 
@@ -131,18 +130,17 @@ def __check_deprecated_arguments__(
     for argument in argument_names:
         if argument == "isModifier":
             message = (
-                "ERROR: Unsupported argument: isModifier Found in %s.\n"
-                "       Please, use: target_direction" % str(where)
+                f"ERROR: Unsupported argument: isModifier Found in {str(where)}.\n"
+                "       Please, use: target_direction"
             )
             print(message, file=sys.stderr)  # also show the warn in stderr
-            raise PyCOMPSsException("Unsupported argument: " + str(argument))
+            raise PyCOMPSsException(f"Unsupported argument: {str(argument)}")
 
         if argument in deprecated_arguments:
             current_argument = re.sub("([A-Z]+)", r"_\1", argument).lower()
             message = (
-                "WARNING: Deprecated argument: %s Found in %s.\n"
-                "         Please, use: %s"
-                % (str(argument), str(where), current_argument)
+                f"WARNING: Deprecated argument: {str(argument)} Found in {str(where)}.\n"
+                f"         Please, use: {current_argument}"
             )
 
             # The print through stdout is disabled to prevent the message to
@@ -166,9 +164,8 @@ def __check_unexpected_arguments__(
     """
     for argument in argument_names:
         if argument not in supported_arguments:
-            message = "WARNING: Unexpected argument: %s Found in %s." % (
-                str(argument),
-                str(where),
+            message = (
+                f"WARNING: Unexpected argument: {str(argument)} Found in {str(where)}."
             )
             # The print through stdout is disabled to prevent the message to
             # appear twice in the console. So the warning message will only

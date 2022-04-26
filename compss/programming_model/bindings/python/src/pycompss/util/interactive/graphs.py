@@ -76,6 +76,7 @@ def show_graph(
             # User hit stop on the cell
             clear_output(wait=True)
             display(__get_graph_snapshot__(file_name, fit, Source))
+    return None
 
 
 def __get_graph_snapshot__(file_name: str, fit: bool, source: typing.Any) -> typing.Any:
@@ -89,24 +90,23 @@ def __get_graph_snapshot__(file_name: str, fit: bool, source: typing.Any) -> typ
     :return: The graph snapshot to be rendered.
     """
     # Read graph file
-    monitor_file = open(file_name + ".dot", "r")
-    text = monitor_file.read()
-    monitor_file.close()
+    with open(file_name + ".dot", "r") as monitor_file:
+        text = monitor_file.read()
     if fit:
         try:
             # Convert to png and show full picture
             extension = "jpeg"
-            file = "%s.%s" % (file_name, extension)
+            file = f"{file_name}.{extension}"
             if os.path.exists(file):
                 os.remove(file)
-            s = source(text, filename=file_name, format=extension)
-            s.render()
+            graph_source = source(text, filename=file_name, format=extension)
+            graph_source.render()
             from IPython.display import Image  # noqa
 
             image = Image(filename=file)
             return image
-        except Exception as e:
+        except Exception as general_exception:
             print("Oops! Failed rendering the graph.")
-            raise e
+            raise general_exception
     else:
         return source(text)

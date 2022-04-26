@@ -29,8 +29,6 @@ from pycompss.util.typing_helper import typing
 class SerializerException(Exception):
     """Exception on serialization class."""
 
-    pass
-
 
 class PyCOMPSsException(Exception):
     """Generic PyCOMPSs exception class."""
@@ -40,7 +38,8 @@ class PyCOMPSsException(Exception):
 
         :param message: Exception message.
         """
-        super(PyCOMPSsException, self).__init__(message)
+        msg = f"PyCOMPSs Exception: {message}"
+        super().__init__(msg)
 
 
 class NotInPyCOMPSsException(Exception):
@@ -51,8 +50,8 @@ class NotInPyCOMPSsException(Exception):
 
         :param message: Exception message.
         """
-        msg = "Outside PyCOMPSs scope: %s" % message
-        super(NotInPyCOMPSsException, self).__init__(msg)
+        msg = f"Outside PyCOMPSs scope: {message}"
+        super().__init__(msg)
 
 
 class NotImplementedException(Exception):
@@ -61,10 +60,10 @@ class NotImplementedException(Exception):
     def __init__(self, functionality: str) -> None:
         """Create a new NotImplementedException instance.
 
-        :param message: Exception message.
+        :param functionality: Exception message.
         """
-        msg = "Functionality %s not implemented yet." % functionality
-        super(NotImplementedException, self).__init__(msg)
+        msg = f"Functionality {functionality} not implemented yet."
+        super().__init__(msg)
 
 
 class MissingImplementedException(Exception):
@@ -73,22 +72,10 @@ class MissingImplementedException(Exception):
     def __init__(self, functionality: str) -> None:
         """Create a new MissingImplementedException instance.
 
-        :param message: Exception message.
+        :param functionality: Exception message.
         """
-        msg = "Missing %s. Needs to be overridden." % functionality
-        super(MissingImplementedException, self).__init__(msg)
-
-
-class TimeOutError(Exception):
-    """Time out error exception class."""
-
-    pass
-
-
-class CancelError(Exception):
-    """Cancel error exception class."""
-
-    pass
+        msg = f"Missing {functionality}. Needs to be overridden."
+        super().__init__(msg)
 
 
 class DDSException(Exception):
@@ -99,7 +86,16 @@ class DDSException(Exception):
 
         :param message: Exception message.
         """
-        super(DDSException, self).__init__(message)
+        msg = f"DDS Exception: {message}"
+        super().__init__(msg)
+
+
+class TimeOutError(Exception):
+    """Time out error exception class."""
+
+
+class CancelError(Exception):
+    """Cancel error exception class."""
 
 
 def task_timed_out(signum: int, frame: typing.Any) -> None:

@@ -28,7 +28,8 @@ PyCOMPSs features.
 from pycompss.util.objects.properties import is_module_available
 
 OPTIONAL_MODULES = {
-    "dill": "Dill is a pickle extension which is capable to serialize a wider variety of objects."  # noqa: E501
+    "dill": "Dill is a pickle extension which is capable to serialize a "
+    "wider variety of objects."
 }
 
 
@@ -40,12 +41,11 @@ def get_optional_module_warning(module_name: str, module_description: str) -> st
     :return: String with the optional warning message.
     """
     ret = [
-        "\n[ WARNING ]:\t%s module is not installed." % module_name,
+        f"\n[ WARNING ]:\t{module_name} module is not installed.",
         "\t\t%s" % module_description.replace("\n", "\n\t\t"),
-        "\t\tPyCOMPSs can work without %s, but it is recommended to have it installed."
-        % module_name,
-        "\t\tYou can install it via pip typing pip install %s, or (probably) with your package manager.\n"
-        % module_name,
+        f"\t\tPyCOMPSs can work without {module_name}, but it is recommended to have it installed.",
+        f"\t\tYou can install it via pip typing pip install {module_name}, or (probably) with your "
+        f"package manager.\n",
     ]
     return "\n".join(ret)
 

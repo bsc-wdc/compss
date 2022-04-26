@@ -85,7 +85,7 @@ def set_pycompss_context(where: str) -> None:
         MASTER,
         WORKER,
         OUT_OF_SCOPE,
-    ], "PyCOMPSs context must be %s, %s or %s" % (MASTER, WORKER, OUT_OF_SCOPE)
+    ], f"PyCOMPSs context must be {MASTER}, {WORKER} or {OUT_OF_SCOPE}"
     global _WHERE
     _WHERE = where
     global _WHO
@@ -186,7 +186,6 @@ def add_to_register_later(core_element: typing.Tuple[typing.Any, str]) -> None:
     :param core_element: Core element to be registered.
     :return: None.
     """
-    global TO_REGISTER
     TO_REGISTER.append(core_element)
 
 

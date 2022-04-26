@@ -35,7 +35,7 @@ from pycompss.util.typing_helper import typing
 
 CONFIG_FUNC = config.dictConfig
 # Keep configs to avoid read the cfg many times
-CONFIGS = dict()  # type: typing.Dict[str, dict]
+CONFIGS = {}  # type: typing.Dict[str, dict]
 
 
 def get_logging_cfg_file(log_level: str) -> str:
@@ -55,8 +55,7 @@ def get_logging_cfg_file(log_level: str) -> str:
     if log_level in cfg_files:
         logging_cfg_file = cfg_files[log_level]
         return logging_cfg_file
-    else:
-        raise PyCOMPSsException("Unsupported logging level.")
+    raise PyCOMPSsException("Unsupported logging level.")
 
 
 def clean_log_configs() -> None:

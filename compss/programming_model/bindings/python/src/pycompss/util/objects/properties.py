@@ -62,25 +62,24 @@ def get_module_name(path: str, file_name: str) -> str:
     return mod_name
 
 
-def get_wrapped_source(f: typing.Callable) -> str:
+def get_wrapped_source(function: typing.Callable) -> str:
     """Get the text of the source code for the given function.
 
-    :param f: Input function.
+    :param function: Input function.
     :return: Source.
     """
-    if hasattr(f, "__wrapped__"):
+    if hasattr(function, "__wrapped__"):
         # Has __wrapped__: going deep
-        wrapped = f.__wrapped__  # type: ignore
+        wrapped = function.__wrapped__  # type: ignore
         return get_wrapped_source(wrapped)
-    else:
-        # Returning getsource
-        try:
-            source = inspect.getsource(f)
-        except TypeError:
-            # This is a numba jit declared task
-            py_func = f.py_func  # type: ignore
-            source = inspect.getsource(py_func)
-        return source
+    # Returning getsource
+    try:
+        source = inspect.getsource(function)
+    except TypeError:
+        # This is a numba jit declared task
+        py_func = function.py_func  # type: ignore
+        source = inspect.getsource(py_func)
+    return source
 
 
 def is_module_available(module_name: str) -> bool:
@@ -90,26 +89,19 @@ def is_module_available(module_name: str) -> bool:
     :return: True if the module is available. False otherwise.
     """
     try:
-        py_version = sys.version_info
-        if py_version > (3, 4):
-            try:
-                import importlib
+        try:
+            import importlib
 
-                _importlib = importlib  # type: typing.Any
-                module = _importlib.util.find_spec(module_name)  # noqa
-            except AttributeError:
-                # This can only happen in conda
-                import imp  # noqa # Deprecated in python 3
-
-                module = imp.find_module(module_name)  # noqa
-        else:
-            import imp  # noqa
+            _importlib = importlib  # type: typing.Any
+            module = _importlib.util.find_spec(module_name)  # noqa
+        except AttributeError:
+            # This can only happen in conda
+            import imp  # noqa # Deprecated in python 3
 
             module = imp.find_module(module_name)  # noqa
         if module:
             return True
-        else:
-            return False
+        return False
     except ImportError:
         return False
 

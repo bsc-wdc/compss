@@ -176,7 +176,7 @@ def trace_mpi_executor() -> typing.Iterator[None]:
 #         PYEXTRAE.eventandcounters(event_group, 0)         # noqa
 
 
-class event_master(object):
+class event_master:
     """Decorator that emits an event at master wrapping the desired code.
 
     Does nothing if tracing is disabled.
@@ -221,7 +221,7 @@ class event_master(object):
             PYEXTRAE.eventandcounters(TRACING_MASTER.binding_master_type, 0)
 
 
-class event_worker(object):
+class event_worker:
     """Decorator that emits an event at worker wrapping the desired code.
 
     Does nothing if tracing is disabled.
@@ -268,7 +268,7 @@ class event_worker(object):
             PYEXTRAE.eventandcounters(TRACING_WORKER.inside_worker_type, 0)  # noqa
 
 
-class event_inside_worker(object):
+class event_inside_worker:
     """Decorator that emits an event at worker (inside task) wrapping the desired code.
 
     Does nothing if tracing is disabled.

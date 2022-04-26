@@ -81,7 +81,7 @@ def get_compss_state_xml(log_path: str) -> str:
     :return: The compss state full path.
     """
     if MISSING_DEPENDENCY != "None":
-        raise PyCOMPSsException("Missing %s package." % MISSING_DEPENDENCY)
+        raise PyCOMPSsException(f"Missing {MISSING_DEPENDENCY} package.")
     compss_state_xml = os.path.join(log_path, "monitor", "COMPSs_state.xml")
     return compss_state_xml
 
@@ -99,14 +99,13 @@ def parse_state_xml(log_path: str, field: str) -> typing.Any:
     state_xml_dict = element_tree_to_dict(root)
     if field == "TasksInfo":
         return state_xml_dict["COMPSsState"][field]["Application"]
-    elif field == "CoresInfo":
+    if field == "CoresInfo":
         return state_xml_dict["COMPSsState"][field]["Core"]  # this is a list
-    elif field == "Statistics":
+    if field == "Statistics":
         return state_xml_dict["COMPSsState"][field]["Statistic"]
-    elif field == "ResourceInfo":
+    if field == "ResourceInfo":
         return state_xml_dict["COMPSsState"][field]["Resource"]
-    else:
-        raise PyCOMPSsException("Unsupported status field")
+    raise PyCOMPSsException("Unsupported status field")
 
 
 def element_tree_to_dict(element_tree: typing.Any) -> dict:
@@ -115,24 +114,31 @@ def element_tree_to_dict(element_tree: typing.Any) -> dict:
     :param element_tree: Element tree.
     :return: Dictionary.
     """
-    d = {element_tree.tag: {} if element_tree.attrib else None}  # type: dict
+    build_dict = {element_tree.tag: {} if element_tree.attrib else None}  # type: dict
     children = list(element_tree)
     if children:
-        dd = defaultdict(list)
-        for dc in map(element_tree_to_dict, children):
-            for k, v in dc.items():
-                dd[k].append(v)
-        d = {element_tree.tag: {k: v[0] if len(v) == 1 else v for k, v in dd.items()}}
+        def_dict = defaultdict(list)
+        for child_dict in map(element_tree_to_dict, children):
+            for key, value in child_dict.items():
+                def_dict[key].append(value)
+        build_dict = {
+            element_tree.tag: {
+                key: value[0] if len(value) == 1 else value
+                for key, value in def_dict.items()
+            }
+        }
     if element_tree.attrib:
-        d[element_tree.tag].update(("@" + k, v) for k, v in element_tree.attrib.items())
+        build_dict[element_tree.tag].update(
+            ("@" + key, value) for key, value in element_tree.attrib.items()
+        )
     if element_tree.text:
         text = element_tree.text.strip()
         if children or element_tree.attrib:
             if text:
-                d[element_tree.tag]["#text"] = text
+                build_dict[element_tree.tag]["#text"] = text
         else:
-            d[element_tree.tag] = text
-    return d
+            build_dict[element_tree.tag] = text
+    return build_dict
 
 
 def show_tasks_info(log_path: str) -> None:
@@ -143,11 +149,11 @@ def show_tasks_info(log_path: str) -> None:
     """
     if supports_dynamic_state():
 
-        def f(i):  # noqa
+        def play_widget(i):  # pylint: disable=unused-argument
             # type: (typing.Any) -> None
             __show_tasks_info__(log_path)
 
-        play = __get_play_widget(f)
+        play = __get_play_widget(play_widget)
         display(play)  # noqa
     else:
         __show_tasks_info__(log_path)
@@ -223,11 +229,11 @@ def show_tasks_status(log_path: str) -> None:
     """
     if supports_dynamic_state():
 
-        def f(i):  # noqa
+        def play_widget(i):  # pylint: disable=unused-argument
             # type: (typing.Any) -> None
             __show_tasks_status__(log_path)
 
-        play = __get_play_widget(f)
+        play = __get_play_widget(play_widget)
         display(play)  # noqa
     else:
         __show_tasks_info__(log_path)
@@ -244,7 +250,7 @@ def __show_tasks_status__(log_path: str) -> None:
     labels = ["InProgress", "Completed"]
     sizes = [tasks_info_dict[labels[0]], tasks_info_dict[labels[1]]]
     explode = (0, 0)
-    fig1, ax1 = plt.subplots()
+    _, ax1 = plt.subplots()  # first return (ignored) is fig1
     colors = ["b", "g"]
     ax1.pie(
         sizes, explode=explode, labels=labels, colors=colors, shadow=True, startangle=90
@@ -264,11 +270,11 @@ def show_statistics(log_path: str) -> None:
     """
     if supports_dynamic_state():
 
-        def f(i):  # noqa
+        def play_widget(i):  # pylint: disable=unused-argument
             # type: (typing.Any) -> None
             __show_statistics__(log_path)
 
-        play = __get_play_widget(f)
+        play = __get_play_widget(play_widget)
         display(play)  # noqa
     else:
         __show_statistics__(log_path)
@@ -295,11 +301,11 @@ def show_resources_status(log_path: str) -> None:
     """
     if supports_dynamic_state():
 
-        def f(i):  # noqa
+        def play_widget(i):  # pylint: disable=unused-argument
             # type: (typing.Any) -> None
             __show_resources_status__(log_path)
 
-        play = __get_play_widget(f)
+        play = __get_play_widget(play_widget)
         display(play)  # noqa
     else:
         __show_resources_status__(log_path)
@@ -327,9 +333,9 @@ def __plain_lists__(dictionary: dict) -> typing.Tuple[list, list]:
     """
     labels = []
     values = []
-    for k, v in dictionary.items():
-        labels.append(k)
-        values.append(v)
+    for key, value in dictionary.items():
+        labels.append(key)
+        values.append(value)
     labels.pop()
     values.pop()
     return labels, values

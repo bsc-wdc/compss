@@ -218,8 +218,9 @@ public class Executor implements Runnable, InvocationRunner {
     }
 
     private void processRequests() {
+
+        Execution execution = this.platform.newThread();
         while (true) {
-            Execution execution = this.platform.getJob(); // Get tasks until there are no more tasks pending
             if (execution == null) {
                 LOGGER.error("ERROR: Execution is null!!!!!");
             } else {
@@ -230,6 +231,7 @@ public class Executor implements Runnable, InvocationRunner {
                     processExecution(execution);
                 }
             }
+            execution = this.platform.getJob(); // Get tasks until there are no more tasks pending
         }
     }
 

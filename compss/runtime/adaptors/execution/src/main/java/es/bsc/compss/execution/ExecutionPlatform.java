@@ -355,10 +355,10 @@ public class ExecutionPlatform implements ExecutorContext {
         LOGGER.debug("Execution of job " + invocation.getJobId() + " ready to continue");
         if (reuseResourcesOnBlockedInvocation) {
             LOGGER.debug("Reacquiring resources assigned to job " + invocation.getJobId());
+            this.context.reactivatedReservedResourcesDetected(invocation.getRequirements());
             this.removeWorkerThreads(1);
             int jobId = invocation.getJobId();
             this.rm.reacquireResources(jobId, invocation.getRequirements(), previousAllocation, sem);
-            this.context.reactivatedReservedResourcesDetected(invocation.getRequirements());
         } else {
             sem.release();
         }
@@ -384,6 +384,11 @@ public class ExecutionPlatform implements ExecutorContext {
     @Override
     public Execution getJob() {
         return this.queue.dequeue();
+    }
+
+    @Override
+    public Execution newThread() {
+        return this.queue.newThreadDequeue();
     }
 
     @Override

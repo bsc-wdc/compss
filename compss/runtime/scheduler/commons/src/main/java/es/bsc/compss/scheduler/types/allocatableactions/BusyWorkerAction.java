@@ -28,25 +28,22 @@ import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.ServiceImplementation;
-import es.bsc.compss.types.resources.DynamicMethodWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
-import es.bsc.compss.types.resources.updates.PendingReduction;
+import es.bsc.compss.types.resources.updates.BusyResources;
 import es.bsc.compss.types.resources.updates.ResourceUpdate;
-import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.util.ResourceManager;
 import es.bsc.compss.worker.COMPSsException;
 
 import java.util.Collection;
 import java.util.LinkedList;
 
 
-public class ReduceWorkerAction<T extends WorkerResourceDescription> extends AllocatableAction {
+public class BusyWorkerAction<T extends WorkerResourceDescription> extends AllocatableAction {
 
     private final ResourceScheduler<T> worker;
     private final Implementation impl;
-    private final PendingReduction<T> ru;
+    private final BusyResources<T> ru;
 
 
     /*
@@ -55,19 +52,19 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
      * ***************************************************************************************************************
      */
     /**
-     * Creates a new ReduceWorkerAction to update the worker information.
+     * Creates a new BusyWorkerAction to update the worker information.
      * 
      * @param schedulingInformation Associated scheduling information.
      * @param worker Worker to reduce.
      * @param ts Associated Task scheduler.
      * @param modification Modification to perform.
      */
-    public ReduceWorkerAction(SchedulingInformation schedulingInformation, ResourceScheduler<T> worker,
-        TaskScheduler ts, ResourceUpdate<T> modification) {
+    public BusyWorkerAction(SchedulingInformation schedulingInformation, ResourceScheduler<T> worker, TaskScheduler ts,
+        ResourceUpdate<T> modification) {
 
         super(schedulingInformation, ts.getOrchestrator());
         this.worker = worker;
-        this.ru = (PendingReduction<T>) modification;
+        this.ru = (BusyResources<T>) modification;
         if (modification.getModification() instanceof MethodResourceDescription) {
             impl =
                 AbstractMethodImplementation.generateDummy((MethodResourceDescription) modification.getModification());
@@ -98,26 +95,8 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
 
     @Override
     protected void doAction() {
-        (new Thread() {
-
-            @SuppressWarnings("unchecked")
-            @Override
-            public void run() {
-                Thread.currentThread().setName(worker.getName() + " stopper");
-                DynamicMethodWorker w = (DynamicMethodWorker) worker.getResource();
-                PendingReduction<WorkerResourceDescription> red = (PendingReduction<WorkerResourceDescription>) ru;
-                ResourceManager.reduceDynamicWorker(w, red);
-                w.endTask((MethodResourceDescription) getResourceConsumption());
-                try {
-                    ru.waitForCompletion();
-                } catch (Exception e) {
-                    LOGGER.error("ERROR: Exception raised on worker reduction", e);
-                    ErrorManager.warn("Exception reducing worker. Check runtime.log for more details", e);
-                    notifyError();
-                }
-                notifyCompleted();
-            }
-        }).start();
+        ru.notifyCompletion();
+        notifyCompleted();
     }
 
     /*
@@ -131,8 +110,6 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
 
     @Override
     protected void doCompleted() {
-        Worker<T> w = worker.getResource();
-        ResourceManager.confirmWorkerReduction(w, ru);
     }
 
     @Override
@@ -239,7 +216,7 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
 
     @Override
     public String toString() {
-        return "ReduceWorkerAction (Worker " + this.worker.getName() + ")";
+        return "BusyWorkerAction (Worker " + this.worker.getName() + ")";
     }
 
     @Override

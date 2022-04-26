@@ -40,6 +40,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.TimerTask;
 import java.util.concurrent.Semaphore;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -106,6 +107,11 @@ public class ExecutorTest {
         @Override
         public void registerMirror(Class<?> invoker, ExecutionPlatformMirror<?> mirror) {
             this.mirrors.put(invoker, mirror);
+        }
+
+        @Override
+        public Execution newThread() {
+            return this.getJob();
         }
 
         @Override

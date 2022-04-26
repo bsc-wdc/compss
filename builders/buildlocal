@@ -544,22 +544,29 @@ install_compss() {
     fi
 
     echo "- Checking mypy in Python Binding"
-    if command_exists "mypy" ; then
-      cd "${SOURCES_DIR}/compss/programming_model/bindings/python/scripts/compilation"
-      env $PATH=PATH ./check.sh
-      ev=$?
-      if [ $ev -ne 0 ]; then
-        echo "ERROR: Python binding mypy errors. Please, fix them and reinstall."
+    specific_python_command="python3"
+    specific_python_command_complete_version=$(${specific_python_command} -V 2>&1)
+    specific_python_collapsed_version=$(echo "${specific_python_command_complete_version}" | cut -d ' ' -f 2 | cut -d '.' -f 1,2 | sed -e 's/\.//g')
+    if [ "${specific_python_collapsed_version}" -ge "38" ]; then
+      if command_exists "mypy" ; then
+        cd "${SOURCES_DIR}/compss/programming_model/bindings/python/scripts/compilation"
+        env $PATH=PATH ./check.sh
+        ev=$?
+        if [ $ev -ne 0 ]; then
+          echo "ERROR: Python binding mypy errors. Please, fix them and reinstall."
+          cd "${SCRIPT_DIR}"
+          exit 1
+        fi
+        echo "  - Python Binding typing is OK."
         cd "${SCRIPT_DIR}"
-        exit 1
+      else
+        echo "WARNING: Could not check typing of Python Binding (mypy not installed)."
       fi
-      echo "  - Python Binding typing is OK."
-      cd "${SCRIPT_DIR}"
     else
-      echo "WARNING: Could not check typing of Python Binding (mypy not installed)."
+      echo "WARNING: Could not check typing of Python Binding (Python version required > 3.8)."
     fi
   fi
-
+  
   # COPY TRUNK
   echo "- Copy trunk to tmpdir"
   rm -rf "${TMP_DIR}"

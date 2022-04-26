@@ -38,6 +38,16 @@ def params(first, second):
 
 
 @mpmd_mpi(runner="mpirun",
+          programs=[
+            dict(binary="date", params="{{pref}} {{param_1}}"),
+            dict(binary="date", params="{{pref}} {{param_2}}"),
+          ])
+@task()
+def myDateDef(pref="-d", param_1="last wednesday", param_2="next wednesday"):
+    pass
+
+
+@mpmd_mpi(runner="mpirun",
           working_dir=".",
           programs=[
                dict(binary="sed", processes=2, params="{{exp}} {{in_file}}"),
@@ -90,6 +100,10 @@ class TestMpmdDecorator(unittest.TestCase):
 
     def testParams(self):
         params("next monday", "next friday")
+        compss_barrier()
+
+    def testDefaultValue(self):
+        myDateDef()
         compss_barrier()
 
     def testFileInParam(self):

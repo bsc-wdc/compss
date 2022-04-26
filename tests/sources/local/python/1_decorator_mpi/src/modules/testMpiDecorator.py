@@ -31,6 +31,18 @@ def myDateConstrained(dprefix, param):
     pass
 
 
+@mpi(binary="date", working_dir="/tmp", runner="mpirun",)
+@task()
+def myDateDef(dprefix="-d", param="next wednesday"):
+    pass
+
+
+@mpi(binary="date", params="{{dprefix}} {{param}}", working_dir="/tmp", runner="mpirun",)
+@task()
+def myDateDef_2(dprefix="-d", param="last wednesday"):
+    pass
+
+
 @constraint(computing_units="$CUS")
 @mpi(binary="date", working_dir="/tmp", runner="mpirun", processes="$CUS", scale_by_cu=True)
 @task()
@@ -107,6 +119,14 @@ class testMpiDecorator(unittest.TestCase):
 
     def testFunctionalUsage(self):
         myDate("-d", "next friday")
+        compss_barrier()
+
+    def testDefaultValue(self):
+        myDateDef()
+        compss_barrier()
+
+    def testDefaultValue_2(self):
+        myDateDef_2()
         compss_barrier()
 
     def testFunctionalUsageWithConstraint(self):

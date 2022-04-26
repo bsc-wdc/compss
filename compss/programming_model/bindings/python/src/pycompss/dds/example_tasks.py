@@ -24,6 +24,7 @@ This file contains the DDS tasks example.
 """
 
 import numpy as np
+from collections import Counter
 from pycompss.api.parameter import COLLECTION_IN
 
 from pycompss.api.task import task
@@ -78,11 +79,9 @@ def task_count_locally(file_path, vocab):
     :param vocab: Words filter.
     :returns: np array with the appearances.
     """
-    from collections import Counter
-    import numpy as np
-
     # read the file
-    text = open(file_path).read()
+    with open(file_path) as file_path_fd:
+        text = file_path_fd.read()
 
     filtered_words = [word for word in text.split() if word.isalnum()]
     cnt = Counter(filtered_words)
@@ -125,13 +124,15 @@ def get_similar_files(fayl, cluster, threshold=0.90):
 
     nlp = spacy.load("en_core_web_sm")
 
-    d1 = nlp(open(fayl).read())
+    with open(fayl) as fayl_fd:
+        d1 = nlp(fayl_fd.read())
     ret = []
 
     for other in cluster:
         if other == fayl:
             continue
-        d2 = nlp(open(other).read())
+        with open(other) as other_fd:
+            d2 = nlp(other_fd.read())
         s = d1.similarity(d2)
         if s >= threshold:
             ret.append((other, s))

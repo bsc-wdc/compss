@@ -29,7 +29,7 @@ from functools import wraps
 from pycompss.util.typing_helper import typing
 
 
-class TimeIt(object):
+class TimeIt:
     """TimeIT decorator class."""
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
@@ -41,7 +41,7 @@ class TimeIt(object):
         self.args = args
         self.kwargs = kwargs
 
-    def __call__(self, f: typing.Any) -> typing.Any:
+    def __call__(self, function: typing.Any) -> typing.Any:
         """Elapsed time decorator.
 
         :param f: Function to be time measured (can be a decorated function,
@@ -49,7 +49,7 @@ class TimeIt(object):
         :return: the decorator wrapper.
         """
 
-        @wraps(f)
+        @wraps(function)
         def wrapped_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             """Elapsed time decorator body.
 
@@ -57,18 +57,22 @@ class TimeIt(object):
             :param kwargs: kwargs
             :return: a list with [the function result, The elapsed time]
             """
-            ts = time.time()
-            result = f(*args, **kwargs)
-            te = time.time()
-            return [result, (te - ts)]
+            start_time = time.time()
+            result = function(*args, **kwargs)
+            end_time = time.time()
+            return [result, (end_time - start_time)]
 
         return wrapped_f
+
+    def __str__(self):
+        """Represent the elapsed time decorator as string."""
+        return "Elapsed time decorator object"
 
 
 # ########################################################################### #
 # ################### TimeIT DECORATOR ALTERNATIVE NAMES #################### #
 # ########################################################################### #
 
-timeit = TimeIt
+timeit = TimeIt  # pylint: disable=invalid-name
 TimeIT = TimeIt
 TIMEIT = TimeIt

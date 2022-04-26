@@ -28,34 +28,34 @@ from collections import deque
 from pycompss.util.typing_helper import typing
 
 
-def merge_reduce(f: typing.Callable, data: list) -> typing.Any:
+def merge_reduce(function: typing.Callable, data: list) -> typing.Any:
     """Reduce the given data applying f as an inverted binary tree.
 
     Apply function cumulatively to the items of data, from left to right in
     binary tree structure, so as to reduce the data to a single value.
 
-    :param f: function to apply to reduce data
+    :param function: function to apply to reduce data
     :param data: List of items to be reduced
     :return: result of reduce the data to a single value
     """
-    q = deque(range(len(data)))
-    while len(q):
-        x = q.popleft()
-        if len(q):
-            y = q.popleft()
-            data[x] = f(data[x], data[y])
-            q.append(x)
+    queue = deque(range(len(data)))
+    while len(queue):
+        x_value = queue.popleft()
+        if len(queue):
+            y_value = queue.popleft()
+            data[x_value] = function(data[x_value], data[y_value])
+            queue.append(x_value)
         else:
-            return data[x]
+            return data[x_value]
 
 
-def merge_n_reduce(f: typing.Callable, arity: int, data: list) -> typing.Any:
+def merge_n_reduce(function: typing.Callable, arity: int, data: list) -> typing.Any:
     """Reduce the given data applying f as an inverted N-ary tree.
 
     Apply f cumulatively to the items of data, from left to right in n-tree
-    tructure, so as to reduce the data.
+    structure, to reduce the data.
 
-    :param f: function to apply to reduce data
+    :param function: function to apply to reduce data
     :param arity: Number of elements in group
     :param data: List of items to be reduced
     :return: List of results
@@ -63,5 +63,5 @@ def merge_n_reduce(f: typing.Callable, arity: int, data: list) -> typing.Any:
     while len(data) > 1:
         data_chunk = data[:arity]
         data = data[arity:]
-        data.append(f(*data_chunk))
+        data.append(function(*data_chunk))
     return data[0]

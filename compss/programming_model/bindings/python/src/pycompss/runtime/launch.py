@@ -120,7 +120,7 @@ def parse_arguments() -> typing.Any:
     parser.add_argument(
         "wall_clock",
         help="Application Wall Clock limit "
-             "[wall_clock<=0 deactivated|wall_clock>0 max duration in seconds]",
+        "[wall_clock<=0 deactivated|wall_clock>0 max duration in seconds]",
     )
     parser.add_argument("log_level", help="Logging level [trace|debug|api|info|off]")
     parser.add_argument("tracing", help="Tracing [True | False]")

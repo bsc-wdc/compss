@@ -25,18 +25,18 @@ from pycompss.util.exceptions import PyCOMPSsException
 
 def test_is_redirected():
     # Get a copy of the initial status
-    old_stdout = COMPSs._STDOUT
-    old_stderr = COMPSs._STDOUT
+    old_stdout = COMPSs.STDOUT
+    old_stderr = COMPSs.STDOUT
     # First case: Both not initialized -> False
-    COMPSs._STDOUT = ""
-    COMPSs._STDERR = ""
+    COMPSs.STDOUT = ""
+    COMPSs.STDERR = ""
     none_none = is_redirected()
     # Second case: Both initialized -> True
-    COMPSs._STDOUT = "file.out"
-    COMPSs._STDERR = "file.err"
+    COMPSs.STDOUT = "file.out"
+    COMPSs.STDERR = "file.err"
     something_something = is_redirected()
     # Third case: One not initialized -> Raise exception
-    COMPSs._STDERR = ""
+    COMPSs.STDERR = ""
     is_ok = False
     try:
         _ = is_redirected()
@@ -50,17 +50,17 @@ def test_is_redirected():
     ), "ERROR: Failed second case of is_redirected. Must return True."
     assert is_ok, "ERROR: Failed third case of is_redirected. Must raise an Exception."
     # Restore status
-    COMPSs._STDOUT = old_stdout
-    COMPSs._STDERR = old_stderr
+    COMPSs.STDOUT = old_stdout
+    COMPSs.STDERR = old_stderr
 
 
 def test_get_redirection():
     # Get a copy of the initial status
-    old_stdout = COMPSs._STDOUT
-    old_stderr = COMPSs._STDOUT
+    old_stdout = COMPSs.STDOUT
+    old_stderr = COMPSs.STDOUT
     # First case: Both not initialized -> Raise exception
-    COMPSs._STDOUT = ""
-    COMPSs._STDERR = ""
+    COMPSs.STDOUT = ""
+    COMPSs.STDERR = ""
     is_ok = False
     try:
         _, _ = get_redirection_file_names()
@@ -69,8 +69,8 @@ def test_get_redirection():
     # Second case: Both initialized -> out, err
     out_name = "file.out"
     err_name = "file.err"
-    COMPSs._STDOUT = out_name
-    COMPSs._STDERR = err_name
+    COMPSs.STDOUT = out_name
+    COMPSs.STDERR = err_name
     new_stdout, new_stderr = get_redirection_file_names()
     assert (
         is_ok
@@ -82,5 +82,5 @@ def test_get_redirection():
         new_stderr == err_name
     ), "ERROR: Failed second case of get_redirection_file_names. Must return stdout file name."  # noqa: E501
     # Restore status
-    COMPSs._STDOUT = old_stdout
-    COMPSs._STDERR = old_stderr
+    COMPSs.STDOUT = old_stdout
+    COMPSs.STDERR = old_stderr

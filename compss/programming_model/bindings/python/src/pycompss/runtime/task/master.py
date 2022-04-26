@@ -52,6 +52,7 @@ from pycompss.api.parameter import TYPE
 from pycompss.runtime.binding import wait_on
 from pycompss.runtime.commons import CONSTANTS
 from pycompss.runtime.commons import GLOBALS
+from pycompss.runtime.initialization import LAUNCH_STATUS
 from pycompss.runtime.management.classes import FunctionType
 from pycompss.runtime.management.classes import Future
 from pycompss.runtime.management.direction import get_compss_direction
@@ -545,12 +546,8 @@ class TaskMaster:
         :param mod: Source module.
         :return: None.
         """
-        # We need to find out the real module name
-        # Get the real module name from our launch.py APP_PATH global
-        # variable
-        # It is guaranteed that this variable will always exist because
-        # this code is only executed when we know we are in the master
-        path = getattr(mod, "APP_PATH")
+        # We need to find out the real module name from launched
+        path = LAUNCH_STATUS.get_app_path()
         # Get the file name
         file_name = os.path.splitext(os.path.basename(path))[0]
         # Do any necessary pre processing action before executing any code
@@ -949,11 +946,7 @@ class TaskMaster:
         if self.module_name in ("__main__", "pycompss.runtime.launch"):
             # The module where the function is defined was run as __main__,
             # We need to find out the real module name
-            # Get the real module name from our launch.py APP_PATH global
-            # variable
-            # It is guaranteed that this variable will always exist because
-            # this code is only executed when we know we are in the master
-            path = getattr(mod, "APP_PATH")
+            path = LAUNCH_STATUS.get_app_path()
             # Get the file name
             file_name = os.path.splitext(os.path.basename(path))[0]
             # Get the module

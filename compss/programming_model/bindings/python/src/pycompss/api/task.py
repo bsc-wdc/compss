@@ -37,6 +37,7 @@ from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.implementation_types import IMPLEMENTATION_TYPES
 from pycompss.api.dummy.task import task as dummy_task
 from pycompss.runtime.binding import nested_barrier
+from pycompss.runtime.initialization import LAUNCH_STATUS
 from pycompss.runtime.task.core_element import CE
 from pycompss.runtime.task.master import TaskMaster
 from pycompss.runtime.task.parameter import get_new_parameter
@@ -444,7 +445,7 @@ class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attribu
             # variable
             # It is guaranteed that this variable will always exist because
             # this code is only executed when we know we are in the master
-            path = getattr(mod, "APP_PATH")
+            path = LAUNCH_STATUS.get_app_path()
             # Get the file name
             file_name = os.path.splitext(os.path.basename(path))[0]
             # Get the module

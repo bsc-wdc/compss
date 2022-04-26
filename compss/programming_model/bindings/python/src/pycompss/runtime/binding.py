@@ -663,7 +663,9 @@ def wait_on(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
                                    (for nested).
     :return: Real value of the objects requested.
     """
-    master_event = kwargs.get("master_event")
+    master_event = True
+    if "master_event" in kwargs:  # pylint: disable=consider-using-get
+        master_event = kwargs["master_event"]
     if master_event:
         with event_master(TRACING_MASTER.wait_on_event):
             return __wait_on__(*args, **kwargs)

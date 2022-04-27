@@ -24,7 +24,8 @@ This file contains the distro stream components objects code.
 """
 
 # Imports
-import logging
+import pickle
+import socket
 
 from pycompss.util.typing_helper import typing
 
@@ -32,7 +33,10 @@ from pycompss.util.typing_helper import typing
 # Logger definition
 #
 
-logger = logging.getLogger("pycompss.streams.distro_stream")
+if __debug__:
+    import logging
+
+    logger = logging.getLogger("pycompss.streams.distro_stream")
 
 
 #
@@ -40,7 +44,7 @@ logger = logging.getLogger("pycompss.streams.distro_stream")
 #
 
 
-class ODSPublisher(object):
+class ODSPublisher:
     """ODS Publisher connector implementation.
 
     Attributes:
@@ -53,20 +57,17 @@ class ODSPublisher(object):
 
         :param bootstrap_server: Associated boostrap server.
         """
-        logger.debug("Creating Publisher...")
-
-        # Parse configuration file
+        if __debug__:
+            logger.debug("Creating Publisher...")
 
         # Create internal producer
-        import socket
         from kafka import KafkaProducer
 
         bootstrap_server_info = str(bootstrap_server).split(":")
         bootstrap_server_ip = str(socket.gethostbyname(bootstrap_server_info[0]))
         bootstrap_server_port = str(bootstrap_server_info[1])
         self.kafka_producer = KafkaProducer(
-            bootstrap_servers="%s:%s"
-            % (bootstrap_server_ip, bootstrap_server_port),  # noqa: E501
+            bootstrap_servers=f"{bootstrap_server_ip}:{bootstrap_server_port}",
             acks="all",
             retries=0,
             batch_size=16384,
@@ -78,7 +79,8 @@ class ODSPublisher(object):
         # value_serializer="org.apache.kafka.common.serialization.StringSerializer",  # noqa: E501
         # block_on_buffer_full=True
 
-        logger.debug("DONE Creating Publisher")
+        if __debug__:
+            logger.debug("DONE Creating Publisher")
 
     def publish(self, topic: typing.Union[bytes, str], message: str) -> None:
         """Publish the given message to the given topic.
@@ -88,7 +90,7 @@ class ODSPublisher(object):
         :return: None.
         """
         if __debug__:
-            logger.debug("Publishing Message to %s ..." % str(topic))
+            logger.debug("Publishing Message to %s ...", str(topic))
 
         # Fix topic if required
         if isinstance(topic, bytes):
@@ -97,14 +99,14 @@ class ODSPublisher(object):
             topic_fix = str(topic)
 
         # Serialize message
-        import pickle
-
         serialized_message = pickle.dumps(message)
 
         # Send message
         self.kafka_producer.send(topic_fix, value=serialized_message)
         self.kafka_producer.flush()
-        logger.debug("DONE Publishing Message")
+
+        if __debug__:
+            logger.debug("DONE Publishing Message")
 
 
 #
@@ -112,7 +114,7 @@ class ODSPublisher(object):
 #
 
 
-class ODSConsumer(object):
+class ODSConsumer:
     """ODS Consumer connector implementation.
 
     Attributes:
@@ -131,7 +133,8 @@ class ODSConsumer(object):
         :param topic: Topic where to consume records.
         :param access_mode: Consumer access mode.
         """
-        logger.debug("Creating Consumer...")
+        if __debug__:
+            logger.debug("Creating Consumer...")
 
         if isinstance(topic, bytes):
             topic_fix = str(topic.decode("utf-8"))  # noqa
@@ -143,7 +146,6 @@ class ODSConsumer(object):
         # Parse configuration
 
         # Create internal consumer
-        import socket
         from kafka import KafkaConsumer
 
         bootstrap_server_info = str(bootstrap_server).split(":")
@@ -152,8 +154,7 @@ class ODSConsumer(object):
         )  # noqa: E501
         bootstrap_server_port = str(bootstrap_server_info[1])
         self.kafka_consumer = KafkaConsumer(
-            bootstrap_servers="%s:%s"
-            % (bootstrap_server_ip, bootstrap_server_port),  # noqa: E501
+            bootstrap_servers=f"{bootstrap_server_ip}:{bootstrap_server_port}",
             enable_auto_commit=True,
             auto_commit_interval_ms=200,
             group_id=self.topic,
@@ -170,7 +171,8 @@ class ODSConsumer(object):
         # Subscribe consumer
         self.kafka_consumer.subscribe([self.topic])
 
-        logger.debug("DONE Creating Consumer")
+        if __debug__:
+            logger.debug("DONE Creating Consumer")
 
     def poll(self, timeout: int) -> list:
         """Poll messages from the subscribed topics.
@@ -179,12 +181,11 @@ class ODSConsumer(object):
         :return: List of polled messages (strings - can be empty but not None).
         """
         if __debug__:
-            logger.debug("Polling Messages from " + str(self.topic) + " ...")
-
-        import pickle
+            logger.debug("Polling Messages from %s ...", str(self.topic))
 
         new_messages = []
-        for tp, records in self.kafka_consumer.poll(
+        # First _ was tp.
+        for _, records in self.kafka_consumer.poll(
             timeout_ms=timeout
         ).items():  # noqa: E501
             for record in records:
@@ -192,14 +193,12 @@ class ODSConsumer(object):
                     deserialized_message = pickle.loads(record.value)
                     new_messages.append(deserialized_message)
                 else:
-                    logger.warn(
-                        "Ignoring received message on unregistered topic "
-                        + str(record.topic)
-                    )  # noqa: E501
+                    logger.warning(
+                        "Ignoring received message on unregistered topic %s",
+                        str(record.topic),
+                    )
 
         if __debug__:
-            logger.debug(
-                "DONE Polling Messages (" + str(len(new_messages)) + " elements)"
-            )  # noqa: E501
+            logger.debug("DONE Polling Messages (%s elements)", str(len(new_messages)))
 
         return new_messages

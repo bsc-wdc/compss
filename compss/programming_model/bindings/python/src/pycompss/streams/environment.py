@@ -59,15 +59,7 @@ def init_streaming(
         streaming_master_port = "49049"
 
     # Check if the stream backend is enabled
-    if (
-        streaming_backend != ""
-        and streaming_backend != "null"
-        and streaming_backend != "None"
-        and streaming_backend != "NONE"
-    ):
-        streaming_enabled = True
-    else:
-        streaming_enabled = False
+    streaming_enabled = streaming_backend not in ("", "null", "None", "NONE")
 
     # Init stream backend if needed
     if streaming_enabled:
@@ -76,7 +68,7 @@ def init_streaming(
         DistroStreamClientHandler.init_and_start(
             master_ip=streaming_master_name,
             master_port=streaming_master_port,
-        )  # noqa: E501
+        )
 
     # Return whether the streaming backend is enabled or not
     return streaming_enabled

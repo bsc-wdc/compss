@@ -31,7 +31,7 @@ from mpi4py import MPI
 from pycompss.runtime.commons import GLOBALS
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.tracing.helpers import dummy_context
-from pycompss.util.tracing.helpers import event_worker
+from pycompss.util.tracing.helpers import EventWorker
 from pycompss.util.tracing.helpers import trace_mpi_executor
 from pycompss.util.tracing.helpers import trace_mpi_worker
 from pycompss.util.tracing.types_events_worker import TRACING_WORKER
@@ -259,7 +259,7 @@ def compss_persistent_executor(config: PiperWorkerConfiguration) -> None:
 
     if persistent_storage:
         # Initialize storage
-        with event_worker(TRACING_WORKER.init_storage_at_worker_event):
+        with EventWorker(TRACING_WORKER.init_storage_at_worker_event):
             from storage.api import initWorker as initStorageAtWorker  # noqa
 
             initStorageAtWorker(config_file_path=config.storage_conf)
@@ -287,7 +287,7 @@ def compss_persistent_executor(config: PiperWorkerConfiguration) -> None:
         # Finish storage
         if __debug__:
             logger.debug(HEADER + "Stopping persistent storage")
-        with event_worker(TRACING_WORKER.finish_storage_at_worker_event):
+        with EventWorker(TRACING_WORKER.finish_storage_at_worker_event):
             from storage.api import finishWorker as finishStorageAtWorker  # noqa
 
             finishStorageAtWorker()

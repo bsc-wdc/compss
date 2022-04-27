@@ -34,7 +34,7 @@ import pycompss.util.context as context
 from mpi4py import MPI
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.logger.helpers import init_logging_worker
-from pycompss.util.tracing.helpers import event_worker
+from pycompss.util.tracing.helpers import EventWorker
 from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.util.typing_helper import typing
 from pycompss.worker.commons.executor import build_return_params_message
@@ -151,7 +151,7 @@ def process_task(
     :param logger_formatter: Logger formatter.
     :return: exit_value and message.
     """
-    with event_worker(TRACING_WORKER.process_task_event):
+    with EventWorker(TRACING_WORKER.process_task_event):
         # Process properties
         stdout = sys.stdout
         stderr = sys.stderr

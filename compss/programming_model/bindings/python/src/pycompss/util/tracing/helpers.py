@@ -33,8 +33,56 @@ from pycompss.util.tracing.types_events_master import TRACING_MASTER
 from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.util.typing_helper import typing
 
-PYEXTRAE = None  # type: typing.Any
-TRACING = False  # type: bool
+
+class Tracing:
+    """Keep the tracing status."""
+
+    __slots__ = ["pyextrae", "tracing"]
+
+    def __init__(self):
+        """Instantiate a new Tracing class"""
+        self.pyextrae = None  # type: typing.Any
+        self.tracing = False  # type: bool
+
+    def get_pyextrae(self) -> typing.Any:
+        """Get PYEXTRAE value.
+
+        :return: PyExtrae value.
+        """
+        return self.pyextrae
+
+    def set_pyextrae(self, pyextrae: typing.Any) -> None:
+        """Set PYEXTRAE value.
+
+        :param: pyextrae: New pyextrae value.
+        :return: None
+        """
+        self.pyextrae = pyextrae
+
+    def is_tracing(self) -> bool:
+        """Get Tracing value.
+
+        :return: If tracing is enabled.
+        """
+        return self.tracing
+
+    def enable_tracing(self) -> None:
+        """Enable tracing value.
+
+        :return: None
+        """
+        self.tracing = True
+
+    def disable_tracing(self) -> None:
+        """Disable tracing value.
+
+        :return: None
+        """
+        self.tracing = False
+
+
+# Keep tracing library and status
+TRACING = Tracing()
 
 
 @contextmanager
@@ -43,8 +91,7 @@ def dummy_context() -> typing.Iterator[None]:
 
     :return: None.
     """
-    global TRACING
-    TRACING = False
+    TRACING.disable_tracing()
     yield
 
 
@@ -54,12 +101,10 @@ def trace_multiprocessing_worker() -> typing.Iterator[None]:
 
     :return: None.
     """
-    global PYEXTRAE
-    global TRACING
-    import pyextrae.multiprocessing as pyextrae  # noqa
+    import pyextrae.multiprocessing as pyextrae  # pylint: disable=import-outside-toplevel, import-error
 
-    PYEXTRAE = pyextrae
-    TRACING = True
+    TRACING.set_pyextrae(pyextrae)
+    TRACING.enable_tracing()
     pyextrae.eventandcounters(TRACING_WORKER.sync_type, 1)
     pyextrae.eventandcounters(
         TRACING_WORKER.inside_worker_type, TRACING_WORKER.worker_running_event
@@ -77,12 +122,10 @@ def trace_mpi_worker() -> typing.Iterator[None]:
 
     :return: None.
     """
-    global PYEXTRAE
-    global TRACING
-    import pyextrae.mpi as pyextrae  # noqa
+    import pyextrae.mpi as pyextrae  # pylint: disable=import-outside-toplevel, import-error
 
-    PYEXTRAE = pyextrae
-    TRACING = True
+    TRACING.set_pyextrae(pyextrae)
+    TRACING.enable_tracing()
     pyextrae.eventandcounters(TRACING_WORKER.sync_type, 1)
     pyextrae.eventandcounters(
         TRACING_WORKER.inside_worker_type, TRACING_WORKER.worker_running_event
@@ -100,83 +143,14 @@ def trace_mpi_executor() -> typing.Iterator[None]:
 
     :return: None.
     """
-    global PYEXTRAE
-    global TRACING
-    import pyextrae.mpi as pyextrae  # noqa
+    import pyextrae.mpi as pyextrae  # pylint: disable=import-outside-toplevel, import-error
 
-    PYEXTRAE = pyextrae
-    TRACING = True
+    TRACING.set_pyextrae(pyextrae)
+    TRACING.enable_tracing()
     yield  # here the mpi executor runs
 
 
-# class EmitEvent(object):  # noqa
-#
-#     def __init__(self,
-#                  event_id: int,
-#                  master: bool = False,
-#                  inside: bool = False,
-#                  cpu_affinity: bool = False,
-#                  gpu_affinity: bool = False
-#                  ) -> None:
-#         self.event_id = event_id
-#         self.master = master
-#         self.inside = inside
-#         self.cpu_affinity = cpu_affinity
-#         self.gpu_affinity = gpu_affinity
-#
-#     def __call__(self, f):
-#         # type: (typing.Any) -> typing.Any
-#         def wrapped_f(*args, **kwargs):
-#             # type: (*typing.Any, **typing.Any) -> typing.Any
-#             if TRACING:
-#                 with event(self.event_id, self.master,
-#                            self.inside, self.cpu_affinity, self.gpu_affinity):
-#                     result = f(*args, **kwargs)
-#             else:
-#                 result = f(*args, **kwargs)
-#             return result
-#
-#         return wrapped_f
-
-
-# @contextmanager
-# def event(event_id: int,
-#           master: bool = False,
-#           inside: bool = False,
-#           cpu_affinity: bool = False,
-#           gpu_affinity: bool = False
-#           ) -> typing.Iterator[None]:
-#     """ Emits an event wrapping the desired code.
-#
-#     Does nothing if tracing is disabled.
-#
-#     :param event_id: Event identifier to emit.
-#     :param master: If the event is emitted as master.
-#     :param inside: If the event is produced inside the worker.
-#     :param cpu_affinity: If the event is produced inside the worker for
-#                          cpu affinity.
-#     :param gpu_affinity: If the event is produced inside the worker for
-#                          gpu affinity.
-#     :return: None
-#     """
-#     emit = False
-#     if TRACING and in_master() and master:
-#         emit = True
-#     if TRACING and in_worker() and not master:
-#         emit = True
-#     if emit:
-#         event_group, event_id = __get_proper_type_event__(event_id,
-#                                                           master,
-#                                                           inside,
-#                                                           cpu_affinity,
-#                                                           gpu_affinity)
-#         PYEXTRAE.eventandcounters(event_group, event_id)  # noqa
-#     yield  # here the code runs
-#     if emit:
-#         PYEXTRAE.eventandcounters(event_group, 0)         # noqa
-
-
-class event_master:
+class EventMaster:
     """Decorator that emits an event at master wrapping the desired code.
 
     Does nothing if tracing is disabled.
@@ -194,8 +168,10 @@ class event_master:
         :returns: None.
         """
         self.emitted = False
-        if TRACING and in_master():
-            PYEXTRAE.eventandcounters(TRACING_MASTER.binding_master_type, event_id)
+        if TRACING.is_tracing() and in_master():
+            TRACING.get_pyextrae().eventandcounters(
+                TRACING_MASTER.binding_master_type, event_id
+            )
             self.emitted = True
 
     def __enter__(self) -> None:
@@ -203,10 +179,12 @@ class event_master:
 
         :returns: None.
         """
-        pass
 
     def __exit__(
-        self, type: typing.Any, value: typing.Any, traceback: typing.Any
+        self,
+        type: typing.Any,  # pylint: disable=redefined-builtin
+        value: typing.Any,
+        traceback: typing.Any,
     ) -> None:
         """Emit the 0 event in the master group when the context is finished.
 
@@ -217,11 +195,13 @@ class event_master:
         :param traceback: Traceback.
         :returns: None.
         """
-        if TRACING and self.emitted:
-            PYEXTRAE.eventandcounters(TRACING_MASTER.binding_master_type, 0)
+        if TRACING.is_tracing() and self.emitted:
+            TRACING.get_pyextrae().eventandcounters(
+                TRACING_MASTER.binding_master_type, 0
+            )
 
 
-class event_worker:
+class EventWorker:
     """Decorator that emits an event at worker wrapping the desired code.
 
     Does nothing if tracing is disabled.
@@ -239,8 +219,8 @@ class event_worker:
         :returns: None.
         """
         self.emitted = False
-        if TRACING and in_worker():
-            PYEXTRAE.eventandcounters(
+        if TRACING.is_tracing() and in_worker():
+            TRACING.get_pyextrae().eventandcounters(
                 TRACING_WORKER.inside_worker_type, event_id
             )  # noqa
             self.emitted = True
@@ -250,10 +230,12 @@ class event_worker:
 
         :returns: None.
         """
-        pass
 
     def __exit__(
-        self, type: typing.Any, value: typing.Any, traceback: typing.Any
+        self,
+        type: typing.Any,  # pylint: disable=redefined-builtin
+        value: typing.Any,
+        traceback: typing.Any,
     ) -> None:
         """Emit the 0 event in the worker group when the context is finished.
 
@@ -264,11 +246,13 @@ class event_worker:
         :param traceback: Traceback.
         :returns: None.
         """
-        if TRACING and self.emitted:
-            PYEXTRAE.eventandcounters(TRACING_WORKER.inside_worker_type, 0)  # noqa
+        if TRACING.is_tracing() and self.emitted:
+            TRACING.get_pyextrae().eventandcounters(
+                TRACING_WORKER.inside_worker_type, 0
+            )  # noqa
 
 
-class event_inside_worker:
+class EventInsideWorker:
     """Decorator that emits an event at worker (inside task) wrapping the desired code.
 
     Does nothing if tracing is disabled.
@@ -286,8 +270,8 @@ class event_inside_worker:
         :returns: None.
         """
         self.emitted = False
-        if TRACING and in_worker():
-            PYEXTRAE.eventandcounters(
+        if TRACING.is_tracing() and in_worker():
+            TRACING.get_pyextrae().eventandcounters(
                 TRACING_WORKER.inside_tasks_type, event_id
             )  # noqa
             self.emitted = True
@@ -297,10 +281,12 @@ class event_inside_worker:
 
         :returns: None.
         """
-        pass
 
     def __exit__(
-        self, type: typing.Any, value: typing.Any, traceback: typing.Any
+        self,
+        type: typing.Any,  # pylint: disable=redefined-builtin
+        value: typing.Any,
+        traceback: typing.Any,
     ) -> None:
         """Emit the 0 event in the inside worker group when the context is finished.
 
@@ -311,8 +297,8 @@ class event_inside_worker:
         :param traceback: Traceback.
         :returns: None.
         """
-        if TRACING and self.emitted:
-            PYEXTRAE.eventandcounters(TRACING_WORKER.inside_tasks_type, 0)  # noqa
+        if TRACING.is_tracing() and self.emitted:
+            TRACING.get_pyextrae().eventandcounters(TRACING_WORKER.inside_tasks_type, 0)
 
 
 def emit_manual_event(
@@ -338,11 +324,11 @@ def emit_manual_event(
                        cpu number.
     :return: None.
     """
-    if TRACING:
+    if TRACING.is_tracing():
         event_group, event_id = __get_proper_type_event__(
             event_id, master, inside, cpu_affinity, gpu_affinity, cpu_number
         )
-        PYEXTRAE.eventandcounters(event_group, event_id)  # noqa
+        TRACING.get_pyextrae().eventandcounters(event_group, event_id)  # noqa
 
 
 def emit_manual_event_explicit(event_group: int, event_id: int) -> None:
@@ -354,8 +340,8 @@ def emit_manual_event_explicit(event_group: int, event_id: int) -> None:
     :param event_id: Event identifier to emit.
     :return: None.
     """
-    if TRACING:
-        PYEXTRAE.eventandcounters(event_group, event_id)  # noqa
+    if TRACING.is_tracing():
+        TRACING.get_pyextrae().eventandcounters(event_group, event_id)  # noqa
 
 
 def __get_proper_type_event__(
@@ -424,9 +410,7 @@ def enable_trace_master() -> None:
 
     :return: None.
     """
-    global PYEXTRAE
-    global TRACING
-    import pyextrae.sequential as pyextrae  # noqa
+    import pyextrae.sequential as pyextrae  # pylint: disable=import-outside-toplevel, import-error
 
-    PYEXTRAE = pyextrae
-    TRACING = True
+    TRACING.set_pyextrae(pyextrae)
+    TRACING.enable_tracing()

@@ -25,9 +25,9 @@ Isolates the API signature calls.
 """
 
 from pycompss.util.exceptions import PyCOMPSsException
-from pycompss.util.tracing.helpers import event_inside_worker
-from pycompss.util.tracing.helpers import event_master
-from pycompss.util.tracing.helpers import event_worker
+from pycompss.util.tracing.helpers import EventInsideWorker
+from pycompss.util.tracing.helpers import EventMaster
+from pycompss.util.tracing.helpers import EventWorker
 from pycompss.util.tracing.types_events_master import TRACING_MASTER
 from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.util.typing_helper import typing
@@ -190,7 +190,7 @@ def get_id(psco: typing.Any) -> typing.Union[str, None]:
     :param psco: Persistent object.
     :return: Persistent object identifier.
     """
-    with event_inside_worker(TRACING_WORKER.getid_event):
+    with EventInsideWorker(TRACING_WORKER.getid_event):
         return psco.getID()
 
 
@@ -200,7 +200,7 @@ def get_by_id(identifier: str) -> typing.Any:
     :param identifier: Persistent object identifier.
     :return: object associated to the persistent object identifier.
     """
-    with event_inside_worker(TRACING_WORKER.get_by_id_event):
+    with EventInsideWorker(TRACING_WORKER.get_by_id_event):
         return GET_BY_ID(identifier)
 
 
@@ -213,7 +213,7 @@ def master_init_storage(storage_conf: str, logger: typing.Any) -> bool:
     :param logger: Logger where to log the messages.
     :return: True if initialized. False on the contrary.
     """
-    with event_master(TRACING_MASTER.init_storage_event):
+    with EventMaster(TRACING_MASTER.init_storage_event):
         return __init_storage__(storage_conf, logger)
 
 
@@ -237,7 +237,7 @@ def init_storage(storage_conf: str, logger: typing.Any) -> bool:
     :param logger: Logger where to log the messages.
     :return: True if initialized. False on the contrary.
     """
-    with event_worker(TRACING_WORKER.init_storage_event):
+    with EventWorker(TRACING_WORKER.init_storage_event):
         return __init_storage__(storage_conf, logger)
 
 
@@ -269,7 +269,7 @@ def master_stop_storage(logger: typing.Any) -> None:
     :param logger: Logger where to log the messages.
     :return: None
     """
-    with event_master(TRACING_MASTER.stop_storage_event):
+    with EventMaster(TRACING_MASTER.stop_storage_event):
         __stop_storage__(logger)
 
 
@@ -281,7 +281,7 @@ def stop_storage(logger: typing.Any) -> None:
     :param logger: Logger where to log the messages.
     :return: None
     """
-    with event_worker(TRACING_WORKER.stop_storage_event):
+    with EventWorker(TRACING_WORKER.stop_storage_event):
         __stop_storage__(logger)
 
 

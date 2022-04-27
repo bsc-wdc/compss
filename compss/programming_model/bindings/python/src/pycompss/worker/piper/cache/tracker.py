@@ -33,7 +33,7 @@ from multiprocessing import Queue
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.objects.sizer import total_sizeof
 from pycompss.util.tracing.helpers import emit_manual_event_explicit
-from pycompss.util.tracing.helpers import event_inside_worker
+from pycompss.util.tracing.helpers import EventInsideWorker
 from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.util.typing_helper import typing
 
@@ -424,7 +424,7 @@ def retrieve_object_from_cache(
     :param cache_profiler: If cache profiling is enabled.
     :return: The object from cache.
     """
-    with event_inside_worker(TRACING_WORKER.retrieve_object_from_cache_event):
+    with EventInsideWorker(TRACING_WORKER.retrieve_object_from_cache_event):
         emit_manual_event_explicit(
             TRACING_WORKER.binding_deserialization_cache_size_type, 0
         )
@@ -525,7 +525,7 @@ def insert_object_into_cache(
     :param user_function: Function.
     :return: None.
     """
-    with event_inside_worker(TRACING_WORKER.insert_object_into_cache_event):
+    with EventInsideWorker(TRACING_WORKER.insert_object_into_cache_event):
         function = function_cleaned(user_function)
         f_name = __get_file_name__(f_name)
         if __debug__:
@@ -652,7 +652,7 @@ def remove_object_from_cache(
     :param f_name: File name that corresponds to the object (used as id).
     :return: None.
     """
-    with event_inside_worker(TRACING_WORKER.remove_object_from_cache_event):
+    with EventInsideWorker(TRACING_WORKER.remove_object_from_cache_event):
         f_name = __get_file_name__(f_name)
         if __debug__:
             logger.debug(HEADER + "Removing from cache: " + str(f_name))

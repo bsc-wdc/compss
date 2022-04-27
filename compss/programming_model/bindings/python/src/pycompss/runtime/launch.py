@@ -72,7 +72,7 @@ from pycompss.util.storages.persistent import master_stop_storage
 from pycompss.util.storages.persistent import use_storage
 
 # Tracing imports
-from pycompss.util.tracing.helpers import event_master
+from pycompss.util.tracing.helpers import EventMaster
 from pycompss.util.tracing.types_events_master import TRACING_MASTER
 from pycompss.util.typing_helper import typing
 from pycompss.util.warnings.modules import show_optional_module_warnings
@@ -276,7 +276,7 @@ def compss_main() -> None:
 
         # MAIN EXECUTION
         app_path = args.app_path
-        with event_master(TRACING_MASTER.application_running_event):
+        with EventMaster(TRACING_MASTER.application_running_event):
             # MAIN EXECUTION
             with open(app_path) as user_file:
                 exec(compile(user_file.read(), app_path, "exec"), globals())
@@ -592,7 +592,7 @@ def launch_pycompss_application(
     saved_argv = sys.argv
     sys.argv = list(args)
     # Execution:
-    with event_master(TRACING_MASTER.application_running_event):
+    with EventMaster(TRACING_MASTER.application_running_event):
         if func is None or func == "__main__":
             with open(app, "r") as app_fd:
                 exec(app_fd.read())

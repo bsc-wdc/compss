@@ -60,7 +60,7 @@ class LaunchStatus:
         return self.persistent_storage
 
     def get_logger(self) -> typing.Any:
-        """Get LOGGER  value.
+        """Get LOGGER value.
 
         :return: Logger value.
         """

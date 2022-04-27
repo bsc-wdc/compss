@@ -41,8 +41,8 @@ from pycompss.util.logger.helpers import add_new_logger
 
 # Tracing imports
 from pycompss.util.tracing.helpers import enable_trace_master
-from pycompss.util.tracing.helpers import event_inside_worker
-from pycompss.util.tracing.helpers import event_master
+from pycompss.util.tracing.helpers import EventInsideWorker
+from pycompss.util.tracing.helpers import EventMaster
 from pycompss.util.tracing.types_events_master import TRACING_MASTER
 from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.util.typing_helper import typing
@@ -82,7 +82,7 @@ def start_runtime(
         # Enabled only if not interactive - extrae issues within jupyter.
         enable_trace_master()
 
-    with event_master(TRACING_MASTER.start_runtime_event):
+    with EventMaster(TRACING_MASTER.start_runtime_event):
         if interactive and context.in_master() and not disable_external:
             COMPSs.load_runtime(external_process=True)
         else:
@@ -113,7 +113,7 @@ def stop_runtime(code: int = 0, hard_stop: bool = False) -> None:
     :param hard_stop: Stop compss when runtime has died.
     :return: None.
     """
-    with event_master(TRACING_MASTER.stop_runtime_event):
+    with EventMaster(TRACING_MASTER.stop_runtime_event):
         app_id = 0
         if __debug__:
             LOGGER.info("Stopping runtime...")
@@ -160,7 +160,7 @@ def accessed_file(file_name: str) -> bool:
     :param file_name: <String> File name.
     :return: True if accessed, False otherwise.
     """
-    with event_master(TRACING_MASTER.accessed_file_event):
+    with EventMaster(TRACING_MASTER.accessed_file_event):
         app_id = 0
         if __debug__:
             LOGGER.debug("Checking if file %s has been accessed.", file_name)
@@ -180,7 +180,7 @@ def open_file(file_name: str, mode: str) -> str:
     :return: The current name of the file requested (that may have been
              renamed during runtime).
     """
-    with event_master(TRACING_MASTER.open_file_event):
+    with EventMaster(TRACING_MASTER.open_file_event):
         app_id = 0
         compss_mode = get_compss_direction(mode)
         if __debug__:
@@ -200,7 +200,7 @@ def delete_file(file_name: str) -> bool:
     :param file_name: File name to remove.
     :return: True if success. False otherwise.
     """
-    with event_master(TRACING_MASTER.delete_file_event):
+    with EventMaster(TRACING_MASTER.delete_file_event):
         app_id = 0
         if __debug__:
             LOGGER.debug("Deleting file %s", file_name)
@@ -222,7 +222,7 @@ def get_file(file_name: str) -> None:
     :param file_name: File name to remove.
     :return: None.
     """
-    with event_master(TRACING_MASTER.get_file_event):
+    with EventMaster(TRACING_MASTER.get_file_event):
         app_id = 0
         if __debug__:
             LOGGER.debug("Getting file %s", file_name)
@@ -238,7 +238,7 @@ def get_directory(dir_name: str) -> None:
     :param dir_name: dir name to retrieve.
     :return: None.
     """
-    with event_master(TRACING_MASTER.get_directory_event):
+    with EventMaster(TRACING_MASTER.get_directory_event):
         app_id = 0
         if __debug__:
             LOGGER.debug("Getting directory %s", dir_name)
@@ -255,7 +255,7 @@ def delete_object(obj: typing.Any) -> bool:
     :param obj: Object to remove.
     :return: True if success. False otherwise.
     """
-    with event_master(TRACING_MASTER.delete_object_event):
+    with EventMaster(TRACING_MASTER.delete_object_event):
         app_id = 0
         obj_id = OT.is_tracked(obj)
         if obj_id is None:
@@ -280,7 +280,7 @@ def barrier(no_more_tasks: bool = False) -> None:
                           all objects.
     :return: None.
     """
-    with event_master(TRACING_MASTER.barrier_event):
+    with EventMaster(TRACING_MASTER.barrier_event):
         if __debug__:
             LOGGER.debug("Barrier. No more tasks? %s", str(no_more_tasks))
         # If noMoreFlags is set, clean up the objects
@@ -306,7 +306,7 @@ def nested_barrier() -> None:
 
     :return: None.
     """
-    with event_master(TRACING_MASTER.barrier_event):
+    with EventMaster(TRACING_MASTER.barrier_event):
         if __debug__:
             LOGGER.debug("Nested Barrier.")
         _clean_objects()
@@ -325,7 +325,7 @@ def barrier_group(group_name: str) -> str:
     :param group_name: Group name.
     :return: None or string with exception message.
     """
-    with event_master(TRACING_MASTER.barrier_group_event):
+    with EventMaster(TRACING_MASTER.barrier_group_event):
         app_id = 0
         # Call the Runtime group barrier
         return str(COMPSs.barrier_group(app_id, group_name))
@@ -341,7 +341,7 @@ def open_task_group(group_name: str, implicit_barrier: bool) -> None:
     :param implicit_barrier: Perform a wait on all group tasks before closing.
     :return: None.
     """
-    with event_master(TRACING_MASTER.open_task_group_event):
+    with EventMaster(TRACING_MASTER.open_task_group_event):
         app_id = 0
         COMPSs.open_task_group(group_name, implicit_barrier, app_id)
 
@@ -355,7 +355,7 @@ def close_task_group(group_name: str) -> None:
     :param group_name: Group name.
     :return: None.
     """
-    with event_master(TRACING_MASTER.close_task_group_event):
+    with EventMaster(TRACING_MASTER.close_task_group_event):
         app_id = 0
         COMPSs.close_task_group(group_name, app_id)
 
@@ -368,7 +368,7 @@ def get_log_path() -> str:
 
     :return: The path where to store the logs.
     """
-    with event_master(TRACING_MASTER.get_log_path_event):
+    with EventMaster(TRACING_MASTER.get_log_path_event):
         if __debug__:
             LOGGER.debug("Requesting log path")
         log_path = COMPSs.get_logging_path()
@@ -385,7 +385,7 @@ def get_number_of_resources() -> int:
 
     :return: Number of active resources.
     """
-    with event_master(TRACING_MASTER.get_number_resources_event):
+    with EventMaster(TRACING_MASTER.get_number_resources_event):
         app_id = 0
         if __debug__:
             LOGGER.debug("Request the number of active resources")
@@ -404,7 +404,7 @@ def request_resources(num_resources: int, group_name: typing.Optional[str]) -> N
     :param group_name: Task group to notify upon resource creation.
     :return: None.
     """
-    with event_master(TRACING_MASTER.request_resources_event):
+    with EventMaster(TRACING_MASTER.request_resources_event):
         app_id = 0
         if group_name is None:
             group_name = "NULL"
@@ -429,7 +429,7 @@ def free_resources(num_resources: int, group_name: typing.Optional[str]) -> None
     :param group_name: Task group to notify upon resource creation.
     :return: None.
     """
-    with event_master(TRACING_MASTER.free_resources_event):
+    with EventMaster(TRACING_MASTER.free_resources_event):
         app_id = 0
         if group_name is None:
             group_name = "NULL"
@@ -450,7 +450,7 @@ def set_wall_clock(wall_clock_limit: int) -> None:
     :param wall_clock_limit: Wall clock limit in seconds.
     :return: None.
     """
-    with event_master(TRACING_MASTER.wall_clock_limit_event):
+    with EventMaster(TRACING_MASTER.wall_clock_limit_event):
         app_id = 0
         if __debug__:
             LOGGER.debug("Set a wall clock limit of %s", str(wall_clock_limit))
@@ -587,7 +587,7 @@ def register_ce(core_element: CE) -> None:
     :param core_element: <CE> Core Element to register.
     :return: None.
     """
-    with event_master(TRACING_MASTER.register_core_element_event):
+    with EventMaster(TRACING_MASTER.register_core_element_event):
         # Retrieve Core element fields
         ce_signature = core_element.get_ce_signature()
         impl_signature_base = core_element.get_impl_signature()
@@ -665,10 +665,10 @@ def wait_on(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
     if "master_event" in kwargs:  # pylint: disable=consider-using-get
         master_event = kwargs["master_event"]
     if master_event:
-        with event_master(TRACING_MASTER.wait_on_event):
+        with EventMaster(TRACING_MASTER.wait_on_event):
             return __wait_on__(*args, **kwargs)
     else:
-        with event_inside_worker(TRACING_WORKER.wait_on_event):
+        with EventInsideWorker(TRACING_WORKER.wait_on_event):
             return __wait_on__(*args, **kwargs)
 
 
@@ -744,7 +744,7 @@ def process_task(
     :param is_http: If it is a http task (service).
     :return: The future object related to the task return.
     """
-    with event_master(TRACING_MASTER.process_task_event):
+    with EventMaster(TRACING_MASTER.process_task_event):
         app_id = 0
         if __debug__:
             # Log the task submission values for debugging purposes.

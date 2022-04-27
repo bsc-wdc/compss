@@ -54,7 +54,7 @@ from pycompss.util.serialization.serializer import serialize_to_file_mpienv
 from pycompss.util.std.redirects import not_std_redirector
 from pycompss.util.std.redirects import std_redirector
 from pycompss.util.storages.persistent import is_psco
-from pycompss.util.tracing.helpers import event_inside_worker
+from pycompss.util.tracing.helpers import EventInsideWorker
 from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.util.typing_helper import typing
 from pycompss.worker.commons.worker import build_task_parameter
@@ -861,7 +861,7 @@ class TaskWorker:
         :param tracing: If tracing enabled.
         :return: The user function returns and the compss exception (if any).
         """
-        with event_inside_worker(TRACING_WORKER.execute_user_code_event):
+        with EventInsideWorker(TRACING_WORKER.execute_user_code_event):
             # Tracing hook is disabled by default during the user code of the task.
             # The user can enable it with tracing_hook=True in @task decorator for
             # specific tasks or globally with the COMPSS_TRACING_HOOK=true

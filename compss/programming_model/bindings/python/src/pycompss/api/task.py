@@ -46,8 +46,8 @@ from pycompss.runtime.task.parameter import is_param
 from pycompss.runtime.task.worker import TaskWorker
 from pycompss.util.logger.helpers import update_logger_handlers
 from pycompss.util.objects.properties import get_module_name
-from pycompss.util.tracing.helpers import event_inside_worker
-from pycompss.util.tracing.helpers import event_master
+from pycompss.util.tracing.helpers import EventInsideWorker
+from pycompss.util.tracing.helpers import EventMaster
 from pycompss.util.tracing.types_events_master import TRACING_MASTER
 from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.util.typing_helper import dummy_function
@@ -249,7 +249,7 @@ class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attribu
             # Each task will have a TaskMaster, so its content will
             # not be shared.
             self.__check_core_element__(kwargs, user_function)
-            with event_master(TRACING_MASTER.task_instantiation):
+            with EventMaster(TRACING_MASTER.task_instantiation):
                 master = TaskMaster(
                     self.decorator_arguments,
                     self.user_function,
@@ -296,7 +296,7 @@ class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attribu
                             kwargs["compss_log_files"][1],
                         )
                 # @task being executed in the worker
-                with event_inside_worker(TRACING_WORKER.worker_task_instantiation):
+                with EventInsideWorker(TRACING_WORKER.worker_task_instantiation):
                     worker = TaskWorker(
                         self.decorator_arguments,
                         self.user_function,
@@ -323,7 +323,7 @@ class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attribu
             if context.is_nesting_enabled():
                 # Each task will have a TaskMaster, so its content will
                 # not be shared.
-                with event_master(TRACING_MASTER.task_instantiation):
+                with EventMaster(TRACING_MASTER.task_instantiation):
                     master = TaskMaster(
                         self.decorator_arguments,
                         self.user_function,

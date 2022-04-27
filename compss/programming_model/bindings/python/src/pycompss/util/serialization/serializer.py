@@ -57,7 +57,7 @@ from pycompss.util.serialization.extended_support import GeneratorIndicator
 from pycompss.util.serialization.extended_support import convert_to_generator
 from pycompss.util.serialization.extended_support import pickle_generator
 from pycompss.util.tracing.helpers import emit_manual_event_explicit
-from pycompss.util.tracing.helpers import event_inside_worker
+from pycompss.util.tracing.helpers import EventInsideWorker
 from pycompss.util.tracing.types_events_master import TRACING_MASTER
 from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.util.typing_helper import typing
@@ -237,7 +237,7 @@ def serialize_to_file(obj: typing.Any, file_name: str) -> None:
     :param file_name: File name where the object is going to be serialized.
     :return: Nothing, it just serializes the object.
     """
-    with event_inside_worker(TRACING_WORKER.serialize_to_file_event):
+    with EventInsideWorker(TRACING_WORKER.serialize_to_file_event):
         # todo: can we make the binary mode optional?
         with open(file_name, "wb") as handler:
             serialize_to_handler(obj, handler)
@@ -255,7 +255,7 @@ def serialize_to_file_mpienv(
                              False for INOUT objects and True otherwise.
     :return: Nothing, it just serializes the object.
     """
-    with event_inside_worker(TRACING_WORKER.serialize_to_file_mpienv_event):
+    with EventInsideWorker(TRACING_WORKER.serialize_to_file_mpienv_event):
         from mpi4py import MPI
 
         if rank_zero_reduce:
@@ -365,7 +365,7 @@ def deserialize_from_file(file_name: str) -> typing.Any:
     :param file_name: Name of the file with the contents to be deserialized
     :return: A deserialized object
     """
-    with event_inside_worker(TRACING_WORKER.deserialize_from_file_event):
+    with EventInsideWorker(TRACING_WORKER.deserialize_from_file_event):
         handler = open(file_name, "rb")
         ret, close_handler = deserialize_from_handler(handler)
         if close_handler:
@@ -382,7 +382,7 @@ def deserialize_from_bytes(
     :param show_exception: Show exception if happen (only with debug).
     :return: A deserialized object.
     """
-    with event_inside_worker(TRACING_WORKER.deserialize_from_bytes_event):
+    with EventInsideWorker(TRACING_WORKER.deserialize_from_bytes_event):
         handler = BytesIO(serialized_content_bytes)
         ret, close_handler = deserialize_from_handler(
             handler, show_exception=show_exception

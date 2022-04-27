@@ -49,7 +49,7 @@ from pycompss.dds.tasks import task_collect_samples
 from pycompss.dds.tasks import map_and_save_text_file
 from pycompss.dds.tasks import map_and_save_pickle
 from pycompss.dds.tasks import MARKER
-from pycompss.util.tracing.helpers import event_master
+from pycompss.util.tracing.helpers import EventMaster
 
 
 def default_hash(obj):
@@ -634,7 +634,7 @@ class DDS:
         if self.paac:
             for collection in self.partitions:
                 col = [[] for _ in range(nop)]
-                with event_master(3002):
+                with EventMaster(3002):
                     distribute_partition(
                         col, self.func, partitioner_func, None, collection
                     )
@@ -644,7 +644,7 @@ class DDS:
         else:
             for _part in self.partitions:
                 col = [[] for _ in range(nop)]
-                with event_master(3002):
+                with EventMaster(3002):
                     distribute_partition(col, self.func, partitioner_func, _part)
                 for _i in range(nop):
                     grouped[_i].append(col[_i])

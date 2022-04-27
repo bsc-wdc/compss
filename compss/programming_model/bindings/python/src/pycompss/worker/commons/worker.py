@@ -44,7 +44,7 @@ from pycompss.util.serialization.serializer import deserialize_from_bytes
 from pycompss.util.serialization.serializer import deserialize_from_file
 from pycompss.util.serialization.serializer import serialize_to_file
 from pycompss.util.storages.persistent import load_storage_library
-from pycompss.util.tracing.helpers import event_inside_worker
+from pycompss.util.tracing.helpers import EventInsideWorker
 from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.util.typing_helper import typing
 
@@ -243,7 +243,7 @@ def get_task_params(num_params: int, logger: typing.Any, args: list) -> list:
                             prefix and value).
     :return: A list of TaskParameter objects.
     """
-    with event_inside_worker(TRACING_WORKER.get_task_params_event):
+    with EventInsideWorker(TRACING_WORKER.get_task_params_event):
         pos = 0
         ret = []
         for i in range(0, num_params):  # noqa
@@ -482,7 +482,7 @@ def import_user_module(path: str, logger: typing.Any) -> typing.Any:
     :param logger: Logger.
     :return: The loaded module.
     """
-    with event_inside_worker(TRACING_WORKER.import_user_module_event):
+    with EventInsideWorker(TRACING_WORKER.import_user_module_event):
         py_version = sys.version_info
         if py_version >= (2, 7):
             import importlib

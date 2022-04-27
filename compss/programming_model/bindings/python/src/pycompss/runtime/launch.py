@@ -35,7 +35,8 @@ import sys
 import traceback
 
 # Project imports
-from pycompss.util import context
+from pycompss.util.context import CONTEXT
+from pycompss.util.context import loading_context
 from pycompss.api.exceptions import COMPSsException
 from pycompss.runtime.binding import get_log_path
 from pycompss.runtime.commons import CONSTANTS
@@ -164,7 +165,7 @@ def __register_implementation_core_elements__() -> None:
 
     :return: None
     """
-    task_list = context.get_to_register()
+    task_list = CONTEXT.get_to_register()
     for task, impl_signature in task_list:
         task.register_task()
         task.registered = True
@@ -183,7 +184,7 @@ def compss_main() -> None:
     :return: None.
     """
     # Let the Python binding know we are at master
-    context.set_pycompss_context(context.MASTER)
+    CONTEXT.set_pycompss_context(CONTEXT.master)
     # Then we can import the appropriate start and stop functions from the API
     from pycompss.api.api import compss_start  # pylint: disable=import-outside-toplevel
     from pycompss.api.api import (
@@ -214,7 +215,7 @@ def compss_main() -> None:
     # Reason: some cases like autoparallel can require to avoid loading.
     # It is disabled if using storage (with dataClay this can not be done)
     if preload_user_code() and not use_storage(storage_conf):
-        with context.loading_context():
+        with loading_context():
             __load_user_module__(args.app_path, log_level)
 
     # Start the runtime
@@ -450,7 +451,7 @@ def launch_pycompss_application(
         raise PyCOMPSsException("ERROR: COMPSS_HOME is not defined in the environment")
 
     # Let the Python binding know we are at master
-    context.set_pycompss_context(context.MASTER)
+    CONTEXT.set_pycompss_context(CONTEXT.master)
     # Then we can import the appropriate start and stop functions from the API
     from pycompss.api.api import compss_start  # pylint: disable=import-outside-toplevel
     from pycompss.api.api import compss_stop  # pylint: disable=import-outside-toplevel

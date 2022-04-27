@@ -27,8 +27,7 @@ tracing events emission.
 import time
 from contextlib import contextmanager
 
-from pycompss.util.context import in_master
-from pycompss.util.context import in_worker
+from pycompss.util.context import CONTEXT
 from pycompss.util.tracing.types_events_master import TRACING_MASTER
 from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.util.typing_helper import typing
@@ -168,7 +167,7 @@ class EventMaster:
         :returns: None.
         """
         self.emitted = False
-        if TRACING.is_tracing() and in_master():
+        if TRACING.is_tracing() and CONTEXT.in_master():
             TRACING.get_pyextrae().eventandcounters(
                 TRACING_MASTER.binding_master_type, event_id
             )
@@ -219,7 +218,7 @@ class EventWorker:
         :returns: None.
         """
         self.emitted = False
-        if TRACING.is_tracing() and in_worker():
+        if TRACING.is_tracing() and CONTEXT.in_worker():
             TRACING.get_pyextrae().eventandcounters(
                 TRACING_WORKER.inside_worker_type, event_id
             )  # noqa
@@ -270,7 +269,7 @@ class EventInsideWorker:
         :returns: None.
         """
         self.emitted = False
-        if TRACING.is_tracing() and in_worker():
+        if TRACING.is_tracing() and CONTEXT.in_worker():
             TRACING.get_pyextrae().eventandcounters(
                 TRACING_WORKER.inside_tasks_type, event_id
             )  # noqa

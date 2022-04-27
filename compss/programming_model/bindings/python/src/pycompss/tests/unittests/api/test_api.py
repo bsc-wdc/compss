@@ -23,9 +23,9 @@ import os
 
 
 def test_api_calling_dummy():
-    import pycompss.util.context as context
+    from pycompss.util.context import CONTEXT
 
-    context.set_pycompss_context(context.MASTER)
+    CONTEXT.set_pycompss_context(CONTEXT.master)
     # Load exposed api, not dummy
     from pycompss.api.api import compss_start
     from pycompss.api.api import compss_stop
@@ -44,7 +44,7 @@ def test_api_calling_dummy():
     from pycompss.api.api import TaskGroup
 
     # Force to use dummies
-    context.set_pycompss_context(context.OUT_OF_SCOPE)
+    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
 
     file_name = "simulated_file.txt"
     file_names = ["simulated_file1.txt", "simulated_file2.txt"]

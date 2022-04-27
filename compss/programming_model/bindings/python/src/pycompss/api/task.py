@@ -31,7 +31,7 @@ import sys
 from functools import wraps
 
 from pycompss.api import parameter
-from pycompss.util import context
+from pycompss.util.context import CONTEXT
 from pycompss.api.commons.constants import INTERNAL_LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.implementation_types import IMPLEMENTATION_TYPES
@@ -126,7 +126,7 @@ class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attribu
         self.decorator_name = "".join(("@", Task.__name__.lower()))
         self.args = args
         self.kwargs = kwargs
-        self.scope = context.in_pycompss()
+        self.scope = CONTEXT.in_pycompss()
         self.core_element = CE()
         self.core_element_configured = False
 
@@ -244,7 +244,7 @@ class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attribu
         :returns: Result of executing the user_function with the given args and kwargs.
         """
         # Determine the context and decide what to do
-        if context.in_master():
+        if CONTEXT.in_master():
             # @task being executed in the master
             # Each task will have a TaskMaster, so its content will
             # not be shared.
@@ -284,9 +284,9 @@ class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attribu
             ) = result
             del master
             return future_object
-        if context.in_worker():
+        if CONTEXT.in_worker():
             if "compss_key" in kwargs.keys():
-                is_nesting_enabled = context.is_nesting_enabled()
+                is_nesting_enabled = CONTEXT.is_nesting_enabled()
                 if is_nesting_enabled:
                     if __debug__:
                         # Update the whole logger since it will be in job out/err
@@ -320,7 +320,7 @@ class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attribu
             # There is no compss_key in kwargs.keys() => task invocation within task:
             #  - submit the task to the runtime if nesting is enabled.
             #  - execute sequentially if nested is not enabled.
-            if context.is_nesting_enabled():
+            if CONTEXT.is_nesting_enabled():
                 # Each task will have a TaskMaster, so its content will
                 # not be shared.
                 with EventMaster(TRACING_MASTER.task_instantiation):

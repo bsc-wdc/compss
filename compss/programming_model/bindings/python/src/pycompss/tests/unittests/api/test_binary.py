@@ -17,7 +17,7 @@
 
 # -*- coding: utf-8 -*-
 
-import pycompss.util.context as context
+from pycompss.util.context import CONTEXT
 from pycompss.api.binary import Binary
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.runtime.task.core_element import CE
@@ -28,24 +28,24 @@ def dummy_function(*args, **kwargs):  # noqa
 
 
 def test_binary_instantiation():
-    context.set_pycompss_context(context.MASTER)
+    CONTEXT.set_pycompss_context(CONTEXT.master)
     my_bin = Binary(binary="date")
-    context.set_pycompss_context(context.OUT_OF_SCOPE)
+    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
     assert my_bin.decorator_name == "@binary", "The decorator name must be @binary."
 
 
 def test_binary_call():
-    context.set_pycompss_context(context.MASTER)
+    CONTEXT.set_pycompss_context(CONTEXT.master)
     my_bin = Binary(binary="date")
     f = my_bin(dummy_function)
     result = f()
-    context.set_pycompss_context(context.OUT_OF_SCOPE)
+    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
     assert result == 1, "Wrong expected result (should be 1)."
 
 
 # # Disabled due to support of dummy @binary
 # def test_binary_call_outside():
-#     context.set_pycompss_context(context.OUT_OF_SCOPE)
+#     CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
 #     my_bin = Binary(binary="date")
 #     f = my_bin(dummy_function)
 #     thrown = False
@@ -53,13 +53,13 @@ def test_binary_call():
 #         _ = f()
 #     except Exception:  # noqa
 #         thrown = True  # this is OK!
-#     context.set_pycompss_context(context.OUT_OF_SCOPE)
+#     CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
 #     assert thrown, \
 #         "The binary decorator did not raise an exception when invoked out of scope."  # noqa: E501
 
 
 def test_binary_engine_parameter():
-    context.set_pycompss_context(context.MASTER)
+    CONTEXT.set_pycompss_context(CONTEXT.master)
     engine = "my_engine"
     my_bin = Binary(binary="date", engine=engine)
     f = my_bin(dummy_function)
@@ -71,7 +71,7 @@ def test_binary_engine_parameter():
 
 
 def test_binary_image_parameter():
-    context.set_pycompss_context(context.MASTER)
+    CONTEXT.set_pycompss_context(CONTEXT.master)
     image = "my_image"
     my_bin = Binary(binary="date", image=image)
     f = my_bin(dummy_function)
@@ -81,7 +81,7 @@ def test_binary_image_parameter():
 
 
 def test_binary_existing_core_element():
-    context.set_pycompss_context(context.MASTER)
+    CONTEXT.set_pycompss_context(CONTEXT.master)
     my_bin = Binary(binary="date")
     f = my_bin(dummy_function)
     # a higher level decorator would place the compss core element as follows:

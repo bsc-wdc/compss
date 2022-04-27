@@ -27,7 +27,7 @@ elements task definition.
 import os
 from functools import wraps
 
-from pycompss.util import context
+from pycompss.util.context import CONTEXT
 from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.error_msgs import cast_env_to_int_error
@@ -78,7 +78,7 @@ class Reduction:  # pylint: disable=too-few-public-methods
         self.decorator_name = decorator_name
         self.args = args
         self.kwargs = kwargs
-        self.scope = context.in_pycompss()
+        self.scope = CONTEXT.in_pycompss()
         self.core_element = None  # type: typing.Any
         self.core_element_configured = False
         if self.scope:

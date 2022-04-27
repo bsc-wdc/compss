@@ -29,7 +29,7 @@ import signal
 from shutil import rmtree
 
 from pycompss.runtime.management import COMPSs
-from pycompss.util import context
+from pycompss.util.context import CONTEXT
 from pycompss.runtime.commons import GLOBALS
 from pycompss.runtime.management.classes import EmptyReturn
 from pycompss.runtime.management.direction import get_compss_direction
@@ -83,7 +83,7 @@ def start_runtime(
         enable_trace_master()
 
     with EventMaster(TRACING_MASTER.start_runtime_event):
-        if interactive and context.in_master() and not disable_external:
+        if interactive and CONTEXT.in_master() and not disable_external:
             COMPSs.load_runtime(external_process=True)
         else:
             COMPSs.load_runtime(external_process=False)
@@ -146,7 +146,7 @@ def stop_runtime(code: int = 0, hard_stop: bool = False) -> None:
             LOGGER.info("Cleaning temps...")
         _clean_temps()
 
-        context.set_pycompss_context(context.OUT_OF_SCOPE)
+        CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
         if __debug__:
             LOGGER.info("COMPSs stopped")
 

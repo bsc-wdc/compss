@@ -127,9 +127,9 @@ def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
     signal.signal(signal.SIGUSR2, user_signal_handler)
 
     # Set the binding in worker mode
-    import pycompss.util.context as context
+    from pycompss.util.context import CONTEXT
 
-    context.set_pycompss_context(context.WORKER)
+    CONTEXT.set_pycompss_context(CONTEXT.worker)
 
     persistent_storage = config.storage_conf != "null"
 
@@ -243,9 +243,9 @@ def compss_persistent_executor(config: PiperWorkerConfiguration) -> None:
     signal.signal(signal.SIGUSR2, user_signal_handler)
 
     # Set the binding in worker mode
-    import pycompss.util.context as context
+    from pycompss.util.context import CONTEXT
 
-    context.set_pycompss_context(context.WORKER)
+    CONTEXT.set_pycompss_context(CONTEXT.worker)
 
     persistent_storage = config.storage_conf != "null"
 

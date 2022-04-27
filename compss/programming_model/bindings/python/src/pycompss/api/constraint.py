@@ -26,7 +26,7 @@ definition through the decorator.
 
 from functools import wraps
 
-from pycompss.util import context
+from pycompss.util.context import CONTEXT
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.dummy.constraint import constraint as dummy_constraint
@@ -70,7 +70,7 @@ class Constraint:  # pylint: disable=too-few-public-methods
         self.decorator_name = decorator_name
         self.args = args
         self.kwargs = kwargs
-        self.scope = context.in_pycompss()
+        self.scope = CONTEXT.in_pycompss()
         self.core_element = None  # type: typing.Any
         self.core_element_configured = False
 
@@ -91,7 +91,7 @@ class Constraint:  # pylint: disable=too-few-public-methods
                 logger.debug("Executing constrained_f wrapper.")
 
             if (
-                context.in_master() or context.is_nesting_enabled()
+                CONTEXT.in_master() or CONTEXT.is_nesting_enabled()
             ) and not self.core_element_configured:
                 # master code - or worker with nesting enabled
                 self.__configure_core_element__(kwargs)

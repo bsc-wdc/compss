@@ -30,7 +30,7 @@ import os
 import signal
 import sys
 
-import pycompss.util.context as context
+from pycompss.util.context import CONTEXT
 from mpi4py import MPI
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.logger.helpers import init_logging_worker
@@ -385,7 +385,7 @@ def main() -> None:
     :returns: None.
     """
     # Set the binding in worker mode
-    context.set_pycompss_context(context.WORKER)
+    CONTEXT.set_pycompss_context(CONTEXT.worker)
 
     executor("MPI Process-{0}".format(MPI.COMM_WORLD.rank), sys.argv[1])
 

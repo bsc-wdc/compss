@@ -27,7 +27,7 @@ import os
 import signal
 import sys
 
-import pycompss.util.context as context
+from pycompss.util.context import CONTEXT
 from pycompss.runtime.commons import GLOBALS
 from pycompss.util.process.manager import Queue  # just typing
 from pycompss.util.process.manager import create_process
@@ -103,7 +103,7 @@ def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
     signal.signal(signal.SIGTERM, shutdown_handler)
 
     # Set the binding in worker mode
-    context.set_pycompss_context(context.WORKER)
+    CONTEXT.set_pycompss_context(CONTEXT.worker)
 
     persistent_storage = config.storage_conf != "null"
 

@@ -17,7 +17,7 @@
 
 # -*- coding: utf-8 -*-
 
-import pycompss.util.context as context
+from pycompss.util.context import CONTEXT
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.opencl import OpenCL
 from pycompss.runtime.task.core_element import CE
@@ -28,23 +28,23 @@ def dummy_function(*args, **kwargs):  # noqa
 
 
 def test_opencl_instantiation():
-    context.set_pycompss_context(context.MASTER)
+    CONTEXT.set_pycompss_context(CONTEXT.master)
     my_opencl = OpenCL(kernel="date")
-    context.set_pycompss_context(context.OUT_OF_SCOPE)
+    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
     assert my_opencl.decorator_name == "@opencl", "The decorator name must be @opencl."
 
 
 def test_opencl_call():
-    context.set_pycompss_context(context.MASTER)
+    CONTEXT.set_pycompss_context(CONTEXT.master)
     my_opencl = OpenCL(kernel="date")
     f = my_opencl(dummy_function)
     result = f()
-    context.set_pycompss_context(context.OUT_OF_SCOPE)
+    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
     assert result == 1, "Wrong expected result (should be 1)."
 
 
 def test_opencl_call_outside():
-    context.set_pycompss_context(context.OUT_OF_SCOPE)
+    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
     my_opencl = OpenCL(kernel="date")
     f = my_opencl(dummy_function)
     thrown = False
@@ -52,19 +52,19 @@ def test_opencl_call_outside():
         _ = f()
     except Exception:  # noqa
         thrown = True  # this is OK!
-    context.set_pycompss_context(context.OUT_OF_SCOPE)
+    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
     assert (
         thrown
     ), "The opencl decorator did not raise an exception when invoked out of scope."  # noqa: E501
 
 
 def test_opencl_existing_core_element():
-    context.set_pycompss_context(context.MASTER)
+    CONTEXT.set_pycompss_context(CONTEXT.master)
     my_opencl = OpenCL(kernel="date")
     f = my_opencl(dummy_function)
     # a higher level decorator would place the compss core element as follows:
     _ = f(compss_core_element=CE())
-    context.set_pycompss_context(context.OUT_OF_SCOPE)
+    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
     assert (
         CORE_ELEMENT_KEY not in my_opencl.kwargs
     ), "Core Element is not defined in kwargs dictionary."

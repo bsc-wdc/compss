@@ -26,7 +26,7 @@ task definition through the decorator.
 
 from functools import wraps
 
-from pycompss.util import context
+from pycompss.util.context import CONTEXT
 from pycompss.api.commons.constants import INTERNAL_LABELS
 from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
@@ -87,7 +87,7 @@ class MPMDMPI:  # pylint: disable=too-few-public-methods, too-many-instance-attr
         self.decorator_name = decorator_name
         self.args = args
         self.kwargs = kwargs
-        self.scope = context.in_pycompss()
+        self.scope = CONTEXT.in_pycompss()
         self.core_element = None  # type: typing.Any
         self.core_element_configured = False
         # MPMD_MPI specific:
@@ -142,7 +142,7 @@ class MPMDMPI:  # pylint: disable=too-few-public-methods, too-many-instance-attr
             logger.debug("Executing mpmd_mpi_f wrapper.")
 
         if (
-            context.in_master() or context.is_nesting_enabled()
+            CONTEXT.in_master() or CONTEXT.is_nesting_enabled()
         ) and not self.core_element_configured:
             # master code - or worker with nesting enabled
             self.__configure_core_element__(kwargs)

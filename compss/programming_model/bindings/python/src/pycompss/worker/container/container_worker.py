@@ -29,7 +29,7 @@ import os
 import sys
 
 # PyCOMPSs imports
-import pycompss.util.context as context
+from pycompss.util.context import CONTEXT
 
 # Fix PYTHONPATH setup
 import pycompss.worker.container.pythonpath_fixer  # noqa
@@ -116,7 +116,7 @@ def main() -> int:
     log_files = ()
     python_mpi = False
     collections_layouts = None  # type: typing.Optional[dict]
-    context.set_pycompss_context(context.WORKER)
+    CONTEXT.set_pycompss_context(CONTEXT.worker)
     result = execute_task(
         process_name,
         storage_conf,

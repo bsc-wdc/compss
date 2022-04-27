@@ -29,7 +29,7 @@ import sys
 import time
 
 import pycompss.util.interactive.helpers as interactive_helpers
-from pycompss.util import context
+from pycompss.util.context import CONTEXT
 from pycompss.runtime.binding import get_log_path
 from pycompss.runtime.commons import CONSTANTS
 from pycompss.runtime.commons import GLOBALS
@@ -236,7 +236,7 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
                              (default: False)
     :return: None
     """
-    if context.in_pycompss():
+    if CONTEXT.in_pycompss():
         print("The runtime is already running")
         return None
 
@@ -260,7 +260,7 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
     __show_flower__()
 
     # Let the Python binding know we are at master
-    context.set_pycompss_context(context.MASTER)
+    CONTEXT.set_pycompss_context(CONTEXT.master)
     # Then we can import the appropriate start and stop functions from the API
     from pycompss.api.api import compss_start  # pylint: disable=import-outside-toplevel
 
@@ -503,7 +503,7 @@ def stop(sync: bool = False, _hard_stop: bool = False) -> None:
     logger = logging.getLogger(__name__)
     ipython = globals()["__builtins__"]["get_ipython"]()
 
-    if not context.in_pycompss():
+    if not CONTEXT.in_pycompss():
         return __hard_stop__(interactive_helpers.DEBUG, sync, logger, ipython)
 
     from pycompss.api.api import compss_stop  # pylint: disable=import-outside-toplevel
@@ -601,7 +601,7 @@ def stop(sync: bool = False, _hard_stop: bool = False) -> None:
                 print(message)
 
     # Let the Python binding know we are not at master anymore
-    context.set_pycompss_context(context.OUT_OF_SCOPE)
+    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
 
     print(line_separator)
     logger.debug("--- END ---")

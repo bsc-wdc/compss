@@ -52,7 +52,7 @@ except ImportError:
     THREAD_AFFINITY = False
 
 import pycompss.runtime.management.COMPSs as COMPSs
-import pycompss.util.context as context
+from pycompss.util.context import CONTEXT
 from pycompss.runtime.commons import GLOBALS
 from pycompss.worker.piper.commons.constants import EXECUTE_TASK_TAG
 from pycompss.worker.piper.commons.constants import END_TASK_TAG
@@ -264,7 +264,7 @@ def executor(
                 conf.debug, conf.persistent_storage
             )
             # Set the binding in worker mode too
-            context.set_pycompss_context(context.WORKER)
+            CONTEXT.set_pycompss_context(CONTEXT.worker)
         logger = conf.logger
 
         tracing = conf.tracing

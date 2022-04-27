@@ -26,7 +26,7 @@ through the decorator.
 
 from functools import wraps
 
-from pycompss.util import context
+from pycompss.util.context import CONTEXT
 from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.constants import LEGACY_LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
@@ -82,7 +82,7 @@ class Implement:  # pylint: disable=too-few-public-methods
         self.decorator_name = decorator_name
         self.args = args
         self.kwargs = kwargs
-        self.scope = context.in_pycompss()
+        self.scope = CONTEXT.in_pycompss()
         self.core_element = None  # type: typing.Any
         self.core_element_configured = False
         if self.scope:
@@ -112,7 +112,7 @@ class Implement:  # pylint: disable=too-few-public-methods
                 logger.debug("Executing implement_f wrapper.")
 
             if (
-                context.in_master() or context.is_nesting_enabled()
+                CONTEXT.in_master() or CONTEXT.is_nesting_enabled()
             ) and not self.core_element_configured:
                 # master code - or worker with nesting enabled
                 self.__configure_core_element__(kwargs)
@@ -125,7 +125,7 @@ class Implement:  # pylint: disable=too-few-public-methods
 
         implement_f.__doc__ = user_function.__doc__
 
-        if context.in_master() and not self.first_register:
+        if CONTEXT.in_master() and not self.first_register:
             self.first_register = True
             TASK_FEATURES.set_register_only(True)
             self.__call__(user_function)(self)

@@ -29,7 +29,7 @@ import sys
 from shutil import copyfile
 
 from pycompss.api import parameter
-from pycompss.util import context
+from pycompss.util.context import CONTEXT
 from pycompss.api.exceptions import COMPSsException
 from pycompss.runtime.binding import wait_on
 from pycompss.runtime.commons import CONSTANTS
@@ -1154,7 +1154,7 @@ class TaskWorker:
                         str(f_name),
                     )
 
-                if context.is_nesting_enabled():
+                if CONTEXT.is_nesting_enabled():
                     # When using nesting, objects may have been used in other
                     # tasks and may need to be synchronized and re-serialized.
                     # The wait_on call checks the object tracker to see if it
@@ -1516,7 +1516,7 @@ def __get_collection_objects__(
         # Update the sub-parameter content with the existing content
         # to keep track of the synchronized.
         argument.content = content
-        if context.is_nesting_enabled():
+        if CONTEXT.is_nesting_enabled():
             # When using nesting, objects may have been used in other
             # tasks and may need to be synchronized and re-serialized.
             # The wait_on call checks the object tracker to see if it
@@ -1567,7 +1567,7 @@ def __get_dict_collection_objects__(
         # Update the sub-parameter content with the existing content
         # to keep track of the synchronized.
         argument.content = content
-        if context.is_nesting_enabled():
+        if CONTEXT.is_nesting_enabled():
             # When using nesting, objects may have been used in other
             # tasks and may need to be synchronized and re-serialized.
             # The wait_on call checks the object tracker to see if it

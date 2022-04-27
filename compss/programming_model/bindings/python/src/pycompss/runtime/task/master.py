@@ -40,7 +40,7 @@ from typing import get_type_hints
 
 from pycompss.api import parameter
 from pycompss.runtime import binding
-from pycompss.util import context
+from pycompss.util.context import CONTEXT
 from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.constants import LEGACY_LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
@@ -373,10 +373,10 @@ class TaskMaster:
                     self.update_core_element(
                         impl_signature, impl_type_args, pre_defined_ce
                     )
-                    if context.is_loading():
+                    if CONTEXT.is_loading():
                         # This case will only happen with @implements since it calls
                         # explicitly to this call from his call.
-                        context.add_to_register_later((self, impl_signature))
+                        CONTEXT.add_to_register_later((self, impl_signature))
                     else:
                         self.register_task()
                         self.registered = True
@@ -526,7 +526,7 @@ class TaskMaster:
         """
         mod = inspect.getmodule(self.user_function)  # type: typing.Any
         module_name = mod.__name__
-        if context.in_pycompss() and module_name in (
+        if CONTEXT.in_pycompss() and module_name in (
             "__main__",
             "pycompss.runtime.launch",
         ):

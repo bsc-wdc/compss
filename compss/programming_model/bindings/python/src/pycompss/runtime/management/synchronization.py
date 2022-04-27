@@ -24,7 +24,7 @@ This file contains the object synchronization core methods.
 """
 
 from pycompss.runtime.management import COMPSs
-from pycompss.util import context
+from pycompss.util.context import CONTEXT
 from pycompss.runtime.global_args import (
     update_worker_argument_parameter_content,
 )
@@ -123,7 +123,7 @@ def _synchronize(obj: typing.Any, mode: int) -> typing.Any:
     else:
         new_obj = get_by_id(compss_file)
 
-    if context.is_nesting_enabled() and context.in_worker():
+    if CONTEXT.is_nesting_enabled() and CONTEXT.in_worker():
         # If nesting and in worker, the user wants to synchronize an object.
         # So it is necessary to update the parameter with the new object.
         update_worker_argument_parameter_content(obj_name, new_obj)

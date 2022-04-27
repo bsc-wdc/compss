@@ -26,7 +26,7 @@ through the decorator.
 import json
 from functools import wraps
 
-from pycompss.util import context
+from pycompss.util.context import CONTEXT
 from pycompss.api import binary
 from pycompss.api import mpi
 from pycompss.api.commons.constants import INTERNAL_LABELS
@@ -97,11 +97,11 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
         self.decorator_name = decorator_name
         self.args = args
         self.kwargs = kwargs
-        self.scope = context.in_pycompss()
+        self.scope = CONTEXT.in_pycompss()
         self.core_element = None  # type: typing.Any
         self.core_element_configured = False
 
-        if self.scope and context.in_master():
+        if self.scope and CONTEXT.in_master():
             if __debug__:
                 logger.debug("Init @software decorator..")
             # Check the arguments
@@ -126,7 +126,7 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
 
         @wraps(user_function)
         def software_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
-            if not self.scope or not context.in_master():
+            if not self.scope or not CONTEXT.in_master():
                 # Execute the software as with PyCOMPSs so that sequential
                 # execution performs as parallel.
                 # To disable: raise Exception(not_in_pycompss(LABELS.binary))

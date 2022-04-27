@@ -40,6 +40,7 @@ from pycompss.api.exceptions import COMPSsException
 from pycompss.runtime.binding import get_log_path
 from pycompss.runtime.commons import CONSTANTS
 from pycompss.runtime.commons import GLOBALS
+from pycompss.runtime.crank.initialization import LAUNCH_STATUS
 
 # Streaming imports
 from pycompss.streams.environment import init_streaming
@@ -74,9 +75,6 @@ from pycompss.util.tracing.helpers import event_master
 from pycompss.util.tracing.types_events_master import TRACING_MASTER
 from pycompss.util.typing_helper import typing
 from pycompss.util.warnings.modules import show_optional_module_warnings
-
-# Global status
-from pycompss.runtime.initialization import LAUNCH_STATUS
 
 # Spend less time in gc; do this before significant computation
 gc.set_threshold(150000)

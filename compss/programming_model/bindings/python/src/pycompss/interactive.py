@@ -26,7 +26,6 @@ Provides the functions for the use of PyCOMPSs interactively.
 import logging
 import os
 import sys
-import tempfile
 import time
 
 import pycompss.util.interactive.helpers as interactive_helpers
@@ -34,6 +33,8 @@ from pycompss.util import context
 from pycompss.runtime.binding import get_log_path
 from pycompss.runtime.commons import CONSTANTS
 from pycompss.runtime.commons import GLOBALS
+from pycompss.runtime.crank.initialization import LAUNCH_STATUS
+from pycompss.runtime.crank.interactive_initialization import EXTRA_LAUNCH_STATUS
 from pycompss.runtime.management.classes import Future
 from pycompss.runtime.management.object_tracker import OT
 
@@ -73,15 +74,6 @@ from pycompss.util.storages.persistent import master_stop_storage
 from pycompss.util.tracing.helpers import emit_manual_event
 from pycompss.util.tracing.types_events_master import TRACING_MASTER
 from pycompss.util.typing_helper import typing
-
-# GLOBAL VARIABLES
-APP_PATH = CONSTANTS.interactive_file_name
-PERSISTENT_STORAGE = False
-STREAMING = False
-LOG_PATH = tempfile.mkdtemp()
-GRAPHING = False
-LINE_SEPARATOR = "********************************************************"
-DISABLE_EXTERNAL = False
 
 
 # Initialize multiprocessing
@@ -244,17 +236,22 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
                              (default: False)
     :return: None
     """
-    # Export global variables
-    global GRAPHING
-    global DISABLE_EXTERNAL
-
     if context.in_pycompss():
         print("The runtime is already running")
         return None
 
-    GRAPHING = graph
-    DISABLE_EXTERNAL = disable_external
-    __export_globals__()
+    EXTRA_LAUNCH_STATUS.set_graphing(graph)
+    EXTRA_LAUNCH_STATUS.set_disable_external(disable_external)
+
+    temp_app_filename = "".join(
+        (
+            os.path.join(os.getcwd(), CONSTANTS.interactive_file_name),
+            "_",
+            str(time.strftime("%d%m%y_%H%M%S")),
+            ".py",
+        )
+    )
+    LAUNCH_STATUS.set_app_path(temp_app_filename)
 
     interactive_helpers.DEBUG = debug
     if debug:
@@ -397,10 +394,9 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
     sys.stdout.flush()  # Force flush
     compss_start(log_level, all_vars["trace"], True, disable_external)
 
-    global LOG_PATH
-    LOG_PATH = get_log_path()
-    GLOBALS.set_temporary_directory(LOG_PATH)
-    print("* - Log path : " + LOG_PATH)
+    log_path = get_log_path()
+    GLOBALS.set_temporary_directory(log_path)
+    print("* - Log path : " + log_path)
 
     # Setup logging
     binding_log_path = get_log_path()
@@ -419,19 +415,19 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
     __print_setup__(verbose, all_vars)
 
     logger.debug("--- START ---")
-    logger.debug("PyCOMPSs Log path: %s", LOG_PATH)
+    logger.debug("PyCOMPSs Log path: %s", log_path)
 
     logger.debug("Starting storage")
-    global PERSISTENT_STORAGE
-    PERSISTENT_STORAGE = master_init_storage(all_vars["storage_conf"], logger)
+    persistent_storage = master_init_storage(all_vars["storage_conf"], logger)
+    LAUNCH_STATUS.set_persistent_storage(persistent_storage)
 
     logger.debug("Starting streaming")
-    global STREAMING
-    STREAMING = init_streaming(
+    streaming = init_streaming(
         all_vars["streaming_backend"],
         all_vars["streaming_master_name"],
         all_vars["streaming_master_port"],
     )
+    LAUNCH_STATUS.set_streaming(streaming)
 
     # Start monitoring the stdout and stderr
     if not disable_external:
@@ -440,7 +436,7 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
     # MAIN EXECUTION
     # let the user write an interactive application
     print("* - PyCOMPSs Runtime started... Have fun!              *")
-    print(LINE_SEPARATOR)
+    print(EXTRA_LAUNCH_STATUS.get_line_separator())
 
     # Emit the application start event (the 0 is in the stop function)
     emit_manual_event(TRACING_MASTER.application_running_event)
@@ -452,9 +448,10 @@ def __show_flower__() -> None:
 
     :return: None
     """
-    print(LINE_SEPARATOR)  # NOSONAR # noqa
+    line_separator = EXTRA_LAUNCH_STATUS.get_line_separator()
+    print(line_separator)  # NOSONAR # noqa
     print(r"**************** PyCOMPSs Interactive ******************")  # NOSONAR # noqa
-    print(LINE_SEPARATOR)  # NOSONAR # noqa
+    print(line_separator)  # NOSONAR # noqa
     print(r"*          .-~~-.--.           _____      __   ______  *")  # NOSONAR # noqa
     print(r"*         :         )         |____ \    /  | /  __  \ *")  # NOSONAR # noqa
     print(r"*   .~ ~ -.\       /.- ~~ .     ___) |  /_  | | |  | | *")  # NOSONAR # noqa
@@ -471,7 +468,7 @@ def __show_flower__() -> None:
     print(r"*     .' .-~      .-~       :/~-.~-./:                 *")  # NOSONAR # noqa
     print(r"*    /_~_ _ . - ~                 ~-.~-._              *")  # NOSONAR # noqa
     print(r"*                                     ~-.<             *")  # NOSONAR # noqa
-    print(LINE_SEPARATOR)  # NOSONAR # noqa
+    print(line_separator)  # NOSONAR # noqa
 
 
 def __print_setup__(verbose: bool, all_vars: typing.Dict[str, typing.Any]) -> None:
@@ -481,13 +478,14 @@ def __print_setup__(verbose: bool, all_vars: typing.Dict[str, typing.Any]) -> No
     :param all_vars: Dictionary containing all variables.
     :return: None
     """
+    line_separator = EXTRA_LAUNCH_STATUS.get_line_separator()
     logger = logging.getLogger(__name__)
     output = ""
-    output += LINE_SEPARATOR + "\n"
+    output += line_separator + "\n"
     output += " CONFIGURATION: \n"
     for key, value in sorted(all_vars.items()):
         output += f"  - {key} : {value} \n"
-    output += LINE_SEPARATOR
+    output += line_separator
     if verbose:
         print(output)
     logger.debug(output)
@@ -510,10 +508,12 @@ def stop(sync: bool = False, _hard_stop: bool = False) -> None:
 
     from pycompss.api.api import compss_stop  # pylint: disable=import-outside-toplevel
 
-    print(LINE_SEPARATOR)
+    line_separator = EXTRA_LAUNCH_STATUS.get_line_separator()
+    print(line_separator)
     print("*************** STOPPING PyCOMPSs ******************")
-    print(LINE_SEPARATOR)
-    if not DISABLE_EXTERNAL:
+    print(line_separator)
+    disable_external = EXTRA_LAUNCH_STATUS.get_disable_external()
+    if not disable_external:
         # Wait 5 seconds to give some time to process the remaining messages
         # of the STDW and check if there is some error that could have stopped
         # the runtime before continuing.
@@ -540,7 +540,6 @@ def stop(sync: bool = False, _hard_stop: bool = False) -> None:
             "quit",
             "exit",
             "get_ipython",
-            "APP_PATH",
             "ipycompss",
             "In",
             "Out",
@@ -575,11 +574,11 @@ def stop(sync: bool = False, _hard_stop: bool = False) -> None:
         print("         have not been brought to the master.")
 
     # Stop streaming
-    if STREAMING:
+    if LAUNCH_STATUS.get_streaming():
         stop_streaming()
 
     # Stop persistent storage
-    if PERSISTENT_STORAGE:
+    if LAUNCH_STATUS.get_persistent_storage():
         master_stop_storage(logger)
 
     # Emit the 0 for the TRACING_MASTER.*_event emitted on start function.
@@ -593,7 +592,7 @@ def stop(sync: bool = False, _hard_stop: bool = False) -> None:
     __clean_temp_files__()
 
     # Stop watching stdout and stderr
-    if not DISABLE_EXTERNAL:
+    if not disable_external:
         STDW.stop_watching(clean=True)
         # Retrieve the remaining messages that could have been captured.
         last_messages = STDW.get_messages()
@@ -604,7 +603,7 @@ def stop(sync: bool = False, _hard_stop: bool = False) -> None:
     # Let the Python binding know we are not at master anymore
     context.set_pycompss_context(context.OUT_OF_SCOPE)
 
-    print(LINE_SEPARATOR)
+    print(line_separator)
     logger.debug("--- END ---")
     # --- Execution finished ---
     return None
@@ -628,11 +627,11 @@ def __hard_stop__(
     # Check that everything is stopped as well:
 
     # Stop streaming
-    if STREAMING:
+    if LAUNCH_STATUS.get_streaming():
         stop_streaming()
 
     # Stop persistent storage
-    if PERSISTENT_STORAGE:
+    if LAUNCH_STATUS.get_persistent_storage():
         master_stop_storage(logger)
 
     # Clean any left object in the object tracker
@@ -643,7 +642,7 @@ def __hard_stop__(
     __clean_temp_files__()
 
     # Stop watching stdout and stderr
-    if not DISABLE_EXTERNAL:
+    if not EXTRA_LAUNCH_STATUS.get_disable_external():
         STDW.stop_watching(clean=not debug)
         # Retrieve the remaining messages that could have been captured.
         last_messages = STDW.get_messages()
@@ -666,7 +665,7 @@ def current_task_graph(
     :param timeout: Time during the current task graph is going to be updated.
     :return: None
     """
-    if not GRAPHING:
+    if not EXTRA_LAUNCH_STATUS.get_graphing():
         print("Oops! Graph is not enabled in this execution.")
         print(
             "      Please, enable it by setting the graph flag when"
@@ -674,7 +673,7 @@ def current_task_graph(
         )
         return None
     return show_graph(
-        log_path=LOG_PATH,
+        log_path=GLOBALS.get_temporary_directory(),
         name="current_graph",
         fit=fit,
         refresh_rate=refresh_rate,
@@ -693,7 +692,7 @@ def complete_task_graph(
     :param timeout: Time during the current task graph is going to be updated.
     :return: None
     """
-    if not GRAPHING:
+    if not EXTRA_LAUNCH_STATUS.get_graphing():
         print("Oops! Graph is not enabled in this execution.")
         print(
             "      Please, enable it by setting the graph flag when"
@@ -701,7 +700,7 @@ def complete_task_graph(
         )
         return None
     return show_graph(
-        log_path=LOG_PATH,
+        log_path=GLOBALS.get_temporary_directory(),
         name="complete_graph",
         fit=fit,
         refresh_rate=refresh_rate,
@@ -714,8 +713,9 @@ def tasks_info() -> None:
 
     :return: None
     """
-    if check_monitoring_file(LOG_PATH):
-        show_tasks_info(LOG_PATH)
+    log_path = GLOBALS.get_temporary_directory()
+    if check_monitoring_file(log_path):
+        show_tasks_info(log_path)
     else:
         print("Oops! Monitoring is not enabled in this execution.")
         print(
@@ -729,8 +729,9 @@ def tasks_status() -> None:
 
     :return: None
     """
-    if check_monitoring_file(LOG_PATH):
-        show_tasks_status(LOG_PATH)
+    log_path = GLOBALS.get_temporary_directory()
+    if check_monitoring_file(log_path):
+        show_tasks_status(log_path)
     else:
         print("Oops! Monitoring is not enabled in this execution.")
         print(
@@ -744,8 +745,9 @@ def statistics() -> None:
 
     :return: None
     """
-    if check_monitoring_file(LOG_PATH):
-        show_statistics(LOG_PATH)
+    log_path = GLOBALS.get_temporary_directory()
+    if check_monitoring_file(log_path):
+        show_statistics(log_path)
     else:
         print("Oops! Monitoring is not enabled in this execution.")
         print(
@@ -759,8 +761,9 @@ def resources_status() -> None:
 
     :return: None
     """
-    if check_monitoring_file(LOG_PATH):
-        show_resources_status(LOG_PATH)
+    log_path = GLOBALS.get_temporary_directory()
+    if check_monitoring_file(log_path):
+        show_resources_status(log_path)
     else:
         print("Oops! Monitoring is not enabled in this execution.")
         print(
@@ -774,37 +777,6 @@ def resources_status() -> None:
 # ########################################################################### #
 
 
-def __export_globals__() -> None:
-    """Export globals into interactive environment.
-
-    :return: None
-    """
-    global APP_PATH
-    # Super ugly, but I see no other way to define the APP_PATH across the
-    # interactive execution without making the user to define it explicitly.
-    # It is necessary to define only one APP_PATH because of the two decorators
-    # need to access the same information.
-    # if the file is created per task, the constraint will not be able to work.
-    # Get ipython globals
-    ipython = globals()["__builtins__"]["get_ipython"]()
-    # import pprint
-    # pprint.pprint(ipython.__dict__, width=1)
-    # Extract user globals from ipython
-    user_globals = ipython.__dict__["ns_table"]["user_global"]
-    # Inject APP_PATH variable to user globals so that task and constraint
-    # decorators can get it.
-    temp_app_filename = "".join(
-        (
-            os.path.join(os.getcwd(), CONSTANTS.interactive_file_name),
-            "_",
-            str(time.strftime("%d%m%y_%H%M%S")),
-            ".py",
-        )
-    )
-    user_globals["APP_PATH"] = temp_app_filename
-    APP_PATH = temp_app_filename
-
-
 def __clean_temp_files__() -> None:
     """Remove any temporary files that may exist.
 
@@ -813,10 +785,11 @@ def __clean_temp_files__() -> None:
 
     :return: None
     """
+    app_path = LAUNCH_STATUS.get_app_path()
     try:
-        if os.path.exists(APP_PATH):
-            os.remove(APP_PATH)
-        if os.path.exists(APP_PATH + "c"):
-            os.remove(APP_PATH + "c")
+        if os.path.exists(app_path):
+            os.remove(app_path)
+        if os.path.exists(app_path + "c"):
+            os.remove(app_path + "c")
     except OSError:
         print("[ERROR] An error has occurred when cleaning temporary files.")

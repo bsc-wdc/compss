@@ -37,7 +37,7 @@ from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.implementation_types import IMPLEMENTATION_TYPES
 from pycompss.api.dummy.task import task as dummy_task
 from pycompss.runtime.binding import nested_barrier
-from pycompss.runtime.initialization import LAUNCH_STATUS
+from pycompss.runtime.crank.initialization import LAUNCH_STATUS
 from pycompss.runtime.task.core_element import CE
 from pycompss.runtime.task.master import TaskMaster
 from pycompss.runtime.task.parameter import get_new_parameter

@@ -25,6 +25,18 @@ def myDate(dprefix, param):
     pass
 
 
+@binary(binary="date", working_dir="/tmp")
+@task()
+def myDateDef(dprefix="-d", param="next wednesday"):
+    pass
+
+
+@binary(binary="date", params="{{dprefix}} {{param}}", working_dir="/tmp")
+@task()
+def myDateDef_2(dprefix="-d", param="last wednesday"):
+    pass
+
+
 @constraint(computingUnits="2")
 @binary(binary="date", working_dir="/tmp")
 @task()
@@ -129,6 +141,14 @@ def checkStringParam4(string_param):
 class testBinaryDecorator(unittest.TestCase):
     def testFunctionalUsage(self):
         myDate("-d", "next friday")
+        compss_barrier()
+
+    def testDefaultValue(self):
+        myDateDef()
+        compss_barrier()
+
+    def testDefaultValue_2(self):
+        myDateDef_2()
         compss_barrier()
 
     def testFunctionalUsageWithConstraint(self):

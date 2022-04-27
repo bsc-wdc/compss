@@ -157,4 +157,32 @@
     exit 1
   fi
 
+  # testDefaultValue
+  wed_file=$(grep -r -l "date -d next wednesday" "$jobs_logs")
+  wedDate1=$(LANG=en_US date -d "next wednesday")
+  wedDate2=$(date -d "next wednesday")
+  wed=$(grep -E "$wedDate1|$wedDate2" "$wed_file")
+  if [ "$wed" = "" ]; then
+    echo "ERROR: TASK FAILED: testDefaultValue function failed." | tee -a "${output_file}"
+    echo "  - FILE:     wed_file" | tee -a "${output_file}"
+    echo "  - GOT:      $wed" | tee -a "${output_file}"
+    echo "  - EXPECTED: $wedDate1 or $wedDate2" | tee -a "${output_file}"
+    exit 1
+  fi
+
+  # testDefaultValue_2
+  # testDefaultValue
+  wed_file=$(grep -r -l "date -d last wednesday" "$jobs_logs")
+  wedDate1=$(LANG=en_US date -d "last wednesday")
+  wedDate2=$(date -d "last wednesday")
+  wed=$(grep -E "$wedDate1|$wedDate2" "$wed_file")
+  if [ "$wed" = "" ]; then
+    echo "ERROR: TASK FAILED: testDefaultValue_2 function failed." | tee -a "${output_file}"
+    echo "  - FILE:     wed_file" | tee -a "${output_file}"
+    echo "  - GOT:      $wed" | tee -a "${output_file}"
+    echo "  - EXPECTED: $wedDate1 or $wedDate2" | tee -a "${output_file}"
+    exit 1
+  fi
+
+
   exit 0

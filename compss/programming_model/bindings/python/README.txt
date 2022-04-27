@@ -10,21 +10,20 @@ CONTENT
 -------
 
 src
-├── ext                     -> External C modules
-│   ├── compssmodule.cc     -> C module to interact with the binding-commons
-│   ├── thread_affinity.cc  -> C module to set the affinity
-│   └── thread_affinity.h   -> C module to set the affinity header
-└── pycompss                -> Python modules
-    ├── api                 -> API modules to be imported by the programmer in the application
-    ├── dds                 -> DDS library
-    ├── functions           -> Helper functions
-    ├── interactive.py      -> Integration with Jupyter
-    ├── runtime             -> Runtime modules
-    ├── streams             -> Streaming functions
-    ├── tests               -> Unittests
-    ├── util                -> Utilities
-    └── worker              -> Worker modules
-
+L ext                     -> External C modules
+|   L compssmodule.cc     -> C module to interact with the binding-commons
+|   L thread_affinity.cc  -> C module to set the affinity
+|   L thread_affinity.h   -> C module to set the affinity header
+L pycompss                -> Python modules
+    L api                 -> API modules to be imported by the programmer in the application
+    L dds                 -> DDS library
+    L functions           -> Helper functions
+    L interactive.py      -> Integration with Jupyter
+    L runtime             -> Runtime modules
+    L streams             -> Streaming functions
+    L tests               -> Unittests
+    L util                -> Utilities
+    L worker              -> Worker modules
 
 DEPENDENCIES
 ------------

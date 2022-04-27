@@ -41,6 +41,7 @@ from pycompss.runtime.binding import get_log_path
 from pycompss.runtime.commons import CONSTANTS
 from pycompss.runtime.commons import GLOBALS
 from pycompss.runtime.crank.initialization import LAUNCH_STATUS
+from pycompss.runtime.task.features import TASK_FEATURES
 
 # Streaming imports
 from pycompss.streams.environment import init_streaming
@@ -229,7 +230,7 @@ def compss_main() -> None:
         compss_set_wall_clock(wall_clock)
 
     # Get object_conversion boolean
-    GLOBALS.set_object_conversion(args.object_conversion == "true")
+    TASK_FEATURES.set_object_conversion(args.object_conversion == "true")
 
     # Get application execution path
     LAUNCH_STATUS.set_app_path(args.app_path)

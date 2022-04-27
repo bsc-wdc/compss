@@ -31,6 +31,7 @@ from contextlib import contextmanager
 from pycompss.api.commons.constants import INTERNAL_LABELS
 from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.constants import LEGACY_LABELS
+from pycompss.runtime.task.features import TASK_FEATURES
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.typing_helper import typing
 
@@ -156,14 +157,12 @@ def keep_arguments(
             if hasattr(slf, key):
                 saved[key] = getattr(slf, key)
                 setattr(slf, key, value)
-    # Set PREPEND_STRINGS
-    import pycompss.api.task as t  # pylint: disable=import-outside-toplevel
 
     if not prepend_strings:
-        t.PREPEND_STRINGS = False
+        TASK_FEATURES.set_prepend_strings(False)
     yield
     # Restore PREPEND_STRINGS to default: True
-    t.PREPEND_STRINGS = True
+    TASK_FEATURES.set_prepend_strings(True)
     # Restore function arguments
     if len(args) > 0:
         # Put things back

@@ -33,6 +33,7 @@ from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.api.commons.implementation_types import IMPLEMENTATION_TYPES
+from pycompss.runtime.task.features import TASK_FEATURES
 from pycompss.runtime.task.core_element import CE
 from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import NotInPyCOMPSsException
@@ -125,12 +126,10 @@ class Implement:  # pylint: disable=too-few-public-methods
         implement_f.__doc__ = user_function.__doc__
 
         if context.in_master() and not self.first_register:
-            import pycompss.api.task as t  # pylint: disable=import-outside-toplevel
-
             self.first_register = True
-            t.REGISTER_ONLY = True
+            TASK_FEATURES.set_register_only(True)
             self.__call__(user_function)(self)
-            t.REGISTER_ONLY = False
+            TASK_FEATURES.set_register_only(False)
 
         return implement_f
 

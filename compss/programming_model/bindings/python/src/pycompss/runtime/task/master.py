@@ -28,12 +28,11 @@ from __future__ import print_function
 import ast
 import inspect
 import logging
+import pickle
 import os
 import sys
 from base64 import b64encode
 from collections import OrderedDict
-from collections import deque
-from pickle import PicklingError
 from threading import Lock
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import wait
@@ -66,6 +65,7 @@ from pycompss.runtime.task.arguments import is_vararg
 from pycompss.runtime.task.commons import get_default_direction
 from pycompss.runtime.task.commons import get_varargs_direction
 from pycompss.runtime.task.core_element import CE
+from pycompss.runtime.task.features import TASK_FEATURES
 from pycompss.runtime.task.parameter import COMPSsFile
 from pycompss.runtime.task.parameter import JAVA_MAX_INT
 from pycompss.runtime.task.parameter import JAVA_MAX_LONG
@@ -385,9 +385,7 @@ class TaskMaster:
             # Did we call this function to only register the associated core
             # element? (This can happen with @implements)
             # Do not move this import:
-            from pycompss.api.task import REGISTER_ONLY
-
-            if REGISTER_ONLY:
+            if TASK_FEATURES.get_register_only():
                 # Only register, no launch
                 future_object = None
             else:
@@ -1814,18 +1812,17 @@ class TaskMaster:
         :param name: Name of the element in self.parameters
         :return: None.
         """
-        max_obj_arg_size = 320000
+        # 320k is usually the maximum size of all objects
+        max_obj_arg_size = 320000 / 32
         with event_master(TRACING_MASTER.serialize_object):
             # Check user annotations concerning this argument
             param = self.parameters[name]
-            # Convert small objects to string if OBJECT_CONVERSION enabled
-            # Check if the object is small in order not to serialize it.
-            if GLOBALS.get_object_conversion():
-                # todo: fix this case too
-                param, written_bytes = self._convert_parameter_obj_to_string(
-                    param, max_obj_arg_size, policy="objectSize"
-                )  # noqa: E501
-                max_obj_arg_size -= written_bytes
+            if TASK_FEATURES.get_object_conversion():
+                # Convert small objects to string if enabled
+                # Check if the object is small in order not to serialize it.
+                param = self._convert_parameter_obj_to_string(
+                    name, param, max_obj_arg_size
+                )
             else:
                 # Serialize objects into files
                 param = _serialize_object_into_file(name, param)
@@ -1954,140 +1951,65 @@ class TaskMaster:
 
     @staticmethod
     def _convert_parameter_obj_to_string(
-        param: Parameter, max_obj_arg_size: int, policy: str = "objectSize"
-    ) -> typing.Tuple[Parameter, int]:
+        name: str, param: Parameter, max_obj_arg_size: int
+    ) -> Parameter:
         """Convert object to string.
 
         Convert small objects into strings that can fit into the task
         parameters call.
 
+        :param name: Parameter name.
         :param param: Parameter.
         :param max_obj_arg_size: Max size of the object to be converted.
-        :param policy: Policy to use:
-                       - "objectSize" for considering the size of the object.
-                       - "serializedSize" for considering the size of the
-                         object serialized.
-        :return: The object possibly converted to string and its size in bytes.
+        :return: The object possibly converted to string.
         """
         is_future = param.is_future
         base_string = str
         num_bytes = 0
-        real_value = None  # type: typing.Any
-        if policy == "objectSize":
-            # Check if the object is small in order to serialize it.
-            # This alternative evaluates the size of the object before
-            # serializing the object.
-            # Warning: calculate the size of a python object can be difficult
-            # in terms of time and precision
-            if (
-                (param.content_type in (TYPE.OBJECT, TYPE.STRING))
-                and not is_future
-                and param.direction == DIRECTION.IN
-                and not isinstance(param.content, base_string)
-                and isinstance(
-                    param.content, (list, dict, tuple, deque, set, frozenset)
-                )
-            ):  # noqa: E501
-                # check object size - The following line does not work
-                # properly with recursive objects
-                # bytes = sys.getsizeof(param.content)
-                num_bytes = total_sizeof(param.content)
+        # Check if the object is small in order to serialize it.
+        # Evaluates the size of the object before serializing the object.
+        # Warning: calculate the size of a python object can be difficult
+        # in terms of time and precision.
+        if (
+            param.content_type == TYPE.OBJECT
+            and not is_future
+            and param.direction == DIRECTION.IN
+            and not isinstance(param.content, base_string)
+        ):
+            # check object size - The following line does not work
+            # properly with recursive objects
+            # bytes = sys.getsizeof(param.content)
+            num_bytes = total_sizeof(param.content)
+            if __debug__:
+                megabytes = num_bytes / 1000000  # truncate
+                logger.debug("Object size %d bytes (%d Mb).", num_bytes, megabytes)
+            if num_bytes < max_obj_arg_size:
+                # be careful... more than this value produces:
+                # Cannot run program "/bin/bash"...: error=7, \
+                # The arguments list is too long
                 if __debug__:
-                    megabytes = num_bytes / 1000000  # truncate
-                    logger.debug("Object size %d bytes (%d Mb).", num_bytes, megabytes)
-                if num_bytes < max_obj_arg_size:
-                    # be careful... more than this value produces:
-                    # Cannot run program "/bin/bash"...: error=7, \
-                    # The arguments list is too long
-                    if __debug__:
-                        logger.debug(
-                            "The object size is less than 320 kb."
-                        )  # noqa: E501
-                    real_value = param.content
-                    try:
-                        value = serialize_to_bytes(param.content)
-                        param.content = str(value).encode(CONSTANTS.str_escape)  # noqa
-                        param.content_type = TYPE.STRING
-                        if __debug__:
-                            logger.debug(
-                                "Inferred type modified (Object converted to String)."
-                            )  # noqa: E501
-                    except SerializerException:
-                        param.content = real_value
-                        param.content_type = TYPE.OBJECT
-                        if __debug__:
-                            logger.debug(
-                                "The object cannot be converted due to: not serializable."
-                            )  # noqa: E501
-                else:
-                    param.content_type = TYPE.OBJECT
-                    if __debug__:
-                        logger.debug("Inferred type reestablished to Object.")
-                        # if the parameter converts to an object, release
-                        # the size to be used for converted objects?
-                        # No more objects can be converted
-                        # max_obj_arg_size += _bytes
-                        # if max_obj_arg_size > 320000:
-                        #     max_obj_arg_size = 320000
-        elif policy == "serializedSize":
-
-            # Check if the object is small in order to serialize it.
-            # This alternative evaluates the size after serializing the
-            # parameter
-            if (
-                (param.content_type in (TYPE.OBJECT, TYPE.STRING))
-                and not is_future
-                and param.direction == DIRECTION.IN
-                and not isinstance(param.content, base_string)
-            ):
-                real_value = param.content
+                    logger.debug("The object size is less than 320 kb.")
                 try:
-                    value = serialize_to_bytes(param.content)
-                    value_str = str(str(value).encode(CONSTANTS.str_escape))
-                    # check object size
-                    num_bytes = sys.getsizeof(value_str)
-                    if __debug__:
-                        megabytes = num_bytes / 1000000  # truncate
-                        logger.debug(
-                            "Object size %d bytes (%d Mb).", num_bytes, megabytes
-                        )
-                    if num_bytes < max_obj_arg_size:
-                        # be careful... more than this value produces:
-                        # Cannot run program "/bin/bash"...: error=7,
-                        # arguments list too long error.
-                        if __debug__:
-                            logger.debug("The object size is less than 320 kb")
-                        param.content = value_str
-                        param.content_type = TYPE.STRING
-                        if __debug__:
-                            logger.debug(
-                                "Inferred type modified (Object converted to String)."
-                            )
-                    else:
-                        param.content = real_value
-                        param.content_type = TYPE.OBJECT
-                        if __debug__:
-                            logger.debug("Inferred type reestablished to Object.")
-                            # if the parameter converts to an object,
-                            # release the size to be used for converted
-                            # objects?
-                            # No more objects can be converted
-                            # max_obj_arg_size += _bytes
-                            # if max_obj_arg_size > 320000:
-                            #     max_obj_arg_size = 320000
-                except PicklingError:
-                    param.content = real_value
-                    param.content_type = TYPE.OBJECT
+                    value = pickle.dumps(param.content)
+                    if TASK_FEATURES.get_prepend_strings():
+                        # new_content = value.decode(CONSTANTS.str_escape)
+                        param.content = f"#HiddenObj#{value}"
+                    param.content_type = TYPE.STRING_64
+                    param.extra_content_type = str
                     if __debug__:
                         logger.debug(
-                            "The object cannot be converted due to: not serializable."
+                            "Inferred type modified (Object converted to String)."
                         )
+                except SerializerException as serializer_exception:
+                    raise PyCOMPSsException(
+                        "The object cannot be converted due to: not serializable."
+                    ) from serializer_exception
         else:
             if __debug__:
-                logger.debug("[ERROR] Wrong convert_objects_to_strings policy.")
-            raise PyCOMPSsException("Wrong convert_objects_to_strings policy.")
+                logger.warning("Could not serialize object to string conversion")
+            param = _serialize_object_into_file(name, param)
 
-        return param, num_bytes
+        return param
 
 
 def _get_object_property(param_ref: list, obj: typing.Any) -> typing.Any:
@@ -2186,9 +2108,7 @@ def _serialize_object_into_file(
             _turn_into_file(param, name, _skip_file_creation)
     elif param.content_type in (TYPE.STRING, TYPE.STRING_64):
         # Do not move this import to the top
-        from pycompss.api.task import PREPEND_STRINGS
-
-        if PREPEND_STRINGS:
+        if TASK_FEATURES.get_prepend_strings():
             # Strings can be empty. If a string is empty their base64 encoding
             # will be empty.
             # So we add a leading character to it to make it non empty

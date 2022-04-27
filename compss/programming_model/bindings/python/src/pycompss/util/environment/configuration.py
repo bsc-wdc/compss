@@ -31,7 +31,7 @@ import sys
 import uuid as _uuid
 from tempfile import mkstemp
 
-from pycompss.runtime import binding
+from pycompss.runtime.task.features import TASK_FEATURES
 from pycompss.util.supercomputer.scs import get_base_log_dir
 from pycompss.util.supercomputer.scs import get_log_level
 from pycompss.util.supercomputer.scs import get_master_node
@@ -128,7 +128,7 @@ def prepare_environment(
 
     # Enable/Disable object to string conversion
     # set cross-module variable
-    binding.OBJECT_CONVERSION = o_c
+    TASK_FEATURES.set_object_conversion(o_c)
 
     # Get the filename and its path.
     file_name = os.path.splitext(os.path.basename(app))[0]

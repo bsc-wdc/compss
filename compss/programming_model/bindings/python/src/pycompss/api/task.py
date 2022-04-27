@@ -58,11 +58,6 @@ if __debug__:
 
     logger = logging.getLogger(__name__)
 
-# Determine if strings should have a sharp symbol prepended or not
-PREPEND_STRINGS = True
-# Only register the task
-REGISTER_ONLY = False
-
 
 class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attributes
     """This is the Task decorator implementation.

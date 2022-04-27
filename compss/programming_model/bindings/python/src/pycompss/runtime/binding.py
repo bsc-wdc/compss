@@ -52,8 +52,6 @@ if __debug__:
 
     LOGGER = logging.getLogger(__name__)
 
-OBJECT_CONVERSION = False
-
 
 # ########################################################################### #
 # ############ FUNCTIONS THAT COMMUNICATE WITH THE RUNTIME ################## #

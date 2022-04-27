@@ -24,6 +24,7 @@ Currently, it is used by all worker types (container, external, gat and piper).
 
 import base64
 import logging
+import pickle
 import signal
 import sys
 import traceback
@@ -35,7 +36,7 @@ from pycompss.runtime.task.parameter import COMPSsFile
 from pycompss.runtime.task.parameter import JAVA_MAX_INT
 from pycompss.runtime.task.parameter import JAVA_MIN_INT
 from pycompss.runtime.task.parameter import Parameter
-from pycompss.util.exceptions import SerializerException
+from pycompss.util.exceptions import SerializerException, PyCOMPSsException
 from pycompss.util.exceptions import TimeOutError
 from pycompss.util.exceptions import task_cancel
 from pycompss.util.exceptions import task_timed_out
@@ -145,21 +146,41 @@ def build_task_parameter(
         new_aux = aux[1:]
 
         if new_aux:
-            #######
-            # Check if the string is really an object
-            # Required in order to recover objects passed as parameters.
-            # - Option object_conversion
-            real_value = new_aux
-            try:
-                # try to recover the real object
-                # Decode removes double backslash, and encode returns
-                # the result as binary
-                p_bin = new_aux.decode(CONSTANTS.str_escape).encode()  # type: ignore
-                deserialized_aux = deserialize_from_bytes(p_bin, show_exception=False)
-            except (SerializerException, ValueError, EOFError, AttributeError):
-                # was not an object
+            if p_type == parameter.TYPE.STRING_64:
+                #######
+                # Check if the string is really an object
+                # Required in order to recover objects passed as parameters.
+                # - Option object_conversion
+                real_value = new_aux
+                # Can be a hidden object
+                if isinstance(new_aux, bytes):
+                    new_aux = new_aux.decode(CONSTANTS.str_escape)
+                    if new_aux.startswith("HiddenObj#"):
+                        # It is really a hidden object
+                        new_aux = new_aux[10:]  # Remove HiddenObj#
+                        try:
+                            # try to recover the real object
+                            # Convert bytes-string to actual bytes
+                            p_bin = bytes(new_aux[2:-1].encode("raw_unicode_escape"))
+                            deserialized_aux = pickle.loads(p_bin)
+                            p_type = parameter.TYPE.OBJECT
+                        except (
+                            SerializerException,
+                            ValueError,
+                            EOFError,
+                            AttributeError,
+                        ) as error:
+                            # Was not an object
+                            raise PyCOMPSsException(
+                                "Can not deserialize hidden object."
+                            )
+                    else:
+                        deserialized_aux = real_value  # type: ignore
+                #######
+                else:
+                    deserialized_aux = real_value  # type: ignore
+            else:
                 deserialized_aux = real_value  # type: ignore
-            #######
         else:
             deserialized_aux = new_aux
 

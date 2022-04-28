@@ -68,7 +68,7 @@ from pycompss.util.tracing.helpers import emit_manual_event
 from pycompss.util.tracing.helpers import EventWorker
 from pycompss.util.tracing.helpers import EventInsideWorker
 from pycompss.util.tracing.types_events_worker import TRACING_WORKER
-from pycompss.worker.piper.cache.tracker import load_shared_memory_manager
+from pycompss.worker.piper.cache.tracker import CACHE_TRACKER
 
 # Streaming imports
 from pycompss.streams.components.distro_stream_client import (
@@ -325,7 +325,7 @@ def executor(
 
         # Connect to Shared memory manager
         if conf.cache_queue:
-            load_shared_memory_manager()
+            CACHE_TRACKER.connect_to_shared_memory_manager()
 
         # Process properties
         alive = True

@@ -32,10 +32,7 @@ from pycompss.util.process.manager import new_queue
 from pycompss.util.typing_helper import typing
 from pycompss.worker.piper.cache.tracker import CacheTrackerConf
 from pycompss.worker.piper.cache.tracker import cache_tracker
-from pycompss.worker.piper.cache.tracker import (
-    start_shared_memory_manager as __start_smm__,
-    stop_shared_memory_manager as __stop_smm__,
-)
+from pycompss.worker.piper.cache.tracker import CACHE_TRACKER
 
 
 def is_cache_enabled(cache_config: str) -> bool:
@@ -74,7 +71,7 @@ def start_cache(
     profiler_dict = dict()  # type: dict
     profiler_get_struct = [[], [], []]  # type: typing.List[typing.List[str]]
     # profiler_get_struct structure: Filename, Parameter, Function
-    smm = __start_smm__()
+    smm = CACHE_TRACKER.start_shared_memory_manager()
     conf = CacheTrackerConf(
         logger,
         cache_size,
@@ -107,7 +104,7 @@ def stop_cache(
     if cache_profiler:
         cache_queue.put("END PROFILING")
     __destroy_cache_tracker_process__(cache_process, cache_queue)
-    __stop_smm__(shared_memory_manager)
+    CACHE_TRACKER.stop_shared_memory_manager(shared_memory_manager)
 
 
 def __get_cache_size__(cache_config: str) -> int:

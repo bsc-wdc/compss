@@ -58,14 +58,11 @@ from pycompss.util.tracing.helpers import EventInsideWorker
 from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.util.typing_helper import typing
 from pycompss.worker.commons.worker import build_task_parameter
-from pycompss.worker.piper.cache.tracker import in_cache
-from pycompss.worker.piper.cache.tracker import insert_object_into_cache_wrapper
-from pycompss.worker.piper.cache.tracker import replace_object_into_cache
 
 # The cache is only available currently for piper_worker.py and python >= 3.8
 # If supported in the future by another worker, add a common interface
 # with these two functions and import the appropriate.
-from pycompss.worker.piper.cache.tracker import retrieve_object_from_cache
+from pycompss.worker.piper.cache.tracker import CACHE_TRACKER
 
 NP = None  # type: typing.Any
 try:
@@ -767,9 +764,9 @@ class TaskWorker:
 
         if NP and cache and use_cache:
             # Check if the object is already in cache
-            if in_cache(original_path, self.cache_ids):
+            if CACHE_TRACKER.in_cache(original_path, self.cache_ids):
                 # The object is cached
-                retrieved, existing_shm = retrieve_object_from_cache(
+                retrieved, existing_shm = CACHE_TRACKER.retrieve_object_from_cache(
                     LOGGER,
                     self.cache_ids,
                     self.cache_queue,
@@ -793,7 +790,7 @@ class TaskWorker:
                 argument.file_name.keep_source
                 and argument.direction != parameter.DIRECTION.IN_DELETE
             ):
-                insert_object_into_cache_wrapper(
+                CACHE_TRACKER.insert_object_into_cache_wrapper(
                     LOGGER,
                     self.cache_queue,
                     obj,
@@ -1187,8 +1184,8 @@ class TaskWorker:
             # if not explicitly said, the object is candidate to be cached
             use_cache = False
         if NP and cache and use_cache:
-            if in_cache(original_path, self.cache_ids):
-                replace_object_into_cache(
+            if CACHE_TRACKER.in_cache(original_path, self.cache_ids):
+                CACHE_TRACKER.replace_object_into_cache(
                     LOGGER,
                     self.cache_queue,
                     content,
@@ -1197,7 +1194,7 @@ class TaskWorker:
                     self.user_function,
                 )
             else:
-                insert_object_into_cache_wrapper(
+                CACHE_TRACKER.insert_object_into_cache_wrapper(
                     LOGGER,
                     self.cache_queue,
                     content,
@@ -1265,7 +1262,7 @@ class TaskWorker:
                     ):
                         if __debug__:
                             LOGGER.debug("Storing return in cache")
-                        insert_object_into_cache_wrapper(
+                        CACHE_TRACKER.insert_object_into_cache_wrapper(
                             LOGGER,
                             self.cache_queue,
                             obj,

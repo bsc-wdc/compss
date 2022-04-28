@@ -29,7 +29,9 @@ RUN apt-get update && \
     mpi4py kafka-python && \
     apt-get autoclean && \
     rm -rf /var/lib/apt/lists/*
-RUN mkdir /run/sshd
+RUN mkdir /run/sshd && \
+    yes yes | ssh-keygen -f /root/.ssh/id_rsa -t rsa -N '' > /dev/null && \
+    cat /root/.ssh/id_rsa.pub > /root/.ssh/authorized_keys
 
 FROM base_all as base_tutorial
 
@@ -80,8 +82,6 @@ RUN apt-get update && \
    # Add the jenkins user to sudoers
    echo "jenkins  ALL=(ALL)  NOPASSWD:ALL" >> /etc/sudoers && \
    # Enable ssh to localhost for user jenkins
-   yes yes | ssh-keygen -f /root/.ssh/id_rsa -t rsa -N '' > /dev/null && \
-   cat /root/.ssh/id_rsa.pub > /root/.ssh/authorized_keys && \
    cp -r /root/.ssh /home/jenkins && \
    # Make sure jenkins owns his files
    chown -R jenkins /home/jenkins/ && chgrp -R jenkins /home/jenkins/ && \

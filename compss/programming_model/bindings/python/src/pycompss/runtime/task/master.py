@@ -1951,7 +1951,7 @@ class TaskMaster:
 
     @staticmethod
     def _convert_parameter_obj_to_string(
-        name: str, param: Parameter, max_obj_arg_size: int
+        name: str, param: Parameter, max_obj_arg_size: float
     ) -> Parameter:
         """Convert object to string.
 
@@ -1993,9 +1993,9 @@ class TaskMaster:
                     value = pickle.dumps(param.content)
                     if TASK_FEATURES.get_prepend_strings():
                         # new_content = value.decode(CONSTANTS.str_escape)
-                        param.content = f"#HiddenObj#{value}"
+                        param.content = f"#HiddenObj#{value}"  # type: ignore
                     param.content_type = TYPE.STRING_64
-                    param.extra_content_type = str
+                    param.extra_content_type = str(type("str"))
                     if __debug__:
                         logger.debug(
                             "Inferred type modified (Object converted to String)."

@@ -653,10 +653,10 @@ check_args() {
   ###############################################################
   if [ -z "${storage_home}" ]; then
     # Check if STORAGE_HOME_ENV_VAR is defined in the environment
-    if [ -z "${STORAGE_HOME_ENV_VAR}" ]; then
-      storage_home=${DEFAULT_STORAGE_HOME}
-    else
+    if [ -v "${STORAGE_HOME_ENV_VAR}" ]; then
       storage_home=${STORAGE_HOME_ENV_VAR}
+    else
+      storage_home=${DEFAULT_STORAGE_HOME}
     fi
   fi
 

@@ -260,7 +260,7 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
     __show_flower__()
 
     # Let the Python binding know we are at master
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     # Then we can import the appropriate start and stop functions from the API
     from pycompss.api.api import compss_start  # pylint: disable=import-outside-toplevel
 
@@ -601,7 +601,7 @@ def stop(sync: bool = False, _hard_stop: bool = False) -> None:
                 print(message)
 
     # Let the Python binding know we are not at master anymore
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
 
     print(line_separator)
     logger.debug("--- END ---")

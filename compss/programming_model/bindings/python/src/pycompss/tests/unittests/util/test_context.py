@@ -25,51 +25,51 @@ WORKER_CONTEXT_ERROR = "ERROR: The context was not in pycompss (WORKER)."
 
 
 def test_inmaster_context():
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     master_context = CONTEXT.in_master()
     assert master_context is True, MASTER_CONTEXT_ERROR
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
 
 
 def test_inworker_context():
-    CONTEXT.set_pycompss_context(CONTEXT.worker)
+    CONTEXT.set_worker()
     worker_context = CONTEXT.in_worker()
     assert worker_context is True, WORKER_CONTEXT_ERROR
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
 
 
 def test_in_pycompss_context():
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     master_context = CONTEXT.in_pycompss()
-    CONTEXT.set_pycompss_context(CONTEXT.worker)
+    CONTEXT.set_worker()
     worker_context = CONTEXT.in_pycompss()
     assert master_context is True, MASTER_CONTEXT_ERROR
     assert worker_context is True, WORKER_CONTEXT_ERROR
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
 
 
 def test_who_contextualized():
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     who = CONTEXT.get_who_contextualized()
     assert (
         __name__ in who or "None" in who
     ), "ERROR: Wrong who (%s) contextualized." % str(who)
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
 
 
 def test_get_context():
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     pre_context = CONTEXT.get_pycompss_context()
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     master_context = CONTEXT.get_pycompss_context()
-    CONTEXT.set_pycompss_context(CONTEXT.worker)
+    CONTEXT.set_worker()
     worker_context = CONTEXT.get_pycompss_context()
     assert (
         pre_context == CONTEXT.out_of_scope
     ), "ERROR: The context was not OUT_OF_SCOPE before setting"  # noqa: E501
     assert master_context == CONTEXT.master, "ERROR: The context was not in MASTER."
     assert worker_context == CONTEXT.worker, "ERROR: The context was not in WORKER."
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
 
 
 def test_enable_nesting():

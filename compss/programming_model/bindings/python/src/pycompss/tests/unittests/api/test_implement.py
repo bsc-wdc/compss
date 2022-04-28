@@ -28,34 +28,34 @@ def dummy_function(*args, **kwargs):  # noqa
 
 
 def test_implement_instantiation():
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     my_implementation = Implement(source_class="s_class", method="s_method")
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert (
         my_implementation.decorator_name == "@implement"
     ), "The decorator name must be @implement."
 
 
 def test_implement_call():
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     my_implementation = Implement(source_class="s_class", method="s_method")
     f = my_implementation(dummy_function)
     result = f()
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert result == 1, "Wrong expected result (should be 1)."
 
 
 def test_implement_call_old_mode():
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     my_implementation = Implement(sourceClass="s_class", method="s_method")
     f = my_implementation(dummy_function)
     result = f()
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert result == 1, "Wrong expected result (should be 1)."
 
 
 def test_implement_call_outside():
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     my_implementation = Implement(source_class="s_class", method="s_method")
     f = my_implementation(dummy_function)
     thrown = False
@@ -63,21 +63,21 @@ def test_implement_call_outside():
         _ = f()
     except Exception:  # noqa
         thrown = True  # this is OK!
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert (
         thrown
     ), "The implement decorator did not raise an exception when invoked out of scope."  # noqa: E501
 
 
 def test_implement_existing_core_element():
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     my_implementation = Implement(source_class="s_class", method="s_method")
     # Hack to mimic registered
     my_implementation.first_register = True
     f = my_implementation(dummy_function)
     # a higher level decorator would place the compss core element as follows:
     _ = f(compss_core_element=CE())
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert (
         CORE_ELEMENT_KEY not in my_implementation.kwargs
     ), "Core Element is not defined in kwargs dictionary."

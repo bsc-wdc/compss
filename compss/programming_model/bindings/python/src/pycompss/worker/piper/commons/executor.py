@@ -264,7 +264,7 @@ def executor(
                 conf.debug, conf.persistent_storage
             )
             # Set the binding in worker mode too
-            CONTEXT.set_pycompss_context(CONTEXT.worker)
+            CONTEXT.set_worker()
         logger = conf.logger
 
         tracing = conf.tracing

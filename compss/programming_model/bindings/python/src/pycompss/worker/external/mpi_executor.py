@@ -385,7 +385,7 @@ def main() -> None:
     :returns: None.
     """
     # Set the binding in worker mode
-    CONTEXT.set_pycompss_context(CONTEXT.worker)
+    CONTEXT.set_worker()
 
     executor("MPI Process-{0}".format(MPI.COMM_WORLD.rank), sys.argv[1])
 

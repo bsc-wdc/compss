@@ -32,16 +32,16 @@ def dummy_function(*args, **kwargs):  # noqa
 
 
 def test_multinode_instantiation():
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     my_multinode = MultiNode()
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert (
         my_multinode.decorator_name == "@multinode"
     ), "The decorator name must be @multinode."
 
 
 def test_multinode_call_outside():
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     my_multinode = MultiNode()
     f = my_multinode(dummy_function)
     thrown = False
@@ -49,23 +49,23 @@ def test_multinode_call_outside():
         _ = f()
     except Exception:  # noqa
         thrown = True  # this is OK!
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert (
         thrown
     ), "The multinode decorator did not raise an exception when invoked out of scope."  # noqa: E501
 
 
 def test_multinode_call_master():
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     my_multinode = MultiNode()
     f = my_multinode(dummy_function)
     result = f()
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert result == 1, ERROR_EXPECTED_1
 
 
 def test_multinode_call_worker():
-    CONTEXT.set_pycompss_context(CONTEXT.worker)
+    CONTEXT.set_worker()
     # prepare test setup
     os.environ["COMPSS_NUM_NODES"] = "2"
     os.environ["COMPSS_NUM_THREADS"] = "2"
@@ -79,12 +79,12 @@ def test_multinode_call_worker():
     del os.environ["COMPSS_NUM_THREADS"]
     del os.environ["COMPSS_HOSTNAMES"]
     # Check result
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert result == 1, ERROR_EXPECTED_1
 
 
 def test_multinode_call_worker_with_slurm():
-    CONTEXT.set_pycompss_context(CONTEXT.worker)
+    CONTEXT.set_worker()
     # prepare test setup
     os.environ["COMPSS_NUM_NODES"] = "2"
     os.environ["COMPSS_NUM_THREADS"] = "2"
@@ -106,17 +106,17 @@ def test_multinode_call_worker_with_slurm():
     del os.environ["SLURM_NODELIST"]
     del os.environ["SLURM_TASKS_PER_NODE"]
     # Check result
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert result == 1, ERROR_EXPECTED_1
 
 
 def test_multinode_existing_core_element():
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     my_multinode = MultiNode()
     f = my_multinode(dummy_function)
     # a higher level decorator would place the compss core element as follows:
     _ = f(compss_core_element=CE())
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert (
         CORE_ELEMENT_KEY not in my_multinode.kwargs
     ), "Core Element is not defined in kwargs dictionary."

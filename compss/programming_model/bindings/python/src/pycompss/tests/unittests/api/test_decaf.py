@@ -28,23 +28,23 @@ def dummy_function(*args, **kwargs):  # noqa
 
 
 def test_decaf_instantiation():
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     my_decaf = Decaf(df_script="date")
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert my_decaf.decorator_name == "@decaf", "The decorator name must be @decaf."
 
 
 def test_decaf_call():
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     my_decaf = Decaf(df_script="date")
     f = my_decaf(dummy_function)
     result = f()
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert result == 1, "Wrong expected result (should be 1)."
 
 
 def test_decaf_call_outside():
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     my_decaf = Decaf(df_script="date")
     f = my_decaf(dummy_function)
     thrown = False
@@ -52,19 +52,19 @@ def test_decaf_call_outside():
         _ = f()
     except Exception:  # noqa
         thrown = True  # this is OK!
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert (
         thrown
     ), "The decaf decorator did not raise an exception when invoked out of scope."  # noqa: E501
 
 
 def test_decaf_runner_parameter():
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     runner = "my_runner"
     my_decaf = Decaf(df_script="date", runner=runner)
     f = my_decaf(dummy_function)
     _ = f()
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert "runner" in my_decaf.kwargs, "Runner is not defined in kwargs dictionary."
     assert (
         runner == my_decaf.kwargs["runner"]
@@ -72,12 +72,12 @@ def test_decaf_runner_parameter():
 
 
 def test_decaf_dfScript_parameter():  # NOSONAR
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     df_script = "my_dfScript"  # noqa
     my_decaf = Decaf(df_script="date", dfScript=df_script)
     f = my_decaf(dummy_function)
     _ = f()
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert (
         "dfScript" in my_decaf.kwargs
     ), "dfScript is not defined in kwargs dictionary."
@@ -87,12 +87,12 @@ def test_decaf_dfScript_parameter():  # NOSONAR
 
 
 def test_decaf_df_executor_parameter():
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     df_executor = "my_df_executor"
     my_decaf = Decaf(df_script="date", df_executor=df_executor)
     f = my_decaf(dummy_function)
     _ = f()
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert (
         "df_executor" in my_decaf.kwargs
     ), "df_executor is not defined in kwargs dictionary."
@@ -102,12 +102,12 @@ def test_decaf_df_executor_parameter():
 
 
 def test_decaf_dfExecutor_parameter():  # NOSONAR
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     df_executor = "my_dfExecutor"  # noqa
     my_decaf = Decaf(df_script="date", dfExecutor=df_executor)
     f = my_decaf(dummy_function)
     _ = f()
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert (
         "dfExecutor" in my_decaf.kwargs
     ), "dfExecutor is not defined in kwargs dictionary."
@@ -117,12 +117,12 @@ def test_decaf_dfExecutor_parameter():  # NOSONAR
 
 
 def test_decaf_df_lib_parameter():
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     df_lib = "my_df_lib"
     my_decaf = Decaf(df_script="date", df_lib=df_lib)
     f = my_decaf(dummy_function)
     _ = f()
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert "df_lib" in my_decaf.kwargs, "df_lib is not defined in kwargs dictionary."
     assert (
         df_lib == my_decaf.kwargs["df_lib"]
@@ -130,12 +130,12 @@ def test_decaf_df_lib_parameter():
 
 
 def test_decaf_dfLib_parameter():  # NOSONAR
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     df_lib = "my_dfLib"  # noqa
     my_decaf = Decaf(df_script="date", dfLib=df_lib)
     f = my_decaf(dummy_function)
     _ = f()
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert "dfLib" in my_decaf.kwargs, "dfLib is not defined in kwargs dictionary."
     assert (
         df_lib == my_decaf.kwargs["dfLib"]
@@ -143,12 +143,12 @@ def test_decaf_dfLib_parameter():  # NOSONAR
 
 
 def test_decaf_existing_core_element():
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     my_decaf = Decaf(df_script="date")
     f = my_decaf(dummy_function)
     # a higher level decorator would place the compss core element as follows:
     _ = f(compss_core_element=CE())
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert (
         CORE_ELEMENT_KEY not in my_decaf.kwargs
     ), "Core Element is not defined in kwargs dictionary."

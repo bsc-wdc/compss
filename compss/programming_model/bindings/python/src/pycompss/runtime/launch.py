@@ -184,7 +184,7 @@ def compss_main() -> None:
     :return: None.
     """
     # Let the Python binding know we are at master
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     # Then we can import the appropriate start and stop functions from the API
     from pycompss.api.api import compss_start  # pylint: disable=import-outside-toplevel
     from pycompss.api.api import (
@@ -451,7 +451,7 @@ def launch_pycompss_application(
         raise PyCOMPSsException("ERROR: COMPSS_HOME is not defined in the environment")
 
     # Let the Python binding know we are at master
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     # Then we can import the appropriate start and stop functions from the API
     from pycompss.api.api import compss_start  # pylint: disable=import-outside-toplevel
     from pycompss.api.api import compss_stop  # pylint: disable=import-outside-toplevel

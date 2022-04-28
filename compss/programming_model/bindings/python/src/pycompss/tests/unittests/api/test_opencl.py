@@ -28,23 +28,23 @@ def dummy_function(*args, **kwargs):  # noqa
 
 
 def test_opencl_instantiation():
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     my_opencl = OpenCL(kernel="date")
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert my_opencl.decorator_name == "@opencl", "The decorator name must be @opencl."
 
 
 def test_opencl_call():
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     my_opencl = OpenCL(kernel="date")
     f = my_opencl(dummy_function)
     result = f()
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert result == 1, "Wrong expected result (should be 1)."
 
 
 def test_opencl_call_outside():
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     my_opencl = OpenCL(kernel="date")
     f = my_opencl(dummy_function)
     thrown = False
@@ -52,19 +52,19 @@ def test_opencl_call_outside():
         _ = f()
     except Exception:  # noqa
         thrown = True  # this is OK!
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert (
         thrown
     ), "The opencl decorator did not raise an exception when invoked out of scope."  # noqa: E501
 
 
 def test_opencl_existing_core_element():
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     my_opencl = OpenCL(kernel="date")
     f = my_opencl(dummy_function)
     # a higher level decorator would place the compss core element as follows:
     _ = f(compss_core_element=CE())
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert (
         CORE_ELEMENT_KEY not in my_opencl.kwargs
     ), "Core Element is not defined in kwargs dictionary."

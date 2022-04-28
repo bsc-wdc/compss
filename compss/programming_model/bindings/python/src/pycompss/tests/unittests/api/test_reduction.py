@@ -35,25 +35,25 @@ def dummy_function(*args, **kwargs):  # noqa
 
 
 def test_reduction_instantiation():
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     my_reduction = reduction()
     assert (
         my_reduction.decorator_name == "@reduction"
     ), "The decorator name must be @reduction."
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
 
 
 def test_reduction_call():
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     my_reduction = reduction()
     f = my_reduction(dummy_function)
     result = f()
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert result == 1, "Wrong expected result (should be 1)."
 
 
 def test_reduction_call_outside():
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     my_reduction = reduction()
     f = my_reduction(dummy_function)
     thrown = False
@@ -61,30 +61,30 @@ def test_reduction_call_outside():
         _ = f()
     except Exception:  # noqa
         thrown = True  # this is OK!
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert (
         thrown
     ), "The compss decorator did not raise an exception when invoked out of scope."  # noqa: E501
 
 
 def test_reduction_chunk_size_parameter():
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     chunk_size = 4
     my_reduction = reduction(chunk_size=chunk_size)
     f = my_reduction(dummy_function)
     _ = f()
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert "chunk_size" in my_reduction.kwargs, CHUNK_SIZE_ERROR
     assert chunk_size == my_reduction.kwargs["chunk_size"], CHUNK_SIZE_NOT_INIT_ERROR
 
 
 def test_reduction_chunk_size_str_parameter():
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     chunk_size = "4"
     my_reduction = reduction(chunk_size=chunk_size)
     f = my_reduction(dummy_function)
     _ = f()
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert "chunk_size" in my_reduction.kwargs, CHUNK_SIZE_ERROR
     assert (
         int(chunk_size) == my_reduction.kwargs["chunk_size"]
@@ -92,37 +92,37 @@ def test_reduction_chunk_size_str_parameter():
 
 
 def test_reduction_chunk_size_str_exception_parameter():
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     chunk_size = "abc"
     ok = False
     try:
         _ = reduction(chunk_size=chunk_size)
     except PyCOMPSsException:
         ok = True
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert ok, EXPECTED_EXCEPTION_ERROR
 
 
 def test_reduction_chunk_size_other_exception_parameter():
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     chunk_size = []
     ok = False
     try:
         _ = reduction(chunk_size=chunk_size)
     except PyCOMPSsException:
         ok = True
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert ok, EXPECTED_EXCEPTION_ERROR
 
 
 def test_reduction_chunk_size_str_env_var_parameter():
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     os.environ["MY_CHUNK_SIZE"] = "4"
     chunk_size = "$MY_CHUNK_SIZE"
     my_reduction = reduction(chunk_size=chunk_size)
     f = my_reduction(dummy_function)
     _ = f()
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert "chunk_size" in my_reduction.kwargs, CHUNK_SIZE_ERROR
     assert (
         int(os.environ[chunk_size[1:]]) == my_reduction.kwargs["chunk_size"]
@@ -130,13 +130,13 @@ def test_reduction_chunk_size_str_env_var_parameter():
 
 
 def test_reduction_chunk_size_str_env_var_brackets_parameter():
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     os.environ["MY_CHUNK_SIZE"] = "4"
     chunk_size = "${MY_CHUNK_SIZE}"
     my_reduction = reduction(chunk_size=chunk_size)
     f = my_reduction(dummy_function)
     _ = f()
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert "chunk_size" in my_reduction.kwargs, CHUNK_SIZE_ERROR
     assert (
         int(os.environ[chunk_size[2:-1]]) == my_reduction.kwargs["chunk_size"]
@@ -144,7 +144,7 @@ def test_reduction_chunk_size_str_env_var_brackets_parameter():
 
 
 def test_reduction_chunk_size_str_env_var_exception_parameter():
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     os.environ["MY_CHUNK_SIZE"] = "abc"
     chunk_size = "$MY_CHUNK_SIZE"
     ok = False
@@ -152,17 +152,17 @@ def test_reduction_chunk_size_str_env_var_exception_parameter():
         _ = reduction(chunk_size=chunk_size)
     except PyCOMPSsException:
         ok = True
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert ok, EXPECTED_EXCEPTION_ERROR
 
 
 def test_reduction_is_reduce_parameter():
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     is_reduce = False
     my_reduction = reduction(is_reduce=is_reduce)
     f = my_reduction(dummy_function)
     _ = f()
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert (
         "is_reduce" in my_reduction.kwargs
     ), "is_reduce is not defined in kwargs dictionary."
@@ -172,12 +172,12 @@ def test_reduction_is_reduce_parameter():
 
 
 def test_reduction_existing_core_element():
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     my_reduction = reduction()
     f = my_reduction(dummy_function)
     # a higher level decorator would place the compss core element as follows:
     _ = f(compss_core_element=CE())
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert (
         CORE_ELEMENT_KEY not in my_reduction.kwargs
     ), "Core Element is not defined in kwargs dictionary."

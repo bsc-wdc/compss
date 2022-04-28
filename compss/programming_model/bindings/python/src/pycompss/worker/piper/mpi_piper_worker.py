@@ -129,7 +129,7 @@ def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
     # Set the binding in worker mode
     from pycompss.util.context import CONTEXT
 
-    CONTEXT.set_pycompss_context(CONTEXT.worker)
+    CONTEXT.set_worker()
 
     persistent_storage = config.storage_conf != "null"
 
@@ -245,7 +245,7 @@ def compss_persistent_executor(config: PiperWorkerConfiguration) -> None:
     # Set the binding in worker mode
     from pycompss.util.context import CONTEXT
 
-    CONTEXT.set_pycompss_context(CONTEXT.worker)
+    CONTEXT.set_worker()
 
     persistent_storage = config.storage_conf != "null"
 

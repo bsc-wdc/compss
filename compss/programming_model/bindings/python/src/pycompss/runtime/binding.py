@@ -146,7 +146,7 @@ def stop_runtime(code: int = 0, hard_stop: bool = False) -> None:
             LOGGER.info("Cleaning temps...")
         _clean_temps()
 
-        CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+        CONTEXT.set_out_of_scope()
         if __debug__:
             LOGGER.info("COMPSs stopped")
 

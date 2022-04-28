@@ -63,7 +63,7 @@ def compss_worker(
     # Set the binding in worker mode
     from pycompss.util.context import CONTEXT
 
-    CONTEXT.set_pycompss_context(CONTEXT.worker)
+    CONTEXT.set_worker()
 
     result = execute_task(
         "".join(("Task ", task_id)),

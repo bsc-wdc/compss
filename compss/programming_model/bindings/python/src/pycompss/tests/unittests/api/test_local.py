@@ -38,7 +38,7 @@ def dummy_function(*args, **kwargs):  # noqa
 def test_local_instantiation():
     if using_mypy:
         raise Exception("UNSUPPORTED WITH MYPY")
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     result = dummy_function(1, 2)
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert result == 3, "Wrong expected result (should be 3)."

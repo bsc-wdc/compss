@@ -28,6 +28,7 @@ import inspect
 from contextlib import contextmanager
 
 # Typing imports
+from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.typing_helper import typing
 
 #################
@@ -36,7 +37,7 @@ from pycompss.util.typing_helper import typing
 
 
 class Context:
-    """Keep the context variables"""
+    """Keep the context variables."""
 
     __slots__ = [
         "master",
@@ -84,21 +85,43 @@ class Context:
         """
         return self.where != self.out_of_scope
 
-    def set_pycompss_context(self, where: str) -> None:
+    def __set_pycompss_context__(self, where: str) -> None:
         """Set the Python Binding context (MASTER or WORKER or OUT_OF_SCOPE).
 
         :param where: New context (MASTER or WORKER or OUT_OF_SCOPE).
         :return: None.
         """
-        assert where in [
-            self.master,
-            self.worker,
-            self.out_of_scope,
-        ], f"PyCOMPSs context must be {self.master}, {self.worker} or {self.out_of_scope}"
         self.where = where
-        caller_stack = inspect.stack()[1]
-        caller_module = inspect.getmodule(caller_stack[0])
-        self.who = str(caller_module)
+        if __debug__:
+            # Only check who contextualized if debugging
+            # 2 since it is called from set_master, set_worker or set_out_of_scope.
+            caller_stack = inspect.stack()[2]
+            caller_module = inspect.getmodule(caller_stack[0])
+            self.who = str(caller_module)
+
+    def set_master(self):
+        """Set the context to master.
+
+        :return: None.
+        """
+        self.__set_pycompss_context__(self.master)
+
+    def set_worker(self):
+        """Set the context to worker.
+
+        :return: None.
+        """
+        self.__set_pycompss_context__(self.worker)
+
+    def set_out_of_scope(self):
+        """Set the context to out of scope (not master nor worker).
+
+        Usually for initialization or other tasks that are shared between
+        master and worker operation.
+
+        :return: None.
+        """
+        self.__set_pycompss_context__(self.out_of_scope)
 
     def get_pycompss_context(self) -> str:
         """Return the PyCOMPSs context name.
@@ -115,8 +138,11 @@ class Context:
         * For debugging purposes.
 
         :return: PyCOMPSs contextualization caller name
+        :raises PyCOMPSsException: Unsupported function if not debugging.
         """
-        return self.who
+        if __debug__:
+            return self.who
+        raise PyCOMPSsException("Get who contextualized only works in debug mode.")
 
     def is_nesting_enabled(self) -> bool:
         """Check if nesting is enabled.

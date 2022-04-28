@@ -103,7 +103,7 @@ def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
     signal.signal(signal.SIGTERM, shutdown_handler)
 
     # Set the binding in worker mode
-    CONTEXT.set_pycompss_context(CONTEXT.worker)
+    CONTEXT.set_worker()
 
     persistent_storage = config.storage_conf != "null"
 

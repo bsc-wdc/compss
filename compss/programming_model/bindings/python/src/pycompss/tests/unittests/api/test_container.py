@@ -28,25 +28,25 @@ def dummy_function(*args, **kwargs):  # noqa
 
 
 def test_container_instantiation():
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     my_bin = Container(engine="docker", image="dummy")
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert (
         my_bin.decorator_name == "@container"
     ), "The decorator name must be @container."
 
 
 def test_container_call():
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     my_bin = Container(engine="docker", image="dummy")
     f = my_bin(dummy_function)
     result = f()
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert result == 1, "Wrong expected result (should be 1)."
 
 
 def test_container_call_outside():
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     my_bin = Container(engine="docker", image="dummy")
     f = my_bin(dummy_function)
     thrown = False
@@ -54,20 +54,20 @@ def test_container_call_outside():
         _ = f()
     except Exception:  # noqa
         thrown = True  # this is OK!
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert (
         thrown
     ), "The container decorator did not raise an exception when invoked out of scope."  # noqa: E501
 
 
 def test_container_engine_image_parameters():
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     engine = "docker"
     image = "dummy"
     my_bin = Container(engine=engine, image=image)
     f = my_bin(dummy_function)
     _ = f()
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert "engine" in my_bin.kwargs, "Engine is not defined in kwargs dictionary."
     assert (
         engine == my_bin.kwargs["engine"]
@@ -77,12 +77,12 @@ def test_container_engine_image_parameters():
 
 
 def test_container_existing_core_element():
-    CONTEXT.set_pycompss_context(CONTEXT.master)
+    CONTEXT.set_master()
     my_bin = Container(engine="docker", image="dummy")
     f = my_bin(dummy_function)
     # a higher level decorator would place the compss core element as follows:
     _ = f(compss_core_element=CE())
-    CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+    CONTEXT.set_out_of_scope()
     assert (
         CORE_ELEMENT_KEY not in my_bin.kwargs
     ), "Core Element is not defined in kwargs dictionary."

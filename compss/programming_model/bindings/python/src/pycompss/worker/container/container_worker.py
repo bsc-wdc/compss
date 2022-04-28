@@ -116,7 +116,7 @@ def main() -> int:
     log_files = ()
     python_mpi = False
     collections_layouts = None  # type: typing.Optional[dict]
-    CONTEXT.set_pycompss_context(CONTEXT.worker)
+    CONTEXT.set_worker()
     result = execute_task(
         process_name,
         storage_conf,

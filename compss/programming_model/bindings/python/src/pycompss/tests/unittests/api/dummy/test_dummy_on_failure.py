@@ -19,7 +19,7 @@
 
 from pycompss.util.context import CONTEXT
 
-CONTEXT.set_pycompss_context(CONTEXT.out_of_scope)
+CONTEXT.set_out_of_scope()
 
 from pycompss.api.api import compss_wait_on  # noqa
 from pycompss.api.on_failure import on_failure  # noqa

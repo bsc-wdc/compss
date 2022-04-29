@@ -452,12 +452,12 @@ def __show_flower__() -> None:
     print(line_separator)  # NOSONAR # noqa
     print(r"**************** PyCOMPSs Interactive ******************")  # NOSONAR # noqa
     print(line_separator)  # NOSONAR # noqa
-    print(r"*          .-~~-.--.           _____      __   ______  *")  # NOSONAR # noqa
-    print(r"*         :         )         |____ \    /  | /  __  \ *")  # NOSONAR # noqa
-    print(r"*   .~ ~ -.\       /.- ~~ .     ___) |  /_  | | |  | | *")  # NOSONAR # noqa
-    print(r"*   >       `.   .'       <    / ___/     | | | |  | | *")  # NOSONAR # noqa
-    print(r"*  (         .- -.         )  | |___   _  | | | |__| | *")  # NOSONAR # noqa
-    print(r"*   `- -.-~  `- -'  ~-.- -'   |_____| |_| |_| \______/ *")  # NOSONAR # noqa
+    print(r"*          .-~~-.--.           _____         ______    *")  # NOSONAR # noqa
+    print(r"*         :         )         |____  \      /  __  \   *")  # NOSONAR # noqa
+    print(r"*   .~ ~ -.\       /.- ~~ .      __) |      | |  | |   *")  # NOSONAR # noqa
+    print(r"*   >       `.   .'       <     |__  |      | |  | |   *")  # NOSONAR # noqa
+    print(r"*  (         .- -.         )   ____) |   _  | |__| |   *")  # NOSONAR # noqa
+    print(r"*   `- -.-~  `- -'  ~-.- -'   |_____ /  |_| \______/   *")  # NOSONAR # noqa
     print(r"*     (        :        )           _ _ .-:            *")  # NOSONAR # noqa
     print(r"*      ~--.    :    .--~        .-~  .-~  }            *")  # NOSONAR # noqa
     print(r"*          ~-.-^-.-~ \_      .~  .-~   .~              *")  # NOSONAR # noqa

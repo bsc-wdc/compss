@@ -24,8 +24,8 @@ This file contains the COMPSs runtime connection.
 Loads the external C module.
 """
 
-from pycompss.runtime.management.link import establish_interactive_link
-from pycompss.runtime.management.link import establish_link
+from pycompss.runtime.management.link.separate import establish_interactive_link
+from pycompss.runtime.management.link.direct import establish_link
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.typing_helper import typing
 

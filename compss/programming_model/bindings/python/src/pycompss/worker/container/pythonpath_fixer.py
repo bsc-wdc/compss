@@ -29,16 +29,17 @@ def fix_pythonpath() -> None:
 
     :return: None.
     """
-    version = "%s.%s" % sys.version_info[0:2]
+    sys_version = sys.version_info[0:2]
+    version = f"{sys_version[0]}.{sys_version[1]}"
     # Default Python installation in Docker containers
     default_container_pythonpath = [
-        "/usr/lib/python%s" % version,
-        "/usr/lib/python%s/plat-x86_64-linux-gnu" % version,
-        "/usr/lib/python%s/lib-tk" % version,
-        "/usr/lib/python%s/lib-old" % version,
-        "/usr/lib/python%s/lib-dynload" % version,
-        "/usr/local/lib/python%s/dist-packages" % version,
-        "/usr/lib/python%s/dist-packages" % version,
+        f"/usr/lib/python{version}",
+        f"/usr/lib/python{version}/plat-x86_64-linux-gnu",
+        f"/usr/lib/python{version}/lib-tk",
+        f"/usr/lib/python{version}/lib-old",
+        f"/usr/lib/python{version}/lib-dynload",
+        f"/usr/local/lib/python{version}/dist-packages",
+        f"/usr/lib/python{version}/dist-packages",
     ]
 
     # Build new PYTHONPATH
@@ -46,18 +47,14 @@ def fix_pythonpath() -> None:
 
     # Add entries not inherited by user's system default
     # (application pythonpath only)
-    for pp in sys.path:
-        if pp.startswith("/apps/COMPSs/") or not (
-            pp.startswith("/apps/") or pp.startswith("/gpfs/apps/")
+    for path in sys.path:
+        if path.startswith("/apps/COMPSs/") or not (
+            path.startswith("/apps/") or path.startswith("/gpfs/apps/")
         ):
-            new_pythonpath.append(pp)
+            new_pythonpath.append(path)
 
     # Add default entries (at the end)
     new_pythonpath.extend(default_container_pythonpath)
 
     # Reset PYTHONPATH
     sys.path = new_pythonpath
-
-
-# Fix on this module import
-fix_pythonpath()

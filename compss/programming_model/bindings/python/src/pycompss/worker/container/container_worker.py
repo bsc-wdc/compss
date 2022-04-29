@@ -23,34 +23,28 @@ inside containers.
 """
 
 import logging
-
-# Regular imports
 import os
 import sys
 
-# PyCOMPSs imports
 from pycompss.util.context import CONTEXT
-
-# Fix PYTHONPATH setup
-import pycompss.worker.container.pythonpath_fixer  # noqa
+from pycompss.worker.container.pythonpath_fixer import fix_pythonpath
 from pycompss.util.logger.helpers import init_logging_worker
 from pycompss.util.typing_helper import typing
 from pycompss.worker.commons.executor import build_return_params_message
 from pycompss.worker.commons.worker import execute_task
 
 
-# Define static logger
-# logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)  # NOSONAR
-# logger = logging.getLogger()
-
-
 def main() -> int:
     """Process python task inside a container main method.
 
+    Received parameters from ContainerInvoker.java.
+
     :return: Exit value.
     """
+    # Fix PYTHONPATH setup
+    fix_pythonpath()
+
     # Parse arguments
-    # TODO: Enhance the received parameters from ContainerInvoker.java
     func_file_path = str(sys.argv[1])
     func_name = str(sys.argv[2])
     num_slaves = 0
@@ -67,10 +61,10 @@ def main() -> int:
     # Log initialisation
     # Load log level configuration file
     worker_path = os.path.dirname(os.path.realpath(__file__))
-    if log_level == "true" or log_level == "debug":
+    if log_level in ("true", "debug"):
         # Debug
         log_json = "".join((worker_path, "/log/logging_container_worker_debug.json"))
-    elif log_level == "info" or log_level == "off":
+    elif log_level in ("info", "off"):
         # Info or no debug
         log_json = "".join((worker_path, "/log/logging_container_worker_off.json"))
     else:
@@ -78,9 +72,7 @@ def main() -> int:
         log_json = "".join((worker_path, "/log/logging_container_worker.json"))
     init_logging_worker(log_json, tracing)
     if __debug__:
-        logger = logging.getLogger(
-            "pycompss.worker.container.container_worker"
-        )  # noqa: E501
+        logger = logging.getLogger("pycompss.worker.container.container_worker")
         logger.debug("Initialising Python worker inside the container...")
 
     task_params = [
@@ -97,13 +89,13 @@ def main() -> int:
     execute_task_params = task_params + func_params
 
     if __debug__:
-        logger.debug("- File: " + str(func_file_path))
-        logger.debug("- Function: " + str(func_name))
-        logger.debug("- HasTarget: " + str(has_target))
-        logger.debug("- ReturnType: " + str(return_type))
-        logger.debug("- Num Returns: " + str(return_length))
-        logger.debug("- Num Parameters: " + str(num_params))
-        logger.debug("- Parameters: " + str(func_params))
+        logger.debug("- File: %s", str(func_file_path))
+        logger.debug("- Function: %s", str(func_name))
+        logger.debug("- HasTarget: %s", str(has_target))
+        logger.debug("- ReturnType: %s", str(return_type))
+        logger.debug("- Num Returns: %s", str(return_length))
+        logger.debug("- Num Parameters: %s", str(num_params))
+        logger.debug("- Parameters: %s", str(func_params))
         logger.debug("DONE Parsing Python function and arguments")
 
     # Process task
@@ -137,14 +129,14 @@ def main() -> int:
     # Process results
     if __debug__:
         logger.debug("Processing results...")
-        logger.debug("Task exit value = " + str(exit_value))
+        logger.debug("Task exit value = %s", str(exit_value))
 
     if exit_value == 0:
         # Task has finished without exceptions
         if __debug__:
             logger.debug("Building return parameters...")
-            logger.debug("New Types: " + str(new_types))
-            logger.debug("New Values: " + str(new_values))
+            logger.debug("New Types: %s", str(new_types))
+            logger.debug("New Values: %s", str(new_values))
         build_return_params_message(new_types, new_values)
         if __debug__:
             logger.debug("DONE Building return parameters")
@@ -152,19 +144,19 @@ def main() -> int:
         # Task has finished with a COMPSs Exception
         if __debug__:
             except_msg = except_msg.replace(" ", "_")
-            logger.debug("Registered COMPSs Exception: %s" % str(except_msg))
+            logger.debug("Registered COMPSs Exception: %s", str(except_msg))
     else:
         # An exception has been raised in task
         if __debug__:
             except_msg = except_msg.replace(" ", "_")
-            logger.debug("Registered Exception in task execution %s" % str(except_msg))
+            logger.debug("Registered Exception in task execution %s", str(except_msg))
 
     # Return
     if exit_value != 0:
         logger.debug(
-            "ERROR: Task execution finished with non-zero exit value (%s != 0)"
-            % str(exit_value)
-        )  # noqa: E501
+            "ERROR: Task execution finished with non-zero exit value (%s != 0)",
+            str(exit_value)
+        )
     else:
         logger.debug("Task execution finished SUCCESSFULLY!")
     return exit_value

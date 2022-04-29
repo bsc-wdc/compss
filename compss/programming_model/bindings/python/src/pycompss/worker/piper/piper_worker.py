@@ -61,8 +61,6 @@ from pycompss.worker.piper.commons.utils_logger import load_loggers
 # Persistent worker global variables
 # PROCESSES = IN_PIPE -> PROCESS
 PROCESSES = dict()  # type: typing.Dict[str, typing.Any]
-TRACING = False
-WORKER_CONF = None
 CACHE = None
 CACHE_PROCESS = None
 
@@ -88,12 +86,13 @@ def shutdown_handler(signal: int, frame: typing.Any) -> None:
 ######################
 
 
-def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
+def compss_persistent_worker(config: PiperWorkerConfiguration, tracing: bool) -> None:
     """Retrieve the initial configuration and spawns the worker processes.
 
     Persistent worker main function.
 
     :param config: Piper Worker Configuration description.
+    :param tracing: If tracing is enabled.
     :return: None.
     """
     global CACHE
@@ -145,7 +144,7 @@ def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
     conf = ExecutorConf(
         config.debug,
         GLOBALS.get_temporary_directory(),
-        TRACING,
+        tracing,
         config.storage_conf,
         logger,
         logger_cfg,
@@ -289,15 +288,13 @@ def main() -> None:
 
     :return: None.
     """
-    global TRACING
-    global WORKER_CONF
     # Configure the global tracing variable from the argument
-    TRACING = sys.argv[4] == "true"
-    with trace_multiprocessing_worker() if TRACING else dummy_context():
+    tracing = sys.argv[4] == "true"
+    with trace_multiprocessing_worker() if tracing else dummy_context():
         # Configure the piper worker with the arguments
-        WORKER_CONF = PiperWorkerConfiguration()
-        WORKER_CONF.update_params(sys.argv)
-        compss_persistent_worker(WORKER_CONF)
+        worker_conf = PiperWorkerConfiguration()
+        worker_conf.update_params(sys.argv)
+        compss_persistent_worker(worker_conf, tracing)
 
 
 if __name__ == "__main__":

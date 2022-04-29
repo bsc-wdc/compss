@@ -24,8 +24,8 @@ This file contains the cache setup and instantiation.
 IMPORTANT: Only used with python >= 3.8.
 """
 
-from pycompss.util.process.manager import Process  # just typing
-from pycompss.util.process.manager import Queue  # just typing
+from pycompss.util.process.manager import Process
+from pycompss.util.process.manager import Queue
 from pycompss.util.process.manager import create_process
 from pycompss.util.process.manager import new_manager
 from pycompss.util.process.manager import new_queue

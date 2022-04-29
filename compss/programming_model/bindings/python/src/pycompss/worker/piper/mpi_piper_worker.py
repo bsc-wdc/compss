@@ -30,6 +30,7 @@ import sys
 from mpi4py import MPI
 from pycompss.runtime.commons import GLOBALS
 from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.util.process.manager import Queue
 from pycompss.util.tracing.helpers import dummy_context
 from pycompss.util.tracing.helpers import EventWorker
 from pycompss.util.tracing.helpers import trace_mpi_executor
@@ -60,10 +61,6 @@ COMM = MPI.COMM_WORLD
 SIZE = COMM.Get_size()
 RANK = COMM.Get_rank()
 PROCESSES = {}  # IN_PIPE -> PROCESS ID
-TRACING = False
-WORKER_CONF = None
-CACHE_IDS = None
-CACHE_QUEUE = None
 
 
 def is_worker() -> bool:
@@ -227,12 +224,20 @@ def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
     control_pipe.close()
 
 
-def compss_persistent_executor(config: PiperWorkerConfiguration) -> None:
+def compss_persistent_executor(
+    config: PiperWorkerConfiguration,
+    tracing: bool,
+    cache_queue: typing.Optional[Queue],
+    cache_ids: typing.Any,
+) -> None:
     """Retrieve the initial configuration and performs executor process functionality.
 
     Persistent MPI executor main function.
 
     :param config: Piper Worker Configuration description.
+    :param tracing: If tracing is activated.
+    :param cache_queue: Cache queue.
+    :param cache_ids: Cache identifiers.
     :return: None.
     """
     COMM.gather(str(os.getpid()), root=0)
@@ -268,7 +273,7 @@ def compss_persistent_executor(config: PiperWorkerConfiguration) -> None:
     conf = ExecutorConf(
         config.debug,
         GLOBALS.get_temporary_directory(),
-        TRACING,
+        tracing,
         config.storage_conf,
         logger,
         logger_cfg,
@@ -277,8 +282,8 @@ def compss_persistent_executor(config: PiperWorkerConfiguration) -> None:
         config.stream_backend,
         config.stream_master_name,
         config.stream_master_port,
-        CACHE_IDS,
-        CACHE_QUEUE,
+        cache_ids,
+        cache_queue,
         cache_profiler,
     )
     executor(None, process_name, config.pipes[RANK - 1], conf)
@@ -303,13 +308,7 @@ def main() -> None:
 
     :return: None.
     """
-    # Configure the global tracing variable from the argument
-    global TRACING
-    global WORKER_CONF
-    global CACHE_IDS
-    global CACHE_QUEUE
-
-    TRACING = sys.argv[4] == "true"
+    tracing = sys.argv[4] == "true"
 
     # Enable coverage if performed
     if "COVERAGE_PROCESS_START" in os.environ:
@@ -318,34 +317,36 @@ def main() -> None:
         coverage.process_startup()
 
     # Configure the piper worker with the arguments
-    WORKER_CONF = PiperWorkerConfiguration()
-    WORKER_CONF.update_params(sys.argv)
+    worker_conf = PiperWorkerConfiguration()
+    worker_conf.update_params(sys.argv)
 
-    persistent_storage = WORKER_CONF.storage_conf != "null"
-    _, _, _, log_dir = load_loggers(WORKER_CONF.debug, persistent_storage)
+    persistent_storage = worker_conf.storage_conf != "null"
+    _, _, _, log_dir = load_loggers(worker_conf.debug, persistent_storage)
 
     cache_profiler = False
-    if WORKER_CONF.cache_profiler.lower() == "true":
+    if worker_conf.cache_profiler.lower() == "true":
         cache_profiler = True
 
     # No cache or it is an executor
     cache = False
+    cache_queue = Queue()  # type: Queue
+    cache_ids = None
     if is_worker():
         # Setup cache if enabled
-        if is_cache_enabled(str(WORKER_CONF.cache)):
+        if is_cache_enabled(str(worker_conf.cache)):
             # Deploy the necessary processes
             cache = True
-            smm, cache_process, cache_queue, CACHE_IDS = start_cache(
-                None, str(WORKER_CONF.cache), cache_profiler, log_dir
+            cache_params = start_cache(
+                None, str(worker_conf.cache), cache_profiler, log_dir
             )
-            CACHE_QUEUE = cache_queue
+            smm, cache_process, cache_queue, cache_ids = cache_params
 
     if is_worker():
-        with trace_mpi_worker() if TRACING else dummy_context():
-            compss_persistent_worker(WORKER_CONF)
+        with trace_mpi_worker() if tracing else dummy_context():
+            compss_persistent_worker(worker_conf)
     else:
-        with trace_mpi_executor() if TRACING else dummy_context():
-            compss_persistent_executor(WORKER_CONF)
+        with trace_mpi_executor() if tracing else dummy_context():
+            compss_persistent_executor(worker_conf, tracing, cache_queue, cache_ids)
 
     if cache and is_worker():
         # Beware of smm, cache_queue and cache_process variables, since they

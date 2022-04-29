@@ -29,8 +29,7 @@ import threading
 import time
 from queue import Queue
 
-from pycompss.runtime.management.COMPSs import get_redirection_file_names
-from pycompss.runtime.management.COMPSs import is_redirected
+from pycompss.runtime.management.COMPSs import COMPSs
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.typing_helper import typing
 
@@ -105,9 +104,9 @@ class StdWatcher:
 
         :return: None.
         """
-        if is_redirected():
+        if COMPSs.is_redirected():
             self.running = True
-            out_file_name, err_file_name = get_redirection_file_names()
+            out_file_name, err_file_name = COMPSs.get_redirection_file_names()
             thread = threading.Thread(
                 target=self.__std_follower__, args=(out_file_name, err_file_name)
             )
@@ -123,7 +122,7 @@ class StdWatcher:
         """
         self.running = False
         if clean:
-            out_file_name, err_file_name = get_redirection_file_names()
+            out_file_name, err_file_name = COMPSs.get_redirection_file_names()
             if os.path.exists(out_file_name):
                 os.remove(out_file_name)
             if os.path.exists(err_file_name):

@@ -51,7 +51,7 @@ except ImportError:
     )
     THREAD_AFFINITY = False
 
-import pycompss.runtime.management.COMPSs as COMPSs
+from pycompss.runtime.management.COMPSs import COMPSs
 from pycompss.util.context import CONTEXT
 from pycompss.runtime.commons import GLOBALS
 from pycompss.worker.piper.commons.constants import EXECUTE_TASK_TAG

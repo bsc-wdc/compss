@@ -28,7 +28,7 @@ import re
 import signal
 from shutil import rmtree
 
-from pycompss.runtime.management import COMPSs
+from pycompss.runtime.management.COMPSs import COMPSs
 from pycompss.util.context import CONTEXT
 from pycompss.runtime.commons import GLOBALS
 from pycompss.runtime.management.classes import EmptyReturn

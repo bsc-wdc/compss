@@ -23,7 +23,7 @@ PyCOMPSs Binding - Management - Object Synchronization.
 This file contains the object synchronization core methods.
 """
 
-from pycompss.runtime.management import COMPSs
+from pycompss.runtime.management.COMPSs import COMPSs
 from pycompss.util.context import CONTEXT
 from pycompss.runtime.global_args import (
     update_worker_argument_parameter_content,

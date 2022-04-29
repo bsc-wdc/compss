@@ -583,9 +583,7 @@ def execute_task(
         "compss_log_files": log_files,
         "compss_python_MPI": python_mpi,
         "compss_collections_layouts": collections_layouts,
-        "cache_queue": cache_queue,
-        "cache_ids": cache_ids,
-        "cache_profiler": cache_profiler,
+        "compss_cache": (cache_queue, cache_ids, cache_profiler),
     }
 
     if __debug__:

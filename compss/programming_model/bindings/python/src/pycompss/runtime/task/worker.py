@@ -123,9 +123,10 @@ class TaskWorker:
         # the worker
         self.cache_ids = None  # type: typing.Any
         self.cache_queue = None  # type: typing.Any
+        # Placeholder to keep the object references and avoid garbage collector
         self.cached_references = []  # type: typing.List[typing.Any]
+        # If profiling cache
         self.cache_profiler = False
-        # placeholder to keep the object references and avoid garbage collector
 
     def call(
         self, *args: typing.Any, **kwargs: typing.Any
@@ -180,9 +181,9 @@ class TaskWorker:
                 self.defaults = kwargs.pop("defaults", {})
 
                 # Pop cache if available
-                self.cache_ids = kwargs.pop("cache_ids", None)
-                self.cache_queue = kwargs.pop("cache_queue", None)
-                self.cache_profiler = kwargs.pop("cache_profiler", None)
+                cache = kwargs.pop("cache_ids", None)
+                if cache:
+                    self.cache_ids, self.cache_queue, self.cache_profiler = cache
 
                 if __debug__:
                     LOGGER.debug("Revealing objects")

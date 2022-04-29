@@ -31,7 +31,8 @@ import sys
 
 from pycompss.streams.components.distro_stream_client import (
     DistroStreamClientHandler,
-)  # noqa: E501
+)
+from pycompss.util.context import CONTEXT
 from pycompss.util.logger.helpers import init_logging_worker
 from pycompss.util.tracing.helpers import dummy_context
 from pycompss.util.tracing.helpers import EventWorker
@@ -61,8 +62,6 @@ def compss_worker(
         logger.debug("Starting Worker")
 
     # Set the binding in worker mode
-    from pycompss.util.context import CONTEXT
-
     CONTEXT.set_worker()
 
     result = execute_task(
@@ -74,7 +73,7 @@ def compss_worker(
         log_json,
         (),
         False,
-        dict(),
+        {},
         None,
         None,
     )
@@ -116,11 +115,11 @@ def main() -> None:
     # num_params = int(sys.argv[i+3])
     # params = sys.argv[i+4..]
 
-    if log_level == "true" or log_level == "debug":
-        print("Tracing = " + str(tracing))
-        print("Task id = " + str(task_id))
-        print("Log level = " + str(log_level))
-        print("Storage conf = " + str(storage_conf))
+    if log_level in ("true", "debug"):
+        print(f"Tracing = {str(tracing)}")
+        print(f"Task id = {str(task_id)}")
+        print(f"Log level = {str(log_level)}")
+        print(f"Storage conf = {str(storage_conf)}")
 
     persistent_storage = False
     if storage_conf != "null":
@@ -140,7 +139,7 @@ def main() -> None:
 
         # Load log level configuration file
         worker_path = os.path.dirname(os.path.realpath(__file__))
-        if log_level == "true" or log_level == "debug":
+        if log_level in ("true", "debug"):
             # Debug
             log_json = "".join(
                 (worker_path, "/../../../log/logging_gat_worker_debug.json")
@@ -160,8 +159,9 @@ def main() -> None:
         if persistent_storage:
             # Initialize storage
             with EventWorker(TRACING_WORKER.init_storage_at_worker_event):
-                from storage.api import initWorker as initStorageAtWorker  # noqa
-
+                from storage.api import (  # pylint: disable=import-error, import-outside-toplevel
+                    initWorker as initStorageAtWorker,
+                )
                 initStorageAtWorker(config_file_path=storage_conf)
 
         # Init worker
@@ -174,12 +174,13 @@ def main() -> None:
         if persistent_storage:
             # Finish storage
             with EventWorker(TRACING_WORKER.finish_storage_at_worker_event):
-                from storage.api import finishWorker as finishStorageAtWorker  # noqa
-
+                from storage.api import (  # pylint: disable=import-error, import-outside-toplevel
+                    finishWorker as finishStorageAtWorker,
+                )
                 finishStorageAtWorker()
 
     if exit_code == 1:
-        exit(1)
+        sys.exit(1)
 
 
 if __name__ == "__main__":

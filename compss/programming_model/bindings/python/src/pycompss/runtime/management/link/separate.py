@@ -27,6 +27,7 @@ and restarted (interactive usage of PyCOMPSs - ipython and jupyter).
 """
 
 import os
+import signal
 
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.process.manager import Queue
@@ -38,12 +39,6 @@ from pycompss.util.std.redirects import not_std_redirector
 from pycompss.util.typing_helper import typing
 from pycompss.runtime.management.link.messages import LINK_MESSAGES
 
-# Global variables
-LINK_PROCESS = new_process()
-IN_QUEUE = new_queue()
-OUT_QUEUE = new_queue()
-RELOAD = False
-
 if __debug__:
     import logging
 
@@ -51,8 +46,8 @@ if __debug__:
 
 
 def shutdown_handler(
-    signal: int, frame: typing.Any
-) -> None:  # pylint: disable=unused-argument
+    signal: int, frame: typing.Any   # pylint: disable=unused-argument
+) -> None:
     """Shutdown handler.
 
     Do not remove the parameters.
@@ -61,8 +56,122 @@ def shutdown_handler(
     :param frame: Frame.
     :return: None
     """
-    if LINK_PROCESS.is_alive():
-        LINK_PROCESS.terminate()
+    if EXTERNAL_LINK.link_process.is_alive():
+        EXTERNAL_LINK.terminate_interactive_link()
+
+
+def establish_interactive_link(
+    logger: typing.Any = None, redirect_std: bool = False
+) -> typing.Tuple[typing.Any, str, str]:
+    """Start a new process which will be in charge of communicating with the C-extension.
+
+    It will return stdout file name and stderr file name as None if
+    redirect_std is False. Otherwise, returns the names which are the
+    current process pid followed by the out/err extension.
+
+    :param logger: Use this logger instead of the module logger.
+    :param redirect_std: Decide whether to store the stdout and stderr into
+                         files or not.
+    :return: The COMPSs C extension link, stdout file name and stderr file
+             name.
+    """
+    return EXTERNAL_LINK.establish_interactive_link(logger, redirect_std)
+
+
+class ExternalLink:
+    """External link class."""
+
+    __slots__ = ["link_process",
+                 "in_queue",
+                 "out_queue",
+                 "reload"]
+
+    def __init__(self):
+        """Instantiate a new ExternalLink class."""
+        self.link_process = new_process()
+        self.in_queue = new_queue()
+        self.out_queue = new_queue()
+        self.reload = False
+
+    def establish_interactive_link(
+        self, logger: typing.Any = None, redirect_std: bool = False
+    ) -> typing.Tuple[typing.Any, str, str]:
+        """Start a new process which will be in charge of communicating with the C-extension.
+
+        It will return stdout file name and stderr file name as None if
+        redirect_std is False. Otherwise, returns the names which are the
+        current process pid followed by the out/err extension.
+
+        :param logger: Use this logger instead of the module logger.
+        :param redirect_std: Decide whether to store the stdout and stderr into
+                             files or not.
+        :return: The COMPSs C extension link, stdout file name and stderr file
+                 name.
+        """
+        out_file_name = ""
+        err_file_name = ""
+        if redirect_std:
+            pid = str(os.getpid())
+            out_file_name = "compss-" + pid + ".out"
+            err_file_name = "compss-" + pid + ".err"
+
+        if self.reload:
+            self.in_queue = new_queue()
+            self.out_queue = new_queue()
+            self.reload = False
+
+        if __debug__:
+            message = "Starting new process linking with the C-extension"
+            if logger:
+                logger.debug(message)
+            else:
+                link_logger.debug(message)
+
+        self.link_process = create_process(
+            target=c_extension_link,
+            args=(self.in_queue, self.out_queue, redirect_std, out_file_name, err_file_name),
+        )
+        signal.signal(signal.SIGTERM, shutdown_handler)
+        self.link_process.start()
+
+        if __debug__:
+            message = "Established link with C-extension"
+            if logger:
+                logger.debug(message)
+            else:
+                link_logger.debug(message)
+
+        # Create object that mimics compss library
+        compss_link = _COMPSs(self.in_queue, self.out_queue)
+        return compss_link, out_file_name, err_file_name
+
+    def wait_for_interactive_link(self) -> None:
+        """Wait for interactive link finalization.
+
+        :return: None
+        """
+        # Wait for the link to finish
+        self.in_queue.close()
+        self.out_queue.close()
+        self.in_queue.join_thread()
+        self.out_queue.join_thread()
+        self.link_process.join()
+        # Notify that if terminated, the queues must be reopened to start again.
+        self.reload = True
+
+    def terminate_interactive_link(self) -> None:
+        """Terminate the compss C extension process.
+
+        :return: None
+        """
+        self.link_process.terminate()
+
+
+# ############################################################# #
+# #################### EXTERNAL LINK CLASS #################### #
+# ############################################################# #
+
+EXTERNAL_LINK = ExternalLink()
 
 
 def c_extension_link(
@@ -156,88 +265,6 @@ def c_extension_link(
                 raise PyCOMPSsException("Unknown link command")
 
 
-def establish_interactive_link(
-    logger: typing.Any = None, redirect_std: bool = False
-) -> typing.Tuple[typing.Any, str, str]:
-    """Start a new process which will be in charge of communicating with the C-extension.
-
-    It will return stdout file name and stderr file name as None if
-    redirect_std is False. Otherwise, returns the names which are the
-    current process pid followed by the out/err extension.
-
-    :param logger: Use this logger instead of the module logger.
-    :param redirect_std: Decide whether to store the stdout and stderr into
-                         files or not.
-    :return: The COMPSs C extension link, stdout file name and stderr file
-             name.
-    """
-    global LINK_PROCESS
-    global IN_QUEUE
-    global OUT_QUEUE
-    global RELOAD
-
-    out_file_name = ""
-    err_file_name = ""
-    if redirect_std:
-        pid = str(os.getpid())
-        out_file_name = "compss-" + pid + ".out"
-        err_file_name = "compss-" + pid + ".err"
-
-    if RELOAD:
-        IN_QUEUE = new_queue()
-        OUT_QUEUE = new_queue()
-        RELOAD = False
-
-    if __debug__:
-        message = "Starting new process linking with the C-extension"
-        if logger:
-            logger.debug(message)
-        else:
-            link_logger.debug(message)
-
-    LINK_PROCESS = create_process(
-        target=c_extension_link,
-        args=(IN_QUEUE, OUT_QUEUE, redirect_std, out_file_name, err_file_name),
-    )
-    LINK_PROCESS.start()
-
-    if __debug__:
-        message = "Established link with C-extension"
-        if logger:
-            logger.debug(message)
-        else:
-            link_logger.debug(message)
-
-    compss_link = _COMPSs  # object that mimics compss library
-    return compss_link, out_file_name, err_file_name
-
-
-def wait_for_interactive_link() -> None:
-    """Wait for interactive link finalization.
-
-    :return: None
-    """
-    global RELOAD
-
-    # Wait for the link to finish
-    IN_QUEUE.close()
-    OUT_QUEUE.close()
-    IN_QUEUE.join_thread()
-    OUT_QUEUE.join_thread()
-    LINK_PROCESS.join()
-
-    # Notify that if terminated, the queues must be reopened to start again.
-    RELOAD = True
-
-
-def terminate_interactive_link() -> None:
-    """Terminate the compss C extension process.
-
-    :return: None
-    """
-    LINK_PROCESS.terminate()
-
-
 class _COMPSs:
     """Class that mimics the compss extension library.
 
@@ -247,58 +274,60 @@ class _COMPSs:
     IMPORTANT: methods must be exactly the same.
     """
 
-    @staticmethod
-    def start_runtime() -> None:
+    __slots__ = ["in_queue",
+                 "out_queue"]
+
+    def __init__(self, in_queue, out_queue):
+        """Instantiate a new _COMPSs object."""
+        self.in_queue = in_queue
+        self.out_queue = out_queue
+
+    def start_runtime(self) -> None:
         """Call to start_runtime.
 
         :return: None
         """
-        IN_QUEUE.put([LINK_MESSAGES.start])
+        self.in_queue.put([LINK_MESSAGES.start])
 
-    @staticmethod
-    def set_debug(mode: bool) -> None:
+    def set_debug(self, mode: bool) -> None:
         """Call to set_debug.
 
         :param mode: Debug mode ( True | False ).
         :return: None.
         """
-        IN_QUEUE.put((LINK_MESSAGES.set_debug, mode))
+        self.in_queue.put((LINK_MESSAGES.set_debug, mode))
 
-    @staticmethod
-    def stop_runtime(code: int) -> None:
+    def stop_runtime(self, code: int) -> None:
         """Call to stop_runtime.
 
         :param code: Stopping code.
         :return: None.
         """
-        IN_QUEUE.put([LINK_MESSAGES.stop, code])
-        wait_for_interactive_link()
-        # terminate_interactive_link()
+        self.in_queue.put([LINK_MESSAGES.stop, code])
+        EXTERNAL_LINK.wait_for_interactive_link()
+        # EXTERNAL_LINK.terminate_interactive_link()
 
-    @staticmethod
-    def cancel_application_tasks(app_id: int, value: int) -> None:
+    def cancel_application_tasks(self, app_id: int, value: int) -> None:
         """Call to cancel_application_tasks.
 
         :param app_id: Application identifier.
         :param value:  Task identifier.
         :return: None.
         """
-        IN_QUEUE.put((LINK_MESSAGES.cancel_tasks, app_id, value))
+        self.in_queue.put((LINK_MESSAGES.cancel_tasks, app_id, value))
 
-    @staticmethod
-    def accessed_file(app_id: int, file_name: str) -> bool:
+    def accessed_file(self, app_id: int, file_name: str) -> bool:
         """Call to accessed_file.
 
         :param app_id: Application identifier.
         :param file_name: File name to check if accessed.
         :return: If the file has been accessed.
         """
-        IN_QUEUE.put((LINK_MESSAGES.accessed_file, app_id, file_name))
-        accessed = OUT_QUEUE.get(block=True)
+        self.in_queue.put((LINK_MESSAGES.accessed_file, app_id, file_name))
+        accessed = self.out_queue.get(block=True)
         return accessed
 
-    @staticmethod
-    def open_file(app_id: int, file_name: str, mode: int) -> str:
+    def open_file(self, app_id: int, file_name: str, mode: int) -> str:
         """Call to open_file.
 
         Synchronizes if necessary.
@@ -308,12 +337,11 @@ class _COMPSs:
         :param mode: Open mode.
         :return: The real file name.
         """
-        IN_QUEUE.put((LINK_MESSAGES.open_file, app_id, file_name, mode))
-        compss_name = OUT_QUEUE.get(block=True)
+        self.in_queue.put((LINK_MESSAGES.open_file, app_id, file_name, mode))
+        compss_name = self.out_queue.get(block=True)
         return compss_name
 
-    @staticmethod
-    def close_file(app_id: int, file_name: str, mode: int) -> None:
+    def close_file(self, app_id: int, file_name: str, mode: int) -> None:
         """Call to close_file.
 
         :param app_id: Application identifier.
@@ -321,10 +349,9 @@ class _COMPSs:
         :param mode: Close mode.
         :return: None.
         """
-        IN_QUEUE.put((LINK_MESSAGES.close_file, app_id, file_name, mode))
+        self.in_queue.put((LINK_MESSAGES.close_file, app_id, file_name, mode))
 
-    @staticmethod
-    def delete_file(app_id: int, file_name: str, mode: bool) -> bool:
+    def delete_file(self, app_id: int, file_name: str, mode: bool) -> bool:
         """Call to delete_file.
 
         :param app_id: Application identifier.
@@ -332,56 +359,51 @@ class _COMPSs:
         :param mode: Delete mode.
         :return: The deletion result.
         """
-        IN_QUEUE.put((LINK_MESSAGES.delete_file, app_id, file_name, mode))
-        result = OUT_QUEUE.get(block=True)
+        self.in_queue.put((LINK_MESSAGES.delete_file, app_id, file_name, mode))
+        result = self.out_queue.get(block=True)
         if result is None:
             return False
         return result
 
-    @staticmethod
-    def get_file(app_id: int, file_name: str) -> None:
+    def get_file(self, app_id: int, file_name: str) -> None:
         """Call to (synchronize file) get_file.
 
         :param app_id: Application identifier.
         :param file_name: File name reference to get.
         :return: None.
         """
-        IN_QUEUE.put((LINK_MESSAGES.get_file, app_id, file_name))
+        self.in_queue.put((LINK_MESSAGES.get_file, app_id, file_name))
 
-    @staticmethod
-    def get_directory(app_id: int, directory_name: str) -> None:
+    def get_directory(self, app_id: int, directory_name: str) -> None:
         """Call to (synchronize directory) get_directory.
 
         :param app_id: Application identifier.
         :param directory_name: Directory name reference to get.
         :return: None.
         """
-        IN_QUEUE.put((LINK_MESSAGES.get_directory, app_id, directory_name))
+        self.in_queue.put((LINK_MESSAGES.get_directory, app_id, directory_name))
 
-    @staticmethod
-    def barrier(app_id: int, no_more_tasks: bool) -> None:
+    def barrier(self, app_id: int, no_more_tasks: bool) -> None:
         """Call to barrier.
 
         :param app_id: Application identifier.
         :param no_more_tasks: No more tasks boolean.
         :return: None
         """
-        IN_QUEUE.put((LINK_MESSAGES.barrier, app_id, no_more_tasks))
+        self.in_queue.put((LINK_MESSAGES.barrier, app_id, no_more_tasks))
 
-    @staticmethod
-    def barrier_group(app_id: int, group_name: str) -> str:
+    def barrier_group(self, app_id: int, group_name: str) -> str:
         """Call to barrier_group.
 
         :param app_id: Application identifier.
         :param group_name: Group name.
         :return: Exception message.
         """
-        IN_QUEUE.put((LINK_MESSAGES.barrier_group, app_id, group_name))
-        exception_message = OUT_QUEUE.get(block=True)
+        self.in_queue.put((LINK_MESSAGES.barrier_group, app_id, group_name))
+        exception_message = self.out_queue.get(block=True)
         return exception_message
 
-    @staticmethod
-    def open_task_group(group_name: str, implicit_barrier: bool, app_id: int) -> None:
+    def open_task_group(self, group_name: str, implicit_barrier: bool, app_id: int) -> None:
         """Call to open_task_group.
 
         :param group_name: Group name.
@@ -389,43 +411,39 @@ class _COMPSs:
         :param app_id: Application identifier.
         :return: None.
         """
-        IN_QUEUE.put(
+        self.in_queue.put(
             (LINK_MESSAGES.open_task_group, group_name, implicit_barrier, app_id)
         )
 
-    @staticmethod
-    def close_task_group(group_name: str, app_id: int) -> None:
+    def close_task_group(self, group_name: str, app_id: int) -> None:
         """Call to close_task_group.
 
         :param group_name: Group name.
         :param app_id: Application identifier.
         :return: None.
         """
-        IN_QUEUE.put((LINK_MESSAGES.close_task_group, group_name, app_id))
+        self.in_queue.put((LINK_MESSAGES.close_task_group, group_name, app_id))
 
-    @staticmethod
-    def get_logging_path() -> str:
+    def get_logging_path(self) -> str:
         """Call to get_logging_path.
 
         :return: The COMPSs log path.
         """
-        IN_QUEUE.put([LINK_MESSAGES.get_logging_path])
-        log_path = OUT_QUEUE.get(block=True)
+        self.in_queue.put([LINK_MESSAGES.get_logging_path])
+        log_path = self.out_queue.get(block=True)
         return log_path
 
-    @staticmethod
-    def get_number_of_resources(app_id: int) -> int:
+    def get_number_of_resources(self, app_id: int) -> int:
         """Call to number_of_resources.
 
         :param app_id: Application identifier.
         :return: Number of resources.
         """
-        IN_QUEUE.put((LINK_MESSAGES.get_number_of_resources, app_id))
-        num_resources = OUT_QUEUE.get(block=True)
+        self.in_queue.put((LINK_MESSAGES.get_number_of_resources, app_id))
+        num_resources = self.out_queue.get(block=True)
         return num_resources
 
-    @staticmethod
-    def request_resources(app_id: int, num_resources: int, group_name: str) -> None:
+    def request_resources(self, app_id: int, num_resources: int, group_name: str) -> None:
         """Call to request_resources.
 
         :param app_id: Application identifier.
@@ -433,12 +451,11 @@ class _COMPSs:
         :param group_name: Group name.
         :return: None.
         """
-        IN_QUEUE.put(
+        self.in_queue.put(
             (LINK_MESSAGES.request_resources, app_id, num_resources, group_name)
         )
 
-    @staticmethod
-    def free_resources(app_id: int, num_resources: int, group_name: str) -> None:
+    def free_resources(self, app_id: int, num_resources: int, group_name: str) -> None:
         """Call to free_resources.
 
         :param app_id: Application identifier.
@@ -446,20 +463,19 @@ class _COMPSs:
         :param group_name: Group name.
         :return: None.
         """
-        IN_QUEUE.put((LINK_MESSAGES.free_resources, app_id, num_resources, group_name))
+        self.in_queue.put((LINK_MESSAGES.free_resources, app_id, num_resources, group_name))
 
-    @staticmethod
-    def set_wall_clock(app_id: int, wcl: int) -> None:
+    def set_wall_clock(self, app_id: int, wcl: int) -> None:
         """Call to set_wall_clock.
 
         :param app_id: Application identifier.
         :param wcl: Wall Clock limit in seconds.
         :return: None.
         """
-        IN_QUEUE.put((LINK_MESSAGES.set_wall_clock, app_id, wcl))
+        self.in_queue.put((LINK_MESSAGES.set_wall_clock, app_id, wcl))
 
-    @staticmethod
     def register_core_element(
+        self,
         ce_signature: str,
         impl_signature: typing.Optional[str],
         impl_constraints: typing.Optional[str],
@@ -481,7 +497,7 @@ class _COMPSs:
         :param impl_type_args: Implementation type arguments.
         :return: None.
         """
-        IN_QUEUE.put(
+        self.in_queue.put(
             (
                 LINK_MESSAGES.register_core_element,
                 ce_signature,
@@ -495,8 +511,8 @@ class _COMPSs:
             )
         )
 
-    @staticmethod
     def process_task(
+        self,
         app_id: int,
         signature: str,
         on_failure: str,
@@ -544,7 +560,7 @@ class _COMPSs:
         :param keep_renames: Boolean keep renames.
         :return: None.
         """
-        IN_QUEUE.put(
+        self.in_queue.put(
             (
                 LINK_MESSAGES.process_task,
                 app_id,
@@ -571,8 +587,8 @@ class _COMPSs:
             )
         )
 
-    @staticmethod
     def process_http_task(
+        self,
         app_id: int,
         signature: str,
         on_failure: str,
@@ -620,7 +636,7 @@ class _COMPSs:
         :param keep_renames: Boolean keep renames.
         :return: None.
         """
-        IN_QUEUE.put(
+        self.in_queue.put(
             (
                 LINK_MESSAGES.process_http_task,
                 app_id,
@@ -647,22 +663,20 @@ class _COMPSs:
             )
         )
 
-    @staticmethod
-    def set_pipes(pipe_in: str, pipe_out: str) -> None:
+    def set_pipes(self, pipe_in: str, pipe_out: str) -> None:
         """Set nesting pipes.
 
         :param pipe_in: Input pipe.
         :param pipe_out: Output pipe.
         :return: None.
         """
-        IN_QUEUE.put((LINK_MESSAGES.set_pipes, pipe_in, pipe_out))
+        self.in_queue.put((LINK_MESSAGES.set_pipes, pipe_in, pipe_out))
 
-    @staticmethod
-    def read_pipes() -> str:
+    def read_pipes(self) -> str:
         """Call to read_pipes.
 
         :return: The command read from the pipe.
         """
-        IN_QUEUE.put([LINK_MESSAGES.read_pipes])
-        command = OUT_QUEUE.get(block=True)
+        self.in_queue.put([LINK_MESSAGES.read_pipes])
+        command = self.out_queue.get(block=True)
         return command

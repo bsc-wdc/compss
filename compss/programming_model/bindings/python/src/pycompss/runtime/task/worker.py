@@ -33,8 +33,7 @@ from pycompss.util.context import CONTEXT
 from pycompss.api.exceptions import COMPSsException
 from pycompss.runtime.binding import wait_on
 from pycompss.runtime.commons import CONSTANTS
-from pycompss.runtime.global_args import delete_worker_args
-from pycompss.runtime.global_args import set_worker_args
+from pycompss.runtime.shared_args import SHARED_ARGUMENTS
 from pycompss.runtime.task.arguments import get_name_from_kwarg
 from pycompss.runtime.task.arguments import get_name_from_vararg
 from pycompss.runtime.task.arguments import is_kwarg
@@ -146,7 +145,7 @@ class TaskWorker:
         global LOGGER
         # Save the args in a global place (needed from synchronize when using
         # nesting)
-        set_worker_args(args)
+        SHARED_ARGUMENTS.set_worker_args(args)
         # Grab LOGGER from kwargs (shadows outer LOGGER since it is set by
         # the worker).
         LOGGER = kwargs["compss_logger"]  # noqa
@@ -317,7 +316,7 @@ class TaskWorker:
 
         :return: None.
         """
-        delete_worker_args()
+        SHARED_ARGUMENTS.delete_worker_args()
         # Call garbage collector: The memory may not be freed to the SO,
         # although the objects are removed.
         gc.collect()

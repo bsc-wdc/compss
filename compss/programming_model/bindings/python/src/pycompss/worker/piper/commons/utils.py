@@ -30,7 +30,7 @@ from pycompss.worker.piper.commons.constants import HEADER
 from pycompss.worker.piper.commons.executor import Pipe
 
 
-class PiperWorkerConfiguration(object):
+class PiperWorkerConfiguration:
     """Description of the configuration parameters for the Piper Worker class."""
 
     __slots__ = [

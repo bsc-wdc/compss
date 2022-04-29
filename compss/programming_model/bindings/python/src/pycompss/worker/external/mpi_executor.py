@@ -39,11 +39,7 @@ from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.util.typing_helper import typing
 from pycompss.worker.commons.executor import build_return_params_message
 from pycompss.worker.commons.worker import execute_task
-from pycompss.worker.piper.commons.constants import (
-    COMPSS_EXCEPTION_TAG,
-    END_TASK_TAG,
-    EXECUTE_TASK_TAG,
-)
+from pycompss.worker.piper.commons.constants import TAGS
 
 
 # noqa TODO: Comments about exit value and return following values was in another branch need to be reviewed if it works in trunk
@@ -52,7 +48,9 @@ from pycompss.worker.piper.commons.constants import (
 # UNEXPECTED_SIG = 2
 
 
-def shutdown_handler(signal: int, frame: typing.Any) -> None:  # pylint: disable=redefined-outer-name
+def shutdown_handler(
+    signal: int, frame: typing.Any
+) -> None:  # pylint: disable=redefined-outer-name
     """Handle shutdown - MPI exception signal handler.
 
     CAUTION! Do not remove the parameters.
@@ -167,7 +165,7 @@ def process_task(
             )
 
         splitted_current_line = current_line.split()
-        if splitted_current_line[0] == EXECUTE_TASK_TAG:
+        if splitted_current_line[0] == TAGS.execute_task:
             num_collection_params = int(splitted_current_line[-1])
             collections_layouts = {}
             if num_collection_params > 0:
@@ -246,7 +244,9 @@ def process_task(
 
                 # Setup process environment
                 compss_nodes = int(current_line_filtered[12])
-                compss_nodes_names = ",".join(current_line_filtered[13 : 13 + compss_nodes])
+                compss_nodes_names = ",".join(
+                    current_line_filtered[13 : 13 + compss_nodes]
+                )
                 computing_units = int(current_line_filtered[13 + compss_nodes])
                 os.environ["COMPSS_NUM_NODES"] = str(compss_nodes)
                 os.environ["COMPSS_HOSTNAMES"] = compss_nodes_names
@@ -297,14 +297,19 @@ def process_task(
                     # endTask jobId exitValue message
                     params = build_return_params_message(new_types, new_values)
                     message = " ".join(
-                        (END_TASK_TAG, str(job_id), str(exit_value), str(params) + "\n")
+                        (
+                            TAGS.end_task,
+                            str(job_id),
+                            str(exit_value),
+                            str(params) + "\n",
+                        )
                     )
                 elif exit_value == 2:
                     # Task has finished with a COMPSs Exception
                     # compssExceptionTask jobId exitValue message
                     except_msg = except_msg.replace(" ", "_")
                     message = " ".join(
-                        (COMPSS_EXCEPTION_TAG, str(job_id), str(except_msg) + "\n")
+                        (TAGS.compss_exception, str(job_id), str(except_msg) + "\n")
                     )
                     if __debug__:
                         logger.debug(
@@ -316,7 +321,7 @@ def process_task(
                     # elif MPI.COMM_WORLD.rank == 0 and global_exit_value != 0:
                     # An exception has been raised in task
                     message = " ".join(
-                        (END_TASK_TAG, str(job_id), str(exit_value) + "\n")
+                        (TAGS.end_task, str(job_id), str(exit_value) + "\n")
                     )
 
                 if __debug__:
@@ -351,7 +356,7 @@ def process_task(
                     "%s - Exception %s", str(process_name), str(general_exception)
                 )
                 exit_value = 7
-                message = " ".join((END_TASK_TAG, str(job_id), str(exit_value) + "\n"))
+                message = " ".join((TAGS.end_task, str(job_id), str(exit_value) + "\n"))
 
             # Clean environment variables
             if __debug__:
@@ -384,7 +389,7 @@ def process_task(
                     str(current_line_filtered),
                 )
             exit_value = 7
-            message = " ".join((END_TASK_TAG, str(job_id), str(exit_value) + "\n"))
+            message = " ".join((TAGS.end_task, str(job_id), str(exit_value) + "\n"))
 
         return exit_value, message
 

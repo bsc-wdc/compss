@@ -29,6 +29,7 @@ import sys
 
 from mpi4py import MPI
 from pycompss.runtime.commons import GLOBALS
+from pycompss.util.context import CONTEXT
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.process.manager import Queue
 from pycompss.util.tracing.helpers import dummy_context
@@ -40,17 +41,8 @@ from pycompss.util.typing_helper import typing
 from pycompss.worker.piper.cache.setup import is_cache_enabled
 from pycompss.worker.piper.cache.setup import start_cache
 from pycompss.worker.piper.cache.setup import stop_cache
-from pycompss.worker.piper.commons.constants import ADD_EXECUTOR_FAILED_TAG
-from pycompss.worker.piper.commons.constants import ADD_EXECUTOR_TAG
-from pycompss.worker.piper.commons.constants import CANCEL_TASK_TAG
 from pycompss.worker.piper.commons.constants import HEADER
-from pycompss.worker.piper.commons.constants import PING_TAG
-from pycompss.worker.piper.commons.constants import PONG_TAG
-from pycompss.worker.piper.commons.constants import QUERY_EXECUTOR_ID_TAG
-from pycompss.worker.piper.commons.constants import QUIT_TAG
-from pycompss.worker.piper.commons.constants import REMOVED_EXECUTOR_TAG
-from pycompss.worker.piper.commons.constants import REMOVE_EXECUTOR_TAG
-from pycompss.worker.piper.commons.constants import REPLY_EXECUTOR_ID_TAG
+from pycompss.worker.piper.commons.constants import TAGS
 from pycompss.worker.piper.commons.executor import ExecutorConf
 from pycompss.worker.piper.commons.executor import executor
 from pycompss.worker.piper.commons.utils import PiperWorkerConfiguration
@@ -71,7 +63,10 @@ def is_worker() -> bool:
     return RANK == 0
 
 
-def shutdown_handler(signal: int, frame: typing.Any) -> None:
+def shutdown_handler(
+    signal: int,  # pylint: disable=redefined-outer-name, unused-argument
+    frame: typing.Any,  # pylint: disable=unused-argument
+) -> None:
     """Handle shutdown - Shutdown handler.
 
     CAUTION! Do not remove the parameters.
@@ -81,12 +76,15 @@ def shutdown_handler(signal: int, frame: typing.Any) -> None:
     :return: None.
     """
     if is_worker():
-        print(HEADER + "Shutdown signal handler")
+        print(f"{HEADER}Shutdown signal handler")
     else:
-        print("[PYTHON EXECUTOR %s] Shutdown signal handler" % RANK)
+        print(f"[PYTHON EXECUTOR {RANK}] Shutdown signal handler")
 
 
-def user_signal_handler(signal: int, frame: typing.Any) -> None:
+def user_signal_handler(
+    signal: int,  # pylint: disable=redefined-outer-name, unused-argument
+    frame: typing.Any,  # pylint: disable=unused-argument
+) -> None:
     """Handle user signal - User signal handler.
 
     CAUTION! Do not remove the parameters.
@@ -96,9 +94,9 @@ def user_signal_handler(signal: int, frame: typing.Any) -> None:
     :return: None.
     """
     if is_worker():
-        print(HEADER + "Default user signal handler")
+        print(f"{HEADER}Default user signal handler")
     else:
-        print("[PYTHON EXECUTOR %s] Default user signal handler" % RANK)
+        print(f"[PYTHON EXECUTOR {RANK}] Default user signal handler")
 
 
 ######################
@@ -124,8 +122,6 @@ def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
     signal.signal(signal.SIGUSR2, user_signal_handler)
 
     # Set the binding in worker mode
-    from pycompss.util.context import CONTEXT
-
     CONTEXT.set_worker()
 
     persistent_storage = config.storage_conf != "null"
@@ -133,15 +129,17 @@ def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
     logger, _, _, _ = load_loggers(config.debug, persistent_storage)
 
     if __debug__:
-        logger.debug(HEADER + "mpi_piper_worker.py rank: " + str(RANK) + " wake up")
+        logger.debug("%s[mpi_piper_worker.py] rank: %s wake up", HEADER, str(RANK))
         config.print_on_logger(logger)
 
     # Start storage
     if persistent_storage:
         # Initialize storage
         if __debug__:
-            logger.debug(HEADER + "Starting persistent storage")
-        from storage.api import initWorker as initStorageAtWorker  # noqa
+            logger.debug("%sStarting persistent storage", HEADER)
+        from storage.api import (  # pylint: disable=import-error, import-outside-toplevel
+            initWorker as initStorageAtWorker,
+        )
 
         initStorageAtWorker(config_file_path=config.storage_conf)
 
@@ -154,8 +152,8 @@ def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
         PROCESSES[child_in_pipe] = child_pid
 
     if __debug__:
-        logger.debug(HEADER + "Starting alive")
-        logger.debug(HEADER + "Control pipe: " + str(config.control_pipe))
+        logger.debug("%sStarting alive", HEADER)
+        logger.debug("%sControl pipe: %s", HEADER, str(config.control_pipe))
     # Read command from control pipe
     alive = True
     control_pipe = config.control_pipe  # type: typing.Any
@@ -163,64 +161,64 @@ def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
         command = control_pipe.read_command()
         if command != "":
             line = command.split()
-            if line[0] == ADD_EXECUTOR_TAG:
+            if line[0] == TAGS.add_executor:
                 in_pipe = line[1]
                 out_pipe = line[2]
                 control_pipe.write(
-                    " ".join((ADD_EXECUTOR_FAILED_TAG, out_pipe, in_pipe, str(0)))
+                    " ".join((TAGS.add_executor_failed, out_pipe, in_pipe, str(0)))
                 )
 
-            elif line[0] == REMOVE_EXECUTOR_TAG:
+            elif line[0] == TAGS.remove_executor:
                 in_pipe = line[1]
                 out_pipe = line[2]
                 PROCESSES.pop(in_pipe, None)
-                control_pipe.write(" ".join((REMOVED_EXECUTOR_TAG, out_pipe, in_pipe)))
+                control_pipe.write(" ".join((TAGS.removed_executor, out_pipe, in_pipe)))
 
-            elif line[0] == QUERY_EXECUTOR_ID_TAG:
+            elif line[0] == TAGS.query_executor_id:
                 in_pipe = line[1]
                 out_pipe = line[2]
                 pid = PROCESSES.get(in_pipe)
                 control_pipe.write(
-                    " ".join((REPLY_EXECUTOR_ID_TAG, out_pipe, in_pipe, str(pid)))
+                    " ".join((TAGS.reply_executor_id, out_pipe, in_pipe, str(pid)))
                 )
 
-            elif line[0] == CANCEL_TASK_TAG:
+            elif line[0] == TAGS.cancel_task:
                 in_pipe = line[1]
                 cancel_pid = str(PROCESSES.get(in_pipe))
                 if __debug__:
                     logger.debug(
-                        HEADER
-                        + "Signaling process with PID "
-                        + cancel_pid
-                        + " to cancel a task"
+                        "%sSignaling process with PID %s to cancel a task",
+                        HEADER,
+                        cancel_pid,
                     )
-                os.kill(
-                    int(cancel_pid), signal.SIGUSR2
-                )  # NOSONAR cancellation produced by COMPSs
+                # Cancellation produced by COMPSs
+                os.kill(int(cancel_pid), signal.SIGUSR2)
 
-            elif line[0] == PING_TAG:
-                control_pipe.write(PONG_TAG)
+            elif line[0] == TAGS.ping:
+                control_pipe.write(TAGS.pong)
 
-            elif line[0] == QUIT_TAG:
+            elif line[0] == TAGS.quit:
                 alive = False
             else:
                 if __debug__:
-                    logger.debug(HEADER + "ERROR: UNKNOWN COMMAND: " + command)
+                    logger.debug("%sERROR: UNKNOWN COMMAND: %s", HEADER, command)
                 alive = False
 
     # Stop storage
     if persistent_storage:
         # Finish storage
         if __debug__:
-            logger.debug(HEADER + "Stopping persistent storage")
-        from storage.api import finishWorker as finishStorageAtWorker  # noqa
+            logger.debug("%sStopping persistent storage", HEADER)
+        from storage.api import (  # pylint: disable=import-error, import-outside-toplevel
+            finishWorker as finishStorageAtWorker,
+        )
 
         finishStorageAtWorker()
 
     if __debug__:
-        logger.debug(HEADER + "Finished")
+        logger.debug("%sFinished", HEADER)
 
-    control_pipe.write(QUIT_TAG)
+    control_pipe.write(TAGS.quit)
     control_pipe.close()
 
 
@@ -248,8 +246,6 @@ def compss_persistent_executor(
     signal.signal(signal.SIGUSR2, user_signal_handler)
 
     # Set the binding in worker mode
-    from pycompss.util.context import CONTEXT
-
     CONTEXT.set_worker()
 
     persistent_storage = config.storage_conf != "null"
@@ -265,7 +261,9 @@ def compss_persistent_executor(
     if persistent_storage:
         # Initialize storage
         with EventWorker(TRACING_WORKER.init_storage_at_worker_event):
-            from storage.api import initWorker as initStorageAtWorker  # noqa
+            from storage.api import (  # pylint: disable=import-error, import-outside-toplevel
+                initWorker as initStorageAtWorker,
+            )
 
             initStorageAtWorker(config_file_path=config.storage_conf)
 
@@ -291,9 +289,11 @@ def compss_persistent_executor(
     if persistent_storage:
         # Finish storage
         if __debug__:
-            logger.debug(HEADER + "Stopping persistent storage")
+            logger.debug("%sStopping persistent storage", HEADER)
         with EventWorker(TRACING_WORKER.finish_storage_at_worker_event):
-            from storage.api import finishWorker as finishStorageAtWorker  # noqa
+            from storage.api import (  # pylint: disable=import-error, import-outside-toplevel
+                finishWorker as finishStorageAtWorker,
+            )
 
             finishStorageAtWorker()
 
@@ -312,7 +312,7 @@ def main() -> None:
 
     # Enable coverage if performed
     if "COVERAGE_PROCESS_START" in os.environ:
-        import coverage
+        import coverage  # pylint: disable=import-outside-toplevel
 
         coverage.process_startup()
 

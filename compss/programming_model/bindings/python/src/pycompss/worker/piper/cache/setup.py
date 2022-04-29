@@ -43,9 +43,9 @@ def is_cache_enabled(cache_config: str) -> bool:
     """
     if ":" in cache_config:
         cache, _ = cache_config.split(":")
-        cache_status = True if cache.lower() == "true" else False
+        cache_status = cache.lower() == "true"
     else:
-        cache_status = True if cache_config.lower() == "true" else False
+        cache_status = cache_config.lower() == "true"
     return cache_status
 
 
@@ -67,8 +67,8 @@ def start_cache(
     cache_size = __get_cache_size__(cache_config)
     # Cache can be used - Create proxy dict
     cache_ids = __create_proxy_dict__()  # type: typing.Any
-    cache_hits = dict()  # type: typing.Dict[int, typing.Dict[str, int]]
-    profiler_dict = dict()  # type: dict
+    cache_hits = {}  # type: typing.Dict[int, typing.Dict[str, int]]
+    profiler_dict = {}  # type: dict
     profiler_get_struct = [[], [], []]  # type: typing.List[typing.List[str]]
     # profiler_get_struct structure: Filename, Parameter, Function
     smm = CACHE_TRACKER.start_shared_memory_manager()
@@ -127,10 +127,10 @@ def __get_default_cache_size__() -> int:
     :return: The size in bytes.
     """
     # Default cache_size (bytes) = total_memory (bytes) / 4
-    mem_info = dict(
-        (i.split()[0].rstrip(":"), int(i.split()[1]))
-        for i in open("/proc/meminfo").readlines()
-    )
+    with open("/proc/meminfo") as meminfo_fd:
+        full_meminfo = meminfo_fd.readlines()
+
+    mem_info = dict((i.split()[0].rstrip(":"), int(i.split()[1])) for i in full_meminfo)
     cache_size = int(mem_info["MemTotal"] * 1024 / 4)
     return cache_size
 

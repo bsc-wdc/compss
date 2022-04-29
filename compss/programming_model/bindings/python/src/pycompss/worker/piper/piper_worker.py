@@ -41,17 +41,8 @@ from pycompss.util.typing_helper import typing
 from pycompss.worker.piper.cache.setup import is_cache_enabled
 from pycompss.worker.piper.cache.setup import start_cache
 from pycompss.worker.piper.cache.setup import stop_cache
-from pycompss.worker.piper.commons.constants import ADDED_EXECUTOR_TAG
-from pycompss.worker.piper.commons.constants import ADD_EXECUTOR_TAG
-from pycompss.worker.piper.commons.constants import CANCEL_TASK_TAG
 from pycompss.worker.piper.commons.constants import HEADER
-from pycompss.worker.piper.commons.constants import PING_TAG
-from pycompss.worker.piper.commons.constants import PONG_TAG
-from pycompss.worker.piper.commons.constants import QUERY_EXECUTOR_ID_TAG
-from pycompss.worker.piper.commons.constants import QUIT_TAG
-from pycompss.worker.piper.commons.constants import REMOVED_EXECUTOR_TAG
-from pycompss.worker.piper.commons.constants import REMOVE_EXECUTOR_TAG
-from pycompss.worker.piper.commons.constants import REPLY_EXECUTOR_ID_TAG
+from pycompss.worker.piper.commons.constants import TAGS
 from pycompss.worker.piper.commons.executor import ExecutorConf
 from pycompss.worker.piper.commons.executor import Pipe
 from pycompss.worker.piper.commons.executor import executor
@@ -60,12 +51,15 @@ from pycompss.worker.piper.commons.utils_logger import load_loggers
 
 # Persistent worker global variables
 # PROCESSES = IN_PIPE -> PROCESS
-PROCESSES = dict()  # type: typing.Dict[str, typing.Any]
+PROCESSES = {}  # type: typing.Dict[str, typing.Any]
 CACHE = None
 CACHE_PROCESS = None
 
 
-def shutdown_handler(signal: int, frame: typing.Any) -> None:
+def shutdown_handler(
+    signal: int,  # pylint: disable=redefined-outer-name, unused-argument
+    frame: typing.Any,  # pylint: disable=unused-argument
+) -> None:
     """Handle shutdown - Shutdown handler.
 
     CAUTION! Do not remove the parameters.
@@ -111,14 +105,16 @@ def compss_persistent_worker(config: PiperWorkerConfiguration, tracing: bool) ->
     )
 
     if __debug__:
-        logger.debug(HEADER + "piper_worker.py wake up")
+        logger.debug("%s[piper_worker.py] wake up", HEADER)
         config.print_on_logger(logger)
 
     if persistent_storage:
         # Initialize storage
-        logger.debug(HEADER + "Starting persistent storage")
+        logger.debug("%sStarting persistent storage", HEADER)
         with EventWorker(TRACING_WORKER.init_storage_at_worker_event):
-            from storage.api import initWorker as initStorageAtWorker  # noqa
+            from storage.api import (  # pylint: disable=import-error, import-outside-toplevel
+                initWorker as initStorageAtWorker,
+            )
 
             initStorageAtWorker(config_file_path=config.storage_conf)
 
@@ -160,7 +156,7 @@ def compss_persistent_worker(config: PiperWorkerConfiguration, tracing: bool) ->
 
     for i in range(0, config.tasks_x_node):
         if __debug__:
-            logger.debug(HEADER + "Launching process " + str(i))
+            logger.debug("%sLaunching process %s", HEADER, str(i))
         process_name = "".join(("Process-", str(i)))
         pid, queue = create_executor_process(process_name, conf, config.pipes[i])
         queues.append(queue)
@@ -174,7 +170,7 @@ def compss_persistent_worker(config: PiperWorkerConfiguration, tracing: bool) ->
         if command != "":
             line = command.split()
 
-            if line[0] == ADD_EXECUTOR_TAG:
+            if line[0] == TAGS.add_executor:
                 process_name = "".join(("Process-", str(process_counter)))
                 process_counter = process_counter + 1
                 in_pipe = line[1]
@@ -183,48 +179,46 @@ def compss_persistent_worker(config: PiperWorkerConfiguration, tracing: bool) ->
                 pid, queue = create_executor_process(process_name, conf, pipe)
                 queues.append(queue)
                 control_pipe.write(
-                    " ".join((ADDED_EXECUTOR_TAG, out_pipe, in_pipe, str(pid)))
+                    " ".join((TAGS.added_executor, out_pipe, in_pipe, str(pid)))
                 )
 
-            elif line[0] == QUERY_EXECUTOR_ID_TAG:
+            elif line[0] == TAGS.query_executor_id:
                 in_pipe = line[1]
                 out_pipe = line[2]
                 proc = PROCESSES.get(in_pipe)  # type: typing.Any
                 pid = proc.pid
                 control_pipe.write(
-                    " ".join((REPLY_EXECUTOR_ID_TAG, out_pipe, in_pipe, str(pid)))
+                    " ".join((TAGS.reply_executor_id, out_pipe, in_pipe, str(pid)))
                 )
 
-            elif line[0] == CANCEL_TASK_TAG:
+            elif line[0] == TAGS.cancel_task:
                 in_pipe = line[1]
                 cancel_proc = PROCESSES.get(in_pipe)  # type: typing.Any
                 cancel_pid = cancel_proc.pid
                 if __debug__:
                     logger.debug(
-                        HEADER
-                        + "Signaling process with PID "
-                        + str(cancel_pid)
-                        + " to cancel a task"
+                        "%sSignaling process with PID %s to cancel a task",
+                        HEADER,
+                        str(cancel_pid),
                     )
-                os.kill(
-                    cancel_pid, signal.SIGUSR2
-                )  # NOSONAR cancellation produced by COMPSs
+                # Cancellation produced by COMPSs
+                os.kill(cancel_pid, signal.SIGUSR2)
 
-            elif line[0] == REMOVE_EXECUTOR_TAG:
+            elif line[0] == TAGS.remove_executor:
                 in_pipe = line[1]
                 out_pipe = line[2]
                 proc = PROCESSES.pop(in_pipe, None)
                 if proc:
                     if proc.is_alive():
-                        logger.warning(HEADER + "Forcing terminate on : " + proc.name)
+                        logger.warning("%sForcing terminate on : %s", HEADER, proc.name)
                         proc.terminate()
                     proc.join()
-                control_pipe.write(" ".join((REMOVED_EXECUTOR_TAG, out_pipe, in_pipe)))
+                control_pipe.write(" ".join((TAGS.removed_executor, out_pipe, in_pipe)))
 
-            elif line[0] == PING_TAG:
-                control_pipe.write(PONG_TAG)
+            elif line[0] == TAGS.ping:
+                control_pipe.write(TAGS.pong)
 
-            elif line[0] == QUIT_TAG:
+            elif line[0] == TAGS.quit:
                 alive = False
 
     # Wait for all threads
@@ -234,7 +228,9 @@ def compss_persistent_worker(config: PiperWorkerConfiguration, tracing: bool) ->
     # Check if there is any exception message from the threads
     for i in range(0, config.tasks_x_node):
         if not queues[i].empty:
-            logger.error(HEADER + "Exception in threads queue: " + str(queues[i].get()))
+            logger.error(
+                "%sException in threads queue: %s", HEADER, str(queues[i].get())
+            )
 
     for queue in queues:
         queue.close()
@@ -248,16 +244,18 @@ def compss_persistent_worker(config: PiperWorkerConfiguration, tracing: bool) ->
     if persistent_storage:
         # Finish storage
         if __debug__:
-            logger.debug(HEADER + "Stopping persistent storage")
+            logger.debug("%sStopping persistent storage", HEADER)
         with EventWorker(TRACING_WORKER.finish_storage_at_worker_event):
-            from storage.api import finishWorker as finishStorageAtWorker  # noqa
+            from storage.api import (  # pylint: disable=import-error, import-outside-toplevel
+                finishWorker as finishStorageAtWorker,
+            )
 
             finishStorageAtWorker()
 
     if __debug__:
-        logger.debug(HEADER + "Finished")
+        logger.debug("%sFinished", HEADER)
 
-    control_pipe.write(QUIT_TAG)
+    control_pipe.write(TAGS.quit)
     control_pipe.close()
 
 

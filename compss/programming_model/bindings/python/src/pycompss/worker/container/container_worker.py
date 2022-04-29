@@ -70,6 +70,10 @@ def main() -> int:
     else:
         # Default
         log_json = "".join((worker_path, "/log/logging_container_worker.json"))
+    print("XXXXXXXXXXXXXXXXXXXXX")
+    print(log_json)
+    print(tracing)
+    print("XXXXXXXXXXXXXXXXXXXXX")
     init_logging_worker(log_json, tracing)
     if __debug__:
         logger = logging.getLogger("pycompss.worker.container.container_worker")

@@ -162,6 +162,7 @@ def main() -> None:
                 from storage.api import (  # pylint: disable=import-error, import-outside-toplevel
                     initWorker as initStorageAtWorker,
                 )
+
                 initStorageAtWorker(config_file_path=storage_conf)
 
         # Init worker
@@ -177,6 +178,7 @@ def main() -> None:
                 from storage.api import (  # pylint: disable=import-error, import-outside-toplevel
                     finishWorker as finishStorageAtWorker,
                 )
+
                 finishStorageAtWorker()
 
     if exit_code == 1:

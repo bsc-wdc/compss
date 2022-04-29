@@ -46,7 +46,7 @@ if __debug__:
 
 
 def shutdown_handler(
-    signal: int, frame: typing.Any   # pylint: disable=unused-argument
+    signal: int, frame: typing.Any  # pylint: disable=unused-argument
 ) -> None:
     """Shutdown handler.
 
@@ -81,10 +81,7 @@ def establish_interactive_link(
 class ExternalLink:
     """External link class."""
 
-    __slots__ = ["link_process",
-                 "in_queue",
-                 "out_queue",
-                 "reload"]
+    __slots__ = ["link_process", "in_queue", "out_queue", "reload"]
 
     def __init__(self):
         """Instantiate a new ExternalLink class."""
@@ -129,7 +126,13 @@ class ExternalLink:
 
         self.link_process = create_process(
             target=c_extension_link,
-            args=(self.in_queue, self.out_queue, redirect_std, out_file_name, err_file_name),
+            args=(
+                self.in_queue,
+                self.out_queue,
+                redirect_std,
+                out_file_name,
+                err_file_name,
+            ),
         )
         signal.signal(signal.SIGTERM, shutdown_handler)
         self.link_process.start()
@@ -274,8 +277,7 @@ class _COMPSs:
     IMPORTANT: methods must be exactly the same.
     """
 
-    __slots__ = ["in_queue",
-                 "out_queue"]
+    __slots__ = ["in_queue", "out_queue"]
 
     def __init__(self, in_queue, out_queue):
         """Instantiate a new _COMPSs object."""
@@ -403,7 +405,9 @@ class _COMPSs:
         exception_message = self.out_queue.get(block=True)
         return exception_message
 
-    def open_task_group(self, group_name: str, implicit_barrier: bool, app_id: int) -> None:
+    def open_task_group(
+        self, group_name: str, implicit_barrier: bool, app_id: int
+    ) -> None:
         """Call to open_task_group.
 
         :param group_name: Group name.
@@ -443,7 +447,9 @@ class _COMPSs:
         num_resources = self.out_queue.get(block=True)
         return num_resources
 
-    def request_resources(self, app_id: int, num_resources: int, group_name: str) -> None:
+    def request_resources(
+        self, app_id: int, num_resources: int, group_name: str
+    ) -> None:
         """Call to request_resources.
 
         :param app_id: Application identifier.
@@ -463,7 +469,9 @@ class _COMPSs:
         :param group_name: Group name.
         :return: None.
         """
-        self.in_queue.put((LINK_MESSAGES.free_resources, app_id, num_resources, group_name))
+        self.in_queue.put(
+            (LINK_MESSAGES.free_resources, app_id, num_resources, group_name)
+        )
 
     def set_wall_clock(self, app_id: int, wcl: int) -> None:
         """Call to set_wall_clock.

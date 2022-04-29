@@ -275,8 +275,8 @@ def executor(
         logger_handlers = copy.copy(logger.handlers)
         logger_level = logger.getEffectiveLevel()
         logger_formatter = logging.Formatter(
-            logger_handlers[0].formatter._fmt
-        )  # pylint: disable=protected-access
+            logger_handlers[0].formatter._fmt  # pylint: disable=protected-access
+        )
         storage_loggers_handlers = []
         for storage_logger in storage_loggers:
             storage_loggers_handlers.append(copy.copy(storage_logger.handlers))
@@ -293,9 +293,9 @@ def executor(
 
         if storage_conf != "null":
             try:
-                from storage.api import (
+                from storage.api import (  # pylint: disable=import-error, import-outside-toplevel
                     initWorkerPostFork,
-                )  # pylint: disable=import-error, import-outside-toplevel
+                )
 
                 with EventWorker(TRACING_WORKER.init_worker_postfork_event):
                     initWorkerPostFork()
@@ -370,9 +370,9 @@ def executor(
         # Stop storage
         if storage_conf != "null":
             try:
-                from storage.api import (
+                from storage.api import (  # pylint: disable=import-error, import-outside-toplevel
                     finishWorkerPostFork,
-                )  # pylint: disable=import-error, import-outside-toplevel
+                )
 
                 with EventWorker(TRACING_WORKER.finish_worker_postfork_event):
                     finishWorkerPostFork()

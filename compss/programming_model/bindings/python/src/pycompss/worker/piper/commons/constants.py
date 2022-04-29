@@ -71,7 +71,7 @@ class _Tags:
     )
 
     def __init__(self):  # pylint: disable=too-many-statements
-        """Expected tags"""
+        """Define supported Tags."""
         self.execute_task = "EXECUTE_TASK"
         self.end_task = "END_TASK"
         self.cancel_task = "CANCEL_TASK"

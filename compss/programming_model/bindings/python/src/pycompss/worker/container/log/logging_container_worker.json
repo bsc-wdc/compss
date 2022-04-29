@@ -160,7 +160,7 @@
     "redis":                        { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
     "storage":                      { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
 
-    "user":                         { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
+    "user":                         { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" }
   },
   "root": {
     "level": "ERROR"

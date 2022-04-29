@@ -155,7 +155,7 @@ def main() -> int:
     if exit_value != 0:
         logger.debug(
             "ERROR: Task execution finished with non-zero exit value (%s != 0)",
-            str(exit_value)
+            str(exit_value),
         )
     else:
         logger.debug("Task execution finished SUCCESSFULLY!")

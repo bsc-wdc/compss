@@ -23,7 +23,7 @@ PyCOMPSs runtime - Task - Arguments commons.
 This file contains the task  arguments commons.
 """
 
-import pycompss.api.parameter as parameter
+from pycompss.api import parameter
 from pycompss.runtime.task.parameter import Parameter
 from pycompss.runtime.task.parameter import get_new_parameter
 from pycompss.util.typing_helper import typing

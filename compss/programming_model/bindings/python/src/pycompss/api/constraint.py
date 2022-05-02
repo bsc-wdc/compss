@@ -26,9 +26,10 @@ definition through the decorator.
 
 from functools import wraps
 
-import pycompss.util.context as context
+from pycompss.util.context import CONTEXT
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.decorator import keep_arguments
+from pycompss.api.dummy.constraint import constraint as dummy_constraint
 from pycompss.runtime.task.core_element import CE
 from pycompss.util.typing_helper import typing
 
@@ -38,7 +39,7 @@ if __debug__:
     logger = logging.getLogger(__name__)
 
 
-class Constraint(object):
+class Constraint:  # pylint: disable=too-few-public-methods
     """Constraint decorator class.
 
     This decorator also preserves the argspec, but includes the __init__ and
@@ -69,7 +70,7 @@ class Constraint(object):
         self.decorator_name = decorator_name
         self.args = args
         self.kwargs = kwargs
-        self.scope = context.in_pycompss()
+        self.scope = CONTEXT.in_pycompss()
         self.core_element = None  # type: typing.Any
         self.core_element_configured = False
 
@@ -83,8 +84,6 @@ class Constraint(object):
         @wraps(user_function)
         def constrained_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             if not self.scope:
-                from pycompss.api.dummy.constraint import constraint as dummy_constraint
-
                 d_c = dummy_constraint(self.args, self.kwargs)
                 return d_c.__call__(user_function)(*args, **kwargs)
 
@@ -92,7 +91,7 @@ class Constraint(object):
                 logger.debug("Executing constrained_f wrapper.")
 
             if (
-                context.in_master() or context.is_nesting_enabled()
+                CONTEXT.in_master() or CONTEXT.is_nesting_enabled()
             ) and not self.core_element_configured:
                 # master code - or worker with nesting enabled
                 self.__configure_core_element__(kwargs)
@@ -138,4 +137,4 @@ class Constraint(object):
 # ################### CONSTRAINT DECORATOR ALTERNATIVE NAME ################# #
 # ########################################################################### #
 
-constraint = Constraint
+constraint = Constraint  # pylint: disable=invalid-name

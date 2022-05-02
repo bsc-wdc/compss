@@ -28,29 +28,30 @@ from __future__ import print_function
 import ast
 import inspect
 import logging
+import pickle
 import os
 import sys
 from base64 import b64encode
 from collections import OrderedDict
-from collections import deque
 from threading import Lock
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import wait
+from typing import get_type_hints
 
-import pycompss.api.parameter as parameter
-import pycompss.runtime.binding as binding
-import pycompss.util.context as context
+from pycompss.api import parameter
+from pycompss.runtime import binding
+from pycompss.util.context import CONTEXT
 from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.constants import LEGACY_LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.error_msgs import cast_env_to_int_error
-from pycompss.api.commons.implementation_types import IMPL_METHOD
-from pycompss.api.commons.implementation_types import IMPL_MPI
-from pycompss.api.commons.implementation_types import IMPL_MULTI_NODE
-from pycompss.api.commons.implementation_types import IMPL_PYTHON_MPI
+from pycompss.api.commons.implementation_types import IMPLEMENTATION_TYPES
 from pycompss.api.parameter import DIRECTION
 from pycompss.api.parameter import TYPE
 from pycompss.runtime.binding import wait_on
 from pycompss.runtime.commons import CONSTANTS
 from pycompss.runtime.commons import GLOBALS
+from pycompss.runtime.crank.initialization import LAUNCH_STATUS
 from pycompss.runtime.management.classes import FunctionType
 from pycompss.runtime.management.classes import Future
 from pycompss.runtime.management.direction import get_compss_direction
@@ -64,6 +65,7 @@ from pycompss.runtime.task.arguments import is_vararg
 from pycompss.runtime.task.commons import get_default_direction
 from pycompss.runtime.task.commons import get_varargs_direction
 from pycompss.runtime.task.core_element import CE
+from pycompss.runtime.task.features import TASK_FEATURES
 from pycompss.runtime.task.parameter import COMPSsFile
 from pycompss.runtime.task.parameter import JAVA_MAX_INT
 from pycompss.runtime.task.parameter import JAVA_MAX_LONG
@@ -87,7 +89,7 @@ from pycompss.util.serialization.serializer import serialize_to_bytes
 from pycompss.util.serialization.serializer import serialize_to_file
 from pycompss.util.storages.persistent import get_id
 from pycompss.util.tracing.helpers import emit_manual_event_explicit
-from pycompss.util.tracing.helpers import event_master
+from pycompss.util.tracing.helpers import EventMaster
 from pycompss.util.tracing.types_events_master import TRACING_MASTER
 from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.util.typing_helper import typing
@@ -95,9 +97,7 @@ from pycompss.util.typing_helper import typing
 logger = logging.getLogger(__name__)
 
 # Types conversion dictionary from python to COMPSs
-_PYTHON_TO_COMPSS = dict()  # type: dict
-from concurrent.futures import ThreadPoolExecutor  # noqa
-from concurrent.futures import wait  # noqa
+_PYTHON_TO_COMPSS = {}  # type: dict
 
 _PYTHON_TO_COMPSS = {
     int: TYPE.INT,  # int # long
@@ -175,7 +175,7 @@ MASTER_LOCK = Lock()
 VALUE_OF = "value_of"
 
 
-class TaskMaster(object):
+class TaskMaster:
     """Task class representation for the Master.
 
     Process the task decorator and prepare all information to call binding
@@ -298,208 +298,205 @@ class TaskMaster(object):
         """
         # This lock makes this decorator able to handle various threads
         # calling the same task concurrently
-        MASTER_LOCK.acquire()
+        with MASTER_LOCK:
 
-        # Inspect the user function, get information about the arguments and
-        # their names. This defines self.param_args, self.param_varargs,
-        # and self.param_defaults. And gives non-None default
-        # values to them if necessary
-        with event_master(TRACING_MASTER.inspect_function_arguments):
-            if not self.function_arguments:
-                self.inspect_user_function_arguments()
-            # It will be easier to deal with functions if we pretend that all
-            # have the signature f(positionals, *variadic, **named). This is
-            # why we are substituting Nones with default stuff.
-            # As long as we remember what was the users original intention with
-            # the parameters we can internally mess with his signature as much
-            # as we want. There is no need to add self-imposed constraints
-            # here. Also, the very nature of decorators are a huge hint about
-            # how we should treat user functions, as most wrappers return a
-            # function f(*a, **k)
-            if self.param_varargs is None:
-                self.param_varargs = LABELS.varargs_type
-            if self.param_defaults is None:
-                self.param_defaults = ()
+            # Inspect the user function, get information about the arguments and
+            # their names. This defines self.param_args, self.param_varargs,
+            # and self.param_defaults. And gives non-None default
+            # values to them if necessary
+            with EventMaster(TRACING_MASTER.inspect_function_arguments):
+                if not self.function_arguments:
+                    self.inspect_user_function_arguments()
+                # It will be easier to deal with functions if we pretend that all
+                # have the signature f(positionals, *variadic, **named). This is
+                # why we are substituting Nones with default stuff.
+                # As long as we remember what was the users original intention with
+                # the parameters we can internally mess with his signature as much
+                # as we want. There is no need to add self-imposed constraints
+                # here. Also, the very nature of decorators are a huge hint about
+                # how we should treat user functions, as most wrappers return a
+                # function f(*a, **k)
+                if self.param_varargs is None:
+                    self.param_varargs = LABELS.varargs_type
+                if self.param_defaults is None:
+                    self.param_defaults = ()
 
-        # Compute the function path, class (if any), and name
-        with event_master(TRACING_MASTER.get_function_information):
-            self.compute_user_function_information(args)
+            # Compute the function path, class (if any), and name
+            with EventMaster(TRACING_MASTER.get_function_information):
+                self.compute_user_function_information(args)
 
-        with event_master(TRACING_MASTER.get_function_signature):
-            impl_signature, impl_type_args = self.get_signature()
-            if __debug__:
-                logger.debug(
-                    "TASK: %s of type %s, in module %s, in class %s"
-                    % (
+            with EventMaster(TRACING_MASTER.get_function_signature):
+                impl_signature, impl_type_args = self.get_signature()
+                if __debug__:
+                    logger.debug(
+                        "TASK: %s of type %s, in module %s, in class %s",
                         self.function_name,
                         self.function_type,
                         self.module_name,
                         self.class_name,
                     )
+
+            if not GLOBALS.in_tracing_task_name_to_id(impl_signature):
+                GLOBALS.set_tracing_task_name_to_id(
+                    impl_signature, GLOBALS.len_tracing_task_name_to_id() + 1
                 )
 
-        if not GLOBALS.in_tracing_task_name_to_id(impl_signature):
-            GLOBALS.set_tracing_task_name_to_id(
-                impl_signature, GLOBALS.len_tracing_task_name_to_id() + 1
+            emit_manual_event_explicit(
+                TRACING_WORKER.binding_tasks_func_type,
+                GLOBALS.get_tracing_task_name_id(impl_signature),
             )
 
-        emit_manual_event_explicit(
-            TRACING_WORKER.binding_tasks_func_type,
-            GLOBALS.get_tracing_task_name_id(impl_signature),
-        )
-
-        # Check if we are in interactive mode and update if needed
-        with event_master(TRACING_MASTER.check_interactive):
-            if self.interactive:
-                self.update_if_interactive(self.module)
-            else:
-                self.interactive, self.module = self.check_if_interactive()
+            # Check if we are in interactive mode and update if needed
+            with EventMaster(TRACING_MASTER.check_interactive):
                 if self.interactive:
                     self.update_if_interactive(self.module)
-
-        # Extract the core element (has to be extracted before processing
-        # the kwargs to avoid issues processing the parameters)
-        with event_master(TRACING_MASTER.extract_core_element):
-            cek = kwargs.pop(CORE_ELEMENT_KEY, None)
-            pre_defined_ce = self.extract_core_element(cek)
-
-        # Prepare the core element registration information
-        with event_master(TRACING_MASTER.prepare_core_element):
-            self.get_code_strings()
-
-        # It is necessary to decide whether to register or not (the task may
-        # be inherited, and in this case it has to be registered again with
-        # the new implementation signature).
-        if not self.registered or self.signature != impl_signature:
-            with event_master(TRACING_MASTER.update_core_element):
-                self.update_core_element(impl_signature, impl_type_args, pre_defined_ce)
-                if context.is_loading():
-                    # This case will only happen with @implements since it calls
-                    # explicitly to this call from his call.
-                    context.add_to_register_later((self, impl_signature))
                 else:
-                    self.register_task()
-                    self.registered = True
-                    self.signature = impl_signature
+                    self.interactive, self.module = self.check_if_interactive()
+                    if self.interactive:
+                        self.update_if_interactive(self.module)
 
-        # Did we call this function to only register the associated core
-        # element? (This can happen with @implements)
-        # Do not move this import:
-        from pycompss.api.task import REGISTER_ONLY
+            # Extract the core element (has to be extracted before processing
+            # the kwargs to avoid issues processing the parameters)
+            with EventMaster(TRACING_MASTER.extract_core_element):
+                cek = kwargs.pop(CORE_ELEMENT_KEY, None)
+                pre_defined_ce = self.extract_core_element(cek)
 
-        if REGISTER_ONLY:
-            # Only register, no launch
-            fo = None
-        else:
-            # Launch task to the runtime
-            # Extract task related parameters (e.g. returns, computing_nodes, etc.)
-            with event_master(TRACING_MASTER.pop_task_parameters):
-                self.pop_task_parameters(kwargs)
-                # this is total # of processes for this task
-            with event_master(TRACING_MASTER.process_other_arguments):
-                # Get other arguments if exist
-                if not self.hints:
-                    self.hints = self.check_task_hints()
-                (
-                    is_replicated,
-                    is_distributed,
-                    time_out,
-                    has_priority,
-                    has_target,
-                ) = self.hints
-                is_http = self.core_element.get_impl_type() == "HTTP"
+            # Prepare the core element registration information
+            with EventMaster(TRACING_MASTER.prepare_core_element):
+                self.get_code_strings()
 
-            # Process the parameters, give them a proper direction
-            with event_master(TRACING_MASTER.process_parameters):
-                code_strings = self.user_function.__code_strings__  # type: ignore
-                self.process_parameters(args, kwargs, code_strings=code_strings)
+            # It is necessary to decide whether to register or not (the task may
+            # be inherited, and in this case it has to be registered again with
+            # the new implementation signature).
+            if not self.registered or self.signature != impl_signature:
+                with EventMaster(TRACING_MASTER.update_core_element):
+                    self.update_core_element(
+                        impl_signature, impl_type_args, pre_defined_ce
+                    )
+                    if CONTEXT.is_loading():
+                        # This case will only happen with @implements since it calls
+                        # explicitly to this call from his call.
+                        CONTEXT.add_to_register_later((self, impl_signature))
+                    else:
+                        self.register_task()
+                        self.registered = True
+                        self.signature = impl_signature
 
-            # Deal with the return part.
-            with event_master(TRACING_MASTER.process_return):
-                num_returns = self.add_return_parameters(
-                    self.explicit_num_returns,
-                    code_strings=code_strings,
-                )
-                if not self.returns:
-                    num_returns = self.update_return_if_no_returns(self.user_function)
+            # Did we call this function to only register the associated core
+            # element? (This can happen with @implements)
+            # Do not move this import:
+            if TASK_FEATURES.get_register_only():
+                # Only register, no launch
+                future_object = None
+            else:
+                # Launch task to the runtime
+                # Extract task related parameters (e.g. returns, computing_nodes, etc.)
+                with EventMaster(TRACING_MASTER.pop_task_parameters):
+                    self.pop_task_parameters(kwargs)
+                    # this is total # of processes for this task
+                with EventMaster(TRACING_MASTER.process_other_arguments):
+                    # Get other arguments if exist
+                    if not self.hints:
+                        self.hints = self.check_task_hints()
+                    (
+                        is_replicated,
+                        is_distributed,
+                        time_out,
+                        has_priority,
+                        has_target,
+                    ) = self.hints
+                    is_http = self.core_element.get_impl_type() == "HTTP"
 
-            # Build return objects
-            with event_master(TRACING_MASTER.build_return_objects):
-                fo = None
-                if self.returns:
-                    fo = self._build_return_objects(num_returns)
+                # Process the parameters, give them a proper direction
+                with EventMaster(TRACING_MASTER.process_parameters):
+                    code_strings = self.user_function.__code_strings__  # type: ignore
+                    self.process_parameters(args, kwargs, code_strings=code_strings)
 
-            # Infer COMPSs types from real types, except for files
-            self._serialize_objects()
-            # todo: should it go somewhere else?
-            serializer.FORCED_SERIALIZER = -1  # reset the forced serializer
+                # Deal with the return part.
+                with EventMaster(TRACING_MASTER.process_return):
+                    num_returns = self.add_return_parameters(
+                        self.explicit_num_returns,
+                        code_strings=code_strings,
+                    )
+                    if not self.returns:
+                        num_returns = self.update_return_if_no_returns(
+                            self.user_function
+                        )
 
-            # Build values and COMPSs types and directions
-            with event_master(TRACING_MASTER.build_compss_types_directions):
-                vtdsc = self._build_values_types_directions()
-                (
-                    values,
-                    names,
-                    compss_types,
-                    compss_directions,
-                    compss_streams,
-                    compss_prefixes,
-                    content_types,
-                    weights,
-                    keep_renames,
-                ) = vtdsc  # noqa
+                # Build return objects
+                with EventMaster(TRACING_MASTER.build_return_objects):
+                    future_object = None
+                    if self.returns:
+                        future_object = self._build_return_objects(num_returns)
 
-            if __debug__:
-                logger.debug(
-                    "TASK: %s of type %s, in module %s, in class %s"
-                    % (
+                # Infer COMPSs types from real types, except for files
+                self._serialize_objects()
+                # todo: should it go somewhere else?
+                serializer.FORCED_SERIALIZER = -1  # reset the forced serializer
+
+                # Build values and COMPSs types and directions
+                with EventMaster(TRACING_MASTER.build_compss_types_directions):
+                    vtdsc = self._build_values_types_directions()
+                    (
+                        values,
+                        names,
+                        compss_types,
+                        compss_directions,
+                        compss_streams,
+                        compss_prefixes,
+                        content_types,
+                        weights,
+                        keep_renames,
+                    ) = vtdsc  # noqa
+
+                if __debug__:
+                    logger.debug(
+                        "TASK: %s of type %s, in module %s, in class %s",
                         self.function_name,
                         self.function_type,
                         self.module_name,
                         self.class_name,
                     )
-                )
 
-            # Process the task
-            with event_master(TRACING_MASTER.process_task_binding):
-                binding.process_task(
-                    impl_signature,
-                    has_target,
-                    names,
-                    values,
-                    num_returns,
-                    compss_types,
-                    compss_directions,
-                    compss_streams,
-                    compss_prefixes,
-                    content_types,
-                    weights,
-                    keep_renames,
-                    has_priority,
-                    self.computing_nodes,
-                    self.is_reduce,
-                    self.chunk_size,
-                    is_replicated,
-                    is_distributed,
-                    self.on_failure,
-                    time_out,
-                    is_http,
-                )
+                # Process the task
+                with EventMaster(TRACING_MASTER.process_task_binding):
+                    binding.process_task(
+                        impl_signature,
+                        has_target,
+                        names,
+                        values,
+                        num_returns,
+                        compss_types,
+                        compss_directions,
+                        compss_streams,
+                        compss_prefixes,
+                        content_types,
+                        weights,
+                        keep_renames,
+                        has_priority,
+                        self.computing_nodes,
+                        self.is_reduce,
+                        self.chunk_size,
+                        is_replicated,
+                        is_distributed,
+                        self.on_failure,
+                        time_out,
+                        is_http,
+                    )
 
-            # Remove unused attributes from the memory
-            with event_master(TRACING_MASTER.attributes_cleanup):
-                for at in ATTRIBUTES_TO_BE_REMOVED:
-                    if hasattr(self, at):
-                        try:
-                            delattr(self, at)
-                        except AttributeError:
-                            # Only happens when compiled
-                            pass
+                # Remove unused attributes from the memory
+                with EventMaster(TRACING_MASTER.attributes_cleanup):
+                    for attribute in ATTRIBUTES_TO_BE_REMOVED:
+                        if hasattr(self, attribute):
+                            try:
+                                delattr(self, attribute)
+                            except AttributeError:
+                                # Only happens when compiled
+                                pass
 
-            emit_manual_event_explicit(TRACING_WORKER.binding_tasks_func_type, 0)
+                emit_manual_event_explicit(TRACING_WORKER.binding_tasks_func_type, 0)
 
-        # Release the lock
-        MASTER_LOCK.release()
+        # The with statement automatically released the lock.
 
         # Return the future object/s corresponding to the task
         # This object will substitute the user expected return from the task
@@ -508,7 +505,7 @@ class TaskMaster(object):
         # Also return if the task has been registered and its signature,
         # so that future tasks of the same function register if necessary.
         return (
-            fo,
+            future_object,
             self.core_element,
             self.registered,
             self.signature,
@@ -529,14 +526,14 @@ class TaskMaster(object):
         """
         mod = inspect.getmodule(self.user_function)  # type: typing.Any
         module_name = mod.__name__
-        if context.in_pycompss() and (
-            module_name == "__main__" or module_name == "pycompss.runtime.launch"
+        if CONTEXT.in_pycompss() and module_name in (
+            "__main__",
+            "pycompss.runtime.launch",
         ):
             # 1.- The runtime is running.
             # 2.- The module where the function is defined was run as __main__.
             return True, mod
-        else:
-            return False, None
+        return False, None
 
     def update_if_interactive(self, mod: typing.Any) -> None:
         """Update the code for jupyter notebook.
@@ -547,12 +544,8 @@ class TaskMaster(object):
         :param mod: Source module.
         :return: None.
         """
-        # We need to find out the real module name
-        # Get the real module name from our launch.py APP_PATH global
-        # variable
-        # It is guaranteed that this variable will always exist because
-        # this code is only executed when we know we are in the master
-        path = getattr(mod, "APP_PATH")
+        # We need to find out the real module name from launched
+        path = LAUNCH_STATUS.get_app_path()
         # Get the file name
         file_name = os.path.splitext(os.path.basename(path))[0]
         # Do any necessary pre processing action before executing any code
@@ -889,7 +882,7 @@ class TaskMaster(object):
             param.is_future = True
 
         # If the parameter is a DIRECTORY or FILE update the file_name
-        # or content type depending if object. Otherwise update content.
+        # or content type depending if object. Otherwise, update content.
         if param.is_file() or param.is_directory():
             if isinstance(arg_object, COMPSsFile):
                 param.file_name = arg_object
@@ -948,17 +941,10 @@ class TaskMaster(object):
             self.module_name = mod.__name__
         elif self.first_arg_name == "cls":
             self.module_name = first_object.__module__
-        if (
-            self.module_name == "__main__"
-            or self.module_name == "pycompss.runtime.launch"
-        ):
+        if self.module_name in ("__main__", "pycompss.runtime.launch"):
             # The module where the function is defined was run as __main__,
             # We need to find out the real module name
-            # Get the real module name from our launch.py APP_PATH global
-            # variable
-            # It is guaranteed that this variable will always exist because
-            # this code is only executed when we know we are in the master
-            path = getattr(mod, "APP_PATH")
+            path = LAUNCH_STATUS.get_app_path()
             # Get the file name
             file_name = os.path.splitext(os.path.basename(path))[0]
             # Get the module
@@ -1010,25 +996,28 @@ class TaskMaster(object):
         :return: None.
         """
         ce_type = self.core_element.get_impl_type()
-        default = IMPL_METHOD
+        default = IMPLEMENTATION_TYPES.method
         if ce_type is None or (isinstance(ce_type, str) and ce_type == ""):
             ce_type = default
-        if (
-            ce_type == default
-            or ce_type == IMPL_PYTHON_MPI
-            or ce_type == IMPL_MULTI_NODE
-        ):
-            code_strings = True
-        else:
-            # MPI, BINARY, CONTAINER
-            code_strings = False
+        # code_strings = True if default, python_mpi or multinode
+        # code_strings = False if mpi, binary and container
+        code_strings = bool(
+            ce_type
+            in (
+                default,
+                IMPLEMENTATION_TYPES.python_mpi,
+                IMPLEMENTATION_TYPES.multi_node,
+            )
+        )
 
         self.user_function.__code_strings__ = code_strings  # type: ignore
 
         if __debug__:
             logger.debug(
-                "[@TASK] Task type of function %s in module %s: %s"
-                % (self.function_name, self.module_name, str(ce_type))
+                "[@TASK] Task type of function %s in module %s: %s",
+                self.function_name,
+                self.module_name,
+                str(ce_type),
             )
 
     def get_signature(self) -> typing.Tuple[str, list]:
@@ -1078,8 +1067,8 @@ class TaskMaster(object):
         upper_decorator = pre_defined_ce[1]
 
         # Include the registering info related to @task
-        impl_type = IMPL_METHOD
-        impl_constraints = dict()  # type: dict
+        impl_type = IMPLEMENTATION_TYPES.method
+        impl_constraints = {}  # type: dict
         impl_io = False
 
         if __debug__:
@@ -1121,9 +1110,9 @@ class TaskMaster(object):
                 set_impl_type_args(impl_type_args)
             # Need to update impl_type_args if task is PYTHON_MPI and
             # if the parameter with layout exists.
-            if _impl_type == IMPL_PYTHON_MPI:
+            if _impl_type == IMPLEMENTATION_TYPES.python_mpi:
                 self.check_layout_params(_impl_type_args)
-                set_impl_signature(".".join([IMPL_MPI, impl_signature]))
+                set_impl_signature(".".join([IMPLEMENTATION_TYPES.mpi, impl_signature]))
                 if _impl_type_args:
                     set_impl_type_args(impl_type_args + _impl_type_args[1:])
                 else:
@@ -1158,14 +1147,14 @@ class TaskMaster(object):
                         if (
                             self.decorator_arguments[param_name].content_type
                             != parameter.TYPE.COLLECTION
-                        ):  # noqa: E501
+                        ):
                             raise PyCOMPSsException(
-                                "Parameter %s is not a collection!" % param_name
-                            )  # noqa: E501
+                                f"Parameter {param_name} is not a collection!"
+                            )
                     else:
                         raise PyCOMPSsException(
-                            "Parameter %s does not exist!" % param_name
-                        )  # noqa: E501
+                            f"Parameter {param_name} does not exist!"
+                        )
 
     def register_task(self) -> None:
         """Register the task in the runtime.
@@ -1178,8 +1167,9 @@ class TaskMaster(object):
         """
         if __debug__:
             logger.debug(
-                "[@TASK] Registering the function %s in module %s"
-                % (self.function_name, self.module_name)
+                "[@TASK] Registering the function %s in module %s",
+                self.function_name,
+                self.module_name,
             )
         binding.register_ce(self.core_element)
 
@@ -1225,8 +1215,10 @@ class TaskMaster(object):
                         env_var = env_var[1:-1]  # remove brackets
                     try:
                         parsed_processes_per_node = int(os.environ[env_var])
-                    except ValueError:
-                        raise PyCOMPSsException(cast_env_to_int_error("ComputingNodes"))
+                    except ValueError as value_error:
+                        raise PyCOMPSsException(
+                            cast_env_to_int_error("ComputingNodes")
+                        ) from value_error
                 else:
                     # Dynamic global variable
                     try:
@@ -1249,22 +1241,22 @@ class TaskMaster(object):
                                         processes_per_node
                                     )
                                 )
-                        except AttributeError:
+                        except AttributeError as attribute_error:
                             # No more chances
                             # Ignore error and parsed_processes_per_node will
                             # raise the exception
                             raise PyCOMPSsException(
                                 "ERROR: Wrong Computing Nodes value."
-                            )
+                            ) from attribute_error
         else:
             raise PyCOMPSsException(
                 "Unexpected processes_per_node value. Must be str or int."
-            )  # noqa: E501
+            )
 
         if parsed_processes_per_node <= 0:
             logger.warning(
-                "Registered processes_per_node is less than 1 (%s <= 0). Automatically set it to 1"
-                % str(parsed_processes_per_node)  # noqa: E501
+                "Registered processes_per_node is less than 1 (%s <= 0). Automatically set it to 1",
+                str(parsed_processes_per_node),
             )
             parsed_processes_per_node = 1
 
@@ -1298,8 +1290,10 @@ class TaskMaster(object):
                         env_var = env_var[1:-1]  # remove brackets
                     try:
                         parsed_computing_nodes = int(os.environ[env_var])
-                    except ValueError:
-                        raise PyCOMPSsException(cast_env_to_int_error("ComputingNodes"))
+                    except ValueError as value_error:
+                        raise PyCOMPSsException(
+                            cast_env_to_int_error("ComputingNodes")
+                        ) from value_error
                 else:
                     # Dynamic global variable
                     try:
@@ -1318,13 +1312,13 @@ class TaskMaster(object):
                                 parsed_computing_nodes = (
                                     self.user_func_wrapped_glob_getter(computing_nodes)
                                 )
-                        except AttributeError:
+                        except AttributeError as attribute_error:
                             # No more chances
                             # Ignore error and parsed_computing_nodes will
                             # raise the exception
                             raise PyCOMPSsException(
                                 "ERROR: Wrong Computing Nodes value."
-                            )
+                            ) from attribute_error
         else:
             raise PyCOMPSsException(
                 "Unexpected computing_nodes value. Must be str or int."
@@ -1332,8 +1326,8 @@ class TaskMaster(object):
 
         if parsed_computing_nodes <= 0:
             logger.warning(
-                "Registered computing_nodes is less than 1 (%s <= 0). Automatically set it to 1"
-                % str(parsed_computing_nodes)  # noqa: E501
+                "Registered computing_nodes is less than 1 (%s <= 0). Automatically set it to 1",
+                str(parsed_computing_nodes),
             )
             parsed_computing_nodes = 1
 
@@ -1347,7 +1341,7 @@ class TaskMaster(object):
         """
         if isinstance(chunk_size, int):
             return chunk_size
-        elif isinstance(chunk_size, str):
+        if isinstance(chunk_size, str):
             # Check if chunk_size can be casted to string
             # Check if chunk_size is an environment variable
             # Check if chunk_size is a dynamic global variable
@@ -1363,8 +1357,10 @@ class TaskMaster(object):
                         env_var = env_var[1:-1]  # remove brackets
                     try:
                         return int(os.environ[env_var])
-                    except ValueError:
-                        raise PyCOMPSsException(cast_env_to_int_error("ChunkSize"))
+                    except ValueError as value_error:
+                        raise PyCOMPSsException(
+                            cast_env_to_int_error("ChunkSize")
+                        ) from value_error
                 else:
                     # Dynamic global variable
                     try:
@@ -1375,18 +1371,15 @@ class TaskMaster(object):
                         try:
                             if self.is_numba_function():
                                 return self.user_func_py_func_glob_getter(chunk_size)
-                            else:
-                                return self.user_func_wrapped_glob_getter(chunk_size)
-                        except AttributeError:
+                            return self.user_func_wrapped_glob_getter(chunk_size)
+                        except AttributeError as attribute_error:
                             # No more chances
                             # Ignore error and parsed_chunk_size will
                             # raise the exception
-                            raise PyCOMPSsException("ERROR: Wrong chunk_size value.")
-        else:
-            raise PyCOMPSsException(
-                "Unexpected chunk_size value. Must be str or int."
-            )  # noqa: E501
-        raise PyCOMPSsException("Unreachable code at parse_chunk_size")
+                            raise PyCOMPSsException(
+                                "ERROR: Wrong chunk_size value."
+                            ) from attribute_error
+        raise PyCOMPSsException("Unexpected chunk_size value. Must be str or int.")
 
     @staticmethod
     def parse_is_reduce(is_reduce: typing.Union[bool, str]) -> bool:
@@ -1397,18 +1390,14 @@ class TaskMaster(object):
         if isinstance(is_reduce, bool):
             # Nothing to do
             return is_reduce
-        elif isinstance(is_reduce, str):
-            # Check if is_reduce can be casted to string
+        if isinstance(is_reduce, str):
+            # Check if is_reduce can be cast to string
             try:
                 # Cast string to int
                 return bool(is_reduce)
             except ValueError:
                 return False
-        else:
-            raise PyCOMPSsException(
-                "Unexpected is_reduce value. Must be bool or str."
-            )  # noqa: E501
-        raise PyCOMPSsException("Unreachable code at parse_is_reduce")
+        raise PyCOMPSsException("Unexpected is_reduce value. Must be bool or str.")
 
     def check_task_hints(self) -> tuple:
         """Process the @task hints.
@@ -1534,10 +1523,8 @@ class TaskMaster(object):
         if defined_type:
             if to_return == 1:
                 return to_return
-            else:
-                return len(to_return)  # noqa
-        else:
-            return to_return
+            return len(to_return)  # noqa
+        return to_return
 
     def get_num_returns_from_string(self, returns: str) -> int:
         """Convert the number of returns from string to integer.
@@ -1549,7 +1536,7 @@ class TaskMaster(object):
             # Return is hidden by an int as a string.
             # i.e., returns="var_int"
             return int(returns)
-        except ValueError:
+        except ValueError as value_error:
             if returns.startswith(VALUE_OF):
                 #  from "value_of ( xxx.yyy )" to [xxx, yyy]
                 param_ref = (
@@ -1562,24 +1549,23 @@ class TaskMaster(object):
                 if len(param_ref) > 0:
                     obj = self.parameters[param_ref[0]].content
                     return int(_get_object_property(param_ref, obj))
-                else:
-                    raise PyCOMPSsException(
-                        "Incorrect value_of format in %s" % returns
-                    )  # noqa: E501
-            else:
-                # Return is hidden by a global variable. i.e., LT_ARGS
-                try:
-                    num_rets = self.user_func_glob_getter(returns)
-                except AttributeError:
-                    if self.is_numba_function():
-                        # This is a numba jit declared task
-                        num_rets = self.user_func_py_func_glob_getter(returns)
-                    else:
-                        # This is a compiled task
-                        num_rets = self.user_func_wrapped_glob_getter(returns)
-                return int(num_rets)
+                raise PyCOMPSsException(
+                    f"Incorrect value_of format in {returns}"
+                ) from value_error
 
-    def update_return_if_no_returns(self, f: typing.Callable) -> int:
+            # Else: return is hidden by a global variable. i.e., LT_ARGS
+            try:
+                num_rets = self.user_func_glob_getter(returns)
+            except AttributeError:
+                if self.is_numba_function():
+                    # This is a numba jit declared task
+                    num_rets = self.user_func_py_func_glob_getter(returns)
+                else:
+                    # This is a compiled task
+                    num_rets = self.user_func_wrapped_glob_getter(returns)
+            return int(num_rets)
+
+    def update_return_if_no_returns(self, function: typing.Callable) -> int:
         """Look for returns if no returns is specified.
 
         Checks the code looking for return statements if no returns is
@@ -1587,13 +1573,10 @@ class TaskMaster(object):
 
         WARNING: Updates self.return if returns are found.
 
-        :param f: Function to check.
+        :param function: Function to check.
         :return: The number of return elements if found.
         """
-        # Check type-hinting
-        from typing import get_type_hints
-
-        type_hints = get_type_hints(f)
+        type_hints = get_type_hints(function)
         if "return" in type_hints:
             # There is a return defined as type-hint
             ret = type_hints["return"]
@@ -1621,13 +1604,13 @@ class TaskMaster(object):
                 self.returns[get_return_name(0)] = param
             # Found return defined as type-hint
             return num_returns
-        else:
-            # The user has not defined return as type-hint
-            # So, continue searching as usual
-            pass
+        # else:
+        #     # The user has not defined return as type-hint
+        #     # So, continue searching as usual
+        #     pass
 
         # Could not find type-hinting
-        source_code = get_wrapped_source(f).strip()
+        source_code = get_wrapped_source(function).strip()
 
         code = []  # type: list
         if self.first_arg_name == "self" or source_code.startswith("@classmethod"):
@@ -1643,7 +1626,7 @@ class TaskMaster(object):
                 else:
                     ret_mask.append(False)
         else:
-            code = [node for node in ast.walk(ast.parse(source_code))]
+            code = list(ast.walk(ast.parse(source_code)))
             ret_mask = [isinstance(node, ast.Return) for node in code]
 
         if any(ret_mask):
@@ -1653,20 +1636,19 @@ class TaskMaster(object):
             if self.first_arg_name == "self" or source_code.startswith("@classmethod"):
                 # Parse code as string (it is a task defined within a class)
                 def _has_multireturn(statement: str) -> bool:
-                    v = ast.parse(statement.strip())  # type: typing.Any
+                    parsed_ret = ast.parse(statement.strip())  # type: typing.Any
                     try:
-                        if len(v.body[0].value.elts) > 1:
+                        if len(parsed_ret.body[0].value.elts) > 1:
                             return True
-                        else:
-                            return False
+                        return False
                     except (KeyError, AttributeError):
                         # KeyError: "elts" means that it is a multiple return.
                         # "Ask forgiveness not permission"
                         return False
 
                 def _get_return_elements(statement: str) -> int:
-                    v = ast.parse(statement.strip())  # type: typing.Any
-                    return len(v.body[0].value.elts)
+                    parsed_ret = ast.parse(statement.strip())  # type: typing.Any
+                    return len(parsed_ret.body[0].value.elts)
 
                 for i in lines:
                     if _has_multireturn(code[i]):
@@ -1721,71 +1703,74 @@ class TaskMaster(object):
         :param num_returns: Number of returned elements.
         :return: Future object/s.
         """
-        fo = None  # type: typing.Any
+        future_object = None  # type: typing.Any
         if num_returns == 0:
-            # No return
-            return fo
-        elif num_returns == 1:
+            # No return - Return always None (as Python does)
+            return future_object
+        if num_returns == 1:
             # Simple return
             if __debug__:
                 logger.debug("Simple object return found.")
             # Build the appropriate future object
             ret_value = self.returns[get_return_name(0)].content
             if type(ret_value) in _PYTHON_TO_COMPSS or ret_value in _PYTHON_TO_COMPSS:
-                fo = Future()  # primitives,string,dic,list,tuple
+                future_object = Future()  # primitives,string,dic,list,tuple
             elif inspect.isclass(ret_value):
                 # For objects:
                 # type of future has to be specified to allow o = func; o.func
                 try:
-                    fo = ret_value()
+                    future_object = ret_value()
                 except TypeError:
                     logger.warning(
-                        "Type %s does not have an empty constructor, building generic future object"
-                        % str(ret_value)  # noqa: E501
+                        "Type %s does not have an empty constructor, "
+                        "building generic future object",
+                        str(ret_value),
                     )
-                    fo = Future()
+                    future_object = Future()
             else:
-                fo = Future()  # modules, functions, methods
-            _, ret_filename = OT.track(fo)
+                future_object = Future()  # modules, functions, methods
+            _, ret_filename = OT.track(future_object)
             single_return = self.returns[get_return_name(0)]
             single_return.content_type = TYPE.FILE
             single_return.extra_content_type = "FILE"
             single_return.prefix = "#"
             single_return.file_name = COMPSsFile(ret_filename)
         else:
-            # Multireturn
-            fo = []
+            # Multiple returns (the future object is a list of future objects)
+            future_object = []
             if __debug__:
                 logger.debug("Multiple objects return found.")
-            for k, v in self.returns.items():
+            for _, ret_v in self.returns.items():
                 # Build the appropriate future object
-                if v.content in _PYTHON_TO_COMPSS:
-                    foe = Future()  # primitives, string, dic, list, tuple
-                elif inspect.isclass(v.content):
-                    # For objects:
-                    # type of future has to be specified to allow:
+                if ret_v.content in _PYTHON_TO_COMPSS:
+                    # Primitives, string, dic, list, tuple
+                    future_object_element = Future()
+                elif inspect.isclass(ret_v.content):
+                    # For objects: type of future has to be specified to allow:
                     # o = func; o.func
                     try:
-                        foe = v.content()
+                        future_object_element = ret_v.content()
                     except TypeError:
                         logger.warning(
-                            "Type %s does not have an empty constructor, building generic future object"
-                            % str(v["Value"])  # noqa: E501
+                            "Type %s does not have an empty constructor, "
+                            "building generic future object",
+                            str(ret_v["Value"]),
                         )
-                        foe = Future()
+                        future_object_element = Future()
                 else:
-                    foe = Future()  # modules, functions, methods
-                fo.append(foe)
-                _, ret_filename = OT.track(foe)
+                    # Modules, functions, methods
+                    future_object_element = Future()
+                future_object.append(future_object_element)
+                _, ret_filename = OT.track(future_object_element)
                 # Once determined the filename where the returns are going to
                 # be stored, create a new Parameter object for each return
                 # object
-                return_k = self.returns[k]
+                return_k = ret_v
                 return_k.content_type = TYPE.FILE
                 return_k.extra_content_type = "FILE"
                 return_k.prefix = "#"
                 return_k.file_name = COMPSsFile(ret_filename)
-        return fo
+        return future_object
 
     def _serialize_objects(self) -> None:
         """Infer COMPSs types for the task parameters and serialize them.
@@ -1819,36 +1804,35 @@ class TaskMaster(object):
             # for thread in threads:
             #     thread.join()
 
-    def _serialize_object(self, k: str) -> None:
+    def _serialize_object(self, name: str) -> None:
         """Infer COMPSs types for a single task parameter and serializes it.
 
         WARNING: Updates self.parameters dictionary.
 
-        :param k: Name of the element in self.parameters
+        :param name: Name of the element in self.parameters
         :return: None.
         """
-        max_obj_arg_size = 320000
-        with event_master(TRACING_MASTER.serialize_object):
+        # 320k is usually the maximum size of all objects
+        max_obj_arg_size = 320000 / 32
+        with EventMaster(TRACING_MASTER.serialize_object):
             # Check user annotations concerning this argument
-            p = self.parameters[k]
-            # Convert small objects to string if OBJECT_CONVERSION enabled
-            # Check if the object is small in order not to serialize it.
-            if GLOBALS.get_object_conversion():
-                # todo: fix this case too
-                p, written_bytes = self._convert_parameter_obj_to_string(
-                    p, max_obj_arg_size, policy="objectSize"
-                )  # noqa: E501
-                max_obj_arg_size -= written_bytes
+            param = self.parameters[name]
+            if TASK_FEATURES.get_object_conversion():
+                # Convert small objects to string if enabled
+                # Check if the object is small in order not to serialize it.
+                param = self._convert_parameter_obj_to_string(
+                    name, param, max_obj_arg_size
+                )
             else:
                 # Serialize objects into files
-                p = _serialize_object_into_file(k, p)
+                param = _serialize_object_into_file(name, param)
             # Update k parameter's Parameter object
-            self.parameters[k] = p
+            self.parameters[name] = param
 
             if __debug__:
                 logger.debug(
-                    "Final type for parameter %s: %d" % (k, p.content_type)
-                )  # noqa: E501
+                    "Final type for parameter %s: %d", name, param.content_type
+                )
 
     def _build_values_types_directions(self) -> tuple:
         """Build the values, the values types and the values directions lists.
@@ -1879,66 +1863,79 @@ class TaskMaster(object):
         code_strings = self.user_function.__code_strings__  # type: ignore
 
         # Build the range of elements
-        if (
-            self.function_type == FunctionType.INSTANCE_METHOD
-            or self.function_type == FunctionType.CLASS_METHOD
+        if self.function_type in (
+            FunctionType.INSTANCE_METHOD,
+            FunctionType.CLASS_METHOD,
         ):
             slf_name = arg_names.pop(0)
         # Fill the values, compss_types, compss_directions, compss_streams and
         # compss_prefixes from function parameters
         for name in arg_names:
-            val, typ, direc, st, pre, ct, wght, kr = _extract_parameter(
-                self.parameters[name], code_strings
-            )
-
-            if isinstance(val, COMPSsFile):
-                values.append(val.original_path)
+            (
+                value,
+                typ,
+                direction,
+                stream,
+                prefix,
+                con_type,
+                weight,
+                keep_rename,
+            ) = _extract_parameter(self.parameters[name], code_strings)
+            if isinstance(value, COMPSsFile):
+                values.append(value.original_path)
             else:
-                values.append(val)
+                values.append(value)
             compss_types.append(typ)
-            compss_directions.append(direc)
-            compss_streams.append(st)
-            compss_prefixes.append(pre)
+            compss_directions.append(direction)
+            compss_streams.append(stream)
+            compss_prefixes.append(prefix)
             names.append(name)
-            extra_content_types.append(ct)
-            weights.append(wght)
-            keep_renames.append(kr)
+            extra_content_types.append(con_type)
+            weights.append(weight)
+            keep_renames.append(keep_rename)
         # Fill the values, compss_types, compss_directions, compss_streams and
         # compss_prefixes from self (if exist)
         if self.function_type == FunctionType.INSTANCE_METHOD:
             # self is always an object
-            val, typ, direc, st, pre, ct, wght, kr = _extract_parameter(
-                self.parameters[slf_name], code_strings
-            )
-            if isinstance(val, COMPSsFile):
-                values.append(val.original_path)
+            (
+                value,
+                typ,
+                direction,
+                stream,
+                prefix,
+                con_type,
+                weight,
+                keep_rename,
+            ) = _extract_parameter(self.parameters[slf_name], code_strings)
+            if isinstance(value, COMPSsFile):
+                values.append(value.original_path)
             else:
-                values.append(val)
+                values.append(value)
             compss_types.append(typ)
-            compss_directions.append(direc)
-            compss_streams.append(st)
-            compss_prefixes.append(pre)
+            compss_directions.append(direction)
+            compss_streams.append(stream)
+            compss_prefixes.append(prefix)
             names.append(slf_name)
-            extra_content_types.append(ct)
-            weights.append(wght)
-            keep_renames.append(kr)
+            extra_content_types.append(con_type)
+            weights.append(weight)
+            keep_renames.append(keep_rename)
 
         # Fill the values, compss_types, compss_directions, compss_streams and
         # compss_prefixes from function returns
-        for r in self.returns.keys():
-            p = self.returns[r]
-            if isinstance(p.file_name, COMPSsFile):
-                values.append(p.file_name.original_path)
+        for return_key in self.returns:
+            return_param = self.returns[return_key]
+            if isinstance(return_param.file_name, COMPSsFile):
+                values.append(return_param.file_name.original_path)
             else:
-                values.append(p.file_name)
-            compss_types.append(p.content_type)
-            compss_directions.append(p.direction)
-            compss_streams.append(p.stream)
-            compss_prefixes.append(p.prefix)
+                values.append(return_param.file_name)
+            compss_types.append(return_param.content_type)
+            compss_directions.append(return_param.direction)
+            compss_streams.append(return_param.stream)
+            compss_prefixes.append(return_param.prefix)
             names.append(result_names.pop(0))
-            extra_content_types.append(p.extra_content_type)
-            weights.append(p.weight)
-            keep_renames.append(p.keep_rename)
+            extra_content_types.append(return_param.extra_content_type)
+            weights.append(return_param.weight)
+            keep_renames.append(return_param.keep_rename)
 
         return (
             values,
@@ -1950,154 +1947,69 @@ class TaskMaster(object):
             extra_content_types,
             weights,
             keep_renames,
-        )  # noqa
+        )
 
     @staticmethod
     def _convert_parameter_obj_to_string(
-        p: Parameter, max_obj_arg_size: int, policy: str = "objectSize"
-    ) -> typing.Tuple[Parameter, int]:
+        name: str, param: Parameter, max_obj_arg_size: float
+    ) -> Parameter:
         """Convert object to string.
 
         Convert small objects into strings that can fit into the task
         parameters call.
 
-        :param p: Parameter.
+        :param name: Parameter name.
+        :param param: Parameter.
         :param max_obj_arg_size: Max size of the object to be converted.
-        :param policy: Policy to use:
-                       - "objectSize" for considering the size of the object.
-                       - "serializedSize" for considering the size of the
-                         object serialized.
-        :return: The object possibly converted to string and its size in bytes.
+        :return: The object possibly converted to string.
         """
-        is_future = p.is_future
+        is_future = param.is_future
         base_string = str
         num_bytes = 0
-        real_value = None  # type: typing.Any
-        if policy == "objectSize":
-            # Check if the object is small in order to serialize it.
-            # This alternative evaluates the size of the object before
-            # serializing the object.
-            # Warning: calculate the size of a python object can be difficult
-            # in terms of time and precision
-            if (
-                (p.content_type == TYPE.OBJECT or p.content_type == TYPE.STRING)
-                and not is_future
-                and p.direction == DIRECTION.IN
-                and not isinstance(p.content, base_string)
-                and isinstance(p.content, (list, dict, tuple, deque, set, frozenset))
-            ):  # noqa: E501
-                # check object size - The following line does not work
-                # properly with recursive objects
-                # bytes = sys.getsizeof(p.content)
-                num_bytes = total_sizeof(p.content)
+        # Check if the object is small in order to serialize it.
+        # Evaluates the size of the object before serializing the object.
+        # Warning: calculate the size of a python object can be difficult
+        # in terms of time and precision.
+        if (
+            param.content_type == TYPE.OBJECT
+            and not is_future
+            and param.direction == DIRECTION.IN
+            and not isinstance(param.content, base_string)
+        ):
+            # check object size - The following line does not work
+            # properly with recursive objects
+            # bytes = sys.getsizeof(param.content)
+            num_bytes = total_sizeof(param.content)
+            if __debug__:
+                megabytes = num_bytes / 1000000  # truncate
+                logger.debug("Object size %d bytes (%d Mb).", num_bytes, megabytes)
+            if num_bytes < max_obj_arg_size:
+                # be careful... more than this value produces:
+                # Cannot run program "/bin/bash"...: error=7, \
+                # The arguments list is too long
                 if __debug__:
-                    megabytes = num_bytes / 1000000  # truncate
-                    logger.debug(
-                        "Object size %d bytes (%d Mb)." % (num_bytes, megabytes)
-                    )  # noqa: E501
-
-                if num_bytes < max_obj_arg_size:
-                    # be careful... more than this value produces:
-                    # Cannot run program "/bin/bash"...: error=7, \
-                    # The arguments list is too long
-                    if __debug__:
-                        logger.debug(
-                            "The object size is less than 320 kb."
-                        )  # noqa: E501
-                    real_value = p.content
-                    try:
-                        v = serialize_to_bytes(p.content)
-                        p.content = str(v).encode(CONSTANTS.str_escape)  # noqa
-                        p.content_type = TYPE.STRING
-                        if __debug__:
-                            logger.debug(
-                                "Inferred type modified (Object converted to String)."
-                            )  # noqa: E501
-                    except SerializerException:
-                        p.content = real_value
-                        p.content_type = TYPE.OBJECT
-                        if __debug__:
-                            logger.debug(
-                                "The object cannot be converted due to: not serializable."
-                            )  # noqa: E501
-                else:
-                    p.content_type = TYPE.OBJECT
-                    if __debug__:
-                        logger.debug(
-                            "Inferred type reestablished to Object."
-                        )  # noqa: E501
-                        # if the parameter converts to an object, release
-                        # the size to be used for converted objects?
-                        # No more objects can be converted
-                        # max_obj_arg_size += _bytes
-                        # if max_obj_arg_size > 320000:
-                        #     max_obj_arg_size = 320000
-        elif policy == "serializedSize":
-            from pickle import PicklingError
-
-            # Check if the object is small in order to serialize it.
-            # This alternative evaluates the size after serializing the
-            # parameter
-            if (
-                (p.content_type == TYPE.OBJECT or p.content_type == TYPE.STRING)
-                and not is_future
-                and p.direction == DIRECTION.IN
-                and not isinstance(p.content, base_string)
-            ):
-                real_value = p.content
+                    logger.debug("The object size is less than 320 kb.")
                 try:
-                    v = serialize_to_bytes(p.content)
-                    v_str = str(str(v).encode(CONSTANTS.str_escape))  # noqa
-                    # check object size
-                    num_bytes = sys.getsizeof(v_str)
+                    value = pickle.dumps(param.content)
+                    if TASK_FEATURES.get_prepend_strings():
+                        # new_content = value.decode(CONSTANTS.str_escape)
+                        param.content = f"#HiddenObj#{value}"  # type: ignore
+                    param.content_type = TYPE.STRING_64
+                    param.extra_content_type = str(type("str"))
                     if __debug__:
-                        megabytes = num_bytes / 1000000  # truncate
                         logger.debug(
-                            "Object size %d bytes (%d Mb)." % (num_bytes, megabytes)
+                            "Inferred type modified (Object converted to String)."
                         )
-                    if num_bytes < max_obj_arg_size:
-                        # be careful... more than this value produces:
-                        # Cannot run program "/bin/bash"...: error=7,
-                        # arguments list too long error.
-                        if __debug__:
-                            logger.debug(
-                                "The object size is less than 320 kb"
-                            )  # noqa: E501
-                        p.content = v_str
-                        p.content_type = TYPE.STRING
-                        if __debug__:
-                            logger.debug(
-                                "Inferred type modified (Object converted to String)."
-                            )  # noqa: E501
-                    else:
-                        p.content = real_value
-                        p.content_type = TYPE.OBJECT
-                        if __debug__:
-                            logger.debug(
-                                "Inferred type reestablished to Object."
-                            )  # noqa: E501
-                            # if the parameter converts to an object,
-                            # release the size to be used for converted
-                            # objects?
-                            # No more objects can be converted
-                            # max_obj_arg_size += _bytes
-                            # if max_obj_arg_size > 320000:
-                            #     max_obj_arg_size = 320000
-                except PicklingError:
-                    p.content = real_value
-                    p.content_type = TYPE.OBJECT
-                    if __debug__:
-                        logger.debug(
-                            "The object cannot be converted due to: not serializable."
-                        )  # noqa: E501
+                except SerializerException as serializer_exception:
+                    raise PyCOMPSsException(
+                        "The object cannot be converted due to: not serializable."
+                    ) from serializer_exception
         else:
             if __debug__:
-                logger.debug(
-                    "[ERROR] Wrong convert_objects_to_strings policy."
-                )  # noqa: E501
-            raise PyCOMPSsException("Wrong convert_objects_to_strings policy.")
+                logger.warning("Could not serialize object to string conversion")
+            param = _serialize_object_into_file(name, param)
 
-        return p, num_bytes
+        return param
 
 
 def _get_object_property(param_ref: list, obj: typing.Any) -> typing.Any:
@@ -2109,60 +2021,62 @@ def _get_object_property(param_ref: list, obj: typing.Any) -> typing.Any:
     """
     if len(param_ref) == 1:
         return obj
-    else:
-        return _get_object_property(param_ref[1:], getattr(obj, param_ref[1]))
+    return _get_object_property(param_ref[1:], getattr(obj, param_ref[1]))
 
 
-def _manage_persistent_object(p: Parameter) -> None:
+def _manage_persistent_object(param: Parameter) -> None:
     """Manage a persistent object within a Parameter.
 
     Does the necessary actions over a persistent object used as task parameter.
     In particular, saves the object id provided by the persistent storage
     (getID()) into the pending_to_synchronize dictionary.
 
-    :param p: Parameter.
+    :param param: Parameter.
     :return: None.
     """
-    p.content_type = TYPE.EXTERNAL_PSCO
-    obj_id = str(get_id(p.content))
+    param.content_type = TYPE.EXTERNAL_PSCO
+    obj_id = str(get_id(param.content))
     OT.set_pending_to_synchronize(obj_id)
-    p.content = obj_id
+    param.content = obj_id
     if __debug__:
-        logger.debug("Managed persistent object: %s" % obj_id)
+        logger.debug("Managed persistent object: %s", obj_id)
 
 
 def _serialize_object_into_file(
-    name: str, p: Parameter, code_strings=True
+    name: str, param: Parameter, code_strings=True
 ) -> Parameter:
     """Serialize an object into a file if necessary.
 
     :param name: Name of the object.
-    :param p: Parameter.
+    :param param: Parameter.
     :return: Parameter (whose type and value might be modified).
     """
     if (
-        p.content_type == TYPE.OBJECT
-        or p.content_type == TYPE.EXTERNAL_STREAM
-        or p.is_future
+        param.content_type == TYPE.OBJECT
+        or param.content_type == TYPE.EXTERNAL_STREAM
+        or param.is_future
     ):
         # 2nd condition: real type can be primitive, but now it's acting as a
         # future (object)
         try:
-            val_type = type(p.content)
+            val_type = type(param.content)
             if isinstance(val_type, list) and any(
-                isinstance(v, Future) for v in p.content
+                isinstance(value, Future) for value in param.content
             ):
                 # Is there a future object within the list?
                 if __debug__:
                     logger.debug(
                         "Found a list that contains future objects - synchronizing..."
-                    )  # noqa: E501
+                    )
                 mode = get_compss_direction("in")
-                p.content = list(map(wait_on, p.content, [mode] * len(p.content)))
+                param.content = list(
+                    map(wait_on, param.content, [mode] * len(param.content))
+                )
             _skip_file_creation = (
-                p.direction == DIRECTION.OUT and p.content_type != TYPE.EXTERNAL_STREAM
+                param.direction == DIRECTION.OUT
+                and param.content_type != TYPE.EXTERNAL_STREAM
             )
-            _turn_into_file(p, name, skip_creation=_skip_file_creation)
+            _turn_into_file(param, name, skip_creation=_skip_file_creation)
         except SerializerException:
             import traceback
 
@@ -2170,51 +2084,49 @@ def _serialize_object_into_file(
             lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
             logger.exception(
                 "Pickling error exception: non-serializable object found as a parameter."
-            )  # noqa: E501
+            )
             logger.exception("".join(line for line in lines))
             print(
                 "[ ERROR ]: Non serializable objects can not be used as parameters (e.g. methods)."
-            )  # noqa: E501
-            print("[ ERROR ]: Object: %s" % p.content)
+            )
+            print(f"[ ERROR ]: Object: {param.content}")
             # Raise the exception up tu launch.py in order to point where the
             # error is in the user code.
             raise
-    elif p.content_type == TYPE.EXTERNAL_PSCO:
-        _manage_persistent_object(p)
-    elif p.content_type == TYPE.INT:
-        if p.content > JAVA_MAX_INT or p.content < JAVA_MIN_INT:
+    elif param.content_type == TYPE.EXTERNAL_PSCO:
+        _manage_persistent_object(param)
+    elif param.content_type == TYPE.INT:
+        if param.content > JAVA_MAX_INT or param.content < JAVA_MIN_INT:
             # This must go through Java as a long to prevent overflow with
             # Java integer
-            p.content_type = TYPE.LONG
-    elif p.content_type == TYPE.LONG:
-        if p.content > JAVA_MAX_LONG or p.content < JAVA_MIN_LONG:
+            param.content_type = TYPE.LONG
+    elif param.content_type == TYPE.LONG:
+        if param.content > JAVA_MAX_LONG or param.content < JAVA_MIN_LONG:
             # This must be serialized to prevent overflow with Java long
-            p.content_type = TYPE.OBJECT
-            _skip_file_creation = p.direction == DIRECTION.OUT
-            _turn_into_file(p, name, _skip_file_creation)
-    elif p.content_type in (TYPE.STRING, TYPE.STRING_64):
+            param.content_type = TYPE.OBJECT
+            _skip_file_creation = param.direction == DIRECTION.OUT
+            _turn_into_file(param, name, _skip_file_creation)
+    elif param.content_type in (TYPE.STRING, TYPE.STRING_64):
         # Do not move this import to the top
-        from pycompss.api.task import PREPEND_STRINGS  # noqa
-
-        if PREPEND_STRINGS:
+        if TASK_FEATURES.get_prepend_strings():
             # Strings can be empty. If a string is empty their base64 encoding
             # will be empty.
             # So we add a leading character to it to make it non empty
-            p.content = "#%s" % p.content
-    elif p.content_type == TYPE.COLLECTION:
+            param.content = f"#{param.content}"
+    elif param.content_type == TYPE.COLLECTION:
         # Just make contents available as serialized files (or objects)
         # We will build the value field later
         # (which will be used to reconstruct the collection in the worker)
-        if p.is_file_collection:
+        if param.is_file_collection:
             new_object_col = [
                 Parameter(
                     content=x,
                     content_type=TYPE.FILE,
-                    direction=p.direction,
+                    direction=param.direction,
                     file_name=COMPSsFile(x),
-                    depth=p.depth - 1,
+                    depth=param.depth - 1,
                 )
-                for x in p.content
+                for x in param.content
             ]
         else:
             new_object_col = [
@@ -2223,58 +2135,58 @@ def _serialize_object_into_file(
                     Parameter(
                         content=x,
                         content_type=get_compss_type(
-                            x, p.depth - 1, code_strings=code_strings
+                            x, param.depth - 1, code_strings=code_strings
                         ),
-                        direction=p.direction,
-                        depth=p.depth - 1,
+                        direction=param.direction,
+                        depth=param.depth - 1,
                         extra_content_type=str(type(x).__name__),
                     ),
                 )
-                for x in p.content
+                for x in param.content
             ]
-        p.content = new_object_col
+        param.content = new_object_col
         # Give this object an identifier inside the binding
-        if p.direction != DIRECTION.IN_DELETE:
-            _, _ = OT.track(p.content, obj_name=name, collection=True)
-    elif p.content_type == TYPE.DICT_COLLECTION:
+        if param.direction != DIRECTION.IN_DELETE:
+            _, _ = OT.track(param.content, obj_name=name, collection=True)
+    elif param.content_type == TYPE.DICT_COLLECTION:
         # Just make contents available as serialized files (or objects)
         # We will build the value field later
         # (which will be used to reconstruct the collection in the worker)
-        new_object_dict = dict()
-        for k, v in p.content.items():
+        new_object_dict = {}
+        for p_key, p_value in param.content.items():
             key = _serialize_object_into_file(
                 name,
                 Parameter(
-                    content=k,
+                    content=p_key,
                     content_type=get_compss_type(
-                        k, p.depth - 1, code_strings=code_strings
+                        p_key, param.depth - 1, code_strings=code_strings
                     ),
-                    direction=p.direction,
-                    depth=p.depth - 1,
-                    extra_content_type=str(type(p).__name__),
+                    direction=param.direction,
+                    depth=param.depth - 1,
+                    extra_content_type=str(type(param).__name__),
                 ),
             )
             value = _serialize_object_into_file(
                 name,
                 Parameter(
-                    content=v,
+                    content=p_value,
                     content_type=get_compss_type(
-                        v, p.depth - 1, code_strings=code_strings
+                        p_value, param.depth - 1, code_strings=code_strings
                     ),
-                    direction=p.direction,
-                    depth=p.depth - 1,
-                    extra_content_type=str(type(v).__name__),
+                    direction=param.direction,
+                    depth=param.depth - 1,
+                    extra_content_type=str(type(p_value).__name__),
                 ),
             )
             new_object_dict[key] = value
-        p.content = new_object_dict
+        param.content = new_object_dict
         # Give this object an identifier inside the binding
-        if p.direction != DIRECTION.IN_DELETE:
-            _, _ = OT.track(p.content, obj_name=name, collection=True)
-    return p
+        if param.direction != DIRECTION.IN_DELETE:
+            _, _ = OT.track(param.content, obj_name=name, collection=True)
+    return param
 
 
-def _turn_into_file(p: Parameter, name: str, skip_creation: bool = False) -> None:
+def _turn_into_file(param: Parameter, name: str, skip_creation: bool = False) -> None:
     """Write a object into a file if the object has not been already written.
 
     Consults the obj_id_to_filename to check if it has already been written
@@ -2287,30 +2199,28 @@ def _turn_into_file(p: Parameter, name: str, skip_creation: bool = False) -> Non
     :param skip_creation: Skips the serialization to file.
     :return: None.
     """
-    obj_id = OT.is_tracked(p.content)
+    obj_id = OT.is_tracked(param.content)
     if obj_id == "":
         # This is the first time a task accesses this object
-        if p.direction == DIRECTION.IN_DELETE:
+        if param.direction == DIRECTION.IN_DELETE:
             obj_id, file_name = OT.not_track()
         else:
-            obj_id, file_name = OT.track(p.content, obj_name=name)
+            obj_id, file_name = OT.track(param.content, obj_name=name)
         if not skip_creation:
-            serialize_to_file(p.content, file_name)
+            serialize_to_file(param.content, file_name)
     else:
         file_name = OT.get_file_name(obj_id)
         if OT.has_been_written(obj_id):
-            if p.direction == DIRECTION.INOUT or p.direction == DIRECTION.COMMUTATIVE:
+            if param.direction in (DIRECTION.INOUT, DIRECTION.COMMUTATIVE):
                 OT.set_pending_to_synchronize(obj_id)
             # Main program generated the last version
             compss_file = OT.pop_written_obj(obj_id)
             if __debug__:
-                logger.debug(
-                    "Serializing object %s to file %s" % (obj_id, compss_file)
-                )  # noqa: E501
+                logger.debug("Serializing object %s to file %s", obj_id, compss_file)
             if not skip_creation:
-                serialize_to_file(p.content, compss_file)
+                serialize_to_file(param.content, compss_file)
     # Set file name in Parameter object
-    p.file_name = COMPSsFile(file_name)
+    param.file_name = COMPSsFile(file_name)
 
 
 def _extract_parameter(
@@ -2387,7 +2297,7 @@ def _extract_parameter(
         _class_name = str(param.content.__class__.__name__)
         con_type = CONSTANTS.extra_content_type_format.format(_mf, _class_name)
     elif param.content_type == TYPE.EXTERNAL_STREAM:
-        # If the parameter type is stream, its value is stored in a file but
+        # If the parameter type is stream, its value is stored in a file, but
         # we keep the type
         value = param.file_name
         typ = TYPE.EXTERNAL_STREAM
@@ -2397,7 +2307,7 @@ def _extract_parameter(
         # An object will be considered a collection if at least one of the
         # following is true:
         #     1) We said it is a collection in the task decorator
-        #     2) It is part of some collection object, it is iterable and we
+        #     2) It is part of some collections object, it is iterable, and we
         #        are inside the specified depth radius
         #
         # The content of a collection is sent via JNI to the master, and the
@@ -2409,19 +2319,17 @@ def _extract_parameter(
         #     typeN IdN pyTypeN
         _class_name = str(param.content.__class__.__name__)
         con_type = CONSTANTS.extra_content_type_format.format("collection", _class_name)
-        value = "{} {} {}".format(
-            OT.is_tracked(param.content), len(param.content), con_type
-        )
+        value = f"{OT.is_tracked(param.content)} {len(param.content)} {con_type}"
         OT.stop_tracking(param.content, collection=True)
         typ = TYPE.COLLECTION
-        for (i, x) in enumerate(param.content):
+        for (_, x_param) in enumerate(param.content):
             x_value, x_type, _, _, _, x_con_type, _, _ = _extract_parameter(
-                x, code_strings, param.depth - 1
+                x_param, code_strings, param.depth - 1
             )
             if isinstance(x_value, COMPSsFile):
-                value += " %s %s %s" % (x_type, x_value.original_path, x_con_type)
+                value += f" {x_type} {x_value.original_path} {x_con_type}"
             else:
-                value += " %s %s %s" % (x_type, x_value, x_con_type)
+                value += f" {x_type} {x_value} {x_con_type}"
     elif param.content_type == TYPE.DICT_COLLECTION or (
         collection_depth > 0 and is_dict(param.content)
     ):
@@ -2444,14 +2352,12 @@ def _extract_parameter(
         con_type = CONSTANTS.extra_content_type_format.format(
             "dict_collection", _class_name
         )
-        value = "{} {} {}".format(
-            OT.is_tracked(param.content), len(param.content), con_type
-        )
+        value = f"{OT.is_tracked(param.content)} {len(param.content)} {con_type}"
         OT.stop_tracking(param.content, collection=True)
         typ = TYPE.DICT_COLLECTION
-        for k, v in param.content.items():  # noqa
+        for k_param, v_param in param.content.items():  # noqa
             k_value, k_type, _, _, _, k_con_type, _, _ = _extract_parameter(
-                k, code_strings, param.depth - 1
+                k_param, code_strings, param.depth - 1
             )
             real_k_type = k_type
             if isinstance(k_type, COMPSsFile):
@@ -2461,12 +2367,12 @@ def _extract_parameter(
                 real_k_value = k_value.original_path
             if k_con_type != con_type:
 
-                value = "%s %s %s %s" % (value, real_k_type, real_k_value, k_con_type)
+                value = f"{value} {real_k_type} {real_k_value} {k_con_type}"
             else:
                 # remove last dict_collection._classname if key is a dict_collection  # noqa: E501
-                value = "%s %s %s" % (value, real_k_type, real_k_value)
+                value = f"{value} {real_k_type} {real_k_value}"
             v_value, v_type, _, _, _, v_con_type, _, _ = _extract_parameter(
-                v, code_strings, param.depth - 1
+                v_param, code_strings, param.depth - 1
             )
             real_v_type = v_type
             if isinstance(v_type, COMPSsFile):
@@ -2475,10 +2381,10 @@ def _extract_parameter(
             if isinstance(v_value, COMPSsFile):
                 real_v_value = v_value.original_path
             if v_con_type != con_type:
-                value = "%s %s %s %s" % (value, real_v_type, real_v_value, v_con_type)
+                value = f"{value} {real_v_type} {real_v_value} {v_con_type}"
             else:
                 # remove last dict_collection._classname if value is a dict_collection  # noqa: E501
-                value = "%s %s %s" % (value, real_v_type, real_v_value)
+                value = f"{value} {real_v_type} {real_v_value}"
     else:
         # Keep the original value and type
         value = param.content

@@ -28,7 +28,7 @@ Must be equal to Tracer.java and TraceEvent.java definitions
 """
 
 
-class TypesEventsWorker(object):
+class TypesEventsWorker:
     """Constant events that can be emitted for the worker group."""
 
     __slots__ = (

@@ -34,7 +34,7 @@ from pycompss.dds.examples import transitive_closure
 from pycompss.dds.examples import word_count
 from pycompss.dds.examples import wordcount_k_means
 from pycompss.runtime.binding import barrier
-from pycompss.util.context import in_pycompss
+from pycompss.util.context import CONTEXT
 
 # The DDS examples unittest only checks functionality (not the validity of the results).
 # TODO: check that the results are OK.
@@ -105,7 +105,7 @@ def terasort_example():
     sys.argv = [EXAMPLES_NAME, terasort_dataset_path, result_path]
     terasort()
     sys.argv = argv_backup
-    if in_pycompss():
+    if CONTEXT.in_pycompss():
         barrier()
         time.sleep(5)  # TODO: Why is this sleep needed?
     # Clean the results directory

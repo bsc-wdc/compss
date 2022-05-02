@@ -25,6 +25,7 @@ This file contains the object sizing algorithm method.
 
 from __future__ import print_function
 
+import reprlib
 from collections import deque
 from itertools import chain
 from sys import getsizeof
@@ -38,32 +39,29 @@ except ImportError:
     # New place since python >= 3.9
     from collections.abc import Iterator
 
-try:
-    from reprlib import repr  # noqa
-except ImportError:
-    pass
 
-
-def _dict_handler(d: dict) -> Iterator:
+def _dict_handler(given_dict: dict) -> Iterator:
     """Convert dictionary to dictionary handler.
 
-    :param d: Dictionary.
+    :param given_dict: Dictionary.
     :return: Dictionary handler.
     """
-    return chain.from_iterable(d.items())
+    return chain.from_iterable(given_dict.items())
 
 
-def _user_object_handler(d: typing.Any) -> Iterator:
+def _user_object_handler(user_object: typing.Any) -> Iterator:
     """Convert user object to dictionary handler.
 
-    :param d: User object.
+    :param user_object: User object.
     :return: Dictionary handler.
     """
-    return chain.from_iterable(d.__dict__.items())
+    return chain.from_iterable(user_object.__dict__.items())
 
 
 def total_sizeof(
-    o: typing.Any, handlers: typing.Optional[Iterator] = None, verbose: bool = False
+    given_object: typing.Any,
+    handlers: typing.Optional[Iterator] = None,
+    verbose: bool = False,
 ) -> int:
     """Calculate the size of an object.
 
@@ -74,7 +72,7 @@ def total_sizeof(
         handlers = {SomeContainerClass: iter,
                     OtherContainerClass: OtherContainerClass.get_elements}
 
-    :param o: Object to get its size.
+    :param given_object: Object to get its size.
     :param handlers: Handlers.
     :param verbose: Verbose mode [ True | False ] (default: False).
     :return: Total size of the object.
@@ -87,9 +85,9 @@ def total_sizeof(
         set: iter,
         frozenset: iter,
     }  # type: typing.Dict[typing.Any, typing.Any]
-    if type(o) not in all_handlers.keys() and hasattr(o, "__dict__"):
+    if type(given_object) not in all_handlers and hasattr(given_object, "__dict__"):
         # It is something else include its __dict__
-        all_handlers[type(o)] = _user_object_handler
+        all_handlers[type(given_object)] = _user_object_handler
     if handlers is not None:
         all_handlers.update(handlers)  # user handlers take precedence
     seen = set()  # track which object id's have already been seen
@@ -104,15 +102,15 @@ def total_sizeof(
         if id(obj) in seen:  # do not double count the same object
             return 0
         seen.add(id(obj))
-        s = getsizeof(obj, default_size)
+        new_size = getsizeof(obj, default_size)
 
         if verbose:
-            print(s, type(obj), repr(obj), file=stderr)
+            print(new_size, type(obj), reprlib.repr(obj), file=stderr)
 
         for typ, handler in all_handlers.items():
             if isinstance(obj, typ):
-                s += sum(map(sizeof, handler(obj)))
+                new_size += sum(map(sizeof, handler(obj)))
                 break
-        return s
+        return new_size
 
-    return sizeof(o)
+    return sizeof(given_object)

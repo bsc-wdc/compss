@@ -26,6 +26,7 @@ through the decorator.
 import typing
 from functools import wraps
 
+from pycompss.util.context import CONTEXT
 from pycompss.api.commons.constants import INTERNAL_LABELS
 from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.decorator import keep_arguments
@@ -33,9 +34,6 @@ from pycompss.api.commons.decorator import resolve_fail_by_exit_value
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.runtime.task.core_element import CE
 from pycompss.util.arguments import check_arguments
-
-import pycompss.util.context as context
-
 
 if __debug__:
     import logging
@@ -51,7 +49,7 @@ SUPPORTED_ARGUMENTS = {
 DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 
 
-class Epilog(object):
+class Epilog:  # pylint: disable=too-few-public-methods
     """Epilog decorator class.
 
     If defined, will execute the binary after the task execution on the worker.
@@ -82,7 +80,7 @@ class Epilog(object):
         self.decorator_name = decorator_name
         self.args = args
         self.kwargs = kwargs
-        self.scope = context.in_pycompss()
+        self.scope = CONTEXT.in_pycompss()
         self.core_element = None  # type: typing.Any
         self.core_element_configured = False
         if self.scope:
@@ -111,7 +109,7 @@ class Epilog(object):
                 logger.debug("Executing epilog wrapper.")
 
             if (
-                context.in_master() or context.is_nesting_enabled()
+                CONTEXT.in_master() or CONTEXT.is_nesting_enabled()
             ) and not self.core_element_configured:
                 self.__configure_core_element__(kwargs)
 
@@ -143,9 +141,9 @@ class Epilog(object):
         fail_by = self.kwargs.get(LABELS.fail_by_exit_value)
         _epilog = [binary, params, fail_by]
 
-        ce = kwargs.get(CORE_ELEMENT_KEY, CE())
-        ce.set_impl_epilog(_epilog)
-        kwargs[CORE_ELEMENT_KEY] = ce
+        core_element = kwargs.get(CORE_ELEMENT_KEY, CE())
+        core_element.set_impl_epilog(_epilog)
+        kwargs[CORE_ELEMENT_KEY] = core_element
         # Set as configured
         self.core_element_configured = True
 
@@ -154,4 +152,4 @@ class Epilog(object):
 # ################### EPILOG DECORATOR ALTERNATIVE NAME ##################### #
 # ########################################################################### #
 
-epilog = Epilog
+epilog = Epilog  # pylint: disable=invalid-name

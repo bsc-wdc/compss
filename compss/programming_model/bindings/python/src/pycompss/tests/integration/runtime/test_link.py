@@ -17,7 +17,7 @@
 
 # -*- coding: utf-8 -*-
 
-from pycompss.runtime.management.link import c_extension_link
+from pycompss.runtime.management.link.separate import c_extension_link
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.process.manager import new_queue
 

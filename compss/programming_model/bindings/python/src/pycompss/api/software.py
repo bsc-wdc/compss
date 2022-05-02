@@ -26,13 +26,13 @@ through the decorator.
 import json
 from functools import wraps
 
-import pycompss.util.context as context
+from pycompss.util.context import CONTEXT
 from pycompss.api import binary
 from pycompss.api import mpi
 from pycompss.api.commons.constants import INTERNAL_LABELS
 from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
-from pycompss.api.commons.implementation_types import IMPL_CONTAINER
+from pycompss.api.commons.implementation_types import IMPLEMENTATION_TYPES
 from pycompss.runtime.task.core_element import CE
 from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import PyCOMPSsException
@@ -53,7 +53,7 @@ SUPPORTED_DECORATORS = {
 }
 
 
-class Software(object):
+class Software:  # pylint: disable=too-few-public-methods, too-many-instance-attributes
     """Software decorator class.
 
     When provided with a config file, it can replicate any existing python
@@ -97,11 +97,11 @@ class Software(object):
         self.decorator_name = decorator_name
         self.args = args
         self.kwargs = kwargs
-        self.scope = context.in_pycompss()
+        self.scope = CONTEXT.in_pycompss()
         self.core_element = None  # type: typing.Any
         self.core_element_configured = False
 
-        if self.scope and context.in_master():
+        if self.scope and CONTEXT.in_master():
             if __debug__:
                 logger.debug("Init @software decorator..")
             # Check the arguments
@@ -126,7 +126,7 @@ class Software(object):
 
         @wraps(user_function)
         def software_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
-            if not self.scope or not context.in_master():
+            if not self.scope or not CONTEXT.in_master():
                 # Execute the software as with PyCOMPSs so that sequential
                 # execution performs as parallel.
                 # To disable: raise Exception(not_in_pycompss(LABELS.binary))
@@ -142,10 +142,10 @@ class Software(object):
 
             if self.container is not None:
                 _func = str(user_function.__name__)
-                impl_type = IMPL_CONTAINER
+                impl_type = IMPLEMENTATION_TYPES.container
                 impl_signature = ".".join((impl_type, _func))
 
-                ce = kwargs.get(CORE_ELEMENT_KEY, CE())
+                core_element = kwargs.get(CORE_ELEMENT_KEY, CE())
                 impl_args = [
                     self.container[LABELS.engine],  # engine
                     self.container[LABELS.image],  # image
@@ -155,25 +155,25 @@ class Software(object):
                     INTERNAL_LABELS.unassigned,  # working_dir
                     INTERNAL_LABELS.unassigned,
                 ]  # fail_by_ev
-                ce.set_impl_type(impl_type)
-                ce.set_impl_signature(impl_signature)
-                ce.set_impl_type_args(impl_args)
-                kwargs[CORE_ELEMENT_KEY] = ce
+                core_element.set_impl_type(impl_type)
+                core_element.set_impl_signature(impl_signature)
+                core_element.set_impl_type_args(impl_args)
+                kwargs[CORE_ELEMENT_KEY] = core_element
 
             if self.decor:
                 decorator = self.decor
 
                 def decor_f():
-                    def f():
+                    def function():
                         ret = decorator(**self.config_args)
                         return ret(user_function)(*args, **kwargs)
 
-                    return f()
+                    return function()
 
                 return decor_f()
-            else:
-                # It's a PyCOMPSs task with only @task and @software decorators
-                return user_function(*args, **kwargs)
+
+            # It's a PyCOMPSs task with only @task and @software decorators
+            return user_function(*args, **kwargs)
 
         software_f.__doc__ = user_function.__doc__
         return software_f
@@ -184,28 +184,29 @@ class Software(object):
         :return: None
         """
         file_path = self.kwargs[LABELS.config_file]
-        config = json.load(open(file_path, "r"))
+        with open(
+            file_path, "r"
+        ) as file_path_descriptor:  # pylint: disable=unspecified-encoding
+            config = json.load(file_path_descriptor)
 
-        properties = config.get(LABELS.properties, {})
-        exec_type = config.get(LABELS.type, None)
-        if exec_type is None:
-            print("Execution type not provided for @software task")
-        elif exec_type.lower() not in SUPPORTED_DECORATORS:
-            msg = "Error: Executor Type {} is not supported for software task.".format(
-                exec_type
-            )
-            raise PyCOMPSsException(msg)
-        else:
-            exec_type = exec_type.lower()
-            self.task_type, self.decor = SUPPORTED_DECORATORS[exec_type]
-            mand_args = self.task_type.MANDATORY_ARGUMENTS
-            if not all(arg in properties for arg in mand_args):
-                msg = "Error: Missing arguments for '{}'.".format(self.task_type)
+            properties = config.get(LABELS.properties, {})
+            exec_type = config.get(LABELS.type, None)
+            if exec_type is None:
+                print("Execution type not provided for @software task")
+            elif exec_type.lower() not in SUPPORTED_DECORATORS:
+                msg = f"Error: Executor Type {exec_type} is not supported for software task."
                 raise PyCOMPSsException(msg)
+            else:
+                exec_type = exec_type.lower()
+                self.task_type, self.decor = SUPPORTED_DECORATORS[exec_type]
+                mand_args = self.task_type.MANDATORY_ARGUMENTS
+                if not all(arg in properties for arg in mand_args):
+                    msg = f"Error: Missing arguments for '{self.task_type}'."
+                    raise PyCOMPSsException(msg)
 
-        self.config_args = properties
-        self.constraints = config.get("constraints", None)
-        self.container = config.get("container", None)
+            self.config_args = properties
+            self.constraints = config.get("constraints", None)
+            self.container = config.get("container", None)
 
 
 # ########################################################################### #
@@ -213,4 +214,4 @@ class Software(object):
 # ########################################################################### #
 
 
-software = Software
+software = Software  # pylint: disable=invalid-name

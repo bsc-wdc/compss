@@ -25,9 +25,9 @@ Isolates the API signature calls.
 """
 
 from pycompss.util.exceptions import PyCOMPSsException
-from pycompss.util.tracing.helpers import event_inside_worker
-from pycompss.util.tracing.helpers import event_master
-from pycompss.util.tracing.helpers import event_worker
+from pycompss.util.tracing.helpers import EventInsideWorker
+from pycompss.util.tracing.helpers import EventMaster
+from pycompss.util.tracing.helpers import EventWorker
 from pycompss.util.tracing.types_events_master import TRACING_MASTER
 from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.util.typing_helper import typing
@@ -110,7 +110,7 @@ def load_storage_library() -> None:
         :raises: PyCOMPSsException: If dummy task context is used.
         """
         raise PyCOMPSsException(
-            "Unexpected call to init from storage. Reason: %s" % error_msg
+            f"Unexpected call to init from storage. Reason: {error_msg}"
         )
 
     def dummy_finish() -> None:
@@ -120,16 +120,17 @@ def load_storage_library() -> None:
         :raises: PyCOMPSsException: If dummy task context is used.
         """
         raise PyCOMPSsException(
-            "Unexpected call to finish from storage. Reason: %s" % error_msg
+            f"Unexpected call to finish from storage. Reason: {error_msg}"
         )
 
-    def dummy_get_by_id(id: str) -> None:
+    def dummy_get_by_id(identifier: str) -> None:
         """Get object by id from the storage library.
 
+        :param identifier: Object identifier.
         :returns: None.
         :raises: PyCOMPSsException: If dummy task context is used.
         """
-        raise PyCOMPSsException("Unexpected call to getByID. Reason: %s" % error_msg)
+        raise PyCOMPSsException(f"Unexpected call to getByID. Reason: {error_msg}")
 
     try:
         # Try to import the external storage API module methods
@@ -140,10 +141,10 @@ def load_storage_library() -> None:
 
         DUMMY_STORAGE = False
         print("INFO: Storage API successfully imported.")
-    except ImportError as e:
+    except ImportError as import_error:
         # print("INFO: No storage API defined.")
         # Defined methods throwing exceptions.
-        error_msg = str(e)
+        error_msg = str(import_error)
         DUMMY_STORAGE = True
 
     # Prepare the imports
@@ -180,8 +181,7 @@ def has_id(obj: typing.Any) -> bool:
     """
     if "getID" in dir(obj):
         return True
-    else:
-        return False
+    return False
 
 
 def get_id(psco: typing.Any) -> typing.Union[str, None]:
@@ -190,18 +190,18 @@ def get_id(psco: typing.Any) -> typing.Union[str, None]:
     :param psco: Persistent object.
     :return: Persistent object identifier.
     """
-    with event_inside_worker(TRACING_WORKER.getid_event):
+    with EventInsideWorker(TRACING_WORKER.getid_event):
         return psco.getID()
 
 
-def get_by_id(id: str) -> typing.Any:
+def get_by_id(identifier: str) -> typing.Any:
     """Retrieve the object from the given identifier.
 
-    :param id: Persistent object identifier.
+    :param identifier: Persistent object identifier.
     :return: object associated to the persistent object identifier.
     """
-    with event_inside_worker(TRACING_WORKER.get_by_id_event):
-        return GET_BY_ID(id)
+    with EventInsideWorker(TRACING_WORKER.get_by_id_event):
+        return GET_BY_ID(identifier)
 
 
 def master_init_storage(storage_conf: str, logger: typing.Any) -> bool:
@@ -213,7 +213,7 @@ def master_init_storage(storage_conf: str, logger: typing.Any) -> bool:
     :param logger: Logger where to log the messages.
     :return: True if initialized. False on the contrary.
     """
-    with event_master(TRACING_MASTER.init_storage_event):
+    with EventMaster(TRACING_MASTER.init_storage_event):
         return __init_storage__(storage_conf, logger)
 
 
@@ -237,7 +237,7 @@ def init_storage(storage_conf: str, logger: typing.Any) -> bool:
     :param logger: Logger where to log the messages.
     :return: True if initialized. False on the contrary.
     """
-    with event_worker(TRACING_WORKER.init_storage_event):
+    with EventWorker(TRACING_WORKER.init_storage_event):
         return __init_storage__(storage_conf, logger)
 
 
@@ -250,17 +250,15 @@ def __init_storage__(storage_conf: str, logger: typing.Any) -> bool:
     :param logger: Logger where to log the messages.
     :return: True if initialized. False on the contrary.
     """
-    global INIT
     if use_storage(storage_conf):
         if __debug__:
             logger.debug("Starting storage")
-            logger.debug("Storage configuration file: %s" % storage_conf)
+            logger.debug("Storage configuration file: %s", storage_conf)
         load_storage_library()
         # Call to storage init
         INIT(config_file_path=storage_conf)  # noqa
         return True
-    else:
-        return False
+    return False
 
 
 def master_stop_storage(logger: typing.Any) -> None:
@@ -271,7 +269,7 @@ def master_stop_storage(logger: typing.Any) -> None:
     :param logger: Logger where to log the messages.
     :return: None
     """
-    with event_master(TRACING_MASTER.stop_storage_event):
+    with EventMaster(TRACING_MASTER.stop_storage_event):
         __stop_storage__(logger)
 
 
@@ -283,7 +281,7 @@ def stop_storage(logger: typing.Any) -> None:
     :param logger: Logger where to log the messages.
     :return: None
     """
-    with event_worker(TRACING_WORKER.stop_storage_event):
+    with EventWorker(TRACING_WORKER.stop_storage_event):
         __stop_storage__(logger)
 
 
@@ -293,7 +291,6 @@ def __stop_storage__(logger: typing.Any) -> None:
     :param logger: Logger where to log the messages.
     :return: None.
     """
-    global FINISH
     if __debug__:
         logger.debug("Stopping storage")
     FINISH()

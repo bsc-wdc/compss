@@ -26,7 +26,7 @@ This file contains the common pipers methods related to logging.
 import logging
 import os
 
-import pycompss.util.context as context
+from pycompss.util.context import CONTEXT
 from pycompss.runtime.commons import GLOBALS
 from pycompss.util.logger.helpers import init_logging_worker_piper
 from pycompss.util.typing_helper import typing
@@ -63,10 +63,11 @@ def load_loggers(
     # With normal master-worker execution, it transfers the err and out files in the
     # expected folder to the master.
     # With agents or worker in master it does not, so keep it in previous two folders:
-    if context.is_nesting_enabled() or "tmpFiles" in log_dir:
+    if CONTEXT.is_nesting_enabled() or "tmpFiles" in log_dir:
         log_dir = os.path.join(log_dir, "..", "..", "log")
     else:
         log_dir = os.path.join(log_dir, "..", "log")
+
     init_logging_worker_piper(log_json, log_dir)
 
     # Define logger facilities

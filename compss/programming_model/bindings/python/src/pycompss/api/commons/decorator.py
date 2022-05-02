@@ -31,6 +31,7 @@ from contextlib import contextmanager
 from pycompss.api.commons.constants import INTERNAL_LABELS
 from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.constants import LEGACY_LABELS
+from pycompss.runtime.task.features import TASK_FEATURES
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.typing_helper import typing
 
@@ -120,8 +121,9 @@ def process_computing_nodes(decorator_name: str, kwargs: dict) -> None:
 
     if __debug__:
         logger.debug(
-            "This %s task will have %s computing nodes."
-            % (decorator_name, str(kwargs[LABELS.computing_nodes]))
+            "This %s task will have %s computing nodes.",
+            decorator_name,
+            str(kwargs[LABELS.computing_nodes]),
         )
 
 
@@ -151,23 +153,21 @@ def keep_arguments(
         slf = args[0]
 
         # Replace and store the attributes
-        for k, v in kwargs.items():
-            if hasattr(slf, k):
-                saved[k] = getattr(slf, k)
-                setattr(slf, k, v)
-    # Set PREPEND_STRINGS
-    import pycompss.api.task as t
+        for key, value in kwargs.items():
+            if hasattr(slf, key):
+                saved[key] = getattr(slf, key)
+                setattr(slf, key, value)
 
     if not prepend_strings:
-        t.PREPEND_STRINGS = False
+        TASK_FEATURES.set_prepend_strings(False)
     yield
     # Restore PREPEND_STRINGS to default: True
-    t.PREPEND_STRINGS = True
+    TASK_FEATURES.set_prepend_strings(True)
     # Restore function arguments
     if len(args) > 0:
         # Put things back
-        for k, v in saved.items():
-            setattr(slf, k, v)
+        for key, value in saved.items():
+            setattr(slf, key, value)
 
 
 #################
@@ -185,9 +185,9 @@ def run_command(cmd: typing.List[str], args: tuple, kwargs: dict) -> int:
     """
     if args:
         args_elements = []
-        for a in args:
-            if a:
-                args_elements.append(a)
+        for arg in args:
+            if arg:
+                args_elements.append(arg)
         cmd += args_elements
     my_env = os.environ.copy()
     env_path = my_env["PATH"]
@@ -195,10 +195,10 @@ def run_command(cmd: typing.List[str], args: tuple, kwargs: dict) -> int:
         my_env["PATH"] = kwargs[LABELS.working_dir] + env_path
     elif LEGACY_LABELS.working_dir in kwargs:
         my_env["PATH"] = kwargs[LEGACY_LABELS.working_dir] + env_path
-    proc = subprocess.Popen(
+    with subprocess.Popen(
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=my_env
-    )
-    out, err = proc.communicate()
+    ) as proc:
+        out, err = proc.communicate()
     out_message = out.decode().strip()
     err_message = err.decode().strip()
     if out_message:

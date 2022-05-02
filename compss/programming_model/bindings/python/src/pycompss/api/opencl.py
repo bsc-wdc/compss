@@ -26,14 +26,14 @@ through the decorator.
 
 from functools import wraps
 
-import pycompss.util.context as context
+from pycompss.util.context import CONTEXT
 from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.constants import LEGACY_LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.decorator import resolve_working_dir
 from pycompss.api.commons.error_msgs import not_in_pycompss
-from pycompss.api.commons.implementation_types import IMPL_OPENCL
+from pycompss.api.commons.implementation_types import IMPLEMENTATION_TYPES
 from pycompss.runtime.task.core_element import CE
 from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import NotInPyCOMPSsException
@@ -49,7 +49,7 @@ SUPPORTED_ARGUMENTS = {LABELS.kernel, LABELS.working_dir}
 DEPRECATED_ARGUMENTS = {LEGACY_LABELS.working_dir}
 
 
-class OpenCL(object):
+class OpenCL:  # pylint: disable=too-few-public-methods
     """OpenCL decorator class.
 
     This decorator also preserves the argspec, but includes the __init__ and
@@ -71,7 +71,7 @@ class OpenCL(object):
         self.decorator_name = decorator_name
         self.args = args
         self.kwargs = kwargs
-        self.scope = context.in_pycompss()
+        self.scope = CONTEXT.in_pycompss()
         self.core_element = None  # type: typing.Any
         self.core_element_configured = False
         if self.scope:
@@ -100,7 +100,7 @@ class OpenCL(object):
                 logger.debug("Executing opencl_f wrapper.")
 
             if (
-                context.in_master() or context.is_nesting_enabled()
+                CONTEXT.in_master() or CONTEXT.is_nesting_enabled()
             ) and not self.core_element_configured:
                 # master code - or worker with nesting enabled
                 self.__configure_core_element__(kwargs)
@@ -131,7 +131,7 @@ class OpenCL(object):
         # Resolve the working directory
         resolve_working_dir(self.kwargs)
 
-        impl_type = IMPL_OPENCL
+        impl_type = IMPLEMENTATION_TYPES.opencl
         impl_signature = ".".join((impl_type, kernel))
         impl_args = [kernel, self.kwargs[LABELS.working_dir]]
 
@@ -159,4 +159,4 @@ class OpenCL(object):
 # ################### OPENCL DECORATOR ALTERNATIVE NAME ##################### #
 # ########################################################################### #
 
-opencl = OpenCL
+opencl = OpenCL  # pylint: disable=invalid-name

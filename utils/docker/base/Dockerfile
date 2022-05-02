@@ -58,7 +58,7 @@ RUN apt-get update && \
     pip3 --no-cache-dir install black[jupyter] && \
     #for fixing a nbcovert jinja2 compatibility problem
     jinja2==3.0.3 && \
-    pip3 --no-cache-dir install install mypy mypy-extensions types-tabulate types-decorator && \
+    pip3 --no-cache-dir install mypy mypy-extensions types-tabulate types-decorator && \
     wget https://services.gradle.org/distributions/gradle-5.4.1-bin.zip && \
     unzip -d /opt gradle-5.4.1-bin.zip && \
     rm gradle-5.4.1-bin.zip && \

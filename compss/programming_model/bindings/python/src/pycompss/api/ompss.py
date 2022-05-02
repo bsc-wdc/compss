@@ -26,7 +26,7 @@ through the decorator.
 
 from functools import wraps
 
-import pycompss.util.context as context
+from pycompss.util.context import CONTEXT
 from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.constants import LEGACY_LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
@@ -35,7 +35,7 @@ from pycompss.api.commons.decorator import process_computing_nodes
 from pycompss.api.commons.decorator import resolve_fail_by_exit_value
 from pycompss.api.commons.decorator import resolve_working_dir
 from pycompss.api.commons.error_msgs import not_in_pycompss
-from pycompss.api.commons.implementation_types import IMPL_OMPSS
+from pycompss.api.commons.implementation_types import IMPLEMENTATION_TYPES
 from pycompss.runtime.task.core_element import CE
 from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import NotInPyCOMPSsException
@@ -56,7 +56,7 @@ SUPPORTED_ARGUMENTS = {
 DEPRECATED_ARGUMENTS = {LEGACY_LABELS.computing_nodes, LEGACY_LABELS.working_dir}
 
 
-class OmpSs(object):
+class OmpSs:  # pylint: disable=too-few-public-methods
     """OmpSs decorator class.
 
     This decorator also preserves the argspec, but includes the __init__ and
@@ -87,7 +87,7 @@ class OmpSs(object):
         self.decorator_name = decorator_name
         self.args = args
         self.kwargs = kwargs
-        self.scope = context.in_pycompss()
+        self.scope = CONTEXT.in_pycompss()
         self.core_element = None  # type: typing.Any
         self.core_element_configured = False
         if self.scope:
@@ -119,7 +119,7 @@ class OmpSs(object):
                 logger.debug("Executing ompss_f wrapper.")
 
             if (
-                context.in_master() or context.is_nesting_enabled()
+                CONTEXT.in_master() or CONTEXT.is_nesting_enabled()
             ) and not self.core_element_configured:
                 # master code - or worker with nesting enabled
                 self.__configure_core_element__(kwargs)
@@ -156,8 +156,8 @@ class OmpSs(object):
         # Resolve the fail by exit value
         resolve_fail_by_exit_value(self.kwargs)
 
-        impl_type = IMPL_OMPSS
-        impl_signature = "".join((IMPL_OMPSS, ".", binary))
+        impl_type = IMPLEMENTATION_TYPES.ompss
+        impl_signature = "".join((IMPLEMENTATION_TYPES.ompss, ".", binary))
         impl_args = [
             binary,
             self.kwargs[LABELS.working_dir],
@@ -188,4 +188,4 @@ class OmpSs(object):
 # #################### OMPSs DECORATOR ALTERNATIVE NAME ##################### #
 # ########################################################################### #
 
-ompss = OmpSs
+ompss = OmpSs  # pylint: disable=invalid-name

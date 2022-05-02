@@ -26,8 +26,10 @@ This file contains the DDS examples.
 import os
 import sys
 import time
-
 import random
+from collections import deque
+from collections import defaultdict
+import numpy as np
 
 from pycompss.api.api import compss_wait_on as cwo
 from pycompss.dds import DDS
@@ -43,10 +45,9 @@ def inside(_):
 
     :returns: If inside.
     """
-    x = random.random()  # NOSONAR
-    y = random.random()  # NOSONAR
-    if (x * x) + (y * y) < 1:
-        return True
+    rand_x = random.random()
+    rand_y = random.random()
+    return (rand_x * rand_x) + (rand_y * rand_y) < 1
 
 
 def _generate_graph():
@@ -73,7 +74,7 @@ def files_to_pairs(element):
     :param element: String of elements.
     :returns: List of pairs.
     """
-    tuples = list()
+    tuples = []
     lines = element[1].split("\n")
     for _l in lines:
         if not _l:
@@ -90,7 +91,7 @@ def _invert_files(pair):
     :param pair: Pair.
     :results: List of items.
     """
-    res = dict()
+    res = {}
     for word in pair[1].split():
         res[word] = [pair[0]]
     return list(res.items())
@@ -107,8 +108,6 @@ def has_converged(mu, old_mu, epsilon):
     :param epsilon: Epsilon.
     :returns: If has converged.
     """
-    import numpy as np
-
     if not old_mu:
         return False
 
@@ -125,8 +124,6 @@ def merge_reduce(f, data):
     :param data: List of elements to reduce.
     :results: Reduced result.
     """
-    from collections import deque
-
     q = deque(list(range(len(data))))
     while len(q):
         x = q.popleft()
@@ -168,8 +165,6 @@ def wordcount_k_means(dim=742):
     :param dim:
     :returns:
     """
-    import numpy as np
-
     f_path = sys.argv[1]
 
     start_time = time.time()
@@ -200,7 +195,7 @@ def wordcount_k_means(dim=742):
     #     .map(__count_locally__, vocabulary)\
     #     .map(__gen_array__)\
 
-    wc_per_file = list()
+    wc_per_file = []
 
     for fn in sorted(os.listdir(f_path)):
         wc_per_file.append(task_count_locally(os.path.join(f_path, fn), vocab))
@@ -230,9 +225,6 @@ def wordcount_k_means(dim=742):
         n += 1
 
     clusters_with_frag = cwo(clusters)
-
-    from collections import defaultdict
-
     cluster_sets = defaultdict(list)
 
     for _d in clusters_with_frag:
@@ -253,7 +245,8 @@ def wordcount_k_means(dim=742):
         print(k, "-----------sims --------->", sims_per_file[k][:5])
 
     print("-----------------------------")
-    print("Kmeans Timed {} (s)".format(time.time() - start_time))
+    elapsed_time = time.time() - start_time
+    print(f"Kmeans Timed {elapsed_time} (s)")
     print("Iterations: ", n)
 
 
@@ -288,10 +281,11 @@ def pi_estimation():
     """
     print("Estimating Pi by 'throwing darts' algorithm.")
     tries = 100000
-    print("Number of tries: {}".format(tries))
+    print(f"Number of tries: {tries}")
 
     count = DDS().load(range(0, tries), 10).filter(inside).count()
-    print("Pi is roughly %f" % (4.0 * count / tries))
+    rough_pi = 4.0 * count / tries
+    print(f"Pi is roughly {rough_pi}")
 
 
 def terasort():
@@ -321,8 +315,9 @@ def terasort():
     # test = DDS().load_pickle_files(dest_path).map(lambda x: x).collect()
     # print(test[-1:])
 
-    print("Result: " + str(dds))
-    print("Elapsed Time {} (s)".format(time.time() - start_time))
+    print(f"Result: {str(dds)}")
+    elapsed_time = time.time() - start_time
+    print(f"Elapsed Time {elapsed_time} (s)")
 
 
 def inverted_indexing():
@@ -342,7 +337,8 @@ def inverted_indexing():
         .collect()
     )
     print(result[-1:])
-    print("Elapsed Time {} (s)".format(time.time() - start_time))
+    elapsed_time = time.time() - start_time
+    print(f"Elapsed Time {elapsed_time} (s)")
 
 
 def transitive_closure(partitions=None):
@@ -382,7 +378,7 @@ def transitive_closure(partitions=None):
         if next_count == old_count:
             break
 
-    print("TC has %i edges" % next_count)
+    print(f"TC has {next_count} edges")
 
 
 def main_program():

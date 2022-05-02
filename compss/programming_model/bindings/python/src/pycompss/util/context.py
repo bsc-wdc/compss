@@ -28,142 +28,188 @@ import inspect
 from contextlib import contextmanager
 
 # Typing imports
+from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.typing_helper import typing
 
-####################
-# GLOBAL VARIABLES #
-####################
+#################
+# CONTEXT CLASS #
+#################
 
-MASTER = "MASTER"
-WORKER = "WORKER"
-OUT_OF_SCOPE = "OUT_OF_SCOPE"
 
-_WHO = OUT_OF_SCOPE  # type: str
-_WHERE = OUT_OF_SCOPE  # type: str
+class Context:
+    """Keep the context variables."""
 
-NESTING = False
-LOADING = False
-TO_REGISTER = []  # type: typing.List[typing.Any]
+    __slots__ = [
+        "master",
+        "worker",
+        "out_of_scope",
+        "who",
+        "where",
+        "nesting",
+        "loading",
+        "to_register",
+    ]
+
+    def __init__(self):
+        """Instantiate the context class."""
+        # Final variables
+        self.master = "MASTER"
+        self.worker = "WORKER"
+        self.out_of_scope = "OUT_OF_SCOPE"
+        # Context definition variables
+        self.who = self.out_of_scope
+        self.where = self.out_of_scope
+        # Context status or features
+        self.nesting = False
+        self.loading = False
+        self.to_register = []  # type: typing.List[typing.Any]
+
+    def in_master(self) -> bool:
+        """Determine if the execution is being performed in the master node.
+
+        :return: True if in master. False on the contrary.
+        """
+        return self.where == self.master
+
+    def in_worker(self) -> bool:
+        """Determine if the execution is being performed in a worker node.
+
+        :return: True if in worker. False on the contrary.
+        """
+        return self.where == self.worker
+
+    def in_pycompss(self) -> bool:
+        """Determine if the execution is being performed within the PyCOMPSs scope.
+
+        :return: True if under scope. False on the contrary.
+        """
+        return self.where != self.out_of_scope
+
+    def __set_pycompss_context__(self, where: str) -> None:
+        """Set the Python Binding context (MASTER or WORKER or OUT_OF_SCOPE).
+
+        :param where: New context (MASTER or WORKER or OUT_OF_SCOPE).
+        :return: None.
+        """
+        self.where = where
+        if __debug__:
+            # Only check who contextualized if debugging
+            # 2 since it is called from set_master, set_worker or set_out_of_scope.
+            caller_stack = inspect.stack()[2]
+            caller_module = inspect.getmodule(caller_stack[0])
+            self.who = str(caller_module)
+
+    def set_master(self):
+        """Set the context to master.
+
+        :return: None.
+        """
+        self.__set_pycompss_context__(self.master)
+
+    def set_worker(self):
+        """Set the context to worker.
+
+        :return: None.
+        """
+        self.__set_pycompss_context__(self.worker)
+
+    def set_out_of_scope(self):
+        """Set the context to out of scope (not master nor worker).
+
+        Usually for initialization or other tasks that are shared between
+        master and worker operation.
+
+        :return: None.
+        """
+        self.__set_pycompss_context__(self.out_of_scope)
+
+    def get_pycompss_context(self) -> str:
+        """Return the PyCOMPSs context name.
+
+        * For debugging purposes.
+
+        :return: PyCOMPSs context name.
+        """
+        return self.where
+
+    def get_who_contextualized(self) -> str:
+        """Return the PyCOMPSs contextualization caller.
+
+        * For debugging purposes.
+
+        :return: PyCOMPSs contextualization caller name
+        :raises PyCOMPSsException: Unsupported function if not debugging.
+        """
+        if __debug__:
+            return self.who
+        raise PyCOMPSsException("Get who contextualized only works in debug mode.")
+
+    def is_nesting_enabled(self) -> bool:
+        """Check if nesting is enabled.
+
+        :returns: None.
+        """
+        return self.nesting is True
+
+    def enable_nesting(self) -> None:
+        """Enable nesting.
+
+        :returns: None.
+        """
+        self.nesting = True
+
+    def disable_nesting(self) -> None:
+        """Disable nesting.
+
+        :returns: None.
+        """
+        self.nesting = False
+
+    def is_loading(self) -> bool:
+        """Check if is loading.
+
+        :returns: None
+        """
+        return self.loading is True
+
+    def enable_loading(self) -> None:
+        """Enable loading.
+
+        :returns: None.
+        """
+        self.loading = True
+
+    def disable_loading(self) -> None:
+        """Enable loading.
+
+        :returns: None.
+        """
+        self.loading = False
+
+    def add_to_register_later(
+        self, core_element: typing.Tuple[typing.Any, str]
+    ) -> None:
+        """Accumulate core elements to be registered later.
+
+        :param core_element: Core element to be registered.
+        :return: None.
+        """
+        self.to_register.append(core_element)
+
+    def get_to_register(self) -> typing.List[typing.Tuple[typing.Any, str]]:
+        """Retrieve the to register list.
+
+        :return: To register list.
+        """
+        return self.to_register
+
+
+CONTEXT = Context()
 
 
 #############
 # FUNCTIONS #
 #############
-
-
-def in_master() -> bool:
-    """Determine if the execution is being performed in the master node.
-
-    :return: True if in master. False on the contrary.
-    """
-    return _WHERE == MASTER
-
-
-def in_worker() -> bool:
-    """Determine if the execution is being performed in a worker node.
-
-    :return: True if in worker. False on the contrary.
-    """
-    return _WHERE == WORKER
-
-
-def in_pycompss() -> bool:
-    """Determine if the execution is being performed within the PyCOMPSs scope.
-
-    :return: True if under scope. False on the contrary.
-    """
-    return _WHERE != OUT_OF_SCOPE
-
-
-def set_pycompss_context(where: str) -> None:
-    """Set the Python Binding context (MASTER or WORKER or OUT_OF_SCOPE).
-
-    :param where: New context (MASTER or WORKER or OUT_OF_SCOPE).
-    :return: None.
-    """
-    assert where in [
-        MASTER,
-        WORKER,
-        OUT_OF_SCOPE,
-    ], "PyCOMPSs context must be %s, %s or %s" % (MASTER, WORKER, OUT_OF_SCOPE)
-    global _WHERE
-    _WHERE = where
-    global _WHO
-    caller_stack = inspect.stack()[1]
-    caller_module = inspect.getmodule(caller_stack[0])
-    _WHO = str(caller_module)
-
-
-def get_pycompss_context() -> str:
-    """Return the PyCOMPSs context name.
-
-    * For debugging purposes.
-
-    :return: PyCOMPSs context name.
-    """
-    return _WHERE
-
-
-def get_who_contextualized() -> str:
-    """Return the PyCOMPSs contextualization caller.
-
-    * For debugging purposes.
-
-    :return: PyCOMPSs contextualization caller name
-    """
-    return _WHO
-
-
-def is_nesting_enabled() -> bool:
-    """Check if nesting is enabled.
-
-    :returns: None.
-    """
-    return NESTING is True
-
-
-def enable_nesting() -> None:
-    """Enable nesting.
-
-    :returns: None.
-    """
-    global NESTING
-    NESTING = True
-
-
-def disable_nesting() -> None:
-    """Disable nesting.
-
-    :returns: None.
-    """
-    global NESTING
-    NESTING = False
-
-
-def is_loading() -> bool:
-    """Check if is loading.
-
-    :returns: None
-    """
-    return LOADING is True
-
-
-def __enable_loading__() -> None:
-    """Enable loading.
-
-    :returns: None.
-    """
-    global LOADING
-    LOADING = True
-
-
-def __disable_loading__() -> None:
-    """Enable loading.
-
-    :returns: None.
-    """
-    global LOADING
-    LOADING = False
 
 
 @contextmanager
@@ -175,24 +221,6 @@ def loading_context() -> typing.Iterator[None]:
 
     :return: None.
     """
-    __enable_loading__()
+    CONTEXT.enable_loading()
     yield
-    __disable_loading__()
-
-
-def add_to_register_later(core_element: typing.Tuple[typing.Any, str]) -> None:
-    """Accumulate core elements to be registered later.
-
-    :param core_element: Core element to be registered.
-    :return: None.
-    """
-    global TO_REGISTER
-    TO_REGISTER.append(core_element)
-
-
-def get_to_register() -> typing.List[typing.Tuple[typing.Any, str]]:
-    """Retrieve the to register list.
-
-    :return: To register list.
-    """
-    return TO_REGISTER
+    CONTEXT.disable_loading()

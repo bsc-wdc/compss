@@ -24,7 +24,6 @@ This file contains the distro stream types code.
 """
 
 # Imports
-import logging
 from abc import abstractmethod
 from threading import Semaphore
 
@@ -32,7 +31,10 @@ from threading import Semaphore
 # Logger definition
 #
 
-logger = logging.getLogger("pycompss.streams.distro_stream")
+if __debug__:
+    import logging
+
+    logger = logging.getLogger("pycompss.streams.distro_stream")
 
 #
 # Type Enums
@@ -52,11 +54,11 @@ STOP = "STOP"
 #
 # Interface definition
 #
-class Request(object):
+class Request:
     """Interface for Client-Server requests.
 
     Attributes:
-        - rt: Request type.
+        - request_type: Request type.
             + type: RequestType
         - has_been_processed: Whether the request has been processed or not.
             + type: boolean
@@ -70,12 +72,12 @@ class Request(object):
             + type: string
     """
 
-    def __init__(self, rt: str) -> None:
+    def __init__(self, request_type: str) -> None:
         """Create a new Request instance.
 
-        :param rt: Request type (RequestType).
+        :param request_type: Request type (RequestType).
         """
-        self.rt = rt
+        self.request_type = request_type
 
         self.has_been_processed = False
         self.wait_sem = Semaphore(0)
@@ -89,7 +91,7 @@ class Request(object):
 
         :return: The request type (RequestType).
         """
-        return self.rt
+        return self.request_type
 
     def is_processed(self) -> bool:
         """Return whether the request has been processed or not.
@@ -103,7 +105,7 @@ class Request(object):
 
         :return: None.
         """
-        self.wait_sem.acquire()
+        self.wait_sem.acquire()  # pylint: disable=consider-using-with
 
     def get_error_code(self) -> int:
         """Return the request error code.
@@ -132,7 +134,6 @@ class Request(object):
 
         :return: The request message to send to the server.
         """
-        pass
 
     def set_processed(self) -> None:
         """Mark the request as processed.
@@ -193,7 +194,7 @@ class RegisterStreamRequest(Request):
         :param internal_stream_info: Associated information about the internal
                                      stream implementation (List<string>).
         """
-        super(RegisterStreamRequest, self).__init__(rt=REGISTER_STREAM)
+        super().__init__(request_type=REGISTER_STREAM)
         self.alias = alias
         self.stream_type = stream_type
         self.access_mode = access_mode
@@ -204,9 +205,9 @@ class RegisterStreamRequest(Request):
 
         :return: Message.
         """
-        s = " ".join(
+        message = " ".join(
             (
-                str(self.rt),
+                str(self.request_type),
                 str(self.stream_type),
                 str(self.access_mode),
                 str(self.alias),
@@ -214,8 +215,8 @@ class RegisterStreamRequest(Request):
         )
         if self.internal_stream_info is not None:
             for info in self.internal_stream_info:
-                s = s + " " + str(info)
-        return s
+                message = message + " " + str(info)
+        return message
 
 
 class StopRequest(Request):
@@ -223,15 +224,15 @@ class StopRequest(Request):
 
     def __init__(self) -> None:
         """Create a new StopRequest instance."""
-        super(StopRequest, self).__init__(rt=STOP)
+        super().__init__(request_type=STOP)
 
     def get_request_msg(self) -> str:
         """Get request message.
 
         :returns: Mesage.
         """
-        s = str(self.rt)
-        return s
+        message = str(self.request_type)
+        return message
 
 
 class BootstrapServerRequest(Request):
@@ -239,15 +240,15 @@ class BootstrapServerRequest(Request):
 
     def __init__(self) -> None:
         """Create a new BootstrapServerRequest instance."""
-        super(BootstrapServerRequest, self).__init__(rt=BOOTSTRAP_SERVER)
+        super().__init__(request_type=BOOTSTRAP_SERVER)
 
     def get_request_msg(self) -> str:
         """Get request message.
 
         :return: Message.
         """
-        s = str(self.rt)
-        return s
+        message = str(self.request_type)
+        return message
 
 
 class StreamStatusRequest(Request):
@@ -263,7 +264,7 @@ class StreamStatusRequest(Request):
 
         :param stream_id: Stream Id.
         """
-        super(StreamStatusRequest, self).__init__(rt=STREAM_STATUS)
+        super().__init__(request_type=STREAM_STATUS)
         self.stream_id = stream_id
 
     def get_request_msg(self) -> str:
@@ -271,7 +272,7 @@ class StreamStatusRequest(Request):
 
         :return: Message.
         """
-        return "%s %s" % (str(self.rt), str(self.stream_id))
+        return f"{str(self.request_type)} {str(self.stream_id)}"
 
 
 class CloseStreamRequest(Request):
@@ -285,9 +286,9 @@ class CloseStreamRequest(Request):
     def __init__(self, stream_id: str) -> None:
         """Create a new CloseStreamRequest instance.
 
-        :param stream_id: Stream Id.
+        :param stream_id: Stream Identifier.
         """
-        super(CloseStreamRequest, self).__init__(rt=CLOSE_STREAM)
+        super().__init__(request_type=CLOSE_STREAM)
         self.stream_id = stream_id
 
     def get_request_msg(self) -> str:
@@ -295,7 +296,7 @@ class CloseStreamRequest(Request):
 
         :return: Message.
         """
-        return "%s %s" % (str(self.rt), str(self.stream_id))
+        return f"{str(self.request_type)} {str(self.stream_id)}"
 
 
 class PollRequest(Request):
@@ -309,9 +310,9 @@ class PollRequest(Request):
     def __init__(self, stream_id: str) -> None:
         """Create a new PollRequest instance.
 
-        :param stream_id: Stream Id.
+        :param stream_id: Stream Identifier.
         """
-        super(PollRequest, self).__init__(rt=POLL)
+        super().__init__(request_type=POLL)
         self.stream_id = stream_id
 
     def get_request_msg(self) -> str:
@@ -319,7 +320,7 @@ class PollRequest(Request):
 
         :return: Message.
         """
-        return "%s %s" % (str(self.rt), str(self.stream_id))
+        return f"{str(self.request_type)} {str(self.stream_id)}"
 
 
 class PublishRequest(Request):
@@ -338,7 +339,7 @@ class PublishRequest(Request):
         :param stream_id: Stream Id (UUID).
         :param msg: Message to publish.
         """
-        super(PublishRequest, self).__init__(rt=PUBLISH)
+        super().__init__(request_type=PUBLISH)
         self.stream_id = stream_id
         self.msg = msg
 
@@ -347,4 +348,4 @@ class PublishRequest(Request):
 
         :return: Message.
         """
-        return " ".join((str(self.rt), str(self.stream_id), str(self.msg)))
+        return " ".join((str(self.request_type), str(self.stream_id), str(self.msg)))

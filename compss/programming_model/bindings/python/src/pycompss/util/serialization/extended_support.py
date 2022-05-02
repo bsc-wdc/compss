@@ -27,17 +27,17 @@ This file contains the serialization extensions.
 from pycompss.util.typing_helper import typing
 
 
-class GeneratorIndicator(object):
+class GeneratorIndicator:
     """GeneratorIndicator class."""
 
-    pass
 
-
-def pickle_generator(f_gen: typing.Any, f: typing.Any, serializer: typing.Any) -> None:
+def pickle_generator(
+    f_gen: typing.Any, function: typing.Any, serializer: typing.Any
+) -> None:
     """Pickle a generator and store the serialization result in a file.
 
     :param f_gen: Generator object.
-    :param f: Destination file for pickling generator.
+    :param function: Destination file for pickling generator.
     :param serializer: Serializer to use.
     """
     # Convert generator to list and pickle (less efficient but more reliable)
@@ -46,7 +46,7 @@ def pickle_generator(f_gen: typing.Any, f: typing.Any, serializer: typing.Any) -
     # generator when receiving it?
     # At least, the key is complicated.
     gen_snapshot = (GeneratorIndicator(), list(f_gen))
-    serializer.dump(gen_snapshot, f)
+    serializer.dump(gen_snapshot, function)
 
 
 def convert_to_generator(lst: list) -> typing.Generator:

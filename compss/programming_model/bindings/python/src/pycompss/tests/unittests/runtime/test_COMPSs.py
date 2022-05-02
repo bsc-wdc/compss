@@ -17,29 +17,27 @@
 
 # -*- coding: utf-8 -*-
 
-import pycompss.runtime.management.COMPSs as COMPSs
-from pycompss.runtime.management.COMPSs import get_redirection_file_names
-from pycompss.runtime.management.COMPSs import is_redirected
+from pycompss.runtime.management.COMPSs import COMPSs
 from pycompss.util.exceptions import PyCOMPSsException
 
 
 def test_is_redirected():
     # Get a copy of the initial status
-    old_stdout = COMPSs._STDOUT
-    old_stderr = COMPSs._STDOUT
+    old_stdout = COMPSs.stdout
+    old_stderr = COMPSs.stderr
     # First case: Both not initialized -> False
-    COMPSs._STDOUT = ""
-    COMPSs._STDERR = ""
-    none_none = is_redirected()
+    COMPSs.stdout = ""
+    COMPSs.stderr = ""
+    none_none = COMPSs.is_redirected()
     # Second case: Both initialized -> True
-    COMPSs._STDOUT = "file.out"
-    COMPSs._STDERR = "file.err"
-    something_something = is_redirected()
+    COMPSs.stdout = "file.out"
+    COMPSs.stderr = "file.err"
+    something_something = COMPSs.is_redirected()
     # Third case: One not initialized -> Raise exception
-    COMPSs._STDERR = ""
+    COMPSs.stderr = ""
     is_ok = False
     try:
-        _ = is_redirected()
+        _ = COMPSs.is_redirected()
     except PyCOMPSsException:
         is_ok = True
     assert (
@@ -50,28 +48,28 @@ def test_is_redirected():
     ), "ERROR: Failed second case of is_redirected. Must return True."
     assert is_ok, "ERROR: Failed third case of is_redirected. Must raise an Exception."
     # Restore status
-    COMPSs._STDOUT = old_stdout
-    COMPSs._STDERR = old_stderr
+    COMPSs.stdout = old_stdout
+    COMPSs.stderr = old_stderr
 
 
 def test_get_redirection():
     # Get a copy of the initial status
-    old_stdout = COMPSs._STDOUT
-    old_stderr = COMPSs._STDOUT
+    old_stdout = COMPSs.stdout
+    old_stderr = COMPSs.stdout
     # First case: Both not initialized -> Raise exception
-    COMPSs._STDOUT = ""
-    COMPSs._STDERR = ""
+    COMPSs.stdout = ""
+    COMPSs.stderr = ""
     is_ok = False
     try:
-        _, _ = get_redirection_file_names()
+        _, _ = COMPSs.get_redirection_file_names()
     except PyCOMPSsException:
         is_ok = True
     # Second case: Both initialized -> out, err
     out_name = "file.out"
     err_name = "file.err"
-    COMPSs._STDOUT = out_name
-    COMPSs._STDERR = err_name
-    new_stdout, new_stderr = get_redirection_file_names()
+    COMPSs.stdout = out_name
+    COMPSs.stderr = err_name
+    new_stdout, new_stderr = COMPSs.get_redirection_file_names()
     assert (
         is_ok
     ), "ERROR: Failed first case of get_redirection_file_names. Must raise an Exception."  # noqa: E501
@@ -82,5 +80,5 @@ def test_get_redirection():
         new_stderr == err_name
     ), "ERROR: Failed second case of get_redirection_file_names. Must return stdout file name."  # noqa: E501
     # Restore status
-    COMPSs._STDOUT = old_stdout
-    COMPSs._STDERR = old_stderr
+    COMPSs.stdout = old_stdout
+    COMPSs.stderr = old_stderr

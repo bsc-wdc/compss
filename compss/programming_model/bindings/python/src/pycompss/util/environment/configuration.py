@@ -28,9 +28,10 @@ import base64
 import json
 import os
 import sys
+import uuid as _uuid
 from tempfile import mkstemp
 
-import pycompss.runtime.binding as binding
+from pycompss.runtime.task.features import TASK_FEATURES
 from pycompss.util.supercomputer.scs import get_base_log_dir
 from pycompss.util.supercomputer.scs import get_log_level
 from pycompss.util.supercomputer.scs import get_master_node
@@ -59,13 +60,12 @@ def preload_user_code() -> bool:
     environment_variable_load = "COMPSS_LOAD_SOURCE"
     if environment_variable_load not in os.environ:
         return True
-    elif (
+    if (
         environment_variable_load in os.environ
         and os.environ[environment_variable_load] != "false"
     ):
         return True
-    else:
-        return False
+    return False
 
 
 def export_current_flags(all_vars: dict) -> None:
@@ -128,7 +128,7 @@ def prepare_environment(
 
     # Enable/Disable object to string conversion
     # set cross-module variable
-    binding.object_conversion = o_c
+    TASK_FEATURES.set_object_conversion(o_c)
 
     # Get the filename and its path.
     file_name = os.path.splitext(os.path.basename(app))[0]
@@ -233,10 +233,7 @@ def updated_variables_in_sc() -> dict:
     # Override debug considering the parameter defined in
     # pycompss_interactive_sc script and exported by launch_compss
     log_level = get_log_level()
-    if log_level == "debug":
-        debug = True
-    else:
-        debug = False
+    debug = log_level == "debug"
     # Override tracing considering the parameter defined in
     # pycompss_interactive_sc script and exported by launch_compss
     trace = get_tracing()
@@ -460,256 +457,271 @@ def create_init_config_file(
     :param kwargs: Any other parameter.
     :return: None.
     """
-    fd, temp_path = mkstemp()
-    jvm_options_file = open(temp_path, "w")
-
-    # JVM GENERAL OPTIONS
-    jvm_options_file.write("-XX:+PerfDisableSharedMem\n")
-    jvm_options_file.write("-XX:-UsePerfData\n")
-    jvm_options_file.write("-XX:+UseG1GC\n")
-    jvm_options_file.write("-XX:+UseThreadPriorities\n")
-    jvm_options_file.write("-XX:ThreadPriorityPolicy=0\n")
-    jvm_options_file.write("-javaagent:" + compss_home + "/Runtime/compss-engine.jar\n")
-    jvm_options_file.write("-Dcompss.to.file=false\n")
-    jvm_options_file.write("-Dcompss.appName=" + app_name + "\n")
-
-    if uuid == "":
-        import uuid as _uuid
-
-        my_uuid = str(_uuid.uuid4())
-    else:
-        my_uuid = uuid
-    jvm_options_file.write("-Dcompss.uuid=" + my_uuid + "\n")
-
-    if shutdown_in_node_failure:
-        jvm_options_file.write("-Dcompss.shutdown_in_node_failure=true\n")
-    else:
-        jvm_options_file.write("-Dcompss.shutdown_in_node_failure=false\n")
-
-    if base_log_dir == "":
-        # It will be within $HOME/.COMPSs
-        jvm_options_file.write("-Dcompss.baseLogDir=\n")
-    else:
-        jvm_options_file.write("-Dcompss.baseLogDir=" + base_log_dir + "\n")
-
-    if specific_log_dir == "":
-        jvm_options_file.write("-Dcompss.specificLogDir=\n")
-    else:
-        jvm_options_file.write("-Dcompss.specificLogDir=" + specific_log_dir + "\n")
-
-    jvm_options_file.write("-Dcompss.appLogDir=/tmp/" + my_uuid + "/\n")
-
-    conf_file_key = "-Dlog4j.configurationFile="
-    if debug or log_level == "debug":
+    temp_fd, temp_path = mkstemp()
+    with open(temp_path, "w") as jvm_options_file:
+        # JVM GENERAL OPTIONS
+        jvm_options_file.write("-XX:+PerfDisableSharedMem\n")
+        jvm_options_file.write("-XX:-UsePerfData\n")
+        jvm_options_file.write("-XX:+UseG1GC\n")
+        jvm_options_file.write("-XX:+UseThreadPriorities\n")
+        jvm_options_file.write("-XX:ThreadPriorityPolicy=0\n")
         jvm_options_file.write(
-            conf_file_key
+            "-javaagent:" + compss_home + "/Runtime/compss-engine.jar\n"
+        )
+        jvm_options_file.write("-Dcompss.to.file=false\n")
+        jvm_options_file.write("-Dcompss.appName=" + app_name + "\n")
+
+        if uuid == "":
+            my_uuid = str(_uuid.uuid4())
+        else:
+            my_uuid = uuid
+        jvm_options_file.write("-Dcompss.uuid=" + my_uuid + "\n")
+
+        if shutdown_in_node_failure:
+            jvm_options_file.write("-Dcompss.shutdown_in_node_failure=true\n")
+        else:
+            jvm_options_file.write("-Dcompss.shutdown_in_node_failure=false\n")
+
+        if base_log_dir == "":
+            # It will be within $HOME/.COMPSs
+            jvm_options_file.write("-Dcompss.baseLogDir=\n")
+        else:
+            jvm_options_file.write("-Dcompss.baseLogDir=" + base_log_dir + "\n")
+
+        if specific_log_dir == "":
+            jvm_options_file.write("-Dcompss.specificLogDir=\n")
+        else:
+            jvm_options_file.write("-Dcompss.specificLogDir=" + specific_log_dir + "\n")
+
+        jvm_options_file.write("-Dcompss.appLogDir=/tmp/" + my_uuid + "/\n")
+
+        conf_file_key = "-Dlog4j.configurationFile="
+        if debug or log_level == "debug":
+            jvm_options_file.write(
+                conf_file_key
+                + compss_home
+                + DEFAULT_LOG_PATH
+                + "COMPSsMaster-log4j.debug\n"
+            )  # DEBUG
+        elif monitor is not None or log_level == "info":
+            jvm_options_file.write(
+                conf_file_key
+                + compss_home
+                + DEFAULT_LOG_PATH
+                + "COMPSsMaster-log4j.info\n"
+            )  # INFO
+        else:
+            jvm_options_file.write(
+                conf_file_key + compss_home + DEFAULT_LOG_PATH + "COMPSsMaster-log4j\n"
+            )  # NO DEBUG
+
+        if graph:
+            jvm_options_file.write("-Dcompss.graph=true\n")
+        else:
+            jvm_options_file.write("-Dcompss.graph=false\n")
+
+        if monitor == -1:
+            jvm_options_file.write("-Dcompss.monitor=0\n")
+        else:
+            jvm_options_file.write("-Dcompss.monitor=" + str(monitor) + "\n")
+
+        if summary:
+            jvm_options_file.write("-Dcompss.summary=true\n")
+        else:
+            jvm_options_file.write("-Dcompss.summary=false\n")
+
+        jvm_options_file.write(
+            "-Dcompss.worker.cp="
+            + cp
+            + ":"
             + compss_home
-            + DEFAULT_LOG_PATH
-            + "COMPSsMaster-log4j.debug\n"
-        )  # DEBUG
-    elif monitor is not None or log_level == "info":
-        jvm_options_file.write(
-            conf_file_key + compss_home + DEFAULT_LOG_PATH + "COMPSsMaster-log4j.info\n"
-        )  # INFO
-    else:
-        jvm_options_file.write(
-            conf_file_key + compss_home + DEFAULT_LOG_PATH + "COMPSsMaster-log4j\n"
-        )  # NO DEBUG
-
-    if graph:
-        jvm_options_file.write("-Dcompss.graph=true\n")
-    else:
-        jvm_options_file.write("-Dcompss.graph=false\n")
-
-    if monitor == -1:
-        jvm_options_file.write("-Dcompss.monitor=0\n")
-    else:
-        jvm_options_file.write("-Dcompss.monitor=" + str(monitor) + "\n")
-
-    if summary:
-        jvm_options_file.write("-Dcompss.summary=true\n")
-    else:
-        jvm_options_file.write("-Dcompss.summary=false\n")
-
-    jvm_options_file.write(
-        "-Dcompss.worker.cp="
-        + cp
-        + ":"
-        + compss_home
-        + "/Runtime/compss-engine.jar:"
-        + classpath
-        + "\n"
-    )
-    jvm_options_file.write("-Dcompss.worker.appdir=" + cp + "\n")
-    jvm_options_file.write("-Dcompss.worker.jvm_opts=" + jvm_workers + "\n")
-    jvm_options_file.write("-Dcompss.worker.cpu_affinity=" + cpu_affinity + "\n")
-    jvm_options_file.write("-Dcompss.worker.gpu_affinity=" + gpu_affinity + "\n")
-    jvm_options_file.write("-Dcompss.worker.fpga_affinity=" + fpga_affinity + "\n")
-    jvm_options_file.write("-Dcompss.worker.fpga_reprogram=" + fpga_reprogram + "\n")
-    jvm_options_file.write("-Dcompss.worker.io_executors=" + str(io_executors) + "\n")
-    jvm_options_file.write("-Dcompss.worker.env_script=" + env_script + "\n")
-
-    if comm == "GAT":
-        gat = "-Dcompss.comm=es.bsc.compss.gat.master.GATAdaptor"
-        jvm_options_file.write(gat + "\n")
-    else:
-        nio = "-Dcompss.comm=es.bsc.compss.nio.master.NIOAdaptor"
-        jvm_options_file.write(nio + "\n")
-
-    jvm_options_file.write("-Dcompss.masterName=" + master_name + "\n")
-    jvm_options_file.write("-Dcompss.masterPort=" + master_port + "\n")
-
-    jvm_options_file.write(
-        "-Dgat.adaptor.path=" + compss_home + "/Dependencies/JAVA_GAT/lib/adaptors\n"
-    )
-    if debug:
-        jvm_options_file.write("-Dgat.debug=true\n")
-    else:
-        jvm_options_file.write("-Dgat.debug=false\n")
-    jvm_options_file.write("-Dgat.broker.adaptor=sshtrilead\n")
-    jvm_options_file.write("-Dgat.file.adaptor=sshtrilead\n")
-
-    if reuse_on_block:
-        jvm_options_file.write("-Dcompss.execution.reuseOnBlock=true\n")
-    else:
-        jvm_options_file.write("-Dcompss.execution.reuseOnBlock=true\n")
-
-    if nested_enabled:
-        jvm_options_file.write("-Dcompss.execution.nested.enabled=true\n")
-    else:
-        jvm_options_file.write("-Dcompss.execution.nested.enabled=true\n")
-
-    jvm_options_file.write("-Dcompss.scheduler=" + scheduler + "\n")
-    jvm_options_file.write("-Dcompss.scheduler.config=" + scheduler_config + "\n")
-    jvm_options_file.write("-Dcompss.profile.input=" + profile_input + "\n")
-    jvm_options_file.write("-Dcompss.profile.output=" + profile_output + "\n")
-
-    jvm_options_file.write("-Dcompss.project.file=" + project_xml + "\n")
-    jvm_options_file.write("-Dcompss.resources.file=" + resources_xml + "\n")
-    jvm_options_file.write(
-        "-Dcompss.project.schema="
-        + compss_home
-        + DEFAULT_PROJECT_PATH
-        + "project_schema.xsd\n"
-    )
-    jvm_options_file.write(
-        "-Dcompss.resources.schema="
-        + compss_home
-        + DEFAULT_RESOURCES_PATH
-        + "resources_schema.xsd\n"
-    )
-
-    jvm_options_file.write("-Dcompss.conn=" + conn + "\n")
-    jvm_options_file.write("-Dcompss.external.adaptation=" + external_adaptation + "\n")
-
-    jvm_options_file.write("-Dcompss.lang=python\n")
-
-    jvm_options_file.write("-Dcompss.core.count=" + str(task_count) + "\n")
-
-    jvm_options_file.write(
-        "-Djava.class.path="
-        + cp
-        + ":"
-        + compss_home
-        + "/Runtime/compss-engine.jar:"
-        + classpath
-        + "\n"
-    )
-    jvm_options_file.write("-Djava.library.path=" + ld_library_path + "\n")
-
-    # SPECIFIC JVM OPTIONS FOR PYTHON
-    jvm_options_file.write("-Dcompss.worker.pythonpath=" + cp + ":" + pythonpath + "\n")
-    jvm_options_file.write("-Dcompss.python.interpreter=" + python_interpreter + "\n")
-    jvm_options_file.write("-Dcompss.python.version=" + python_version + "\n")
-    jvm_options_file.write(
-        "-Dcompss.python.virtualenvironment=" + python_virtual_environment + "\n"
-    )
-    virtualenv_prefix = "-Dcompss.python.propagate_virtualenvironment="
-    if propagate_virtual_environment:
-        jvm_options_file.write(virtualenv_prefix + "true\n")
-    else:
-        jvm_options_file.write(virtualenv_prefix + "false\n")
-    if mpi_worker:
-        jvm_options_file.write("-Dcompss.python.mpi_worker=true\n")
-    else:
-        jvm_options_file.write("-Dcompss.python.mpi_worker=false\n")
-    if worker_cache:
-        jvm_options_file.write("-Dcompss.python.worker_cache=true\n")
-    else:
-        jvm_options_file.write("-Dcompss.python.worker_cache=false\n")
-
-    # SPECIFIC FOR STREAMING
-    if streaming_backend == "":
-        jvm_options_file.write("-Dcompss.streaming=NONE\n")
-    else:
-        jvm_options_file.write("-Dcompss.streaming=" + str(streaming_backend) + "\n")
-    if streaming_master_name == "":
-        jvm_options_file.write("-Dcompss.streaming.masterName=null\n")
-    else:
-        jvm_options_file.write(
-            "-Dcompss.streaming.masterName=" + str(streaming_master_name) + "\n"
+            + "/Runtime/compss-engine.jar:"
+            + classpath
+            + "\n"
         )
-    if streaming_master_port == "":
-        jvm_options_file.write("-Dcompss.streaming.masterPort=null\n")
-    else:
+        jvm_options_file.write("-Dcompss.worker.appdir=" + cp + "\n")
+        jvm_options_file.write("-Dcompss.worker.jvm_opts=" + jvm_workers + "\n")
+        jvm_options_file.write("-Dcompss.worker.cpu_affinity=" + cpu_affinity + "\n")
+        jvm_options_file.write("-Dcompss.worker.gpu_affinity=" + gpu_affinity + "\n")
+        jvm_options_file.write("-Dcompss.worker.fpga_affinity=" + fpga_affinity + "\n")
         jvm_options_file.write(
-            "-Dcompss.streaming.masterPort=" + str(streaming_master_port) + "\n"
+            "-Dcompss.worker.fpga_reprogram=" + fpga_reprogram + "\n"
+        )
+        jvm_options_file.write(
+            "-Dcompss.worker.io_executors=" + str(io_executors) + "\n"
+        )
+        jvm_options_file.write("-Dcompss.worker.env_script=" + env_script + "\n")
+
+        if comm == "GAT":
+            gat = "-Dcompss.comm=es.bsc.compss.gat.master.GATAdaptor"
+            jvm_options_file.write(gat + "\n")
+        else:
+            nio = "-Dcompss.comm=es.bsc.compss.nio.master.NIOAdaptor"
+            jvm_options_file.write(nio + "\n")
+
+        jvm_options_file.write("-Dcompss.masterName=" + master_name + "\n")
+        jvm_options_file.write("-Dcompss.masterPort=" + master_port + "\n")
+
+        jvm_options_file.write(
+            "-Dgat.adaptor.path="
+            + compss_home
+            + "/Dependencies/JAVA_GAT/lib/adaptors\n"
+        )
+        if debug:
+            jvm_options_file.write("-Dgat.debug=true\n")
+        else:
+            jvm_options_file.write("-Dgat.debug=false\n")
+        jvm_options_file.write("-Dgat.broker.adaptor=sshtrilead\n")
+        jvm_options_file.write("-Dgat.file.adaptor=sshtrilead\n")
+
+        if reuse_on_block:
+            jvm_options_file.write("-Dcompss.execution.reuseOnBlock=true\n")
+        else:
+            jvm_options_file.write("-Dcompss.execution.reuseOnBlock=true\n")
+
+        if nested_enabled:
+            jvm_options_file.write("-Dcompss.execution.nested.enabled=true\n")
+        else:
+            jvm_options_file.write("-Dcompss.execution.nested.enabled=true\n")
+
+        jvm_options_file.write("-Dcompss.scheduler=" + scheduler + "\n")
+        jvm_options_file.write("-Dcompss.scheduler.config=" + scheduler_config + "\n")
+        jvm_options_file.write("-Dcompss.profile.input=" + profile_input + "\n")
+        jvm_options_file.write("-Dcompss.profile.output=" + profile_output + "\n")
+
+        jvm_options_file.write("-Dcompss.project.file=" + project_xml + "\n")
+        jvm_options_file.write("-Dcompss.resources.file=" + resources_xml + "\n")
+        jvm_options_file.write(
+            "-Dcompss.project.schema="
+            + compss_home
+            + DEFAULT_PROJECT_PATH
+            + "project_schema.xsd\n"
+        )
+        jvm_options_file.write(
+            "-Dcompss.resources.schema="
+            + compss_home
+            + DEFAULT_RESOURCES_PATH
+            + "resources_schema.xsd\n"
         )
 
-    # STORAGE SPECIFIC
-    jvm_options_file.write("-Dcompss.task.execution=" + task_execution + "\n")
-    if storage_conf == "":
-        jvm_options_file.write("-Dcompss.storage.conf=null\n")
-    else:
-        jvm_options_file.write("-Dcompss.storage.conf=" + storage_conf + "\n")
-
-    # TOOLS SPECIFIC
-    if not trace or trace == 0:
-        # Deactivated
-        jvm_options_file.write("-Dcompss.tracing=false" + "\n")
-    elif trace == 1:
-        # Basic
-        jvm_options_file.write("-Dcompss.tracing=true\n")
-        basic = compss_home + DEFAULT_TRACING_PATH + "extrae_basic.xml"
-        os.environ["EXTRAE_CONFIG_FILE"] = basic
-    else:
-        # Any other case: deactivated
-        jvm_options_file.write("-Dcompss.tracing=false" + "\n")
-    if tracing_task_dependencies:
-        jvm_options_file.write("-Dcompss.tracing.task.dependencies=true\n")
-    else:
-        jvm_options_file.write("-Dcompss.tracing.task.dependencies=false\n")
-    if trace_label == "":
-        jvm_options_file.write("-Dcompss.trace.label=None\n")
-    else:
-        jvm_options_file.write("-Dcompss.trace.label=" + str(trace_label) + "\n")
-    if extrae_cfg == "":
-        jvm_options_file.write("-Dcompss.extrae.file=null\n")
-    else:
-        jvm_options_file.write("-Dcompss.extrae.file=" + str(extrae_cfg) + "\n")
-    if extrae_cfg_python == "":
-        jvm_options_file.write("-Dcompss.extrae.file.python=null\n")
-    else:
+        jvm_options_file.write("-Dcompss.conn=" + conn + "\n")
         jvm_options_file.write(
-            "-Dcompss.extrae.file.python=" + str(extrae_cfg_python) + "\n"
+            "-Dcompss.external.adaptation=" + external_adaptation + "\n"
         )
 
-    # WALLCLOCK LIMIT
-    jvm_options_file.write("-Dcompss.wcl=" + str(wcl) + "\n")
+        jvm_options_file.write("-Dcompss.lang=python\n")
 
-    if cache_profiler:
+        jvm_options_file.write("-Dcompss.core.count=" + str(task_count) + "\n")
+
         jvm_options_file.write(
-            "-Dcompss.python.cache_profiler=" + str(worker_cache).lower() + "\n"
+            "-Djava.class.path="
+            + cp
+            + ":"
+            + compss_home
+            + "/Runtime/compss-engine.jar:"
+            + classpath
+            + "\n"
         )
-    else:
-        jvm_options_file.write("-Dcompss.python.cache_profiler=false\n")
-    # Uncomment for debugging purposes
-    # jvm_options_file.write("-Xcheck:jni\n")
-    # jvm_options_file.write("-verbose:jni\n")
+        jvm_options_file.write("-Djava.library.path=" + ld_library_path + "\n")
 
-    # Close the file
-    jvm_options_file.close()
-    os.close(fd)
+        # SPECIFIC JVM OPTIONS FOR PYTHON
+        jvm_options_file.write(
+            "-Dcompss.worker.pythonpath=" + cp + ":" + pythonpath + "\n"
+        )
+        jvm_options_file.write(
+            "-Dcompss.python.interpreter=" + python_interpreter + "\n"
+        )
+        jvm_options_file.write("-Dcompss.python.version=" + python_version + "\n")
+        jvm_options_file.write(
+            "-Dcompss.python.virtualenvironment=" + python_virtual_environment + "\n"
+        )
+        virtualenv_prefix = "-Dcompss.python.propagate_virtualenvironment="
+        if propagate_virtual_environment:
+            jvm_options_file.write(virtualenv_prefix + "true\n")
+        else:
+            jvm_options_file.write(virtualenv_prefix + "false\n")
+        if mpi_worker:
+            jvm_options_file.write("-Dcompss.python.mpi_worker=true\n")
+        else:
+            jvm_options_file.write("-Dcompss.python.mpi_worker=false\n")
+        if worker_cache:
+            jvm_options_file.write("-Dcompss.python.worker_cache=true\n")
+        else:
+            jvm_options_file.write("-Dcompss.python.worker_cache=false\n")
+
+        # SPECIFIC FOR STREAMING
+        if streaming_backend == "":
+            jvm_options_file.write("-Dcompss.streaming=NONE\n")
+        else:
+            jvm_options_file.write(
+                "-Dcompss.streaming=" + str(streaming_backend) + "\n"
+            )
+        if streaming_master_name == "":
+            jvm_options_file.write("-Dcompss.streaming.masterName=null\n")
+        else:
+            jvm_options_file.write(
+                "-Dcompss.streaming.masterName=" + str(streaming_master_name) + "\n"
+            )
+        if streaming_master_port == "":
+            jvm_options_file.write("-Dcompss.streaming.masterPort=null\n")
+        else:
+            jvm_options_file.write(
+                "-Dcompss.streaming.masterPort=" + str(streaming_master_port) + "\n"
+            )
+
+        # STORAGE SPECIFIC
+        jvm_options_file.write("-Dcompss.task.execution=" + task_execution + "\n")
+        if storage_conf == "":
+            jvm_options_file.write("-Dcompss.storage.conf=null\n")
+        else:
+            jvm_options_file.write("-Dcompss.storage.conf=" + storage_conf + "\n")
+
+        # TOOLS SPECIFIC
+        if not trace or trace == 0:
+            # Deactivated
+            jvm_options_file.write("-Dcompss.tracing=false" + "\n")
+        elif trace == 1:
+            # Basic
+            jvm_options_file.write("-Dcompss.tracing=true\n")
+            basic = compss_home + DEFAULT_TRACING_PATH + "extrae_basic.xml"
+            os.environ["EXTRAE_CONFIG_FILE"] = basic
+        else:
+            # Any other case: deactivated
+            jvm_options_file.write("-Dcompss.tracing=false" + "\n")
+        if tracing_task_dependencies:
+            jvm_options_file.write("-Dcompss.tracing.task.dependencies=true\n")
+        else:
+            jvm_options_file.write("-Dcompss.tracing.task.dependencies=false\n")
+        if trace_label == "":
+            jvm_options_file.write("-Dcompss.trace.label=None\n")
+        else:
+            jvm_options_file.write("-Dcompss.trace.label=" + str(trace_label) + "\n")
+        if extrae_cfg == "":
+            jvm_options_file.write("-Dcompss.extrae.file=null\n")
+        else:
+            jvm_options_file.write("-Dcompss.extrae.file=" + str(extrae_cfg) + "\n")
+        if extrae_cfg_python == "":
+            jvm_options_file.write("-Dcompss.extrae.file.python=null\n")
+        else:
+            jvm_options_file.write(
+                "-Dcompss.extrae.file.python=" + str(extrae_cfg_python) + "\n"
+            )
+
+        # WALLCLOCK LIMIT
+        jvm_options_file.write("-Dcompss.wcl=" + str(wcl) + "\n")
+
+        if cache_profiler:
+            jvm_options_file.write(
+                "-Dcompss.python.cache_profiler=" + str(worker_cache).lower() + "\n"
+            )
+        else:
+            jvm_options_file.write("-Dcompss.python.cache_profiler=false\n")
+        # Uncomment for debugging purposes
+        # jvm_options_file.write("-Xcheck:jni\n")
+        # jvm_options_file.write("-verbose:jni\n")
+
+    # Close the temporary file
+    os.close(temp_fd)
     os.environ["JVM_OPTIONS_FILE"] = temp_path
 
     # Uncomment if you want to check the configuration file path:

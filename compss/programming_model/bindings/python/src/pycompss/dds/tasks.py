@@ -29,7 +29,7 @@ from pycompss.api.parameter import COLLECTION_IN
 from pycompss.api.task import task
 from pycompss.dds.partition_generators import IPartitionGenerator
 
-marker = "COMPSS_DEFAULT_VALUE_TO_BE_USED_AS_A_MARKER"
+MARKER = "COMPSS_DEFAULT_VALUE_TO_BE_USED_AS_A_MARKER"
 FILE_NAME_LENGTH = 5
 
 
@@ -205,4 +205,5 @@ def map_and_save_pickle(func, index, path, partition, collection=list()):
     partition = func(partition) if func else partition
 
     file_name = os.path.join(path, str(index).zfill(FILE_NAME_LENGTH))
-    pickle.dump(list(partition), open(file_name, "wb"))
+    with open(file_name, "wb") as file_name_fd:
+        pickle.dump(list(partition), file_name_fd)

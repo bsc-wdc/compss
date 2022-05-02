@@ -29,13 +29,12 @@ import threading
 import time
 from queue import Queue
 
-from pycompss.runtime.management.COMPSs import get_redirection_file_names
-from pycompss.runtime.management.COMPSs import is_redirected
+from pycompss.runtime.management.COMPSs import COMPSs
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.typing_helper import typing
 
 
-class StdWatcher(object):
+class StdWatcher:
     """Standard output and standard error watcher class.
 
     This class implements the stdout and stderr files watcher for the
@@ -58,7 +57,9 @@ class StdWatcher(object):
         self.messages = Queue()  # type: Queue
 
     @staticmethod
-    def __watcher__(fd_out: typing.Any, fd_err: typing.Any) -> typing.Iterator[str]:
+    def __watcher__(
+        fd_out: typing.Any, fd_err: typing.Any
+    ) -> typing.Iterator[str]:  # pylint: disable=unused-argument
         """Look for new lines in fd_out and fd_err.
 
         Static method that checks the stderr file descriptor looking
@@ -88,26 +89,24 @@ class StdWatcher(object):
         :param err_file_name: Error file name.
         :return: None.
         """
-        fd_out = open(out_file_name, "r")
-        fd_err = open(err_file_name, "r")
-        for line in self.__watcher__(fd_out, fd_err):
-            if self.running:
-                if line.startswith("[ERRMGR]"):
-                    self.messages.put(str(line))
-            else:
-                # Stop following std
-                fd_out.close()
-                fd_err.close()
-                return None
+        with open(out_file_name, "r") as fd_out:
+            with open(err_file_name, "r") as fd_err:
+                for line in self.__watcher__(fd_out, fd_err):
+                    if self.running:
+                        if line.startswith("[ERRMGR]"):
+                            self.messages.put(str(line))
+                    else:
+                        # Stop following std
+                        return
 
     def start_watching(self) -> None:
         """Start a new thread to monitor the stdout and stderr files provided.
 
         :return: None.
         """
-        if is_redirected():
+        if COMPSs.is_redirected():
             self.running = True
-            out_file_name, err_file_name = get_redirection_file_names()
+            out_file_name, err_file_name = COMPSs.get_redirection_file_names()
             thread = threading.Thread(
                 target=self.__std_follower__, args=(out_file_name, err_file_name)
             )
@@ -123,7 +122,7 @@ class StdWatcher(object):
         """
         self.running = False
         if clean:
-            out_file_name, err_file_name = get_redirection_file_names()
+            out_file_name, err_file_name = COMPSs.get_redirection_file_names()
             if os.path.exists(out_file_name):
                 os.remove(out_file_name)
             if os.path.exists(err_file_name):

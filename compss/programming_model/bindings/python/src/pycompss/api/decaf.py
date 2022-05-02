@@ -26,7 +26,7 @@ through the decorator.
 
 from functools import wraps
 
-import pycompss.util.context as context
+from pycompss.util.context import CONTEXT
 from pycompss.api.commons.constants import INTERNAL_LABELS
 from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.constants import LEGACY_LABELS
@@ -36,7 +36,7 @@ from pycompss.api.commons.decorator import process_computing_nodes
 from pycompss.api.commons.decorator import resolve_fail_by_exit_value
 from pycompss.api.commons.decorator import resolve_working_dir
 from pycompss.api.commons.error_msgs import not_in_pycompss
-from pycompss.api.commons.implementation_types import IMPL_DECAF
+from pycompss.api.commons.implementation_types import IMPLEMENTATION_TYPES
 from pycompss.runtime.task.core_element import CE
 from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import NotInPyCOMPSsException
@@ -66,7 +66,7 @@ DEPRECATED_ARGUMENTS = {
 }
 
 
-class Decaf(object):
+class Decaf:  # pylint: disable=too-few-public-methods
     """Decaf decorator class.
 
     This decorator also preserves the argspec, but includes the __init__ and
@@ -97,7 +97,7 @@ class Decaf(object):
         self.decorator_name = decorator_name
         self.args = args
         self.kwargs = kwargs
-        self.scope = context.in_pycompss()
+        self.scope = CONTEXT.in_pycompss()
         self.core_element = None  # type: typing.Any
         self.core_element_configured = False
         if self.scope:
@@ -129,7 +129,7 @@ class Decaf(object):
                 logger.debug("Executing decaf_f wrapper.")
 
             if (
-                context.in_master() or context.is_nesting_enabled()
+                CONTEXT.in_master() or CONTEXT.is_nesting_enabled()
             ) and not self.core_element_configured:
                 # master code - or worker with nesting enabled
                 self.__configure_core_element__(kwargs)
@@ -159,10 +159,9 @@ class Decaf(object):
             logger.debug("Configuring @decaf core element.")
 
         # Resolve @decaf specific parameters
+        runner = "mpirun"
         if LABELS.runner in self.kwargs:
             runner = self.kwargs[LABELS.runner]
-        else:
-            runner = "mpirun"
 
         if LEGACY_LABELS.df_script in self.kwargs:
             df_script = self.kwargs[LEGACY_LABELS.df_script]
@@ -190,7 +189,7 @@ class Decaf(object):
         # Resolve the fail by exit value
         resolve_fail_by_exit_value(self.kwargs)
 
-        impl_type = IMPL_DECAF
+        impl_type = IMPLEMENTATION_TYPES.decaf
         impl_signature = ".".join((impl_type, df_script))
         impl_args = [
             df_script,
@@ -225,4 +224,4 @@ class Decaf(object):
 # #################### DECAF DECORATOR ALTERNATIVE NAME ##################### #
 # ########################################################################### #
 
-decaf = Decaf
+decaf = Decaf  # pylint: disable=invalid-name

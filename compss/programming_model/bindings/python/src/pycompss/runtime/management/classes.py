@@ -24,7 +24,7 @@ This file contains the internal classes.
 """
 
 
-class SupportedFunctionTypes(object):
+class SupportedFunctionTypes:
     """Used as enum to identify the function type."""
 
     FUNCTION = 1
@@ -32,16 +32,12 @@ class SupportedFunctionTypes(object):
     CLASS_METHOD = 3
 
 
-class Future(object):
+class Future:
     """Future object class definition."""
 
-    pass
 
-
-class EmptyReturn(object):
+class EmptyReturn:
     """For functions with empty return."""
-
-    pass
 
 
 FunctionType = SupportedFunctionTypes()

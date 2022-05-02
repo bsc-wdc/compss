@@ -23,15 +23,36 @@ PyCOMPSs API - commons - implementation types.
 This file contains the implementation types definitions.
 """
 
-# Supported implementation types
-IMPL_BINARY = "BINARY"
-IMPL_CET_BINARY = "CET_BINARY"
-IMPL_COMPSs = "COMPSs"
-IMPL_CONTAINER = "CONTAINER"
-IMPL_DECAF = "DECAF"
-IMPL_METHOD = "METHOD"
-IMPL_MPI = "MPI"
-IMPL_MULTI_NODE = "MULTI_NODE"
-IMPL_OMPSS = "OMPSS"
-IMPL_OPENCL = "OPENCL"
-IMPL_PYTHON_MPI = "PYTHON_MPI"
+
+class _ImplementationTypes:  # pylint: disable=too-few-public-methods, too-many-instance-attributes
+    """Supported implementation types."""
+
+    __slots__ = [
+        "binary",
+        "cet_binary",
+        "compss",
+        "container",
+        "decaf",
+        "method",
+        "mpi",
+        "multi_node",
+        "ompss",
+        "opencl",
+        "python_mpi",
+    ]
+
+    def __init__(self):
+        self.binary = "BINARY"
+        self.cet_binary = "CET_BINARY"
+        self.compss = "COMPSs"
+        self.container = "CONTAINER"
+        self.decaf = "DECAF"
+        self.method = "METHOD"
+        self.mpi = "MPI"
+        self.multi_node = "MULTI_NODE"
+        self.ompss = "OMPSS"
+        self.opencl = "OPENCL"
+        self.python_mpi = "PYTHON_MPI"
+
+
+IMPLEMENTATION_TYPES = _ImplementationTypes()

@@ -26,7 +26,7 @@ the decorator.
 
 from functools import wraps
 
-import pycompss.util.context as context
+from pycompss.util.context import CONTEXT
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.error_msgs import not_in_pycompss
@@ -45,7 +45,7 @@ SUPPORTED_ARGUMENTS = set()  # type: typing.Set[str]
 DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 
 
-class IO(object):
+class IO:  # pylint: disable=too-few-public-methods
     """IO decorator class.
 
     This decorator also preserves the argspec, but includes the __init__ and
@@ -67,7 +67,7 @@ class IO(object):
         self.decorator_name = decorator_name
         self.args = args
         self.kwargs = kwargs
-        self.scope = context.in_pycompss()
+        self.scope = CONTEXT.in_pycompss()
         self.core_element = None  # type: typing.Any
         self.core_element_configured = False
         if self.scope:
@@ -96,7 +96,7 @@ class IO(object):
                 logger.debug("Executing IO_f wrapper.")
 
             if (
-                context.in_master() or context.is_nesting_enabled()
+                CONTEXT.in_master() or CONTEXT.is_nesting_enabled()
             ) and not self.core_element_configured:
                 # master code - or worker with nesting enabled
                 self.__configure_core_element__(kwargs)
@@ -110,10 +110,11 @@ class IO(object):
         io_f.__doc__ = user_function.__doc__
         return io_f
 
-    def __configure_core_element__(self, kwargs: dict) -> None:
+    @staticmethod
+    def __configure_core_element__(kwargs: dict) -> None:
         """Include the registering info related to @IO.
 
-        IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
+        IMPORTANT! Updates kwargs[CORE_ELEMENT_KEY].
 
         :param kwargs: Keyword arguments received from call.
         :return: None
@@ -140,4 +141,4 @@ class IO(object):
 # ###################### IO DECORATOR ALTERNATIVE NAME ###################### #
 # ########################################################################### #
 
-io = IO
+io = IO  # pylint: disable=invalid-name

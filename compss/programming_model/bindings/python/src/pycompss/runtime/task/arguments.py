@@ -74,7 +74,7 @@ def get_vararg_name(varargs_name: str, i: int) -> str:
     :return: The name of the ith vararg according to our internal naming
              convention.
     """
-    return "*%s*_%d" % (str(varargs_name), i)
+    return f"*{varargs_name}*_{i}"
 
 
 def get_kwarg_name(var: str) -> str:
@@ -83,7 +83,7 @@ def get_kwarg_name(var: str) -> str:
     :param var: A string with a variable name.
     :return: The name of the kwarg according to our internal naming convention.
     """
-    return "#kwarg_%s" % var
+    return f"#kwarg_{var}"
 
 
 def get_name_from_kwarg(var: str) -> str:
@@ -101,4 +101,4 @@ def get_return_name(i: int) -> str:
     :param i: A non-negative integer.
     :return: The name of the return identifier according to our internal naming.
     """
-    return "$return_%d" % i
+    return f"$return_{i}"

@@ -17,9 +17,9 @@
 
 # -*- coding: utf-8 -*-
 
-import pycompss.util.context as context
+from pycompss.util.context import CONTEXT
 
-context.set_pycompss_context(context.OUT_OF_SCOPE)
+CONTEXT.set_out_of_scope()
 
 from pycompss.api.api import compss_wait_on  # noqa
 from pycompss.api.binary import Binary  # noqa

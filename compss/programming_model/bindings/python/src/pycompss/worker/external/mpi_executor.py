@@ -30,18 +30,16 @@ import os
 import signal
 import sys
 
-import pycompss.util.context as context
+from pycompss.util.context import CONTEXT
 from mpi4py import MPI
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.logger.helpers import init_logging_worker
-from pycompss.util.tracing.helpers import event_worker
+from pycompss.util.tracing.helpers import EventWorker
 from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.util.typing_helper import typing
 from pycompss.worker.commons.executor import build_return_params_message
 from pycompss.worker.commons.worker import execute_task
-from pycompss.worker.piper.commons.constants import COMPSS_EXCEPTION_TAG
-from pycompss.worker.piper.commons.constants import END_TASK_TAG
-from pycompss.worker.piper.commons.constants import EXECUTE_TASK_TAG
+from pycompss.worker.piper.commons.constants import TAGS
 
 
 # noqa TODO: Comments about exit value and return following values was in another branch need to be reviewed if it works in trunk
@@ -50,7 +48,9 @@ from pycompss.worker.piper.commons.constants import EXECUTE_TASK_TAG
 # UNEXPECTED_SIG = 2
 
 
-def shutdown_handler(signal: int, frame: typing.Any) -> None:
+def shutdown_handler(
+    signal: int, frame: typing.Any
+) -> None:  # pylint: disable=redefined-outer-name
     """Handle shutdown - MPI exception signal handler.
 
     CAUTION! Do not remove the parameters.
@@ -85,17 +85,18 @@ def executor(process_name: str, command: str) -> None:
 
     # Load log level configuration file
     worker_path = os.path.dirname(os.path.realpath(__file__))
-    if log_level == "true" or log_level == "debug":
+    if log_level in ("true", "debug"):
         # Debug
         log_json = "".join((worker_path, "/../../../log/logging_mpi_worker_debug.json"))
-    elif log_level == "info" or log_level == "off":
-        log_json = "".join((worker_path, "/../../../log/logging_mpi_worker_off.json"))
+    elif log_level == "info":
+        # Info
+        log_json = "".join((worker_path, "/../../../log/logging_mpi_worker_info.json"))
     else:
-        # Default
-        log_json = "".join((worker_path, "/../../../log/logging_mpi_worker.json"))
+        # Default (off)
+        log_json = "".join((worker_path, "/../../../log/logging_mpi_worker_off.json"))
     init_logging_worker(log_json, tracing)
 
-    logger = logging.getLogger("pycompss.worker.external.mpi_worker")
+    logger = logging.getLogger("pycompss.worker.external.mpi_executor")
     logger_handlers = copy.copy(logger.handlers)
     logger_level = logger.getEffectiveLevel()
     try:
@@ -105,9 +106,9 @@ def executor(process_name: str, command: str) -> None:
         logger_formatter = None
 
     if __debug__:
-        logger.debug("[PYTHON EXECUTOR] [%s] Starting process" % str(process_name))
+        logger.debug("[PYTHON EXECUTOR] [%s] Starting process", str(process_name))
 
-    sig, msg = process_task(
+    sig, _ = process_task(
         command,
         process_name,
         logger,
@@ -125,7 +126,7 @@ def executor(process_name: str, command: str) -> None:
     sys.stdout.flush()
     sys.stderr.flush()
     if __debug__:
-        logger.debug("[PYTHON EXECUTOR] [%s] Exiting process " % str(process_name))
+        logger.debug("[PYTHON EXECUTOR] [%s] Exiting process ", str(process_name))
     if sig != 0:
         sys.exit(sig)
 
@@ -150,7 +151,7 @@ def process_task(
     :param logger_formatter: Logger formatter.
     :return: exit_value and message.
     """
-    with event_worker(TRACING_WORKER.process_task_event):
+    with EventWorker(TRACING_WORKER.process_task_event):
         # Process properties
         stdout = sys.stdout
         stderr = sys.stderr
@@ -158,14 +159,15 @@ def process_task(
 
         if __debug__:
             logger.debug(
-                "[PYTHON EXECUTOR] [%s] Received message: %s"
-                % (str(process_name), str(current_line))
+                "[PYTHON EXECUTOR] [%s] Received message: %s",
+                str(process_name),
+                str(current_line),
             )
 
         splitted_current_line = current_line.split()
-        if splitted_current_line[0] == EXECUTE_TASK_TAG:
+        if splitted_current_line[0] == TAGS.execute_task:
             num_collection_params = int(splitted_current_line[-1])
-            collections_layouts = dict()
+            collections_layouts = {}
             if num_collection_params > 0:
                 raw_layouts = splitted_current_line[
                     ((num_collection_params * -4) - 1) : -1
@@ -205,12 +207,14 @@ def process_task(
 
             if __debug__:
                 logger.debug(
-                    "[PYTHON EXECUTOR] [%s] Received task with id: %s"
-                    % (str(process_name), str(job_id))
+                    "[PYTHON EXECUTOR] [%s] Received task with id: %s",
+                    str(process_name),
+                    str(job_id),
                 )
                 logger.debug(
-                    "[PYTHON EXECUTOR] [%s] - TASK CMD: %s"
-                    % (str(process_name), str(current_line_filtered))
+                    "[PYTHON EXECUTOR] [%s] - TASK CMD: %s",
+                    str(process_name),
+                    str(current_line_filtered),
                 )
 
             # Swap logger from stream handler to file handler
@@ -228,29 +232,31 @@ def process_task(
             logger.addHandler(err_file_handler)
 
             if __debug__:
-                logger.debug("Received task in process: %s" % str(process_name))
-                logger.debug(" - TASK CMD: %s" % str(current_line_filtered))
+                logger.debug("Received task in process: %s", str(process_name))
+                logger.debug(" - TASK CMD: %s", str(current_line_filtered))
 
             try:
                 # Setup out/err wrappers
-                out = open(job_out, "a")
-                err = open(job_err, "a")
+                out = open(job_out, "a")  # pylint: disable=consider-using-with
+                err = open(job_err, "a")  # pylint: disable=consider-using-with
                 sys.stdout = out
                 sys.stderr = err
 
                 # Setup process environment
-                cn = int(current_line_filtered[12])
-                cn_names = ",".join(current_line_filtered[13 : 13 + cn])
-                cu = int(current_line_filtered[13 + cn])
-                os.environ["COMPSS_NUM_NODES"] = str(cn)
-                os.environ["COMPSS_HOSTNAMES"] = cn_names
-                os.environ["COMPSS_NUM_THREADS"] = str(cu)
-                os.environ["OMP_NUM_THREADS"] = str(cu)
+                compss_nodes = int(current_line_filtered[12])
+                compss_nodes_names = ",".join(
+                    current_line_filtered[13 : 13 + compss_nodes]
+                )
+                computing_units = int(current_line_filtered[13 + compss_nodes])
+                os.environ["COMPSS_NUM_NODES"] = str(compss_nodes)
+                os.environ["COMPSS_HOSTNAMES"] = compss_nodes_names
+                os.environ["COMPSS_NUM_THREADS"] = str(computing_units)
+                os.environ["OMP_NUM_THREADS"] = str(computing_units)
                 if __debug__:
                     logger.debug("Process environment:")
-                    logger.debug("\t - Number of nodes: %s" % (str(cn)))
-                    logger.debug("\t - Hostnames: %s" % str(cn_names))
-                    logger.debug("\t - Number of threads: %s" % (str(cu)))
+                    logger.debug("\t - Number of nodes: %s", (str(compss_nodes)))
+                    logger.debug("\t - Hostnames: %s", str(compss_nodes_names))
+                    logger.debug("\t - Number of threads: %s", (str(computing_units)))
 
                 # Execute task
                 storage_conf = "null"
@@ -269,7 +275,7 @@ def process_task(
                     None,
                     None,
                 )
-                exit_value, new_types, new_values, time_out, except_msg = result
+                exit_value, new_types, new_values, _, except_msg = result
 
                 # Restore out/err wrappers
                 sys.stdout = stdout
@@ -291,30 +297,36 @@ def process_task(
                     # endTask jobId exitValue message
                     params = build_return_params_message(new_types, new_values)
                     message = " ".join(
-                        (END_TASK_TAG, str(job_id), str(exit_value), str(params) + "\n")
+                        (
+                            TAGS.end_task,
+                            str(job_id),
+                            str(exit_value),
+                            str(params) + "\n",
+                        )
                     )
                 elif exit_value == 2:
                     # Task has finished with a COMPSs Exception
                     # compssExceptionTask jobId exitValue message
                     except_msg = except_msg.replace(" ", "_")
                     message = " ".join(
-                        (COMPSS_EXCEPTION_TAG, str(job_id), str(except_msg) + "\n")
+                        (TAGS.compss_exception, str(job_id), str(except_msg) + "\n")
                     )
                     if __debug__:
                         logger.debug(
-                            "%s - COMPSS EXCEPTION TASK MESSAGE: %s"
-                            % (str(process_name), str(except_msg))
+                            "%s - COMPSS EXCEPTION TASK MESSAGE: %s",
+                            str(process_name),
+                            str(except_msg),
                         )
                 else:
                     # elif MPI.COMM_WORLD.rank == 0 and global_exit_value != 0:
                     # An exception has been raised in task
                     message = " ".join(
-                        (END_TASK_TAG, str(job_id), str(exit_value) + "\n")
+                        (TAGS.end_task, str(job_id), str(exit_value) + "\n")
                     )
 
                 if __debug__:
                     logger.debug(
-                        "%s - END TASK MESSAGE: %s" % (str(process_name), str(message))
+                        "%s - END TASK MESSAGE: %s", str(process_name), str(message)
                     )
                 # The return message is:
                 #
@@ -339,10 +351,12 @@ def process_task(
                 # returns the id, the runtime can change the type (and locations)
                 # to a EXTERNAL_OBJ_T.
 
-            except Exception as e:
-                logger.exception("%s - Exception %s" % (str(process_name), str(e)))
+            except Exception as general_exception:  # pylint: disable=broad-except
+                logger.exception(
+                    "%s - Exception %s", str(process_name), str(general_exception)
+                )
                 exit_value = 7
-                message = " ".join((END_TASK_TAG, str(job_id), str(exit_value) + "\n"))
+                message = " ".join((TAGS.end_task, str(job_id), str(exit_value) + "\n"))
 
             # Clean environment variables
             if __debug__:
@@ -360,8 +374,9 @@ def process_task(
 
             if __debug__:
                 logger.debug(
-                    "[PYTHON EXECUTOR] [%s] Finished task with id: %s"
-                    % (str(process_name), str(job_id))
+                    "[PYTHON EXECUTOR] [%s] Finished task with id: %s",
+                    str(process_name),
+                    str(job_id),
                 )
             # return SUCCESS_SIG,
             #        "{0} -- Task Ended Successfully!".format(str(process_name))
@@ -369,11 +384,12 @@ def process_task(
         else:
             if __debug__:
                 logger.debug(
-                    "[PYTHON EXECUTOR] [%s] Unexpected message: %s"
-                    % (str(process_name), str(current_line_filtered))
+                    "[PYTHON EXECUTOR] [%s] Unexpected message: %s",
+                    str(process_name),
+                    str(current_line_filtered),
                 )
             exit_value = 7
-            message = " ".join((END_TASK_TAG, str(job_id), str(exit_value) + "\n"))
+            message = " ".join((TAGS.end_task, str(job_id), str(exit_value) + "\n"))
 
         return exit_value, message
 
@@ -384,9 +400,9 @@ def main() -> None:
     :returns: None.
     """
     # Set the binding in worker mode
-    context.set_pycompss_context(context.WORKER)
+    CONTEXT.set_worker()
 
-    executor("MPI Process-{0}".format(MPI.COMM_WORLD.rank), sys.argv[1])
+    executor(f"MPI Process-{MPI.COMM_WORLD.rank}", sys.argv[1])
 
 
 if __name__ == "__main__":

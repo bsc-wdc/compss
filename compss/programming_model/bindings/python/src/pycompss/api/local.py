@@ -27,7 +27,7 @@ for non-task functions that may receive future objects as parameters
 
 import gc
 
-import pycompss.util.context as context
+from pycompss.util.context import CONTEXT
 from pycompss.api.api import compss_wait_on
 from pycompss.runtime.management.object_tracker import OT
 from pycompss.util.objects.replace import replace
@@ -40,13 +40,11 @@ def local(input_function: typing.Callable) -> typing.Callable:
     :param input_function: Input function.
     :return: Wrapped function.
     """
-    if not context.in_pycompss():
+    if not CONTEXT.in_pycompss():
         # Return dummy local decorator
 
         def wrapped_function(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             return input_function(*args, **kwargs)
-
-        return wrapped_function
 
     else:
 
@@ -67,11 +65,11 @@ def local(input_function: typing.Callable) -> typing.Callable:
                 _kwargs[key] = value
             return input_function(*_args, **_kwargs)
 
-        return wrapped_function
+    return wrapped_function
 
 
 # ########################################################################### #
 # #################### LOCAL DECORATOR ALTERNATIVE NAME ##################### #
 # ########################################################################### #
 
-Local = local
+Local = local  # pylint: disable=invalid-name

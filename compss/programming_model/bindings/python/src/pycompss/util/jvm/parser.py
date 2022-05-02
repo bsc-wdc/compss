@@ -32,9 +32,9 @@ def convert_to_dict(jvm_opt_file: str) -> typing.Dict[str, typing.Union[bool, st
     :param jvm_opt_file: JVM parameters file.
     :return: Dictionary with the parameters specified on the file.
     """
-    opts = dict()  # type: typing.Dict[str, typing.Union[bool, str]]
-    with open(jvm_opt_file) as fp:
-        for line in fp:
+    opts = {}  # type: typing.Dict[str, typing.Union[bool, str]]
+    with open(jvm_opt_file) as jvm_opt_file_fd:
+        for line in jvm_opt_file_fd:
             line = line.strip()
             if line:
                 if line.startswith("-XX:"):

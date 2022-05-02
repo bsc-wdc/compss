@@ -39,11 +39,11 @@ It implements the:
 functions.
 Also includes the redirection to the dummy API.
 
-CAUTION: If the context has not been defined, it will load the dummy API
+CAUTION: If the CONTEXT.has not been defined, it will load the dummy API
          automatically.
 """
 
-import pycompss.util.context as context
+from pycompss.util.context import CONTEXT
 
 # Dummy imports
 from pycompss.api.dummy.api import (
@@ -63,9 +63,10 @@ from pycompss.api.dummy.api import (
     compss_free_resources as __dummy_compss_free_resources__,
     compss_set_wall_clock as __dummy_compss_set_wall_clock__,
 )
+from pycompss.util.exceptions import NotInPyCOMPSsException
 from pycompss.util.typing_helper import typing
 
-if context.in_pycompss():
+if CONTEXT.in_pycompss():
     # ################################################################# #
     #                PyCOMPSs API definitions                           #
     # Any change on this API must be considered within the dummy API.   #
@@ -89,6 +90,7 @@ if context.in_pycompss():
         free_resources as __free_resources__,
         set_wall_clock as __set_wall_clock__,
         wait_on as __wait_on__,
+        add_logger as __add_logger__,
     )
     from pycompss.api.exceptions import COMPSsException as __COMPSsException__
 
@@ -107,7 +109,7 @@ def compss_start(
     :param disable_external: To avoid to load compss in external process.
     :return: None
     """
-    if context.in_pycompss():
+    if CONTEXT.in_pycompss():
         __start_runtime__(log_level, tracing, interactive, disable_external)
     else:
         __dummy_compss_start__(log_level, tracing, interactive, disable_external)
@@ -120,7 +122,7 @@ def compss_stop(code: int = 0, _hard_stop: bool = False) -> None:
     :param _hard_stop: Stop compss when runtime has died.
     :return: None
     """
-    if context.in_pycompss():
+    if CONTEXT.in_pycompss():
         __stop_runtime__(code, _hard_stop)
     else:
         __dummy_compss_stop__(code, _hard_stop)
@@ -136,13 +138,11 @@ def compss_file_exists(*file_name: str) -> typing.Union[bool, typing.List[bool]]
     :return: True either the file exists or has been accessed by the
              runtime. False otherwise.
     """
-    if context.in_pycompss():
+    if CONTEXT.in_pycompss():
         if len(file_name) == 1:
             return __accessed_file__(file_name[0])
-        else:
-            return [__accessed_file__(f_name) for f_name in file_name]
-    else:
-        return __dummy_compss_file_exists__(*file_name)
+        return [__accessed_file__(f_name) for f_name in file_name]
+    return __dummy_compss_file_exists__(*file_name)
 
 
 def compss_open(file_name: str, mode: str = "r") -> typing.Any:
@@ -159,11 +159,10 @@ def compss_open(file_name: str, mode: str = "r") -> typing.Any:
     :return: An object of "file" type.
     :raise IOError: If the file can not be opened.
     """
-    if context.in_pycompss():
+    if CONTEXT.in_pycompss():
         compss_name = __open_file__(file_name, mode)
-        return open(compss_name, mode)
-    else:
-        return __dummy_compss_open__(file_name, mode)
+        return open(compss_name, mode)  # pylint: disable=unspecified-encoding
+    return __dummy_compss_open__(file_name, mode)
 
 
 def compss_delete_file(*file_name: str) -> typing.Union[bool, typing.List[bool]]:
@@ -176,13 +175,11 @@ def compss_delete_file(*file_name: str) -> typing.Union[bool, typing.List[bool]]
     :param file_name: File/s name.
     :return: True if success. False otherwise.
     """
-    if context.in_pycompss():
+    if CONTEXT.in_pycompss():
         if len(file_name) == 1:
             return __delete_file__(file_name[0])
-        else:
-            return [__delete_file__(f_name) for f_name in file_name]
-    else:
-        return __dummy_compss_delete_file__(*file_name)
+        return [__delete_file__(f_name) for f_name in file_name]
+    return __dummy_compss_delete_file__(*file_name)
 
 
 def compss_wait_on_file(*file_name: str) -> None:
@@ -194,7 +191,7 @@ def compss_wait_on_file(*file_name: str) -> None:
     :param file_name: File/s name.
     :return: None
     """
-    if context.in_pycompss():
+    if CONTEXT.in_pycompss():
         if len(file_name) == 1:
             __get_file__(file_name[0])
         else:
@@ -213,7 +210,7 @@ def compss_wait_on_directory(*directory_name: str) -> None:
     :param directory_name: Directory/ies name.
     :return: None
     """
-    if context.in_pycompss():
+    if CONTEXT.in_pycompss():
         if len(directory_name) == 1:
             __get_directory__(directory_name[0])
         else:
@@ -233,13 +230,11 @@ def compss_delete_object(*obj: typing.Any) -> typing.Union[bool, typing.List[boo
     :param obj: Object/s to delete.
     :return: True if success. False otherwise.
     """
-    if context.in_pycompss():
+    if CONTEXT.in_pycompss():
         if len(obj) == 1:
             return __delete_object__(obj[0])
-        else:
-            return [__delete_object__(i_obj) for i_obj in obj]
-    else:
-        return __dummy_compss_delete_object__(*obj)
+        return [__delete_object__(i_obj) for i_obj in obj]
+    return __dummy_compss_delete_object__(*obj)
 
 
 def compss_barrier(no_more_tasks: bool = False) -> None:
@@ -250,7 +245,7 @@ def compss_barrier(no_more_tasks: bool = False) -> None:
     :param no_more_tasks: No more tasks boolean.
     :return: None.
     """
-    if context.in_pycompss():
+    if CONTEXT.in_pycompss():
         __barrier__(no_more_tasks)
     else:
         __dummy_compss_barrier__(no_more_tasks)
@@ -264,7 +259,7 @@ def compss_barrier_group(group_name: str) -> None:
     :param group_name: Name of the group to wait.
     :return: None.
     """
-    if context.in_pycompss():
+    if CONTEXT.in_pycompss():
         exception_message = __barrier_group__(group_name)
         if exception_message != "None":
             raise __COMPSsException__(exception_message)
@@ -284,10 +279,9 @@ def compss_wait_on(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
     :param kwargs: Options dictionary.
     :return: List with the final values (or a single element if only one).
     """
-    if context.in_pycompss():
+    if CONTEXT.in_pycompss():
         return __wait_on__(*args, **kwargs)
-    else:
-        return __dummy_compss_wait_on__(*args, **kwargs)
+    return __dummy_compss_wait_on__(*args, **kwargs)
 
 
 def compss_get_number_of_resources() -> int:
@@ -295,10 +289,9 @@ def compss_get_number_of_resources() -> int:
 
     :return: The number of active resources.
     """
-    if context.in_pycompss():
+    if CONTEXT.in_pycompss():
         return __get_number_of_resources__()
-    else:
-        return __dummy_compss_get_number_of_resources__()
+    return __dummy_compss_get_number_of_resources__()
 
 
 def compss_request_resources(
@@ -311,7 +304,7 @@ def compss_request_resources(
                        (it can be None)
     :return: None
     """
-    if context.in_pycompss():
+    if CONTEXT.in_pycompss():
         __request_resources__(num_resources, group_name)
     else:
         __dummy_compss_request_resources__(num_resources, group_name)
@@ -324,7 +317,7 @@ def compss_free_resources(num_resources: int, group_name: typing.Optional[str]) 
     :param group_name: Task group to notify upon resource creation
     :return: None
     """
-    if context.in_pycompss():
+    if CONTEXT.in_pycompss():
         __free_resources__(num_resources, group_name)
     else:
         __dummy_compss_free_resources__(num_resources, group_name)
@@ -336,17 +329,33 @@ def compss_set_wall_clock(wall_clock_limit: int) -> None:
     :param wall_clock_limit: Wall clock limit in seconds.
     :return: None
     """
-    if context.in_pycompss():
+    if CONTEXT.in_pycompss():
         __set_wall_clock__(wall_clock_limit)
     else:
         __dummy_compss_set_wall_clock__(wall_clock_limit)
 
 
-class TaskGroup(object):
-    """
-    A context-like class used to represent a group of tasks.
+def compss_add_logger(logger_name: str) -> None:
+    """Add a new logger for the user.
 
-    This context is aimed at enabling to define groups of tasks
+    Enables users to redirect their output messages through the PyCOMPSs
+    logger, ensuring that they are correctly flushed.
+    Will be added to the current loggers with the current configuration.
+
+    :param logger_name: New logger name.
+    :returns: None
+    """
+    if CONTEXT.in_pycompss():
+        __add_logger__(logger_name)
+    else:
+        raise NotInPyCOMPSsException("Add logger is only supported within PyCOMPSs")
+
+
+class TaskGroup:
+    """
+    A CONTEXT.like class used to represent a group of tasks.
+
+    This CONTEXT.is aimed at enabling to define groups of tasks
     using the "with" statement.
 
     For example:
@@ -369,7 +378,7 @@ class TaskGroup(object):
         :attr str group_name: Group name.
         :attr bool implicit_barrier: Perform implicit barrier.
         """
-        if context.in_pycompss():
+        if CONTEXT.in_pycompss():
             self.group_name = group_name
             self.implicit_barrier = implicit_barrier
         else:
@@ -377,16 +386,19 @@ class TaskGroup(object):
 
     def __enter__(self) -> None:
         """Group creation."""
-        if context.in_pycompss():
+        if CONTEXT.in_pycompss():
             __open_task_group__(self.group_name, self.implicit_barrier)
         else:
             pass
 
     def __exit__(
-        self, type: typing.Any, value: typing.Any, traceback: typing.Any
+        self,
+        type: typing.Any,  # pylint: disable=redefined-builtin
+        value: typing.Any,
+        traceback: typing.Any,
     ) -> None:
         """Group closing."""
-        if context.in_pycompss():
+        if CONTEXT.in_pycompss():
             __close_task_group__(self.group_name)
             if self.implicit_barrier:
                 compss_barrier_group(self.group_name)

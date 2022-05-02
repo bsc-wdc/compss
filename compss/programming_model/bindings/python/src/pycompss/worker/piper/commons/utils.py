@@ -23,14 +23,14 @@ PyCOMPSs Worker - Piper - Commons - Utils.
 This file contains the common pipers methods.
 """
 
-import pycompss.util.context as context
+from pycompss.util.context import CONTEXT
 from pycompss.runtime.commons import GLOBALS
 from pycompss.util.typing_helper import typing
 from pycompss.worker.piper.commons.constants import HEADER
 from pycompss.worker.piper.commons.executor import Pipe
 
 
-class PiperWorkerConfiguration(object):
+class PiperWorkerConfiguration:
     """Description of the configuration parameters for the Piper Worker class."""
 
     __slots__ = [
@@ -74,7 +74,7 @@ class PiperWorkerConfiguration(object):
         """
         GLOBALS.set_temporary_directory(argv[1], create_tmpdir=False)
         if argv[2] == "true":
-            context.enable_nesting()
+            CONTEXT.enable_nesting()
             self.nesting = True
         self.debug = argv[3] == "true"
         self.tracing = argv[4] == "true"

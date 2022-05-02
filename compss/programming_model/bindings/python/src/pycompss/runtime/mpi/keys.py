@@ -24,7 +24,7 @@ This file contains the MPI Collection layout keys.
 """
 
 
-class MPILayoutKeys(object):
+class MPILayoutKeys:
     """Strings used in MPI layout for collections."""
 
     block_count = "block_count"

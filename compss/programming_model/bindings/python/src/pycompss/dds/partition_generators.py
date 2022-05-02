@@ -31,7 +31,7 @@ import sys
 from pycompss.util.exceptions import DDSException
 
 
-class IPartitionGenerator(object):
+class IPartitionGenerator:
     """Everyone implements this."""
 
     def retrieve_data(self):
@@ -51,7 +51,7 @@ class BasicDataLoader(IPartitionGenerator):
         :param data: Data.
         :returns: None.
         """
-        super(BasicDataLoader, self).__init__()
+        super().__init__()
         self.data = data
 
     def retrieve_data(self):
@@ -59,7 +59,7 @@ class BasicDataLoader(IPartitionGenerator):
 
         :returns: Data.
         """
-        ret = list()
+        ret = []
         if isinstance(self.data, list):
             ret.extend(self.data)
         else:
@@ -78,7 +78,7 @@ class IteratorLoader(IPartitionGenerator):
         :param end: End Position.
         :returns: None.
         """
-        super(IteratorLoader, self).__init__()
+        super().__init__()
         self.iterable = iterable
         self.start = start
         self.end = end
@@ -88,7 +88,7 @@ class IteratorLoader(IPartitionGenerator):
 
         :returns: Data.
         """
-        ret = list()
+        ret = []
         # If it's a dict
         if isinstance(self.iterable, dict):
             sorted_keys = sorted(self.iterable.keys())
@@ -103,7 +103,7 @@ class IteratorLoader(IPartitionGenerator):
                 index += 1
                 if index > self.end:
                     break
-                elif index > self.start:
+                if index > self.start:
                     ret.append(item)
         return ret
 
@@ -120,7 +120,7 @@ class WorkerFileLoader(IPartitionGenerator):
         :param chunk_size: Chunk size.
         :returns: None.
         """
-        super(WorkerFileLoader, self).__init__()
+        super().__init__()
         self.file_paths = file_paths
         self.single_file = single_file
         self.start = start
@@ -135,15 +135,15 @@ class WorkerFileLoader(IPartitionGenerator):
         :returns: Data.
         """
         if self.single_file:
-            fp = open(self.file_paths[0])
-            fp.seek(self.start)
-            temp = fp.read(self.chunk_size)
-            fp.close()
+            with open(self.file_paths[0]) as file_paths_fd:
+                file_paths_fd.seek(self.start)
+                temp = file_paths_fd.read(self.chunk_size)
             return [temp]
 
-        ret = list()
+        ret = []
         for file_path in self.file_paths:
-            content = open(file_path).read()
+            with open(file_path) as file_path_fd:
+                content = file_path_fd.read()
             ret.append((file_path, content))
 
         return ret
@@ -158,7 +158,7 @@ class PickleLoader(IPartitionGenerator):
         :param pickle_path: Pickled file path.
         :returns: None.
         """
-        super(PickleLoader, self).__init__()
+        super().__init__()
         self.pickle_path = pickle_path
 
     def retrieve_data(self):
@@ -166,7 +166,8 @@ class PickleLoader(IPartitionGenerator):
 
         :returns: Data.
         """
-        ret = pickle.load(open(self.pickle_path, "rb"))
+        with open(self.pickle_path, "rb") as pickle_path_fd:
+            ret = pickle.load(pickle_path_fd)
         return ret
 
 
@@ -178,20 +179,20 @@ def read_in_chunks(file_name, chunk_size=1024, strip=True):
     :param strip: If it requires stripping.
     :returns: Next partition.
     """
-    partition = list()
-    f = open(file_name)
-    collected = 0
-    for line in f:
-        _line = line.rstrip("\n") if strip else line
-        partition.append(_line)
-        collected += sys.getsizeof(_line)
-        if collected > chunk_size:
-            yield partition
-            partition = []
-            collected = 0
+    partition = []
+    with open(file_name) as file_name_fd:
+        collected = 0
+        for line in file_name_fd:
+            _line = line.rstrip("\n") if strip else line
+            partition.append(_line)
+            collected += sys.getsizeof(_line)
+            if collected > chunk_size:
+                yield partition
+                partition = []
+                collected = 0
 
-    if partition:
-        yield partition
+        if partition:
+            yield partition
 
 
 def read_lines(file_name, num_of_lines=1024, strip=True):
@@ -202,17 +203,17 @@ def read_lines(file_name, num_of_lines=1024, strip=True):
     :param strip: If line separators should be stripped from lines.
     :returns: Next partition.
     """
-    partition = list()
-    f = open(file_name)
-    collected = 0
-    for line in f:
-        _line = line.rstrip("\n") if strip else line
-        partition.append(_line)
-        collected += 1
-        if collected > num_of_lines:
-            yield partition
-            partition = []
-            collected = 0
+    partition = []
+    with open(file_name) as file_name_fd:
+        collected = 0
+        for line in file_name_fd:
+            _line = line.rstrip("\n") if strip else line
+            partition.append(_line)
+            collected += 1
+            if collected > num_of_lines:
+                yield partition
+                partition = []
+                collected = 0
 
-    if partition:
-        yield partition
+        if partition:
+            yield partition

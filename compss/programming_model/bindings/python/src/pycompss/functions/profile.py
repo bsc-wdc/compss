@@ -29,7 +29,7 @@ from memory_profiler import profile as mem_profile
 from pycompss.util.typing_helper import typing
 
 
-class Profile(object):
+class Profile:
     """Profile decorator class."""
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
@@ -41,15 +41,15 @@ class Profile(object):
         self.args = args
         self.kwargs = kwargs
 
-    def __call__(self, f: typing.Any) -> typing.Any:
+    def __call__(self, function: typing.Any) -> typing.Any:
         """Memory profiler decorator.
 
-        :param f: Function to be profiled (can be a decorated function, usually
+        :param function: Function to be profiled (can be a decorated function, usually
                   with @task decorator).
         :return: the decorator wrapper.
         """
 
-        @wraps(f)
+        @wraps(function)
         def wrapped_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             """Memory profiler decorator.
 
@@ -57,14 +57,19 @@ class Profile(object):
             :param kwargs: kwargs
             :return: a list with [the function result, The elapsed time]
             """
-            result = mem_profile(f)(*args, **kwargs)
+            result = mem_profile(function)(*args, **kwargs)
             return result
 
         return wrapped_f
+
+    def __str__(self):
+        """Represent the profile decorator as string."""
+        return "Profile decorator object"
 
 
 # ########################################################################### #
 # ################### Profile DECORATOR ALTERNATIVE NAME #################### #
 # ########################################################################### #
 
-profile = Profile
+profile = Profile  # pylint: disable=invalid-name
+PROFILE = Profile

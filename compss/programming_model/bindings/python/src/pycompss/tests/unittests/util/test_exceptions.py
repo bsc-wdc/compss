@@ -32,7 +32,7 @@ def test_pycompss_exception():
         raise PyCOMPSsException(GENERIC_MESSAGE)
     except Exception as e:  # NOSONAR
         is_ok = True
-        assert str(e) == GENERIC_MESSAGE, GENERIC_MESSAGE_ERROR
+        assert str(e) == f"PyCOMPSs Exception: {GENERIC_MESSAGE}", GENERIC_MESSAGE_ERROR
     else:
         is_ok = False
     assert is_ok, "ERROR: The PyCOMPSsException has not been correctly raised"
@@ -86,7 +86,7 @@ def test_dds_exception():
         raise DDSException(GENERIC_MESSAGE)
     except Exception as e:  # NOSONAR
         is_ok = True
-        assert str(e) == GENERIC_MESSAGE, GENERIC_MESSAGE_ERROR
+        assert str(e) == f"DDS Exception: {GENERIC_MESSAGE}", GENERIC_MESSAGE_ERROR
     else:
         is_ok = False
     assert is_ok, "ERROR: The DDSException has not been correctly raised"

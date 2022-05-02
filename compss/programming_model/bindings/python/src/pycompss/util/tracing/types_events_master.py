@@ -28,7 +28,7 @@ Must be equal to Tracer.java and TraceEvent.java definitions
 """
 
 
-class TypesEventsMaster(object):
+class TypesEventsMaster:
     """Constant events that can be emitted for the master group."""
 
     __slots__ = (

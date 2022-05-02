@@ -17,7 +17,7 @@
 
 # -*- coding: utf-8 -*-
 
-import pycompss.util.context as context
+from pycompss.util.context import CONTEXT
 
 using_mypy = False
 try:
@@ -38,7 +38,7 @@ def dummy_function(*args, **kwargs):  # noqa
 def test_local_instantiation():
     if using_mypy:
         raise Exception("UNSUPPORTED WITH MYPY")
-    context.set_pycompss_context(context.MASTER)
+    CONTEXT.set_master()
     result = dummy_function(1, 2)
-    context.set_pycompss_context(context.OUT_OF_SCOPE)
+    CONTEXT.set_out_of_scope()
     assert result == 3, "Wrong expected result (should be 3)."

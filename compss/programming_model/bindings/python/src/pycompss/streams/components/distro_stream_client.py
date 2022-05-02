@@ -24,7 +24,6 @@ This file contains the distro stream components code.
 """
 
 # Imports
-import logging
 import queue
 import socket
 from threading import Thread
@@ -38,7 +37,10 @@ from pycompss.util.typing_helper import typing
 # Logger definition
 #
 
-logger = logging.getLogger("pycompss.streams.distro_stream_client")
+if __debug__:
+    import logging
+
+    logger = logging.getLogger("pycompss.streams.distro_stream_client")
 
 
 #
@@ -46,7 +48,7 @@ logger = logging.getLogger("pycompss.streams.distro_stream_client")
 #
 
 
-class DistroStreamClientHandler(object):
+class DistroStreamClientHandler:
     """Handler to use the DistroStreamClient.
 
     This is a static class.
@@ -64,7 +66,6 @@ class DistroStreamClientHandler(object):
         Should never be called directly since all attributes are static.
         """
         # Nothing to do since this is a static handler
-        pass
 
     @staticmethod
     def init_and_start(
@@ -78,7 +79,7 @@ class DistroStreamClientHandler(object):
         """
         DistroStreamClientHandler.CLIENT = DistroStreamClient(
             master_ip=master_ip, master_port=master_port
-        )  # noqa: E501
+        )
         DistroStreamClientHandler.CLIENT.start()
 
     @staticmethod
@@ -127,9 +128,10 @@ class DistroStreamClient(Thread):
         :param master_ip: Master IP address.
         :param master_port: Master port.
         """
-        super(DistroStreamClient, self).__init__()
+        super().__init__()
 
-        logger.info("Initializing DS Client on %s:%s" % (master_ip, master_port))
+        if __debug__:
+            logger.info("Initializing DS Client on %s:%s", master_ip, master_port)
 
         # Register information
         self.master_ip = master_ip
@@ -145,17 +147,19 @@ class DistroStreamClient(Thread):
 
         :return: None.
         """
-        logger.info("DS Client started")
+        if __debug__:
+            logger.info("DS Client started")
 
         while self.running:
             # Process requests
             req = self.requests.get(block=True)
 
             if __debug__:
-                logger.debug("Processing request: %s" % str(req.get_type()))
+                logger.debug("Processing request: %s", str(req.get_type()))
 
             if req.get_type() == STOP:
-                logger.info("DS Client asked to stop")
+                if __debug__:
+                    logger.info("DS Client asked to stop")
                 self.running = False
                 req.set_response("DONE")
             else:
@@ -165,7 +169,8 @@ class DistroStreamClient(Thread):
             req.set_processed()
             self.requests.task_done()
 
-        logger.info("DS Client stopped")
+        if __debug__:
+            logger.info("DS Client stopped")
 
     def _process_request(self, req: typing.Any) -> None:
         """Process requests to the server.
@@ -175,41 +180,44 @@ class DistroStreamClient(Thread):
         """
         # Open socket connection
         try:
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.connect((self.master_ip, self.master_port))
+            comm_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            comm_socket.connect((self.master_ip, self.master_port))
 
             # Send request message
             req_msg = req.get_request_msg()
             if __debug__:
-                logger.debug("Sending request to server: %s" % str(req_msg))
+                logger.debug("Sending request to server: %s", str(req_msg))
             req_msg = req_msg + "\n"
             req_msg = req_msg.encode()
-            s.sendall(req_msg)
+            comm_socket.sendall(req_msg)
             if __debug__:
                 logger.debug("Sent request to server")
 
             # Receive answer
-            chunk = s.recv(DistroStreamClient.BUFFER_SIZE)
+            chunk = comm_socket.recv(DistroStreamClient.BUFFER_SIZE)
             answer = chunk
             if __debug__:
-                logger.debug("Received answer from server: %s" % str(answer))
+                logger.debug("Received answer from server: %s", str(answer))
             while chunk is not None and chunk and not chunk.endswith("\n".encode()):
                 if __debug__:
                     logger.debug(
-                        "Received chunk answer from server with size = %s"
-                        % str(len(chunk))
-                    )  # noqa: E501
-                chunk = s.recv(DistroStreamClient.BUFFER_SIZE)
+                        "Received chunk answer from server with size = %s",
+                        str(len(chunk)),
+                    )
+                chunk = comm_socket.recv(DistroStreamClient.BUFFER_SIZE)
                 if chunk is not None and chunk:
                     answer = answer + chunk
             answer_str = answer.decode(encoding="UTF-8").strip()
             if __debug__:
-                logger.debug("Received answer from server: %s" % str(answer_str))
+                logger.debug("Received answer from server: %s", str(answer_str))
             req.set_response(answer_str)
-        except Exception as e:
-            logger.error("ERROR: Cannot process request \n %s" % str(e))
+        except Exception as general_exception:  # pylint: disable=broad-except
+            if __debug__:
+                logger.error(
+                    "ERROR: Cannot process request \n %s", str(general_exception)
+                )
             # Some error occurred, mark request as failed and keep going
-            req.set_error(1, str(e))
+            req.set_error(1, str(general_exception))
 
     def add_request(self, req: typing.Any) -> None:
         """Add a new request to the client.
@@ -218,5 +226,5 @@ class DistroStreamClient(Thread):
         :return: None.
         """
         if __debug__:
-            logger.debug("Adding new request to client queue: %s" % str(req.get_type()))
+            logger.debug("Adding new request to client queue: %s", str(req.get_type()))
         self.requests.put(req, block=True)

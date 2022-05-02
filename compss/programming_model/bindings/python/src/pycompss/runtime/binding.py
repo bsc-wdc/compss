@@ -28,8 +28,8 @@ import re
 import signal
 from shutil import rmtree
 
-import pycompss.runtime.management.COMPSs as COMPSs
-import pycompss.util.context as context
+from pycompss.runtime.management.COMPSs import COMPSs
+from pycompss.util.context import CONTEXT
 from pycompss.runtime.commons import GLOBALS
 from pycompss.runtime.management.classes import EmptyReturn
 from pycompss.runtime.management.direction import get_compss_direction
@@ -37,11 +37,12 @@ from pycompss.runtime.management.object_tracker import OT
 from pycompss.runtime.management.synchronization import wait_on_object
 from pycompss.runtime.task.core_element import CE
 from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.util.logger.helpers import add_new_logger
 
 # Tracing imports
 from pycompss.util.tracing.helpers import enable_trace_master
-from pycompss.util.tracing.helpers import event_inside_worker
-from pycompss.util.tracing.helpers import event_master
+from pycompss.util.tracing.helpers import EventInsideWorker
+from pycompss.util.tracing.helpers import EventMaster
 from pycompss.util.tracing.types_events_master import TRACING_MASTER
 from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.util.typing_helper import typing
@@ -49,9 +50,7 @@ from pycompss.util.typing_helper import typing
 if __debug__:
     import logging
 
-    logger = logging.getLogger(__name__)
-
-object_conversion = False
+    LOGGER = logging.getLogger(__name__)
 
 
 # ########################################################################### #
@@ -77,14 +76,14 @@ def start_runtime(
     :return: None.
     """
     if __debug__:
-        logger.info("Starting COMPSs...")
+        LOGGER.info("Starting COMPSs...")
 
     if tracing and not interactive:
         # Enabled only if not interactive - extrae issues within jupyter.
         enable_trace_master()
 
-    with event_master(TRACING_MASTER.start_runtime_event):
-        if interactive and context.in_master() and not disable_external:
+    with EventMaster(TRACING_MASTER.start_runtime_event):
+        if interactive and CONTEXT.in_master() and not disable_external:
             COMPSs.load_runtime(external_process=True)
         else:
             COMPSs.load_runtime(external_process=False)
@@ -98,7 +97,7 @@ def start_runtime(
         COMPSs.start_runtime()
 
     if __debug__:
-        logger.info("COMPSs started")
+        LOGGER.info("COMPSs started")
 
 
 def stop_runtime(code: int = 0, hard_stop: bool = False) -> None:
@@ -114,42 +113,42 @@ def stop_runtime(code: int = 0, hard_stop: bool = False) -> None:
     :param hard_stop: Stop compss when runtime has died.
     :return: None.
     """
-    with event_master(TRACING_MASTER.stop_runtime_event):
+    with EventMaster(TRACING_MASTER.stop_runtime_event):
         app_id = 0
         if __debug__:
-            logger.info("Stopping runtime...")
+            LOGGER.info("Stopping runtime...")
 
         # Stopping a possible wall clock limit
         signal.alarm(0)
 
         if code != 0:
             if __debug__:
-                logger.info("Canceling all application tasks...")
+                LOGGER.info("Canceling all application tasks...")
             COMPSs.cancel_application_tasks(app_id, 0)
 
         if __debug__:
-            logger.info("Cleaning objects...")
+            LOGGER.info("Cleaning objects...")
         _clean_objects(hard_stop=hard_stop)
 
         if __debug__:
             reporting = OT.is_report_enabled()
             if reporting:
-                logger.info("Generating Object tracker report...")
+                LOGGER.info("Generating Object tracker report...")
                 target_path = get_log_path()
                 OT.generate_report(target_path)
                 OT.clean_report()
 
         if __debug__:
-            logger.info("Stopping COMPSs...")
+            LOGGER.info("Stopping COMPSs...")
         COMPSs.stop_runtime(code)
 
         if __debug__:
-            logger.info("Cleaning temps...")
+            LOGGER.info("Cleaning temps...")
         _clean_temps()
 
-        context.set_pycompss_context(context.OUT_OF_SCOPE)
+        CONTEXT.set_out_of_scope()
         if __debug__:
-            logger.info("COMPSs stopped")
+            LOGGER.info("COMPSs stopped")
 
 
 def accessed_file(file_name: str) -> bool:
@@ -161,14 +160,13 @@ def accessed_file(file_name: str) -> bool:
     :param file_name: <String> File name.
     :return: True if accessed, False otherwise.
     """
-    with event_master(TRACING_MASTER.accessed_file_event):
+    with EventMaster(TRACING_MASTER.accessed_file_event):
         app_id = 0
         if __debug__:
-            logger.debug("Checking if file %s has been accessed." % file_name)
+            LOGGER.debug("Checking if file %s has been accessed.", file_name)
         if os.path.exists(file_name):
             return True
-        else:
-            return COMPSs.accessed_file(app_id, file_name)
+        return COMPSs.accessed_file(app_id, file_name)
 
 
 def open_file(file_name: str, mode: str) -> str:
@@ -182,14 +180,14 @@ def open_file(file_name: str, mode: str) -> str:
     :return: The current name of the file requested (that may have been
              renamed during runtime).
     """
-    with event_master(TRACING_MASTER.open_file_event):
+    with EventMaster(TRACING_MASTER.open_file_event):
         app_id = 0
         compss_mode = get_compss_direction(mode)
         if __debug__:
-            logger.debug("Getting file %s with mode %s" % (file_name, compss_mode))
+            LOGGER.debug("Getting file %s with mode %s", file_name, compss_mode)
         compss_name = COMPSs.open_file(app_id, file_name, compss_mode)
         if __debug__:
-            logger.debug("COMPSs file name is %s" % compss_name)
+            LOGGER.debug("COMPSs file name is %s", compss_name)
         return compss_name
 
 
@@ -202,16 +200,16 @@ def delete_file(file_name: str) -> bool:
     :param file_name: File name to remove.
     :return: True if success. False otherwise.
     """
-    with event_master(TRACING_MASTER.delete_file_event):
+    with EventMaster(TRACING_MASTER.delete_file_event):
         app_id = 0
         if __debug__:
-            logger.debug("Deleting file %s" % file_name)
+            LOGGER.debug("Deleting file %s", file_name)
         result = COMPSs.delete_file(app_id, file_name, True) == "true"
         if __debug__:
             if result:
-                logger.debug("File %s successfully deleted." % file_name)
+                LOGGER.debug("File %s successfully deleted.", file_name)
             else:
-                logger.error("Failed to remove file %s." % file_name)
+                LOGGER.error("Failed to remove file %s.", file_name)
         return result
 
 
@@ -224,10 +222,10 @@ def get_file(file_name: str) -> None:
     :param file_name: File name to remove.
     :return: None.
     """
-    with event_master(TRACING_MASTER.get_file_event):
+    with EventMaster(TRACING_MASTER.get_file_event):
         app_id = 0
         if __debug__:
-            logger.debug("Getting file %s" % file_name)
+            LOGGER.debug("Getting file %s", file_name)
         COMPSs.get_file(app_id, file_name)
 
 
@@ -240,10 +238,10 @@ def get_directory(dir_name: str) -> None:
     :param dir_name: dir name to retrieve.
     :return: None.
     """
-    with event_master(TRACING_MASTER.get_directory_event):
+    with EventMaster(TRACING_MASTER.get_directory_event):
         app_id = 0
         if __debug__:
-            logger.debug("Getting directory %s" % dir_name)
+            LOGGER.debug("Getting directory %s", dir_name)
         COMPSs.get_directory(app_id, dir_name)
 
 
@@ -252,25 +250,24 @@ def delete_object(obj: typing.Any) -> bool:
 
     Removes a used object from the internal structures and calls the
     external python library (that calls the bindings-common)
-    in order to request a its corresponding file removal.
+    in order to request its corresponding file removal.
 
     :param obj: Object to remove.
     :return: True if success. False otherwise.
     """
-    with event_master(TRACING_MASTER.delete_object_event):
+    with EventMaster(TRACING_MASTER.delete_object_event):
         app_id = 0
         obj_id = OT.is_tracked(obj)
         if obj_id is None:
             # Not being tracked
             return False
-        else:
-            try:
-                file_name = OT.get_file_name(obj_id)
-                COMPSs.delete_file(app_id, file_name, False)
-                OT.stop_tracking(obj)
-            except KeyError:
-                pass
-            return True
+        try:
+            file_name = OT.get_file_name(obj_id)
+            COMPSs.delete_file(app_id, file_name, False)
+            OT.stop_tracking(obj)
+        except KeyError:
+            pass
+        return True
 
 
 def barrier(no_more_tasks: bool = False) -> None:
@@ -283,9 +280,9 @@ def barrier(no_more_tasks: bool = False) -> None:
                           all objects.
     :return: None.
     """
-    with event_master(TRACING_MASTER.barrier_event):
+    with EventMaster(TRACING_MASTER.barrier_event):
         if __debug__:
-            logger.debug("Barrier. No more tasks? %s" % str(no_more_tasks))
+            LOGGER.debug("Barrier. No more tasks? %s", str(no_more_tasks))
         # If noMoreFlags is set, clean up the objects
         if no_more_tasks:
             _clean_objects()
@@ -309,9 +306,9 @@ def nested_barrier() -> None:
 
     :return: None.
     """
-    with event_master(TRACING_MASTER.barrier_event):
+    with EventMaster(TRACING_MASTER.barrier_event):
         if __debug__:
-            logger.debug("Nested Barrier.")
+            LOGGER.debug("Nested Barrier.")
         _clean_objects()
 
         # Call the Runtime barrier (appId 0 -- not needed for the signature, and
@@ -328,7 +325,7 @@ def barrier_group(group_name: str) -> str:
     :param group_name: Group name.
     :return: None or string with exception message.
     """
-    with event_master(TRACING_MASTER.barrier_group_event):
+    with EventMaster(TRACING_MASTER.barrier_group_event):
         app_id = 0
         # Call the Runtime group barrier
         return str(COMPSs.barrier_group(app_id, group_name))
@@ -344,7 +341,7 @@ def open_task_group(group_name: str, implicit_barrier: bool) -> None:
     :param implicit_barrier: Perform a wait on all group tasks before closing.
     :return: None.
     """
-    with event_master(TRACING_MASTER.open_task_group_event):
+    with EventMaster(TRACING_MASTER.open_task_group_event):
         app_id = 0
         COMPSs.open_task_group(group_name, implicit_barrier, app_id)
 
@@ -358,7 +355,7 @@ def close_task_group(group_name: str) -> None:
     :param group_name: Group name.
     :return: None.
     """
-    with event_master(TRACING_MASTER.close_task_group_event):
+    with EventMaster(TRACING_MASTER.close_task_group_event):
         app_id = 0
         COMPSs.close_task_group(group_name, app_id)
 
@@ -371,12 +368,12 @@ def get_log_path() -> str:
 
     :return: The path where to store the logs.
     """
-    with event_master(TRACING_MASTER.get_log_path_event):
+    with EventMaster(TRACING_MASTER.get_log_path_event):
         if __debug__:
-            logger.debug("Requesting log path")
+            LOGGER.debug("Requesting log path")
         log_path = COMPSs.get_logging_path()
         if __debug__:
-            logger.debug("Log path received: %s" % log_path)
+            LOGGER.debug("Log path received: %s", log_path)
         return log_path
 
 
@@ -388,10 +385,10 @@ def get_number_of_resources() -> int:
 
     :return: Number of active resources.
     """
-    with event_master(TRACING_MASTER.get_number_resources_event):
+    with EventMaster(TRACING_MASTER.get_number_resources_event):
         app_id = 0
         if __debug__:
-            logger.debug("Request the number of active resources")
+            LOGGER.debug("Request the number of active resources")
 
         # Call the Runtime
         return COMPSs.get_number_of_resources(app_id)
@@ -407,16 +404,15 @@ def request_resources(num_resources: int, group_name: typing.Optional[str]) -> N
     :param group_name: Task group to notify upon resource creation.
     :return: None.
     """
-    with event_master(TRACING_MASTER.request_resources_event):
+    with EventMaster(TRACING_MASTER.request_resources_event):
         app_id = 0
         if group_name is None:
             group_name = "NULL"
         if __debug__:
-            logger.debug(
-                "Request the creation of "
-                + str(num_resources)
-                + " resources with notification to task group "
-                + str(group_name)
+            LOGGER.debug(
+                "Request the creation of %s resources with notification to task group %s",
+                str(num_resources),
+                str(group_name),
             )
 
         # Call the Runtime
@@ -433,16 +429,15 @@ def free_resources(num_resources: int, group_name: typing.Optional[str]) -> None
     :param group_name: Task group to notify upon resource creation.
     :return: None.
     """
-    with event_master(TRACING_MASTER.free_resources_event):
+    with EventMaster(TRACING_MASTER.free_resources_event):
         app_id = 0
         if group_name is None:
             group_name = "NULL"
         if __debug__:
-            logger.debug(
-                "Request the destruction of "
-                + str(num_resources)
-                + " resources with notification to task group "
-                + str(group_name)
+            LOGGER.debug(
+                "Request the destruction of %s resources with notification to task group %s",
+                str(num_resources),
+                str(group_name),
             )
 
         # Call the Runtime
@@ -455,10 +450,10 @@ def set_wall_clock(wall_clock_limit: int) -> None:
     :param wall_clock_limit: Wall clock limit in seconds.
     :return: None.
     """
-    with event_master(TRACING_MASTER.wall_clock_limit_event):
+    with EventMaster(TRACING_MASTER.wall_clock_limit_event):
         app_id = 0
         if __debug__:
-            logger.debug("Set a wall clock limit of " + str(wall_clock_limit))
+            LOGGER.debug("Set a wall clock limit of %s", str(wall_clock_limit))
 
         # Activate wall clock limit alarm
         signal.signal(signal.SIGALRM, _wall_clock_exceed)
@@ -483,8 +478,13 @@ def register_ce(core_element: CE) -> None:
         String impl_signature = 'methodClass.methodName';
         String impl_constraints = 'ComputingUnits:2';
         String impl_type = 'METHOD';
-        String[] impl_type_args = new String[] { 'methodClass', 'methodName' };
-        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);  # noqa: E501
+        String[] impl_type_args = new String[] { 'methodClass',
+                                                 'methodName' };
+        rt.registerCoreElement(coreElementSignature,
+                               impl_signature,
+                               impl_constraints,
+                               impl_type,
+                               impl_type_args);
 
         // MPI
         System.out.println('Registering MPI implementation');
@@ -492,8 +492,14 @@ def register_ce(core_element: CE) -> None:
         impl_signature = 'mpi.MPI';
         impl_constraints = 'StorageType:SSD';
         impl_type = 'MPI';
-        impl_type_args = new String[] { 'mpiBinary', 'mpiWorkingDir', 'mpiRunner' };  # noqa: E501
-        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);  # noqa: E501
+        impl_type_args = new String[] { 'mpiBinary',
+                                        'mpiWorkingDir',
+                                        'mpiRunner' };
+        rt.registerCoreElement(coreElementSignature,
+                               impl_signature,
+                               impl_constraints,
+                               impl_type,
+                               impl_type_args);
 
         // PYTHON MPI
         System.out.println('Registering PYTHON MPI implementation');
@@ -501,8 +507,15 @@ def register_ce(core_element: CE) -> None:
         impl_signature = 'MPI.methodClass1.methodName';
         impl_constraints = 'ComputingUnits:2';
         impl_type = 'PYTHON_MPI';
-        impl_type_args = new String[] { 'methodClass', 'methodName', 'mpiWorkingDir', 'mpiRunner' };  # noqa: E501
-        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);  # noqa: E501
+        impl_type_args = new String[] { 'methodClass',
+                                        'methodName',
+                                        'mpiWorkingDir',
+                                        'mpiRunner' };
+        rt.registerCoreElement(coreElementSignature,
+                               impl_signature,
+                               impl_constraints,
+                               impl_type,
+                               impl_type_args);
 
         // BINARY
         System.out.println('Registering BINARY implementation');
@@ -510,8 +523,13 @@ def register_ce(core_element: CE) -> None:
         impl_signature = 'binary.BINARY';
         impl_constraints = 'MemoryType:RAM';
         impl_type = 'BINARY';
-        impl_type_args = new String[] { 'binary', 'binaryWorkingDir' };
-        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);  # noqa: E501
+        impl_type_args = new String[] { 'binary',
+                                        'binaryWorkingDir' };
+        rt.registerCoreElement(coreElementSignature,
+                               impl_signature,
+                               impl_constraints,
+                               impl_type,
+                               impl_type_args);
 
         // OMPSS
         System.out.println('Registering OMPSS implementation');
@@ -519,8 +537,13 @@ def register_ce(core_element: CE) -> None:
         impl_signature = 'ompss.OMPSS';
         impl_constraints = 'ComputingUnits:3';
         impl_type = 'OMPSS';
-        impl_type_args = new String[] { 'ompssBinary', 'ompssWorkingDir' };
-        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);  # noqa: E501
+        impl_type_args = new String[] { 'ompssBinary',
+                                        'ompssWorkingDir' };
+        rt.registerCoreElement(coreElementSignature,
+                               impl_signature,
+                               impl_constraints,
+                               impl_type,
+                               impl_type_args);
 
         // OPENCL
         System.out.println('Registering OPENCL implementation');
@@ -528,8 +551,13 @@ def register_ce(core_element: CE) -> None:
         impl_signature = 'opencl.OPENCL';
         impl_constraints = 'ComputingUnits:4';
         impl_type = 'OPENCL';
-        impl_type_args = new String[] { 'openclKernel', 'openclWorkingDir' };
-        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);  # noqa: E501
+        impl_type_args = new String[] { 'openclKernel',
+                                        'openclWorkingDir' };
+        rt.registerCoreElement(coreElementSignature,
+                               impl_signature,
+                               impl_constraints,
+                               impl_type,
+                               impl_type_args);
 
         // VERSIONING
         System.out.println('Registering METHOD implementation');
@@ -537,24 +565,29 @@ def register_ce(core_element: CE) -> None:
         impl_signature = 'anotherClass.anotherMethodName';
         impl_constraints = 'ComputingUnits:1';
         impl_type = 'METHOD';
-        impl_type_args = new String[] { 'anotherClass', 'anotherMethodName' };
-        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);  # noqa: E501
+        impl_type_args = new String[] { 'anotherClass',
+                                        'anotherMethodName' };
+        rt.registerCoreElement(coreElementSignature,
+                               impl_signature,
+                               impl_constraints,
+                               impl_type,
+                               impl_type_args);
 
     ---------------------
 
     Core Element fields:
 
-    ce_signature: <String> Core Element signature  (e.g.- "methodClass.methodName")                 # noqa: E501
-    impl_signature: <String> Implementation signature (e.g.- "methodClass.methodName")              # noqa: E501
-    impl_constraints: <Dict> Implementation constraints (e.g.- "{ComputingUnits:2}")                # noqa: E501
-    impl_type: <String> Implementation type ("METHOD" | "MPI" | "BINARY" | "OMPSS" | "OPENCL")      # noqa: E501
+    ce_signature: <String> Core Element signature  (e.g.- "methodClass.methodName")
+    impl_signature: <String> Implementation signature (e.g.- "methodClass.methodName")
+    impl_constraints: <Dict> Implementation constraints (e.g.- "{ComputingUnits:2}")
+    impl_type: <String> Implementation type ("METHOD" | "MPI" | "BINARY" | "OMPSS" | "OPENCL")
     impl_io: <String> IO Implementation
-    impl_type_args: <List(Strings)> Implementation arguments (e.g.- ["methodClass", "methodName"])  # noqa: E501
+    impl_type_args: <List(Strings)> Implementation arguments (e.g.- ["methodClass", "methodName"])
 
     :param core_element: <CE> Core Element to register.
     :return: None.
     """
-    with event_master(TRACING_MASTER.register_core_element_event):
+    with EventMaster(TRACING_MASTER.register_core_element_event):
         # Retrieve Core element fields
         ce_signature = core_element.get_ce_signature()
         impl_signature_base = core_element.get_impl_signature()
@@ -562,7 +595,7 @@ def register_ce(core_element: CE) -> None:
         impl_constraints_base = core_element.get_impl_constraints()
         impl_constraints = None  # type: typing.Any
         if impl_constraints_base == "":
-            impl_constraints = dict()
+            impl_constraints = {}
         else:
             impl_constraints = impl_constraints_base
         impl_type_base = core_element.get_impl_type()
@@ -573,8 +606,8 @@ def register_ce(core_element: CE) -> None:
         epilog = core_element.get_impl_epilog()
 
         if __debug__:
-            logger.debug("Registering CE with signature: %s" % ce_signature)
-            logger.debug("\t - Implementation signature: %s" % impl_signature)
+            LOGGER.debug("Registering CE with signature: %s", ce_signature)
+            LOGGER.debug("\t - Implementation signature: %s", impl_signature)
 
         # Build constraints string from constraints dictionary
         impl_constraints_lst = []
@@ -594,10 +627,10 @@ def register_ce(core_element: CE) -> None:
         impl_constraints_str = "".join(impl_constraints_lst)
 
         if __debug__:
-            logger.debug("\t - Implementation constraints: %s" % impl_constraints_str)
-            logger.debug("\t - Implementation type: %s" % impl_type)
-            logger.debug(
-                "\t - Implementation type arguments: %s" % " ".join(impl_type_args)
+            LOGGER.debug("\t - Implementation constraints: %s", impl_constraints_str)
+            LOGGER.debug("\t - Implementation type: %s", impl_type)
+            LOGGER.debug(
+                "\t - Implementation type arguments: %s", " ".join(impl_type_args)
             )
 
         # Call runtime with the appropriate parameters
@@ -612,7 +645,7 @@ def register_ce(core_element: CE) -> None:
             impl_type_args,
         )
         if __debug__:
-            logger.debug("CE with signature %s registered." % ce_signature)
+            LOGGER.debug("CE with signature %s registered.", ce_signature)
 
 
 def wait_on(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
@@ -629,13 +662,13 @@ def wait_on(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
     :return: Real value of the objects requested.
     """
     master_event = True
-    if "master_event" in kwargs:
+    if "master_event" in kwargs:  # pylint: disable=consider-using-get
         master_event = kwargs["master_event"]
     if master_event:
-        with event_master(TRACING_MASTER.wait_on_event):
+        with EventMaster(TRACING_MASTER.wait_on_event):
             return __wait_on__(*args, **kwargs)
     else:
-        with event_inside_worker(TRACING_WORKER.wait_on_event):
+        with EventInsideWorker(TRACING_WORKER.wait_on_event):
             return __wait_on__(*args, **kwargs)
 
 
@@ -711,7 +744,7 @@ def process_task(
     :param is_http: If it is a http task (service).
     :return: The future object related to the task return.
     """
-    with event_master(TRACING_MASTER.process_task_event):
+    with EventMaster(TRACING_MASTER.process_task_event):
         app_id = 0
         if __debug__:
             # Log the task submission values for debugging purposes.
@@ -724,28 +757,28 @@ def process_task(
             ct_str = " ".join(str(x) for x in content_types)
             weights_str = " ".join(str(x) for x in weights)
             keep_renames_str = " ".join(str(x) for x in keep_renames)
-            logger.debug("Processing task:")
-            logger.debug("\t- App id: " + str(app_id))
-            logger.debug("\t- Signature: " + signature)
-            logger.debug("\t- Has target: " + str(has_target))
-            logger.debug("\t- Names: " + names_str)
-            logger.debug("\t- Values: " + values_str)
-            logger.debug("\t- COMPSs types: " + types_str)
-            logger.debug("\t- COMPSs directions: " + direct_str)
-            logger.debug("\t- COMPSs streams: " + streams_str)
-            logger.debug("\t- COMPSs prefixes: " + prefixes_str)
-            logger.debug("\t- Content Types: " + ct_str)
-            logger.debug("\t- Weights: " + weights_str)
-            logger.debug("\t- Keep_renames: " + keep_renames_str)
-            logger.debug("\t- Priority: " + str(has_priority))
-            logger.debug("\t- Num nodes: " + str(num_nodes))
-            logger.debug("\t- Reduce: " + str(reduction))
-            logger.debug("\t- Chunk Size: " + str(chunk_size))
-            logger.debug("\t- Replicated: " + str(replicated))
-            logger.debug("\t- Distributed: " + str(distributed))
-            logger.debug("\t- On failure behavior: " + on_failure)
-            logger.debug("\t- Task time out: " + str(time_out))
-            logger.debug("\t- Is http: " + str(is_http))
+            LOGGER.debug("Processing task:")
+            LOGGER.debug("\t- App id: %s", str(app_id))
+            LOGGER.debug("\t- Signature: %s", signature)
+            LOGGER.debug("\t- Has target: %s", str(has_target))
+            LOGGER.debug("\t- Names: %s", names_str)
+            LOGGER.debug("\t- Values: %s", values_str)
+            LOGGER.debug("\t- COMPSs types: %s", types_str)
+            LOGGER.debug("\t- COMPSs directions: %s", direct_str)
+            LOGGER.debug("\t- COMPSs streams: %s", streams_str)
+            LOGGER.debug("\t- COMPSs prefixes: %s", prefixes_str)
+            LOGGER.debug("\t- Content Types: %s", ct_str)
+            LOGGER.debug("\t- Weights: %s", weights_str)
+            LOGGER.debug("\t- Keep_renames: %s", keep_renames_str)
+            LOGGER.debug("\t- Priority: %s", str(has_priority))
+            LOGGER.debug("\t- Num nodes: %s", str(num_nodes))
+            LOGGER.debug("\t- Reduce: %s", str(reduction))
+            LOGGER.debug("\t- Chunk Size: %s", str(chunk_size))
+            LOGGER.debug("\t- Replicated: %s", str(replicated))
+            LOGGER.debug("\t- Distributed: %s", str(distributed))
+            LOGGER.debug("\t- On failure behavior: %s", on_failure)
+            LOGGER.debug("\t- Task time out: %s", str(time_out))
+            LOGGER.debug("\t- Is http: %s", str(is_http))
 
         # Check that there is the same amount of values as their types, as well
         # as their directions, streams and prefixes.
@@ -841,6 +874,15 @@ def process_task(
             )
 
 
+def add_logger(logger_name: str) -> None:
+    """Add a new logger for the user.
+
+    :param logger_name: New logger name.
+    :returns: None
+    """
+    add_new_logger(logger_name)
+
+
 # ########################################################################### #
 # ####################### AUXILIARY FUNCTIONS ############################### #
 # ########################################################################### #
@@ -875,9 +917,9 @@ def _clean_temps() -> None:
     temp_directory = GLOBALS.get_temporary_directory()
     rmtree(temp_directory, True)
     cwd = os.getcwd()
-    for f in os.listdir(cwd):
-        if re.search(r"d\d+v\d+_\d+\.IT", f):  # NOSONAR
-            os.remove(os.path.join(cwd, f))
+    for temp_file in os.listdir(cwd):
+        if re.search(r"d\d+v\d+_\d+\.IT", temp_file):  # NOSONAR
+            os.remove(os.path.join(cwd, temp_file))
 
 
 def _wall_clock_exceed(signum: int, frame: typing.Any) -> None:

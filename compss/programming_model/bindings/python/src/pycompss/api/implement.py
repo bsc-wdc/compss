@@ -26,13 +26,14 @@ through the decorator.
 
 from functools import wraps
 
-import pycompss.util.context as context
+from pycompss.util.context import CONTEXT
 from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.constants import LEGACY_LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.error_msgs import not_in_pycompss
-from pycompss.api.commons.implementation_types import IMPL_METHOD
+from pycompss.api.commons.implementation_types import IMPLEMENTATION_TYPES
+from pycompss.runtime.task.features import TASK_FEATURES
 from pycompss.runtime.task.core_element import CE
 from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import NotInPyCOMPSsException
@@ -48,7 +49,7 @@ SUPPORTED_ARGUMENTS = {LABELS.source_class, LABELS.method}
 DEPRECATED_ARGUMENTS = {LEGACY_LABELS.source_class}
 
 
-class Implement(object):
+class Implement:  # pylint: disable=too-few-public-methods
     """Implement decorator class.
 
     This decorator also preserves the argspec, but includes the __init__ and
@@ -81,7 +82,7 @@ class Implement(object):
         self.decorator_name = decorator_name
         self.args = args
         self.kwargs = kwargs
-        self.scope = context.in_pycompss()
+        self.scope = CONTEXT.in_pycompss()
         self.core_element = None  # type: typing.Any
         self.core_element_configured = False
         if self.scope:
@@ -111,7 +112,7 @@ class Implement(object):
                 logger.debug("Executing implement_f wrapper.")
 
             if (
-                context.in_master() or context.is_nesting_enabled()
+                CONTEXT.in_master() or CONTEXT.is_nesting_enabled()
             ) and not self.core_element_configured:
                 # master code - or worker with nesting enabled
                 self.__configure_core_element__(kwargs)
@@ -124,13 +125,11 @@ class Implement(object):
 
         implement_f.__doc__ = user_function.__doc__
 
-        if context.in_master() and not self.first_register:
-            import pycompss.api.task as t
-
+        if CONTEXT.in_master() and not self.first_register:
             self.first_register = True
-            t.REGISTER_ONLY = True
+            TASK_FEATURES.set_register_only(True)
             self.__call__(user_function)(self)
-            t.REGISTER_ONLY = False
+            TASK_FEATURES.set_register_only(False)
 
         return implement_f
 
@@ -155,7 +154,7 @@ class Implement(object):
             another_class = self.kwargs[LABELS.source_class]
         another_method = self.kwargs[LABELS.method]
         ce_signature = ".".join((another_class, another_method))
-        impl_type = IMPL_METHOD
+        impl_type = IMPLEMENTATION_TYPES.method
         # impl_args = [another_class, another_method] - set by @task
 
         if CORE_ELEMENT_KEY in kwargs:
@@ -184,4 +183,4 @@ class Implement(object):
 # ################## IMPLEMENT DECORATOR ALTERNATIVE NAME ################### #
 # ########################################################################### #
 
-implement = Implement
+implement = Implement  # pylint: disable=invalid-name

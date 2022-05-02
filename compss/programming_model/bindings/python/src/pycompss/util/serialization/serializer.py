@@ -57,7 +57,7 @@ from pycompss.util.serialization.extended_support import GeneratorIndicator
 from pycompss.util.serialization.extended_support import convert_to_generator
 from pycompss.util.serialization.extended_support import pickle_generator
 from pycompss.util.tracing.helpers import emit_manual_event_explicit
-from pycompss.util.tracing.helpers import event_inside_worker
+from pycompss.util.tracing.helpers import EventInsideWorker
 from pycompss.util.tracing.types_events_master import TRACING_MASTER
 from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.util.typing_helper import typing
@@ -123,12 +123,11 @@ def get_serializer_priority(obj: typing.Any = ()) -> list:
         serializers = [pickle, dill]
     if object_belongs_to_module(obj, "numpy") and NUMPY_AVAILABLE:
         return [numpy] + serializers
-    elif object_belongs_to_module(obj, "pyarrow") and PYARROW_AVAILABLE:
+    if object_belongs_to_module(obj, "pyarrow") and PYARROW_AVAILABLE:
         return [pyarrow] + serializers
-    else:
-        if FORCED_SERIALIZER > -1:
-            return [IDX2LIB.get(FORCED_SERIALIZER)]
-        return serializers
+    if FORCED_SERIALIZER > -1:
+        return [IDX2LIB.get(FORCED_SERIALIZER)]
+    return serializers
 
 
 def serialize_to_handler(obj: typing.Any, handler: typing.Any) -> None:
@@ -161,7 +160,9 @@ def serialize_to_handler(obj: typing.Any, handler: typing.Any) -> None:
         # Reset the handlers pointer to the first position
         handler.seek(original_position)
         serializer = serializer_priority[i]
-        handler.write(bytearray("%04d" % LIB2IDX[serializer], "utf8"))
+        handler.write(
+            bytearray("%04d" % LIB2IDX[serializer], "utf8")
+        )  # pylint: disable=consider-using-f-string
 
         # Special case: obj is a generator
         if isinstance(obj, types.GeneratorType):
@@ -178,9 +179,7 @@ def serialize_to_handler(obj: typing.Any, handler: typing.Any) -> None:
                 if (
                     NUMPY_AVAILABLE
                     and serializer is numpy
-                    and (
-                        isinstance(obj, numpy.ndarray) or isinstance(obj, numpy.matrix)
-                    )
+                    and isinstance(obj, (numpy.ndarray, numpy.matrix))
                 ):
                     serializer.save(handler, obj, allow_pickle=False)
                 elif (
@@ -196,16 +195,18 @@ def serialize_to_handler(obj: typing.Any, handler: typing.Any) -> None:
                     h_name = handler.name
                     handler.close()
                     # Open the handler in normal mode
-                    handler = open(h_name, "w")
-                    handler.write("%04d" % LIB2IDX[serializer])
+                    handler = open(h_name, "w")  # pylint: disable=consider-using-with
+                    handler.write(
+                        "%04d" % LIB2IDX[serializer]
+                    )  # pylint: disable=consider-using-f-string
                     serializer.dump(obj, handler)
                 else:
                     serializer.dump(obj, handler, protocol=serializer.HIGHEST_PROTOCOL)
                 success = True
-            except Exception as e:  # noqa
+            except Exception:  # noqa
                 success = False
-                tb = traceback.format_exc()
-                serialization_issues.append((serializer, tb))
+                traceback_exc = traceback.format_exc()
+                serialization_issues.append((serializer, traceback_exc))
         i += 1
     emit_manual_event_explicit(
         TRACING_MASTER.binding_serialization_size_type, handler.tell()
@@ -223,9 +224,9 @@ def serialize_to_handler(obj: typing.Any, handler: typing.Any) -> None:
         except AttributeError:
             # Bug fixed in 3.5 - issue10805
             pass
-        error_msg = "Cannot serialize object %r. Reason:\n" % obj
+        error_msg = f"Cannot serialize object {obj!r}. Reason:\n"
         for line in serialization_issues:
-            error_msg += "ERROR with:  %s\n%s\n" % (line[0], line[1])
+            error_msg += f"ERROR with:  {line[0]}\n{line[1]}\n"
         raise SerializerException(error_msg)
 
 
@@ -236,11 +237,10 @@ def serialize_to_file(obj: typing.Any, file_name: str) -> None:
     :param file_name: File name where the object is going to be serialized.
     :return: Nothing, it just serializes the object.
     """
-    with event_inside_worker(TRACING_WORKER.serialize_to_file_event):
+    with EventInsideWorker(TRACING_WORKER.serialize_to_file_event):
         # todo: can we make the binary mode optional?
-        handler = open(file_name, "wb")
-        serialize_to_handler(obj, handler)
-        handler.close()
+        with open(file_name, "wb") as handler:
+            serialize_to_handler(obj, handler)
 
 
 def serialize_to_file_mpienv(
@@ -255,7 +255,7 @@ def serialize_to_file_mpienv(
                              False for INOUT objects and True otherwise.
     :return: Nothing, it just serializes the object.
     """
-    with event_inside_worker(TRACING_WORKER.serialize_to_file_mpienv_event):
+    with EventInsideWorker(TRACING_WORKER.serialize_to_file_mpienv_event):
         from mpi4py import MPI
 
         if rank_zero_reduce:
@@ -303,11 +303,11 @@ def deserialize_from_handler(
     try:
         original_position = handler.tell()
         serializer = IDX2LIB[int(handler.read(4))]
-    except KeyError:
+    except KeyError as key_error:
         # The first 4 bytes return a value that is not within IDX2LIB
         handler.seek(original_position)
         error_message = "Handler does not refer to a valid PyCOMPSs object"
-        raise SerializerException(error_message)
+        raise SerializerException(error_message) from key_error
 
     close_handler = True
     try:
@@ -344,22 +344,19 @@ def deserialize_from_handler(
             TRACING_MASTER.binding_deserialization_object_num_type, 0
         )
         return ret, close_handler
-    except Exception:
-        tb = traceback.format_exc()
+    except Exception as general_exception:
+        traceback_exc = traceback.format_exc()
         if DISABLE_GC:
             gc.enable()
         if __debug__ and show_exception:
-            print("ERROR! Deserialization with %s failed." % str(serializer))
+            print(f"ERROR! Deserialization with {str(serializer)} failed.")
             try:
                 traceback.print_exc()
             except AttributeError:
                 # Bug fixed in 3.5 - issue10805
                 pass
-        error_msg = "ERROR: Cannot deserialize object with serializer: %s\n%s\n" % (
-            serializer,
-            tb,
-        )
-        raise SerializerException(error_msg)
+        error_msg = f"ERROR: Cannot deserialize object with serializer: {serializer}\n{traceback_exc}\n"
+        raise SerializerException(error_msg) from general_exception
 
 
 def deserialize_from_file(file_name: str) -> typing.Any:
@@ -368,7 +365,7 @@ def deserialize_from_file(file_name: str) -> typing.Any:
     :param file_name: Name of the file with the contents to be deserialized
     :return: A deserialized object
     """
-    with event_inside_worker(TRACING_WORKER.deserialize_from_file_event):
+    with EventInsideWorker(TRACING_WORKER.deserialize_from_file_event):
         handler = open(file_name, "rb")
         ret, close_handler = deserialize_from_handler(handler)
         if close_handler:
@@ -385,7 +382,7 @@ def deserialize_from_bytes(
     :param show_exception: Show exception if happen (only with debug).
     :return: A deserialized object.
     """
-    with event_inside_worker(TRACING_WORKER.deserialize_from_bytes_event):
+    with EventInsideWorker(TRACING_WORKER.deserialize_from_bytes_event):
         handler = BytesIO(serialized_content_bytes)
         ret, close_handler = deserialize_from_handler(
             handler, show_exception=show_exception

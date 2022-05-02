@@ -21,12 +21,7 @@
 PyCOMPSs Worker - Piper - Commons - Constants.
 
 This file contains a set of constants used when communication through pipes.
-"""
 
-# ############### #
-#  Tag variables  #
-# ############### #
-"""
 ---------------------
 TAGS EXPECTED FORMAT:
 ---------------------
@@ -49,31 +44,55 @@ TAGS EXPECTED FORMAT:
 - REMOVE_TAG................. TBD
 - SERIALIZE_TAG.............. TBD
 """
-EXECUTE_TASK_TAG = "EXECUTE_TASK"
-END_TASK_TAG = "END_TASK"
-CANCEL_TASK_TAG = "CANCEL_TASK"
-COMPSS_EXCEPTION_TAG = "COMPSS_EXCEPTION"
-ERROR_TASK_TAG = "ERROR_TASK"
-ERROR_TAG = "ERROR"
-PING_TAG = "PING"
-PONG_TAG = "PONG"
-ADD_EXECUTOR_TAG = "ADD_EXECUTOR"
-ADD_EXECUTOR_FAILED_TAG = "ADD_EXECUTOR_FAILED"
-ADDED_EXECUTOR_TAG = "ADDED_EXECUTOR"
-QUERY_EXECUTOR_ID_TAG = "QUERY_EXECUTOR_ID"
-REPLY_EXECUTOR_ID_TAG = "REPLY_EXECUTOR_ID"
-REMOVE_EXECUTOR_TAG = "REMOVE_EXECUTOR"
-REMOVED_EXECUTOR_TAG = "REMOVED_EXECUTOR"
-QUIT_TAG = "QUIT"
-REMOVE_TAG = "REMOVE"
-SERIALIZE_TAG = "SERIALIZE"
 
-# ###################### #
-#  Tracing events Codes  #
-# ###################### #
-# Should be equal to Tracer.java definitions (but only worker running all
-# other are trace through with function-list)
-# Still uses the events defined in commons.worker_constants
+
+class _Tags:
+    """Currently supported tags in piper workers."""
+
+    __slots__ = (
+        "execute_task",
+        "end_task",
+        "cancel_task",
+        "compss_exception",
+        "error_task",
+        "error",
+        "ping",
+        "pong",
+        "add_executor",
+        "add_executor_failed",
+        "added_executor",
+        "query_executor_id",
+        "reply_executor_id",
+        "remove_executor",
+        "removed_executor",
+        "quit",
+        "remove",
+        "serialize",
+    )
+
+    def __init__(self):  # pylint: disable=too-many-statements
+        """Define supported Tags."""
+        self.execute_task = "EXECUTE_TASK"
+        self.end_task = "END_TASK"
+        self.cancel_task = "CANCEL_TASK"
+        self.compss_exception = "COMPSS_EXCEPTION"
+        self.error_task = "ERROR_TASK"
+        self.error = "ERROR"
+        self.ping = "PING"
+        self.pong = "PONG"
+        self.add_executor = "ADD_EXECUTOR"
+        self.add_executor_failed = "ADD_EXECUTOR_FAILED"
+        self.added_executor = "ADDED_EXECUTOR"
+        self.query_executor_id = "QUERY_EXECUTOR_ID"
+        self.reply_executor_id = "REPLY_EXECUTOR_ID"
+        self.remove_executor = "REMOVE_EXECUTOR"
+        self.removed_executor = "REMOVED_EXECUTOR"
+        self.quit = "QUIT"
+        self.remove = "REMOVE"
+        self.serialize = "SERIALIZE"
+
+
+TAGS = _Tags()
 
 # ################# #
 #  Other variables  #

@@ -54,33 +54,35 @@ def generator(
     elif distribution == "uniform":
         data = [_gen_uniform(size[1], frag_size, seed) for _ in range(num_frag)]
     if wait:
-        from pycompss.api.api import compss_wait_on
+        from pycompss.api.api import (
+            compss_wait_on,
+        )  # pylint: disable=import-outside-toplevel
 
         data = compss_wait_on(data)
     return data
 
 
 def chunks(
-    lst: list, n: int, balanced: bool = False
+    lst: list, number: int, balanced: bool = False
 ) -> typing.Iterator[typing.List[int]]:
     """List splitter into fragments.
 
     WARNING: Not tested!
 
     :param lst: List of data to be chunked
-    :param n: length of the fragments
+    :param number: length of the fragments
     :param balanced: True to generate balanced fragments
     :return: yield fragments of size n from lst
     """
-    if not balanced or not len(lst) % n:
-        for i in range(0, len(lst), n):
-            yield lst[i : i + n]
+    if not balanced or not len(lst) % number:
+        for i in range(0, len(lst), number):
+            yield lst[i : i + number]
     else:
-        rest = len(lst) % n
+        rest = len(lst) % number
         start = 0
         while rest:
-            yield lst[start : start + n + 1]
+            yield lst[start : start + number + 1]
             rest -= 1
-            start += n + 1
-        for i in range(start, len(lst), n):
-            yield lst[i : i + n]
+            start += number + 1
+        for i in range(start, len(lst), number):
+            yield lst[i : i + number]

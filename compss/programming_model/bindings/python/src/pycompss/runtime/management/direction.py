@@ -34,11 +34,10 @@ def get_compss_direction(access_mode: str) -> int:
     """
     if access_mode.startswith("w"):
         return DIRECTION.OUT
-    elif access_mode.startswith("r+") or access_mode.startswith("a"):
+    if access_mode.startswith("r+") or access_mode.startswith("a"):
         return DIRECTION.INOUT
-    elif access_mode.startswith("cv"):
+    if access_mode.startswith("cv"):
         return DIRECTION.COMMUTATIVE
-    elif access_mode.startswith("c"):
+    if access_mode.startswith("c"):
         return DIRECTION.CONCURRENT
-    else:
-        return DIRECTION.IN
+    return DIRECTION.IN

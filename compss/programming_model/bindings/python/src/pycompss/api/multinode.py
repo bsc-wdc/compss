@@ -27,14 +27,14 @@ definition through the decorator.
 import os
 from functools import wraps
 
-import pycompss.util.context as context
+from pycompss.util.context import CONTEXT
 from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.constants import LEGACY_LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.decorator import process_computing_nodes
 from pycompss.api.commons.error_msgs import not_in_pycompss
-from pycompss.api.commons.implementation_types import IMPL_MULTI_NODE
+from pycompss.api.commons.implementation_types import IMPLEMENTATION_TYPES
 from pycompss.runtime.task.core_element import CE
 from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import NotInPyCOMPSsException
@@ -57,7 +57,7 @@ SLURM_SKIP_VARS = [
 ]
 
 
-class MultiNode(object):
+class MultiNode:  # pylint: disable=too-few-public-methods
     """MultiNode decorator class.
 
     This decorator also preserves the argspec, but includes the __init__ and
@@ -88,7 +88,7 @@ class MultiNode(object):
         self.decorator_name = decorator_name
         self.args = args
         self.kwargs = kwargs
-        self.scope = context.in_pycompss()
+        self.scope = CONTEXT.in_pycompss()
         self.core_element = None  # type: typing.Any
         self.core_element_configured = False
         if self.scope:
@@ -120,12 +120,12 @@ class MultiNode(object):
                 logger.debug("Executing multinode_f wrapper.")
 
             if (
-                context.in_master() or context.is_nesting_enabled()
+                CONTEXT.in_master() or CONTEXT.is_nesting_enabled()
             ) and not self.core_element_configured:
                 # master code - or worker with nesting enabled
                 self.__configure_core_element__(kwargs)
 
-            if context.in_worker():
+            if CONTEXT.in_worker():
                 old_slurm_env = set_slurm_environment()
 
             # Set the computing_nodes variable in kwargs for its usage
@@ -136,7 +136,7 @@ class MultiNode(object):
                 # Call the method
                 ret = user_function(*args, **kwargs)
 
-            if context.in_worker():
+            if CONTEXT.in_worker():
                 reset_slurm_environment(old_slurm_env)
 
             return ret
@@ -156,7 +156,7 @@ class MultiNode(object):
             logger.debug("Configuring @multinode core element.")
 
         # Resolve @multinode specific parameters
-        impl_type = IMPL_MULTI_NODE
+        impl_type = IMPLEMENTATION_TYPES.multi_node
 
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator
@@ -205,7 +205,7 @@ def remove_slurm_environment() -> dict:
 
     :return: removed Slurm variables.
     """
-    old_slurm_env = dict()
+    old_slurm_env = {}
     for key, value in os.environ.items():
         if key.startswith("SLURM"):
             if key not in SLURM_SKIP_VARS:
@@ -229,4 +229,4 @@ def reset_slurm_environment(old_slurm_env: typing.Optional[dict] = None) -> None
 # ################## MultiNode DECORATOR ALTERNATIVE NAME ################### #
 # ########################################################################### #
 
-multinode = MultiNode
+multinode = MultiNode  # pylint: disable=invalid-name

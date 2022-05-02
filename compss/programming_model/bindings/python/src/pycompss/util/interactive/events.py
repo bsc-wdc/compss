@@ -86,19 +86,19 @@ def __pre_run_cell__() -> None:
             error_messages_html = error_messages_html.replace("'", "")
             popup_title_html = "COMPSs RUNTIME STOPPED"
             # fmt: off
-            popup_code = """require(["base/js/dialog"],
+            popup_code = f"""require(["base/js/dialog"],
                                     function(dialog) OPENBRACKET
                                         function restartCOMPSs()OPENBRACKET
                                             var kernel = IPython.notebook.kernel;
-                                            kernel.execute("import base64; import json; from pycompss.interactive import stop, start; stop(_hard_stop=True); _COMPSS_START_FLAGS=json.loads(base64.b64decode('" + '{2}' + "'.encode())); start(**_COMPSS_START_FLAGS)");
+                                            kernel.execute("import base64; import json; from pycompss.interactive import stop, start; stop(_hard_stop=True); _COMPSS_START_FLAGS=json.loads(base64.b64decode('" + '{current_flags}' + "'.encode())); start(**_COMPSS_START_FLAGS)");
                                         CLOSEBRACKET
                                         function continueWithoutCOMPSs()OPENBRACKET
                                             var kernel = IPython.notebook.kernel;
                                             kernel.execute("from pycompss.interactive import stop; stop(_hard_stop=True)");
                                         CLOSEBRACKET
                                         dialog.modal(OPENBRACKET
-                                            title: '{0}',
-                                            body: $('{1}'),
+                                            title: '{popup_title_html}',
+                                            body: $('{error_messages_html}'),
                                             buttons: OPENBRACKET
                                                 'Continue without COMPSs': OPENBRACKET
                                                                              click: function() OPENBRACKET
@@ -114,14 +114,14 @@ def __pre_run_cell__() -> None:
                                             CLOSEBRACKET
                                         CLOSEBRACKET);
                                     CLOSEBRACKET
-                            );""".format(popup_title_html, error_messages_html, current_flags)  # noqa: E501
+                            );"""  # noqa # pylint: disable=line-too-long
             # fmt: on
             popup_js = popup_code.replace("OPENBRACKET", "{").replace(
                 "CLOSEBRACKET", "}"
             )  # noqa: E501
             popup = Javascript(popup_js)
-            display(popup)  # noqa
-            warn_msg = "WARNING: Some objects may have not been synchronized and need to be recomputed."  # noqa: E501
+            display(popup)
+            warn_msg = "WARNING: Some objects may have not been synchronized and need to be recomputed."  # noqa  # pylint: disable=line-too-long
             POST_MESSAGE = "\x1b[40;43m" + warn_msg + "\x1b[0m"
         elif found_errors:
             # Display popup with the warning messages
@@ -131,26 +131,24 @@ def __pre_run_cell__() -> None:
             error_messages_html = "<p>" + "<br>".join(popup_body) + "</p>"
             error_messages_html = error_messages_html.replace("'", "")
             popup_title_html = "WARNING: Some tasks may have failed"
-            popup_code = """require(["base/js/dialog"],
+            popup_code = f"""require(["base/js/dialog"],
                                     function(dialog) OPENBRACKET
                                         dialog.modal(OPENBRACKET
-                                            title: '{0}',
-                                            body: $('{1}'),
+                                            title: '{popup_title_html}',
+                                            body: $('{error_messages_html}'),
                                             buttons: OPENBRACKET
                                                 'Continue': OPENBRACKET CLOSEBRACKET,
                                             CLOSEBRACKET
                                         CLOSEBRACKET);
                                     CLOSEBRACKET
-                            );""".format(
-                popup_title_html, error_messages_html
-            )
+                            );"""
             popup_js = popup_code.replace("OPENBRACKET", "{").replace(
                 "CLOSEBRACKET", "}"
-            )  # noqa: E501
+            )
             popup = Javascript(popup_js)
             display(popup)  # noqa
             info_msg = "INFO: The runtime has recovered the failed tasks."
-            POST_MESSAGE = "\x1b[40;46m" + info_msg + "\x1b[0m"
+            POST_MESSAGE = f"\x1b[40;46m{info_msg}\x1b[0m"
         else:
             # No issue
             pass

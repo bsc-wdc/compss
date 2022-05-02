@@ -26,7 +26,7 @@ through the decorator.
 
 from functools import wraps
 
-import pycompss.util.context as context
+from pycompss.util.context import CONTEXT
 from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.decorator import keep_arguments
@@ -50,7 +50,7 @@ SUPPORTED_ARGUMENTS = {
 DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 
 
-class HTTP(object):
+class HTTP:  # pylint: disable=too-few-public-methods
     """HTTP decorator class.
 
     This decorator also preserves the argspec, but includes the __init__ and
@@ -72,7 +72,7 @@ class HTTP(object):
         self.decorator_name = decorator_name
         self.args = args
         self.kwargs = kwargs
-        self.scope = context.in_pycompss()
+        self.scope = CONTEXT.in_pycompss()
         self.core_element = None  # type: typing.Any
         self.core_element_configured = False
         self.task_type = "http"
@@ -105,7 +105,7 @@ class HTTP(object):
                 logger.debug("Executing http_f wrapper.")
 
             if (
-                context.in_master() or context.is_nesting_enabled()
+                CONTEXT.in_master() or CONTEXT.is_nesting_enabled()
             ) and not self.core_element_configured:
                 # master code - or worker with nesting enabled
                 self.__configure_core_element__(kwargs)
@@ -119,7 +119,10 @@ class HTTP(object):
         http_f.__doc__ = user_function.__doc__
         return http_f
 
-    def __run_http__(self, *args: typing.Any, **kwargs: typing.Any) -> int:
+    @staticmethod
+    def __run_http__(
+        *args: typing.Any, **kwargs: typing.Any
+    ) -> int:  # pylint: disable=unused-argument
         """HTTP tasks are meant to be dummy.
 
         :param args: Arguments received from call.
@@ -172,4 +175,4 @@ class HTTP(object):
 # ##################### HTTP DECORATOR ALTERNATIVE NAME ##################### #
 # ########################################################################### #
 
-http = HTTP
+http = HTTP  # pylint: disable=invalid-name

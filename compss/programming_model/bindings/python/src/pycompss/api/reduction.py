@@ -27,7 +27,7 @@ elements task definition.
 import os
 from functools import wraps
 
-import pycompss.util.context as context
+from pycompss.util.context import CONTEXT
 from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.error_msgs import cast_env_to_int_error
@@ -47,7 +47,7 @@ SUPPORTED_ARGUMENTS = {LABELS.chunk_size, LABELS.is_reduce}
 DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 
 
-class Reduction(object):
+class Reduction:  # pylint: disable=too-few-public-methods
     """Reduction decorator class.
 
     This decorator also preserves the argspec, but includes the __init__ and
@@ -78,7 +78,7 @@ class Reduction(object):
         self.decorator_name = decorator_name
         self.args = args
         self.kwargs = kwargs
-        self.scope = context.in_pycompss()
+        self.scope = CONTEXT.in_pycompss()
         self.core_element = None  # type: typing.Any
         self.core_element_configured = False
         if self.scope:
@@ -149,9 +149,9 @@ class Reduction(object):
             is_reduce = self.kwargs[LABELS.is_reduce]
 
         if __debug__:
-            logger.debug("The task is_reduce flag is set to: %s" % str(is_reduce))
+            logger.debug("The task is_reduce flag is set to: %s", str(is_reduce))
             logger.debug(
-                "This Reduction task will have %s sized chunks" % str(chunk_size)
+                "This Reduction task will have %s sized chunks", str(chunk_size)
             )
 
         # Set the chunk_size variable in kwargs for its usage in @task
@@ -174,14 +174,18 @@ class Reduction(object):
                 env_var = env_var[1:-1]  # remove brackets
             try:
                 parsed_chunk_size = int(os.environ[env_var])
-            except ValueError:
-                raise PyCOMPSsException(cast_env_to_int_error(LABELS.chunk_size))
+            except ValueError as chunk_size_env_var_error:
+                raise PyCOMPSsException(
+                    cast_env_to_int_error(LABELS.chunk_size)
+                ) from chunk_size_env_var_error
         else:
             # ChunkSize is in string form, cast it
             try:
                 parsed_chunk_size = int(chunk_size)
-            except ValueError:
-                raise PyCOMPSsException(cast_string_to_int_error(LABELS.chunk_size))
+            except ValueError as chunk_size_error:
+                raise PyCOMPSsException(
+                    cast_string_to_int_error(LABELS.chunk_size)
+                ) from chunk_size_error
         return parsed_chunk_size
 
 
@@ -189,4 +193,4 @@ class Reduction(object):
 # ################# REDUCTION DECORATOR ALTERNATIVE NAME #################### #
 # ########################################################################### #
 
-reduction = Reduction
+reduction = Reduction  # pylint: disable=invalid-name

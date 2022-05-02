@@ -34,7 +34,7 @@ from pycompss.util.typing_helper import typing
 #######################################
 
 
-class Constants(object):
+class Constants:
     """Common constants definitions."""
 
     __slots__ = (
@@ -119,7 +119,7 @@ CONSTANTS = Constants()
 ###############################################
 
 
-class Globals(object):
+class Globals:
     """Common global definitions."""
 
     __slots__ = ("temp_dir", "object_conversion", "tracing_task_name_to_id")
@@ -131,7 +131,7 @@ class Globals(object):
         """
         self.temp_dir = ""
         self.object_conversion = False
-        self.tracing_task_name_to_id = dict()  # type: typing.Dict[str, int]
+        self.tracing_task_name_to_id = {}  # type: typing.Dict[str, int]
 
     def get_temporary_directory(self) -> str:
         """Temporary directory getter.
@@ -158,21 +158,6 @@ class Globals(object):
         else:
             temp_dir = mkdtemp(prefix=CONSTANTS.temp_dir_prefix, dir=folder)
         self.temp_dir = temp_dir
-
-    def get_object_conversion(self) -> bool:
-        """Object conversion getter.
-
-        :return: Boolean object conversion.
-        """
-        return self.object_conversion
-
-    def set_object_conversion(self, conversion: bool = False) -> None:
-        """Set object conversion to string.
-
-        :param conversion: Boolean. True enable, False disable.
-        :return: None.
-        """
-        self.object_conversion = conversion
 
     def in_tracing_task_name_to_id(self, task_name: str) -> bool:
         """Check if task_name is in tracing_task_name_to_id dictionary.

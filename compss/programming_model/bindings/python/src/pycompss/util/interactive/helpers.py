@@ -59,7 +59,7 @@ PREFIXES = (
 # ################################################################# #
 
 
-def update_tasks_code_file(f: typing.Any, file_path: str) -> None:
+def update_tasks_code_file(function: typing.Any, file_path: str) -> None:
     """Update the file where the tasks code is stored.
 
     IMPORTANT! Main interactive helper function.
@@ -71,7 +71,7 @@ def update_tasks_code_file(f: typing.Any, file_path: str) -> None:
     Builds a file where the necessary contents for the worker are.
     Also updates the old code with the new if functions or tasks are redefined.
 
-    :param f: New task function.
+    :param function: New task function.
     :param file_path: File where the code is stored.
     :return: None.
     """
@@ -86,7 +86,7 @@ def update_tasks_code_file(f: typing.Any, file_path: str) -> None:
     global_code = _get_ipython_globals()  # [var\n, var\n, ...]
     classes_code = _get_classes()  # {"name": str(line\nline\n...)}
     functions_code = _get_functions()  # {"name": str(line\nline\n...)}
-    task_code = _get_task_code(f)  # {"name": str(line\nline\n...)}
+    task_code = _get_task_code(function)  # {"name": str(line\nline\n...)}
     old_code = _get_old_code(file_path)  # old_code structure:
     # {"imports":[import\n, import\n, ...],
     #  "tasks":{"name":str(line\nline\n...),
@@ -99,7 +99,7 @@ def update_tasks_code_file(f: typing.Any, file_path: str) -> None:
     new_classes = _update_classes(classes_code, old_code["classes"])
     # Check that there are no functions with the same name as a newly defined
     # tasks
-    for k in task_code.keys():
+    for k in task_code:
         functions_code.pop(k, None)
         old_code["functions"].pop(k, None)
     # Continue with comparisons
@@ -113,7 +113,7 @@ def update_tasks_code_file(f: typing.Any, file_path: str) -> None:
 
 
 # ###################################################################
-# ############### AUXILIAR METHODS ##################################
+# ############### AUXILIARY METHODS #################################
 # ###################################################################
 
 # CODE INTERCEPTION FUNCTIONS
@@ -125,17 +125,16 @@ def _create_tasks_code_file(file_path: str) -> None:
     :param file_path: File location and name.
     :return: None.
     """
-    user_code_file = open(file_path, "a")
-    user_code_file.write("\n")
-    user_code_file.write(SEPARATORS["globals_separator"] + "\n")
-    user_code_file.write("\n")
-    user_code_file.write(SEPARATORS["classes_separator"] + "\n")
-    user_code_file.write("\n")
-    user_code_file.write(SEPARATORS["functions_separator"] + "\n")
-    user_code_file.write("\n")
-    user_code_file.write(SEPARATORS["tasks_separator"] + "\n")
-    user_code_file.write("\n")
-    user_code_file.close()
+    with open(file_path, "a") as user_code_file:
+        user_code_file.write("\n")
+        user_code_file.write(SEPARATORS["globals_separator"] + "\n")
+        user_code_file.write("\n")
+        user_code_file.write(SEPARATORS["classes_separator"] + "\n")
+        user_code_file.write("\n")
+        user_code_file.write(SEPARATORS["functions_separator"] + "\n")
+        user_code_file.write("\n")
+        user_code_file.write(SEPARATORS["tasks_separator"] + "\n")
+        user_code_file.write("\n")
 
 
 def _get_raw_code() -> list:
@@ -245,7 +244,9 @@ def _is_variable_assignation(line: str) -> bool:
     """
     if "=" in line:
         parts = line.split()
-        if (
+        # It is actually an assignation == True
+        # It is an import/function/decorator/class definition == False
+        return bool(
             not (
                 line.startswith("from")
                 or line.startswith("import")
@@ -255,15 +256,9 @@ def _is_variable_assignation(line: str) -> bool:
             )
             and len(parts) >= 3
             and parts[1] == "="
-        ):
-            # It is actually an assignation
-            return True
-        else:
-            # It is an import/function/decorator/class definition
-            return False
-    else:
-        # Not an assignation if does not contain "="
-        return False
+        )
+    # Not an assignation if does not contain "="
+    return False
 
 
 def _get_classes() -> dict:
@@ -301,10 +296,10 @@ def _get_classes() -> dict:
             else:
                 class_found = False
     # Plain classes content (from {key: [line, line,...]} to {key: line\nline})
-    plain_classes = dict()
-    for k, v in list(classes.items()):
+    plain_classes = {}
+    for key, value in list(classes.items()):
         # Collapse all lines into a single one
-        plain_classes[k] = "".join(v).strip()
+        plain_classes[key] = "".join(value).strip()
     return plain_classes
 
 
@@ -369,34 +364,34 @@ def _get_functions() -> dict:
                     function_found = False
     # Plain functions content:
     # from {key: [line, line,...]} to {key: line\nline}
-    plain_functions = dict()
-    for k, v in list(functions.items()):
-        plain_functions[k] = "".join(v).strip()  # Collapse all lines into one
+    plain_functions = {}
+    for key, value in list(functions.items()):
+        # Collapse all lines into one
+        plain_functions[key] = "".join(value).strip()
     return plain_functions
 
 
-def _get_task_code(f: typing.Any) -> dict:
+def _get_task_code(function: typing.Any) -> dict:
     r"""Find the task code.
 
-    :param f: Task function.
+    :param function: Task function.
     :return: A dictionary with the task code: {"name": str(line\nline\n...)}.
     """
     try:
-        task_code = inspect.getsource(f)
+        task_code = inspect.getsource(function)
     except TypeError:
         # This is a numba jit declared task
-        task_code = inspect.getsource(f.py_func)
+        task_code = inspect.getsource(function.py_func)
     if task_code.startswith((" ", "\t")):
         return {}
-    else:
-        name = ""
-        lines = task_code.split("\n")
-        for line in lines:
-            # Ignore the decorator stack
-            if line.strip().startswith("def"):
-                name = line.replace("(", " (").split(" ")[1].strip()
-                break  # Just need the first
-        return {name: task_code}
+    name = ""
+    lines = task_code.split("\n")
+    for line in lines:
+        # Ignore the decorator stack
+        if line.strip().startswith("def"):
+            name = line.replace("(", " (").split(" ")[1].strip()
+            break  # Just need the first
+    return {name: task_code}
 
 
 def _clean(lines_list: list) -> list:
@@ -407,16 +402,15 @@ def _clean(lines_list: list) -> list:
     :param lines_list: List of strings.
     :return: The list without "\n" strings.
     """
-    result = list()  # type: typing.List[str]
+    result = []  # type: typing.List[str]
     if len(lines_list) == 1 and lines_list[0].strip() == "":
         # If the lines_list only contains a single line jump remove it
         return result
-    else:
-        # If it is longer, remove all single \n appearances
-        for line in lines_list:
-            if line.strip() != "":
-                result.append(line)
-        return result
+    # If it is longer, remove all single \n appearances
+    for line in lines_list:
+        if line.strip() != "":
+            result.append(line)
+    return result
 
 
 def _get_old_code(file_path: str) -> dict:
@@ -426,9 +420,8 @@ def _get_old_code(file_path: str) -> dict:
     :return: A dictionary with the imports and existing tasks.
     """
     # Read the entire file
-    code_file = open(file_path, "r")
-    contents = code_file.readlines()
-    code_file.close()
+    with open(file_path, "r") as code_file:
+        contents = code_file.readlines()
 
     # Separate imports from tasks
     file_imports = []
@@ -495,9 +488,9 @@ def _get_old_code(file_path: str) -> dict:
         collapsed = "".join(file_globals).strip()
         scattered = collapsed.split("\n")
         # Add classes to dictionary by class name:
-        for g in scattered:
-            glob_code = g.strip()
-            glob_name = g.split()[0].strip()
+        for glob in scattered:
+            glob_code = glob.strip()
+            glob_name = glob.split()[0].strip()
             globs[glob_name] = glob_code
 
     # Process classes
@@ -511,9 +504,9 @@ def _get_old_code(file_path: str) -> dict:
         for class_line in [name for name in collapsed.split("class ") if name]
     ]
     # Add classes to dictionary by class name:
-    for c in cls:
-        class_code = c.strip()
-        class_name = c.replace("(", " (").split(" ")[1].strip()
+    for cls_ in cls:
+        class_code = cls_.strip()
+        class_name = cls_.replace("(", " (").split(" ")[1].strip()
         classes[class_name] = class_code
 
     # Process functions
@@ -522,18 +515,18 @@ def _get_old_code(file_path: str) -> dict:
     clean_functions = [f_line for f_line in file_functions if f_line]
     # Iterate over the lines splitting by the ones that start with def
     funcs = []
-    f = ""
+    func = ""
     for line in clean_functions:
         if line.startswith("def"):
-            if f:
-                funcs.append(f)
-            f = line
+            if func:
+                funcs.append(func)
+            func = line
         else:
-            f += line
+            func += line
     # Add functions to dictionary by function name:
-    for f in funcs:
-        func_code = f.strip()
-        func_name = f.replace("(", " (").split(" ")[1].strip()
+    for func in funcs:
+        func_code = func.strip()
+        func_name = func.replace("(", " (").split(" ")[1].strip()
         functions[func_name] = func_code
 
     # Process tasks
@@ -550,22 +543,22 @@ def _get_old_code(file_path: str) -> dict:
     # necessary to collapse the function stack
     tasks_list = []
     tsk = ""
-    for t in tsks:
-        if any(map(t.startswith, PREFIXES)):
-            tsk += t
-        if t.startswith("@task"):
-            tsk += t
+    for task in tsks:
+        if any(map(task.startswith, PREFIXES)):
+            tsk += task
+        if task.startswith("@task"):
+            tsk += task
             tasks_list.append(tsk)
             tsk = ""
-        elif not any(map(t.startswith, PREFIXES)):
+        elif not any(map(task.startswith, PREFIXES)):
             # If a decorator over the function is provided, it will
             # have to be included in the last task
-            tasks_list[-1] += t
+            tasks_list[-1] += task
     # Add functions to dictionary by function name:
-    for t in tasks_list:
+    for task in tasks_list:
         # Example: "@task(returns=int)\ndef mytask(v):\n    return v+1"
-        task_code = t.strip()
-        task_header = t.split("\ndef")[1]
+        task_code = task.strip()
+        task_header = task.split("\ndef")[1]
         task_name = task_header.replace("(", " (").split(" ")[1].strip()
         tasks[task_name] = task_code
 
@@ -619,20 +612,19 @@ def _update_globals(new_globals: dict, old_globals: dict) -> dict:
     """
     if len(old_globals) == 0:
         return new_globals
-    else:
-        for global_name in list(new_globals.keys()):
-            if (
-                DEBUG
-                and global_name in old_globals
-                and (not new_globals[global_name] == old_globals[global_name])
-            ):
-                print(
-                    "WARNING! Global variable "
-                    + global_name
-                    + " has been redefined (the previous will be deprecated)."
-                )
-            old_globals[global_name] = new_globals[global_name]
-        return old_globals
+    for global_name in list(new_globals.keys()):
+        if (
+            DEBUG
+            and global_name in old_globals
+            and (not new_globals[global_name] == old_globals[global_name])
+        ):
+            print(
+                "WARNING! Global variable "
+                + global_name
+                + " has been redefined (the previous will be deprecated)."
+            )
+        old_globals[global_name] = new_globals[global_name]
+    return old_globals
 
 
 def _update_classes(new_classes: dict, old_classes: dict) -> dict:
@@ -649,16 +641,15 @@ def _update_classes(new_classes: dict, old_classes: dict) -> dict:
     """
     if len(old_classes) == 0:
         return new_classes
-    else:
-        for class_name in list(new_classes.keys()):
-            if (
-                DEBUG
-                and class_name in old_classes
-                and (not new_classes[class_name] == old_classes[class_name])
-            ):
-                __show_redefinition_warning__("Class", class_name)
-            old_classes[class_name] = new_classes[class_name]
-        return old_classes
+    for class_name in list(new_classes.keys()):
+        if (
+            DEBUG
+            and class_name in old_classes
+            and (not new_classes[class_name] == old_classes[class_name])
+        ):
+            __show_redefinition_warning__("Class", class_name)
+        old_classes[class_name] = new_classes[class_name]
+    return old_classes
 
 
 def _update_functions(new_functions: dict, old_functions: dict) -> dict:
@@ -675,16 +666,15 @@ def _update_functions(new_functions: dict, old_functions: dict) -> dict:
     """
     if len(old_functions) == 0:
         return new_functions
-    else:
-        for function_name in list(new_functions.keys()):
-            if (
-                DEBUG
-                and function_name in old_functions
-                and (not new_functions[function_name] == old_functions[function_name])
-            ):
-                __show_redefinition_warning__("Function", function_name)
-            old_functions[function_name] = new_functions[function_name]
-        return old_functions
+    for function_name in list(new_functions.keys()):
+        if (
+            DEBUG
+            and function_name in old_functions
+            and (not new_functions[function_name] == old_functions[function_name])
+        ):
+            __show_redefinition_warning__("Function", function_name)
+        old_functions[function_name] = new_functions[function_name]
+    return old_functions
 
 
 def _update_tasks(new_tasks: dict, old_tasks: dict) -> dict:
@@ -721,9 +711,8 @@ def __show_redefinition_warning__(kind: str, name: str) -> None:
     :returns: None.
     """
     print(
-        "WARNING! %s %s has been redefined (the previous will be deprecated)."
-        % (kind, name)
-    )  # noqa: E501
+        f"WARNING! {kind} {name} has been redefined (the previous will be deprecated)."
+    )
 
 
 # #######################
@@ -749,54 +738,53 @@ def _update_code_file(
     :param file_path: File to update.
     :return: None.
     """
-    code_file = open(file_path, "w")
-    # Write imports
-    for i in new_imports:
-        code_file.write(i)
-    code_file.write("\n")
-    # Write globals separator
-    code_file.write(SEPARATORS["globals_separator"] + "\n")
-    # Write globals
-    if len(new_globals) == 0:
+    with open(file_path, "w") as code_file:
+        # Write imports
+        for i in new_imports:
+            code_file.write(i)
         code_file.write("\n")
-    else:
-        for _, v in list(new_globals.items()):
-            for line in v:
-                code_file.write(line)
+        # Write globals separator
+        code_file.write(SEPARATORS["globals_separator"] + "\n")
+        # Write globals
+        if len(new_globals) == 0:
             code_file.write("\n")
+        else:
+            for _, global_value in list(new_globals.items()):
+                for line in global_value:
+                    code_file.write(line)
+                code_file.write("\n")
+                code_file.write("\n")
+        # Write classes separator
+        code_file.write(SEPARATORS["classes_separator"] + "\n")
+        # Write classes
+        if len(new_classes) == 0:
             code_file.write("\n")
-    # Write classes separator
-    code_file.write(SEPARATORS["classes_separator"] + "\n")
-    # Write classes
-    if len(new_classes) == 0:
-        code_file.write("\n")
-    else:
-        for _, v in list(new_classes.items()):
-            for line in v:
-                code_file.write(line)
+        else:
+            for _, class_value in list(new_classes.items()):
+                for line in class_value:
+                    code_file.write(line)
+                code_file.write("\n")
+                code_file.write("\n")
+        # Write functions separator
+        code_file.write(SEPARATORS["functions_separator"] + "\n")
+        # Write functions
+        if len(new_functions) == 0:
             code_file.write("\n")
+        else:
+            for _, function_value in list(new_functions.items()):
+                for line in function_value:
+                    code_file.write(line)
+                code_file.write("\n")
+                code_file.write("\n")
+        # Write tasks separator
+        code_file.write(SEPARATORS["tasks_separator"] + "\n")
+        # Write tasks
+        if len(new_tasks) == 0:
             code_file.write("\n")
-    # Write functions separator
-    code_file.write(SEPARATORS["functions_separator"] + "\n")
-    # Write functions
-    if len(new_functions) == 0:
-        code_file.write("\n")
-    else:
-        for _, v in list(new_functions.items()):
-            for line in v:
-                code_file.write(line)
-            code_file.write("\n")
-            code_file.write("\n")
-    # Write tasks separator
-    code_file.write(SEPARATORS["tasks_separator"] + "\n")
-    # Write tasks
-    if len(new_tasks) == 0:
-        code_file.write("\n")
-    else:
-        for _, v in list(new_tasks.items()):
-            for line in v:
-                code_file.write(line)
-            code_file.write("\n")
-            code_file.write("\n")
-    code_file.flush()
-    code_file.close()
+        else:
+            for _, task_value in list(new_tasks.items()):
+                for line in task_value:
+                    code_file.write(line)
+                code_file.write("\n")
+                code_file.write("\n")
+        code_file.flush()

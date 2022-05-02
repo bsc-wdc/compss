@@ -38,6 +38,6 @@ class COMPSsException(Exception):
         :param message: Exception message.
         :param target_direction: Target direction.
         """
-        super(COMPSsException, self).__init__(message)  # show traceback
+        super().__init__(message)  # show traceback
         self.message = message
         self.target_direction = target_direction

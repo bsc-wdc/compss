@@ -12,7 +12,7 @@
 
   getParams() {
     # Check parameters
-    if [ $# -ne 5 ]; then
+    if [ $# -ne 6 ]; then
       echo "ERROR: Incorrect number of parameters"
       usage 1
     fi
@@ -23,6 +23,7 @@
     buildScript=$3
     SCuser=$4
     SCendpoint=$5
+    modules_folder=$6
   }
 
   install() {
@@ -42,7 +43,7 @@
     auxScriptFile=${SCRIPT_DIR}/${auxScriptName}
     cat > "${auxScriptFile}" << EOT
 #!/bin/bash -e
-
+    
     cp /apps/modules/modulefiles/tools/COMPSs/Trunk /apps/modules/modulefiles/tools/COMPSs/$version
     sed -i '/set PROG_VERSION/c\set PROG_VERSION\t\t'$version'' /apps/modules/modulefiles/tools/COMPSs/$version
     chmod 775 /apps/modules/modulefiles/tools/COMPSs/$version

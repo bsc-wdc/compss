@@ -27,9 +27,9 @@
   buildScript="buildP9"
   MNuser=compss
   MNendpoint=p9login1.bsc.es
-
+  modules_folder="/apps/modules/modulefiles/tools/COMPSs/"
   # Call generic script
-  ./deploy_tag_to_SC "${version}" ${buildFolder} ${buildScript} ${MNuser} ${MNendpoint}
+  ./deploy_tag_to_SC "${version}" ${buildFolder} ${buildScript} ${MNuser} ${MNendpoint} "${modules_folder}"
 
   # END
   exit 0

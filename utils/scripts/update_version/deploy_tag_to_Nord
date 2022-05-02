@@ -27,9 +27,9 @@
   buildScript="buildNord3"
   nordUser=compss
   nordEndpoint=nord3.bsc.es
-
+  modules_folder="/apps/modules/modulefiles/tools/compss/"
   # Call generic script
-  ./deploy_tag_to_SC "${version}" ${buildFolder} ${buildScript} ${nordUser} ${nordEndpoint}
+  ./deploy_tag_to_SC "${version}" ${buildFolder} ${buildScript} ${MNuser} ${MNendpoint} "${modules_folder}"
 
   # END
   exit 0

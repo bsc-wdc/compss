@@ -23,6 +23,12 @@ def my_date(d_prefix, param):
     pass
 
 
+@software(config_file=os.getcwd() + "/src/config/pro_epi.json")
+@task()
+def prolog_epilog():
+    pass
+
+
 @software(config_file=os.getcwd() + "/src/config/binary_basic.json")
 @task()
 def my_date_binary(d_prefix, param):
@@ -64,6 +70,10 @@ class TestSoftwareDecorator(unittest.TestCase):
     def testFileManagementIN(self):
         infile = "src/infile"
         my_sed_in('s/Hi/HELLO/g', infile)
+        compss_barrier()
+
+    def testPrologEpilog(self):
+        prolog_epilog()
         compss_barrier()
 
     def testStringParams(self):

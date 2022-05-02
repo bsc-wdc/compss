@@ -1,0 +1,16 @@
+
+{
+	"type":"binary",
+	"properties":{
+        "binary":"date",
+        "working_dir": "/tmp"
+	},
+	"prolog":{
+		"binary":"echo",
+		"params":"this is prolog"
+	},
+	"epilog":{
+		"binary":"echo",
+		"params":"this is epilog"
+	}
+}

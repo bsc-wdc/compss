@@ -33,7 +33,7 @@ import typing
 CRATE = ROCrate()
 
 
-def add_file_not_in_crate(file_name: str):
+def add_file_not_in_crate(file_name: str) -> None:
     """
     When adding local files that we don't want to be physically in the Crate, they must be added with a file:// URI
 
@@ -59,7 +59,12 @@ def add_file_not_in_crate(file_name: str):
         j_np = "/" + "/".join(new_path)
         new_fn = Path(j_np)
         file_properties["contentSize"] = new_fn.stat().st_size
-        CRATE.add_file(file_name, fetch_remote=False, validate_url=False, properties=file_properties)
+        CRATE.add_file(
+            file_name,
+            fetch_remote=False,
+            validate_url=False,
+            properties=file_properties,
+        )
     else:  # Remote file. validate_url already adds contentSize and encodingFormat from the remote file
         CRATE.add_file(file_name, validate_url=True, properties=file_properties)
 

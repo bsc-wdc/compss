@@ -77,11 +77,11 @@ class SharedArguments:
                     return
 
     def delete_worker_args(self) -> None:
-        """Remove the worker args global variable.
+        """Remove the worker args variable contents.
 
         :return: None.
         """
-        del self.worker_args
+        self.worker_args = tuple()
 
 
 # ############################################################# #

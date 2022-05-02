@@ -33,9 +33,9 @@ import typing
 CRATE = ROCrate()
 
 
-def add_file_not_in_crate(file_name: str) -> list:
+def add_file_not_in_crate(file_name: str):
     """
-    When adding files not physically in the Crate, they must be removed from the hasPart clause
+    When adding local files that we don't want to be physically in the Crate, they must be added with a file:// URI
 
     CAUTION: If the file has been already added (e.g. for INOUT files) add_file won't succeed in adding a second entity
     with the same name
@@ -59,20 +59,9 @@ def add_file_not_in_crate(file_name: str) -> list:
         j_np = "/" + "/".join(new_path)
         new_fn = Path(j_np)
         file_properties["contentSize"] = new_fn.stat().st_size
-        CRATE.add_file(file_name, validate_url=False, properties=file_properties)
+        CRATE.add_file(file_name, fetch_remote=False, validate_url=False, properties=file_properties)
     else:  # Remote file. validate_url already adds contentSize and encodingFormat from the remote file
         CRATE.add_file(file_name, validate_url=True, properties=file_properties)
-
-    # print(f"BEFORE HACK: CRATE.root_dataset._jsonld[hasPart] is: {CRATE.root_dataset._jsonld['hasPart']}")
-    # Hack: Avoid including non validated remote files in the "hasPart" section
-    has_part_crate = CRATE.root_dataset._jsonld["hasPart"]  # Assign hasPart list
-    if has_part_crate[-1]["@id"] == file_name:
-        has_part_crate.pop(-1)  # Can't use remove, file_name is in a dictionary now
-        # print(f"AFTER HACK: has_part_crate is: {has_part_crate}")
-    # else:
-    # print(f"HACK SKIPPED: has_part_crate is: {has_part_crate}")
-
-    return has_part_crate
 
 
 def get_main_entities() -> typing.Tuple[str, str, str]:
@@ -395,21 +384,16 @@ Authors:
 
     ins, outs = process_accessed_files()
 
-    # Add files that will be physically in the crate to hasPart
+    # Add files that will be physically in the crate
     for file in compss_wf_info["files"]:
-        # print(f"File: {file}")
         add_file_to_crate(file, compss_ver, main_entity, out_profile, ins, outs)
 
-    # Add files not in the Crate
+    # Add files not to be physically in the Crate
     for item in ins:
-        hp_crate = add_file_not_in_crate(item)
-        # print(f"OUTSIDE FUNC: CRATE.root_dataset._jsonld[hasPart] is: {CRATE.root_dataset._jsonld['hasPart']}")
-        CRATE.root_dataset._jsonld["hasPart"] = hp_crate
-        # print(f"AFTER ASSIGN: CRATE.root_dataset._jsonld[hasPart] is: {CRATE.root_dataset._jsonld['hasPart']}")
+        add_file_not_in_crate(item)
 
     for item in outs:
-        hp_crate = add_file_not_in_crate(item)
-        CRATE.root_dataset._jsonld["hasPart"] = hp_crate
+        add_file_not_in_crate(item)
 
     # COMPSs RO-Crate Provenance Info can be directly hardcoded by now
 

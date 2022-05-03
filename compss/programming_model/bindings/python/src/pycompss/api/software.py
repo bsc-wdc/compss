@@ -236,8 +236,8 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
             self.config_args = properties
             self.constraints = config.get("constraints", None)
             self.container = config.get("container", None)
-        self.prolog = config.get("prolog", None)
-        self.epilog = config.get("epilog", None)
+            self.prolog = config.get("prolog", None)
+            self.epilog = config.get("epilog", None)
 
 
 # ########################################################################### #

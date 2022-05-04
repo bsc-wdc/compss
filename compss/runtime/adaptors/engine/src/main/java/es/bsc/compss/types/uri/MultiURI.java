@@ -95,7 +95,8 @@ public class MultiURI implements Comparable<MultiURI> {
 
     @Override
     public String toString() {
-        return this.protocol.getSchema() + this.host.getName() + File.separator + this.path;
+        // File.separator not needed, even if hostname isEmpty
+        return this.protocol.getSchema() + this.host.getName() + this.path;
     }
 
     /**

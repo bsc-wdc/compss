@@ -59,10 +59,12 @@ def add_file_not_in_crate(file_name: str) -> None:
         j_np = "/" + "/".join(new_path)
         new_fn = Path(j_np)
         file_properties["contentSize"] = new_fn.stat().st_size
+        # test_fn = "file://localhost" + j_np
+        # print(f"Testing local URL: {test_fn}")
         CRATE.add_file(
             file_name,
             fetch_remote=False,
-            validate_url=False,
+            validate_url=False,  # True fails at MN4 when file URI points to a node hostname (only localhost works)
             properties=file_properties,
         )
     else:  # Remote file. validate_url already adds contentSize and encodingFormat from the remote file

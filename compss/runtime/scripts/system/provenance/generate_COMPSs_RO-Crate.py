@@ -21,8 +21,11 @@ from rocrate.model.person import Person
 from rocrate.model.contextentity import ContextEntity
 from rocrate.model.entity import Entity
 from rocrate.model.file import File
+# from rocrate.utils import iso_now
 
 from pathlib import Path
+from urllib.parse import urlsplit
+from datetime import datetime, timezone
 
 import yaml
 import os
@@ -33,42 +36,40 @@ import typing
 CRATE = ROCrate()
 
 
-def add_file_not_in_crate(file_name: str) -> None:
+def add_file_not_in_crate(file_url: str) -> None:
     """
     When adding local files that we don't want to be physically in the Crate, they must be added with a file:// URI
 
     CAUTION: If the file has been already added (e.g. for INOUT files) add_file won't succeed in adding a second entity
     with the same name
 
-    :param file_name: File added as input or output, but not in the RO-Crate
-    :returns: Updated hasPart clause from RO-Crate
+    :param file_url: File added as input or output, but not in the RO-Crate
+
+    :returns: None
     """
 
-    # TODO: for directories: use .iterdir()
-
-    fn = Path(file_name)
-    file_properties = {"name": fn.name}
-
-    if fn.parts[0] == "file:":  # Dealing with a local file
-        tuple_path = fn.parts
-        list_path = list(tuple_path)
-        new_path = []
-        for i, item in enumerate(list_path):
-            if i > 1:  # Remove file: and hostname
-                new_path.append(item)
-        j_np = "/" + "/".join(new_path)
-        new_fn = Path(j_np)
-        file_properties["contentSize"] = new_fn.stat().st_size
-        # test_fn = "file://localhost" + j_np
-        # print(f"Testing local URL: {test_fn}")
+    url_parts = urlsplit(file_url)
+    final_item_name = os.path.basename(file_url)
+    file_properties = {"name": final_item_name}
+    file_properties[
+        "sdDatePublished"
+    ] = datetime.now(timezone.utc).replace(microsecond=0).isoformat()  # Register when the Data Entity was last accessible
+    if url_parts.scheme == "file":  # Dealing with a local file
+        file_properties["contentSize"] = os.path.getsize(url_parts.path)
         CRATE.add_file(
-            file_name,
+            file_url,
             fetch_remote=False,
             validate_url=False,  # True fails at MN4 when file URI points to a node hostname (only localhost works)
             properties=file_properties,
         )
-    else:  # Remote file. validate_url already adds contentSize and encodingFormat from the remote file
-        CRATE.add_file(file_name, validate_url=True, properties=file_properties)
+    elif url_parts.scheme == "dir":  # DIRECTORY parameter
+        # TODO: for directories: use .iterdir() to describe all files inside the directory?
+        CRATE.add_dataset(
+            file_url, properties=file_properties
+        )  # fetch_remote and validate_url false by default
+    else:  # Remote file, currently not supported in COMPSs. validate_url already adds contentSize and encodingFormat
+        # from the remote file
+        CRATE.add_file(file_url, validate_url=True, properties=file_properties)
 
 
 def get_main_entities() -> typing.Tuple[str, str, str]:
@@ -85,7 +86,6 @@ def get_main_entities() -> typing.Tuple[str, str, str]:
         second_line = next(
             f
         ).rstrip()  # Second, main_entity. Use better rstrip, just in case there is no '\n'
-        # clean_path = secondline[:-1] # Remove final "\n"
         main_entity_fn = Path(second_line)
         third_line = next(f).rstrip()
         out_profile_fn = Path(third_line)
@@ -160,6 +160,7 @@ def add_file_to_crate(
     :param out_profile: COMPSs application profile output
     :param ins: List of input files
     :param outs: List of output files
+
     :returns: None
     """
 

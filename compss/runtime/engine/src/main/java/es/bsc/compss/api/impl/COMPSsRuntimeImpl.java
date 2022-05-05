@@ -1589,6 +1589,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     DataLocation location = createLocation(ProtocolType.DIR_URI, dirName);
                     pars.add(new DirectoryParameter(direction, stream, prefix, name, pyType, weight, keepRename,
                         location, originalName));
+                    if (DataProvenanceEnabled) { // Log access to directory in the dataprovenance.log
+                        String finalPath = location.toString();
+                        DP_LOGGER.info(finalPath + " " + direction.toString());
+                    }
                 } catch (Exception e) {
                     LOGGER.error(ERROR_DIR_NAME + " : " + e.getMessage());
                     ErrorManager.fatal(ERROR_DIR_NAME, e);

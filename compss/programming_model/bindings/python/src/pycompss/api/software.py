@@ -96,8 +96,8 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
         self.decor = None  # type: typing.Any
         self.constraints = None  # type: typing.Any
         self.container = None  # type: typing.Any
-        self.prolog = None  # type: typing.Dict
-        self.epilog = None  # type: typing.Dict
+        self.prolog = None  # type: typing.Any
+        self.epilog = None  # type: typing.Any
 
         self.decorator_name = decorator_name
         self.args = args
@@ -148,8 +148,7 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
             if self.prolog is not None:
                 resolve_fail_by_exit_value(self.prolog, "True")
                 binary = self.prolog[LABELS.binary]
-                params = self.prolog.get(LABELS.params,
-                                         INTERNAL_LABELS.unassigned)
+                params = self.prolog.get(LABELS.params, INTERNAL_LABELS.unassigned)
                 fail_by = self.prolog.get(LABELS.fail_by_exit_value)
                 _prolog = [binary, params, fail_by]
 
@@ -160,8 +159,7 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
             if self.epilog is not None:
                 resolve_fail_by_exit_value(self.epilog, "False")
                 binary = self.epilog[LABELS.binary]
-                params = self.epilog.get(LABELS.params,
-                                         INTERNAL_LABELS.unassigned)
+                params = self.epilog.get(LABELS.params, INTERNAL_LABELS.unassigned)
                 fail_by = self.epilog.get(LABELS.fail_by_exit_value)
                 _epilog = [binary, params, fail_by]
 

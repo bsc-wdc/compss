@@ -115,6 +115,17 @@
     fi
   fi
 
+  prolog=$(grep -r -l "this is prolog" "${jobs_logs}")
+  if [[ -z "$prolog" ]]; then
+     echo "ERROR: TASK FAILED: Prolog execution failed." | tee -a "${output_file}"
+    exit 1
+  fi
+  epilog=$(grep -r -l "this is epilog" "${jobs_logs}")
+  if [[ -z "$epilog" ]]; then
+     echo "ERROR: TASK FAILED: Epilog execution failed." | tee -a "${output_file}"
+    exit 1
+  fi
+
 
 
   exit 0

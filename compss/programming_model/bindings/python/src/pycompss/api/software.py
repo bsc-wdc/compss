@@ -32,6 +32,7 @@ from pycompss.api import mpi
 from pycompss.api.commons.constants import INTERNAL_LABELS
 from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
+from pycompss.api.commons.decorator import resolve_fail_by_exit_value
 from pycompss.api.commons.implementation_types import IMPLEMENTATION_TYPES
 from pycompss.runtime.task.core_element import CE
 from pycompss.util.arguments import check_arguments
@@ -74,6 +75,8 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
         "decor",
         "constraints",
         "container",
+        "prolog",
+        "epilog",
     ]
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
@@ -93,6 +96,8 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
         self.decor = None  # type: typing.Any
         self.constraints = None  # type: typing.Any
         self.container = None  # type: typing.Any
+        self.prolog = None  # type: typing.Any
+        self.epilog = None  # type: typing.Any
 
         self.decorator_name = decorator_name
         self.args = args
@@ -139,6 +144,28 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
                 core_element = CE()
                 core_element.set_impl_constraints(self.constraints)
                 kwargs[CORE_ELEMENT_KEY] = core_element
+
+            if self.prolog is not None:
+                resolve_fail_by_exit_value(self.prolog, "True")
+                binary = self.prolog[LABELS.binary]
+                params = self.prolog.get(LABELS.params, INTERNAL_LABELS.unassigned)
+                fail_by = self.prolog.get(LABELS.fail_by_exit_value)
+                _prolog = [binary, params, fail_by]
+
+                ce = kwargs.get(CORE_ELEMENT_KEY, CE())
+                ce.set_impl_prolog(_prolog)
+                kwargs[CORE_ELEMENT_KEY] = ce
+
+            if self.epilog is not None:
+                resolve_fail_by_exit_value(self.epilog, "False")
+                binary = self.epilog[LABELS.binary]
+                params = self.epilog.get(LABELS.params, INTERNAL_LABELS.unassigned)
+                fail_by = self.epilog.get(LABELS.fail_by_exit_value)
+                _epilog = [binary, params, fail_by]
+
+                ce = kwargs.get(CORE_ELEMENT_KEY, CE())
+                ce.set_impl_epilog(_epilog)
+                kwargs[CORE_ELEMENT_KEY] = ce
 
             if self.container is not None:
                 _func = str(user_function.__name__)
@@ -207,6 +234,8 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
             self.config_args = properties
             self.constraints = config.get("constraints", None)
             self.container = config.get("container", None)
+            self.prolog = config.get("prolog", None)
+            self.epilog = config.get("epilog", None)
 
 
 # ########################################################################### #

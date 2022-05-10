@@ -21,11 +21,10 @@ from rocrate.model.person import Person
 from rocrate.model.contextentity import ContextEntity
 from rocrate.model.entity import Entity
 from rocrate.model.file import File
-# from rocrate.utils import iso_now
+from rocrate.utils import iso_now
 
 from pathlib import Path
 from urllib.parse import urlsplit
-from datetime import datetime, timezone
 
 import yaml
 import os
@@ -50,10 +49,10 @@ def add_file_not_in_crate(file_url: str) -> None:
 
     url_parts = urlsplit(file_url)
     final_item_name = os.path.basename(file_url)
-    file_properties = {"name": final_item_name}
-    file_properties[
-        "sdDatePublished"
-    ] = datetime.now(timezone.utc).replace(microsecond=0).isoformat()  # Register when the Data Entity was last accessible
+    file_properties = {
+        "name": final_item_name,
+        "sdDatePublished": iso_now(),
+    }  # Register when the Data Entity was last accessible
     if url_parts.scheme == "file":  # Dealing with a local file
         file_properties["contentSize"] = os.path.getsize(url_parts.path)
         CRATE.add_file(
@@ -63,9 +62,37 @@ def add_file_not_in_crate(file_url: str) -> None:
             properties=file_properties,
         )
     elif url_parts.scheme == "dir":  # DIRECTORY parameter
-        # TODO: for directories: use .iterdir() to describe all files inside the directory?
+        # For directories, describe all files inside the directory
+        hasPart_list = []
+        for root, dirs, files in os.walk(
+            url_parts.path, topdown=True
+        ):  # Ignore references to sub-directories (they are not a specific in or out of the workflow), but not their files
+            dirs.sort()
+            files.sort()
+            for f_name in files:
+                listed_file = os.path.join(root, f_name)
+                dir_f_url = "file://" + url_parts.netloc + listed_file
+                hasPart_list.append({"@id": dir_f_url})
+                dir_f_properties = {
+                    "name": f_name,
+                    "sdDatePublished": iso_now(),  # Register when the Data Entity was last accessible
+                    "contentSize": os.path.getsize(listed_file),
+                }
+                CRATE.add_file(
+                    dir_f_url,
+                    fetch_remote=False,
+                    validate_url=False,
+                    # True fails at MN4 when file URI points to a node hostname (only localhost works)
+                    properties=dir_f_properties,
+                )
+        file_properties["hasPart"] = hasPart_list
+
+        # Correct URL from dir:// to file://
+        fixed_url = (
+            "file://" + url_parts.netloc + url_parts.path
+        )  # No query or fragment
         CRATE.add_dataset(
-            file_url, properties=file_properties
+            fixed_url, properties=file_properties
         )  # fetch_remote and validate_url false by default
     else:  # Remote file, currently not supported in COMPSs. validate_url already adds contentSize and encodingFormat
         # from the remote file

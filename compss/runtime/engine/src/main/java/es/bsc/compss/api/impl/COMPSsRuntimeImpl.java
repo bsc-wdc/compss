@@ -1591,7 +1591,15 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                         location, originalName));
                     if (DataProvenanceEnabled) { // Log access to directory in the dataprovenance.log
                         String finalPath = location.toString();
-                        DP_LOGGER.info(finalPath + " " + direction.toString());
+                        if (finalPath.contains("shared:shared_disk")) { // Need to fix URI from SharedDisks
+                            Resource host = Comm.getAppHost();
+                            String absolute = dirFile.getAbsolutePath();
+                            String fixedFinalPath = "dir://" + host.getName() + absolute;
+                            DP_LOGGER.info(fixedFinalPath + " " + direction.toString());
+
+                        } else {
+                            DP_LOGGER.info(finalPath + " " + direction.toString());
+                        }
                     }
                 } catch (Exception e) {
                     LOGGER.error(ERROR_DIR_NAME + " : " + e.getMessage());

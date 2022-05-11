@@ -325,6 +325,7 @@ def main():
                 yaml_content = yaml.safe_load(fp)
             except yaml.YAMLError as exc:
                 print(exc)
+                raise exc
     except IOError:
         with open("ro-crate-info_TEMPLATE.yaml", "w", encoding="utf-8") as ft:
             template = """COMPSs Workflow Information:

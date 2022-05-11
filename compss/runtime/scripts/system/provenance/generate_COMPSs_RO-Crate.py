@@ -429,7 +429,12 @@ Authors:
         add_file_not_in_crate(item)
 
     for item in outs:
+<<<<<<< HEAD
         add_file_not_in_crate(item)
+=======
+        hp_crate = add_file_not_in_crate(item)
+        CRATE.root_dataset._jsonld["hasPart"] = hp_crate
+>>>>>>> 45670fbcb (Added support for multiple authors of a COMPSs Workflow in the RO-Crate)
 
     # COMPSs RO-Crate Provenance Info can be directly hardcoded by now
 

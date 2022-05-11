@@ -38,7 +38,6 @@ CRATE = ROCrate()
 def add_file_not_in_crate(file_url: str) -> None:
     """
     When adding local files that we don't want to be physically in the Crate, they must be added with a file:// URI
-
     CAUTION: If the file has been already added (e.g. for INOUT files) add_file won't succeed in adding a second entity
     with the same name
 
@@ -429,12 +428,7 @@ Authors:
         add_file_not_in_crate(item)
 
     for item in outs:
-<<<<<<< HEAD
         add_file_not_in_crate(item)
-=======
-        hp_crate = add_file_not_in_crate(item)
-        CRATE.root_dataset._jsonld["hasPart"] = hp_crate
->>>>>>> 45670fbcb (Added support for multiple authors of a COMPSs Workflow in the RO-Crate)
 
     # COMPSs RO-Crate Provenance Info can be directly hardcoded by now
 

@@ -37,7 +37,7 @@
   # Python modules with jupyter:
   # py3_modules="ANACONDA/5.1.0_py3"      # "ANACONDA/5.1.0.py3conda" # python 3.6.3
   run_before_py3_other_modules="module load openssl/1.1.1f"
-  py3_other_modules="python/3.7.4 python/3-intel-2018.2 python/3-intel-2019.2 python/3.8.2 python/3.9.10"
+  py3_other_modules="python/3.7.4 python/3-intel-2018.2 python/3-intel-2019.2 python/3.8.2 python/3.9.10 python/3.10.2"
 
   # DEFINE CONFIGURATION PARAMETERS
   #(Environment vars must be scaped to get the correct value if not it could take a value previous to load the modules)

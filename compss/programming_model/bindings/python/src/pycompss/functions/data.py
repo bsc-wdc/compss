@@ -54,9 +54,9 @@ def generator(
     elif distribution == "uniform":
         data = [_gen_uniform(size[1], frag_size, seed) for _ in range(num_frag)]
     if wait:
-        from pycompss.api.api import (
+        from pycompss.api.api import (  # pylint: disable=import-outside-toplevel
             compss_wait_on,
-        )  # pylint: disable=import-outside-toplevel
+        )
 
         data = compss_wait_on(data)
     return data

@@ -34,7 +34,7 @@ def __get_chunks__(iterable, chunksize):
     :return: List of lists that contain chunksize elements.
     """
     for i in range(0, len(list(iterable)), chunksize):
-        yield iterable[i:i + chunksize]
+        yield iterable[i : i + chunksize]
 
 
 def map(  # pylint: disable=redefined-builtin
@@ -51,7 +51,9 @@ def map(  # pylint: disable=redefined-builtin
     :param chunksize: Elements to consider in a chunk.
     :return: result of applying func to all iterable elements.
     """
-    from pycompss.api.api import compss_wait_on  # pylint: disable=import-outside-toplevel
+    from pycompss.api.api import (  # pylint: disable=import-outside-toplevel
+        compss_wait_on,
+    )
 
     result = []
     if chunksize:

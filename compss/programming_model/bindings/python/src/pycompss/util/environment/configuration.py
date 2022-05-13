@@ -27,8 +27,10 @@ Currently, it is used by interactive.py and launch.py.
 import base64
 import json
 import os
+import pathlib
 import sys
 import uuid as _uuid
+import re
 from tempfile import mkstemp
 
 from pycompss.runtime.task.features import TASK_FEATURES
@@ -342,6 +344,7 @@ def create_init_config_file(
     monitor: int,
     trace: int,
     extrae_cfg: str,
+    extrae_final_directory: str,
     comm: str,
     conn: str,
     master_name: str,
@@ -376,7 +379,7 @@ def create_init_config_file(
     extrae_cfg_python: str,
     wcl: int,
     cache_profiler: bool,
-    **kwargs: typing.Any
+    **kwargs: typing.Any,
 ) -> None:
     """Create the initialization files for the runtime start (java options file).
 
@@ -407,6 +410,7 @@ def create_init_config_file(
     :param trace: <Boolean> Enable/Disable trace generation.
     :param extrae_cfg: None|<String> Default extrae configuration/user
                        specific extrae configuration.
+    :param extrae_final_directory: None|<String> Default extrae final directory.
     :param comm: <String> GAT/NIO.
     :param conn: <String> Connector
                  (normally: es.bsc.compss.connectors.DefaultSSHConnector).
@@ -489,9 +493,8 @@ def create_init_config_file(
             jvm_options_file.write("-Dcompss.baseLogDir=" + base_log_dir + "\n")
 
         if specific_log_dir == "":
-            jvm_options_file.write("-Dcompss.specificLogDir=\n")
-        else:
-            jvm_options_file.write("-Dcompss.specificLogDir=" + specific_log_dir + "\n")
+            specific_log_dir = __create_specific_log_dir__()
+        jvm_options_file.write("-Dcompss.specificLogDir=" + specific_log_dir + "\n")
 
         jvm_options_file.write("-Dcompss.appLogDir=/tmp/" + my_uuid + "/\n")
 
@@ -677,17 +680,44 @@ def create_init_config_file(
             jvm_options_file.write("-Dcompss.storage.conf=" + storage_conf + "\n")
 
         # TOOLS SPECIFIC
-        if not trace or trace == 0:
-            # Deactivated
-            jvm_options_file.write("-Dcompss.tracing=false" + "\n")
-        elif trace == 1:
-            # Basic
+        if extrae_cfg == "":
+            extrae_xml_name = "extrae_basic.xml"
+            extrae_xml_path = compss_home + DEFAULT_TRACING_PATH + extrae_xml_name
+            extrae_cfg = "null"
+        else:
+            extrae_xml_name = os.path.basename(extrae_cfg)
+            extrae_xml_path = extrae_cfg
+        if trace:
             jvm_options_file.write("-Dcompss.tracing=true\n")
-            basic = compss_home + DEFAULT_TRACING_PATH + "extrae_basic.xml"
-            os.environ["EXTRAE_CONFIG_FILE"] = basic
+            # Process extrae_xml_path
+            extrae_xml_final_path_dir = os.path.join(specific_log_dir, "cfgfiles")
+            pathlib.Path(extrae_xml_final_path_dir).mkdir(parents=False, exist_ok=True)
+            extrae_trace_path = os.path.join(specific_log_dir, "trace")
+            extrae_xml_final_path = os.path.join(
+                extrae_xml_final_path_dir, extrae_xml_name
+            )
+            got_extrae_final_directory = __process_extrae_file__(
+                extrae_xml_path, extrae_xml_final_path, extrae_trace_path
+            )
         else:
             # Any other case: deactivated
             jvm_options_file.write("-Dcompss.tracing=false" + "\n")
+            got_extrae_final_directory = "null"
+        jvm_options_file.write("-Dcompss.extrae.file=" + extrae_cfg + "\n")
+        if extrae_cfg_python == "":
+            jvm_options_file.write("-Dcompss.extrae.file.python=null\n")
+        else:
+            jvm_options_file.write(
+                "-Dcompss.extrae.file.python=" + str(extrae_cfg_python) + "\n"
+            )
+        if extrae_final_directory == "":
+            jvm_options_file.write(
+                "-Dcompss.extrae.working_dir=" + got_extrae_final_directory + "\n"
+            )
+        else:
+            jvm_options_file.write(
+                "-Dcompss.extrae.working_dir=" + extrae_final_directory + "\n"
+            )
         if tracing_task_dependencies:
             jvm_options_file.write("-Dcompss.tracing.task.dependencies=true\n")
         else:
@@ -696,16 +726,6 @@ def create_init_config_file(
             jvm_options_file.write("-Dcompss.trace.label=None\n")
         else:
             jvm_options_file.write("-Dcompss.trace.label=" + str(trace_label) + "\n")
-        if extrae_cfg == "":
-            jvm_options_file.write("-Dcompss.extrae.file=null\n")
-        else:
-            jvm_options_file.write("-Dcompss.extrae.file=" + str(extrae_cfg) + "\n")
-        if extrae_cfg_python == "":
-            jvm_options_file.write("-Dcompss.extrae.file.python=null\n")
-        else:
-            jvm_options_file.write(
-                "-Dcompss.extrae.file.python=" + str(extrae_cfg_python) + "\n"
-            )
 
         # WALLCLOCK LIMIT
         jvm_options_file.write("-Dcompss.wcl=" + str(wcl) + "\n")
@@ -726,3 +746,54 @@ def create_init_config_file(
 
     # Uncomment if you want to check the configuration file path:
     # print("JVM_OPTIONS_FILE: %s" % temp_path)
+
+
+def __process_extrae_file__(
+    extrae_xml_path: str,
+    extrae_xml_final_path: str,
+    extrae_trace_path: str,
+) -> str:
+    """Sed and grep extrae file.
+
+    :param extrae_xml_path: Source extrae xml file path.
+    :param extrae_xml_final_path: Destination extrae xml file path.
+    :param extrae_trace_path: Extrae trace working directory
+    :return: final_directory from extrae_xml_path
+    """
+    got_extrae_final_directory = "null"
+    with open(extrae_xml_path, "r") as extrae_xml_fd:
+        extrae_xml_data = extrae_xml_fd.readlines()
+    # Look for final-directory
+    for i, line in enumerate(extrae_xml_data):
+        if "{{TRACE_OUTPUT_DIR}}" in line:
+            # Sed with real path
+            extrae_xml_data[i] = line.replace("{{TRACE_OUTPUT_DIR}}", extrae_trace_path)
+        if "final-directory" in line:
+            # Extract final-directory
+            key = '<final-directory enabled="(.*)">(.*)</final-directory>'
+            found = re.search(key, extrae_xml_data[i]).group(2)  # type: ignore
+            got_extrae_final_directory = found
+    with open(extrae_xml_final_path, "w") as extrae_xml_fd:
+        extrae_xml_fd.writelines(extrae_xml_data)
+    return got_extrae_final_directory
+
+
+def __create_specific_log_dir__():
+    """Create specific log directory.
+
+    :return: Updated specific log directory.
+    """
+    home_folder = str(pathlib.Path.home())
+    compss_log_folder = os.path.join(home_folder, ".COMPSs")
+    pathlib.Path(compss_log_folder).mkdir(parents=False, exist_ok=True)
+    log_folder_prefix = "Interactive_"
+    sub_folders = list(os.walk(compss_log_folder))[0][1]
+    existing_folders = []
+    for folder in sub_folders:
+        if folder.startswith(log_folder_prefix):
+            existing_folders.append(folder)
+    next_int = len(existing_folders) + 1
+    next_subfolder = log_folder_prefix + f"{next_int:02d}"
+    specific_log_dir = os.path.join(compss_log_folder, next_subfolder)
+    pathlib.Path(specific_log_dir).mkdir(parents=False, exist_ok=True)
+    return specific_log_dir

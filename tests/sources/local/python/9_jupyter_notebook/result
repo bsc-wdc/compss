@@ -77,9 +77,18 @@
   #----------------------------------------------------------------------------------
   # Check that trace has been generated
   # shellcheck disable=SC2144 #because we know there is 0 or 1 match only
-  if [ ! -f "${target_log_folder}"/trace/*.prv ] || [ ! -f "${target_log_folder}"/trace/*.pcf ] || [ ! -f "${target_log_folder}"/trace/*.row ]; then
-     echo "SOME ERROR WAS FOUND. TRACE NOT GENERATED." | tee -a "${output_file}"
-     exit 1
+  if [ ! -f "${target_log_folder}"/trace/*.tar.gz ]; then
+    echo "SOME ERROR WAS FOUND. TRACE TAR.GZ NOT GENERATED." | tee -a "${output_file}"
+    exit 1
+  else
+    current_path=$(pwd)
+    cd "${target_log_folder}/trace/"
+    compss_gentrace
+    cd ${current_path}
+    if [ ! -f "${target_log_folder}"/trace/*.prv ] || [ ! -f "${target_log_folder}"/trace/*.pcf ] || [ ! -f "${target_log_folder}"/trace/*.row ]; then
+      echo "SOME ERROR WAS FOUND. TRACE NOT GENERATED." | tee -a "${output_file}"
+      exit 1
+    fi
   fi
 
   exit 0

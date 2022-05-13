@@ -347,6 +347,7 @@ def launch_pycompss_application(
     base_log_dir: str = "",
     specific_log_dir: str = "",
     extrae_cfg: str = "",
+    extrae_final_directory: str = "",
     comm: str = "NIO",
     conn: str = CONSTANTS.default_conn,
     master_name: str = "",
@@ -404,6 +405,7 @@ def launch_pycompss_application(
     :param base_log_dir: Base logging directory
     :param specific_log_dir: Specific logging directory
     :param extrae_cfg: Extrae configuration file path
+    :param extrae_final_directory: Extrae final directory (default: "")
     :param comm: Communication library (default: NIO)
     :param conn: Connector (default: DefaultSSHConnector)
     :param master_name: Master Name (default: "")
@@ -486,6 +488,7 @@ def launch_pycompss_application(
         base_log_dir,
         specific_log_dir,
         extrae_cfg,
+        extrae_final_directory,
         comm,
         conn,
         master_name,

@@ -35,31 +35,33 @@ import typing
 CRATE = ROCrate()
 
 
-def add_file_not_in_crate(file_url: str) -> None:
+def add_file_not_in_crate(in_url: str) -> None:
     """
     When adding local files that we don't want to be physically in the Crate, they must be added with a file:// URI
     CAUTION: If the file has been already added (e.g. for INOUT files) add_file won't succeed in adding a second entity
     with the same name
 
-    :param file_url: File added as input or output, but not in the RO-Crate
+    :param in_url: File added as input or output, but not in the RO-Crate
 
     :returns: None
     """
 
-    url_parts = urlsplit(file_url)
-    final_item_name = os.path.basename(file_url)
+    url_parts = urlsplit(in_url)
+    final_item_name = os.path.basename(in_url)
     file_properties = {
         "name": final_item_name,
         "sdDatePublished": iso_now(),
     }  # Register when the Data Entity was last accessible
+
     if url_parts.scheme == "file":  # Dealing with a local file
         file_properties["contentSize"] = os.path.getsize(url_parts.path)
         CRATE.add_file(
-            file_url,
+            in_url,
             fetch_remote=False,
             validate_url=False,  # True fails at MN4 when file URI points to a node hostname (only localhost works)
             properties=file_properties,
         )
+
     elif url_parts.scheme == "dir":  # DIRECTORY parameter
         # For directories, describe all files inside the directory
         hasPart_list = []
@@ -85,17 +87,13 @@ def add_file_not_in_crate(file_url: str) -> None:
                     properties=dir_f_properties,
                 )
         file_properties["hasPart"] = hasPart_list
-
-        # Correct URL from dir:// to file://
-        fixed_url = (
-            "file://" + url_parts.netloc + url_parts.path
-        )  # No query or fragment
         CRATE.add_dataset(
-            fixed_url, properties=file_properties
-        )  # fetch_remote and validate_url false by default
+            fix_dir_url(in_url), properties=file_properties
+        )  # fetch_remote and validate_url false by default. add_dataset also ensures the URL ends with '/'
+
     else:  # Remote file, currently not supported in COMPSs. validate_url already adds contentSize and encodingFormat
         # from the remote file
-        CRATE.add_file(file_url, validate_url=True, properties=file_properties)
+        CRATE.add_file(in_url, validate_url=True, properties=file_properties)
 
 
 def get_main_entities() -> typing.Tuple[str, str, str]:
@@ -169,6 +167,25 @@ def process_accessed_files() -> typing.Tuple[list, list]:
     return l_ins, l_outs
 
 
+def fix_dir_url(in_url: str) -> str:
+    """
+    Fix dir:// URL returned by the runtime, change it to file:// and ensure it ends with '/'
+
+    :param in_url: URL that may need to be fixed
+
+    :returns: A file:// URL
+    """
+
+    runtime_url = urlsplit(in_url)
+    if runtime_url.scheme == "dir":  # Fix dir:// to file:// and ensure it ends with a slash
+        new_url = "file://" + runtime_url.netloc + runtime_url.path
+        if new_url[-1] != '/':
+            new_url += '/'  # Add end slash if needed
+        return new_url
+    else:
+        return in_url  # No changes required
+
+
 def add_file_to_crate(
     file_name: str,
     compss_ver: str,
@@ -205,10 +222,10 @@ def add_file_to_crate(
             }  # Name as generated
         file_properties["input"] = []
         for item in ins:
-            file_properties["input"].append({"@id": item})
+            file_properties["input"].append({"@id": fix_dir_url(item)})
         file_properties["output"] = []
         for item in outs:
-            file_properties["output"].append({"@id": item})
+            file_properties["output"].append({"@id": fix_dir_url(item)})
 
     else:
         # Any other extra file needed

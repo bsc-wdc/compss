@@ -21,7 +21,7 @@ import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
-import es.bsc.compss.util.TraceEvent;
+import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.util.Tracer;
 
 import java.io.File;

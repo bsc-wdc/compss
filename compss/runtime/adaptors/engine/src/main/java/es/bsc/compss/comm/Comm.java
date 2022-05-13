@@ -31,12 +31,12 @@ import es.bsc.compss.types.exceptions.NonInstantiableException;
 import es.bsc.compss.types.resources.MasterResource;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.configuration.Configuration;
+import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.Classpath;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.FileOpsManager;
-import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
 import es.bsc.distrostreamlib.client.DistroStreamClient;
 import es.bsc.distrostreamlib.exceptions.DistroStreamClientInitException;
@@ -143,10 +143,9 @@ public class Comm {
             && Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING));
         boolean tracingTaskDep = Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING_TASK_DEPENDENCIES));
         String installDir = System.getenv(COMPSsConstants.COMPSS_HOME);
-        String logDir = Comm.getAppHost().getAppLogDirPath();
-        Tracer.init(tracing, 0, "master", installDir, ".", logDir, tracingTaskDep);
+        Tracer.init(tracing, 0, "master", installDir, tracingTaskDep);
         if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.STATIC_IT.getId(), TraceEvent.STATIC_IT.getType());
+            Tracer.emitEvent(TraceEvent.STATIC_IT);
         }
 
         // Start streaming library
@@ -358,7 +357,7 @@ public class Comm {
             Tracer.fini(runtimeEvents);
 
             // Generate Trace
-            Tracer.generateCompleteTrace();
+            Tracer.generateMasterPackage();
         }
     }
 

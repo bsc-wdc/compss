@@ -1,0 +1,146 @@
+#!/bin/bash
+
+# Setting up COMPSs_HOME
+if [ -z "${COMPSS_HOME}" ]; then
+  COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../.. && pwd )/"
+fi
+if [ ! "${COMPSS_HOME: -1}" = "/" ]; then
+  COMPSS_HOME="${COMPSS_HOME}/"
+fi
+export COMPSS_HOME=${COMPSS_HOME}
+
+# Load auxiliar scripts
+# shellcheck source=../system/commons/version.sh"
+# shellcheck disable=SC1091
+source "${COMPSS_HOME}Runtime/scripts/system/commons/version.sh"
+# shellcheck source=../system/commons/logger.sh"
+# shellcheck disable=SC1091
+source "${COMPSS_HOME}Runtime/scripts/system/commons/logger.sh"
+# shellcheck source=../queues/commons/trace_generation.sh"
+# shellcheck disable=SC1091
+source "${COMPSS_HOME}Runtime/scripts/queues/commons/trace_generation.sh"
+
+
+#---------------------------------------------------
+# SCRIPT CONSTANTS DECLARATION
+#---------------------------------------------------
+DEFAULT_SC_CFG="default"
+
+
+#---------------------------------------------------
+# ERROR CONSTANTS DECLARATION
+#---------------------------------------------------
+
+###############################################
+# Function to clean TMP files
+###############################################
+cleanup() {
+  rm -rf "${TMP_SUBMIT_SCRIPT}".*
+}
+
+
+###############################################
+# Display Usage
+###############################################
+usage() {
+  # Load default CFG for default values
+  local defaultSC_cfg="${COMPSS_HOME}/Runtime/scripts/queues/supercomputers/${DEFAULT_SC_CFG}.cfg"
+  #shellcheck source=../queues/supercomputers/default.cfg
+  # shellcheck disable=SC1091
+  source "${defaultSC_cfg}"
+
+  local defaultQS_cfg="${COMPSS_HOME}/Runtime/scripts/queues/queue_systems/${QUEUE_SYSTEM}.cfg"
+  #shellcheck source=../queues/queue_systems/slurm.cfg
+  # shellcheck disable=SC1091
+  source "${defaultQS_cfg}"
+
+  # Show usage
+  cat <<EOF
+Usage: $0 [OPTION] 
+
+* Options:
+EOF
+  show_trace_submission_opts
+  cat <<EOF
+  General:
+    --help, -h                              Print this help message
+
+    --version, v                            Prints COMPSs version
+EOF
+}
+
+###############################################
+###############################################
+# Option management functions
+###############################################
+###############################################
+
+###############################################
+# Parses the options from the commandline and updates the current option values
+###############################################
+parse_options() {
+  while getopts hv-: flag; do
+    # Treat the argument
+    case "${flag}" in
+      h)
+        # Display help
+        usage
+        exit 0
+        ;;
+      v)
+        # Display version
+        show_version
+        exit 0
+        ;;
+      -)
+        # Check more complex arguments
+        case "$OPTARG" in
+          opts)
+            # Show launch options
+            show_opts
+            exit 0
+            ;;
+          help)
+            # Display help
+            usage
+            exit 0
+            ;;
+           
+          # Version options
+          flower)
+            # Display flower
+            show_flower
+            exit 0
+            ;;
+          recipe)
+            # Display recipe
+            show_recipe
+            exit 0
+            ;;
+          version)
+            # Show version
+            show_full_version
+            exit 0
+            ;;
+          *)
+            ;;
+        esac
+        ;;
+      *)
+        ;;
+    esac
+  done
+
+  parse_trace_submission_options $*
+
+}
+
+###############################################
+###############################################
+# Main code
+###############################################
+###############################################
+parse_options "$@"
+check_trace_submission_args
+log_trace_submission_opts
+submit_gen_trace

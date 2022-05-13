@@ -17,18 +17,12 @@
 package es.bsc.compss.util;
 
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.util.serializers.Serializer;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.DirectoryNotEmptyException;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.StandardCopyOption;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -140,7 +134,7 @@ public class FileOpsManager {
     /**
      * Copy a File Asynchronously.
      *
-     * @param src File to copy
+     * @param src File to copyFile
      * @param tgt target path
      */
     public static void copyAsync(final File src, final File tgt) {
@@ -150,7 +144,7 @@ public class FileOpsManager {
     /**
      * Copy a File Asynchronously.
      *
-     * @param src File to copy
+     * @param src File to copyFile
      * @param tgt target path
      * @param listener element to notify on operation end
      */
@@ -174,7 +168,7 @@ public class FileOpsManager {
     /**
      * Copy a File Synchronously.
      *
-     * @param src File to copy
+     * @param src File to copyFile
      * @param tgt target path
      * @throws java.io.IOException if an I/O error occurs
      */
@@ -185,7 +179,7 @@ public class FileOpsManager {
     /**
      * Copy a directory asynchronously.
      *
-     * @param src Directory to copy
+     * @param src Directory to copyFile
      * @param tgt target path
      */
     public static void copyDirAsync(final File src, final File tgt) {
@@ -195,7 +189,7 @@ public class FileOpsManager {
     /**
      * Copy a directory asynchronously.
      *
-     * @param src Directory to copy
+     * @param src Directory to copyFile
      * @param tgt target path
      * @param listener element to notify on operation end
      */
@@ -219,7 +213,7 @@ public class FileOpsManager {
     /**
      * Copy a directory synchronously.
      *
-     * @param src File to copy
+     * @param src File to copyFile
      * @param tgt target path
      * @throws java.io.IOException if an I/O error occurs
      */
@@ -272,7 +266,7 @@ public class FileOpsManager {
     /**
      * Move a File Asynchronously.
      *
-     * @param src File to copy
+     * @param src File to copyFile
      * @param tgt target path
      */
     public static void moveAsync(final File src, final File tgt) {
@@ -282,7 +276,7 @@ public class FileOpsManager {
     /**
      * Move a File Asynchronously.
      *
-     * @param src File to copy
+     * @param src File to copyFile
      * @param tgt target path
      * @param listener element to notify on operation end
      */
@@ -306,7 +300,7 @@ public class FileOpsManager {
     /**
      * Move a File Synchronously.
      *
-     * @param src File to copy
+     * @param src File to copyFile
      * @param tgt target path
      * @throws java.io.IOException if an I/O error occurs
      */
@@ -317,7 +311,7 @@ public class FileOpsManager {
     /**
      * Move a directory asynchronously.
      *
-     * @param src Directory to copy
+     * @param src Directory to copyFile
      * @param tgt target path
      */
     public static void moveDirAsync(final File src, final File tgt) {
@@ -327,7 +321,7 @@ public class FileOpsManager {
     /**
      * Move a directory asynchronously.
      *
-     * @param src Directory to copy
+     * @param src Directory to copyFile
      * @param tgt target path
      * @param listener element to notify on operation end
      */
@@ -351,7 +345,7 @@ public class FileOpsManager {
     /**
      * Move a Directory Synchronously.
      *
-     * @param src Directory to copy
+     * @param src Directory to copyFile
      * @param tgt target path
      * @throws java.io.IOException if an I/O error occurs
      */
@@ -453,20 +447,9 @@ public class FileOpsManager {
         if (Tracer.isActivated()) {
             Tracer.emitEvent(TraceEvent.LOCAL_COPY);
         }
-        Path tgtPath = (target).toPath();
-        Path sourcePath = (source).toPath();
+
         try {
-            if (tgtPath.compareTo(sourcePath) != 0) {
-                Files.copy(sourcePath, tgtPath, StandardCopyOption.REPLACE_EXISTING);
-                Files.walk(sourcePath).forEach((Path content) -> {
-                    try {
-                        Path fileDest = tgtPath.resolve(sourcePath.relativize(content));
-                        Files.copy(content, fileDest, StandardCopyOption.REPLACE_EXISTING);
-                    } catch (IOException e) {
-                        LOGGER.error("Exception copying file " + content + " to " + tgtPath);
-                    }
-                });
-            }
+            FileOperations.copyFile(source, target, LOGGER);
         } catch (IOException ioe) {
             throw ioe;
         } finally {
@@ -503,31 +486,7 @@ public class FileOpsManager {
             Tracer.emitEvent(TraceEvent.LOCAL_DELETE);
         }
         try {
-            if (!Files.deleteIfExists(f.toPath()) && DEBUG) {
-                LOGGER.debug("File " + f.getAbsolutePath() + " not deleted.");
-            }
-        } catch (DirectoryNotEmptyException dne) {
-            // directories must be removed recursively
-            Path directory = f.toPath();
-            try {
-                Files.walkFileTree(directory, new SimpleFileVisitor<Path>() {
-
-                    @Override
-                    public FileVisitResult visitFile(Path file, BasicFileAttributes attributes) throws IOException {
-                        Files.delete(file);
-                        return FileVisitResult.CONTINUE;
-                    }
-
-                    @Override
-                    public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-                        Files.delete(dir);
-                        return FileVisitResult.CONTINUE;
-                    }
-                });
-            } catch (IOException e) {
-                LOGGER.error("Cannot delete directory " + f.getAbsolutePath(), e);
-                throw e;
-            }
+            FileOperations.deleteFile(f, LOGGER);
         } catch (Exception e) {
             LOGGER.error("Cannot delete file " + f.getAbsolutePath(), e);
             throw e;
@@ -545,24 +504,12 @@ public class FileOpsManager {
         if (Tracer.isActivated()) {
             Tracer.emitEvent(TraceEvent.LOCAL_MOVE);
         }
-        Path tgtPath = target.toPath();
-        Path sourcePath = source.toPath();
+
         try {
-            if (tgtPath.compareTo(sourcePath) != 0) {
-                try {
-                    Files.move(sourcePath, tgtPath, StandardCopyOption.ATOMIC_MOVE,
-                        StandardCopyOption.REPLACE_EXISTING);
-                } catch (AtomicMoveNotSupportedException amnse) {
-                    LOGGER.warn("WARN: AtomicMoveNotSupportedException."
-                        + " File cannot be atomically moved. Trying to move without atomic");
-                    try {
-                        Files.move(sourcePath, tgtPath, StandardCopyOption.REPLACE_EXISTING);
-                    } catch (DirectoryNotEmptyException dnee) {
-                        LOGGER.warn("WARN: Trying to move a directory as a file");
-                        moveDirectory(source, target);
-                    }
-                }
-            }
+            FileOperations.moveFile(source, target, LOGGER);
+        } catch (DirectoryNotEmptyException dnee) {
+            LOGGER.warn("WARN: Trying to move a directory as a file");
+            moveDirectory(source, target);
         } catch (IOException ioe) {
             throw ioe;
         } finally {

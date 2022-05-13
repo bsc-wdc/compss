@@ -18,6 +18,7 @@ package es.bsc.compss.types.request.td;
 
 import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
+import es.bsc.compss.types.tracing.TraceEvent;
 
 import java.util.concurrent.Semaphore;
 
@@ -66,8 +67,8 @@ public class TaskSummaryRequest extends TDRequest {
     }
 
     @Override
-    public TDRequestType getType() {
-        return TDRequestType.MONITORING_DATA;
+    public TraceEvent getEvent() {
+        return TraceEvent.MONITORING_DATA;
     }
 
 }

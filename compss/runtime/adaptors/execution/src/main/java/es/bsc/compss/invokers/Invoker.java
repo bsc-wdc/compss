@@ -34,6 +34,7 @@ import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
+import es.bsc.compss.types.tracing.TraceEventType;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
 import es.bsc.compss.worker.COMPSsWorker;
@@ -392,15 +393,15 @@ public abstract class Invoker implements ApplicationRunner {
             // +1 Because Invocation ID can't be 0 (0 signals end task)
             int coreId = this.invocation.getMethodImplementation().getCoreId() + 1;
             int taskId = this.invocation.getTaskId();
-            Tracer.emitEventAndCounters(coreId, Tracer.getTaskEventsType());
-            Tracer.emitEvent(taskId, Tracer.getTaskSchedulingType());
+            Tracer.emitEventAndCounters(TraceEventType.TASKS_FUNC, coreId);
+            Tracer.emitEvent(TraceEventType.TASKS_ID, taskId);
         }
     }
 
     private void emitEndTask() {
         if (Tracer.isActivated()) {
-            Tracer.emitEventAndCounters(Tracer.EVENT_END, Tracer.getTaskEventsType());
-            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTaskSchedulingType());
+            Tracer.emitEventEndAndCounters(TraceEventType.TASKS_FUNC);
+            Tracer.emitEventEnd(TraceEventType.TASKS_ID);
         }
     }
 

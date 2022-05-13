@@ -14,12 +14,13 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.util.tracing;
+package es.bsc.compss.types.tracing.paraver;
 
+import es.bsc.compss.types.tracing.ThreadIdentifier;
 import java.util.Objects;
 
 
-public class ThreadIdentifier {
+public class PRVThreadIdentifier extends ThreadIdentifier {
 
     private String app;
     private String task;
@@ -28,12 +29,24 @@ public class ThreadIdentifier {
 
     /**
      * Constructs a new Thread Identifier.
+     *
+     * @param app App tag of the thread Id
+     * @param task task tag of the thread Id
+     * @param thread thread number
+     */
+    public PRVThreadIdentifier(int app, int task, int thread) {
+        this(Integer.toString(app), Integer.toString(task), Integer.toString(thread));
+    }
+
+    /**
+     * Constructs a new Thread Identifier.
      * 
      * @param app App tag of the thread Id
      * @param task task tag of the thread Id
      * @param thread thread number
      */
-    public ThreadIdentifier(String app, String task, String thread) {
+    public PRVThreadIdentifier(String app, String task, String thread) {
+        super();
         this.app = app;
         this.task = task;
         this.thread = thread;
@@ -84,7 +97,7 @@ public class ThreadIdentifier {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final ThreadIdentifier other = (ThreadIdentifier) obj;
+        final PRVThreadIdentifier other = (PRVThreadIdentifier) obj;
         if (!Objects.equals(this.app, other.app)) {
             return false;
         }
@@ -95,6 +108,20 @@ public class ThreadIdentifier {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public int getIdAtLevel(int level) {
+        switch (level) {
+            case 0:
+                return Integer.parseInt(app);
+            case 1:
+                return Integer.parseInt(task);
+            case 2:
+                return Integer.parseInt(thread);
+            default:
+                return -1;
+        }
     }
 
 }

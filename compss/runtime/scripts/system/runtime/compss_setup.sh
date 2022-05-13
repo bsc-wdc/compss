@@ -3,6 +3,10 @@
 # shellcheck source=../system/commons/logger.sh
 # shellcheck disable=SC1091
 source "${COMPSS_HOME}/Runtime/scripts/system/commons/logger.sh"
+# shellcheck source=../system/commons/java.sh
+# shellcheck disable=SC1091
+source "${COMPSS_HOME}/Runtime/scripts/system/commons/java.sh"
+
 
 source "${COMPSS_HOME}/Runtime/scripts/system/runtime/analysis.sh"
 source "${COMPSS_HOME}/Runtime/scripts/system/runtime/worker.sh"
@@ -66,7 +70,6 @@ DEFAULT_WALL_CLOCK_LIMIT=0
 # ERROR MESSAGES
 #----------------------------------------------
 AGENT_ERROR="Error running the agent"
-JAVA_HOME_ERROR="ERROR: Cannot find Java JRE installation. Please set JAVA_HOME."
 RUNTIME_ERROR="Error running application"
 TMP_FILE_JVM_ERROR="ERROR: Can't create temporary file for JVM options."
 LD_LIBRARY_PATH_NOT_SET_WARN="LD_LIBRARY_PATH not defined set to LIBRARY_PATH"
@@ -80,17 +83,6 @@ LD_LIBRARY_PATH_NOT_SET_WARN="LD_LIBRARY_PATH not defined set to LIBRARY_PATH"
 # CHECK COMPSs-RELATED ENV VARIABLES
 #----------------------------------------------
 check_compss_env() {
-  # JAVA HOME
-  if [[ -z "${JAVA_HOME}" ]]; then
-    JAVA="java"
-  elif [ -f "${JAVA_HOME}/jre/bin/java" ]; then
-    JAVA="${JAVA_HOME}/jre/bin/java"
-  elif [ -f "${JAVA_HOME}/bin/java" ]; then
-    JAVA="${JAVA_HOME}/bin/java"
-  else
-    fatal_error "${JAVA_HOME_ERROR}" 1
-  fi
-
   # Added for SGE queue systems which do not allow to copy LD_LIBRARY_PATH
   if [ -z "${LD_LIBRARY_PATH}" ]; then
      # shellcheck disable=SC2153
@@ -419,12 +411,6 @@ clean_runtime_environment() {
 # MAIN FUNCTION TO START AN APPLICATION
 #----------------------------------------------
 start_compss_agent() {
-
-  # Go to specific_log_dir for extrae's wrapper to generate temporal tracefiles in different directories for each agent (needed for concurrent execution on the same machine)
-  if [ -n "${specific_log_dir}" ]; then
-    cd "${specific_log_dir}"
-  fi
-
   # Prepare COMPSs Runtime + Bindings environment
   prepare_runtime_environment
 
@@ -437,6 +423,7 @@ start_compss_agent() {
   JAVACMD=$JAVA" -noverify -classpath ${CLASSPATH}:${COMPSS_HOME}/Runtime/compss-engine.jar:${COMPSS_HOME}/Runtime/compss-agent-impl.jar ${java_opts}"
   # Launch application
   start_tracing
+
   # shellcheck disable=SC2086
   $JAVACMD "${AGENT_IMPLEMENTATION}"
   endCode=$?

@@ -67,6 +67,7 @@ import es.bsc.compss.types.resources.MasterResourceImpl;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.ResourcesPool;
+import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.CoreManager;
@@ -76,7 +77,6 @@ import es.bsc.compss.util.FileOpsManager;
 import es.bsc.compss.util.ResourceManager;
 import es.bsc.compss.util.RuntimeConfigManager;
 import es.bsc.compss.util.SignatureBuilder;
-import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
 import java.io.File;
@@ -121,9 +121,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     public static final int NUM_FIELDS_PER_PARAM = 9;
 
     // Language
-    protected static final String DEFAULT_LANG_STR = System.getProperty(COMPSsConstants.LANG);
-    protected static final Lang DEFAULT_LANG =
-        ((DEFAULT_LANG_STR == null) ? Lang.JAVA : Lang.valueOf(DEFAULT_LANG_STR.toUpperCase()));
+    protected static final Lang DEFAULT_LANG;
 
     // Registries
     private static ObjectRegistry oReg;
@@ -144,13 +142,21 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     private static final Logger LOGGER = LogManager.getLogger(Loggers.API);
     // Data Provenance logger
     private static final Logger DP_LOGGER = LogManager.getLogger(Loggers.DATA_PROVENANCE);
-    private static boolean DataProvenanceEnabled =
-        Boolean.parseBoolean(System.getProperty(COMPSsConstants.DATA_PROVENANCE));
+    private static final boolean DP_ENABLED = Boolean.parseBoolean(System.getProperty(COMPSsConstants.DATA_PROVENANCE));
 
     // External Task monitor
     private static final TaskMonitor DO_NOTHING_MONITOR = new DoNothingTaskMonitor();
 
     static {
+        String defaultLang = System.getProperty(COMPSsConstants.LANG);
+        Lang lang;
+        if (defaultLang == null) {
+            lang = Lang.JAVA;
+        } else {
+            lang = Lang.valueOf(defaultLang.toUpperCase());
+        }
+        DEFAULT_LANG = lang;
+
         // Load Runtime configuration parameters
         String propertiesLoc = System.getProperty(COMPSsConstants.COMPSS_CONFIG_LOCATION);
         if (propertiesLoc == null) {
@@ -460,7 +466,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             Tracer.emitEventEnd(TraceEvent.START);
         }
 
-        if (DataProvenanceEnabled) {
+        if (DP_ENABLED) {
             DP_LOGGER.info(COMPSs_VERSION);
             DP_LOGGER.info(System.getProperty(COMPSsConstants.APP_NAME));
             DP_LOGGER.info(System.getProperty(COMPSsConstants.OUTPUT_PROFILE));
@@ -1050,7 +1056,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public void emitEvent(int type, long id) {
-        Tracer.emitEvent(id, type);
+        Tracer.emitEvent(type, id);
     }
 
     @Override
@@ -1596,7 +1602,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     pars.add(new FileParameter(direction, stream, prefix, name, pyType, weight, keepRename, location,
                         originalName));
 
-                    if (DataProvenanceEnabled) {
+                    if (DP_ENABLED) {
                         // Log access to file in the dataprovenance.log.
                         // Corner case: PyCOMPSs objects are passed as files to the runtime
                         String finalPath = location.toString();

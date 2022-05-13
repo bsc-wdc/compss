@@ -22,6 +22,7 @@ import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
+import es.bsc.compss.types.tracing.TraceEvent;
 
 
 public class FinishDataAccessRequest extends APRequest {
@@ -39,8 +40,8 @@ public class FinishDataAccessRequest extends APRequest {
     }
 
     @Override
-    public APRequestType getRequestType() {
-        return APRequestType.FINISH_DATA_ACCESS;
+    public TraceEvent getEvent() {
+        return TraceEvent.FINISH_DATA_ACCESS;
     }
 
     @Override

@@ -19,6 +19,7 @@ package es.bsc.compss.types.request.td;
 import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.CoreElementDefinition;
+import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.util.CoreManager;
 import es.bsc.compss.util.ResourceManager;
 
@@ -69,8 +70,8 @@ public class CERegistration extends TDRequest {
     }
 
     @Override
-    public TDRequestType getType() {
-        return TDRequestType.CE_REGISTRATION;
+    public TraceEvent getEvent() {
+        return TraceEvent.CE_REGISTRATION;
     }
 
 }

@@ -1,5 +1,35 @@
-source "${COMPSS_HOME}/Runtime/scripts/system/commons/logger.sh"
+#!/bin/bash
 
+if [ -n "${LOADED_SYSTEM_COMMONS_UTILS}" ]; then
+  return 0
+fi
+
+# shellcheck source=./logger.sh"
+# shellcheck disable=SC1091
+source "${COMPSS_HOME}Runtime/scripts/system/commons/logger.sh"
+
+#---------------------------------------------------
+# ERROR CONSTANTS DECLARATION
+#---------------------------------------------------
+ERROR_TMP_FILE="Cannot create TMP Submit file"
+
+###############################################
+# Function to create a TMP submit script
+# WARN: result script left in global TMP_SUBMIT_SCRIPT variable
+###############################################
+create_tmp_submit() {
+  # Create TMP DIR for submit script
+  TMP_SUBMIT_SCRIPT=$(mktemp)
+  ev=$?
+  if [ $ev -ne 0 ]; then
+    fatal_error "${ERROR_TMP_FILE}" $ev
+  fi
+
+  cat > "${TMP_SUBMIT_SCRIPT}" << EOT
+#!/bin/bash -e
+#
+EOT
+}
 
 ###############################################
 # Infers the language from the Application Path
@@ -94,3 +124,5 @@ get_uuid() {
     uuid=$(cat /proc/sys/kernel/random/uuid)
   fi
 }
+
+LOADED_SYSTEM_COMMONS_UTILS=1

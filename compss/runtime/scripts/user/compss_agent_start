@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Command to simulate realpath
+# Setting up COMPSs_HOME
 if [ -z "${COMPSS_HOME}" ]; then
   COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../.. && pwd )/"
 fi
@@ -292,9 +292,17 @@ parse_options() {
             jacoco_agent_expression=${OPTARG//coverage=/}
             coverage=true
             ;;
+          custom_threads=*)
+            # Specify if the tracing system re-organizes the threads
+            tracing_custom_threads=${OPTARG//custom_threads=/}
+            ;;
           debug)
             # Enable debug in log level
             log_level=${DEFAULT_LOG_LEVEL_ARGUMENT}
+            ;;
+          generate_trace=*)
+            # Specify if the tracing system merges the events in a trace file
+            tracing_generate_trace=${OPTARG//generate_trace=/}
             ;;
           input_profile=*)
             # Specify the file where there is stored the tasks profiles

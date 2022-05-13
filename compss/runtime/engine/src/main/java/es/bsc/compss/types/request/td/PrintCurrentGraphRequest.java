@@ -24,6 +24,7 @@ import es.bsc.compss.types.allocatableactions.ExecutionAction;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
+import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.util.ResourceManager;
 
 import java.io.BufferedWriter;
@@ -266,8 +267,8 @@ public class PrintCurrentGraphRequest extends TDRequest {
     }
 
     @Override
-    public TDRequestType getType() {
-        return TDRequestType.PRINT_CURRENT_GRAPH;
+    public TraceEvent getEvent() {
+        return TraceEvent.PRINT_CURRENT_GRAPH;
     }
 
 }

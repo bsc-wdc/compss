@@ -23,6 +23,7 @@ import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.FileInfo;
 import es.bsc.compss.types.data.location.DataLocation;
+import es.bsc.compss.types.tracing.TraceEvent;
 
 import java.io.File;
 import java.util.concurrent.Semaphore;
@@ -86,8 +87,8 @@ public class DeleteFileRequest extends APRequest {
     }
 
     @Override
-    public APRequestType getRequestType() {
-        return APRequestType.DELETE_FILE;
+    public TraceEvent getEvent() {
+        return TraceEvent.DELETE_FILE;
     }
 
 }

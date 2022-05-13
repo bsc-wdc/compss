@@ -272,6 +272,10 @@
   cp "${TMP_DIR}"/compss/agent/compss-agent-impl.jar "${targetDir}"/Runtime/
 
   # TOOLS DEPLOYMENT
+  echo "--- Copy trace modifications"
+  mkdir -p "${targetDir}/Tools/tracing/"
+  cp -r "${TMP_DIR}/compss/tools/tracing/target/compss-tracing.jar" "${targetDir}/Tools/tracing/"
+
   echo "- Deploying COMPSs Tools"
   cd "${TMP_DIR}" || exit 1
   tar xzf apache-tomcat.tar.gz

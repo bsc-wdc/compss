@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Command to simulate realpath
+# Setting up COMPSs_HOME
 if [ -z "${COMPSS_HOME}" ]; then
   COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../.. && pwd )/"
 fi

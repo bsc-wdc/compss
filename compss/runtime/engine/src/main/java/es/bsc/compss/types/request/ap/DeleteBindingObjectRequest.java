@@ -20,6 +20,7 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
+import es.bsc.compss.types.tracing.TraceEvent;
 
 
 public class DeleteBindingObjectRequest extends APRequest {
@@ -42,8 +43,8 @@ public class DeleteBindingObjectRequest extends APRequest {
     }
 
     @Override
-    public APRequestType getRequestType() {
-        return APRequestType.DELETE_FILE;
+    public TraceEvent getEvent() {
+        return TraceEvent.DELETE_FILE;
     }
 
 }

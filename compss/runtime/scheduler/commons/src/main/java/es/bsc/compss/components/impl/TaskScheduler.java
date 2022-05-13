@@ -47,6 +47,7 @@ import es.bsc.compss.types.resources.description.CloudInstanceTypeDescription;
 import es.bsc.compss.types.resources.updates.IdleResources;
 import es.bsc.compss.types.resources.updates.PerformedReduction;
 import es.bsc.compss.types.resources.updates.ResourceUpdate;
+import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.util.ActionSet;
 import es.bsc.compss.util.CoreManager;
 import es.bsc.compss.util.ErrorManager;
@@ -54,7 +55,6 @@ import es.bsc.compss.util.ExternalAdaptationManager;
 import es.bsc.compss.util.JSONStateManager;
 import es.bsc.compss.util.ResourceOptimizer;
 import es.bsc.compss.util.SchedulingOptimizer;
-import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
 

@@ -18,6 +18,7 @@ package es.bsc.compss.types.request.td;
 
 import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
+import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.util.CEIParser;
 import es.bsc.compss.util.ResourceManager;
 
@@ -80,8 +81,8 @@ public class UpdateLocalCEIRequest extends TDRequest {
     }
 
     @Override
-    public TDRequestType getType() {
-        return TDRequestType.UPDATE_CEI_LOCAL;
+    public TraceEvent getEvent() {
+        return TraceEvent.UPDATE_CEI_LOCAL;
     }
 
 }

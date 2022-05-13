@@ -19,6 +19,7 @@ package es.bsc.compss.types.request.td;
 import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
+import es.bsc.compss.types.tracing.TraceEvent;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -37,7 +38,12 @@ public abstract class TDRequest {
     protected static final boolean RESOURCES_LOGGER_DEBUG = RESOURCES_LOGGER.isDebugEnabled();
 
 
-    public abstract TDRequestType getType();
+    /**
+     * Returns the event to be traced for this instance.
+     * 
+     * @return event to trace
+     */
+    public abstract TraceEvent getEvent();
 
     public abstract void process(TaskScheduler ts) throws ShutdownException;
 

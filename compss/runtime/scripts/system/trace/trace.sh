@@ -11,47 +11,23 @@
     extraeDir=$EXTRAE_HOME
   fi
 
-  MIN_MPITS_PARALLEL_MERGE=1000
   export LD_LIBRARY_PATH=$extraeDir/lib:$LD_LIBRARY_PATH
-
-  mpi2prv() {
-    local mpits="${1}"
-    local prv="${2}"
-    # Check machine max open files
-    local openFilesLimit=$(ulimit -Sn)
-    local maxMpitNumber=0
-    if [ "$openFilesLimit" -eq "$openFilesLimit" ] 2>/dev/null; then
-      # ulimit reported a valid number of open files
-      maxMpitNumber=$((openFilesLimit - 20))
-    else
-      maxMpitNumber=$MIN_MPITS_PARALLEL_MERGE
-    fi
-
-    # Check if parallel merge is available / should be used
-    configuration=$("${extraeDir}"/etc/configured.sh | grep "enable-parallel-merge")
-
-    # Check if parallel merge is available / should be used
-    if [ -z "${configuration}" ] || [ "$(wc -l < "${mpits}")" -lt ${maxMpitNumber} ] ; then
-      "${extraeDir}/bin/mpi2prv" -f "${mpits}" -no-syn -o "${prv}"
-    else
-      mpirun -np "$numberOfResources" "${extraeDir}/bin/mpimpi2prv" -f "${mpits}" -no-syn -o "${prv}"
-    fi
-  }
 
   #-------------------------------------
   # Get common parameters
   #-------------------------------------
   action=$1
-  workingDir=$2
-
-  shift 2
-  mkdir -p "$workingDir"
-  cd "$workingDir" || exit 1
+  shift 1
 
   #-------------------------------------
   # MAIN actions
   #-------------------------------------
   if [ "$action" == "start" ]; then
+    workingDir=$1
+    mkdir -p "$workingDir"
+    cd "$workingDir" || exit 1
+    shift 1
+
     eventType=$1
     taskId=$2
     slot=$3
@@ -60,6 +36,11 @@
     endCode=$?
 
   elif [ "$action" == "end" ]; then
+    workingDir=$1
+    mkdir -p "$workingDir"
+    cd "$workingDir" || exit 1
+    shift 1
+
     eventType=$1
     slot=$2
     #echo "trace::emit-end,  emit $slot $eventType 0"
@@ -67,6 +48,11 @@
     endCode=$?
 
   elif [ "$action" == "init" ]; then
+    workingDir=$1
+    mkdir -p "$workingDir"
+    cd "$workingDir" || exit 1
+    shift 1
+
     rm -rf TRACE.mpits set-* *_compss_trace.tar.gz
     node=$1
     nslots=$2
@@ -75,70 +61,49 @@
     endCode=$?
 
   elif [ "$action" == "package" ]; then
+    workingDir=$1
+    mkdir -p "$workingDir"
+    cd "$workingDir" || exit 1
+    shift 1
+
     package_path=$1
-    # echo "trace::packaging ${package_path}"
-    files="TRACE.mpits set-*"
+    
+    # These lines are commented because on NIOWorker extrae opens an additional process
+    # that never creates the mpit file
+
+    ## waiting for temporary files to be fully emptied
+    #stmp_count=$(find . -name "*.stmp"|wc -l)
+    #ttmp_count=$(find . -name "*.ttmp"|wc -l)
+    #while [ "${stmp_count}" != 0 ] || [ "${ttmp_count}" != 0 ]; do
+    #  sleep 1
+    #  stmp_count=$(find . -name "*.stmp"|wc -l)
+    #  ttmp_count=$(find . -name "*.ttmp"|wc -l)
+    #done
+
+    hostID=$2
+    echo "${hostID}" >> "./hostID"
+    files="./hostID"
+    files+=" ./TRACE.mpits"
+    files+=" ./set-*"
+
+    if [ -f "./TRACE.sym" ]; then
+        files+=" ./TRACE.sym"
+    fi
+
     if [ -d "./python" ] ; then
-        if [ -f ./python/TRACE.mpits ]; then
-          hostID=$2
-          echo "${hostID}" >> ./python/hostID
+        if [ -f "./python/TRACE.mpits" ]; then
           files+=" ./python"
         fi
     fi
-
-    if [ -f TRACE.sym ]; then
-        files+=" TRACE.sym"
-    fi
-    # shellcheck disable=SC2086
+    echo "Creating package ${package_path} with files: ${files}"
     tar czf "${package_path}" ${files}
+
+    # shellcheck disable=SC2086
     echo "Package created $(ls -la  "${package_path}")"
+
     endCode=$?
     # shellcheck disable=SC2086
     rm -rf ${files}
-
-  elif [ "$action" == "gentrace" ]; then
-    appName=$1
-    numberOfResources=$2
-
-    traceDir="$(pwd)/trace/"
-    pythonDir="${traceDir}python/"
-    mpits="TRACE.mpits"
-    prv="${traceDir}/${appName}_compss.prv"
-
-    packages=$(find ${traceDir}/*_compss_trace.tar.gz)
-    #echo "trace::gentrace"
-    for package in ${packages[*]}; do
-      tmpDir=$(mktemp -d)
-      tar -C "$tmpDir" -xzf "${package}"
-
-      #echo "trace:: $tmpDir -xvzf $file"
-      cat "${tmpDir}/TRACE.mpits" >> "${mpits}"
-
-      setFolder=$(ls "${tmpDir}" | grep "set" )
-      setFolder="${tmpDir}/${setFolder}"
-      cp -r "${setFolder}" . 
-
-      if [ -d "${tmpDir}/python" ]; then
-        hostId=$(cat "${tmpDir}/python/hostID")
-        python_mpits="${tmpDir}/python/TRACE.mpits"
-        python_prv="${pythonDir}/${hostId}_python_trace.prv"
-
-        mpi2prv "${python_mpits}" "${python_prv}"
-      fi
-
-      if [ -f "${tmpDir}/TRACE.sym" ]; then
-        cp "${tmpDir}/TRACE.sym" .
-      fi
-
-      rm -rf "$tmpDir" "${package}"
-    done
-
-    mpi2prv "${mpits}" "${prv}"
-
-    endCode=$?
-    rm -rf set-0/ "${mpits}" TRACE.sym
-    
-
   else 
     echo 1>&2 "Unknown tracing action"
     exit 1

@@ -77,9 +77,10 @@ import es.bsc.compss.types.request.ap.TransferRawFileRequest;
 import es.bsc.compss.types.request.ap.UnblockResultFilesRequest;
 import es.bsc.compss.types.request.ap.WaitForDataReadyToDeleteRequest;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
+import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.TraceEventType;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
 
@@ -163,8 +164,7 @@ public class AccessProcessor implements Runnable {
             try {
                 request = this.requestQueue.take();
                 if (Tracer.isActivated()) {
-                    Tracer.emitEvent(Tracer.getAcessProcessorRequestEvent(request.getRequestType().name()).getId(),
-                        Tracer.getRuntimeEventsType());
+                    Tracer.emitEvent(request.getEvent());
                 }
                 request.process(this, this.taskAnalyser, this.dataInfoProvider, this.taskDispatcher);
             } catch (ShutdownException se) {
@@ -174,7 +174,7 @@ public class AccessProcessor implements Runnable {
                 ErrorManager.error("Exception", e);
             } finally {
                 if (Tracer.isActivated()) {
-                    Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+                    Tracer.emitEventEnd(TraceEventType.RUNTIME);
                 }
             }
 

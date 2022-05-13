@@ -25,6 +25,7 @@ import es.bsc.compss.types.Task;
 import es.bsc.compss.types.TaskGroup;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.request.listener.StaticMultioperationSemaphore;
+import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.worker.COMPSsException;
 import java.util.List;
 import java.util.concurrent.Semaphore;
@@ -60,8 +61,8 @@ public class CancelTaskGroupRequest extends APRequest {
     }
 
     @Override
-    public APRequestType getRequestType() {
-        return APRequestType.CANCEL_TASK_GROUP;
+    public TraceEvent getEvent() {
+        return TraceEvent.CANCEL_TASK_GROUP;
     }
 
     @Override

@@ -18,6 +18,7 @@ package es.bsc.compss.types.request.td;
 
 import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
+import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.util.JobDispatcher;
 import es.bsc.compss.util.ResourceManager;
 
@@ -71,8 +72,8 @@ public class ShutdownRequest extends TDRequest {
     }
 
     @Override
-    public TDRequestType getType() {
-        return TDRequestType.TD_SHUTDOWN;
+    public TraceEvent getEvent() {
+        return TraceEvent.TD_SHUTDOWN;
     }
 
 }

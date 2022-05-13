@@ -26,6 +26,7 @@ import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.operation.FileTransferable;
 import es.bsc.compss.types.data.operation.OneOpWithSemListener;
+import es.bsc.compss.types.tracing.TraceEvent;
 
 import java.util.concurrent.Semaphore;
 
@@ -90,8 +91,8 @@ public class TransferRawFileRequest extends APRequest {
     }
 
     @Override
-    public APRequestType getRequestType() {
-        return APRequestType.TRANSFER_RAW_FILE;
+    public TraceEvent getEvent() {
+        return TraceEvent.TRANSFER_RAW_FILE;
     }
 
 }

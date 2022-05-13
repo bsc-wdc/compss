@@ -43,11 +43,11 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.resources.configuration.MethodConfiguration;
+import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
 import es.bsc.compss.util.RuntimeConfigManager;
-import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
 
 import java.io.File;
@@ -98,8 +98,7 @@ public class Agent {
             && Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING));
         boolean tracingTaskDep = Boolean.parseBoolean(System.getProperty(COMPSsConstants.TRACING_TASK_DEPENDENCIES));
         String installDir = System.getenv(COMPSsConstants.COMPSS_HOME);
-        String logDir = LoggerManager.getAppLogDirPath();
-        Tracer.init(tracing, 0, "master", installDir, ".", logDir, tracingTaskDep);
+        Tracer.init(tracing, 0, "master", installDir, tracingTaskDep);
         if (Tracer.isActivated()) {
             Tracer.emitEvent(TraceEvent.STATIC_IT);
         }

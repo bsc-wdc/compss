@@ -102,6 +102,7 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
     base_log_dir: str = "",
     specific_log_dir: str = "",
     extrae_cfg: str = "",
+    extrae_final_directory: str = "",
     comm: str = "NIO",
     conn: str = CONSTANTS.default_conn,
     master_name: str = "",
@@ -176,6 +177,7 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
                              (default: None)
     :param extrae_cfg: Extrae configuration file path
                        (default: None)
+    :param extrae_final_directory: Extrae final directory (default: "")
     :param comm: Communication library
                  (default: NIO)
     :param conn: Connector
@@ -291,6 +293,7 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
         base_log_dir,
         specific_log_dir,
         extrae_cfg,
+        extrae_final_directory,
         comm,
         conn,
         master_name,

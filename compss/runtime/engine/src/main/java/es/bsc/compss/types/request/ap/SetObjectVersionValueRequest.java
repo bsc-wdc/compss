@@ -20,6 +20,7 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
+import es.bsc.compss.types.tracing.TraceEvent;
 
 
 public class SetObjectVersionValueRequest extends APRequest {
@@ -63,8 +64,7 @@ public class SetObjectVersionValueRequest extends APRequest {
     }
 
     @Override
-    public APRequestType getRequestType() {
-        return APRequestType.SET_OBJECT_VERSION_VALUE;
+    public TraceEvent getEvent() {
+        return TraceEvent.SET_OBJECT_VERSION_VALUE;
     }
-
 }

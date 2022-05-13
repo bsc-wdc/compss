@@ -1,5 +1,9 @@
 #!/bin/bash
 
+if [ -n "${LOADED_SYSTEM_COMMONS_LOGGER}" ]; then
+  return 0
+fi
+
 ###############################################
 # SCRIPT CONSTANTS DECLARATION
 ###############################################
@@ -97,3 +101,5 @@ fatal_error() {
   # Exit
   exit "${error_code}"
 }
+
+LOADED_SYSTEM_COMMONS_LOGGER=1

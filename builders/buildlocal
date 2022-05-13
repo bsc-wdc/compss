@@ -610,6 +610,7 @@ install_compss() {
   mkdir -p ${targetDir}/Tools
   mkdir -p ${targetDir}/Tools/monitor
   mkdir -p ${targetDir}/Tools/storage
+  mkdir -p ${targetDir}/Tools/tracing
   mkdir -p ${targetDir}/Bindings
   mkdir -p ${targetDir}/Bindings/bindings-common
 
@@ -716,7 +717,7 @@ install_compss() {
   echo "------ Copying Redis Storage Implementation"
   cp -r "${TMP_DIR}/utils/storage/redisPSCO/COMPSs-Redis-bundle" "${targetDir}/Tools/storage/redis"
 
-  # Connectors
+   # Connectors
   echo "--- Copy Runtime Connectors"
   connectors=$(find "${TMP_DIR}/compss/runtime/resources/" -name "*.jar" | grep -v "cloud-conn")
   for conn in $connectors; do
@@ -735,6 +736,10 @@ install_compss() {
   # Agent
   echo "--- Copy Agent"
   cp "${TMP_DIR}/compss/agent/compss-agent-impl.jar" "${targetDir}/Runtime/"
+
+ # Trace operations
+  echo "--- Copy trace modifications"
+  cp -r "${TMP_DIR}/compss/tools/tracing/target/compss-tracing.jar" "${targetDir}/Tools/tracing"
 
   # TOOLS DEPLOYMENT
   if [ "$monitor" == "true" ]; then

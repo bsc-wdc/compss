@@ -74,8 +74,9 @@ import es.bsc.compss.types.execution.exceptions.InitializationException;
 import es.bsc.compss.types.execution.exceptions.UnloadableValueException;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
+import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.TraceEventType;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.utils.execution.ExecutionManager;
 import es.bsc.compss.utils.execution.ThreadedPrintStream;
 import es.bsc.compss.worker.COMPSsException;
@@ -216,9 +217,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             WORKER_LOGGER.error("No valid hostID provided to the tracing system. Provided ID: " + hostName);
         }
         this.tracingTaskDependencies = Boolean.parseBoolean(tracingTaskDependencies);
-        String logDir = ".";
-        NIOTracer.init(this.tracing, this.tracingId, hostName, installDir, workingDir, logDir,
-            this.tracingTaskDependencies);
+        NIOTracer.init(this.tracing, this.tracingId, hostName, installDir, this.tracingTaskDependencies);
         if (NIOTracer.isActivated()) {
             NIOTracer.emitEvent(TraceEvent.START);
         }
@@ -327,8 +326,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         }
 
         if (NIOTracer.isActivated()) {
-            NIOTracer.emitEvent(TraceEvent.WORKER_RECEIVED_NEW_TASK.getId(),
-                TraceEvent.WORKER_RECEIVED_NEW_TASK.getType());
+            NIOTracer.emitEvent(TraceEvent.WORKER_RECEIVED_NEW_TASK);
         }
 
         // Remove obsoletes
@@ -352,7 +350,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         TaskFetchOperationsListener listener = new TaskFetchOperationsListener(task, this);
         int paramIdx = 0;
         if (NIOTracer.isActivated()) {
-            NIOTracer.emitEvent(TraceEvent.FETCH_PARAM.getId(), TraceEvent.FETCH_PARAM.getType());
+            NIOTracer.emitEvent(TraceEvent.FETCH_PARAM);
         }
         for (NIOParam param : task.getParams()) {
             WORKER_LOGGER.info("Checking parameter " + param);
@@ -378,13 +376,13 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
         }
         if (NIOTracer.isActivated()) {
-            NIOTracer.emitEvent(NIOTracer.EVENT_END, TraceEvent.FETCH_PARAM.getType());
+            NIOTracer.emitEventEnd(TraceEvent.FETCH_PARAM);
             // Request the transfers
-            NIOTracer.emitEvent(listener.getTask().getTaskId(), NIOTracer.getTaskTransfersType());
+            NIOTracer.emitEvent(TraceEventType.TASK_TRANSFERS, listener.getTask().getTaskId());
         }
         requestTransfers();
         if (NIOTracer.isActivated()) {
-            NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.getTaskTransfersType());
+            NIOTracer.emitEventEnd(TraceEventType.TASK_TRANSFERS);
         }
 
         if (IS_TIMER_COMPSS_ENABLED) {
@@ -400,7 +398,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         listener.enable();
 
         if (NIOTracer.isActivated()) {
-            NIOTracer.emitEvent(NIOTracer.EVENT_END, TraceEvent.WORKER_RECEIVED_NEW_TASK.getType());
+            NIOTracer.emitEventEnd(TraceEvent.WORKER_RECEIVED_NEW_TASK);
         }
     }
 
@@ -689,11 +687,11 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
      */
     public void removeObsolete(List<String> obsolete) {
         if (NIOTracer.isActivated()) {
-            NIOTracer.emitEvent(TraceEvent.REMOVE_OBSOLETES.getId(), TraceEvent.REMOVE_OBSOLETES.getType());
+            NIOTracer.emitEvent(TraceEvent.REMOVE_OBSOLETES);
         }
         this.dataManager.removeObsoletes(obsolete);
         if (NIOTracer.isActivated()) {
-            NIOTracer.emitEvent(NIOTracer.EVENT_END, TraceEvent.REMOVE_OBSOLETES.getType());
+            NIOTracer.emitEventEnd(TraceEvent.REMOVE_OBSOLETES);
         }
     }
 
@@ -1135,6 +1133,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
         // Configure tracing
         System.setProperty(COMPSsConstants.EXTRAE_CONFIG_FILE, extraeFile);
+        System.setProperty(COMPSsConstants.EXTRAE_WORKING_DIR, workingDir);
 
         System.setProperty(COMPSsConstants.TRACING_TASK_DEPENDENCIES, traceTaskDependencies);
 

@@ -62,12 +62,14 @@
   touch "${workingDir}/log/binding_worker.err"
 
   # shellcheck disable=SC2086
-  export LD_PRELOAD=${AFTER_EXTRAE_LD_PRELOAD}
-  if [ $(uname) == "Darwin" ]; then
-    /usr/local/opt/util-linux/bin/setsid $cmd ${paramsToCOMPSsWorker} 1> "$workingDir/log/worker_${hostName}.out" 2> "$workingDir/log/worker_${hostName}.err" < /dev/null | echo "$!" &
+  if [ "$(uname)" == "Darwin" ]; then
+    SETSID="/usr/local/opt/util-linux/bin/setsid"
   else
-    setsid $cmd ${paramsToCOMPSsWorker} 1> "$workingDir/log/worker_${hostName}.out" 2> "$workingDir/log/worker_${hostName}.err" < /dev/null | echo "$!" &
+    SETSID="setsid"
   fi
+
+  export LD_PRELOAD=${AFTER_EXTRAE_LD_PRELOAD}
+  "${SETSID}" $cmd ${paramsToCOMPSsWorker} 1> "$workingDir/log/worker_${hostName}.out" 2> "$workingDir/log/worker_${hostName}.err" < /dev/null | echo "$!" &
   endCode=$?
 
   post_launch

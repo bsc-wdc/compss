@@ -363,7 +363,9 @@ public class WorkerStarter {
         // Execute command
         try {
             ProcessBuilder pb = new ProcessBuilder();
-            pb.environment().remove(Tracer.LD_PRELOAD);
+            for (String env : Tracer.ENVIRONMENT_VARIABLES) {
+                pb.environment().remove(env);
+            }
             pb.command(cmd);
             Process process = pb.start();
 

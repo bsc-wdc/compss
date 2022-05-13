@@ -1,3 +1,9 @@
+#!/bin/bash
+
+if [ -n "${LOADED_SYSTEM_COMMONS_VERSION}" ]; then
+  return 0
+fi
+
 ###############################################
 # Displays version
 ###############################################
@@ -69,3 +75,6 @@ Instructions:
 
 EOF
 }
+
+
+LOADED_SYSTEM_COMMONS_VERSION=1

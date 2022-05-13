@@ -73,6 +73,11 @@ public class PythonMirror extends PipedMirror {
     }
 
     @Override
+    public String getMirrorName() {
+        return "python";
+    }
+
+    @Override
     public String getPipeBuilderContext() {
         StringBuilder cmd = new StringBuilder();
 

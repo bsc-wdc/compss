@@ -112,15 +112,9 @@ submit() {
 #---------------------------------------------------
 # MAIN EXECUTION
 #---------------------------------------------------
-  if [ -z "${COMPSS_HOME}" ]; then
-     SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-     COMPSS_HOME=${SCRIPT_DIR}/../../../../  
-  else 
-     SCRIPT_DIR="${COMPSS_HOME}/Runtime/scripts/queues/commons"
-  fi
   # shellcheck source=common.sh
   # shellcheck disable=SC1091
-  source "${SCRIPT_DIR}/common.sh"
+  source "${COMPSS_HOME}Runtime/scripts/queues/commons/common.sh"
 
   # Get command args (from common.sh, includes sc_cfg)
   get_args "$@"
@@ -134,13 +128,13 @@ submit() {
      # shellcheck source=../cfgs/default.cfg
      # shellcheck disable=SC1091
      # shellcheck disable=SC2154
-     source "${SCRIPT_DIR}/../supercomputers/${sc_cfg}"
+     source "${COMPSS_HOME}Runtime/scripts/queues/commons/../supercomputers/${sc_cfg}"
   fi
 
   # Load specific queue system flags
   # shellcheck source=../slurm/slurm.cfg
   # shellcheck disable=SC1091
-  source "${SCRIPT_DIR}/../queue_systems/${QUEUE_SYSTEM}.cfg"
+  source "${COMPSS_HOME}Runtime/scripts/queues/commons/../queue_systems/${QUEUE_SYSTEM}.cfg"
   
   check_heterogeneous_args
   # shellcheck source=./user/defined/file

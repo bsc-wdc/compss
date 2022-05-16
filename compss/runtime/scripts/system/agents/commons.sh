@@ -1,3 +1,17 @@
+#!/bin/bash
+
+if [ -n "${LOADED_SYSTEM_AGENTS_COMMONS}" ]; then
+  return 0
+fi
+
+# Checking up COMPSs_HOME
+if [ -z "${COMPSS_HOME}" ]; then
+  echo "COMPSS_HOME not defined"
+  exit 1
+fi
+
+# Load auxiliar scripts
+
 ###############################################
 # COMPSs Default values re-definitions
 ###############################################
@@ -203,3 +217,5 @@ get_parameters_as_array(){
       </params>
     </parameters>"
 }
+
+LOADED_SYSTEM_AGENTS_COMMONS=1

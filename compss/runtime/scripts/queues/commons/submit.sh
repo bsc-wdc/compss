@@ -31,15 +31,9 @@ submit() {
 #---------------------------------------------------
 # MAIN EXECUTION
 #---------------------------------------------------
-  if [ -z "${COMPSS_HOME}" ]; then
-     SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-     COMPSS_HOME=${SCRIPT_DIR}/../../../../  
-  else 
-     SCRIPT_DIR="${COMPSS_HOME}/Runtime/scripts/queues/commons"
-  fi
   # shellcheck source=common.sh
   # shellcheck disable=SC1091
-  source "${SCRIPT_DIR}"/common.sh
+  source "${COMPSS_HOME}Runtime/scripts/queues/commons/common.sh"
 
   # Get command args (loads args from commons.sh, specially sc_cfg)
   get_args "$@"
@@ -51,7 +45,7 @@ submit() {
      # shellcheck source=../supercomputers/default.cfg
      # shellcheck disable=SC1091
      # shellcheck disable=SC2154
-     source "${SCRIPT_DIR}/../supercomputers/${sc_cfg}"
+     source "${COMPSS_HOME}Runtime/scripts/queues/supercomputers/${sc_cfg}"
   fi
 
   # Check parameters
@@ -60,7 +54,7 @@ submit() {
   # Load specific queue system flags
   # shellcheck source=../queue_systems/slurm.cfg
   # shellcheck disable=SC1091
-  source "${SCRIPT_DIR}/../queue_systems/${QUEUE_SYSTEM}.cfg"
+  source "${COMPSS_HOME}Runtime/scripts/queues/queue_systems/${QUEUE_SYSTEM}.cfg"
 
   # Set wall clock time
   set_time

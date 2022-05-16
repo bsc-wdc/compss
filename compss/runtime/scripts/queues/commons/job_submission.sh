@@ -3,6 +3,14 @@
 if [ -n "${LOADED_QUEUES_COMMONS_JOB_SUBMISSION}" ]; then
   return 0
 fi
+
+# Checking COMPSs_HOME
+if [ -z "${COMPSS_HOME}" ]; then
+  echo "COMPSS_HOME not defined"
+  exit 1
+fi
+
+
 # shellcheck source=./logger.sh"
 # shellcheck disable=SC1091
 source "${COMPSS_HOME}Runtime/scripts/system/commons/logger.sh"

@@ -1,5 +1,17 @@
 #!/bin/bash
 
+if [ -n "${LOADED_SYSTEM_RUNTIME_STREAMS}" ]; then
+  return 0
+fi
+
+# Checking up COMPSs_HOME
+if [ -z "${COMPSS_HOME}" ]; then
+  echo "COMPSS_HOME not defined"
+  exit 1
+fi
+
+# Load auxiliar scripts
+
 # shellcheck source=../system/commons/logger.sh
 # shellcheck disable=SC1091
 source "${COMPSS_HOME}/Runtime/scripts/system/commons/logger.sh"
@@ -180,3 +192,5 @@ clean_stream_env () {
     rm -rf "${kafka_log_dir}"
   fi
 }
+
+LOADED_SYSTEM_RUNTIME_STREAMS=1

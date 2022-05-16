@@ -10,13 +10,20 @@ fi
 export COMPSS_HOME=${COMPSS_HOME}
 
 if [ -z "${COMPSS_SC_CFG}" ]; then
-	COMPSS_SC_CFG=${COMPSS_HOME}/Runtime/scripts/queues/supercomputers/default.cfg
+	COMPSS_SC_CFG="${COMPSS_HOME}/Runtime/scripts/queues/supercomputers/default.cfg"
 fi
-source ${COMPSS_SC_CFG}
-source ${COMPSS_HOME}/Runtime/scripts/queues/queue_systems/${QUEUE_SYSTEM}.cfg
+
+# shellcheck source=../queues/supercomputers/default.sh"
+# shellcheck disable=SC1091
+source "${COMPSS_SC_CFG}"
+# shellcheck source=../queues/queue_systems/slurm.sh"
+# shellcheck disable=SC1091
+source "${COMPSS_HOME}/Runtime/scripts/queues/queue_systems/${QUEUE_SYSTEM}.cfg"
 
 if [ "${HOSTLIST_CMD}" == "nodes.sh" ]; then
-    source "${SCRIPT_DIR}/../../system/${HOSTLIST_CMD}"
+    # shellcheck source=../system/nodes.sh"
+    # shellcheck disable=SC1091
+    source "${COMPSS_HOME}/Runtime/scripts/system/${HOSTLIST_CMD}"
 else
     hosts_cmd="${HOSTLIST_CMD} \$${ENV_VAR_NODE_LIST}${env_var_suffix} ${HOSTLIST_TREATMENT}"
     echo "CMD: $cmd"
@@ -33,4 +40,4 @@ if [ -z "$COMPSS_LOG_LEVEL" ]; then
    export COMPSS_LOG_LEVEL=off
 fi
 
-${COMPSS_HOME}/Runtime/scripts/user/launch_compss --log_level=${COMPS_LOG_LEVEL} --master_node=${master_node} --worker_nodes="${worker_nodes}" --sc_cfg=default.cfg --command $@
+"${COMPSS_HOME}/Runtime/scripts/user/launch_compss" "--log_level=${COMPSS_LOG_LEVEL}" "--master_node=${master_node}" "--worker_nodes=${worker_nodes}" "--sc_cfg=default.cfg" "--command" $@

@@ -1,6 +1,10 @@
 #!/bin/bash
 
-# Setting up COMPSs_HOME
+if [ -n "${LOADED_QUEUES_COMMONS_TRACE_GENERATION}" ]; then
+  return 0
+fi
+
+# Checking up COMPSs_HOME
 if [ -z "${COMPSS_HOME}" ]; then
   echo "COMPSS_HOME not defined"
   exit 1
@@ -317,3 +321,5 @@ submit_gen_trace(){
   submit "${submit_script}"
 }
 
+
+LOADED_QUEUES_COMMONS_TRACE_GENERATION=1

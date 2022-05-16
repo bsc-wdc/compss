@@ -33,10 +33,10 @@ usage() {
   exitValue=$1
 
   # Load default CFG for default values
-  local defaultSC_cfg=${SCRIPT_DIR}/../queues/supercomputers/${DEFAULT_SC_CFG}.cfg
+  local defaultSC_cfg="${COMPSS_HOME}Runtime/scripts/queues/supercomputers/${DEFAULT_SC_CFG}.cfg"
   #shellcheck source=../queues/supercomputers/default.cfg
   source "${defaultSC_cfg}"
-  local defaultQS_cfg=${SCRIPT_DIR}/../queues/queue_systems/${QUEUE_SYSTEM}.cfg
+  local defaultQS_cfg="${COMPSS_HOME}Runtime/scripts/queues/queue_systems/${QUEUE_SYSTEM}.cfg"
   #shellcheck source=../queues/queue_systems/slurm.cfg
   source "${defaultQS_cfg}"
 
@@ -55,7 +55,7 @@ Usage: $0 [queue_system_options] [COMPSs_options] application_name application_a
 
   Submission configuration:
 EOT
-  "${SCRIPT_DIR}"/../queues/commons/submit.sh --opts
+  "${COMPSS_HOME}Runtime/scripts/queues/commons/submit.sh" --opts
 
   exit "$exitValue"
 }
@@ -66,7 +66,7 @@ EOT
 display_version() {
   local exitValue=$1
 
-  "${SCRIPT_DIR}"/runcompss --version
+  "${COMPSS_HOME}Runtime/scripts/user/runcompss" --version
 
   exit "$exitValue"
 }
@@ -174,7 +174,7 @@ check_args() {
         sc_cfg=${sc_cfg}.cfg
      fi
 
-     local scCfgFullPath=${SCRIPT_DIR}/../queues/supercomputers/${sc_cfg}
+     local scCfgFullPath="${COMPSS_HOME}Runtime/scripts/queues/supercomputers/${sc_cfg}"
 
      if [ ! -f "${scCfgFullPath}" ]; then
         # CFG file doesn't exist
@@ -187,7 +187,7 @@ check_args() {
   source "${scCfgFullPath}"
 
   # Check queue configuration env
-  local queueCfgFullPath=${SCRIPT_DIR}/../queues/queue_systems/${QUEUE_SYSTEM}.cfg
+  local queueCfgFullPath="${COMPSS_HOME}Runtime/scripts/queues/queue_systems/${QUEUE_SYSTEM}.cfg"
   if [ ! -f "${queueCfgFullPath}" ]; then
     # CFG file doesn't exist
     display_error "${ERROR_CFG_Q}"
@@ -211,11 +211,11 @@ check_args() {
   # Submit command
   # shellcheck disable=SC2086
   if [ -z "$heter" ]; then
-    "${SCRIPT_DIR}"/../queues/commons/submit.sh \
+    "${COMPSS_HOME}Runtime/scripts/queues/commons/submit.sh" \
        --sc_cfg=${sc_cfg} \
        ${args_pass}
   else
-    "${SCRIPT_DIR}"/../queues/commons/heterogeneous_submit.sh \
+    "${COMPSS_HOME}Runtime/scripts/queues/commons/heterogeneous_submit.sh" \
        --sc_cfg=${sc_cfg} \
        ${args_pass}
   fi

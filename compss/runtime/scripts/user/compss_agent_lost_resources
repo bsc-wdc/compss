@@ -10,12 +10,22 @@ fi
 export COMPSS_HOME=${COMPSS_HOME}
 
 # Load auxiliar scripts
-source "${COMPSS_HOME}Runtime/scripts/system/runtime/compss_setup.sh"
 
-source "${COMPSS_HOME}Runtime/scripts/system/commons/version.sh"
-source "${COMPSS_HOME}Runtime/scripts/system/agents/commons.sh"
+# shellcheck source=../system/commons/logger.sh"
+# shellcheck disable=SC1091
 source "${COMPSS_HOME}Runtime/scripts/system/commons/logger.sh"
 
+# shellcheck source=../system/commons/version.sh"
+# shellcheck disable=SC1091
+source "${COMPSS_HOME}Runtime/scripts/system/commons/version.sh"
+
+# shellcheck source=../system/runtime/compss_setup.sh"
+# shellcheck disable=SC1091
+source "${COMPSS_HOME}Runtime/scripts/system/runtime/compss_setup.sh"
+
+# shellcheck source=../system/agents/commons.sh"
+# shellcheck disable=SC1091
+source "${COMPSS_HOME}Runtime/scripts/system/agents/commons.sh"
 
 
 ###############################################

@@ -1,5 +1,15 @@
 #!/bin/bash
 
+# Setting up COMPSs_HOME
+if [ -z "${COMPSS_HOME}" ]; then
+  COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../.. && pwd )/"
+fi
+if [ ! "${COMPSS_HOME: -1}" = "/" ]; then
+  COMPSS_HOME="${COMPSS_HOME}/"
+fi
+export COMPSS_HOME=${COMPSS_HOME}
+
+
   # Retrieve script arguments
   resources_file=$1
   num_workers=$2
@@ -10,12 +20,9 @@
   cloud=$7
   creation_time=$8
 
-  # Define script constants
-  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
   # shellcheck source=../xmls/generate_resources.sh
   # shellcheck disable=SC1091
-  source "${SCRIPT_DIR}"/../xmls/generate_resources.sh
+  source "${COMPSS_HOME}Runtime/scripts/system/xmls/generate_resources.sh"
   
   # Init resources file
   init "${resources_file}"

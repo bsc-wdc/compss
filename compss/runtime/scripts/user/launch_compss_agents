@@ -9,8 +9,6 @@ if [ ! "${COMPSS_HOME: -1}" = "/" ]; then
 fi
 export COMPSS_HOME=${COMPSS_HOME}
 
-SCRIPT_DIR="${COMPSS_HOME}/Runtime/scripts/user"
-
 # shellcheck source=../system/runtime/tracing.sh
 # shellcheck disable=SC1091
 source "${COMPSS_HOME}Runtime/scripts/system/runtime/tracing.sh"
@@ -133,11 +131,11 @@ show_opts() {
   local exitValue=$1
 
   # Load default CFG for default values
-  local defaultSC_cfg=${SCRIPT_DIR}/../queues/supercomputers/${DEFAULT_SC_CFG}.cfg
+  local defaultSC_cfg="${COMPSS_HOME}/Runtime/scripts/queues/supercomputers/${DEFAULT_SC_CFG}.cfg"
   # shellcheck source=../queues/supercomputers/default.cfg
   # shellcheck disable=SC1091
   source "${defaultSC_cfg}"
-  local defaultQS_cfg=${SCRIPT_DIR}/../queues/queue_systems/${QUEUE_SYSTEM}.cfg
+  local defaultQS_cfg="${COMPSS_HOME}/Runtime/scripts/queues/queue_systems/${QUEUE_SYSTEM}.cfg"
   # shellcheck source=../queues/queue_systems/slurm.cfg
   # shellcheck disable=SC1091
   source "${defaultQS_cfg}"
@@ -200,7 +198,7 @@ show_opts() {
   Runcompss configuration:
 
 EOT
-    "${SCRIPT_DIR}"/runcompss --opts
+    "${COMPSS_HOME}/Runtime/scripts/user/runcompss" --opts
 
   exit "$exitValue"
 }
@@ -211,7 +209,7 @@ EOT
 display_version() {
   local exitValue=$1
 
-  "${SCRIPT_DIR}"/runcompss --version
+  "${COMPSS_HOME}/Runtime/scripts/userruncompss" --version
 
   exit "$exitValue"
 }
@@ -654,7 +652,7 @@ check_args() {
         sc_cfg=${sc_cfg}.cfg
      fi
 
-     local scCfgFullPath=${SCRIPT_DIR}/../queues/supercomputers/${sc_cfg}
+     local scCfgFullPath="${COMPSS_HOME}/Runtime/scripts/queues/supercomputers/${sc_cfg}"
 
      if [ ! -f "${scCfgFullPath}" ]; then
         # CFG file doesn't exist
@@ -668,7 +666,7 @@ check_args() {
   source "${scCfgFullPath}"
 
   # Check queue configuration env
-  local queueCfgFullPath=${SCRIPT_DIR}/../queues/queue_systems/${QUEUE_SYSTEM}.cfg
+  local queueCfgFullPath="${COMPSS_HOME}/Runtime/scripts/queues/queue_systems/${QUEUE_SYSTEM}.cfg"
   if [ ! -f "${queueCfgFullPath}" ]; then
     # CFG file doesn't exist
     display_error "${ERROR_CFG_Q}"
@@ -1250,8 +1248,8 @@ launch() {
 
   echo "------ Launching Execution ------"
   # Calling main method of the application passing in a single parameter containing an array with the method arguments
-  echo ${SCRIPT_DIR}/compss_agent_call_operation --master_node=${master_node}${network} --master_port=46101 --stop "--forward_to=${forward_stop_to}" ${cei} ${call_options} ${app_args}
-  ${SCRIPT_DIR}/compss_agent_call_operation --master_node=${master_node}${network} --master_port=46101  --stop "--forward_to=${forward_stop_to}" ${cei} ${call_options} ${app_args}
+  echo "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_call_operation" --master_node=${master_node}${network} --master_port=46101 --stop "--forward_to=${forward_stop_to}" ${cei} ${call_options} ${app_args}
+  "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_call_operation" "--master_node=${master_node}${network}" "--master_port=46101"  "--stop" "--forward_to=${forward_stop_to}" "${cei}" ${call_options} ${app_args}
 }
 
 ###############################################

@@ -11,6 +11,16 @@
   #
   #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+
+  # Setting up COMPSs_HOME
+  if [ -z "${COMPSS_HOME}" ]; then
+    COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../.. && pwd )/"
+  fi
+  if [ ! "${COMPSS_HOME: -1}" = "/" ]; then
+    COMPSS_HOME="${COMPSS_HOME}/"
+  fi
+  export COMPSS_HOME=${COMPSS_HOME}
+
   ##########################################################
   # Script variables
   user=cc
@@ -121,8 +131,8 @@
   ##########################################################
   # Update COMPSs project / resources files
   echo "* Updating COMPSs project and resources files..."
-  project=/opt/COMPSs/Runtime/configuration/xml/projects/default_project.xml
-  resources=/opt/COMPSs/Runtime/configuration/xml/resources/default_resources.xml
+  project="${COMPSS_HOME}Runtime/configuration/xml/projects/default_project.xml"
+  resources="${COMPSS_HOME}Runtime/configuration/xml/resources/default_resources.xml"
 
   echo ""
   echo "Provide the application path:"
@@ -133,7 +143,7 @@
   #
   # shellcheck source=../system/xmls/generate_project.sh
   # shellcheck disable=SC1091
-  source "${SCRIPT_DIR}"/../system/xmls/generate_project.sh
+  source "${COMPSS_HOME}Runtime/scripts/system/xmls/generate_project.sh"
 
   # Init project file
   init "${project}"
@@ -153,7 +163,7 @@
   #
   # shellcheck source=../system/xmls/generate_resources.sh
   # shellcheck disable=SC1091
-  source "${SCRIPT_DIR}"/../system/xmls/generate_resources.sh
+  source "${COMPSS_HOME}Runtime/scripts/system/xmls/generate_resources.sh"
   
   # Init resources file
   init "${resources}"

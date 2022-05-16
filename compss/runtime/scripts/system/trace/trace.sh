@@ -3,10 +3,8 @@
   #-------------------------------------
   # Define script variables and exports
   #-------------------------------------
-  SCRIPT_DIR="${COMPSS_HOME}/Runtime/scripts/system"
-
   if [ -z "$EXTRAE_HOME" ]; then
-    extraeDir="${SCRIPT_DIR}/../../../Dependencies/extrae/"
+    extraeDir="${COMPSS_HOME}Dependencies/extrae/"
   else
     extraeDir=$EXTRAE_HOME
   fi

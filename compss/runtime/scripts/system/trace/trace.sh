@@ -4,9 +4,12 @@
   # Define script variables and exports
   #-------------------------------------
   if [ -z "$EXTRAE_HOME" ]; then
+    if [ -z "${COMPSS_HOME}" ]; then
+      COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../../.. && pwd )/"
+    fi
     extraeDir="${COMPSS_HOME}Dependencies/extrae/"
   else
-    extraeDir=$EXTRAE_HOME
+    extraeDir="${EXTRAE_HOME}"
   fi
 
   export LD_LIBRARY_PATH=$extraeDir/lib:$LD_LIBRARY_PATH

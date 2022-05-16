@@ -10,7 +10,7 @@ fi
 export COMPSS_HOME=${COMPSS_HOME}
 
 if [ -z "${COMPSS_SC_CFG}" ]; then
-	COMPSS_SC_CFG="${COMPSS_HOME}/Runtime/scripts/queues/supercomputers/default.cfg"s
+	COMPSS_SC_CFG="${COMPSS_HOME}/Runtime/scripts/queues/supercomputers/default.cfg"
 fi
 
 # shellcheck source=../queues/supercomputers/default.sh"

@@ -1,5 +1,17 @@
 #!/bin/bash
 
+if [ -n "${LOADED_SYSTEM_RUNTIME_WORKER}" ]; then
+  return 0
+fi
+
+# Checking up COMPSs_HOME
+if [ -z "${COMPSS_HOME}" ]; then
+  echo "COMPSS_HOME not defined"
+  exit 1
+fi
+
+# Load auxiliar scripts
+
 # shellcheck source=../system/commons/logger.sh
 # shellcheck disable=SC1091
 source "${COMPSS_HOME}/Runtime/scripts/system/commons/logger.sh"
@@ -106,3 +118,5 @@ EOT
 clean_worker_env () {
   :
 }
+
+LOADED_SYSTEM_RUNTIME_WORKER=1

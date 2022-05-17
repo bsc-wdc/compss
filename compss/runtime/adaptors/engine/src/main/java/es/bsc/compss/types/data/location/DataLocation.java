@@ -40,6 +40,8 @@ public abstract class DataLocation implements Comparable<DataLocation> {
     public static final String ERROR_INVALID_LOCATION = "ERROR: Invalid location URI";
     public static final String ERROR_UNSTARTED_NODE = "ERROR: Cannot retrieve URIs from an unstarted node";
 
+    private boolean isCheckpoint = false;
+
 
     /**
      * Creates a new location in the host @host with path @uri. The URI must: - Contain a valid schema (file://,
@@ -174,5 +176,23 @@ public abstract class DataLocation implements Comparable<DataLocation> {
     public abstract boolean isTarget(DataLocation target);
 
     public abstract String getLocationKey();
+
+    /**
+     * Configures whether the location is used as a checkpoint for future executions.
+     * 
+     * @param checkpointing {@literal true} if it is used for checkpointing a data value
+     */
+    public void isCheckpointLocation(boolean checkpointing) {
+        this.isCheckpoint = checkpointing;
+    }
+
+    /**
+     * Returns whether the location is used as a checkpoint for future executions or not.
+     * 
+     * @return {@literal true} if it is used for checkpointing a data value; {@literal false}, otherwise.
+     */
+    public boolean isCheckpointing() {
+        return this.isCheckpoint;
+    }
 
 }

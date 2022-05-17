@@ -62,6 +62,8 @@ jmethodID midBarrierGroup;              /* ID of the barrierGroup method in the 
 jmethodID midOpenTaskGroup;             /* ID of the openTaskGroup method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midCloseTaskGroup;            /* ID of the closeTaskGroup method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 
+jmethodID midSnapshot; 		            /* ID of the snapshot method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
+
 jmethodID midGetBindingObject;		    /* ID of the getBindingObject method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class  */
 jmethodID midDeleteBindingObject; 	    /* ID of the deleteBindingObject method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class  */
 
@@ -355,6 +357,10 @@ void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
     midCloseTaskGroup = status->localJniEnv->GetMethodID(clsITimpl, "closeTaskGroup", "(Ljava/lang/String;Ljava/lang/Long;)V");
     check_exception(status, "Cannot find closeTaskGroup");
 
+    // snapshot method
+    midSnapshot = status->localJniEnv->GetMethodID(clsITimpl, "snapshot", "(Ljava/lang/Long;)V");
+    check_exception(status, "Cannot find snapshot");
+
     // EmitEvent method
     midEmitEvent = status->localJniEnv->GetMethodID(clsITimpl, "emitEvent", "(IJ)V");
     check_exception(status, "Cannot find emitEvent");
@@ -380,7 +386,7 @@ void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
     check_exception(status, "Cannot find closeFile");
 
     // deleteFile method
-    midDeleteFile = status->localJniEnv->GetMethodID(clsITimpl, "deleteFile", "(Ljava/lang/Long;Ljava/lang/String;Z)Z");
+    midDeleteFile = status->localJniEnv->GetMethodID(clsITimpl, "deleteFile", "(Ljava/lang/Long;Ljava/lang/String;ZZ)Z");
     check_exception(status, "Cannot find deleteFile");
 
     // getFile method
@@ -1415,12 +1421,15 @@ void JNI_Close_File(long appId, char* fileName, int mode) {
 }
 
 
-void JNI_Delete_File(long appId, char* fileName, int wait) {
+void JNI_Delete_File(long appId, char* fileName, int wait, int applicationDelete) {
     debug_printf("[BINDING-COMMONS] - @JNI_Delete_File - Calling runtime deleteFile method...\n");
 
     // Local variables for JVM call
     bool _wait = false;
     if (wait != 0) _wait = true;
+
+    bool _applicationDelete = false;
+    if (applicationDelete != 0) _applicationDelete = true;
 
     // Request thread access to JVM
     ThreadStatus* status = access_request();
@@ -1430,7 +1439,8 @@ void JNI_Delete_File(long appId, char* fileName, int wait) {
                                             midDeleteFile,
                                             status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId),
                                             status->localJniEnv->NewStringUTF(fileName),
-                                            _wait);
+                                            _wait,
+                                            _applicationDelete);
     check_exception(status, "Exception received when calling deleteFile");
     //*buf = (int*)&res;
 
@@ -1636,6 +1646,23 @@ void JNI_CloseTaskGroup(char* groupName, long appId){
     debug_printf("[BINDING-COMMONS] - @JNI_CloseTaskGroup - Task group %s closed.\n", groupName);
 }
 
+void JNI_Snapshot(long appId) {
+	debug_printf("[BINDING-COMMONS] - @JNI_Snapshot - Snapshot for APP id: %lu\n", appId);
+
+    // Request thread access to JVM
+    ThreadStatus* status = access_request();
+
+    // Perform operation
+	status->localJniEnv->CallVoidMethod(globalRuntime,
+	                          midSnapshot,
+	                          status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId));
+    check_exception(status, "Exception received when calling snapshot");
+
+    // Revoke thread access to JVM
+    access_revoke(status);
+
+    debug_printf("[BINDING-COMMONS] - @JNI_Snapshot - APP id: %lu\n", appId);
+}
 
 void JNI_EmitEvent(int type, long id) {
     debug_printf("[BINDING-COMMONS] - @JNI_EmitEvent - Emit Event\n");

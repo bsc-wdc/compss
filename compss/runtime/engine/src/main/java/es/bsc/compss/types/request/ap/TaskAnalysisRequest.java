@@ -25,6 +25,7 @@ import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.Task;
+import es.bsc.compss.types.TaskState;
 import es.bsc.compss.types.tracing.TraceEvent;
 
 import org.apache.logging.log4j.LogManager;
@@ -77,10 +78,16 @@ public class TaskAnalysisRequest extends APRequest {
             ta.processTask(this.task);
         }
 
-        // dip.removeTaskData(this.task);
-
-        // Send request to schedule task
-        td.executeTask(ap, this.task);
+        // Check if the task has been checkpointed
+        if (this.task.getStatus() == TaskState.RECOVERED) {
+            if (DEBUG) {
+                LOGGER.debug("Task " + this.task.getId() + " was checkpointed in a previous run. Skipping execution.");
+            }
+            ta.endTask(this.task, true);
+        } else {
+            // Send request to schedule task
+            td.executeTask(ap, this.task);
+        }
 
         // Notify task monitor
         TaskMonitor monitor = this.task.getTaskMonitor();

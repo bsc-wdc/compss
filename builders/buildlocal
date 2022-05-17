@@ -20,7 +20,6 @@ DEFAULT_MONITOR=true
 DEFAULT_BINDINGS=true
 DEFAULT_PYCOMPSS=true
 DEFAULT_TRACING=true
-DEFAULT_AUTOPARALLEL=true
 DEFAULT_KAFKA=true
 DEFAULT_JACOCO=true
 DEFAULT_CLI=true
@@ -138,7 +137,7 @@ display_error() {
 
 get_args() {
   # Parse COMPSs Options
-  while getopts hvmMbBpPtTaAkKjJN-: flag; do
+  while getopts hvmMbBpPtTaAkKjJNcC-: flag; do
     # Treat the argument
     case "$flag" in
       h)
@@ -215,7 +214,7 @@ get_args() {
         bindings=false
         pycompss=false
         kafka=false
-	      jacoco=false
+        jacoco=false
         cli=false
         ;;
       -)
@@ -300,7 +299,7 @@ get_args() {
             bindings=false
             pycompss=false
             kafka=false
-	          jacoco=false
+            jacoco=false
             cli=false
             ;;
           user-exec=*)
@@ -607,6 +606,7 @@ install_compss() {
   mkdir -p ${targetDir}/Runtime/connectors
   mkdir -p ${targetDir}/Runtime/cloud-conn
   mkdir -p ${targetDir}/Runtime/scheduler
+  mkdir -p ${targetDir}/Runtime/checkpointer
   mkdir -p ${targetDir}/Tools
   mkdir -p ${targetDir}/Tools/monitor
   mkdir -p ${targetDir}/Tools/storage
@@ -706,6 +706,10 @@ install_compss() {
     fi
   done
 
+  # Checkpointer
+  echo "--- Copy checkpointers policies"
+  find "${TMP_DIR}/compss/runtime/checkpointer/" -name "*.jar" -exec cp {} ${targetDir}/Runtime/checkpointer/ \;
+  
   # Schedulers
   echo "--- Copy schedulers"
   rm -r "${TMP_DIR}/compss/runtime/scheduler/commons"

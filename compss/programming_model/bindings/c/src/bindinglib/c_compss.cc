@@ -115,7 +115,7 @@ FILE* compss_fopen(char * filename, char * mode) {
 
 void compss_delete_file(char *filename) {
     long int l_app_id = 0;
-    GS_Delete_File(l_app_id, filename,0);
+    GS_Delete_File(l_app_id, filename, 0, 1);
     return;
 }
 

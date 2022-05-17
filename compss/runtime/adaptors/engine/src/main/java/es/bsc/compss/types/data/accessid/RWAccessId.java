@@ -73,12 +73,30 @@ public class RWAccessId extends DataAccessId {
     }
 
     /**
+     * Returns the data version read by the access.
+     * 
+     * @return data version read
+     */
+    public DataVersion getReadDataVersion() {
+        return this.readDataVersion;
+    }
+
+    /**
      * Returns the read data instance.
      * 
      * @return The read data instance.
      */
     public DataInstanceId getReadDataInstance() {
         return this.readDataVersion.getDataInstanceId();
+    }
+
+    /**
+     * Returns the data version written by the access.
+     * 
+     * @return data version written
+     */
+    public DataVersion getWrittenDataVersion() {
+        return this.writtenDataVersion;
     }
 
     /**

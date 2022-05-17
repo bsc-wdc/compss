@@ -17,6 +17,7 @@
 package es.bsc.compss.components.impl;
 
 import es.bsc.compss.api.TaskMonitor;
+import es.bsc.compss.checkpoint.CheckpointManager;
 import es.bsc.compss.components.monitor.impl.EdgeType;
 import es.bsc.compss.components.monitor.impl.GraphGenerator;
 import es.bsc.compss.components.monitor.impl.GraphHandler;
@@ -88,6 +89,7 @@ public class TaskAnalyser implements GraphHandler {
 
     // Components
     private DataInfoProvider dip;
+    private CheckpointManager cp;
     private GraphGenerator gm;
 
     // Map: data Id -> WritersInfo
@@ -117,9 +119,11 @@ public class TaskAnalyser implements GraphHandler {
      * Sets the TaskAnalyser co-workers.
      *
      * @param dip DataInfoProvider co-worker.
+     * @param cp checkpoint manager co-worker.
      */
-    public void setCoWorkers(DataInfoProvider dip) {
+    public void setCoWorkers(DataInfoProvider dip, CheckpointManager cp) {
         this.dip = dip;
+        this.cp = cp;
     }
 
     /**
@@ -175,6 +179,8 @@ public class TaskAnalyser implements GraphHandler {
             addEdgeFromMainToTask(currentTask);
         }
 
+        // Prepare checkpointer for task
+        cp.newTask(currentTask);
     }
 
     private boolean processTaskParameters(Application app, Task currentTask, int constrainingParam) {
@@ -247,6 +253,13 @@ public class TaskAnalyser implements GraphHandler {
     }
 
     /**
+     * Performs an snapshot of the data.
+     */
+    public void snapshot() {
+        cp.snapshot();
+    }
+
+    /**
      * Registers a data access from the main code and notifies when the data is available.
      *
      * @param rdar request indicating the data being accessed
@@ -264,6 +277,16 @@ public class TaskAnalyser implements GraphHandler {
 
         if (access.getMode() != AccessMode.W) {
             int dataId = daId.getDataId();
+
+            DataInstanceId di;
+            if (daId.getDirection() == Direction.R) {
+                di = ((RAccessId) daId).getReadDataInstance();
+            } else {
+                // Access is RW
+                di = ((RWAccessId) daId).getReadDataInstance();
+            }
+            cp.mainAccess(di);
+
             // Retrieve writers information
             DataAccessesInfo dai = this.accessesInfo.get(dataId);
             if (dai != null) {
@@ -284,8 +307,9 @@ public class TaskAnalyser implements GraphHandler {
      * Registers the end of execution of task @{code task}.
      *
      * @param aTask Ended task.
+     * @param checkpointing {@literal true} if task has been recovered by the checkpoint management
      */
-    public void endTask(AbstractTask aTask) {
+    public void endTask(AbstractTask aTask, boolean checkpointing) {
         int taskId = aTask.getId();
         long start = System.currentTimeMillis();
         if (aTask instanceof Task) {
@@ -379,6 +403,17 @@ public class TaskAnalyser implements GraphHandler {
         }
         aTask.releaseDataDependents();
 
+        // If we are not retrieving the checkpoint
+        if (!checkpointing) {
+            if (aTask instanceof Task) {
+                Task task = (Task) aTask;
+                if (DEBUG) {
+                    LOGGER.debug("Checkpoint saving task " + taskId);
+                }
+                cp.endTask(task);
+            }
+        }
+
         if (DEBUG) {
             long time = System.currentTimeMillis() - start;
             LOGGER.debug("Task " + taskId + " end message processed in " + time + " ms.");
@@ -444,10 +479,18 @@ public class TaskAnalyser implements GraphHandler {
      * Deletes the specified data and its renamings.
      *
      * @param dataInfo DataInfo.
+     * @param applicationDelete whether the user code requested to delete the data ({@literal true}) or was removed by
+     *            the runtime ({@literal false})
      */
-    public void deleteData(DataInfo dataInfo) {
+    public void deleteData(DataInfo dataInfo, boolean applicationDelete) {
         int dataId = dataInfo.getDataId();
         LOGGER.info("Deleting data " + dataId);
+
+        // Deleting checkpointed data that is obsolete, INOUT that has a newest version
+        if (applicationDelete) {
+            cp.deletedData(dataId);
+        }
+
         DataAccessesInfo dai = this.accessesInfo.remove(dataId);
         if (dai != null) {
             switch (dai.getDataType()) {
@@ -489,6 +532,7 @@ public class TaskAnalyser implements GraphHandler {
         if (IS_DRAW_GRAPH) {
             GraphGenerator.removeTemporaryGraph();
         }
+        this.cp.shutdown();
     }
 
     /*
@@ -636,7 +680,7 @@ public class TaskAnalyser implements GraphHandler {
                     this.gm.stopGroupingEdges();
                 }
                 DataInfo ci = dip.deleteCollection(cp.getCollectionId(), true);
-                deleteData(ci);
+                deleteData(ci, false);
                 break;
             case DICT_COLLECTION_T:
                 DictCollectionParameter dcp = (DictCollectionParameter) p;
@@ -655,7 +699,7 @@ public class TaskAnalyser implements GraphHandler {
                     this.gm.stopGroupingEdges();
                 }
                 DataInfo dci = dip.deleteDictCollection(dcp.getDictCollectionId(), true);
-                deleteData(dci);
+                deleteData(dci, false);
                 break;
             default:
                 // This is a basic type, there are no accesses to register
@@ -1147,7 +1191,7 @@ public class TaskAnalyser implements GraphHandler {
      * We have explicitly called the barrier group API call. STEPS: Add a new synchronization node. Add an edge from
      * last synchronization point to barrier. Add edges from group tasks to barrier.
      *
-     * @param groupName Name of the group.
+     * @param barrier request causing the barrier
      */
     private void addNewGroupBarrierToGraph(BarrierGroupRequest barrier) {
         // Add barrier node

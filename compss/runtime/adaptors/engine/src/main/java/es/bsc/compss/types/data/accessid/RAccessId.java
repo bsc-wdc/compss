@@ -80,6 +80,15 @@ public class RAccessId extends DataAccessId {
     }
 
     /**
+     * Returns the data version read by the access.
+     * 
+     * @return data version read
+     */
+    public DataVersion getReadDataVersion() {
+        return this.readDataVersion;
+    }
+
+    /**
      * Returns the read data instance.
      * 
      * @return The read data instance.

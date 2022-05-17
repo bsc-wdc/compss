@@ -87,6 +87,12 @@
 		<module>4_scheduler_fifo</module>
 		<module>4_scheduler_fifodata</module>
 		<module>4_scheduler_lifo</module>
+		<module>8_checkpoint_file</module>
+		<module>8_checkpoint_object</module>
+		<module>8_checkpoint_policy_15seconds_deadline</module>
+		<module>8_checkpoint_policy_every_3_ended_tasks</module>
+		<module>8_checkpoint_policy_every_3_tasks</module>
+		<module>8_checkpoint_snapshot</module>		
 		<module>9_concurrent_procs</module>
 		<module>9_concurrent_threads</module>
 		<module>9_stream_files</module>

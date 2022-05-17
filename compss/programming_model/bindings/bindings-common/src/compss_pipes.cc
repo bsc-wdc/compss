@@ -544,7 +544,7 @@ void PIPE_Close_File(long appId, char* fileName, int mode) {
 }
 
 
-void PIPE_Delete_File(long appId, char* fileName, int wait) {
+void PIPE_Delete_File(long appId, char* fileName, int wait, int applicationDelete) {
     debug_printf("[BINDING-COMMONS] - @PIPE_Delete_File - Calling runtime deleteFile method...\n");
 
     // MESAGE: DELETE_FILE appId fileName
@@ -555,6 +555,12 @@ void PIPE_Delete_File(long appId, char* fileName, int wait) {
     	ss << "true ";
     } else {
     	ss << "false ";
+    }
+
+    if (applicationDelete != 0) {
+        ss << "true ";
+    } else {
+        ss << "false ";
     }
 
     write_command_in_pipe(ss);
@@ -725,6 +731,21 @@ void PIPE_CloseTaskGroup(char* groupName, long appId){
     write_command_in_pipe(ss);
 
     debug_printf("[BINDING-COMMONS] - @PIPE_CloseTaskGroup - Task group %s closed.\n", groupName);
+}
+
+
+void PIPE_Snapshot(long appId) {
+	debug_printf("[BINDING-COMMONS] - @PIPE_Snapshot - Snapshot for APP id: %lu\n", appId);
+
+	// MESSAGE: SNAPSHOT appId
+	// RETURNS: Whatever string (Not used, just to wait until dir is synchronised at master.)
+	stringstream ss;
+	ss << "SNAPSHOT " << appId << endl;
+	write_command_in_pipe(ss);
+	string result;
+	result = read_result_from_pipe();
+
+	debug_printf("[BINDING-COMMONS] - @PIPE_Snapshot - APP id: %lu\n", appId);
 }
 
 

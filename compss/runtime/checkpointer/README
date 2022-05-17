@@ -1,0 +1,24 @@
+# This file contains information about schedulers
+
+# The scheduler used by default is: resourceEmptyScheduler
+
+# commons
+    Contains the common structures for scheduling.
+    Manages data dependencies
+
+# fullGraphScheduler (Extends commons)
+    Manages and schedules the full graph of tasks
+ 
+# readyScheduler (Extends commons and is abstract)
+    Abstract implementation for scheduling ONLY ready tasks
+
+# resourceEmptyScheduler (Implements readyScheduler)
+    Schedules ready tasks to fullfill all empty resources.
+    If draw, uses Data Locality
+
+# fifoScheduler (Implements readyScheduler)
+    Schedules ready tasks in FIFO mode.
+
+# lifoScheduler (Implements readyScheduler)
+    Schedules ready tasks in LIFO mode.
+

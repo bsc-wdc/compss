@@ -56,6 +56,7 @@ class TypesEventsMaster:
         "wait_on_event",
         "process_task_event",
         "wall_clock_limit_event",
+        "snapshot_event",
         "task_instantiation",
         "inspect_function_arguments",
         "get_function_information",
@@ -111,6 +112,7 @@ class TypesEventsMaster:
         self.wait_on_event = 22
         self.process_task_event = 23
         self.wall_clock_limit_event = 24
+        self.snapshot_event = 25
 
         # CALL EVENTS
         self.task_instantiation = 100

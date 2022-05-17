@@ -38,7 +38,7 @@ public enum TraceEventType {
     // Task Ids
     TASKS_ID(8_000_002, "Task IDs", false),
 
-    TASK_TRANSFERS(8_000_003, "Task Transfers Request", true), //
+    CHECKPOINT_EVENTS_TYPE(8_001_006, "Checkpoint", true), TASK_TRANSFERS(8_000_003, "Task Transfers Request", true), //
     DATA_TRANSFERS(8_000_004, "Data Transfers", false), //
     STORAGE_TYPE(8_000_005, "Storage API", true), //
     READY_COUNTS(8_000_006, "Ready queue count", true), //

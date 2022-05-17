@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Project>
+    <MasterNode/>
+    <ComputeNode Name="COMPSsWorker01">
+        <InstallDir>/opt/COMPSs/</InstallDir>
+        <WorkingDir>/tmp/COMPSsWorker01/</WorkingDir>
+    </ComputeNode>
+    <ComputeNode Name="COMPSsWorker02">
+        <InstallDir>/opt/COMPSs/</InstallDir>
+        <WorkingDir>/tmp/COMPSsWorker02/</WorkingDir>
+    </ComputeNode>
+</Project>

@@ -151,11 +151,11 @@ void GS_Close_File(long appId, char* fileName, int mode) {
 }
 
 
-void GS_Delete_File(long appId, char* fileName, int wait) {
+void GS_Delete_File(long appId, char* fileName, int wait, int applicationDelete) {
 	if (PIPES) {
-		PIPE_Delete_File(appId, fileName, wait);
+		PIPE_Delete_File(appId, fileName, wait, applicationDelete);
 	} else {
-		JNI_Delete_File(appId, fileName, wait);
+		JNI_Delete_File(appId, fileName, wait, applicationDelete);
 	}
 }
 
@@ -210,6 +210,15 @@ void GS_BarrierNew(long appId, int noMoreTasks) {
 		PIPE_BarrierNew(appId, noMoreTasks);
 	} else {
 		JNI_BarrierNew(appId, noMoreTasks);
+	}
+}
+
+
+void GS_Snapshot(long appId) {
+	if (PIPES) {
+		PIPE_Snapshot(appId);
+	} else {
+		JNI_Snapshot(appId);
 	}
 }
 

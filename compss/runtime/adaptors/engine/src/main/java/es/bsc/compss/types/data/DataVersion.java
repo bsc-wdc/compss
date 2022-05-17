@@ -101,7 +101,7 @@ public class DataVersion {
                 s.release();
             }
         }
-        return checkDeletion();
+        return this.toDelete && checkDeletion();
     }
 
     /**
@@ -111,7 +111,7 @@ public class DataVersion {
      */
     public boolean hasBeenWritten() {
         this.writers--;
-        return checkDeletion();
+        return this.toDelete && checkDeletion();
     }
 
     /**
@@ -139,10 +139,7 @@ public class DataVersion {
      */
     public boolean markToDelete() {
         this.toDelete = true;
-        if (this.readers == 0 && this.writers == 0) {
-            return true;
-        }
-        return false;
+        return checkDeletion();
     }
 
     public void unmarkToDelete() {
@@ -164,14 +161,8 @@ public class DataVersion {
      * @return {@code true} if the data version can be deleted and is marked for deletion, {@code false} otherwise.
      */
     private boolean checkDeletion() {
-        if (this.toDelete // deletion requested
-            && this.writers == 0 // version has been generated
-            && this.readers == 0 // version has been read
-        ) {
-
-            return true;
-        }
-        return false;
+        return this.writers == 0 // version has been generated
+            && this.readers == 0; // version has been read
     }
 
     /**

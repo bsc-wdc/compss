@@ -52,6 +52,7 @@ public final class Loggers {
     public static final String TRACING = ALL_COMP + ".Tracing";
 
     public static final String TA_COMP = TP_COMP + ".TaskAnalyser";
+    public static final String CP_COMP = TP_COMP + ".CheckpointManager";
     public static final String DIP_COMP = TP_COMP + ".DataInfoProvider";
 
     public static final String TS_COMP = TD_COMP + ".TaskScheduler";

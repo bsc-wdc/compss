@@ -33,7 +33,7 @@ public abstract class DataInfo {
     protected static int nextDataId = FIRST_FILE_ID;
     // Data identifier
     protected final int dataId;
-    // Generating applicatication
+    // Generating application
     protected final Application app;
 
     // Current version

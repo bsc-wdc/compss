@@ -34,6 +34,7 @@ public enum TraceEvent {
     GET_DIRECTORY(58, TraceEventType.API, "Waiting for get Directory"), //
     DELETE(12, TraceEventType.API, "Delete File"), //
     WAIT_FOR_CONCURRENT(59, TraceEventType.API, "Wait on concurrent"), //
+    SNAPSHOT_API(80, TraceEventType.API, "Snapshot request"), //
 
     // Worker runtime events
     TASK_RUNNING(11, TraceEventType.RUNTIME, "Task Running"), //
@@ -82,16 +83,10 @@ public enum TraceEvent {
     DEREGISTER_OBJECT(40, TraceEventType.RUNTIME, "Access Processor: Deregister object"), //
     CANCEL_TASK_GROUP(41, TraceEventType.RUNTIME, "Access Processor: Cancel task group"), //
     REMOVE_APP_DATA(42, TraceEventType.RUNTIME, "Access Processor: Remove application data"), //
-    CANCEL_ALL_TASKS(56, TraceEventType.RUNTIME, "Acces Processor: Cancel all tasks"), //
-
-    // Storage Events
-    STORAGE_GETBYID(38, TraceEventType.STORAGE_TYPE, "getByID"), //
-    STORAGE_NEWREPLICA(39, TraceEventType.STORAGE_TYPE, "newReplica"), //
-    STORAGE_NEWVERSION(40, TraceEventType.STORAGE_TYPE, "newVersion"), //
-    STORAGE_INVOKE(41, TraceEventType.STORAGE_TYPE, "invoke"), //
-    STORAGE_EXECUTETASK(42, TraceEventType.STORAGE_TYPE, "executeTask"), //
-    STORAGE_GETLOCATIONS(43, TraceEventType.STORAGE_TYPE, "getLocations"), //
-    STORAGE_CONSOLIDATE(44, TraceEventType.STORAGE_TYPE, "consolidateVersion"), //
+    CANCEL_ALL_TASKS(56, TraceEventType.RUNTIME, "Access Processor: Cancel all tasks"), //
+    CP_SHUTDOWN_NOTIFICATION(81, TraceEventType.RUNTIME, "Access Processor: Checkpointed shutdown notification"), //
+    AP_SNAPSHOT(82, TraceEventType.RUNTIME, "Access Processor: Snapshot"), //
+    AP_CHECKPOINT_REQUEST(83, TraceEventType.RUNTIME, "Access Processor: CheckpointManager Request"), //
 
     // Task Dispatcher Events
     ACTION_UPDATE(45, TraceEventType.RUNTIME, "Task Dispatcher: Action update"), //
@@ -109,19 +104,26 @@ public enum TraceEvent {
     // Timer events
     TASK_TIMEOUT(58, TraceEventType.RUNTIME, "Timer: Task timed out"), //
 
+    // Storage Events
+    STORAGE_GETBYID(38, TraceEventType.STORAGE_TYPE, "getByID"), //
+    STORAGE_NEWREPLICA(39, TraceEventType.STORAGE_TYPE, "newReplica"), //
+    STORAGE_NEWVERSION(40, TraceEventType.STORAGE_TYPE, "newVersion"), //
+    STORAGE_INVOKE(41, TraceEventType.STORAGE_TYPE, "invoke"), //
+    STORAGE_EXECUTETASK(42, TraceEventType.STORAGE_TYPE, "executeTask"), //
+    STORAGE_GETLOCATIONS(43, TraceEventType.STORAGE_TYPE, "getLocations"), //
+    STORAGE_CONSOLIDATE(44, TraceEventType.STORAGE_TYPE, "consolidateVersion"), //
     // Python Events Inside Worker
     WORKER_RUNNING(1, TraceEventType.BINDING_INSIDE_WORKER, "Worker running"), //
-
     PROCESS_TASK_PYTHON(2, TraceEventType.BINDING_INSIDE_WORKER, "Process task"), //
     PROCESS_PING_PYTHON(3, TraceEventType.BINDING_INSIDE_WORKER, "Process ping"), //
     PROCESS_QUIT_PYTHON(4, TraceEventType.BINDING_INSIDE_WORKER, "Process quit"), //
-
     INIT_STORAGE(5, TraceEventType.BINDING_INSIDE_WORKER, "Init storage"), //
     STOP_STORAGE(6, TraceEventType.BINDING_INSIDE_WORKER, "Stop storage"), //
     INIT_STORAGE_WORKER(7, TraceEventType.BINDING_INSIDE_WORKER, "Init storage at worker"), //
     STOP_STORAGE_WORKER(8, TraceEventType.BINDING_INSIDE_WORKER, "Stop storage at worker"), //
     INIT_STORAGE_WORKER_PROCESS(9, TraceEventType.BINDING_INSIDE_WORKER, "Init storage at worker process"), //
     STOP_STORAGE_WORKER_PROCESS(10, TraceEventType.BINDING_INSIDE_WORKER, "Stop storage at worker process"), //
+    WORKER_TASK_INSTANTIATION(25, TraceEventType.BINDING_INSIDE_WORKER, "Task instantiation"), //
 
     // Python Events Inside Tasks
     CPU_BINDING_PYTHON(1, TraceEventType.BINDING_INSIDE_TASKS, "CPU binding"), //
@@ -138,7 +140,6 @@ public enum TraceEvent {
     BUILD_COMPSS_EXCEPTION_MESSAGE(12, TraceEventType.BINDING_INSIDE_TASKS, "Build COMPSs exception message"), //
     BUILD_EXCEPTION_MESSAGE(13, TraceEventType.BINDING_INSIDE_TASKS, "Build exception message"), //
     CLEAN_ENVIRONMENT_PYTHON(14, TraceEventType.BINDING_INSIDE_TASKS, "Clean environment"), //
-
     GET_BY_ID(15, TraceEventType.BINDING_INSIDE_TASKS, "Get by ID persistent object"), //
     GET_ID(16, TraceEventType.BINDING_INSIDE_TASKS, "Get object ID"), //
     MAKE_PERSISTENT(17, TraceEventType.BINDING_INSIDE_TASKS, "Make persistent object"), //
@@ -146,8 +147,7 @@ public enum TraceEvent {
     RETRIEVE_OBJECT_INTO_CACHE(19, TraceEventType.BINDING_INSIDE_TASKS, "Get object from cache"), //
     INSERT_OBJECT_INTO_CACHE(20, TraceEventType.BINDING_INSIDE_TASKS, "Put object in cache"), //
     REMOVE_OBJECT_FROM_CACHE(21, TraceEventType.BINDING_INSIDE_TASKS, "Remove object from cache"), //
-
-    TASK_INSTANTIATION_PYTHON(25, TraceEventType.BINDING_INSIDE_TASKS, "Task instantiation"), //
+    WAIT_ON_PYTHON(22, TraceEventType.BINDING_INSIDE_TASKS, "Wait on"), //
 
     // Python Master Events
     PYTHON_START_RUNTIME(1, TraceEventType.BINDING_MASTER, "Start runtime"), //
@@ -174,6 +174,7 @@ public enum TraceEvent {
     PYTHON_WAIT_ON(22, TraceEventType.BINDING_MASTER, "Wait on"), //
     PYTHON_PROCESS_TASK(23, TraceEventType.BINDING_MASTER, "Call to process task"), //
     PYTHON_WALL_CLOCK_LIMIT(24, TraceEventType.BINDING_MASTER, "Wall clock limit"), //
+    PYTHON_SNAPSHOT(25, TraceEventType.BINDING_MASTER, "Snapshot"), //
 
     // Internal events
     PYTHON_TASK_INSTANTIATION(100, TraceEventType.BINDING_MASTER, "Task instantiation"), //
@@ -200,6 +201,18 @@ public enum TraceEvent {
     AGENT_REMOVE_NODE(6004, TraceEventType.AGENT, "Remove node agent"), //
     AGENT_REMOVE_RESOURCES(6005, TraceEventType.AGENT, "Remove resources agent"), //
     AGENT_RUN_TASK(6006, TraceEventType.AGENT, "Run task agent"), //
+
+    // Checkpointer events
+    CHECKPOINT_SHUTDOWN(7001, TraceEventType.CHECKPOINT_EVENTS_TYPE, "CheckpointManager shutdown"),
+
+    CHECKPOINT_NEW_TASK(7002, TraceEventType.CHECKPOINT_EVENTS_TYPE, "Checkpoint New task"), // New task
+    CHECKPOINT_END_TASK(7003, TraceEventType.CHECKPOINT_EVENTS_TYPE, "Checkpoint end task"), // End task
+    CHECKPOINT_MAIN_ACCESS(7004, TraceEventType.CHECKPOINT_EVENTS_TYPE, "Checkpoint main data access"), // Main access
+    CHECKPOINT_DELETE_DATA(7005, TraceEventType.CHECKPOINT_EVENTS_TYPE, "Checkpoint deletes data"), // delete data
+    CHECKPOINT_SNAPSHOT(7006, TraceEventType.CHECKPOINT_EVENTS_TYPE, "Checkpoint snapshot"), // Snapshot
+
+    SAVE_LAST_DATA_VERSIONS(7011, TraceEventType.CHECKPOINT_EVENTS_TYPE, "Checkpoint current versions"), // Request
+    CHECKPOINT_COPY_DATA_ENDED(7012, TraceEventType.CHECKPOINT_EVENTS_TYPE, "Checkpoint copy finished"), // Request
 
     // Thread identifier events
     AP_THREAD_ID(Threads.AP.id, TraceEventType.THREAD_IDENTIFICATION, Threads.AP.description), //

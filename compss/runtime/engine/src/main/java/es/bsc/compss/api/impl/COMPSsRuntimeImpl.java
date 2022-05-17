@@ -1589,7 +1589,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     DataLocation location = createLocation(ProtocolType.DIR_URI, dirName);
                     pars.add(new DirectoryParameter(direction, stream, prefix, name, pyType, weight, keepRename,
                         location, originalName));
-                    if (DataProvenanceEnabled) { // Log access to directory in the dataprovenance.log
+                    if (DP_ENABLED) {
+                        // Log access to directory in the dataprovenance.log
                         String finalPath = location.toString();
                         if (finalPath.contains("shared:shared_disk")) { // Need to fix URI from SharedDisks
                             Resource host = Comm.getAppHost();

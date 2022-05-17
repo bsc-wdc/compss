@@ -1589,6 +1589,19 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     DataLocation location = createLocation(ProtocolType.DIR_URI, dirName);
                     pars.add(new DirectoryParameter(direction, stream, prefix, name, pyType, weight, keepRename,
                         location, originalName));
+                    if (DP_ENABLED) {
+                        // Log access to directory in the dataprovenance.log
+                        String finalPath = location.toString();
+                        if (finalPath.contains("shared:shared_disk")) { // Need to fix URI from SharedDisks
+                            Resource host = Comm.getAppHost();
+                            String absolute = dirFile.getAbsolutePath();
+                            String fixedFinalPath = "dir://" + host.getName() + absolute;
+                            DP_LOGGER.info(fixedFinalPath + " " + direction.toString());
+
+                        } else {
+                            DP_LOGGER.info(finalPath + " " + direction.toString());
+                        }
+                    }
                 } catch (Exception e) {
                     LOGGER.error(ERROR_DIR_NAME + " : " + e.getMessage());
                     ErrorManager.fatal(ERROR_DIR_NAME, e);
@@ -1597,19 +1610,20 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             case FILE_T:
                 try {
                     String fileName = content.toString();
-                    String originalName = new File(fileName).getName();
+                    File f = new File(fileName);
+                    String originalName = f.getName();
                     DataLocation location = createLocation(ProtocolType.FILE_URI, content.toString());
                     pars.add(new FileParameter(direction, stream, prefix, name, pyType, weight, keepRename, location,
                         originalName));
-
                     if (DP_ENABLED) {
                         // Log access to file in the dataprovenance.log.
                         // Corner case: PyCOMPSs objects are passed as files to the runtime
                         String finalPath = location.toString();
                         if (!finalPath.contains("tmpFiles/pycompss")) {
-                            if (finalPath.contains("shared:shared_disk")) { // Need to fix URI
-                                int firstSlash = finalPath.indexOf("/");
-                                String fixedFinalPath = "file://localhost" + finalPath.substring(firstSlash);
+                            if (finalPath.contains("shared:shared_disk")) { // Need to fix URI from SharedDisks
+                                Resource host = Comm.getAppHost();
+                                String absolute = f.getAbsolutePath();
+                                String fixedFinalPath = "file://" + host.getName() + absolute;
                                 DP_LOGGER.info(fixedFinalPath + " " + direction.toString());
 
                             } else {

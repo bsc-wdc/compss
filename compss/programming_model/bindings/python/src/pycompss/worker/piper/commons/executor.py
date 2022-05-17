@@ -252,7 +252,8 @@ def executor(
 
         if len(conf.logger.handlers) == 0:
             # Logger has not been inherited correctly. Happens in MacOS.
-            GLOBALS.set_temporary_directory(conf.tmp_dir, create_tmpdir=False)
+            tmp_dir = os.path.join(conf.tmp_dir, "..")
+            GLOBALS.set_temporary_directory(tmp_dir, create_tmpdir=False)
             # Reload logger
             (
                 conf.logger,

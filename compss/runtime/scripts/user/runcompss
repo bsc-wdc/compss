@@ -658,6 +658,7 @@ check_args() {
 
 clean_env() {
   clear_compss_app
+  rm -f App_Profile.json compss_command_line_arguments.txt
 }
 
 

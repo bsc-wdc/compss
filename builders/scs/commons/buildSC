@@ -43,7 +43,11 @@
   SCtargetDir=$4
   SCauxScript=$5
   PRELOAD_ENV=$6
-  kafka=1 # Set to 0 to skip kafka compilation
+  if [ $(uname) == "Darwin" ]; then
+    kafka=0 # Installation from macOS with kafka not available
+  else
+    kafka=1 # Set to 0 to skip kafka compilation
+  fi
 
   # CREATE SC TMP DIR
   echo "Creating remote tmp directory..."

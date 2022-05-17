@@ -21,8 +21,10 @@ from rocrate.model.person import Person
 from rocrate.model.contextentity import ContextEntity
 from rocrate.model.entity import Entity
 from rocrate.model.file import File
+from rocrate.utils import iso_now
 
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import yaml
 import os
@@ -33,47 +35,65 @@ import typing
 CRATE = ROCrate()
 
 
-def add_file_not_in_crate(file_name: str) -> list:
+def add_file_not_in_crate(in_url: str) -> None:
     """
-    When adding files not physically in the Crate, they must be removed
-    from the hasPart clause
+    When adding local files that we don't want to be physically in the Crate, they must be added with a file:// URI
+    CAUTION: If the file has been already added (e.g. for INOUT files) add_file won't succeed in adding a second entity
+    with the same name
 
-    CAUTION: If the file has been already added (e.g. for INOUT files)
-    add_file won't succeed in adding a second entity with the same name
+    :param in_url: File added as input or output, but not in the RO-Crate
 
-    :param file_name: File added as input or output, but not in the RO-Crate
-    :returns: Updated hasPart clause from RO-Crate
+    :returns: None
     """
 
-    # TODO: for directories: use .iterdir()
+    url_parts = urlsplit(in_url)
+    final_item_name = os.path.basename(in_url)
+    file_properties = {
+        "name": final_item_name,
+        "sdDatePublished": iso_now(),
+    }  # Register when the Data Entity was last accessible
 
-    fn = Path(file_name)
-    file_properties = {"name": fn.name}
+    if url_parts.scheme == "file":  # Dealing with a local file
+        file_properties["contentSize"] = os.path.getsize(url_parts.path)
+        CRATE.add_file(
+            in_url,
+            fetch_remote=False,
+            validate_url=False,  # True fails at MN4 when file URI points to a node hostname (only localhost works)
+            properties=file_properties,
+        )
 
-    if fn.parts[0] == "file:":  # Dealing with a local file
-        tuple_path = fn.parts
-        list_path = list(tuple_path)
-        new_path = []
-        for i, item in enumerate(list_path):
-            if i > 1:  # Remove file: and hostname
-                new_path.append(item)
-        j_np = "/" + "/".join(new_path)
-        new_fn = Path(j_np)
-        file_properties["contentSize"] = new_fn.stat().st_size
-        CRATE.add_file(file_name, validate_url=False, properties=file_properties)
-    else:  # Remote file. validate_url already adds contentSize and encodingFormat from the remote file
-        CRATE.add_file(file_name, validate_url=True, properties=file_properties)
+    elif url_parts.scheme == "dir":  # DIRECTORY parameter
+        # For directories, describe all files inside the directory
+        hasPart_list = []
+        for root, dirs, files in os.walk(
+            url_parts.path, topdown=True
+        ):  # Ignore references to sub-directories (they are not a specific in or out of the workflow), but not their files
+            dirs.sort()
+            files.sort()
+            for f_name in files:
+                listed_file = os.path.join(root, f_name)
+                dir_f_url = "file://" + url_parts.netloc + listed_file
+                hasPart_list.append({"@id": dir_f_url})
+                dir_f_properties = {
+                    "name": f_name,
+                    "sdDatePublished": iso_now(),  # Register when the Data Entity was last accessible
+                    "contentSize": os.path.getsize(listed_file),
+                }
+                CRATE.add_file(
+                    dir_f_url,
+                    fetch_remote=False,
+                    validate_url=False,
+                    # True fails at MN4 when file URI points to a node hostname (only localhost works)
+                    properties=dir_f_properties,
+                )
+        file_properties["hasPart"] = hasPart_list
+        CRATE.add_dataset(
+            fix_dir_url(in_url), properties=file_properties
+        )  # fetch_remote and validate_url false by default. add_dataset also ensures the URL ends with '/'
 
-    # print(f"BEFORE HACK: CRATE.root_dataset._jsonld[hasPart] is: {CRATE.root_dataset._jsonld['hasPart']}")
-    # Hack: Avoid including non validated remote files in the "hasPart" section
-    has_part_crate = CRATE.root_dataset._jsonld["hasPart"]  # Assign hasPart list
-    if has_part_crate[-1]["@id"] == file_name:
-        has_part_crate.pop(-1)  # Can't use remove, file_name is in a dictionary now
-        # print(f"AFTER HACK: has_part_crate is: {has_part_crate}")
-    # else:
-    # print(f"HACK SKIPPED: has_part_crate is: {has_part_crate}")
-
-    return has_part_crate
+    else:  # Remote file, currently not supported in COMPSs. validate_url already adds contentSize and encodingFormat
+        # from the remote file
+        CRATE.add_file(in_url, validate_url=True, properties=file_properties)
 
 
 def get_main_entities() -> typing.Tuple[str, str, str]:
@@ -90,7 +110,6 @@ def get_main_entities() -> typing.Tuple[str, str, str]:
         second_line = next(
             f
         ).rstrip()  # Second, main_entity. Use better rstrip, just in case there is no '\n'
-        # clean_path = secondline[:-1] # Remove final "\n"
         main_entity_fn = Path(second_line)
         third_line = next(f).rstrip()
         out_profile_fn = Path(third_line)
@@ -100,8 +119,10 @@ def get_main_entities() -> typing.Tuple[str, str, str]:
 
 def process_accessed_files() -> typing.Tuple[list, list]:
     """
-    Process all the files the COMPSs workflow has accessed. They will be the
-    overall inputs needed and outputs generated of the whole workflow
+    Process all the files the COMPSs workflow has accessed. They will be the overall inputs needed and outputs
+    generated of the whole workflow.
+    - If a task that is an INPUT, was previously an OUTPUT, it means it is an intermediate file, therefore we discard it
+    - Works fine with COLLECTION_FILE_IN, COLLECTION_FILE_OUT and COLLECTION_FILE_INOUT
 
     :returns: List of Inputs and Outputs of the COMPSs workflow
     """
@@ -113,13 +134,25 @@ def process_accessed_files() -> typing.Tuple[list, list]:
         for line in f:
             file_record = line.rstrip().split(" ")
             if len(file_record) == 2:
-                # print(f"File name: {file_record[0]}, Direction: {file_record[1]}")
-                if file_record[1] == "IN":
-                    inputs.add(file_record[0])
+                if (
+                    file_record[1] == "IN" or file_record[1] == "IN_DELETE"
+                ):  # Can we have an IN_DELETE that was not previously an OUTPUT?
+                    if (
+                        file_record[0] not in outputs
+                    ):  # A true INPUT, not an intermediate file
+                        inputs.add(file_record[0])
+                    #  Else, it is an intermediate file, not a true INPUT or OUTPUT. Not adding it as an input may
+                    # be enough in most cases, since removing it as an output may be a bit radical
+                    #     outputs.remove(file_record[0])
                 elif file_record[1] == "OUT":
                     outputs.add(file_record[0])
-                else:  # INOUT
-                    inputs.add(file_record[0])
+                else:  # INOUT, COMMUTATIVE, CONCURRENT
+                    if (
+                        file_record[0] not in outputs
+                    ):  # Not previously generated by another task (even a task using that same file), a true INPUT
+                        inputs.add(file_record[0])
+                    # else, we can't know for sure if it is an intermediate file, previous call using the INOUT may
+                    # have inserted it at outputs, thus don't remove it from outputs
                     outputs.add(file_record[0])
             # else dismiss the line
 
@@ -132,6 +165,25 @@ def process_accessed_files() -> typing.Tuple[list, list]:
     print(f"OUTPUTS({len(l_outs)})")
 
     return l_ins, l_outs
+
+
+def fix_dir_url(in_url: str) -> str:
+    """
+    Fix dir:// URL returned by the runtime, change it to file:// and ensure it ends with '/'
+
+    :param in_url: URL that may need to be fixed
+
+    :returns: A file:// URL
+    """
+
+    runtime_url = urlsplit(in_url)
+    if runtime_url.scheme == "dir":  # Fix dir:// to file:// and ensure it ends with a slash
+        new_url = "file://" + runtime_url.netloc + runtime_url.path
+        if new_url[-1] != '/':
+            new_url += '/'  # Add end slash if needed
+        return new_url
+    else:
+        return in_url  # No changes required
 
 
 def add_file_to_crate(
@@ -151,6 +203,7 @@ def add_file_to_crate(
     :param out_profile: COMPSs application profile output
     :param ins: List of input files
     :param outs: List of output files
+
     :returns: None
     """
 
@@ -169,10 +222,10 @@ def add_file_to_crate(
             }  # Name as generated
         file_properties["input"] = []
         for item in ins:
-            file_properties["input"].append({"@id": item})
+            file_properties["input"].append({"@id": fix_dir_url(item)})
         file_properties["output"] = []
         for item in outs:
-            file_properties["output"].append({"@id": item})
+            file_properties["output"].append({"@id": fix_dir_url(item)})
 
     else:
         # Any other extra file needed
@@ -282,26 +335,94 @@ def add_file_to_crate(
 
 def main():
     # First, read values defined by user from ro-crate-info.yaml
-    with open(info_yaml, "r", encoding="utf-8") as fp:
-        try:
-            yaml_content = yaml.safe_load(fp)
-        except yaml.YAMLError as exc:
-            print(exc)
+    try:
+        with open(info_yaml, "r", encoding="utf-8") as fp:
+            try:
+                yaml_content = yaml.safe_load(fp)
+            except yaml.YAMLError as exc:
+                print(exc)
+                raise exc
+    except IOError:
+        with open("ro-crate-info_TEMPLATE.yaml", "w", encoding="utf-8") as ft:
+            template = """COMPSs Workflow Information:
+  name: Name of your COMPSs application
+  description: Detailed description of your COMPSs application
+  license: Apache-2.0 #Provide better a URL, but these strings are accepted:
+                  # https://about.workflowhub.eu/Workflow-RO-Crate/#supported-licenses
+  files: [main_file.py, aux_file_1.py, aux_file_2.py] # List of application files
+Authors:
+  - name: Author_1 Name
+    e-mail: author_1@email.com
+    orcid: https://orcid.org/XXXX-XXXX-XXXX-XXXX
+    organisation_name: Institution_1 name
+    ror: https://ror.org/XXXXXXXXX # Find them in ror.org
+  - name: Author_2 Name
+    e-mail: author2@email.com
+    orcid: https://orcid.org/YYYY-YYYY-YYYY-YYYY
+    organisation_name: Institution_2 name
+    ror: https://ror.org/YYYYYYYYY # Find them in ror.org
+            """
+            ft.write(template)
+            print(
+                f"ERROR: YAML file ro-crate-info.yaml not found in your working directory. A template has been generated"
+                f" in file ro-crate-info_TEMPLATE.yaml"
+            )
+        raise
 
     # Get Sections
     compss_wf_info = yaml_content["COMPSs Workflow Information"]
-    author_info = yaml_content["Author"]
-    organisation_info = yaml_content["Organisation"]
+    authors_info = yaml_content["Authors"]  # Now a list of authors
 
     # COMPSs Workflow RO Crate generation
 
     # Root Entity
     CRATE.name = compss_wf_info["name"]
-    # print(f"Name: {CRATE.name}")
     CRATE.description = compss_wf_info["description"]
     CRATE.license = compss_wf_info["license"]  # Faltarà el detall de la llicència????
-    CRATE.publisher = {"@id": organisation_info["ror"]}
-    CRATE.creator = {"@id": author_info["orcid"]}
+    authors_set = set()
+    organisations_set = set()
+    for author in authors_info:
+        authors_set.add(author["orcid"])
+        organisations_set.add(author["ror"])
+        CRATE.add(
+            Person(
+                CRATE,
+                author["orcid"],
+                {
+                    "name": author["name"],
+                    "contactPoint": {"@id": "mailto:" + author["e-mail"]},
+                    "affiliation": {"@id": author["ror"]},
+                },
+            )
+        )
+        CRATE.add(
+            ContextEntity(
+                CRATE,
+                "mailto:" + author["e-mail"],
+                {
+                    "@type": "ContactPoint",
+                    "contactType": "Author",
+                    "email": author["e-mail"],
+                    "identifier": author["e-mail"],
+                    "url": author["orcid"],
+                },
+            )
+        )
+        CRATE.add(
+            ContextEntity(
+                CRATE,
+                author["ror"],
+                {"@type": "Organization", "name": author["organisation_name"]},
+            )
+        )
+    author_list = list()
+    for creator in authors_set:
+        author_list.append({"@id": creator})
+    CRATE.creator = author_list
+    org_list = list()
+    for org in organisations_set:
+        org_list.append({"@id": org})
+    CRATE.publisher = org_list
 
     # Get mainEntity from COMPSs runtime report dataprovenance.log
 
@@ -315,57 +436,16 @@ def main():
 
     ins, outs = process_accessed_files()
 
-    # Add files that will be physically in the crate to hasPart
+    # Add files that will be physically in the crate
     for file in compss_wf_info["files"]:
-        # print(f"File: {file}")
         add_file_to_crate(file, compss_ver, main_entity, out_profile, ins, outs)
 
-    # Add files not in the Crate
+    # Add files not to be physically in the Crate
     for item in ins:
-        hp_crate = add_file_not_in_crate(item)
-        # print(f"OUTSIDE FUNC: CRATE.root_dataset._jsonld[hasPart] is: {CRATE.root_dataset._jsonld['hasPart']}")
-        CRATE.root_dataset._jsonld["hasPart"] = hp_crate
-        # print(f"AFTER ASSIGN: CRATE.root_dataset._jsonld[hasPart] is: {CRATE.root_dataset._jsonld['hasPart']}")
+        add_file_not_in_crate(item)
 
     for item in outs:
-        hp_crate = add_file_not_in_crate(item)
-        CRATE.root_dataset._jsonld["hasPart"] = hp_crate
-
-    # Contextual Entities
-
-    CRATE.add(
-        Person(
-            CRATE,
-            author_info["orcid"],
-            {
-                "name": author_info["name"],
-                "contactPoint": {"@id": "mailto:" + author_info["e-mail"]},
-                "affiliation": {"@id": organisation_info["ror"]},
-            },
-        )
-    )
-
-    CRATE.add(
-        ContextEntity(
-            CRATE,
-            "mailto:" + author_info["e-mail"],
-            {
-                "@type": "ContactPoint",
-                "contactType": "Author",
-                "email": author_info["e-mail"],
-                "identifier": author_info["e-mail"],
-                "url": author_info["orcid"],
-            },
-        )
-    )
-
-    CRATE.add(
-        ContextEntity(
-            CRATE,
-            organisation_info["ror"],
-            {"@type": "Organization", "name": organisation_info["name"]},
-        )
-    )
+        add_file_not_in_crate(item)
 
     # COMPSs RO-Crate Provenance Info can be directly hardcoded by now
 

@@ -7,6 +7,7 @@ from __future__ import print_function
 
 # Imports
 import os
+import sys
 
 ############################################
 # CONSTANTS
@@ -38,7 +39,10 @@ DEFAULT_CLI_FAMILIES = [
 DEFAULT_IGNORED = [".target", "target", ".idea", ".settings", ".git", "gat"]
 DEFAULT_TESTS = []
 
-DEFAULT_CFG_FILE = "NIO.cfg"
+if sys.platform == "darwin":
+    DEFAULT_CFG_FILE = "NIO_mac.cfg"
+else:
+    DEFAULT_CFG_FILE = "NIO.cfg"
 DEFAULT_SC_CFG_FILE = "MN.cfg"
 DEFAULT_CFG_EXTENSION = ".cfg"
 DEFAULT_COMPSS_HOME = "/opt/COMPSs/"

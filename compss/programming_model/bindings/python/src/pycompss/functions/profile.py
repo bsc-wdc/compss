@@ -95,10 +95,10 @@ class Profile:
         if self.full_report:
             self.__redirect__(report)
         else:
-            report = report.splitlines()
-            peak_memory = 0
-            file_name = report[0].split()[1]
-            for line in report[4:]:
+            report_lines = report.splitlines()
+            peak_memory = 0.0
+            file_name = report_lines[0].split()[1]
+            for line in report_lines[4:]:
                 # 4: removes the header lines
                 info = line.split()
                 if len(info) > 5:
@@ -106,8 +106,8 @@ class Profile:
                     usage = float(info[1].replace(",", ""))
                     if usage > peak_memory:
                         peak_memory = usage
-            info = f"{file_name} {function_name} {peak_memory} MiB"
-            self.__redirect__(info)
+            info_line = f"{file_name} {function_name} {peak_memory} MiB"
+            self.__redirect__(info_line)
         # Clear the stream for the next usage
         self.stream.truncate(0)
 

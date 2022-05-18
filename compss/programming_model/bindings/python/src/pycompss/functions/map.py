@@ -26,7 +26,7 @@ This file defines the common map functions.
 from pycompss.util.typing_helper import typing
 
 
-def __get_chunks__(iterable: typing.Iterable, chunksize: int):
+def __get_chunks__(iterable: typing.Union[list, tuple], chunksize: int):
     """Yield n-sized chunks from iterable.
 
     :param iterable: Iterable of items to be reduced.
@@ -39,7 +39,7 @@ def __get_chunks__(iterable: typing.Iterable, chunksize: int):
 
 def map(  # pylint: disable=redefined-builtin
     func: typing.Callable,
-    iterable: typing.Iterable,
+    iterable: typing.Union[list, tuple],
     chunksize: typing.Optional[int] = None,
 ):
     """Apply function cumulatively to the items of data.

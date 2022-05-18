@@ -20,6 +20,7 @@
 from pycompss.util.context import CONTEXT
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.container import Container
+from pycompss.api.binary import Binary
 from pycompss.runtime.task.core_element import CE
 
 
@@ -40,6 +41,16 @@ def test_container_call():
     CONTEXT.set_master()
     my_bin = Container(engine="docker", image="dummy")
     f = my_bin(dummy_function)
+    result = f()
+    CONTEXT.set_out_of_scope()
+    assert result == 1, "Wrong expected result (should be 1)."
+
+
+def test_container_call_binary():
+    CONTEXT.set_master()
+    my_cont = Container(engine="docker", image="dummy")
+    my_bin = Binary(binary="date")
+    f = my_cont(my_bin(dummy_function))
     result = f()
     CONTEXT.set_out_of_scope()
     assert result == 1, "Wrong expected result (should be 1)."

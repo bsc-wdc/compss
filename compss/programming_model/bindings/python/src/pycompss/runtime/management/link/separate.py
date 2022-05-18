@@ -199,6 +199,8 @@ def c_extension_link(
     # Import C extension within the external process
     import compss  # pylint: disable=import-outside-toplevel
 
+    command_done = LINK_MESSAGES.command_done
+
     with ipython_std_redirector(
         out_file_name, err_file_name
     ) if redirect_std else not_std_redirector():
@@ -211,13 +213,17 @@ def c_extension_link(
                 parameters = list(message[1:])
             if command == LINK_MESSAGES.start:
                 compss.start_runtime()
+                out_queue.put(command_done)
             elif command == LINK_MESSAGES.set_debug:
                 compss.set_debug(*parameters)
+                out_queue.put(command_done)
             elif command == LINK_MESSAGES.stop:
                 compss.stop_runtime(*parameters)
                 alive = False
+                out_queue.put(command_done)
             elif command == LINK_MESSAGES.cancel_tasks:
                 compss.cancel_application_tasks(*parameters)
+                out_queue.put(command_done)
             elif command == LINK_MESSAGES.accessed_file:
                 accessed = compss.accessed_file(*parameters)
                 out_queue.put(accessed)
@@ -226,22 +232,28 @@ def c_extension_link(
                 out_queue.put(compss_name)
             elif command == LINK_MESSAGES.close_file:
                 compss.close_file(*parameters)
+                out_queue.put(command_done)
             elif command == LINK_MESSAGES.delete_file:
                 result = compss.delete_file(*parameters)
                 out_queue.put(result)
             elif command == LINK_MESSAGES.get_file:
                 compss.get_file(*parameters)
+                out_queue.put(command_done)
             elif command == LINK_MESSAGES.get_directory:
                 compss.get_directory(*parameters)
+                out_queue.put(command_done)
             elif command == LINK_MESSAGES.barrier:
                 compss.barrier(*parameters)
+                out_queue.put(command_done)
             elif command == LINK_MESSAGES.barrier_group:
                 exception_message = compss.barrier_group(*parameters)
                 out_queue.put(exception_message)
             elif command == LINK_MESSAGES.open_task_group:
                 compss.open_task_group(*parameters)
+                out_queue.put(command_done)
             elif command == LINK_MESSAGES.close_task_group:
                 compss.close_task_group(*parameters)
+                out_queue.put(command_done)
             elif command == LINK_MESSAGES.get_logging_path:
                 log_path = compss.get_logging_path()
                 out_queue.put(log_path)
@@ -250,20 +262,28 @@ def c_extension_link(
                 out_queue.put(num_resources)
             elif command == LINK_MESSAGES.request_resources:
                 compss.request_resources(*parameters)
+                out_queue.put(command_done)
             elif command == LINK_MESSAGES.free_resources:
                 compss.free_resources(*parameters)
+                out_queue.put(command_done)
             elif command == LINK_MESSAGES.register_core_element:
                 compss.register_core_element(*parameters)
+                out_queue.put(command_done)
             elif command == LINK_MESSAGES.process_task:
                 compss.process_task(*parameters)
+                out_queue.put(command_done)
             elif command == LINK_MESSAGES.process_http_task:
                 compss.process_http_task(*parameters)
+                out_queue.put(command_done)
             elif command == LINK_MESSAGES.set_pipes:
                 compss.set_pipes(*parameters)
+                out_queue.put(command_done)
             elif command == LINK_MESSAGES.read_pipes:
                 compss.read_pipes(*parameters)
+                out_queue.put(command_done)
             elif command == LINK_MESSAGES.set_wall_clock:
                 compss.set_wall_clock(*parameters)
+                out_queue.put(command_done)
             else:
                 raise PyCOMPSsException("Unknown link command")
 
@@ -290,6 +310,7 @@ class _COMPSs:
         :return: None
         """
         self.in_queue.put([LINK_MESSAGES.start])
+        _ = self.out_queue.get(block=True)
 
     def set_debug(self, mode: bool) -> None:
         """Call to set_debug.
@@ -298,6 +319,7 @@ class _COMPSs:
         :return: None.
         """
         self.in_queue.put((LINK_MESSAGES.set_debug, mode))
+        _ = self.out_queue.get(block=True)
 
     def stop_runtime(self, code: int) -> None:
         """Call to stop_runtime.
@@ -306,6 +328,7 @@ class _COMPSs:
         :return: None.
         """
         self.in_queue.put([LINK_MESSAGES.stop, code])
+        _ = self.out_queue.get(block=True)
         EXTERNAL_LINK.wait_for_interactive_link()
         # EXTERNAL_LINK.terminate_interactive_link()
 
@@ -317,6 +340,7 @@ class _COMPSs:
         :return: None.
         """
         self.in_queue.put((LINK_MESSAGES.cancel_tasks, app_id, value))
+        _ = self.out_queue.get(block=True)
 
     def accessed_file(self, app_id: int, file_name: str) -> bool:
         """Call to accessed_file.
@@ -352,6 +376,7 @@ class _COMPSs:
         :return: None.
         """
         self.in_queue.put((LINK_MESSAGES.close_file, app_id, file_name, mode))
+        _ = self.out_queue.get(block=True)
 
     def delete_file(self, app_id: int, file_name: str, mode: bool) -> bool:
         """Call to delete_file.
@@ -375,6 +400,7 @@ class _COMPSs:
         :return: None.
         """
         self.in_queue.put((LINK_MESSAGES.get_file, app_id, file_name))
+        _ = self.out_queue.get(block=True)
 
     def get_directory(self, app_id: int, directory_name: str) -> None:
         """Call to (synchronize directory) get_directory.
@@ -384,6 +410,7 @@ class _COMPSs:
         :return: None.
         """
         self.in_queue.put((LINK_MESSAGES.get_directory, app_id, directory_name))
+        _ = self.out_queue.get(block=True)
 
     def barrier(self, app_id: int, no_more_tasks: bool) -> None:
         """Call to barrier.
@@ -393,6 +420,7 @@ class _COMPSs:
         :return: None
         """
         self.in_queue.put((LINK_MESSAGES.barrier, app_id, no_more_tasks))
+        _ = self.out_queue.get(block=True)
 
     def barrier_group(self, app_id: int, group_name: str) -> str:
         """Call to barrier_group.
@@ -418,6 +446,7 @@ class _COMPSs:
         self.in_queue.put(
             (LINK_MESSAGES.open_task_group, group_name, implicit_barrier, app_id)
         )
+        _ = self.out_queue.get(block=True)
 
     def close_task_group(self, group_name: str, app_id: int) -> None:
         """Call to close_task_group.
@@ -427,6 +456,7 @@ class _COMPSs:
         :return: None.
         """
         self.in_queue.put((LINK_MESSAGES.close_task_group, group_name, app_id))
+        _ = self.out_queue.get(block=True)
 
     def get_logging_path(self) -> str:
         """Call to get_logging_path.
@@ -460,6 +490,7 @@ class _COMPSs:
         self.in_queue.put(
             (LINK_MESSAGES.request_resources, app_id, num_resources, group_name)
         )
+        _ = self.out_queue.get(block=True)
 
     def free_resources(self, app_id: int, num_resources: int, group_name: str) -> None:
         """Call to free_resources.
@@ -472,6 +503,7 @@ class _COMPSs:
         self.in_queue.put(
             (LINK_MESSAGES.free_resources, app_id, num_resources, group_name)
         )
+        _ = self.out_queue.get(block=True)
 
     def set_wall_clock(self, app_id: int, wcl: int) -> None:
         """Call to set_wall_clock.
@@ -481,6 +513,7 @@ class _COMPSs:
         :return: None.
         """
         self.in_queue.put((LINK_MESSAGES.set_wall_clock, app_id, wcl))
+        _ = self.out_queue.get(block=True)
 
     def register_core_element(
         self,
@@ -518,6 +551,7 @@ class _COMPSs:
                 impl_type_args,
             )
         )
+        _ = self.out_queue.get(block=True)
 
     def process_task(
         self,
@@ -594,6 +628,7 @@ class _COMPSs:
                 keep_renames,
             )
         )
+        _ = self.out_queue.get(block=True)
 
     def process_http_task(
         self,
@@ -670,6 +705,7 @@ class _COMPSs:
                 keep_renames,
             )
         )
+        _ = self.out_queue.get(block=True)
 
     def set_pipes(self, pipe_in: str, pipe_out: str) -> None:
         """Set nesting pipes.
@@ -679,6 +715,7 @@ class _COMPSs:
         :return: None.
         """
         self.in_queue.put((LINK_MESSAGES.set_pipes, pipe_in, pipe_out))
+        _ = self.out_queue.get(block=True)
 
     def read_pipes(self) -> str:
         """Call to read_pipes.

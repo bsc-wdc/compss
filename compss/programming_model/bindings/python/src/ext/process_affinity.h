@@ -47,5 +47,5 @@ static PyObject* pysched_getaffinity(PyObject* self, PyObject* args);
 
 extern "C" {
     PyMODINIT_FUNC
-    PyInit_thread_affinity(void);
+    PyInit_process_affinity(void);
 }

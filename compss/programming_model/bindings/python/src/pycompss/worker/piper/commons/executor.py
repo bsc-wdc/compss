@@ -36,7 +36,7 @@ from pycompss.util.typing_helper import typing
 
 try:
     THREAD_AFFINITY = True
-    import thread_affinity  # noqa
+    import process_affinity  # noqa
 except ImportError:
     from pycompss.worker.piper.commons.constants import HEADER as MAIN_HEADER
 
@@ -610,7 +610,7 @@ def process_task(
             if THREAD_AFFINITY:
                 # The cpu affinity can be long if multiple cores have been
                 # assigned. To avoid issues, we get just the first id.
-                real_affinity = thread_affinity.getaffinity()
+                real_affinity = process_affinity.getaffinity()
                 cpus = str(real_affinity[0])
                 num_cpus = len(real_affinity)
                 emit_manual_event(int(cpus) + 1, inside=True, cpu_affinity=True)
@@ -814,7 +814,7 @@ def bind_cpus(cpus: str, process_name: str, logger: typing.Any) -> bool:
         cpus_list = cpus.split(",")
         cpus_map = list(map(int, cpus_list))
         try:
-            thread_affinity.setaffinity(cpus_map)
+            process_affinity.setaffinity(cpus_map)
         except Exception:  # pylint: disable=broad-except
             if __debug__:
                 logger.error(

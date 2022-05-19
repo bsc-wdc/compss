@@ -72,12 +72,12 @@ compssmodule = Extension(
 )
 
 # Thread affinity extension
-thread_affinity = Extension(
-    'thread_affinity',
+process_affinity = Extension(
+    'process_affinity',
     include_dirs=['src/ext'],
     extra_compile_args=['-std=c++11'],
     # extra_compile_args=['-fPIC %s' % (' '.join(gcc_debug_flags.split('\n')))],
-    sources=['src/ext/thread_affinity.cc']
+    sources=['src/ext/process_affinity.cc']
 )
 
 
@@ -98,7 +98,7 @@ def find_packages(path='./src'):
 
 
 if target_os == 'Linux':
-    os_modules = [compssmodule, thread_affinity]
+    os_modules = [compssmodule, process_affinity]
 elif target_os == 'Darwin':
     os_modules = [compssmodule]
 else:

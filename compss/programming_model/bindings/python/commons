@@ -71,12 +71,12 @@ create_symbolic_links (){
   fi
 
   # Setup a symbolic link to thread affinity module
-  ln -sfn "${origin}"/thread_affinity.* "${packages_folder}/"
+  ln -sfn "${origin}"/process_affinity.* "${packages_folder}/"
   ev=$?
   if [ $ev -ne 0 ]; then
-    echo "Failed, to create symbolic link from ${origin}/thread_affinity.* to ${packages_folder}/thread_affinity.*"
+    echo "Failed, to create symbolic link from ${origin}/process_affinity.* to ${packages_folder}/process_affinity.*"
     exit $ev
   else
-    echo "Created symbolic link from ${origin}/thread_affinity.* to ${packages_folder}/thread_affinity.*"
+    echo "Created symbolic link from ${origin}/process_affinity.* to ${packages_folder}/process_affinity.*"
   fi
 }

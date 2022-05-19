@@ -12,8 +12,8 @@ CONTENT
 src
 L ext                     -> External C modules
 |   L compssmodule.cc     -> C module to interact with the binding-commons
-|   L thread_affinity.cc  -> C module to set the affinity
-|   L thread_affinity.h   -> C module to set the affinity header
+|   L process_affinity.cc -> C module to set the affinity
+|   L process_affinity.h  -> C module to set the affinity header
 L pycompss                -> Python modules
     L api                 -> API modules to be imported by the programmer in the application
     L dds                 -> DDS library

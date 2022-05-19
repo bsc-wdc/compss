@@ -52,6 +52,7 @@ class LinkMessages:
         "set_pipes",
         "read_pipes",
         "set_wall_clock",
+        "command_done",
     ]
 
     def __init__(self):
@@ -80,6 +81,7 @@ class LinkMessages:
         self.set_pipes = "SET_PIPES"
         self.read_pipes = "READ_PIPES"
         self.set_wall_clock = "SET_WALL_CLOCK"
+        self.command_done = "COMMAND_DONE"  # Default response message
 
 
 LINK_MESSAGES = LinkMessages()

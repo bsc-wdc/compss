@@ -41,7 +41,7 @@ def gen_random(size: int, frag_size: int, seed: int) -> typing.Any:
     :return: a fragment of elements
     """
     random.seed(seed)
-    return [[random.random() for _ in range(size)] for _ in range(frag_size)]  # NOSONAR
+    return [[random.random() for _ in range(size)] for _ in range(frag_size)]
 
 
 @task(returns=list)

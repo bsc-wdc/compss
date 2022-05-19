@@ -30,15 +30,29 @@ except ImportError:
     using_mypy = True
 
 
-@local
-def dummy_function(*args, **kwargs):  # noqa
-    return sum(args)
-
-
 def test_local_instantiation():
     if using_mypy:
         raise Exception("UNSUPPORTED WITH MYPY")
     CONTEXT.set_master()
+
+    @local
+    def dummy_function(*args, **kwargs):  # noqa
+        return sum(args)
+
+    result = dummy_function(1, 2, other=3)
+    CONTEXT.set_out_of_scope()
+    assert result == 3, "Wrong expected result (should be 3)."
+
+
+def test_local_instantiation_outside():
+    if using_mypy:
+        raise Exception("UNSUPPORTED WITH MYPY")
+    CONTEXT.set_out_of_scope()
+
+    @local
+    def dummy_function(*args, **kwargs):  # noqa
+        return sum(args)
+
     result = dummy_function(1, 2)
     CONTEXT.set_out_of_scope()
     assert result == 3, "Wrong expected result (should be 3)."

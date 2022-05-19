@@ -329,7 +329,7 @@ def main() -> None:
 
     # No cache or it is an executor
     cache = False
-    cache_queue = Queue()  # type: Queue
+    cache_queue = None  # type: typing.Any
     cache_ids = None
     if is_worker():
         # Setup cache if enabled

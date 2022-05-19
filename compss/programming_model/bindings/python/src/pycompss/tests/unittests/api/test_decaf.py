@@ -55,7 +55,7 @@ def test_decaf_call_outside():
     CONTEXT.set_out_of_scope()
     assert (
         thrown
-    ), "The decaf decorator did not raise an exception when invoked out of scope."  # noqa: E501
+    ), "The decaf decorator did not raise an exception when invoked out of scope."
 
 
 def test_decaf_runner_parameter():
@@ -71,7 +71,7 @@ def test_decaf_runner_parameter():
     ), "Runner parameter has not been initialized."
 
 
-def test_decaf_dfScript_parameter():  # NOSONAR
+def test_decaf_dfScript_parameter():
     CONTEXT.set_master()
     df_script = "my_dfScript"  # noqa
     my_decaf = Decaf(df_script="date", dfScript=df_script)

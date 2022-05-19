@@ -32,7 +32,7 @@ from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.error_msgs import cast_env_to_int_error
 from pycompss.api.commons.error_msgs import cast_string_to_int_error
-from pycompss.api.commons.error_msgs import not_in_pycompss
+from pycompss.api.dummy.reduction import reduction as dummy_reduction
 from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.typing_helper import typing
@@ -94,17 +94,18 @@ class Reduction:  # pylint: disable=too-few-public-methods
             # Get the computing nodes
             self.__process_reduction_params__()
 
-    def __call__(self, func: typing.Callable) -> typing.Callable:
+    def __call__(self, user_function: typing.Callable) -> typing.Callable:
         """Parse and set the reduce parameters within the task core element.
 
-        :param func: Function to decorate
+        :param user_function: Function to decorate
         :return: Decorated function.
         """
 
-        @wraps(func)
+        @wraps(user_function)
         def reduce_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             if not self.scope:
-                raise PyCOMPSsException(not_in_pycompss("reduction"))
+                d_r = dummy_reduction(self.args, self.kwargs)
+                return d_r.__call__(user_function)(*args, **kwargs)
 
             if __debug__:
                 logger.debug("Executing reduce_f wrapper.")
@@ -116,11 +117,11 @@ class Reduction:  # pylint: disable=too-few-public-methods
 
             with keep_arguments(args, kwargs, prepend_strings=False):
                 # Call the method
-                ret = func(*args, **kwargs)
+                ret = user_function(*args, **kwargs)
 
             return ret
 
-        reduce_f.__doc__ = func.__doc__
+        reduce_f.__doc__ = user_function.__doc__
         return reduce_f
 
     def __process_reduction_params__(self) -> None:

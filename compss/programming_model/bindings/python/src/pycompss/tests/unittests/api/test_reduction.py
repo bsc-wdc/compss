@@ -56,15 +56,8 @@ def test_reduction_call_outside():
     CONTEXT.set_out_of_scope()
     my_reduction = reduction()
     f = my_reduction(dummy_function)
-    thrown = False
-    try:
-        _ = f()
-    except Exception:  # noqa
-        thrown = True  # this is OK!
+    _ = f()
     CONTEXT.set_out_of_scope()
-    assert (
-        thrown
-    ), "The compss decorator did not raise an exception when invoked out of scope."  # noqa: E501
 
 
 def test_reduction_chunk_size_parameter():

@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 
 python3 -m pip install mypy
 python3 -m pip install mypy-extensions

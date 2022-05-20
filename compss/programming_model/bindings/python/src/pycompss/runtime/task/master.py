@@ -51,7 +51,7 @@ from pycompss.api.parameter import TYPE
 from pycompss.runtime.binding import wait_on
 from pycompss.runtime.commons import CONSTANTS
 from pycompss.runtime.commons import GLOBALS
-from pycompss.runtime.crank.initialization import LAUNCH_STATUS
+from pycompss.runtime.start.initialization import LAUNCH_STATUS
 from pycompss.runtime.management.classes import FunctionType
 from pycompss.runtime.management.classes import Future
 from pycompss.runtime.management.direction import get_compss_direction

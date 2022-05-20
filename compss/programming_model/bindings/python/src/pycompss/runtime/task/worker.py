@@ -1125,7 +1125,7 @@ class TaskWorker:
                 # handle dictionary collections recursively
                 for (content, elem) in __get_dict_collection_objects__(
                     arg.content, arg
-                ):  # noqa: E501
+                ):
                     if elem.file_name:
                         f_name = elem.file_name.original_path
                         if __debug__:

@@ -196,6 +196,7 @@ public abstract class CheckpointManagerImpl extends CheckpointRecord implements 
      */
     private void registerTaskParameterInGroup(Parameter param, CheckpointGroupImpl group) {
         DataType type = param.getType();
+
         if (type == DataType.COLLECTION_T) {
             CollectionParameter cp = (CollectionParameter) param;
             for (Parameter sp : cp.getParameters()) {
@@ -210,9 +211,9 @@ public abstract class CheckpointManagerImpl extends CheckpointRecord implements 
                 }
             }
         }
+
         if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T
-            || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T || type == DataType.COLLECTION_T
-            || type == DataType.DICT_COLLECTION_T) {
+            || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T) {
             DependencyParameter dp = (DependencyParameter) param;
             registerTaskSimpleParameterInGroup(dp, group);
         }

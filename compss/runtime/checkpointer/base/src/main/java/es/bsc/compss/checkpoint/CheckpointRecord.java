@@ -205,6 +205,7 @@ public class CheckpointRecord {
 
     private void recoverTaskParameter(Parameter param) {
         DataType type = param.getType();
+
         if (type == DataType.COLLECTION_T) {
             CollectionParameter cp = (CollectionParameter) param;
             for (Parameter sp : cp.getParameters()) {
@@ -219,9 +220,9 @@ public class CheckpointRecord {
                 }
             }
         }
+
         if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T
-            || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T || type == DataType.COLLECTION_T
-            || type == DataType.DICT_COLLECTION_T) {
+            || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T) {
             DependencyParameter dp = ((DependencyParameter) param);
             recoverTaskSimpleTaskParameter(dp);
         }
@@ -303,6 +304,7 @@ public class CheckpointRecord {
 
     private void registerTaskParameter(Parameter param, CheckpointTask ctl) {
         DataType type = param.getType();
+
         if (type == DataType.COLLECTION_T) {
             CollectionParameter cp = (CollectionParameter) param;
             for (Parameter sp : cp.getParameters()) {
@@ -315,9 +317,9 @@ public class CheckpointRecord {
                 registerTaskParameter(entry.getValue(), ctl);
             }
         }
+
         if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T
-            || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T || type == DataType.COLLECTION_T
-            || type == DataType.DICT_COLLECTION_T) {
+            || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T) {
             DependencyParameter dp = (DependencyParameter) param;
             registerTaskSimpleParameter(dp, ctl);
         }
@@ -395,6 +397,7 @@ public class CheckpointRecord {
 
     private void computedTaskParameter(Parameter param) {
         DataType type = param.getType();
+
         if (type == DataType.COLLECTION_T) {
             CollectionParameter cp = (CollectionParameter) param;
             for (Parameter sp : cp.getParameters()) {
@@ -409,9 +412,9 @@ public class CheckpointRecord {
                 }
             }
         }
+
         if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T
-            || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T || type == DataType.COLLECTION_T
-            || type == DataType.DICT_COLLECTION_T) {
+            || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T) {
             DependencyParameter dp = (DependencyParameter) param;
             computedTaskSimpleParameter(dp);
         } else {
@@ -455,6 +458,7 @@ public class CheckpointRecord {
 
     private void requestTaskParameterCheckpoint(Parameter param) {
         DataType type = param.getType();
+
         if (type == DataType.COLLECTION_T) {
             CollectionParameter cp = (CollectionParameter) param;
             for (Parameter sp : cp.getParameters()) {
@@ -469,9 +473,9 @@ public class CheckpointRecord {
                 }
             }
         }
+
         if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T
-            || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T || type == DataType.COLLECTION_T
-            || type == DataType.DICT_COLLECTION_T) {
+            || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T) {
             DependencyParameter dp = (DependencyParameter) param;
             requestTaskSimpleParameterCheckpoint(dp);
         } else {
@@ -481,6 +485,7 @@ public class CheckpointRecord {
 
     private void requestTaskParameterCheckpoint(Parameter param, List<DataVersion> allowed) {
         DataType type = param.getType();
+
         if (type == DataType.COLLECTION_T) {
             CollectionParameter cp = (CollectionParameter) param;
             for (Parameter sp : cp.getParameters()) {
@@ -495,9 +500,9 @@ public class CheckpointRecord {
                 }
             }
         }
+
         if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T
-            || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T || type == DataType.COLLECTION_T
-            || type == DataType.DICT_COLLECTION_T) {
+            || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T) {
             DependencyParameter dp = (DependencyParameter) param;
             requestTaskSimpleParameterCheckpoint(dp, allowed);
         } else {
@@ -554,7 +559,6 @@ public class CheckpointRecord {
     /**
      * Request for saving the data to checkpoint.
      *
-     * @param param Parameter to be saved.
      * @param cdvi CheckpointDataVersion belonging to the parameter.
      */
     private void saveData(DataInstanceId daId, CheckpointDataVersion cdvi) {

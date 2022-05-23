@@ -138,33 +138,33 @@
       # shellcheck disable=SC2144
   if [ -f "${checkpoint_dir}"/"d5v2_"* ]; then
     echo "FILE EXISTS D5V2"
+    exit 1
   else
     echo "FILE DOES NO EXISTS D5V2"
-    exit 1
   fi
 
       # shellcheck disable=SC2144
   if [ -f "${checkpoint_dir}"/"d6v2_"* ]; then
     echo "FILE EXISTS D6V2"
+    exit 1
   else
     echo "FILE DOES NO EXISTS D6V2"
-    exit 1
   fi
 
         # shellcheck disable=SC2144
   if [ -f "${checkpoint_dir}"/"d7v2_"* ]; then
     echo "FILE EXISTS D7V2"
+    exit 1
   else
     echo "FILE DOES NO EXISTS D7V2"
-    exit 1
   fi
 
         # shellcheck disable=SC2144
   if [ -f "${checkpoint_dir}"/"d8v2_"* ]; then
     echo "FILE EXISTS D8V2"
+    exit 1
   else
     echo "FILE DOES NO EXISTS D8V2"
-    exit 1
   fi
 
         # shellcheck disable=SC2144

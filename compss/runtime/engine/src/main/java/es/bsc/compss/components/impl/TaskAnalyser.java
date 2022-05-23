@@ -488,7 +488,7 @@ public class TaskAnalyser implements GraphHandler {
 
         // Deleting checkpointed data that is obsolete, INOUT that has a newest version
         if (applicationDelete) {
-            cp.deletedData(dataId);
+            cp.deletedData(dataInfo);
         }
 
         DataAccessesInfo dai = this.accessesInfo.remove(dataId);

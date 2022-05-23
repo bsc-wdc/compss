@@ -17,6 +17,7 @@
 package es.bsc.compss.checkpoint;
 
 import es.bsc.compss.types.Task;
+import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.request.ap.APRequest;
 
@@ -51,9 +52,9 @@ public interface CheckpointManager {
     /**
      * Notifies the Checkpoint Manager that a data has been deleted.
      *
-     * @param dataId Id of the deleted data
+     * @param dataInfo Id of the deleted data
      */
-    public void deletedData(int dataId);
+    public void deletedData(DataInfo dataInfo);
 
     /**
      * Performs an snapshot of the data, closing all the groups.

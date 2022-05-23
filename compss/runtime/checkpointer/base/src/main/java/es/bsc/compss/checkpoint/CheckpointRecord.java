@@ -31,6 +31,7 @@ import es.bsc.compss.types.TaskState;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataAccessId.Direction;
+import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.DataVersion;
 import es.bsc.compss.types.data.LogicalData;
@@ -788,17 +789,18 @@ public class CheckpointRecord {
     /**
      * Notifies the Checkpoint Manager that a data has been deleted.
      *
-     * @param dataId Id of the deleted data
+     * @param data DataInfo to be deleted
      */
-
-    public final void deletedData(int dataId) {
+    public final void deletedData(DataInfo data) {
         if (Tracer.isActivated()) {
             Tracer.emitEvent(TraceEvent.CHECKPOINT_DELETE_DATA);
         }
+        int dataId = data.getDataId();
+        LOGGER.info("Deleting data " + dataId);
         CheckpointData cpi = dataInfo.get(dataId);
         if (cpi != null) {
-            DataVersion dv = cpi.getLastCheckpointedVersion();
-            if (dv != null && getCDVILastCheckpointed(dv.getDataInstanceId().getRenaming()) != dv) {
+            DataVersion dv = data.getCurrentDataVersion();
+            if (dv != null && cpi.getLastCheckpointedVersion() != dv) {
                 if (dv.hasBeenRead()) {
                     if (DEBUG) {
                         LOGGER.debug("Checkpointer deleting obsolete data " + dv.getDataInstanceId().getRenaming());

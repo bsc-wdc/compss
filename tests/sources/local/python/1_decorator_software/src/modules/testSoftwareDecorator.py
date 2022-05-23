@@ -53,6 +53,12 @@ def mpi_with_param(string_param):
     pass
 
 
+@software(config_file=os.getcwd() + "/src/config/mpmd.json")
+@task(returns=int)
+def mpmd(a, b):
+    pass
+
+
 class TestSoftwareDecorator(unittest.TestCase):
 
     def testFunctionalUsageMPI(self):
@@ -74,6 +80,10 @@ class TestSoftwareDecorator(unittest.TestCase):
 
     def testPrologEpilog(self):
         prolog_epilog()
+        compss_barrier()
+
+    def testMpmdMPI(self):
+        mpmd("last tuesday", "next tuesday")
         compss_barrier()
 
     def testStringParams(self):

@@ -102,6 +102,29 @@
     fi
   fi
 
+
+  # testMpmdMPI
+  tue_file=$(grep -r -l "last tuesday next tuesday" "$jobs_logs")
+  lTueDate1=$(LANG=en_US date -d "last tuesday")
+  nTueDate1=$(LANG=en_US date -d "next tuesday")
+  lTueDate2=$(date -d "last tuesday")
+  nTueDate2=$(date -d "next tuesday")
+  tuesday=$(grep -E "$lTueDate1|$nTueDate1|$lTueDate2|$nTueDate2" "$tue_file")
+  if [ "$tuesday" = "" ]; then
+    echo "ERROR: TASK FAILED: testFunctionalUsageWithConstraint function failed." | tee -a "${output_file}"
+    echo "  - FILE:     $tue_file" | tee -a "${output_file}"
+    echo "  - GOT:      $tuesday" | tee -a "${output_file}"
+    echo "  - EXPECTED: $lTueDate1 or $nTueDate1" | tee -a "${output_file}"
+    exit 1
+  else
+    appearances=$(grep -c -E "$lTueDate1|$nTueDate1|$lTueDate2|$nTueDate2" "$tue_file")
+    if [ ! "$appearances" -eq "4" ]; then
+      echo "$appearances"
+      echo "ERROR: TASK FAILED: testMpmdMPI: Wrong number of programs" | tee -a "${output_file}"
+      exit 2
+    fi
+  fi
+
   hellofile=$(grep -r -l "sed s/Hi/HELLO/g" "${jobs_logs}")
   hello=$(grep -r -l "HELLO, this is a simple test to grep." "${hellofile}")
   if [[ -z "$hello" ]]; then

@@ -1,0 +1,8 @@
+{
+	"type":"http",
+	"properties": {
+      "service_name": "service_1",
+      "request": "POST",
+      "resource": "post/"
+	}
+}

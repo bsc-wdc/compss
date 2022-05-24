@@ -52,7 +52,7 @@
     echo "ERROR: UNIT TEST RAISED AN ERROR." | tee -a "${output_file}"
     exit 1
   fi
-  
+
   #----------------------------------------------------------------------------------
   # Check executions
   if [ -f "${basedir}"/counter_IN ]; then
@@ -67,8 +67,20 @@
   	echo "ERROR WAS FOUND. counter_INOUT FILE STILL EXISTS." | tee -a "${output_file}"
     exit 1
   fi
+  if [ -f "${basedir}"/multi_counter_IN ]; then
+    echo "ERROR WAS FOUND. multi_counter_IN FILE STILL EXISTS." | tee -a "${output_file}"
+    exit 1
+  fi
+  if [ -f "${basedir}"/multi_counter_OUT ]; then
+  	echo "ERROR WAS FOUND. multi_counter_OUT FILE STILL EXISTS." | tee -a "${output_file}"
+    exit 1
+  fi
+  if [ -f "${basedir}"/multi_counter_INOUT ]; then
+  	echo "ERROR WAS FOUND. multi_counter_INOUT FILE STILL EXISTS." | tee -a "${output_file}"
+    exit 1
+  fi
   echo "FILE HAS BEEN REMOVED." | tee -a "${output_file}"
-  
+
   #----------------------------------------------------------------------------------
-  # Report result status  
+  # Report result status
   exit 0

@@ -24,8 +24,10 @@ import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.FileInfo;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.util.FileOpsManager;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.Semaphore;
 
 
@@ -35,6 +37,7 @@ public class DeleteFileRequest extends APRequest {
     private final DataLocation loc;
     private final Semaphore sem;
     private boolean noReuse;
+    private final boolean applicationDelete;
 
 
     /**
@@ -43,12 +46,16 @@ public class DeleteFileRequest extends APRequest {
      * @param app Application requesting the file deletion
      * @param loc File location.
      * @param sem Waiting semaphore.
+     * @param applicationDelete Whether the deletion was requested by the user code of the application {@literal true},
+     *            or automatically removed by the runtime {@literal false}.
      */
-    public DeleteFileRequest(Application app, DataLocation loc, Semaphore sem, boolean noReuse) {
+    public DeleteFileRequest(Application app, DataLocation loc, Semaphore sem, boolean noReuse,
+        boolean applicationDelete) {
         this.app = app;
         this.loc = loc;
         this.sem = sem;
         this.noReuse = noReuse;
+        this.applicationDelete = applicationDelete;
     }
 
     /**
@@ -69,19 +76,18 @@ public class DeleteFileRequest extends APRequest {
             // Retrieve the first valid URI location (private locations have only 1, shared locations may have more)
             String filePath = this.loc.getURIs().get(0).getPath();
             File f = new File(filePath);
-            if (f.exists()) {
-                if (f.delete()) {
-                    LOGGER.info("[DeleteFileRequest] File " + filePath + " deleted.");
-                } else {
-                    LOGGER.error("[DeleteFileRequest] Error on deleting file " + filePath);
-                }
+            try {
+                FileOpsManager.deleteSync(f);
+                LOGGER.info("[DeleteFileRequest] File " + filePath + " deleted.");
+            } catch (IOException e) {
+                LOGGER.error("[DeleteFileRequest] Error on deleting file " + filePath, e);
             }
         } else {
             // file is involved in some task execution
             // File Won't be read by any future task or from the main code.
             // Remove it from the dependency analysis and the files to be transferred back
             LOGGER.info("[DeleteFileRequest] Deleting Data in Task Analyser");
-            ta.deleteData(fileInfo);
+            ta.deleteData(fileInfo, applicationDelete);
         }
         this.sem.release();
     }

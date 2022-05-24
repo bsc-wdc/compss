@@ -360,6 +360,19 @@ def close_task_group(group_name: str) -> None:
         COMPSs.close_task_group(group_name, app_id)
 
 
+def snapshot() -> None:
+    """Make a snapshot of the tasks.
+
+    Calls the external python library (that calls the bindings-common)
+    in order to request a snapshot.
+
+    :return: None
+    """
+    with EventMaster(TRACING_MASTER.snapshot_event):
+        app_id = 0
+        COMPSs.snapshot(app_id)
+
+
 def get_log_path() -> str:
     """Get logging path.
 

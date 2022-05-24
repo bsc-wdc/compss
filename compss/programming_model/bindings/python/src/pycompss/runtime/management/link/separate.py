@@ -378,15 +378,20 @@ class _COMPSs:
         self.in_queue.put((LINK_MESSAGES.close_file, app_id, file_name, mode))
         _ = self.out_queue.get(block=True)
 
-    def delete_file(self, app_id: int, file_name: str, mode: bool) -> bool:
+    def delete_file(
+        self, app_id: int, file_name: str, mode: bool, application_delete=True
+    ) -> bool:
         """Call to delete_file.
 
         :param app_id: Application identifier.
         :param file_name: File name reference to delete.
         :param mode: Delete mode.
+        :param application_delete: Application delete.
         :return: The deletion result.
         """
-        self.in_queue.put((LINK_MESSAGES.delete_file, app_id, file_name, mode))
+        self.in_queue.put(
+            (LINK_MESSAGES.delete_file, app_id, file_name, mode, application_delete)
+        )
         result = self.out_queue.get(block=True)
         if result is None:
             return False

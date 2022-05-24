@@ -79,8 +79,17 @@ public class WAccessId extends DataAccessId {
     }
 
     /**
-     * Returns the written data instance.
+     * Returns the written data version.
      * 
+     * @return data version written
+     */
+    public DataVersion getWrittenDataVersion() {
+        return this.writtenDataVersion;
+    }
+
+    /**
+     * Returns the written data instance.
+     *
      * @return The written data instance.
      */
     public DataInstanceId getWrittenDataInstance() {

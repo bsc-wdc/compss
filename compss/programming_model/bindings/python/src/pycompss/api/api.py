@@ -57,6 +57,7 @@ from pycompss.api.dummy.api import (
     compss_delete_object as __dummy_compss_delete_object__,
     compss_barrier as __dummy_compss_barrier__,
     compss_barrier_group as __dummy_compss_barrier_group__,
+    compss_snapshot as __dummy_compss_snapshot__,
     compss_wait_on as __dummy_compss_wait_on__,
     compss_get_number_of_resources as __dummy_compss_get_number_of_resources__,
     compss_request_resources as __dummy_compss_request_resources__,
@@ -85,6 +86,7 @@ if CONTEXT.in_pycompss():
         barrier_group as __barrier_group__,
         open_task_group as __open_task_group__,
         close_task_group as __close_task_group__,
+        snapshot as __snapshot__,
         get_number_of_resources as __get_number_of_resources__,
         request_resources as __request_resources__,
         free_resources as __free_resources__,
@@ -265,6 +267,20 @@ def compss_barrier_group(group_name: str) -> None:
             raise __COMPSsException__(exception_message)
     else:
         __dummy_compss_barrier_group__(group_name)
+
+
+def compss_snapshot() -> None:
+    """Request a snapshot.
+
+    Performs a snapshot of the data of the tasks that have been finished and
+    not saved already.
+
+    :return: None.
+    """
+    if CONTEXT.in_pycompss():
+        __snapshot__()
+    else:
+        __dummy_compss_snapshot__()
 
 
 def compss_wait_on(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:

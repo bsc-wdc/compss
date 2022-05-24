@@ -20,15 +20,33 @@ source "${COMPSS_HOME}/Runtime/scripts/system/commons/logger.sh"
 # shellcheck disable=SC1091
 source "${COMPSS_HOME}/Runtime/scripts/system/commons/java.sh"
 
-
+# shellcheck source=./analysis.sh
+# shellcheck disable=SC1091
 source "${COMPSS_HOME}/Runtime/scripts/system/runtime/analysis.sh"
+# shellcheck source=./worker.sh
+# shellcheck disable=SC1091
 source "${COMPSS_HOME}/Runtime/scripts/system/runtime/worker.sh"
+# shellcheck source=./adaptors.sh
+# shellcheck disable=SC1091
 source "${COMPSS_HOME}/Runtime/scripts/system/runtime/adaptors.sh"
+# shellcheck source=./scheduler.sh
+# shellcheck disable=SC1091
 source "${COMPSS_HOME}/Runtime/scripts/system/runtime/scheduler.sh"
+# shellcheck source=./checkpoint.sh
+# shellcheck disable=SC1091
+source "${COMPSS_HOME}/Runtime/scripts/system/runtime/checkpoint.sh"
+# shellcheck source=./bindings.sh
+# shellcheck disable=SC1091
 source "${COMPSS_HOME}/Runtime/scripts/system/runtime/bindings.sh"
 
+# shellcheck source=./streams.sh
+# shellcheck disable=SC1091
 source "${COMPSS_HOME}/Runtime/scripts/system/runtime/streams.sh"
+# shellcheck source=./tracing.sh
+# shellcheck disable=SC1091
 source "${COMPSS_HOME}/Runtime/scripts/system/runtime/tracing.sh"
+# shellcheck source=./storage.sh
+# shellcheck disable=SC1091
 source "${COMPSS_HOME}/Runtime/scripts/system/runtime/storage.sh"
 
 
@@ -108,6 +126,7 @@ check_compss_env() {
   check_analysis_env
 
   check_scheduler_env
+  check_checkpoint_env
   check_adaptors_env
   check_worker_env
 
@@ -200,6 +219,8 @@ check_compss_setup () {
 
   check_scheduler_setup
 
+  check_checkpoint_setup
+
   check_bindings_setup
 
   check_stream_setup
@@ -242,6 +263,7 @@ EOT
   append_worker_jvm_options_to_file "${jvm_options_file}"
   append_adaptors_jvm_options_to_file "${jvm_options_file}"
   append_scheduler_jvm_options_to_file "${jvm_options_file}"
+  append_checkpoint_jvm_options_to_file "${jvm_options_file}"
 
   append_bindings_jvm_options_to_file "${jvm_options_file}"
 
@@ -256,15 +278,15 @@ EOT
 prepare_coverage() {
     jacoco_master_expression=$(echo "${jacoco_agent_expression}" | tr "#" "," | tr "@" ",")
     if [ -z "${jvm_master_opts}" ] || [ "${jvm_master_opts}" = \"\" ];then 
-	    jvm_master_opts="-javaagent:${jacoco_master_expression}"
+      jvm_master_opts="-javaagent:${jacoco_master_expression}"
     else 
-	   if [[ $jvm_master_opts == *"-agentpath"* ]] || [[ $jvm_master_opts == *"-javaagent"* ]]; then
-		   echo "WARN: Ignoring jacoco coverage at master because application already uses a java agent"
-	   else
-		   jvm_master_opts+=",-javaagent:"
-		   jvm_master_opts=$(echo $jvm_master_opts | tr "," "\\n")
-		   jvm_master_opts+="${jacoco_master_expression}"
-	   fi
+      if [[ $jvm_master_opts == *"-agentpath"* ]] || [[ $jvm_master_opts == *"-javaagent"* ]]; then
+        echo "WARN: Ignoring jacoco coverage at master because application already uses a java agent"
+      else
+       jvm_master_opts+=",-javaagent:"
+       jvm_master_opts=$(echo $jvm_master_opts | tr "," "\\n")
+       jvm_master_opts+="${jacoco_master_expression}"
+      fi
     fi
 
     #Adding worker jacoco agent in jvm options
@@ -299,11 +321,11 @@ prepare_coverage() {
     if [ -z "${jvm_workers_opts}" ] || [ "${jvm_workers_opts}" = \"\" ];then
         jvm_workers_opts="${jacoco_worker_expression}"
     else
-        if [[ $jvm_workers_opts == *"-agentpath"* ]] || [[ $jvm_workers_opts == *"-javaagent"* ]]; then
-	    echo "WARN: Ignoring jacoco coverage at master because application already uses a java agent"
-        else
-	    jvm_workers_opts+=",${jacoco_worker_expression}"
-        fi
+      if [[ $jvm_workers_opts == *"-agentpath"* ]] || [[ $jvm_workers_opts == *"-javaagent"* ]]; then
+        echo "WARN: Ignoring jacoco coverage at master because application already uses a java agent"
+      else
+       jvm_workers_opts+=",${jacoco_worker_expression}"
+      fi
     fi
 
     #Adding coverage for python
@@ -383,11 +405,11 @@ EOT
 append_wall_clock_jvm_options_to_file() {
   # Add Application-specific options
   if [ "${lang}" == "python" ]; then
-  	cat >> "${jvm_options_file}" << EOT
+    cat >> "${jvm_options_file}" << EOT
 -Dcompss.wcl=0
 EOT
   else
-  	cat >> "${jvm_options_file}" << EOT
+    cat >> "${jvm_options_file}" << EOT
 -Dcompss.wcl=${wall_clock_limit}
 EOT
   fi

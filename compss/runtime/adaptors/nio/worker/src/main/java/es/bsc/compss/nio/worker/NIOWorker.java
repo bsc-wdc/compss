@@ -335,7 +335,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         if (IS_TIMER_COMPSS_ENABLED) {
             obsoletesTimeStart = System.nanoTime();
         }
-        if (obsoleteFiles != null) {
+        if (obsoleteFiles != null && !obsoleteFiles.isEmpty()) {
             removeObsolete(obsoleteFiles);
         }
         if (IS_TIMER_COMPSS_ENABLED) {

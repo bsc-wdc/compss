@@ -89,6 +89,11 @@ public class LogicalData {
     // Elements monitoring chages on this data's locations.
     private LinkedList<LocationMonitor> locMonitors;
 
+    private boolean accessedByMain;
+
+    // The data has been removed
+    private boolean isDeleted;
+
 
     /*
      * Constructors
@@ -108,6 +113,8 @@ public class LogicalData {
         this.isBindingData = false;
         this.size = 0;
         this.locMonitors = new LinkedList<>();
+        this.accessedByMain = false;
+        this.isDeleted = false;
     }
 
     /**
@@ -217,6 +224,7 @@ public class LogicalData {
      * @param alias The new alias that the data is known as
      */
     public synchronized void addKnownAlias(String alias) {
+        isDeleted = false;
         if (this.knownAlias.add(alias)) {
             if (this.isInMemory()) {
                 String targetPath = ProtocolType.OBJECT_URI.getSchema() + alias;
@@ -237,28 +245,23 @@ public class LogicalData {
      * devices, either on memory or disk, are removed.
      *
      * @param alias Alias to remove from the list of known aliases.
+     * @param asynch Whether to perform local deletions in a synchronous or asynchronous way. {@literal true} if the
+     *            deletion is asynchronous; {@literal false} otherwise.
      */
     public synchronized void removeKnownAlias(String alias, boolean asynch) {
         if (this.knownAlias.remove(alias)) {
             if (this.knownAlias.isEmpty()) {
+                this.isDeleted = true;
                 for (Resource res : this.getAllHosts()) {
                     res.addObsolete(this);
                 }
+                LinkedList<DataLocation> removedLocations = new LinkedList<>();
                 for (DataLocation dl : this.locations) {
-                    MultiURI uri = dl.getURIInHost(Comm.getAppHost());
-                    if (uri != null) {
-                        File f = new File(uri.getPath());
-                        if (asynch) {
-                            FileOpsManager.deleteAsync(f);
-                        } else {
-                            try {
-                                FileOpsManager.deleteSync(f);
-                            } catch (IOException ioe) {
-                                // LOG message already printed by FileOpsManager
-                            }
-                        }
+                    if (deleteIfLocal(dl, asynch)) {
+                        removedLocations.add(dl);
                     }
                 }
+                this.locations.removeAll(removedLocations);
                 value[0] = null;
             } else {
                 String targetPath = ProtocolType.OBJECT_URI.getSchema() + alias;
@@ -286,6 +289,39 @@ public class LogicalData {
                 }
             }
         }
+    }
+
+    private boolean deleteIfLocal(DataLocation dl, boolean asynch) {
+        MultiURI uri = dl.getURIInHost(Comm.getAppHost());
+        if (uri != null) {
+            if (!(dl.isCheckpointing() && this.accessedByMain)) {
+                File f = new File(uri.getPath());
+                if (asynch) {
+                    FileOpsManager.FileOpListener fileOpListener = new FileOpsManager.FileOpListener() {
+
+                        @Override
+                        public void completed() {
+                            LOGGER.info("Deleted file async " + uri.getPath());
+                        }
+
+                        @Override
+                        public void failed(IOException e) {
+                            LOGGER.info("Could not delete file async " + uri.getPath());
+                        }
+                    };
+
+                    FileOpsManager.deleteAsync(f, fileOpListener);
+                } else {
+                    try {
+                        FileOpsManager.deleteSync(f);
+                    } catch (IOException ioe) {
+                        // LOG message already printed by FileOpsManager
+                    }
+                }
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -383,6 +419,17 @@ public class LogicalData {
                 this.pscoId = ((PersistentLocation) loc).getId();
                 break;
         }
+        if (isDeleted) {
+            deleteLocation(loc);
+        }
+    }
+
+    private void deleteLocation(DataLocation loc) {
+        List<Resource> resources = loc.getHosts();
+        for (Resource res : resources) {
+            res.addObsolete(this);
+        }
+        deleteIfLocal(loc, true);
     }
 
     /**
@@ -842,6 +889,14 @@ public class LogicalData {
             listener.addOperation();
             cip.c.addEventListener(listener);
         }
+    }
+
+    public void setAccessedByMain(boolean accessedByMain) {
+        this.accessedByMain = accessedByMain;
+    }
+
+    public boolean isAccessedByMain() {
+        return accessedByMain;
     }
 
     @Override

@@ -1,0 +1,146 @@
+#!/bin/bash -e
+
+  # Obtain parameters
+  output_file=$1
+  error_file=$2
+  target_log_folder=$3
+  base_app_dir=$4
+  checkpoint_dir="/tmp/checkpointing/"
+
+  # Log files
+  runtime_log="${target_log_folder}/runtime.log"
+  resources_log="${target_log_folder}/resources.log"
+
+  #----------------------------------------------------------------------------------
+  # Check output standard out status
+  if [ -f "${output_file}" ]; then
+     result_expected="------------------------------------------------------------"
+     test_result=$(tail -1 "${output_file}")
+     if [ "${result_expected}" != "${test_result}" ]; then
+        echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file}"
+        exit 1
+     fi
+  else
+     echo "[ERROR] Output file not found" | tee -a "${output_file}"
+     exit 1
+  fi
+  # Check that ErrorManager has not raised any ERROR or FATAL message
+  if [ -f "${error_file}" ]; then
+    if grep -E "\\[ERRMGR\\].*(ERROR|FATAL|Shutting down COMPSs)" "${error_file}"; then
+      echo "ERROR: ErrorManager has raised a fatal error" | tee -a "${output_file}"
+      exit 1
+    fi
+  else
+    # Empty error file, no exceptions could have been raised
+    :
+  fi
+  # Check that the Runtime has not registered any fatal error
+  if [ -f "${runtime_log}" ]; then
+    if grep -E "ErrorManager\\].*\\[ERRMGR\\].*Error detected. Shutting down COMPSs" "${runtime_log}"; then
+      echo "ERROR: ErrorManager has registered a fatal error in the runtime.log" | tee -a "${output_file}"
+      exit 1
+    fi
+  else
+    echo "[ERROR] runtime.log not found" | tee -a "${output_file}"
+    exit 1
+  fi
+
+  #----------------------------------------------------------------------------------
+  # Compute result status
+  #
+
+  # With this test we are checking that the files (INOUT), the accesses from the main are preserved with checkpointing.
+  # So for a good behaviour we have to see that only the last version of a file or an access by main are saved (in the
+  # case of this application this is that we save only the files of 4 and 6.
+
+  # This execution is divided in two, first we make the execution fail and then we recover it.
+
+  if grep -q "Final counter value is 9" "${output_file}"; then
+    echo "CORRECT OUTPUT"
+  else
+    echo "INCORRECT OUTPUT"
+    exit 1
+  fi
+
+  if [ -f "${checkpoint_dir}"/"checkpoint.cp" ]; then
+    echo "CHECKPOINT FILE FOUND"
+  else
+    echo "CHECKPOINT FILE NOT FOUND"
+    exit 1
+  fi
+
+    # shellcheck disable=SC2144
+  if [ -f "${checkpoint_dir}"/"d1v1_"* ]; then
+    echo "FILE EXISTS D1V1"
+    exit 1
+  else
+    echo "FILE DOES NO EXISTS D1V1"
+  fi
+
+    # shellcheck disable=SC2144
+  if [ -f "${checkpoint_dir}"/"d1v2_"* ]; then
+    echo "FILE EXISTS D1V2"
+    exit 1
+  else
+    echo "FILE DOES NO EXISTS D1V2"
+  fi
+
+    # shellcheck disable=SC2144
+  if [ -f "${checkpoint_dir}"/"d1v3_"* ]; then
+    echo "FILE EXISTS D1V3"
+    exit 1
+  else
+    echo "FILE DOES NO EXISTS D1V3"
+  fi
+
+    # shellcheck disable=SC2144
+  if [ -f "${checkpoint_dir}"/"d1v4_"* ]; then
+    echo "FILE EXISTS D1V4"
+  else
+    echo "FILE DOES NO EXISTS D1V4"
+    exit 1
+  fi
+
+    # shellcheck disable=SC2144
+  if [ -f "${checkpoint_dir}"/"d1v5_"* ]; then
+    echo "FILE EXISTS D1V5"
+    exit 1
+  else
+    echo "FILE DOES NO EXISTS D1V5"
+  fi
+
+  # shellcheck disable=SC2144
+  if [ -f "${checkpoint_dir}"/"d1v6_"* ]; then
+    echo "FILE EXISTS D1V6"
+    exit 1
+  else
+    echo "FILE DOES NO EXISTS D1V6"
+  fi
+
+  # shellcheck disable=SC2144
+  if [ -f "${checkpoint_dir}"/"d1v7_"* ]; then
+    echo "FILE EXISTS D1V7"
+    exit 1
+  else
+    echo "FILE DOES NO EXISTS D1V7"
+  fi
+
+  # shellcheck disable=SC2144
+  if [ -f "${checkpoint_dir}"/"d1v8_"* ]; then
+    echo "FILE EXISTS D1V8"
+    exit 1
+  else
+    echo "FILE DOES NO EXISTS D1V8"
+  fi
+
+  # shellcheck disable=SC2144
+  if [ -f "${checkpoint_dir}"/"d1v9_"* ]; then
+    echo "FILE EXISTS D1V9"
+  else
+    echo "FILE DOES NO EXISTS D1V9"
+    exit 1
+  fi
+
+  #---------------------------------------------------------------------------------- 
+  # Everything ok
+  exit 0

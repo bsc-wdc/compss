@@ -52,8 +52,6 @@ public class ShutdownRequest extends APRequest {
         // Clear delete Intermediate Files
         dip.shutdown();
 
-        // The semaphore is released after emitting the end event to prevent race conditions
-        throw new ShutdownException(this.sem);
     }
 
     @Override

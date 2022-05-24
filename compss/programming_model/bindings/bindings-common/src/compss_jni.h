@@ -89,7 +89,7 @@ void JNI_ExecuteHttpTask(long appId,
 int JNI_Accessed_File(long appId, char* fileName);
 void JNI_Open_File(long appId, char* fileName, int mode, char** buf);
 void JNI_Close_File(long appId, char* fileName, int mode);
-void JNI_Delete_File(long appId, char* fileName, int waitForData);
+void JNI_Delete_File(long appId, char* fileName, int waitForData, int applicationDelete);
 void JNI_Get_File(long appId, char* fileName);
 
 void JNI_Get_Directory(long appId, char* dirName);
@@ -100,6 +100,7 @@ void JNI_BarrierNew(long appId, int noMoreTasks);
 void JNI_BarrierGroup(long appId, char* groupName, char** exceptionMessage);
 void JNI_OpenTaskGroup(char* groupName, int implicitBarrier, long appId);
 void JNI_CloseTaskGroup(char* groupName, long appId);
+void JNI_Snapshot(long appId);
 int JNI_GetNumberOfResources(long appId);
 void JNI_RequestResources(long appId, int numResources, char* groupName);
 void JNI_FreeResources(long appId, int numResources, char* groupName);

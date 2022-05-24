@@ -96,6 +96,10 @@ public class COMPSsConstants {
     public static final String LANG = "compss.lang";
     public static final String TASK_SUMMARY = "compss.summary";
 
+    public static final String CHECKPOINT_POLICY = "compss.checkpoint.policy";
+    public static final String CHECKPOINT_PARAMS = "compss.checkpoint.params";
+    public static final String CHECKPOINT_FOLDER_PATH = "compss.checkpoint.folder";
+
     public static final String CONSTR_FILE = "compss.constraints.file";
     public static final String SCHEDULER = "compss.scheduler";
     public static final String SCHEDULER_CONFIG_FILE = "compss.scheduler.config";
@@ -183,6 +187,8 @@ public class COMPSsConstants {
     /*
      * DEFAULT VALUES: According to runcompss script !!!!
      */
+    public static final String DEFAULT_CHECKPOINT = "es.bsc.compss.checkpoint.policies.NoCheckpoint";
+
     public static final String DEFAULT_SCHEDULER = "es.bsc.compss.components.impl.TaskScheduler";
 
     public static final String SERVICE_ADAPTOR = "es.bsc.compss.ws.master.WSAdaptor";

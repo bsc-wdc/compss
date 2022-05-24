@@ -24,5 +24,6 @@ public enum TaskState {
     TO_EXECUTE, // Task can be executed
     FINISHED, // Task has finished successfully
     CANCELED, // Task has been canceled
-    FAILED // Task has failed
+    FAILED, // Task has failed
+    RECOVERED // Task has been recovered by the checkpoint management
 }

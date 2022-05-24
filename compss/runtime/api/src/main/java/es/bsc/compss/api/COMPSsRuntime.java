@@ -329,6 +329,13 @@ public interface COMPSsRuntime {
      */
     public void closeTaskGroup(String groupName, Long appId);
 
+    /**
+     * Checkpoint of the tasks and data.
+     *
+     * @param appId The application id.
+     */
+    public void snapshot(Long appId);
+
     /*
      * *****************************************************************************************************************
      * DATA ACCESS METHODS
@@ -386,7 +393,7 @@ public interface COMPSsRuntime {
      *
      * @param appId Id of the application requesting the file deletion
      * @param fileName File name.
-     * @return true if the {@code fileName} has been deleted, false otherwise.
+     * @return true if the {@literal fileName} has been deleted, false otherwise.
      */
     public boolean deleteFile(Long appId, String fileName);
 
@@ -396,9 +403,10 @@ public interface COMPSsRuntime {
      * @param appId Id of the application requesting the file deletion
      * @param fileName File name.
      * @param waitForData Flag to indicate if we want to wait for the data ready before removing
-     * @return true if the {@code fileName} has been deleted, false otherwise.
+     * @param applicationDelete {@literal true}, if the file is deleted by the user code; {@literal false}, otherwise
+     * @return true if the {@literal fileName} has been deleted, false otherwise.
      */
-    public boolean deleteFile(Long appId, String fileName, boolean waitForData);
+    public boolean deleteFile(Long appId, String fileName, boolean waitForData, boolean applicationDelete);
 
     /**
      * Returns last version of file with its original name.

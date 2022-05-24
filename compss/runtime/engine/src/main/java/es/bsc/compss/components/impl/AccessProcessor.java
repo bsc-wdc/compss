@@ -16,8 +16,10 @@
  */
 package es.bsc.compss.components.impl;
 
+import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.api.TaskMonitor;
+import es.bsc.compss.checkpoint.CheckpointManager;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.monitor.impl.GraphGenerator;
 import es.bsc.compss.exceptions.CannotLoadException;
@@ -65,7 +67,9 @@ import es.bsc.compss.types.request.ap.RegisterRemoteCollectionDataRequest;
 import es.bsc.compss.types.request.ap.RegisterRemoteFileDataRequest;
 import es.bsc.compss.types.request.ap.RegisterRemoteObjectDataRequest;
 import es.bsc.compss.types.request.ap.SetObjectVersionValueRequest;
+import es.bsc.compss.types.request.ap.ShutdownNotificationRequest;
 import es.bsc.compss.types.request.ap.ShutdownRequest;
+import es.bsc.compss.types.request.ap.SnapshotRequest;
 import es.bsc.compss.types.request.ap.TaskAnalysisRequest;
 import es.bsc.compss.types.request.ap.TaskEndNotification;
 import es.bsc.compss.types.request.ap.TasksStateRequest;
@@ -80,9 +84,15 @@ import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.types.tracing.TraceEventType;
 import es.bsc.compss.types.uri.SimpleURI;
+import es.bsc.compss.util.Classpath;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
+import java.io.File;
+import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -95,26 +105,31 @@ import org.apache.logging.log4j.Logger;
 /**
  * Component to handle the tasks accesses to files and object.
  */
-public class AccessProcessor implements Runnable {
+public class AccessProcessor implements Runnable, CheckpointManager.User {
 
     // Component logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.TP_COMP);
     private static final boolean DEBUG = LOGGER.isDebugEnabled();
 
+    private static final String CHECKPOINTER_REL_PATH = File.separator + "Runtime" + File.separator + "checkpointer";
+
+    private static final String ERR_LOAD_CHECKPOINTER = "Error loading checkpoint manager";
     private static final String ERROR_OBJECT_LOAD_FROM_STORAGE =
         "ERROR: Cannot load object from storage (file or PSCO)";
     private static final String ERROR_QUEUE_OFFER = "ERROR: AccessProcessor queue offer error on ";
 
     // Other super-components
-    protected TaskDispatcher taskDispatcher;
+    private final TaskDispatcher taskDispatcher;
 
     // Subcomponents
-    protected TaskAnalyser taskAnalyser;
-    protected DataInfoProvider dataInfoProvider;
+    private final TaskAnalyser taskAnalyser;
+    private final DataInfoProvider dataInfoProvider;
+    private final CheckpointManager checkpointManager;
 
     // Processor thread
     private static Thread processor;
     private static boolean keepGoing;
+    private Semaphore shutdownSemaphore;
 
     // Tasks to be processed
     protected LinkedBlockingQueue<APRequest> requestQueue;
@@ -132,7 +147,13 @@ public class AccessProcessor implements Runnable {
         this.taskAnalyser = new TaskAnalyser();
         this.dataInfoProvider = new DataInfoProvider();
 
-        this.taskAnalyser.setCoWorkers(dataInfoProvider);
+        loadCheckpointingPoliciesJars();
+        this.checkpointManager = constructCheckpointManager();
+        if (this.checkpointManager == null) {
+            ErrorManager.fatal(ERR_LOAD_CHECKPOINTER);
+        }
+
+        this.taskAnalyser.setCoWorkers(dataInfoProvider, checkpointManager);
         this.requestQueue = new LinkedBlockingQueue<>();
 
         keepGoing = true;
@@ -814,13 +835,14 @@ public class AccessProcessor implements Runnable {
      * Shutdown request.
      */
     public void shutdown() {
-        Semaphore sem = new Semaphore(0);
-        if (!this.requestQueue.offer(new ShutdownRequest(sem))) {
+        shutdownSemaphore = new Semaphore(0);
+        if (!this.requestQueue.offer(new ShutdownRequest(shutdownSemaphore))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "shutdown");
         }
 
         // Wait for response
-        sem.acquireUninterruptibly();
+        shutdownSemaphore.acquireUninterruptibly();
+
     }
 
     /**
@@ -846,8 +868,10 @@ public class AccessProcessor implements Runnable {
      *
      * @param app Application requesting the file deletion
      * @param loc Location to delete.
+     * @param applicationDelete {@literal true}, if the application requested the data deletion; {@literal false}
+     *            otherwise
      */
-    public void markForDeletion(Application app, DataLocation loc, boolean enableReuse) {
+    public void markForDeletion(Application app, DataLocation loc, boolean enableReuse, boolean applicationDelete) {
         LOGGER.debug("Marking data " + loc + " for deletion");
         Semaphore sem = new Semaphore(0);
 
@@ -872,7 +896,7 @@ public class AccessProcessor implements Runnable {
         }
         // Request to delete data
         LOGGER.debug("Sending delete request response for " + loc);
-        if (!this.requestQueue.offer(new DeleteFileRequest(app, loc, sem, !enableReuse))) {
+        if (!this.requestQueue.offer(new DeleteFileRequest(app, loc, sem, !enableReuse, applicationDelete))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "mark for deletion");
         }
 
@@ -1084,4 +1108,101 @@ public class AccessProcessor implements Runnable {
         }
     }
 
+    /**
+     * Snapshot.
+     *
+     * @param app Application .
+     */
+    public void snapshot(Application app) {
+        if (!this.requestQueue.offer(new SnapshotRequest(app))) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "snapshot");
+        }
+    }
+
+    @Override
+    public void addCheckpointRequest(APRequest apRequest, String errorMessage) {
+        if (!requestQueue.offer(apRequest)) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + errorMessage);
+        }
+    }
+
+    @Override
+    public void allAvailableDataCheckpointed() {
+        if (!this.requestQueue.offer(new ShutdownNotificationRequest(shutdownSemaphore))) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "shutdown");
+        }
+    }
+
+    /**
+     * Loads the checkpoint policy.
+     */
+    private static void loadCheckpointingPoliciesJars() {
+        LOGGER.info("Loading checkpointers...");
+        String compssHome = System.getenv(COMPSsConstants.COMPSS_HOME);
+
+        if (compssHome == null || compssHome.isEmpty()) {
+            LOGGER.warn("WARN: COMPSS_HOME not defined, no checkpointers loaded.");
+            return;
+        }
+
+        Classpath.loadJarsInPath(compssHome + CHECKPOINTER_REL_PATH, LOGGER);
+    }
+
+    /**
+     * Constructs the checkpoint Manager setting the parameters.
+     */
+    private CheckpointManager constructCheckpointManager() {
+        CheckpointManager checkpointer = null;
+        try {
+            String parameters = System.getProperty(COMPSsConstants.CHECKPOINT_PARAMS);
+            HashMap<String, String> paramsMap = new HashMap<>();
+            if (parameters != null && !parameters.equals("")) {
+                if (DEBUG) {
+                    LOGGER.debug("Reading Checkpointing policy parameters  " + parameters);
+                }
+                int index = parameters.indexOf("avoid.checkpoint");
+                List<String> params;
+
+                if (index != -1) {
+                    params = new ArrayList<>(Arrays.asList(parameters.substring(0, index).split(",")));
+                    String avoidTasks = parameters.substring(index);
+                    params.add(avoidTasks);
+
+                } else {
+                    params = new ArrayList<>(Arrays.asList(parameters.split(",")));
+                }
+                for (String param : params) {
+                    String[] values = param.split(":");
+                    if (values[0].equals("period.time")) {
+                        if (values[1].endsWith("h")) {
+                            values[1] = String.valueOf(
+                                Integer.parseInt(values[1].substring(0, values[1].length() - 1)) * 3600 * 1000);
+                        } else if (values[1].endsWith("m")) {
+                            values[1] = String
+                                .valueOf(Integer.parseInt(values[1].substring(0, values[1].length() - 1)) * 60 * 1000);
+                        } else if (values[1].endsWith("s")) {
+                            values[1] =
+                                String.valueOf(Integer.parseInt(values[1].substring(0, values[1].length() - 1)) * 1000);
+                        } else {
+                            values[1] = String.valueOf(Integer.parseInt(values[1]) * 60 * 1000);
+                        }
+                    }
+                    paramsMap.put(values[0], values[1]);
+                }
+            }
+            String cpFQN = System.getProperty(COMPSsConstants.CHECKPOINT_POLICY);
+            if (cpFQN == null || cpFQN.isEmpty()) {
+                cpFQN = COMPSsConstants.DEFAULT_CHECKPOINT;
+            }
+            Class<?> cpClass = Class.forName(cpFQN);
+            Constructor<?> cpCnstr = cpClass.getConstructor(HashMap.class, AccessProcessor.class);
+            checkpointer = (CheckpointManager) cpCnstr.newInstance(paramsMap, this);
+            if (DEBUG) {
+                LOGGER.debug("Loaded checkpointer " + checkpointer);
+            }
+        } catch (Exception e) {
+            ErrorManager.fatal(ERR_LOAD_CHECKPOINTER, e);
+        }
+        return checkpointer;
+    }
 }

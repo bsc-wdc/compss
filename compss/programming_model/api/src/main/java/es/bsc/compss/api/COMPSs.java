@@ -106,4 +106,11 @@ public class COMPSs {
         System.out.println(SKIP_MESSAGE);
     }
 
+    /**
+     * Requests a checkpoint of the tasks and data.
+     */
+    public static void snapshot() {
+        System.out.println(SKIP_MESSAGE);
+    }
+
 }

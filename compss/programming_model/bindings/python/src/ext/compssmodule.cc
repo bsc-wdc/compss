@@ -641,7 +641,9 @@ static PyObject* delete_file(PyObject* self, PyObject* args) {
     debug("Delete file: %s\n", (file_name));
     bool wait = PyObject_IsTrue(PyTuple_GetItem(args, 2));
     debug("- Wait: %s\n", (wait ? "true" : "false"));
-    GS_Delete_File(app_id, file_name, wait);
+    bool applicationDelete = PyObject_IsTrue(PyTuple_GetItem(args, 3));
+    debug("- applicationDelete: %s\n", (applicationDelete ? "true" : "false"));
+    GS_Delete_File(app_id, file_name, wait, applicationDelete);
     debug("COMPSs file deleted: %s\n", (file_name));
     Py_RETURN_NONE;
 }
@@ -734,18 +736,6 @@ static PyObject* barrier_group(PyObject* self, PyObject* args) {
 }
 
 /*
-  Notify the runtime that our current application wants to "execute" a barrier for a group.
-  Program will be blocked in GS_BarrierGroup until all running tasks part of the group have ended.
-*/
-static PyObject* emit_event(PyObject *self, PyObject *args) {
-    int type = int(PyInt_AsLong(PyTuple_GetItem(args, 0)));
-    long value = long(PyInt_AsLong(PyTuple_GetItem(args, 1)));
-    debug("Emit Event: (%i, %ld)\n", type, value);
-    GS_EmitEvent(type, value);
-    Py_RETURN_NONE;
-}
-
-/*
   Creates a new task group that will include all the subsequent tasks.
 */
 static PyObject* open_task_group(PyObject* self, PyObject* args) {
@@ -772,6 +762,33 @@ static PyObject* close_task_group(PyObject* self, PyObject* args) {
     debug("Task group: %s closed\n", (group_name));
     Py_RETURN_NONE;
 }
+
+/*
+  Notify the runtime that our current application wants to "execute" a snapshot.
+*/
+static PyObject* snapshot(PyObject* self, PyObject* args) {
+    debug("Snapshot\n");
+    long app_id;
+    if(!PyArg_ParseTuple(args, "l", &app_id)) {
+        return NULL;
+    }
+    debug("- App id: %ld \n", (app_id));
+    GS_Snapshot(app_id);
+    debug("Snapshot end\n");
+    Py_RETURN_NONE;
+}
+
+/*
+  Notify the event emission.
+*/
+static PyObject* emit_event(PyObject *self, PyObject *args) {
+    int type = int(PyInt_AsLong(PyTuple_GetItem(args, 0)));
+    long value = long(PyInt_AsLong(PyTuple_GetItem(args, 1)));
+    debug("Emit Event: (%i, %ld)\n", type, value);
+    GS_EmitEvent(type, value);
+    Py_RETURN_NONE;
+}
+
 
 /*
   Returns the logging path.
@@ -931,6 +948,7 @@ static PyMethodDef CompssMethods[] = {
     { "barrier_group", barrier_group, METH_VARARGS, "Barrier for a task group." },
     { "open_task_group", open_task_group, METH_VARARGS, "Opens a new task group." },
     { "close_task_group", close_task_group, METH_VARARGS, "Closes a new task group." },
+    { "snapshot", snapshot, METH_VARARGS, "Perform a snapshot of the tasks and data." },
     { "get_logging_path", get_logging_path, METH_VARARGS, "Requests the app log path." },
     { "get_number_of_resources", get_number_of_resources, METH_VARARGS, "Requests the number of active resources." },
     { "request_resources", request_resources, METH_VARARGS, "Requests the creation of a new resource."},

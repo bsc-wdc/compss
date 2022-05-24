@@ -75,7 +75,7 @@ void PIPE_ExecuteTaskNew(long appId,
 int PIPE_Accessed_File(long appId, char* fileName);
 void PIPE_Open_File(long appId, char* fileName, int mode, char** buf);
 void PIPE_Close_File(long appId, char* fileName, int mode);
-void PIPE_Delete_File(long appId, char* fileName, int waitForData);
+void PIPE_Delete_File(long appId, char* fileName, int waitForData, int applicationDelete);
 void PIPE_Get_File(long appId, char* fileName);
 
 void PIPE_Get_Directory(long appId, char* dirName);
@@ -86,6 +86,7 @@ void PIPE_BarrierNew(long appId, int noMoreTasks);
 void PIPE_BarrierGroup(long appId, char* groupName, char** exceptionMessage);
 void PIPE_OpenTaskGroup(char* groupName, int implicitBarrier, long appId);
 void PIPE_CloseTaskGroup(char* groupName, long appId);
+void PIPE_Snapshot(long appId);
 int PIPE_GetNumberOfResources(long appId);
 void PIPE_RequestResources(long appId, int numResources, char* groupName);
 void PIPE_FreeResources(long appId, int numResources, char* groupName);

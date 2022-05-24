@@ -18,6 +18,7 @@ package es.bsc.compss.types;
 
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.api.TaskMonitor;
+import es.bsc.compss.checkpoint.CheckpointGroup;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
@@ -61,6 +62,9 @@ public class Task extends AbstractTask {
 
     // List of task groups
     private final LinkedList<TaskGroup> taskGroups;
+
+    // Checkpoint group assigned to task
+    private CheckpointGroup checkpointGroup;
 
 
     private Task(Application app, TaskMonitor monitor, TaskType type, Lang lang, String signature, boolean isPrioritary,
@@ -283,6 +287,24 @@ public class Task extends AbstractTask {
      */
     public LinkedList<TaskGroup> getTaskGroupList() {
         return this.taskGroups;
+    }
+
+    /**
+     * Returns on which checkpointing group the task is assigned.
+     * 
+     * @return group onto which the task was assigned
+     */
+    public CheckpointGroup getCheckpointGroup() {
+        return checkpointGroup;
+    }
+
+    /**
+     * Assigns the task to a checkpoint group.
+     * 
+     * @param checkpointGroup group to associate with the task
+     */
+    public void setCheckpointGroup(CheckpointGroup checkpointGroup) {
+        this.checkpointGroup = checkpointGroup;
     }
 
     /**

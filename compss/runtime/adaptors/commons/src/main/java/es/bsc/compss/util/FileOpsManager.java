@@ -27,6 +27,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.Semaphore;
 
 import org.apache.commons.io.FileExistsException;
 import org.apache.commons.io.FileUtils;
@@ -539,5 +540,31 @@ public class FileOpsManager {
                 Tracer.emitEventEnd(TraceEvent.LOCAL_MOVE);
             }
         }
+    }
+
+    /**
+     * Waits until all the pending file operations are completed.
+     */
+    public static void waitForOperationsToEnd() {
+        LOGGER.debug("Waiting for all file  operations to end");
+        final Semaphore sem = new Semaphore(0);
+        LOW_PRIORITY.execute(new Runnable() {
+
+            @Override
+            public void run() {
+                sem.release();
+            }
+        });
+
+        HIGH_PRIORITY.execute(new Runnable() {
+
+            @Override
+            public void run() {
+                sem.release();
+            }
+        });
+        LOGGER.debug("All file  operations ended");
+
+        sem.acquireUninterruptibly(2);
     }
 }

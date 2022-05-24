@@ -1,0 +1,111 @@
+#!/bin/bash
+
+  # Obtain parameters
+  COMPSs_exec=$1
+  comm=$2
+  runcompss_opts=$3
+  base_app_dir=$4
+  COMPSs_log_folder=$5
+  target_log_folder=$6
+  retry_num=$7
+  execution_envs=$8
+  checkpoint_dir="/tmp/checkpointing/"
+
+  # Global variables
+  exit_value=1
+  jar_name="8_checkpoint_policy_every_3_ended_tasks.jar"
+  app_name="checkpointPolicyEvery3Endedtasks.Simple"
+  
+  #----------------------------------------------------------------------------------
+  # Generate Project.xml according to system
+  sed -i '/<InstallDir>/c<InstallDir>'"${COMPSS_HOME}"'<\/InstallDir>' "${base_app_dir}"/project.xml
+  
+  #----------------------------------------------------------------------------------
+  # Create all working dir folders
+  mkdir -p /tmp/COMPSsWorker01/
+  rm ${checkpoint_dir}/*
+
+  #----------------------------------------------------------------------------------
+  # Run application
+  echo
+  echo "*** RUNNING JAVA APPLICATION CHECKPOINT POLICY EVERY 3 ENDED TASKS"
+  output_log="${target_log_folder}/checkpoint_policy_every_3_ended_tasks_0${retry_num}.outputlog"
+  error_log="${target_log_folder}/checkpoint_policy_every_3_ended_tasks_0${retry_num}.errorlog"
+  expectedTime=60s
+  
+  # shellcheck disable=SC2086
+  timeout --signal=2 $expectedTime "${COMPSs_exec}" \
+     --project="${base_app_dir}"/project.xml \
+     --resources="${base_app_dir}"/resources.xml \
+     \
+     --comm="$comm" \
+     \
+     --checkpoint=es.bsc.compss.checkpoint.policies.CheckpointPolicyFinishedTasks \
+     --checkpoint_params=finished.tasks:3 \
+     --checkpoint_folder=/tmp/checkpointing/ \
+     --debug \
+     ${runcompss_opts} \
+     \
+     --classpath="${base_app_dir}/${jar_name}" \
+     \
+     "${app_name}" 1 > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+  
+  # Check timeout
+  if [[ "$?" = "124" ]]; then
+     # Copy LOG files
+     cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
+     
+     # Report time out
+     echo "[WARNING] Java Application timed out" >> "${output_log}"
+     exit_value=124
+  else
+     # Copy LOG files
+     cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
+  
+     # Check result
+     "${base_app_dir}"/result "${output_log}" "${error_log}" "${target_log_folder}" "${base_app_dir}"
+     exit_value=$?
+  fi
+
+  echo
+  echo "*** RUNNING JAVA APPLICATION CHECKPOINT POLICY EVERY 3 ENDED TASKS"
+  output_log="${target_log_folder}/checkpoint_policy_every_3_ended_tasks_1${retry_num}.outputlog"
+  error_log="${target_log_folder}/checkpoint_policy_every_3_ended_tasks_1${retry_num}.errorlog"
+  expectedTime=60s
+
+  # shellcheck disable=SC2086
+  timeout --signal=2 $expectedTime "${COMPSs_exec}" \
+     --project="${base_app_dir}"/project.xml \
+     --resources="${base_app_dir}"/resources.xml \
+     \
+     --comm="$comm" \
+     \
+     --debug \
+     --checkpoint=es.bsc.compss.checkpoint.policies.CheckpointPolicyFinishedTasks \
+     --checkpoint_params=finished.tasks:3 \
+     --checkpoint_folder=/tmp/checkpointing/ \
+     ${runcompss_opts} \
+     \
+     --classpath="${base_app_dir}/${jar_name}" \
+     \
+     "${app_name}" 0 > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+
+  # Check timeout
+  if [[ "$?" = "124" ]]; then
+     # Copy LOG files
+     cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
+
+     # Report time out
+     echo "[WARNING] Java Application timed out" >> "${output_log}"
+     exit_value=124
+  else
+     # Copy LOG files
+     cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
+
+     # Check result
+     "${base_app_dir}"/result "${output_log}" "${error_log}" "${target_log_folder}" "${base_app_dir}"
+     exit_value=$?
+  fi
+  #----------------------------------------------------------------------------------
+  # Return execution status
+  exit ${exit_value}

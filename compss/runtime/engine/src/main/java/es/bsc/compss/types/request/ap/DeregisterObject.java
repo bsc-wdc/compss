@@ -61,7 +61,7 @@ public class DeregisterObject extends APRequest {
         // At this point all the ObjectInfo versions (renamings) are
         // out of the DataInfoProvider data structures
 
-        ta.deleteData(objectInfo);
+        ta.deleteData(objectInfo, false);
     }
 
 }

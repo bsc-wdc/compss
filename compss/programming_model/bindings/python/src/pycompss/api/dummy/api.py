@@ -157,6 +157,15 @@ def compss_barrier_group(group_name: str) -> None:  # pylint: disable=unused-arg
     """
 
 
+def compss_snapshot() -> None:
+    """Request a snapshot.
+
+    Does nothing.
+
+    :return: None
+    """
+
+
 def compss_wait_on(
     *args: typing.Any, **kwargs: typing.Any  # pylint: disable=unused-argument
 ) -> typing.Any:

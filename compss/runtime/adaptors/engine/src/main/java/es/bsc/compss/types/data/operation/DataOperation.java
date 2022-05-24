@@ -137,6 +137,17 @@ public abstract class DataOperation {
         }
     }
 
+    /**
+     * Removes a listener from a data operation.
+     *
+     * @param eventListener Listener to remove
+     */
+    public void removeEventListener(EventListener eventListener) {
+        synchronized (listeners) {
+            this.listeners.remove(eventListener);
+        }
+    }
+
     public void end(OperationEndState state) {
         notifyEnd(state, null);
     }

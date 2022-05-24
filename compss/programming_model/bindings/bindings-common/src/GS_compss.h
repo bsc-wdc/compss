@@ -92,7 +92,7 @@ extern "C" void GS_ExecuteHttpTask(long appId,
 extern "C" int GS_Accessed_File(long appId, char* fileName);
 extern "C" void GS_Open_File(long appId, char* fileName, int mode, char** buf);
 extern "C" void GS_Close_File(long appId, char* fileName, int mode);
-extern "C" void GS_Delete_File(long appId, char* fileName, int waitForData);
+extern "C" void GS_Delete_File(long appId, char* fileName, int waitForData, int applicationDelete);
 extern "C" void GS_Get_File(long appId, char* fileName);
 
 extern "C" void GS_Get_Directory(long appId, char* dirName);
@@ -103,6 +103,7 @@ extern "C" void GS_BarrierNew(long appId, int noMoreTasks);
 extern "C" void GS_BarrierGroup(long appId, char* groupName, char** exceptionMessage);
 extern "C" void GS_OpenTaskGroup(char* groupName, int implicitBarrier, long appId);
 extern "C" void GS_CloseTaskGroup(char* groupName, long appId);
+extern "C" void GS_Snapshot(long appId);
 extern "C" int GS_GetNumberOfResources(long appId);
 extern "C" void GS_RequestResources(long appId, int numResources, char* groupName);
 extern "C" void GS_FreeResources(long appId, int numResources, char* groupName);

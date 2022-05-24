@@ -416,7 +416,6 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
         LOGGER.debug("NIO submitting new job " + job.getJobId());
         Resource res = job.getResource();
-        NIOWorkerNode worker = (NIOWorkerNode) res.getNode();
 
         List<MultiURI> obsoletes = res.pollObsoletes();
         List<String> obsoleteRenamings = new LinkedList<>();
@@ -424,6 +423,8 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             obsoleteRenamings.add(u.getPath());
         }
         RUNNING_JOBS.put(job.getJobId(), job);
+
+        NIOWorkerNode worker = (NIOWorkerNode) res.getNode();
         worker.submitTask(job, obsoleteRenamings);
     }
 

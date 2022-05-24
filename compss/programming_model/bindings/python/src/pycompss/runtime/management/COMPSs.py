@@ -166,15 +166,18 @@ class COMPSsModule:
         """
         self.compss.close_file(app_id, file_name, mode)
 
-    def delete_file(self, app_id: int, file_name: str, mode: bool) -> bool:
+    def delete_file(
+        self, app_id: int, file_name: str, mode: bool, application_delete=True
+    ) -> bool:
         """Call to delete_file.
 
         :param app_id: Application identifier.
         :param file_name: File name reference to delete.
         :param mode: Delete mode.
+        :param application_delete: Application delete.
         :return: The deletion result.
         """
-        result = self.compss.delete_file(app_id, file_name, mode)
+        result = self.compss.delete_file(app_id, file_name, mode, application_delete)
         if result is None:
             return False
         return result
@@ -235,6 +238,14 @@ class COMPSsModule:
         :return: None.
         """
         self.compss.close_task_group(group_name, app_id)
+
+    def snapshot(self, app_id) -> None:
+        """Call to snapshot.
+
+        :param app_id: Application identifier.
+        :return: None
+        """
+        self.compss.snapshot(app_id)
 
     def get_logging_path(self) -> str:
         """Call to get_logging_path.

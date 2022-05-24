@@ -192,16 +192,14 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
             this.obsoletes.clear();
         }
         List<MultiURI> obsoleteRenamings = new LinkedList<>();
-        if (obs != null) {
-            for (LogicalData ld : obs) {
-                for (MultiURI u : ld.getURIsInHost((Resource) this)) {
-                    if (u != null) {
-                        obsoleteRenamings.add(u);
-                    }
+        for (LogicalData ld : obs) {
+            for (MultiURI u : ld.getURIsInHost((Resource) this)) {
+                if (u != null) {
+                    obsoleteRenamings.add(u);
                 }
             }
-
         }
+
         return obsoleteRenamings;
     }
 

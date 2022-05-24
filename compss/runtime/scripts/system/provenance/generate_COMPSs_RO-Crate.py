@@ -228,7 +228,38 @@ def add_file_to_crate(
 
     if file_path.name == main_entity:
         file_properties["description"] = "Main file of the COMPSs workflow source files"
-        file_properties["encodingFormat"] = "text/plain"
+        if file_path.suffix == ".jar":
+            file_properties["encodingFormat"] = (
+                [
+                    "application/java-archive",
+                    {"@id": "https://www.nationalarchives.gov.uk/PRONOM/x-fmt/412"},
+                ],
+            )
+            # Add JAR as ContextEntity
+            CRATE.add(
+                ContextEntity(
+                    CRATE,
+                    "https://www.nationalarchives.gov.uk/PRONOM/x-fmt/412",
+                    {"@type": "WebSite", "name": "Java Archive Format"},
+                )
+            )
+        elif file_path.suffix == ".class":
+            file_properties["encodingFormat"] = (
+                [
+                    "application/java",
+                    {"@id": "https://www.nationalarchives.gov.uk/PRONOM/x-fmt/415"},
+                ],
+            )
+            # Add CLASS as ContextEntity
+            CRATE.add(
+                ContextEntity(
+                    CRATE,
+                    "https://www.nationalarchives.gov.uk/PRONOM/x-fmt/415",
+                    {"@type": "WebSite", "name": "Java Compiled Object Code"},
+                )
+            )
+        else:  # .py, .java, .c, .cc, .cpp
+            file_properties["encodingFormat"] = "text/plain"
         if complete_graph.exists():
             file_properties["image"] = {
                 "@id": "complete_graph.pdf"
@@ -243,7 +274,7 @@ def add_file_to_crate(
     else:
         # Any other extra file needed
         file_properties["description"] = "Auxiliary File"
-        if file_path.suffix == ".py" or file_path.suffix == ".jar" or file_path.suffix == ".java" or file_path.suffix == ".class":
+        if file_path.suffix == ".py" or file_path.suffix == ".java":
             file_properties["encodingFormat"] = "text/plain"
         elif file_path.suffix == ".json":
             file_properties["encodingFormat"] = [
@@ -256,6 +287,36 @@ def add_file_to_crate(
                     "application/pdf",
                     {"@id": "https://www.nationalarchives.gov.uk/PRONOM/fmt/276"},
                 ],
+            )
+        elif file_path.suffix == ".jar":
+            file_properties["encodingFormat"] = (
+                [
+                    "application/java-archive",
+                    {"@id": "https://www.nationalarchives.gov.uk/PRONOM/x-fmt/412"},
+                ],
+            )
+            # Add JAR as ContextEntity
+            CRATE.add(
+                ContextEntity(
+                    CRATE,
+                    "https://www.nationalarchives.gov.uk/PRONOM/x-fmt/412",
+                    {"@type": "WebSite", "name": "Java Archive Format"},
+                )
+            )
+        elif file_path.suffix == ".class":
+            file_properties["encodingFormat"] = (
+                [
+                    "Java .class",
+                    {"@id": "https://www.nationalarchives.gov.uk/PRONOM/x-fmt/415"},
+                ],
+            )
+            # Add CLASS as ContextEntity
+            CRATE.add(
+                ContextEntity(
+                    CRATE,
+                    "https://www.nationalarchives.gov.uk/PRONOM/x-fmt/415",
+                    {"@type": "WebSite", "name": "Java Compiled Object Code"},
+                )
             )
 
     if file_path.name != main_entity:

@@ -322,17 +322,24 @@ def __apply_recursively_to_file__(
         return ret
 
 
-def delete_object(*obj: typing.Any) -> typing.Union[list, tuple, typing.Any]:
+def delete_object(*objs: typing.Any) -> typing.Union[list, typing.Any]:
     """Remove object/s.
 
-    :param obj: Object/s to remove.
+    :param objs: Object/s to remove.
     :return: True if success. False otherwise. Keeps structure if lists or tuples are provided.
     """
     if __debug__:
-        LOGGER.debug("Deleting object/s: %s", obj)
-    return __apply_recursively_to_object__(
-        __delete_object__, TRACING_MASTER.delete_object_event, *obj
-    )
+        LOGGER.debug("Deleting object/s: %r", objs)
+    app_id = 0
+    ret = []  # type: typing.List[typing.Any]
+    for obj in objs:
+        with EventMaster(TRACING_MASTER.delete_object_event):
+            result = __delete_object__(app_id, obj)
+        ret.append(result)
+    if len(ret) == 1:
+        return ret[0]
+    else:
+        return ret
 
 
 def __delete_object__(app_id: int, obj: typing.Any) -> bool:
@@ -357,44 +364,6 @@ def __delete_object__(app_id: int, obj: typing.Any) -> bool:
     except KeyError:
         pass
     return True
-
-
-def __apply_recursively_to_object__(
-    function: typing.Callable, event: int, *objs: typing.Union[list, tuple, str]
-) -> typing.Union[list, tuple, typing.Any]:
-    """Apply the given function recursively over the given names.
-
-    Calls the external python library (that calls the bindings-common)
-    in order to request last version of a file.
-    Iterates recursively over file_name lists and tuples.
-    Emits an event per name processed.
-
-    :param function: Function to apply.
-    :param event: Event to emit.
-    :param obj: File/s or directory/ies name to apply the given function.
-    :return: The result of applying the given function.
-    """
-    app_id = 0
-    ret = []  # type: typing.List[typing.Union[list, tuple, typing.Any]]
-    for obj in objs:
-        if isinstance(obj, list):
-            files_list = list(
-                [__apply_recursively_to_object__(function, event, o) for o in obj]
-            )
-            ret.append(files_list)
-        elif isinstance(obj, tuple):
-            files_tuple = tuple(
-                [__apply_recursively_to_object__(function, event, o) for o in obj]
-            )
-            ret.append(files_tuple)
-        else:
-            with EventMaster(event):
-                result = function(app_id, obj)
-            ret.append(result)
-    if len(ret) == 1:
-        return ret[0]
-    else:
-        return ret
 
 
 def barrier(no_more_tasks: bool = False) -> None:

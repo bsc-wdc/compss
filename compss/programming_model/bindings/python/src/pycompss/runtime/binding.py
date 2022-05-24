@@ -151,22 +151,34 @@ def stop_runtime(code: int = 0, hard_stop: bool = False) -> None:
             LOGGER.info("COMPSs stopped")
 
 
-def accessed_file(file_name: str) -> bool:
-    """Check if the file has been accessed.
+def file_exists(
+    *file_name: typing.Union[list, tuple, str]
+) -> typing.Union[list, tuple, bool]:
+    """Check if one or more files exists (has/have been accessed).
+
+    :param file_name: File/s name.
+    :return: True if accessed, False otherwise.
+    """
+    if __debug__:
+        LOGGER.debug("Checking if file/s: %s has/have been accessed.", file_name)
+    return __apply_recursively_to_file__(
+        __file_exists__, TRACING_MASTER.accessed_file_event, True, *file_name
+    )
+
+
+def __file_exists__(app_id: int, file_name: str) -> bool:
+    """Check if one files exists (has been accessed).
 
     Calls the external python library (that calls the bindings-common)
     in order to check if a file has been accessed.
 
+    :param app_id: Application identifier.
     :param file_name: <String> File name.
     :return: True if accessed, False otherwise.
     """
-    with EventMaster(TRACING_MASTER.accessed_file_event):
-        app_id = 0
-        if __debug__:
-            LOGGER.debug("Checking if file %s has been accessed.", file_name)
-        if os.path.exists(file_name):
-            return True
-        return COMPSs.accessed_file(app_id, file_name)
+    if os.path.exists(file_name):
+        return True
+    return COMPSs.accessed_file(app_id, file_name)
 
 
 def open_file(file_name: str, mode: str) -> str:
@@ -191,83 +203,198 @@ def open_file(file_name: str, mode: str) -> str:
         return compss_name
 
 
-def delete_file(file_name: str) -> bool:
-    """Remove a file.
+def delete_file(
+    *file_name: typing.Union[list, tuple, str]
+) -> typing.Union[list, tuple, bool]:
+    """Remove one or more files.
+
+    :param file_name: File/s name to remove.
+    :return: True if success. False otherwise. With the same file_name structure.
+    """
+    if __debug__:
+        LOGGER.debug("Deleting file/s: %s", file_name)
+    return __apply_recursively_to_file__(
+        __delete_file__, TRACING_MASTER.delete_file_event, True, *file_name
+    )
+
+
+def __delete_file__(app_id: int, file_name: str) -> bool:
+    """Remove one or more files.
 
     Calls the external python library (that calls the bindings-common)
     in order to request a file removal.
 
-    :param file_name: File name to remove.
-    :return: True if success. False otherwise.
+    :param app_id: Application identifier.
+    :param file_name: File/s name to remove.
+    :return: True if success. False otherwise. With the same file_name structure.
     """
-    with EventMaster(TRACING_MASTER.delete_file_event):
-        app_id = 0
-        if __debug__:
-            LOGGER.debug("Deleting file %s", file_name)
-        result = COMPSs.delete_file(app_id, file_name, True) == "true"
-        if __debug__:
-            if result:
-                LOGGER.debug("File %s successfully deleted.", file_name)
+    result = COMPSs.delete_file(app_id, file_name, True)
+    if __debug__:
+        if result:
+            LOGGER.debug("File %s successfully deleted.", file_name)
+        else:
+            LOGGER.error("Failed to remove file %s.", file_name)
+    return result
+
+
+def wait_on_file(
+    *file_name: typing.Union[list, tuple, str]
+) -> typing.Union[list, tuple, str]:
+    """Retrieve one or more files.
+
+    :param file_name: File name/s to retrieve (can contain lists and tuples of strings).
+    :return: The file name/s (with the same structure).
+    """
+    if __debug__:
+        LOGGER.debug("Getting file/s: %s", file_name)
+    return __apply_recursively_to_file__(
+        COMPSs.get_file, TRACING_MASTER.get_file_event, False, *file_name
+    )
+
+
+def wait_on_directory(
+    *directory_name: typing.Union[list, tuple, str]
+) -> typing.Union[list, tuple, str]:
+    """Retrieve one or more directories.
+
+    :param directory_name: Directory name/s to retrieve (can contain lists and tuples of strings).
+    :return: The directory name/s (with the same structure).
+    """
+    if __debug__:
+        LOGGER.debug("Getting directory/s: %s", directory_name)
+    return __apply_recursively_to_file__(
+        COMPSs.get_directory, TRACING_MASTER.get_directory_event, False, *directory_name
+    )
+
+
+def __apply_recursively_to_file__(
+    function: typing.Callable,
+    event: int,
+    get_results: bool,
+    *name: typing.Union[list, tuple, str]
+) -> typing.Union[list, tuple, typing.Any]:
+    """Apply the given function recursively over the given names.
+
+    Calls the external python library (that calls the bindings-common)
+    in order to request last version of a file.
+    Iterates recursively over file_name lists and tuples.
+    Emits an event per name processed.
+
+    :param function: Function to apply.
+    :param event: Event to emit.
+    :param get_results: If get the results of the function, or the given name.
+    :param name: File/s or directory/ies name to apply the given function.
+    :return: The result of applying the given function.
+    """
+    app_id = 0
+    ret = []  # type: typing.List[typing.Union[list, tuple, str]]
+    for f_name in name:
+        if isinstance(f_name, str):
+            with EventMaster(event):
+                result = function(app_id, f_name)
+            if get_results:
+                ret.append(result)
             else:
-                LOGGER.error("Failed to remove file %s.", file_name)
-        return result
+                ret.append(f_name)
+        elif isinstance(f_name, list):
+            files_list = list(
+                [
+                    __apply_recursively_to_file__(function, event, get_results, name)
+                    for name in f_name
+                ]
+            )
+            ret.append(files_list)
+        elif isinstance(f_name, tuple):
+            files_tuple = tuple(
+                [
+                    __apply_recursively_to_file__(function, event, get_results, name)
+                    for name in f_name
+                ]
+            )
+            ret.append(files_tuple)
+        else:
+            raise PyCOMPSsException(
+                "Unsupported type in apply_recursively. Must be str, list or tuple"
+            )
+    if len(ret) == 1:
+        return ret[0]
+    else:
+        return ret
 
 
-def get_file(file_name: str) -> None:
-    """Retrieve a file.
+def delete_object(*obj: typing.Any) -> typing.Union[list, tuple, typing.Any]:
+    """Remove object/s.
 
-    Calls the external python library (that calls the bindings-common)
-    in order to request last version of file.
-
-    :param file_name: File name to remove.
-    :return: None.
+    :param obj: Object/s to remove.
+    :return: True if success. False otherwise. Keeps structure if lists or tuples are provided.
     """
-    with EventMaster(TRACING_MASTER.get_file_event):
-        app_id = 0
-        if __debug__:
-            LOGGER.debug("Getting file %s", file_name)
-        COMPSs.get_file(app_id, file_name)
+    if __debug__:
+        LOGGER.debug("Deleting object/s: %s", obj)
+    return __apply_recursively_to_object__(
+        __delete_object__, TRACING_MASTER.delete_object_event, *obj
+    )
 
 
-def get_directory(dir_name: str) -> None:
-    """Retrieve a directory.
-
-    Calls the external python library (that calls the bindings-common)
-    in order to request last version of file.
-
-    :param dir_name: dir name to retrieve.
-    :return: None.
-    """
-    with EventMaster(TRACING_MASTER.get_directory_event):
-        app_id = 0
-        if __debug__:
-            LOGGER.debug("Getting directory %s", dir_name)
-        COMPSs.get_directory(app_id, dir_name)
-
-
-def delete_object(obj: typing.Any) -> bool:
-    """Remove object.
+def __delete_object__(app_id: int, obj: typing.Any) -> bool:
+    """Remove object function.
 
     Removes a used object from the internal structures and calls the
     external python library (that calls the bindings-common)
     in order to request its corresponding file removal.
 
+    :param app_id: Application identifier.
     :param obj: Object to remove.
     :return: True if success. False otherwise.
     """
-    with EventMaster(TRACING_MASTER.delete_object_event):
-        app_id = 0
-        obj_id = OT.is_tracked(obj)
-        if obj_id is None:
-            # Not being tracked
-            return False
-        try:
-            file_name = OT.get_file_name(obj_id)
-            COMPSs.delete_file(app_id, file_name, False)
-            OT.stop_tracking(obj)
-        except KeyError:
-            pass
-        return True
+    obj_id = OT.is_tracked(obj)
+    if obj_id is None:
+        # Not being tracked
+        return False
+    try:
+        file_name = OT.get_file_name(obj_id)
+        COMPSs.delete_file(app_id, file_name, False)
+        OT.stop_tracking(obj)
+    except KeyError:
+        pass
+    return True
+
+
+def __apply_recursively_to_object__(
+    function: typing.Callable, event: int, *objs: typing.Union[list, tuple, str]
+) -> typing.Union[list, tuple, typing.Any]:
+    """Apply the given function recursively over the given names.
+
+    Calls the external python library (that calls the bindings-common)
+    in order to request last version of a file.
+    Iterates recursively over file_name lists and tuples.
+    Emits an event per name processed.
+
+    :param function: Function to apply.
+    :param event: Event to emit.
+    :param obj: File/s or directory/ies name to apply the given function.
+    :return: The result of applying the given function.
+    """
+    app_id = 0
+    ret = []  # type: typing.List[typing.Union[list, tuple, typing.Any]]
+    for obj in objs:
+        if isinstance(obj, list):
+            files_list = list(
+                [__apply_recursively_to_object__(function, event, o) for o in obj]
+            )
+            ret.append(files_list)
+        elif isinstance(obj, tuple):
+            files_tuple = tuple(
+                [__apply_recursively_to_object__(function, event, o) for o in obj]
+            )
+            ret.append(files_tuple)
+        else:
+            with EventMaster(event):
+                result = function(app_id, obj)
+            ret.append(result)
+    if len(ret) == 1:
+        return ret[0]
+    else:
+        return ret
 
 
 def barrier(no_more_tasks: bool = False) -> None:

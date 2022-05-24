@@ -260,9 +260,7 @@ def executor(
                 conf.logger_cfg,
                 conf.storage_loggers,
                 _,
-            ) = load_loggers(  # noqa: E501
-                conf.debug, conf.persistent_storage
-            )
+            ) = load_loggers(conf.debug, conf.persistent_storage)
             # Set the binding in worker mode too
             CONTEXT.set_worker()
         logger = conf.logger
@@ -315,13 +313,11 @@ def executor(
 
         if streaming:
             # Initialize streaming
-            logger.debug(
-                HEADER + "Starting streaming for process " + str(process_name)
-            )  # noqa: E501
+            logger.debug(HEADER + "Starting streaming for process " + str(process_name))
             try:
                 DistroStreamClientHandler.init_and_start(
                     master_ip=conf.stream_master_ip,
-                    master_port=conf.stream_master_port,  # noqa: E501
+                    master_port=conf.stream_master_port,
                 )
             except Exception as general_exception:  # pylint: disable=broad-except
                 logger.error(general_exception)
@@ -896,9 +892,7 @@ def build_compss_exception_message(
     """
     with EventInsideWorker(TRACING_WORKER.build_compss_exception_message_event):
         except_msg = except_msg.replace(" ", "_")
-        message = " ".join(
-            (TAGS.compss_exception, str(job_id), str(except_msg) + "\n")
-        )  # noqa: E501
+        message = " ".join((TAGS.compss_exception, str(job_id), str(except_msg) + "\n"))
         return except_msg, message
 
 

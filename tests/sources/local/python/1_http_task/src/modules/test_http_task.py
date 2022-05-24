@@ -8,10 +8,12 @@ PyCOMPSs Testbench Tasks
 """
 
 # Imports
+import os
 import unittest
 
 from pycompss.api.task import task
 from pycompss.api.http import http
+from pycompss.api.software import software
 from pycompss.api.parameter import *
 from pycompss.api.api import compss_wait_on as cwo, compss_barrier as cb
 
@@ -21,6 +23,9 @@ class TestHttpTask(unittest.TestCase):
     def test_post_methods(self):
         mes = cwo(dummy_post())
         self.assertEqual(mes, "post_works", "TEST FAILED: POST dummy")
+
+        http_mes = cwo(http_in_software())
+        self.assertEqual(http_mes, "post_works", "TEST FAILED: POST dummy")
 
         payload = "something"
         mes = cwo(post_with_param(payload))
@@ -208,3 +213,11 @@ def regular_task(test):
     """
     """
     test["greetings_from"] = "regular_task"
+
+
+@software(config_file=os.getcwd() + "/src/http.json")
+@task(returns=str)
+def http_in_software():
+    """
+    """
+    pass

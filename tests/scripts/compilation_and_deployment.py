@@ -78,7 +78,7 @@ def compile_and_deploy_tests(cmd_args, compss_cfg, tests_dir):
         print("[WARN] Script is attempting to erase " + str(target_base_dir))
         print("[WARN] You have 5s to abort...")
         import time
-        time.sleep(5)
+        # time.sleep(5) #  uncomment
         print("[WARN] Erasing deployment structure " + str(target_base_dir))
         shutil.rmtree(target_base_dir)
     except Exception:
@@ -89,7 +89,7 @@ def compile_and_deploy_tests(cmd_args, compss_cfg, tests_dir):
         print("[WARN] Script is attempting to erase " + str(compss_base_log_dir))
         print("[WARN] You have 5s to abort...")
         import time
-        time.sleep(5)
+        # time.sleep(5) #  uncomment
         print("[WARN] Erasing COMPSs log root directory " + str(compss_base_log_dir))
         shutil.rmtree(compss_base_log_dir)
     except Exception:

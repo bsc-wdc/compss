@@ -59,6 +59,7 @@
       ${python_mpi_worker} \
       --pythonpath="${base_app_dir}"/src \
       --specific_log_dir="${specific_log_dir}" \
+      --env_script="${base_app_dir}"/env_script.sh \
       \
       "${base_app_dir}/src/${app_name}" > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 

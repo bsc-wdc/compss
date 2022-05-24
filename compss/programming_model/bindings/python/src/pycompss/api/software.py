@@ -29,6 +29,10 @@ from functools import wraps
 from pycompss.util.context import CONTEXT
 from pycompss.api import binary
 from pycompss.api import mpi
+from pycompss.api import mpmd_mpi
+from pycompss.api import multinode
+from pycompss.api import http
+from pycompss.api import compss
 from pycompss.api.commons.constants import INTERNAL_LABELS
 from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
@@ -51,6 +55,10 @@ DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 SUPPORTED_DECORATORS = {
     LABELS.mpi: (mpi, mpi.mpi),
     LABELS.binary: (binary, binary.binary),
+    LABELS.mpmd_mpi: (mpmd_mpi, mpmd_mpi.mpmd_mpi),
+    LABELS.http: (http, http.http),
+    LABELS.compss: (compss, compss.compss),
+    LABELS.multinode: (multinode, multinode.multinode),
 }
 
 

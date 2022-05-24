@@ -8,11 +8,13 @@ PyCOMPSs Testbench Tasks
 """
 
 # Imports
+import os
 import unittest
 
 from pycompss.api.task import task
 from pycompss.api.compss import compss
 from pycompss.api.constraint import constraint
+from pycompss.api.software import software
 from pycompss.api.api import compss_wait_on
 
 
@@ -40,6 +42,12 @@ def exit_code_test(value):
     pass
 
 
+@software(config_file=os.getcwd() + "/src/compss.json")
+@task(returns=int)
+def simple_w_software(value):
+    pass
+
+
 class TestCOMPSsDecorator(unittest.TestCase):
 
     def testNestedSingleNode(self):
@@ -57,3 +65,8 @@ class TestCOMPSsDecorator(unittest.TestCase):
         ev = exit_code_test(exit_code)
         ev = compss_wait_on(ev)
         self.assertEqual(ev, exit_code)
+
+    def testWithSoftware(self):
+        ev = simple_w_software(1)
+        ev = compss_wait_on(ev)
+        self.assertEqual(ev, 0)

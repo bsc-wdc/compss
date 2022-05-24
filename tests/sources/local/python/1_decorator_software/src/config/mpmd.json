@@ -1,0 +1,19 @@
+{
+	"type":"mpmd_mpi",
+	"properties":{
+		"ppn":2,
+		"runner":"mpirun",
+		"programs":[
+			{
+				"processes": 2,
+				"binary":"date",
+				"params":"-d {{b}}"
+			},
+			{
+				"processes": 2,
+				"binary":"date",
+				"params":"-d {{a}}"
+			}
+		]
+	}
+}

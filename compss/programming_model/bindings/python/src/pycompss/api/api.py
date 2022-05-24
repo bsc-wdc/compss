@@ -22,19 +22,23 @@ PyCOMPSs API.
 
 This file defines the public PyCOMPSs API functions.
 It implements the:
-    - start
-    - stop
-    - open
+    - start runtime
+    - stop runtime
+    - file exists
+    - open file
     - delete file
     - wait on file
+    - wait on directory
     - delete object
     - barrier
     - barrier group
-    - get_number_of_resources
-    - request_resources_creation
-    - request_resources_destruction
-    - set_wall_clock
+    - snapshot
     - wait_on
+    - get number of resources
+    - request resources creation
+    - request resources destruction
+    - set wall clock
+    - add logger
     - TaskGroup (class)
 functions.
 Also includes the redirection to the dummy API.

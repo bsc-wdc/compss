@@ -77,8 +77,7 @@ def compss_file_exists(
             ret.append(os.path.exists(f_name))
     if len(ret) == 1:
         return ret[0]
-    else:
-        return ret
+    return ret
 
 
 def compss_open(file_name: str, mode: str = "r") -> typing.Any:
@@ -112,8 +111,7 @@ def compss_delete_file(
             ret.append(True)
     if len(ret) == 1:
         return ret[0]
-    else:
-        return ret
+    return ret
 
 
 def compss_wait_on_file(
@@ -128,8 +126,7 @@ def compss_wait_on_file(
     """
     if len(file_name) == 1:
         return file_name[0]
-    else:
-        return file_name
+    return file_name
 
 
 def compss_wait_on_directory(
@@ -144,30 +141,28 @@ def compss_wait_on_directory(
     """
     if len(directory_name) == 1:
         return directory_name[0]
-    else:
-        return directory_name
+    return directory_name
 
 
 def compss_delete_object(
-    *obj: typing.Any,
+    *objs: typing.Any,
 ) -> typing.Union[bool, typing.List[typing.Union[bool, list]]]:
     """Delete one or more objects used in task dummy.
 
     Does nothing and always return True.
 
-    :param obj: Object/s to delete.
+    :param objs: Object/s to delete.
     :return: Always True.
     """
     ret = []  # type: typing.List[typing.Union[bool, list]]
-    for o in obj:
-        if isinstance(o, (list, tuple)):
-            ret.append([compss_delete_object(elem) for elem in o])
+    for obj in objs:
+        if isinstance(obj, (list, tuple)):
+            ret.append([compss_delete_object(elem) for elem in obj])
         else:
             ret.append(True)
     if len(ret) == 1:
         return ret[0]
-    else:
-        return ret
+    return ret
 
 
 def compss_barrier(

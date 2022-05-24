@@ -318,11 +318,10 @@ def __apply_recursively_to_file__(
             )
     if len(ret) == 1:
         return ret[0]
-    else:
-        return ret
+    return ret
 
 
-def delete_object(*objs: typing.Any) -> typing.Union[list, typing.Any]:
+def delete_object(*objs: typing.Any) -> typing.Union[bool, typing.List[typing.Union[bool, list]]]:
     """Remove object/s.
 
     :param objs: Object/s to remove.
@@ -331,15 +330,14 @@ def delete_object(*objs: typing.Any) -> typing.Union[list, typing.Any]:
     if __debug__:
         LOGGER.debug("Deleting object/s: %r", objs)
     app_id = 0
-    ret = []  # type: typing.List[typing.Any]
+    ret = []  # type: typing.List[typing.Union[bool, list]]
     for obj in objs:
         with EventMaster(TRACING_MASTER.delete_object_event):
             result = __delete_object__(app_id, obj)
         ret.append(result)
     if len(ret) == 1:
         return ret[0]
-    else:
-        return ret
+    return ret
 
 
 def __delete_object__(app_id: int, obj: typing.Any) -> bool:
@@ -382,7 +380,6 @@ def barrier(no_more_tasks: bool = False) -> None:
         # If noMoreFlags is set, clean up the objects
         if no_more_tasks:
             _clean_objects()
-
         app_id = 0
         # Call the Runtime barrier (appId 0, not needed for the signature)
         COMPSs.barrier(app_id, no_more_tasks)
@@ -406,7 +403,6 @@ def nested_barrier() -> None:
         if __debug__:
             LOGGER.debug("Nested Barrier.")
         _clean_objects()
-
         # Call the Runtime barrier (appId 0 -- not needed for the signature, and
         # no_more_tasks == True)
         COMPSs.barrier(0, True)
@@ -498,7 +494,6 @@ def get_number_of_resources() -> int:
         app_id = 0
         if __debug__:
             LOGGER.debug("Request the number of active resources")
-
         # Call the Runtime
         return COMPSs.get_number_of_resources(app_id)
 
@@ -523,7 +518,6 @@ def request_resources(num_resources: int, group_name: typing.Optional[str]) -> N
                 str(num_resources),
                 str(group_name),
             )
-
         # Call the Runtime
         COMPSs.request_resources(app_id, num_resources, group_name)
 
@@ -548,7 +542,6 @@ def free_resources(num_resources: int, group_name: typing.Optional[str]) -> None
                 str(num_resources),
                 str(group_name),
             )
-
         # Call the Runtime
         COMPSs.free_resources(app_id, num_resources, group_name)
 
@@ -563,11 +556,9 @@ def set_wall_clock(wall_clock_limit: int) -> None:
         app_id = 0
         if __debug__:
             LOGGER.debug("Set a wall clock limit of %s", str(wall_clock_limit))
-
         # Activate wall clock limit alarm
         signal.signal(signal.SIGALRM, _wall_clock_exceed)
         signal.alarm(wall_clock_limit)
-
         # Call the Runtime to set a timer in case wall clock is reached in a synch
         COMPSs.set_wall_clock(app_id, wall_clock_limit)
 

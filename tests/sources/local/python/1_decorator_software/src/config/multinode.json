@@ -1,0 +1,9 @@
+{
+	"type":"multinode",
+	"properties":{
+		"computing_nodes": 2
+	},
+	"constraints": {
+		"computing_units": 2
+	}
+}

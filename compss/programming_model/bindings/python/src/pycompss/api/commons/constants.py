@@ -48,6 +48,7 @@ class _Labels:  # pylint: disable=too-few-public-methods, too-many-instance-attr
         "fail_by_exit_value",
         "mpi",
         "mpmd_mpi",
+        "multinode",
         "binary",
         "runner",
         "processes",
@@ -109,6 +110,7 @@ class _Labels:  # pylint: disable=too-few-public-methods, too-many-instance-attr
         self.mpi = "mpi"
         self.binary = "binary"
         self.mpmd_mpi = "mpmd_mpi"
+        self.multinode = "multinode"
         self.runner = "runner"
         self.processes = "processes"
         self.programs = "programs"

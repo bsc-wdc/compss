@@ -30,6 +30,7 @@ from pycompss.util.context import CONTEXT
 from pycompss.api import binary
 from pycompss.api import mpi
 from pycompss.api import mpmd_mpi
+from pycompss.api import multinode
 from pycompss.api.commons.constants import INTERNAL_LABELS
 from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
@@ -53,6 +54,7 @@ SUPPORTED_DECORATORS = {
     LABELS.mpi: (mpi, mpi.mpi),
     LABELS.binary: (binary, binary.binary),
     LABELS.mpmd_mpi: (mpmd_mpi, mpmd_mpi.mpmd_mpi),
+    LABELS.multinode: (multinode, multinode.multinode),
 }
 
 

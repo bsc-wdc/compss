@@ -96,11 +96,13 @@ def add_file_not_in_crate(in_url: str) -> None:
         CRATE.add_file(in_url, validate_url=True, properties=file_properties)
 
 
-def get_main_entities() -> typing.Tuple[str, str, str]:
+def get_main_entities(list_of_files: list) -> typing.Tuple[str, str, str]:
     """
     Get COMPSs version and mainEntity from dataprovenance.log first lines
     3 First lines expected format: compss_version_number\n main_entity\n output_profile_file\n
     Next lines are for "accessed files" and "direction"
+
+    :param list_of_files: List of files that form the application, as specified by the user
 
     :returns: COMPSs version, main COMPSs file name, COMPSs profile file name
     """
@@ -111,10 +113,14 @@ def get_main_entities() -> typing.Tuple[str, str, str]:
             f
         ).rstrip()  # Second, main_entity. Use better rstrip, just in case there is no '\n'
         main_entity_fn = Path(second_line)
+        if main_entity_fn.suffix == ".py":  # PyCOMPSs, main_entity equals main_file.py
+            main_entity = main_entity_fn.name
+        else:  # COMPSs Java application, consider first file as main
+            main_entity = Path(list_of_files[0]).name
         third_line = next(f).rstrip()
         out_profile_fn = Path(third_line)
 
-    return compss_v, main_entity_fn.name, out_profile_fn.name
+    return compss_v, main_entity, out_profile_fn.name
 
 
 def process_accessed_files() -> typing.Tuple[list, list]:
@@ -208,10 +214,17 @@ def add_file_to_crate(
     """
 
     file_path = Path(file_name)
-    # Check file extension, to decide how to add it in the Crate file_path.suffix
     file_properties = dict()
     file_properties["name"] = file_path.name
     file_properties["contentSize"] = os.path.getsize(file_name)
+    # Check file extension, to decide how to add it in the Crate file_path.suffix
+    # if file_path.suffix == ".jar":  # We can ignore main_entity
+    #     namespace = main_entity_in.rstrip().split(".")
+    #     print(f"namespace: {namespace}")
+    #     main_entity = namespace[0] + ".jar"  # Rebuild package name
+    # else:  # main_file.py or any other file
+    #     main_entity = main_entity_in
+    # print(f"main_entity is: {main_entity}, file_path is: {file_path}")
 
     if file_path.name == main_entity:
         file_properties["description"] = "Main file of the COMPSs workflow source files"
@@ -230,9 +243,7 @@ def add_file_to_crate(
     else:
         # Any other extra file needed
         file_properties["description"] = "Auxiliary File"
-        if file_path.suffix == ".py":
-            file_properties["encodingFormat"] = "text/plain"
-        elif file_path.suffix == ".java":
+        if file_path.suffix == ".py" or file_path.suffix == ".jar" or file_path.suffix == ".java" or file_path.suffix == ".class":
             file_properties["encodingFormat"] = "text/plain"
         elif file_path.suffix == ".json":
             file_properties["encodingFormat"] = [
@@ -248,9 +259,11 @@ def add_file_to_crate(
             )
 
     if file_path.name != main_entity:
-        CRATE.add_file(file_path.name, properties=file_properties)
+        print(f"Adding file: {file_path}")
+        CRATE.add_file(file_path, properties=file_properties)
     else:
         # We get lang_version from dataprovenance.log
+        print(f"Adding file: {file_path.name}, file_path: {file_path}")
         CRATE.add_workflow(
             file_path,
             file_path.name,
@@ -426,7 +439,7 @@ Authors:
 
     # Get mainEntity from COMPSs runtime report dataprovenance.log
 
-    compss_ver, main_entity, out_profile = get_main_entities()
+    compss_ver, main_entity, out_profile = get_main_entities(compss_wf_info["files"])
     print(
         f"COMPSs version: {compss_ver}, main_entity is: {main_entity}, out_profile is: {out_profile}"
     )

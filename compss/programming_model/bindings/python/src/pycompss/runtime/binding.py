@@ -271,7 +271,7 @@ def __apply_recursively_to_file__(
     function: typing.Callable,
     event: int,
     get_results: bool,
-    *name: typing.Union[list, tuple, str]
+    *name: typing.Union[list, tuple, str],
 ) -> typing.Union[list, tuple, typing.Any]:
     """Apply the given function recursively over the given names.
 
@@ -321,7 +321,9 @@ def __apply_recursively_to_file__(
     return ret
 
 
-def delete_object(*objs: typing.Any) -> typing.Union[bool, typing.List[typing.Union[bool, list]]]:
+def delete_object(
+    *objs: typing.Any,
+) -> typing.Union[bool, typing.List[typing.Union[bool, list]]]:
     """Remove object/s.
 
     :param objs: Object/s to remove.

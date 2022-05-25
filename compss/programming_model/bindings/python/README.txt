@@ -41,8 +41,9 @@ INSTALLATION
 This will install PyCOMPSs in /usr/local/lib/pythonX.Y/site-packages.
 
 - Alternatively, specify an installation directory:
-    ./install <install_dir> <create_symlinks> <specific_python_version>
+    ./install <install_dir> <create_symlinks> <specific_python_version> <compile>
 
     <install_dir>: Target directory to install.
     <create_symlinks>: Create symbolic links within site-packages (options: true | false).
     <specific_python_version>: Install a specific version (e.g. python3.10).
+    <compile>: Compile the installation (options: true | false).

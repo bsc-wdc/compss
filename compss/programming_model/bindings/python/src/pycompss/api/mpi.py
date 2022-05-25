@@ -155,7 +155,7 @@ class Mpi:  # pylint: disable=too-few-public-methods
             # master code - or worker with nesting enabled
             self.__configure_core_element__(kwargs)
 
-        # The processes parameter will have to go down until the execution
+        # The processes' parameter will have to go down until the execution
         # is invoked. To this end, set the computing_nodes variable in kwargs
         # for its usage in @task decorator
         # WARNING: processes can be an int, a env string, a str with

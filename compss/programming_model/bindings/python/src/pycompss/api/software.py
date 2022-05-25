@@ -155,25 +155,29 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
 
             if self.prolog is not None:
                 resolve_fail_by_exit_value(self.prolog, "True")
-                binary = self.prolog[LABELS.binary]
-                params = self.prolog.get(LABELS.params, INTERNAL_LABELS.unassigned)
-                fail_by = self.prolog.get(LABELS.fail_by_exit_value)
-                _prolog = [binary, params, fail_by]
+                prolog_binary = self.prolog[LABELS.binary]
+                prolog_params = self.prolog.get(
+                    LABELS.params, INTERNAL_LABELS.unassigned
+                )
+                prolog_fail_by = self.prolog.get(LABELS.fail_by_exit_value)
+                _prolog = [prolog_binary, prolog_params, prolog_fail_by]
 
-                ce = kwargs.get(CORE_ELEMENT_KEY, CE())
-                ce.set_impl_prolog(_prolog)
-                kwargs[CORE_ELEMENT_KEY] = ce
+                prolog_core_element = kwargs.get(CORE_ELEMENT_KEY, CE())
+                prolog_core_element.set_impl_prolog(_prolog)
+                kwargs[CORE_ELEMENT_KEY] = prolog_core_element
 
             if self.epilog is not None:
                 resolve_fail_by_exit_value(self.epilog, "False")
-                binary = self.epilog[LABELS.binary]
-                params = self.epilog.get(LABELS.params, INTERNAL_LABELS.unassigned)
-                fail_by = self.epilog.get(LABELS.fail_by_exit_value)
-                _epilog = [binary, params, fail_by]
+                epilog_binary = self.epilog[LABELS.binary]
+                epilog_params = self.epilog.get(
+                    LABELS.params, INTERNAL_LABELS.unassigned
+                )
+                epilog_fail_by = self.epilog.get(LABELS.fail_by_exit_value)
+                _epilog = [epilog_binary, epilog_params, epilog_fail_by]
 
-                ce = kwargs.get(CORE_ELEMENT_KEY, CE())
-                ce.set_impl_epilog(_epilog)
-                kwargs[CORE_ELEMENT_KEY] = ce
+                epilog_core_element = kwargs.get(CORE_ELEMENT_KEY, CE())
+                epilog_core_element.set_impl_epilog(_epilog)
+                kwargs[CORE_ELEMENT_KEY] = epilog_core_element
 
             if self.container is not None:
                 _func = str(user_function.__name__)
@@ -219,9 +223,9 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
         :return: None
         """
         file_path = self.kwargs[LABELS.config_file]
-        with open(
+        with open(  # pylint: disable=unspecified-encoding
             file_path, "r"
-        ) as file_path_descriptor:  # pylint: disable=unspecified-encoding
+        ) as file_path_descriptor:
             config = json.load(file_path_descriptor)
 
             properties = config.get(LABELS.properties, {})

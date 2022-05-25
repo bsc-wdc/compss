@@ -202,7 +202,7 @@ def compss_main() -> None:
 
     # Get log_level
     log_level = args.log_level
-    print(str(args))
+
     # Setup tracing
     tracing = args.tracing == "true"
 

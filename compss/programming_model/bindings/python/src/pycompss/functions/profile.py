@@ -95,10 +95,10 @@ class Profile:
                 job_log_file_path = os.readlink(f"{FD_PATH}{stdout_fd}")
                 job_log_file_name = os.path.basename(job_log_file_path)
                 job_name = job_log_file_name.split(".")[0]
-            # Get time stamp
-            start_time = time.time()
             # Get initial memory usage
             initial_memory = psutil.virtual_memory().used
+            # Get start time stamp
+            start_time = time.time()
             # Run the user code
             result = mem_profile(
                 func=function,
@@ -106,6 +106,8 @@ class Profile:
                 precision=self.precision,
                 backend=self.backend,
             )(*args, **kwargs)
+            # Get elapsed time
+            elapsed_time = time.time() - start_time
             # Get final memory usage
             final_memory = psutil.virtual_memory().used
             # Report before returning the result.
@@ -117,6 +119,7 @@ class Profile:
                 report,
                 initial_memory,
                 final_memory,
+                elapsed_time,
             )
             return result
 
@@ -130,6 +133,7 @@ class Profile:
         report: str,
         initial_memory: int,
         final_memory: int,
+        elapsed_time: float,
     ) -> None:
         """Show the memory usage report.
 
@@ -139,14 +143,18 @@ class Profile:
         :param report: Memory usage report.
         :param initial_memory: Memory used before the task is executed.
         :param final_memory: Memory used after the task is executed.
+        :param elapsed_time: Task elapsed time.
         :return: None
         """
         if self.full_report:
-            st_time = f"Task start time: {start_time}"
             job_name = f"Job name: {job_name}"
+            st_time = f"Task start time: {start_time}"
+            el_time = f"Elapsed time: {elapsed_time}"
             pre_mem = f"Initial memory: {initial_memory}"
             post_mem = f"Final memory: {final_memory}"
-            report_info = f"{report}\n{job_name}\n{st_time}\n{pre_mem}\n{post_mem}"
+            report_info = (
+                f"{report}\n{job_name}\n{st_time}\n{el_time}\n{pre_mem}\n{post_mem}"
+            )
             self.__redirect__(report_info)
         else:
             report_lines = report.splitlines()
@@ -166,9 +174,7 @@ class Profile:
                     if usage > peak_memory:
                         peak_memory = usage
             mem_usage = f"{initial_memory} {final_memory} {peak_memory} MiB"
-            info_line = (
-                f"{start_time:.7f} {job_name} {file_name} {function_name} {mem_usage}"
-            )
+            info_line = f"{start_time:.7f} {job_name} {file_name} {function_name} {elapsed_time} {mem_usage}"
             self.__redirect__(info_line)
         # Clear the stream for the next usage
         self.stream.truncate(0)

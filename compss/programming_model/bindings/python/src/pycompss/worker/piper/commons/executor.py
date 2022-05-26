@@ -36,7 +36,7 @@ from pycompss.util.typing_helper import typing
 
 try:
     THREAD_AFFINITY = True
-    import thread_affinity  # noqa
+    import process_affinity  # noqa
 except ImportError:
     from pycompss.worker.piper.commons.constants import HEADER as MAIN_HEADER
 
@@ -260,9 +260,7 @@ def executor(
                 conf.logger_cfg,
                 conf.storage_loggers,
                 _,
-            ) = load_loggers(  # noqa: E501
-                conf.debug, conf.persistent_storage
-            )
+            ) = load_loggers(conf.debug, conf.persistent_storage)
             # Set the binding in worker mode too
             CONTEXT.set_worker()
         logger = conf.logger
@@ -315,13 +313,11 @@ def executor(
 
         if streaming:
             # Initialize streaming
-            logger.debug(
-                HEADER + "Starting streaming for process " + str(process_name)
-            )  # noqa: E501
+            logger.debug(HEADER + "Starting streaming for process " + str(process_name))
             try:
                 DistroStreamClientHandler.init_and_start(
                     master_ip=conf.stream_master_ip,
-                    master_port=conf.stream_master_port,  # noqa: E501
+                    master_port=conf.stream_master_port,
                 )
             except Exception as general_exception:  # pylint: disable=broad-except
                 logger.error(general_exception)
@@ -610,7 +606,7 @@ def process_task(
             if THREAD_AFFINITY:
                 # The cpu affinity can be long if multiple cores have been
                 # assigned. To avoid issues, we get just the first id.
-                real_affinity = thread_affinity.getaffinity()
+                real_affinity = process_affinity.getaffinity()
                 cpus = str(real_affinity[0])
                 num_cpus = len(real_affinity)
                 emit_manual_event(int(cpus) + 1, inside=True, cpu_affinity=True)
@@ -814,7 +810,7 @@ def bind_cpus(cpus: str, process_name: str, logger: typing.Any) -> bool:
         cpus_list = cpus.split(",")
         cpus_map = list(map(int, cpus_list))
         try:
-            thread_affinity.setaffinity(cpus_map)
+            process_affinity.setaffinity(cpus_map)
         except Exception:  # pylint: disable=broad-except
             if __debug__:
                 logger.error(
@@ -896,9 +892,7 @@ def build_compss_exception_message(
     """
     with EventInsideWorker(TRACING_WORKER.build_compss_exception_message_event):
         except_msg = except_msg.replace(" ", "_")
-        message = " ".join(
-            (TAGS.compss_exception, str(job_id), str(except_msg) + "\n")
-        )  # noqa: E501
+        message = " ".join((TAGS.compss_exception, str(job_id), str(except_msg) + "\n"))
         return except_msg, message
 
 

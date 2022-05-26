@@ -41,7 +41,7 @@ from pycompss.api.exceptions import COMPSsException
 from pycompss.runtime.binding import get_log_path
 from pycompss.runtime.commons import CONSTANTS
 from pycompss.runtime.commons import GLOBALS
-from pycompss.runtime.crank.initialization import LAUNCH_STATUS
+from pycompss.runtime.start.initialization import LAUNCH_STATUS
 from pycompss.runtime.task.features import TASK_FEATURES
 
 # Streaming imports
@@ -202,7 +202,7 @@ def compss_main() -> None:
 
     # Get log_level
     log_level = args.log_level
-    print(str(args))
+
     # Setup tracing
     tracing = args.tracing == "true"
 

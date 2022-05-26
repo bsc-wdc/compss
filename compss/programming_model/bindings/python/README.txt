@@ -12,8 +12,8 @@ CONTENT
 src
 L ext                     -> External C modules
 |   L compssmodule.cc     -> C module to interact with the binding-commons
-|   L thread_affinity.cc  -> C module to set the affinity
-|   L thread_affinity.h   -> C module to set the affinity header
+|   L process_affinity.cc -> C module to set the affinity
+|   L process_affinity.h  -> C module to set the affinity header
 L pycompss                -> Python modules
     L api                 -> API modules to be imported by the programmer in the application
     L dds                 -> DDS library
@@ -41,8 +41,9 @@ INSTALLATION
 This will install PyCOMPSs in /usr/local/lib/pythonX.Y/site-packages.
 
 - Alternatively, specify an installation directory:
-    ./install <install_dir> <create_symlinks> <specific_python_version>
+    ./install <install_dir> <create_symlinks> <specific_python_version> <compile>
 
     <install_dir>: Target directory to install.
     <create_symlinks>: Create symbolic links within site-packages (options: true | false).
     <specific_python_version>: Install a specific version (e.g. python3.10).
+    <compile>: Compile the installation (options: true | false).

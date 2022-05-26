@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-#include "thread_affinity.h"
+#include "process_affinity.h"
 
 struct module_state {
     PyObject *error;
@@ -89,34 +89,34 @@ static PyMethodDef ThreadAffinityMethods[] = {
 };
 
 
-static int thread_affinity_traverse(PyObject *m, visitproc visit, void *arg) {
+static int process_affinity_traverse(PyObject *m, visitproc visit, void *arg) {
     Py_VISIT(GETSTATE(m)->error);
     return 0;
 }
-static int thread_affinity_clear(PyObject *m) {
+static int process_affinity_clear(PyObject *m) {
     Py_CLEAR(GETSTATE(m)->error);
     return 0;
 }
 static struct PyModuleDef cModThAPy = {
     PyModuleDef_HEAD_INIT,
-    "thread_affinity",             /* name of module */
+    "process_affinity",             /* name of module */
     NULL,                          /* module documentation, may be NULL */
     sizeof(struct module_state),   /* size of per-interpreter state of the module, or -1 if the module keeps state in global variables. */
     ThreadAffinityMethods,
     NULL,
-    thread_affinity_traverse,
-    thread_affinity_clear,
+    process_affinity_traverse,
+    process_affinity_clear,
     NULL
 };
 #define INITERROR return NULL
-PyMODINIT_FUNC PyInit_thread_affinity(void) {
+PyMODINIT_FUNC PyInit_process_affinity(void) {
     PyObject *module = PyModule_Create(&cModThAPy);
 
     if (module == NULL)
         INITERROR;
     struct module_state *st = GETSTATE(module);
 
-    st->error = PyErr_NewException("thread_affinity.Error", NULL, NULL);
+    st->error = PyErr_NewException("process_affinity.Error", NULL, NULL);
     if (st->error == NULL) {
         Py_DECREF(module);
         INITERROR;

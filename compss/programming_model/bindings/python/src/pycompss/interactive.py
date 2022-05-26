@@ -33,8 +33,8 @@ from pycompss.util.context import CONTEXT
 from pycompss.runtime.binding import get_log_path
 from pycompss.runtime.commons import CONSTANTS
 from pycompss.runtime.commons import GLOBALS
-from pycompss.runtime.crank.initialization import LAUNCH_STATUS
-from pycompss.runtime.crank.interactive_initialization import EXTRA_LAUNCH_STATUS
+from pycompss.runtime.start.initialization import LAUNCH_STATUS
+from pycompss.runtime.start.interactive_initialization import EXTRA_LAUNCH_STATUS
 from pycompss.runtime.management.classes import Future
 from pycompss.runtime.management.object_tracker import OT
 

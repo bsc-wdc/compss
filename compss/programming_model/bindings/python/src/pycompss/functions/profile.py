@@ -24,13 +24,28 @@ This file defines the profiling decorator to be used below the task decorator.
 """
 
 import os
+import sys
+import time
 from functools import wraps
 from io import StringIO
 
+import psutil
 from memory_profiler import profile as mem_profile
 from pycompss.util.typing_helper import typing
+from pycompss.util.context import CONTEXT
 
+if __debug__:
+    import logging
+
+    LOGGER = logging.getLogger(__name__)
+
+# Global environment variable name
 __PROFILE_REDIRECT_ENV_VAR__ = "COMPSS_PROFILING_FILE"
+
+if sys.platform == "darwin":
+    FD_PATH = "/dev/fd/"
+else:
+    FD_PATH = "/proc/self/fd/"
 
 
 class Profile:
@@ -72,28 +87,75 @@ class Profile:
             :param kwargs: Task keyword arguments.
             :return: The result of executing function with the given *args and **kwargs.
             """
+            # Get job name from log file
+            if CONTEXT.in_master():
+                job_name = "master"
+            else:
+                stdout_fd = sys.stdout.fileno()
+                job_log_file_path = os.readlink(f"{FD_PATH}{stdout_fd}")
+                job_log_file_name = os.path.basename(job_log_file_path)
+                job_name = job_log_file_name.split(".")[0]
+            # Get initial memory usage
+            initial_memory = psutil.virtual_memory().used
+            # Get start time stamp
+            start_time = time.time()
+            # Run the user code
             result = mem_profile(
                 func=function,
                 stream=self.stream,
                 precision=self.precision,
                 backend=self.backend,
             )(*args, **kwargs)
+            # Get elapsed time
+            elapsed_time = time.time() - start_time
+            # Get final memory usage
+            final_memory = psutil.virtual_memory().used
             # Report before returning the result.
-            report = self.stream.getvalue()
-            self.__print_report__(function.__name__, report)
+            report = self.stream.getvalue().strip()
+            self.__print_report__(
+                start_time,
+                job_name,
+                function.__name__,
+                report,
+                initial_memory,
+                final_memory,
+                elapsed_time,
+            )
             return result
 
         return wrapped_f
 
-    def __print_report__(self, function_name: str, report: str) -> None:
+    def __print_report__(
+        self,
+        start_time: float,
+        job_name: str,
+        function_name: str,
+        report: str,
+        initial_memory: int,
+        final_memory: int,
+        elapsed_time: float,
+    ) -> None:
         """Show the memory usage report.
 
+        :param start_time: Task start time.
+        :param job_name: Job name.
         :param function_name: Function name.
         :param report: Memory usage report.
+        :param initial_memory: Memory used before the task is executed.
+        :param final_memory: Memory used after the task is executed.
+        :param elapsed_time: Task elapsed time.
         :return: None
         """
         if self.full_report:
-            self.__redirect__(report)
+            job_name = f"Job name: {job_name}"
+            st_time = f"Task start time: {start_time}"
+            el_time = f"Elapsed time: {elapsed_time}"
+            pre_mem = f"Initial memory: {initial_memory}"
+            post_mem = f"Final memory: {final_memory}"
+            report_info = (
+                f"{report}\n{job_name}\n{st_time}\n{el_time}\n{pre_mem}\n{post_mem}"
+            )
+            self.__redirect__(report_info)
         else:
             report_lines = report.splitlines()
             peak_memory = 0.0
@@ -101,12 +163,18 @@ class Profile:
             for line in report_lines[4:]:
                 # 4: removes the header lines
                 info = line.split()
-                if len(info) > 5:
-                    # Is a full line with memory usage
+                has_mem = True
+                try:
                     usage = float(info[1].replace(",", ""))
+                except ValueError:
+                    has_mem = False
+                    usage = 0.0
+                if len(info) > 5 and has_mem:
+                    # Is a full line with memory usage
                     if usage > peak_memory:
                         peak_memory = usage
-            info_line = f"{file_name} {function_name} {peak_memory} MiB"
+            mem_usage = f"{initial_memory} {final_memory} {peak_memory} MiB"
+            info_line = f"{start_time:.7f} {job_name} {file_name} {function_name} {elapsed_time} {mem_usage}"
             self.__redirect__(info_line)
         # Clear the stream for the next usage
         self.stream.truncate(0)

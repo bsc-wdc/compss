@@ -51,7 +51,7 @@ from pycompss.api.parameter import TYPE
 from pycompss.runtime.binding import wait_on
 from pycompss.runtime.commons import CONSTANTS
 from pycompss.runtime.commons import GLOBALS
-from pycompss.runtime.crank.initialization import LAUNCH_STATUS
+from pycompss.runtime.start.initialization import LAUNCH_STATUS
 from pycompss.runtime.management.classes import FunctionType
 from pycompss.runtime.management.classes import Future
 from pycompss.runtime.management.direction import get_compss_direction
@@ -561,7 +561,7 @@ class TaskMaster:
             # in the worker on a file.
             # This file has to be visible for all workers.
             update_tasks_code_file(self.user_function, path)
-            print("Found task: " + str(self.user_function.__name__))
+            print(f"Found task: {self.user_function.__name__}")
 
     def extract_core_element(
         self, cek: typing.Optional[CE]

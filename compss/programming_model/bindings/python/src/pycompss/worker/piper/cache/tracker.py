@@ -429,7 +429,7 @@ class CacheTracker:
                                 function,
                             ),
                         )
-                    )  # noqa: E501
+                    )
                 elif isinstance(obj, list):
                     emit_manual_event_explicit(
                         TRACING_WORKER.binding_serialization_cache_size_type, 0
@@ -656,7 +656,7 @@ def cache_tracker(queue: Queue, process_name: str, conf: CacheTrackerConf) -> No
                         shared_type,
                         parameter,
                         function,
-                    ) = message  # noqa: E501
+                    ) = message
                     if f_name in cache_ids:
                         if cache_profiler:
                             # PROFILER PUT

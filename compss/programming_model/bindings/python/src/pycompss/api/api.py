@@ -22,19 +22,23 @@ PyCOMPSs API.
 
 This file defines the public PyCOMPSs API functions.
 It implements the:
-    - start
-    - stop
-    - open
+    - start runtime
+    - stop runtime
+    - file exists
+    - open file
     - delete file
     - wait on file
+    - wait on directory
     - delete object
     - barrier
     - barrier group
-    - get_number_of_resources
-    - request_resources_creation
-    - request_resources_destruction
-    - set_wall_clock
+    - snapshot
     - wait_on
+    - get number of resources
+    - request resources creation
+    - request resources destruction
+    - set wall clock
+    - add logger
     - TaskGroup (class)
 functions.
 Also includes the redirection to the dummy API.
@@ -76,11 +80,11 @@ if CONTEXT.in_pycompss():
     from pycompss.runtime.binding import (
         start_runtime as __start_runtime__,
         stop_runtime as __stop_runtime__,
-        accessed_file as __accessed_file__,
+        file_exists as __file_exists__,
         open_file as __open_file__,
         delete_file as __delete_file__,
-        get_file as __get_file__,
-        get_directory as __get_directory__,
+        wait_on_file as __wait_on_file__,
+        wait_on_directory as __wait_on_directory__,
         delete_object as __delete_object__,
         barrier as __barrier__,
         barrier_group as __barrier_group__,
@@ -130,7 +134,9 @@ def compss_stop(code: int = 0, _hard_stop: bool = False) -> None:
         __dummy_compss_stop__(code, _hard_stop)
 
 
-def compss_file_exists(*file_name: str) -> typing.Union[bool, typing.List[bool]]:
+def compss_file_exists(
+    *file_name: typing.Union[list, tuple, str]
+) -> typing.Union[list, tuple, bool]:
     """Check if a file exists.
 
     If it does not exist, it checks if the given file name has been
@@ -141,9 +147,7 @@ def compss_file_exists(*file_name: str) -> typing.Union[bool, typing.List[bool]]
              runtime. False otherwise.
     """
     if CONTEXT.in_pycompss():
-        if len(file_name) == 1:
-            return __accessed_file__(file_name[0])
-        return [__accessed_file__(f_name) for f_name in file_name]
+        return __file_exists__(*file_name)
     return __dummy_compss_file_exists__(*file_name)
 
 
@@ -167,10 +171,12 @@ def compss_open(file_name: str, mode: str = "r") -> typing.Any:
     return __dummy_compss_open__(file_name, mode)
 
 
-def compss_delete_file(*file_name: str) -> typing.Union[bool, typing.List[bool]]:
-    """Delete a file.
+def compss_delete_file(
+    *file_name: typing.Union[list, tuple, str]
+) -> typing.Union[list, tuple, bool]:
+    """Delete one or more files.
 
-    Calls the runtime to delete the file everywhere in the infrastructure.
+    Calls the runtime to delete the file/s everywhere in the infrastructure.
     Deletion is asynchronous and will be performed when the file is not
     necessary anymore.
 
@@ -178,64 +184,54 @@ def compss_delete_file(*file_name: str) -> typing.Union[bool, typing.List[bool]]
     :return: True if success. False otherwise.
     """
     if CONTEXT.in_pycompss():
-        if len(file_name) == 1:
-            return __delete_file__(file_name[0])
-        return [__delete_file__(f_name) for f_name in file_name]
+        return __delete_file__(*file_name)
     return __dummy_compss_delete_file__(*file_name)
 
 
-def compss_wait_on_file(*file_name: str) -> None:
-    """Wait and get a file.
+def compss_wait_on_file(
+    *file_name: typing.Union[list, tuple, str]
+) -> typing.Union[list, tuple, str]:
+    """Wait and get one or more file/s.
 
-    Calls the runtime to bring the file to the master when possible
+    Calls the runtime to bring the file/s to the master when possible
     and waits until produced.
 
     :param file_name: File/s name.
-    :return: None
+    :return: The file/s name.
     """
     if CONTEXT.in_pycompss():
-        if len(file_name) == 1:
-            __get_file__(file_name[0])
-        else:
-            for f_name in file_name:
-                __get_file__(f_name)
-    else:
-        __dummy_compss_wait_on_file__(*file_name)
+        return __wait_on_file__(*file_name)
+    return __dummy_compss_wait_on_file__(*file_name)
 
 
-def compss_wait_on_directory(*directory_name: str) -> None:
-    """Wait and get a directory.
+def compss_wait_on_directory(
+    *directory_name: typing.Union[list, tuple, str]
+) -> typing.Union[list, tuple, str]:
+    """Wait and get one or more directory/ies.
 
     Calls the runtime to bring the directory to the master when possible
     and waits until produced.
 
     :param directory_name: Directory/ies name.
-    :return: None
+    :return: The directory/ies name.
     """
     if CONTEXT.in_pycompss():
-        if len(directory_name) == 1:
-            __get_directory__(directory_name[0])
-        else:
-            for d_name in directory_name:
-                __get_directory__(d_name)
-    else:
-        __dummy_compss_wait_on_directory__(*directory_name)
+        return __wait_on_directory__(*directory_name)
+    return __dummy_compss_wait_on_directory__(*directory_name)
 
 
-def compss_delete_object(*obj: typing.Any) -> typing.Union[bool, typing.List[bool]]:
-    """Delete object.
+def compss_delete_object(*obj: typing.Any) -> typing.Union[list, tuple, str, bool]:
+    """Delete object/s.
 
-    Removes a used object from the internal structures and calls the
+    Removes one or more used object from the internal structures and calls the
     external python library (that calls the bindings-common)
-    in order to request its corresponding file removal.
+    in order to request its/their corresponding file removal.
 
     :param obj: Object/s to delete.
     :return: True if success. False otherwise.
     """
     if CONTEXT.in_pycompss():
-        if len(obj) == 1:
-            return __delete_object__(obj[0])
-        return [__delete_object__(i_obj) for i_obj in obj]
+        return __delete_object__(*obj)
     return __dummy_compss_delete_object__(*obj)
 
 

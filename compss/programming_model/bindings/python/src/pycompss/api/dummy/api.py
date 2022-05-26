@@ -59,17 +59,25 @@ def compss_stop(
     """
 
 
-def compss_file_exists(*file_name: str) -> typing.Union[bool, typing.List[bool]]:
-    """Check if file used in task exists dummy.
+def compss_file_exists(
+    *file_name: typing.Union[list, tuple, str],
+) -> typing.Union[bool, typing.List[typing.Union[bool, list]]]:
+    """Check if one or more files used in task exists dummy.
 
-    Check if the file exists.
+    Check if the file/s exists.
 
     :param file_name: The file/s name to check.
     :return: True if exists. False otherwise.
     """
-    if len(file_name) == 1:
-        return os.path.exists(file_name[0])
-    return [os.path.exists(f_name) for f_name in file_name]
+    ret = []  # type: typing.List[typing.Union[bool, list]]
+    for f_name in file_name:
+        if isinstance(f_name, (list, tuple)):
+            ret.append([compss_file_exists(name) for name in f_name])
+        else:
+            ret.append(os.path.exists(f_name))
+    if len(ret) == 1:
+        return ret[0]
+    return ret
 
 
 def compss_open(file_name: str, mode: str = "r") -> typing.Any:
@@ -85,54 +93,76 @@ def compss_open(file_name: str, mode: str = "r") -> typing.Any:
     return open(file_name, mode)  # pylint: disable=unspecified-encoding
 
 
-def compss_delete_file(*file_name: str) -> typing.Union[bool, typing.List[bool]]:
-    """Delete a file used in task dummy.
+def compss_delete_file(
+    *file_name: typing.Union[list, tuple, str],
+) -> typing.Union[bool, typing.List[typing.Union[bool, list]]]:
+    """Delete one or more files used in task dummy.
 
     Does nothing and always return True.
 
     :param file_name: File/s name.
     :return: Always True.
     """
-    if len(file_name) == 1:
-        return True
-    return [True] * len(file_name)
+    ret = []  # type: typing.List[typing.Union[bool, list]]
+    for f_name in file_name:
+        if isinstance(f_name, (list, tuple)):
+            ret.append([compss_delete_file(name) for name in f_name])
+        else:
+            ret.append(True)
+    if len(ret) == 1:
+        return ret[0]
+    return ret
 
 
-def compss_wait_on_file(*file_name: str) -> None:  # pylint: disable=unused-argument
+def compss_wait_on_file(
+    *file_name: typing.Union[list, tuple, str],
+) -> typing.Union[list, tuple, str]:
     """Wait on file used in task dummy.
 
     Does nothing.
 
     :param file_name: File/s name.
-    :return: None
+    :return: The files/s name.
     """
-    return None
+    if len(file_name) == 1:
+        return file_name[0]
+    return file_name
 
 
 def compss_wait_on_directory(
-    *directory_name: str,  # pylint: disable=unused-argument
-) -> None:
+    *directory_name: typing.Union[list, tuple, str],
+) -> typing.Union[list, tuple, str]:
     """Wait on directory used in task dummy.
 
     Does nothing.
 
     :param directory_name: Directory/ies name.
-    :return: None
+    :return: The directory/ies name.
     """
-    return None
+    if len(directory_name) == 1:
+        return directory_name[0]
+    return directory_name
 
 
-def compss_delete_object(*obj: typing.Any) -> typing.Union[bool, typing.List[bool]]:
-    """Delete object used in task dummy.
+def compss_delete_object(
+    *objs: typing.Any,
+) -> typing.Union[bool, typing.List[typing.Union[bool, list]]]:
+    """Delete one or more objects used in task dummy.
 
     Does nothing and always return True.
 
-    :param obj: Object/s to delete.
+    :param objs: Object/s to delete.
     :return: Always True.
     """
-    if len(obj) == 1:
-        return True
-    return [True] * len(obj)
+    ret = []  # type: typing.List[typing.Union[bool, list]]
+    for obj in objs:
+        if isinstance(obj, (list, tuple)):
+            ret.append([compss_delete_object(elem) for elem in obj])
+        else:
+            ret.append(True)
+    if len(ret) == 1:
+        return ret[0]
+    return ret
 
 
 def compss_barrier(

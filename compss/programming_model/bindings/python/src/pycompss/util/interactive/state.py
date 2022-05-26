@@ -149,8 +149,7 @@ def show_tasks_info(log_path: str) -> None:
     """
     if supports_dynamic_state():
 
-        def play_widget(i):  # pylint: disable=unused-argument
-            # type: (typing.Any) -> None
+        def play_widget(i: typing.Any) -> None:  # pylint: disable=unused-argument
             __show_tasks_info__(log_path)
 
         play = __get_play_widget(play_widget)
@@ -270,8 +269,7 @@ def show_statistics(log_path: str) -> None:
     """
     if supports_dynamic_state():
 
-        def play_widget(i):  # pylint: disable=unused-argument
-            # type: (typing.Any) -> None
+        def play_widget(i: typing.Any) -> None:  # pylint: disable=unused-argument
             __show_statistics__(log_path)
 
         play = __get_play_widget(play_widget)
@@ -301,8 +299,7 @@ def show_resources_status(log_path: str) -> None:
     """
     if supports_dynamic_state():
 
-        def play_widget(i):  # pylint: disable=unused-argument
-            # type: (typing.Any) -> None
+        def play_widget(i: typing.Any) -> None:  # pylint: disable=unused-argument
             __show_resources_status__(log_path)
 
         play = __get_play_widget(play_widget)

@@ -82,7 +82,7 @@ class ObjectTracker:
         # Identifier handling
         self.current_id = 1
         # Object identifiers will be of the form _runtime_id-_current_id
-        # This way we avoid to have two objects from different applications
+        # This way we avoid having two objects from different applications
         # having the same identifier
         self.runtime_id = str(uuid.uuid1())
         # Dictionary to contain the conversion from object identifier to
@@ -97,7 +97,7 @@ class ObjectTracker:
 
         # Boolean to store tracking information
         # CAUTION: Enabling reporting increases the memory usage since
-        #          it requires to store internally the object tracker status
+        #          it requires storing internally the object tracker status
         #          when a new object is tracked or stopped tracking.
         self.reporting = False
         # Report info: Contains tuples composed by the values to be reported.

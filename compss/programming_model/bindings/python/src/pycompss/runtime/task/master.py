@@ -561,7 +561,7 @@ class TaskMaster:
             # in the worker on a file.
             # This file has to be visible for all workers.
             update_tasks_code_file(self.user_function, path)
-            print("Found task: " + str(self.user_function.__name__))
+            print(f"Found task: {self.user_function.__name__}")
 
     def extract_core_element(
         self, cek: typing.Optional[CE]

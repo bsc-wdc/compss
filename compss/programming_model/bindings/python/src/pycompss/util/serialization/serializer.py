@@ -95,7 +95,7 @@ if PYARROW_AVAILABLE:
     LIB2IDX[pyarrow] = 3
 LIB2IDX[json] = 4
 # IDX2LIB contains as key the integer and the value its associated serializer
-IDX2LIB = dict([(v, k) for (k, v) in LIB2IDX.items()])
+IDX2LIB = dict(((v, k) for (k, v) in LIB2IDX.items()))
 # Max integer
 PLATFORM_C_MAXINT = 2 ** ((struct.Struct("i").size * 8 - 1) - 13)
 # To force a specific serializer
@@ -160,9 +160,7 @@ def serialize_to_handler(obj: typing.Any, handler: typing.Any) -> None:
         # Reset the handlers pointer to the first position
         handler.seek(original_position)
         serializer = serializer_priority[i]
-        handler.write(
-            bytearray("%04d" % LIB2IDX[serializer], "utf8")
-        )  # pylint: disable=consider-using-f-string
+        handler.write(bytearray(f"{LIB2IDX[serializer]:04d}", "utf8"))
 
         # Special case: obj is a generator
         if isinstance(obj, types.GeneratorType):
@@ -196,9 +194,7 @@ def serialize_to_handler(obj: typing.Any, handler: typing.Any) -> None:
                     handler.close()
                     # Open the handler in normal mode
                     handler = open(h_name, "w")  # pylint: disable=consider-using-with
-                    handler.write(
-                        "%04d" % LIB2IDX[serializer]
-                    )  # pylint: disable=consider-using-f-string
+                    handler.write(f"{LIB2IDX[serializer]:04d}")
                     serializer.dump(obj, handler)
                 else:
                     serializer.dump(obj, handler, protocol=serializer.HIGHEST_PROTOCOL)
@@ -238,7 +234,6 @@ def serialize_to_file(obj: typing.Any, file_name: str) -> None:
     :return: Nothing, it just serializes the object.
     """
     with EventInsideWorker(TRACING_WORKER.serialize_to_file_event):
-        # todo: can we make the binary mode optional?
         with open(file_name, "wb") as handler:
             serialize_to_handler(obj, handler)
 
@@ -355,7 +350,10 @@ def deserialize_from_handler(
             except AttributeError:
                 # Bug fixed in 3.5 - issue10805
                 pass
-        error_msg = f"ERROR: Cannot deserialize object with serializer: {serializer}\n{traceback_exc}\n"
+        error_msg_head = (
+            f"ERROR: Cannot deserialize object with serializer: {serializer}"
+        )
+        error_msg = f"{error_msg_head}\n{traceback_exc}\n"
         raise SerializerException(error_msg) from general_exception
 
 
@@ -386,7 +384,7 @@ def deserialize_from_bytes(
         handler = BytesIO(serialized_content_bytes)
         ret, close_handler = deserialize_from_handler(
             handler, show_exception=show_exception
-        )  # noqa: E501
+        )
         if close_handler:
             handler.close()
         return ret

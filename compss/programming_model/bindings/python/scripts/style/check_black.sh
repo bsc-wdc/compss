@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 
 CURRENT_DIR="$(pwd)"
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -9,10 +9,15 @@ cd "${SCRIPT_DIR}/../../src/"
 ## Check Black ##
 #################
 
-black --check ./pycompss/
+black --check --diff ./pycompss/
 ev=$?
 if [ "$ev" -ne 0 ]; then
   echo "[ERROR] Black check failed with exit value: $ev"
+  echo ""
+  echo "Please, run:"
+  echo "    black $(pwd)/pycompss"
+  echo "Then, review changes and push them again."
+  echo ""
   exit $ev
 fi
 

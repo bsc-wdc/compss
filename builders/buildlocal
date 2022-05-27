@@ -20,6 +20,7 @@ DEFAULT_MONITOR=true
 DEFAULT_BINDINGS=true
 DEFAULT_PYCOMPSS=true
 DEFAULT_TRACING=true
+DEFAULT_DLB=true
 DEFAULT_KAFKA=true
 DEFAULT_JACOCO=true
 DEFAULT_CLI=true
@@ -36,6 +37,8 @@ NO_PYCOMPSS="Warning: No pycompss specified. Loading default value"
 NO_TRACING="Warning: No tracing specified. Loading default value"
 NO_KAFKA="Warning: No Kafka module specified. Loading default value"
 NO_JACOCO="Warning: No jacoco module specified. Loading default value"
+NO_DLB="Warning: No dlb module specified. Loading default value"
+NO_CLI="Warning: No CLI module specified. Loading default value"
 NO_TARGET_DIR="Warning: No install directory specified. Loading default location"
 
 
@@ -82,6 +85,10 @@ show_opts() {
     --jacoco, -j                Enable Jacoco module installation
     --no-jacoco, -J             Disable Jacoco module installation
                                 Default: ${DEFAULT_JACOCO}
+
+    --dlb, -d                   Enable dlb module installation
+    --no-dlb, -D                Disable dlb module installation
+                                Default: ${DEFAULT_DLB}
 
     --cli, -c                   Enable Command Line Interface module installation
     --no-cli, -C                Disable Command Line Interface module installation
@@ -137,7 +144,7 @@ display_error() {
 
 get_args() {
   # Parse COMPSs Options
-  while getopts hvmMbBpPtTaAkKjJNcC-: flag; do
+  while getopts hvmMbBpPtTkKjJdDcCN-: flag; do
     # Treat the argument
     case "$flag" in
       h)
@@ -199,6 +206,14 @@ get_args() {
         # Custom Jacoco value
         jacoco=false
         ;;
+      d)
+        # Custom DLB value
+        dlb=true
+        ;;
+      D)
+        # Custom DLB value
+        dlb=false
+        ;;
       c)
         # Custom CLI value
         cli=true
@@ -216,6 +231,7 @@ get_args() {
         kafka=false
         jacoco=false
         cli=false
+        dlb=false
         ;;
       -)
         # Check more complex arguments
@@ -276,6 +292,14 @@ get_args() {
             # Custom Kafka value
             kafka=false
             ;;
+          dlb)
+            # Custom DLB value
+            dlb=true
+            ;;
+          no-dlb)
+            # Custom DLB value
+            dlb=false
+            ;;
           jacoco)
             # Custom Jacoco value
             jacoco=true
@@ -301,6 +325,7 @@ get_args() {
             kafka=false
             jacoco=false
             cli=false
+            dlb=false
             ;;
           user-exec=*)
             # Enables specific user mvn execution
@@ -370,6 +395,11 @@ check_args() {
     cli=${DEFAULT_CLI}
   fi
 
+  if [ -z "${dlb}" ]; then
+    display_warning "${NO_DLB}"
+    dlb=${DEFAULT_DLB}
+  fi
+
   if [ -z "${user_exec}" ]; then
     if [ -z "${SUDO_USER}" ]; then
       # Cannot retrieve sudo user from env
@@ -408,6 +438,7 @@ warn_and_log_parameters() {
   echo "- Tracing        = ${tracing}"
   echo "- Stream Backend = ${kafka}"
   echo "- CLI            = ${cli}"
+  echo "- DLB            = ${dlb}"
   echo "- SCRIPT_DIR     = ${SCRIPT_DIR}"
   echo "- SOURCES DIR    = ${SOURCES_DIR}"
   echo "- TMP_DIR        = ${TMP_DIR}"
@@ -639,6 +670,18 @@ install_compss() {
       echo "ERROR: Failed to install extrae dependency"
       exit 1
     fi
+    cd "${SCRIPT_DIR}"
+  fi
+  # DLB
+  if [ "$dlb" == "true" ]; then
+    cd "${TMP_DIR}"/dependencies/
+    ./install_dlb.sh "${TMP_DIR}"/dependencies/dlb ${targetDir}/Dependencies/dlb # true
+    ev=$?
+    if [ $ev -ne 0 ]; then
+      echo "ERROR: Failed to install dlb dependency"
+      exit 1
+    fi
+    export DLB_HOME=${targetDir}/Dependencies/dlb
     cd "${SCRIPT_DIR}"
   fi
   # Kafka
@@ -873,6 +916,12 @@ install_compss() {
     # echo "export PYTHONPATH=\$PYTHONPATH:${targetDir}/Bindings/python/$( python3 -c "import sys; print(sys.version_info[:][0])" )/" >> $envFile
     # echo "- PyCOMPSs added to user profile"
     echo " "
+  fi
+
+  if [ "$dlb" == "true" ]; then
+    echo "export DLB_HOME=${targetDir}/Dependencies/dlb" >> $envFile
+    echo "export PATH=\$PATH:${targetDir}/Dependencies/dlb/bin" >> $envFile
+    echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:${targetDir}/Dependencies/dlb/lib" >> $envFile
   fi
 
   # ADD MONITOR SCRIPT TO ETC

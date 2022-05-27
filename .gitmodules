@@ -6,3 +6,6 @@
 [submodule "kafka"]
 	path = dependencies/kafka
 	url = https://github.com/apache/kafka.git
+[submodule "dependencies/dlb"]
+	path = dependencies/dlb
+	url = https://github.com/bsc-pm/dlb.git

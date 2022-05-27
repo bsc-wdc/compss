@@ -98,7 +98,7 @@
     cusCPU=${9}
     cusGPU=${10}
     cusFPGA=${11}
-    ioExec=${12}
+    cpuMap=${12}
     lot=${16}
     appUuid=${17}
     lang=${18}
@@ -183,7 +183,17 @@
     else
       genCoredump="false"
     fi
-    
+
+    # DLB activation
+    if [[ "$cpuMap" == "dlb" ]]; then
+      if [ "${debug}" == "true" ]; then
+        export COMPSS_WITH_DLB=2
+      else
+        export COMPSS_WITH_DLB=1
+      fi
+    else
+      export COMPSS_WITH_DLB=0
+    fi        
     
   }
 

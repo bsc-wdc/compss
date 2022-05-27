@@ -80,6 +80,18 @@ process_affinity = Extension(
     sources=['src/ext/process_affinity.cc']
 )
 
+# dlb affinity extension
+dlb_home = os.environ.get('DLB_HOME', None)
+if dlb_home != None:
+    dlb_affinity = Extension(
+        'dlb_affinity',
+        include_dirs=[dlb_home + '/include'],
+        library_dirs=[dlb_home + '/lib'],
+        libraries=['dlb'],
+        extra_compile_args=['-std=c++11'],
+        sources=['src/ext/dlb_affinity.c']
+    )
+
 
 # Helper method to find packages
 def find_packages(path='./src'):
@@ -98,7 +110,10 @@ def find_packages(path='./src'):
 
 
 if target_os == 'Linux':
-    os_modules = [compssmodule, process_affinity]
+    if dlb_home == None:
+        os_modules = [compssmodule, process_affinity]
+    else:
+        os_modules = [compssmodule, process_affinity, dlb_affinity]
 elif target_os == 'Darwin':
     os_modules = [compssmodule]
 else:

@@ -23,6 +23,7 @@ public interface ThreadBinder {
 
     public static final String BINDER_DISABLED = "disabled";
     public static final String BINDER_AUTOMATIC = "automatic";
+    public static final String BINDER_DLB = "dlb";
 
 
     /**

@@ -70,6 +70,12 @@ from pycompss.streams.components.distro_stream_client import (
     DistroStreamClientHandler,
 )
 
+compss_with_dlb = False
+if int(os.getenv("COMPSS_WITH_DLB", 0)) >= 1:
+    compss_with_dlb = True
+    import dlb_affinity
+
+
 HEADER = "*[PYTHON EXECUTOR] "
 
 
@@ -247,6 +253,12 @@ def executor(
     :return: None.
     """
     try:
+
+        if compss_with_dlb:
+            dlb_affinity.init()
+            dlb_affinity.setaffinity([], os.getpid())
+            dlb_affinity.lend()
+
         # Replace Python Worker's SIGTERM handler.
         signal.signal(signal.SIGTERM, shutdown_handler)
 
@@ -647,6 +659,10 @@ def process_task(
             # The ignored variable is timed_out
             exit_value, new_types, new_values, _, except_msg = result
 
+            if compss_with_dlb:
+                dlb_affinity.setaffinity([], os.getpid())
+                dlb_affinity.lend()
+
             if exit_value == 0:
                 # Task has finished without exceptions
                 # endTask jobId exitValue message
@@ -810,7 +826,10 @@ def bind_cpus(cpus: str, process_name: str, logger: typing.Any) -> bool:
         cpus_list = cpus.split(",")
         cpus_map = list(map(int, cpus_list))
         try:
-            process_affinity.setaffinity(cpus_map)
+            if compss_with_dlb:
+                dlb_affinity.setaffinity(cpus_map, os.getpid())
+            else:
+                process_affinity.setaffinity(cpus_map)
         except Exception:  # pylint: disable=broad-except
             if __debug__:
                 logger.error(

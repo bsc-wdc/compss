@@ -196,9 +196,19 @@ process_pipe_commands() {
                     fi
                 fi
 
+                # DLB
+                if [ "${COMPSS_WITH_DLB}" -eq "1" ]; then
+                    dlbArgs="DLB_ARGS=\"--lewi --drom --ompt --lewi-respect-cpuset=no\" LD_PRELOAD=\"\$LD_PRELOAD:\$DLB_HOME/lib/libdlb.so\""
+                    workerCMD="${dlbArgs} ${workerCMD}"
+                elif [ "${COMPSS_WITH_DLB}" -eq "2" ]; then
+                    dlbArgs="DLB_ARGS=\"--lewi --drom --ompt --lewi-respect-cpuset=no --verbose=all\" LD_PRELOAD=\"\$LD_PRELOAD:\$DLB_HOME/lib/libdlb_instr_dbg.so\""
+                    workerCMD="${dlbArgs} ${workerCMD}"
+                fi
+
                 # INVOKE WORKER
                 echo "[BINDINGS PIPER] Executing command: ${workerCMD}"
                 # shellcheck disable=SC2086
+
                 eval ${workerCMD} </dev/null 4>/dev/null &
                 bindingPID=$!
 

@@ -44,7 +44,7 @@
   #######
 
   # DEFINE MODULES
-  modules="gcc/8.3.0 openmpi/4.0.1 boost java atlas/3.10.3 python/2.7.14"
+  modules="gcc/8.3.0 openmpi/4.0.1 boost java atlas/3.10.3 python/2.7.14 dlb/git"
   unload_before_python="ignore"
   run_before_py3_modules="ignore"
   py3_modules="python/3.6.5"

@@ -29,7 +29,7 @@
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
   # DEFINE MODULES
-  modules="bsc/current java/8u291 papi/6.0.0.1 gcc/10.2.0 impi/2018.4 mkl/2018.4 python/3.9.1 boost/1.76.0"
+  modules="bsc/current java/8u291 papi/6.0.0.1 gcc/10.2.0 impi/2018.4 mkl/2018.4 python/3.9.1 boost/1.76.0 dlb/git"
   unload_before_python="impi/2018.4 boost/1.76.0"
   # Plain python modules:
   run_before_py3_modules="ignore"

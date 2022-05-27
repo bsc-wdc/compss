@@ -657,7 +657,7 @@ check_args() {
   if [ -z "${storage_home}" ]; then
     # Check if STORAGE_HOME_ENV_VAR is defined in the environment
     if [ -v "${STORAGE_HOME_ENV_VAR}" ]; then
-      storage_home=${STORAGE_HOME_ENV_VAR}
+      storage_home=${!STORAGE_HOME_ENV_VAR}
     else
       storage_home=${DEFAULT_STORAGE_HOME}
     fi
@@ -1026,7 +1026,7 @@ if [ -f "\${variables_to_be_sourced}" ]; then
     rm "\${variables_to_be_sourced}"
 fi
 
-${COMPSS_HOME}/Runtime/scripts/user/launch_compss${AGENTS_SUFFIX} ${AGENTS_HIERARCHY}--master_node="\${master_node}" --worker_nodes="\${worker_nodes}" --node_memory=${node_memory} --node_storage_bandwidth=${node_storage_bandwidth} --storage_conf=\${storage_conf} ${args_pass}
+${COMPSS_HOME}/Runtime/scripts/user/launch_compss${AGENTS_SUFFIX} ${AGENTS_HIERARCHY} --master_node="\${master_node}" --worker_nodes="\${worker_nodes}" --node_memory=${node_memory} --node_storage_bandwidth=${node_storage_bandwidth} --storage_conf=\${storage_conf} ${args_pass}
 
 ${storage_home}/scripts/storage_stop.sh \$${ENV_VAR_JOB_ID} "\${master_node}" "\${storage_master_node}" "\${worker_nodes}" ${network} ${storage_props}
 

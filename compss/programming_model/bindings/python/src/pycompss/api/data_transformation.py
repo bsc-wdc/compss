@@ -100,22 +100,21 @@ class DataTransformation:  # pylint: disable=too-few-public-methods
 
             if __debug__:
                 logger.debug("Executing DT wrapper.")
-
+            tmp = list(args)
             if (
                 CONTEXT.in_master() or CONTEXT.is_nesting_enabled()
             ) and not self.core_element_configured:
-                self.__configure_core_element__(user_function, *args, **kwargs)
-
-            with keep_arguments(args, kwargs, prepend_strings=True):
+                self.__configure_core_element__(user_function, tmp, kwargs)
+            with keep_arguments(tuple(tmp), kwargs, prepend_strings=True):
                 # Call the method
-                ret = user_function(*args, **kwargs)
+                ret = user_function(*tmp, **kwargs)
 
             return ret
 
         dt_f.__doc__ = user_function.__doc__
         return dt_f
 
-    def __configure_core_element__(self, user_function, *args, **kwargs: dict) -> None:
+    def __configure_core_element__(self, user_function, args: list, kwargs: dict) -> None:
         """
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 
@@ -126,19 +125,37 @@ class DataTransformation:  # pylint: disable=too-few-public-methods
             logger.debug("Configuring DT core element.")
         if len(self.args) < 2:
             raise Exception
-
         param_name = self.args[0]
         func = self.args[1]
         func_kwargs = self.kwargs
-        p_value = kwargs.get(param_name, None) or args[0]
+        p_value = None
+        is_kwarg = param_name in kwargs
+        if is_kwarg:
+            p_value = kwargs.get(param_name)
+        else:
+            import inspect
+            all_params = inspect.signature(user_function)
+            keyz = all_params.parameters.keys()
+            if param_name not in keyz:
+                raise Exception("Wrong Param Name in DT")
+            i = list(keyz).index(param_name)
+            if i < len(args):
+                p_value = args[i]
+            else:
+                p_value = all_params.parameters.get(param_name).default
+
         new_value = transform(p_value, func, **func_kwargs)
-        kwargs[param_name] = new_value
+
+        if is_kwarg or i >= len(args):
+            kwargs[param_name] = new_value
+        else:
+            args[i] = new_value
 
         # Set as configured
         self.core_element_configured = True
 
 
-@task()
+@task(returns=object)
 def transform(data, function, **kwargs):
     return function(data, **kwargs)
 

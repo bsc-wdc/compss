@@ -68,9 +68,9 @@ def __pre_run_cell__() -> None:
     if messages:
         for message in messages:
             if message.startswith("[ERRMGR]"):
-                found_errors = True
                 # Errors found, but maybe not critical, like for example
                 # tasks that failed but recovered.
+                found_errors = True
             if message == "[ERRMGR]  -  Shutting down COMPSs...":
                 # A critical error occurred --> notify that COMPSs runtime
                 # stopped working to avoid issues when running any PyCOMPSs
@@ -118,7 +118,7 @@ def __pre_run_cell__() -> None:
             # fmt: on
             popup_js = popup_code.replace("OPENBRACKET", "{").replace(
                 "CLOSEBRACKET", "}"
-            )  # noqa: E501
+            )
             popup = Javascript(popup_js)
             display(popup)
             warn_msg = "WARNING: Some objects may have not been synchronized and need to be recomputed."  # noqa  # pylint: disable=line-too-long
@@ -147,7 +147,7 @@ def __pre_run_cell__() -> None:
             )
             popup = Javascript(popup_js)
             display(popup)  # noqa
-            info_msg = "INFO: The runtime has recovered the failed tasks."
+            info_msg = "INFO: The ERRMGR displayed some error or warnings."
             POST_MESSAGE = f"\x1b[40;46m{info_msg}\x1b[0m"
         else:
             # No issue

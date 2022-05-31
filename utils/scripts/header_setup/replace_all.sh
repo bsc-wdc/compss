@@ -5,7 +5,7 @@
 # SCRIPT CONSTANTS
 #
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-INSPECTED_DIRS="compss maven-plugins performance_analysis utils/storage"
+INSPECTED_DIRS="builders/specs/cli/PyCOMPSsCLIResources/pycompss_cli compss maven-plugins performance_analysis utils/storage"
 
 #
 # HELPER METHODS

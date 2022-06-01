@@ -153,7 +153,7 @@ def stop_runtime(code: int = 0, hard_stop: bool = False) -> None:
 
 def file_exists(
     *file_name: typing.Union[list, tuple, str]
-) -> typing.Union[list, tuple, bool]:
+) -> typing.Any:
     """Check if one or more files exists (has/have been accessed).
 
     :param file_name: File/s name.
@@ -205,7 +205,7 @@ def open_file(file_name: str, mode: str) -> str:
 
 def delete_file(
     *file_name: typing.Union[list, tuple, str]
-) -> typing.Union[list, tuple, bool]:
+) -> typing.Any:
     """Remove one or more files.
 
     :param file_name: File/s name to remove.
@@ -239,7 +239,7 @@ def __delete_file__(app_id: int, file_name: str) -> bool:
 
 def wait_on_file(
     *file_name: typing.Union[list, tuple, str]
-) -> typing.Union[list, tuple, str]:
+) -> typing.Any:
     """Retrieve one or more files.
 
     :param file_name: File name/s to retrieve (can contain lists and tuples of strings).
@@ -254,7 +254,7 @@ def wait_on_file(
 
 def wait_on_directory(
     *directory_name: typing.Union[list, tuple, str]
-) -> typing.Union[list, tuple, str]:
+) -> typing.Any:
     """Retrieve one or more directories.
 
     :param directory_name: Directory name/s to retrieve (can contain lists and tuples of strings).
@@ -272,7 +272,7 @@ def __apply_recursively_to_file__(
     event: int,
     get_results: bool,
     *name: typing.Union[list, tuple, str],
-) -> typing.Union[list, tuple, typing.Any]:
+) -> typing.Any:
     """Apply the given function recursively over the given names.
 
     Calls the external python library (that calls the bindings-common)
@@ -287,7 +287,7 @@ def __apply_recursively_to_file__(
     :return: The result of applying the given function.
     """
     app_id = 0
-    ret = []  # type: typing.List[typing.Union[list, tuple, str]]
+    ret = []  # type: typing.List[typing.Union[list, tuple, str, bool]]
     for f_name in name:
         if isinstance(f_name, str):
             with EventMaster(event):

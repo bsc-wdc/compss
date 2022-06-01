@@ -151,9 +151,7 @@ def stop_runtime(code: int = 0, hard_stop: bool = False) -> None:
             LOGGER.info("COMPSs stopped")
 
 
-def file_exists(
-    *file_name: typing.Union[list, tuple, str]
-) -> typing.Any:
+def file_exists(*file_name: typing.Union[list, tuple, str]) -> typing.Any:
     """Check if one or more files exists (has/have been accessed).
 
     :param file_name: File/s name.
@@ -203,9 +201,7 @@ def open_file(file_name: str, mode: str) -> str:
         return compss_name
 
 
-def delete_file(
-    *file_name: typing.Union[list, tuple, str]
-) -> typing.Any:
+def delete_file(*file_name: typing.Union[list, tuple, str]) -> typing.Any:
     """Remove one or more files.
 
     :param file_name: File/s name to remove.
@@ -237,9 +233,7 @@ def __delete_file__(app_id: int, file_name: str) -> bool:
     return result
 
 
-def wait_on_file(
-    *file_name: typing.Union[list, tuple, str]
-) -> typing.Any:
+def wait_on_file(*file_name: typing.Union[list, tuple, str]) -> typing.Any:
     """Retrieve one or more files.
 
     :param file_name: File name/s to retrieve (can contain lists and tuples of strings).
@@ -252,9 +246,7 @@ def wait_on_file(
     )
 
 
-def wait_on_directory(
-    *directory_name: typing.Union[list, tuple, str]
-) -> typing.Any:
+def wait_on_directory(*directory_name: typing.Union[list, tuple, str]) -> typing.Any:
     """Retrieve one or more directories.
 
     :param directory_name: Directory name/s to retrieve (can contain lists and tuples of strings).

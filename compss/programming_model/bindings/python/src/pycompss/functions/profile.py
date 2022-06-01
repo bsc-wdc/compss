@@ -112,6 +112,9 @@ class Profile:
             final_memory = psutil.virtual_memory().used
             # Report before returning the result.
             report = self.stream.getvalue().strip()
+            # Reset the stream StringIO
+            self.stream.truncate(0)
+            self.stream.seek(0)
             self.__print_report__(
                 start_time,
                 job_name,

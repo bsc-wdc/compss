@@ -127,20 +127,32 @@ public class LogicalData {
     public static void link(LogicalData ld, LogicalData ld2) throws CommException {
         synchronized (ld) {
             synchronized (ld2) {
-                Object[] value = null;
-                String pscoId = null;
-                String bindingId = null;
+                Object valueContent = null;
                 if (ld.value[0] != null) {
                     if (ld2.value[0] != null) {
                         if (ld2.value[0] != ld.value[0]) {
                             throw new CommException("Linking two LogicalData with different value in memory");
                         }
                     } else {
-                        value = ld.value;
+                        valueContent = ld.value[0];
                     }
                 } else {
-                    value = ld2.value;
+                    valueContent = ld2.value[0];
                 }
+
+                Object[] value = null;
+                if (ld.knownAlias.size() == 1) {
+                    value = ld2.value;
+                } else {
+                    if (ld2.knownAlias.size() == 1) {
+                        value = ld.value;
+                    } else {
+                        throw new CommException("Linking two LogicalData with multiple links");
+                    }
+                }
+                value[0] = valueContent;
+
+                String pscoId = null;
                 if (ld.pscoId != null) {
                     if (ld2.pscoId != null) {
                         if (ld2.pscoId.compareTo(ld.pscoId) != 0) {
@@ -152,6 +164,8 @@ public class LogicalData {
                 } else {
                     pscoId = ld2.pscoId;
                 }
+
+                String bindingId = null;
                 if (ld.bindingId != null) {
                     if (ld2.bindingId != null) {
                         if (ld2.bindingId.compareTo(ld.bindingId) != 0) {
@@ -216,6 +230,16 @@ public class LogicalData {
      */
     public Set<String> getKnownAlias() {
         return knownAlias;
+    }
+
+    /**
+     * Checks whether a logical data is a known aliases of the same data.
+     * 
+     * @param data data whose aliasing is to be checked
+     * @return {@literal true}, if they both represent the same data; {@literal false} otherwise
+     */
+    public synchronized boolean isAlias(LogicalData data) {
+        return data.knownAlias == this.knownAlias;
     }
 
     /**
@@ -903,6 +927,11 @@ public class LogicalData {
     public synchronized String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("Logical Data name: ").append(this.name).append("\n");
+        sb.append("Aliases:");
+        for (String alias : this.knownAlias) {
+            sb.append(" ").append(alias);
+        }
+        sb.append("\n");
         sb.append("\t Value: ").append(value[0]).append("\n");
         sb.append("\t Id: ").append(pscoId).append("\n");
         sb.append("\t Locations:\n");

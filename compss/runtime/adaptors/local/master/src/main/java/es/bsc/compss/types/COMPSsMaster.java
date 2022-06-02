@@ -24,6 +24,7 @@ import es.bsc.compss.comm.Comm;
 import es.bsc.compss.comm.CommAdaptor;
 import es.bsc.compss.data.BindingDataManager;
 import es.bsc.compss.exceptions.AnnounceException;
+import es.bsc.compss.exceptions.CannotLoadException;
 import es.bsc.compss.invokers.types.CParams;
 import es.bsc.compss.invokers.types.JavaParams;
 import es.bsc.compss.invokers.types.PythonParams;
@@ -637,9 +638,13 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             for (Copy copy : copiesInProgress) {
                 if (copy != null) {
                     if (copy.getTargetLoc() != null && copy.getTargetLoc().getHosts().contains(Comm.getAppHost())) {
-
                         try {
-                            copy.addSiblingCopy(targetPath, target, tgtData, reason, listener);
+                            if (target.getProtocol() == ProtocolType.OBJECT_URI && ld.isAlias(tgtData)) {
+                                reason.setDataTarget(targetPath);
+                                copy.addEventListener(listener);
+                            } else {
+                                copy.addSiblingCopy(targetPath, target, tgtData, reason, listener);
+                            }
                             if (DEBUG) {
                                 LOGGER.debug(
                                     "Copy in progress tranfering " + ld.getName() + "to master. Waiting for finishing");
@@ -786,7 +791,6 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     @Override
     public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData,
         Transferable reason, EventListener listener) {
-
         LOGGER.info("Obtain Data " + ld.getName());
         if (DEBUG) {
             if (ld != null) {
@@ -843,25 +847,33 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         // Check if data is in memory (no need to check if it is PSCO since previous case avoids it)
         if (ld.isInMemory()) {
             String targetPath = target.getURIInHost(Comm.getAppHost()).getPath();
-            if (ld == tgtData) {
+            if (ld.isAlias(tgtData)) {
                 LOGGER.debug("Object already in memory. Avoiding copy and setting dataTarget to " + targetPath);
                 reason.setDataTarget(targetPath);
                 listener.notifyEnd(null);
                 return;
             } else {
-                LOGGER.debug("Serializing data " + ld.getName() + " to " + targetPath);
+                SimpleURI serialURI = getCompletePath(DataType.FILE_T, targetPath);
+                String serialPath = serialURI.getPath();
+                LOGGER.debug("Serializing data " + ld.getName() + " to " + serialPath);
                 Object o = ld.getValue();
-                FileOpsManager.serializeAsync(o, targetPath, new FileOpListener() {
+                FileOpsManager.serializeAsync(o, serialPath, new FileOpListener() {
 
                     @Override
                     public void completed() {
                         if (tgtData != null) {
-                            synchronized (tgtData) {
-                                tgtData.addLocation(target);
+                            try {
+                                DataLocation loc = DataLocation.createLocation(Comm.getAppHost(), serialURI);
+                                synchronized (tgtData) {
+                                    tgtData.addLocation(loc);
+                                }
+                                LOGGER.debug("Object in memory. Set dataTarget to " + targetPath);
+                                reason.setDataTarget(targetPath);
+                                listener.notifyEnd(null);
+                            } catch (IOException ioe) {
+                                failed(ioe);
                             }
-                            LOGGER.debug("Object in memory. Set dataTarget to " + targetPath);
-                            reason.setDataTarget(targetPath);
-                            listener.notifyEnd(null);
+
                         }
                     }
 
@@ -1256,16 +1268,22 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                 DependencyParameter dpar = (DependencyParameter) localParam.getParam();
                 String dataId = (String) localParam.getValue();
                 LogicalData ld = Comm.getData(dataId);
+                Object value = null;
                 if (ld.isInMemory()) {
-                    invParam.setValue(ld.getValue());
+                    value = ld.getValue();
                 } else {
                     try {
-                        Object o = Serializer.deserialize(dpar.getDataTarget());
-                        invParam.setValue(o);
-                    } catch (ClassNotFoundException | IOException e) {
-                        throw new UnloadableValueException(e);
+                        ld.loadFromStorage();
+                        value = ld.getValue();
+                    } catch (CannotLoadException cle) {
+                        try {
+                            value = Serializer.deserialize(dpar.getDataTarget());
+                        } catch (ClassNotFoundException | IOException e) {
+                            throw new UnloadableValueException(e);
+                        }
                     }
                 }
+                invParam.setValue(value);
                 break;
             case PSCO_T:
                 String pscoId = (String) localParam.getValue();

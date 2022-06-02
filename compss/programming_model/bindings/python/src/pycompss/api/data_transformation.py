@@ -128,6 +128,13 @@ class DataTransformation:  # pylint: disable=too-few-public-methods
         param_name = self.args[0]
         func = self.args[1]
         func_kwargs = self.kwargs
+
+        # todo: move to labels
+        is_workflow = False
+        if LABELS.is_workflow in func_kwargs:
+            is_workflow = func_kwargs.pop(LABELS.is_workflow)
+            is_workflow = is_workflow in [True, "True", "true", 1, "1"]
+
         p_value = None
         is_kwarg = param_name in kwargs
         if is_kwarg:
@@ -144,7 +151,9 @@ class DataTransformation:  # pylint: disable=too-few-public-methods
             else:
                 p_value = all_params.parameters.get(param_name).default
 
-        new_value = transform(p_value, func, **func_kwargs)
+        # no need to create a task if it's a workflow
+        new_value = func(p_value, **func_kwargs)\
+            if is_workflow else transform(p_value, func, **func_kwargs)
 
         if is_kwarg or i >= len(args):
             kwargs[param_name] = new_value

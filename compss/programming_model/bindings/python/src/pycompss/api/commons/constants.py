@@ -87,6 +87,7 @@ class _Labels:  # pylint: disable=too-few-public-methods, too-many-instance-attr
         "config_file",
         "properties",
         "type",
+        "is_workflow",
     )
 
     def __init__(self) -> None:  # pylint: disable=too-many-statements
@@ -143,6 +144,7 @@ class _Labels:  # pylint: disable=too-few-public-methods, too-many-instance-attr
         self.management_fail = "FAIL"
         self.kernel = "kernel"
 
+        self.is_workflow = "is_workflow"
         # Http tasks
         self.service_name = "service_name"
         self.resource = "resource"

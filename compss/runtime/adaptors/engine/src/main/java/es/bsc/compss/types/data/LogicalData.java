@@ -290,17 +290,6 @@ public class LogicalData {
             } else {
                 String targetPath = ProtocolType.OBJECT_URI.getSchema() + alias;
                 SimpleURI uri = new SimpleURI(targetPath);
-                for (Resource res : this.getAllHosts()) {
-                    try {
-                        LogicalData ld = new LogicalData(alias);
-                        DataLocation loc = DataLocation.createLocation(res, uri);
-                        ld.addLocation(loc);
-                        this.locations.remove(loc);
-                        res.addObsolete(ld);
-                    } catch (Exception e) {
-                        ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, e);
-                    }
-                }
                 // There are other alias pointing to the data. Remove only
                 if (this.isInMemory()) {
                     try {

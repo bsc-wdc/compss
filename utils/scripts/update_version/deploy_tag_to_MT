@@ -25,11 +25,11 @@
   version=$1
   buildFolder="mt"
   buildScript="buildMT"
-  MTuser=compss
-  MTendpoint=mt1.bsc.es
+  user=compss
+  endpoint=mt1.bsc.es
   modules_folder="/apps/modules/modulefiles/tools/COMPSs/"
   # Call generic script
-  ./deploy_tag_to_SC "${version}" ${buildFolder} ${buildScript} ${MNuser} ${MNendpoint} "${modules_folder}"
+  ./deploy_tag_to_SC "${version}" ${buildFolder} ${buildScript} ${user} ${endpoint} "${modules_folder}"
 
   # END
   exit 0

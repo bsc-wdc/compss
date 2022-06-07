@@ -35,7 +35,7 @@ public class ImplementationSerialization {
         MethodDefinition md = new MethodDefinition("class", "method");
         MethodDefinition md2 = (MethodDefinition) Serializer.deserialize(Serializer.serialize(md));
         ImplementationDescription<MethodResourceDescription, AbstractMethodImplementationDefinition> id =
-            new ImplementationDescription<>(md, "signature", new MethodResourceDescription(), null, null);
+            new ImplementationDescription<>(md, "signature", false, new MethodResourceDescription(), null, null);
         ImplementationDescription<MethodResourceDescription, AbstractMethodImplementationDefinition> id2 =
             (ImplementationDescription<MethodResourceDescription, AbstractMethodImplementationDefinition>) Serializer
                 .deserialize(Serializer.serialize(id));

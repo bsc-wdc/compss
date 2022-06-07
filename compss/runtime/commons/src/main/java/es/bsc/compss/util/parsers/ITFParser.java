@@ -449,8 +449,13 @@ public class ITFParser {
          * Global constraints of the method
          */
         MethodResourceDescription defaultConstraints = MethodResourceDescription.EMPTY_FOR_CONSTRAINTS.copy();
+        System.out.println("Parsing implementation");
+        boolean processLocalGeneral = false;
         if (m.isAnnotationPresent(Constraints.class)) {
-            defaultConstraints = new MethodResourceDescription(m.getAnnotation(Constraints.class));
+            Constraints generalConstraints = m.getAnnotation(Constraints.class);
+            processLocalGeneral = generalConstraints.isLocal();
+            System.out.println("General constraint");
+            defaultConstraints = new MethodResourceDescription(generalConstraints);
         }
 
         ExecType prolog = null;
@@ -493,8 +498,11 @@ public class ITFParser {
 
             // Load specific method constraints if present
             MethodResourceDescription implConstraints = defaultConstraints;
+            boolean implProcessLocal = processLocalGeneral;
             if (methodAnnot.constraints() != null) {
-                implConstraints = new MethodResourceDescription(methodAnnot.constraints());
+                Constraints implConstraintsAnnot = methodAnnot.constraints();
+                implProcessLocal = processLocalGeneral || implConstraintsAnnot.isLocal();
+                implConstraints = new MethodResourceDescription(implConstraintsAnnot);
                 implConstraints.mergeMultiConstraints(defaultConstraints);
             }
 
@@ -502,7 +510,7 @@ public class ITFParser {
             ImplementationDescription<?, ?> implDef = null;
             try {
                 implDef = ImplementationDescription.defineImplementation(MethodType.METHOD.toString(), methodSignature,
-                    implConstraints, prolog, epilog, declaringClass, methodName);
+                    implProcessLocal, implConstraints, prolog, epilog, declaringClass, methodName);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }
@@ -532,8 +540,8 @@ public class ITFParser {
             ImplementationDescription<?, ?> implDef = null;
             try {
                 implDef = ImplementationDescription.defineImplementation(TaskType.SERVICE.toString(), serviceSignature,
-                    null, prolog, epilog, serviceAnnot.namespace(), serviceAnnot.name(), serviceAnnot.operation(),
-                    serviceAnnot.port());
+                    false, null, prolog, epilog, serviceAnnot.namespace(), serviceAnnot.name(),
+                    serviceAnnot.operation(), serviceAnnot.port());
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }
@@ -558,8 +566,9 @@ public class ITFParser {
             ImplementationDescription<?, ?> implDef = null;
             try {
                 implDef = ImplementationDescription.defineImplementation(TaskType.HTTP.toString(),
-                    calleeMethodSignature.toString(), null, prolog, epilog, hAnno.serviceName(), hAnno.resource(),
-                    hAnno.request(), hAnno.payload(), hAnno.payloadType(), hAnno.produces(), hAnno.updates());
+                    calleeMethodSignature.toString(), false, null, prolog, epilog, hAnno.serviceName(),
+                    hAnno.resource(), hAnno.request(), hAnno.payload(), hAnno.payloadType(), hAnno.produces(),
+                    hAnno.updates());
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }
@@ -612,8 +621,11 @@ public class ITFParser {
 
             // Load specific method constraints if present
             MethodResourceDescription implConstraints = defaultConstraints;
+            boolean implProcessLocal = processLocalGeneral;
             if (containerAnnot.constraints() != null) {
-                implConstraints = new MethodResourceDescription(containerAnnot.constraints());
+                Constraints implConstraintsAnnot = containerAnnot.constraints();
+                implProcessLocal = processLocalGeneral || implConstraintsAnnot.isLocal();
+                implConstraints = new MethodResourceDescription(implConstraintsAnnot);
                 implConstraints.mergeMultiConstraints(defaultConstraints);
             }
 
@@ -621,8 +633,8 @@ public class ITFParser {
             ImplementationDescription<?, ?> implDef = null;
             try {
                 implDef = ImplementationDescription.defineImplementation(MethodType.CONTAINER.toString(),
-                    containerSignature, implConstraints, prolog, epilog, engine, image, internalExecutionTypeStr,
-                    internalBinary, internalFunc, hostDir, containerFailByExitValue);
+                    containerSignature, implProcessLocal, implConstraints, prolog, epilog, engine, image,
+                    internalExecutionTypeStr, internalBinary, internalFunc, hostDir, containerFailByExitValue);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }
@@ -644,10 +656,14 @@ public class ITFParser {
             }
 
             String binarySignature = calleeMethodSignature.toString() + BinaryDefinition.SIGNATURE;
+
             // Load specific method constraints if present
             MethodResourceDescription implConstraints = defaultConstraints;
+            boolean implProcessLocal = processLocalGeneral;
             if (binaryAnnot.constraints() != null) {
-                implConstraints = new MethodResourceDescription(binaryAnnot.constraints());
+                Constraints implConstraintsAnnot = binaryAnnot.constraints();
+                implProcessLocal = processLocalGeneral || implConstraintsAnnot.isLocal();
+                implConstraints = new MethodResourceDescription(implConstraintsAnnot);
                 implConstraints.mergeMultiConstraints(defaultConstraints);
             }
 
@@ -655,7 +671,7 @@ public class ITFParser {
             ImplementationDescription<?, ?> implDef = null;
             try {
                 implDef = ImplementationDescription.defineImplementation(MethodType.BINARY.toString(), binarySignature,
-                    implConstraints, prolog, epilog, binary, workingDir, params, failByEVstr);
+                    implProcessLocal, implConstraints, prolog, epilog, binary, workingDir, params, failByEVstr);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage(), e);
             }
@@ -694,8 +710,11 @@ public class ITFParser {
 
             // Load specific method constraints if present
             MethodResourceDescription implConstraints = defaultConstraints;
+            boolean implProcessLocal = processLocalGeneral;
             if (mpiAnnot.constraints() != null) {
-                implConstraints = new MethodResourceDescription(mpiAnnot.constraints());
+                Constraints implConstraintsAnnot = mpiAnnot.constraints();
+                implProcessLocal = processLocalGeneral || implConstraintsAnnot.isLocal();
+                implConstraints = new MethodResourceDescription(implConstraintsAnnot);
                 implConstraints.mergeMultiConstraints(defaultConstraints);
             }
 
@@ -703,8 +722,8 @@ public class ITFParser {
             ImplementationDescription<?, ?> implDef = null;
             try {
                 implDef = ImplementationDescription.defineImplementation(MethodType.MPI.toString(), mpiSignature,
-                    implConstraints, prolog, epilog, binary, workingDir, mpiRunner, mpiPPN, mpiFlags, scaleByCUStr,
-                    params, failByEVstr);
+                    implProcessLocal, implConstraints, prolog, epilog, binary, workingDir, mpiRunner, mpiPPN, mpiFlags,
+                    scaleByCUStr, params, failByEVstr);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }
@@ -742,8 +761,11 @@ public class ITFParser {
 
             // Load specific method constraints if present
             MethodResourceDescription implConstraints = defaultConstraints;
+            boolean implProcessLocal = processLocalGeneral;
             if (decafAnnot.constraints() != null) {
-                implConstraints = new MethodResourceDescription(decafAnnot.constraints());
+                Constraints implConstraintsAnnot = decafAnnot.constraints();
+                implProcessLocal = processLocalGeneral || implConstraintsAnnot.isLocal();
+                implConstraints = new MethodResourceDescription(implConstraintsAnnot);
                 implConstraints.mergeMultiConstraints(defaultConstraints);
             }
 
@@ -751,7 +773,8 @@ public class ITFParser {
             ImplementationDescription<?, ?> implDef = null;
             try {
                 implDef = ImplementationDescription.defineImplementation(MethodType.DECAF.toString(), decafSignature,
-                    implConstraints, prolog, epilog, dfScript, dfExecutor, dfLib, workingDir, mpiRunner, failByEVstr);
+                    implProcessLocal, implConstraints, prolog, epilog, dfScript, dfExecutor, dfLib, workingDir,
+                    mpiRunner, failByEVstr);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }
@@ -786,8 +809,11 @@ public class ITFParser {
 
             // Load specific method constraints if present
             MethodResourceDescription implConstraints = defaultConstraints;
+            boolean implProcessLocal = processLocalGeneral;
             if (compssAnnot.constraints() != null) {
-                implConstraints = new MethodResourceDescription(compssAnnot.constraints());
+                Constraints implConstraintsAnnot = compssAnnot.constraints();
+                implProcessLocal = processLocalGeneral || implConstraintsAnnot.isLocal();
+                implConstraints = new MethodResourceDescription(implConstraintsAnnot);
                 implConstraints.mergeMultiConstraints(defaultConstraints);
             }
 
@@ -795,8 +821,8 @@ public class ITFParser {
             ImplementationDescription<?, ?> implDef = null;
             try {
                 implDef = ImplementationDescription.defineImplementation(MethodType.COMPSs.toString(), compssSignature,
-                    implConstraints, prolog, epilog, runcompss, flags, appName, workerInMaster, workingDir,
-                    failByEVstr);
+                    implProcessLocal, implConstraints, prolog, epilog, runcompss, flags, appName, workerInMaster,
+                    workingDir, failByEVstr);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }
@@ -827,8 +853,11 @@ public class ITFParser {
 
             // Load specific method constraints if present
             MethodResourceDescription implConstraints = defaultConstraints;
+            boolean implProcessLocal = processLocalGeneral;
             if (multiNodeAnnot.constraints() != null) {
-                implConstraints = new MethodResourceDescription(multiNodeAnnot.constraints());
+                Constraints implConstraintsAnnot = multiNodeAnnot.constraints();
+                implProcessLocal = processLocalGeneral || implConstraintsAnnot.isLocal();
+                implConstraints = new MethodResourceDescription(implConstraintsAnnot);
                 implConstraints.mergeMultiConstraints(defaultConstraints);
             }
 
@@ -836,7 +865,7 @@ public class ITFParser {
             ImplementationDescription<?, ?> implDef = null;
             try {
                 implDef = ImplementationDescription.defineImplementation(MethodType.MULTI_NODE.toString(),
-                    methodSignature, implConstraints, prolog, epilog, declaringClass, methodName);
+                    methodSignature, implProcessLocal, implConstraints, prolog, epilog, declaringClass, methodName);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }
@@ -860,8 +889,11 @@ public class ITFParser {
 
             // Load specific method constraints if present
             MethodResourceDescription implConstraints = defaultConstraints;
+            boolean implProcessLocal = processLocalGeneral;
             if (ompssAnnot.constraints() != null) {
-                implConstraints = new MethodResourceDescription(ompssAnnot.constraints());
+                Constraints implConstraintsAnnot = ompssAnnot.constraints();
+                implProcessLocal = processLocalGeneral || implConstraintsAnnot.isLocal();
+                implConstraints = new MethodResourceDescription(implConstraintsAnnot);
                 implConstraints.mergeMultiConstraints(defaultConstraints);
             }
 
@@ -869,7 +901,7 @@ public class ITFParser {
             ImplementationDescription<?, ?> implDef = null;
             try {
                 implDef = ImplementationDescription.defineImplementation(MethodType.OMPSS.toString(), ompssSignature,
-                    implConstraints, prolog, epilog, binary, workingDir, failByEVstr);
+                    implProcessLocal, implConstraints, prolog, epilog, binary, workingDir, failByEVstr);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }
@@ -892,8 +924,11 @@ public class ITFParser {
 
             // Load specific method constraints if present
             MethodResourceDescription implConstraints = defaultConstraints;
+            boolean implProcessLocal = processLocalGeneral;
             if (openclAnnot.constraints() != null) {
-                implConstraints = new MethodResourceDescription(openclAnnot.constraints());
+                Constraints implConstraintsAnnot = openclAnnot.constraints();
+                implProcessLocal = processLocalGeneral || implConstraintsAnnot.isLocal();
+                implConstraints = new MethodResourceDescription(implConstraintsAnnot);
                 implConstraints.mergeMultiConstraints(defaultConstraints);
             }
 
@@ -901,7 +936,7 @@ public class ITFParser {
             ImplementationDescription<?, ?> implDef = null;
             try {
                 implDef = ImplementationDescription.defineImplementation(MethodType.OPENCL.toString(), openclSignature,
-                    implConstraints, prolog, epilog, kernel, workingDir);
+                    implProcessLocal, implConstraints, prolog, epilog, kernel, workingDir);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }

@@ -32,6 +32,7 @@ from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.dummy.constraint import constraint as dummy_constraint
 from pycompss.runtime.task.core_element import CE
 from pycompss.util.typing_helper import typing
+from pycompss.util.exceptions import PyCOMPSsException
 
 if __debug__:
     import logging
@@ -117,16 +118,27 @@ class Constraint:  # pylint: disable=too-few-public-methods
         if __debug__:
             logger.debug("Configuring @constraint core element.")
 
+        is_local_key = "is_local"
+        is_local = False
+        if is_local_key in self.kwargs:
+            is_local = self.kwargs.pop(is_local_key)
+            if not isinstance(is_local, bool):
+                raise PyCOMPSsException(
+                    "is_local constraint can only be defined with boolean"
+                )
+
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator
             # (e.g. @implements and @compss)
             kwargs[CORE_ELEMENT_KEY].set_impl_constraints(self.kwargs)
+            kwargs[CORE_ELEMENT_KEY].set_impl_local(is_local)
         else:
             # @constraint is in the top of the decorators stack.
             # Instantiate a new core element object, update it and include
             # it into kwarg
             core_element = CE()
             core_element.set_impl_constraints(self.kwargs)
+            core_element.set_impl_local(is_local)
             kwargs[CORE_ELEMENT_KEY] = core_element
 
         # Set as configured

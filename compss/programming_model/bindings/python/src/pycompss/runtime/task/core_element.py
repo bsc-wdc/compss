@@ -35,6 +35,7 @@ class CE:  # pylint: disable=too-many-instance-attributes
         "impl_signature",
         "impl_constraints",
         "impl_type",
+        "impl_local",
         "impl_io",
         "impl_prolog",
         "impl_epilog",
@@ -47,6 +48,7 @@ class CE:  # pylint: disable=too-many-instance-attributes
         impl_signature: str = "",
         impl_constraints: typing.Optional[typing.Dict[str, str]] = None,
         impl_type: typing.Optional[str] = None,
+        impl_local: bool = False,
         impl_io: bool = False,
         impl_prolog: typing.List[str] = None,
         impl_epilog: typing.List[str] = None,
@@ -58,6 +60,7 @@ class CE:  # pylint: disable=too-many-instance-attributes
         :param impl_signature: Implementation signature.
         :param impl_constraints: Implementation constraints.
         :param impl_type: Implementation type.
+        :param impl_local: If the implementation has to be executed locally.
         :param impl_io: If the implementation has IO requirements.
         :param impl_prolog: Implementation prolog.
         :param impl_epilog: Implementation epilog.
@@ -70,6 +73,7 @@ class CE:  # pylint: disable=too-many-instance-attributes
         else:
             self.impl_constraints = impl_constraints
         self.impl_type = impl_type
+        self.impl_local = impl_local
         self.impl_io = impl_io
         if impl_type_args is None:
             self.impl_type_args = []
@@ -97,6 +101,7 @@ class CE:  # pylint: disable=too-many-instance-attributes
         self.impl_constraints = {}
         self.impl_type = ""
         self.impl_io = False
+        self.impl_local = False
         self.impl_type_args = []
         self.impl_prolog = []
         self.impl_epilog = []
@@ -132,6 +137,13 @@ class CE:  # pylint: disable=too-many-instance-attributes
         :return: The core element implementation type.
         """
         return self.impl_type
+
+    def get_impl_local(self) -> bool:
+        """Get the core element implementation local.
+
+        :return: The core element implementation local.
+        """
+        return self.impl_local
 
     def get_impl_io(self) -> bool:
         """Get the core element implementation IO.
@@ -197,6 +209,14 @@ class CE:  # pylint: disable=too-many-instance-attributes
         """
         self.impl_type = impl_type
 
+    def set_impl_local(self, impl_local: bool) -> None:
+        """Set the core element implementation local.
+
+        :param impl_local: The implementation local.
+        :return: None.
+        """
+        self.impl_local = impl_local
+
     def set_impl_io(self, impl_io: bool) -> None:
         """Set the core element implementation IO.
 
@@ -249,6 +269,7 @@ class CE:  # pylint: disable=too-many-instance-attributes
             impl_constraints = str(self.impl_constraints)
         _repr += f"\t - Impl. constraints: {impl_constraints}\n"
         _repr += f"\t - Impl. type       : {str(self.impl_type)}\n"
+        _repr += f"\t - Impl. local      : {str(self.impl_local)}\n"
         _repr += f"\t - Impl. io         : {str(self.impl_io)}\n"
         _repr += f"\t - Impl. prolog     : {str(self.impl_prolog)}\n"
         _repr += f"\t - Impl. epilog     : {str(self.impl_epilog)}\n"

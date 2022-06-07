@@ -34,6 +34,7 @@ public abstract class Implementation implements Externalizable {
 
     protected Integer coreId;
     protected Integer implementationId;
+    protected boolean localProcessing;
     protected boolean io;
     protected ImplementationDescription<? extends WorkerResourceDescription,
         ? extends ImplementationDefinition> implDescription;
@@ -63,6 +64,7 @@ public abstract class Implementation implements Externalizable {
         } else {
             this.io = false;
         }
+        this.localProcessing = implDesc.isLocal();
     }
 
     /**
@@ -93,6 +95,15 @@ public abstract class Implementation implements Externalizable {
     }
 
     /**
+     * Returns whether the implementation is to be run in local or not.
+     *
+     * @return {@literal true}, if the implementation is IO; {@literal false} otherwise.
+     */
+    public boolean isLocalProcessing() {
+        return localProcessing;
+    }
+
+    /**
      * Returns an ImplementationDefinition describing the implementation.
      *
      * @return description of the implementation.
@@ -117,6 +128,7 @@ public abstract class Implementation implements Externalizable {
         this.implDescription = (ImplementationDescription<? extends WorkerResourceDescription,
             ? extends ImplementationDefinition>) in.readObject();
         this.io = (boolean) in.readObject();
+        this.localProcessing = in.readBoolean();
     }
 
     @Override
@@ -125,6 +137,7 @@ public abstract class Implementation implements Externalizable {
         out.writeObject(this.implementationId);
         out.writeObject(this.implDescription);
         out.writeObject(this.io);
+        out.writeBoolean(this.localProcessing);
     }
 
     public abstract TaskType getTaskType();

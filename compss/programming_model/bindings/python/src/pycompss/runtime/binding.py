@@ -694,6 +694,7 @@ def register_ce(core_element: CE) -> None:
             impl_constraints = impl_constraints_base
         impl_type_base = core_element.get_impl_type()
         impl_type = None if impl_type_base == "" else str(impl_type_base)
+        impl_local = str(core_element.get_impl_local())
         impl_io = str(core_element.get_impl_io())
         impl_type_args = core_element.get_impl_type_args()
         prolog = core_element.get_impl_prolog()
@@ -733,6 +734,7 @@ def register_ce(core_element: CE) -> None:
             impl_signature,
             impl_constraints_str,
             impl_type,
+            impl_local,
             impl_io,
             prolog,
             epilog,

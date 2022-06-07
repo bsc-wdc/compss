@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.resources;
 
+import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.AnnounceException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.COMPSsNode;
@@ -187,6 +188,9 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
                 implSimultaneousTasks[coreId] = new int[impls.size()];
                 executableImpls[coreId] = new LinkedList<>();
                 for (Implementation impl : impls) {
+                    if (impl.isLocalProcessing() && this != Comm.getAppHost()) {
+                        continue;
+                    }
                     if (canRun(impl)) {
                         int simultaneousCapacity = simultaneousCapacity(impl);
                         idealSimultaneousTasks[coreId] = Math.max(idealSimultaneousTasks[coreId], simultaneousCapacity);
@@ -227,6 +231,9 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
             this.implSimultaneousTasks[coreId] = new int[impls.size()];
             this.executableImpls[coreId] = new LinkedList<>();
             for (Implementation impl : impls) {
+                if (impl.isLocalProcessing() && this != Comm.getAppHost()) {
+                    continue;
+                }
                 if (canRun(impl)) {
                     int simultaneousCapacity = simultaneousCapacity(impl);
                     this.idealSimultaneousTasks[coreId] =

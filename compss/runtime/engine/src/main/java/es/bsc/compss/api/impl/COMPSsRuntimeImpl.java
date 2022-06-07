@@ -575,7 +575,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public void registerCoreElement(String coreElementSignature, String implSignature, String implConstraints,
-        String implType, String implIO, String[] prolog, String[] epilog, String... implTypeArgs) {
+        String implType, String implLocal, String implIO, String[] prolog, String[] epilog, String... implTypeArgs) {
 
         LOGGER.info("Registering CoreElement " + coreElementSignature);
         if (prolog.length != ExecType.ARRAY_LENGTH) {
@@ -589,13 +589,14 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("\t - Implementation: " + implSignature);
             LOGGER.debug("\t - Constraints   : " + implConstraints);
+            LOGGER.debug("\t - Local process : " + implLocal);
             LOGGER.debug("\t - Type          : " + implType);
             LOGGER.debug("\t - I/O           : " + implIO);
             LOGGER.debug("\t - Prolog        : ");
             for (String pro : prolog) {
                 LOGGER.debug("\t\t -- : " + pro);
             }
-            LOGGER.debug("\t - Epliog        : ");
+            LOGGER.debug("\t - Epilog        : ");
             for (String epi : epilog) {
                 LOGGER.debug("\t\t -- : " + epi);
             }
@@ -607,9 +608,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         }
 
         MethodResourceDescription mrd = new MethodResourceDescription(implConstraints);
-        boolean implisIO = Boolean.parseBoolean(implIO);
+        boolean isImplIO = Boolean.parseBoolean(implIO);
+        boolean isLocalImpl = Boolean.parseBoolean(implLocal);
 
-        if (implisIO) {
+        if (isImplIO) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Nulling computing resources for I/O task: " + implSignature);
             }
@@ -622,8 +624,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         ExecType pro = new ExecType(ExecutionOrder.PROLOG, prolog[0], prolog[1], Boolean.parseBoolean(prolog[2]));
         ExecType epi = new ExecType(ExecutionOrder.EPILOG, epilog[0], epilog[1], Boolean.parseBoolean(epilog[2]));
 
-        ImplementationDescription<?, ?> implDef =
-            ImplementationDescription.defineImplementation(implType, implSignature, mrd, pro, epi, implTypeArgs);
+        ImplementationDescription<?, ?> implDef = ImplementationDescription.defineImplementation(implType,
+            implSignature, isLocalImpl, mrd, pro, epi, implTypeArgs);
         ced.addImplementation(implDef);
 
         td.registerNewCoreElement(ced);

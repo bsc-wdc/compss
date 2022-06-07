@@ -526,6 +526,7 @@ class _COMPSs:
         impl_signature: typing.Optional[str],
         impl_constraints: typing.Optional[str],
         impl_type: typing.Optional[str],
+        impl_local: str,
         impl_io: str,
         impl_prolog: typing.List[str],
         impl_epilog: typing.List[str],
@@ -537,6 +538,7 @@ class _COMPSs:
         :param impl_signature: Implementation signature.
         :param impl_constraints: Implementation constraints.
         :param impl_type: Implementation type.
+        :param impl_local: Implementation Local.
         :param impl_io: Implementation IO.
         :param impl_prolog: [binary, params, fail_by_exit_value] of the prolog.
         :param impl_epilog: [binary, params, fail_by_exit_value] of the epilog.
@@ -550,6 +552,7 @@ class _COMPSs:
                 impl_signature,
                 impl_constraints,
                 impl_type,
+                impl_local,
                 impl_io,
                 impl_prolog,
                 impl_epilog,

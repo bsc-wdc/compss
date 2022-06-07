@@ -68,6 +68,7 @@ public class COMPSsRuntimeImplTest {
         String implSignature = "methodClass.methodName";
         String implConstraints = "ComputingUnits:2";
         String implType = "METHOD";
+        String implLocal = "False";
         String implIO = "False";
         String[] prolog = new String[] { "",
             "",
@@ -77,8 +78,8 @@ public class COMPSsRuntimeImplTest {
             "" };
         String[] implTypeArgs = new String[] { "methodClass",
             "methodName" };
-        rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implIO, prolog, epilog,
-            implTypeArgs);
+        rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implLocal, implIO,
+            prolog, epilog, implTypeArgs);
 
         CoreElement ce0 = CoreManager.getCore(0);
         AbstractMethodImplementation mi = (AbstractMethodImplementation) ce0.getImplementations().get(0);
@@ -89,6 +90,7 @@ public class COMPSsRuntimeImplTest {
         implSignature = "mpi.MPI";
         implConstraints = "StorageType:SSD";
         implType = "MPI";
+        implLocal = "False";
         implIO = "False";
         implTypeArgs = new String[] { "mpiBinary",
             "mpiWorkingDir",
@@ -98,8 +100,8 @@ public class COMPSsRuntimeImplTest {
             "false",
             "[unassigned]",
             "false" };
-        rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implIO, prolog, epilog,
-            implTypeArgs);
+        rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implLocal, implIO,
+            prolog, epilog, implTypeArgs);
 
         mi = (AbstractMethodImplementation) CoreManager.getCore(1).getImplementations().get(0);
         assertEquals(MethodType.MPI, mi.getMethodType());
@@ -110,6 +112,7 @@ public class COMPSsRuntimeImplTest {
         implSignature = "decaf.DECAF";
         implConstraints = "StorageSize:2.0";
         implType = "DECAF";
+        implLocal = "False";
         implIO = "False";
         implTypeArgs = new String[] { "dfScript",
             "dfExceutor",
@@ -117,8 +120,8 @@ public class COMPSsRuntimeImplTest {
             "dfWorkingDir",
             "mpiRunner",
             "false" };
-        rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implIO, prolog, epilog,
-            implTypeArgs);
+        rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implLocal, implIO,
+            prolog, epilog, implTypeArgs);
 
         mi = (AbstractMethodImplementation) CoreManager.getCore(1).getImplementations().get(1);
         assertEquals(MethodType.DECAF, mi.getMethodType());
@@ -129,13 +132,14 @@ public class COMPSsRuntimeImplTest {
         implSignature = "binary.BINARY";
         implConstraints = "MemoryType:RAM";
         implType = "BINARY";
+        implLocal = "False";
         implIO = "False";
         implTypeArgs = new String[] { "binary",
             "binaryWorkingDir",
             "[unassigned]",
             "false" };
-        rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implIO, prolog, epilog,
-            implTypeArgs);
+        rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implLocal, implIO,
+            prolog, epilog, implTypeArgs);
 
         mi = (AbstractMethodImplementation) CoreManager.getCore(2).getImplementations().get(0);
         assertEquals(MethodType.BINARY, mi.getMethodType());
@@ -146,12 +150,13 @@ public class COMPSsRuntimeImplTest {
         implSignature = "ompss.OMPSS";
         implConstraints = "ComputingUnits:3";
         implType = "OMPSS";
+        implLocal = "False";
         implIO = "False";
         implTypeArgs = new String[] { "ompssBinary",
             "ompssWorkingDir",
             "false" };
-        rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implIO, prolog, epilog,
-            implTypeArgs);
+        rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implLocal, implIO,
+            prolog, epilog, implTypeArgs);
 
         mi = (AbstractMethodImplementation) CoreManager.getCore(3).getImplementations().get(0);
         assertEquals(MethodType.OMPSS, mi.getMethodType());
@@ -162,11 +167,12 @@ public class COMPSsRuntimeImplTest {
         implSignature = "opencl.OPENCL";
         implConstraints = "ComputingUnits:4";
         implType = "OPENCL";
+        implLocal = "False";
         implIO = "False";
         implTypeArgs = new String[] { "openclKernel",
             "openclWorkingDir" };
-        rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implIO, prolog, epilog,
-            implTypeArgs);
+        rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implLocal, implIO,
+            prolog, epilog, implTypeArgs);
 
         mi = (AbstractMethodImplementation) CoreManager.getCore(4).getImplementations().get(0);
         assertEquals(MethodType.OPENCL, mi.getMethodType());
@@ -177,11 +183,12 @@ public class COMPSsRuntimeImplTest {
         implSignature = "anotherClass.anotherMethodName";
         implConstraints = "ComputingUnits:1";
         implType = "METHOD";
+        implLocal = "False";
         implIO = "False";
         implTypeArgs = new String[] { "anotherClass",
             "anotherMethodName" };
-        rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implIO, prolog, epilog,
-            implTypeArgs);
+        rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implLocal, implIO,
+            prolog, epilog, implTypeArgs);
 
         mi = (AbstractMethodImplementation) CoreManager.getCore(0).getImplementations().get(1);
         assertEquals(MethodType.METHOD, mi.getMethodType());

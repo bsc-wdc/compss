@@ -30,6 +30,13 @@ import java.lang.annotation.Target;
 public @interface Constraints {
 
     /**
+     * Returns whether the implementation must be executed on the same node that detected the task or not.
+     *
+     * @return {@literal true}, if the implementation must run locally; {@literal false} otherwise.
+     */
+    boolean isLocal() default false;
+
+    /**
      * Returns the processors required for the resource to run the CE.
      *
      * @return set of processors required to run the CE.

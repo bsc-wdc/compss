@@ -23,6 +23,7 @@ ERROR_SIGNATURE = "ERROR: Wrong signature value."
 ERROR_IMPL_SIGNATURE = "ERROR: Wrong impl_signature value."
 ERROR_IMPL_CONSTRAINTS = "ERROR: Wrong impl_constraints value."
 ERROR_IMPL_TYPE = "ERROR: Wrong impl_type value."
+ERROR_IMPL_LOCAL = "ERROR: Wrong impl_local value."
 ERROR_IMPL_IO = "ERROR: Wrong impl_io value."
 ERROR_IMPL_PROLOG = "ERROR: Wrong impl_prolog value."
 ERROR_IMPL_EPILOG = "ERROR: Wrong impl_epilog value."
@@ -34,6 +35,7 @@ def test_core_element():
     impl_signature = "my_impl_signature"
     impl_constraints = {"impl_constraints": ""}
     impl_type = "impl_type"
+    impl_local = False
     impl_io = False
     impl_prolog = "impl_prolog"
     impl_epilog = "impl_epilog"
@@ -43,6 +45,7 @@ def test_core_element():
         impl_signature,
         impl_constraints,
         impl_type,
+        impl_local,
         impl_io,
         impl_prolog,
         impl_epilog,
@@ -80,6 +83,14 @@ def test_core_element():
     core_element.set_impl_type(new_impl_type)
     result = core_element.get_impl_type()
     assert result == new_impl_type, ERROR_IMPL_TYPE
+
+    # Check impl_local
+    result = core_element.get_impl_local()
+    assert result == impl_local, ERROR_IMPL_LOCAL
+    new_impl_local = True
+    core_element.set_impl_local(new_impl_local)
+    result = core_element.get_impl_local()
+    assert result == new_impl_local, ERROR_IMPL_LOCAL
 
     # Check impl_io
     result = core_element.get_impl_io()
@@ -124,6 +135,7 @@ def test_core_element():
         "\t - Impl. signature  : my_new_impl_signature\n"
         "\t - Impl. constraints: my_new_impl_constraints:value;\n"
         "\t - Impl. type       : my_new_impl_type\n"
+        "\t - Impl. local      : True\n"
         "\t - Impl. io         : True\n"
         "\t - Impl. prolog     : my_new_impl_prolog\n"
         "\t - Impl. epilog     : my_new_impl_epilog\n"
@@ -145,6 +157,7 @@ def test_core_element():
         "\t - Impl. signature  : \n"
         "\t - Impl. constraints: {}\n"
         "\t - Impl. type       : \n"
+        "\t - Impl. local      : False\n"
         "\t - Impl. io         : False\n"
         "\t - Impl. prolog     : []\n"
         "\t - Impl. epilog     : []\n"

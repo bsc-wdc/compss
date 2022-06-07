@@ -19,13 +19,12 @@
 
 import sys
 
+from pycompss.util.exceptions import PyCOMPSsException
+
 if sys.version_info <= (3, 0):
     from cStringIO import StringIO
 else:
     from io import StringIO
-
-from pycompss.util.exceptions import PyCOMPSsException
-
 
 ERROR_UNEXPECTED_WARNING = "ERROR: Unexpected warning message received."
 ERROR_UNEXPECTED_ERROR = "ERROR: Unexpected error message received."

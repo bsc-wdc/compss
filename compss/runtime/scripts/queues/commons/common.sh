@@ -10,7 +10,6 @@ fi
 #---------------------------------------------------
 DEFAULT_SC_CFG="default"
 DEFAULT_JOB_NAME="COMPSs"
-DEFAULT_CPUS_PER_TASK="false"
 DEFAULT_AGENTS_ENABLED="disabled"
 DEFAULT_AGENTS_HIERARCHY="tree"
 DEFAULT_NVRAM_OPTIONS="none"
@@ -137,10 +136,10 @@ EOT
 
   if [ -z "${DISABLE_QARG_CPUS_PER_TASK}" ] || [ "${DISABLE_QARG_CPUS_PER_TASK}" == "false" ]; then
     cat <<EOT
-    --cpus_per_task                         Number of cpus per task the queue system must allocate per task.
-                                            Note that this will be equal to the cpus_per_node in a worker node and
-                                            equal to the worker_in_master_cpus in a master node respectively.
-                                            Default: ${DEFAULT_CPUS_PER_TASK}
+    --forward_cpus_per_node                 Flag to indicate if number to cpus per node must be forwarded to the worker process. 
+					    The number of forwarded cpus will be equal to the cpus_per_node in a worker node and
+                                            equal to the worker_in_master_cpus in a master node.
+                                            Default: ${DEFAULT_FORWARD_CPUS_PER_NODE}
 EOT
   fi
   if [ -z "${DISABLE_QARG_NVRAM}" ] || [ "${DISABLE_QARG_NVRAM}" == "false" ]; then

@@ -97,10 +97,6 @@ EOT
     --exec_time=<minutes>                   Expected execution time of the application (in minutes)
                                             Default: ${DEFAULT_EXEC_TIME}
 
-    --forward_time_limit=<true|false>       Forward the queue system time limit to the runtime.
-                                            It will stop the application in a controlled way.
-                                            Default: ${DEFAULT_FORWARD_TIME_LIMIT}
-
     --job_dependency=<jobID>                Postpone job execution until the job dependency has ended.
                                             Default: ${DEFAULT_DEPENDENCY_JOB}
 
@@ -129,11 +125,11 @@ EOT
                                             Only available for at least ${MIN_NODES_REQ_SWITCH} nodes.
                                             Default: ${DEFAULT_NUM_SWITCHES}
 
-    --cpus_per_task                         Number of cpus per task the queue system must allocate per task.
-                                            Default: ${DEFAULT_CPUS_PER_TASK}
+    --cpus_per_node                         Number of cpus per node the queue system must allocate per job.
+                                            Default: ${DEFAULT_CPUS_PER_NODE}
 
-    --gpus_per_node                         Number of gpus per task the queue system must allocate per task.
-                                            Default: ${DEFAULT_GPUS_PER_TASK}
+    --gpus_per_node                         Number of gpus per node the queue system must allocate per job.
+                                            Default: ${DEFAULT_GPUS_PER_NODE}
 
 EOT
   if [ -z "${DISABLE_QARG_NVRAM}" ] || [ "${DISABLE_QARG_NVRAM}" == "false" ]; then

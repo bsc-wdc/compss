@@ -1306,8 +1306,8 @@ get_args() {
           # Added for elasticity
           qos=${OPTARG//qos=/}
           ;;
-        cpus_per_task)
-          cpus_per_task="true"
+        forward_cpus_per_node=*)
+          cpus_per_task=${OPTARG//forward_cpus_per_node=/}
           ;;
         constraints=*)
           # Added for elasticity
@@ -1501,6 +1501,10 @@ check_args() {
 
   if [ "${cpus_per_node}" -lt "${MINIMUM_CPUS_PER_NODE}" ]; then
     display_error "${ERROR_NUM_CPUS}"
+  fi
+
+  if [ -z "${cpus_per_task}" ]; then
+    cpus_per_task=${DEFAULT_FORWARD_CPUS_PER_NODE}
   fi
 
   if [ -z "${gpus_per_node}" ]; then

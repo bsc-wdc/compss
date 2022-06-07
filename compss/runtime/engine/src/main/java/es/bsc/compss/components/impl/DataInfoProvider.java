@@ -245,38 +245,50 @@ public class DataInfoProvider {
         // First access to this file
         if (fileId == null) {
             if (DEBUG) {
-                LOGGER.debug("FIRST access to file " + location.getLocationKey());
+                LOGGER.debug("FIRST access to file " + locationKey);
             }
-
-            // Update mappings
-            fileInfo = new FileInfo(app, location);
-            app.addData(fileInfo);
-            fileId = fileInfo.getDataId();
-            app.registerFileData(locationKey, fileInfo);
-            this.idToData.put(fileId, fileInfo);
-
-            // Register the initial location of the file
-            if (mode == AccessMode.W) {
+            id = generateFileInfo(app, mode, location);
+        } else {
+            fileInfo = this.idToData.get(fileId);
+            if (fileInfo != null) {
+                // The file has already been accessed, all location are already registered
+                if (DEBUG) {
+                    LOGGER.debug("Another access to file " + locationKey);
+                }
                 id = willAccess(mode, fileInfo);
             } else {
-                DataInstanceId lastDID = fileInfo.getCurrentDataVersion().getDataInstanceId();
-                String renaming = lastDID.getRenaming();
-                // With the scores updates. Access function which creates the logical data must be invoked
-                // before registering the location when a new data is accessed (except W access)
-                id = willAccess(mode, fileInfo);
-                Comm.registerLocation(renaming, location);
+                LOGGER
+                    .warn("File was accessed but de file information not found. Maybe it has been previously canceled");
+                id = generateFileInfo(app, mode, location);
             }
-        } else {
-            // The file has already been accessed, all location are already registered
-            if (DEBUG) {
-                LOGGER.debug("Another access to file " + location.getLocationKey());
-            }
-            fileInfo = this.idToData.get(fileId);
-            id = willAccess(mode, fileInfo);
+
         }
 
         // Version management
         return id;
+    }
+
+    private DataAccessId generateFileInfo(Application app, AccessMode mode, DataLocation location) {
+
+        FileInfo fileInfo = new FileInfo(app, location);
+        app.addData(fileInfo);
+        int fileId = fileInfo.getDataId();
+        app.registerFileData(location.getLocationKey(), fileInfo);
+        this.idToData.put(fileId, fileInfo);
+        DataAccessId id;
+        // Register the initial location of the file
+        if (mode == AccessMode.W) {
+            id = willAccess(mode, fileInfo);
+        } else {
+            DataInstanceId lastDID = fileInfo.getCurrentDataVersion().getDataInstanceId();
+            String renaming = lastDID.getRenaming();
+            // With the scores updates. Access function which creates the logical data must be invoked
+            // before registering the location when a new data is accessed (except W access)
+            id = willAccess(mode, fileInfo);
+            Comm.registerLocation(renaming, location);
+        }
+        return id;
+
     }
 
     /**

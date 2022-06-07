@@ -203,8 +203,12 @@ public class LogicalData {
                 ld2.pscoId = pscoId;
                 ld.bindingId = bindingId;
                 ld2.bindingId = bindingId;
-                ld.locations.addAll(ld2.locations);
-                ld2.locations = ld.locations;
+                synchronized (ld.locations) {
+                    ld.locations.addAll(ld2.locations);
+                }
+                synchronized (ld2.locations) {
+                    ld2.locations = ld.locations;
+                }
                 ld.locMonitors.addAll(ld2.locMonitors);
                 ld2.locMonitors = ld.locMonitors;
                 ld.inProgress.addAll(ld2.inProgress);
@@ -256,7 +260,9 @@ public class LogicalData {
                     DataLocation loc;
                     SimpleURI uri = new SimpleURI(targetPath);
                     loc = DataLocation.createLocation(Comm.getAppHost(), uri);
-                    this.locations.add(loc);
+                    synchronized (this.locations) {
+                        this.locations.add(loc);
+                    }
                 } catch (Exception e) {
                     ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, e);
                 }
@@ -279,13 +285,15 @@ public class LogicalData {
                 for (Resource res : this.getAllHosts()) {
                     res.addObsolete(this);
                 }
-                LinkedList<DataLocation> removedLocations = new LinkedList<>();
-                for (DataLocation dl : this.locations) {
-                    if (deleteIfLocal(dl, asynch)) {
-                        removedLocations.add(dl);
+                synchronized (this.locations) {
+                    LinkedList<DataLocation> removedLocations = new LinkedList<>();
+                    for (DataLocation dl : this.locations) {
+                        if (deleteIfLocal(dl, asynch)) {
+                            removedLocations.add(dl);
+                        }
                     }
+                    this.locations.removeAll(removedLocations);
                 }
-                this.locations.removeAll(removedLocations);
                 value[0] = null;
             } else {
                 String targetPath = ProtocolType.OBJECT_URI.getSchema() + alias;
@@ -295,7 +303,9 @@ public class LogicalData {
                     try {
                         DataLocation loc;
                         loc = DataLocation.createLocation(Comm.getAppHost(), uri);
-                        this.locations.remove(loc);
+                        synchronized (this.locations) {
+                            this.locations.remove(loc);
+                        }
                     } catch (Exception e) {
                         ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, e);
                     }
@@ -353,13 +363,14 @@ public class LogicalData {
      */
     public synchronized Set<Resource> getAllHosts() {
         Set<Resource> list = new HashSet<>();
-        for (DataLocation loc : this.locations) {
-            List<Resource> hosts = loc.getHosts();
-            synchronized (hosts) {
-                list.addAll(hosts);
+        synchronized (this.locations) {
+            for (DataLocation loc : this.locations) {
+                List<Resource> hosts = loc.getHosts();
+                synchronized (hosts) {
+                    list.addAll(hosts);
+                }
             }
         }
-
         return list;
     }
 
@@ -409,7 +420,9 @@ public class LogicalData {
         }
 
         this.isBeingSaved = false;
-        this.locations.add(loc);
+        synchronized (this.locations) {
+            this.locations.add(loc);
+        }
         switch (loc.getType()) {
             case PRIVATE:
                 for (Resource r : loc.getHosts()) {
@@ -452,14 +465,15 @@ public class LogicalData {
      */
     public synchronized List<MultiURI> getURIs() {
         List<MultiURI> list = new LinkedList<>();
-        for (DataLocation loc : this.locations) {
-            List<MultiURI> locationURIs = loc.getURIs();
-            // Adds all the valid locations
-            if (locationURIs != null) {
-                list.addAll(locationURIs);
+        synchronized (this.locations) {
+            for (DataLocation loc : this.locations) {
+                List<MultiURI> locationURIs = loc.getURIs();
+                // Adds all the valid locations
+                if (locationURIs != null) {
+                    list.addAll(locationURIs);
+                }
             }
         }
-
         return list;
     }
 
@@ -471,10 +485,12 @@ public class LogicalData {
      */
     public synchronized List<MultiURI> getURIsInHost(Resource targetHost) {
         List<MultiURI> list = new LinkedList<>();
-        for (DataLocation loc : this.locations) {
-            MultiURI locationURI = loc.getURIInHost(targetHost);
-            if (locationURI != null) {
-                list.add(locationURI);
+        synchronized (this.locations) {
+            for (DataLocation loc : this.locations) {
+                MultiURI locationURI = loc.getURIInHost(targetHost);
+                if (locationURI != null) {
+                    list.add(locationURI);
+                }
             }
         }
         return list;
@@ -525,7 +541,9 @@ public class LogicalData {
      * @param loc Location to remove
      */
     public synchronized void removeLocation(DataLocation loc) {
-        this.locations.remove(loc);
+        synchronized (this.locations) {
+            this.locations.remove(loc);
+        }
     }
 
     /**
@@ -545,8 +563,9 @@ public class LogicalData {
 
         // Removes only the memory location (no need to check private, shared,
         // persistent)
-        this.locations.remove(loc);
-
+        synchronized (this.locations) {
+            this.locations.remove(loc);
+        }
         Object val = this.value[0];
         this.value[0] = null;
 
@@ -632,7 +651,9 @@ public class LogicalData {
         SimpleURI targetURI = new SimpleURI(targetPathWithSchema);
         DataLocation loc = DataLocation.createLocation(Comm.getAppHost(), targetURI);
         this.isBeingSaved = false;
-        this.locations.add(loc);
+        synchronized (this.locations) {
+            this.locations.add(loc);
+        }
         for (Resource r : loc.getHosts()) {
             switch (loc.getType()) {
                 case BINDING:
@@ -660,26 +681,54 @@ public class LogicalData {
             // Value is already loaded in memory
             return;
         }
-
-        for (DataLocation loc : this.locations) {
-            switch (loc.getType()) {
-                case PRIVATE:
-                case SHARED:
-                    // Get URI and deserialize object if possible
-                    MultiURI u = loc.getURIInHost(Comm.getAppHost());
-                    if (u == null) {
-                        continue;
-                    }
-
-                    String path = u.getPath();
-                    if (path.startsWith(File.separator)) {
-                        try {
-                            this.value[0] = Serializer.deserialize(path);
-                        } catch (ClassNotFoundException | IOException e) {
-                            // Check next location since deserialization was invalid
-                            this.value[0] = null;
+        synchronized (this.locations) {
+            for (DataLocation loc : this.locations) {
+                switch (loc.getType()) {
+                    case PRIVATE:
+                    case SHARED:
+                        // Get URI and deserialize object if possible
+                        MultiURI u = loc.getURIInHost(Comm.getAppHost());
+                        if (u == null) {
                             continue;
                         }
+
+                        String path = u.getPath();
+                        if (path.startsWith(File.separator)) {
+                            try {
+                                this.value[0] = Serializer.deserialize(path);
+                            } catch (ClassNotFoundException | IOException e) {
+                                // Check next location since deserialization was invalid
+                                this.value[0] = null;
+                                continue;
+                            }
+                            try {
+                                addLocationsForInMemoryObject();
+                            } catch (IOException e) {
+                                // Check next location since location was invalid
+                                this.value[0] = null;
+                                continue;
+                            }
+                        }
+
+                        return;
+                    case PERSISTENT:
+                        PersistentLocation pLoc = (PersistentLocation) loc;
+
+                        if (Tracer.isActivated()) {
+                            Tracer.emitEvent(TraceEvent.STORAGE_GETBYID);
+                        }
+                        try {
+                            this.value[0] = StorageItf.getByID(pLoc.getId());
+                            this.pscoId = pLoc.getId();
+                        } catch (StorageException se) {
+                            // Check next location since cannot retrieve the object from the storage Back-end
+                            continue;
+                        } finally {
+                            if (Tracer.isActivated()) {
+                                Tracer.emitEventEnd(TraceEvent.STORAGE_GETBYID);
+                            }
+                        }
+
                         try {
                             addLocationsForInMemoryObject();
                         } catch (IOException e) {
@@ -687,59 +736,34 @@ public class LogicalData {
                             this.value[0] = null;
                             continue;
                         }
-                    }
 
-                    return;
-                case PERSISTENT:
-                    PersistentLocation pLoc = (PersistentLocation) loc;
-
-                    if (Tracer.isActivated()) {
-                        Tracer.emitEvent(TraceEvent.STORAGE_GETBYID);
-                    }
-                    try {
-                        this.value[0] = StorageItf.getByID(pLoc.getId());
-                        this.pscoId = pLoc.getId();
-                    } catch (StorageException se) {
-                        // Check next location since cannot retrieve the object from the storage Back-end
-                        continue;
-                    } finally {
-                        if (Tracer.isActivated()) {
-                            Tracer.emitEventEnd(TraceEvent.STORAGE_GETBYID);
-                        }
-                    }
-
-                    try {
-                        addLocationsForInMemoryObject();
-                    } catch (IOException e) {
-                        // Check next location since location was invalid
-                        this.value[0] = null;
-                        continue;
-                    }
-
-                    return;
-                case BINDING:
-                    // We should never reach this
-                    throw new CannotLoadException("ERROR: Trying to load from storage a BINDING location");
+                        return;
+                    case BINDING:
+                        // We should never reach this
+                        throw new CannotLoadException("ERROR: Trying to load from storage a BINDING location");
+                }
             }
         }
-
         // Any location has been able to load the value
         throw new CannotLoadException("Object has not any valid location available in the master");
     }
 
     private void addLocationsForInMemoryObject() throws IOException {
-        LinkedList<DataLocation> locations = new LinkedList<>();
-        for (String alias : this.knownAlias) {
-            String targetPath = ProtocolType.OBJECT_URI.getSchema() + alias;
-            SimpleURI uri = new SimpleURI(targetPath);
-            DataLocation tgtLoc = DataLocation.createLocation(Comm.getAppHost(), uri);
-            locations.add(tgtLoc);
-        }
-        // Loop splitted just in case that 1 location cannot be created. It raises an exception and adds no new location
-        for (DataLocation loc : locations) {
-            this.isBeingSaved = false;
-            this.locations.add(loc);
-            Comm.getAppHost().addLogicalData(this);
+        synchronized (this.locations) {
+            LinkedList<DataLocation> locations = new LinkedList<>();
+            for (String alias : this.knownAlias) {
+                String targetPath = ProtocolType.OBJECT_URI.getSchema() + alias;
+                SimpleURI uri = new SimpleURI(targetPath);
+                DataLocation tgtLoc = DataLocation.createLocation(Comm.getAppHost(), uri);
+                locations.add(tgtLoc);
+            }
+            // Loop splitted just in case that 1 location cannot be created. It raises an exception and adds no new
+            // location
+            for (DataLocation loc : locations) {
+                this.isBeingSaved = false;
+                this.locations.add(loc);
+                Comm.getAppHost().addLogicalData(this);
+            }
         }
     }
 
@@ -765,50 +789,53 @@ public class LogicalData {
         // choosing
         // any private location found or the first shared location)
         DataLocation uniqueHostLocation = null;
-        Iterator<DataLocation> it = this.locations.iterator();
-        while (it.hasNext()) {
-            DataLocation loc = it.next();
-            switch (loc.getType()) {
-                case BINDING:
-                case PRIVATE:
-                    if (loc.getURIInHost(host) != null) {
-                        this.isBeingSaved = true;
-                        uniqueHostLocation = loc;
-                        it.remove();
-                    }
-                    break;
-                case SHARED:
-                    // When calling this function the host inside the
-                    // SharedDiskManager has been removed
-                    // If there are no remaining hosts it means it was the last
-                    // host thus, the location
-                    // is unique and must be saved
-                    if (loc.getHosts().isEmpty()) {
-                        String sharedDisk = loc.getSharedDisk();
-                        if (sharedDisk != null) {
-                            String mountPoint = sharedMountPoints.get(sharedDisk);
-                            if (mountPoint != null) {
-                                if (uniqueHostLocation == null) {
-                                    this.isBeingSaved = true;
+        synchronized (this.locations) {
+            Iterator<DataLocation> it = this.locations.iterator();
+            while (it.hasNext()) {
+                DataLocation loc = it.next();
+                switch (loc.getType()) {
+                    case BINDING:
+                    case PRIVATE:
+                        if (loc.getURIInHost(host) != null) {
+                            this.isBeingSaved = true;
+                            uniqueHostLocation = loc;
+                            it.remove();
+                        }
+                        break;
+                    case SHARED:
+                        // When calling this function the host inside the
+                        // SharedDiskManager has been removed
+                        // If there are no remaining hosts it means it was the last
+                        // host thus, the location
+                        // is unique and must be saved
+                        if (loc.getHosts().isEmpty()) {
+                            String sharedDisk = loc.getSharedDisk();
+                            if (sharedDisk != null) {
+                                String mountPoint = sharedMountPoints.get(sharedDisk);
+                                if (mountPoint != null) {
+                                    if (uniqueHostLocation == null) {
+                                        this.isBeingSaved = true;
 
-                                    String targetPath = ProtocolType.FILE_URI.getSchema() + loc.getPath();
-                                    try {
-                                        SimpleURI uri = new SimpleURI(targetPath);
-                                        uniqueHostLocation = DataLocation.createLocation(host, uri);
-                                    } catch (Exception e) {
-                                        ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, e);
+                                        String targetPath = ProtocolType.FILE_URI.getSchema() + loc.getPath();
+                                        try {
+                                            SimpleURI uri = new SimpleURI(targetPath);
+                                            uniqueHostLocation = DataLocation.createLocation(host, uri);
+                                        } catch (Exception e) {
+                                            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath,
+                                                e);
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
-                    break;
-                case PERSISTENT:
-                    // Persistent location must never be saved
-                    break;
+                        break;
+                    case PERSISTENT:
+                        // Persistent location must never be saved
+                        break;
+                }
             }
+            return uniqueHostLocation;
         }
-        return uniqueHostLocation;
     }
 
     /**
@@ -832,14 +859,15 @@ public class LogicalData {
      * @return
      */
     public synchronized MultiURI alreadyAvailable(Resource targetHost) {
-        for (DataLocation loc : locations) {
-            MultiURI u = loc.getURIInHost(targetHost);
-            // If we have found a valid location, return it
-            if (u != null) {
-                return u;
+        synchronized (this.locations) {
+            for (DataLocation loc : locations) {
+                MultiURI u = loc.getURIInHost(targetHost);
+                // If we have found a valid location, return it
+                if (u != null) {
+                    return u;
+                }
             }
         }
-
         // All locations are invalid
         return null;
     }
@@ -924,7 +952,7 @@ public class LogicalData {
         sb.append("\t Value: ").append(value[0]).append("\n");
         sb.append("\t Id: ").append(pscoId).append("\n");
         sb.append("\t Locations:\n");
-        synchronized (locations) {
+        synchronized (this.locations) {
             for (DataLocation dl : locations) {
                 sb.append("\t\t * ").append(dl).append("\n");
             }

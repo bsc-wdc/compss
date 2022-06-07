@@ -90,8 +90,7 @@ show_opts() {
                                             Default: ${DEFAULT_EXEC_TIME}
     --job_name=<name>                       Job name
                                             Default: ${DEFAULT_JOB_NAME}
-    --queue=<name>                          Queue name to submit the job. Depends on the queue system.
-                                            For example (MN3): bsc_cs | bsc_debug | debug | interactive
+    --queue=<name>                          Queue/partition name to submit the job. Depends on the queue system.
                                             Default: ${DEFAULT_QUEUE}
     --reservation=<name>                    Reservation to use when submitting the job.
                                             Default: ${DEFAULT_RESERVATION}
@@ -655,11 +654,7 @@ check_args() {
   ###############################################################
   if [ -z "${storage_home}" ]; then
     # Check if STORAGE_HOME_ENV_VAR is defined in the environment
-    if [ -v "${STORAGE_HOME_ENV_VAR}" ]; then
-      storage_home=${!STORAGE_HOME_ENV_VAR}
-    else
-      storage_home=${DEFAULT_STORAGE_HOME}
-    fi
+    storage_home=${!STORAGE_HOME_ENV_VAR:-$DEFAULT_STORAGE_HOME}
   fi
 
   if [ "${storage_home}" != "${DISABLED_STORAGE_HOME}" ]; then

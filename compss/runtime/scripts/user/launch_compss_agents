@@ -609,6 +609,7 @@ get_args() {
         scheduler=*)
           # Added for tracing in heterogeneity
           scheduler="${OPTARG//scheduler=/}"
+          args_pass="$args_pass --$OPTARG"
           ;;
         *)
           # Flag didn't match any patern. Add to COMPSs

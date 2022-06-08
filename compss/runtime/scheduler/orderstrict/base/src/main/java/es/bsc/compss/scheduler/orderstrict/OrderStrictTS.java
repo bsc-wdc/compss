@@ -82,9 +82,7 @@ public abstract class OrderStrictTS extends TaskScheduler {
 
     @Override
     protected void scheduleAction(AllocatableAction action, Score actionScore) throws BlockedActionException {
-        System.out.println("OSTS - Scheduling action " + action);
         if (!action.hasDataPredecessors()) {
-            System.out.println("OSTS - NO DEPS");
             ObjectValue<AllocatableAction> topReady = readyQueue.peek();
             if (topReady == null || actionScore.isBetter(topReady.getScore())) {
                 try {
@@ -93,9 +91,7 @@ public abstract class OrderStrictTS extends TaskScheduler {
                     addActionToReadyQueue(action, actionScore);
                 }
             } else {
-                System.out.println("OSTS - CompatibleWorkers " + action.getCompatibleWorkers());
                 if (action.getCompatibleWorkers().isEmpty()) {
-                    System.out.println("Throws BLocked Exception");
                     throw new BlockedActionException();
                 }
                 addActionToReadyQueue(action, actionScore);

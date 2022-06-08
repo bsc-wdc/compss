@@ -36,9 +36,6 @@ except ImportError:
     display = None
     Javascript = None
 
-# Placeholder for post run cell messages
-POST_MESSAGE = None
-
 
 #######################################
 #           EVENT CALLBACKS           #
@@ -61,8 +58,39 @@ def __pre_run_cell__() -> None:
 
     :return: None.
     """
-    global POST_MESSAGE
+    print("pre_run_cell")
+
+
+def __post_execute__() -> None:
+    """Run after interactive execution (e.g. a cell in a notebook).
+
+    :return: None.
+    """
+    print("post_execute")
+
+
+def __post_run_cell__() -> None:
+    """Run for all cells after execution.
+
+    The same as pre_execute, post_execute is like post_run_cell, but
+    fires for all executions, not just interactive ones.
+
+    Notifies if any exception or task has been cancelled to the user.
+
+    :return: None.
+    """
     messages = STDW.get_messages()
+    last_message = __process_messages__(messages)
+    if last_message:
+        print(last_message)
+
+
+def __process_messages__(messages: typing.List[str]) -> typing.Optional[str]:
+    """Process the messages and builds a popup with the information.
+
+    :param messages: List of messages to show.
+    :return: None or a message that needs to be printed.
+    """
     found_errors = False
     runtime_crashed = False
     if messages:
@@ -122,7 +150,7 @@ def __pre_run_cell__() -> None:
             popup = Javascript(popup_js)
             display(popup)
             warn_msg = "WARNING: Some objects may have not been synchronized and need to be recomputed."  # noqa  # pylint: disable=line-too-long
-            POST_MESSAGE = "\x1b[40;43m" + warn_msg + "\x1b[0m"
+            return f"\x1b[40;43m{warn_msg}\x1b[0m"
         elif found_errors:
             # Display popup with the warning messages
             header = []
@@ -148,34 +176,11 @@ def __pre_run_cell__() -> None:
             popup = Javascript(popup_js)
             display(popup)  # noqa
             info_msg = "INFO: The ERRMGR displayed some error or warnings."
-            POST_MESSAGE = f"\x1b[40;46m{info_msg}\x1b[0m"
+            return f"\x1b[40;46m{info_msg}\x1b[0m"
         else:
             # No issue
-            pass
-
-
-def __post_execute__() -> None:
-    """Run after interactive execution (e.g. a cell in a notebook).
-
-    :return: None.
-    """
-    print("post_execute")
-
-
-def __post_run_cell__() -> None:
-    """Run for all cells after execution.
-
-    The same as pre_execute, post_execute is like post_run_cell, but
-    fires for all executions, not just interactive ones.
-
-    Notifies if any exception or task has been cancelled to the user.
-
-    :return: None.
-    """
-    global POST_MESSAGE
-    if POST_MESSAGE:
-        print(POST_MESSAGE)
-        POST_MESSAGE = None
+            return None
+    return None
 
 
 #######################################
@@ -190,7 +195,7 @@ def setup_event_manager(ipython: typing.Any) -> None:
     :return: None.
     """
     # ipython.events.register("pre_execute", __pre_execute__)
-    ipython.events.register("pre_run_cell", __pre_run_cell__)
+    # ipython.events.register("pre_run_cell", __pre_run_cell__)
     # ipython.events.register("post_execute", __post_execute__)
     ipython.events.register("post_run_cell", __post_run_cell__)
 
@@ -203,7 +208,7 @@ def release_event_manager(ipython: typing.Any) -> None:
     """
     try:
         # ipython.events.unregister("pre_execute", __pre_execute__)
-        ipython.events.unregister("pre_run_cell", __pre_run_cell__)
+        # ipython.events.unregister("pre_run_cell", __pre_run_cell__)
         # ipython.events.unregister("post_execute", __post_execute__)
         ipython.events.unregister("post_run_cell", __post_run_cell__)
     except ValueError:

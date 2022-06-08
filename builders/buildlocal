@@ -683,6 +683,8 @@ install_compss() {
     fi
     export DLB_HOME=${targetDir}/Dependencies/dlb
     cd "${SCRIPT_DIR}"
+  else
+    unset DLB_HOME
   fi
   # Kafka
   if [ "${kafka}" = "true" ]; then

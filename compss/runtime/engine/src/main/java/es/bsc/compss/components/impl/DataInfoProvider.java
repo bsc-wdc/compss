@@ -257,7 +257,7 @@ public class DataInfoProvider {
                 }
                 id = willAccess(mode, fileInfo);
             } else {
-                LOGGER
+                ErrorManager
                     .warn("File was accessed but de file information not found. Maybe it has been previously canceled");
                 id = generateFileInfo(app, mode, location);
             }

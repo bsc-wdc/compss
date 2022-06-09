@@ -383,7 +383,7 @@ EOT
           if [ "$debug" == "true" ]; then
             echo "[persistent_worker.sh] Cleaning parent WD"
           fi
-          rm ${parentdir}
+          rm -rf ${parentdir}
         fi
       else
         if [ "$debug" == "true" ]; then
@@ -401,7 +401,7 @@ EOT
           if [ "$debug" == "true" ]; then
             echo "[persistent_worker.sh] Cleaning tmp WD"
           fi
-          rm ${tmpdir}
+          rm -rf ${tmpdir}
         fi
       else
         if [ "$debug" == "true" ]; then

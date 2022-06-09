@@ -135,7 +135,7 @@ EOT
 
   if [ -z "${DISABLE_QARG_CPUS_PER_TASK}" ] || [ "${DISABLE_QARG_CPUS_PER_TASK}" == "false" ]; then
     cat <<EOT
-    --forward_cpus_per_node                 Flag to indicate if number to cpus per node must be forwarded to the worker process. 
+    --forward_cpus_per_node=<true|false>    Flag to indicate if number to cpus per node must be forwarded to the worker process. 
 					    The number of forwarded cpus will be equal to the cpus_per_node in a worker node and
                                             equal to the worker_in_master_cpus in a master node.
                                             Default: ${DEFAULT_FORWARD_CPUS_PER_NODE}

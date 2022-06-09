@@ -1249,7 +1249,7 @@ launch() {
   echo "------ Launching Execution ------"
   # Calling main method of the application passing in a single parameter containing an array with the method arguments
   echo "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_call_operation" --master_node=${master_node}${network} --master_port=46101 --stop "--forward_to=${forward_stop_to}" ${cei} ${call_options} ${app_args}
-  "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_call_operation" "--master_node=${master_node}${network}" "--master_port=46101"  "--stop" "--forward_to=${forward_stop_to}" "${cei}" ${call_options} ${app_args}
+  "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_call_operation" "--master_node=${master_node}${network}" "--master_port=46101"  "--stop" "--forward_to=${forward_stop_to}" ${cei} ${call_options} ${app_args}
 }
 
 ###############################################

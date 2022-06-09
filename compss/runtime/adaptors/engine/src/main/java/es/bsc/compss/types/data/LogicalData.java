@@ -247,6 +247,15 @@ public class LogicalData {
     }
 
     /**
+     * Counts the number of alias known for the data.
+     * 
+     * @return number of known alias for the data
+     */
+    public synchronized int countKnownAlias() {
+        return this.knownAlias.size();
+    }
+
+    /**
      * Adds a new alias to the data, and includes the corresponding new locations if the object is in memory.
      *
      * @param alias The new alias that the data is known as

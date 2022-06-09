@@ -674,7 +674,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                     if (DEBUG) {
                         LOGGER.debug("Data " + ld.getName() + " is already accessible at " + u.getPath());
                     }
-                    if (reason.isSourcePreserved()) {
+                    if (reason.isSourcePreserved() || ld.countKnownAlias() > 1) {
                         if (DEBUG) {
                             LOGGER.debug("Master local copy " + ld.getName() + " from " + u.getHost().getName() + " to "
                                 + targetPath);

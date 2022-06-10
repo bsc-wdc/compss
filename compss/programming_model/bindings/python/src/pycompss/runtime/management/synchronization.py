@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #
-#  Copyright 2002-2021 Barcelona Supercomputing Center (www.bsc.es)
+#  Copyright 2002-2022 Barcelona Supercomputing Center (www.bsc.es)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -113,8 +113,8 @@ def _synchronize(obj: typing.Any, mode: int) -> typing.Any:
                 "WARNING: Could not retrieve the object "
                 + str(file_name)
                 + " since the task that produces it may have been IGNORED or"
-                + "CANCELLED. Please, check the logs. Returning None."
-            )  # noqa: E501
+                + " CANCELLED. Please, check the logs. Returning None."
+            )
             return None
         new_obj = deserialize_from_file(compss_file)
         COMPSs.close_file(app_id, file_name, mode)

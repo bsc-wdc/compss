@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #
-#  Copyright 2002-2021 Barcelona Supercomputing Center (www.bsc.es)
+#  Copyright 2002-2022 Barcelona Supercomputing Center (www.bsc.es)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -455,12 +455,12 @@ def __show_flower__() -> None:
     print(line_separator)  # NOSONAR # noqa
     print(r"**************** PyCOMPSs Interactive ******************")  # NOSONAR # noqa
     print(line_separator)  # NOSONAR # noqa
-    print(r"*          .-~~-.--.           _____         ______    *")  # NOSONAR # noqa
+    print(r"*          .-~~-.--.           ______        ______    *")  # NOSONAR # noqa
     print(r"*         :         )         |____  \      /  __  \   *")  # NOSONAR # noqa
     print(r"*   .~ ~ -.\       /.- ~~ .      __) |      | |  | |   *")  # NOSONAR # noqa
     print(r"*   >       `.   .'       <     |__  |      | |  | |   *")  # NOSONAR # noqa
     print(r"*  (         .- -.         )   ____) |   _  | |__| |   *")  # NOSONAR # noqa
-    print(r"*   `- -.-~  `- -'  ~-.- -'   |_____ /  |_| \______/   *")  # NOSONAR # noqa
+    print(r"*   `- -.-~  `- -'  ~-.- -'   |______/  |_| \______/   *")  # NOSONAR # noqa
     print(r"*     (        :        )           _ _ .-:            *")  # NOSONAR # noqa
     print(r"*      ~--.    :    .--~        .-~  .-~  }            *")  # NOSONAR # noqa
     print(r"*          ~-.-^-.-~ \_      .~  .-~   .~              *")  # NOSONAR # noqa

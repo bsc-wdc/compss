@@ -23,13 +23,19 @@ source "${COMPSS_HOME}Runtime/scripts/system/commons/utils.sh"
 # shellcheck source=./job_submission.sh"
 # shellcheck disable=SC1091
 source "${COMPSS_HOME}Runtime/scripts/queues/commons/job_submission.sh"
-
+# shellcheck source=../system/runtime/compss_setup.sh"
+# shellcheck disable=SC1091
+source "${COMPSS_HOME}Runtime/scripts/system/runtime/compss_setup.sh"
 
 #---------------------------------------------------
 # SCRIPT CONSTANTS DECLARATION
 #---------------------------------------------------
 DEFAULT_JOB_NAME="COMPSS_GENTRACE"
 DEFAULT_NVRAM_OPTIONS="none"
+DEFAULT_CUSTOM_THREADS="true"
+DEFAULT_TRACE_NAME="trace"
+DEFAULT_LOG_LEVEL_ARGUMENT="${LOG_LEVEL_DEBUG}"
+DEFAULT_KEEP_PACKAGES="false"
 
 #---------------------------------------------------
 # ERROR CONSTANTS DECLARATION
@@ -38,7 +44,6 @@ DEFAULT_NVRAM_OPTIONS="none"
 #---------------------------------------------------
 # GLOBAL VARIABLE NAME DECLARATION
 #---------------------------------------------------
-
 
 #---------------------------------------------------------------------------------------
 # HELPER FUNCTIONS
@@ -79,8 +84,7 @@ EOT
 EOT
   fi
   cat <<EOT  
-    --queue=<name>                          Queue name to submit the job. Depends on the queue system.
-                                            For example (MN3): bsc_cs | bsc_debug | debug | interactive
+    --queue=<name>                          Queue/partition name to submit the job. Depends on the queue system.
                                             Default: ${DEFAULT_QUEUE}
 
     --reservation=<name>                    Reservation to use when submitting the job.
@@ -97,10 +101,6 @@ EOT
     --exec_time=<minutes>                   Expected execution time of the application (in minutes)
                                             Default: ${DEFAULT_EXEC_TIME}
 
-    --forward_time_limit=<true|false>       Forward the queue system time limit to the runtime.
-                                            It will stop the application in a controlled way.
-                                            Default: ${DEFAULT_FORWARD_TIME_LIMIT}
-
     --job_dependency=<jobID>                Postpone job execution until the job dependency has ended.
                                             Default: ${DEFAULT_DEPENDENCY_JOB}
 
@@ -108,15 +108,15 @@ EOT
 
   if [ -z "${DISABLE_QARG_CONSTRAINTS}" ] || [ "${DISABLE_QARG_CONSTRAINTS}" == "false" ]; then
     cat <<EOT
-    --constraints=<constraints>		          Constraints to pass to queue system.
-					                                  Default: ${DEFAULT_CONSTRAINTS}
+    --constraints=<constraints>		    Constraints to pass to queue system.
+					    Default: ${DEFAULT_CONSTRAINTS}
 
 EOT
   fi
   if [ "${ENABLE_QARG_CLUSTER}" == "true" ]; then
     cat <<EOT
     --cluster=<cluster>                     Cluster to pass to queue system.
-                              		          Default: Empty.
+                              		    Default: Empty.
 
 EOT
    fi
@@ -129,11 +129,11 @@ EOT
                                             Only available for at least ${MIN_NODES_REQ_SWITCH} nodes.
                                             Default: ${DEFAULT_NUM_SWITCHES}
 
-    --cpus_per_task                         Number of cpus per task the queue system must allocate per task.
-                                            Default: ${DEFAULT_CPUS_PER_TASK}
+    --cpus_per_node                         Number of cpus per node the queue system must allocate per job.
+                                            Default: ${DEFAULT_CPUS_PER_NODE}
 
-    --gpus_per_node                         Number of gpus per task the queue system must allocate per task.
-                                            Default: ${DEFAULT_GPUS_PER_TASK}
+    --gpus_per_node                         Number of gpus per node the queue system must allocate per job.
+                                            Default: ${DEFAULT_GPUS_PER_NODE}
 
 EOT
   if [ -z "${DISABLE_QARG_NVRAM}" ] || [ "${DISABLE_QARG_NVRAM}" == "false" ]; then

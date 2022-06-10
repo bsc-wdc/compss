@@ -201,7 +201,7 @@ process_pipe_commands() {
                     dlbArgs="DLB_ARGS=\"--lewi --drom --ompt --lewi-respect-cpuset=no\" LD_PRELOAD=\"\$LD_PRELOAD:\$DLB_HOME/lib/libdlb.so\""
                     workerCMD="${dlbArgs} ${workerCMD}"
                 elif [ "${COMPSS_WITH_DLB}" -eq "2" ]; then
-                    dlbArgs="DLB_ARGS=\"--lewi --drom --ompt --lewi-respect-cpuset=no --verbose=all\" LD_PRELOAD=\"\$LD_PRELOAD:\$DLB_HOME/lib/libdlb_instr_dbg.so\""
+		    dlbArgs="DLB_ARGS=\"--lewi --drom --ompt --lewi-respect-cpuset=no --verbose=all\" LD_PRELOAD=\"\$LD_PRELOAD:\$DLB_HOME/lib/libdlb.so\""
                     workerCMD="${dlbArgs} ${workerCMD}"
                 fi
 

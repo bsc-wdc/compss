@@ -10,7 +10,6 @@ fi
 #---------------------------------------------------
 DEFAULT_SC_CFG="default"
 DEFAULT_JOB_NAME="COMPSs"
-DEFAULT_CPUS_PER_TASK="false"
 DEFAULT_AGENTS_ENABLED="disabled"
 DEFAULT_AGENTS_HIERARCHY="tree"
 DEFAULT_NVRAM_OPTIONS="none"
@@ -91,8 +90,7 @@ show_opts() {
                                             Default: ${DEFAULT_EXEC_TIME}
     --job_name=<name>                       Job name
                                             Default: ${DEFAULT_JOB_NAME}
-    --queue=<name>                          Queue name to submit the job. Depends on the queue system.
-                                            For example (MN3): bsc_cs | bsc_debug | debug | interactive
+    --queue=<name>                          Queue/partition name to submit the job. Depends on the queue system.
                                             Default: ${DEFAULT_QUEUE}
     --reservation=<name>                    Reservation to use when submitting the job.
                                             Default: ${DEFAULT_RESERVATION}
@@ -137,10 +135,10 @@ EOT
 
   if [ -z "${DISABLE_QARG_CPUS_PER_TASK}" ] || [ "${DISABLE_QARG_CPUS_PER_TASK}" == "false" ]; then
     cat <<EOT
-    --cpus_per_task                         Number of cpus per task the queue system must allocate per task.
-                                            Note that this will be equal to the cpus_per_node in a worker node and
-                                            equal to the worker_in_master_cpus in a master node respectively.
-                                            Default: ${DEFAULT_CPUS_PER_TASK}
+    --forward_cpus_per_node=<true|false>    Flag to indicate if number to cpus per node must be forwarded to the worker process. 
+					    The number of forwarded cpus will be equal to the cpus_per_node in a worker node and
+                                            equal to the worker_in_master_cpus in a master node.
+                                            Default: ${DEFAULT_FORWARD_CPUS_PER_NODE}
 EOT
   fi
   if [ -z "${DISABLE_QARG_NVRAM}" ] || [ "${DISABLE_QARG_NVRAM}" == "false" ]; then
@@ -656,11 +654,7 @@ check_args() {
   ###############################################################
   if [ -z "${storage_home}" ]; then
     # Check if STORAGE_HOME_ENV_VAR is defined in the environment
-    if [ -v "${STORAGE_HOME_ENV_VAR}" ]; then
-      storage_home=${STORAGE_HOME_ENV_VAR}
-    else
-      storage_home=${DEFAULT_STORAGE_HOME}
-    fi
+    storage_home=${!STORAGE_HOME_ENV_VAR:-$DEFAULT_STORAGE_HOME}
   fi
 
   if [ "${storage_home}" != "${DISABLED_STORAGE_HOME}" ]; then
@@ -1026,7 +1020,7 @@ if [ -f "\${variables_to_be_sourced}" ]; then
     rm "\${variables_to_be_sourced}"
 fi
 
-${COMPSS_HOME}/Runtime/scripts/user/launch_compss${AGENTS_SUFFIX} ${AGENTS_HIERARCHY}--master_node="\${master_node}" --worker_nodes="\${worker_nodes}" --node_memory=${node_memory} --node_storage_bandwidth=${node_storage_bandwidth} --storage_conf=\${storage_conf} ${args_pass}
+${COMPSS_HOME}/Runtime/scripts/user/launch_compss${AGENTS_SUFFIX} ${AGENTS_HIERARCHY} --master_node="\${master_node}" --worker_nodes="\${worker_nodes}" --node_memory=${node_memory} --node_storage_bandwidth=${node_storage_bandwidth} --storage_conf=\${storage_conf} ${args_pass}
 
 ${storage_home}/scripts/storage_stop.sh \$${ENV_VAR_JOB_ID} "\${master_node}" "\${storage_master_node}" "\${worker_nodes}" ${network} ${storage_props}
 

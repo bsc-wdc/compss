@@ -29,7 +29,7 @@
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
   # DEFINE MODULES
-  modules="intel java gcc/9.2.0 mkl/2018.1 bullxmpi/bullxmpi-1.2.9.1 boost/1.67.0"
+  modules="intel java gcc/9.2.0 mkl/2018.1 bullxmpi/bullxmpi-1.2.9.1 boost/1.67.0 dlb/git"
   unload_before_python="ignore"
   run_before_py3_modules="module load cuda/10.1"
   py3_modules="python/3.7.10"

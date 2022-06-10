@@ -29,7 +29,7 @@
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
   # DEFINE MODULES
-  modules="intel/2021.4.0 bsc/current oneapi-rt/2021.4.0 impi/2021.4.0 tbb/2021.4.0 mkl/2021.4.0 boost/1.78.0 papi/6.0.0"
+  modules="intel/2021.4.0 bsc/current oneapi-rt/2021.4.0 impi/2021.4.0 tbb/2021.4.0 mkl/2021.4.0 boost/1.78.0 papi/6.0.0 dlb/git"
   unload_before_python="ignore"
   run_before_py3_modules="ignore"
   py3_modules="python/3.7.12"

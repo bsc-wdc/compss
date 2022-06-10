@@ -1,5 +1,5 @@
 /*
- *  Copyright 2002-2021 Barcelona Supercomputing Center (www.bsc.es)
+ *  Copyright 2002-2022 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -569,7 +569,7 @@ public class Agent {
     private static void addRemoteData(RemoteDataInformation remote) throws AgentException {
         int addedSources = 0;
         LogicalData ld = Comm.getData(remote.getRenaming());
-        LogicalData otherNamedLocalData = null;
+        String otherDataNameInLocal = null;
 
         LinkedList<DataLocation> locations = new LinkedList<>();
         for (RemoteDataLocation loc : remote.getSources()) {
@@ -589,9 +589,10 @@ public class Agent {
                     host = registerWorker(workerName, mrd, adaptor, projectConf, resourcesConf);
                 } else {
                     if (host == Comm.getAppHost()) {
-                        LogicalData localData = Comm.getData(uri.getPath());
+                        String name = uri.getPath();
+                        LogicalData localData = Comm.getData(name);
                         if (localData != null) {
-                            otherNamedLocalData = localData;
+                            otherDataNameInLocal = name;
                             addedSources++;
                             continue;
                         }
@@ -606,14 +607,13 @@ public class Agent {
         }
 
         if (ld == null) {
-            if (otherNamedLocalData == null) {
+            if (otherDataNameInLocal == null) {
                 ld = Comm.registerData(remote.getRenaming());
             } else {
                 try {
-                    Comm.linkData(otherNamedLocalData.getName(), remote.getRenaming());
+                    Comm.linkData(otherDataNameInLocal, remote.getRenaming());
                 } catch (CommException ce) {
-                    ErrorManager
-                        .error("Could not link " + remote.getRenaming() + " and " + otherNamedLocalData.getName(), ce);
+                    ErrorManager.error("Could not link " + remote.getRenaming() + " and " + otherDataNameInLocal, ce);
                 }
                 addedSources++;
             }

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #
-#  Copyright 2002-2021 Barcelona Supercomputing Center (www.bsc.es)
+#  Copyright 2002-2022 Barcelona Supercomputing Center (www.bsc.es)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -82,11 +82,12 @@ process_affinity = Extension(
 
 # dlb affinity extension
 dlb_home = os.environ.get('DLB_HOME', None)
-if dlb_home != None:
+if dlb_home is not None:
     dlb_affinity = Extension(
         'dlb_affinity',
         include_dirs=[dlb_home + '/include'],
-        library_dirs=[dlb_home + '/lib'],
+        library_dirs=[dlb_home + '/lib',
+                      dlb_home + '/lib64'],
         libraries=['dlb'],
         extra_compile_args=['-std=c++11'],
         sources=['src/ext/dlb_affinity.c']
@@ -110,7 +111,7 @@ def find_packages(path='./src'):
 
 
 if target_os == 'Linux':
-    if dlb_home == None:
+    if dlb_home is None:
         os_modules = [compssmodule, process_affinity]
     else:
         os_modules = [compssmodule, process_affinity, dlb_affinity]
@@ -119,7 +120,7 @@ elif target_os == 'Darwin':
 else:
     # Unreachable code: will exit in previous if statement.
     os_modules = None
-    print("ERROR: Unsupported OS " + target_os + "(Supported Linux/Darwin)")
+    print("ERROR: Unsupported OS " + target_os + " (Supported Linux/Darwin)")
     exit(1)
 
 # Setup
@@ -147,7 +148,7 @@ setup(
     },
 
     # Build
-    package_dir={'pycompss': 'src/pycompss', 'exaqute': 'src/exaqute'},
+    package_dir={'pycompss': 'src/pycompss'},
     packages=[''] + find_packages(),
     package_data={
         '': ['log/logging_off.json',

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #
-#  Copyright 2002-2021 Barcelona Supercomputing Center (www.bsc.es)
+#  Copyright 2002-2022 Barcelona Supercomputing Center (www.bsc.es)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -95,7 +95,11 @@ class Context:
         if __debug__:
             # Only check who contextualized if debugging
             # 2 since it is called from set_master, set_worker or set_out_of_scope.
-            caller_stack = inspect.stack()[2]
+            try:
+                caller_stack = inspect.stack()[2]
+            except IndexError:
+                # Within mypy
+                caller_stack = inspect.stack()[1]
             caller_module = inspect.getmodule(caller_stack[0])
             self.who = str(caller_module)
 

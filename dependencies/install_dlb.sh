@@ -7,6 +7,12 @@
     echo "Usage: $0 <dlbSrcDir> <dlbTargetDir>"
   }
 
+  #
+  # Private function to check if a command is available
+  #
+  command_exists () {
+    type "$1" &> /dev/null ;
+  }
 
   #
   # Commands to install DLB
@@ -24,9 +30,16 @@
       exit $ev
     fi
 
+    # Check if python3 command exists
+    if ! command_exists "python3" ; then
+      echo "ERROR: Could not find python3 command."
+      exit 1
+    fi
+
     # Configure, compile and install
     ./configure \
-      --prefix="${dlbTarget}"
+      --prefix="${dlbTarget}" \
+      PYTHON=python3
     ev=$?
     if [ "$ev" -ne 0 ]; then
       exit $ev

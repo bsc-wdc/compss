@@ -92,7 +92,7 @@ EOT
 }
 
 show_version() {
-  echo "COMPSs version 2.3 Daisy"
+  echo "COMPSs version 3.0 (Lavender)"
   echo " "
 }
 
@@ -595,6 +595,7 @@ if [ -d "./src" ]; then
 
 fi
 
+previous_LIBS=$LIBS
 if [ "$ONLY_WORKER" = false ]; then
 
     export LIBS="$LIBS $MASTER_LIBS"
@@ -609,6 +610,7 @@ if [ "$ONLY_WORKER" = false ]; then
 	fi
 fi
 
+export LIBS=${previous_LIBS}
 if [ "$ONLY_MASTER" = false ]; then
 
     export LIBS="$LIBS $WORKER_LIBS"

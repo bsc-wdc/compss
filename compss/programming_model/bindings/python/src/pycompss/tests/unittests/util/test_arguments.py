@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #
-#  Copyright 2002-2021 Barcelona Supercomputing Center (www.bsc.es)
+#  Copyright 2002-2022 Barcelona Supercomputing Center (www.bsc.es)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -19,13 +19,12 @@
 
 import sys
 
+from pycompss.util.exceptions import PyCOMPSsException
+
 if sys.version_info <= (3, 0):
     from cStringIO import StringIO
 else:
     from io import StringIO
-
-from pycompss.util.exceptions import PyCOMPSsException
-
 
 ERROR_UNEXPECTED_WARNING = "ERROR: Unexpected warning message received."
 ERROR_UNEXPECTED_ERROR = "ERROR: Unexpected error message received."

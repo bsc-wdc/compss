@@ -26,6 +26,7 @@ DEFAULT_PROJECT="${COMPSS_HOME}Runtime/configuration/xml/projects/examples/local
 DEFAULT_AGENT_NODE="localhost"
 DEFAULT_AGENT_PORT="46101"
 
+DEFAULT_CPU_NAME="MainProcessor"
 DEFAULT_CPU_COUNT="1"
 DEFAULT_GPU_COUNT="0"
 DEFAULT_FPGA_COUNT="0"
@@ -70,21 +71,22 @@ get_adaptor_properties() {
 # Creates the XML element containing the description of one node
 get_resource_description() {
   local indent=${1}
-  local cpu_count=${2}
-  local gpu_count=${3}
-  local fpga_count=${4}
-  local mem_size=${5}
-  local mem_type=${6}
-  local os_distr=${7}
-  local os_type=${8}
-  local os_version=${9}
+  local cpu_name=${2}
+  local cpu_count=${3}
+  local gpu_count=${4}
+  local fpga_count=${5}
+  local mem_size=${6}
+  local mem_type=${7}
+  local os_distr=${8}
+  local os_type=${9}
+  local os_version=${10}
 
   local processors
   processors="${indent}  <processors>"
   if [ "${cpu_count}" -gt "0" ]; then
     processors="${processors}
 ${indent}    <processor>
-${indent}      <name>MainProcessor</name>
+${indent}      <name>${cpu_name}</name>
 ${indent}      <type>CPU</type>
 ${indent}      <architecture>[unassigned]</architecture>
 ${indent}      <computingUnits>${cpu_count}</computingUnits>

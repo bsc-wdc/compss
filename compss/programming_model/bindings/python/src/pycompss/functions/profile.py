@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #
-#  Copyright 2002-2021 Barcelona Supercomputing Center (www.bsc.es)
+#  Copyright 2002-2022 Barcelona Supercomputing Center (www.bsc.es)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -112,6 +112,9 @@ class Profile:
             final_memory = psutil.virtual_memory().used
             # Report before returning the result.
             report = self.stream.getvalue().strip()
+            # Reset the stream StringIO
+            self.stream.truncate(0)
+            self.stream.seek(0)
             self.__print_report__(
                 start_time,
                 job_name,

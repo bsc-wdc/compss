@@ -139,6 +139,9 @@ show_resource_opts() {
     --cpu=<integer>                         Number of cpu cores available on the resource 
                                             Default: ${DEFAULT_CPU_COUNT}
 
+    --cpu_name=<string>                     Name of the cpu processor available on the resource
+                                            Default: ${DEFAULT_CPU_NAME}
+
     --gpu=<integer>                         Number of gpus devices available on the resource 
                                             Default: ${DEFAULT_GPU_COUNT}
 
@@ -225,6 +228,9 @@ get_args() {
           cpu=*)
             resource_cpu_count=${OPTARG//cpu=/}
             ;;
+          cpu_name=*)
+            resource_cpu_name=${OPTARG//cpu_name=/}
+            ;;
           gpu=*)
             resource_gpu_count=${OPTARG//gpu=/}
             ;;
@@ -273,6 +279,9 @@ check_args() {
     agent_port=${DEFAULT_AGENT_PORT}
   fi
 
+  if [ -z "${resource_cpu_name}" ]; then
+    resource_cpu_name=${DEFAULT_CPU_NAME}
+  fi
   if [ -z "${resource_cpu_count}" ]; then
     resource_cpu_count=${DEFAULT_CPU_COUNT}
   fi
@@ -318,7 +327,7 @@ check_args() {
 # Agent Invocation
 ###############################################
 add_resource() {
-  get_resource_description "    " "${resource_cpu_count}" "${resource_gpu_count}" "${resource_fpga_count}" "${resource_mem_size}" "${resource_mem_type}" "${resource_os_distr}" "${resource_os_type}" "${resource_os_version}"
+  get_resource_description "    " "${resource_cpu_name}" "${resource_cpu_count}" "${resource_gpu_count}" "${resource_fpga_count}" "${resource_mem_size}" "${resource_mem_type}" "${resource_os_distr}" "${resource_os_type}" "${resource_os_version}"
   local description=${RESOURCE_DESCRIPTION}
 
   ${APP_CMD} "-s" "-XPUT" "http://${agent_node}:${agent_port}/COMPSs/addResources" -H 'content-type: application/xml' -d "\

@@ -6,37 +6,43 @@ COMP Superscalar (COMPSs) is a programming model that aims to ease the developme
 such as Clusters, Grids and Clouds. COMP Superscalar also features a runtime system that exploits the inherent parallelism of 
 applications at execution time.
 
-Release number: 2.10 (Kumquat) 
-Release date: November-2021
+Release number: 3.0 (Lavender) 
+Release date: June-2022
 -------------------------------
 New features
-         * Runtime:
-		- Support for http requests (@http decorator). 
-		- Support for Java versions higher than 8.
-		- Enable grouping processes in MPI tasks with the processes_per_node flag. 
-		- Partial support for OSX systems 
+	 - CLI to unify executions of application in different environments.
+	 - Automatic creation of Data Provenance information from PyCOMPSs executions.
+	 - Transparent task-based checkpointing support.
+	 - Support for MPMD MPI applications as tasks.
+	 - Support for task epilog and prolog.
+	 - Generic support for reusable descriptions of external software execution inside a COMPSs task (@Software). 
+	 - Mypy compilation of python binding.
+	 - Integration with DLB DROM for improving affinity in OpenMP tasks.
+	 - RISC-V 64bit support.
 
-         * Python:
-		- PyArrow object serialization support
-		- Cache profiling enabled
-
+Deprecated Features:
+	- Python 2 support.
+	- Autoparallel module (requires python2).
+	- SOAP Service tasks.
+		
 Improvements:
-	- Fixes in managing directory parameters.
-        - Improvements in asynchronous file system operations.
-	- Improvements visualizing collections in task dependency graphs. 
-        - Improvements and fixes in the support for different MPI versions (COMPSS_MPIRUN_TYPE)
-	- Improvements in tracing system. Fixes in events and cfgs
-	- Configuration files for Karolina, Mahti and CTE-AMD system.
+	- wait_on and wait_on_file API homogenization.
+	- Improvements in the support for task nesting.
+	- Improvements in plugable schedulers.
+	- Improvements in memory profiling reports.
+	- Improvements in tracing system: Offline tracing generation, and support for changes of working directory.
+	- Configuration files for Nord3v2 and LaPalma system.
 	- Several Bug fixes.
 
 Known Limitations:
-	- Collections are not supported in http tasks
-	- OSX support is limited to Java and Python without CPU affinity (require to execute with --cpu_affinity=disable). We have also detected issues when several python3 versions are installed in the system. Tracing is not available.
-        - Reduce operations can consume more disk space than the manually programmed n-ary reduction
+	- Issues when using tracing with Java 14+.
+	- Collections are not supported in http tasks.
+	- macOS support is limited to Java and Python without CPU affinity (require to execute with --cpu_affinity=disable). We have also detected issues when several python3 versions are installed in the system. Tracing is not available.
+	- Reduce operations can consume more disk space than the manually programmed n-ary reduction.
 	- Objects used as task parameters must be serializable.
-        - Tasks that invoke Numpy and MKL may experience issues if a different MKL threads count is used in different tasks. This is due to the fact that MKL reuses threads in the different calls and it does not change the number of threads from one call to another. This can be also happen with other libraries implemented with OpenMP.
-        - C++ Objects declared as arguments in coarse-grain tasks must be passed as object pointers in order to have proper dependency management.
-        - Master as worker feature is not working for executions with persistent worker in C++.
+	- Tasks that invoke Numpy and MKL may experience issues if a different MKL threads count is used in different tasks. This is due to the fact that MKL reuses threads in the different calls and it does not change the number of threads from one call to another. This can be also happen with other libraries implemented with OpenMP. To fix these issues use the DLB option for in the cpu_affinity flag. 
+	- C++ Objects declared as arguments in coarse-grain tasks must be passed as object pointers in order to have proper dependency management.
+	- Master as worker feature is not working for executions with persistent worker in C++.
 	- Coherence and concurrent writing in parameters annotated with the "Concurrent" direction must be managed by the underlying distributed storage system.
 	- Delete file calls for files used as input can produce a significant synchronization of the main code.
 	- Defining a parameter as OUT is only allowed for files and collections of objects with a default constructor.   

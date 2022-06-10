@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 
 CURRENT_DIR="$(pwd)"
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -6,20 +6,25 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "${SCRIPT_DIR}/../../src/"
 
 #######################
-## Check Pycodestyle ##
+## Check pycodestyle ##
 #######################
 
 pycodestyle --max-line-length=120 --exclude=dds/heapq3.py --statistics --count  --ignore=E203,W503 ./pycompss/
 ev=$?
 if [ "$ev" -ne 0 ]; then
-  echo "[ERROR] Pycodestyle check failed with exit value: $ev"
+  echo "[ERROR] pycodestyle check failed with exit value: $ev"
+  echo ""
+  echo "Please, fix the issues and push them again."
+  echo "The issues can be checked manually by running:"
+  echo "    $(pwd)/../scripts/style/check_code.sh"
+  echo ""
   exit $ev
 fi
 
 # shellcheck disable=SC2164
 cd "${CURRENT_DIR}"
 
-echo "[OK] Pycodestyle check success"
+echo "[OK] pycodestyle check success"
 
 # Exit all ok
 exit 0

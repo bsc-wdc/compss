@@ -105,7 +105,11 @@ create_log_folder() {
 
 
         if [ -d "${overload_log_dir}" ]; then
-          overload_date=$(stat -c %.9Y "${overload_log_dir}" )
+          if [[ "$OSTYPE" == "darwin"* ]]; then
+            overload_date=$(stat -f %Fm "${overload_log_dir}" )
+          else  
+            overload_date=$(stat -c %.9Y "${overload_log_dir}" )
+          fi
           overload_date="${overload_date//./}"
           overload_date="${overload_date//,/}"
           if [ -z "${oldest_date}" ]; then

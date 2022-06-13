@@ -128,26 +128,26 @@ case "$1" in
   start)
     echo "* Starting COMPSs Monitor"
     configure
-    sudo -E -H $SERVICE/bin/catalina.sh start
+    $SERVICE/bin/catalina.sh start
     ;;
   stop)
     echo "* Shutting down COMPSs Monitor"
-    sudo -E -H $SERVICE/bin/catalina.sh stop > /dev/null 2>&1
+    $SERVICE/bin/catalina.sh stop > /dev/null 2>&1
     ;;
   restart)
     echo "* Restarting COMPSs Monitor"
-    sudo -E -H $SERVICE/bin/catalina.sh stop > /dev/null 2>&1
+    $SERVICE/bin/catalina.sh stop > /dev/null 2>&1
     sleep 4
     configure
-    sudo -E -H $SERVICE/bin/catalina.sh start
+    $SERVICE/bin/catalina.sh start
     ;;
   reset)
     echo "* Reset COMPSs Monitor"
-    sudo -E -H $SERVICE/bin/catalina.sh stop > /dev/null 2>&1
+    $SERVICE/bin/catalina.sh stop > /dev/null 2>&1
     sleep 4
     erase
     configure
-    sudo -E -H $SERVICE/bin/catalina.sh start
+    $SERVICE/bin/catalina.sh start
     ;;
   clean)
     echo "* Cleaning COMPSs Monitor environment"

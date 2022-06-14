@@ -402,7 +402,7 @@ def add_file_to_crate(
         )
         file_properties[
             "description"
-        ] = "Parameters passed as arguments to the COMPSs application through the command line"
+        ] = "COMPSs command line execution command, including parameters passed"
         file_properties["encodingFormat"] = "text/plain"
         CRATE.add_file("compss_command_line_arguments.txt", properties=file_properties)
 
@@ -531,7 +531,21 @@ Authors:
                 "@type": "CreateAction",
                 "object": {"@id": "./"},
                 "name": "COMPSs RO-Crate automatically generated for Python applications",
-                "endTime": "2021-03-22",
+                "endTime": "2022-03-22",
+                "agent": {"@id": "https://orcid.org/0000-0003-0606-2512"},
+                "actionStatus": {"@id": "http://schema.org/CompletedActionStatus"},
+            },
+        )
+    )
+    CRATE.add(
+        ContextEntity(
+            CRATE,
+            "#history-02",
+            {
+                "@type": "CreateAction",
+                "object": {"@id": "./"},
+                "name": "COMPSs RO-Crate automatically generated for Java applications",
+                "endTime": "2022-06-13",
                 "agent": {"@id": "https://orcid.org/0000-0003-0606-2512"},
                 "actionStatus": {"@id": "http://schema.org/CompletedActionStatus"},
             },

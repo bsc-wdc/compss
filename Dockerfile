@@ -57,6 +57,7 @@ ENV PATH $PATH:/opt/COMPSs/Runtime/scripts/user:/opt/COMPSs/Bindings/c/bin:/opt/
 ENV CLASSPATH $CLASSPATH:/opt/COMPSs/Runtime/compss-engine.jar
 ENV LD_LIBRARY_PATH /opt/COMPSs/Bindings/bindings-common/lib:$JAVA_HOME/jre/lib/amd64/server
 ENV COMPSS_HOME=/opt/COMPSs/
+ENV PYTHONPATH=$COMPSS_HOME/Bindings/python/3:$PYTHONPATH
 
 EXPOSE 22
 CMD ["/usr/sbin/sshd","-D"]

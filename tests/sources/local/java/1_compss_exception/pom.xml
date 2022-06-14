@@ -9,7 +9,7 @@
     <parent>
         <groupId>es.bsc.compss.tests</groupId>
         <artifactId>compss-tests-java</artifactId>
-        <version>2.10.rc2206</version>
+        <version>3.0</version>
         <relativePath>..</relativePath>
     </parent>
 

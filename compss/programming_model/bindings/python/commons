@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-#
+#---------------------------------------------------
 # COMMON HELPER FUNCTIONS
-#
+#---------------------------------------------------
 
 get_packages_folder(){
    # Check the packages folder of a particular python interpreter

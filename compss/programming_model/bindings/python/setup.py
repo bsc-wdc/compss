@@ -17,155 +17,185 @@
 
 # -*- coding: utf-8 -*-
 
-from distutils.core import setup, Extension
-# from setuptools import setup, Extension
-import re
-import os
+"""
+Main installation module.
 
-gcc_debug_flags = [
-    '-Wall',
-    '-Wextra',
-    '-pedantic',
-    '-O2',
-    '-Wshadow',
-    '-Wformat=2',
-    '-Wfloat-equal',
-    '-Wconversion',
-    '-Wlogical-op',
-    '-Wcast-qual',
-    '-Wcast-align',
-    '-D_GLIBCXX_DEBUG',
-    '-D_GLIBCXX_DEBUG_PEDANTIC',
-    '-D_FORTIFY_SOURCE=2',
-    '-fsanitize=address',
-    '-fstack-protector'
+This file contains the code to install the COMPSs' python binding and its
+associated C/C++ modules.
+"""
+
+import os
+import re
+import sys
+import pathlib
+from setuptools import setup, Extension
+
+GCC_DEBUG_FLAGS = [
+    "-Wall",
+    "-Wextra",
+    "-pedantic",
+    "-O2",
+    "-Wshadow",
+    "-Wformat=2",
+    "-Wfloat-equal",
+    "-Wconversion",
+    "-Wlogical-op",
+    "-Wcast-qual",
+    "-Wcast-align",
+    "-D_GLIBCXX_DEBUG",
+    "-D_GLIBCXX_DEBUG_PEDANTIC",
+    "-D_FORTIFY_SOURCE=2",
+    "-fsanitize=address",
+    "-fstack-protector",
 ]
 
-target_os = os.environ['TARGET_OS']
-if target_os == 'Linux':
-    include_jdk = os.environ['JAVA_HOME'] + '/include/linux/'
-    os_extra_compile_compss = ['-fPIC', '-std=c++11']
-elif target_os == 'Darwin':
-    include_jdk = os.environ['JAVA_HOME'] + '/include/darwin/'
-    os_extra_compile_compss = ['-fPIC', '-DGTEST_USE_OWN_TR1_TUPLE=1']
+TARGET_OS = os.environ["TARGET_OS"]
+if TARGET_OS == "Linux":
+    INCLUDE_JDK = os.path.join(os.environ["JAVA_HOME"], "include", "linux")
+    OS_EXTRA_COMPILE_COMPSS = ["-fPIC", "-std=c++11"]
+elif TARGET_OS == "Darwin":
+    INCLUDE_JDK = os.path.join(os.environ["JAVA_HOME"], "include", "darwin")
+    OS_EXTRA_COMPILE_COMPSS = ["-fPIC", "-DGTEST_USE_OWN_TR1_TUPLE=1"]
 else:
-    include_jdk = None
-    os_extra_compile_compss = None
-    print("ERROR: Unsupported OS " + target_os + "(Supported Linux/Darwin)")
-    exit(1)
+    INCLUDE_JDK = None
+    OS_EXTRA_COMPILE_COMPSS = None
+    print(f"ERROR: Unsupported OS {TARGET_OS} (Supported Linux/Darwin)")
+    sys.exit(1)
 
 # Bindings common extension
-compssmodule = Extension(
-    'compss',
+COMPSS_MODULE_EXT = Extension(
+    "compss",
     include_dirs=[
-        '../bindings-common/src',
-        '../bindings-common/include',
-        os.environ['JAVA_HOME'] + '/include',
-        include_jdk
+        "../bindings-common/src",
+        "../bindings-common/include",
+        os.path.join(os.environ["JAVA_HOME"], "include"),
+        INCLUDE_JDK,
     ],
-    library_dirs=[
-        '../bindings-common/lib'
-    ],
-    libraries=['bindings_common'],
-    extra_compile_args=os_extra_compile_compss,
-    sources=['src/ext/compssmodule.cc']
+    library_dirs=["../bindings-common/lib"],
+    libraries=["bindings_common"],
+    extra_compile_args=OS_EXTRA_COMPILE_COMPSS,
+    sources=["src/ext/compssmodule.cc"],
 )
 
 # Thread affinity extension
-process_affinity = Extension(
-    'process_affinity',
-    include_dirs=['src/ext'],
-    extra_compile_args=['-std=c++11'],
-    # extra_compile_args=['-fPIC %s' % (' '.join(gcc_debug_flags.split('\n')))],
-    sources=['src/ext/process_affinity.cc']
+PROCESS_AFFINITY_EXT = Extension(
+    "process_affinity",
+    include_dirs=["src/ext"],
+    extra_compile_args=["-std=c++11"],
+    # extra_compile_args=["-fPIC %s" % (" ".join(GCC_DEBUG_FLAGS.split("\n")))],
+    sources=["src/ext/process_affinity.cc"],
 )
 
 # dlb affinity extension
-dlb_home = os.environ.get('DLB_HOME', None)
-if dlb_home is not None:
-    dlb_affinity = Extension(
-        'dlb_affinity',
-        include_dirs=[dlb_home + '/include'],
-        library_dirs=[dlb_home + '/lib',
-                      dlb_home + '/lib64'],
-        libraries=['dlb'],
-        extra_compile_args=['-std=c++11'],
-        sources=['src/ext/dlb_affinity.c']
+DLB_HOME = os.environ.get("DLB_HOME", None)
+DLB_AFFINITY_EXT = None
+if DLB_HOME is not None:
+    DLB_AFFINITY_EXT = Extension(
+        "dlb_affinity",
+        include_dirs=[os.path.join(DLB_HOME, "include")],
+        library_dirs=[os.path.join(DLB_HOME, "lib"), os.path.join(DLB_HOME, "lib64")],
+        libraries=["dlb"],
+        extra_compile_args=["-std=c++11"],
+        sources=["src/ext/dlb_affinity.c"],
     )
 
 
 # Helper method to find packages
-def find_packages(path='./src'):
+def find_packages(path="./src"):
+    """Find packages within the given path.
+
+    :param path: Source path.
+    :return: List of packages.
+    """
     ret = []
     for root, _, files in os.walk(path, followlinks=True):
-        if '__init__.py' in files:
+        if "__init__.py" in files:
             # Erase src header from package name
             pkg_name = root[6:]
             # Replace / by .
-            pkg_name = pkg_name.replace('/', '.')
+            pkg_name = pkg_name.replace("/", ".")
             # Erase non UTF characters
-            pkg_name = re.sub('^[^A-z0-9_]+', '', pkg_name)
+            pkg_name = re.sub("^[^A-z0-9_]+", "", pkg_name)
             # Add package to list
             ret.append(pkg_name)
     return ret
 
 
-if target_os == 'Linux':
-    if dlb_home is None:
-        os_modules = [compssmodule, process_affinity]
+if TARGET_OS == "Linux":
+    if DLB_HOME is None:
+        OS_MODULES = [COMPSS_MODULE_EXT, PROCESS_AFFINITY_EXT]
     else:
-        os_modules = [compssmodule, process_affinity, dlb_affinity]
-elif target_os == 'Darwin':
-    os_modules = [compssmodule]
+        OS_MODULES = [COMPSS_MODULE_EXT, PROCESS_AFFINITY_EXT, DLB_AFFINITY_EXT]
+elif TARGET_OS == "Darwin":
+    OS_MODULES = [COMPSS_MODULE_EXT]
 else:
     # Unreachable code: will exit in previous if statement.
-    os_modules = None
-    print("ERROR: Unsupported OS " + target_os + " (Supported Linux/Darwin)")
-    exit(1)
+    OS_MODULES = None
+    print(f"ERROR: Unsupported OS {TARGET_OS} (Supported Linux/Darwin)")
+    sys.exit(1)
+
+
+HERE = pathlib.Path(__file__).parent.resolve()
+# Get the long description from the README file
+LONG_DESCRIPTION = (HERE / "README.md").read_text(encoding="utf-8")
+AUTHOR = "Workflows and Distributed Computing Group (WDC) - Barcelona Supercomputing Center (BSC)"
 
 # Setup
 setup(
     # Metadata
-    name='pycompss',
-    version='3.0.rc2206',
-    description='Python Binding for COMP Superscalar Runtime',
-    long_description=open('README.txt').read(),
-    author='Workflows and Distributed Computing Group (WDC) - Barcelona Supercomputing Center (BSC)',
-    author_email='support-compss@bsc.es',
-    url='https://compss.bsc.es',
-
+    name="pycompss",
+    version="3.0.rc2206",
+    description="Python Binding for COMP Superscalar Runtime",
+    long_description=LONG_DESCRIPTION,
+    long_description_content_type="text/markdown",
+    url="https://compss.bsc.es",
+    author=AUTHOR,
+    author_email="support-compss@bsc.es",
+    project_urls={
+        "Bug Reports": "https://github.com/bsc-wdc/compss/issues",
+        "Source": "https://github.com/bsc-wdc/compss",
+    },
     # License
-    license='Apache 2.0',
-
-    # Test
-    tests_require=[
-        'nose>=1.0',
-        'coverage'
+    license="Apache 2.0",
+    license_files=["LICENSE.txt"],
+    # Other
+    classifiers=[
+        "Development Status :: 5 - Production/Stable",
+        "License :: OSI Approved :: Apache Software License",
+        "Operating System :: Unix",
+        "Operating System :: POSIX :: Linux",
+        "Operating System :: MacOS",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3 :: Only",
+        "Topic :: System :: Distributed Computing",
     ],
-    test_suite='nose.collector',
-    entry_points={
-        'nose.plugins.0.10': ['nose_tests = nose_tests:ExtensionPlugin']
-    },
-
     # Build
-    package_dir={'pycompss': 'src/pycompss'},
-    packages=[''] + find_packages(),
+    package_dir={"pycompss": "src/pycompss"},
+    packages=[""] + find_packages(),
+    python_requires=">=3.6",
+    install_requires=[],
     package_data={
-        '': ['log/logging_off.json',
-             'log/logging_info.json',
-             'log/logging_debug.json',
-             'log/logging_worker_debug.json',
-             'log/logging_worker_off.json',
-             'log/logging_mpi_worker_info.json',
-             'log/logging_mpi_worker_debug.json',
-             'log/logging_mpi_worker_off.json',
-             'log/logging_gat_worker_info.json',
-             'log/logging_gat_worker_debug.json',
-             'log/logging_gat_worker_off.json',
-             'README.md']
+        "": [
+            "log/logging_off.json",
+            "log/logging_info.json",
+            "log/logging_debug.json",
+            "log/logging_worker_debug.json",
+            "log/logging_worker_off.json",
+            "log/logging_mpi_worker_info.json",
+            "log/logging_mpi_worker_debug.json",
+            "log/logging_mpi_worker_off.json",
+            "log/logging_gat_worker_info.json",
+            "log/logging_gat_worker_debug.json",
+            "log/logging_gat_worker_off.json",
+            "README.md",
+            "LICENSE.txt",
+        ]
     },
-    ext_modules=os_modules
+    ext_modules=OS_MODULES,
+    # entry_points={"console_scripts": ["pycompss_binding = pycompss.__main__:main"]},
 )
-
-# Only available with setuptools
-# entry_points={'console_scripts':['pycompss = pycompss.__main__:main']})

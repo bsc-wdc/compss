@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 #####################################################################
-# Name:         install
+# Name:         install.sh
 # Description:  COMPSs' Python binding install script
 # Parameters:
 #		[--unittests]                 Enable unittests
@@ -188,11 +188,11 @@ check_args() {
 
 log_parameters() {
   echo "PARAMETERS:"
-  echo "- Unittests       = ${unittests}"
-  echo "- Target directoy = ${target_dir}"
-  echo "- Create symlinks = ${create_symlinks}"
-  echo "- Python command  = ${specific_python_command}"
-  echo "- Compile         = ${compile}"
+  echo "- Unittests        = ${unittests}"
+  echo "- Target directory = ${target_dir}"
+  echo "- Create symlinks  = ${create_symlinks}"
+  echo "- Python command   = ${specific_python_command}"
+  echo "- Compile          = ${compile}"
   sleep 5
 }
 
@@ -241,7 +241,7 @@ install () {
 
   # Do the installation
   echo "INFO: Starting the installation... Please wait..."
-  ${python_command} "${SCRIPT_DIR}"/setup.py install --install-lib="${pycompss_home}" -O2
+  ${python_command} "${SCRIPT_DIR}"/setup.py install --single-version-externally-managed --root="/" --install-lib="${pycompss_home}" -O2
   exitCode=$?
   if [ $exitCode -ne 0 ]; then
     echo "ERROR: Cannot install PyCOMPSs using ${python_command}"
@@ -249,7 +249,7 @@ install () {
   fi
 
   # Extra installation steps only for Mac
-  if [ $(uname) == "Darwin" ]; then
+  if [ "$(uname)" == "Darwin" ]; then
     binding_py="$( dirname "${target_directory}")"
     echo "INFO: Extra installation steps for Mac..."
     echo "      - binding_py: ${binding_py}"
@@ -259,8 +259,7 @@ install () {
   # Clean unnecessary files
   echo "INFO: Cleaning unnecessary files..."
   rm ${pycompss_home}/sitecustomize.*
-  if [ -d "${pycompss_home}/__pycache__" ]
-  then
+  if [ -d "${pycompss_home}/__pycache__" ]; then
       rm -rf ${pycompss_home}/__pycache__
   fi
 
@@ -319,7 +318,8 @@ run_unittests () {
 install_python_binding () {
   # Add trap for clean
   trap clean EXIT
-  export TARGET_OS=$(uname)
+  TARGET_OS=$(uname)
+  export TARGET_OS
   # Install
   OLD_PYTHONPATH=${PYTHONPATH}
 

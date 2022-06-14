@@ -54,9 +54,6 @@ def ssh_run_commands(login_info, commands, **kwargs):
 def check_exit_code(command):
     return subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).returncode
 
-def is_inside_docker():
-    return ':/docker/' in subprocess.check_output(['cat', '/proc/self/cgroup']).decode('utf-8')
-
 
 def print_table(items, header=None, wrap=True, wrap_style="wrap", row_line=False, fix_col_width=False):
     ''' Prints a matrix of data as a human readable table. Matrix

@@ -35,6 +35,7 @@ FROM compss/${BASE}_all as compss
 
 COPY --from=ci /opt/COMPSs /opt/COMPSs
 COPY --from=ci /etc/init.d/compss-monitor /etc/init.d/compss-monitor
+COPY --from=ci /etc/profile.d/compss.sh /etc/profile.d/compss.sh
 
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
 ENV PATH $PATH:/opt/COMPSs/Runtime/scripts/user:/opt/COMPSs/Bindings/c/bin:/opt/COMPSs/Runtime/scripts/utils
@@ -49,12 +50,14 @@ FROM compss/${BASE}_tutorial as compss-tutorial
 
 COPY --from=ci /opt/COMPSs /opt/COMPSs
 COPY --from=ci /etc/init.d/compss-monitor /etc/init.d/compss-monitor
+COPY --from=ci /etc/profile.d/compss.sh /etc/profile.d/compss.sh
 
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
 ENV PATH $PATH:/opt/COMPSs/Runtime/scripts/user:/opt/COMPSs/Bindings/c/bin:/opt/COMPSs/Runtime/scripts/utils
 ENV CLASSPATH $CLASSPATH:/opt/COMPSs/Runtime/compss-engine.jar
 ENV LD_LIBRARY_PATH /opt/COMPSs/Bindings/bindings-common/lib:$JAVA_HOME/jre/lib/amd64/server
 ENV COMPSS_HOME=/opt/COMPSs/
+ENV PYTHONPATH=$COMPSS_HOME/Bindings/python/3:$PYTHONPATH
 
 EXPOSE 22
 CMD ["/usr/sbin/sshd","-D"]
@@ -62,6 +65,7 @@ CMD ["/usr/sbin/sshd","-D"]
 FROM compss/${BASE}_rt as minimal
 
 COPY --from=ci /opt/COMPSs /opt/COMPSs
+COPY --from=ci /etc/profile.d/compss.sh /etc/profile.d/compss.sh
 
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
 ENV PATH $PATH:/opt/COMPSs/Runtime/scripts/user:/opt/COMPSs/Bindings/c/bin:/opt/COMPSs/Runtime/scripts/utils
@@ -74,6 +78,7 @@ FROM compss/${BASE}_python as pycompss
 
 COPY --from=ci /opt/COMPSs /opt/COMPSs
 COPY --from=ci /etc/init.d/compss-monitor /etc/init.d/compss-monitor
+COPY --from=ci /etc/profile.d/compss.sh /etc/profile.d/compss.sh
 
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
 ENV PATH $PATH:/opt/COMPSs/Runtime/scripts/user:/opt/COMPSs/Bindings/c/bin:/opt/COMPSs/Runtime/scripts/utils

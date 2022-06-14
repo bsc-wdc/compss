@@ -161,7 +161,8 @@ class DockerActions(Actions):
                 f"--ip={self.env_conf['master_ip']} " + \
                 "--allow-root " + \
                 "--NotebookApp.token="
-        self.docker_cmd.docker_exec_in_daemon(jupyter_cmd)
+        for out_line in self.docker_cmd.docker_exec_in_daemon(jupyter_cmd, return_stream=True):
+            print(out_line.decode().strip().replace(self.env_conf['master_ip'], 'localhost'))
 
         if self.docker_cmd.exists():
             self.docker_cmd.docker_exec_in_daemon('pkill jupyter')

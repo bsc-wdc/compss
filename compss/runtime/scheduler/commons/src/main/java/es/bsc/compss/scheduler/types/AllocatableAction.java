@@ -650,6 +650,11 @@ public abstract class AllocatableAction {
             blocked = this.selectedResource.hasBlockedActions();
             enoughResources = areEnoughResources();
         }
+
+        for (MutexGroup group : this.mutexGroups) {
+            group.acquireLock(this);
+        }
+
         if (!reserve || (!blocked && enoughResources)) {
             // register executing resource
             this.executingResources.add(this.selectedResource);
@@ -698,9 +703,7 @@ public abstract class AllocatableAction {
         this.selectedResource.hostAction(this);
 
         doAction();
-        for (MutexGroup group : this.mutexGroups) {
-            group.acquireLock(this);
-        }
+
         // Notify the orchestrator that task is running (to free the stream data consumers if necessary)
         notifyRunning();
     }

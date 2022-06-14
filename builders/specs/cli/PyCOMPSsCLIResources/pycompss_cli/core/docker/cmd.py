@@ -189,7 +189,7 @@ class DockerCmd(object):
         self._stop_by_name(worker_name)
 
 
-    def docker_exec_in_daemon(self, cmd: str, return_output=False) -> None:
+    def docker_exec_in_daemon(self, cmd: str, return_output=False, return_stream=False) -> None:
         """ Execute the given command in the main COMPSs image in Docker.
 
         :param cmd: Command to execute.
@@ -201,8 +201,11 @@ class DockerCmd(object):
 
         master = self._get_master()
         _, output = master.exec_run(cmd, workdir=default_workdir, stream=True)
+        
         if return_output:
             return list(output)[-1].decode().strip()
+        if return_stream:
+            return output
         try:
             for line in output:
                 print(line.strip().decode())

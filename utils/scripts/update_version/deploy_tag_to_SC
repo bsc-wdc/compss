@@ -44,10 +44,10 @@
     cat > "${auxScriptFile}" << EOT
 #!/bin/bash -e
     
-    cp /apps/modules/modulefiles/tools/COMPSs/Trunk /apps/modules/modulefiles/tools/COMPSs/$version
-    sed -i '/set PROG_VERSION/c\set PROG_VERSION\t\t'$version'' /apps/modules/modulefiles/tools/COMPSs/$version
-    chmod 775 /apps/modules/modulefiles/tools/COMPSs/$version
-    cd /apps/modules/modulefiles/tools/COMPSs/
+    cp ${modules_folder}/Trunk ${modules_folder}/$version
+    sed -i '/set PROG_VERSION/c\set PROG_VERSION\t\t'$version'' ${modules_folder}/$version
+    chmod 775 ${modules_folder}/$version
+    cd ${modules_folder}
     ln -f -s $version  latest
     if [[ $version != *"rc"* ]]; then
         ln -f -s $version  release

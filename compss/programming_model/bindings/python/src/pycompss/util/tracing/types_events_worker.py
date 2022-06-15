@@ -110,6 +110,7 @@ class TypesEventsWorker:
         self.insert_object_into_cache_event = 20
         self.remove_object_from_cache_event = 21
         self.wait_on_event = 22
+        self.worker_task_instantiation = 23  # task worker __init__
 
         # Task affinity events:
         self.inside_tasks_cpu_affinity_type = 9000150
@@ -128,7 +129,6 @@ class TypesEventsWorker:
         self.finish_storage_at_worker_event = 8  # finishStorageAtWorker
         self.init_worker_postfork_event = 9  # initWorkerPostFork
         self.finish_worker_postfork_event = 10  # finishWorkerPostFork
-        self.worker_task_instantiation = 25  # task worker __init__
         # Other worker events:
         self.binding_serialization_cache_size_type = 9000602
         self.binding_deserialization_cache_size_type = 9000603

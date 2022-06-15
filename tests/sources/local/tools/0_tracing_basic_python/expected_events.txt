@@ -109,8 +109,8 @@ Family 9000000 Binding
 9000100 event 19 0
 9000100 event 20 0
 9000100 event 21 0
-9000100 event 25 100
-
+9000100 event 22 0
+9000100 event 23 100
 
 # Worker events
 9000200 event 0 105
@@ -124,7 +124,6 @@ Family 9000000 Binding
 9000200 event 8 0
 9000200 event 9 0
 9000200 event 10 0
-9000200 event 25 0
 
 # Master events
 9000300 event 0 1880  # There is one missing 0 for the last 0 event that is not captured.

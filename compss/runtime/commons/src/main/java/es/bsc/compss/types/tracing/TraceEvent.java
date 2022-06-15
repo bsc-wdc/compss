@@ -123,7 +123,6 @@ public enum TraceEvent {
     STOP_STORAGE_WORKER(8, TraceEventType.BINDING_INSIDE_WORKER, "Stop storage at worker"), //
     INIT_STORAGE_WORKER_PROCESS(9, TraceEventType.BINDING_INSIDE_WORKER, "Init storage at worker process"), //
     STOP_STORAGE_WORKER_PROCESS(10, TraceEventType.BINDING_INSIDE_WORKER, "Stop storage at worker process"), //
-    WORKER_TASK_INSTANTIATION(25, TraceEventType.BINDING_INSIDE_WORKER, "Task instantiation"), //
 
     // Python Events Inside Tasks
     CPU_BINDING_PYTHON(1, TraceEventType.BINDING_INSIDE_TASKS, "CPU binding"), //
@@ -148,6 +147,7 @@ public enum TraceEvent {
     INSERT_OBJECT_INTO_CACHE(20, TraceEventType.BINDING_INSIDE_TASKS, "Put object in cache"), //
     REMOVE_OBJECT_FROM_CACHE(21, TraceEventType.BINDING_INSIDE_TASKS, "Remove object from cache"), //
     WAIT_ON_PYTHON(22, TraceEventType.BINDING_INSIDE_TASKS, "Wait on"), //
+    WORKER_TASK_INSTANTIATION(23, TraceEventType.BINDING_INSIDE_TASKS, "Task instantiation"), //
 
     // Python Master Events
     PYTHON_START_RUNTIME(1, TraceEventType.BINDING_MASTER, "Start runtime"), //

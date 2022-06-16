@@ -43,7 +43,7 @@
   chmod -R 777 *
   # Create the tar.gz distributable
   # This should leave a .tar.gz in pyCOMPSs/dist
-  python setup.py sdist
+  python3 setup.py sdist
   cd "${SCRIPT_DIR}"
 
   # Finally, move the pyCOMPSs distributable to packages/pip (tgz included)

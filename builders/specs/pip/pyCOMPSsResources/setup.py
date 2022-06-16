@@ -70,8 +70,8 @@ def check_system():
     the role nor in the scope of a distutils installer
     '''
     # check Python version
-    assert sys.version_info[:2] >= (2, 7), 'COMPSs does not support Python version %s, only Python >= 2.7.x is supported.'%sys.version
-  
+    assert sys.version_info[:2] >= (3, 6), 'COMPSs does not support Python version %s, only Python >= 3.6.x is supported.'%sys.version
+
     # check os version not Windows
     assert not sys.platform == "win32", "COMPSs does not support Windows"
     assert not sys.platform == "cygwin", "COMPSs does not support Windows/Cygwin"
@@ -116,13 +116,11 @@ setup(name='pycompss',
                 'Programming Language :: C',
                 'Programming Language :: C++',
                 'Programming Language :: Java',
-                'Programming Language :: Python :: 2.7',
-                'Programming Language :: Python :: 3.4',
-                'Programming Language :: Python :: 3.5',
                 'Programming Language :: Python :: 3.6',
                 'Programming Language :: Python :: 3.7',
                 'Programming Language :: Python :: 3.8',
                 'Programming Language :: Python :: 3.9',
+                'Programming Language :: Python :: 3.10',
                 'Topic :: Software Development',
                 'Topic :: Scientific/Engineering',
                 'Topic :: System :: Distributed Computing',

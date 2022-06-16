@@ -127,7 +127,7 @@ else:
 setup(
     # Metadata
     name='pycompss',
-    version='3.0',
+    version='3.0.rc2206',
     description='Python Binding for COMP Superscalar Runtime',
     long_description=open('README.txt').read(),
     author='Workflows and Distributed Computing Group (WDC) - Barcelona Supercomputing Center (BSC)',

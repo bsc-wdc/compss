@@ -927,7 +927,7 @@ install_compss() {
   fi
 
   # ADD MONITOR SCRIPT TO ETC
-  if [ "$monitor" == "true" ]; then
+  if [ "$monitor" == "true" && "$OSTYPE" != "darwin"*]; then
     echo "- Add monitor script to init.d"
     sudo cp "${TMP_DIR}/compss/tools/monitor/scripts/compss-monitor" /etc/init.d/compss-monitor
     sudo chmod 755 /etc/init.d/compss-monitor

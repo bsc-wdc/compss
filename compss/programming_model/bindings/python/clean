@@ -1,24 +1,24 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-#
+#---------------------------------------------------
 # SCRIPT GLOBAL CONSTANTS
-#
+#---------------------------------------------------
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 
-#
+#---------------------------------------------------
 # SCRIPT GLOBAL HELPERS
-#
+#---------------------------------------------------
 
 # shellcheck source=./commons
 # shellcheck disable=SC1091
 source "${SCRIPT_DIR}"/commons
 
 
-#
+#---------------------------------------------------
 # SCRIPT HELPERS
-#
+#---------------------------------------------------
 
 remove_symbolic_links (){
     # Retrieve packages (using commons function)
@@ -31,9 +31,9 @@ remove_symbolic_links (){
     rm "${packages_folder}"/process_affinity*.so
 }
 
-#
+#---------------------------------------------------
 # MAIN
-#
+#---------------------------------------------------
 
 if [ -d "${SCRIPT_DIR}/3" ]; then
     remove_symbolic_links python3

@@ -650,7 +650,7 @@ get_args() {
   # Parse application arguments
   application_args=$*
   if [ $provenance ]; then
-    echo $application_args > compss_command_line_arguments.txt
+    echo $fullAppPath $application_args > compss_command_line_arguments.txt
   fi
 }
 

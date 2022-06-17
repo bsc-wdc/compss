@@ -243,7 +243,11 @@ action_error() {
 ###############################################
 load_tracing_env() {
   local module_tmp
-  module_tmp=$(mktemp -p /tmp || mktemp -t /tmp)
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    module_tmp=$(mktemp -t /tmp)
+  else
+    module_tmp=$(mktemp -p /tmp)
+  fi
   module list &> "${module_tmp}"
 
   # Look for openmpi / impi / none
@@ -994,13 +998,21 @@ set_variables() {
 
   # SharedDisk variables
   if [ "${worker_working_dir}" == "${SHARED_DISK_NAME}" ]; then
-    worker_working_dir=$(mktemp -d -p "${SHARED_DISK_PREFIX}${HOME}" || mktemp -d -t "${SHARED_DISK_PREFIX}${HOME}")
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+      worker_working_dir=$(mktemp -d -t "${SHARED_DISK_PREFIX}${HOME}")
+    else
+      worker_working_dir=$(mktemp -d -p "${SHARED_DISK_PREFIX}${HOME}")
+    fi
   elif [ "${worker_working_dir}" == "${LOCAL_DISK_NAME}" ]; then
     worker_working_dir=${LOCAL_DISK_PREFIX}/${!ENV_VAR_JOB_ID}
     mkdir -p "${worker_working_dir}"
   else
     # The working dir is a custom absolute path, create tmp
-    worker_working_dir=$(mktemp -d -p "${worker_working_dir}" || mktemp -d -t "${worker_working_dir}")
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+      worker_working_dir=$(mktemp -d -t "${worker_working_dir}")
+    else
+      worker_working_dir=$(mktemp -d -p "${worker_working_dir}")
+    fi
   fi
 
   # Network variables

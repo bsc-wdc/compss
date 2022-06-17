@@ -234,7 +234,11 @@ check_compss_setup () {
 # Write down current configuration to file
 #----------------------------------------------
 generate_jvm_opts_file() {
-  jvm_options_file=$(mktemp -p /tmp || mktemp -t /tmp) || arguments_error "${TMP_FILE_JVM_ERROR}"
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    jvm_options_file=$(mktemp -t /tmp) || arguments_error "${TMP_FILE_JVM_ERROR}"
+  else
+    jvm_options_file=$(mktemp -p /tmp) || arguments_error "${TMP_FILE_JVM_ERROR}"
+  fi
   export JVM_OPTIONS_FILE=${jvm_options_file}
 
   # PLEASE: Any new parameter added here may be also added into interactive.py config dict.

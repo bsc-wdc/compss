@@ -392,8 +392,11 @@ class AddDependencyEvent(Event):
         """
         successor = state.tasks.get_task(self.successor_id)
         p = successor.get_last_registered_parameter()
-        predecessor = state.tasks.get_task(self.predecessor_id)
-        p.set_confirmed_dependency(predecessor)
+        if int(self.predecessor_id) > 0:
+            predecessor = state.tasks.get_task(self.predecessor_id)
+            p.set_confirmed_dependency(predecessor)
+        else:
+            p.set_commutative_dependency(self.predecessor_id)
 
     def __str__(self):
         return "Task " + self.successor_id + " depends on " + self.predecessor_id + " @ "+self.timestamp

@@ -34,6 +34,7 @@ class Parameter:
         self.type = ParameterType.BASIC
         self._access = access
         self.confirmed_dependency = None
+        self.commutative_dependency = None
 
     def get_reason(self):
         return self.task
@@ -53,6 +54,12 @@ class Parameter:
 
     def get_confirmed_dependency(self):
         return self.confirmed_dependency
+
+    def set_commutative_dependency(self, groupId):
+        self.commutative_dependency = groupId
+
+    def get_commutative_dependency(self):
+        return self.commutative_dependency
 
     def get_detected_dependency(self):
         if self._access is not None:

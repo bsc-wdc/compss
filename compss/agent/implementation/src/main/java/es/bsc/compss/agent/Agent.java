@@ -455,7 +455,7 @@ public class Agent {
                 params[position + 5] = param.getParamName();
                 params[position + 6] = param.getContentType();
                 params[position + 7] = Double.toString(param.getWeight());
-                params[position + 8] = new Boolean(param.isKeepRename());
+                params[position + 8] = param.isKeepRename();
                 position += PARAM_LENGTH;
             }
             onFailure = OnFailure.FAIL;
@@ -491,7 +491,7 @@ public class Agent {
         StringBuilder sb = new StringBuilder();
         sb.append((String) fatherName);
         String collSize = Integer.toString(param.getCollectionParameters().size());
-        sb.append(" " + collSize + " " + param.getContentType() + " ");
+        sb.append(" ").append(collSize).append(" ").append(param.getContentType()).append(" ");
         List<ApplicationParameter> subParams = param.getCollectionParameters();
         for (int i = 0; i < subParams.size(); i++) {
             Object stub;
@@ -519,7 +519,7 @@ public class Agent {
                 addRemoteData(remote);
                 RUNTIME.registerData(appId, subParam.getType(), stub, remote.getRenaming());
             }
-            sb.append(paramValue + " ");
+            sb.append(paramValue).append(" ");
         }
         return sb.toString();
     }
@@ -563,7 +563,7 @@ public class Agent {
         arguments[position + 5] = param.getParamName();
         arguments[position + 6] = param.getContentType();
         arguments[position + 7] = Double.toString(param.getWeight());
-        arguments[position + 8] = new Boolean(param.isKeepRename());
+        arguments[position + 8] = param.isKeepRename();
     }
 
     private static void addRemoteData(RemoteDataInformation remote) throws AgentException {
@@ -611,7 +611,7 @@ public class Agent {
                 ld = Comm.registerData(remote.getRenaming());
             } else {
                 try {
-                    Comm.linkData(otherDataNameInLocal, remote.getRenaming());
+                    ld = Comm.linkData(otherDataNameInLocal, remote.getRenaming());
                 } catch (CommException ce) {
                     ErrorManager.error("Could not link " + remote.getRenaming() + " and " + otherDataNameInLocal, ce);
                 }

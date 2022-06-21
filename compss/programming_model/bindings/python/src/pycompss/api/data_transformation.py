@@ -56,6 +56,7 @@ class DataTransformation:  # pylint: disable=too-few-public-methods
         "kwargs",
         "scope",
         "core_element",
+        "user_function",
         "core_element_configured",
     ]
 
@@ -76,6 +77,7 @@ class DataTransformation:  # pylint: disable=too-few-public-methods
         self.scope = CONTEXT.in_pycompss()
         self.core_element = None  # type: typing.Any
         self.core_element_configured = False
+        self.user_function = None
         if self.scope:
             # Check the arguments
             check_arguments(
@@ -121,15 +123,28 @@ class DataTransformation:  # pylint: disable=too-few-public-methods
         :param kwargs: Keyword arguments received from call.
         :return: None
         """
+        dts = []
+        self.user_function = user_function
         if __debug__:
             logger.debug("Configuring DT core element.")
-        if len(self.args) < 2:
+        if not len(args):
             raise Exception
-        param_name = self.args[0]
-        func = self.args[1]
-        func_kwargs = self.kwargs
+        elif "dt" in kwargs:
+            tmp = kwargs.get("dt")
+            if isinstance(tmp, DTObject):
+                dts.append(tmp.extract())
+            elif isinstance(tmp, list):
+                dts = [obj.extract() for obj in tmp]
+        else:
+            if len(self.args) < 2:
+                raise Exception
+            dts.append((self.args[0], self.args[1], self.kwargs))
 
-        # todo: move to labels
+        for _dt in dts:
+            self.apply_dt(*_dt, args, kwargs)
+
+    # todo: comments
+    def apply_dt(self, param_name, func, func_kwargs, args, kwargs):
         is_workflow = False
         if LABELS.is_workflow in func_kwargs:
             is_workflow = func_kwargs.pop(LABELS.is_workflow)
@@ -141,7 +156,7 @@ class DataTransformation:  # pylint: disable=too-few-public-methods
             p_value = kwargs.get(param_name)
         else:
             import inspect
-            all_params = inspect.signature(user_function)
+            all_params = inspect.signature(self.user_function)
             keyz = all_params.parameters.keys()
             if param_name not in keyz:
                 raise Exception("Wrong Param Name in DT")
@@ -154,14 +169,10 @@ class DataTransformation:  # pylint: disable=too-few-public-methods
         # no need to create a task if it's a workflow
         new_value = func(p_value, **func_kwargs)\
             if is_workflow else transform(p_value, func, **func_kwargs)
-
         if is_kwarg or i >= len(args):
             kwargs[param_name] = new_value
         else:
             args[i] = new_value
-
-        # Set as configured
-        self.core_element_configured = True
 
 
 @task(returns=object)
@@ -169,8 +180,22 @@ def transform(data, function, **kwargs):
     return function(data, **kwargs)
 
 
+class DTObject(object):
+
+    def __init__(self, param_name, func, **func_kwargs):
+
+        self.param_name = param_name
+        self.func = func
+        self.func_kwargs = func_kwargs
+
+    def extract(self) -> tuple:
+        return self.param_name, self.func, self.func_kwargs
+
 # ########################################################################### #
 # ############################# ALTERNATIVE NAME ############################ #
 # ########################################################################### #
 
+
 dt = DataTransformation  # pylint: disable=invalid-name
+data_transformation = DataTransformation
+dto = DTObject

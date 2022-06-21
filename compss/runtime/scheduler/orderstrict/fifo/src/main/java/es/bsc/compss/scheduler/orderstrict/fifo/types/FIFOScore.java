@@ -36,13 +36,17 @@ public class FIFOScore extends Score {
      */
     public FIFOScore(long priority, long actionGroupPriority, long actionId, long resourceScore, long waitingScore,
         long implementationScore) {
-        super(priority, actionGroupPriority, 0, 0, implementationScore);
+        super(priority, actionGroupPriority, resourceScore, 0, implementationScore);
         this.actionId = actionId;
     }
 
     @Override
     public boolean isBetterCustomValues(Score other) {
         FIFOScore otherFIFO = (FIFOScore) other;
-        return this.actionId < otherFIFO.actionId;
+        if (this.actionId == otherFIFO.actionId) {
+            return this.resourceScore > otherFIFO.resourceScore;
+        } else {
+            return this.actionId < otherFIFO.actionId;
+        }
     }
 }

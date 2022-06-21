@@ -13,6 +13,8 @@ from enum import Enum
 class ActionType(Enum):
     EXECUTION_ACTION = 0
     START_WORKER_ACTION = 1
+    BUSY_WORKER_ACTION = 2
+    IDLE_WORKER_ACTION = 3
 
 
 class JobStatus(Enum):
@@ -105,6 +107,10 @@ class Action(object):
             return ExecutionAction(timestamp, description, state.tasks)
         elif type == "StartWorkerAction":
             return StartWorkerAction(timestamp, description, state.resources)
+        elif type == "BusyWorkerAction":
+            return BusyWorkerAction(timestamp, description, state.resources)
+        elif type == "IdleWorkerAction":
+            return IdleWorkerAction(timestamp, description, state.resources)
 
     @staticmethod
     def obtain_action(type, description, state, timestamp):
@@ -115,6 +121,10 @@ class Action(object):
             return ExecutionAction(timestamp, description, state.tasks)
         elif type == "StartWorkerAction":
             return StartWorkerAction(timestamp, description, state.resources)
+        elif type == "BusyWorkerAction":
+            return BusyWorkerAction(timestamp, description, state.resources)
+        elif type == "IdleWorkerAction":
+            return IdleWorkerAction(timestamp, description, state.resources)
 
     def __init__(self, type, timestamp):
         self.type = type
@@ -205,3 +215,49 @@ class StartWorkerAction(Action):
 
     def __str__(self):
         return "StartWorkerAction for resource " + self.resource_name
+
+class BusyWorkerAction(Action):
+    def __init__(self, timestamp, description, resources):
+        super(BusyWorkerAction, self).__init__(ActionType.BUSY_WORKER_ACTION, timestamp)
+        self.resource_name = description.split()[1][:-1]
+        resource = resources.register_resource(self.resource_name, timestamp)
+        self.assign_resource(resource)
+        self._history = [[timestamp, "created "+str(self)]]
+
+    def _meets(self, type, description):
+        if type == self.get_type():
+            worker = description.split()[1][:-1]
+            return worker == self.resource_name
+        else:
+            return False
+
+    def get_history(self):
+        history = []
+        history = history + self._history
+        return sorted(history, key=lambda t: int(t[0]))
+
+    def __str__(self):
+        return "BusyWorkerAction for resource " + self.resource_name
+
+class IdleWorkerAction(Action):
+    def __init__(self, timestamp, description, resources):
+        super(IdleWorkerAction, self).__init__(ActionType.Idle_WORKER_ACTION, timestamp)
+        self.resource_name = description.split()[1][:-1]
+        resource = resources.register_resource(self.resource_name, timestamp)
+        self.assign_resource(resource)
+        self._history = [[timestamp, "created "+str(self)]]
+
+    def _meets(self, type, description):
+        if type == self.get_type():
+            worker = description.split()[1][:-1]
+            return worker == self.resource_name
+        else:
+            return False
+
+    def get_history(self):
+        history = []
+        history = history + self._history
+        return sorted(history, key=lambda t: int(t[0]))
+
+    def __str__(self):
+        return "IdleWorkerAction for resource " + self.resource_name

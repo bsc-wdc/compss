@@ -54,7 +54,7 @@
 
   #----------------------------------------------------------------------------------
   # Compute result status
-  FILES=7
+  FILES=9
   resultN=7
 
   # Checks if the file has been written as many times as expected
@@ -77,21 +77,21 @@
 
   # Check if all successors have been canceled
   output1=$(cat "${runtime_log}" | grep "Task canceled:" | wc -l)
-  if [ "${output1}" -ne 6 ]; then
-  	echo "ERROR: The number of canceled tasks is not correct."
+  if [ "${output1}" -ne 7 ]; then
+	echo "ERROR: The number of canceled tasks is not correct.(${output1})"
   	exit 1
   fi
 
   # Check if the tasks have raised a COMPSsException
   output1=$(grep -c "COMPSs Exception raised :" "${runtime_log}")
-  if [ "${output1}" -ne 3 ]; then
-  	echo "ERROR: The number of COMPSsExceptions raised is not correct."
+  if [ "${output1}" -ne 4 ]; then
+  	echo "ERROR: The number of COMPSsExceptions raised is not correct.(${output1})"
   	exit 1
   fi
 
   # Check the exception message
-  output1=$(grep -c -E "Group exceptionGroup[1|2|3]'s barrier raised a COMPSsException \( Exception has been raised\!\!\)" "${runtime_log}")
-  if [ "${output1}" -ne 3 ]; then
+  output1=$(grep -c -E "Group exceptionGroup[0|1|2|3]'s barrier raised a COMPSsException \( Exception has been raised\!\!\)" "${runtime_log}")
+  if [ "${output1}" -ne 4 ]; then
   	echo "ERROR: The thrown exception message is not correct."
   	exit 1
   fi

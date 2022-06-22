@@ -473,12 +473,18 @@ public class Executor implements Runnable, InvocationRunner {
             } else {
                 throw new JobExecutionException("Undefined invoker. It could be cause by an incoherent task type");
             }
+        } catch (COMPSsException ce) {
+            LOGGER.warn("[EXECUTOR] executeTask - COMPSs Exception received");
+            out.println("[EXECUTOR] executeTask - COMPSs Exception received");
+            createEmptyFiles();
+            throw ce;
         } catch (Exception jee) {
+            LOGGER.error("[EXECUTOR] executeTask - Error in task execution");
             out.println("[EXECUTOR] executeTask - Error in task execution");
             PrintStream err = this.context.getThreadErrStream();
             err.println("[EXECUTOR] executeTask - Error in task execution");
             if (invocation.getOnFailure() != OnFailure.RETRY) {
-                createEmptyFile();
+                createEmptyFiles();
             }
             jee.printStackTrace(err);
             throw jee;
@@ -559,27 +565,34 @@ public class Executor implements Runnable, InvocationRunner {
 
     }
 
-    private void createEmptyFile() {
+    private void createEmptyFiles() {
         PrintStream out = context.getThreadOutStream();
         PrintStream err = context.getThreadOutStream();
         if (LOGGER.isDebugEnabled()) {
             out.println("[EXECUTOR] executeTask - Checking if a blank file needs to be created");
         }
         for (InvocationParam param : invocation.getParams()) {
-            if (param.getType().equals(DataType.FILE_T)) {
-                String filepath = (String) param.getValue();
-                File f = new File(filepath);
-                // If using C binding we ignore potential errors
-                if (!f.exists()) {
-                    if (LOGGER.isDebugEnabled()) {
-                        out.println("[EXECUTOR] executeTask - Creating a new blank file");
-                    }
-                    try {
-                        f.createNewFile(); // NOSONAR ignoring result. It couldn't exists.
-                    } catch (IOException e) {
-                        LOGGER.error("ERROR creating blank file for Task " + invocation.getTaskId(), e);
-                        err.println("[EXECUTOR] checkJobFiles - Error in creating a new blank file");
-                    }
+            createEmptyFile(param, out, err);
+        }
+        for (InvocationParam param : invocation.getResults()) {
+            createEmptyFile(param, out, err);
+        }
+    }
+
+    private void createEmptyFile(InvocationParam param, PrintStream out, PrintStream err) {
+        if (param.getType().equals(DataType.FILE_T)) {
+            String filepath = (String) param.getValue();
+            File f = new File(filepath);
+            // If using C binding we ignore potential errors
+            if (!f.exists()) {
+                if (LOGGER.isDebugEnabled()) {
+                    out.println("[EXECUTOR] executeTask - Creating a new blank file");
+                }
+                try {
+                    f.createNewFile(); // NOSONAR ignoring result. It couldn't exists.
+                } catch (IOException e) {
+                    LOGGER.error("ERROR creating blank file for Task " + invocation.getTaskId(), e);
+                    err.println("[EXECUTOR] checkJobFiles - Error in creating a new blank file");
                 }
             }
         }

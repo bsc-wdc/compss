@@ -44,6 +44,12 @@ def write_three(file_path):
         fos.write(new_value)
     raise COMPSsException("Exception has been raised!!")
 
+@task(returns=1)
+def task_with_return(in_data):
+    if in_data > 1:
+        raise COMPSsException("Exception has been raised!!")
+    else:
+        return in_data + 1
 
 def create_file(file_name):
     # Clean previous ocurrences of the file
@@ -54,6 +60,16 @@ def create_file(file_name):
         os.mkdir(STORAGE_PATH)
     open(file_name, 'w').close()
 
+def test_exception_with_return():
+    group_name = 'exceptionGroup0'
+    try:
+        with TaskGroup(group_name):
+            i=1
+            i = task_with_return(i)
+            i = task_with_return(i)
+            i = task_with_return(i)
+    except COMPSsException:
+        print("COMPSsException caught")
 
 def test_exceptions(file_name):
     try:
@@ -92,8 +108,11 @@ def test_exceptions_barrier_error(file_name):
     # The barrier is not implicit and the exception is thrown
     compss_barrier_group(group_name)
 
-
 def main():
+
+    print("[LOG] Test EXCEPTIONS with RETURNS")
+    test_exception_with_return()
+
     file_name1 = STORAGE_PATH + "taskGROUPS.txt"
     create_file(file_name1)
 

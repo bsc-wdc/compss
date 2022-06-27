@@ -231,7 +231,7 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
 
             properties = config.get(LABELS.properties, {})
             exec_type = config.get(LABELS.type, None)
-            if exec_type is None:
+            if exec_type is None or exec_type == "workflow":
                 print("Execution type not provided for @software task")
             elif exec_type.lower() not in SUPPORTED_DECORATORS:
                 msg = f"Error: Executor Type {exec_type} is not supported for software task."
@@ -243,6 +243,11 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
                 if not all(arg in properties for arg in mand_args):
                     msg = f"Error: Missing arguments for '{self.task_type}'."
                     raise PyCOMPSsException(msg)
+
+            # if any of the other componenets exist, CE will be created. in case
+            # of workflows, we don't want it.
+            if exec_type == "workflow":
+                return
 
             self.config_args = properties
             self.constraints = config.get("constraints", None)

@@ -325,7 +325,8 @@ public class LogicalData {
 
     private boolean deleteIfLocal(DataLocation dl, boolean asynch) {
         MultiURI uri = dl.getURIInHost(Comm.getAppHost());
-        if (uri != null) {
+        if (uri != null && (uri.getProtocol() == ProtocolType.ANY_URI || uri.getProtocol() == ProtocolType.FILE_URI
+            || uri.getProtocol() == ProtocolType.DIR_URI)) {
             if (!(dl.isCheckpointing() && this.accessedByMain)) {
                 File f = new File(uri.getPath());
                 if (asynch) {

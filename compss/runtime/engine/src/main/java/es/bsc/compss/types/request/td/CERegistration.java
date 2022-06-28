@@ -53,6 +53,16 @@ public class CERegistration extends TDRequest {
         return this.sem;
     }
 
+    /**
+     * Returns whether the CE is already registered or not.
+     *
+     * @return {@literal true}, if the core element is already registered with all the implementations; {@literal false}
+     *         otherwise.
+     */
+    public boolean isUseful() {
+        return CoreManager.isRegisteredCoreElement(ced);
+    }
+
     @Override
     public void process(TaskScheduler ts) {
         CoreElement ce = CoreManager.registerNewCoreElement(ced);

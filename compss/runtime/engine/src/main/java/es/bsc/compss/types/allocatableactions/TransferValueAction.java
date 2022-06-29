@@ -223,9 +223,10 @@ public class TransferValueAction<T extends WorkerResourceDescription> extends Al
     }
 
     @Override
-    protected void doException(COMPSsException e) {
+    protected Collection<AllocatableAction> doException(COMPSsException e) {
         ErrorManager.warn(
             "Transfer of data " + dataToTransfer.getName() + " to " + receiver + " has raised a COMPSs Exception.");
+        return new LinkedList<>();
     }
 
     /*

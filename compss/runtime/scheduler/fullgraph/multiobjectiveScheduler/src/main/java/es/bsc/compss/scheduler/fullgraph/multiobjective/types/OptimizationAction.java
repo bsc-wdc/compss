@@ -86,8 +86,8 @@ public class OptimizationAction extends AllocatableAction {
     }
 
     @Override
-    protected void doException(COMPSsException e) {
-        // Nothing to do
+    protected Collection<AllocatableAction> doException(COMPSsException e) {
+        return new LinkedList<>();
     }
 
     @Override

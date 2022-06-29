@@ -17,7 +17,9 @@
 package es.bsc.compss.types;
 
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.worker.COMPSsException;
+import java.util.Collection;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -37,7 +39,7 @@ public class TaskGroup implements AutoCloseable {
     // Application to whom the group belongs.
     private Application app;
 
-    // Tasks that access the data
+    // Tasks belong to the group
     private final List<Task> tasks;
 
     // Has group been closed (true) or is it still open (false) and new tasks can be added
@@ -46,8 +48,6 @@ public class TaskGroup implements AutoCloseable {
     private boolean barrierSet;
     // Barrier pending to be resolved or the information that has to be forwarded upon its arrival.
     private Barrier barrier;
-
-    private boolean barrierDrawn;
 
 
     /**
@@ -63,7 +63,6 @@ public class TaskGroup implements AutoCloseable {
         this.closed = false;
         this.barrierSet = false;
         this.barrier = new PendingBarrier();
-        this.barrierDrawn = false;
     }
 
     /**
@@ -89,7 +88,7 @@ public class TaskGroup implements AutoCloseable {
      *
      * @param task Task to add to the group
      */
-    public void addTask(Task task) {
+    public synchronized void addTask(Task task) {
         tasks.add(task);
         this.barrier.setGraphSource(task.getId());
     }
@@ -126,8 +125,28 @@ public class TaskGroup implements AutoCloseable {
      *
      * @param t Task to remove.
      */
-    public void removeTask(Task t) {
+    public synchronized void removeTask(Task t) {
         this.tasks.remove(t);
+    }
+
+    /**
+     * Adds into a list all the executions from tasks belonging to the group other than the passed in as a parameter.
+     *
+     * @param coll Collection where to add all the executions
+     * @param task task whose executions are not to be included in the collection
+     */
+    public synchronized void addToCollectionExecutionForTasksOtherThan(Collection<AllocatableAction> coll, Task task) {
+        for (Task t : this.tasks) {
+            if (t.getId() != task.getId()) {
+                for (AllocatableAction aa : t.getExecutions()) {
+                    if (aa != null && aa.isPending()) {
+                        LOGGER.debug(" Adding Task " + t.getId() + " to members group of task " + task.getId()
+                            + "(Group " + this.getName() + ")");
+                        coll.add(aa);
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -177,7 +196,7 @@ public class TaskGroup implements AutoCloseable {
 
     /**
      * A task of the group has raised a COMPSsException.
-     * 
+     *
      * @param e Exception raised due to the execution of the tasks of the group
      */
     public void setException(COMPSsException e) {
@@ -211,7 +230,7 @@ public class TaskGroup implements AutoCloseable {
     }
 
 
-    private class PendingBarrier implements Barrier {
+    private static class PendingBarrier implements Barrier {
 
         private COMPSsException exception;
         private int graphSource = Integer.MIN_VALUE;
@@ -229,7 +248,7 @@ public class TaskGroup implements AutoCloseable {
 
         @Override
         public void release() {
-            // Do nothign
+            // Do nothing
         }
 
         @Override

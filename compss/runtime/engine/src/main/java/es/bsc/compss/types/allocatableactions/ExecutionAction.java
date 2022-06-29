@@ -1131,22 +1131,13 @@ public class ExecutionAction extends AllocatableAction implements JobListener {
     }
 
     @Override
-    protected void doException(COMPSsException e) {
+    protected Collection<AllocatableAction> doException(COMPSsException e) {
         LinkedList<TaskGroup> taskGroups = this.task.getTaskGroupList();
+        Collection<AllocatableAction> otherActionsFromGroups = new LinkedList<>();
         for (TaskGroup group : taskGroups) {
             if (!group.getName().equals("App" + this.task.getApplication().getId())) {
                 group.setException((COMPSsException) e);
-                for (Task t : group.getTasks()) {
-                    if (t.getId() != this.getTask().getId()) {
-                        for (AllocatableAction aa : t.getExecutions()) {
-                            if (aa != null && aa.isPending()) {
-                                LOGGER.debug(" Adding Task " + t.getId() + " to members group of task "
-                                    + this.getTask().getId() + "(Group " + group.getName() + ")");
-                                addGroupMember(aa);
-                            }
-                        }
-                    }
-                }
+                group.addToCollectionExecutionForTasksOtherThan(otherActionsFromGroups, this.getTask());
             }
         }
 
@@ -1166,6 +1157,7 @@ public class ExecutionAction extends AllocatableAction implements JobListener {
         this.task.decreaseExecutionCount();
         this.task.setStatus(TaskState.FINISHED);
         this.ap.notifyTaskEnd(this.task);
+        return otherActionsFromGroups;
     }
 
     @Override

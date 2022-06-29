@@ -18,6 +18,7 @@ package es.bsc.compss.types.allocatableactions;
 
 import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.scheduler.types.ActionOrchestrator;
+import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.TaskState;
@@ -29,6 +30,8 @@ import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 
 
@@ -209,14 +212,16 @@ public class MultiNodeExecutionAction extends ExecutionAction {
     }
 
     @Override
-    protected void doException(COMPSsException e) {
+
+    protected Collection<AllocatableAction> doException(COMPSsException e) {
         if (this.actionIdInsideGroup == MultiNodeGroup.ID_MASTER_PROC) {
             // The action is assigned as master, release all slaves and perform doCompleted as normal task
-            super.doException(e);
+            return super.doException(e);
         } else {
             // The action is assigned as slave, mark task as failed
             this.task.setStatus(TaskState.FINISHED);
             this.task.decreaseExecutionCount();
+            return new LinkedList<>();
         }
     }
 

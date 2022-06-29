@@ -35,7 +35,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -93,9 +92,8 @@ public abstract class AllocatableAction {
     private final List<AllocatableAction> streamDataProducers;
     // Allocatable actions that consume stream elements produced by this allocatable action
     private final List<AllocatableAction> streamDataConsumers;
-    // Allocatable actions that are members of the same task group
-    private final List<AllocatableAction> groupMembers;
-    //
+
+    // Mutual exclusion task groups
     private final List<MutexGroup> mutexGroups;
 
     private State state;
@@ -130,7 +128,6 @@ public abstract class AllocatableAction {
         this.dataSuccessors = new LinkedList<>();
         this.streamDataProducers = new LinkedList<>();
         this.streamDataConsumers = new LinkedList<>();
-        this.groupMembers = new LinkedList<>();
         this.state = State.RUNNABLE;
         this.selectedResource = null;
         this.selectedImpl = null;
@@ -322,20 +319,6 @@ public abstract class AllocatableAction {
                 }
                 predecessor.streamDataConsumers.add(this);
             }
-        }
-    }
-
-    /**
-     * Adds the aa of a group member task.
-     * 
-     * @param member Task part of the same group.
-     */
-    public final void addGroupMember(AllocatableAction member) {
-        if (!this.groupMembers.contains(member)) {
-            if (DEBUG) {
-                LOGGER.debug("Adding action " + member.getId() + " to same group of action " + this.getId());
-            }
-            this.groupMembers.add(member);
         }
     }
 
@@ -919,16 +902,13 @@ public abstract class AllocatableAction {
         cancelAction();
 
         // Action notification
-        doException(e);
-
-        List<AllocatableAction> groupActions = new LinkedList<>();
-        groupActions.addAll(this.groupMembers);
+        Collection<AllocatableAction> groupMembers = doException(e);
 
         // Triggering cancellation on tasks of the same group
         List<AllocatableAction> cancel = new LinkedList<>();
 
         // Forward cancellation to members of the same task group
-        for (AllocatableAction aa : groupActions) {
+        for (AllocatableAction aa : groupMembers) {
             if (aa.state == State.RUNNING || aa.state == State.WAITING || aa.state == State.RUNNABLE) {
                 cancel.addAll(aa.cancel());
             }
@@ -1107,8 +1087,11 @@ public abstract class AllocatableAction {
 
     /**
      * Triggers a COMPSs exception on a job.
+     * 
+     * @param e Exception arisen during the action
+     * @return Other Allocatable actions to be cancelled due to the exception
      */
-    protected abstract void doException(COMPSsException e);
+    protected abstract Collection<AllocatableAction> doException(COMPSsException e);
 
     /**
      * Triggers the unsuccessful action completion notification.

@@ -102,8 +102,8 @@ public class FakeAllocatableAction extends AllocatableAction {
     }
 
     @Override
-    protected void doException(COMPSsException e) {
-
+    protected Collection<AllocatableAction> doException(COMPSsException e) {
+        return new LinkedList<>();
     }
 
     @Override

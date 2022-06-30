@@ -76,7 +76,7 @@ public class RAccessId extends DataAccessId {
 
     @Override
     public boolean isWrite() {
-        return true;
+        return false;
     }
 
     /**

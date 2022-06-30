@@ -272,7 +272,9 @@ public class JavaNestedInvoker extends JavaInvoker {
                     }
                 }
                 for (InvocationParam p : this.invocation.getParams()) {
-                    getLastValue(appId, p);
+                    if (p.isWriteFinalValue()) {
+                        getLastValue(appId, p);
+                    }
                 }
                 for (InvocationParam p : this.invocation.getResults()) {
                     getLastValue(appId, p);

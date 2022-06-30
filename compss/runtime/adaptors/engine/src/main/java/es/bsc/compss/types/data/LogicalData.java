@@ -786,10 +786,8 @@ public class LogicalData {
      */
     public synchronized DataLocation removeHostAndCheckLocationToSave(Resource host,
         Map<String, String> sharedMountPoints) {
-        // If the file is being saved means that this function has already been
-        // executed
-        // for the same LogicalData. Thus, all the host locations are already
-        // removed
+        // If the file is being saved means that this function has already been executed
+        // for the same LogicalData. Thus, all the host locations are already removed
         // and there is no unique file to save
         if (isBeingSaved) {
             return null;

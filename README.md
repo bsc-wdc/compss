@@ -40,7 +40,7 @@ of applications at execution time.
 # Documentation
 
 COMPSs documentation can be found at the [COMPSs Webpage][1] or at
-the `doc/` folder.
+the [compss-doc](https://github.com/bsc-wdc/compss-doc) repository.
 
   * COMPSs_Installation_Manual.pdf
   * COMPSs_User_Manual_App_Development.pdf

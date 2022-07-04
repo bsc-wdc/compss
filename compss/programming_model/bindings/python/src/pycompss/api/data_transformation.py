@@ -130,7 +130,7 @@ class DataTransformation:  # pylint: disable=too-few-public-methods
         if not len(args):
             raise Exception
         elif "dt" in kwargs:
-            tmp = kwargs.get("dt")
+            tmp = kwargs.pop("dt")
             if isinstance(tmp, DTObject):
                 dts.append(tmp.extract())
             elif isinstance(tmp, list):

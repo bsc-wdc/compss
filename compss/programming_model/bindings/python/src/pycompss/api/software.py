@@ -203,6 +203,7 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
                 core_element.set_impl_type_args(impl_args)
                 kwargs[CORE_ELEMENT_KEY] = core_element
 
+            # todo: add comments
             if self.decor:
                 decorator = self.decor
                 if not self.parameters:
@@ -254,17 +255,24 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
                     msg = f"Error: Missing arguments for '{self.task_type}'."
                     raise PyCOMPSsException(msg)
 
-            # if any of the other componenets exist, CE will be created. in case
+            # if any of the other components exist, CE will be created. in case
             # of workflows, we don't want it.
             if exec_type == "workflow":
                 return
-
+            self.replace_param_types()
             self.config_args = execution
             self.constraints = config.get("constraints", None)
             self.container = config.get("container", None)
             self.prolog = config.get("prolog", None)
             self.epilog = config.get("epilog", None)
 
+    def replace_param_types(self):
+        from pycompss.api import parameter
+        if not self.parameters:
+            return
+        for k, v in self.parameters.items():
+            if isinstance(v, str) and hasattr(parameter, v):
+                self.parameters[k] = getattr(parameter, v)
 
 # ########################################################################### #
 # ##################### Software DECORATOR ALTERNATIVE NAME ################# #

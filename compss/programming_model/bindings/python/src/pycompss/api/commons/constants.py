@@ -45,6 +45,7 @@ class _Labels:  # pylint: disable=too-few-public-methods, too-many-instance-attr
         "computing_nodes",
         "working_dir",
         "params",
+        "parameters",
         "fail_by_exit_value",
         "mpi",
         "mpmd_mpi",
@@ -86,6 +87,7 @@ class _Labels:  # pylint: disable=too-few-public-methods, too-many-instance-attr
         "updates",
         "config_file",
         "properties",
+        "execution",
         "type",
         "is_workflow",
     )
@@ -114,6 +116,7 @@ class _Labels:  # pylint: disable=too-few-public-methods, too-many-instance-attr
         self.on_failure = "on_failure"
         self.working_dir = "working_dir"
         self.params = "params"
+        self.parameters = "parameters"
         self.fail_by_exit_value = "fail_by_exit_value"
         self.mpi = "mpi"
         self.binary = "binary"
@@ -155,6 +158,7 @@ class _Labels:  # pylint: disable=too-few-public-methods, too-many-instance-attr
         self.updates = "updates"
         self.config_file = "config_file"
         self.properties = "properties"
+        self.execution = "execution"
         self.type = "type"
 
 

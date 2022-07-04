@@ -34,6 +34,7 @@ from pycompss.api import mpmd_mpi
 from pycompss.api import multinode
 from pycompss.api import http
 from pycompss.api import compss
+from pycompss.api.task import task
 from pycompss.api.commons.constants import INTERNAL_LABELS
 from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
@@ -86,6 +87,7 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
         "container",
         "prolog",
         "epilog",
+        "parameters",
     ]
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
@@ -107,6 +109,7 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
         self.container = None  # type: typing.Optional[typing.Dict[str, str]]
         self.prolog = None  # type: typing.Optional[typing.Dict[str, str]]
         self.epilog = None  # type: typing.Optional[typing.Dict[str, str]]
+        self.parameters = dict()  # type: typing.Dict
 
         self.decorator_name = decorator_name
         self.args = args
@@ -202,15 +205,21 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
 
             if self.decor:
                 decorator = self.decor
-
-                def decor_f():
-                    def function():
-                        ret = decorator(**self.config_args)
-                        return ret(user_function)(*args, **kwargs)
-
-                    return function()
-
-                return decor_f()
+                if not self.parameters:
+                    def decor_f():
+                        def function():
+                            ret = decorator(**self.config_args)
+                            return ret(user_function)(*args, **kwargs)
+                        return function()
+                    return decor_f()
+                else:
+                    def decor_f():
+                        def function(*_, **__):
+                            tt = task(**self.parameters)
+                            return tt(user_function)(*_, **__)
+                        dec = decorator(**self.config_args)
+                        return dec(function)(*args, **kwargs)
+                    return decor_f()
 
             # It's a PyCOMPSs task with only @task and @software decorators
             return user_function(*args, **kwargs)
@@ -229,8 +238,9 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
         ) as file_path_descriptor:
             config = json.load(file_path_descriptor)
 
-            properties = config.get(LABELS.properties, {})
-            exec_type = config.get(LABELS.type, None)
+            execution = config.get(LABELS.execution, {})
+            self.parameters = config.get(LABELS.parameters, dict())
+            exec_type = execution.pop(LABELS.type, None)
             if exec_type is None or exec_type == "workflow":
                 print("Execution type not provided for @software task")
             elif exec_type.lower() not in SUPPORTED_DECORATORS:
@@ -240,7 +250,7 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
                 exec_type = exec_type.lower()
                 self.task_type, self.decor = SUPPORTED_DECORATORS[exec_type]
                 mand_args = self.task_type.MANDATORY_ARGUMENTS
-                if not all(arg in properties for arg in mand_args):
+                if not all(arg in execution for arg in mand_args):
                     msg = f"Error: Missing arguments for '{self.task_type}'."
                     raise PyCOMPSsException(msg)
 
@@ -249,7 +259,7 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
             if exec_type == "workflow":
                 return
 
-            self.config_args = properties
+            self.config_args = execution
             self.constraints = config.get("constraints", None)
             self.container = config.get("container", None)
             self.prolog = config.get("prolog", None)

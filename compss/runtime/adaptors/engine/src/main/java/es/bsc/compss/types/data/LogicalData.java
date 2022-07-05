@@ -41,6 +41,7 @@ import es.bsc.compss.util.serializers.Serializer;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.ConcurrentModificationException;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -950,23 +951,26 @@ public class LogicalData {
 
     @Override
     public synchronized String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Logical Data name: ").append(this.name).append("\n");
-        sb.append("Aliases:");
-        for (String alias : this.knownAlias) {
-            sb.append(" ").append(alias);
-        }
-        sb.append("\n");
-        sb.append("\t Value: ").append(value[0]).append("\n");
-        sb.append("\t Id: ").append(pscoId).append("\n");
-        sb.append("\t Locations:\n");
-        synchronized (this.locations) {
-            for (DataLocation dl : locations) {
-                sb.append("\t\t * ").append(dl).append("\n");
+        while (true) {
+            try {
+                StringBuilder sb = new StringBuilder();
+                sb.append("Logical Data name: ").append(this.name).append("\n");
+                sb.append("Aliases:");
+                for (String alias : this.knownAlias) {
+                    sb.append(" ").append(alias);
+                }
+                sb.append("\n");
+                sb.append("\t Value: ").append(value[0]).append("\n");
+                sb.append("\t Id: ").append(pscoId).append("\n");
+                sb.append("\t Locations:\n");
+                for (DataLocation dl : locations) {
+                    sb.append("\t\t * ").append(dl).append("\n");
+                }
+                return sb.toString();
+            } catch (ConcurrentModificationException cme) {
+                // repeat
             }
         }
-        return sb.toString();
-
     }
 
 

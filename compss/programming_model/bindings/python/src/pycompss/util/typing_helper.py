@@ -65,9 +65,9 @@ else:
     mypyc_attr = DummyMypycAttr  # pylint: disable=invalid-name
 
 
-######################################
-# Boilerplate to mimic user fuctions #
-######################################
+#######################################
+# Boilerplate to mimic user functions #
+#######################################
 
 
 def dummy_function() -> None:

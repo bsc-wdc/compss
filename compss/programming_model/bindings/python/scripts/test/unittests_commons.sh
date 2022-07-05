@@ -161,14 +161,14 @@ get_args() {
             jupyter_unittests=false
             ;;
           *)
-            # Flag didn't match any patern. End of Unittests flags
+            # Flag didn't match any pattern. End of Unittests flags
             display_error "${INCORRECT_PARAMETER}"
             break
             ;;
         esac
         ;;
       *)
-        # Flag didn't match any patern. End of COMPSs flags
+        # Flag didn't match any pattern. End of COMPSs flags
         display_error "${INCORRECT_PARAMETER}"
         break
         ;;

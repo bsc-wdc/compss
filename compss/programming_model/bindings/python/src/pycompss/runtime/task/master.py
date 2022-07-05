@@ -85,7 +85,6 @@ from pycompss.util.objects.properties import is_basic_iterable
 from pycompss.util.objects.properties import is_dict
 from pycompss.util.objects.sizer import total_sizeof
 from pycompss.util.serialization import serializer
-from pycompss.util.serialization.serializer import serialize_to_bytes
 from pycompss.util.serialization.serializer import serialize_to_file
 from pycompss.util.storages.persistent import get_id
 from pycompss.util.tracing.helpers import emit_manual_event_explicit
@@ -97,8 +96,6 @@ from pycompss.util.typing_helper import typing
 logger = logging.getLogger(__name__)
 
 # Types conversion dictionary from python to COMPSs
-_PYTHON_TO_COMPSS = {}  # type: dict
-
 _PYTHON_TO_COMPSS = {
     int: TYPE.INT,  # int # long
     float: TYPE.DOUBLE,  # float
@@ -873,7 +870,7 @@ class TaskMaster:
             param = self.decorator_arguments.get(arg_name, default_parameter)
 
         # If the parameter is a FILE then its type will already be defined,
-        # and get_compss_type will misslabel it as a parameter.TYPE.STRING
+        # and get_compss_type will mislabel it as a parameter.TYPE.STRING
         if param.is_object():
             param.content_type = get_compss_type(arg_object, code_strings=code_strings)
 
@@ -2194,7 +2191,7 @@ def _turn_into_file(param: Parameter, name: str, skip_creation: bool = False) ->
     registered in the obj_id_to_filename dictionary.
     This functions stores the object into pending_to_synchronize.
 
-    :param p: Wrapper of the object to turn into file.
+    :param param: Wrapper of the object to turn into file.
     :param name: Name of the object.
     :param skip_creation: Skips the serialization to file.
     :return: None.

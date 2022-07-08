@@ -180,9 +180,9 @@ class TaskWorker:
                 self.defaults = kwargs.pop("defaults", {})
 
                 # Pop cache if available
-                cache = kwargs.pop("cache_ids", None)
+                cache = kwargs.pop("compss_cache", None)
                 if cache:
-                    self.cache_ids, self.cache_queue, self.cache_profiler = cache
+                    self.cache_queue, self.cache_ids, self.cache_profiler = cache
 
                 if __debug__:
                     LOGGER.debug("Revealing objects")

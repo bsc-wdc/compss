@@ -523,7 +523,7 @@ xml_project_add_worker_in_master() {
     fi
     # Create working dirs
     if [ -z "${CREATE_WORKING_DIRS}" ] || [ "${CREATE_WORKING_DIRS}" == "true" ]; then
-      CMD="${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node} ${CMD_SEPARATOR}mkdir -m 755 -p ${worker_working_dir}${CMD_SEPARATOR}"
+      CMD="${LAUNCH_CMD} ${LAUNCH_EXTRA_FLAGS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node} ${CMD_SEPARATOR}mkdir -m 755 -p ${worker_working_dir}${CMD_SEPARATOR}"
       if [ "${log_level}" == "debug" ] || [ "${log_level}" == "trace" ]; then
          echo "[LAUNCH_COMPSS] Worker WD mkdir: ${CMD}"
       fi
@@ -552,7 +552,7 @@ xml_project_add_workers() {
     fi
     # Create working dirs
     if [ -z "${CREATE_WORKING_DIRS}" ] || [ "${CREATE_WORKING_DIRS}" == "true" ]; then
-      CMD="${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${worker_node} ${CMD_SEPARATOR}mkdir -m 755 -p ${worker_working_dir}${CMD_SEPARATOR}"
+      CMD="${LAUNCH_CMD} ${LAUNCH_EXTRA_FLAGS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${worker_node} ${CMD_SEPARATOR}mkdir -m 755 -p ${worker_working_dir}${CMD_SEPARATOR}"
       if [ "${log_level}" == "debug" ] || [ "${log_level}" == "trace" ]; then
          echo "Worker WD mkdir: ${CMD}"
       fi
@@ -2026,7 +2026,7 @@ launch() {
             fi
         fi
 
-        WCMD="${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node} ${PRE_CMD}${WCMD}${POST_CMD}"
+        WCMD="${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_EXTRA_FLAGS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node} ${PRE_CMD}${WCMD}${POST_CMD}"
         if [ "${log_level}" != "off" ]; then
 	    echo "[LAUNCH_COMPSS] Launching worker in master with id $hostid and command: $WCMD"
         fi
@@ -2056,7 +2056,7 @@ launch() {
             fi
         fi
 
-        WCMD="${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${PRE_CMD}${WCMD}${POST_CMD}"
+        WCMD="${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_EXTRA_FLAGS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${PRE_CMD}${WCMD}${POST_CMD}"
         if [ "${log_level}" != "off" ]; then
 	    echo "[LAUNCH_COMPSS] Launching worker with id $hostid and command: $WCMD"
         fi
@@ -2216,7 +2216,7 @@ cleanup() {
           echo "[LAUNCH_COMPSS] Removing ${sandboxWD}"
       fi
       # shellcheck disable=SC2086
-      ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${CMD_SEPARATOR}rm -rf ${sandboxWD}${CMD_SEPARATOR}
+      ${LAUNCH_CMD} ${LAUNCH_EXTRA_FLAGS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${CMD_SEPARATOR}rm -rf ${sandboxWD}${CMD_SEPARATOR}
     done
     if [ "${log_level}" != "off" ]; then
         echo "[LAUNCH_COMPSS] Cleanup TMP files"

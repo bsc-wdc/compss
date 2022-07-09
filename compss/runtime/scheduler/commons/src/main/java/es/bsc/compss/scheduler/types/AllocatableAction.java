@@ -930,6 +930,7 @@ public abstract class AllocatableAction {
         // Forward cancellation to members of the same task group
         for (AllocatableAction aa : groupActions) {
             if (aa.state == State.RUNNING || aa.state == State.WAITING || aa.state == State.RUNNABLE) {
+                LOGGER.debug("[AllocatableAction] Cancelling action " + aa.id + " because in same group");
                 cancel.addAll(aa.cancel());
             }
         }

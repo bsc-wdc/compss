@@ -198,11 +198,10 @@ public class MultiNodeExecutionAction extends ExecutionAction {
 
     @Override
     protected void doCanceled() {
-        if (this.actionIdInsideGroup == MultiNodeGroup.ID_MASTER_PROC) {
-            // The action is assigned as master, release all slaves and perform doCompleted as normal task
+        if (!this.group.isCancelled()) {
+            this.group.setCancelled();
             super.doCanceled();
         } else {
-            // The action is assigned as slave, mark task as failed
             this.task.setStatus(TaskState.CANCELED);
             this.task.decreaseExecutionCount();
         }

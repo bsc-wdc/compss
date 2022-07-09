@@ -54,7 +54,7 @@ SLURM_SKIP_VARS = [
     "SLURM_USER",
     "SLURM_QOS",
     "SLURM_PARTITION",
-    "SLURM_OVERLAP"
+    "SLURM_OVERLAP",
 ]
 
 

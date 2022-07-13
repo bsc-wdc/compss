@@ -10,50 +10,9 @@ from os import path
 import sys
 
 from execution_utils import ExecutionState
-from log_utils import Parser
-from task_utils import TaskState
+from log_utils import RuntimeLog
 
 state = ExecutionState()
-
-
-def parse(log_file):
-    with open(log_file) as log_file:
-
-        time_stamp = ""
-        date = ""
-        logger = ""
-        method = ""
-        message = ""
-
-        line = log_file.readline()
-        while line:
-            if line.startswith("[("):
-                logger_end_pos = line.find("]")
-                timestamp_end_pos = line.find(")")
-                date_end_pos = line.find(")", timestamp_end_pos + 1)
-                if (timestamp_end_pos < date_end_pos) and (date_end_pos < logger_end_pos):
-                    event = Parser.parse_event(time_stamp, date, logger, method, message)
-                    if event is not None:
-                        event.apply(state)
-                    time_stamp = line[2:timestamp_end_pos]
-                    date = line[timestamp_end_pos + 2:date_end_pos]
-                    logger = line[date_end_pos+1:logger_end_pos]
-                    logger = logger.replace(" ", "")
-                    method_start_pos = line.find("@", logger_end_pos)
-                    message_start_pos = line.find("-", logger_end_pos)
-                    method = line[method_start_pos+1:message_start_pos]
-                    method = method.replace(" ", "")
-                    message = line[message_start_pos+3:]
-                else:
-                    message = message + line
-            else:
-                message = message + line
-            line = log_file.readline()
-
-        event = Parser.parse_event(time_stamp, date, logger, method, message)
-        if event is not None:
-            event.apply(state)
-
 
 def print_commands(file=None):
     print("Available Commands:\n" +
@@ -115,7 +74,8 @@ def handle_queries(runtime_log_file):
                 state.query_task(input_array[1:])
             elif input_array[0] == "u" or input_array[0] == "update":
                 state.clear()
-                parse(runtime_log_file)
+                log=RuntimeLog(runtime_log_file)
+                log.parse(state)
                 print("Finished parsing "+runtime_log_file+". Script ready to reply queries")
             else:
                 print("Unknown command " + input_array[0] + ".", file=sys.stderr)
@@ -135,7 +95,8 @@ if __name__ == "__main__":
         print("Invalid parameter value:" + runtime_log_file + " does not exists.", file=sys.stderr)
         sys.exit(128)
 
-    parse(runtime_log_file)
+    log=RuntimeLog(runtime_log_file)
+    log.parse(state)
     print("Finished parsing "+runtime_log_file+". Script ready to reply queries")
     handle_queries(runtime_log_file)
 

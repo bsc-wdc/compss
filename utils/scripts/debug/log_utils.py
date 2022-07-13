@@ -7,13 +7,12 @@
 from __future__ import print_function
 
 from abc import abstractmethod
+from sqlite3 import Timestamp
 
 from execution_utils import ExecutionState
 from enum import Enum
 
-from task_utils import TaskState
 from action_utils import Action
-
 
 class Loggers:
     class TaskProcessor:
@@ -106,7 +105,7 @@ class Loggers:
             label = "doSubmit"
             NEW = "New Job"
             RESCHEDULED = "Rescheduled Job"
-            TARGET_HOST = "Target host"
+            SUBMITTED_TASK = "Submitted Task:"
 
         class SubmittedJob:
             label = "processRequests"
@@ -161,8 +160,19 @@ class Loggers:
         class CompletedStage:
             label = "otifyCompletion"
             COMPLETED = "completed in connection"
+    
+    class Invoker:
+        label = "Invoker"
 
-class Parser:
+        class JavaNestedApp:
+            label="invokeMethod"
+            BECOMES_APP="becomes app"
+        
+        class PythonNestedApp:
+            label="invokeMethod"
+            BECOMES_APP="becomes app"
+
+class RuntimeParser:
     """
     Class to handle the parsing of each log line and convert it into messages
     """
@@ -245,7 +255,7 @@ class Parser:
                     event = CreateJobEvent(timestamp, message)
                 if Loggers.JobManager.NewJob.RESCHEDULED in message:
                     event = CreateJobEvent(timestamp, message)
-                if Loggers.JobManager.NewJob.TARGET_HOST in message:
+                if Loggers.JobManager.NewJob.SUBMITTED_TASK in message:
                     event = SettingHostToJobEvent(timestamp, message)
             if method == Loggers.JobManager.SubmittedJob.label:
                 if Loggers.JobManager.SubmittedJob.SUBMITTED in message:
@@ -288,6 +298,14 @@ class Parser:
             if method == Loggers.Stage.CompletedStage.label:
                 if Loggers.Stage.CompletedStage.COMPLETED in message:
                     event = CompletedStageEvent(timestamp, message)
+
+        if logger == Loggers.Invoker.label:
+            if method == Loggers.Invoker.JavaNestedApp.label:
+                if Loggers.Invoker.JavaNestedApp.BECOMES_APP in message:
+                    event = NestedAppEvent(timestamp, message)
+            if method == Loggers.Invoker.PythonNestedApp.label:
+                if Loggers.Invoker.PythonNestedApp.BECOMES_APP in message:
+                    event = NestedAppEvent(timestamp, message)
         return event
 
 
@@ -322,6 +340,7 @@ class NewTaskEvent(Event):
         method_name_start = message.find("Name:")
         method_name_end = message.find(")")
         self.method_name = message[method_name_start+5:method_name_end]
+        self.app_id = line_array[9]
 
     def apply(self, state):
         """
@@ -329,7 +348,9 @@ class NewTaskEvent(Event):
 
         :param state: current execution state
         """
-        state.tasks.register_task(self.task_id, self.method_name, self.timestamp)
+        app=state.apps.register_app(self.app_id)
+        task = state.tasks.register_task(self.task_id, self.method_name, self.timestamp)
+        app.register_task(task)
 
     def __str__(self):
         return "New task "+ self.method_name+"(task "+self.task_id+") @ "+self.timestamp
@@ -703,7 +724,8 @@ class SettingHostToJobEvent(Event):
         message = message[4:]
         line_array = message.split()
         self.resource_name = line_array[-1]
-        self.job_id="UNKNOWN JOB"
+        self.job_id=line_array[4]
+        self.task_id=line_array[2]
 
     def apply(self, state):
         """
@@ -712,9 +734,8 @@ class SettingHostToJobEvent(Event):
         :param state: current execution state
         """
         resource = state.resources.get_resource(self.resource_name)
-        last_job = state.jobs.get_last_registered_job()
-        last_job.bind_to_action(resource)
-        self.job_id=last_job.job_id
+        job = state.jobs.register_job(self.job_id, self.timestamp)
+        job.bind_to_action(resource)
 
     def __str__(self):
         return "Job " + self.job_id + " runs on " + self.resource_name + " @ " + self.timestamp
@@ -1205,3 +1226,144 @@ class RegisteringCEEvent(Event):
         for impl in self.impls:
             core_element.add_implementation(impl[0], impl[1], self.timestamp)
         
+
+class NestedAppEvent(Event):
+    """
+    Job registers a new App
+    """
+
+    def __init__(self, timestamp, message):
+        super(NestedAppEvent, self).__init__(timestamp)
+        line_array=message.split()
+        self.job_id = line_array[1]
+        self.app_id = line_array[4]
+     
+
+    def apply(self, state):
+        """
+        Updates the execution state according to the event
+
+        :param state: current execution state
+        """
+        app =state.apps.register_app(self.app_id)
+        job = state.jobs.register_job(self.job_id, self.timestamp)
+        job.set_nested_app(app, self.timestamp)
+
+        
+
+class RuntimeLog:
+    """
+    Runtime log file.
+    """
+
+    def __init__(self, path):
+        self.path = path
+
+    def parse(self, state):
+        with open(self.path) as log_file:
+            time_stamp = ""
+            date = ""
+            logger = ""
+            method = ""
+            message = ""
+    
+            line = log_file.readline()
+            while line:
+                if line.startswith("[("):
+                    logger_end_pos = line.find("]")
+                    timestamp_end_pos = line.find(")")
+                    date_end_pos = line.find(")", timestamp_end_pos + 1)
+                    if (timestamp_end_pos < date_end_pos) and (date_end_pos < logger_end_pos):
+                        event = RuntimeParser.parse_event(time_stamp, date, logger, method, message)
+                        if event is not None:
+                            event.apply(state)
+                        time_stamp = line[2:timestamp_end_pos]
+                        date = line[timestamp_end_pos + 2:date_end_pos]
+                        logger = line[date_end_pos+1:logger_end_pos]
+                        logger = logger.replace(" ", "")
+                        method_start_pos = line.find("@", logger_end_pos)
+                        message_start_pos = line.find("-", logger_end_pos)
+                        method = line[method_start_pos+1:message_start_pos]
+                        method = method.replace(" ", "")
+                        message = line[message_start_pos+3:]
+                    else:
+                        message = message + line
+                else:
+                    message = message + line
+                line = log_file.readline()
+    
+            event = RuntimeParser.parse_event(time_stamp, date, logger, method, message)
+            if event is not None:
+                event.apply(state)
+
+
+
+class AgentEvent(object):
+    """
+    Agent Log entry
+    """
+    def __init__(self):
+        pass
+    
+    @abstractmethod
+    def apply(self, agent):
+        pass
+
+class NewRequest(AgentEvent):
+    """
+    New Request arrived to the agent
+    """
+    def __init__(self, message):
+        super(NewRequest, self).__init__()
+        line_array = message.split()
+        self.jobId=line_array[2]
+        self.appId=line_array[5]
+
+    def apply(self, agent):
+        ej = agent.register_external_job(self.jobId)
+        app=agent.register_app(self.appId)
+        ej.set_app(app)
+
+
+class SetName(AgentEvent):
+    """
+    Agent being started with name
+    """
+    def __init__(self, message):
+        super(SetName, self).__init__()
+        line_array = message.split()
+        self.agent_name=line_array[4]
+
+    def apply(self, agent):
+        agent.set_name(self.agent_name)
+
+
+class AgentParser:
+    """
+    Class to handle the parsing of each log line and convert it into messages
+    """
+
+    @staticmethod
+    def parse_event(message):
+        if message.startswith("External job"):
+            return NewRequest(message)
+        elif message.startswith("Initializing agent with name:"):
+            return SetName(message)
+        return None
+
+class AgentLog():
+    
+    def __init__(self, path):
+        self.path = path
+  
+    def parse(self, agent):
+        with open(self.path) as log_file:
+            
+            line = log_file.readline()
+            while line:
+                message=line
+                event=AgentParser.parse_event(message)
+                if event is not None:
+                    event.apply(agent)
+                line = log_file.readline()
+

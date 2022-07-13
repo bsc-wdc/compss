@@ -95,6 +95,12 @@ class Task:
         self.parameters = []
         self._history = [[timestamp, "task " + self.task_id + " created"]]
 
+    def get_id(self):
+        return self.task_id
+
+    def get_method_name(self):
+        return self.method_name
+
     def add_parameter(self, access):
         param = Parameter(self, access)
         self.parameters.append(param)
@@ -123,9 +129,15 @@ class Task:
     def failed(self, timestamp):
         self.state = TaskState.FAILED
         self._history.append([timestamp, "task " + self.task_id + " failed"])
+  
+    def get_state(self):
+        return self.state
 
     def add_action(self, action):
         self.action.append(action)
+
+    def get_actions(self):
+        return self.action
 
     def __str__(self):
         params = ""
@@ -181,3 +193,36 @@ class TaskRegister:
 
         return string
 
+class Application:
+    def __init__ (self, id):
+        self.id = id
+        self.tasks=[]
+
+    def get_id(self):
+        return self.id
+
+    def register_task(self, task):
+        self.tasks.append(task)
+
+    def get_tasks(self):
+        return self.tasks
+
+    def __str__(self):
+        return "App " + self.id
+
+class ApplicationRegister():
+    def __init__(self):
+        self.apps = {}
+
+    def register_app(self, appId):
+        app = self.apps.get(appId)
+        if app == None:
+            app = Application(appId)
+            self.apps[appId] = app
+        return app
+
+    def get_applications(self):
+        return self.apps.values()
+    
+    def get_application(self, appId):
+        return self.apps.get(appId)

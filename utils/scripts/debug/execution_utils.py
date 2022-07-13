@@ -11,6 +11,7 @@ from enum import Enum
 from data_utils import DataRegister
 from data_utils import MainDataAccessRegister
 from task_utils import TaskRegister
+from task_utils import ApplicationRegister
 from action_utils import JobRegister
 from resource_utils import ResourceRegister
 from connection_utils import ConnectionRegister
@@ -24,6 +25,7 @@ class ExecutionState:
     """
     def __init__(self):
         self.core_elements = CoreElementRegister()
+        self.apps = ApplicationRegister()
         self.tasks = TaskRegister()
         self.resources = ResourceRegister()
         self.jobs = JobRegister()

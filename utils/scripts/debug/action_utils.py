@@ -34,7 +34,21 @@ class Job:
         self.resource = None
         self.action = None
         self.status = JobStatus.CREATED
+        self.nested_app = None
         self._history = [[timestamp, "job "+job_id+" created"]]
+
+    def get_id(self):
+        return self.job_id
+
+    def get_resource(self):
+        return self.resource
+
+    def set_nested_app(self, app, timestamp):
+        self.nested_app=app
+        self._history.append([timestamp, "job "+self.job_id+" becomes app "+app.get_id()])
+
+    def get_nested_app(self):
+        return self.nested_app
 
     def bind_to_action(self, resource):
         self.resource = resource
@@ -42,6 +56,9 @@ class Job:
             if action.assigned_resource == resource:
                 self.action = action
                 action.jobs.append(self)
+
+    def get_status(self):
+        return self.status
 
     def stalled(self, timestamp):
         self.status = JobStatus.STALLED
@@ -181,6 +198,9 @@ class ExecutionAction(Action):
             return self.task.task_id == task_id
         else:
             return False
+
+    def get_jobs(self):
+        return self.jobs
 
     def get_history(self):
         history = []

@@ -398,6 +398,7 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
         ced.addImplementation(implDef);
         try {
             appId = Agent.runTask(lang, ced, ceiClass, arguments, target, results, monitor, OnFailure.FAIL);
+            LOGGER.info("External job - is app " + appId);
         } catch (AgentException e) {
             LOGGER.error("ERROR IN runTask : ", e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();

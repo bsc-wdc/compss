@@ -148,7 +148,7 @@ public class TaskAnalyser implements GraphHandler {
     public void processTask(Task currentTask) {
         TaskDescription description = currentTask.getTaskDescription();
         LOGGER.info("New " + description.getType().toString().toLowerCase() + " task: Name:" + description.getName()
-            + "), ID = " + currentTask.getId());
+            + "), ID = " + currentTask.getId() + " APP = " + currentTask.getApplication().getId());
 
         if (IS_DRAW_GRAPH) {
             addNewTask(currentTask);

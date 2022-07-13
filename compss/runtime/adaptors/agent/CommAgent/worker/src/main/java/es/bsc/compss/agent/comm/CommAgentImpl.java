@@ -49,7 +49,7 @@ import org.json.JSONObject;
 public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent {
 
     // Logger
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.API);
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.AGENT);
 
     // Adaptor
     private CommAgentAdaptor adaptor;
@@ -201,7 +201,8 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
 
         OnFailure onFail = request.getOnFailure();
         try {
-            Agent.runTask(lang, ced, ceiClass, arguments, target, results, monitor, onFail);
+            long appId = Agent.runTask(lang, ced, ceiClass, arguments, target, results, monitor, onFail);
+            LOGGER.info("External job " + request.getJobId() + " is app " + appId);
         } catch (AgentException ae) {
             monitor.onFailedExecution();
         }

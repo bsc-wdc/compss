@@ -240,6 +240,7 @@ public class JavaNestedInvoker extends JavaInvoker {
         } else {
             long appId;
             appId = this.runtimeAPI.registerApplication(this.ceiName, this);
+            LOGGER.info("Job " + this.invocation.getJobId() + " becomes app " + appId);
             // Register Core Elements on Runtime
             List<CoreElementDefinition> ceds = ITFParser.parseITFMethods(this.ceiClass);
             for (CoreElementDefinition ced : ceds) {

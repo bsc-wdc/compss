@@ -212,7 +212,10 @@ public class LogicalData {
                 }
                 ld.locMonitors.addAll(ld2.locMonitors);
                 ld2.locMonitors = ld.locMonitors;
-                ld.inProgress.addAll(ld2.inProgress);
+
+                synchronized (ld.inProgress) {
+                    ld.inProgress.addAll(ld2.inProgress);
+                }
                 ld2.inProgress = ld.inProgress;
             }
         }
@@ -854,10 +857,11 @@ public class LogicalData {
      */
     public synchronized Collection<Copy> getCopiesInProgress() {
         List<Copy> copies = new LinkedList<>();
-        for (CopyInProgress cp : this.inProgress) {
-            copies.add(cp.getCopy());
+        synchronized (this.inProgress) {
+            for (CopyInProgress cp : this.inProgress) {
+                copies.add(cp.getCopy());
+            }
         }
-
         return copies;
     }
 
@@ -888,12 +892,13 @@ public class LogicalData {
      * @return the copy in progress or null if none
      */
     public synchronized Copy alreadyCopying(DataLocation target) {
-        for (CopyInProgress cip : this.inProgress) {
-            if (cip.hasTarget(target)) {
-                return cip.getCopy();
+        synchronized (this.inProgress) {
+            for (CopyInProgress cip : this.inProgress) {
+                if (cip.hasTarget(target)) {
+                    return cip.getCopy();
+                }
             }
         }
-
         return null;
     }
 
@@ -904,7 +909,9 @@ public class LogicalData {
      * @param target Target data location
      */
     public synchronized void startCopy(Copy c, DataLocation target) {
-        this.inProgress.add(new CopyInProgress(c, target));
+        synchronized (this.inProgress) {
+            this.inProgress.add(new CopyInProgress(c, target));
+        }
     }
 
     /**
@@ -915,17 +922,17 @@ public class LogicalData {
      */
     public synchronized DataLocation finishedCopy(Copy c) {
         DataLocation loc = null;
-
-        Iterator<CopyInProgress> it = this.inProgress.iterator();
-        while (it.hasNext()) {
-            CopyInProgress cip = it.next();
-            if (cip.c == c) {
-                it.remove();
-                loc = cip.loc;
-                break;
+        synchronized (this.inProgress) {
+            Iterator<CopyInProgress> it = this.inProgress.iterator();
+            while (it.hasNext()) {
+                CopyInProgress cip = it.next();
+                if (cip.c == c) {
+                    it.remove();
+                    loc = cip.loc;
+                    break;
+                }
             }
         }
-
         return loc;
     }
 
@@ -935,9 +942,11 @@ public class LogicalData {
      * @param listener Copy listener
      */
     public synchronized void notifyToInProgressCopiesEnd(SafeCopyListener listener) {
-        for (CopyInProgress cip : this.inProgress) {
-            listener.addOperation();
-            cip.c.addEventListener(listener);
+        synchronized (this.inProgress) {
+            for (CopyInProgress cip : this.inProgress) {
+                listener.addOperation();
+                cip.c.addEventListener(listener);
+            }
         }
     }
 

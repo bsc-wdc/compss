@@ -72,7 +72,7 @@ import storage.StorageItf;
 
 public class Agent {
 
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.API);
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.AGENT);
 
     private static final String AGENT_NAME;
 

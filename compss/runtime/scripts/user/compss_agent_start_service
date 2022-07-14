@@ -469,19 +469,19 @@ check_agent() {
 
   local retries=${NUM_CHECK_RETRIES}
 
-  curl -XGET "http://127.0.0.1:${agent_rest_port}/COMPSs/test" 1>/dev/null 2>/dev/null
-  while [ ! "$?" == "0" ] && [ "${retries}" -gt "0" ]; do
-    sleep 1
-    retries=$((retries - 1 ))
+  while [ "${retries}" -gt "0" ]; do
     curl -XGET "http://127.0.0.1:${agent_rest_port}/COMPSs/test" 1>/dev/null 2>/dev/null
-  done
-
-  RESULT=$(grep "test invoked" "${agent_log_output}")
-  while [ -z "${RESULT}" ] && [ "${retries}" -gt "0" ]; do
+    ev_curl=$?
     sleep 1
+    if [ "${ev_curl}" -eq "0" ]; then
+      RESULT=$(grep "test invoked" "${agent_log_output}")
+      if [ -n "${RESULT}" ]; then
+        retries=0
+      fi
+    fi
     retries=$((retries - 1 ))
-    RESULT=$(grep "test invoked" "${agent_log_output}")
   done
+  
   if [ -z "${RESULT}" ]; then
     fatal_error "${agent_name} failed to start" >> "${error_log}" 1
   fi

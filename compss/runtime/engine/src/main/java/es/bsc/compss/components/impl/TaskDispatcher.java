@@ -353,9 +353,16 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
         if (DEBUG) {
             LOGGER.debug("Registering new CoreElement");
         }
+
         Semaphore sem = new Semaphore(0);
 
         CERegistration request = new CERegistration(ced, sem);
+        if (request.isUseful()) {
+            if (DEBUG) {
+                LOGGER.debug("All implementations of CoreElement " + ced.getCeSignature() + " already registered");
+            }
+            return;
+        }
         addRequest(request);
 
         // Waiting for registration

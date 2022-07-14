@@ -25,6 +25,7 @@ import es.bsc.compss.types.implementations.ImplementationDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
 
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -70,6 +71,49 @@ public class CoreManager {
      */
     public static int getCoreCount() {
         return coreCount;
+    }
+
+    /**
+     * checks whether the core element passed in as parameter is already registered or not.
+     * 
+     * @param ced Core Element Definition with its implementations.
+     * @return {@literal true}, if the core element is already registered with all the implementations; {@literal false}
+     *         otherwise.
+     */
+    public static boolean isRegisteredCoreElement(CoreElementDefinition ced) {
+        String ceSignature = ced.getCeSignature();
+        // Check that the signature is valid
+        if (ceSignature == null || ceSignature.isEmpty()) {
+            return false;
+        }
+        CoreElement coreElement = SIGNATURE_TO_CORE.get(ceSignature);
+        if (coreElement == null) {
+            return false;
+        }
+        boolean done = false;
+        while (!done) {
+            try {
+                for (ImplementationDescription<?, ?> implDef : ced.getImplementations()) {
+                    String newSignature = implDef.getSignature();
+                    boolean exists = false;
+                    for (Implementation impl : coreElement.getImplementations()) {
+                        String registeredSignature = impl.getSignature();
+                        if (registeredSignature.compareTo(newSignature) == 0) {
+                            exists = true;
+                            break;
+                        }
+                    }
+
+                    if (!exists) {
+                        return false;
+                    }
+                }
+                done = true;
+            } catch (ConcurrentModificationException cme) {
+                // Do nothing. It will retry
+            }
+        }
+        return true;
     }
 
     /**

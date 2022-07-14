@@ -121,6 +121,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
                             Object[] parameters = entpc.getParameters();
                             if (this.appId == null) {
                                 this.appId = this.context.getRuntimeAPI().registerApplication(null, this);
+                                LOGGER.info("Job " + this.invocation.getJobId() + " becomes app " + appId);
                             }
                             int numNodes = entpc.getNumNodes();
                             boolean isReduce = entpc.isReduce();
@@ -259,6 +260,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
                             boolean barrier = otgpc.isImplicitBarrier();
                             if (this.appId == null) {
                                 this.appId = this.context.getRuntimeAPI().registerApplication(null, this);
+                                LOGGER.info("Job " + this.invocation.getJobId() + " becomes app " + appId);
                             }
                             this.context.getRuntimeAPI().openTaskGroup(groupName, barrier, this.appId);
 

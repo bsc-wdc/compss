@@ -96,6 +96,7 @@ compss_agent_start \
     curl -XGET http://127.0.0.1:46101/COMPSs/test 1>/dev/null 2>/dev/null
   done
 
+  sleep 1
   RESULT=$(grep "test invoked" "${agent1_output_log}")
   if [ -z "${RESULT}" ]; then  
      echo "Agent failed to start" > >(tee -a "${error_log}")

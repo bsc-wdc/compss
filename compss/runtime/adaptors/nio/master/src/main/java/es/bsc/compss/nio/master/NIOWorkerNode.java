@@ -553,7 +553,7 @@ public class NIOWorkerNode extends COMPSsWorker {
     }
 
     private void orderCopy(DeferredCopy c, COMPSsNode tgtNode) {
-        LOGGER.info("Order Copy for " + c.getSourceData());
+        LOGGER.info("Order Copy for " + c.getSourceData().getName());
 
         Resource tgtRes = null;
         for (Resource r : c.getTargetLoc().getHosts()) {

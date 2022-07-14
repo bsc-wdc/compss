@@ -15,6 +15,9 @@ class Resource:
         self.hosted = []
         self.history = [[timestamp, "CREATED"]]
 
+    def get_name(self):
+        return self.name
+        
     def host(self, action, timestamp):
         self.hosts.append(action)
         self.history.append([timestamp, "HOSTS "+str(action)])

@@ -510,8 +510,10 @@ public class Comm {
         LogicalData ld2 = DATA.get(dataId2);
         if (ld != null) {
             if (ld2 != null) {
-                DATA.put(dataId2, ld);
-                LogicalData.link(ld, ld2);
+                if (!ld.isAlias(ld2)) {
+                    DATA.put(dataId2, ld);
+                    LogicalData.link(ld, ld2);
+                }
             } else {
                 DATA.put(dataId2, ld);
                 ld.addKnownAlias(dataId2);

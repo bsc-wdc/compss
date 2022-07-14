@@ -1,0 +1,53 @@
+#!/bin/bash -e
+
+  #############################################################
+  # Name: buildHawk
+  # Description: SCRIPT FOR Hawk COMPSs BUILD
+  # Parameters: <Hawk_user> Hawk user account. Preferable with ssh keys inserted
+  #             <FullTmpPath> Tmp path on Hawk for deployment
+  #             <FullTargetPath> Base Target Installation folder on Hawk
+  #############################################################
+
+  ####################
+  # FUNCTIONS
+  ####################
+  usage() {
+    echo " Usage: buildHawk <Hawk_user> <FullTmpPath> <FullTargetPath>"
+    echo " "
+  }
+
+
+  ####################
+  # MAIN
+  ####################
+  # Get parameters
+  if [ $# -eq 1 ]; then
+    if [ "$1" == "usage" ]; then
+      usage
+      exit 0
+    fi
+  fi
+  if [ $# -ne 3 ]; then
+    echo "Incorrect number of parameters"
+    usage
+    exit 1
+  fi
+
+  # SET SCRIPT VARIABLES
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+  Hawkuser=$1
+  HawktmpDir=$2
+  HawktargetDir=$3
+  HawkloginNode=hawk-login03.hww.hlrs.de
+  HawkauxScript=${SCRIPT_DIR}/buildHawk_aux
+  PRELOAD_ENV=""
+
+  # Perform installation
+  cd "${SCRIPT_DIR}"/../commons/
+  ./buildSC "${Hawkuser}" "${HawkloginNode}" "${HawktmpDir}" "${HawktargetDir}" "${HawkauxScript}" "${PRELOAD_ENV}"
+  exitStatus=$?
+  cd "${SCRIPT_DIR}"
+
+  # END
+  exit $exitStatus

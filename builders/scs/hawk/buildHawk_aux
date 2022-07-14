@@ -1,0 +1,62 @@
+#!/bin/bash
+
+  #############################################################
+  # Name: buildHawk_aux
+  # Description: SCRIPT FOR LOCAL COMPSs BUILD in Hawk
+  # Parameters: <targetDir> Base Target Installation folder
+  #
+  # ATTENTION: DO NOT EXECUTE THIS FILE. IT IS AUTOMATICALLY
+  #            EXECUTED FROM buildHawk script
+  #############################################################
+
+  usage() {
+    echo "Incorrect number of parameters"
+    echo " Usage: buildHawk_aux <FullTargetPath>"
+    echo " "
+    exit 1
+  }
+
+  ####################
+  # MAIN
+  ####################
+  # Get parameters
+  if [ $# -ne 1 ]; then
+    usage
+  fi
+
+  # SET SCRIPT VARIABLES
+  targetDir=$1
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+  # DEFINE MODULES
+  modules="system/site_names system/ws/1.4.0 system/wrappers/1.0 gcc/9.2.0 mpt/2.23 papi/df751da6d743 boost/1.70.0"
+  unload_before_python="ignore"
+  # Plain python modules:
+  run_before_py3_modules="ignore"
+  py3_modules="python/3.8"
+  run_before_py3_other_modules="ignore"
+  py3_other_modules="ignore"
+
+  # DEFINE CONFIGURATION PARAMETERS
+  #(Environment vars must be scaped to get the correct value if not it could take a value previous to load the modules)
+  additionalExports="export JAVA_HOME=/zhome/academic/HLRS/pri/iprjacon/Depedencies/jdk1.8.0_201/ PATH=/zhome/academic/HLRS/pri/iprjacon/Depedencies/jdk1.8.0_201/bin:\$PATH"
+
+  additional_module_use_folder="ignore"
+  queues_cfg="hawk.cfg"
+  extrae_with_openmpi="false"
+  openmpi_version="/4.0.5"
+  extrae_with_impi="false"
+  impi_version="/19.1.0"
+  autoparallel="false"
+  c_binding="true"
+
+  # CALL buildSC_aux
+  "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${unload_before_python}" "${run_before_py3_modules}" "${py3_modules}" "${run_before_py3_other_modules}" "${py3_other_modules}" "${additionalExports}" "${additional_module_use_folder}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "${autoparallel}" "${c_binding}"
+  ev=$?
+
+  # End
+  if [ $ev -ne 0 ]; then
+    echo "ERROR: Exception in auxiliar script"
+    exit $ev
+  fi
+  exit 0

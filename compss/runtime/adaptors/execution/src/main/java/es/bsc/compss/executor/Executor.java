@@ -174,11 +174,6 @@ public class Executor implements Runnable, InvocationRunner {
      */
     @Override
     public void run() {
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.EXECUTOR_COUNTS);
-            Tracer.emitEvent(TraceEvent.EXECUTOR_THREAD_ID);
-            Tracer.disablePThreads(1);
-        }
         start();
 
         // Main loop to process requests
@@ -186,11 +181,6 @@ public class Executor implements Runnable, InvocationRunner {
 
         // Close language specific properties
         finish();
-
-        if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(TraceEvent.EXECUTOR_COUNTS);
-            Tracer.emitEventEnd(TraceEvent.EXECUTOR_THREAD_ID);
-        }
     }
 
     /**

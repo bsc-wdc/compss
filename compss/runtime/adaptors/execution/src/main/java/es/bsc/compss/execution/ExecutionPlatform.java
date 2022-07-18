@@ -32,6 +32,7 @@ import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableResourcesException;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.types.tracing.TraceEventType;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.utils.execution.ThreadedProperties;
 import es.bsc.compss.worker.COMPSsException;
@@ -239,21 +240,34 @@ public class ExecutionPlatform implements ExecutorContext {
                 Tracer.enablePThreads(numWorkerThreads);
             }
             for (int i = 0; i < numWorkerThreads; i++) {
-                int id = this.nextThreadId++;
-                Executor executor = new Executor(this.context, this, "executor" + id) {
+                int executorId = this.nextThreadId++;
+                Executor executor = new Executor(this.context, this, "executor" + executorId) {
 
                     @Override
                     public void run() {
+                        if (Tracer.isActivated()) {
+                            Tracer.emitEvent(TraceEvent.EXECUTOR_COUNTS);
+                            Tracer.emitEvent(TraceEvent.EXECUTOR_THREAD_ID);
+                            Tracer.emitEvent(TraceEventType.EXECUTOR_IDENTIFICATION, executorId);
+                            Tracer.emitEvent(TraceEvent.EXECUTOR_ACTIVE);
+                            Tracer.disablePThreads(1);
+                        }
                         startSem.release();
                         super.run();
                         synchronized (ExecutionPlatform.this) {
                             ExecutionPlatform.this.finishedWorkerThreads.add(Thread.currentThread());
                         }
                         ExecutionPlatform.this.stopSemaphore.release();
+                        if (Tracer.isActivated()) {
+                            Tracer.emitEventEnd(TraceEvent.EXECUTOR_ACTIVE);
+                            Tracer.emitEventEnd(TraceEvent.EXECUTOR_COUNTS);
+                            Tracer.emitEventEnd(TraceEvent.EXECUTOR_THREAD_ID);
+                        }
                     }
+
                 };
                 Thread t = new Thread(executor);
-                t.setName(this.platformName + " executor thread # " + id);
+                t.setName(this.platformName + " executor thread # " + executorId);
                 this.workerThreads.add(t);
                 if (this.started) {
                     t.start();
@@ -395,7 +409,13 @@ public class ExecutionPlatform implements ExecutorContext {
                     ExecutionPlatform.this.numFrozenThreads++;
                     freezeSem.release();
                 }
+                if (Tracer.isActivated()) {
+                    Tracer.emitEventEnd(TraceEvent.EXECUTOR_ACTIVE);
+                }
                 ExecutionPlatform.this.frozenSemaphore.acquireUninterruptibly();
+                if (Tracer.isActivated()) {
+                    Tracer.emitEvent(TraceEvent.EXECUTOR_ACTIVE);
+                }
             }
         };
         for (int i = 0; i < numThreads; i++) {

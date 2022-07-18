@@ -504,7 +504,8 @@ def execute_task(
     log_files: tuple,
     python_mpi: bool = False,
     collections_layouts: typing.Optional[dict] = None,
-    cache_queue: typing.Any = None,
+    in_cache_queue: typing.Any = None,
+    out_cache_queue: typing.Any = None,
     cache_ids: typing.Any = None,
     cache_profiler: bool = False,
 ) -> typing.Tuple[int, list, list, typing.Optional[bool], str]:
@@ -520,7 +521,8 @@ def execute_task(
                       None to avoid stdout and sdterr fd redirection.
     :param python_mpi: If it is a MPI task.
     :param collections_layouts: collections layouts for python MPI tasks.
-    :param cache_queue: Cache tracker communication queue.
+    :param in_cache_queue: Cache tracker input communication queue.
+    :param out_cache_queue: Cache tracker output communication queue.
     :param cache_ids: Cache proxy dictionary (read-only).
     :param cache_profiler: Cache profiler.
     :return: updated_args, exit_code, new_types, new_values, timed_out
@@ -569,7 +571,7 @@ def execute_task(
         "compss_log_files": log_files,
         "compss_python_MPI": python_mpi,
         "compss_collections_layouts": collections_layouts,
-        "compss_cache": (cache_queue, cache_ids, cache_profiler),
+        "compss_cache": (in_cache_queue, out_cache_queue, cache_ids, cache_profiler),
     }
 
     if __debug__:

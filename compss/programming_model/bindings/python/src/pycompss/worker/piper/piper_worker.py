@@ -128,13 +128,20 @@ def compss_persistent_worker(config: PiperWorkerConfiguration, tracing: bool) ->
 
     # Setup cache
     CACHE = False
-    cache_ids, cache_queue = None, None
+    cache_ids, in_cache_queue, out_cache_queue = None, None, None
     if is_cache_enabled(str(config.cache)):
         # Deploy the necessary processes
         CACHE = True
         cache_params = start_cache(logger, str(config.cache), cache_profiler, log_dir)
-        smm, cache_process, cache_queue_act, cache_ids = cache_params
-        cache_queue = cache_queue_act
+        (
+            smm,
+            cache_process,
+            in_cache_queue_act,
+            out_cache_queue_act,
+            cache_ids,
+        ) = cache_params
+        in_cache_queue = in_cache_queue_act
+        out_cache_queue = out_cache_queue_act
         CACHE_PROCESS = cache_process
 
     # Create new executor processes
@@ -151,7 +158,8 @@ def compss_persistent_worker(config: PiperWorkerConfiguration, tracing: bool) ->
         config.stream_master_name,
         config.stream_master_port,
         cache_ids,
-        cache_queue,
+        in_cache_queue,
+        out_cache_queue,
         cache_profiler,
     )
 
@@ -242,9 +250,12 @@ def compss_persistent_worker(config: PiperWorkerConfiguration, tracing: bool) ->
         queue.join_thread()
 
     if CACHE:
-        # Beware of smm, cache_queue_act and cache_process variables, since they
-        # are only initialized when cache is enabled. Reason for noqa.
-        stop_cache(smm, cache_queue_act, cache_profiler, cache_process)  # noqa
+        # Beware of smm, in_cache_queue_act, out_cache_queue_act and
+        # cache_process variables, since they are only initialized when
+        # cache is enabled. Reason for noqa.
+        stop_cache(
+            smm, in_cache_queue_act, out_cache_queue_act, cache_profiler, cache_process
+        )  # noqa
 
     if persistent_storage:
         # Finish storage
@@ -277,7 +288,9 @@ def create_executor_process(
     """
     queue = new_queue()
     process = create_process(
-        target=executor, args=(queue, executor_id, executor_name, pipe, conf)
+        target=executor,
+        args=(queue, executor_id, executor_name, pipe, conf),
+        prepend_lock=True,
     )
     PROCESSES[pipe.input_pipe] = process
     process.start()

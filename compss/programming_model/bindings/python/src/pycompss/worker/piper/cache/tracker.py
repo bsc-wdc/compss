@@ -26,6 +26,7 @@ IMPORTANT: Only used with python >= 3.8.
 
 
 import os
+import time
 from multiprocessing import Queue
 
 from pycompss.util.exceptions import PyCOMPSsException
@@ -155,8 +156,8 @@ class CacheTracker:
         "shared_memory_tag",
         "shareable_list_tag",
         "shareable_tuple_tag",
-        "shareable_dict_tag",
         "config",
+        "lock",
     ]
 
     def __init__(self):
@@ -168,10 +169,18 @@ class CacheTracker:
         self.shared_memory_tag = "SharedMemory"
         self.shareable_list_tag = "ShareableList"
         self.shareable_tuple_tag = "ShareableTuple"
-        # Currently, dicts are unsupported since conversion requires nesting of lists.
-        self.shareable_dict_tag = "ShareableTuple"
         # Configuration
         self.config = SharedMemoryConfig()
+        # Others
+        self.lock = None  # type: typing.Any
+
+    def set_lock(self, lock):
+        """Set lock for coherence.
+
+        :param lock: Multiprocessing lock.
+        :return: None
+        """
+        self.lock = lock
 
     def connect_to_shared_memory_manager(self) -> None:
         """Connect to the main shared memory manager initiated in piper_worker.py.
@@ -275,7 +284,8 @@ class CacheTracker:
         self,
         logger: typing.Any,
         cache_ids: typing.Any,
-        cache_queue: Queue,
+        in_cache_queue: Queue,
+        out_cache_queue: Queue,
         identifier: str,
         parameter_name: str,
         user_function: typing.Callable,
@@ -285,7 +295,8 @@ class CacheTracker:
 
         :param logger: Logger where to push messages.
         :param cache_ids: Cache proxy dictionary.
-        :param cache_queue: Cache notification queue.
+        :param in_cache_queue: Cache notification input queue.
+        :param out_cache_queue: Cache notification output queue.
         :param identifier: Object identifier.
         :param parameter_name: Parameter name.
         :param user_function: Function name.
@@ -319,10 +330,6 @@ class CacheTracker:
                 existing_shm = ShareableList(name=obj_id)
                 output = tuple(existing_shm)
                 object_size = len(existing_shm.shm.buf)
-            # Currently, unsupported since conversion requires lists of lists.
-            # elif shared_type == self.shareable_dict_tag:
-            #     existing_shm = ShareableList(name=obj_id)
-            #     output = dict(existing_shm)
             else:
                 raise PyCOMPSsException("Unknown cacheable type.")
             if __debug__:
@@ -334,8 +341,8 @@ class CacheTracker:
             # Profiling
             filename = __filename_cleaned__(identifier)
             function_name = __function_cleaned__(user_function)
-            if cache_profiler:
-                cache_queue.put(("GET", (filename, parameter_name, function_name)))
+
+            in_cache_queue.put(("GET", (filename, parameter_name, function_name)))
 
             # Add hit
             cache_ids[identifier][4] = obj_hits + 1
@@ -344,7 +351,8 @@ class CacheTracker:
     def insert_object_into_cache_wrapper(
         self,
         logger: typing.Any,
-        cache_queue: Queue,
+        in_cache_queue: Queue,
+        out_cache_queue: Queue,
         obj: typing.Any,
         f_name: str,
         parameter: str,
@@ -353,7 +361,8 @@ class CacheTracker:
         """Put an object into cache filtering supported types.
 
         :param logger: Logger where to push messages.
-        :param cache_queue: Cache notification queue.
+        :param in_cache_queue: Cache notification input queue.
+        :param out_cache_queue: Cache notification output queue.
         :param obj: Object to store.
         :param f_name: File name that corresponds to the object (used as id).
         :param parameter: Parameter name.
@@ -362,21 +371,30 @@ class CacheTracker:
         """
         if (
             NP
-            and cache_queue is not None
-            and (
-                (isinstance(obj, NP.ndarray) and not obj.dtype == object)
-                or isinstance(obj, (list, tuple))
-            )
+            and in_cache_queue is not None
+            and out_cache_queue is not None
+            and isinstance(obj, NP.ndarray)
+            and not obj.dtype == object
+            # and (
+            #     (isinstance(obj, NP.ndarray) and not obj.dtype == object)
+            #     or isinstance(obj, (list, tuple))
+            # )
         ):
-            # or isinstance(obj, dict)):
             self.insert_object_into_cache(
-                logger, cache_queue, obj, f_name, parameter, user_function
+                logger,
+                in_cache_queue,
+                out_cache_queue,
+                obj,
+                f_name,
+                parameter,
+                user_function,
             )
 
     def insert_object_into_cache(
         self,
         logger: typing.Any,
-        cache_queue: Queue,
+        in_cache_queue: Queue,
+        out_cache_queue: Queue,
         obj: typing.Any,
         f_name: str,
         parameter: str,
@@ -385,156 +403,170 @@ class CacheTracker:
         """Put an object into cache.
 
         :param logger: Logger where to push messages.
-        :param cache_queue: Cache notification queue.
+        :param in_cache_queue: Cache notification input queue.
+        :param out_cache_queue: Cache notification output queue.
         :param obj: Object to store.
         :param f_name: File name that corresponds to the object (used as id).
         :param parameter: Parameter name.
         :param user_function: Function.
         :return: None.
         """
-        with EventInsideWorker(TRACING_WORKER.insert_object_into_cache_event):
-            function = __function_cleaned__(user_function)
-            f_name = __get_file_name__(f_name)
+        function = __function_cleaned__(user_function)
+        f_name = __get_file_name__(f_name)
+        # Exclusion in locking to avoid multiple insertions
+        # If no lock is defined may lead to unstable behaviour.
+        if self.lock is not None:
+            self.lock.acquire()
+        in_cache_queue.put(("IS_LOCKED", f_name))
+        is_locked = out_cache_queue.get()
+        in_cache_queue.put(("IS_IN_CACHE", f_name))
+        is_in_cache = out_cache_queue.get()
+        if not is_locked and not is_in_cache:
+            in_cache_queue.put(("LOCK", f_name))
+        if self.lock is not None:
+            self.lock.release()
+        if is_locked:
             if __debug__:
                 logger.debug(
-                    "%s Inserting into cache (%s): %s",
+                    "%s Not inserting into cache due to it is being inserted by other process: %s",
                     self.header,
-                    str(type(obj)),
                     str(f_name),
                 )
-            try:
-                inserted = True
-                if isinstance(obj, NP.ndarray):
-                    emit_manual_event_explicit(
-                        TRACING_WORKER.binding_serialization_cache_size_type, 0
-                    )
-                    shape = obj.shape
-                    d_type = obj.dtype
-                    size = obj.nbytes
-                    shm = self.shared_memory_manager.SharedMemory(size=size)  # noqa
-                    within_cache = NP.ndarray(shape, dtype=d_type, buffer=shm.buf)
-                    within_cache[:] = obj[:]  # Copy contents
-                    new_cache_id = shm.name
-                    cache_queue.put(
-                        (
-                            "PUT",
-                            (
-                                f_name,
-                                new_cache_id,
-                                shape,
-                                d_type,
-                                size,
-                                self.shared_memory_tag,
-                                parameter,
-                                function,
-                            ),
-                        )
-                    )
-                elif isinstance(obj, list):
-                    emit_manual_event_explicit(
-                        TRACING_WORKER.binding_serialization_cache_size_type, 0
-                    )
-                    shareable_list = self.shared_memory_manager.ShareableList(
-                        obj
-                    )  # noqa
-                    new_cache_id = shareable_list.shm.name
-                    size = total_sizeof(obj)
-                    cache_queue.put(
-                        (
-                            "PUT",
-                            (
-                                f_name,
-                                new_cache_id,
-                                0,
-                                0,
-                                size,
-                                self.shareable_list_tag,
-                                parameter,
-                                function,
-                            ),
-                        )
-                    )
-                elif isinstance(obj, tuple):
-                    emit_manual_event_explicit(
-                        TRACING_WORKER.binding_serialization_cache_size_type, 0
-                    )
-                    shareable_list = self.shared_memory_manager.ShareableList(
-                        obj
-                    )  # noqa
-                    new_cache_id = shareable_list.shm.name
-                    size = total_sizeof(obj)
-                    cache_queue.put(
-                        (
-                            "PUT",
-                            (
-                                f_name,
-                                new_cache_id,
-                                0,
-                                0,
-                                size,
-                                self.shareable_tuple_tag,
-                                parameter,
-                                function,
-                            ),
-                        )
-                    )
-                # Unsupported dicts since they are lists of lists when converted.
-                # elif isinstance(obj, dict):
-                #     # Convert dict to list of tuples
-                #     list_tuples = list(zip(obj.keys(), obj.values()))
-                #     sl = SHARED_MEMORY_MANAGER.ShareableList(list_tuples)  # noqa
-                #     new_cache_id = sl.shm.name
-                #     size = total_sizeof(obj)
-                #     cache_queue.put(
-                #         (
-                #             "PUT",
-                #             (
-                #                 f_name,
-                #                 new_cache_id,
-                #                 0,
-                #                 0,
-                #                 size,
-                #                 self.shareable_dict_tag,
-                #                 parameter,
-                #                 function
-                #             ),
-                #         )
-                #     )
-                else:
-                    inserted = False
-                    if __debug__:
-                        logger.debug(
-                            "%s Can not put into cache: Not a [NP.ndarray | list | tuple ] object",
-                            self.header,
-                        )
-                if inserted:
-                    emit_manual_event_explicit(
-                        TRACING_WORKER.binding_serialization_cache_size_type, size
-                    )
-                if __debug__ and inserted:
-                    logger.debug(
-                        "%s Inserted into cache: %s as %s",
-                        self.header,
-                        str(f_name),
-                        str(new_cache_id),
-                    )
-            except KeyError as key_error:  # noqa
+        elif is_in_cache:
+            if __debug__:
+                logger.debug(
+                    "%s Not inserting into cache due already exists in cache: %s",
+                    self.header,
+                    str(f_name),
+                )
+        else:
+            # Not locked and not in cache
+            with EventInsideWorker(TRACING_WORKER.insert_object_into_cache_event):
                 if __debug__:
                     logger.debug(
-                        "%s Can not put into cache. It may be a "
-                        "[NP.ndarray | list | tuple ] object containing "
-                        "an unsupported type",
+                        "%s Inserting into cache (%s): %s",
                         self.header,
+                        str(type(obj)),
+                        str(f_name),
                     )
-                    logger.debug(str(key_error))
+                try:
+                    inserted = True
+                    if isinstance(obj, NP.ndarray):
+                        emit_manual_event_explicit(
+                            TRACING_WORKER.binding_serialization_cache_size_type, 0
+                        )
+                        shape = obj.shape
+                        d_type = obj.dtype
+                        size = obj.nbytes
+                        shm = self.shared_memory_manager.SharedMemory(size=size)
+                        within_cache = NP.ndarray(shape, dtype=d_type, buffer=shm.buf)
+                        within_cache[:] = obj[:]  # Copy contents
+                        new_cache_id = shm.name
+                        in_cache_queue.put(
+                            (
+                                "PUT",
+                                (
+                                    f_name,
+                                    new_cache_id,
+                                    shape,
+                                    d_type,
+                                    size,
+                                    self.shared_memory_tag,
+                                    parameter,
+                                    function,
+                                ),
+                            )
+                        )
+                    elif isinstance(obj, list):
+                        emit_manual_event_explicit(
+                            TRACING_WORKER.binding_serialization_cache_size_type, 0
+                        )
+                        shareable_list = self.shared_memory_manager.ShareableList(
+                            obj
+                        )  # noqa
+                        new_cache_id = shareable_list.shm.name
+                        size = total_sizeof(obj)
+                        in_cache_queue.put(
+                            (
+                                "PUT",
+                                (
+                                    f_name,
+                                    new_cache_id,
+                                    0,
+                                    0,
+                                    size,
+                                    self.shareable_list_tag,
+                                    parameter,
+                                    function,
+                                ),
+                            )
+                        )
+                    elif isinstance(obj, tuple):
+                        emit_manual_event_explicit(
+                            TRACING_WORKER.binding_serialization_cache_size_type, 0
+                        )
+                        shareable_list = self.shared_memory_manager.ShareableList(
+                            obj
+                        )  # noqa
+                        new_cache_id = shareable_list.shm.name
+                        size = total_sizeof(obj)
+                        in_cache_queue.put(
+                            (
+                                "PUT",
+                                (
+                                    f_name,
+                                    new_cache_id,
+                                    0,
+                                    0,
+                                    size,
+                                    self.shareable_tuple_tag,
+                                    parameter,
+                                    function,
+                                ),
+                            )
+                        )
+                    else:
+                        inserted = False
+                        if __debug__:
+                            logger.debug(
+                                "%s Can not put into cache: Not a [NP.ndarray | list | tuple ] object",
+                                self.header,
+                            )
+                    if inserted:
+                        emit_manual_event_explicit(
+                            TRACING_WORKER.binding_serialization_cache_size_type,
+                            size,
+                        )
+                    if __debug__ and inserted:
+                        logger.debug(
+                            "%s Inserted into cache: %s as %s",
+                            self.header,
+                            str(f_name),
+                            str(new_cache_id),
+                        )
+                except KeyError as key_error:  # noqa
+                    if __debug__:
+                        logger.debug(
+                            "%s Can not put into cache. It may be a "
+                            "[NP.ndarray | list | tuple ] object containing "
+                            "an unsupported type",
+                            self.header,
+                        )
+                        logger.debug(str(key_error))
+                in_cache_queue.put(("UNLOCK", f_name))
 
     def remove_object_from_cache(
-        self, logger: typing.Any, cache_queue: Queue, f_name: str
+        self,
+        logger: typing.Any,
+        in_cache_queue: Queue,
+        out_cache_queue: Queue,
+        f_name: str,
     ) -> None:
         """Remove an object from cache.
 
         :param logger: Logger where to push messages.
-        :param cache_queue: Cache notification queue.
+        :param in_cache_queue: Cache notification input queue.
+        :param out_cache_queue: Cache notification output queue.
         :param f_name: File name that corresponds to the object (used as id).
         :return: None.
         """
@@ -542,14 +574,15 @@ class CacheTracker:
             f_name = __get_file_name__(f_name)
             if __debug__:
                 logger.debug("%s Removing from cache: %s", self.header, str(f_name))
-            cache_queue.put(("REMOVE", f_name))
+            in_cache_queue.put(("REMOVE", f_name))
             if __debug__:
                 logger.debug("%s Removed from cache: %s", self.header, str(f_name))
 
     def replace_object_into_cache(
         self,
         logger: typing.Any,
-        cache_queue: Queue,
+        in_cache_queue: Queue,
+        out_cache_queue: Queue,
         obj: typing.Any,
         f_name: str,
         parameter: str,
@@ -558,7 +591,8 @@ class CacheTracker:
         """Put an object into cache.
 
         :param logger: Logger where to push messages.
-        :param cache_queue: Cache notification queue.
+        :param in_cache_queue: Cache notification input queue.
+        :param out_cache_queue: Cache notification output queue.
         :param obj: Object to store.
         :param f_name: File name that corresponds to the object (used as id).
         :param parameter: Parameter name.
@@ -568,23 +602,32 @@ class CacheTracker:
         f_name = __get_file_name__(f_name)
         if __debug__:
             logger.debug("%s Replacing from cache: %s", self.header, str(f_name))
-        self.remove_object_from_cache(logger, cache_queue, f_name)
+        self.remove_object_from_cache(logger, in_cache_queue, out_cache_queue, f_name)
         self.insert_object_into_cache(
-            logger, cache_queue, obj, f_name, parameter, user_function
+            logger,
+            in_cache_queue,
+            out_cache_queue,
+            obj,
+            f_name,
+            parameter,
+            user_function,
         )
         if __debug__:
             logger.debug("%s Replaced from cache: %s", self.header, str(f_name))
 
-    @staticmethod
-    def in_cache(f_name: str, cache: typing.Any) -> bool:
+    def in_cache(self, logger: typing.Any, f_name: str, cache: typing.Any) -> bool:
         """Check if the given file name is in the cache.
 
+        :param logger: Logger where to push messages.
         :param f_name: Absolute file name.
         :param cache: Proxy dictionary cache.
         :return: True if in. False otherwise.
         """
+        # It can be checked if it is locked and wait for it to be unlocked
         if cache:
             f_name = __get_file_name__(f_name)
+            if __debug__:
+                logger.debug("%s Is in cache? %s", self.header, str(f_name))
             return f_name in cache
         return False
 
@@ -592,10 +635,13 @@ class CacheTracker:
 CACHE_TRACKER = CacheTracker()
 
 
-def cache_tracker(queue: Queue, process_name: str, conf: CacheTrackerConf) -> None:
+def cache_tracker(
+    in_queue: Queue, out_queue: Queue, process_name: str, conf: CacheTrackerConf
+) -> None:
     """Process main body.
 
-    :param queue: Queue where to put exception messages.
+    :param in_queue: Queue where to retrieve queue messages.
+    :param out_queue: Queue where to put output messages.
     :param process_name: Process name.
     :param conf: configuration of the cache tracker.
     :return: None.
@@ -623,8 +669,9 @@ def cache_tracker(queue: Queue, process_name: str, conf: CacheTrackerConf) -> No
 
     # MAIN CACHE TRACKER LOOP
     used_size = 0
+    locked = set()  # set containing the locked entries
     while alive:
-        msg = queue.get()
+        msg = in_queue.get()
         if msg == "QUIT":
             if __debug__:
                 logger.debug(
@@ -641,16 +688,48 @@ def cache_tracker(queue: Queue, process_name: str, conf: CacheTrackerConf) -> No
             try:
                 action, message = msg
                 if action == "GET":
-                    if cache_profiler:
-                        filename, parameter, function = message
-                        # PROFILER GET
-                        add_profiler_get_put(
-                            profiler_dict, function, parameter, filename, "GET"
-                        )
-                        # PROFILER GET STRUCTURE
-                        add_profiler_get_struct(
-                            profiler_get_struct, function, parameter, filename
-                        )
+                    f_name, parameter, function = message
+                    if f_name not in cache_ids:
+                        # The object does not exist in the Cache
+                        if __debug__:
+                            logger.debug(
+                                "%s [%s] Cache miss",
+                                CACHE_TRACKER.header,
+                                str(process_name),
+                            )
+                    else:
+                        if cache_profiler:
+                            # PROFILER GET
+                            add_profiler_get_put(
+                                profiler_dict, function, parameter, f_name, "GET"
+                            )
+                            # PROFILER GET STRUCTURE
+                            add_profiler_get_struct(
+                                profiler_get_struct, function, parameter, f_name
+                            )
+                        # Increment the number of hits
+                        if __debug__:
+                            logger.debug(
+                                "%s [%s] Cache hit",
+                                CACHE_TRACKER.header,
+                                str(process_name),
+                            )
+                        # Increment hits
+                        current = cache_ids[f_name]
+                        obj_size = current[3]
+                        current_hits = current[4]
+                        new_hits = current_hits + 1
+                        current[4] = new_hits
+                        cache_ids[f_name] = current  # forces updating whole entry
+                        # Keep cache_hits structure
+                        try:
+                            cache_hits[current_hits].pop(f_name)
+                        except KeyError:
+                            pass
+                        if new_hits in cache_hits:
+                            cache_hits[new_hits][f_name] = obj_size
+                        else:
+                            cache_hits[new_hits] = {f_name: obj_size}
                 if action == "PUT":
                     (
                         f_name,
@@ -663,34 +742,14 @@ def cache_tracker(queue: Queue, process_name: str, conf: CacheTrackerConf) -> No
                         function,
                     ) = message
                     if f_name in cache_ids:
-                        if cache_profiler:
-                            # PROFILER PUT
-                            add_profiler_get_put(
-                                profiler_dict,
-                                function,
-                                parameter,
-                                __filename_cleaned__(f_name),
-                                "PUT",
-                            )
-                        # Any executor has already put the id
+                        # The object already exists
                         if __debug__:
                             logger.debug(
-                                "%s [%s] Cache hit",
+                                "%s [%s] The object already exists NOT adding: %s",
                                 CACHE_TRACKER.header,
                                 str(process_name),
+                                str(msg),
                             )
-                        # Increment hits
-                        current = cache_ids[f_name]
-                        current_hits = current[4]
-                        new_hits = current_hits + 1
-                        current[4] = new_hits
-                        cache_ids[f_name] = current  # forces updating whole entry
-                        # Keep cache_hits structure
-                        cache_hits[current_hits].pop(f_name)
-                        if new_hits in cache_hits:
-                            cache_hits[new_hits][f_name] = obj_size
-                        else:
-                            cache_hits[new_hits] = {f_name: obj_size}
                     else:
                         # Add new entry request
                         if __debug__:
@@ -709,7 +768,6 @@ def cache_tracker(queue: Queue, process_name: str, conf: CacheTrackerConf) -> No
                                 __filename_cleaned__(f_name),
                                 "PUT",
                             )
-
                         # Check if it is going to fit and remove if necessary
                         obj_size = int(obj_size)
                         if used_size + obj_size > max_size:
@@ -741,6 +799,60 @@ def cache_tracker(queue: Queue, process_name: str, conf: CacheTrackerConf) -> No
                         str(f_name),
                     )
                     cache_ids.pop(f_name)
+                    # Remove from cache hits
+                    current = cache_ids[f_name]
+                    current_hits = current[4]
+                    cache_hits[current_hits].pop(f_name)
+                elif action == "LOCK":
+                    f_name = __get_file_name__(message)
+                    if f_name in locked:
+                        raise PyCOMPSsException(
+                            "Cache coherence issue: tried to lock an already locked file entry"
+                        )
+                    locked.add(f_name)
+                    logger.debug(
+                        "%s [%s] Locking: %s",
+                        CACHE_TRACKER.header,
+                        str(process_name),
+                        str(f_name),
+                    )
+                elif action == "UNLOCK":
+                    f_name = __get_file_name__(message)
+                    logger.debug(
+                        "%s [%s] Unlocking: %s",
+                        CACHE_TRACKER.header,
+                        str(process_name),
+                        str(f_name),
+                    )
+                    try:
+                        locked.remove(f_name)
+                    except KeyError:
+                        raise PyCOMPSsException(
+                            "Cache coherence issue: tried to remove locked but failed"
+                        )
+                elif action == "IS_LOCKED":
+                    f_name = __get_file_name__(message)
+                    is_locked = f_name in locked
+                    out_queue.put(is_locked)
+                    logger.debug(
+                        "%s [%s] Get if is locked: %s : %s",
+                        CACHE_TRACKER.header,
+                        str(process_name),
+                        str(f_name),
+                        str(is_locked),
+                    )
+                elif action == "IS_IN_CACHE":
+                    f_name = __get_file_name__(message)
+                    is_in_cache = f_name in cache_ids
+                    out_queue.put(is_in_cache)
+                    logger.debug(
+                        "%s [%s] Get if is in cache: %s : %s",
+                        CACHE_TRACKER.header,
+                        str(process_name),
+                        str(f_name),
+                        str(is_in_cache),
+                    )
+
             except Exception as general_exception:
                 logger.exception(
                     "%s - Exception %s", str(process_name), str(general_exception)

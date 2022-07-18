@@ -176,7 +176,8 @@ class ExecutorConf:
         "stream_master_ip",
         "stream_master_port",
         "cache_ids",
-        "cache_queue",
+        "in_cache_queue",
+        "out_cache_queue",
         "cache_profiler",
     ]
 
@@ -194,7 +195,8 @@ class ExecutorConf:
         stream_master_ip: str,
         stream_master_port: str,
         cache_ids: typing.Any = None,
-        cache_queue: Queue = None,
+        in_cache_queue: Queue = None,
+        out_cache_queue: Queue = None,
         cache_profiler: bool = False,
     ) -> None:
         """Construct a new executor configuration.
@@ -212,8 +214,9 @@ class ExecutorConf:
         :param stream_master_ip: Streaming master IP.
         :param stream_master_port: Streaming master port.
         :param cache_ids: Proxy cache dictionary.
-        :param cache_queue: Cache queue where to submit to add new entries to
-                            cache_ids.
+        :param in_cache_queue: Cache queue where to submit to add new entries to
+                               cache_ids.
+        :param out_cache_queue: Cache queue where to the cache returns info.
         """
         self.debug = debug
         self.tmp_dir = tmp_dir
@@ -227,7 +230,8 @@ class ExecutorConf:
         self.stream_master_ip = stream_master_ip
         self.stream_master_port = stream_master_port
         self.cache_ids = cache_ids  # Read-only
-        self.cache_queue = cache_queue
+        self.in_cache_queue = in_cache_queue
+        self.out_cache_queue = out_cache_queue
         self.cache_profiler = cache_profiler
 
 
@@ -237,6 +241,7 @@ class ExecutorConf:
 
 
 def executor(
+    lock: typing.Any,
     queue: typing.Union[None, Queue],
     process_id: int,
     process_name: str,
@@ -251,6 +256,7 @@ def executor(
     corresponding output value.
     Finishes when the "quit" message is received.
 
+    :param lock: Lock to ensure mutual exclusion.
     :param queue: Queue where to put exception messages.
     :param process_id: Process identifier (number that matches the java processes).
     :param process_name: Process name (Thread-X, where X is the thread id).
@@ -349,7 +355,8 @@ def executor(
                 raise general_exception from general_exception
 
         # Connect to Shared memory manager
-        if conf.cache_queue:
+        if conf.in_cache_queue and conf.out_cache_queue:
+            CACHE_TRACKER.set_lock(lock)
             CACHE_TRACKER.connect_to_shared_memory_manager()
 
         # Process properties
@@ -385,7 +392,8 @@ def executor(
                     storage_conf,
                     storage_loggers,
                     storage_loggers_handlers,
-                    conf.cache_queue,
+                    conf.in_cache_queue,
+                    conf.out_cache_queue,
                     conf.cache_ids,
                     conf.cache_profiler,
                 )
@@ -438,7 +446,8 @@ def process_message(
     storage_conf: str,
     storage_loggers: list,
     storage_loggers_handlers: list,
-    cache_queue: typing.Optional[Queue] = None,
+    in_cache_queue: typing.Optional[Queue] = None,
+    out_cache_queue: typing.Optional[Queue] = None,
     cache_ids: typing.Any = None,
     cache_profiler: bool = False,
 ) -> bool:
@@ -457,7 +466,8 @@ def process_message(
     :param storage_conf: Storage configuration.
     :param storage_loggers: Storage loggers.
     :param storage_loggers_handlers: Storage loggers handlers.
-    :param cache_queue: Cache tracker communication queue.
+    :param in_cache_queue: Cache tracker input communication queue.
+    :param out_cache_queue: Cache tracker output communication queue.
     :param cache_ids: Cache proxy dictionary (read-only).
     :param cache_profiler: Cache profiler.
     :return: True if processed successfully, False otherwise.
@@ -487,7 +497,8 @@ def process_message(
             storage_conf,
             storage_loggers,
             storage_loggers_handlers,
-            cache_queue,
+            in_cache_queue,
+            out_cache_queue,
             cache_ids,
             cache_profiler,
         )
@@ -524,7 +535,8 @@ def process_task(
     storage_conf: str,
     storage_loggers: list,
     storage_loggers_handlers: list,
-    cache_queue: typing.Optional[Queue],
+    in_cache_queue: typing.Optional[Queue],
+    out_cache_queue: typing.Optional[Queue],
     cache_ids: typing.Any,
     cache_profiler: bool,
 ) -> bool:
@@ -543,7 +555,8 @@ def process_task(
     :param storage_conf: Storage configuration.
     :param storage_loggers: Storage loggers.
     :param storage_loggers_handlers: Storage loggers handlers.
-    :param cache_queue: Cache tracker communication queue.
+    :param in_cache_queue: Cache tracker input communication queue.
+    :param out_cache_queue: Cache tracker output communication queue.
     :param cache_ids: Cache proxy dictionary (read-only).
     :param cache_profiler: Cache profiler.
     :return: True if processed successfully, False otherwise.
@@ -675,7 +688,8 @@ def process_task(
                 (job_out, job_err),
                 False,
                 None,
-                cache_queue,
+                in_cache_queue,
+                out_cache_queue,
                 cache_ids,
                 cache_profiler,
             )

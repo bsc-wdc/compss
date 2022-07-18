@@ -27,6 +27,7 @@ It helps to homogenize the behaviour between linux and mac.
 import multiprocessing
 from multiprocessing import Process  # Used only for typing
 from multiprocessing import Queue  # Used only for typing
+from multiprocessing import Semaphore  # Used for cache coherence
 
 from pycompss.util.typing_helper import typing
 
@@ -43,6 +44,10 @@ except ImportError:
     SharedMemoryManager = None  # type: ignore
 
 
+# Global variables
+LOCK = None
+
+
 def initialize_multiprocessing() -> None:
     """Set global mechanism to start multiprocessing processes.
 
@@ -53,6 +58,7 @@ def initialize_multiprocessing() -> None:
 
     :return: None
     """
+    global LOCK
     try:
         multiprocessing.set_start_method("fork")
     except AttributeError:
@@ -62,6 +68,8 @@ def initialize_multiprocessing() -> None:
     except RuntimeError:
         # Already initialized
         pass
+    manager = multiprocessing.Manager()
+    LOCK = manager.RLock()
 
 
 def new_process() -> Process:
@@ -88,13 +96,18 @@ def new_manager() -> typing.Any:
     return Manager()
 
 
-def create_process(target: typing.Any, args: tuple = ()) -> Process:
+def create_process(
+    target: typing.Any, args: tuple = (), prepend_lock: bool = False
+) -> Process:
     """Create a new process instance for the given target with the provided arguments.
 
-    :param target: Target function to execute in a multiprocessing process.
-    :param args: Target function arguments.
+    :param target: Function to execute in a multiprocessing process.
+    :param args: function arguments.
+    :param prepend_lock: Include a lock for mutex purposes.
     :return: New process.
     """
+    if prepend_lock:
+        args = (LOCK,) + tuple(args)
     process = multiprocessing.Process(target=target, args=args)
     return process
 

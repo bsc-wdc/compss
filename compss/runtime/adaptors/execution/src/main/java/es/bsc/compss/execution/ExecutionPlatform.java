@@ -26,6 +26,7 @@ import es.bsc.compss.executor.external.ExecutionPlatformMirror;
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.execution.Execution;
+import es.bsc.compss.types.execution.ExecutionListener;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableResourcesException;
@@ -33,6 +34,7 @@ import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.utils.execution.ThreadedProperties;
+import es.bsc.compss.worker.COMPSsException;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -69,6 +71,8 @@ public class ExecutionPlatform implements ExecutorContext {
     private boolean started = false;
     private int nextThreadId = 0;
     private final TreeSet<Thread> workerThreads;
+    private int numFrozenThreads;
+    private final Semaphore frozenSemaphore;
     private final LinkedList<Thread> finishedWorkerThreads;
 
     private final Semaphore startSemaphore;
@@ -103,6 +107,7 @@ public class ExecutionPlatform implements ExecutorContext {
         // Instantiate the message queue and the stop semaphore
         this.queue = new JobQueue();
         this.startSemaphore = new Semaphore(0);
+        this.frozenSemaphore = new Semaphore(0);
         this.stopSemaphore = new Semaphore(0);
 
         // Instantiate worker thread structure
@@ -215,6 +220,15 @@ public class ExecutionPlatform implements ExecutorContext {
         boolean wait = false;
         Semaphore startSem;
         synchronized (this) {
+            if (this.numFrozenThreads > 0) {
+                int wakeUpThreads = numFrozenThreads;
+                if (this.numFrozenThreads > numWorkerThreads) {
+                    wakeUpThreads = numWorkerThreads;
+                }
+                this.frozenSemaphore.release(wakeUpThreads);
+                numWorkerThreads = numWorkerThreads - wakeUpThreads;
+            }
+
             if (this.started) {
                 startSem = new Semaphore(numWorkerThreads);
                 wait = true;
@@ -259,6 +273,13 @@ public class ExecutionPlatform implements ExecutorContext {
     public final void removeWorkerThreads(int numWorkerThreads) {
         if (numWorkerThreads > 0) {
             LOGGER.info("Stopping " + numWorkerThreads + " executors from execution platform " + this.platformName);
+            if (this.numFrozenThreads > 0) {
+                int wakeUpThreads = numFrozenThreads;
+                if (this.numFrozenThreads > numWorkerThreads) {
+                    wakeUpThreads = numWorkerThreads;
+                }
+                this.frozenSemaphore.release(wakeUpThreads);
+            }
             // if (Tracer.basicModeEnabled()) {
             // Tracer.enablePThreads();
             // } // Request N threads to finish
@@ -356,12 +377,31 @@ public class ExecutionPlatform implements ExecutorContext {
         if (reuseResourcesOnBlockedInvocation) {
             LOGGER.debug("Reacquiring resources assigned to job " + invocation.getJobId());
             this.context.reactivatedReservedResourcesDetected(invocation.getRequirements());
-            this.removeWorkerThreads(1);
+            this.freezeThreads(1);
             int jobId = invocation.getJobId();
             this.rm.reacquireResources(jobId, invocation.getRequirements(), previousAllocation, sem);
         } else {
             sem.release();
         }
+    }
+
+    private void freezeThreads(int numThreads) {
+        final Semaphore freezeSem = new Semaphore(0);
+        ExecutionListener el = new ExecutionListener() {
+
+            @Override
+            public void notifyEnd(Invocation invocation, boolean success, COMPSsException e) {
+                synchronized (ExecutionPlatform.this) {
+                    ExecutionPlatform.this.numFrozenThreads++;
+                    freezeSem.release();
+                }
+                ExecutionPlatform.this.frozenSemaphore.acquireUninterruptibly();
+            }
+        };
+        for (int i = 0; i < numThreads; i++) {
+            queue.enqueue(new Execution(null, el));
+        }
+        freezeSem.acquireUninterruptibly(numThreads);
     }
 
     @Override

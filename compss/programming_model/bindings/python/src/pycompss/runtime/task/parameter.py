@@ -623,12 +623,15 @@ def get_parameter_from_dictionary(dictionary: dict) -> Parameter:
     return parameter
 
 
-def get_compss_type(value: typing.Any, depth: int = 0, code_strings=True) -> int:
+def get_compss_type(
+    value: typing.Any, depth: int = 0, code_strings=True, force_file=False
+) -> int:
     """Retrieve the value type mapped to COMPSs types.
 
     :param value: Value to analyse.
     :param depth: Collections depth.
     :param code_strings: If strings will be encoded.
+    :param force_file: If the default value is file (collections of files).
     :return: The Type of the value.
     """
     # First check if it is a PSCO since a StorageNumpy can be detected
@@ -646,6 +649,14 @@ def get_compss_type(value: typing.Any, depth: int = 0, code_strings=True) -> int
             # persistent inside, we assume that it is not. It will be checked
             # later on the worker side when the task finishes.
             return TYPE.OBJECT
+
+    if force_file:
+        if depth > 0 and is_basic_iterable(value):
+            return TYPE.COLLECTION
+        elif depth > 0 and is_dict(value):
+            return TYPE.DICT_COLLECTION
+        else:
+            return TYPE.FILE
 
     # If it is a numpy scalar, we manage it as all objects to avoid to
     # infer its type wrong. For instance isinstance(NP.float64 object, float)

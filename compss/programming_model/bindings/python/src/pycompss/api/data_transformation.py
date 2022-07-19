@@ -114,6 +114,7 @@ class DataTransformation:  # pylint: disable=too-few-public-methods
             return ret
 
         dt_f.__doc__ = user_function.__doc__
+        transform.__doc__ = user_function.__doc__
         return dt_f
 
     def __configure_core_element__(self, user_function, args: list, kwargs: dict) -> None:

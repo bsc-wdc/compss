@@ -34,7 +34,7 @@ from pycompss.api import mpmd_mpi
 from pycompss.api import multinode
 from pycompss.api import http
 from pycompss.api import compss
-from pycompss.api.task import task
+from pycompss.api import task
 from pycompss.api.commons.constants import INTERNAL_LABELS
 from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
@@ -56,6 +56,7 @@ DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 
 SUPPORTED_DECORATORS = {
     LABELS.mpi: (mpi, mpi.mpi),
+    LABELS.task: (task, task.task),
     LABELS.binary: (binary, binary.binary),
     LABELS.mpmd_mpi: (mpmd_mpi, mpmd_mpi.mpmd_mpi),
     LABELS.http: (http, http.http),
@@ -88,6 +89,7 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
         "prolog",
         "epilog",
         "parameters",
+        "is_workflow"
     ]
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
@@ -110,6 +112,7 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
         self.prolog = None  # type: typing.Optional[typing.Dict[str, str]]
         self.epilog = None  # type: typing.Optional[typing.Dict[str, str]]
         self.parameters = dict()  # type: typing.Dict
+        self.is_workflow = False  # type: bool
 
         self.decorator_name = decorator_name
         self.args = args
@@ -118,7 +121,7 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
         self.core_element = None  # type: typing.Optional[CE]
         self.core_element_configured = False
 
-        if self.scope and CONTEXT.in_master():
+        if self.scope:
             if __debug__:
                 logger.debug("Init @software decorator..")
             # Check the arguments
@@ -143,7 +146,7 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
 
         @wraps(user_function)
         def software_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
-            if not self.scope or not CONTEXT.in_master():
+            if not self.scope or self.is_workflow:
                 # Execute the software as with PyCOMPSs so that sequential
                 # execution performs as parallel.
                 # To disable: raise Exception(not_in_pycompss(LABELS.binary))
@@ -203,6 +206,9 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
                 core_element.set_impl_type_args(impl_args)
                 kwargs[CORE_ELEMENT_KEY] = core_element
 
+            if CORE_ELEMENT_KEY in kwargs:
+                self.core_element_configured = True
+
             # todo: add comments
             if self.decor:
                 decorator = self.decor
@@ -212,14 +218,19 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
                             ret = decorator(**self.config_args)
                             return ret(user_function)(*args, **kwargs)
                         return function()
+                    decor_f.__doc__ = user_function.__doc__
                     return decor_f()
                 else:
-                    def decor_f():
-                        def function(*_, **__):
-                            tt = task(**self.parameters)
-                            return tt(user_function)(*_, **__)
-                        dec = decorator(**self.config_args)
-                        return dec(function)(*args, **kwargs)
+                    if self.decor is task.task:
+                        return task_f(user_function, self.parameters, *args, **kwargs)
+                    else:
+                        def decor_f():
+                            def function(*_, **__):
+                                tt = task.task(**self.parameters)
+                                return tt(user_function)(*_, **__)
+                            dec = decorator(**self.config_args)
+                            return dec(function)(*args, **kwargs)
+
                     return decor_f()
 
             # It's a PyCOMPSs task with only @task and @software decorators
@@ -239,32 +250,35 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
         ) as file_path_descriptor:
             config = json.load(file_path_descriptor)
 
-            execution = config.get(LABELS.execution, {})
-            self.parameters = config.get(LABELS.parameters, dict())
-            exec_type = execution.pop(LABELS.type, None)
-            if exec_type is None or exec_type == "workflow":
-                print("Execution type not provided for @software task")
-            elif exec_type.lower() not in SUPPORTED_DECORATORS:
-                msg = f"Error: Executor Type {exec_type} is not supported for software task."
+        execution = config.get(LABELS.execution, {})
+        self.parameters = config.get(LABELS.parameters, dict())
+        exec_type = execution.pop(LABELS.type, None)
+        if exec_type is None:
+            print("Execution type not provided for @software task")
+        elif exec_type == LABELS.task:
+            self.task_type, self.decor = SUPPORTED_DECORATORS[exec_type]
+            print("Executing task function..")
+        elif exec_type == "workflow":
+            print("Executing workflow..")
+            self.is_workflow = True
+            return
+        elif exec_type.lower() not in SUPPORTED_DECORATORS:
+            msg = f"Error: Executor Type {exec_type} is not supported for software task."
+            raise PyCOMPSsException(msg)
+        else:
+            exec_type = exec_type.lower()
+            self.task_type, self.decor = SUPPORTED_DECORATORS[exec_type]
+            mand_args = self.task_type.MANDATORY_ARGUMENTS
+            if not all(arg in execution for arg in mand_args):
+                msg = f"Error: Missing arguments for '{self.task_type}'."
                 raise PyCOMPSsException(msg)
-            else:
-                exec_type = exec_type.lower()
-                self.task_type, self.decor = SUPPORTED_DECORATORS[exec_type]
-                mand_args = self.task_type.MANDATORY_ARGUMENTS
-                if not all(arg in execution for arg in mand_args):
-                    msg = f"Error: Missing arguments for '{self.task_type}'."
-                    raise PyCOMPSsException(msg)
 
-            # if any of the other components exist, CE will be created. in case
-            # of workflows, we don't want it.
-            if exec_type == "workflow":
-                return
-            self.replace_param_types()
-            self.config_args = execution
-            self.constraints = config.get("constraints", None)
-            self.container = config.get("container", None)
-            self.prolog = config.get("prolog", None)
-            self.epilog = config.get("epilog", None)
+        self.replace_param_types()
+        self.config_args = execution
+        self.constraints = config.get("constraints", None)
+        self.container = config.get("container", None)
+        self.prolog = config.get("prolog", None)
+        self.epilog = config.get("epilog", None)
 
     def replace_param_types(self):
         from pycompss.api import parameter
@@ -273,6 +287,51 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
         for k, v in self.parameters.items():
             if isinstance(v, str) and hasattr(parameter, v):
                 self.parameters[k] = getattr(parameter, v)
+
+
+def task_f(user_function, parameters, *args, **kwargs):
+    import inspect
+    tc = inspect.getsource(user_function)
+    lines = tc.split("\n")
+    lines = lines[1:]
+    tbi = "@task(" + str(format_json(parameters)) + ")"
+    lines.insert(0, tbi)
+    lines = "\n".join(lines)
+    orig_name = inspect.getsourcefile(user_function)
+    fp = "dt_" + orig_name
+    imports = get_imports(orig_name)
+    with open(fp, "a") as helper:
+        helper.writelines(imports)
+        helper.write("\n")
+        helper.write(lines)
+        helper.write("\n")
+
+    import importlib
+    mod = importlib.import_module(fp[:-3])
+    func = getattr(mod, str(user_function.__name__))
+    return func()
+
+
+def format_json(jeyson):
+    ret = ""
+    for k in jeyson:
+        ret += k + "=" + str(jeyson[k]) + ", "
+    return ret[:-2]
+
+
+def get_imports(file_name) -> list:
+    imports = []
+
+    with open(file_name, "r") as fayl:
+        lines = fayl.read().split("\n")
+
+    for line in lines:
+        if (
+            line.startswith("from") or line.startswith("import")
+        ) and "pycompss.interactive" not in line:
+            imports.append(line + "\n")
+    return imports
+
 
 # ########################################################################### #
 # ##################### Software DECORATOR ALTERNATIVE NAME ################# #

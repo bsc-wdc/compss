@@ -573,6 +573,8 @@ public class BinaryRunner {
         builder.environment().put("SLURM_NTASKS", String.valueOf(totalProcs));
         builder.environment().put("SLURM_NPROCS", String.valueOf(totalProcs));
         builder.environment().put("SLURM_TASKS_PER_NODE", tasksPerNode);
+        builder.environment().put("SLURM_OVERLAP", "1");
+        builder.environment().put("SLURM_MEM_PER_NODE", "0");
 
         builder.environment().remove("SLURM_STEP_NODELIST");
         builder.environment().remove("SLURM_STEP_CPUS_PER_NODE");
@@ -600,7 +602,6 @@ public class BinaryRunner {
         builder.environment().remove("SLURM_PRIO_PROCESS");
         builder.environment().remove("SLURMD_NODENAME");
         builder.environment().remove("SLURM_MEM_PER_CPU");
-        builder.environment().remove("SLURM_MEM_PER_NODE");
         builder.environment().remove("SLURM_SUBMIT_HOST");
 
         // Log environment

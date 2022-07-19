@@ -34,6 +34,10 @@ public class Execution {
         return this.invocation;
     }
 
+    public boolean isStopRequest() {
+        return this.invocation == null && this.listener == null;
+    }
+
     /**
      * Execution end notification.
      * 

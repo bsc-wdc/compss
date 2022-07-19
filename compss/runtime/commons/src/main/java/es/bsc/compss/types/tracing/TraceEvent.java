@@ -223,8 +223,9 @@ public enum TraceEvent {
     WALLCLOCK_THREAD_ID(Threads.WC.id, TraceEventType.THREAD_IDENTIFICATION, Threads.WC.description), //
     EXECUTOR_THREAD_ID(Threads.EXEC.id, TraceEventType.THREAD_IDENTIFICATION, Threads.EXEC.description), //
 
-    // Thread identifier events
+    // Executor Thread events
     EXECUTOR_COUNTS(1, TraceEventType.EXECUTOR_COUNTS, "Executor counts"), // Executor start
+    EXECUTOR_ACTIVE(1, TraceEventType.EXECUTOR_ACTIVITY, "Executor active"), // Executor start
 
     // Other
     READY_COUNT(1, TraceEventType.READY_COUNTS, "Ready queue count"); // Ready count

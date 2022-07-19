@@ -174,11 +174,6 @@ public class Executor implements Runnable, InvocationRunner {
      */
     @Override
     public void run() {
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.EXECUTOR_COUNTS);
-            Tracer.emitEvent(TraceEvent.EXECUTOR_THREAD_ID);
-            Tracer.disablePThreads(1);
-        }
         start();
 
         // Main loop to process requests
@@ -186,11 +181,6 @@ public class Executor implements Runnable, InvocationRunner {
 
         // Close language specific properties
         finish();
-
-        if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(TraceEvent.EXECUTOR_COUNTS);
-            Tracer.emitEventEnd(TraceEvent.EXECUTOR_THREAD_ID);
-        }
     }
 
     /**
@@ -225,7 +215,7 @@ public class Executor implements Runnable, InvocationRunner {
             if (execution == null) {
                 LOGGER.error("ERROR: Execution is null!!!!!");
             } else {
-                if (execution.getInvocation() == null) {
+                if (execution.isStopRequest()) {
                     LOGGER.debug("Dequeued job is null.");
                     break;
                 } else {
@@ -238,33 +228,34 @@ public class Executor implements Runnable, InvocationRunner {
 
     private void processExecution(Execution execution) {
         invocation = execution.getInvocation();
-        invocation.executionStarts();
-        if (invocation == null) {
-            LOGGER.error("Dequeued job is null");
-            return;
-        }
-        if (WORKER_DEBUG) {
-            LOGGER.debug("Dequeuing job " + invocation.getJobId());
-        }
 
         boolean success = false;
         COMPSsException returnException = null;
-        try {
-            execute();
-            success = true;
-        } catch (COMPSsException e) {
-            returnException = e;
-        } catch (Exception e) {
-            Throwable rootCause = ExceptionUtils.getRootCause(e);
-            if (rootCause instanceof COMPSsException) {
-                returnException = (COMPSsException) rootCause;
+        if (invocation != null) {
+            invocation.executionStarts();
+            if (WORKER_DEBUG) {
+                LOGGER.debug("Dequeuing job " + invocation.getJobId());
             }
-        }
 
-        if (WORKER_DEBUG) {
-            LOGGER.debug("Job " + invocation.getJobId() + " finished (success: " + success + ")");
+            try {
+                execute();
+                success = true;
+            } catch (COMPSsException e) {
+                returnException = e;
+            } catch (Exception e) {
+                Throwable rootCause = ExceptionUtils.getRootCause(e);
+                if (rootCause instanceof COMPSsException) {
+                    returnException = (COMPSsException) rootCause;
+                }
+            }
+
+            if (WORKER_DEBUG) {
+                LOGGER.debug("Job " + invocation.getJobId() + " finished (success: " + success + ")");
+            }
+            invocation.executionEnds();
+        } else {
+            success = true;
         }
-        invocation.executionEnds();
         execution.notifyEnd(returnException, success);
 
         invocation = null;

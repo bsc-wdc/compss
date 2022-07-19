@@ -33,8 +33,10 @@ public enum TraceEventType {
     THREAD_IDENTIFICATION(8_001_003, "Thread type identifier", true),
     // Marks the life and end of an executor thread
     EXECUTOR_COUNTS(8_001_004, "Executor threads count", true),
+    // Marks the activity of an executor
+    EXECUTOR_ACTIVITY(8_001_005, "Executor thread activity", true),
     // Marks the life and end of an executor thread
-    EXECUTOR_IDENTIFICATION(8_001_005, "Executor threads identifiers", true),
+    EXECUTOR_IDENTIFICATION(8_001_006, "Executor thread identifier", true),
     // Task Ids
     TASKS_ID(8_000_002, "Task IDs", false),
 

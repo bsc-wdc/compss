@@ -2043,12 +2043,14 @@ def _manage_persistent_object(param: Parameter) -> None:
 
 
 def _serialize_object_into_file(
-    name: str, param: Parameter, code_strings=True
+    name: str, param: Parameter, code_strings=True, force_file=False
 ) -> Parameter:
     """Serialize an object into a file if necessary.
 
     :param name: Name of the object.
     :param param: Parameter.
+    :param code_strings: If strings will be encoded.
+    :param force_file: If the default value is file (collections of files).
     :return: Parameter (whose type and value might be modified).
     """
     if (
@@ -2119,31 +2121,58 @@ def _serialize_object_into_file(
         # (which will be used to reconstruct the collection in the worker)
         if param.is_file_collection:
             new_object_col = [
-                Parameter(
-                    content=x,
-                    content_type=TYPE.FILE,
-                    direction=param.direction,
-                    file_name=COMPSsFile(x),
-                    depth=param.depth - 1,
-                )
-                for x in param.content
-            ]
-        else:
-            new_object_col = [
                 _serialize_object_into_file(
                     name,
                     Parameter(
                         content=x,
                         content_type=get_compss_type(
-                            x, param.depth - 1, code_strings=code_strings
+                            x, param.depth - 1, force_file=True
                         ),
                         direction=param.direction,
+                        file_name=COMPSsFile(x),
                         depth=param.depth - 1,
-                        extra_content_type=str(type(x).__name__),
                     ),
+                    force_file=True,
                 )
                 for x in param.content
             ]
+        else:
+            if force_file:
+                # Leaf of a file collection will enter here.
+                new_object_col = [
+                    _serialize_object_into_file(
+                        name,
+                        Parameter(
+                            content=x,
+                            content_type=get_compss_type(
+                                x,
+                                param.depth - 1,
+                                code_strings=code_strings,
+                                force_file=force_file,
+                            ),
+                            direction=param.direction,
+                            file_name=COMPSsFile(x),
+                            depth=param.depth - 1,
+                        ),
+                    )
+                    for x in param.content
+                ]
+            else:
+                new_object_col = [
+                    _serialize_object_into_file(
+                        name,
+                        Parameter(
+                            content=x,
+                            content_type=get_compss_type(
+                                x, param.depth - 1, code_strings=code_strings
+                            ),
+                            direction=param.direction,
+                            depth=param.depth - 1,
+                            extra_content_type=str(type(x).__name__),
+                        ),
+                    )
+                    for x in param.content
+                ]
         param.content = new_object_col
         # Give this object an identifier inside the binding
         if param.direction != DIRECTION.IN_DELETE:
@@ -2262,7 +2291,6 @@ def _extract_parameter(
         # If the parameter is a file or is future, the content is in a file
         # and we register it as file
         value = param.file_name
-        # todo: make sure it works with FO
         con_type = str(Future.__name__) if param.is_future else "FILE"
         value_str = str(value)
         if isinstance(value, str):

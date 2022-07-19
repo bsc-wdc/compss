@@ -412,6 +412,7 @@ class TaskWorker:
         collections_layouts: typing.Any,
         # typing.Union[typing.Dict[str, typing.Union[tuple, list]], typing.Any]
         depth: int = 0,
+        force_file: bool = False,
     ) -> None:
         """Retrieve the content of a particular argument.
 
@@ -421,6 +422,7 @@ class TaskWorker:
         :param collections_layouts: Layouts of collections params for python
                                     MPI tasks.
         :param depth: Collection depth (0 if not a collection).
+        :param force_file: Force file type for collections or dict_collections of files.
         :return: None
         """
         if __debug__:
@@ -442,7 +444,11 @@ class TaskWorker:
         type_external_psco = parameter.TYPE.EXTERNAL_PSCO
 
         if content_type == type_file:
-            if self.is_parameter_an_object(argument.name):
+            if (
+                self.is_parameter_an_object(argument.name)
+                and not force_file
+                # and argument.content_type != parameter.TYPE.FILE
+            ):
                 # The object is stored in some file, load and deserialize
                 if __debug__:
                     LOGGER.debug(
@@ -523,63 +529,59 @@ class TaskWorker:
                     if __debug__:
                         LOGGER.debug("\t\t\t - Revealing element: %s", str(sub_name))
 
-                    if not self.is_parameter_file_collection(argument.name):
-                        sub_arg, _ = build_task_parameter(
-                            int(data_type),
-                            parameter.IOSTREAM.UNSPECIFIED,  # noqa: E501
-                            "",
-                            sub_name,
-                            content_file,
-                            str(argument.content_type),
-                            logger=LOGGER,
-                        )
+                    is_file_collection = self.is_parameter_file_collection(
+                        argument.name
+                    )
+                    is_really_file = is_file_collection or content_type_elem == "FILE"
+                    sub_arg, _ = build_task_parameter(
+                        int(data_type),
+                        parameter.IOSTREAM.UNSPECIFIED,
+                        "",
+                        sub_name,
+                        content_file,
+                        str(argument.content_type),
+                        logger=LOGGER,
+                    )
 
-                        # if direction of the collection is "out", it means we
-                        # haven't received serialized objects from the Master
-                        # (even though parameters have "file_name", those files
-                        # haven't been created yet). plus, inner collections of
-                        # col_out params do NOT have "direction", we identify
-                        # them by "depth"..
-                        if _col_dir == parameter.DIRECTION.OUT or (
-                            (_col_dir is None) and _col_dep > 0
-                        ):
-                            # if we are at the last level of COL_OUT param,
-                            # create "empty" instances of elements
-                            if _col_dep == 1 or content_type_elem != "collection:list":
+                    # if direction of the collection is "out", it means we
+                    # haven't received serialized objects from the Master
+                    # (even though parameters have "file_name", those files
+                    # haven't been created yet). plus, inner collections of
+                    # col_out params do NOT have "direction", we identify
+                    # them by "depth"..
+                    if _col_dir == parameter.DIRECTION.OUT or (
+                        (_col_dir is None) and _col_dep > 0
+                    ):
+                        # if we are at the last level of COL_OUT param,
+                        # create "empty" instances of elements
+                        if _col_dep == 1 or content_type_elem != "collection:list":
+                            # Not a nested collection anymore
+                            if is_really_file:
+                                sub_arg.content = content_file
+                                sub_arg.content_type = parameter.TYPE.FILE
+                            else:
                                 temp = create_object_by_con_type(content_type_elem)
                                 sub_arg.content = temp
-                                # In case that only one element is used in this
-                                # mpi rank, the collection list is removed
-                                if in_mpi_collection_env and rank_distr_len == 1:
-                                    argument.content = sub_arg.content
-                                    argument.content_type = sub_arg.content_type
-                                else:
-                                    argument.content.append(sub_arg.content)
-                                argument.collection_content.append(sub_arg)
+                            # In case that only one element is used in this
+                            # mpi rank, the collection list is removed
+                            if in_mpi_collection_env and rank_distr_len == 1:
+                                argument.content = sub_arg.content
+                                argument.content_type = sub_arg.content_type
                             else:
-                                self.retrieve_content(
-                                    sub_arg,
-                                    sub_name,
-                                    python_mpi,
-                                    collections_layouts,
-                                    depth=_col_dep - 1,
-                                )
-                                # In case that only one element is used in this mpi
-                                # rank, the collection list is removed
-                                if in_mpi_collection_env and rank_distr_len == 1:
-                                    argument.content = sub_arg.content
-                                    argument.content_type = sub_arg.content_type
-                                else:
-                                    argument.content.append(sub_arg.content)
-                                argument.collection_content.append(sub_arg)
+                                argument.content.append(sub_arg.content)
+                            argument.collection_content.append(sub_arg)
                         else:
-                            # Recursively call the retrieve method, fill the
-                            # content field in our new taskParameter object
+                            # Is nested collection
                             self.retrieve_content(
-                                sub_arg, sub_name, python_mpi, collections_layouts
+                                sub_arg,
+                                sub_name,
+                                python_mpi,
+                                collections_layouts,
+                                depth=_col_dep - 1,
+                                force_file=is_really_file,
                             )
-                            # In case only one element is used in this mpi rank,
-                            # the collection list is removed
+                            # In case that only one element is used in this mpi
+                            # rank, the collection list is removed
                             if in_mpi_collection_env and rank_distr_len == 1:
                                 argument.content = sub_arg.content
                                 argument.content_type = sub_arg.content_type
@@ -587,14 +589,23 @@ class TaskWorker:
                                 argument.content.append(sub_arg.content)
                             argument.collection_content.append(sub_arg)
                     else:
+                        # Recursively call the retrieve method, fill the
+                        # content field in our new taskParameter object
+                        self.retrieve_content(
+                            sub_arg,
+                            sub_name,
+                            python_mpi,
+                            collections_layouts,
+                            force_file=is_really_file,
+                        )
                         # In case only one element is used in this mpi rank,
                         # the collection list is removed
                         if in_mpi_collection_env and rank_distr_len == 1:
-                            argument.content = content_file
-                            argument.content_type = parameter.TYPE.FILE
+                            argument.content = sub_arg.content
+                            argument.content_type = sub_arg.content_type
                         else:
-                            argument.content.append(content_file)
-                        argument.collection_content.append(content_file)
+                            argument.content.append(sub_arg.content)
+                        argument.collection_content.append(sub_arg)
         elif content_type == type_dict_collection:
             argument.content = {}
             # This field is exclusive for DICT_COLLECTION_T parameters, so
@@ -624,12 +635,12 @@ class TaskWorker:
                     data_type_key,
                     content_file_key,
                     content_type_key,
-                ) = entry_k.strip().split()  # noqa: E501
+                ) = entry_k.strip().split()
                 (
                     data_type_value,
                     content_file_value,
                     content_type_value,
-                ) = entry_v.strip().split()  # noqa: E501
+                ) = entry_v.strip().split()
                 # Same naming convention as in COMPSsRuntimeImpl.java
                 sub_name_key = f"{argument.name}.{i}"
                 sub_name_value = f"{argument.name}.{i}"
@@ -642,7 +653,7 @@ class TaskWorker:
 
                 sub_arg_key, _ = build_task_parameter(
                     int(data_type_key),
-                    parameter.IOSTREAM.UNSPECIFIED,  # noqa: E501
+                    parameter.IOSTREAM.UNSPECIFIED,
                     "",
                     sub_name_key,
                     content_file_key,
@@ -650,7 +661,7 @@ class TaskWorker:
                     logger=LOGGER,
                 )
                 sub_arg_value, _ = build_task_parameter(
-                    int(data_type_value),  # noqa: E501
+                    int(data_type_value),
                     parameter.IOSTREAM.UNSPECIFIED,
                     "",
                     sub_name_value,
@@ -672,8 +683,12 @@ class TaskWorker:
                     # if we are at the last level of DICT_COL_OUT param,
                     # create "empty" instances of elements
                     if _dict_col_dep == 1 or content_type_elem != "collection:dict":
-                        temp_k = create_object_by_con_type(content_type_key)
-                        temp_v = create_object_by_con_type(content_type_value)
+                        if content_type_elem == "FILE":
+                            temp_k = content_file_key
+                            temp_v = content_file_value
+                        else:
+                            temp_k = create_object_by_con_type(content_type_key)
+                            temp_v = create_object_by_con_type(content_type_value)
                         sub_arg_key.content = temp_k
                         sub_arg_value.content = temp_v
                         argument.content[sub_arg_key.content] = sub_arg_value.content
@@ -1051,7 +1066,7 @@ class TaskWorker:
 
             # Skip files and non-task-parameters
             if not isinstance(arg, Parameter) or not self.is_parameter_an_object(
-                arg.name
+                arg.name,
             ):
                 continue
 
@@ -1293,11 +1308,8 @@ class TaskWorker:
                 parameter.TYPE.EXTERNAL_STREAM,
                 -1,
             ]
-            return (
-                self.decorator_arguments[original_name].content_type in annotated
-            )  # noqa: E501
-        # The parameter is not annotated in the decorator, so (by default)
-        # return True
+            return self.decorator_arguments[original_name].content_type in annotated
+        # The parameter is not annotated in the decorator, so return default
         return True
 
     def is_parameter_file_collection(self, name: str) -> bool:

@@ -22,8 +22,9 @@ import es.bsc.compss.types.implementations.ImplementationDescription;
 
 public class FakeImplDescription extends ImplementationDescription<FakeResourceDescription, FakeImplDefinition> {
 
-    public FakeImplDescription(FakeImplDefinition def, String signature, FakeResourceDescription description) {
-        super(def, signature, description, null, null);
+    public FakeImplDescription(FakeImplDefinition def, String signature, boolean localProc,
+        FakeResourceDescription description) {
+        super(def, signature, localProc, description, null, null);
     }
 
     @Override

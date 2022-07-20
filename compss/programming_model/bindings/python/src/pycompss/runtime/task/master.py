@@ -1069,6 +1069,7 @@ class TaskMaster:
         # Include the registering info related to @task
         impl_type = IMPLEMENTATION_TYPES.method
         impl_constraints = {}  # type: dict
+        impl_local = False
         impl_io = False
 
         if __debug__:
@@ -1079,6 +1080,7 @@ class TaskMaster:
         set_impl_type_args = self.core_element.set_impl_type_args
         set_impl_constraints = self.core_element.set_impl_constraints
         set_impl_type = self.core_element.set_impl_type
+        set_impl_local = self.core_element.set_impl_local
         set_impl_io = self.core_element.set_impl_io
         if pre_defined_core_element:
             # Core element has already been created in an upper decorator
@@ -1087,6 +1089,7 @@ class TaskMaster:
             _impl_constraints = self.core_element.get_impl_constraints()
             _impl_type = self.core_element.get_impl_type()
             _impl_type_args = self.core_element.get_impl_type_args()
+            _impl_local = self.core_element.get_impl_local()
             _impl_io = self.core_element.get_impl_io()
             if _ce_signature == "":
                 set_ce_signature(impl_signature)
@@ -1117,6 +1120,8 @@ class TaskMaster:
                     set_impl_type_args(impl_type_args + _impl_type_args[1:])
                 else:
                     set_impl_type_args(impl_type_args)
+            if not _impl_local:
+                set_impl_local(impl_local)
             if not _impl_io:
                 set_impl_io(impl_io)
         else:
@@ -1127,6 +1132,7 @@ class TaskMaster:
                 impl_signature,
                 impl_constraints,
                 impl_type,
+                impl_local,
                 impl_io,
                 impl_type_args,
             )

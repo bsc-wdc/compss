@@ -370,7 +370,7 @@ void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
     check_exception(status, "Cannot find cancelApplicationTasks");
 
     // RegisterCE method
-    midRegisterCE = status->localJniEnv->GetMethodID(clsITimpl, "registerCoreElement", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;[Ljava/lang/String;[Ljava/lang/String;)V");
+    midRegisterCE = status->localJniEnv->GetMethodID(clsITimpl, "registerCoreElement", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;[Ljava/lang/String;[Ljava/lang/String;)V");
     check_exception(status, "Cannot find registerCoreElement");
 
     // isFileAccessed method
@@ -1213,11 +1213,12 @@ void JNI_ExecuteHttpTask(long appId, char* signature, char* onFailure, int timeo
 }
 
 
-void JNI_RegisterCE(char* ceSignature, char* implSignature, char* implConstraints, char* implType, char* implIO, char** prolog, char** epilog, int numParams, char** implTypeArgs) {
+void JNI_RegisterCE(char* ceSignature, char* implSignature, char* implConstraints, char* implType, char* implLocal, char* implIO, char** prolog, char** epilog, int numParams, char** implTypeArgs) {
     //debug_printf ("[BINDING-COMMONS] - @JNI_RegisterCE - ceSignature:     %s\n", ceSignature);
     //debug_printf ("[BINDING-COMMONS] - @JNI_RegisterCE - implSignature:   %s\n", implSignature);
     //debug_printf ("[BINDING-COMMONS] - @JNI_RegisterCE - implConstraints: %s\n", implConstraints);
     //debug_printf ("[BINDING-COMMONS] - @JNI_RegisterCE - implType:        %s\n", implType);
+    //debug_printf ("[BINDING-COMMONS] - @JNI_RegisterCE - implLocal:        %s\n", implLocal);
     //debug_printf ("[BINDING-COMMONS] - @JNI_RegisterCE - implIO:        %s\n", implIO);
     //debug_printf ("[BINDING-COMMONS] - @JNI_RegisterCE - numParams:      %d\n", numParams);
 
@@ -1253,6 +1254,7 @@ void JNI_RegisterCE(char* ceSignature, char* implSignature, char* implConstraint
                               status->localJniEnv->NewStringUTF(implSignature),
                               status->localJniEnv->NewStringUTF(implConstraints),
                               status->localJniEnv->NewStringUTF(implType),
+                              status->localJniEnv->NewStringUTF(implLocal),
                               status->localJniEnv->NewStringUTF(implIO),
                               prologArr,
                               epilogArr,

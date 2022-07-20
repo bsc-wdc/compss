@@ -89,17 +89,17 @@ public class MOResourceSchedulerTest {
         CoreElementDefinition cedA = new CoreElementDefinition();
         cedA.setCeSignature("methodA");
         ImplementationDescription<?, ?> implDef = null;
-        implDef = ImplementationDescription.defineImplementation(METHOD, "ClassA.methodA",
+        implDef = ImplementationDescription.defineImplementation(METHOD, "ClassA.methodA", false,
             new MethodResourceDescription(), null, null, "ClassA", "methodA");
         cedA.addImplementation(implDef);
-        implDef = ImplementationDescription.defineImplementation(METHOD, "ClassB.methodA",
+        implDef = ImplementationDescription.defineImplementation(METHOD, "ClassB.methodA", false,
             new MethodResourceDescription(), null, null, "ClassB", "methodA");
         cedA.addImplementation(implDef);
         CoreManager.registerNewCoreElement(cedA);
 
         CoreElementDefinition cedB = new CoreElementDefinition();
         cedB.setCeSignature("methodB");
-        implDef = ImplementationDescription.defineImplementation(METHOD, "ClassA.methodB",
+        implDef = ImplementationDescription.defineImplementation(METHOD, "ClassA.methodB", false,
             new MethodResourceDescription(), null, null, "ClassA", "methodB");
         cedB.addImplementation(implDef);
         CoreManager.registerNewCoreElement(cedB);

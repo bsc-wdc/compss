@@ -879,12 +879,13 @@ static PyObject* register_core_element(PyObject* self, PyObject* args) {
     char* ImplSignature;
     char* ImplConstraints;
     char* ImplType;
+    char* ImplLocal;
     char* ImplIO;
     PyObject* prolog;
     PyObject* epilog;
     PyObject* typeArgs;
-    if (!PyArg_ParseTuple(args, "sssssOOO", &CESignature, &ImplSignature,
-                         &ImplConstraints, &ImplType, &ImplIO, &prolog, &epilog, &typeArgs)) {
+    if (!PyArg_ParseTuple(args, "ssssssOOO", &CESignature, &ImplSignature,
+                         &ImplConstraints, &ImplType, &ImplLocal, &ImplIO, &prolog, &epilog, &typeArgs)) {
         return NULL;
     }
 
@@ -892,6 +893,7 @@ static PyObject* register_core_element(PyObject* self, PyObject* args) {
     debug("- Implementation Signature: %s\n", ImplSignature);
     debug("- Implementation Constraints: %s\n", ImplConstraints);
     debug("- Implementation Type: %s\n", ImplType);
+    debug("- Implementation Local: %s\n", ImplLocal);
     debug("- Implementation IO: %s\n", ImplIO);
     char** pro = new char*[3];
     char** epi = new char*[3];
@@ -916,6 +918,7 @@ static PyObject* register_core_element(PyObject* self, PyObject* args) {
                   ImplSignature,
                   ImplConstraints,
                   ImplType,
+                  ImplLocal,
                   ImplIO,
                   pro,
                   epi,

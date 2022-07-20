@@ -289,7 +289,7 @@ public class GATWorker implements InvocationContext {
     private static GATInvocation genImplemenationDefinition(AbstractMethodImplementationDefinition implDef,
         boolean debug, String[] args, int argPosition) {
         ImplementationDescription<MethodResourceDescription, AbstractMethodImplementationDefinition> implDesc =
-            new ImplementationDescription<>(implDef, "", null, null, null);
+            new ImplementationDescription<>(implDef, "", false, null, null, null);
         AbstractMethodImplementation impl = new AbstractMethodImplementation(0, 0, implDesc);
         return new GATInvocation(debug, impl, args, argPosition);
     }

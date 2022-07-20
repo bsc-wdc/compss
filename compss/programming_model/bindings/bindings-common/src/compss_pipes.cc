@@ -452,11 +452,12 @@ void PIPE_ExecuteTaskNew(long appId, char* signature, char* onFailure, int timeo
     debug_printf ("[BINDING-COMMONS] - @PIPE_ExecuteTaskNew - Task processed.\n");
 }
 
-void PIPE_RegisterCE(char* ceSignature, char* implSignature, char* implConstraints, char* implType, char* implIO, char** prolog, char** epilog, int numArgs, char** implTypeArgs) {
+void PIPE_RegisterCE(char* ceSignature, char* implSignature, char* implConstraints, char* implType, char* implLocal, char* implIO, char** prolog, char** epilog, int numArgs, char** implTypeArgs) {
     //debug_printf ("[BINDING-COMMONS] - @PIPE_RegisterCE - ceSignature:     %s\n", ceSignature);
     //debug_printf ("[BINDING-COMMONS] - @PIPE_RegisterCE - implSignature:   %s\n", implSignature);
     //debug_printf ("[BINDING-COMMONS] - @PIPE_RegisterCE - implConstraints: %s\n", implConstraints);
     //debug_printf ("[BINDING-COMMONS] - @PIPE_RegisterCE - implType:        %s\n", implType);
+    //debug_printf ("[BINDING-COMMONS] - @PIPE_RegisterCE - implLocal:        %s\n", implLocal);
     //debug_printf ("[BINDING-COMMONS] - @PIPE_RegisterCE - implIO:        %s\n", implIO);
     //debug_printf ("[BINDING-COMMONS] - @PIPE_RegisterCE - numParams:      %d\n", numParams);
 
@@ -466,7 +467,7 @@ void PIPE_RegisterCE(char* ceSignature, char* implSignature, char* implConstrain
 	// NO RETURN
 
 	stringstream ss;
-	ss << "REGISTER_CE " << ceSignature << " " << implSignature << " " << implConstraints << " " << implType << " " << implIO;
+	ss << "REGISTER_CE " << ceSignature << " " << implSignature << " " << implConstraints << " " << implType << " " << implLocal << " " << implIO;
 
     for (int i = 0; i < 3; i++) {
     	ss << " " << prolog[i];

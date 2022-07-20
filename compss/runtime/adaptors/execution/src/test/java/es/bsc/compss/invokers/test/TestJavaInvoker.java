@@ -77,8 +77,8 @@ public class TestJavaInvoker extends TestObject {
 
     public static AbstractMethodImplementation genDummy(String className, String methodName, Integer coreId,
         Integer implId, String signature, MethodResourceDescription mrd) {
-        return new AbstractMethodImplementation(coreId, implId,
-            new ImplementationDescription<>(new MethodDefinition(className, methodName), signature, mrd, null, null));
+        return new AbstractMethodImplementation(coreId, implId, new ImplementationDescription<>(
+            new MethodDefinition(className, methodName), signature, false, mrd, null, null));
     }
 
 

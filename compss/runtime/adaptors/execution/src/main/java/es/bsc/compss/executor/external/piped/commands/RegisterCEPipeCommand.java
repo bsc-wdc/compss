@@ -34,16 +34,17 @@ public class RegisterCEPipeCommand extends RegisterCEExternalCommand implements 
         this.implSignature = command[2];
         this.constraints = command[3];
         this.implType = command[4];
-        this.implIO = command[5];
+        this.implLocal = command[5];
+        this.implIO = command[6];
 
         this.prolog = new String[3];
-        System.arraycopy(command, 6, this.prolog, 0, 3);
+        System.arraycopy(command, 7, this.prolog, 0, 3);
         this.epilog = new String[3];
-        System.arraycopy(command, 9, this.epilog, 0, 3);
+        System.arraycopy(command, 10, this.epilog, 0, 3);
 
-        int typeArgsLength = Integer.parseInt(command[12]);
+        int typeArgsLength = Integer.parseInt(command[13]);
         this.typeArgs = new String[typeArgsLength];
-        System.arraycopy(command, 13, this.typeArgs, 0, typeArgsLength);
+        System.arraycopy(command, 14, this.typeArgs, 0, typeArgsLength);
     }
 
     @Override

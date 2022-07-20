@@ -78,7 +78,8 @@ public class FIFOPrioritySchedulerTest {
         SchedulingInformation.clear();
 
         FakeImplDefinition def = new FakeImplDefinition("fakeSignature00");
-        FakeImplDescription fid = new FakeImplDescription(def, "fakeSignature00", new FakeResourceDescription(1));
+        FakeImplDescription fid =
+            new FakeImplDescription(def, "fakeSignature00", false, new FakeResourceDescription(1));
         CoreElement ce0 = addCoreElementToCM("fakeSignature0", fid);
 
         TaskScheduler ts = new FifoTS();
@@ -106,7 +107,8 @@ public class FIFOPrioritySchedulerTest {
         SchedulingInformation.clear();
 
         FakeImplDefinition def = new FakeImplDefinition("fakeSignature10");
-        FakeImplDescription fid = new FakeImplDescription(def, "fakeSignature10", new FakeResourceDescription(1));
+        FakeImplDescription fid =
+            new FakeImplDescription(def, "fakeSignature10", false, new FakeResourceDescription(1));
         CoreElement ce0 = addCoreElementToCM("fakeSignature1", fid);
 
         TaskScheduler ts = new FifoTS();
@@ -142,7 +144,8 @@ public class FIFOPrioritySchedulerTest {
         SchedulingInformation.clear();
 
         FakeImplDefinition def = new FakeImplDefinition("fakeSignature00");
-        FakeImplDescription fid = new FakeImplDescription(def, "fakeSignature00", new FakeResourceDescription(1));
+        FakeImplDescription fid =
+            new FakeImplDescription(def, "fakeSignature00", false, new FakeResourceDescription(1));
         CoreElement ce0 = addCoreElementToCM("fakeSignature0", fid);
 
         TaskScheduler ts = new FifoTS();
@@ -188,7 +191,8 @@ public class FIFOPrioritySchedulerTest {
         SchedulingInformation.clear();
 
         FakeImplDefinition def = new FakeImplDefinition("fakeSignature00");
-        FakeImplDescription fid = new FakeImplDescription(def, "fakeSignature00", new FakeResourceDescription(1));
+        FakeImplDescription fid =
+            new FakeImplDescription(def, "fakeSignature00", false, new FakeResourceDescription(1));
         CoreElement ce0 = addCoreElementToCM("fakeSignature0", fid);
 
         TaskScheduler ts = new FifoTS();
@@ -246,7 +250,8 @@ public class FIFOPrioritySchedulerTest {
         SchedulingInformation.clear();
 
         FakeImplDefinition def = new FakeImplDefinition("fakeSignature00");
-        FakeImplDescription fid = new FakeImplDescription(def, "fakeSignature00", new FakeResourceDescription(1));
+        FakeImplDescription fid =
+            new FakeImplDescription(def, "fakeSignature00", false, new FakeResourceDescription(1));
         CoreElement ce0 = addCoreElementToCM("fakeSignature0", fid);
 
         TaskScheduler ts = new FifoTS();
@@ -304,15 +309,18 @@ public class FIFOPrioritySchedulerTest {
         SchedulingInformation.clear();
 
         FakeImplDefinition def0 = new FakeImplDefinition("fakeSignature00");
-        FakeImplDescription fid0 = new FakeImplDescription(def0, "fakeSignature00", new FakeResourceDescription(1));
+        FakeImplDescription fid0 =
+            new FakeImplDescription(def0, "fakeSignature00", false, new FakeResourceDescription(1));
         CoreElement ce0 = addCoreElementToCM("fakeSignature0", fid0);
 
         FakeImplDefinition def1 = new FakeImplDefinition("fakeSignature01");
-        FakeImplDescription fid1 = new FakeImplDescription(def1, "fakeSignature01", new FakeResourceDescription(2));
+        FakeImplDescription fid1 =
+            new FakeImplDescription(def1, "fakeSignature01", false, new FakeResourceDescription(2));
         CoreElement ce1 = addCoreElementToCM("fakeSignature1", fid1);
 
         FakeImplDefinition def2 = new FakeImplDefinition("fakeSignature02");
-        FakeImplDescription fid2 = new FakeImplDescription(def2, "fakeSignature02", new FakeResourceDescription(3));
+        FakeImplDescription fid2 =
+            new FakeImplDescription(def2, "fakeSignature02", false, new FakeResourceDescription(3));
         CoreElement ce2 = addCoreElementToCM("fakeSignature2", fid2);
 
         TaskScheduler ts = new FifoTS();
@@ -364,7 +372,8 @@ public class FIFOPrioritySchedulerTest {
         SchedulingInformation.clear();
 
         FakeImplDefinition def = new FakeImplDefinition("fakeSignature00");
-        FakeImplDescription fid = new FakeImplDescription(def, "fakeSignature00", new FakeResourceDescription(1));
+        FakeImplDescription fid =
+            new FakeImplDescription(def, "fakeSignature00", false, new FakeResourceDescription(1));
         CoreElement ce0 = addCoreElementToCM("fakeSignature0", fid);
 
         TaskScheduler ts = new FifoTS();
@@ -433,15 +442,18 @@ public class FIFOPrioritySchedulerTest {
         SchedulingInformation.clear();
 
         FakeImplDefinition def0 = new FakeImplDefinition("fakeSignature00");
-        FakeImplDescription fid0 = new FakeImplDescription(def0, "fakeSignature00", new FakeResourceDescription(1));
+        FakeImplDescription fid0 =
+            new FakeImplDescription(def0, "fakeSignature00", false, new FakeResourceDescription(1));
         CoreElement ce0 = addCoreElementToCM("fakeSignature0", fid0);
 
         FakeImplDefinition def1 = new FakeImplDefinition("fakeSignature01");
-        FakeImplDescription fid1 = new FakeImplDescription(def1, "fakeSignature01", new FakeResourceDescription(2));
+        FakeImplDescription fid1 =
+            new FakeImplDescription(def1, "fakeSignature01", false, new FakeResourceDescription(2));
         CoreElement ce1 = addCoreElementToCM("fakeSignature1", fid1);
 
         FakeImplDefinition def2 = new FakeImplDefinition("fakeSignature02");
-        FakeImplDescription fid2 = new FakeImplDescription(def2, "fakeSignature02", new FakeResourceDescription(3));
+        FakeImplDescription fid2 =
+            new FakeImplDescription(def2, "fakeSignature02", false, new FakeResourceDescription(3));
         CoreElement ce2 = addCoreElementToCM("fakeSignature2", fid2);
 
         TaskScheduler ts = new FifoTS();
@@ -505,7 +517,8 @@ public class FIFOPrioritySchedulerTest {
         SchedulingInformation.clear();
 
         FakeImplDefinition def = new FakeImplDefinition("fakeSignature00");
-        FakeImplDescription fid = new FakeImplDescription(def, "fakeSignature00", new FakeResourceDescription(1));
+        FakeImplDescription fid =
+            new FakeImplDescription(def, "fakeSignature00", false, new FakeResourceDescription(1));
         CoreElement ce0 = addCoreElementToCM("fakeSignature0", fid);
 
         TaskScheduler ts = new FifoTS();
@@ -566,15 +579,18 @@ public class FIFOPrioritySchedulerTest {
         SchedulingInformation.clear();
 
         FakeImplDefinition def0 = new FakeImplDefinition("fakeSignature00");
-        FakeImplDescription fid0 = new FakeImplDescription(def0, "fakeSignature00", new FakeResourceDescription(1));
+        FakeImplDescription fid0 =
+            new FakeImplDescription(def0, "fakeSignature00", false, new FakeResourceDescription(1));
         CoreElement ce0 = addCoreElementToCM("fakeSignature0", fid0);
 
         FakeImplDefinition def1 = new FakeImplDefinition("fakeSignature01");
-        FakeImplDescription fid1 = new FakeImplDescription(def1, "fakeSignature01", new FakeResourceDescription(2));
+        FakeImplDescription fid1 =
+            new FakeImplDescription(def1, "fakeSignature01", false, new FakeResourceDescription(2));
         CoreElement ce1 = addCoreElementToCM("fakeSignature1", fid1);
 
         FakeImplDefinition def2 = new FakeImplDefinition("fakeSignature02");
-        FakeImplDescription fid2 = new FakeImplDescription(def2, "fakeSignature02", new FakeResourceDescription(3));
+        FakeImplDescription fid2 =
+            new FakeImplDescription(def2, "fakeSignature02", false, new FakeResourceDescription(3));
         CoreElement ce2 = addCoreElementToCM("fakeSignature2", fid2);
 
         TaskScheduler ts = new FifoTS();
@@ -624,11 +640,13 @@ public class FIFOPrioritySchedulerTest {
         SchedulingInformation.clear();
 
         FakeImplDefinition def0 = new FakeImplDefinition("fakeSignature00");
-        FakeImplDescription fid0 = new FakeImplDescription(def0, "fakeSignature00", new FakeResourceDescription(1));
+        FakeImplDescription fid0 =
+            new FakeImplDescription(def0, "fakeSignature00", false, new FakeResourceDescription(1));
         CoreElement ce0 = addCoreElementToCM("fakeSignature0", fid0);
 
         FakeImplDefinition def1 = new FakeImplDefinition("fakeSignature01");
-        FakeImplDescription fid1 = new FakeImplDescription(def1, "fakeSignature01", new FakeResourceDescription(3));
+        FakeImplDescription fid1 =
+            new FakeImplDescription(def1, "fakeSignature01", false, new FakeResourceDescription(3));
         CoreElement ce1 = addCoreElementToCM("fakeSignature1", fid1);
 
         TaskScheduler ts = new FifoTS();
@@ -677,7 +695,8 @@ public class FIFOPrioritySchedulerTest {
         SchedulingInformation.clear();
 
         FakeImplDefinition def0 = new FakeImplDefinition("fakeSignature00");
-        FakeImplDescription fid0 = new FakeImplDescription(def0, "fakeSignature00", new FakeResourceDescription(1));
+        FakeImplDescription fid0 =
+            new FakeImplDescription(def0, "fakeSignature00", false, new FakeResourceDescription(1));
         CoreElement ce0 = addCoreElementToCM("fakeSignature0", fid0);
 
         TaskScheduler ts = new FifoTS();

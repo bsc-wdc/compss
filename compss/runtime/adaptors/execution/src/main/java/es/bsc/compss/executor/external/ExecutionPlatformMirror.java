@@ -21,7 +21,7 @@ import es.bsc.compss.executor.external.piped.PipePair;
 
 public interface ExecutionPlatformMirror<T> {
 
-    public T registerExecutor(String id);
+    public T registerExecutor(int id, String name);
 
     public void unregisterExecutor(String id);
 

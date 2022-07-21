@@ -129,7 +129,8 @@ public class Executor implements Runnable, InvocationRunner {
     // Attached component Request queue
     protected final ExecutorContext platform;
     // Executor Id
-    protected final String id;
+    protected final int id;
+    protected final String name;
 
     // First time boolean - to avoid the first 0 events in emitAffinityChangeEvents
     private boolean firstTimeAffinityCPU;
@@ -150,12 +151,14 @@ public class Executor implements Runnable, InvocationRunner {
      * @param context Invocation context
      * @param platform Executor context (Execution Platform
      * @param executorId Executor Identifier
+     * @param executorName Executor Name
      */
-    public Executor(InvocationContext context, ExecutorContext platform, String executorId) {
-        LOGGER.info("Executor " + executorId + " init");
+    public Executor(InvocationContext context, ExecutorContext platform, int executorId, String executorName) {
+        LOGGER.info("Executor " + executorName + " init");
         this.context = context;
         this.platform = platform;
         this.id = executorId;
+        this.name = executorName;
         this.isRegistered = false;
         this.firstTimeAffinityCPU = true; // Set to false after the first time
         this.firstTimeAffinityGPU = true; // Set to false after the first time
@@ -191,10 +194,10 @@ public class Executor implements Runnable, InvocationRunner {
         if (Tracer.isActivated()) {
             emitAffinityEndEvents();
         }
-        LOGGER.info("Executor " + this.id + " finished");
+        LOGGER.info("Executor " + this.name + " finished");
         Collection<ExecutionPlatformMirror<?>> mirrors = platform.getMirrors();
         for (ExecutionPlatformMirror<?> mirror : mirrors) {
-            mirror.unregisterExecutor(id);
+            mirror.unregisterExecutor(name);
         }
 
     }
@@ -204,8 +207,17 @@ public class Executor implements Runnable, InvocationRunner {
      *
      * @return executor id
      */
-    public String getId() {
+    public int getId() {
         return this.id;
+    }
+
+    /**
+     * Returns the executor name.
+     *
+     * @return executor name
+     */
+    public String getName() {
+        return this.name;
     }
 
     private void processRequests() {
@@ -621,7 +633,7 @@ public class Executor implements Runnable, InvocationRunner {
                             platform.registerMirror(PythonInvoker.class, mirror);
                         }
                     }
-                    pyPipes = mirror.registerExecutor(id);
+                    pyPipes = mirror.registerExecutor(this.id, this.name);
                 }
                 return new PythonInvoker(context, invocation, taskSandboxWorkingDir, assignedResources, pyPipes);
             case C:
@@ -637,7 +649,7 @@ public class Executor implements Runnable, InvocationRunner {
                                 platform.registerMirror(CPersistentInvoker.class, mirror);
                             }
                         }
-                        mirror.registerExecutor(id);
+                        mirror.registerExecutor(this.id, this.name);
                         isRegistered = true;
                     }
                 } else {
@@ -650,7 +662,7 @@ public class Executor implements Runnable, InvocationRunner {
                                 platform.registerMirror(CInvoker.class, mirror);
                             }
                         }
-                        cPipes = mirror.registerExecutor(id);
+                        cPipes = mirror.registerExecutor(this.id, this.name);
                     }
                     cInvoker = new CInvoker(context, invocation, taskSandboxWorkingDir, assignedResources, cPipes);
                 }

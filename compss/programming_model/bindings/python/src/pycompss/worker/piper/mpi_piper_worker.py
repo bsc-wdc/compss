@@ -36,6 +36,7 @@ from pycompss.util.tracing.helpers import dummy_context
 from pycompss.util.tracing.helpers import EventWorker
 from pycompss.util.tracing.helpers import trace_mpi_executor
 from pycompss.util.tracing.helpers import trace_mpi_worker
+from pycompss.util.tracing.helpers import emit_manual_event_explicit
 from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.util.typing_helper import typing
 from pycompss.worker.piper.cache.setup import is_cache_enabled
@@ -112,6 +113,11 @@ def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
     :param config: Piper Worker Configuration description.
     :return: None.
     """
+    # First thing to do is to emit the process identifier event
+    emit_manual_event_explicit(
+        TRACING_WORKER.process_identifier, TRACING_WORKER.process_worker_event
+    )
+
     pids = COMM.gather(str(os.getpid()), root=0)
     if not pids:
         raise PyCOMPSsException("Could not gather MPI COMM.")
@@ -267,7 +273,8 @@ def compss_persistent_executor(
 
             initStorageAtWorker(config_file_path=config.storage_conf)
 
-    process_name = "".join(("Rank-", str(RANK)))
+    executor_id = config.exec_ids[RANK - 1]
+    executor_name = "".join(("Rank-", str(RANK)))
     conf = ExecutorConf(
         config.debug,
         GLOBALS.get_temporary_directory(),
@@ -284,7 +291,7 @@ def compss_persistent_executor(
         cache_queue,
         cache_profiler,
     )
-    executor(None, process_name, config.pipes[RANK - 1], conf)
+    executor(None, executor_id, executor_name, config.pipes[RANK - 1], conf)
 
     if persistent_storage:
         # Finish storage

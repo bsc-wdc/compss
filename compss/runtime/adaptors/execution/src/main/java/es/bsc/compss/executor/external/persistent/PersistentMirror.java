@@ -64,9 +64,9 @@ public class PersistentMirror implements ExecutionPlatformMirror<Void> {
     }
 
     @Override
-    public Void registerExecutor(String id) {
+    public Void registerExecutor(int id, String name) {
         synchronized (this.registeredThread) {
-            this.registeredThread.add(id);
+            this.registeredThread.add(name);
         }
 
         PrintStream out = context.getThreadOutStream();

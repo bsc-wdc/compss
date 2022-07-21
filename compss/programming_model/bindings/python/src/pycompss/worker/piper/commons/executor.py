@@ -60,6 +60,7 @@ from pycompss.worker.commons.executor import build_return_params_message
 from pycompss.worker.commons.worker import execute_task
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.tracing.helpers import emit_manual_event
+from pycompss.util.tracing.helpers import emit_manual_event_explicit
 from pycompss.util.tracing.helpers import EventWorker
 from pycompss.util.tracing.helpers import EventInsideWorker
 from pycompss.util.tracing.types_events_worker import TRACING_WORKER
@@ -236,7 +237,11 @@ class ExecutorConf:
 
 
 def executor(
-    queue: typing.Union[None, Queue], process_name: str, pipe: Pipe, conf: typing.Any
+    queue: typing.Union[None, Queue],
+    process_id: int,
+    process_name: str,
+    pipe: Pipe,
+    conf: typing.Any,
 ) -> None:
     """Thread main body - Overrides Threading run method.
 
@@ -247,12 +252,20 @@ def executor(
     Finishes when the "quit" message is received.
 
     :param queue: Queue where to put exception messages.
+    :param process_id: Process identifier (number that matches the java processes).
     :param process_name: Process name (Thread-X, where X is the thread id).
     :param pipe: Pipe to receive and send messages from/to the runtime.
     :param conf: Executor configuration.
     :return: None.
     """
     try:
+        # First thing to do is to emit the process identifier event
+        emit_manual_event_explicit(
+            TRACING_WORKER.process_identifier,
+            TRACING_WORKER.process_worker_executor_event,
+        )
+        # Second thing to do is to emit the executor process identifier event
+        emit_manual_event_explicit(TRACING_WORKER.executor_identifier, process_id)
 
         if compss_with_dlb:
             dlb_affinity.init()

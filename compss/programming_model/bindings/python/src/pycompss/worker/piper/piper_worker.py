@@ -36,6 +36,7 @@ from pycompss.util.process.manager import new_queue
 from pycompss.util.tracing.helpers import dummy_context
 from pycompss.util.tracing.helpers import EventWorker
 from pycompss.util.tracing.helpers import trace_multiprocessing_worker
+from pycompss.util.tracing.helpers import emit_manual_event_explicit
 from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.util.typing_helper import typing
 from pycompss.worker.piper.cache.setup import is_cache_enabled
@@ -155,10 +156,13 @@ def compss_persistent_worker(config: PiperWorkerConfiguration, tracing: bool) ->
     )
 
     for i in range(0, config.tasks_x_node):
+        exec_id = config.exec_ids[i]
         if __debug__:
-            logger.debug("%sLaunching process %s", HEADER, str(i))
-        process_name = "".join(("Process-", str(i)))
-        pid, queue = create_executor_process(process_name, conf, config.pipes[i])
+            logger.debug("%sLaunching process %s", HEADER, str(exec_id))
+        process_name = "".join(("Process-", str(exec_id)))
+        pid, queue = create_executor_process(
+            exec_id, process_name, conf, config.pipes[i]
+        )
         queues.append(queue)
 
     # Read command from control pipe
@@ -173,10 +177,11 @@ def compss_persistent_worker(config: PiperWorkerConfiguration, tracing: bool) ->
             if line[0] == TAGS.add_executor:
                 process_name = "".join(("Process-", str(process_counter)))
                 process_counter = process_counter + 1
-                in_pipe = line[1]
-                out_pipe = line[2]
+                exec_id = line[1]
+                in_pipe = line[2]
+                out_pipe = line[3]
                 pipe = Pipe(in_pipe, out_pipe)
-                pid, queue = create_executor_process(process_name, conf, pipe)
+                pid, queue = create_executor_process(exec_id, process_name, conf, pipe)
                 queues.append(queue)
                 control_pipe.write(
                     " ".join((TAGS.added_executor, out_pipe, in_pipe, str(pid)))
@@ -260,17 +265,20 @@ def compss_persistent_worker(config: PiperWorkerConfiguration, tracing: bool) ->
 
 
 def create_executor_process(
-    process_name: str, conf: ExecutorConf, pipe: Pipe
+    executor_id: int, executor_name: str, conf: ExecutorConf, pipe: Pipe
 ) -> typing.Tuple[int, Queue]:
     """Start a new executor.
 
-    :param process_name: Process name.
+    :param executor_id: Executor process identifier.
+    :param executor_name: Executor process name.
     :param conf: executor config.
     :param pipe: Communication pipes (in, out).
     :return: Process identifier and queue used by the process.
     """
     queue = new_queue()
-    process = create_process(target=executor, args=(queue, process_name, pipe, conf))
+    process = create_process(
+        target=executor, args=(queue, executor_id, executor_name, pipe, conf)
+    )
     PROCESSES[pipe.input_pipe] = process
     process.start()
     return int(str(process.pid)), queue
@@ -289,6 +297,10 @@ def main() -> None:
     # Configure the global tracing variable from the argument
     tracing = sys.argv[4] == "true"
     with trace_multiprocessing_worker() if tracing else dummy_context():
+        # First thing to do is to emit the process identifier event
+        emit_manual_event_explicit(
+            TRACING_WORKER.process_identifier, TRACING_WORKER.process_worker_event
+        )
         # Configure the piper worker with the arguments
         worker_conf = PiperWorkerConfiguration()
         worker_conf.update_params(sys.argv)

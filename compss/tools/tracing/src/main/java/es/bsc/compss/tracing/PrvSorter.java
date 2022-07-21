@@ -18,16 +18,15 @@ package es.bsc.compss.tracing;
 
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.tracing.ApplicationComposition;
-import es.bsc.compss.types.tracing.MalformedException;
 import es.bsc.compss.types.tracing.Thread;
 import es.bsc.compss.types.tracing.ThreadIdentifier;
+import es.bsc.compss.types.tracing.Threads;
 import es.bsc.compss.types.tracing.Trace.RecordScanner;
 import es.bsc.compss.types.tracing.TraceEventType;
 import es.bsc.compss.types.tracing.paraver.PRVLine;
 import es.bsc.compss.types.tracing.paraver.PRVThreadIdentifier;
 import es.bsc.compss.types.tracing.paraver.PRVTrace;
 import es.bsc.compss.util.tracing.ThreadTranslator;
-import es.bsc.compss.util.tracing.Threads;
 import es.bsc.compss.util.tracing.transformations.ThreadTranslation;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -126,19 +125,22 @@ public class PrvSorter implements ThreadTranslator {
             int runtimeThreadsNum = 2;
 
             Map<Integer, PRVThreadIdentifier> runtimeIdentifiedThreads = m.getRuntimeIdentifiers();
-            for (int idEvent = 0; idEvent < Threads.EXEC.id; idEvent++) {
-                PRVThreadIdentifier oldThread = runtimeIdentifiedThreads.get(idEvent);
-                if (oldThread != null) {
-                    int threadId = runtimeThreadsNum++;
-                    Threads.ExtraeTaskType task = Threads.ExtraeTaskType.RUNTIME;
-                    ThreadIdentifier newThread = computeNewThreadId(oldThread, task, threadId);
-                    threadTranslations.put(oldThread, newThread);
+            for (Threads t : Threads.values()) {
+                if (t.isRuntime()) {
+                    int idEvent = t.id;
+                    PRVThreadIdentifier oldThread = runtimeIdentifiedThreads.get(idEvent);
+                    if (oldThread != null) {
+                        int threadId = runtimeThreadsNum++;
+                        Threads.ExtraeTaskType task = Threads.ExtraeTaskType.RUNTIME;
+                        ThreadIdentifier newThread = computeNewThreadId(oldThread, task, threadId);
+                        threadTranslations.put(oldThread, newThread);
 
-                    String oldLabel = newThread.toString();
-                    String newThreadId = oldLabel.replace(":", ".");
-                    String newLabel = createLabel(newThreadId, idEvent);
-                    Thread runtimeThread = new Thread(newThread, newLabel);
-                    runtime.appendComponent(runtimeThread);
+                        String oldLabel = newThread.toString();
+                        String newThreadId = oldLabel.replace(":", ".");
+                        String newLabel = createLabel(newThreadId, idEvent);
+                        Thread runtimeThread = new Thread(newThread, newLabel);
+                        runtime.appendComponent(runtimeThread);
+                    }
                 }
             }
 

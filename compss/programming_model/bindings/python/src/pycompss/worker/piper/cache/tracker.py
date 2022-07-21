@@ -600,6 +600,11 @@ def cache_tracker(queue: Queue, process_name: str, conf: CacheTrackerConf) -> No
     :param conf: configuration of the cache tracker.
     :return: None.
     """
+    # First thing to do is to emit the process identifier event
+    emit_manual_event_explicit(
+        TRACING_WORKER.process_identifier, TRACING_WORKER.process_worker_cache_event
+    )
+
     # Process properties
     alive = True
     logger = conf.logger

@@ -22,16 +22,18 @@ import es.bsc.compss.executor.external.piped.PipePair;
 
 public class AddExecutorPipeCommand extends AddExecutorExternalCommand implements PipeCommand {
 
+    private final int executorId;
     private final PipePair pipe;
 
 
-    public AddExecutorPipeCommand(PipePair pp) {
+    public AddExecutorPipeCommand(int id, PipePair pp) {
+        this.executorId = id;
         this.pipe = pp;
     }
 
     @Override
     public String getAsString() {
-        return super.getAsString() + " " + pipe.getOutboundPipe() + " " + pipe.getInboundPipe();
+        return super.getAsString() + " " + executorId + " " + pipe.getOutboundPipe() + " " + pipe.getInboundPipe();
     }
 
     @Override

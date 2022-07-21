@@ -241,7 +241,7 @@ public class ExecutionPlatform implements ExecutorContext {
             }
             for (int i = 0; i < numWorkerThreads; i++) {
                 int executorId = this.nextThreadId++;
-                Executor executor = new Executor(this.context, this, "executor" + executorId) {
+                Executor executor = new Executor(this.context, this, executorId, "executor" + executorId) {
 
                     @Override
                     public void run() {

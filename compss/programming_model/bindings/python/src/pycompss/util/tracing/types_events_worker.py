@@ -34,7 +34,12 @@ class TypesEventsWorker:
     __slots__ = (
         "sync_type",
         "binding_tasks_func_type",
+        "process_identifier",
+        "executor_identifier",
         "inside_tasks_type",
+        "process_worker_executor_event",
+        "process_worker_event",
+        "process_worker_cache_event",
         "bind_cpus_event",
         "bind_gpus_event",
         "setup_environment_event",
@@ -84,8 +89,15 @@ class TypesEventsWorker:
         # Tasks at master (id corresponds to task) type:
         self.binding_tasks_func_type = 9000000
 
-        # Tasks at worker type:
+        # Tasks at worker types:
+        self.process_identifier = 8001003  # define the process purpose
+        self.executor_identifier = 8001006  # define the executor identifier
         self.inside_tasks_type = 9000100
+
+        # Process purpose events
+        self.process_worker_executor_event = 8
+        self.process_worker_event = 9
+        self.process_worker_cache_event = 10
 
         # Binding worker events
         self.bind_cpus_event = 1

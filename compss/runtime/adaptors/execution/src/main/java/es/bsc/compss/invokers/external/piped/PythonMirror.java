@@ -157,6 +157,9 @@ public class PythonMirror extends PipedMirror {
         cmd.append(this.pyParams.getPythonCacheProfiler()).append(TOKEN_SEP);
 
         cmd.append(this.size).append(TOKEN_SEP);
+        for (int i = 0; i < this.size; ++i) {
+            cmd.append(i).append(TOKEN_SEP);
+        }
         String executorPipes = this.basePipePath + "executor";
         for (int i = 0; i < this.size; ++i) {
             cmd.append(executorPipes).append(i).append(".outbound").append(TOKEN_SEP);

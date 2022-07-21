@@ -356,20 +356,20 @@ def check_rules(trace_events, event_definitions):
             elif isinstance(expected_amount, list):
                 if found_appearances not in expected_amount:
                     report.append(
-                        "ERROR: Unexpected event range of type %d found: %d (Expected %d)"
-                        % (event_type, found_appearances, str(expected_amount))
+                        "ERROR: Unexpected event range of type %s found: %s (Expected %s)"
+                        % (str(event_type), str(found_appearances), str(expected_amount))
                     )
                     range_ok = False
             elif found_appearances != expected_amount:
                 report.append(
-                    "ERROR: Unexpected event range of type %d found: %d (Expected %d)"
-                    % (event_type, found_appearances, expected_amount)
+                    "ERROR: Unexpected event range of type %s found: %s (Expected %s)"
+                    % (str(event_type), str(found_appearances), str(expected_amount))
                 )
                 range_ok = False
             if is_undefined_range:
                 print(
-                    "\t\t- UNDEFINED appearances (%s) %d"
-                    % (RANGE_LABEL, undefined_appearances_range)
+                    "\t\t- UNDEFINED appearances (%s) %s"
+                    % (RANGE_LABEL, str(undefined_appearances_range))
                 )
             elif range_ok:
                 print("\t\t- OK appearances (%s)" % RANGE_LABEL)

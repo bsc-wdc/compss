@@ -26,7 +26,9 @@ public enum Threads {
     FSH(5, "RUNTIME FS H", "File system thread", ExtraeTaskType.RUNTIME), //
     TIMER(6, "RUNTIME TIMER", "Timer thread", ExtraeTaskType.RUNTIME), //
     WC(7, "RUNTIME WALLCLOCK", "WallClock thread", ExtraeTaskType.RUNTIME), //
-    EXEC(8, "EXECUTOR", "Executor thread", ExtraeTaskType.EXECUTOR); //
+    EXEC(8, "EXECUTOR", "Executor thread", ExtraeTaskType.EXECUTOR), //
+    PYTHON_WORKER(9, "PYTHON WORKER", "Python worker", ExtraeTaskType.RUNTIME), //
+    CACHE(10, "PYTHON OBJECT CACHE", "Python Cache manager", ExtraeTaskType.RUNTIME);
 
 
     public static enum ExtraeTaskType {
@@ -60,6 +62,10 @@ public enum Threads {
         this.label = label;
         this.description = description;
         this.task = task;
+    }
+
+    public boolean isRuntime() {
+        return this.task == ExtraeTaskType.RUNTIME;
     }
 
     /**

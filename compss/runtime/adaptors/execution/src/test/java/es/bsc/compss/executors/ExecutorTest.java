@@ -56,7 +56,7 @@ public class ExecutorTest {
         Platform p = new Platform();
         ctxBdr.setListener(expectedEvents);
         FakeInvocationContext context = ctxBdr.build();
-        Executor ex = new Executor(context, p, "compute1");
+        Executor ex = new Executor(context, p, 1, "compute1");
         Thread t = new Thread(ex);
         t.start();
 
@@ -70,7 +70,7 @@ public class ExecutorTest {
         Platform p = new Platform();
         ctxBdr.setListener(expectedEvents);
         FakeInvocationContext context = ctxBdr.build();
-        Executor ex = new Executor(context, p, "compute1");
+        Executor ex = new Executor(context, p, 1, "compute1");
         Thread t = new Thread(ex);
         t.start();
 

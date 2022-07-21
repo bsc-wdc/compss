@@ -22,7 +22,11 @@ import es.bsc.compss.types.tracing.InfrastructureElement;
 import es.bsc.compss.types.tracing.SynchEvent;
 import es.bsc.compss.types.tracing.Thread;
 import es.bsc.compss.types.tracing.ThreadIdentifier;
+import es.bsc.compss.types.tracing.Threads;
 import es.bsc.compss.types.tracing.Trace;
+import es.bsc.compss.types.tracing.Trace.RecordScanner;
+import es.bsc.compss.types.tracing.TraceEventType;
+import es.bsc.compss.types.tracing.paraver.PRVLine;
 import es.bsc.compss.types.tracing.paraver.PRVThreadIdentifier;
 import es.bsc.compss.types.tracing.paraver.PRVTrace;
 import es.bsc.compss.util.tracing.ThreadTranslator;
@@ -34,6 +38,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -41,6 +47,9 @@ import java.util.Map;
 public class PythonTraceMerger extends TraceMerger {
 
     private final Trace mergeOnTrace;
+
+    private static final String THREAD_ID_EVENT_TYPE = Integer.toString(TraceEventType.THREAD_IDENTIFICATION.code);
+    private static final String EXEC_ID_EVENT_TYPE = Integer.toString(TraceEventType.EXECUTOR_IDENTIFICATION.code);
 
 
     /**
@@ -82,8 +91,37 @@ public class PythonTraceMerger extends TraceMerger {
         LOGGER.debug("Parsing master sync events");
         Map<Integer, List<SynchEvent>> masterSyncEvents = masterTrace.getSyncEvents(-1);
         LOGGER.debug("Merging task traces into master which contains " + masterSyncEvents.size() + " lines.");
-        TraceTransformation[][] modifications = new TraceTransformation[this.inputTraces.length + 1][];
 
+        int numApps = threads.getSubComponents().size();
+        ThreadIdentifier[][][] executorIds = new ThreadIdentifier[threads.getSubComponents().size()][][];
+        for (int appId = 0; appId < numApps; appId++) {
+            ApplicationComposition app = (ApplicationComposition) threads.getSubComponents().get(appId);
+            int numWorkers = app.getSubComponents().size();
+            executorIds[appId] = new ThreadIdentifier[numWorkers][];
+            for (int workerId = 0; workerId < numWorkers; workerId++) {
+                ApplicationComposition worker = (ApplicationComposition) app.getSubComponents().get(workerId);
+                int numThreads = worker.getSubComponents().size();
+                executorIds[appId][workerId] = new ThreadIdentifier[numThreads];
+            }
+        }
+
+        try (RecordScanner records = masterTrace.getRecords()) {
+            String line;
+            // the isEmpty check should not be necessary if the .prv files are well constructed
+            while ((line = records.next()) != null && !line.isEmpty()) {
+                PRVLine prvLine = PRVLine.parse(line);
+                String executorIdValue = prvLine.getEventValue(EXEC_ID_EVENT_TYPE);
+                if (executorIdValue != null) {
+                    PRVThreadIdentifier threadId = prvLine.getEmisorThreadIdentifier();
+                    int appId = Integer.parseInt(threadId.getApp()) - 1;
+                    int workerId = Integer.parseInt(threadId.getTask()) - 1;
+                    int executorId = Integer.parseInt(executorIdValue);
+                    executorIds[appId][workerId][executorId] = threadId;
+                }
+            }
+        }
+
+        TraceTransformation[][] modifications = new TraceTransformation[this.inputTraces.length + 1][];
         for (int idx = 0; idx < this.inputTraces.length; idx++) {
             Trace workerTrace = this.inputTraces[idx];
             if (workerTrace != masterTrace) {
@@ -109,7 +147,36 @@ public class PythonTraceMerger extends TraceMerger {
                 modifications[idx] = new TraceTransformation[2];
                 modifications[idx][0] = new TimeOffset(timeOffset);
 
-                PythonMergeTranslation translation = new PythonMergeTranslation(threads, workerIdx);
+                HashMap<PRVThreadIdentifier, Integer> pythonRuntime = new HashMap<>();
+                HashSet<PRVThreadIdentifier> pythonExecutorThreads = new HashSet<>();
+                HashMap<PRVThreadIdentifier, String> pythonExecutors = new HashMap<>();
+                try (RecordScanner records = workerTrace.getRecords()) {
+                    String line;
+                    // the isEmpty check should not be necessary if the .prv files are well constructed
+                    while ((line = records.next()) != null && !line.isEmpty()) {
+                        PRVLine prvLine = PRVLine.parse(line);
+                        String identifierEventValue = prvLine.getEventValue(THREAD_ID_EVENT_TYPE);
+                        if (identifierEventValue != null) {
+                            PRVThreadIdentifier threadId = prvLine.getEmisorThreadIdentifier();
+                            Integer threadTypeId = new Integer(identifierEventValue);
+                            if (threadTypeId == Threads.EXEC.id) {
+                                pythonExecutorThreads.add(threadId);
+                            } else {
+                                pythonRuntime.put(threadId, threadTypeId);
+                            }
+                        }
+                        String executorIdValue = prvLine.getEventValue(EXEC_ID_EVENT_TYPE);
+                        if (executorIdValue != null) {
+                            PRVThreadIdentifier threadId = prvLine.getEmisorThreadIdentifier();
+                            pythonExecutorThreads.add(threadId);
+                            pythonExecutors.put(threadId, executorIdValue);
+                        }
+                    }
+                }
+
+                ThreadIdentifier[] wExec2Thread = executorIds[0][workerIdx];
+                PythonMergeTranslation translation = new PythonMergeTranslation(threads, workerIdx, pythonRuntime,
+                    pythonExecutorThreads, pythonExecutors, wExec2Thread);
                 modifications[idx][1] = new ThreadTranslation(translation);
             } else {
                 modifications[idx] = new TraceTransformation[0];
@@ -153,23 +220,50 @@ public class PythonTraceMerger extends TraceMerger {
 
         private final ApplicationComposition threads;
         private final ApplicationComposition task;
+        private final ThreadIdentifier[] appToExec;
 
 
-        public PythonMergeTranslation(ApplicationComposition threads, int workerId) {
+        public PythonMergeTranslation(ApplicationComposition threads, int workerId,
+            HashMap<PRVThreadIdentifier, Integer> pythonRuntime, HashSet<PRVThreadIdentifier> pythonExecutorThreads,
+            HashMap<PRVThreadIdentifier, String> pythonExecutors, ThreadIdentifier[] exec2Thread) {
             this.threads = threads;
             ApplicationComposition app = (ApplicationComposition) threads.getSubComponents().get(0);
             task = (ApplicationComposition) app.getSubComponents().get(workerId);
+            int numThreads = task.getNumberOfDirectSubcomponents();
+            appToExec = new ThreadIdentifier[numThreads];
+
+            for (java.util.Map.Entry<PRVThreadIdentifier, String> entry : pythonExecutors.entrySet()) {
+                PRVThreadIdentifier id = entry.getKey();
+                pythonExecutorThreads.remove(id);
+                int appId = Integer.parseInt(id.getApp()) - 1;
+                int executorId = Integer.parseInt(entry.getValue());
+                appToExec[appId] = exec2Thread[executorId];
+            }
+
+            Thread refThread = (Thread) task.getSubComponents().get(0);
+            PRVThreadIdentifier reference = (PRVThreadIdentifier) refThread.getIdentifier();
+            String refLabel = refThread.getLabel();
+
+            String refApp = reference.getApp();
+            String refTask = reference.getTask();
+            for (java.util.Map.Entry<PRVThreadIdentifier, Integer> entry : pythonRuntime.entrySet()) {
+                PRVThreadIdentifier pythonId = entry.getKey();
+                String newThreadId = Integer.toString(numThreads + 1);
+                PRVThreadIdentifier newId = new PRVThreadIdentifier(refApp, refTask, newThreadId);
+                numThreads++;
+                String newLabel = refLabel.substring(0, refLabel.length() - 1) + newThreadId;
+                task.appendComponent(new Thread(newId, newLabel));
+                int appId = Integer.parseInt(pythonId.getApp()) - 1;
+                appToExec[appId] = newId;
+            }
         }
 
         @Override
         public ThreadIdentifier getNewThreadId(ThreadIdentifier threadId) {
             PRVThreadIdentifier prvId = (PRVThreadIdentifier) threadId;
             String oldId = prvId.getApp();
-            int oldApp = Integer.parseInt(oldId);
-            int newThreadId = task.getNumberOfDirectSubcomponents() - oldApp;
-
-            Thread thread = (Thread) task.getSubComponents().get(newThreadId);
-            return thread.getIdentifier();
+            int appId = Integer.parseInt(oldId) - 1;
+            return appToExec[appId];
         }
 
         @Override

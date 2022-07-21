@@ -222,6 +222,9 @@ public enum TraceEvent {
     TIMER_THREAD_ID(Threads.TIMER.id, TraceEventType.THREAD_IDENTIFICATION, Threads.TIMER.description), //
     WALLCLOCK_THREAD_ID(Threads.WC.id, TraceEventType.THREAD_IDENTIFICATION, Threads.WC.description), //
     EXECUTOR_THREAD_ID(Threads.EXEC.id, TraceEventType.THREAD_IDENTIFICATION, Threads.EXEC.description), //
+    PYTHON_WORKER_THREAD_ID(Threads.PYTHON_WORKER.id, TraceEventType.THREAD_IDENTIFICATION,
+        Threads.PYTHON_WORKER.description), //
+    PYTHON_CACHE_THREAD_ID(Threads.CACHE.id, TraceEventType.THREAD_IDENTIFICATION, Threads.CACHE.description), //
 
     // Executor Thread events
     EXECUTOR_COUNTS(1, TraceEventType.EXECUTOR_COUNTS, "Executor counts"), // Executor start

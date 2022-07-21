@@ -210,6 +210,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
         // Executor Pipes
         StringBuilder writePipes = new StringBuilder();
         StringBuilder readPipes = new StringBuilder();
+
         for (int i = 0; i < this.size; ++i) {
             String pipeName = "executor" + i;
             PipePair executorPipe = new PipePair(basePipePath, pipeName, this);
@@ -405,15 +406,15 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
     }
 
     @Override
-    public PipePair registerExecutor(String executorId) {
+    public PipePair registerExecutor(int executorId, String executorName) {
         boolean createExecutor = false;
         PipePair pp;
         synchronized (this.pipePool) {
-            pp = this.pipePool.get(executorId);
+            pp = this.pipePool.get(executorName);
             if (pp == null) {
-                pp = new PipePair(this.basePipePath, executorId, this);
+                pp = new PipePair(this.basePipePath, executorName, this);
                 createExecutor = true;
-                this.pipePool.put(executorId, pp);
+                this.pipePool.put(executorName, pp);
             }
         }
         int executorPID = -1;
@@ -431,7 +432,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
             }
 
             // Launch executor
-            if (this.pipeWorkerPipe.sendCommand(new AddExecutorPipeCommand(pp))) {
+            if (this.pipeWorkerPipe.sendCommand(new AddExecutorPipeCommand(executorId, pp))) {
                 try {
                     AddedExecutorPipeCommand reply = new AddedExecutorPipeCommand(pp);
                     this.pipeWorkerPipe.waitForCommand(reply);
@@ -461,7 +462,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
                 throw new UnsupportedOperationException("Not yet implemented. Specific exception should be raised");
             }
         }
-        this.monitor.registerExecutor(this, executorId, executorPID, pp);
+        this.monitor.registerExecutor(this, executorName, executorPID, pp);
 
         return pp;
     }

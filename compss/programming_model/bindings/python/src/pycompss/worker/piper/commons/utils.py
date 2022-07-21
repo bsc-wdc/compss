@@ -42,6 +42,7 @@ class PiperWorkerConfiguration:
         "stream_master_name",
         "stream_master_port",
         "tasks_x_node",
+        "exec_ids",
         "pipes",
         "control_pipe",
         "cache",
@@ -61,6 +62,7 @@ class PiperWorkerConfiguration:
         self.stream_master_name = ""  # type: str
         self.stream_master_port = ""  # type: str
         self.tasks_x_node = 0  # type: int
+        self.exec_ids = []  # type: typing.List[int]
         self.pipes = []  # type: typing.List[Pipe]
         self.control_pipe = None  # type: typing.Union[None, Pipe]
         self.cache = False  # type: typing.Union[str, bool]
@@ -85,8 +87,10 @@ class PiperWorkerConfiguration:
         self.cache = argv[9]
         self.cache_profiler = argv[10]
         self.tasks_x_node = int(argv[11])
-        in_pipes = argv[12 : 12 + self.tasks_x_node]
-        out_pipes = argv[12 + self.tasks_x_node : -2]
+        exec_ids = argv[12 : 12 + self.tasks_x_node]
+        self.exec_ids = [int(exec_id) for exec_id in exec_ids]
+        in_pipes = argv[12 + self.tasks_x_node : 12 + (self.tasks_x_node * 2)]
+        out_pipes = argv[12 + (self.tasks_x_node * 2) : -2]
         if self.debug:
             assert self.tasks_x_node == len(in_pipes)
             assert self.tasks_x_node == len(out_pipes)
@@ -110,6 +114,9 @@ class PiperWorkerConfiguration:
         logger.debug(HEADER + "Cache          : " + str(self.cache))
         logger.debug(HEADER + "Cache profiler : " + str(self.cache_profiler))
         logger.debug(HEADER + "Tasks per node : " + str(self.tasks_x_node))
+        logger.debug(HEADER + "Exec ids       : ")
+        for exec_id in self.exec_ids:
+            logger.debug(HEADER + "                 * " + str(exec_id))
         logger.debug(HEADER + "Pipe Pairs     : ")
         for pipe in self.pipes:
             logger.debug(HEADER + "                 * " + str(pipe))

@@ -310,11 +310,10 @@ fi
 # Merge python traces into main
 python_traces=$(find "${out_dir}/python" -name "*.prv")
 merge_python_traces "${out_dir}" "${trace_name}" ${python_traces}
-
-rm -rf "${out_dir}/python"
 if [ ! "${endCode}" -eq "0" ]; then
   exit "${endCode}"
 fi
+rm -rf "${out_dir}/python"
 
 # Re-arranging PRV trace with custom threads
 if [ "${custom_threads}" == "true" ]; then

@@ -42,7 +42,7 @@ public class CInvoker extends PipedInvoker {
     @Override
     protected ExecuteTaskExternalCommand getTaskExecutionCommand(InvocationContext context, Invocation invocation,
         String sandBox, InvocationResources assignedResources) {
-        ExecuteTaskPipeCommand taskExecution = new ExecuteTaskPipeCommand(invocation.getJobId());
+        ExecuteTaskPipeCommand taskExecution = new ExecuteTaskPipeCommand(invocation.getJobId(), sandBox);
         ArrayList<String> cCommand =
             CExecutionCommandGenerator.getTaskExecutionCommand(context, invocation, sandBox, assignedResources);
         taskExecution.appendAllArguments(cCommand);

@@ -89,7 +89,8 @@ void CBindingExecutor::initThread() {
 }
 
 int CBindingExecutor::executeTask(const char * command, char *&result) {
-	ofstream *jobOut, *jobErr;
+	string sandBox ;
+    ofstream *jobOut, *jobErr;
 	int th_id = gettid();
 	struct timeval t_comp_start, t_comp_end, t_ex_end, t_read_end, t_aff_end, t_reg_end, t_cp_end;
 	gettimeofday(&t_comp_start, NULL);
@@ -119,8 +120,9 @@ int CBindingExecutor::executeTask(const char * command, char *&result) {
     if (is_debug()) {
         cout << "[Persistent C (Th " << th_id <<")] Registering task output streams redirection..." << endl << flush;
     //}
-        jobOut = new ofstream(commandArgs[2].c_str());
-        jobErr = new ofstream(commandArgs[3].c_str());
+        sandBox = commandArgs[2].c_str();
+        jobOut = new ofstream(commandArgs[3].c_str());
+        jobErr = new ofstream(commandArgs[4].c_str());
         csOut->registerThread(jobOut->rdbuf());
         csErr->registerThread(jobErr->rdbuf());
     }

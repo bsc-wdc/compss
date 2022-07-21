@@ -72,9 +72,10 @@
    
   execute_task() {
     local tid=$1
-    local jobOut=$2
-    local jobErr=$3
-    shift 3
+    local sandBox=$2
+    local jobOut=$3
+    local jobErr=$4
+    shift 4
 
     # Log the task initialization
     echo "[C EXECUTOR] Execute task $tid"

@@ -552,6 +552,7 @@ def process_task(
         affinity_event_emit = False
         binded_cpus = False
         binded_gpus = False
+        current_working_dir = os.getcwd()
 
         # CPU binding
         cpus = current_line[-3]
@@ -572,23 +573,26 @@ def process_task(
         current_line = current_line[0:-3]
 
         # task jobId command
-        job_id, job_out, job_err = current_line[1:4]  # 4th is not taken
-        # current_line[4] = <boolean> = tracing
-        # current_line[5] = <integer> = task id
-        # current_line[6] = <boolean> = debug
-        # current_line[7] = <string>  = storage conf.
-        # current_line[8] = <string>  = operation type (e.g. METHOD)
-        # current_line[9] = <string>  = module
-        # current_line[10]= <string>  = method
-        # current_line[11]= <string>  = time out
-        # current_line[12]= <integer> = Number of slaves (worker nodes)==#nodes
+        job_id, working_dir, job_out, job_err = current_line[1:5]  # 5th is not taken
+        # current_line[5] = <boolean> = tracing
+        # current_line[6] = <integer> = task id
+        # current_line[7] = <boolean> = debug
+        # current_line[8] = <string>  = storage conf.
+        # current_line[9] = <string>  = operation type (e.g. METHOD)
+        # current_line[10] = <string>  = module
+        # current_line[11]= <string>  = method
+        # current_line[12]= <string>  = time out
+        # current_line[13]= <integer> = Number of slaves (worker nodes)==#nodes
         # <<list of slave nodes>>
-        # current_line[12 + #nodes] = <integer> = computing units
-        # current_line[13 + #nodes] = <boolean> = has target
-        # current_line[14 + #nodes] = <string>  = has return (always "null")
-        # current_line[15 + #nodes] = <integer> = Number of parameters
+        # current_line[14 + #nodes] = <integer> = computing units
+        # current_line[15 + #nodes] = <boolean> = has target
+        # current_line[16 + #nodes] = <string>  = has return (always "null")
+        # current_line[17 + #nodes] = <integer> = Number of parameters
         # <<list of parameters>>
         #       !---> type, stream, prefix , value
+
+        # Setting working directory
+        os.chdir(working_dir)
 
         if __debug__:
             logger.debug(
@@ -596,6 +600,12 @@ def process_task(
                 HEADER,
                 str(process_name),
                 str(job_id),
+            )
+            logger.debug(
+                "%s[%s] Setting working directory: %s",
+                HEADER,
+                str(process_name),
+                str(working_dir),
             )
             logger.debug(
                 "%s[%s] - TASK CMD: %s", HEADER, str(process_name), str(current_line)
@@ -644,9 +654,9 @@ def process_task(
                     )
 
             # Setup process environment
-            compss_nodes = int(current_line[12])
-            compss_nodes_names = ",".join(current_line[13 : 13 + compss_nodes])
-            computing_units = current_line[13 + compss_nodes]
+            compss_nodes = int(current_line[13])
+            compss_nodes_names = ",".join(current_line[14 : 14 + compss_nodes])
+            computing_units = current_line[14 + compss_nodes]
             if __debug__:
                 logger.debug("Process environment:")
                 logger.debug("\t - Number of nodes: %s", (str(compss_nodes)))
@@ -658,7 +668,7 @@ def process_task(
             result = execute_task(
                 process_name,
                 storage_conf,
-                current_line[9:],
+                current_line[10:],
                 tracing,
                 logger,
                 logger_cfg,
@@ -741,7 +751,8 @@ def process_task(
             )
             if queue:
                 queue.put("EXCEPTION")
-
+            # Go back to initial current working directory
+            os.chdir(current_working_dir)
             # Stop the worker process
             return False
 
@@ -784,7 +795,8 @@ def process_task(
 
         # Notify the runtime that the task has finished
         pipe.write(message)
-
+        # Go back to original working directory
+        os.chdir(current_working_dir)
         return True
 
 

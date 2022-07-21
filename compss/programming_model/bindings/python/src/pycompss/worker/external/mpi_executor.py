@@ -80,8 +80,8 @@ def executor(process_name: str, command: str) -> None:
     # Replace Python Worker's SIGTERM handler.
     signal.signal(signal.SIGTERM, shutdown_handler)
 
-    log_level = command.split()[6]
-    tracing = command.split()[7] == "true"
+    log_level = command.split()[7]
+    tracing = command.split()[8] == "true"
 
     # Load log level configuration file
     worker_path = os.path.dirname(os.path.realpath(__file__))
@@ -156,6 +156,7 @@ def process_task(
         stdout = sys.stdout
         stderr = sys.stderr
         job_id = None
+        current_working_dir = os.getcwd()
 
         if __debug__:
             logger.debug(
@@ -186,30 +187,39 @@ def process_task(
 
             # task jobId command
             job_id = current_line_filtered[1]
-            job_out = current_line_filtered[2]
-            job_err = current_line_filtered[3]
-            # current_line_filtered[4] = <boolean> = tracing
-            # current_line_filtered[5] = <integer> = task id
-            # current_line_filtered[6] = <boolean> = debug
-            # current_line_filtered[7] = <string>  = storage conf.
-            # current_line_filtered[8] = <string>  = operation type (e.g. METHOD)
-            # current_line_filtered[9] = <string>  = module
-            # current_line_filtered[10]= <string>  = method
-            # current_line_filtered[11]= <string>  = time out
-            # current_line_filtered[12]= <integer> = Number of slaves (worker nodes)==#nodes
+            working_dir = current_line_filtered[2]
+            job_out = current_line_filtered[3]
+            job_err = current_line_filtered[4]
+            # current_line_filtered[5] = <boolean> = tracing
+            # current_line_filtered[6] = <integer> = task id
+            # current_line_filtered[7] = <boolean> = debug
+            # current_line_filtered[8] = <string>  = storage conf.
+            # current_line_filtered[9] = <string>  = operation type (e.g. METHOD)
+            # current_line_filtered[10] = <string>  = module
+            # current_line_filtered[11]= <string>  = method
+            # current_line_filtered[12]= <string>  = time out
+            # current_line_filtered[13]= <integer> = Number of slaves (worker nodes)==#nodes
             # <<list of slave nodes>>
-            # current_line_filtered[12 + #nodes] = <integer> = computing units
-            # current_line_filtered[13 + #nodes] = <boolean> = has target
-            # current_line_filtered[14 + #nodes] = <string>  = has return (always "null")
-            # current_line_filtered[15 + #nodes] = <integer> = Number of parameters
+            # current_line_filtered[13 + #nodes] = <integer> = computing units
+            # current_line_filtered[14 + #nodes] = <boolean> = has target
+            # current_line_filtered[15 + #nodes] = <string>  = has return (always "null")
+            # current_line_filtered[16 + #nodes] = <integer> = Number of parameters
             # <<list of parameters>>
             #       !---> type, stream, prefix , value
+
+            # Setting working directory
+            os.chdir(working_dir)
 
             if __debug__:
                 logger.debug(
                     "[PYTHON EXECUTOR] [%s] Received task with id: %s",
                     str(process_name),
                     str(job_id),
+                )
+                logger.debug(
+                    "[PYTHON EXECUTOR] [%s] Setting working directory: %s",
+                    str(process_name),
+                    str(working_dir),
                 )
                 logger.debug(
                     "[PYTHON EXECUTOR] [%s] - TASK CMD: %s",
@@ -243,11 +253,11 @@ def process_task(
                 sys.stderr = err
 
                 # Setup process environment
-                compss_nodes = int(current_line_filtered[12])
+                compss_nodes = int(current_line_filtered[13])
                 compss_nodes_names = ",".join(
-                    current_line_filtered[13 : 13 + compss_nodes]
+                    current_line_filtered[14 : 14 + compss_nodes]
                 )
-                computing_units = int(current_line_filtered[13 + compss_nodes])
+                computing_units = int(current_line_filtered[14 + compss_nodes])
                 os.environ["COMPSS_NUM_NODES"] = str(compss_nodes)
                 os.environ["COMPSS_HOSTNAMES"] = compss_nodes_names
                 os.environ["COMPSS_NUM_THREADS"] = str(computing_units)
@@ -265,7 +275,7 @@ def process_task(
                 result = execute_task(
                     process_name,
                     storage_conf,
-                    current_line_filtered[9:],
+                    current_line_filtered[10:],
                     tracing,
                     logger,
                     log_json,
@@ -390,6 +400,9 @@ def process_task(
                 )
             exit_value = 7
             message = " ".join((TAGS.end_task, str(job_id), str(exit_value) + "\n"))
+
+        # Go back to initial current working directory
+        os.chdir(current_working_dir)
 
         return exit_value, message
 

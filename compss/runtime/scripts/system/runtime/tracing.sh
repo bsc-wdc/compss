@@ -210,15 +210,24 @@ generate_trace() {
   echo "Creating prvs "
   packages=$(find "${extraeWDir}" -name "*.tar.gz")
   gen_traces "${extraeWDir}" "${trace_name}" "1" ${packages}
-
+  if [ ! "${endCode}" -eq "0" ]; then
+    exit "${endCode}"
+  fi
+  
   echo "Joining python traces"
   python_traces=$(find "${extraeWDir}/python" -name "*.prv")
   merge_python_traces "${extraeWDir}" "${trace_name}" ${python_traces}
+  if [ ! "${endCode}" -eq "0" ]; then
+    exit "${endCode}"
+  fi
   rm -rf "${extraeWDir}/python"
 
   if [ "${tracing_custom_threads}" == "true" ]; then
     echo "Customizing threads"
     rearrange_trace_threads "${extraeWDir}" "${trace_name}"
+    if [ ! "${endCode}" -eq "0" ]; then
+      exit "${endCode}"
+    fi    
   fi
 }
 

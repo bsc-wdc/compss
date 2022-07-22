@@ -1,0 +1,59 @@
+#!/bin/bash -e
+
+  #############################################################
+  # Name: buildTirant_aux
+  # Description: SCRIPT FOR LOCAL COMPSs BUILD in Tirant
+  # Parameters: <targetDir>           Base Target Installation folder
+  #
+  # ATTENTION: DO NOT EXECUTE THIS FILE. IT IS AUTOMATICALLY
+  #            EXECUTED FROM buildMN script
+  #############################################################
+
+  usage() {
+    echo "Incorrect number of parameters"
+    echo " Usage: buildTirant_aux <FullTargetPath>"
+    echo " "
+    exit 1
+  }
+
+  ####################
+  # MAIN
+  ####################
+  # Get parameters
+  if [ $# -ne 1 ]; then
+    usage
+  fi
+
+  # SET SCRIPT VARIABLES
+  targetDir=$1
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+  # DEFINE MODULES
+  modules="intel/2019.4.243 boost "
+  unload_before_python="ignore"
+  run_before_py3_modules="ignore"
+  py3_modules="python/3.7"
+  run_before_py3_other_modules="ignore"
+  py3_other_modules=""
+
+  # DEFINE CONFIGURATION PARAMETERS
+  additionalExports="export JAVA_HOME=/storage/apps/COMPSS/jdk1.8.0_201/ PATH=\$PATH:/storage/apps/COMPSS/jdk1.8.0_201/bin "
+  additional_module_use_folder="ignore"
+  queues_cfg="tirant.cfg"
+  extrae_with_openmpi="false"
+  openmpi_version=""
+  extrae_with_impi="false"
+  impi_version="/2019.4.243"
+  autoparallel="false"
+  c_binding="true"
+
+  # CALL buildSC_aux
+  "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${unload_before_python}" "${run_before_py3_modules}" "${py3_modules}" "${run_before_py3_other_modules}" "${py3_other_modules}" "${additionalExports}" "${additional_module_use_folder}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "${autoparallel}" "${c_binding}"
+  ev=$?
+
+  # End
+  if [ $ev -ne 0 ]; then
+    echo "ERROR: Exception in auxiliar script"
+    exit $ev
+  fi
+  exit 0

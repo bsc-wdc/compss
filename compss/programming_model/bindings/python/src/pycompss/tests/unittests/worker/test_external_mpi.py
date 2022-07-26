@@ -50,12 +50,14 @@ def test_external_mpi_worker_simple_task():
     sys_path_backup = list(sys.path)
     job1_out = tempfile.NamedTemporaryFile(delete=False).name
     job1_err = tempfile.NamedTemporaryFile(delete=False).name
+    working_dir = os.getcwd()
     sys.argv = [
         "test_external_mpi.py",
         " ".join(
             [
                 "EXECUTE_TASK",
                 "1",
+                working_dir,
                 job1_out,
                 job1_err,
                 "0",
@@ -98,12 +100,14 @@ def test_external_mpi_worker_increment_task():
     job2_out = tempfile.NamedTemporaryFile(delete=False).name
     job2_err = tempfile.NamedTemporaryFile(delete=False).name
     job2_result = tempfile.NamedTemporaryFile(delete=False).name
+    working_dir = os.getcwd()
     sys.argv = [
         "test_external_mpi.py",
         " ".join(
             [
                 "EXECUTE_TASK",
                 "2",
+                working_dir,
                 job2_out,
                 job2_err,
                 "0",

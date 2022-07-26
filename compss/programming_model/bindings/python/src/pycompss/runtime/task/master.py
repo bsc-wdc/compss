@@ -2134,6 +2134,7 @@ def _serialize_object_into_file(
                         content_type=get_compss_type(
                             x, param.depth - 1, force_file=True
                         ),
+                        is_file_collection=True,
                         direction=param.direction,
                         file_name=COMPSsFile(x),
                         depth=param.depth - 1,
@@ -2264,6 +2265,8 @@ def _extract_parameter(
     """Extract the information of a single parameter.
 
     :param param: Parameter object.
+    :param code_strings: If the strings have to be encoded.
+    :param collection_depth: Collection depth.
     :return: value, typ, direction, stream, prefix, extra_content_type, weight,
             keep_rename of the given parameter.
     """

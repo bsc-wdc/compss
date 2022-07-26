@@ -77,7 +77,7 @@ public class PythonMPIInvoker extends ExternalInvoker {
     protected ExecuteTaskExternalCommand getTaskExecutionCommand(InvocationContext context, Invocation invocation,
         String sandBox, InvocationResources assignedResources) {
 
-        ExecuteTaskPipeCommand taskExecution = new ExecuteTaskPipeCommand(invocation.getJobId());
+        ExecuteTaskPipeCommand taskExecution = new ExecuteTaskPipeCommand(invocation.getJobId(), sandBox);
         return taskExecution;
     }
 

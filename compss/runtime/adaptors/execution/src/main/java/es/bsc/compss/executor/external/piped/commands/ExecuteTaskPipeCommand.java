@@ -25,17 +25,19 @@ import es.bsc.compss.executor.external.commands.ExecuteTaskExternalCommand;
 public class ExecuteTaskPipeCommand extends ExecuteTaskExternalCommand implements PipeCommand {
 
     private final Integer jobId;
+    private final String sandBox;
 
 
     /**
      * Execute task command constructor.
      * 
      * @param jobId Job Identifier
+     * @param sandBox Location where to run the job
      */
-    public ExecuteTaskPipeCommand(Integer jobId) {
+    public ExecuteTaskPipeCommand(Integer jobId, String sandBox) {
         super();
-
         this.jobId = jobId;
+        this.sandBox = sandBox;
     }
 
     @Override
@@ -43,6 +45,8 @@ public class ExecuteTaskPipeCommand extends ExecuteTaskExternalCommand implement
         StringBuilder sb = new StringBuilder(CommandType.EXECUTE_TASK.name());
         sb.append(TOKEN_SEP);
         sb.append(String.valueOf(this.jobId));
+        sb.append(TOKEN_SEP);
+        sb.append(sandBox);
         for (String c : this.arguments) {
             sb.append(TOKEN_SEP);
             sb.append(c);

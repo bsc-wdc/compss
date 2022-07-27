@@ -684,6 +684,25 @@ def cache_tracker(
                         str(process_name),
                         str(msg),
                     )
+                    logger.debug(
+                        "%s [%s] Cache hits status:",
+                        CACHE_TRACKER.header,
+                        str(process_name),
+                    )
+                    used_size = 0
+                    for hits, elements in cache_hits.items():
+                        if elements:  # not empty entry
+                            logger.debug(f"{CACHE_TRACKER.header} [{process_name}] {hits} hits:")
+                            for obj_name, size in elements.items():
+                                logger.debug(f"{CACHE_TRACKER.header} [{process_name}] \t- {obj_name} {size}")
+                                used_size += size
+                    logger.debug(
+                        "%s [%s] Max size: %s Used size: %s",
+                        CACHE_TRACKER.header,
+                        str(process_name),
+                        str(max_size),
+                        str(used_size),
+                    )
                 alive = False
         elif msg == "END PROFILING":
             with EventWorkerCache(TRACING_WORKER_CACHE.cache_msg_end_profiling_event):

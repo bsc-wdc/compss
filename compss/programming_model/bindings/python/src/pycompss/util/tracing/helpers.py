@@ -30,6 +30,7 @@ from contextlib import contextmanager
 from pycompss.util.context import CONTEXT
 from pycompss.util.tracing.types_events_master import TRACING_MASTER
 from pycompss.util.tracing.types_events_worker import TRACING_WORKER
+from pycompss.util.tracing.types_events_worker import TRACING_WORKER_CACHE
 from pycompss.util.typing_helper import typing
 
 
@@ -298,6 +299,57 @@ class EventInsideWorker:
         """
         if TRACING.is_tracing() and self.emitted:
             TRACING.get_pyextrae().eventandcounters(TRACING_WORKER.inside_tasks_type, 0)
+
+
+class EventWorkerCache:
+    """Decorator that emits an event at worker cache wrapping the desired code.
+
+    Does nothing if tracing is disabled.
+
+    :param event_id: Event identifier to emit.
+    :return: None.
+    """
+
+    __slots__ = ["emitted"]
+
+    def __init__(self, event_id: int) -> None:
+        """Emit the given event identifier in the inside worker cache group.
+
+        :param event_id: Event identifier.
+        :returns: None.
+        """
+        self.emitted = False
+        if TRACING.is_tracing() and CONTEXT.in_worker():
+            TRACING.get_pyextrae().eventandcounters(
+                TRACING_WORKER_CACHE.worker_cache_type, event_id
+            )
+            self.emitted = True
+
+    def __enter__(self) -> None:
+        """Do nothing.
+
+        :returns: None.
+        """
+
+    def __exit__(
+        self,
+        type: typing.Any,  # pylint: disable=redefined-builtin
+        value: typing.Any,
+        traceback: typing.Any,
+    ) -> None:
+        """Emit the 0 event in the worker cache group when the context is finished.
+
+        * Signature from context structure.
+
+        :param type: Type.
+        :param value: Value.
+        :param traceback: Traceback.
+        :returns: None.
+        """
+        if TRACING.is_tracing() and self.emitted:
+            TRACING.get_pyextrae().eventandcounters(
+                TRACING_WORKER_CACHE.worker_cache_type, 0
+            )
 
 
 def emit_manual_event(

@@ -788,6 +788,12 @@ class TaskWorker:
             # Check if the object is already in cache
             if CACHE_TRACKER.in_cache(LOGGER, original_path, self.cache_ids):
                 # The object is cached
+                with EventInsideWorker(TRACING_WORKER.cache_hit_event):
+                    if __debug__:
+                        LOGGER.debug(
+                            "\t\t - Found in cache (Cache hit) - retrieving: %s",
+                            str(original_path),
+                        )
                 retrieved, existing_shm = CACHE_TRACKER.retrieve_object_from_cache(
                     LOGGER,
                     self.cache_ids,
@@ -808,11 +814,12 @@ class TaskWorker:
             # si keep source = False -- voy a buscar el source name en vez de destination name.
             #     no meter en cache si es IN y keep source == False
             # si keep source = True -- hay que meterlo si no esta.
-            if __debug__ and cache:
-                LOGGER.debug(
-                    "\t\t - Not found in cache (miss) - deserializing: %s",
-                    str(original_path),
-                )
+            with EventInsideWorker(TRACING_WORKER.cache_miss_event):
+                if __debug__:
+                    LOGGER.debug(
+                        "\t\t - Not found in cache (Cache miss) - deserializing: %s",
+                        str(original_path),
+                    )
             obj = deserialize_from_file(original_path)
             if (
                 argument.file_name.keep_source

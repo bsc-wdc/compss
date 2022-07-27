@@ -72,7 +72,6 @@ public class ExecutionPlatform implements ExecutorContext {
     private boolean started = false;
     private int nextThreadId = 0;
     private final TreeSet<Thread> workerThreads;
-    private int numFrozenThreads;
     private final Semaphore frozenSemaphore;
     private final LinkedList<Thread> finishedWorkerThreads;
 
@@ -221,9 +220,11 @@ public class ExecutionPlatform implements ExecutorContext {
         boolean wait = false;
         Semaphore startSem;
         synchronized (this) {
-            if (this.numFrozenThreads > 0) {
+            int numFrozenThreads = this.frozenSemaphore.getQueueLength();
+            if (numFrozenThreads > 0) {
+                LOGGER.info("Recovering " + numFrozenThreads + " frozen executors");
                 int wakeUpThreads = numFrozenThreads;
-                if (this.numFrozenThreads > numWorkerThreads) {
+                if (numFrozenThreads > numWorkerThreads) {
                     wakeUpThreads = numWorkerThreads;
                 }
                 this.frozenSemaphore.release(wakeUpThreads);
@@ -287,12 +288,16 @@ public class ExecutionPlatform implements ExecutorContext {
     public final void removeWorkerThreads(int numWorkerThreads) {
         if (numWorkerThreads > 0) {
             LOGGER.info("Stopping " + numWorkerThreads + " executors from execution platform " + this.platformName);
-            if (this.numFrozenThreads > 0) {
-                int wakeUpThreads = numFrozenThreads;
-                if (this.numFrozenThreads > numWorkerThreads) {
-                    wakeUpThreads = numWorkerThreads;
+            synchronized (this) {
+                int numFrozenThreads = this.frozenSemaphore.getQueueLength();
+                if (numFrozenThreads > 0) {
+                    LOGGER.info("Resuming " + numFrozenThreads + " frozen executors to stop them");
+                    int wakeUpThreads = numFrozenThreads;
+                    if (numFrozenThreads > numWorkerThreads) {
+                        wakeUpThreads = numWorkerThreads;
+                    }
+                    this.frozenSemaphore.release(wakeUpThreads);
                 }
-                this.frozenSemaphore.release(wakeUpThreads);
             }
             // if (Tracer.basicModeEnabled()) {
             // Tracer.enablePThreads();
@@ -405,14 +410,13 @@ public class ExecutionPlatform implements ExecutorContext {
 
             @Override
             public void notifyEnd(Invocation invocation, boolean success, COMPSsException e) {
-                synchronized (ExecutionPlatform.this) {
-                    ExecutionPlatform.this.numFrozenThreads++;
-                    freezeSem.release();
-                }
+                freezeSem.release();
                 if (Tracer.isActivated()) {
                     Tracer.emitEventEnd(TraceEvent.EXECUTOR_ACTIVE);
                 }
+                LOGGER.info(Thread.currentThread().getName() + " freezes");
                 ExecutionPlatform.this.frozenSemaphore.acquireUninterruptibly();
+                LOGGER.info(Thread.currentThread().getName() + " unfrozen");
                 if (Tracer.isActivated()) {
                     Tracer.emitEvent(TraceEvent.EXECUTOR_ACTIVE);
                 }

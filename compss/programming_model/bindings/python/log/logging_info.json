@@ -162,6 +162,7 @@
     "pycompss.worker.external.mpi_executor":         { "level": "INFO", "handlers": ["info_file_handler", "error_file_handler"], "propagate": "no" },
     "pycompss.worker.gat.commons.constants":         { "level": "INFO", "handlers": ["info_file_handler", "error_file_handler"], "propagate": "no" },
     "pycompss.worker.gat.worker":                    { "level": "INFO", "handlers": ["info_file_handler", "error_file_handler"], "propagate": "no" },
+    "pycompss.worker.piper.cache.manager":           { "level": "INFO", "handlers": ["info_file_handler", "error_file_handler"], "propagate": "no" },
     "pycompss.worker.piper.cache.profiler":          { "level": "INFO", "handlers": ["info_file_handler", "error_file_handler"], "propagate": "no" },
     "pycompss.worker.piper.cache.setup":             { "level": "INFO", "handlers": ["info_file_handler", "error_file_handler"], "propagate": "no" },
     "pycompss.worker.piper.cache.tracker":           { "level": "INFO", "handlers": ["info_file_handler", "error_file_handler"], "propagate": "no" },

@@ -31,8 +31,8 @@ from pycompss.util.process.manager import new_manager
 from pycompss.util.process.manager import new_queue
 from pycompss.util.typing_helper import typing
 from pycompss.worker.piper.cache.tracker import CacheTrackerConf
-from pycompss.worker.piper.cache.tracker import cache_tracker
 from pycompss.worker.piper.cache.tracker import CACHE_TRACKER
+from pycompss.worker.piper.cache.manager import cache_tracker
 
 
 def is_cache_enabled(cache_config: str) -> bool:

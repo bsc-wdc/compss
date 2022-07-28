@@ -551,7 +551,7 @@ void PIPE_Delete_File(long appId, char* fileName, int wait, int applicationDelet
     // MESAGE: DELETE_FILE appId fileName
     // RETURN: (int)  0 false, otherwise true
     stringstream ss;
-    ss << "DELETE_FILE " << appId << " " << fileName;
+    ss << "DELETE_FILE " << appId << " " << fileName << " ";
     if (wait != 0) {
     	ss << "true ";
     } else {

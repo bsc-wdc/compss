@@ -306,12 +306,12 @@ class CacheTracker:
             NP
             and in_cache_queue is not None
             and out_cache_queue is not None
-            and isinstance(obj, NP.ndarray)
-            and not obj.dtype == object
-            # and (
-            #     (isinstance(obj, NP.ndarray) and not obj.dtype == object)
-            #     or isinstance(obj, (list, tuple))
-            # )
+            and (
+                (isinstance(obj, NP.ndarray) and not obj.dtype == object)
+                or isinstance(obj, (list, tuple))
+            )
+            # Only for numpy arrays:
+            # and isinstance(obj, NP.ndarray) and not obj.dtype == object
         ):
             self.insert_object_into_cache(
                 logger,

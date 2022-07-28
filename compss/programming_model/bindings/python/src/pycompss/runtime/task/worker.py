@@ -747,8 +747,7 @@ class TaskWorker:
             # that the object was a basic type and the content is already
             # available and properly casted by the python worker
 
-    def recover_object(self, argument):
-        # type: (Parameter) -> typing.Any
+    def recover_object(self, argument: Parameter) -> typing.Any:
         """Recover the object within a file.
 
         :param argument: Parameter object for the argument to recover.

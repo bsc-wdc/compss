@@ -391,6 +391,7 @@ class CacheTracker:
                         shape = obj.shape
                         d_type = obj.dtype
                         size = obj.nbytes
+                        # This line takes most of the time to put into cache
                         shm = self.shared_memory_manager.SharedMemory(size=size)
                         within_cache = NP.ndarray(shape, dtype=d_type, buffer=shm.buf)
                         within_cache[:] = obj[:]  # Copy contents

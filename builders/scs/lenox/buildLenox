@@ -1,0 +1,53 @@
+#!/bin/bash -e
+
+  #############################################################
+  # Name: buildLenox
+  # Description: SCRIPT FOR LENOX COMPSs BUILD
+  # Parameters: <Lenox_user> LENOX user account. Preferable with ssh keys inserted
+  #             <FullTmpPath> Tmp path on LENOX for deployment
+  #             <FullTargetPath> Base Target Installation folder on LENOX
+  #############################################################
+
+  ####################
+  # FUNCTIONS
+  ####################
+  usage() {
+    echo " Usage: buildLenox <Lenox_user> <FullTmpPath> <FullTargetPath>"
+    echo " "
+  }
+
+
+  ####################
+  # MAIN
+  ####################
+  # Get parameters
+  if [ $# -eq 1 ]; then
+    if [ "$1" == "usage" ]; then
+      usage
+      exit 0
+    fi
+  fi
+  if [ $# -ne 3 ]; then
+    echo "Incorrect number of parameters"
+    usage
+    exit 1
+  fi
+
+  # SET SCRIPT VARIABLES
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+  Lenoxuser=$1
+  LenoxtmpDir=$2
+  LenoxtargetDir=$3
+  LenoxloginNode=172.30.3.5
+  LenoxauxScript=${SCRIPT_DIR}/buildLenox_aux
+  PRELOAD_ENV=""
+
+  # Perform installation
+  cd "${SCRIPT_DIR}"/../commons/
+  ./buildSC "${Lenoxuser}" "${LenoxloginNode}" "${LenoxtmpDir}" "${LenoxtargetDir}" "${LenoxauxScript}" "${PRELOAD_ENV}"
+  exitStatus=$?
+  cd "${SCRIPT_DIR}"
+
+  # END
+  exit $exitStatus

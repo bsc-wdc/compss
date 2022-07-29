@@ -215,8 +215,8 @@ install () {
   local python_complete_version
   local python_major_version
 
-  python_complete_version=$(${python_command} -V 2>&1)
-  python_major_version=$(echo "${python_complete_version}" | sed 's/.* \([0-9]\).\([0-9]\).*/\1/')
+  python_complete_version=$(${python_command} -V 2>&1 | tr -d '\n')
+  python_major_version=$(echo "${python_complete_version}" | sed 's/.* \([0-9]\).\([0-9]\).*/\1/' | tr -d '\n')
 
   pycompss_home="${target_directory}/${python_major_version}"
   export PYTHONPATH=${pycompss_home}:${OLD_PYTHONPATH}
@@ -347,8 +347,8 @@ install_python_binding () {
     if command_exists "${specific_python_command}" ; then
       echo "INFO: Installing PyCOMPSs for ${specific_python_command}"
       # Check that the python version used is higher than 3.5.
-      specific_python_command_complete_version=$(${specific_python_command} -V 2>&1)
-      specific_python_collapsed_version=$(echo "${specific_python_command_complete_version}" | sed 's/.* \([0-9]\).\([0-9]\).*/\1\2/')
+      specific_python_command_complete_version=$(${specific_python_command} -V 2>&1 | tr -d '\n')
+      specific_python_collapsed_version=$(echo "${specific_python_command_complete_version}" | sed 's/.* \([0-9]\).\([0-9]\).*/\1\2/' | tr -d '\n')
       if [ "${specific_python_collapsed_version}" -lt "30" ]; then
         echo "ERROR: Cannot install PyCOMPSs for Python version: ${specific_python_command_complete_version}"
         echo "       PyCOMPSs requires Python 3.X or greater"

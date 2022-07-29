@@ -52,7 +52,7 @@ public class MultiNodeGroup {
     private final Set<MultiNodeExecutionAction> remainingActions;
     private final HashMap<Integer, MultiNodeExecutionAction> registeredSlaves;
     private MultiNodeExecutionAction registeredMaster;
-    private boolean isCancelled;
+    private int cancelled;
 
 
     /**
@@ -70,7 +70,7 @@ public class MultiNodeGroup {
         this.remainingActions = new HashSet<>(groupSize);
         this.registeredSlaves = new HashMap<>();
         this.registeredMaster = null;
-        this.isCancelled = false;
+        this.cancelled = 0;
     }
 
     public void addAction(MultiNodeExecutionAction action) {
@@ -117,14 +117,14 @@ public class MultiNodeGroup {
      * @return {@literal true} if an the group is cancelled, {@literal false} otherwise.
      */
     public boolean isCancelled() {
-        return this.isCancelled;
+        return this.cancelled == this.groupSize;
     }
 
     /**
      * Marks that the group is cancelled.
      */
-    public void setCancelled() {
-        this.isCancelled = true;
+    public void increaseCancelled() {
+        this.cancelled++;
     }
 
     /**

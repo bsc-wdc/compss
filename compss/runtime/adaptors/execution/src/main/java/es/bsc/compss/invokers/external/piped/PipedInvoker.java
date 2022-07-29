@@ -80,7 +80,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
     }
 
     @Override
-    public void invokeMethod() throws JobExecutionException, COMPSsException {
+    public void invokeExternalMethod() throws JobExecutionException, COMPSsException {
         this.appId = null;
         int jobId = this.invocation.getJobId();
         if (!this.pipes.sendCommand((PipeCommand) this.command)) {

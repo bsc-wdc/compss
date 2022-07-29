@@ -52,7 +52,7 @@ public abstract class PersistentInvoker extends ExternalInvoker {
     }
 
     @Override
-    protected void invokeMethod() throws JobExecutionException {
+    protected void invokeExternalMethod() throws JobExecutionException {
         int jobId = invocation.getJobId();
         String taskCMD = command.getAsString();
         if (LOGGER.isDebugEnabled()) {

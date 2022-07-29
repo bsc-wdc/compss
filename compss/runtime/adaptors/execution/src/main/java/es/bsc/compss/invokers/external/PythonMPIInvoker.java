@@ -31,8 +31,6 @@ import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.definition.PythonMPIDefinition;
-import es.bsc.compss.types.resources.MethodResourceDescription;
-import es.bsc.compss.worker.COMPSsWorker;
 
 import java.io.File;
 import java.io.IOException;
@@ -82,7 +80,7 @@ public class PythonMPIInvoker extends ExternalInvoker {
     }
 
     @Override
-    protected void invokeMethod() throws JobExecutionException {
+    protected void invokeExternalMethod() throws JobExecutionException {
         try {
             mpiDef.checkArguments();
         } catch (IllegalArgumentException e) {

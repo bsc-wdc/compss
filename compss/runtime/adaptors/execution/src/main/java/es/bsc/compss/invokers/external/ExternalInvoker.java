@@ -35,12 +35,11 @@ import es.bsc.compss.types.implementations.definition.PythonMPIDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.util.Tracer;
+import es.bsc.compss.worker.COMPSsException;
 
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -424,4 +423,80 @@ public abstract class ExternalInvoker extends Invoker {
         }
         return args;
     }
+
+    @Override
+    public final void invokeMethod() throws JobExecutionException, COMPSsException {
+        invokeExternalMethod();
+
+        // Remove parameters
+        for (InvocationParam np : invocation.getParams()) {
+            deleteParameter(np);
+        }
+
+        // Remove target
+        if (invocation.getTarget() != null) {
+            deleteParameter(invocation.getTarget());
+        }
+
+        // Remove results
+        for (InvocationParam np : invocation.getResults()) {
+            deleteParameter(np);
+        }
+    }
+
+    protected abstract void invokeExternalMethod() throws JobExecutionException, COMPSsException;
+
+    private static void deleteParameter(InvocationParam np) {
+        switch (np.getType()) {
+            case COLLECTION_T:
+                InvocationParamCollection<InvocationParam> ipc = (InvocationParamCollection<InvocationParam>) np;
+                deleteCollection(ipc);
+                break;
+            case DICT_COLLECTION_T:
+                InvocationParamDictCollection<InvocationParam, InvocationParam> ipdc =
+                    (InvocationParamDictCollection<InvocationParam, InvocationParam>) np;
+                deleteDictCollection(ipdc);
+                break;
+            default:
+                // Do nothing
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void deleteCollection(InvocationParamCollection<InvocationParam> ipc) {
+        String pathToWrite = (String) ipc.getValue();
+        LOGGER.debug("Removing Collection file " + pathToWrite + " ");
+        (new File(pathToWrite)).delete();
+
+        for (InvocationParam subParam : ipc.getCollectionParameters()) {
+            if (subParam.getType() == DataType.COLLECTION_T) {
+                deleteCollection((InvocationParamCollection<InvocationParam>) subParam);
+            } else if (subParam.getType() == DataType.DICT_COLLECTION_T) {
+                deleteDictCollection((InvocationParamDictCollection<InvocationParam, InvocationParam>) subParam);
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void deleteDictCollection(InvocationParamDictCollection<InvocationParam, InvocationParam> ipdc) {
+        String pathToWrite = (String) ipdc.getValue();
+        LOGGER.debug("Writting Dictionary Collection file " + pathToWrite + " ");
+        (new File(pathToWrite)).delete();
+
+        for (Map.Entry<InvocationParam, InvocationParam> entry : ipdc.getDictCollectionParameters().entrySet()) {
+            InvocationParam subParam = entry.getKey();
+            if (subParam.getType() == DataType.DICT_COLLECTION_T) {
+                deleteDictCollection((InvocationParamDictCollection<InvocationParam, InvocationParam>) subParam);
+            } else if (subParam.getType() == DataType.COLLECTION_T) {
+                deleteCollection((InvocationParamCollection<InvocationParam>) subParam);
+            }
+            subParam = entry.getValue();
+            if (subParam.getType() == DataType.DICT_COLLECTION_T) {
+                deleteDictCollection((InvocationParamDictCollection<InvocationParam, InvocationParam>) subParam);
+            } else if (subParam.getType() == DataType.COLLECTION_T) {
+                deleteCollection((InvocationParamCollection<InvocationParam>) subParam);
+            }
+        }
+    }
+
 }

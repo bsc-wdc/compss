@@ -764,6 +764,28 @@ static PyObject* close_task_group(PyObject* self, PyObject* args) {
 }
 
 /*
+  Cancels a task group.
+*/
+static PyObject* cancel_task_group(PyObject* self, PyObject* args) {
+    char* group_name = _pystring_to_char(PyTuple_GetItem(args, 0));
+    debug("Cancel task group: %s\n", (group_name));
+    long app_id = long(PyInt_AsLong(PyTuple_GetItem(args, 1)));
+    debug("- App id: %ld \n", (app_id));
+    char* exception_message = NULL;
+    GS_CancelTaskGroup(group_name, app_id, &exception_message);
+	debug("Task group: %s cancelled\n", (group_name));
+	debug("Barrier group end: %s\n", (group_name));
+	if (exception_message != NULL) {
+		PyObject* message_object = Py_BuildValue("s", exception_message);
+		debug("- COMPSs exception raised : %s \n", (exception_message));
+		return message_object;
+	} else {
+		Py_RETURN_NONE;
+	}
+
+}
+
+/*
   Notify the runtime that our current application wants to "execute" a snapshot.
 */
 static PyObject* snapshot(PyObject* self, PyObject* args) {
@@ -951,6 +973,7 @@ static PyMethodDef CompssMethods[] = {
     { "barrier_group", barrier_group, METH_VARARGS, "Barrier for a task group." },
     { "open_task_group", open_task_group, METH_VARARGS, "Opens a new task group." },
     { "close_task_group", close_task_group, METH_VARARGS, "Closes a new task group." },
+	{ "cancel_task_group", cancel_task_group, METH_VARARGS, "Cancels a new task group." },
     { "snapshot", snapshot, METH_VARARGS, "Perform a snapshot of the tasks and data." },
     { "get_logging_path", get_logging_path, METH_VARARGS, "Requests the app log path." },
     { "get_number_of_resources", get_number_of_resources, METH_VARARGS, "Requests the number of active resources." },

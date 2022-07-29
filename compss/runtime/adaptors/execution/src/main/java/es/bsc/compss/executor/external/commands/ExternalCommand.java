@@ -63,6 +63,7 @@ public interface ExternalCommand {
         BARRIER_GROUP, // Barrier for a task group
         OPEN_TASK_GROUP, // Open a task group
         CLOSE_TASK_GROUP, // closing a task group
+        CANCEL_TASK_GROUP, // Cancel a task group
         NO_MORE_TASKS, // Sync until all previously-submitted tasks have finish
 
         SYNCH, // Expected synch notification

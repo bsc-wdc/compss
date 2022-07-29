@@ -24,6 +24,7 @@ import es.bsc.compss.executor.external.piped.commands.AddedExecutorPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.AliveReplyPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.BarrierPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.BarrierTaskGroupPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.CancelTaskGroupPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.ChannelCreatedPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.CloseFilePipeCommand;
 import es.bsc.compss.executor.external.piped.commands.CloseTaskGroupPipeCommand;
@@ -346,6 +347,9 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
                 break;
             case CLOSE_TASK_GROUP:
                 readCommand = new CloseTaskGroupPipeCommand(command);
+                break;
+            case CANCEL_TASK_GROUP:
+                readCommand = new CancelTaskGroupPipeCommand(command);
                 break;
             case NO_MORE_TASKS:
                 readCommand = new NoMoreTasksPipeCommand();

@@ -189,6 +189,7 @@ public enum TraceEvent {
     PYTHON_PROCESS_TASK(23, TraceEventType.BINDING_MASTER, "Call to process task"), //
     PYTHON_WALL_CLOCK_LIMIT(24, TraceEventType.BINDING_MASTER, "Wall clock limit"), //
     PYTHON_SNAPSHOT(25, TraceEventType.BINDING_MASTER, "Snapshot"), //
+    PYTHON_CANCEL_TASK_GROUP(26, TraceEventType.BINDING_MASTER, "Cancel task group"), //
 
     // Internal events
     PYTHON_TASK_INSTANTIATION(100, TraceEventType.BINDING_MASTER, "Task instantiation"), //

@@ -21,6 +21,7 @@ import es.bsc.compss.executor.external.ExternalExecutorException;
 import es.bsc.compss.executor.external.piped.PipePair;
 import es.bsc.compss.executor.external.piped.commands.AccessedFilePipeCommand;
 import es.bsc.compss.executor.external.piped.commands.BarrierTaskGroupPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.CancelTaskGroupPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.CloseFilePipeCommand;
 import es.bsc.compss.executor.external.piped.commands.CloseTaskGroupPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.CompssExceptionPipeCommand;
@@ -273,6 +274,14 @@ public abstract class PipedInvoker extends ExternalInvoker {
                                 }
                             }
                                 break;
+                            case CANCEL_TASK_GROUP: {
+                                CancelTaskGroupPipeCommand otgpc = (CancelTaskGroupPipeCommand) rcvdCommand;
+                                String groupName = otgpc.getGroupName();
+                                if (this.appId != null) {
+                                    this.context.getRuntimeAPI().cancelTaskGroup(groupName, this.appId);
+                                }
+                            }
+			        break;
                             case NO_MORE_TASKS: {
                                 if (this.appId != null) {
                                     this.context.getRuntimeAPI().noMoreTasks(this.appId);

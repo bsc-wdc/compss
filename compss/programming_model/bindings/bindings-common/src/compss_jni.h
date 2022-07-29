@@ -101,6 +101,7 @@ void JNI_BarrierNew(long appId, int noMoreTasks);
 void JNI_BarrierGroup(long appId, char* groupName, char** exceptionMessage);
 void JNI_OpenTaskGroup(char* groupName, int implicitBarrier, long appId);
 void JNI_CloseTaskGroup(char* groupName, long appId);
+void JNI_CancelTaskGroup(char* groupName, long appId, char** exceptionMessage);
 void JNI_Snapshot(long appId);
 int JNI_GetNumberOfResources(long appId);
 void JNI_RequestResources(long appId, int numResources, char* groupName);

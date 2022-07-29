@@ -332,6 +332,13 @@ public interface COMPSsRuntime {
     public void closeTaskGroup(String groupName, Long appId);
 
     /**
+     * Cancels all tasks of the application.
+     * 
+     * @param appId Application id.
+     */
+    public void cancelTaskGroup(String groupName, Long appId) throws COMPSsException;
+
+    /**
      * Checkpoint of the tasks and data.
      *
      * @param appId The application id.

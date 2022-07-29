@@ -143,14 +143,20 @@ void compss_barrier_group(char *groupname) {
     GS_BarrierGroup(l_app_id, groupname,&exception_message);
 }
 
-void compss_open_task_group(char *groupname, int implicitBarrier) {
+void compss_open_group(char *groupname, int implicitBarrier) {
     long int l_app_id = 0;
     GS_OpenTaskGroup(groupname, implicitBarrier, l_app_id);
 }
 
-void compss_close_task_group(char *groupname) {
+void compss_close_group(char *groupname) {
     long int l_app_id = 0;
     GS_CloseTaskGroup(groupname, l_app_id);
+}
+
+void compss_cancel_group(char *groupname) {
+    long int l_app_id = 0;
+    char *exception_message = NULL;
+    GS_CancelTaskGroup(groupname, l_app_id, &exception_message);
 }
 
 

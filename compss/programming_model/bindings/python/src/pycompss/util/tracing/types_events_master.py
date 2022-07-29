@@ -48,6 +48,7 @@ class TypesEventsMaster:
         "barrier_group_event",
         "open_task_group_event",
         "close_task_group_event",
+        "cancel_task_group_event",
         "get_log_path_event",
         "get_number_resources_event",
         "request_resources_event",
@@ -113,6 +114,7 @@ class TypesEventsMaster:
         self.process_task_event = 23
         self.wall_clock_limit_event = 24
         self.snapshot_event = 25
+        self.cancel_task_group_event = 26
 
         # CALL EVENTS
         self.task_instantiation = 100

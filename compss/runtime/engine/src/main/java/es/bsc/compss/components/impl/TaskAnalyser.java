@@ -880,9 +880,8 @@ public class TaskAnalyser implements GraphHandler {
                 LOGGER.debug("Treating that data " + dAccId + " has been accessed at " + dPar.getDataTarget());
             }
 
-            if (t.getOnFailure() == OnFailure.CANCEL_SUCCESSORS
-                && (t.getStatus() == TaskState.FAILED || t.getStatus() == TaskState.CANCELED)
-                || t.isCancelledByException()) {
+            if ((t.getOnFailure() == OnFailure.CANCEL_SUCCESSORS && (t.getStatus() == TaskState.FAILED)
+                || t.getStatus() == TaskState.CANCELED) || t.isCancelledByException()) {
                 this.dip.dataAccessHasBeenCanceled(dAccId);
             } else {
                 this.dip.dataHasBeenAccessed(dAccId);

@@ -240,6 +240,15 @@ class COMPSsModule:
         """
         self.compss.close_task_group(group_name, app_id)
 
+    def cancel_task_group(self, group_name: str, app_id: int) -> None:
+        """Call to cancel_task_group.
+
+        :param group_name: Group name.
+        :param app_id: Application identifier.
+        :return: Exception message.
+        """
+        return str(self.compss.cancel_task_group(group_name, app_id))
+
     def snapshot(self, app_id) -> None:
         """Call to snapshot.
 

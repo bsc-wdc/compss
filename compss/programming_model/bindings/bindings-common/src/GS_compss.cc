@@ -249,6 +249,14 @@ void GS_CloseTaskGroup(char* groupName, long appId){
 	}
 }
 
+void GS_CancelTaskGroup(char* groupName, long appId, char** exceptionMessage){
+	if (PIPES) {
+		PIPE_CancelTaskGroup(groupName, appId, exceptionMessage);
+	} else {
+		JNI_CancelTaskGroup(groupName, appId, exceptionMessage);
+	}
+}
+
 
 void GS_EmitEvent(int type, long id) {
 	if (PIPES) {

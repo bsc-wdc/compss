@@ -188,12 +188,9 @@ public abstract class PipedInvoker extends ExternalInvoker {
                         case GET_FILE: {
                             GetFilePipeCommand gfpc = (GetFilePipeCommand) rcvdCommand;
                             String file = gfpc.getFile();
-                            System.out.println("PIPEDINVOKER Getting file" + file);
                             if (this.appId != null) {
-                                System.out.println("PIPEDINVOKER Getting file" + file + " Invoking Runtime");
                                 this.context.getRuntimeAPI().getFile(this.appId, file);
                             }
-                            System.out.println("PIPEDINVOKER Getting file" + file + " Sending SYNCH");
                             this.pipes.sendCommand(new SynchPipeCommand());
                         }
                             break;

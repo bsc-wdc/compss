@@ -81,238 +81,247 @@ public abstract class PipedInvoker extends ExternalInvoker {
 
     @Override
     public void invokeExternalMethod() throws JobExecutionException, COMPSsException {
-        this.appId = null;
-        int jobId = this.invocation.getJobId();
-        if (!this.pipes.sendCommand((PipeCommand) this.command)) {
-            LOGGER.error("ERROR: Could not execute job " + jobId + " because cannot write in pipe");
-            throw new JobExecutionException("Job " + jobId + " has failed. Cannot write in pipe");
-        }
+        try {
+            this.appId = null;
+            int jobId = this.invocation.getJobId();
+            if (!this.pipes.sendCommand((PipeCommand) this.command)) {
+                LOGGER.error("ERROR: Could not execute job " + jobId + " because cannot write in pipe");
+                throw new JobExecutionException("Job " + jobId + " has failed. Cannot write in pipe");
+            }
 
-        ExternalTaskStatus taskStatus;
-        // Process pipe while we are not asked to stop or there are waiting processes
-        while (true) {
-            try {
-                PipeCommand rcvdCommand = this.pipes.readCommand();
-                if (rcvdCommand != null) {
-                    switch (rcvdCommand.getType()) {
-                        case REGISTER_CE: {
-                            RegisterCEPipeCommand rcpc = (RegisterCEPipeCommand) rcvdCommand;
-                            String ceSignature = rcpc.getCESignature();
-                            String implSignature = rcpc.getImplSignature();
-                            String implConstraints = rcpc.getConstraints();
-                            String implType = rcpc.getImplType();
-                            String implLocal = rcpc.getImplLocal();
-                            String implIO = rcpc.getImplIO();
-                            String[] prolog = rcpc.getProlog();
-                            String[] epilog = rcpc.getEpilog();
-                            String[] implTypeArgs = rcpc.getTypeArgs();
-                            this.context.getRuntimeAPI().registerCoreElement(ceSignature, implSignature,
-                                implConstraints, implType, implLocal, implIO, prolog, epilog, implTypeArgs);
-                        }
-                            break;
-                        case EXECUTE_NESTED_TASK: {
-                            ExecuteNestedTaskPipeCommand entpc = (ExecuteNestedTaskPipeCommand) rcvdCommand;
-                            ExecuteNestedTaskPipeCommand.EntryPoint entryPoint = entpc.getEntryPoint();
-                            String onFailure = entpc.getOnFailure();
-                            int timeOut = entpc.getTimeOut();
-                            boolean isPrioritary = entpc.getPrioritary();
-                            boolean hasTarget = entpc.hasTarget();
-                            int numReturns = entpc.getNumReturns();
-                            int parameterCount = entpc.getParameterCount();
-                            Object[] parameters = entpc.getParameters();
-                            if (this.appId == null) {
-                                this.appId = this.context.getRuntimeAPI().registerApplication(null, this);
-                                LOGGER.info("Job " + this.invocation.getJobId() + " becomes app " + appId);
+            ExternalTaskStatus taskStatus;
+            // Process pipe while we are not asked to stop or there are waiting processes
+            while (true) {
+                try {
+                    PipeCommand rcvdCommand = this.pipes.readCommand();
+                    if (rcvdCommand != null) {
+                        switch (rcvdCommand.getType()) {
+                            case REGISTER_CE: {
+                                RegisterCEPipeCommand rcpc = (RegisterCEPipeCommand) rcvdCommand;
+                                String ceSignature = rcpc.getCESignature();
+                                String implSignature = rcpc.getImplSignature();
+                                String implConstraints = rcpc.getConstraints();
+                                String implType = rcpc.getImplType();
+                                String implLocal = rcpc.getImplLocal();
+                                String implIO = rcpc.getImplIO();
+                                String[] prolog = rcpc.getProlog();
+                                String[] epilog = rcpc.getEpilog();
+                                String[] implTypeArgs = rcpc.getTypeArgs();
+                                this.context.getRuntimeAPI().registerCoreElement(ceSignature, implSignature,
+                                    implConstraints, implType, implLocal, implIO, prolog, epilog, implTypeArgs);
                             }
-                            int numNodes = entpc.getNumNodes();
-                            boolean isReduce = entpc.isReduce();
-                            int reduceChunkSize = entpc.getReduceChunkSize();
-                            boolean isReplicated = entpc.isReplicated();
-                            boolean isDistributed = entpc.isDistributed();
-                            if (entryPoint == ExecuteNestedTaskPipeCommand.EntryPoint.SIGNATURE) {
-                                String signature = entpc.getSignature();
+                                break;
+                            case EXECUTE_NESTED_TASK: {
+                                ExecuteNestedTaskPipeCommand entpc = (ExecuteNestedTaskPipeCommand) rcvdCommand;
+                                ExecuteNestedTaskPipeCommand.EntryPoint entryPoint = entpc.getEntryPoint();
+                                String onFailure = entpc.getOnFailure();
+                                int timeOut = entpc.getTimeOut();
+                                boolean isPrioritary = entpc.getPrioritary();
+                                boolean hasTarget = entpc.hasTarget();
+                                int numReturns = entpc.getNumReturns();
+                                int parameterCount = entpc.getParameterCount();
+                                Object[] parameters = entpc.getParameters();
+                                if (this.appId == null) {
+                                    this.appId = this.context.getRuntimeAPI().registerApplication(null, this);
+                                    LOGGER.info("Job " + this.invocation.getJobId() + " becomes app " + appId);
+                                }
+                                int numNodes = entpc.getNumNodes();
+                                boolean isReduce = entpc.isReduce();
+                                int reduceChunkSize = entpc.getReduceChunkSize();
+                                boolean isReplicated = entpc.isReplicated();
+                                boolean isDistributed = entpc.isDistributed();
+                                if (entryPoint == ExecuteNestedTaskPipeCommand.EntryPoint.SIGNATURE) {
+                                    String signature = entpc.getSignature();
 
-                                this.context.getRuntimeAPI().executeTask(this.appId, signature, onFailure, timeOut,
-                                    isPrioritary, numNodes, isReduce, reduceChunkSize, isReplicated, isDistributed,
-                                    hasTarget, numReturns, parameterCount, parameters);
+                                    this.context.getRuntimeAPI().executeTask(this.appId, signature, onFailure, timeOut,
+                                        isPrioritary, numNodes, isReduce, reduceChunkSize, isReplicated, isDistributed,
+                                        hasTarget, numReturns, parameterCount, parameters);
 
-                            } else {
-                                String methodClass = entpc.getMethodClass();
-                                String methodName = entpc.getMethodName();
-                                this.context.getRuntimeAPI().executeTask(this.appId, methodClass, onFailure, timeOut,
-                                    methodName, isPrioritary, numNodes, isReduce, reduceChunkSize, isReplicated,
-                                    isDistributed, hasTarget, numReturns, parameterCount, parameters);
-                            }
+                                } else {
+                                    String methodClass = entpc.getMethodClass();
+                                    String methodName = entpc.getMethodName();
+                                    this.context.getRuntimeAPI().executeTask(this.appId, methodClass, onFailure,
+                                        timeOut, methodName, isPrioritary, numNodes, isReduce, reduceChunkSize,
+                                        isReplicated, isDistributed, hasTarget, numReturns, parameterCount, parameters);
+                                }
 
-                        }
-                            break;
-                        case ACCESSED_FILE: {
-                            AccessedFilePipeCommand afpc = (AccessedFilePipeCommand) rcvdCommand;
-                            String file = afpc.getFile();
-                            if (this.appId == null) {
-                                this.pipes.sendCommand(new SynchPipeCommand("0"));
-                            } else {
-                                boolean accessed = this.context.getRuntimeAPI().isFileAccessed(this.appId, file);
-                                this.pipes.sendCommand(new SynchPipeCommand(accessed ? "1" : "0"));
                             }
-                        }
-                            break;
-                        case OPEN_FILE: {
-                            OpenFilePipeCommand ofpc = (OpenFilePipeCommand) rcvdCommand;
-                            String file = ofpc.getFile();
-                            Direction dir = ofpc.getDirection();
-                            if (this.appId == null) {
-                                this.pipes.sendCommand(new SynchPipeCommand(file));
-                            } else {
-                                String finalLocation = this.context.getRuntimeAPI().openFile(this.appId, file, dir);
-                                this.pipes.sendCommand(new SynchPipeCommand(finalLocation));
-                            }
-                        }
-                            break;
-                        case CLOSE_FILE: {
-                            CloseFilePipeCommand ofpc = (CloseFilePipeCommand) rcvdCommand;
-                            String file = ofpc.getFile();
-                            Direction dir = ofpc.getDirection();
-                            if (this.appId != null) {
-                                this.context.getRuntimeAPI().closeFile(this.appId, file, dir);
-                            }
-                        }
-                            break;
-                        case DELETE_FILE: {
-                            DeleteFilePipeCommand ofpc = (DeleteFilePipeCommand) rcvdCommand;
-                            String file = ofpc.getFile();
-                            boolean val = this.context.getRuntimeAPI().deleteFile(this.appId, file);
-                            this.pipes.sendCommand(new SynchPipeCommand(val ? "1" : "0"));
-                        }
-                            break;
-                        case GET_FILE: {
-                            GetFilePipeCommand gfpc = (GetFilePipeCommand) rcvdCommand;
-                            String file = gfpc.getFile();
-                            if (this.appId != null) {
-                                this.context.getRuntimeAPI().getFile(this.appId, file);
-                            }
-                            this.pipes.sendCommand(new SynchPipeCommand());
-                        }
-                            break;
-                        case GET_DIRECTORY: {
-                            GetDirectoryPipeCommand gfpc = (GetDirectoryPipeCommand) rcvdCommand;
-                            String file = gfpc.getDirectory();
-                            if (this.appId != null) {
-                                context.getRuntimeAPI().getDirectory(this.appId, file);
-                            }
-                            pipes.sendCommand(new SynchPipeCommand());
-                        }
-                            break;
-                        case GET_OBJECT: {
-                            GetObjectPipeCommand gfpc = (GetObjectPipeCommand) rcvdCommand;
-                            String id = gfpc.getObjectId();
-                            if (this.appId != null) {
-                                this.context.getRuntimeAPI().getBindingObject(this.appId, id);
-                            }
-                            this.pipes.sendCommand(new SynchPipeCommand());
-                        }
-                            break;
-                        case DELETE_OBJECT: {
-                            DeleteObjectPipeCommand ofpc = (DeleteObjectPipeCommand) rcvdCommand;
-                            String id = ofpc.getObjectId();
-                            boolean val = this.context.getRuntimeAPI().deleteFile(this.appId, id);
-                            this.pipes.sendCommand(new SynchPipeCommand(val ? "1" : "0"));
-                        }
-                            break;
-                        case BARRIER: {
-                            if (this.appId != null) {
-                                this.context.getRuntimeAPI().barrier(this.appId);
-                            }
-                            this.pipes.sendCommand(new SynchPipeCommand());
-                        }
-                            break;
-                        case BARRIER_NEW: {
-                            NewBarrierPipeCommand nbpc = (NewBarrierPipeCommand) rcvdCommand;
-                            boolean noMoreTasks = nbpc.isNoMoreTasks();
-                            if (this.appId != null) {
-                                this.context.getRuntimeAPI().barrier(this.appId, noMoreTasks);
-                            }
-                            this.pipes.sendCommand(new SynchPipeCommand());
-                        }
-                            break;
-                        case BARRIER_GROUP: {
-                            BarrierTaskGroupPipeCommand bgpc = (BarrierTaskGroupPipeCommand) rcvdCommand;
-                            String groupName = bgpc.getGroupName();
-                            boolean synch = true;
-                            if (this.appId != null) {
-                                try {
-                                    this.context.getRuntimeAPI().barrierGroup(appId, groupName);
-                                } catch (COMPSsException ce) {
-                                    this.pipes.sendCommand(new CompssExceptionPipeCommand(null, ce.getMessage()));
-                                    synch = false;
+                                break;
+                            case ACCESSED_FILE: {
+                                AccessedFilePipeCommand afpc = (AccessedFilePipeCommand) rcvdCommand;
+                                String file = afpc.getFile();
+                                if (this.appId == null) {
+                                    this.pipes.sendCommand(new SynchPipeCommand("0"));
+                                } else {
+                                    boolean accessed = this.context.getRuntimeAPI().isFileAccessed(this.appId, file);
+                                    this.pipes.sendCommand(new SynchPipeCommand(accessed ? "1" : "0"));
                                 }
                             }
-                            if (synch) {
+                                break;
+                            case OPEN_FILE: {
+                                OpenFilePipeCommand ofpc = (OpenFilePipeCommand) rcvdCommand;
+                                String file = ofpc.getFile();
+                                Direction dir = ofpc.getDirection();
+                                if (this.appId == null) {
+                                    this.pipes.sendCommand(new SynchPipeCommand(file));
+                                } else {
+                                    String finalLocation = this.context.getRuntimeAPI().openFile(this.appId, file, dir);
+                                    this.pipes.sendCommand(new SynchPipeCommand(finalLocation));
+                                }
+                            }
+                                break;
+                            case CLOSE_FILE: {
+                                CloseFilePipeCommand ofpc = (CloseFilePipeCommand) rcvdCommand;
+                                String file = ofpc.getFile();
+                                Direction dir = ofpc.getDirection();
+                                if (this.appId != null) {
+                                    this.context.getRuntimeAPI().closeFile(this.appId, file, dir);
+                                }
+                            }
+                                break;
+                            case DELETE_FILE: {
+                                DeleteFilePipeCommand ofpc = (DeleteFilePipeCommand) rcvdCommand;
+                                String file = ofpc.getFile();
+                                boolean val = this.context.getRuntimeAPI().deleteFile(this.appId, file);
+                                this.pipes.sendCommand(new SynchPipeCommand(val ? "1" : "0"));
+                            }
+                                break;
+                            case GET_FILE: {
+                                GetFilePipeCommand gfpc = (GetFilePipeCommand) rcvdCommand;
+                                String file = gfpc.getFile();
+                                if (this.appId != null) {
+                                    this.context.getRuntimeAPI().getFile(this.appId, file);
+                                }
                                 this.pipes.sendCommand(new SynchPipeCommand());
                             }
-                        }
-                            break;
-                        case OPEN_TASK_GROUP: {
-                            OpenTaskGroupPipeCommand otgpc = (OpenTaskGroupPipeCommand) rcvdCommand;
-                            String groupName = otgpc.getGroupName();
-                            boolean barrier = otgpc.isImplicitBarrier();
-                            if (this.appId == null) {
-                                this.appId = this.context.getRuntimeAPI().registerApplication(null, this);
-                                LOGGER.info("Job " + this.invocation.getJobId() + " becomes app " + appId);
+                                break;
+                            case GET_DIRECTORY: {
+                                GetDirectoryPipeCommand gfpc = (GetDirectoryPipeCommand) rcvdCommand;
+                                String file = gfpc.getDirectory();
+                                if (this.appId != null) {
+                                    context.getRuntimeAPI().getDirectory(this.appId, file);
+                                }
+                                pipes.sendCommand(new SynchPipeCommand());
                             }
-                            this.context.getRuntimeAPI().openTaskGroup(groupName, barrier, this.appId);
+                                break;
+                            case GET_OBJECT: {
+                                GetObjectPipeCommand gfpc = (GetObjectPipeCommand) rcvdCommand;
+                                String id = gfpc.getObjectId();
+                                if (this.appId != null) {
+                                    this.context.getRuntimeAPI().getBindingObject(this.appId, id);
+                                }
+                                this.pipes.sendCommand(new SynchPipeCommand());
+                            }
+                                break;
+                            case DELETE_OBJECT: {
+                                DeleteObjectPipeCommand ofpc = (DeleteObjectPipeCommand) rcvdCommand;
+                                String id = ofpc.getObjectId();
+                                boolean val = this.context.getRuntimeAPI().deleteFile(this.appId, id);
+                                this.pipes.sendCommand(new SynchPipeCommand(val ? "1" : "0"));
+                            }
+                                break;
+                            case BARRIER: {
+                                if (this.appId != null) {
+                                    this.context.getRuntimeAPI().barrier(this.appId);
+                                }
+                                this.pipes.sendCommand(new SynchPipeCommand());
+                            }
+                                break;
+                            case BARRIER_NEW: {
+                                NewBarrierPipeCommand nbpc = (NewBarrierPipeCommand) rcvdCommand;
+                                boolean noMoreTasks = nbpc.isNoMoreTasks();
+                                if (this.appId != null) {
+                                    this.context.getRuntimeAPI().barrier(this.appId, noMoreTasks);
+                                }
+                                this.pipes.sendCommand(new SynchPipeCommand());
+                            }
+                                break;
+                            case BARRIER_GROUP: {
+                                BarrierTaskGroupPipeCommand bgpc = (BarrierTaskGroupPipeCommand) rcvdCommand;
+                                String groupName = bgpc.getGroupName();
+                                boolean synch = true;
+                                if (this.appId != null) {
+                                    try {
+                                        this.context.getRuntimeAPI().barrierGroup(appId, groupName);
+                                    } catch (COMPSsException ce) {
+                                        this.pipes.sendCommand(new CompssExceptionPipeCommand(null, ce.getMessage()));
+                                        synch = false;
+                                    }
+                                }
+                                if (synch) {
+                                    this.pipes.sendCommand(new SynchPipeCommand());
+                                }
+                            }
+                                break;
+                            case OPEN_TASK_GROUP: {
+                                OpenTaskGroupPipeCommand otgpc = (OpenTaskGroupPipeCommand) rcvdCommand;
+                                String groupName = otgpc.getGroupName();
+                                boolean barrier = otgpc.isImplicitBarrier();
+                                if (this.appId == null) {
+                                    this.appId = this.context.getRuntimeAPI().registerApplication(null, this);
+                                    LOGGER.info("Job " + this.invocation.getJobId() + " becomes app " + appId);
+                                }
+                                this.context.getRuntimeAPI().openTaskGroup(groupName, barrier, this.appId);
 
+                            }
+                                break;
+                            case CLOSE_TASK_GROUP: {
+                                CloseTaskGroupPipeCommand otgpc = (CloseTaskGroupPipeCommand) rcvdCommand;
+                                String groupName = otgpc.getGroupName();
+                                if (this.appId != null) {
+                                    this.context.getRuntimeAPI().closeTaskGroup(groupName, this.appId);
+                                }
+                            }
+                                break;
+                            case NO_MORE_TASKS: {
+                                if (this.appId != null) {
+                                    this.context.getRuntimeAPI().noMoreTasks(this.appId);
+                                }
+                                this.pipes.sendCommand(new SynchPipeCommand());
+                            }
+                                break;
+                            case END_TASK:
+                                taskStatus = ((EndTaskPipeCommand) rcvdCommand).getTaskStatus();
+                                Integer exitValue = taskStatus.getExitValue();
+                                if (exitValue != 0) {
+                                    throw new JobExecutionException("Job " + jobId + " exit with value " + exitValue);
+                                }
+                                // Update parameters
+                                LOGGER.debug("Updating parameters for job " + this.invocation.getJobId());
+                                int parIdx = 0;
+                                for (InvocationParam param : this.invocation.getParams()) {
+                                    updateParam(param, taskStatus, parIdx);
+                                    parIdx++;
+                                }
+                                InvocationParam target = this.invocation.getTarget();
+                                if (target != null) {
+                                    updateParam(target, taskStatus, parIdx);
+                                    parIdx++;
+                                }
+                                for (InvocationParam param : this.invocation.getResults()) {
+                                    updateParam(param, taskStatus, parIdx);
+                                    parIdx++;
+                                }
+                                return;
+                            case COMPSS_EXCEPTION:
+                                throw new COMPSsException(((CompssExceptionPipeCommand) rcvdCommand).getMessage());
+                            default:
+                                LOGGER.warn("Unexpected tag on PipedInvoker: " + rcvdCommand + ". Skipping message");
+                                break;
                         }
-                            break;
-                        case CLOSE_TASK_GROUP: {
-                            CloseTaskGroupPipeCommand otgpc = (CloseTaskGroupPipeCommand) rcvdCommand;
-                            String groupName = otgpc.getGroupName();
-                            if (this.appId != null) {
-                                this.context.getRuntimeAPI().closeTaskGroup(groupName, this.appId);
-                            }
-                        }
-                            break;
-                        case NO_MORE_TASKS: {
-                            if (this.appId != null) {
-                                this.context.getRuntimeAPI().noMoreTasks(this.appId);
-                            }
-                            this.pipes.sendCommand(new SynchPipeCommand());
-                        }
-                            break;
-                        case END_TASK:
-                            taskStatus = ((EndTaskPipeCommand) rcvdCommand).getTaskStatus();
-                            Integer exitValue = taskStatus.getExitValue();
-                            if (exitValue != 0) {
-                                throw new JobExecutionException("Job " + jobId + " exit with value " + exitValue);
-                            }
-                            // Update parameters
-                            LOGGER.debug("Updating parameters for job " + this.invocation.getJobId());
-                            int parIdx = 0;
-                            for (InvocationParam param : this.invocation.getParams()) {
-                                updateParam(param, taskStatus, parIdx);
-                                parIdx++;
-                            }
-                            InvocationParam target = this.invocation.getTarget();
-                            if (target != null) {
-                                updateParam(target, taskStatus, parIdx);
-                                parIdx++;
-                            }
-                            for (InvocationParam param : this.invocation.getResults()) {
-                                updateParam(param, taskStatus, parIdx);
-                                parIdx++;
-                            }
-                            return;
-                        case COMPSS_EXCEPTION:
-                            throw new COMPSsException(((CompssExceptionPipeCommand) rcvdCommand).getMessage());
-                        default:
-                            LOGGER.warn("Unexpected tag on PipedInvoker: " + rcvdCommand + ". Skipping message");
-                            break;
                     }
+                } catch (ExternalExecutorException e) {
+                    throw new JobExecutionException("Job " + jobId + "Notification pipe closed", e);
                 }
-            } catch (ExternalExecutorException e) {
-                throw new JobExecutionException("Job " + jobId + "Notification pipe closed", e);
+            }
+        } catch (COMPSsException | JobExecutionException | RuntimeException e) {
+            throw e;
+        } finally {
+            if (this.appId != null) {
+                this.context.getRuntimeAPI().deregisterApplication(appId);
             }
         }
+
     }
 
     @SuppressWarnings({ "rawtypes" })

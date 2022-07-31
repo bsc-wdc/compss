@@ -84,7 +84,6 @@ public class FileInfo extends DataInfo {
                                         + " finished. Nothing to do. Releasing semaphore.");
                                     semWait.release();
                                 }
-                                ;
                             }
                             return nPermits;
                         }

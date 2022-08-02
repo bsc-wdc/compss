@@ -1,5 +1,5 @@
 #!/bin/bash -e
-  
+
   # Obtain parameter
   source_base_dir=$1
   target_base_dir=$2
@@ -7,6 +7,9 @@
   # Copy files
   cp "${source_base_dir}"/execution "${target_base_dir}"/execution
   cp "${source_base_dir}"/result "${target_base_dir}"/result
+  cp "${source_base_dir}"/result_types "${target_base_dir}"/result_types
+  cp "${source_base_dir}"/result_hit_miss "${target_base_dir}"/result_hit_miss
+  cp "${source_base_dir}"/result_eviction "${target_base_dir}"/result_eviction
 
   cp -r "${source_base_dir}"/src "${target_base_dir}"
 

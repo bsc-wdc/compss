@@ -53,5 +53,15 @@
   fi
 
   #----------------------------------------------------------------------------------
+  # Grep for unit test expected values
+  insertions=$(grep -r "Inserted into cache" "${target_log_folder}" | wc -l)
+  if [ "${insertions}" != "9" ]; then
+      echo "ERROR: THE SUPPORTED TYPES IN THE CACHE FAILURE." | tee -a "${output_file}"
+      echo "       - EXPECTED INSERTIONS: 9." | tee -a "${output_file}"
+      echo "       - FOUND INSERTIONS   : ${insertions}." | tee -a "${output_file}"
+      exit 1
+  fi
+
+  #----------------------------------------------------------------------------------
   # Report result status
   exit 0

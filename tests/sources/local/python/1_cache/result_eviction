@@ -53,5 +53,33 @@
   fi
 
   #----------------------------------------------------------------------------------
+  # Grep for unit test expected values
+  insertions=$(grep -r "Inserted into cache" "${target_log_folder}" | wc -l)
+  if [ "${insertions}" != "200" ]; then
+      echo "ERROR: FAILURE IN THE NUMBER OF INSERTIONS IN EVICTION TEST." | tee -a "${output_file}"
+      echo "       - EXPECTED INSERTIONS: 200." | tee -a "${output_file}"
+      echo "       - FOUND INSERTIONS   : ${insertions}." | tee -a "${output_file}"
+      exit 1
+  fi
+
+  evictions=$(grep -r "Evicting" "${target_log_folder}" | wc -l)
+  if [ "${evictions}" != "75" ]; then
+      echo "ERROR: FAILURE IN THE NUMBER OF EVICTIONS." | tee -a "${output_file}"
+      echo "       - EXPECTED EVICTIONS: 75." | tee -a "${output_file}"
+      echo "       - FOUND EVICTIONS   : ${evictions}." | tee -a "${output_file}"
+      exit 1
+  fi
+
+  cache_status_num=$(grep -r "Entries: 125 Max size: 1000000 Used size: 1000000" "${target_log_folder}" | wc -l)
+  cache_status=$(grep -r "Entries: 125 Max size: 1000000 Used size: 1000000" "${target_log_folder}")
+  if [ "${cache_status_num}" != "1" ]; then
+      echo "ERROR: FAILURE IN THE CACHE STATUS IN THE EVICTION TEST." | tee -a "${output_file}"
+      echo "       - EXPECTED STATUS: Entries: 125 Max size: 1000000 Used size: 1000000." | tee -a "${output_file}"
+      echo "       - FOUND STATUS   : ${cache_status}." | tee -a "${output_file}"
+      exit 1
+  fi
+
+
+  #----------------------------------------------------------------------------------
   # Report result status
   exit 0

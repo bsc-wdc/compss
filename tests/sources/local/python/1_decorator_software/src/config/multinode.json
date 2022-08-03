@@ -1,6 +1,6 @@
 {
-	"type":"multinode",
-	"properties":{
+	"execution" : {
+		"type":"multinode",
 		"computing_nodes": 2
 	},
 	"constraints": {

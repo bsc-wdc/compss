@@ -164,7 +164,7 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
                 resolve_fail_by_exit_value(self.prolog, "True")
                 prolog_binary = self.prolog[LABELS.binary]
                 prolog_params = self.prolog.get(
-                    LABELS.params, INTERNAL_LABELS.unassigned
+                    LABELS.args, INTERNAL_LABELS.unassigned
                 )
                 prolog_fail_by = self.prolog.get(LABELS.fail_by_exit_value)
                 _prolog = [prolog_binary, prolog_params, prolog_fail_by]
@@ -177,7 +177,7 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
                 resolve_fail_by_exit_value(self.epilog, "False")
                 epilog_binary = self.epilog[LABELS.binary]
                 epilog_params = self.epilog.get(
-                    LABELS.params, INTERNAL_LABELS.unassigned
+                    LABELS.args, INTERNAL_LABELS.unassigned
                 )
                 epilog_fail_by = self.epilog.get(LABELS.fail_by_exit_value)
                 _epilog = [epilog_binary, epilog_params, epilog_fail_by]

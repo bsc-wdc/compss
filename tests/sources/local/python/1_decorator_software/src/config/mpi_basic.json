@@ -1,9 +1,9 @@
 
 {
-	"type":"mpi",
-	"properties":{
-        "runner": "mpirun",
-        "binary":"date",
-        "working_dir": "/tmp"
+  "execution" : {
+    "type":"mpi",
+    "runner": "mpirun",
+    "binary":"date",
+    "working_dir": "/tmp"
 	}
 }

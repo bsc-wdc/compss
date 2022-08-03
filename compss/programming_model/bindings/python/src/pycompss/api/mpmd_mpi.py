@@ -161,11 +161,11 @@ class MPMDMPI:  # pylint: disable=too-few-public-methods, too-many-instance-attr
     def __get_programs_params__(self) -> list:
         """Resolve the collection layout, such as blocks, strides, etc.
 
-        :return: list(programs_length, binary, params, processes)
+        :return: list(programs_length, binary, args, processes)
         :raises PyCOMPSsException: If programs are not dict objects.
         """
         programs = self.kwargs[LABELS.programs]
-        programs_params = [str(len(programs))]
+        programs_args = [str(len(programs))]
 
         for program in programs:
             if not isinstance(program, dict):
@@ -175,14 +175,14 @@ class MPMDMPI:  # pylint: disable=too-few-public-methods, too-many-instance-attr
             if not binary:
                 raise PyCOMPSsException("No binary file provided for MPMD MPI")
 
-            params = program.get(LABELS.params, INTERNAL_LABELS.unassigned)
+            params = program.get(LABELS.args, INTERNAL_LABELS.unassigned)
             procs = str(program.get(LABELS.processes, 1))
-            programs_params.extend([binary, params, procs])
+            programs_args.extend([binary, params, procs])
 
             # increase total # of processes for this mpmd task
             self.processes += program.get(LABELS.processes, 1)
 
-        return programs_params
+        return programs_args
 
     def __configure_core_element__(self, kwargs: dict) -> None:
         """Include the registering info related to @mpmd_mpi.

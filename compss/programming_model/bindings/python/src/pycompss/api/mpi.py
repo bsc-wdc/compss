@@ -56,7 +56,7 @@ SUPPORTED_ARGUMENTS = {
     LABELS.flags,
     LABELS.processes_per_node,
     LABELS.scale_by_cu,
-    LABELS.params,
+    LABELS.args,
     LABELS.fail_by_exit_value,
 }
 DEPRECATED_ARGUMENTS = {
@@ -331,7 +331,7 @@ class Mpi:  # pylint: disable=too-few-public-methods
             ppn,
             flags,
             scale_by_cu_str,
-            self.kwargs.get(LABELS.params, INTERNAL_LABELS.unassigned),
+            self.kwargs.get(LABELS.args, INTERNAL_LABELS.unassigned),
             self.kwargs[LABELS.fail_by_exit_value],
         ]
 

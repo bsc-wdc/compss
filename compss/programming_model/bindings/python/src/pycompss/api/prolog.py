@@ -44,7 +44,7 @@ if __debug__:
 MANDATORY_ARGUMENTS = {LABELS.binary}
 SUPPORTED_ARGUMENTS = {
     LABELS.binary,
-    LABELS.params,
+    LABELS.args,
     LABELS.fail_by_exit_value,
 }
 DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
@@ -138,9 +138,9 @@ class Prolog:  # pylint: disable=too-few-public-methods
         resolve_fail_by_exit_value(self.kwargs)
 
         binary = self.kwargs[LABELS.binary]
-        params = self.kwargs.get(LABELS.params, INTERNAL_LABELS.unassigned)
+        prolog_args = self.kwargs.get(LABELS.args, INTERNAL_LABELS.unassigned)
         fail_by = self.kwargs.get(LABELS.fail_by_exit_value)
-        _prolog = [binary, params, fail_by]
+        _prolog = [binary, prolog_args, fail_by]
 
         core_element = kwargs.get(CORE_ELEMENT_KEY, CE())
         core_element.set_impl_prolog(_prolog)

@@ -44,7 +44,7 @@ class _Labels:  # pylint: disable=too-few-public-methods, too-many-instance-attr
         "tracing_hook",
         "computing_nodes",
         "working_dir",
-        "params",
+        "args",
         "parameters",
         "fail_by_exit_value",
         "task",
@@ -116,7 +116,7 @@ class _Labels:  # pylint: disable=too-few-public-methods, too-many-instance-attr
         # - Others
         self.on_failure = "on_failure"
         self.working_dir = "working_dir"
-        self.params = "params"
+        self.args = "args"
         self.parameters = "parameters"
         self.fail_by_exit_value = "fail_by_exit_value"
         self.task = "task"

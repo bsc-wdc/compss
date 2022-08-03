@@ -37,9 +37,9 @@ def myDateDef(dprefix="-d", param="next wednesday"):
     pass
 
 
-@mpi(binary="date", params="{{dprefix}} {{param}}", working_dir="/tmp", runner="mpirun",)
+@mpi(binary="date", args="-d {{arg}}", working_dir="/tmp", runner="mpirun",)
 @task()
-def myDateDef_2(dprefix="-d", param="last wednesday"):
+def myDateDef_2(arg):
     pass
 
 
@@ -126,7 +126,7 @@ class testMpiDecorator(unittest.TestCase):
         compss_barrier()
 
     def testDefaultValue_2(self):
-        myDateDef_2()
+        myDateDef_2("last wednesday")
         compss_barrier()
 
     def testFunctionalUsageWithConstraint(self):

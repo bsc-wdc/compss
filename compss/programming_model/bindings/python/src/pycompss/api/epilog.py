@@ -43,7 +43,7 @@ if __debug__:
 MANDATORY_ARGUMENTS = {LABELS.binary}
 SUPPORTED_ARGUMENTS = {
     LABELS.binary,
-    LABELS.params,
+    LABELS.args,
     LABELS.fail_by_exit_value,
 }
 DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
@@ -70,7 +70,7 @@ class Epilog:  # pylint: disable=too-few-public-methods
 
         self = itself.
         args = not used.
-        kwargs = dictionary with the given binary and params strings.
+        kwargs = dictionary with the given binary and args strings.
 
         :param args: Arguments
         :param kwargs: Keyword arguments
@@ -137,9 +137,9 @@ class Epilog:  # pylint: disable=too-few-public-methods
         resolve_fail_by_exit_value(self.kwargs, def_val="false")
 
         binary = self.kwargs[LABELS.binary]
-        params = self.kwargs.get(LABELS.params, INTERNAL_LABELS.unassigned)
+        epilog_args = self.kwargs.get(LABELS.args, INTERNAL_LABELS.unassigned)
         fail_by = self.kwargs.get(LABELS.fail_by_exit_value)
-        _epilog = [binary, params, fail_by]
+        _epilog = [binary, epilog_args, fail_by]
 
         core_element = kwargs.get(CORE_ELEMENT_KEY, CE())
         core_element.set_impl_epilog(_epilog)

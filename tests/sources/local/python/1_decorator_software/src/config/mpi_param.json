@@ -1,11 +1,11 @@
 
 {
+  "execution" : {
 	"type":"mpi",
-	"properties":{
-        "runner": "mpirun",
-        "binary":"${PWD}/src/scripts/checkString.sh",
-        "working_dir": ".",
-        "processes": 1,
-        "params": "test {{string_param}}"
-	}
+    "runner": "mpirun",
+    "binary":"${PWD}/src/scripts/checkString.sh",
+    "working_dir": ".",
+    "processes": 1,
+    "args": "test {{string_param}}"
+  }
 }

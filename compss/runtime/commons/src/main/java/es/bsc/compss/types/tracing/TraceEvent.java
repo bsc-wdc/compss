@@ -148,6 +148,20 @@ public enum TraceEvent {
     REMOVE_OBJECT_FROM_CACHE(21, TraceEventType.BINDING_INSIDE_TASKS, "Remove object from cache"), //
     WAIT_ON_PYTHON(22, TraceEventType.BINDING_INSIDE_TASKS, "Wait on"), //
     WORKER_TASK_INSTANTIATION(23, TraceEventType.BINDING_INSIDE_TASKS, "Task instantiation"), //
+    CACHE_HIT(24, TraceEventType.BINDING_INSIDE_TASKS, "Cache hit"), //
+    CACHE_MISS(25, TraceEventType.BINDING_INSIDE_TASKS, "Cache miss"), //
+
+    // Python Events Inside Tasks
+    CACHE_MSG_RECEIVE(1, TraceEventType.BINDING_WORKER_CACHE, "Receive message"), //
+    CACHE_MSG_QUIT(2, TraceEventType.BINDING_WORKER_CACHE, "Quit"), //
+    CACHE_MSG_END_PROFILING(3, TraceEventType.BINDING_WORKER_CACHE, "End profiling"), //
+    CACHE_MSG_GET_EVENT(4, TraceEventType.BINDING_WORKER_CACHE, "Get from cache"), //
+    CACHE_MSG_PUT_EVENT(5, TraceEventType.BINDING_WORKER_CACHE, "Put into cache"), //
+    CACHE_MSG_REMOVE(6, TraceEventType.BINDING_WORKER_CACHE, "Remove from cache"), //
+    CACHE_MSG_LOCK(7, TraceEventType.BINDING_WORKER_CACHE, "Lock cache entry"), //
+    CACHE_MSG_UNLOCK(8, TraceEventType.BINDING_WORKER_CACHE, "Unlock cache entry"), //
+    CACHE_MSG_IS_LOCKED(9, TraceEventType.BINDING_WORKER_CACHE, "Check if entry is locked"), //
+    CACHE_MSG_IS_IN_CACHE(10, TraceEventType.BINDING_WORKER_CACHE, "Check if object is in cache"), //
 
     // Python Master Events
     PYTHON_START_RUNTIME(1, TraceEventType.BINDING_MASTER, "Start runtime"), //

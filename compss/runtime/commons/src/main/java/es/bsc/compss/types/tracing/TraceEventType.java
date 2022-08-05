@@ -61,6 +61,7 @@ public enum TraceEventType {
     BINDING_INSIDE_TASKS_CPU_COUNT(9_000_151, "Binding Tasks CPU count", true),
     BINDING_INSIDE_TASKS_GPU_AFFINITY(9_000_160, "Binding Tasks GPU affinity", true),
     BINDING_INSIDE_WORKER(9_000_200, "Binding events inside worker", true),
+    BINDING_WORKER_CACHE(9_000_201, "Binding events in worker cache", true),
     BINDING_MASTER(9_000_300, "Binding master events", true),
     BINDING_SERIALIZATION_SIZE(9_000_600, "Binding serialization size events", true),
     BINDING_DESERIALIZATION_SIZE(9_000_601, "Binding deserialization size events", true),

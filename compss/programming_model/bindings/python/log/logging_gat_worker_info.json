@@ -142,6 +142,7 @@
     "pycompss.worker.external.mpi_executor":         { "level": "INFO", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.worker.gat.commons.constants":         { "level": "INFO", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.worker.gat.worker":                    { "level": "INFO", "handlers": ["console", "error_console"], "propagate": "no" },
+    "pycompss.worker.piper.cache.manager":           { "level": "INFO", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.worker.piper.cache.profiler":          { "level": "INFO", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.worker.piper.cache.setup":             { "level": "INFO", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.worker.piper.cache.tracker":           { "level": "INFO", "handlers": ["console", "error_console"], "propagate": "no" },

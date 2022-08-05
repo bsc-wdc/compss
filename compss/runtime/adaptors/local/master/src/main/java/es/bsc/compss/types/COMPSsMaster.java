@@ -75,6 +75,8 @@ import es.bsc.compss.worker.COMPSsException;
 import es.bsc.distrostreamlib.server.types.StreamBackend;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Files;
@@ -252,6 +254,28 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         String pythonCacheProfiler = System.getProperty(COMPSsConstants.PYTHON_CACHE_PROFILER);
         if (pythonCacheProfiler == null || pythonCacheProfiler.isEmpty() || pythonCacheProfiler.equals("null")) {
             pythonCacheProfiler = COMPSsConstants.DEFAULT_PYTHON_CACHE_PROFILER;
+        }
+
+        // Create Python cache profiler
+        if (Boolean.parseBoolean(pythonCacheProfiler) == true) {
+            String pythonCacheProfilerPath = tempDirPath + "cache_profiler.json";
+            // touch file profiling.
+            File pythonCacheProfilerFile = new File(pythonCacheProfilerPath);
+            if (!pythonCacheProfilerFile.exists()) {
+                FileOutputStream pythonCacheProfilerFOS;
+                try {
+                    pythonCacheProfilerFOS = new FileOutputStream(pythonCacheProfilerFile);
+                    String emptyJsonContent = "{}";
+                    pythonCacheProfilerFOS.write(emptyJsonContent.getBytes());
+                    pythonCacheProfilerFOS.close();
+                } catch (FileNotFoundException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
         }
 
         JavaParams javaParams = new JavaParams(classPath);

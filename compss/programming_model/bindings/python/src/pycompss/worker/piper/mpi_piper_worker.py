@@ -231,7 +231,8 @@ def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
 def compss_persistent_executor(
     config: PiperWorkerConfiguration,
     tracing: bool,
-    cache_queue: typing.Optional[Queue],
+    in_cache_queue: typing.Optional[Queue],
+    out_cache_queue: typing.Optional[Queue],
     cache_ids: typing.Any,
 ) -> None:
     """Retrieve the initial configuration and performs executor process functionality.
@@ -240,7 +241,8 @@ def compss_persistent_executor(
 
     :param config: Piper Worker Configuration description.
     :param tracing: If tracing is activated.
-    :param cache_queue: Cache queue.
+    :param in_cache_queue: Cache input queue.
+    :param out_cache_queue: Cache output queue.
     :param cache_ids: Cache identifiers.
     :return: None.
     """
@@ -288,10 +290,11 @@ def compss_persistent_executor(
         config.stream_master_name,
         config.stream_master_port,
         cache_ids,
-        cache_queue,
+        in_cache_queue,
+        out_cache_queue,
         cache_profiler,
     )
-    executor(None, executor_id, executor_name, config.pipes[RANK - 1], conf)
+    executor(None, None, executor_id, executor_name, config.pipes[RANK - 1], conf)
 
     if persistent_storage:
         # Finish storage
@@ -336,7 +339,8 @@ def main() -> None:
 
     # No cache or it is an executor
     cache = False
-    cache_queue = None  # type: typing.Any
+    in_cache_queue = None  # type: typing.Any
+    out_cache_queue = None  # type: typing.Any
     cache_ids = None
     if is_worker():
         # Setup cache if enabled
@@ -346,20 +350,30 @@ def main() -> None:
             cache_params = start_cache(
                 None, str(worker_conf.cache), cache_profiler, log_dir
             )
-            smm, cache_process, cache_queue, cache_ids = cache_params
+            (
+                smm,
+                cache_process,
+                in_cache_queue,
+                out_cache_queue,
+                cache_ids,
+            ) = cache_params
 
     if is_worker():
         with trace_mpi_worker() if tracing else dummy_context():
             compss_persistent_worker(worker_conf)
     else:
         with trace_mpi_executor() if tracing else dummy_context():
-            compss_persistent_executor(worker_conf, tracing, cache_queue, cache_ids)
+            compss_persistent_executor(
+                worker_conf, tracing, in_cache_queue, out_cache_queue, cache_ids
+            )
 
     if cache and is_worker():
-        # Beware of smm, cache_queue and cache_process variables, since they
-        # are only initialized when is_worker() and cache is enabled.
-        # Reason for noqa.
-        stop_cache(smm, cache_queue, cache_profiler, cache_process)  # noqa
+        # Beware of smm, in_cache_queue, out_cache_queue and cache_process
+        # variables, since they are only initialized when is_worker() and
+        # cache is enabled.# Reason for noqa.
+        stop_cache(
+            smm, in_cache_queue, out_cache_queue, cache_profiler, cache_process
+        )  # noqa
 
 
 if __name__ == "__main__":

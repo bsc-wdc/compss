@@ -186,6 +186,7 @@ def c_extension_link(
 ) -> None:
     """Establish C extension within an external process and communicates through queues.
 
+    :param lock: Global lock for
     :param in_queue: Queue to receive messages.
     :param out_queue: Queue to send messages.
     :param redirect_std: Decide whether to store the stdout and stderr into

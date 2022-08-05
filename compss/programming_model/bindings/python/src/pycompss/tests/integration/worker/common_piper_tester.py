@@ -114,6 +114,7 @@ def evaluate_piper_worker_common(worker_process, mpi_worker=False):
             "false",
             "false",
             "1",
+            "1",
             executor_outbound,
             executor_inbound,
             control_worker_outbound,
@@ -132,6 +133,7 @@ def evaluate_piper_worker_common(worker_process, mpi_worker=False):
             "49049",
             "false",
             "false",
+            "1",
             "1",
             executor_outbound,
             executor_inbound,
@@ -246,6 +248,7 @@ def evaluate_worker(
     simple_task_message = [
         "EXECUTE_TASK",
         "1",
+        str(os.getcwd()),
         job1_out,
         job1_err,
         "0",
@@ -278,6 +281,7 @@ def evaluate_worker(
     increment_task_message = [
         "EXECUTE_TASK",
         "2",
+        str(os.getcwd()),
         job2_out,
         job2_err,
         "0",

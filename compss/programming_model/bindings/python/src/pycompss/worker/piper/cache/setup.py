@@ -31,8 +31,8 @@ from pycompss.util.process.manager import new_manager
 from pycompss.util.process.manager import new_queue
 from pycompss.util.typing_helper import typing
 from pycompss.worker.piper.cache.tracker import CacheTrackerConf
-from pycompss.worker.piper.cache.tracker import cache_tracker
 from pycompss.worker.piper.cache.tracker import CACHE_TRACKER
+from pycompss.worker.piper.cache.manager import cache_tracker
 
 
 def is_cache_enabled(cache_config: str) -> bool:
@@ -54,7 +54,7 @@ def start_cache(
     cache_config: str,
     cache_profiler: bool,
     log_dir: str,
-) -> typing.Tuple[typing.Any, Process, Queue, typing.Any]:
+) -> typing.Tuple[typing.Any, Process, Queue, Queue, typing.Any]:
     """Set up the cache process which keeps the consistency of the cache.
 
     :param logger: Logger.
@@ -83,27 +83,31 @@ def start_cache(
         log_dir,
         cache_profiler,
     )
-    cache_process, cache_queue = __create_cache_tracker_process__("cache_tracker", conf)
-    return smm, cache_process, cache_queue, cache_ids
+    cache_process, in_cache_queue, out_cache_queue = __create_cache_tracker_process__(
+        "cache_tracker", conf
+    )
+    return smm, cache_process, in_cache_queue, out_cache_queue, cache_ids
 
 
 def stop_cache(
     shared_memory_manager: typing.Any,
-    cache_queue: Queue,
+    in_cache_queue: Queue,
+    out_cache_queue: Queue,
     cache_profiler: bool,
     cache_process: Process,
 ) -> None:
     """Stop the cache process and performs the necessary cleanup.
 
     :param shared_memory_manager: Shared memory manager.
-    :param cache_queue: Cache messaging queue.
+    :param in_cache_queue: Cache messaging input queue.
+    :param out_cache_queue: Cache messaging output queue.
     :param cache_profiler: If cache profiling is enabled or not.
     :param cache_process: Cache process.
     :return: None.
     """
     if cache_profiler:
-        cache_queue.put("END PROFILING")
-    __destroy_cache_tracker_process__(cache_process, cache_queue)
+        in_cache_queue.put("END PROFILING")
+    __destroy_cache_tracker_process__(cache_process, in_cache_queue, out_cache_queue)
     CACHE_TRACKER.stop_shared_memory_manager(shared_memory_manager)
 
 
@@ -137,32 +141,38 @@ def __get_default_cache_size__() -> int:
 
 def __create_cache_tracker_process__(
     process_name: str, conf: CacheTrackerConf
-) -> typing.Tuple[Process, Queue]:
+) -> typing.Tuple[Process, Queue, Queue]:
     """Start a new cache tracker process.
 
     :param process_name: Process name.
     :param conf: cache config.
-    :return: None.
+    :return: Cache tracker process, in queue and out queue.
     """
-    queue = new_queue()
-    process = create_process(target=cache_tracker, args=(queue, process_name, conf))
+    in_queue = new_queue()
+    out_queue = new_queue()
+    process = create_process(
+        target=cache_tracker, args=(in_queue, out_queue, process_name, conf)
+    )
     process.start()
-    return process, queue
+    return process, in_queue, out_queue
 
 
 def __destroy_cache_tracker_process__(
-    cache_process: Process, cache_queue: Queue
+    cache_process: Process, in_cache_queue: Queue, out_cache_queue: Queue
 ) -> None:
     """Stop the given cache tracker process.
 
     :param cache_process: Cache process.
-    :param cache_queue: Cache messaging queue.
+    :param in_cache_queue: Cache messaging input queue.
+    :param out_cache_queue: Cache messaging output queue.
     :return: None.
     """
-    cache_queue.put("QUIT")  # noqa
+    in_cache_queue.put("QUIT")  # noqa
     cache_process.join()  # noqa
-    cache_queue.close()  # noqa
-    cache_queue.join_thread()  # noqa
+    in_cache_queue.close()  # noqa
+    in_cache_queue.join_thread()  # noqa
+    out_cache_queue.close()  # noqa
+    out_cache_queue.join_thread()  # noqa
 
 
 def __create_proxy_dict__() -> typing.Any:

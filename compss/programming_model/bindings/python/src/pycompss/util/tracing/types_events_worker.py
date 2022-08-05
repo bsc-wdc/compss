@@ -79,6 +79,8 @@ class TypesEventsWorker:
         "binding_serialization_cache_size_type",
         "binding_deserialization_cache_size_type",
         "wait_on_event",
+        "cache_hit_event",
+        "cache_miss_event",
     )
 
     def __init__(self):
@@ -123,6 +125,8 @@ class TypesEventsWorker:
         self.remove_object_from_cache_event = 21
         self.wait_on_event = 22
         self.worker_task_instantiation = 23  # task worker __init__
+        self.cache_hit_event = 24
+        self.cache_miss_event = 25
 
         # Task affinity events:
         self.inside_tasks_cpu_affinity_type = 9000150
@@ -147,3 +151,41 @@ class TypesEventsWorker:
 
 
 TRACING_WORKER = TypesEventsWorker()
+
+
+class TypesEventsWorkerCache:
+    """Constant events that can be emitted for the worker cache group."""
+
+    __slots__ = (
+        "worker_cache_type",
+        "cache_msg_receive_event",
+        "cache_msg_quit_event",
+        "cache_msg_end_profiling_event",
+        "cache_msg_get_event",
+        "cache_msg_put_event",
+        "cache_msg_remove_event",
+        "cache_msg_lock_event",
+        "cache_msg_unlock_event",
+        "cache_msg_is_locked_event",
+        "cache_msg_is_in_cache_event",
+    )
+
+    def __init__(self):
+        """Create a new instance of TypesEventsWorker."""
+        # Worker events:
+        self.worker_cache_type = 9000201
+
+        # Cache process events
+        self.cache_msg_receive_event = 1
+        self.cache_msg_quit_event = 2
+        self.cache_msg_end_profiling_event = 3
+        self.cache_msg_get_event = 4
+        self.cache_msg_put_event = 5
+        self.cache_msg_remove_event = 6
+        self.cache_msg_lock_event = 7
+        self.cache_msg_unlock_event = 8
+        self.cache_msg_is_locked_event = 9
+        self.cache_msg_is_in_cache_event = 10
+
+
+TRACING_WORKER_CACHE = TypesEventsWorkerCache()

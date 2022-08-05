@@ -34,11 +34,11 @@
   run_before_py3_modules="ignore"
   py3_modules="python/3.7.12"
   run_before_py3_other_modules="ignore"
-  py3_other_modules=""
+  py3_other_modules="python/3.9.10"
 
   # DEFINE CONFIGURATION PARAMETERS
   additionalExports="export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.302.b08-0.el8_4.x86_64 EXTRAE_MPI_LIBS=\${I_MPI_ROOT}/lib/release"
-  additional_module_use_folder="ignor"
+  additional_module_use_folder="ignore"
   queues_cfg="nord3.cfg"
   extrae_with_openmpi="false"
   openmpi_version=""

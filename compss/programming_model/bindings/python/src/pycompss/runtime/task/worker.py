@@ -91,7 +91,8 @@ class TaskWorker:
         "on_failure",
         "defaults",
         "cache_ids",
-        "cache_queue",
+        "in_cache_queue",
+        "out_cache_queue",
         "cached_references",
         "cache_profiler",
     ]
@@ -121,7 +122,8 @@ class TaskWorker:
         # These variables are initialized on call since they are only for
         # the worker
         self.cache_ids = None  # type: typing.Any
-        self.cache_queue = None  # type: typing.Any
+        self.in_cache_queue = None  # type: typing.Any
+        self.out_cache_queue = None  # type: typing.Any
         # Placeholder to keep the object references and avoid garbage collector
         self.cached_references = []  # type: typing.List[typing.Any]
         # If profiling cache
@@ -180,9 +182,14 @@ class TaskWorker:
                 self.defaults = kwargs.pop("defaults", {})
 
                 # Pop cache if available
-                cache = kwargs.pop("cache_ids", None)
+                cache = kwargs.pop("compss_cache", None)
                 if cache:
-                    self.cache_ids, self.cache_queue, self.cache_profiler = cache
+                    (
+                        self.in_cache_queue,
+                        self.out_cache_queue,
+                        self.cache_ids,
+                        self.cache_profiler,
+                    ) = cache
 
                 if __debug__:
                     LOGGER.debug("Revealing objects")
@@ -740,8 +747,7 @@ class TaskWorker:
             # that the object was a basic type and the content is already
             # available and properly casted by the python worker
 
-    def recover_object(self, argument):
-        # type: (Parameter) -> typing.Any
+    def recover_object(self, argument: Parameter) -> typing.Any:
         """Recover the object within a file.
 
         :param argument: Parameter object for the argument to recover.
@@ -751,7 +757,7 @@ class TaskWorker:
         original_path = argument.file_name.original_path
 
         # Check if cache is available
-        cache = self.cache_queue is not None
+        cache = self.in_cache_queue is not None and self.out_cache_queue is not None
         use_cache = False  # default store object in cache
 
         if cache:
@@ -774,17 +780,24 @@ class TaskWorker:
                     # cached
                     use_cache = False
             argument.cache = use_cache
-            if cache:
-                LOGGER.debug("\t\t - Save in cache: %s", str(use_cache))
+            if __debug__ and cache:
+                LOGGER.debug("\t\t - Has to be saved in cache: %s", str(use_cache))
 
         if NP and cache and use_cache:
             # Check if the object is already in cache
-            if CACHE_TRACKER.in_cache(original_path, self.cache_ids):
+            if CACHE_TRACKER.in_cache(LOGGER, original_path, self.cache_ids):
                 # The object is cached
+                with EventInsideWorker(TRACING_WORKER.cache_hit_event):
+                    if __debug__:
+                        LOGGER.debug(
+                            "\t\t - Found in cache (Cache hit) - retrieving: %s",
+                            str(original_path),
+                        )
                 retrieved, existing_shm = CACHE_TRACKER.retrieve_object_from_cache(
                     LOGGER,
                     self.cache_ids,
-                    self.cache_queue,
+                    self.in_cache_queue,
+                    self.out_cache_queue,
                     original_path,
                     name,
                     self.user_function,
@@ -800,14 +813,24 @@ class TaskWorker:
             # si keep source = False -- voy a buscar el source name en vez de destination name.
             #     no meter en cache si es IN y keep source == False
             # si keep source = True -- hay que meterlo si no esta.
+            with EventInsideWorker(TRACING_WORKER.cache_miss_event):
+                if __debug__:
+                    LOGGER.debug(
+                        "\t\t - Not found in cache (Cache miss) - deserializing: %s",
+                        str(original_path),
+                    )
             obj = deserialize_from_file(original_path)
             if (
                 argument.file_name.keep_source
                 and argument.direction != parameter.DIRECTION.IN_DELETE
             ):
+                # Try to insert in cache.
+                # May not be inserted if there is other process inserting the
+                # same file.
                 CACHE_TRACKER.insert_object_into_cache_wrapper(
                     LOGGER,
-                    self.cache_queue,
+                    self.in_cache_queue,
+                    self.out_cache_queue,
                     obj,
                     original_path,
                     name,
@@ -1190,7 +1213,7 @@ class TaskWorker:
         name = argument.name
         original_path = argument.file_name.original_path
 
-        cache = self.cache_queue is not None
+        cache = self.in_cache_queue is not None and self.out_cache_queue is not None
         if not self.cache_profiler and name in self.decorator_arguments:
             use_cache = self.decorator_arguments[name].cache
         elif self.cache_profiler:
@@ -1199,10 +1222,11 @@ class TaskWorker:
             # if not explicitly said, the object is candidate to be cached
             use_cache = False
         if NP and cache and use_cache:
-            if CACHE_TRACKER.in_cache(original_path, self.cache_ids):
+            if CACHE_TRACKER.in_cache(LOGGER, original_path, self.cache_ids):
                 CACHE_TRACKER.replace_object_into_cache(
                     LOGGER,
-                    self.cache_queue,
+                    self.in_cache_queue,
+                    self.out_cache_queue,
                     content,
                     original_path,
                     name,
@@ -1211,7 +1235,8 @@ class TaskWorker:
             else:
                 CACHE_TRACKER.insert_object_into_cache_wrapper(
                     LOGGER,
-                    self.cache_queue,
+                    self.in_cache_queue,
+                    self.out_cache_queue,
                     content,
                     original_path,
                     name,
@@ -1272,19 +1297,25 @@ class TaskWorker:
                     serialize_to_file_mpienv(obj, f_name, rank_zero_reduce)
                 else:
                     serialize_to_file(obj, f_name)
-                    if self.cache_queue is not None and (
+                if (
+                    self.in_cache_queue is not None
+                    and self.out_cache_queue is not None
+                    and (
                         self.cache_profiler or self.decorator_arguments["cache_returns"]
-                    ):
-                        if __debug__:
-                            LOGGER.debug("Storing return in cache")
-                        CACHE_TRACKER.insert_object_into_cache_wrapper(
-                            LOGGER,
-                            self.cache_queue,
-                            obj,
-                            f_name,
-                            "Return",
-                            self.user_function,
-                        )
+                    )
+                    and not CACHE_TRACKER.in_cache(LOGGER, f_name, self.cache_ids)
+                ):
+                    if __debug__:
+                        LOGGER.debug("Storing return in cache")
+                    CACHE_TRACKER.insert_object_into_cache_wrapper(
+                        LOGGER,
+                        self.in_cache_queue,
+                        self.out_cache_queue,
+                        obj,
+                        f_name,
+                        "Return",
+                        self.user_function,
+                    )
         return user_returns
 
     def is_parameter_an_object(self, name: str) -> bool:

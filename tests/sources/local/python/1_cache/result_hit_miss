@@ -53,5 +53,31 @@
   fi
 
   #----------------------------------------------------------------------------------
+  # Grep for unit test expected values
+  insertions=$(grep -r "Inserted into cache" "${target_log_folder}" | wc -l)
+  if [ "${insertions}" != "3" ]; then
+      echo "ERROR: FAILURE IN THE AMOUNT OF INSERTIONS." | tee -a "${output_file}"
+      echo "       - EXPECTED INSERTIONS: 2." | tee -a "${output_file}"
+      echo "       - FOUND INSERTIONS   : ${insertions}." | tee -a "${output_file}"
+      exit 1
+  fi
+
+  hits=$(grep -r "Found in cache" "${target_log_folder}" | wc -l)
+  if [ "${hits}" != "4" ]; then
+      echo "ERROR: FAILURE IN THE AMOUNT OF HITS." | tee -a "${output_file}"
+      echo "       - EXPECTED HITS: 4." | tee -a "${output_file}"
+      echo "       - FOUND HITS   : ${hits}." | tee -a "${output_file}"
+      exit 1
+  fi
+
+  miss=$(grep -r "Not found in cache" "${target_log_folder}" | wc -l)
+  if [ "${miss}" != "5" ]; then
+      echo "ERROR: FAILURE IN THE AMOUNT OF MISS." | tee -a "${output_file}"
+      echo "       - EXPECTED MISS: 5." | tee -a "${output_file}"
+      echo "       - FOUND MISS   : ${miss}." | tee -a "${output_file}"
+      exit 1
+  fi
+
+  #----------------------------------------------------------------------------------
   # Report result status
   exit 0

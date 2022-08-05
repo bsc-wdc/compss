@@ -12,7 +12,6 @@
 
   # Global variables
   exit_value=1
-  app_name="pycompss_cache.py"
 
   #----------------------------------------------------------------------------------
   # Generate Project.xml according to system
@@ -23,10 +22,11 @@
   mkdir -p /tmp/COMPSsWorker01/
 
   #----------------------------------------------------------------------------------
-  # Run application
+  # Run cache check
   echo
   echo "*** RUNNING PYTHON APPLICATION WITH WORKER CACHE"
 
+  app_name="pycompss_cache.py"
   for python_interpreter in ${execution_envs}; do
     echo "   - Running with Interpreter: ${python_interpreter}"
     output_log="${target_log_folder}/${app_name}_${python_interpreter}_0${retry_num}.outputlog"
@@ -34,7 +34,7 @@
     specific_log_dir="${COMPSs_log_folder}/${app_name}_${python_interpreter}_0${retry_num}"
     exec_target_log_folder="${target_log_folder}/${app_name}_${python_interpreter}_0${retry_num}"
     mkdir -p "${exec_target_log_folder}"
-    expectedTime=360s
+    expectedTime=120s
 
     python_mpi_worker=""
     if [ "$python_interpreter" == 'python3_mpi' ]; then
@@ -76,6 +76,195 @@
 
       # Check result
       "${base_app_dir}"/result "${output_log}" "${error_log}" "${exec_target_log_folder}"
+      exit_value=$?
+    fi
+
+    if [ ${exit_value} -ne 0 ]; then
+      exit ${exit_value}
+    fi
+  done
+
+  #----------------------------------------------------------------------------------
+  # Run cache check types
+  echo
+  echo "*** RUNNING PYTHON APPLICATION WITH WORKER CACHE TYPES"
+
+  app_name="pycompss_cache_types.py"
+  for python_interpreter in ${execution_envs}; do
+    echo "   - Running with Interpreter: ${python_interpreter}"
+    output_log="${target_log_folder}/${app_name}_${python_interpreter}_0${retry_num}.outputlog"
+    error_log="${target_log_folder}/${app_name}_${python_interpreter}_0${retry_num}.errorlog"
+    specific_log_dir="${COMPSs_log_folder}/${app_name}_${python_interpreter}_0${retry_num}"
+    exec_target_log_folder="${target_log_folder}/${app_name}_${python_interpreter}_0${retry_num}"
+    mkdir -p "${exec_target_log_folder}"
+    expectedTime=120s
+
+    python_mpi_worker=""
+    if [ "$python_interpreter" == 'python3_mpi' ]; then
+        python_interpreter="python3"
+        python_mpi_worker="--python_mpi_worker=true"
+    fi
+
+    # shellcheck disable=SC2086
+    timeout --signal=2 $expectedTime "${COMPSs_exec}" \
+      --project="${base_app_dir}"/project.xml \
+      --resources="${base_app_dir}"/resources.xml \
+      \
+      --comm="$comm" \
+      \
+      --debug \
+      ${runcompss_opts} \
+      \
+      --lang=python \
+      --python_interpreter="${python_interpreter}" \
+      ${python_mpi_worker} \
+      --pythonpath="${base_app_dir}"/src \
+      --specific_log_dir="${specific_log_dir}" \
+      \
+      --python_worker_cache=true \
+      \
+      "${base_app_dir}/src/${app_name}" > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+
+    # Check timeout
+    if [[ "$?" = "124" ]]; then
+      # Copy LOG files
+      cp -rf "${specific_log_dir}"/* "${exec_target_log_folder}"
+
+      # Report time out
+      echo "[WARNING] Python Application timed out" >> "${output_log}"
+      exit_value=124
+    else
+      # Copy LOG files
+      cp -rf "${specific_log_dir}"/* "${exec_target_log_folder}"
+
+      # Check result
+      "${base_app_dir}"/result_types "${output_log}" "${error_log}" "${exec_target_log_folder}"
+      exit_value=$?
+    fi
+
+    if [ ${exit_value} -ne 0 ]; then
+      exit ${exit_value}
+    fi
+  done
+
+  #----------------------------------------------------------------------------------
+  # Run cache check hits and miss
+  echo
+  echo "*** RUNNING PYTHON APPLICATION WITH WORKER CACHE HITS AND MISS"
+
+  app_name="pycompss_cache_hit_miss.py"
+  for python_interpreter in ${execution_envs}; do
+    echo "   - Running with Interpreter: ${python_interpreter}"
+    output_log="${target_log_folder}/${app_name}_${python_interpreter}_0${retry_num}.outputlog"
+    error_log="${target_log_folder}/${app_name}_${python_interpreter}_0${retry_num}.errorlog"
+    specific_log_dir="${COMPSs_log_folder}/${app_name}_${python_interpreter}_0${retry_num}"
+    exec_target_log_folder="${target_log_folder}/${app_name}_${python_interpreter}_0${retry_num}"
+    mkdir -p "${exec_target_log_folder}"
+    expectedTime=120s
+
+    python_mpi_worker=""
+    if [ "$python_interpreter" == 'python3_mpi' ]; then
+        python_interpreter="python3"
+        python_mpi_worker="--python_mpi_worker=true"
+    fi
+
+    # shellcheck disable=SC2086
+    timeout --signal=2 $expectedTime "${COMPSs_exec}" \
+      --project="${base_app_dir}"/project.xml \
+      --resources="${base_app_dir}"/resources.xml \
+      \
+      --comm="$comm" \
+      \
+      --debug \
+      ${runcompss_opts} \
+      \
+      --lang=python \
+      --python_interpreter="${python_interpreter}" \
+      ${python_mpi_worker} \
+      --pythonpath="${base_app_dir}"/src \
+      --specific_log_dir="${specific_log_dir}" \
+      \
+      --python_worker_cache=true \
+      \
+      "${base_app_dir}/src/${app_name}" > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+
+    # Check timeout
+    if [[ "$?" = "124" ]]; then
+      # Copy LOG files
+      cp -rf "${specific_log_dir}"/* "${exec_target_log_folder}"
+
+      # Report time out
+      echo "[WARNING] Python Application timed out" >> "${output_log}"
+      exit_value=124
+    else
+      # Copy LOG files
+      cp -rf "${specific_log_dir}"/* "${exec_target_log_folder}"
+
+      # Check result
+      "${base_app_dir}"/result_hit_miss "${output_log}" "${error_log}" "${exec_target_log_folder}"
+      exit_value=$?
+    fi
+
+    if [ ${exit_value} -ne 0 ]; then
+      exit ${exit_value}
+    fi
+  done
+
+  #----------------------------------------------------------------------------------
+  # Run cache check eviction
+  echo
+  echo "*** RUNNING PYTHON APPLICATION WITH WORKER CACHE EVICTION"
+
+  app_name="pycompss_cache_eviction.py"
+  for python_interpreter in ${execution_envs}; do
+    echo "   - Running with Interpreter: ${python_interpreter}"
+    output_log="${target_log_folder}/${app_name}_${python_interpreter}_0${retry_num}.outputlog"
+    error_log="${target_log_folder}/${app_name}_${python_interpreter}_0${retry_num}.errorlog"
+    specific_log_dir="${COMPSs_log_folder}/${app_name}_${python_interpreter}_0${retry_num}"
+    exec_target_log_folder="${target_log_folder}/${app_name}_${python_interpreter}_0${retry_num}"
+    mkdir -p "${exec_target_log_folder}"
+    expectedTime=360s
+
+    python_mpi_worker=""
+    if [ "$python_interpreter" == 'python3_mpi' ]; then
+        python_interpreter="python3"
+        python_mpi_worker="--python_mpi_worker=true"
+    fi
+
+    # shellcheck disable=SC2086
+    timeout --signal=2 $expectedTime "${COMPSs_exec}" \
+      --project="${base_app_dir}"/project.xml \
+      --resources="${base_app_dir}"/resources.xml \
+      \
+      --comm="$comm" \
+      \
+      --debug \
+      ${runcompss_opts} \
+      \
+      --lang=python \
+      --python_interpreter="${python_interpreter}" \
+      ${python_mpi_worker} \
+      --pythonpath="${base_app_dir}"/src \
+      --specific_log_dir="${specific_log_dir}" \
+      \
+      --python_worker_cache=true:1000000 \
+      \
+      "${base_app_dir}/src/${app_name}" > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+
+    # Check timeout
+    if [[ "$?" = "124" ]]; then
+      # Copy LOG files
+      cp -rf "${specific_log_dir}"/* "${exec_target_log_folder}"
+
+      # Report time out
+      echo "[WARNING] Python Application timed out" >> "${output_log}"
+      exit_value=124
+    else
+      # Copy LOG files
+      cp -rf "${specific_log_dir}"/* "${exec_target_log_folder}"
+
+      # Check result
+      "${base_app_dir}"/result_eviction "${output_log}" "${error_log}" "${exec_target_log_folder}"
       exit_value=$?
     fi
 

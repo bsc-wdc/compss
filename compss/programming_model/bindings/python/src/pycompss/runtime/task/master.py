@@ -63,7 +63,6 @@ from pycompss.runtime.task.arguments import get_vararg_name
 from pycompss.runtime.task.arguments import is_kwarg
 from pycompss.runtime.task.arguments import is_vararg
 from pycompss.runtime.task.commons import get_default_direction
-from pycompss.runtime.task.commons import get_varargs_direction
 from pycompss.runtime.task.core_element import CE
 from pycompss.runtime.task.features import TASK_FEATURES
 from pycompss.runtime.task.parameter import COMPSsFile
@@ -74,7 +73,7 @@ from pycompss.runtime.task.parameter import JAVA_MIN_LONG
 from pycompss.runtime.task.parameter import Parameter
 from pycompss.runtime.task.parameter import UNDEFINED_CONTENT_TYPE
 from pycompss.runtime.task.parameter import get_compss_type
-from pycompss.runtime.task.parameter import get_parameter_copy
+from pycompss.runtime.task.parameter import get_new_parameter
 from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.exceptions import SerializerException
@@ -85,7 +84,6 @@ from pycompss.util.objects.properties import is_basic_iterable
 from pycompss.util.objects.properties import is_dict
 from pycompss.util.objects.sizer import total_sizeof
 from pycompss.util.serialization import serializer
-from pycompss.util.serialization.serializer import serialize_to_bytes
 from pycompss.util.serialization.serializer import serialize_to_file
 from pycompss.util.storages.persistent import get_id
 from pycompss.util.tracing.helpers import emit_manual_event_explicit
@@ -127,24 +125,25 @@ MANDATORY_ARGUMENTS = set()  # type: typing.Set[str]
 # arguments (the user can define a=INOUT in the task decorator and this is not
 # an unexpected argument)
 SUPPORTED_ARGUMENTS = {
+    LABELS.target_direction,
     LABELS.returns,
     LABELS.cache_returns,
     LABELS.priority,
-    LABELS.on_failure,
     LABELS.defaults,
     LABELS.time_out,
     LABELS.is_replicated,
     LABELS.is_distributed,
-    LABELS.varargs_type,
-    LABELS.target_direction,
     LABELS.computing_nodes,
+    LABELS.processes_per_node,
     LABELS.is_reduce,
     LABELS.chunk_size,
+    LABELS.on_failure,
+    LABELS.tracing_hook,
     LABELS.numba,
     LABELS.numba_flags,
     LABELS.numba_signature,
     LABELS.numba_declaration,
-    LABELS.tracing_hook,
+    LABELS.varargs_type,
 }  # type: typing.Set[str]
 # Deprecated arguments. Still supported but shows a message when used.
 DEPRECATED_ARGUMENTS = {
@@ -214,7 +213,7 @@ class TaskMaster:
 
     def __init__(
         self,
-        decorator_arguments: typing.Dict[str, typing.Any],
+        decorator_arguments,
         user_function: typing.Callable,
         core_element: CE,
         registered: bool,
@@ -702,19 +701,35 @@ class TaskMaster:
         :return: None.
         """
         # Pop returns from kwargs
-        self.explicit_num_returns = kwargs.pop(LABELS.returns, None)
+        if LABELS.returns in kwargs:
+            self.explicit_num_returns = kwargs.pop(LABELS.returns, None)
+            self.decorator_arguments.returns = self.explicit_num_returns
+        else:
+            self.explicit_num_returns = self.decorator_arguments.returns
 
         # Deal with dynamic computing nodes
         # If we have an MPI, COMPSs or MultiNode decorator above us we should
         # have computing_nodes as a kwarg, we should detect it and remove it.
         # Otherwise we set it to 1
-        cns = kwargs.pop(LABELS.computing_nodes, 1)
+        if LABELS.computing_nodes in kwargs:
+            cns = kwargs.pop(LABELS.computing_nodes, 1)
+            self.decorator_arguments.computing_nodes = cns
+        elif LEGACY_LABELS.computing_nodes in kwargs:
+            cns = kwargs.pop(LEGACY_LABELS.computing_nodes, 1)
+            self.decorator_arguments.computing_nodes = cns
+        else:
+            cns = self.decorator_arguments.computing_nodes
         if cns != 1:
             # Non default => parse
             self.computing_nodes = self.parse_computing_nodes(cns)
         else:
             self.computing_nodes = 1
-        processes_per_node = kwargs.pop(LABELS.processes_per_node, 1)
+        # Deal with processes per node
+        if LABELS.processes_per_node in kwargs:
+            processes_per_node = kwargs.pop(LABELS.processes_per_node, 1)
+            self.decorator_arguments.processes_per_node = processes_per_node
+        else:
+            processes_per_node = self.decorator_arguments.processes_per_node
         if processes_per_node != 1:
             # Non default => parse
             self.processes_per_node = self.parse_processes_per_node(processes_per_node)
@@ -725,20 +740,33 @@ class TaskMaster:
             self.validate_processes_per_node()
             self.computing_nodes = int(self.computing_nodes / self.processes_per_node)
         # Deal with on_failure
-        if LABELS.on_failure in self.decorator_arguments:
-            self.on_failure = self.decorator_arguments[LABELS.on_failure]
-            # if task defines on_failure property the decorator is ignored
-            kwargs.pop(LABELS.on_failure, None)
-        else:
+        if LABELS.on_failure in kwargs:
             self.on_failure = kwargs.pop(LABELS.on_failure, "RETRY")
-        self.defaults = kwargs.pop(LABELS.defaults, {})
+            self.decorator_arguments.on_failure = self.on_failure
+        else:
+            self.on_failure = self.decorator_arguments.on_failure
+        # Deal with defaults
+        if LABELS.defaults in kwargs:
+            self.defaults = kwargs.pop(LABELS.defaults, {})
+            self.decorator_arguments.defaults = self.defaults
+        else:
+            self.defaults = self.decorator_arguments.defaults
         # Deal with reductions
-        is_reduce = kwargs.pop(LABELS.is_reduce, False)
+        if LABELS.is_reduce in kwargs:
+            is_reduce = kwargs.pop(LABELS.is_reduce, False)
+            self.decorator_arguments.is_reduce = is_reduce
+        else:
+            is_reduce = self.decorator_arguments.is_reduce
         if is_reduce is not False:
             self.is_reduce = self.parse_is_reduce(is_reduce)
         else:
             self.is_reduce = False
-        chunk_size = kwargs.pop(LABELS.chunk_size, 0)
+        # Deal with chunk size
+        if LABELS.chunk_size in kwargs:
+            chunk_size = kwargs.pop(LABELS.chunk_size, 0)
+            self.decorator_arguments.chunk_size = chunk_size
+        else:
+            chunk_size = self.decorator_arguments.chunk_size
         if chunk_size != 0:
             self.chunk_size = self.parse_chunk_size(chunk_size)
         else:
@@ -827,7 +855,8 @@ class TaskMaster:
             MANDATORY_ARGUMENTS,
             DEPRECATED_ARGUMENTS,
             supported_arguments,
-            list(self.decorator_arguments.keys()),
+            self.decorator_arguments.get_keys()
+            + list(self.decorator_arguments.parameters.keys()),
             "@task",
         )
 
@@ -848,16 +877,14 @@ class TaskMaster:
         # Is the argument a vararg? or a kwarg? Then check the direction
         # for varargs or kwargs
         if is_vararg(arg_name):
-            self.param_varargs, varargs_direction = get_varargs_direction(
-                self.param_varargs, self.decorator_arguments
-            )
-            param = get_parameter_copy(varargs_direction)
+            varargs_direction = self.decorator_arguments.varargs_type
+            param = get_new_parameter(varargs_direction)
         elif is_kwarg(arg_name):
             real_name = get_name_from_kwarg(arg_name)
             default_parameter = get_default_direction(
                 real_name, self.decorator_arguments, self.param_args
             )
-            param = self.decorator_arguments.get(real_name, default_parameter)
+            param = self.decorator_arguments.get_parameter(real_name, default_parameter)
         else:
             # The argument is named, check its direction
             # Default value = IN if not class or instance method and
@@ -870,7 +897,7 @@ class TaskMaster:
             default_parameter = get_default_direction(
                 arg_name, self.decorator_arguments, self.param_args
             )
-            param = self.decorator_arguments.get(arg_name, default_parameter)
+            param = self.decorator_arguments.get_parameter(arg_name, default_parameter)
 
         # If the parameter is a FILE then its type will already be defined,
         # and get_compss_type will misslabel it as a parameter.TYPE.STRING
@@ -1149,9 +1176,9 @@ class TaskMaster:
             for i in range(num_layouts):
                 param_name = impl_type_args[(9 + (i * 4))].strip()
                 if param_name:
-                    if param_name in self.decorator_arguments:
+                    if param_name in self.decorator_arguments.parameters:
                         if (
-                            self.decorator_arguments[param_name].content_type
+                            self.decorator_arguments.parameters[param_name].content_type
                             != parameter.TYPE.COLLECTION
                         ):
                             raise PyCOMPSsException(
@@ -1327,8 +1354,8 @@ class TaskMaster:
                             ) from attribute_error
         else:
             raise PyCOMPSsException(
-                "Unexpected computing_nodes value. Must be str or int."
-            )  # noqa: E501
+                f"Unexpected computing_nodes value {computing_nodes}. Must be str or int."
+            )
 
         if parsed_computing_nodes <= 0:
             logger.warning(
@@ -1410,32 +1437,10 @@ class TaskMaster:
 
         :return: The value of all possible hints.
         """
-        deco_arg_getter = self.decorator_arguments.get
-        if LEGACY_LABELS.is_replicated in self.decorator_arguments:
-            is_replicated = deco_arg_getter(LEGACY_LABELS.is_replicated)
-            logger.warning(
-                "Detected deprecated isReplicated. Please, change it to is_replicated"
-            )  # noqa: E501
-        else:
-            is_replicated = deco_arg_getter(LABELS.is_replicated)
-        # Get is distributed
-        if LEGACY_LABELS.is_distributed in self.decorator_arguments:
-            is_distributed = deco_arg_getter(LEGACY_LABELS.is_distributed)
-            logger.warning(
-                "Detected deprecated isDistributed. Please, change it to is_distributed"
-            )  # noqa: E501
-        else:
-            is_distributed = deco_arg_getter(LABELS.is_distributed)
-        # Get time out
-        if LEGACY_LABELS.time_out in self.decorator_arguments:
-            time_out = deco_arg_getter(LEGACY_LABELS.time_out)
-            logger.warning(
-                "Detected deprecated timeOut. Please, change it to time_out"
-            )  # noqa: E501
-        else:
-            time_out = deco_arg_getter(LABELS.time_out)
-        # Get priority
-        has_priority = deco_arg_getter(LABELS.priority)
+        is_replicated = self.decorator_arguments.is_replicated
+        is_distributed = self.decorator_arguments.is_distributed
+        time_out = self.decorator_arguments.time_out
+        has_priority = self.decorator_arguments.priority
         # Check if the function is an instance method or a class method.
         has_target = self.function_type == FunctionType.INSTANCE_METHOD
 
@@ -1445,7 +1450,7 @@ class TaskMaster:
             time_out,
             has_priority,
             has_target,
-        )  # noqa: E501
+        )
 
     def add_return_parameters(
         self, returns: typing.Any, code_strings: bool = True
@@ -1458,7 +1463,7 @@ class TaskMaster:
         if returns:
             _returns = returns  # type: typing.Any
         else:
-            _returns = self.decorator_arguments[LABELS.returns]
+            _returns = self.decorator_arguments.returns
 
         # Note that RETURNS is by default False
         if not _returns:

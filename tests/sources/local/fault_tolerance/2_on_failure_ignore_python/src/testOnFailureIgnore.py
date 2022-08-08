@@ -53,8 +53,8 @@ def write_file(file_path):
         print("EXCEPTION")
         raise ServiceExit()
 
-@on_failure(management="RETRY")
-@task(file_path=FILE_OUT, on_failure="IGNORE")
+@on_failure(management="IGNORE")
+@task(file_path=FILE_OUT) # , on_failure="IGNORE")  # alternative without @on_failure
 def raise_failure_with_out(file_path):
     print("Nothing done")
 

@@ -23,7 +23,6 @@ PyCOMPSs runtime - Task - Parameter.
 This file contains the classes needed for the task parameter definition.
 """
 
-import copy
 import sys
 
 from pycompss.api.parameter import Cache
@@ -561,19 +560,6 @@ def get_new_parameter(key: str) -> Parameter:
     :return: A new Parameter from the given key.
     """
     return Parameter(**_param_conversion_dict_[key])
-
-
-def get_parameter_copy(parameter: Parameter) -> Parameter:
-    """Copy the given parameter into a new one.
-
-    :param parameter: Parameter object.
-    :return: An equivalent Parameter copy of this object (note that it will
-             be equivalent, but not equal).
-    """
-    assert is_parameter(
-        parameter
-    ), f"Input parameter is not Parameter (is {parameter.__class__.__name__})"
-    return copy.deepcopy(parameter)
 
 
 def is_dict_specifier(value: typing.Any) -> bool:

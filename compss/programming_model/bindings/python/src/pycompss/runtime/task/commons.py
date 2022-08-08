@@ -24,37 +24,14 @@ This file contains the task  arguments commons.
 """
 
 from pycompss.api import parameter
-from pycompss.runtime.task.parameter import Parameter
-from pycompss.runtime.task.parameter import get_new_parameter
 from pycompss.util.typing_helper import typing
-
-
-def get_varargs_direction(
-    param_varargs: typing.Any, decorator_arguments: typing.Any
-) -> typing.Tuple[typing.Any, Parameter]:
-    """Return the direction of the varargs arguments.
-
-    Can be defined in the decorator in two ways:
-        args = dir, where args is the name of the variadic args tuple.
-        varargs_type = dir (for legacy reasons).
-
-    :param param_varargs: Parameter varargs.
-    :param decorator_arguments: Decorator arguments.
-    :return: Direction of the varargs arguments.
-    """
-    if param_varargs not in decorator_arguments:
-        if "varargsType" in decorator_arguments:
-            param_varargs = "varargsType"
-            return param_varargs, decorator_arguments[param_varargs]
-        return param_varargs, decorator_arguments["varargs_type"]
-    return param_varargs, decorator_arguments[param_varargs]
 
 
 def get_default_direction(
     var_name: str,
-    decorator_arguments: typing.Dict[str, typing.Any],
+    decorator_arguments,  # TaskArguments
     param_args: typing.List[typing.Any],
-) -> Parameter:
+) -> str:
     """Return the default direction for a given parameter.
 
     :param var_name: Variable name.
@@ -66,19 +43,15 @@ def get_default_direction(
     # modifies the given class, so we are an INOUT, CONCURRENT or
     # COMMUTATIVE
     self_dirs = [
-        parameter.DIRECTION.INOUT,
-        parameter.DIRECTION.CONCURRENT,
-        parameter.DIRECTION.COMMUTATIVE,
+        parameter.INOUT.key,
+        parameter.CONCURRENT.key,
+        parameter.COMMUTATIVE.key,
     ]
-    if "targetDirection" in decorator_arguments:
-        target_label = "targetDirection"
-    else:
-        target_label = "target_direction"
     if (
-        decorator_arguments[target_label].direction in self_dirs
+        decorator_arguments.target_direction in self_dirs
         and var_name in ["self", "cls"]
         and param_args
         and param_args[0] == var_name
     ):
-        return decorator_arguments[target_label]
-    return get_new_parameter("IN")
+        return decorator_arguments.target_direction
+    return parameter.IN.key

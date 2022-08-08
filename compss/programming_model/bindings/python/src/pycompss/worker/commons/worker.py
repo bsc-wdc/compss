@@ -755,9 +755,9 @@ def execute_task(
             # within the task decorator, the task_execution returns the value
             # of target_direction in order to know here if self has to be
             # serialized. This solution avoids to use inspect.
-            if target_direction is not None and target_direction.direction in (
-                parameter.DIRECTION.INOUT,
-                parameter.DIRECTION.COMMUTATIVE,
+            if target_direction is not None and target_direction in (
+                parameter.INOUT.key,
+                parameter.COMMUTATIVE.key,
             ):
                 if is_psco(obj):
                     # There is no explicit update if self is a PSCO.

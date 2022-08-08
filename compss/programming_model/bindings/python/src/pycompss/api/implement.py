@@ -34,7 +34,7 @@ from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.api.commons.implementation_types import IMPLEMENTATION_TYPES
 from pycompss.runtime.task.features import TASK_FEATURES
-from pycompss.runtime.task.core_element import CE
+from pycompss.runtime.task.definitions.core_element import CE
 from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import NotInPyCOMPSsException
 from pycompss.util.typing_helper import typing

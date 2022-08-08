@@ -35,7 +35,7 @@ from pycompss.runtime.management.classes import EmptyReturn
 from pycompss.runtime.management.direction import get_compss_direction
 from pycompss.runtime.management.object_tracker import OT
 from pycompss.runtime.management.synchronization import wait_on_object
-from pycompss.runtime.task.core_element import CE
+from pycompss.runtime.task.definitions.core_element import CE
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.logger.helpers import add_new_logger
 

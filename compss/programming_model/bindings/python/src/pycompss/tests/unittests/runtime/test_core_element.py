@@ -17,7 +17,7 @@
 
 # -*- coding: utf-8 -*-
 
-from pycompss.runtime.task.core_element import CE
+from pycompss.runtime.task.definitions.core_element import CE
 
 ERROR_SIGNATURE = "ERROR: Wrong signature value."
 ERROR_IMPL_SIGNATURE = "ERROR: Wrong impl_signature value."

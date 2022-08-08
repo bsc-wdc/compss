@@ -30,7 +30,7 @@ from pycompss.util.context import CONTEXT
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.dummy.constraint import constraint as dummy_constraint
-from pycompss.runtime.task.core_element import CE
+from pycompss.runtime.task.definitions.core_element import CE
 from pycompss.util.typing_helper import typing
 from pycompss.util.exceptions import PyCOMPSsException
 

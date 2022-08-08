@@ -102,23 +102,19 @@ class TaskWorker:
         self,
         decorator_arguments,
         user_function: typing.Callable,
-        on_failure: str,
-        defaults: dict,
     ) -> None:
         """Task at worker constructor.
 
         :param decorator_arguments: Decorator arguments.
         :param user_function: User function (target function to execute).
-        :param on_failure: On failure action.
-        :param defaults: Default values for on failure action.
         """
         # Initialize TaskCommons
         self.user_function = user_function
         self.decorator_arguments = decorator_arguments
         self.param_args = []  # type: typing.List[typing.Any]
         self.param_varargs = None  # type: typing.Any
-        self.on_failure = on_failure
-        self.defaults = defaults
+        self.on_failure = ""
+        self.defaults = {}  # type: dict
 
         # These variables are initialized on call since they are only for
         # the worker

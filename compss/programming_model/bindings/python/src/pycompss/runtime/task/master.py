@@ -63,7 +63,7 @@ from pycompss.runtime.task.arguments import get_vararg_name
 from pycompss.runtime.task.arguments import is_kwarg
 from pycompss.runtime.task.arguments import is_vararg
 from pycompss.runtime.task.commons import get_default_direction
-from pycompss.runtime.task.core_element import CE
+from pycompss.runtime.task.definitions.core_element import CE
 from pycompss.runtime.task.features import TASK_FEATURES
 from pycompss.runtime.task.parameter import COMPSsFile
 from pycompss.runtime.task.parameter import JAVA_MAX_INT
@@ -187,73 +187,39 @@ class TaskMaster:
         "computing_nodes",
         "processes_per_node",
         "parameters",
-        "function_name",
-        "module_name",
-        "function_type",
-        "class_name",
         "returns",
         "multi_return",
         "core_element",
-        "registered",
-        "signature",
         "chunk_size",
         "is_reduce",
-        "interactive",
-        "module",
-        "function_arguments",
-        "hints",
         "on_failure",
         "defaults",
         "param_args",
         "param_varargs",
-        "user_function",
         "decorator_arguments",
+        "decorated_function",
         "explicit_num_returns",
     ]
 
     def __init__(
         self,
-        decorator_arguments,
-        user_function: typing.Callable,
         core_element: CE,
-        registered: bool,
-        signature: str,
-        interactive: bool,
-        module: typing.Any,
-        function_arguments: tuple,
-        function_name: str,
-        module_name: str,
-        function_type: int,
-        class_name: str,
-        hints: tuple,
-        on_failure: str,
-        defaults: dict,
+        decorator_arguments,
+        decorated_function,
     ) -> None:
         """Task at master constructor.
 
-        :param decorator_arguments: Decorator arguments.
-        :param user_function: User function.
         :param core_element: Core Element.
-        :param registered: If it is already registered.
-        :param signature: Function signature.
-        :param interactive: If interactive mode.
-        :param module: Module where the function belongs to.
-        :param function_arguments: Function arguments.
-        :param function_name: Function name.
-        :param module_name: Module name.
-        :param function_type: Function type.
-        :param class_name: Class name.
-        :param hints: Task hints.
-        :param on_failure: On failure management.
-        :param defaults: Default values.
+        :param decorator_arguments: Decorator arguments.
+        :param decorated_function: Decorated function.
         """
         # Initialize TaskCommons
-        self.user_function = user_function
         self.decorator_arguments = decorator_arguments
+        self.decorated_function = decorated_function
         self.param_args = []  # type: typing.List[typing.Any]
         self.param_varargs = None  # type: typing.Any
-        self.on_failure = on_failure
-        self.defaults = defaults
+        self.on_failure = ""
+        self.defaults = {}  # type: dict
 
         # Add more argument related attributes that will be useful later
         self.param_defaults = None  # type: typing.Union[None, tuple]
@@ -262,10 +228,6 @@ class TaskMaster:
         self.computing_nodes = None  # type: typing.Any
         self.processes_per_node = None  # type: typing.Any
         self.parameters = OrderedDict()  # type: OrderedDict
-        self.function_name = function_name
-        self.module_name = module_name
-        self.function_type = function_type
-        self.class_name = class_name
         # Add returns related attributes that will be useful later
         self.returns = OrderedDict()  # type: OrderedDict
         self.explicit_num_returns = None  # type: typing.Any
@@ -273,18 +235,11 @@ class TaskMaster:
         # Task won't be registered until called from the master for the first
         # time or have a different signature
         self.core_element = core_element
-        self.registered = registered
-        self.signature = signature
+        # self.registered = decorated_function.registered
+        # self.signature = decorated_function.signature
         # Reductions
         self.chunk_size = -1
         self.is_reduce = False
-
-        # Parameters that will come from previous tasks
-        # TODO: These parameters could be within a "precalculated" parameters
-        self.interactive = interactive
-        self.module = module
-        self.function_arguments = function_arguments
-        self.hints = hints
 
     def call(self, args: tuple, kwargs: dict) -> tuple:
         """Run the task as master.
@@ -304,7 +259,7 @@ class TaskMaster:
             # and self.param_defaults. And gives non-None default
             # values to them if necessary
             with EventMaster(TRACING_MASTER.inspect_function_arguments):
-                if not self.function_arguments:
+                if not self.decorated_function.get_function_arguments():
                     self.inspect_user_function_arguments()
                 # It will be easier to deal with functions if we pretend that all
                 # have the signature f(positionals, *variadic, **named). This is
@@ -329,10 +284,10 @@ class TaskMaster:
                 if __debug__:
                     logger.debug(
                         "TASK: %s of type %s, in module %s, in class %s",
-                        self.function_name,
-                        self.function_type,
-                        self.module_name,
-                        self.class_name,
+                        self.decorated_function.get_function_name(),
+                        self.decorated_function.get_function_type(),
+                        self.decorated_function.get_module_name(),
+                        self.decorated_function.get_class_name(),
                     )
 
             if not GLOBALS.in_tracing_task_name_to_id(impl_signature):
@@ -347,12 +302,14 @@ class TaskMaster:
 
             # Check if we are in interactive mode and update if needed
             with EventMaster(TRACING_MASTER.check_interactive):
-                if self.interactive:
-                    self.update_if_interactive(self.module)
+                if self.decorated_function.get_interactive():
+                    self.update_if_interactive(self.decorated_function.get_module())
                 else:
-                    self.interactive, self.module = self.check_if_interactive()
-                    if self.interactive:
-                        self.update_if_interactive(self.module)
+                    inter, inter_mod = self.check_if_interactive()
+                    if inter:
+                        self.update_if_interactive(inter_mod)
+                        self.decorated_function.set_module(inter_mod)
+                    self.decorated_function.set_interactive(inter)
 
             # Extract the core element (has to be extracted before processing
             # the kwargs to avoid issues processing the parameters)
@@ -367,7 +324,10 @@ class TaskMaster:
             # It is necessary to decide whether to register or not (the task may
             # be inherited, and in this case it has to be registered again with
             # the new implementation signature).
-            if not self.registered or self.signature != impl_signature:
+            if (
+                not self.decorated_function.get_registered()
+                or self.decorated_function.get_signature() != impl_signature
+            ):
                 with EventMaster(TRACING_MASTER.update_core_element):
                     self.update_core_element(
                         impl_signature, impl_type_args, pre_defined_ce
@@ -378,8 +338,8 @@ class TaskMaster:
                         CONTEXT.add_to_register_later((self, impl_signature))
                     else:
                         self.register_task()
-                        self.registered = True
-                        self.signature = impl_signature
+                        self.decorated_function.set_registered(True)
+                        self.decorated_function.set_signature(impl_signature)
 
             # Did we call this function to only register the associated core
             # element? (This can happen with @implements)
@@ -395,20 +355,23 @@ class TaskMaster:
                     # this is total # of processes for this task
                 with EventMaster(TRACING_MASTER.process_other_arguments):
                     # Get other arguments if exist
-                    if not self.hints:
-                        self.hints = self.check_task_hints()
+                    if not self.decorated_function.get_hints():
+                        hints = self.check_task_hints()
+                        self.decorated_function.set_hints(hints)
+                    else:
+                        hints = self.decorated_function.get_hints()
                     (
                         is_replicated,
                         is_distributed,
                         time_out,
                         has_priority,
                         has_target,
-                    ) = self.hints
+                    ) = hints
                     is_http = self.core_element.get_impl_type() == "HTTP"
 
                 # Process the parameters, give them a proper direction
                 with EventMaster(TRACING_MASTER.process_parameters):
-                    code_strings = self.user_function.__code_strings__  # type: ignore
+                    code_strings = self.decorated_function.get_code_strings()
                     self.process_parameters(args, kwargs, code_strings=code_strings)
 
                 # Deal with the return part.
@@ -419,7 +382,7 @@ class TaskMaster:
                     )
                     if not self.returns:
                         num_returns = self.update_return_if_no_returns(
-                            self.user_function
+                            self.decorated_function.get_function()
                         )
 
                 # Build return objects
@@ -451,10 +414,10 @@ class TaskMaster:
                 if __debug__:
                     logger.debug(
                         "TASK: %s of type %s, in module %s, in class %s",
-                        self.function_name,
-                        self.function_type,
-                        self.module_name,
-                        self.class_name,
+                        self.decorated_function.get_function_name(),
+                        self.decorated_function.get_function_type(),
+                        self.decorated_function.get_module_name(),
+                        self.decorated_function.get_class_name(),
                     )
 
                 # Process the task
@@ -506,16 +469,7 @@ class TaskMaster:
         return (
             future_object,
             self.core_element,
-            self.registered,
-            self.signature,
-            self.interactive,
-            self.module,
-            self.function_arguments,
-            self.function_name,
-            self.module_name,
-            self.function_type,
-            self.class_name,
-            self.hints,
+            self.decorated_function,
         )
 
     def check_if_interactive(self) -> typing.Tuple[bool, typing.Any]:
@@ -523,7 +477,9 @@ class TaskMaster:
 
         :return: True if interactive. False otherwise.
         """
-        mod = inspect.getmodule(self.user_function)  # type: typing.Any
+        mod = inspect.getmodule(
+            self.decorated_function.get_function()
+        )  # type: typing.Any
         module_name = mod.__name__
         if CONTEXT.in_pycompss() and module_name in (
             "__main__",
@@ -550,7 +506,7 @@ class TaskMaster:
         # Do any necessary pre processing action before executing any code
         if (
             file_name.startswith(CONSTANTS.interactive_file_name)
-            and not self.registered
+            and not self.decorated_function.get_registered()
         ):
             # If the file_name starts with "InteractiveMode" means that
             # the user is using PyCOMPSs from jupyter-notebook.
@@ -559,8 +515,8 @@ class TaskMaster:
             # that consists of putting all user code that may be executed
             # in the worker on a file.
             # This file has to be visible for all workers.
-            update_tasks_code_file(self.user_function, path)
-            print(f"Found task: {self.user_function.__name__}")
+            update_tasks_code_file(self.decorated_function.get_function(), path)
+            print(f"Found task: {self.decorated_function.get_function().__name__}")
 
     def extract_core_element(
         self, cek: typing.Optional[CE]
@@ -605,9 +561,9 @@ class TaskMaster:
         :return: the attributes to be reused.
         """
         try:
-            arguments = self._getargspec(self.user_function)
+            arguments = self._getargspec(self.decorated_function.get_function())
         except TypeError:
-            func_attrs = dir(self.user_function)
+            func_attrs = dir(self.decorated_function.get_function())
             if "py_func" in func_attrs:
                 # This is a numba jit declared task
                 py_func = self.get_user_function_py_func()
@@ -619,23 +575,23 @@ class TaskMaster:
         self.param_args, self.param_varargs, _, self.param_defaults = arguments
 
     def is_numba_function(self) -> bool:
-        """Check if self.user_function is in reality a numba compiled function.
+        """Check if self.decorated_function.function is in reality a numba compiled function.
 
-        :return: True if self.user_function has py_func.
+        :return: True if self.decorated_function.function has py_func.
         """
-        return "py_func" in dir(self.user_function)
+        return "py_func" in dir(self.decorated_function.get_function())
 
     def get_user_function_py_func(self) -> typing.Callable:
-        """Retrieve py_func from self.user_function.
+        """Retrieve py_func from self.decorated_function.function.
 
         WARNING!!! Only available in numba wrapped functions.
 
-        :return: The self.user_function py_func.
+        :return: The self.decorated_function.function py_func.
         """
-        return self.user_function.py_func  # type: ignore
+        return self.decorated_function.get_function().py_func  # type: ignore
 
     def user_func_py_func_glob_getter(self, field) -> typing.Any:
-        """Retrieve a field from __globals__ from py_func of self.user_function.
+        """Retrieve a field from __globals__ from py_func of self.decorated_function.function.
 
         WARNING!!! Only available in numba wrapped functions.
 
@@ -645,16 +601,16 @@ class TaskMaster:
         return py_func.__globals__.get(field)  # type: ignore
 
     def get_user_function_wrapped(self) -> typing.Callable:
-        """Retrieve __wrapped__ from self.user_function.
+        """Retrieve __wrapped__ from self.decorated_function.function.
 
         WARNING!!! Only available in compiled functions.
 
         :return: The user function from __wrapped__.
         """
-        return self.user_function.__wrapped__  # type: ignore
+        return self.decorated_function.get_function().__wrapped__  # type: ignore
 
     def user_func_wrapped_glob_getter(self, field) -> typing.Any:
-        """Retrieve a field from __globals__ from __wrapped__ of self.user_function.
+        """Retrieve a field from __globals__ from __wrapped__ of self.decorated_function.function.
 
         WARNING!!! Only available in compiled functions.
 
@@ -664,13 +620,13 @@ class TaskMaster:
         return wrapped_func.__globals__.get(field)  # type: ignore
 
     def user_func_glob_getter(self, field: str) -> typing.Any:
-        """Retrieve a field from __globals__ from py_func of self.user_function.
+        """Retrieve a field from __globals__ from py_func of self.decorated_function.function.
 
         WARNING!!! Only available in numba wrapped functions.
 
         :return: __globals__ getter for the given field result.
         """
-        return self.user_function.__globals__.get(field)  # type: ignore
+        return self.decorated_function.get_function().__globals__.get(field)  # type: ignore
 
     @staticmethod
     def _getargspec(function: typing.Any) -> tuple:
@@ -926,12 +882,14 @@ class TaskMaster:
         """Get the user function path and name.
 
         Compute the function path p and the name n such that
-        "from p import n" imports self.user_function.
+        "from p import n" imports self.decorated_function.function.
 
         :return: None, it just sets self.user_function_path and
                  self.user_function_name.
         """
-        self.function_name = self.user_function.__name__
+        self.decorated_function.set_function_name(
+            self.decorated_function.get_function().__name__
+        )
         # Detect if self is present
         num_positionals = min(len(self.param_args), len(args))
         arg_names = self.param_args[:num_positionals]
@@ -955,27 +913,32 @@ class TaskMaster:
                build the import name from it.
             3) We are in interactive mode.
 
-        :return: None, it just modifies self.module_name.
+        :return: None, it just modifies self.decorated_function.module_name.
         """
-        mod = inspect.getmodule(self.user_function)  # type: typing.Any
-        self.module_name = mod.__name__
+        mod = inspect.getmodule(
+            self.decorated_function.get_function()
+        )  # type: typing.Any
+        self.decorated_function.set_module_name(mod.__name__)
         # If it is a task within a class, the module it will be where the one
         # where the class is defined, instead of the one where the task is
         # defined.
         # This avoids conflicts with task inheritance.
         if self.first_arg_name == "self":
             mod = inspect.getmodule(type(first_object))
-            self.module_name = mod.__name__
+            self.decorated_function.set_module_name(mod.__name__)
         elif self.first_arg_name == "cls":
-            self.module_name = first_object.__module__
-        if self.module_name in ("__main__", "pycompss.runtime.launch"):
+            self.decorated_function.set_module_name(first_object.__module__)
+        if self.decorated_function.get_module_name() in (
+            "__main__",
+            "pycompss.runtime.launch",
+        ):
             # The module where the function is defined was run as __main__,
             # We need to find out the real module name
             path = LAUNCH_STATUS.get_app_path()
             # Get the file name
             file_name = os.path.splitext(os.path.basename(path))[0]
             # Get the module
-            self.module_name = get_module_name(path, file_name)
+            self.decorated_function.set_module_name(get_module_name(path, file_name))
 
     def compute_function_type(self, first_object: typing.Any) -> None:
         """Compute user function type.
@@ -984,21 +947,22 @@ class TaskMaster:
         its import path, and its type (module function, instance method,
          class method), etc.
 
-        :return: None, just updates self.class_name and self.function_type.
+        :return: None, just updates self.decorated_function.class_name and
+                 self.decorated_function.function_type.
         """
         # Check the type of the function called.
         # inspect.ismethod(f) does not work here,
         # for methods python hasn't wrapped the function as a method yet
         # Everything is still a function here, can't distinguish yet
         # with inspect.ismethod or isfunction
-        self.function_type = FunctionType.FUNCTION
-        self.class_name = ""
+        self.decorated_function.set_function_type(FunctionType.FUNCTION)
+        self.decorated_function.set_class_name("")
         if self.first_arg_name == "self":
-            self.function_type = FunctionType.INSTANCE_METHOD
-            self.class_name = type(first_object).__name__
+            self.decorated_function.set_function_type(FunctionType.INSTANCE_METHOD)
+            self.decorated_function.set_class_name(type(first_object).__name__)
         elif self.first_arg_name == "cls":
-            self.function_type = FunctionType.CLASS_METHOD
-            self.class_name = first_object.__name__
+            self.decorated_function.set_function_type(FunctionType.CLASS_METHOD)
+            self.decorated_function.set_class_name(first_object.__name__)
         # Finally, check if the function type is really a module function or
         # a static method.
         # Static methods are ONLY supported with Python 3 due to __qualname__
@@ -1007,12 +971,12 @@ class TaskMaster:
         # for the correct registration and later invoke.
         # Since these methods don't have self, nor cls, they are considered as
         # FUNCTIONS to the runtime
-        name = str(self.function_name)
-        qualified_name = str(self.user_function.__qualname__)
+        name = str(self.decorated_function.get_function_name())
+        qualified_name = str(self.decorated_function.get_function().__qualname__)
         if name != qualified_name:
             # Then there is a class definition before the name in the
             # qualified name
-            self.class_name = qualified_name[: -len(name) - 1]
+            self.decorated_function.set_class_name(qualified_name[: -len(name) - 1])
             # -1 to remove the last point
 
     def get_code_strings(self) -> None:
@@ -1037,13 +1001,13 @@ class TaskMaster:
             )
         )
 
-        self.user_function.__code_strings__ = code_strings  # type: ignore
+        self.decorated_function.set_code_strings(code_strings)
 
         if __debug__:
             logger.debug(
                 "[@TASK] Task type of function %s in module %s: %s",
-                self.function_name,
-                self.module_name,
+                self.decorated_function.get_function_name(),
+                self.decorated_function.get_module_name(),
                 str(ce_type),
             )
 
@@ -1057,10 +1021,10 @@ class TaskMaster:
 
         :return: Implementation signature and implementation type arguments.
         """
-        module_name = str(self.module_name)
-        class_name = str(self.class_name)
-        function_name = str(self.function_name)
-        if self.class_name != "":
+        module_name = self.decorated_function.get_module_name()
+        class_name = self.decorated_function.get_class_name()
+        function_name = self.decorated_function.get_function_name()
+        if self.decorated_function.get_class_name() != "":
             # Within class or subclass
             impl_signature = ".".join([module_name, class_name, function_name])
             impl_type_args = [".".join([module_name, class_name]), function_name]
@@ -1201,8 +1165,8 @@ class TaskMaster:
         if __debug__:
             logger.debug(
                 "[@TASK] Registering the function %s in module %s",
-                self.function_name,
-                self.module_name,
+                self.decorated_function.get_function_name(),
+                self.decorated_function.get_module_name(),
             )
         binding.register_ce(self.core_element)
 
@@ -1442,7 +1406,9 @@ class TaskMaster:
         time_out = self.decorator_arguments.time_out
         has_priority = self.decorator_arguments.priority
         # Check if the function is an instance method or a class method.
-        has_target = self.function_type == FunctionType.INSTANCE_METHOD
+        has_target = (
+            self.decorated_function.get_function_type() == FunctionType.INSTANCE_METHOD
+        )
 
         return (
             is_replicated,
@@ -1849,13 +1815,16 @@ class TaskMaster:
         """Build the values, the values types and the values directions lists.
 
         Uses:
-            - self.function_type: task function type. If it is an instance
-                                  method, the first parameter will be put at
-                                  the end.
+            - self.decorated_function.function_type: task function type.
+                                                     If it is an instance
+                                                     method, the first
+                                                     parameter will be put at
+                                                     the end.
             - self.parameters: <Dictionary> Function parameters.
             - self.returns: <Dictionary> - Function returns.
-            - self.user_function.__code_strings__: <Boolean> Code strings
-                                                   (or not).
+            - self.decorated_function.function.__code_strings__: <Boolean>
+                                                                 Code strings
+                                                                 (or not).
         :return: List of values, their types, their directions, their streams
                  and their prefixes.
         """
@@ -1871,10 +1840,10 @@ class TaskMaster:
         slf_name = ""
         weights = []
         keep_renames = []
-        code_strings = self.user_function.__code_strings__  # type: ignore
+        code_strings = self.decorated_function.get_code_strings()
 
         # Build the range of elements
-        if self.function_type in (
+        if self.decorated_function.get_function_type() in (
             FunctionType.INSTANCE_METHOD,
             FunctionType.CLASS_METHOD,
         ):
@@ -1906,7 +1875,7 @@ class TaskMaster:
             keep_renames.append(keep_rename)
         # Fill the values, compss_types, compss_directions, compss_streams and
         # compss_prefixes from self (if exist)
-        if self.function_type == FunctionType.INSTANCE_METHOD:
+        if self.decorated_function.get_function_type() == FunctionType.INSTANCE_METHOD:
             # self is always an object
             (
                 value,

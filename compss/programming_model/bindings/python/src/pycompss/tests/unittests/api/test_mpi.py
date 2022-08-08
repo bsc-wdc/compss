@@ -20,7 +20,7 @@
 from pycompss.util.context import CONTEXT
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.mpi import Mpi
-from pycompss.runtime.task.core_element import CE
+from pycompss.runtime.task.definitions.core_element import CE
 
 MPI_RUNNER = "mpirun"
 ERROR_EXPECTED_1 = "Wrong expected result (should be 1)."

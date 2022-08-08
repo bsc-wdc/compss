@@ -20,7 +20,7 @@
 from pycompss.util.context import CONTEXT
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.constraint import Constraint
-from pycompss.runtime.task.core_element import CE
+from pycompss.runtime.task.definitions.core_element import CE
 
 
 def dummy_function(*args, **kwargs):  # noqa

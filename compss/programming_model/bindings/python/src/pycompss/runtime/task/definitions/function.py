@@ -40,12 +40,10 @@ class FunctionDefinition:
         "signature",
         "interactive",
         "module",
-        "function_arguments",
         "function_name",
         "module_name",
         "function_type",
         "class_name",
-        "hints",
         "code_strings",
     ]
 
@@ -58,12 +56,10 @@ class FunctionDefinition:
         # Saved from the initial task
         self.interactive = False
         self.module = None  # type: typing.Any
-        self.function_arguments = tuple()  # type: tuple   # TODO: ESTO SE USA???
         self.function_name = ""
         self.module_name = ""
         self.function_type = -1
         self.class_name = ""
-        self.hints = tuple()  # type: tuple  # TODO: ESTO DEBERIA SER UNA CLASE APARTE
         self.code_strings = False
 
     def get_function(self) -> typing.Callable:
@@ -142,21 +138,6 @@ class FunctionDefinition:
         """
         self.module = module
 
-    def get_function_arguments(self) -> tuple:
-        """Get function arguments.
-
-        :returns: The function arguments tuple.
-        """
-        return self.function_arguments
-
-    def set_function_arguments(self, function_arguments: tuple) -> None:
-        """Set function arguments.
-
-        :param function_arguments: Function arguments to be set.
-        :return: None
-        """
-        self.function_arguments = function_arguments
-
     def get_function_name(self) -> str:
         """Get function name.
 
@@ -216,21 +197,6 @@ class FunctionDefinition:
         :return: None
         """
         self.class_name = class_name
-
-    def get_hints(self) -> tuple:
-        """Get the function hints.
-
-        :returns: The function hints.
-        """
-        return self.hints
-
-    def set_hints(self, hints: tuple) -> None:
-        """Set the function hints.
-
-        :param hints: Hints to be set.
-        :return: None
-        """
-        self.hints = hints
 
     def get_code_strings(self) -> bool:
         """Get code strings.

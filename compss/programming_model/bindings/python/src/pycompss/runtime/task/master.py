@@ -259,8 +259,7 @@ class TaskMaster:
             # and self.param_defaults. And gives non-None default
             # values to them if necessary
             with EventMaster(TRACING_MASTER.inspect_function_arguments):
-                if not self.decorated_function.get_function_arguments():
-                    self.inspect_user_function_arguments()
+                self.inspect_user_function_arguments()
                 # It will be easier to deal with functions if we pretend that all
                 # have the signature f(positionals, *variadic, **named). This is
                 # why we are substituting Nones with default stuff.
@@ -354,19 +353,14 @@ class TaskMaster:
                     self.pop_task_parameters(kwargs)
                     # this is total # of processes for this task
                 with EventMaster(TRACING_MASTER.process_other_arguments):
-                    # Get other arguments if exist
-                    if not self.decorated_function.get_hints():
-                        hints = self.check_task_hints()
-                        self.decorated_function.set_hints(hints)
-                    else:
-                        hints = self.decorated_function.get_hints()
-                    (
-                        is_replicated,
-                        is_distributed,
-                        time_out,
-                        has_priority,
-                        has_target,
-                    ) = hints
+                    is_replicated = self.decorator_arguments.is_replicated
+                    is_distributed = self.decorator_arguments.is_distributed
+                    time_out = self.decorator_arguments.time_out
+                    has_priority = self.decorator_arguments.priority
+                    # Check if the function is an instance method or a class method.
+                    has_target = (
+                            self.decorated_function.get_function_type() == FunctionType.INSTANCE_METHOD
+                    )
                     is_http = self.core_element.get_impl_type() == "HTTP"
 
                 # Process the parameters, give them a proper direction
@@ -1395,28 +1389,6 @@ class TaskMaster:
             except ValueError:
                 return False
         raise PyCOMPSsException("Unexpected is_reduce value. Must be bool or str.")
-
-    def check_task_hints(self) -> tuple:
-        """Process the @task hints.
-
-        :return: The value of all possible hints.
-        """
-        is_replicated = self.decorator_arguments.is_replicated
-        is_distributed = self.decorator_arguments.is_distributed
-        time_out = self.decorator_arguments.time_out
-        has_priority = self.decorator_arguments.priority
-        # Check if the function is an instance method or a class method.
-        has_target = (
-            self.decorated_function.get_function_type() == FunctionType.INSTANCE_METHOD
-        )
-
-        return (
-            is_replicated,
-            is_distributed,
-            time_out,
-            has_priority,
-            has_target,
-        )
 
     def add_return_parameters(
         self, returns: typing.Any, code_strings: bool = True

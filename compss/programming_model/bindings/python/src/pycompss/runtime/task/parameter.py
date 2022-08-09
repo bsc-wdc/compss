@@ -609,6 +609,28 @@ def get_parameter_from_dictionary(dictionary: dict) -> Parameter:
     return parameter
 
 
+def get_direction_from_key(key: str) -> int:
+    """Return the direction (as integer) for the given key.
+
+    :param key: A direction key string (e.g. keys defined in Parameter).
+    :return: The associated integer value for the given key.
+    """
+    if key == PARAM_ALIAS_KEYS.IN:
+        return DIRECTION.IN
+    elif key == PARAM_ALIAS_KEYS.OUT:
+        return DIRECTION.OUT
+    elif key == PARAM_ALIAS_KEYS.INOUT:
+        return DIRECTION.INOUT
+    elif key == PARAM_ALIAS_KEYS.CONCURRENT:
+        return DIRECTION.CONCURRENT
+    elif key == PARAM_ALIAS_KEYS.COMMUTATIVE:
+        return DIRECTION.COMMUTATIVE
+    elif key == PARAM_ALIAS_KEYS.IN_DELETE:
+        return DIRECTION.IN_DELETE
+    else:
+        raise PyCOMPSsException(f"Wrong direction key: {key}")
+
+
 def get_compss_type(
     value: typing.Any, depth: int = 0, code_strings=True, force_file=False
 ) -> int:

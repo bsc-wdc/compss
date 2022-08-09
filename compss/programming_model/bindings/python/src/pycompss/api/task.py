@@ -139,7 +139,7 @@ class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attribu
         :param user_function: Function to decorate.
         :return: The function to be executed.
         """
-        self.decorated_function.set_function(user_function)
+        self.decorated_function.function = user_function
 
         @wraps(user_function)
         def task_decorator(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
@@ -188,7 +188,7 @@ class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attribu
                 with EventInsideWorker(TRACING_WORKER.worker_task_instantiation):
                     worker = TaskWorker(
                         self.decorator_arguments,
-                        self.decorated_function.get_function(),
+                        self.decorated_function.function,
                     )
                 result = worker.call(*args, **kwargs)
                 # Force flush stdout and stderr
@@ -248,7 +248,7 @@ class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attribu
         # self.param_kwargs and self.param_defaults
         # And gives non-None default values to them if necessary
         d_t = dummy_task(args, kwargs)
-        return d_t.__call__(self.decorated_function.get_function())(*args, **kwargs)
+        return d_t.__call__(self.decorated_function.function)(*args, **kwargs)
 
     def __check_core_element__(
         self, kwargs: dict, user_function: typing.Callable

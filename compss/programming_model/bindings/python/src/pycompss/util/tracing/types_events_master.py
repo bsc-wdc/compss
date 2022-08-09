@@ -65,7 +65,7 @@ class TypesEventsMaster:
         "extract_core_element",
         "prepare_core_element",
         "update_core_element",
-        "pop_task_parameters",
+        "get_upper_decorators_kwargs",
         "process_other_arguments",
         "process_parameters",
         "process_return",
@@ -123,7 +123,7 @@ class TypesEventsMaster:
         self.extract_core_element = 105
         self.prepare_core_element = 106
         self.update_core_element = 107
-        self.pop_task_parameters = 108
+        self.get_upper_decorators_kwargs = 108
         self.process_other_arguments = 109
         self.process_parameters = 110
         self.process_return = 111

@@ -41,9 +41,11 @@ from pycompss.runtime.task.arguments import is_kwarg
 from pycompss.runtime.task.arguments import is_return
 from pycompss.runtime.task.arguments import is_vararg
 from pycompss.runtime.task.commons import get_default_direction
+from pycompss.runtime.task.definitions.arguments import TaskArguments
 from pycompss.runtime.task.parameter import Parameter
 from pycompss.runtime.task.parameter import get_compss_type
 from pycompss.runtime.task.parameter import get_new_parameter
+from pycompss.runtime.task.parameter import get_direction_from_key
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.logger.helpers import swap_logger_name
 from pycompss.util.objects.properties import create_object_by_con_type
@@ -100,7 +102,7 @@ class TaskWorker:
 
     def __init__(
         self,
-        decorator_arguments,
+        decorator_arguments: TaskArguments,
         user_function: typing.Callable,
     ) -> None:
         """Task at worker constructor.
@@ -128,7 +130,7 @@ class TaskWorker:
 
     def call(
         self, *args: typing.Any, **kwargs: typing.Any
-    ) -> typing.Tuple[list, list, Parameter, tuple]:
+    ) -> typing.Tuple[list, list, str, tuple]:
         """Run the task as worker.
 
         This function deals with task calls in the worker's side
@@ -976,7 +978,7 @@ class TaskWorker:
                     user_returns, default_values = self.manage_exception()
                     compss_exception = compss_exc
                     # Set target direction in the exception
-                    compss_exception.target_direction = (
+                    compss_exception.target_direction = get_direction_from_key(
                         self.decorator_arguments.target_direction
                     )
                 except Exception as exc:  # pylint: disable=broad-except

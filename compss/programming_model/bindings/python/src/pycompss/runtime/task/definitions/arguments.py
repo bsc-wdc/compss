@@ -115,6 +115,7 @@ class TaskArguments:
         :param kwargs: Task keyword arguments.
         :returns: None
         """
+        # Argument: target_direction
         if LABELS.target_direction in kwargs:
             target_direction = kwargs.pop(LABELS.target_direction)
             if is_param(target_direction):
@@ -134,19 +135,25 @@ class TaskArguments:
                 raise PyCOMPSsException(
                     f"Unexpected {LEGACY_LABELS.target_direction} type. Must be a direction."
                 )
+        # Argument: returns
         if LABELS.returns in kwargs:
             self.returns = kwargs.pop(LABELS.returns)
+        # Argument: cache_returns
         if LABELS.cache_returns in kwargs:
             self.cache_returns = kwargs.pop(LABELS.cache_returns)
+        # Argument: priority
         if LABELS.priority in kwargs:
             self.priority = kwargs.pop(LABELS.priority)
+        # Argument: defaults
         if LABELS.defaults in kwargs:
             self.defaults = kwargs.pop(LABELS.defaults)
+        # Argument: time_out
         if LABELS.time_out in kwargs:
             self.time_out = kwargs.pop(LABELS.time_out)
         elif LEGACY_LABELS.time_out in kwargs:
             self.time_out = kwargs.pop(LEGACY_LABELS.time_out)
             self.__deprecation_warning__(LEGACY_LABELS.time_out, LABELS.time_out)
+        # Argument: is_replicated
         if LABELS.is_replicated in kwargs:
             self.is_replicated = kwargs.pop(LABELS.is_replicated)
         elif LEGACY_LABELS.is_replicated in kwargs:
@@ -154,6 +161,7 @@ class TaskArguments:
             self.__deprecation_warning__(
                 LEGACY_LABELS.is_replicated, LABELS.is_replicated
             )
+        # Argument: is_distributed
         if LABELS.is_distributed in kwargs:
             self.is_distributed = kwargs.pop(LABELS.is_distributed)
         elif LEGACY_LABELS.is_distributed in kwargs:
@@ -161,6 +169,7 @@ class TaskArguments:
             self.__deprecation_warning__(
                 LEGACY_LABELS.is_distributed, LABELS.is_distributed
             )
+        # Argument: computing_nodes
         if LABELS.computing_nodes in kwargs:
             self.computing_nodes = kwargs.pop(LABELS.computing_nodes)
         elif LEGACY_LABELS.computing_nodes in kwargs:
@@ -168,24 +177,34 @@ class TaskArguments:
             self.__deprecation_warning__(
                 LEGACY_LABELS.computing_nodes, LABELS.computing_nodes
             )
+        # Argument: processes_per_node
         if LABELS.processes_per_node in kwargs:
             self.processes_per_node = kwargs.pop(LABELS.processes_per_node)
+        # Argument: is_reduce
         if LABELS.is_reduce in kwargs:
             self.is_reduce = kwargs.pop(LABELS.is_reduce)
+        # Argument: chunk_size
         if LABELS.chunk_size in kwargs:
             self.chunk_size = kwargs.pop(LABELS.chunk_size)
+        # Argument: on_failure
         if LABELS.on_failure in kwargs:
             self.on_failure = kwargs.pop(LABELS.on_failure)
+        # Argument: tracing_hook
         if LABELS.tracing_hook in kwargs:
             self.tracing_hook = kwargs.pop(LABELS.tracing_hook)
+        # Argument: numba
         if LABELS.numba in kwargs:
             self.numba = kwargs.pop(LABELS.numba)
+        # Argument: numba_flags
         if LABELS.numba_flags in kwargs:
             self.numba_flags = kwargs.pop(LABELS.numba_flags)
+        # Argument: numba_signature
         if LABELS.numba_signature in kwargs:
             self.numba_signature = kwargs.pop(LABELS.numba_signature)
+        # Argument: numba_declaration
         if LABELS.numba_declaration in kwargs:
             self.numba_declaration = kwargs.pop(LABELS.numba_declaration)
+        # Argument: varargs_type
         if LABELS.varargs_type in kwargs:
             varargs_type = kwargs.pop(LABELS.varargs_type)
             if is_param(varargs_type):
@@ -205,6 +224,7 @@ class TaskArguments:
                 raise PyCOMPSsException(
                     "Unexpected varargsType type. Must be a direction."
                 )
+        # Argument: the rest (named function parameters).
         # The rest of the arguments are expected to be only the function
         # parameter related information
         for (key, value) in kwargs.items():

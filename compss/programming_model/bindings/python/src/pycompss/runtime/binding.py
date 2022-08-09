@@ -36,6 +36,7 @@ from pycompss.runtime.management.direction import get_compss_direction
 from pycompss.runtime.management.object_tracker import OT
 from pycompss.runtime.management.synchronization import wait_on_object
 from pycompss.runtime.task.definitions.core_element import CE
+from pycompss.runtime.task.definitions.arguments import TaskArguments
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.logger.helpers import add_new_logger
 
@@ -805,14 +806,7 @@ def process_task(
     content_types: list,
     weights: list,
     keep_renames: list,
-    has_priority: bool,
-    num_nodes: int,
-    reduction: bool,
-    chunk_size: int,
-    replicated: bool,
-    distributed: bool,
-    on_failure: str,
-    time_out: int,
+    decorator_arguments: TaskArguments,
     is_http: bool = False,
 ) -> None:
     """Submit a task to the runtime.
@@ -829,19 +823,21 @@ def process_task(
     :param content_types: Content types.
     :param weights: List of parameter weights.
     :param keep_renames: Boolean keep renaming.
-    :param has_priority: Boolean has priority.
-    :param num_nodes: Number of nodes that the task must use.
-    :param reduction: Boolean indicating if the task is of type reduce.
-    :param chunk_size: Size of chunks for executing the reduce operation.
-    :param replicated: Boolean indicating if the task must be replicated.
-    :param distributed: Boolean indicating if the task must be distributed.
-    :param on_failure: Action on failure.
-    :param time_out: Time for a task time out.
+    :param decorator_arguments: TaskArguments object containing all information
+                                contained in the @task decorator.
     :param is_http: If it is a http task (service).
     :return: The future object related to the task return.
     """
     with EventMaster(TRACING_MASTER.process_task_event):
         app_id = 0
+        has_priority = decorator_arguments.priority
+        num_nodes = decorator_arguments.computing_nodes
+        reduction = decorator_arguments.is_reduce
+        chunk_size = decorator_arguments.chunk_size
+        replicated = decorator_arguments.is_replicated
+        distributed = decorator_arguments.is_distributed
+        on_failure = decorator_arguments.on_failure
+        time_out = decorator_arguments.time_out
         if __debug__:
             # Log the task submission values for debugging purposes.
             values_str = " ".join(str(v) for v in values)

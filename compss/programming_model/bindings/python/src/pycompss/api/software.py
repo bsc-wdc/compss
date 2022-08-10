@@ -35,6 +35,9 @@ from pycompss.api import multinode
 from pycompss.api import http
 from pycompss.api import compss
 from pycompss.api import task
+from pycompss.api.soft_converter import conv
+from pycompss.api import parameter
+
 from pycompss.api.commons.constants import INTERNAL_LABELS
 from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
@@ -44,6 +47,7 @@ from pycompss.runtime.task.definitions.core_element import CE
 from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.typing_helper import typing
+
 
 if __debug__:
     import logging
@@ -121,7 +125,7 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
         self.core_element = None  # type: typing.Optional[CE]
         self.core_element_configured = False
 
-        if self.scope:
+        if self.scope and CONTEXT.in_master():
             if __debug__:
                 logger.debug("Init @software decorator..")
             # Check the arguments
@@ -146,7 +150,7 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
 
         @wraps(user_function)
         def software_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
-            if not self.scope or self.is_workflow:
+            if not self.scope or self.is_workflow or CONTEXT.in_worker():
                 # Execute the software as with PyCOMPSs so that sequential
                 # execution performs as parallel.
                 # To disable: raise Exception(not_in_pycompss(LABELS.binary))
@@ -222,7 +226,11 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
                     return decor_f()
                 else:
                     if self.decor is task.task:
-                        return task_f(user_function, self.parameters, *args, **kwargs)
+                        # this is the only case when we have to call @software
+                        # function on the worker as well.
+                        kwargs["compss_task_func"] = user_function
+                        kwargs["compss_task_parameters"] = self.parameters
+                        return converted(*args, **kwargs)
                     else:
                         def decor_f():
                             def function(*_, **__):
@@ -281,7 +289,6 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
         self.epilog = config.get("epilog", None)
 
     def replace_param_types(self):
-        from pycompss.api import parameter
         if not self.parameters:
             return
         for k, v in self.parameters.items():
@@ -309,7 +316,13 @@ def task_f(user_function, parameters, *args, **kwargs):
     import importlib
     mod = importlib.import_module(fp[:-3])
     func = getattr(mod, str(user_function.__name__))
-    return func()
+    return func(*args, **kwargs)
+
+
+@conv()
+@task.task(compss_task_file=parameter.FILE_IN)
+def converted(*args, compss_task_file="dt_test.py", **kwargs):
+    pass
 
 
 def format_json(jeyson):

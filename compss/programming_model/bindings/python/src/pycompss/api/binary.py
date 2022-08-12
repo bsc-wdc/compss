@@ -87,7 +87,7 @@ class Binary:  # pylint: disable=too-few-public-methods
         self.args = args
         self.kwargs = kwargs
         self.scope = CONTEXT.in_pycompss()
-        self.core_element = None  # type: typing.Any
+        self.core_element = None  # type: typing.Optional[CE]
         self.core_element_configured = False
         if self.scope:
             # Check the arguments
@@ -157,11 +157,11 @@ class Binary:  # pylint: disable=too-few-public-methods
 
         # Resolve the working directory
         resolve_working_dir(self.kwargs)
-        _working_dir = self.kwargs[LABELS.working_dir]
+        _working_dir = str(self.kwargs[LABELS.working_dir])
 
         # Resolve the fail by exit value
         resolve_fail_by_exit_value(self.kwargs)
-        _fail_by_ev = self.kwargs[LABELS.fail_by_exit_value]
+        _fail_by_ev = str(self.kwargs[LABELS.fail_by_exit_value])
 
         # Resolve binary
         _binary = str(self.kwargs[LABELS.binary])
@@ -187,8 +187,8 @@ class Binary:  # pylint: disable=too-few-public-methods
                 _binary,  # internal_binary
                 INTERNAL_LABELS.unassigned,  # internal_func
                 _working_dir,  # working_dir
-                _fail_by_ev,
-            ]  # fail_by_ev
+                _fail_by_ev,  # fail_by_ev
+            ]
 
             kwargs[CORE_ELEMENT_KEY].set_impl_type_args(impl_args)
         else:

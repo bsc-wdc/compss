@@ -28,7 +28,9 @@ from pycompss.util.typing_helper import typing
 
 
 def add_profiler_get_put(
-    profiler_dict: dict,
+    profiler_dict: typing.Dict[
+        str, typing.Dict[str, typing.Dict[str, typing.Dict[str, int]]]
+    ],
     function: str,
     parameter: str,
     filename: str,
@@ -73,7 +75,11 @@ def add_profiler_get_struct(
 
 
 def profiler_print_message(
-    profiler_dict: dict, profiler_get_struct: list, log_dir: str
+    profiler_dict: typing.Dict[
+        str, typing.Dict[str, typing.Dict[str, typing.Dict[str, int]]]
+    ],
+    profiler_get_struct: typing.List[typing.List[str]],
+    log_dir: str,
 ) -> None:
     r"""Export profiling information to json.
 

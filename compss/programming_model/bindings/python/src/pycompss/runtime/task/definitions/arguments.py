@@ -71,14 +71,14 @@ class TaskArguments:
         "parameters",
     ]
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Set the default task decorator arguments values."""
         # Supported arguments in the @task decorator
         self.target_direction = parameter.INOUT.key
-        self.returns = False
+        self.returns = False  # type: typing.Any
         self.cache_returns = True
         self.priority = False
-        self.defaults = {}
+        self.defaults = {}  # type: typing.Dict[str, typing.Any]
         self.time_out = 0
         self.is_replicated = False
         self.is_distributed = False
@@ -88,17 +88,25 @@ class TaskArguments:
         self.chunk_size = 0
         self.on_failure = "RETRY"
         self.tracing_hook = False
-        self.numba = False  # numba mode (jit, vectorize, guvectorize)
-        self.numba_flags = {}  # user defined extra numba flags
-        self.numba_signature = None  # vectorize and guvectorize signature
-        self.numba_declaration = None  # guvectorize declaration
+        # numba mode (jit, vectorize, guvectorize)
+        self.numba = False  # type: typing.Union[bool, str, typing.Dict[str, bool]]
+        # user defined extra numba flags
+        self.numba_flags = {}  # type: typing.Dict[str, typing.Union[str, bool]]
+        # vectorize and guvectorize signature
+        self.numba_signature = (
+            None
+        )  # type: typing.Optional[typing.Union[str, typing.List[str]]]
+        # guvectorize declaration
+        self.numba_declaration = None  # type: typing.Optional[str]
         # varargs_type kept for legacy purposes:
         self.varargs_type = parameter.IN.key
         # Function parameters:
-        self.parameters = {}
+        self.parameters = (
+            {}
+        )  # type: typing.Dict[str, typing.Union[Parameter, typing.Any]]
 
     @staticmethod
-    def __deprecation_warning__(old_keyword: str, new_keyword: str):
+    def __deprecation_warning__(old_keyword: str, new_keyword: str) -> None:
         """Log the deprecation warning message for the given keyword.
 
         :param old_keyword: Deprecated keyword.
@@ -267,7 +275,7 @@ class TaskArguments:
         task_arguments += f"- Parameters: {self.parameters}"
         return task_arguments
 
-    def get_keys(self):  # TODO: avoid this function.
+    def get_keys(self) -> typing.List[str]:  # TODO: avoid this function.
         """Return defined arguments.
 
         :return: List of strings

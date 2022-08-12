@@ -89,7 +89,7 @@ class Mpi:  # pylint: disable=too-few-public-methods
         self.args = args
         self.kwargs = kwargs
         self.scope = CONTEXT.in_pycompss()
-        self.core_element = None  # type: typing.Any
+        self.core_element = None  # type: typing.Optional[CE]
         self.core_element_configured = False
         if self.scope:
             if __debug__:

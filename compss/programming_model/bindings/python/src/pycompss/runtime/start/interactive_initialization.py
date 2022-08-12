@@ -29,7 +29,7 @@ class ExtraLaunchStatus:
 
     __slots__ = ["log_path", "graphing", "line_separator", "disable_external"]
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Create a new state object."""
         self.log_path = "undefined"
         self.graphing = False

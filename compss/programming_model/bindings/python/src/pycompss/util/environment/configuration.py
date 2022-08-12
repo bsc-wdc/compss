@@ -499,6 +499,7 @@ def create_init_config_file(
         jvm_options_file.write("-Dcompss.appLogDir=/tmp/" + my_uuid + "/\n")
 
         conf_file_key = "-Dlog4j.configurationFile="
+        log_off = True
         if debug or log_level == "debug":
             jvm_options_file.write(
                 conf_file_key
@@ -506,6 +507,7 @@ def create_init_config_file(
                 + DEFAULT_LOG_PATH
                 + "COMPSsMaster-log4j.debug\n"
             )  # DEBUG
+            log_off = False
         elif monitor is not None or log_level == "info":
             jvm_options_file.write(
                 conf_file_key
@@ -513,7 +515,8 @@ def create_init_config_file(
                 + DEFAULT_LOG_PATH
                 + "COMPSsMaster-log4j.info\n"
             )  # INFO
-        else:
+            log_off = False
+        if log_off:
             jvm_options_file.write(
                 conf_file_key + compss_home + DEFAULT_LOG_PATH + "COMPSsMaster-log4j\n"
             )  # NO DEBUG
@@ -778,7 +781,7 @@ def __process_extrae_file__(
     return got_extrae_final_directory
 
 
-def __create_specific_log_dir__():
+def __create_specific_log_dir__() -> str:
     """Create specific log directory.
 
     :return: Updated specific log directory.

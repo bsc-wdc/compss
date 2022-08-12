@@ -89,7 +89,7 @@ class _Labels:  # pylint: disable=too-few-public-methods, too-many-instance-attr
         "type",
     )
 
-    def __init__(self):  # pylint: disable=too-many-statements
+    def __init__(self) -> None:  # pylint: disable=too-many-statements
         # Expected labels
         # - Task decorator
         self.target_direction = "target_direction"
@@ -175,7 +175,7 @@ class _LegacyLabels:  # pylint: disable=too-few-public-methods, too-many-instanc
         "source_class",
     )
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.is_replicated = "isReplicated"
         self.is_distributed = "isDistributed"
         self.varargs_type = "varargsType"
@@ -196,7 +196,7 @@ class _InternalLabels:  # pylint: disable=too-few-public-methods
 
     __slots__ = ["unassigned"]
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.unassigned = "[unassigned]"
 
 

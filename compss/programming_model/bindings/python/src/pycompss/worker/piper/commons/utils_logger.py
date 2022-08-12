@@ -34,7 +34,7 @@ from pycompss.util.typing_helper import typing
 
 def load_loggers(
     debug: bool, persistent_storage: bool
-) -> typing.Tuple[typing.Any, str, typing.Any, str]:
+) -> typing.Tuple[logging.Logger, str, typing.List[logging.Logger], str]:
     """Load all loggers.
 
     :param debug: Is Debug enabled.

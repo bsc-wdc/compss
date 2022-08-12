@@ -88,7 +88,7 @@ class MPMDMPI:  # pylint: disable=too-few-public-methods, too-many-instance-attr
         self.args = args
         self.kwargs = kwargs
         self.scope = CONTEXT.in_pycompss()
-        self.core_element = None  # type: typing.Any
+        self.core_element = None  # type: typing.Optional[CE]
         self.core_element_configured = False
         # MPMD_MPI specific:
         self.task_type = "mpmd_mpi"

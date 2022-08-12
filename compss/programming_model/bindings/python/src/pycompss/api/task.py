@@ -169,8 +169,8 @@ class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attribu
                     self.decorator_arguments,
                     self.decorated_function,
                 )
-            result = master.call(args, kwargs)
-            (future_object, self.core_element, self.decorated_function) = result
+            master_result = master.call(args, kwargs)
+            (future_object, self.core_element, self.decorated_function) = master_result
             del master
             return future_object
         if CONTEXT.in_worker():
@@ -188,9 +188,9 @@ class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attribu
                 with EventInsideWorker(TRACING_WORKER.worker_task_instantiation):
                     worker = TaskWorker(
                         self.decorator_arguments,
-                        self.decorated_function.function,
+                        self.decorated_function,
                     )
-                result = worker.call(*args, **kwargs)
+                worker_result = worker.call(*args, **kwargs)
                 # Force flush stdout and stderr
                 sys.stdout.flush()
                 sys.stderr.flush()
@@ -202,7 +202,7 @@ class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attribu
                     if __debug__:
                         # Reestablish logger handlers
                         update_logger_handlers(kwargs["compss_log_cfg"])
-                return result
+                return worker_result
 
             # There is no compss_key in kwargs.keys() => task invocation within task:
             #  - submit the task to the runtime if nesting is enabled.
@@ -216,8 +216,12 @@ class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attribu
                         self.decorator_arguments,
                         self.decorated_function,
                     )
-                result = master.call(args, kwargs)
-                (future_object, self.core_element, self.decorated_function) = result
+                master_result = master.call(args, kwargs)
+                (
+                    future_object,
+                    self.core_element,
+                    self.decorated_function,
+                ) = master_result
                 del master
                 return future_object
             # Called from another task within the worker

@@ -30,7 +30,8 @@ import os
 import signal
 import sys
 import time
-from multiprocessing import Queue
+from pycompss.util.process.manager import Queue
+from pycompss.util.process.manager import DictProxy
 
 from pycompss.util.typing_helper import typing
 
@@ -71,9 +72,9 @@ from pycompss.streams.components.distro_stream_client import (
     DistroStreamClientHandler,
 )
 
-compss_with_dlb = False
+COMPSS_WITH_DLB = False
 if int(os.getenv("COMPSS_WITH_DLB", 0)) >= 1:
-    compss_with_dlb = True
+    COMPSS_WITH_DLB = True
     import dlb_affinity
 
 
@@ -81,8 +82,8 @@ HEADER = "*[PYTHON EXECUTOR] "
 
 
 def shutdown_handler(
-    signal: int, frame: typing.Any
-) -> None:  # pylint: disable=redefined-outer-name
+    signal: int, frame: typing.Any  # pylint: disable=redefined-outer-name
+) -> None:
     """Handle shutdown - Shutdown handler.
 
     CAUTION! Do not remove the parameters.
@@ -100,7 +101,7 @@ class Pipe:
 
     __slots__ = ["input_pipe", "input_pipe_open", "output_pipe"]
 
-    def __init__(self, input_pipe: str, output_pipe: str) -> None:
+    def __init__(self, input_pipe: str = "", output_pipe: str = "") -> None:
         """Construct a new Pipe.
 
         :param input_pipe: Input pipe for the thread. To receive messages from
@@ -109,7 +110,7 @@ class Pipe:
                             the runtime.
         """
         self.input_pipe = input_pipe
-        self.input_pipe_open = None  # type: typing.Any
+        self.input_pipe_open = None  # type: typing.Optional[typing.TextIO]
         self.output_pipe = output_pipe
 
     def read_command(self, retry_period: float = 0.5) -> str:
@@ -119,10 +120,12 @@ class Pipe:
                              from pipe.
         :return: The first command available on the pipe.
         """
+        if self.input_pipe == "":
+            raise PyCOMPSsException("Undefined input pipe in Pipe object")
         if self.input_pipe_open is None:
-            self.input_pipe_open = open(
+            self.input_pipe_open = open(  # pylint: disable=consider-using-with
                 self.input_pipe, "r"
-            )  # pylint: disable=consider-using-with
+            )
             # Non blocking open:
             # fd = os.open(self.input_pipe, os.O_RDWR)
             # self.input_pipe_open = os.fdopen(fd, "r")
@@ -140,6 +143,8 @@ class Pipe:
         :param message: Message sent through the pipe.
         :return: None.
         """
+        if self.output_pipe == "":
+            raise PyCOMPSsException("Undefined output pipe in Pipe object")
         with open(self.output_pipe, "w") as out_pipe:
             out_pipe.write("".join((message, "\n")))
 
@@ -187,14 +192,14 @@ class ExecutorConf:
         tmp_dir: str,
         tracing: bool,
         storage_conf: str,
-        logger: typing.Any,
+        logger: logging.Logger,
         logger_cfg: str,
         persistent_storage: bool,
-        storage_loggers: typing.Any,
+        storage_loggers: typing.List[logging.Logger],
         stream_backend: str,
         stream_master_ip: str,
         stream_master_port: str,
-        cache_ids: typing.Any = None,
+        cache_ids: typing.Optional[DictProxy] = None,
         in_cache_queue: Queue = None,
         out_cache_queue: Queue = None,
         cache_profiler: bool = False,
@@ -246,7 +251,7 @@ def executor(
     process_id: int,
     process_name: str,
     pipe: Pipe,
-    conf: typing.Any,
+    conf: ExecutorConf,
 ) -> None:
     """Thread main body - Overrides Threading run method.
 
@@ -273,7 +278,7 @@ def executor(
         # Second thing to do is to emit the executor process identifier event
         emit_manual_event_explicit(TRACING_WORKER.executor_identifier, process_id)
 
-        if compss_with_dlb:
+        if COMPSS_WITH_DLB:
             dlb_affinity.init()
             dlb_affinity.setaffinity([], os.getpid())
             dlb_affinity.lend()
@@ -305,7 +310,7 @@ def executor(
         logger_handlers = copy.copy(logger.handlers)
         logger_level = logger.getEffectiveLevel()
         logger_formatter = logging.Formatter(
-            logger_handlers[0].formatter._fmt  # pylint: disable=protected-access
+            logger_handlers[0].formatter._fmt  # type: ignore # pylint: disable=protected-access
         )
         storage_loggers_handlers = []
         for storage_logger in storage_loggers:
@@ -438,13 +443,13 @@ def process_message(
     pipe: Pipe,
     queue: typing.Optional[Queue],
     tracing: bool,
-    logger: typing.Any,
+    logger: logging.Logger,
     logger_cfg: str,
     logger_handlers: list,
     logger_level: int,
     logger_formatter: typing.Any,
     storage_conf: str,
-    storage_loggers: list,
+    storage_loggers: typing.List[logging.Logger],
     storage_loggers_handlers: list,
     in_cache_queue: typing.Optional[Queue] = None,
     out_cache_queue: typing.Optional[Queue] = None,
@@ -522,18 +527,18 @@ def process_message(
 
 
 def process_task(
-    current_line: list,
+    current_line: typing.List[str],
     process_name: str,
     pipe: Pipe,
     queue: typing.Optional[Queue],
     tracing: bool,
-    logger: typing.Any,
+    logger: logging.Logger,
     logger_cfg: str,
     logger_handlers: list,
     logger_level: int,
     logger_formatter: typing.Any,
     storage_conf: str,
-    storage_loggers: list,
+    storage_loggers: typing.List[logging.Logger],
     storage_loggers_handlers: list,
     in_cache_queue: typing.Optional[Queue],
     out_cache_queue: typing.Optional[Queue],
@@ -687,7 +692,7 @@ def process_task(
                 logger_cfg,
                 (job_out, job_err),
                 False,
-                None,
+                {},
                 in_cache_queue,
                 out_cache_queue,
                 cache_ids,
@@ -696,7 +701,7 @@ def process_task(
             # The ignored variable is timed_out
             exit_value, new_types, new_values, _, except_msg = result
 
-            if compss_with_dlb:
+            if COMPSS_WITH_DLB:
                 dlb_affinity.setaffinity([], os.getpid())
                 dlb_affinity.lend()
 
@@ -814,7 +819,7 @@ def process_task(
         return True
 
 
-def process_ping(pipe: Pipe, logger: typing.Any, process_name: str) -> bool:
+def process_ping(pipe: Pipe, logger: logging.Logger, process_name: str) -> bool:
     """Process ping message.
 
     Response: Pong.
@@ -834,7 +839,7 @@ def process_ping(pipe: Pipe, logger: typing.Any, process_name: str) -> bool:
         return True
 
 
-def process_quit(logger: typing.Any, process_name: str) -> bool:
+def process_quit(logger: logging.Logger, process_name: str) -> bool:
     """Process quit message.
 
     Response: False.
@@ -849,7 +854,7 @@ def process_quit(logger: typing.Any, process_name: str) -> bool:
         return False
 
 
-def bind_cpus(cpus: str, process_name: str, logger: typing.Any) -> bool:
+def bind_cpus(cpus: str, process_name: str, logger: logging.Logger) -> bool:
     """Bind the given CPUs for core affinity to this process.
 
     :param cpus: Target CPUs.
@@ -865,7 +870,7 @@ def bind_cpus(cpus: str, process_name: str, logger: typing.Any) -> bool:
         cpus_list = cpus.split(",")
         cpus_map = list(map(int, cpus_list))
         try:
-            if compss_with_dlb:
+            if COMPSS_WITH_DLB:
                 dlb_affinity.setaffinity(cpus_map, os.getpid())
             else:
                 process_affinity.setaffinity(cpus_map)
@@ -883,7 +888,7 @@ def bind_cpus(cpus: str, process_name: str, logger: typing.Any) -> bool:
         return True
 
 
-def bind_gpus(gpus: str, process_name: str, logger: typing.Any) -> None:
+def bind_gpus(gpus: str, process_name: str, logger: logging.Logger) -> None:
     """Bind the given GPUs to this process.
 
     :param gpus: Target GPUs.

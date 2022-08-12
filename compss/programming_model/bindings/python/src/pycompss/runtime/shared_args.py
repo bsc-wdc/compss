@@ -37,7 +37,7 @@ class SharedArguments:
 
     __slots__ = ["worker_args"]
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Instantiate Shared Arguments class."""
         # Worker arguments received on the task call
         self.worker_args = tuple()  # type: tuple

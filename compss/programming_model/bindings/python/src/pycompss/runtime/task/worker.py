@@ -42,6 +42,7 @@ from pycompss.runtime.task.arguments import is_return
 from pycompss.runtime.task.arguments import is_vararg
 from pycompss.runtime.task.commons import get_default_direction
 from pycompss.runtime.task.definitions.arguments import TaskArguments
+from pycompss.runtime.task.definitions.function import FunctionDefinition
 from pycompss.runtime.task.parameter import Parameter
 from pycompss.runtime.task.parameter import get_compss_type
 from pycompss.runtime.task.parameter import get_new_parameter
@@ -65,6 +66,7 @@ from pycompss.worker.commons.worker import build_task_parameter
 # If supported in the future by another worker, add a common interface
 # with these two functions and import the appropriate.
 from pycompss.worker.piper.cache.tracker import CACHE_TRACKER
+from pycompss.worker.piper.cache.classes import TaskWorkerCache
 
 NP = None  # type: typing.Any
 try:
@@ -93,40 +95,27 @@ class TaskWorker:
         "param_varargs",
         "on_failure",
         "defaults",
-        "cache_ids",
-        "in_cache_queue",
-        "out_cache_queue",
-        "cached_references",
-        "cache_profiler",
+        "cache",
     ]
 
     def __init__(
         self,
         decorator_arguments: TaskArguments,
-        user_function: typing.Callable,
+        decorated_function: FunctionDefinition,
     ) -> None:
         """Task at worker constructor.
 
         :param decorator_arguments: Decorator arguments.
-        :param user_function: User function (target function to execute).
+        :param decorated_function: Decorated function.
         """
         # Initialize TaskCommons
-        self.user_function = user_function
         self.decorator_arguments = decorator_arguments
+        self.user_function = decorated_function.function
         self.param_args = []  # type: typing.List[typing.Any]
         self.param_varargs = None  # type: typing.Any
         self.on_failure = ""
         self.defaults = {}  # type: dict
-
-        # These variables are initialized on call since they are only for
-        # the worker
-        self.cache_ids = None  # type: typing.Any
-        self.in_cache_queue = None  # type: typing.Any
-        self.out_cache_queue = None  # type: typing.Any
-        # Placeholder to keep the object references and avoid garbage collector
-        self.cached_references = []  # type: typing.List[typing.Any]
-        # If profiling cache
-        self.cache_profiler = False
+        self.cache = TaskWorkerCache()
 
     def call(
         self, *args: typing.Any, **kwargs: typing.Any
@@ -183,10 +172,10 @@ class TaskWorker:
                 cache = kwargs.pop("compss_cache", None)
                 if cache:
                     (
-                        self.in_cache_queue,
-                        self.out_cache_queue,
-                        self.cache_ids,
-                        self.cache_profiler,
+                        self.cache.in_queue,
+                        self.cache.out_queue,
+                        self.cache.ids,
+                        self.cache.profiler,
                     ) = cache
 
                 if __debug__:
@@ -284,9 +273,9 @@ class TaskWorker:
                 )
 
                 # Clean cached references
-                if self.cached_references:
+                if self.cache.references:
                     # Let the garbage collector act
-                    self.cached_references = []  # loose all references
+                    self.cache.references = []  # loose all references
 
                 # Release memory after task execution
                 self.__release_memory__()
@@ -343,10 +332,8 @@ class TaskWorker:
     def reveal_objects(
         self,
         args: tuple,
-        collections_layouts: typing.Any,
-        # typing.Union[typing.Dict[str, typing.Union[tuple, list]], None]
-        python_mpi: typing.Any = False,
-        # typing.Union[bool, None]
+        collections_layouts: typing.Dict[str, typing.Tuple[int, int, int]],
+        python_mpi: bool = False,
     ) -> None:
         """Get the objects from the args message.
 
@@ -401,10 +388,8 @@ class TaskWorker:
         self,
         argument: Parameter,
         name_prefix: str,
-        python_mpi: typing.Any,
-        # Union[bool, None]
-        collections_layouts: typing.Any,
-        # typing.Union[typing.Dict[str, typing.Union[tuple, list]], typing.Any]
+        python_mpi: bool,
+        collections_layouts: typing.Dict[str, typing.Tuple[int, int, int]],
         depth: int = 0,
         force_file: bool = False,
     ) -> None:
@@ -744,25 +729,25 @@ class TaskWorker:
         original_path = argument.file_name.original_path
 
         # Check if cache is available
-        cache = self.in_cache_queue is not None and self.out_cache_queue is not None
+        cache = self.cache.in_queue is not None and self.cache.out_queue is not None
         use_cache = False  # default store object in cache
 
         if cache:
             # Check if the user has defined that the parameter has or not to be
             # stored in cache explicitly
-            if not self.cache_profiler and name in self.decorator_arguments.parameters:
+            if not self.cache.profiler and name in self.decorator_arguments.parameters:
                 use_cache = self.decorator_arguments.parameters[name].cache
             else:
                 if is_vararg(name):
                     vararg_name = get_name_from_vararg(name)
                     if (
-                        not self.cache_profiler
+                        not self.cache.profiler
                         and vararg_name in self.decorator_arguments.parameters
                     ):
                         use_cache = self.decorator_arguments.parameters[
                             vararg_name
                         ].cache
-                elif self.cache_profiler:
+                elif self.cache.profiler:
                     use_cache = True
                 else:
                     # if not explicitly said, the object is candidate to be
@@ -774,7 +759,7 @@ class TaskWorker:
 
         if NP and cache and use_cache:
             # Check if the object is already in cache
-            if CACHE_TRACKER.in_cache(LOGGER, original_path, self.cache_ids):
+            if CACHE_TRACKER.in_cache(LOGGER, original_path, self.cache.ids):
                 # The object is cached
                 with EventInsideWorker(TRACING_WORKER.cache_hit_event):
                     if __debug__:
@@ -784,15 +769,15 @@ class TaskWorker:
                         )
                 retrieved, existing_shm = CACHE_TRACKER.retrieve_object_from_cache(
                     LOGGER,
-                    self.cache_ids,
-                    self.in_cache_queue,
-                    self.out_cache_queue,
+                    self.cache.ids,
+                    self.cache.in_queue,
+                    self.cache.out_queue,
                     original_path,
                     name,
                     self.user_function,
-                    self.cache_profiler,
+                    self.cache.profiler,
                 )
-                self.cached_references.append(existing_shm)
+                self.cache.references.append(existing_shm)
                 return retrieved
             # Else not in cache. Retrieve from file and put in cache if possible
             # source name : destination name : keep source : is write final value : original name
@@ -818,8 +803,8 @@ class TaskWorker:
                 # same file.
                 CACHE_TRACKER.insert_object_into_cache_wrapper(
                     LOGGER,
-                    self.in_cache_queue,
-                    self.out_cache_queue,
+                    self.cache.in_queue,
+                    self.cache.out_queue,
                     obj,
                     original_path,
                     name,
@@ -987,17 +972,7 @@ class TaskWorker:
                         user_returns, default_values = self.manage_exception()
                     else:
                         # Re-raise the exception
-                        (
-                            trace,
-                            value,
-                            traceback,
-                        ) = sys.exc_info()  # type: typing.Any, typing.Any, typing.Any
-                        try:
-                            raise trace(value).with_traceback(traceback)
-                        except AttributeError as attribute_error:
-                            # This looses the info from the real place where
-                            # the error happened. Only happens with python 2.
-                            raise exc from attribute_error
+                        raise exc
 
             # Reestablish the hook if it was disabled
             if restore_hook:
@@ -1193,20 +1168,20 @@ class TaskWorker:
         name = argument.name
         original_path = argument.file_name.original_path
 
-        cache = self.in_cache_queue is not None and self.out_cache_queue is not None
-        if not self.cache_profiler and name in self.decorator_arguments.parameters:
+        cache = self.cache.in_queue is not None and self.cache.out_queue is not None
+        if not self.cache.profiler and name in self.decorator_arguments.parameters:
             use_cache = self.decorator_arguments.parameters[name].cache
-        elif self.cache_profiler:
+        elif self.cache.profiler:
             use_cache = True
         else:
             # if not explicitly said, the object is candidate to be cached
             use_cache = False
         if NP and cache and use_cache:
-            if CACHE_TRACKER.in_cache(LOGGER, original_path, self.cache_ids):
+            if CACHE_TRACKER.in_cache(LOGGER, original_path, self.cache.ids):
                 CACHE_TRACKER.replace_object_into_cache(
                     LOGGER,
-                    self.in_cache_queue,
-                    self.out_cache_queue,
+                    self.cache.in_queue,
+                    self.cache.out_queue,
                     content,
                     original_path,
                     name,
@@ -1215,8 +1190,8 @@ class TaskWorker:
             else:
                 CACHE_TRACKER.insert_object_into_cache_wrapper(
                     LOGGER,
-                    self.in_cache_queue,
-                    self.out_cache_queue,
+                    self.cache.in_queue,
+                    self.cache.out_queue,
                     content,
                     original_path,
                     name,
@@ -1278,17 +1253,17 @@ class TaskWorker:
                 else:
                     serialize_to_file(obj, f_name)
                 if (
-                    self.in_cache_queue is not None
-                    and self.out_cache_queue is not None
-                    and (self.cache_profiler or self.decorator_arguments.cache_returns)
-                    and not CACHE_TRACKER.in_cache(LOGGER, f_name, self.cache_ids)
+                    self.cache.in_queue is not None
+                    and self.cache.out_queue is not None
+                    and (self.cache.profiler or self.decorator_arguments.cache_returns)
+                    and not CACHE_TRACKER.in_cache(LOGGER, f_name, self.cache.ids)
                 ):
                     if __debug__:
                         LOGGER.debug("Storing return in cache")
                     CACHE_TRACKER.insert_object_into_cache_wrapper(
                         LOGGER,
-                        self.in_cache_queue,
-                        self.out_cache_queue,
+                        self.cache.in_queue,
+                        self.cache.out_queue,
                         obj,
                         f_name,
                         "Return",
@@ -1370,8 +1345,9 @@ class TaskWorker:
         if __debug__:
             LOGGER.debug("Building types update")
 
-        def build_collection_types_values(_content, _arg, direction):
-            # type: (typing.Any, Parameter, int) -> list
+        def build_collection_types_values(
+            _content: typing.Any, _arg: Parameter, direction: int
+        ) -> list:
             """Retrieve collection type-value recursively.
 
             :param _content: Object or list of objects.

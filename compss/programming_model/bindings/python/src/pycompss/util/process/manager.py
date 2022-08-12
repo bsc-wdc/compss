@@ -25,20 +25,20 @@ It helps to homogenize the behaviour between linux and mac.
 """
 
 import multiprocessing
+from multiprocessing import Manager
+from multiprocessing.managers import SyncManager  # Used only for typing
+from multiprocessing.managers import DictProxy  # Used only for typing
 from multiprocessing import Process  # Used only for typing
 from multiprocessing import Queue  # Used only for typing
-from multiprocessing import Semaphore  # Used for cache coherence
 
 from pycompss.util.typing_helper import typing
 
 try:
-    from multiprocessing import Manager
     from multiprocessing.shared_memory import SharedMemory  # noqa
     from multiprocessing.shared_memory import ShareableList  # noqa
     from multiprocessing.managers import SharedMemoryManager  # noqa
 except ImportError:
     # Unsupported in python < 3.8
-    Manager = None  # type: ignore
     SharedMemory = None  # type: ignore
     ShareableList = None  # type: ignore
     SharedMemoryManager = None  # type: ignore
@@ -88,7 +88,7 @@ def new_queue() -> Queue:
     return multiprocessing.Queue()
 
 
-def new_manager() -> typing.Any:
+def new_manager() -> SyncManager:
     """Instantiate a new empty multiprocessing manager.
 
     :return: Empty multiprocessing manager.
@@ -97,7 +97,7 @@ def new_manager() -> typing.Any:
 
 
 def create_process(
-    target: typing.Any, args: tuple = (), prepend_lock: bool = False
+    target: typing.Callable, args: tuple = (), prepend_lock: bool = False
 ) -> Process:
     """Create a new process instance for the given target with the provided arguments.
 
@@ -123,3 +123,13 @@ def create_shared_memory_manager(
     """
     smm = SharedMemoryManager(address=address, authkey=authkey)
     return smm
+
+
+def create_proxy_dict() -> DictProxy:
+    """Create a proxy dictionary to share the information across workers within the same node.
+
+    :return: Proxy dictionary.
+    """
+    manager = new_manager()
+    cache_ids = manager.dict()
+    return cache_ids

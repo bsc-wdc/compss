@@ -83,7 +83,7 @@ class TypesEventsWorker:
         "cache_miss_event",
     )
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Create a new instance of TypesEventsWorker."""
         # Binding worker type
         self.sync_type = 8000666
@@ -170,7 +170,7 @@ class TypesEventsWorkerCache:
         "cache_msg_is_in_cache_event",
     )
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Create a new instance of TypesEventsWorker."""
         # Worker events:
         self.worker_cache_type = 9000201

@@ -24,6 +24,8 @@ This file contains the methods required to manage PSCOs.
 Isolates the API signature calls.
 """
 
+import logging
+
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.tracing.helpers import EventInsideWorker
 from pycompss.util.tracing.helpers import EventMaster
@@ -32,11 +34,24 @@ from pycompss.util.tracing.types_events_master import TRACING_MASTER
 from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.util.typing_helper import typing
 
+
+# Definition helpers
+def __dummy_function__() -> None:
+    """Do nothing function to be used as definition of INIT, FINISH and GET_BY_ID globals.
+
+    :return: None
+    :raises PyCOMPSsException: Always raises this function if invoked.
+    """
+    raise PyCOMPSsException(
+        "Invoking unexpected dummy function from persistent storage API."
+    )
+
+
 # Globals
 # Contain the actual storage api functions set on initialization
-INIT = None  # type: typing.Any
-FINISH = None  # type: typing.Any
-GET_BY_ID = None  # type: typing.Any
+INIT = __dummy_function__  # type: typing.Callable
+FINISH = __dummy_function__  # type: typing.Callable
+GET_BY_ID = __dummy_function__  # type: typing.Callable
 TaskContext = None  # type: typing.Any
 DUMMY_STORAGE = False  # type: bool
 
@@ -45,7 +60,7 @@ class dummy_task_context(object):
     """Dummy task context to be used with storage frameworks."""
 
     def __init__(
-        self, logger: typing.Any, values: typing.Any, config_file_path: str = None
+        self, logger: logging.Logger, values: typing.Any, config_file_path: str = None
     ) -> None:
         """Create a new instance of dummy_task_context.
 
@@ -204,7 +219,7 @@ def get_by_id(identifier: str) -> typing.Any:
         return GET_BY_ID(identifier)
 
 
-def master_init_storage(storage_conf: str, logger: typing.Any) -> bool:
+def master_init_storage(storage_conf: str, logger: logging.Logger) -> bool:
     """Call to init storage from the master.
 
     This function emits the event in the master.
@@ -228,7 +243,7 @@ def use_storage(storage_conf: str) -> bool:
     return storage_conf != "" and not storage_conf == "null"
 
 
-def init_storage(storage_conf: str, logger: typing.Any) -> bool:
+def init_storage(storage_conf: str, logger: logging.Logger) -> bool:
     """Call to init storage.
 
     This function emits the event in the worker.
@@ -241,7 +256,7 @@ def init_storage(storage_conf: str, logger: typing.Any) -> bool:
         return __init_storage__(storage_conf, logger)
 
 
-def __init_storage__(storage_conf: str, logger: typing.Any) -> bool:
+def __init_storage__(storage_conf: str, logger: logging.Logger) -> bool:
     """Call to init storage.
 
     Initializes the persistent storage with the given storage_conf file.
@@ -261,7 +276,7 @@ def __init_storage__(storage_conf: str, logger: typing.Any) -> bool:
     return False
 
 
-def master_stop_storage(logger: typing.Any) -> None:
+def master_stop_storage(logger: logging.Logger) -> None:
     """Stop the persistent storage.
 
     This function emits the event in the master.
@@ -273,7 +288,7 @@ def master_stop_storage(logger: typing.Any) -> None:
         __stop_storage__(logger)
 
 
-def stop_storage(logger: typing.Any) -> None:
+def stop_storage(logger: logging.Logger) -> None:
     """Stop the persistent storage.
 
     This function emits the event in the worker.
@@ -285,7 +300,7 @@ def stop_storage(logger: typing.Any) -> None:
         __stop_storage__(logger)
 
 
-def __stop_storage__(logger: typing.Any) -> None:
+def __stop_storage__(logger: logging.Logger) -> None:
     """Stop the persistent storage.
 
     :param logger: Logger where to log the messages.

@@ -70,7 +70,7 @@ class _Tags:
         "serialize",
     )
 
-    def __init__(self):  # pylint: disable=too-many-statements
+    def __init__(self) -> None:  # pylint: disable=too-many-statements
         """Define supported Tags."""
         self.execute_task = "EXECUTE_TASK"
         self.end_task = "END_TASK"

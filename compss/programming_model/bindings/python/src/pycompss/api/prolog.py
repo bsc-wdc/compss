@@ -66,7 +66,7 @@ class Prolog:  # pylint: disable=too-few-public-methods
         "core_element_configured",
     ]
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         """Store arguments passed to the decorator.
 
         self = itself.
@@ -82,7 +82,7 @@ class Prolog:  # pylint: disable=too-few-public-methods
         self.args = args
         self.kwargs = kwargs
         self.scope = CONTEXT.in_pycompss()
-        self.core_element = None  # type: typing.Any
+        self.core_element = None  # type: typing.Optional[CE]
         self.core_element_configured = False
         if self.scope:
             # Check the arguments

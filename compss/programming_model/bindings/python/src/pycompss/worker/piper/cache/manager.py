@@ -32,6 +32,7 @@ from pycompss.util.tracing.helpers import EventWorkerCache
 from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.util.tracing.types_events_worker import TRACING_WORKER_CACHE
 from pycompss.util.typing_helper import typing
+from pycompss.worker.piper.cache.classes import CacheQueueMessage
 from pycompss.worker.piper.cache.profiler import add_profiler_get_put
 from pycompss.worker.piper.cache.profiler import add_profiler_get_struct
 from pycompss.worker.piper.cache.profiler import profiler_print_message
@@ -76,12 +77,14 @@ def cache_tracker(
         )
 
     # MAIN CACHE TRACKER LOOP
+    msg = CacheQueueMessage()
     used_size = 0
     locked = set()  # set containing the locked entries
     while alive:
         with EventWorkerCache(TRACING_WORKER_CACHE.cache_msg_receive_event):
             msg = in_queue.get()
-        if msg == "QUIT":
+        action = msg.action
+        if action == "QUIT":
             with EventWorkerCache(TRACING_WORKER_CACHE.cache_msg_quit_event):
                 if __debug__:
                     logger.debug(
@@ -117,16 +120,15 @@ def cache_tracker(
                         str(used_size),
                     )
                 alive = False
-        elif msg == "END PROFILING":
+        elif action == "END_PROFILING":
             with EventWorkerCache(TRACING_WORKER_CACHE.cache_msg_end_profiling_event):
                 if cache_profiler:
                     profiler_print_message(profiler_dict, profiler_get_struct, log_dir)
         else:
             try:
-                action, message = msg
                 if action == "GET":
                     with EventWorkerCache(TRACING_WORKER_CACHE.cache_msg_get_event):
-                        f_name, parameter, function = message
+                        f_name, parameter, function = msg.messages
                         if f_name not in cache_ids:
                             # The object does not exist in the Cache
                             # It does not go inside here due to we check if it
@@ -176,13 +178,14 @@ def cache_tracker(
                         (
                             f_name,
                             cache_id,
-                            shape,
-                            dtype,
-                            obj_size,
                             shared_type,
                             parameter,
                             function,
-                        ) = message
+                        ) = msg.messages
+                        obj_size = msg.size
+                        dtype = msg.d_type
+                        shape = msg.shape
+
                         if f_name in cache_ids:
                             # The object already exists
                             if __debug__:
@@ -236,7 +239,8 @@ def cache_tracker(
                             cache_hits[hits][f_name] = obj_size
                 elif action == "REMOVE":
                     with EventWorkerCache(TRACING_WORKER_CACHE.cache_msg_remove_event):
-                        f_name = get_file_name(message)
+                        f_name_msg = msg.messages[0]
+                        f_name = get_file_name(f_name_msg)
                         logger.debug(
                             "%s [%s] Removing: %s",
                             CACHE_MANAGER_HEADER,
@@ -250,7 +254,8 @@ def cache_tracker(
                         cache_hits[current_hits].pop(f_name)
                 elif action == "LOCK":
                     with EventWorkerCache(TRACING_WORKER_CACHE.cache_msg_lock_event):
-                        f_name = get_file_name(message)
+                        f_name_msg = msg.messages[0]
+                        f_name = get_file_name(f_name_msg)
                         if f_name in locked:
                             raise PyCOMPSsException(
                                 "Cache coherence issue: tried to lock an already locked file entry"
@@ -264,7 +269,8 @@ def cache_tracker(
                         )
                 elif action == "UNLOCK":
                     with EventWorkerCache(TRACING_WORKER_CACHE.cache_msg_unlock_event):
-                        f_name = get_file_name(message)
+                        f_name_msg = msg.messages[0]
+                        f_name = get_file_name(f_name_msg)
                         logger.debug(
                             "%s [%s] Unlocking: %s",
                             CACHE_MANAGER_HEADER,
@@ -281,7 +287,8 @@ def cache_tracker(
                     with EventWorkerCache(
                         TRACING_WORKER_CACHE.cache_msg_is_locked_event
                     ):
-                        f_name = get_file_name(message)
+                        f_name_msg = msg.messages[0]
+                        f_name = get_file_name(f_name_msg)
                         is_locked = f_name in locked
                         out_queue.put(is_locked)
                         logger.debug(
@@ -295,7 +302,8 @@ def cache_tracker(
                     with EventWorkerCache(
                         TRACING_WORKER_CACHE.cache_msg_is_in_cache_event
                     ):
-                        f_name = get_file_name(message)
+                        f_name_msg = msg.messages[0]
+                        f_name = get_file_name(f_name_msg)
                         is_in_cache = f_name in cache_ids
                         out_queue.put(is_in_cache)
                         logger.debug(
@@ -352,7 +360,7 @@ def __evict__(
     sorted_hits: typing.List[int],
     cache_hits: typing.Dict[int, typing.Dict[str, int]],
     size_to_recover: int,
-) -> typing.Tuple[list, int]:
+) -> typing.Tuple[typing.List[str], int]:
     """Select how many entries to evict.
 
     :param sorted_hits: List of current hits sorted from lower to higher.

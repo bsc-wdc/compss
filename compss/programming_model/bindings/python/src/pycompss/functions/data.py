@@ -35,15 +35,15 @@ def generator(
     seed: int = 0,
     distribution: str = "random",
     wait: bool = False,
-) -> typing.Any:
+) -> typing.Optional[typing.List[typing.Any]]:
     """Generate a list of fragments with random data.
 
-    :param size: (numElements, dim)
-    :param num_frag: dataset number of fragments
-    :param seed: random seed. Default None, system time is used-
-    :param distribution: random, normal, uniform
-    :param wait: if we want to wait for result. Default False
-    :return: random dataset
+    :param size: Size (numElements, dim)
+    :param num_frag: Dataset number of fragments
+    :param seed: Random seed. Default None, system time is used-
+    :param distribution: Random, normal, uniform
+    :param wait: If we want to wait for result. Default False
+    :return: Random dataset
     """
     data = None
     frag_size = int(size[0] / num_frag)

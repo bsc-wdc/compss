@@ -23,13 +23,16 @@ PyCOMPSs Worker - Piper - Cache Setup.
 This file contains the cache setup and instantiation.
 IMPORTANT: Only used with python >= 3.8.
 """
+import logging
 
 from pycompss.util.process.manager import Process
 from pycompss.util.process.manager import Queue
 from pycompss.util.process.manager import create_process
-from pycompss.util.process.manager import new_manager
+from pycompss.util.process.manager import create_proxy_dict
+from pycompss.util.process.manager import DictProxy  # typing only
 from pycompss.util.process.manager import new_queue
 from pycompss.util.typing_helper import typing
+from pycompss.worker.piper.cache.classes import CacheQueueMessage
 from pycompss.worker.piper.cache.tracker import CacheTrackerConf
 from pycompss.worker.piper.cache.tracker import CACHE_TRACKER
 from pycompss.worker.piper.cache.manager import cache_tracker
@@ -50,11 +53,11 @@ def is_cache_enabled(cache_config: str) -> bool:
 
 
 def start_cache(
-    logger: typing.Any,
+    logger: logging.Logger,
     cache_config: str,
     cache_profiler: bool,
     log_dir: str,
-) -> typing.Tuple[typing.Any, Process, Queue, Queue, typing.Any]:
+) -> typing.Tuple[typing.Any, Process, Queue, Queue, DictProxy]:
     """Set up the cache process which keeps the consistency of the cache.
 
     :param logger: Logger.
@@ -66,9 +69,11 @@ def start_cache(
     """
     cache_size = __get_cache_size__(cache_config)
     # Cache can be used - Create proxy dict
-    cache_ids = __create_proxy_dict__()  # type: typing.Any
+    cache_ids = create_proxy_dict()
     cache_hits = {}  # type: typing.Dict[int, typing.Dict[str, int]]
-    profiler_dict = {}  # type: dict
+    profiler_dict = (
+        {}
+    )  # type: typing.Dict[str, typing.Dict[str, typing.Dict[str, typing.Dict[str, int]]]]
     profiler_get_struct = [[], [], []]  # type: typing.List[typing.List[str]]
     # profiler_get_struct structure: Filename, Parameter, Function
     smm = CACHE_TRACKER.start_shared_memory_manager()
@@ -106,7 +111,8 @@ def stop_cache(
     :return: None.
     """
     if cache_profiler:
-        in_cache_queue.put("END PROFILING")
+        message = CacheQueueMessage(action="END_PROFILING")
+        in_cache_queue.put(message)
     __destroy_cache_tracker_process__(cache_process, in_cache_queue, out_cache_queue)
     CACHE_TRACKER.stop_shared_memory_manager(shared_memory_manager)
 
@@ -158,33 +164,19 @@ def __create_cache_tracker_process__(
 
 
 def __destroy_cache_tracker_process__(
-    cache_process: Process, in_cache_queue: Queue, out_cache_queue: Queue
+    cache_process: Process, in_queue: Queue, out_queue: Queue
 ) -> None:
     """Stop the given cache tracker process.
 
     :param cache_process: Cache process.
-    :param in_cache_queue: Cache messaging input queue.
-    :param out_cache_queue: Cache messaging output queue.
+    :param in_queue: Cache messaging input queue.
+    :param out_queue: Cache messaging output queue.
     :return: None.
     """
-    in_cache_queue.put("QUIT")  # noqa
+    message = CacheQueueMessage(action="QUIT")
+    in_queue.put(message)  # noqa
     cache_process.join()  # noqa
-    in_cache_queue.close()  # noqa
-    in_cache_queue.join_thread()  # noqa
-    out_cache_queue.close()  # noqa
-    out_cache_queue.join_thread()  # noqa
-
-
-def __create_proxy_dict__() -> typing.Any:
-    """Create a proxy dictionary to share the information across workers within the same node.
-
-    WARNING: This code is in a separate function without typing
-             to avoid mypy issue with the DictProxy (typeshed issue) in
-             execution time:
-             TypeError: dict object expected; got multiprocessing.managers.DictProxy
-
-    :return: Proxy dictionary.
-    """
-    manager = new_manager()
-    cache_ids = manager.dict()  # type: typing.Any
-    return cache_ids
+    in_queue.close()  # noqa
+    in_queue.join_thread()  # noqa
+    out_queue.close()  # noqa
+    out_queue.join_thread()  # noqa

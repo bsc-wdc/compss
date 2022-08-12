@@ -134,7 +134,7 @@ def executor(process_name: str, command: str) -> None:
 def process_task(
     current_line: str,
     process_name: str,
-    logger: typing.Any,
+    logger: logging.Logger,
     log_json: str,
     logger_handlers: typing.Any,
     logger_level: int,
@@ -168,18 +168,20 @@ def process_task(
         splitted_current_line = current_line.split()
         if splitted_current_line[0] == TAGS.execute_task:
             num_collection_params = int(splitted_current_line[-1])
-            collections_layouts = {}
+            collections_layouts = (
+                {}
+            )  # type: typing.Dict[str, typing.Tuple[int, int, int]]
             if num_collection_params > 0:
                 raw_layouts = splitted_current_line[
                     ((num_collection_params * -4) - 1) : -1
                 ]
                 for i in range(num_collection_params):
                     param = raw_layouts[i * 4]
-                    layout = [
+                    layout = (
                         int(raw_layouts[(i * 4) + 1]),
                         int(raw_layouts[(i * 4) + 2]),
                         int(raw_layouts[(i * 4) + 3]),
-                    ]
+                    )
                     collections_layouts[param] = layout
 
             # Remove the last elements: cpu and gpu bindings and collection params

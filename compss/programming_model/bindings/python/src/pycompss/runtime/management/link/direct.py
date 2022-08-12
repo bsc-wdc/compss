@@ -23,15 +23,14 @@ PyCOMPSs Binding - Management - Link Direct.
 This file contains the functions to link with the binding-commons directly.
 """
 
+import logging
 from pycompss.util.typing_helper import typing
 
 if __debug__:
-    import logging
-
     link_logger = logging.getLogger(__name__)
 
 
-def establish_link(logger: typing.Any = None) -> typing.Any:
+def establish_link(logger: typing.Optional[logging.Logger] = None) -> typing.Any:
     """Load the compss C extension within the same process.
 
     Does not implement support for stdout and stderr redirecting as the

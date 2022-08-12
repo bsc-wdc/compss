@@ -64,7 +64,7 @@ class TimeIt:
 
         return wrapped_f
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Represent the elapsed time decorator as string."""
         return "Elapsed time decorator object"
 

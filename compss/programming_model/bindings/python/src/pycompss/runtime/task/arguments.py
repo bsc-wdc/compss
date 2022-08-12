@@ -20,7 +20,7 @@
 """
 PyCOMPSs runtime - Task - Arguments.
 
-This file contains the classes needed for the arguments identification.
+This file contains the classes needed for the argument identification.
 """
 
 

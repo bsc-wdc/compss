@@ -107,7 +107,7 @@ def main() -> int:
     tracing = False
     log_files = ()
     python_mpi = False
-    collections_layouts = None  # type: typing.Optional[dict]
+    collections_layouts = {}  # type: typing.Dict[str, typing.Tuple[int, int, int]]
     CONTEXT.set_worker()
     result = execute_task(
         process_name,
@@ -118,7 +118,7 @@ def main() -> int:
         "None",
         log_files,  # noqa
         python_mpi,
-        collections_layouts,  # noqa
+        collections_layouts,
     )
     # The ignored result is time out
     exit_value, new_types, new_values, _, except_msg = result

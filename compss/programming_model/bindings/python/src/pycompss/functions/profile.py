@@ -42,10 +42,9 @@ if __debug__:
 # Global environment variable name
 __PROFILE_REDIRECT_ENV_VAR__ = "COMPSS_PROFILING_FILE"
 
+FD_PATH = "/proc/self/fd/"
 if sys.platform == "darwin":
     FD_PATH = "/dev/fd/"
-else:
-    FD_PATH = "/proc/self/fd/"
 
 
 class Profile:

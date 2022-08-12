@@ -22,7 +22,7 @@ PyCOMPSs Util - Serialization - Extended support.
 
 This file contains the serialization extensions.
 """
-
+import types
 
 from pycompss.util.typing_helper import typing
 
@@ -32,12 +32,12 @@ class GeneratorIndicator:
 
 
 def pickle_generator(
-    f_gen: typing.Any, function: typing.Any, serializer: typing.Any
+    f_gen: typing.Generator, handler: typing.BinaryIO, serializer: types.ModuleType
 ) -> None:
     """Pickle a generator and store the serialization result in a file.
 
     :param f_gen: Generator object.
-    :param function: Destination file for pickling generator.
+    :param handler: Destination file for pickling generator.
     :param serializer: Serializer to use.
     """
     # Convert generator to list and pickle (less efficient but more reliable)
@@ -46,7 +46,7 @@ def pickle_generator(
     # generator when receiving it?
     # At least, the key is complicated.
     gen_snapshot = (GeneratorIndicator(), list(f_gen))
-    serializer.dump(gen_snapshot, function)
+    serializer.dump(gen_snapshot, handler)
 
 
 def convert_to_generator(lst: list) -> typing.Generator:

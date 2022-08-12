@@ -80,7 +80,7 @@ class TypesEventsMaster:
         "binding_deserialization_object_num_type",
     )
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Create a new instance of TypesEventsWorker."""
         # Binding master type
         self.binding_master_type = 9000300

@@ -68,7 +68,7 @@ class IO:  # pylint: disable=too-few-public-methods
         self.args = args
         self.kwargs = kwargs
         self.scope = CONTEXT.in_pycompss()
-        self.core_element = None  # type: typing.Any
+        self.core_element = None  # type: typing.Optional[CE]
         self.core_element_configured = False
         if self.scope:
             # Check the arguments
@@ -111,7 +111,7 @@ class IO:  # pylint: disable=too-few-public-methods
         return io_f
 
     @staticmethod
-    def __configure_core_element__(kwargs: dict) -> None:
+    def __configure_core_element__(kwargs: typing.Dict[str, typing.Any]) -> None:
         """Include the registering info related to @IO.
 
         IMPORTANT! Updates kwargs[CORE_ELEMENT_KEY].

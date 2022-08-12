@@ -86,7 +86,7 @@ except ImportError:
 # GLOBALS
 
 # LIB2IDX contains as key the serializer and value its associated integer
-LIB2IDX = {pickle: 0}
+LIB2IDX = {pickle: 0}  # type: typing.Dict[types.ModuleType, int]
 if DILL_AVAILABLE:
     LIB2IDX[dill] = 1
 if NUMPY_AVAILABLE:
@@ -95,7 +95,9 @@ if PYARROW_AVAILABLE:
     LIB2IDX[pyarrow] = 3
 LIB2IDX[json] = 4
 # IDX2LIB contains as key the integer and the value its associated serializer
-IDX2LIB = dict(((v, k) for (k, v) in LIB2IDX.items()))
+IDX2LIB = dict(
+    ((v, k) for (k, v) in LIB2IDX.items())
+)  # type: typing.Dict[int, types.ModuleType]
 # Max integer
 PLATFORM_C_MAXINT = 2 ** ((struct.Struct("i").size * 8 - 1) - 13)
 # To force a specific serializer
@@ -104,7 +106,7 @@ FORCED_SERIALIZER = -1  # make a serializer the only option for serialization
 DISABLE_GC = False
 
 
-def get_serializer_priority(obj: typing.Any = ()) -> list:
+def get_serializer_priority(obj: typing.Any = ()) -> typing.List[types.ModuleType]:
     """Compute the priority of the serializers.
 
     Returns a list with the available serializers in the most common order
@@ -126,11 +128,11 @@ def get_serializer_priority(obj: typing.Any = ()) -> list:
     if object_belongs_to_module(obj, "pyarrow") and PYARROW_AVAILABLE:
         return [pyarrow] + serializers
     if FORCED_SERIALIZER > -1:
-        return [IDX2LIB.get(FORCED_SERIALIZER)]
+        return [IDX2LIB[FORCED_SERIALIZER]]
     return serializers
 
 
-def serialize_to_handler(obj: typing.Any, handler: typing.Any) -> None:
+def serialize_to_handler(obj: typing.Any, handler: typing.BinaryIO) -> None:
     """Serialize an object to a handler.
 
     :param obj: Object to be serialized.
@@ -154,6 +156,7 @@ def serialize_to_handler(obj: typing.Any, handler: typing.Any) -> None:
     i = 0
     success = False
     original_position = handler.tell()
+    is_json = False
     # Lets try the serializers in the given priority
     serialization_issues = []
     while i < len(serializer_priority) and not success:
@@ -193,9 +196,12 @@ def serialize_to_handler(obj: typing.Any, handler: typing.Any) -> None:
                     h_name = handler.name
                     handler.close()
                     # Open the handler in normal mode
-                    handler = open(h_name, "w")  # pylint: disable=consider-using-with
-                    handler.write(f"{LIB2IDX[serializer]:04d}")
-                    serializer.dump(obj, handler)
+                    reopened_handler = open(
+                        h_name, "w"
+                    )  # pylint: disable=consider-using-with
+                    reopened_handler.write(f"{LIB2IDX[serializer]:04d}")
+                    serializer.dump(obj, reopened_handler)
+                    is_json = True
                 else:
                     serializer.dump(obj, handler, protocol=serializer.HIGHEST_PROTOCOL)
                 success = True
@@ -204,8 +210,12 @@ def serialize_to_handler(obj: typing.Any, handler: typing.Any) -> None:
                 traceback_exc = traceback.format_exc()
                 serialization_issues.append((serializer, traceback_exc))
         i += 1
+    if is_json:
+        serialization_size = reopened_handler.tell()
+    else:
+        serialization_size = handler.tell()
     emit_manual_event_explicit(
-        TRACING_MASTER.binding_serialization_size_type, handler.tell()
+        TRACING_MASTER.binding_serialization_size_type, serialization_size
     )
     emit_manual_event_explicit(TRACING_MASTER.binding_serialization_object_num_type, 0)
     if DISABLE_GC:
@@ -277,7 +287,7 @@ def serialize_to_bytes(obj: typing.Any) -> bytes:
 
 
 def deserialize_from_handler(
-    handler: typing.Any, show_exception: bool = True
+    handler: typing.BinaryIO, show_exception: bool = True
 ) -> typing.Any:
     """Deserialize an object from a file.
 
@@ -294,7 +304,7 @@ def deserialize_from_handler(
             TRACING_MASTER.binding_deserialization_object_num_type,
             (abs(hash(os.path.basename(handler.name))) % PLATFORM_C_MAXINT),
         )
-    original_position = None
+    original_position = 0
     try:
         original_position = handler.tell()
         serializer = IDX2LIB[int(handler.read(4))]
@@ -320,9 +330,9 @@ def deserialize_from_handler(
             h_name = handler.name
             handler.close()
             # Reopen handler with normal mode
-            handler = open(h_name, "r")
-            handler.seek(4)  # Ignore first byte
-            ret = serializer.load(handler)
+            reopened_handler = open(h_name, "r")
+            reopened_handler.seek(4)  # Ignore first byte
+            ret = serializer.load(reopened_handler)
         else:
             ret = serializer.load(handler)
         # Special case: deserialized obj wraps a generator
@@ -332,8 +342,12 @@ def deserialize_from_handler(
             # Enable the garbage collector and force to clean the memory
             gc.enable()
             gc.collect()
+        if serializer is json:
+            deserialization_size = reopened_handler.tell()
+        else:
+            deserialization_size = handler.tell()
         emit_manual_event_explicit(
-            TRACING_MASTER.binding_deserialization_size_type, handler.tell()
+            TRACING_MASTER.binding_deserialization_size_type, deserialization_size
         )
         emit_manual_event_explicit(
             TRACING_MASTER.binding_deserialization_object_num_type, 0

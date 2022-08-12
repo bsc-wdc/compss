@@ -80,7 +80,7 @@ class COMPSsFile:
         "original_path",
     ]
 
-    def __init__(self, file_name: str = "None") -> None:
+    def __init__(self, file_name: typing.Any = "None") -> None:
         """Compss File constructor.
 
         :param file_name: File name.
@@ -89,7 +89,7 @@ class COMPSsFile:
         self.destination_name = "None"  # type: str
         self.keep_source = False  # type: bool
         self.is_write_final = False  # type: bool
-        self.original_path = file_name  # type: str
+        self.original_path = file_name  # type: typing.Any
         if file_name is not None and isinstance(file_name, str) and ":" in file_name:
             fields = file_name.split(":")
             self.source_path = fields[0]

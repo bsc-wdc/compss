@@ -268,7 +268,7 @@ class TaskGroup:
 
     def __init__(
         self, group_name: str, implicit_barrier: bool = True
-    ):  # pylint: disable=unused-argument
+    ) -> None:  # pylint: disable=unused-argument
         """Define a new group of tasks.
 
         :param group_name: Group name.

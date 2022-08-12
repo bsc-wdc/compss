@@ -162,7 +162,7 @@ def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
         logger.debug("%sControl pipe: %s", HEADER, str(config.control_pipe))
     # Read command from control pipe
     alive = True
-    control_pipe = config.control_pipe  # type: typing.Any
+    control_pipe = config.control_pipe
     while alive:
         command = control_pipe.read_command()
         if command != "":
@@ -331,7 +331,7 @@ def main() -> None:
     worker_conf.update_params(sys.argv)
 
     persistent_storage = worker_conf.storage_conf != "null"
-    _, _, _, log_dir = load_loggers(worker_conf.debug, persistent_storage)
+    logger, _, _, log_dir = load_loggers(worker_conf.debug, persistent_storage)
 
     cache_profiler = False
     if worker_conf.cache_profiler.lower() == "true":
@@ -348,7 +348,7 @@ def main() -> None:
             # Deploy the necessary processes
             cache = True
             cache_params = start_cache(
-                None, str(worker_conf.cache), cache_profiler, log_dir
+                logger, str(worker_conf.cache), cache_profiler, log_dir
             )
             (
                 smm,
@@ -371,9 +371,7 @@ def main() -> None:
         # Beware of smm, in_cache_queue, out_cache_queue and cache_process
         # variables, since they are only initialized when is_worker() and
         # cache is enabled.# Reason for noqa.
-        stop_cache(
-            smm, in_cache_queue, out_cache_queue, cache_profiler, cache_process
-        )  # noqa
+        stop_cache(smm, in_cache_queue, out_cache_queue, cache_profiler, cache_process)
 
 
 if __name__ == "__main__":

@@ -52,7 +52,7 @@ def test_who_contextualized():
     CONTEXT.set_master()
     who = CONTEXT.get_who_contextualized()
     assert (
-        __name__ in who or "None" in who
+        __name__ in who or "None" in who or "_callers"  # callers when using mypy
     ), "ERROR: Wrong who (%s) contextualized." % str(who)
     CONTEXT.set_out_of_scope()
 

@@ -27,6 +27,7 @@ and restarted (interactive usage of PyCOMPSs - ipython and jupyter).
 """
 
 import os
+import logging
 import signal
 
 from pycompss.util.exceptions import PyCOMPSsException
@@ -40,8 +41,6 @@ from pycompss.util.typing_helper import typing
 from pycompss.runtime.management.link.messages import LINK_MESSAGES
 
 if __debug__:
-    import logging
-
     link_logger = logging.getLogger(__name__)
 
 
@@ -61,7 +60,7 @@ def shutdown_handler(
 
 
 def establish_interactive_link(
-    logger: typing.Any = None, redirect_std: bool = False
+    logger: typing.Optional[logging.Logger] = None, redirect_std: bool = False
 ) -> typing.Tuple[typing.Any, str, str]:
     """Start a new process which will be in charge of communicating with the C-extension.
 
@@ -83,7 +82,7 @@ class ExternalLink:
 
     __slots__ = ["link_process", "in_queue", "out_queue", "reload"]
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Instantiate a new ExternalLink class."""
         self.link_process = new_process()
         self.in_queue = new_queue()
@@ -91,7 +90,7 @@ class ExternalLink:
         self.reload = False
 
     def establish_interactive_link(
-        self, logger: typing.Any = None, redirect_std: bool = False
+        self, logger: typing.Optional[logging.Logger] = None, redirect_std: bool = False
     ) -> typing.Tuple[typing.Any, str, str]:
         """Start a new process which will be in charge of communicating with the C-extension.
 
@@ -207,8 +206,8 @@ def c_extension_link(
     ) if redirect_std else not_std_redirector():
         alive = True
         while alive:
-            message = in_queue.get()
-            command = message[0]
+            message = list(in_queue.get())
+            command = str(message[0])
             parameters = []  # type: list
             if len(message) > 0:
                 parameters = list(message[1:])
@@ -300,7 +299,7 @@ class _COMPSs:
 
     __slots__ = ["in_queue", "out_queue"]
 
-    def __init__(self, in_queue, out_queue):
+    def __init__(self, in_queue: Queue, out_queue: Queue) -> None:
         """Instantiate a new _COMPSs object."""
         self.in_queue = in_queue
         self.out_queue = out_queue
@@ -328,7 +327,7 @@ class _COMPSs:
         :param code: Stopping code.
         :return: None.
         """
-        self.in_queue.put([LINK_MESSAGES.stop, code])
+        self.in_queue.put((LINK_MESSAGES.stop, code))
         _ = self.out_queue.get(block=True)
         EXTERNAL_LINK.wait_for_interactive_link()
         # EXTERNAL_LINK.terminate_interactive_link()
@@ -428,7 +427,7 @@ class _COMPSs:
         self.in_queue.put((LINK_MESSAGES.barrier, app_id, no_more_tasks))
         _ = self.out_queue.get(block=True)
 
-    def barrier_group(self, app_id: int, group_name: str) -> str:
+    def barrier_group(self, app_id: int, group_name: str) -> typing.Optional[str]:
         """Call to barrier_group.
 
         :param app_id: Application identifier.

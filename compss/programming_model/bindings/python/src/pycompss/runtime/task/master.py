@@ -23,14 +23,13 @@ PyCOMPSs runtime - Task - Master.
 This file contains the task core functions when acting as master.
 """
 
-from __future__ import print_function
-
 import ast
 import inspect
 import logging
 import pickle
 import os
 import sys
+import types
 from base64 import b64encode
 from collections import OrderedDict
 from threading import Lock
@@ -97,8 +96,6 @@ from pycompss.util.typing_helper import typing
 logger = logging.getLogger(__name__)
 
 # Types conversion dictionary from python to COMPSs
-_PYTHON_TO_COMPSS = {}  # type: dict
-
 _PYTHON_TO_COMPSS = {
     int: TYPE.INT,  # int # long
     float: TYPE.DOUBLE,  # float
@@ -120,7 +117,7 @@ _PYTHON_TO_COMPSS = {
     dict: TYPE.OBJECT,
     # The type of generic objects
     object: TYPE.OBJECT,
-}
+}  # type: typing.Dict[typing.Type, int]
 
 MANDATORY_ARGUMENTS = set()  # type: typing.Set[str]
 # List since the parameter names are included before checking for unexpected
@@ -214,14 +211,16 @@ class TaskMaster:
         self.decorator_arguments = decorator_arguments
         self.decorated_function = decorated_function
         # Initialize Master specific attributes
-        self.param_args = []  # type: typing.List[typing.Any]
-        self.param_varargs = None  # type: typing.Any
-        self.param_defaults = None  # type: typing.Union[None, tuple]
+        self.param_args = []  # type: typing.List[str]
+        self.param_varargs = ""  # type: str
+        self.param_defaults = None  # type: typing.Optional[tuple]
         self.first_arg_name = ""
-        self.parameters = OrderedDict()  # type: OrderedDict
-        self.returns = OrderedDict()  # type: OrderedDict
+        self.parameters = OrderedDict()  # type: typing.OrderedDict[str, Parameter]
+        self.returns = OrderedDict()  # type: typing.OrderedDict[str, Parameter]
 
-    def call(self, args: tuple, kwargs: dict) -> tuple:
+    def call(
+        self, args: tuple, kwargs: dict
+    ) -> typing.Tuple[typing.Any, CE, FunctionDefinition]:
         """Run the task as master.
 
         This part deals with task calls in the master's side
@@ -249,7 +248,7 @@ class TaskMaster:
                 # here. Also, the very nature of decorators are a huge hint about
                 # how we should treat user functions, as most wrappers return a
                 # function f(*a, **k)
-                if self.param_varargs is None:
+                if self.param_varargs == "":
                     self.param_varargs = LABELS.varargs_type
                 if self.param_defaults is None:
                     self.param_defaults = ()
@@ -282,11 +281,11 @@ class TaskMaster:
             # Check if we are in interactive mode and update if needed
             with EventMaster(TRACING_MASTER.check_interactive):
                 if self.decorated_function.interactive:
-                    self.update_if_interactive(self.decorated_function.module)
+                    self.update_if_interactive()
                 else:
                     inter, inter_mod = self.check_if_interactive()
                     if inter:
-                        self.update_if_interactive(inter_mod)
+                        self.update_if_interactive()
                         self.decorated_function.module = inter_mod
                     self.decorated_function.interactive = inter
 
@@ -365,8 +364,10 @@ class TaskMaster:
 
                 # Infer COMPSs types from real types, except for files
                 self._serialize_objects()
-                # todo: should it go somewhere else?
-                serializer.FORCED_SERIALIZER = -1  # reset the forced serializer
+                # Reset serializer forcing:
+                # May have been set by @http and the next task may not need
+                # it anymore.
+                self._reset_forced_serializer()
 
                 # Build values and COMPSs types and directions
                 with EventMaster(TRACING_MASTER.build_compss_types_directions):
@@ -437,13 +438,18 @@ class TaskMaster:
             self.decorated_function,
         )
 
-    def check_if_interactive(self) -> typing.Tuple[bool, typing.Any]:
+    def check_if_interactive(self) -> typing.Tuple[bool, types.ModuleType]:
         """Check if running in interactive mode.
 
         :return: True if interactive. False otherwise.
         """
-        mod = inspect.getmodule(self.decorated_function.function)  # type: typing.Any
-        module_name = mod.__name__
+        mod = inspect.getmodule(self.decorated_function.function)
+        if mod is None:
+            raise PyCOMPSsException(
+                f"Module of the {self.decorated_function.function} is None"
+            )
+        else:
+            module_name = mod.__name__
         if CONTEXT.in_pycompss() and module_name in (
             "__main__",
             "pycompss.runtime.launch",
@@ -451,15 +457,14 @@ class TaskMaster:
             # 1.- The runtime is running.
             # 2.- The module where the function is defined was run as __main__.
             return True, mod
-        return False, None
+        return False, types.ModuleType("None")
 
-    def update_if_interactive(self, mod: typing.Any) -> None:
+    def update_if_interactive(self) -> None:
         """Update the code for jupyter notebook.
 
         Update the user code if in interactive mode and the session has
         been started.
 
-        :param mod: Source module.
         :return: None.
         """
         # We need to find out the real module name from launched
@@ -535,7 +540,13 @@ class TaskMaster:
                 # This is a compiled function
                 wrapped_func = self.get_user_function_wrapped()
                 arguments = self._getargspec(wrapped_func)
-        self.param_args, self.param_varargs, _, self.param_defaults = arguments
+        param_args, param_varargs, param_defaults = arguments
+        self.param_args = param_args
+        if param_varargs is None:
+            self.param_varargs = ""
+        else:
+            self.param_varargs = param_varargs
+        self.param_defaults = param_defaults
 
     def is_numba_function(self) -> bool:
         """Check if self.decorated_function.function is in reality a numba compiled function.
@@ -561,7 +572,7 @@ class TaskMaster:
         :return: __globals__ getter for the given field.
         """
         py_func = self.get_user_function_py_func()
-        return py_func.__globals__.get(field)  # type: ignore
+        return py_func.__globals__.get(field)
 
     def get_user_function_wrapped(self) -> typing.Callable:
         """Retrieve __wrapped__ from self.decorated_function.function.
@@ -580,7 +591,7 @@ class TaskMaster:
         :return: __globals__ getter for the given field result.
         """
         wrapped_func = self.get_user_function_wrapped()
-        return wrapped_func.__globals__.get(field)  # type: ignore
+        return wrapped_func.__globals__.get(field)
 
     def user_func_glob_getter(self, field: str) -> typing.Any:
         """Retrieve a field from __globals__ from py_func of self.decorated_function.function.
@@ -589,21 +600,22 @@ class TaskMaster:
 
         :return: __globals__ getter for the given field result.
         """
-        return self.decorated_function.function.__globals__.get(field)  # type: ignore
+        return self.decorated_function.function.__globals__.get(field)
 
     @staticmethod
-    def _getargspec(function: typing.Any) -> tuple:
+    def _getargspec(
+        function: typing.Callable,
+    ) -> typing.Tuple[typing.List[str], typing.Optional[str], typing.Optional[tuple]]:
         """Private method that retrieves the function argspec.
 
         :param function: Function to analyse.
-        :return: args, varargs, keywords and defaults dictionaries.
+        :return: args, varargs and defaults dictionaries.
         """
         full_argspec = inspect.getfullargspec(function)
         as_args = full_argspec.args
         as_varargs = full_argspec.varargs
-        as_keywords = None  # type: typing.Any
         as_defaults = full_argspec.defaults
-        return as_args, as_varargs, as_keywords, as_defaults
+        return as_args, as_varargs, as_defaults
 
     def get_upper_decorators_kwargs(self, kwargs: dict) -> None:
         """Extract all @task related parameters placed by upper decorators.
@@ -663,6 +675,10 @@ class TaskMaster:
         # Deal with on_failure
         if LABELS.on_failure in kwargs:
             self.decorator_arguments.on_failure = kwargs.pop(LABELS.on_failure, "RETRY")
+
+        # Deal with defaults
+        if LABELS.defaults in kwargs:
+            self.decorator_arguments.defaults = kwargs.pop(LABELS.defaults, {})
 
         # Deal with reductions
         if LABELS.is_reduce in kwargs:
@@ -739,6 +755,7 @@ class TaskMaster:
                         self.parameters[real_arg_name] = self.build_parameter_object(
                             real_arg_name, default_value, code_strings=code_strings
                         )
+
         # Process variadic and keyword arguments
         # Note that they are stored with custom names
         # This will allow us to determine the class of each parameter
@@ -873,15 +890,21 @@ class TaskMaster:
 
         :return: None, it just modifies self.decorated_function.module_name.
         """
-        mod = inspect.getmodule(self.decorated_function.function)  # type: typing.Any
-        self.decorated_function.module_name = mod.__name__
+        mod = inspect.getmodule(self.decorated_function.function)
+        if mod is None:
+            raise PyCOMPSsException(
+                f"Module of the {self.decorated_function.function} is None"
+            )
+        else:
+            mod_name = mod.__name__
+            self.decorated_function.module_name = mod_name
         # If it is a task within a class, the module it will be where the one
         # where the class is defined, instead of the one where the task is
         # defined.
         # This avoids conflicts with task inheritance.
         if self.first_arg_name == "self":
             mod = inspect.getmodule(type(first_object))
-            self.decorated_function.module_name = mod.__name__
+            self.decorated_function.module_name = mod_name
         elif self.first_arg_name == "cls":
             self.decorated_function.module_name = first_object.__module__
         if self.decorated_function.module_name in (
@@ -1083,7 +1106,7 @@ class TaskMaster:
                 impl_type_args,
             )
 
-    def check_layout_params(self, impl_type_args: list) -> None:
+    def check_layout_params(self, impl_type_args: typing.List[str]) -> None:
         """Check the layout parameter format.
 
         :param impl_type_args: Parameter arguments.
@@ -1125,7 +1148,9 @@ class TaskMaster:
             )
         binding.register_ce(self.core_element)
 
-    def validate_processes_per_node(self, computing_nodes, processes_per_node) -> None:
+    def validate_processes_per_node(
+        self, computing_nodes: int, processes_per_node: int
+    ) -> None:
         """Check the processes per node property.
 
         :return: None.
@@ -1662,7 +1687,7 @@ class TaskMaster:
                         logger.warning(
                             "Type %s does not have an empty constructor, "
                             "building generic future object",
-                            str(ret_v["Value"]),
+                            str(type(ret_v.content())),
                         )
                         future_object_element = Future()
                 else:
@@ -1742,7 +1767,29 @@ class TaskMaster:
                     "Final type for parameter %s: %d", name, param.content_type
                 )
 
-    def _build_values_types_directions(self) -> tuple:
+    @staticmethod
+    def _reset_forced_serializer() -> None:
+        """Reset serializer forcing.
+
+        May be forced by the @http decorator.
+
+        :return: None
+        """
+        serializer.FORCED_SERIALIZER = -1
+
+    def _build_values_types_directions(
+        self,
+    ) -> typing.Tuple[
+        typing.List[typing.Union[COMPSsFile, str]],
+        typing.List[str],
+        typing.List[int],
+        typing.List[int],
+        typing.List[int],
+        typing.List[str],
+        typing.List[str],
+        typing.List[str],
+        typing.List[bool],
+    ]:
         """Build the values, the values types and the values directions lists.
 
         Uses:
@@ -1759,7 +1806,7 @@ class TaskMaster:
         :return: List of values, their types, their directions, their streams
                  and their prefixes.
         """
-        values = []
+        values = []  # type: typing.List[typing.Union[COMPSsFile, str]]
         names = []
         arg_names = list(self.parameters.keys())
         result_names = list(self.returns.keys())
@@ -1904,7 +1951,7 @@ class TaskMaster:
                     value = pickle.dumps(param.content)
                     if TASK_FEATURES.get_prepend_strings():
                         # new_content = value.decode(CONSTANTS.str_escape)
-                        param.content = f"#HiddenObj#{value}"  # type: ignore
+                        param.content = f"#HiddenObj#{value!r}"
                     param.content_type = TYPE.STRING_64
                     param.extra_content_type = str(type("str"))
                     if __debug__:
@@ -2166,7 +2213,7 @@ def _turn_into_file(param: Parameter, name: str, skip_creation: bool = False) ->
 
 def _extract_parameter(
     param: Parameter, code_strings: bool, collection_depth: int = 0
-) -> tuple:
+) -> typing.Tuple[typing.Any, int, int, int, str, str, str, bool]:
     """Extract the information of a single parameter.
 
     :param param: Parameter object.

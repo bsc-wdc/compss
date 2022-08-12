@@ -41,7 +41,7 @@ class _ImplementationTypes:  # pylint: disable=too-few-public-methods, too-many-
         "python_mpi",
     ]
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.binary = "BINARY"
         self.cet_binary = "CET_BINARY"
         self.compss = "COMPSs"

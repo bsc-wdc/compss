@@ -32,7 +32,7 @@ from pycompss.util.typing_helper import typing
 
 
 @task(returns=list)
-def gen_random(size: int, frag_size: int, seed: int) -> typing.Any:
+def gen_random(size: int, frag_size: int, seed: int) -> typing.List[typing.List[float]]:
     """Generate random distribution fragment.
 
     :param size: Size
@@ -45,7 +45,7 @@ def gen_random(size: int, frag_size: int, seed: int) -> typing.Any:
 
 
 @task(returns=list)
-def gen_normal(size: int, frag_size: int, seed: int) -> typing.Any:
+def gen_normal(size: int, frag_size: int, seed: int) -> typing.List[typing.List[float]]:
     """Generate normal distribution fragment.
 
     :param size: Size
@@ -60,7 +60,9 @@ def gen_normal(size: int, frag_size: int, seed: int) -> typing.Any:
 
 
 @task(returns=list)
-def gen_uniform(size: int, frag_size: int, seed: int) -> typing.Any:
+def gen_uniform(
+    size: int, frag_size: int, seed: int
+) -> typing.List[typing.List[float]]:
     """Generate uniform distribution fragment.
 
     :param size: Size

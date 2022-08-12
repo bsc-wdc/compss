@@ -23,6 +23,8 @@ PyCOMPSs Worker - Piper - Commons - Utils.
 This file contains the common pipers methods.
 """
 
+import logging
+
 from pycompss.util.context import CONTEXT
 from pycompss.runtime.commons import GLOBALS
 from pycompss.util.typing_helper import typing
@@ -64,11 +66,11 @@ class PiperWorkerConfiguration:
         self.tasks_x_node = 0  # type: int
         self.exec_ids = []  # type: typing.List[int]
         self.pipes = []  # type: typing.List[Pipe]
-        self.control_pipe = None  # type: typing.Union[None, Pipe]
+        self.control_pipe = Pipe()  # type: Pipe
         self.cache = False  # type: typing.Union[str, bool]
         self.cache_profiler = ""  # type: str
 
-    def update_params(self, argv: list) -> None:
+    def update_params(self, argv: typing.List[str]) -> None:
         """Construct a configuration description for the piper worker using the arguments.
 
         :param argv: Arguments from the command line.
@@ -99,7 +101,7 @@ class PiperWorkerConfiguration:
             self.pipes.append(Pipe(in_pipes[i], out_pipes[i]))
         self.control_pipe = Pipe(argv[-2], argv[-1])
 
-    def print_on_logger(self, logger: typing.Any) -> None:
+    def print_on_logger(self, logger: logging.Logger) -> None:
         """Print the configuration through the given logger.
 
         :param logger: Logger to output the configuration.

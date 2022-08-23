@@ -30,7 +30,6 @@ import os
 import sys
 from functools import wraps
 
-from pycompss.api import parameter
 from pycompss.util.context import CONTEXT
 from pycompss.api.commons.constants import INTERNAL_LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
@@ -38,11 +37,10 @@ from pycompss.api.commons.implementation_types import IMPLEMENTATION_TYPES
 from pycompss.api.dummy.task import task as dummy_task
 from pycompss.runtime.binding import nested_barrier
 from pycompss.runtime.start.initialization import LAUNCH_STATUS
-from pycompss.runtime.task.core_element import CE
+from pycompss.runtime.task.definitions.core_element import CE
+from pycompss.runtime.task.definitions.arguments import TaskArguments
+from pycompss.runtime.task.definitions.function import FunctionDefinition
 from pycompss.runtime.task.master import TaskMaster
-from pycompss.runtime.task.parameter import get_new_parameter
-from pycompss.runtime.task.parameter import get_parameter_from_dictionary
-from pycompss.runtime.task.parameter import is_param
 from pycompss.runtime.task.worker import TaskWorker
 from pycompss.util.logger.helpers import update_logger_handlers
 from pycompss.util.objects.properties import get_module_name
@@ -50,8 +48,8 @@ from pycompss.util.tracing.helpers import EventInsideWorker
 from pycompss.util.tracing.helpers import EventMaster
 from pycompss.util.tracing.types_events_master import TRACING_MASTER
 from pycompss.util.tracing.types_events_worker import TRACING_WORKER
-from pycompss.util.typing_helper import dummy_function
 from pycompss.util.typing_helper import typing
+
 
 if __debug__:
     import logging
@@ -84,26 +82,12 @@ class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attribu
 
     __slots__ = [
         "task_type",
-        "decorator_arguments",
-        "user_function",
-        "registered",
-        "signature",
-        "interactive",
-        "module",
-        "function_arguments",
-        "function_name",
-        "module_name",
-        "function_type",
-        "class_name",
-        "hints",
-        "on_failure",
-        "defaults",
         "decorator_name",
-        "args",
-        "kwargs",
         "scope",
         "core_element",
         "core_element_configured",
+        "decorator_arguments",
+        "decorated_function",
     ]
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
@@ -124,86 +108,16 @@ class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attribu
         """
         self.task_type = IMPLEMENTATION_TYPES.method
         self.decorator_name = "".join(("@", Task.__name__.lower()))
-        self.args = args
-        self.kwargs = kwargs
         self.scope = CONTEXT.in_pycompss()
+        # Instantiate Core Element
         self.core_element = CE()
         self.core_element_configured = False
-
-        # Set missing values to their default ones (step a)
-        self.decorator_arguments = kwargs
-        default_decorator_values = {
-            "target_direction": parameter.INOUT,
-            "returns": False,
-            "cache_returns": True,
-            "priority": False,
-            "defaults": {},
-            "time_out": 0,
-            "is_replicated": False,
-            "is_distributed": False,
-            "computing_nodes": 1,
-            "is_reduce": False,
-            "chunk_size": 0,
-            "tracing_hook": False,
-            "numba": False,  # numba mode (jit, vectorize, guvectorize)
-            "numba_flags": {},  # user defined extra numba flags
-            "numba_signature": None,  # vectorize and guvectorize signature
-            "numba_declaration": None,  # guvectorize declaration
-            "varargs_type": parameter.IN,  # Here for legacy purposes
-        }  # type: typing.Dict[str, typing.Any]
-        for (key, value) in default_decorator_values.items():
-            if key not in self.decorator_arguments:
-                self.decorator_arguments[key] = value
-        # Give all parameters a unique instance for them (step b)
-        # Note that when a user defines a task like
-        # @task(a = IN, b = IN, c = INOUT)
-        # both a and b point to the same IN object (the one from parameter.py)
-        # Giving them a unique instance makes life easier in further steps
-        for (key, value) in self.decorator_arguments.items():
-            # Not all decorator arguments are necessarily parameters
-            # (see default_decorator_values)
-            if is_param(value):
-                self.decorator_arguments[key] = get_new_parameter(value.key)
-            # Specific case when value is a dictionary
-            # Use case example:
-            # @binary(binary="ls")
-            # @task(hide={Type: FILE_IN, Prefix: "--hide="},
-            #       sort={Type: IN, Prefix: "--sort="})
-            # def myLs(flag, hide, sort):
-            #   pass
-            # Transform this dictionary to a Parameter object
-            if isinstance(value, dict):
-                if key not in [
-                    "numba",
-                    "numba_flags",
-                    "numba_signature",
-                    "numba_declaration",
-                ]:
-                    # Perform user -> instance substitution
-                    # param = self.decorator_arguments[key][parameter.Type]
-                    # Replace the whole dict by a single parameter object
-                    self.decorator_arguments[key] = get_parameter_from_dictionary(
-                        self.decorator_arguments[key]
-                    )
-                else:
-                    # It is a reserved word that we need to keep the user
-                    # defined value (not a Parameter object)
-                    self.decorator_arguments[key] = value
-        self.user_function = dummy_function  # type: typing.Callable
-        # Global variables common for all tasks of this kind
-        self.registered = False
-        self.signature = ""
-        # Saved from the initial task
-        self.interactive = False
-        self.module = None  # type: typing.Any
-        self.function_arguments = tuple()  # type: tuple
-        self.function_name = ""
-        self.module_name = ""
-        self.function_type = -1
-        self.class_name = ""
-        self.hints = tuple()  # type: tuple
-        self.on_failure = ""
-        self.defaults = {}  # type: dict
+        # Instantiate TaskArguments object from kwargs
+        task_decorator_arguments = TaskArguments()
+        task_decorator_arguments.update_arguments(kwargs)
+        self.decorator_arguments = task_decorator_arguments
+        # Instantiate FunctionDefinition object
+        self.decorated_function = FunctionDefinition()
 
     def __call__(self, user_function: typing.Callable) -> typing.Callable:
         """Perform the task processing.
@@ -225,7 +139,7 @@ class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attribu
         :param user_function: Function to decorate.
         :return: The function to be executed.
         """
-        self.user_function = user_function
+        self.decorated_function.function = user_function
 
         @wraps(user_function)
         def task_decorator(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
@@ -251,37 +165,12 @@ class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attribu
             self.__check_core_element__(kwargs, user_function)
             with EventMaster(TRACING_MASTER.task_instantiation):
                 master = TaskMaster(
-                    self.decorator_arguments,
-                    self.user_function,
                     self.core_element,
-                    self.registered,
-                    self.signature,
-                    self.interactive,
-                    self.module,
-                    self.function_arguments,
-                    self.function_name,
-                    self.module_name,
-                    self.function_type,
-                    self.class_name,
-                    self.hints,
-                    self.on_failure,
-                    self.defaults,
+                    self.decorator_arguments,
+                    self.decorated_function,
                 )
-            result = master.call(args, kwargs)
-            (
-                future_object,
-                self.core_element,
-                self.registered,
-                self.signature,
-                self.interactive,
-                self.module,
-                self.function_arguments,
-                self.function_name,
-                self.module_name,
-                self.function_type,
-                self.class_name,
-                self.hints,
-            ) = result
+            master_result = master.call(args, kwargs)
+            (future_object, self.core_element, self.decorated_function) = master_result
             del master
             return future_object
         if CONTEXT.in_worker():
@@ -299,11 +188,9 @@ class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attribu
                 with EventInsideWorker(TRACING_WORKER.worker_task_instantiation):
                     worker = TaskWorker(
                         self.decorator_arguments,
-                        self.user_function,
-                        self.on_failure,
-                        self.defaults,
+                        self.decorated_function,
                     )
-                result = worker.call(*args, **kwargs)
+                worker_result = worker.call(*args, **kwargs)
                 # Force flush stdout and stderr
                 sys.stdout.flush()
                 sys.stderr.flush()
@@ -315,7 +202,7 @@ class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attribu
                     if __debug__:
                         # Reestablish logger handlers
                         update_logger_handlers(kwargs["compss_log_cfg"])
-                return result
+                return worker_result
 
             # There is no compss_key in kwargs.keys() => task invocation within task:
             #  - submit the task to the runtime if nesting is enabled.
@@ -325,37 +212,16 @@ class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attribu
                 # not be shared.
                 with EventMaster(TRACING_MASTER.task_instantiation):
                     master = TaskMaster(
-                        self.decorator_arguments,
-                        self.user_function,
                         self.core_element,
-                        self.registered,
-                        self.signature,
-                        self.interactive,
-                        self.module,
-                        self.function_arguments,
-                        self.function_name,
-                        self.module_name,
-                        self.function_type,
-                        self.class_name,
-                        self.hints,
-                        self.on_failure,
-                        self.defaults,
+                        self.decorator_arguments,
+                        self.decorated_function,
                     )
-                result = master.call(args, kwargs)
+                master_result = master.call(args, kwargs)
                 (
                     future_object,
                     self.core_element,
-                    self.registered,
-                    self.signature,
-                    self.interactive,
-                    self.module,
-                    self.function_arguments,
-                    self.function_name,
-                    self.module_name,
-                    self.function_type,
-                    self.class_name,
-                    self.hints,
-                ) = result
+                    self.decorated_function,
+                ) = master_result
                 del master
                 return future_object
             # Called from another task within the worker
@@ -386,7 +252,7 @@ class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attribu
         # self.param_kwargs and self.param_defaults
         # And gives non-None default values to them if necessary
         d_t = dummy_task(args, kwargs)
-        return d_t.__call__(self.user_function)(*args, **kwargs)
+        return d_t.__call__(self.decorated_function.function)(*args, **kwargs)
 
     def __check_core_element__(
         self, kwargs: dict, user_function: typing.Callable

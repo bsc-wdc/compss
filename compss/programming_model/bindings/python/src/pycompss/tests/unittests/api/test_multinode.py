@@ -22,7 +22,7 @@ import os
 from pycompss.util.context import CONTEXT
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.multinode import MultiNode
-from pycompss.runtime.task.core_element import CE
+from pycompss.runtime.task.definitions.core_element import CE
 
 ERROR_EXPECTED_1 = "Wrong expected result (should be 1)."
 

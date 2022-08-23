@@ -17,7 +17,7 @@
 
 # -*- coding: utf-8 -*-
 
-from pycompss.runtime.task.core_element import CE
+from pycompss.runtime.task.definitions.core_element import CE
 
 ERROR_SIGNATURE = "ERROR: Wrong signature value."
 ERROR_IMPL_SIGNATURE = "ERROR: Wrong impl_signature value."
@@ -37,8 +37,8 @@ def test_core_element():
     impl_type = "impl_type"
     impl_local = False
     impl_io = False
-    impl_prolog = "impl_prolog"
-    impl_epilog = "impl_epilog"
+    impl_prolog = ["impl_prolog"]
+    impl_epilog = ["impl_epilog"]
     impl_type_args = ["impl_type_args"]
     core_element = CE(
         signature,
@@ -103,7 +103,7 @@ def test_core_element():
     # Check impl_prolog
     result = core_element.get_impl_prolog()
     assert result == impl_prolog, ERROR_IMPL_PROLOG
-    new_impl_prolog = "my_new_impl_prolog"
+    new_impl_prolog = ["my_new_impl_prolog"]
     core_element.set_impl_prolog(new_impl_prolog)
     result = core_element.get_impl_prolog()
     assert result == new_impl_prolog, ERROR_IMPL_PROLOG
@@ -111,7 +111,7 @@ def test_core_element():
     # Check impl_epilog
     result = core_element.get_impl_epilog()
     assert result == impl_epilog, ERROR_IMPL_EPILOG
-    new_impl_epilog = "my_new_impl_epilog"
+    new_impl_epilog = ["my_new_impl_epilog"]
     core_element.set_impl_epilog(new_impl_epilog)
     result = core_element.get_impl_epilog()
     assert result == new_impl_epilog, ERROR_IMPL_EPILOG
@@ -137,8 +137,8 @@ def test_core_element():
         "\t - Impl. type       : my_new_impl_type\n"
         "\t - Impl. local      : True\n"
         "\t - Impl. io         : True\n"
-        "\t - Impl. prolog     : my_new_impl_prolog\n"
-        "\t - Impl. epilog     : my_new_impl_epilog\n"
+        "\t - Impl. prolog     : ['my_new_impl_prolog']\n"
+        "\t - Impl. epilog     : ['my_new_impl_epilog']\n"
         "\t - Impl. type args  : ['my_new_impl_type_args']\n"
     )
     assert representation == expected, "ERROR: Wrong representation."

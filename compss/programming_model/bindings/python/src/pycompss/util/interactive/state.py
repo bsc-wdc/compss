@@ -108,7 +108,7 @@ def parse_state_xml(log_path: str, field: str) -> typing.Any:
     raise PyCOMPSsException("Unsupported status field")
 
 
-def element_tree_to_dict(element_tree: typing.Any) -> dict:
+def element_tree_to_dict(element_tree: ElementTree.Element) -> dict:
     """Convert an element tree into a dictionary recursively.
 
     :param element_tree: Element tree.
@@ -338,7 +338,7 @@ def __plain_lists__(dictionary: dict) -> typing.Tuple[list, list]:
     return labels, values
 
 
-def __get_play_widget(function: typing.Any) -> typing.Any:
+def __get_play_widget(function: typing.Callable) -> widgets.interactive:
     """Generate play widget.
 
     :param function: Function to associate with Play.

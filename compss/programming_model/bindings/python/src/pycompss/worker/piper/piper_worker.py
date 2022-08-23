@@ -26,6 +26,7 @@ This file contains the multiprocessing piper worker code.
 import os
 import signal
 import sys
+from multiprocessing import Process  # Used only for typing
 
 from pycompss.util.context import CONTEXT
 from pycompss.runtime.commons import GLOBALS
@@ -52,7 +53,7 @@ from pycompss.worker.piper.commons.utils_logger import load_loggers
 
 # Persistent worker global variables
 # PROCESSES = IN_PIPE -> PROCESS
-PROCESSES = {}  # type: typing.Dict[str, typing.Any]
+PROCESSES = {}  # type: typing.Dict[str, Process]
 CACHE = None
 CACHE_PROCESS = None
 
@@ -175,8 +176,9 @@ def compss_persistent_worker(config: PiperWorkerConfiguration, tracing: bool) ->
 
     # Read command from control pipe
     alive = True
+    error_msgs = []  # type: typing.List[str]
     process_counter = config.tasks_x_node
-    control_pipe = config.control_pipe  # type: typing.Any
+    control_pipe = config.control_pipe
     while alive:
         command = control_pipe.read_command(retry_period=1)
         if command != "":
@@ -185,7 +187,7 @@ def compss_persistent_worker(config: PiperWorkerConfiguration, tracing: bool) ->
             if line[0] == TAGS.add_executor:
                 process_name = "".join(("Process-", str(process_counter)))
                 process_counter = process_counter + 1
-                exec_id = line[1]
+                exec_id = int(line[1])
                 in_pipe = line[2]
                 out_pipe = line[3]
                 pipe = Pipe(in_pipe, out_pipe)
@@ -198,16 +200,23 @@ def compss_persistent_worker(config: PiperWorkerConfiguration, tracing: bool) ->
             elif line[0] == TAGS.query_executor_id:
                 in_pipe = line[1]
                 out_pipe = line[2]
-                proc = PROCESSES.get(in_pipe)  # type: typing.Any
-                pid = proc.pid
+                query_proc = PROCESSES[in_pipe]
+                query_pid = query_proc.pid
                 control_pipe.write(
-                    " ".join((TAGS.reply_executor_id, out_pipe, in_pipe, str(pid)))
+                    " ".join(
+                        (TAGS.reply_executor_id, out_pipe, in_pipe, str(query_pid))
+                    )
                 )
 
             elif line[0] == TAGS.cancel_task:
                 in_pipe = line[1]
-                cancel_proc = PROCESSES.get(in_pipe)  # type: typing.Any
+                cancel_proc = PROCESSES[in_pipe]
                 cancel_pid = cancel_proc.pid
+                if cancel_pid is None:
+                    alive = False
+                    error_msgs.append("Cancel pid is None")
+                else:
+                    cancel_pid_int = int(cancel_pid)
                 if __debug__:
                     logger.debug(
                         "%sSignaling process with PID %s to cancel a task",
@@ -215,7 +224,7 @@ def compss_persistent_worker(config: PiperWorkerConfiguration, tracing: bool) ->
                         str(cancel_pid),
                     )
                 # Cancellation produced by COMPSs
-                os.kill(cancel_pid, signal.SIGUSR2)
+                os.kill(cancel_pid_int, signal.SIGUSR2)
 
             elif line[0] == TAGS.remove_executor:
                 in_pipe = line[1]
@@ -245,6 +254,10 @@ def compss_persistent_worker(config: PiperWorkerConfiguration, tracing: bool) ->
                 "%sException in threads queue: %s", HEADER, str(queues[i].get())
             )
 
+    # Check if there is any exception from the messages
+    for msg in error_msgs:
+        logger.error("%sException in piper worker message: %s", HEADER, msg)
+
     for queue in queues:
         queue.close()
         queue.join_thread()
@@ -255,7 +268,7 @@ def compss_persistent_worker(config: PiperWorkerConfiguration, tracing: bool) ->
         # cache is enabled. Reason for noqa.
         stop_cache(
             smm, in_cache_queue_act, out_cache_queue_act, cache_profiler, cache_process
-        )  # noqa
+        )
 
     if persistent_storage:
         # Finish storage

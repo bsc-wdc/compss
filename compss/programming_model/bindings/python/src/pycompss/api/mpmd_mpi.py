@@ -33,7 +33,7 @@ from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.decorator import resolve_fail_by_exit_value
 from pycompss.api.commons.decorator import resolve_working_dir
-from pycompss.runtime.task.core_element import CE
+from pycompss.runtime.task.definitions.core_element import CE
 from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.typing_helper import typing
@@ -88,7 +88,7 @@ class MPMDMPI:  # pylint: disable=too-few-public-methods, too-many-instance-attr
         self.args = args
         self.kwargs = kwargs
         self.scope = CONTEXT.in_pycompss()
-        self.core_element = None  # type: typing.Any
+        self.core_element = None  # type: typing.Optional[CE]
         self.core_element_configured = False
         # MPMD_MPI specific:
         self.task_type = "mpmd_mpi"

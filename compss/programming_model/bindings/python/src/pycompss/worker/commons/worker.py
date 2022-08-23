@@ -41,6 +41,7 @@ from pycompss.util.exceptions import SerializerException, PyCOMPSsException
 from pycompss.util.exceptions import TimeOutError
 from pycompss.util.exceptions import task_cancel
 from pycompss.util.exceptions import task_timed_out
+from pycompss.util.process.manager import DictProxy  # typing only
 from pycompss.util.serialization.serializer import deserialize_from_file
 from pycompss.util.serialization.serializer import serialize_to_file
 from pycompss.util.storages.persistent import load_storage_library
@@ -51,11 +52,11 @@ from pycompss.util.typing_helper import typing
 # First load the storage library
 load_storage_library()
 # Then import the appropriate functions
-from pycompss.util.storages.persistent import (  # pylint: disable=wrong-import-position
+from pycompss.util.storages.persistent import (  # noqa: E402 pylint: disable=wrong-import-position
     TaskContext,
     is_psco,
     get_by_id,
-)  # noqa: E402
+)
 
 default_logger = logging.getLogger(__name__)
 
@@ -239,7 +240,7 @@ def build_task_parameter(
     )
 
 
-def get_task_params(num_params: int, logger: typing.Any, args: list) -> list:
+def get_task_params(num_params: int, logger: logging.Logger, args: list) -> list:
     """Get and prepare the input parameters from string to lists.
 
     :param num_params: Number of parameters.
@@ -285,7 +286,7 @@ def get_task_params(num_params: int, logger: typing.Any, args: list) -> list:
 
 
 def task_execution(
-    logger: typing.Any,
+    logger: logging.Logger,
     process_name: str,
     module: typing.Any,
     method_name: str,
@@ -295,7 +296,7 @@ def task_execution(
     compss_kwargs: dict,
     persistent_storage: bool,
     storage_conf: str,
-) -> typing.Tuple[int, list, list, typing.Union[None, Parameter], bool, str]:
+) -> typing.Tuple[int, list, list, typing.Optional[str], bool, str]:
     """Execute task.
 
     :param logger: Logger.
@@ -439,11 +440,11 @@ def task_returns(
     exit_code: int,
     new_types: list,
     new_values: list,
-    target_direction: typing.Union[None, Parameter],
+    target_direction: typing.Optional[str],
     timed_out: bool,
     return_message: str,
-    logger: typing.Any,
-) -> typing.Tuple[int, list, list, typing.Union[None, Parameter], bool, str]:
+    logger: logging.Logger,
+) -> typing.Tuple[int, list, list, typing.Optional[str], bool, str]:
     """Log return.
 
     :param exit_code: Exit value (0 ok, 1 error).
@@ -476,7 +477,7 @@ def task_returns(
     )
 
 
-def import_user_module(path: str, logger: typing.Any) -> typing.Any:
+def import_user_module(path: str, logger: logging.Logger) -> typing.Any:
     """Import the user module.
 
     :param path: Path to the user module.
@@ -499,14 +500,14 @@ def execute_task(
     storage_conf: str,
     params: list,
     tracing: bool,
-    logger: typing.Any,
+    logger: logging.Logger,
     logger_cfg: str,
     log_files: tuple,
     python_mpi: bool = False,
-    collections_layouts: typing.Optional[dict] = None,
+    collections_layouts: typing.Dict[str, typing.Tuple[int, int, int]] = {},
     in_cache_queue: typing.Any = None,
     out_cache_queue: typing.Any = None,
-    cache_ids: typing.Any = None,
+    cache_ids: typing.Optional[DictProxy] = None,
     cache_profiler: bool = False,
 ) -> typing.Tuple[int, list, list, typing.Optional[bool], str]:
     """Execute task main method.
@@ -755,9 +756,9 @@ def execute_task(
             # within the task decorator, the task_execution returns the value
             # of target_direction in order to know here if self has to be
             # serialized. This solution avoids to use inspect.
-            if target_direction is not None and target_direction.direction in (
-                parameter.DIRECTION.INOUT,
-                parameter.DIRECTION.COMMUTATIVE,
+            if target_direction is not None and target_direction in (
+                parameter.INOUT.key,
+                parameter.COMMUTATIVE.key,
             ):
                 if is_psco(obj):
                     # There is no explicit update if self is a PSCO.

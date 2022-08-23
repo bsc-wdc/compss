@@ -23,7 +23,6 @@ PyCOMPSs runtime - Task - Parameter.
 This file contains the classes needed for the task parameter definition.
 """
 
-import copy
 import sys
 
 from pycompss.api.parameter import Cache
@@ -81,7 +80,7 @@ class COMPSsFile:
         "original_path",
     ]
 
-    def __init__(self, file_name: str = "None") -> None:
+    def __init__(self, file_name: typing.Any = "None") -> None:
         """Compss File constructor.
 
         :param file_name: File name.
@@ -90,7 +89,7 @@ class COMPSsFile:
         self.destination_name = "None"  # type: str
         self.keep_source = False  # type: bool
         self.is_write_final = False  # type: bool
-        self.original_path = file_name  # type: str
+        self.original_path = file_name  # type: typing.Any
         if file_name is not None and isinstance(file_name, str) and ":" in file_name:
             fields = file_name.split(":")
             self.source_path = fields[0]
@@ -563,19 +562,6 @@ def get_new_parameter(key: str) -> Parameter:
     return Parameter(**_param_conversion_dict_[key])
 
 
-def get_parameter_copy(parameter: Parameter) -> Parameter:
-    """Copy the given parameter into a new one.
-
-    :param parameter: Parameter object.
-    :return: An equivalent Parameter copy of this object (note that it will
-             be equivalent, but not equal).
-    """
-    assert is_parameter(
-        parameter
-    ), f"Input parameter is not Parameter (is {parameter.__class__.__name__})"
-    return copy.deepcopy(parameter)
-
-
 def is_dict_specifier(value: typing.Any) -> bool:
     """Check if value is a supported dictionary.
 
@@ -621,6 +607,28 @@ def get_parameter_from_dictionary(dictionary: dict) -> Parameter:
     if Cache in dictionary:
         parameter.cache = dictionary[Cache]
     return parameter
+
+
+def get_direction_from_key(key: str) -> int:
+    """Return the direction (as integer) for the given key.
+
+    :param key: A direction key string (e.g. keys defined in Parameter).
+    :return: The associated integer value for the given key.
+    """
+    if key == PARAM_ALIAS_KEYS.IN:
+        return DIRECTION.IN
+    elif key == PARAM_ALIAS_KEYS.OUT:
+        return DIRECTION.OUT
+    elif key == PARAM_ALIAS_KEYS.INOUT:
+        return DIRECTION.INOUT
+    elif key == PARAM_ALIAS_KEYS.CONCURRENT:
+        return DIRECTION.CONCURRENT
+    elif key == PARAM_ALIAS_KEYS.COMMUTATIVE:
+        return DIRECTION.COMMUTATIVE
+    elif key == PARAM_ALIAS_KEYS.IN_DELETE:
+        return DIRECTION.IN_DELETE
+    else:
+        raise PyCOMPSsException(f"Wrong direction key: {key}")
 
 
 def get_compss_type(

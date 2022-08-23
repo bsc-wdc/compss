@@ -29,7 +29,7 @@ class TaskFeatures:  # pylint: disable=too-few-public-methods
 
     __slots__ = ["prepend_strings", "register_only", "object_conversion"]
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Instantiate task features class."""
         # Determine if strings should have a sharp symbol prepended or not
         self.prepend_strings = True

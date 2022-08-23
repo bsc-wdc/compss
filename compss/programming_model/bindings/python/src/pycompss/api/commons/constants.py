@@ -89,23 +89,28 @@ class _Labels:  # pylint: disable=too-few-public-methods, too-many-instance-attr
         "type",
     )
 
-    def __init__(self):  # pylint: disable=too-many-statements
+    def __init__(self) -> None:  # pylint: disable=too-many-statements
         # Expected labels
+        # - Task decorator
+        self.target_direction = "target_direction"
         self.returns = "returns"
+        self.cache_returns = "cache_returns"
         self.priority = "priority"
-        self.on_failure = "on_failure"
         self.defaults = "defaults"
         self.time_out = "time_out"
         self.is_replicated = "is_replicated"
         self.is_distributed = "is_distributed"
-        self.varargs_type = "varargs_type"
-        self.target_direction = "target_direction"
+        self.computing_nodes = "computing_nodes"
+        self.is_reduce = "is_reduce"
+        self.chunk_size = "chunk_size"
+        self.tracing_hook = "tracing_hook"
         self.numba = "numba"
         self.numba_flags = "numba_flags"
         self.numba_signature = "numba_signature"
         self.numba_declaration = "numba_declaration"
-        self.tracing_hook = "tracing_hook"
-        self.computing_nodes = "computing_nodes"
+        self.varargs_type = "varargs_type"
+        # - Others
+        self.on_failure = "on_failure"
         self.working_dir = "working_dir"
         self.params = "params"
         self.fail_by_exit_value = "fail_by_exit_value"
@@ -137,9 +142,7 @@ class _Labels:  # pylint: disable=too-few-public-methods, too-many-instance-attr
         self.management_cancel_successor = "CANCEL_SUCCESSORS"
         self.management_fail = "FAIL"
         self.kernel = "kernel"
-        self.chunk_size = "chunk_size"
-        self.is_reduce = "is_reduce"
-        self.cache_returns = "cache_returns"
+
         # Http tasks
         self.service_name = "service_name"
         self.resource = "resource"
@@ -172,7 +175,7 @@ class _LegacyLabels:  # pylint: disable=too-few-public-methods, too-many-instanc
         "source_class",
     )
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.is_replicated = "isReplicated"
         self.is_distributed = "isDistributed"
         self.varargs_type = "varargsType"
@@ -193,7 +196,7 @@ class _InternalLabels:  # pylint: disable=too-few-public-methods
 
     __slots__ = ["unassigned"]
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.unassigned = "[unassigned]"
 
 

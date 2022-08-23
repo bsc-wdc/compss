@@ -66,7 +66,7 @@ def clean_log_configs() -> None:
     CONFIGS.clear()
 
 
-def __read_log_config_file__(log_config_file: str) -> dict:
+def __read_log_config_file__(log_config_file: str) -> typing.Dict[str, dict]:
     """Read the given config file.
 
     If already read, retrieves from global dictionary.
@@ -212,7 +212,7 @@ def add_new_logger(logger_name: str) -> None:
 
 
 @contextmanager
-def swap_logger_name(logger: typing.Any, new_name: str) -> typing.Iterator[None]:
+def swap_logger_name(logger: logging.Logger, new_name: str) -> typing.Iterator[None]:
     """Swap the current logger with the new one.
 
     :param logger: Logger facility.

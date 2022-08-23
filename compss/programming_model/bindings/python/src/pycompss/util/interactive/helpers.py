@@ -25,6 +25,7 @@ Provides auxiliary methods for the interactive mode.
 
 import inspect
 import os
+from typing import Tuple, Dict
 
 from pycompss.util.typing_helper import typing
 
@@ -59,7 +60,7 @@ PREFIXES = (
 # ################################################################# #
 
 
-def update_tasks_code_file(function: typing.Any, file_path: str) -> None:
+def update_tasks_code_file(function: typing.Callable, file_path: str) -> None:
     """Update the file where the tasks code is stored.
 
     IMPORTANT! Main interactive helper function.
@@ -88,23 +89,30 @@ def update_tasks_code_file(function: typing.Any, file_path: str) -> None:
     functions_code = _get_functions()  # {"name": str(line\nline\n...)}
     task_code = _get_task_code(function)  # {"name": str(line\nline\n...)}
     old_code = _get_old_code(file_path)  # old_code structure:
+    (
+        old_code_imports,
+        old_code_globals,
+        old_code_classes,
+        old_code_functions,
+        old_code_tasks,
+    ) = old_code
     # {"imports":[import\n, import\n, ...],
     #  "tasks":{"name":str(line\nline\n...),
     #  "name":str(line\nline\n...), ...}}
 
     # Look for new/modified pieces of code and compares the existing code with
     # the new additions.
-    new_imports = _update_imports(imports, old_code["imports"])
-    new_globals = _update_globals(global_code, old_code["globals"])
-    new_classes = _update_classes(classes_code, old_code["classes"])
+    new_imports = _update_imports(imports, old_code_imports)
+    new_globals = _update_globals(global_code, old_code_globals)
+    new_classes = _update_classes(classes_code, old_code_classes)
     # Check that there are no functions with the same name as a newly defined
     # tasks
     for k in task_code:
-        functions_code.pop(k, None)
-        old_code["functions"].pop(k, None)
+        _ = functions_code.pop(k, None)
+        old_code_functions.pop(k, None)
     # Continue with comparisons
-    new_functions = _update_functions(functions_code, old_code["functions"])
-    new_tasks = _update_tasks(task_code, old_code["tasks"])
+    new_functions = _update_functions(functions_code, old_code_functions)
+    new_tasks = _update_tasks(task_code, old_code_tasks)
 
     # Update the file where the code is stored.
     _update_code_file(
@@ -137,7 +145,7 @@ def _create_tasks_code_file(file_path: str) -> None:
         user_code_file.write("\n")
 
 
-def _get_raw_code() -> list:
+def _get_raw_code() -> typing.List[str]:
     """Retrieve the raw code from interactive session.
 
     :return: the list of the blocks defined by the user that are currently
@@ -146,7 +154,7 @@ def _get_raw_code() -> list:
     import IPython  # noqa
 
     ipython = IPython.get_ipython()
-    raw_code = ipython.user_ns["In"]
+    raw_code = ipython.user_ns["In"]  # type: typing.List[str]
     return raw_code
 
 
@@ -303,7 +311,7 @@ def _get_classes() -> dict:
     return plain_classes
 
 
-def _get_functions() -> dict:
+def _get_functions() -> typing.Dict[str, str]:
     r"""Find the user defined functions in the code.
 
     Output dictionary: {"name": str(line\nline\n...)}
@@ -371,7 +379,7 @@ def _get_functions() -> dict:
     return plain_functions
 
 
-def _get_task_code(function: typing.Any) -> dict:
+def _get_task_code(function: typing.Callable) -> typing.Dict[str, str]:
     r"""Find the task code.
 
     :param function: Task function.
@@ -381,7 +389,7 @@ def _get_task_code(function: typing.Any) -> dict:
         task_code = inspect.getsource(function)
     except TypeError:
         # This is a numba jit declared task
-        task_code = inspect.getsource(function.py_func)
+        task_code = inspect.getsource(function.py_func)  # type: ignore
     if task_code.startswith((" ", "\t")):
         return {}
     name = ""
@@ -394,7 +402,7 @@ def _get_task_code(function: typing.Any) -> dict:
     return {name: task_code}
 
 
-def _clean(lines_list: list) -> list:
+def _clean(lines_list: typing.List[str]) -> typing.List[str]:
     r"""Remove the blank lines from a list of strings.
 
     * _get_old_code auxiliary method - Clean imports list.
@@ -413,7 +421,15 @@ def _clean(lines_list: list) -> list:
     return result
 
 
-def _get_old_code(file_path: str) -> dict:
+def _get_old_code(
+    file_path: str,
+) -> typing.Tuple[
+    typing.List[str],
+    typing.Dict[str, str],
+    typing.Dict[str, str],
+    typing.Dict[str, str],
+    typing.Dict[str, str],
+]:
     """Retrieve the old code from a file.
 
     :param file_path: The file where the code is located.
@@ -562,14 +578,15 @@ def _get_old_code(file_path: str) -> dict:
         task_name = task_header.replace("(", " (").split(" ")[1].strip()
         tasks[task_name] = task_code
 
-    old = {
-        "imports": file_imports,
-        "globals": globs,
-        "classes": classes,
-        "functions": functions,
-        "tasks": tasks,
-    }
-    return old
+    # old = {
+    #     "imports": file_imports,
+    #     "globals": globs,
+    #     "classes": classes,
+    #     "functions": functions,
+    #     "tasks": tasks,
+    # }
+    # return old
+    return file_imports, globs, classes, functions, tasks
 
 
 # #######################
@@ -577,7 +594,9 @@ def _get_old_code(file_path: str) -> dict:
 # #######################
 
 
-def _update_imports(new_imports: list, old_imports: list) -> list:
+def _update_imports(
+    new_imports: typing.List[str], old_imports: typing.List[str]
+) -> typing.List[str]:
     """Update imports.
 
     Compare the old imports against the new ones and returns the old imports
@@ -600,7 +619,9 @@ def _update_imports(new_imports: list, old_imports: list) -> list:
     return imports
 
 
-def _update_globals(new_globals: dict, old_globals: dict) -> dict:
+def _update_globals(
+    new_globals: typing.Dict[str, str], old_globals: typing.Dict[str, str]
+) -> typing.Dict[str, str]:
     """Update global variables.
 
     Compare the old globals against the new ones and returns the old globals
@@ -627,7 +648,9 @@ def _update_globals(new_globals: dict, old_globals: dict) -> dict:
     return old_globals
 
 
-def _update_classes(new_classes: dict, old_classes: dict) -> dict:
+def _update_classes(
+    new_classes: typing.Dict[str, str], old_classes: typing.Dict[str, str]
+) -> typing.Dict[str, str]:
     """Update classes.
 
     Compare the old classes against the new ones. This function is essential
@@ -652,7 +675,9 @@ def _update_classes(new_classes: dict, old_classes: dict) -> dict:
     return old_classes
 
 
-def _update_functions(new_functions: dict, old_functions: dict) -> dict:
+def _update_functions(
+    new_functions: typing.Dict[str, str], old_functions: typing.Dict[str, str]
+) -> typing.Dict[str, str]:
     """Update functions.
 
     Compare the old functions against the new ones. This function is essential
@@ -677,7 +702,9 @@ def _update_functions(new_functions: dict, old_functions: dict) -> dict:
     return old_functions
 
 
-def _update_tasks(new_tasks: dict, old_tasks: dict) -> dict:
+def _update_tasks(
+    new_tasks: typing.Dict[str, str], old_tasks: typing.Dict[str, str]
+) -> typing.Dict[str, str]:
     """Update task decorated functions.
 
     Compare the old tasks against the new ones. This function is essential due
@@ -721,11 +748,11 @@ def __show_redefinition_warning__(kind: str, name: str) -> None:
 
 
 def _update_code_file(
-    new_imports: list,
-    new_globals: dict,
-    new_classes: dict,
-    new_functions: dict,
-    new_tasks: dict,
+    new_imports: typing.List[str],
+    new_globals: typing.Dict[str, str],
+    new_classes: typing.Dict[str, str],
+    new_functions: typing.Dict[str, str],
+    new_tasks: typing.Dict[str, str],
     file_path: str,
 ) -> None:
     """Write the results to the code file used by the workers.

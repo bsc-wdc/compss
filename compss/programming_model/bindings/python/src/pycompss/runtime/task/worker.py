@@ -30,6 +30,7 @@ from shutil import copyfile
 
 from pycompss.api import parameter
 from pycompss.util.context import CONTEXT
+from pycompss.api.commons.constants import LABELS
 from pycompss.api.exceptions import COMPSsException
 from pycompss.runtime.binding import wait_on
 from pycompss.runtime.commons import CONSTANTS
@@ -40,9 +41,12 @@ from pycompss.runtime.task.arguments import is_kwarg
 from pycompss.runtime.task.arguments import is_return
 from pycompss.runtime.task.arguments import is_vararg
 from pycompss.runtime.task.commons import get_default_direction
-from pycompss.runtime.task.commons import get_varargs_direction
+from pycompss.runtime.task.definitions.arguments import TaskArguments
+from pycompss.runtime.task.definitions.function import FunctionDefinition
 from pycompss.runtime.task.parameter import Parameter
 from pycompss.runtime.task.parameter import get_compss_type
+from pycompss.runtime.task.parameter import get_new_parameter
+from pycompss.runtime.task.parameter import get_direction_from_key
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.logger.helpers import swap_logger_name
 from pycompss.util.objects.properties import create_object_by_con_type
@@ -62,6 +66,7 @@ from pycompss.worker.commons.worker import build_task_parameter
 # If supported in the future by another worker, add a common interface
 # with these two functions and import the appropriate.
 from pycompss.worker.piper.cache.tracker import CACHE_TRACKER
+from pycompss.worker.piper.cache.classes import TaskWorkerCache
 
 NP = None  # type: typing.Any
 try:
@@ -90,48 +95,31 @@ class TaskWorker:
         "param_varargs",
         "on_failure",
         "defaults",
-        "cache_ids",
-        "in_cache_queue",
-        "out_cache_queue",
-        "cached_references",
-        "cache_profiler",
+        "cache",
     ]
 
     def __init__(
         self,
-        decorator_arguments: typing.Dict[str, typing.Any],
-        user_function: typing.Callable,
-        on_failure: str,
-        defaults: dict,
+        decorator_arguments: TaskArguments,
+        decorated_function: FunctionDefinition,
     ) -> None:
         """Task at worker constructor.
 
         :param decorator_arguments: Decorator arguments.
-        :param user_function: User function (target function to execute).
-        :param on_failure: On failure action.
-        :param defaults: Default values for on failure action.
+        :param decorated_function: Decorated function.
         """
         # Initialize TaskCommons
-        self.user_function = user_function
         self.decorator_arguments = decorator_arguments
+        self.user_function = decorated_function.function
         self.param_args = []  # type: typing.List[typing.Any]
         self.param_varargs = None  # type: typing.Any
-        self.on_failure = on_failure
-        self.defaults = defaults
-
-        # These variables are initialized on call since they are only for
-        # the worker
-        self.cache_ids = None  # type: typing.Any
-        self.in_cache_queue = None  # type: typing.Any
-        self.out_cache_queue = None  # type: typing.Any
-        # Placeholder to keep the object references and avoid garbage collector
-        self.cached_references = []  # type: typing.List[typing.Any]
-        # If profiling cache
-        self.cache_profiler = False
+        self.on_failure = ""
+        self.defaults = {}  # type: dict
+        self.cache = TaskWorkerCache()
 
     def call(
         self, *args: typing.Any, **kwargs: typing.Any
-    ) -> typing.Tuple[list, list, Parameter, tuple]:
+    ) -> typing.Tuple[list, list, str, tuple]:
         """Run the task as worker.
 
         This function deals with task calls in the worker's side
@@ -148,8 +136,7 @@ class TaskWorker:
         # Save the args in a global place (needed from synchronize when using
         # nesting)
         SHARED_ARGUMENTS.set_worker_args(args)
-        # Grab LOGGER from kwargs (shadows outer LOGGER since it is set by
-        # the worker).
+        # Grab LOGGER from kwargs (shadows outer LOGGER since it is set by the worker).
         LOGGER = kwargs["compss_logger"]  # noqa
         with swap_logger_name(LOGGER, __name__):
             if __debug__:
@@ -173,22 +160,22 @@ class TaskWorker:
             ) if redirect_std else not_std_redirector():  # noqa: E501
 
                 # Update the on_failure attribute (could be defined by @on_failure)
-                if "on_failure" in self.decorator_arguments:
-                    self.on_failure = self.decorator_arguments["on_failure"]
-                    # if task defines on_failure property the decorator is ignored
-                    kwargs.pop("on_failure", None)
+                if LABELS.on_failure in kwargs:
+                    self.on_failure = kwargs.pop(LABELS.on_failure, "RETRY")
+                    self.decorator_arguments.on_failure = self.on_failure
                 else:
-                    self.on_failure = kwargs.pop("on_failure", "RETRY")
-                self.defaults = kwargs.pop("defaults", {})
+                    self.on_failure = self.decorator_arguments.on_failure
+                self.defaults = kwargs.pop(LABELS.defaults, {})
+                self.decorator_arguments.defaults = self.defaults
 
                 # Pop cache if available
                 cache = kwargs.pop("compss_cache", None)
                 if cache:
                     (
-                        self.in_cache_queue,
-                        self.out_cache_queue,
-                        self.cache_ids,
-                        self.cache_profiler,
+                        self.cache.in_queue,
+                        self.cache.out_queue,
+                        self.cache.ids,
+                        self.cache.profiler,
                     ) = cache
 
                 if __debug__:
@@ -275,31 +262,20 @@ class TaskWorker:
                     num_returns, user_returns, ret_params, python_mpi
                 )
 
-                # Check old targetDirection
-                if "targetDirection" in self.decorator_arguments:
-                    target_label = "targetDirection"
-                    LOGGER.info(
-                        "Detected deprecated targetDirection. "
-                        "Please, change it to target_direction"
-                    )
-                else:
-                    target_label = "target_direction"
-
                 # We must notify COMPSs when types are updated
                 new_types, new_values = self.manage_new_types_values(
                     num_returns,
                     user_returns,
                     args,
                     has_self,
-                    target_label,
                     self_type,
                     self_value,
                 )
 
                 # Clean cached references
-                if self.cached_references:
+                if self.cache.references:
                     # Let the garbage collector act
-                    self.cached_references = []  # loose all references
+                    self.cache.references = []  # loose all references
 
                 # Release memory after task execution
                 self.__release_memory__()
@@ -313,7 +289,7 @@ class TaskWorker:
         return (
             new_types,
             new_values,
-            self.decorator_arguments[target_label],
+            self.decorator_arguments.target_direction,
             args,
         )
 
@@ -356,10 +332,8 @@ class TaskWorker:
     def reveal_objects(
         self,
         args: tuple,
-        collections_layouts: typing.Any,
-        # typing.Union[typing.Dict[str, typing.Union[tuple, list]], None]
-        python_mpi: typing.Any = False,
-        # typing.Union[bool, None]
+        collections_layouts: typing.Dict[str, typing.Tuple[int, int, int]],
+        python_mpi: bool = False,
     ) -> None:
         """Get the objects from the args message.
 
@@ -414,10 +388,8 @@ class TaskWorker:
         self,
         argument: Parameter,
         name_prefix: str,
-        python_mpi: typing.Any,
-        # Union[bool, None]
-        collections_layouts: typing.Any,
-        # typing.Union[typing.Dict[str, typing.Union[tuple, list]], typing.Any]
+        python_mpi: bool,
+        collections_layouts: typing.Dict[str, typing.Tuple[int, int, int]],
         depth: int = 0,
         force_file: bool = False,
     ) -> None:
@@ -488,7 +460,7 @@ class TaskWorker:
             col_f_name = str(argument.file_name.original_path)
 
             # maybe it is an inner-collection..
-            _dec_arg = self.decorator_arguments.get(argument.name, None)
+            _dec_arg = self.decorator_arguments.get_parameter_or_none(argument.name)
             _col_dir = _dec_arg.direction if _dec_arg else None
             _col_dep = _dec_arg.depth if _dec_arg else depth
             if __debug__:
@@ -627,7 +599,7 @@ class TaskWorker:
             #     print(f.read())
 
             # Maybe it is an inner-dict-collection
-            _dec_arg = self.decorator_arguments.get(argument.name, None)
+            _dec_arg = self.decorator_arguments.get_parameter_or_none(argument.name)
             _dict_col_dir = _dec_arg.direction if _dec_arg else None
             _dict_col_dep = _dec_arg.depth if _dec_arg else depth
 
@@ -757,27 +729,29 @@ class TaskWorker:
         original_path = argument.file_name.original_path
 
         # Check if cache is available
-        cache = self.in_cache_queue is not None and self.out_cache_queue is not None
+        cache = self.cache.in_queue is not None and self.cache.out_queue is not None
         use_cache = False  # default store object in cache
 
         if cache:
             # Check if the user has defined that the parameter has or not to be
-            # cache explicitly
-            if not self.cache_profiler and name in self.decorator_arguments:
-                use_cache = self.decorator_arguments[name].cache
+            # stored in cache explicitly
+            if not self.cache.profiler and name in self.decorator_arguments.parameters:
+                use_cache = self.decorator_arguments.parameters[name].cache
             else:
                 if is_vararg(name):
                     vararg_name = get_name_from_vararg(name)
                     if (
-                        not self.cache_profiler
-                        and vararg_name in self.decorator_arguments
+                        not self.cache.profiler
+                        and vararg_name in self.decorator_arguments.parameters
                     ):
-                        use_cache = self.decorator_arguments[vararg_name].cache
-                elif self.cache_profiler:
+                        use_cache = self.decorator_arguments.parameters[
+                            vararg_name
+                        ].cache
+                elif self.cache.profiler:
                     use_cache = True
                 else:
                     # if not explicitly said, the object is candidate to be
-                    # cached
+                    # stored in cache
                     use_cache = False
             argument.cache = use_cache
             if __debug__ and cache:
@@ -785,7 +759,7 @@ class TaskWorker:
 
         if NP and cache and use_cache:
             # Check if the object is already in cache
-            if CACHE_TRACKER.in_cache(LOGGER, original_path, self.cache_ids):
+            if CACHE_TRACKER.in_cache(LOGGER, original_path, self.cache.ids):
                 # The object is cached
                 with EventInsideWorker(TRACING_WORKER.cache_hit_event):
                     if __debug__:
@@ -795,15 +769,15 @@ class TaskWorker:
                         )
                 retrieved, existing_shm = CACHE_TRACKER.retrieve_object_from_cache(
                     LOGGER,
-                    self.cache_ids,
-                    self.in_cache_queue,
-                    self.out_cache_queue,
+                    self.cache.ids,
+                    self.cache.in_queue,
+                    self.cache.out_queue,
                     original_path,
                     name,
                     self.user_function,
-                    self.cache_profiler,
+                    self.cache.profiler,
                 )
-                self.cached_references.append(existing_shm)
+                self.cache.references.append(existing_shm)
                 return retrieved
             # Else not in cache. Retrieve from file and put in cache if possible
             # source name : destination name : keep source : is write final value : original name
@@ -829,8 +803,8 @@ class TaskWorker:
                 # same file.
                 CACHE_TRACKER.insert_object_into_cache_wrapper(
                     LOGGER,
-                    self.in_cache_queue,
-                    self.out_cache_queue,
+                    self.cache.in_queue,
+                    self.cache.out_queue,
                     obj,
                     original_path,
                     name,
@@ -840,8 +814,7 @@ class TaskWorker:
 
         return deserialize_from_file(original_path)
 
-    def segregate_objects(self, args):
-        # type: (tuple) -> typing.Tuple[list, dict, list]
+    def segregate_objects(self, args: tuple) -> typing.Tuple[list, dict, list]:
         """Split a list of arguments.
 
         Segregates a list of arguments in user positional, variadic and
@@ -908,7 +881,7 @@ class TaskWorker:
                 if CONSTANTS.tracing_hook_env_var in os.environ:
                     hook_enabled = os.environ[CONSTANTS.tracing_hook_env_var] == "true"
                     global_tracing_hook = hook_enabled
-                if self.decorator_arguments["tracing_hook"] or global_tracing_hook:
+                if self.decorator_arguments.tracing_hook or global_tracing_hook:
                     # The user wants to keep the tracing hook
                     pass
                 else:
@@ -925,7 +898,7 @@ class TaskWorker:
             user_returns = None  # type: typing.Any
             compss_exception = None  # type: typing.Optional[COMPSsException]
             default_values = None  # type: typing.Optional[dict]
-            if self.decorator_arguments["numba"]:
+            if self.decorator_arguments.numba:
                 # Import all supported functionalities
                 from numba import jit
                 from numba import njit
@@ -935,8 +908,8 @@ class TaskWorker:
                 from numba import stencil
                 from numba import cfunc
 
-                numba_mode = self.decorator_arguments["numba"]
-                numba_flags = self.decorator_arguments["numba_flags"]
+                numba_mode = self.decorator_arguments.numba
+                numba_flags = self.decorator_arguments.numba_flags
                 if (
                     isinstance(numba_mode, dict)
                     or numba_mode is True
@@ -960,17 +933,13 @@ class TaskWorker:
                         *user_args, **user_kwargs
                     )
                 elif numba_mode == "vectorize":
-                    numba_signature = self.decorator_arguments[
-                        "numba_signature"
-                    ]  # noqa: E501
+                    numba_signature = self.decorator_arguments.numba_signature
                     user_returns = vectorize(numba_signature, **numba_flags)(
                         self.user_function
                     )(*user_args, **user_kwargs)
                 elif numba_mode == "guvectorize":
-                    numba_signature = self.decorator_arguments[
-                        "numba_signature"
-                    ]  # noqa: E501
-                    numba_decl = self.decorator_arguments["numba_declaration"]
+                    numba_signature = self.decorator_arguments.numba_signature
+                    numba_decl = self.decorator_arguments.numba_declaration
                     user_returns = guvectorize(
                         numba_signature, numba_decl, **numba_flags
                     )(self.user_function)(*user_args, **user_kwargs)
@@ -979,9 +948,7 @@ class TaskWorker:
                         *user_args, **user_kwargs
                     )
                 elif numba_mode == "cfunc":
-                    numba_signature = self.decorator_arguments[
-                        "numba_signature"
-                    ]  # noqa: E501
+                    numba_signature = self.decorator_arguments.numba_signature
                     user_returns = cfunc(numba_signature)(self.user_function).ctypes(
                         *user_args, **user_kwargs
                     )
@@ -995,31 +962,17 @@ class TaskWorker:
                     # Perform any required action on failure
                     user_returns, default_values = self.manage_exception()
                     compss_exception = compss_exc
-                    # Check old targetDirection
-                    if "targetDirection" in self.decorator_arguments:
-                        target_label = "targetDirection"
-                    else:
-                        target_label = "target_direction"
-                    compss_exception.target_direction = self.decorator_arguments[
-                        target_label
-                    ]
+                    # Set target direction in the exception
+                    compss_exception.target_direction = get_direction_from_key(
+                        self.decorator_arguments.target_direction
+                    )
                 except Exception as exc:  # pylint: disable=broad-except
                     if self.on_failure == "IGNORE":
                         # Perform any required action on failure
                         user_returns, default_values = self.manage_exception()
                     else:
                         # Re-raise the exception
-                        (
-                            trace,
-                            value,
-                            traceback,
-                        ) = sys.exc_info()  # type: typing.Any, typing.Any, typing.Any
-                        try:
-                            raise trace(value).with_traceback(traceback)
-                        except AttributeError as attribute_error:
-                            # This looses the info from the real place where
-                            # the error happened. Only happens with python 2.
-                            raise exc from attribute_error
+                        raise exc
 
             # Reestablish the hook if it was disabled
             if restore_hook:
@@ -1097,7 +1050,9 @@ class TaskWorker:
             real_direction = get_default_direction(
                 original_name, self.decorator_arguments, self.param_args
             )
-            param = self.decorator_arguments.get(original_name, real_direction)
+            param = self.decorator_arguments.get_parameter(
+                original_name, real_direction
+            )
             # Update args
             arg.direction = param.direction
 
@@ -1213,20 +1168,20 @@ class TaskWorker:
         name = argument.name
         original_path = argument.file_name.original_path
 
-        cache = self.in_cache_queue is not None and self.out_cache_queue is not None
-        if not self.cache_profiler and name in self.decorator_arguments:
-            use_cache = self.decorator_arguments[name].cache
-        elif self.cache_profiler:
+        cache = self.cache.in_queue is not None and self.cache.out_queue is not None
+        if not self.cache.profiler and name in self.decorator_arguments.parameters:
+            use_cache = self.decorator_arguments.parameters[name].cache
+        elif self.cache.profiler:
             use_cache = True
         else:
             # if not explicitly said, the object is candidate to be cached
             use_cache = False
         if NP and cache and use_cache:
-            if CACHE_TRACKER.in_cache(LOGGER, original_path, self.cache_ids):
+            if CACHE_TRACKER.in_cache(LOGGER, original_path, self.cache.ids):
                 CACHE_TRACKER.replace_object_into_cache(
                     LOGGER,
-                    self.in_cache_queue,
-                    self.out_cache_queue,
+                    self.cache.in_queue,
+                    self.cache.out_queue,
                     content,
                     original_path,
                     name,
@@ -1235,8 +1190,8 @@ class TaskWorker:
             else:
                 CACHE_TRACKER.insert_object_into_cache_wrapper(
                     LOGGER,
-                    self.in_cache_queue,
-                    self.out_cache_queue,
+                    self.cache.in_queue,
+                    self.cache.out_queue,
                     content,
                     original_path,
                     name,
@@ -1298,19 +1253,17 @@ class TaskWorker:
                 else:
                     serialize_to_file(obj, f_name)
                 if (
-                    self.in_cache_queue is not None
-                    and self.out_cache_queue is not None
-                    and (
-                        self.cache_profiler or self.decorator_arguments["cache_returns"]
-                    )
-                    and not CACHE_TRACKER.in_cache(LOGGER, f_name, self.cache_ids)
+                    self.cache.in_queue is not None
+                    and self.cache.out_queue is not None
+                    and (self.cache.profiler or self.decorator_arguments.cache_returns)
+                    and not CACHE_TRACKER.in_cache(LOGGER, f_name, self.cache.ids)
                 ):
                     if __debug__:
                         LOGGER.debug("Storing return in cache")
                     CACHE_TRACKER.insert_object_into_cache_wrapper(
                         LOGGER,
-                        self.in_cache_queue,
-                        self.out_cache_queue,
+                        self.cache.in_queue,
+                        self.cache.out_queue,
                         obj,
                         f_name,
                         "Return",
@@ -1327,19 +1280,21 @@ class TaskWorker:
         original_name = get_name_from_kwarg(name)
         # Get the args parameter object
         if is_vararg(original_name):
-            self.param_varargs, varargs_direction = get_varargs_direction(
-                self.param_varargs, self.decorator_arguments
-            )
-            return varargs_direction.content_type == -1
+            varargs_direction = self.decorator_arguments.varargs_type
+            param = get_new_parameter(varargs_direction)
+            return param.content_type == -1
         # Is this parameter annotated in the decorator?
-        if original_name in self.decorator_arguments:
+        if original_name in self.decorator_arguments.parameters:
             annotated = [
                 parameter.TYPE.COLLECTION,
                 parameter.TYPE.DICT_COLLECTION,
                 parameter.TYPE.EXTERNAL_STREAM,
                 -1,
             ]
-            return self.decorator_arguments[original_name].content_type in annotated
+            return (
+                self.decorator_arguments.parameters[original_name].content_type
+                in annotated
+            )
         # The parameter is not annotated in the decorator, so return default
         return True
 
@@ -1352,13 +1307,12 @@ class TaskWorker:
         original_name = get_name_from_kwarg(name)
         # Get the args parameter object
         if is_vararg(original_name):
-            self.param_varargs, varargs_direction = get_varargs_direction(
-                self.param_varargs, self.decorator_arguments
-            )
-            return varargs_direction.is_file_collection
+            varargs_direction = self.decorator_arguments.varargs_type
+            param = get_new_parameter(varargs_direction)
+            return param.is_file_collection
         # Is this parameter annotated in the decorator?
-        if original_name in self.decorator_arguments:
-            return self.decorator_arguments[original_name].is_file_collection
+        if original_name in self.decorator_arguments.parameters:
+            return self.decorator_arguments.parameters[original_name].is_file_collection
         # The parameter is not annotated in the decorator, so (by default)
         # return False
         return False
@@ -1369,7 +1323,6 @@ class TaskWorker:
         user_returns: typing.Any,
         args: tuple,
         has_self: bool,
-        target_label: str,
         self_type: int,
         self_value: typing.Any,
     ) -> typing.Tuple[list, list]:
@@ -1384,7 +1337,6 @@ class TaskWorker:
         :param user_returns: User returns.
         :param args: Arguments.
         :param has_self: If has self.
-        :param target_label: Target label (self, cls, etc.).
         :param self_type: Self type.
         :param self_value: Self value.
         :return: List new types, List new values.
@@ -1393,8 +1345,9 @@ class TaskWorker:
         if __debug__:
             LOGGER.debug("Building types update")
 
-        def build_collection_types_values(_content, _arg, direction):
-            # type: (typing.Any, Parameter, int) -> list
+        def build_collection_types_values(
+            _content: typing.Any, _arg: Parameter, direction: int
+        ) -> list:
             """Retrieve collection type-value recursively.
 
             :param _content: Object or list of objects.
@@ -1440,11 +1393,11 @@ class TaskWorker:
                     " a TaskParameter when building the task result message."
                 )
             original_name = get_name_from_kwarg(arg.name)
-            param = self.decorator_arguments.get(
-                original_name,
-                get_default_direction(
-                    original_name, self.decorator_arguments, self.param_args
-                ),
+            real_direction = get_default_direction(
+                original_name, self.decorator_arguments, self.param_args
+            )
+            param = self.decorator_arguments.get_parameter(
+                original_name, real_direction
             )
             if arg.content_type in (parameter.TYPE.EXTERNAL_PSCO, parameter.TYPE.FILE):
                 # It was originally a persistent object
@@ -1468,10 +1421,7 @@ class TaskWorker:
 
         # Add self type and value if exist
         if has_self:
-            if (
-                self.decorator_arguments[target_label].direction
-                == parameter.DIRECTION.INOUT
-            ):  # noqa: E501
+            if self.decorator_arguments.target_direction == parameter.INOUT.key:
                 # Check if self is a PSCO that has been persisted inside the
                 # task and target_direction.
                 # Update self type and value

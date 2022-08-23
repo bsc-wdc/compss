@@ -24,6 +24,7 @@ This file contains the Software class, needed for the software task definition
 through the decorator.
 """
 import json
+import types
 from functools import wraps
 
 from pycompss.util.context import CONTEXT
@@ -38,7 +39,7 @@ from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.decorator import resolve_fail_by_exit_value
 from pycompss.api.commons.implementation_types import IMPLEMENTATION_TYPES
-from pycompss.runtime.task.core_element import CE
+from pycompss.runtime.task.definitions.core_element import CE
 from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.typing_helper import typing
@@ -99,19 +100,19 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
         """
         decorator_name = "".join(("@", Software.__name__.lower()))
         # super(Software, self).__init__(decorator_name, *args, **kwargs)
-        self.task_type = None  # type: typing.Any
+        self.task_type = None  # type: typing.Optional[types.ModuleType]
         self.config_args = None  # type: typing.Any
-        self.decor = None  # type: typing.Any
-        self.constraints = None  # type: typing.Any
-        self.container = None  # type: typing.Any
-        self.prolog = None  # type: typing.Any
-        self.epilog = None  # type: typing.Any
+        self.decor = None  # type: typing.Optional[typing.Callable]
+        self.constraints = None  # type: typing.Optional[dict]
+        self.container = None  # type: typing.Optional[typing.Dict[str, str]]
+        self.prolog = None  # type: typing.Optional[typing.Dict[str, str]]
+        self.epilog = None  # type: typing.Optional[typing.Dict[str, str]]
 
         self.decorator_name = decorator_name
         self.args = args
         self.kwargs = kwargs
         self.scope = CONTEXT.in_pycompss()
-        self.core_element = None  # type: typing.Any
+        self.core_element = None  # type: typing.Optional[CE]
         self.core_element_configured = False
 
         if self.scope and CONTEXT.in_master():

@@ -23,10 +23,8 @@ PyCOMPSs Worker - Piper - Cache Tracker.
 This file contains the cache object tracker.
 IMPORTANT: Only used with python >= 3.8.
 """
-
-
+import logging
 import os
-from multiprocessing import Queue
 
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.objects.sizer import total_sizeof
@@ -35,6 +33,9 @@ from pycompss.util.tracing.helpers import EventInsideWorker
 from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.util.typing_helper import typing
 from pycompss.util.process.manager import create_shared_memory_manager
+from pycompss.util.process.manager import Queue
+from pycompss.util.process.manager import DictProxy
+from pycompss.worker.piper.cache.classes import CacheQueueMessage
 
 try:
     from pycompss.util.process.manager import SharedMemory
@@ -61,7 +62,7 @@ class SharedMemoryConfig:
 
     __slots__ = ["_auth_key", "_ip_address", "_port"]
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize a new SharedMemoryConfig instance object.
 
         All parameters are final.
@@ -109,13 +110,15 @@ class CacheTrackerConf:
 
     def __init__(
         self,
-        logger: typing.Any,
+        logger: logging.Logger,
         size: int,
         policy: str,
-        cache_ids: typing.Any,
+        cache_ids: DictProxy,
         cache_hits: typing.Dict[int, typing.Dict[str, int]],
-        profiler_dict: dict,
-        profiler_get_struct: typing.Any,
+        profiler_dict: typing.Dict[
+            str, typing.Dict[str, typing.Dict[str, typing.Dict[str, int]]]
+        ],
+        profiler_get_struct: typing.List[typing.List[str]],
         log_dir: str,
         cache_profiler: bool,
     ) -> None:
@@ -156,7 +159,7 @@ class CacheTracker:
         "lock",
     ]
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize a new SharedMemory instance object."""
         self.header = "[PYTHON CACHE]"
         # Shared memory manager to connect.
@@ -170,7 +173,7 @@ class CacheTracker:
         # Others
         self.lock = None  # type: typing.Any
 
-    def set_lock(self, lock):
+    def set_lock(self, lock: typing.Any) -> None:
         """Set lock for coherence.
 
         :param lock: Multiprocessing lock.
@@ -215,7 +218,7 @@ class CacheTracker:
 
     def retrieve_object_from_cache(
         self,
-        logger: typing.Any,
+        logger: logging.Logger,
         cache_ids: typing.Any,
         in_cache_queue: Queue,
         out_cache_queue: Queue,
@@ -275,7 +278,10 @@ class CacheTracker:
             filename = get_file_name_clean(identifier)
             function_name = __function_clean__(user_function)
 
-            in_cache_queue.put(("GET", (filename, parameter_name, function_name)))
+            message = CacheQueueMessage(
+                action="GET", messages=[filename, parameter_name, function_name]
+            )
+            in_cache_queue.put(message)
 
             # Add hit
             cache_ids[identifier][4] = obj_hits + 1
@@ -283,7 +289,7 @@ class CacheTracker:
 
     def insert_object_into_cache_wrapper(
         self,
-        logger: typing.Any,
+        logger: logging.Logger,
         in_cache_queue: Queue,
         out_cache_queue: Queue,
         obj: typing.Any,
@@ -325,7 +331,7 @@ class CacheTracker:
 
     def insert_object_into_cache(
         self,
-        logger: typing.Any,
+        logger: logging.Logger,
         in_cache_queue: Queue,
         out_cache_queue: Queue,
         obj: typing.Any,
@@ -350,12 +356,15 @@ class CacheTracker:
         # If no lock is defined may lead to unstable behaviour.
         if self.lock is not None:
             self.lock.acquire()
-        in_cache_queue.put(("IS_LOCKED", f_name))
+        message = CacheQueueMessage(action="IS_LOCKED", messages=[f_name])
+        in_cache_queue.put(message)
         is_locked = out_cache_queue.get()
-        in_cache_queue.put(("IS_IN_CACHE", f_name))
+        message = CacheQueueMessage(action="IS_IN_CACHE", messages=[f_name])
+        in_cache_queue.put(message)
         is_in_cache = out_cache_queue.get()
         if not is_locked and not is_in_cache:
-            in_cache_queue.put(("LOCK", f_name))
+            message = CacheQueueMessage(action="LOCK", messages=[f_name])
+            in_cache_queue.put(message)
         if self.lock is not None:
             self.lock.release()
         if is_locked:
@@ -396,21 +405,20 @@ class CacheTracker:
                         within_cache = NP.ndarray(shape, dtype=d_type, buffer=shm.buf)
                         within_cache[:] = obj[:]  # Copy contents
                         new_cache_id = shm.name
-                        in_cache_queue.put(
-                            (
-                                "PUT",
-                                (
-                                    f_name,
-                                    new_cache_id,
-                                    shape,
-                                    d_type,
-                                    size,
-                                    self.shared_memory_tag,
-                                    parameter,
-                                    function,
-                                ),
-                            )
+                        message = CacheQueueMessage(
+                            action="PUT",
+                            messages=[
+                                f_name,
+                                new_cache_id,
+                                self.shared_memory_tag,
+                                parameter,
+                                function,
+                            ],
+                            size=size,
+                            d_type=d_type,
+                            shape=shape,
                         )
+                        in_cache_queue.put(message)
                     elif isinstance(obj, list):
                         emit_manual_event_explicit(
                             TRACING_WORKER.binding_serialization_cache_size_type, 0
@@ -420,21 +428,20 @@ class CacheTracker:
                         )  # noqa
                         new_cache_id = shareable_list.shm.name
                         size = total_sizeof(obj)
-                        in_cache_queue.put(
-                            (
-                                "PUT",
-                                (
-                                    f_name,
-                                    new_cache_id,
-                                    0,
-                                    0,
-                                    size,
-                                    self.shareable_list_tag,
-                                    parameter,
-                                    function,
-                                ),
-                            )
+                        message = CacheQueueMessage(
+                            action="PUT",
+                            messages=[
+                                f_name,
+                                new_cache_id,
+                                self.shareable_list_tag,
+                                parameter,
+                                function,
+                            ],
+                            size=size,
+                            d_type=type(list),
+                            shape=(),  # only used with numpy
                         )
+                        in_cache_queue.put(message)
                     elif isinstance(obj, tuple):
                         emit_manual_event_explicit(
                             TRACING_WORKER.binding_serialization_cache_size_type, 0
@@ -444,21 +451,20 @@ class CacheTracker:
                         )  # noqa
                         new_cache_id = shareable_list.shm.name
                         size = total_sizeof(obj)
-                        in_cache_queue.put(
-                            (
-                                "PUT",
-                                (
-                                    f_name,
-                                    new_cache_id,
-                                    0,
-                                    0,
-                                    size,
-                                    self.shareable_tuple_tag,
-                                    parameter,
-                                    function,
-                                ),
-                            )
+                        message = CacheQueueMessage(
+                            action="PUT",
+                            messages=[
+                                f_name,
+                                new_cache_id,
+                                self.shareable_tuple_tag,
+                                parameter,
+                                function,
+                            ],
+                            size=size,
+                            d_type=type(list),
+                            shape=(),  # only used with numpy
                         )
+                        in_cache_queue.put(message)
                     else:
                         inserted = False
                         if __debug__:
@@ -487,11 +493,12 @@ class CacheTracker:
                             self.header,
                         )
                         logger.debug(str(key_error))
-                in_cache_queue.put(("UNLOCK", f_name))
+                message = CacheQueueMessage(action="UNLOCK", messages=[f_name])
+                in_cache_queue.put(message)
 
     def remove_object_from_cache(
         self,
-        logger: typing.Any,
+        logger: logging.Logger,
         in_cache_queue: Queue,
         out_cache_queue: Queue,
         f_name: str,
@@ -508,13 +515,14 @@ class CacheTracker:
             f_name = get_file_name(f_name)
             if __debug__:
                 logger.debug("%s Removing from cache: %s", self.header, str(f_name))
-            in_cache_queue.put(("REMOVE", f_name))
+            message = CacheQueueMessage(action="REMOVE", messages=[f_name])
+            in_cache_queue.put(message)
             if __debug__:
                 logger.debug("%s Removed from cache: %s", self.header, str(f_name))
 
     def replace_object_into_cache(
         self,
-        logger: typing.Any,
+        logger: logging.Logger,
         in_cache_queue: Queue,
         out_cache_queue: Queue,
         obj: typing.Any,
@@ -549,7 +557,7 @@ class CacheTracker:
         if __debug__:
             logger.debug("%s Replaced from cache: %s", self.header, str(f_name))
 
-    def in_cache(self, logger: typing.Any, f_name: str, cache: typing.Any) -> bool:
+    def in_cache(self, logger: logging.Logger, f_name: str, cache: typing.Any) -> bool:
         """Check if the given file name is in the cache.
 
         :param logger: Logger where to push messages.

@@ -199,7 +199,7 @@ public enum TraceEvent {
     PYTHON_EXTRACT_CORE_ELEMENT(105, TraceEventType.BINDING_MASTER, "Extract core element"), //
     PYTHON_PREPARE_CORE_ELEMENT(106, TraceEventType.BINDING_MASTER, "Prepare Core Element"), //
     PYTHON_UPDATE_CORE_ELEMENT(107, TraceEventType.BINDING_MASTER, "Update Core Element"), //
-    PYTHON_POP_TASK_PARAMETERS(108, TraceEventType.BINDING_MASTER, "Pop task parameters"), //
+    PYTHON_GET_UPPER_DECORATORS_KWARGS(108, TraceEventType.BINDING_MASTER, "Get upper decorators kwargs"), //
     PYTHON_PROCESS_OTHER_ARGUMENTS(109, TraceEventType.BINDING_MASTER, "Process task hints"), //
     PYTHON_PROCESS_PARAMETERS(110, TraceEventType.BINDING_MASTER, "Process function parameters"), //
     PYTHON_PROCESS_RETURN(111, TraceEventType.BINDING_MASTER, "Process return"), //

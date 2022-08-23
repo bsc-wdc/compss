@@ -36,6 +36,7 @@ from pycompss.api.dummy.reduction import reduction as dummy_reduction
 from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.typing_helper import typing
+from pycompss.runtime.task.definitions.core_element import CE
 
 if __debug__:
     import logging
@@ -79,7 +80,7 @@ class Reduction:  # pylint: disable=too-few-public-methods
         self.args = args
         self.kwargs = kwargs
         self.scope = CONTEXT.in_pycompss()
-        self.core_element = None  # type: typing.Any
+        self.core_element = None  # type: typing.Optional[CE]
         self.core_element_configured = False
         if self.scope:
             # Check the arguments

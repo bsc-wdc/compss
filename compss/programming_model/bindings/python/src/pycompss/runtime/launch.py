@@ -168,8 +168,8 @@ def __register_implementation_core_elements__() -> None:
     task_list = CONTEXT.get_to_register()
     for task, impl_signature in task_list:
         task.register_task()
-        task.registered = True
-        task.signature = impl_signature
+        task.decorated_function.registered = True
+        task.decorated_function.signature = impl_signature
 
 
 def compss_main() -> None:

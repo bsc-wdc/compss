@@ -31,7 +31,7 @@ from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.dummy.on_failure import on_failure as dummy_on_failure
-from pycompss.runtime.task.core_element import CE
+from pycompss.runtime.task.definitions.core_element import CE
 from pycompss.util.arguments import check_mandatory_arguments
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.typing_helper import typing
@@ -85,7 +85,7 @@ class OnFailure:  # pylint: disable=too-few-public-methods, too-many-instance-at
         self.args = args
         self.kwargs = kwargs
         self.scope = CONTEXT.in_pycompss()
-        self.core_element = None  # type: typing.Any
+        self.core_element = None  # type: typing.Optional[CE]
         self.core_element_configured = False
         if self.scope:
             # Check the arguments

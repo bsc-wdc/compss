@@ -23,6 +23,7 @@ PyCOMPSs Binding - Initialization.
 This file contains the initialization functionalities.
 """
 
+import logging
 from pycompss.util.typing_helper import typing
 
 
@@ -31,12 +32,12 @@ class LaunchStatus:
 
     __slots__ = ["app_path", "streaming", "persistent_storage", "logger"]
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Create a new state object."""
         self.app_path = "undefined"
         self.streaming = False
         self.persistent_storage = False
-        self.logger = None  # type: typing.Any
+        self.logger = logging.getLogger(__name__)  # type: logging.Logger
 
     def get_app_path(self) -> str:
         """Get APP_PATH value.
@@ -59,7 +60,7 @@ class LaunchStatus:
         """
         return self.persistent_storage
 
-    def get_logger(self) -> typing.Any:
+    def get_logger(self) -> logging.Logger:
         """Get LOGGER value.
 
         :return: Logger value.
@@ -90,7 +91,7 @@ class LaunchStatus:
         """
         self.persistent_storage = persistent_storage
 
-    def set_logger(self, logger: typing.Any) -> None:
+    def set_logger(self, logger: logging.Logger) -> None:
         """Set LOGGER value.
 
         :param: logger: New logger value.

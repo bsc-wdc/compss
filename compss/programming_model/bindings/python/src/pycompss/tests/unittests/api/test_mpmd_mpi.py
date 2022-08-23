@@ -20,7 +20,7 @@
 from pycompss.util.context import CONTEXT
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.mpmd_mpi import mpmd_mpi
-from pycompss.runtime.task.core_element import CE
+from pycompss.runtime.task.definitions.core_element import CE
 from pycompss.util.exceptions import PyCOMPSsException
 
 

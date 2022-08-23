@@ -121,7 +121,7 @@ class testArgumentWarning(unittest.TestCase):
         self.assertEqual(ev, 0)
 
     # TODO: currently, if the argument is not recognized -> ERROR
-    @unittest.skip("The runtime throws an error if unrecognized constraing")
+    @unittest.skip("The runtime throws an error if unrecognized constraint")
     def testConstraintArgWarn(self):
         pass
 

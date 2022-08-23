@@ -30,7 +30,7 @@ from pycompss.util.context import CONTEXT
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.dummy.constraint import constraint as dummy_constraint
-from pycompss.runtime.task.core_element import CE
+from pycompss.runtime.task.definitions.core_element import CE
 from pycompss.util.typing_helper import typing
 from pycompss.util.exceptions import PyCOMPSsException
 
@@ -72,7 +72,7 @@ class Constraint:  # pylint: disable=too-few-public-methods
         self.args = args
         self.kwargs = kwargs
         self.scope = CONTEXT.in_pycompss()
-        self.core_element = None  # type: typing.Any
+        self.core_element = None  # type: typing.Optional[CE]
         self.core_element_configured = False
 
     def __call__(self, user_function: typing.Callable) -> typing.Callable:

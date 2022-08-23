@@ -613,7 +613,7 @@ def stop(sync: bool = False, _hard_stop: bool = False) -> None:
 
 
 def __hard_stop__(
-    debug: bool, sync: bool, logger: typing.Any, ipython: typing.Any
+    debug: bool, sync: bool, logger: logging.Logger, ipython: typing.Any
 ) -> None:
     """Stop the binding securely when the runtime crashes.
 

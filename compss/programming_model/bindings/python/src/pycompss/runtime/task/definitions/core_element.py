@@ -18,7 +18,7 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs runtime - Task - Core element.
+PyCOMPSs runtime - Task - Definitions - Core element.
 
 This file contains the Core Element class, needed for the task registration.
 """

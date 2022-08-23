@@ -55,7 +55,7 @@ class LinkMessages:
         "command_done",
     ]
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Instantiate a new link messages object."""
         self.start = "START"
         self.set_debug = "SET_DEBUG"

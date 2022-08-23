@@ -35,6 +35,7 @@ from types import (
     MemberDescriptorType,
     MethodType,
 )
+from pycompss.util.typing_helper import typing
 
 try:
     import guppy
@@ -45,7 +46,7 @@ except Exception:
 hp = guppy.hpy()
 
 
-def _w(x):  # NOSONAR
+def _w(x: int):  # NOSONAR
     def f():  # NOSONAR
         x  # NOSONAR
 
@@ -61,7 +62,7 @@ del _w
 
 
 # -----------------------------------------------------------------------------
-def _write_struct_attr(addr, value, add_offset):
+def _write_struct_attr(addr: int, value: typing.Any, add_offset: int) -> None:
     ptr_size = ctypes.sizeof(ctypes.py_object)
     ptrs_in_struct = (3 if hasattr(sys, "getobjects") else 1) + add_offset
     offset = ptrs_in_struct * ptr_size + ctypes.sizeof(ctypes.c_ssize_t)
@@ -69,7 +70,11 @@ def _write_struct_attr(addr, value, add_offset):
     ctypes.memmove(addr + offset, ref, ptr_size)
 
 
-def _replace_attribute(source, rel, new):
+def _replace_attribute(
+    source: typing.Any,
+    rel: str,
+    new: typing.Any,
+) -> None:
     if isinstance(source, (MethodType, BuiltinFunctionType)):
         if rel == "__self__":
             # Note: PyMethodObject->im_self and PyCFunctionObject->m_self
@@ -95,7 +100,7 @@ def _replace_attribute(source, rel, new):
         print("Unknown R_ATTRIBUTE (read-only):", rel, type(source))
 
 
-def _replace_indexval(source, rel, new):
+def _replace_indexval(source: typing.Any, rel: typing.Any, new: typing.Any) -> None:
     if isinstance(source, tuple):
         temp = list(source)
         temp[rel] = new
@@ -104,11 +109,11 @@ def _replace_indexval(source, rel, new):
     source[rel] = new
 
 
-def _replace_indexkey(source, rel, new):
+def _replace_indexkey(source: typing.Any, rel: typing.Any, new: typing.Any) -> None:
     source[new] = source.pop(list(source.keys())[rel])
 
 
-def _replace_interattr(source, rel, new):
+def _replace_interattr(source: typing.Any, rel: str, new: typing.Any) -> None:
     if isinstance(source, CellType):
         api.PyCell_Set(ctypes.py_object(source), ctypes.py_object(new))
         return
@@ -118,7 +123,7 @@ def _replace_interattr(source, rel, new):
     print("Unknown R_INTERATTR:", rel, type(source))
 
 
-def _replace_local_var(source, rel, new):
+def _replace_local_var(source: typing.Any, rel: str, new: typing.Any) -> None:
     source.f_locals[rel] = new
     api.PyFrame_LocalsToFast(ctypes.py_object(source), ctypes.c_int(0))
 
@@ -132,12 +137,12 @@ _RELATIONS = {
 }
 
 
-def _path_key_func(path):
+def _path_key_func(path: Path) -> int:
     reltype = type(path.path[1]).__bases__[0]
     return 1 if reltype is Path.R_ATTRIBUTE else 0
 
 
-def replace(old, new):
+def replace(old: typing.Any, new: typing.Any) -> None:
     """Replace the old object with the new object.
 
     :param old: Old object.
@@ -155,7 +160,6 @@ def replace(old, new):
 
 
 # Commented out due to fails with mypy.
-# TODO: Include this code in unittests.
 # # -----------------------------------------------------------------------------
 # class A(object):     # NOSONAR
 #     def func(self):  # NOSONAR

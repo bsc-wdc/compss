@@ -23,11 +23,9 @@ PyCOMPSs Util - Context.
 This file contains the methods to detect the origin of the call stack.
 Useful to detect if we are in the master or in the worker.
 """
-
 import inspect
 from contextlib import contextmanager
 
-# Typing imports
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.typing_helper import typing
 
@@ -50,7 +48,7 @@ class Context:
         "to_register",
     ]
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Instantiate the context class."""
         # Final variables
         self.master = "MASTER"
@@ -103,21 +101,21 @@ class Context:
             caller_module = inspect.getmodule(caller_stack[0])
             self.who = str(caller_module)
 
-    def set_master(self):
+    def set_master(self) -> None:
         """Set the context to master.
 
         :return: None.
         """
         self.__set_pycompss_context__(self.master)
 
-    def set_worker(self):
+    def set_worker(self) -> None:
         """Set the context to worker.
 
         :return: None.
         """
         self.__set_pycompss_context__(self.worker)
 
-    def set_out_of_scope(self):
+    def set_out_of_scope(self) -> None:
         """Set the context to out of scope (not master nor worker).
 
         Usually for initialization or other tasks that are shared between

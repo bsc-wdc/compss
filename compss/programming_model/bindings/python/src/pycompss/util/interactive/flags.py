@@ -76,7 +76,7 @@ REQUIRED_FLAGS = {
     "external_adaptation": [[bool]],
     "propagate_virtual_environment": [[bool]],
     "mpi_worker": [[bool]],
-}
+}  # type: typing.Dict[str, typing.List[typing.List[typing.Union[object, str, bool, type]]]]
 
 
 def check_flags(all_vars: dict) -> typing.Tuple[bool, list]:
@@ -105,7 +105,11 @@ def check_flags(all_vars: dict) -> typing.Tuple[bool, list]:
     return is_ok, issues
 
 
-def __check_flag__(all_vars: dict, flag: str, requirements: typing.Any) -> list:
+def __check_flag__(
+    all_vars: dict,
+    flag: str,
+    requirements: typing.List[typing.List[typing.Union[object, str, bool, type]]],
+) -> list:
     """Check the given flag against the requirements looking for issues.
 
     :param all_vars: All variables.
@@ -141,7 +145,7 @@ def __check_flag__(all_vars: dict, flag: str, requirements: typing.Any) -> list:
     return issues
 
 
-def print_flag_issues(issues: list) -> None:
+def print_flag_issues(issues: typing.List[str]) -> None:
     """Display the given issues on stdout.
 
     :param issues: Flag issues.

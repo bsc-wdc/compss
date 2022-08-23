@@ -55,7 +55,7 @@ class Constants:
         "temp_obj_prefix",
     )
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Constant constructor.
 
         :returns: None.
@@ -124,7 +124,7 @@ class Globals:
 
     __slots__ = ("temp_dir", "object_conversion", "tracing_task_name_to_id")
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Global object constructor.
 
         :returns: None.

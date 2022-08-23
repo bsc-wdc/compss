@@ -24,14 +24,13 @@ This file contains the COMPSs runtime connection.
 Loads the external C module.
 """
 
+import logging
 from pycompss.runtime.management.link.separate import establish_interactive_link
 from pycompss.runtime.management.link.direct import establish_link
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.typing_helper import typing
 
 if __debug__:
-    import logging
-
     LOGGER = logging.getLogger(__name__)
 
 
@@ -46,7 +45,7 @@ class COMPSsModule:
 
     __slots__ = ["compss", "stdout", "stderr"]
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Create a new COMPSs object."""
         # COMPSs connection
         self.compss = None  # type: typing.Any
@@ -59,7 +58,9 @@ class COMPSsModule:
     ######################################################
 
     def load_runtime(
-        self, external_process: bool = False, _logger: typing.Any = None
+        self,
+        external_process: bool = False,
+        _logger: typing.Optional[logging.Logger] = None,
     ) -> None:
         """Load the external C extension module.
 

@@ -27,7 +27,6 @@ It helps to homogenize the behaviour between linux and mac.
 import multiprocessing
 from multiprocessing import Manager
 from multiprocessing.managers import SyncManager  # Used only for typing
-from multiprocessing.managers import DictProxy  # Used only for typing
 from multiprocessing import Process  # Used only for typing
 from multiprocessing import Queue  # Used only for typing
 
@@ -42,6 +41,9 @@ except ImportError:
     SharedMemory = None  # type: ignore
     ShareableList = None  # type: ignore
     SharedMemoryManager = None  # type: ignore
+
+# from multiprocessing.managers import DictProxy  # Used only for typing Python >= 3.8
+DictProxy = typing.Any  # type: ignore
 
 
 # Global variables
@@ -131,5 +133,5 @@ def create_proxy_dict() -> DictProxy:
     :return: Proxy dictionary.
     """
     manager = new_manager()
-    cache_ids = manager.dict()
+    cache_ids = manager.dict()  # type: DictProxy
     return cache_ids

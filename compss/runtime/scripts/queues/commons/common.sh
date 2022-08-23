@@ -106,6 +106,12 @@ EOT
 					    Default: ${DEFAULT_CONSTRAINTS}
 EOT
    fi
+   if [ -z "${DISABLE_QARG_LICENSES}" ] || [ "${DISABLE_QARG_LICENSES}" == "false" ]; then
+    cat <<EOT
+    --licenses=<licenses>	            Licenses to pass to queue system.
+					    Default: ${DEFAULT_LICENSES}
+EOT
+   fi
    if [ "${ENABLE_QARG_CLUSTER}" == "true" ]; then
     cat <<EOT
     --cluster=<cluster>                     Cluster to pass to queue system.
@@ -135,7 +141,7 @@ EOT
 
   if [ -z "${DISABLE_QARG_CPUS_PER_TASK}" ] || [ "${DISABLE_QARG_CPUS_PER_TASK}" == "false" ]; then
     cat <<EOT
-    --forward_cpus_per_node=<true|false>    Flag to indicate if number to cpus per node must be forwarded to the worker process. 
+    --forward_cpus_per_node=<true|false>    Flag to indicate if number to cpus per node must be forwarded to the worker process.
 					    The number of forwarded cpus will be equal to the cpus_per_node in a worker node and
                                             equal to the worker_in_master_cpus in a master node.
                                             Default: ${DEFAULT_FORWARD_CPUS_PER_NODE}
@@ -271,6 +277,10 @@ log_args() {
 
   if [ -z "${DISABLE_QARG_CONSTRAINTS}" ] || [ "${DISABLE_QARG_CONSTRAINTS}" == "false" ]; then
     echo "Constraints:               ${constraints}"
+  fi
+
+  if [ -z "${DISABLE_QARG_LICENSES}" ] || [ "${DISABLE_QARG_LICENSES}" == "false" ]; then
+    echo "Licenses:                  ${licenses}"
   fi
 
   if [ -z "${DISABLE_QARG_NVRAM}" ] || [ "${DISABLE_QARG_NVRAM}" == "false" ]; then
@@ -415,6 +425,10 @@ get_args() {
             constraints=${OPTARG//constraints=/}
             args_pass="$args_pass --$OPTARG"
             ;;
+          licenses=*)
+            licenses=${OPTARG//licenses=/}
+            args_pass="$args_pass --$OPTARG"
+            ;;
           cluster=*)
             cluster=${OPTARG//cluster=/}
             ;;
@@ -548,6 +562,10 @@ check_args() {
 
   if [ -z "${constraints}" ]; then
     constraints=${DEFAULT_CONSTRAINTS}
+  fi
+
+  if [ -z "${licenses}" ]; then
+    licenses=${DEFAULT_LICENSES}
   fi
 
   if [ -z "${qos}" ]; then
@@ -805,6 +823,17 @@ EOT
       if [ -z "${DISABLE_QARG_CONSTRAINTS}" ] || [ "${DISABLE_QARG_CONSTRAINTS}" == "false" ]; then
         cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
 #${QUEUE_CMD} ${QARG_CONSTRAINTS}${QUEUE_SEPARATOR}${constraints}
+EOT
+      fi
+    fi
+  fi
+
+  # Licenses
+  if [ -n "${QARG_LICENSES}" ]; then
+    if [ "${licenses}" != "disabled" ]; then
+      if [ -z "${DISABLE_QARG_LICENSES}" ] || [ "${DISABLE_QARG_LICENSES}" == "false" ]; then
+        cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
+#${QUEUE_CMD} ${QARG_LICENSES}${QUEUE_SEPARATOR}${licenses}
 EOT
       fi
     fi

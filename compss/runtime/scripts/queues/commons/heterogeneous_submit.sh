@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash
 
 #---------------------------------------------------
 # ERROR CONSTANTS DECLARATION
@@ -44,6 +44,10 @@ update_args_to_pass(){
         args_pass="--constraints=${constraints} ${args_pass}"
   fi
   # shellcheck disable=SC2154
+  if [ ! -z "${licenses}" ]; then
+        args_pass="--licenses=${licenses} ${args_pass}"
+  fi
+  # shellcheck disable=SC2154
   if [ ! -z "${node_memory}" ]; then
         args_pass="--node_memory=${node_memory} ${args_pass}"
   fi
@@ -63,7 +67,7 @@ update_args_to_pass(){
 }
 
 unset_type_vars(){
-  unset cpus_per_node gpus_per_node constraints num_nodes node_memory
+  unset cpus_per_node gpus_per_node constraints licenses num_nodes node_memory
   # TODO: Unset other changed parameters
 }
 
@@ -95,7 +99,7 @@ cleanup() {
 submit() {
   # Submit the job to the queue
   #eval ${SUBMISSION_CMD} ${SUBMISSION_PIPE}${TMP_SUBMIT_SCRIPT} 1>${TMP_SUBMIT_SCRIPT}.out 2>${TMP_SUBMIT_SCRIPT}.err
-  
+
   echo "Submit command: ${SUBMISSION_CMD}${SUBMISSION_HET_PIPE}${submit_files}"
   # shellcheck disable=SC2086
   eval ${SUBMISSION_CMD}${SUBMISSION_HET_PIPE}${submit_files}
@@ -118,7 +122,7 @@ submit() {
 
   # Get command args (from common.sh, includes sc_cfg)
   get_args "$@"
-  
+
   # Storing original arguments to pass
   original_args_pass="${args_pass}"
   if [ -f "${sc_cfg}" ]; then
@@ -135,19 +139,19 @@ submit() {
   # shellcheck source=../slurm/slurm.cfg
   # shellcheck disable=SC1091
   source "${COMPSS_HOME}Runtime/scripts/queues/commons/../queue_systems/${QUEUE_SYSTEM}.cfg"
-  
+
   check_heterogeneous_args
   # shellcheck source=./user/defined/file
   # shellcheck disable=SC1091
   source "${types_cfg_file}"
   # create application uuid
   uuid=$(cat /proc/sys/kernel/random/uuid)
- 
+
   # Create TMP submit script
   create_tmp_submit
   echo "submit files is set in ${TMP_SUBMIT_SCRIPT}"
   submit_files="${TMP_SUBMIT_SCRIPT}"
-  
+
   suffix=$(date +%s)
   if [ -z "${HETEROGENEOUS_MULTIJOB}" ] || [ "${HETEROGENEOUS_MULTIJOB}" = "false" ]; then
         echo "adding master node request headers ${TMP_SUBMIT_SCRIPT}"
@@ -157,14 +161,14 @@ submit() {
         set_time
         add_submission_headers
         add_packjob_separator
-        unset_type_vars 
-  fi     
+        unset_type_vars
+  fi
   echo " Parsing workers ${worker_types}"
   worker_num=1
   hostid=1
-  workers=$(echo "${worker_types}" | tr ',' ' ')  
+  workers=$(echo "${worker_types}" | tr ',' ' ')
   for worker in ${workers}; do
-    # Create tmp file or add packjob 
+    # Create tmp file or add packjob
     if [ ${worker_num} -gt 1 ]; then
        if [ "${HETEROGENEOUS_MULTIJOB}" == "true" ]; then
           create_tmp_submit
@@ -174,13 +178,13 @@ submit() {
           add_packjob_separator
        fi
     fi
-    # Eval worker description 
+    # Eval worker description
     worker_desc=$(echo "${worker}" | tr ':' ' ')
     eval ${worker_desc[0]}
     num_nodes=${worker_desc[1]}
     check_args
     set_time
-    if [ "${HETEROGENEOUS_MULTIJOB}" == "true" ]; then    
+    if [ "${HETEROGENEOUS_MULTIJOB}" == "true" ]; then
         if [ ${worker_num} -eq 1 ]; then
            update_args_to_pass "init" "${suffix}" "${hostid}" "${uuid}"
         else
@@ -238,7 +242,7 @@ submit() {
   else
      add_only_master_node
      add_launch
-  fi 
+  fi
   # Trap cleanup
   #trap cleanup EXIT
 

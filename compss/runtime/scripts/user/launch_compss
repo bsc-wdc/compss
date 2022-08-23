@@ -607,6 +607,9 @@ xml_project_add_elasticity() {
     if [ -n "${constraints}" ]; then
      props="$props constraints=${constraints}"
     fi
+    if [ -n "${licenses}" ]; then
+     props="$props licenses=${licenses}"
+    fi
     if [ -n "${container_opts}" ]; then
       props="$props container_opts=${container_opts}"
     fi
@@ -1176,7 +1179,7 @@ get_args() {
           # Specify if the tracing system re-organizes the threads
           tracing_delete_packages=${OPTARG//delete_trace_packages=/}
           args_pass="$args_pass --$OPTARG"
-          ;; 
+          ;;
         custom_threads=*)
           # Specify if the tracing system re-organizes the threads
           tracing_custom_threads=${OPTARG//custom_threads=/}
@@ -1317,6 +1320,10 @@ get_args() {
           # Added for elasticity
           constraints=${OPTARG//constraints=/}
           ;;
+        licenses=*)
+          # Added for lenox/slurm
+          licenses=${OPTARG//licenses=/}
+          ;;
         jupyter_notebook)
           jupyter_notebook=true
           jupyter_notebook_path=${DEFAULT_JUPYTER_NOTEBOOK_PATH}
@@ -1371,7 +1378,7 @@ get_args() {
 
   # Wrap full app path for lang inference
   fullAppPath=$1
-  
+
   if [ -z "${tracing_generate_trace}" ]; then
     args_pass="$args_pass --generate_trace=${DEFAULT_TRACE_GENERATION}"
   fi
@@ -2100,11 +2107,11 @@ launch() {
         exit $ev
       fi
     else
-      load_external_compss_environment	    
+      load_external_compss_environment
       if [ "${ipython}" = true ]; then
       	 ipython
       elif [ "${run_command}" = true ]; then
-	 echo "Running command: ${command_to_run}" 
+	 echo "Running command: ${command_to_run}"
          eval ${command_to_run}
       elif [ "${jupyter_notebook}" = true ]; then
          # Run jupyter notebook instead of the master within the jupyter_notebook_path
@@ -2115,7 +2122,7 @@ launch() {
     no_wait=false
   else
     echo "No master to run..."
-    no_wait=true   
+    no_wait=true
   fi
 }
 

@@ -51,7 +51,7 @@ load_SC_config(){
   if [ -f "${config_file}" ]; then
      # shellcheck source=../supercomputers/default.cfg
      # shellcheck disable=SC1091
-     # shellcheck disable=SC2154  
+     # shellcheck disable=SC2154
      source "${config_file}"
   else
      # Load specific queue system variables
@@ -67,7 +67,7 @@ load_SC_config(){
     fi
 
   fi
-  
+
   # Load SC Queue System options
   if [ -f "${COMPSS_HOME}Runtime/scripts/queues/queue_systems/${QUEUE_SYSTEM}.cfg" ]; then
     # Load specific queue system flags
@@ -119,6 +119,9 @@ parse_job_submission_options() {
         constraints=*)
           constraints=${OPTARG//constraints=/}
           ;;
+        licenses=*)
+          licenses=${OPTARG//licenses=/}
+          ;;
         cluster=*)
           cluster=${OPTARG//cluster=/}
           ;;
@@ -146,7 +149,7 @@ parse_job_submission_options() {
           ;;
         working_dir=*)
           submission_working_dir=${OPTARG//working_dir=/}
-          ;;          
+          ;;
         # extra flags
         extra_submit_flag=*)
           extra_submit_flag=(${extra_submit_flag[@]} ${OPTARG//extra_submit_flag=/})
@@ -173,16 +176,19 @@ log_submission_opts() {
   echo "    JobName:                   ${job_name}"
   if [ -n "${ENABLE_PROJECT_NAME}" ] && [ "${ENABLE_PROJECT_NAME}" == "true" ]; then
     echo "    Project name:              ${project_name}"
-  fi  
+  fi
   echo "    Queue:                     ${queue}"
   echo "    Reservation:               ${reservation}"
   if [ -z "${DISABLE_QARG_QOS}" ] || [ "${DISABLE_QARG_QOS}" == "false" ]; then
     echo "    QoS:                       ${qos}"
-  fi  
+  fi
   echo "    Exec-Time:                 ${wc_limit}"
   echo "    Job dependency:            ${dependencyJob}"
   if [ -z "${DISABLE_QARG_CONSTRAINTS}" ] || [ "${DISABLE_QARG_CONSTRAINTS}" == "false" ]; then
     echo "    Constraints:               ${constraints}"
+  fi
+  if [ -z "${DISABLE_QARG_LICENSES}" ] || [ "${DISABLE_QARG_LICENSES}" == "false" ]; then
+    echo "    Licenses:                  ${licenses}"
   fi
   if [ "${ENABLE_QARG_CLUSTER}" == "true" ]; then
     echo "    Cluster:                   ${cluster}"
@@ -215,7 +221,7 @@ check_job_submission_options() {
   # Check sc configuration argument
   if [ -z "${sc_cfg}" ]; then
     sc_cfg=${DEFAULT_SC_CFG}
-  fi  
+  fi
   load_SC_config "${sc_cfg}"
 
   ###############################################################
@@ -263,6 +269,10 @@ check_job_submission_options() {
     constraints=${DEFAULT_CONSTRAINTS}
   fi
 
+  if [ -z "${licenses}" ]; then
+    licenses=${DEFAULT_LICENSES}
+  fi
+
   if [ "${ENABLE_QARG_CLUSTER}" == "true" ] && [ -z "${cluster}" ]; then
     fatal_error "${ERROR_CLUSTER_NA}}" 1
   fi
@@ -307,13 +317,13 @@ check_job_submission_options() {
   if [ -z "${node_memory}" ]; then
     node_memory=${DEFAULT_NODE_MEMORY}
   elif [ "${node_memory}" != "disabled" ] && ! [[ "${node_memory}" =~ ^[0-9]+$ ]]; then
-    fatal_error "${ERROR_NODE_MEMORY}" 1 
+    fatal_error "${ERROR_NODE_MEMORY}" 1
   fi
-  
+
   if [ -z "${nvram_options}" ]; then
     nvram_options=${DEFAULT_NVRAM_OPTIONS}
   fi
- 
+
  # file systes can be empty
 
   if [ -z "${submission_working_dir}" ]; then
@@ -437,6 +447,17 @@ EOT
       if [ -z "${DISABLE_QARG_CONSTRAINTS}" ] || [ "${DISABLE_QARG_CONSTRAINTS}" == "false" ]; then
         cat >> "${submit_script}" << EOT
 #${QUEUE_CMD} ${QARG_CONSTRAINTS}${QUEUE_SEPARATOR}${constraints}
+EOT
+      fi
+    fi
+  fi
+
+  # Licenses
+  if [ -n "${QARG_LICENSES}" ]; then
+    if [ "${licenses}" != "disabled" ]; then
+      if [ -z "${DISABLE_QARG_LICENSES}" ] || [ "${DISABLE_QARG_LICENSES}" == "false" ]; then
+        cat >> "${submit_script}" << EOT
+#${QUEUE_CMD} ${QARG_LICENSES}${QUEUE_SEPARATOR}${licenses}
 EOT
       fi
     fi
@@ -656,7 +677,7 @@ append_only_worker_nodes(){
   local submit_script="${1}"
   local env_var_suffix=${2}
   # Host list parsing
-  
+
   cat >> "${submit_script}" << EOT
   if [ "${HOSTLIST_CMD}" == "nodes.sh" ]; then
     source "${COMPSS_HOME}Runtime/scripts/queues/${HOSTLIST_CMD}"

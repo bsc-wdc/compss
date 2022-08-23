@@ -63,7 +63,7 @@ cleanup() {
 show_trace_submission_opts() {
 
   load_SC_config "${DEFAULT_SC_CFG}"
-  
+
   # Show usage
   cat <<EOT
   Queue system configuration:
@@ -83,7 +83,7 @@ EOT
 
 EOT
   fi
-  cat <<EOT  
+  cat <<EOT
     --queue=<name>                          Queue/partition name to submit the job. Depends on the queue system.
                                             Default: ${DEFAULT_QUEUE}
 
@@ -110,6 +110,13 @@ EOT
     cat <<EOT
     --constraints=<constraints>		    Constraints to pass to queue system.
 					    Default: ${DEFAULT_CONSTRAINTS}
+
+EOT
+  fi
+  if [ -z "${DISABLE_QARG_LICENSES}" ] || [ "${DISABLE_QARG_LICENSES}" == "false" ]; then
+    cat <<EOT
+    --licenses=<licenses>		          Licenses to pass to queue system.
+					    Default: ${DEFAULT_LICENSES}
 
 EOT
   fi
@@ -172,7 +179,7 @@ EOT
 
     --specific_log_dir=<path>               Path where to leave the log information
                                             Default: same as output directory
-                                            
+
     --log_level=<level>                     Set the debug level: ${LOG_LEVEL_OFF} | ${LOG_LEVEL_INFO} | ${LOG_LEVEL_API} | ${LOG_LEVEL_DEBUG} | ${LOG_LEVEL_TRACE}
                                             Default: ${DEFAULT_LOG_LEVEL}
 
@@ -207,37 +214,37 @@ parse_trace_submission_options() {
           # Trae Generation options
           keep_packages=*)
             keep_packages=${OPTARG//keep_packages=/}
-            gen_trace_opts="${gen_trace_opts} --${OPTARG}" 
+            gen_trace_opts="${gen_trace_opts} --${OPTARG}"
             ;;
           custom_threads=*)
             custom_threads=${OPTARG//custom_threads=/}
-            gen_trace_opts="${gen_trace_opts} --${OPTARG}" 
+            gen_trace_opts="${gen_trace_opts} --${OPTARG}"
             ;;
           debug*)
             # Enable debug in log level
             log_level=${DEFAULT_LOG_LEVEL_ARGUMENT}
-            gen_trace_opts="${gen_trace_opts} --${OPTARG}" 
+            gen_trace_opts="${gen_trace_opts} --${OPTARG}"
             ;;
           log_dir=*)
             # Tracing system
             specific_log_dir=${OPTARG//log_dir=/}
-            gen_trace_opts="${gen_trace_opts} --${OPTARG}" 
+            gen_trace_opts="${gen_trace_opts} --${OPTARG}"
             ;;
           log_level=*)
             # Tracing system
             log_level=${OPTARG//log_level=/}
-            gen_trace_opts="${gen_trace_opts} --${OPTARG}" 
+            gen_trace_opts="${gen_trace_opts} --${OPTARG}"
             ;;
           out_dir=*)
             # Register desired output directory
             out_dir=${OPTARG//out_dir=/}
-            gen_trace_opts="${gen_trace_opts} --${OPTARG}" 
+            gen_trace_opts="${gen_trace_opts} --${OPTARG}"
             ;;
           trace_name=*)
             # Register desired trace name
             trace_name=${OPTARG//trace_name=/}
-            gen_trace_opts="${gen_trace_opts} --${OPTARG}" 
-            ;;          
+            gen_trace_opts="${gen_trace_opts} --${OPTARG}"
+            ;;
           *)
             # Flag didn't match any pattern. Add to submission
             submission_opts="${submission_opts} --$OPTARG"
@@ -245,8 +252,8 @@ parse_trace_submission_options() {
         esac
         ;;
       d)
-        log_level=${DEFAULT_LOG_LEVEL_ARGUMENT}      
-        gen_trace_opts="${gen_trace_opts} -${flag}" 
+        log_level=${DEFAULT_LOG_LEVEL_ARGUMENT}
+        gen_trace_opts="${gen_trace_opts} -${flag}"
         ;;
       *)
         # Flag didn't match any pattern. Add to submission.
@@ -283,7 +290,7 @@ log_trace_submission_opts() {
   # Display generic arguments
   log_submission_opts
   cat <<EOT
-COMPSs Paraver trace generation 
+COMPSs Paraver trace generation
   Traces:
     Input folder: ${in_dir}
     Output folder: ${out_dir}
@@ -292,7 +299,7 @@ COMPSs Paraver trace generation
   Merging Options:
     Custom threads: ${custom_threads}
     Keep packages: ${keep_packages}
-  
+
   Logging:
     Level: ${log_level}
     Folder: ${specific_log_dir}

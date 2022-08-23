@@ -590,6 +590,10 @@ get_args() {
           # Added for elasticity
           constraints=${OPTARG//constraints=/}
           ;;
+        licenses=*)
+          # Added for lenox/slurm
+          licenses=${OPTARG//licenses=/}
+          ;;
         jupyter_notebook)
           jupyter_notebook=true
           jupyter_notebook_path=${DEFAULT_JUPYTER_NOTEBOOK_PATH}
@@ -646,7 +650,7 @@ check_args() {
   if [ -z "${sc_cfg}" ]; then
     sc_cfg=${DEFAULT_SC_CFG}
   fi
-  
+
   if [ -f "${sc_cfg}" ]; then
      #sc_cfg is a file
      local scCfgFullPath=${sc_cfg}
@@ -736,7 +740,7 @@ check_args() {
   if [ -z "${python_cache_profiler}" ]; then
     python_cache_profiler=${DEFAULT_PYTHON_CACHE_PROFILER}
   fi
-  
+
   cache_supported=$($python_interpreter -c "import sys; print('true' if sys.version_info >= (3, 8) else 'false')")
   if [ "${cache_supported}" == "false" ]; then
     if [ "${python_worker_cache}" == "true" ]  || [ "${python_cache_profiler}" == "true" ]; then
@@ -839,7 +843,7 @@ check_args() {
     if [ "${worker_in_master_cpus}" -gt "0" ]; then
       total_num_workers=$((total_num_workers+1))
     fi
-  fi  
+  fi
 
   if [ -z "${master_port}" ]; then
     rand_num=$RANDOM
@@ -1241,7 +1245,7 @@ launch() {
       if [ $? -eq 0 ]; then
         CONFIRMED_AGENTS=$(( CONFIRMED_AGENTS + 1))
       fi
-      if [ -n "${forward_stop_to}" ]; then 
+      if [ -n "${forward_stop_to}" ]; then
         forward_stop_to="${forward_stop_to};"
       fi
       forward_stop_to="${forward_stop_to}${worker}${network}:46101"
@@ -1312,13 +1316,13 @@ wait_for_completion() {
 # Merge traces from all agents
 ###############################################
 merge_agents_traces() {
-  
+
   trace_dir=${specific_log_dir}trace
   mkdir -p "${trace_dir}"
 
   pushd . 1>/dev/null 2>/dev/null
   cd "${specific_log_dir}"
-  
+
   local trace_name=""
   if [ -n "${appName}" ]; then
     trace_name="${appName}_"
@@ -1329,7 +1333,7 @@ merge_agents_traces() {
   "compss_agent_merge_traces" "-f" "--result_trace_name=${trace_name}" "--output_dir=${trace_dir}" "${master_node}" ${worker_nodes}
 
   popd 1>/dev/null 2>/dev/null
-  
+
 }
 
 ###############################################

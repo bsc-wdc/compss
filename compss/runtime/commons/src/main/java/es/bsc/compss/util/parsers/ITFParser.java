@@ -449,12 +449,10 @@ public class ITFParser {
          * Global constraints of the method
          */
         MethodResourceDescription defaultConstraints = MethodResourceDescription.EMPTY_FOR_CONSTRAINTS.copy();
-        System.out.println("Parsing implementation");
         boolean processLocalGeneral = false;
         if (m.isAnnotationPresent(Constraints.class)) {
             Constraints generalConstraints = m.getAnnotation(Constraints.class);
             processLocalGeneral = generalConstraints.isLocal();
-            System.out.println("General constraint");
             defaultConstraints = new MethodResourceDescription(generalConstraints);
         }
 

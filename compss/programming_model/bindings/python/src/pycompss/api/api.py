@@ -268,9 +268,9 @@ def compss_barrier_group(group_name: str) -> None:
 
 
 def compss_cancel_group(group_name: str) -> None:
-    """Cancels a task group.
+    """Cancel a task group.
 
-   Cancels all the non finished tasks of a group.
+    Cancel all the non finished tasks of a group.
 
     :param group_name: Name of the group to wait.
     :return: None.

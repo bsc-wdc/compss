@@ -188,7 +188,7 @@ def compss_barrier_group(group_name: str) -> None:  # pylint: disable=unused-arg
 
 
 def compss_cancel_group(group_name: str) -> None:  # pylint: disable=unused-argument
-    """Cancels all submitted tasks of a group dummy.
+    """Cancel all submitted tasks of a group dummy.
 
     Does nothing.
 

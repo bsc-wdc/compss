@@ -447,7 +447,7 @@ def close_task_group(group_name: str) -> None:
         COMPSs.close_task_group(group_name, app_id)
 
 
-def cancel_task_group(group_name: str) -> None:
+def cancel_task_group(group_name: str) -> str:
     """Cancel task group.
 
     Calls the external python library (that calls the bindings-common)

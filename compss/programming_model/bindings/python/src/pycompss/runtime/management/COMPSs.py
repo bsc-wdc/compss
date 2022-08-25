@@ -240,7 +240,7 @@ class COMPSsModule:
         """
         self.compss.close_task_group(group_name, app_id)
 
-    def cancel_task_group(self, group_name: str, app_id: int) -> None:
+    def cancel_task_group(self, group_name: str, app_id: int) -> str:
         """Call to cancel_task_group.
 
         :param group_name: Group name.

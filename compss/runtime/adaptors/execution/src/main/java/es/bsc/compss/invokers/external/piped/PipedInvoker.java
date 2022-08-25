@@ -281,7 +281,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
                                     this.context.getRuntimeAPI().cancelTaskGroup(groupName, this.appId);
                                 }
                             }
-			        break;
+                                break;
                             case NO_MORE_TASKS: {
                                 if (this.appId != null) {
                                     this.context.getRuntimeAPI().noMoreTasks(this.appId);

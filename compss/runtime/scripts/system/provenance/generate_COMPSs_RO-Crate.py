@@ -46,6 +46,7 @@ def add_file_not_in_crate(in_url: str) -> None:
     :returns: None
     """
 
+    method_time = time.time()
     url_parts = urlsplit(in_url)
     final_item_name = os.path.basename(in_url)
     file_properties = {
@@ -55,12 +56,14 @@ def add_file_not_in_crate(in_url: str) -> None:
 
     if url_parts.scheme == "file":  # Dealing with a local file
         file_properties["contentSize"] = os.path.getsize(url_parts.path)
+        add_file_time = time.time()
         CRATE.add_file(
             in_url,
             fetch_remote=False,
             validate_url=False,  # True fails at MN4 when file URI points to a node hostname (only localhost works)
             properties=file_properties,
         )
+        add_file_time = time.time() - add_file_time
 
     elif url_parts.scheme == "dir":  # DIRECTORY parameter
         # For directories, describe all files inside the directory
@@ -95,6 +98,8 @@ def add_file_not_in_crate(in_url: str) -> None:
         # from the remote file
         CRATE.add_file(in_url, validate_url=True, properties=file_properties)
 
+    print(f"Method vs add_file TIME: {time.time() - method_time} vs {add_file_time}")
+
 
 def get_main_entities(list_of_files: list) -> typing.Tuple[str, str, str]:
     """
@@ -115,12 +120,12 @@ def get_main_entities(list_of_files: list) -> typing.Tuple[str, str, str]:
         main_entity_fn = Path(second_line)
         if main_entity_fn.suffix == ".py":  # PyCOMPSs, main_entity equals main_file.py
             # Need to check that the main_file.py defined in the log exists in the list of application files
-            if main_entity_fn.name not in list_of_files:
+            if any(Path(file).name == main_entity_fn.name for file in list_of_files):
+                main_entity = main_entity_fn.name
+            else:
                 main_entity = Path(list_of_files[0]).name  # Assign first file as main
                 print(f"PROVENANCE | WARNING: the detected mainEntity {main_entity_fn.name} does not exist in the list "
                       f"of application files provided in ro-crate-info.yaml. Setting {main_entity} as mainEntity")
-            else:
-                main_entity = main_entity_fn.name
         else:  # COMPSs Java application, consider first file as main
             main_entity = Path(list_of_files[0]).name
         third_line = next(f).rstrip()
@@ -514,18 +519,28 @@ Authors:
     # Process set of accessed files, as reported by COMPSs runtime.
     # This must be done before adding the Workflow to the RO-Crate
 
+    part_time = time.time()
     ins, outs = process_accessed_files()
+    print(f"PROVENANCE | RO-CRATE data_provenance.log processing TIME (process_accessed_files): {time.time() - part_time} s")
 
     # Add files that will be physically in the crate
+    part_time = time.time()
     for file in compss_wf_info["files"]:
         add_file_to_crate(file, compss_ver, main_entity, out_profile, ins, outs)
+    print(f"PROVENANCE | RO-CRATE adding physical files TIME (add_file_to_crate): {time.time() - part_time} s")
 
     # Add files not to be physically in the Crate
+    part_time = time.time()
     for item in ins:
         add_file_not_in_crate(item)
+    print(f"PROVENANCE | RO-CRATE adding input files' references TIME (add_file_not_in_crate): {time.time() - part_time} s")
 
+    part_time = time.time()
     for item in outs:
         add_file_not_in_crate(item)
+    print(
+        f"PROVENANCE | RO-CRATE adding output files' references TIME (add_file_not_in_crate): {time.time() - part_time} s")
+
 
     # COMPSs RO-Crate Provenance Info can be directly hardcoded by now
 
@@ -559,15 +574,20 @@ Authors:
     )
 
     # Dump to file
+    part_time = time.time()
     folder = "COMPSs_RO-Crate_" + str(uuid.uuid4()) + "/"
     CRATE.write(folder)
     print(f"PROVENANCE | COMPSs RO-Crate created successfully in subfolder {folder}")
+    print(f"PROVENANCE | RO-CRATE dump TIME: {time.time() - part_time} s")
     # cleanup from workingdir
     os.remove("compss_command_line_arguments.txt")
 
 
 if __name__ == "__main__":
     import sys
+    import time
+
+    exec_time = time.time()
 
     # Usage: python /path_to/generate_COMPSs_RO-Crate.py ro-crate-info.yaml /path_to/dataprovenance.log
     if len(sys.argv) != 3:
@@ -581,3 +601,5 @@ if __name__ == "__main__":
         path_dplog = Path(sys.argv[2])
         complete_graph = path_dplog.parent / "monitor/complete_graph.pdf"
     main()
+
+    print(f"PROVENANCE | RO-CRATE GENERATION TOTAL EXECUTION TIME: {time.time() - exec_time} s")

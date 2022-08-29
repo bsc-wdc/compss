@@ -26,6 +26,11 @@ from functools import wraps
 from pycompss.runtime.task.commons import get_varargs_direction
 from pycompss.util.context import CONTEXT
 from pycompss.api import binary
+from pycompss.api import parameter
+from pycompss.util.objects.util import group_iterable
+from pycompss.util.serialization.serializer import deserialize_from_file
+
+
 from pycompss.runtime.task.arguments import is_kwarg
 from pycompss.runtime.task.arguments import is_return
 from pycompss.runtime.task.arguments import is_vararg
@@ -33,12 +38,15 @@ from pycompss.util.typing_helper import typing
 from pycompss.runtime.task.parameter import Parameter
 from pycompss.runtime.task.arguments import get_name_from_kwarg
 from pycompss.runtime.task.arguments import get_name_from_vararg
+from pycompss.worker.commons.worker import build_task_parameter
+from pycompss.util.objects.properties import create_object_by_con_type
+
 
 
 if __debug__:
     import logging
 
-    logger = logging.getLogger(__name__)
+    LOGGER = logging.getLogger(__name__)
 
 
 class SoftConverter:  # pylint: disable=too-few-public-methods, too-many-instance-attributes
@@ -96,12 +104,12 @@ class SoftConverter:  # pylint: disable=too-few-public-methods, too-many-instanc
 
         if self.scope and CONTEXT.in_master():
             if __debug__:
-                logger.debug("Replacing @software decorator via converter..")
+                LOGGER.debug("Replacing @software decorator via converter..")
 
     def __call__(self, user_function: typing.Callable) -> typing.Callable:
         """
         """
-
+        global LOGGER
         @wraps(user_function)
         def converter_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
             if not self.scope:
@@ -120,6 +128,7 @@ class SoftConverter:  # pylint: disable=too-few-public-methods, too-many-instanc
                 for arg in args:
                     print(arg)
                 print("___________________________ user_kwargs")
+                # nm: fails here
                 self.reveal_objects(
                     args,
                     kwargs["compss_collections_layouts"],
@@ -545,6 +554,15 @@ class SoftConverter:  # pylint: disable=too-few-public-methods, too-many-instanc
             # If we have not entered in any of these cases we will assume
             # that the object was a basic type and the content is already
             # available and properly casted by the python worker
+
+    def recover_object(self, argument: Parameter) -> typing.Any:
+        """Recover the object within a file.
+
+        :param argument: Parameter object for the argument to recover.
+        :return: The object associated to the given argument Parameter.
+        """
+        original_path = argument.file_name.original_path
+        return deserialize_from_file(original_path)
 
     @staticmethod
     def storage_supports_pipelining() -> bool:

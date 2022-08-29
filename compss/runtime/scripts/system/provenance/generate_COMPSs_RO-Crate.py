@@ -114,7 +114,13 @@ def get_main_entities(list_of_files: list) -> typing.Tuple[str, str, str]:
         ).rstrip()  # Second, main_entity. Use better rstrip, just in case there is no '\n'
         main_entity_fn = Path(second_line)
         if main_entity_fn.suffix == ".py":  # PyCOMPSs, main_entity equals main_file.py
-            main_entity = main_entity_fn.name
+            # Need to check that the main_file.py defined in the log exists in the list of application files
+            if main_entity_fn.name not in list_of_files:
+                main_entity = Path(list_of_files[0]).name  # Assign first file as main
+                print(f"PROVENANCE | WARNING: the detected mainEntity {main_entity_fn.name} does not exist in the list "
+                      f"of application files provided in ro-crate-info.yaml. Setting {main_entity} as mainEntity")
+            else:
+                main_entity = main_entity_fn.name
         else:  # COMPSs Java application, consider first file as main
             main_entity = Path(list_of_files[0]).name
         third_line = next(f).rstrip()
@@ -167,8 +173,8 @@ def process_accessed_files() -> typing.Tuple[list, list]:
     l_outs = list(outputs)
     l_outs.sort()
 
-    print(f"INPUTS({len(l_ins)})")
-    print(f"OUTPUTS({len(l_outs)})")
+    print(f"PROVENANCE | INPUTS({len(l_ins)})")
+    print(f"PROVENANCE | OUTPUTS({len(l_outs)})")
 
     return l_ins, l_outs
 
@@ -320,11 +326,11 @@ def add_file_to_crate(
             )
 
     if file_path.name != main_entity:
-        print(f"Adding file: {file_path}")
+        print(f"PROVENANCE | Adding file: {file_path}")
         CRATE.add_file(file_path, properties=file_properties)
     else:
         # We get lang_version from dataprovenance.log
-        print(f"Adding file: {file_path.name}, file_path: {file_path}")
+        print(f"PROVENANCE | Adding file: {file_path.name}, file_path: {file_path}")
         CRATE.add_workflow(
             file_path,
             file_path.name,
@@ -365,7 +371,7 @@ def add_file_to_crate(
             CRATE.add_file(complete_graph, properties=file_properties)
         else:
             print(
-                f"WARNING: complete_graph.pdf file not found. Provenance will be generated without image property"
+                f"PROVENANCE | WARNING: complete_graph.pdf file not found. Provenance will be generated without image property"
             )
 
         # out_profile
@@ -389,7 +395,7 @@ def add_file_to_crate(
             CRATE.add_file(out_profile, properties=file_properties)
         else:
             print(
-                f"WARNING: COMPSs application profile has not been generated. \
+                f"PROVENANCE | WARNING: COMPSs application profile has not been generated. \
                   Make sure you use runcompss with --output_profile=file_name"
                 f"Provenance will be generated without profiling information"
             )
@@ -438,7 +444,7 @@ Authors:
             """
             ft.write(template)
             print(
-                f"ERROR: YAML file ro-crate-info.yaml not found in your working directory. A template has been generated"
+                f"PROVENANCE | ERROR: YAML file ro-crate-info.yaml not found in your working directory. A template has been generated"
                 f" in file ro-crate-info_TEMPLATE.yaml"
             )
         raise
@@ -502,7 +508,7 @@ Authors:
 
     compss_ver, main_entity, out_profile = get_main_entities(compss_wf_info["files"])
     print(
-        f"COMPSs version: {compss_ver}, main_entity is: {main_entity}, out_profile is: {out_profile}"
+        f"PROVENANCE | COMPSs version: {compss_ver}, main_entity is: {main_entity}, out_profile is: {out_profile}"
     )
 
     # Process set of accessed files, as reported by COMPSs runtime.
@@ -555,7 +561,7 @@ Authors:
     # Dump to file
     folder = "COMPSs_RO-Crate_" + str(uuid.uuid4()) + "/"
     CRATE.write(folder)
-    print(f"COMPSs RO-Crate created successfully in subfolder {folder}")
+    print(f"PROVENANCE | COMPSs RO-Crate created successfully in subfolder {folder}")
     # cleanup from workingdir
     os.remove("compss_command_line_arguments.txt")
 
@@ -566,7 +572,7 @@ if __name__ == "__main__":
     # Usage: python /path_to/generate_COMPSs_RO-Crate.py ro-crate-info.yaml /path_to/dataprovenance.log
     if len(sys.argv) != 3:
         print(
-            "Usage: python /path_to/generate_COMPSs_RO-Crate.py ro-crate-info.yaml /path_to/dataprovenance.log"
+            "PROVENANCE | Usage: python /path_to/generate_COMPSs_RO-Crate.py ro-crate-info.yaml /path_to/dataprovenance.log"
         )
         exit()
     else:

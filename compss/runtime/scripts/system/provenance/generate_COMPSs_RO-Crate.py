@@ -124,8 +124,10 @@ def get_main_entities(list_of_files: list) -> typing.Tuple[str, str, str]:
                 main_entity = main_entity_fn.name
             else:
                 main_entity = Path(list_of_files[0]).name  # Assign first file as main
-                print(f"PROVENANCE | WARNING: the detected mainEntity {main_entity_fn.name} does not exist in the list "
-                      f"of application files provided in ro-crate-info.yaml. Setting {main_entity} as mainEntity")
+                print(
+                    f"PROVENANCE | WARNING: the detected mainEntity {main_entity_fn.name} does not exist in the list "
+                    f"of application files provided in ro-crate-info.yaml. Setting {main_entity} as mainEntity"
+                )
         else:  # COMPSs Java application, consider first file as main
             main_entity = Path(list_of_files[0]).name
         third_line = next(f).rstrip()
@@ -194,10 +196,12 @@ def fix_dir_url(in_url: str) -> str:
     """
 
     runtime_url = urlsplit(in_url)
-    if runtime_url.scheme == "dir":  # Fix dir:// to file:// and ensure it ends with a slash
+    if (
+        runtime_url.scheme == "dir"
+    ):  # Fix dir:// to file:// and ensure it ends with a slash
         new_url = "file://" + runtime_url.netloc + runtime_url.path
-        if new_url[-1] != '/':
-            new_url += '/'  # Add end slash if needed
+        if new_url[-1] != "/":
+            new_url += "/"  # Add end slash if needed
         return new_url
     else:
         return in_url  # No changes required
@@ -521,26 +525,32 @@ Authors:
 
     part_time = time.time()
     ins, outs = process_accessed_files()
-    print(f"PROVENANCE | RO-CRATE data_provenance.log processing TIME (process_accessed_files): {time.time() - part_time} s")
+    print(
+        f"PROVENANCE | RO-CRATE data_provenance.log processing TIME (process_accessed_files): {time.time() - part_time} s"
+    )
 
     # Add files that will be physically in the crate
     part_time = time.time()
     for file in compss_wf_info["files"]:
         add_file_to_crate(file, compss_ver, main_entity, out_profile, ins, outs)
-    print(f"PROVENANCE | RO-CRATE adding physical files TIME (add_file_to_crate): {time.time() - part_time} s")
+    print(
+        f"PROVENANCE | RO-CRATE adding physical files TIME (add_file_to_crate): {time.time() - part_time} s"
+    )
 
     # Add files not to be physically in the Crate
     part_time = time.time()
     for item in ins:
         add_file_not_in_crate(item)
-    print(f"PROVENANCE | RO-CRATE adding input files' references TIME (add_file_not_in_crate): {time.time() - part_time} s")
+    print(
+        f"PROVENANCE | RO-CRATE adding input files' references TIME (add_file_not_in_crate): {time.time() - part_time} s"
+    )
 
     part_time = time.time()
     for item in outs:
         add_file_not_in_crate(item)
     print(
-        f"PROVENANCE | RO-CRATE adding output files' references TIME (add_file_not_in_crate): {time.time() - part_time} s")
-
+        f"PROVENANCE | RO-CRATE adding output files' references TIME (add_file_not_in_crate): {time.time() - part_time} s"
+    )
 
     # COMPSs RO-Crate Provenance Info can be directly hardcoded by now
 
@@ -602,4 +612,6 @@ if __name__ == "__main__":
         complete_graph = path_dplog.parent / "monitor/complete_graph.pdf"
     main()
 
-    print(f"PROVENANCE | RO-CRATE GENERATION TOTAL EXECUTION TIME: {time.time() - exec_time} s")
+    print(
+        f"PROVENANCE | RO-CRATE GENERATION TOTAL EXECUTION TIME: {time.time() - exec_time} s"
+    )

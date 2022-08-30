@@ -45,13 +45,13 @@
   #----------------------------------------------------------------------------------
   # Compute result status
   FILES=1
-  resultN=1 
+  resultN=2 
   tasks=5
 
   # Checks if the file has been writen as many times as expected
   result=$(cat /tmp/sharedDisk/onFailure1.txt)
   if [ "${result}" -ne $resultN ]; then
-    echo "ERROR: The number of writing tasks is not correct. ${#result} "
+    echo "ERROR: The number of writing tasks is not correct. ${result} "
     exit 1
   fi
 

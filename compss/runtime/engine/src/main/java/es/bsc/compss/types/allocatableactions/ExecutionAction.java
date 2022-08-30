@@ -233,6 +233,7 @@ public class ExecutionAction extends AllocatableAction implements JobListener {
         TaskMonitor monitor = this.task.getTaskMonitor();
         monitor.onSubmission();
         doInputTransfers();
+        this.task.setSubmitted();
     }
 
     @Override

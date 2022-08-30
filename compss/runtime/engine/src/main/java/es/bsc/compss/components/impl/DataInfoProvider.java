@@ -709,7 +709,7 @@ public class DataInfoProvider {
      *
      * @param dAccId DataAccessId.
      */
-    public void dataAccessHasBeenCanceled(DataAccessId dAccId) {
+    public void dataAccessHasBeenCanceled(DataAccessId dAccId, boolean keepModified) {
         Integer dataId = dAccId.getDataId();
         DataInfo di = this.idToData.get(dataId);
         if (di != null) {
@@ -725,11 +725,16 @@ public class DataInfoProvider {
                 case CV:
                 case RW:
                     rVersionId = ((RWAccessId) dAccId).getReadDataInstance().getVersionId();
-                    di.canceledReadVersion(rVersionId);
-                    // read and write data version can be removed
-                    // di.canceledVersion(rVersionId);
                     wVersionId = ((RWAccessId) dAccId).getWrittenDataInstance().getVersionId();
-                    deleted = di.canceledWriteVersion(wVersionId);
+                    if (keepModified) {
+                        di.versionHasBeenRead(rVersionId);
+                        // read data version can be removed
+                        di.tryRemoveVersion(rVersionId);
+                        deleted = di.versionHasBeenWritten(wVersionId);
+                    } else {
+                        di.canceledReadVersion(rVersionId);
+                        deleted = di.canceledWriteVersion(wVersionId);
+                    }
                     break;
                 default:// case W:
                     wVersionId = ((WAccessId) dAccId).getWrittenDataInstance().getVersionId();

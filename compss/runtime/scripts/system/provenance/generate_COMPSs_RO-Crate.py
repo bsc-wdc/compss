@@ -16,7 +16,6 @@
 #
 
 from rocrate.rocrate import ROCrate
-from rocrate import rocrate_api
 from rocrate.model.person import Person
 from rocrate.model.contextentity import ContextEntity
 from rocrate.model.entity import Entity
@@ -46,7 +45,7 @@ def add_file_not_in_crate(in_url: str) -> None:
     :returns: None
     """
 
-    method_time = time.time()
+    # method_time = time.time()
     url_parts = urlsplit(in_url)
     final_item_name = os.path.basename(in_url)
     file_properties = {
@@ -56,14 +55,14 @@ def add_file_not_in_crate(in_url: str) -> None:
 
     if url_parts.scheme == "file":  # Dealing with a local file
         file_properties["contentSize"] = os.path.getsize(url_parts.path)
-        add_file_time = time.time()
+        # add_file_time = time.time()
         CRATE.add_file(
             in_url,
             fetch_remote=False,
             validate_url=False,  # True fails at MN4 when file URI points to a node hostname (only localhost works)
             properties=file_properties,
         )
-        add_file_time = time.time() - add_file_time
+        # add_file_time = time.time() - add_file_time
 
     elif url_parts.scheme == "dir":  # DIRECTORY parameter
         # For directories, describe all files inside the directory
@@ -98,7 +97,7 @@ def add_file_not_in_crate(in_url: str) -> None:
         # from the remote file
         CRATE.add_file(in_url, validate_url=True, properties=file_properties)
 
-    print(f"Method vs add_file TIME: {time.time() - method_time} vs {add_file_time}")
+    # print(f"Method vs add_file TIME: {time.time() - method_time} vs {add_file_time}")
 
 
 def get_main_entities(list_of_files: list) -> typing.Tuple[str, str, str]:

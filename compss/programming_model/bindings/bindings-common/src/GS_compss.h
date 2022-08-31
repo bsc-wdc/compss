@@ -104,6 +104,7 @@ extern "C" void GS_BarrierNew(long appId, int noMoreTasks);
 extern "C" void GS_BarrierGroup(long appId, char* groupName, char** exceptionMessage);
 extern "C" void GS_OpenTaskGroup(char* groupName, int implicitBarrier, long appId);
 extern "C" void GS_CloseTaskGroup(char* groupName, long appId);
+extern "C" void GS_CancelTaskGroup(char* groupName, long appId, char** exceptionMessage);
 extern "C" void GS_Snapshot(long appId);
 extern "C" int GS_GetNumberOfResources(long appId);
 extern "C" void GS_RequestResources(long appId, int numResources, char* groupName);

@@ -66,6 +66,9 @@ public class Task extends AbstractTask {
     // Checkpoint group assigned to task
     private CheckpointGroup checkpointGroup;
 
+    // Flag to check if it was previously submitted. INOUT read reference could be
+    private boolean submitted;
+
 
     private Task(Application app, TaskMonitor monitor, TaskType type, Lang lang, String signature, boolean isPrioritary,
         int numNodes, boolean isReduction, boolean isReplicated, boolean isDistributed, OnFailure onFailure,
@@ -79,6 +82,7 @@ public class Task extends AbstractTask {
         String parallelismSource = app.getParallelismSource();
         this.taskDescription = new TaskDescription(type, lang, signature, core, parallelismSource, isPrioritary,
             numNodes, isReduction, isReplicated, isDistributed, hasTarget, numReturns, onFailure, timeOut, parameters);
+        this.submitted = false;
     }
 
     /**
@@ -479,6 +483,15 @@ public class Task extends AbstractTask {
     @Override
     public boolean isReduction() {
         return this.taskDescription.isReduction();
+    }
+
+    public boolean wasSubmited() {
+        return this.submitted;
+    }
+
+    public void setSubmitted() {
+        this.submitted = true;
+
     }
 
 }

@@ -201,8 +201,8 @@ public class MultiNodeExecutionAction extends ExecutionAction {
 
     @Override
     protected void doCanceled() {
-        if (!this.group.isCancelled()) {
-            this.group.setCancelled();
+        this.group.increaseCancelled();
+        if (this.group.isCancelled()) {
             super.doCanceled();
         } else {
             this.task.setStatus(TaskState.CANCELED);

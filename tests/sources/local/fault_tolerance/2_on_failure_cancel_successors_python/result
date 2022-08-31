@@ -46,7 +46,7 @@
  #----------------------------------------------------------------------------------
   # Compute result status
   FILES=1
-  resultN=1
+  resultN=2
   tasks=4
 
   # Checks if the file has been writen as many times as expected

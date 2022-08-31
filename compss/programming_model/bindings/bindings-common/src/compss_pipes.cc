@@ -734,6 +734,41 @@ void PIPE_CloseTaskGroup(char* groupName, long appId){
     debug_printf("[BINDING-COMMONS] - @PIPE_CloseTaskGroup - Task group %s closed.\n", groupName);
 }
 
+void PIPE_CancelTaskGroup(char* groupName, long appId, char** exceptionMessage){
+    debug_printf("[BINDING-COMMONS] - @PIPE_CancelTaskGroup - COMPSs group name: %s\n", groupName);
+
+    // MESSAGE: CANCEL_TASK_GROUP appId groupName
+    // NO RETURN
+    stringstream ss;
+    ss << "CANCEL_TASK_GROUP " << appId << " " << groupName << endl;
+    write_command_in_pipe(ss);
+	string result;
+	bool barrier_finished = false;
+	while (!barrier_finished) {
+		result = read_result_from_pipe();
+		const char* buf = result.c_str();
+		if (strncmp(buf, "COMPSS_EXCEPTION", 16) == 0) {
+			buf = buf + 22;
+			*exceptionMessage = strdup(buf);
+			barrier_finished = true;
+			debug_printf(
+					"[BINDING-COMMONS] - @PIPE_BarrierGroup - Barrier ended for COMPSs group name: %s with an exception\n",
+					groupName);
+		} else if (strncmp(buf, "SYNCH", 5) == 0) {
+			debug_printf(
+					"[BINDING-COMMONS] - @PIPE_BarrierGroup - Barrier ended for COMPSs group name: %s\n",
+					groupName);
+			barrier_finished = true;
+		} else {
+			debug_printf(
+					"[BINDING-COMMONS] - @PIPE_BarrierGroup - Unexpected command %s to release group: %s\n",
+					groupName);
+		}
+	}
+
+    debug_printf("[BINDING-COMMONS] - @PIPE_ClancelTaskGroup - Task group %s closed.\n", groupName);
+}
+
 
 void PIPE_Snapshot(long appId) {
 	debug_printf("[BINDING-COMMONS] - @PIPE_Snapshot - Snapshot for APP id: %lu\n", appId);

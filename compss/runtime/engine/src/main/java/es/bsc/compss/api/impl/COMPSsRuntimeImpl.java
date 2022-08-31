@@ -1075,6 +1075,15 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     }
 
     @Override
+    public void cancelTaskGroup(String groupName, Long appId) throws COMPSsException {
+        Application app = Application.registerApplication(appId);
+        ap.cancelTaskGroup(app, groupName);
+        // This is required that changes in metadata have been applied before
+        // generating new tasks
+        ap.barrierGroup(app, groupName);
+    }
+
+    @Override
     public void snapshot(Long appId) {
         if (Tracer.isActivated()) {
             Tracer.emitEvent(TraceEvent.SNAPSHOT_API);

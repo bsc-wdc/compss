@@ -233,6 +233,7 @@ public class ExecutionAction extends AllocatableAction implements JobListener {
         TaskMonitor monitor = this.task.getTaskMonitor();
         monitor.onSubmission();
         doInputTransfers();
+        this.task.setSubmitted();
     }
 
     @Override
@@ -663,13 +664,18 @@ public class ExecutionAction extends AllocatableAction implements JobListener {
                     job.setHistory(JobHistory.RESUBMITTED);
                     this.profile.setSubmissionTime(System.currentTimeMillis());
                     JobDispatcher.dispatch(job);
-                } else {
-                    if (this.task.getOnFailure() == OnFailure.IGNORE) {
-                        // Update info about the generated/updated data
-                        ErrorManager.warn("Ignoring failure.");
-                        doOutputTransfers(job);
-                    }
+                } else if (this.task.getOnFailure() == OnFailure.IGNORE) {
+                    // Update info about the generated/updated data
+                    ErrorManager.warn("Ignoring failure.");
+                    doOutputTransfers(job);
                     notifyError();
+                } else if (this.task.getOnFailure() == OnFailure.CANCEL_SUCCESSORS) {
+                    ErrorManager.warn("Cancelling successors.");
+                    doOutputTransfers(job);
+                    notifyError();
+                } else {
+                    notifyError();
+
                 }
             }
         }

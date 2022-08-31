@@ -56,6 +56,16 @@ public class COMPSs {
     }
 
     /**
+     * Cancel for a group of tasks.
+     * 
+     * @param groupName Name of the group to cancel.
+     */
+    public static void cancelGroup(String groupName) throws COMPSsException {
+        // This is only a handler, it is never executed
+        System.out.println(SKIP_MESSAGE);
+    }
+
+    /**
      * Unregister the given object from the Runtime.
      * 
      * @param o Object to unregister.

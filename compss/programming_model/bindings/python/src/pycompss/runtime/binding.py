@@ -447,6 +447,20 @@ def close_task_group(group_name: str) -> None:
         COMPSs.close_task_group(group_name, app_id)
 
 
+def cancel_task_group(group_name: str) -> str:
+    """Cancel task group.
+
+    Calls the external python library (that calls the bindings-common)
+    in order to request a group cancellation.
+
+    :param group_name: Group name.
+    :return: None or string with exception message.
+    """
+    with EventMaster(TRACING_MASTER.cancel_task_group_event):
+        app_id = 0
+        return str(COMPSs.cancel_task_group(group_name, app_id))
+
+
 def snapshot() -> None:
     """Make a snapshot of the tasks.
 

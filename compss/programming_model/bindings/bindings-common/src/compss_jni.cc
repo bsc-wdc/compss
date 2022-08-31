@@ -61,6 +61,7 @@ jmethodID midBarrierNew;                /* ID of the barrier method in the es.bs
 jmethodID midBarrierGroup;              /* ID of the barrierGroup method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midOpenTaskGroup;             /* ID of the openTaskGroup method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midCloseTaskGroup;            /* ID of the closeTaskGroup method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
+jmethodID midCancelTaskGroup;            /* ID of the cancelTaskGroup method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 
 jmethodID midSnapshot; 		            /* ID of the snapshot method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 
@@ -356,6 +357,10 @@ void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
     // closeTaskGroup method
     midCloseTaskGroup = status->localJniEnv->GetMethodID(clsITimpl, "closeTaskGroup", "(Ljava/lang/String;Ljava/lang/Long;)V");
     check_exception(status, "Cannot find closeTaskGroup");
+
+    // closeTaskGroup method
+    midCancelTaskGroup = status->localJniEnv->GetMethodID(clsITimpl, "cancelTaskGroup", "(Ljava/lang/String;Ljava/lang/Long;)V");
+    check_exception(status, "Cannot find cancelTaskGroup");
 
     // snapshot method
     midSnapshot = status->localJniEnv->GetMethodID(clsITimpl, "snapshot", "(Ljava/lang/Long;)V");
@@ -1646,6 +1651,25 @@ void JNI_CloseTaskGroup(char* groupName, long appId){
     access_revoke(status);
 
     debug_printf("[BINDING-COMMONS] - @JNI_CloseTaskGroup - Task group %s closed.\n", groupName);
+}
+
+void JNI_CancelTaskGroup(char* groupName, long appId, char** exceptionMessage){
+    debug_printf("[BINDING-COMMONS] - @JNI_CancelTaskGroup - COMPSs group name: %s\n", groupName);
+
+    // Request thread access to JVM
+    ThreadStatus* status = access_request();
+
+    // Perform operation
+    status->localJniEnv->CallVoidMethod(globalRuntime,
+                              midCancelTaskGroup,
+                              status->localJniEnv->NewStringUTF(groupName),
+                              status->localJniEnv->NewObject(clsLong, midLongCon, (jlong) appId));
+    check_and_get_compss_exception(status, exceptionMessage);
+
+    // Revoke thread access to JVM
+    access_revoke(status);
+
+    debug_printf("[BINDING-COMMONS] - @JNI_CancelTaskGroup - Task group %s canceled.\n", groupName);
 }
 
 void JNI_Snapshot(long appId) {

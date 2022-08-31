@@ -61,6 +61,7 @@ from pycompss.api.dummy.api import (
     compss_delete_object as __dummy_compss_delete_object__,
     compss_barrier as __dummy_compss_barrier__,
     compss_barrier_group as __dummy_compss_barrier_group__,
+    compss_cancel_group as __dummy_compss_cancel_group__,
     compss_snapshot as __dummy_compss_snapshot__,
     compss_wait_on as __dummy_compss_wait_on__,
     compss_get_number_of_resources as __dummy_compss_get_number_of_resources__,
@@ -90,6 +91,7 @@ if CONTEXT.in_pycompss():
         barrier_group as __barrier_group__,
         open_task_group as __open_task_group__,
         close_task_group as __close_task_group__,
+        cancel_task_group as __cancel_task_group__,
         snapshot as __snapshot__,
         get_number_of_resources as __get_number_of_resources__,
         request_resources as __request_resources__,
@@ -263,6 +265,22 @@ def compss_barrier_group(group_name: str) -> None:
             raise __COMPSsException__(exception_message)
     else:
         __dummy_compss_barrier_group__(group_name)
+
+
+def compss_cancel_group(group_name: str) -> None:
+    """Cancel a task group.
+
+    Cancel all the non finished tasks of a group.
+
+    :param group_name: Name of the group to wait.
+    :return: None.
+    """
+    if CONTEXT.in_pycompss():
+        exception_message = __cancel_task_group__(group_name)
+        if exception_message != "None":
+            raise __COMPSsException__(exception_message)
+    else:
+        __dummy_compss_cancel_group__(group_name)
 
 
 def compss_snapshot() -> None:

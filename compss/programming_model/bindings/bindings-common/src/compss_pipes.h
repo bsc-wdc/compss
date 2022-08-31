@@ -87,6 +87,7 @@ void PIPE_BarrierNew(long appId, int noMoreTasks);
 void PIPE_BarrierGroup(long appId, char* groupName, char** exceptionMessage);
 void PIPE_OpenTaskGroup(char* groupName, int implicitBarrier, long appId);
 void PIPE_CloseTaskGroup(char* groupName, long appId);
+void PIPE_CancelTaskGroup(char* groupName, long appId, char** exceptionMessage);
 void PIPE_Snapshot(long appId);
 int PIPE_GetNumberOfResources(long appId);
 void PIPE_RequestResources(long appId, int numResources, char* groupName);

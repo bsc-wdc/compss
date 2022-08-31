@@ -254,6 +254,9 @@ def c_extension_link(
             elif command == LINK_MESSAGES.close_task_group:
                 compss.close_task_group(*parameters)
                 out_queue.put(command_done)
+            elif command == LINK_MESSAGES.cancel_task_group:
+                compss.cancel_task_group(*parameters)
+                out_queue.put(command_done)
             elif command == LINK_MESSAGES.get_logging_path:
                 log_path = compss.get_logging_path()
                 out_queue.put(log_path)
@@ -461,6 +464,16 @@ class _COMPSs:
         :return: None.
         """
         self.in_queue.put((LINK_MESSAGES.close_task_group, group_name, app_id))
+        _ = self.out_queue.get(block=True)
+
+    def cancel_task_group(self, group_name: str, app_id: int) -> None:
+        """Call to cancel_task_group.
+
+        :param group_name: Group name.
+        :param app_id: Application identifier.
+        :return: None.
+        """
+        self.in_queue.put((LINK_MESSAGES.cancel_task_group, group_name, app_id))
         _ = self.out_queue.get(block=True)
 
     def get_logging_path(self) -> str:

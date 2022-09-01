@@ -9,7 +9,7 @@
 	<parent>
 		<groupId>es.bsc.compss.tests</groupId>
 		<artifactId>compss-tests-agents</artifactId>
-		<version>3.0.rc2208</version>
+		<version>3.0.rc2209</version>
 		<relativePath>..</relativePath>
 	</parent>
 

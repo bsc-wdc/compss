@@ -127,7 +127,7 @@ class Profile:
 
         return wrapped_f
 
-    def __print_report__(
+    def __print_report__(  # pylint: disable=too-many-arguments, too-many-locals
         self,
         start_time: float,
         job_name: str,
@@ -176,7 +176,8 @@ class Profile:
                     if usage > peak_memory:
                         peak_memory = usage
             mem_usage = f"{initial_memory} {final_memory} {peak_memory} MiB"
-            info_line = f"{start_time:.7f} {job_name} {file_name} {function_name} {elapsed_time} {mem_usage}"
+            info_line = f"{start_time:.7f} {job_name} {file_name} {function_name}"
+            info_line = f"{info_line} {elapsed_time} {mem_usage}"
             self.__redirect__(info_line)
         # Clear the stream for the next usage
         self.stream.truncate(0)

@@ -54,11 +54,11 @@ class StdWatcher:
         :returns: None.
         """
         self.running = False
-        self.messages = Queue()  # type: Queue
+        self.messages = Queue()  # type: Queue[str]
 
     @staticmethod
     def __watcher__(
-        fd_out: typing.Any, fd_err: typing.Any
+        fd_out: typing.TextIO, fd_err: typing.TextIO
     ) -> typing.Iterator[str]:  # pylint: disable=unused-argument
         """Look for new lines in fd_out and fd_err.
 

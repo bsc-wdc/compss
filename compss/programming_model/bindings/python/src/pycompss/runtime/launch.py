@@ -104,7 +104,7 @@ def stop_all(exit_code: int) -> None:
     sys.exit(exit_code)
 
 
-def parse_arguments() -> typing.Any:
+def parse_arguments() -> argparse.Namespace:
     """Parse PyCOMPSs arguments.
 
     :return: Argument's parser.

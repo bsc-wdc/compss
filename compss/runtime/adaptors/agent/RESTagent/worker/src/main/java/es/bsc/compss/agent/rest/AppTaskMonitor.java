@@ -30,6 +30,7 @@ import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.worker.COMPSsException;
 
 import java.util.List;
+import java.util.concurrent.Semaphore;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -230,16 +231,29 @@ public class AppTaskMonitor extends AppMonitor implements RESTAgentRequestHandle
     public void powerOff(List<String> forwardToHosts) {
         LOGGER.debug("AppTaskRequest completion initiates agent shutdown");
         if (forwardToHosts != null) {
+            final Semaphore sem = new Semaphore(0);
             for (String host : forwardToHosts) {
-                WebTarget target = CLIENT.target(host);
-                LOGGER.debug("Forwarding stop action to: " + (target != null ? target.toString() : "null"));
-                WebTarget wt = target.path("COMPSs/");
-                Response response = wt.request().delete(Response.class);
-                if (response.getStatusInfo().getStatusCode() != 200) {
-                    ErrorManager.warn("AGENT Could not forward stop action to " + wt + ", returned code: "
-                        + response.getStatusInfo().getStatusCode());
-                }
+                new Thread() {
+
+                    public void run() {
+                        WebTarget target = CLIENT.target(host);
+                        if (target != null) {
+                            LOGGER.debug("Forwarding stop action to: " + host);
+                            WebTarget wt = target.path("COMPSs/");
+                            Response response = wt.request().delete(Response.class);
+                            if (response.getStatusInfo().getStatusCode() != 200) {
+                                ErrorManager.warn("AGENT Could not forward stop action to " + wt + ", returned code: "
+                                    + response.getStatusInfo().getStatusCode());
+                            }
+                            LOGGER.debug(host + " has been stopped");
+                        } else {
+                            LOGGER.warn("Could not contact " + host + " to stop it");
+                        }
+                        sem.release();
+                    }
+                }.start();
             }
+            sem.acquireUninterruptibly(forwardToHosts.size());
         }
         /*
          * A new Thread is necessary since poweroff is executed by the AccessProcessor thread. Stopping the agent is

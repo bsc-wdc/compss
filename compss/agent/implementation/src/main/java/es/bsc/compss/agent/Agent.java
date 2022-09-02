@@ -402,7 +402,7 @@ public class Agent {
         monitor.setAppId(appId);
         LOGGER.debug("New request to run as a " + lang + " task " + ced.getCeSignature());
         LOGGER.debug("appId: " + appId);
-        LOGGER.debug("Ced.tostring: " + ced.toString());
+        LOGGER.debug("Core Element Description: " + ced.toString());
         LOGGER.debug("Parallelizing application according to " + ceiClass);
         LOGGER.debug("Parameters: ");
         for (ApplicationParameter param : arguments) {

@@ -24,7 +24,6 @@ This file contains the Software class, needed for the software task definition
 through the decorator.
 """
 import json
-import types
 import sys
 from functools import wraps
 from pycompss.runtime.task.master import TaskMaster
@@ -37,7 +36,6 @@ from pycompss.api import multinode
 from pycompss.api import http
 from pycompss.api import compss
 from pycompss.api import task
-from pycompss.api.soft_converter import conv
 from pycompss.api import parameter
 
 from pycompss.api.commons.constants import INTERNAL_LABELS
@@ -49,7 +47,6 @@ from pycompss.runtime.task.definitions.core_element import CE
 from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.typing_helper import typing
-from pycompss.util.logger.helpers import update_logger_handlers
 from pycompss.runtime.task.worker import TaskWorker
 
 
@@ -73,7 +70,7 @@ SUPPORTED_DECORATORS = {
 }
 
 
-class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-instance-attributes
+class SoftwareTask(task.task):  # pylint: disable=too-few-public-methods, too-many-instance-attributes
     """Software decorator class.
 
     When provided with a config file, it can replicate any existing python
@@ -111,15 +108,15 @@ class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-i
         :param kwargs: Keyword arguments
         """
         super().__init__(*args, **kwargs)
-        decorator_name = "".join(("@", Software.__name__.lower()))
+        decorator_name = "".join(("@", SoftwareTask.__name__.lower()))
         # super(Software, self).__init__(decorator_name, *args, **kwargs)
-        self.task_type = None  # type: typing.Optional[types.ModuleType]
+        self.task_type = None  # type: typing.Any
         self.config_args = None  # type: typing.Any
-        self.decor = None  # type: typing.Optional[typing.Callable]
-        self.constraints = None  # type: typing.Optional[dict]
-        self.container = None  # type: typing.Optional[typing.Dict[str, str]]
-        self.prolog = None  # type: typing.Optional[typing.Dict[str, str]]
-        self.epilog = None  # type: typing.Optional[typing.Dict[str, str]]
+        self.decor = None  # type: typing.Any
+        self.constraints = None  # type: typing.Any
+        self.container = None  # type: typing.Any
+        self.prolog = None  # type: typing.Any
+        self.epilog = None  # type: typing.Any
         self.parameters = dict()  # type: typing.Dict
         self.is_workflow = False  # type: bool
 
@@ -127,7 +124,7 @@ class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-i
         self.args = args
         self.kwargs = kwargs
         self.scope = CONTEXT.in_pycompss()
-        self.core_element = None  # type: typing.Optional[CE]
+        self.core_element = None  # type: typing.Any
         self.core_element_configured = False
 
         if self.scope and CONTEXT.in_master():
@@ -156,14 +153,12 @@ class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-i
         @wraps(user_function)
         def software_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
 
-            self.user_function = user_function
+            self.decorated_function.function = user_function
 
             if CONTEXT.in_worker():
                 worker = TaskWorker(
                     self.decorator_arguments,
-                    self.user_function,
-                    self.on_failure,
-                    self.defaults,
+                    self.decorated_function
                 )
                 result = worker.call(*args, **kwargs)
                 # Force flush stdout and stderr
@@ -237,6 +232,7 @@ class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-i
                 self.core_element_configured = True
 
             # todo: add comments
+            # move out if not decor
             if self.decor:
                 decorator = self.decor
                 if not self.parameters:
@@ -251,36 +247,15 @@ class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-i
                     if self.decor is task.task:
                         self.__check_core_element__(kwargs, user_function)
                         master = TaskMaster(
-                            self.decorator_arguments,
-                            self.user_function,
                             self.core_element,
-                            self.registered,
-                            self.signature,
-                            self.interactive,
-                            self.module,
-                            self.function_arguments,
-                            self.function_name,
-                            self.module_name,
-                            self.function_type,
-                            self.class_name,
-                            self.hints,
-                            self.on_failure,
-                            self.defaults,
+                            self.decorator_arguments,
+                            self.decorated_function
                         )
                         result = master.call(args, kwargs)
                         (
                             future_object,
                             self.core_element,
-                            self.registered,
-                            self.signature,
-                            self.interactive,
-                            self.module,
-                            self.function_arguments,
-                            self.function_name,
-                            self.module_name,
-                            self.function_type,
-                            self.class_name,
-                            self.hints,
+                            self.decorated_function
                         ) = result
                         del master
                         return future_object
@@ -348,60 +323,9 @@ class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-i
             if isinstance(v, str) and hasattr(parameter, v):
                 self.parameters[k] = getattr(parameter, v)
 
-
-def task_f(user_function, parameters, *args, **kwargs):
-    import inspect
-    tc = inspect.getsource(user_function)
-    lines = tc.split("\n")
-    lines = lines[1:]
-    tbi = "@task(" + str(format_json(parameters)) + ")"
-    lines.insert(0, tbi)
-    lines = "\n".join(lines)
-    orig_name = inspect.getsourcefile(user_function)
-    fp = "dt_" + orig_name
-    imports = get_imports(orig_name)
-    with open(fp, "a") as helper:
-        helper.writelines(imports)
-        helper.write("\n")
-        helper.write(lines)
-        helper.write("\n")
-
-    import importlib
-    mod = importlib.import_module(fp[:-3])
-    func = getattr(mod, str(user_function.__name__))
-    return func(*args, **kwargs)
-
-
-@conv()
-@task.task(compss_task_file=parameter.FILE_IN)
-def converted(*args, compss_task_file="dt_test.py", **kwargs):
-    pass
-
-
-def format_json(jeyson):
-    ret = ""
-    for k in jeyson:
-        ret += k + "=" + str(jeyson[k]) + ", "
-    return ret[:-2]
-
-
-def get_imports(file_name) -> list:
-    imports = []
-
-    with open(file_name, "r") as fayl:
-        lines = fayl.read().split("\n")
-
-    for line in lines:
-        if (
-            line.startswith("from") or line.startswith("import")
-        ) and "pycompss.interactive" not in line:
-            imports.append(line + "\n")
-    return imports
-
-
 # ########################################################################### #
 # ##################### Software DECORATOR ALTERNATIVE NAME ################# #
 # ########################################################################### #
 
 
-software = Software  # pylint: disable=invalid-name
+software = SoftwareTask  # pylint: disable=invalid-name

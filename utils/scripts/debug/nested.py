@@ -23,15 +23,18 @@ def parse(log_folder, out_ext):
     for name in os.listdir(log_folder) :
         agent_path = log_folder + "/" + name
         if os.path.isdir(agent_path):
-            agent=agents.register_agent(name)
-            expected_agent_name=agent.get_name()
-            agent_log = AgentLog(agent_path + "/agent.log")
-            agent_log.parse(agent)
-            final_agent_name=agent.get_name()
-            agents.rename_agent(expected_agent_name, final_agent_name)
-            
-            runtime_log = RuntimeLog(agent_path + "/runtime.log")
-            runtime_log.parse(agent.get_execution_state())
+            if os.path.exists(agent_path + "/agent.log"):
+                agent=agents.register_agent(name)
+                expected_agent_name=agent.get_name()
+                agent_log = AgentLog(agent_path + "/agent.log")
+                agent_log.parse(agent)
+                final_agent_name=agent.get_name()
+                agents.rename_agent(expected_agent_name, final_agent_name)
+                
+                runtime_log = RuntimeLog(agent_path + "/runtime.log")
+                runtime_log.parse(agent.get_execution_state())
+            else:
+                print("Ignoring folder " + agent_path, file=sys.stderr)
 
 def get_task_state(task):
     if task.get_state() == TaskState.FAILED:
@@ -46,53 +49,6 @@ def get_job_state(job):
     if job.get_status() == JobStatus.COMPLETED:
         return "✔"
     return "?"
-
-def print_app_tree(agent, app, tree_text="", first_line=""):
-    is_first = True
-    other_lines=" "*len(first_line)
-    nested_tasks = app.get_tasks()
-
-    size=len(nested_tasks)
-    taskCount=1
-    for task in nested_tasks:
-        task_line="{task"+task.get_id()+get_task_state(task)+","
-        actions = task.get_actions()
-        for action in actions:
-            jobs=action.get_jobs()
-            jobs=action.get_jobs()+action.get_jobs()
-            if len(jobs) == 0:
-                print(tree_text + (first_line if is_first else other_lines) + task_line + "Unsubmitted}")
-                is_first = False
-                task_line = " " * len(task_line)
-            else:
-                jobId=0
-                for job in jobs:
-                    if (jobId>0):
-                        task_line = " " * len(task_line)
-                    job_line="job"+job.get_id() + get_job_state(job)+"}"
-                    runner=job.get_resource()
-                    runner = agents.register_agent(runner.get_name())
-                    if agent == runner:
-                        app = job.get_nested_app()
-                        if app is None:
-                            print(tree_text + (first_line if is_first else other_lines) + task_line + job_line)
-                            is_first = False
-                        else:
-                            print(tree_text + (first_line if is_first else other_lines) + task_line + job_line + "-->"+"RECURSIVE")
-                            is_first = False
-                    else:
-                        line=line+"job"+job.get_id() + get_job_state(job)+"}-->"+runner.get_name()
-                        ej=runner.get_external_job(job.get_id())
-                        if ej is None:
-                            print(line+"{not reached}")
-                        else:
-                            external_app=ej.get_app()
-                            print("External app")
-                            print_app_tree(runner, external_app)
-                        
-                    jobId=jobId+1
-
-        taskCount=taskCount+1
 
 def trace_task(agent, task):
     trace = agent.get_name()+"{task"+task.get_id() + get_task_state(task) +","
@@ -127,7 +83,6 @@ def trace_task(agent, task):
                 subtrace, runner, app = trace_task (runner, remote_task)
 
             trace = trace + "--> "+subtrace
-    
 
     return trace, runner, app
 

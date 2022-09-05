@@ -24,7 +24,6 @@ This file contains the Software class, needed for the software task definition
 through the decorator.
 """
 import json
-import types
 import sys
 from functools import wraps
 from pycompss.runtime.task.master import TaskMaster
@@ -45,7 +44,7 @@ from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.decorator import resolve_fail_by_exit_value
 from pycompss.api.commons.implementation_types import IMPLEMENTATION_TYPES
-from pycompss.runtime.task.definitions.core_element import CE
+from pycompss.runtime.task.core_element import CE
 from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.typing_helper import typing
@@ -73,7 +72,7 @@ SUPPORTED_DECORATORS = {
 }
 
 
-class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-instance-attributes
+class SoftwareTask(task.task):  # pylint: disable=too-few-public-methods, too-many-instance-attributes
     """Software decorator class.
 
     When provided with a config file, it can replicate any existing python
@@ -111,15 +110,15 @@ class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-i
         :param kwargs: Keyword arguments
         """
         super().__init__(*args, **kwargs)
-        decorator_name = "".join(("@", Software.__name__.lower()))
+        decorator_name = "".join(("@", SoftwareTask.__name__.lower()))
         # super(Software, self).__init__(decorator_name, *args, **kwargs)
-        self.task_type = None  # type: typing.Optional[types.ModuleType]
+        self.task_type = None  # type: typing.Any
         self.config_args = None  # type: typing.Any
-        self.decor = None  # type: typing.Optional[typing.Callable]
-        self.constraints = None  # type: typing.Optional[dict]
-        self.container = None  # type: typing.Optional[typing.Dict[str, str]]
-        self.prolog = None  # type: typing.Optional[typing.Dict[str, str]]
-        self.epilog = None  # type: typing.Optional[typing.Dict[str, str]]
+        self.decor = None  # type: typing.Any
+        self.constraints = None  # type: typing.Any
+        self.container = None  # type: typing.Any
+        self.prolog = None  # type: typing.Any
+        self.epilog = None  # type: typing.Any
         self.parameters = dict()  # type: typing.Dict
         self.is_workflow = False  # type: bool
 
@@ -127,7 +126,7 @@ class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-i
         self.args = args
         self.kwargs = kwargs
         self.scope = CONTEXT.in_pycompss()
-        self.core_element = None  # type: typing.Optional[CE]
+        self.core_element = None  # type: typing.Any
         self.core_element_configured = False
 
         if self.scope and CONTEXT.in_master():
@@ -237,6 +236,7 @@ class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-i
                 self.core_element_configured = True
 
             # todo: add comments
+            # move out if not decor
             if self.decor:
                 decorator = self.decor
                 if not self.parameters:
@@ -404,4 +404,4 @@ def get_imports(file_name) -> list:
 # ########################################################################### #
 
 
-software = Software  # pylint: disable=invalid-name
+software = SoftwareTask  # pylint: disable=invalid-name

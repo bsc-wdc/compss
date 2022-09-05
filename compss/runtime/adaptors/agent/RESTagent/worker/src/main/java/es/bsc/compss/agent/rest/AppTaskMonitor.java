@@ -229,32 +229,6 @@ public class AppTaskMonitor extends AppMonitor implements RESTAgentRequestHandle
 
     @Override
     public void powerOff(List<String> forwardToHosts) {
-        LOGGER.debug("AppTaskRequest completion initiates agent shutdown");
-        if (forwardToHosts != null) {
-            final Semaphore sem = new Semaphore(0);
-            for (String host : forwardToHosts) {
-                new Thread() {
-
-                    public void run() {
-                        WebTarget target = CLIENT.target(host);
-                        if (target != null) {
-                            LOGGER.debug("Forwarding stop action to: " + host);
-                            WebTarget wt = target.path("COMPSs/");
-                            Response response = wt.request().delete(Response.class);
-                            if (response.getStatusInfo().getStatusCode() != 200) {
-                                ErrorManager.warn("AGENT Could not forward stop action to " + wt + ", returned code: "
-                                    + response.getStatusInfo().getStatusCode());
-                            }
-                            LOGGER.debug(host + " has been stopped");
-                        } else {
-                            LOGGER.warn("Could not contact " + host + " to stop it");
-                        }
-                        sem.release();
-                    }
-                }.start();
-            }
-            sem.acquireUninterruptibly(forwardToHosts.size());
-        }
         /*
          * A new Thread is necessary since poweroff is executed by the AccessProcessor thread. Stopping the agent is
          * sinchronous and waits for the whole COMPSs runtime to stop; therefore, the AccessProcessor waits for himself
@@ -264,6 +238,34 @@ public class AppTaskMonitor extends AppMonitor implements RESTAgentRequestHandle
 
             @Override
             public void run() {
+
+                LOGGER.debug("AppTaskRequest completion initiates agent shutdown");
+                if (forwardToHosts != null) {
+                    final Semaphore sem = new Semaphore(0);
+                    for (String host : forwardToHosts) {
+                        new Thread() {
+
+                            public void run() {
+                                WebTarget target = CLIENT.target(host);
+                                if (target != null) {
+                                    LOGGER.debug("Forwarding stop action to: " + host);
+                                    WebTarget wt = target.path("COMPSs/");
+                                    Response response = wt.request().delete(Response.class);
+                                    if (response.getStatusInfo().getStatusCode() != 200) {
+                                        ErrorManager.warn("AGENT Could not forward stop action to " + wt
+                                            + ", returned code: " + response.getStatusInfo().getStatusCode());
+                                    }
+                                    LOGGER.debug(host + " has been stopped");
+                                } else {
+                                    LOGGER.warn("Could not contact " + host + " to stop it");
+                                }
+                                sem.release();
+                            }
+                        }.start();
+                    }
+                    sem.acquireUninterruptibly(forwardToHosts.size());
+                }
+
                 AppTaskMonitor.this.owner.powerOff();
             }
         }.start();

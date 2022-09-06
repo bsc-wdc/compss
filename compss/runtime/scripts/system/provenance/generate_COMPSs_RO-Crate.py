@@ -120,18 +120,21 @@ def get_main_entities(wf_info: dict) -> typing.Tuple[str, str, str]:
         list_of_files = wf_info["files"]
         backup_main_entity = Path(list_of_files[0]).name  # Assign first file name as mainEntity
     if "sources_dir" in wf_info:
-        for root, dirs, files in os.walk(wf_info["sources_dir"], topdown=True):
+        path_sources = Path(wf_info["sources_dir"]).expanduser()
+        resolved_sources = str(path_sources.resolve())
+        # print(f"resolved_sources is: {resolved_sources}")
+        for root, dirs, files in os.walk(resolved_sources, topdown=True):
             for f_name in files:
-                print(f"PROVENANCE DEBUG | ADDING FILE to list_of_files: {f_name}")
+                # print(f"PROVENANCE DEBUG | ADDING FILE to list_of_files: {f_name}")
                 list_of_files.append(f_name)
                 if backup_main_entity == None and Path(f_name).suffix in {".py", ".java", ".jar", ".class"}:
                     backup_main_entity = f_name
-                    print(f"PROVENANCE DEBUG | FOUND SOURCE FILE AS BACKUP MAIN: {backup_main_entity}")
+                    # print(f"PROVENANCE DEBUG | FOUND SOURCE FILE AS BACKUP MAIN: {backup_main_entity}")
     # Can't get backup_main_entity from sources_main_file, because we do not know if it really exists
     if backup_main_entity == None:
         print(f"PROVENANCE | ERROR: Unable to find application source files. Please, review your "
               f"ro_crate_info.yaml definition ('sources_dir', and 'files' terms")
-        raise
+        raise FileNotFoundError
     print(f"PROVENANCE DEBUG | backup_main_entity is: {backup_main_entity}")
 
     with open(dp_log, "r") as f:
@@ -239,6 +242,7 @@ def add_file_to_crate(
     out_profile: str,
     ins: list,
     outs: list,
+    in_sources_dir: str
 ) -> None:
     """
     Get details of a file, and add it physically to the Crate. The file will be an application source file, so,
@@ -250,6 +254,7 @@ def add_file_to_crate(
     :param out_profile: COMPSs application profile output
     :param ins: List of input files
     :param outs: List of output files
+    :param in_sources_dir: Path to the defined sources_dir
 
     :returns: None
     """
@@ -360,15 +365,35 @@ def add_file_to_crate(
                 )
             )
 
+    # Build correct dest_path. If the file belongs to sources_dir, need to remove all "sources_dir" from file_name,
+    # respecting the sub_dir structure.
+    # If the file is defined individually, put in the root of application_sources
+
+    if in_sources_dir is not None: # /home/bsc/src/file.py must be translated to application_sources/src/file.py,
+    # but in_sources_dir is /home/bsc/src
+        # print(f"in_sources_dir is {in_sources_dir}")
+        # list_root = list(Path(in_sources_dir).parts)
+        # list_root.pop()
+        # new_root = os.path.join(*list_root)
+        new_root = str(Path(in_sources_dir).parents[0])
+        #print(f"new_root is {new_root}")
+        final_name = file_name[len(new_root) + 1:]
+        # print(f"final_name is {final_name}")
+        path_in_crate = "application_sources/" + final_name
+    else:
+        path_in_crate = "application_sources/" + file_path.name
+
+    print(f"path_in_crate: {path_in_crate}")
+
     if file_path.name != main_entity:
-        print(f"PROVENANCE | Adding application source file: {file_path}")
-        CRATE.add_file(source=file_path, dest_path=os.path.join("application_sources/", file_name), properties=file_properties)
+        print(f"PROVENANCE | Adding application source file: {file_name}")
+        CRATE.add_file(source=file_name, dest_path=path_in_crate, properties=file_properties)
     else:
         # We get lang_version from dataprovenance.log
         print(f"PROVENANCE | Adding main file: {file_path.name}, file_name: {file_name}")
         CRATE.add_workflow(
-            source=file_path,
-            dest_path=os.path.join("application_sources/", file_name),
+            source=file_name,
+            dest_path=path_in_crate,
             main=True,
             lang="COMPSs",
             lang_version=compss_ver,
@@ -558,16 +583,18 @@ Authors:
     # Add files that will be physically in the crate
     part_time = time.time()
     if "sources_dir" in compss_wf_info:  # Optional, the user specifies a directory with all sources
-        # resolved_sources = Path(compss_wf_info["sources_dir"]).resolve()
-        resolved_sources = compss_wf_info["sources_dir"]
+        path_sources = Path(compss_wf_info["sources_dir"]).expanduser()
+        resolved_sources = str(path_sources.resolve())
+        # print(f"resolved_sources is: {resolved_sources}")
+        # resolved_sources = compss_wf_info["sources_dir"]
         for root, dirs, files in os.walk(resolved_sources, topdown=True):
             for f_name in files:
                 print(f"Adding file: root: {root} f_name: {f_name}")
-                add_file_to_crate(os.path.join(root, f_name), compss_ver, main_entity, out_profile, ins, outs)
+                add_file_to_crate(os.path.join(root, f_name), compss_ver, main_entity, out_profile, ins, outs, resolved_sources)
 
     if "files" in compss_wf_info:
         for file in compss_wf_info["files"]:
-            add_file_to_crate(file, compss_ver, main_entity, out_profile, ins, outs)
+            add_file_to_crate(file, compss_ver, main_entity, out_profile, ins, outs, None)
     print(
         f"PROVENANCE | RO-CRATE adding physical files TIME (add_file_to_crate): {time.time() - part_time} s"
     )

@@ -281,6 +281,10 @@ public class PythonTraceMerger extends TraceMerger {
                 int appId = Integer.parseInt(pythonId.getApp()) - 1;
                 appToExec[appId] = newId;
             }
+            LOGGER.debug("Python trace translations");
+            for (int idx = 0; idx < appToExec.length; idx++) {
+                LOGGER.debug((idx + 1) + ".1.1 ->" + appToExec[idx]);
+            }
         }
 
         @Override

@@ -172,7 +172,10 @@ public class PrvSorter implements ThreadTranslator {
                     runtime.appendComponent(runtimeThread);
                 }
             }
-
+            LOGGER.debug("Applying translations");
+            for (Map.Entry<ThreadIdentifier, ThreadIdentifier> entry : threadTranslations.entrySet()) {
+                LOGGER.debug("\t * " + entry.getKey() + " -> " + entry.getValue());
+            }
             ApplicationComposition machine = new ApplicationComposition();
             if (runtime.getNumberOfDirectSubcomponents() > 0) {
                 machine.appendComponent(runtime);

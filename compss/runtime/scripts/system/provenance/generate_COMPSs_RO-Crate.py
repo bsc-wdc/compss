@@ -100,35 +100,61 @@ def add_file_not_in_crate(in_url: str) -> None:
     # print(f"Method vs add_file TIME: {time.time() - method_time} vs {add_file_time}")
 
 
-def get_main_entities(list_of_files: list) -> typing.Tuple[str, str, str]:
+def get_main_entities(wf_info: dict) -> typing.Tuple[str, str, str]:
     """
     Get COMPSs version and mainEntity from dataprovenance.log first lines
     3 First lines expected format: compss_version_number\n main_entity\n output_profile_file\n
     Next lines are for "accessed files" and "direction"
+    mainEntity can be directly obtained for Python, or defined by the user in the YAML (sources_main_file)
 
-    :param list_of_files: List of files that form the application, as specified by the user
+    :param wf_info: YAML dict to extract info form the application, as specified by the user
 
     :returns: COMPSs version, main COMPSs file name, COMPSs profile file name
     """
 
+    # Build the whole source files list in list_of_files, and get a backup main entity, in case we can't find one
+    # automatically. The mainEntity must be an existing file, otherwise the RO-Crate won't have a ComputationalWorkflow
+    list_of_files = []
+    backup_main_entity = None
+    if "files" in wf_info:
+        list_of_files = wf_info["files"]
+        backup_main_entity = Path(list_of_files[0]).name  # Assign first file name as mainEntity
+    if "sources_dir" in wf_info:
+        for root, dirs, files in os.walk(wf_info["sources_dir"], topdown=True):
+            for f_name in files:
+                print(f"PROVENANCE DEBUG | ADDING FILE to list_of_files: {f_name}")
+                list_of_files.append(f_name)
+                if backup_main_entity == None and Path(f_name).suffix in {".py", ".java", ".jar", ".class"}:
+                    backup_main_entity = f_name
+                    print(f"PROVENANCE DEBUG | FOUND SOURCE FILE AS BACKUP MAIN: {backup_main_entity}")
+    # Can't get backup_main_entity from sources_main_file, because we do not know if it really exists
+    if backup_main_entity == None:
+        print(f"PROVENANCE | ERROR: Unable to find application source files. Please, review your "
+              f"ro_crate_info.yaml definition ('sources_dir', and 'files' terms")
+        raise
+    print(f"PROVENANCE DEBUG | backup_main_entity is: {backup_main_entity}")
+
     with open(dp_log, "r") as f:
         compss_v = next(f).rstrip()  # First line, COMPSs version number
-        second_line = next(
-            f
-        ).rstrip()  # Second, main_entity. Use better rstrip, just in case there is no '\n'
+        second_line = next(f).rstrip()  # Second, main_entity. Use better rstrip, just in case there is no '\n'
         main_entity_fn = Path(second_line)
         if main_entity_fn.suffix == ".py":  # PyCOMPSs, main_entity equals main_file.py
-            # Need to check that the main_file.py defined in the log exists in the list of application files
+            # Need to check that the main_file.py defined in the log exists in the list of application files, including
+            # sources_dir
             if any(Path(file).name == main_entity_fn.name for file in list_of_files):
                 main_entity = main_entity_fn.name
-            else:
-                main_entity = Path(list_of_files[0]).name  # Assign first file as main
+            else:  # Get backup
+                main_entity = backup_main_entity
                 print(
                     f"PROVENANCE | WARNING: the detected mainEntity {main_entity_fn.name} does not exist in the list "
                     f"of application files provided in ro-crate-info.yaml. Setting {main_entity} as mainEntity"
                 )
-        else:  # COMPSs Java application, consider first file as main
-            main_entity = Path(list_of_files[0]).name
+        else:  # COMPSs Java application, consider first file as main if no sources_main_file is defined
+            if "sources_main_file" in wf_info:
+                if any(Path(file).name == wf_info["sources_main_file"] for file in list_of_files):  # The file exists
+                    main_entity = wf_info["sources_main_file"]  # Can't use Path, file may not be in cwd
+            else:
+                main_entity = backup_main_entity  # If the user didn't define one, we take the first as main
         third_line = next(f).rstrip()
         out_profile_fn = Path(third_line)
 
@@ -215,7 +241,8 @@ def add_file_to_crate(
     outs: list,
 ) -> None:
     """
-    Get details of a file, and add it physically to the Crate
+    Get details of a file, and add it physically to the Crate. The file will be an application source file, so,
+    the destination directory should be 'application_sources/'
 
     :param file_name: File to be added physically to the Crate
     :param compss_ver: COMPSs version number
@@ -334,14 +361,14 @@ def add_file_to_crate(
             )
 
     if file_path.name != main_entity:
-        print(f"PROVENANCE | Adding file: {file_path}")
-        CRATE.add_file(file_path, properties=file_properties)
+        print(f"PROVENANCE | Adding application source file: {file_path}")
+        CRATE.add_file(source=file_path, dest_path=os.path.join("application_sources/", file_name), properties=file_properties)
     else:
         # We get lang_version from dataprovenance.log
-        print(f"PROVENANCE | Adding file: {file_path.name}, file_path: {file_path}")
+        print(f"PROVENANCE | Adding main file: {file_path.name}, file_name: {file_name}")
         CRATE.add_workflow(
-            file_path,
-            file_path.name,
+            source=file_path,
+            dest_path=os.path.join("application_sources/", file_name),
             main=True,
             lang="COMPSs",
             lang_version=compss_ver,
@@ -514,7 +541,7 @@ Authors:
 
     # Get mainEntity from COMPSs runtime report dataprovenance.log
 
-    compss_ver, main_entity, out_profile = get_main_entities(compss_wf_info["files"])
+    compss_ver, main_entity, out_profile = get_main_entities(compss_wf_info)
     print(
         f"PROVENANCE | COMPSs version: {compss_ver}, main_entity is: {main_entity}, out_profile is: {out_profile}"
     )
@@ -530,8 +557,17 @@ Authors:
 
     # Add files that will be physically in the crate
     part_time = time.time()
-    for file in compss_wf_info["files"]:
-        add_file_to_crate(file, compss_ver, main_entity, out_profile, ins, outs)
+    if "sources_dir" in compss_wf_info:  # Optional, the user specifies a directory with all sources
+        # resolved_sources = Path(compss_wf_info["sources_dir"]).resolve()
+        resolved_sources = compss_wf_info["sources_dir"]
+        for root, dirs, files in os.walk(resolved_sources, topdown=True):
+            for f_name in files:
+                print(f"Adding file: root: {root} f_name: {f_name}")
+                add_file_to_crate(os.path.join(root, f_name), compss_ver, main_entity, out_profile, ins, outs)
+
+    if "files" in compss_wf_info:
+        for file in compss_wf_info["files"]:
+            add_file_to_crate(file, compss_ver, main_entity, out_profile, ins, outs)
     print(
         f"PROVENANCE | RO-CRATE adding physical files TIME (add_file_to_crate): {time.time() - part_time} s"
     )

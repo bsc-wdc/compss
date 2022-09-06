@@ -390,7 +390,7 @@ def add_file_to_crate(
     else:
         path_in_crate = "application_sources/" + file_path.name
 
-    print(f"path_in_crate: {path_in_crate}")
+    # print(f"path_in_crate: {path_in_crate}")
 
     if file_path.name != main_entity:
         print(f"PROVENANCE | Adding application source file: {file_name}")
@@ -598,14 +598,16 @@ Authors:
         # resolved_sources = compss_wf_info["sources_dir"]
         for root, dirs, files in os.walk(resolved_sources, topdown=True):
             for f_name in files:
-                print(f"Adding file from sources_dir: root: {root} f_name: {f_name}")
+                # print(f"Adding file from sources_dir: root: {root} f_name: {f_name}")
                 add_file_to_crate(os.path.join(root, f_name), compss_ver, main_entity, out_profile, ins, outs, resolved_sources)
 
     if "files" in compss_wf_info:
-        print(f"compss_wf_info(files): {compss_wf_info['files']}")
+        # print(f"compss_wf_info(files): {compss_wf_info['files']}")
         for file in compss_wf_info["files"]:
-            print(f"Adding file from 'files': {file}")
-            add_file_to_crate(file, compss_ver, main_entity, out_profile, ins, outs, None)
+            path_file = Path(file).expanduser()
+            resolved_file = str(path_file.resolve())
+            # print(f"Adding file from 'files': {file}")
+            add_file_to_crate(resolved_file, compss_ver, main_entity, out_profile, ins, outs, None)
     print(
         f"PROVENANCE | RO-CRATE adding physical files TIME (add_file_to_crate): {time.time() - part_time} s"
     )

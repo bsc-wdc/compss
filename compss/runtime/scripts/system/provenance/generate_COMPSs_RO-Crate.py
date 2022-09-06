@@ -117,7 +117,7 @@ def get_main_entities(wf_info: dict) -> typing.Tuple[str, str, str]:
     list_of_files = []
     backup_main_entity = None
     if "files" in wf_info:
-        list_of_files = wf_info["files"]
+        list_of_files = wf_info["files"].copy()
         backup_main_entity = Path(list_of_files[0]).name  # Assign first file name as mainEntity
     if "sources_dir" in wf_info:
         path_sources = Path(wf_info["sources_dir"]).expanduser()
@@ -146,16 +146,23 @@ def get_main_entities(wf_info: dict) -> typing.Tuple[str, str, str]:
             # sources_dir
             if any(Path(file).name == main_entity_fn.name for file in list_of_files):
                 main_entity = main_entity_fn.name
+                print(f"MAIN_ENTITY MATCHES LOG: {main_entity}")
             else:  # Get backup
                 main_entity = backup_main_entity
+                print(f"MAIN_ENTITY DOES NOT MATCH LOG: {main_entity}")
                 print(
                     f"PROVENANCE | WARNING: the detected mainEntity {main_entity_fn.name} does not exist in the list "
                     f"of application files provided in ro-crate-info.yaml. Setting {main_entity} as mainEntity"
                 )
         else:  # COMPSs Java application, consider first file as main if no sources_main_file is defined
+            print(f"MAIN_ENTITY IS NOT A PY")
             if "sources_main_file" in wf_info:
-                if any(Path(file).name == wf_info["sources_main_file"] for file in list_of_files):  # The file exists
+                print(f"sources_main_file: {wf_info['sources_main_file']}")
+                if any((Path(file).name == wf_info["sources_main_file"]) for file in list_of_files):  # The file exists
                     main_entity = wf_info["sources_main_file"]  # Can't use Path, file may not be in cwd
+                    print(f"THE FILE EXISTS")
+                else:
+                    print(f"THE FILE DOES NOT EXIST")
             else:
                 main_entity = backup_main_entity  # If the user didn't define one, we take the first as main
         third_line = next(f).rstrip()
@@ -564,8 +571,9 @@ Authors:
         org_list.append({"@id": org})
     CRATE.publisher = org_list
 
-    # Get mainEntity from COMPSs runtime report dataprovenance.log
+    print(f"compss_wf_info at the beginning: {compss_wf_info}")
 
+    # Get mainEntity from COMPSs runtime report dataprovenance.log
     compss_ver, main_entity, out_profile = get_main_entities(compss_wf_info)
     print(
         f"PROVENANCE | COMPSs version: {compss_ver}, main_entity is: {main_entity}, out_profile is: {out_profile}"
@@ -582,6 +590,7 @@ Authors:
 
     # Add files that will be physically in the crate
     part_time = time.time()
+    print(f"compss_wf_info: {compss_wf_info}")
     if "sources_dir" in compss_wf_info:  # Optional, the user specifies a directory with all sources
         path_sources = Path(compss_wf_info["sources_dir"]).expanduser()
         resolved_sources = str(path_sources.resolve())
@@ -589,11 +598,13 @@ Authors:
         # resolved_sources = compss_wf_info["sources_dir"]
         for root, dirs, files in os.walk(resolved_sources, topdown=True):
             for f_name in files:
-                print(f"Adding file: root: {root} f_name: {f_name}")
+                print(f"Adding file from sources_dir: root: {root} f_name: {f_name}")
                 add_file_to_crate(os.path.join(root, f_name), compss_ver, main_entity, out_profile, ins, outs, resolved_sources)
 
     if "files" in compss_wf_info:
+        print(f"compss_wf_info(files): {compss_wf_info['files']}")
         for file in compss_wf_info["files"]:
+            print(f"Adding file from 'files': {file}")
             add_file_to_crate(file, compss_ver, main_entity, out_profile, ins, outs, None)
     print(
         f"PROVENANCE | RO-CRATE adding physical files TIME (add_file_to_crate): {time.time() - part_time} s"

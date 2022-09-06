@@ -70,7 +70,7 @@ SUPPORTED_DECORATORS = {
 }
 
 
-class SoftwareTask(task.task):  # pylint: disable=too-few-public-methods, too-many-instance-attributes
+class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-instance-attributes
     """Software decorator class.
 
     When provided with a config file, it can replicate any existing python
@@ -98,17 +98,14 @@ class SoftwareTask(task.task):  # pylint: disable=too-few-public-methods, too-ma
     ]
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
-        """Parse the config file and store arguments passed to the decorator.
+        """ Only when in the Master, parses the config file and "generates"
+        the decorators. Otherwise, just an "__init__".
 
-        self = itself.
-        args = not used.
-        kwargs = dictionary with the given @software parameter (config_file).
-
-        :param args: Arguments
-        :param kwargs: Keyword arguments
+        :param args: not used (maybe should be?).
+        :param kwargs: so far contains only the JSON configuration file path.
         """
         super().__init__(*args, **kwargs)
-        decorator_name = "".join(("@", SoftwareTask.__name__.lower()))
+        decorator_name = "".join(("@", Software.__name__.lower()))
         # super(Software, self).__init__(decorator_name, *args, **kwargs)
         self.task_type = None  # type: typing.Any
         self.config_args = None  # type: typing.Any
@@ -127,6 +124,8 @@ class SoftwareTask(task.task):  # pylint: disable=too-few-public-methods, too-ma
         self.core_element = None  # type: typing.Any
         self.core_element_configured = False
 
+        # no need to parse the config file in the worker. all the @task params
+        # are passed inside "kwargs"
         if self.scope and CONTEXT.in_master():
             if __debug__:
                 logger.debug("Init @software decorator..")
@@ -147,7 +146,7 @@ class SoftwareTask(task.task):  # pylint: disable=too-few-public-methods, too-ma
         into the "real" decorator and passes the args and kwargs.
 
         :param user_function: User function to be decorated.
-        :return: User function decorated with the decor type defined by the user.
+        :return: User function decorated with the decor type defined by the user
         """
 
         @wraps(user_function)
@@ -231,46 +230,50 @@ class SoftwareTask(task.task):  # pylint: disable=too-few-public-methods, too-ma
             if CORE_ELEMENT_KEY in kwargs:
                 self.core_element_configured = True
 
-            # todo: add comments
-            # move out if not decor
-            if self.decor:
-                decorator = self.decor
-                if not self.parameters:
+            if not self.decor:
+                # It's a PyCOMPSs task with only @task and @software decorators,
+                # so everything from the config file is already in the CE
+                return user_function(*args, **kwargs)
+
+            decorator = self.decor
+            if not self.parameters:
+                # @task definition is not in the config file, call the user
+                # function which includes @task
+                def decor_f():
+                    def function():
+                        ret = decorator(**self.config_args)
+                        return ret(user_function)(*args, **kwargs)
+                    return function()
+                decor_f.__doc__ = user_function.__doc__
+                return decor_f()
+            else:
+                if self.decor is not task.task:
+                    # it is not a regular @task, build the decorator with
+                    # "execution" key-values and the @task decorator with
+                    # "parameters" key-values
                     def decor_f():
-                        def function():
-                            ret = decorator(**self.config_args)
-                            return ret(user_function)(*args, **kwargs)
-                        return function()
-                    decor_f.__doc__ = user_function.__doc__
+                        def function(*_, **__):
+                            tt = task.task(**self.parameters)
+                            return tt(user_function)(*_, **__)
+                        dec = decorator(**self.config_args)
+                        return dec(function)(*args, **kwargs)
                     return decor_f()
                 else:
-                    if self.decor is task.task:
-                        self.__check_core_element__(kwargs, user_function)
-                        master = TaskMaster(
-                            self.core_element,
-                            self.decorator_arguments,
-                            self.decorated_function
-                        )
-                        result = master.call(args, kwargs)
-                        (
-                            future_object,
-                            self.core_element,
-                            self.decorated_function
-                        ) = result
-                        del master
-                        return future_object
-                    else:
-                        def decor_f():
-                            def function(*_, **__):
-                                tt = task.task(**self.parameters)
-                                return tt(user_function)(*_, **__)
-                            dec = decorator(**self.config_args)
-                            return dec(function)(*args, **kwargs)
-
-                    return decor_f()
-
-            # It's a PyCOMPSs task with only @task and @software decorators
-            return user_function(*args, **kwargs)
+                    # regular task definition inside a config file
+                    self.__check_core_element__(kwargs, user_function)
+                    master = TaskMaster(
+                        self.core_element,
+                        self.decorator_arguments,
+                        self.decorated_function
+                    )
+                    result = master.call(args, kwargs)
+                    (
+                        future_object,
+                        self.core_element,
+                        self.decorated_function
+                    ) = result
+                    del master
+                    return future_object
 
         software_f.__doc__ = user_function.__doc__
         return software_f
@@ -299,7 +302,8 @@ class SoftwareTask(task.task):  # pylint: disable=too-few-public-methods, too-ma
             self.is_workflow = True
             return
         elif exec_type.lower() not in SUPPORTED_DECORATORS:
-            msg = f"Error: Executor Type {exec_type} is not supported for software task."
+            msg = f"Error: Executor Type {exec_type} is not supported " \
+                  f"for software task."
             raise PyCOMPSsException(msg)
         else:
             exec_type = exec_type.lower()
@@ -328,4 +332,4 @@ class SoftwareTask(task.task):  # pylint: disable=too-few-public-methods, too-ma
 # ########################################################################### #
 
 
-software = SoftwareTask  # pylint: disable=invalid-name
+software = Software  # pylint: disable=invalid-name

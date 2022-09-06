@@ -26,13 +26,9 @@ import inspect
 from functools import wraps
 
 from pycompss.util.context import CONTEXT
-from pycompss.api.commons.constants import INTERNAL_LABELS
 from pycompss.api.commons.constants import LABELS
 from pycompss.api.task import task
 from pycompss.api.commons.decorator import keep_arguments
-from pycompss.api.commons.decorator import resolve_fail_by_exit_value
-from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
-from pycompss.runtime.task.core_element import CE
 from pycompss.util.arguments import check_arguments
 from pycompss.util.typing_helper import typing
 
@@ -106,9 +102,9 @@ class DataTransformation:  # pylint: disable=too-few-public-methods
             if (
                 CONTEXT.in_master() or CONTEXT.is_nesting_enabled()
             ) and not self.core_element_configured:
-                self.__configure_core_element__(user_function, tmp, kwargs)
+                self.__call_dt__(user_function, tmp, kwargs)
             with keep_arguments(tuple(tmp), kwargs, prepend_strings=True):
-                # Call the method
+                # no need to do anything on the worker side
                 ret = user_function(*tmp, **kwargs)
 
             return ret
@@ -117,7 +113,7 @@ class DataTransformation:  # pylint: disable=too-few-public-methods
         transform.__doc__ = user_function.__doc__
         return dt_f
 
-    def __configure_core_element__(self, user_function, args: list, kwargs: dict) -> None:
+    def __call_dt__(self, user_function, args: list, kwargs: dict) -> None:
         """
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
 
@@ -142,10 +138,18 @@ class DataTransformation:  # pylint: disable=too-few-public-methods
             dts.append((self.args[0], self.args[1], self.kwargs))
 
         for _dt in dts:
-            self.apply_dt(*_dt, args, kwargs)
+            self._apply_dt(*_dt, args, kwargs)
 
-    # todo: comments
-    def apply_dt(self, param_name, func, func_kwargs, args, kwargs):
+    def _apply_dt(self, param_name, func, func_kwargs, args, kwargs):
+        """
+        Call the data transformation function for the given parameter.
+        :param param_name: parameter that DT will be applied to
+        :param func: DT function
+        :param func_kwargs: args and kwargs values of the original DT function
+        :param args:
+        :param kwargs:
+        :return:
+        """
         is_workflow = False
         if LABELS.is_workflow in func_kwargs:
             is_workflow = func_kwargs.pop(LABELS.is_workflow)
@@ -193,7 +197,7 @@ class DTObject(object):
         return self.param_name, self.func, self.func_kwargs
 
 # ########################################################################### #
-# ############################# ALTERNATIVE NAME ############################ #
+# ############################# ALTERNATIVE NAMES ########################### #
 # ########################################################################### #
 
 

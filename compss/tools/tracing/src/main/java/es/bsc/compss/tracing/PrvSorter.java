@@ -32,11 +32,14 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -53,6 +56,7 @@ public class PrvSorter implements ThreadTranslator {
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.TRACING);
 
     private static final String THREAD_ID_EVENT_TYPE = Integer.toString(TraceEventType.THREAD_IDENTIFICATION.code);
+    private static final String EXEC_ID_EVENT_TYPE = Integer.toString(TraceEventType.EXECUTOR_IDENTIFICATION.code);
 
     private Map<ThreadIdentifier, ThreadIdentifier> threadTranslations;
     private ApplicationComposition system;
@@ -94,6 +98,17 @@ public class PrvSorter implements ThreadTranslator {
                     }
                     Machine machine = machines.get(machineId - 1);
                     machine.registerThread(threadId, identifierEventValue);
+                }
+
+                String executorIdValue = prvLine.getEventValue(EXEC_ID_EVENT_TYPE);
+                if (executorIdValue != null) {
+                    PRVThreadIdentifier threadId = prvLine.getEmisorThreadIdentifier();
+                    int machineId = Integer.parseInt(threadId.getTask());
+                    while (machines.size() < machineId) {
+                        machines.add(new Machine());
+                    }
+                    Machine machine = machines.get(machineId - 1);
+                    machine.identifiedExecutor(threadId, executorIdValue);
                 }
             }
         } // we don't need the header right now // we don't need the header right now
@@ -145,11 +160,28 @@ public class PrvSorter implements ThreadTranslator {
             }
 
             ApplicationComposition executors = new ApplicationComposition();
-            int executorsNum = 1;
-            for (PRVThreadIdentifier oldThread : m.getExecutors()) {
-                int threadId = executorsNum++;
+
+            // SortExecutor Threads
+            TreeSet<Entry<PRVThreadIdentifier, String>> tree;
+            tree = new TreeSet<>(new Comparator<Entry<PRVThreadIdentifier, String>>() {
+
+                @Override
+                public int compare(Entry<PRVThreadIdentifier, String> t, Entry<PRVThreadIdentifier, String> t1) {
+                    int tVal = Integer.parseInt(t.getValue());
+                    int t1Val = Integer.parseInt(t1.getValue());
+                    return Integer.compare(tVal, t1Val);
+                }
+            });
+            for (Entry<PRVThreadIdentifier, String> executor : m.getKnownExecutors().entrySet()) {
+                tree.add(executor);
+            }
+
+            for (Entry<PRVThreadIdentifier, String> executor : tree) {
+                PRVThreadIdentifier oldThread = executor.getKey();
+                int threadId = Integer.parseInt(executor.getValue());
+
                 Threads.ExtraeTaskType task = Threads.ExtraeTaskType.EXECUTOR;
-                ThreadIdentifier newThread = computeNewThreadId(oldThread, task, threadId);
+                ThreadIdentifier newThread = computeNewThreadId(oldThread, task, threadId + 1);
                 threadTranslations.put(oldThread, newThread);
 
                 String oldLabel = newThread.toString();
@@ -159,6 +191,7 @@ public class PrvSorter implements ThreadTranslator {
                 Thread executorThread = new Thread(newThread, newLabel);
                 executors.appendComponent(executorThread);
             }
+
             for (PRVThreadIdentifier oldThread : m.getThreads()) {
                 if (!threadTranslations.containsKey(oldThread)) {
                     int threadId = runtimeThreadsNum++;
@@ -172,7 +205,10 @@ public class PrvSorter implements ThreadTranslator {
                     runtime.appendComponent(runtimeThread);
                 }
             }
-
+            LOGGER.debug("Applying translations");
+            for (Map.Entry<ThreadIdentifier, ThreadIdentifier> entry : threadTranslations.entrySet()) {
+                LOGGER.debug("\t * " + entry.getKey() + " -> " + entry.getValue());
+            }
             ApplicationComposition machine = new ApplicationComposition();
             if (runtime.getNumberOfDirectSubcomponents() > 0) {
                 machine.appendComponent(runtime);
@@ -188,7 +224,7 @@ public class PrvSorter implements ThreadTranslator {
 
     private static PRVThreadIdentifier computeNewThreadId(PRVThreadIdentifier id, Threads.ExtraeTaskType type,
         int threadId) {
-        String thread = Integer.toString(threadId++);
+        String thread = Integer.toString(threadId);
         String task = type.getLabel();
         String app = id.getTask();
         return new PRVThreadIdentifier(app, task, thread);
@@ -214,12 +250,15 @@ public class PrvSorter implements ThreadTranslator {
 
         private Map<Integer, PRVThreadIdentifier> runtimeIdentifiers;
         private Set<PRVThreadIdentifier> threads;
-        private Set<PRVThreadIdentifier> executors;
+
+        private Map<PRVThreadIdentifier, String> knownExecutors;
+        private Set<PRVThreadIdentifier> unknownExecutors;
 
 
         public Machine() {
             threads = new HashSet<>();
-            executors = new HashSet<>();
+            unknownExecutors = new HashSet<>();
+            knownExecutors = new HashMap<>();
             runtimeIdentifiers = new HashMap<>();
         }
 
@@ -227,8 +266,12 @@ public class PrvSorter implements ThreadTranslator {
             return this.threads;
         }
 
-        private Set<PRVThreadIdentifier> getExecutors() {
-            return this.executors;
+        private Set<PRVThreadIdentifier> getUnknownExecutors() {
+            return this.unknownExecutors;
+        }
+
+        private Map<PRVThreadIdentifier, String> getKnownExecutors() {
+            return this.knownExecutors;
         }
 
         private Map<Integer, PRVThreadIdentifier> getRuntimeIdentifiers() {
@@ -240,13 +283,20 @@ public class PrvSorter implements ThreadTranslator {
             if (threadTypeIdString != null) {
                 Integer threadTypeId = new Integer(threadTypeIdString);
                 if (threadTypeId == Threads.EXEC.id) {
-                    this.executors.add(threadId);
+                    if (knownExecutors.get(threadId) != null) {
+                        this.unknownExecutors.add(threadId);
+                    }
                 } else {
                     if (threadTypeId != 0) { // != end event
                         this.runtimeIdentifiers.put(threadTypeId, threadId);
                     }
                 }
             }
+        }
+
+        public void identifiedExecutor(PRVThreadIdentifier threadId, String executorId) {
+            this.unknownExecutors.remove(threadId);
+            this.knownExecutors.put(threadId, executorId);
         }
     }
 

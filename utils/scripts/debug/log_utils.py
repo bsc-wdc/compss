@@ -169,7 +169,7 @@ class Loggers:
             BECOMES_APP="becomes app"
         
         class PythonNestedApp:
-            label="invokeMethod"
+            label="eExternalMethod"
             BECOMES_APP="becomes app"
 
 class RuntimeParser:

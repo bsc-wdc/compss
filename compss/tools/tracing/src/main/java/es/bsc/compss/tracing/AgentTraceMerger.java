@@ -128,7 +128,7 @@ public class AgentTraceMerger extends TraceMerger {
         }
 
         String duration = Long.toString(maxDuration);
-        PRVTrace output = PRVTrace.generateNew(dir, tmpName, date, duration, infrastructure, threads, events);
+        PRVTrace output = PRVTrace.generateNew(dir, tmpName, date, duration+"_ns", infrastructure, threads, events);
         mergeEvents(this.inputTraces, modifications, output);
 
         LOGGER.debug("Merge finished.");

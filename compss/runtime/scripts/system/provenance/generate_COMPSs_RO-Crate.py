@@ -423,7 +423,7 @@ def add_file_to_crate(
                     {"@id": "https://www.nationalarchives.gov.uk/PRONOM/fmt/276"},
                 ],
             )
-            file_properties["about"] = {"@id": main_entity}
+            file_properties["about"] = {"@id": path_in_crate}  # Must be main_entity_location, not main_entity alone
             # Add PDF as ContextEntity
             CRATE.add(
                 ContextEntity(
@@ -494,8 +494,11 @@ def main():
             template = """COMPSs Workflow Information:
   name: Name of your COMPSs application
   description: Detailed description of your COMPSs application
-  license: Apache-2.0 #Provide better a URL, but these strings are accepted:
-                  # https://about.workflowhub.eu/Workflow-RO-Crate/#supported-licenses
+  license: Apache-2.0  # Provide better a URL, but these strings are accepted:
+            # https://about.workflowhub.eu/Workflow-RO-Crate/#supported-licenses
+  source_dir: path_to/dir/  # Optional: Directory containing application source files, relative and absolute paths 
+            # can be used
+  sources_main_file: my_main_file.py  # Optional  Name of the main file of the application, located in sources_dir
   files: [main_file.py, aux_file_1.py, aux_file_2.py] # List of application files
 Authors:
   - name: Author_1 Name
@@ -571,7 +574,7 @@ Authors:
         org_list.append({"@id": org})
     CRATE.publisher = org_list
 
-    print(f"compss_wf_info at the beginning: {compss_wf_info}")
+    # print(f"compss_wf_info at the beginning: {compss_wf_info}")
 
     # Get mainEntity from COMPSs runtime report dataprovenance.log
     compss_ver, main_entity, out_profile = get_main_entities(compss_wf_info)
@@ -590,7 +593,7 @@ Authors:
 
     # Add files that will be physically in the crate
     part_time = time.time()
-    print(f"compss_wf_info: {compss_wf_info}")
+    # print(f"compss_wf_info: {compss_wf_info}")
     if "sources_dir" in compss_wf_info:  # Optional, the user specifies a directory with all sources
         path_sources = Path(compss_wf_info["sources_dir"]).expanduser()
         resolved_sources = str(path_sources.resolve())
@@ -656,7 +659,8 @@ Authors:
                 "actionStatus": {"@id": "http://schema.org/CompletedActionStatus"},
             },
         )
-    )CRATE.add(
+    )
+    CRATE.add(
         ContextEntity(
             CRATE,
             "#history-03",

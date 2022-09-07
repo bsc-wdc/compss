@@ -656,6 +656,19 @@ Authors:
                 "actionStatus": {"@id": "http://schema.org/CompletedActionStatus"},
             },
         )
+    )CRATE.add(
+        ContextEntity(
+            CRATE,
+            "#history-03",
+            {
+                "@type": "CreateAction",
+                "object": {"@id": "./"},
+                "name": "ro-crate-info.yaml supports sources_dir, sources_main_file, and absolute paths",
+                "endTime": "2022-09-07",
+                "agent": {"@id": "https://orcid.org/0000-0003-0606-2512"},
+                "actionStatus": {"@id": "http://schema.org/CompletedActionStatus"},
+            },
+        )
     )
 
     # Dump to file

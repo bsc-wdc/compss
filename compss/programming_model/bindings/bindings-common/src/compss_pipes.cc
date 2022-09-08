@@ -59,7 +59,7 @@ string read_result_from_pipe(){
 		if( fgets (buf, BUFSIZ, result_pipe_stream) != NULL ) {
 			int buflen = strlen(buf);
 			if (buflen >0){
-				if (buf[buflen-1] == '\n'){
+             	if (buf[buflen-1] == '\n'){
                         buf[buflen-1] = '\0';
                         oss << buf;
 				    	return oss.str();
@@ -71,12 +71,6 @@ string read_result_from_pipe(){
 		} else {
 			// Necessary to avoid that fgets return NULL after closing the pipe for the first time.
 			clearerr(result_pipe_stream);
-            fclose(result_pipe_stream);
-            result_pipe_stream = fopen(result_pipe , "r");
-            if (result_pipe_stream == NULL){
-		        print_error("\n[BINDING-COMMONS] ERROR: Opening the pipe %s", result_pipe);
-                return NULL;
-	        }
 		} 
 	}   
 }

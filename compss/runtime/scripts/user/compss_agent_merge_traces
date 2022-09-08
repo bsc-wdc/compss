@@ -151,7 +151,7 @@ get_trace_from_agent_folder(){
     folder=$(eval "readlink -f ${folder}")
     trace=$(find "${folder}" -name "*.prv")
     if [ -z "${trace}" ]; then
-        fatal_error "${ERR_NO_TRACE_IN}${folder}"
+        fatal_error "${ERR_NO_TRACE_IN} ${folder}" 1
     fi
     trace="${trace::-4}"
 }

@@ -86,8 +86,10 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
 
     private final String pipePath;
 
-    // Number of threads waiting to write on the pipe
     private BufferedReader reader;
+    private FileOutputStream writer;
+
+    // Number of threads waiting to write on the pipe
     private final Lock sendMutex = new ReentrantLock();
     private int senders;
     private int readers;
@@ -137,66 +139,74 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
 
     @Override
     public boolean sendCommand(PipeCommand command) {
-        boolean done = false;
-        int retries = 0;
-        String taskCMD = command.getAsString();
-        String writePipe = this.pipePath + ".outbound";
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("EXECUTOR COMMAND: " + taskCMD + " @ " + writePipe);
+        synchronized (this) {
+            if (this.closed) {
+                return false;
+            }
+            this.senders++;
         }
-        taskCMD = taskCMD + TOKEN_NEW_LINE;
-        while (!done && retries < MAX_WRITE_PIPE_RETRIES) {
-            // Send to pipe : task tID command(jobOut jobErr externalCMD) \n
-            if (!new File(writePipe).exists()) {
-                LOGGER.debug("Warn pipe doesn't exist. Retry");
-                ++retries;
-            } else {
-                OutputStream output = null;
-                synchronized (this) {
-                    this.senders++;
-                }
-                this.sendMutex.lock();
-                try {
-                    LOGGER.debug("Writting command...");
-                    output = new FileOutputStream(writePipe, true);
-                    output.write(taskCMD.getBytes());
-                    output.flush();
-                    synchronized (this) {
-                        this.senders--;
-                        done = !this.closed;
-                    }
-                    LOGGER.debug("Written " + taskCMD + " into " + writePipe);
-                } catch (IOException e) {
-                    synchronized (this) {
-                        this.senders--;
-                    }
-                    LOGGER.debug("Error on pipe write. Retry");
-                    ++retries;
-                } finally {
-                    if (output != null) {
-                        try {
-                            output.close();
-                        } catch (Exception e) {
-                            ErrorManager.error(ERROR_PIPE_CLOSE + writePipe, e);
-                        }
-                    }
-                    this.sendMutex.unlock();
-                }
-            }
-            if (!done) {
-                try {
-                    Thread.sleep(PIPE_ERROR_WAIT_TIME);
-                } catch (InterruptedException e) {
-                    LOGGER.debug("Pipe error wait time for message " + command + " on pipe " + this.getPipesLocation());
-                    // No need to catch such exceptions
-                }
-            }
 
-        }
-        if (!done) {
-            LOGGER.debug("Failed to send " + command + " on pipe " + this.getPipesLocation());
+        boolean done = false;
+        try {
+            String taskCMD = command.getAsString();
+            String writePipe = this.pipePath + ".outbound";
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("EXECUTOR COMMAND: " + taskCMD + " @ " + writePipe);
+            }
+            taskCMD = taskCMD + TOKEN_NEW_LINE;
+
+            int retries = 0;
+            while (!done && retries < MAX_WRITE_PIPE_RETRIES) {
+                done = writeToPipe(writePipe, taskCMD);
+                if (!done) {
+                    try {
+                        Thread.sleep(PIPE_ERROR_WAIT_TIME);
+                        retries++;
+                    } catch (InterruptedException e) {
+                        // No need to catch such exceptions
+                    }
+                }
+            }
+        } finally {
+            if (!done) {
+                LOGGER.debug("Failed to send " + command + " on pipe " + this.getPipesLocation());
+            }
+            synchronized (this) {
+                this.senders--;
+            }
         }
         return done;
+    }
+
+    private boolean writeToPipe(String pipe, String message) {
+        if (this.closed) {
+            return false;
+        }
+
+        this.sendMutex.lock();
+        try {
+            if (writer == null) {
+                if (!new File(pipe).exists()) {
+                    LOGGER.debug("Warn pipe doesn't exist. Retry");
+                    // We should wait until the file is created otherwise it's not ceated by mkfifo
+                } else {
+                    writer = new FileOutputStream(pipe, true);
+                }
+            }
+            writer.write(message.getBytes());
+            writer.flush();
+            if (this.closed) {
+                writer.close();
+                writer = null;
+                return false;
+            }
+            return true;
+        } catch (IOException ioe) {
+            // No need to do anything. DONE = false
+        } finally {
+            this.sendMutex.unlock();
+        }
+        return false;
     }
 
     @Override
@@ -419,6 +429,15 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
             try {
                 this.reader.close();
                 this.reader = null;
+            } catch (IOException ioe) {
+                // Already closed. Do nothing
+            }
+        }
+
+        if (this.writer != null) {
+            try {
+                this.writer.close();
+                this.writer = null;
             } catch (IOException ioe) {
                 // Already closed. Do nothing
             }

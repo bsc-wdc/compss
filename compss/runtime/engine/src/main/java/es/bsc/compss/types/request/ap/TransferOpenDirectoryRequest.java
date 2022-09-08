@@ -111,17 +111,17 @@ public class TransferOpenDirectoryRequest extends APRequest {
             WAccessId waId = (WAccessId) this.faId;
             DataInstanceId targetFile = waId.getWrittenDataInstance();
             targetName = targetFile.getRenaming();
-            targetPath = Comm.getAppHost().getTempDirPath() + targetName;
+            targetPath = Comm.getAppHost().getWorkingDirectory() + targetName;
         } else if (this.faId instanceof RWAccessId) {
             // Read write mode
             RWAccessId rwaId = (RWAccessId) this.faId;
             targetName = rwaId.getWrittenDataInstance().getRenaming();
-            targetPath = Comm.getAppHost().getTempDirPath() + targetName;
+            targetPath = Comm.getAppHost().getWorkingDirectory() + targetName;
         } else {
             // Read only mode
             RAccessId raId = (RAccessId) this.faId;
             targetName = raId.getReadDataInstance().getRenaming();
-            targetPath = Comm.getAppHost().getTempDirPath() + targetName;
+            targetPath = Comm.getAppHost().getWorkingDirectory() + targetName;
         }
         LOGGER.debug("Openning directory " + targetName + " at " + targetPath);
 

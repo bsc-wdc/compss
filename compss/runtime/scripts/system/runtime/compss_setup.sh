@@ -104,6 +104,7 @@ AGENT_ERROR="Error running the agent"
 RUNTIME_ERROR="Error running application"
 TMP_FILE_JVM_ERROR="ERROR: Can't create temporary file for JVM options."
 LD_LIBRARY_PATH_NOT_SET_WARN="LD_LIBRARY_PATH not defined set to LIBRARY_PATH"
+EXEC_DIR_CREATION_ERROR="Could not create execution folder"
 
 ###############################################
 ###############################################
@@ -131,18 +132,96 @@ check_compss_env() {
   check_worker_env
 
   check_bindings_env
-  # AutoParallel environment
-  if [ -z "${PLUTO_HOME}" ]; then
-    PLUTO_HOME="${COMPSS_HOME}/Dependencies/pluto/"
-    export PLUTO_HOME="${PLUTO_HOME}"
-    export PATH="${PLUTO_HOME}/bin:${PATH}"
-  fi
+
   check_stream_env
   check_storage_env
 
   check_tracing_env
 
   #gen_core and appName can be empty
+}
+
+
+#----------------------------------------------
+# Creating Execution directory
+#----------------------------------------------
+create_exec_folder() {
+  # specific_log_dir can be empty. If so, specified uses ${base_log_dir}/<application_name>_<overload offset>
+  # base_log_dir can be empty. If so, placing it in user's home folder .COMPSs
+  if [ -n  "${specific_log_dir}" ]; then
+    mkdir -p "${specific_log_dir}"
+    exec_dir="${specific_log_dir}"
+
+    if [ ! "${exec_dir: -1}" == "/" ]; then
+      exec_dir="${exec_dir}/"
+    fi
+  else
+    if [ -n  "${base_log_dir}" ]; then
+      exec_dir="${base_log_dir}"
+    else
+      exec_dir="${HOME}/.COMPSs"
+    fi
+
+    if ! mkdir -p "${exec_dir}"; then
+      fatal_error "${EXEC_DIR_CREATION_ERROR}" 1
+    fi
+
+    if [ ! "${exec_dir: -1}" == "/" ]; then
+      exec_dir="${exec_dir}/"
+    fi
+
+    local folder_creation_exit_code
+    folder_creation_exit_code="-1"
+    while [ ! "${folder_creation_exit_code}" == "0" ]; do
+      local app_folder_name
+      local oldest_date=""
+      local override="true"
+
+      for overload_id in  $(seq 1 99); do
+        local overload_tag
+        if [ "${overload_id}" -gt "9" ]; then
+          overload_tag="_${overload_id}"
+        else
+          overload_tag="_0${overload_id}"
+        fi
+        overload_tag="${appName}${overload_tag}"
+        overload_log_dir="${exec_dir}${overload_tag}"
+
+
+        if [ -d "${overload_log_dir}" ]; then
+          if [[ "$OSTYPE" == "darwin"* ]]; then
+            overload_date=$(stat -f %Fm "${overload_log_dir}" )
+          else  
+            overload_date=$(stat -c %.9Y "${overload_log_dir}" )
+          fi
+          overload_date="${overload_date//./}"
+          overload_date="${overload_date//,/}"
+          if [ -z "${oldest_date}" ]; then
+            app_folder_name=${overload_tag}
+            oldest_date=${overload_date}
+          else
+            if [ "${oldest_date}" -gt "${overload_date}" ]; then
+              app_folder_name=${overload_tag}
+              oldest_date=${overload_date}
+            fi
+          fi
+        else
+          app_folder_name=${overload_tag}
+          override="false"
+          break
+        fi
+      done
+
+      if [ "${override}" == "true" ]; then
+        display_warning "${WARN_LOG_OVERRIDE} ${exec_dir}"
+        rm -rf "${exec_dir}${app_folder_name}"
+      fi
+
+      mkdir "${exec_dir}${app_folder_name}"
+      folder_creation_exit_code="${?}"
+    done
+    exec_dir="${exec_dir}${app_folder_name}/"
+  fi
 }
 
 #----------------------------------------------
@@ -153,7 +232,11 @@ check_compss_setup () {
   if [ -z "${uuid}" ]; then
     get_uuid
   fi
-
+  echo "BASE: ${base_log_dir}"
+  echo "SPECIFIC ${specific_log_dir}"
+  create_exec_folder
+  echo "EXEC_FOLDER=${exec_dir}"
+  
   # JVM
   if [ -z "${jvm_master_opts}" ] || [ "${jvm_master_opts}" = \"\" ]; then
     jvm_master_opts=${DEFAULT_JVM_MASTER}
@@ -205,6 +288,13 @@ check_compss_setup () {
 
   if [ -z "${agent_config}" ]; then
     agent_config="${DEFAULT_AGENT_CONFIG}"
+  fi
+
+  if [ -z "${wdir_in_master}" ]; then
+    wdir_in_master="${exec_dir}tmpFiles/"
+  fi
+  if [ ! "${wdir_in_master: -1}" == "/" ]; then
+    wdir_in_master="${wdir_in_master}/"
   fi
   
   if [ -z "${wall_clock_limit}" ]; then
@@ -262,6 +352,7 @@ EOT
 -Dcompss.data_provenance=${provenance}
 -Dcompss.uuid=${uuid}
 -Dcompss.shutdown_in_node_failure=${shutdown_in_node_failure}
+-Dcompss.master.workingDir=${wdir_in_master}
 EOT
   append_analysis_jvm_options_to_file "${jvm_options_file}"
   append_worker_jvm_options_to_file "${jvm_options_file}"

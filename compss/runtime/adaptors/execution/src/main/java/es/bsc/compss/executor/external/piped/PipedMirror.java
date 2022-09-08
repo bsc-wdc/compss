@@ -17,6 +17,7 @@
 package es.bsc.compss.executor.external.piped;
 
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.COMPSsPaths;
 import es.bsc.compss.executor.external.ExecutionPlatformMirror;
 import es.bsc.compss.executor.external.ExternalExecutorException;
 import es.bsc.compss.executor.external.commands.ExternalCommand.CommandType;
@@ -57,6 +58,9 @@ import org.apache.logging.log4j.Logger;
 public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
+
+    private static final String ENV_EXTRAE_SKIP_AUTO_LIBRARY_INITIALIZE = "EXTRAE_SKIP_AUTO_LIBRARY_INITIALIZE";
+    private static final String ENV_EXTRAE_LIB = "EXTRAE_LIB";
 
     // Logger messages
     private static final String ERROR_PB_START = "Error starting ProcessBuilder";
@@ -144,7 +148,8 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
             pb.environment().putAll(env);
 
             // Clean the EXTRAE environment
-            pb.environment().put("EXTRAE_SKIP_AUTO_LIBRARY_INITIALIZE", "1");
+            pb.environment().put(ENV_EXTRAE_SKIP_AUTO_LIBRARY_INITIALIZE, "1");
+            pb.environment().put(ENV_EXTRAE_LIB, installDir + COMPSsPaths.REL_DEPS_EXTRAE_DIR + "lib");
 
             for (String envVar : Tracer.ENVIRONMENT_VARIABLES) {
                 pb.environment().remove(envVar);

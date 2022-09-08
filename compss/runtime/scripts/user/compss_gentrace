@@ -25,7 +25,7 @@ source "${COMPSS_HOME}Runtime/scripts/system/commons/version.sh"
 
 # shellcheck source=../system/runtime/compss_setup.sh"
 # shellcheck disable=SC1091
-source "${COMPSS_HOME}Runtime/scripts/system/runtime/compss_setup.sh"
+source "${COMPSS_HOME}Runtime/scripts/system/trace/generatePRVs.sh"
 
 
 # Extrae Environment
@@ -40,9 +40,12 @@ fi
 ###############################################
 # SCRIPT CONSTANTS DECLARATION
 ###############################################
+
+DEFAULT_LOG_LEVEL_ENABLED="${GEN_TRACING_LOG_LEVEL_DEBUG}"
+DEFAULT_LOG_LEVEL="${GEN_TRACING_DEFAULT_LOG_LEVEL}"
+
 DEFAULT_CUSTOM_THREADS="true"
 DEFAULT_TRACE_NAME="trace"
-DEFAULT_LOG_LEVEL_ARGUMENT="${LOG_LEVEL_DEBUG}"
 DEFAULT_KEEP_PACKAGES="false"
 
 ###############################################
@@ -105,8 +108,8 @@ Options:
   Keep packages: ${keep_packages}
   
 Logging:
-  Level: ${log_level}
-  Folder: ${specific_log_dir}"
+  Level: ${gen_tracing_log_level}
+  Folder: ${gen_tracing_log_dir}"
   
 }
 
@@ -122,14 +125,14 @@ Logging:
 show_gen_trace_opts() {
   cat <<EOF
 Debug options:
-    --debug, -d                             Set the debug level to ${LOG_LEVEL_DEBUG}
-                                            Default: ${DEFAULT_LOG_LEVEL}
+    -d,--debug                              Enables log at level ${DEFAULT_LOG_LEVEL_ENABLED}. 
+                                            Default level: ${DEFAULT_LOG_LEVEL}
 
-    --specific_log_dir=<path>               Path where to leave the log information
+    --log_dir=<path>                        Path where to leave the log information
                                             Default: same as output directory
                                             
-    --log_level=<level>                     Set the debug level: ${LOG_LEVEL_OFF} | ${LOG_LEVEL_INFO} | ${LOG_LEVEL_API} | ${LOG_LEVEL_DEBUG} | ${LOG_LEVEL_TRACE}
-                                            Default: ${DEFAULT_LOG_LEVEL}
+    --log_level=<log_level>                 Sets the log level: : ${GEN_TRACING_LOG_LEVEL_OFF} | ${GEN_TRACING_LOG_LEVEL_DEBUG} 
+                                            Default level: ${DEFAULT_LOG_LEVEL}
 
 Trace Merging options:
     --keep_packages=<bool>                  If true, the script mantains the packages after merging; otherwise, input packages are deleted.
@@ -148,12 +151,6 @@ EOF
 }
 
 ###############################################
-# Parses the options for trace generation
-###############################################
-
-
-
-###############################################
 # Parses the options from the commandline and updates the current option values
 ###############################################
 get_args() {
@@ -168,7 +165,7 @@ get_args() {
         ;;
       d)
         # Enable debug in log level
-        log_level=${DEFAULT_LOG_LEVEL_ARGUMENT}
+        gen_tracing_log_level=${DEFAULT_LOG_LEVEL_ENABLED}
         ;;
       v)
         # Display version
@@ -215,15 +212,15 @@ get_args() {
             ;;
           debug*)
             # Enable debug in log level
-            log_level=${DEFAULT_LOG_LEVEL_ARGUMENT}
+            gen_tracing_log_level=${DEFAULT_LOG_LEVEL_ARGUMENT}
             ;;
           log_dir=*)
             # Tracing system
-            specific_log_dir=${OPTARG//log_dir=/}
+            gen_tracing_log_dir=${OPTARG//log_dir=/}
             ;;
           log_level=*)
             # Tracing system
-            log_level=${OPTARG//log_level=/}
+            gen_tracing_log_level=${OPTARG//log_level=/}
             ;;
           out_dir=*)
             # Register desired output directory
@@ -257,8 +254,8 @@ get_args() {
 # Validates the current script configuration
 ################################################
 check_args() {
-  if [ -z "${log_level}" ]; then
-    log_level=${DEFAULT_LOG_LEVEL}
+  if [ -z "${gen_tracing_log_level}" ]; then
+    gen_tracing_log_level=${DEFAULT_LOG_LEVEL}
   fi
 
   if [ -z "${in_dir}" ]; then
@@ -272,10 +269,10 @@ check_args() {
   fi
   out_dir=$(eval "readlink -f ${out_dir}")
 
-  if [ -z "${specific_log_dir}" ]; then
-    specific_log_dir=${out_dir}
+  if [ -z "${gen_tracing_log_dir}" ]; then
+    gen_tracing_log_dir=${out_dir}
   fi
-  specific_log_dir=$(eval "readlink -f ${out_dir}")
+  gen_tracing_log_dir=$(eval "readlink -f ${gen_tracing_log_dir}")
 
   if [ -z "${trace_name}" ]; then
     trace_name=${DEFAULT_TRACE_NAME}

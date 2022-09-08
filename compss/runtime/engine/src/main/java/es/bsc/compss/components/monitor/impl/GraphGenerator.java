@@ -18,6 +18,7 @@ package es.bsc.compss.components.monitor.impl;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.comm.Comm;
+import es.bsc.compss.log.LoggerManager;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.util.ErrorManager;
@@ -91,7 +92,7 @@ public class GraphGenerator {
     static {
         if (GRAPH_GENERATOR_ENABLED) {
             // Set graph locations
-            MONITOR_DIR_PATH = Comm.getAppHost().getAppLogDirPath() + "monitor" + File.separator;
+            MONITOR_DIR_PATH = LoggerManager.getLogDir() + "monitor" + File.separator;
             if (!new File(MONITOR_DIR_PATH).mkdir()) {
                 ErrorManager.error(ERROR_MONITOR_DIR);
             }

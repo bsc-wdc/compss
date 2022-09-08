@@ -22,11 +22,13 @@ import es.bsc.comm.nio.NIONode;
 import es.bsc.comm.stage.Transfer.Destination;
 
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.COMPSsDefaults;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.comm.CommAdaptor;
 import es.bsc.compss.data.BindingDataManager;
 import es.bsc.compss.exceptions.ConstructConfigurationException;
 import es.bsc.compss.exceptions.UnstartedNodeException;
+import es.bsc.compss.log.LoggerManager;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOAgent;
 import es.bsc.compss.nio.NIOData;
@@ -132,7 +134,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     public static final int MASTER_PORT;
 
     // Final jobs log directory
-    private static final String JOBS_DIR = System.getProperty(COMPSsConstants.APP_LOG_DIR) + "jobs" + File.separator;
+    private static final String JOBS_DIR = LoggerManager.getJobsLogDir();
 
     private static final String TERM_ERR = "Error terminating";
 
@@ -177,7 +179,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         // Setting persistentC flag
         String persistentCStr = System.getProperty(COMPSsConstants.WORKER_PERSISTENT_C);
         if (persistentCStr == null || persistentCStr.isEmpty() || persistentCStr.equals("null")) {
-            persistentCStr = COMPSsConstants.DEFAULT_PERSISTENT_C;
+            persistentCStr = COMPSsDefaults.PERSISTENT_C;
         }
         this.persistentC = Boolean.parseBoolean(persistentCStr);
 

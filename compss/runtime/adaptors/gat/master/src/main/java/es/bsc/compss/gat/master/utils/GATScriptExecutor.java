@@ -18,6 +18,7 @@ package es.bsc.compss.gat.master.utils;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.gat.master.GATWorkerNode;
+import es.bsc.compss.log.LoggerManager;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.util.RequestDispatcher;
@@ -141,15 +142,13 @@ public class GATScriptExecutor {
 
                 if (DEBUG) {
                     try {
-                        org.gridlab.gat.io.File outFile = GAT.createFile(this.node.getContext(),
-                            ProtocolType.ANY_URI.getSchema() + File.separator
-                                + System.getProperty(COMPSsConstants.APP_LOG_DIR) + File.separator + stdOutFileName
-                                + ".out");
+                        org.gridlab.gat.io.File outFile =
+                            GAT.createFile(this.node.getContext(), ProtocolType.ANY_URI.getSchema() + File.separator
+                                + LoggerManager.getLogDir() + File.separator + stdOutFileName + ".out");
                         sd.setStdout(outFile);
-                        org.gridlab.gat.io.File errFile = GAT.createFile(this.node.getContext(),
-                            ProtocolType.ANY_URI.getSchema() + File.separator
-                                + System.getProperty(COMPSsConstants.APP_LOG_DIR) + File.separator + stdOutFileName
-                                + ".err");
+                        org.gridlab.gat.io.File errFile =
+                            GAT.createFile(this.node.getContext(), ProtocolType.ANY_URI.getSchema() + File.separator
+                                + LoggerManager.getLogDir() + File.separator + stdOutFileName + ".err");
                         sd.setStderr(errFile);
                     } catch (Exception e) {
                         LOGGER.error(CLEAN_JOB_ERR, e);
@@ -199,8 +198,7 @@ public class GATScriptExecutor {
 
         // Move cleanX.out logs to default logger
         if (DEBUG) {
-            String stdOutFilePath =
-                System.getProperty(COMPSsConstants.APP_LOG_DIR) + File.separator + stdOutFileName + ".out";
+            String stdOutFilePath = LoggerManager.getLogDir() + File.separator + stdOutFileName + ".out";
 
             try (FileReader cleanOut = new FileReader(stdOutFilePath);
                 BufferedReader br = new BufferedReader(cleanOut)) {
@@ -222,8 +220,7 @@ public class GATScriptExecutor {
 
         // Move cleanX.err logs to default logger
         if (DEBUG) {
-            String stdErrFilePath =
-                System.getProperty(COMPSsConstants.APP_LOG_DIR) + File.separator + stdOutFileName + ".err";
+            String stdErrFilePath = LoggerManager.getLogDir() + File.separator + stdOutFileName + ".err";
 
             try (FileReader cleanErr = new FileReader(stdErrFilePath);
                 BufferedReader br = new BufferedReader(cleanErr)) {

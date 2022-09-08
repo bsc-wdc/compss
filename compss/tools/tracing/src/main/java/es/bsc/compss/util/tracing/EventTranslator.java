@@ -16,23 +16,36 @@
  */
 package es.bsc.compss.util.tracing;
 
+import java.util.HashMap;
 import java.util.Map;
 
 
 public class EventTranslator<T> {
 
-    private final Map<T, T> localIndex;
-    private final Map<T, T> globalIndex;
+    private final Map<T, T> finalMap;
 
 
+    /**
+     * Constructs a new EventTranslator.
+     * 
+     * @param localCE map input -> intermediate
+     * @param globalCE map intermediate ->final
+     */
     public EventTranslator(Map<T, T> localCE, Map<T, T> globalCE) {
-        this.localIndex = localCE;
-        this.globalIndex = globalCE;
+        this.finalMap = new HashMap<>();
+        for (T t : localCE.keySet()) {
+            T eventIdentifier = localCE.get(t);
+            T result = globalCE.get(eventIdentifier);
+            this.finalMap.put(t, result);
+        }
     }
 
     public T translateEvent(T value) {
-        T eventIdentifier = localIndex.get(value);
-        return globalIndex.get(eventIdentifier);
+        return finalMap.get(value);
+    }
+
+    public Map<T, T> getAllTranslations() {
+        return this.finalMap;
     }
 
 }

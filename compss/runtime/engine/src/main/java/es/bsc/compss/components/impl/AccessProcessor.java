@@ -18,6 +18,7 @@ package es.bsc.compss.components.impl;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
+import es.bsc.compss.COMPSsDefaults;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.checkpoint.CheckpointManager;
 import es.bsc.compss.comm.Comm;
@@ -427,7 +428,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
                 daId = ra.getWrittenDataInstance();
             }
             String rename = daId.getRenaming();
-            String path = ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getTempDirPath() + rename;
+            String path = ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getWorkingDirectory() + rename;
             try {
                 SimpleURI uri = new SimpleURI(path);
                 tgtLocation = DataLocation.createLocation(Comm.getAppHost(), uri);
@@ -487,7 +488,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
                 daId = ra.getWrittenDataInstance();
             }
             String rename = daId.getRenaming();
-            String path = ProtocolType.DIR_URI.getSchema() + Comm.getAppHost().getTempDirPath() + rename;
+            String path = ProtocolType.DIR_URI.getSchema() + Comm.getAppHost().getWorkingDirectory() + rename;
             try {
                 SimpleURI uri = new SimpleURI(path);
                 tgtLocation = DataLocation.createLocation(Comm.getAppHost(), uri);
@@ -1216,7 +1217,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
             }
             String cpFQN = System.getProperty(COMPSsConstants.CHECKPOINT_POLICY);
             if (cpFQN == null || cpFQN.isEmpty()) {
-                cpFQN = COMPSsConstants.DEFAULT_CHECKPOINT;
+                cpFQN = COMPSsDefaults.CHECKPOINT;
             }
             Class<?> cpClass = Class.forName(cpFQN);
             Constructor<?> cpCnstr = cpClass.getConstructor(HashMap.class, AccessProcessor.class);

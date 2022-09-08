@@ -44,7 +44,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 
 
 public class PythonTraceMerger extends TraceMerger {
@@ -182,6 +181,14 @@ public class PythonTraceMerger extends TraceMerger {
                 modifications[idx] = new TraceTransformation[0];
             }
         }
+        if (LOGGER.isDebugEnabled()) {
+            for (int i = 0; i < this.inputTraces.length; i++) {
+                LOGGER.debug("*** Modifications applied to trace " + this.inputTraces[i].getName());
+                for (TraceTransformation mod : modifications[i]) {
+                    LOGGER.debug(mod.getDescription());
+                }
+            }
+        }
 
         // Maintain trace structure from master Trace
         PRVTrace tmpTrace = PRVTrace.generateNew(dir, tmpName, date, duration, infrastructure, masterThreads, events);
@@ -281,10 +288,6 @@ public class PythonTraceMerger extends TraceMerger {
                 int appId = Integer.parseInt(pythonId.getApp()) - 1;
                 appToExec[appId] = newId;
             }
-            LOGGER.debug("Python trace translations");
-            for (int idx = 0; idx < appToExec.length; idx++) {
-                LOGGER.debug((idx + 1) + ".1.1 ->" + appToExec[idx]);
-            }
         }
 
         @Override
@@ -298,6 +301,16 @@ public class PythonTraceMerger extends TraceMerger {
         @Override
         public ApplicationComposition getNewThreadOrganization() {
             return threads;
+        }
+
+        @Override
+        public String getDescription() {
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < appToExec.length; i++) {
+                ThreadIdentifier tid = appToExec[i];
+                sb.append("\t * ").append(i + 1).append(".1.1").append("->").append(tid).append("\n");
+            }
+            return sb.toString();
         }
 
     }

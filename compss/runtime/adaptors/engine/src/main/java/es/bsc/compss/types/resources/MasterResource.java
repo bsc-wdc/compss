@@ -21,14 +21,6 @@ import java.util.Map;
 
 public interface MasterResource extends Resource {
 
-    public String getTempDirPath();
-
-    public String getAppLogDirPath();
-
-    public String getJobsDirPath();
-
-    public String getWorkersDirPath();
-
     public String getWorkingDirectory();
 
     public void updateDisks(Map<String, String> sharedDisks);

@@ -113,7 +113,7 @@ public class FileInfo extends DataInfo {
                         MultiURI uri = loc.getURIInHost(Comm.getAppHost());
                         if (uri != null
                             && uri.getPath().equals(getOriginalLocation().getURIInHost(Comm.getAppHost()).getPath())) {
-                            String newPath = Comm.getAppHost().getTempDirPath() + File.separator
+                            String newPath = Comm.getAppHost().getWorkingDirectory() + File.separator
                                 + firstVersion.getDataInstanceId().getRenaming();
                             LOGGER.debug("[FileInfo] Modifying path in location " + loc + " with new path " + newPath);
                             loc.modifyPath(newPath);

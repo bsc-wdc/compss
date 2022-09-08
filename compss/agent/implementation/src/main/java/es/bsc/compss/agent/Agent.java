@@ -18,6 +18,8 @@ package es.bsc.compss.agent;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
+import es.bsc.compss.COMPSsDefaults;
+import es.bsc.compss.COMPSsPaths;
 import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.agent.types.ApplicationParameterCollection;
 import es.bsc.compss.agent.types.RemoteDataInformation;
@@ -184,18 +186,18 @@ public class Agent {
 
     private static void setDefaultProperties() {
         System.err.println(WARN_FILE_EMPTY_DEFAULT);
-        setDefaultProperty(COMPSsConstants.DEPLOYMENT_ID, COMPSsConstants.DEFAULT_DEPLOYMENT_ID);
-        setDefaultProperty(COMPSsConstants.RES_SCHEMA, COMPSsConstants.DEFAULT_RES_SCHEMA);
-        setDefaultProperty(COMPSsConstants.PROJ_SCHEMA, COMPSsConstants.DEFAULT_PROJECT_SCHEMA);
-        setDefaultProperty(COMPSsConstants.GAT_ADAPTOR_PATH, COMPSsConstants.DEFAULT_GAT_ADAPTOR_LOCATION);
-        setDefaultProperty(COMPSsConstants.COMM_ADAPTOR, COMPSsConstants.DEFAULT_ADAPTOR);
-        setDefaultProperty(COMPSsConstants.REUSE_RESOURCES_ON_BLOCK, COMPSsConstants.DEFAULT_REUSE_RESOURCES_ON_BLOCK);
+        setDefaultProperty(COMPSsConstants.DEPLOYMENT_ID, COMPSsDefaults.DEPLOYMENT_ID);
+        setDefaultProperty(COMPSsConstants.RES_SCHEMA, COMPSsPaths.LOCAL_RES_SCHEMA);
+        setDefaultProperty(COMPSsConstants.PROJ_SCHEMA, COMPSsPaths.LOCAL_PROJECT_SCHEMA);
+        setDefaultProperty(COMPSsConstants.GAT_ADAPTOR_PATH, COMPSsPaths.GAT_ADAPTOR_LOCATION);
+        setDefaultProperty(COMPSsConstants.COMM_ADAPTOR, COMPSsDefaults.ADAPTOR);
+        setDefaultProperty(COMPSsConstants.REUSE_RESOURCES_ON_BLOCK, COMPSsDefaults.REUSE_RESOURCES_ON_BLOCK);
         setDefaultProperty(COMPSsConstants.ENABLED_NESTED_TASKS_DETECTION,
-            COMPSsConstants.DEFAULT_ENABLED_NESTED_TASKS_DETECTION);
-        setDefaultProperty(COMPSsConstants.CONN, COMPSsConstants.DEFAULT_CONNECTOR);
-        setDefaultProperty(COMPSsConstants.SCHEDULER, COMPSsConstants.DEFAULT_SCHEDULER);
-        setDefaultProperty(COMPSsConstants.TRACING, COMPSsConstants.DEFAULT_TRACING);
-        setDefaultProperty(COMPSsConstants.EXTRAE_CONFIG_FILE, COMPSsConstants.DEFAULT_CUSTOM_EXTRAE_FILE);
+            COMPSsDefaults.ENABLED_NESTED_TASKS_DETECTION);
+        setDefaultProperty(COMPSsConstants.CONN, COMPSsDefaults.CONNECTOR);
+        setDefaultProperty(COMPSsConstants.SCHEDULER, COMPSsDefaults.SCHEDULER);
+        setDefaultProperty(COMPSsConstants.TRACING, COMPSsDefaults.TRACING);
+        setDefaultProperty(COMPSsConstants.EXTRAE_CONFIG_FILE, COMPSsDefaults.CUSTOM_EXTRAE_FILE);
         setDefaultProperty(COMPSsConstants.TASK_EXECUTION, COMPSsConstants.TaskExecution.COMPSS.toString());
     }
 
@@ -221,8 +223,8 @@ public class Agent {
                 setPropertyFromRuntime(COMPSsConstants.MASTER_PORT, manager.getMasterPort());
                 setPropertyFromRuntime(COMPSsConstants.APP_NAME, manager.getAppName());
                 setPropertyFromRuntime(COMPSsConstants.TASK_SUMMARY, manager.getTaskSummary());
-                setPropertyFromRuntime(COMPSsConstants.BASE_LOG_DIR, manager.getCOMPSsBaseLogDir());
-                setPropertyFromRuntime(COMPSsConstants.SPECIFIC_LOG_DIR, manager.getSpecificLogDir());
+                setPropertyFromRuntime(COMPSsConstants.LOG_DIR, manager.getLogDir());
+                setPropertyFromRuntime(COMPSsConstants.WORKING_DIR, manager.getWorkingDir());
                 setPropertyFromRuntime(COMPSsConstants.LOG4J, manager.getLog4jConfiguration());
                 setPropertyFromRuntime(COMPSsConstants.RES_FILE, manager.getResourcesFile());
                 setPropertyFromRuntime(COMPSsConstants.RES_SCHEMA, manager.getResourcesSchema());
@@ -262,14 +264,14 @@ public class Agent {
                     if (manager.getCommAdaptor() != null) {
                         System.setProperty(COMPSsConstants.COMM_ADAPTOR, manager.getCommAdaptor());
                     } else {
-                        System.setProperty(COMPSsConstants.COMM_ADAPTOR, COMPSsConstants.DEFAULT_ADAPTOR);
+                        System.setProperty(COMPSsConstants.COMM_ADAPTOR, COMPSsDefaults.ADAPTOR);
                     }
                 }
                 if (System.getProperty(COMPSsConstants.CONN) == null) {
                     if (manager.getConn() != null) {
                         System.setProperty(COMPSsConstants.CONN, manager.getConn());
                     } else {
-                        System.setProperty(COMPSsConstants.CONN, COMPSsConstants.DEFAULT_CONNECTOR);
+                        System.setProperty(COMPSsConstants.CONN, COMPSsDefaults.CONNECTOR);
                     }
                 }
                 if (System.getProperty(COMPSsConstants.GAT_DEBUG) == null) {

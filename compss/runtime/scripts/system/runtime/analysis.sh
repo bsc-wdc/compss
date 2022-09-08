@@ -63,88 +63,13 @@ DEFAULT_DEBUGGER_PORT="9999"
 check_analysis_env() {
   :
 }
-
-#----------------------------------------------
-# Creating Log directory
-#----------------------------------------------
-create_log_folder() {
-  # specific_log_dir can be empty. If so, specified uses ${base_log_dir}/<application_name>_<overload offset>
-  # base_log_dir can be empty. If so, placing it in user's home folder .COMPSs
-  if [ -n  "${specific_log_dir}" ]; then
-    mkdir -p "${specific_log_dir}"
-  else
-    local final_log_dir
-    if [ -n  "${base_log_dir}" ]; then
-      final_log_dir="${base_log_dir}"
-    else
-      final_log_dir="${HOME}/.COMPSs"
-    fi
-    base_log_dir="${final_log_dir}"
-    mkdir -p "${final_log_dir}"
-
-    if [ ! "${final_log_dir: -1}" == "/" ]; then
-      final_log_dir="${final_log_dir}/"
-    fi
-
-    local folder_creation_exit_code
-    folder_creation_exit_code="-1"
-    while [ ! "${folder_creation_exit_code}" == "0" ]; do
-      local app_folder_name
-      local oldest_date=""
-      local override="true"
-
-      for overload_id in  $(seq 1 99); do
-        local overload_tag
-        if [ "${overload_id}" -gt "9" ]; then
-          overload_tag="_${overload_id}"
-        else
-          overload_tag="_0${overload_id}"
-        fi
-        overload_tag="${appName}${overload_tag}"
-        overload_log_dir="${final_log_dir}${overload_tag}"
-
-
-        if [ -d "${overload_log_dir}" ]; then
-          if [[ "$OSTYPE" == "darwin"* ]]; then
-            overload_date=$(stat -f %Fm "${overload_log_dir}" )
-          else  
-            overload_date=$(stat -c %.9Y "${overload_log_dir}" )
-          fi
-          overload_date="${overload_date//./}"
-          overload_date="${overload_date//,/}"
-          if [ -z "${oldest_date}" ]; then
-            app_folder_name=${overload_tag}
-            oldest_date=${overload_date}
-          else
-            if [ "${oldest_date}" -gt "${overload_date}" ]; then
-              app_folder_name=${overload_tag}
-              oldest_date=${overload_date}
-            fi
-          fi
-        else
-          app_folder_name=${overload_tag}
-          override="false"
-          break
-        fi
-      done
-
-      if [ "${override}" == "true" ]; then
-        display_warning "${WARN_LOG_OVERRIDE} ${final_log_dir}"
-        rm -rf "${final_log_dir}${app_folder_name}"
-      fi
-
-      specific_log_dir="${final_log_dir}${app_folder_name}"
-      mkdir "${specific_log_dir}"
-      folder_creation_exit_code="${?}"
-    done
-  fi
-}
-
 #----------------------------------------------
 # CHECK ANALYSIS-RELATED SETUP values
 #----------------------------------------------
 check_analysis_setup () {
- 
+  
+  specific_log_dir="${exec_dir}"
+
   if [ -z "${log_level}" ]; then
     log_level="${DEFAULT_LOG_LEVEL}"
   fi
@@ -156,8 +81,6 @@ check_analysis_setup () {
   if [ -z "${graph}" ]; then
     graph="${DEFAULT_GRAPH}"
   fi
-
-  create_log_folder
 
   if [ -z "$monitoring" ]; then
     monitoring="${DEFAULT_MONITORING_INTERVAL}"
@@ -202,9 +125,7 @@ check_analysis_setup () {
 append_analysis_jvm_options_to_file() {
   local jvm_options_file=${1}
     cat >> "${jvm_options_file}" << EOT
--Dcompss.baseLogDir=${base_log_dir}
--Dcompss.specificLogDir=${specific_log_dir}
--Dcompss.appLogDir=/tmp/${uuid}/
+-Dcompss.log.dir=${specific_log_dir}
 -Dlog4j.configurationFile=${COMPSS_HOME}/Runtime/configuration/log/${itlog4j_file}
 -Dcompss.graph=${graph}
 -Dcompss.monitor=${monitoring}

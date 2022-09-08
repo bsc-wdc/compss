@@ -27,6 +27,7 @@ import es.bsc.compss.types.tracing.paraver.PRVLine;
 import es.bsc.compss.types.tracing.paraver.PRVThreadIdentifier;
 import es.bsc.compss.types.tracing.paraver.PRVTrace;
 import es.bsc.compss.util.tracing.ThreadTranslator;
+import es.bsc.compss.util.tracing.TraceTransformation;
 import es.bsc.compss.util.tracing.transformations.ThreadTranslation;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -88,26 +89,22 @@ public class PrvSorter implements ThreadTranslator {
             // the isEmpty check should not be necessary if the .prv files are well constructed
             while ((line = events.next()) != null && !line.isEmpty()) {
                 PRVLine prvLine = PRVLine.parse(line);
+
+                PRVThreadIdentifier threadId = prvLine.getEmisorThreadIdentifier();
+                int machineId = Integer.parseInt(threadId.getTask());
+                while (machines.size() < machineId) {
+                    machines.add(new Machine());
+                }
+                Machine machine = machines.get(machineId - 1);
+                machine.registerThread(threadId);
+
                 String identifierEventValue = prvLine.getEventValue(THREAD_ID_EVENT_TYPE);
                 if (identifierEventValue != null) {
-                    PRVThreadIdentifier threadId = prvLine.getEmisorThreadIdentifier();
-
-                    int machineId = Integer.parseInt(threadId.getTask());
-                    while (machines.size() < machineId) {
-                        machines.add(new Machine());
-                    }
-                    Machine machine = machines.get(machineId - 1);
-                    machine.registerThread(threadId, identifierEventValue);
+                    machine.identifiedThreadFunction(threadId, identifierEventValue);
                 }
 
                 String executorIdValue = prvLine.getEventValue(EXEC_ID_EVENT_TYPE);
                 if (executorIdValue != null) {
-                    PRVThreadIdentifier threadId = prvLine.getEmisorThreadIdentifier();
-                    int machineId = Integer.parseInt(threadId.getTask());
-                    while (machines.size() < machineId) {
-                        machines.add(new Machine());
-                    }
-                    Machine machine = machines.get(machineId - 1);
                     machine.identifiedExecutor(threadId, executorIdValue);
                 }
             }
@@ -205,10 +202,7 @@ public class PrvSorter implements ThreadTranslator {
                     runtime.appendComponent(runtimeThread);
                 }
             }
-            LOGGER.debug("Applying translations");
-            for (Map.Entry<ThreadIdentifier, ThreadIdentifier> entry : threadTranslations.entrySet()) {
-                LOGGER.debug("\t * " + entry.getKey() + " -> " + entry.getValue());
-            }
+
             ApplicationComposition machine = new ApplicationComposition();
             if (runtime.getNumberOfDirectSubcomponents() > 0) {
                 machine.appendComponent(runtime);
@@ -245,6 +239,15 @@ public class PrvSorter implements ThreadTranslator {
         return system;
     }
 
+    @Override
+    public String getDescription() {
+        StringBuilder sb = new StringBuilder();
+        for (Entry<ThreadIdentifier, ThreadIdentifier> entry : this.threadTranslations.entrySet()) {
+            sb.append("\t * ").append(entry.getKey()).append("->").append(entry.getValue()).append("\n");
+        }
+        return sb.toString();
+    }
+
 
     private static class Machine {
 
@@ -278,10 +281,13 @@ public class PrvSorter implements ThreadTranslator {
             return this.runtimeIdentifiers;
         }
 
-        public void registerThread(PRVThreadIdentifier threadId, String threadTypeIdString) {
+        public void registerThread(PRVThreadIdentifier threadId) {
             this.threads.add(threadId);
-            if (threadTypeIdString != null) {
-                Integer threadTypeId = new Integer(threadTypeIdString);
+        }
+
+        public void identifiedThreadFunction(PRVThreadIdentifier threadId, String function) {
+            if (function != null) {
+                Integer threadTypeId = new Integer(function);
                 if (threadTypeId == Threads.EXEC.id) {
                     if (knownExecutors.get(threadId) != null) {
                         this.unknownExecutors.add(threadId);
@@ -316,7 +322,11 @@ public class PrvSorter implements ThreadTranslator {
             throw new FileNotFoundException("Trace " + traceName + " not found at directory " + workingDir);
         }
         ThreadTranslator sorter = new PrvSorter(trace);
-        trace.applyTransformations(new ThreadTranslation(sorter));
+        TraceTransformation mod = new ThreadTranslation(sorter);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(mod.getDescription());
+        }
+        trace.applyTransformations(mod);
 
     }
 }

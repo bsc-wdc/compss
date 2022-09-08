@@ -486,15 +486,9 @@ def create_init_config_file(
         else:
             jvm_options_file.write("-Dcompss.shutdown_in_node_failure=false\n")
 
-        if base_log_dir == "":
-            # It will be within $HOME/.COMPSs
-            jvm_options_file.write("-Dcompss.baseLogDir=\n")
-        else:
-            jvm_options_file.write("-Dcompss.baseLogDir=" + base_log_dir + "\n")
-
         if specific_log_dir == "":
             specific_log_dir = __create_specific_log_dir__()
-        jvm_options_file.write("-Dcompss.specificLogDir=" + specific_log_dir + "\n")
+        jvm_options_file.write("-Dcompss.log.dir=" + specific_log_dir + "\n")
 
         jvm_options_file.write("-Dcompss.appLogDir=/tmp/" + my_uuid + "/\n")
 

@@ -17,7 +17,9 @@
 package es.bsc.compss.log;
 
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.COMPSsDefaults;
 import es.bsc.compss.util.ErrorManager;
+import es.bsc.compss.util.FileOperations;
 
 import java.io.File;
 
@@ -28,48 +30,95 @@ import org.apache.logging.log4j.core.LoggerContext;
 
 public class LoggerManager {
 
-    private static boolean loggerAlreadyLoaded = false;
+    // Logger
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.API);
 
-    private static final String ERROR_COMPSs_LOG_BASE_DIR = "ERROR: Cannot create .COMPSs base log directory";
+    private static final int MAX_OVERLOAD = 100; // Maximum number of executions of same application
+
+    // Error messages
+    private static final String ERROR_COMPSS_LOG_BASE_DIR = "ERROR: Cannot create .COMPSs base log directory";
     private static final String ERROR_APP_OVERLOAD = "ERROR: Cannot erase overloaded directory";
     private static final String ERROR_APP_LOG_DIR = "ERROR: Cannot create application log directory";
     private static final String WARN_FOLDER_OVERLOAD = "WARNING: Reached maximum number of executions for this"
         + " application. To avoid this warning please clean .COMPSs folder";
+    private static final String ERROR_JOBS_DIR = "ERROR: Cannot create jobs directory";
+    private static final String ERROR_WORKERS_DIR = "ERROR: Cannot create workers directory";
 
-    private static final int MAX_OVERLOAD = 100; // Maximum number of executions of same application
+    private static boolean loggerAlreadyLoaded = false;
+    private static final String logDir;
+    private static final String jobsLogDir;
+    private static final String workersLogDir;
 
-    // Logger
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.API);
+    static {
+        String log = System.getProperty(COMPSsConstants.LOG_DIR);
 
-    private static String userExecutionDirPath;
-    private static String compssLogBaseDirPath;
+        if (log != null && !log.isEmpty()) {
 
-    private static String appLogDirPath;
+            log = log.endsWith(File.separator) ? log : log + File.separator;
+            if (!new File(log).exists()) {
+                if (!new File(log).mkdirs()) {
+                    ErrorManager.error(ERROR_APP_LOG_DIR + " at " + log);
+                }
+            }
+        } else {
+            log = COMPSsDefaults.LOG_DIR;
+            if (!new File(log).exists()) {
+                if (!new File(log).mkdirs()) {
+                    ErrorManager.error(ERROR_COMPSS_LOG_BASE_DIR + " at " + log);
+                }
+            }
+
+            log = log.endsWith(File.separator) ? log : log + File.separator;
+
+            String appName;
+            if (System.getProperty(COMPSsConstants.SERVICE_NAME) != null) {
+                appName = System.getProperty(COMPSsConstants.SERVICE_NAME);
+            } else {
+                appName = System.getProperty(COMPSsConstants.APP_NAME);
+            }
+            log = log + appName;
+
+            String oldest = null;
+            long lastModified = System.currentTimeMillis();
+            boolean created = false;
+            for (int overloadCode = 1; !created && overloadCode < MAX_OVERLOAD; overloadCode++) {
+                String appLog = log + "_" + String.format("%02d", overloadCode) + File.separator;
+                if (new File(appLog).exists()) {
+                    long modified = new File(appLog).lastModified();
+                    if (lastModified > modified) {
+                        oldest = appLog;
+                    }
+                } else {
+                    created = new File(appLog).mkdirs();
+                    log = appLog;
+                }
+            }
+            if (!created) {
+                log = oldest;
+                System.err.println(WARN_FOLDER_OVERLOAD);
+                System.err.println("Overwriting entry: " + log);
+                // Clean previous results to avoid collisions
+                try {
+                    File f = new File(log);
+                    FileOperations.deleteFile(f, null);
+                    if (!f.mkdir()) {
+                        ErrorManager.error(ERROR_APP_LOG_DIR);
+                    }
+                } catch (Exception e) {
+                    ErrorManager.error(ERROR_APP_OVERLOAD);
+                }
+            }
+        }
+        logDir = log;
+
+        jobsLogDir = logDir + "jobs" + File.separator;
+        workersLogDir = logDir + "workers" + File.separator;
+
+    }
 
 
     // LoggerManager class should be called statically
     private LoggerManager() {
-    }
-
-    private static boolean deleteDirectory(File directory) {
-        if (!directory.exists()) {
-            return false;
-        }
-
-        File[] files = directory.listFiles();
-        if (files != null) {
-            for (File f : files) {
-                if (f.isDirectory()) {
-                    deleteDirectory(f);
-                } else {
-                    if (!f.delete()) {
-                        return false;
-                    }
-                }
-            }
-        }
-
-        return directory.delete();
     }
 
     /**
@@ -82,122 +131,33 @@ public class LoggerManager {
             return;
         }
         loggerAlreadyLoaded = true;
-
-        // Gets user execution directory
-        LoggerManager.userExecutionDirPath = System.getProperty("user.dir");
-
-        /* Creates base Runtime structure directories ************************** */
-        boolean mustCreateExecutionSandbox = true;
-        // Checks if specific log base dir has been given
-        String specificOpt = System.getProperty(COMPSsConstants.SPECIFIC_LOG_DIR);
-        if (specificOpt != null && !specificOpt.isEmpty()) {
-            LoggerManager.compssLogBaseDirPath =
-                specificOpt.endsWith(File.separator) ? specificOpt : specificOpt + File.separator;
-            mustCreateExecutionSandbox = false; // This is the only case where
-            // the sandbox is provided
-        } else {
-            // Checks if base log dir has been given
-            String baseOpt = System.getProperty(COMPSsConstants.BASE_LOG_DIR);
-            if (baseOpt != null && !baseOpt.isEmpty()) {
-                baseOpt = baseOpt.endsWith(File.separator) ? baseOpt : baseOpt + File.separator;
-                LoggerManager.compssLogBaseDirPath = baseOpt + ".COMPSs" + File.separator;
-            } else {
-                // No option given - load default (user home)
-                LoggerManager.compssLogBaseDirPath =
-                    System.getProperty("user.home") + File.separator + ".COMPSs" + File.separator;
-            }
-        }
-
-        if (!new File(LoggerManager.compssLogBaseDirPath).exists()) {
-            if (!new File(LoggerManager.compssLogBaseDirPath).mkdir()) {
-                ErrorManager.error(ERROR_COMPSs_LOG_BASE_DIR + " at " + compssLogBaseDirPath);
-            }
-        }
-
-        // Load working directory. Different for regular applications and
-        // services
-        if (mustCreateExecutionSandbox) {
-            String appName;
-            if (System.getProperty(COMPSsConstants.SERVICE_NAME) != null) {
-                /*
-                 * SERVICE - Gets appName - Overloads the service folder for different executions - MAX_OVERLOAD raises
-                 * warning - Changes working directory to serviceName !!!!
-                 */
-                appName = System.getProperty(COMPSsConstants.SERVICE_NAME);
-            } else {
-                appName = System.getProperty(COMPSsConstants.APP_NAME);
-            }
-
-            int overloadCode = 1;
-            String appLog =
-                LoggerManager.compssLogBaseDirPath + appName + "_0" + String.valueOf(overloadCode) + File.separator;
-            String oldest = appLog;
-            while ((new File(appLog).exists()) && (overloadCode <= MAX_OVERLOAD)) {
-                // Check oldest file (for overload if needed)
-                if (new File(oldest).lastModified() > new File(appLog).lastModified()) {
-                    oldest = appLog;
-                }
-                // Next step
-                overloadCode = overloadCode + 1;
-                if (overloadCode < 10) {
-                    appLog = LoggerManager.compssLogBaseDirPath + appName + "_0" + String.valueOf(overloadCode)
-                        + File.separator;
-                } else {
-                    appLog = LoggerManager.compssLogBaseDirPath + appName + "_" + String.valueOf(overloadCode)
-                        + File.separator;
-                }
-            }
-            if (overloadCode > MAX_OVERLOAD) {
-                // Select the last modified folder
-                appLog = oldest;
-
-                // Overload
-                System.err.println(WARN_FOLDER_OVERLOAD);
-                System.err.println("Overwriting entry: " + appLog);
-
-                // Clean previous results to avoid collisions
-                if (!deleteDirectory(new File(appLog))) {
-                    ErrorManager.error(ERROR_APP_OVERLOAD);
-                }
-            }
-
-            // We have the final appLogDirPath
-            LoggerManager.appLogDirPath = appLog;
-            if (!new File(LoggerManager.appLogDirPath).mkdir()) {
-                ErrorManager.error(ERROR_APP_LOG_DIR);
-            }
-        } else {
-            // The option specific_log_dir has been given. NO sandbox created
-            LoggerManager.appLogDirPath = LoggerManager.compssLogBaseDirPath;
-        }
-        System.setProperty(COMPSsConstants.APP_LOG_DIR, appLogDirPath);
+        System.setProperty(COMPSsConstants.LOG_DIR, logDir);
         ((LoggerContext) LogManager.getContext(false)).reconfigure();
+
+        /*
+         * Create a jobs dir where to store: - Jobs output files - Jobs error files
+         */
+        if (!new File(jobsLogDir).mkdirs()) {
+            ErrorManager.error(ERROR_JOBS_DIR);
+        }
+
+        /*
+         * Create a workers dir where to store: - Worker out files - Worker error files
+         */
+        if (!new File(workersLogDir).mkdirs()) {
+            ErrorManager.error(ERROR_WORKERS_DIR);
+        }
     }
 
-    public static void setUserExecutionDirPath(String userExecutionDirPath) {
-        LOGGER.debug("User execution dir path: " + userExecutionDirPath);
-        LoggerManager.userExecutionDirPath = userExecutionDirPath;
+    public static String getLogDir() {
+        return logDir;
     }
 
-    public static String getUserExecutionDirPath() {
-        return userExecutionDirPath;
+    public static String getJobsLogDir() {
+        return jobsLogDir;
     }
 
-    public static void setCompssLogBaseDirPath(String compssLogBaseDirPath) {
-        LOGGER.debug("Compss log base dir path: " + compssLogBaseDirPath);
-        LoggerManager.compssLogBaseDirPath = compssLogBaseDirPath;
-    }
-
-    public static String getCompssLogBaseDirPath() {
-        return compssLogBaseDirPath;
-    }
-
-    public static void setAppLogDirPath(String appLogDirPath) {
-        LOGGER.debug("App log dir path: " + appLogDirPath);
-        LoggerManager.appLogDirPath = appLogDirPath;
-    }
-
-    public static String getAppLogDirPath() {
-        return appLogDirPath;
+    public static String getWorkersLogDir() {
+        return workersLogDir;
     }
 }

@@ -17,6 +17,7 @@
 package es.bsc.compss.components.impl;
 
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.COMPSsDefaults;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.CommException;
 import es.bsc.compss.exceptions.ExternalPropertyException;
@@ -452,7 +453,7 @@ public class DataInfoProvider {
             try {
                 String pythonInterpreter = System.getProperty(COMPSsConstants.PYTHON_INTERPRETER);
                 if (pythonInterpreter == null || pythonInterpreter.isEmpty() || pythonInterpreter.equals("null")) {
-                    pythonInterpreter = COMPSsConstants.DEFAULT_PYTHON_INTERPRETER;
+                    pythonInterpreter = COMPSsDefaults.PYTHON_INTERPRETER;
                 }
                 String streamId = ExternalStreamHandler.getExternalStreamProperty(pythonInterpreter, filePath, "id");
                 if (DEBUG) {
@@ -1093,7 +1094,7 @@ public class DataInfoProvider {
                     "Object " + sourceName + " not in memory. Requesting tranfers to " + Comm.getAppHost().getName());
             }
             DataLocation targetLocation = null;
-            String path = ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getTempDirPath() + sourceName;
+            String path = ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getWorkingDirectory() + sourceName;
             try {
                 SimpleURI uri = new SimpleURI(path);
                 targetLocation = DataLocation.createLocation(Comm.getAppHost(), uri);

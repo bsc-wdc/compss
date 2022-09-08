@@ -51,4 +51,10 @@ public class ThreadTranslation implements TraceTransformation {
         prvLine.translateLineThreads(translator);
     }
 
+    @Override
+    public String getDescription() {
+        StringBuilder sb = new StringBuilder("Thread identifiers translation:\n");
+        sb.append(translator.getDescription());
+        return sb.toString();
+    }
 }

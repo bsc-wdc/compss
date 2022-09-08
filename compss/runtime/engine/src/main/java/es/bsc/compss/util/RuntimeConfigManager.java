@@ -16,8 +16,9 @@
  */
 package es.bsc.compss.util;
 
-import com.jcraft.jsch.Logger;
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.COMPSsDefaults;
+import es.bsc.compss.COMPSsPaths;
 
 import java.io.File;
 import java.io.InputStream;
@@ -82,7 +83,7 @@ public class RuntimeConfigManager {
      * @return The deployment id.
      */
     public String getDeploymentId() {
-        return config.getString(COMPSsConstants.DEPLOYMENT_ID, COMPSsConstants.DEFAULT_DEPLOYMENT_ID);
+        return config.getString(COMPSsConstants.DEPLOYMENT_ID, COMPSsDefaults.DEPLOYMENT_ID);
     }
 
     /**
@@ -167,21 +168,21 @@ public class RuntimeConfigManager {
     }
 
     /**
-     * Returns the base log directory.
-     * 
-     * @return The base log directory.
+     * Returns the log directory.
+     *
+     * @return The log directory.
      */
-    public String getCOMPSsBaseLogDir() {
-        return config.getString(COMPSsConstants.BASE_LOG_DIR);
+    public String getLogDir() {
+        return config.getString(COMPSsConstants.LOG_DIR);
     }
 
     /**
-     * Returns the specific application log directory.
-     * 
-     * @return The specific application log directory.
+     * Returns the working directory used by the master process.
+     *
+     * @return The working directory for the master process.
      */
-    public String getSpecificLogDir() {
-        return config.getString(COMPSsConstants.SPECIFIC_LOG_DIR);
+    public String getWorkingDir() {
+        return config.getString(COMPSsConstants.WORKING_DIR);
     }
 
     /**
@@ -352,7 +353,7 @@ public class RuntimeConfigManager {
      * @return The specific GAT adaptor path.
      */
     public String getGATAdaptor() {
-        return config.getString(COMPSsConstants.GAT_ADAPTOR_PATH, COMPSsConstants.DEFAULT_GAT_ADAPTOR_LOCATION);
+        return config.getString(COMPSsConstants.GAT_ADAPTOR_PATH, COMPSsPaths.GAT_ADAPTOR_LOCATION);
     }
 
     /**
@@ -559,7 +560,7 @@ public class RuntimeConfigManager {
      * @return The custom Extrae configuration file path.
      */
     public String getCustomExtraeFile() {
-        return config.getString(COMPSsConstants.EXTRAE_CONFIG_FILE, COMPSsConstants.DEFAULT_CUSTOM_EXTRAE_FILE);
+        return config.getString(COMPSsConstants.EXTRAE_CONFIG_FILE, COMPSsDefaults.CUSTOM_EXTRAE_FILE);
     }
 
     /**
@@ -577,8 +578,7 @@ public class RuntimeConfigManager {
      * @return The custom Extrae configuration file path for python worker.
      */
     public String getCustomExtraeFilePython() {
-        return config.getString(COMPSsConstants.PYTHON_EXTRAE_CONFIG_FILE,
-            COMPSsConstants.DEFAULT_PYTHON_CUSTOM_EXTRAE_FILE);
+        return config.getString(COMPSsConstants.PYTHON_EXTRAE_CONFIG_FILE, COMPSsDefaults.PYTHON_CUSTOM_EXTRAE_FILE);
     }
 
     /**
@@ -596,7 +596,7 @@ public class RuntimeConfigManager {
      * @return The monitor interval value.
      */
     public long getMonitorInterval() {
-        return config.getLong(COMPSsConstants.MONITOR, COMPSsConstants.DEFAULT_MONITOR_INTERVAL);
+        return config.getLong(COMPSsConstants.MONITOR, COMPSsDefaults.MONITOR_INTERVAL);
     }
 
     /**

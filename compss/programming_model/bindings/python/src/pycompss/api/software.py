@@ -245,6 +245,12 @@ class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-i
                 return user_function(*args, **kwargs)
 
             decorator = self.decor
+
+            if decorator in [task.task, multinode.multinode]:
+                self.decorator_arguments.update_arguments(self.parameters)
+                kwargs[LABELS.software_config_file] = \
+                    self.kwargs.pop(LABELS.config_file)
+
             if not self.parameters:
                 # @task definition is not in the config file, call the user
                 # function which includes @task
@@ -270,9 +276,6 @@ class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-i
                 else:
                     # regular task definition inside a config file
                     self.__check_core_element__(kwargs, user_function)
-                    self.decorator_arguments.update_arguments(self.parameters)
-                    kwargs[LABELS.software_config_file] = \
-                        self.kwargs.pop(LABELS.config_file)
                     master = TaskMaster(
                         self.core_element,
                         self.decorator_arguments,
@@ -299,14 +302,16 @@ class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-i
         if CONTEXT.in_master():
             self.file_path = self.kwargs.get(LABELS.config_file)
             return args
-
-        tmp = list(*args)
-        for i, v in enumerate(tmp):
-            if v.name == "#kwarg_software_config_file":
-                self.file_path = v.file_name.source_path
-                break
-        tmp.pop(i)
-        return tuple(tmp)
+        elif CONTEXT.in_worker():
+            tmp = list(*args)
+            for i, v in enumerate(tmp):
+                if v.name == "#kwarg_software_config_file":
+                    self.file_path = v.file_name.source_path
+                    break
+            else:
+                return args
+            tmp.pop(i)
+            return tuple(tmp)
 
     def parse_config_file(self) -> None:
         """
@@ -344,6 +349,12 @@ class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-i
                 raise PyCOMPSsException(msg)
 
         self.replace_param_types()
+
+        # send the config file to the worker as well
+        if CONTEXT.in_master() and \
+                self.decor in [task.task, multinode.multinode]:
+            self.parameters[LABELS.software_config_file] = parameter.FILE_IN
+
         self.config_args = execution
         self.constraints = config.get("constraints", None)
         self.container = config.get("container", None)
@@ -351,8 +362,6 @@ class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-i
         self.epilog = config.get("epilog", None)
 
     def replace_param_types(self):
-        if not self.parameters:
-            return
 
         # replace python param types if any
         for k, v in self.parameters.items():
@@ -364,9 +373,6 @@ class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-i
         if rets and isinstance(rets, str) and hasattr(builtins, rets):
             self.parameters["returns"] = getattr(builtins, rets)
 
-        # send the config file to the worker as well
-        if CONTEXT.in_master():
-            self.parameters[LABELS.software_config_file] = parameter.FILE_IN
 
 # ########################################################################### #
 # ##################### Software DECORATOR ALTERNATIVE NAME ################# #

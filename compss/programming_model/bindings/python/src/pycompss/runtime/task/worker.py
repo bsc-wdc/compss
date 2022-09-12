@@ -178,9 +178,6 @@ class TaskWorker:
                         self.cache.profiler,
                     ) = cache
 
-                self.decorator_arguments.software_config_file = \
-                    kwargs.get(LABELS.software_config_file, None)
-
                 if __debug__:
                     LOGGER.debug("Revealing objects")
                 # All parameters are in the same args list. At the moment we only know

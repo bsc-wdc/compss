@@ -23,6 +23,7 @@ PyCOMPSs API - Software decorator.
 This file contains the Software class, needed for the software task definition
 through the decorator.
 """
+import builtins
 import json
 import sys
 from functools import wraps
@@ -94,6 +95,7 @@ class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-i
         "prolog",
         "epilog",
         "parameters",
+        "file_path",
         "is_workflow"
     ]
 
@@ -106,7 +108,6 @@ class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-i
         """
         super().__init__(*args, **kwargs)
         decorator_name = "".join(("@", Software.__name__.lower()))
-        # super(Software, self).__init__(decorator_name, *args, **kwargs)
         self.task_type = None  # type: typing.Any
         self.config_args = None  # type: typing.Any
         self.decor = None  # type: typing.Any
@@ -116,6 +117,7 @@ class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-i
         self.epilog = None  # type: typing.Any
         self.parameters = dict()  # type: typing.Dict
         self.is_workflow = False  # type: bool
+        self.file_path = None
 
         self.decorator_name = decorator_name
         self.args = args
@@ -137,7 +139,6 @@ class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-i
                 list(kwargs.keys()),
                 decorator_name,
             )
-            self.parse_config_file()
 
     def __call__(self, user_function: typing.Callable) -> typing.Callable:
         """Parse and set the software parameters within the task core element.
@@ -152,14 +153,24 @@ class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-i
         @wraps(user_function)
         def software_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
 
+            if not self.scope:
+                # Execute the software as with PyCOMPSs so that sequential
+                # execution performs as parallel.
+                # To disable: raise Exception(not_in_pycompss(LABELS.binary))
+                return user_function(*args, **kwargs)
+
             self.decorated_function.function = user_function
 
+            updated_args = self.pop_file_path(args)
+            self.parse_config_file()
+
             if CONTEXT.in_worker():
+                self.decorator_arguments.update_arguments(self.parameters)
                 worker = TaskWorker(
                     self.decorator_arguments,
                     self.decorated_function
                 )
-                result = worker.call(*args, **kwargs)
+                result = worker.call(*updated_args, **kwargs)
                 # Force flush stdout and stderr
                 sys.stdout.flush()
                 sys.stderr.flush()
@@ -167,10 +178,8 @@ class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-i
                 del worker
                 return result
 
-            if not self.scope or self.is_workflow:
-                # Execute the software as with PyCOMPSs so that sequential
-                # execution performs as parallel.
-                # To disable: raise Exception(not_in_pycompss(LABELS.binary))
+            if self.is_workflow:
+                # no need to do anything, just run the user code
                 return user_function(*args, **kwargs)
 
             if __debug__:
@@ -261,6 +270,9 @@ class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-i
                 else:
                     # regular task definition inside a config file
                     self.__check_core_element__(kwargs, user_function)
+                    self.decorator_arguments.update_arguments(self.parameters)
+                    kwargs[LABELS.software_config_file] = \
+                        self.kwargs.pop(LABELS.config_file)
                     master = TaskMaster(
                         self.core_element,
                         self.decorator_arguments,
@@ -278,14 +290,32 @@ class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-i
         software_f.__doc__ = user_function.__doc__
         return software_f
 
+    def pop_file_path(self, *args):
+        """
+        Pop JSON configuration file path from the args.
+        :param args: args of the task function
+        :return: args without JSON config file path
+        """
+        if CONTEXT.in_master():
+            self.file_path = self.kwargs.get(LABELS.config_file)
+            return args
+
+        tmp = list(*args)
+        for i, v in enumerate(tmp):
+            if v.name == "#kwarg_software_config_file":
+                self.file_path = v.file_name.source_path
+                break
+        tmp.pop(i)
+        return tuple(tmp)
+
     def parse_config_file(self) -> None:
-        """Parse the config file and set self's task_type, decor, and config args.
+        """
+        Parse the config file and set self's task_type, decor, and config args.
 
         :return: None
         """
-        file_path = self.kwargs[LABELS.config_file]
         with open(  # pylint: disable=unspecified-encoding
-            file_path, "r"
+            self.file_path, "r"
         ) as file_path_descriptor:
             config = json.load(file_path_descriptor)
 
@@ -323,9 +353,20 @@ class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-i
     def replace_param_types(self):
         if not self.parameters:
             return
+
+        # replace python param types if any
         for k, v in self.parameters.items():
             if isinstance(v, str) and hasattr(parameter, v):
                 self.parameters[k] = getattr(parameter, v)
+
+        # convert the "returns" value
+        rets = self.parameters.get("returns", None)
+        if rets and isinstance(rets, str) and hasattr(builtins, rets):
+            self.parameters["returns"] = getattr(builtins, rets)
+
+        # send the config file to the worker as well
+        if CONTEXT.in_master():
+            self.parameters[LABELS.software_config_file] = parameter.FILE_IN
 
 # ########################################################################### #
 # ##################### Software DECORATOR ALTERNATIVE NAME ################# #

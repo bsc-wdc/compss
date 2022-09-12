@@ -87,6 +87,7 @@ class _Labels:  # pylint: disable=too-few-public-methods, too-many-instance-attr
         "produces",
         "updates",
         "config_file",
+        "software_config_file",  # this is internal
         "properties",
         "execution",
         "type",
@@ -159,6 +160,7 @@ class _Labels:  # pylint: disable=too-few-public-methods, too-many-instance-attr
         self.produces = "produces"
         self.updates = "updates"
         self.config_file = "config_file"
+        self.software_config_file = "software_config_file"
         self.properties = "properties"
         self.execution = "execution"
         self.type = "type"

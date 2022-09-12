@@ -1404,7 +1404,7 @@ class TaskMaster:
         defined_type = False
         to_return = None  # type: typing.Any
         if isinstance(_returns, str):
-            # Check if the returns statement contains an string with an
+            # Check if the returns statement contains a string with an
             # integer or a global variable.
             # In such case, build a list of objects of value length and
             # set it in ret_type.

@@ -13,7 +13,7 @@ import os
 
 from pycompss.api.task import task
 from pycompss.api.parameter import *
-from pycompss.api.api import compss_barrier, compss_wait_on
+from pycompss.api.api import compss_barrier, compss_wait_on as cwo
 from pycompss.api.software import software
 
 
@@ -102,6 +102,22 @@ def mpmd(a, b):
     pass
 
 
+@software(config_file=os.getcwd() + "/src/config/task_1.json")
+def no_task_decor(ret_value):
+    print("greetings from a task with no task decorator.")
+    return ret_value
+
+
+@software(config_file=os.getcwd() + "/src/config/task_2.json")
+def wo_task_inout_param(inout_list: list):
+    inout_list.append("from_task")
+
+
+@software(config_file=os.getcwd() + "/src/config/mpi_no_task_decor.json")
+def mpi_wo_task(string_param):
+    pass
+
+
 class TestSoftwareDecorator(unittest.TestCase):
 
     def testFunctionalUsageMPI(self):
@@ -133,12 +149,33 @@ class TestSoftwareDecorator(unittest.TestCase):
         string_param = "this is a string with spaces"
         exit_value1 = mpi_with_param(string_param)
         exit_value2 = mpi_with_param(string_param)
-        exit_value1 = compss_wait_on(exit_value1)
-        exit_value2 = compss_wait_on(exit_value2)
+        exit_value1 = cwo(exit_value1)
+        exit_value2 = cwo(exit_value2)
         self.assertEqual(exit_value1, 0)
         self.assertEqual(exit_value2, 0)
 
     def testMultinode(self):
         ev = multi_node_task()
-        ev = compss_wait_on(ev)
+        ev = cwo(ev)
         self.assertEqual(ev, 0)
+
+    def testNoTaskDecor(self):
+        ping = "to be returned"
+        pong = cwo(no_task_decor(ping))
+        self.assertEqual(ping, pong)
+
+
+    def testInoutParam(self):
+        ping = ["initial_item"]
+        wo_task_inout_param(ping)
+        pong = cwo(ping)
+        self.assertEqual(len(ping), len(pong) - 1)
+
+    def testMpiWoTaskDecor(self):
+        string_param = "this is an mpi task with no task decorator"
+        exit_value1 = mpi_wo_task(string_param)
+        exit_value2 = mpi_wo_task(string_param)
+        exit_value1 = cwo(exit_value1)
+        exit_value2 = cwo(exit_value2)
+        self.assertEqual(exit_value1, 0)
+        self.assertEqual(exit_value2, 0)

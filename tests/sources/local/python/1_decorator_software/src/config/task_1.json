@@ -1,0 +1,16 @@
+{
+	"execution": {
+		"type":"task"
+	},
+	"parameters":{
+		"returns":1
+	},
+	"prolog":{
+		"binary":"echo",
+		"args":"prolog from no task decorator."
+	},
+	"epilog":{
+		"binary":"echo",
+		"args":"epilog from no task decorator."
+	}
+}

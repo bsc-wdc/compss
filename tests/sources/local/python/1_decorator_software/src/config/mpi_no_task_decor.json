@@ -1,0 +1,14 @@
+
+{
+  "execution" : {
+	"type":"mpi",
+    "runner": "mpirun",
+    "binary":"${PWD}/src/scripts/print.sh",
+    "working_dir": ".",
+    "processes": 1,
+    "args": "test {{string_param}}"
+  },
+  "parameters": {
+    "returns": "int"
+  }
+}

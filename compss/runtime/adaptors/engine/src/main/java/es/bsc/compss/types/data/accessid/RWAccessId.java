@@ -132,4 +132,9 @@ public class RWAccessId extends DataAccessId {
             + this.writtenDataVersion.getDataInstanceId() + (isPreserveSourceData() ? ", Preserved" : ", Erased");
     }
 
+    @Override
+    public boolean isValidVersion() {
+        return !this.writtenDataVersion.hasBeenCancelled();
+    }
+
 }

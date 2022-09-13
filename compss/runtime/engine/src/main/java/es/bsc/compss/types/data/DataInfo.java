@@ -313,6 +313,8 @@ public abstract class DataInfo {
      * @return true if no more versions
      */
     public final boolean canceledWriteVersion(Integer versionId) {
+        DataVersion version = this.versions.get(versionId);
+        version.versionCancelled();
         this.canceledVersions.add(versionId);
         if (versionId == currentVersionId) {
             Integer lastVersion = this.currentVersionId;

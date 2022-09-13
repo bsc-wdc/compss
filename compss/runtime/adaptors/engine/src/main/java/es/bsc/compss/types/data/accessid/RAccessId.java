@@ -112,4 +112,9 @@ public class RAccessId extends DataAccessId {
             + (isPreserveSourceData() ? ", Preserved" : ", Erased");
     }
 
+    @Override
+    public boolean isValidVersion() {
+        return !this.readDataVersion.hasBeenCancelled();
+    }
+
 }

@@ -66,4 +66,11 @@ public abstract class DataAccessId implements Serializable {
      * @return {@code true} if the source data must be preserved, {@code false} otherwise.
      */
     public abstract boolean isPreserveSourceData();
+
+    /**
+     * Returns whether the read/generated version is valid.
+     * 
+     * @return {@code true} if the source data must be preserved, {@code false} otherwise.
+     */
+    public abstract boolean isValidVersion();
 }

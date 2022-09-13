@@ -1,0 +1,9 @@
+
+{
+	"execution" : {
+		"type":"task"
+	},
+	"parameters": {
+		"returns": "list"
+	}
+}

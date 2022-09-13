@@ -110,4 +110,9 @@ public class WAccessId extends DataAccessId {
         return "Written data: " + this.writtenDataVersion.getDataInstanceId();
     }
 
+    @Override
+    public boolean isValidVersion() {
+        return !this.writtenDataVersion.hasBeenCancelled();
+    }
+
 }

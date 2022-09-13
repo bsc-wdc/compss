@@ -351,18 +351,6 @@ public class TaskAnalyser implements GraphHandler {
                 LOGGER.debug("Freeing barriers for task " + taskId);
             }
 
-            // Free dependencies
-            // Free task data dependencies
-            if (DEBUG) {
-                LOGGER.debug("Releasing waiting tasks for task " + taskId);
-            }
-            List<TaskListener> listeners = task.getListeners();
-            if (listeners != null) {
-                for (TaskListener listener : listeners) {
-                    listener.taskFinished();
-                }
-            }
-
             // Mark parameter accesses
             if (DEBUG) {
                 LOGGER.debug("Marking accessed parameters for task " + taskId);
@@ -378,6 +366,18 @@ public class TaskAnalyser implements GraphHandler {
             for (Parameter param : task.getUnusedIntermediateParameters()) {
                 updateParameterAccess(task, param);
                 updateLastWritters(task, param);
+            }
+
+            // Free dependencies
+            // Free task data dependencies
+            if (DEBUG) {
+                LOGGER.debug("Releasing waiting tasks for task " + taskId);
+            }
+            List<TaskListener> listeners = task.getListeners();
+            if (listeners != null) {
+                for (TaskListener listener : listeners) {
+                    listener.taskFinished();
+                }
             }
 
             // Check if the finished task was the last writer of a file, but only if task generation has finished

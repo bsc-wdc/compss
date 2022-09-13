@@ -29,6 +29,7 @@ public class DataVersion {
     private boolean toDelete;
     private boolean used; // The version has been read or written
     private boolean semUsed;
+    private boolean canceled;
     private List<Semaphore> semReaders;
 
 
@@ -44,6 +45,7 @@ public class DataVersion {
         this.writers = 0;
         this.toDelete = false;
         this.used = false;
+        this.canceled = false;
         this.semReaders = new LinkedList<>();
         this.semUsed = false;
     }
@@ -173,12 +175,28 @@ public class DataVersion {
     }
 
     /**
+     * Marks the version as cancelled.
+     */
+    public void versionCancelled() {
+        this.canceled = true;
+    }
+
+    /**
      * Returns whether the version has been used or not.
      *
      * @return {@code true} if the version has been used, {@code false} otherwise.
      */
     public boolean hasBeenUsed() {
         return this.used;
+    }
+
+    /**
+     * Returns whether the version has been cancelled or not.
+     *
+     * @return {@code true} if the version has been cancelled, {@code false} otherwise.
+     */
+    public boolean hasBeenCancelled() {
+        return this.canceled;
     }
 
     /**

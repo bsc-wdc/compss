@@ -375,11 +375,18 @@ public class GraphGenerator {
             if (pendingGroupDependencies.isEmpty()) {
                 addSingleElementEdgeToGraph(src, tgt, edgeType, label);
             } else {
+                addSingleElementEdgeToGraph(src, tgt, edgeType, label);
                 for (Map.Entry<String, List<String>> entry : pendingGroupDependencies.entrySet()) {
                     String srctgt = entry.getKey();
                     try {
                         full_graph.newLine();
-                        full_graph.write(srctgt + " [label=\"d" + label + " ("
+                        String labels = "[";
+                        for (String s : pendingGroupDependencies.get(srctgt)) {
+                            labels += "d" + s + ",";
+                        }
+                        labels = labels.substring(0, labels.length() - 1);
+                        labels += "]";
+                        full_graph.write(srctgt + " [label=\"" + labels + " ("
                             + pendingGroupDependencies.get(srctgt).size() + ")" + "\",color=\"#024b30\",penwidth=2];");
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -391,9 +398,9 @@ public class GraphGenerator {
             List<String> labels = pendingGroupDependencies.get(src + " -> " + tgt);
             if (labels == null) {
                 labels = new LinkedList<>();
-                pendingGroupDependencies.put(src + " -> " + tgt, labels);
             }
             labels.add(label);
+            pendingGroupDependencies.put(src + " -> " + tgt, labels);
         }
     }
 
@@ -416,7 +423,6 @@ public class GraphGenerator {
                 edgeProperties.append("]");
             }
             edgeProperties.append(";");
-
             // Write entry
             full_graph.newLine();
             full_graph.write(src + " -> " + tgt + edgeProperties.toString());

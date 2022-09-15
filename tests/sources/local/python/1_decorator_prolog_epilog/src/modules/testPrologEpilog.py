@@ -21,71 +21,71 @@ from pycompss.api.parameter import *
 from pycompss.api.epilog import epilog
 
 
-@prolog(binary="echo", params="just a prolog")
-@epilog(binary="echo", params="just an epilog")
+@prolog(binary="echo", args="just a prolog")
+@epilog(binary="echo", args="just an epilog")
 @task()
 def basic():
     return True
 
 
-@prolog(binary="date", params="-d {{a}}")
-@epilog(binary="date", params="-d {{b}}")
+@prolog(binary="date", args="-d {{a}}")
+@epilog(binary="date", args="-d {{b}}")
 @mpmd_mpi(runner="mpirun",
           programs=[
-               dict(binary="echo", processes=2, params="program 1"),
-               dict(binary="echo", processes=2, params="program 2")
+               dict(binary="echo", processes=2, args="program 1"),
+               dict(binary="echo", processes=2, args="program 2")
           ])
 @task()
-def params_mpmd(a, b):
+def args_mpmd(a, b):
     pass
 
 
-@prolog(binary="date", params="-date", fail_by_exit_value=False)
-@epilog(binary="date", params="-date", fail_by_exit_value=False)
+@prolog(binary="date", args="-date", fail_by_exit_value=False)
+@epilog(binary="date", args="-date", fail_by_exit_value=False)
 @task()
 def skip_failure():
     return True
 
 
-@prolog(binary="date", params="-wrong", fail_by_exit_value=False)
-@mpi(runner="mpirun", binary="echo", params="prolog failed successfully")
+@prolog(binary="date", args="-wrong", fail_by_exit_value=False)
+@mpi(runner="mpirun", binary="echo", args="prolog failed successfully")
 @task(returns=1)
 def mpi_skip_failure():
     pass
 
 
-@prolog(binary="date", params="-wrong", fail_by_exit_value=False)
-@binary(binary="echo", params="prolog failed successfully",
+@prolog(binary="date", args="-wrong", fail_by_exit_value=False)
+@binary(binary="echo", args="prolog failed successfully",
         fail_by_exit_value=False)
 @task(returns=1)
 def mpi_skip_failure():
     pass
 
 
-@prolog(binary="cat", params="{{p_file}}")
-@epilog(binary="cat", params="{{e_file}}")
+@prolog(binary="cat", args="{{p_file}}")
+@epilog(binary="cat", args="{{e_file}}")
 @task(p_file=FILE_IN, e_file=FILE_IN)
 def file_in(p_file, e_file):
     return 1
 
 
 @epilog(binary=os.getcwd() + "/src/misc/hello.sh",
-        params="{{text}} {{file_out}}")
+        args="{{text}} {{file_out}}")
 @task(returns=1, file_out=FILE_OUT)
 def std_out(ret_value, text, file_out):
     return ret_value
 
 
-@prolog(binary="echo", params="{{a}}_{{b}}")
-@epilog(binary="echo", params="{{c}}_{{d}}")
+@prolog(binary="echo", args="{{a}}_{{b}}")
+@epilog(binary="echo", args="{{c}}_{{d}}")
 @task(returns=4)
 def task_1(a, b, c, d):
     return a, b, c, d
 
 
-@prolog(binary="echo", params="prolog_{{b}}")
-@epilog(binary="echo", params="epilog_{{d}}")
-@mpi(binary="echo", runner="mpirun", params="mpi_{{a}}")
+@prolog(binary="echo", args="prolog_{{b}}")
+@epilog(binary="echo", args="epilog_{{d}}")
+@mpi(binary="echo", runner="mpirun", args="mpi_{{a}}")
 @task(returns=1)
 def task_2(a, b, c, d):
     pass
@@ -112,7 +112,7 @@ class TestPrologEpilog(unittest.TestCase):
         self.assertEqual(ret, 1, "ERROR: testFileInParam ret value NOT correct")
 
     def testParams(self):
-        params_mpmd("next monday", "next friday")
+        args_mpmd("next monday", "next friday")
         cb()
 
     def testBasic(self):

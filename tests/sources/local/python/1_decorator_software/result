@@ -150,5 +150,10 @@
   fi
 
 
+  tmp=$(grep -r -l "greetings from a task with no task decorator." "${jobs_logs}")
+  if [[ -z "$tmp" ]]; then
+     echo "ERROR: TASK FAILED: testMpiWoTaskDecor function failed." | tee -a "${output_file}"
+    exit 1
+  fi
 
   exit 0

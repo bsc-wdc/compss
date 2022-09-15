@@ -21,11 +21,14 @@
 PyCOMPSs API - Software decorator.
 
 This file contains the Software class, needed for the software task definition
-through the decorator.
+through the decorator. Software decorator can be used to move the definition of
+the multiple decorators to a JSON file.
 """
+import builtins
 import json
-import types
+import sys
 from functools import wraps
+from pycompss.runtime.task.master import TaskMaster
 
 from pycompss.util.context import CONTEXT
 from pycompss.api import binary
@@ -34,6 +37,9 @@ from pycompss.api import mpmd_mpi
 from pycompss.api import multinode
 from pycompss.api import http
 from pycompss.api import compss
+from pycompss.api import task
+from pycompss.api import parameter
+
 from pycompss.api.commons.constants import INTERNAL_LABELS
 from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
@@ -43,6 +49,8 @@ from pycompss.runtime.task.definitions.core_element import CE
 from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.typing_helper import typing
+from pycompss.runtime.task.worker import TaskWorker
+
 
 if __debug__:
     import logging
@@ -55,6 +63,7 @@ DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 
 SUPPORTED_DECORATORS = {
     LABELS.mpi: (mpi, mpi.mpi),
+    LABELS.task: (task, task.task),
     LABELS.binary: (binary, binary.binary),
     LABELS.mpmd_mpi: (mpmd_mpi, mpmd_mpi.mpmd_mpi),
     LABELS.http: (http, http.http),
@@ -63,7 +72,9 @@ SUPPORTED_DECORATORS = {
 }
 
 
-class Software:  # pylint: disable=too-few-public-methods, too-many-instance-attributes
+class Software(
+    task.task
+):  # pylint: disable=too-few-public-methods, too-many-instance-attributes
     """Software decorator class.
 
     When provided with a config file, it can replicate any existing python
@@ -86,35 +97,43 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
         "container",
         "prolog",
         "epilog",
+        "parameters",
+        "file_path",
+        "is_workflow",
     ]
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
-        """Parse the config file and store arguments passed to the decorator.
+        """Initialize the software decorator.
 
-        self = itself.
-        args = not used.
-        kwargs = dictionary with the given @software parameter (config_file).
+        Only when in the Master, parses the config file and generates
+        the decorators. Otherwise, just an "__init__".
 
-        :param args: Arguments
-        :param kwargs: Keyword arguments
+        :param args: not used (maybe should be?).
+        :param kwargs: so far contains only the JSON configuration file path.
+
         """
+        super().__init__(*args, **kwargs)
         decorator_name = "".join(("@", Software.__name__.lower()))
-        # super(Software, self).__init__(decorator_name, *args, **kwargs)
-        self.task_type = None  # type: typing.Optional[types.ModuleType]
+        self.task_type = None  # type: typing.Any
         self.config_args = None  # type: typing.Any
-        self.decor = None  # type: typing.Optional[typing.Callable]
-        self.constraints = None  # type: typing.Optional[dict]
-        self.container = None  # type: typing.Optional[typing.Dict[str, str]]
-        self.prolog = None  # type: typing.Optional[typing.Dict[str, str]]
-        self.epilog = None  # type: typing.Optional[typing.Dict[str, str]]
+        self.decor = None  # type: typing.Any
+        self.constraints = None  # type: typing.Any
+        self.container = None  # type: typing.Any
+        self.prolog = None  # type: typing.Any
+        self.epilog = None  # type: typing.Any
+        self.parameters = dict()  # type: typing.Dict
+        self.is_workflow = False  # type: bool
+        self.file_path = None
 
         self.decorator_name = decorator_name
         self.args = args
         self.kwargs = kwargs
         self.scope = CONTEXT.in_pycompss()
-        self.core_element = None  # type: typing.Optional[CE]
+        self.core_element = None  # type: typing.Any
         self.core_element_configured = False
 
+        # no need to parse the config file in the worker. all the @task params
+        # are passed inside "kwargs"
         if self.scope and CONTEXT.in_master():
             if __debug__:
                 logger.debug("Init @software decorator..")
@@ -126,7 +145,6 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
                 list(kwargs.keys()),
                 decorator_name,
             )
-            self.parse_config_file()
 
     def __call__(self, user_function: typing.Callable) -> typing.Callable:
         """Parse and set the software parameters within the task core element.
@@ -135,15 +153,36 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
         into the "real" decorator and passes the args and kwargs.
 
         :param user_function: User function to be decorated.
-        :return: User function decorated with the decor type defined by the user.
+        :return: User function decorated with the decor type defined by the user
         """
 
         @wraps(user_function)
         def software_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
-            if not self.scope or not CONTEXT.in_master():
+
+            if not self.scope:
                 # Execute the software as with PyCOMPSs so that sequential
                 # execution performs as parallel.
                 # To disable: raise Exception(not_in_pycompss(LABELS.binary))
+                return user_function(*args, **kwargs)
+
+            self.decorated_function.function = user_function
+
+            updated_args = self.pop_file_path(args)
+            self.parse_config_file()
+
+            if CONTEXT.in_worker():
+                self.decorator_arguments.update_arguments(self.parameters)
+                worker = TaskWorker(self.decorator_arguments, self.decorated_function)
+                m_result = worker.call(*updated_args, **kwargs)
+                # Force flush stdout and stderr
+                sys.stdout.flush()
+                sys.stderr.flush()
+                # Remove worker
+                del worker
+                return m_result
+
+            if self.is_workflow:
+                # no need to do anything, just run the user code
                 return user_function(*args, **kwargs)
 
             if __debug__:
@@ -157,9 +196,7 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
             if self.prolog is not None:
                 resolve_fail_by_exit_value(self.prolog, "True")
                 prolog_binary = self.prolog[LABELS.binary]
-                prolog_params = self.prolog.get(
-                    LABELS.params, INTERNAL_LABELS.unassigned
-                )
+                prolog_params = self.prolog.get(LABELS.args, INTERNAL_LABELS.unassigned)
                 prolog_fail_by = self.prolog.get(LABELS.fail_by_exit_value)
                 _prolog = [prolog_binary, prolog_params, prolog_fail_by]
 
@@ -170,9 +207,7 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
             if self.epilog is not None:
                 resolve_fail_by_exit_value(self.epilog, "False")
                 epilog_binary = self.epilog[LABELS.binary]
-                epilog_params = self.epilog.get(
-                    LABELS.params, INTERNAL_LABELS.unassigned
-                )
+                epilog_params = self.epilog.get(LABELS.args, INTERNAL_LABELS.unassigned)
                 epilog_fail_by = self.epilog.get(LABELS.fail_by_exit_value)
                 _epilog = [epilog_binary, epilog_params, epilog_fail_by]
 
@@ -200,9 +235,25 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
                 core_element.set_impl_type_args(impl_args)
                 kwargs[CORE_ELEMENT_KEY] = core_element
 
-            if self.decor:
-                decorator = self.decor
+            if CORE_ELEMENT_KEY in kwargs:
+                self.core_element_configured = True
 
+            if not self.decor:
+                # It's a PyCOMPSs task with only @task and @software decorators,
+                # so everything from the config file is already in the CE
+                return user_function(*args, **kwargs)
+
+            decorator = self.decor
+
+            if decorator in [task.task, multinode.multinode]:
+                self.decorator_arguments.update_arguments(self.parameters)
+                kwargs[LABELS.software_config_file] = self.kwargs.pop(
+                    LABELS.config_file
+                )
+
+            if not self.parameters:
+                # @task definition is not in the config file, call the user
+                # function which includes @task
                 def decor_f():
                     def function():
                         ret = decorator(**self.config_args)
@@ -210,45 +261,127 @@ class Software:  # pylint: disable=too-few-public-methods, too-many-instance-att
 
                     return function()
 
+                decor_f.__doc__ = user_function.__doc__
                 return decor_f()
+            else:
+                if self.decor is not task.task:
+                    # it is not a regular @task, build the decorator with
+                    # "execution" key-values and the @task decorator with
+                    # "parameters" key-values
+                    def decor_f():
+                        def function(*_, **__):
+                            tt = task.task(**self.parameters)
+                            return tt(user_function)(*_, **__)
 
-            # It's a PyCOMPSs task with only @task and @software decorators
-            return user_function(*args, **kwargs)
+                        dec = decorator(**self.config_args)
+                        return dec(function)(*args, **kwargs)
+
+                    return decor_f()
+                else:
+                    # regular task definition inside a config file
+                    self.__check_core_element__(kwargs, user_function)
+                    master = TaskMaster(
+                        self.core_element,
+                        self.decorator_arguments,
+                        self.decorated_function,
+                    )
+                    (
+                        future_object,
+                        self.core_element,
+                        self.decorated_function,
+                    ) = master.call(args, kwargs)
+
+                    del master
+                    return future_object
 
         software_f.__doc__ = user_function.__doc__
         return software_f
 
+    def pop_file_path(self, *args):
+        """Pop JSON configuration file path from the args.
+
+        :param args: args of the task function
+        :return: args without JSON config file path
+        """
+        if CONTEXT.in_master():
+            self.file_path = self.kwargs.get(LABELS.config_file)
+            return args
+        elif CONTEXT.in_worker():
+            tmp = list(*args)
+            for i, v in enumerate(tmp):
+                if v.name == "#kwarg_software_config_file":
+                    self.file_path = v.file_name.source_path
+                    break
+            else:
+                return args
+            tmp.pop(i)
+            return tuple(tmp)
+
     def parse_config_file(self) -> None:
-        """Parse the config file and set self's task_type, decor, and config args.
+        """
+        Parse the config file and set self's task_type, decor, and config args.
 
         :return: None
         """
-        file_path = self.kwargs[LABELS.config_file]
+        if not self.file_path:
+            raise PyCOMPSsException(" ERROR: Incorrect file_path.")
         with open(  # pylint: disable=unspecified-encoding
-            file_path, "r"
+            self.file_path, "r"
         ) as file_path_descriptor:
             config = json.load(file_path_descriptor)
 
-            properties = config.get(LABELS.properties, {})
-            exec_type = config.get(LABELS.type, None)
-            if exec_type is None:
-                print("Execution type not provided for @software task")
-            elif exec_type.lower() not in SUPPORTED_DECORATORS:
-                msg = f"Error: Executor Type {exec_type} is not supported for software task."
+        execution = config.get(LABELS.execution, {})
+        self.parameters = config.get(LABELS.parameters, dict())
+        exec_type = execution.pop(LABELS.type, None)
+        if exec_type is None:
+            print("Execution type not provided for @software task")
+        elif exec_type == LABELS.task:
+            self.task_type, self.decor = SUPPORTED_DECORATORS[exec_type]
+            print("Executing task function..")
+        elif exec_type == "workflow":
+            print("Executing workflow..")
+            self.is_workflow = True
+            return
+        elif exec_type.lower() not in SUPPORTED_DECORATORS:
+            msg = (
+                f"Error: Executor Type {exec_type} is not supported "
+                f"for software task."
+            )
+            raise PyCOMPSsException(msg)
+        else:
+            exec_type = exec_type.lower()
+            self.task_type, self.decor = SUPPORTED_DECORATORS[exec_type]
+            mand_args = self.task_type.MANDATORY_ARGUMENTS
+            if not all(arg in execution for arg in mand_args):
+                msg = f"Error: Missing arguments for '{self.task_type}'."
                 raise PyCOMPSsException(msg)
-            else:
-                exec_type = exec_type.lower()
-                self.task_type, self.decor = SUPPORTED_DECORATORS[exec_type]
-                mand_args = self.task_type.MANDATORY_ARGUMENTS
-                if not all(arg in properties for arg in mand_args):
-                    msg = f"Error: Missing arguments for '{self.task_type}'."
-                    raise PyCOMPSsException(msg)
 
-            self.config_args = properties
-            self.constraints = config.get("constraints", None)
-            self.container = config.get("container", None)
-            self.prolog = config.get("prolog", None)
-            self.epilog = config.get("epilog", None)
+        self.replace_param_types()
+
+        # send the config file to the worker as well
+        if CONTEXT.in_master() and self.decor in [task.task, multinode.multinode]:
+            self.parameters[LABELS.software_config_file] = parameter.FILE_IN
+
+        self.config_args = execution
+        self.constraints = config.get("constraints", None)
+        self.container = config.get("container", None)
+        self.prolog = config.get("prolog", None)
+        self.epilog = config.get("epilog", None)
+
+    def replace_param_types(self):
+        """Replace the strings with Parameters form the API.
+
+        :return:
+        """
+        # replace python param types if any
+        for k, v in self.parameters.items():
+            if isinstance(v, str) and hasattr(parameter, v):
+                self.parameters[k] = getattr(parameter, v)
+
+        # convert the "returns" value
+        rets = self.parameters.get("returns", None)
+        if rets and isinstance(rets, str) and hasattr(builtins, rets):
+            self.parameters["returns"] = getattr(builtins, rets)
 
 
 # ########################################################################### #

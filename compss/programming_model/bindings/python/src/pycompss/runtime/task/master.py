@@ -1103,7 +1103,7 @@ class TaskMaster:
                 impl_type,
                 impl_local,
                 impl_io,
-                impl_type_args,
+                impl_type_args=impl_type_args,
             )
 
     def check_layout_params(self, impl_type_args: typing.List[str]) -> None:
@@ -1404,7 +1404,7 @@ class TaskMaster:
         defined_type = False
         to_return = None  # type: typing.Any
         if isinstance(_returns, str):
-            # Check if the returns statement contains an string with an
+            # Check if the returns statement contains a string with an
             # integer or a global variable.
             # In such case, build a list of objects of value length and
             # set it in ret_type.

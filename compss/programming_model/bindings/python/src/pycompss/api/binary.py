@@ -49,7 +49,7 @@ MANDATORY_ARGUMENTS = {LABELS.binary}
 SUPPORTED_ARGUMENTS = {
     LABELS.binary,
     LABELS.working_dir,
-    LABELS.params,
+    LABELS.args,
     LABELS.fail_by_exit_value,
 }
 DEPRECATED_ARGUMENTS = {LEGACY_LABELS.working_dir, LABELS.engine, LABELS.image}
@@ -202,7 +202,7 @@ class Binary:  # pylint: disable=too-few-public-methods
             impl_args = [
                 _binary,  # internal_binary
                 _working_dir,  # working_dir
-                self.kwargs.get(LABELS.params, INTERNAL_LABELS.unassigned),  # params
+                self.kwargs.get(LABELS.args, INTERNAL_LABELS.unassigned),  # args
                 _fail_by_ev,  # fail_by_ev
             ]
 

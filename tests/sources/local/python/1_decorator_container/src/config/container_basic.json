@@ -1,8 +1,8 @@
 {
-	"type":"binary",
-	"properties":{
-        "binary":"ls"
-	},
+    "execution" : {
+      "type":"binary",
+      "binary":"ls"
+    },
     "container": {
         "engine": "DOCKER",
         "image": "ubuntu"

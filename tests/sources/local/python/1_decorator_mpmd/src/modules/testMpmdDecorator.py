@@ -29,18 +29,18 @@ def basic():
 
 @mpmd_mpi(runner="mpirun",
           programs=[
-               dict(binary="date", processes=2, params="-d {{first}}"),
-               dict(binary="date", processes=2, params="-d {{second}}")
+               dict(binary="date", processes=2, args="-d {{first}}"),
+               dict(binary="date", processes=2, args="-d {{second}}")
           ])
 @task()
-def params(first, second):
+def test_args(first, second):
     pass
 
 
 @mpmd_mpi(runner="mpirun",
           programs=[
-            dict(binary="date", params="{{pref}} {{param_1}}"),
-            dict(binary="date", params="{{pref}} {{param_2}}"),
+            dict(binary="date", args="{{pref}} {{param_1}}"),
+            dict(binary="date", args="{{pref}} {{param_2}}"),
           ])
 @task()
 def myDateDef(pref="-d", param_1="last wednesday", param_2="next wednesday"):
@@ -50,8 +50,8 @@ def myDateDef(pref="-d", param_1="last wednesday", param_2="next wednesday"):
 @mpmd_mpi(runner="mpirun",
           working_dir=".",
           programs=[
-               dict(binary="sed", processes=2, params="{{exp}} {{in_file}}"),
-               dict(binary="sed", params="{{exp}} {{in_file}}"),
+               dict(binary="sed", processes=2, args="{{exp}} {{in_file}}"),
+               dict(binary="sed", args="{{exp}} {{in_file}}"),
           ])
 @task(in_file=FILE_IN)
 def file_in(exp, in_file):
@@ -61,8 +61,8 @@ def file_in(exp, in_file):
 @mpmd_mpi(runner="mpirun",
           working_dir=".",
           programs=[
-               dict(binary="grep", params="{{keyword}} {{in_file}}"),
-               dict(binary="grep", params="{{keyword}} {{in_file}}"),
+               dict(binary="grep", args="{{keyword}} {{in_file}}"),
+               dict(binary="grep", args="{{keyword}} {{in_file}}"),
           ])
 @task(in_file=FILE_IN, result={Type: FILE_OUT_STDOUT})
 def std_out(keyword, in_file, result):
@@ -72,9 +72,9 @@ def std_out(keyword, in_file, result):
 @mpmd_mpi(runner="mpirun", fail_by_exit_value=False,
           programs=[
                dict(binary=os.getcwd() + "/src/scripts/exit_with_code.sh",
-                    params="{{exit_code}}"),
+                    args="{{exit_code}}"),
                dict(binary=os.getcwd() + "/src/scripts/exit_with_code.sh",
-                    params="{{exit_code}}")
+                    args="{{exit_code}}")
           ])
 @task(returns=int)
 def exit_with_code(exit_code):
@@ -99,7 +99,7 @@ class TestMpmdDecorator(unittest.TestCase):
         compss_barrier()
 
     def testParams(self):
-        params("next monday", "next friday")
+        test_args("next monday", "next friday")
         compss_barrier()
 
     def testDefaultValue(self):

@@ -44,8 +44,10 @@ class _Labels:  # pylint: disable=too-few-public-methods, too-many-instance-attr
         "tracing_hook",
         "computing_nodes",
         "working_dir",
-        "params",
+        "args",
+        "parameters",
         "fail_by_exit_value",
+        "task",
         "mpi",
         "mpmd_mpi",
         "multinode",
@@ -85,8 +87,11 @@ class _Labels:  # pylint: disable=too-few-public-methods, too-many-instance-attr
         "produces",
         "updates",
         "config_file",
+        "software_config_file",  # this is internal
         "properties",
+        "execution",
         "type",
+        "is_workflow",
     )
 
     def __init__(self) -> None:  # pylint: disable=too-many-statements
@@ -112,8 +117,10 @@ class _Labels:  # pylint: disable=too-few-public-methods, too-many-instance-attr
         # - Others
         self.on_failure = "on_failure"
         self.working_dir = "working_dir"
-        self.params = "params"
+        self.args = "args"
+        self.parameters = "parameters"
         self.fail_by_exit_value = "fail_by_exit_value"
+        self.task = "task"
         self.mpi = "mpi"
         self.binary = "binary"
         self.http = "http"
@@ -143,6 +150,7 @@ class _Labels:  # pylint: disable=too-few-public-methods, too-many-instance-attr
         self.management_fail = "FAIL"
         self.kernel = "kernel"
 
+        self.is_workflow = "is_workflow"
         # Http tasks
         self.service_name = "service_name"
         self.resource = "resource"
@@ -152,7 +160,9 @@ class _Labels:  # pylint: disable=too-few-public-methods, too-many-instance-attr
         self.produces = "produces"
         self.updates = "updates"
         self.config_file = "config_file"
+        self.software_config_file = "software_config_file"
         self.properties = "properties"
+        self.execution = "execution"
         self.type = "type"
 
 

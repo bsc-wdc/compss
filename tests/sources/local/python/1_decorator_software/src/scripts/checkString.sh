@@ -15,7 +15,7 @@ else
 fi
 
 if [ "$#" -ne 2 ]; then
-    echo "ERROR: Illegal number of binary parameters from 'params' string"
+    echo "ERROR: Illegal number of binary parameters from 'args' string"
     exit 1
 fi
 

@@ -101,7 +101,9 @@ class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-i
     ]
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
-        """Only when in the Master, parses the config file and generates
+        """Initialize the software decorator.
+
+        Only when in the Master, parses the config file and generates
         the decorators. Otherwise, just an "__init__".
 
         :param args: not used (maybe should be?).
@@ -364,12 +366,10 @@ class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-i
         self.epilog = config.get("epilog", None)
 
     def replace_param_types(self):
-        """Replace string values with the references from the API's Parameter
-        class.
+        """Replace the strings with Parameters form the API.
 
         :return:
         """
-
         # replace python param types if any
         for k, v in self.parameters.items():
             if isinstance(v, str) and hasattr(parameter, v):

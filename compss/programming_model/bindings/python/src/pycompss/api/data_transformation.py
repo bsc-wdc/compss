@@ -45,9 +45,7 @@ DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 
 
 class DataTransformation:  # pylint: disable=too-few-public-methods
-    """Data Transformation is the actual decorator. It can be used on top of
-    @task decorator to generate DT tasks / workflows.
-    """
+    """Data Transformation decorator for PyCOMPSs tasks."""
 
     __slots__ = [
         "decorator_name",
@@ -60,9 +58,10 @@ class DataTransformation:  # pylint: disable=too-few-public-methods
     ]
 
     def __init__(self, *args, **kwargs):
-        """Store arguments passed to the decorator. If args are empty, it will
-        mean that the decorator should get the list of the DTO's from the call
-        method.
+        """Store arguments passed to the decorator.
+
+        If the args are empty, it will mean that the decorator should get the
+        list of the DTO's from the call method.
 
         :param args: should contain only the <parameter_name> & <user_function>
         :param kwargs: kwargs of the user DT function.
@@ -86,7 +85,9 @@ class DataTransformation:  # pylint: disable=too-few-public-methods
             )
 
     def __call__(self, user_function: typing.Callable) -> typing.Callable:
-        """Call is mainly meant to generate DT (task) functions. However, if
+        """Call to the decorated task function.
+
+        Call is mainly meant to generate DT (task) functions. However, if
         the __init__ wasn't provided with any args, it also should extract the
         DTO's from the kwargs.
 
@@ -184,7 +185,7 @@ class DataTransformation:  # pylint: disable=too-few-public-methods
 
 @task(returns=object)
 def _transform(data, function, **kwargs):
-    """The @task equivalent of a user function.
+    """Replace the user function with its @task equivalent.
 
     :param data: the parameter that DT will be applied to.
     :param function: DT function
@@ -195,11 +196,14 @@ def _transform(data, function, **kwargs):
 
 
 class DTObject(object):
-    """Data Transformation Object is a helper class to avoid stack of
+    """Data Transformation Object is a replacement for DT decorator definition.
+
+    Data Transformation Object is a helper class to avoid stack of
     decorators or to simplify the definition inside the user code. Arguments of
     the object creation of the class is the same as Data Transformation
     decorator. It always expects the parameter name as the first element, then
      dt_function and the rest of the dt_function kwargs if any.
+
     """
 
     def __init__(self, param_name, func, **func_kwargs):

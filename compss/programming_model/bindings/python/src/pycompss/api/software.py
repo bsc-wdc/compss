@@ -285,8 +285,11 @@ class Software(
                         self.decorator_arguments,
                         self.decorated_function,
                     )
-                    (future_object, self.core_element, self.decorated_function)\
-                        = master.call(args, kwargs)
+                    (
+                        future_object,
+                        self.core_element,
+                        self.decorated_function,
+                    ) = master.call(args, kwargs)
 
                     del master
                     return future_object

@@ -72,7 +72,9 @@ SUPPORTED_DECORATORS = {
 }
 
 
-class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-instance-attributes
+class Software(
+    task.task
+):  # pylint: disable=too-few-public-methods, too-many-instance-attributes
     """Software decorator class.
 
     When provided with a config file, it can replicate any existing python
@@ -97,7 +99,7 @@ class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-i
         "epilog",
         "parameters",
         "file_path",
-        "is_workflow"
+        "is_workflow",
     ]
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
@@ -170,10 +172,7 @@ class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-i
 
             if CONTEXT.in_worker():
                 self.decorator_arguments.update_arguments(self.parameters)
-                worker = TaskWorker(
-                    self.decorator_arguments,
-                    self.decorated_function
-                )
+                worker = TaskWorker(self.decorator_arguments, self.decorated_function)
                 result = worker.call(*updated_args, **kwargs)
                 # Force flush stdout and stderr
                 sys.stdout.flush()
@@ -197,9 +196,7 @@ class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-i
             if self.prolog is not None:
                 resolve_fail_by_exit_value(self.prolog, "True")
                 prolog_binary = self.prolog[LABELS.binary]
-                prolog_params = self.prolog.get(
-                    LABELS.args, INTERNAL_LABELS.unassigned
-                )
+                prolog_params = self.prolog.get(LABELS.args, INTERNAL_LABELS.unassigned)
                 prolog_fail_by = self.prolog.get(LABELS.fail_by_exit_value)
                 _prolog = [prolog_binary, prolog_params, prolog_fail_by]
 
@@ -210,9 +207,7 @@ class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-i
             if self.epilog is not None:
                 resolve_fail_by_exit_value(self.epilog, "False")
                 epilog_binary = self.epilog[LABELS.binary]
-                epilog_params = self.epilog.get(
-                    LABELS.args, INTERNAL_LABELS.unassigned
-                )
+                epilog_params = self.epilog.get(LABELS.args, INTERNAL_LABELS.unassigned)
                 epilog_fail_by = self.epilog.get(LABELS.fail_by_exit_value)
                 _epilog = [epilog_binary, epilog_params, epilog_fail_by]
 
@@ -252,8 +247,9 @@ class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-i
 
             if decorator in [task.task, multinode.multinode]:
                 self.decorator_arguments.update_arguments(self.parameters)
-                kwargs[LABELS.software_config_file] = \
-                    self.kwargs.pop(LABELS.config_file)
+                kwargs[LABELS.software_config_file] = self.kwargs.pop(
+                    LABELS.config_file
+                )
 
             if not self.parameters:
                 # @task definition is not in the config file, call the user
@@ -262,7 +258,9 @@ class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-i
                     def function():
                         ret = decorator(**self.config_args)
                         return ret(user_function)(*args, **kwargs)
+
                     return function()
+
                 decor_f.__doc__ = user_function.__doc__
                 return decor_f()
             else:
@@ -274,8 +272,10 @@ class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-i
                         def function(*_, **__):
                             tt = task.task(**self.parameters)
                             return tt(user_function)(*_, **__)
+
                         dec = decorator(**self.config_args)
                         return dec(function)(*args, **kwargs)
+
                     return decor_f()
                 else:
                     # regular task definition inside a config file
@@ -283,14 +283,10 @@ class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-i
                     master = TaskMaster(
                         self.core_element,
                         self.decorator_arguments,
-                        self.decorated_function
+                        self.decorated_function,
                     )
                     result = master.call(args, kwargs)
-                    (
-                        future_object,
-                        self.core_element,
-                        self.decorated_function
-                    ) = result
+                    (future_object, self.core_element, self.decorated_function) = result
                     del master
                     return future_object
 
@@ -341,8 +337,10 @@ class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-i
             self.is_workflow = True
             return
         elif exec_type.lower() not in SUPPORTED_DECORATORS:
-            msg = f"Error: Executor Type {exec_type} is not supported " \
-                  f"for software task."
+            msg = (
+                f"Error: Executor Type {exec_type} is not supported "
+                f"for software task."
+            )
             raise PyCOMPSsException(msg)
         else:
             exec_type = exec_type.lower()
@@ -355,8 +353,7 @@ class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-i
         self.replace_param_types()
 
         # send the config file to the worker as well
-        if CONTEXT.in_master() and \
-                self.decor in [task.task, multinode.multinode]:
+        if CONTEXT.in_master() and self.decor in [task.task, multinode.multinode]:
             self.parameters[LABELS.software_config_file] = parameter.FILE_IN
 
         self.config_args = execution

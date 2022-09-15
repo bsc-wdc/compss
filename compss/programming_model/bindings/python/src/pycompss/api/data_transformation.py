@@ -164,6 +164,7 @@ class DataTransformation:  # pylint: disable=too-few-public-methods
             p_value = kwargs.get(param_name)
         else:
             import inspect
+
             all_params = inspect.signature(self.user_function)
             keyz = all_params.parameters.keys()
             if param_name not in keyz:
@@ -175,8 +176,11 @@ class DataTransformation:  # pylint: disable=too-few-public-methods
                 p_value = all_params.parameters.get(param_name).default
 
         # no need to create a task if it's a workflow
-        new_value = func(p_value, **func_kwargs)\
-            if is_workflow else _transform(p_value, func, **func_kwargs)
+        new_value = (
+            func(p_value, **func_kwargs)
+            if is_workflow
+            else _transform(p_value, func, **func_kwargs)
+        )
         if is_kwarg or i >= len(args):
             kwargs[param_name] = new_value
         else:
@@ -222,6 +226,7 @@ class DTObject(object):
         :return: tuple of the param name, user function and its kwargs dict.
         """
         return self.param_name, self.func, self.func_kwargs
+
 
 # ########################################################################### #
 # ############################# ALTERNATIVE NAMES ########################### #

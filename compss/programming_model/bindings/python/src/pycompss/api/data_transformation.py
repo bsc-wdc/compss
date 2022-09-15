@@ -18,7 +18,9 @@
 # -*- coding: utf-8 -*-
 
 """
+PyCOMPSs API - Data Transformation decorator.
 
+This file contains DT decorator class and its helper DTO class.
 """
 
 import inspect
@@ -43,7 +45,8 @@ DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 
 
 class DataTransformation:  # pylint: disable=too-few-public-methods
-    """
+    """Data Transformation is the actual decorator. It can be used on top of
+    @task decorator to generate DT tasks / workflows.
     """
 
     __slots__ = [
@@ -57,14 +60,12 @@ class DataTransformation:  # pylint: disable=too-few-public-methods
     ]
 
     def __init__(self, *args, **kwargs):
-        """Store arguments passed to the decorator.
+        """Store arguments passed to the decorator. If args are empty, it will
+        mean that the decorator should get the list of the DTO's from the call
+        method.
 
-        self = itself.
-        args = not used.
-        kwargs = dictionary with the given DT arguments.
-
-        :param args: Arguments
-        :param kwargs: Keyword arguments
+        :param args: should contain only the <parameter_name> & <user_function>
+        :param kwargs: kwargs of the user DT function.
         """
         decorator_name = "".join(("@", DataTransformation.__name__.lower()))
         self.decorator_name = decorator_name
@@ -85,7 +86,9 @@ class DataTransformation:  # pylint: disable=too-few-public-methods
             )
 
     def __call__(self, user_function: typing.Callable) -> typing.Callable:
-        """Call Prolog simply updates the CE and saves Prolog parameters.
+        """Call is mainly meant to generate DT (task) functions. However, if
+        the __init__ wasn't provided with any args, it also should extract the
+        DTO's from the kwargs.
 
         :param user_function: User function to be decorated.
         :return: Decorated dummy user function.
@@ -110,12 +113,11 @@ class DataTransformation:  # pylint: disable=too-few-public-methods
             return ret
 
         dt_f.__doc__ = user_function.__doc__
-        transform.__doc__ = user_function.__doc__
+        _transform.__doc__ = user_function.__doc__
         return dt_f
 
     def __call_dt__(self, user_function, args: list, kwargs: dict) -> None:
-        """
-        IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
+        """Extract and call the DT functions.
 
         :param kwargs: Keyword arguments received from call.
         :return: None
@@ -141,8 +143,8 @@ class DataTransformation:  # pylint: disable=too-few-public-methods
             self._apply_dt(*_dt, args, kwargs)
 
     def _apply_dt(self, param_name, func, func_kwargs, args, kwargs):
-        """
-        Call the data transformation function for the given parameter.
+        """Call the data transformation function for the given parameter.
+
         :param param_name: parameter that DT will be applied to
         :param func: DT function
         :param func_kwargs: args and kwargs values of the original DT function
@@ -173,7 +175,7 @@ class DataTransformation:  # pylint: disable=too-few-public-methods
 
         # no need to create a task if it's a workflow
         new_value = func(p_value, **func_kwargs)\
-            if is_workflow else transform(p_value, func, **func_kwargs)
+            if is_workflow else _transform(p_value, func, **func_kwargs)
         if is_kwarg or i >= len(args):
             kwargs[param_name] = new_value
         else:
@@ -181,19 +183,40 @@ class DataTransformation:  # pylint: disable=too-few-public-methods
 
 
 @task(returns=object)
-def transform(data, function, **kwargs):
+def _transform(data, function, **kwargs):
+    """The @task equivalent of a user function.
+
+    :param data: the parameter that DT will be applied to.
+    :param function: DT function
+    :param kwargs: kwargs of the DT function
+    :return:
+    """
     return function(data, **kwargs)
 
 
 class DTObject(object):
+    """Data Transformation Object is a helper class to avoid stack of
+    decorators or to simplify the definition inside the user code. Arguments of
+    the object creation of the class is the same as Data Transformation
+    decorator. It always expects the parameter name as the first element, then
+     dt_function and the rest of the dt_function kwargs if any.
+    """
 
     def __init__(self, param_name, func, **func_kwargs):
+        """Initialize the DTO object with the given arguments.
 
+        :param args: should contain only the <parameter_name> & <user_function>
+        :param kwargs: kwargs of the user DT function.
+        """
         self.param_name = param_name
         self.func = func
         self.func_kwargs = func_kwargs
 
     def extract(self) -> tuple:
+        """Extract the DTO object attributes in a tuple.
+
+        :return: tuple of the param name, user function and its kwargs dict.
+        """
         return self.param_name, self.func, self.func_kwargs
 
 # ########################################################################### #

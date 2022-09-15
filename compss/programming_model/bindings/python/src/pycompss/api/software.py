@@ -21,7 +21,8 @@
 PyCOMPSs API - Software decorator.
 
 This file contains the Software class, needed for the software task definition
-through the decorator.
+through the decorator. Software decorator can be used to move the definition of
+the multiple decorators to a JSON file.
 """
 import builtins
 import json
@@ -100,11 +101,12 @@ class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-i
     ]
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
-        """ Only when in the Master, parses the config file and "generates"
+        """Only when in the Master, parses the config file and generates
         the decorators. Otherwise, just an "__init__".
 
         :param args: not used (maybe should be?).
         :param kwargs: so far contains only the JSON configuration file path.
+
         """
         super().__init__(*args, **kwargs)
         decorator_name = "".join(("@", Software.__name__.lower()))
@@ -294,8 +296,8 @@ class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-i
         return software_f
 
     def pop_file_path(self, *args):
-        """
-        Pop JSON configuration file path from the args.
+        """Pop JSON configuration file path from the args.
+
         :param args: args of the task function
         :return: args without JSON config file path
         """
@@ -362,6 +364,11 @@ class Software(task.task):  # pylint: disable=too-few-public-methods, too-many-i
         self.epilog = config.get("epilog", None)
 
     def replace_param_types(self):
+        """Replace string values with the references from the API's Parameter
+        class.
+
+        :return:
+        """
 
         # replace python param types if any
         for k, v in self.parameters.items():

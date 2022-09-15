@@ -32,6 +32,7 @@ from pycompss.api.commons.constants import LABELS
 from pycompss.api.task import task
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.util.arguments import check_arguments
+from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.typing_helper import typing
 
 if __debug__:
@@ -39,8 +40,8 @@ if __debug__:
 
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = set()
-SUPPORTED_ARGUMENTS = set()
+MANDATORY_ARGUMENTS = set()  # type: typing.Set[str]
+SUPPORTED_ARGUMENTS = set()  # type: typing.Set[str]
 DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 
 
@@ -128,7 +129,7 @@ class DataTransformation:  # pylint: disable=too-few-public-methods
         if __debug__:
             logger.debug("Configuring DT core element.")
         if not len(args):
-            raise Exception
+            raise PyCOMPSsException("Missing arguments in DT decorator.")
         elif "dt" in kwargs:
             tmp = kwargs.pop("dt")
             if isinstance(tmp, DTObject):
@@ -137,11 +138,12 @@ class DataTransformation:  # pylint: disable=too-few-public-methods
                 dts = [obj.extract() for obj in tmp]
         else:
             if len(self.args) < 2:
-                raise Exception
+                raise PyCOMPSsException("Missing arguments in DT decorator.")
+
             dts.append((self.args[0], self.args[1], self.kwargs))
 
         for _dt in dts:
-            self._apply_dt(*_dt, args, kwargs)
+            self._apply_dt(_dt[0], _dt[1], _dt[2], args, kwargs)
 
     def _apply_dt(self, param_name, func, func_kwargs, args, kwargs):
         """Call the data transformation function for the given parameter.

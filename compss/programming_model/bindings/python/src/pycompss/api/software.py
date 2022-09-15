@@ -173,13 +173,13 @@ class Software(
             if CONTEXT.in_worker():
                 self.decorator_arguments.update_arguments(self.parameters)
                 worker = TaskWorker(self.decorator_arguments, self.decorated_function)
-                result = worker.call(*updated_args, **kwargs)
+                m_result = worker.call(*updated_args, **kwargs)
                 # Force flush stdout and stderr
                 sys.stdout.flush()
                 sys.stderr.flush()
                 # Remove worker
                 del worker
-                return result
+                return m_result
 
             if self.is_workflow:
                 # no need to do anything, just run the user code
@@ -285,8 +285,9 @@ class Software(
                         self.decorator_arguments,
                         self.decorated_function,
                     )
-                    result = master.call(args, kwargs)
-                    (future_object, self.core_element, self.decorated_function) = result
+                    (future_object, self.core_element, self.decorated_function)\
+                        = master.call(args, kwargs)
+
                     del master
                     return future_object
 
@@ -319,6 +320,8 @@ class Software(
 
         :return: None
         """
+        if not self.file_path:
+            raise PyCOMPSsException(" ERROR: Incorrect file_path.")
         with open(  # pylint: disable=unspecified-encoding
             self.file_path, "r"
         ) as file_path_descriptor:

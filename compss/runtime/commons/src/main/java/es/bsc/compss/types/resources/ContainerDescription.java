@@ -30,7 +30,8 @@ public class ContainerDescription implements Serializable {
 
     public static enum ContainerEngine {
         DOCKER, // Docker container engine
-        SINGULARITY; // Singularity container engine
+        SINGULARITY, // Singularity container engine
+        UDOCKER; // uDocker container engine
     }
 
 

@@ -54,6 +54,8 @@ public class ContainerInvoker extends Invoker {
     private static final int NUM_BASE_DOCKER_BINARY_ARGS = 10;
     private static final int NUM_BASE_SINGULARITY_PYTHON_ARGS = 21;
     private static final int NUM_BASE_SINGULARITY_BINARY_ARGS = 8;
+    private static final int NUM_BASE_UDOCKER_PYTHON_ARGS = 23;
+    private static final int NUM_BASE_UDOCKER_BINARY_ARGS = 8;
 
     private static final String REL_PATH_WD = ".." + File.separator + ".." + File.separator;
     private static final String REL_PATH_WORKER_CONTAINER = File.separator + "pycompss" + File.separator + "worker"
@@ -278,6 +280,16 @@ public class ContainerInvoker extends Invoker {
                     case CET_BINARY:
                         numCmdArgs = NUM_BASE_SINGULARITY_BINARY_ARGS + containerCallParams.size();
                 }
+                break;
+            case UDOCKER:
+                switch (this.internalExecutionType) {
+                    case CET_PYTHON:
+                        numCmdArgs = NUM_BASE_UDOCKER_PYTHON_ARGS + containerCallParams.size();
+                        break;
+                    case CET_BINARY:
+                        numCmdArgs = NUM_BASE_UDOCKER_BINARY_ARGS + containerCallParams.size();
+                }
+                break;
         }
 
         String[] cmd = new String[numCmdArgs];
@@ -330,6 +342,31 @@ public class ContainerInvoker extends Invoker {
                 cmd[cmdIndex++] = "--pwd";
                 cmd[cmdIndex++] = workingDir;
                 cmd[cmdIndex++] = this.container.getImage();
+                break;
+            case UDOCKER:
+                cmd[cmdIndex++] = "udocker";
+                cmd[cmdIndex++] = "run";
+                cmd[cmdIndex++] = "-v";
+                cmd[cmdIndex++] = workingDirMountPoint + ":" + workingDirMountPoint;
+                switch (this.internalExecutionType) {
+                    case CET_PYTHON:
+                        cmd[cmdIndex++] = "-v";
+                        cmd[cmdIndex++] = appDir + ":" + appDir;
+                        cmd[cmdIndex++] = "-v";
+                        cmd[cmdIndex++] = pyCompssDir + File.separator + "pycompss" + File.separator + ":" + pyCompssDir
+                            + File.separator + "pycompss" + File.separator;
+                        cmd[cmdIndex++] = "-e";
+                        cmd[cmdIndex++] = "PYTHONPATH=" + pythonPath + ":" + pyCompssDir;
+                        break;
+                    case CET_BINARY:
+                        // Nothing to add
+                        break;
+                }
+                cmd[cmdIndex++] = "-w";
+                cmd[cmdIndex++] = workingDir;
+                cmd[cmdIndex++] = this.container.getImage();
+                break;
+
         }
 
         // Prepare command - Determine execution command (binary or Python module and function)

@@ -164,12 +164,18 @@ class TestSoftwareDecorator(unittest.TestCase):
         pong = cwo(no_task_decor(ping))
         self.assertEqual(ping, pong)
 
-
     def testInoutParam(self):
         ping = ["initial_item"]
         wo_task_inout_param(ping)
         pong = cwo(ping)
         self.assertEqual(len(ping), len(pong) - 1)
+
+    def testMultipleCalls(self):
+        ping = ["initial_item"]
+        for i in range(5):
+            wo_task_inout_param(ping)
+        pong = cwo(ping)
+        self.assertEqual(len(ping), len(pong) - 5)
 
     def testMpiWoTaskDecor(self):
         string_param = "this is an mpi task with no task decorator"

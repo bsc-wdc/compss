@@ -245,9 +245,11 @@ class Software(
 
             decorator = self.decor
 
+            # if the function is meant to be called on the worker, we must send
+            # the config file as a FILE_IN param
             if decorator in [task.task, multinode.multinode]:
                 self.decorator_arguments.update_arguments(self.parameters)
-                kwargs[LABELS.software_config_file] = self.kwargs.pop(
+                kwargs[LABELS.software_config_file] = self.kwargs.get(
                     LABELS.config_file
                 )
 
@@ -304,7 +306,8 @@ class Software(
         :return: args without JSON config file path
         """
         if CONTEXT.in_master():
-            self.file_path = self.kwargs.get(LABELS.config_file)
+            if not self.file_path:
+                self.file_path = self.kwargs.get(LABELS.config_file)
             return args
         elif CONTEXT.in_worker():
             tmp = list(*args)

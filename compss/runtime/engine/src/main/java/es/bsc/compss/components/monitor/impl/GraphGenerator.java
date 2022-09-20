@@ -381,12 +381,14 @@ public class GraphGenerator {
                     try {
                         full_graph.newLine();
                         String labels = "[";
-                        int depNum = pendingGroupDependencies.size();
-                        if (depNum > 1) {
-                            labels += "d" + pendingGroupDependencies.get(srctgt).get(0) + "," + "d"
-                                + pendingGroupDependencies.get(srctgt).get(depNum - 1);
-                        } else {
-                            labels += pendingGroupDependencies.get(srctgt).get(0);
+                        Boolean first = false;
+                        for (String s : pendingGroupDependencies.get(srctgt)) {
+                            if (first) {
+                                labels += ",d" + s;
+                            } else {
+                                first = true;
+                                labels += "d" + s;
+                            }
                         }
                         labels += "]";
                         full_graph.write(srctgt + " [label=\"" + labels + " ("

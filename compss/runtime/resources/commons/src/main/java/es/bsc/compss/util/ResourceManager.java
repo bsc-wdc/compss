@@ -21,6 +21,7 @@ import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.ResourceUser;
 import es.bsc.compss.connectors.ConnectorException;
 import es.bsc.compss.exceptions.NoResourceAvailableException;
+import es.bsc.compss.log.LoggerManager;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.CloudProvider;
 import es.bsc.compss.types.ResourceCreationRequest;
@@ -1030,7 +1031,7 @@ public class ResourceManager {
     }
 
     private static void mergeProfilerFiles() {
-        String logPath = Comm.getAppHost().getWorkersDirPath();
+        String logPath = LoggerManager.getWorkersLogDir();
         File folder = new File(logPath);
         String[] paths = folder.list();
         HashMap<String, HashMap<String, HashMap<String, Object>>> cacheProfiler = new HashMap<>();

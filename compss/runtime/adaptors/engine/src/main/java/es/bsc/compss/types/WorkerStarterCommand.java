@@ -17,6 +17,7 @@
 package es.bsc.compss.types;
 
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.COMPSsDefaults;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.execution.ThreadBinder;
 import es.bsc.conn.types.StarterCommand;
@@ -194,7 +195,7 @@ public abstract class WorkerStarterCommand implements StarterCommand {
             if (!WORKER_PYTHON_INTERPRETER_FROM_ENVIRONMENT.isEmpty()) {
                 this.pythonInterpreter = WORKER_PYTHON_INTERPRETER_FROM_ENVIRONMENT;
             } else {
-                this.pythonInterpreter = COMPSsConstants.DEFAULT_PYTHON_INTERPRETER;
+                this.pythonInterpreter = COMPSsDefaults.PYTHON_INTERPRETER;
             }
         }
 
@@ -259,52 +260,52 @@ public abstract class WorkerStarterCommand implements StarterCommand {
         this.workerPersistentC = System.getProperty(COMPSsConstants.WORKER_PERSISTENT_C);
         if (this.workerPersistentC == null || this.workerPersistentC.isEmpty()
             || this.workerPersistentC.equals("null")) {
-            this.workerPersistentC = COMPSsConstants.DEFAULT_PERSISTENT_C;
+            this.workerPersistentC = COMPSsDefaults.PERSISTENT_C;
         }
 
         // Configure python version
         this.pythonVersion = System.getProperty(COMPSsConstants.PYTHON_VERSION);
         if (this.pythonVersion == null || this.pythonVersion.isEmpty() || this.pythonVersion.equals("null")) {
-            this.pythonVersion = COMPSsConstants.DEFAULT_PYTHON_VERSION;
+            this.pythonVersion = COMPSsDefaults.PYTHON_VERSION;
         }
 
         // Configure python virtual environment
         this.pythonVirtualEnvironment = System.getProperty(COMPSsConstants.PYTHON_VIRTUAL_ENVIRONMENT);
         if (this.pythonVirtualEnvironment == null || this.pythonVirtualEnvironment.isEmpty()
             || this.pythonVirtualEnvironment.equals("null")) {
-            this.pythonVirtualEnvironment = COMPSsConstants.DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT;
+            this.pythonVirtualEnvironment = COMPSsDefaults.PYTHON_VIRTUAL_ENVIRONMENT;
         }
         this.pythonPropagateVirtualEnvironment =
             System.getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT);
         if (this.pythonPropagateVirtualEnvironment == null || this.pythonPropagateVirtualEnvironment.isEmpty()
             || this.pythonPropagateVirtualEnvironment.equals("null")) {
-            this.pythonPropagateVirtualEnvironment = COMPSsConstants.DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT;
+            this.pythonPropagateVirtualEnvironment = COMPSsDefaults.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT;
         }
 
         // Configure python extrae config file
         this.pythonExtraeFile = System.getProperty(COMPSsConstants.PYTHON_EXTRAE_CONFIG_FILE);
         if (this.pythonExtraeFile == null || this.pythonExtraeFile.isEmpty() || this.pythonExtraeFile.equals("null")) {
-            this.pythonExtraeFile = COMPSsConstants.DEFAULT_PYTHON_CUSTOM_EXTRAE_FILE;
+            this.pythonExtraeFile = COMPSsDefaults.PYTHON_CUSTOM_EXTRAE_FILE;
         }
 
         // Configure mpi worker
         this.pythonMpiWorker = System.getProperty(COMPSsConstants.PYTHON_MPI_WORKER);
         if (this.pythonMpiWorker == null || this.pythonMpiWorker.isEmpty() || this.pythonMpiWorker.equals("null")) {
-            this.pythonMpiWorker = COMPSsConstants.DEFAULT_PYTHON_MPI_WORKER;
+            this.pythonMpiWorker = COMPSsDefaults.PYTHON_MPI_WORKER;
         }
 
         // Configure worker cache
         this.pythonWorkerCache = System.getProperty(COMPSsConstants.PYTHON_WORKER_CACHE);
         if (this.pythonWorkerCache == null || this.pythonWorkerCache.isEmpty()
             || this.pythonWorkerCache.equals("null")) {
-            this.pythonWorkerCache = COMPSsConstants.DEFAULT_PYTHON_WORKER_CACHE;
+            this.pythonWorkerCache = COMPSsDefaults.PYTHON_WORKER_CACHE;
         }
 
         // Configure profiler cache
         this.pythonCacheProfiler = System.getProperty(COMPSsConstants.PYTHON_CACHE_PROFILER);
         if (this.pythonCacheProfiler == null || this.pythonCacheProfiler.isEmpty()
             || this.pythonCacheProfiler.equals("null")) {
-            this.pythonCacheProfiler = COMPSsConstants.DEFAULT_PYTHON_CACHE_PROFILER;
+            this.pythonCacheProfiler = COMPSsDefaults.PYTHON_CACHE_PROFILER;
         }
 
         this.lang = System.getProperty(COMPSsConstants.LANG);

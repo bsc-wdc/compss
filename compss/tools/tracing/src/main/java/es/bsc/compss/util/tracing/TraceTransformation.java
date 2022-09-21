@@ -31,4 +31,6 @@ public interface TraceTransformation {
     public void apply(EventsDefinition events);
 
     public void apply(PRVLine prvLine) throws MalformedException;
+
+    public String getDescription();
 }

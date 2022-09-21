@@ -197,10 +197,10 @@ process_pipe_commands() {
                 fi
 
                 # DLB
-                if [ "${COMPSS_WITH_DLB}" -eq "1" ]; then
+                if [ "${COMPSS_WITH_DLB}" == "1" ]; then
                     dlbArgs="DLB_ARGS=\"--lewi --drom --ompt --lewi-respect-cpuset=no\" LD_PRELOAD=\"\$LD_PRELOAD:\$DLB_HOME/lib/libdlb.so\""
                     workerCMD="${dlbArgs} ${workerCMD}"
-                elif [ "${COMPSS_WITH_DLB}" -eq "2" ]; then
+                elif [ "${COMPSS_WITH_DLB}" == "2" ]; then
 		    dlbArgs="DLB_ARGS=\"--lewi --drom --ompt --lewi-respect-cpuset=no --verbose=all\" LD_PRELOAD=\"\$LD_PRELOAD:\$DLB_HOME/lib/libdlb.so\""
                     workerCMD="${dlbArgs} ${workerCMD}"
                 fi
@@ -213,7 +213,7 @@ process_pipe_commands() {
                 bindingPID=$!
 
                 # Disable EXTRAE automatic library initialisation (just in case)
-                if [ "$tracing" -gt "0" ]; then
+                if [ "${tracing}" == "true" ]; then
                   export EXTRAE_SKIP_AUTO_LIBRARY_INITIALIZE=1
                 fi
 

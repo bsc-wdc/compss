@@ -127,6 +127,15 @@ public class AgentTraceMerger extends TraceMerger {
             modifications[traceId] = traceModifications;
         }
 
+        if (LOGGER.isDebugEnabled()) {
+            for (int i = 0; i < this.inputTraces.length; i++) {
+                LOGGER.debug("*** Modifications applied to trace " + this.inputTraces[i].getName());
+                for (TraceTransformation mod : modifications[i]) {
+                    LOGGER.debug(mod.getDescription());
+                }
+            }
+        }
+
         String duration = Long.toString(maxDuration);
         PRVTrace output = PRVTrace.generateNew(dir, tmpName, date, duration + "_ns", infrastructure, threads, events);
         mergeEvents(this.inputTraces, modifications, output);
@@ -216,6 +225,16 @@ public class AgentTraceMerger extends TraceMerger {
         public ApplicationComposition getNewThreadOrganization() {
             return this.organization;
         }
+
+        @Override
+        public String getDescription() {
+            StringBuilder sb = new StringBuilder();
+            for (Map.Entry<ThreadIdentifier, ThreadIdentifier> entry : this.translations.entrySet()) {
+                sb.append("\t * ").append(entry.getKey()).append("->").append(entry.getValue()).append("\n");
+            }
+            return sb.toString();
+        }
+
     }
 
 

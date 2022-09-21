@@ -211,10 +211,10 @@ public class RemoteRESTAgent extends COMPSsWorker {
         String path = null;
         switch (type) {
             case DIRECTORY_T:
-                path = ProtocolType.DIR_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
+                path = ProtocolType.DIR_URI.getSchema() + Comm.getAppHost().getWorkingDirectory() + name;
                 break;
             case FILE_T:
-                path = ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
+                path = ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getWorkingDirectory() + name;
                 break;
             case OBJECT_T:
                 path = ProtocolType.OBJECT_URI.getSchema() + name;
@@ -223,7 +223,7 @@ public class RemoteRESTAgent extends COMPSsWorker {
                 path = ProtocolType.STREAM_URI.getSchema() + name;
                 break;
             case EXTERNAL_STREAM_T:
-                path = ProtocolType.EXTERNAL_STREAM_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
+                path = ProtocolType.EXTERNAL_STREAM_URI.getSchema() + Comm.getAppHost().getWorkingDirectory() + name;
                 break;
             case PSCO_T:
             case EXTERNAL_PSCO_T:

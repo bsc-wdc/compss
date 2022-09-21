@@ -45,42 +45,9 @@ public class MasterResourceImpl extends DynamicMethodWorker implements MasterRes
         );
     }
 
-    /**
-     * Returns the COMPSs base log directory.
-     *
-     * @return The COMPSs base log directory.
-     */
-    public String getCOMPSsLogBaseDirPath() {
-        return ((COMPSsMaster) this.getNode()).getCOMPSsLogBaseDirPath();
-    }
-
     @Override
     public String getWorkingDirectory() {
         return ((COMPSsMaster) this.getNode()).getWorkingDirectory();
-    }
-
-    public String getUserExecutionDirPath() {
-        return ((COMPSsMaster) this.getNode()).getUserExecutionDirPath();
-    }
-
-    @Override
-    public String getAppLogDirPath() {
-        return ((COMPSsMaster) this.getNode()).getAppLogDirPath();
-    }
-
-    @Override
-    public String getTempDirPath() {
-        return ((COMPSsMaster) this.getNode()).getTempDirPath();
-    }
-
-    @Override
-    public String getJobsDirPath() {
-        return ((COMPSsMaster) this.getNode()).getJobsDirPath();
-    }
-
-    @Override
-    public String getWorkersDirPath() {
-        return ((COMPSsMaster) this.getNode()).getWorkersDirPath();
     }
 
     @Override

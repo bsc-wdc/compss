@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.util;
 
-import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.COMPSsDefaults;
 import es.bsc.compss.exceptions.ExternalPropertyException;
 
 import java.io.BufferedReader;
@@ -42,7 +42,7 @@ public class ExternalStreamHandler {
 
         // Checking if running in coverage mode
         if (pythonInterpreter.startsWith("coverage ") || pythonInterpreter.startsWith("coverage#")) {
-            pythonInterpreter = COMPSsConstants.DEFAULT_PYTHON_INTERPRETER;
+            pythonInterpreter = COMPSsDefaults.PYTHON_INTERPRETER;
         } else if (pythonInterpreter.startsWith("coverage3")) {
             pythonInterpreter = "python3";
         }

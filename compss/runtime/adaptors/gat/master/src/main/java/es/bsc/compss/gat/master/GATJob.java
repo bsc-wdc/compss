@@ -18,6 +18,7 @@ package es.bsc.compss.gat.master;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
+import es.bsc.compss.COMPSsDefaults;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.TaskDescription;
@@ -99,25 +100,25 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
     // Python interpreter
     private static final String PYTHON_INTERPRETER = System.getProperty(COMPSsConstants.PYTHON_INTERPRETER) != null
         ? System.getProperty(COMPSsConstants.PYTHON_INTERPRETER)
-        : COMPSsConstants.DEFAULT_PYTHON_INTERPRETER;
+        : COMPSsDefaults.PYTHON_INTERPRETER;
     private static final String PYTHON_VERSION =
         System.getProperty(COMPSsConstants.PYTHON_VERSION) != null ? System.getProperty(COMPSsConstants.PYTHON_VERSION)
-            : COMPSsConstants.DEFAULT_PYTHON_VERSION;
+            : COMPSsDefaults.PYTHON_VERSION;
     private static final String PYTHON_VIRTUAL_ENVIRONMENT =
         System.getProperty(COMPSsConstants.PYTHON_VIRTUAL_ENVIRONMENT) != null
             ? System.getProperty(COMPSsConstants.PYTHON_VIRTUAL_ENVIRONMENT)
-            : COMPSsConstants.DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT;
+            : COMPSsDefaults.PYTHON_VIRTUAL_ENVIRONMENT;
     private static final String PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT =
         System.getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT) != null
             ? System.getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT)
-            : COMPSsConstants.DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT;
+            : COMPSsDefaults.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT;
     private static final String PYTHON_CUSTOM_EXTRAE_FILE =
         System.getProperty(COMPSsConstants.PYTHON_EXTRAE_CONFIG_FILE) != null
             ? System.getProperty(COMPSsConstants.PYTHON_EXTRAE_CONFIG_FILE)
-            : COMPSsConstants.DEFAULT_PYTHON_CUSTOM_EXTRAE_FILE;
+            : COMPSsDefaults.PYTHON_CUSTOM_EXTRAE_FILE;
 
     private static final String JOBS_DIR =
-        System.getProperty(COMPSsConstants.APP_LOG_DIR) + "jobs" + java.io.File.separator;
+        System.getProperty(COMPSsConstants.LOG_DIR) + "jobs" + java.io.File.separator;
 
     private static final String JOB_STATUS = "job.status";
     private static final String RES_ATTR = "machine.node";

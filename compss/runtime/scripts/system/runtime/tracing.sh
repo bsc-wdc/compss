@@ -115,9 +115,9 @@ check_tracing_setup () {
     if [ -z "${custom_extrae_config_file}" ]; then
       extraeFile="${custom_extrae_config_file}"
     fi
-    extrae_xml_final_path="${specific_log_dir}/cfgfiles/extrae.xml"
-    mkdir -p "${specific_log_dir}/cfgfiles"
-    sed "s+{{TRACE_OUTPUT_DIR}}+${specific_log_dir}/trace+g" "${extraeFile}" > "${extrae_xml_final_path}"
+    extrae_xml_final_path="${exec_dir}/cfgfiles/extrae.xml"
+    mkdir -p "${exec_dir}/cfgfiles"
+    sed "s+{{TRACE_OUTPUT_DIR}}+${exec_dir}/trace+g" "${extraeFile}" > "${extrae_xml_final_path}"
     extraeFile="${extrae_xml_final_path}"
     extraeWDir=$(grep "final-directory" "${extraeFile}" | cut -d'>' -f2 | rev| cut -c18- |rev)
   else
@@ -207,6 +207,13 @@ stop_tracing() {
 }
 
 generate_trace() {
+  if [ "${log_level}" == "${LOG_LEVEL_OFF}" ]; then
+    gen_tracing_log_level="${GEN_TRACING_LOG_LEVEL_OFF}"
+  else
+    gen_tracing_log_level="${GEN_TRACING_LOG_LEVEL_DEBUG}"
+  fi
+  gen_tracing_log_dir="${specific_log_dir}"
+
   echo "Creating prvs "
   packages=$(find "${extraeWDir}" -name "*.tar.gz")
   gen_traces "${extraeWDir}" "${trace_name}" "1" ${packages}

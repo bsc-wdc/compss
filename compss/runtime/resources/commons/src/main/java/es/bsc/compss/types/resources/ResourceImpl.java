@@ -20,6 +20,7 @@ import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.InitNodeException;
 import es.bsc.compss.exceptions.UnstartedNodeException;
+import es.bsc.compss.log.LoggerManager;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.COMPSsNode;
@@ -329,10 +330,11 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
                 boolean isBindingData = false;
                 if (lastLoc.getType().equals(LocationType.BINDING)) {
                     BindingObject bo = BindingObject.generate(lastLoc.getPath());
-                    safePath = ProtocolType.BINDING_URI.getSchema() + Comm.getAppHost().getTempDirPath() + ld.getName()
-                        + "#" + bo.getType() + "#" + bo.getElements();
+                    safePath = ProtocolType.BINDING_URI.getSchema() + Comm.getAppHost().getWorkingDirectory()
+                        + ld.getName() + "#" + bo.getType() + "#" + bo.getElements();
                 } else {
-                    safePath = ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getTempDirPath() + ld.getName();
+                    safePath =
+                        ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getWorkingDirectory() + ld.getName();
                 }
                 try {
                     SimpleURI uri = new SimpleURI(safePath);
@@ -453,7 +455,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
 
         if (DEBUG) {
             LOGGER.debug("Copying tracing package from : " + fileOriginURI.getPath() + ",to : "
-                + Comm.getAppHost().getAppLogDirPath() + "trace" + File.separator + fileName);
+                + Tracer.getExtraeOutputDir() + File.separator + fileName);
         }
 
         TracingCopyListener tracingListener = new TracingCopyListener(sem);
@@ -471,8 +473,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
 
         // Target data location
         DataLocation tgt;
-        String targetPath = ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getAppLogDirPath() + "trace"
-            + File.separator + fileName;
+        String targetPath = ProtocolType.FILE_URI.getSchema() + Tracer.getExtraeOutputDir() + File.separator + fileName;
         try {
             SimpleURI uri = new SimpleURI(targetPath);
             tgt = DataLocation.createLocation(Comm.getAppHost(), uri);
@@ -523,8 +524,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
         String outFileName = "worker_" + getName() + ".out";
         SimpleURI outFileOrigin =
             this.node.getCompletePath(DataType.FILE_T, "log" + File.separator + "static_" + outFileName);
-        String outFileTarget =
-            ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getWorkersDirPath() + File.separator + outFileName;
+        String outFileTarget = ProtocolType.FILE_URI.getSchema() + LoggerManager.getWorkersLogDir() + outFileName;
 
         DataLocation outSource = null;
         try {
@@ -552,8 +552,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
         String errFileName = "worker_" + getName() + ".err";
         SimpleURI errFileOrigin =
             this.node.getCompletePath(DataType.FILE_T, "log" + File.separator + "static_" + errFileName);
-        String errFileTarget =
-            ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getWorkersDirPath() + File.separator + errFileName;
+        String errFileTarget = ProtocolType.FILE_URI.getSchema() + LoggerManager.getWorkersLogDir() + errFileName;
 
         DataLocation errSource = null;
         try {
@@ -602,8 +601,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
         String outFileNameOriginal = "log/binding_worker.out";
         String outFileName = "binding_worker_" + getName() + ".out";
         SimpleURI outFileOrigin = this.node.getCompletePath(DataType.FILE_T, outFileNameOriginal);
-        String outFileTarget =
-            ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getWorkersDirPath() + File.separator + outFileName;
+        String outFileTarget = ProtocolType.FILE_URI.getSchema() + LoggerManager.getWorkersLogDir() + outFileName;
 
         DataLocation outSource = null;
         try {
@@ -631,8 +629,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
         String errFileNameOriginal = "log/binding_worker.err";
         String errFileName = "binding_worker_" + getName() + ".err";
         SimpleURI errFileOrigin = this.node.getCompletePath(DataType.FILE_T, errFileNameOriginal);
-        String errFileTarget =
-            ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getWorkersDirPath() + File.separator + errFileName;
+        String errFileTarget = ProtocolType.FILE_URI.getSchema() + LoggerManager.getWorkersLogDir() + errFileName;
 
         DataLocation errSource = null;
         try {
@@ -682,8 +679,8 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
         String cacheProfiler = "cache_profiler.json";
         String outCacheProfiler = "cache_profiler_" + getName() + ".json";
         SimpleURI cacheProfilerOutFileOrigin = this.node.getCompletePath(DataType.FILE_T, cacheProfiler);
-        String cacheProfilerOutFileTarget = ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getWorkersDirPath()
-            + File.separator + outCacheProfiler;
+        String cacheProfilerOutFileTarget =
+            ProtocolType.FILE_URI.getSchema() + LoggerManager.getWorkersLogDir() + outCacheProfiler;
 
         DataLocation cacheProfilerOutSource = null;
         try {

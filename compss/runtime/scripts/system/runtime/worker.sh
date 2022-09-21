@@ -104,7 +104,7 @@ append_worker_jvm_options_to_file() {
 -Dcompss.worker.fpga_reprogram=${fpga_prog}
 -Dcompss.worker.io_executors=${worker_io_executors}
 EOT
-  if [ -n ${env_script_path} ];then
+  if [ -n "${env_script_path}" ];then
     cat >> "${jvm_options_file}" << EOT
 -Dcompss.worker.env_script=${env_script_path}
 EOT

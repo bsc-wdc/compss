@@ -17,6 +17,7 @@
 package es.bsc.compss.util;
 
 import es.bsc.compss.comm.Comm;
+import es.bsc.compss.log.LoggerManager;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.CloudProvider;
 import es.bsc.compss.types.ResourceCreationRequest;
@@ -68,7 +69,7 @@ public class ExternalAdaptationManager extends Thread {
             master = new MasterResourceImpl();
         }
 
-        this.adaptationDir = master.getAppLogDirPath() + "adaptation" + File.separator;
+        this.adaptationDir = LoggerManager.getLogDir() + "adaptation" + File.separator;
         this.commandPipe = this.adaptationDir + "command_pipe";
         this.resultPipe = this.adaptationDir + "result_pipe";
         createPipes();

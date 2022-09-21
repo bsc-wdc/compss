@@ -17,6 +17,7 @@
 package es.bsc.compss.types.implementations.definition;
 
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.COMPSsPaths;
 import es.bsc.compss.log.Loggers;
 
 import java.io.BufferedWriter;
@@ -92,7 +93,7 @@ public class CommonMPIDefinition {
      */
     public void setRunnerProperties(String installDir) {
         if (this.mpiRunner.endsWith("srun")) {
-            loadMPIType(installDir + COMPSsConstants.MPI_CFGS_PATH + "slurm.properties");
+            loadMPIType(installDir + COMPSsPaths.REL_MPI_CFGS_DIR + "slurm.properties");
         } else {
             String type = System.getenv(COMPSsConstants.COMPSS_MPIRUN_TYPE);
             if (type != null && !type.isEmpty()) {
@@ -100,7 +101,7 @@ public class CommonMPIDefinition {
                 if (type.startsWith(File.separator)) {
                     loadMPIType(type);
                 } else {
-                    loadMPIType(installDir + COMPSsConstants.MPI_CFGS_PATH + type + ".properties");
+                    loadMPIType(installDir + COMPSsPaths.REL_MPI_CFGS_DIR + type + ".properties");
                 }
             } else {
                 LOGGER.warn("Loading default MPIRUN type. You can modify with " + COMPSsConstants.COMPSS_MPIRUN_TYPE

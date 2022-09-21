@@ -53,4 +53,9 @@ public class TimeOffset implements TraceTransformation {
     public void apply(PRVLine prvLine) throws MalformedException {
         prvLine.applyTimeOffset(offset);
     }
+
+    @Override
+    public String getDescription() {
+        return "Applying a time offset of " + this.offset;
+    }
 }

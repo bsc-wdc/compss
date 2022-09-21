@@ -212,6 +212,8 @@ show_opts() {
     --trace_label=<string>                  Add a label in the generated trace file. Only used in the case of tracing is activated.
                                             Default: None
 
+    --wdir=<path>                           Directory used by the agent to store the temporary files
+
 EOF
 }
 
@@ -415,6 +417,10 @@ parse_options() {
           trace_label=*)
             # Tracing system
             trace_label=${OPTARG//trace_label=/}
+            ;;
+          wdir=*)
+            # working directory for master
+            wdir_in_master=${OPTARG//wdir=/}
             ;;
         *)
 	        # Flag didn't match any patern. Raise exception

@@ -165,7 +165,7 @@ public class ServiceInstance extends COMPSsWorker {
         String path = null;
         switch (type) {
             case FILE_T:
-                path = ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
+                path = ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getWorkingDirectory() + name;
                 break;
             case OBJECT_T:
                 path = ProtocolType.OBJECT_URI.getSchema() + name;
@@ -174,7 +174,7 @@ public class ServiceInstance extends COMPSsWorker {
                 path = ProtocolType.STREAM_URI.getSchema() + name;
                 break;
             case EXTERNAL_STREAM_T:
-                path = ProtocolType.EXTERNAL_STREAM_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
+                path = ProtocolType.EXTERNAL_STREAM_URI.getSchema() + Comm.getAppHost().getWorkingDirectory() + name;
                 break;
             case PSCO_T:
                 path = ProtocolType.PERSISTENT_URI.getSchema() + name;

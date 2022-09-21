@@ -17,6 +17,7 @@
 package es.bsc.compss.types.implementations.definition;
 
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.log.LoggerManager;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.TaskType;
@@ -88,7 +89,7 @@ public class COMPSsDefinition implements AbstractMethodImplementationDefinition 
         this.workerInMaster = workerInMaster;
         this.workingDir = workingDir;
         this.failByEV = failByEV;
-        this.parentAppId = new File(System.getProperty(COMPSsConstants.APP_LOG_DIR)).getName();
+        this.parentAppId = new File(System.getProperty(LoggerManager.getLogDir())).getName();
     }
 
     /**
@@ -110,9 +111,9 @@ public class COMPSsDefinition implements AbstractMethodImplementationDefinition 
         this.workerInMaster = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 3]);
         this.workingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 4]);
         this.failByEV = Boolean.parseBoolean(implTypeArgs[5]);
-        String appLogDir = System.getProperty(COMPSsConstants.APP_LOG_DIR);
+        String appLogDir = LoggerManager.getLogDir();
         if (appLogDir != null && !appLogDir.isEmpty()) {
-            this.parentAppId = new File(System.getProperty(COMPSsConstants.APP_LOG_DIR)).getName();
+            this.parentAppId = new File(appLogDir).getName();
         }
         if (appName == null || appName.isEmpty()) {
             throw new IllegalArgumentException("Empty appName annotation for COMPSs method ");

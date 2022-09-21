@@ -67,7 +67,9 @@ public class FileOperations {
         Path directory = f.toPath();
         try {
             if (!Files.deleteIfExists(directory)) {
-                logger.debug("File " + f.getAbsolutePath() + " not deleted.");
+                if (logger != null) {
+                    logger.debug("File " + f.getAbsolutePath() + " not deleted.");
+                }
             }
         } catch (DirectoryNotEmptyException dne) {
             // directories must be removed recursively
@@ -87,7 +89,9 @@ public class FileOperations {
                     }
                 });
             } catch (IOException e) {
-                logger.error("Cannot delete directory " + f.getAbsolutePath(), e);
+                if (logger != null) {
+                    logger.error("Cannot delete directory " + f.getAbsolutePath(), e);
+                }
                 throw e;
             }
             Files.delete(directory);

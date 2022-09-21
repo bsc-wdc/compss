@@ -27,6 +27,7 @@ import es.bsc.compss.util.tracing.TraceTransformation;
 
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Map.Entry;
 
 
 public class CETranslation implements TraceTransformation {
@@ -54,6 +55,15 @@ public class CETranslation implements TraceTransformation {
     @Override
     public void apply(PRVLine prvLine) {
         prvLine.translateEventsFromGroup(CE_CODE, translation);
+    }
+
+    @Override
+    public String getDescription() {
+        StringBuilder sb = new StringBuilder("Core Element (Event " + CE_CODE + ") translation:\n");
+        for (Entry<String, String> e : translation.getAllTranslations().entrySet()) {
+            sb.append("\t * ").append(e.getKey()).append("-->").append(e.getValue()).append("\n");
+        }
+        return sb.toString();
     }
 
 }

@@ -21,18 +21,15 @@ source "${COMPSS_HOME}Runtime/scripts/system/commons/version.sh"
 
 # shellcheck source=../system/runtime/compss_setup.sh"
 # shellcheck disable=SC1091
-source "${COMPSS_HOME}Runtime/scripts/system/runtime/compss_setup.sh"
-
-# shellcheck source=../system/agents/commons.sh"
-# shellcheck disable=SC1091
-source "${COMPSS_HOME}Runtime/scripts/system/agents/commons.sh"
-
+source "${COMPSS_HOME}Runtime/scripts/system/trace/generatePRVs.sh"
 
 ###############################################
 # SCRIPT CONSTANTS DECLARATION
 ###############################################
 DEFAULT_TRACE_NAME="compss_execution"
 DEFAULT_OUTPUT_DIR="$(pwd)/agentTraceMerge"
+DEFAULT_LOG_LEVEL_ENABLED="${GEN_TRACING_LOG_LEVEL_DEBUG}"
+DEFAULT_LOG_LEVEL="${GEN_TRACING_DEFAULT_LOG_LEVEL}"
 
 ERR_NO_TRACE_IN="There's no trace file in directory"
 WARN_SET_DEFAULT_OUTPUT_DIR="output_dir is not set, using default output directory: ${DEFAULT_OUTPUT_DIR}/"
@@ -47,20 +44,26 @@ usage(){
   Merges the traces of the specified agents into a new trace created at the directory <output_dir>
 
     options:                
-            -h,--help                                       shows this message
+            -d,--debug                                      Enables log at level ${DEFAULT_LOG_LEVEL_ENABLED}. 
+                                                            Default level: ${DEFAULT_LOG_LEVEL}
 
-            --output_dir=<output_dir>                       the directory where to store the merged traces
+            -f,--force_override                             Overrides output_dir if it already exists without asking
 
-            -f,--force_override                             overrides output_dir if it already exists without asking
+            -h,--help                                       Shows this message
 
-            --result_trace_name=<result_trace_name>         the name of the generated trace
+            --log_level=<log_level>                         Sets the log level: : ${GEN_TRACING_LOG_LEVEL_OFF} | ${GEN_TRACING_LOG_LEVEL_DEBUG} 
+                                                            Default level: ${DEFAULT_LOG_LEVEL}
+
+            --output_dir=<output_dir>                       Sets the directory where to store the merged traces
+
+            --result_trace_name=<result_trace_name>         Sets the name of the generated trace
 EOT
 }
 
 
 get_args() {
   # Parse Script Options
-  while getopts hfon-: flag; do
+  while getopts hfdn-: flag; do
     # Treat the argument
     case "$flag" in
       h)
@@ -71,6 +74,9 @@ get_args() {
       f)
         force_override=true
         ;;
+      d)
+        gen_tracing_log_level=${DEFAULT_LOG_LEVEL_ENABLED}
+        ;;
       -)
         # Check more complex arguments
         case "$OPTARG" in
@@ -79,8 +85,14 @@ get_args() {
             usage
             exit 1
             ;;
+          debug)
+            gen_tracing_log_level=${DEFAULT_LOG_LEVEL_ENABLED}
+            ;;
           force_override)
             force_override=true
+            ;;
+          log_level)
+            gen_tracing_log_level=${OPTARG//log_level=/}
             ;;
           output_dir=*)
             output_dir=${OPTARG//output_dir=/}
@@ -128,6 +140,10 @@ check_args(){
     result_trace_name="${DEFAULT_TRACE_NAME}"
   fi
     
+  if [ -z "${gen_tracing_log_level}" ]; then
+    gen_tracing_log_level=${DEFAULT_LOG_LEVEL}
+  fi
+  gen_tracing_log_dir="${output_dir}"
 }
 
 generate_output_dir(){
@@ -155,10 +171,10 @@ get_trace_from_agent_folder(){
     fi
     trace="${trace::-4}"
 }
+
 #######################################
 # Main script
 #######################################
-
 # Parse script options
 get_args "$@"
 check_args

@@ -37,4 +37,10 @@ public interface ThreadTranslator<T extends ThreadIdentifier> {
      */
     public ApplicationComposition getNewThreadOrganization();
 
+    /**
+     * Returns a string describing how threads are translated.
+     * 
+     * @return thread translation description
+     */
+    public String getDescription();
 }

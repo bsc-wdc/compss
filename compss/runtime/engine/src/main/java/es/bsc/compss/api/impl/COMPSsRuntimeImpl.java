@@ -18,6 +18,8 @@ package es.bsc.compss.api.impl;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
+import es.bsc.compss.COMPSsDefaults;
+import es.bsc.compss.COMPSsPaths;
 import es.bsc.compss.api.ApplicationRunner;
 import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.api.TaskMonitor;
@@ -29,6 +31,7 @@ import es.bsc.compss.components.monitor.impl.RuntimeMonitor;
 import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.loader.total.ObjectRegistry;
 import es.bsc.compss.loader.total.StreamRegistry;
+import es.bsc.compss.log.LoggerManager;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.types.Application;
@@ -202,8 +205,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 setPropertyFromRuntime(COMPSsConstants.MASTER_PORT, manager.getMasterPort());
                 setPropertyFromRuntime(COMPSsConstants.APP_NAME, manager.getAppName());
                 setPropertyFromRuntime(COMPSsConstants.TASK_SUMMARY, manager.getTaskSummary());
-                setPropertyFromRuntime(COMPSsConstants.BASE_LOG_DIR, manager.getCOMPSsBaseLogDir());
-                setPropertyFromRuntime(COMPSsConstants.SPECIFIC_LOG_DIR, manager.getSpecificLogDir());
+                setPropertyFromRuntime(COMPSsConstants.LOG_DIR, manager.getLogDir());
+                setPropertyFromRuntime(COMPSsConstants.WORKING_DIR, manager.getWorkingDir());
                 setPropertyFromRuntime(COMPSsConstants.LOG4J, manager.getLog4jConfiguration());
                 setPropertyFromRuntime(COMPSsConstants.RES_FILE, manager.getResourcesFile());
                 setPropertyFromRuntime(COMPSsConstants.RES_SCHEMA, manager.getResourcesSchema());
@@ -243,14 +246,14 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     if (manager.getCommAdaptor() != null) {
                         System.setProperty(COMPSsConstants.COMM_ADAPTOR, manager.getCommAdaptor());
                     } else {
-                        System.setProperty(COMPSsConstants.COMM_ADAPTOR, COMPSsConstants.DEFAULT_ADAPTOR);
+                        System.setProperty(COMPSsConstants.COMM_ADAPTOR, COMPSsDefaults.ADAPTOR);
                     }
                 }
                 if (System.getProperty(COMPSsConstants.CONN) == null) {
                     if (manager.getConn() != null) {
                         System.setProperty(COMPSsConstants.CONN, manager.getConn());
                     } else {
-                        System.setProperty(COMPSsConstants.CONN, COMPSsConstants.DEFAULT_CONNECTOR);
+                        System.setProperty(COMPSsConstants.CONN, COMPSsDefaults.CONNECTOR);
                     }
                 }
                 if (System.getProperty(COMPSsConstants.GAT_DEBUG) == null) {
@@ -299,19 +302,19 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     private static void setDefaultProperties() {
         System.err.println(WARN_FILE_EMPTY_DEFAULT);
-        setDefaultProperty(COMPSsConstants.DEPLOYMENT_ID, COMPSsConstants.DEFAULT_DEPLOYMENT_ID);
-        setDefaultProperty(COMPSsConstants.RES_SCHEMA, COMPSsConstants.DEFAULT_RES_SCHEMA);
-        setDefaultProperty(COMPSsConstants.PROJ_SCHEMA, COMPSsConstants.DEFAULT_PROJECT_SCHEMA);
-        setDefaultProperty(COMPSsConstants.GAT_ADAPTOR_PATH, COMPSsConstants.DEFAULT_GAT_ADAPTOR_LOCATION);
-        setDefaultProperty(COMPSsConstants.COMM_ADAPTOR, COMPSsConstants.DEFAULT_ADAPTOR);
-        setDefaultProperty(COMPSsConstants.REUSE_RESOURCES_ON_BLOCK, COMPSsConstants.DEFAULT_REUSE_RESOURCES_ON_BLOCK);
+        setDefaultProperty(COMPSsConstants.DEPLOYMENT_ID, COMPSsDefaults.DEPLOYMENT_ID);
+        setDefaultProperty(COMPSsConstants.RES_SCHEMA, COMPSsPaths.LOCAL_RES_SCHEMA);
+        setDefaultProperty(COMPSsConstants.PROJ_SCHEMA, COMPSsPaths.LOCAL_PROJECT_SCHEMA);
+        setDefaultProperty(COMPSsConstants.GAT_ADAPTOR_PATH, COMPSsPaths.GAT_ADAPTOR_LOCATION);
+        setDefaultProperty(COMPSsConstants.COMM_ADAPTOR, COMPSsDefaults.ADAPTOR);
+        setDefaultProperty(COMPSsConstants.REUSE_RESOURCES_ON_BLOCK, COMPSsDefaults.REUSE_RESOURCES_ON_BLOCK);
         setDefaultProperty(COMPSsConstants.ENABLED_NESTED_TASKS_DETECTION,
-            COMPSsConstants.DEFAULT_ENABLED_NESTED_TASKS_DETECTION);
-        setDefaultProperty(COMPSsConstants.CONN, COMPSsConstants.DEFAULT_CONNECTOR);
-        setDefaultProperty(COMPSsConstants.SCHEDULER, COMPSsConstants.DEFAULT_SCHEDULER);
-        setDefaultProperty(COMPSsConstants.TRACING, COMPSsConstants.DEFAULT_TRACING);
+            COMPSsDefaults.ENABLED_NESTED_TASKS_DETECTION);
+        setDefaultProperty(COMPSsConstants.CONN, COMPSsDefaults.CONNECTOR);
+        setDefaultProperty(COMPSsConstants.SCHEDULER, COMPSsDefaults.SCHEDULER);
+        setDefaultProperty(COMPSsConstants.TRACING, COMPSsDefaults.TRACING);
         setDefaultProperty(COMPSsConstants.EXTRAE_WORKING_DIR, ".");
-        setDefaultProperty(COMPSsConstants.EXTRAE_CONFIG_FILE, COMPSsConstants.DEFAULT_CUSTOM_EXTRAE_FILE);
+        setDefaultProperty(COMPSsConstants.EXTRAE_CONFIG_FILE, COMPSsDefaults.CUSTOM_EXTRAE_FILE);
         setDefaultProperty(COMPSsConstants.TASK_EXECUTION, COMPSsConstants.TaskExecution.COMPSS.toString());
     }
 
@@ -534,7 +537,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public String getApplicationDirectory() {
-        return Comm.getAppHost().getAppLogDirPath();
+        return LoggerManager.getLogDir();
     }
 
     /**
@@ -1378,7 +1381,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public String getTempDir() {
-        return Comm.getAppHost().getTempDirPath();
+        return Comm.getAppHost().getWorkingDirectory();
     }
 
     /*

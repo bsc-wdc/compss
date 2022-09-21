@@ -47,4 +47,9 @@ public class CPUOffset implements TraceTransformation {
     public void apply(PRVLine prvLine) {
         prvLine.applyCPUOffset(offset);
     }
+
+    @Override
+    public String getDescription() {
+        return "Applying a CPU offset of " + this.offset;
+    }
 }

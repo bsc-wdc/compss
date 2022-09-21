@@ -19,6 +19,7 @@ package es.bsc.compss.types;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.COMPSsConstants.TaskExecution;
+import es.bsc.compss.COMPSsDefaults;
 import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.comm.CommAdaptor;
@@ -96,8 +97,7 @@ import storage.StubItf;
 public final class COMPSsMaster extends COMPSsWorker implements InvocationContext {
 
     private static final String ERROR_TEMP_DIR = "ERROR: Cannot create temp directory";
-    private static final String ERROR_JOBS_DIR = "ERROR: Cannot create jobs directory";
-    private static final String ERROR_WORKERS_DIR = "ERROR: Cannot create workers directory";
+
     private static final String EXECUTION_MANAGER_ERR = "Error starting ExecutionManager";
 
     public static final String SUFFIX_OUT = ".out";
@@ -112,8 +112,6 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     private final String installDirPath;
     private final String appDirPath;
     private final String tempDirPath;
-    private final String jobsDirPath;
-    private final String workersDirPath;
 
     private final LanguageParams[] langParams = new LanguageParams[COMPSsConstants.Lang.values().length];
     private boolean persistentEnabled;
@@ -131,42 +129,27 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
      */
     public COMPSsMaster(NodeMonitor monitor) {
         super(monitor);
-        LoggerManager.init();
 
-        // Set the environment property (for all cases) and reload logger
-        // configuration
-        String appLogDirPath = LoggerManager.getAppLogDirPath();
+        // Set the environment property (for all cases) and reload logger configuration
+        // Prepare all the subfolders.
+        LoggerManager.init();
 
         /*
          * Create a tmp directory where to store: - Files whose first opened stream is an input one - Object files
          */
-        this.tempDirPath = appLogDirPath + "tmpFiles" + File.separator;
+        String wDir = System.getProperty(COMPSsConstants.WORKING_DIR);
+        if (wDir != null && !wDir.isEmpty()) {
+            if (!wDir.endsWith(File.separator)) {
+                wDir = wDir + File.separator;
+            }
+            this.tempDirPath = wDir;
+        } else {
+            this.tempDirPath = LoggerManager.getLogDir() + "tmpFiles" + File.separator;
+        }
         if (!new File(this.tempDirPath).mkdirs()) {
             ErrorManager.error(ERROR_TEMP_DIR);
         }
 
-        /*
-         * Create a jobs dir where to store: - Jobs output files - Jobs error files
-         */
-        this.jobsDirPath = appLogDirPath + "jobs" + File.separator;
-        if (!new File(this.jobsDirPath).mkdirs()) {
-            ErrorManager.error(ERROR_JOBS_DIR);
-        }
-
-        /*
-         * Create a workers dir where to store: - Worker out files - Worker error files
-         */
-        this.workersDirPath = appLogDirPath + "workers" + File.separator;
-        if (!new File(this.workersDirPath).mkdirs()) {
-            System.err.println(ERROR_WORKERS_DIR);
-            System.exit(1);
-        }
-
-        // Nested Management variables
-        this.runtimeApi = null;
-        this.loaderApi = null;
-
-        // Configure worker debug level
         // Configure storage
         String storageConf = System.getProperty(COMPSsConstants.STORAGE_CONF);
         if (storageConf == null || storageConf.equals("") || storageConf.equals("null")) {
@@ -175,6 +158,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         }
         this.storageConf = storageConf;
 
+        // Configure execution
         String executionType = System.getProperty(COMPSsConstants.TASK_EXECUTION);
         if (executionType == null || executionType.equals("") || executionType.equals("null")) {
             executionType = COMPSsConstants.TaskExecution.COMPSS.toString();
@@ -184,6 +168,11 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         }
         this.executionType = TaskExecution.valueOf(executionType);
 
+        // Nested Management variables
+        this.runtimeApi = null;
+        this.loaderApi = null;
+
+        // Configure worker debug level
         this.out = new ThreadedPrintStream(SUFFIX_OUT, System.out);
         this.err = new ThreadedPrintStream(SUFFIX_ERR, System.err);
         System.setErr(this.err);
@@ -208,23 +197,23 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         // Get python interpreter
         String pythonInterpreter = System.getProperty(COMPSsConstants.PYTHON_INTERPRETER);
         if (pythonInterpreter == null || pythonInterpreter.isEmpty() || pythonInterpreter.equals("null")) {
-            pythonInterpreter = COMPSsConstants.DEFAULT_PYTHON_INTERPRETER;
+            pythonInterpreter = COMPSsDefaults.PYTHON_INTERPRETER;
         }
 
         // Get python version
         String pythonVersion = System.getProperty(COMPSsConstants.PYTHON_VERSION);
         if (pythonVersion == null || pythonVersion.isEmpty() || pythonVersion.equals("null")) {
-            pythonVersion = COMPSsConstants.DEFAULT_PYTHON_VERSION;
+            pythonVersion = COMPSsDefaults.PYTHON_VERSION;
         }
 
         // Configure python virtual environment
         String pythonVEnv = System.getProperty(COMPSsConstants.PYTHON_VIRTUAL_ENVIRONMENT);
         if (pythonVEnv == null || pythonVEnv.isEmpty() || pythonVEnv.equals("null")) {
-            pythonVEnv = COMPSsConstants.DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT;
+            pythonVEnv = COMPSsDefaults.PYTHON_VIRTUAL_ENVIRONMENT;
         }
         String pythonPropagateVEnv = System.getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT);
         if (pythonPropagateVEnv == null || pythonPropagateVEnv.isEmpty() || pythonPropagateVEnv.equals("null")) {
-            pythonPropagateVEnv = COMPSsConstants.DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT;
+            pythonPropagateVEnv = COMPSsDefaults.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT;
         }
 
         String pythonPath = System.getProperty(COMPSsConstants.WORKER_PP);
@@ -235,25 +224,25 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         // Get Python extrae config file
         String pythonExtraeFile = System.getProperty(COMPSsConstants.PYTHON_EXTRAE_CONFIG_FILE);
         if (pythonExtraeFile == null || pythonExtraeFile.isEmpty() || pythonExtraeFile.equals("null")) {
-            pythonExtraeFile = COMPSsConstants.DEFAULT_PYTHON_CUSTOM_EXTRAE_FILE;
+            pythonExtraeFile = COMPSsDefaults.PYTHON_CUSTOM_EXTRAE_FILE;
         }
 
         // Get Python MPI worker invocation
         String pythonMpiWorker = System.getProperty(COMPSsConstants.PYTHON_MPI_WORKER);
         if (pythonMpiWorker == null || pythonMpiWorker.isEmpty() || pythonMpiWorker.equals("null")) {
-            pythonMpiWorker = COMPSsConstants.DEFAULT_PYTHON_MPI_WORKER;
+            pythonMpiWorker = COMPSsDefaults.PYTHON_MPI_WORKER;
         }
 
         // Get Python worker cache
         String pythonWorkerCache = System.getProperty(COMPSsConstants.PYTHON_WORKER_CACHE);
         if (pythonWorkerCache == null || pythonWorkerCache.isEmpty() || pythonWorkerCache.equals("null")) {
-            pythonWorkerCache = COMPSsConstants.DEFAULT_PYTHON_WORKER_CACHE;
+            pythonWorkerCache = COMPSsDefaults.PYTHON_WORKER_CACHE;
         }
 
         // Get Python worker cache
         String pythonCacheProfiler = System.getProperty(COMPSsConstants.PYTHON_CACHE_PROFILER);
         if (pythonCacheProfiler == null || pythonCacheProfiler.isEmpty() || pythonCacheProfiler.equals("null")) {
-            pythonCacheProfiler = COMPSsConstants.DEFAULT_PYTHON_CACHE_PROFILER;
+            pythonCacheProfiler = COMPSsDefaults.PYTHON_CACHE_PROFILER;
         }
 
         // Create Python cache profiler
@@ -289,7 +278,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
         String workerPersistentC = System.getProperty(COMPSsConstants.WORKER_PERSISTENT_C);
         if (workerPersistentC == null || workerPersistentC.isEmpty() || workerPersistentC.equals("null")) {
-            workerPersistentC = COMPSsConstants.DEFAULT_PERSISTENT_C;
+            workerPersistentC = COMPSsDefaults.PERSISTENT_C;
         }
         this.persistentEnabled = workerPersistentC.toUpperCase().compareTo("TRUE") == 0;
 
@@ -973,25 +962,25 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         String path = null;
         switch (type) {
             case DIRECTORY_T:
-                path = ProtocolType.DIR_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
+                path = ProtocolType.DIR_URI.getSchema() + tempDirPath + name;
                 break;
             case FILE_T:
-                path = ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
+                path = ProtocolType.FILE_URI.getSchema() + tempDirPath + name;
                 break;
             case OBJECT_T:
                 path = ProtocolType.OBJECT_URI.getSchema() + name;
                 break;
             case COLLECTION_T:
-                path = ProtocolType.OBJECT_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
+                path = ProtocolType.OBJECT_URI.getSchema() + tempDirPath + name;
                 break;
             case DICT_COLLECTION_T:
-                path = ProtocolType.OBJECT_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
+                path = ProtocolType.OBJECT_URI.getSchema() + tempDirPath + name;
                 break;
             case STREAM_T:
                 path = ProtocolType.STREAM_URI.getSchema() + name;
                 break;
             case EXTERNAL_STREAM_T:
-                path = ProtocolType.EXTERNAL_STREAM_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
+                path = ProtocolType.EXTERNAL_STREAM_URI.getSchema() + tempDirPath + name;
                 break;
             case PSCO_T:
                 path = ProtocolType.PERSISTENT_URI.getSchema() + name;
@@ -1000,7 +989,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                 path = ProtocolType.PERSISTENT_URI.getSchema() + name;
                 break;
             case BINDING_OBJECT_T:
-                path = ProtocolType.BINDING_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
+                path = ProtocolType.BINDING_URI.getSchema() + tempDirPath + name;
                 break;
             default:
                 return null;
@@ -1012,7 +1001,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
     @Override
     public void deleteTemporary() {
-        File dir = new File(Comm.getAppHost().getTempDirPath());
+        File dir = new File(Comm.getAppHost().getWorkingDirectory());
         for (File f : dir.listFiles()) {
             deleteFolder(f);
         }
@@ -1212,7 +1201,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
     @Override
     public String getLogDir() {
-        return LoggerManager.getAppLogDirPath();
+        return LoggerManager.getLogDir();
     }
 
     @Override
@@ -1245,8 +1234,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     @Override
     public String getStandardStreamsPath(Invocation invocation) {
         // Set outputs paths (Java will register them, ExternalExec will redirect processes outputs)
-        return Comm.getAppHost().getJobsDirPath() + File.separator + "job" + invocation.getJobId() + "_"
-            + invocation.getHistory();
+        return LoggerManager.getJobsLogDir() + "job" + invocation.getJobId() + "_" + invocation.getHistory();
     }
 
     @Override
@@ -1350,32 +1338,8 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         }
     }
 
-    public String getCOMPSsLogBaseDirPath() {
-        return LoggerManager.getCompssLogBaseDirPath();
-    }
-
     public String getWorkingDirectory() {
         return this.tempDirPath;
-    }
-
-    public String getUserExecutionDirPath() {
-        return LoggerManager.getUserExecutionDirPath();
-    }
-
-    public String getAppLogDirPath() {
-        return LoggerManager.getAppLogDirPath();
-    }
-
-    public String getTempDirPath() {
-        return this.tempDirPath;
-    }
-
-    public String getJobsDirPath() {
-        return this.jobsDirPath;
-    }
-
-    public String getWorkersDirPath() {
-        return this.workersDirPath;
     }
 
     @Override

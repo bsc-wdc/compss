@@ -18,9 +18,6 @@ package es.bsc.compss;
 
 import es.bsc.compss.types.exceptions.NonInstantiableException;
 
-import java.io.File;
-import java.util.UUID;
-
 
 /**
  * COMPSS Runtime Constants.
@@ -84,9 +81,8 @@ public class COMPSsConstants {
     public static final String DEPLOYMENT_ID = "compss.uuid";
     public static final String SHUTDOWN_IN_NODE_FAILURE = "compss.shutdown_in_node_failure";
 
-    public static final String BASE_LOG_DIR = "compss.baseLogDir";
-    public static final String SPECIFIC_LOG_DIR = "compss.specificLogDir";
-    public static final String APP_LOG_DIR = "compss.appLogDir";
+    public static final String LOG_DIR = "compss.log.dir";
+    public static final String WORKING_DIR = "compss.master.workingDir";
 
     public static final String PROJ_FILE = "compss.project.file";
     public static final String PROJ_SCHEMA = "compss.project.schema";
@@ -132,6 +128,9 @@ public class COMPSsConstants {
 
     public static final String COMM_ADAPTOR = "compss.comm";
     public static final String CONN = "compss.conn";
+
+    public static final String SERVICE_ADAPTOR = "es.bsc.compss.ws.master.WSAdaptor";
+    public static final String HTTP_ADAPTOR = "es.bsc.compss.http.master.HTTPAdaptor";
 
     // GAT
     public static final String GAT_ADAPTOR_PATH = "gat.adaptor.path";
@@ -183,56 +182,6 @@ public class COMPSsConstants {
 
     // LOG 4J
     public static final String LOG4J = "log4j.configurationFile";
-
-    /*
-     * DEFAULT VALUES: According to runcompss script !!!!
-     */
-    public static final String DEFAULT_CHECKPOINT = "es.bsc.compss.checkpoint.policies.NoCheckpoint";
-
-    public static final String DEFAULT_SCHEDULER = "es.bsc.compss.components.impl.TaskScheduler";
-
-    public static final String SERVICE_ADAPTOR = "es.bsc.compss.ws.master.WSAdaptor";
-    public static final String HTTP_ADAPTOR = "es.bsc.compss.http.master.HTTPAdaptor";
-
-    // private static final String DEFAULT_ADAPTOR = "es.bsc.compss.gat.master.GATAdaptor";
-    public static final String DEFAULT_ADAPTOR = "es.bsc.compss.nio.master.NIOAdaptor";
-
-    public static final String DEFAULT_CONNECTOR = "es.bsc.compss.connectors.DefaultSSHConnector";
-
-    public static final String DEFAULT_TRACING = "false";
-    public static final String DEFAULT_CUSTOM_EXTRAE_FILE = "null";
-    public static final String DEFAULT_PYTHON_CUSTOM_EXTRAE_FILE = "null";
-
-    public static final long DEFAULT_MONITOR_INTERVAL = 0;
-
-    public static final String DEFAULT_DEPLOYMENT_ID = UUID.randomUUID().toString();
-
-    public static final String DEFAULT_CONFIG_DIR =
-        System.getenv(COMPSS_HOME) + File.separator + "Runtime" + File.separator + "configuration";
-
-    public static final String MPI_CFGS_PATH =
-        File.separator + "Runtime" + File.separator + "configuration" + File.separator + "mpi" + File.separator;
-
-    public static final String DEFAULT_RES_SCHEMA = DEFAULT_CONFIG_DIR + File.separator + "xml" + File.separator
-        + "resources" + File.separator + "resource_schema.xsd";
-
-    public static final String DEFAULT_PROJECT_SCHEMA = DEFAULT_CONFIG_DIR + File.separator + "xml" + File.separator
-        + "projects" + File.separator + "project_schema.xsd";
-
-    public static final String DEFAULT_GAT_ADAPTOR_LOCATION =
-        System.getenv(GAT_LOC) + File.separator + "lib" + File.separator + "adaptors";
-    public static final String DEFAULT_PERSISTENT_C = "false";
-
-    public static final String DEFAULT_REUSE_RESOURCES_ON_BLOCK = "true";
-    public static final String DEFAULT_ENABLED_NESTED_TASKS_DETECTION = "false";
-
-    public static final String DEFAULT_PYTHON_INTERPRETER = "python3";
-    public static final String DEFAULT_PYTHON_VERSION = "3";
-    public static final String DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT = "null";
-    public static final String DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT = "true";
-    public static final String DEFAULT_PYTHON_MPI_WORKER = "false";
-    public static final String DEFAULT_PYTHON_WORKER_CACHE = "false";
-    public static final String DEFAULT_PYTHON_CACHE_PROFILER = "false";
 
 
     /**

@@ -164,13 +164,10 @@ class Loggers:
     class Invoker:
         label = "Invoker"
 
-        class JavaNestedApp:
-            label="invokeMethod"
+        class NestedApp:
+            label="stedApplication"
             BECOMES_APP="becomes app"
         
-        class PythonNestedApp:
-            label="eExternalMethod"
-            BECOMES_APP="becomes app"
 
 class RuntimeParser:
     """
@@ -300,11 +297,8 @@ class RuntimeParser:
                     event = CompletedStageEvent(timestamp, message)
 
         if logger == Loggers.Invoker.label:
-            if method == Loggers.Invoker.JavaNestedApp.label:
-                if Loggers.Invoker.JavaNestedApp.BECOMES_APP in message:
-                    event = NestedAppEvent(timestamp, message)
-            if method == Loggers.Invoker.PythonNestedApp.label:
-                if Loggers.Invoker.PythonNestedApp.BECOMES_APP in message:
+            if method == Loggers.Invoker.NestedApp.label:
+                if Loggers.Invoker.NestedApp.BECOMES_APP in message:
                     event = NestedAppEvent(timestamp, message)
         return event
 

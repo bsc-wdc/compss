@@ -23,19 +23,19 @@ import es.bsc.compss.executor.external.commands.ExecuteTaskExternalCommand;
 import es.bsc.compss.executor.external.piped.PipePair;
 import es.bsc.compss.executor.external.piped.commands.ExecuteTaskPipeCommand;
 import es.bsc.compss.invokers.util.CExecutionCommandGenerator;
+import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 
-import java.io.File;
 import java.util.ArrayList;
 
 
 public class CInvoker extends PipedInvoker {
 
-    public CInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
+    public CInvoker(InvocationContext context, Invocation invocation, ExecutionSandbox sandbox,
         InvocationResources assignedResources, PipePair pipes) throws JobExecutionException {
-        super(context, invocation, taskSandboxWorkingDir, assignedResources, pipes);
+        super(context, invocation, sandbox, assignedResources, pipes);
 
     }
 

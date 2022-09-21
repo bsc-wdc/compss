@@ -17,6 +17,7 @@
 package es.bsc.compss.invokers;
 
 import es.bsc.compss.execution.types.InvocationResources;
+import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
@@ -24,7 +25,6 @@ import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.util.Tracer;
 
-import java.io.File;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
@@ -51,10 +51,10 @@ public class StorageInvoker extends JavaInvoker {
     private static final String WARN_RET_VALUE_EXCEPTION = "WARN: Exception on externalExecution return value";
 
 
-    public StorageInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
+    public StorageInvoker(InvocationContext context, Invocation invocation, ExecutionSandbox sandBox,
         InvocationResources assignedResources) throws JobExecutionException {
 
-        super(context, invocation, taskSandboxWorkingDir, assignedResources);
+        super(context, invocation, sandBox, assignedResources);
     }
 
     @Override

@@ -26,6 +26,7 @@ import es.bsc.compss.invokers.types.StdIOStream;
 import es.bsc.compss.invokers.util.BinaryRunner;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
@@ -74,14 +75,14 @@ public class ContainerInvoker extends Invoker {
      * 
      * @param context Task execution context.
      * @param invocation Task execution description.
-     * @param taskSandboxWorkingDir Task execution sandbox directory.
+     * @param sandbox Task execution sandbox directory.
      * @param assignedResources Assigned resources.
      * @throws JobExecutionException Error creating the binary invoker.
      */
-    public ContainerInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
+    public ContainerInvoker(InvocationContext context, Invocation invocation, ExecutionSandbox sandbox,
         InvocationResources assignedResources) throws JobExecutionException {
 
-        super(context, invocation, taskSandboxWorkingDir, assignedResources);
+        super(context, invocation, sandbox, assignedResources);
 
         // Get method definition properties
         ContainerDefinition containerImpl = null;
@@ -187,7 +188,7 @@ public class ContainerInvoker extends Invoker {
             workingDir = this.customWorkingDir;
         } else {
             // Container working directory to worker sandbox working directory
-            workingDir = this.taskSandboxWorkingDir.getAbsolutePath();
+            workingDir = this.sandBox.getFolder().getAbsolutePath();
         }
         workingDir = workingDir.endsWith(File.separator) ? workingDir : workingDir + File.separator;
 
@@ -387,7 +388,7 @@ public class ContainerInvoker extends Invoker {
         // Launch command
         final String completePythonpath = pythonPath + ":" + pyCompssDir;
         this.br = new BinaryRunner();
-        return this.br.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
+        return this.br.executeCMD(cmd, streamValues, this.sandBox, this.context.getThreadOutStream(),
             this.context.getThreadErrStream(), completePythonpath, this.failByEV);
     }
 

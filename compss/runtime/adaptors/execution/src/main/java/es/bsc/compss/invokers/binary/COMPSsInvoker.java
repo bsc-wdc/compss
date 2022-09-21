@@ -27,6 +27,7 @@ import es.bsc.compss.invokers.types.PythonParams;
 import es.bsc.compss.invokers.types.StdIOStream;
 import es.bsc.compss.invokers.util.BinaryRunner;
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
@@ -73,14 +74,14 @@ public class COMPSsInvoker extends Invoker {
      *
      * @param context Task execution context.
      * @param invocation Task execution description.
-     * @param taskSandboxWorkingDir Task execution sandbox directory.
+     * @param sandbox Task execution sandbox directory.
      * @param assignedResources Assigned resources.
      * @throws JobExecutionException Error creating the COMPSs invoker.
      */
-    public COMPSsInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
+    public COMPSsInvoker(InvocationContext context, Invocation invocation, ExecutionSandbox sandbox,
         InvocationResources assignedResources) throws JobExecutionException {
 
-        super(context, invocation, taskSandboxWorkingDir, assignedResources);
+        super(context, invocation, sandbox, assignedResources);
         // Get method definition properties
         COMPSsDefinition compssImpl = null;
         try {
@@ -160,14 +161,14 @@ public class COMPSsInvoker extends Invoker {
         nodeInfo.append(hostname);
         nodeInfo.append(":").append(String.valueOf(cus));
         nodeInfo.append(":").append(this.context.getInstallDir());
-        nodeInfo.append(":").append(this.taskSandboxWorkingDir.getAbsolutePath());
+        nodeInfo.append(":").append(this.sandBox.getFolder().getAbsolutePath());
         return nodeInfo.toString();
     }
 
     private Object runInvocation() throws InvokeExecutionException {
         System.out.println("");
         System.out.println("[COMPSs INVOKER] Begin COMPSs call to " + this.appName);
-        System.out.println("[COMPSs INVOKER] On WorkingDir : " + this.taskSandboxWorkingDir.getAbsolutePath());
+        System.out.println("[COMPSs INVOKER] On WorkingDir : " + this.sandBox.getFolder().getAbsolutePath());
 
         // Command similar to:
         // export OMP_NUM_THREADS=1
@@ -270,7 +271,7 @@ public class COMPSsInvoker extends Invoker {
         }
 
         // Prepare and purge runcompss extra flags
-        String nestedLogDir = this.taskSandboxWorkingDir.getAbsolutePath() + File.separator + "nestedCOMPSsLog";
+        String nestedLogDir = this.sandBox.getFolder().getAbsolutePath() + File.separator + "nestedCOMPSsLog";
         JavaParams javaParams = (JavaParams) this.context.getLanguageParams(Lang.JAVA);
         String classpathFlag = "--classpath=" + javaParams.getClasspath();
         List<String> extraFlagsList = new ArrayList<>();
@@ -353,14 +354,14 @@ public class COMPSsInvoker extends Invoker {
 
         // Launch command
         this.br = new BinaryRunner();
-        return this.br.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
+        return this.br.executeCMD(cmd, streamValues, this.sandBox, this.context.getThreadOutStream(),
             this.context.getThreadErrStream(), null, this.failByEV);
     }
 
     private int xmlGenerationScript(String[] cmd) throws IOException, InterruptedException {
         // Prepare command execution
         ProcessBuilder builder = new ProcessBuilder(cmd);
-        builder.directory(this.taskSandboxWorkingDir);
+        builder.directory(this.sandBox.getFolder());
         for (String env : Tracer.ENVIRONMENT_VARIABLES) {
             builder.environment().remove(env);
         }

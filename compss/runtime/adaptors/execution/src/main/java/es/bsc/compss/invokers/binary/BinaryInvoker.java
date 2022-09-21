@@ -25,6 +25,7 @@ import es.bsc.compss.invokers.types.PythonParams;
 import es.bsc.compss.invokers.types.StdIOStream;
 import es.bsc.compss.invokers.util.BinaryRunner;
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
@@ -32,7 +33,6 @@ import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.definition.BinaryDefinition;
 
-import java.io.File;
 import java.io.PrintStream;
 import java.util.ArrayList;
 
@@ -53,14 +53,14 @@ public class BinaryInvoker extends Invoker {
      * 
      * @param context Task execution context.
      * @param invocation Task execution description.
-     * @param taskSandboxWorkingDir Task execution sandbox directory.
+     * @param sandbox Task execution sandbox directory.
      * @param assignedResources Assigned resources.
      * @throws JobExecutionException Error creating the binary invoker.
      */
-    public BinaryInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
+    public BinaryInvoker(InvocationContext context, Invocation invocation, ExecutionSandbox sandbox,
         InvocationResources assignedResources) throws JobExecutionException {
 
-        super(context, invocation, taskSandboxWorkingDir, assignedResources);
+        super(context, invocation, sandbox, assignedResources);
 
         // Get method definition properties
         try {
@@ -166,7 +166,7 @@ public class BinaryInvoker extends Invoker {
             PrintStream outLog = this.context.getThreadOutStream();
             outLog.println("");
             outLog.println("[BINARY INVOKER] Begin binary call to " + this.binary);
-            outLog.println("[BINARY INVOKER] On WorkingDir : " + this.taskSandboxWorkingDir.getAbsolutePath());
+            outLog.println("[BINARY INVOKER] On WorkingDir : " + this.sandBox.getFolder().getAbsolutePath());
             // Debug command
             outLog.print("[BINARY INVOKER] BINARY CMD: ");
             for (int i = 0; i < cmd.length; ++i) {
@@ -179,7 +179,7 @@ public class BinaryInvoker extends Invoker {
         }
         // Launch command
         this.br = new BinaryRunner();
-        return this.br.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
+        return this.br.executeCMD(cmd, streamValues, this.sandBox, this.context.getThreadOutStream(),
             this.context.getThreadErrStream(), null, this.failByEV);
     }
 

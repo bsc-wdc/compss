@@ -26,6 +26,7 @@ import es.bsc.compss.loader.LoaderUtils;
 import es.bsc.compss.loader.total.ITAppEditor;
 import es.bsc.compss.loader.total.ObjectRegistry;
 import es.bsc.compss.types.CoreElementDefinition;
+import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
@@ -71,13 +72,13 @@ public class JavaNestedInvoker extends JavaInvoker {
      *
      * @param context Task execution context
      * @param invocation Task execution description
-     * @param taskSandboxWorkingDir Task execution sandbox directory
+     * @param sandbox Task execution sandbox directory
      * @param assignedResources Assigned resources
      * @throws JobExecutionException Error creating the Java invoker
      */
-    public JavaNestedInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
+    public JavaNestedInvoker(InvocationContext context, Invocation invocation, ExecutionSandbox sandbox,
         InvocationResources assignedResources) throws JobExecutionException {
-        super(context, invocation, taskSandboxWorkingDir, assignedResources);
+        super(context, invocation, sandbox, assignedResources);
         runtimeAPI = context.getRuntimeAPI();
         loaderAPI = context.getLoaderAPI();
     }
@@ -239,8 +240,7 @@ public class JavaNestedInvoker extends JavaInvoker {
             returnValue = super.runMethod();
         } else {
             long appId;
-            appId = this.runtimeAPI.registerApplication(this.ceiName, this);
-            LOGGER.info("Job " + this.invocation.getJobId() + " becomes app " + appId);
+            appId = becomesNestedApplication(this.ceiName);
             // Register Core Elements on Runtime
             List<CoreElementDefinition> ceds = ITFParser.parseITFMethods(this.ceiClass);
             for (CoreElementDefinition ced : ceds) {
@@ -286,8 +286,7 @@ public class JavaNestedInvoker extends JavaInvoker {
             } catch (Throwable e) {
                 throw new JobExecutionException("Error executing the instrumented method!", e);
             } finally {
-                // runtimeAPI.removeApplicationData(appId);
-                this.runtimeAPI.deregisterApplication(appId);
+                this.completeNestedApplication(appId);
             }
         }
         return returnValue;

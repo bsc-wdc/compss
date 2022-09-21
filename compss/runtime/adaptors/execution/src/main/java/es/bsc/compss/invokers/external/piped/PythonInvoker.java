@@ -23,19 +23,18 @@ import es.bsc.compss.executor.external.commands.ExecuteTaskExternalCommand;
 import es.bsc.compss.executor.external.piped.PipePair;
 import es.bsc.compss.executor.external.piped.PipedMirror;
 import es.bsc.compss.executor.external.piped.commands.ExecuteTaskPipeCommand;
+import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 
-import java.io.File;
-
 
 public class PythonInvoker extends PipedInvoker {
 
-    public PythonInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
+    public PythonInvoker(InvocationContext context, Invocation invocation, ExecutionSandbox sandbox,
         InvocationResources assignedResources, PipePair pipes) throws JobExecutionException {
 
-        super(context, invocation, taskSandboxWorkingDir, assignedResources, pipes);
+        super(context, invocation, sandbox, assignedResources, pipes);
     }
 
     @Override

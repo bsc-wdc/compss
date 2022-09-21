@@ -21,6 +21,7 @@ import es.bsc.compss.executor.external.commands.ExecuteTaskExternalCommand;
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
@@ -60,16 +61,16 @@ public abstract class ExternalInvoker extends Invoker {
      *
      * @param context Task execution context
      * @param invocation Task execution description
-     * @param taskSandboxWorkingDir Task execution sandbox directory
+     * @param sandbox Task execution sandbox directory
      * @param assignedResources Assigned resources
      * @throws JobExecutionException Error creating the External invoker
      */
-    public ExternalInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
+    public ExternalInvoker(InvocationContext context, Invocation invocation, ExecutionSandbox sandbox,
         InvocationResources assignedResources) throws JobExecutionException {
 
-        super(context, invocation, taskSandboxWorkingDir, assignedResources);
-        this.command =
-            getTaskExecutionCommand(context, invocation, taskSandboxWorkingDir.getAbsolutePath(), assignedResources);
+        super(context, invocation, sandbox, assignedResources);
+        String sandboxPath = sandbox.getFolder().getAbsolutePath();
+        this.command = getTaskExecutionCommand(context, invocation, sandboxPath, assignedResources);
 
     }
 

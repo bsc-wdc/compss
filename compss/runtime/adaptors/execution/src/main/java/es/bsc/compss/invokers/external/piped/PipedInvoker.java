@@ -43,6 +43,7 @@ import es.bsc.compss.invokers.external.ExternalInvoker;
 import es.bsc.compss.invokers.types.TypeValuePair;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
+import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
@@ -50,7 +51,6 @@ import es.bsc.compss.types.execution.InvocationParamCollection;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.worker.COMPSsException;
 
-import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -58,7 +58,6 @@ import java.util.List;
 public abstract class PipedInvoker extends ExternalInvoker {
 
     private final PipePair pipes;
-    // TODO: Possible bug. AppId has no value
     private Long appId;
 
 
@@ -67,15 +66,15 @@ public abstract class PipedInvoker extends ExternalInvoker {
      *
      * @param context Task execution context
      * @param invocation Task execution description
-     * @param taskSandboxWorkingDir Task execution sandbox directory
+     * @param sandbox Task execution sandbox directory
      * @param assignedResources Assigned resources
      * @param pipes In/Out pipe pair
      * @throws JobExecutionException Error creating the Piped invoker
      */
-    public PipedInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
+    public PipedInvoker(InvocationContext context, Invocation invocation, ExecutionSandbox sandbox,
         InvocationResources assignedResources, PipePair pipes) throws JobExecutionException {
 
-        super(context, invocation, taskSandboxWorkingDir, assignedResources);
+        super(context, invocation, sandbox, assignedResources);
         super.appendOtherExecutionCommandArguments();
         this.pipes = pipes;
     }
@@ -123,8 +122,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
                                 int parameterCount = entpc.getParameterCount();
                                 Object[] parameters = entpc.getParameters();
                                 if (this.appId == null) {
-                                    this.appId = this.context.getRuntimeAPI().registerApplication(null, this);
-                                    LOGGER.info("Job " + this.invocation.getJobId() + " becomes app " + appId);
+                                    this.appId = becomesNestedApplication(null);
                                 }
                                 int numNodes = entpc.getNumNodes();
                                 boolean isReduce = entpc.isReduce();
@@ -327,7 +325,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
             throw e;
         } finally {
             if (this.appId != null) {
-                this.context.getRuntimeAPI().deregisterApplication(appId);
+                completeNestedApplication(appId);
             }
         }
 

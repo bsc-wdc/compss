@@ -29,6 +29,7 @@ import es.bsc.compss.invokers.test.utils.FakeInvocationParam;
 import es.bsc.compss.invokers.test.utils.types.Event;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
+import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.InvalidMapException;
@@ -101,39 +102,22 @@ public class TestJavaInvoker extends TestObject {
     private final ExecutionFlowVerifier expectedEvents = new ExecutionFlowVerifier();
 
 
-    private static File createTempDirectory() throws IOException {
-        final File temp;
-
-        temp = File.createTempFile("temp", Long.toString(System.nanoTime()));
+    private static ExecutionSandbox createTempDirectory() throws IOException {
+        File temp = File.createTempFile("temp", Long.toString(System.nanoTime()));
         if (!(temp.delete())) {
             throw new IOException("Could not delete temp file: " + temp.getAbsolutePath());
         }
         if (!(temp.mkdir())) {
             throw new IOException("Could not create temp directory: " + temp.getAbsolutePath());
         }
-        return (temp);
-    }
 
-    private static boolean deleteSandbox(File directory) {
-        if (directory.exists()) {
-            File[] files = directory.listFiles();
-            if (null != files) {
-                for (int i = 0; i < files.length; i++) {
-                    if (files[i].isDirectory()) {
-                        deleteSandbox(files[i]);
-                    } else {
-                        files[i].delete();
-                    }
-                }
-            }
-        }
-        return (directory.delete());
+        return new ExecutionSandbox(temp, true);
     }
 
     @Test
     public void nonExistentClassTest() throws InvalidMapException, IOException, JobExecutionException {
 
-        File sandBoxDir = createTempDirectory();
+        ExecutionSandbox sandBoxDir = createTempDirectory();
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         invBr = invBr.setImpl(TEST_NONEXISTENT_CLASS);
@@ -149,13 +133,13 @@ public class TestJavaInvoker extends TestObject {
                 fail("Test should fail because class could not be found. Obtained error is " + jee.getMessage());
             }
         }
-        deleteSandbox(sandBoxDir);
+        sandBoxDir.clean();
     }
 
     @Test
     public void nonExistentMethodTest() throws InvalidMapException, IOException, JobExecutionException {
 
-        File sandBoxDir = createTempDirectory();
+        ExecutionSandbox sandBoxDir = createTempDirectory();
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         invBr = invBr.setImpl(TEST_NONEXISTENT_METHOD);
@@ -171,12 +155,12 @@ public class TestJavaInvoker extends TestObject {
                 fail("Test should fail because method could not be found. Obtained error is " + jee.getMessage());
             }
         }
-        deleteSandbox(sandBoxDir);
+        sandBoxDir.clean();
     }
 
     @Test
     public void parameterMissmatch() throws InvalidMapException, IOException, JobExecutionException {
-        File sandBoxDir = createTempDirectory();
+        ExecutionSandbox sandBoxDir = createTempDirectory();
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         invBr = invBr.setImpl(TEST_EMPTY);
@@ -206,7 +190,7 @@ public class TestJavaInvoker extends TestObject {
                 fail("Test should fail because method could not be found. Obtained error is " + jee.getMessage());
             }
         }
-        deleteSandbox(sandBoxDir);
+        sandBoxDir.clean();
     }
 
     @Test
@@ -223,13 +207,13 @@ public class TestJavaInvoker extends TestObject {
 
         ExecutionReport result = new ExecutionReport(TEST_EMPTY_METHODNAME, false, new Object[0], null, null);
         executions.put(executorId, result);
-        File sandBoxDir = createTempDirectory();
+        ExecutionSandbox sandBoxDir = createTempDirectory();
         Invoker invoker = new JavaInvoker(context, invocation, sandBoxDir, null);
         invoker.runInvocation(null);
 
         ExecutionReport report = executions.remove(executorId);
         report.checkReport(TEST_EMPTY_METHODNAME, true, new Object[] {}, null, null);
-        deleteSandbox(sandBoxDir);
+        sandBoxDir.clean();
 
     }
 
@@ -271,7 +255,7 @@ public class TestJavaInvoker extends TestObject {
         ctxBdr = ctxBdr.setListener(expectedEvents);
         FakeInvocationContext context = ctxBdr.build();
         long executorId = Thread.currentThread().getId();
-        File sandBoxDir = createTempDirectory();
+        ExecutionSandbox sandBoxDir = createTempDirectory();
         Invoker invoker = new JavaInvoker(context, invocation, sandBoxDir, null);
 
         ExecutionReport result = new ExecutionReport(TEST_READS_METHODNAME, false, new Object[] { value1,
@@ -282,12 +266,12 @@ public class TestJavaInvoker extends TestObject {
         ExecutionReport report = executions.remove(executorId);
         report.checkReport(TEST_READS_METHODNAME, true, new Object[] { value1,
             value2 }, null, null);
-        deleteSandbox(sandBoxDir);
+        sandBoxDir.clean();
     }
 
     /**
      * Test reads.
-     * 
+     *
      * @param a test result a
      * @param b test result b
      */
@@ -335,19 +319,19 @@ public class TestJavaInvoker extends TestObject {
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
         ctxBdr = ctxBdr.setListener(expectedEvents);
         FakeInvocationContext context = ctxBdr.build();
-        File sandBoxDir = createTempDirectory();
+        ExecutionSandbox sandBoxDir = createTempDirectory();
         Invoker invoker = new JavaInvoker(context, invocation, sandBoxDir, null);
         invoker.runInvocation(null);
 
         ExecutionReport report = executions.remove(executorId);
         report.checkReport(TEST_INOUT_METHODNAME, true, new Object[] { out1,
             out2 }, null, null);
-        deleteSandbox(sandBoxDir);
+        sandBoxDir.clean();
     }
 
     /**
      * Test inouts.
-     * 
+     *
      * @param a test result a
      * @param b test result b
      */
@@ -366,7 +350,7 @@ public class TestJavaInvoker extends TestObject {
 
     @Test
     public void nullTargetTest() throws InvalidMapException, IOException, JobExecutionException, COMPSsException {
-        File sandBoxDir = createTempDirectory();
+        ExecutionSandbox sandBoxDir = createTempDirectory();
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         invBr = invBr.setImpl(TEST_TARGET_IN);
@@ -382,7 +366,7 @@ public class TestJavaInvoker extends TestObject {
         } catch (NullPointerException npe) {
             // Executing a instance method on null -> Raise Exception
         }
-        deleteSandbox(sandBoxDir);
+        sandBoxDir.clean();
     }
 
     @Test
@@ -404,7 +388,7 @@ public class TestJavaInvoker extends TestObject {
         ctxBdr = ctxBdr.setListener(expectedEvents);
         FakeInvocationContext context = ctxBdr.build();
         long executorId = Thread.currentThread().getId();
-        File sandBoxDir = createTempDirectory();
+        ExecutionSandbox sandBoxDir = createTempDirectory();
         Invoker invoker = new JavaInvoker(context, invocation, sandBoxDir, null);
 
         ExecutionReport result = new ExecutionReport(TEST_TARGET_IN_METHODNAME, false, new Object[] {}, target, null);
@@ -414,7 +398,7 @@ public class TestJavaInvoker extends TestObject {
 
         ExecutionReport report = executions.remove(executorId);
         report.checkReport(TEST_TARGET_IN_METHODNAME, true, new Object[] {}, target, null);
-        deleteSandbox(sandBoxDir);
+        sandBoxDir.clean();
 
     }
 
@@ -451,7 +435,7 @@ public class TestJavaInvoker extends TestObject {
         ctxBdr = ctxBdr.setListener(expectedEvents);
         FakeInvocationContext context = ctxBdr.build();
         long executorId = Thread.currentThread().getId();
-        File sandBoxDir = createTempDirectory();
+        ExecutionSandbox sandBoxDir = createTempDirectory();
         Invoker invoker = new JavaInvoker(context, invocation, sandBoxDir, null);
 
         ExecutionReport result =
@@ -462,7 +446,7 @@ public class TestJavaInvoker extends TestObject {
         invoker.runInvocation(null);
         ExecutionReport report = executions.remove(executorId);
         report.checkReport(TEST_TARGET_INOUT_METHODNAME, true, new Object[] {}, target, null);
-        deleteSandbox(sandBoxDir);
+        sandBoxDir.clean();
     }
 
     /**
@@ -497,7 +481,7 @@ public class TestJavaInvoker extends TestObject {
         ctxBdr = ctxBdr.setListener(expectedEvents);
         FakeInvocationContext context = ctxBdr.build();
         long executorId = Thread.currentThread().getId();
-        File sandBoxDir = createTempDirectory();
+        ExecutionSandbox sandBoxDir = createTempDirectory();
         Invoker invoker = new JavaInvoker(context, invocation, sandBoxDir, null);
 
         ExecutionReport result =
@@ -509,7 +493,7 @@ public class TestJavaInvoker extends TestObject {
 
         ExecutionReport report = executions.remove(executorId);
         report.checkReport(TEST_RESULT_METHODNAME, true, new Object[] {}, null, null);
-        deleteSandbox(sandBoxDir);
+        sandBoxDir.clean();
     }
 
     /**

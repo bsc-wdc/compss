@@ -19,6 +19,7 @@ package es.bsc.compss.invokers;
 import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.invokers.util.ClassUtils;
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
@@ -27,7 +28,6 @@ import es.bsc.compss.types.implementations.definition.MethodDefinition;
 import es.bsc.compss.types.implementations.definition.MultiNodeDefinition;
 import es.bsc.compss.worker.CanceledTask;
 
-import java.io.File;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -53,14 +53,14 @@ public class JavaInvoker extends Invoker {
      *
      * @param context Task execution context
      * @param invocation Task execution description
-     * @param taskSandboxWorkingDir Task execution sandbox directory
+     * @param sandbox Task execution sandbox directory
      * @param assignedResources Assigned resources
      * @throws JobExecutionException Error creating the Java invoker
      */
-    public JavaInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
+    public JavaInvoker(InvocationContext context, Invocation invocation, ExecutionSandbox sandbox,
         InvocationResources assignedResources) throws JobExecutionException {
 
-        super(context, invocation, taskSandboxWorkingDir, assignedResources);
+        super(context, invocation, sandbox, assignedResources);
 
         // Get method class and name
         switch (invocation.getMethodImplementation().getMethodType()) {

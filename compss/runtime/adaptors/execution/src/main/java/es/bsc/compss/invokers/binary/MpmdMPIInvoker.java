@@ -26,6 +26,7 @@ import es.bsc.compss.invokers.types.StdIOStream;
 import es.bsc.compss.invokers.util.BinaryRunner;
 import es.bsc.compss.types.MPIProgram;
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
@@ -33,7 +34,6 @@ import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.definition.MpmdMPIDefinition;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -55,14 +55,14 @@ public class MpmdMPIInvoker extends Invoker {
      *
      * @param context Task execution context.
      * @param invocation Task execution description.
-     * @param taskSandboxWorkingDir Task execution sandbox directory.
+     * @param sandbox Task execution sandbox directory.
      * @param assignedResources Assigned resources.
      * @throws JobExecutionException Error creating the MPI invoker.
      */
-    public MpmdMPIInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
+    public MpmdMPIInvoker(InvocationContext context, Invocation invocation, ExecutionSandbox sandbox,
         InvocationResources assignedResources) throws JobExecutionException {
 
-        super(context, invocation, taskSandboxWorkingDir, assignedResources);
+        super(context, invocation, sandbox, assignedResources);
 
         // Get method definition properties
         try {
@@ -156,14 +156,14 @@ public class MpmdMPIInvoker extends Invoker {
             }
         }
 
-        String[] cmd = this.definition.generateCMD(this.taskSandboxWorkingDir, this.hostnames, this.computingUnits);
+        String[] cmd = this.definition.generateCMD(this.sandBox.getFolder(), this.hostnames, this.computingUnits);
         // Launch command
         this.br = new BinaryRunner();
 
         if (this.invocation.isDebugEnabled()) {
             PrintStream outLog = this.context.getThreadOutStream();
             outLog.println("");
-            outLog.println("[MPMD MPI INVOKER] On WorkingDir : " + this.taskSandboxWorkingDir.getAbsolutePath());
+            outLog.println("[MPMD MPI INVOKER] On WorkingDir : " + this.sandBox.getFolder().getAbsolutePath());
             // Debug command
             outLog.print("[MPMD MPI INVOKER] BINARY CMD: ");
             for (String s : cmd) {
@@ -175,7 +175,7 @@ public class MpmdMPIInvoker extends Invoker {
             outLog.println("[MPMD MPI INVOKER] Binary STDERR: " + streamValues.getStdErr());
         }
 
-        return this.br.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
+        return this.br.executeCMD(cmd, streamValues, this.sandBox, this.context.getThreadOutStream(),
             this.context.getThreadErrStream(), null, this.definition.isFailByEV());
     }
 

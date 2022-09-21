@@ -35,6 +35,7 @@ import es.bsc.compss.invokers.test.utils.types.InvocationParameterAssertion.Fiel
 import es.bsc.compss.invokers.test.utils.types.Role;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
+import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.InvalidMapException;
@@ -58,33 +59,16 @@ public class TestInvoker {
     private final ExecutionFlowVerifier expectedEvents = new ExecutionFlowVerifier();
 
 
-    private static File createTempDirectory() throws IOException {
-        final File temp;
-
-        temp = File.createTempFile("temp", Long.toString(System.nanoTime()));
+    private static ExecutionSandbox createTempDirectory() throws IOException {
+        File temp = File.createTempFile("temp", Long.toString(System.nanoTime()));
         if (!(temp.delete())) {
             throw new IOException("Could not delete temp file: " + temp.getAbsolutePath());
         }
         if (!(temp.mkdir())) {
             throw new IOException("Could not create temp directory: " + temp.getAbsolutePath());
         }
-        return (temp);
-    }
 
-    private static boolean deleteSandbox(File directory) {
-        if (directory.exists()) {
-            File[] files = directory.listFiles();
-            if (null != files) {
-                for (int i = 0; i < files.length; i++) {
-                    if (files[i].isDirectory()) {
-                        deleteSandbox(files[i]);
-                    } else {
-                        files[i].delete();
-                    }
-                }
-            }
-        }
-        return (directory.delete());
+        return new ExecutionSandbox(temp, true);
     }
 
     public AbstractMethodImplementation genDummy(String className, String methodName, Integer coreId, Integer implId,
@@ -110,13 +94,13 @@ public class TestInvoker {
 
         Invocation invocation = invBr.build();
         FakeInvocationContext context = ctxBdr.build();
-        File sandBoxDir = createTempDirectory();
+        ExecutionSandbox sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.runInvocation(null);
 
         expectedEvents.testCompleted();
         checkInvocation(invocation, new InvocationParam[] {}, null, null);
-        deleteSandbox(sandBoxDir);
+        sandBoxDir.clean();
     }
 
     @Test
@@ -143,7 +127,7 @@ public class TestInvoker {
         expectedEvents.add(Event.Type.METHOD_RETURN, expectedResults, null);
         Invocation invocation = invBr.build();
         FakeInvocationContext context = ctxBdr.build();
-        File sandBoxDir = createTempDirectory();
+        ExecutionSandbox sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.runInvocation(null);
 
@@ -152,7 +136,7 @@ public class TestInvoker {
             1.0, false, "", "", false);
         endParam0.setValue(true);
         checkInvocation(invocation, new InvocationParam[] { endParam0 }, null, null);
-        deleteSandbox(sandBoxDir);
+        sandBoxDir.clean();
     }
 
     @Test
@@ -180,7 +164,7 @@ public class TestInvoker {
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
         ctxBdr = ctxBdr.setListener(expectedEvents);
         FakeInvocationContext context = ctxBdr.build();
-        File sandBoxDir = createTempDirectory();
+        ExecutionSandbox sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.runInvocation(null);
 
@@ -189,7 +173,7 @@ public class TestInvoker {
             1.0, false, "", "", false);
         endParam0.setValue('a');
         checkInvocation(invocation, new InvocationParam[] { endParam0 }, null, null);
-        deleteSandbox(sandBoxDir);
+        sandBoxDir.clean();
     }
 
     @Test
@@ -217,7 +201,7 @@ public class TestInvoker {
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
         ctxBdr = ctxBdr.setListener(expectedEvents);
         FakeInvocationContext context = ctxBdr.build();
-        File sandBoxDir = createTempDirectory();
+        ExecutionSandbox sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.runInvocation(null);
 
@@ -226,7 +210,7 @@ public class TestInvoker {
             1.0, false, "", "", false);
         endParam0.setValue(240);
         checkInvocation(invocation, new InvocationParam[] { endParam0 }, null, null);
-        deleteSandbox(sandBoxDir);
+        sandBoxDir.clean();
     }
 
     @Test
@@ -254,7 +238,7 @@ public class TestInvoker {
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
         ctxBdr = ctxBdr.setListener(expectedEvents);
         FakeInvocationContext context = ctxBdr.build();
-        File sandBoxDir = createTempDirectory();
+        ExecutionSandbox sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.runInvocation(null);
 
@@ -263,7 +247,7 @@ public class TestInvoker {
             1.0, false, "", "", false);
         endParam0.setValue(25);
         checkInvocation(invocation, new InvocationParam[] { endParam0 }, null, null);
-        deleteSandbox(sandBoxDir);
+        sandBoxDir.clean();
     }
 
     @Test
@@ -292,7 +276,7 @@ public class TestInvoker {
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
         ctxBdr = ctxBdr.setListener(expectedEvents);
         FakeInvocationContext context = ctxBdr.build();
-        File sandBoxDir = createTempDirectory();
+        ExecutionSandbox sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.runInvocation(null);
 
@@ -301,7 +285,7 @@ public class TestInvoker {
             new FakeInvocationParam(DataType.INT_T, "", "none", "", StdIOStream.UNSPECIFIED, 1.0, false, "", "", false);
         endParam0.setValue(878544);
         checkInvocation(invocation, new InvocationParam[] { endParam0 }, null, null);
-        deleteSandbox(sandBoxDir);
+        sandBoxDir.clean();
     }
 
     @Test
@@ -329,7 +313,7 @@ public class TestInvoker {
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
         ctxBdr = ctxBdr.setListener(expectedEvents);
         FakeInvocationContext context = ctxBdr.build();
-        File sandBoxDir = createTempDirectory();
+        ExecutionSandbox sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.runInvocation(null);
 
@@ -338,7 +322,7 @@ public class TestInvoker {
             1.0, false, "", "", false);
         endParam0.setValue(832478544);
         checkInvocation(invocation, new InvocationParam[] { endParam0 }, null, null);
-        deleteSandbox(sandBoxDir);
+        sandBoxDir.clean();
     }
 
     @Test
@@ -366,7 +350,7 @@ public class TestInvoker {
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
         ctxBdr = ctxBdr.setListener(expectedEvents);
         FakeInvocationContext context = ctxBdr.build();
-        File sandBoxDir = createTempDirectory();
+        ExecutionSandbox sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.runInvocation(null);
 
@@ -375,7 +359,7 @@ public class TestInvoker {
             1.0, false, "", "", false);
         endParam0.setValue(832.23f);
         checkInvocation(invocation, new InvocationParam[] { endParam0 }, null, null);
-        deleteSandbox(sandBoxDir);
+        sandBoxDir.clean();
     }
 
     @Test
@@ -403,7 +387,7 @@ public class TestInvoker {
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
         ctxBdr = ctxBdr.setListener(expectedEvents);
         FakeInvocationContext context = ctxBdr.build();
-        File sandBoxDir = createTempDirectory();
+        ExecutionSandbox sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.runInvocation(null);
 
@@ -412,7 +396,7 @@ public class TestInvoker {
             1.0, false, "", "", false);
         endParam0.setValue(83.31415644d);
         checkInvocation(invocation, new InvocationParam[] { endParam0 }, null, null);
-        deleteSandbox(sandBoxDir);
+        sandBoxDir.clean();
     }
 
     @Test
@@ -440,7 +424,7 @@ public class TestInvoker {
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
         ctxBdr = ctxBdr.setListener(expectedEvents);
         FakeInvocationContext context = ctxBdr.build();
-        File sandBoxDir = createTempDirectory();
+        ExecutionSandbox sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.runInvocation(null);
 
@@ -449,7 +433,7 @@ public class TestInvoker {
             1.0, false, "", "", false);
         endParam0.setValue("Test String");
         checkInvocation(invocation, new InvocationParam[] { endParam0 }, null, null);
-        deleteSandbox(sandBoxDir);
+        sandBoxDir.clean();
     }
 
     @Test
@@ -485,7 +469,7 @@ public class TestInvoker {
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
         ctxBdr = ctxBdr.setListener(expectedEvents);
         FakeInvocationContext context = ctxBdr.build();
-        File sandBoxDir = createTempDirectory();
+        ExecutionSandbox sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.runInvocation(null);
 
@@ -498,7 +482,7 @@ public class TestInvoker {
         endParam1.setValue("Test String");
         checkInvocation(invocation, new InvocationParam[] { endParam0,
             endParam1 }, null, null);
-        deleteSandbox(sandBoxDir);
+        sandBoxDir.clean();
     }
 
     @Test
@@ -528,7 +512,7 @@ public class TestInvoker {
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
         ctxBdr = ctxBdr.setListener(expectedEvents);
         FakeInvocationContext context = ctxBdr.build();
-        File sandBoxDir = createTempDirectory();
+        ExecutionSandbox sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.runInvocation(null);
 
@@ -537,7 +521,7 @@ public class TestInvoker {
             1.0, false, "", renaming, false);
         endParam0.setValue(new TestObject(3));
         checkInvocation(invocation, new InvocationParam[] { endParam0 }, null, null);
-        deleteSandbox(sandBoxDir);
+        sandBoxDir.clean();
     }
 
     @Test
@@ -569,7 +553,7 @@ public class TestInvoker {
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
         ctxBdr = ctxBdr.setListener(expectedEvents);
         FakeInvocationContext context = ctxBdr.build();
-        File sandBoxDir = createTempDirectory();
+        ExecutionSandbox sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.runInvocation(null);
 
@@ -578,7 +562,7 @@ public class TestInvoker {
             1.0, false, "", renaming, false);
         endParam0.setValue(new TestObject(5));
         checkInvocation(invocation, new InvocationParam[] { endParam0 }, null, null);
-        deleteSandbox(sandBoxDir);
+        sandBoxDir.clean();
     }
 
     @Test
@@ -607,7 +591,7 @@ public class TestInvoker {
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
         ctxBdr = ctxBdr.setListener(expectedEvents);
         FakeInvocationContext context = ctxBdr.build();
-        File sandBoxDir = createTempDirectory();
+        ExecutionSandbox sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.runInvocation(null);
 
@@ -616,7 +600,7 @@ public class TestInvoker {
             1.0, false, "", renaming, false);
         target.setValue(new TestObject(3));
         checkInvocation(invocation, new InvocationParam[] {}, target, null);
-        deleteSandbox(sandBoxDir);
+        sandBoxDir.clean();
     }
 
     @Test
@@ -649,7 +633,7 @@ public class TestInvoker {
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
         ctxBdr = ctxBdr.setListener(expectedEvents);
         FakeInvocationContext context = ctxBdr.build();
-        File sandBoxDir = createTempDirectory();
+        ExecutionSandbox sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.runInvocation(null);
 
@@ -658,7 +642,7 @@ public class TestInvoker {
             1.0, false, "", renaming, true);
         target.setValue(new TestObject(5));
         checkInvocation(invocation, new InvocationParam[] {}, target, null);
-        deleteSandbox(sandBoxDir);
+        sandBoxDir.clean();
     }
 
     @Test
@@ -692,7 +676,7 @@ public class TestInvoker {
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
         ctxBdr = ctxBdr.setListener(expectedEvents);
         FakeInvocationContext context = ctxBdr.build();
-        File sandBoxDir = createTempDirectory();
+        ExecutionSandbox sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.runInvocation(null);
 
@@ -702,7 +686,7 @@ public class TestInvoker {
             1.0, false, "", renaming, true);
         result.setValue(new TestObject(5));
         checkInvocation(invocation, new InvocationParam[] {}, null, new InvocationParam[] { result });
-        deleteSandbox(sandBoxDir);
+        sandBoxDir.clean();
     }
 
     @Test
@@ -732,7 +716,7 @@ public class TestInvoker {
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
         ctxBdr = ctxBdr.setListener(expectedEvents);
         FakeInvocationContext context = ctxBdr.build();
-        File sandBoxDir = createTempDirectory();
+        ExecutionSandbox sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.runInvocation(null);
 
@@ -741,7 +725,7 @@ public class TestInvoker {
             1.0, false, "", id, false);
         endParam0.setValue(new StorageTestObject(id, 3));
         checkInvocation(invocation, new InvocationParam[] { endParam0 }, null, null);
-        deleteSandbox(sandBoxDir);
+        sandBoxDir.clean();
     }
 
     @Test
@@ -773,7 +757,7 @@ public class TestInvoker {
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
         ctxBdr = ctxBdr.setListener(expectedEvents);
         FakeInvocationContext context = ctxBdr.build();
-        File sandBoxDir = createTempDirectory();
+        ExecutionSandbox sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.runInvocation(null);
 
@@ -782,7 +766,7 @@ public class TestInvoker {
             1.0, false, "", id, false);
         endParam0.setValue(new StorageTestObject(id, 3));
         checkInvocation(invocation, new InvocationParam[] { endParam0 }, null, null);
-        deleteSandbox(sandBoxDir);
+        sandBoxDir.clean();
     }
 
     @Test
@@ -814,7 +798,7 @@ public class TestInvoker {
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
         ctxBdr = ctxBdr.setListener(expectedEvents);
         FakeInvocationContext context = ctxBdr.build();
-        File sandBoxDir = createTempDirectory();
+        ExecutionSandbox sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.runInvocation(null);
 
@@ -823,7 +807,7 @@ public class TestInvoker {
             new FakeInvocationParam(DataType.PSCO_T, "", "none", "", StdIOStream.UNSPECIFIED, 1.0, false, "", id, true);
         endParam0.setValue(new StorageTestObject(id, 5));
         checkInvocation(invocation, new InvocationParam[] { endParam0 }, null, null);
-        deleteSandbox(sandBoxDir);
+        sandBoxDir.clean();
     }
 
     @Test
@@ -857,7 +841,7 @@ public class TestInvoker {
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
         ctxBdr = ctxBdr.setListener(expectedEvents);
         FakeInvocationContext context = ctxBdr.build();
-        File sandBoxDir = createTempDirectory();
+        ExecutionSandbox sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.runInvocation(null);
 
@@ -866,7 +850,7 @@ public class TestInvoker {
             new FakeInvocationParam(DataType.PSCO_T, "", "none", "", StdIOStream.UNSPECIFIED, 1.0, false, "", id, true);
         endParam0.setValue(new StorageTestObject(id, 5));
         checkInvocation(invocation, new InvocationParam[] { endParam0 }, null, null);
-        deleteSandbox(sandBoxDir);
+        sandBoxDir.clean();
     }
 
     @Test
@@ -900,7 +884,7 @@ public class TestInvoker {
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
         ctxBdr = ctxBdr.setListener(expectedEvents);
         FakeInvocationContext context = ctxBdr.build();
-        File sandBoxDir = createTempDirectory();
+        ExecutionSandbox sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.runInvocation(null);
 
@@ -909,7 +893,7 @@ public class TestInvoker {
             new FakeInvocationParam(DataType.PSCO_T, "", "none", "", StdIOStream.UNSPECIFIED, 1.0, false, "", id, true);
         endParam0.setValue(new StorageTestObject(id, 3));
         checkInvocation(invocation, new InvocationParam[] { endParam0 }, null, null);
-        deleteSandbox(sandBoxDir);
+        sandBoxDir.clean();
     }
 
     @Test
@@ -939,7 +923,7 @@ public class TestInvoker {
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
         ctxBdr = ctxBdr.setListener(expectedEvents);
         FakeInvocationContext context = ctxBdr.build();
-        File sandBoxDir = createTempDirectory();
+        ExecutionSandbox sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.runInvocation(null);
 
@@ -948,7 +932,7 @@ public class TestInvoker {
             false, "", id, false);
         target.setValue(new StorageTestObject(id, 3));
         checkInvocation(invocation, new InvocationParam[] {}, target, null);
-        deleteSandbox(sandBoxDir);
+        sandBoxDir.clean();
     }
 
     @Test
@@ -980,7 +964,7 @@ public class TestInvoker {
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
         ctxBdr = ctxBdr.setListener(expectedEvents);
         FakeInvocationContext context = ctxBdr.build();
-        File sandBoxDir = createTempDirectory();
+        ExecutionSandbox sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.runInvocation(null);
 
@@ -989,7 +973,7 @@ public class TestInvoker {
             false, "", id, false);
         target.setValue(new StorageTestObject(id, 3));
         checkInvocation(invocation, new InvocationParam[] {}, target, null);
-        deleteSandbox(sandBoxDir);
+        sandBoxDir.clean();
     }
 
     @Test
@@ -1021,7 +1005,7 @@ public class TestInvoker {
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
         ctxBdr = ctxBdr.setListener(expectedEvents);
         FakeInvocationContext context = ctxBdr.build();
-        File sandBoxDir = createTempDirectory();
+        ExecutionSandbox sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.runInvocation(null);
 
@@ -1030,7 +1014,7 @@ public class TestInvoker {
             new FakeInvocationParam(DataType.PSCO_T, "", "none", "", StdIOStream.UNSPECIFIED, 1.0, false, "", id, true);
         target.setValue(new StorageTestObject(id, 5));
         checkInvocation(invocation, new InvocationParam[] {}, target, null);
-        deleteSandbox(sandBoxDir);
+        sandBoxDir.clean();
     }
 
     @Test
@@ -1063,7 +1047,7 @@ public class TestInvoker {
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
         ctxBdr = ctxBdr.setListener(expectedEvents);
         FakeInvocationContext context = ctxBdr.build();
-        File sandBoxDir = createTempDirectory();
+        ExecutionSandbox sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.runInvocation(null);
 
@@ -1072,7 +1056,7 @@ public class TestInvoker {
             new FakeInvocationParam(DataType.PSCO_T, "", "none", "", StdIOStream.UNSPECIFIED, 1.0, false, "", id, true);
         target.setValue(new StorageTestObject(id, 5));
         checkInvocation(invocation, new InvocationParam[] {}, target, null);
-        deleteSandbox(sandBoxDir);
+        sandBoxDir.clean();
     }
 
     @Test
@@ -1108,7 +1092,7 @@ public class TestInvoker {
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
         ctxBdr = ctxBdr.setListener(expectedEvents);
         FakeInvocationContext context = ctxBdr.build();
-        File sandBoxDir = createTempDirectory();
+        ExecutionSandbox sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.runInvocation(null);
 
@@ -1117,7 +1101,7 @@ public class TestInvoker {
             new FakeInvocationParam(DataType.PSCO_T, "", "none", "", StdIOStream.UNSPECIFIED, 1.0, false, "", id, true);
         target.setValue(new StorageTestObject(id, 5));
         checkInvocation(invocation, new InvocationParam[] {}, target, null);
-        deleteSandbox(sandBoxDir);
+        sandBoxDir.clean();
     }
 
     @Test
@@ -1151,7 +1135,7 @@ public class TestInvoker {
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
         ctxBdr = ctxBdr.setListener(expectedEvents);
         FakeInvocationContext context = ctxBdr.build();
-        File sandBoxDir = createTempDirectory();
+        ExecutionSandbox sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.runInvocation(null);
 
@@ -1160,7 +1144,7 @@ public class TestInvoker {
             new FakeInvocationParam(DataType.PSCO_T, "", "none", "", StdIOStream.UNSPECIFIED, 1.0, false, "", id, true);
         result.setValue(new StorageTestObject(id, 5));
         checkInvocation(invocation, new InvocationParam[] {}, null, new InvocationParam[] { result });
-        deleteSandbox(sandBoxDir);
+        sandBoxDir.clean();
     }
 
     @Test
@@ -1193,7 +1177,7 @@ public class TestInvoker {
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
         ctxBdr = ctxBdr.setListener(expectedEvents);
         FakeInvocationContext context = ctxBdr.build();
-        File sandBoxDir = createTempDirectory();
+        ExecutionSandbox sandBoxDir = createTempDirectory();
         Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         try {
             invoker.runInvocation(null);
@@ -1207,7 +1191,7 @@ public class TestInvoker {
             new FakeInvocationParam(DataType.PSCO_T, "", "none", "", StdIOStream.UNSPECIFIED, 1.0, false, "", id, true);
         result.setValue(new StorageTestObject(id, 5));
         checkInvocation(invocation, new InvocationParam[] {}, null, new InvocationParam[] { result });
-        deleteSandbox(sandBoxDir);
+        sandBoxDir.clean();
     }
 
     private static void checkInvocation(Invocation invocation, InvocationParam[] params, InvocationParam target,

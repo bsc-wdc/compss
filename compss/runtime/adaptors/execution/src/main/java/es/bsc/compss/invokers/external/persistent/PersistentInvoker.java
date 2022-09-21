@@ -22,10 +22,10 @@ import es.bsc.compss.executor.external.persistent.PersistentMirror;
 import es.bsc.compss.executor.types.ExternalTaskStatus;
 import es.bsc.compss.invokers.external.ExternalInvoker;
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
-import java.io.File;
 
 
 public abstract class PersistentInvoker extends ExternalInvoker {
@@ -40,14 +40,14 @@ public abstract class PersistentInvoker extends ExternalInvoker {
      * 
      * @param context Invocation Constructor.
      * @param invocation Invocation description.
-     * @param taskSandboxWorkingDir Sandbox working directory.
+     * @param sandbox Sandbox working directory.
      * @param assignedResources Assigned resources to the invocation.
      * @throws JobExecutionException Exception building the invoker.
      */
-    public PersistentInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
+    public PersistentInvoker(InvocationContext context, Invocation invocation, ExecutionSandbox sandbox,
         InvocationResources assignedResources) throws JobExecutionException {
 
-        super(context, invocation, taskSandboxWorkingDir, assignedResources);
+        super(context, invocation, sandbox, assignedResources);
         super.appendOtherExecutionCommandArguments();
     }
 

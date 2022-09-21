@@ -143,7 +143,7 @@ public class SharedLocation extends DataLocation {
 
     @Override
     public String toString() {
-        return "shared:" + this.diskName + File.separator + this.path;
+        return "shared://" + this.diskName + File.separator + this.path;
     }
 
     @Override

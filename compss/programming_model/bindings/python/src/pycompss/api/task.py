@@ -270,11 +270,12 @@ class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attribu
         ):
             # The task is using a container
             impl_args = kwargs[CORE_ELEMENT_KEY].get_impl_type_args()
-            _type = impl_args[2]
+            _type = impl_args[3]
             if _type == INTERNAL_LABELS.unassigned:
                 # The task is not invoking a binary
                 _engine = impl_args[0]
                 _image = impl_args[1]
+                _options = impl_args[2]
                 _type = "CET_PYTHON"
                 _module_name = str(self.__get_module_name__(user_function))
                 _function_name = str(user_function.__name__)
@@ -282,6 +283,7 @@ class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attribu
                 impl_args = [
                     _engine,  # engine
                     _image,  # image
+                    _options,  # container options
                     _type,  # internal_type
                     INTERNAL_LABELS.unassigned,  # internal_binary
                     _func_complete,  # internal_func

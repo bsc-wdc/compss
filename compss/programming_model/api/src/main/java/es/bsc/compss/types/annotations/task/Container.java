@@ -55,6 +55,13 @@ public @interface Container {
     String image() default Constants.UNASSIGNED;
 
     /**
+     * Returns the container options.
+     * 
+     * @return the container options.
+     */
+    String options() default Constants.UNASSIGNED;
+
+    /**
      * Returns the internal execution type.
      * 
      * @return The internal container execution type.

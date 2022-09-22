@@ -25,6 +25,7 @@ import es.bsc.compss.invokers.types.PythonParams;
 import es.bsc.compss.invokers.types.StdIOStream;
 import es.bsc.compss.invokers.util.BinaryRunner;
 import es.bsc.compss.types.BindingObject;
+import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
@@ -196,7 +197,7 @@ public class ContainerInvoker extends Invoker {
 
         String workingDirMountPoint = workingDir;
         if (workingDirMountPoint.contains("sandBox")) {
-            workingDirMountPoint = workingDirMountPoint + REL_PATH_WD;
+            workingDirMountPoint = new File(workingDirMountPoint).getParentFile().getParent();
         }
 
         // Setup application directory
@@ -261,33 +262,41 @@ public class ContainerInvoker extends Invoker {
         }
 
         // Prepare command - Determine length of the command
+        // Check options
+        int numOptions = 0;
+        String[] options = null;
+        String optionsStr = this.container.getOptions().trim();
+        if (optionsStr != null && !optionsStr.isEmpty() && !optionsStr.equals(Constants.UNASSIGNED)) {
+            options = optionsStr.split(" ");
+            numOptions = options.length;
+        }
         int numCmdArgs = 0;
         switch (this.container.getEngine()) {
             case DOCKER:
                 switch (this.internalExecutionType) {
                     case CET_PYTHON:
-                        numCmdArgs = NUM_BASE_DOCKER_PYTHON_ARGS + containerCallParams.size();
+                        numCmdArgs = NUM_BASE_DOCKER_PYTHON_ARGS + numOptions + containerCallParams.size();
                         break;
                     case CET_BINARY:
-                        numCmdArgs = NUM_BASE_DOCKER_BINARY_ARGS + containerCallParams.size();
+                        numCmdArgs = NUM_BASE_DOCKER_BINARY_ARGS + numOptions + containerCallParams.size();
                 }
                 break;
             case SINGULARITY:
                 switch (this.internalExecutionType) {
                     case CET_PYTHON:
-                        numCmdArgs = NUM_BASE_SINGULARITY_PYTHON_ARGS + containerCallParams.size();
+                        numCmdArgs = NUM_BASE_SINGULARITY_PYTHON_ARGS + numOptions + containerCallParams.size();
                         break;
                     case CET_BINARY:
-                        numCmdArgs = NUM_BASE_SINGULARITY_BINARY_ARGS + containerCallParams.size();
+                        numCmdArgs = NUM_BASE_SINGULARITY_BINARY_ARGS + numOptions + containerCallParams.size();
                 }
                 break;
             case UDOCKER:
                 switch (this.internalExecutionType) {
                     case CET_PYTHON:
-                        numCmdArgs = NUM_BASE_UDOCKER_PYTHON_ARGS + containerCallParams.size();
+                        numCmdArgs = NUM_BASE_UDOCKER_PYTHON_ARGS + numOptions + containerCallParams.size();
                         break;
                     case CET_BINARY:
-                        numCmdArgs = NUM_BASE_UDOCKER_BINARY_ARGS + containerCallParams.size();
+                        numCmdArgs = NUM_BASE_UDOCKER_BINARY_ARGS + numOptions + containerCallParams.size();
                 }
                 break;
         }
@@ -320,6 +329,7 @@ public class ContainerInvoker extends Invoker {
                 }
                 cmd[cmdIndex++] = "-w";
                 cmd[cmdIndex++] = workingDir;
+                cmdIndex = addContainerOptions(cmd, cmdIndex, options);
                 cmd[cmdIndex++] = this.container.getImage();
                 break;
 
@@ -341,6 +351,7 @@ public class ContainerInvoker extends Invoker {
                 }
                 cmd[cmdIndex++] = "--pwd";
                 cmd[cmdIndex++] = workingDir;
+                cmdIndex = addContainerOptions(cmd, cmdIndex, options);
                 cmd[cmdIndex++] = this.container.getImage();
                 break;
             case UDOCKER:
@@ -364,6 +375,7 @@ public class ContainerInvoker extends Invoker {
                 }
                 cmd[cmdIndex++] = "-w";
                 cmd[cmdIndex++] = workingDir;
+                cmdIndex = addContainerOptions(cmd, cmdIndex, options);
                 cmd[cmdIndex++] = this.container.getImage();
                 break;
 
@@ -427,6 +439,15 @@ public class ContainerInvoker extends Invoker {
         this.br = new BinaryRunner();
         return this.br.executeCMD(cmd, streamValues, this.sandBox, this.context.getThreadOutStream(),
             this.context.getThreadErrStream(), completePythonpath, this.failByEV);
+    }
+
+    private int addContainerOptions(String[] cmd, int cmdIndex, String[] options) {
+        if (options != null && options.length > 0) {
+            for (String option : options) {
+                cmd[cmdIndex++] = option;
+            }
+        }
+        return cmdIndex;
     }
 
     private void addParamInfo(List<String> paramsList, InvocationParam p) {

@@ -37,6 +37,7 @@ public class ContainerDescription implements Serializable {
 
     private ContainerEngine engine;
     private String image;
+    private String options;
 
 
     /**
@@ -52,9 +53,28 @@ public class ContainerDescription implements Serializable {
      * @param engine Container engine.
      * @param image Container image.
      */
-    public ContainerDescription(ContainerEngine engine, String image) {
+    public ContainerDescription(ContainerEngine engine, String image, String options) {
         this.engine = engine;
         this.image = image;
+        this.options = options;
+    }
+
+    /**
+     * Get the container options.
+     * 
+     * @return the container options
+     */
+    public String getOptions() {
+        return options;
+    }
+
+    /**
+     * Set the container options.
+     * 
+     * @param options Container options.
+     */
+    public void setOptions(String options) {
+        this.options = options;
     }
 
     /**

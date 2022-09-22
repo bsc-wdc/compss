@@ -579,7 +579,7 @@ public class ITFParser {
         for (Container containerAnnot : m.getAnnotationsByType(Container.class)) {
             String engine = EnvironmentLoader.loadFromEnvironment(containerAnnot.engine());
             String image = EnvironmentLoader.loadFromEnvironment(containerAnnot.image());
-
+            String options = EnvironmentLoader.loadFromEnvironment(containerAnnot.options());
             String internalExecutionTypeStr = EnvironmentLoader.loadFromEnvironment(containerAnnot.executionType());
             String internalBinary = EnvironmentLoader.loadFromEnvironment(containerAnnot.binary());
             String internalFunc = EnvironmentLoader.loadFromEnvironment(containerAnnot.function());
@@ -631,7 +631,7 @@ public class ITFParser {
             ImplementationDescription<?, ?> implDef = null;
             try {
                 implDef = ImplementationDescription.defineImplementation(MethodType.CONTAINER.toString(),
-                    containerSignature, implProcessLocal, implConstraints, prolog, epilog, engine, image,
+                    containerSignature, implProcessLocal, implConstraints, prolog, epilog, engine, image, options,
                     internalExecutionTypeStr, internalBinary, internalFunc, hostDir, containerFailByExitValue);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());

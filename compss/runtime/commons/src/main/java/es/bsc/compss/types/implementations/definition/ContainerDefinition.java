@@ -35,7 +35,7 @@ public class ContainerDefinition implements AbstractMethodImplementationDefiniti
      */
     private static final long serialVersionUID = 1L;
 
-    public static final int NUM_PARAMS = 7;
+    public static final int NUM_PARAMS = 8;
     public static final String SIGNATURE = "container.CONTAINER";
 
 
@@ -95,17 +95,18 @@ public class ContainerDefinition implements AbstractMethodImplementationDefiniti
         engineStr = engineStr.toUpperCase();
         ContainerEngine engine = ContainerEngine.valueOf(engineStr);
         String image = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 1]);
-        this.container = new ContainerDescription(engine, image);
+        String options = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 2]);
+        this.container = new ContainerDescription(engine, image, options);
 
-        String internalTypeContainerStr = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 2]);
+        String internalTypeContainerStr = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 3]);
         internalTypeContainerStr = internalTypeContainerStr.toUpperCase();
         // String to ENUM can throw IllegalArgumentException
         this.internalExecutionType = ContainerExecutionType.valueOf(internalTypeContainerStr);
-        this.internalBinary = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 3]);
-        this.internalFunc = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 4]);
+        this.internalBinary = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 4]);
+        this.internalFunc = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 5]);
 
-        this.workingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 5]);
-        this.failByEV = Boolean.parseBoolean(implTypeArgs[offset + 6]);
+        this.workingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 6]);
+        this.failByEV = Boolean.parseBoolean(implTypeArgs[offset + 7]);
 
         // Check empty arguments
         switch (this.internalExecutionType) {
@@ -126,6 +127,7 @@ public class ContainerDefinition implements AbstractMethodImplementationDefiniti
     public void appendToArgs(List<String> lArgs, String auxParam) {
         lArgs.add(this.container.getEngine().toString());
         lArgs.add(this.container.getImage());
+        lArgs.add(this.container.getOptions());
         lArgs.add(this.internalExecutionType.toString());
         lArgs.add(this.internalBinary);
         lArgs.add(this.internalFunc);

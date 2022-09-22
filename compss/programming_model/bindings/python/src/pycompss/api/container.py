@@ -45,7 +45,7 @@ if __debug__:
     logger = logging.getLogger(__name__)
 
 MANDATORY_ARGUMENTS = {LABELS.engine, LABELS.image}
-SUPPORTED_ARGUMENTS = {LABELS.engine, LABELS.image}
+SUPPORTED_ARGUMENTS = {LABELS.engine, LABELS.image, LABELS.options}
 DEPRECATED_ARGUMENTS = {
     LABELS.fail_by_exit_value,
     LABELS.working_dir,
@@ -138,7 +138,6 @@ class Container:  # pylint: disable=too-few-public-methods
         # Resolve @container (mandatory) specific parameters
         _engine = self.kwargs[LABELS.engine]
         _image = self.kwargs[LABELS.image]
-
         _func = str(user_function.__name__)
 
         # Type and signature
@@ -148,6 +147,7 @@ class Container:  # pylint: disable=too-few-public-methods
         impl_args = [
             _engine,  # engine
             _image,  # image
+            self.kwargs.get(LABELS.options, INTERNAL_LABELS.unassigned),
             INTERNAL_LABELS.unassigned,  # internal_type
             INTERNAL_LABELS.unassigned,  # internal_binary
             INTERNAL_LABELS.unassigned,  # internal_func

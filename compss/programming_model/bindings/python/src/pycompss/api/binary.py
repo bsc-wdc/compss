@@ -179,10 +179,12 @@ class Binary:  # pylint: disable=too-few-public-methods
 
             _engine = impl_args[0]
             _image = impl_args[1]
+            _options = impl_args[2]
 
             impl_args = [
                 _engine,  # engine
                 _image,  # image
+                _options,  # container options
                 IMPLEMENTATION_TYPES.cet_binary,  # internal_type
                 _binary,  # internal_binary
                 INTERNAL_LABELS.unassigned,  # internal_func

@@ -391,8 +391,13 @@ public class GraphGenerator {
                             }
                         }
                         labels += "]";
-                        full_graph.write(srctgt + " [label=\"" + labels + " ("
-                            + pendingGroupDependencies.get(srctgt).size() + ")" + "\",color=\"#024b30\",penwidth=2];");
+                        if (pendingGroupDependencies.get(srctgt).size() <= 2) {
+                            full_graph.write(srctgt + " [label=\"" + labels + "\",color=\"#024b30\",penwidth=2];");
+                        } else {
+                            full_graph.write(
+                                srctgt + " [label=\"" + labels + " (" + pendingGroupDependencies.get(srctgt).size()
+                                    + ")" + "\",color=\"#024b30\",penwidth=2];");
+                        }
                     } catch (IOException e) {
                         e.printStackTrace();
                     }

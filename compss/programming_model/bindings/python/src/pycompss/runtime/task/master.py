@@ -1448,7 +1448,7 @@ class TaskMaster:
             ret_type = TYPE.OBJECT
             for i in range(to_return):
                 self.returns[get_return_name(i)] = Parameter(
-                    content=None, content_type=ret_type, direction=ret_dir
+                    content=_returns, content_type=ret_type, direction=ret_dir
                 )
 
         # Hopefully, an exception have been thrown if some invalid
@@ -1465,6 +1465,8 @@ class TaskMaster:
         :param returns: Returns as string.
         :return: Number of returned parameters.
         """
+        if returns == "{{A}}":
+            return 1
         try:
             # Return is hidden by an int as a string.
             # i.e., returns="var_int"
@@ -1646,7 +1648,12 @@ class TaskMaster:
                 logger.debug("Simple object return found.")
             # Build the appropriate future object
             ret_value = self.returns[get_return_name(0)].content
-            if type(ret_value) in _PYTHON_TO_COMPSS or ret_value in _PYTHON_TO_COMPSS:
+
+            if ret_value == "{{A}}":
+                # return = a.. a is OUT
+                # import pdb; pdb.set_trace()
+                future_object = self.parameters.get("A").content
+            elif type(ret_value) in _PYTHON_TO_COMPSS or ret_value in _PYTHON_TO_COMPSS:
                 future_object = Future()  # primitives,string,dic,list,tuple
             elif inspect.isclass(ret_value):
                 # For objects:
@@ -1662,7 +1669,12 @@ class TaskMaster:
                     future_object = Future()
             else:
                 future_object = Future()  # modules, functions, methods
+            # we start to track here
             _, ret_filename = OT.track(future_object)
+            if ret_value == "{{A}}":
+                serialize_to_file(future_object, ret_filename)
+                OT.set_pending_to_synchronize(_)
+
             single_return = self.returns[get_return_name(0)]
             single_return.content_type = TYPE.FILE
             single_return.extra_content_type = "FILE"
@@ -2207,6 +2219,11 @@ def _turn_into_file(param: Parameter, name: str, skip_creation: bool = False) ->
                 logger.debug("Serializing object %s to file %s", obj_id, compss_file)
             if not skip_creation:
                 serialize_to_file(param.content, compss_file)
+        # nm
+        # elif not skip_creation:
+        #     compss_file = OT.pop_written_obj(obj_id)
+        #     serialize_to_file(param.content, compss_file)
+
     # Set file name in Parameter object
     param.file_name = COMPSsFile(file_name)
 

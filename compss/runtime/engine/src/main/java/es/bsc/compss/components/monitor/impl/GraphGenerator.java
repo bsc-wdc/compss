@@ -380,22 +380,24 @@ public class GraphGenerator {
                     String srctgt = entry.getKey();
                     try {
                         full_graph.newLine();
-                        String labels = "[";
                         Boolean first = false;
+                        String f = "";
+                        String l = "";
                         for (String s : pendingGroupDependencies.get(srctgt)) {
-                            if (first) {
-                                labels += ",d" + s;
+                            if (first && pendingGroupDependencies.get(srctgt).size() <= 2) {
+                                l = ",d" + s;
+                            } else if (first && pendingGroupDependencies.get(srctgt).size() > 2) {
+                                l = ",...,d" + s;
                             } else {
                                 first = true;
-                                labels += "d" + s;
+                                f = "d" + s;
                             }
                         }
-                        labels += "]";
                         if (pendingGroupDependencies.get(srctgt).size() <= 2) {
-                            full_graph.write(srctgt + " [label=\"" + labels + "\",color=\"#024b30\",penwidth=2];");
+                            full_graph.write(srctgt + " [label=\"[" + f + l + "]\",color=\"#024b30\",penwidth=2];");
                         } else {
                             full_graph.write(
-                                srctgt + " [label=\"" + labels + " (" + pendingGroupDependencies.get(srctgt).size()
+                                srctgt + " [label=\"[" + f + l + "](" + pendingGroupDependencies.get(srctgt).size()
                                     + ")" + "\",color=\"#024b30\",penwidth=2];");
                         }
                     } catch (IOException e) {

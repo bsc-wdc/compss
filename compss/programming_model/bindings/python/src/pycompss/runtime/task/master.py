@@ -1686,8 +1686,9 @@ class TaskMaster:
                 future_object = Future()  # modules, functions, methods
 
             _, ret_filename = OT.track(future_object)
-            # if the return value is going to be saved in an IN param, we should
-            # serialize to a file after tracking it on OT.
+            # when the return value is an IN param, after tracking on OT,
+            # we should also serialize to a file. Otherwise, already-tracked
+            # IN param will not be serialized when "processing params".
             if self._is_return_param_name(ret_value):
                 serialize_to_file(future_object, ret_filename)
                 OT.set_pending_to_synchronize(_)
@@ -2236,10 +2237,6 @@ def _turn_into_file(param: Parameter, name: str, skip_creation: bool = False) ->
                 logger.debug("Serializing object %s to file %s", obj_id, compss_file)
             if not skip_creation:
                 serialize_to_file(param.content, compss_file)
-        # nm
-        # elif not skip_creation:
-        #     compss_file = OT.pop_written_obj(obj_id)
-        #     serialize_to_file(param.content, compss_file)
 
     # Set file name in Parameter object
     param.file_name = COMPSsFile(file_name)

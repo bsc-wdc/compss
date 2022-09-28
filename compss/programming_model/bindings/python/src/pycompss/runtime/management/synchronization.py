@@ -132,7 +132,6 @@ def _synchronize(obj: typing.Any, mode: int) -> typing.Any:
         COMPSs.delete_file(app_id, OT.get_file_name(obj_id), False)
         OT.stop_tracking(obj)
 
-    # todo: nm: we can return a new value, but cannot update the original value
     return new_obj
 
 

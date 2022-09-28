@@ -171,6 +171,8 @@ ATTRIBUTES_TO_BE_REMOVED = {
 # ensuring that no attribute is overwritten
 MASTER_LOCK = Lock()
 VALUE_OF = "value_of"
+RETURN_OPEN_TOKEN = "{{"
+RETURN_CLOSE_TOKEN = "}}"
 
 
 class TaskMaster:
@@ -1465,8 +1467,6 @@ class TaskMaster:
         :param returns: Returns as string.
         :return: Number of returned parameters.
         """
-        if returns == "{{A}}":
-            return 1
         try:
             # Return is hidden by an int as a string.
             # i.e., returns="var_int"
@@ -1488,6 +1488,10 @@ class TaskMaster:
                     f"Incorrect value_of format in {returns}"
                 ) from value_error
 
+            # for cases like returns = "{{a}}" there can be only 1 return value
+            elif self.is_return_param_name(returns):
+                return 1
+
             # Else: return is hidden by a global variable. i.e., LT_ARGS
             try:
                 num_rets = self.user_func_glob_getter(returns)
@@ -1499,6 +1503,12 @@ class TaskMaster:
                     # This is a compiled task
                     num_rets = self.user_func_wrapped_glob_getter(returns)
             return int(num_rets)
+
+    @staticmethod
+    def is_return_param_name(returns_str):
+        return isinstance(returns_str, str) \
+               and returns_str.startswith(RETURN_OPEN_TOKEN) \
+               and returns_str.endswith(RETURN_CLOSE_TOKEN)
 
     def update_return_if_no_returns(self, function: typing.Callable) -> int:
         """Look for returns if no returns is specified.
@@ -1649,10 +1659,11 @@ class TaskMaster:
             # Build the appropriate future object
             ret_value = self.returns[get_return_name(0)].content
 
-            if ret_value == "{{A}}":
-                # return = a.. a is OUT
-                # import pdb; pdb.set_trace()
-                future_object = self.parameters.get("A").content
+            if self.is_return_param_name(ret_value):
+                # for the cases like 'returns = {{param_name}}' we replace the
+                # return value with the parameter itself
+                tmp = ret_value[len(RETURN_OPEN_TOKEN):-len(RETURN_CLOSE_TOKEN)]
+                future_object = self.parameters.get(tmp).content
             elif type(ret_value) in _PYTHON_TO_COMPSS or ret_value in _PYTHON_TO_COMPSS:
                 future_object = Future()  # primitives,string,dic,list,tuple
             elif inspect.isclass(ret_value):
@@ -1669,9 +1680,11 @@ class TaskMaster:
                     future_object = Future()
             else:
                 future_object = Future()  # modules, functions, methods
-            # we start to track here
+
             _, ret_filename = OT.track(future_object)
-            if ret_value == "{{A}}":
+            # if the return value is going to be saved in an IN param, we should
+            # serialize to a file after tracking it on OT.
+            if self.is_return_param_name(ret_value):
                 serialize_to_file(future_object, ret_filename)
                 OT.set_pending_to_synchronize(_)
 

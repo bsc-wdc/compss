@@ -47,6 +47,7 @@ import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.execution.Execution;
+import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
@@ -54,6 +55,7 @@ import es.bsc.compss.types.execution.InvocationParamCollection;
 import es.bsc.compss.types.execution.InvocationParamDictCollection;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableResourcesException;
+import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.definition.BinaryDefinition;
 import es.bsc.compss.types.implementations.definition.COMPSsDefinition;
@@ -76,13 +78,6 @@ import es.bsc.wdc.affinity.ThreadAffinity;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.nio.file.AtomicMoveNotSupportedException;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.StandardCopyOption;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
@@ -102,20 +97,12 @@ public class Executor implements Runnable, InvocationRunner {
     // Error messages
     private static final String ERROR_OUT_FILES =
         "ERROR: One or more OUT files have not" + " been created by task with Method Definition [";
-    private static final String WARN_ATOMIC_MOVE =
-        "WARN: AtomicMoveNotSupportedException." + " File cannot be atomically moved. Trying to move without atomic";
 
     // JVM Flag for timers
     public static final boolean IS_TIMER_COMPSS_ENABLED;
 
     // Conversion
     private static final int NANO_TO_MS = 1_000_000;
-
-
-    private enum DataComparison {
-        SAME_DATA_VERSION, SAME_DATA_MAJOR_VERSION, SAME_DATA_MINOR_VERSION, DIFF_DATA, ERROR
-    }
-
 
     static {
         // Load timer property
@@ -345,35 +332,37 @@ public class Executor implements Runnable, InvocationRunner {
     }
 
     private void sandBoxWrapperAndRun() throws Exception {
-        TaskWorkingDir twd;
+        ExecutionSandbox twd = null;
 
-        // Set the Task working directory
-        if (IS_TIMER_COMPSS_ENABLED) {
-            twd = createTaskSandboxWithTimer();
-        } else {
-            twd = createTaskSandbox();
-        }
+        try {
+            // Set the Task working directory
+            if (IS_TIMER_COMPSS_ENABLED) {
+                twd = createTaskSandboxWithTimer();
+            } else {
+                twd = createTaskSandbox();
+            }
 
-        filesWrapperAndRun(twd);
-
-        // Clean the task sandbox working dir if no error
-        if (IS_TIMER_COMPSS_ENABLED) {
-            cleanTaskSandboxWithTimer(twd);
-        } else {
-            cleanTaskSandbox(twd);
+            filesWrapperAndRun(twd);
+        } finally {
+            // Clean the task sandbox working dir if no error
+            if (IS_TIMER_COMPSS_ENABLED) {
+                cleanTaskSandboxWithTimer(twd);
+            } else {
+                cleanTaskSandbox(twd);
+            }
         }
     }
 
-    private void filesWrapperAndRun(TaskWorkingDir twd) throws Exception {
+    private void filesWrapperAndRun(ExecutionSandbox twd) throws Exception {
         boolean alreadyFailed = false;
         try {
             if (IS_TIMER_COMPSS_ENABLED) {
                 // Bind files to task sandbox working dir
-                bindOriginalFilenamesToRenamesWithTimer(twd.getWorkingDir());
+                bindOriginalFilenamesToRenamesWithTimer(twd);
                 executeTaskWithTimer(twd);
             } else {
                 // Bind files to task sandbox working dir
-                bindOriginalFilenamesToRenames(twd.getWorkingDir());
+                bindOriginalFilenamesToRenames(twd);
                 executeTask(twd);
             }
         } catch (Exception e) {
@@ -384,9 +373,9 @@ public class Executor implements Runnable, InvocationRunner {
             // Unbind files from task sandbox working dir
             try {
                 if (IS_TIMER_COMPSS_ENABLED) {
-                    unbindOriginalFileNamesToRenamesWithTimer();
+                    unbindOriginalFileNamesToRenamesWithTimer(twd);
                 } else {
-                    unbindOriginalFileNamesToRenames();
+                    unbindOriginalFileNamesToRenames(twd);
                 }
             } catch (Exception ex) {
                 if (alreadyFailed) {
@@ -409,7 +398,7 @@ public class Executor implements Runnable, InvocationRunner {
         }
     }
 
-    private void executeTaskWithTimer(TaskWorkingDir twd) throws Exception {
+    private void executeTaskWithTimer(ExecutionSandbox twd) throws Exception {
         int jobId = invocation.getJobId();
         // Execute task
         LOGGER.debug("Executing task invocation for Job " + jobId);
@@ -422,7 +411,7 @@ public class Executor implements Runnable, InvocationRunner {
         TIMER_LOGGER.info("[TIMER] Execute job " + jobId + ": " + timeExecTaskElapsed + " ms");
     }
 
-    private void executeTask(TaskWorkingDir twd) throws Exception {
+    private void executeTask(ExecutionSandbox twd) throws Exception {
 
         /* Register outputs **************************************** */
         String streamsPath = this.context.getStandardStreamsPath(invocation);
@@ -430,7 +419,6 @@ public class Executor implements Runnable, InvocationRunner {
         PrintStream out = this.context.getThreadOutStream();
 
         /* TRY TO PROCESS THE TASK ******************************** */
-        File taskSandboxWorkingDir = twd.getWorkingDir();
         if (invocation.isDebugEnabled()) {
             out.println("[EXECUTOR] executeTask - Begin task execution");
         }
@@ -439,34 +427,34 @@ public class Executor implements Runnable, InvocationRunner {
             switch (invocation.getMethodImplementation().getMethodType()) {
                 case METHOD:
                 case MULTI_NODE:
-                    invoker = selectNativeMethodInvoker(taskSandboxWorkingDir, resources);
+                    invoker = selectNativeMethodInvoker(twd, resources);
                     break;
                 case CONTAINER:
-                    invoker = new ContainerInvoker(this.context, invocation, taskSandboxWorkingDir, resources);
+                    invoker = new ContainerInvoker(this.context, invocation, twd, resources);
                     break;
                 case BINARY:
-                    invoker = new BinaryInvoker(this.context, invocation, taskSandboxWorkingDir, resources);
+                    invoker = new BinaryInvoker(this.context, invocation, twd, resources);
                     break;
                 case PYTHON_MPI:
-                    invoker = new PythonMPIInvoker(this.context, invocation, taskSandboxWorkingDir, resources);
+                    invoker = new PythonMPIInvoker(this.context, invocation, twd, resources);
                     break;
                 case MPI:
-                    invoker = new MPIInvoker(this.context, invocation, taskSandboxWorkingDir, resources);
+                    invoker = new MPIInvoker(this.context, invocation, twd, resources);
                     break;
                 case MPMDMPI:
-                    invoker = new MpmdMPIInvoker(this.context, invocation, taskSandboxWorkingDir, resources);
+                    invoker = new MpmdMPIInvoker(this.context, invocation, twd, resources);
                     break;
                 case COMPSs:
-                    invoker = new COMPSsInvoker(this.context, invocation, taskSandboxWorkingDir, resources);
+                    invoker = new COMPSsInvoker(this.context, invocation, twd, resources);
                     break;
                 case DECAF:
-                    invoker = new DecafInvoker(this.context, invocation, taskSandboxWorkingDir, resources);
+                    invoker = new DecafInvoker(this.context, invocation, twd, resources);
                     break;
                 case OMPSS:
-                    invoker = new OmpSsInvoker(this.context, invocation, taskSandboxWorkingDir, resources);
+                    invoker = new OmpSsInvoker(this.context, invocation, twd, resources);
                     break;
                 case OPENCL:
-                    invoker = new OpenCLInvoker(this.context, invocation, taskSandboxWorkingDir, resources);
+                    invoker = new OpenCLInvoker(this.context, invocation, twd, resources);
                     break;
             }
             timerTask = new TimeOutTask(invocation.getTaskId());
@@ -601,7 +589,7 @@ public class Executor implements Runnable, InvocationRunner {
         }
     }
 
-    private Invoker selectNativeMethodInvoker(File taskSandboxWorkingDir, InvocationResources assignedResources)
+    private Invoker selectNativeMethodInvoker(ExecutionSandbox sandbox, InvocationResources assignedResources)
         throws JobExecutionException {
         PrintStream out = context.getThreadOutStream();
         switch (invocation.getLang()) {
@@ -611,15 +599,13 @@ public class Executor implements Runnable, InvocationRunner {
                     case COMPSS:
                         if (context.getRuntimeAPI() != null && context.getLoaderAPI() != null) {
                             out.println("Nested Support enabled on the Invocation Context!");
-                            javaInvoker =
-                                new JavaNestedInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
+                            javaInvoker = new JavaNestedInvoker(context, invocation, sandbox, assignedResources);
                         } else {
-                            javaInvoker =
-                                new JavaInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
+                            javaInvoker = new JavaInvoker(context, invocation, sandbox, assignedResources);
                         }
                         break;
                     case STORAGE:
-                        javaInvoker = new StorageInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
+                        javaInvoker = new StorageInvoker(context, invocation, sandbox, assignedResources);
                         break;
                 }
                 return javaInvoker;
@@ -635,11 +621,11 @@ public class Executor implements Runnable, InvocationRunner {
                     }
                     pyPipes = mirror.registerExecutor(this.id, this.name);
                 }
-                return new PythonInvoker(context, invocation, taskSandboxWorkingDir, assignedResources, pyPipes);
+                return new PythonInvoker(context, invocation, sandbox, assignedResources, pyPipes);
             case C:
                 Invoker cInvoker = null;
                 if (context.isPersistentCEnabled()) {
-                    cInvoker = new CPersistentInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
+                    cInvoker = new CPersistentInvoker(context, invocation, sandbox, assignedResources);
                     if (!isRegistered) {
                         PersistentMirror mirror;
                         synchronized (platform) {
@@ -664,7 +650,7 @@ public class Executor implements Runnable, InvocationRunner {
                         }
                         cPipes = mirror.registerExecutor(this.id, this.name);
                     }
-                    cInvoker = new CInvoker(context, invocation, taskSandboxWorkingDir, assignedResources, cPipes);
+                    cInvoker = new CInvoker(context, invocation, sandbox, assignedResources, cPipes);
                 }
                 return cInvoker;
             default:
@@ -769,10 +755,10 @@ public class Executor implements Runnable, InvocationRunner {
         this.platform.releaseResources(jobId);
     }
     /*
-     * ---------------------- SANDBOX MAGEMENT --------------------------------
+     * ---------------------- SANDBOX MANAGEMENT --------------------------------
      */
 
-    private TaskWorkingDir createTaskSandboxWithTimer() throws IOException {
+    private ExecutionSandbox createTaskSandboxWithTimer() throws IOException {
         // Start timer
         long timeSandboxStart = 0L;
         timeSandboxStart = System.nanoTime();
@@ -792,101 +778,87 @@ public class Executor implements Runnable, InvocationRunner {
      * @return Sandbox dir
      * @throws IOException Error creating sandbox
      */
-    private TaskWorkingDir createTaskSandbox() throws IOException {
+    private ExecutionSandbox createTaskSandbox() throws IOException {
         final int jobId = invocation.getJobId();
         LOGGER.debug("Creating task sandbox for Job " + jobId);
-        TaskWorkingDir taskWD;
+
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(TraceEvent.CREATING_TASK_SANDBOX);
+        }
+
+        ExecutionSandbox taskWD;
         try {
             // Check if an specific working dir is provided
-            String specificWD = null;
-            switch (invocation.getMethodImplementation().getMethodType()) {
+            String specificWD;
+            AbstractMethodImplementation impl = invocation.getMethodImplementation();
+            switch (impl.getMethodType()) {
                 case CONTAINER:
-                    ContainerDefinition contImpl =
-                        (ContainerDefinition) invocation.getMethodImplementation().getDefinition();
+                    ContainerDefinition contImpl = (ContainerDefinition) impl.getDefinition();
                     specificWD = contImpl.getWorkingDir();
                     break;
                 case BINARY:
-                    BinaryDefinition binaryImpl =
-                        (BinaryDefinition) invocation.getMethodImplementation().getDefinition();
+                    BinaryDefinition binaryImpl = (BinaryDefinition) impl.getDefinition();
                     specificWD = binaryImpl.getWorkingDir();
                     break;
                 case MPI:
-                    MPIDefinition mpiImpl = (MPIDefinition) invocation.getMethodImplementation().getDefinition();
+                    MPIDefinition mpiImpl = (MPIDefinition) impl.getDefinition();
                     specificWD = mpiImpl.getWorkingDir();
                     break;
                 case MPMDMPI:
-                    MpmdMPIDefinition mpmpdDef =
-                        (MpmdMPIDefinition) invocation.getMethodImplementation().getDefinition();
+                    MpmdMPIDefinition mpmpdDef = (MpmdMPIDefinition) impl.getDefinition();
                     specificWD = mpmpdDef.getWorkingDir();
                     break;
                 case PYTHON_MPI:
-                    PythonMPIDefinition nativeMPIImpl =
-                        (PythonMPIDefinition) invocation.getMethodImplementation().getDefinition();
+                    PythonMPIDefinition nativeMPIImpl = (PythonMPIDefinition) impl.getDefinition();
                     specificWD = nativeMPIImpl.getWorkingDir();
                     break;
                 case COMPSs:
-                    COMPSsDefinition compssImpl =
-                        (COMPSsDefinition) invocation.getMethodImplementation().getDefinition();
+                    COMPSsDefinition compssImpl = (COMPSsDefinition) impl.getDefinition();
                     specificWD = compssImpl.getWorkingDir() + File.separator + compssImpl.getParentAppId()
-                        + File.separator + "compss_job_" + invocation.getJobId() + "_" + invocation.getHistory().name();
+                        + File.separator + "compss_job_" + jobId + "_" + invocation.getHistory().name();
                     break;
                 case DECAF:
-                    DecafDefinition decafImpl = (DecafDefinition) invocation.getMethodImplementation().getDefinition();
+                    DecafDefinition decafImpl = (DecafDefinition) impl.getDefinition();
                     specificWD = decafImpl.getWorkingDir();
                     break;
                 case OMPSS:
-                    OmpSsDefinition ompssImpl = (OmpSsDefinition) invocation.getMethodImplementation().getDefinition();
+                    OmpSsDefinition ompssImpl = (OmpSsDefinition) impl.getDefinition();
                     specificWD = ompssImpl.getWorkingDir();
                     break;
                 case OPENCL:
-                    OpenCLDefinition openclImpl =
-                        (OpenCLDefinition) invocation.getMethodImplementation().getDefinition();
+                    OpenCLDefinition openclImpl = (OpenCLDefinition) impl.getDefinition();
                     specificWD = openclImpl.getWorkingDir();
                     break;
-                case METHOD:
-                case MULTI_NODE: // It is executed as a regular native method
+                default:
                     specificWD = null;
-                    break;
             }
-            if (Tracer.isActivated()) {
-                Tracer.emitEvent(TraceEvent.CREATING_TASK_SANDBOX);
-            }
-            if (specificWD != null && !specificWD.isEmpty() && !specificWD.equals(Constants.UNASSIGNED)) {
-                // Binary has an specific working dir, set it
-                File workingDir = BinaryRunner.getUpdatedWorkingDir(this.invocation.getParams(), specificWD);
-                taskWD = new TaskWorkingDir(workingDir, true);
 
-                // Create structures
-                Files.createDirectories(workingDir.toPath());
+            File workingDir;
+            boolean isSpecific;
+            isSpecific = (specificWD != null && !specificWD.isEmpty() && !specificWD.equals(Constants.UNASSIGNED));
+            if (isSpecific) {
+                // Binary has an specific working dir, set it
+                workingDir = BinaryRunner.getUpdatedWorkingDir(this.invocation.getParams(), specificWD);
             } else {
                 // No specific working dir provided, set default sandbox
-                String completePath =
-                    this.context.getWorkingDir() + "sandBox" + File.separator + "job_" + invocation.getJobId();
-                File workingDir = new File(completePath);
-                taskWD = new TaskWorkingDir(workingDir, false);
-
-                // Clean-up previous versions if any
-                if (workingDir.exists()) {
-                    LOGGER.debug("Deleting folder " + workingDir.toString());
-                    if (!workingDir.delete()) {
-                        LOGGER.warn("Cannot delete working dir folder: " + workingDir.toString());
-                    }
-                }
-
-                // Create structures
-                Files.createDirectories(workingDir.toPath());
+                String completePath = this.context.getWorkingDir() + "sandBox" + File.separator + "job_" + jobId;
+                workingDir = new File(completePath);
             }
-            if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(TraceEvent.CREATING_TASK_SANDBOX);
-            }
+
+            taskWD = new ExecutionSandbox(workingDir, isSpecific);
+            taskWD.create();
         } catch (Exception e) {
             logExecutionException(e);
             throw e;
+        } finally {
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(TraceEvent.CREATING_TASK_SANDBOX);
+            }
         }
         return taskWD;
     }
 
-    private void cleanTaskSandboxWithTimer(TaskWorkingDir twd) {
+    private void cleanTaskSandboxWithTimer(ExecutionSandbox twd) {
         long timeCleanSandboxStart = 0L;
 
         timeCleanSandboxStart = System.nanoTime();
@@ -901,23 +873,17 @@ public class Executor implements Runnable, InvocationRunner {
 
     }
 
-    private void cleanTaskSandbox(TaskWorkingDir twd) {
+    private void cleanTaskSandbox(ExecutionSandbox twd) {
         final int jobId = invocation.getJobId();
         LOGGER.debug("Cleaning task sandbox for Job " + jobId);
 
-        if (twd != null && !twd.isSpecific()) {
-            // Only clean task sandbox if it is not specific
-            File workingDir = twd.getWorkingDir();
-            if (workingDir != null && workingDir.exists() && workingDir.isDirectory()) {
+        if (twd != null) {
+            try {
                 if (Tracer.isActivated()) {
                     Tracer.emitEvent(TraceEvent.REMOVING_TASK_SANDBOX);
                 }
-                try {
-                    LOGGER.debug("Deleting sandbox " + workingDir.toPath());
-                    deleteDirectory(workingDir);
-                } catch (IOException e) {
-                    LOGGER.warn("Error deleting sandbox " + e.getMessage(), e);
-                }
+                twd.clean();
+            } finally {
                 if (Tracer.isActivated()) {
                     Tracer.emitEventEnd(TraceEvent.REMOVING_TASK_SANDBOX);
                 }
@@ -925,43 +891,7 @@ public class Executor implements Runnable, InvocationRunner {
         }
     }
 
-    /**
-     * Check whether file1 corresponds to a file with a higher version than file2.
-     *
-     * @param file1 first file name
-     * @param file2 second file name
-     * @return True if file1 has a higher version. False otherwise (This includes the case where the name file's format
-     *         is not correct)
-     */
-    private DataComparison checkDataVersion(String file1, String file2) {
-        String[] version1array = file1.split("_")[0].split("v");
-        String[] version2array = file2.split("_")[0].split("v");
-        if (version1array.length < 2 || version2array.length < 2) {
-            return DataComparison.ERROR;
-        }
-        if (version1array[1] == version2array[1]) {
-            // same data
-            Integer version1int = null;
-            Integer version2int = null;
-            try {
-                version1int = Integer.parseInt(version1array[1]);
-                version2int = Integer.parseInt(version2array[1]);
-            } catch (NumberFormatException e) {
-                return DataComparison.ERROR;
-            }
-            if (version1int > version2int) {
-                return DataComparison.SAME_DATA_MAJOR_VERSION;
-            } else if (version1int == version2int) {
-                return DataComparison.SAME_DATA_VERSION;
-            } else {
-                return DataComparison.SAME_DATA_MINOR_VERSION;
-            }
-        } else {
-            return DataComparison.DIFF_DATA;
-        }
-    }
-
-    private void bindOriginalFilenamesToRenamesWithTimer(File sandbox) throws Exception {
+    private void bindOriginalFilenamesToRenamesWithTimer(ExecutionSandbox sandbox) throws Exception {
         long timeBindOriginalFilesStart = 0L;
         timeBindOriginalFilesStart = System.nanoTime();
         try {
@@ -981,7 +911,7 @@ public class Executor implements Runnable, InvocationRunner {
      * @param sandbox created sandbox
      * @throws IOException returns exception is a problem occurs during creation
      */
-    private void bindOriginalFilenamesToRenames(File sandbox) throws Exception {
+    private void bindOriginalFilenamesToRenames(ExecutionSandbox sandbox) throws Exception {
         final int jobId = invocation.getJobId();
         LOGGER.debug("Binding renamed files to sandboxed original names for Job " + jobId);
         try {
@@ -1025,123 +955,64 @@ public class Executor implements Runnable, InvocationRunner {
         }
     }
 
-    private void bindOriginalFilenameToRenames(InvocationParam param, File sandbox) throws IOException {
+    private void bindOriginalFilenameToRenames(InvocationParam param, ExecutionSandbox sandbox) throws IOException {
 
         if (Tracer.isActivated()) {
             Tracer.emitEvent(TraceEvent.BIND_ORIG_NAME);
         }
 
-        if (param.getType().equals(DataType.COLLECTION_T)) {
-            // do not enter here
-            @SuppressWarnings("unchecked")
-            InvocationParamCollection<InvocationParam> cp = (InvocationParamCollection<InvocationParam>) param;
-            for (InvocationParam p : cp.getCollectionParameters()) {
-                bindOriginalFilenameToRenames(p, sandbox);
-            }
-        } else if (param.getType().equals(DataType.DICT_COLLECTION_T)) {
-            @SuppressWarnings("unchecked")
-            InvocationParamDictCollection<InvocationParam, InvocationParam> dcp =
-                (InvocationParamDictCollection<InvocationParam, InvocationParam>) param;
-            for (Map.Entry<InvocationParam, InvocationParam> entry : dcp.getDictCollectionParameters().entrySet()) {
-                bindOriginalFilenameToRenames(entry.getKey(), sandbox);
-                bindOriginalFilenameToRenames(entry.getValue(), sandbox);
-            }
-        } else {
-            if (param.getType().equals(DataType.FILE_T)) {
-                String renamedFilePath = (String) param.getValue();
-                File renamedFile = new File(renamedFilePath);
-                param.setRenamedName(renamedFilePath);
-                if (renamedFile.getName().equals(param.getOriginalName())) {
-                    param.setOriginalName(renamedFilePath);
-                } else {
-                    manageSymbolicLinks(renamedFile, renamedFilePath, param, sandbox);
+        switch (param.getType()) {
+            case COLLECTION_T:
+                // do not enter here
+                @SuppressWarnings("unchecked")
+                InvocationParamCollection<InvocationParam> cp = (InvocationParamCollection<InvocationParam>) param;
+                for (InvocationParam p : cp.getCollectionParameters()) {
+                    bindOriginalFilenameToRenames(p, sandbox);
                 }
-            }
+                break;
+            case DICT_COLLECTION_T:
+                @SuppressWarnings("unchecked")
+                InvocationParamDictCollection<InvocationParam, InvocationParam> dcp =
+                    (InvocationParamDictCollection<InvocationParam, InvocationParam>) param;
+                for (Map.Entry<InvocationParam, InvocationParam> entry : dcp.getDictCollectionParameters().entrySet()) {
+                    bindOriginalFilenameToRenames(entry.getKey(), sandbox);
+                    bindOriginalFilenameToRenames(entry.getValue(), sandbox);
+                }
+                break;
+            case FILE_T:
+                String renamedPath = (String) param.getValue();
+                LOGGER.debug("Renamed File Path is " + renamedPath);
+                param.setRenamedName(renamedPath);
+
+                File renamedFile = new File(renamedPath);
+                if (renamedFile.getName().equals(param.getOriginalName())) {
+                    param.setOriginalName(renamedPath);
+                } else {
+                    String originalName = param.getOriginalName();
+                    String dataId = param.getDataMgmtId();
+
+                    String inSandboxPath = sandbox.addFile(dataId, renamedFile, originalName);
+                    if (inSandboxPath != null) {
+                        LOGGER.debug("Setting Original Name to " + inSandboxPath);
+                        param.setOriginalName(inSandboxPath);
+                        param.setValue(inSandboxPath);
+                    }
+                }
+                break;
+            default:
+                // Do nothing
         }
         if (Tracer.isActivated()) {
             Tracer.emitEventEnd(TraceEvent.BIND_ORIG_NAME);
         }
     }
 
-    private void manageSymbolicLinks(File renamedFile, String renamedFilePath, InvocationParam param, File sandbox)
-        throws IOException {
-        String inSandboxPath = sandbox.getAbsolutePath() + File.separator + param.getOriginalName();
-        File inSandboxFile = new File(inSandboxPath);
-        if (inSandboxFile.exists()) {
-            if (renamedFile.exists()) {
-                if (Files.isSymbolicLink(inSandboxFile.toPath())) {
-                    manageOverlapInSymlink(sandbox, inSandboxPath, inSandboxFile, renamedFile, param);
-                } else {
-                    LOGGER.warn("WARNING: Strange case for param " + param.getDataMgmtId()
-                        + " where renamed and in sandbox already exists and it is not linked with a Symlink");
-                }
-            } else {
-                // OUT and Overlap with previous in sandBox. Update in sandBox name.
-                File newSandboxFile = new File(sandbox, param.getDataMgmtId() + "_" + param.getOriginalName());
-                String newSandboxPath = newSandboxFile.getAbsolutePath();
-                param.setOriginalName(newSandboxPath);
-                param.setValue(newSandboxPath);
-
-            }
-        } else {
-            if (renamedFile.exists()) {
-                // IN or INOUT File creating a symbolic link
-                LOGGER.debug("Creating symlink " + inSandboxFile.toPath() + " pointing to " + renamedFile.toPath());
-                Files.createSymbolicLink(inSandboxFile.toPath(), renamedFile.toPath());
-                LOGGER.debug("Setting Original Name to " + inSandboxPath);
-                LOGGER.debug("Renamed File Path is " + renamedFilePath);
-                param.setOriginalName(inSandboxPath);
-                param.setValue(inSandboxPath);
-            } else {
-                // OUTPUT and do not overlap with any previous data.
-                LOGGER.debug("Setting Original Name to " + inSandboxPath);
-                LOGGER.debug("Renamed File Path is " + renamedFilePath);
-                param.setOriginalName(inSandboxPath);
-                param.setValue(inSandboxPath);
-            }
-        }
-
-    }
-
-    private void manageOverlapInSymlink(File sandbox, String inSandboxPath, File inSandboxFile, File renamedFile,
-        InvocationParam param) throws IOException {
-        Path oldRenamed = Files.readSymbolicLink(inSandboxFile.toPath());
-        LOGGER.debug("Checking if " + renamedFile.getName() + " is equal to " + oldRenamed.getFileName().toString());
-        switch (checkDataVersion(renamedFile.getName(), oldRenamed.getFileName().toString())) {
-            case SAME_DATA_VERSION:
-            case SAME_DATA_MINOR_VERSION:
-                param.setOriginalName(inSandboxPath);
-                param.setValue(inSandboxPath);
-                break;
-            case SAME_DATA_MAJOR_VERSION:
-                LOGGER.debug("Upading Symbolic link " + inSandboxFile.toPath().toString() + "->"
-                    + renamedFile.toPath().toString());
-                Files.delete(inSandboxFile.toPath());
-                Files.createSymbolicLink(inSandboxFile.toPath(), renamedFile.toPath());
-                param.setOriginalName(inSandboxPath);
-                param.setValue(inSandboxPath);
-                break;
-            case DIFF_DATA:
-                File newSandboxFile = new File(sandbox, param.getDataMgmtId() + "_" + param.getOriginalName());
-                String newSandboxPath = newSandboxFile.getAbsolutePath();
-                LOGGER.debug("Creating Symbolic link " + newSandboxFile.toPath().toString() + "->"
-                    + renamedFile.toPath().toString());
-                Files.createSymbolicLink(newSandboxFile.toPath(), renamedFile.toPath());
-                param.setOriginalName(newSandboxPath);
-                param.setValue(newSandboxPath);
-                break;
-            case ERROR:
-                LOGGER.warn("ERROR: There was an error extracting data versions for "
-                    + oldRenamed.getFileName().toString() + " and " + renamedFile.getName());
-        }
-
-    }
-
-    private void unbindOriginalFileNamesToRenamesWithTimer() throws IOException, JobExecutionException {
+    private void unbindOriginalFileNamesToRenamesWithTimer(ExecutionSandbox sandbox)
+        throws IOException, JobExecutionException {
         long timeUnbindOriginalFilesStart = 0L;
         timeUnbindOriginalFilesStart = System.nanoTime();
         try {
-            unbindOriginalFileNamesToRenames();
+            unbindOriginalFileNamesToRenames(sandbox);
         } finally {
             final long timeUnbindOriginalFilesEnd = System.nanoTime();
             final float timeUnbindOriginalFilesElapsed =
@@ -1158,7 +1029,7 @@ public class Executor implements Runnable, InvocationRunner {
      * @throws IOException Exception with file operations
      * @throws JobExecutionException Exception unbinding original names to renamed names
      */
-    private void unbindOriginalFileNamesToRenames() throws IOException, JobExecutionException {
+    private void unbindOriginalFileNamesToRenames(ExecutionSandbox sandbox) throws IOException, JobExecutionException {
         // Unbind files from task sandbox working dir
         final int jobId = invocation.getJobId();
         LOGGER.debug("Removing renamed files to sandboxed original names for Job " + jobId);
@@ -1167,7 +1038,7 @@ public class Executor implements Runnable, InvocationRunner {
         for (InvocationParam param : invocation.getParams()) {
             try {
                 // todo: second one is actually here
-                unbindOriginalFilenameToRename(param);
+                unbindOriginalFilenameToRename(param, sandbox);
             } catch (JobExecutionException e) {
                 if (!failure) {
                     message = e.getMessage();
@@ -1179,7 +1050,7 @@ public class Executor implements Runnable, InvocationRunner {
         }
         if (invocation.getTarget() != null) {
             try {
-                unbindOriginalFilenameToRename(invocation.getTarget());
+                unbindOriginalFilenameToRename(invocation.getTarget(), sandbox);
             } catch (JobExecutionException e) {
                 if (!failure) {
                     message = e.getMessage();
@@ -1192,7 +1063,7 @@ public class Executor implements Runnable, InvocationRunner {
         for (InvocationParam param : invocation.getResults()) {
 
             try {
-                unbindOriginalFilenameToRename(param);
+                unbindOriginalFilenameToRename(param, sandbox);
             } catch (JobExecutionException e) {
                 if (!failure) {
                     message = e.getMessage();
@@ -1207,7 +1078,8 @@ public class Executor implements Runnable, InvocationRunner {
         }
     }
 
-    private void unbindOriginalFilenameToRename(InvocationParam param) throws IOException, JobExecutionException {
+    private void unbindOriginalFilenameToRename(InvocationParam param, ExecutionSandbox sandbox)
+        throws IOException, JobExecutionException {
         if (param.isKeepRename()) {
             // Nothing to do
             return;
@@ -1215,127 +1087,73 @@ public class Executor implements Runnable, InvocationRunner {
         if (Tracer.isActivated()) {
             Tracer.emitEvent(TraceEvent.UNBIND_ORIG_NAME);
         }
-        if (param.getType().equals(DataType.COLLECTION_T)) {
-            @SuppressWarnings("unchecked")
-            InvocationParamCollection<InvocationParam> cp = (InvocationParamCollection<InvocationParam>) param;
-            for (InvocationParam p : cp.getCollectionParameters()) {
-                unbindOriginalFilenameToRename(p);
-            }
-        } else if (param.getType().equals(DataType.DICT_COLLECTION_T)) {
-            @SuppressWarnings("unchecked")
-            InvocationParamDictCollection<InvocationParam, InvocationParam> dcp =
-                (InvocationParamDictCollection<InvocationParam, InvocationParam>) param;
-            for (Map.Entry<InvocationParam, InvocationParam> entry : dcp.getDictCollectionParameters().entrySet()) {
-                unbindOriginalFilenameToRename(entry.getKey());
-                unbindOriginalFilenameToRename(entry.getValue());
-            }
-        } else {
-            if (param.getType().equals(DataType.FILE_T)) {
-                String inSandboxPath = param.getOriginalName();
-                String renamedFilePath = param.getRenamedName();
-
-                LOGGER.debug("Treating file " + inSandboxPath);
-                File inSandboxFile = new File(inSandboxPath);
-                String originalFileName = inSandboxFile.getName();
-                if (!inSandboxPath.equals(renamedFilePath)) {
-                    File renamedFile = new File(renamedFilePath);
-                    if (renamedFile.exists()) {
-                        // IN, INOUT
-                        if (inSandboxFile.exists()) {
-                            if (Files.isSymbolicLink(inSandboxFile.toPath())) {
-                                // If a symbolic link is created remove it
-                                LOGGER.debug("Deleting symlink " + inSandboxFile.toPath());
-                                Files.delete(inSandboxFile.toPath());
-                            } else {
-                                // Rewrite inout param by moving the new file to the renaming
-                                LOGGER.debug("Moving from " + inSandboxFile.toPath() + " to " + renamedFile.toPath());
-                                Files.delete(renamedFile.toPath());
-                                move(inSandboxFile.toPath(), renamedFile.toPath());
-                            }
-                        } else {
-                            // Both files exist and are updated
-                            LOGGER.debug("Repeated data for " + inSandboxPath + ". Nothing to do");
-                        }
-                    } else { // OUT
-                        if (inSandboxFile.exists()) {
-                            if (Files.isSymbolicLink(inSandboxFile.toPath())) {
-                                // Unexpected case
-                                String msg = "ERROR: Unexpected case. A Problem occurred with File " + inSandboxPath
-                                    + ". Either this file or the original name " + renamedFilePath + " do not exist.";
-                                LOGGER.error(msg);
-                                this.context.getThreadErrStream().println(msg);
-
-                                param.setValue(renamedFilePath);
-                                param.setOriginalName(originalFileName);
-
-                                throw new JobExecutionException(msg);
-                            } else {
-                                // If an output file is created move to the renamed path (OUT Case)
-                                move(inSandboxFile.toPath(), renamedFile.toPath());
-                            }
-                        } else {
-                            // Unexpected case (except for C binding when not serializing outputs)
-                            if (invocation.getOnFailure() != OnFailure.RETRY) {
-                                LOGGER.debug("Generating empty renamed file (" + renamedFilePath
-                                    + ") for on_failure management");
-                                if (!renamedFile.createNewFile()) {
-                                    // File already exists. Ignoring
-                                }
-
-                            }
-
-                            param.setValue(renamedFilePath);
-                            param.setOriginalName(originalFileName);
-
-                            // Error output file does not exist
-                            String msg = "WARN: Output file " + inSandboxFile.toPath() + " does not exist";
-                            throw new JobExecutionException(msg);
-
-                        }
-                    }
-                }
-                param.setValue(renamedFilePath);
-                param.setOriginalName(originalFileName);
-            }
-        }
-        if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(TraceEvent.UNBIND_ORIG_NAME);
-        }
-    }
-
-    private void move(Path origFilePath, Path renamedFilePath) throws IOException {
-        LOGGER.debug("Moving " + origFilePath.toString() + " to " + renamedFilePath.toString());
         try {
-            Files.move(origFilePath, renamedFilePath, StandardCopyOption.ATOMIC_MOVE);
-        } catch (AtomicMoveNotSupportedException amnse) {
-            LOGGER.warn(WARN_ATOMIC_MOVE);
-            Files.move(origFilePath, renamedFilePath);
+            switch (param.getType()) {
+                case COLLECTION_T:
+                    @SuppressWarnings("unchecked")
+                    InvocationParamCollection<InvocationParam> cp = (InvocationParamCollection<InvocationParam>) param;
+                    for (InvocationParam p : cp.getCollectionParameters()) {
+                        unbindOriginalFilenameToRename(p, sandbox);
+                    }
+                    break;
+                case DICT_COLLECTION_T:
+                    @SuppressWarnings("unchecked")
+                    InvocationParamDictCollection<InvocationParam, InvocationParam> dcp;
+                    dcp = (InvocationParamDictCollection<InvocationParam, InvocationParam>) param;
+                    for (Map.Entry<InvocationParam, InvocationParam> entry : dcp.getDictCollectionParameters()
+                        .entrySet()) {
+                        unbindOriginalFilenameToRename(entry.getKey(), sandbox);
+                        unbindOriginalFilenameToRename(entry.getValue(), sandbox);
+                    }
+                    break;
+                case FILE_T:
+                    String inSandboxPath = param.getOriginalName();
+                    String renamedFilePath = param.getRenamedName();
+
+                    LOGGER.debug("Treating file " + inSandboxPath);
+                    File internalFile = new File(inSandboxPath);
+                    File externalFile = new File(renamedFilePath);
+                    try {
+                        if (!inSandboxPath.equals(renamedFilePath)) {
+                            if (internalFile.exists()) {
+                                sandbox.removeFile(inSandboxPath, renamedFilePath);
+                            } else {
+                                if (externalFile.exists()) {
+                                    // Is an IN and the data was already updated
+                                    LOGGER.debug("Repeated data for " + internalFile + ". Nothing to do");
+                                } else {
+                                    // IS an out
+                                    if (invocation.getOnFailure() != OnFailure.RETRY) {
+                                        LOGGER.debug("Generating empty renamed file (" + renamedFilePath
+                                            + ") for on_failure management");
+                                        if (!externalFile.createNewFile()) {
+                                            // File already exists. Ignoring
+                                        }
+                                    }
+                                    // Error output file does not exist
+                                    String msg = "WARN: Output file " + inSandboxPath + " does not exist";
+                                    throw new JobExecutionException(msg);
+                                }
+                            }
+                        }
+                    } catch (IOException | JobExecutionException e) {
+                        this.context.getThreadErrStream().println(e.getMessage());
+                        throw e;
+                    } finally {
+                        param.setValue(renamedFilePath);
+                        File inSandboxFile = new File(inSandboxPath);
+                        String originalFileName = inSandboxFile.getName();
+                        param.setOriginalName(originalFileName);
+                    }
+                    break;
+                default:
+                    // Do nothing
+            }
+        } finally {
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(TraceEvent.UNBIND_ORIG_NAME);
+            }
         }
-    }
-
-    /**
-     * Delete a file or a directory and its children.
-     *
-     * @param directory The directory to delete.
-     * @throws IOException Exception when problem occurs during deleting the directory.
-     */
-    private static void deleteDirectory(File directory) throws IOException {
-
-        Path dPath = directory.toPath();
-        Files.walkFileTree(dPath, new SimpleFileVisitor<Path>() {
-
-            @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                Files.delete(file);
-                return FileVisitResult.CONTINUE;
-            }
-
-            @Override
-            public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-                Files.delete(dir);
-                return FileVisitResult.CONTINUE;
-            }
-        });
     }
 
     /*
@@ -1419,24 +1237,4 @@ public class Executor implements Runnable, InvocationRunner {
         }
     }
 
-
-    private class TaskWorkingDir {
-
-        private final File workingDir;
-        private final boolean isSpecific;
-
-
-        public TaskWorkingDir(File workingDir, boolean isSpecific) {
-            this.workingDir = workingDir;
-            this.isSpecific = isSpecific;
-        }
-
-        public File getWorkingDir() {
-            return this.workingDir;
-        }
-
-        public boolean isSpecific() {
-            return this.isSpecific;
-        }
-    }
 }

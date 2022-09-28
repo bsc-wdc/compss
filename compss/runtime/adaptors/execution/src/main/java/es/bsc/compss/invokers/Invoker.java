@@ -24,12 +24,14 @@ import es.bsc.compss.invokers.types.StdIOStream;
 import es.bsc.compss.invokers.util.BinaryRunner;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.ExecType;
+import es.bsc.compss.types.implementations.ImplementationDescription;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.resources.MethodResourceDescription;
@@ -40,7 +42,6 @@ import es.bsc.compss.worker.COMPSsException;
 import es.bsc.compss.worker.COMPSsWorker;
 
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -71,7 +72,7 @@ public abstract class Invoker implements ApplicationRunner {
     protected final Invocation invocation;
     protected InvocationRunner runner;
 
-    protected final File taskSandboxWorkingDir;
+    protected final ExecutionSandbox sandBox;
     protected final InvocationResources assignedResources;
 
     protected final int computingUnits;
@@ -85,16 +86,16 @@ public abstract class Invoker implements ApplicationRunner {
      *
      * @param context Invocation context
      * @param invocation task execution invocation description (job)
-     * @param taskSandboxWorkingDir task execution sandboxed working dir
+     * @param sandbox task execution sandboxed working dir
      * @param assignedResources Assigned resources
      * @throws JobExecutionException Error creating task execution (job)
      */
-    public Invoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
+    public Invoker(InvocationContext context, Invocation invocation, ExecutionSandbox sandbox,
         InvocationResources assignedResources) throws JobExecutionException {
 
         this.context = context;
         this.invocation = invocation;
-        this.taskSandboxWorkingDir = taskSandboxWorkingDir;
+        this.sandBox = sandbox;
         this.assignedResources = assignedResources;
 
         /* Parse execution infrastructure **************************************** */
@@ -345,13 +346,16 @@ public abstract class Invoker implements ApplicationRunner {
     private void invoke() throws JobExecutionException, COMPSsException {
         emitStartTask();
         try {
+            AbstractMethodImplementation impl = this.invocation.getMethodImplementation();
+            ImplementationDescription desc = impl.getDescription();
+
             setEnvironmentVariables();
-            ExecType prolog = this.invocation.getMethodImplementation().getDescription().getProlog();
+            ExecType prolog = desc.getProlog();
             executeBinary(prolog);
 
             invokeMethod();
 
-            ExecType epilog = this.invocation.getMethodImplementation().getDescription().getEpilog();
+            ExecType epilog = desc.getEpilog();
             executeBinary(epilog);
 
         } catch (JobExecutionException jee) {
@@ -418,8 +422,19 @@ public abstract class Invoker implements ApplicationRunner {
         String[] cmd = new String[1 + params.length];
         cmd[0] = executable.getBinary();
         System.arraycopy(params, 0, cmd, 1, params.length);
-        return br.executeCMD(cmd, new StdIOStream(), this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
+        return br.executeCMD(cmd, new StdIOStream(), this.sandBox, this.context.getThreadOutStream(),
             this.context.getThreadErrStream(), null, executable.isFailByExitValue());
+    }
+
+    protected long becomesNestedApplication(String parallelismSource) {
+        long appId = this.context.getRuntimeAPI().registerApplication(parallelismSource, this);
+        LOGGER.info("Job " + this.invocation.getJobId() + " becomes app " + appId);
+        return appId;
+    }
+
+    protected void completeNestedApplication(long appId) {
+        // this.context.getRuntimeAPI().removeApplicationData(appId);
+        this.context.getRuntimeAPI().deregisterApplication(appId);
     }
 
     @Override

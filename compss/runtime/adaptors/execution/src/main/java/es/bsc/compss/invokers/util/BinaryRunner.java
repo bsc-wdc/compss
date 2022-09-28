@@ -25,6 +25,7 @@ import es.bsc.compss.invokers.types.StdIOStream;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.util.ExternalStreamHandler;
 import es.bsc.compss.util.StreamGobbler;
@@ -501,7 +502,7 @@ public class BinaryRunner {
      *
      * @param cmd Command to execute.
      * @param stdIOStreamValues Stream values.
-     * @param taskSandboxWorkingDir Execution sandbox.
+     * @param sandbox Execution sandbox.
      * @param outLog Execution output stream.
      * @param errLog Execution error stream.
      * @param pythonPath Execution PYTHONPATH.
@@ -509,8 +510,8 @@ public class BinaryRunner {
      * @return Exit value as object.
      * @throws InvokeExecutionException Error execution the binary.
      */
-    public Object executeCMD(String[] cmd, StdIOStream stdIOStreamValues, File taskSandboxWorkingDir,
-        PrintStream outLog, PrintStream errLog, String pythonPath, boolean failByEV) throws InvokeExecutionException {
+    public Object executeCMD(String[] cmd, StdIOStream stdIOStreamValues, ExecutionSandbox sandbox, PrintStream outLog,
+        PrintStream errLog, String pythonPath, boolean failByEV) throws InvokeExecutionException {
 
         // Retrieve COMPSs properties
         final String theoreticalHostnames = System.getProperty(Invoker.COMPSS_HOSTNAMES);
@@ -542,7 +543,7 @@ public class BinaryRunner {
 
         // Prepare process builder with command and working directory
         ProcessBuilder builder = new ProcessBuilder(cmd);
-        builder.directory(taskSandboxWorkingDir);
+        builder.directory(sandbox.getFolder());
         outLog.println("[BINARY EXECUTION WRAPPER] CMD " + cmd[0]);
 
         // Setup process environment -- Tracing entries

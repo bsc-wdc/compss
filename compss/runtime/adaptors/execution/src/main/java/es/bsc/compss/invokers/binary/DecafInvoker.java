@@ -24,8 +24,8 @@ import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.invokers.types.PythonParams;
 import es.bsc.compss.invokers.types.StdIOStream;
 import es.bsc.compss.invokers.util.BinaryRunner;
-import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
@@ -55,14 +55,14 @@ public class DecafInvoker extends Invoker {
      * 
      * @param context Task execution context.
      * @param invocation Task execution description.
-     * @param taskSandboxWorkingDir Task execution sandbox directory.
+     * @param sandbox Task execution sandbox directory.
      * @param assignedResources Assigned resources.
      * @throws JobExecutionException Error creating the Decaf invoker.
      */
-    public DecafInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
+    public DecafInvoker(InvocationContext context, Invocation invocation, ExecutionSandbox sandbox,
         InvocationResources assignedResources) throws JobExecutionException {
 
-        super(context, invocation, taskSandboxWorkingDir, assignedResources);
+        super(context, invocation, sandbox, assignedResources);
 
         // Get method definition properties
         try {
@@ -181,7 +181,7 @@ public class DecafInvoker extends Invoker {
         cmd[7] = this.decafDef.getHostsFlag();
         try {
             cmd[8] =
-                this.decafDef.generateHostsDefinition(this.taskSandboxWorkingDir, this.hostnames, this.computingUnits);
+                this.decafDef.generateHostsDefinition(this.sandBox.getFolder(), this.hostnames, this.computingUnits);
         } catch (IOException ioe) {
             throw new InvokeExecutionException("ERROR: writting hostfile", ioe);
         }
@@ -195,7 +195,7 @@ public class DecafInvoker extends Invoker {
             PrintStream outLog = context.getThreadOutStream();
             outLog.println("");
             outLog.println("[DECAF INVOKER] Begin DECAF call to " + this.decafDef.getDfScript());
-            outLog.println("[DECAF INVOKER] On WorkingDir : " + this.taskSandboxWorkingDir.getAbsolutePath());
+            outLog.println("[DECAF INVOKER] On WorkingDir : " + this.sandBox.getFolder().getAbsolutePath());
             // Debug command
             outLog.print("[DECAF INVOKER] Decaf CMD: ");
             for (int i = 0; i < cmd.length; ++i) {
@@ -208,7 +208,7 @@ public class DecafInvoker extends Invoker {
         }
         // Launch command
         this.br = new BinaryRunner();
-        return this.br.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
+        return this.br.executeCMD(cmd, streamValues, this.sandBox, this.context.getThreadOutStream(),
             this.context.getThreadErrStream(), null, this.decafDef.isFailByEV());
     }
 

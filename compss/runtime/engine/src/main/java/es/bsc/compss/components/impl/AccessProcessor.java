@@ -383,8 +383,8 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         // Wait until the last writer task for the file has finished.
         DataAccessId faId = registerDataAccess(fap, AccessMode.R);
         if (!faId.isValidVersion()) {
-            ErrorManager.warn("The version " + faId.getDataId() + " of " + sourceLocation + " has been cancelled."
-                + " Trying to access the latest version");
+            ErrorManager.warn("The version " + ((RAccessId) faId).getRVersionId() + " of " + sourceLocation
+                + " has been cancelled. Trying to access the latest version");
             faId = registerDataAccess(fap, AccessMode.R);
         }
         DataLocation tgtLocation = sourceLocation;

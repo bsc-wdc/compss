@@ -19,19 +19,18 @@ package es.bsc.compss.invokers.external.persistent;
 import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.executor.external.commands.ExecuteTaskExternalCommand;
 import es.bsc.compss.invokers.util.CExecutionCommandGenerator;
+import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 
-import java.io.File;
-
 
 public class CPersistentInvoker extends PersistentInvoker {
 
-    public CPersistentInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
+    public CPersistentInvoker(InvocationContext context, Invocation invocation, ExecutionSandbox sandbox,
         InvocationResources assignedResources) throws JobExecutionException {
 
-        super(context, invocation, taskSandboxWorkingDir, assignedResources);
+        super(context, invocation, sandbox, assignedResources);
     }
 
     @Override

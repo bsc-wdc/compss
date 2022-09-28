@@ -25,6 +25,7 @@ import es.bsc.compss.invokers.types.PythonParams;
 import es.bsc.compss.invokers.types.StdIOStream;
 import es.bsc.compss.invokers.util.BinaryRunner;
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
@@ -32,7 +33,6 @@ import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.definition.MPIDefinition;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -54,14 +54,14 @@ public class MPIInvoker extends Invoker {
      * 
      * @param context Task execution context.
      * @param invocation Task execution description.
-     * @param taskSandboxWorkingDir Task execution sandbox directory.
+     * @param sandBox Task execution sandbox directory.
      * @param assignedResources Assigned resources.
      * @throws JobExecutionException Error creating the MPI invoker.
      */
-    public MPIInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
+    public MPIInvoker(InvocationContext context, Invocation invocation, ExecutionSandbox sandBox,
         InvocationResources assignedResources) throws JobExecutionException {
 
-        super(context, invocation, taskSandboxWorkingDir, assignedResources);
+        super(context, invocation, sandBox, assignedResources);
 
         // Get method definition properties
         try {
@@ -176,7 +176,7 @@ public class MPIInvoker extends Invoker {
         cmd[pos++] = this.mpiDef.getHostsFlag();
         try {
             cmd[pos++] =
-                this.mpiDef.generateHostsDefinition(this.taskSandboxWorkingDir, this.hostnames, this.computingUnits);
+                this.mpiDef.generateHostsDefinition(this.sandBox.getFolder(), this.hostnames, this.computingUnits);
         } catch (IOException ioe) {
             throw new InvokeExecutionException("ERROR: writting hostfile", ioe);
         }
@@ -205,7 +205,7 @@ public class MPIInvoker extends Invoker {
             PrintStream outLog = context.getThreadOutStream();
             outLog.println("");
             outLog.println("[MPI INVOKER] Begin MPI call to " + this.mpiDef.getBinary());
-            outLog.println("[MPI INVOKER] On WorkingDir : " + this.taskSandboxWorkingDir.getAbsolutePath());
+            outLog.println("[MPI INVOKER] On WorkingDir : " + this.sandBox.getFolder().getAbsolutePath());
             // Debug command
             outLog.print("[MPI INVOKER] MPI CMD: ");
             for (String s : cmd) {
@@ -219,7 +219,7 @@ public class MPIInvoker extends Invoker {
 
         // Launch command
         this.br = new BinaryRunner();
-        return this.br.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
+        return this.br.executeCMD(cmd, streamValues, this.sandBox, this.context.getThreadOutStream(),
             this.context.getThreadErrStream(), null, this.mpiDef.isFailByEV());
     }
 

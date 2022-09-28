@@ -26,6 +26,7 @@ import es.bsc.compss.invokers.types.PythonParams;
 import es.bsc.compss.invokers.types.StdIOStream;
 import es.bsc.compss.invokers.util.BinaryRunner;
 import es.bsc.compss.types.CollectionLayout;
+import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.LanguageParams;
@@ -51,13 +52,13 @@ public class PythonMPIInvoker extends ExternalInvoker {
      *
      * @param context Task execution context.
      * @param invocation Task execution description.
-     * @param taskSandboxWorkingDir Task execution sandbox directory.
+     * @param sandbox Task execution sandbox directory.
      * @param assignedResources Assigned resources.
      * @throws JobExecutionException Error creating the MPI invoker.
      */
-    public PythonMPIInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
+    public PythonMPIInvoker(InvocationContext context, Invocation invocation, ExecutionSandbox sandbox,
         InvocationResources assignedResources) throws JobExecutionException {
-        super(context, invocation, taskSandboxWorkingDir, assignedResources);
+        super(context, invocation, sandbox, assignedResources);
         try {
             this.mpiDef = (PythonMPIDefinition) invocation.getMethodImplementation().getDefinition();
             this.mpiDef.setRunnerProperties(context.getInstallDir());
@@ -170,8 +171,7 @@ public class PythonMPIInvoker extends ExternalInvoker {
         cmd[0] = this.mpiDef.getMpiRunner();
         cmd[1] = this.mpiDef.getHostsFlag();
         try {
-            cmd[2] =
-                this.mpiDef.generateHostsDefinition(this.taskSandboxWorkingDir, this.hostnames, this.computingUnits);
+            cmd[2] = this.mpiDef.generateHostsDefinition(this.sandBox.getFolder(), this.hostnames, this.computingUnits);
         } catch (IOException ioe) {
             throw new InvokeExecutionException("ERROR: writting hostfile", ioe);
         }
@@ -230,7 +230,7 @@ public class PythonMPIInvoker extends ExternalInvoker {
             outLog.println("");
             outLog.println("[Python MPI INVOKER] Begin MPI call to " + this.mpiDef.getDeclaringClass() + "."
                 + this.mpiDef.getAlternativeMethodName());
-            outLog.println("[Python MPI INVOKER] On WorkingDir : " + this.taskSandboxWorkingDir.getAbsolutePath());
+            outLog.println("[Python MPI INVOKER] On WorkingDir : " + this.sandBox.getFolder().getAbsolutePath());
             // Debug command
             outLog.print("[Python MPI INVOKER] MPI CMD: ");
             for (int i = 0; i < cmd.length; ++i) {
@@ -241,7 +241,7 @@ public class PythonMPIInvoker extends ExternalInvoker {
 
         // Launch command
         this.br = new BinaryRunner();
-        return this.br.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
+        return this.br.executeCMD(cmd, streamValues, this.sandBox, this.context.getThreadOutStream(),
             this.context.getThreadErrStream(), pythonPath, this.mpiDef.isFailByEV());
     }
 

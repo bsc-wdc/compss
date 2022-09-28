@@ -17,12 +17,11 @@
 package es.bsc.compss.invokers;
 
 import es.bsc.compss.execution.types.InvocationResources;
+import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.definition.OpenCLDefinition;
-
-import java.io.File;
 
 
 public class OpenCLInvoker extends Invoker {
@@ -35,13 +34,13 @@ public class OpenCLInvoker extends Invoker {
      * 
      * @param context Task execution context
      * @param invocation Task execution description
-     * @param taskSandboxWorkingDir Task execution sandbox directory
+     * @param sandbox Task execution sandbox directory
      * @param assignedResources Assigned resources
      * @throws JobExecutionException Error creating the OpenCL invoker
      */
-    public OpenCLInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
+    public OpenCLInvoker(InvocationContext context, Invocation invocation, ExecutionSandbox sandbox,
         InvocationResources assignedResources) throws JobExecutionException {
-        super(context, invocation, taskSandboxWorkingDir, assignedResources);
+        super(context, invocation, sandbox, assignedResources);
 
         // Get method definition properties
         OpenCLDefinition openclImpl = null;

@@ -124,8 +124,7 @@ def task_container_basic():
 
 
 @software(config_file=os.getcwd() + "/src/config/container_pycompss.json")
-@task(returns=1)
-def task_python_return_int():
+def task_python_return_int_soft():
     print("Hello from Task Python RETURN")
     return 3
 
@@ -139,7 +138,7 @@ class testContainerDecorator(unittest.TestCase):
         compss_barrier()
 
     def test_software_pycompss(self):
-        ret_int = task_python_return_int()
+        ret_int = task_python_return_int_soft()
         ret_int = compss_wait_on(ret_int)
         self.assertEquals(ret_int, 3)
 

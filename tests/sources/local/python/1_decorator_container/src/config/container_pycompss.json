@@ -1,6 +1,12 @@
 {
+    "execution" : {
+        "type":"task"
+    },
     "container": {
         "engine": "DOCKER",
         "image": "compss/compss"
+    },
+    "parameters": {
+        "returns": 1
     }
 }

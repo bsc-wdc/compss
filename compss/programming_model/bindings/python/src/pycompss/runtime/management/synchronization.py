@@ -51,13 +51,10 @@ def wait_on_object(obj: typing.Any, mode: str) -> typing.Any:
     """
     compss_mode = get_compss_direction(mode)
     if isinstance(obj, Future) or not isinstance(obj, (list, dict)):
-        print("_____________ here 1")
         return _synchronize(obj, compss_mode)
     if len(obj) == 0:  # FUTURE OBJECT
-        print("_____________ here 2")
         return _synchronize(obj, compss_mode)
     # Otherwise, will be an iterable object
-    print("_____________ here 3")
 
     return _wait_on_iterable(obj, compss_mode)
 
@@ -96,18 +93,14 @@ def _synchronize(obj: typing.Any, mode: int) -> typing.Any:
     obj_id = OT.is_tracked(obj)
     obj_name = OT.get_obj_name(obj_id)
     if obj_id is None:  # Not being tracked
-        print("_____________ here 5")
         return obj
     if not OT.is_pending_to_synchronize(obj_id):
-        print("_____________ here 66")
         return obj
 
     if __debug__:
         LOGGER.debug("Synchronizing object %s with mode %s", obj_id, mode)
-    print("_____________ here 77777")
     file_name = OT.get_file_name(obj_id)
     compss_file = COMPSs.open_file(app_id, file_name, mode)
-    print("____ffffffff", file_name, compss_file)
     # Runtime can return a path or a PSCOId
     if compss_file.startswith("/"):
         # If the real filename is null, then return None. The task that
@@ -122,9 +115,7 @@ def _synchronize(obj: typing.Any, mode: int) -> typing.Any:
                 + " CANCELLED. Please, check the logs. Returning None."
             )
             return None
-        print("________________", real_file_name)
         new_obj = deserialize_from_file(compss_file)
-        print("________________", new_obj)
         COMPSs.close_file(app_id, file_name, mode)
     else:
         new_obj = get_by_id(compss_file)
@@ -156,7 +147,6 @@ def _wait_on_iterable(iter_obj: typing.Any, compss_mode: int) -> typing.Any:
     # check if the object is in our pending_to_synchronize dictionary
     obj_id = OT.is_tracked(iter_obj)
     if OT.is_pending_to_synchronize(obj_id):
-        print("_____________ here 4")
         return _synchronize(iter_obj, compss_mode)
     if isinstance(iter_obj, list):
         return [_wait_on_iterable(x, compss_mode) for x in iter_obj]

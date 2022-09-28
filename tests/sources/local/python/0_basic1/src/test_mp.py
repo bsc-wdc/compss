@@ -18,7 +18,7 @@ from modules.test_tasks import function_primitives, function_files, function_obj
 from modules.test_tasks import function_return_object, MyClass, par_func
 from modules.test_tasks import function_function_parameter, formula2
 from modules.test_tasks import function_default_parameter_values, function_order_parameters
-from modules.test_tasks import function_fu_object, function_fu_in_task
+from modules.test_tasks import function_fu_object, function_fu_in_task, function_return_in_param
 from modules.test_tasks import function_fu_list_object, function_fu_list_in_task
 from modules.test_tasks import function_iterable_object_wait, function_wait_on_string
 from modules.test_tasks import function_time_decorated_master, function_time_decorated_worker
@@ -213,6 +213,25 @@ def test_function_return_object():
         print("- Object access from MP 3: OK")
     else:
         print("- Object access from MP 3: ERROR")
+
+
+def test_return_in_param():
+    A = [1, 2]
+    orig_id = id(A)
+
+    A = function_return_in_param(A)
+    task_id_0 = id(A)
+
+    A = function_return_in_param(A)
+    task_id_1 = id(A)
+
+    A = function_return_in_param(A)
+    task_id_2 = id(A)
+
+    new_a = compss_wait_on(A)
+
+    assert orig_id == task_id_0 == task_id_1 == task_id_2
+    assert len(new_a) == 16
 
 
 def test_function_as_parameter():
@@ -803,6 +822,7 @@ def main_program():
 
     test_function_return_primitive()
     test_function_return_object()
+    test_return_in_param()
     test_function_as_parameter()
     test_default_parameters()
     test_order_parameters()

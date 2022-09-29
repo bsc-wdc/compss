@@ -63,4 +63,11 @@ public interface Transferable {
      */
     public boolean isSourcePreserved();
 
+    /**
+     * Returns whether the target can be changed on the transfer.
+     *
+     * @return {@literal false} if target is to be preserved, {@literal false} otherwise.
+     */
+    public boolean isTargetFlexible();
+
 }

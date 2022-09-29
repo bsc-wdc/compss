@@ -58,4 +58,9 @@ public class WorkersDebugInfoCopyTransferable implements Transferable {
         return true;
     }
 
+    @Override
+    public boolean isTargetFlexible() {
+        return false;
+    }
+
 }

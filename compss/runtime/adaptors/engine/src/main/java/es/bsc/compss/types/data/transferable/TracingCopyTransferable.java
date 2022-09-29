@@ -57,4 +57,10 @@ public class TracingCopyTransferable implements Transferable {
         // Remote data is always copied
         return true;
     }
+
+    @Override
+    public boolean isTargetFlexible() {
+        return false;
+    }
+
 }

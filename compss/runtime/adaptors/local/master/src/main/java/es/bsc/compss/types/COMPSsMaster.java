@@ -657,7 +657,6 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
      */
     private void obtainFileData(LogicalData srcData, DataLocation srcLoc, LogicalData tgtData, DataLocation tgtLoc,
         String tgtPath, Transferable reason, EventListener listener) {
-
         // Check if file is already on the Path
         List<MultiURI> uris = srcData.getURIs();
         for (MultiURI u : uris) {
@@ -666,10 +665,10 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                 LOGGER.debug(srcData.getName() + " is at " + u.toString() + "(" + hostname + ")");
             }
             if (u.getHost().getNode() == this) {
-                if (tgtPath.compareTo(u.getPath()) == 0) {
+                if ((reason.isTargetFlexible() && srcData.isAlias(tgtData)) || tgtPath.compareTo(u.getPath()) == 0) {
                     LOGGER.debug(srcData.getName() + " is already at " + tgtPath);
                     // File already in the Path
-                    notifyDataObtaining(tgtPath, reason, listener);
+                    notifyDataObtaining(u.getPath(), reason, listener);
                     return;
                 }
             }

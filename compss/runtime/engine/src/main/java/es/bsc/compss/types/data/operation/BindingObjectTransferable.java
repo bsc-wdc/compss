@@ -65,4 +65,9 @@ public class BindingObjectTransferable implements Transferable {
         return true;
     }
 
+    @Override
+    public boolean isTargetFlexible() {
+        return false;
+    }
+
 }

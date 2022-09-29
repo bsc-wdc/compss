@@ -65,4 +65,9 @@ public class FileTransferable implements Transferable {
         return preserveSourceData;
     }
 
+    @Override
+    public boolean isTargetFlexible() {
+        return false;
+    }
+
 }

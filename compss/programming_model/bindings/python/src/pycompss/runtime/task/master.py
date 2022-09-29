@@ -171,6 +171,8 @@ ATTRIBUTES_TO_BE_REMOVED = {
 # ensuring that no attribute is overwritten
 MASTER_LOCK = Lock()
 VALUE_OF = "value_of"
+RETURN_OPEN_TOKEN = "{{"
+RETURN_CLOSE_TOKEN = "}}"
 
 
 class TaskMaster:
@@ -1448,7 +1450,7 @@ class TaskMaster:
             ret_type = TYPE.OBJECT
             for i in range(to_return):
                 self.returns[get_return_name(i)] = Parameter(
-                    content=None, content_type=ret_type, direction=ret_dir
+                    content=_returns, content_type=ret_type, direction=ret_dir
                 )
 
         # Hopefully, an exception have been thrown if some invalid
@@ -1486,6 +1488,10 @@ class TaskMaster:
                     f"Incorrect value_of format in {returns}"
                 ) from value_error
 
+            # for cases like returns = "{{a}}" there can be only 1 return value
+            elif self._is_return_param_name(returns):
+                return 1
+
             # Else: return is hidden by a global variable. i.e., LT_ARGS
             try:
                 num_rets = self.user_func_glob_getter(returns)
@@ -1497,6 +1503,14 @@ class TaskMaster:
                     # This is a compiled task
                     num_rets = self.user_func_wrapped_glob_getter(returns)
             return int(num_rets)
+
+    @staticmethod
+    def _is_return_param_name(returns_str):
+        return (
+            isinstance(returns_str, str)
+            and returns_str.startswith(RETURN_OPEN_TOKEN)
+            and returns_str.endswith(RETURN_CLOSE_TOKEN)
+        )
 
     def update_return_if_no_returns(self, function: typing.Callable) -> int:
         """Look for returns if no returns is specified.
@@ -1646,7 +1660,15 @@ class TaskMaster:
                 logger.debug("Simple object return found.")
             # Build the appropriate future object
             ret_value = self.returns[get_return_name(0)].content
-            if type(ret_value) in _PYTHON_TO_COMPSS or ret_value in _PYTHON_TO_COMPSS:
+
+            if self._is_return_param_name(ret_value):
+                # for the cases like 'returns = {{param_name}}' we replace the
+                # return value with the parameter itself
+                tmp = ret_value[len(RETURN_OPEN_TOKEN) : -len(RETURN_CLOSE_TOKEN)]
+                if not self.parameters.get(tmp):
+                    raise PyCOMPSsException("Invalid parameter name in 'returns'")
+                future_object = self.parameters[tmp].content
+            elif type(ret_value) in _PYTHON_TO_COMPSS or ret_value in _PYTHON_TO_COMPSS:
                 future_object = Future()  # primitives,string,dic,list,tuple
             elif inspect.isclass(ret_value):
                 # For objects:
@@ -1662,7 +1684,15 @@ class TaskMaster:
                     future_object = Future()
             else:
                 future_object = Future()  # modules, functions, methods
+
             _, ret_filename = OT.track(future_object)
+            # when the return value is an IN param, after tracking on OT,
+            # we should also serialize to a file. Otherwise, already-tracked
+            # IN param will not be serialized when "processing params".
+            if self._is_return_param_name(ret_value):
+                serialize_to_file(future_object, ret_filename)
+                OT.set_pending_to_synchronize(_)
+
             single_return = self.returns[get_return_name(0)]
             single_return.content_type = TYPE.FILE
             single_return.extra_content_type = "FILE"
@@ -2207,6 +2237,7 @@ def _turn_into_file(param: Parameter, name: str, skip_creation: bool = False) ->
                 logger.debug("Serializing object %s to file %s", obj_id, compss_file)
             if not skip_creation:
                 serialize_to_file(param.content, compss_file)
+
     # Set file name in Parameter object
     param.file_name = COMPSsFile(file_name)
 

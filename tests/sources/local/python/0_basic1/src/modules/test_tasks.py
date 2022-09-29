@@ -198,6 +198,12 @@ def function_function_parameter(f, v):
     return out
 
 
+@task(returns="{{in_param}}")
+def function_return_in_param(in_param):
+    print("A== ", in_param)
+    return in_param * 2
+
+
 @task(returns=int)
 def function_default_parameter_values(x=100):
     print("TEST")

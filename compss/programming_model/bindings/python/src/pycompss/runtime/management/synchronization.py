@@ -55,6 +55,7 @@ def wait_on_object(obj: typing.Any, mode: str) -> typing.Any:
     if len(obj) == 0:  # FUTURE OBJECT
         return _synchronize(obj, compss_mode)
     # Otherwise, will be an iterable object
+
     return _wait_on_iterable(obj, compss_mode)
 
 
@@ -98,10 +99,8 @@ def _synchronize(obj: typing.Any, mode: int) -> typing.Any:
 
     if __debug__:
         LOGGER.debug("Synchronizing object %s with mode %s", obj_id, mode)
-
     file_name = OT.get_file_name(obj_id)
     compss_file = COMPSs.open_file(app_id, file_name, mode)
-
     # Runtime can return a path or a PSCOId
     if compss_file.startswith("/"):
         # If the real filename is null, then return None. The task that

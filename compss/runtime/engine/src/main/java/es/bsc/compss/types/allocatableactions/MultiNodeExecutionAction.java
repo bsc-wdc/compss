@@ -131,27 +131,8 @@ public class MultiNodeExecutionAction extends ExecutionAction {
     }
 
     @Override
-    protected Job<?> submitJob(int transferGroupId) {
-        // This part can only be executed by the master action
-        if (DEBUG) {
-            LOGGER.debug(this.toString() + " starts job creation");
-        }
-        ArrayList<Integer> predecessors = null;
-        if (Tracer.isActivated() && Tracer.isTracingTaskDependencies()) {
-            predecessors = Tracer.getPredecessors(this.task.getId());
-        }
-        Worker<? extends WorkerResourceDescription> w = this.getAssignedResource().getResource();
-        List<String> slaveNames = this.group.getSlavesNames();
-        Job<?> job = w.newJob(this.task.getId(), this.task.getTaskDescription(), this.getAssignedImplementation(),
-            slaveNames, this, predecessors, this.task.getSuccessors().size());
-        if (Tracer.isActivated() && Tracer.isTracingTaskDependencies()) {
-            Tracer.removePredecessor(this.task.getId());
-        }
-        this.currentJob = job;
-        job.setTransferGroupId(transferGroupId);
-        job.setHistory(JobHistory.NEW);
-
-        return job;
+    protected List<String> getSlaveNames() {
+        return this.group.getSlavesNames();
     }
 
     /**

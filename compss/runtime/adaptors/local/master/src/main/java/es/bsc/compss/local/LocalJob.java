@@ -94,22 +94,23 @@ public class LocalJob extends Job<COMPSsMaster> implements Invocation {
     }
 
     private LocalParameter generateLocalParameter(Parameter p) {
-        if (p.getType() == DataType.COLLECTION_T) {
-            CollectionParameter cp = (CollectionParameter) p;
-            LocalParameterCollection lpc = new LocalParameterCollection(p);
-            for (Parameter subParam : cp.getParameters()) {
-                lpc.addParameter(generateLocalParameter(subParam));
-            }
-            return lpc;
-        } else if (p.getType() == DataType.DICT_COLLECTION_T) {
-            DictCollectionParameter cp = (DictCollectionParameter) p;
-            LocalParameterDictCollection lpdc = new LocalParameterDictCollection(p);
-            for (Map.Entry<Parameter, Parameter> entry : cp.getParameters().entrySet()) {
-                lpdc.addParameter(generateLocalParameter(entry.getKey()), generateLocalParameter(entry.getValue()));
-            }
-            return lpdc;
-        } else {
-            return new LocalParameter(p);
+        switch (p.getType()) {
+            case COLLECTION_T:
+                CollectionParameter cp = (CollectionParameter) p;
+                LocalParameterCollection lpc = new LocalParameterCollection(p);
+                for (Parameter subParam : cp.getParameters()) {
+                    lpc.addParameter(generateLocalParameter(subParam));
+                }
+                return lpc;
+            case DICT_COLLECTION_T:
+                DictCollectionParameter dcp = (DictCollectionParameter) p;
+                LocalParameterDictCollection lpdc = new LocalParameterDictCollection(p);
+                for (Map.Entry<Parameter, Parameter> entry : dcp.getParameters().entrySet()) {
+                    lpdc.addParameter(generateLocalParameter(entry.getKey()), generateLocalParameter(entry.getValue()));
+                }
+                return lpdc;
+            default:
+                return new LocalParameter(p);
         }
     }
 

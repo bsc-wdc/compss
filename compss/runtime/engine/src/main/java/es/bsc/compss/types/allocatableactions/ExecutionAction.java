@@ -508,7 +508,7 @@ public class ExecutionAction extends AllocatableAction implements JobListener {
             LOGGER.debug(this.toString() + " starts job creation");
         }
         Worker<? extends WorkerResourceDescription> w = getAssignedResource().getResource();
-        List<String> slaveNames = new ArrayList<>(); // No salves
+        List<String> slaveNames = getSlaveNames();
 
         // Get predecessors for task dependency tracing
         List<Integer> predecessors = null;
@@ -526,6 +526,10 @@ public class ExecutionAction extends AllocatableAction implements JobListener {
         job.setHistory(JobHistory.NEW);
 
         return job;
+    }
+
+    protected List<String> getSlaveNames() {
+        return new ArrayList<>(); // No slaves
     }
 
     @Override

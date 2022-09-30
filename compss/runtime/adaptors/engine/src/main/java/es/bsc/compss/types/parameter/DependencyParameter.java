@@ -130,4 +130,9 @@ public class DependencyParameter extends Parameter implements Transferable {
         return this.daId.isPreserveSourceData();
     }
 
+    @Override
+    public boolean isTargetFlexible() {
+        return true;
+    }
+
 }

@@ -65,4 +65,9 @@ public class DirectoryTransferable implements Transferable {
         return this.preserveSourceData;
     }
 
+    @Override
+    public boolean isTargetFlexible() {
+        return false;
+    }
+
 }

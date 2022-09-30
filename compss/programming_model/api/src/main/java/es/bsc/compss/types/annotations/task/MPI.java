@@ -99,7 +99,7 @@ public @interface MPI {
      *
      * @return the params definition string.
      */
-    String params() default Constants.UNASSIGNED;
+    String args() default Constants.UNASSIGNED;
 
     /**
      * Indicates if the task will fail because of an exit value different from 0.

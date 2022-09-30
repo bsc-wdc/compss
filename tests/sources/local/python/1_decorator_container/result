@@ -54,12 +54,25 @@
 
   #----------------------------------------------------------------------------------
   # SPECIFIC TEST CHECKS
-
+  job1_wd=$(grep "ls -l" "${target_log_folder}/jobs/job1_NEW.out" | wc -l)
+  echo "Checking args (${job1_wd})" | tee -a "${output_file}"
+  if [ "${job1_wd}" != "1" ]; then
+    echo "ERROR: Args not respected (${job1_wd}). It should be 1." | tee -a "${output_file}"
+    exit 1
+  fi
   # Check job 3 custom working directory
   job2_wd=$(grep "CONTAINER INVOKER] On WorkingDir : " "${target_log_folder}/jobs/job2_NEW.out" | tr ":" "\n" | tail -n +2)
   job3_wd=$(grep "CONTAINER INVOKER] On WorkingDir : " "${target_log_folder}/jobs/job3_NEW.out" | tr ":" "\n" | tail -n +2)
+  echo "Checking working dir \( ${job2_wd} == ${job3_wd} \)" | tee -a "${output_file}" 
   if [ "${job2_wd}" == "${job3_wd}" ]; then
-    echo "ERROR: Custom working directory is not respected" | tee -a "${output_file}"
+    echo "ERROR: Custom working directory is not respected \( ${job2_wd} != ${job3_wd} \)" | tee -a "${output_file}"
+    exit 1
+  fi
+
+  job4_wd=$(grep "HOLA=hola" "${target_log_folder}/jobs/job4_NEW.out" | wc -l)
+  echo "Checking options (${job4_wd})" | tee -a "${output_file}"
+  if [ "${job4_wd}" != "2" ]; then
+    echo "ERROR: Options not respected (${job4_wd}" | tee -a "${output_file}"
     exit 1
   fi
 

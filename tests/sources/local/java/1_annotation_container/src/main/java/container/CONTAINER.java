@@ -21,4 +21,8 @@ public class CONTAINER {
     public static void pwdWorkingDirStd(String stdout, String stderr) {
         // Nothing to do
     }
+
+    public static void options() {
+        // Nothing to do
+    }
 }

@@ -55,8 +55,8 @@ public class ContainerInvoker extends Invoker {
     private static final int NUM_BASE_DOCKER_BINARY_ARGS = 10;
     private static final int NUM_BASE_SINGULARITY_PYTHON_ARGS = 21;
     private static final int NUM_BASE_SINGULARITY_BINARY_ARGS = 8;
-    private static final int NUM_BASE_UDOCKER_PYTHON_ARGS = 23;
-    private static final int NUM_BASE_UDOCKER_BINARY_ARGS = 8;
+    private static final int NUM_BASE_UDOCKER_PYTHON_ARGS = 24;
+    private static final int NUM_BASE_UDOCKER_BINARY_ARGS = 9;
 
     private static final String REL_PATH_WD = ".." + File.separator + ".." + File.separator;
     private static final String REL_PATH_WORKER_CONTAINER = File.separator + "pycompss" + File.separator + "worker"
@@ -65,9 +65,10 @@ public class ContainerInvoker extends Invoker {
     private final ContainerDescription container;
     private final ContainerExecutionType internalExecutionType;
     private final String internalBinary;
+    private final String internalParams;
     private final String internalFunction;
 
-    private final String customWorkingDir;
+    // private final String customWorkingDir;
     private final boolean failByEV;
 
     private BinaryRunner br;
@@ -99,13 +100,18 @@ public class ContainerInvoker extends Invoker {
         this.container = containerImpl.getContainer();
         this.internalExecutionType = containerImpl.getInternalExecutionType();
         this.internalBinary = containerImpl.getInternalBinary();
+        this.internalParams = containerImpl.getInternalParams();
         this.internalFunction = containerImpl.getInternalFunction();
 
-        this.customWorkingDir = containerImpl.getWorkingDir();
+        // this.customWorkingDir = containerImpl.getWorkingDir();
         this.failByEV = containerImpl.isFailByEV();
 
         // Internal binary runner
         this.br = null;
+    }
+
+    private boolean hasParamsString() {
+        return this.internalParams != null && !this.internalParams.equals(Constants.UNASSIGNED);
     }
 
     @Override
@@ -184,15 +190,8 @@ public class ContainerInvoker extends Invoker {
         }
 
         // Setup working directory and mountpoint
-        String workingDir;
-        if (this.customWorkingDir != null && !this.customWorkingDir.isEmpty()
-            && !this.customWorkingDir.equals("[unassigned]")) {
-            // Container working directory specified by the user
-            workingDir = this.customWorkingDir;
-        } else {
-            // Container working directory to worker sandbox working directory
-            workingDir = this.sandBox.getFolder().getAbsolutePath();
-        }
+        // Container working directory to worker sandbox working directory
+        String workingDir = this.sandBox.getFolder().getAbsolutePath();
         workingDir = workingDir.endsWith(File.separator) ? workingDir : workingDir + File.separator;
 
         String workingDirMountPoint = workingDir;
@@ -258,6 +257,12 @@ public class ContainerInvoker extends Invoker {
                 // Convert binary parameters and calculate binary-streams redirection - binary execution
                 containerCallParams = BinaryRunner.createCMDParametersFromValues(this.invocation.getParams(),
                     this.invocation.getTarget(), streamValues, pythonInterpreter);
+
+                // In case of args template is defined substitute parameters in the args
+                if (this.hasParamsString()) {
+                    containerCallParams = Arrays.asList(BinaryRunner.buildAppParams(this.invocation.getParams(),
+                        this.internalParams, pythonInterpreter));
+                }
                 break;
         }
 
@@ -267,7 +272,7 @@ public class ContainerInvoker extends Invoker {
         String[] options = null;
         String optionsStr = this.container.getOptions().trim();
         if (optionsStr != null && !optionsStr.isEmpty() && !optionsStr.equals(Constants.UNASSIGNED)) {
-            options = optionsStr.split(" ");
+            options = BinaryRunner.buildAppParams(this.invocation.getParams(), optionsStr, pythonInterpreter);
             numOptions = options.length;
         }
         int numCmdArgs = 0;
@@ -357,6 +362,7 @@ public class ContainerInvoker extends Invoker {
             case UDOCKER:
                 cmd[cmdIndex++] = "udocker";
                 cmd[cmdIndex++] = "run";
+                cmd[cmdIndex++] = "--rm";
                 cmd[cmdIndex++] = "-v";
                 cmd[cmdIndex++] = workingDirMountPoint + ":" + workingDirMountPoint;
                 switch (this.internalExecutionType) {

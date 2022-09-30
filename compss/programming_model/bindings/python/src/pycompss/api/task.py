@@ -286,6 +286,7 @@ class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attribu
                     _options,  # container options
                     _type,  # internal_type
                     INTERNAL_LABELS.unassigned,  # internal_binary
+                    INTERNAL_LABELS.unassigned,  # internal_parameters
                     _func_complete,  # internal_func
                     INTERNAL_LABELS.unassigned,  # working_dir
                     INTERNAL_LABELS.unassigned,

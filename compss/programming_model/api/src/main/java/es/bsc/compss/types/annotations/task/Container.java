@@ -76,6 +76,13 @@ public @interface Container {
     String binary() default Constants.UNASSIGNED;
 
     /**
+     * Returns the binary arguments.
+     * 
+     * @return the binary arguments.
+     */
+    String args() default Constants.UNASSIGNED;
+
+    /**
      * Returns the function name.
      * 
      * @return the function name.

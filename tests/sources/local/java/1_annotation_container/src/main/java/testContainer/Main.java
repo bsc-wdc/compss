@@ -63,6 +63,9 @@ public class Main {
         printFileContent(stdout);
         System.out.println("STDERR:");
         printFileContent(stderr);
+
+        CONTAINER.options();
+
     }
 
     private static void writeFileContent(String filename, int value) throws Exception {

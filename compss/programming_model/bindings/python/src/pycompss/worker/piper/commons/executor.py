@@ -583,7 +583,31 @@ def process_task(
         # GPU binding
         gpus = current_line[-2]
         if gpus != "-":
-            emit_manual_event(int(gpus) + 1, inside=True, gpu_affinity=True)
+            # Emit a mask event to identify which gpu has been assigned
+            # (add always 1 since 0 can not be emitted).
+            # Single gpu assigned:
+            #   - 0 = gpu 1 assigned => 0001 == 1 (decimal)
+            #   - 1 = gpu 2 assigned => 0010 == 2 (decimal)
+            #   - 2 = gpu 3 assigned => 0100 == 4 (decimal)
+            #   - 3 = gpu 4 assigned => 1000 == 8 (decimal)
+            # Multiple gpu assigned:
+            #   - 0,1 = gpu 1 and 2 assigned => 0011 == 3 (decimal)
+            #   - 2,3 = gpu 3 and 4 assigned => 1100 == 12 (decimal)
+            #   - 0,1,3,4 = gpu 1, 2,3 and 4 assigned => 1111 == 15 (decimal)
+            gpu_mask_list = [0] * 4
+            if "," in gpus:
+                # There are more than one gpus assigned.
+                gpus_list = gpus.split(",")
+                for i in range(len(gpus_list)):
+                    gpu_mask_list[int(i)] = 1
+            else:
+                # It is a single gpu where gpus identify which gpu has been
+                # assigned (0, 1, 2, or 3).
+                gpu_mask_list[int(gpus)] = 1
+            gpu_mask_list.reverse()
+            gpu_mask = "".join(map(str, gpu_mask_list))
+            assigned_gpus = int(gpu_mask, 2)  # convert base 2 to decimal
+            emit_manual_event(assigned_gpus, inside=True, gpu_affinity=True)
             bind_gpus(gpus, process_name, logger)
             binded_gpus = True
 

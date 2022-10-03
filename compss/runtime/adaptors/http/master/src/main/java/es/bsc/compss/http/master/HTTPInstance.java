@@ -144,6 +144,7 @@ public class HTTPInstance extends COMPSsWorker {
         // The path of the data is the same than in the master
         String path = null;
         switch (type) {
+            case COLLECTION_T:
             case FILE_T:
                 path = ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getWorkingDirectory() + name;
                 break;

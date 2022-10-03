@@ -55,11 +55,11 @@ public @interface Binary {
     String workingDir() default Constants.UNASSIGNED;
 
     /**
-     * Returns the params string of the binary.
+     * Returns the arguments string of the binary.
      *
-     * @return the params definition string.
+     * @return the arguments definition string.
      */
-    String params() default Constants.UNASSIGNED;
+    String args() default Constants.UNASSIGNED;
 
     /**
      * Indicates if the task will fail because of an exit value different from 0.

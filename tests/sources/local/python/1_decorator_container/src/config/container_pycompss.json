@@ -4,7 +4,8 @@
     },
     "container": {
         "engine": "DOCKER",
-        "image": "compss/compss"
+        "image": "compss/compss",
+	"options": "$DOCKER_OPTIONS"
     },
     "parameters": {
         "returns": 1

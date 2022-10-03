@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.implementations.definition;
 
+import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.resources.ContainerDescription;
@@ -35,7 +36,7 @@ public class ContainerDefinition implements AbstractMethodImplementationDefiniti
      */
     private static final long serialVersionUID = 1L;
 
-    public static final int NUM_PARAMS = 7;
+    public static final int NUM_PARAMS = 9;
     public static final String SIGNATURE = "container.CONTAINER";
 
 
@@ -48,6 +49,7 @@ public class ContainerDefinition implements AbstractMethodImplementationDefiniti
     private ContainerDescription container;
     private ContainerExecutionType internalExecutionType;
     private String internalBinary;
+    private String internalParams;
     private String internalFunc;
 
     private String workingDir;
@@ -72,10 +74,11 @@ public class ContainerDefinition implements AbstractMethodImplementationDefiniti
      * @param container Container Description.
      */
     public ContainerDefinition(ContainerExecutionType internalExecutionType, String internalFunc, String internalBinary,
-        String workingDir, boolean failByEV, ContainerDescription container) {
+        String internalParams, String workingDir, boolean failByEV, ContainerDescription container) {
 
         this.internalExecutionType = internalExecutionType;
         this.internalBinary = internalBinary;
+        this.internalParams = internalParams;
         this.internalFunc = internalFunc;
 
         this.workingDir = workingDir;
@@ -95,17 +98,19 @@ public class ContainerDefinition implements AbstractMethodImplementationDefiniti
         engineStr = engineStr.toUpperCase();
         ContainerEngine engine = ContainerEngine.valueOf(engineStr);
         String image = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 1]);
-        this.container = new ContainerDescription(engine, image);
+        String options = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 2]);
+        this.container = new ContainerDescription(engine, image, options);
 
-        String internalTypeContainerStr = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 2]);
+        String internalTypeContainerStr = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 3]);
         internalTypeContainerStr = internalTypeContainerStr.toUpperCase();
         // String to ENUM can throw IllegalArgumentException
         this.internalExecutionType = ContainerExecutionType.valueOf(internalTypeContainerStr);
-        this.internalBinary = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 3]);
-        this.internalFunc = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 4]);
+        this.internalBinary = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 4]);
+        this.internalParams = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 5]);
+        this.internalFunc = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 6]);
 
-        this.workingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 5]);
-        this.failByEV = Boolean.parseBoolean(implTypeArgs[offset + 6]);
+        this.workingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 7]);
+        this.failByEV = Boolean.parseBoolean(implTypeArgs[offset + 8]);
 
         // Check empty arguments
         switch (this.internalExecutionType) {
@@ -126,8 +131,10 @@ public class ContainerDefinition implements AbstractMethodImplementationDefiniti
     public void appendToArgs(List<String> lArgs, String auxParam) {
         lArgs.add(this.container.getEngine().toString());
         lArgs.add(this.container.getImage());
+        lArgs.add(this.container.getOptions());
         lArgs.add(this.internalExecutionType.toString());
         lArgs.add(this.internalBinary);
+        lArgs.add(this.internalParams);
         lArgs.add(this.internalFunc);
         lArgs.add(this.workingDir);
         lArgs.add(Boolean.toString(this.failByEV));
@@ -149,6 +156,15 @@ public class ContainerDefinition implements AbstractMethodImplementationDefiniti
      */
     public String getInternalBinary() {
         return this.internalBinary;
+    }
+
+    /**
+     * Returns the binary params.
+     * 
+     * @return The binary params.
+     */
+    public String getInternalParams() {
+        return this.internalParams;
     }
 
     /**
@@ -212,7 +228,7 @@ public class ContainerDefinition implements AbstractMethodImplementationDefiniti
         this.internalExecutionType = (ContainerExecutionType) in.readObject();
         this.internalFunc = (String) in.readObject();
         this.internalBinary = (String) in.readObject();
-
+        this.internalParams = (String) in.readObject();
         this.workingDir = (String) in.readObject();
         this.failByEV = in.readBoolean();
 
@@ -225,7 +241,7 @@ public class ContainerDefinition implements AbstractMethodImplementationDefiniti
         out.writeObject(this.internalExecutionType);
         out.writeObject(this.internalFunc);
         out.writeObject(this.internalBinary);
-
+        out.writeObject(this.internalParams);
         out.writeObject(this.workingDir);
         out.writeBoolean(this.failByEV);
 
@@ -240,6 +256,7 @@ public class ContainerDefinition implements AbstractMethodImplementationDefiniti
         sb.append("\t Container: ").append(this.container).append("\n");
         sb.append("\t InternalExecutionType: ").append(this.internalExecutionType).append("\n");
         sb.append("\t InternalBinary: ").append(this.internalBinary).append("\n");
+        sb.append("\t InternalParams: ").append(this.internalParams).append("\n");
         sb.append("\t InternalFunction: ").append(this.internalFunc).append("\n");
         return sb.toString();
     }

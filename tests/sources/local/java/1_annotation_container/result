@@ -67,6 +67,13 @@
     echo "[ERROR] Invalid number of binary arguments" | tee -a "${output_file}"
     exit 1
   fi
+  
+  # Job 6 prints HOLA in env
+  num_args=$(grep "HOLA=hola" "${target_log_folder}/jobs/job6_NEW.out" | wc -l)
+  if [ "${num_args}" -ne 2 ]; then
+    echo "[ERROR] Environment not printed" | tee -a "${output_file}"
+    exit 1
+  fi
 
   #----------------------------------------------------------------------------------
   # All ok

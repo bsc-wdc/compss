@@ -30,7 +30,8 @@
 
   export CUS=2
   export TEST_WORKING_DIR=$base_app_dir
-
+  export CFG_FILE_PATH="$base_app_dir/src/config/"
+  export DOCKER_OPTIONS="-e CFG_FILE_PATH=$CFG_FILE_PATH"
   for python_interpreter in ${execution_envs}; do
     echo "   - Running with Interpreter: ${python_interpreter}"
     output_log="${target_log_folder}/${app_name}_${python_interpreter}_0${retry_num}.outputlog"

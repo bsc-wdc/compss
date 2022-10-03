@@ -28,7 +28,7 @@ import os
 #
 @container(engine="DOCKER",
            image="ubuntu")
-@binary(binary="ls")
+@binary(binary="ls", args="-l")
 @task()
 def task_binary_empty():
     pass
@@ -59,12 +59,19 @@ def task_binary_wd():
 def task_binary_std(stdout, stderr):
     pass
 
+@container(engine="DOCKER",
+           image="ubuntu", options="-e HOLA=hola")
+@binary(binary="env")
+@task()
+def task_binary_options():
+    pass
 
 #
 # Python Tasks definition
 #
 @container(engine="DOCKER",
-           image="compss/compss")
+           image="compss/compss",
+           options="-e HOLA=hola")
 @task()
 def task_python_empty():
     print("Hello from Task Python EMPTY")
@@ -162,6 +169,10 @@ class testContainerDecorator(unittest.TestCase):
         # Test working dir
         # WARN: Check WD in result script
         task_binary_wd()
+
+        compss_barrier()
+
+        task_binary_options()
 
         compss_barrier()
 

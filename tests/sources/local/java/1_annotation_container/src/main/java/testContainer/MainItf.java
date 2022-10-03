@@ -42,4 +42,6 @@ public interface MainItf {
         @Parameter(type = Type.FILE, direction = Direction.OUT, stream = StdIOStream.STDOUT) String stdout,
         @Parameter(type = Type.FILE, direction = Direction.OUT, stream = StdIOStream.STDERR) String stderr);
 
+    @Container(engine = "DOCKER", image = "ubuntu", options = "-e HOLA=hola", binary = "env", workingDir = "${TEST_WORKING_DIR}")
+    void options();
 }

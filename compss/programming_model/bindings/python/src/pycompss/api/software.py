@@ -224,6 +224,7 @@ class Software(
                 impl_args = [
                     self.container[LABELS.engine],  # engine
                     self.container[LABELS.image],  # image
+                    self.container.get(LABELS.options, INTERNAL_LABELS.unassigned),
                     INTERNAL_LABELS.unassigned,  # internal_type
                     INTERNAL_LABELS.unassigned,  # internal_binary
                     INTERNAL_LABELS.unassigned,  # internal_func

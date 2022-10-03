@@ -25,6 +25,7 @@ import es.bsc.compss.invokers.types.PythonParams;
 import es.bsc.compss.invokers.types.StdIOStream;
 import es.bsc.compss.invokers.util.BinaryRunner;
 import es.bsc.compss.types.BindingObject;
+import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
@@ -54,6 +55,8 @@ public class ContainerInvoker extends Invoker {
     private static final int NUM_BASE_DOCKER_BINARY_ARGS = 10;
     private static final int NUM_BASE_SINGULARITY_PYTHON_ARGS = 21;
     private static final int NUM_BASE_SINGULARITY_BINARY_ARGS = 8;
+    private static final int NUM_BASE_UDOCKER_PYTHON_ARGS = 24;
+    private static final int NUM_BASE_UDOCKER_BINARY_ARGS = 9;
 
     private static final String REL_PATH_WD = ".." + File.separator + ".." + File.separator;
     private static final String REL_PATH_WORKER_CONTAINER = File.separator + "pycompss" + File.separator + "worker"
@@ -62,9 +65,10 @@ public class ContainerInvoker extends Invoker {
     private final ContainerDescription container;
     private final ContainerExecutionType internalExecutionType;
     private final String internalBinary;
+    private final String internalParams;
     private final String internalFunction;
 
-    private final String customWorkingDir;
+    // private final String customWorkingDir;
     private final boolean failByEV;
 
     private BinaryRunner br;
@@ -96,13 +100,18 @@ public class ContainerInvoker extends Invoker {
         this.container = containerImpl.getContainer();
         this.internalExecutionType = containerImpl.getInternalExecutionType();
         this.internalBinary = containerImpl.getInternalBinary();
+        this.internalParams = containerImpl.getInternalParams();
         this.internalFunction = containerImpl.getInternalFunction();
 
-        this.customWorkingDir = containerImpl.getWorkingDir();
+        // this.customWorkingDir = containerImpl.getWorkingDir();
         this.failByEV = containerImpl.isFailByEV();
 
         // Internal binary runner
         this.br = null;
+    }
+
+    private boolean hasParamsString() {
+        return this.internalParams != null && !this.internalParams.equals(Constants.UNASSIGNED);
     }
 
     @Override
@@ -181,20 +190,13 @@ public class ContainerInvoker extends Invoker {
         }
 
         // Setup working directory and mountpoint
-        String workingDir;
-        if (this.customWorkingDir != null && !this.customWorkingDir.isEmpty()
-            && !this.customWorkingDir.equals("[unassigned]")) {
-            // Container working directory specified by the user
-            workingDir = this.customWorkingDir;
-        } else {
-            // Container working directory to worker sandbox working directory
-            workingDir = this.sandBox.getFolder().getAbsolutePath();
-        }
+        // Container working directory to worker sandbox working directory
+        String workingDir = this.sandBox.getFolder().getAbsolutePath();
         workingDir = workingDir.endsWith(File.separator) ? workingDir : workingDir + File.separator;
 
         String workingDirMountPoint = workingDir;
         if (workingDirMountPoint.contains("sandBox")) {
-            workingDirMountPoint = workingDirMountPoint + REL_PATH_WD;
+            workingDirMountPoint = new File(workingDirMountPoint).getParentFile().getParent();
         }
 
         // Setup application directory
@@ -255,29 +257,53 @@ public class ContainerInvoker extends Invoker {
                 // Convert binary parameters and calculate binary-streams redirection - binary execution
                 containerCallParams = BinaryRunner.createCMDParametersFromValues(this.invocation.getParams(),
                     this.invocation.getTarget(), streamValues, pythonInterpreter);
+
+                // In case of args template is defined substitute parameters in the args
+                if (this.hasParamsString()) {
+                    containerCallParams = Arrays.asList(BinaryRunner.buildAppParams(this.invocation.getParams(),
+                        this.internalParams, pythonInterpreter));
+                }
                 break;
         }
 
         // Prepare command - Determine length of the command
+        // Check options
+        int numOptions = 0;
+        String[] options = null;
+        String optionsStr = this.container.getOptions().trim();
+        if (optionsStr != null && !optionsStr.isEmpty() && !optionsStr.equals(Constants.UNASSIGNED)) {
+            options = BinaryRunner.buildAppParams(this.invocation.getParams(), optionsStr, pythonInterpreter);
+            numOptions = options.length;
+        }
         int numCmdArgs = 0;
         switch (this.container.getEngine()) {
             case DOCKER:
                 switch (this.internalExecutionType) {
                     case CET_PYTHON:
-                        numCmdArgs = NUM_BASE_DOCKER_PYTHON_ARGS + containerCallParams.size();
+                        numCmdArgs = NUM_BASE_DOCKER_PYTHON_ARGS + numOptions + containerCallParams.size();
                         break;
                     case CET_BINARY:
-                        numCmdArgs = NUM_BASE_DOCKER_BINARY_ARGS + containerCallParams.size();
+                        numCmdArgs = NUM_BASE_DOCKER_BINARY_ARGS + numOptions + containerCallParams.size();
                 }
                 break;
             case SINGULARITY:
                 switch (this.internalExecutionType) {
                     case CET_PYTHON:
-                        numCmdArgs = NUM_BASE_SINGULARITY_PYTHON_ARGS + containerCallParams.size();
+                        numCmdArgs = NUM_BASE_SINGULARITY_PYTHON_ARGS + numOptions + containerCallParams.size();
                         break;
                     case CET_BINARY:
-                        numCmdArgs = NUM_BASE_SINGULARITY_BINARY_ARGS + containerCallParams.size();
+                        numCmdArgs = NUM_BASE_SINGULARITY_BINARY_ARGS + numOptions + containerCallParams.size();
                 }
+                break;
+            case UDOCKER:
+                switch (this.internalExecutionType) {
+                    case CET_PYTHON:
+                        numCmdArgs = NUM_BASE_UDOCKER_PYTHON_ARGS + numOptions + containerCallParams.size();
+                        break;
+                    case CET_BINARY:
+                        numCmdArgs = NUM_BASE_UDOCKER_BINARY_ARGS + numOptions + containerCallParams.size();
+                }
+                break;
         }
 
         String[] cmd = new String[numCmdArgs];
@@ -308,6 +334,7 @@ public class ContainerInvoker extends Invoker {
                 }
                 cmd[cmdIndex++] = "-w";
                 cmd[cmdIndex++] = workingDir;
+                cmdIndex = addContainerOptions(cmd, cmdIndex, options);
                 cmd[cmdIndex++] = this.container.getImage();
                 break;
 
@@ -329,7 +356,35 @@ public class ContainerInvoker extends Invoker {
                 }
                 cmd[cmdIndex++] = "--pwd";
                 cmd[cmdIndex++] = workingDir;
+                cmdIndex = addContainerOptions(cmd, cmdIndex, options);
                 cmd[cmdIndex++] = this.container.getImage();
+                break;
+            case UDOCKER:
+                cmd[cmdIndex++] = "udocker";
+                cmd[cmdIndex++] = "run";
+                cmd[cmdIndex++] = "--rm";
+                cmd[cmdIndex++] = "-v";
+                cmd[cmdIndex++] = workingDirMountPoint + ":" + workingDirMountPoint;
+                switch (this.internalExecutionType) {
+                    case CET_PYTHON:
+                        cmd[cmdIndex++] = "-v";
+                        cmd[cmdIndex++] = appDir + ":" + appDir;
+                        cmd[cmdIndex++] = "-v";
+                        cmd[cmdIndex++] = pyCompssDir + File.separator + "pycompss" + File.separator + ":" + pyCompssDir
+                            + File.separator + "pycompss" + File.separator;
+                        cmd[cmdIndex++] = "-e";
+                        cmd[cmdIndex++] = "PYTHONPATH=" + pythonPath + ":" + pyCompssDir;
+                        break;
+                    case CET_BINARY:
+                        // Nothing to add
+                        break;
+                }
+                cmd[cmdIndex++] = "-w";
+                cmd[cmdIndex++] = workingDir;
+                cmdIndex = addContainerOptions(cmd, cmdIndex, options);
+                cmd[cmdIndex++] = this.container.getImage();
+                break;
+
         }
 
         // Prepare command - Determine execution command (binary or Python module and function)
@@ -390,6 +445,15 @@ public class ContainerInvoker extends Invoker {
         this.br = new BinaryRunner();
         return this.br.executeCMD(cmd, streamValues, this.sandBox, this.context.getThreadOutStream(),
             this.context.getThreadErrStream(), completePythonpath, this.failByEV);
+    }
+
+    private int addContainerOptions(String[] cmd, int cmdIndex, String[] options) {
+        if (options != null && options.length > 0) {
+            for (String option : options) {
+                cmd[cmdIndex++] = option;
+            }
+        }
+        return cmdIndex;
     }
 
     private void addParamInfo(List<String> paramsList, InvocationParam p) {

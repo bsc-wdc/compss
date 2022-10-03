@@ -579,9 +579,10 @@ public class ITFParser {
         for (Container containerAnnot : m.getAnnotationsByType(Container.class)) {
             String engine = EnvironmentLoader.loadFromEnvironment(containerAnnot.engine());
             String image = EnvironmentLoader.loadFromEnvironment(containerAnnot.image());
-
+            String options = EnvironmentLoader.loadFromEnvironment(containerAnnot.options());
             String internalExecutionTypeStr = EnvironmentLoader.loadFromEnvironment(containerAnnot.executionType());
             String internalBinary = EnvironmentLoader.loadFromEnvironment(containerAnnot.binary());
+            String internalParams = EnvironmentLoader.loadFromEnvironment(containerAnnot.args());
             String internalFunc = EnvironmentLoader.loadFromEnvironment(containerAnnot.function());
 
             String hostDir = EnvironmentLoader.loadFromEnvironment(containerAnnot.workingDir());
@@ -631,8 +632,9 @@ public class ITFParser {
             ImplementationDescription<?, ?> implDef = null;
             try {
                 implDef = ImplementationDescription.defineImplementation(MethodType.CONTAINER.toString(),
-                    containerSignature, implProcessLocal, implConstraints, prolog, epilog, engine, image,
-                    internalExecutionTypeStr, internalBinary, internalFunc, hostDir, containerFailByExitValue);
+                    containerSignature, implProcessLocal, implConstraints, prolog, epilog, engine, image, options,
+                    internalExecutionTypeStr, internalBinary, internalParams, internalFunc, hostDir,
+                    containerFailByExitValue);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }
@@ -646,7 +648,7 @@ public class ITFParser {
         for (Binary binaryAnnot : m.getAnnotationsByType(Binary.class)) {
             String binary = EnvironmentLoader.loadFromEnvironment(binaryAnnot.binary());
             String workingDir = EnvironmentLoader.loadFromEnvironment(binaryAnnot.workingDir());
-            String params = EnvironmentLoader.loadFromEnvironment(binaryAnnot.params());
+            String params = EnvironmentLoader.loadFromEnvironment(binaryAnnot.args());
             String failByEVstr = EnvironmentLoader.loadFromEnvironment(binaryAnnot.failByExitValue());
 
             if (binary == null || binary.isEmpty() || binary.equals(Constants.UNASSIGNED)) {
@@ -689,7 +691,7 @@ public class ITFParser {
             String mpiPPN = EnvironmentLoader.loadFromEnvironment(mpiAnnot.processesPerNode());
             String mpiFlags = EnvironmentLoader.loadFromEnvironment(mpiAnnot.mpiFlags());
             String scaleByCUStr = Boolean.toString(mpiAnnot.scaleByCU());
-            String params = EnvironmentLoader.loadFromEnvironment(mpiAnnot.params());
+            String params = EnvironmentLoader.loadFromEnvironment(mpiAnnot.args());
             String failByEVstr = Boolean.toString(mpiAnnot.failByExitValue());
 
             if (mpiRunner == null || mpiRunner.isEmpty()) {

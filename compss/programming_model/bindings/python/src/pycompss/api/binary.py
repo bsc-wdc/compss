@@ -166,6 +166,9 @@ class Binary:  # pylint: disable=too-few-public-methods
         # Resolve binary
         _binary = str(self.kwargs[LABELS.binary])
 
+        # Resolve args
+        _args = self.kwargs.get(LABELS.args, INTERNAL_LABELS.unassigned)
+
         if (
             CORE_ELEMENT_KEY in kwargs
             and kwargs[CORE_ELEMENT_KEY].get_impl_type()
@@ -179,12 +182,15 @@ class Binary:  # pylint: disable=too-few-public-methods
 
             _engine = impl_args[0]
             _image = impl_args[1]
+            _options = impl_args[2]
 
             impl_args = [
                 _engine,  # engine
                 _image,  # image
+                _options,  # container options
                 IMPLEMENTATION_TYPES.cet_binary,  # internal_type
                 _binary,  # internal_binary
+                _args,
                 INTERNAL_LABELS.unassigned,  # internal_func
                 _working_dir,  # working_dir
                 _fail_by_ev,  # fail_by_ev
@@ -202,7 +208,7 @@ class Binary:  # pylint: disable=too-few-public-methods
             impl_args = [
                 _binary,  # internal_binary
                 _working_dir,  # working_dir
-                self.kwargs.get(LABELS.args, INTERNAL_LABELS.unassigned),  # args
+                _args,  # args
                 _fail_by_ev,  # fail_by_ev
             ]
 

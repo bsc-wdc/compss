@@ -65,6 +65,7 @@ class _Labels:  # pylint: disable=too-few-public-methods, too-many-instance-attr
         "worker_in_master",
         "engine",
         "image",
+        "options",
         "df_script",
         "df_executor",
         "df_lib",
@@ -138,6 +139,7 @@ class _Labels:  # pylint: disable=too-few-public-methods, too-many-instance-attr
         self.worker_in_master = "worker_in_master"
         self.engine = "engine"
         self.image = "image"
+        self.options = "options"
         self.df_script = "df_script"
         self.df_executor = "df_executor"
         self.df_lib = "df_lib"

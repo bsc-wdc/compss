@@ -18,16 +18,29 @@ package es.bsc.compss.types.job;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
+import es.bsc.compss.comm.Comm;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.TaskDescription;
+import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
+import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.LogicalData;
+import es.bsc.compss.types.data.accessid.RAccessId;
+import es.bsc.compss.types.data.accessid.RWAccessId;
+import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.TaskType;
+import es.bsc.compss.types.parameter.CollectionParameter;
+import es.bsc.compss.types.parameter.DependencyParameter;
+import es.bsc.compss.types.parameter.DictCollectionParameter;
+import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.worker.COMPSsException;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -57,7 +70,9 @@ public abstract class Job<T extends COMPSsWorker> {
 
     // Logger
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
+    private static final Logger JOB_LOGGER = LogManager.getLogger(Loggers.JM_COMP);
     protected static final boolean DEBUG = LOGGER.isDebugEnabled();
+    protected static final boolean JOB_DEBUG = JOB_LOGGER.isDebugEnabled();
 
     // Information of the job
     protected int jobId;
@@ -255,20 +270,6 @@ public abstract class Job<T extends COMPSsWorker> {
     }
 
     /**
-     * Submits the job.
-     *
-     * @throws Exception Error when submitting a job
-     */
-    public abstract void submit() throws Exception;
-
-    /**
-     * Stops the job.
-     *
-     * @throws Exception Error when stopping a job
-     */
-    public abstract void cancelJob() throws Exception;
-
-    /**
      * Returns the hostname.
      *
      * @return
@@ -321,6 +322,241 @@ public abstract class Job<T extends COMPSsWorker> {
         return this.numSuccessors;
     }
 
+    /*
+     * -------------------------------------------------------------------------------------------------
+     * ---------------------------------- LIFECYCLE MANAGEMENT -----------------------------------------
+     * -------------------------------------------------------------------------------------------------
+     */
+
+    /**
+     * Orders the copying of all the necessary input data.
+     */
+    public void stageIn() {
+        JobTransfersListener stageInListener = new JobTransfersListener() {
+
+            @Override
+            public void stageInCompleted() {
+                Job.this.listener.stageInCompleted();
+            }
+
+            @Override
+            public void stageInFailed(int numErrors) {
+                removeTmpData();
+                Job.this.listener.stageInFailed(numErrors);
+            }
+
+        };
+        setTransferGroupId(stageInListener.getId());
+        transferInputData(stageInListener);
+        stageInListener.enable();
+    }
+
+    private void transferInputData(JobTransfersListener listener) {
+        for (Parameter p : this.taskParams.getParameters()) {
+            if (DEBUG) {
+                JOB_LOGGER.debug("    * " + p);
+            }
+            if (p.isPotentialDependency()) {
+                DependencyParameter dp = (DependencyParameter) p;
+                switch (this.taskParams.getType()) {
+                    case HTTP:
+                    case METHOD:
+                        transferJobData(dp, listener);
+                        break;
+                    case SERVICE:
+                        if (dp.getDirection() != Direction.INOUT) {
+                            // For services we only transfer IN parameters because the only
+                            // parameter that can be INOUT is the target
+                            transferJobData(dp, listener);
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    // Private method that performs data transfers
+    private void transferJobData(DependencyParameter param, JobTransfersListener listener) {
+        switch (param.getType()) {
+            case COLLECTION_T:
+                CollectionParameter cp = (CollectionParameter) param;
+                JOB_LOGGER.debug("Detected CollectionParameter " + cp);
+                // Recursively send all the collection parameters
+                for (Parameter p : cp.getParameters()) {
+                    if (p.isPotentialDependency()) {
+                        DependencyParameter dp = (DependencyParameter) p;
+                        transferJobData(dp, listener);
+                    }
+                }
+                // Send the collection parameter itself
+                transferSingleParameter(param, listener);
+                break;
+            case DICT_COLLECTION_T:
+                DictCollectionParameter dcp = (DictCollectionParameter) param;
+                JOB_LOGGER.debug("Detected DictCollectionParameter " + dcp);
+                // Recursively send all the dictionary collection parameters
+                for (Map.Entry<Parameter, Parameter> entry : dcp.getParameters().entrySet()) {
+                    Parameter k = entry.getKey();
+                    if (k.isPotentialDependency()) {
+                        DependencyParameter dpKey = (DependencyParameter) k;
+                        transferJobData(dpKey, listener);
+                    }
+                    Parameter v = entry.getValue();
+                    if (v.isPotentialDependency()) {
+                        DependencyParameter dpValue = (DependencyParameter) v;
+                        transferJobData(dpValue, listener);
+                    }
+                }
+                // Send the collection parameter itself
+                transferSingleParameter(param, listener);
+                break;
+            case STREAM_T:
+            case EXTERNAL_STREAM_T:
+                // Stream stubs are always transferred independently of their access
+                transferStreamParameter(param, listener);
+                break;
+            default:
+                transferSingleParameter(param, listener);
+                break;
+        }
+    }
+
+    private void transferSingleParameter(DependencyParameter param, JobTransfersListener listener) {
+        DataAccessId access = param.getDataAccessId();
+        if (access instanceof WAccessId) {
+            String outRename = ((WAccessId) access).getWrittenDataInstance().getRenaming();
+            String dataTarget = this.worker.getNode().getOutputDataTarget(outRename, param);
+            param.setDataTarget(dataTarget);
+
+        } else {
+            if (access instanceof RAccessId) {
+                // Read Access, transfer object
+                listener.addOperation();
+
+                LogicalData srcData = ((RAccessId) access).getReadDataInstance().getData();
+                this.worker.getData(srcData, param, listener);
+            } else {
+                // ReadWrite Access, transfer object
+                listener.addOperation();
+                LogicalData srcData = ((RWAccessId) access).getReadDataInstance().getData();
+                String tgtName = ((RWAccessId) access).getWrittenDataInstance().getRenaming();
+                LogicalData tmpData = Comm.registerData("tmp" + tgtName);
+                this.worker.getData(srcData, tgtName, tmpData, param, listener);
+            }
+        }
+    }
+
+    private void transferStreamParameter(DependencyParameter param, JobTransfersListener listener) {
+        DataAccessId access = param.getDataAccessId();
+        LogicalData source;
+        LogicalData target;
+        if (access instanceof WAccessId) {
+            WAccessId wAccess = (WAccessId) access;
+            source = wAccess.getWrittenDataInstance().getData();
+            target = source;
+        } else {
+            if (access instanceof RAccessId) {
+                RAccessId rAccess = (RAccessId) access;
+                source = rAccess.getReadDataInstance().getData();
+                target = source;
+            } else {
+                RWAccessId rwAccess = (RWAccessId) access;
+                source = rwAccess.getReadDataInstance().getData();
+                target = rwAccess.getWrittenDataInstance().getData();
+            }
+        }
+
+        // Ask for transfer
+        if (DEBUG) {
+            JOB_LOGGER
+                .debug("Requesting stream transfer from " + source + " to " + target + " at " + this.worker.getName());
+        }
+        listener.addOperation();
+        this.worker.getData(source, target, param, listener);
+    }
+
+    /**
+     * This function will be removed.
+     */
+    public void removeTmpData() {
+        for (Parameter p : this.taskParams.getParameters()) {
+            if (DEBUG) {
+                JOB_LOGGER.debug("    * " + p);
+            }
+            if (p.isPotentialDependency()) {
+                DependencyParameter dp = (DependencyParameter) p;
+                switch (this.taskParams.getType()) {
+                    case HTTP:
+                    case METHOD:
+                        removeTmpData(dp);
+                        break;
+                    case SERVICE:
+                        if (dp.getDirection() != Direction.INOUT) {
+                            // For services we only transfer IN parameters because the only
+                            // parameter that can be INOUT is the target
+                            removeTmpData(dp);
+                        }
+                        break;
+                }
+            }
+        }
+
+    }
+
+    private void removeTmpData(DependencyParameter param) {
+        if (param.getType() != DataType.STREAM_T && param.getType() != DataType.EXTERNAL_STREAM_T) {
+            if (param.getType() == DataType.COLLECTION_T) {
+                CollectionParameter cp = (CollectionParameter) param;
+                JOB_LOGGER.debug("Detected CollectionParameter " + cp);
+                // Recursively send all the collection parameters
+                for (Parameter p : cp.getParameters()) {
+                    if (p.isPotentialDependency()) {
+                        DependencyParameter dp = (DependencyParameter) p;
+                        removeTmpData(dp);
+                    }
+                }
+            }
+            if (param.getType() == DataType.DICT_COLLECTION_T) {
+                DictCollectionParameter dcp = (DictCollectionParameter) param;
+                JOB_LOGGER.debug("Detected DictCollectionParameter " + dcp);
+                // Recursively send all the dictionary collection parameters
+                for (Map.Entry<Parameter, Parameter> entry : dcp.getParameters().entrySet()) {
+                    Parameter k = entry.getKey();
+                    if (k.isPotentialDependency()) {
+                        DependencyParameter dpKey = (DependencyParameter) k;
+                        removeTmpData(dpKey);
+                    }
+                    Parameter v = entry.getValue();
+                    if (v.isPotentialDependency()) {
+                        DependencyParameter dpValue = (DependencyParameter) v;
+                        removeTmpData(dpValue);
+                    }
+                }
+            }
+
+            DataAccessId access = param.getDataAccessId();
+            if (access instanceof RWAccessId) {
+                String tgtName = "tmp" + ((RWAccessId) access).getWrittenDataInstance().getRenaming();
+                Comm.removeDataKeepingValue(tgtName);
+            }
+        }
+
+    }
+
+    /**
+     * Submits the job.
+     *
+     * @throws Exception Error when submitting a job
+     */
+    public abstract void submit() throws Exception;
+
+    /**
+     * Stops the job.
+     *
+     * @throws Exception Error when stopping a job
+     */
+    public abstract void cancelJob() throws Exception;
+
     public void profileArrival() {
         this.listener.arrived(this);
     }
@@ -372,4 +608,5 @@ public abstract class Job<T extends COMPSsWorker> {
     public void exception(COMPSsException exception) {
         this.listener.jobException(this, exception);
     }
+
 }

@@ -25,6 +25,18 @@ import es.bsc.compss.worker.COMPSsException;
 public interface JobListener {
 
     /**
+     * Actions to perform when the job stageIn is finished.
+     */
+    public void stageInCompleted();
+
+    /**
+     * Actions to perform when the job stageIn has finished with failed copies.
+     *
+     * @param numErrors number of failed copies
+     */
+    public void stageInFailed(int numErrors);
+
+    /**
      * Actions to perform when the job has just arrived to the target worker.
      *
      * @param job submitted job

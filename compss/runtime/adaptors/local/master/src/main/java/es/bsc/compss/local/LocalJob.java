@@ -18,7 +18,6 @@ package es.bsc.compss.local;
 
 import es.bsc.compss.types.COMPSsMaster;
 import es.bsc.compss.types.TaskDescription;
-import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.Implementation;
@@ -39,6 +38,7 @@ import java.util.Map;
 
 public class LocalJob extends Job<COMPSsMaster> implements Invocation {
 
+    private boolean prepared;
     private final List<LocalParameter> arguments;
     private LocalParameter target;
     private LinkedList<LocalParameter> results;
@@ -62,31 +62,9 @@ public class LocalJob extends Job<COMPSsMaster> implements Invocation {
 
         super(taskId, task, impl, res, listener, predecessors, numSuccessors);
         this.taskType = impl.getTaskType();
-        // Construct parameters
-        final boolean hasTarget = this.taskParams.hasTargetObject();
-        final int numReturns = this.taskParams.getNumReturns();
         this.arguments = new LinkedList<>();
         this.results = new LinkedList<>();
-        List<Parameter> params = task.getParameters();
-        int paramsCount = params.size();
-
-        for (int rIdx = 0; rIdx < numReturns; rIdx++) {
-            Parameter p = params.get(params.size() - numReturns + rIdx);
-            this.results.add(generateLocalParameter(p));
-        }
-        paramsCount -= numReturns;
-        if (hasTarget) {
-            Parameter p = params.get(params.size() - numReturns - 1);
-            this.target = generateLocalParameter(p);
-            paramsCount--;
-        }
-
-        for (int paramIdx = 0; paramIdx < paramsCount; paramIdx++) {
-            Parameter p = params.get(paramIdx);
-
-            this.arguments.add(generateLocalParameter(p));
-        }
-
+        this.prepared = false;
         this.slaveWorkersNodeNames = slaveWorkersNodeNames;
 
         AbstractMethodImplementation absMethodImpl = (AbstractMethodImplementation) this.impl;
@@ -114,10 +92,38 @@ public class LocalJob extends Job<COMPSsMaster> implements Invocation {
         }
     }
 
+    private void prepareParameters() {
+        // Construct parameters
+        final boolean hasTarget = this.taskParams.hasTargetObject();
+        final int numReturns = this.taskParams.getNumReturns();
+
+        List<Parameter> params = this.taskParams.getParameters();
+        int paramsCount = params.size();
+        for (int rIdx = 0; rIdx < numReturns; rIdx++) {
+            Parameter p = params.get(params.size() - numReturns + rIdx);
+            this.results.add(generateLocalParameter(p));
+        }
+
+        paramsCount -= numReturns;
+        if (hasTarget) {
+            Parameter p = params.get(params.size() - numReturns - 1);
+            this.target = generateLocalParameter(p);
+            paramsCount--;
+        }
+
+        for (int paramIdx = 0; paramIdx < paramsCount; paramIdx++) {
+            Parameter p = params.get(paramIdx);
+            this.arguments.add(generateLocalParameter(p));
+        }
+    }
+
     @Override
     public void submit() throws Exception {
         this.profileArrival();
         this.fetchedAllInputData();
+        if (!prepared) {
+            prepareParameters();
+        }
         this.getResourceNode().runJob(this);
     }
 

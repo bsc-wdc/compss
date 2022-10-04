@@ -122,7 +122,6 @@ def get_main_entities(wf_info: dict) -> typing.Tuple[str, str, str]:
             path_file = Path(file).expanduser()
             resolved_file = str(path_file.resolve())
             list_of_files.append(resolved_file)
-
         # list_of_files = wf_info["files"].copy()
         backup_main_entity = list_of_files[0]  # Assign first file name as mainEntity
     if "sources_dir" in wf_info:
@@ -150,53 +149,48 @@ def get_main_entities(wf_info: dict) -> typing.Tuple[str, str, str]:
     with open(dp_log, "r") as f:
         compss_v = next(f).rstrip()  # First line, COMPSs version number
         second_line = next(f).rstrip()  # Second, main_entity. Use better rstrip, just in case there is no '\n'
-        if second_line.endswith(".py"):  # Python apps are correctly detected
-            main_entity_log = Path(second_line).expanduser()  # No need to resolve, it is a relative path, just in case
-            main_entity_full = str(main_entity_log.resolve())
-            # Need to check that the main_file.py defined in the log exists in the list of application files, including
-            # sources_dir
-            if any(file == main_entity_full for file in list_of_files):
-                main_entity = main_entity_full
-                print(f"MAIN_ENTITY MATCHES LOG: {main_entity}")
-            else:  # Get backup
-                main_entity = backup_main_entity
-                print(f"MAIN_ENTITY DOES NOT MATCH LOG: {main_entity}")
-                print(
-                    f"PROVENANCE | WARNING: the detected mainEntity {main_entity_fn.name} does not exist in the list "
-                    f"of application files provided in ro-crate-info.yaml. Setting {main_entity} as mainEntity"
-                )
+        if second_line.endswith(".py"):  # Python. Line contains only the file name, need to locate it
+            detected_app = second_line
         else:  # Java app. Need to fix filename first
             # Translate identified main entity matmul.files.Matmul to a comparable path
             me_sub_path = second_line.replace(".", "/")
-            detected_java = me_sub_path + ".java"
-            print(f"PROVENANCE DEBUG | Detected JAVA app is: {detected_java}")
+            detected_app = me_sub_path + ".java"
+        print(f"PROVENANCE DEBUG | Detected app is: {detected_app}")
 
-            # Try to find the identified mainEntity
-            # for file in list_of_files:
-            #     if file.endswith(detected_java):
-            #         print(f"PROVENANCE DEBUG |JAVA MAIN ENTITY FOUND IN LIST OF FILES")
-            #         main_entity = file
-            #         break
+        for file in list_of_files:  # Try to find the identified mainEntity
+            if file.endswith(detected_app):
+                print(f"PROVENANCE DEBUG | IDENTIFIED MAIN ENTITY FOUND IN LIST OF FILES: {file}")
+                main_entity = file
+                break
+        # main_entity has a value if mainEntity has been automatically detected
+        if "sources_dir" in wf_info and "sources_main_file" in wf_info:  # Check what the user has defined
+            # if sources_main_file is an absolute path, the join has no effect
+            resolved_sources_main_file = os.path.join(resolved_sources, wf_info["sources_main_file"])
+            if any(file == resolved_sources_main_file for file in list_of_files):  # The file exists
+                print(f"PROVENANCE DEBUG | The file defined at sources_main_file exists: {resolved_sources_main_file}")
+                if resolved_sources_main_file != main_entity:
+                    print(
+                        f"PROVENANCE | WARNING: The file defined at sources_main_file ({resolved_sources_main_file})"
+                        f" in ro-crate-info.yaml does not match with the automatically identified mainEntity "
+                        f"({main_entity})")
+                # else: the user has defined exactly the file we found
+                # In both cases: set file defined by user
+                main_entity = resolved_sources_main_file  # Can't use Path, file may not be in cwd
+            else:
+                print(
+                    f"PROVENANCE | WARNING: the defined 'sources_main_file' ({wf_info['sources_main_file']}) does "
+                    f"not exist in the defined 'sources_dir' ({wf_info['sources_dir']}) in ro-crate-info.yaml."
+                )
+                # If we identified the mainEntity automatically, we select it when the one defined by the user is not
+                # found
 
-            if main_entity is None:
-                if "sources_dir" in wf_info and "sources_main_file" in wf_info:
-                    # if sources_main_file is an absolute path, the join has no effect
-                    resolved_sources_main_file = os.path.join(resolved_sources, wf_info["sources_main_file"])
-                    # print(f"User sources_main_file: {wf_info['sources_main_file']}")
-                    # print(f"Resolved sources_main_file: {resolved_sources_main_file}")
-                    if any(file == resolved_sources_main_file for file in list_of_files):  # The file exists
-                        main_entity = resolved_sources_main_file  # Can't use Path, file may not be in cwd
-                        print(f"PROVENANCE DEBUG | The file defined at sources_main_file exists")
-                    else:
-                        # COMPSs Java application, consider first file as main if no sources_main_file is defined
-                        main_entity = backup_main_entity
-                        print(
-                            f"PROVENANCE | WARNING: the defined 'sources_main_file' ({wf_info['sources_main_file']}) does "
-                            f"not exist in the defined 'sources_dir' ({wf_info['sources_dir']}) in ro-crate-info.yaml. "
-                            f"Setting {main_entity} as mainEntity"
-                        )
-                else:
-                    main_entity = backup_main_entity  # If the user didn't define sources_dir or sources_main_file
+        if main_entity is None:  # When neither identified, nor defined by user: get backup
+            main_entity = backup_main_entity
+            print(
+                f"PROVENANCE | WARNING: the detected mainEntity {detected_app} does not exist in the list "
+                f"of application files provided in ro-crate-info.yaml. Setting {main_entity} as mainEntity"
+            )
+
         third_line = next(f).rstrip()
         out_profile_fn = Path(third_line)
 

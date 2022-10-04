@@ -496,8 +496,7 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
         this.worker.getData(source, target, param, listener);
     }
 
-    @Override
-    public void removeTmpData() {
+    private void removeTmpData() {
         for (Parameter p : this.taskParams.getParameters()) {
             if (DEBUG) {
                 JOB_LOGGER.debug("    * " + p);
@@ -625,14 +624,17 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
     }
 
     public void completed() {
+        removeTmpData();
         this.listener.jobCompleted(this);
     }
 
     public void failed(JobEndStatus status) {
+        removeTmpData();
         this.listener.jobFailed(this, status);
     }
 
     public void exception(COMPSsException exception) {
+        removeTmpData();
         this.listener.jobException(this, exception);
     }
 

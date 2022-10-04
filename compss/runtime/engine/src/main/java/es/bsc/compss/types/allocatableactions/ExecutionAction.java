@@ -393,9 +393,7 @@ public class ExecutionAction extends AllocatableAction implements JobListener {
     @Override
     public final void jobException(Job<?> job, COMPSsException e) {
         this.profile.end(System.currentTimeMillis());
-        // Remove tmpData for IN/OUTS
-        this.currentJob.removeTmpData();
-
+        
         int jobId = job.getJobId();
         JOB_LOGGER.error("Received an exception notification for job " + jobId);
         if (this.task.getStatus() == TaskState.CANCELED) {
@@ -425,8 +423,6 @@ public class ExecutionAction extends AllocatableAction implements JobListener {
     public final void jobFailed(Job<?> job, JobEndStatus status) {
         this.profile.end(System.currentTimeMillis());
 
-        // Remove tmpData for IN/OUTS
-        this.currentJob.removeTmpData();
         if (this.task.getStatus() == TaskState.CANCELED) {
             JOB_LOGGER.debug("Ignoring notification for cancelled job " + job.getJobId());
         } else {
@@ -475,9 +471,6 @@ public class ExecutionAction extends AllocatableAction implements JobListener {
     public final void jobCompleted(Job<?> job) {
         // End profile
         this.profile.end(System.currentTimeMillis());
-
-        // Remove tmpData for IN/OUTS
-        this.currentJob.removeTmpData();
 
         // Notify end
         int jobId = job.getJobId();

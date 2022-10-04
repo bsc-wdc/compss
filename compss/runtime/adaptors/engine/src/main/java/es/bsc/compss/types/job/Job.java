@@ -65,7 +65,6 @@ public interface Job<T extends COMPSsWorker> {
      */
     public void cancelJob() throws Exception;
 
-    public void removeTmpData();
 
     public void setHistory(JobHistory newHistoryState);
 

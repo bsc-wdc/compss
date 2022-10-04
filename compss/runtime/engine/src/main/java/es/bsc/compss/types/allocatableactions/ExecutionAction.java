@@ -39,7 +39,6 @@ import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.CommutativeGroupTask;
 import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.Task;
-import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.TaskGroup;
 import es.bsc.compss.types.TaskState;
 import es.bsc.compss.types.annotations.parameter.DataType;
@@ -48,11 +47,9 @@ import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.LogicalData;
-import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.data.location.DataLocation;
-import es.bsc.compss.types.data.operation.JobTransfersListener;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobEndStatus;
@@ -66,7 +63,6 @@ import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.util.JobDispatcher;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
 
@@ -88,7 +84,6 @@ import org.apache.logging.log4j.Logger;
 public class ExecutionAction extends AllocatableAction implements JobListener {
 
     // Fault tolerance parameters
-    private static final int TRANSFER_CHANCES = 2;
     private static final int SUBMISSION_CHANCES = 2;
     private static final int SCHEDULING_CHANCES = 2;
 
@@ -233,276 +228,13 @@ public class ExecutionAction extends AllocatableAction implements JobListener {
         this.executionErrors = 0;
         TaskMonitor monitor = this.task.getTaskMonitor();
         monitor.onSubmission();
-        doInputTransfers();
+        this.currentJob = createJob();
+        this.jobs.add(this.currentJob.getJobId());
+        this.currentJob.stageIn();
         this.task.setSubmitted();
     }
 
-    @Override
-    public boolean checkIfCanceled(AllocatableAction aa) {
-        return (aa instanceof ExecutionAction) && (((ExecutionAction) aa).getTask().getStatus() == TaskState.CANCELED);
-    }
-
-    private void doInputTransfers() {
-        JobTransfersListener listener = new JobTransfersListener(this);
-        transferInputData(listener);
-        listener.enable();
-    }
-
-    private void transferInputData(JobTransfersListener listener) {
-        TaskDescription taskDescription = this.task.getTaskDescription();
-        for (Parameter p : taskDescription.getParameters()) {
-            if (DEBUG) {
-                JOB_LOGGER.debug("    * " + p);
-            }
-            if (p.isPotentialDependency()) {
-                DependencyParameter dp = (DependencyParameter) p;
-                switch (taskDescription.getType()) {
-                    case HTTP:
-                    case METHOD:
-                        transferJobData(dp, listener);
-                        break;
-                    case SERVICE:
-                        if (dp.getDirection() != Direction.INOUT) {
-                            // For services we only transfer IN parameters because the only
-                            // parameter that can be INOUT is the target
-                            transferJobData(dp, listener);
-                        }
-                        break;
-                }
-            }
-        }
-    }
-
-    // Private method that performs data transfers
-    private void transferJobData(DependencyParameter param, JobTransfersListener listener) {
-        switch (param.getType()) {
-            case COLLECTION_T:
-                CollectionParameter cp = (CollectionParameter) param;
-                JOB_LOGGER.debug("Detected CollectionParameter " + cp);
-                // Recursively send all the collection parameters
-                for (Parameter p : cp.getParameters()) {
-                    if (p.isPotentialDependency()) {
-                        DependencyParameter dp = (DependencyParameter) p;
-                        transferJobData(dp, listener);
-                    }
-                }
-                // Send the collection parameter itself
-                transferSingleParameter(param, listener);
-                break;
-            case DICT_COLLECTION_T:
-                DictCollectionParameter dcp = (DictCollectionParameter) param;
-                JOB_LOGGER.debug("Detected DictCollectionParameter " + dcp);
-                // Recursively send all the dictionary collection parameters
-                for (Map.Entry<Parameter, Parameter> entry : dcp.getParameters().entrySet()) {
-                    Parameter k = entry.getKey();
-                    if (k.isPotentialDependency()) {
-                        DependencyParameter dpKey = (DependencyParameter) k;
-                        transferJobData(dpKey, listener);
-                    }
-                    Parameter v = entry.getValue();
-                    if (v.isPotentialDependency()) {
-                        DependencyParameter dpValue = (DependencyParameter) v;
-                        transferJobData(dpValue, listener);
-                    }
-                }
-                // Send the collection parameter itself
-                transferSingleParameter(param, listener);
-                break;
-            case STREAM_T:
-            case EXTERNAL_STREAM_T:
-                // Stream stubs are always transferred independently of their access
-                transferStreamParameter(param, listener);
-                break;
-            default:
-                transferSingleParameter(param, listener);
-                break;
-        }
-    }
-
-    private void transferSingleParameter(DependencyParameter param, JobTransfersListener listener) {
-        Worker<? extends WorkerResourceDescription> w = getAssignedResource().getResource();
-        DataAccessId access = param.getDataAccessId();
-        if (access instanceof WAccessId) {
-            String dataTarget =
-                w.getOutputDataTargetPath(((WAccessId) access).getWrittenDataInstance().getRenaming(), param);
-            param.setDataTarget(dataTarget);
-
-        } else {
-            if (access instanceof RAccessId) {
-                // Read Access, transfer object
-                listener.addOperation();
-
-                LogicalData srcData = ((RAccessId) access).getReadDataInstance().getData();
-                w.getData(srcData, param, listener);
-            } else {
-                // ReadWrite Access, transfer object
-                listener.addOperation();
-                LogicalData srcData = ((RWAccessId) access).getReadDataInstance().getData();
-                String tgtName = ((RWAccessId) access).getWrittenDataInstance().getRenaming();
-                LogicalData tmpData = Comm.registerData("tmp" + tgtName);
-                w.getData(srcData, tgtName, tmpData, param, listener);
-            }
-        }
-    }
-
-    private void transferStreamParameter(DependencyParameter param, JobTransfersListener listener) {
-        DataAccessId access = param.getDataAccessId();
-        LogicalData source;
-        LogicalData target;
-        if (access instanceof WAccessId) {
-            WAccessId wAccess = (WAccessId) access;
-            source = wAccess.getWrittenDataInstance().getData();
-            target = source;
-        } else {
-            if (access instanceof RAccessId) {
-                RAccessId rAccess = (RAccessId) access;
-                source = rAccess.getReadDataInstance().getData();
-                target = source;
-            } else {
-                RWAccessId rwAccess = (RWAccessId) access;
-                source = rwAccess.getReadDataInstance().getData();
-                target = rwAccess.getWrittenDataInstance().getData();
-            }
-        }
-
-        // Ask for transfer
-        Worker<? extends WorkerResourceDescription> w = getAssignedResource().getResource();
-        if (DEBUG) {
-            JOB_LOGGER.debug("Requesting stream transfer from " + source + " to " + target + " at " + w.getName());
-        }
-        listener.addOperation();
-        w.getData(source, target, param, listener);
-    }
-
-    /*
-     * ***************************************************************************************************************
-     * EXECUTED SUPPORTING THREAD ON JOB_TRANSFERS_LISTENER
-     * ***************************************************************************************************************
-     */
-    /**
-     * Code executed after some input transfers have failed.
-     *
-     * @param failedtransfers Number of failed transfers.
-     */
-    public final void failedTransfers(int failedtransfers) {
-        JOB_LOGGER
-            .debug("Received a notification for the transfers for task " + this.task.getId() + " with state FAILED");
-        ++this.transferErrors;
-        if (this.transferErrors < TRANSFER_CHANCES && this.task.getOnFailure() == OnFailure.RETRY) {
-            JOB_LOGGER.debug("Resubmitting input files for task " + this.task.getId() + " to host "
-                + getAssignedResource().getName() + " since " + failedtransfers + " transfers failed.");
-            doInputTransfers();
-        } else {
-            ErrorManager.warn("Transfers for running task " + this.task.getId() + " on worker "
-                + getAssignedResource().getName() + " have failed.");
-            this.notifyError();
-            removeJobTempData();
-
-        }
-    }
-
-    /**
-     * Code executed when all transfers have succeeded.
-     *
-     * @param transferGroupId Transferring group Id.
-     */
-    public final void doSubmit(int transferGroupId) {
-        JOB_LOGGER.debug("Received a notification for the transfers of task " + this.task.getId() + " with state DONE");
-        Job<?> job = submitJob(transferGroupId);
-        if (!this.cancelledBeforeSubmit) {
-            // Register job
-            this.jobs.add(job.getJobId());
-            JOB_LOGGER.info((getExecutingResources().size() > 1 ? "Rescheduled" : "New") + " Job " + job.getJobId()
-                + " (Task: " + this.task.getId() + ")");
-            JOB_LOGGER.info("  * Method name: " + this.task.getTaskDescription().getName());
-            JOB_LOGGER.info("  * Target host: " + this.getAssignedResource().getName());
-
-            this.profile.setSubmissionTime(System.currentTimeMillis());
-            JobDispatcher.dispatch(job);
-            JOB_LOGGER.info("Submitted Task: " + this.task.getId() + " Job: " + job.getJobId() + " Method: "
-                + this.task.getTaskDescription().getName() + " Resource: " + this.getAssignedResource().getName());
-        } else {
-            JOB_LOGGER.info("Job" + job.getJobId() + " cancelled before submission.");
-        }
-    }
-
-    @Override
-    public void arrived(Job<?> job) {
-        arrivedAt(job, System.currentTimeMillis());
-    }
-
-    @Override
-    public void arrivedAt(Job<?> job, long ts) {
-        this.profile.setArrivalTime(ts);
-    }
-
-    private void removeJobTempData() {
-        TaskDescription taskDescription = this.task.getTaskDescription();
-        for (Parameter p : taskDescription.getParameters()) {
-            if (DEBUG) {
-                JOB_LOGGER.debug("    * " + p);
-            }
-            if (p.isPotentialDependency()) {
-                DependencyParameter dp = (DependencyParameter) p;
-                switch (taskDescription.getType()) {
-                    case HTTP:
-                    case METHOD:
-                        removeTmpData(dp);
-                        break;
-                    case SERVICE:
-                        if (dp.getDirection() != Direction.INOUT) {
-                            // For services we only transfer IN parameters because the only
-                            // parameter that can be INOUT is the target
-                            removeTmpData(dp);
-                        }
-                        break;
-                }
-            }
-        }
-
-    }
-
-    private void removeTmpData(DependencyParameter param) {
-        if (param.getType() != DataType.STREAM_T && param.getType() != DataType.EXTERNAL_STREAM_T) {
-            if (param.getType() == DataType.COLLECTION_T) {
-                CollectionParameter cp = (CollectionParameter) param;
-                JOB_LOGGER.debug("Detected CollectionParameter " + cp);
-                // Recursively send all the collection parameters
-                for (Parameter p : cp.getParameters()) {
-                    if (p.isPotentialDependency()) {
-                        DependencyParameter dp = (DependencyParameter) p;
-                        removeTmpData(dp);
-                    }
-                }
-            }
-            if (param.getType() == DataType.DICT_COLLECTION_T) {
-                DictCollectionParameter dcp = (DictCollectionParameter) param;
-                JOB_LOGGER.debug("Detected DictCollectionParameter " + dcp);
-                // Recursively send all the dictionary collection parameters
-                for (Map.Entry<Parameter, Parameter> entry : dcp.getParameters().entrySet()) {
-                    Parameter k = entry.getKey();
-                    if (k.isPotentialDependency()) {
-                        DependencyParameter dpKey = (DependencyParameter) k;
-                        removeTmpData(dpKey);
-                    }
-                    Parameter v = entry.getValue();
-                    if (v.isPotentialDependency()) {
-                        DependencyParameter dpValue = (DependencyParameter) v;
-                        removeTmpData(dpValue);
-                    }
-                }
-            }
-
-            DataAccessId access = param.getDataAccessId();
-            if (access instanceof RWAccessId) {
-                String tgtName = "tmp" + ((RWAccessId) access).getWrittenDataInstance().getRenaming();
-                Comm.removeDataKeepingValue(tgtName);
-            }
-        }
-
-    }
-
-    protected Job<?> submitJob(int transferGroupId) {
+    private Job<?> createJob() {
         // Create job
         if (DEBUG) {
             LOGGER.debug(this.toString() + " starts job creation");
@@ -517,15 +249,64 @@ public class ExecutionAction extends AllocatableAction implements JobListener {
         }
         Job<?> job = w.newJob(this.task.getId(), this.task.getTaskDescription(), this.getAssignedImplementation(),
             slaveNames, this, predecessors, this.task.getSuccessors().size());
+
+        JOB_LOGGER.info((getExecutingResources().size() > 1 ? "Rescheduled" : "New") + " Job " + job.getJobId()
+            + " (Task: " + this.task.getId() + ")");
+        JOB_LOGGER.info("  * Method name: " + this.task.getTaskDescription().getName());
+        JOB_LOGGER.info("  * Target host: " + this.getAssignedResource().getName());
         // Remove predecessors from map for task dependency tracing
         if (Tracer.isActivated() && Tracer.isTracingTaskDependencies()) {
             Tracer.removePredecessor(this.task.getId());
         }
-        this.currentJob = job;
-        job.setTransferGroupId(transferGroupId);
-        job.setHistory(JobHistory.NEW);
-
         return job;
+    }
+
+    @Override
+    public boolean checkIfCanceled(AllocatableAction aa) {
+        return (aa instanceof ExecutionAction) && (((ExecutionAction) aa).getTask().getStatus() == TaskState.CANCELED);
+    }
+
+    /*
+     * ***************************************************************************************************************
+     * EXECUTED SUPPORTING THREAD ON JOB_TRANSFERS_LISTENER
+     * ***************************************************************************************************************
+     */
+
+    @Override
+    public final void stageInFailed(int failedtransfers) {
+        int taskId = this.task.getId();
+        String workerName = getAssignedResource().getName();
+        ErrorManager.warn("Transfers for running task " + taskId + " on worker " + workerName + " have failed.");
+        this.notifyError();
+    }
+
+    @Override
+    public final void stageInCompleted() {
+        if (!this.cancelledBeforeSubmit) {
+            this.currentJob.submit();
+        } else {
+            JOB_LOGGER.info("Job" + this.currentJob.getJobId() + " cancelled before submission.");
+        }
+    }
+
+    @Override
+    public void submitted(Job<?> job) {
+        submittedAt(job, System.currentTimeMillis());
+    }
+
+    @Override
+    public void submittedAt(Job<?> job, long ts) {
+        this.profile.setSubmissionTime(ts);
+    }
+
+    @Override
+    public void arrived(Job<?> job) {
+        arrivedAt(job, System.currentTimeMillis());
+    }
+
+    @Override
+    public void arrivedAt(Job<?> job, long ts) {
+        this.profile.setArrivalTime(ts);
     }
 
     protected List<String> getSlaveNames() {
@@ -613,7 +394,7 @@ public class ExecutionAction extends AllocatableAction implements JobListener {
     public final void jobException(Job<?> job, COMPSsException e) {
         this.profile.end(System.currentTimeMillis());
         // Remove tmpData for IN/OUTS
-        removeJobTempData();
+        this.currentJob.removeTmpData();
 
         int jobId = job.getJobId();
         JOB_LOGGER.error("Received an exception notification for job " + jobId);
@@ -645,7 +426,7 @@ public class ExecutionAction extends AllocatableAction implements JobListener {
         this.profile.end(System.currentTimeMillis());
 
         // Remove tmpData for IN/OUTS
-        removeJobTempData();
+        this.currentJob.removeTmpData();
         if (this.task.getStatus() == TaskState.CANCELED) {
             JOB_LOGGER.debug("Ignoring notification for cancelled job " + job.getJobId());
         } else {
@@ -667,8 +448,7 @@ public class ExecutionAction extends AllocatableAction implements JobListener {
                     JOB_LOGGER.error("Resubmitting job to the same worker.");
                     ErrorManager.warn("Resubmitting job to the same worker.");
                     job.setHistory(JobHistory.RESUBMITTED);
-                    this.profile.setSubmissionTime(System.currentTimeMillis());
-                    JobDispatcher.dispatch(job);
+                    this.currentJob.submit();
                 } else if (this.task.getOnFailure() == OnFailure.IGNORE) {
                     // Update info about the generated/updated data
                     ErrorManager.warn("Ignoring failure.");
@@ -697,7 +477,7 @@ public class ExecutionAction extends AllocatableAction implements JobListener {
         this.profile.end(System.currentTimeMillis());
 
         // Remove tmpData for IN/OUTS
-        removeJobTempData();
+        this.currentJob.removeTmpData();
 
         // Notify end
         int jobId = job.getJobId();

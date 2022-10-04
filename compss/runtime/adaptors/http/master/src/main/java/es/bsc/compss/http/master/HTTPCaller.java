@@ -78,8 +78,8 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
 
                 HTTPInstance httpInstance = job.getResourceNode();
 
-                Response httpResponse =
-                    performHttpRequest(httpInstance.getConfig().getBaseUrl(), namedParameters, httpImplementation);
+                final String baseUrl = httpInstance.getConfig().getBaseUrl();
+                Response httpResponse = performHttpRequest(baseUrl, namedParameters, httpImplementation);
 
                 // todo: beautify this and maybe check the empty string
                 String updates = httpImplementation.getUpdates();
@@ -93,139 +93,6 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
                 LOGGER.error(SUBMIT_ERROR, e);
             }
         }
-    }
-
-    private void extractPaths(JsonObject produces, Map<Object, String> map, String previousPath) {
-        for (Object key : produces.keySet()) {
-            String keyStr = (String) key;
-            Object value = produces.get(keyStr);
-            String path = "";
-
-            if (value instanceof JsonObject) {
-                path = previousPath + "," + keyStr;
-                extractPaths((JsonObject) value, map, path);
-            } else {
-                String retKey = produces.getAsJsonPrimitive(keyStr).getAsString();
-                map.put(formatKey(retKey), previousPath + "," + keyStr);
-            }
-        }
-    }
-
-    private String formatKey(String key) {
-        return key.replaceAll(URL_PARAMETER_OPEN_TOKEN, "\\$").replaceAll(URL_PARAMETER_CLOSE_TOKEN, "");
-    }
-
-    private void updateResponse(Response response, String updates, Map<String, String> namedParameters) {
-
-        if (updates == null || updates.equals(Constants.UNASSIGNED) || updates.equals("null") || updates.equals("#")) {
-            return;
-        }
-
-        // todo: add try catch
-        String tbu = updates.split("=")[0];
-
-        String tbuName = tbu.split("\\.")[0].trim();
-        tbuName = tbuName.replaceAll(URL_PARAMETER_OPEN_TOKEN, "").replaceAll(URL_PARAMETER_CLOSE_TOKEN, "");
-
-        String tbuKey = tbu.split("\\.")[1].trim();
-
-        JsonElement outParamEl = JsonParser.parseString(namedParameters.get(tbuName));
-        JsonObject outParam = outParamEl.getAsJsonObject();
-        if (outParam.has(tbuKey)) {
-            outParam.remove(tbuKey);
-        }
-        String subsParName = updates.split("=")[1].trim();
-        JsonObject resBody = (JsonObject) response.getResponseBody();
-        JsonElement newValue = resBody.get(formatKey(subsParName));
-
-        outParam.add(tbuKey, newValue);
-
-        resBody.remove(tbuName);
-        resBody.add(tbuName, outParam);
-        response.setResponseBody(resBody);
-    }
-
-    private void formatResponse(Response response, String produces) {
-
-        if (produces == null || produces.equals(Constants.UNASSIGNED) || produces.equals("null")
-            || produces.equals("#")) {
-            JsonElement respBodyElem = JsonParser.parseString(response.getResponseBody().toString());
-            JsonObject newBody = new JsonObject();
-            newBody.add("$return_0", respBodyElem);
-            response.setResponseBody(newBody);
-            return;
-        }
-
-        JsonElement element = JsonParser.parseString(produces);
-        JsonObject producesJSONObj = element.getAsJsonObject();
-        Map<Object, String> paths = new HashMap();
-
-        extractPaths(producesJSONObj, paths, "");
-
-        JsonElement bodyJsonElement = JsonParser.parseString(response.getResponseBody().toString());
-        JsonObject bodyJsonObject = bodyJsonElement.getAsJsonObject();
-
-        JsonObject newBody = new JsonObject();
-
-        for (Object key : paths.keySet()) {
-            String keyString = paths.get(key).replaceFirst(",", "");
-            newBody.add((String) key, extractValueFromJsonResponse(bodyJsonObject, keyString));
-        }
-
-        response.setResponseBody(newBody);
-    }
-
-    private JsonElement extractValueFromJsonResponse(JsonObject json, String keyString) {
-        String[] keys = keyString.split(",");
-        for (int i = 0; i < keys.length - 1; i++) {
-            json = json.getAsJsonObject(keys[0]);
-        }
-        return json.get(keys[keys.length - 1]);
-    }
-
-    private String[] extractKeys(String produces) {
-        // todo: beautify this
-        String[] keys = produces.replaceAll("#", "").split(",");
-        for (int i = 0; i < keys.length; i++) {
-            String tmp = keys[i].trim();
-            tmp = tmp.replaceAll(URL_PARAMETER_OPEN_TOKEN, "");
-            tmp = tmp.replaceAll(URL_PARAMETER_CLOSE_TOKEN, "");
-            keys[i] = tmp;
-        }
-        return keys;
-    }
-
-    private void processResponse(HTTPJob job, final Response response) {
-        int httpResponseCode = response.getResponseCode();
-
-        if (httpResponseCode >= 200 && httpResponseCode < 300) {
-            LOGGER.debug("Correct HTTP response with response code " + httpResponseCode);
-            job.setReturnValue(response.getResponseBody());
-            job.completed();
-        } else {
-            LOGGER.debug("Job failing due to wrong HTTP response with response code " + httpResponseCode);
-            job.failed(JobEndStatus.EXECUTION_FAILED);
-        }
-    }
-
-    private Response performHttpRequest(String baseUrl, final Map<String, String> namedParameters,
-        final HTTPImplementation httpImplementation) throws IOException {
-
-        final String fullUrl = baseUrl + httpImplementation.getResource();
-
-        final String requestType = httpImplementation.getRequest();
-        final String parsedUrl = URLReplacer.replaceUrlParameters(fullUrl, namedParameters, URL_PARAMETER_OPEN_TOKEN,
-            URL_PARAMETER_CLOSE_TOKEN);
-
-        // nm:
-        // todo: (do not) read file content
-        String payload = httpImplementation.getPayload();
-        String payloadType = httpImplementation.getPayloadType();
-
-        payload =
-            URLReplacer.formatPayload(payload, namedParameters, URL_PARAMETER_OPEN_TOKEN, URL_PARAMETER_CLOSE_TOKEN);
-
-        return HTTPController.performRequestAndGetResponse(requestType, parsedUrl, payload, payloadType);
     }
 
     private Map<String, String> constructMapOfNamedParameters(TaskDescription taskDescription)
@@ -286,55 +153,6 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
         return namedParameters;
     }
 
-    private String extractJsonString(String fileName) {
-        String jsonContent = readFile(fileName).substring(4);
-        JsonElement jsonElement = JsonParser.parseString(jsonContent);
-        if (jsonElement.isJsonPrimitive()) {
-            return jsonElement.getAsJsonPrimitive().toString();
-        } else if (jsonElement.isJsonObject()) {
-            return jsonElement.toString();
-        } else if (jsonElement.isJsonArray()) {
-            return jsonElement.getAsJsonArray().toString();
-        }
-        return null;
-    }
-
-    private void addParameterToMapOfParameters(Map<String, String> namedParameters, Parameter par, Object o) {
-        String key = par.getName();
-        if (key != null && !key.isEmpty()) {
-            final String s = convertObjectToString(o);
-            final String value = String.valueOf(s);
-            namedParameters.put(key, value);
-        }
-    }
-
-    private String convertObjectToString(Object o) {
-        if (o instanceof Integer) {
-            return Integer.toString((Integer) o);
-        }
-        if (o instanceof Float) {
-            return String.valueOf(o);
-        }
-        return (String) o;
-    }
-
-    private Object getObjectValue(DependencyParameter dp) throws CannotLoadException {
-        final DataAccessId dataAccessId = dp.getDataAccessId();
-        DataInstanceId dataInstanceId;
-        if (dp.getDirection() == Direction.IN) {
-            dataInstanceId = ((RAccessId) dataAccessId).getReadDataInstance();
-        } else {
-            dataInstanceId = ((RWAccessId) dataAccessId).getReadDataInstance();
-        }
-        String renaming = dataInstanceId.getRenaming();
-        LogicalData logicalData = Comm.getData(renaming);
-
-        if (!logicalData.isInMemory()) {
-            logicalData.loadFromStorage();
-        }
-        return logicalData.getValue();
-    }
-
     // todo: move it somewhere else
     private static String readFile(String fileName) {
         File f = new File(fileName);
@@ -357,5 +175,191 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
             }
         }
         return contents;
+    }
+
+    private String extractJsonString(String fileName) {
+        String jsonContent = readFile(fileName).substring(4);
+        JsonElement jsonElement = JsonParser.parseString(jsonContent);
+        if (jsonElement.isJsonPrimitive()) {
+            return jsonElement.getAsJsonPrimitive().toString();
+        } else {
+            if (jsonElement.isJsonObject()) {
+                return jsonElement.toString();
+            } else {
+                if (jsonElement.isJsonArray()) {
+                    return jsonElement.getAsJsonArray().toString();
+                }
+            }
+        }
+        return null;
+    }
+
+    private Object getObjectValue(DependencyParameter dp) throws CannotLoadException {
+        final DataAccessId dataAccessId = dp.getDataAccessId();
+        DataInstanceId dataInstanceId;
+        if (dp.getDirection() == Direction.IN) {
+            dataInstanceId = ((RAccessId) dataAccessId).getReadDataInstance();
+        } else {
+            dataInstanceId = ((RWAccessId) dataAccessId).getReadDataInstance();
+        }
+        String renaming = dataInstanceId.getRenaming();
+        LogicalData logicalData = Comm.getData(renaming);
+
+        if (!logicalData.isInMemory()) {
+            logicalData.loadFromStorage();
+        }
+        return logicalData.getValue();
+    }
+
+    private void addParameterToMapOfParameters(Map<String, String> namedParameters, Parameter par, Object o) {
+        String key = par.getName();
+        if (key != null && !key.isEmpty()) {
+            final String s = convertObjectToString(o);
+            final String value = String.valueOf(s);
+            namedParameters.put(key, value);
+        }
+    }
+
+    private String convertObjectToString(Object o) {
+        if (o instanceof Integer) {
+            return Integer.toString((Integer) o);
+        }
+        if (o instanceof Float) {
+            return String.valueOf(o);
+        }
+        return (String) o;
+    }
+
+    private Response performHttpRequest(String baseUrl, final Map<String, String> namedParameters,
+        final HTTPImplementation httpImplementation) throws IOException {
+
+        final String fullUrl = baseUrl + httpImplementation.getResource();
+
+        final String requestType = httpImplementation.getRequest();
+        final String parsedUrl = URLReplacer.replaceUrlParameters(fullUrl, namedParameters, URL_PARAMETER_OPEN_TOKEN,
+            URL_PARAMETER_CLOSE_TOKEN);
+
+        // nm:
+        // todo: (do not) read file content
+        String payload = httpImplementation.getPayload();
+        String payloadType = httpImplementation.getPayloadType();
+
+        payload =
+            URLReplacer.formatPayload(payload, namedParameters, URL_PARAMETER_OPEN_TOKEN, URL_PARAMETER_CLOSE_TOKEN);
+
+        return HTTPController.performRequestAndGetResponse(requestType, parsedUrl, payload, payloadType);
+    }
+
+    private void formatResponse(Response response, String produces) {
+
+        if (produces == null || produces.equals(Constants.UNASSIGNED) || produces.equals("null")
+            || produces.equals("#")) {
+            JsonElement respBodyElem = JsonParser.parseString(response.getResponseBody().toString());
+            JsonObject newBody = new JsonObject();
+            newBody.add("$return_0", respBodyElem);
+            response.setResponseBody(newBody);
+            return;
+        }
+
+        JsonElement element = JsonParser.parseString(produces);
+        JsonObject producesJSONObj = element.getAsJsonObject();
+        Map<Object, String> paths = new HashMap();
+
+        extractPaths(producesJSONObj, paths, "");
+
+        JsonElement bodyJsonElement = JsonParser.parseString(response.getResponseBody().toString());
+        JsonObject bodyJsonObject = bodyJsonElement.getAsJsonObject();
+
+        JsonObject newBody = new JsonObject();
+
+        for (Object key : paths.keySet()) {
+            String keyString = paths.get(key).replaceFirst(",", "");
+            newBody.add((String) key, extractValueFromJsonResponse(bodyJsonObject, keyString));
+        }
+
+        response.setResponseBody(newBody);
+    }
+
+    private JsonElement extractValueFromJsonResponse(JsonObject json, String keyString) {
+        String[] keys = keyString.split(",");
+        for (int i = 0; i < keys.length - 1; i++) {
+            json = json.getAsJsonObject(keys[0]);
+        }
+        return json.get(keys[keys.length - 1]);
+    }
+
+    private void extractPaths(JsonObject produces, Map<Object, String> map, String previousPath) {
+        for (Object key : produces.keySet()) {
+            String keyStr = (String) key;
+            Object value = produces.get(keyStr);
+            String path = "";
+
+            if (value instanceof JsonObject) {
+                path = previousPath + "," + keyStr;
+                extractPaths((JsonObject) value, map, path);
+            } else {
+                String retKey = produces.getAsJsonPrimitive(keyStr).getAsString();
+                map.put(formatKey(retKey), previousPath + "," + keyStr);
+            }
+        }
+    }
+
+    private String formatKey(String key) {
+        return key.replaceAll(URL_PARAMETER_OPEN_TOKEN, "\\$").replaceAll(URL_PARAMETER_CLOSE_TOKEN, "");
+    }
+
+    private String[] extractKeys(String produces) {
+        // todo: beautify this
+        String[] keys = produces.replaceAll("#", "").split(",");
+        for (int i = 0; i < keys.length; i++) {
+            String tmp = keys[i].trim();
+            tmp = tmp.replaceAll(URL_PARAMETER_OPEN_TOKEN, "");
+            tmp = tmp.replaceAll(URL_PARAMETER_CLOSE_TOKEN, "");
+            keys[i] = tmp;
+        }
+        return keys;
+    }
+
+    private void updateResponse(Response response, String updates, Map<String, String> namedParameters) {
+
+        if (updates == null || updates.equals(Constants.UNASSIGNED) || updates.equals("null") || updates.equals("#")) {
+            return;
+        }
+
+        // todo: add try catch
+        String tbu = updates.split("=")[0];
+
+        String tbuName = tbu.split("\\.")[0].trim();
+        tbuName = tbuName.replaceAll(URL_PARAMETER_OPEN_TOKEN, "").replaceAll(URL_PARAMETER_CLOSE_TOKEN, "");
+
+        String tbuKey = tbu.split("\\.")[1].trim();
+
+        JsonElement outParamEl = JsonParser.parseString(namedParameters.get(tbuName));
+        JsonObject outParam = outParamEl.getAsJsonObject();
+        if (outParam.has(tbuKey)) {
+            outParam.remove(tbuKey);
+        }
+        String subsParName = updates.split("=")[1].trim();
+        JsonObject resBody = (JsonObject) response.getResponseBody();
+        JsonElement newValue = resBody.get(formatKey(subsParName));
+
+        outParam.add(tbuKey, newValue);
+
+        resBody.remove(tbuName);
+        resBody.add(tbuName, outParam);
+        response.setResponseBody(resBody);
+    }
+
+    private void processResponse(HTTPJob job, final Response response) {
+        int httpResponseCode = response.getResponseCode();
+
+        if (httpResponseCode >= 200 && httpResponseCode < 300) {
+            LOGGER.debug("Correct HTTP response with response code " + httpResponseCode);
+            job.setReturnValue(response.getResponseBody());
+            job.completed();
+        } else {
+            LOGGER.debug("Job failing due to wrong HTTP response with response code " + httpResponseCode);
+            job.failed(JobEndStatus.EXECUTION_FAILED);
+        }
     }
 }

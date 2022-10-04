@@ -21,7 +21,7 @@ import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.TaskType;
-import es.bsc.compss.types.job.Job;
+import es.bsc.compss.types.job.JobImpl;
 import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.util.RequestQueue;
@@ -31,12 +31,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
-public class HTTPJob extends Job<HTTPInstance> {
+public class HTTPJob extends JobImpl<HTTPInstance> {
 
     // Logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
 
-    private static final String SUBMIT_ERROR = "Error calling HTP Service";
+    private static final String SUBMIT_ERROR = "Error calling HTTP Service";
 
     // Class structures
     private static final int POOL_SIZE = 10;
@@ -99,7 +99,7 @@ public class HTTPJob extends Job<HTTPInstance> {
     }
 
     @Override
-    public void submit() {
+    public void submitJob() {
         callerQueue.enqueue(this);
     }
 

@@ -25,8 +25,8 @@ import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.implementations.definition.MethodDefinition;
 import es.bsc.compss.types.implementations.definition.MultiNodeDefinition;
-import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobEndStatus;
+import es.bsc.compss.types.job.JobImpl;
 import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Resource;
@@ -36,7 +36,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 
-public class NIOJob extends Job<NIOWorkerNode> {
+public class NIOJob extends JobImpl<NIOWorkerNode> {
 
     protected final List<String> slaveWorkersNodeNames;
 
@@ -69,7 +69,7 @@ public class NIOJob extends Job<NIOWorkerNode> {
     }
 
     @Override
-    public void submit() throws Exception {
+    public void submitJob() throws Exception {
         // Prepare the job
         LOGGER.info("Submit NIOJob with ID " + jobId);
         NIOAdaptor.submitTask(this);

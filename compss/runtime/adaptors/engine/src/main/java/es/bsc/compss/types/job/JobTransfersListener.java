@@ -14,17 +14,17 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.data.operation;
+package es.bsc.compss.types.job;
 
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.allocatableactions.ExecutionAction;
 import es.bsc.compss.types.data.listener.EventListener;
+import es.bsc.compss.types.data.operation.DataOperation;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
-public class JobTransfersListener extends EventListener {
+public abstract class JobTransfersListener extends EventListener {
 
     // Loggers
     private static final Logger LOGGER = LogManager.getLogger(Loggers.FTM_COMP);
@@ -34,16 +34,12 @@ public class JobTransfersListener extends EventListener {
     private int errors = 0;
     private boolean enabled = false;
 
-    private final ExecutionAction execution;
-
 
     /**
-     * New JobTransfersListener for a given execution action.
-     * 
-     * @param execution Associated ExecutionAction.
+     * New JobTransfersListener for a given job.
      */
-    public JobTransfersListener(ExecutionAction execution) {
-        this.execution = execution;
+    public JobTransfersListener() {
+
     }
 
     /**
@@ -59,9 +55,9 @@ public class JobTransfersListener extends EventListener {
         }
         if (finished) {
             if (failed) {
-                doFailures();
+                stageInFailed(this.errors);
             } else {
-                doReady();
+                stageInCompleted();
             }
         }
     }
@@ -86,9 +82,9 @@ public class JobTransfersListener extends EventListener {
         }
         if (finished && enabled) {
             if (failed) {
-                doFailures();
+                stageInFailed(this.errors);
             } else {
-                doReady();
+                stageInCompleted();
             }
         }
     }
@@ -116,16 +112,12 @@ public class JobTransfersListener extends EventListener {
             enabled = this.enabled;
         }
         if (enabled && finished) {
-            doFailures();
+            stageInFailed(this.errors);
         }
     }
 
-    private void doReady() {
-        this.execution.doSubmit(this.getId());
-    }
+    public abstract void stageInCompleted();
 
-    private void doFailures() {
-        this.execution.failedTransfers(this.errors);
-    }
+    public abstract void stageInFailed(int numErrors);
 
 }

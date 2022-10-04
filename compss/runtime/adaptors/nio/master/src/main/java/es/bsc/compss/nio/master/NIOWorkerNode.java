@@ -771,7 +771,7 @@ public class NIOWorkerNode extends COMPSsWorker {
     /**
      * Submits a new task to the worker.
      *
-     * @param job Job to submit.
+     * @param job Job to submitJob.
      * @param obsolete List of obsolete objects to delete.
      * @throws UnstartedNodeException If the node has not started yet.
      */
@@ -790,7 +790,7 @@ public class NIOWorkerNode extends COMPSsWorker {
     /**
      * Cancels a running task in the worker.
      *
-     * @param job Job to submit.
+     * @param job Job to submitJob.
      */
     public void cancelTask(NIOJob job) throws UnstartedNodeException {
         if (node == null) {

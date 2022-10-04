@@ -54,7 +54,7 @@ import java.util.List;
 
 
 /**
- * Class containing all the handling to submit a task execution on a CommAgentWorker.
+ * Class containing all the handling to submitJob a task execution on a CommAgentWorker.
  */
 class CommAgentJob extends NIOJob {
 

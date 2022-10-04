@@ -22,14 +22,8 @@ import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.TaskState;
-import es.bsc.compss.types.job.Job;
-import es.bsc.compss.types.job.JobHistory;
-import es.bsc.compss.types.resources.Worker;
-import es.bsc.compss.types.resources.WorkerResourceDescription;
-import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;

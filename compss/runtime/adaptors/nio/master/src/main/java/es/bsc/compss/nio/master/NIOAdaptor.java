@@ -799,7 +799,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
                 LOGGER.debug("Actual Location is null");
             }
         }
-        Job job = group.getJob();
+        NIOJob job = group.getJob();
         job.fetchedAllInputData();
     }
 

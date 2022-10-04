@@ -27,8 +27,8 @@ import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.ServiceImplementation;
 import es.bsc.compss.types.implementations.TaskType;
-import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobEndStatus;
+import es.bsc.compss.types.job.JobImpl;
 import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.parameter.BasicTypeParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
@@ -54,7 +54,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
-public class WSJob extends Job<ServiceInstance> {
+public class WSJob extends JobImpl<ServiceInstance> {
 
     // Logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
@@ -120,7 +120,7 @@ public class WSJob extends Job<ServiceInstance> {
     }
 
     @Override
-    public void submit() {
+    public void submitJob() {
         callerQueue.enqueue(this);
     }
 

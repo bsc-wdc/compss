@@ -16,8 +16,8 @@
  */
 package es.bsc.compss.nio.master.types;
 
+import es.bsc.compss.nio.master.NIOJob;
 import es.bsc.compss.types.data.operation.copy.Copy;
-import es.bsc.compss.types.job.Job;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -25,7 +25,7 @@ import java.util.List;
 public class TransferGroup {
 
     private final int id;
-    private Job<?> job;
+    private NIOJob job;
     private final List<Copy> copies;
 
 
@@ -66,7 +66,7 @@ public class TransferGroup {
      * 
      * @param job job to bind to the transfergroup
      */
-    public void bindToJob(Job<?> job) {
+    public void bindToJob(NIOJob job) {
         this.job = job;
     }
 
@@ -75,7 +75,7 @@ public class TransferGroup {
      * 
      * @return bound job
      */
-    public Job<?> getJob() {
+    public NIOJob getJob() {
         return job;
     }
 

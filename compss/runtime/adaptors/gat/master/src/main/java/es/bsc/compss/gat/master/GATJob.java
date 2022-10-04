@@ -83,7 +83,7 @@ import org.gridlab.gat.resources.SoftwareDescription;
 /**
  * Representation of a Job execution for COMPSs with GAT Adaptor.
  */
-public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implements MetricListener {
+public class GATJob extends es.bsc.compss.types.job.JobImpl<GATWorkerNode> implements MetricListener {
 
     // Worker script path
     private static final String WORKER_SCRIPT_PATH = File.separator + "Runtime" + File.separator + "scripts"
@@ -170,7 +170,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
     }
 
     @Override
-    public void submit() throws Exception {
+    public void submitJob() throws Exception {
         // Prepare the job
         LOGGER.info("Submit GATJob with ID " + jobId);
         JobDescription jobDescr = null;

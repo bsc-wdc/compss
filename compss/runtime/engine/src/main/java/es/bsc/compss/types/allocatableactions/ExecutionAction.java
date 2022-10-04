@@ -39,7 +39,6 @@ import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.CommutativeGroupTask;
 import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.Task;
-import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.TaskGroup;
 import es.bsc.compss.types.TaskState;
 import es.bsc.compss.types.annotations.parameter.DataType;
@@ -64,7 +63,6 @@ import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.util.JobDispatcher;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
 
@@ -232,6 +230,7 @@ public class ExecutionAction extends AllocatableAction implements JobListener {
         TaskMonitor monitor = this.task.getTaskMonitor();
         monitor.onSubmission();
         this.currentJob = createJob();
+        this.jobs.add(this.currentJob.getJobId());
         this.currentJob.stageIn();
         this.task.setSubmitted();
     }
@@ -251,6 +250,11 @@ public class ExecutionAction extends AllocatableAction implements JobListener {
         }
         Job<?> job = w.newJob(this.task.getId(), this.task.getTaskDescription(), this.getAssignedImplementation(),
             slaveNames, this, predecessors, this.task.getSuccessors().size());
+
+        JOB_LOGGER.info((getExecutingResources().size() > 1 ? "Rescheduled" : "New") + " Job " + job.getJobId()
+            + " (Task: " + this.task.getId() + ")");
+        JOB_LOGGER.info("  * Method name: " + this.task.getTaskDescription().getName());
+        JOB_LOGGER.info("  * Target host: " + this.getAssignedResource().getName());
         // Remove predecessors from map for task dependency tracing
         if (Tracer.isActivated() && Tracer.isTracingTaskDependencies()) {
             Tracer.removePredecessor(this.task.getId());
@@ -289,20 +293,20 @@ public class ExecutionAction extends AllocatableAction implements JobListener {
     public final void stageInCompleted() {
         JOB_LOGGER.debug("Received a notification for the transfers of task " + this.task.getId() + " with state DONE");
         if (!this.cancelledBeforeSubmit) {
-            // Register job
-            this.jobs.add(this.currentJob.getJobId());
-            JOB_LOGGER.info((getExecutingResources().size() > 1 ? "Rescheduled" : "New") + " Job "
-                + this.currentJob.getJobId() + " (Task: " + this.task.getId() + ")");
-            JOB_LOGGER.info("  * Method name: " + this.task.getTaskDescription().getName());
-            JOB_LOGGER.info("  * Target host: " + this.getAssignedResource().getName());
-
-            this.profile.setSubmissionTime(System.currentTimeMillis());
-            JobDispatcher.dispatch(this.currentJob);
-            JOB_LOGGER.info("Submitted Task: " + this.task.getId() + " Job: " + this.currentJob.getJobId() + " Method: "
-                + this.task.getTaskDescription().getName() + " Resource: " + this.getAssignedResource().getName());
+            this.currentJob.submit();
         } else {
             JOB_LOGGER.info("Job" + this.currentJob.getJobId() + " cancelled before submission.");
         }
+    }
+
+    @Override
+    public void submitted(Job<?> job) {
+        submittedAt(job, System.currentTimeMillis());
+    }
+
+    @Override
+    public void submittedAt(Job<?> job, long ts) {
+        this.profile.setSubmissionTime(ts);
     }
 
     @Override
@@ -454,8 +458,7 @@ public class ExecutionAction extends AllocatableAction implements JobListener {
                     JOB_LOGGER.error("Resubmitting job to the same worker.");
                     ErrorManager.warn("Resubmitting job to the same worker.");
                     job.setHistory(JobHistory.RESUBMITTED);
-                    this.profile.setSubmissionTime(System.currentTimeMillis());
-                    JobDispatcher.dispatch(job);
+                    this.currentJob.submit();
                 } else if (this.task.getOnFailure() == OnFailure.IGNORE) {
                     // Update info about the generated/updated data
                     ErrorManager.warn("Ignoring failure.");

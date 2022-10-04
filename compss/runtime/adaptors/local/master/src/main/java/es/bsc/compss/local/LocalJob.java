@@ -22,7 +22,7 @@ import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.TaskType;
-import es.bsc.compss.types.job.Job;
+import es.bsc.compss.types.job.JobImpl;
 import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.parameter.CollectionParameter;
 import es.bsc.compss.types.parameter.DictCollectionParameter;
@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Map;
 
 
-public class LocalJob extends Job<COMPSsMaster> implements Invocation {
+public class LocalJob extends JobImpl<COMPSsMaster> implements Invocation {
 
     private boolean prepared;
     private final List<LocalParameter> arguments;
@@ -118,7 +118,7 @@ public class LocalJob extends Job<COMPSsMaster> implements Invocation {
     }
 
     @Override
-    public void submit() throws Exception {
+    public void submitJob() throws Exception {
         this.profileArrival();
         this.fetchedAllInputData();
         if (!prepared) {

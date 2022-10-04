@@ -17,8 +17,8 @@
 package es.bsc.compss.util;
 
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobEndStatus;
+import es.bsc.compss.types.job.JobImpl;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -37,7 +37,7 @@ public class JobDispatcher {
     public static final String POOL_NAME = "Job Submitter";
 
     // Requests queue
-    protected static RequestQueue<Job<?>> queue;
+    protected static RequestQueue<JobImpl<?>> queue;
     // Pool of worker threads and queue of requests
     private static ThreadPool pool;
 
@@ -48,7 +48,7 @@ public class JobDispatcher {
     }
 
 
-    public static void dispatch(Job<?> job) {
+    public static void dispatch(JobImpl<?> job) {
         queue.enqueue(job);
     }
 
@@ -57,9 +57,9 @@ public class JobDispatcher {
     }
 
 
-    private static class JobSubmitter extends RequestDispatcher<Job<?>> {
+    private static class JobSubmitter extends RequestDispatcher<JobImpl<?>> {
 
-        public JobSubmitter(RequestQueue<Job<?>> queue) {
+        public JobSubmitter(RequestQueue<JobImpl<?>> queue) {
             super(queue);
         }
 
@@ -69,12 +69,12 @@ public class JobDispatcher {
                 if (DEBUG) {
                     LOGGER.debug("Waiting for new jobs to submit...");
                 }
-                Job<?> job = queue.dequeue();
+                JobImpl<?> job = queue.dequeue();
                 if (job == null) {
                     break;
                 }
                 try {
-                    job.submit();
+                    job.submitJob();
                     if (DEBUG) {
                         LOGGER.debug("Job " + job.getJobId() + " submitted");
                     }

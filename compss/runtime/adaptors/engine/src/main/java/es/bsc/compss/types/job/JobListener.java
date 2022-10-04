@@ -37,6 +37,21 @@ public interface JobListener {
     public void stageInFailed(int numErrors);
 
     /**
+     * Actions to perform when the job has been submitted to the target worker.
+     *
+     * @param job submitted job
+     */
+    public void submitted(Job<?> job);
+
+    /**
+     * Actions to perform when the job has been submitted to the target worker at a given time.
+     *
+     * @param job submitted job
+     * @param timestamp when the job arrived
+     */
+    public void submittedAt(Job<?> job, long timestamp);
+
+    /**
      * Actions to perform when the job has just arrived to the target worker.
      *
      * @param job submitted job
@@ -49,7 +64,6 @@ public interface JobListener {
      * @param job submitted job
      * @param timestamp when the job arrived
      */
-
     public void arrivedAt(Job<?> job, long timestamp);
 
     /**
@@ -134,4 +148,5 @@ public interface JobListener {
      * @param e Exception raised
      */
     public void jobException(Job<?> job, COMPSsException e);
+
 }

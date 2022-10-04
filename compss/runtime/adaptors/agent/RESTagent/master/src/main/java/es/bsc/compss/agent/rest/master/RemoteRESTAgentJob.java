@@ -36,8 +36,8 @@ import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.implementations.definition.MethodDefinition;
-import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobEndStatus;
+import es.bsc.compss.types.job.JobImpl;
 import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.parameter.BasicTypeParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
@@ -54,7 +54,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 
-public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
+public class RemoteRESTAgentJob extends JobImpl<RemoteRESTAgent> {
 
     private static final String REST_AGENT_URL =
         "http://" + COMPSsNode.getMasterName() + ":" + RESTAgentConfig.localAgentPort + "/";
@@ -66,7 +66,7 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
     }
 
     @Override
-    public void submit() throws Exception {
+    public void submitJob() throws Exception {
         StartApplicationRequest sar = new StartApplicationRequest();
 
         RemoteRESTAgent executorNode = this.getResourceNode();

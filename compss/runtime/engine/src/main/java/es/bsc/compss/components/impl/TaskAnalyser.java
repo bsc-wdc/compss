@@ -159,9 +159,6 @@ public class TaskAnalyser implements GraphHandler {
 
         // Check scheduling enforcing data
         int constrainingParam = -1;
-        if (description.getType() == TaskType.SERVICE && description.hasTargetObject()) {
-            constrainingParam = description.getParameters().size() - 1 - description.getNumReturns();
-        }
 
         // Add reduction task to reduce task list
         if (description.isReduction()) {

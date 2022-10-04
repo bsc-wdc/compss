@@ -379,19 +379,7 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
             }
             if (p.isPotentialDependency()) {
                 DependencyParameter dp = (DependencyParameter) p;
-                switch (this.taskParams.getType()) {
-                    case HTTP:
-                    case METHOD:
-                        transferJobData(dp, listener);
-                        break;
-                    case SERVICE:
-                        if (dp.getDirection() != Direction.INOUT) {
-                            // For services we only transfer IN parameters because the only
-                            // parameter that can be INOUT is the target
-                            transferJobData(dp, listener);
-                        }
-                        break;
-                }
+                transferJobData(dp, listener);
             }
         }
     }
@@ -503,19 +491,7 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
             }
             if (p.isPotentialDependency()) {
                 DependencyParameter dp = (DependencyParameter) p;
-                switch (this.taskParams.getType()) {
-                    case HTTP:
-                    case METHOD:
-                        removeTmpData(dp);
-                        break;
-                    case SERVICE:
-                        if (dp.getDirection() != Direction.INOUT) {
-                            // For services we only transfer IN parameters because the only
-                            // parameter that can be INOUT is the target
-                            removeTmpData(dp);
-                        }
-                        break;
-                }
+                removeTmpData(dp);
             }
         }
 

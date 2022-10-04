@@ -20,7 +20,6 @@ import static org.junit.Assert.fail;
 
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.comm.fake.FakeMethodAdaptor;
-import es.bsc.compss.comm.fake.FakeServiceAdaptor;
 import es.bsc.compss.components.ResourceUser;
 import es.bsc.compss.exceptions.ConstructConfigurationException;
 import es.bsc.compss.types.CloudProvider;
@@ -29,12 +28,9 @@ import es.bsc.compss.types.ResourceCreationRequest;
 import es.bsc.compss.types.fake.FakeNode;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.MethodWorker;
-import es.bsc.compss.types.resources.ServiceResourceDescription;
-import es.bsc.compss.types.resources.ServiceWorker;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.resources.configuration.MethodConfiguration;
-import es.bsc.compss.types.resources.configuration.ServiceConfiguration;
 import es.bsc.compss.types.resources.description.CloudImageDescription;
 import es.bsc.compss.types.resources.description.CloudInstanceTypeDescription;
 import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
@@ -142,38 +138,7 @@ public class ResourceManagerTest {
             .getMemorySize() != mrd2.getMemorySize()) {
             fail("ResourceManager is not properly adding Method Workers");
         }
-        // Add Service Resource 1
-        ServiceResourceDescription srd1 = new ServiceResourceDescription("service1", "namespace1", "port1", 2);
-        ServiceConfiguration sc1 =
-            (ServiceConfiguration) Comm.constructConfiguration(FakeServiceAdaptor.class.getName(), null, null);
-        String wsdl1 = "WSDL" + (int) (Math.random() * 10000);
-        ServiceWorker sw1 = createServiceWorker(wsdl1, srd1, sc1);
-        ResourceManager.addStaticResource(sw1);
-        if (ResourceManager.getTotalNumberOfWorkers() != 3) {
-            fail("ResourceManager is not properly adding Method Workers");
-        }
-        if (!ResourceManager.getStaticResources().contains(sw1)) {
-            fail("ResourceManager is not properly adding Method Workers");
-        }
-        if (ResourceManager.getWorker(wsdl1) != sw1) {
-            fail("ResourceManager is not properly adding Method Workers");
-        }
-        if (!ResourceManager.getWorker(wsdl1).getName().equals(wsdl1)) {
-            fail("ResourceManager is not properly adding Method Workers");
-        }
-        if (!((ServiceResourceDescription) ResourceManager.getWorker(wsdl1).getDescription()).getNamespace()
-            .equals(srd1.getNamespace())) {
-            fail("ResourceManager is not properly adding Method Workers");
-        }
-
-        ResourceManager.removeWorker(sw1);
         if (ResourceManager.getTotalNumberOfWorkers() != 2) {
-            fail("ResourceManager is not properly adding Method Workers");
-        }
-        if (ResourceManager.getStaticResources().contains(sw1)) {
-            fail("ResourceManager is not properly adding Method Workers");
-        }
-        if (ResourceManager.getWorker(wsdl1) != null) {
             fail("ResourceManager is not properly adding Method Workers");
         }
         ResourceManager.removeWorker(mw1);
@@ -506,12 +471,6 @@ public class ResourceManagerTest {
 
         MethodWorker methodWorker = new MethodWorker(name, rd, mc, sharedDisks);
         return methodWorker;
-    }
-
-    private static ServiceWorker createServiceWorker(String wsdl, ServiceResourceDescription sd,
-        ServiceConfiguration sc) {
-        ServiceWorker newResource = new ServiceWorker(wsdl, sd, sc);
-        return newResource;
     }
 
     private static CloudProvider addProvider() {

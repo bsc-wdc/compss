@@ -29,7 +29,6 @@ import es.bsc.compss.types.annotations.task.Method;
 import es.bsc.compss.types.annotations.task.MultiNode;
 import es.bsc.compss.types.annotations.task.OmpSs;
 import es.bsc.compss.types.annotations.task.OpenCL;
-import es.bsc.compss.types.annotations.task.Service;
 import es.bsc.compss.types.annotations.task.repeatables.Binaries;
 import es.bsc.compss.types.annotations.task.repeatables.Containers;
 import es.bsc.compss.types.annotations.task.repeatables.Decafs;
@@ -39,7 +38,6 @@ import es.bsc.compss.types.annotations.task.repeatables.MultiCOMPSs;
 import es.bsc.compss.types.annotations.task.repeatables.MultiMultiNode;
 import es.bsc.compss.types.annotations.task.repeatables.MultiOmpSs;
 import es.bsc.compss.types.annotations.task.repeatables.OpenCLs;
-import es.bsc.compss.types.annotations.task.repeatables.Services;
 import es.bsc.compss.types.exceptions.NonInstantiableException;
 import es.bsc.compss.types.implementations.definition.BinaryDefinition;
 import es.bsc.compss.types.implementations.definition.COMPSsDefinition;
@@ -120,13 +118,6 @@ public class LoaderUtils {
                     return remoteMethod;
                 }
             }
-            if (remoteMethod.isAnnotationPresent(Service.class)) {
-                // SERVICE
-                Service remoteMethodAnnotation = remoteMethod.getAnnotation(Service.class);
-                if (isSelectedService(method, remoteMethod, remoteMethodAnnotation)) {
-                    return remoteMethod;
-                }
-            }
 
             if (remoteMethod.isAnnotationPresent(HTTP.class)) {
                 // HTTP
@@ -193,15 +184,6 @@ public class LoaderUtils {
                 for (Method remoteMethodAnnotation : methodsAnnotation.value()) {
                     if (isSelectedMethod(method, remoteMethod, remoteMethodAnnotation.declaringClass(),
                         remoteMethodAnnotation.name())) {
-                        return remoteMethod;
-                    }
-                }
-            }
-            if (remoteMethod.isAnnotationPresent(Services.class)) {
-                // SERVICES
-                Services servicesAnnotation = remoteMethod.getAnnotation(Services.class);
-                for (Service remoteServiceAnnotation : servicesAnnotation.value()) {
-                    if (isSelectedService(method, remoteMethod, remoteServiceAnnotation)) {
                         return remoteMethod;
                     }
                 }
@@ -368,120 +350,6 @@ public class LoaderUtils {
         String namespace = httpAnnotation.declaringClass();
 
         return packName.equals(namespace);
-    }
-
-    private static boolean isSelectedService(CtMethod method, java.lang.reflect.Method remote, Service serviceAnnot)
-        throws NotFoundException {
-
-        // Check if methods have the same name
-        String nameRemote = serviceAnnot.operation();
-        if (nameRemote.equals(Constants.UNASSIGNED)) {
-            nameRemote = remote.getName();
-        }
-
-        LOGGER.debug("  - Checking " + method.getName() + " against " + nameRemote);
-
-        if (!nameRemote.equals(method.getName())) {
-            return false;
-        }
-
-        // Check that methods have the same number of parameters
-        CtClass[] paramClassCurrent = method.getParameterTypes();
-        Class<?>[] paramClassRemote = remote.getParameterTypes();
-        if (paramClassCurrent.length != paramClassRemote.length) {
-            return false;
-        }
-
-        // Check that parameter types match
-        for (int i = 0; i < paramClassCurrent.length; i++) {
-            if (!paramClassCurrent[i].getName().equals(paramClassRemote[i].getCanonicalName())) {
-                return false;
-            }
-        }
-
-        // Check that return types match
-        // if (!method.getReturnType().getName().equals(remote.getReturnType().getName()))
-        // return false;
-        // Check if the package of the class which implements the called method matches the pattern
-        // namespace.service.port of the interface method
-        String packName = method.getDeclaringClass().getPackageName();
-        String nsp = combineServiceMetadata(serviceAnnot);
-        if (!packName.equals(nsp)) {
-            return false;
-        }
-
-        // Methods match!
-        return true;
-    }
-
-    private static boolean is(CtMethod method, java.lang.reflect.Method remote, Service serviceAnnot)
-        throws NotFoundException {
-
-        // Check if methods have the same name
-        String nameRemote = serviceAnnot.operation();
-        if (nameRemote.equals(Constants.UNASSIGNED)) {
-            nameRemote = remote.getName();
-        }
-
-        LOGGER.debug("  - Checking " + method.getName() + " against " + nameRemote);
-
-        if (!nameRemote.equals(method.getName())) {
-            return false;
-        }
-
-        // Check that methods have the same number of parameters
-        CtClass[] paramClassCurrent = method.getParameterTypes();
-        Class<?>[] paramClassRemote = remote.getParameterTypes();
-        if (paramClassCurrent.length != paramClassRemote.length) {
-            return false;
-        }
-
-        // Check that parameter types match
-        for (int i = 0; i < paramClassCurrent.length; i++) {
-            if (!paramClassCurrent[i].getName().equals(paramClassRemote[i].getCanonicalName())) {
-                return false;
-            }
-        }
-
-        // Check that return types match
-        // if (!method.getReturnType().getName().equals(remote.getReturnType().getName()))
-        // return false;
-        // Check if the package of the class which implements the called method matches the pattern
-        // namespace.service.port of the interface method
-        String packName = method.getDeclaringClass().getPackageName();
-        String nsp = combineServiceMetadata(serviceAnnot);
-        if (!packName.equals(nsp)) {
-            return false;
-        }
-
-        // Methods match!
-        return true;
-    }
-
-    private static String combineServiceMetadata(Service annot) {
-        String namespace = annot.namespace();
-        String service = annot.name()/* .toLowerCase() */;
-        String port = annot.port()/* .toLowerCase() */;
-
-        int startIndex = namespace.indexOf("//www.");
-        if (startIndex < 0) {
-            startIndex = namespace.indexOf("http://");
-            if (startIndex >= 0) {
-                startIndex += "http://".length();
-            } else {
-                startIndex = 0;
-            }
-        } else {
-            startIndex += "//www.".length();
-        }
-
-        namespace = namespace// .substring(0, namespace.indexOf(".xsd")) // remove .xsd at the end
-            .substring(startIndex) // remove http://www.
-            .replace('/', '.') // replace / by .
-            .replace('-', '.') // replace - by .
-            .replace(':', '.'); // replace : by .
-
-        return "dummy." + namespace + '.' + service + '.' + port;
     }
 
     /**

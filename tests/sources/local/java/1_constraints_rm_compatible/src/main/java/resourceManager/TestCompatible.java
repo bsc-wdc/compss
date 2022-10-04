@@ -5,13 +5,9 @@ import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.TaskType;
-import es.bsc.compss.types.implementations.definition.MethodDefinition;
-import es.bsc.compss.types.implementations.ServiceImplementation;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.MethodWorker;
 import es.bsc.compss.types.resources.ResourceType;
-import es.bsc.compss.types.resources.ServiceResourceDescription;
-import es.bsc.compss.types.resources.ServiceWorker;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.components.Processor;
 import es.bsc.compss.util.CoreManager;
@@ -46,7 +42,7 @@ public class TestCompatible {
         System.out.println("[LOG] Waiting for Runtime to be loaded");
         try {
             Thread.sleep(WAIT_FOR_RUNTIME_TIME);
-        } catch (Exception e) {
+        } catch (InterruptedException e) {
             // No need to handle such exceptions
         }
 
@@ -69,13 +65,13 @@ public class TestCompatible {
         System.out.println("[LOG] Number of cores = " + coreCount);
         for (CoreElement ce : CoreManager.getAllCores()) {
             int coreId = ce.getCoreId();
-            System.out.println("[LOG] Checking Core" + coreId);
+            System.out.println("[LOG] Checking Core" + coreId + " " + ce.getSignature());
 
             Action a = new Action(orchestrator, ce);
             Map<Worker<?>, List<Implementation>> m = a.findAvailableWorkers();
 
             // For the test construction, all implementations can be run. Check it
-            if (m.size() == 0) {
+            if (m.isEmpty()) {
                 System.err.println("[ERROR] CoreId " + coreId + " cannot be run");
                 for (Implementation impl : ce.getImplementations()) {
                     System.out.println("-- Impl: " + impl.getRequirements().toString());
@@ -96,7 +92,7 @@ public class TestCompatible {
             for (Implementation impl : entry_hm.getValue()) {
                 List<Worker<?>> aux = hm_reverted.get(impl);
                 if (aux == null) {
-                    aux = new LinkedList<Worker<?>>();
+                    aux = new LinkedList<>();
                 }
                 aux.add(entry_hm.getKey());
                 hm_reverted.put(impl, aux);
@@ -122,8 +118,8 @@ public class TestCompatible {
     }
 
     private static String checkResourcesAssignedToImpl(Implementation impl, Worker<?> resource) {
-        if ((impl.getTaskType().equals(TaskType.METHOD) && resource.getType().equals(ResourceType.SERVICE))
-            || (impl.getTaskType().equals(TaskType.SERVICE) && resource.getType().equals(ResourceType.WORKER))) {
+        if ((impl.getTaskType().equals(TaskType.METHOD) && resource.getType().equals(ResourceType.HTTP))
+            || (impl.getTaskType().equals(TaskType.HTTP) && resource.getType().equals(ResourceType.WORKER))) {
             return "types";
         }
 
@@ -278,21 +274,6 @@ public class TestCompatible {
                 return "hostQueues";
             }
 
-        } else if (resource.getType() == ResourceType.SERVICE) {
-            ServiceImplementation sImpl = (ServiceImplementation) impl;
-            ServiceResourceDescription iDescription = sImpl.getRequirements();
-            ServiceWorker worker = (ServiceWorker) resource;
-            ServiceResourceDescription wDescription = (ServiceResourceDescription) worker.getDescription();
-
-            if (!wDescription.getServiceName().equals(iDescription.getServiceName())) {
-                return "ServiceName";
-            }
-            if (!wDescription.getNamespace().equals(iDescription.getNamespace())) {
-                return "Namespace";
-            }
-            if (!wDescription.getPort().equals(iDescription.getPort())) {
-                return "Port";
-            }
         } else {
             return "Unknown resource type";
         }

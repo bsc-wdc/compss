@@ -393,7 +393,7 @@ public class ExecutionAction extends AllocatableAction implements JobListener {
     @Override
     public final void jobException(Job<?> job, COMPSsException e) {
         this.profile.end(System.currentTimeMillis());
-        
+
         int jobId = job.getJobId();
         JOB_LOGGER.error("Received an exception notification for job " + jobId);
         if (this.task.getStatus() == TaskState.CANCELED) {
@@ -496,9 +496,6 @@ public class ExecutionAction extends AllocatableAction implements JobListener {
                 break;
             case HTTP:
                 doHttpOutputTransfers(job);
-                break;
-            case SERVICE:
-                doServiceOutputTransfers(job);
                 break;
         }
     }
@@ -678,52 +675,6 @@ public class ExecutionAction extends AllocatableAction implements JobListener {
 
         // Return location
         return outLoc;
-    }
-
-    private final void doServiceOutputTransfers(Job<?> job) {
-        TaskMonitor monitor = this.task.getTaskMonitor();
-
-        // Search for the return object
-        List<Parameter> params = job.getTaskParams().getParameters();
-        for (int i = params.size() - 1; i >= 0; --i) {
-            Parameter p = params.get(i);
-            if (p.isPotentialDependency()) {
-                // Check parameter direction
-                DataInstanceId dId = null;
-                DependencyParameter dp = (DependencyParameter) p;
-                switch (p.getDirection()) {
-                    case IN:
-                    case IN_DELETE:
-                    case CONCURRENT:
-                    case COMMUTATIVE:
-                    case INOUT:
-                        // Return value is OUT, skip the current parameter
-                        continue;
-                    case OUT:
-                        dId = ((WAccessId) dp.getDataAccessId()).getWrittenDataInstance();
-                        break;
-                }
-
-                // Parameter found, store it
-                String name = dId.getRenaming();
-                Object value = job.getReturnValue();
-                LogicalData ld = Comm.registerValue(name, value);
-
-                // Monitor one of its locations
-                Set<DataLocation> locations = ld.getLocations();
-                if (!locations.isEmpty()) {
-                    TaskResult mp = buildMonitorParameter(p, getOuputRename(p));
-                    for (DataLocation loc : ld.getLocations()) {
-                        if (loc != null) {
-                            monitor.valueGenerated(i, mp);
-                        }
-                    }
-                }
-
-                // If we reach this point the return value has been registered, we can end
-                return;
-            }
-        }
     }
 
     private void doHttpOutputTransfers(Job<?> job) {

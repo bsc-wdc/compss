@@ -26,8 +26,8 @@ import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.scheduler.types.Score;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
+import es.bsc.compss.types.implementations.HTTPImplementation;
 import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.ServiceImplementation;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
@@ -69,7 +69,7 @@ public class BusyWorkerAction<T extends WorkerResourceDescription> extends Alloc
             impl =
                 AbstractMethodImplementation.generateDummy((MethodResourceDescription) modification.getModification());
         } else {
-            impl = ServiceImplementation.generateDummy();
+            impl = HTTPImplementation.generateDummy();
         }
     }
 

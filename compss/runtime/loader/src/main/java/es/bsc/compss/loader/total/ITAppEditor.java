@@ -37,8 +37,6 @@ import es.bsc.compss.types.annotations.task.MPI;
 import es.bsc.compss.types.annotations.task.MultiNode;
 import es.bsc.compss.types.annotations.task.OmpSs;
 import es.bsc.compss.types.annotations.task.OpenCL;
-import es.bsc.compss.types.annotations.task.Service;
-import es.bsc.compss.types.annotations.task.repeatables.Services;
 import es.bsc.compss.util.EnvironmentLoader;
 import java.io.File;
 import java.io.FilterInputStream;
@@ -422,8 +420,7 @@ public class ITAppEditor extends ExprEditor {
         }
 
         // Specific implementation values
-        boolean isMethod = !(declaredMethod.isAnnotationPresent(Service.class)
-            || declaredMethod.isAnnotationPresent(Services.class) || declaredMethod.isAnnotationPresent(HTTP.class));
+        boolean isMethod = !declaredMethod.isAnnotationPresent(HTTP.class);
 
         if (isMethod) {
             executeTask.append(LANG).append(','); // language set to null
@@ -495,14 +492,6 @@ public class ITAppEditor extends ExprEditor {
             }
 
             executeTask.append("\"").append(className).append("\"").append(',');
-            executeTask.append("\"").append(methodName).append("\"").append(',');
-
-        } else if (declaredMethod.isAnnotationPresent(Service.class)) {
-            Service serviceAnnot = declaredMethod.getAnnotation(Service.class);
-
-            executeTask.append("\"").append(serviceAnnot.namespace()).append("\"").append(',');
-            executeTask.append("\"").append(serviceAnnot.name()).append("\"").append(',');
-            executeTask.append("\"").append(serviceAnnot.port()).append("\"").append(',');
             executeTask.append("\"").append(methodName).append("\"").append(',');
 
         } else if (declaredMethod.isAnnotationPresent(HTTP.class)) {

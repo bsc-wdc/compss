@@ -287,11 +287,5 @@
             </Adaptor>
         </Adaptors>
     </ComputeNode>
-    
-    <Service wsdl="http://localhost:9999/dummyService?wsdl">
-       	<Name>DummyService</Name>
-       	<Namespace>http://localhost:9999/</Namespace>
-       	<Port>DummyServicePort</Port>
-    </Service>
-    
+   
 </ResourcesList>

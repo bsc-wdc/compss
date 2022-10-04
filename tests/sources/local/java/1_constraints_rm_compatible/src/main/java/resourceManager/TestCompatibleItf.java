@@ -1,17 +1,16 @@
 package resourceManager;
 
 import es.bsc.compss.types.annotations.Constraints;
-import es.bsc.compss.types.annotations.Parameter;
-import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.task.Method;
-import es.bsc.compss.types.annotations.task.Service;
 
 
 public interface TestCompatibleItf {
 
     /*
-     * ******************************************** EMPTY CORE-ELEMENTS
-     *******************************************/
+     * ****************************************************************************************
+     * ***************************** NO CONSTRAINTS CORE-ELEMENTS *****************************
+     * ****************************************************************************************
+     */
     @Method(declaringClass = "constraintManager.Implementation1")
     @Constraints()
     void emptyCoreElement0();
@@ -20,8 +19,10 @@ public interface TestCompatibleItf {
     void emptyCoreElement1();
 
     /*
-     * ******************************************** SIMPLE CONSTRAINTS CORE-ELEMENTS
-     *******************************************/
+     * ****************************************************************************************
+     * *************************** SIMPLE CONSTRAINTS CORE-ELEMENTS ***************************
+     * ****************************************************************************************
+     */
     @Method(declaringClass = "constraintManager.Implementation1")
     @Constraints(computingUnits = "1")
     void simpleCoreElement0();
@@ -95,8 +96,10 @@ public interface TestCompatibleItf {
     void simpleCoreElement117();
 
     /*
-     * ******************************************** COMPLEX CONSTRAINTS CORE-ELEMENTS
-     *******************************************/
+     * ****************************************************************************************
+     * ************************** COMPLEX CONSTRAINTS CORE-ELEMENTS ***************************
+     * ****************************************************************************************
+     */
 
     @Method(declaringClass = "constraintManager.Implementation1")
     @Constraints(computingUnits = "2", processorArchitecture = "amd64", memorySize = "8.0", storageSize = "120.0", operatingSystemType = "Windows")
@@ -107,8 +110,10 @@ public interface TestCompatibleItf {
     void complexCoreElement1();
 
     /*
-     * ******************************************** MULTI-CONSTRAINTS CORE-ELEMENTS
-     *******************************************/
+     * ****************************************************************************************
+     * *************************** MULTI-CONSTRAINTS CORE-ELEMENTS ****************************
+     ******************************************************************************************
+     */
 
     @Method(declaringClass = "constraintManager.Implementation1", constraints = @Constraints(computingUnits = "4"))
     @Method(declaringClass = "constraintManager.Implementation2", constraints = @Constraints())
@@ -205,11 +210,5 @@ public interface TestCompatibleItf {
     // modified both not modified modified 1 modified 2
     @Constraints(computingUnits = "2", processorArchitecture = "amd64", memorySize = "8.0", storageSize = "240.0")
     void multiCoreElement18();
-
-    /*
-     * ******************************************** SERVICE CORE-ELEMENTS
-     *******************************************/
-    @Service(name = "DummyService", namespace = "http://localhost:9999/", port = "DummyServicePort")
-    public void getDummyService(@Parameter(direction = Direction.IN) int index);
 
 }

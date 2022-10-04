@@ -60,7 +60,7 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
 
         super(name, description, worker, limitOfTasks, sharedDisks);
         this.name = name;
-        this.available = new MethodResourceDescription(description);
+        this.available = new MethodResourceDescription(this.getDescription());
 
         this.maxCPUtaskCount = limitOfTasks;
         this.maxGPUtaskCount = limitGPUTasks;
@@ -78,10 +78,9 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
      */
     public MethodWorker(String name, MethodResourceDescription description, MethodConfiguration conf,
         Map<String, String> sharedDisks) {
-
         super(name, description, conf, sharedDisks);
         this.name = name;
-        this.available = new MethodResourceDescription(description); // clone
+        this.available = new MethodResourceDescription(this.getDescription()); // clone
         this.maxCPUtaskCount = conf.getLimitOfTasks();
         this.maxGPUtaskCount = conf.getLimitOfGPUTasks();
         this.maxFPGAtaskCount = conf.getLimitOfFPGATasks();
@@ -118,7 +117,7 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
     }
 
     /**
-     * Returns the avaiable resources in the current worker.
+     * Returns the available resources in the current worker.
      *
      * @return The available resources in the current worker.
      */
@@ -155,7 +154,7 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
 
     @Override
     public Integer fitCount(Implementation impl) {
-        if (impl.getTaskType() == TaskType.SERVICE) {
+        if (impl.getTaskType() != TaskType.METHOD) {
             return null;
         }
         MethodResourceDescription ctrs = (MethodResourceDescription) impl.getRequirements();
@@ -392,7 +391,6 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
         }
         switch (t.getType()) {
             case HTTP:
-            case SERVICE:
                 return 1;
             case WORKER:
                 MethodWorker w = (MethodWorker) t;

@@ -37,7 +37,6 @@ import es.bsc.compss.types.annotations.task.Method;
 import es.bsc.compss.types.annotations.task.MultiNode;
 import es.bsc.compss.types.annotations.task.OmpSs;
 import es.bsc.compss.types.annotations.task.OpenCL;
-import es.bsc.compss.types.annotations.task.Service;
 import es.bsc.compss.types.annotations.task.repeatables.Binaries;
 import es.bsc.compss.types.annotations.task.repeatables.Containers;
 import es.bsc.compss.types.annotations.task.repeatables.Decafs;
@@ -47,7 +46,6 @@ import es.bsc.compss.types.annotations.task.repeatables.MultiCOMPSs;
 import es.bsc.compss.types.annotations.task.repeatables.MultiMultiNode;
 import es.bsc.compss.types.annotations.task.repeatables.MultiOmpSs;
 import es.bsc.compss.types.annotations.task.repeatables.OpenCLs;
-import es.bsc.compss.types.annotations.task.repeatables.Services;
 import es.bsc.compss.types.implementations.ExecType;
 import es.bsc.compss.types.implementations.ExecutionOrder;
 import es.bsc.compss.types.implementations.ImplementationDescription;
@@ -162,7 +160,6 @@ public class ITFParser {
             if (!annot.annotationType().getName().equals(Constraints.class.getName())
                 // Simple annotations
                 && !annot.annotationType().getName().equals(Method.class.getName())
-                && !annot.annotationType().getName().equals(Service.class.getName())
                 && !annot.annotationType().getName().equals(HTTP.class.getName())
                 && !annot.annotationType().getName().equals(Binary.class.getName())
                 && !annot.annotationType().getName().equals(Container.class.getName())
@@ -174,7 +171,6 @@ public class ITFParser {
                 && !annot.annotationType().getName().equals(OpenCL.class.getName())
                 // Repeatable annotations
                 && !annot.annotationType().getName().equals(Methods.class.getName())
-                && !annot.annotationType().getName().equals(Services.class.getName())
                 && !annot.annotationType().getName().equals(Binaries.class.getName())
                 && !annot.annotationType().getName().equals(Containers.class.getName())
                 && !annot.annotationType().getName().equals(MPIs.class.getName())
@@ -509,37 +505,6 @@ public class ITFParser {
             try {
                 implDef = ImplementationDescription.defineImplementation(MethodType.METHOD.toString(), methodSignature,
                     implProcessLocal, implConstraints, prolog, epilog, declaringClass, methodName);
-            } catch (Exception e) {
-                ErrorManager.error(e.getMessage());
-            }
-            ced.addImplementation(implDef);
-        }
-
-        /*
-         * SERVICE
-         */
-        for (Service serviceAnnot : m.getAnnotationsByType(Service.class)) {
-            // Services don't have constraints* Method method ls has 1 annotations
-            LOGGER.debug("   * Processing @Service annotation");
-
-            // Warning for ignoring streams
-            if (hasStreams) {
-                ErrorManager.warn(
-                    "Java service " + methodName + " does not support stream annotations. SKIPPING stream annotation");
-            }
-
-            calleeMethodSignature.append(serviceAnnot.namespace()).append(',');
-            calleeMethodSignature.append(serviceAnnot.name()).append(',');
-            calleeMethodSignature.append(serviceAnnot.port());
-
-            String serviceSignature = calleeMethodSignature.toString();
-
-            // Register service implementation
-            ImplementationDescription<?, ?> implDef = null;
-            try {
-                implDef = ImplementationDescription.defineImplementation(TaskType.SERVICE.toString(), serviceSignature,
-                    false, null, prolog, epilog, serviceAnnot.namespace(), serviceAnnot.name(),
-                    serviceAnnot.operation(), serviceAnnot.port());
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }

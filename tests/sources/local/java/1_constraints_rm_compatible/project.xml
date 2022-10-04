@@ -27,8 +27,4 @@
         <WorkingDir>/tmp/COMPSsWorker05/</WorkingDir>
     </ComputeNode>
     
-    <Service wsdl="http://localhost:9999/dummyService?wsdl">
-    	<LimitOfTasks>2</LimitOfTasks>
-    </Service>
-    
 </Project>

@@ -26,8 +26,8 @@ import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.scheduler.types.Score;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
+import es.bsc.compss.types.implementations.HTTPImplementation;
 import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.ServiceImplementation;
 import es.bsc.compss.types.resources.CloudMethodWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceType;
@@ -42,8 +42,6 @@ import es.bsc.compss.worker.COMPSsException;
 
 import java.util.Collection;
 import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
 import java.util.concurrent.Semaphore;
 
 
@@ -78,7 +76,7 @@ public class StopWorkerAction extends AllocatableAction {
         if (worker.getResource().getType() == ResourceType.WORKER) {
             this.impl = AbstractMethodImplementation.generateDummy(new MethodResourceDescription());
         } else {
-            this.impl = ServiceImplementation.generateDummy();
+            this.impl = HTTPImplementation.generateDummy();
         }
     }
 

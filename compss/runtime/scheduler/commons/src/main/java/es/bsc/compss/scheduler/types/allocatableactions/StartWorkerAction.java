@@ -30,7 +30,6 @@ import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.HTTPImplementation;
 import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.ServiceImplementation;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
@@ -42,8 +41,6 @@ import es.bsc.compss.worker.COMPSsException;
 
 import java.util.Collection;
 import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
 
 
 public class StartWorkerAction<T extends WorkerResourceDescription> extends AllocatableAction {
@@ -97,11 +94,8 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
                     };
                 }
                 break;
-            case HTTP:
+            default: // HTTP
                 this.impl = HTTPImplementation.generateDummy();
-                break;
-            default:
-                this.impl = ServiceImplementation.generateDummy();
         }
     }
 

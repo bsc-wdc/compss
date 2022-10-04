@@ -63,7 +63,7 @@ public interface Job<T extends COMPSsWorker> {
      *
      * @throws Exception Error when stopping a job
      */
-    public void cancel() throws Exception;
+    public void cancelJob() throws Exception;
 
     public void removeTmpData();
 

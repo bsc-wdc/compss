@@ -54,6 +54,15 @@ import org.apache.logging.log4j.Logger;
  */
 public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
 
+    // Logger
+    protected static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
+    private static final Logger JOB_LOGGER = LogManager.getLogger(Loggers.JM_COMP);
+    protected static final boolean DEBUG = LOGGER.isDebugEnabled();
+    protected static final boolean JOB_DEBUG = JOB_LOGGER.isDebugEnabled();
+
+    // Fault tolerance parameters
+    private static final int TRANSFER_CHANCES = 2;
+
     // Job identifier management
     protected static final int FIRST_JOB_ID = 1;
     protected static int nextJobId = FIRST_JOB_ID;
@@ -69,12 +78,6 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
             : "\"\"";
     private final String workerPythonpath;
 
-    // Logger
-    protected static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
-    private static final Logger JOB_LOGGER = LogManager.getLogger(Loggers.JM_COMP);
-    protected static final boolean DEBUG = LOGGER.isDebugEnabled();
-    protected static final boolean JOB_DEBUG = JOB_LOGGER.isDebugEnabled();
-
     // Information of the job
     protected int jobId;
 
@@ -88,6 +91,8 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
 
     protected JobHistory history;
     protected int transferId;
+    private int transferErrors;
+    private int executionErrors;
 
 
     /**
@@ -104,6 +109,8 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
         this.jobId = nextJobId++;
         this.taskId = taskId;
         this.history = JobHistory.NEW;
+        this.transferErrors = 0;
+        this.executionErrors = 0;
         this.taskParams = task;
         this.impl = impl;
         this.worker = res;
@@ -338,17 +345,29 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
 
             @Override
             public void stageInCompleted() {
+                JOB_LOGGER.debug(
+                    "Received a notification for the transfers of task " + JobImpl.this.taskId + " with state DONE");
                 JobImpl.this.listener.stageInCompleted();
             }
 
             @Override
             public void stageInFailed(int numErrors) {
-                removeTmpData();
-                JobImpl.this.listener.stageInFailed(numErrors);
+                JOB_LOGGER.debug(
+                    "Received a notification for the transfers for task " + JobImpl.this.taskId + " with state FAILED");
+                JobImpl.this.removeTmpData();
+                JobImpl.this.transferErrors++;
+                if (JobImpl.this.transferErrors < TRANSFER_CHANCES
+                    && JobImpl.this.taskParams.getOnFailure() == OnFailure.RETRY) {
+                    JOB_LOGGER.debug("Resubmitting input files for task " + JobImpl.this.taskId + " to host "
+                        + JobImpl.this.worker.getName() + " since " + numErrors + " transfers failed.");
+                    JobImpl.this.stageIn();
+                } else {
+                    JobImpl.this.listener.stageInFailed(numErrors);
+                }
             }
 
         };
-        setTransferGroupId(stageInListener.getId());
+        this.transferId = stageInListener.getId();
         transferInputData(stageInListener);
         stageInListener.enable();
     }

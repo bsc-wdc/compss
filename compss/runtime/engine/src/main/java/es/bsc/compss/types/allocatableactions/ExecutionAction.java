@@ -84,7 +84,6 @@ import org.apache.logging.log4j.Logger;
 public class ExecutionAction extends AllocatableAction implements JobListener {
 
     // Fault tolerance parameters
-    private static final int TRANSFER_CHANCES = 2;
     private static final int SUBMISSION_CHANCES = 2;
     private static final int SCHEDULING_CHANCES = 2;
 
@@ -275,23 +274,14 @@ public class ExecutionAction extends AllocatableAction implements JobListener {
 
     @Override
     public final void stageInFailed(int failedtransfers) {
-        JOB_LOGGER
-            .debug("Received a notification for the transfers for task " + this.task.getId() + " with state FAILED");
-        ++this.transferErrors;
-        if (this.transferErrors < TRANSFER_CHANCES && this.task.getOnFailure() == OnFailure.RETRY) {
-            JOB_LOGGER.debug("Resubmitting input files for task " + this.task.getId() + " to host "
-                + getAssignedResource().getName() + " since " + failedtransfers + " transfers failed.");
-            this.currentJob.stageIn();
-        } else {
-            ErrorManager.warn("Transfers for running task " + this.task.getId() + " on worker "
-                + getAssignedResource().getName() + " have failed.");
-            this.notifyError();
-        }
+        int taskId = this.task.getId();
+        String workerName = getAssignedResource().getName();
+        ErrorManager.warn("Transfers for running task " + taskId + " on worker " + workerName + " have failed.");
+        this.notifyError();
     }
 
     @Override
     public final void stageInCompleted() {
-        JOB_LOGGER.debug("Received a notification for the transfers of task " + this.task.getId() + " with state DONE");
         if (!this.cancelledBeforeSubmit) {
             this.currentJob.submit();
         } else {

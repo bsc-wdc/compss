@@ -259,41 +259,6 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     }
 
     /**
-     * Application: new Service task.
-     *
-     * @param app Application.
-     * @param monitor Task monitor.
-     * @param namespace Service namespace.
-     * @param service Service name.
-     * @param port Service port.
-     * @param operation Service operation.
-     * @param priority Whether the task has priority or not.
-     * @param hasTarget Whether the task has a target object or not.
-     * @param numReturns Number of returns of the task.
-     * @param parameters Task parameters.
-     * @param onFailure OnFailure mechanisms.
-     * @param timeOut Time for a task timeOut.
-     * @return Task Id.
-     */
-    public int newTask(Application app, TaskMonitor monitor, String namespace, String service, String port,
-        String operation, boolean priority, boolean isReduce, int reduceChunkSize, boolean hasTarget, int numReturns,
-        List<Parameter> parameters, OnFailure onFailure, long timeOut) {
-
-        Task currentTask = new Task(app, namespace, service, port, operation, priority, hasTarget, numReturns,
-            parameters, monitor, onFailure, timeOut);
-
-        TaskMonitor registeredMonitor = currentTask.getTaskMonitor();
-        registeredMonitor.onCreation();
-
-        LOGGER.debug("Requesting analysis of new service Task " + currentTask.getId());
-        if (!this.requestQueue.offer(new TaskAnalysisRequest(currentTask))) {
-            ErrorManager.error(ERROR_QUEUE_OFFER + "new service task");
-        }
-
-        return currentTask.getId();
-    }
-
-    /**
      * Application: new HTTP task.
      *
      * @param app Application.

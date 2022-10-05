@@ -770,46 +770,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         String operation, boolean isPrioritary, int numNodes, boolean isReduce, int reduceChunkSize,
         boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount, OnFailure onFailure,
         int timeOut, Object... parameters) {
-
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.TASK);
-        }
-
-        if (numNodes != Constants.SINGLE_NODE || isReplicated || isDistributed) {
-            ErrorManager.fatal("ERROR: Unsupported feature for Services: multi-node, replicated or distributed");
-        }
-
-        LOGGER.info("Creating task from service " + service + ", namespace " + namespace + ", port " + port
-            + ", operation " + operation + " for application " + appId);
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("There " + (parameterCount > 1 ? "are " : "is ") + parameterCount + " parameter"
-                + (parameterCount > 1 ? "s" : ""));
-        }
-
-        Application app = Application.registerApplication(appId);
-        // Process the parameters
-        List<Parameter> pars = processParameters(app, parameterCount, parameters);
-        boolean hasReturn = hasReturn(pars);
-        int numReturns = hasReturn ? 1 : 0;
-
-        if (monitor == null) {
-            monitor = DO_NOTHING_MONITOR;
-        }
-
-        // Register the task
-        int task = ap.newTask(app, monitor, namespace, service, port, operation, isPrioritary, isReduce,
-            reduceChunkSize, hasTarget, numReturns, pars, onFailure, timeOut);
-
-        for (Parameter p : pars) {
-            if (p.getDirection().equals(Direction.IN_DELETE)) {
-                processDelete(app, p);
-            }
-        }
-        if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(TraceEvent.TASK);
-        }
-
-        return task;
+        throw new UnsupportedOperationException();
     }
 
     // HTTP

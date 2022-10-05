@@ -30,10 +30,8 @@ import es.bsc.compss.types.implementations.definition.MultiNodeDefinition;
 import es.bsc.compss.types.implementations.definition.OmpSsDefinition;
 import es.bsc.compss.types.implementations.definition.OpenCLDefinition;
 import es.bsc.compss.types.implementations.definition.PythonMPIDefinition;
-import es.bsc.compss.types.implementations.definition.ServiceDefinition;
 import es.bsc.compss.types.resources.HTTPResourceDescription;
 import es.bsc.compss.types.resources.MethodResourceDescription;
-import es.bsc.compss.types.resources.ServiceResourceDescription;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.util.EnvironmentLoader;
 
@@ -88,20 +86,7 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
 
         ImplementationDescription<T, D> id = null;
 
-        if (implType.toUpperCase().compareTo(TaskType.SERVICE.toString()) == 0) {
-            if (implTypeArgs.length != ServiceDefinition.NUM_PARAMS) {
-                throw new IllegalArgumentException("Incorrect parameters for type SERVICE on " + implSignature);
-            }
-            String namespace = EnvironmentLoader.loadFromEnvironment(implTypeArgs[0]);
-            String serviceName = EnvironmentLoader.loadFromEnvironment(implTypeArgs[1]);
-            String operation = EnvironmentLoader.loadFromEnvironment(implTypeArgs[2]);
-            String port = EnvironmentLoader.loadFromEnvironment(implTypeArgs[3]);
-
-            id = new ImplementationDescription<>((D) new ServiceDefinition(namespace, serviceName, operation, port),
-                implSignature, localProcessing, (T) new ServiceResourceDescription(serviceName, namespace, port, 1),
-                prolog, epilog);
-
-        } else if (implType.toUpperCase().compareTo(TaskType.HTTP.toString()) == 0) {
+        if (implType.toUpperCase().compareTo(TaskType.HTTP.toString()) == 0) {
             if (implTypeArgs.length != HTTPDefinition.NUM_PARAMS) {
                 throw new IllegalArgumentException("Incorrect parameters for type HTTP on " + implSignature);
             }
@@ -292,15 +277,12 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
     @SuppressWarnings("unchecked")
     public Implementation getImpl(int coreId, int implId) {
         switch (implDefinition.getTaskType()) {
-            case METHOD:
-                return new AbstractMethodImplementation(coreId, implId, (ImplementationDescription<
-                    MethodResourceDescription, AbstractMethodImplementationDefinition>) this);
             case HTTP:
                 return new HTTPImplementation(coreId, implId,
                     (ImplementationDescription<HTTPResourceDescription, HTTPDefinition>) this);
-            default:
-                return new ServiceImplementation(coreId, implId,
-                    (ImplementationDescription<ServiceResourceDescription, ServiceDefinition>) this);
+            default: // case METHOD
+                return new AbstractMethodImplementation(coreId, implId, (ImplementationDescription<
+                    MethodResourceDescription, AbstractMethodImplementationDefinition>) this);
         }
     }
 

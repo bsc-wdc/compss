@@ -379,19 +379,7 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
             }
             if (p.isPotentialDependency()) {
                 DependencyParameter dp = (DependencyParameter) p;
-                switch (this.taskParams.getType()) {
-                    case HTTP:
-                    case METHOD:
-                        transferJobData(dp, listener);
-                        break;
-                    case SERVICE:
-                        if (dp.getDirection() != Direction.INOUT) {
-                            // For services we only transfer IN parameters because the only
-                            // parameter that can be INOUT is the target
-                            transferJobData(dp, listener);
-                        }
-                        break;
-                }
+                transferJobData(dp, listener);
             }
         }
     }
@@ -496,27 +484,14 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
         this.worker.getData(source, target, param, listener);
     }
 
-    @Override
-    public void removeTmpData() {
+    private void removeTmpData() {
         for (Parameter p : this.taskParams.getParameters()) {
             if (DEBUG) {
                 JOB_LOGGER.debug("    * " + p);
             }
             if (p.isPotentialDependency()) {
                 DependencyParameter dp = (DependencyParameter) p;
-                switch (this.taskParams.getType()) {
-                    case HTTP:
-                    case METHOD:
-                        removeTmpData(dp);
-                        break;
-                    case SERVICE:
-                        if (dp.getDirection() != Direction.INOUT) {
-                            // For services we only transfer IN parameters because the only
-                            // parameter that can be INOUT is the target
-                            removeTmpData(dp);
-                        }
-                        break;
-                }
+                removeTmpData(dp);
             }
         }
 
@@ -625,14 +600,17 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
     }
 
     public void completed() {
+        removeTmpData();
         this.listener.jobCompleted(this);
     }
 
     public void failed(JobEndStatus status) {
+        removeTmpData();
         this.listener.jobFailed(this, status);
     }
 
     public void exception(COMPSsException exception) {
+        removeTmpData();
         this.listener.jobException(this, exception);
     }
 

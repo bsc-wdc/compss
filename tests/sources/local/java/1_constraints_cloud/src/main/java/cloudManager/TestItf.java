@@ -4,7 +4,6 @@ import es.bsc.compss.types.annotations.Constraints;
 import es.bsc.compss.types.annotations.Parameter;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.task.Method;
-import es.bsc.compss.types.annotations.task.Service;
 
 
 public interface TestItf {
@@ -194,11 +193,5 @@ public interface TestItf {
     // modified both not modified modified 1 modified 2
     @Constraints(computingUnits = "2", processorArchitecture = "amd64", memorySize = "8.0", storageSize = "240.0")
     void multiCoreElement17();
-
-    /*
-     * ******************************************** SERVICE CORE-ELEMENTS
-     *******************************************/
-    @Service(name = "DummyService", namespace = "http://localhost:9999/", port = "DummyServicePort")
-    public void getDummyService(@Parameter(direction = Direction.IN) int index);
 
 }

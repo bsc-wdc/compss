@@ -26,7 +26,6 @@ import es.bsc.compss.types.ResourceCreationRequest;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.TaskType;
-import es.bsc.compss.types.implementations.definition.MethodDefinition;
 import es.bsc.compss.types.resources.CloudMethodWorker;
 import es.bsc.compss.types.resources.DynamicMethodWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
@@ -790,7 +789,7 @@ public class ResourceOptimizer extends Thread {
         for (int coreId = 0; coreId < creationRecommendations.length; coreId++) {
             CoreElement ce = CoreManager.getCore(coreId);
             for (Implementation impl : ce.getImplementations()) {
-                if (impl.getTaskType() == TaskType.SERVICE) {
+                if (impl.getTaskType() == TaskType.HTTP) {
                     continue;
                 }
 
@@ -810,7 +809,7 @@ public class ResourceOptimizer extends Thread {
             if (creationRecommendations[coreId] > 1) {
                 CoreElement ce = CoreManager.getCore(coreId);
                 for (Implementation impl : ce.getImplementations()) {
-                    if (impl.getTaskType() == TaskType.SERVICE) {
+                    if (impl.getTaskType() == TaskType.HTTP) {
                         continue;
                     }
                     MethodResourceDescription constraints = ((AbstractMethodImplementation) impl).getRequirements();

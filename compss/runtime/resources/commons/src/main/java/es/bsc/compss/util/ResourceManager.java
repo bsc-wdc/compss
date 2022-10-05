@@ -287,7 +287,7 @@ public class ResourceManager {
         // Log new resource
         RESOURCES_LOGGER.info("TIMESTAMP = " + String.valueOf(System.currentTimeMillis()));
         RESOURCES_LOGGER.info("INFO_MSG = [New resource available in the pool. Name = " + worker.getName() + "]");
-        RUNTIME_LOGGER.info("New " + ((worker.getType() == ResourceType.SERVICE) ? "service" : "computeNode")
+        RUNTIME_LOGGER.info("New " + ((worker.getType() == ResourceType.HTTP) ? "http" : "computeNode")
             + " available in the pool. Name = " + worker.getName());
     }
 
@@ -952,7 +952,7 @@ public class ResourceManager {
                 resourceState.append("\t").append("RESOURCE = [").append("\n");
                 resourceState.append("\t\t").append("NAME = ").append(resource.getName()).append("\n");
                 resourceState.append("\t\t").append("TYPE = ").append(resource.getType().toString()).append("\n");
-                if (resource.getType() == ResourceType.SERVICE) {
+                if (resource.getType() == ResourceType.HTTP) {
                     resourceState.append("\t\t").append("CPUS = 0\n");
                     resourceState.append("\t\t").append("MEMORY = 0\n");
                 } else {

@@ -55,8 +55,6 @@ import es.bsc.compss.types.resources.HTTPWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.MethodWorker;
 import es.bsc.compss.types.resources.ResourcesFile;
-import es.bsc.compss.types.resources.ServiceResourceDescription;
-import es.bsc.compss.types.resources.ServiceWorker;
 import es.bsc.compss.types.resources.configuration.HTTPConfiguration;
 import es.bsc.compss.types.resources.configuration.MethodConfiguration;
 import es.bsc.compss.types.resources.configuration.ServiceConfiguration;
@@ -162,7 +160,6 @@ public class ResourceLoader {
         // Booleans to control initializated structures
         boolean computeNodeExist = false;
         boolean httpResourceExists = false;
-        boolean serviceExist = false;
         boolean cloudProviderExist = false;
 
         // Load master node information
@@ -181,23 +178,6 @@ public class ResourceLoader {
                     computeNodeExist = (computeNodeExist || exist);
                 } else {
                     ErrorManager.warn("ComputeNode " + cnProject.getName() + " not defined in the resources file");
-                }
-            }
-        }
-        // nm: should we load https like this?
-        // Load Services
-        List<ServiceType> services = ResourceLoader.project.getServices_list();
-        if (services != null) {
-            for (ServiceType sProject : services) {
-                // nm: new type for HTTP? why jaxb files are ignored?
-                // nm: why do we have two ServiceType elements?
-                es.bsc.compss.types.resources.jaxb.ServiceType sResources =
-                    ResourceLoader.resources.getService(sProject.getWsdl());
-                if (sResources != null) {
-                    exist = loadService(sProject, sResources);
-                    serviceExist = (serviceExist || exist);
-                } else {
-                    ErrorManager.warn("Service " + sProject.getWsdl() + " not defined in the resources file");
                 }
             }
         }
@@ -222,8 +202,6 @@ public class ResourceLoader {
             cloudProviderExist = loadCloud(cloud);
         }
 
-        // boolean httpResourceExists = loadHTTPResource(HTTP_CONNECTIONS);
-
         // Load HTTP Services
         List<HttpType> https = ResourceLoader.project.getHttpServices_list();
         if (https != null) {
@@ -244,7 +222,7 @@ public class ResourceLoader {
         }
 
         // Availability checker
-        if (!computeNodeExist && !serviceExist && !cloudProviderExist && !httpResourceExists) {
+        if (!computeNodeExist && !cloudProviderExist && !httpResourceExists) {
             throw new NoResourceAvailableException();
         }
     }
@@ -505,55 +483,6 @@ public class ResourceLoader {
 
         final HTTPResourceDescription hrd = new HTTPResourceDescription(hResources.getServiceName(), HTTP_CONNECTIONS);
         HTTPWorker newResource = new HTTPWorker(hProject.getBaseUrl(), hrd, config);
-        ResourceManager.addStaticResource(newResource);
-
-        return true;
-    }
-
-    private static boolean loadService(ServiceType sProject,
-        es.bsc.compss.types.resources.jaxb.ServiceType sResources) {
-
-        Map<String, Object> projectProperties = new HashMap<String, Object>();
-        projectProperties.put("Service", sProject);
-
-        Map<String, Object> resourcesProperties = new HashMap<String, Object>();
-        resourcesProperties.put("Service", sResources);
-        // Get service adaptor name from properties
-        String serviceAdaptorName = COMPSsConstants.SERVICE_ADAPTOR;
-
-        // Add the name
-        String wsdl = sProject.getWsdl();
-
-        /* Add properties given by the resources file **************************************** */
-        final String serviceName = sResources.getName();
-        final String namespace = sResources.getNamespace();
-        final String port = sResources.getPort();
-        final ServiceResourceDescription srd =
-            new ServiceResourceDescription(serviceName, namespace, port, Integer.MAX_VALUE);
-
-        ServiceConfiguration config = null;
-        try {
-            config = (ServiceConfiguration) Comm.constructConfiguration(serviceAdaptorName, projectProperties,
-                resourcesProperties);
-        } catch (ConstructConfigurationException cce) {
-            ErrorManager.warn("Service configuration constructor failed", cce);
-            return false;
-        }
-
-        // If we have reached this point the mp is SURELY not null
-
-        /* Add properties given by the project file **************************************** */
-        int limitOfTasks = sProject.getLimitOfTasks();
-        if (limitOfTasks >= 0) {
-            config.setLimitOfTasks(limitOfTasks);
-        } else {
-            config.setLimitOfTasks(Integer.MAX_VALUE);
-        }
-
-        /* Pass all the information to the ResourceManager to insert it into the Runtime ** */
-        LOGGER.debug("Adding service worker " + wsdl);
-
-        ServiceWorker newResource = new ServiceWorker(wsdl, srd, config);
         ResourceManager.addStaticResource(newResource);
 
         return true;

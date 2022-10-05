@@ -120,39 +120,6 @@ public class Task extends AbstractTask {
     }
 
     /**
-     * Creates a new SERVICE task with the given parameters.
-     *
-     * @param app Application to which the tasks belongs.
-     * @param namespace Service namespace.
-     * @param service Service name.
-     * @param port Service port.
-     * @param operation Service operation.
-     * @param isPrioritary Whether the task has priority or not.
-     * @param hasTarget Whether the task has a target object or not.
-     * @param numReturns Number of returns of the task.
-     * @param parameters Task parameter values.
-     * @param monitor Task monitor.
-     * @param onFailure On failure mechanisms.
-     * @param timeOut Time for a task time out.
-     */
-    public Task(Application app, String namespace, String service, String port, String operation, boolean isPrioritary,
-        boolean hasTarget, int numReturns, List<Parameter> parameters, TaskMonitor monitor, OnFailure onFailure,
-        long timeOut) {
-
-        this(app, monitor,
-            // Task type
-            TaskType.SERVICE, Lang.UNKNOWN,
-            // Signature
-            SignatureBuilder.getServiceSignature(namespace, service, port, operation, hasTarget, numReturns,
-                parameters),
-            // Scheduler hints
-            isPrioritary, Constants.SINGLE_NODE, false, Boolean.parseBoolean(Constants.IS_NOT_REPLICATED_TASK),
-            Boolean.parseBoolean(Constants.IS_NOT_DISTRIBUTED_TASK), onFailure, timeOut,
-            // Parameters
-            hasTarget, numReturns, parameters);
-    }
-
-    /**
      * Creates a new HTTP task with the given parameters.
      *
      * @param app Application.

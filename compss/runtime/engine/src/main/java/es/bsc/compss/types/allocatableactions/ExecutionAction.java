@@ -429,73 +429,20 @@ public class ExecutionAction extends AllocatableAction implements JobListener {
     }
 
     @Override
-    public final void doOutputTransfers(Job<?> job) {
-        commitCommutativeAccesses(job);
-        switch (job.getType()) {
-            case METHOD:
-                doMethodOutputTransfers(job);
-                break;
-            case HTTP:
-                doHttpOutputTransfers(job);
-                break;
-        }
-    }
-
-    private void commitCommutativeAccesses(Job<?> job) {
-        for (Parameter p : this.task.getParameters()) {
-            if (p.isPotentialDependency()) {
-                commitCommutativeAccesses((DependencyParameter) p);
+    public void resultAvailable(int[] idx, Parameter p, String dataName) {
+        if (p.isPotentialDependency()) {
+            DependencyParameter dp = (DependencyParameter) p;
+            if (dp.getDirection() == Direction.COMMUTATIVE) {
+                DataAccessId placeHolder = dp.getDataAccessId();
+                CommutativeGroupTask cgt = this.getTask().getCommutativeGroup(placeHolder.getDataId());
+                DataAccessId performedAccess = cgt.nextAccess();
+                dp.setDataAccessId(performedAccess);
             }
         }
-    }
-
-    private void commitCommutativeAccesses(DependencyParameter dp) {
-        switch (dp.getType()) {
-            case COLLECTION_T:
-                CollectionParameter cp = (CollectionParameter) dp;
-                for (Parameter elem : cp.getParameters()) {
-                    if (elem.isPotentialDependency()) {
-                        commitCommutativeAccesses((DependencyParameter) elem);
-                    }
-                }
-                break;
-            case DICT_COLLECTION_T:
-                DictCollectionParameter dcp = (DictCollectionParameter) dp;
-                for (Map.Entry<Parameter, Parameter> entry : dcp.getParameters().entrySet()) {
-                    Parameter k = entry.getKey();
-                    if (k.isPotentialDependency()) {
-                        commitCommutativeAccesses((DependencyParameter) k);
-                    }
-                    Parameter v = entry.getValue();
-                    if (v.isPotentialDependency()) {
-                        commitCommutativeAccesses((DependencyParameter) v);
-                    }
-                }
-                break;
-            default:
-                if (dp.getDirection() == Direction.COMMUTATIVE) {
-                    DataAccessId placeHolder = dp.getDataAccessId();
-                    CommutativeGroupTask cgt = this.getTask().getCommutativeGroup(placeHolder.getDataId());
-                    DataAccessId performedAccess = cgt.nextAccess();
-                    dp.setDataAccessId(performedAccess);
-                }
-        }
-
-    }
-
-    private void doMethodOutputTransfers(Job<?> job) {
-        Worker<? extends WorkerResourceDescription> w = getAssignedResource().getResource();
         TaskMonitor monitor = this.task.getTaskMonitor();
-        List<Parameter> params = job.getTaskParams().getParameters();
-        for (int i = 0; i < params.size(); ++i) {
-            Parameter p = params.get(i);
-            String dataName = getOuputRename(p);
-            if (dataName != null) {
-                DependencyParameter dp = (DependencyParameter) p;
-                storeOutputParameter(job, w, dataName, dp);
-                TaskResult mp = buildMonitorParameter(p, dataName);
-                monitor.valueGenerated(i, mp);
-            }
+        if (idx.length == 1) {
+            TaskResult mp = buildMonitorParameter(p, dataName);
+            monitor.valueGenerated(idx[0], mp);
         }
     }
 
@@ -536,7 +483,6 @@ public class ExecutionAction extends AllocatableAction implements JobListener {
                     break;
                 case INOUT:
                     dId = ((RWAccessId) dp.getDataAccessId()).getWrittenDataInstance();
-                    Comm.removeDataKeepingValue("tmp" + dId);
                     break;
             }
 
@@ -544,179 +490,6 @@ public class ExecutionAction extends AllocatableAction implements JobListener {
             name = dId.getRenaming();
         }
         return name;
-    }
-
-    private DataLocation storeOutputParameter(Job<?> job, Worker<? extends WorkerResourceDescription> w,
-        String dataName, DependencyParameter p) {
-        DependencyParameter dp = (DependencyParameter) p;
-
-        if (dp.getType() == DataType.COLLECTION_T) {
-            CollectionParameter cp = (CollectionParameter) p;
-            for (Parameter elem : cp.getParameters()) {
-                String elemOutRename = getOuputRename(elem);
-                if (elemOutRename != null) {
-                    storeOutputParameter(job, w, elemOutRename, (DependencyParameter) elem);
-                }
-            }
-        }
-        if (dp.getType() == DataType.DICT_COLLECTION_T) {
-            DictCollectionParameter dcp = (DictCollectionParameter) p;
-            for (Map.Entry<Parameter, Parameter> entry : dcp.getParameters().entrySet()) {
-                Parameter k = entry.getKey();
-                String elemKeyOutRename = getOuputRename(k);
-                if (elemKeyOutRename != null) {
-                    storeOutputParameter(job, w, elemKeyOutRename, (DependencyParameter) k);
-                }
-                Parameter v = entry.getValue();
-                String elemValueOutRename = getOuputRename(v);
-                if (elemValueOutRename != null) {
-                    storeOutputParameter(job, w, elemValueOutRename, (DependencyParameter) v);
-                }
-            }
-
-        }
-        // Request transfer
-        DataLocation outLoc = null;
-        try {
-            String dataTarget = dp.getDataTarget();
-            if (DEBUG) {
-                JOB_LOGGER.debug("Proposed URI for storing output param: " + dataTarget);
-            }
-            SimpleURI resultURI = new SimpleURI(dataTarget);
-            SimpleURI targetURI = new SimpleURI(resultURI.getSchema() + resultURI.getPath());
-            outLoc = DataLocation.createLocation(w, targetURI);
-            // Data target has been stored as URI but final target data should be just the path
-            dp.setDataTarget(outLoc.getPath());
-        } catch (Exception e) {
-            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + dp.getDataTarget(), e);
-        }
-        Comm.registerLocation(dataName, outLoc);
-
-        // Return location
-        return outLoc;
-    }
-
-    private DataLocation storeHttpOutputParameter(String dataName, DependencyParameter p) {
-
-        DataLocation outLoc = null;
-        try {
-            String dataTarget = p.getDataTarget();
-            if (DEBUG) {
-                JOB_LOGGER.debug("Proposed URI for storing HTTP output param: " + dataTarget);
-            }
-            SimpleURI resultURI = new SimpleURI(dataTarget);
-            SimpleURI targetURI = new SimpleURI(resultURI.getSchema() + resultURI.getPath());
-            outLoc = DataLocation.createLocation(Comm.getAppHost(), targetURI);
-            // Data target has been stored as URI but final target data should be just the path
-            p.setDataTarget(outLoc.getPath());
-        } catch (Exception e) {
-            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + p.getDataTarget(), e);
-        }
-        Comm.registerLocation(dataName, outLoc);
-
-        // Return location
-        return outLoc;
-    }
-
-    private void doHttpOutputTransfers(Job<?> job) {
-        TaskMonitor monitor = this.task.getTaskMonitor();
-        Worker<? extends WorkerResourceDescription> w = getAssignedResource().getResource();
-
-        List<Parameter> params = job.getTaskParams().getParameters();
-        for (int i = 0; i < params.size(); ++i) {
-            Parameter p = params.get(i);
-            if (!(p.isPotentialDependency())) {
-                continue;
-            }
-
-            DependencyParameter dp = (DependencyParameter) p;
-            DataInstanceId dId = null;
-            if (p.getDirection() == Direction.INOUT) {
-                dId = ((RWAccessId) dp.getDataAccessId()).getWrittenDataInstance();
-            } else {
-                if (p.getDirection() == Direction.OUT) {
-                    dId = ((WAccessId) dp.getDataAccessId()).getWrittenDataInstance();
-                } else {
-                    continue;
-                }
-            }
-
-            String dataName = getOuputRename(p);
-            DataLocation dl = storeHttpOutputParameter(dataName, dp);
-
-            // Parameter found, store it
-            // todo: fix this
-            String name = dId.getRenaming();
-            Object value;
-            LogicalData ld;
-            JsonObject retValue = (JsonObject) job.getReturnValue();
-            if (dp.getType().equals(DataType.FILE_T)) {
-                value = retValue.get(p.getName()).toString();
-                try {
-                    FileWriter file = new FileWriter(dp.getDataTarget());
-                    // 0004 is the JSON package ID in Python binding
-                    file.write("0004");
-                    file.write(value.toString());
-                    file.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                ld = Comm.registerLocation(name, dl);
-                TaskResult mp = buildMonitorParameter(p, dataName);
-                monitor.valueGenerated(i, mp);
-            } else {
-                // it's a Java HTTP task, can have only single value of a primitive type
-                Gson gson = new Gson();
-                JsonPrimitive primValue = retValue.getAsJsonPrimitive("$return_0");
-                switch (dp.getType()) {
-                    case INT_T:
-                        value = gson.fromJson(primValue, int.class);
-                        break;
-                    case LONG_T:
-                        value = gson.fromJson(primValue, long.class);
-                        break;
-                    case STRING_T:
-                        value = gson.fromJson(primValue, String.class);
-                        break;
-                    case STRING_64_T:
-                        String temp = gson.fromJson(primValue, String.class);
-                        byte[] encoded = Base64.getEncoder().encode(temp.getBytes());
-                        value = new String(encoded);
-                        break;
-                    case OBJECT_T:
-                        if (dp.getContentType().equals("int")) {
-                            value = gson.fromJson(primValue, int.class);
-                        } else {
-                            if (dp.getContentType().equals("long")) {
-                                value = gson.fromJson(primValue, long.class);
-                            } else {
-                                if (dp.getContentType().equals("String")) {
-                                    value = gson.fromJson(primValue, String.class);
-                                } else {
-                                    // todo: Strings fall here too.. why??
-                                    value = gson.fromJson(primValue, Object.class);
-                                }
-                            }
-                        }
-                        break;
-                    default:
-                        value = null;
-                        break;
-                }
-                ld = Comm.registerValue(name, value);
-            }
-
-            // Monitor one of its locations
-            Set<DataLocation> locations = ld.getLocations();
-            if (!locations.isEmpty()) {
-                TaskResult mp = buildMonitorParameter(p, getOuputRename(p));
-                for (DataLocation loc : ld.getLocations()) {
-                    if (loc != null) {
-                        monitor.valueGenerated(i, mp);
-                    }
-                }
-            }
-        }
     }
 
     /*
@@ -1169,8 +942,8 @@ public class ExecutionAction extends AllocatableAction implements JobListener {
      */
     @Override
     public String toString() {
-        return "ExecutionAction (Task " + this.task.getId() + ", CE name " + this.task.getTaskDescription().getName()
-            + ")";
+        String ceName = this.task.getTaskDescription().getName();
+        return "ExecutionAction (Task " + this.task.getId() + ", CE name " + ceName + ")";
     }
 
 }

@@ -17,8 +17,6 @@
 package es.bsc.compss.types.job;
 
 import es.bsc.compss.types.COMPSsWorker;
-import es.bsc.compss.types.TaskDescription;
-import es.bsc.compss.types.implementations.TaskType;
 
 
 /**
@@ -65,9 +63,4 @@ public interface Job<T extends COMPSsWorker> {
      */
     public void cancel() throws Exception;
 
-    public TaskType getType();
-
-    public TaskDescription getTaskParams();
-
-    public Object getReturnValue();
 }

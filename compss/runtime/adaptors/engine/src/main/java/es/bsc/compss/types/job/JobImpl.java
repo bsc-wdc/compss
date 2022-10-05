@@ -16,6 +16,9 @@
  */
 package es.bsc.compss.types.job;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.comm.Comm;
@@ -25,10 +28,12 @@ import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessid.WAccessId;
+import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.parameter.CollectionParameter;
@@ -36,9 +41,13 @@ import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.DictCollectionParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Resource;
+import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.JobDispatcher;
 import es.bsc.compss.worker.COMPSsException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Base64;
 
 import java.util.List;
 import java.util.Map;
@@ -572,7 +581,7 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
     public void cancel() throws Exception {
         this.cancelling = true;
         this.cancelJob();
-        this.listener.doOutputTransfers(this);
+        registerJobOutputs();
     }
 
     /**
@@ -642,7 +651,7 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
         }
 
         // Job finished, update info about the generated/updated data
-        this.listener.doOutputTransfers(this);
+        registerJobOutputs();
         if (this.cancelling) {
             cancelled();
         } else {
@@ -666,7 +675,7 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
             return;
         }
         if (cancelling) {
-            this.listener.doOutputTransfers(this);
+            registerJobOutputs();
             cancelled();
         } else {
             final String errMsg = "Job " + this.jobId + ", running Task " + this.taskId + " on worker "
@@ -685,11 +694,11 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
                 switch (this.taskParams.getOnFailure()) {
                     case IGNORE:
                         ErrorManager.warn("Ignoring failure.");
-                        this.listener.doOutputTransfers(this);
+                        registerJobOutputs();
                         break;
                     case CANCEL_SUCCESSORS:
                         ErrorManager.warn("Cancelling successors.");
-                        this.listener.doOutputTransfers(this);
+                        registerJobOutputs();
                         break;
                     default:
                         // Do nothing before reporting the failure
@@ -715,12 +724,189 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
         }
 
         // Job finished, update info about the generated/updated data
-        this.listener.doOutputTransfers(this);
+        registerJobOutputs();
 
         if (this.cancelling) {
             cancelled();
         } else {
             this.listener.jobException(this, exception);
+        }
+    }
+
+    private void registerJobOutputs() {
+        List<Parameter> params = this.taskParams.getParameters();
+        int subParamIdx = 0;
+        for (Parameter p : params) {
+            registerParameterOutput(new int[] { subParamIdx }, p);
+            subParamIdx++;
+        }
+    }
+
+    private void registerParameterOutput(int[] idx, Parameter p) {
+        if (!p.isPotentialDependency()) {
+            return;
+        }
+        DependencyParameter dp = (DependencyParameter) p;
+        String dataName = getOuputRename(p);
+        switch (dp.getType()) {
+            case COLLECTION_T: {
+                CollectionParameter cp = (CollectionParameter) dp;
+                int[] newIdx = new int[idx.length + 1];
+                System.arraycopy(idx, 0, newIdx, 0, idx.length);
+                newIdx[idx.length] = 0;
+                for (Parameter elem : cp.getParameters()) {
+                    if (elem.isPotentialDependency()) {
+                        registerParameterOutput(newIdx, elem);
+                        newIdx[idx.length]++;
+                    }
+                }
+                break;
+            }
+            case DICT_COLLECTION_T: {
+                DictCollectionParameter dcp = (DictCollectionParameter) dp;
+                int[] newIdx = new int[idx.length + 1];
+                for (Map.Entry<Parameter, Parameter> entry : dcp.getParameters().entrySet()) {
+                    Parameter k = entry.getKey();
+                    if (k.isPotentialDependency()) {
+                        registerParameterOutput(newIdx, k);
+                        newIdx[idx.length]++;
+                    }
+                    Parameter v = entry.getValue();
+                    if (v.isPotentialDependency()) {
+                        registerParameterOutput(newIdx, v);
+                        newIdx[idx.length]++;
+                    }
+                }
+                break;
+            }
+            default:
+                if (dataName != null) {
+                    switch (this.getType()) {
+                        case METHOD:
+                            registerResultLocation(dp, dataName, this.worker);
+                            break;
+                        case HTTP:
+                            saveHTTPResult(dp, dataName);
+                            break;
+                    }
+                }
+        }
+        if (dataName != null) {
+            this.listener.resultAvailable(idx, p, dataName);
+        }
+    }
+
+    private String getOuputRename(Parameter p) {
+        String name = null;
+        if (p.isPotentialDependency()) {
+            // Notify the FileTransferManager about the generated/updated OUT/INOUT datums
+            DependencyParameter dp = (DependencyParameter) p;
+            DataInstanceId dId = null;
+            switch (p.getDirection()) {
+                case OUT:
+                    dId = ((WAccessId) dp.getDataAccessId()).getWrittenDataInstance();
+                    break;
+                case COMMUTATIVE:
+                    dId = ((RWAccessId) dp.getDataAccessId()).getWrittenDataInstance();
+                    break;
+                case INOUT:
+                    dId = ((RWAccessId) dp.getDataAccessId()).getWrittenDataInstance();
+                    break;
+                case CONCURRENT:
+                case IN_DELETE:
+                case IN:
+                default:
+                    // FTM already knows about this datum
+                    return null;
+            }
+
+            // Retrieve parameter information
+            name = dId.getRenaming();
+        }
+        return name;
+    }
+
+    private DataLocation registerResultLocation(DependencyParameter dp, String dataName, Resource res) {
+        // Request transfer
+        DataLocation outLoc = null;
+        try {
+            String dataTarget = dp.getDataTarget();
+            if (DEBUG) {
+                JOB_LOGGER.debug("Proposed URI for storing output param: " + dataTarget);
+            }
+            SimpleURI resultURI = new SimpleURI(dataTarget);
+            SimpleURI targetURI = new SimpleURI(resultURI.getSchema() + resultURI.getPath());
+            outLoc = DataLocation.createLocation(res, targetURI);
+            // Data target has been stored as URI but final target data should be just the path
+            dp.setDataTarget(outLoc.getPath());
+        } catch (Exception e) {
+            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + dp.getDataTarget(), e);
+        }
+        Comm.registerLocation(dataName, outLoc);
+
+        // Return location
+        return outLoc;
+    }
+
+    private void saveHTTPResult(DependencyParameter dp, String dataName) {
+        JsonObject retValue = (JsonObject) this.getReturnValue();
+
+        if (dp.getType().equals(DataType.FILE_T)) {
+            Object value = retValue.get(dp.getName()).toString();
+            try {
+                FileWriter file = new FileWriter(dp.getDataTarget());
+                // 0004 is the JSON package ID in Python binding
+                file.write("0004");
+                file.write(value.toString());
+                file.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            registerResultLocation(dp, dataName, Comm.getAppHost());
+        } else {
+            // it's a Java HTTP task, can have only single value of a primitive type
+            Gson gson = new Gson();
+            JsonPrimitive primValue = retValue.getAsJsonPrimitive("$return_0");
+            Object value;
+            switch (dp.getType()) {
+                case INT_T:
+                    value = gson.fromJson(primValue, int.class);
+                    break;
+                case LONG_T:
+                    value = gson.fromJson(primValue, long.class);
+                    break;
+                case STRING_T:
+                    value = gson.fromJson(primValue, String.class);
+                    break;
+                case STRING_64_T:
+                    String temp = gson.fromJson(primValue, String.class);
+                    byte[] encoded = Base64.getEncoder().encode(temp.getBytes());
+                    value = new String(encoded);
+                    break;
+                case OBJECT_T:
+                    if (dp.getContentType().equals("int")) {
+                        value = gson.fromJson(primValue, int.class);
+                    } else {
+                        if (dp.getContentType().equals("long")) {
+                            value = gson.fromJson(primValue, long.class);
+                        } else {
+                            if (dp.getContentType().equals("java.lang.String")) {
+                                value = gson.fromJson(primValue, String.class);
+                            } else {
+                                // todo: Strings fall here too.. why??
+                                value = gson.fromJson(primValue, Object.class);
+                            }
+                        }
+                    }
+                    break;
+                default:
+                    value = null;
+                    break;
+            }
+            LogicalData ld = Comm.registerValue(dataName, value);
+            for (DataLocation dl : ld.getLocations()) {
+                dp.setDataTarget(dl.getPath());
+            }
         }
     }
 

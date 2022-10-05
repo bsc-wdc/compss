@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.job;
 
+import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.worker.COMPSsException;
 
 
@@ -127,6 +128,15 @@ public interface JobListener {
     public void endNotifiedAt(Job<?> job, long timestamp);
 
     /**
+     * Actions to perform when a job result is available.
+     * 
+     * @param idx Index of the produced parameter
+     * @param p Produced parameter
+     * @param dataName name of the data produced
+     */
+    public void resultAvailable(int[] idx, Parameter p, String dataName);
+
+    /**
      * Actions when job has successfully been cancelled.
      *
      * @param job Cancelled job
@@ -134,7 +144,7 @@ public interface JobListener {
     public void jobCancelled(Job<?> job);
 
     /**
-     * Actions when job has successfully ended.
+     * Actions to perform when job has successfully ended.
      * 
      * @param job Completed job.
      */
@@ -156,10 +166,4 @@ public interface JobListener {
      */
     public void jobException(Job<?> job, COMPSsException e);
 
-    /**
-     * Should be removed .
-     * 
-     * @param job finished job
-     */
-    public void doOutputTransfers(Job<?> job);
 }

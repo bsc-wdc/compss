@@ -2147,21 +2147,25 @@ def _serialize_object_into_file(
                     for x in param.content
                 ]
             else:
-                new_object_col = [
-                    _serialize_object_into_file(
-                        name,
-                        Parameter(
-                            content=x,
-                            content_type=get_compss_type(
-                                x, param.depth - 1, code_strings=code_strings
+                if param.content is None:
+                    # to avoid None is not iterable error, assign an empty list
+                    new_object_col = []
+                else:
+                    new_object_col = [
+                        _serialize_object_into_file(
+                            name,
+                            Parameter(
+                                content=x,
+                                content_type=get_compss_type(
+                                    x, param.depth - 1, code_strings=code_strings
+                                ),
+                                direction=param.direction,
+                                depth=param.depth - 1,
+                                extra_content_type=str(type(x).__name__),
                             ),
-                            direction=param.direction,
-                            depth=param.depth - 1,
-                            extra_content_type=str(type(x).__name__),
-                        ),
-                    )
-                    for x in param.content
-                ]
+                        )
+                        for x in param.content
+                    ]
         param.content = new_object_col
         # Give this object an identifier inside the binding
         if param.direction != DIRECTION.IN_DELETE:

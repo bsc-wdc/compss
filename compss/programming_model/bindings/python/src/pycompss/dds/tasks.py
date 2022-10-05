@@ -26,6 +26,8 @@ from pycompss.api.parameter import INOUT
 from pycompss.api.parameter import IN
 from pycompss.api.parameter import COLLECTION_OUT
 from pycompss.api.parameter import COLLECTION_IN
+from pycompss.api.parameter import Type
+from pycompss.api.parameter import Depth
 from pycompss.api.task import task
 from pycompss.dds.partition_generators import IPartitionGenerator
 
@@ -33,8 +35,8 @@ MARKER = "COMPSS_DEFAULT_VALUE_TO_BE_USED_AS_A_MARKER"
 FILE_NAME_LENGTH = 5
 
 
-@task(returns=1, collection=COLLECTION_IN)
-def map_partition(func, partition, collection=list()):
+@task(returns=1, collection={Type: COLLECTION_IN, Depth: 1})
+def map_partition(func, partition, collection=None):
     """Map the given function to the partition.
 
     :param func: A function that return only one argument which is iterable.
@@ -42,7 +44,7 @@ def map_partition(func, partition, collection=list()):
     :param collection: Partition when partition is a collection.
     :return: The transformed partition.
     """
-    partition = partition or collection
+    partition = partition or collection or list()
     if isinstance(partition, IPartitionGenerator):
         partition = partition.retrieve_data()
 
@@ -51,8 +53,8 @@ def map_partition(func, partition, collection=list()):
     return res
 
 
-@task(col=COLLECTION_OUT, collection=COLLECTION_IN)
-def distribute_partition(col, func, partitioner_func, partition, collection=list()):
+@task(col={Type: COLLECTION_OUT, Depth: 1}, collection={Type: COLLECTION_IN, Depth: 1})
+def distribute_partition(col, func, partitioner_func, partition, collection=None):
     """Distribute (key, value) structured elements of the partition on 'buckets'.
 
     :param col: Empty 'buckets', must be repleced with COLLECTION_OUT.
@@ -63,7 +65,7 @@ def distribute_partition(col, func, partitioner_func, partition, collection=list
     :param collection: If the partition is a collection of future objects.
     :return: Fill the empty 'buckets' with the elements of the partition.
     """
-    partition = partition or collection
+    partition = partition or collection or list()
 
     if isinstance(partition, IPartitionGenerator):
         partition = partition.retrieve_data()
@@ -75,7 +77,7 @@ def distribute_partition(col, func, partitioner_func, partition, collection=list
         col[partitioner_func(k) % nop].append((k, v))
 
 
-@task(first=INOUT, rest=COLLECTION_IN)
+@task(first=INOUT, rest={Type: COLLECTION_IN, Depth: 1})
 def reduce_dicts(first, rest):
     """Reduce dictionaries.
 
@@ -118,7 +120,7 @@ def task_dict_to_list(iterator, total_parts, partition_num):
     return ret
 
 
-@task(returns=1, parts=COLLECTION_IN)
+@task(returns=1, parts={Type: COLLECTION_IN, Depth: 1})
 def reduce_multiple(f, parts):
     """Reduce multiple.
 
@@ -157,8 +159,8 @@ def task_collect_samples(partition, num_of_samples, key_func):
     return ret
 
 
-@task(collection=COLLECTION_IN)
-def map_and_save_text_file(func, index, path, partition, collection=list()):
+@task(collection={Type: COLLECTION_IN, Depth: 1})
+def map_and_save_text_file(func, index, path, partition, collection=None):
     """Map and save text file.
 
     Same as 'map_partition' function with the only difference that this one
@@ -171,7 +173,7 @@ def map_and_save_text_file(func, index, path, partition, collection=list()):
     :param collection: Is collection?
     :return: No return value skips the serialization phase.
     """
-    partition = partition or list(collection)
+    partition = partition or collection or list()
 
     if isinstance(partition, IPartitionGenerator):
         partition = partition.retrieve_data()
@@ -180,11 +182,12 @@ def map_and_save_text_file(func, index, path, partition, collection=list()):
 
     file_name = os.path.join(path, str(index).zfill(FILE_NAME_LENGTH))
     with open(file_name, "w") as _:
-        _.write("\n".join([str(item) for item in partition]))
+        for item in partition:
+            _.write("\n".join([str(item)]))
 
 
-@task(collection=COLLECTION_IN)
-def map_and_save_pickle(func, index, path, partition, collection=list()):
+@task(collection={Type: COLLECTION_IN, Depth: 1})
+def map_and_save_pickle(func, index, path, partition, collection=None):
     """Map and save pickled file.
 
     Same as 'map_partition' function with the only difference that this one
@@ -197,7 +200,7 @@ def map_and_save_pickle(func, index, path, partition, collection=list()):
     :param collection: Is collection?
     :return: None.
     """
-    partition = partition or list(collection)
+    partition = partition or collection or list()
 
     if isinstance(partition, IPartitionGenerator):
         partition = partition.retrieve_data()

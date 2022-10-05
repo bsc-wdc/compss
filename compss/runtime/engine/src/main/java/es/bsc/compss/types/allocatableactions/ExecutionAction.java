@@ -53,7 +53,6 @@ import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobEndStatus;
-import es.bsc.compss.types.job.JobHistory;
 import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.parameter.CollectionParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
@@ -84,7 +83,6 @@ import org.apache.logging.log4j.Logger;
 public class ExecutionAction extends AllocatableAction implements JobListener {
 
     // Fault tolerance parameters
-    private static final int SUBMISSION_CHANCES = 2;
     private static final int SCHEDULING_CHANCES = 2;
 
     // LOGGER
@@ -94,8 +92,6 @@ public class ExecutionAction extends AllocatableAction implements JobListener {
     protected final AccessProcessor ap;
     protected final Task task;
     private final LinkedList<Integer> jobs;
-    private int transferErrors = 0;
-    protected int executionErrors = 0;
     protected Job<?> currentJob;
     boolean cancelledBeforeSubmit = false;
     boolean extraResubmit = false;
@@ -116,8 +112,6 @@ public class ExecutionAction extends AllocatableAction implements JobListener {
         this.ap = ap;
         this.task = task;
         this.jobs = new LinkedList<>();
-        this.transferErrors = 0;
-        this.executionErrors = 0;
 
         // Add execution to task
         this.task.addExecution(this);
@@ -223,15 +217,16 @@ public class ExecutionAction extends AllocatableAction implements JobListener {
 
     @Override
     protected void doAction() {
-        JOB_LOGGER.info("Ordering transfers to " + getAssignedResource() + " to run task: " + this.task.getId());
-        this.transferErrors = 0;
-        this.executionErrors = 0;
         TaskMonitor monitor = this.task.getTaskMonitor();
         monitor.onSubmission();
-        this.currentJob = createJob();
-        this.jobs.add(this.currentJob.getJobId());
-        this.currentJob.stageIn();
-        this.task.setSubmitted();
+        if (!this.cancelledBeforeSubmit) {
+            this.currentJob = createJob();
+            this.jobs.add(this.currentJob.getJobId());
+            this.currentJob.stageIn();
+            this.task.setSubmitted();
+        } else {
+            jobCancelled(null);
+        }
     }
 
     private Job<?> createJob() {
@@ -250,10 +245,10 @@ public class ExecutionAction extends AllocatableAction implements JobListener {
         Job<?> job = w.newJob(this.task.getId(), this.task.getTaskDescription(), this.getAssignedImplementation(),
             slaveNames, this, predecessors, this.task.getSuccessors().size());
 
-        JOB_LOGGER.info((getExecutingResources().size() > 1 ? "Rescheduled" : "New") + " Job " + job.getJobId()
-            + " (Task: " + this.task.getId() + ")");
-        JOB_LOGGER.info("  * Method name: " + this.task.getTaskDescription().getName());
-        JOB_LOGGER.info("  * Target host: " + this.getAssignedResource().getName());
+        LOGGER.info((getExecutingResources().size() > 1 ? "Rescheduled" : "New") + " Job " + job.getJobId() + " (Task: "
+            + this.task.getId() + ")");
+        LOGGER.info("  * Method name: " + this.task.getTaskDescription().getName());
+        LOGGER.info("  * Target host: " + this.getAssignedResource().getName());
         // Remove predecessors from map for task dependency tracing
         if (Tracer.isActivated() && Tracer.isTracingTaskDependencies()) {
             Tracer.removePredecessor(this.task.getId());
@@ -282,11 +277,7 @@ public class ExecutionAction extends AllocatableAction implements JobListener {
 
     @Override
     public final void stageInCompleted() {
-        if (!this.cancelledBeforeSubmit) {
-            this.currentJob.submit();
-        } else {
-            JOB_LOGGER.info("Job" + this.currentJob.getJobId() + " cancelled before submission.");
-        }
+        this.currentJob.submit();
     }
 
     @Override
@@ -376,12 +367,15 @@ public class ExecutionAction extends AllocatableAction implements JobListener {
             LOGGER.debug("Task " + this.task.getId() + " starts cancelling running job");
         }
         if (this.currentJob != null) {
-            this.currentJob.cancelJob();
-            // Update info about the generated/updated data
-            doOutputTransfers(this.currentJob);
+            this.currentJob.cancel();
         } else {
             this.cancelledBeforeSubmit = true;
         }
+    }
+
+    @Override
+    public final void jobCancelled(Job<?> job) {
+        notifyError();
     }
 
     /**
@@ -392,25 +386,17 @@ public class ExecutionAction extends AllocatableAction implements JobListener {
      */
     @Override
     public final void jobException(Job<?> job, COMPSsException e) {
+        LOGGER.debug("Job " + job.getJobId() + " raised an Exception");
         this.profile.end(System.currentTimeMillis());
 
-        int jobId = job.getJobId();
-        JOB_LOGGER.error("Received an exception notification for job " + jobId);
-        if (this.task.getStatus() == TaskState.CANCELED) {
-            ErrorManager
-                .warn("Ingoring notification for job " + jobId + ". Task " + task.getId() + " already cancelled");
-        } else {
-            if (e instanceof COMPSsException && this.task.hasTaskGroups()) {
-                for (TaskGroup t : this.task.getTaskGroupList()) {
-                    t.setException((COMPSsException) e);
-                }
+        if (e instanceof COMPSsException && this.task.hasTaskGroups()) {
+            for (TaskGroup t : this.task.getTaskGroupList()) {
+                t.setException((COMPSsException) e);
             }
-
-            // Update info about the generated/updated data
-            doOutputTransfers(job);
-
-            notifyException(e);
         }
+
+        notifyException(e);
+
     }
 
     /**
@@ -421,45 +407,10 @@ public class ExecutionAction extends AllocatableAction implements JobListener {
      */
     @Override
     public final void jobFailed(Job<?> job, JobEndStatus status) {
+        LOGGER.debug("Job " + job.getJobId() + " failed");
         this.profile.end(System.currentTimeMillis());
 
-        if (this.task.getStatus() == TaskState.CANCELED) {
-            JOB_LOGGER.debug("Ignoring notification for cancelled job " + job.getJobId());
-        } else {
-            if (this.isCancelling()) {
-                JOB_LOGGER.debug("Received a notification for cancelled job " + job.getJobId());
-                doOutputTransfers(job);
-
-                notifyError();
-            } else {
-                int jobId = job.getJobId();
-                JOB_LOGGER.error("Received a notification for job " + jobId + " with state FAILED");
-                JOB_LOGGER.error("Job " + job.getJobId() + ", running Task " + this.task.getId() + " on worker "
-                    + this.getAssignedResource().getName() + ", has failed.");
-                ErrorManager.warn("Job " + job.getJobId() + ", running Task " + this.task.getId() + " on worker "
-                    + this.getAssignedResource().getName() + ", has failed.");
-                ++this.executionErrors;
-                if (this.transferErrors + this.executionErrors < SUBMISSION_CHANCES
-                    && this.task.getOnFailure() == OnFailure.RETRY) {
-                    JOB_LOGGER.error("Resubmitting job to the same worker.");
-                    ErrorManager.warn("Resubmitting job to the same worker.");
-                    job.setHistory(JobHistory.RESUBMITTED);
-                    this.currentJob.submit();
-                } else if (this.task.getOnFailure() == OnFailure.IGNORE) {
-                    // Update info about the generated/updated data
-                    ErrorManager.warn("Ignoring failure.");
-                    doOutputTransfers(job);
-                    notifyError();
-                } else if (this.task.getOnFailure() == OnFailure.CANCEL_SUCCESSORS) {
-                    ErrorManager.warn("Cancelling successors.");
-                    doOutputTransfers(job);
-                    notifyError();
-                } else {
-                    notifyError();
-
-                }
-            }
-        }
+        notifyError();
     }
 
     /**
@@ -469,26 +420,16 @@ public class ExecutionAction extends AllocatableAction implements JobListener {
      */
     @Override
     public final void jobCompleted(Job<?> job) {
+        LOGGER.debug("Job " + job.getJobId() + " completed");
         // End profile
         this.profile.end(System.currentTimeMillis());
 
-        // Notify end
-        int jobId = job.getJobId();
-        JOB_LOGGER.info("Received a notification for job " + jobId + " with state OK (avg. duration: "
-            + this.profile.getAverageExecutionTime() + ")");
-
-        if (this.task.getStatus() == TaskState.CANCELED) {
-            ErrorManager
-                .warn("Ingoring notification for job " + jobId + ". Task " + task.getId() + " already cancelled");
-        } else {
-            // Job finished, update info about the generated/updated data
-            doOutputTransfers(job);
-            // Notify completion
-            notifyCompleted();
-        }
+        // Notify completion
+        notifyCompleted();
     }
 
-    private final void doOutputTransfers(Job<?> job) {
+    @Override
+    public final void doOutputTransfers(Job<?> job) {
         commitCommutativeAccesses(job);
         switch (job.getType()) {
             case METHOD:

@@ -143,12 +143,12 @@ public class NIOJob extends JobImpl<NIOWorkerNode> {
      */
     public void taskFinished(boolean successful, Exception e) {
         if (successful) {
-            this.listener.jobCompleted(this);
+            this.completed();
         } else {
             if (e instanceof COMPSsException) {
-                this.listener.jobException(this, (COMPSsException) e);
+                this.exception((COMPSsException) e);
             } else {
-                this.listener.jobFailed(this, JobEndStatus.EXECUTION_FAILED);
+                this.failed(JobEndStatus.OK);
             }
         }
     }

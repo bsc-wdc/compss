@@ -110,7 +110,6 @@ public class MultiNodeExecutionAction extends ExecutionAction {
         if (this.actionIdInsideGroup == MultiNodeGroup.ID_UNASSIGNED) {
             this.actionIdInsideGroup = this.group.registerProcess(this);
         }
-        this.executionErrors = 0;
 
         if (this.actionIdInsideGroup == MultiNodeGroup.ID_MASTER_PROC) {
             // The action is assigned as master, launch as a normal execution

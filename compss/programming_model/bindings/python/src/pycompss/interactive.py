@@ -76,10 +76,6 @@ from pycompss.util.tracing.types_events_master import TRACING_MASTER
 from pycompss.util.typing_helper import typing
 
 
-# Initialize multiprocessing
-initialize_multiprocessing()
-
-
 def start(  # pylint: disable=too-many-arguments, too-many-locals
     log_level: str = "off",
     debug: bool = False,
@@ -238,6 +234,9 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
                              (default: False)
     :return: None
     """
+    # Initialize multiprocessing
+    initialize_multiprocessing()
+
     if CONTEXT.in_pycompss():
         print("The runtime is already running")
         return None

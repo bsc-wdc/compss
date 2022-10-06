@@ -80,8 +80,6 @@ from pycompss.util.warnings.modules import show_optional_module_warnings
 
 # Spend less time in gc; do this before significant computation
 gc.set_threshold(150000)
-# Initialize multiprocessing
-initialize_multiprocessing()
 
 
 def stop_all(exit_code: int) -> None:
@@ -636,4 +634,8 @@ def launch_pycompss_application(
 
 if __name__ == "__main__":
     # This is the PyCOMPSs entry point.
+
+    # Initialize multiprocessing
+    initialize_multiprocessing()
+
     compss_main()

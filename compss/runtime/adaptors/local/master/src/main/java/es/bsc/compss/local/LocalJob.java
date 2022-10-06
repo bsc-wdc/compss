@@ -132,11 +132,6 @@ public class LocalJob extends JobImpl<COMPSsMaster> implements Invocation {
     }
 
     @Override
-    public String getHostName() {
-        return this.getResourceNode().getName();
-    }
-
-    @Override
     public TaskType getType() {
         return TaskType.METHOD;
     }

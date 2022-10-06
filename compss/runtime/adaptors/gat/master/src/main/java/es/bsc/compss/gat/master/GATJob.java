@@ -326,15 +326,16 @@ public class GATJob extends es.bsc.compss.types.job.JobImpl<GATWorkerNode> imple
 
         SoftwareDescription sd = new SoftwareDescription();
         sd.setExecutable(targetPath + WORKER_SCRIPT_PATH + WORKER_SCRIPT_NAME);
-        ArrayList<String> lArgs = new ArrayList<String>();
+        ArrayList<String> lArgs = new ArrayList<>();
 
         // Host Configuration
-        lArgs.add(getHostName());
-        lArgs.add(getResourceNode().getInstallDir());
-        lArgs.add(getResourceNode().getAppDir());
-        lArgs.add(getResourceNode().getEnvScriptPath());
-        lArgs.add(getResourceNode().getLibPath());
-        lArgs.add(getResourceNode().getWorkingDir());
+        GATWorkerNode resource = this.getResourceNode();
+        lArgs.add(resource.getName());
+        lArgs.add(resource.getInstallDir());
+        lArgs.add(resource.getAppDir());
+        lArgs.add(resource.getEnvScriptPath());
+        lArgs.add(resource.getLibPath());
+        lArgs.add(resource.getWorkingDir());
         lArgs.add(STORAGE_CONF);
         lArgs.add(Comm.getStreamingBackend().name());
         lArgs.add(Comm.getAppHost().getName());
@@ -573,11 +574,6 @@ public class GATJob extends es.bsc.compss.types.job.JobImpl<GATWorkerNode> imple
         buffer.append(", [Target host: ").append(host).append("]");
         buffer.append(", [User: ").append(user).append("]]");
         return buffer.toString();
-    }
-
-    @Override
-    public String getHostName() {
-        return getResourceNode().getName();
     }
 
     private LinkedList<String> processParameter(Parameter param) {

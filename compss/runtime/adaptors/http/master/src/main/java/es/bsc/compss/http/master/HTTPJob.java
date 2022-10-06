@@ -127,9 +127,4 @@ public class HTTPJob extends JobImpl<HTTPInstance> {
         return buffer.toString();
     }
 
-    @Override
-    public String getHostName() {
-        return getResourceNode().getName();
-    }
-
 }

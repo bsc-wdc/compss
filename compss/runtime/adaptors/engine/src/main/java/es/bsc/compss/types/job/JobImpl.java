@@ -290,13 +290,6 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
     }
 
     /**
-     * Returns the hostname.
-     *
-     * @return
-     */
-    public abstract String getHostName();
-
-    /**
      * Returns the task type of the job.
      *
      * @return

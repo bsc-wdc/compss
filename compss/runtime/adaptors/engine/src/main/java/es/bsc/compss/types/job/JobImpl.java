@@ -199,6 +199,24 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
     }
 
     /**
+     * Returns the on-failure mechanisms.
+     *
+     * @return The on-failure mechanisms.
+     */
+    public OnFailure getOnFailure() {
+        return this.taskParams.getOnFailure();
+    }
+
+    /**
+     * Returns the time out of the task.
+     *
+     * @return time out of the task
+     */
+    public long getTimeOut() {
+        return this.taskParams.getTimeOut();
+    }
+
+    /**
      * Returns the job history.
      *
      * @return
@@ -208,21 +226,22 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
     }
 
     /**
-     * Sets a new job history.
-     *
-     * @param newHistoryState job history state
-     */
-    public void setHistory(JobHistory newHistoryState) {
-        this.history = newHistoryState;
-    }
-
-    /**
      * Returns the resource assigned to the job execution.
      *
      * @return
      */
     public Resource getResource() {
         return this.worker;
+    }
+
+    /**
+     * Returns the resource node assigned to the job.
+     *
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    public T getResourceNode() {
+        return (T) this.worker.getNode();
     }
 
     /**
@@ -244,31 +263,12 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
     }
 
     /**
-     * Returns the resource node assigned to the job.
-     *
-     * @return
-     */
-    @SuppressWarnings("unchecked")
-    public T getResourceNode() {
-        return (T) this.worker.getNode();
-    }
-
-    /**
      * Returns the core implementation.
      *
      * @return
      */
     public Implementation getImplementation() {
         return this.impl;
-    }
-
-    /**
-     * Sets the transfer group id.
-     *
-     * @param transferId Transfer group Id
-     */
-    public void setTransferGroupId(int transferId) {
-        this.transferId = transferId;
     }
 
     /**
@@ -296,27 +296,6 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
      */
     public abstract TaskType getType();
 
-    @Override
-    public abstract String toString();
-
-    /**
-     * Returns the on-failure mechanisms.
-     *
-     * @return The on-failure mechanisms.
-     */
-    public OnFailure getOnFailure() {
-        return this.taskParams.getOnFailure();
-    }
-
-    /**
-     * Returns the time out of the task.
-     *
-     * @return time out of the task
-     */
-    public long getTimeOut() {
-        return this.taskParams.getTimeOut();
-    }
-
     /**
      * Returns the predecessors of a task.
      *
@@ -334,6 +313,9 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
     public Integer getNumSuccessors() {
         return this.numSuccessors;
     }
+
+    @Override
+    public abstract String toString();
 
     /*
      * -------------------------------------------------------------------------------------------------
@@ -848,7 +830,7 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
             Object value = retValue.get(dp.getName()).toString();
             try {
                 FileWriter file = new FileWriter(dp.getDataTarget());
-                // 0004 is the JSON package ID in Python binding
+                // 0004 is the JSON serializer ID in Python binding
                 file.write("0004");
                 file.write(value.toString());
                 file.close();
@@ -886,7 +868,6 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
                             if (dp.getContentType().equals("java.lang.String")) {
                                 value = gson.fromJson(primValue, String.class);
                             } else {
-                                // todo: Strings fall here too.. why??
                                 value = gson.fromJson(primValue, Object.class);
                             }
                         }

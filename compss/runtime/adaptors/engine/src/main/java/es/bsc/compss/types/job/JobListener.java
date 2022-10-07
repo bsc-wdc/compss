@@ -127,9 +127,16 @@ public interface JobListener {
     public void endNotifiedAt(Job<?> job, long timestamp);
 
     /**
+     * Actions when job has successfully been cancelled.
+     *
+     * @param job Cancelled job
+     */
+    public void jobCancelled(Job<?> job);
+
+    /**
      * Actions when job has successfully ended.
      * 
-     * @param job Job to notify completion.
+     * @param job Completed job.
      */
     public void jobCompleted(Job<?> job);
 
@@ -144,9 +151,15 @@ public interface JobListener {
     /**
      * Actions to perform when a job raises an exception.
      * 
-     * @param job Job that raised an exception
+     * @param job Job that raised the exception
      * @param e Exception raised
      */
     public void jobException(Job<?> job, COMPSsException e);
 
+    /**
+     * Should be removed .
+     * 
+     * @param job finished job
+     */
+    public void doOutputTransfers(Job<?> job);
 }

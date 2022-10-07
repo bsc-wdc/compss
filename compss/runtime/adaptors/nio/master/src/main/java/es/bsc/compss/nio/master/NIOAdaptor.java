@@ -855,7 +855,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         synchronized (RUNNING_JOBS) {
             for (Job<?> job : RUNNING_JOBS.values()) {
                 try {
-                    job.cancelJob();
+                    job.cancel();
                 } catch (Exception e) {
                     LOGGER.error(TERM_ERR, e);
                 }

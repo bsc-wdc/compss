@@ -63,9 +63,7 @@ public interface Job<T extends COMPSsWorker> {
      *
      * @throws Exception Error when stopping a job
      */
-    public void cancelJob() throws Exception;
-
-    public void setHistory(JobHistory newHistoryState);
+    public void cancel() throws Exception;
 
     public TaskType getType();
 

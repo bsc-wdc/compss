@@ -23,7 +23,6 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.LogicalData;
@@ -37,6 +36,7 @@ import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.DictCollectionParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Resource;
+import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.JobDispatcher;
 import es.bsc.compss.worker.COMPSsException;
 
@@ -62,6 +62,7 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
 
     // Fault tolerance parameters
     private static final int TRANSFER_CHANCES = 2;
+    private static final int SUBMISSION_CHANCES = 2;
 
     // Job identifier management
     protected static final int FIRST_JOB_ID = 1;
@@ -85,10 +86,11 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
     protected final TaskDescription taskParams;
     protected final Implementation impl;
     protected final Resource worker;
-    protected final JobListener listener;
+    private final JobListener listener;
     protected final List<Integer> predecessors;
     protected final Integer numSuccessors;
 
+    private boolean cancelling;
     protected JobHistory history;
     protected int transferId;
     private int transferErrors;
@@ -108,6 +110,7 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
         List<Integer> predecessors, Integer numSuccessors) {
         this.jobId = nextJobId++;
         this.taskId = taskId;
+        this.cancelling = false;
         this.history = JobHistory.NEW;
         this.transferErrors = 0;
         this.executionErrors = 0;
@@ -341,35 +344,48 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
      */
     @Override
     public void stageIn() {
-        JobTransfersListener stageInListener = new JobTransfersListener() {
+        if (this.cancelling) {
+            cancelled();
+        } else {
+            JOB_LOGGER.info("Ordering transfers to " + this.worker.getName() + " to run task: " + this.taskId);
+            JobTransfersListener stageInListener = new JobTransfersListener() {
 
-            @Override
-            public void stageInCompleted() {
-                JOB_LOGGER.debug(
-                    "Received a notification for the transfers of task " + JobImpl.this.taskId + " with state DONE");
-                JobImpl.this.listener.stageInCompleted();
-            }
-
-            @Override
-            public void stageInFailed(int numErrors) {
-                JOB_LOGGER.debug(
-                    "Received a notification for the transfers for task " + JobImpl.this.taskId + " with state FAILED");
-                JobImpl.this.removeTmpData();
-                JobImpl.this.transferErrors++;
-                if (JobImpl.this.transferErrors < TRANSFER_CHANCES
-                    && JobImpl.this.taskParams.getOnFailure() == OnFailure.RETRY) {
-                    JOB_LOGGER.debug("Resubmitting input files for task " + JobImpl.this.taskId + " to host "
-                        + JobImpl.this.worker.getName() + " since " + numErrors + " transfers failed.");
-                    JobImpl.this.stageIn();
-                } else {
-                    JobImpl.this.listener.stageInFailed(numErrors);
+                @Override
+                public void stageInCompleted() {
+                    if (JobImpl.this.cancelling) {
+                        JobImpl.this.cancelled();
+                    } else {
+                        JOB_LOGGER.debug("Received a notification for the transfers of task " + JobImpl.this.taskId
+                            + " with state DONE");
+                        JobImpl.this.listener.stageInCompleted();
+                    }
                 }
-            }
 
-        };
-        this.transferId = stageInListener.getId();
-        transferInputData(stageInListener);
-        stageInListener.enable();
+                @Override
+                public void stageInFailed(int numErrors) {
+                    if (JobImpl.this.cancelling) {
+                        JobImpl.this.cancelled();
+                    } else {
+                        JOB_LOGGER.debug("Received a notification for the transfers for task " + JobImpl.this.taskId
+                            + " with state FAILED");
+                        JobImpl.this.removeTmpData();
+                        JobImpl.this.transferErrors++;
+                        if (JobImpl.this.transferErrors < TRANSFER_CHANCES
+                            && JobImpl.this.taskParams.getOnFailure() == OnFailure.RETRY) {
+                            JOB_LOGGER.debug("Resubmitting input files for task " + JobImpl.this.taskId + " to host "
+                                + JobImpl.this.worker.getName() + " since " + numErrors + " transfers failed.");
+                            JobImpl.this.stageIn();
+                        } else {
+                            JobImpl.this.listener.stageInFailed(numErrors);
+                        }
+                    }
+                }
+
+            };
+            this.transferId = stageInListener.getId();
+            transferInputData(stageInListener);
+            stageInListener.enable();
+        }
     }
 
     private void transferInputData(JobTransfersListener listener) {
@@ -552,6 +568,13 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
      */
     public abstract void submitJob() throws Exception;
 
+    @Override
+    public void cancel() throws Exception {
+        this.cancelling = true;
+        this.cancelJob();
+        this.listener.doOutputTransfers(this);
+    }
+
     /**
      * Stops the job.
      *
@@ -599,19 +622,106 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
         this.listener.endNotifiedAt(this, ts);
     }
 
-    public void completed() {
-        removeTmpData();
-        this.listener.jobCompleted(this);
+    private void cancelled() {
+        this.history = JobHistory.CANCELLED;
+        this.cancelling = false;
+        this.listener.jobCancelled(this);
     }
+
+    /**
+     * Actions to be done when the job execution ends.
+     */
+    public void completed() {
+        JOB_LOGGER.info("Received a notification for job " + jobId + " with state OK");
+        // Remove temporary data for INOUT params
+        removeTmpData();
+
+        if (this.history == JobHistory.CANCELLED) {
+            JOB_LOGGER.error("Ignoring notification since the job was cancelled");
+            return;
+        }
+
+        // Job finished, update info about the generated/updated data
+        this.listener.doOutputTransfers(this);
+        if (this.cancelling) {
+            cancelled();
+        } else {
+            this.listener.jobCompleted(this);
+        }
+    }
+
+    /**
+     * Actions to be done when the job execution fails.
+     * 
+     * @param status end status of the job
+     */
 
     public void failed(JobEndStatus status) {
+        JOB_LOGGER.error("Received a notification for job " + jobId + " with state FAILED");
+        // Remove temporary data for INOUT params
         removeTmpData();
-        this.listener.jobFailed(this, status);
+
+        if (this.history == JobHistory.CANCELLED) {
+            JOB_LOGGER.error("Ignoring notification since the job was cancelled");
+            return;
+        }
+        if (cancelling) {
+            this.listener.doOutputTransfers(this);
+            cancelled();
+        } else {
+            final String errMsg = "Job " + this.jobId + ", running Task " + this.taskId + " on worker "
+                + this.worker.getName() + ", has failed.";
+            JOB_LOGGER.error(errMsg);
+            ErrorManager.warn(errMsg);
+            ++this.executionErrors;
+            if (this.taskParams.getOnFailure() == OnFailure.RETRY
+                && this.transferErrors + this.executionErrors < SUBMISSION_CHANCES) {
+                final String resubmitMsg = "Resubmitting job to the same worker.";
+                JOB_LOGGER.error(resubmitMsg);
+                ErrorManager.warn(resubmitMsg);
+                this.history = JobHistory.RESUBMITTED;
+                submit();
+            } else {
+                switch (this.taskParams.getOnFailure()) {
+                    case IGNORE:
+                        ErrorManager.warn("Ignoring failure.");
+                        this.listener.doOutputTransfers(this);
+                        break;
+                    case CANCEL_SUCCESSORS:
+                        ErrorManager.warn("Cancelling successors.");
+                        this.listener.doOutputTransfers(this);
+                        break;
+                    default:
+                        // Do nothing before reporting the failure
+                }
+                this.listener.jobFailed(this, status);
+            }
+        }
     }
 
+    /**
+     * Actions to be done when the job execution raises an exception.
+     * 
+     * @param exception exception raised during the execution
+     */
     public void exception(COMPSsException exception) {
+        JOB_LOGGER.error("Received an exception notification for job " + this.jobId);
+        // Remove temporary data for INOUT
         removeTmpData();
-        this.listener.jobException(this, exception);
+
+        if (this.history == JobHistory.CANCELLED) {
+            JOB_LOGGER.error("Ignoring notification since the job was cancelled");
+            return;
+        }
+
+        // Job finished, update info about the generated/updated data
+        this.listener.doOutputTransfers(this);
+
+        if (this.cancelling) {
+            cancelled();
+        } else {
+            this.listener.jobException(this, exception);
+        }
     }
 
 }

@@ -47,6 +47,7 @@ from pycompss.runtime.task.parameter import Parameter
 from pycompss.runtime.task.parameter import get_compss_type
 from pycompss.runtime.task.parameter import get_new_parameter
 from pycompss.runtime.task.parameter import get_direction_from_key
+from pycompss.runtime.task.wrappers.psco_stream import PscoStreamWrapper
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.logger.helpers import swap_logger_name
 from pycompss.util.objects.properties import create_object_by_con_type
@@ -451,6 +452,22 @@ class TaskWorker:
             if __debug__:
                 LOGGER.debug("\t\t - It is an EXTERNAL STREAM")
             argument.content = self.recover_object(argument)
+            # ###########################################################################
+            # ### THIS IS TEMPORAL UNTIL THE EXTERNAL PSCO STREAM TYPE IS IMPLEMENTED ###
+            # ###########################################################################
+            if isinstance(argument.content, PscoStreamWrapper):
+                # It is a persisted object hidden within a stream object
+                psco_id = argument.content.get_psco_id()
+                if __debug__:
+                    LOGGER.debug(
+                        "\t\t - It is hiding a PSCO STREAM with id: %s",
+                        str(psco_id),
+                    )
+                # The object is a PSCO, do a single getByID of the PSCO
+                from storage.api import getByID  # noqa
+
+                argument.content = getByID(psco_id)
+            # ###########################################################################
         elif content_type == type_collection:
             argument.content = []
             # This field is exclusive for COLLECTION_T parameters, so make
@@ -715,9 +732,9 @@ class TaskWorker:
             from storage.api import getByID  # noqa
 
             argument.content = getByID(argument.content)
-            # If we have not entered in any of these cases we will assume
-            # that the object was a basic type and the content is already
-            # available and properly casted by the python worker
+        # If we have not entered in any of these cases we will assume
+        # that the object was a basic type and the content is already
+        # available and properly casted by the python worker
 
     def recover_object(self, argument: Parameter) -> typing.Any:
         """Recover the object within a file.

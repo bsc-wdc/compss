@@ -75,6 +75,7 @@ from pycompss.runtime.task.parameter import Parameter
 from pycompss.runtime.task.parameter import UNDEFINED_CONTENT_TYPE
 from pycompss.runtime.task.parameter import get_compss_type
 from pycompss.runtime.task.parameter import get_new_parameter
+from pycompss.runtime.task.wrappers.psco_stream import PscoStreamWrapper
 from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.exceptions import SerializerException
@@ -92,6 +93,7 @@ from pycompss.util.tracing.helpers import EventMaster
 from pycompss.util.tracing.types_events_master import TRACING_MASTER
 from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.util.typing_helper import typing
+from pycompss.util.storages.persistent import is_psco
 
 logger = logging.getLogger(__name__)
 
@@ -2041,6 +2043,21 @@ def _serialize_object_into_file(
     :param force_file: If the default value is file (collections of files).
     :return: Parameter (whose type and value might be modified).
     """
+    # ###########################################################################
+    # ### THIS IS TEMPORAL UNTIL THE EXTERNAL PSCO STREAM TYPE IS IMPLEMENTED ###
+    # ###########################################################################
+    is_a_psco = is_psco(param.content)
+    if is_a_psco and param.content_type == TYPE.EXTERNAL_STREAM:
+        # If is a persisted object annotated as STREAM, create a wrapper
+        # and manage it as a normal STREAM object:
+        # - Negative: requires a serialization of the wrapper.
+        # - Positive: reuses the stream implementation and saves a lot of
+        #             implementation.
+        psco_id = get_id(param.content)
+        wrapped_psco_id = PscoStreamWrapper(psco_id)
+        param.content = wrapped_psco_id
+    # ###########################################################################
+
     if (
         param.content_type == TYPE.OBJECT
         or param.content_type == TYPE.EXTERNAL_STREAM

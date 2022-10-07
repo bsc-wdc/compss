@@ -111,31 +111,36 @@ def get_main_entities(wf_info: dict) -> typing.Tuple[str, str, str]:
     :returns: COMPSs version, main COMPSs file name, COMPSs profile file name
     """
 
-    # Build the whole source files list in list_of_files, and get a backup main entity, in case we can't find one
+    # Build the whole source files list in list_of_sources, and get a backup main entity, in case we can't find one
     # automatically. The mainEntity must be an existing file, otherwise the RO-Crate won't have a ComputationalWorkflow
-    list_of_files = []
+    list_of_sources = []
     # Should contain absolute paths, for correct comparison (two files in different directories
     # could be named the same)
     main_entity = None
     backup_main_entity = None
     if "files" in wf_info:
-        for file in wf_info["files"]:
+        files_list = []
+        if isinstance(wf_info["files"], list):
+            files_list = wf_info["files"]
+        else:
+            files_list.append(wf_info["files"])
+        for file in files_list:
             path_file = Path(file).expanduser()
             resolved_file = str(path_file.resolve())
             if path_file.exists():
-                list_of_files.append(resolved_file)
-        # list_of_files = wf_info["files"].copy()
-        if list_of_files:  # List of files not empty
-            backup_main_entity = list_of_files[0]  # Assign first file name as mainEntity
+                list_of_sources.append(resolved_file)
+        # list_of_sources = wf_info["files"].copy()
+        if list_of_sources:  # List of files not empty
+            backup_main_entity = list_of_sources[0]  # Assign first file name as mainEntity
     if "sources_dir" in wf_info:
         path_sources = Path(wf_info["sources_dir"]).expanduser()
         resolved_sources = str(path_sources.resolve())
         # print(f"resolved_sources is: {resolved_sources}")
         for root, dirs, files in os.walk(resolved_sources, topdown=True):
             for f_name in files:
-                # print(f"PROVENANCE DEBUG | ADDING FILE to list_of_files: {f_name}. root is: {root}")
+                # print(f"PROVENANCE DEBUG | ADDING FILE to list_of_sources: {f_name}. root is: {root}")
                 full_name = os.path.join(root, f_name)
-                list_of_files.append(full_name)
+                list_of_sources.append(full_name)
                 if backup_main_entity is None and Path(f_name).suffix in {
                     ".py",
                     ".java",
@@ -143,11 +148,11 @@ def get_main_entities(wf_info: dict) -> typing.Tuple[str, str, str]:
                     ".class",
                 }:
                     backup_main_entity = full_name
-                    print(
-                        f"PROVENANCE DEBUG | FOUND SOURCE FILE AS BACKUP MAIN: {backup_main_entity}"
-                    )
+                    # print(
+                    #     f"PROVENANCE DEBUG | FOUND SOURCE FILE AS BACKUP MAIN: {backup_main_entity}"
+                    # )
 
-    # print(f"List of files is: {list_of_files}")
+    # print(f"List of sources is: {list_of_sources}")
 
     # Can't get backup_main_entity from sources_main_file, because we do not know if it really exists
     if backup_main_entity is None:
@@ -156,7 +161,7 @@ def get_main_entities(wf_info: dict) -> typing.Tuple[str, str, str]:
             f"ro_crate_info.yaml definition ('sources_dir', and 'files' terms"
         )
         raise FileNotFoundError
-    print(f"PROVENANCE DEBUG | backup_main_entity is: {backup_main_entity}")
+    # print(f"PROVENANCE DEBUG | backup_main_entity is: {backup_main_entity}")
 
     with open(dp_log, "r") as f:
         compss_v = next(f).rstrip()  # First line, COMPSs version number
@@ -169,13 +174,13 @@ def get_main_entities(wf_info: dict) -> typing.Tuple[str, str, str]:
             # Translate identified main entity matmul.files.Matmul to a comparable path
             me_sub_path = second_line.replace(".", "/")
             detected_app = me_sub_path + ".java"
-        print(f"PROVENANCE DEBUG | Detected app is: {detected_app}")
+        # print(f"PROVENANCE DEBUG | Detected app is: {detected_app}")
 
-        for file in list_of_files:  # Try to find the identified mainEntity
+        for file in list_of_sources:  # Try to find the identified mainEntity
             if file.endswith(detected_app):
-                print(
-                    f"PROVENANCE DEBUG | IDENTIFIED MAIN ENTITY FOUND IN LIST OF FILES: {file}"
-                )
+                # print(
+                #     f"PROVENANCE DEBUG | IDENTIFIED MAIN ENTITY FOUND IN LIST OF FILES: {file}"
+                # )
                 main_entity = file
                 break
         # main_entity has a value if mainEntity has been automatically detected
@@ -185,11 +190,11 @@ def get_main_entities(wf_info: dict) -> typing.Tuple[str, str, str]:
             resolved_sources_main_file = os.path.join(
                 resolved_sources, wf_info["sources_main_file"]
             )
-            if any(file == resolved_sources_main_file for file in list_of_files):
+            if any(file == resolved_sources_main_file for file in list_of_sources):
                 # The file exists
-                print(
-                    f"PROVENANCE DEBUG | The file defined at sources_main_file exists: {resolved_sources_main_file}"
-                )
+                # print(
+                #     f"PROVENANCE DEBUG | The file defined at sources_main_file exists: {resolved_sources_main_file}"
+                # )
                 if resolved_sources_main_file != main_entity:
                     print(
                         f"PROVENANCE | WARNING: The file defined at sources_main_file ({resolved_sources_main_file})"
@@ -581,7 +586,12 @@ Authors:
 
     # Get Sections
     compss_wf_info = yaml_content["COMPSs Workflow Information"]
-    authors_info = yaml_content["Authors"]  # Now a list of authors
+    authors_info_yaml = yaml_content["Authors"]  # Now a list of authors
+    authors_info = []
+    if isinstance(authors_info_yaml, list):
+        authors_info = authors_info_yaml
+    else:
+        authors_info.append(authors_info_yaml)
 
     # COMPSs Workflow RO Crate generation
 
@@ -679,7 +689,12 @@ Authors:
 
     if "files" in compss_wf_info:
         # print(f"compss_wf_info(files): {compss_wf_info['files']}")
-        for file in compss_wf_info["files"]:
+        files_list = []
+        if isinstance(compss_wf_info["files"], list):
+            files_list = compss_wf_info["files"]
+        else:
+            files_list.append(compss_wf_info["files"])
+        for file in files_list:
             path_file = Path(file).expanduser()
             resolved_file = str(path_file.resolve())
             if not path_file.exists():

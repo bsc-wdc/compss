@@ -122,9 +122,11 @@ def get_main_entities(wf_info: dict) -> typing.Tuple[str, str, str]:
         for file in wf_info["files"]:
             path_file = Path(file).expanduser()
             resolved_file = str(path_file.resolve())
-            list_of_files.append(resolved_file)
+            if path_file.exists():
+                list_of_files.append(resolved_file)
         # list_of_files = wf_info["files"].copy()
-        backup_main_entity = list_of_files[0]  # Assign first file name as mainEntity
+        if list_of_files:  # List of files not empty
+            backup_main_entity = list_of_files[0]  # Assign first file name as mainEntity
     if "sources_dir" in wf_info:
         path_sources = Path(wf_info["sources_dir"]).expanduser()
         resolved_sources = str(path_sources.resolve())
@@ -680,6 +682,10 @@ Authors:
         for file in compss_wf_info["files"]:
             path_file = Path(file).expanduser()
             resolved_file = str(path_file.resolve())
+            if not path_file.exists():
+                print(f"PROVENANCE | WARNING: A file defined as 'files' in ro-crate-info.yaml does not exist "
+                      f"({resolved_file})")
+                break
             if resolved_file not in added_files:
                 # print(f"Adding file from 'files': {file}")
                 add_file_to_crate(

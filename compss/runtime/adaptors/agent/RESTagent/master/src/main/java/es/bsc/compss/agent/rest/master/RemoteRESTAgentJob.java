@@ -369,11 +369,6 @@ public class RemoteRESTAgentJob extends JobImpl<RemoteRESTAgent> {
     }
 
     @Override
-    public String getHostName() {
-        return getResourceNode().getName();
-    }
-
-    @Override
     public TaskType getType() {
         return TaskType.METHOD;
     }

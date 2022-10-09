@@ -64,11 +64,6 @@ public class NIOJob extends JobImpl<NIOWorkerNode> {
     }
 
     @Override
-    public String getHostName() {
-        return worker.getName();
-    }
-
-    @Override
     public void submitJob() throws Exception {
         // Prepare the job
         LOGGER.info("Submit NIOJob with ID " + jobId);

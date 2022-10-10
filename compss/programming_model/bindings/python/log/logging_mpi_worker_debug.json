@@ -95,6 +95,7 @@
     "pycompss.runtime.task.definitions.arguments":   { "level": "DEBUG", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.runtime.task.definitions.core_element": { "level": "DEBUG", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.runtime.task.definitions.function":    { "level": "DEBUG", "handlers": ["console", "error_console"], "propagate": "no" },
+    "pycompss.runtime.task.wrappers.psco_stream":    { "level": "DEBUG", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.runtime.binding":                      { "level": "DEBUG", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.runtime.commons":                      { "level": "DEBUG", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.runtime.shared_args":                  { "level": "DEBUG", "handlers": ["console", "error_console"], "propagate": "no" },

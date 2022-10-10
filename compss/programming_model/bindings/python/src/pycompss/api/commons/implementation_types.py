@@ -33,6 +33,7 @@ class _ImplementationTypes:  # pylint: disable=too-few-public-methods, too-many-
         "compss",
         "container",
         "decaf",
+        "julia",
         "method",
         "mpi",
         "multi_node",
@@ -47,6 +48,7 @@ class _ImplementationTypes:  # pylint: disable=too-few-public-methods, too-many-
         self.compss = "COMPSs"
         self.container = "CONTAINER"
         self.decaf = "DECAF"
+        self.julia = "JULIA"
         self.method = "METHOD"
         self.mpi = "MPI"
         self.multi_node = "MULTI_NODE"

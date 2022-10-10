@@ -43,6 +43,7 @@ class _Labels:  # pylint: disable=too-few-public-methods, too-many-instance-attr
         "numba_declaration",
         "tracing_hook",
         "computing_nodes",
+        "computing_units",
         "working_dir",
         "args",
         "parameters",
@@ -69,6 +70,8 @@ class _Labels:  # pylint: disable=too-few-public-methods, too-many-instance-attr
         "df_script",
         "df_executor",
         "df_lib",
+        "julia_executor",
+        "julia_script",
         "source_class",
         "method",
         "management",
@@ -107,6 +110,7 @@ class _Labels:  # pylint: disable=too-few-public-methods, too-many-instance-attr
         self.is_replicated = "is_replicated"
         self.is_distributed = "is_distributed"
         self.computing_nodes = "computing_nodes"
+        self.computing_units = "computing_units"
         self.is_reduce = "is_reduce"
         self.chunk_size = "chunk_size"
         self.tracing_hook = "tracing_hook"
@@ -143,6 +147,8 @@ class _Labels:  # pylint: disable=too-few-public-methods, too-many-instance-attr
         self.df_script = "df_script"
         self.df_executor = "df_executor"
         self.df_lib = "df_lib"
+        self.julia_executor = "executor"
+        self.julia_script = "script"
         self.source_class = "source_class"
         self.method = "method"
         self.management = "management"

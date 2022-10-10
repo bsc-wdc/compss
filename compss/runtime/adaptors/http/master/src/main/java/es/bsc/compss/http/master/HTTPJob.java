@@ -16,16 +16,27 @@
  */
 package es.bsc.compss.http.master;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+import es.bsc.compss.comm.Comm;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.TaskDescription;
+import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.data.LogicalData;
+import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.job.JobImpl;
 import es.bsc.compss.types.job.JobListener;
+import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.util.RequestQueue;
 import es.bsc.compss.util.ThreadPool;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Base64;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -111,6 +122,69 @@ public class HTTPJob extends JobImpl<HTTPInstance> {
     @Override
     public Object getReturnValue() {
         return returnValue;
+    }
+
+    @Override
+    protected void registerParameterResult(DependencyParameter dp, String dataName) {
+
+        JsonObject retValue = (JsonObject) this.getReturnValue();
+
+        if (dp.getType().equals(DataType.FILE_T)) {
+            Object value = retValue.get(dp.getName()).toString();
+            try {
+                FileWriter file = new FileWriter(dp.getDataTarget());
+                // 0004 is the JSON serializer ID in Python binding
+                file.write("0004");
+                file.write(value.toString());
+                file.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            registerResultLocation(dp, dataName, Comm.getAppHost());
+        } else {
+            // it's a Java HTTP task, can have only single value of a primitive type
+            Gson gson = new Gson();
+            JsonPrimitive primValue = retValue.getAsJsonPrimitive("$return_0");
+            Object value;
+            switch (dp.getType()) {
+                case INT_T:
+                    value = gson.fromJson(primValue, int.class);
+                    break;
+                case LONG_T:
+                    value = gson.fromJson(primValue, long.class);
+                    break;
+                case STRING_T:
+                    value = gson.fromJson(primValue, String.class);
+                    break;
+                case STRING_64_T:
+                    String temp = gson.fromJson(primValue, String.class);
+                    byte[] encoded = Base64.getEncoder().encode(temp.getBytes());
+                    value = new String(encoded);
+                    break;
+                case OBJECT_T:
+                    if (dp.getContentType().equals("int")) {
+                        value = gson.fromJson(primValue, int.class);
+                    } else {
+                        if (dp.getContentType().equals("long")) {
+                            value = gson.fromJson(primValue, long.class);
+                        } else {
+                            if (dp.getContentType().equals("java.lang.String")) {
+                                value = gson.fromJson(primValue, String.class);
+                            } else {
+                                value = gson.fromJson(primValue, Object.class);
+                            }
+                        }
+                    }
+                    break;
+                default:
+                    value = null;
+                    break;
+            }
+            LogicalData ld = Comm.registerValue(dataName, value);
+            for (DataLocation dl : ld.getLocations()) {
+                dp.setDataTarget(dl.getPath());
+            }
+        }
     }
 
     @Override

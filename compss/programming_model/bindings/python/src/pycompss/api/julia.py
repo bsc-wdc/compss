@@ -55,7 +55,6 @@ SUPPORTED_ARGUMENTS = {
     LABELS.fail_by_exit_value,
     LABELS.working_dir,
     LABELS.computing_nodes,
-    LABELS.computing_units,
 }
 DEPRECATED_ARGUMENTS = {
     LEGACY_LABELS.working_dir,
@@ -172,16 +171,6 @@ class Julia:  # pylint: disable=too-few-public-methods
 
         julia_script = self.kwargs[LABELS.julia_script]
 
-        # Resolve the computing units
-        if LABELS.computing_units in self.kwargs:
-            # Defined in @constraint or in @julia
-            computing_units = self.kwargs[LABELS.computing_units]
-            defined_computing_units = True
-        else:
-            # Not defined anywhere
-            computing_units = "1"
-            defined_computing_units = False
-
         # Resolve computing nodes
         if LABELS.computing_nodes in kwargs:
             # It has been defined in @multinode
@@ -224,12 +213,6 @@ class Julia:  # pylint: disable=too-few-public-methods
             core_element.set_impl_signature(impl_signature)
             core_element.set_impl_type_args(impl_args)
             kwargs[CORE_ELEMENT_KEY] = core_element
-
-        # Update computing units defined in @julia if redefined
-        if defined_computing_units:
-            upper_constraints = kwargs[CORE_ELEMENT_KEY].get_impl_constraints()
-            upper_constraints[LABELS.computing_units] = computing_units
-            kwargs[CORE_ELEMENT_KEY].set_impl_constraints(upper_constraints)
 
         # Set as configured
         self.core_element_configured = True

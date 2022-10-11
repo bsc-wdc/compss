@@ -708,7 +708,7 @@ start_compss_app
 if [ ${provenance} ]; then
   echo "PROVENANCE | GENERATING GRAPH FOR DATA PROVENANCE"
   start=`date +%s`
-  "${COMPSS_HOME}Runtime/scripts/utils/compss_gengraph" "${specific_log_dir}/monitor/complete_graph.dot"
+  "${COMPSS_HOME}Runtime/scripts/utils/compss_gengraph" "svg" "${specific_log_dir}/monitor/complete_graph.dot"
   end=`date +%s`
   echo "PROVENANCE | ENDED GENERATING GRAPH FOR DATA PROVENANCE. TIME: $(( end - start ))"
   

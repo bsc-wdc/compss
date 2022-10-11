@@ -27,6 +27,7 @@
   usage() {
     echo "ERROR: Incorrect number of parameters"
     echo "Usage: $(dirname "$0") <dotFile>"
+    echo "Usage: $(dirname "$0") <formatExtension> <dotFile>"
     exit 1
   }
 
@@ -34,11 +35,19 @@
   # MAIN CODE
   ###################################
 
-  # Get input dot file
-  if [ $# -ne 1 ]; then
-    usage
-  fi
-  dotGraph=$1
+  case $# in
+    1)
+      ext="pdf"
+      dotGraph=$1
+      ;;
+    2)
+      ext=$1
+      dotGraph=$2
+      ;;
+    *)
+      usage
+      ;;
+  esac
 
   # Check dot version
   dotV=$(dot -V 3>&1 1>&2- 2>&3- | awk '{ print $5 }')
@@ -47,11 +56,11 @@
 
   # Format output fileName
   if [[ $dotGraph == *.dot ]]; then
-    pdfGraph=${dotGraph::${#dotGraph}-4}.pdf
+    outGraph=${dotGraph::${#dotGraph}-4}.${ext}
   else
-    pdfGraph=${dotGraph}.pdf
+    outGraph=${dotGraph}.${ext}
   fi
-  echo "Output file: ${pdfGraph}"
+  echo "Output file: ${outGraph}"
 
   # Generate graph
   # If is greater than base version, generate full graph
@@ -64,15 +73,15 @@
     trunkLine=$((trunkLine - 1))
     head -n $trunkLine "$dotGraph" > "$tmpDotGraph"
     echo "}" >> "$tmpDotGraph"
-    dot -Tpdf "$tmpDotGraph" > "$pdfGraph"
+    dot -T${ext} "$tmpDotGraph" > "$outGraph"
   else
     # If is greater or equal than base version, generate full graph
     echo "INFO: Generating Graph with legend"
 
-    dot -Tpdf "$dotGraph" > "$pdfGraph"
+    dot -T${ext} "$dotGraph" > "$outGraph"
   fi
 
   echo "DONE"
 
   # Uncomment the next line to automatically open the generated graph
-  #evince $pdfGraph
+  #evince $outGraph

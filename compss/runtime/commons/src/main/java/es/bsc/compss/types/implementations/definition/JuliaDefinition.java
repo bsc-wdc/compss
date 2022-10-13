@@ -36,7 +36,6 @@ public class JuliaDefinition implements AbstractMethodImplementationDefinition {
     private static final long serialVersionUID = 1L;
 
     public static final int NUM_PARAMS = 5;
-    public static final String SIGNATURE = "julia.JULIA";
     private static final String ERROR_JULIA_SCRIPT = "ERROR: Invalid juliaScript";
 
     public static final String SCRIPT_PATH = File.separator + "Runtime" + File.separator + "scripts" + File.separator

@@ -1583,7 +1583,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     if (DP_ENABLED) {
                         // Log access to directory in the dataprovenance.log
                         String finalPath = location.toString();
-                        if (finalPath.contains("shared:shared_disk")) { // Need to fix URI from SharedDisks
+                        if (finalPath.startsWith("shared")) { // Need to fix URI from SharedDisks
                             Resource host = Comm.getAppHost();
                             String absolute = dirFile.getAbsolutePath();
                             String fixedFinalPath = "dir://" + host.getName() + absolute;
@@ -1611,7 +1611,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                         // Corner case: PyCOMPSs objects are passed as files to the runtime
                         String finalPath = location.toString();
                         if (!finalPath.contains("tmpFiles/pycompss")) {
-                            if (finalPath.contains("shared:shared_disk")) { // Need to fix URI from SharedDisks
+                            if (finalPath.startsWith("shared")) { // Need to fix URI from SharedDisks
                                 Resource host = Comm.getAppHost();
                                 String absolute = f.getAbsolutePath();
                                 String fixedFinalPath = "file://" + host.getName() + absolute;

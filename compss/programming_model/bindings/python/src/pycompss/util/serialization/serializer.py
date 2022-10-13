@@ -102,9 +102,9 @@ if NUMPY_AVAILABLE:
     LIB2IDX[numpy] = 2
 if PYARROW_AVAILABLE:
     LIB2IDX[pyarrow] = 3
+LIB2IDX[json] = 4
 if EDDL_AVAILABLE:
-    LIB2IDX[eddlNet] = 4
-LIB2IDX[json] = 5
+    LIB2IDX[eddlNet] = 5
 # IDX2LIB contains as key the integer and the value its associated serializer
 IDX2LIB = dict(
     ((v, k) for (k, v) in LIB2IDX.items())

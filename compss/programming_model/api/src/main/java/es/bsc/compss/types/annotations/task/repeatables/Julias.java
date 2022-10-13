@@ -14,22 +14,28 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.implementations;
+package es.bsc.compss.types.annotations.task.repeatables;
 
+import es.bsc.compss.types.annotations.task.Julia;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
 /**
- * Enum matching the different method types.
+ * Methods definition
  */
-public enum MethodType {
-    METHOD, // For native methods
-    BINARY, // For binary methods
-    MPI, // For MPI methods
-    MPMDMPI, // For Multi Program MPI methods
-    PYTHON_MPI, // For PYTHON MPI methods
-    COMPSs, // For COMPSs nested applications
-    DECAF, // For decaf methods
-    JULIA, // For julia methods
-    MULTI_NODE, // For native multi-node methods
-    OMPSS, // For OmpSs methods
-    OPENCL, // For OpenCL methods
-    CONTAINER // For container methods
+public @interface Julias {
+
+    /**
+     * Returns the list of Julia annotations.
+     * 
+     * @return The list of Julia annotations.
+     */
+    Julia[] value();
+
 }

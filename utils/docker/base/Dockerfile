@@ -36,7 +36,7 @@ RUN mkdir /run/sshd && \
 FROM base_all as base_tutorial
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends git vim wget ca-certificates maven curl unzip && \ 
+    apt-get install -y --no-install-recommends git vim wget ca-certificates maven curl unzip && \
     pip3 install --no-cache-dir graphviz matplotlib numba numpy==1.21.5 scipy scikit-learn python-dateutil==2.8.2 pandas \
     jupyter ipykernel && \
     python3 -m ipykernel install && \
@@ -49,7 +49,7 @@ RUN apt-get update && \
 
     #Required for compilation and tests
     apt-get install -y --no-install-recommends libxml2-dev libpapi-dev python3-setuptools python3-dev gfortran \
-    sudo jq bc firefox gnupg lsb-release libgraphviz-dev && \
+    sudo jq bc firefox gnupg lsb-release libgraphviz-dev julia && \
     apt-get autoclean && \
     rm -rf /var/lib/apt/lists/* && \
     pip3 --no-cache-dir install pycodestyle selenium redis==3.5.3 redis-py-cluster==2.1.3 enum34 tabulate black memory-profiler && \

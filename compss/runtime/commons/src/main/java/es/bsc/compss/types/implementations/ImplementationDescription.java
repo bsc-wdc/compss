@@ -23,6 +23,7 @@ import es.bsc.compss.types.implementations.definition.ContainerDefinition;
 import es.bsc.compss.types.implementations.definition.DecafDefinition;
 import es.bsc.compss.types.implementations.definition.HTTPDefinition;
 import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
+import es.bsc.compss.types.implementations.definition.JuliaDefinition;
 import es.bsc.compss.types.implementations.definition.MPIDefinition;
 import es.bsc.compss.types.implementations.definition.MethodDefinition;
 import es.bsc.compss.types.implementations.definition.MpmdMPIDefinition;
@@ -177,6 +178,15 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
                     }
 
                     id = new ImplementationDescription<>((D) new DecafDefinition(implTypeArgs, 0), implSignature,
+                        localProcessing, implConstraints, prolog, epilog);
+                    break;
+
+                case JULIA:
+                    if (implTypeArgs.length != JuliaDefinition.NUM_PARAMS) {
+                        throw new IllegalArgumentException("Incorrect parameters for type JULIA on " + implSignature);
+                    }
+
+                    id = new ImplementationDescription<>((D) new JuliaDefinition(implTypeArgs, 0), implSignature,
                         localProcessing, implConstraints, prolog, epilog);
                     break;
 

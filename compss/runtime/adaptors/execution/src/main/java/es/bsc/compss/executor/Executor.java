@@ -34,6 +34,7 @@ import es.bsc.compss.invokers.binary.BinaryInvoker;
 import es.bsc.compss.invokers.binary.COMPSsInvoker;
 import es.bsc.compss.invokers.binary.ContainerInvoker;
 import es.bsc.compss.invokers.binary.DecafInvoker;
+import es.bsc.compss.invokers.binary.JuliaInvoker;
 import es.bsc.compss.invokers.binary.MPIInvoker;
 import es.bsc.compss.invokers.binary.MpmdMPIInvoker;
 import es.bsc.compss.invokers.binary.OmpSsInvoker;
@@ -61,6 +62,7 @@ import es.bsc.compss.types.implementations.definition.BinaryDefinition;
 import es.bsc.compss.types.implementations.definition.COMPSsDefinition;
 import es.bsc.compss.types.implementations.definition.ContainerDefinition;
 import es.bsc.compss.types.implementations.definition.DecafDefinition;
+import es.bsc.compss.types.implementations.definition.JuliaDefinition;
 import es.bsc.compss.types.implementations.definition.MPIDefinition;
 import es.bsc.compss.types.implementations.definition.MpmdMPIDefinition;
 import es.bsc.compss.types.implementations.definition.OmpSsDefinition;
@@ -450,16 +452,21 @@ public class Executor implements Runnable, InvocationRunner {
                 case DECAF:
                     invoker = new DecafInvoker(this.context, invocation, twd, resources);
                     break;
+                case JULIA:
+                    invoker = new JuliaInvoker(this.context, invocation, twd, resources);
+                    break;
                 case OMPSS:
                     invoker = new OmpSsInvoker(this.context, invocation, twd, resources);
                     break;
                 case OPENCL:
                     invoker = new OpenCLInvoker(this.context, invocation, twd, resources);
                     break;
+                default:
+                    invoker = null; // Exception raised below.
             }
-            timerTask = new TimeOutTask(invocation.getTaskId());
-            this.platform.registerRunningJob(invocation, invoker, timerTask);
             if (invoker != null) {
+                timerTask = new TimeOutTask(invocation.getTaskId());
+                this.platform.registerRunningJob(invocation, invoker, timerTask);
                 invoker.runInvocation(this);
             } else {
                 throw new JobExecutionException("Undefined invoker. It could be cause by an incoherent task type");
@@ -783,6 +790,10 @@ public class Executor implements Runnable, InvocationRunner {
                 case DECAF:
                     DecafDefinition decafImpl = (DecafDefinition) impl.getDefinition();
                     specificWD = decafImpl.getWorkingDir();
+                    break;
+                case JULIA:
+                    JuliaDefinition juliaImpl = (JuliaDefinition) impl.getDefinition();
+                    specificWD = juliaImpl.getWorkingDir();
                     break;
                 case OMPSS:
                     OmpSsDefinition ompssImpl = (OmpSsDefinition) impl.getDefinition();

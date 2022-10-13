@@ -56,6 +56,7 @@
     "pycompss.api.http":                             { "level": "ERROR", "handlers": ["error_file_handler"], "propagate": "no" },
     "pycompss.api.implement":                        { "level": "ERROR", "handlers": ["error_file_handler"], "propagate": "no" },
     "pycompss.api.IO":                               { "level": "ERROR", "handlers": ["error_file_handler"], "propagate": "no" },
+    "pycompss.api.julia":                            { "level": "ERROR", "handlers": ["error_file_handler"], "propagate": "no" },
     "pycompss.api.local":                            { "level": "ERROR", "handlers": ["error_file_handler"], "propagate": "no" },
     "pycompss.api.mpi":                              { "level": "ERROR", "handlers": ["error_file_handler"], "propagate": "no" },
     "pycompss.api.mpmd_mpi":                         { "level": "ERROR", "handlers": ["error_file_handler"], "propagate": "no" },

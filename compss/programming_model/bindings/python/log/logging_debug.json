@@ -72,6 +72,7 @@
     "pycompss.api.http":                             { "level": "DEBUG", "handlers": ["debug_file_handler", "error_file_handler"], "propagate": "no" },
     "pycompss.api.implement":                        { "level": "DEBUG", "handlers": ["debug_file_handler", "error_file_handler"], "propagate": "no" },
     "pycompss.api.IO":                               { "level": "DEBUG", "handlers": ["debug_file_handler", "error_file_handler"], "propagate": "no" },
+    "pycompss.api.julia":                            { "level": "DEBUG", "handlers": ["debug_file_handler", "error_file_handler"], "propagate": "no" },
     "pycompss.api.local":                            { "level": "DEBUG", "handlers": ["debug_file_handler", "error_file_handler"], "propagate": "no" },
     "pycompss.api.mpi":                              { "level": "DEBUG", "handlers": ["debug_file_handler", "error_file_handler"], "propagate": "no" },
     "pycompss.api.mpmd_mpi":                         { "level": "DEBUG", "handlers": ["debug_file_handler", "error_file_handler"], "propagate": "no" },

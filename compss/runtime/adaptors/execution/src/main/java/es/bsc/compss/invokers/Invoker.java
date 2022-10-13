@@ -24,11 +24,13 @@ import es.bsc.compss.invokers.types.StdIOStream;
 import es.bsc.compss.invokers.util.BinaryRunner;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
+import es.bsc.compss.types.execution.exceptions.UnwritableValueException;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.ExecType;
 import es.bsc.compss.types.implementations.ImplementationDescription;
@@ -42,6 +44,7 @@ import es.bsc.compss.worker.COMPSsException;
 import es.bsc.compss.worker.COMPSsWorker;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -277,18 +280,33 @@ public abstract class Invoker implements ApplicationRunner {
      *
      * @param runner Element hosting the code execution
      * @throws JobExecutionException When an error in the task execution occurs.
-     * @throws COMPSsException When the task needs to be stopped (task groups, failure management).
+     * @throws COMPSsException       When the task needs to be stopped (task groups, failure management).
      */
     public void runInvocation(InvocationRunner runner) throws JobExecutionException, COMPSsException {
         this.runner = runner;
+        boolean resultsProduced = false;
         /* Invoke the requested method ****************************** */
-        invoke();
         try {
-            storeFinalValues();
-        } catch (COMPSsException ee) {
-            throw new COMPSsException(ee.getMessage());
+            invoke();
+            resultsProduced = true;
+        } catch (COMPSsException ce) {
+            createEmptyFiles();
+            resultsProduced = true;
+            throw ce;
         } catch (Exception e) {
-            throw new JobExecutionException("Error storing a task result", e);
+            if (invocation.getOnFailure() != OnFailure.RETRY && invocation.getOnFailure() != OnFailure.FAIL) {
+                createEmptyFiles();
+                resultsProduced = true;
+            }
+            throw e;
+        } finally {
+            if (resultsProduced) {
+                try {
+                    storeFinalValues();
+                } catch (Exception e) {
+                    throw new JobExecutionException("Error storing a task result", e);
+                }
+            }
         }
     }
 
@@ -323,7 +341,40 @@ public abstract class Invoker implements ApplicationRunner {
         }
     }
 
-    private void storeFinalValues() throws Exception {
+    private void createEmptyFiles() {
+        PrintStream out = context.getThreadOutStream();
+        PrintStream err = context.getThreadOutStream();
+        if (LOGGER.isDebugEnabled()) {
+            out.println("[INVOKER] Checking if a blank file needs to be created");
+        }
+        for (InvocationParam param : invocation.getParams()) {
+            createEmptyFile(param, out, err);
+        }
+        for (InvocationParam param : invocation.getResults()) {
+            createEmptyFile(param, out, err);
+        }
+    }
+
+    private void createEmptyFile(InvocationParam param, PrintStream out, PrintStream err) {
+        if (param.getType().equals(DataType.FILE_T)) {
+            String filepath = (String) param.getValue();
+            File f = new File(filepath);
+            // If using C binding we ignore potential errors
+            if (!f.exists()) {
+                if (LOGGER.isDebugEnabled()) {
+                    out.println("[INVOKER] Creating a new blank file");
+                }
+                try {
+                    f.createNewFile(); // NOSONAR ignoring result. It couldn't exists.
+                } catch (IOException e) {
+                    LOGGER.error("ERROR creating blank file for Task " + invocation.getTaskId(), e);
+                    err.println("[Invoker] Error in creating a new blank file");
+                }
+            }
+        }
+    }
+
+    private void storeFinalValues() throws UnwritableValueException {
         // Check all parameters and target
         for (InvocationParam np : this.invocation.getParams()) {
             storeValue(np);
@@ -336,7 +387,7 @@ public abstract class Invoker implements ApplicationRunner {
         }
     }
 
-    private void storeValue(InvocationParam np) throws Exception {
+    private void storeValue(InvocationParam np) throws UnwritableValueException  {
         if (np.isWriteFinalValue()) {
             // Has already been stored
             this.context.storeParam(np);

@@ -280,7 +280,7 @@ public abstract class Invoker implements ApplicationRunner {
      *
      * @param runner Element hosting the code execution
      * @throws JobExecutionException When an error in the task execution occurs.
-     * @throws COMPSsException       When the task needs to be stopped (task groups, failure management).
+     * @throws COMPSsException When the task needs to be stopped (task groups, failure management).
      */
     public void runInvocation(InvocationRunner runner) throws JobExecutionException, COMPSsException {
         this.runner = runner;
@@ -387,7 +387,7 @@ public abstract class Invoker implements ApplicationRunner {
         }
     }
 
-    private void storeValue(InvocationParam np) throws UnwritableValueException  {
+    private void storeValue(InvocationParam np) throws UnwritableValueException {
         if (np.isWriteFinalValue()) {
             // Has already been stored
             this.context.storeParam(np);

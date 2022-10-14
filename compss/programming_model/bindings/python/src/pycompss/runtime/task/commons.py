@@ -25,11 +25,12 @@ This file contains the task  arguments commons.
 
 from pycompss.api import parameter
 from pycompss.util.typing_helper import typing
+from pycompss.runtime.task.definitions.arguments import TaskArguments
 
 
 def get_default_direction(
     var_name: str,
-    decorator_arguments,  # TaskArguments
+    decorator_arguments: TaskArguments,
     param_args: typing.List[typing.Any],
 ) -> str:
     """Return the default direction for a given parameter.

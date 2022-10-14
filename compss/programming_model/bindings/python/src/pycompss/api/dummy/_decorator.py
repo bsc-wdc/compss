@@ -54,6 +54,6 @@ class _Dummy:
 
         return wrapped_f
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         attributes = f"(args: {repr(self.args)}, kwargs: {repr(self.kwargs)})"
         return f"Dummy {self.__class__.__name__} decorator {attributes}"

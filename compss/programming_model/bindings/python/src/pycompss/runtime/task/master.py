@@ -296,8 +296,8 @@ class TaskMaster:
             # Extract the core element (has to be extracted before processing
             # the kwargs to avoid issues processing the parameters)
             with EventMaster(TRACING_MASTER.extract_core_element):
-                cek = kwargs.pop(CORE_ELEMENT_KEY, None)
-                pre_defined_ce = self.extract_core_element(cek)
+                ce = kwargs.pop(CORE_ELEMENT_KEY, None)
+                pre_defined_ce = self.extract_core_element(ce)
 
             # Prepare the core element registration information
             with EventMaster(TRACING_MASTER.prepare_core_element):
@@ -475,7 +475,7 @@ class TaskMaster:
         path = LAUNCH_STATUS.get_app_path()
         # Get the file name
         file_name = os.path.splitext(os.path.basename(path))[0]
-        # Do any necessary pre processing action before executing any code
+        # Do any necessary pre-processing action before executing any code
         if (
             file_name.startswith(CONSTANTS.interactive_file_name)
             and not self.decorated_function.registered
@@ -490,9 +490,7 @@ class TaskMaster:
             update_tasks_code_file(self.decorated_function.function, path)
             print(f"Found task: {self.decorated_function.function.__name__}")
 
-    def extract_core_element(
-        self, cek: typing.Optional[CE]
-    ) -> typing.Tuple[bool, bool]:
+    def extract_core_element(self, ce: typing.Optional[CE]) -> typing.Tuple[bool, bool]:
         """Get or instantiate the Task's core element.
 
         Extract the core element if created in a higher level decorator,
@@ -501,13 +499,14 @@ class TaskMaster:
         IMPORTANT! extract the core element from kwargs if pre-defined
                    in decorators defined on top of @task.
 
+        :param ce: Core Element.
         :return: If previously created and if created in higher level decorator.
         """
         pre_defined_core_element = False
         upper_decorator = False
-        if cek:
+        if ce:
             # Core element has already been created in a higher level decorator
-            self.core_element = cek
+            self.core_element = ce
             pre_defined_core_element = True
             upper_decorator = True
         elif self.core_element:
@@ -568,11 +567,12 @@ class TaskMaster:
         """
         return self.decorated_function.function.py_func  # type: ignore
 
-    def user_func_py_func_glob_getter(self, field) -> typing.Any:
+    def user_func_py_func_glob_getter(self, field: str) -> typing.Any:
         """Retrieve a field from __globals__ from py_func of self.decorated_function.function.
 
         WARNING!!! Only available in numba wrapped functions.
 
+        :param field: Field in the globals to get.
         :return: __globals__ getter for the given field.
         """
         py_func = self.get_user_function_py_func()
@@ -587,11 +587,12 @@ class TaskMaster:
         """
         return self.decorated_function.function.__wrapped__  # type: ignore
 
-    def user_func_wrapped_glob_getter(self, field) -> typing.Any:
+    def user_func_wrapped_glob_getter(self, field: str) -> typing.Any:
         """Retrieve a field from __globals__ from __wrapped__ of self.decorated_function.function.
 
         WARNING!!! Only available in compiled functions.
 
+        :param field: Field in the wrapped globals to get.
         :return: __globals__ getter for the given field result.
         """
         wrapped_func = self.get_user_function_wrapped()
@@ -602,6 +603,7 @@ class TaskMaster:
 
         WARNING!!! Only available in numba wrapped functions.
 
+        :param field: Field in the function globals to get.
         :return: __globals__ getter for the given field result.
         """
         return self.decorated_function.function.__globals__.get(field)
@@ -1152,8 +1154,9 @@ class TaskMaster:
             )
         binding.register_ce(self.core_element)
 
+    @staticmethod
     def validate_processes_per_node(
-        self, computing_nodes: int, processes_per_node: int
+        computing_nodes: int, processes_per_node: int
     ) -> None:
         """Check the processes per node property.
 
@@ -1323,7 +1326,7 @@ class TaskMaster:
         if isinstance(chunk_size, int):
             return chunk_size
         if isinstance(chunk_size, str):
-            # Check if chunk_size can be casted to string
+            # Check if chunk_size can be cast to string
             # Check if chunk_size is an environment variable
             # Check if chunk_size is a dynamic global variable
             try:
@@ -1520,7 +1523,7 @@ class TaskMaster:
         Checks the code looking for return statements if no returns is
         specified in @task decorator.
 
-        WARNING: Updates self.return if returns are found.
+        WARNING: Updates self.returns if returns are found.
 
         :param function: Function to check.
         :return: The number of return elements if found.
@@ -1640,7 +1643,7 @@ class TaskMaster:
     def _build_return_objects(self, num_returns: int) -> typing.Any:
         """Build the return objects.
 
-        Build the return object from the self.return dictionary and include
+        Build the return object from the self.returns dictionary and include
         their filename in self.returns.
         Normally they are future objects, unless the user has defined a user
         defined class where an empty instance (needs an empty constructor)
@@ -1753,10 +1756,6 @@ class TaskMaster:
                 for k in self.parameters:
                     futures.append(executor.submit(self._serialize_object, k))
                 wait(futures)
-        else:
-            # Sequential:
-            for k in self.parameters:
-                self._serialize_object(k)
             # Threaded: (somehow takes more time than sequential?)
             # threads = []
             # # Serialize each object in a different thread (non blocking IO)
@@ -1768,6 +1767,10 @@ class TaskMaster:
             # # Wait for all threads to finish
             # for thread in threads:
             #     thread.join()
+        else:
+            # Sequential:
+            for k in self.parameters:
+                self._serialize_object(k)
 
     def _serialize_object(self, name: str) -> None:
         """Infer COMPSs types for a single task parameter and serializes it.

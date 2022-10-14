@@ -83,6 +83,15 @@ try:
 except ImportError:
     PYARROW_AVAILABLE = False
 
+try:
+    from pyeddl._core import Net as eddlNet
+    from pyeddl.eddl import serialize_net_to_onnx_string
+    from pyeddl.eddl import import_net_from_onnx_file
+
+    EDDL_AVAILABLE = True
+except ImportError:
+    EDDL_AVAILABLE = False
+
 # GLOBALS
 
 # LIB2IDX contains as key the serializer and value its associated integer
@@ -94,6 +103,8 @@ if NUMPY_AVAILABLE:
 if PYARROW_AVAILABLE:
     LIB2IDX[pyarrow] = 3
 LIB2IDX[json] = 4
+if EDDL_AVAILABLE:
+    LIB2IDX[eddlNet] = 5
 # IDX2LIB contains as key the integer and the value its associated serializer
 IDX2LIB = dict(
     ((v, k) for (k, v) in LIB2IDX.items())
@@ -127,6 +138,8 @@ def get_serializer_priority(obj: typing.Any = ()) -> typing.List[types.ModuleTyp
         return [numpy] + serializers
     if object_belongs_to_module(obj, "pyarrow") and PYARROW_AVAILABLE:
         return [pyarrow] + serializers
+    if object_belongs_to_module(obj, "pyeddl") and PYARROW_AVAILABLE:
+        return [eddlNet] + serializers
     if FORCED_SERIALIZER > -1:
         return [IDX2LIB[FORCED_SERIALIZER]]
     return serializers
@@ -191,6 +204,12 @@ def serialize_to_handler(obj: typing.Any, handler: typing.BinaryIO) -> None:
                     writer = pyarrow.ipc.new_file(handler, obj.schema)  # noqa
                     writer.write(obj)
                     writer.close()
+                elif (
+                    EDDL_AVAILABLE
+                    and serializer is eddlNet
+                    and object_belongs_to_module(obj, "pyeddl")
+                ):
+                    handler.write(serialize_net_to_onnx_string(obj, False))
                 elif serializer is json:
                     # JSON doesn't like the binary mode: close handler
                     h_name = handler.name
@@ -325,6 +344,10 @@ def deserialize_from_handler(
             ret = pyarrow.ipc.open_file(handler)
             if isinstance(ret, pyarrow.ipc.RecordBatchFileReader):
                 close_handler = False
+        elif EDDL_AVAILABLE and serializer is eddlNet:
+            h_name = handler.name
+            # handler.seek(4)  # Ignore first byte?
+            ret = import_net_from_onnx_file(h_name)
         elif serializer is json:
             # Deserialization of json files is not in binary: close handler
             h_name = handler.name

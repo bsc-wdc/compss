@@ -305,17 +305,17 @@ class Mpi:  # pylint: disable=too-few-public-methods
         # Resolve parameter collection layout
         collection_layout_params = self.__resolve_collection_layout_params__()
 
-        if "processes" in self.kwargs:
-            proc = self.kwargs["processes"]
-        elif "computing_nodes" in self.kwargs:
-            proc = self.kwargs["computing_nodes"]
-        elif "computingNodes" in self.kwargs:
-            proc = self.kwargs["computingNodes"]
+        if LABELS.processes in self.kwargs:
+            proc = self.kwargs[LABELS.processes]
+        elif LABELS.computing_nodes in self.kwargs:
+            proc = self.kwargs[LABELS.computing_nodes]
+        elif LEGACY_LABELS.computing_nodes in self.kwargs:
+            proc = self.kwargs[LEGACY_LABELS.computing_nodes]
         else:
             proc = "1"
 
-        if "processes_per_node" in self.kwargs:
-            ppn = str(self.kwargs["processes_per_node"])
+        if LABELS.processes_per_node in self.kwargs:
+            ppn = str(self.kwargs[LABELS.processes_per_node])
         else:
             ppn = "1"
 

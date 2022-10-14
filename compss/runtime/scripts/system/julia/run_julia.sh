@@ -17,20 +17,24 @@ get_args() {
 
 main() {
   # Retrieve arguments
-  echo "[JULIA] Retrieve JULIA arguments:"
-  echo "Arguments: $@"
+  if [ ${is_debug_enabled} == "true" ]; then
+    echo "[JULIA] Retrieve JULIA arguments"
+    echo "[JULIA] Arguments: $@"
+  fi
   get_args "$@"
 
   # Execute Julia scripts
-  echo "[JULIA] Executing Julia script"
-  echo "[JULIA] CMD: ${julia_executor} ${julia_script} \"${args}\""
-  
-  if [ ${num_nodes} -eq 1 ]; then
-    echo "[JULIA] Executing in single node"
-  elif [ ${num_nodes} -gt 1 ]; then
-    echo "[JULIA] Executing in multiple nodes: ${num_nodes}"
-  else
-    echo "[JULIA] Error: unexpected value for multiple nodes: ${num_nodes}" 
+  if [ ${is_debug_enabled} == "true" ]; then
+    echo "[JULIA] Executing Julia script"
+    echo "[JULIA] CMD: ${julia_executor} ${julia_script} ${args}"
+
+    if [ ${num_nodes} -eq 1 ]; then
+      echo "[JULIA] Executing in single node"
+    elif [ ${num_nodes} -gt 1 ]; then
+      echo "[JULIA] Executing in multiple nodes: ${num_nodes}"
+    else
+      echo "[JULIA] Error: unexpected value for multiple nodes: ${num_nodes}" 
+    fi
   fi
 
   "${julia_executor}" "${julia_script}" ${args}

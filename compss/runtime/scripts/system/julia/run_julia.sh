@@ -33,7 +33,7 @@ main() {
     echo "[JULIA] Error: unexpected value for multiple nodes: ${num_nodes}" 
   fi
 
-  "${julia_executor}" "${julia_script}" "${args}"
+  "${julia_executor}" "${julia_script}" ${args}
   ev=$?  # execution exit code
 
   # But before exiting, check if there are processes that need to be cat to job out.

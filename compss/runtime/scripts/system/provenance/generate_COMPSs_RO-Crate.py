@@ -14,6 +14,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+import datetime
 
 from rocrate.rocrate import ROCrate
 from rocrate.model.person import Person
@@ -29,6 +30,7 @@ import yaml
 import os
 import uuid
 import typing
+import datetime as DT
 
 CRATE = ROCrate()
 
@@ -50,6 +52,7 @@ def add_file_not_in_crate(in_url: str) -> None:
     file_properties = {
         "name": final_item_name,
         "sdDatePublished": iso_now(),
+        "dateModified": DT.datetime.utcfromtimestamp(os.path.getmtime(url_parts.path)).replace(microsecond=0).isoformat(),  # Schema.org
     }  # Register when the Data Entity was last accessible
 
     if url_parts.scheme == "file":  # Dealing with a local file
@@ -79,6 +82,8 @@ def add_file_not_in_crate(in_url: str) -> None:
                 dir_f_properties = {
                     "name": f_name,
                     "sdDatePublished": iso_now(),  # Register when the Data Entity was last accessible
+                    "dateModified": DT.datetime.utcfromtimestamp(os.path.getmtime(url_parts.path)).replace(microsecond=0).isoformat(),
+                    # Schema.org
                     "contentSize": os.path.getsize(listed_file),
                 }
                 CRATE.add_file(
@@ -161,7 +166,7 @@ def get_main_entities(wf_info: dict) -> typing.Tuple[str, str, str]:
                         #     f"PROVENANCE DEBUG | FOUND SOURCE FILE AS BACKUP MAIN: {backup_main_entity}"
                         # )
 
-    # print(f"List of sources is: {list_of_sources}")
+    print(f"PROVENANCE | Number of source files detected: {len(list_of_sources)}")
 
     # Can't get backup_main_entity from sources_main_file, because we do not know if it really exists
     if backup_main_entity is None:
@@ -474,15 +479,13 @@ def add_file_to_crate(
     # print(f"path_in_crate: {path_in_crate}")
 
     if file_name != main_entity:
-        print(f"PROVENANCE | Adding auxiliary source file: {file_name}")
+        # print(f"PROVENANCE DEBUG | Adding auxiliary source file: {file_name}")
         CRATE.add_file(
             source=file_name, dest_path=path_in_crate, properties=file_properties
         )
     else:
         # We get lang_version from dataprovenance.log
-        print(
-            f"PROVENANCE | Adding main source file: {file_path.name}, file_name: {file_name}"
-        )
+        # print(            f"PROVENANCE DEBUG | Adding main source file: {file_path.name}, file_name: {file_name}")
         CRATE.add_workflow(
             source=file_name,
             dest_path=path_in_crate,
@@ -755,6 +758,7 @@ Authors:
                 add_file_to_crate(
                     resolved_file, compss_ver, main_entity, out_profile, ins, outs, ""
                 )
+                added_files.append(resolved_file)
             else:
                 print(
                     f"PROVENANCE | WARNING: A file addition was attempted twice in 'files' and 'sources_dir': "

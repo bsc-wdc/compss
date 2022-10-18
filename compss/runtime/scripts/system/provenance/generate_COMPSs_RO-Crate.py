@@ -138,9 +138,8 @@ def get_main_entities(wf_info: dict) -> typing.Tuple[str, str, str]:
                 list_of_sources.append(resolved_file)
         # list_of_sources = wf_info["files"].copy()
         if list_of_sources:  # List of files not empty
-            backup_main_entity = list_of_sources[
-                0
-            ]  # Assign first file name as mainEntity
+            backup_main_entity = list_of_sources[0]
+            # Assign first file name as mainEntity
     if "sources_dir" in wf_info:
         if isinstance(wf_info["sources_dir"], list):
             sources_list = wf_info["sources_dir"]
@@ -148,6 +147,9 @@ def get_main_entities(wf_info: dict) -> typing.Tuple[str, str, str]:
             sources_list.append(wf_info["sources_dir"])
         for source in sources_list:
             path_sources = Path(source).expanduser()
+            if not path_sources.exists():
+                print(f"PROVENANCE | WARNING: Specified path in ro-crate-info.yaml 'sources_dir' does not exist ({path_sources})")
+                continue
             resolved_sources = str(path_sources.resolve())
             # print(f"resolved_sources is: {resolved_sources}")
             for root, dirs, files in os.walk(resolved_sources, topdown=True):
@@ -167,6 +169,7 @@ def get_main_entities(wf_info: dict) -> typing.Tuple[str, str, str]:
                         # )
 
     print(f"PROVENANCE | Number of source files detected: {len(list_of_sources)}")
+    # print(f"PROVENANCE DEBUG | Source files detected: {list_of_sources}")
 
     # Can't get backup_main_entity from sources_main_file, because we do not know if it really exists
     if backup_main_entity is None:
@@ -204,10 +207,10 @@ def get_main_entities(wf_info: dict) -> typing.Tuple[str, str, str]:
             found = False
             for source in sources_list:  # Created before
                 path_sources = Path(source).expanduser()
+                if not path_sources.exists():
+                    continue
                 resolved_sources = str(path_sources.resolve())
-                resolved_sources_main_file = os.path.join(
-                    resolved_sources, wf_info["sources_main_file"]
-                )
+                resolved_sources_main_file = os.path.join(resolved_sources, wf_info["sources_main_file"])
                 if any(file == resolved_sources_main_file for file in list_of_sources):
                     # The file exists
                     # print(
@@ -719,6 +722,8 @@ Authors:
             sources_list.append(compss_wf_info["sources_dir"])
         for source in sources_list:
             path_sources = Path(source).expanduser()
+            if not path_sources.exists():
+                continue
             resolved_sources = str(path_sources.resolve())
             # print(f"resolved_sources is: {resolved_sources}")
             # resolved_sources = compss_wf_info["sources_dir"]
@@ -752,7 +757,7 @@ Authors:
                     f"PROVENANCE | WARNING: A file defined as 'files' in ro-crate-info.yaml does not exist "
                     f"({resolved_file})"
                 )
-                break
+                continue
             if resolved_file not in added_files:
                 # print(f"Adding file from 'files': {file}")
                 add_file_to_crate(

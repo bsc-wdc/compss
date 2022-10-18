@@ -17,6 +17,7 @@
 package es.bsc.compss.http.master;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import es.bsc.compss.comm.Comm;
@@ -24,16 +25,25 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.LogicalData;
+import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.location.DataLocation;
+import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.TaskType;
+import es.bsc.compss.types.job.JobEndStatus;
+import es.bsc.compss.types.job.JobHistory;
 import es.bsc.compss.types.job.JobImpl;
 import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.parameter.DependencyParameter;
+import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Resource;
+import es.bsc.compss.types.uri.SimpleURI;
+import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.RequestQueue;
 import es.bsc.compss.util.ThreadPool;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Base64;
@@ -47,19 +57,19 @@ public class HTTPJob extends JobImpl<HTTPInstance> {
     // Logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
 
-    private static final String SUBMIT_ERROR = "Error calling HTTP Service";
+    // ERRORS
+    private static final String ERR_SERIALIZE_TO_FILE = "Cannot serialize to file HTTP Result";
 
     // Class structures
     private static final int POOL_SIZE = 10;
     private static final String POOL_NAME = "HTTP";
 
     private static RequestQueue<HTTPJob> callerQueue;
+    private static Gson gson = new Gson();
 
     private static HTTPCaller caller;
     // Pool of worker threads and queue of requests
     private static ThreadPool callerPool;
-
-    private Object returnValue;
 
 
     /**
@@ -96,12 +106,6 @@ public class HTTPJob extends JobImpl<HTTPInstance> {
     public HTTPJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res, JobListener listener,
         List<Integer> predecessors, Integer numSuccessors) {
         super(taskId, taskParams, impl, res, listener, predecessors, numSuccessors);
-
-        this.returnValue = null;
-    }
-
-    public void setReturnValue(Object returnValue) {
-        this.returnValue = returnValue;
     }
 
     @Override
@@ -119,72 +123,178 @@ public class HTTPJob extends JobImpl<HTTPInstance> {
 
     }
 
-    @Override
-    public Object getReturnValue() {
-        return returnValue;
+    /**
+     * The job has fully been executed.
+     * 
+     * @param retValue the body of the return message
+     */
+    public void completed(JsonObject retValue) {
+        if (this.history == JobHistory.CANCELLED) {
+            LOGGER.error("Ignoring notification since the job was cancelled");
+            removeTmpData();
+            return;
+        }
+
+        List<Parameter> params = this.taskParams.getParameters();
+        int subParamIdx = 0;
+        for (Parameter p : params) {
+            if (p.isPotentialDependency()) {
+                DependencyParameter dp = (DependencyParameter) p;
+                String dataName = getOuputRename(p);
+                if (dataName != null) {
+                    registerParameterResult(dp, dataName, retValue);
+                    notifyResultAvailability(new int[] { subParamIdx }, dp, dataName);
+                }
+            }
+            subParamIdx++;
+        }
+        super.completed();
     }
 
     @Override
-    protected void registerParameterResult(DependencyParameter dp, String dataName) {
+    public void failed(JobEndStatus status) {
+        if (this.history == JobHistory.CANCELLED) {
+            LOGGER.error("Ignoring notification since the job was cancelled");
+            removeTmpData();
+            return;
+        }
 
-        JsonObject retValue = (JsonObject) this.getReturnValue();
-
-        if (dp.getType().equals(DataType.FILE_T)) {
-            Object value = retValue.get(dp.getName()).toString();
-            try {
-                FileWriter file = new FileWriter(dp.getDataTarget());
-                // 0004 is the JSON serializer ID in Python binding
-                file.write("0004");
-                file.write(value.toString());
-                file.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            registerResultLocation(dp, dataName, Comm.getAppHost());
-        } else {
-            // it's a Java HTTP task, can have only single value of a primitive type
-            Gson gson = new Gson();
-            JsonPrimitive primValue = retValue.getAsJsonPrimitive("$return_0");
-            Object value;
-            switch (dp.getType()) {
-                case INT_T:
-                    value = gson.fromJson(primValue, int.class);
-                    break;
-                case LONG_T:
-                    value = gson.fromJson(primValue, long.class);
-                    break;
-                case STRING_T:
-                    value = gson.fromJson(primValue, String.class);
-                    break;
-                case STRING_64_T:
-                    String temp = gson.fromJson(primValue, String.class);
-                    byte[] encoded = Base64.getEncoder().encode(temp.getBytes());
-                    value = new String(encoded);
-                    break;
-                case OBJECT_T:
-                    if (dp.getContentType().equals("int")) {
-                        value = gson.fromJson(primValue, int.class);
-                    } else {
-                        if (dp.getContentType().equals("long")) {
-                            value = gson.fromJson(primValue, long.class);
-                        } else {
-                            if (dp.getContentType().equals("java.lang.String")) {
-                                value = gson.fromJson(primValue, String.class);
-                            } else {
-                                value = gson.fromJson(primValue, Object.class);
-                            }
+        switch (this.taskParams.getOnFailure()) {
+            case IGNORE:
+            case CANCEL_SUCCESSORS:
+                List<Parameter> params = this.taskParams.getParameters();
+                int subParamIdx = 0;
+                for (Parameter p : params) {
+                    if (p.isPotentialDependency()) {
+                        DependencyParameter dp = (DependencyParameter) p;
+                        String dataName = getOuputRename(p);
+                        if (dataName != null) {
+                            emptyParameterResult(dp, dataName);
+                            notifyResultAvailability(new int[] { subParamIdx }, dp, dataName);
                         }
                     }
-                    break;
-                default:
-                    value = null;
-                    break;
+                    subParamIdx++;
+                }
+                break;
+            default:
+                // case RETRY:
+                // case FAIL:
+                removeTmpData();
+        }
+        super.failed(status);
+    }
+
+    @Override
+    protected void registerAllJobOutputsAsExpected() {
+        // Overriding to avoid registering results again. This will be removed in future implementations
+    }
+
+    private void emptyParameterResult(DependencyParameter dp, String dataName) {
+        if (dp.getType() == DataType.FILE_T) {
+            try {
+                File f = new File(dp.getDataTarget());
+                f.createNewFile();
+            } catch (IOException e) {
+                ErrorManager.error(ERR_SERIALIZE_TO_FILE, e);
+            }
+
+            SimpleURI uri = new SimpleURI(ProtocolType.FILE_URI.getSchema() + dp.getDataTarget());
+            try {
+                DataLocation outLoc = DataLocation.createLocation(Comm.getAppHost(), uri);
+                Comm.registerLocation(dataName, outLoc);
+            } catch (IOException e) {
+                ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + dp.getDataTarget(), e);
+            }
+        } else {
+            // it's a Java HTTP task, can have only single value of a primitive type
+            Object value = null;
+            LogicalData ld = Comm.registerValue(dataName, value);
+            for (DataLocation dl : ld.getLocations()) {
+                dp.setDataTarget(dl.getPath());
+            }
+        }
+    }
+
+    private void registerParameterResult(DependencyParameter dp, String dataName, JsonObject retValue) {
+
+        if (dp.getType() == DataType.FILE_T) {
+            try {
+                storeFileResult(retValue.get(dp.getName()), dp.getDataTarget());
+            } catch (IOException e) {
+                ErrorManager.error(ERR_SERIALIZE_TO_FILE, e);
+            }
+
+            SimpleURI uri = new SimpleURI(ProtocolType.FILE_URI.getSchema() + dp.getDataTarget());
+            try {
+                DataLocation outLoc = DataLocation.createLocation(Comm.getAppHost(), uri);
+                Comm.registerLocation(dataName, outLoc);
+            } catch (IOException e) {
+                ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + dp.getDataTarget(), e);
+            }
+        } else {
+            // it's a Java HTTP task, can have only single value of a primitive type
+            Object value;
+            if (dp.getType() == DataType.OBJECT_T) {
+                JsonPrimitive objectValue = retValue.getAsJsonPrimitive("$return_0");
+                value = getObjectResult(objectValue, dp.getContentType());
+            } else {
+                JsonPrimitive primValue = retValue.getAsJsonPrimitive("$return_0");
+                value = getPrimitiveResult(primValue, dp.getType());
             }
             LogicalData ld = Comm.registerValue(dataName, value);
             for (DataLocation dl : ld.getLocations()) {
                 dp.setDataTarget(dl.getPath());
             }
         }
+    }
+
+    private Object getObjectResult(JsonPrimitive primValue, String contentType) {
+        Object value;
+        switch (contentType) {
+            case "int":
+                value = gson.fromJson(primValue, int.class);
+                break;
+            case "long":
+                value = gson.fromJson(primValue, long.class);
+                break;
+            case "java.lang.String":
+                value = gson.fromJson(primValue, String.class);
+                break;
+            default:
+                value = gson.fromJson(primValue, Object.class);
+        }
+        return value;
+    }
+
+    private Object getPrimitiveResult(JsonPrimitive primValue, DataType type) {
+        Object value;
+        switch (type) {
+            case INT_T:
+                value = gson.fromJson(primValue, int.class);
+                break;
+            case LONG_T:
+                value = gson.fromJson(primValue, long.class);
+                break;
+            case STRING_T:
+                value = gson.fromJson(primValue, String.class);
+                break;
+            case STRING_64_T:
+                String temp = gson.fromJson(primValue, String.class);
+                byte[] encoded = Base64.getEncoder().encode(temp.getBytes());
+                value = new String(encoded);
+                break;
+            default:
+                value = null;
+        }
+        return value;
+    }
+
+    private void storeFileResult(JsonElement value, String location) throws IOException {
+        FileWriter file = new FileWriter(location);
+        // 0004 is the JSON serializer ID in Python binding
+        file.write("0004");
+        file.write(value.toString());
+        file.close();
     }
 
     @Override

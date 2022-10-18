@@ -26,6 +26,7 @@ import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.implementations.definition.MethodDefinition;
 import es.bsc.compss.types.implementations.definition.MultiNodeDefinition;
 import es.bsc.compss.types.job.JobEndStatus;
+import es.bsc.compss.types.job.JobHistory;
 import es.bsc.compss.types.job.JobImpl;
 import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.parameter.Parameter;
@@ -134,7 +135,7 @@ public class NIOJob extends JobImpl<NIOWorkerNode> {
      * Marks the task as finished with the given {@code successful} error code.
      *
      * @param successful {@code true} if the task has successfully finished, {@code false} otherwise.
-     * @param e Exception rised during the task execution, {@literal null} if no exception was raised.
+     * @param e Exception arose during the task execution, {@literal null} if no exception was raised.
      */
     public void taskFinished(boolean successful, Exception e) {
         if (successful) {
@@ -143,9 +144,56 @@ public class NIOJob extends JobImpl<NIOWorkerNode> {
             if (e instanceof COMPSsException) {
                 this.exception((COMPSsException) e);
             } else {
-                this.failed(JobEndStatus.OK);
+                this.failed(JobEndStatus.EXECUTION_FAILED);
             }
         }
+    }
+
+    @Override
+    public void completed() {
+        if (this.history == JobHistory.CANCELLED) {
+            LOGGER.error("Ignoring notification since the job was cancelled");
+            removeTmpData();
+            return;
+        }
+
+        super.registerAllJobOutputsAsExpected();
+        super.completed();
+    }
+
+    @Override
+    public void exception(COMPSsException e) {
+        if (this.history == JobHistory.CANCELLED) {
+            LOGGER.error("Ignoring notification since the job was cancelled");
+            removeTmpData();
+            return;
+        }
+
+        super.registerAllJobOutputsAsExpected();
+        super.exception(e);
+    }
+
+    @Override
+    public void failed(JobEndStatus status) {
+        if (this.history == JobHistory.CANCELLED) {
+            LOGGER.error("Ignoring notification since the job was cancelled");
+            removeTmpData();
+            return;
+        }
+        if (this.isBeingCancelled()) {
+            super.registerAllJobOutputsAsExpected();
+        }
+        switch (this.taskParams.getOnFailure()) {
+            case IGNORE:
+            case CANCEL_SUCCESSORS:
+                super.registerAllJobOutputsAsExpected();
+                break;
+            default:
+                // case RETRY:
+                // case FAIL:
+                removeTmpData();
+        }
+        super.failed(status);
     }
 
     @Override

@@ -25,6 +25,7 @@ import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.exceptions.LangNotDefinedException;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
@@ -41,6 +42,7 @@ import es.bsc.compss.types.implementations.definition.OmpSsDefinition;
 import es.bsc.compss.types.implementations.definition.OpenCLDefinition;
 import es.bsc.compss.types.implementations.definition.PythonMPIDefinition;
 import es.bsc.compss.types.job.JobEndStatus;
+import es.bsc.compss.types.job.JobHistory;
 import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.parameter.BasicTypeParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
@@ -237,77 +239,6 @@ public class GATJob extends es.bsc.compss.types.job.JobImpl<GATWorkerNode> imple
             Metric m = md.createMetric();
             gatJob.removeMetricListener(this, m);
             gatJob.stop();
-        }
-    }
-
-    // MetricListener interface implementation
-    @Override
-    public void processMetricEvent(MetricEvent value) {
-        Job job = (Job) value.getSource();
-        JobState newJobState = (JobState) value.getValue();
-        JobDescription jd = (JobDescription) job.getJobDescription();
-        SoftwareDescription sd = jd.getSoftwareDescription();
-        Integer jobId = (Integer) sd.getAttributes().get("jobId");
-
-        LOGGER.debug("Processing job ID = " + jobId);
-        /*
-         * Check if either the job has finished or there has been a submission error. We don't care about other state
-         * transitions
-         */
-        if (newJobState == JobState.STOPPED) {
-            if (Tracer.isActivated()) {
-                releaseTracingSlot(sd);
-            }
-
-            /*
-             * We must check whether the chosen adaptor is globus In that case, since globus doesn't provide the exit
-             * status of a job, we must examine the standard error file
-             */
-            try {
-                if (usingGlobus) {
-                    File errFile = sd.getStderr();
-                    // Error file should always be in the same host as the IT
-                    File localFile = GAT.createFile(context, errFile.toGATURI());
-                    if (localFile.length() > 0) {
-                        gatJob = null;
-                        RUNNING_JOBS.remove(this);
-                        ErrorManager.warn("Error when creating file.");
-                        this.failed(JobEndStatus.EXECUTION_FAILED);
-                    } else {
-                        if (!DEBUG) {
-                            localFile.delete();
-                        }
-                        RUNNING_JOBS.remove(this);
-                        this.completed();
-                    }
-                } else if (job.getExitStatus() == 0) {
-                    RUNNING_JOBS.remove(this);
-                    this.completed();
-                } else {
-                    gatJob = null;
-                    RUNNING_JOBS.remove(this);
-                    this.failed(JobEndStatus.EXECUTION_FAILED);
-                }
-            } catch (Exception e) {
-                ErrorManager.fatal(CALLBACK_PROCESSING_ERR + ": " + this, e);
-            }
-        } else if (newJobState == JobState.SUBMISSION_ERROR) {
-            if (Tracer.isActivated()) {
-                releaseTracingSlot(sd);
-            }
-
-            try {
-                if (usingGlobus && job.getInfo().get("resManError").equals("NO_ERROR")) {
-                    RUNNING_JOBS.remove(this);
-                    this.completed();
-                } else {
-                    gatJob = null;
-                    RUNNING_JOBS.remove(this);
-                    this.failed(JobEndStatus.SUBMISSION_FAILED);
-                }
-            } catch (GATInvocationException e) {
-                ErrorManager.fatal(CALLBACK_PROCESSING_ERR + ": " + this, e);
-            }
         }
     }
 
@@ -654,4 +585,114 @@ public class GATJob extends es.bsc.compss.types.job.JobImpl<GATWorkerNode> imple
         return paramDesc;
     }
 
+    // MetricListener interface implementation
+    @Override
+    public void processMetricEvent(MetricEvent value) {
+        Job job = (Job) value.getSource();
+        JobState newJobState = (JobState) value.getValue();
+        JobDescription jd = (JobDescription) job.getJobDescription();
+        SoftwareDescription sd = jd.getSoftwareDescription();
+        Integer jobId = (Integer) sd.getAttributes().get("jobId");
+
+        LOGGER.debug("Processing job ID = " + jobId);
+        /*
+         * Check if either the job has finished or there has been a submission error. We don't care about other state
+         * transitions
+         */
+        if (newJobState == JobState.STOPPED) {
+            if (Tracer.isActivated()) {
+                releaseTracingSlot(sd);
+            }
+
+            /*
+             * We must check whether the chosen adaptor is globus In that case, since globus doesn't provide the exit
+             * status of a job, we must examine the standard error file
+             */
+            try {
+                if (usingGlobus) {
+                    File errFile = sd.getStderr();
+                    // Error file should always be in the same host as the IT
+                    File localFile = GAT.createFile(context, errFile.toGATURI());
+                    if (localFile.length() > 0) {
+                        gatJob = null;
+                        RUNNING_JOBS.remove(this);
+                        ErrorManager.warn("Error when creating file.");
+                        this.failed(JobEndStatus.EXECUTION_FAILED);
+                    } else {
+                        if (!DEBUG) {
+                            localFile.delete();
+                        }
+                        RUNNING_JOBS.remove(this);
+                        this.completed();
+                    }
+                } else if (job.getExitStatus() == 0) {
+                    RUNNING_JOBS.remove(this);
+                    this.completed();
+                } else {
+                    gatJob = null;
+                    RUNNING_JOBS.remove(this);
+                    this.failed(JobEndStatus.EXECUTION_FAILED);
+                }
+            } catch (Exception e) {
+                ErrorManager.fatal(CALLBACK_PROCESSING_ERR + ": " + this, e);
+            }
+        } else if (newJobState == JobState.SUBMISSION_ERROR) {
+            if (Tracer.isActivated()) {
+                releaseTracingSlot(sd);
+            }
+
+            try {
+                if (usingGlobus && job.getInfo().get("resManError").equals("NO_ERROR")) {
+                    RUNNING_JOBS.remove(this);
+                    this.completed();
+                } else {
+                    gatJob = null;
+                    RUNNING_JOBS.remove(this);
+                    this.failed(JobEndStatus.SUBMISSION_FAILED);
+                }
+            } catch (GATInvocationException e) {
+                ErrorManager.fatal(CALLBACK_PROCESSING_ERR + ": " + this, e);
+            }
+        }
+    }
+
+    @Override
+    public void completed() {
+        if (this.history == JobHistory.CANCELLED) {
+            LOGGER.error("Ignoring notification since the job was cancelled");
+            removeTmpData();
+            return;
+        }
+
+        super.registerAllJobOutputsAsExpected();
+        super.completed();
+    }
+
+    @Override
+    public void failed(JobEndStatus status) {
+        if (this.history == JobHistory.CANCELLED) {
+            LOGGER.error("Ignoring notification since the job was cancelled");
+            removeTmpData();
+            return;
+        }
+        if (this.isBeingCancelled()) {
+            super.registerAllJobOutputsAsExpected();
+        }
+        switch (this.taskParams.getOnFailure()) {
+            case IGNORE:
+            case CANCEL_SUCCESSORS:
+                super.registerAllJobOutputsAsExpected();
+                break;
+            default:
+                // case RETRY:
+                // case FAIL:
+                removeTmpData();
+        }
+        super.failed(status);
+    }
+
+    @Override
+    protected void registerAllJobOutputsAsExpected() {
+        // Overriding to avoid registering results again. This will be removed in future implementations
+    }
 }

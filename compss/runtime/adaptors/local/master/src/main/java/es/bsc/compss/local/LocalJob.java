@@ -22,6 +22,8 @@ import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.TaskType;
+import es.bsc.compss.types.job.JobEndStatus;
+import es.bsc.compss.types.job.JobHistory;
 import es.bsc.compss.types.job.JobImpl;
 import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.parameter.CollectionParameter;
@@ -30,6 +32,7 @@ import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.ResourceDescription;
+import es.bsc.compss.worker.COMPSsException;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -129,6 +132,53 @@ public class LocalJob extends JobImpl<COMPSsMaster> implements Invocation {
 
     @Override
     public void cancelJob() throws Exception {
+    }
+
+    @Override
+    public void completed() {
+        if (this.history == JobHistory.CANCELLED) {
+            LOGGER.error("Ignoring notification since the job was cancelled");
+            removeTmpData();
+            return;
+        }
+
+        super.registerAllJobOutputsAsExpected();
+        super.completed();
+    }
+
+    @Override
+    public void exception(COMPSsException e) {
+        if (this.history == JobHistory.CANCELLED) {
+            LOGGER.error("Ignoring notification since the job was cancelled");
+            removeTmpData();
+            return;
+        }
+
+        super.registerAllJobOutputsAsExpected();
+        super.exception(e);
+    }
+
+    @Override
+    public void failed(JobEndStatus status) {
+        if (this.history == JobHistory.CANCELLED) {
+            LOGGER.error("Ignoring notification since the job was cancelled");
+            removeTmpData();
+            return;
+        }
+        if (this.isBeingCancelled()) {
+            super.registerAllJobOutputsAsExpected();
+        }
+        switch (this.taskParams.getOnFailure()) {
+            case IGNORE:
+            case CANCEL_SUCCESSORS:
+                super.registerAllJobOutputsAsExpected();
+                break;
+            default:
+                // case RETRY:
+                // case FAIL:
+                removeTmpData();
+        }
+        super.failed(status);
     }
 
     @Override

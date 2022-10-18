@@ -220,6 +220,16 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
     }
 
     /**
+     * Returns whether the job is being cancelled.
+     * 
+     * @return {@literal true} if the job is being cancelled but the cancellation has not been confirmed yet;
+     *         {@literal false} otherwise.
+     */
+    public boolean isBeingCancelled() {
+        return this.cancelling;
+    }
+
+    /**
      * Returns the resource assigned to the job execution.
      *
      * @return
@@ -275,15 +285,6 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
     }
 
     /**
-     * Returns the return value of the job.
-     *
-     * @return
-     */
-    public Object getReturnValue() {
-        return null;
-    }
-
-    /**
      * Returns the task type of the job.
      *
      * @return
@@ -322,7 +323,7 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
      */
     @Override
     public void stageIn() {
-        if (this.cancelling) {
+        if (this.isBeingCancelled()) {
             cancelled();
         } else {
             JOB_LOGGER.info("Ordering transfers to " + this.worker.getName() + " to run task: " + this.taskId);
@@ -330,7 +331,7 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
 
                 @Override
                 public void stageInCompleted() {
-                    if (JobImpl.this.cancelling) {
+                    if (JobImpl.this.isBeingCancelled()) {
                         JobImpl.this.cancelled();
                     } else {
                         JOB_LOGGER.debug("Received a notification for the transfers of task " + JobImpl.this.taskId
@@ -341,7 +342,7 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
 
                 @Override
                 public void stageInFailed(int numErrors) {
-                    if (JobImpl.this.cancelling) {
+                    if (JobImpl.this.isBeingCancelled()) {
                         JobImpl.this.cancelled();
                     } else {
                         JOB_LOGGER.debug("Received a notification for the transfers for task " + JobImpl.this.taskId
@@ -478,7 +479,7 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
         this.worker.getData(source, target, param, listener);
     }
 
-    private void removeTmpData() {
+    protected void removeTmpData() {
         for (Parameter p : this.taskParams.getParameters()) {
             if (DEBUG) {
                 JOB_LOGGER.debug("    * " + p);
@@ -550,7 +551,7 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
     public void cancel() throws Exception {
         this.cancelling = true;
         this.cancelJob();
-        registerJobOutputs();
+        registerAllJobOutputsAsExpected();
     }
 
     /**
@@ -611,17 +612,7 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
      */
     public void completed() {
         JOB_LOGGER.info("Received a notification for job " + jobId + " with state OK");
-        // Remove temporary data for INOUT params
-        removeTmpData();
-
-        if (this.history == JobHistory.CANCELLED) {
-            JOB_LOGGER.error("Ignoring notification since the job was cancelled");
-            return;
-        }
-
-        // Job finished, update info about the generated/updated data
-        registerJobOutputs();
-        if (this.cancelling) {
+        if (this.isBeingCancelled()) {
             cancelled();
         } else {
             this.listener.jobCompleted(this);
@@ -636,15 +627,8 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
 
     public void failed(JobEndStatus status) {
         JOB_LOGGER.error("Received a notification for job " + jobId + " with state FAILED");
-        // Remove temporary data for INOUT params
-        removeTmpData();
 
-        if (this.history == JobHistory.CANCELLED) {
-            JOB_LOGGER.error("Ignoring notification since the job was cancelled");
-            return;
-        }
-        if (cancelling) {
-            registerJobOutputs();
+        if (isBeingCancelled()) {
             cancelled();
         } else {
             final String errMsg = "Job " + this.jobId + ", running Task " + this.taskId + " on worker "
@@ -663,11 +647,9 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
                 switch (this.taskParams.getOnFailure()) {
                     case IGNORE:
                         ErrorManager.warn("Ignoring failure.");
-                        registerJobOutputs();
                         break;
                     case CANCEL_SUCCESSORS:
                         ErrorManager.warn("Cancelling successors.");
-                        registerJobOutputs();
                         break;
                     default:
                         // Do nothing before reporting the failure
@@ -684,34 +666,24 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
      */
     public void exception(COMPSsException exception) {
         JOB_LOGGER.error("Received an exception notification for job " + this.jobId);
-        // Remove temporary data for INOUT
-        removeTmpData();
 
-        if (this.history == JobHistory.CANCELLED) {
-            JOB_LOGGER.error("Ignoring notification since the job was cancelled");
-            return;
-        }
-
-        // Job finished, update info about the generated/updated data
-        registerJobOutputs();
-
-        if (this.cancelling) {
+        if (this.isBeingCancelled()) {
             cancelled();
         } else {
             this.listener.jobException(this, exception);
         }
     }
 
-    private void registerJobOutputs() {
+    protected void registerAllJobOutputsAsExpected() {
         List<Parameter> params = this.taskParams.getParameters();
         int subParamIdx = 0;
         for (Parameter p : params) {
-            registerParameterOutput(new int[] { subParamIdx }, p);
+            registerJobOutputAsExpected(new int[] { subParamIdx }, p);
             subParamIdx++;
         }
     }
 
-    private void registerParameterOutput(int[] idx, Parameter p) {
+    private void registerJobOutputAsExpected(int[] idx, Parameter p) {
         if (!p.isPotentialDependency()) {
             return;
         }
@@ -725,7 +697,7 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
                 newIdx[idx.length] = 0;
                 for (Parameter elem : cp.getParameters()) {
                     if (elem.isPotentialDependency()) {
-                        registerParameterOutput(newIdx, elem);
+                        registerJobOutputAsExpected(newIdx, elem);
                         newIdx[idx.length]++;
                     }
                 }
@@ -737,12 +709,12 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
                 for (Map.Entry<Parameter, Parameter> entry : dcp.getParameters().entrySet()) {
                     Parameter k = entry.getKey();
                     if (k.isPotentialDependency()) {
-                        registerParameterOutput(newIdx, k);
+                        registerJobOutputAsExpected(newIdx, k);
                         newIdx[idx.length]++;
                     }
                     Parameter v = entry.getValue();
                     if (v.isPotentialDependency()) {
-                        registerParameterOutput(newIdx, v);
+                        registerJobOutputAsExpected(newIdx, v);
                         newIdx[idx.length]++;
                     }
                 }
@@ -750,19 +722,25 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
             }
             default:
                 if (dataName != null) {
-                    registerParameterResult(dp, dataName);
+                    registerResultLocation(dp, dataName, this.worker);
                 }
         }
         if (dataName != null) {
-            this.listener.resultAvailable(idx, p, dataName);
+            notifyResultAvailability(idx, dp, dataName);
         }
     }
 
-    protected void registerParameterResult(DependencyParameter dp, String dataName) {
-        registerResultLocation(dp, dataName, this.worker);
+    protected void notifyResultAvailability(int[] idx, DependencyParameter dp, String dataName) {
+        this.listener.resultAvailable(idx, dp, dataName);
+        // Removing Temporary data
+        DataAccessId access = dp.getDataAccessId();
+        if (access instanceof RWAccessId) {
+            String tgtName = "tmp" + ((RWAccessId) access).getWrittenDataInstance().getRenaming();
+            Comm.removeDataKeepingValue(tgtName);
+        }
     }
 
-    private String getOuputRename(Parameter p) {
+    protected String getOuputRename(Parameter p) {
         String name = null;
         if (p.isPotentialDependency()) {
             // Notify the FileTransferManager about the generated/updated OUT/INOUT datums

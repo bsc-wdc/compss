@@ -37,6 +37,7 @@ import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.implementations.definition.MethodDefinition;
 import es.bsc.compss.types.job.JobEndStatus;
+import es.bsc.compss.types.job.JobHistory;
 import es.bsc.compss.types.job.JobImpl;
 import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.parameter.BasicTypeParameter;
@@ -44,6 +45,7 @@ import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.uri.SimpleURI;
+import es.bsc.compss.worker.COMPSsException;
 
 import java.io.IOException;
 import java.util.List;
@@ -224,6 +226,53 @@ public class RemoteRESTAgentJob extends JobImpl<RemoteRESTAgent> {
             });
 
         }
+    }
+
+    @Override
+    public void completed() {
+        if (this.history == JobHistory.CANCELLED) {
+            LOGGER.error("Ignoring notification since the job was cancelled");
+            removeTmpData();
+            return;
+        }
+
+        super.registerAllJobOutputsAsExpected();
+        super.completed();
+    }
+
+    @Override
+    public void exception(COMPSsException e) {
+        if (this.history == JobHistory.CANCELLED) {
+            LOGGER.error("Ignoring notification since the job was cancelled");
+            removeTmpData();
+            return;
+        }
+
+        super.registerAllJobOutputsAsExpected();
+        super.exception(e);
+    }
+
+    @Override
+    public void failed(JobEndStatus status) {
+        if (this.history == JobHistory.CANCELLED) {
+            LOGGER.error("Ignoring notification since the job was cancelled");
+            removeTmpData();
+            return;
+        }
+        if (this.isBeingCancelled()) {
+            super.registerAllJobOutputsAsExpected();
+        }
+        switch (this.taskParams.getOnFailure()) {
+            case IGNORE:
+            case CANCEL_SUCCESSORS:
+                super.registerAllJobOutputsAsExpected();
+                break;
+            default:
+                // case RETRY:
+                // case FAIL:
+                removeTmpData();
+        }
+        super.failed(status);
     }
 
     @Override

@@ -53,7 +53,7 @@ def get_datatypes():
     if DEBUG:
         i = 0
         for dt in datatypes:
-            print(f"  - {i} - {dt}")
+            print("  - %s - %s" % (str(i), str(dt)))
             i += 1
     return datatypes
 

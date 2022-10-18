@@ -288,11 +288,11 @@ get_args() {
         # Enable provenance
         provenance=true
         if [ -z "$output_profile" ] ; then
-          echo "PROVENANCE: Setting output_profile to App_Profile.json by default"
+          echo "PROVENANCE | Setting output_profile to App_Profile.json by default"
           output_profile="App_Profile.json"
         fi
         if [ -z "$graph" ] ; then
-          echo "PROVENANCE: Setting --graph to true by default"
+          echo "PROVENANCE | Setting --graph to true by default"
           graph=${DEFAULT_GRAPH_ARGUMENT}
         fi
         ;;
@@ -612,11 +612,11 @@ get_args() {
             # Enable provenance
             provenance=true
             if [ -z "$output_profile" ] ; then
-              echo "PROVENANCE: Setting output_profile to App_Profile.json by default"
+              echo "PROVENANCE | Setting output_profile to App_Profile.json by default"
               output_profile="App_Profile.json"
             fi
             if [ -z "$graph" ] ; then
-              echo "PROVENANCE: Setting --graph to true by default"
+              echo "PROVENANCE | Setting --graph to true by default"
               graph=${DEFAULT_GRAPH_ARGUMENT}
             fi
             ;;
@@ -706,14 +706,16 @@ fi
 start_compss_app
 
 if [ ${provenance} ]; then
-  echo "GENERATING GRAPH FOR DATA PROVENANCE"
-  "${COMPSS_HOME}Runtime/scripts/utils/compss_gengraph" "${specific_log_dir}/monitor/complete_graph.dot"
-  echo "ENDED GENERATING GRAPH FOR DATA PROVENANCE"
+  echo "PROVENANCE | GENERATING GRAPH FOR DATA PROVENANCE"
+  start=`date +%s`
+  "${COMPSS_HOME}Runtime/scripts/utils/compss_gengraph" "svg" "${specific_log_dir}/monitor/complete_graph.dot"
+  end=`date +%s`
+  echo "PROVENANCE | ENDED GENERATING GRAPH FOR DATA PROVENANCE. TIME: $(( end - start ))"
   
-  echo "RUNNING DATA PROVENANCE SCRIPT"
+  echo "PROVENANCE | RUNNING DATA PROVENANCE SCRIPT"
   python "${COMPSS_HOME}Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py" "ro-crate-info.yaml" "${specific_log_dir}/dataprovenance.log"
   if [ "${output_profile}" == "App_Profile.json" ]; then # Auto-generated, user doesn't want it
     rm -f App_Profile.json
   fi
-  echo "ENDED DATA PROVENANCE SCRIPT"
+  echo "PROVENANCE | ENDED DATA PROVENANCE SCRIPT"
 fi

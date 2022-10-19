@@ -232,10 +232,8 @@ check_compss_setup () {
   if [ -z "${uuid}" ]; then
     get_uuid
   fi
-  echo "BASE: ${base_log_dir}"
-  echo "SPECIFIC ${specific_log_dir}"
+  
   create_exec_folder
-  echo "EXEC_FOLDER=${exec_dir}"
   
   # JVM
   if [ -z "${jvm_master_opts}" ] || [ "${jvm_master_opts}" = \"\" ]; then

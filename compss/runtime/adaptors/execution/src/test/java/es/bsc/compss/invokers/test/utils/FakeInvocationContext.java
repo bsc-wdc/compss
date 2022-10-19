@@ -209,7 +209,7 @@ public class FakeInvocationContext implements InvocationContext {
     }
 
     @Override
-    public void storeParam(InvocationParam param) {
+    public void storeParam(InvocationParam param, boolean createifNonExistent) {
         switch (param.getType()) {
             case OBJECT_T:
             case STREAM_T:

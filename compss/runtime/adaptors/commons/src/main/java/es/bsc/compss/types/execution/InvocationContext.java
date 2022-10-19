@@ -20,6 +20,7 @@ import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.COMPSsConstants.TaskExecution;
 import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.loader.LoaderAPI;
+import es.bsc.compss.types.execution.exceptions.NonExistentDataException;
 import es.bsc.compss.types.execution.exceptions.UnloadableValueException;
 import es.bsc.compss.types.execution.exceptions.UnwritableValueException;
 import es.bsc.compss.types.resources.ResourceDescription;
@@ -172,9 +173,11 @@ public interface InvocationContext {
      * Stores the given parameter.
      * 
      * @param np Parameter to store.
-     * @throws UnwritableValueException value could not be written into the Persistent Object Storage
+     * @throws UnwritableValueException value could not be persisted
+     * @throws NonExistentDataException value was not stored as expected
      */
-    public void storeParam(InvocationParam np) throws UnwritableValueException;
+    public void storeParam(InvocationParam np, boolean createifNonExistent)
+        throws UnwritableValueException, NonExistentDataException;
 
     // Nested execution handling
     /**

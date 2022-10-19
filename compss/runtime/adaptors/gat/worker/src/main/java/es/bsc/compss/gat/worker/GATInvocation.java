@@ -49,7 +49,6 @@ public class GATInvocation implements Invocation {
     private final int taskId;
     private final Lang lang;
     private final JobHistory history;
-    private final OnFailure onFailure;
     private final long timeout;
 
     private final List<String> hostnames;
@@ -77,7 +76,6 @@ public class GATInvocation implements Invocation {
         this.taskId = Integer.parseInt(args[appArgsIdx++]);
         this.lang = Lang.JAVA;
         this.history = JobHistory.NEW;
-        this.onFailure = OnFailure.IGNORE;
         this.timeout = Long.parseLong(args[appArgsIdx++]);
 
         this.debug = enableDebug;
@@ -375,7 +373,12 @@ public class GATInvocation implements Invocation {
 
     @Override
     public OnFailure getOnFailure() {
-        return onFailure;
+        return OnFailure.IGNORE;
+    }
+
+    @Override
+    public boolean producesEmptyResultsOnFailure() {
+        return true;
     }
 
     @Override

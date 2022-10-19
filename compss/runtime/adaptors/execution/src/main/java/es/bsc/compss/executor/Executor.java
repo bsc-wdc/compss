@@ -46,7 +46,6 @@ import es.bsc.compss.invokers.util.BinaryRunner;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.execution.Execution;
 import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
@@ -55,7 +54,11 @@ import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.InvocationParamCollection;
 import es.bsc.compss.types.execution.InvocationParamDictCollection;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
+import es.bsc.compss.types.execution.exceptions.NonExistentDataException;
+import es.bsc.compss.types.execution.exceptions.NonExistentElementException;
 import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableResourcesException;
+import es.bsc.compss.types.execution.exceptions.UnwritableValueException;
+import es.bsc.compss.types.execution.exceptions.UnwritableValuesException;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.definition.BinaryDefinition;
@@ -81,6 +84,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
 
@@ -130,7 +134,6 @@ public class Executor implements Runnable, InvocationRunner {
     protected PipePair pyPipes;
 
     protected Invocation invocation;
-    protected Invoker invoker;
     protected InvocationResources resources;
 
 
@@ -277,7 +280,7 @@ public class Executor implements Runnable, InvocationRunner {
     }
 
     private void logExecutionException(Exception e) {
-        LOGGER.error("ERROR: Executing task" + e.getMessage(), e);
+        LOGGER.error("ERROR: Executing task " + e.getMessage(), e);
 
         // Writing in the task .err/.out
         PrintStream out = this.context.getThreadOutStream();
@@ -357,63 +360,65 @@ public class Executor implements Runnable, InvocationRunner {
 
     private void filesWrapperAndRun(ExecutionSandbox twd) throws Exception {
         boolean alreadyFailed = false;
+        boolean producesEmptyResultsOnFailure = invocation.producesEmptyResultsOnFailure();
         try {
             if (IS_TIMER_COMPSS_ENABLED) {
                 // Bind files to task sandbox working dir
-                bindOriginalFilenamesToRenamesWithTimer(twd);
-                executeTaskWithTimer(twd);
+                stageInWithTimer(twd);
+                redirectStreamsAndRunWithTimer(twd);
             } else {
                 // Bind files to task sandbox working dir
-                bindOriginalFilenamesToRenames(twd);
-                executeTask(twd);
+                stageIn(twd);
+                redirectStreamsAndRun(twd);
             }
+        } catch (COMPSsException e) {
+            logExecutionException(e);
+            alreadyFailed = true;
+            producesEmptyResultsOnFailure = true;
+            throw e;
         } catch (Exception e) {
             logExecutionException(e);
             alreadyFailed = true;
             throw e;
         } finally {
-            // Unbind files from task sandbox working dir
-            try {
-                if (IS_TIMER_COMPSS_ENABLED) {
-                    unbindOriginalFileNamesToRenamesWithTimer(twd);
-                } else {
-                    unbindOriginalFileNamesToRenames(twd);
-                }
-            } catch (Exception ex) {
-                if (alreadyFailed) {
-                    LOGGER.warn("Another exception after unbinding files: " + ex.getMessage(), ex);
-                    PrintStream out = this.context.getThreadOutStream();
-                    out.println("Another exception unbinding files: " + ex.getMessage());
-                    PrintStream err = this.context.getThreadErrStream();
-                    ex.printStackTrace(err);
-                } else {
-                    logExecutionException(ex);
-                    throw ex;
-                }
-            } finally {
-                if (IS_TIMER_COMPSS_ENABLED) {
-                    checkJobFilesWithTimer(invocation);
-                } else {
-                    checkJobFiles(invocation);
+            if (!alreadyFailed || producesEmptyResultsOnFailure) {
+                // Unbind files from task sandbox working dir
+                try {
+                    if (IS_TIMER_COMPSS_ENABLED) {
+                        stageOutWithTimer(twd, !alreadyFailed, producesEmptyResultsOnFailure);
+                    } else {
+                        stageOut(twd, !alreadyFailed, producesEmptyResultsOnFailure);
+                    }
+                } catch (Exception ex) {
+                    if (alreadyFailed) {
+                        LOGGER.warn("Another exception after unbinding files: " + ex.getMessage(), ex);
+                        PrintStream out = this.context.getThreadOutStream();
+                        out.println("Another exception unbinding files: " + ex.getMessage());
+                        PrintStream err = this.context.getThreadErrStream();
+                        ex.printStackTrace(err);
+                    } else {
+                        logExecutionException(ex);
+                        throw ex;
+                    }
                 }
             }
         }
     }
 
-    private void executeTaskWithTimer(ExecutionSandbox twd) throws Exception {
+    private void redirectStreamsAndRunWithTimer(ExecutionSandbox twd) throws Exception {
         int jobId = invocation.getJobId();
         // Execute task
         LOGGER.debug("Executing task invocation for Job " + jobId);
         long timeExecTaskStart = 0L;
         timeExecTaskStart = System.nanoTime();
 
-        executeTask(twd);
+        redirectStreamsAndRun(twd);
         final long timeExecTaskEnd = System.nanoTime();
         final float timeExecTaskElapsed = (timeExecTaskEnd - timeExecTaskStart) / (float) NANO_TO_MS;
         TIMER_LOGGER.info("[TIMER] Execute job " + jobId + ": " + timeExecTaskElapsed + " ms");
     }
 
-    private void executeTask(ExecutionSandbox twd) throws Exception {
+    private void redirectStreamsAndRun(ExecutionSandbox twd) throws Exception {
 
         /* Register outputs **************************************** */
         String streamsPath = this.context.getStandardStreamsPath(invocation);
@@ -424,53 +429,8 @@ public class Executor implements Runnable, InvocationRunner {
         if (invocation.isDebugEnabled()) {
             out.println("[EXECUTOR] executeTask - Begin task execution");
         }
-        TimeOutTask timerTask = null;
         try {
-            switch (invocation.getMethodImplementation().getMethodType()) {
-                case METHOD:
-                case MULTI_NODE:
-                    invoker = selectNativeMethodInvoker(twd, resources);
-                    break;
-                case CONTAINER:
-                    invoker = new ContainerInvoker(this.context, invocation, twd, resources);
-                    break;
-                case BINARY:
-                    invoker = new BinaryInvoker(this.context, invocation, twd, resources);
-                    break;
-                case PYTHON_MPI:
-                    invoker = new PythonMPIInvoker(this.context, invocation, twd, resources);
-                    break;
-                case MPI:
-                    invoker = new MPIInvoker(this.context, invocation, twd, resources);
-                    break;
-                case MPMDMPI:
-                    invoker = new MpmdMPIInvoker(this.context, invocation, twd, resources);
-                    break;
-                case COMPSs:
-                    invoker = new COMPSsInvoker(this.context, invocation, twd, resources);
-                    break;
-                case DECAF:
-                    invoker = new DecafInvoker(this.context, invocation, twd, resources);
-                    break;
-                case JULIA:
-                    invoker = new JuliaInvoker(this.context, invocation, twd, resources);
-                    break;
-                case OMPSS:
-                    invoker = new OmpSsInvoker(this.context, invocation, twd, resources);
-                    break;
-                case OPENCL:
-                    invoker = new OpenCLInvoker(this.context, invocation, twd, resources);
-                    break;
-                default:
-                    invoker = null; // Exception raised below.
-            }
-            if (invoker != null) {
-                timerTask = new TimeOutTask(invocation.getTaskId());
-                this.platform.registerRunningJob(invocation, invoker, timerTask);
-                invoker.runInvocation(this);
-            } else {
-                throw new JobExecutionException("Undefined invoker. It could be cause by an incoherent task type");
-            }
+            runInvocation(twd);
         } catch (COMPSsException ce) {
             LOGGER.warn("[EXECUTOR] executeTask - COMPSs Exception received");
             out.println("[EXECUTOR] executeTask - COMPSs Exception received");
@@ -483,80 +443,62 @@ public class Executor implements Runnable, InvocationRunner {
             jee.printStackTrace(err);
             throw jee;
         } finally {
-            if (timerTask != null) {
-                timerTask.cancel();
-            }
             if (invocation.isDebugEnabled()) {
                 out.println("[EXECUTOR] executeTask - End task execution");
             }
-            this.platform.unregisterRunningJob(invocation.getJobId());
-            invoker = null;
             this.context.unregisterOutputs();
         }
     }
 
-    private void checkJobFilesWithTimer(Invocation invocation) throws JobExecutionException {
-        long timeCheckOutputFilesStart = 0L;
-        timeCheckOutputFilesStart = System.nanoTime();
+    private void runInvocation(ExecutionSandbox twd) throws COMPSsException, JobExecutionException {
+        Invoker invoker;
+        switch (invocation.getMethodImplementation().getMethodType()) {
+            case METHOD:
+            case MULTI_NODE:
+                invoker = selectNativeMethodInvoker(twd, resources);
+                break;
+            case CONTAINER:
+                invoker = new ContainerInvoker(this.context, invocation, twd, resources);
+                break;
+            case BINARY:
+                invoker = new BinaryInvoker(this.context, invocation, twd, resources);
+                break;
+            case PYTHON_MPI:
+                invoker = new PythonMPIInvoker(this.context, invocation, twd, resources);
+                break;
+            case MPI:
+                invoker = new MPIInvoker(this.context, invocation, twd, resources);
+                break;
+            case MPMDMPI:
+                invoker = new MpmdMPIInvoker(this.context, invocation, twd, resources);
+                break;
+            case COMPSs:
+                invoker = new COMPSsInvoker(this.context, invocation, twd, resources);
+                break;
+            case DECAF:
+                invoker = new DecafInvoker(this.context, invocation, twd, resources);
+                break;
+            case JULIA:
+                invoker = new JuliaInvoker(this.context, invocation, twd, resources);
+                break;
+            case OMPSS:
+                invoker = new OmpSsInvoker(this.context, invocation, twd, resources);
+                break;
+            case OPENCL:
+                invoker = new OpenCLInvoker(this.context, invocation, twd, resources);
+                break;
+            default:
+                throw new JobExecutionException("Undefined invoker. It could be cause by an incoherent task type");
+        }
+
+        TimeOutTask timerTask = new TimeOutTask(invocation.getTaskId());
         try {
-            checkJobFiles(invocation);
+            this.platform.registerRunningJob(invocation, invoker, timerTask);
+            invoker.runInvocation(this);
         } finally {
-            final long timeCheckOutputFilesEnd = System.nanoTime();
-            final float timeCheckOutputFilesElapsed =
-                (timeCheckOutputFilesEnd - timeCheckOutputFilesStart) / (float) NANO_TO_MS;
-
-            final int jobId = this.invocation.getJobId();
-            TIMER_LOGGER
-                .debug("[TIMER] Check output files for job " + jobId + ": " + timeCheckOutputFilesElapsed + " ms");
+            timerTask.cancel();
+            this.platform.unregisterRunningJob(invocation.getJobId());
         }
-    }
-
-    private void checkJobFiles(Invocation invocation) throws JobExecutionException {
-        // Check job output files
-        final int jobId = this.invocation.getJobId();
-        LOGGER.debug("Checking generated files for Job " + jobId);
-
-        // Check if all the output files have been actually created (in case user has forgotten)
-        // No need to distinguish between IN or OUT files, because IN files will exist, and
-        // if there's one or more missing, they will be necessarily out.
-        boolean allOutFilesCreated = true;
-        for (InvocationParam param : invocation.getParams()) {
-            allOutFilesCreated &= checkOutParam(param);
-        }
-        for (InvocationParam param : invocation.getResults()) {
-            allOutFilesCreated &= checkOutParam(param);
-        }
-        if (!allOutFilesCreated) {
-            throw new JobExecutionException(
-                ERROR_OUT_FILES + invocation.getMethodImplementation().getMethodDefinition());
-        }
-    }
-
-    private boolean checkOutParam(InvocationParam param) {
-        if (param.getType().equals(DataType.FILE_T)) {
-            if (Tracer.isActivated()) {
-                Tracer.emitEvent(TraceEvent.CHECK_OUT_PARAM);
-            }
-            String filepath = (String) param.getValue();
-            File f = new File(filepath);
-            // If using C binding we ignore potential errors
-            if (!f.exists()) {
-                StringBuilder errMsg = new StringBuilder();
-                errMsg.append("ERROR: File with path '").append(filepath);
-                errMsg.append("' not generated by task with Method Definition ")
-                    .append(invocation.getMethodImplementation().getMethodDefinition());
-                LOGGER.error(errMsg.toString());
-                // Print also in job file
-                PrintStream err = this.context.getThreadErrStream();
-                err.println(errMsg.toString());
-                return false;
-            }
-            if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(TraceEvent.CHECK_OUT_PARAM);
-            }
-        }
-        return true;
-
     }
 
     private Invoker selectNativeMethodInvoker(ExecutionSandbox sandbox, InvocationResources assignedResources)
@@ -865,11 +807,11 @@ public class Executor implements Runnable, InvocationRunner {
         }
     }
 
-    private void bindOriginalFilenamesToRenamesWithTimer(ExecutionSandbox sandbox) throws Exception {
+    private void stageInWithTimer(ExecutionSandbox sandbox) throws Exception {
         long timeBindOriginalFilesStart = 0L;
         timeBindOriginalFilesStart = System.nanoTime();
         try {
-            bindOriginalFilenamesToRenames(sandbox);
+            stageIn(sandbox);
         } finally {
             final long timeBindOriginalFilesEnd = System.nanoTime();
             final float timeBindOriginalFilesElapsed =
@@ -885,7 +827,7 @@ public class Executor implements Runnable, InvocationRunner {
      * @param sandbox created sandbox
      * @throws IOException returns exception is a problem occurs during creation
      */
-    private void bindOriginalFilenamesToRenames(ExecutionSandbox sandbox) throws Exception {
+    private void stageIn(ExecutionSandbox sandbox) throws Exception {
         final int jobId = invocation.getJobId();
         LOGGER.debug("Binding renamed files to sandboxed original names for Job " + jobId);
         try {
@@ -981,12 +923,12 @@ public class Executor implements Runnable, InvocationRunner {
         }
     }
 
-    private void unbindOriginalFileNamesToRenamesWithTimer(ExecutionSandbox sandbox)
-        throws IOException, JobExecutionException {
+    private void stageOutWithTimer(ExecutionSandbox sandbox, boolean raiseExceptionIfNonExistent,
+        boolean createifNonExistent) throws IOException, JobExecutionException {
         long timeUnbindOriginalFilesStart = 0L;
         timeUnbindOriginalFilesStart = System.nanoTime();
         try {
-            unbindOriginalFileNamesToRenames(sandbox);
+            stageOut(sandbox, raiseExceptionIfNonExistent, createifNonExistent);
         } finally {
             final long timeUnbindOriginalFilesEnd = System.nanoTime();
             final float timeUnbindOriginalFilesElapsed =
@@ -1000,10 +942,10 @@ public class Executor implements Runnable, InvocationRunner {
     /**
      * Undo symbolic links and renames done with the original names in task sandbox to the renamed file.
      *
-     * @throws IOException Exception with file operations
      * @throws JobExecutionException Exception unbinding original names to renamed names
      */
-    private void unbindOriginalFileNamesToRenames(ExecutionSandbox sandbox) throws IOException, JobExecutionException {
+    private void stageOut(ExecutionSandbox sandbox, boolean raiseExceptionIfNonExistent, boolean createifNonExistent)
+        throws JobExecutionException {
         // Unbind files from task sandbox working dir
         final int jobId = invocation.getJobId();
         LOGGER.debug("Removing renamed files to sandboxed original names for Job " + jobId);
@@ -1011,9 +953,8 @@ public class Executor implements Runnable, InvocationRunner {
         boolean failure = false;
         for (InvocationParam param : invocation.getParams()) {
             try {
-                // todo: second one is actually here
-                unbindOriginalFilenameToRename(param, sandbox);
-            } catch (JobExecutionException e) {
+                stageOutParam(param, sandbox, raiseExceptionIfNonExistent, createifNonExistent);
+            } catch (Exception e) {
                 if (!failure) {
                     message = e.getMessage();
                 } else {
@@ -1024,8 +965,8 @@ public class Executor implements Runnable, InvocationRunner {
         }
         if (invocation.getTarget() != null) {
             try {
-                unbindOriginalFilenameToRename(invocation.getTarget(), sandbox);
-            } catch (JobExecutionException e) {
+                stageOutParam(invocation.getTarget(), sandbox, raiseExceptionIfNonExistent, createifNonExistent);
+            } catch (Exception e) {
                 if (!failure) {
                     message = e.getMessage();
                 } else {
@@ -1035,10 +976,9 @@ public class Executor implements Runnable, InvocationRunner {
             }
         }
         for (InvocationParam param : invocation.getResults()) {
-
             try {
-                unbindOriginalFilenameToRename(param, sandbox);
-            } catch (JobExecutionException e) {
+                stageOutParam(param, sandbox, raiseExceptionIfNonExistent, createifNonExistent);
+            } catch (Exception e) {
                 if (!failure) {
                     message = e.getMessage();
                 } else {
@@ -1052,80 +992,104 @@ public class Executor implements Runnable, InvocationRunner {
         }
     }
 
-    private void unbindOriginalFilenameToRename(InvocationParam param, ExecutionSandbox sandbox)
-        throws IOException, JobExecutionException {
-        if (param.isKeepRename()) {
-            // Nothing to do
-            return;
-        }
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.UNBIND_ORIG_NAME);
-        }
-        try {
-            switch (param.getType()) {
-                case COLLECTION_T:
-                    @SuppressWarnings("unchecked")
-                    InvocationParamCollection<InvocationParam> cp = (InvocationParamCollection<InvocationParam>) param;
-                    for (InvocationParam p : cp.getCollectionParameters()) {
-                        unbindOriginalFilenameToRename(p, sandbox);
-                    }
-                    break;
-                case DICT_COLLECTION_T:
-                    @SuppressWarnings("unchecked")
-                    InvocationParamDictCollection<InvocationParam, InvocationParam> dcp;
-                    dcp = (InvocationParamDictCollection<InvocationParam, InvocationParam>) param;
-                    for (Map.Entry<InvocationParam, InvocationParam> entry : dcp.getDictCollectionParameters()
-                        .entrySet()) {
-                        unbindOriginalFilenameToRename(entry.getKey(), sandbox);
-                        unbindOriginalFilenameToRename(entry.getValue(), sandbox);
-                    }
-                    break;
-                case FILE_T:
-                    String inSandboxPath = param.getOriginalName();
-                    String renamedFilePath = param.getRenamedName();
+    private void stageOutParam(InvocationParam param, ExecutionSandbox sandbox, boolean raiseExceptionIfNonExistent,
+        boolean createifNonExistent) throws NonExistentDataException, UnwritableValueException {
+        LinkedList<NonExistentDataException> nonExistsExc = new LinkedList<>();
+        LinkedList<UnwritableValueException> unwrittableExc = new LinkedList<>();
 
-                    LOGGER.debug("Treating file " + inSandboxPath);
-                    File internalFile = new File(inSandboxPath);
-                    File externalFile = new File(renamedFilePath);
+        switch (param.getType()) {
+            case COLLECTION_T:
+                InvocationParamCollection<InvocationParam> cp = (InvocationParamCollection<InvocationParam>) param;
+                for (InvocationParam p : cp.getCollectionParameters()) {
                     try {
-                        if (!inSandboxPath.equals(renamedFilePath)) {
-                            if (internalFile.exists()) {
-                                sandbox.removeFile(inSandboxPath, renamedFilePath);
+                        stageOutParam(p, sandbox, raiseExceptionIfNonExistent, createifNonExistent);
+                    } catch (NonExistentDataException nede) {
+                        nonExistsExc.add(nede);
+                    } catch (UnwritableValueException uve) {
+                        unwrittableExc.add(uve);
+                    }
+                }
+                break;
+            case DICT_COLLECTION_T:
+                InvocationParamDictCollection<InvocationParam, InvocationParam> dcp;
+                dcp = (InvocationParamDictCollection<InvocationParam, InvocationParam>) param;
+                for (Map.Entry<InvocationParam, InvocationParam> entry : dcp.getDictCollectionParameters().entrySet()) {
+                    try {
+                        stageOutParam(entry.getKey(), sandbox, raiseExceptionIfNonExistent, createifNonExistent);
+                    } catch (NonExistentDataException nede) {
+                        nonExistsExc.add(nede);
+                    }
+                    try {
+                        stageOutParam(entry.getValue(), sandbox, raiseExceptionIfNonExistent, createifNonExistent);
+                    } catch (NonExistentDataException nede) {
+                        nonExistsExc.add(nede);
+                    } catch (UnwritableValueException uve) {
+                        unwrittableExc.add(uve);
+                    }
+                }
+                break;
+            default:
+                unbindOriginalFilenameToRename(param, sandbox);
+        }
+
+        if (param.isWriteFinalValue()) {
+            try {
+                this.context.storeParam(param, createifNonExistent);
+            } catch (NonExistentDataException nede) {
+                if (raiseExceptionIfNonExistent) {
+                    throw nede;
+                }
+            }
+        }
+
+        if (raiseExceptionIfNonExistent && !nonExistsExc.isEmpty()) {
+            throw new NonExistentElementException(param.getName(), nonExistsExc);
+        }
+        if (!unwrittableExc.isEmpty()) {
+            throw new UnwritableValuesException(unwrittableExc);
+        }
+    }
+
+    private void unbindOriginalFilenameToRename(InvocationParam param, ExecutionSandbox sandbox) {
+        if (param.getType() == DataType.FILE_T && !param.isKeepRename()) {
+            if (Tracer.isActivated()) {
+                Tracer.emitEvent(TraceEvent.UNBIND_ORIG_NAME);
+            }
+            try {
+                String inSandboxPath = param.getOriginalName();
+                String renamedFilePath = param.getRenamedName();
+
+                LOGGER.debug("Treating file " + inSandboxPath);
+                File internalFile = new File(inSandboxPath);
+                File externalFile = new File(renamedFilePath);
+                try {
+                    if (!inSandboxPath.equals(renamedFilePath)) {
+                        if (internalFile.exists()) {
+                            sandbox.removeFile(inSandboxPath, renamedFilePath);
+                        } else {
+                            if (externalFile.exists()) {
+                                // Is an IN and the data was already updated
+                                LOGGER.debug("Repeated data for " + internalFile + ". Nothing to do");
                             } else {
-                                if (externalFile.exists()) {
-                                    // Is an IN and the data was already updated
-                                    LOGGER.debug("Repeated data for " + internalFile + ". Nothing to do");
-                                } else {
-                                    // IS an out
-                                    if (invocation.getOnFailure() != OnFailure.RETRY) {
-                                        LOGGER.debug("Generating empty renamed file (" + renamedFilePath
-                                            + ") for on_failure management");
-                                        if (!externalFile.createNewFile()) {
-                                            // File already exists. Ignoring
-                                        }
-                                    }
-                                    // Error output file does not exist
-                                    String msg = "WARN: Output file " + inSandboxPath + " does not exist";
-                                    throw new JobExecutionException(msg);
-                                }
+                                // Error output file does not exist
+                                String msg = "WARN: Output file " + inSandboxPath + " does not exist";
+                                this.context.getThreadErrStream().println(msg);
                             }
                         }
-                    } catch (IOException | JobExecutionException e) {
-                        this.context.getThreadErrStream().println(e.getMessage());
-                        throw e;
-                    } finally {
-                        param.setValue(renamedFilePath);
-                        File inSandboxFile = new File(inSandboxPath);
-                        String originalFileName = inSandboxFile.getName();
-                        param.setOriginalName(originalFileName);
                     }
-                    break;
-                default:
-                    // Do nothing
-            }
-        } finally {
-            if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(TraceEvent.UNBIND_ORIG_NAME);
+                } catch (IOException e) {
+                    this.context.getThreadErrStream().println(e.getMessage());
+                } finally {
+                    param.setValue(renamedFilePath);
+                    File inSandboxFile = new File(inSandboxPath);
+                    String originalFileName = inSandboxFile.getName();
+                    param.setOriginalName(originalFileName);
+                }
+
+            } finally {
+                if (Tracer.isActivated()) {
+                    Tracer.emitEventEnd(TraceEvent.UNBIND_ORIG_NAME);
+                }
             }
         }
     }

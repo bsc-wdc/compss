@@ -102,6 +102,8 @@ public interface Invocation {
 
     public OnFailure getOnFailure();
 
+    public boolean producesEmptyResultsOnFailure();
+
     public long getTimeOut();
 
     /**

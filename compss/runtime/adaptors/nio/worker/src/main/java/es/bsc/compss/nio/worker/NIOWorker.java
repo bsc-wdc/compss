@@ -71,7 +71,9 @@ import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.exceptions.InitializationException;
+import es.bsc.compss.types.execution.exceptions.NonExistentDataException;
 import es.bsc.compss.types.execution.exceptions.UnloadableValueException;
+import es.bsc.compss.types.execution.exceptions.UnwritableValueException;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.tracing.TraceEvent;
@@ -972,8 +974,32 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     }
 
     @Override
-    public void storeParam(InvocationParam param) {
+    public void storeParam(InvocationParam param, boolean createifNonExistent)
+        throws UnwritableValueException, NonExistentDataException {
         this.dataManager.storeParam(param);
+        if (param.getType() == DataType.FILE_T) {
+            String filepath = (String) param.getValue();
+            // if (Tracer.isActivated()) {
+            // Tracer.emitEvent(TraceEvent.CHECK_OUT_PARAM);
+            // }
+            File f = new File(filepath);
+            boolean fExists = f.exists();
+            // if (Tracer.isActivated()) {
+            // Tracer.emitEventEnd(TraceEvent.CHECK_OUT_PARAM);
+            // }
+            if (!fExists) {
+                if (createifNonExistent) {
+                    System.out.println("Creating new blank file at " + filepath);
+                    try {
+                        f.createNewFile(); // NOSONAR ignoring result. It couldn't exists.
+                    } catch (IOException e) {
+                        WORKER_LOGGER.warn("ERROR creating new blank file at " + filepath);
+                        throw new UnwritableValueException(e);
+                    }
+                }
+                throw new NonExistentDataException(filepath);
+            }
+        }
     }
 
     @Override

@@ -34,11 +34,11 @@ import re
 from tempfile import mkstemp
 
 from pycompss.runtime.task.features import TASK_FEATURES
-from pycompss.util.supercomputer.scs import get_base_log_dir
+from pycompss.util.supercomputer.scs import get_log_dir
 from pycompss.util.supercomputer.scs import get_log_level
 from pycompss.util.supercomputer.scs import get_master_node
 from pycompss.util.supercomputer.scs import get_master_port
-from pycompss.util.supercomputer.scs import get_specific_log_dir
+from pycompss.util.supercomputer.scs import get_master_working_dir
 from pycompss.util.supercomputer.scs import get_storage_conf
 from pycompss.util.supercomputer.scs import get_tracing
 from pycompss.util.supercomputer.scs import get_uuid
@@ -218,8 +218,8 @@ def updated_variables_in_sc() -> dict:
     """Retrieve the updated variable values within SCs.
 
     :return: Dictionary containing the updated variables (project_xml,
-             resources_xml, master_name, master_port, uuid, base_log_dir,
-             specific_log_dir, storage_conf, log_level, debug and trace).
+             resources_xml, master_name, master_port, uuid, log_dir,
+             master_working_dir, storage_conf, log_level, debug and trace).
     """
     # Since the deployment in supercomputers is done through the use of
     # enqueue_compss and consequently launch_compss - the project and resources
@@ -229,8 +229,8 @@ def updated_variables_in_sc() -> dict:
     master_name = get_master_node()
     master_port = get_master_port()
     uuid = get_uuid()
-    base_log_dir = get_base_log_dir()
-    specific_log_dir = get_specific_log_dir()
+    log_dir = get_log_dir()
+    master_working_dir = get_master_working_dir()
     storage_conf = get_storage_conf()
     # Override debug considering the parameter defined in
     # pycompss_interactive_sc script and exported by launch_compss
@@ -245,8 +245,8 @@ def updated_variables_in_sc() -> dict:
         "master_name": master_name,
         "master_port": master_port,
         "uuid": uuid,
-        "base_log_dir": base_log_dir,
-        "specific_log_dir": specific_log_dir,
+        "log_dir": log_dir,
+        "master_working_dir": master_working_dir,
         "storage_conf": storage_conf,
         "log_level": log_level,
         "debug": debug,
@@ -338,8 +338,8 @@ def create_init_config_file(
     task_count: int,
     app_name: str,
     uuid: str,
-    base_log_dir: str,
-    specific_log_dir: str,
+    log_dir: str,
+    master_working_dir: str,
     graph: bool,
     monitor: int,
     trace: int,
@@ -379,6 +379,10 @@ def create_init_config_file(
     extrae_cfg_python: str,
     wcl: int,
     cache_profiler: bool,
+    data_provenance: bool,
+    checkpoint_policy: str,
+    checkpoint_params: str,
+    checkpoint_folder: str,
     **kwargs: typing.Any,
 ) -> None:
     """Create the initialization files for the runtime start (java options file).
@@ -403,8 +407,8 @@ def create_init_config_file(
                        (for structure initialization purposes).
     :param app_name: <String> Application name.
     :param uuid: None|<String> Application UUID.
-    :param base_log_dir: None|<String> Base log path.
-    :param specific_log_dir: None|<String> Specific log path.
+    :param log_dir: None|<String> Log path.
+    :param master_working_dir: None|<String> Master working path.
     :param graph: <Boolean> Enable/Disable graph generation.
     :param monitor: None|<Integer> Disable/Frequency of the monitor.
     :param trace: <Boolean> Enable/Disable trace generation.
@@ -475,6 +479,11 @@ def create_init_config_file(
         jvm_options_file.write("-Dcompss.to.file=false\n")
         jvm_options_file.write("-Dcompss.appName=" + app_name + "\n")
 
+        if data_provenance:
+            jvm_options_file.write("-Dcompss.data_provenance=true\n")
+        else:
+            jvm_options_file.write("-Dcompss.data_provenance=false\n")
+
         if uuid == "":
             my_uuid = str(_uuid.uuid4())
         else:
@@ -486,11 +495,14 @@ def create_init_config_file(
         else:
             jvm_options_file.write("-Dcompss.shutdown_in_node_failure=false\n")
 
-        if specific_log_dir == "":
-            specific_log_dir = __create_specific_log_dir__()
-        jvm_options_file.write("-Dcompss.log.dir=" + specific_log_dir + "\n")
-
-        jvm_options_file.write("-Dcompss.appLogDir=/tmp/" + my_uuid + "/\n")
+        if log_dir == "":
+            log_dir = __create_log_dir__()
+        if master_working_dir == "":
+            master_working_dir = __create_master_working_dir__(log_dir)
+        jvm_options_file.write(
+            "-Dcompss.master.workingDir=" + master_working_dir + "\n"
+        )
+        jvm_options_file.write("-Dcompss.log.dir=" + log_dir + "\n")
 
         conf_file_key = "-Dlog4j.configurationFile="
         log_off = True
@@ -582,7 +594,7 @@ def create_init_config_file(
         if nested_enabled:
             jvm_options_file.write("-Dcompss.execution.nested.enabled=true\n")
         else:
-            jvm_options_file.write("-Dcompss.execution.nested.enabled=true\n")
+            jvm_options_file.write("-Dcompss.execution.nested.enabled=false\n")
 
         jvm_options_file.write("-Dcompss.scheduler=" + scheduler + "\n")
         jvm_options_file.write("-Dcompss.scheduler.config=" + scheduler_config + "\n")
@@ -607,6 +619,16 @@ def create_init_config_file(
         jvm_options_file.write("-Dcompss.conn=" + conn + "\n")
         jvm_options_file.write(
             "-Dcompss.external.adaptation=" + external_adaptation + "\n"
+        )
+
+        jvm_options_file.write(
+            "-Dcompss.checkpoint.policy=" + str(checkpoint_policy) + "\n"
+        )
+        jvm_options_file.write(
+            "-Dcompss.checkpoint.params=" + str(checkpoint_params) + "\n"
+        )
+        jvm_options_file.write(
+            "-Dcompss.checkpoint.folder=" + str(checkpoint_folder) + "\n"
         )
 
         jvm_options_file.write("-Dcompss.lang=python\n")
@@ -649,6 +671,13 @@ def create_init_config_file(
         else:
             jvm_options_file.write("-Dcompss.python.worker_cache=false\n")
 
+        if cache_profiler:
+            jvm_options_file.write(
+                "-Dcompss.python.cache_profiler=" + str(worker_cache).lower() + "\n"
+            )
+        else:
+            jvm_options_file.write("-Dcompss.python.cache_profiler=false\n")
+
         # SPECIFIC FOR STREAMING
         if streaming_backend == "":
             jvm_options_file.write("-Dcompss.streaming=NONE\n")
@@ -687,9 +716,9 @@ def create_init_config_file(
         if trace:
             jvm_options_file.write("-Dcompss.tracing=true\n")
             # Process extrae_xml_path
-            extrae_xml_final_path_dir = os.path.join(specific_log_dir, "cfgfiles")
+            extrae_xml_final_path_dir = os.path.join(log_dir, "cfgfiles")
             pathlib.Path(extrae_xml_final_path_dir).mkdir(parents=False, exist_ok=True)
-            extrae_trace_path = os.path.join(specific_log_dir, "trace")
+            extrae_trace_path = os.path.join(log_dir, "trace")
             extrae_xml_final_path = os.path.join(
                 extrae_xml_final_path_dir, extrae_xml_name
             )
@@ -700,13 +729,10 @@ def create_init_config_file(
             # Any other case: deactivated
             jvm_options_file.write("-Dcompss.tracing=false" + "\n")
             got_extrae_final_directory = "null"
-        jvm_options_file.write("-Dcompss.extrae.file=" + extrae_cfg + "\n")
-        if extrae_cfg_python == "":
-            jvm_options_file.write("-Dcompss.extrae.file.python=null\n")
+        if tracing_task_dependencies:
+            jvm_options_file.write("-Dcompss.tracing.task.dependencies=true\n")
         else:
-            jvm_options_file.write(
-                "-Dcompss.extrae.file.python=" + str(extrae_cfg_python) + "\n"
-            )
+            jvm_options_file.write("-Dcompss.tracing.task.dependencies=false\n")
         if extrae_final_directory == "":
             jvm_options_file.write(
                 "-Dcompss.extrae.working_dir=" + got_extrae_final_directory + "\n"
@@ -715,10 +741,13 @@ def create_init_config_file(
             jvm_options_file.write(
                 "-Dcompss.extrae.working_dir=" + extrae_final_directory + "\n"
             )
-        if tracing_task_dependencies:
-            jvm_options_file.write("-Dcompss.tracing.task.dependencies=true\n")
+        jvm_options_file.write("-Dcompss.extrae.file=" + extrae_cfg + "\n")
+        if extrae_cfg_python == "":
+            jvm_options_file.write("-Dcompss.extrae.file.python=null\n")
         else:
-            jvm_options_file.write("-Dcompss.tracing.task.dependencies=false\n")
+            jvm_options_file.write(
+                "-Dcompss.extrae.file.python=" + str(extrae_cfg_python) + "\n"
+            )
         if trace_label == "":
             jvm_options_file.write("-Dcompss.trace.label=None\n")
         else:
@@ -727,12 +756,6 @@ def create_init_config_file(
         # WALLCLOCK LIMIT
         jvm_options_file.write("-Dcompss.wcl=" + str(wcl) + "\n")
 
-        if cache_profiler:
-            jvm_options_file.write(
-                "-Dcompss.python.cache_profiler=" + str(worker_cache).lower() + "\n"
-            )
-        else:
-            jvm_options_file.write("-Dcompss.python.cache_profiler=false\n")
         # Uncomment for debugging purposes
         # jvm_options_file.write("-Xcheck:jni\n")
         # jvm_options_file.write("-verbose:jni\n")
@@ -775,10 +798,10 @@ def __process_extrae_file__(
     return got_extrae_final_directory
 
 
-def __create_specific_log_dir__() -> str:
-    """Create specific log directory.
+def __create_log_dir__() -> str:
+    """Create log directory.
 
-    :return: Updated specific log directory.
+    :return: Updated log directory.
     """
     home_folder = str(pathlib.Path.home())
     compss_log_folder = os.path.join(home_folder, ".COMPSs")
@@ -791,6 +814,16 @@ def __create_specific_log_dir__() -> str:
             existing_folders.append(folder)
     next_int = len(existing_folders) + 1
     next_subfolder = log_folder_prefix + f"{next_int:02d}"
-    specific_log_dir = os.path.join(compss_log_folder, next_subfolder)
-    pathlib.Path(specific_log_dir).mkdir(parents=False, exist_ok=True)
-    return specific_log_dir
+    log_dir = os.path.join(compss_log_folder, next_subfolder)
+    pathlib.Path(log_dir).mkdir(parents=False, exist_ok=True)
+    return log_dir
+
+
+def __create_master_working_dir__(log_dir: str) -> str:
+    """Create master working directory (log_dir/tmpFiles).
+
+    :return: Updated master working directory.
+    """
+    master_working_dir = os.path.join(log_dir, "tmpFiles")
+    pathlib.Path(master_working_dir).mkdir(parents=False, exist_ok=True)
+    return master_working_dir

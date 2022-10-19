@@ -51,8 +51,8 @@ REQUIRED_FLAGS = {
     "task_count": [[int]],
     "app_name": [[str]],
     "uuid": [[str, NONETYPE]],
-    "base_log_dir": [[str, NONETYPE]],
-    "specific_log_dir": [[str, NONETYPE]],
+    "log_dir": [[str, NONETYPE]],
+    "master_working_dir": [[str, NONETYPE]],
     "extrae_cfg": [[str, NONETYPE]],
     "comm": [[str], ["NIO", "GAT"]],
     "conn": [

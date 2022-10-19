@@ -87,6 +87,14 @@ void GS_Get_AppDir(char** buf) {
 	}
 }
 
+void GS_Get_MasterWorkingDir(char** buf) {
+	if (PIPES) {
+		PIPE_Get_MasterWorkingDir(buf);
+	} else {
+		JNI_Get_MasterWorkingDir(buf);
+	}
+}
+
 
 void GS_ExecuteTask(long appId, char* className, char* onFailure, int timeout, char* methodName, int priority, int numNodes, int reduce, int reduceChunkSize,
 		int replicated, int distributed, int hasTarget, int numReturns, int numParams, void** params) {

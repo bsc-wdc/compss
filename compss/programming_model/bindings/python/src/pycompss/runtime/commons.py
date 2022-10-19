@@ -50,8 +50,8 @@ class Constants:
         "default_sched",
         "default_conn",
         "default_jvm_workers",
+        "default_checkpoint_policy",
         "temp_dir_prefix",
-        "temp_dir_folder",
         "temp_obj_prefix",
     )
 
@@ -104,9 +104,11 @@ class Constants:
         self.default_sched = "es.bsc.compss.scheduler.lookahead.locality.LocalityTS"
         self.default_conn = "es.bsc.compss.connectors.DefaultSSHConnector"
         self.default_jvm_workers = "-Xms1024m,-Xmx1024m,-Xmn400m"
+        self.default_checkpoint_policy = (
+            "es.bsc.compss.checkpoint.policies.NoCheckpoint"
+        )
         # Temporary directory/objects info
         self.temp_dir_prefix = "pycompss"
-        self.temp_dir_folder = "tmpFiles/"
         self.temp_obj_prefix = "/compss-serialized-obj_"
 
 
@@ -140,23 +142,16 @@ class Globals:
         """
         return self.temp_dir
 
-    def set_temporary_directory(self, folder: str, create_tmpdir: bool = True) -> None:
+    def set_temporary_directory(self, folder: str) -> None:
         """Set the temporary directory.
 
         Creates the temporary directory from the folder parameter and
         sets the temporary directory variable.
 
         :param folder: Temporary directory path.
-        :param create_tmpdir: Create temporary directory within folder.
         :return: None.
         """
-        if create_tmpdir:
-            temp_dir = mkdtemp(
-                prefix=CONSTANTS.temp_dir_prefix,
-                dir=os.path.join(folder, CONSTANTS.temp_dir_folder),
-            )
-        else:
-            temp_dir = mkdtemp(prefix=CONSTANTS.temp_dir_prefix, dir=folder)
+        temp_dir = mkdtemp(prefix=CONSTANTS.temp_dir_prefix, dir=folder)
         self.temp_dir = temp_dir
 
     def in_tracing_task_name_to_id(self, task_name: str) -> bool:

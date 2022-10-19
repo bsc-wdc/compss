@@ -826,6 +826,19 @@ static PyObject* get_logging_path(PyObject* self, PyObject* args) {
 }
 
 /*
+  Returns the master working path.
+*/
+static PyObject* get_master_working_path(PyObject* self, PyObject* args) {
+    debug("Get master working path\n");
+    char* master_working_path;
+    GS_Get_MasterWorkingDir(&master_working_path);
+    debug("- COMPSs master working path %s\n", (master_working_path));
+    // This makes log_path unallocatable
+    PyObject* ret = Py_BuildValue("s", master_working_path);
+    return ret;
+}
+
+/*
   Requests the number of active resources to the runtime.
 */
 static PyObject* get_number_of_resources(PyObject* self, PyObject* args) {
@@ -976,6 +989,7 @@ static PyMethodDef CompssMethods[] = {
 	{ "cancel_task_group", cancel_task_group, METH_VARARGS, "Cancels a new task group." },
     { "snapshot", snapshot, METH_VARARGS, "Perform a snapshot of the tasks and data." },
     { "get_logging_path", get_logging_path, METH_VARARGS, "Requests the app log path." },
+    { "get_master_working_path", get_master_working_path, METH_VARARGS, "Requests the master working path." },
     { "get_number_of_resources", get_number_of_resources, METH_VARARGS, "Requests the number of active resources." },
     { "request_resources", request_resources, METH_VARARGS, "Requests the creation of a new resource."},
     { "free_resources", free_resources, METH_VARARGS, "Requests the destruction of a resource."},

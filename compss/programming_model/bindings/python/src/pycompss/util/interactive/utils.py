@@ -45,8 +45,8 @@ def parameters_to_dict(
     task_count: int,
     app_name: str,
     uuid: str,
-    base_log_dir: str,
-    specific_log_dir: str,
+    log_dir: str,
+    master_working_dir: str,
     extrae_cfg: str,
     extrae_final_directory: str,
     comm: str,
@@ -76,6 +76,10 @@ def parameters_to_dict(
     extrae_cfg_python: str,
     wcl: int,
     cache_profiler: bool,
+    data_provenance: bool,
+    checkpoint_policy: str,
+    checkpoint_params: str,
+    checkpoint_folder: str,
 ) -> dict:
     """Convert all given parameters into a dictionary."""
     all_vars = {
@@ -97,8 +101,8 @@ def parameters_to_dict(
         "task_count": task_count,
         "app_name": app_name,
         "uuid": uuid,
-        "base_log_dir": base_log_dir,
-        "specific_log_dir": specific_log_dir,
+        "log_dir": log_dir,
+        "master_working_dir": master_working_dir,
         "extrae_cfg": extrae_cfg,
         "extrae_final_directory": extrae_final_directory,
         "comm": comm,
@@ -128,5 +132,9 @@ def parameters_to_dict(
         "extrae_cfg_python": extrae_cfg_python,
         "wcl": wcl,
         "cache_profiler": cache_profiler,
+        "data_provenance": data_provenance,
+        "checkpoint_policy": checkpoint_policy,
+        "checkpoint_params": checkpoint_params,
+        "checkpoint_folder": checkpoint_folder,
     }
     return all_vars

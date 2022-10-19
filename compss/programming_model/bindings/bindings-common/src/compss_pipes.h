@@ -95,6 +95,7 @@ void PIPE_FreeResources(long appId, int numResources, char* groupName);
 
 // Misc functions
 void PIPE_Get_AppDir(char** buf);
+void PIPE_Get_MasterWorkingDir(char** buf);
 void PIPE_EmitEvent(int type, long id);
 void PIPE_Get_Object(long appId, char* objectId, char** buf);
 void PIPE_Delete_Object(long appId, char* objectId, int** buf);

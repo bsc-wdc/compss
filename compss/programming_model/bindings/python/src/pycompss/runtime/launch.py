@@ -39,6 +39,7 @@ from pycompss.util.context import CONTEXT
 from pycompss.util.context import loading_context
 from pycompss.api.exceptions import COMPSsException
 from pycompss.runtime.binding import get_log_path
+from pycompss.runtime.binding import get_tmp_path
 from pycompss.runtime.commons import CONSTANTS
 from pycompss.runtime.commons import GLOBALS
 from pycompss.runtime.start.initialization import LAUNCH_STATUS
@@ -239,11 +240,14 @@ def compss_main() -> None:
     log_path = os.path.join(
         str(os.getenv("COMPSS_HOME")), "Bindings", "python", "3", "log"
     )
-    GLOBALS.set_temporary_directory(binding_log_path)
     logging_cfg_file = get_logging_cfg_file(log_level)
     init_logging(os.path.join(log_path, logging_cfg_file), binding_log_path)
     logger = logging.getLogger("pycompss.runtime.launch")
     LAUNCH_STATUS.set_logger(logger)
+
+    # Setup tmp path
+    binding_tmp_path = get_tmp_path()  # master.workingDir
+    GLOBALS.set_temporary_directory(binding_tmp_path)
 
     # Get JVM options
     # jvm_opts = os.environ["JVM_OPTIONS_FILE"]
@@ -342,8 +346,8 @@ def launch_pycompss_application(
     task_count: int = 50,
     app_name: str = "",
     uuid: str = "",
-    base_log_dir: str = "",
-    specific_log_dir: str = "",
+    log_dir: str = "",
+    master_working_dir: str = "",
     extrae_cfg: str = "",
     extrae_final_directory: str = "",
     comm: str = "NIO",
@@ -373,6 +377,10 @@ def launch_pycompss_application(
     extrae_cfg_python: str = "",
     wcl: int = 0,
     cache_profiler: bool = False,
+    data_provenance: bool = False,
+    checkpoint_policy: str = "es.bsc.compss.checkpoint.policies.NoCheckpoint",
+    checkpoint_params: str = "",
+    checkpoint_folder: str = "",
     *args: typing.Any,
     **kwargs: typing.Any
 ) -> typing.Any:
@@ -400,8 +408,8 @@ def launch_pycompss_application(
     :param task_count: Task count (default: 50)
     :param app_name: Application name (default: Interactive_date)
     :param uuid: UUId
-    :param base_log_dir: Base logging directory
-    :param specific_log_dir: Specific logging directory
+    :param log_dir: Logging directory
+    :param master_working_dir: Master working directory
     :param extrae_cfg: Extrae configuration file path
     :param extrae_final_directory: Extrae final directory (default: "")
     :param comm: Communication library (default: NIO)
@@ -439,8 +447,16 @@ def launch_pycompss_application(
                               workers
     :param wcl: <Integer> Wallclock limit. Stops the runtime if reached.
                 0 means forever.
-    :param cache_profiler: Use the cache profiler [ True | False]
-                         (default: False)
+    :param cache_profiler: Use the cache profiler [ True | False ]
+                           (default: False)
+    :param data_provenance: Enable data provenance [ True | False ]
+                            (default: False)
+    :param checkpoint_policy: Checkpointing policy.
+                              (default: "es.bsc.compss.checkpoint.policies.NoCheckpoint")
+    :param checkpoint_params: Checkpointing parameters.
+                              (default: "")
+    :param checkpoint_folder: Checkpointing folder.
+                              (default: "")
     :param args: Positional arguments
     :param kwargs: Named arguments
     :return: Execution result
@@ -483,8 +499,8 @@ def launch_pycompss_application(
         task_count,
         app_name,
         uuid,
-        base_log_dir,
-        specific_log_dir,
+        log_dir,
+        master_working_dir,
         extrae_cfg,
         extrae_final_directory,
         comm,
@@ -514,6 +530,10 @@ def launch_pycompss_application(
         extrae_cfg_python,
         wcl,
         cache_profiler,
+        data_provenance,
+        checkpoint_policy,
+        checkpoint_params,
+        checkpoint_folder,
     )
     # Save all vars in global current flags so that events.py can restart
     # the notebook with the same flags
@@ -570,10 +590,13 @@ def launch_pycompss_application(
         str(all_vars["major_version"]),
         "log",
     )
-    GLOBALS.set_temporary_directory(binding_log_path)
     logging_cfg_file = get_logging_cfg_file(log_level)
     init_logging(os.path.join(log_path, logging_cfg_file), binding_log_path)
     logger = logging.getLogger("pycompss.runtime.launch")
+
+    # Setup tmp path
+    binding_tmp_path = get_tmp_path()  # master.workingDir
+    GLOBALS.set_temporary_directory(binding_tmp_path)
 
     logger.debug("--- START ---")
     logger.debug("PyCOMPSs Log path: %s", log_path)

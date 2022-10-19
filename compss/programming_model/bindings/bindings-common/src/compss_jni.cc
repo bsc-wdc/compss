@@ -41,6 +41,7 @@ pthread_mutex_t globalJniAccessMutex;
 jobject globalRuntime;
 
 jmethodID midAppDir;                    /* ID of the getApplicationDirectory method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
+jmethodID midTempDir;                   /* ID of the getTempDirectory method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midExecute;                   /* ID of the executeTask method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midExecuteNew;                /* ID of the executeTask method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midExecuteHttp;                /* ID of the executeTask method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
@@ -325,6 +326,10 @@ void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
     // getApplicationDirectory method
     midAppDir = status->localJniEnv->GetMethodID(clsITimpl, "getApplicationDirectory", "()Ljava/lang/String;");
     check_exception(status, "Cannot find getApplicationDirectory method");
+
+    // getMasterWorkingDirectory method
+    midTempDir = status->localJniEnv->GetMethodID(clsITimpl, "getTempDir", "()Ljava/lang/String;");
+    check_exception(status, "Cannot find getMasterWorkingDirectory method");
 
     // executeTask method - C binding
     midExecute = status->localJniEnv->GetMethodID(clsITimpl, "executeTask", "(Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;ZIZIZZZLjava/lang/Integer;I[Ljava/lang/Object;)I");
@@ -1014,6 +1019,29 @@ void JNI_Get_AppDir(char** buf) {
     access_revoke(status);
 
     debug_printf("[BINDING-COMMONS] - @JNI_Get_AppDir - directory name: %s\n", *buf);
+}
+
+
+void JNI_Get_MasterWorkingDir(char** buf) {
+    debug_printf ("[BINDING-COMMONS] - @JNI_Get_MasterWorkingDir - Getting Master Working directory.\n");
+
+    // Request thread access to JVM
+    ThreadStatus* status = access_request();
+
+    // Perform operation
+    jstring jstr = (jstring)status->localJniEnv->CallObjectMethod(globalRuntime, midTempDir);
+    check_exception(status, "Exception received when calling getMasterWorkingDir");
+
+    // Parse return
+    jboolean isCopy;
+    const char* cstr = status->localJniEnv->GetStringUTFChars(jstr, &isCopy);
+    *buf = strdup(cstr);
+    status->localJniEnv->ReleaseStringUTFChars(jstr, cstr);
+
+    // Revoke thread access to JVM
+    access_revoke(status);
+
+    debug_printf("[BINDING-COMMONS] - @JNI_Get_MasterWorkingDir - directory name: %s\n", *buf);
 }
 
 

@@ -2145,8 +2145,8 @@ load_external_compss_environment() {
       export COMPSS_MASTER_PORT="${master_port}"
       export COMPSS_WORKER_NODES="${worker_nodes}"
       export COMPSS_UUID="${uuid}"
-      export COMPSS_BASE_LOG_DIR="${base_log_dir}"
-      export COMPSS_SPECIFIC_LOG_DIR="${specific_log_dir}"
+      export COMPSS_LOG_DIR="${base_log_dir}"                   # TODO: UPDATE THE VARIABLE ASSIGNATION
+      export COMPSS_MASTER_WORKING_DIR="${specific_log_dir}"    # TODO: UPDATE THE VARIABLE ASSIGNATION
       export COMPSS_STORAGE_CONF="${storage_conf}"
 }
 

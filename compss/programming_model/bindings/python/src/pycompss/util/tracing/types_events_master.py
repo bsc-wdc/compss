@@ -50,6 +50,7 @@ class TypesEventsMaster:
         "close_task_group_event",
         "cancel_task_group_event",
         "get_log_path_event",
+        "get_tmp_path_event",
         "get_number_resources_event",
         "request_resources_event",
         "free_resources_event",
@@ -106,15 +107,16 @@ class TypesEventsMaster:
         self.open_task_group_event = 15
         self.close_task_group_event = 16
         self.get_log_path_event = 17
-        self.get_number_resources_event = 18
-        self.request_resources_event = 19
-        self.free_resources_event = 20
-        self.register_core_element_event = 21
-        self.wait_on_event = 22
-        self.process_task_event = 23
-        self.wall_clock_limit_event = 24
-        self.snapshot_event = 25
-        self.cancel_task_group_event = 26
+        self.get_tmp_path_event = 18
+        self.get_number_resources_event = 19
+        self.request_resources_event = 20
+        self.free_resources_event = 21
+        self.register_core_element_event = 22
+        self.wait_on_event = 23
+        self.process_task_event = 24
+        self.wall_clock_limit_event = 25
+        self.snapshot_event = 26
+        self.cancel_task_group_event = 27
 
         # CALL EVENTS
         self.task_instantiation = 100

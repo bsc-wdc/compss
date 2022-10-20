@@ -16,28 +16,25 @@
  */
 package es.bsc.compss.types.execution.exceptions;
 
-public class UnwritableValueException extends Exception {
+import java.util.List;
+
+
+public class UnwritableValuesException extends UnwritableValueException {
 
     /**
      * Exception Version UID are 2L in all Runtime.
      */
     private static final long serialVersionUID = 2L;
+    private final List<UnwritableValueException> subExceptions;
 
-
-    /**
-     * Creates a new UnwritableValueException.
-     */
-    public UnwritableValueException() {
-        super("Cannot write value");
-    }
 
     /**
      * Creates a new UnwritableValueException with a nested exception {@code e}.
      * 
-     * @param e Nested exception.
+     * @param es Set of exceptions of internal values that could not be written.
      */
-    public UnwritableValueException(Exception e) {
-        super("Cannot write value due to nested exception", e);
+    public UnwritableValuesException(List<UnwritableValueException> es) {
+        subExceptions = es;
     }
 
 }

@@ -18,7 +18,6 @@
 package es.bsc.compss.types.execution;
 
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.util.FileOperations;
 import java.io.File;
 import java.io.IOException;
@@ -200,7 +199,7 @@ public class ExecutionSandbox {
      * @param externalPath Path where the file should be outside the sandbox
      * @throws IOException Exception with file operations
      */
-    public void removeFile(String internalPath, String externalPath) throws IOException, JobExecutionException {
+    public void removeFile(String internalPath, String externalPath) throws IOException {
         File internalFile = new File(internalPath);
         File externalFile = new File(externalPath);
 
@@ -225,12 +224,10 @@ public class ExecutionSandbox {
                 String msg = "ERROR: Unexpected case. A Problem occurred with File " + internalFile
                     + ". Either this file or the original name " + externalPath + " does not exist.";
                 LOGGER.error(msg);
-                throw new JobExecutionException(msg);
             } else {
                 // If an output file is created move to the renamed path (OUT Case)
                 FileOperations.moveFile(internalFile, externalFile, LOGGER);
             }
-
         }
     }
 

@@ -547,7 +547,7 @@ public class TestInvoker {
         expectedEvents.add(Event.Type.RUNNING_METHOD, assertions, actions);
         LinkedList<TestObject> expectedResults = new LinkedList<>();
         expectedEvents.add(Event.Type.METHOD_RETURN, expectedResults, null);
-        expectedEvents.add(Event.Type.STORE_OBJECT, renaming, 5);
+        // expectedEvents.add(Event.Type.STORE_OBJECT, renaming, 5);
 
         Invocation invocation = invBr.build();
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
@@ -627,7 +627,7 @@ public class TestInvoker {
         expectedEvents.add(Event.Type.RUNNING_METHOD, assertions, actions);
         LinkedList<TestObject> expectedResults = new LinkedList<>();
         expectedEvents.add(Event.Type.METHOD_RETURN, expectedResults, null);
-        expectedEvents.add(Event.Type.STORE_OBJECT, renaming, 5);
+        // expectedEvents.add(Event.Type.STORE_OBJECT, renaming, 5);
 
         Invocation invocation = invBr.build();
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
@@ -670,7 +670,7 @@ public class TestInvoker {
         LinkedList<TestObject> expectedResults = new LinkedList<>();
         expectedResults.add(new TestObject(5));
         expectedEvents.add(Event.Type.METHOD_RETURN, expectedResults, null);
-        expectedEvents.add(Event.Type.STORE_OBJECT, renaming, 5);
+        // expectedEvents.add(Event.Type.STORE_OBJECT, renaming, 5);
 
         Invocation invocation = invBr.build();
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
@@ -792,7 +792,7 @@ public class TestInvoker {
         expectedEvents.add(Event.Type.RUNNING_METHOD, assertions, actions);
         LinkedList<TestObject> expectedResults = new LinkedList<>();
         expectedEvents.add(Event.Type.METHOD_RETURN, expectedResults, null);
-        expectedEvents.add(Event.Type.STORE_PERSISTENT_OBJECT, id, 5);
+        // expectedEvents.add(Event.Type.STORE_PERSISTENT_OBJECT, id, 5);
 
         Invocation invocation = invBr.build();
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
@@ -835,7 +835,7 @@ public class TestInvoker {
         expectedEvents.add(Event.Type.RUNNING_METHOD, assertions, actions);
         LinkedList<TestObject> expectedResults = new LinkedList<>();
         expectedEvents.add(Event.Type.METHOD_RETURN, expectedResults, null);
-        expectedEvents.add(Event.Type.STORE_PERSISTENT_OBJECT, id, 5);
+        // expectedEvents.add(Event.Type.STORE_PERSISTENT_OBJECT, id, 5);
 
         Invocation invocation = invBr.build();
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
@@ -878,7 +878,7 @@ public class TestInvoker {
         expectedEvents.add(Event.Type.RUNNING_METHOD, assertions, actions);
         LinkedList<TestObject> expectedResults = new LinkedList<>();
         expectedEvents.add(Event.Type.METHOD_RETURN, expectedResults, null);
-        expectedEvents.add(Event.Type.STORE_PERSISTENT_OBJECT, id, 3);
+        // expectedEvents.add(Event.Type.STORE_PERSISTENT_OBJECT, id, 3);
 
         Invocation invocation = invBr.build();
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
@@ -999,7 +999,7 @@ public class TestInvoker {
         expectedEvents.add(Event.Type.RUNNING_METHOD, assertions, actions);
         LinkedList<TestObject> expectedResults = new LinkedList<>();
         expectedEvents.add(Event.Type.METHOD_RETURN, expectedResults, null);
-        expectedEvents.add(Event.Type.STORE_PERSISTENT_OBJECT, id, 5);
+        // expectedEvents.add(Event.Type.STORE_PERSISTENT_OBJECT, id, 5);
 
         Invocation invocation = invBr.build();
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
@@ -1041,7 +1041,7 @@ public class TestInvoker {
         expectedEvents.add(Event.Type.RUNNING_METHOD, assertions, actions);
         LinkedList<TestObject> expectedResults = new LinkedList<>();
         expectedEvents.add(Event.Type.METHOD_RETURN, expectedResults, null);
-        expectedEvents.add(Event.Type.STORE_PERSISTENT_OBJECT, id, 5);
+        // expectedEvents.add(Event.Type.STORE_PERSISTENT_OBJECT, id, 5);
 
         Invocation invocation = invBr.build();
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
@@ -1086,7 +1086,7 @@ public class TestInvoker {
         expectedEvents.add(Event.Type.RUNNING_METHOD, assertions, actions);
         LinkedList<TestObject> expectedResults = new LinkedList<>();
         expectedEvents.add(Event.Type.METHOD_RETURN, expectedResults, null);
-        expectedEvents.add(Event.Type.STORE_PERSISTENT_OBJECT, id, 5);
+        // expectedEvents.add(Event.Type.STORE_PERSISTENT_OBJECT, id, 5);
 
         Invocation invocation = invBr.build();
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
@@ -1129,7 +1129,7 @@ public class TestInvoker {
         LinkedList<TestObject> expectedResults = new LinkedList<>();
         expectedResults.add(new StorageTestObject(id, 5));
         expectedEvents.add(Event.Type.METHOD_RETURN, expectedResults, null);
-        expectedEvents.add(Event.Type.STORE_PERSISTENT_OBJECT, id, 5);
+        // expectedEvents.add(Event.Type.STORE_PERSISTENT_OBJECT, id, 5);
 
         Invocation invocation = invBr.build();
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
@@ -1171,7 +1171,7 @@ public class TestInvoker {
         LinkedList<TestObject> expectedResults = new LinkedList<>();
         expectedResults.add(new StorageTestObject(id, 5));
         expectedEvents.add(Event.Type.METHOD_RETURN, expectedResults, null);
-        expectedEvents.add(Event.Type.STORE_PERSISTENT_OBJECT, id, 5);
+        // expectedEvents.add(Event.Type.STORE_PERSISTENT_OBJECT, id, 5);
 
         Invocation invocation = invBr.build();
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();

@@ -26,6 +26,7 @@ import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.definition.MethodDefinition;
 import es.bsc.compss.types.implementations.definition.MultiNodeDefinition;
+import es.bsc.compss.worker.COMPSsException;
 import es.bsc.compss.worker.CanceledTask;
 
 import java.lang.reflect.Array;
@@ -99,7 +100,7 @@ public class JavaInvoker extends Invoker {
     }
 
     @Override
-    public void invokeMethod() throws JobExecutionException {
+    public void invokeMethod() throws JobExecutionException, COMPSsException {
         Object retValue = runMethod();
 
         for (InvocationParam np : this.invocation.getParams()) {
@@ -119,7 +120,7 @@ public class JavaInvoker extends Invoker {
         }
     }
 
-    protected Object runMethod() throws JobExecutionException {
+    protected Object runMethod() throws JobExecutionException, COMPSsException {
         List<? extends InvocationParam> params = this.invocation.getParams();
         int paramCount = this.method.getParameterCount();
         Object[] values = new Object[paramCount];
@@ -156,8 +157,15 @@ public class JavaInvoker extends Invoker {
             LOGGER.info("Invoked " + this.method.getName() + (target == null ? "" : " on object " + target) + " in "
                 + this.context.getHostName());
             retValue = this.method.invoke(target, values);
-        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+        } catch (IllegalAccessException | IllegalArgumentException e) {
             throw new JobExecutionException(ERROR_TASK_EXECUTION, e);
+        } catch (InvocationTargetException e) {
+            Throwable cause = e.getCause();
+            if (cause != null && cause instanceof COMPSsException) {
+                throw (COMPSsException) cause;
+            } else {
+                throw new JobExecutionException(ERROR_TASK_EXECUTION, e);
+            }
         }
         return retValue;
     }

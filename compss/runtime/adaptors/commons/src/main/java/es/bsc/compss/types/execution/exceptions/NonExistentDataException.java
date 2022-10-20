@@ -16,28 +16,44 @@
  */
 package es.bsc.compss.types.execution.exceptions;
 
-public class UnwritableValueException extends Exception {
+import java.util.LinkedList;
+import java.util.List;
+
+
+public class NonExistentDataException extends Exception {
 
     /**
      * Exception Version UID are 2L in all Runtime.
      */
     private static final long serialVersionUID = 2L;
 
+    protected String dataName;
+
 
     /**
-     * Creates a new UnwritableValueException.
+     * Constructs a new Exception.
+     * 
+     * @param dataName name of the non-existing data
      */
-    public UnwritableValueException() {
-        super("Cannot write value");
+    public NonExistentDataException(String dataName) {
+        super();
+        this.dataName = dataName;
+    }
+
+    @Override
+    public String getMessage() {
+        return "Data " + dataName + " does not exists.";
     }
 
     /**
-     * Creates a new UnwritableValueException with a nested exception {@code e}.
+     * Returns the list of all the missing data values.
      * 
-     * @param e Nested exception.
+     * @return name of the data missing.
      */
-    public UnwritableValueException(Exception e) {
-        super("Cannot write value due to nested exception", e);
+    public List<String> getMissingData() {
+        List<String> missingData = new LinkedList<>();
+        missingData.add(dataName);
+        return missingData;
     }
 
 }

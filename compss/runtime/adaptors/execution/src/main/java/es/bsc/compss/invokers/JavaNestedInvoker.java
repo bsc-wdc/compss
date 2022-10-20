@@ -32,6 +32,7 @@ import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.util.parsers.ITFParser;
+import es.bsc.compss.worker.COMPSsException;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
@@ -234,7 +235,7 @@ public class JavaNestedInvoker extends JavaInvoker {
     }
 
     @Override
-    protected Object runMethod() throws JobExecutionException {
+    protected Object runMethod() throws JobExecutionException, COMPSsException {
         Object returnValue;
         if (this.ceiClass == null) {
             returnValue = super.runMethod();

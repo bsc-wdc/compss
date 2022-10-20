@@ -271,6 +271,11 @@ public class NIOTask implements Externalizable, Invocation {
     }
 
     @Override
+    public boolean producesEmptyResultsOnFailure() {
+        return this.onFailure != OnFailure.RETRY && this.onFailure != OnFailure.FAIL;
+    }
+
+    @Override
     public long getTimeOut() {
         return this.timeOut;
     }

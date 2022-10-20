@@ -30,6 +30,7 @@ import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.ThreadBinder;
 import es.bsc.compss.types.execution.exceptions.InitializationException;
+import es.bsc.compss.types.execution.exceptions.NonExistentDataException;
 import es.bsc.compss.types.execution.exceptions.UnloadableValueException;
 import es.bsc.compss.types.execution.exceptions.UnwritableValueException;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
@@ -48,7 +49,9 @@ import es.bsc.compss.types.implementations.definition.OpenCLDefinition;
 import es.bsc.compss.types.implementations.definition.PythonMPIDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
+import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.util.ErrorManager;
+import es.bsc.compss.util.Tracer;
 import es.bsc.compss.util.serializers.Serializer;
 import es.bsc.compss.utils.execution.ExecutionManager;
 import es.bsc.compss.worker.COMPSsException;
@@ -56,6 +59,7 @@ import es.bsc.distrostreamlib.client.DistroStreamClient;
 import es.bsc.distrostreamlib.exceptions.DistroStreamClientInitException;
 import es.bsc.distrostreamlib.requests.StopRequest;
 import es.bsc.distrostreamlib.server.types.StreamBackend;
+import java.io.File;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -418,8 +422,34 @@ public class GATWorker implements InvocationContext {
     }
 
     @Override
-    public void storeParam(InvocationParam np) throws UnwritableValueException {
+    public void storeParam(InvocationParam np, boolean createifNonExistent)
+        throws UnwritableValueException, NonExistentDataException {
         switch (np.getType()) {
+            case FILE_T:
+                String filepath = (String) np.getValue();
+                if (Tracer.isActivated()) {
+                    Tracer.emitEvent(TraceEvent.CHECK_OUT_PARAM);
+                }
+                File f = new File(filepath);
+                boolean fExists = f.exists();
+                if (Tracer.isActivated()) {
+                    Tracer.emitEventEnd(TraceEvent.CHECK_OUT_PARAM);
+                }
+                if (!fExists) {
+                    if (createifNonExistent) {
+                        System.out.println("Creating new blank file at " + filepath);
+                        try {
+                            f.createNewFile(); // NOSONAR ignoring result. It couldn't exists.
+                        } catch (IOException e) {
+                            if (this.debug) {
+                                System.err.println("ERROR creating new blank file at " + filepath);
+                            }
+                            throw new UnwritableValueException(e);
+                        }
+                    }
+                    throw new NonExistentDataException(filepath);
+                }
+                break;
             case OBJECT_T:
             case STREAM_T:
                 String fileLocation = np.getOriginalName();
@@ -432,7 +462,6 @@ public class GATWorker implements InvocationContext {
                 break;
             case PSCO_T: // fetch stage already set the value on the param, but we make sure to collect the last version
                 throw new UnsupportedOperationException("Output PSCOs are not suported with the GAT adaptor");
-            case FILE_T: // value already contains the path
             case EXTERNAL_STREAM_T: // value already contains the path
             case BINDING_OBJECT_T: // value corresponds to the ID of the object on the binding (already set)
             case EXTERNAL_PSCO_T: // value corresponds to the ID of the

@@ -52,7 +52,9 @@ import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.ThreadBinder;
 import es.bsc.compss.types.execution.exceptions.InitializationException;
+import es.bsc.compss.types.execution.exceptions.NonExistentDataException;
 import es.bsc.compss.types.execution.exceptions.UnloadableValueException;
+import es.bsc.compss.types.execution.exceptions.UnwritableValueException;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobEndStatus;
@@ -64,11 +66,13 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.resources.ShutdownListener;
+import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.FileOpsManager;
 import es.bsc.compss.util.FileOpsManager.FileOpListener;
+import es.bsc.compss.util.Tracer;
 import es.bsc.compss.util.serializers.Serializer;
 import es.bsc.compss.utils.execution.ExecutionManager;
 import es.bsc.compss.utils.execution.ThreadedPrintStream;
@@ -1331,13 +1335,37 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     }
 
     @Override
-    public void storeParam(InvocationParam invParam) {
+    public void storeParam(InvocationParam invParam, boolean createifNonExistent)
+        throws UnwritableValueException, NonExistentDataException {
         LocalParameter localParam = (LocalParameter) invParam;
         Parameter param = localParam.getParam();
         switch (param.getType()) {
+
+            case FILE_T:
+                String filepath = (String) invParam.getValue();
+                if (Tracer.isActivated()) {
+                    Tracer.emitEvent(TraceEvent.CHECK_OUT_PARAM);
+                }
+                File f = new File(filepath);
+                boolean fExists = f.exists();
+                if (Tracer.isActivated()) {
+                    Tracer.emitEventEnd(TraceEvent.CHECK_OUT_PARAM);
+                }
+                if (!fExists) {
+                    if (createifNonExistent) {
+                        System.out.println("Creating new blank file at " + filepath);
+                        try {
+                            f.createNewFile(); // NOSONAR ignoring result. It couldn't exists.
+                        } catch (IOException e) {
+                            LOGGER.debug("ERROR creating new blank file at " + filepath);
+                            throw new UnwritableValueException(e);
+                        }
+                    }
+                    throw new NonExistentDataException(filepath);
+                }
+                break;
             case COLLECTION_T:
             case DICT_COLLECTION_T:
-            case FILE_T:
             case EXTERNAL_STREAM_T:
                 // No need to store anything. Already stored on disk
                 break;

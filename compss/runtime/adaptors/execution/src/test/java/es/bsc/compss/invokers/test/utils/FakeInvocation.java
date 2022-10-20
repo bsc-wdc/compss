@@ -84,6 +84,11 @@ public class FakeInvocation implements Invocation {
     }
 
     @Override
+    public boolean producesEmptyResultsOnFailure() {
+        return false;
+    }
+
+    @Override
     public long getTimeOut() {
         return 0L;
     }

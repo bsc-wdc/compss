@@ -19,6 +19,7 @@ package es.bsc.compss.local;
 import es.bsc.compss.types.COMPSsMaster;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
+import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.Implementation;
@@ -28,6 +29,7 @@ import es.bsc.compss.types.job.JobHistory;
 import es.bsc.compss.types.job.JobImpl;
 import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.parameter.CollectionParameter;
+import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.DictCollectionParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.MethodResourceDescription;
@@ -180,6 +182,11 @@ public class LocalJob extends JobImpl<COMPSsMaster> implements Invocation {
                 removeTmpData();
         }
         super.failed(status);
+    }
+
+    @Override
+    protected DataLocation registerResultLocation(DependencyParameter dp, String dataName, Resource res) {
+        return null;
     }
 
     @Override

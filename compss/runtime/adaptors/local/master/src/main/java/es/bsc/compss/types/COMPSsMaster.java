@@ -669,8 +669,9 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                 LOGGER.debug(srcData.getName() + " is at " + u.toString() + "(" + hostname + ")");
             }
             if (u.getHost().getNode() == this) {
-                if ((reason.isTargetFlexible() && srcData.isAlias(tgtData)) || tgtPath.compareTo(u.getPath()) == 0) {
-                    LOGGER.debug(srcData.getName() + " is already at " + tgtPath);
+                String localPath = u.getPath();
+                if ((reason.isTargetFlexible() && srcData.isAlias(tgtData)) || tgtPath.compareTo(localPath) == 0) {
+                    LOGGER.debug(srcData.getName() + " is already at " + localPath);
                     // File already in the Path
                     notifyDataObtaining(u.getPath(), reason, listener);
                     return;
@@ -918,8 +919,9 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
          */
 
         // Check if data is in memory (no need to check if it is PSCO since previous case avoids it)
-        if (srcData.isInMemory()) {
-            handleInMemoryCopy(srcData, srcLoc, tgtData, tgtLoc, tgtPath, reason, listener);
+        if (srcData.isInMemory() && srcData.isAlias(tgtData)) {
+            LOGGER.debug("Object already in memory. Avoiding copy and setting dataTarget to " + tgtPath);
+            notifyDataObtaining(tgtPath, reason, listener);
             return;
         }
         obtainDataAsynch(srcData, srcLoc, tgtData, tgtLoc, tgtPath, reason, listener);
@@ -960,6 +962,10 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
             @Override
             public void run() {
+                if (srcData.isInMemory()) {
+                    handleInMemoryCopy(srcData, srcLoc, tgtData, tgtLoc, tgtPath, reason, listener);
+                    return;
+                }
                 obtainFileData(srcData, srcLoc, tgtData, tgtLoc, tgtPath, reason, listener);
             }
         });
@@ -1099,16 +1105,6 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
             @Override
             public void notifyEnd(Invocation invocation, boolean success, COMPSsException e) {
-                for (LocalParameter p : job.getParams()) {
-                    updateParameter(p);
-                }
-                LocalParameter targetParam = job.getTarget();
-                if (targetParam != null) {
-                    updateParameter(targetParam);
-                }
-                for (LocalParameter p : job.getResults()) {
-                    updateParameter(p);
-                }
                 job.profileEndNotification();
                 if (success) {
                     job.completed();
@@ -1122,78 +1118,6 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             }
         });
         this.executionManager.enqueue(exec);
-    }
-
-    private void updateParameter(LocalParameter lp) {
-        DataType newType = lp.getType();
-        String pscoId;
-        switch (newType) {
-            case PSCO_T:
-                pscoId = ((StubItf) lp.getValue()).getID();
-                break;
-            case EXTERNAL_PSCO_T:
-                pscoId = (String) lp.getValue();
-                break;
-            case BOOLEAN_T:
-            case CHAR_T:
-            case BYTE_T:
-            case SHORT_T:
-            case INT_T:
-            case LONG_T:
-            case FLOAT_T:
-            case DOUBLE_T:
-            case STRING_T:
-            case STRING_64_T:
-                // Primitive type parameters cannot become a PSCO nor stored. Ignoring parameter.
-                return;
-            default:
-                pscoId = null;
-        }
-
-        String tgtName = lp.getDataMgmtId();
-        SimpleURI resultUri = getCompletePath(lp.getType(), tgtName);
-
-        // If the parameter has been persisted and it was not a PSCO, the PSCO location needs to be registered.
-        // If it is an IN parameter, the runtime won't add any new location
-        if (pscoId != null) {
-            DataType previousType = lp.getOriginalType();
-            if (previousType == DataType.PSCO_T || previousType == DataType.EXTERNAL_PSCO_T) {
-                if (!previousType.equals(newType)) {
-                    // The parameter types do not match, log exception
-                    LOGGER.warn(
-                        "WARN: Cannot update parameter " + lp.getDataMgmtId() + " because types are not compatible");
-                }
-            } else {
-                // The parameter was an OBJECT or a FILE, we change its type and value and register its new location
-                registerPersistedParameter(newType, pscoId, lp);
-            }
-        }
-
-        // Update Task information
-        DependencyParameter dp = (DependencyParameter) lp.getParam();
-        dp.setType(newType);
-        dp.setDataTarget(resultUri.toString());
-    }
-
-    private void registerPersistedParameter(DataType newType, String pscoId, LocalParameter lp) {
-        // The parameter was an OBJECT or a FILE, we change its type and value and register its new location
-        String renaming = lp.getDataMgmtId();
-        // Update COMM information
-        switch (newType) {
-            case PSCO_T:
-                Comm.registerPSCO(renaming, pscoId);
-                break;
-            case EXTERNAL_PSCO_T:
-                if (renaming.contains("/")) {
-                    renaming = renaming.substring(renaming.lastIndexOf('/') + 1);
-                }
-                Comm.registerExternalPSCO(renaming, pscoId);
-                break;
-            default:
-                LOGGER.warn("WARN: Invalid new type " + newType + " for parameter " + renaming);
-                break;
-        }
-
     }
 
     @Override
@@ -1335,53 +1259,130 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     }
 
     @Override
-    public void storeParam(InvocationParam invParam, boolean createifNonExistent)
+    public void storeParam(InvocationParam invParam, boolean createIfNonExistent)
         throws UnwritableValueException, NonExistentDataException {
-        LocalParameter localParam = (LocalParameter) invParam;
-        Parameter param = localParam.getParam();
+        LocalParameter lp = (LocalParameter) invParam;
+        Parameter param = lp.getParam();
+        SimpleURI resultUri = null;
         switch (param.getType()) {
-
+            case DIRECTORY_T:
+                resultUri = new SimpleURI(ProtocolType.DIR_URI.getSchema() + tempDirPath + lp.getDataMgmtId());
+                try {
+                    DataLocation outLoc = DataLocation.createLocation(Comm.getAppHost(), resultUri);
+                    Comm.registerLocation(lp.getDataMgmtId(), outLoc);
+                } catch (IOException e) {
+                    ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + resultUri, e);
+                }
+                break;
             case FILE_T:
-                String filepath = (String) invParam.getValue();
-                if (Tracer.isActivated()) {
-                    Tracer.emitEvent(TraceEvent.CHECK_OUT_PARAM);
-                }
-                File f = new File(filepath);
-                boolean fExists = f.exists();
-                if (Tracer.isActivated()) {
-                    Tracer.emitEventEnd(TraceEvent.CHECK_OUT_PARAM);
-                }
-                if (!fExists) {
-                    if (createifNonExistent) {
-                        System.out.println("Creating new blank file at " + filepath);
-                        try {
-                            f.createNewFile(); // NOSONAR ignoring result. It couldn't exists.
-                        } catch (IOException e) {
-                            LOGGER.debug("ERROR creating new blank file at " + filepath);
-                            throw new UnwritableValueException(e);
-                        }
-                    }
-                    throw new NonExistentDataException(filepath);
-                }
+                resultUri = storeFileParam(lp, createIfNonExistent);
                 break;
             case COLLECTION_T:
             case DICT_COLLECTION_T:
-            case EXTERNAL_STREAM_T:
-                // No need to store anything. Already stored on disk
+                resultUri = new SimpleURI(ProtocolType.OBJECT_URI.getSchema() + tempDirPath + lp.getDataMgmtId());
+                try {
+                    DataLocation outLoc = DataLocation.createLocation(Comm.getAppHost(), resultUri);
+                    Comm.registerLocation(lp.getDataMgmtId(), outLoc);
+                } catch (IOException e) {
+                    ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + resultUri, e);
+                }
                 break;
-            case OBJECT_T:
-            case STREAM_T:
-            case PSCO_T:
-                String resultName = localParam.getDataMgmtId();
-                LogicalData ld = Comm.getData(resultName);
-                ld.setValue(invParam.getValue());
+            case OBJECT_T: {
+                String resultName = lp.getDataMgmtId();
+                Comm.registerValue(resultName, lp.getValue());
+                resultUri = new SimpleURI(ProtocolType.OBJECT_URI.getSchema() + resultName);
                 break;
+            }
+            case STREAM_T: {
+                String resultName = lp.getDataMgmtId();
+                Comm.registerValue(resultName, lp.getValue());
+                resultUri = new SimpleURI(ProtocolType.STREAM_URI.getSchema() + resultName);
+                break;
+            }
+            case EXTERNAL_STREAM_T: {
+                String resultName = lp.getDataMgmtId();
+                resultUri = new SimpleURI(ProtocolType.EXTERNAL_STREAM_URI.getSchema() + tempDirPath + resultName);
+                try {
+                    DataLocation outLoc = DataLocation.createLocation(Comm.getAppHost(), resultUri);
+                    Comm.registerLocation(lp.getDataMgmtId(), outLoc);
+                } catch (IOException e) {
+                    ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + resultUri, e);
+                }
+                break;
+            }
+            case PSCO_T: {
+                String pscoId = ((StubItf) lp.getValue()).getID();
+                String resultName = lp.getDataMgmtId();
+                Comm.registerPSCO(resultName, pscoId);
+                resultUri = new SimpleURI(ProtocolType.PERSISTENT_URI.getSchema() + pscoId);
+                break;
+            }
+            case EXTERNAL_PSCO_T: {
+                String pscoId = (String) lp.getValue();
+                String resultName = lp.getDataMgmtId();
+                Comm.registerExternalPSCO(resultName, pscoId);
+                resultUri = new SimpleURI(ProtocolType.PERSISTENT_URI.getSchema() + pscoId);
+                break;
+            }
             case BINDING_OBJECT_T:
                 // No need to store anything. Already stored on the binding
+                resultUri = new SimpleURI(ProtocolType.BINDING_URI.getSchema() + tempDirPath + lp.getValue());
+                try {
+                    DataLocation outLoc = DataLocation.createLocation(Comm.getAppHost(), resultUri);
+                    Comm.registerLocation(lp.getDataMgmtId(), outLoc);
+                } catch (IOException e) {
+                    ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + resultUri, e);
+                }
                 break;
             default:
                 throw new UnsupportedOperationException("Not supported yet." + param.getType());
+
         }
+
+        // Update Task information
+        DependencyParameter dp = (DependencyParameter) lp.getParam();
+        dp.setDataTarget(resultUri.toString());
+    }
+
+    private SimpleURI storeFileParam(LocalParameter lp, boolean createIfNonExistent)
+        throws UnwritableValueException, NonExistentDataException {
+        String filepath = (String) lp.getValue();
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(TraceEvent.CHECK_OUT_PARAM);
+        }
+
+        SimpleURI uri = new SimpleURI(ProtocolType.FILE_URI.getSchema() + filepath);
+        File f = new File(filepath);
+        boolean fExists = f.exists();
+        if (Tracer.isActivated()) {
+            Tracer.emitEventEnd(TraceEvent.CHECK_OUT_PARAM);
+        }
+        if (!fExists) {
+            if (createIfNonExistent) {
+                System.out.println("Creating new blank file at " + filepath);
+                try {
+                    f.createNewFile(); // NOSONAR ignoring result. It couldn't exists.
+                    try {
+                        DataLocation outLoc = DataLocation.createLocation(Comm.getAppHost(), uri);
+                        Comm.registerLocation(lp.getDataMgmtId(), outLoc);
+                    } catch (IOException e) {
+                        ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + filepath, e);
+                    }
+                } catch (IOException e) {
+                    LOGGER.debug("ERROR creating new blank file at " + filepath);
+                    throw new UnwritableValueException(e);
+                }
+            }
+            throw new NonExistentDataException(filepath);
+        } else {
+            try {
+                DataLocation outLoc = DataLocation.createLocation(Comm.getAppHost(), uri);
+                Comm.registerLocation(lp.getDataMgmtId(), outLoc);
+            } catch (IOException e) {
+                ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + filepath, e);
+            }
+        }
+        return uri;
     }
 
     public String getWorkingDirectory() {

@@ -61,7 +61,8 @@ public class HTTPJob extends JobImpl<HTTPInstance> {
     private static final String ERR_SERIALIZE_TO_FILE = "Cannot serialize to file HTTP Result";
 
     // Class structures
-    private static final int POOL_SIZE = 10;
+    private static final int POOL_SIZE =
+        Integer.parseInt(System.getenv().getOrDefault(COMPSsConstants.COMPSS_HTTP_POOL_SIZE, "100"));
     private static final String POOL_NAME = "HTTP";
 
     private static RequestQueue<HTTPJob> callerQueue;

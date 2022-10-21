@@ -60,7 +60,9 @@ public class COMPSsConstants {
     public static final String COMPSS_APP_DIR = "COMPSS_APP_DIR";
     public static final String GAT_LOC = "GAT_LOCATION";
     public static final String COMPSS_MPIRUN_TYPE = "COMPSS_MPIRUN_TYPE";
-
+    public static final String COMPSS_SSH_TIMEOUT = "COMPSS_SSH_TIMEOUT";
+    public static final String COMPSS_WORKER_INIT_TIMEOUT = "COMPSS_WORKER_INIT_TIMEOUT";
+    public static final String COMPSS_HTTP_POOL_SIZE = "COMPSS_HTTP_POOL_SIZE";
     /*
      * Component names
      */

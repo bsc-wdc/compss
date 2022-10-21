@@ -25,10 +25,12 @@ import es.bsc.compss.executor.InvocationRunner;
 import es.bsc.compss.executor.external.ExecutionPlatformMirror;
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.execution.Execution;
+import es.bsc.compss.types.execution.ActivateExecutorRequest;
 import es.bsc.compss.types.execution.ExecutionListener;
+import es.bsc.compss.types.execution.ExecutorRequest;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
+import es.bsc.compss.types.execution.StopExecutorRequest;
 import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableResourcesException;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.tracing.TraceEvent;
@@ -132,7 +134,7 @@ public class ExecutionPlatform implements ExecutorContext {
      *
      * @param exec Task execution description
      */
-    public void execute(Execution exec) {
+    public void execute(ExecutorRequest exec) {
         this.queue.enqueue(exec);
     }
 
@@ -212,7 +214,7 @@ public class ExecutionPlatform implements ExecutorContext {
     }
 
     /**
-     * Add worker threads to Execution Platform.
+     * Add worker threads to ExecutorRequest Platform.
      *
      * @param numWorkerThreads Number of new worker threads
      */
@@ -303,7 +305,7 @@ public class ExecutionPlatform implements ExecutorContext {
             // Tracer.enablePThreads();
             // } // Request N threads to finish
             for (int i = 0; i < numWorkerThreads; i++) {
-                this.queue.enqueue(new Execution(null, null));
+                this.queue.enqueue(new StopExecutorRequest());
             }
             LOGGER.info("Waking up all locks");
             this.queue.wakeUpAll();
@@ -423,7 +425,7 @@ public class ExecutionPlatform implements ExecutorContext {
             }
         };
         for (int i = 0; i < numThreads; i++) {
-            queue.enqueue(new Execution(null, el));
+            queue.enqueue(new ActivateExecutorRequest(el));
         }
         freezeSem.acquireUninterruptibly(numThreads);
     }
@@ -446,12 +448,12 @@ public class ExecutionPlatform implements ExecutorContext {
     }
 
     @Override
-    public Execution getJob() {
+    public ExecutorRequest getJob() {
         return this.queue.dequeue();
     }
 
     @Override
-    public Execution newThread() {
+    public ExecutorRequest newThread() {
         return this.queue.newThreadDequeue();
     }
 

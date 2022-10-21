@@ -44,10 +44,10 @@ import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.data.operation.copy.CompletedCopyException;
 import es.bsc.compss.types.data.operation.copy.Copy;
-import es.bsc.compss.types.execution.Execution;
 import es.bsc.compss.types.execution.ExecutionListener;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
+import es.bsc.compss.types.execution.InvocationExecutionRequest;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.ThreadBinder;
@@ -1101,7 +1101,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
      * @param job Local job to run.
      */
     public void runJob(LocalJob job) {
-        Execution exec = new Execution(job, new ExecutionListener() {
+        InvocationExecutionRequest exec = new InvocationExecutionRequest(job, new ExecutionListener() {
 
             @Override
             public void notifyEnd(Invocation invocation, boolean success, COMPSsException e) {

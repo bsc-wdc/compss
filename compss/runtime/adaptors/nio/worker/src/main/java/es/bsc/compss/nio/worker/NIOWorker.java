@@ -65,9 +65,9 @@ import es.bsc.compss.nio.requests.DataRequest;
 import es.bsc.compss.nio.worker.components.DataManagerImpl;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.location.ProtocolType;
-import es.bsc.compss.types.execution.Execution;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
+import es.bsc.compss.types.execution.InvocationExecutionRequest;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.exceptions.InitializationException;
@@ -659,7 +659,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
         // Execute the job
         TaskExecutionListener tel = new TaskExecutionListener(this);
-        Execution e = new Execution(task, tel);
+        InvocationExecutionRequest e = new InvocationExecutionRequest(task, tel);
         this.executionManager.enqueue(e);
 
         // Notify the master that the data has been transfered
@@ -699,7 +699,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
     @Override
     public void shutdownExecutionManager(Connection closingConnection) {
-        // Stop the Execution Manager
+        // Stop the ExecutorRequest Manager
         WORKER_LOGGER.debug("Stopping Execution Manager...");
         this.executionManager.stop();
 

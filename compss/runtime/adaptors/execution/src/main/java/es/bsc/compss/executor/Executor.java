@@ -46,8 +46,9 @@ import es.bsc.compss.invokers.util.BinaryRunner;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.execution.Execution;
+import es.bsc.compss.types.execution.ExecutionListener;
 import es.bsc.compss.types.execution.ExecutionSandbox;
+import es.bsc.compss.types.execution.ExecutorRequest;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
@@ -141,7 +142,7 @@ public class Executor implements Runnable, InvocationRunner {
      * Instantiates a new Executor.
      *
      * @param context Invocation context
-     * @param platform Executor context (Execution Platform
+     * @param platform Executor context (ExecutorRequest Platform
      * @param executorId Executor Identifier
      * @param executorName Executor Name
      */
@@ -214,55 +215,59 @@ public class Executor implements Runnable, InvocationRunner {
 
     private void processRequests() {
 
-        Execution execution = this.platform.newThread();
+        ExecutorRequest execution = this.platform.newThread();
         while (true) {
             if (execution == null) {
                 LOGGER.error("ERROR: Execution is null!!!!!");
             } else {
-                if (execution.isStopRequest()) {
-                    LOGGER.debug("Dequeued job is null.");
+                try {
+                    execution.run(this);
+                } catch (ExecutorRequest.StopExecutorException se) {
+                    LOGGER.debug("Stop request on Executor " + this.name);
                     break;
-                } else {
-                    processExecution(execution);
                 }
             }
             execution = this.platform.getJob(); // Get tasks until there are no more tasks pending
         }
     }
 
-    private void processExecution(Execution execution) {
-        invocation = execution.getInvocation();
+    /**
+     * Runs the invocation in this executor.
+     * 
+     * @param inv invocation to run
+     * @param listener element to notify changes in the execution
+     * @throws COMPSsException COMPSs exception raised by the user code
+     * @throws Exception Error preparing, running or post-processing the invocation
+     */
+    public void processInvocation(Invocation inv, ExecutionListener listener) throws COMPSsException, Exception {
+        this.invocation = inv;
 
         boolean success = false;
-        COMPSsException returnException = null;
-        if (invocation != null) {
-            invocation.executionStarts();
-            if (WORKER_DEBUG) {
-                LOGGER.debug("Dequeuing job " + invocation.getJobId());
-            }
+        invocation.executionStarts();
+        if (WORKER_DEBUG) {
+            LOGGER.debug("Dequeuing job " + invocation.getJobId());
+        }
 
-            try {
-                execute();
-                success = true;
-            } catch (COMPSsException e) {
-                returnException = e;
-            } catch (Exception e) {
-                Throwable rootCause = ExceptionUtils.getRootCause(e);
-                if (rootCause instanceof COMPSsException) {
-                    returnException = (COMPSsException) rootCause;
-                }
+        try {
+            execute();
+        } catch (COMPSsException e) {
+            throw e;
+        } catch (Exception e) {
+            Throwable rootCause = ExceptionUtils.getRootCause(e);
+            if (rootCause instanceof COMPSsException) {
+                throw (COMPSsException) rootCause;
+            } else {
+                throw e;
             }
+        } finally {
 
             if (WORKER_DEBUG) {
                 LOGGER.debug("Job " + invocation.getJobId() + " finished (success: " + success + ")");
             }
             invocation.executionEnds();
-        } else {
-            success = true;
-        }
-        execution.notifyEnd(returnException, success);
 
-        invocation = null;
+            invocation = null;
+        }
     }
 
     private void execute() throws Exception {

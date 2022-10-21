@@ -17,7 +17,7 @@
 package es.bsc.compss.execution.utils;
 
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.execution.Execution;
+import es.bsc.compss.types.execution.ExecutorRequest;
 
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.BlockingQueue;
@@ -36,7 +36,7 @@ public class JobQueue {
     private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_POOL);
 
     /** Job requests. **/
-    private final BlockingQueue<Execution> queue;
+    private final BlockingQueue<ExecutorRequest> queue;
 
     /** Stack storing the objects blocking the waiting threads. */
     private BlockingDeque<Object> waitingLocks;
@@ -52,26 +52,22 @@ public class JobQueue {
 
     /**
      * Adds a request at the tail of the queue.
-     * 
+     *
      * @param request Request to be added
      */
-    public void enqueue(Execution request) {
-        // Add new job to queue
-        if (request.getInvocation() == null) {
-            LOGGER.debug("Enqueueing null");
-        } else {
-            LOGGER.debug("Enqueueing job " + request.getInvocation().getJobId());
-        }
+    public void enqueue(ExecutorRequest request) {
+
+        LOGGER.debug("Enqueueing " + request.toString());
         synchronized (this) {
             this.queue.add(request);
 
             // Wake up the last executor thread if any
             if (!this.waitingLocks.isEmpty()) {
                 Object lock;
-                if (request.getInvocation() != null) {
-                    lock = this.waitingLocks.removeFirst();
-                } else {
+                if (request.hasAgePriority()) {
                     lock = this.waitingLocks.removeLast();
+                } else {
+                    lock = this.waitingLocks.removeFirst();
                 }
                 synchronized (lock) {
                     LOGGER.debug("Releasing lock " + lock.hashCode());
@@ -87,8 +83,8 @@ public class JobQueue {
      * 
      * @return the first request from the queue
      */
-    public Execution dequeue() {
-        Execution exec = null;
+    public ExecutorRequest dequeue() {
+        ExecutorRequest exec = null;
         Object lock = new Object();
         while (exec == null) {
             synchronized (lock) {
@@ -119,8 +115,8 @@ public class JobQueue {
      * 
      * @return the first request from the queue
      */
-    public Execution newThreadDequeue() {
-        Execution exec = null;
+    public ExecutorRequest newThreadDequeue() {
+        ExecutorRequest exec = null;
         Object lock = new Object();
         while (exec == null) {
             synchronized (lock) {

@@ -63,7 +63,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 
-
 public class ExecutionAction extends AllocatableAction implements JobListener {
 
     // Fault tolerance parameters

@@ -20,7 +20,7 @@ package es.bsc.compss.execution.types;
 import es.bsc.compss.executor.InvocationRunner;
 import es.bsc.compss.executor.external.ExecutionPlatformMirror;
 import es.bsc.compss.invokers.Invoker;
-import es.bsc.compss.types.execution.Execution;
+import es.bsc.compss.types.execution.ExecutorRequest;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableResourcesException;
 import es.bsc.compss.types.resources.ResourceDescription;
@@ -38,9 +38,9 @@ public interface ExecutorContext {
 
     public int getSize();
 
-    public Execution newThread();
+    public ExecutorRequest newThread();
 
-    public Execution getJob();
+    public ExecutorRequest getJob();
 
     public InvocationResources acquireResources(int jobId, ResourceDescription requirements,
         InvocationResources preferredAllocation) throws UnsufficientAvailableResourcesException;

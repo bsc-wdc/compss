@@ -408,10 +408,10 @@ public class ExecutionPlatform implements ExecutorContext {
 
     private void freezeThreads(int numThreads) {
         final Semaphore freezeSem = new Semaphore(0);
-        ExecutionListener el = new ExecutionListener() {
+        ActivateExecutorRequest.Listener el = new ActivateExecutorRequest.Listener() {
 
             @Override
-            public void notifyEnd(Invocation invocation, boolean success, COMPSsException e) {
+            public void onActivation() {
                 freezeSem.release();
                 if (Tracer.isActivated()) {
                     Tracer.emitEventEnd(TraceEvent.EXECUTOR_ACTIVE);

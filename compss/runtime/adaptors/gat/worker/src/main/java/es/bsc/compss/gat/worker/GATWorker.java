@@ -22,10 +22,10 @@ import es.bsc.compss.COMPSsConstants.TaskExecution;
 import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.gat.executor.types.ExecutionEnd;
 import es.bsc.compss.loader.LoaderAPI;
-import es.bsc.compss.types.execution.Execution;
 import es.bsc.compss.types.execution.ExecutionListener;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
+import es.bsc.compss.types.execution.InvocationExecutionRequest;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.ThreadBinder;
@@ -475,7 +475,7 @@ public class GATWorker implements InvocationContext {
         // Execute the job
         final ExecutionEnd status = new ExecutionEnd();
         final Semaphore sem = new Semaphore(0);
-        Execution e = new Execution(task, new ExecutionListener() {
+        InvocationExecutionRequest e = new InvocationExecutionRequest(task, new ExecutionListener() {
 
             @Override
             public void notifyEnd(Invocation invocation, boolean success, COMPSsException e) {

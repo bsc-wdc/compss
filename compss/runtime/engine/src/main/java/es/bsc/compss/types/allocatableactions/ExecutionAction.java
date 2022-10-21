@@ -16,17 +16,12 @@
  */
 package es.bsc.compss.types.allocatableactions;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.api.TaskMonitor.CollectionTaskResult;
 import es.bsc.compss.api.TaskMonitor.TaskResult;
-import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.log.LoggerManager;
-import es.bsc.compss.log.Loggers;
 import es.bsc.compss.scheduler.exceptions.BlockedActionException;
 import es.bsc.compss.scheduler.exceptions.FailedActionException;
 import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
@@ -46,47 +41,32 @@ import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
-import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessid.WAccessId;
-import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobEndStatus;
 import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.parameter.CollectionParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
-import es.bsc.compss.types.parameter.DictCollectionParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
-import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
 
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 
 public class ExecutionAction extends AllocatableAction implements JobListener {
 
     // Fault tolerance parameters
     private static final int SCHEDULING_CHANCES = 2;
-
-    // LOGGER
-    private static final Logger JOB_LOGGER = LogManager.getLogger(Loggers.JM_COMP);
 
     // Execution Info
     protected final AccessProcessor ap;

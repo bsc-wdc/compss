@@ -16,38 +16,26 @@
  */
 package es.bsc.compss.types.execution;
 
-import es.bsc.compss.worker.COMPSsException;
+import es.bsc.compss.executor.Executor;
 
 
-public class Execution {
+public class ActivateExecutorRequest extends ExecutorRequest {
 
-    private final Invocation invocation;
     private final ExecutionListener listener;
 
 
-    public Execution(Invocation invocation, ExecutionListener listener) {
-        this.invocation = invocation;
+    public ActivateExecutorRequest(ExecutionListener listener) {
         this.listener = listener;
     }
 
-    public Invocation getInvocation() {
-        return this.invocation;
+    @Override
+    public void run(Executor executor) {
+        this.listener.notifyEnd(null, true, null);
     }
 
-    public boolean isStopRequest() {
-        return this.invocation == null && this.listener == null;
-    }
-
-    /**
-     * Execution end notification.
-     * 
-     * @param e COMPSsException to handle task groups.
-     * @param success Flags to indicate if execution was successful.
-     */
-    public void notifyEnd(COMPSsException e, boolean success) {
-        if (this.listener != null) {
-            this.listener.notifyEnd(this.invocation, success, e);
-        }
+    @Override
+    public String toString() {
+        return "Activate Executor Request";
     }
 
 }

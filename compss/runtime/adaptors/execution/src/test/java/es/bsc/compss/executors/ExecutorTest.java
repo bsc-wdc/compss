@@ -26,8 +26,10 @@ import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.invokers.test.utils.ExecutionFlowVerifier;
 import es.bsc.compss.invokers.test.utils.FakeInvocation;
 import es.bsc.compss.invokers.test.utils.FakeInvocationContext;
-import es.bsc.compss.types.execution.Execution;
+import es.bsc.compss.types.execution.ExecutorRequest;
 import es.bsc.compss.types.execution.Invocation;
+import es.bsc.compss.types.execution.InvocationExecutionRequest;
+import es.bsc.compss.types.execution.StopExecutorRequest;
 import es.bsc.compss.types.execution.exceptions.InvalidMapException;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.ImplementationDescription;
@@ -60,7 +62,7 @@ public class ExecutorTest {
         Thread t = new Thread(ex);
         t.start();
 
-        p.execute(new Execution(null, null));
+        p.execute(new StopExecutorRequest());
         t.join();
     }
 
@@ -80,9 +82,9 @@ public class ExecutorTest {
             new ImplementationDescription<>(new MethodDefinition(this.getClass().getCanonicalName(), "javaTest"), "",
                 false, new MethodResourceDescription(), null, null)));
         FakeInvocation invocation1 = invBr.build();
-        Execution exec = new Execution(invocation1, null);
+        ExecutorRequest exec = new InvocationExecutionRequest(invocation1, null);
         p.execute(exec);
-        p.execute(new Execution(null, null));
+        p.execute(new StopExecutorRequest());
         t.join();
         Assert.assertNotEquals("Unset start time", 0, invocation1.getProfileTimes()[0]);
         Assert.assertNotEquals("Unset end time", 0, invocation1.getProfileTimes()[1]);
@@ -96,7 +98,7 @@ public class ExecutorTest {
     public static class Platform implements ExecutorContext {
 
         private final HashMap<Class<?>, ExecutionPlatformMirror<?>> mirrors = new HashMap<>();
-        private final RequestQueue<Execution> queue = new RequestQueue<>();
+        private final RequestQueue<ExecutorRequest> queue = new RequestQueue<>();
 
 
         @Override
@@ -110,7 +112,7 @@ public class ExecutorTest {
         }
 
         @Override
-        public Execution newThread() {
+        public ExecutorRequest newThread() {
             return this.getJob();
         }
 
@@ -120,11 +122,11 @@ public class ExecutorTest {
         }
 
         @Override
-        public Execution getJob() {
+        public ExecutorRequest getJob() {
             return this.queue.dequeue();
         }
 
-        public void execute(Execution job) {
+        public void execute(ExecutorRequest job) {
             this.queue.enqueue(job);
         }
 

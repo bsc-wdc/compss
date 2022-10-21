@@ -21,8 +21,9 @@ import es.bsc.compss.execution.ExecutionPlatform;
 import es.bsc.compss.execution.ExecutionPlatformConfiguration;
 import es.bsc.compss.execution.utils.ResourceManager;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.execution.Execution;
+import es.bsc.compss.types.execution.ExecutorRequest;
 import es.bsc.compss.types.execution.InvocationContext;
+import es.bsc.compss.types.execution.InvocationExecutionRequest;
 import es.bsc.compss.types.execution.exceptions.InitializationException;
 import es.bsc.compss.types.execution.exceptions.InvalidMapException;
 import es.bsc.compss.util.ErrorManager;
@@ -40,7 +41,7 @@ public class ExecutionManager {
 
 
     /**
-     * Instantiates a new Execution Manager.
+     * Instantiates a new ExecutorRequest Manager.
      *
      * @param context Invocation context
      * @param computingUnitsCPU Number of CPU Computing Units
@@ -88,11 +89,10 @@ public class ExecutionManager {
      *
      * @param exec Task execution description
      */
-    public void enqueue(Execution exec) {
-        if (exec.getInvocation().getMethodImplementation().isIO()) {
+    public void enqueue(InvocationExecutionRequest exec) {
+        if (exec.isIOExecution()) {
             if (this.ioExecutors.getSize() == 0) {
-                ErrorManager.error("No available IO executors to execute: "
-                    + exec.getInvocation().getMethodImplementation().getSignature());
+                ErrorManager.error("No available IO executors to execute: " + exec.getInvocationSignature());
             } else {
                 this.ioExecutors.execute(exec);
             }
@@ -102,7 +102,7 @@ public class ExecutionManager {
     }
 
     /**
-     * Stops the Execution Manager and its pool of threads.
+     * Stops the ExecutorRequest Manager and its pool of threads.
      */
     public void stop() {
         LOGGER.info("Stopping Threads...");

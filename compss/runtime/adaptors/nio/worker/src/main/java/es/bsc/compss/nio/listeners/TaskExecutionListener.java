@@ -17,12 +17,12 @@
 package es.bsc.compss.nio.listeners;
 
 import es.bsc.compss.nio.worker.NIOWorker;
-import es.bsc.compss.types.execution.ExecutionListener;
 import es.bsc.compss.types.execution.Invocation;
+import es.bsc.compss.types.execution.InvocationExecutionRequest.Listener;
 import es.bsc.compss.worker.COMPSsException;
 
 
-public class TaskExecutionListener implements ExecutionListener {
+public class TaskExecutionListener implements Listener {
 
     private final NIOWorker nw;
 

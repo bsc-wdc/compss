@@ -44,7 +44,6 @@ import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.data.operation.copy.CompletedCopyException;
 import es.bsc.compss.types.data.operation.copy.Copy;
-import es.bsc.compss.types.execution.ExecutionListener;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationExecutionRequest;
@@ -1101,7 +1100,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
      * @param job Local job to run.
      */
     public void runJob(LocalJob job) {
-        InvocationExecutionRequest exec = new InvocationExecutionRequest(job, new ExecutionListener() {
+        InvocationExecutionRequest.Listener listener = new InvocationExecutionRequest.Listener() {
 
             @Override
             public void notifyEnd(Invocation invocation, boolean success, COMPSsException e) {
@@ -1116,7 +1115,8 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                     }
                 }
             }
-        });
+        };
+        InvocationExecutionRequest exec = new InvocationExecutionRequest(job, listener);
         this.executionManager.enqueue(exec);
     }
 

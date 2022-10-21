@@ -23,7 +23,7 @@ import es.bsc.compss.worker.COMPSsException;
 public class InvocationExecutionRequest extends ExecutorRequest {
 
     private final Invocation invocation;
-    private final ExecutionListener listener;
+    private final Listener listener;
 
 
     /**
@@ -32,7 +32,7 @@ public class InvocationExecutionRequest extends ExecutorRequest {
      * @param invocation invocation to run
      * @param listener element to notify changes in the invocation execution
      */
-    public InvocationExecutionRequest(Invocation invocation, ExecutionListener listener) {
+    public InvocationExecutionRequest(Invocation invocation, Listener listener) {
         this.invocation = invocation;
         if (listener == null) {
             this.listener = new IgnoreListener();
@@ -72,7 +72,7 @@ public class InvocationExecutionRequest extends ExecutorRequest {
     }
 
 
-    private static class IgnoreListener implements ExecutionListener {
+    private static class IgnoreListener implements Listener {
 
         public IgnoreListener() {
         }
@@ -83,4 +83,16 @@ public class InvocationExecutionRequest extends ExecutorRequest {
         }
     }
 
+    public static interface Listener {
+
+        /**
+         * Notifies the end of the given invocation with the given status.
+         *
+         * @param invocation Task invocation.
+         * @param success Whether the task was successful or not.
+         * @param e COMPSsException for task groups.
+         */
+        public void notifyEnd(Invocation invocation, boolean success, COMPSsException e);
+
+    }
 }

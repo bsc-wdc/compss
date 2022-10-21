@@ -26,7 +26,6 @@ import es.bsc.compss.executor.external.ExecutionPlatformMirror;
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.execution.ActivateExecutorRequest;
-import es.bsc.compss.types.execution.ExecutionListener;
 import es.bsc.compss.types.execution.ExecutorRequest;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
@@ -37,7 +36,6 @@ import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.types.tracing.TraceEventType;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.utils.execution.ThreadedProperties;
-import es.bsc.compss.worker.COMPSsException;
 
 import java.util.Collection;
 import java.util.Comparator;

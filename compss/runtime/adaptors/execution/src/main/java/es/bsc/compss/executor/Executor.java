@@ -46,11 +46,11 @@ import es.bsc.compss.invokers.util.BinaryRunner;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.execution.ExecutionListener;
 import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.ExecutorRequest;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
+import es.bsc.compss.types.execution.InvocationExecutionRequest;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.InvocationParamCollection;
 import es.bsc.compss.types.execution.InvocationParamDictCollection;
@@ -239,7 +239,8 @@ public class Executor implements Runnable, InvocationRunner {
      * @throws COMPSsException COMPSs exception raised by the user code
      * @throws Exception Error preparing, running or post-processing the invocation
      */
-    public void processInvocation(Invocation inv, ExecutionListener listener) throws COMPSsException, Exception {
+    public void processInvocation(Invocation inv, InvocationExecutionRequest.Listener listener)
+        throws COMPSsException, Exception {
         this.invocation = inv;
 
         boolean success = false;

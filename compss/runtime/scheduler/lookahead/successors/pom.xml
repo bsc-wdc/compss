@@ -33,6 +33,8 @@
     <!-- SUB-MODULES -->
     <modules>
         <module>constraintsfifo</module>
-        <module>fifoLocality</module>
+	<module>fifo</module>
+	<module>lifo</module>
+	<module>locality</module>
     </modules>
 </project>

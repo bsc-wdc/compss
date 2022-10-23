@@ -477,6 +477,11 @@ public class GATWorker implements InvocationContext {
         InvocationExecutionRequest.Listener listener = new InvocationExecutionRequest.Listener() {
 
             @Override
+            public void onResultAvailable(InvocationParam param) {
+                // Ignore. Results are not notified until end of execution.
+            }
+
+            @Override
             public void notifyEnd(Invocation invocation, boolean success, COMPSsException e) {
                 status.setSuccess(success);
                 sem.release();

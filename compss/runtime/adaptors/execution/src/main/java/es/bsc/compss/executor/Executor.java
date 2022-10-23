@@ -135,6 +135,7 @@ public class Executor implements Runnable, InvocationRunner {
     protected PipePair pyPipes;
 
     protected Invocation invocation;
+    protected InvocationExecutionRequest.Listener invocationListener;
     protected InvocationResources resources;
 
 
@@ -242,6 +243,7 @@ public class Executor implements Runnable, InvocationRunner {
     public void processInvocation(Invocation inv, InvocationExecutionRequest.Listener listener)
         throws COMPSsException, Exception {
         this.invocation = inv;
+        this.invocationListener = listener;
 
         boolean success = false;
         invocation.executionStarts();
@@ -268,6 +270,7 @@ public class Executor implements Runnable, InvocationRunner {
             invocation.executionEnds();
 
             invocation = null;
+            invocationListener = null;
         }
     }
 
@@ -1041,6 +1044,7 @@ public class Executor implements Runnable, InvocationRunner {
         if (param.isWriteFinalValue()) {
             try {
                 this.context.storeParam(param, createifNonExistent);
+                this.invocationListener.onResultAvailable(param);
             } catch (NonExistentDataException nede) {
                 if (raiseExceptionIfNonExistent) {
                     throw nede;

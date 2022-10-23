@@ -1103,6 +1103,12 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         InvocationExecutionRequest.Listener listener = new InvocationExecutionRequest.Listener() {
 
             @Override
+            public void onResultAvailable(InvocationParam param) {
+                LocalParameter lp = (LocalParameter) param;
+                job.notifyResultAvailable(lp);
+            }
+
+            @Override
             public void notifyEnd(Invocation invocation, boolean success, COMPSsException e) {
                 job.profileEndNotification();
                 if (success) {

@@ -78,12 +78,24 @@ public class InvocationExecutionRequest extends ExecutorRequest {
         }
 
         @Override
+        public void onResultAvailable(InvocationParam param) {
+            // Ignore
+        }
+
+        @Override
         public void notifyEnd(Invocation invocation, boolean success, COMPSsException e) {
             // Ignore
         }
     }
 
     public static interface Listener {
+
+        /**
+         * Notifies that a result of the invocation is already available.
+         * 
+         * @param param produced result
+         */
+        public void onResultAvailable(InvocationParam param);
 
         /**
          * Notifies the end of the given invocation with the given status.

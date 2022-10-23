@@ -21,16 +21,16 @@ import es.bsc.compss.executor.Executor;
 
 public class ActivateExecutorRequest extends ExecutorRequest {
 
-    private final ExecutionListener listener;
+    private final Listener listener;
 
 
-    public ActivateExecutorRequest(ExecutionListener listener) {
+    public ActivateExecutorRequest(Listener listener) {
         this.listener = listener;
     }
 
     @Override
     public void run(Executor executor) {
-        this.listener.notifyEnd(null, true, null);
+        this.listener.onActivation();
     }
 
     @Override
@@ -38,4 +38,10 @@ public class ActivateExecutorRequest extends ExecutorRequest {
         return "Activate Executor Request";
     }
 
+
+    public static interface Listener {
+
+        public void onActivation();
+
+    }
 }

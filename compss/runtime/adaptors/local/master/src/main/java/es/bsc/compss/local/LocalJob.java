@@ -55,7 +55,7 @@ public class LocalJob extends JobImpl<COMPSsMaster> implements Invocation {
 
     /**
      * Creates a new LocalJob instance.
-     * 
+     *
      * @param taskId Associated task Id.
      * @param task Associated task description.
      * @param impl Task implementation.
@@ -77,24 +77,43 @@ public class LocalJob extends JobImpl<COMPSsMaster> implements Invocation {
         this.reqs = absMethodImpl.getRequirements();
     }
 
-    private LocalParameter generateLocalParameter(Parameter p) {
+    private LocalParameter generateLocalParameter(Parameter p, int[] index) {
         switch (p.getType()) {
             case COLLECTION_T:
                 CollectionParameter cp = (CollectionParameter) p;
-                LocalParameterCollection lpc = new LocalParameterCollection(p);
+                LocalParameterCollection lpc = new LocalParameterCollection(p, index);
+                int colIdx = 0;
                 for (Parameter subParam : cp.getParameters()) {
-                    lpc.addParameter(generateLocalParameter(subParam));
+                    int[] idx = new int[index.length + 1];
+                    System.arraycopy(index, 0, idx, 0, index.length);
+                    idx[index.length] = colIdx;
+                    lpc.addParameter(generateLocalParameter(subParam, idx));
+                    colIdx++;
                 }
                 return lpc;
             case DICT_COLLECTION_T:
                 DictCollectionParameter dcp = (DictCollectionParameter) p;
-                LocalParameterDictCollection lpdc = new LocalParameterDictCollection(p);
+                LocalParameterDictCollection lpdc = new LocalParameterDictCollection(p, index);
+                colIdx = 0;
                 for (Map.Entry<Parameter, Parameter> entry : dcp.getParameters().entrySet()) {
-                    lpdc.addParameter(generateLocalParameter(entry.getKey()), generateLocalParameter(entry.getValue()));
+                    int[] idx = new int[index.length + 1];
+                    System.arraycopy(index, 0, idx, 0, index.length);
+                    idx[index.length] = colIdx;
+                    LocalParameter keyParam;
+                    keyParam = generateLocalParameter(entry.getKey(), idx);
+                    colIdx++;
+
+                    idx = new int[index.length + 1];
+                    System.arraycopy(index, 0, idx, 0, index.length);
+                    idx[index.length] = colIdx;
+                    LocalParameter valueParam = generateLocalParameter(entry.getValue(), idx);
+                    colIdx++;
+
+                    lpdc.addParameter(keyParam, valueParam);
                 }
                 return lpdc;
             default:
-                return new LocalParameter(p);
+                return new LocalParameter(p, index);
         }
     }
 
@@ -106,20 +125,22 @@ public class LocalJob extends JobImpl<COMPSsMaster> implements Invocation {
         List<Parameter> params = this.taskParams.getParameters();
         int paramsCount = params.size();
         for (int rIdx = 0; rIdx < numReturns; rIdx++) {
-            Parameter p = params.get(params.size() - numReturns + rIdx);
-            this.results.add(generateLocalParameter(p));
+            int paramIdx = params.size() - numReturns + rIdx;
+            Parameter p = params.get(paramIdx);
+            this.results.add(generateLocalParameter(p, new int[] { paramIdx }));
         }
 
         paramsCount -= numReturns;
         if (hasTarget) {
-            Parameter p = params.get(params.size() - numReturns - 1);
-            this.target = generateLocalParameter(p);
+            int paramIdx = params.size() - numReturns - 1;
+            Parameter p = params.get(paramIdx);
+            this.target = generateLocalParameter(p, new int[] { paramIdx });
             paramsCount--;
         }
 
         for (int paramIdx = 0; paramIdx < paramsCount; paramIdx++) {
             Parameter p = params.get(paramIdx);
-            this.arguments.add(generateLocalParameter(p));
+            this.arguments.add(generateLocalParameter(p, new int[] { paramIdx }));
         }
     }
 
@@ -137,6 +158,18 @@ public class LocalJob extends JobImpl<COMPSsMaster> implements Invocation {
     public void cancelJob() throws Exception {
     }
 
+    /**
+     * A parameter of the job has been computed.
+     *
+     * @param lp Computed Parameter
+     */
+    public void notifyResultAvailable(LocalParameter lp) {
+        DependencyParameter dp = (DependencyParameter) lp.getParam();
+        String dataName = lp.getDataMgmtId();
+        int[] idx = lp.getIndex();
+        notifyResultAvailability(idx, dp, dataName);
+    }
+
     @Override
     public void completed() {
         if (this.history == JobHistory.CANCELLED) {
@@ -145,7 +178,6 @@ public class LocalJob extends JobImpl<COMPSsMaster> implements Invocation {
             return;
         }
 
-        super.registerAllJobOutputsAsExpected();
         super.completed();
     }
 
@@ -157,7 +189,6 @@ public class LocalJob extends JobImpl<COMPSsMaster> implements Invocation {
             return;
         }
 
-        super.registerAllJobOutputsAsExpected();
         super.exception(e);
     }
 
@@ -168,13 +199,10 @@ public class LocalJob extends JobImpl<COMPSsMaster> implements Invocation {
             removeTmpData();
             return;
         }
-        if (this.isBeingCancelled()) {
-            super.registerAllJobOutputsAsExpected();
-        }
+
         switch (this.taskParams.getOnFailure()) {
             case IGNORE:
             case CANCEL_SUCCESSORS:
-                super.registerAllJobOutputsAsExpected();
                 break;
             default:
                 // case RETRY:

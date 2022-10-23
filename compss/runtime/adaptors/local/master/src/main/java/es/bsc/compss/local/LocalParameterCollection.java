@@ -32,52 +32,33 @@ import java.util.List;
 
 public class LocalParameterCollection extends LocalParameter implements InvocationParamCollection<LocalParameter> {
 
-    private List<LocalParameter> collectionParameters;
+    private final List<LocalParameter> collectionParameters;
 
-
-    /**
-     * Create a new LocalParameterCollection instance for externalization.
-     */
-    public LocalParameterCollection() {
-        // Only executed by externalizable
-        super();
-    }
 
     /**
      * Create a new LocalParameterCollection copying the given LocalParameter values.
      * 
      * @param p LocalParameter to copy.
+     * @param index index of the parameter
      */
-    public LocalParameterCollection(Parameter p) {
-        super(p);
+    public LocalParameterCollection(Parameter p, int[] index) {
+        super(p, index);
 
         // Empty attributes
         this.collectionParameters = new LinkedList<>();
     }
 
-    /**
-     * Returns the number of internal parameters of the collection.
-     * 
-     * @return The number of internal parameters of the collection.
-     */
+    @Override
     public int getSize() {
         return this.collectionParameters.size();
     }
 
-    /**
-     * Returns a list of objects containing the collection parameters.
-     * 
-     * @return A list of objects containing the collection parameters.
-     */
+    @Override
     public List<LocalParameter> getCollectionParameters() {
         return this.collectionParameters;
     }
 
-    /**
-     * Adds a new parameter to the collection.
-     * 
-     * @param p Parameter to add.
-     */
+    @Override
     public void addParameter(LocalParameter p) {
         this.collectionParameters.add(p);
     }

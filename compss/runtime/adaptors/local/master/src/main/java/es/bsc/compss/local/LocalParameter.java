@@ -47,6 +47,7 @@ public class LocalParameter implements InvocationParam {
 
     private Object value;
     private Class<?> valueClass;
+    private final int[] index;
 
 
     /**
@@ -60,14 +61,16 @@ public class LocalParameter implements InvocationParam {
         this.writeFinalValue = false;
         this.sourceDataMgmtId = null;
         this.dataMgmtId = null;
+        this.index = new int[0];
     }
 
     /**
      * Creates a new LocalParameter instance from the given parameter information.
      * 
      * @param param Parameter information.
+     * @param index index of the parameter
      */
-    public LocalParameter(Parameter param) {
+    public LocalParameter(Parameter param, int[] index) {
         this.param = param;
         DataType type = param.getType();
         this.originalType = type;
@@ -132,6 +135,7 @@ public class LocalParameter implements InvocationParam {
                 this.sourceDataMgmtId = null;
                 this.dataMgmtId = null;
         }
+        this.index = index;
     }
 
     @Override
@@ -251,6 +255,10 @@ public class LocalParameter implements InvocationParam {
 
     public Parameter getParam() {
         return this.param;
+    }
+
+    public int[] getIndex() {
+        return index;
     }
 
     @Override

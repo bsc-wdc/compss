@@ -33,53 +33,33 @@ import java.util.Map;
 public class LocalParameterDictCollection extends LocalParameter
     implements InvocationParamDictCollection<LocalParameter, LocalParameter> {
 
-    private Map<LocalParameter, LocalParameter> dictCollectionParameters;
+    private final Map<LocalParameter, LocalParameter> dictCollectionParameters;
 
-
-    /**
-     * Create a new LocalParameterCollection instance for externalization.
-     */
-    public LocalParameterDictCollection() {
-        // Only executed by externalizable
-        super();
-    }
 
     /**
      * Create a new LocalParameterCollection copying the given LocalParameter values.
      * 
      * @param p LocalParameter to copy.
+     * @param index index of the parameter
      */
-    public LocalParameterDictCollection(Parameter p) {
-        super(p);
+    public LocalParameterDictCollection(Parameter p, int[] index) {
+        super(p, index);
 
         // Empty attributes
-        this.dictCollectionParameters = new HashMap<LocalParameter, LocalParameter>();
+        this.dictCollectionParameters = new HashMap<>();
     }
 
-    /**
-     * Returns the number of internal parameters of the dictionary collection.
-     * 
-     * @return The number of internal parameters of the dictionary collection.
-     */
+    @Override
     public int getSize() {
         return this.dictCollectionParameters.size();
     }
 
-    /**
-     * Returns a Map of objects containing the dictionary collection parameters.
-     * 
-     * @return A map of objects containing the dictionary collection parameters.
-     */
+    @Override
     public Map<LocalParameter, LocalParameter> getDictCollectionParameters() {
         return this.dictCollectionParameters;
     }
 
-    /**
-     * Adds a new parameter to the dictionary collection.
-     * 
-     * @param k Key to add.
-     * @param v Value to add.
-     */
+    @Override
     public void addParameter(LocalParameter k, LocalParameter v) {
         this.dictCollectionParameters.put(k, v);
     }

@@ -27,14 +27,14 @@ import org.json.JSONObject;
 
 
 /**
- * Implementation for the FifoLocalityRS.
+ * Implementation for the FifoRS.
  *
  * @param <T> Worker Resource Description.
  */
 public class FifoRS<T extends WorkerResourceDescription> extends LookaheadRS<T> {
 
     /**
-     * New FIFO Data Resource Scheduler instance.
+     * New FIFO successors Resource Scheduler instance.
      *
      * @param w Associated worker.
      * @param resJSON Worker JSON description.
@@ -51,7 +51,6 @@ public class FifoRS<T extends WorkerResourceDescription> extends LookaheadRS<T> 
      */
     @Override
     public Score generateBlockedScore(AllocatableAction action) {
-        // LOGGER.debug("[FifoLocalityRS] Generate blocked score for action " + action);
         long priority = action.getPriority();
         long groupId = action.getGroupPriority();
         long resourceScore = -action.getId();
@@ -63,7 +62,6 @@ public class FifoRS<T extends WorkerResourceDescription> extends LookaheadRS<T> 
 
     @Override
     public Score generateResourceScore(AllocatableAction action, TaskDescription params, Score actionScore) {
-        // LOGGER.debug("[FifoLocalityRS] Generate resource score for action " + action);
 
         // Since we are generating the resource score, we copy the previous fields from actionScore
         long priority = actionScore.getPriority();

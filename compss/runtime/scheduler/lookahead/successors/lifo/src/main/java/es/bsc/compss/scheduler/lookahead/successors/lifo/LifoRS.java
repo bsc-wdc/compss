@@ -27,14 +27,14 @@ import org.json.JSONObject;
 
 
 /**
- * Implementation for the FifoLocalityRS.
+ * Implementation for the LifoRS.
  *
  * @param <T> Worker Resource Description.
  */
 public class LifoRS<T extends WorkerResourceDescription> extends LookaheadRS<T> {
 
     /**
-     * New FIFO Data Resource Scheduler instance.
+     * New LIFO successors Resource Scheduler instance.
      *
      * @param w Associated worker.
      * @param resJSON Worker JSON description.

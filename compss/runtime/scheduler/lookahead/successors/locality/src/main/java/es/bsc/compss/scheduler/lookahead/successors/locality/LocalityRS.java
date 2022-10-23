@@ -54,8 +54,8 @@ public class LocalityRS<T extends WorkerResourceDescription> extends LookaheadRS
     public Score generateBlockedScore(AllocatableAction action) {
         long priority = action.getPriority();
         long groupId = action.getGroupPriority();
-        long resourceScore = -this.blocked.size();
-        long waitingScore = 0;
+        long resourceScore = (long) action.getSchedulingInfo().getPreregisteredScore(myWorker) * 100;
+        long waitingScore = -action.getId();
         long implementationScore = 0;
 
         return new Score(priority, groupId, resourceScore, waitingScore, implementationScore);
@@ -73,7 +73,7 @@ public class LocalityRS<T extends WorkerResourceDescription> extends LookaheadRS
             resourceScore++;
         }
 
-        long waitingScore = -this.blocked.size();
+        long waitingScore = -action.getId();
         long implementationScore = 0;
 
         return new Score(priority, groupId, resourceScore, waitingScore, implementationScore);

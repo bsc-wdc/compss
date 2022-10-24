@@ -67,7 +67,7 @@
      --comm="$comm" \
      --debug \
      --worker_in_master_cpus=8 \
-     --master_working_dir=${master_working_dir} \
+     --job_execution_dir=${master_working_dir} \
      --worker_working_dir=${worker_working_dir} \
      --log_dir=${target_log_folder} \
      ${runcompss_opts} \

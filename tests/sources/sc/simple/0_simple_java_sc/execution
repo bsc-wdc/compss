@@ -55,7 +55,7 @@
       --num_nodes=1 \
       --worker_in_master_cpus=8 \
       --comm="$comm" \
-      --master_working_dir=${master_working_dir} \
+      --job_execution_dir=${master_working_dir} \
       --worker_working_dir=${worker_working_dir} \
       --log_dir=${target_log_folder} \
       --debug \

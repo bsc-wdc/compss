@@ -288,12 +288,12 @@ check_compss_setup () {
     agent_config="${DEFAULT_AGENT_CONFIG}"
   fi
 
-  if [ -z "${wdir_in_master}" ]; then
-    wdir_in_master="${exec_dir}tmpFiles/"
+  if [ -n "${wdir_in_master}" ]; then
+    wdir_in_master="${wdir_in_master}/.COMPSs/${uuid}/"
+  else
+    wdir_in_master="${exec_dir}/tmpFiles/"
   fi
-  if [ ! "${wdir_in_master: -1}" == "/" ]; then
-    wdir_in_master="${wdir_in_master}/"
-  fi
+  mkdir -p ${wdir_in_master}
 
   if [ -z "${wall_clock_limit}" ]; then
     wall_clock_limit="${DEFAULT_WALL_CLOCK_LIMIT}"
@@ -531,6 +531,9 @@ clean_runtime_environment() {
 
   # Remove folder with initial loggers
   rm -rf "/tmp/$uuid"
+
+  # Remove master working dir
+  rm -rf "${wdir_in_master}"
 }
 
 

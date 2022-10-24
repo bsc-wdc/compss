@@ -146,8 +146,8 @@ check_compss_env() {
 # Creating Execution directory
 #----------------------------------------------
 create_exec_folder() {
-  # specific_log_dir can be empty. If so, specified uses ${base_log_dir}/<application_name>_<overload offset>
-  # base_log_dir can be empty. If so, placing it in user's home folder .COMPSs
+  # specific_log_dir can be empty. If so, specified uses ${log_dir}/<application_name>_<overload offset>
+  # log_dir can be empty. If so, placing it in user's home folder .COMPSs
   if [ -n  "${specific_log_dir}" ]; then
     mkdir -p "${specific_log_dir}"
     exec_dir="${specific_log_dir}"
@@ -156,8 +156,8 @@ create_exec_folder() {
       exec_dir="${exec_dir}/"
     fi
   else
-    if [ -n  "${base_log_dir}" ]; then
-      exec_dir="${base_log_dir}"
+    if [ -n  "${log_dir}" ]; then
+      exec_dir="${log_dir}"
     else
       exec_dir="${HOME}/.COMPSs"
     fi

@@ -153,10 +153,10 @@ show_opts() {
     --env_script=<path>                     Path to the script file where the application environment variables are defined.
                                                 COMPSs sources this script before running the application.
                                                 Default: Empty
-    --base_log_dir=<path>                   Base directory to store COMPSs log files (a .COMPSs/ folder will be created inside this location)
+    --log_dir=<path>                        Directory to store COMPSs log files (a .COMPSs/ folder will be created inside this location)
                                             Default: User home
     --specific_log_dir=<path>               Use a specific directory to store COMPSs log files (no sandbox is created)
-                                            Warning: Overwrites --base_log_dir option
+                                            Warning: Overwrites --log_dir option
                                             Default: Disabled
     --uuid=<int>                            Preset an application UUID
                                             Default: Automatic random generation
@@ -488,9 +488,9 @@ get_args() {
             # Enable JMX profiler on specific port
             jmx_port=${OPTARG//jmx_port=/}
             ;;
-          base_log_dir=*)
+          log_dir=*)
             # Set a custom base log dir
-            base_log_dir=${OPTARG//base_log_dir=/}
+            log_dir=${OPTARG//log_dir=/}
             ;;
           specific_log_dir=*)
             # Set a custom specific log dir
@@ -567,11 +567,11 @@ get_args() {
           delete_trace_packages=*)
             # Specify if the tracing system re-organizes the threads
             tracing_delete_packages=${OPTARG//delete_trace_packages=/}
-            ;; 
+            ;;
           custom_threads=*)
             # Specify if the tracing system re-organizes the threads
             tracing_custom_threads=${OPTARG//custom_threads=/}
-            ;;           
+            ;;
           enable_external_adaptation=*)
             # Enable the external adaptation (disables de Resource Optimizer)
             external_adaptation=${OPTARG//enable_external_adaptation=/}
@@ -715,7 +715,7 @@ if [ ${provenance} ]; then
   "${COMPSS_HOME}Runtime/scripts/utils/compss_gengraph" "svg" "${specific_log_dir}/monitor/complete_graph.dot"
   end=`date +%s`
   echo "PROVENANCE | ENDED GENERATING GRAPH FOR DATA PROVENANCE. TIME: $(( end - start ))"
-  
+
   echo "PROVENANCE | RUNNING DATA PROVENANCE SCRIPT"
   python "${COMPSS_HOME}Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py" "ro-crate-info.yaml" "${specific_log_dir}/dataprovenance.log"
   if [ "${output_profile}" == "App_Profile.json" ]; then # Auto-generated, user doesn't want it

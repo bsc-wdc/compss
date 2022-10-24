@@ -16,7 +16,10 @@
  */
 package es.bsc.compss.types;
 
+import es.bsc.compss.api.ParameterCollectionMonitor;
+import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.api.TaskMonitor;
+import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.worker.COMPSsException;
 
 
@@ -43,7 +46,8 @@ public class DoNothingTaskMonitor implements TaskMonitor {
     }
 
     @Override
-    public void valueGenerated(int paramId, TaskResult param) {
+    public ParameterMonitor getParameterMonitor(int paramId) {
+        return new DoNothingParameterMonitor();
     }
 
     @Override
@@ -92,5 +96,20 @@ public class DoNothingTaskMonitor implements TaskMonitor {
 
     @Override
     public void onException(COMPSsException e) {
+    }
+
+
+    private static class DoNothingParameterMonitor implements ParameterMonitor, ParameterCollectionMonitor {
+
+        @Override
+        public ParameterMonitor getParameterMonitor(int elementId) {
+            return this;
+        }
+
+        @Override
+        public void onCreation(DataType type, String dataName, String dataLocation) {
+            // Ignore Notification
+        }
+
     }
 }

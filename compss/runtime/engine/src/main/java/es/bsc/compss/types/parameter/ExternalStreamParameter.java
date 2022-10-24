@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.parameter;
 
+import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
@@ -42,11 +43,12 @@ public class ExternalStreamParameter extends DependencyParameter {
      * @param name Parameter name.
      * @param location File location.
      * @param originalName Original file name.
+     * @param monitor object to notify to changes on the parameter
      */
     public ExternalStreamParameter(Direction direction, StdIOStream stream, String prefix, String name,
-        DataLocation location, String originalName) {
+        DataLocation location, String originalName, ParameterMonitor monitor) {
 
-        super(DataType.EXTERNAL_STREAM_T, direction, stream, prefix, name, "null", 1.0, false);
+        super(DataType.EXTERNAL_STREAM_T, direction, stream, prefix, name, "null", 1.0, false, monitor);
         this.location = location;
         this.originalName = originalName;
     }

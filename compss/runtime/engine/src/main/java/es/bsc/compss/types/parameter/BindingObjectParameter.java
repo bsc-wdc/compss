@@ -16,11 +16,11 @@
  */
 package es.bsc.compss.types.parameter;
 
+import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
-import es.bsc.compss.types.parameter.DependencyParameter;
 
 
 public class BindingObjectParameter extends DependencyParameter {
@@ -44,11 +44,12 @@ public class BindingObjectParameter extends DependencyParameter {
      * @param weight Parameter weight.
      * @param bo Parameter binding object.
      * @param hashCode Parameter object hashcode.
+     * @param monitor object to notify to changes on the parameter
      */
     public BindingObjectParameter(Direction direction, StdIOStream stream, String prefix, String name,
-        String contentType, double weight, BindingObject bo, int hashCode) {
+        String contentType, double weight, BindingObject bo, int hashCode, ParameterMonitor monitor) {
 
-        super(DataType.BINDING_OBJECT_T, direction, stream, prefix, name, contentType, weight, false);
+        super(DataType.BINDING_OBJECT_T, direction, stream, prefix, name, contentType, weight, false, monitor);
         this.bo = bo;
         this.hashCode = hashCode;
     }

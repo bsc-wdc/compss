@@ -18,9 +18,9 @@ package es.bsc.compss.agent;
 
 import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.agent.types.ApplicationParameterCollection;
+import es.bsc.compss.api.ParameterCollectionMonitor;
+import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.api.TaskMonitor;
-import es.bsc.compss.api.TaskMonitor.CollectionTaskResult;
-import es.bsc.compss.api.TaskMonitor.TaskResult;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.CommException;
 import es.bsc.compss.types.annotations.parameter.DataType;
@@ -36,19 +36,9 @@ import java.util.List;
 public abstract class AppMonitor implements TaskMonitor {
 
     private long appId;
-    private final ApplicationParameter[] taskParams;
     private TaskResult[] taskResults;
     private COMPSsException exception;
 
-
-    /**
-     * Constructs a new Application monitor.
-     *
-     * @param originalParams Monitored execution's parameters
-     */
-    public AppMonitor(ApplicationParameter[] originalParams) {
-        this.taskParams = originalParams;
-    }
 
     /**
      * Constructs a new Application monitor.
@@ -61,16 +51,49 @@ public abstract class AppMonitor implements TaskMonitor {
         int argsCount = args.length;
         int resultsCount = results.length;
         int numParams = argsCount + resultsCount + (target != null ? 1 : 0);
-        taskResults = new TaskResult[numParams];
-        this.taskParams = new ApplicationParameter[numParams];
+        this.taskResults = new TaskResult[numParams];
+
         int offset = 0;
-        System.arraycopy(args, 0, this.taskParams, 0, argsCount);
-        offset = argsCount;
+        for (; offset < argsCount; offset++) {
+            ApplicationParameter param = args[offset];
+            this.taskResults[offset] = buildResult(param);
+        }
+
         if (target != null) {
-            taskParams[argsCount] = target;
+            this.taskResults[offset] = buildResult(target);
             offset++;
         }
-        System.arraycopy(results, 0, this.taskParams, offset, resultsCount);
+
+        for (int resultIdx = 0; resultIdx < results.length; resultIdx++) {
+            ApplicationParameter param = results[resultIdx];
+            this.taskResults[offset] = buildResult(param);
+            offset++;
+        }
+    }
+
+    private TaskResult buildResult(ApplicationParameter param) {
+        switch (param.getType()) {
+            case COLLECTION_T:
+            case DICT_COLLECTION_T:
+                ApplicationParameterCollection<ApplicationParameter> colParam;
+                colParam = (ApplicationParameterCollection<ApplicationParameter>) param;
+                List<ApplicationParameter> subParams = colParam.getCollectionParameters();
+                int numElements = subParams.size();
+                TaskResult[] subResults = new TaskResult[numElements];
+                int subElementIdx = 0;
+                for (ApplicationParameter subParam : subParams) {
+                    subResults[subElementIdx] = buildResult(subParam);
+                    subElementIdx++;
+                }
+                return new CollectionTaskResult(param.getDataMgmtId(), subResults);
+            default:
+                return new TaskResult(param.getDataMgmtId());
+        }
+    }
+
+    @Override
+    public ParameterMonitor getParameterMonitor(int paramId) {
+        return this.taskResults[paramId].getMonitor();
     }
 
     public void setAppId(long appId) {
@@ -99,46 +122,6 @@ public abstract class AppMonitor implements TaskMonitor {
 
     @Override
     public void onDataReception() {
-    }
-
-    private void updateResult(ApplicationParameter param, TaskResult result) {
-        String originalDataMgmtId = param.getDataMgmtId();
-        String dataId = result.getDataName();
-
-        LogicalData ld = Comm.getData(dataId);
-        if (result.getType() == DataType.OBJECT_T) {
-            if (ld.getPscoId() != null) {
-                result.setType(DataType.PSCO_T);
-                SimpleURI targetURI = new SimpleURI(ProtocolType.PERSISTENT_URI.getSchema() + ld.getPscoId());
-                result.setDataLocation(targetURI.toString());
-            } else {
-                result.setDataLocation(originalDataMgmtId);
-            }
-        }
-        if (dataId.compareTo(originalDataMgmtId) != 0) {
-            try {
-                Comm.linkData(originalDataMgmtId, ld.getName());
-            } catch (CommException ce) {
-                ErrorManager.error("Could not link " + originalDataMgmtId + " and " + dataId, ce);
-            }
-        }
-
-        if (result.getType() == DataType.COLLECTION_T) {
-            List<ApplicationParameter> subparams;
-            subparams = ((ApplicationParameterCollection<ApplicationParameter>) param).getCollectionParameters();
-            TaskResult[] subResults = ((CollectionTaskResult) result).getSubelements();
-
-            for (int i = 0; i < subparams.size(); i++) {
-                updateResult(subparams.get(i), subResults[i]);
-            }
-        }
-    }
-
-    @Override
-    public void valueGenerated(int paramId, TaskResult result) {
-        ApplicationParameter originalParam = this.taskParams[paramId];
-        updateResult(originalParam, result);
-        taskResults[paramId] = result;
     }
 
     @Override
@@ -188,4 +171,113 @@ public abstract class AppMonitor implements TaskMonitor {
         return exception;
     }
 
+
+    /**
+     * Class representing a result of a task execution.
+     */
+    public static class TaskResult {
+
+        private final String externalDataId;
+        private DataType type;
+        private String internalDataName;
+        private String dataLocation;
+
+
+        public TaskResult(String externalDataId) {
+            this.externalDataId = externalDataId;
+        }
+
+        public DataType getType() {
+            return type;
+        }
+
+        public void setType(DataType type) {
+            this.type = type;
+        }
+
+        public String getDataName() {
+            return internalDataName;
+        }
+
+        public void setDataName(String dataName) {
+            this.internalDataName = dataName;
+        }
+
+        public String getDataLocation() {
+            return dataLocation;
+        }
+
+        public void setDataLocation(String dataLocation) {
+            this.dataLocation = dataLocation;
+        }
+
+        public ParameterMonitor getMonitor() {
+            return new ParameterUpdater();
+        }
+
+
+        public class ParameterUpdater implements ParameterMonitor {
+
+            @Override
+            public void onCreation(DataType type, String dataName, String dataLocation) {
+                TaskResult.this.type = type;
+                TaskResult.this.internalDataName = dataName;
+                TaskResult.this.dataLocation = dataLocation;
+
+                LogicalData ld = Comm.getData(dataName);
+                if (type == DataType.OBJECT_T) {
+                    if (ld.getPscoId() != null) {
+                        TaskResult.this.type = DataType.PSCO_T;
+                        SimpleURI targetURI = new SimpleURI(ProtocolType.PERSISTENT_URI.getSchema() + ld.getPscoId());
+                        TaskResult.this.dataLocation = targetURI.toString();
+                    } else {
+                        SimpleURI targetURI = new SimpleURI(ProtocolType.OBJECT_URI.getSchema() + externalDataId);
+                        TaskResult.this.dataLocation = targetURI.toString();
+                    }
+                }
+                if (dataName.compareTo(externalDataId) != 0) {
+                    try {
+                        Comm.linkData(externalDataId, dataName);
+                    } catch (CommException ce) {
+                        ErrorManager.error("Could not link " + externalDataId + " and " + dataName, ce);
+                    }
+                }
+            }
+
+        }
+
+    }
+
+    /**
+     * Class representing a result of a task execution.
+     */
+    public static class CollectionTaskResult extends TaskResult {
+
+        private final TaskResult[] subElements;
+
+
+        public CollectionTaskResult(String externalDataId, TaskResult[] subResults) {
+            super(externalDataId);
+            this.subElements = subResults;
+        }
+
+        public TaskResult[] getSubelements() {
+            return this.subElements;
+        }
+
+        @Override
+        public ParameterMonitor getMonitor() {
+            return new CollectionParameterUpdater();
+        }
+
+
+        public class CollectionParameterUpdater extends ParameterUpdater implements ParameterCollectionMonitor {
+
+            @Override
+            public ParameterMonitor getParameterMonitor(int i) {
+                return CollectionTaskResult.this.subElements[i].getMonitor();
+            }
+
+        }
+    }
 }

@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.parameter;
 
+import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
@@ -40,6 +41,7 @@ public abstract class Parameter implements Serializable {
     private final String contentType;
     private final double weight;
     private final boolean keepRename;
+    private final ParameterMonitor monitor;
 
 
     /**
@@ -54,9 +56,10 @@ public abstract class Parameter implements Serializable {
      * @param weight Parameter weight for taking scheduling decisions
      * @param keepRename if {@literal true}, parameter remains renamed within the task's execution sandbox; otherwise,
      *            the value recovers its original name
+     * @param monitor object to notify to changes on the parameter
      */
     public Parameter(DataType type, Direction direction, StdIOStream stream, String prefix, String name,
-        String contentType, double weight, boolean keepRename) {
+        String contentType, double weight, boolean keepRename, ParameterMonitor monitor) {
         this.type = type;
         this.direction = direction;
         this.stream = stream;
@@ -69,6 +72,7 @@ public abstract class Parameter implements Serializable {
         this.contentType = contentType;
         this.weight = weight;
         this.keepRename = keepRename;
+        this.monitor = monitor;
     }
 
     /**
@@ -159,4 +163,14 @@ public abstract class Parameter implements Serializable {
     public boolean isKeepRename() {
         return keepRename;
     }
+
+    /**
+     * Returns the object monitoring changes on the parameter.
+     * 
+     * @return The object monitoring the parameter.
+     */
+    public ParameterMonitor getMonitor() {
+        return monitor;
+    }
+
 }

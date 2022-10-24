@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.parameter;
 
+import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
@@ -46,11 +47,12 @@ public class DirectoryParameter extends DependencyParameter {
      * @param keepRename Parameter keep rename property.
      * @param location Directory location.
      * @param originalName Original dir name.
+     * @param monitor object to notify to changes on the parameter
      */
     public DirectoryParameter(Direction direction, StdIOStream stream, String prefix, String name, String contentType,
-        double weight, boolean keepRename, DataLocation location, String originalName) {
+        double weight, boolean keepRename, DataLocation location, String originalName, ParameterMonitor monitor) {
 
-        super(DataType.DIRECTORY_T, direction, stream, prefix, name, contentType, weight, keepRename);
+        super(DataType.DIRECTORY_T, direction, stream, prefix, name, contentType, weight, keepRename, monitor);
         this.location = location;
         this.originalName = originalName;
 

@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.parameter;
 
+import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
@@ -45,10 +46,11 @@ public class BasicTypeParameter extends Parameter {
      * @param name Parameter name.
      * @param value Parameter value.
      * @param weight Parameter weight.
+     * @param monitor object to notify to changes on the parameter
      */
     public BasicTypeParameter(DataType type, Direction direction, StdIOStream stream, String prefix, String name,
-        Object value, double weight, String contentType) {
-        super(type, direction, stream, prefix, name, contentType, weight, false);
+        Object value, double weight, String contentType, ParameterMonitor monitor) {
+        super(type, direction, stream, prefix, name, contentType, weight, false, monitor);
         this.value = value;
     }
 

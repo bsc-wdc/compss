@@ -16,11 +16,10 @@
  */
 package es.bsc.compss.api;
 
-import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.worker.COMPSsException;
 
 
-public interface TaskMonitor {
+public interface TaskMonitor extends ParameterCollectionMonitor {
 
     /**
      * Actions to be performed by monitor on task creation.
@@ -46,16 +45,6 @@ public interface TaskMonitor {
      * Actions to be performed by monitor when the designed worker receives the necessary data value to run the task.
      */
     public void onDataReception();
-
-    /**
-     * Actions to be performed by the monitor when a new {@code type}-value, identyfied by the Id {@code dataId}, has
-     * been generated at location {@code location} according to the parameter on position {@code paramId} of the task
-     * with name {@code paramName}.
-     *
-     * @param paramId Parameter id.
-     * @param description value description
-     */
-    public void valueGenerated(int paramId, TaskResult description);
 
     /**
      * Actions to be performed by monitor on task execution abortion.
@@ -123,79 +112,4 @@ public interface TaskMonitor {
      */
     public void onExecutionEndAt(long ts);
 
-
-    /**
-     * Class representing a result of a task execution.
-     */
-    public static class TaskResult {
-
-        private DataType type;
-        private String dataName;
-        private String dataLocation;
-
-
-        public TaskResult() {
-        }
-
-        /**
-         * Constructs an object describing a result from a task execution.
-         * 
-         * @param type type of the data produced
-         * @param dataName name of the data produced
-         * @param dataLocation location where the value has been stored
-         */
-        public TaskResult(DataType type, String dataName, String dataLocation) {
-            this.type = type;
-            this.dataName = dataName;
-            this.dataLocation = dataLocation;
-        }
-
-        public DataType getType() {
-            return type;
-        }
-
-        public void setType(DataType type) {
-            this.type = type;
-        }
-
-        public String getDataName() {
-            return dataName;
-        }
-
-        public void setDataName(String dataName) {
-            this.dataName = dataName;
-        }
-
-        public String getDataLocation() {
-            return dataLocation;
-        }
-
-        public void setDataLocation(String dataLocation) {
-            this.dataLocation = dataLocation;
-        }
-
-    }
-
-    public static class CollectionTaskResult extends TaskResult {
-
-        private TaskResult[] subelements;
-
-
-        public CollectionTaskResult() {
-        }
-
-        public CollectionTaskResult(DataType type, String dataName, String dataLocation, TaskResult[] subelements) {
-            super(type, dataName, dataLocation);
-            this.subelements = subelements;
-        }
-
-        public TaskResult[] getSubelements() {
-            return subelements;
-        }
-
-        public void setSubelements(TaskResult[] subelements) {
-            this.subelements = subelements;
-        }
-
-    }
 }

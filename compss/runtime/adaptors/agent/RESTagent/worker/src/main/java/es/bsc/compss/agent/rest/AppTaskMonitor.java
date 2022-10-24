@@ -109,20 +109,6 @@ public class AppTaskMonitor extends AppMonitor implements RESTAgentRequestHandle
     }
 
     @Override
-    public void valueGenerated(int paramId, TaskResult result) {
-        super.valueGenerated(paramId, result);
-        /*
-         * this.paramTypes[paramId] = paramType; if (paramType == DataType.OBJECT_T) { LogicalData ld =
-         * Comm.getData(dataId); StubItf psco = (StubItf) ld.getValue(); psco.makePersistent(ld.getName());
-         * this.paramTypes[paramId] = DataType.PSCO_T; ld.setPscoId(psco.getID()); DataLocation outLoc = null; try {
-         * SimpleURI targetURI = new SimpleURI(ProtocolType.PERSISTENT_URI.getSchema() + psco.getID()); outLoc =
-         * DataLocation.createLocation(Comm.getAppHost(), targetURI); this.paramLocations[paramId] = outLoc.toString();
-         * } catch (Exception e) { ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + dataId, e); } } else {
-         * this.paramLocations[paramId] = dataLocation.toString(); }
-         */
-    }
-
-    @Override
     public void onExecutionStart() {
         profile.setExecutionStart(System.currentTimeMillis());
     }

@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.parameter;
 
+import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
@@ -50,16 +51,18 @@ public class DictCollectionParameter extends DependencyParameter {
      * @param stream N/A (At least temporarily)
      * @param prefix N/A (At least temporarily)
      * @param name Name of the parameter in the user code
+     * @param monitor object to notify to changes on the parameter
      * @see DependencyParameter
      * @see es.bsc.compss.api.impl.COMPSsRuntimeImpl
      * @see es.bsc.compss.components.impl.TaskAnalyser
      */
     public DictCollectionParameter(String dictCollectionId, Map<Parameter, Parameter> parameters, Direction direction,
-        StdIOStream stream, String prefix, String name, String contentType, double weight, boolean keepRename) {
+        StdIOStream stream, String prefix, String name, String contentType, double weight, boolean keepRename,
+        ParameterMonitor monitor) {
 
         // Type will always be DICT_COLLECTION_T, no need to pass it as a constructor parameter and wont be modified
         // Stream and prefix are still forwarded for possible, future uses
-        super(DataType.DICT_COLLECTION_T, direction, stream, prefix, name, contentType, weight, keepRename);
+        super(DataType.DICT_COLLECTION_T, direction, stream, prefix, name, contentType, weight, keepRename, monitor);
         this.parameters = parameters;
         this.dictCollectionId = dictCollectionId;
     }

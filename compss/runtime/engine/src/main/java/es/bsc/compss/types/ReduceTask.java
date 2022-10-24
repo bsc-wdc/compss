@@ -17,6 +17,7 @@
 package es.bsc.compss.types;
 
 import es.bsc.compss.COMPSsConstants.Lang;
+import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.log.Loggers;
@@ -46,6 +47,13 @@ import org.apache.logging.log4j.Logger;
 
 public class ReduceTask extends Task {
 
+    private static final ParameterMonitor IGNORE_PARAM = new ParameterMonitor() {
+
+        @Override
+        public void onCreation(DataType type, String dataName, String dataLocation) {
+            // Ignore Notification
+        }
+    };
     // Tasks that access the data
     private final List<Task> tasks;
 
@@ -150,19 +158,19 @@ public class ReduceTask extends Task {
 
                     partialsOut.add(new FileParameter(Direction.OUT, finalParameter.getStream(),
                         finalParameter.getPrefix(), finalParameter.getName(), finalParameter.getType().toString(),
-                        finalParameter.getWeight(), finalParameter.isKeepRename(), dl, partialId));
+                        finalParameter.getWeight(), finalParameter.isKeepRename(), dl, partialId, IGNORE_PARAM));
                     partialsIn.add(new FileParameter(Direction.IN, finalParameter.getStream(),
                         finalParameter.getPrefix(), finalParameter.getName(), finalParameter.getType().toString(),
-                        finalParameter.getWeight(), finalParameter.isKeepRename(), dl, partialId));
+                        finalParameter.getWeight(), finalParameter.isKeepRename(), dl, partialId, IGNORE_PARAM));
 
                     CollectionParameter cp = new CollectionParameter(partialId + "Collection", new ArrayList<>(),
                         p.getDirection(), p.getStream(), p.getPrefix(), p.getName(), p.getContentType(), p.getWeight(),
-                        p.isKeepRename());
+                        p.isKeepRename(), IGNORE_PARAM);
                     intermediateCollections.add(cp);
                 }
                 String finalId = "finalReduceTask" + this.getId();
                 finalCol = new CollectionParameter(finalId, new ArrayList<>(), Direction.IN, p.getStream(),
-                    p.getPrefix(), p.getName(), p.getContentType(), p.getWeight(), p.isKeepRename());
+                    p.getPrefix(), p.getName(), p.getContentType(), p.getWeight(), p.isKeepRename(), IGNORE_PARAM);
             } else {
                 ErrorManager
                     .fatal("First parameter for a reduce task must be a collection and last parameter must be OUT "

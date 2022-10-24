@@ -24,15 +24,20 @@ import es.bsc.compss.agent.AppMonitor;
 import es.bsc.compss.agent.comm.messages.types.CommResource;
 import es.bsc.compss.agent.comm.messages.types.CommTask;
 import es.bsc.compss.agent.types.ApplicationParameter;
+import es.bsc.compss.nio.NIOResult;
+import es.bsc.compss.nio.NIOResultCollection;
 import es.bsc.compss.nio.NIOTaskResult;
 import es.bsc.compss.nio.commands.CommandDataReceived;
 import es.bsc.compss.nio.commands.CommandNIOTaskDone;
+import es.bsc.compss.types.annotations.parameter.DataType;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
  * Monitor to detect changes on a task state and notify the orchestrator that commanded its execution.
  */
-class TaskMonitor extends AppMonitor {
+public class TaskMonitor extends AppMonitor {
 
     private static final TransferManager TM = CommAgentAdaptor.getTransferManager();
     private final CommResource orchestrator;
@@ -73,11 +78,6 @@ class TaskMonitor extends AppMonitor {
             c.sendCommand(cmd);
             c.finishConnection();
         }
-    }
-
-    @Override
-    public void valueGenerated(int paramId, TaskResult param) {
-        super.valueGenerated(paramId, param);
     }
 
     @Override
@@ -123,15 +123,43 @@ class TaskMonitor extends AppMonitor {
         }
     }
 
+    /**
+     * Notifies the end of the task.
+     */
     public void notifyEnd() {
         NIONode n = new NIONode(orchestrator.getName(), orchestrator.getPort());
 
         int jobId = task.getJobId();
-        NIOTaskResult tr = new NIOTaskResult(jobId, super.getResults());
+        NIOTaskResult tr = new NIOTaskResult(jobId);
+
+        for (TaskResult param : this.getResults()) {
+            if (param == null) {
+                tr.addParamResult(new NIOResult(null, null));
+            } else {
+                if (param.getType() == DataType.COLLECTION_T) {
+                    tr.addParamResult(createNIOCollectionResult((CollectionTaskResult) param));
+                } else {
+                    tr.addParamResult(new NIOResult(param.getType(), param.getDataLocation()));
+                }
+            }
+        }
+
         Connection c = TM.startConnection(n);
         CommandNIOTaskDone cmd = new CommandNIOTaskDone(tr, successful, task.getProfile(), task.getHistory().toString(),
             this.getException());
         c.sendCommand(cmd);
         c.finishConnection();
+    }
+
+    private NIOResultCollection createNIOCollectionResult(CollectionTaskResult param) {
+        List<NIOResult> elements = new ArrayList<>();
+        for (TaskResult subParam : param.getSubelements()) {
+            if (subParam.getType() == DataType.COLLECTION_T) {
+                elements.add(createNIOCollectionResult((CollectionTaskResult) subParam));
+            } else {
+                elements.add(new NIOResult(subParam.getType(), subParam.getDataLocation()));
+            }
+        }
+        return new NIOResultCollection(param.getType(), param.getDataLocation(), elements);
     }
 }

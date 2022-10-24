@@ -14,10 +14,21 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.parameter;
+package es.bsc.compss.api;
+
+import es.bsc.compss.types.annotations.parameter.DataType;
+
 
 public interface ParameterMonitor {
 
-    public void onCreation(String dataName);
+    /**
+     * Actions to be performed by the monitor when a new {@code type}-value, identified by the Id {@code dataName}, has
+     * been generated at location {@code location} .
+     *
+     * @param type type of the created data
+     * @param dataName id of the data generated
+     * @param dataLocation location where the data has been stored
+     */
+    public void onCreation(DataType type, String dataName, String dataLocation);
 
 }

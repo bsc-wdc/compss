@@ -14,18 +14,15 @@
  *  limitations under the License.
  *
  */
+
 package es.bsc.compss.nio;
 
-import es.bsc.compss.api.TaskMonitor;
-import es.bsc.compss.api.TaskMonitor.CollectionTaskResult;
-import es.bsc.compss.api.TaskMonitor.TaskResult;
 import es.bsc.compss.types.annotations.parameter.DataType;
 
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -46,21 +43,6 @@ public class NIOResultCollection extends NIOResult implements Externalizable {
     public NIOResultCollection() {
         // Only executed by externalizable
         super();
-    }
-
-    /**
-     * Create a new NIOResultCollection instance from a object array following TaskMonitor indexes.
-     */
-    public NIOResultCollection(CollectionTaskResult param) {
-        super(param.getType(), param.getDataLocation());
-        this.elements = new ArrayList<>();
-        for (TaskResult subParam : param.getSubelements()) {
-            if (subParam.getType() == DataType.COLLECTION_T) {
-                this.elements.add(new NIOResultCollection((CollectionTaskResult) subParam));
-            } else {
-                this.elements.add(new NIOResult(subParam.getType(), subParam.getDataLocation()));
-            }
-        }
     }
 
     public NIOResultCollection(DataType type, String location, List<NIOResult> elements) {

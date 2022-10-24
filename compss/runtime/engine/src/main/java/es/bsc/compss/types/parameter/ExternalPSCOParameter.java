@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.parameter;
 
+import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
@@ -43,11 +44,12 @@ public class ExternalPSCOParameter extends DependencyParameter {
      * @param weight Parameter weight.
      * @param pscoId Parameter PSCO Id.
      * @param hashCode Parameter object hashcode.
+     * @param monitor object to notify to changes on the parameter
      */
     public ExternalPSCOParameter(Direction direction, StdIOStream stream, String prefix, String name, double weight,
-        String pscoId, int hashCode) {
+        String pscoId, int hashCode, ParameterMonitor monitor) {
 
-        super(DataType.EXTERNAL_PSCO_T, direction, stream, prefix, name, "null", weight, false);
+        super(DataType.EXTERNAL_PSCO_T, direction, stream, prefix, name, "null", weight, false, monitor);
         this.pscoId = pscoId;
         this.hashCode = hashCode;
     }

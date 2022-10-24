@@ -169,7 +169,7 @@ def execute_tests(cmd_args, compss_cfg):
     :raise TestExecutionError: If an error is encountered when creating the necessary structures to launch the test
     """
     # Load deployment structure folder paths
-    compss_logs_root = compss_cfg.get_compss_base_log_dir()
+    compss_logs_root = compss_cfg.get_compss_log_dir()
     target_base_dir = compss_cfg.get_target_base_dir()
     execution_sanbdox = os.path.join(target_base_dir, "apps")
     coverage_path = os.path.join(target_base_dir, "coverage")
@@ -347,7 +347,7 @@ def execute_tests_cli(cmd_args, compss_cfg, compss_cfg_sc):
     :raise TestExecutionError: If an error is encountered when creating the necessary structures to launch the test
     """
     # Load deployment structure folder paths
-    compss_logs_root = compss_cfg.get_compss_base_log_dir()
+    compss_logs_root = compss_cfg.get_compss_log_dir()
     target_base_dir = compss_cfg.get_target_base_dir()
     execution_sanbdox = os.path.join(target_base_dir, "apps")
     coverage_path = os.path.join(target_base_dir, "coverage")

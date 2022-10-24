@@ -58,7 +58,7 @@
       --comm="$comm" \
       --master_working_dir=${master_working_dir} \
       --worker_working_dir=${worker_working_dir} \
-      --base_log_dir=${target_log_folder} \
+      --log_dir=${target_log_folder} \
       --debug \
       --summary \
       ${runcompss_opts} \
@@ -103,7 +103,7 @@
       --comm="$comm" \
       --master_working_dir=${master_working_dir} \
       --worker_working_dir=${worker_working_dir} \
-      --base_log_dir=${target_log_folder} \
+      --log_dir=${target_log_folder} \
       --debug \
       --summary \
       ${runcompss_opts} \

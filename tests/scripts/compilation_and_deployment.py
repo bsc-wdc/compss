@@ -84,16 +84,16 @@ def compile_and_deploy_tests(cmd_args, compss_cfg, tests_dir):
     except Exception:
         print("[ERROR] Cannot clean target directory " + str(target_base_dir))
         print("        Trying to proceed anyways...")
-    compss_base_log_dir = compss_cfg.get_compss_base_log_dir()
+    compss_log_dir = compss_cfg.get_compss_log_dir()
     try:
-        print("[WARN] Script is attempting to erase " + str(compss_base_log_dir))
+        print("[WARN] Script is attempting to erase " + str(compss_log_dir))
         print("[WARN] You have 5s to abort...")
         import time
         # time.sleep(5) #  uncomment
-        print("[WARN] Erasing COMPSs log root directory " + str(compss_base_log_dir))
-        shutil.rmtree(compss_base_log_dir)
+        print("[WARN] Erasing COMPSs log root directory " + str(compss_log_dir))
+        shutil.rmtree(compss_log_dir)
     except Exception:
-        print("[ERROR] Cannot clean COMPSs log root directory " + str(compss_base_log_dir))
+        print("[ERROR] Cannot clean COMPSs log root directory " + str(compss_log_dir))
         print("        Trying to proceed anyways...")
 
     print("[INFO] Deployment structure cleaned")

@@ -36,7 +36,7 @@ public interface MainItf {
     @Constraints(computingUnits = "4")
     Integer taskNoWorkerInMasterNoFit(@Parameter() int counter);
 
-    @COMPSs(runcompss = "$RUNCOMPSS", flags = "--base_log_dir=${TEST_LOG_DIR}", appName = "compssSimple.Simple", computingNodes = "1")
+    @COMPSs(runcompss = "$RUNCOMPSS", flags = "--log_dir=${TEST_LOG_DIR}", appName = "compssSimple.Simple", computingNodes = "1")
     @Constraints(computingUnits = "2")
     Integer taskBaseLogDir(@Parameter() int counter);
 

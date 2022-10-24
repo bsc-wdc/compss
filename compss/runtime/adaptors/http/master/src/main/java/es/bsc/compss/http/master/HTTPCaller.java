@@ -133,14 +133,14 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
                         LOGGER.error("Error: HTTP CAN'T USE STREAMS AS PARAMETERS!");
                         // Skip
                         break;
-
                     case BINDING_OBJECT_T:
                         LOGGER.error("Error: HTTP CAN'T USE BINDING OBJECTS AS PARAMETERS!");
                         // Skip
                         break;
+                    case COLLECTION_T:
                     case DICT_COLLECTION_T:
-                        LOGGER.error("Error: HTTP CAN'T USE DICTIONARY COLLECTION OBJECTS AS PARAMETERS!");
-                        break;
+                        LOGGER.warn("Error: HTTP CAN'T USE DICTIONARY COLLECTION OBJECTS AS PARAMETERS! SKIPPING");
+                        continue;
                     default:
                         // Basic or String
                         BasicTypeParameter basicTypeParameter = (BasicTypeParameter) par;

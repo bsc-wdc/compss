@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.scheduler.lookahead.locality;
+package es.bsc.compss.scheduler.lookahead.successors.locality;
 
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.scheduler.lookahead.LookaheadRS;
@@ -28,14 +28,14 @@ import org.json.JSONObject;
 
 
 /**
- * Implementation for the LocalityRS.
+ * Implementation for the FifoLocalityRS.
  *
  * @param <T> Worker Resource Description.
  */
 public class LocalityRS<T extends WorkerResourceDescription> extends LookaheadRS<T> {
 
     /**
-     * New LIFO Resource Scheduler instance.
+     * New Locality Resource Scheduler instance.
      *
      * @param w Associated worker.
      * @param resJSON Worker JSON description.
@@ -52,12 +52,10 @@ public class LocalityRS<T extends WorkerResourceDescription> extends LookaheadRS
      */
     @Override
     public Score generateBlockedScore(AllocatableAction action) {
-        // LOGGER.debug("[DataResourceScheduler] Generate blocked score for action " + action);
-
         long priority = action.getPriority();
         long groupId = action.getGroupPriority();
-        long waitingScore = -this.blocked.size();
         long resourceScore = (long) action.getSchedulingInfo().getPreregisteredScore(myWorker) * 100;
+        long waitingScore = -action.getId();
         long implementationScore = 0;
 
         return new Score(priority, groupId, resourceScore, waitingScore, implementationScore);
@@ -65,8 +63,6 @@ public class LocalityRS<T extends WorkerResourceDescription> extends LookaheadRS
 
     @Override
     public Score generateResourceScore(AllocatableAction action, TaskDescription params, Score actionScore) {
-        // LOGGER.debug("[DataResourceScheduler] Generate resource score for action " + action);
-
         // Since we are generating the resource score, we copy the previous fields from actionScore
         long priority = actionScore.getPriority();
         long groupId = action.getGroupPriority();
@@ -77,9 +73,10 @@ public class LocalityRS<T extends WorkerResourceDescription> extends LookaheadRS
             resourceScore++;
         }
 
-        long waitingScore = -this.blocked.size();
+        long waitingScore = -action.getId();
+        long implementationScore = 0;
 
-        return new Score(priority, groupId, resourceScore, waitingScore, 0);
+        return new Score(priority, groupId, resourceScore, waitingScore, implementationScore);
     }
 
     @SuppressWarnings("unchecked")
@@ -89,13 +86,13 @@ public class LocalityRS<T extends WorkerResourceDescription> extends LookaheadRS
         // Since we are generating the implementation score, we copy the previous fields from resourceScore
         long priority = resourceScore.getPriority();
         long groupId = action.getGroupPriority();
-        long resource = resourceScore.getResourceScore();
+        long resourcePriority = resourceScore.getResourceScore();
         long waitingScore = resourceScore.getWaitingScore();
 
-        // Compute the rest of the fields
+        // We compute the rest of the fields
         long implScore = -this.getProfile(impl).getAverageExecutionTime();
 
-        return new Score(priority, groupId, resource, waitingScore, implScore);
+        return new Score(priority, groupId, resourcePriority, waitingScore, implScore);
     }
 
     /*
@@ -105,6 +102,7 @@ public class LocalityRS<T extends WorkerResourceDescription> extends LookaheadRS
      */
     @Override
     public String toString() {
-        return "LocalityResourceScheduler@" + getName();
+        return "lookahead_mt_succ_location_scheduler@" + getName();
     }
+
 }

@@ -14,15 +14,14 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.scheduler.lookahead.mt.successors.constraintsfifo;
+package es.bsc.compss.scheduler.lookahead.mt.successors.lifo;
 
 import es.bsc.compss.scheduler.lookahead.mt.LookaheadRS;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.Score;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.TaskType;
-import es.bsc.compss.types.resources.MethodResourceDescription;
+import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 
@@ -36,7 +35,7 @@ import org.json.JSONObject;
  *
  * @param <T> Worker Resource Description.
  */
-public class ConstraintsFifoRS<T extends WorkerResourceDescription> extends LookaheadRS<T> {
+public class LifoRS<T extends WorkerResourceDescription> extends LookaheadRS<T> {
 
     /**
      * New FIFO Data Resource Scheduler instance.
@@ -45,7 +44,7 @@ public class ConstraintsFifoRS<T extends WorkerResourceDescription> extends Look
      * @param resJSON Worker JSON description.
      * @param implJSON Implementation JSON description.
      */
-    public ConstraintsFifoRS(Worker<T> w, JSONObject resJSON, JSONObject implJSON) {
+    public LifoRS(Worker<T> w, JSONObject resJSON, JSONObject implJSON) {
         super(w, resJSON, implJSON);
     }
 
@@ -56,11 +55,10 @@ public class ConstraintsFifoRS<T extends WorkerResourceDescription> extends Look
      */
     @Override
     public Score generateBlockedScore(AllocatableAction action) {
-        // LOGGER.debug("[FIFODataResourceScheduler] Generate blocked score for action " + action);
         long priority = action.getPriority();
         long groupId = action.getGroupPriority();
         long resourceScore = 0;
-        long waitingScore = -action.getId();
+        long waitingScore = action.getId();
         long implementationScore = 0;
 
         return new Score(priority, groupId, resourceScore, waitingScore, implementationScore);
@@ -68,36 +66,17 @@ public class ConstraintsFifoRS<T extends WorkerResourceDescription> extends Look
 
     @Override
     public Score generateResourceScore(AllocatableAction action, TaskDescription params, Score actionScore) {
-        // LOGGER.debug("[FIFODataResourceScheduler] Generate resource score for action " + action);
 
         // Since we are generating the resource score, we copy the previous fields from actionScore
         long priority = actionScore.getPriority();
         long groupId = action.getGroupPriority();
 
         // We compute the rest of the fields
-        // double resource = Math.min(1.5, 1.0 / (double) myWorker.getUsedTaskCount());
-        long resource = calculateConstraintScore(params);
-        long waitingScore = -action.getId();
-        ;
+        long resource = actionScore.getResourceScore();
+        long waitingScore = 0;
         long implementationScore = 0;
 
         return new Score(priority, groupId, resource, waitingScore, implementationScore);
-    }
-
-    protected long calculateConstraintScore(TaskDescription td) {
-
-        if (td.getType() == TaskType.METHOD) {
-            List<Implementation> implementations = td.getCoreElement().getImplementations();
-            if (implementations != null && !implementations.isEmpty()) {
-                MethodResourceDescription description =
-                    (MethodResourceDescription) implementations.get(0).getRequirements();
-                return description.getTotalCPUComputingUnits() * td.getNumNodes();
-            } else {
-                return 0;
-            }
-        } else {
-            return 0;
-        }
     }
 
     @SuppressWarnings("unchecked")

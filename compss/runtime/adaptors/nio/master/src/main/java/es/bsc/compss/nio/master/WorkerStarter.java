@@ -58,8 +58,10 @@ public class WorkerStarter {
     // Connection related parameters
     private static final long START_WORKER_INITIAL_WAIT = 100;
     private static final long WAIT_TIME_UNIT = 500;
-    private static final long MAX_WAIT_FOR_SSH = 160_000;
-    private static final long MAX_WAIT_FOR_INIT = 20_000;
+    private static final long MAX_WAIT_FOR_SSH =
+        Long.parseLong(System.getenv().getOrDefault(COMPSsConstants.COMPSS_SSH_TIMEOUT, "160000"));
+    private static final long MAX_WAIT_FOR_INIT =
+        Long.parseLong(System.getenv().getOrDefault(COMPSsConstants.COMPSS_WORKER_INIT_TIMEOUT, "30000"));
     private static final String ERROR_SHUTTING_DOWN_RETRY = "ERROR: Cannot shutdown failed worker PID process";
 
     // Starting workers

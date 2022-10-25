@@ -376,6 +376,9 @@ get_args() {
             master_working_dir=${OPTARG//master_working_dir=/}
             args_pass="$args_pass --$OPTARG"
             ;;
+          job_execution_dir=*)
+            job_execution_dir=${OPTARG//job_execution_dir=/}
+            ;;
           exec_time=*)
             exec_time=${OPTARG//exec_time=/}
             ;;
@@ -435,7 +438,7 @@ get_args() {
           project_name=*)
             project_name=${OPTARG//project_name=/}
             ;;
-	  file_systems=*)
+          file_systems=*)
             file_systems=${OPTARG//file_systems=/}
             ;;
           job_dependency=*)
@@ -487,18 +490,18 @@ get_args() {
             ;;
           forward_time_limit=)
             forward_wcl=${OPTARG//forward_time_limit=/}
-	    ;;
-	  wall_clock_limit=*)
-	    wcl=${OPTARG//wall_clock_limit=/}
-	    args_pass="$args_pass --$OPTARG"
-	    ;;
-	  env_script=*)
-	    env_script=${OPTARG//env_script=/}
-	    args_pass="$args_pass --$OPTARG"
-	    ;;
-	  extra_submit_flag=*)
+            ;;
+          wall_clock_limit=*)
+            wcl=${OPTARG//wall_clock_limit=/}
+            args_pass="$args_pass --$OPTARG"
+            ;;
+          env_script=*)
+            env_script=${OPTARG//env_script=/}
+            args_pass="$args_pass --$OPTARG"
+            ;;
+          extra_submit_flag=*)
             extra_submit_flag=(${extra_submit_flag[@]} ${OPTARG//extra_submit_flag=/})
-	    ;;
+            ;;
           *)
             # Flag didn't match any patern. Add to COMPSs
             args_pass="$args_pass --$OPTARG"
@@ -665,6 +668,10 @@ check_args() {
 
   if [ -z "${master_working_dir}" ]; then
     master_working_dir=${DEFAULT_MASTER_WORKING_DIR}
+  fi
+
+  if [ -z "${job_execution_dir}" ]; then
+    job_execution_dir=${DEFAULT_JOB_EXECUTION_DIR}  # TODO: NEEDS TO BE DEFINED IN SCs CFGS
   fi
 
   ###############################################################
@@ -872,10 +879,10 @@ EOT
 #${QUEUE_CMD} ${QARG_WALLCLOCK}${QUEUE_SEPARATOR}$wc_limit
 EOT
   fi
-  #Working dir
+  # Job execution dir
   if [ -n "${QARG_WD}" ]; then
     cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
-#${QUEUE_CMD} ${QARG_WD}${QUEUE_SEPARATOR}${master_working_dir}
+#${QUEUE_CMD} ${QARG_WD}${QUEUE_SEPARATOR}${job_execution_dir}
 EOT
   fi
   # Add JOBID customizable stderr and stdout redirection when defined in queue system
@@ -977,7 +984,7 @@ add_cd_master_wd(){
   #Add change to master working dir if not working dir option in job definition
   if [ -z "${QARG_WD}" ]; then
     cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
-  cd ${master_working_dir}
+  cd ${job_execution_dir}
 EOT
   fi
 }

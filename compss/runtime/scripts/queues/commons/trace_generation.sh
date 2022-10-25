@@ -177,7 +177,7 @@ EOT
     --debug, -d                             Set the debug level to ${LOG_LEVEL_DEBUG}
                                             Default: ${DEFAULT_LOG_LEVEL}
 
-    --specific_log_dir=<path>               Path where to leave the log information
+    --log_dir=<path>                        Path where to leave the log information
                                             Default: same as output directory
 
     --log_level=<level>                     Set the debug level: ${LOG_LEVEL_OFF} | ${LOG_LEVEL_INFO} | ${LOG_LEVEL_API} | ${LOG_LEVEL_DEBUG} | ${LOG_LEVEL_TRACE}

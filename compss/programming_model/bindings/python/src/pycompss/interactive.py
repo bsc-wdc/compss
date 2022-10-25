@@ -31,6 +31,7 @@ import time
 import pycompss.util.interactive.helpers as interactive_helpers
 from pycompss.util.context import CONTEXT
 from pycompss.runtime.binding import get_log_path
+from pycompss.runtime.binding import get_tmp_path
 from pycompss.runtime.commons import CONSTANTS
 from pycompss.runtime.commons import GLOBALS
 from pycompss.runtime.start.initialization import LAUNCH_STATUS
@@ -95,8 +96,8 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
     task_count: int = 50,
     app_name: str = CONSTANTS.interactive_file_name,
     uuid: str = "",
-    base_log_dir: str = "",
-    specific_log_dir: str = "",
+    log_dir: str = "",
+    master_working_dir: str = "",
     extrae_cfg: str = "",
     extrae_final_directory: str = "",
     comm: str = "NIO",
@@ -126,6 +127,10 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
     extrae_cfg_python: str = "",
     wcl: int = 0,
     cache_profiler: bool = False,
+    data_provenance: bool = False,
+    checkpoint_policy: str = CONSTANTS.default_checkpoint_policy,
+    checkpoint_params: str = "",
+    checkpoint_folder: str = "",
     verbose: bool = False,
     disable_external: bool = False,
 ) -> None:
@@ -167,10 +172,10 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
                      (default: CONSTANTS.interactive_file_name)
     :param uuid: UUId
                  (default: None)
-    :param base_log_dir: Base logging directory
-                         (default: None)
-    :param specific_log_dir: Specific logging directory
-                             (default: None)
+    :param log_dir: Logging directory
+                    (default: None)
+    :param master_working_dir: Master working directory
+                               (default: None)
     :param extrae_cfg: Extrae configuration file path
                        (default: None)
     :param extrae_final_directory: Extrae final directory (default: "")
@@ -192,7 +197,7 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
                          (default: "automatic")
     :param fpga_affinity: FPGA affinity
                           (default: "automatic")
-    :param fpga_reprogram: FPGA repogram command
+    :param fpga_reprogram: FPGA reprogram command
                            (default: "")
     :param profile_input: Input profile
                           (default: "")
@@ -225,6 +230,16 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
                 0 means forever.
     :param cache_profiler: Use the cache profiler [ True | False]
                          (default: False)
+    :param cache_profiler: Use the cache profiler [ True | False ]
+                           (default: False)
+    :param data_provenance: Enable data provenance [ True | False ]
+                            (default: False)
+    :param checkpoint_policy: Checkpointing policy.
+                              (default: "es.bsc.compss.checkpoint.policies.NoCheckpoint")
+    :param checkpoint_params: Checkpointing parameters.
+                              (default: "")
+    :param checkpoint_folder: Checkpointing folder.
+                              (default: "")
     :param verbose: Verbose mode [ True|False ]
                     (default: False)
     :param disable_external: To avoid to load compss in external process [ True | False ]
@@ -289,8 +304,8 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
         task_count,
         app_name,
         uuid,
-        base_log_dir,
-        specific_log_dir,
+        log_dir,
+        master_working_dir,
         extrae_cfg,
         extrae_final_directory,
         comm,
@@ -320,6 +335,10 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
         extrae_cfg_python,
         wcl,
         cache_profiler,
+        data_provenance,
+        checkpoint_policy,
+        checkpoint_params,
+        checkpoint_folder,
     )
     # Save all vars in global current flags so that events.py can restart
     # the notebook with the same flags
@@ -353,9 +372,9 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
             print(f"- Overridden master name with: {updated_vars['master_name']}")
             print(f"- Overridden master port with: {updated_vars['master_port']}")
             print(f"- Overridden uuid with: {updated_vars['uuid']}")
-            print(f"- Overridden base log dir with: {updated_vars['base_log_dir']}")
+            print(f"- Overridden log dir with: {updated_vars['log_dir']}")
             print(
-                f"- Overridden specific log dir with: {updated_vars['specific_log_dir']}"
+                f"- Overridden master working dir with: {updated_vars['master_working_dir']}"
             )
             print(f"- Overridden storage conf with: {updated_vars['storage_conf']}")
             print(f"- Overridden log level with: {str(updated_vars['log_level'])}")
@@ -397,7 +416,7 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
     compss_start(log_level, all_vars["trace"], True, disable_external)
 
     log_path = get_log_path()
-    GLOBALS.set_temporary_directory(log_path)
+    GLOBALS.set_log_directory(log_path)
     print("* - Log path : " + log_path)
 
     # Setup logging
@@ -409,10 +428,13 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
         str(all_vars["major_version"]),
         "log",
     )
-    GLOBALS.set_temporary_directory(binding_log_path)
     logging_cfg_file = get_logging_cfg_file(log_level)
     init_logging(os.path.join(log_path, logging_cfg_file), binding_log_path)
     logger = logging.getLogger("pycompss.runtime.launch")
+
+    # Setup tmp path
+    binding_tmp_path = get_tmp_path()  # master.workingDir
+    GLOBALS.set_temporary_directory(binding_tmp_path)
 
     __print_setup__(verbose, all_vars)
 
@@ -675,7 +697,7 @@ def current_task_graph(
         )
         return None
     return show_graph(
-        log_path=GLOBALS.get_temporary_directory(),
+        log_path=GLOBALS.get_log_directory(),
         name="current_graph",
         fit=fit,
         refresh_rate=refresh_rate,
@@ -702,7 +724,7 @@ def complete_task_graph(
         )
         return None
     return show_graph(
-        log_path=GLOBALS.get_temporary_directory(),
+        log_path=GLOBALS.get_log_directory(),
         name="complete_graph",
         fit=fit,
         refresh_rate=refresh_rate,
@@ -715,7 +737,7 @@ def tasks_info() -> None:
 
     :return: None
     """
-    log_path = GLOBALS.get_temporary_directory()
+    log_path = GLOBALS.get_log_directory()
     if check_monitoring_file(log_path):
         show_tasks_info(log_path)
     else:
@@ -731,7 +753,7 @@ def tasks_status() -> None:
 
     :return: None
     """
-    log_path = GLOBALS.get_temporary_directory()
+    log_path = GLOBALS.get_log_directory()
     if check_monitoring_file(log_path):
         show_tasks_status(log_path)
     else:
@@ -747,7 +769,7 @@ def statistics() -> None:
 
     :return: None
     """
-    log_path = GLOBALS.get_temporary_directory()
+    log_path = GLOBALS.get_log_directory()
     if check_monitoring_file(log_path):
         show_statistics(log_path)
     else:
@@ -763,7 +785,7 @@ def resources_status() -> None:
 
     :return: None
     """
-    log_path = GLOBALS.get_temporary_directory()
+    log_path = GLOBALS.get_log_directory()
     if check_monitoring_file(log_path):
         show_resources_status(log_path)
     else:

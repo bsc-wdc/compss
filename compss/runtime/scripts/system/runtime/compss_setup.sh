@@ -146,8 +146,8 @@ check_compss_env() {
 # Creating Execution directory
 #----------------------------------------------
 create_exec_folder() {
-  # specific_log_dir can be empty. If so, specified uses ${base_log_dir}/<application_name>_<overload offset>
-  # base_log_dir can be empty. If so, placing it in user's home folder .COMPSs
+  # specific_log_dir can be empty. If so, specified uses ${log_dir}/<application_name>_<overload offset>
+  # log_dir can be empty. If so, placing it in user's home folder .COMPSs
   if [ -n  "${specific_log_dir}" ]; then
     mkdir -p "${specific_log_dir}"
     exec_dir="${specific_log_dir}"
@@ -156,8 +156,8 @@ create_exec_folder() {
       exec_dir="${exec_dir}/"
     fi
   else
-    if [ -n  "${base_log_dir}" ]; then
-      exec_dir="${base_log_dir}"
+    if [ -n  "${log_dir}" ]; then
+      exec_dir="${log_dir}"
     else
       exec_dir="${HOME}/.COMPSs"
     fi
@@ -191,7 +191,7 @@ create_exec_folder() {
         if [ -d "${overload_log_dir}" ]; then
           if [[ "$OSTYPE" == "darwin"* ]]; then
             overload_date=$(stat -f %Fm "${overload_log_dir}" )
-          else  
+          else
             overload_date=$(stat -c %.9Y "${overload_log_dir}" )
           fi
           overload_date="${overload_date//./}"
@@ -232,9 +232,9 @@ check_compss_setup () {
   if [ -z "${uuid}" ]; then
     get_uuid
   fi
-  
+
   create_exec_folder
-  
+
   # JVM
   if [ -z "${jvm_master_opts}" ] || [ "${jvm_master_opts}" = \"\" ]; then
     jvm_master_opts=${DEFAULT_JVM_MASTER}
@@ -288,13 +288,13 @@ check_compss_setup () {
     agent_config="${DEFAULT_AGENT_CONFIG}"
   fi
 
-  if [ -z "${wdir_in_master}" ]; then
-    wdir_in_master="${exec_dir}tmpFiles/"
+  if [ -n "${wdir_in_master}" ]; then
+    wdir_in_master="${wdir_in_master}/.COMPSs/${uuid}/"
+  else
+    wdir_in_master="${exec_dir}/tmpFiles/"
   fi
-  if [ ! "${wdir_in_master: -1}" == "/" ]; then
-    wdir_in_master="${wdir_in_master}/"
-  fi
-  
+  mkdir -p ${wdir_in_master}
+
   if [ -z "${wall_clock_limit}" ]; then
     wall_clock_limit="${DEFAULT_WALL_CLOCK_LIMIT}"
   fi
@@ -370,9 +370,9 @@ EOT
 
 prepare_coverage() {
     jacoco_master_expression=$(echo "${jacoco_agent_expression}" | tr "#" "," | tr "@" ",")
-    if [ -z "${jvm_master_opts}" ] || [ "${jvm_master_opts}" = \"\" ];then 
+    if [ -z "${jvm_master_opts}" ] || [ "${jvm_master_opts}" = \"\" ];then
       jvm_master_opts="-javaagent:${jacoco_master_expression}"
-    else 
+    else
       if [[ $jvm_master_opts == *"-agentpath"* ]] || [[ $jvm_master_opts == *"-javaagent"* ]]; then
         echo "WARN: Ignoring jacoco coverage at master because application already uses a java agent"
       else
@@ -492,7 +492,7 @@ append_app_jvm_options_to_file() {
   cat >> "${jvm_options_file}" << EOT
 -Dcompss.appName=${appName}
 EOT
-  
+
 }
 
 append_wall_clock_jvm_options_to_file() {
@@ -506,7 +506,7 @@ EOT
 -Dcompss.wcl=${wall_clock_limit}
 EOT
   fi
-  
+
 }
 
 #----------------------------------------------
@@ -531,6 +531,9 @@ clean_runtime_environment() {
 
   # Remove folder with initial loggers
   rm -rf "/tmp/$uuid"
+
+  # Remove master working dir
+  rm -rf "${wdir_in_master}"
 }
 
 
@@ -566,11 +569,11 @@ start_compss_app() {
   prepare_runtime_environment
 
   append_app_jvm_options_to_file "${jvm_options_file}"
-  
+
   append_wall_clock_jvm_options_to_file "${jvm_options_file}"
   #echo "Options file: ${jvm_options_file}"
   #cat ${jvm_options_file}
-  
+
 
   # Init COMPSs
   echo -e "\\n----------------- Executing $appName --------------------------\\n"

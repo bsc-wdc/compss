@@ -264,6 +264,13 @@ class COMPSsModule:
         """
         return self.compss.get_logging_path()
 
+    def get_master_working_path(self) -> str:
+        """Call to get_master_working_path.
+
+        :return: The COMPSs log path.
+        """
+        return self.compss.get_master_working_path()
+
     def get_number_of_resources(self, app_id: int) -> int:
         """Call to number_of_resources.
 

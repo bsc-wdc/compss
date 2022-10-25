@@ -112,6 +112,7 @@ extern "C" void GS_FreeResources(long appId, int numResources, char* groupName);
 
 // Misc functions
 extern "C" void GS_Get_AppDir(char** buf);
+extern "C" void GS_Get_MasterWorkingDir(char** buf);
 extern "C" void GS_EmitEvent(int type, long id);
 extern "C" void GS_Get_Object(long appId, char* objectId, char** buf);
 extern "C" void GS_Delete_Object(long appId, char* objectId, int** buf);

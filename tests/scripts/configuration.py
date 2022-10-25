@@ -55,7 +55,7 @@ class COMPSsConfiguration:
         + type: String
     :attribute target_base_dir: Path to store the tests execution sandbox
         + type: String
-    :attribute compss_base_log_dir: Path to the COMPSs base log directory
+    :attribute compss_log_dir: Path to the COMPSs base log directory
         + type: String
     :attribute java_home: JAVA_HOME environment variable
         + type: String or None
@@ -104,9 +104,9 @@ class COMPSsConfiguration:
         # Store COMPSs_HOME (always defined because it has a default value)
         self.compss_home = compss_home
 
-        # Define compss_base_log_dir
+        # Define compss_log_dir
         user_home = os.path.expanduser("~")
-        self.compss_base_log_dir = os.path.join(user_home, DEFAULT_REL_COMPSS_LOG_DIR)
+        self.compss_log_dir = os.path.join(user_home, DEFAULT_REL_COMPSS_LOG_DIR)
 
         # Either we receive the target_base_dir or we compute it from user home
         if target_base_dir is None:
@@ -157,14 +157,14 @@ class COMPSsConfiguration:
         """
         return self.target_base_dir
 
-    def get_compss_base_log_dir(self):
+    def get_compss_log_dir(self):
         """
         Returns the path to the COMPSs log base directory
 
         :return: The path to the COMPSs log base directory
             + type: String
         """
-        return self.compss_base_log_dir
+        return self.compss_log_dir
 
     def get_comm(self):
         """

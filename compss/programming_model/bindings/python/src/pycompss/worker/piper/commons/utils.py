@@ -76,7 +76,7 @@ class PiperWorkerConfiguration:
         :param argv: Arguments from the command line.
         :return: None.
         """
-        GLOBALS.set_temporary_directory(argv[1], create_tmpdir=False)
+        GLOBALS.set_temporary_directory(argv[1])
         if argv[2] == "true":
             CONTEXT.enable_nesting()
             self.nesting = True

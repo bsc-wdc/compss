@@ -109,6 +109,7 @@ void JNI_FreeResources(long appId, int numResources, char* groupName);
 
 // Misc functions
 void JNI_Get_AppDir(char** buf);
+void JNI_Get_MasterWorkingDir(char** buf);
 void JNI_EmitEvent(int type, long id);
 void JNI_Get_Object(long appId, char* objectId, char** buf);
 void JNI_Delete_Object(long appId, char* objectId, int** buf);

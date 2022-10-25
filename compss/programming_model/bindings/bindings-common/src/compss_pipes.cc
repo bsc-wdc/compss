@@ -52,7 +52,7 @@ string read_result_from_pipe(){
 		printf("\n[BINDING-COMMONS] ERROR: Pipe is not set");
 	    return NULL;
 	}
-    
+
 	char buf[BUFSIZ];
 	std::stringstream oss;
 	while (1) {
@@ -71,8 +71,8 @@ string read_result_from_pipe(){
 		} else {
 			// Necessary to avoid that fgets return NULL after closing the pipe for the first time.
 			clearerr(result_pipe_stream);
-		} 
-	}   
+		}
+	}
 }
 
 
@@ -303,6 +303,26 @@ void PIPE_Get_AppDir(char** buf) {
     *buf = strdup(result.c_str());
 
     debug_printf("[BINDING-COMMONS] - @PIPE_Get_AppDir - directory name: %s\n", *buf);
+}
+
+
+void PIPE_Get_MasterWorkingDir(char** buf) {
+    debug_printf ("[BINDING-COMMONS] - @PIPE_Get_MasterWorkingDir - Getting master working directory (tmp).\n");
+
+
+    // Call getMasterWorkingDir expects the path to the app directory.
+    // MESSAGE: GET_MASTERWORKINGDIR
+    // RETURN: masterWorkingDir path(String)
+
+    stringstream ss;
+    ss << "GET_MASTERWORKINGDIR" << endl;
+    write_command_in_pipe(ss);
+    string result;
+    result = read_result_from_pipe();
+    // Parse output
+    *buf = strdup(result.c_str());
+
+    debug_printf("[BINDING-COMMONS] - @PIPE_Get_MasterWorkingDir - directory name: %s\n", *buf);
 }
 
 
@@ -684,7 +704,7 @@ void PIPE_BarrierGroup(long appId, char* groupName, char** exceptionMessage) {
         const char* buf = result.c_str();
         if(strncmp(buf, "COMPSS_EXCEPTION", 16) == 0){
             buf = buf + 22;
-            *exceptionMessage = strdup(buf);    
+            *exceptionMessage = strdup(buf);
             barrier_finished = true;
             debug_printf("[BINDING-COMMONS] - @PIPE_BarrierGroup - Barrier ended for COMPSs group name: %s with an exception\n", groupName);
         } else if(strncmp(buf, "SYNCH", 5) == 0){
@@ -843,4 +863,3 @@ void PIPE_FreeResources(long appId, int numResources, char* groupName) {
 void PIPE_set_wall_clock(long appId, long wcl, int stopRT){
 	debug_printf ("[BINDING-COMMONS] - @PIPE_set_wall_clock NOT CURRENTLY IMPLEMENTED FOR PIPES\n");
 }
-

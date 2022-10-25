@@ -77,7 +77,7 @@ Family 9000000 Binding
 8001003 event 0 8
 8001003 range 1 9 14,16  # TODO: WHY THIS EVENT APPEARS 9 OR 11 TIMES?
 8001006 event 0 2
-8001006 range 1 3 6 
+8001006 range 1 3 6
 
 # --------------------- #
 # PYTHON BINDING EVENTS #
@@ -130,7 +130,7 @@ Family 9000000 Binding
 9000200 event 10 0
 
 # Master events
-9000300 event 0 1880  # There is one missing 0 for the last 0 event that is not captured.
+9000300 event 0 1881  # There is one missing 0 for the last 0 event that is not captured.
 9000300 event 1 1
 9000300 event 2 1
 9000300 event 3 1
@@ -148,13 +148,16 @@ Family 9000000 Binding
 9000300 event 15 0
 9000300 event 16 0
 9000300 event 17 1
-9000300 event 18 0
+9000300 event 18 1
 9000300 event 19 0
-9000300 event 20 0  # NOT USED YET
-9000300 event 21 4
+9000300 event 20 0
+9000300 event 21 0  # NOT USED YET
 9000300 event 22 4
-9000300 event 23 100
-9000300 event 24 0
+9000300 event 23 4
+9000300 event 24 100
+9000300 event 25 0
+9000300 event 26 0
+9000300 event 27 0
 9000300 event 100 100
 9000300 event 101 100
 9000300 event 102 100

@@ -491,6 +491,23 @@ def get_log_path() -> str:
         return log_path
 
 
+def get_tmp_path() -> str:
+    """Get tmp path.
+
+    Requests the master working path to the external python library (that calls
+    the bindings-common).
+
+    :return: The path where to store the master tmp files.
+    """
+    with EventMaster(TRACING_MASTER.get_tmp_path_event):
+        if __debug__:
+            LOGGER.debug("Requesting tmp path (master working dir)")
+        tmp_path = COMPSs.get_master_working_path()
+        if __debug__:
+            LOGGER.debug("Tmp path (master working dir) received: %s", tmp_path)
+        return tmp_path
+
+
 def get_number_of_resources() -> int:
     """Get the number of resources.
 

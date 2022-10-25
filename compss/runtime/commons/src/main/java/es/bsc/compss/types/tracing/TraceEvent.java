@@ -181,15 +181,16 @@ public enum TraceEvent {
     PYTHON_OPEN_TASK_GROUP(15, TraceEventType.BINDING_MASTER, "Open task group"), //
     PYTHON_CLOSE_TASK_GROUP(16, TraceEventType.BINDING_MASTER, "Close task group"), //
     PYTHON_GET_LOG_PATH(17, TraceEventType.BINDING_MASTER, "Get log path"), //
-    PYTHON_GET_NUMBER_RESOURCES(18, TraceEventType.BINDING_MASTER, "Get number of resources"), //
-    PYTHON_REQUEST_RESOURCES(19, TraceEventType.BINDING_MASTER, "Request resources"), //
-    PYTHON_FREE_RESOURCES(20, TraceEventType.BINDING_MASTER, "Free resources"), //
-    PYTHON_REGISTER_CORE_ELEMENT(21, TraceEventType.BINDING_MASTER, "Register Core Element"), //
-    PYTHON_WAIT_ON(22, TraceEventType.BINDING_MASTER, "Wait on"), //
-    PYTHON_PROCESS_TASK(23, TraceEventType.BINDING_MASTER, "Call to process task"), //
-    PYTHON_WALL_CLOCK_LIMIT(24, TraceEventType.BINDING_MASTER, "Wall clock limit"), //
-    PYTHON_SNAPSHOT(25, TraceEventType.BINDING_MASTER, "Snapshot"), //
-    PYTHON_CANCEL_TASK_GROUP(26, TraceEventType.BINDING_MASTER, "Cancel task group"), //
+    PYTHON_GET_TMP_PATH(18, TraceEventType.BINDING_MASTER, "Get tmp path (master working dir)"), //
+    PYTHON_GET_NUMBER_RESOURCES(19, TraceEventType.BINDING_MASTER, "Get number of resources"), //
+    PYTHON_REQUEST_RESOURCES(20, TraceEventType.BINDING_MASTER, "Request resources"), //
+    PYTHON_FREE_RESOURCES(21, TraceEventType.BINDING_MASTER, "Free resources"), //
+    PYTHON_REGISTER_CORE_ELEMENT(22, TraceEventType.BINDING_MASTER, "Register Core Element"), //
+    PYTHON_WAIT_ON(23, TraceEventType.BINDING_MASTER, "Wait on"), //
+    PYTHON_PROCESS_TASK(24, TraceEventType.BINDING_MASTER, "Call to process task"), //
+    PYTHON_WALL_CLOCK_LIMIT(25, TraceEventType.BINDING_MASTER, "Wall clock limit"), //
+    PYTHON_SNAPSHOT(26, TraceEventType.BINDING_MASTER, "Snapshot"), //
+    PYTHON_CANCEL_TASK_GROUP(27, TraceEventType.BINDING_MASTER, "Cancel task group"), //
 
     // Internal events
     PYTHON_TASK_INSTANTIATION(100, TraceEventType.BINDING_MASTER, "Task instantiation"), //

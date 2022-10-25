@@ -135,7 +135,7 @@
   cn=$(grep -c "Slave hostname" "${target_log_folder}"/jobs/job9_NEW.out)
   cus=$(grep "Slave hostname" "${target_log_folder}"/jobs/job9_NEW.out | awk '{ print $(NF-1) }')
   if [ "${cn}" -ne "${expected_cn}" ] || [ "${cus}" -ne "${expected_cus}" ]; then
-    echo "[ERROR] Incorrect cn/cus for base_log_dir task" | tee -a "${output_file}"
+    echo "[ERROR] Incorrect cn/cus for log_dir task" | tee -a "${output_file}"
     exit 1
   fi
   
@@ -153,7 +153,7 @@
     exit 1
   fi
   
-  # Check that job9 has correctly captured base_log_dir
+  # Check that job9 has correctly captured log_dir
   if ! grep "\\-\\-specific_log_dir" "${target_log_folder}"/jobs/job9_NEW.out | awk '{ print $8 }'; then
     echo "[ERROR] Base log dir is not captured properly" | tee -a "${output_file}"
     exit 1

@@ -260,6 +260,9 @@ def c_extension_link(
             elif command == LINK_MESSAGES.get_logging_path:
                 log_path = compss.get_logging_path()
                 out_queue.put(log_path)
+            elif command == LINK_MESSAGES.get_master_working_path:
+                master_working_path = compss.get_master_working_path()
+                out_queue.put(master_working_path)
             elif command == LINK_MESSAGES.get_number_of_resources:
                 num_resources = compss.get_number_of_resources(*parameters)
                 out_queue.put(num_resources)
@@ -484,6 +487,15 @@ class _COMPSs:
         self.in_queue.put([LINK_MESSAGES.get_logging_path])
         log_path = self.out_queue.get(block=True)
         return log_path
+
+    def get_master_working_path(self) -> str:
+        """Call to master_working_path.
+
+        :return: The COMPSs master working path.
+        """
+        self.in_queue.put([LINK_MESSAGES.get_master_working_path])
+        master_working_path = self.out_queue.get(block=True)
+        return master_working_path
 
     def get_number_of_resources(self, app_id: int) -> int:
         """Call to number_of_resources.

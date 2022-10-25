@@ -151,13 +151,12 @@ show_opts() {
     --pythonpath=<path>                     Additional folders or paths to add to the PYTHONPATH
                                             Default: ${DEFAULT_PYTHONPATH}
     --env_script=<path>                     Path to the script file where the application environment variables are defined.
-                                                COMPSs sources this script before running the application.
-                                                Default: Empty
-    --base_log_dir=<path>                   Base directory to store COMPSs log files (a .COMPSs/ folder will be created inside this location)
+                                            COMPSs sources this script before running the application.
+                                            Default: Empty
+    --log_dir=<path>                        Directory to store COMPSs log files (a .COMPSs/ folder will be created inside this location)
                                             Default: User home
-    --specific_log_dir=<path>               Use a specific directory to store COMPSs log files (no sandbox is created)
-                                            Warning: Overwrites --base_log_dir option
-                                            Default: Disabled
+    --master_working_dir=<path>             Use a specific directory to store COMPSs temporary files in master
+                                            Default: <log_dir>/.COMPSs/<app_name>/tmpFiles
     --uuid=<int>                            Preset an application UUID
                                             Default: Automatic random generation
     --master_name=<string>                  Hostname of the node to run the COMPSs master
@@ -488,13 +487,28 @@ get_args() {
             # Enable JMX profiler on specific port
             jmx_port=${OPTARG//jmx_port=/}
             ;;
+          log_dir=*)
+            # Set a custom base log dir
+            log_dir=${OPTARG//log_dir=/}
+            # Creating logs dir inside .COMPSs just in master worker execution
+            # (compss_setup.sh assumes exec_dir will be log_dir)
+            log_dir="${log_dir}/.COMPSs/"
+            ;;
           base_log_dir=*)
             # Set a custom base log dir
-            base_log_dir=${OPTARG//base_log_dir=/}
+            log_dir=${OPTARG//base_log_dir=/}
+            echo "WARNING: base_log_dir is deprecated. Please, change it to log_dir."
+            # Creating logs dir inside .COMPSs just in master worker execution
+            # (compss_setup.sh assumes exec_dir will be log_dir)
+            log_dir="${log_dir}/.COMPSs/"
             ;;
           specific_log_dir=*)
             # Set a custom specific log dir
             specific_log_dir=${OPTARG//specific_log_dir=/}
+            ;;
+          master_working_dir=*)
+            # working directory for master
+            wdir_in_master=${OPTARG//master_working_dir=/}
             ;;
           uuid=*)
             # Preset an Application UUID
@@ -567,11 +581,11 @@ get_args() {
           delete_trace_packages=*)
             # Specify if the tracing system re-organizes the threads
             tracing_delete_packages=${OPTARG//delete_trace_packages=/}
-            ;; 
+            ;;
           custom_threads=*)
             # Specify if the tracing system re-organizes the threads
             tracing_custom_threads=${OPTARG//custom_threads=/}
-            ;;           
+            ;;
           enable_external_adaptation=*)
             # Enable the external adaptation (disables de Resource Optimizer)
             external_adaptation=${OPTARG//enable_external_adaptation=/}
@@ -715,7 +729,7 @@ if [ ${provenance} ]; then
   "${COMPSS_HOME}Runtime/scripts/utils/compss_gengraph" "svg" "${specific_log_dir}/monitor/complete_graph.dot"
   end=`date +%s`
   echo "PROVENANCE | ENDED GENERATING GRAPH FOR DATA PROVENANCE. TIME: $(( end - start ))"
-  
+
   echo "PROVENANCE | RUNNING DATA PROVENANCE SCRIPT"
   python "${COMPSS_HOME}Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py" "ro-crate-info.yaml" "${specific_log_dir}/dataprovenance.log"
   if [ "${output_profile}" == "App_Profile.json" ]; then # Auto-generated, user doesn't want it

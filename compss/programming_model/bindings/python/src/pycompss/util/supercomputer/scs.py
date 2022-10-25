@@ -86,26 +86,26 @@ def get_uuid() -> str:
     return os.environ["COMPSS_UUID"]
 
 
-def get_base_log_dir() -> str:
-    """Get base log dir.
+def get_log_dir() -> str:
+    """Get log dir.
 
-    TIP: The environment variable COMPSS_BASE_LOG_DIR is defined in the
+    TIP: The environment variable COMPSS_LOG_DIR is defined in the
          launch_compss script.
 
-    :return: Base log directory.
+    :return: Log directory.
     """
-    return os.environ["COMPSS_BASE_LOG_DIR"]
+    return os.environ["COMPSS_LOG_DIR"]
 
 
-def get_specific_log_dir() -> str:
-    """Get specific log directory.
+def get_master_working_dir() -> str:
+    """Get master working directory.
 
-    TIP: The environment variable COMPSS_SPECIFIC_LOG_DIR is defined in the
+    TIP: The environment variable COMPSS_MASTER_WORKING_DIR is defined in the
          launch_compss script.
 
-    :return: Specific log directory.
+    :return: Master working directory.
     """
-    return os.environ["COMPSS_SPECIFIC_LOG_DIR"]
+    return os.environ["COMPSS_MASTER_WORKING_DIR"]
 
 
 def get_log_level() -> str:

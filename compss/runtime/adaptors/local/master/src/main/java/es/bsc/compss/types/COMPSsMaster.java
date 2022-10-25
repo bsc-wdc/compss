@@ -149,8 +149,12 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         } else {
             this.tempDirPath = LoggerManager.getLogDir() + "tmpFiles" + File.separator;
         }
-        if (!new File(this.tempDirPath).mkdirs()) {
-            ErrorManager.error(ERROR_TEMP_DIR);
+        // this.tempDirPath may already exist
+        boolean wDirExists = new File(this.tempDirPath).exists();
+        if (!wDirExists) {
+            if (!new File(this.tempDirPath).mkdirs()) {
+                ErrorManager.error(ERROR_TEMP_DIR);
+            }
         }
 
         // Configure storage

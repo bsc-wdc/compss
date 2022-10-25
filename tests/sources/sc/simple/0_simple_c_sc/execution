@@ -67,9 +67,9 @@
      --comm="$comm" \
      --debug \
      --worker_in_master_cpus=8 \
-     --master_working_dir=${master_working_dir} \
+     --job_execution_dir=${master_working_dir} \
      --worker_working_dir=${worker_working_dir} \
-     --base_log_dir=${target_log_folder} \
+     --log_dir=${target_log_folder} \
      ${runcompss_opts} \
      --appdir="${base_app_dir}" \
      "${base_app_dir}/master/${app_name}" $counterVal > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)

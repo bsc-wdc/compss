@@ -181,7 +181,7 @@ try:
 except Exception:
 	print("[ERROR] Cannot clean target directory "+str(target_base_dir))
 
-compss_base_log_dir = "/home/sergi/.COMPSs"
+compss_log_dir = "/home/sergi/.COMPSs"
 
 try:
 	os.makedirs(target_base_dir)

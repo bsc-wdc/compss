@@ -74,24 +74,24 @@ def test_get_uuid():
     assert result == uuid, "ERROR: Wrong UUID."
 
 
-def test_get_base_log_dir():
-    from pycompss.util.supercomputer.scs import get_base_log_dir
+def test_get_log_dir():
+    from pycompss.util.supercomputer.scs import get_log_dir
 
-    base_log_dir = "my_base_log_dir"
-    os.environ["COMPSS_BASE_LOG_DIR"] = base_log_dir
-    result = get_base_log_dir()
-    del os.environ["COMPSS_BASE_LOG_DIR"]
-    assert result == base_log_dir, "ERROR: Wrong base log directory."
+    log_dir = "my_log_dir"
+    os.environ["COMPSS_LOG_DIR"] = log_dir
+    result = get_log_dir()
+    del os.environ["COMPSS_LOG_DIR"]
+    assert result == log_dir, "ERROR: Wrong log directory."
 
 
-def test_get_specific_log_dir():
-    from pycompss.util.supercomputer.scs import get_specific_log_dir
+def test_get_master_working_dir():
+    from pycompss.util.supercomputer.scs import get_master_working_dir
 
-    specific_log_dir = "my_specific_log_dir"
-    os.environ["COMPSS_SPECIFIC_LOG_DIR"] = specific_log_dir
-    result = get_specific_log_dir()
-    del os.environ["COMPSS_SPECIFIC_LOG_DIR"]
-    assert result == specific_log_dir, "ERROR: Wrong specific log directory."
+    master_working_dir = "my_master_working_dir"
+    os.environ["COMPSS_MASTER_WORKING_DIR"] = master_working_dir
+    result = get_master_working_dir()
+    del os.environ["COMPSS_MASTER_WORKING_DIR"]
+    assert result == master_working_dir, "ERROR: Wrong master working directory."
 
 
 def test_get_log_level():

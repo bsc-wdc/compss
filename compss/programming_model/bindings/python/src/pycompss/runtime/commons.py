@@ -124,16 +124,32 @@ CONSTANTS = Constants()
 class Globals:
     """Common global definitions."""
 
-    __slots__ = ("temp_dir", "object_conversion", "tracing_task_name_to_id")
+    __slots__ = ("log_dir", "temp_dir", "object_conversion", "tracing_task_name_to_id")
 
     def __init__(self) -> None:
         """Global object constructor.
 
         :returns: None.
         """
+        self.log_dir = ""
         self.temp_dir = ""
         self.object_conversion = False
         self.tracing_task_name_to_id = {}  # type: typing.Dict[str, int]
+
+    def get_log_directory(self) -> str:
+        """Log directory getter.
+
+        :return: Log directory path.
+        """
+        return self.log_dir
+
+    def set_log_directory(self, folder: str) -> None:
+        """Set the log directory.
+
+        :param folder: Log directory path.
+        :return: None.
+        """
+        self.log_dir = folder
 
     def get_temporary_directory(self) -> str:
         """Temporary directory getter.

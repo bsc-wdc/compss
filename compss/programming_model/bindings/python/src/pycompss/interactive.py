@@ -416,7 +416,7 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
     compss_start(log_level, all_vars["trace"], True, disable_external)
 
     log_path = get_log_path()
-    GLOBALS.set_temporary_directory(log_path)
+    GLOBALS.set_log_directory(log_path)
     print("* - Log path : " + log_path)
 
     # Setup logging
@@ -697,7 +697,7 @@ def current_task_graph(
         )
         return None
     return show_graph(
-        log_path=GLOBALS.get_temporary_directory(),
+        log_path=GLOBALS.get_log_directory(),
         name="current_graph",
         fit=fit,
         refresh_rate=refresh_rate,
@@ -724,7 +724,7 @@ def complete_task_graph(
         )
         return None
     return show_graph(
-        log_path=GLOBALS.get_temporary_directory(),
+        log_path=GLOBALS.get_log_directory(),
         name="complete_graph",
         fit=fit,
         refresh_rate=refresh_rate,
@@ -737,7 +737,7 @@ def tasks_info() -> None:
 
     :return: None
     """
-    log_path = GLOBALS.get_temporary_directory()
+    log_path = GLOBALS.get_log_directory()
     if check_monitoring_file(log_path):
         show_tasks_info(log_path)
     else:
@@ -753,7 +753,7 @@ def tasks_status() -> None:
 
     :return: None
     """
-    log_path = GLOBALS.get_temporary_directory()
+    log_path = GLOBALS.get_log_directory()
     if check_monitoring_file(log_path):
         show_tasks_status(log_path)
     else:
@@ -769,7 +769,7 @@ def statistics() -> None:
 
     :return: None
     """
-    log_path = GLOBALS.get_temporary_directory()
+    log_path = GLOBALS.get_log_directory()
     if check_monitoring_file(log_path):
         show_statistics(log_path)
     else:
@@ -785,7 +785,7 @@ def resources_status() -> None:
 
     :return: None
     """
-    log_path = GLOBALS.get_temporary_directory()
+    log_path = GLOBALS.get_log_directory()
     if check_monitoring_file(log_path):
         show_resources_status(log_path)
     else:

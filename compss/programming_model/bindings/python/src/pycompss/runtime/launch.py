@@ -237,6 +237,7 @@ def compss_main() -> None:
 
     # Setup logging
     binding_log_path = get_log_path()
+    GLOBALS.set_log_directory(binding_log_path)
     log_path = os.path.join(
         str(os.getenv("COMPSS_HOME")), "Bindings", "python", "3", "log"
     )
@@ -583,6 +584,7 @@ def launch_pycompss_application(
 
     # Setup logging
     binding_log_path = get_log_path()
+    GLOBALS.set_log_directory(binding_log_path)
     log_path = os.path.join(
         all_vars["compss_home"],
         "Bindings",

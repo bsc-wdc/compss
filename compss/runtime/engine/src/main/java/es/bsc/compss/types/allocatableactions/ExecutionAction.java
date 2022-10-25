@@ -17,8 +17,6 @@
 package es.bsc.compss.types.allocatableactions;
 
 import es.bsc.compss.api.TaskMonitor;
-import es.bsc.compss.api.TaskMonitor.CollectionTaskResult;
-import es.bsc.compss.api.TaskMonitor.TaskResult;
 import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.log.LoggerManager;
@@ -36,18 +34,13 @@ import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.TaskGroup;
 import es.bsc.compss.types.TaskState;
-import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.data.DataAccessId;
-import es.bsc.compss.types.data.DataInstanceId;
-import es.bsc.compss.types.data.accessid.RWAccessId;
-import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobEndStatus;
 import es.bsc.compss.types.job.JobListener;
-import es.bsc.compss.types.parameter.CollectionParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Worker;
@@ -418,58 +411,10 @@ public class ExecutionAction extends AllocatableAction implements JobListener {
                 DataAccessId performedAccess = cgt.nextAccess();
                 dp.setDataAccessId(performedAccess);
             }
-        }
-        TaskMonitor monitor = this.task.getTaskMonitor();
-        if (idx.length == 1) {
-            TaskResult mp = buildMonitorParameter(p, dataName);
-            monitor.valueGenerated(idx[0], mp);
-        }
-    }
 
-    private TaskResult buildMonitorParameter(Parameter p, String dataName) {
-        TaskResult result;
-        String dataLocation = ((DependencyParameter) p).getDataTarget();
-        if (p.getType() == DataType.COLLECTION_T) {
-            List<Parameter> subParams = ((CollectionParameter) p).getParameters();
-            TaskResult[] subResults = new TaskResult[subParams.size()];
-            for (int i = 0; i < subParams.size(); i++) {
-                subResults[i] = buildMonitorParameter(subParams.get(i), getOuputRename(subParams.get(i)));
-            }
-            result = new CollectionTaskResult(p.getType(), dataName, dataLocation, subResults);
-        } else {
-            result = new TaskResult(p.getType(), dataName, dataLocation);
+            String dataLocation = dp.getDataTarget();
+            p.getMonitor().onCreation(p.getType(), dataName, dataLocation);
         }
-
-        return result;
-    }
-
-    private String getOuputRename(Parameter p) {
-        String name = null;
-        if (p.isPotentialDependency()) {
-            // Notify the FileTransferManager about the generated/updated OUT/INOUT datums
-            DependencyParameter dp = (DependencyParameter) p;
-            DataInstanceId dId = null;
-            switch (p.getDirection()) {
-                case CONCURRENT:
-                case IN_DELETE:
-                case IN:
-                    // FTM already knows about this datum
-                    return null;
-                case OUT:
-                    dId = ((WAccessId) dp.getDataAccessId()).getWrittenDataInstance();
-                    break;
-                case COMMUTATIVE:
-                    dId = ((RWAccessId) dp.getDataAccessId()).getWrittenDataInstance();
-                    break;
-                case INOUT:
-                    dId = ((RWAccessId) dp.getDataAccessId()).getWrittenDataInstance();
-                    break;
-            }
-
-            // Retrieve parameter information
-            name = dId.getRenaming();
-        }
-        return name;
     }
 
     /*

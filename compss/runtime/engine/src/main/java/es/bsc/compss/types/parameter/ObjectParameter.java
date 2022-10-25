@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.parameter;
 
+import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
@@ -43,11 +44,12 @@ public class ObjectParameter extends DependencyParameter {
      * @param weight Parameter weight.
      * @param value Parameter object value.
      * @param hashCode Parameter object hashcode.
+     * @param monitor object to notify to changes on the parameter
      */
     public ObjectParameter(Direction direction, StdIOStream stream, String prefix, String name, String contentType,
-        double weight, Object value, int hashCode) {
+        double weight, Object value, int hashCode, ParameterMonitor monitor) {
 
-        super(DataType.OBJECT_T, direction, stream, prefix, name, contentType, weight, false);
+        super(DataType.OBJECT_T, direction, stream, prefix, name, contentType, weight, false, monitor);
         this.value = value;
         this.hashCode = hashCode;
     }

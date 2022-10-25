@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.parameter;
 
+import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
@@ -41,11 +42,12 @@ public class StreamParameter extends DependencyParameter {
      * @param name Parameter name.
      * @param value Parameter object value.
      * @param hashCode Parameter object hashcode.
+     * @param monitor object to notify to changes on the parameter
      */
     public StreamParameter(Direction direction, StdIOStream stream, String prefix, String name, Object value,
-        int hashCode) {
+        int hashCode, ParameterMonitor monitor) {
 
-        super(DataType.STREAM_T, direction, stream, prefix, name, "null", 1.0, false);
+        super(DataType.STREAM_T, direction, stream, prefix, name, "null", 1.0, false, monitor);
         this.value = value;
         this.hashCode = hashCode;
     }

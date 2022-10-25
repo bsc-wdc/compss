@@ -24,7 +24,7 @@ import java.io.ObjectOutput;
 
 
 /**
- * Representation of the reesult of a data parameter for the NIO Adaptor.
+ * Representation of the result of a data parameter for the NIO Adaptor.
  */
 public class NIOResult implements Externalizable {
 

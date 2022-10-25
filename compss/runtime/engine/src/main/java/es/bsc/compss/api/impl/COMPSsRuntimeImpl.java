@@ -22,6 +22,8 @@ import es.bsc.compss.COMPSsDefaults;
 import es.bsc.compss.COMPSsPaths;
 import es.bsc.compss.api.ApplicationRunner;
 import es.bsc.compss.api.COMPSsRuntime;
+import es.bsc.compss.api.ParameterCollectionMonitor;
+import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.impl.AccessProcessor;
@@ -798,14 +800,15 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         }
 
         Application app = Application.registerApplication(appId);
-        // Process the parameters
-        List<Parameter> pars = processParameters(app, parameterCount, parameters);
-        boolean hasReturn = hasReturn(pars);
-        int numReturns = hasReturn ? 1 : 0;
 
         if (monitor == null) {
             monitor = DO_NOTHING_MONITOR;
         }
+
+        // Process the parameters
+        List<Parameter> pars = processParameters(app, parameterCount, parameters, monitor);
+        boolean hasReturn = hasReturn(pars);
+        int numReturns = hasReturn ? 1 : 0;
 
         // Register the task
         int task = ap.newTask(app, monitor, declareMethodFullyQualifiedName, isPrioritary, isReduce, reduceChunkSize,
@@ -871,8 +874,12 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
         Application app = Application.registerApplication(appId);
 
+        if (monitor == null) {
+            monitor = DO_NOTHING_MONITOR;
+        }
+
         // Process the parameters
-        List<Parameter> pars = processParameters(app, parameterCount, parameters);
+        List<Parameter> pars = processParameters(app, parameterCount, parameters, monitor);
 
         if (numReturns == null) {
             numReturns = hasReturn(pars) ? 1 : 0;
@@ -881,10 +888,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         // Create the signature if it is not created
         if (!hasSignature) {
             signature = SignatureBuilder.getMethodSignature(methodClass, methodName, hasTarget, numReturns, pars);
-        }
-
-        if (monitor == null) {
-            monitor = DO_NOTHING_MONITOR;
         }
 
         if (lang == null) {
@@ -1567,9 +1570,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         return hasReturn;
     }
 
-    private int addParameter(Application app, Object content, DataType type, Direction direction, StdIOStream stream,
-        String prefix, String name, String pyType, double weight, boolean keepRename, ArrayList<Parameter> pars,
-        int offset, String[] vals) {
+    private int addParameter(Application app, ParameterMonitor monitor, Object content, DataType type,
+        Direction direction, StdIOStream stream, String prefix, String name, String pyType, double weight,
+        boolean keepRename, ArrayList<Parameter> pars, int offset, String[] vals) {
         long appId = app.getId();
         switch (type) {
             case DIRECTORY_T:
@@ -1579,7 +1582,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     String originalName = dirFile.getName();
                     DataLocation location = createLocation(ProtocolType.DIR_URI, dirName);
                     pars.add(new DirectoryParameter(direction, stream, prefix, name, pyType, weight, keepRename,
-                        location, originalName));
+                        location, originalName, monitor));
                     if (DP_ENABLED) {
                         // Log access to directory in the dataprovenance.log
                         String finalPath = location.toString();
@@ -1605,7 +1608,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     String originalName = f.getName();
                     DataLocation location = createLocation(ProtocolType.FILE_URI, content.toString());
                     pars.add(new FileParameter(direction, stream, prefix, name, pyType, weight, keepRename, location,
-                        originalName));
+                        originalName, monitor));
                     if (DP_ENABLED) {
                         // Log access to file in the dataprovenance.log.
                         // Corner case: PyCOMPSs objects are passed as files to the runtime
@@ -1630,18 +1633,19 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             case OBJECT_T:
             case PSCO_T:
                 int code = oReg.newObjectParameter(appId, content);
-                pars.add(new ObjectParameter(direction, stream, prefix, name, pyType, weight, content, code));
+                pars.add(new ObjectParameter(direction, stream, prefix, name, pyType, weight, content, code, monitor));
                 break;
             case STREAM_T:
                 int streamCode = oReg.newObjectParameter(appId, content);
-                pars.add(new StreamParameter(direction, stream, prefix, name, content, streamCode));
+                pars.add(new StreamParameter(direction, stream, prefix, name, content, streamCode, monitor));
                 break;
             case EXTERNAL_STREAM_T:
                 try {
                     String fileName = content.toString();
                     DataLocation location = createLocation(ProtocolType.EXTERNAL_STREAM_URI, fileName);
                     String originalName = new File(fileName).getName();
-                    pars.add(new ExternalStreamParameter(direction, stream, prefix, name, location, originalName));
+                    pars.add(
+                        new ExternalStreamParameter(direction, stream, prefix, name, location, originalName, monitor));
                 } catch (Exception e) {
                     LOGGER.error(ERROR_FILE_NAME, e);
                     ErrorManager.fatal(ERROR_FILE_NAME, e);
@@ -1649,8 +1653,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 break;
             case EXTERNAL_PSCO_T:
                 String id = content.toString();
-                pars.add(
-                    new ExternalPSCOParameter(direction, stream, prefix, name, weight, id, externalObjectHashcode(id)));
+                pars.add(new ExternalPSCOParameter(direction, stream, prefix, name, weight, id,
+                    externalObjectHashcode(id), monitor));
                 break;
             case BINDING_OBJECT_T:
                 String value = content.toString();
@@ -1662,7 +1666,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                         int extObjectElements = Integer.parseInt(fields[2]);
                         pars.add(new BindingObjectParameter(direction, stream, prefix, name, pyType, weight,
                             new BindingObject(extObjectId, extObjectType, extObjectElements),
-                            externalObjectHashcode(extObjectId)));
+                            externalObjectHashcode(extObjectId), monitor));
                     } else {
                         LOGGER.error(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
                         ErrorManager.fatal(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
@@ -1713,11 +1717,12 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     if (!elemName.startsWith("@")) {
                         elemName = "@" + elemName;
                     }
-                    ret += addParameter(app, elemContent, elemType, elemDir, elemStream, elemPrefix, elemName,
-                        elemPyType, weight, keepRename, collectionParameters, offset + ret + 1, values) + 2;
+                    ParameterMonitor submonitor = ((ParameterCollectionMonitor) monitor).getParameterMonitor(j);
+                    ret += addParameter(app, submonitor, elemContent, elemType, elemDir, elemStream, elemPrefix,
+                        elemName, elemPyType, weight, keepRename, collectionParameters, offset + ret + 1, values) + 2;
                 }
                 CollectionParameter cp = new CollectionParameter(collectionId, collectionParameters, direction, stream,
-                    prefix, name, colPyType, weight, keepRename);
+                    prefix, name, colPyType, weight, keepRename, monitor);
                 pars.add(cp);
                 return ret;
             case DICT_COLLECTION_T:
@@ -1761,9 +1766,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                         pointer += 1;
                         extraKey = 0;
                     }
-                    int kDret = addParameter(app, elemContentKey, dataTypeKey, elemDirKey, elemStreamKey, elemPrefixKey,
-                        elemNameKey, elemPyTypeKey, weight, keepRename, dictCollectionParametersKeys, offset + pointer,
-                        values1) + extraKey;
+                    ParameterMonitor submonitor = ((ParameterCollectionMonitor) monitor).getParameterMonitor(j * 2);
+                    int kDret = addParameter(app, submonitor, elemContentKey, dataTypeKey, elemDirKey, elemStreamKey,
+                        elemPrefixKey, elemNameKey, elemPyTypeKey, weight, keepRename, dictCollectionParametersKeys,
+                        offset + pointer, values1) + extraKey;
                     pointer += kDret;
 
                     // Next three elements correspond to the VALUE
@@ -1794,8 +1800,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                         pointer += 1;
                         extraValue = 0;
                     }
-                    int vDret = addParameter(app, elemContentValue, dataTypeValue, elemDirValue, elemStreamValue,
-                        elemPrefixValue, elemNameValue, elemPyTypeValue, weight, keepRename,
+                    submonitor = ((ParameterCollectionMonitor) monitor).getParameterMonitor(j * 2 + 1);
+                    int vDret = addParameter(app, submonitor, elemContentValue, dataTypeValue, elemDirValue,
+                        elemStreamValue, elemPrefixValue, elemNameValue, elemPyTypeValue, weight, keepRename,
                         dictCollectionParametersValues, offset + pointer, values1) + extraValue;
                     pointer += vDret;
                 }
@@ -1803,7 +1810,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     IntStream.range(0, dictCollectionParametersKeys.size()).boxed().collect(
                         Collectors.toMap(dictCollectionParametersKeys::get, dictCollectionParametersValues::get));
                 DictCollectionParameter dcp = new DictCollectionParameter(dictCollectionId, dictCollectionParams,
-                    direction, stream, prefix, name, dictColPyType, weight, keepRename);
+                    direction, stream, prefix, name, dictColPyType, weight, keepRename, monitor);
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Add Dictionary Collection " + dcp.getName() + " with " + dcp.getParameters().size()
                         + " entries");
@@ -1813,7 +1820,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 return pointer;
             case NULL_T:
                 LOGGER.warn(WARN_NULL_PARAM + "Parameter " + name + " is defined as None or Null");
-                pars.add(new BasicTypeParameter(type, Direction.IN, stream, prefix, name, content, weight, "null"));
+                pars.add(
+                    new BasicTypeParameter(type, Direction.IN, stream, prefix, name, content, weight, "null", monitor));
                 break;
             default:
                 // Basic types (including String)
@@ -1822,7 +1830,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     LOGGER.warn(WARN_WRONG_DIRECTION + "Parameter " + name
                         + " is a basic type, therefore it must have IN direction");
                 }
-                pars.add(new BasicTypeParameter(type, Direction.IN, stream, prefix, name, content, weight, pyType));
+                pars.add(
+                    new BasicTypeParameter(type, Direction.IN, stream, prefix, name, content, weight, pyType, monitor));
                 break;
         }
         return 1;
@@ -1833,31 +1842,34 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
      * *********************************** PRIVATE HELPER METHODS **********************************************
      * *********************************************************************************************************
      */
-    private List<Parameter> processParameters(Application app, int parameterCount, Object[] parameters) {
+    private List<Parameter> processParameters(Application app, int parameterCount, Object[] parameters,
+        ParameterCollectionMonitor monitors) {
         ArrayList<Parameter> pars = new ArrayList<>();
         // Parameter parsing needed, object is not serializable
-        for (int i = 0; i < parameterCount; ++i) {
-            Object content = parameters[NUM_FIELDS_PER_PARAM * i];
-            DataType type = (DataType) parameters[NUM_FIELDS_PER_PARAM * i + 1];
+        for (int paramIdx = 0; paramIdx < parameterCount; ++paramIdx) {
+            int paramOffset = NUM_FIELDS_PER_PARAM * paramIdx;
+            Object content = parameters[paramOffset];
+            DataType type = (DataType) parameters[paramOffset + 1];
             if (type == null) {
                 type = DataType.NULL_T;
             }
-            Direction direction = (Direction) parameters[NUM_FIELDS_PER_PARAM * i + 2];
-            StdIOStream stream = (StdIOStream) parameters[NUM_FIELDS_PER_PARAM * i + 3];
-            String prefix = (String) parameters[NUM_FIELDS_PER_PARAM * i + 4];
-            String name = (String) parameters[NUM_FIELDS_PER_PARAM * i + 5];
-            String contentType = (String) parameters[NUM_FIELDS_PER_PARAM * i + 6];
-            double weight = Double
-                .parseDouble(EnvironmentLoader.loadFromEnvironment((String) parameters[NUM_FIELDS_PER_PARAM * i + 7]));
-            boolean keepRename = (Boolean) parameters[NUM_FIELDS_PER_PARAM * i + 8];
+            Direction direction = (Direction) parameters[paramOffset + 2];
+            StdIOStream stream = (StdIOStream) parameters[paramOffset + 3];
+            String prefix = (String) parameters[paramOffset + 4];
+            String name = (String) parameters[paramOffset + 5];
+            String contentType = (String) parameters[paramOffset + 6];
+            String wStr = EnvironmentLoader.loadFromEnvironment((String) parameters[paramOffset + 7]);
+            double weight = Double.parseDouble(wStr);
+            boolean keepRename = (Boolean) parameters[paramOffset + 8];
             // Add parameter to list
             // This function call is isolated for better readability and to easily
             // allow recursion in the case of collections
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(" Parameter " + i + " has type " + type.name());
+                LOGGER.debug(" Parameter " + paramIdx + " has type " + type.name());
             }
-            addParameter(app, content, type, direction, stream, prefix, name, contentType, weight, keepRename, pars, 0,
-                null);
+            ParameterMonitor monitor = monitors.getParameterMonitor(paramIdx);
+            addParameter(app, monitor, content, type, direction, stream, prefix, name, contentType, weight, keepRename,
+                pars, 0, null);
         }
 
         // Return parameters

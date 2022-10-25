@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.parameter;
 
+import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
@@ -47,11 +48,12 @@ public class FileParameter extends DependencyParameter {
      * @param keepRename Parameter keep rename property.
      * @param location File location.
      * @param originalName Original file name.
+     * @param monitor object to notify to changes on the parameter
      */
     public FileParameter(Direction direction, StdIOStream stream, String prefix, String name, String contentType,
-        double weight, boolean keepRename, DataLocation location, String originalName) {
+        double weight, boolean keepRename, DataLocation location, String originalName, ParameterMonitor monitor) {
 
-        super(DataType.FILE_T, direction, stream, prefix, name, contentType, weight, keepRename);
+        super(DataType.FILE_T, direction, stream, prefix, name, contentType, weight, keepRename, monitor);
         this.location = location;
         this.originalName = originalName;
 

@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.parameter;
 
+import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
@@ -53,16 +54,18 @@ public class CollectionParameter extends DependencyParameter {
      * @param name Name of the parameter in the user code
      * @param weight Parameter weight.
      * @param keepRename Parameter keep rename.
+     * @param monitor object to notify to changes on the parameter
      * @see DependencyParameter
      * @see es.bsc.compss.api.impl.COMPSsRuntimeImpl
      * @see es.bsc.compss.components.impl.TaskAnalyser
      */
     public CollectionParameter(String collectionFile, List<Parameter> parameters, Direction direction,
-        StdIOStream stream, String prefix, String name, String contentType, double weight, boolean keepRename) {
+        StdIOStream stream, String prefix, String name, String contentType, double weight, boolean keepRename,
+        ParameterMonitor monitor) {
 
         // Type will always be COLLECTION_T, no need to pass it as a constructor parameter and wont be modified
         // Stream and prefix are still forwarded for possible, future uses
-        super(DataType.COLLECTION_T, direction, stream, prefix, name, contentType, weight, keepRename);
+        super(DataType.COLLECTION_T, direction, stream, prefix, name, contentType, weight, keepRename, monitor);
         this.parameters = parameters;
         this.collectionId = collectionFile;
     }

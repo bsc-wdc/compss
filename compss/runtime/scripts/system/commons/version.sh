@@ -8,7 +8,7 @@ fi
 # Displays version
 ###############################################
 show_version() {
-  echo "COMPSs version 3.0 Lavender"
+  echo "COMPSs version 3.1 Margarita"
   echo " "
 }
 
@@ -18,12 +18,12 @@ show_version() {
 show_full_version() {
   cat << EOF
 
-        .-~~-.--.           ______        ______
-       :         )         |____  \\      /  __  \\
- .~ ~ -.\\       /.- ~~ .      __) |      | |  | |
- >       \`.   .'       <     |__  |      | |  | |
-(         .- -.         )   ____) |   _  | |__| |
- \`- -.-~  \`- -'  ~-.- -'   |______/  |_| \\______/
+        .-~~-.--.           ______        ___
+       :         )         |____  \\      /   |
+ .~ ~ -.\\       /.- ~~ .      __) |     /_/| |
+ >       \`.   .'       <     |__  |        | |
+(         .- -.         )   ____) |   _    | |
+ \`- -.-~  \`- -'  ~-.- -'   |______/  |_|   |_|
    (        :        )           _ _ .-:
     ~--.    :    .--~        .-~  .-~  }
         ~-.-^-.-~ \\       .~  .-~   .~
@@ -43,13 +43,10 @@ EOF
 ###############################################
 show_flower() {
   cat << EOF
-
-Lavandula (common name lavender) is a genus of 47 known species of flowering plants in the mint family, Lamiaceae. It is native to the Old World and is found in Cape Verde and the Canary Islands, and from Europe across to northern and eastern Africa, the Mediterranean, southwest Asia to India
-Many members of the genus are cultivated extensively in temperate climates as ornamental plants for garden and landscape use, for use as culinary herbs, and also commercially for the extraction of essential oils.
-The most widely cultivated species, Lavandula angustifolia, is often referred to as lavender, and there is a color named for the shade of the flowers of this species. Lavender has been used over centuries in traditional medicine and cosmetics, and "limited clinical trials support therapeutic use of lavender for pain, hot flushes, and postnatal perineal discomfort."
+Margarita (Bellis perennis) is a common European species of daisy, of the Asteraceae family, often considered the archetypal species of that name. Many related plants also share the name "daisy", so to distinguish this species from other daisies it is sometimes qualified as common daisy, lawn daisy or English daisy. It is a herbaceous perennial plant with short creeping rhizomes and rosettes of small rounded or spoon-shaped leaves that are from 3/4 to 2 inches (approx. 2–5 cm) long and grow flat to the ground. The flowerheads are composite, in the form of a pseudanthium, consisting of many sessile flowers about 3/4 to 1-1/4 in (approx. 2–3 cm) in diameter, with white ray florets (often tipped red) and yellow disc florets. Each inflorescence is borne on single leafless stems 3/4 - 4 in (approx. 2–10 cm), rarely 6 in (approx. 15 cm) tall. The capitulum, or disc of florets, is surrounded by two rows of green bracts known as "phyllaries". 
 
 Check more information:
-   https://en.wikipedia.org/wiki/Lavandula
+   https://en.wikipedia.org/wiki/Bellis_perennis
 
 EOF
 }
@@ -60,28 +57,14 @@ EOF
 show_recipe() {
   cat << EOF
 
-Lavender Martini - Cocktail
+Margarita (Daisy) - Cocktail
+   
+   35 ml Tequila
+   20 ml Triple Sec
+   15 ml Lime Juice   
 
-From: https://sweetlifebake.com/lavender-martini/
-
-Author: Vianney Rodriguez
-
-Ingredients:
-
-    1 ounce vodka
-    1/2 ounce fresh lemon juice
-    1/4 ounce lavender syrup recipe follows
-    1 cup water
-    1 cup sugar
-    1 tablespoon dried lavender buds
-
-Instructions:
-
-    1. To a cocktail shaker filled with ice add vodka, lemon juice and lavender syrup; shake well.
-    2. Strain into a martini glass and garnish with a lemon slice.
-    3. For Lavender syrup: Bring water and sugar to a boil, stirring until sugar dissolves.
-    4. Remove from heat, add lavender buds and allow to infuse for 20 minutes.
-    5. Strain, allow to cool completely and use to make cocktails, lemonade and mocktails.
+   Pour all ingredients into shaker with ice. Shake well
+   and strain into cocktail glass rimmed with salt.
 
 EOF
 }

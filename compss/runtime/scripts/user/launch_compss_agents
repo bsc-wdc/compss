@@ -171,7 +171,7 @@ show_opts() {
                                             Default: Empty
 
     --master_working_dir=<path>             Working directory of the application
-                                            Default: ${DEFAULT_MASTER_WORKING_DIR}
+                                            Default: ${DEFAULT_JOB_EXECUTION_DIR}
     --worker_working_dir=<name | path>      Worker directory. Use: ${LOCAL_DISK_NAME} | ${SHARED_DISK_NAME} | <path>
                                             Default: ${DEFAULT_WORKER_WORKING_DIR}
 
@@ -860,7 +860,7 @@ check_args() {
   # Working Directory Checks
   #
   if [ -z "${master_working_dir}" ]; then
-    master_working_dir=${DEFAULT_MASTER_WORKING_DIR}
+    master_working_dir=${DEFAULT_JOB_EXECUTION_DIR}
   fi
 
   if [ -z "${worker_working_dir}" ]; then

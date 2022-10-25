@@ -81,6 +81,7 @@ ERROR_WORKER_NODES="Missing worker nodes parameter"
 ERROR_NUM_CPUS="Invalid number of CPUS per node"
 ERROR_NUM_IO_EXECUTORS="Invalid number of IO executors per node. Only integers >= 0 allowed"
 ERROR_WORKER_WD="Invalid Worker Working Dir option"
+ERROR_MASTER_WD="Invalid Master Working Dir option"
 ERROR_NETWORK="Invalid network option"
 ERROR_WORKER_IN_MASTER_CPUS="Parameter worker_in_master_cpus is bigger than the maximum number of cpus_per_node"
 ERROR_WORKER_IN_MASTER_MEMORY="Incorrect worker_in_master_memory parameter. Only disabled or <int> allowed. I.e. 33000, 66000"
@@ -177,7 +178,7 @@ show_opts() {
                                             This argument can appear multiple times for more than one epilog action
                                             Default: Empty
 
-    --master_working_dir=<path>             Working directory of the application
+    --master_working_dir=<name | path>      Working directory of the application ${LOCAL_DISK_NAME} | ${SHARED_DISK_NAME} | <path>
                                             Default: ${DEFAULT_MASTER_WORKING_DIR}
     --worker_working_dir=<name | path>      Worker directory. Use: ${LOCAL_DISK_NAME} | ${SHARED_DISK_NAME} | <path>
                                             Default: ${DEFAULT_WORKER_WORKING_DIR}
@@ -443,7 +444,7 @@ master_cmd() {
   else
     MCMD="singularity exec $container_opts $container_image ${COMPSS_HOME}/Runtime/scripts/user/runcompss"
   fi
-
+ 
   # WARNING: SETS GLOBAL SCRIPT VARIABLE MCMD
   MCMD="$MCMD --project=${PROJECT_FILE} \
             --resources=${RESOURCES_FILE} \
@@ -456,6 +457,9 @@ master_cmd() {
             --jvm_master_opts=${jvm_master_opts} \
             --trace_label=${trace_label} \
             --jvm_workers_opts=${jvm_workers_opts}"
+  if [ -n "${master_working_dir}" ]; then
+    MCMD="$MCMD --master_working_dir=${master_working_dir}"
+  fi
 }
 
 export_jvm_library(){
@@ -1631,7 +1635,10 @@ check_args() {
   # Working Directory Checks
   #
   if [ -z "${master_working_dir}" ]; then
-    master_working_dir=${DEFAULT_MASTER_WORKING_DIR}
+    if [ -n "${DEFAULT_MASTER_WORKING_DIR}" ]; then
+      master_working_dir=${DEFAULT_MASTER_WORKING_DIR}
+  elif [ "${master_working_dir}" != "${LOCAL_DISK_NAME}" ] && [ "${master_working_dir}" != "${SHARED_DISK_NAME}" ] && [[ ${master_working_dir} != /* ]]; then
+    display_error "${ERROR_MASTER_WD}"
   fi
 
   if [ -z "${worker_working_dir}" ]; then
@@ -1846,6 +1853,24 @@ set_variables() {
   fi
   specific_log_dir=${log_dir}/.COMPSs/${!ENV_VAR_JOB_ID}/
   mkdir -p "${specific_log_dir}"
+
+  # treat master_working_dir
+  # SharedDisk variables
+  if [ -n "${master_working_dir}" ]; then
+    if [ "${master_working_dir}" == "${SHARED_DISK_NAME}" ]; then
+      if [[ "$OSTYPE" == "darwin"* ]]; then
+        master_working_dir=$(mktemp -d -t "${SHARED_DISK_PREFIX}${HOME}")
+      else
+        master_working_dir=$(mktemp -d -p "${SHARED_DISK_PREFIX}${HOME}")
+      fi
+    elif [ "${master_working_dir}" == "${LOCAL_DISK_NAME}" ]; then
+      master_working_dir=${LOCAL_DISK_PREFIX}/${!ENV_VAR_JOB_ID}
+      mkdir -p "${master_working_dir}"
+    else
+      mkdir -p "${master_working_dir}"
+    fi
+  fi
+
 
   # SharedDisk variables
   if [ "${worker_working_dir}" == "${SHARED_DISK_NAME}" ]; then

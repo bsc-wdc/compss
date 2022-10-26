@@ -1,0 +1,53 @@
+#!/bin/bash -e
+
+  #############################################################
+  # Name: buildDardel
+  # Description: SCRIPT FOR KTH DARDEL COMPSs BUILD
+  # Parameters: <Dardel_user> Dardel user account. Preferable with ssh keys inserted
+  #             <FullTmpPath> Tmp path on Dardel for deployment
+  #             <FullTargetPath> Base Target Installation folder on Dardel
+  #############################################################
+
+  ####################
+  # FUNCTIONS
+  ####################
+  usage() {
+    echo " Usage: buildDardel <Dardel_user> <FullTmpPath> <FullTargetPath>"
+    echo " "
+  }
+
+
+  ####################
+  # MAIN
+  ####################
+  # Get parameters
+  if [ $# -eq 1 ]; then
+    if [ "$1" == "usage" ]; then
+      usage
+      exit 0
+    fi
+  fi
+  if [ $# -ne 3 ]; then
+    echo "Incorrect number of parameters"
+    usage
+    exit 1
+  fi
+
+  # SET SCRIPT VARIABLES
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+  Dardeluser=$1
+  DardeltmpDir=$2
+  DardeltargetDir=$3
+  DardelloginNode=dardel.pdc.kth.se
+  DardelauxScript=${SCRIPT_DIR}/buildDardel_aux
+  PRELOAD_ENV=""
+
+  # Perform installation
+  cd "${SCRIPT_DIR}"/../commons/
+  ./buildSC "${Dardeluser}" "${DardelloginNode}" "${DardeltmpDir}" "${DardeltargetDir}" "${DardelauxScript}" "${PRELOAD_ENV}"
+  exitStatus=$?
+  cd "${SCRIPT_DIR}"
+
+  # END
+  exit $exitStatus

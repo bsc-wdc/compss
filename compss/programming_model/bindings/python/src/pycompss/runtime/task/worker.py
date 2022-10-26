@@ -429,15 +429,34 @@ class TaskWorker:
                 and not force_file
                 # and argument.content_type != parameter.TYPE.FILE
             ):
-                # The object is stored in some file, load and deserialize
-                if __debug__:
-                    LOGGER.debug(
-                        "\t\t - It is an OBJECT. Deserializing from file: %s",
-                        str(argument.file_name.original_path),
+                # Get the direction from the decorator (could be taken from
+                # the runtime in compss_types if sorted)
+                _dec_arg = self.decorator_arguments.get_parameter_or_none(argument.name)
+                if _dec_arg:
+                    argument.direction = _dec_arg.direction
+                if argument.direction == parameter.DIRECTION.OUT:
+                    # It is an OUT direction object: The file will not exist
+                    # So, instantiate from info
+                    if __debug__:
+                        LOGGER.debug(
+                            "\t\t - It is an OUT Object. Instantiating type: %s",
+                            str(argument.extra_content_type),
+                        )
+                    argument.content = create_object_by_con_type(
+                        argument.extra_content_type
                     )
-                argument.content = self.recover_object(argument)
-                if __debug__:
-                    LOGGER.debug("\t\t - Deserialization finished")
+                    if __debug__:
+                        LOGGER.debug("\t\t - Instantiation finished")
+                else:
+                    # The object is stored in some file, load and deserialize
+                    if __debug__:
+                        LOGGER.debug(
+                            "\t\t - It is an OBJECT. Deserializing from file: %s",
+                            str(argument.file_name.original_path),
+                        )
+                    argument.content = self.recover_object(argument)
+                    if __debug__:
+                        LOGGER.debug("\t\t - Deserialization finished")
             else:
                 # The object is a FILE, just forward the path of the file
                 # as a string parameter
@@ -1101,10 +1120,12 @@ class TaskWorker:
                 parameter.DIRECTION.COMMUTATIVE,
             )
 
-            if not (_is_inout or _is_col_out or _is_dict_col_out):
+            _is_out = param.direction == parameter.DIRECTION.OUT
+
+            if not (_is_inout or _is_out or _is_col_out or _is_dict_col_out):
                 continue
 
-            # Now it is "INOUT" or "COLLECTION_OUT" or "DICT_COLLECTION_OUT"
+            # Now it is "INOUT" or "OUT" or "COLLECTION_OUT" or "DICT_COLLECTION_OUT"
             # object param, serialize to a file.
             if arg.content_type == parameter.TYPE.COLLECTION:
                 if __debug__:

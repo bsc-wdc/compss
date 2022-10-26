@@ -2086,6 +2086,11 @@ def _serialize_object_into_file(
                 param.direction == DIRECTION.OUT
                 and param.content_type != TYPE.EXTERNAL_STREAM
             )
+            if __debug__ and _skip_file_creation:
+                logger.debug(
+                    "Skipping object (%s) serialization (it is OUT and not EXTERNAL_STREAM)."
+                    % name
+                )
             _turn_into_file(param, name, skip_creation=_skip_file_creation)
         except SerializerException:
             import traceback

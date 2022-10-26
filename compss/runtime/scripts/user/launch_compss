@@ -1637,6 +1637,7 @@ check_args() {
   if [ -z "${master_working_dir}" ]; then
     if [ -n "${DEFAULT_MASTER_WORKING_DIR}" ]; then
       master_working_dir=${DEFAULT_MASTER_WORKING_DIR}
+    fi
   elif [ "${master_working_dir}" != "${LOCAL_DISK_NAME}" ] && [ "${master_working_dir}" != "${SHARED_DISK_NAME}" ] && [[ ${master_working_dir} != /* ]]; then
     display_error "${ERROR_MASTER_WD}"
   fi

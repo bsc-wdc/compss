@@ -1,10 +1,8 @@
 ARG DEBIAN_FRONTEND=noninteractive
 
 ARG BASE=base20
-#ARG base_version=latest
-ARG base_version=220428-142329
 
-FROM compss/${BASE}_ci:{base_version} as ci
+FROM compss/${BASE}_ci as ci
 
 ENV GRADLE_HOME /opt/gradle
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/

@@ -1120,7 +1120,10 @@ class TaskWorker:
                 parameter.DIRECTION.COMMUTATIVE,
             )
 
-            _is_out = param.direction == parameter.DIRECTION.OUT
+            _is_out = (
+                param.direction == parameter.DIRECTION.OUT
+                and arg.content_type != parameter.TYPE.EXTERNAL_STREAM
+            )
 
             if not (_is_inout or _is_out or _is_col_out or _is_dict_col_out):
                 continue

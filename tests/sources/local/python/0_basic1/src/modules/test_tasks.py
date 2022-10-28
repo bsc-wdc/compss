@@ -173,6 +173,15 @@ def function_objects(o, li, dic, tup, cplx, f):
     # cplx += cplx
 
 
+@task(o=OUT)
+def function_out_object(o):
+    print("TEST")
+    print("- Out object")
+    print("- MyClass object received: " + str(o.field))
+    o.field = 100
+    print("- MyClass object final: " + str(o.field))
+
+
 @task(returns=int)
 def function_return_primitive(i):
     print("TEST")

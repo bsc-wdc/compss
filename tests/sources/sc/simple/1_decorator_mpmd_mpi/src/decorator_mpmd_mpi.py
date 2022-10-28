@@ -17,8 +17,8 @@ import unittest
 
 @mpmd_mpi(runner="mpirun",
           programs=[
-               dict(binary="date", processes=2, params="-d {{first}}"),
-               dict(binary="date", processes=2, params="-d {{second}}")
+               dict(binary="date", processes=2, args="-d {{first}}"),
+               dict(binary="date", processes=2, args="-d {{second}}")
           ])
 @task()
 def params(first, second):
@@ -27,8 +27,8 @@ def params(first, second):
 
 @mpmd_mpi(runner="srun",
           programs=[
-               dict(binary="date", processes=2, params="-d {{first}}"),
-               dict(binary="date", processes=2, params="-d {{second}}")
+               dict(binary="date", processes=2, args="-d {{first}}"),
+               dict(binary="date", processes=2, args="-d {{second}}")
           ])
 @task()
 def test_slurm(first, second):

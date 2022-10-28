@@ -6,38 +6,36 @@ COMP Superscalar (COMPSs) is a programming model that aims to ease the developme
 such as Clusters, Grids and Clouds. COMP Superscalar also features a runtime system that exploits the inherent parallelism of 
 applications at execution time.
 
-Release number: 3.0 (Lavender) 
+Release number: 3.1 (Margarita) 
 Release date: June-2022
 -------------------------------
 New features
-	 - CLI to unify executions of application in different environments.
-	 - Automatic creation of Data Provenance information from PyCOMPSs executions.
-	 - Transparent task-based checkpointing support.
-	 - Support for MPMD MPI applications as tasks.
-	 - Support for task epilog and prolog.
-	 - Generic support for reusable descriptions of external software execution inside a COMPSs task (@Software). 
-	 - Mypy compilation of python binding.
-	 - Integration with DLB DROM for improving affinity in OpenMP tasks.
-	 - RISC-V 64bit support.
+	- Support for Julia applications as tasks
+	- Support for uDocker for container tasks.
+	- New decorator to apply a transformation to a parameter (@data_transformation)
+	- Automatic creation of Data Provenance information from Java applications.
+	- Constraint to force execution in the local agent. (is_local=True)
+	- Extended external software description (JSON file in Software decorator) to allow the definition of task parameters.
+        - Enable the specification of master working directory (location where data serializations are stored).  
 
-Deprecated Features:
-	- Python 2 support.
-	- Autoparallel module (requires python2).
-	- SOAP Service tasks.
-		
 Improvements:
-	- wait_on and wait_on_file API homogenization.
-	- Improvements in the support for task nesting.
-	- Improvements in plugable schedulers.
-	- Improvements in memory profiling reports.
-	- Improvements in tracing system: Offline tracing generation, and support for changes of working directory.
-	- Configuration files for Nord3v2 and LaPalma system.
+        - Data Provenance: enhanced addition of source files using directories
+	- Fix issues when wait_on cancelled data. Get the latest version.
+	- Swap distutils with setuptools in the Python binding installation.
+	- Improvements in the management of tasks returning a modified parameter (a=task(a)).
+	- Container decorator allows to define flags to be passed to the container execution commands. 
+	- Improvements in the support for agents and task nesting.
+	- Improvements in pluggable schedulers.
+	- Improvements in python cache.
+	- Improvements in tracing system: Fix assigned gpus events, include python cache events.
+	- Fix issues in Collection graph generation
+	- Configuration files for Hawk, Mahti, Dardel and Lenox system.
 	- Several Bug fixes.
 
 Known Limitations:
-	- Issues when using tracing with Java 14+.
+	- Issues when using tracing with Java 14+. For Java 17+ require to include this jvm flag "-Dcom.sun.xml.bind.v2.bytecode.ClassTailor.noOptimize=true"  
 	- Collections are not supported in http tasks.
-	- macOS support is limited to Java and Python without CPU affinity (require to execute with --cpu_affinity=disable). We have also detected issues when several python3 versions are installed in the system. Tracing is not available.
+	- macOS support is limited to Java and Python without CPU affinity (require to execute with --cpu_affinity=disable). Tracing is not available.
 	- Reduce operations can consume more disk space than the manually programmed n-ary reduction.
 	- Objects used as task parameters must be serializable.
 	- Tasks that invoke Numpy and MKL may experience issues if a different MKL threads count is used in different tasks. This is due to the fact that MKL reuses threads in the different calls and it does not change the number of threads from one call to another. This can be also happen with other libraries implemented with OpenMP. To fix these issues use the DLB option for in the cpu_affinity flag. 
@@ -45,7 +43,7 @@ Known Limitations:
 	- Master as worker feature is not working for executions with persistent worker in C++.
 	- Coherence and concurrent writing in parameters annotated with the "Concurrent" direction must be managed by the underlying distributed storage system.
 	- Delete file calls for files used as input can produce a significant synchronization of the main code.
-	- Defining a parameter as OUT is only allowed for files and collections of objects with a default constructor.   
+	- Defining a parameter as OUT is only allowed for files and colleions of objects with a default constructor.   
 
 For further information, please refer to the COMPSs Documentation at: 
 	https://compss-doc.readthedocs.io/en/stable/

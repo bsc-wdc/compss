@@ -14,7 +14,7 @@ import sys
 
 from pycompss.api.api import compss_open, compss_wait_on
 from modules.test_tasks import empty_task
-from modules.test_tasks import function_primitives, function_files, function_objects, function_return_primitive
+from modules.test_tasks import function_primitives, function_files, function_objects, function_out_object, function_return_primitive
 from modules.test_tasks import function_return_object, MyClass, par_func
 from modules.test_tasks import function_function_parameter, formula2
 from modules.test_tasks import function_default_parameter_values, function_order_parameters
@@ -107,6 +107,19 @@ def test_function_objects():
 
     if not errors:
         print("- INOUT: OK")
+
+
+def test_function_out_object():
+    print("test_function_out_object")
+    o = MyClass(2)
+
+    function_out_object(o)
+
+    o = compss_wait_on(o)
+    if o.field != 100:
+        print("- OUT (object): ERROR")
+    else:
+        print("- OUT (object): OK")
 
 
 def test_mp_file_access():

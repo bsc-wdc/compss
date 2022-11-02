@@ -2175,8 +2175,12 @@ load_external_compss_environment() {
       export COMPSS_MASTER_PORT="${master_port}"
       export COMPSS_WORKER_NODES="${worker_nodes}"
       export COMPSS_UUID="${uuid}"
-      export COMPSS_LOG_DIR="${log_dir}"
-      export COMPSS_MASTER_WORKING_DIR="${master_working_dir}"
+      export COMPSS_LOG_DIR="${specific_log_dir}"
+      if [ -z "${master_working_dir}" ]; then
+	  export COMPSS_MASTER_WORKING_DIR="${specific_log_dir}/tmpFiles/"
+      else
+	  export COMPSS_MASTER_WORKING_DIR="${master_working_dir}/tmpFiles/"
+      fi
       export COMPSS_STORAGE_CONF="${storage_conf}"
 }
 

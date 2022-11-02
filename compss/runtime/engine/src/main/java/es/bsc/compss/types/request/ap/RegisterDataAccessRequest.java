@@ -85,8 +85,12 @@ public class RegisterDataAccessRequest extends APRequest implements TaskListener
         this.accessId = ta.processMainAccess(this);
         if (pendingOperation == 0) {
             if (DEBUG) {
-                int dataId = this.accessId.getDataId();
-                LOGGER.debug("Data " + dataId + " available for main access");
+                if (accessId != null) {
+                    int dataId = this.accessId.getDataId();
+                    LOGGER.debug("Data " + dataId + " available for main access");
+                } else {
+                    LOGGER.debug("Accessed data was canceled");
+                }
             }
             released = true;
             sem.release();

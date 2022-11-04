@@ -609,13 +609,15 @@ xml_project_add_elasticity() {
       props="$props qos=${qos}"
     fi
     if [ -n "${constraints}" ]; then
-     props="$props constraints=${constraints}"
+     constraints_prop=$(echo ${constraints} | tr " " "#" | tr "=" "%")
+     props="$props constraints=${constraints_prop}"
     fi
     if [ -n "${licenses}" ]; then
      props="$props licenses=${licenses}"
     fi
     if [ -n "${container_opts}" ]; then
-      props="$props container_opts=${container_opts}"
+      container_opts_prop=$(echo ${container_opts} | tr " " "#" | tr "=" "%")
+      props="$props container_opts=${container_opts_prop}"
     fi
     if [ -n "${cpu_affinity}" ]; then
       props="$props cpu_affinity=${cpu_affinity}"
@@ -626,6 +628,13 @@ xml_project_add_elasticity() {
     if [ -n "${ELASTICITY_BATCH}" ]; then
       props="$props batch_job=${ELASTICITY_BATCH}"
     fi
+    if [ -n "${cpus_per_task}" ] && [ "${cpus_per_task}" == "true" ]; then
+            if [ -n "${cpus_per_node}" ] && [ "${cpus_per_node}" != "0" ]; then
+                AUXILIAR_LAUNCH_PARAMS="${QARG_CPUS_PER_TASK} ${cpus_per_node} "
+            fi
+        fi
+     launch_command=$(echo "${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_EXTRA_FLAGS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}" | tr " " "#" | tr "=" "%")
+     props="$props launch_command=${launch_command}"
 
     add_cloud 0 0 "${elasticity}" "SLURM-Cluster" "${props}" "${container_image}" "${worker_install_dir}" "${worker_working_dir}" "NULL" "${appdir:-NULL}" "${library_path:-NULL}" "${cp:-NULL}" "${pythonpath:-NULL}" "${max_tasks_per_node}" "default"
   fi

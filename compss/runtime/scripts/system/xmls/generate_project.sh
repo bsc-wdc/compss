@@ -176,6 +176,7 @@ EOT
     for prop in ${properties}; do
       p_name=$(echo "$prop" | cut -d "=" -f 1)
       p_value=${prop#"${p_name}="}
+      p_value=$(echo ${p_value} | tr "%" "=" | tr "#" " ")
       cat >> "${PROJECT_FILE}" << EOT
         <Property>
           <Name>${p_name}</Name>

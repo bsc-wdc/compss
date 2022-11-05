@@ -80,7 +80,7 @@ class Loggers:
 
         class ScheduleAction:
             label = "scheduleAction"
-            SCHEDULE = " Schedule action"
+            SCHEDULE = "Schedule action"
 
         class CreateAction:
             label = "locatableAction"
@@ -89,6 +89,11 @@ class Loggers:
         class AssignAction:
             label = "gnWorkerAndImpl"
             ASSIGN = "Assigning action"
+
+        class NewJob:
+            label = "createJob"
+            NEW = "New Job"
+            RESCHEDULED = "Rescheduled Job"
 
         class HostAction:
             label = "hostAction"
@@ -101,10 +106,8 @@ class Loggers:
     class JobManager:
         label = "JobManager"
 
-        class NewJob:
-            label = "doSubmit"
-            NEW = "New Job"
-            RESCHEDULED = "Rescheduled Job"
+        class SubmittedTask:
+            label = "submit"
             SUBMITTED_TASK = "Submitted Task:"
 
         class SubmittedJob:
@@ -112,11 +115,11 @@ class Loggers:
             SUBMITTED = "submitted"
 
         class CompletedJob:
-            label = "jobCompleted"
+            label = "completed"
             COMPLETED = "Received a notification for job"
 
         class FailedJob:
-            label = "failedJob"
+            label = "failed"
             FAILED = "Received a notification for job"
 
     class WorkerPool:
@@ -242,17 +245,18 @@ class RuntimeParser:
             if method == Loggers.TaskScheduler.HostAction.label:
                 if Loggers.TaskScheduler.HostAction.HOST in message:
                     event = HostActionEvent(timestamp, message)
+            if method == Loggers.TaskScheduler.NewJob.label:
+                if Loggers.TaskScheduler.NewJob.NEW in message:
+                    event = CreateJobEvent(timestamp, message)
+                if Loggers.TaskScheduler.NewJob.RESCHEDULED in message:
+                    event = CreateJobEvent(timestamp, message)
             if method == Loggers.TaskScheduler.UnhostAction.label:
                 if Loggers.TaskScheduler.UnhostAction.UNHOST in message:
                     event = UnhostActionEvent(timestamp, message)
 
         if logger == Loggers.JobManager.label:
-            if method == Loggers.JobManager.NewJob.label:
-                if Loggers.JobManager.NewJob.NEW in message:
-                    event = CreateJobEvent(timestamp, message)
-                if Loggers.JobManager.NewJob.RESCHEDULED in message:
-                    event = CreateJobEvent(timestamp, message)
-                if Loggers.JobManager.NewJob.SUBMITTED_TASK in message:
+            if method == Loggers.JobManager.SubmittedTask.label:
+                if Loggers.JobManager.SubmittedTask.SUBMITTED_TASK in message:
                     event = SettingHostToJobEvent(timestamp, message)
             if method == Loggers.JobManager.SubmittedJob.label:
                 if Loggers.JobManager.SubmittedJob.SUBMITTED in message:

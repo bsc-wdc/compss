@@ -260,7 +260,7 @@ public class DataInfoProvider {
             } else {
                 ErrorManager.warn(
                     "File was accessed but the file information not found. Maybe it has been previously canceled");
-                id = generateFileInfo(app, mode, location);
+                id = null;
             }
 
         }

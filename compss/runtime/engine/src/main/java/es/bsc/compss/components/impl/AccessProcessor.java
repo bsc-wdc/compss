@@ -347,65 +347,72 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         // Tell the DM that the application wants to access a file.
         // Wait until the last writer task for the file has finished.
         DataAccessId faId = registerDataAccess(fap, AccessMode.R);
-        if (!faId.isValidVersion()) {
+        if (faId != null && !faId.isValidVersion()) {
             ErrorManager.warn("The version " + ((RAccessId) faId).getRVersionId() + " of " + sourceLocation
                 + " has been cancelled. Trying to access the latest version");
             faId = registerDataAccess(fap, AccessMode.R);
         }
         DataLocation tgtLocation = sourceLocation;
-
-        if (fap.getMode() != AccessMode.W) {
-
-            if (destDir == null) {
-                tgtLocation = transferFileOpen(faId);
-            } else {
-                DataInstanceId daId;
-                if (fap.getMode() == AccessMode.R) {
-                    RAccessId ra = (RAccessId) faId;
-                    daId = ra.getReadDataInstance();
+        if (faId == null) { // If fiId is null data is cancelled returning null location
+            ErrorManager.warn("No version available. Returning null");
+            try {
+                tgtLocation = DataLocation.createLocation(Comm.getAppHost(),
+                    new SimpleURI(ProtocolType.FILE_URI.getSchema() + "null"));
+            } catch (Exception e) {
+                ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION, e);
+            }
+        } else {
+            if (fap.getMode() != AccessMode.W) {
+                if (destDir == null) {
+                    tgtLocation = transferFileOpen(faId);
                 } else {
-                    RWAccessId ra = (RWAccessId) faId;
-                    daId = ra.getReadDataInstance();
-                }
+                    DataInstanceId daId;
+                    if (fap.getMode() == AccessMode.R) {
+                        RAccessId ra = (RAccessId) faId;
+                        daId = ra.getReadDataInstance();
+                    } else {
+                        RWAccessId ra = (RWAccessId) faId;
+                        daId = ra.getReadDataInstance();
+                    }
 
+                    String rename = daId.getRenaming();
+                    String path = ProtocolType.FILE_URI.getSchema() + destDir + rename;
+                    try {
+                        SimpleURI uri = new SimpleURI(path);
+                        tgtLocation = DataLocation.createLocation(Comm.getAppHost(), uri);
+                    } catch (Exception e) {
+                        ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + path, e);
+                    }
+
+                    transferFileRaw(faId, tgtLocation);
+                }
+            }
+
+            if (fap.getMode() != AccessMode.R && fap.getMode() != AccessMode.C) {
+                // Mode contains W
+                LOGGER.debug("File " + faId.getDataId() + " mode contains W, register new writer");
+                DataInstanceId daId;
+                if (fap.getMode() == AccessMode.RW || fap.getMode() == AccessMode.CV) {
+                    RWAccessId ra = (RWAccessId) faId;
+                    daId = ra.getWrittenDataInstance();
+                } else {
+                    WAccessId ra = (WAccessId) faId;
+                    daId = ra.getWrittenDataInstance();
+                }
                 String rename = daId.getRenaming();
-                String path = ProtocolType.FILE_URI.getSchema() + destDir + rename;
+                String path = ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getWorkingDirectory() + rename;
                 try {
                     SimpleURI uri = new SimpleURI(path);
                     tgtLocation = DataLocation.createLocation(Comm.getAppHost(), uri);
                 } catch (Exception e) {
                     ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + path, e);
                 }
-
-                transferFileRaw(faId, tgtLocation);
+                Comm.registerLocation(rename, tgtLocation);
             }
-        }
-
-        if (fap.getMode() != AccessMode.R && fap.getMode() != AccessMode.C) {
-            // Mode contains W
-            LOGGER.debug("File " + faId.getDataId() + " mode contains W, register new writer");
-            DataInstanceId daId;
-            if (fap.getMode() == AccessMode.RW || fap.getMode() == AccessMode.CV) {
-                RWAccessId ra = (RWAccessId) faId;
-                daId = ra.getWrittenDataInstance();
-            } else {
-                WAccessId ra = (WAccessId) faId;
-                daId = ra.getWrittenDataInstance();
+            if (DEBUG) {
+                LOGGER.debug("File " + faId.getDataId() + " located on "
+                    + (tgtLocation != null ? tgtLocation.toString() : "null"));
             }
-            String rename = daId.getRenaming();
-            String path = ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getWorkingDirectory() + rename;
-            try {
-                SimpleURI uri = new SimpleURI(path);
-                tgtLocation = DataLocation.createLocation(Comm.getAppHost(), uri);
-            } catch (Exception e) {
-                ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + path, e);
-            }
-            Comm.registerLocation(rename, tgtLocation);
-        }
-
-        if (DEBUG) {
-            LOGGER.debug(
-                "File " + faId.getDataId() + " located on " + (tgtLocation != null ? tgtLocation.toString() : "null"));
         }
         return tgtLocation;
     }
@@ -430,41 +437,50 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
 
         // Tell the DM that the application wants to access a file.
         DataAccessId faId = registerDataAccess(fap, AccessMode.R);
-        if (!faId.isValidVersion()) {
+        if (faId != null && !faId.isValidVersion()) {
             ErrorManager.warn("The version " + faId.getDataId() + " of " + sourceLocation + " has been cancelled."
                 + " Trying to access the latest version");
             faId = registerDataAccess(fap, AccessMode.R);
         }
         DataLocation tgtLocation = sourceLocation;
-
-        if (fap.getMode() != AccessMode.W) {
-            tgtLocation = transferDirectoryOpen(faId);
-        }
-
-        if (fap.getMode() != AccessMode.R && fap.getMode() != AccessMode.C) {
-            // Mode contains W
-            LOGGER.debug("File " + faId.getDataId() + " mode contains W, register new writer");
-            DataInstanceId daId;
-            if (fap.getMode() == AccessMode.RW || fap.getMode() == AccessMode.CV) {
-                RWAccessId ra = (RWAccessId) faId;
-                daId = ra.getWrittenDataInstance();
-            } else {
-                WAccessId ra = (WAccessId) faId;
-                daId = ra.getWrittenDataInstance();
-            }
-            String rename = daId.getRenaming();
-            String path = ProtocolType.DIR_URI.getSchema() + Comm.getAppHost().getWorkingDirectory() + rename;
+        if (faId == null) { // If fiId is null data is cancelled returning null location
+            ErrorManager.warn("No version available. Returning null");
             try {
-                SimpleURI uri = new SimpleURI(path);
-                tgtLocation = DataLocation.createLocation(Comm.getAppHost(), uri);
+                tgtLocation = DataLocation.createLocation(Comm.getAppHost(),
+                    new SimpleURI(ProtocolType.FILE_URI.getSchema() + destDir + "null"));
             } catch (Exception e) {
-                ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + path, e);
+                ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION, e);
             }
-            Comm.registerLocation(rename, tgtLocation);
-        }
+        } else {
+            if (fap.getMode() != AccessMode.W) {
+                tgtLocation = transferDirectoryOpen(faId);
+            }
 
-        if (DEBUG) {
-            LOGGER.debug("Directory " + faId.getDataId() + " located on " + tgtLocation.toString());
+            if (fap.getMode() != AccessMode.R && fap.getMode() != AccessMode.C) {
+                // Mode contains W
+                LOGGER.debug("File " + faId.getDataId() + " mode contains W, register new writer");
+                DataInstanceId daId;
+                if (fap.getMode() == AccessMode.RW || fap.getMode() == AccessMode.CV) {
+                    RWAccessId ra = (RWAccessId) faId;
+                    daId = ra.getWrittenDataInstance();
+                } else {
+                    WAccessId ra = (WAccessId) faId;
+                    daId = ra.getWrittenDataInstance();
+                }
+                String rename = daId.getRenaming();
+                String path = ProtocolType.DIR_URI.getSchema() + Comm.getAppHost().getWorkingDirectory() + rename;
+                try {
+                    SimpleURI uri = new SimpleURI(path);
+                    tgtLocation = DataLocation.createLocation(Comm.getAppHost(), uri);
+                } catch (Exception e) {
+                    ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + path, e);
+                }
+                Comm.registerLocation(rename, tgtLocation);
+            }
+
+            if (DEBUG) {
+                LOGGER.debug("Directory " + faId.getDataId() + " located on " + tgtLocation.toString());
+            }
         }
         return tgtLocation;
     }
@@ -610,7 +626,6 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         String bindingObjectID = obtainBindingObject((RAccessId) oaId);
 
         finishDataAccess(oap);
-
         return bindingObjectID;
     }
 

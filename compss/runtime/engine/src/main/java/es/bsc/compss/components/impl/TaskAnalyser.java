@@ -267,6 +267,12 @@ public class TaskAnalyser implements GraphHandler {
             LOGGER.debug("Registering access " + access.toString() + " from main code");
         }
         DataAccessId daId = dip.registerDataAccess(access);
+        if (daId == null) {
+            if (DEBUG) {
+                LOGGER.debug("Accessing a canceled data from main code. Returning null");
+            }
+            return daId;
+        }
         if (DEBUG) {
             LOGGER.debug("Registered access to data " + daId.getDataId() + " from main code");
         }

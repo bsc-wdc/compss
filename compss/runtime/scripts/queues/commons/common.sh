@@ -89,11 +89,13 @@ show_opts() {
     --exec_time=<minutes>                   Expected execution time of the application (in minutes)
                                             Default: ${DEFAULT_EXEC_TIME}
     --job_name=<name>                       Job name
-                                            Default: ${DEFAULT_JOB_NAME}
+                                            Default: ${DEFAULT_JOB_NAME:-Empty}
     --queue=<name>                          Queue/partition name to submit the job. Depends on the queue system.
-                                            Default: ${DEFAULT_QUEUE}
+                                            Default: ${DEFAULT_QUEUE:-Empty}
     --reservation=<name>                    Reservation to use when submitting the job.
-                                            Default: ${DEFAULT_RESERVATION}
+                                            Default: ${DEFAULT_RESERVATION:-Empty}
+    --job_execution_dir=<path>              Path where job is executed.
+                                            Default: ${DEFAULT_JOB_EXECUTION_DIR:-Empty}
     --env_script=<path/to/script>           Script to source the required environment for the application.
                                             Default: Empty
     --extra_submit_flag=<flag>              Flag to pass queue system flags not supported by default command flags.
@@ -103,13 +105,13 @@ EOT
    if [ -z "${DISABLE_QARG_CONSTRAINTS}" ] || [ "${DISABLE_QARG_CONSTRAINTS}" == "false" ]; then
     cat <<EOT
     --constraints=<constraints>		    Constraints to pass to queue system.
-					    Default: ${DEFAULT_CONSTRAINTS}
+					    Default: ${DEFAULT_CONSTRAINTS:-Empty}
 EOT
    fi
    if [ -z "${DISABLE_QARG_LICENSES}" ] || [ "${DISABLE_QARG_LICENSES}" == "false" ]; then
     cat <<EOT
     --licenses=<licenses>	            Licenses to pass to queue system.
-					    Default: ${DEFAULT_LICENSES}
+					    Default: ${DEFAULT_LICENSES:-Empty}
 EOT
    fi
    if [ "${ENABLE_QARG_CLUSTER}" == "true" ]; then
@@ -135,7 +137,7 @@ EOT
   if [ -z "${DISABLE_QARG_QOS}" ] || [ "${DISABLE_QARG_QOS}" == "false" ]; then
     cat <<EOT
     --qos=<qos>                             Quality of Service to pass to the queue system.
-                                            Default: ${DEFAULT_QOS}
+                                            Default: ${DEFAULT_QOS:-Empty}
 EOT
   fi
 

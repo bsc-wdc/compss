@@ -48,6 +48,7 @@ public enum TraceEvent {
     BIND_ORIG_NAME(62, TraceEventType.RUNTIME, "Bind Original File names To Renames.."), //
     UNBIND_ORIG_NAME(63, TraceEventType.RUNTIME, "Unbind Original File names To Renames.."), //
     CHECK_OUT_PARAM(64, TraceEventType.RUNTIME, "Check OUT parameters."), //
+    INSTRUMENTING_CLASS(90, TraceEventType.RUNTIME, "Instrumenting nested class."), //
 
     // Runtime FS Events
     INIT_FS(65, TraceEventType.RUNTIME, "Init Thread for synch file system operations"), //

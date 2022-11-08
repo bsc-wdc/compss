@@ -31,6 +31,8 @@ import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
+import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.util.Tracer;
 import es.bsc.compss.util.parsers.ITFParser;
 import es.bsc.compss.worker.COMPSsException;
 
@@ -107,6 +109,9 @@ public class JavaNestedInvoker extends JavaInvoker {
         if (ceiClass == null) {
             method = super.findMethod();
         } else {
+            if (Tracer.isActivated()) {
+                Tracer.emitEvent(TraceEvent.INSTRUMENTING_CLASS);
+            }
             try {
                 // Add the jars that the custom class loader needs
                 ClassLoader myLoader = new URLClassLoader(new URL[] { new URL(ENGINE_PATH) });
@@ -133,6 +138,10 @@ public class JavaNestedInvoker extends JavaInvoker {
             } catch (Exception e) {
                 LOGGER.warn("Could not instrument the method to detect nested tasks.", e);
                 method = super.findMethod();
+            } finally {
+                if (Tracer.isActivated()) {
+                    Tracer.emitEventEnd(TraceEvent.INSTRUMENTING_CLASS);
+                }
             }
         }
         return method;

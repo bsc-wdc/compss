@@ -15,6 +15,9 @@ source "${COMPSS_HOME}Runtime/scripts/system/runtime/tracing.sh"
 # shellcheck source=../system/runtime/tracing.sh
 # shellcheck disable=SC1091
 source "${COMPSS_HOME}Runtime/scripts/system/runtime/adaptors.sh"
+# shellcheck source=../system/runtime/scheduler.sh
+# shellcheck disable=SC109
+source "${COMPSS_HOME}Runtime/scripts/system/runtime/scheduler.sh"
 
 #---------------------------------------------------------------------------------------
 # SCRIPT CONSTANTS DECLARATION
@@ -68,7 +71,7 @@ DEFAULT_JUPYTER_NOTEBOOK=false
 DEFAULT_JUPYTER_NOTEBOOK_PATH=$HOME
 DEFAULT_IPYTHON=false
 DEFAULT_SHARED_DISK_SCHEDULER=${LA_MT_SUCC_FIFO_SCHEDULER}
-DEFAULT_LOCAL_DISK_SCHEDULER=${LA_LOCALITY_SCHEDULER}
+DEFAULT_LOCAL_DISK_SCHEDULER=${LA_MT_SUCC_LOCALITY_SCHEDULER}
 
 #---------------------------------------------------------------------------------------
 # ERROR CONSTANTS DECLARATION

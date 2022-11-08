@@ -244,10 +244,9 @@ public class JavaNestedInvoker extends JavaInvoker {
     }
 
     @Override
-    protected Object runMethod() throws JobExecutionException, COMPSsException {
-        Object returnValue;
+    protected void runMethod() throws JobExecutionException, COMPSsException {
         if (this.ceiClass == null) {
-            returnValue = super.runMethod();
+            super.runMethod();
         } else {
             long appId;
             appId = becomesNestedApplication(this.ceiName);
@@ -275,13 +274,7 @@ public class JavaNestedInvoker extends JavaInvoker {
                 throw new JobExecutionException("Error setting Nested COMPSs variables", e);
             }
             try {
-                returnValue = super.runMethod();
-                if (returnValue != null) {
-                    Object internal = context.getLoaderAPI().getObjectRegistry().getInternalObject(appId, returnValue);
-                    if (internal != null) {
-                        returnValue = internal;
-                    }
-                }
+                super.runMethod();
                 for (InvocationParam p : this.invocation.getParams()) {
                     if (p.isWriteFinalValue()) {
                         getLastValue(appId, p);
@@ -291,7 +284,6 @@ public class JavaNestedInvoker extends JavaInvoker {
                     getLastValue(appId, p);
                 }
                 this.runtimeAPI.noMoreTasks(appId);
-                return returnValue;
 
             } catch (Throwable e) {
                 throw new JobExecutionException("Error executing the instrumented method!", e);
@@ -299,7 +291,6 @@ public class JavaNestedInvoker extends JavaInvoker {
                 this.completeNestedApplication(appId);
             }
         }
-        return returnValue;
     }
 
     private void getLastValue(Long appId, InvocationParam p) {

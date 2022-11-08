@@ -101,7 +101,7 @@ public class JavaInvoker extends Invoker {
 
     @Override
     public void invokeMethod() throws JobExecutionException, COMPSsException {
-        Object retValue = runMethod();
+        runMethod();
 
         for (InvocationParam np : this.invocation.getParams()) {
             checkSCOPersistence(np);
@@ -110,17 +110,11 @@ public class JavaInvoker extends Invoker {
             checkSCOPersistence(this.invocation.getTarget());
         }
         for (InvocationParam np : this.invocation.getResults()) {
-            np.setValue(retValue);
-            if (retValue != null) {
-                np.setValueClass(retValue.getClass());
-            } else {
-                np.setValueClass(null);
-            }
             checkSCOPersistence(np);
         }
     }
 
-    protected Object runMethod() throws JobExecutionException, COMPSsException {
+    protected void runMethod() throws JobExecutionException, COMPSsException {
         List<? extends InvocationParam> params = this.invocation.getParams();
         int paramCount = this.method.getParameterCount();
         Object[] values = new Object[paramCount];
@@ -152,11 +146,18 @@ public class JavaInvoker extends Invoker {
             target = targetParam.getValue();
         }
 
-        Object retValue = null;
         try {
             LOGGER.info("Invoked " + this.method.getName() + (target == null ? "" : " on object " + target) + " in "
                 + this.context.getHostName());
-            retValue = this.method.invoke(target, values);
+            Object retValue = this.method.invoke(target, values);
+            for (InvocationParam np : this.invocation.getResults()) {
+                np.setValue(retValue);
+                if (retValue != null) {
+                    np.setValueClass(retValue.getClass());
+                } else {
+                    np.setValueClass(null);
+                }
+            }
         } catch (IllegalAccessException | IllegalArgumentException e) {
             throw new JobExecutionException(ERROR_TASK_EXECUTION, e);
         } catch (InvocationTargetException e) {
@@ -167,7 +168,6 @@ public class JavaInvoker extends Invoker {
                 throw new JobExecutionException(ERROR_TASK_EXECUTION, e);
             }
         }
-        return retValue;
     }
 
     private void checkSCOPersistence(InvocationParam np) {

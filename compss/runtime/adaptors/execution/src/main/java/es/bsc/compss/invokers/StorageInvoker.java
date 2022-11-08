@@ -58,7 +58,7 @@ public class StorageInvoker extends JavaInvoker {
     }
 
     @Override
-    public Object runMethod() throws JobExecutionException {
+    public void runMethod() throws JobExecutionException {
         // Invoke the requested method from the external platform
 
         // WARN: ExternalExecution is only supported for methods with PSCO as target object
@@ -148,7 +148,14 @@ public class StorageInvoker extends JavaInvoker {
             }
         }
 
-        return retValue;
+        for (InvocationParam np : this.invocation.getResults()) {
+            np.setValue(retValue);
+            if (retValue != null) {
+                np.setValueClass(retValue.getClass());
+            } else {
+                np.setValueClass(null);
+            }
+        }
     }
 
 

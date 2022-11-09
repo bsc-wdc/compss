@@ -97,6 +97,7 @@
     "pycompss.runtime.task.keys":                    { "level": "ERROR", "handlers": ["error_file_handler"], "propagate": "no" },
     "pycompss.runtime.task.master":                  { "level": "ERROR", "handlers": ["error_file_handler"], "propagate": "no" },
     "pycompss.runtime.task.parameter":               { "level": "ERROR", "handlers": ["error_file_handler"], "propagate": "no" },
+    "pycompss.runtime.task.shared_args":             { "level": "ERROR", "handlers": ["error_file_handler"], "propagate": "no" },
     "pycompss.runtime.task.worker":                  { "level": "ERROR", "handlers": ["error_file_handler"], "propagate": "no" },
     "pycompss.runtime.task.definitions.arguments":   { "level": "ERROR", "handlers": ["error_file_handler"], "propagate": "no" },
     "pycompss.runtime.task.definitions.core_element": { "level": "ERROR", "handlers": ["error_file_handler"], "propagate": "no" },
@@ -104,7 +105,6 @@
     "pycompss.runtime.task.wrappers.psco_stream":    { "level": "ERROR", "handlers": ["error_file_handler"], "propagate": "no" },
     "pycompss.runtime.binding":                      { "level": "ERROR", "handlers": ["error_file_handler"], "propagate": "no" },
     "pycompss.runtime.commons":                      { "level": "ERROR", "handlers": ["error_file_handler"], "propagate": "no" },
-    "pycompss.runtime.shared_args":                  { "level": "ERROR", "handlers": ["error_file_handler"], "propagate": "no" },
     "pycompss.runtime.launch":                       { "level": "ERROR", "handlers": ["error_file_handler"], "propagate": "no" },
 
     "pycompss.streams.environment":                         { "level": "ERROR", "handlers": ["error_file_handler"], "propagate": "no" },

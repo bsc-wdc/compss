@@ -93,6 +93,7 @@
     "pycompss.runtime.task.keys":                    { "level": "INFO", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.runtime.task.master":                  { "level": "INFO", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.runtime.task.parameter":               { "level": "INFO", "handlers": ["console", "error_console"], "propagate": "no" },
+    "pycompss.runtime.task.shared_args":             { "level": "INFO", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.runtime.task.worker":                  { "level": "INFO", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.runtime.task.definitions.arguments":   { "level": "INFO", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.runtime.task.definitions.core_element": { "level": "INFO", "handlers": ["console", "error_console"], "propagate": "no" },
@@ -100,7 +101,6 @@
     "pycompss.runtime.task.wrappers.psco_stream":    { "level": "INFO", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.runtime.binding":                      { "level": "INFO", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.runtime.commons":                      { "level": "INFO", "handlers": ["console", "error_console"], "propagate": "no" },
-    "pycompss.runtime.shared_args":                  { "level": "INFO", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.runtime.launch":                       { "level": "INFO", "handlers": ["console", "error_console"], "propagate": "no" },
 
     "pycompss.streams.environment":                         { "level": "INFO", "handlers": ["console", "error_console"], "propagate": "no" },

@@ -35,7 +35,7 @@ class SharedArguments:
     IMPORTANT: Required for nesting purposes.
     """
 
-    __slots__ = ["worker_args"]
+    __slots__ = ("worker_args",)
 
     def __init__(self) -> None:
         """Instantiate Shared Arguments class."""
@@ -74,6 +74,7 @@ class SharedArguments:
                     and param.name == name
                 ):
                     param.content = content
+                    param.is_future = False
                     return
 
     def delete_worker_args(self) -> None:

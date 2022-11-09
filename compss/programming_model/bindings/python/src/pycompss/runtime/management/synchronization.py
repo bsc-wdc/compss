@@ -25,10 +25,10 @@ This file contains the object synchronization core methods.
 
 from pycompss.runtime.management.COMPSs import COMPSs
 from pycompss.util.context import CONTEXT
-from pycompss.runtime.shared_args import SHARED_ARGUMENTS
 from pycompss.runtime.management.classes import Future
 from pycompss.runtime.management.direction import get_compss_direction
 from pycompss.runtime.management.object_tracker import OT
+from pycompss.runtime.task.shared_args import SHARED_ARGUMENTS
 from pycompss.util.serialization.serializer import deserialize_from_file
 from pycompss.util.storages.persistent import get_by_id
 from pycompss.util.storages.persistent import get_id

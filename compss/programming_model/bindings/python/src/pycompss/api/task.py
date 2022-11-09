@@ -35,13 +35,13 @@ from pycompss.api.commons.constants import INTERNAL_LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.implementation_types import IMPLEMENTATION_TYPES
 from pycompss.api.dummy.task import task as dummy_task
-from pycompss.runtime.binding import nested_barrier
 from pycompss.runtime.start.initialization import LAUNCH_STATUS
 from pycompss.runtime.task.definitions.core_element import CE
 from pycompss.runtime.task.definitions.arguments import TaskArguments
 from pycompss.runtime.task.definitions.function import FunctionDefinition
 from pycompss.runtime.task.master import TaskMaster
 from pycompss.runtime.task.worker import TaskWorker
+from pycompss.runtime.task.shared_args import SHARED_ARGUMENTS
 from pycompss.util.logger.helpers import update_logger_handlers
 from pycompss.util.objects.properties import get_module_name
 from pycompss.util.tracing.helpers import EventInsideWorker
@@ -175,6 +175,7 @@ class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attribu
             return future_object
         if CONTEXT.in_worker():
             if "compss_key" in kwargs.keys():
+                # Is nesting enabled is set in piper common utils
                 is_nesting_enabled = CONTEXT.is_nesting_enabled()
                 if is_nesting_enabled:
                     if __debug__:
@@ -197,8 +198,6 @@ class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attribu
                 # Remove worker
                 del worker
                 if is_nesting_enabled:
-                    # Wait for all nested tasks to finish
-                    nested_barrier()
                     if __debug__:
                         # Reestablish logger handlers
                         update_logger_handlers(kwargs["compss_log_cfg"])

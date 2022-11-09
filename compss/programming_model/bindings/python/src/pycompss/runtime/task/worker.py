@@ -32,9 +32,9 @@ from pycompss.api import parameter
 from pycompss.util.context import CONTEXT
 from pycompss.api.commons.constants import LABELS
 from pycompss.api.exceptions import COMPSsException
-from pycompss.runtime.binding import wait_on
 from pycompss.runtime.commons import CONSTANTS
-from pycompss.runtime.shared_args import SHARED_ARGUMENTS
+from pycompss.runtime.management.classes import Future
+from pycompss.runtime.management.object_tracker import OT
 from pycompss.runtime.task.arguments import get_name_from_kwarg
 from pycompss.runtime.task.arguments import get_name_from_vararg
 from pycompss.runtime.task.arguments import is_kwarg
@@ -47,6 +47,7 @@ from pycompss.runtime.task.parameter import Parameter
 from pycompss.runtime.task.parameter import get_compss_type
 from pycompss.runtime.task.parameter import get_new_parameter
 from pycompss.runtime.task.parameter import get_direction_from_key
+from pycompss.runtime.task.shared_args import SHARED_ARGUMENTS
 from pycompss.runtime.task.wrappers.psco_stream import PscoStreamWrapper
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.logger.helpers import swap_logger_name
@@ -134,8 +135,7 @@ class TaskWorker:
                  the affected objects.
         """
         global LOGGER
-        # Save the args in a global place (needed from synchronize when using
-        # nesting)
+        # Save the args in a global place (needed from synchronize when using nesting)
         SHARED_ARGUMENTS.set_worker_args(args)
         # Grab LOGGER from kwargs (shadows outer LOGGER since it is set by the worker).
         LOGGER = kwargs["compss_logger"]  # noqa
@@ -158,7 +158,7 @@ class TaskWorker:
                 LOGGER.debug("Redirecting stderr to: %s", str(job_err))
             with std_redirector(
                 job_out, job_err
-            ) if redirect_std else not_std_redirector():  # noqa: E501
+            ) if redirect_std else not_std_redirector():
 
                 # Update the on_failure attribute (could be defined by @on_failure)
                 if LABELS.on_failure in kwargs:
@@ -238,6 +238,11 @@ class TaskWorker:
                     user_args, user_kwargs, kwargs["compss_tracing"]
                 )
                 user_returns, compss_exception, default_values = result
+
+                # It is not necessary to wait for all nested tasks since we
+                # delegate the serialization of their parameters or returns
+                # to the inner tasks.
+
                 if __debug__:
                     LOGGER.debug("Finished user code")
 
@@ -268,6 +273,7 @@ class TaskWorker:
                     num_returns,
                     user_returns,
                     args,
+                    ret_params,
                     has_self,
                     self_type,
                     self_value,
@@ -1129,27 +1135,33 @@ class TaskWorker:
                 continue
 
             # Now it is "INOUT" or "OUT" or "COLLECTION_OUT" or "DICT_COLLECTION_OUT"
+            # or not has been delegated.
             # object param, serialize to a file.
             if arg.content_type == parameter.TYPE.COLLECTION:
                 if __debug__:
                     LOGGER.debug("Serializing collection: %s", str(arg.name))
                 # handle collections recursively
-                for (content, elem) in __get_collection_objects__(
-                    arg.content, arg
-                ):  # noqa: E501
+                for (content, elem) in __get_collection_objects__(arg.content, arg):
                     if elem.file_name:
-                        f_name = elem.file_name.original_path
-                        if __debug__:
-                            LOGGER.debug(
-                                "\t - Serializing element: %s to %s",
-                                str(arg.name),
-                                str(f_name),
-                            )
-                        if python_mpi:
-                            serialize_to_file_mpienv(content, f_name, False)
-                        else:
-                            serialize_to_file(content, f_name)
-                            self.update_object_in_cache(content, arg)
+                        _is_delegated = False
+                        if CONTEXT.is_nesting_enabled():
+                            if self._check_if_delegated(elem):
+                                # Skip serialization
+                                _is_delegated = True
+
+                        if not _is_delegated:
+                            f_name = elem.file_name.original_path
+                            if __debug__:
+                                LOGGER.debug(
+                                    "\t - Serializing element: %s to %s",
+                                    str(arg.name),
+                                    str(f_name),
+                                )
+                            if python_mpi:
+                                serialize_to_file_mpienv(content, f_name, False)
+                            else:
+                                serialize_to_file(content, f_name)
+                                self.update_object_in_cache(content, arg)
                     else:
                         # It is None --> PSCO
                         pass
@@ -1161,23 +1173,40 @@ class TaskWorker:
                     arg.content, arg
                 ):
                     if elem.file_name:
-                        f_name = elem.file_name.original_path
-                        if __debug__:
-                            LOGGER.debug(
-                                "\t - Serializing element: %s to %s",
-                                str(arg.name),
-                                str(f_name),
-                            )
-                        if python_mpi:
-                            serialize_to_file_mpienv(content, f_name, False)
-                        else:
-                            serialize_to_file(content, f_name)
-                            self.update_object_in_cache(content, arg)
+
+                        _is_delegated = False
+                        if CONTEXT.is_nesting_enabled():
+                            if self._check_if_delegated(elem):
+                                # Skip serialization
+                                _is_delegated = True
+
+                        if not _is_delegated:
+                            f_name = elem.file_name.original_path
+                            if __debug__:
+                                LOGGER.debug(
+                                    "\t - Serializing element: %s to %s",
+                                    str(arg.name),
+                                    str(f_name),
+                                )
+                            if python_mpi:
+                                serialize_to_file_mpienv(content, f_name, False)
+                            else:
+                                serialize_to_file(content, f_name)
+                                self.update_object_in_cache(content, arg)
                     else:
                         # It is None --> PSCO
                         pass
             else:
+                # NOTE: Synchronization with nesting is not needed anymore since
+                #       we are delegating the writing of the file to the nested
+                #       tasks.
+                if CONTEXT.is_nesting_enabled():
+                    if self._check_if_delegated(arg):
+                        # Skip serialization
+                        continue
+
                 f_name = arg.file_name.original_path
+
                 if __debug__:
                     LOGGER.debug(
                         "Serializing object: %s to %s",
@@ -1185,19 +1214,40 @@ class TaskWorker:
                         str(f_name),
                     )
 
-                if CONTEXT.is_nesting_enabled():
-                    # When using nesting, objects may have been used in other
-                    # tasks and may need to be synchronized and re-serialized.
-                    # The wait_on call checks the object tracker to see if it
-                    # has been used and needs to be synchronized. Otherwise,
-                    # it retrieves the same object.
-                    arg.content = wait_on(arg.content, master_event=False)
-
                 if python_mpi:
                     serialize_to_file_mpienv(arg.content, f_name, False)
                 else:
                     serialize_to_file(arg.content, f_name)
                     self.update_object_in_cache(arg.content, arg)
+
+    @staticmethod
+    def _check_if_delegated(arg: Parameter) -> bool:
+        """Check if the argument is delegated.
+
+        CAUTION: Modifies arg if is delegated!
+
+        :param arg: Parameter to be checked (and updated if necessary).
+        :return: True if delegated (serialization must be skipped). False otherwise.
+        """
+        obj_id = OT.is_tracked(arg.content)
+        _is_delegated = obj_id != ""
+        if _is_delegated:
+            arg.is_future = _is_delegated
+            # Update the file path to the delegated file name
+            obj_file_path = OT.get_file_name(obj_id)
+            arg.file_name.source_path = obj_file_path
+            arg.file_name.destination_name = obj_id
+            old_original_path = arg.file_name.original_path
+            arg.file_name.original_path = obj_file_path
+            if __debug__:
+                LOGGER.debug(
+                    "Parameter %s serialization has been delegated to a nested task (%s).",
+                    old_original_path,
+                    arg.file_name.original_path,
+                )
+            # Skip serialization
+            return True
+        return False
 
     def update_object_in_cache(self, content: typing.Any, argument: Parameter) -> None:
         """Update the object into cache if possible.
@@ -1272,16 +1322,39 @@ class TaskWorker:
                 # Store the object int ret_params (included in args)
                 param.content = obj
                 param.direction = parameter.DIRECTION.OUT
+
+                f_name = param.file_name.original_path
+
                 # If the object is a PSCO, do not serialize to file
                 if param.content_type == parameter.TYPE.EXTERNAL_PSCO or is_psco(obj):
                     continue
+
+                if CONTEXT.is_nesting_enabled():
+                    obj_id = OT.is_tracked(param.content)
+                    _is_delegated = obj_id != ""
+                    if _is_delegated:
+                        param.is_future = _is_delegated
+                        # Update the file path to the delegated file name
+                        obj_file_path = OT.get_file_name(obj_id)
+                        param.file_name.destination_name = obj_id
+                        param.file_name.original_path = obj_file_path
+
+                    if isinstance(param.content, Future) or param.is_future:
+                        if __debug__:
+                            LOGGER.debug(
+                                "Return %s delegated to a nested task (%s).",
+                                f_name,
+                                param.file_name.original_path,
+                            )
+                        continue
+
                 # Serialize the object
                 # Note that there is no "command line optimization" in the
                 # returns, as we always pass them as files.
                 # This is due to the asymmetry in worker-master communications
                 # and because it also makes it easier for us to deal with
                 # returns in that format
-                f_name = param.file_name.original_path
+
                 if __debug__:
                     LOGGER.debug("Serializing return: %s", str(f_name))
                 if python_mpi:
@@ -1364,6 +1437,7 @@ class TaskWorker:
         num_returns: int,
         user_returns: typing.Any,
         args: tuple,
+        ret_params: list,
         has_self: bool,
         self_type: int,
         self_value: typing.Any,
@@ -1378,6 +1452,7 @@ class TaskWorker:
         :param num_returns: Number of returns.
         :param user_returns: User returns.
         :param args: Arguments.
+        :param ret_params: Return parameters.
         :param has_self: If has self.
         :param self_type: Self type.
         :param self_value: Self value.
@@ -1419,7 +1494,15 @@ class TaskWorker:
                     ):
                         coll.append([parameter.TYPE.EXTERNAL_PSCO, _cont.getID()])
                     else:
-                        coll.append([_elem.content_type, "null"])
+                        if CONTEXT.is_nesting_enabled():
+                            if _elem.is_future:
+                                coll.append(
+                                    [_elem.content_type, _elem.file_name.original_path]
+                                )
+                            else:
+                                coll.append([_elem.content_type, "null"])
+                        else:
+                            coll.append([_elem.content_type, "null"])
             return coll
 
         # Add parameter types and value
@@ -1448,7 +1531,13 @@ class TaskWorker:
                     new_values.append(arg.content.getID())
                 else:
                     new_types.append(arg.content_type)
-                    new_values.append("null")
+                    if CONTEXT.is_nesting_enabled():
+                        if arg.is_future:
+                            new_values.append(arg.file_name.original_path)
+                        else:
+                            new_values.append("null")
+                    else:
+                        new_values.append("null")
             elif arg.content_type == parameter.TYPE.COLLECTION:
                 # There is a collection that can contain persistent objects
                 collection_new_values = build_collection_types_values(
@@ -1459,7 +1548,13 @@ class TaskWorker:
             else:
                 # Any other return object: same type and null value
                 new_types.append(arg.content_type)
-                new_values.append("null")
+                if CONTEXT.is_nesting_enabled():
+                    if arg.is_future:
+                        new_values.append(arg.file_name.original_path)
+                    else:
+                        new_values.append("null")
+                else:
+                    new_values.append("null")
 
         # Add self type and value if exist
         if has_self:
@@ -1488,8 +1583,9 @@ class TaskWorker:
         # assert len(args[params_end - 1:]) == len(user_returns)
         # add_parameter_new_types_and_values(args[params_end - 1:], True)
         if num_returns > 0:
-            for ret in user_returns:
+            for (ret, param) in zip(user_returns, ret_params):
                 ret_type = get_compss_type(ret)
+                ret_value = "null"
                 if ret_type == parameter.TYPE.EXTERNAL_PSCO:
                     ret_value = ret.getID()
                 elif ret_type == parameter.TYPE.COLLECTION:
@@ -1502,16 +1598,38 @@ class TaskWorker:
                             if is_psco(elem.content):
                                 collection_ret_values.append(elem.key)
                             else:
-                                collection_ret_values.append("null")
+                                if CONTEXT.is_nesting_enabled():
+                                    if param.is_future:
+                                        collection_ret_values.append(
+                                            elem.file_name.original_path
+                                        )
+                                    else:
+                                        collection_ret_values.append("null")
+                                else:
+                                    collection_ret_values.append("null")
                         else:
-                            collection_ret_values.append("null")
+                            if CONTEXT.is_nesting_enabled():
+                                if param.is_future:
+                                    collection_ret_values.append(
+                                        elem.file_name.original_path
+                                    )
+                                else:
+                                    collection_ret_values.append("null")
+                            else:
+                                collection_ret_values.append("null")
                     new_types.append(parameter.TYPE.COLLECTION)
                     new_values.append(collection_ret_values)
                 else:
                     # Returns can only be of type FILE, so avoid the last
                     # update of ret_type
                     ret_type = parameter.TYPE.FILE
-                    ret_value = "null"
+                    if CONTEXT.is_nesting_enabled():
+                        if param.is_future:
+                            ret_value = param.file_name.original_path
+                        else:
+                            ret_value = "null"
+                    else:
+                        ret_value = "null"
                 new_types.append(ret_type)
                 new_values.append(ret_value)
 
@@ -1548,13 +1666,9 @@ def __get_collection_objects__(
         # Update the sub-parameter content with the existing content
         # to keep track of the synchronized.
         argument.content = content
-        if CONTEXT.is_nesting_enabled():
-            # When using nesting, objects may have been used in other
-            # tasks and may need to be synchronized and re-serialized.
-            # The wait_on call checks the object tracker to see if it
-            # has been used and needs to be synchronized. Otherwise,
-            # it retrieves the same object.
-            content = wait_on(content, master_event=False)
+        # NOTE: Synchronization with nesting is not needed anymore since
+        #       we are delegating the writing of the file to the nested
+        #       task.
         yield content, argument
 
 
@@ -1599,13 +1713,9 @@ def __get_dict_collection_objects__(
         # Update the sub-parameter content with the existing content
         # to keep track of the synchronized.
         argument.content = content
-        if CONTEXT.is_nesting_enabled():
-            # When using nesting, objects may have been used in other
-            # tasks and may need to be synchronized and re-serialized.
-            # The wait_on call checks the object tracker to see if it
-            # has been used and needs to be synchronized. Otherwise,
-            # it retrieves the same object.
-            content = wait_on(content, master_event=False)
+        # NOTE: Synchronization with nesting is not needed anymore since
+        #       we are delegating the writing of the file to the nested
+        #       task.
         yield content, argument
 
 

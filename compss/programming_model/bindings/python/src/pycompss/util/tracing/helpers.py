@@ -39,10 +39,14 @@ class Tracing:
 
     __slots__ = ["pyextrae", "tracing"]
 
-    def __init__(self):
+    def __init__(
+        self,
+        py_extrae: typing.Any = None,
+        tracing: bool = False,
+    ):
         """Instantiate a new Tracing class."""
-        self.pyextrae = None  # type: typing.Any
-        self.tracing = False  # type: bool
+        self.pyextrae = py_extrae
+        self.tracing = tracing
 
     def get_pyextrae(self) -> typing.Any:
         """Get PYEXTRAE value.

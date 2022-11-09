@@ -31,6 +31,8 @@ import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
+import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.util.Tracer;
 import es.bsc.compss.util.parsers.ITFParser;
 import es.bsc.compss.worker.COMPSsException;
 
@@ -107,6 +109,9 @@ public class JavaNestedInvoker extends JavaInvoker {
         if (ceiClass == null) {
             method = super.findMethod();
         } else {
+            if (Tracer.isActivated()) {
+                Tracer.emitEvent(TraceEvent.INSTRUMENTING_CLASS);
+            }
             try {
                 // Add the jars that the custom class loader needs
                 ClassLoader myLoader = new URLClassLoader(new URL[] { new URL(ENGINE_PATH) });
@@ -133,6 +138,10 @@ public class JavaNestedInvoker extends JavaInvoker {
             } catch (Exception e) {
                 LOGGER.warn("Could not instrument the method to detect nested tasks.", e);
                 method = super.findMethod();
+            } finally {
+                if (Tracer.isActivated()) {
+                    Tracer.emitEventEnd(TraceEvent.INSTRUMENTING_CLASS);
+                }
             }
         }
         return method;
@@ -235,10 +244,9 @@ public class JavaNestedInvoker extends JavaInvoker {
     }
 
     @Override
-    protected Object runMethod() throws JobExecutionException, COMPSsException {
-        Object returnValue;
+    protected void runMethod() throws JobExecutionException, COMPSsException {
         if (this.ceiClass == null) {
-            returnValue = super.runMethod();
+            super.runMethod();
         } else {
             long appId;
             appId = becomesNestedApplication(this.ceiName);
@@ -266,13 +274,7 @@ public class JavaNestedInvoker extends JavaInvoker {
                 throw new JobExecutionException("Error setting Nested COMPSs variables", e);
             }
             try {
-                returnValue = super.runMethod();
-                if (returnValue != null) {
-                    Object internal = context.getLoaderAPI().getObjectRegistry().getInternalObject(appId, returnValue);
-                    if (internal != null) {
-                        returnValue = internal;
-                    }
-                }
+                super.runMethod();
                 for (InvocationParam p : this.invocation.getParams()) {
                     if (p.isWriteFinalValue()) {
                         getLastValue(appId, p);
@@ -282,7 +284,6 @@ public class JavaNestedInvoker extends JavaInvoker {
                     getLastValue(appId, p);
                 }
                 this.runtimeAPI.noMoreTasks(appId);
-                return returnValue;
 
             } catch (Throwable e) {
                 throw new JobExecutionException("Error executing the instrumented method!", e);
@@ -290,7 +291,6 @@ public class JavaNestedInvoker extends JavaInvoker {
                 this.completeNestedApplication(appId);
             }
         }
-        return returnValue;
     }
 
     private void getLastValue(Long appId, InvocationParam p) {

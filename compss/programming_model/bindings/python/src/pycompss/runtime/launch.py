@@ -292,7 +292,12 @@ def compss_main() -> None:
         if system_exit.code != 0:
             print("[ ERROR ]: User program ended with exitcode %s.", system_exit.code)
             print("\t\tShutting down runtime...")
-            exit_code = system_exit.code
+            if system_exit.code is None:
+                exit_code = -1
+            elif isinstance(system_exit.code, str):
+                exit_code = -1
+            else:
+                exit_code = system_exit.code
     except SerializerException:
         exit_code = 1
         # If an object that can not be serialized has been used as a parameter.

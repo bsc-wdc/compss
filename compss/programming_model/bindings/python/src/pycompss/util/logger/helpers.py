@@ -165,7 +165,9 @@ def init_logging_worker_piper(log_config_file: str, log_dir: str) -> None:
 
 
 def update_logger_handlers(
-    log_config_file: str, job_out: str = None, job_err: str = None
+    log_config_file: str,
+    job_out: typing.Optional[str] = None,
+    job_err: typing.Optional[str] = None,
 ) -> None:
     """Update worker logger handlers.
 

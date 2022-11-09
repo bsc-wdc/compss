@@ -200,8 +200,8 @@ class ExecutorConf:
         stream_master_ip: str,
         stream_master_port: str,
         cache_ids: typing.Optional[DictProxy] = None,
-        in_cache_queue: Queue = None,
-        out_cache_queue: Queue = None,
+        in_cache_queue: typing.Optional[Queue] = None,
+        out_cache_queue: typing.Optional[Queue] = None,
         cache_profiler: bool = False,
     ) -> None:
         """Construct a new executor configuration.

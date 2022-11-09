@@ -9,7 +9,7 @@ cd "${SCRIPT_DIR}/../../src/"
 ## Compilation with mypyc script ##
 ###################################
 
-mypyc --ignore-missing-imports --exclude 'pycompss\/((tests\/)|(dds\/)|(util\/objects\/replace.py)|(api\/local.py)|(functions\/data_tasks.py)|(streams\/)|(interactive.py)|(util\/interactive\/events.py)|(__main__.py))$' ./pycompss/
+mypyc --ignore-missing-imports --exclude 'pycompss\/((tests\/)|(dds\/)|(util\/objects\/replace.py)|(api\/local.py)|(api\/commons\/private_tasks.py)|(api\/software.py)|(functions\/data_tasks.py)|(streams\/)|(interactive.py)|(util\/interactive\/events.py)|(__main__.py))$' ./pycompss/
 ev=$?
 if [ "$ev" -ne 0 ]; then
   echo "[ERROR] Mypy compile failed with exit value: $ev"

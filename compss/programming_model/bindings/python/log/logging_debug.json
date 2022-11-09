@@ -52,6 +52,7 @@
     "pycompss.api.commons.decorator":                { "level": "DEBUG", "handlers": ["debug_file_handler", "error_file_handler"], "propagate": "no" },
     "pycompss.api.commons.error_msgs":               { "level": "DEBUG", "handlers": ["debug_file_handler", "error_file_handler"], "propagate": "no" },
     "pycompss.api.commons.implementation_types":     { "level": "DEBUG", "handlers": ["debug_file_handler", "error_file_handler"], "propagate": "no" },
+    "pycompss.api.commons.private_tasks":            { "level": "DEBUG", "handlers": ["debug_file_handler", "error_file_handler"], "propagate": "no" },
 
     "pycompss.api.dummy._decorator":                 { "level": "DEBUG", "handlers": ["debug_file_handler", "error_file_handler"], "propagate": "no" },
     "pycompss.api.dummy.api":                        { "level": "DEBUG", "handlers": ["debug_file_handler", "error_file_handler"], "propagate": "no" },

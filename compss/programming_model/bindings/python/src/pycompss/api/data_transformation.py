@@ -29,11 +29,13 @@ from functools import wraps
 
 from pycompss.util.context import CONTEXT
 from pycompss.api.commons.constants import LABELS
-from pycompss.api.task import task
 from pycompss.api.commons.decorator import keep_arguments
+from pycompss.api.commons.private_tasks import transform as _transform
 from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.typing_helper import typing
+
+# from pycompss.runtime.task.definitions.core_element import CE
 
 if __debug__:
     import logging
@@ -68,11 +70,12 @@ class DataTransformation:  # pylint: disable=too-few-public-methods
         :param kwargs: kwargs of the user DT function.
         """
         decorator_name = "".join(("@", DataTransformation.__name__.lower()))
+        # super(DataTransformation, self).__init__(decorator_name, *args, **kwargs)
         self.decorator_name = decorator_name
         self.args = args
         self.kwargs = kwargs
         self.scope = CONTEXT.in_pycompss()
-        self.core_element = None  # type: typing.Any
+        # self.core_element = None  # type: typing.Optional[CE]
         self.core_element_configured = False
         self.user_function = None
         if self.scope:
@@ -165,8 +168,6 @@ class DataTransformation:  # pylint: disable=too-few-public-methods
         if is_kwarg:
             p_value = kwargs.get(param_name)
         else:
-            import inspect
-
             all_params = inspect.signature(self.user_function)
             keyz = all_params.parameters.keys()
             if param_name not in keyz:
@@ -187,18 +188,6 @@ class DataTransformation:  # pylint: disable=too-few-public-methods
             kwargs[param_name] = new_value
         else:
             args[i] = new_value
-
-
-@task(returns=object)
-def _transform(data, function, **kwargs):
-    """Replace the user function with its @task equivalent.
-
-    :param data: the parameter that DT will be applied to.
-    :param function: DT function
-    :param kwargs: kwargs of the DT function
-    :return:
-    """
-    return function(data, **kwargs)
 
 
 class DTObject(object):

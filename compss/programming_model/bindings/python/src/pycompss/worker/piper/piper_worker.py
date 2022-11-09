@@ -121,7 +121,7 @@ def compss_persistent_worker(config: PiperWorkerConfiguration, tracing: bool) ->
             initStorageAtWorker(config_file_path=config.storage_conf)
 
     # Create new processes
-    queues = []
+    queues = []  # type: typing.List[Queue]
 
     cache_profiler = False
     if config.cache_profiler.lower() == "true":
@@ -249,7 +249,7 @@ def compss_persistent_worker(config: PiperWorkerConfiguration, tracing: bool) ->
 
     # Check if there is any exception message from the threads
     for i in range(0, config.tasks_x_node):
-        if not queues[i].empty:
+        if not queues[i].empty():
             logger.error(
                 "%sException in threads queue: %s", HEADER, str(queues[i].get())
             )

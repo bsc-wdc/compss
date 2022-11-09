@@ -50,8 +50,8 @@ class CE:  # pylint: disable=too-many-instance-attributes
         impl_type: typing.Optional[str] = None,
         impl_local: bool = False,
         impl_io: bool = False,
-        impl_prolog: typing.List[str] = None,
-        impl_epilog: typing.List[str] = None,
+        impl_prolog: typing.Optional[typing.List[str]] = None,
+        impl_epilog: typing.Optional[typing.List[str]] = None,
         impl_type_args: typing.Optional[typing.List[str]] = None,
     ) -> None:
         """Core Element constructor.

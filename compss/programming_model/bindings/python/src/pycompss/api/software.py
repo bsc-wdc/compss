@@ -23,6 +23,9 @@ PyCOMPSs API - Software decorator.
 This file contains the Software class, needed for the software task definition
 through the decorator. Software decorator can be used to move the definition of
 the multiple decorators to a JSON file.
+
+WARNING: CAN NOT BE COMPILED WITH MYPY SINCE THE SOFTWARE DECORATOR
+         INHERITS FROM TASK DECORATOR.
 """
 import builtins
 import json

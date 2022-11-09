@@ -60,7 +60,10 @@ class dummy_task_context(object):
     """Dummy task context to be used with storage frameworks."""
 
     def __init__(
-        self, logger: logging.Logger, values: typing.Any, config_file_path: str = None
+        self,
+        logger: logging.Logger,
+        values: typing.Any,
+        config_file_path: typing.Optional[str] = None,
     ) -> None:
         """Create a new instance of dummy_task_context.
 
@@ -118,7 +121,7 @@ def load_storage_library() -> None:
     global DUMMY_STORAGE
     error_msg = "UNDEFINED"
 
-    def dummy_init(config_file_path: str = None) -> None:
+    def dummy_init(config_file_path: typing.Optional[str] = None) -> None:
         """Initialize the storage library.
 
         :returns: None.

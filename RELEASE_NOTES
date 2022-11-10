@@ -16,7 +16,7 @@ New features
 	- Automatic creation of Data Provenance information from Java applications.
 	- Constraint to force execution in the local agent. (is_local=True)
 	- Extended external software description (JSON file in Software decorator) to allow the definition of task parameters.
-        - Enable the specification of master working directory (location where data serializations are stored).  
+        - Enable the specification of master working directory (location where data serializations are stored). Old --master_working_dir flag for indicating the execution dir is now --job_execution_dir. 
 
 Improvements:
         - Data Provenance: enhanced addition of source files using directories

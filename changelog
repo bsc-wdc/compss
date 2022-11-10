@@ -549,7 +549,7 @@ Known Limitations:
 	- Defining a parameter as OUT is only allowed for files and collections of objects with a default constructor.   
 
 Release number: 3.1 (Margarita) 
-Release date: June-2022
+Release date: November-2022
 -------------------------------
 New features
 	- Support for Julia applications as tasks

@@ -7,7 +7,7 @@ such as Clusters, Grids and Clouds. COMP Superscalar also features a runtime sys
 applications at execution time.
 
 Release number: 3.1 (Margarita) 
-Release date: June-2022
+Release date: November-2022
 -------------------------------
 New features
 	- Support for Julia applications as tasks

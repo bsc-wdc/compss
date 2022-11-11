@@ -17,13 +17,13 @@
 package es.bsc.compss.scheduler.lookahead;
 
 import es.bsc.compss.components.impl.ResourceScheduler;
-import es.bsc.compss.scheduler.exceptions.BlockedActionException;
-import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.ObjectValue;
 import es.bsc.compss.scheduler.types.Score;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.util.ActionSet;
+import java.util.ArrayList;
+import java.util.Collection;
 
 import java.util.List;
 import java.util.PriorityQueue;
@@ -64,21 +64,58 @@ public abstract class SuccessorsTS extends LookaheadTS {
             executableActions.add(obj);
         }
         dataFreeActions.clear();
-        while (!executableActions.isEmpty()) {
-            ObjectValue<AllocatableAction> obj = executableActions.poll();
-            AllocatableAction freeAction = obj.getObject();
-            try {
-                scheduleAction(freeAction, resource, obj.getScore());
-                tryToLaunch(freeAction);
-            } catch (BlockedActionException e) {
-                blockedCandidates.add(freeAction);
-            } catch (UnassignedActionException e) {
-                dataFreeActions.add(freeAction);
-            }
-        }
+        ActionHandler ah = new AH(dataFreeActions, blockedCandidates);
+        ResourcePool ra = new RA(resource);
+        tryToScheduleActions(executableActions, ra, ah);
 
         return super.getCandidateFreeActions(dataFreeActions, resourceFreeActions, unassignedActions, blockedCandidates,
             resource);
+    }
+
+
+    private static class RA implements ResourcePool {
+
+        final ResourceScheduler<? extends WorkerResourceDescription> resource;
+
+
+        public RA(ResourceScheduler<? extends WorkerResourceDescription> resource) {
+            this.resource = resource;
+        }
+
+        @Override
+        public boolean checkAvailability() {
+            return resource.canRunSomething();
+        }
+
+        @Override
+        public Collection<ResourceScheduler<? extends WorkerResourceDescription>> getAll() {
+            ArrayList<ResourceScheduler<? extends WorkerResourceDescription>> list = new ArrayList(1);
+            list.add(resource);
+            return list;
+        }
+
+    }
+
+    private static class AH implements ActionHandler {
+
+        private final List<AllocatableAction> unassigned;
+        private final List<AllocatableAction> blocked;
+
+
+        public AH(List<AllocatableAction> unassigned, List<AllocatableAction> blocked) {
+            this.unassigned = unassigned;
+            this.blocked = blocked;
+        }
+
+        @Override
+        public void unassigned(AllocatableAction action) {
+            this.unassigned.add(action);
+        }
+
+        @Override
+        public void blocked(AllocatableAction action) {
+            this.blocked.add(action);
+        }
     }
 
 }

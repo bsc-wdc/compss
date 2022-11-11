@@ -49,7 +49,6 @@ public abstract class LookaheadTS extends TaskScheduler {
     private final ThreadPoolExecutor schedulerExecutor;
 
     protected final HashSet<ResourceScheduler<? extends WorkerResourceDescription>> availableWorkers;
-    protected int amountOfWorkers;
 
     protected Set<AllocatableAction> upgradedActions;
 
@@ -60,7 +59,6 @@ public abstract class LookaheadTS extends TaskScheduler {
     public LookaheadTS() {
         super();
         this.availableWorkers = new HashSet<>();
-        this.amountOfWorkers = 0;
         this.schedulerExecutor = new ThreadPoolExecutor(15, 40, 180, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
         this.schedulerExecutor.allowCoreThreadTimeOut(true);
         this.upgradedActions = new HashSet<>();
@@ -97,15 +95,13 @@ public abstract class LookaheadTS extends TaskScheduler {
             }
         }
         this.availableWorkers.add(resource);
-        this.amountOfWorkers += 1;
     }
 
     @Override
     protected <T extends WorkerResourceDescription> void workerRemoved(ResourceScheduler<T> resource) {
         this.availableWorkers.remove(resource);
-        this.amountOfWorkers -= 1;
         LookaheadRS<?> rs = (LookaheadRS<?>) resource;
-        if (this.amountOfWorkers == 0) {
+        if (this.availableWorkers.isEmpty()) {
             for (ObjectValue<AllocatableAction> actionValue : rs.getUnassignedActions()) {
                 AllocatableAction action = actionValue.getObject();
                 addToBlocked(action);

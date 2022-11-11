@@ -31,7 +31,12 @@
     bestImplScore=0
     bestResourceId="null"
     while [ $i -lt 4 ]; do
+      i=$((i+1))
       read -r resource
+      if [ "$(grep -E -c "\[Task [0-9]*\] Resource" <<< ${resource})" == "0" ]; then
+        continue;
+      fi
+      
       # Get scores 
       resourceId=$(echo "$resource" | tr " " "\\t" | awk '{ print $4 }')
       actionScore=$(echo "$resource" | tr " " "\\t" | awk '{ print $8 }')
@@ -75,7 +80,6 @@
           fi
         fi
       fi
-      i=$((i+1))
     done
     
     # If task had no resource, look for forced schedule message

@@ -39,10 +39,9 @@ public class LocalParameterCollection extends LocalParameter implements Invocati
      * Create a new LocalParameterCollection copying the given LocalParameter values.
      * 
      * @param p LocalParameter to copy.
-     * @param index index of the parameter
      */
-    public LocalParameterCollection(Parameter p, int[] index) {
-        super(p, index);
+    public LocalParameterCollection(Parameter p) {
+        super(p);
 
         // Empty attributes
         this.collectionParameters = new LinkedList<>();

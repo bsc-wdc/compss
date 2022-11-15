@@ -402,7 +402,7 @@ public class ExecutionAction extends AllocatableAction implements JobListener {
     }
 
     @Override
-    public void resultAvailable(int[] idx, Parameter p, String dataName) {
+    public void resultAvailable(Parameter p, String dataName) {
         if (p.isPotentialDependency()) {
             DependencyParameter dp = (DependencyParameter) p;
             if (dp.getDirection() == Direction.COMMUTATIVE) {

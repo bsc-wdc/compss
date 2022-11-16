@@ -676,14 +676,12 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
 
     protected void registerAllJobOutputsAsExpected() {
         List<Parameter> params = this.taskParams.getParameters();
-        int subParamIdx = 0;
         for (Parameter p : params) {
-            registerJobOutputAsExpected(new int[] { subParamIdx }, p);
-            subParamIdx++;
+            registerJobOutputAsExpected(p);
         }
     }
 
-    private void registerJobOutputAsExpected(int[] idx, Parameter p) {
+    private void registerJobOutputAsExpected(Parameter p) {
         if (!p.isPotentialDependency()) {
             return;
         }
@@ -692,30 +690,23 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
         switch (dp.getType()) {
             case COLLECTION_T: {
                 CollectionParameter cp = (CollectionParameter) dp;
-                int[] newIdx = new int[idx.length + 1];
-                System.arraycopy(idx, 0, newIdx, 0, idx.length);
-                newIdx[idx.length] = 0;
                 for (Parameter elem : cp.getParameters()) {
                     if (elem.isPotentialDependency()) {
-                        registerJobOutputAsExpected(newIdx, elem);
-                        newIdx[idx.length]++;
+                        registerJobOutputAsExpected(elem);
                     }
                 }
                 break;
             }
             case DICT_COLLECTION_T: {
                 DictCollectionParameter dcp = (DictCollectionParameter) dp;
-                int[] newIdx = new int[idx.length + 1];
                 for (Map.Entry<Parameter, Parameter> entry : dcp.getParameters().entrySet()) {
                     Parameter k = entry.getKey();
                     if (k.isPotentialDependency()) {
-                        registerJobOutputAsExpected(newIdx, k);
-                        newIdx[idx.length]++;
+                        registerJobOutputAsExpected(k);
                     }
                     Parameter v = entry.getValue();
                     if (v.isPotentialDependency()) {
-                        registerJobOutputAsExpected(newIdx, v);
-                        newIdx[idx.length]++;
+                        registerJobOutputAsExpected(v);
                     }
                 }
                 break;
@@ -726,12 +717,12 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
                 }
         }
         if (dataName != null) {
-            notifyResultAvailability(idx, dp, dataName);
+            notifyResultAvailability(dp, dataName);
         }
     }
 
-    protected void notifyResultAvailability(int[] idx, DependencyParameter dp, String dataName) {
-        this.listener.resultAvailable(idx, dp, dataName);
+    protected void notifyResultAvailability(DependencyParameter dp, String dataName) {
+        this.listener.resultAvailable(dp, dataName);
         // Removing Temporary data
         DataAccessId access = dp.getDataAccessId();
         if (access instanceof RWAccessId) {

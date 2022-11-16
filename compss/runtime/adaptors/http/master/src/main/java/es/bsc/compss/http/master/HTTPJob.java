@@ -27,9 +27,7 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.LogicalData;
-import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.implementations.Implementation;
@@ -139,17 +137,15 @@ public class HTTPJob extends JobImpl<HTTPInstance> {
         }
 
         List<Parameter> params = this.taskParams.getParameters();
-        int subParamIdx = 0;
         for (Parameter p : params) {
             if (p.isPotentialDependency()) {
                 DependencyParameter dp = (DependencyParameter) p;
                 String dataName = getOuputRename(p);
                 if (dataName != null) {
                     registerParameterResult(dp, dataName, retValue);
-                    notifyResultAvailability(new int[] { subParamIdx }, dp, dataName);
+                    notifyResultAvailability(dp, dataName);
                 }
             }
-            subParamIdx++;
         }
         super.completed();
     }
@@ -166,17 +162,15 @@ public class HTTPJob extends JobImpl<HTTPInstance> {
             case IGNORE:
             case CANCEL_SUCCESSORS:
                 List<Parameter> params = this.taskParams.getParameters();
-                int subParamIdx = 0;
                 for (Parameter p : params) {
                     if (p.isPotentialDependency()) {
                         DependencyParameter dp = (DependencyParameter) p;
                         String dataName = getOuputRename(p);
                         if (dataName != null) {
                             emptyParameterResult(dp, dataName);
-                            notifyResultAvailability(new int[] { subParamIdx }, dp, dataName);
+                            notifyResultAvailability(dp, dataName);
                         }
                     }
-                    subParamIdx++;
                 }
                 break;
             default:

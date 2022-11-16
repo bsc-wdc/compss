@@ -40,10 +40,9 @@ public class LocalParameterDictCollection extends LocalParameter
      * Create a new LocalParameterCollection copying the given LocalParameter values.
      * 
      * @param p LocalParameter to copy.
-     * @param index index of the parameter
      */
-    public LocalParameterDictCollection(Parameter p, int[] index) {
-        super(p, index);
+    public LocalParameterDictCollection(Parameter p) {
+        super(p);
 
         // Empty attributes
         this.dictCollectionParameters = new HashMap<>();

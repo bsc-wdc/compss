@@ -130,11 +130,10 @@ public interface JobListener {
     /**
      * Actions to perform when a job result is available.
      * 
-     * @param idx Index of the produced parameter
      * @param p Produced parameter
      * @param dataName name of the data produced
      */
-    public void resultAvailable(int[] idx, Parameter p, String dataName);
+    public void resultAvailable(Parameter p, String dataName);
 
     /**
      * Actions when job has successfully been cancelled.

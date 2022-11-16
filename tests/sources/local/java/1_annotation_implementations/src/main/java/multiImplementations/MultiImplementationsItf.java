@@ -13,27 +13,27 @@ public interface MultiImplementationsItf {
 
     @Constraints(computingUnits = "1")
     @Method(declaringClass = "multiImplementations.Implementation1", constraints = @Constraints(computingUnits = "2"))
-    @Method(declaringClass = "multiImplementations.Implementation2")
+    @Method(declaringClass = "multiImplementations.Implementation2", constraints = @Constraints(processorArchitecture = "x386"))
     void methodMethod(@Parameter(type = Type.FILE, direction = Direction.INOUT) String counterFile);
 
     @Constraints(computingUnits = "1")
     @Method(declaringClass = "multiImplementations.Implementation1", constraints = @Constraints(computingUnits = "2"))
-    @Binary(binary = "${BINARY}")
+    @Binary(binary = "${BINARY}", constraints = @Constraints(processorArchitecture = "x386"))
     void methodBinary(@Parameter(type = Type.FILE, direction = Direction.INOUT) String counterFile);
 
     @Constraints(computingUnits = "1")
     @Method(declaringClass = "multiImplementations.Implementation1", constraints = @Constraints(computingUnits = "2"))
-    @Binary(binary = "${BINARY}")
+    @Binary(binary = "${BINARY}", constraints = @Constraints(processorArchitecture = "x386"))
     void binaryMethod(@Parameter(type = Type.FILE, direction = Direction.INOUT) String counterFile);
 
     @Constraints(computingUnits = "1")
     @Method(declaringClass = "multiImplementations.Implementation1", constraints = @Constraints(computingUnits = "2"))
-    @MPI(binary = "${MPI_BINARY}", mpiRunner = "mpirun", processes = "1")
+    @MPI(binary = "${MPI_BINARY}", mpiRunner = "mpirun", processes = "1", constraints = @Constraints(processorArchitecture = "x386"))
     void methodMpi(@Parameter(type = Type.FILE, direction = Direction.INOUT) String counterFile);
 
     @Constraints(computingUnits = "1")
     @Method(declaringClass = "multiImplementations.Implementation1", constraints = @Constraints(computingUnits = "2"))
-    @MPI(binary = "${MPI_BINARY}", mpiRunner = "mpirun", processes = "1", scaleByCU = true)
+    @MPI(binary = "${MPI_BINARY}", mpiRunner = "mpirun", processes = "1", scaleByCU = true, constraints = @Constraints(processorArchitecture = "x386"))
     void mpiMethod(@Parameter(type = Type.FILE, direction = Direction.INOUT) String counterFile);
 
 }

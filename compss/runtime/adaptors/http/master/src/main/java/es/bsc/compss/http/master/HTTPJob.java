@@ -27,7 +27,6 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.implementations.Implementation;
@@ -181,11 +180,6 @@ public class HTTPJob extends JobImpl<HTTPInstance> {
         super.failed(status);
     }
 
-    @Override
-    protected void registerAllJobOutputsAsExpected() {
-        // Overriding to avoid registering results again. This will be removed in future implementations
-    }
-
     private void emptyParameterResult(DependencyParameter dp, String dataName) {
         if (dp.getType() == DataType.FILE_T) {
             try {
@@ -205,10 +199,7 @@ public class HTTPJob extends JobImpl<HTTPInstance> {
         } else {
             // it's a Java HTTP task, can have only single value of a primitive type
             Object value = null;
-            LogicalData ld = Comm.registerValue(dataName, value);
-            for (DataLocation dl : ld.getLocations()) {
-                dp.setDataTarget(dl.getPath());
-            }
+            Comm.registerValue(dataName, value);
         }
     }
 
@@ -238,10 +229,7 @@ public class HTTPJob extends JobImpl<HTTPInstance> {
                 JsonPrimitive primValue = retValue.getAsJsonPrimitive("$return_0");
                 value = getPrimitiveResult(primValue, dp.getType());
             }
-            LogicalData ld = Comm.registerValue(dataName, value);
-            for (DataLocation dl : ld.getLocations()) {
-                dp.setDataTarget(dl.getPath());
-            }
+            Comm.registerValue(dataName, value);
         }
     }
 

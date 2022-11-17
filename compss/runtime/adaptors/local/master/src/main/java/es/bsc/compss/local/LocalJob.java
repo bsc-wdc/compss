@@ -19,7 +19,6 @@ package es.bsc.compss.local;
 import es.bsc.compss.types.COMPSsMaster;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
-import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.Implementation;
@@ -45,10 +44,10 @@ public class LocalJob extends JobImpl<COMPSsMaster> implements Invocation {
     private boolean prepared;
     private final List<LocalParameter> arguments;
     private LocalParameter target;
-    private LinkedList<LocalParameter> results;
-    private MethodResourceDescription reqs;
+    private final LinkedList<LocalParameter> results;
+    private final MethodResourceDescription reqs;
     private final List<String> slaveWorkersNodeNames;
-    private TaskType taskType;
+    private final TaskType taskType;
 
 
     /**
@@ -113,6 +112,7 @@ public class LocalJob extends JobImpl<COMPSsMaster> implements Invocation {
             Parameter p = params.get(paramIdx);
             this.arguments.add(generateLocalParameter(p));
         }
+        this.prepared = true;
     }
 
     @Override
@@ -180,11 +180,6 @@ public class LocalJob extends JobImpl<COMPSsMaster> implements Invocation {
                 removeTmpData();
         }
         super.failed(status);
-    }
-
-    @Override
-    protected DataLocation registerResultLocation(String dataLocation, String dataName, Resource res) {
-        return null;
     }
 
     @Override

@@ -170,6 +170,7 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
      *
      * @return
      */
+    @Override
     public int getJobId() {
         return this.jobId;
     }
@@ -179,6 +180,7 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
      *
      * @return
      */
+    @Override
     public int getTaskId() {
         return this.taskId;
     }
@@ -713,7 +715,7 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
             }
             default:
                 if (dataName != null) {
-                    registerResultLocation(dp, dataName, this.worker);
+                    registerResultLocation(dp.getDataTarget(), dataName, this.worker);
                 }
         }
         if (dataName != null) {
@@ -761,23 +763,20 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
         return name;
     }
 
-    protected DataLocation registerResultLocation(DependencyParameter dp, String dataName, Resource res) {
+    protected DataLocation registerResultLocation(String dataLocation, String dataName, Resource res) {
         // Request transfer
         DataLocation outLoc = null;
         try {
-            String dataTarget = dp.getDataTarget();
             if (DEBUG) {
-                JOB_LOGGER.debug("Proposed URI for storing output param: " + dataTarget);
+                JOB_LOGGER.debug("Proposed URI for storing output param: " + dataLocation);
             }
-            SimpleURI resultURI = new SimpleURI(dataTarget);
+            SimpleURI resultURI = new SimpleURI(dataLocation);
             SimpleURI targetURI = new SimpleURI(resultURI.getSchema() + resultURI.getPath());
             outLoc = DataLocation.createLocation(res, targetURI);
-            // Data target has been stored as URI but final target data should be just the path
-            dp.setDataTarget(outLoc.getPath());
+            Comm.registerLocation(dataName, outLoc);
         } catch (Exception e) {
-            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + dp.getDataTarget(), e);
+            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + dataLocation, e);
         }
-        Comm.registerLocation(dataName, outLoc);
 
         // Return location
         return outLoc;

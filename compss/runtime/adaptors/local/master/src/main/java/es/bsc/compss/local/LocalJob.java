@@ -195,7 +195,7 @@ public class LocalJob extends JobImpl<COMPSsMaster> implements Invocation {
     }
 
     @Override
-    protected DataLocation registerResultLocation(DependencyParameter dp, String dataName, Resource res) {
+    protected DataLocation registerResultLocation(String dataLocation, String dataName, Resource res) {
         return null;
     }
 

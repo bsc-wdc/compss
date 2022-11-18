@@ -58,6 +58,11 @@ public class DirectoryParameter extends DependencyParameter {
 
     }
 
+    @Override
+    public boolean isCollective() {
+        return false;
+    }
+
     public DataLocation getLocation() {
         return this.location;
     }

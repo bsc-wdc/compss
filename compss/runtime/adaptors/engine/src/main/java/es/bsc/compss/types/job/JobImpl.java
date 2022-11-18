@@ -33,9 +33,8 @@ import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.TaskType;
-import es.bsc.compss.types.parameter.CollectionParameter;
+import es.bsc.compss.types.parameter.CollectiveParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
-import es.bsc.compss.types.parameter.DictCollectionParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.uri.SimpleURI;
@@ -44,7 +43,6 @@ import es.bsc.compss.util.JobDispatcher;
 import es.bsc.compss.worker.COMPSsException;
 
 import java.util.List;
-import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -385,32 +383,14 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
     private void transferJobData(DependencyParameter param, JobTransfersListener listener) {
         switch (param.getType()) {
             case COLLECTION_T:
-                CollectionParameter cp = (CollectionParameter) param;
-                JOB_LOGGER.debug("Detected CollectionParameter " + cp);
+            case DICT_COLLECTION_T:
+                CollectiveParameter cp = (CollectiveParameter) param;
+                JOB_LOGGER.debug("Detected CollectiveParameter " + cp);
                 // Recursively send all the collection parameters
-                for (Parameter p : cp.getParameters()) {
+                for (Parameter p : cp.getElements()) {
                     if (p.isPotentialDependency()) {
                         DependencyParameter dp = (DependencyParameter) p;
                         transferJobData(dp, listener);
-                    }
-                }
-                // Send the collection parameter itself
-                transferSingleParameter(param, listener);
-                break;
-            case DICT_COLLECTION_T:
-                DictCollectionParameter dcp = (DictCollectionParameter) param;
-                JOB_LOGGER.debug("Detected DictCollectionParameter " + dcp);
-                // Recursively send all the dictionary collection parameters
-                for (Map.Entry<Parameter, Parameter> entry : dcp.getParameters().entrySet()) {
-                    Parameter k = entry.getKey();
-                    if (k.isPotentialDependency()) {
-                        DependencyParameter dpKey = (DependencyParameter) k;
-                        transferJobData(dpKey, listener);
-                    }
-                    Parameter v = entry.getValue();
-                    if (v.isPotentialDependency()) {
-                        DependencyParameter dpValue = (DependencyParameter) v;
-                        transferJobData(dpValue, listener);
                     }
                 }
                 // Send the collection parameter itself
@@ -496,42 +476,23 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
 
     private void removeTmpData(DependencyParameter param) {
         if (param.getType() != DataType.STREAM_T && param.getType() != DataType.EXTERNAL_STREAM_T) {
-            if (param.getType() == DataType.COLLECTION_T) {
-                CollectionParameter cp = (CollectionParameter) param;
-                JOB_LOGGER.debug("Detected CollectionParameter " + cp);
+            if (param.isCollective()) {
+                CollectiveParameter cp = (CollectiveParameter) param;
+                JOB_LOGGER.debug("Detected CollectiveParameter " + cp);
                 // Recursively send all the collection parameters
-                for (Parameter p : cp.getParameters()) {
+                for (Parameter p : cp.getElements()) {
                     if (p.isPotentialDependency()) {
                         DependencyParameter dp = (DependencyParameter) p;
                         removeTmpData(dp);
                     }
                 }
             }
-            if (param.getType() == DataType.DICT_COLLECTION_T) {
-                DictCollectionParameter dcp = (DictCollectionParameter) param;
-                JOB_LOGGER.debug("Detected DictCollectionParameter " + dcp);
-                // Recursively send all the dictionary collection parameters
-                for (Map.Entry<Parameter, Parameter> entry : dcp.getParameters().entrySet()) {
-                    Parameter k = entry.getKey();
-                    if (k.isPotentialDependency()) {
-                        DependencyParameter dpKey = (DependencyParameter) k;
-                        removeTmpData(dpKey);
-                    }
-                    Parameter v = entry.getValue();
-                    if (v.isPotentialDependency()) {
-                        DependencyParameter dpValue = (DependencyParameter) v;
-                        removeTmpData(dpValue);
-                    }
-                }
-            }
-
             DataAccessId access = param.getDataAccessId();
             if (access instanceof RWAccessId) {
                 String tgtName = "tmp" + ((RWAccessId) access).getWrittenDataInstance().getRenaming();
                 Comm.removeDataKeepingValue(tgtName);
             }
         }
-
     }
 
     @Override
@@ -689,34 +650,17 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
         }
         DependencyParameter dp = (DependencyParameter) p;
         String dataName = getOuputRename(p);
-        switch (dp.getType()) {
-            case COLLECTION_T: {
-                CollectionParameter cp = (CollectionParameter) dp;
-                for (Parameter elem : cp.getParameters()) {
-                    if (elem.isPotentialDependency()) {
-                        registerJobOutputAsExpected(elem);
-                    }
+        if (dp.isCollective()) {
+            CollectiveParameter cp = (CollectiveParameter) dp;
+            for (Parameter elem : cp.getElements()) {
+                if (elem.isPotentialDependency()) {
+                    registerJobOutputAsExpected(elem);
                 }
-                break;
             }
-            case DICT_COLLECTION_T: {
-                DictCollectionParameter dcp = (DictCollectionParameter) dp;
-                for (Map.Entry<Parameter, Parameter> entry : dcp.getParameters().entrySet()) {
-                    Parameter k = entry.getKey();
-                    if (k.isPotentialDependency()) {
-                        registerJobOutputAsExpected(k);
-                    }
-                    Parameter v = entry.getValue();
-                    if (v.isPotentialDependency()) {
-                        registerJobOutputAsExpected(v);
-                    }
-                }
-                break;
+        } else {
+            if (dataName != null) {
+                registerResultLocation(dp.getDataTarget(), dataName, this.worker);
             }
-            default:
-                if (dataName != null) {
-                    registerResultLocation(dp.getDataTarget(), dataName, this.worker);
-                }
         }
         if (dataName != null) {
             notifyResultAvailability(dp, dataName);

@@ -1275,14 +1275,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 oReg.delete(app.getId(), op.getValue());
                 break;
             case COLLECTION_T:
-                for (Parameter sp : ((CollectionParameter) p).getParameters()) {
-                    processDelete(app, sp);
-                }
-                break;
             case DICT_COLLECTION_T:
-                for (Map.Entry<Parameter, Parameter> sp : ((DictCollectionParameter) p).getParameters().entrySet()) {
-                    processDelete(app, sp.getKey());
-                    processDelete(app, sp.getValue());
+                for (Parameter sp : ((CollectionParameter) p).getElements()) {
+                    processDelete(app, sp);
                 }
                 break;
             default:
@@ -1812,7 +1807,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 DictCollectionParameter dcp = new DictCollectionParameter(dictCollectionId, dictCollectionParams,
                     direction, stream, prefix, name, dictColPyType, weight, keepRename, monitor);
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Add Dictionary Collection " + dcp.getName() + " with " + dcp.getParameters().size()
+                    LOGGER.debug("Add Dictionary Collection " + dcp.getName() + " with " + dcp.getDictionary().size()
                         + " entries");
                     LOGGER.debug(dcp.toString());
                 }

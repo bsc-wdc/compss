@@ -53,6 +53,11 @@ public class ExternalStreamParameter extends DependencyParameter {
         this.originalName = originalName;
     }
 
+    @Override
+    public boolean isCollective() {
+        return false;
+    }
+
     public DataLocation getLocation() {
         return this.location;
     }

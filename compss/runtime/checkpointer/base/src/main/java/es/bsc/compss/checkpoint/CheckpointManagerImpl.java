@@ -26,6 +26,7 @@ import es.bsc.compss.types.data.DataVersion;
 import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.parameter.CollectionParameter;
+import es.bsc.compss.types.parameter.CollectiveParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.DictCollectionParameter;
 import es.bsc.compss.types.parameter.Parameter;
@@ -195,23 +196,13 @@ public abstract class CheckpointManagerImpl extends CheckpointRecord implements 
      * @param group Group that will have the parameter.
      */
     private void registerTaskParameterInGroup(Parameter param, CheckpointGroupImpl group) {
-        DataType type = param.getType();
-
-        if (type == DataType.COLLECTION_T) {
-            CollectionParameter cp = (CollectionParameter) param;
-            for (Parameter sp : cp.getParameters()) {
+        if (param.isCollective()) {
+            CollectiveParameter cp = (CollectiveParameter) param;
+            for (Parameter sp : cp.getElements()) {
                 registerTaskParameterInGroup(sp, group);
             }
-        } else {
-            if (type == DataType.DICT_COLLECTION_T) {
-                DictCollectionParameter dcp = (DictCollectionParameter) param;
-                for (Map.Entry<Parameter, Parameter> entry : dcp.getParameters().entrySet()) {
-                    registerTaskParameterInGroup(entry.getKey(), group);
-                    registerTaskParameterInGroup(entry.getValue(), group);
-                }
-            }
         }
-
+        DataType type = param.getType();
         if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T
             || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T) {
             DependencyParameter dp = (DependencyParameter) param;

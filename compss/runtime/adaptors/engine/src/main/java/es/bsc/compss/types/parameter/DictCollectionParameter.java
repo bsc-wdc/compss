@@ -20,6 +20,9 @@ import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 
@@ -28,25 +31,24 @@ import java.util.Map;
  * contain other COMPSs parameter objects. The object has an identifier by itself and points to other object identifiers
  * (which are the ones contained in it)
  */
-public class DictCollectionParameter extends DependencyParameter {
+public class DictCollectionParameter extends CollectiveParameter {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
      */
     private static final long serialVersionUID = 1L;
 
-    // Identifier of the collection object
-    private String dictCollectionId;
     // Parameter objects of the collection contents
-    private Map<Parameter, Parameter> parameters;
+    private List<Parameter> parameters;
+    private Map<Parameter, Parameter> mapping;
 
 
     /**
      * Default constructor. Intended to be called from COMPSsRuntimeImpl when gathering and compacting parameter
      * information fed from bindings or Java Loader
      * 
-     * @param dictCollectionId Name of the File identifier of the collection object per se.
-     * @param parameters Parameters of the CollectionParameter
+     * @param id identifier of the collection
+     * @param map Parameters of the CollectionParameter
      * @param direction Direction of the collection
      * @param stream N/A (At least temporarily)
      * @param prefix N/A (At least temporarily)
@@ -56,63 +58,63 @@ public class DictCollectionParameter extends DependencyParameter {
      * @see es.bsc.compss.api.impl.COMPSsRuntimeImpl
      * @see es.bsc.compss.components.impl.TaskAnalyser
      */
-    public DictCollectionParameter(String dictCollectionId, Map<Parameter, Parameter> parameters, Direction direction,
-        StdIOStream stream, String prefix, String name, String contentType, double weight, boolean keepRename,
-        ParameterMonitor monitor) {
+    public DictCollectionParameter(String id, Map<Parameter, Parameter> map, Direction direction, StdIOStream stream,
+        String prefix, String name, String contentType, double weight, boolean keepRename, ParameterMonitor monitor) {
 
         // Type will always be DICT_COLLECTION_T, no need to pass it as a constructor parameter and wont be modified
         // Stream and prefix are still forwarded for possible, future uses
-        super(DataType.DICT_COLLECTION_T, direction, stream, prefix, name, contentType, weight, keepRename, monitor);
-        this.parameters = parameters;
-        this.dictCollectionId = dictCollectionId;
-    }
+        super(DataType.DICT_COLLECTION_T, id, direction, stream, prefix, name, contentType, weight, keepRename,
+            monitor);
 
-    /**
-     * Get the identifier of the collection.
-     * 
-     * @return The collection identifier.
-     */
-    public String getDictCollectionId() {
-        return this.dictCollectionId;
-    }
-
-    /**
-     * Set the identifier of the collection.
-     * 
-     * @param dictCollectionId The collection Id.
-     */
-    public void setDictCollectionId(String dictCollectionId) {
-        this.dictCollectionId = dictCollectionId;
+        this.parameters = new ArrayList<>(map.size() * 2);
+        for (Map.Entry<Parameter, Parameter> e : map.entrySet()) {
+            this.parameters.add(e.getKey());
+            this.parameters.add(e.getValue());
+        }
+        this.mapping = map;
     }
 
     @Override
     public String toString() {
         // String builder adds less overhead when creating a string
         StringBuilder sb = new StringBuilder();
-        sb.append("DictCollectionParameter ").append(this.dictCollectionId).append("\n");
+        sb.append("DictCollectionParameter ").append(this.getCollectionId()).append("\n");
         sb.append("Name: ").append(getName()).append("\n");
         sb.append("Contents:\n");
-        for (Map.Entry<Parameter, Parameter> entry : parameters.entrySet()) {
-            sb.append("\t").append(entry.getKey()).append(" - ").append(entry.getValue()).append("\n");
+        Iterator<Parameter> it = this.parameters.iterator();
+        while (it.hasNext()) {
+            Parameter key = it.next();
+            Parameter value = it.next();
+            sb.append("\t").append(key).append(" - ").append(value).append("\n");
         }
         return sb.toString();
     }
 
+    @Override
+    public List<Parameter> getElements() {
+        return this.parameters;
+    }
+
     /**
-     * Returns the collection parameters.
+     * Returns the map of the parameters.
      * 
      * @return List of the internal parameters of the collection.
      */
-    public Map<Parameter, Parameter> getParameters() {
-        return this.parameters;
+    public Map<Parameter, Parameter> getDictionary() {
+        return this.mapping;
     }
 
     /**
      * Sets the internal parameters of the collection.
      * 
-     * @param parameters New internal parameters of the collection.
+     * @param map New internal parameters of the collection.
      */
-    public void setParameters(Map<Parameter, Parameter> parameters) {
-        this.parameters = parameters;
+    public void setParameters(Map<Parameter, Parameter> map) {
+        this.parameters = new ArrayList<>(map.size() * 2);
+        for (Map.Entry<Parameter, Parameter> e : map.entrySet()) {
+            this.parameters.add(e.getKey());
+            this.parameters.add(e.getValue());
+        }
+        this.mapping = map;
     }
 }

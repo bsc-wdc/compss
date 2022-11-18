@@ -84,6 +84,14 @@ public abstract class Parameter implements Serializable {
     public abstract boolean isPotentialDependency();
 
     /**
+     * Returns whether the parameter is a Collective or Single value.
+     *
+     * @return {@literal true}, if the parameter represents a collection of values; {@literal false} if it a single
+     *         value.
+     */
+    public abstract boolean isCollective();
+
+    /**
      * Returns the parameter type.
      *
      * @return The parameter type.

@@ -29,7 +29,6 @@ import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.DataVersion;
-import es.bsc.compss.types.data.DictCollectionInfo;
 import es.bsc.compss.types.data.FileInfo;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.ObjectInfo;
@@ -51,8 +50,7 @@ import es.bsc.compss.types.data.operation.FileTransferable;
 import es.bsc.compss.types.data.operation.ObjectTransferable;
 import es.bsc.compss.types.data.operation.OneOpWithSemListener;
 import es.bsc.compss.types.data.operation.ResultListener;
-import es.bsc.compss.types.parameter.CollectionParameter;
-import es.bsc.compss.types.parameter.DictCollectionParameter;
+import es.bsc.compss.types.parameter.CollectiveParameter;
 import es.bsc.compss.types.request.ap.TransferBindingObjectRequest;
 import es.bsc.compss.types.request.ap.TransferObjectRequest;
 import es.bsc.compss.types.tracing.TraceEvent;
@@ -1267,7 +1265,7 @@ public class DataInfoProvider {
      * @param cp CollectionParameter.
      * @return DataAccessId Representation of the access to the collection.
      */
-    public DataAccessId registerCollectionAccess(Application app, AccessMode am, CollectionParameter cp) {
+    public DataAccessId registerCollectionAccess(Application app, AccessMode am, CollectiveParameter cp) {
         String collectionId = cp.getCollectionId();
         Integer oId = this.collectionToId.get(collectionId);
         DataAccessId id;
@@ -1285,51 +1283,13 @@ public class DataInfoProvider {
             // Inform the File Transfer Manager about the new file containing the object
             if (am != AccessMode.W) {
                 if (DEBUG) {
-                    LOGGER.debug("Collection " + collectionId + " contains " + cp.getParameters().size() + " accesses");
+                    LOGGER.debug("Collection " + collectionId + " contains " + cp.getElements().size() + " accesses");
                 }
                 // Null until the two-step transfer method is implemented
                 Comm.registerCollection(renaming, null);
             }
         } else {
             cInfo = (CollectionInfo) this.idToData.get(oId);
-            id = willAccess(am, cInfo);
-        }
-        return id;
-    }
-
-    /**
-     * Registers the access to a dictionary collection.
-     *
-     * @param app Id of the application accessing the collection
-     * @param am AccesMode.
-     * @param dcp DictCollectionParameter.
-     * @return DataAccessId Representation of the access to the collection.
-     */
-    public DataAccessId registerDictCollectionAccess(Application app, AccessMode am, DictCollectionParameter dcp) {
-        String dictCollectionId = dcp.getDictCollectionId();
-        Integer oId = this.collectionToId.get(dictCollectionId);
-        DataAccessId id;
-        DictCollectionInfo cInfo;
-        if (oId == null) {
-            cInfo = new DictCollectionInfo(app, dictCollectionId);
-            oId = cInfo.getDataId();
-            this.collectionToId.put(dictCollectionId, oId);
-            this.idToData.put(oId, cInfo);
-            // Serialize this first version of the object to a file
-            DataInstanceId lastDID = cInfo.getCurrentDataVersion().getDataInstanceId();
-            String renaming = lastDID.getRenaming();
-            id = willAccess(am, cInfo);
-            // Inform the File Transfer Manager about the new file containing the object
-            if (am != AccessMode.W) {
-                if (DEBUG) {
-                    LOGGER.debug("Dictionary Collection " + dictCollectionId + " contains " + dcp.getParameters().size()
-                        + " accesses");
-                }
-                // Null until the two-step transfer method is implemented
-                Comm.registerCollection(renaming, null);
-            }
-        } else {
-            cInfo = (DictCollectionInfo) this.idToData.get(oId);
             id = willAccess(am, cInfo);
         }
         return id;

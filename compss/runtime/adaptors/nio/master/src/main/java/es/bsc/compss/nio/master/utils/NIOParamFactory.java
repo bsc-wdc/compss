@@ -159,7 +159,7 @@ public class NIOParamFactory {
         NIOParamCollection npc = new NIOParamCollection(collNioParam);
 
         CollectionParameter collParam = (CollectionParameter) param;
-        for (Parameter subParam : collParam.getParameters()) {
+        for (Parameter subParam : collParam.getElements()) {
             npc.addParameter(NIOParamFactory.fromParameter(subParam, node, fromReplicatedTask));
         }
 
@@ -180,7 +180,7 @@ public class NIOParamFactory {
         NIOParamDictCollection npdc = new NIOParamDictCollection(dictCollNioParam);
 
         DictCollectionParameter dictCollParam = (DictCollectionParameter) param;
-        for (Map.Entry<Parameter, Parameter> entry : dictCollParam.getParameters().entrySet()) {
+        for (Map.Entry<Parameter, Parameter> entry : dictCollParam.getDictionary().entrySet()) {
             npdc.addParameter(NIOParamFactory.fromParameter(entry.getKey(), node, fromReplicatedTask),
                 NIOParamFactory.fromParameter(entry.getValue(), node, fromReplicatedTask));
         }

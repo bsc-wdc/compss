@@ -25,7 +25,7 @@ import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.Transferable;
 
 
-public class DependencyParameter extends Parameter implements Transferable {
+public abstract class DependencyParameter extends Parameter implements Transferable {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.

@@ -43,9 +43,8 @@ import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
 import es.bsc.compss.types.data.operation.ResultListener;
 import es.bsc.compss.types.parameter.BindingObjectParameter;
-import es.bsc.compss.types.parameter.CollectionParameter;
+import es.bsc.compss.types.parameter.CollectiveParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
-import es.bsc.compss.types.parameter.DictCollectionParameter;
 import es.bsc.compss.types.parameter.DirectoryParameter;
 import es.bsc.compss.types.parameter.ExternalPSCOParameter;
 import es.bsc.compss.types.parameter.ExternalStreamParameter;
@@ -235,12 +234,9 @@ public class TaskAnalyser implements GraphHandler {
                 dip.deleteData(app, esp.getLocation(), noReuse);
                 break;
             case COLLECTION_T:
-                CollectionParameter cp = (CollectionParameter) p;
-                dip.deleteCollection(cp.getCollectionId(), true);
-                break;
             case DICT_COLLECTION_T:
-                DictCollectionParameter dcp = (DictCollectionParameter) p;
-                dip.deleteDictCollection(dcp.getDictCollectionId(), true);
+                CollectiveParameter cParam = (CollectiveParameter) p;
+                dip.deleteCollection(cParam.getCollectionId(), true);
                 break;
             default:
                 // This is a basic type nothing to delete
@@ -668,11 +664,12 @@ public class TaskAnalyser implements GraphHandler {
                 daId = this.dip.registerExternalStreamAccess(app, am, esp.getLocation());
                 break;
             case COLLECTION_T:
-                CollectionParameter cp = (CollectionParameter) p;
+            case DICT_COLLECTION_T:
+                CollectiveParameter cp = (CollectiveParameter) p;
                 if (IS_DRAW_GRAPH) {
                     this.gm.startGroupingEdges();
                 }
-                for (Parameter content : cp.getParameters()) {
+                for (Parameter content : cp.getElements()) {
                     boolean hasCollectionParamEdge =
                         registerParameterAccessAndAddDependencies(app, currentTask, content, isConstraining);
                     hasParamEdge = hasParamEdge || hasCollectionParamEdge;
@@ -683,25 +680,6 @@ public class TaskAnalyser implements GraphHandler {
                 }
                 DataInfo ci = dip.deleteCollection(cp.getCollectionId(), true);
                 deleteData(ci, false);
-                break;
-            case DICT_COLLECTION_T:
-                DictCollectionParameter dcp = (DictCollectionParameter) p;
-                if (IS_DRAW_GRAPH) {
-                    this.gm.startGroupingEdges();
-                }
-                for (Map.Entry<Parameter, Parameter> entry : dcp.getParameters().entrySet()) {
-                    boolean hasDictCollectionParamEdgeKey =
-                        registerParameterAccessAndAddDependencies(app, currentTask, entry.getKey(), isConstraining);
-                    boolean hasDictCollectionParamEdgeValue =
-                        registerParameterAccessAndAddDependencies(app, currentTask, entry.getValue(), isConstraining);
-                    hasParamEdge = hasParamEdge || hasDictCollectionParamEdgeKey || hasDictCollectionParamEdgeValue;
-                }
-                daId = dip.registerDictCollectionAccess(app, am, dcp);
-                if (IS_DRAW_GRAPH) {
-                    this.gm.stopGroupingEdges();
-                }
-                DataInfo dci = dip.deleteDictCollection(dcp.getDictCollectionId(), true);
-                deleteData(dci, false);
                 break;
             default:
                 // This is a basic type, there are no accesses to register
@@ -818,27 +796,20 @@ public class TaskAnalyser implements GraphHandler {
     }
 
     private void updateLastWritters(AbstractTask task, Parameter p) {
-        DataType type = p.getType();
-        int currentTaskId = task.getId();
-        if (type == DataType.COLLECTION_T) {
-            CollectionParameter cp = (CollectionParameter) p;
-            for (Parameter sp : cp.getParameters()) {
+        if (p.isCollective()) {
+            CollectiveParameter cParam = (CollectiveParameter) p;
+            for (Parameter sp : cParam.getElements()) {
                 updateLastWritters(task, sp);
             }
         }
-        if (type == DataType.DICT_COLLECTION_T) {
-            DictCollectionParameter dcp = (DictCollectionParameter) p;
-            for (Map.Entry<Parameter, Parameter> entry : dcp.getParameters().entrySet()) {
-                updateLastWritters(task, entry.getKey());
-                updateLastWritters(task, entry.getValue());
-            }
-        }
+        DataType type = p.getType();
         if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T
             || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T || type == DataType.COLLECTION_T
             || type == DataType.DICT_COLLECTION_T) {
             DependencyParameter dp = (DependencyParameter) p;
             int dataId = dp.getDataAccessId().getDataId();
             if (DEBUG) {
+                int currentTaskId = task.getId();
                 LOGGER.debug("Removing writters info for datum " + dataId + " and task " + currentTaskId);
             }
             DataAccessesInfo dai = this.accessesInfo.get(dataId);
@@ -856,21 +827,12 @@ public class TaskAnalyser implements GraphHandler {
     }
 
     private void updateParameterAccess(Task t, Parameter p) {
-        DataType type = p.getType();
-
-        if (type == DataType.COLLECTION_T) {
-            for (Parameter subParam : ((CollectionParameter) p).getParameters()) {
+        if (p.isCollective()) {
+            for (Parameter subParam : ((CollectiveParameter) p).getElements()) {
                 updateParameterAccess(t, subParam);
             }
         }
-
-        if (type == DataType.DICT_COLLECTION_T) {
-            for (Map.Entry<Parameter, Parameter> entry : ((DictCollectionParameter) p).getParameters().entrySet()) {
-                updateParameterAccess(t, entry.getKey());
-                updateParameterAccess(t, entry.getValue());
-            }
-        }
-
+        DataType type = p.getType();
         if (type == DataType.FILE_T || type == DataType.DIRECTORY_T || type == DataType.OBJECT_T
             || type == DataType.PSCO_T || type == DataType.STREAM_T || type == DataType.EXTERNAL_STREAM_T
             || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T || type == DataType.COLLECTION_T

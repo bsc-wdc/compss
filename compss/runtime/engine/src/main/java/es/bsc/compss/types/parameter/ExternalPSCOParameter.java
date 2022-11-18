@@ -20,7 +20,6 @@ import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
-import es.bsc.compss.types.parameter.DependencyParameter;
 
 
 public class ExternalPSCOParameter extends DependencyParameter {
@@ -52,6 +51,11 @@ public class ExternalPSCOParameter extends DependencyParameter {
         super(DataType.EXTERNAL_PSCO_T, direction, stream, prefix, name, "null", weight, false, monitor);
         this.pscoId = pscoId;
         this.hashCode = hashCode;
+    }
+
+    @Override
+    public boolean isCollective() {
+        return false;
     }
 
     public String getId() {

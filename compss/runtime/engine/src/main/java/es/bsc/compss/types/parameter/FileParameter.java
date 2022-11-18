@@ -59,6 +59,11 @@ public class FileParameter extends DependencyParameter {
 
     }
 
+    @Override
+    public boolean isCollective() {
+        return false;
+    }
+
     public DataLocation getLocation() {
         return this.location;
     }

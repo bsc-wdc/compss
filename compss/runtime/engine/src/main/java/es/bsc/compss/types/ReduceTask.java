@@ -124,7 +124,7 @@ public class ReduceTask extends Task {
      * @param parameters Task parameter values.
      * @throws IOException Error while creating the data location.
      */
-    public void createPartialParameters(List<Parameter> parameters) throws IOException {
+    private void createPartialParameters(List<Parameter> parameters) throws IOException {
         if (parameters.size() >= 2) {
             // 0 --> collection || 1 --> result
 
@@ -132,7 +132,7 @@ public class ReduceTask extends Task {
             Parameter finalParameter = parameters.get(parameters.size() - 1);
             if (finalParameter.getDirection() == Direction.OUT && this.reduceCollectionIndex >= 0) {
                 CollectionParameter p = (CollectionParameter) parameters.get(this.reduceCollectionIndex);
-                List<Parameter> colList = p.getParameters();
+                List<Parameter> colList = p.getElements();
                 if (colList.size() < 2) {
                     ErrorManager.warn("Reduce collection of Task " + getId() + " has not two parameters to reduce");
                 }

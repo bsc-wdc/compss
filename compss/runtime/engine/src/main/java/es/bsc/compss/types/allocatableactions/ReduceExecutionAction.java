@@ -354,7 +354,7 @@ public class ReduceExecutionAction extends ExecutionAction {
 
     private boolean noMoreOriginalReductionParamsPending() {
         return this.initialCollection != null
-            && this.receivedOriginalParameters == this.initialCollection.getParameters().size();
+            && this.receivedOriginalParameters == this.initialCollection.getElements().size();
     }
 
     private void finalTaskInResource(Resource resource) {

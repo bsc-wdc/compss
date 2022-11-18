@@ -29,23 +29,23 @@ import java.util.List;
  * parameter objects. The object has an identifier by itself and points to other object identifiers (which are the ones
  * contained in it)
  */
-public class CollectionParameter extends CollectiveParameter {
+public abstract class CollectiveParameter extends DependencyParameter {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
      */
     private static final long serialVersionUID = 1L;
 
-    // Parameter objects of the collection contents
-    private List<Parameter> parameters;
+    // Identifier of the collection object
+    private String collectionId;
 
 
     /**
      * Default constructor. Intended to be called from COMPSsRuntimeImpl when gathering and compacting parameter
      * information fed from bindings or Java Loader
      * 
-     * @param id identifier of the collection object.
-     * @param parameters Parameters of the CollectionParameter
+     * @param type type of collection
+     * @param id identifier of the collection
      * @param direction Direction of the collection
      * @param stream N/A (At least temporarily)
      * @param prefix N/A (At least temporarily)
@@ -54,48 +54,41 @@ public class CollectionParameter extends CollectiveParameter {
      * @param keepRename Parameter keep rename.
      * @param monitor object to notify to changes on the parameter
      * @see DependencyParameter
-     * @see es.bsc.compss.api.impl.COMPSsRuntimeImpl
-     * @see es.bsc.compss.components.impl.TaskAnalyser
      */
-    public CollectionParameter(String id, List<Parameter> parameters, Direction direction, StdIOStream stream,
-        String prefix, String name, String contentType, double weight, boolean keepRename, ParameterMonitor monitor) {
-
-        // Type will always be COLLECTION_T, no need to pass it as a constructor parameter and wont be modified
-        // Stream and prefix are still forwarded for possible, future uses
-        super(DataType.COLLECTION_T, id, direction, stream, prefix, name, contentType, weight, keepRename, monitor);
-        this.parameters = parameters;
+    public CollectiveParameter(DataType type, String id, Direction direction, StdIOStream stream, String prefix,
+        String name, String contentType, double weight, boolean keepRename, ParameterMonitor monitor) {
+        super(type, direction, stream, prefix, name, contentType, weight, keepRename, monitor);
+        this.collectionId = id;
     }
 
     @Override
-    public String toString() {
-        // Stringbuilder adds less overhead when creating a string
-        StringBuilder sb = new StringBuilder();
-        sb.append("CollectionParameter ").append(this.getCollectionId()).append("\n");
-        sb.append("Name: ").append(getName()).append("\n");
-        sb.append("Contents:\n");
-        for (Parameter s : parameters) {
-            sb.append("\t").append(s).append("\n");
-        }
-        return sb.toString();
+    public boolean isCollective() {
+        return true;
     }
 
     /**
-     * Returns the parameters of the elements within collection.
+     * Get the identifier of the collection.
+     * 
+     * @return The collection identifier.
+     */
+    public String getCollectionId() {
+        return this.collectionId;
+    }
+
+    /**
+     * Set the identifier of the collection.
+     * 
+     * @param collectionId The collection Id.
+     */
+    public void setCollectionId(String collectionId) {
+        this.collectionId = collectionId;
+    }
+
+    /**
+     * Returns the collection parameters.
      * 
      * @return List of the internal parameters of the collection.
      */
-    @Override
-    public List<Parameter> getElements() {
-        return this.parameters;
-    }
-
-    /**
-     * Sets the internal parameters of the collection.
-     * 
-     * @param parameters New internal parameters of the collection.
-     */
-    public void setParameters(List<Parameter> parameters) {
-        this.parameters = parameters;
-    }
+    public abstract List<Parameter> getElements();
 
 }

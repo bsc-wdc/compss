@@ -52,6 +52,11 @@ public class StreamParameter extends DependencyParameter {
         this.hashCode = hashCode;
     }
 
+    @Override
+    public boolean isCollective() {
+        return false;
+    }
+
     public Object getValue() {
         return this.value;
     }

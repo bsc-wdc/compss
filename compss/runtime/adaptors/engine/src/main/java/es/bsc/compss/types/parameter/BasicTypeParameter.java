@@ -59,6 +59,11 @@ public class BasicTypeParameter extends Parameter {
         return false;
     }
 
+    @Override
+    public boolean isCollective() {
+        return false;
+    }
+
     /**
      * Returns the parameter value.
      * 

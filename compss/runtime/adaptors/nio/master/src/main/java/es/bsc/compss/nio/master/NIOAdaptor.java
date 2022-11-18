@@ -620,7 +620,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
                 NIOResultCollection colResult = (NIOResultCollection) result;
 
                 List<NIOResult> taskResults = colResult.getElements();
-                List<Parameter> taskParams = colParam.getParameters();
+                List<Parameter> taskParams = colParam.getElements();
                 Iterator<Parameter> taskParamsItr = taskParams.iterator();
                 Iterator<NIOResult> taskResultItr = taskResults.iterator();
 

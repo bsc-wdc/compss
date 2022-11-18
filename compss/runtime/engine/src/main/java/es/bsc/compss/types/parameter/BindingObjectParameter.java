@@ -54,6 +54,11 @@ public class BindingObjectParameter extends DependencyParameter {
         this.hashCode = hashCode;
     }
 
+    @Override
+    public boolean isCollective() {
+        return false;
+    }
+
     public String getId() {
         return this.bo.toString();
     }

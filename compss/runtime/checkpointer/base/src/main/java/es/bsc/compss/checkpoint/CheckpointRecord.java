@@ -42,9 +42,8 @@ import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.operation.DataOperation;
-import es.bsc.compss.types.parameter.CollectionParameter;
+import es.bsc.compss.types.parameter.CollectiveParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
-import es.bsc.compss.types.parameter.DictCollectionParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.types.uri.SimpleURI;
@@ -205,23 +204,13 @@ public class CheckpointRecord {
     }
 
     private void recoverTaskParameter(Parameter param) {
-        DataType type = param.getType();
-
-        if (type == DataType.COLLECTION_T) {
-            CollectionParameter cp = (CollectionParameter) param;
-            for (Parameter sp : cp.getParameters()) {
+        if (param.isCollective()) {
+            CollectiveParameter cp = (CollectiveParameter) param;
+            for (Parameter sp : cp.getElements()) {
                 recoverTaskParameter(sp);
             }
-        } else {
-            if (type == DataType.DICT_COLLECTION_T) {
-                DictCollectionParameter dcp = (DictCollectionParameter) param;
-                for (Map.Entry<Parameter, Parameter> entry : dcp.getParameters().entrySet()) {
-                    recoverTaskParameter(entry.getKey());
-                    recoverTaskParameter(entry.getValue());
-                }
-            }
         }
-
+        DataType type = param.getType();
         if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T
             || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T) {
             DependencyParameter dp = ((DependencyParameter) param);
@@ -304,21 +293,14 @@ public class CheckpointRecord {
     }
 
     private void registerTaskParameter(Parameter param, CheckpointTask ctl) {
-        DataType type = param.getType();
-
-        if (type == DataType.COLLECTION_T) {
-            CollectionParameter cp = (CollectionParameter) param;
-            for (Parameter sp : cp.getParameters()) {
+        if (param.isCollective()) {
+            CollectiveParameter cp = (CollectiveParameter) param;
+            for (Parameter sp : cp.getElements()) {
                 registerTaskParameter(sp, ctl);
-            }
-        } else if (type == DataType.DICT_COLLECTION_T) {
-            DictCollectionParameter dcp = (DictCollectionParameter) param;
-            for (Map.Entry<Parameter, Parameter> entry : dcp.getParameters().entrySet()) {
-                registerTaskParameter(entry.getKey(), ctl);
-                registerTaskParameter(entry.getValue(), ctl);
             }
         }
 
+        DataType type = param.getType();
         if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T
             || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T) {
             DependencyParameter dp = (DependencyParameter) param;
@@ -397,23 +379,14 @@ public class CheckpointRecord {
     }
 
     private void computedTaskParameter(Parameter param) {
-        DataType type = param.getType();
-
-        if (type == DataType.COLLECTION_T) {
-            CollectionParameter cp = (CollectionParameter) param;
-            for (Parameter sp : cp.getParameters()) {
+        if (param.isCollective()) {
+            CollectiveParameter cp = (CollectiveParameter) param;
+            for (Parameter sp : cp.getElements()) {
                 computedTaskParameter(sp);
-            }
-        } else {
-            if (type == DataType.DICT_COLLECTION_T) {
-                DictCollectionParameter dcp = (DictCollectionParameter) param;
-                for (Map.Entry<Parameter, Parameter> entry : dcp.getParameters().entrySet()) {
-                    computedTaskParameter(entry.getKey());
-                    computedTaskParameter(entry.getValue());
-                }
             }
         }
 
+        DataType type = param.getType();
         if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T
             || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T) {
             DependencyParameter dp = (DependencyParameter) param;
@@ -458,23 +431,14 @@ public class CheckpointRecord {
     }
 
     private void requestTaskParameterCheckpoint(Parameter param) {
-        DataType type = param.getType();
-
-        if (type == DataType.COLLECTION_T) {
-            CollectionParameter cp = (CollectionParameter) param;
-            for (Parameter sp : cp.getParameters()) {
+        if (param.isCollective()) {
+            CollectiveParameter cp = (CollectiveParameter) param;
+            for (Parameter sp : cp.getElements()) {
                 requestTaskParameterCheckpoint(sp);
-            }
-        } else {
-            if (type == DataType.DICT_COLLECTION_T) {
-                DictCollectionParameter dcp = (DictCollectionParameter) param;
-                for (Map.Entry<Parameter, Parameter> entry : dcp.getParameters().entrySet()) {
-                    requestTaskParameterCheckpoint(entry.getKey());
-                    requestTaskParameterCheckpoint(entry.getValue());
-                }
             }
         }
 
+        DataType type = param.getType();
         if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T
             || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T) {
             DependencyParameter dp = (DependencyParameter) param;
@@ -485,23 +449,14 @@ public class CheckpointRecord {
     }
 
     private void requestTaskParameterCheckpoint(Parameter param, List<DataVersion> allowed) {
-        DataType type = param.getType();
-
-        if (type == DataType.COLLECTION_T) {
-            CollectionParameter cp = (CollectionParameter) param;
-            for (Parameter sp : cp.getParameters()) {
+        if (param.isCollective()) {
+            CollectiveParameter cp = (CollectiveParameter) param;
+            for (Parameter sp : cp.getElements()) {
                 requestTaskParameterCheckpoint(sp, allowed);
-            }
-        } else {
-            if (type == DataType.DICT_COLLECTION_T) {
-                DictCollectionParameter dcp = (DictCollectionParameter) param;
-                for (Map.Entry<Parameter, Parameter> entry : dcp.getParameters().entrySet()) {
-                    requestTaskParameterCheckpoint(entry.getKey(), allowed);
-                    requestTaskParameterCheckpoint(entry.getValue(), allowed);
-                }
             }
         }
 
+        DataType type = param.getType();
         if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T
             || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T) {
             DependencyParameter dp = (DependencyParameter) param;

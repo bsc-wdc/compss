@@ -25,14 +25,12 @@ import es.bsc.compss.types.data.LocationMonitor;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.data.accessid.RWAccessId;
-import es.bsc.compss.types.parameter.CollectionParameter;
+import es.bsc.compss.types.parameter.CollectiveParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
-import es.bsc.compss.types.parameter.DictCollectionParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 
@@ -63,52 +61,40 @@ public class DataLocality extends SchedulingInformation {
 
     private void registerLocalityScoreMonitoring(Parameter p) {
         if (p.isPotentialDependency() && p.getDirection() != Direction.OUT) {
-            switch (p.getType()) {
-                case COLLECTION_T: {
-                    CollectionParameter cp = (CollectionParameter) p;
-                    registerLocalityScoreMonitoring(cp.getParameters());
+            if (p.isCollective()) {
+                CollectiveParameter cp = (CollectiveParameter) p;
+                registerLocalityScoreMonitoring(cp.getElements());
+            } else {
+                DependencyParameter dp = (DependencyParameter) p;
+                DataInstanceId dId = null;
+                switch (dp.getDirection()) {
+                    case IN:
+                    case IN_DELETE:
+                    case CONCURRENT:
+                        RAccessId raId = (RAccessId) dp.getDataAccessId();
+                        dId = raId.getReadDataInstance();
+                        break;
+                    case COMMUTATIVE:
+                    case INOUT:
+                        RWAccessId rwaId = (RWAccessId) dp.getDataAccessId();
+                        dId = rwaId.getReadDataInstance();
+                        break;
+                    case OUT:
+                        // Cannot happen because of previous if
+                        return;
                 }
-                    break;
-                case DICT_COLLECTION_T: {
-                    DictCollectionParameter dcp = (DictCollectionParameter) p;
-                    for (Map.Entry<Parameter, Parameter> entry : dcp.getParameters().entrySet()) {
-                        registerLocalityScoreMonitoring(entry.getKey());
-                        registerLocalityScoreMonitoring(entry.getValue());
-                    }
-                }
-                    break;
-                default: {
-                    DependencyParameter dp = (DependencyParameter) p;
-                    DataInstanceId dId = null;
-                    switch (dp.getDirection()) {
-                        case IN:
-                        case IN_DELETE:
-                        case CONCURRENT:
-                            RAccessId raId = (RAccessId) dp.getDataAccessId();
-                            dId = raId.getReadDataInstance();
-                            break;
-                        case COMMUTATIVE:
-                        case INOUT:
-                            RWAccessId rwaId = (RWAccessId) dp.getDataAccessId();
-                            dId = rwaId.getReadDataInstance();
-                            break;
-                        case OUT:
-                            // Cannot happen because of previous if
-                            return;
-                    }
-                    if (dId != null) {
-                        LogicalData dataLD = dId.getData();
+                if (dId != null) {
+                    LogicalData dataLD = dId.getData();
 
-                        if (dataLD != null) {
-                            // Update current locality score
-                            Set<Resource> hosts = dataLD.getAllHosts();
-                            increasePreregisteredScores(hosts, p.getWeight());
-                            LocationMonitor monitor = new LocationScoreMonitor(this, p.getWeight());
-                            // Register future score monitoring
-                            dataLD.registerLocationMonitor(monitor);
-                        }
-
+                    if (dataLD != null) {
+                        // Update current locality score
+                        Set<Resource> hosts = dataLD.getAllHosts();
+                        increasePreregisteredScores(hosts, p.getWeight());
+                        LocationMonitor monitor = new LocationScoreMonitor(this, p.getWeight());
+                        // Register future score monitoring
+                        dataLD.registerLocationMonitor(monitor);
                     }
+
                 }
             }
         }

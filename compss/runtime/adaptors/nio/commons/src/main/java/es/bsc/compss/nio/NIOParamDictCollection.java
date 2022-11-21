@@ -55,7 +55,7 @@ public class NIOParamDictCollection extends NIOParamCollection implements Invoca
     public int getSize() {
         return super.getSize() / 2;
     }
-    
+
     @Override
     public Map<NIOParam, NIOParam> getDictionary() {
         Map<NIOParam, NIOParam> map = new HashMap<>();

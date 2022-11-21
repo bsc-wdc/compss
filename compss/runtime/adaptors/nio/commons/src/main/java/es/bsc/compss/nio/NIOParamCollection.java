@@ -57,6 +57,11 @@ public class NIOParamCollection extends NIOParam implements InvocationParamColle
     }
 
     @Override
+    public boolean isCollective() {
+        return true;
+    }
+
+    @Override
     public int getSize() {
         return this.collectionParameters.size();
     }

@@ -80,6 +80,11 @@ public class FakeInvocationParam implements InvocationParam {
     }
 
     @Override
+    public boolean isCollective() {
+        return false;
+    }
+
+    @Override
     public boolean isPreserveSourceData() {
         return false;
     }

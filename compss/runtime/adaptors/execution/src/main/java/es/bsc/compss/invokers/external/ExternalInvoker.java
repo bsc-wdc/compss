@@ -277,8 +277,8 @@ public abstract class ExternalInvoker extends Invoker {
                 paramArgs.add(np.getValue().toString());
                 break;
             case DICT_COLLECTION_T:
-                InvocationParamDictCollection<InvocationParam, InvocationParam> ipdc =
-                    (InvocationParamDictCollection<InvocationParam, InvocationParam>) np;
+                InvocationParamDictCollection<InvocationParam> ipdc =
+                    (InvocationParamDictCollection<InvocationParam>) np;
                 writeDictCollection(ipdc);
                 paramArgs.add(np.getValue().toString());
                 break;
@@ -302,7 +302,7 @@ public abstract class ExternalInvoker extends Invoker {
                     if (subParam.getType() == DataType.COLLECTION_T) {
                         writeCollection((InvocationParamCollection<InvocationParam>) subParam);
                     } else if (subParam.getType() == DataType.DICT_COLLECTION_T) {
-                        writeDictCollection((InvocationParamDictCollection<InvocationParam, InvocationParam>) subParam);
+                        writeDictCollection((InvocationParamDictCollection<InvocationParam>) subParam);
                     }
                 }
             } catch (Exception e) {
@@ -313,7 +313,7 @@ public abstract class ExternalInvoker extends Invoker {
     }
 
     @SuppressWarnings("unchecked")
-    private static void writeDictCollection(InvocationParamDictCollection<InvocationParam, InvocationParam> ipdc) {
+    private static void writeDictCollection(InvocationParamDictCollection<InvocationParam> ipdc) {
         String pathToWrite = (String) ipdc.getValue();
         LOGGER.debug("Writting Dictionary Collection file " + pathToWrite + " ");
         if (new File(pathToWrite).exists()) {
@@ -326,7 +326,7 @@ public abstract class ExternalInvoker extends Invoker {
                     writer.println(
                         subParam.getType().ordinal() + " " + subParam.getValue() + " " + subParam.getContentType());
                     if (subParam.getType() == DataType.DICT_COLLECTION_T) {
-                        writeDictCollection((InvocationParamDictCollection<InvocationParam, InvocationParam>) subParam);
+                        writeDictCollection((InvocationParamDictCollection<InvocationParam>) subParam);
                     } else if (subParam.getType() == DataType.COLLECTION_T) {
                         writeCollection((InvocationParamCollection<InvocationParam>) subParam);
                     }
@@ -334,7 +334,7 @@ public abstract class ExternalInvoker extends Invoker {
                     writer.println(
                         subParam.getType().ordinal() + " " + subParam.getValue() + " " + subParam.getContentType());
                     if (subParam.getType() == DataType.DICT_COLLECTION_T) {
-                        writeDictCollection((InvocationParamDictCollection<InvocationParam, InvocationParam>) subParam);
+                        writeDictCollection((InvocationParamDictCollection<InvocationParam>) subParam);
                     } else if (subParam.getType() == DataType.COLLECTION_T) {
                         writeCollection((InvocationParamCollection<InvocationParam>) subParam);
                     }
@@ -454,8 +454,8 @@ public abstract class ExternalInvoker extends Invoker {
                 deleteCollection(ipc);
                 break;
             case DICT_COLLECTION_T:
-                InvocationParamDictCollection<InvocationParam, InvocationParam> ipdc =
-                    (InvocationParamDictCollection<InvocationParam, InvocationParam>) np;
+                InvocationParamDictCollection<InvocationParam> ipdc =
+                    (InvocationParamDictCollection<InvocationParam>) np;
                 deleteDictCollection(ipdc);
                 break;
             default:
@@ -473,13 +473,13 @@ public abstract class ExternalInvoker extends Invoker {
             if (subParam.getType() == DataType.COLLECTION_T) {
                 deleteCollection((InvocationParamCollection<InvocationParam>) subParam);
             } else if (subParam.getType() == DataType.DICT_COLLECTION_T) {
-                deleteDictCollection((InvocationParamDictCollection<InvocationParam, InvocationParam>) subParam);
+                deleteDictCollection((InvocationParamDictCollection<InvocationParam>) subParam);
             }
         }
     }
 
     @SuppressWarnings("unchecked")
-    private static void deleteDictCollection(InvocationParamDictCollection<InvocationParam, InvocationParam> ipdc) {
+    private static void deleteDictCollection(InvocationParamDictCollection<InvocationParam> ipdc) {
         String pathToWrite = (String) ipdc.getValue();
         LOGGER.debug("Writting Dictionary Collection file " + pathToWrite + " ");
         (new File(pathToWrite)).delete();
@@ -487,13 +487,13 @@ public abstract class ExternalInvoker extends Invoker {
         for (Map.Entry<InvocationParam, InvocationParam> entry : ipdc.getDictCollectionParameters().entrySet()) {
             InvocationParam subParam = entry.getKey();
             if (subParam.getType() == DataType.DICT_COLLECTION_T) {
-                deleteDictCollection((InvocationParamDictCollection<InvocationParam, InvocationParam>) subParam);
+                deleteDictCollection((InvocationParamDictCollection<InvocationParam>) subParam);
             } else if (subParam.getType() == DataType.COLLECTION_T) {
                 deleteCollection((InvocationParamCollection<InvocationParam>) subParam);
             }
             subParam = entry.getValue();
             if (subParam.getType() == DataType.DICT_COLLECTION_T) {
-                deleteDictCollection((InvocationParamDictCollection<InvocationParam, InvocationParam>) subParam);
+                deleteDictCollection((InvocationParamDictCollection<InvocationParam>) subParam);
             } else if (subParam.getType() == DataType.COLLECTION_T) {
                 deleteCollection((InvocationParamCollection<InvocationParam>) subParam);
             }

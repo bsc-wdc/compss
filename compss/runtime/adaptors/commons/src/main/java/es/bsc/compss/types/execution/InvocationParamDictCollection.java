@@ -19,12 +19,11 @@ package es.bsc.compss.types.execution;
 import java.util.Map;
 
 
-public interface InvocationParamDictCollection<T1 extends InvocationParam, T2 extends InvocationParam>
-    extends InvocationParam {
+public interface InvocationParamDictCollection<T extends InvocationParam> extends InvocationParam {
 
-    public Map<T1, T2> getDictCollectionParameters();
+    public Map<T, T> getDictCollectionParameters();
 
-    public void addParameter(T1 k, T2 v);
+    public void addParameter(T k, T v);
 
     public int getSize();
 

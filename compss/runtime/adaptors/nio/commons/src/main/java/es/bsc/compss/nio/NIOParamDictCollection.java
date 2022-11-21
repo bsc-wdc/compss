@@ -31,7 +31,7 @@ import java.util.Map;
  * 
  * @see NIOParam
  */
-public class NIOParamDictCollection extends NIOParam implements InvocationParamDictCollection<NIOParam, NIOParam> {
+public class NIOParamDictCollection extends NIOParam implements InvocationParamDictCollection<NIOParam> {
 
     private Map<NIOParam, NIOParam> dictCollectionParameters;
 

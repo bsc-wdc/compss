@@ -549,8 +549,8 @@ public class ContainerInvoker extends Invoker {
                 paramArgs.add(np.getValue().toString());
                 break;
             case DICT_COLLECTION_T:
-                InvocationParamDictCollection<InvocationParam, InvocationParam> ipdc =
-                    (InvocationParamDictCollection<InvocationParam, InvocationParam>) np;
+                InvocationParamDictCollection<InvocationParam> ipdc =
+                    (InvocationParamDictCollection<InvocationParam>) np;
                 writeDictCollection(ipdc);
                 paramArgs.add(np.getValue().toString());
                 break;
@@ -574,7 +574,7 @@ public class ContainerInvoker extends Invoker {
                     if (subParam.getType() == DataType.COLLECTION_T) {
                         writeCollection((InvocationParamCollection<InvocationParam>) subParam);
                     } else if (subParam.getType() == DataType.DICT_COLLECTION_T) {
-                        writeDictCollection((InvocationParamDictCollection<InvocationParam, InvocationParam>) subParam);
+                        writeDictCollection((InvocationParamDictCollection<InvocationParam>) subParam);
                     }
                 }
             } catch (Exception e) {
@@ -585,7 +585,7 @@ public class ContainerInvoker extends Invoker {
     }
 
     @SuppressWarnings("unchecked")
-    private static void writeDictCollection(InvocationParamDictCollection<InvocationParam, InvocationParam> ipdc) {
+    private static void writeDictCollection(InvocationParamDictCollection<InvocationParam> ipdc) {
         String pathToWrite = (String) ipdc.getValue();
         LOGGER.debug("Writting Dictionary Collection file " + pathToWrite + " ");
         if (new File(pathToWrite).exists()) {
@@ -598,7 +598,7 @@ public class ContainerInvoker extends Invoker {
                     writer.println(
                         subParam.getType().ordinal() + " " + subParam.getValue() + " " + subParam.getContentType());
                     if (subParam.getType() == DataType.DICT_COLLECTION_T) {
-                        writeDictCollection((InvocationParamDictCollection<InvocationParam, InvocationParam>) subParam);
+                        writeDictCollection((InvocationParamDictCollection<InvocationParam>) subParam);
                     } else if (subParam.getType() == DataType.COLLECTION_T) {
                         writeCollection((InvocationParamCollection<InvocationParam>) subParam);
                     }
@@ -606,7 +606,7 @@ public class ContainerInvoker extends Invoker {
                     writer.println(
                         subParam.getType().ordinal() + " " + subParam.getValue() + " " + subParam.getContentType());
                     if (subParam.getType() == DataType.DICT_COLLECTION_T) {
-                        writeDictCollection((InvocationParamDictCollection<InvocationParam, InvocationParam>) subParam);
+                        writeDictCollection((InvocationParamDictCollection<InvocationParam>) subParam);
                     } else if (subParam.getType() == DataType.COLLECTION_T) {
                         writeCollection((InvocationParamCollection<InvocationParam>) subParam);
                     }

@@ -31,7 +31,7 @@ import java.util.Map;
  */
 
 public class LocalParameterDictCollection extends LocalParameter
-    implements InvocationParamDictCollection<LocalParameter, LocalParameter> {
+    implements InvocationParamDictCollection<LocalParameter> {
 
     private final Map<LocalParameter, LocalParameter> dictCollectionParameters;
 

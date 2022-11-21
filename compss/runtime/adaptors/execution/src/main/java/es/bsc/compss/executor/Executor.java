@@ -53,7 +53,6 @@ import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationExecutionRequest;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.InvocationParamCollection;
-import es.bsc.compss.types.execution.InvocationParamDictCollection;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.execution.exceptions.NonExistentDataException;
 import es.bsc.compss.types.execution.exceptions.NonExistentElementException;
@@ -886,25 +885,13 @@ public class Executor implements Runnable, InvocationRunner {
             Tracer.emitEvent(TraceEvent.BIND_ORIG_NAME);
         }
 
-        switch (param.getType()) {
-            case COLLECTION_T:
-                // do not enter here
-                @SuppressWarnings("unchecked")
-                InvocationParamCollection<InvocationParam> cp = (InvocationParamCollection<InvocationParam>) param;
-                for (InvocationParam p : cp.getCollectionParameters()) {
-                    bindOriginalFilenameToRenames(p, sandbox);
-                }
-                break;
-            case DICT_COLLECTION_T:
-                @SuppressWarnings("unchecked")
-                InvocationParamDictCollection<InvocationParam> dcp =
-                    (InvocationParamDictCollection<InvocationParam>) param;
-                for (Map.Entry<InvocationParam, InvocationParam> entry : dcp.getDictionary().entrySet()) {
-                    bindOriginalFilenameToRenames(entry.getKey(), sandbox);
-                    bindOriginalFilenameToRenames(entry.getValue(), sandbox);
-                }
-                break;
-            case FILE_T:
+        if (param.isCollective()) {
+            InvocationParamCollection<InvocationParam> cp = (InvocationParamCollection<InvocationParam>) param;
+            for (InvocationParam p : cp.getCollectionParameters()) {
+                bindOriginalFilenameToRenames(p, sandbox);
+            }
+        } else {
+            if (param.getType() == DataType.FILE_T) {
                 String renamedPath = (String) param.getValue();
                 LOGGER.debug("Renamed File Path is " + renamedPath);
                 param.setRenamedName(renamedPath);
@@ -923,10 +910,9 @@ public class Executor implements Runnable, InvocationRunner {
                         param.setValue(inSandboxPath);
                     }
                 }
-                break;
-            default:
-                // Do nothing
+            }
         }
+
         if (Tracer.isActivated()) {
             Tracer.emitEventEnd(TraceEvent.BIND_ORIG_NAME);
         }
@@ -1006,39 +992,19 @@ public class Executor implements Runnable, InvocationRunner {
         LinkedList<NonExistentDataException> nonExistsExc = new LinkedList<>();
         LinkedList<UnwritableValueException> unwrittableExc = new LinkedList<>();
 
-        switch (param.getType()) {
-            case COLLECTION_T:
-                InvocationParamCollection<InvocationParam> cp = (InvocationParamCollection<InvocationParam>) param;
-                for (InvocationParam p : cp.getCollectionParameters()) {
-                    try {
-                        stageOutParam(p, sandbox, raiseExceptionIfNonExistent, createifNonExistent);
-                    } catch (NonExistentDataException nede) {
-                        nonExistsExc.add(nede);
-                    } catch (UnwritableValueException uve) {
-                        unwrittableExc.add(uve);
-                    }
+        if (param.isCollective()) {
+            InvocationParamCollection<InvocationParam> cp = (InvocationParamCollection<InvocationParam>) param;
+            for (InvocationParam p : cp.getCollectionParameters()) {
+                try {
+                    stageOutParam(p, sandbox, raiseExceptionIfNonExistent, createifNonExistent);
+                } catch (NonExistentDataException nede) {
+                    nonExistsExc.add(nede);
+                } catch (UnwritableValueException uve) {
+                    unwrittableExc.add(uve);
                 }
-                break;
-            case DICT_COLLECTION_T:
-                InvocationParamDictCollection<InvocationParam> dcp;
-                dcp = (InvocationParamDictCollection<InvocationParam>) param;
-                for (Map.Entry<InvocationParam, InvocationParam> entry : dcp.getDictionary().entrySet()) {
-                    try {
-                        stageOutParam(entry.getKey(), sandbox, raiseExceptionIfNonExistent, createifNonExistent);
-                    } catch (NonExistentDataException nede) {
-                        nonExistsExc.add(nede);
-                    }
-                    try {
-                        stageOutParam(entry.getValue(), sandbox, raiseExceptionIfNonExistent, createifNonExistent);
-                    } catch (NonExistentDataException nede) {
-                        nonExistsExc.add(nede);
-                    } catch (UnwritableValueException uve) {
-                        unwrittableExc.add(uve);
-                    }
-                }
-                break;
-            default:
-                unbindOriginalFilenameToRename(param, sandbox);
+            }
+        } else {
+            unbindOriginalFilenameToRename(param, sandbox);
         }
 
         if (param.isWriteFinalValue()) {

@@ -32,7 +32,6 @@ import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.InvocationParamCollection;
-import es.bsc.compss.types.execution.InvocationParamDictCollection;
 import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.definition.ContainerDefinition;
@@ -46,7 +45,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
-import java.util.Map;
 
 
 public class ContainerInvoker extends Invoker {
@@ -544,14 +542,9 @@ public class ContainerInvoker extends Invoker {
                 paramArgs.addAll(Arrays.asList(values));
                 break;
             case COLLECTION_T:
+            case DICT_COLLECTION_T:
                 InvocationParamCollection<InvocationParam> ipc = (InvocationParamCollection<InvocationParam>) np;
                 writeCollection(ipc);
-                paramArgs.add(np.getValue().toString());
-                break;
-            case DICT_COLLECTION_T:
-                InvocationParamDictCollection<InvocationParam> ipdc =
-                    (InvocationParamDictCollection<InvocationParam>) np;
-                writeDictCollection(ipdc);
                 paramArgs.add(np.getValue().toString());
                 break;
             default:
@@ -569,50 +562,17 @@ public class ContainerInvoker extends Invoker {
         } else {
             try (PrintWriter writer = new PrintWriter(pathToWrite, "UTF-8");) {
                 for (InvocationParam subParam : ipc.getCollectionParameters()) {
-                    writer.println(
-                        subParam.getType().ordinal() + " " + subParam.getValue() + " " + subParam.getContentType());
-                    if (subParam.getType() == DataType.COLLECTION_T) {
+                    int subParamType = subParam.getType().ordinal();
+                    Object subParamValue = subParam.getValue();
+                    String subParamContentType = subParam.getContentType();
+                    writer.println(subParamType + " " + subParamValue + " " + subParamContentType);
+                    if (subParam.isCollective()) {
                         writeCollection((InvocationParamCollection<InvocationParam>) subParam);
-                    } else if (subParam.getType() == DataType.DICT_COLLECTION_T) {
-                        writeDictCollection((InvocationParamDictCollection<InvocationParam>) subParam);
                     }
                 }
             } catch (Exception e) {
                 LOGGER.error("Error writting collection to file", e);
                 e.printStackTrace(); // NOSONAR need to print in the job out/err
-            }
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private static void writeDictCollection(InvocationParamDictCollection<InvocationParam> ipdc) {
-        String pathToWrite = (String) ipdc.getValue();
-        LOGGER.debug("Writting Dictionary Collection file " + pathToWrite + " ");
-        if (new File(pathToWrite).exists()) {
-            LOGGER.debug("Dictionary Collection file " + pathToWrite + " already written");
-        } else {
-            try (PrintWriter writer = new PrintWriter(pathToWrite, "UTF-8");) {
-                for (Map.Entry<InvocationParam, InvocationParam> entry : ipdc.getDictionary().entrySet()) {
-                    InvocationParam subParam = entry.getKey();
-                    writer.println(
-                        subParam.getType().ordinal() + " " + subParam.getValue() + " " + subParam.getContentType());
-                    if (subParam.getType() == DataType.DICT_COLLECTION_T) {
-                        writeDictCollection((InvocationParamDictCollection<InvocationParam>) subParam);
-                    } else if (subParam.getType() == DataType.COLLECTION_T) {
-                        writeCollection((InvocationParamCollection<InvocationParam>) subParam);
-                    }
-                    subParam = entry.getValue();
-                    writer.println(
-                        subParam.getType().ordinal() + " " + subParam.getValue() + " " + subParam.getContentType());
-                    if (subParam.getType() == DataType.DICT_COLLECTION_T) {
-                        writeDictCollection((InvocationParamDictCollection<InvocationParam>) subParam);
-                    } else if (subParam.getType() == DataType.COLLECTION_T) {
-                        writeCollection((InvocationParamCollection<InvocationParam>) subParam);
-                    }
-                }
-            } catch (Exception e) {
-                LOGGER.error("Error writting dictionary collection to file");
-                e.printStackTrace();
             }
         }
     }

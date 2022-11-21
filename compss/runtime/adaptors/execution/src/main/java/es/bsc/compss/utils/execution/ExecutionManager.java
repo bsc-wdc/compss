@@ -85,6 +85,14 @@ public class ExecutionManager {
     }
 
     /**
+     * Starts the Python mirror.
+     */
+    public void startMirror() {
+        LOGGER.info("Init Python Mirror");
+        this.cpuExecutors.startMirror();
+    }
+
+    /**
      * Enqueues a new task.
      *
      * @param exec Task execution description

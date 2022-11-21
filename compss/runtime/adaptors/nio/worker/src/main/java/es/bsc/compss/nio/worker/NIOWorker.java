@@ -203,7 +203,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         String gpuMap, String fpgaMap, int limitOfTasks, int ioExecNum, String appUuid, String traceFlag,
         String traceHost, String tracingTaskDependencies, String storageConf, TaskExecution executionType,
         boolean persistentC, String workingDir, String installDir, String appDir, JavaParams javaParams,
-        PythonParams pyParams, CParams cParams) {
+        PythonParams pyParams, CParams cParams, String lang) {
 
         super(snd, rcv, masterPort);
 
@@ -263,6 +263,11 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
         try {
             this.executionManager.init();
+            // Starting the Python mirror here is avoids the overhead of mirror creation
+            // right before the task execution
+            if (lang.toUpperCase().equals(String.valueOf(COMPSsConstants.Lang.PYTHON))) {
+                this.executionManager.startMirror();
+            }
         } catch (InitializationException ie) {
             ErrorManager.error(EXECUTION_MANAGER_ERR, ie);
         }
@@ -1070,7 +1075,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         int limitOfTasks = Integer.parseInt(args[15]);
 
         String appUuid = args[16];
-        // String lang = args[17];
+        String lang = args[17];
         String workingDir = args[18];
         String installDir = args[19];
         final String appDir = args[20];
@@ -1125,6 +1130,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             WORKER_LOGGER.debug("IO Executors: " + String.valueOf(ioExecNum));
 
             WORKER_LOGGER.debug("App uuid: " + appUuid);
+            WORKER_LOGGER.debug("Language: " + lang);
             WORKER_LOGGER.debug("WorkingDir:" + workingDir);
             WORKER_LOGGER.debug("Install Dir: " + installDir);
 
@@ -1167,10 +1173,12 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
          * ***********************************************************************************************************
          * LAUNCH THE WORKER
          *************************************************************************************************************/
+
+        // todo: nm: pass the lang to the nio constructor
         NIOWorker nw = new NIOWorker(debug, maxSnd, maxRcv, workerIP, mName, mPort, streamingPort, computingUnitsCPU,
             computingUnitsGPU, computingUnitsFPGA, cpuMap, gpuMap, fpgaMap, limitOfTasks, ioExecNum, appUuid, traceFlag,
             traceHost, traceTaskDependencies, storageConf, executionType, persistentC, workingDir, installDir, appDir,
-            javaParams, pyParams, cParams);
+            javaParams, pyParams, cParams, lang);
 
         NIOMessageHandler mh = new NIOMessageHandler(nw);
 

@@ -23,7 +23,9 @@ import es.bsc.compss.execution.utils.ResourceManager;
 import es.bsc.compss.executor.Executor;
 import es.bsc.compss.executor.InvocationRunner;
 import es.bsc.compss.executor.external.ExecutionPlatformMirror;
+import es.bsc.compss.executor.external.piped.PipedMirror;
 import es.bsc.compss.invokers.Invoker;
+import es.bsc.compss.invokers.external.piped.PythonInvoker;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.execution.ActivateExecutorRequest;
 import es.bsc.compss.types.execution.ExecutorRequest;
@@ -151,6 +153,16 @@ public class ExecutionPlatform implements ExecutorContext {
         this.startSemaphore.acquireUninterruptibly(size);
         this.started = true;
         LOGGER.info("Started execution platform " + this.platformName + " with " + size);
+    }
+
+    /**
+     * Creates and starts the Python Mirror.
+     */
+    public final synchronized void startMirror() {
+        LOGGER.info("Starting the Python mirror on " + this.platformName);
+        PipedMirror mirror = PythonInvoker.getMirror(context, this);
+        this.registerMirror(PythonInvoker.class, mirror);
+        LOGGER.info("Started the Python mirror on " + this.platformName);
     }
 
     /**

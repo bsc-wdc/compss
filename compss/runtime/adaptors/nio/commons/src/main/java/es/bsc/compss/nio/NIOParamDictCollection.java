@@ -56,31 +56,18 @@ public class NIOParamDictCollection extends NIOParam implements InvocationParamD
         this.dictCollectionParameters = new HashMap<>();
     }
 
-    /**
-     * Returns the number of internal parameters of the dictionary collection.
-     * 
-     * @return The number of internal parameters of the dictionary collection.
-     */
+    @Override
     public int getSize() {
         return this.dictCollectionParameters.size();
     }
 
-    /**
-     * Returns a list of objects containing the dictionary collection parameters.
-     * 
-     * @return A list of objects containing the dictionary collection parameters.
-     */
-    public Map<NIOParam, NIOParam> getDictCollectionParameters() {
+    @Override
+    public Map<NIOParam, NIOParam> getDictionary() {
         return this.dictCollectionParameters;
     }
 
-    /**
-     * Adds a new parameter to the dictionary collection.
-     * 
-     * @param k Key parameter to add.
-     * @param v Value parameter to add.
-     */
-    public void addParameter(NIOParam k, NIOParam v) {
+    @Override
+    public void addEntry(NIOParam k, NIOParam v) {
         this.dictCollectionParameters.put(k, v);
     }
 

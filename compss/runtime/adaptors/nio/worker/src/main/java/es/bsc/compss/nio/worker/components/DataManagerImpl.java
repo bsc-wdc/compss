@@ -330,12 +330,12 @@ public class DataManagerImpl implements DataManager {
     private void fetchDictCollection(InvocationParam param, int index, FetchDataListener listener) {
         try {
             NIOParamDictCollection npdc = (NIOParamDictCollection) param;
-            Map<NIOParam, NIOParam> elements = npdc.getDictCollectionParameters();
+            Map<NIOParam, NIOParam> elements = npdc.getDictionary();
             WORKER_LOGGER.info("Checking NIOParamDictCollection (received " + elements.size() + " entries)");
             int subIndex = 0;
             DictCollectionFetchOperationsListener dcfol =
                 new DictCollectionFetchOperationsListener(param.getDataMgmtId(), listener);
-            for (Map.Entry<NIOParam, NIOParam> subNioEntry : npdc.getDictCollectionParameters().entrySet()) {
+            for (Map.Entry<NIOParam, NIOParam> subNioEntry : npdc.getDictionary().entrySet()) {
                 dcfol.addOperation();
                 WORKER_LOGGER.info("Fetching key: " + subNioEntry.getKey());
                 fetchParam(subNioEntry.getKey(), subIndex, dcfol);

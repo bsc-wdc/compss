@@ -899,7 +899,7 @@ public class Executor implements Runnable, InvocationRunner {
                 @SuppressWarnings("unchecked")
                 InvocationParamDictCollection<InvocationParam> dcp =
                     (InvocationParamDictCollection<InvocationParam>) param;
-                for (Map.Entry<InvocationParam, InvocationParam> entry : dcp.getDictCollectionParameters().entrySet()) {
+                for (Map.Entry<InvocationParam, InvocationParam> entry : dcp.getDictionary().entrySet()) {
                     bindOriginalFilenameToRenames(entry.getKey(), sandbox);
                     bindOriginalFilenameToRenames(entry.getValue(), sandbox);
                 }
@@ -1022,7 +1022,7 @@ public class Executor implements Runnable, InvocationRunner {
             case DICT_COLLECTION_T:
                 InvocationParamDictCollection<InvocationParam> dcp;
                 dcp = (InvocationParamDictCollection<InvocationParam>) param;
-                for (Map.Entry<InvocationParam, InvocationParam> entry : dcp.getDictCollectionParameters().entrySet()) {
+                for (Map.Entry<InvocationParam, InvocationParam> entry : dcp.getDictionary().entrySet()) {
                     try {
                         stageOutParam(entry.getKey(), sandbox, raiseExceptionIfNonExistent, createifNonExistent);
                     } catch (NonExistentDataException nede) {

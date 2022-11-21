@@ -320,8 +320,7 @@ public abstract class ExternalInvoker extends Invoker {
             LOGGER.debug("Dictionary Collection file " + pathToWrite + " already written");
         } else {
             try (PrintWriter writer = new PrintWriter(pathToWrite, "UTF-8");) {
-                for (Map.Entry<InvocationParam, InvocationParam> entry : ipdc.getDictCollectionParameters()
-                    .entrySet()) {
+                for (Map.Entry<InvocationParam, InvocationParam> entry : ipdc.getDictionary().entrySet()) {
                     InvocationParam subParam = entry.getKey();
                     writer.println(
                         subParam.getType().ordinal() + " " + subParam.getValue() + " " + subParam.getContentType());
@@ -484,7 +483,7 @@ public abstract class ExternalInvoker extends Invoker {
         LOGGER.debug("Writting Dictionary Collection file " + pathToWrite + " ");
         (new File(pathToWrite)).delete();
 
-        for (Map.Entry<InvocationParam, InvocationParam> entry : ipdc.getDictCollectionParameters().entrySet()) {
+        for (Map.Entry<InvocationParam, InvocationParam> entry : ipdc.getDictionary().entrySet()) {
             InvocationParam subParam = entry.getKey();
             if (subParam.getType() == DataType.DICT_COLLECTION_T) {
                 deleteDictCollection((InvocationParamDictCollection<InvocationParam>) subParam);

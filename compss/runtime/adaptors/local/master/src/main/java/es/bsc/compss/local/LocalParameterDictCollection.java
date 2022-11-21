@@ -54,12 +54,12 @@ public class LocalParameterDictCollection extends LocalParameter
     }
 
     @Override
-    public Map<LocalParameter, LocalParameter> getDictCollectionParameters() {
+    public Map<LocalParameter, LocalParameter> getDictionary() {
         return this.dictCollectionParameters;
     }
 
     @Override
-    public void addParameter(LocalParameter k, LocalParameter v) {
+    public void addEntry(LocalParameter k, LocalParameter v) {
         this.dictCollectionParameters.put(k, v);
     }
 

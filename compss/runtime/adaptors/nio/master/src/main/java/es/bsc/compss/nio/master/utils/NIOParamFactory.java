@@ -181,7 +181,7 @@ public class NIOParamFactory {
 
         DictCollectionParameter dictCollParam = (DictCollectionParameter) param;
         for (Map.Entry<Parameter, Parameter> entry : dictCollParam.getDictionary().entrySet()) {
-            npdc.addParameter(NIOParamFactory.fromParameter(entry.getKey(), node, fromReplicatedTask),
+            npdc.addEntry(NIOParamFactory.fromParameter(entry.getKey(), node, fromReplicatedTask),
                 NIOParamFactory.fromParameter(entry.getValue(), node, fromReplicatedTask));
         }
         if (DEBUG) {

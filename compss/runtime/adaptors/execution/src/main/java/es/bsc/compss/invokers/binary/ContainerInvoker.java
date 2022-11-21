@@ -592,8 +592,7 @@ public class ContainerInvoker extends Invoker {
             LOGGER.debug("Dictionary Collection file " + pathToWrite + " already written");
         } else {
             try (PrintWriter writer = new PrintWriter(pathToWrite, "UTF-8");) {
-                for (Map.Entry<InvocationParam, InvocationParam> entry : ipdc.getDictCollectionParameters()
-                    .entrySet()) {
+                for (Map.Entry<InvocationParam, InvocationParam> entry : ipdc.getDictionary().entrySet()) {
                     InvocationParam subParam = entry.getKey();
                     writer.println(
                         subParam.getType().ordinal() + " " + subParam.getValue() + " " + subParam.getContentType());

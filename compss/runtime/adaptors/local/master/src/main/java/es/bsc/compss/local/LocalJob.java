@@ -92,7 +92,7 @@ public class LocalJob extends JobImpl<COMPSsMaster> implements Invocation {
                 for (Map.Entry<Parameter, Parameter> entry : dcp.getDictionary().entrySet()) {
                     LocalParameter keyParam = generateLocalParameter(entry.getKey());
                     LocalParameter valueParam = generateLocalParameter(entry.getValue());
-                    lpdc.addParameter(keyParam, valueParam);
+                    lpdc.addEntry(keyParam, valueParam);
                 }
                 return lpdc;
             default:

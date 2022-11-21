@@ -21,10 +21,26 @@ import java.util.Map;
 
 public interface InvocationParamDictCollection<T extends InvocationParam> extends InvocationParam {
 
-    public Map<T, T> getDictCollectionParameters();
+    /**
+     * Returns a list of objects containing the dictionary collection parameters.
+     *
+     * @return A list of objects containing the dictionary collection parameters.
+     */
+    public Map<T, T> getDictionary();
 
-    public void addParameter(T k, T v);
+    /**
+     * Adds a new parameter to the dictionary collection.
+     *
+     * @param k Key parameter to add.
+     * @param v Value parameter to add.
+     */
+    public void addEntry(T k, T v);
 
+    /**
+     * Returns the number of internal parameters of the dictionary collection.
+     *
+     * @return The number of internal parameters of the dictionary collection.
+     */
     public int getSize();
 
 }

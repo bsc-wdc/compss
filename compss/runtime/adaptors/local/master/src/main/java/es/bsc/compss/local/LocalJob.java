@@ -83,7 +83,7 @@ public class LocalJob extends JobImpl<COMPSsMaster> implements Invocation {
                 CollectionParameter cp = (CollectionParameter) p;
                 LocalParameterCollection lpc = new LocalParameterCollection(p);
                 for (Parameter subParam : cp.getElements()) {
-                    lpc.addParameter(generateLocalParameter(subParam));
+                    lpc.addElement(generateLocalParameter(subParam));
                 }
                 return lpc;
             case DICT_COLLECTION_T:

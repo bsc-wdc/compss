@@ -160,7 +160,7 @@ public class NIOParamFactory {
 
         CollectionParameter collParam = (CollectionParameter) param;
         for (Parameter subParam : collParam.getElements()) {
-            npc.addParameter(NIOParamFactory.fromParameter(subParam, node, fromReplicatedTask));
+            npc.addElement(NIOParamFactory.fromParameter(subParam, node, fromReplicatedTask));
         }
 
         if (DEBUG) {

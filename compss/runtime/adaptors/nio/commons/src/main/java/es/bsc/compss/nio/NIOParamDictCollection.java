@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 
@@ -31,10 +32,7 @@ import java.util.Map;
  * 
  * @see NIOParam
  */
-public class NIOParamDictCollection extends NIOParam implements InvocationParamDictCollection<NIOParam> {
-
-    private Map<NIOParam, NIOParam> dictCollectionParameters;
-
+public class NIOParamDictCollection extends NIOParamCollection implements InvocationParamDictCollection<NIOParam> {
 
     /**
      * Create a new NIOParamCollection instance for externalization.
@@ -51,47 +49,40 @@ public class NIOParamDictCollection extends NIOParam implements InvocationParamD
      */
     public NIOParamDictCollection(NIOParam p) {
         super(p);
-
-        // Empty attributes
-        this.dictCollectionParameters = new HashMap<>();
     }
 
     @Override
     public int getSize() {
-        return this.dictCollectionParameters.size();
+        return super.getSize() / 2;
     }
-
+    
     @Override
     public Map<NIOParam, NIOParam> getDictionary() {
-        return this.dictCollectionParameters;
+        Map<NIOParam, NIOParam> map = new HashMap<>();
+        Iterator<NIOParam> elements = super.getCollectionParameters().iterator();
+        while (elements.hasNext()) {
+            NIOParam k = elements.next();
+            NIOParam v = elements.next();
+            map.put(k, v);
+        }
+        return map;
     }
 
     @Override
     public void addEntry(NIOParam k, NIOParam v) {
-        this.dictCollectionParameters.put(k, v);
+        super.addElement(k);
+        super.addElement(v);
     }
 
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         super.readExternal(in);
 
-        this.dictCollectionParameters = new HashMap<>();
-        int numParameters = in.readInt();
-        for (int i = 0; i < numParameters; ++i) {
-            this.dictCollectionParameters.put((NIOParam) in.readObject(), (NIOParam) in.readObject());
-        }
     }
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
         super.writeExternal(out);
-
-        out.writeInt(this.dictCollectionParameters.size());
-        for (Map.Entry<NIOParam, NIOParam> entry : this.dictCollectionParameters.entrySet()) {
-            // Note that this implementation also implicitly supports nesting
-            out.writeObject(entry.getKey());
-            out.writeObject(entry.getValue());
-        }
     }
 
     @Override

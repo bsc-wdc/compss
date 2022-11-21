@@ -20,6 +20,7 @@ import es.bsc.compss.types.execution.InvocationParamDictCollection;
 import es.bsc.compss.types.parameter.Parameter;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 
@@ -30,11 +31,8 @@ import java.util.Map;
  * @see LocalParameter
  */
 
-public class LocalParameterDictCollection extends LocalParameter
+public class LocalParameterDictCollection extends LocalParameterCollection
     implements InvocationParamDictCollection<LocalParameter> {
-
-    private final Map<LocalParameter, LocalParameter> dictCollectionParameters;
-
 
     /**
      * Create a new LocalParameterCollection copying the given LocalParameter values.
@@ -44,23 +42,29 @@ public class LocalParameterDictCollection extends LocalParameter
     public LocalParameterDictCollection(Parameter p) {
         super(p);
 
-        // Empty attributes
-        this.dictCollectionParameters = new HashMap<>();
     }
 
     @Override
     public int getSize() {
-        return this.dictCollectionParameters.size();
+        return super.getSize() / 2;
     }
 
     @Override
     public Map<LocalParameter, LocalParameter> getDictionary() {
-        return this.dictCollectionParameters;
+        Map<LocalParameter, LocalParameter> map = new HashMap<>();
+        Iterator<LocalParameter> elements = super.getCollectionParameters().iterator();
+        while (elements.hasNext()) {
+            LocalParameter k = elements.next();
+            LocalParameter v = elements.next();
+            map.put(k, v);
+        }
+        return map;
     }
 
     @Override
     public void addEntry(LocalParameter k, LocalParameter v) {
-        this.dictCollectionParameters.put(k, v);
+        super.addElement(k);
+        super.addElement(v);
     }
 
 }

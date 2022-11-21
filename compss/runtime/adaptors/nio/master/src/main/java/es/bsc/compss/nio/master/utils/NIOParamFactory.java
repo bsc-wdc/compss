@@ -20,7 +20,6 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOData;
 import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOParamCollection;
-import es.bsc.compss.nio.NIOParamDictCollection;
 import es.bsc.compss.nio.master.NIOWorkerNode;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.DataAccessId;
@@ -177,15 +176,15 @@ public class NIOParamFactory {
             LOGGER.debug("Detected DICT_COLLECTION_T parameter");
         }
 
-        NIOParamDictCollection npdc = new NIOParamDictCollection(dictCollNioParam);
+        NIOParamCollection npdc = new NIOParamCollection(dictCollNioParam);
 
         DictCollectionParameter dictCollParam = (DictCollectionParameter) param;
         for (Map.Entry<Parameter, Parameter> entry : dictCollParam.getDictionary().entrySet()) {
-            npdc.addEntry(NIOParamFactory.fromParameter(entry.getKey(), node, fromReplicatedTask),
-                NIOParamFactory.fromParameter(entry.getValue(), node, fromReplicatedTask));
+            npdc.addElement(NIOParamFactory.fromParameter(entry.getKey(), node, fromReplicatedTask));
+            npdc.addElement(NIOParamFactory.fromParameter(entry.getValue(), node, fromReplicatedTask));
         }
         if (DEBUG) {
-            LOGGER.debug("NIOParamDictCollection with id = " + npdc.getDataMgmtId() + " contains " + npdc.getSize()
+            LOGGER.debug("NIOParamDictCollection with id = " + npdc.getDataMgmtId() + " contains " + npdc.getSize() / 2
                 + " parameters.");
         }
         return npdc;

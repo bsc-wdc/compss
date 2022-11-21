@@ -1,0 +1,251 @@
+#!/bin/bash
+
+# Obtain parameters
+COMPSs_exec=$1
+comm=$2
+runcompss_opts=$3
+base_app_dir=$4
+COMPSs_log_folder=$5
+target_log_folder=$6
+retry_num=$7
+execution_envs=$8
+
+# Global variables
+AGENT_PIDS=""
+jar_name="6_3_agents_transfers_objects_java.jar"
+app_name="6_3_agents_transfers_objects_java"
+expected_time="30s"
+NUM_RETRIES="50"
+
+RESULT_IDENTIFIER="printing matrix"
+# Traps and Handlers
+function kill_agents() {
+    for pid in ${AGENT_PIDS}; do
+        if kill $pid > /dev/null 2>&1; then
+            echo "[ERROR] Agent failed to stop"
+        fi
+    done
+}
+trap kill_agents EXIT
+
+
+#----------------------------------------------------------------------------------
+#                                 STARTING 3 AGENTS                                 
+#----------------------------------------------------------------------------------
+echo ""
+echo "*** RUNNING AGENTS TEST: $app_name"
+log_dir="${COMPSs_log_folder}/${app_name}_0${retry_num}/"
+mkdir -p "${log_dir}"
+output_log="${log_dir}test.outputlog"
+error_log="${log_dir}test.errorlog"
+touch "${output_log}"
+touch "${error_log}"
+
+
+# Starting agent
+agent1_log_dir="${log_dir}/agent1/"
+mkdir -p "${agent1_log_dir}" 
+agent1_output_log="${log_dir}agent1.outputlog"
+agent1_error_log="${log_dir}agent1.errorlog"
+
+compss_agent_start \
+    --hostname="COMPSsWorker01" \
+    --classpath="${base_app_dir}/${jar_name}" \
+    --log_dir="${agent1_log_dir}" \
+    --rest_port="46101" \
+    --comm_port="46102" \
+    -d \
+    ${runcompss_opts} \
+    --project="${base_app_dir}/projectAgent1.xml" \
+    --resources="${base_app_dir}/resources.xml" 1>"${agent1_output_log}" 2>"${agent1_error_log}" &
+    
+
+agent1_pid="$!"
+AGENT_PIDS="${AGENT_PIDS} ${agent1_pid}"
+
+# Starting agent
+agent2_log_dir="${log_dir}/agent2/"
+mkdir -p "${agent2_log_dir}" 
+agent2_output_log="${log_dir}agent2.outputlog"
+agent2_error_log="${log_dir}agent2.errorlog"
+compss_agent_start \
+    --hostname="COMPSsWorker02" \
+    --classpath="${base_app_dir}/${jar_name}" \
+    --log_dir="${agent2_log_dir}" \
+    --rest_port="46201" \
+    --comm_port="46202" \
+    -d \
+    ${runcompss_opts} \
+    --project="${base_app_dir}/projectAgent2.xml" \
+    --resources="${base_app_dir}/resources.xml" 1>"${agent2_output_log}" 2>"${agent2_error_log}" &
+
+agent2_pid="$!"
+AGENT_PIDS="${AGENT_PIDS} ${agent2_pid}"
+
+
+# Starting agent
+agent3_log_dir="${log_dir}/agent3/"
+mkdir -p "${agent3_log_dir}" 
+agent3_output_log="${log_dir}agent3.outputlog"
+agent3_error_log="${log_dir}agent3.errorlog"
+compss_agent_start \
+    --hostname="COMPSsWorker03" \
+    --classpath="${base_app_dir}/${jar_name}" \
+    --log_dir="${agent3_log_dir}" \
+    --rest_port="46301" \
+    --comm_port="46302" \
+    -d \
+    ${runcompss_opts} \
+    --project="${base_app_dir}/projectAgent3.xml" \
+    --resources="${base_app_dir}/resources.xml" 1>"${agent3_output_log}" 2>"${agent3_error_log}" &
+
+
+agent3_pid="$!"
+AGENT_PIDS="${AGENT_PIDS} ${agent3_pid}"
+
+
+
+#----------------------------------------------------------------------------------
+#                            WAITING FOR AGENTS TO START                            
+#----------------------------------------------------------------------------------
+
+retries="${NUM_RETRIES}"
+curl -XGET http://127.0.0.1:46101/COMPSs/test 1>/dev/null 2>/dev/null
+exit_value=$?
+while [ ! "${exit_value}" == "0" ] && [ "${retries}" -gt "0" ]; do
+  sleep 1
+  retries=$((retries - 1 ))
+  curl -XGET http://127.0.0.1:46101/COMPSs/test 1>/dev/null 2>/dev/null
+  exit_value=$?
+done
+
+retries="${NUM_RETRIES}"
+curl -XGET http://127.0.0.1:46201/COMPSs/test 1>/dev/null 2>/dev/null
+exit_value=$?
+while [ ! "${exit_value}" == "0" ] && [ "${retries}" -gt "0" ]; do
+  sleep 1
+  retries=$((retries - 1 ))
+  curl -XGET http://127.0.0.1:46201/COMPSs/test 1>/dev/null 2>/dev/null
+  exit_value=$?
+done
+
+retries="${NUM_RETRIES}"
+curl -XGET http://127.0.0.1:46301/COMPSs/test 1>/dev/null 2>/dev/null
+exit_value=$?
+while [ ! "${exit_value}" == "0" ] && [ "${retries}" -gt "0" ]; do
+  sleep 1
+  retries=$((retries - 1 ))
+  curl -XGET http://127.0.0.1:46301/COMPSs/test 1>/dev/null 2>/dev/null
+  exit_value=$?
+done
+
+
+RESULT=$(grep "test invoked" "${agent1_output_log}")
+if [ -z "${RESULT}" ]; then  
+    echo "Agent 1 failed to start" > >(tee -a "${error_log}")
+    exit 1
+fi
+echo "Agent 1 started" > >(tee -a "${output_log}")
+
+RESULT=$(grep "test invoked" "${agent2_output_log}")
+if [ -z "${RESULT}" ]; then  
+    echo "Agent 2 failed to start" > >(tee -a "${error_log}")
+    exit 1
+fi
+echo "Agent 2 started" > >(tee -a "${output_log}")
+
+RESULT=$(grep "test invoked" "${agent3_output_log}")
+if [ -z "${RESULT}" ]; then  
+    echo "Agent 3 failed to start" > >(tee -a "${error_log}")
+    exit 1
+fi
+echo "Agent 3 started" > >(tee -a "${output_log}")  
+sleep 1
+
+
+
+#----------------------------------------------------------------------------------
+#                            CREATING CHAIN TOPOLOGY                               
+#----------------------------------------------------------------------------------
+
+# Afegir un nou worker Comm agent adaptor
+echo "Adding additional resources to COMPSsWorker01." > >(tee -a "${output_log}")
+"${COMPSS_HOME}/Runtime/scripts/user/compss_agent_add_resources" \
+  --agent_node="COMPSsWorker01" \
+  --agent_port="46101" \
+  --comm="es.bsc.compss.agent.comm.CommAgentAdaptor" \
+  --cpu=1 \
+  "COMPSsWorker02" "Port=46202" > >(tee -a "${output_log}")  2> >(tee -a "${error_log}") 
+
+  # Afegir un nou worker Comm agent adaptor
+echo "Adding additional resources to COMPSsWorker02." > >(tee -a "${output_log}")
+"${COMPSS_HOME}/Runtime/scripts/user/compss_agent_add_resources" \
+  --agent_node="COMPSsWorker02" \
+  --agent_port="46201" \
+  --comm="es.bsc.compss.agent.comm.CommAgentAdaptor" \
+  --cpu=1 \
+  "COMPSsWorker03" "Port=46302" > >(tee -a "${output_log}")  2> >(tee -a "${error_log}") 
+sleep 1
+
+
+#----------------------------------------------------------------------------------
+#                                  CALL OPERATION                               
+#----------------------------------------------------------------------------------
+
+${COMPSS_HOME}/Runtime/scripts/user/compss_agent_call_operation \
+  --master_node="127.0.0.1" \
+  --master_port="46101" \
+  --lang="JAVA" \
+  --stop \
+  --forward_to="COMPSsWorker02:46201;COMPSsWorker03:46301" \
+  --cei="test.ObjectTestItf" \
+  "test.ObjectTest" > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
+
+(sleep ${expected_time} && kill_agents) 1>/dev/null 2>/dev/null &
+timeoutPID=$!
+wait ${AGENT_PIDS} 1>/dev/null 2>/dev/null
+kill -9 ${timeoutPID} 1>/dev/null 2>/dev/null
+exit_kill_timeout=$?
+wait ${timeoutPID} 1>/dev/null 2>/dev/null
+if [ "${exit_kill_timeout}" == "1" ]; then
+  echo "At least one agent process has not yet finished its work after ${expected_time} seconds."  > >(tee -a "${error_log}")
+  exit 124
+fi
+
+
+java -cp ${base_app_dir}/${jar_name} test.ObjectTest > ${log_dir}/sequential_java_results
+
+
+
+if ! grep -q "$RESULT_IDENTIFIER" ${log_dir}/sequential_java_results ; then
+  echo -e '\033[0;31m'"[ ERROR ] Could not execute application sequentially"'\033[0m'
+  exit 1
+fi
+
+
+
+
+
+grep "$RESULT_IDENTIFIER" ${log_dir}/sequential_java_results | while read -r line; do
+  seq_result=$(grep -A 5 "$line" "${log_dir}/sequential_java_results")
+  agent_result=$(grep -A 5 -R --no-filename "$line" ${log_dir}/*/jobs/*.out)
+
+  if [ "$seq_result" != "$agent_result" ] ; then
+    echo -e '\033[0;31m'"The results were not the same in the agent execution and in sequential"'\033[0m'
+    echo "review results for label \"$line\""
+    exit 1
+  fi
+done
+
+exit_search=$?
+
+if [ $exit_search != 0  ] ; then
+    exit 1
+else
+  echo -e '\033[0;32m'"The results are correct"'\033[0m'
+fi
+
+# Copy LOG files
+cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
+
+

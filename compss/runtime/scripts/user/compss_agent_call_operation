@@ -310,7 +310,7 @@ check_args() {
 
   if [ -z "${method_name}" ]; then
     method_name=${DEFAULT_METHOD}
-    if [ ${lang} = "JAVA" ]; then 
+    if [ "${lang}"  == "JAVA" ] || [ "${lang}"  == "java" ]; then 
         params_as_array="true"
     fi
   fi

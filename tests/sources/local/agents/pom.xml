@@ -43,6 +43,12 @@
 		<module>5.0_4_agent_nested</module>
 		<module>5.1_3_agents_nested_files</module>
 		<module>5.1_4_agent_nested_inout_object</module>
+		<module>6_1_agents_transfers_arrays_objects_java</module>
+		<module>6_1_agents_transfers_files_java</module>
+		<module>6_1_agents_transfers_objects_java</module>
+		<module>6_3_agents_transfers_arrays_objects_java</module>
+		<module>6_3_agents_transfers_files_java</module>
+		<module>6_3_agents_transfers_objects_java</module>
 	<!-- Add new modules below -->
 	</modules>
 </project>

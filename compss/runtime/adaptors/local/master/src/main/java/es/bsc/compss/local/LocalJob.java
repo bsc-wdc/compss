@@ -30,7 +30,6 @@ import es.bsc.compss.types.job.JobImpl;
 import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.parameter.CollectionParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
-import es.bsc.compss.types.parameter.DictCollectionParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Resource;
@@ -39,7 +38,6 @@ import es.bsc.compss.worker.COMPSsException;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 
 public class LocalJob extends JobImpl<COMPSsMaster> implements Invocation {

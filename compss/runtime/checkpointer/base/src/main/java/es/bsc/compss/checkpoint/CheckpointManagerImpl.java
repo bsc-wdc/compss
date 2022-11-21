@@ -25,10 +25,8 @@ import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataVersion;
 import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessid.WAccessId;
-import es.bsc.compss.types.parameter.CollectionParameter;
 import es.bsc.compss.types.parameter.CollectiveParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
-import es.bsc.compss.types.parameter.DictCollectionParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.util.Tracer;
@@ -37,7 +35,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 

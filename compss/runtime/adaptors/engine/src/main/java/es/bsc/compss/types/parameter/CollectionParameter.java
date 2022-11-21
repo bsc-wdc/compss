@@ -36,16 +36,12 @@ public class CollectionParameter extends CollectiveParameter {
      */
     private static final long serialVersionUID = 1L;
 
-    // Parameter objects of the collection contents
-    private List<Parameter> parameters;
-
 
     /**
      * Default constructor. Intended to be called from COMPSsRuntimeImpl when gathering and compacting parameter
      * information fed from bindings or Java Loader
      * 
      * @param id identifier of the collection object.
-     * @param parameters Parameters of the CollectionParameter
      * @param direction Direction of the collection
      * @param stream N/A (At least temporarily)
      * @param prefix N/A (At least temporarily)
@@ -57,13 +53,13 @@ public class CollectionParameter extends CollectiveParameter {
      * @see es.bsc.compss.api.impl.COMPSsRuntimeImpl
      * @see es.bsc.compss.components.impl.TaskAnalyser
      */
-    public CollectionParameter(String id, List<Parameter> parameters, Direction direction, StdIOStream stream,
-        String prefix, String name, String contentType, double weight, boolean keepRename, ParameterMonitor monitor) {
+    public CollectionParameter(String id, Direction direction, StdIOStream stream, String prefix, String name,
+        String contentType, double weight, boolean keepRename, ParameterMonitor monitor, List<Parameter> parameters) {
 
         // Type will always be COLLECTION_T, no need to pass it as a constructor parameter and wont be modified
         // Stream and prefix are still forwarded for possible, future uses
-        super(DataType.COLLECTION_T, id, direction, stream, prefix, name, contentType, weight, keepRename, monitor);
-        this.parameters = parameters;
+        super(DataType.COLLECTION_T, id, direction, stream, prefix, name, contentType, weight, keepRename, monitor,
+            parameters);
     }
 
     @Override
@@ -73,29 +69,10 @@ public class CollectionParameter extends CollectiveParameter {
         sb.append("CollectionParameter ").append(this.getCollectionId()).append("\n");
         sb.append("Name: ").append(getName()).append("\n");
         sb.append("Contents:\n");
-        for (Parameter s : parameters) {
+        for (Parameter s : this.getElements()) {
             sb.append("\t").append(s).append("\n");
         }
         return sb.toString();
-    }
-
-    /**
-     * Returns the parameters of the elements within collection.
-     * 
-     * @return List of the internal parameters of the collection.
-     */
-    @Override
-    public List<Parameter> getElements() {
-        return this.parameters;
-    }
-
-    /**
-     * Sets the internal parameters of the collection.
-     * 
-     * @param parameters New internal parameters of the collection.
-     */
-    public void setParameters(List<Parameter> parameters) {
-        this.parameters = parameters;
     }
 
 }

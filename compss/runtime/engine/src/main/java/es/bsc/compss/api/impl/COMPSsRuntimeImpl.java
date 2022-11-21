@@ -1716,8 +1716,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     ret += addParameter(app, submonitor, elemContent, elemType, elemDir, elemStream, elemPrefix,
                         elemName, elemPyType, weight, keepRename, collectionParameters, offset + ret + 1, values) + 2;
                 }
-                CollectionParameter cp = new CollectionParameter(collectionId, collectionParameters, direction, stream,
-                    prefix, name, colPyType, weight, keepRename, monitor);
+                CollectionParameter cp = new CollectionParameter(collectionId, direction, stream, prefix, name,
+                    colPyType, weight, keepRename, monitor, collectionParameters);
                 pars.add(cp);
                 return ret;
             case DICT_COLLECTION_T:
@@ -1804,10 +1804,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 Map<Parameter, Parameter> dictCollectionParams =
                     IntStream.range(0, dictCollectionParametersKeys.size()).boxed().collect(
                         Collectors.toMap(dictCollectionParametersKeys::get, dictCollectionParametersValues::get));
-                DictCollectionParameter dcp = new DictCollectionParameter(dictCollectionId, dictCollectionParams,
-                    direction, stream, prefix, name, dictColPyType, weight, keepRename, monitor);
+                DictCollectionParameter dcp = new DictCollectionParameter(dictCollectionId, direction, stream, prefix,
+                    name, dictColPyType, weight, keepRename, monitor, dictCollectionParams);
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Add Dictionary Collection " + dcp.getName() + " with " + dcp.getDictionary().size()
+                    LOGGER.debug("Add Dictionary Collection " + dcp.getName() + " with " + dcp.getElements().size() / 2
                         + " entries");
                     LOGGER.debug(dcp.toString());
                 }

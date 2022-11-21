@@ -379,7 +379,7 @@ public class ReduceExecutionAction extends ExecutionAction {
         }
         CollectionParameter cPartial = t.getFinalCollection();
 
-        cPartial.setParameters(partialsIn);
+        cPartial.setElements(partialsIn);
         List<Parameter> finalParameters = this.task.getTaskDescription().getParameters();
         finalParameters.set(this.colIndex, cPartial);
     }
@@ -394,7 +394,7 @@ public class ReduceExecutionAction extends ExecutionAction {
             ErrorManager.fatal("ERROR: Reduce task " + this.task.getId() + " has exceed the number of partial reduces");
         }
         CollectionParameter cp = t.getIntermediateCollections().get(reduceIndex);
-        cp.setParameters(params);
+        cp.setElements(params);
         List<Parameter> taskP = new ArrayList<>();
         TaskDescription td = this.task.getTaskDescription();
         List<Parameter> oldParameters = td.getParameters();

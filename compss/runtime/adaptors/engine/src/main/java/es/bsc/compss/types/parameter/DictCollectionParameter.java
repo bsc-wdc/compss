@@ -38,40 +38,38 @@ public class DictCollectionParameter extends CollectiveParameter {
      */
     private static final long serialVersionUID = 1L;
 
-    // Parameter objects of the collection contents
-    private List<Parameter> parameters;
-    private Map<Parameter, Parameter> mapping;
-
-
     /**
      * Default constructor. Intended to be called from COMPSsRuntimeImpl when gathering and compacting parameter
      * information fed from bindings or Java Loader
      * 
      * @param id identifier of the collection
-     * @param map Parameters of the CollectionParameter
      * @param direction Direction of the collection
      * @param stream N/A (At least temporarily)
      * @param prefix N/A (At least temporarily)
      * @param name Name of the parameter in the user code
      * @param monitor object to notify to changes on the parameter
+     * @param map Parameters of the CollectionParameter
      * @see DependencyParameter
      * @see es.bsc.compss.api.impl.COMPSsRuntimeImpl
      * @see es.bsc.compss.components.impl.TaskAnalyser
      */
-    public DictCollectionParameter(String id, Map<Parameter, Parameter> map, Direction direction, StdIOStream stream,
-        String prefix, String name, String contentType, double weight, boolean keepRename, ParameterMonitor monitor) {
+    public DictCollectionParameter(String id, Direction direction, StdIOStream stream, String prefix, String name,
+        String contentType, double weight, boolean keepRename, ParameterMonitor monitor,
+        Map<Parameter, Parameter> map) {
 
         // Type will always be DICT_COLLECTION_T, no need to pass it as a constructor parameter and wont be modified
         // Stream and prefix are still forwarded for possible, future uses
-        super(DataType.DICT_COLLECTION_T, id, direction, stream, prefix, name, contentType, weight, keepRename,
-            monitor);
+        super(DataType.DICT_COLLECTION_T, id, direction, stream, prefix, name, contentType, weight, keepRename, monitor,
+            toList(map));
+    }
 
-        this.parameters = new ArrayList<>(map.size() * 2);
+    private static List<Parameter> toList(Map<Parameter, Parameter> map) {
+        List<Parameter> parameters = new ArrayList<>(map.size() * 2);
         for (Map.Entry<Parameter, Parameter> e : map.entrySet()) {
-            this.parameters.add(e.getKey());
-            this.parameters.add(e.getValue());
+            parameters.add(e.getKey());
+            parameters.add(e.getValue());
         }
-        this.mapping = map;
+        return parameters;
     }
 
     @Override
@@ -81,40 +79,12 @@ public class DictCollectionParameter extends CollectiveParameter {
         sb.append("DictCollectionParameter ").append(this.getCollectionId()).append("\n");
         sb.append("Name: ").append(getName()).append("\n");
         sb.append("Contents:\n");
-        Iterator<Parameter> it = this.parameters.iterator();
+        Iterator<Parameter> it = this.getElements().iterator();
         while (it.hasNext()) {
             Parameter key = it.next();
             Parameter value = it.next();
             sb.append("\t").append(key).append(" - ").append(value).append("\n");
         }
         return sb.toString();
-    }
-
-    @Override
-    public List<Parameter> getElements() {
-        return this.parameters;
-    }
-
-    /**
-     * Returns the map of the parameters.
-     * 
-     * @return List of the internal parameters of the collection.
-     */
-    public Map<Parameter, Parameter> getDictionary() {
-        return this.mapping;
-    }
-
-    /**
-     * Sets the internal parameters of the collection.
-     * 
-     * @param map New internal parameters of the collection.
-     */
-    public void setParameters(Map<Parameter, Parameter> map) {
-        this.parameters = new ArrayList<>(map.size() * 2);
-        for (Map.Entry<Parameter, Parameter> e : map.entrySet()) {
-            this.parameters.add(e.getKey());
-            this.parameters.add(e.getValue());
-        }
-        this.mapping = map;
     }
 }

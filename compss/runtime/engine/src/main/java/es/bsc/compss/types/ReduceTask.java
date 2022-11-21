@@ -163,14 +163,14 @@ public class ReduceTask extends Task {
                         finalParameter.getPrefix(), finalParameter.getName(), finalParameter.getType().toString(),
                         finalParameter.getWeight(), finalParameter.isKeepRename(), dl, partialId, IGNORE_PARAM));
 
-                    CollectionParameter cp = new CollectionParameter(partialId + "Collection", new ArrayList<>(),
-                        p.getDirection(), p.getStream(), p.getPrefix(), p.getName(), p.getContentType(), p.getWeight(),
-                        p.isKeepRename(), IGNORE_PARAM);
+                    CollectionParameter cp = new CollectionParameter(partialId + "Collection", p.getDirection(),
+                        p.getStream(), p.getPrefix(), p.getName(), p.getContentType(), p.getWeight(), p.isKeepRename(),
+                        IGNORE_PARAM, new ArrayList<>());
                     intermediateCollections.add(cp);
                 }
                 String finalId = "finalReduceTask" + this.getId();
-                finalCol = new CollectionParameter(finalId, new ArrayList<>(), Direction.IN, p.getStream(),
-                    p.getPrefix(), p.getName(), p.getContentType(), p.getWeight(), p.isKeepRename(), IGNORE_PARAM);
+                finalCol = new CollectionParameter(finalId, Direction.IN, p.getStream(), p.getPrefix(), p.getName(),
+                    p.getContentType(), p.getWeight(), p.isKeepRename(), IGNORE_PARAM, new ArrayList<>());
             } else {
                 ErrorManager
                     .fatal("First parameter for a reduce task must be a collection and last parameter must be OUT "

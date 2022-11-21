@@ -39,6 +39,9 @@ public abstract class CollectiveParameter extends DependencyParameter {
     // Identifier of the collection object
     private String collectionId;
 
+    // Parameter objects of the collection contents
+    private List<Parameter> elements;
+
 
     /**
      * Default constructor. Intended to be called from COMPSsRuntimeImpl when gathering and compacting parameter
@@ -53,10 +56,12 @@ public abstract class CollectiveParameter extends DependencyParameter {
      * @param weight Parameter weight.
      * @param keepRename Parameter keep rename.
      * @param monitor object to notify to changes on the parameter
+     * @param elements Elements of the collection
      * @see DependencyParameter
      */
     public CollectiveParameter(DataType type, String id, Direction direction, StdIOStream stream, String prefix,
-        String name, String contentType, double weight, boolean keepRename, ParameterMonitor monitor) {
+        String name, String contentType, double weight, boolean keepRename, ParameterMonitor monitor,
+        List<Parameter> elements) {
         super(type, direction, stream, prefix, name, contentType, weight, keepRename, monitor);
         this.collectionId = id;
     }
@@ -89,6 +94,16 @@ public abstract class CollectiveParameter extends DependencyParameter {
      * 
      * @return List of the internal parameters of the collection.
      */
-    public abstract List<Parameter> getElements();
+    public List<Parameter> getElements() {
+        return this.elements;
+    }
 
+    /**
+     * Sets the internal parameters of the collection.
+     * 
+     * @param elements New internal parameters of the collection.
+     */
+    public void setElements(List<Parameter> elements) {
+        this.elements = elements;
+    }
 }

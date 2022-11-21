@@ -27,17 +27,95 @@ WARNING: This file can not be compiled with mypy since it contains
 """
 
 from pycompss.api.task import task
+from pycompss.api.parameter import *
 
 
 @task(returns=1)
-def transform(data, function, **kwargs):
+def transform(target, function, **kwargs):
     """Replace the user function with its @task equivalent.
 
     NOTE: Used from @data_transformation.
 
-    :param data: the parameter that DT will be applied to.
-    :param function: DT function
-    :param kwargs: kwargs of the DT function
+    @param target: the parameter that DT will be applied to.
+    @param function: DT function
+    @param kwargs: kwargs of the DT function
     :return:
     """
-    return function(data, **kwargs)
+    return function(target, **kwargs)
+
+
+@task(returns=object, target=COLLECTION_IN)
+def col_to_obj(target, function):
+    """Replace the user function with its @task equivalent.
+
+    NOTE: Used from @data_transformation.
+
+    @param target: the parameter that DT will be applied to
+    @param function: DT function which accepts a collection as input and
+    produces an object.
+    :return:
+    """
+    return function(target)
+
+
+@task(destination=FILE_OUT, target=COLLECTION_IN)
+def col_to_file(target, destination, function):
+    """Replace the user function with its @task equivalent.
+
+    NOTE: Used from @data_transformation.
+
+    @param target: the parameter that DT will be applied to
+    @param destination: name of the file that will be produced by this task
+    @param function: DT function which accepts a collection as input and
+    produces a file.
+    :return:
+    """
+    function(target, destination)
+
+
+@task(returns=object(), target=FILE_IN)
+def file_to_object(target, function):
+    """Replace the user function with its @task equivalent.
+
+    NOTE: Used from @data_transformation.
+
+    @param target: the parameter that DT will be applied to
+    @param function: DT function which accepts a file as input and
+    produces an object.
+    :return:
+    """
+    return function(target)
+
+
+@task(destination=FILE_OUT)
+def object_to_file(target, destination, function):
+    """Replace the user function with its @task equivalent.
+
+    NOTE: Used from @data_transformation.
+
+    @param target: the parameter that DT will be applied to
+    @param destination: name of the file that will be produced by this task
+    @param function: DT function which accepts an object as input and
+    produces a file.
+    :return:
+    """
+    function(target, destination)
+
+
+@task(target=FILE_IN)
+def file_to_col(target, function):
+    """Replace the user function with its @task equivalent.
+
+    NOTE: Used from @data_transformation.
+
+    @param target: the parameter that DT will be applied to
+    @param function: DT function which accepts a file as input and
+    produces a collection.
+    :return:
+    """
+    return function(target)
+
+
+# @task(target=FILE_IN, destination=COLLECTION_OUT)
+# def _file_to_col(target, function, destination):
+#     function(target)

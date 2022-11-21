@@ -31,8 +31,11 @@ from pycompss.util.context import CONTEXT
 from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.private_tasks import transform as _transform
-from pycompss.util.arguments import check_arguments
-from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.api.commons.private_tasks import col_to_obj as _col_to_obj
+from pycompss.api.commons.private_tasks import col_to_file as _col_to_file
+from pycompss.api.commons.private_tasks import object_to_file as _object_to_file
+from pycompss.api.commons.private_tasks import file_to_col as _file_to_col
+from pycompss.api.commons.private_tasks import file_to_object as _file_to_object
 from pycompss.util.typing_helper import typing
 
 # from pycompss.runtime.task.definitions.core_element import CE
@@ -46,6 +49,12 @@ MANDATORY_ARGUMENTS = set()  # type: typing.Set[str]
 SUPPORTED_ARGUMENTS = set()  # type: typing.Set[str]
 DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 
+OBJECT_TO_FILE = 0
+FILE_TO_OBJECT = 1
+FILE_TO_COLLECTION = 2
+COLLECTION_TO_OBJECT = 3
+COLLECTION_TO_FILE = 4
+
 
 class DataTransformation:  # pylint: disable=too-few-public-methods
     """Data Transformation decorator for PyCOMPSs tasks."""
@@ -58,6 +67,10 @@ class DataTransformation:  # pylint: disable=too-few-public-methods
         "core_element",
         "user_function",
         "core_element_configured",
+        "dt_function",
+        "type",
+        "target",
+        "destination",
     ]
 
     def __init__(self, *args, **kwargs):
@@ -78,15 +91,12 @@ class DataTransformation:  # pylint: disable=too-few-public-methods
         # self.core_element = None  # type: typing.Optional[CE]
         self.core_element_configured = False
         self.user_function = None
-        if self.scope:
-            # Check the arguments
-            check_arguments(
-                MANDATORY_ARGUMENTS,
-                DEPRECATED_ARGUMENTS,
-                SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
-                list(kwargs.keys()),
-                decorator_name,
-            )
+        self.target = self.kwargs.pop("target", None)
+        self.dt_function = self.kwargs.pop("function", None)
+        self.type = self.kwargs.pop("type", None)
+        # todo: so far we use default unique file name for all DTs,
+        #  should it be replaced?
+        self.destination = self.kwargs.pop("destination", "dt_file_out")
 
     def __call__(self, user_function: typing.Callable) -> typing.Callable:
         """Call to the decorated task function.
@@ -131,20 +141,24 @@ class DataTransformation:  # pylint: disable=too-few-public-methods
         self.user_function = user_function
         if __debug__:
             logger.debug("Configuring DT core element.")
-        if not len(args):
-            raise PyCOMPSsException("Missing arguments in DT decorator.")
-        elif "dt" in kwargs:
+        if "dt" in kwargs:
             tmp = kwargs.pop("dt")
             if isinstance(tmp, DTObject):
                 dts.append(tmp.extract())
             elif isinstance(tmp, list):
                 dts = [obj.extract() for obj in tmp]
-        else:
-            if len(self.args) < 2:
-                raise PyCOMPSsException("Missing arguments in DT decorator.")
-
+        elif len(self.args) == 2:
             dts.append((self.args[0], self.args[1], self.kwargs))
-
+        elif self.type is OBJECT_TO_FILE:
+            dts.append((self.target, self.user_function, self.kwargs, args, kwargs))
+        elif self.type is FILE_TO_OBJECT:
+            dts.append((self.target, self.user_function, self.kwargs, args, kwargs))
+        elif self.type is FILE_TO_COLLECTION:
+            dts.append((self.target, self.user_function, self.kwargs, args, kwargs))
+        elif self.type is COLLECTION_TO_OBJECT:
+            dts.append((self.target, self.user_function, self.kwargs, args, kwargs))
+        elif self.type is COLLECTION_TO_FILE:
+            dts.append((self.target, self.user_function, self.kwargs, args, kwargs))
         for _dt in dts:
             self._apply_dt(_dt[0], _dt[1], _dt[2], args, kwargs)
 
@@ -178,12 +192,26 @@ class DataTransformation:  # pylint: disable=too-few-public-methods
             else:
                 p_value = all_params.parameters.get(param_name).default
 
-        # no need to create a task if it's a workflow
-        new_value = (
-            func(p_value, **func_kwargs)
-            if is_workflow
-            else _transform(p_value, func, **func_kwargs)
-        )
+        new_value: typing.Any
+        if is_workflow:
+            # no need to create a task if it's a workflow
+            new_value = func(p_value, **func_kwargs)
+        elif self.type is OBJECT_TO_FILE:
+            _object_to_file(p_value, self.destination, self.dt_function)
+            new_value = self.destination
+        elif self.type is FILE_TO_OBJECT:
+            new_value = _file_to_object(p_value, self.dt_function)
+        elif self.type is FILE_TO_COLLECTION:
+            size = int(self.kwargs.pop("size"))
+            new_value = _file_to_col(p_value, self.dt_function, returns=size)
+        elif self.type is COLLECTION_TO_OBJECT:
+            new_value = _col_to_obj(p_value, self.dt_function)
+        elif self.type is COLLECTION_TO_FILE:
+            _col_to_file(p_value, self.destination, self.dt_function)
+            new_value = self.destination
+        else:
+            new_value = _transform(p_value, func, **func_kwargs)
+
         if is_kwarg or i >= len(args):
             kwargs[param_name] = new_value
         else:

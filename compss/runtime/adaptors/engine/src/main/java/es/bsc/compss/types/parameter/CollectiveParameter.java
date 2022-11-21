@@ -20,6 +20,7 @@ import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
+import java.util.Iterator;
 
 import java.util.List;
 
@@ -29,7 +30,7 @@ import java.util.List;
  * parameter objects. The object has an identifier by itself and points to other object identifiers (which are the ones
  * contained in it)
  */
-public abstract class CollectiveParameter extends DependencyParameter {
+public class CollectiveParameter extends DependencyParameter {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
@@ -64,6 +65,7 @@ public abstract class CollectiveParameter extends DependencyParameter {
         List<Parameter> elements) {
         super(type, direction, stream, prefix, name, contentType, weight, keepRename, monitor);
         this.collectionId = id;
+        this.elements = elements;
     }
 
     @Override
@@ -105,5 +107,42 @@ public abstract class CollectiveParameter extends DependencyParameter {
      */
     public void setElements(List<Parameter> elements) {
         this.elements = elements;
+    }
+
+    @Override
+    public String toString() {
+        if (this.getType() == DataType.COLLECTION_T) {
+            return this.toCollectionString();
+        } else { // this.getType() == DataType.DICT_COLLECTION_T
+            return this.toDictionaryString();
+        }
+    }
+
+    private String toDictionaryString() {
+        // String builder adds less overhead when creating a string
+        StringBuilder sb = new StringBuilder();
+        sb.append("DictCollectionParameter ").append(this.getCollectionId()).append("\n");
+        sb.append("Name: ").append(getName()).append("\n");
+        sb.append("Contents:\n");
+        Iterator<Parameter> it = this.getElements().iterator();
+        while (it.hasNext()) {
+            Parameter key = it.next();
+            Parameter value = it.next();
+            sb.append("\t").append(key).append(" - ").append(value).append("\n");
+        }
+        return sb.toString();
+    }
+
+    private String toCollectionString() {
+        // String builder adds less overhead when creating a string
+        // Stringbuilder adds less overhead when creating a string
+        StringBuilder sb = new StringBuilder();
+        sb.append("CollectionParameter ").append(this.getCollectionId()).append("\n");
+        sb.append("Name: ").append(getName()).append("\n");
+        sb.append("Contents:\n");
+        for (Parameter s : this.getElements()) {
+            sb.append("\t").append(s).append("\n");
+        }
+        return sb.toString();
     }
 }

@@ -28,7 +28,7 @@ import es.bsc.compss.types.job.JobEndStatus;
 import es.bsc.compss.types.job.JobHistory;
 import es.bsc.compss.types.job.JobImpl;
 import es.bsc.compss.types.job.JobListener;
-import es.bsc.compss.types.parameter.CollectionParameter;
+import es.bsc.compss.types.parameter.CollectiveParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.MethodResourceDescription;
@@ -77,7 +77,7 @@ public class LocalJob extends JobImpl<COMPSsMaster> implements Invocation {
 
     private LocalParameter generateLocalParameter(Parameter p) {
         if (p.isCollective()) {
-            CollectionParameter cp = (CollectionParameter) p;
+            CollectiveParameter cp = (CollectiveParameter) p;
             LocalParameterCollection lpc = new LocalParameterCollection(p);
             for (Parameter subParam : cp.getElements()) {
                 lpc.addElement(generateLocalParameter(subParam));

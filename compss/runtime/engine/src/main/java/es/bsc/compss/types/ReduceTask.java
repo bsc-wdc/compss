@@ -28,7 +28,7 @@ import es.bsc.compss.types.colors.ColorConfiguration;
 import es.bsc.compss.types.colors.ColorNode;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
-import es.bsc.compss.types.parameter.CollectionParameter;
+import es.bsc.compss.types.parameter.CollectiveParameter;
 import es.bsc.compss.types.parameter.FileParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.uri.SimpleURI;
@@ -68,9 +68,9 @@ public class ReduceTask extends Task {
     // Input parameters already used by generated partial tasks
     private final List<Parameter> usedPartialsOut;
     // Available Collection parameters for partial task
-    private final List<CollectionParameter> intermediateCollections;
+    private final List<CollectiveParameter> intermediateCollections;
     private int reduceCollectionIndex = -1;
-    private CollectionParameter finalCol;
+    private CollectiveParameter finalCol;
 
     // Component logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.TP_COMP);
@@ -131,7 +131,7 @@ public class ReduceTask extends Task {
             this.reduceCollectionIndex = searchFirstCollection(parameters);
             Parameter finalParameter = parameters.get(parameters.size() - 1);
             if (finalParameter.getDirection() == Direction.OUT && this.reduceCollectionIndex >= 0) {
-                CollectionParameter p = (CollectionParameter) parameters.get(this.reduceCollectionIndex);
+                CollectiveParameter p = (CollectiveParameter) parameters.get(this.reduceCollectionIndex);
                 List<Parameter> colList = p.getElements();
                 if (colList.size() < 2) {
                     ErrorManager.warn("Reduce collection of Task " + getId() + " has not two parameters to reduce");
@@ -163,14 +163,15 @@ public class ReduceTask extends Task {
                         finalParameter.getPrefix(), finalParameter.getName(), finalParameter.getType().toString(),
                         finalParameter.getWeight(), finalParameter.isKeepRename(), dl, partialId, IGNORE_PARAM));
 
-                    CollectionParameter cp = new CollectionParameter(partialId + "Collection", p.getDirection(),
-                        p.getStream(), p.getPrefix(), p.getName(), p.getContentType(), p.getWeight(), p.isKeepRename(),
-                        IGNORE_PARAM, new ArrayList<>());
+                    CollectiveParameter cp = new CollectiveParameter(DataType.COLLECTION_T, partialId + "Collection",
+                        p.getDirection(), p.getStream(), p.getPrefix(), p.getName(), p.getContentType(), p.getWeight(),
+                        p.isKeepRename(), IGNORE_PARAM, new ArrayList<>());
                     intermediateCollections.add(cp);
                 }
                 String finalId = "finalReduceTask" + this.getId();
-                finalCol = new CollectionParameter(finalId, Direction.IN, p.getStream(), p.getPrefix(), p.getName(),
-                    p.getContentType(), p.getWeight(), p.isKeepRename(), IGNORE_PARAM, new ArrayList<>());
+                finalCol = new CollectiveParameter(DataType.COLLECTION_T, finalId, Direction.IN, p.getStream(),
+                    p.getPrefix(), p.getName(), p.getContentType(), p.getWeight(), p.isKeepRename(), IGNORE_PARAM,
+                    new ArrayList<>());
             } else {
                 ErrorManager
                     .fatal("First parameter for a reduce task must be a collection and last parameter must be OUT "
@@ -241,14 +242,14 @@ public class ReduceTask extends Task {
     /**
      * Returns the list of the created intermediate collections.
      */
-    public List<CollectionParameter> getIntermediateCollections() {
+    public List<CollectiveParameter> getIntermediateCollections() {
         return intermediateCollections;
     }
 
     /**
      * Returns the list of the created intermediate collections.
      */
-    public CollectionParameter getFinalCollection() {
+    public CollectiveParameter getFinalCollection() {
         return finalCol;
     }
 

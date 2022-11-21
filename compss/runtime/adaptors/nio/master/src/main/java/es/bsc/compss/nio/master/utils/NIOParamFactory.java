@@ -28,7 +28,6 @@ import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.parameter.BasicTypeParameter;
-import es.bsc.compss.types.parameter.CollectionParameter;
 import es.bsc.compss.types.parameter.CollectiveParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;

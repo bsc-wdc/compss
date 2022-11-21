@@ -43,7 +43,7 @@ import es.bsc.compss.types.implementations.definition.MethodDefinition;
 import es.bsc.compss.types.implementations.definition.MultiNodeDefinition;
 import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.parameter.BasicTypeParameter;
-import es.bsc.compss.types.parameter.CollectionParameter;
+import es.bsc.compss.types.parameter.CollectiveParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Resource;
@@ -228,7 +228,7 @@ class CommAgentJob extends NIOJob {
 
         CommParamCollection npc = new CommParamCollection(commPar);
 
-        CollectionParameter collParam = (CollectionParameter) param;
+        CollectiveParameter collParam = (CollectiveParameter) param;
         for (Parameter subParam : collParam.getElements()) {
             npc.addParameter(CommAgentJob.createCommParamFromParameter(subParam));
         }

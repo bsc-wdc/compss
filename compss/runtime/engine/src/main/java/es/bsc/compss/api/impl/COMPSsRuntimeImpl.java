@@ -59,8 +59,7 @@ import es.bsc.compss.types.implementations.ImplementationDescription;
 import es.bsc.compss.types.listeners.CancelTaskGroupOnResourceCreation;
 import es.bsc.compss.types.parameter.BasicTypeParameter;
 import es.bsc.compss.types.parameter.BindingObjectParameter;
-import es.bsc.compss.types.parameter.CollectionParameter;
-import es.bsc.compss.types.parameter.DictCollectionParameter;
+import es.bsc.compss.types.parameter.CollectiveParameter;
 import es.bsc.compss.types.parameter.DirectoryParameter;
 import es.bsc.compss.types.parameter.ExternalPSCOParameter;
 import es.bsc.compss.types.parameter.ExternalStreamParameter;
@@ -1276,7 +1275,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 break;
             case COLLECTION_T:
             case DICT_COLLECTION_T:
-                for (Parameter sp : ((CollectionParameter) p).getElements()) {
+                for (Parameter sp : ((CollectiveParameter) p).getElements()) {
                     processDelete(app, sp);
                 }
                 break;
@@ -1716,7 +1715,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     ret += addParameter(app, submonitor, elemContent, elemType, elemDir, elemStream, elemPrefix,
                         elemName, elemPyType, weight, keepRename, collectionParameters, offset + ret + 1, values) + 2;
                 }
-                CollectionParameter cp = new CollectionParameter(collectionId, direction, stream, prefix, name,
+                CollectiveParameter cp = new CollectiveParameter(type, collectionId, direction, stream, prefix, name,
                     colPyType, weight, keepRename, monitor, collectionParameters);
                 pars.add(cp);
                 return ret;
@@ -1729,8 +1728,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 int numOfEntries = Integer.parseInt(values1[offset + 1]);
                 String dictColPyType = values1[offset + 2];
                 // Each element is defined by TYPE VALUE PYTHON_CONTENT_TYPE. Also note the +3 offset!
-                ArrayList<Parameter> dictCollectionParametersKeys = new ArrayList<>();
-                ArrayList<Parameter> dictCollectionParametersValues = new ArrayList<>();
+                ArrayList<Parameter> dictCollectionParams = new ArrayList<>();
                 // dret = number of read elements by this recursive step (atm 3: id + numOfEntries + pyContentType)
                 int pointer = 3;
                 for (int j = 0; j < numOfEntries; ++j) {
@@ -1763,7 +1761,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     }
                     ParameterMonitor submonitor = ((ParameterCollectionMonitor) monitor).getParameterMonitor(j * 2);
                     int kDret = addParameter(app, submonitor, elemContentKey, dataTypeKey, elemDirKey, elemStreamKey,
-                        elemPrefixKey, elemNameKey, elemPyTypeKey, weight, keepRename, dictCollectionParametersKeys,
+                        elemPrefixKey, elemNameKey, elemPyTypeKey, weight, keepRename, dictCollectionParams,
                         offset + pointer, values1) + extraKey;
                     pointer += kDret;
 
@@ -1798,13 +1796,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     submonitor = ((ParameterCollectionMonitor) monitor).getParameterMonitor(j * 2 + 1);
                     int vDret = addParameter(app, submonitor, elemContentValue, dataTypeValue, elemDirValue,
                         elemStreamValue, elemPrefixValue, elemNameValue, elemPyTypeValue, weight, keepRename,
-                        dictCollectionParametersValues, offset + pointer, values1) + extraValue;
+                        dictCollectionParams, offset + pointer, values1) + extraValue;
                     pointer += vDret;
                 }
-                Map<Parameter, Parameter> dictCollectionParams =
-                    IntStream.range(0, dictCollectionParametersKeys.size()).boxed().collect(
-                        Collectors.toMap(dictCollectionParametersKeys::get, dictCollectionParametersValues::get));
-                DictCollectionParameter dcp = new DictCollectionParameter(dictCollectionId, direction, stream, prefix,
+                CollectiveParameter dcp = new CollectiveParameter(type, dictCollectionId, direction, stream, prefix,
                     name, dictColPyType, weight, keepRename, monitor, dictCollectionParams);
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Add Dictionary Collection " + dcp.getName() + " with " + dcp.getElements().size() / 2

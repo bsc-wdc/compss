@@ -56,30 +56,23 @@ public class NIOParamCollection extends NIOParam implements InvocationParamColle
         this.collectionParameters = new LinkedList<>();
     }
 
-    /**
-     * Returns the number of internal parameters of the collection.
-     *
-     * @return The number of internal parameters of the collection.
-     */
+    @Override
+    public boolean isCollective() {
+        return true;
+    }
+
+    @Override
     public int getSize() {
         return this.collectionParameters.size();
     }
 
-    /**
-     * Returns a list of objects containing the collection parameters.
-     *
-     * @return A list of objects containing the collection parameters.
-     */
+    @Override
     public List<NIOParam> getCollectionParameters() {
         return this.collectionParameters;
     }
 
-    /**
-     * Adds a new parameter to the collection.
-     *
-     * @param p Parameter to add.
-     */
-    public void addParameter(NIOParam p) {
+    @Override
+    public void addElement(NIOParam p) {
         this.collectionParameters.add(p);
     }
 

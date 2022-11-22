@@ -48,6 +48,11 @@ public class LocalParameterCollection extends LocalParameter implements Invocati
     }
 
     @Override
+    public boolean isCollective() {
+        return true;
+    }
+
+    @Override
     public int getSize() {
         return this.collectionParameters.size();
     }
@@ -58,7 +63,7 @@ public class LocalParameterCollection extends LocalParameter implements Invocati
     }
 
     @Override
-    public void addParameter(LocalParameter p) {
+    public void addElement(LocalParameter p) {
         this.collectionParameters.add(p);
     }
 

@@ -21,10 +21,25 @@ import java.util.List;
 
 public interface InvocationParamCollection<T extends InvocationParam> extends InvocationParam {
 
+    /**
+     * Returns a list of objects containing the collection parameters.
+     *
+     * @return A list of objects containing the collection parameters.
+     */
     public List<T> getCollectionParameters();
 
-    public void addParameter(T param);
+    /**
+     * Adds a new parameter to the collection.
+     *
+     * @param param Parameter to add.
+     */
+    public void addElement(T param);
 
+    /**
+     * Returns the number of internal parameters of the collection.
+     *
+     * @return The number of internal parameters of the collection.
+     */
     public int getSize();
 
 }

@@ -154,6 +154,11 @@ public class LocalParameter implements InvocationParam {
         return this.param.getType();
     }
 
+    @Override
+    public boolean isCollective() {
+        return false;
+    }
+
     /**
      * Returns the original type for the parameter.
      * 

@@ -125,6 +125,11 @@ public class NIOParam implements Externalizable, InvocationParam {
     }
 
     @Override
+    public boolean isCollective() {
+        return false;
+    }
+
+    @Override
     public StdIOStream getStdIOStream() {
         return this.stream;
     }

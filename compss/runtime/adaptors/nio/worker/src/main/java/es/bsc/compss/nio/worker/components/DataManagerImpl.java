@@ -24,7 +24,6 @@ import es.bsc.compss.data.FetchDataListener;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOParamCollection;
-import es.bsc.compss.nio.NIOParamDictCollection;
 import es.bsc.compss.nio.exceptions.NoSourcesException;
 import es.bsc.compss.nio.listeners.CollectionFetchOperationsListener;
 import es.bsc.compss.nio.listeners.DictCollectionFetchOperationsListener;
@@ -232,10 +231,8 @@ public class DataManagerImpl implements DataManager {
     public void fetchParam(InvocationParam param, int paramIdx, FetchDataListener tt) {
         switch (param.getType()) {
             case COLLECTION_T:
-                fetchCollection(param, paramIdx, tt);
-                break;
             case DICT_COLLECTION_T:
-                fetchDictCollection(param, paramIdx, tt);
+                fetchCollection(param, paramIdx, tt);
                 break;
             case OBJECT_T:
             case STREAM_T:
@@ -322,29 +319,6 @@ public class DataManagerImpl implements DataManager {
                 subIndex++;
             }
             cfol.enable();
-        } catch (Exception e) {
-            listener.errorFetchingValue(param.getDataMgmtId(), e);
-        }
-    }
-
-    private void fetchDictCollection(InvocationParam param, int index, FetchDataListener listener) {
-        try {
-            NIOParamDictCollection npdc = (NIOParamDictCollection) param;
-            Map<NIOParam, NIOParam> elements = npdc.getDictCollectionParameters();
-            WORKER_LOGGER.info("Checking NIOParamDictCollection (received " + elements.size() + " entries)");
-            int subIndex = 0;
-            DictCollectionFetchOperationsListener dcfol =
-                new DictCollectionFetchOperationsListener(param.getDataMgmtId(), listener);
-            for (Map.Entry<NIOParam, NIOParam> subNioEntry : npdc.getDictCollectionParameters().entrySet()) {
-                dcfol.addOperation();
-                WORKER_LOGGER.info("Fetching key: " + subNioEntry.getKey());
-                fetchParam(subNioEntry.getKey(), subIndex, dcfol);
-                dcfol.addOperation();
-                WORKER_LOGGER.info("Fetching value: " + subNioEntry.getValue());
-                fetchParam(subNioEntry.getValue(), subIndex, dcfol);
-                subIndex++;
-            }
-            dcfol.enable();
         } catch (Exception e) {
             listener.errorFetchingValue(param.getDataMgmtId(), e);
         }

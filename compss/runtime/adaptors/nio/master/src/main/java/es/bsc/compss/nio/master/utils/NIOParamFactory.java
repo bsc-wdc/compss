@@ -20,7 +20,6 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOData;
 import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOParamCollection;
-import es.bsc.compss.nio.NIOParamDictCollection;
 import es.bsc.compss.nio.master.NIOWorkerNode;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.DataAccessId;
@@ -29,12 +28,9 @@ import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.parameter.BasicTypeParameter;
-import es.bsc.compss.types.parameter.CollectionParameter;
+import es.bsc.compss.types.parameter.CollectiveParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
-import es.bsc.compss.types.parameter.DictCollectionParameter;
 import es.bsc.compss.types.parameter.Parameter;
-
-import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -73,12 +69,9 @@ public class NIOParamFactory {
                 np = buildNioDependencyParam(param, node, fromReplicatedTask);
                 break;
             case COLLECTION_T:
+            case DICT_COLLECTION_T:
                 NIOParam collNioParam = buildNioDependencyParam(param, node, fromReplicatedTask);
                 np = buildNioCollectionParam(param, collNioParam, node, fromReplicatedTask);
-                break;
-            case DICT_COLLECTION_T:
-                NIOParam dictCollNioParam = buildNioDependencyParam(param, node, fromReplicatedTask);
-                np = buildNioDictCollectionParam(param, dictCollNioParam, node, fromReplicatedTask);
                 break;
             default:
                 np = buildNioBasicParam(param);
@@ -153,14 +146,14 @@ public class NIOParamFactory {
     private static NIOParam buildNioCollectionParam(Parameter param, NIOParam collNioParam, NIOWorkerNode node,
         boolean fromReplicatedTask) {
         if (DEBUG) {
-            LOGGER.debug("Detected COLLECTION_T parameter");
+            LOGGER.debug("Detected " + param.getType() + " parameter");
         }
 
         NIOParamCollection npc = new NIOParamCollection(collNioParam);
 
-        CollectionParameter collParam = (CollectionParameter) param;
+        CollectiveParameter collParam = (CollectiveParameter) param;
         for (Parameter subParam : collParam.getElements()) {
-            npc.addParameter(NIOParamFactory.fromParameter(subParam, node, fromReplicatedTask));
+            npc.addElement(NIOParamFactory.fromParameter(subParam, node, fromReplicatedTask));
         }
 
         if (DEBUG) {
@@ -169,26 +162,6 @@ public class NIOParamFactory {
         }
 
         return npc;
-    }
-
-    private static NIOParam buildNioDictCollectionParam(Parameter param, NIOParam dictCollNioParam, NIOWorkerNode node,
-        boolean fromReplicatedTask) {
-        if (DEBUG) {
-            LOGGER.debug("Detected DICT_COLLECTION_T parameter");
-        }
-
-        NIOParamDictCollection npdc = new NIOParamDictCollection(dictCollNioParam);
-
-        DictCollectionParameter dictCollParam = (DictCollectionParameter) param;
-        for (Map.Entry<Parameter, Parameter> entry : dictCollParam.getDictionary().entrySet()) {
-            npdc.addParameter(NIOParamFactory.fromParameter(entry.getKey(), node, fromReplicatedTask),
-                NIOParamFactory.fromParameter(entry.getValue(), node, fromReplicatedTask));
-        }
-        if (DEBUG) {
-            LOGGER.debug("NIOParamDictCollection with id = " + npdc.getDataMgmtId() + " contains " + npdc.getSize()
-                + " parameters.");
-        }
-        return npdc;
     }
 
     private static NIOParam buildNioBasicParam(Parameter param) {

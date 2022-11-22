@@ -28,9 +28,8 @@ import es.bsc.compss.types.job.JobEndStatus;
 import es.bsc.compss.types.job.JobHistory;
 import es.bsc.compss.types.job.JobImpl;
 import es.bsc.compss.types.job.JobListener;
-import es.bsc.compss.types.parameter.CollectionParameter;
+import es.bsc.compss.types.parameter.CollectiveParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
-import es.bsc.compss.types.parameter.DictCollectionParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Resource;
@@ -39,7 +38,6 @@ import es.bsc.compss.worker.COMPSsException;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 
 public class LocalJob extends JobImpl<COMPSsMaster> implements Invocation {
@@ -78,25 +76,15 @@ public class LocalJob extends JobImpl<COMPSsMaster> implements Invocation {
     }
 
     private LocalParameter generateLocalParameter(Parameter p) {
-        switch (p.getType()) {
-            case COLLECTION_T:
-                CollectionParameter cp = (CollectionParameter) p;
-                LocalParameterCollection lpc = new LocalParameterCollection(p);
-                for (Parameter subParam : cp.getElements()) {
-                    lpc.addParameter(generateLocalParameter(subParam));
-                }
-                return lpc;
-            case DICT_COLLECTION_T:
-                DictCollectionParameter dcp = (DictCollectionParameter) p;
-                LocalParameterDictCollection lpdc = new LocalParameterDictCollection(p);
-                for (Map.Entry<Parameter, Parameter> entry : dcp.getDictionary().entrySet()) {
-                    LocalParameter keyParam = generateLocalParameter(entry.getKey());
-                    LocalParameter valueParam = generateLocalParameter(entry.getValue());
-                    lpdc.addParameter(keyParam, valueParam);
-                }
-                return lpdc;
-            default:
-                return new LocalParameter(p);
+        if (p.isCollective()) {
+            CollectiveParameter cp = (CollectiveParameter) p;
+            LocalParameterCollection lpc = new LocalParameterCollection(p);
+            for (Parameter subParam : cp.getElements()) {
+                lpc.addElement(generateLocalParameter(subParam));
+            }
+            return lpc;
+        } else {
+            return new LocalParameter(p);
         }
     }
 

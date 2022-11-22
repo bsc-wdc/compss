@@ -399,6 +399,7 @@ public class GATInvocation implements Invocation {
 
     private static class Param implements InvocationParam {
 
+        private boolean collective;
         private DataType type;
         private Object value;
         private Class<?> valueClass;
@@ -417,6 +418,7 @@ public class GATInvocation implements Invocation {
         public Param(DataType type, String prefix, String name, String contentType, StdIOStream stream, double weight,
             boolean keepRename, String originalName, boolean writeFinalValue) {
             this.type = type;
+            this.collective = (type == DataType.COLLECTION_T || type == DataType.DICT_COLLECTION_T);
             this.prefix = prefix;
             this.name = name;
             this.contentType = contentType;
@@ -430,6 +432,7 @@ public class GATInvocation implements Invocation {
         @Override
         public void setType(DataType type) {
             this.type = type;
+            this.collective = (type == DataType.COLLECTION_T || type == DataType.DICT_COLLECTION_T);
         }
 
         @Override
@@ -533,6 +536,11 @@ public class GATInvocation implements Invocation {
         public List<InvocationParamURI> getSources() {
             // File is not available to be fetch from anywhere
             return null;
+        }
+
+        @Override
+        public boolean isCollective() {
+            return collective;
         }
 
     }

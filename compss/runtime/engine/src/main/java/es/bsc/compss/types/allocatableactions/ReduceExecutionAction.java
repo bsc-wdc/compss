@@ -29,7 +29,7 @@ import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.data.accessid.RWAccessId;
-import es.bsc.compss.types.parameter.CollectionParameter;
+import es.bsc.compss.types.parameter.CollectiveParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.FileParameter;
 import es.bsc.compss.types.parameter.Parameter;
@@ -52,7 +52,7 @@ public class ReduceExecutionAction extends ExecutionAction {
     private TaskScheduler ts;
     private int reduceIndex = 0;
     // Initial collection of parameters to reduce
-    private CollectionParameter initialCollection;
+    private CollectiveParameter initialCollection;
     // Other task parameters which are not part of the collection
     private Set<Parameter> extraParameters;
     // Map to store to know parameters generated per resource.
@@ -97,7 +97,7 @@ public class ReduceExecutionAction extends ExecutionAction {
         this.colIndex = task.getReduceCollectionIndex();
         for (int i = 0; i < finalParameters.size() - 1; i++) {
             if (i == this.colIndex) {
-                this.initialCollection = (CollectionParameter) finalParameters.get(colIndex);
+                this.initialCollection = (CollectiveParameter) finalParameters.get(colIndex);
             } else {
                 this.extraParameters.add(finalParameters.get(i));
             }
@@ -115,7 +115,7 @@ public class ReduceExecutionAction extends ExecutionAction {
         // Checking parameters without data dependency (excluding the extra parameters)
         List<Parameter> params = new ArrayList<>();
         for (Parameter p : task.getFreeParams()) {
-            if (!(p instanceof CollectionParameter)
+            if (!(p instanceof CollectiveParameter)
                 && !(p instanceof FileParameter && ((FileParameter) p).getOriginalName().startsWith("reduce"))
                 && !extraParameters.contains(p)) {
                 params.add(p);
@@ -377,9 +377,9 @@ public class ReduceExecutionAction extends ExecutionAction {
         for (Parameter p : params) {
             partialsIn.add(p);
         }
-        CollectionParameter cPartial = t.getFinalCollection();
+        CollectiveParameter cPartial = t.getFinalCollection();
 
-        cPartial.setParameters(partialsIn);
+        cPartial.setElements(partialsIn);
         List<Parameter> finalParameters = this.task.getTaskDescription().getParameters();
         finalParameters.set(this.colIndex, cPartial);
     }
@@ -393,8 +393,8 @@ public class ReduceExecutionAction extends ExecutionAction {
             LOGGER.error("ERROR: Reduce Task " + this.task.getId() + " has exceed the number of partial reduces");
             ErrorManager.fatal("ERROR: Reduce task " + this.task.getId() + " has exceed the number of partial reduces");
         }
-        CollectionParameter cp = t.getIntermediateCollections().get(reduceIndex);
-        cp.setParameters(params);
+        CollectiveParameter cp = t.getIntermediateCollections().get(reduceIndex);
+        cp.setElements(params);
         List<Parameter> taskP = new ArrayList<>();
         TaskDescription td = this.task.getTaskDescription();
         List<Parameter> oldParameters = td.getParameters();

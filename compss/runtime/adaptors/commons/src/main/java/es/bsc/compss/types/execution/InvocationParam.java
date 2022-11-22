@@ -27,6 +27,8 @@ public interface InvocationParam {
 
     public DataType getType();
 
+    public boolean isCollective();
+
     public boolean isPreserveSourceData();
 
     public boolean isWriteFinalValue();

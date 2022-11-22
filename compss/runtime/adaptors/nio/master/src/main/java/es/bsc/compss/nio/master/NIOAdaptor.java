@@ -73,7 +73,7 @@ import es.bsc.compss.types.data.operation.OperationEndState;
 import es.bsc.compss.types.data.operation.copy.Copy;
 import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobHistory;
-import es.bsc.compss.types.parameter.CollectionParameter;
+import es.bsc.compss.types.parameter.CollectiveParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.project.ProjectFile;
@@ -616,7 +616,8 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
                 // Primitive type parameters cannot become a PSCO nor stored. Ignoring parameter.
                 return;
             case COLLECTION_T:
-                CollectionParameter colParam = (CollectionParameter) param;
+            case DICT_COLLECTION_T:
+                CollectiveParameter colParam = (CollectiveParameter) param;
                 NIOResultCollection colResult = (NIOResultCollection) result;
 
                 List<NIOResult> taskResults = colResult.getElements();

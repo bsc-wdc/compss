@@ -300,23 +300,32 @@ display_configuration
 # Generate all traces from packages
 packages=$(find "${in_dir}" -name "*.tar.gz")
 gen_traces "${out_dir}" "${trace_name}" "1" ${packages}
-if [ ! "${endCode}" -eq "0" ]; then
+if [[ ${endCode} -ne 0 ]]; then
+  echo "FAILED gen_traces"
   exit "${endCode}"
+else
+  echo "SUCCESS gen_traces"
 fi
 
 # Merge python traces into main
 python_traces=$(find "${out_dir}/python" -name "*.prv")
 merge_python_traces "${out_dir}" "${trace_name}" ${python_traces}
-if [ ! "${endCode}" -eq "0" ]; then
+if [[ ${endCode} -ne 0 ]]; then
+  echo "FAILED merge_python_traces"
   exit "${endCode}"
+else
+  echo "SUCCESS merge_python_traces"
 fi
 rm -rf "${out_dir}/python"
 
 # Re-arranging PRV trace with custom threads
 if [ "${custom_threads}" == "true" ]; then
   rearrange_trace_threads "${out_dir}" "${trace_name}"
-  if [ ! "${endCode}" -eq "0" ]; then
+  if [[ ${endCode} -ne 0 ]]; then
+    echo "FAILED rearrange_trace_threads"
     exit "${endCode}"
+  else
+    echo "SUCCESS rearrange_trace_threads"
   fi
 fi
 

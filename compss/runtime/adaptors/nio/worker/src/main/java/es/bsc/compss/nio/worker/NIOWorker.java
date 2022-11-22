@@ -557,6 +557,11 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     }
 
     private void updateParamTargetPaths(NIOParam param) {
+        if (param.isCollective()) {
+            for (NIOParam p : ((NIOParamCollection) param).getCollectionParameters()) {
+                updateParamTargetPaths(p);
+            }
+        }
         DataType type = param.getType();
         String path;
         switch (type) {
@@ -564,16 +569,12 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
                 path = ProtocolType.DIR_URI.getSchema() + param.getValue();
                 break;
             case FILE_T:
+            case COLLECTION_T:
+            case DICT_COLLECTION_T:
                 path = ProtocolType.FILE_URI.getSchema() + param.getValue();
                 break;
             case OBJECT_T:
                 path = ProtocolType.OBJECT_URI.getSchema() + param.getDataMgmtId();
-                break;
-            case COLLECTION_T:
-                path = ProtocolType.FILE_URI.getSchema() + param.getValue();
-                for (NIOParam p : ((NIOParamCollection) param).getCollectionParameters()) {
-                    updateParamTargetPaths(p);
-                }
                 break;
             case STREAM_T:
                 path = ProtocolType.STREAM_URI.getSchema() + param.getDataMgmtId();

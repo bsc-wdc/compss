@@ -17,7 +17,10 @@
 package es.bsc.compss.nio.master;
 
 import es.bsc.compss.nio.NIOParam;
+import es.bsc.compss.nio.NIOResult;
+import es.bsc.compss.nio.NIOResultCollection;
 import es.bsc.compss.nio.NIOTask;
+import es.bsc.compss.nio.NIOTaskResult;
 import es.bsc.compss.nio.master.utils.NIOParamFactory;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
@@ -29,9 +32,12 @@ import es.bsc.compss.types.job.JobEndStatus;
 import es.bsc.compss.types.job.JobHistory;
 import es.bsc.compss.types.job.JobImpl;
 import es.bsc.compss.types.job.JobListener;
+import es.bsc.compss.types.parameter.CollectiveParameter;
+import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.worker.COMPSsException;
+import java.util.Iterator;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -135,65 +141,98 @@ public class NIOJob extends JobImpl<NIOWorkerNode> {
      * Marks the task as finished with the given {@code successful} error code.
      *
      * @param successful {@code true} if the task has successfully finished, {@code false} otherwise.
+     * @param ntr information referring the results of the task executed
      * @param e Exception arose during the task execution, {@literal null} if no exception was raised.
      */
-    public void taskFinished(boolean successful, Exception e) {
+    public void taskFinished(boolean successful, NIOTaskResult ntr, Exception e) {
+        if (this.history == JobHistory.CANCELLED) {
+            LOGGER.error("Ignoring notification since the job was cancelled");
+            removeTmpData();
+            return;
+        }
         if (successful) {
-            this.completed();
+            this.completed(ntr);
         } else {
             if (e instanceof COMPSsException) {
-                this.exception((COMPSsException) e);
+                this.exception(ntr, (COMPSsException) e);
             } else {
-                this.failed(JobEndStatus.EXECUTION_FAILED);
+                this.failed(ntr, JobEndStatus.EXECUTION_FAILED);
             }
         }
     }
 
-    @Override
-    public void completed() {
-        if (this.history == JobHistory.CANCELLED) {
-            LOGGER.error("Ignoring notification since the job was cancelled");
-            removeTmpData();
-            return;
-        }
-
-        super.registerAllJobOutputsAsExpected();
+    private void completed(NIOTaskResult ntr) {
+        registerAllJobOutputs(ntr);
         super.completed();
     }
 
-    @Override
-    public void exception(COMPSsException e) {
-        if (this.history == JobHistory.CANCELLED) {
-            LOGGER.error("Ignoring notification since the job was cancelled");
-            removeTmpData();
-            return;
-        }
-
-        super.registerAllJobOutputsAsExpected();
+    private void exception(NIOTaskResult ntr, COMPSsException e) {
+        registerAllJobOutputs(ntr);
         super.exception(e);
     }
 
-    @Override
-    public void failed(JobEndStatus status) {
-        if (this.history == JobHistory.CANCELLED) {
-            LOGGER.error("Ignoring notification since the job was cancelled");
-            removeTmpData();
-            return;
-        }
+    private void failed(NIOTaskResult ntr, JobEndStatus status) {
         if (this.isBeingCancelled()) {
-            super.registerAllJobOutputsAsExpected();
-        }
-        switch (this.taskParams.getOnFailure()) {
-            case IGNORE:
-            case CANCEL_SUCCESSORS:
-                super.registerAllJobOutputsAsExpected();
-                break;
-            default:
-                // case RETRY:
-                // case FAIL:
-                removeTmpData();
+            registerAllJobOutputs(ntr);
+        } else {
+            switch (this.taskParams.getOnFailure()) {
+                case IGNORE:
+                case CANCEL_SUCCESSORS:
+                    registerAllJobOutputs(ntr);
+                    break;
+                default:
+                    // case RETRY:
+                    // case FAIL:
+                    removeTmpData();
+            }
         }
         super.failed(status);
+    }
+
+    private void registerAllJobOutputs(NIOTaskResult ntr) {
+        // Update information
+        List<NIOResult> taskResults = ntr.getParamResults();
+        List<Parameter> taskParams = getTaskParams().getParameters();
+        Iterator<Parameter> taskParamsItr = taskParams.iterator();
+        Iterator<NIOResult> taskResultItr = taskResults.iterator();
+
+        while (taskParamsItr.hasNext()) {
+            Parameter param = taskParamsItr.next();
+            NIOResult result = taskResultItr.next();
+            if (result.getLocation() != null) {
+                registerParameter(param, result);
+            }
+        }
+    }
+
+    private void registerParameter(Parameter param, NIOResult result) {
+        if (!param.isPotentialDependency()) {
+            return;
+        }
+
+        DependencyParameter dp = (DependencyParameter) param;
+        String rename = getOuputRename(dp);
+        if (dp.isCollective()) {
+            CollectiveParameter colParam = (CollectiveParameter) param;
+            NIOResultCollection colResult = (NIOResultCollection) result;
+
+            List<NIOResult> taskResults = colResult.getElements();
+            List<Parameter> taskParams = colParam.getElements();
+            Iterator<Parameter> taskParamsItr = taskParams.iterator();
+            Iterator<NIOResult> taskResultItr = taskResults.iterator();
+
+            while (taskParamsItr.hasNext()) {
+                Parameter elemParam = taskParamsItr.next();
+                NIOResult elemResult = taskResultItr.next();
+                registerParameter(elemParam, elemResult);
+            }
+        }
+
+        String rloc = result.getLocation();
+        if (rename != null && rloc != null) {
+            registerResultLocation(rloc, rename, this.worker);
+            notifyResultAvailability(dp, rename);
+        }
     }
 
     @Override

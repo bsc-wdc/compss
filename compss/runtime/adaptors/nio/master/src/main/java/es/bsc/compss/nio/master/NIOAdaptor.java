@@ -34,8 +34,6 @@ import es.bsc.compss.nio.NIOAgent;
 import es.bsc.compss.nio.NIOData;
 import es.bsc.compss.nio.NIOMessageHandler;
 import es.bsc.compss.nio.NIOParam;
-import es.bsc.compss.nio.NIOResult;
-import es.bsc.compss.nio.NIOResultCollection;
 import es.bsc.compss.nio.NIOTask;
 import es.bsc.compss.nio.NIOTaskProfile;
 import es.bsc.compss.nio.NIOTaskResult;
@@ -63,7 +61,6 @@ import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.NodeMonitor;
 import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.location.DataLocation;
@@ -73,9 +70,6 @@ import es.bsc.compss.types.data.operation.OperationEndState;
 import es.bsc.compss.types.data.operation.copy.Copy;
 import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobHistory;
-import es.bsc.compss.types.parameter.CollectiveParameter;
-import es.bsc.compss.types.parameter.DependencyParameter;
-import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.project.ProjectFile;
 import es.bsc.compss.types.project.jaxb.ExternalAdaptorProperties;
 import es.bsc.compss.types.project.jaxb.NIOAdaptorProperties;
@@ -100,7 +94,6 @@ import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -505,24 +498,10 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             nj.profileEndNotificationAt(profile.getEndTime());
 
             int taskId = nj.getTaskId();
-            // Update information
-            List<NIOResult> taskResults = ntr.getParamResults();
-            List<Parameter> taskParams = nj.getTaskParams().getParameters();
-            Iterator<Parameter> taskParamsItr = taskParams.iterator();
-            Iterator<NIOResult> taskResultItr = taskResults.iterator();
 
-            while (taskParamsItr.hasNext()) {
-                Parameter param = taskParamsItr.next();
-                NIOResult result = taskResultItr.next();
-                if (result.getLocation() != null) {
-                    updateParameter(param, result);
-                }
-            }
-
-            // Update NIO Job
             // Mark task as finished and release waiters
             JobHistory prevJobHistory = nj.getHistory();
-            nj.taskFinished(successful, e);
+            nj.taskFinished(successful, ntr, e);
 
             // Retrieve files if required
             retrieveAdditionalJobFiles(c, successful, jobId, taskId, prevJobHistory);
@@ -547,7 +526,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             // Update NIO Job
             // Mark task as finished and release waiters
             JobHistory prevJobHistory = nj.getHistory();
-            nj.taskFinished(false, null);
+            nj.taskFinished(false, null, null);
 
             // Retrieve files if required
             generateFailedJobFiles(jobId, prevJobHistory, "Error sending new task command");
@@ -596,101 +575,6 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             connection.receiveDataFile(jobOut);
             connection.receiveDataFile(jobErr);
         }
-    }
-
-    private void updateParameter(Parameter param, NIOResult result) {
-
-        DataType oldType = param.getType();
-
-        switch (oldType) {
-            case BOOLEAN_T:
-            case CHAR_T:
-            case BYTE_T:
-            case SHORT_T:
-            case INT_T:
-            case LONG_T:
-            case FLOAT_T:
-            case DOUBLE_T:
-            case STRING_T:
-            case STRING_64_T:
-                // Primitive type parameters cannot become a PSCO nor stored. Ignoring parameter.
-                return;
-            case COLLECTION_T:
-            case DICT_COLLECTION_T:
-                CollectiveParameter colParam = (CollectiveParameter) param;
-                NIOResultCollection colResult = (NIOResultCollection) result;
-
-                List<NIOResult> taskResults = colResult.getElements();
-                List<Parameter> taskParams = colParam.getElements();
-                Iterator<Parameter> taskParamsItr = taskParams.iterator();
-                Iterator<NIOResult> taskResultItr = taskResults.iterator();
-
-                while (taskParamsItr.hasNext()) {
-                    Parameter elemParam = taskParamsItr.next();
-                    NIOResult elemResult = taskResultItr.next();
-                    if (elemResult.getLocation() != null) {
-                        updateParameter(elemParam, elemResult);
-                    }
-                }
-                updateParameter(result.getType(), result.getLocation(), colParam);
-                break;
-            default:
-                updateParameter(result.getType(), result.getLocation(), (DependencyParameter) param);
-        }
-
-    }
-
-    private void updateParameter(DataType newType, String location, DependencyParameter dp) {
-        // Parameter needs to be updated
-        SimpleURI resultUri = new SimpleURI(location);
-        // If the parameter has been persisted and it was not a PSCO, the PSCO location needs to be registered.
-        // If it is an IN parameter, the runtime won't add any new location
-        boolean hasPSCOId = (newType == DataType.PSCO_T) || (newType == DataType.EXTERNAL_PSCO_T);
-        if (hasPSCOId) {
-            DataType previousType = dp.getType();
-            if (previousType == DataType.PSCO_T || previousType == DataType.EXTERNAL_PSCO_T) {
-                if (!previousType.equals(newType)) {
-                    // The parameter types do not match, log exception
-                    LOGGER.warn(
-                        "WARN: Cannot update parameter " + dp.getDataTarget() + " because types are not compatible");
-                }
-            } else {
-                String pscoId = resultUri.getPath();
-                registerPersistedParameter(newType, pscoId, dp);
-            }
-            // Update Task information
-            dp.setType(newType);
-            dp.setDataTarget(resultUri.toString());
-        } else {
-            // Update Other type Task information
-            if (!dp.getDirection().equals(Direction.CONCURRENT) && !dp.getDirection().equals(Direction.IN)
-                && !dp.getDirection().equals(Direction.IN_DELETE)) {
-                // Only update if data has been modified
-                dp.setType(newType);
-                dp.setDataTarget(resultUri.toString());
-            }
-        }
-    }
-
-    private void registerPersistedParameter(DataType newType, String pscoId, DependencyParameter dp) {
-        // The parameter was an OBJECT or a FILE, we change its type and value and register its new location
-        String renaming = dp.getDataTarget();
-        // Update COMM information
-        switch (newType) {
-            case PSCO_T:
-                Comm.registerPSCO(renaming, pscoId);
-                break;
-            case EXTERNAL_PSCO_T:
-                if (renaming.contains("/")) {
-                    renaming = renaming.substring(renaming.lastIndexOf('/') + 1);
-                }
-                Comm.registerExternalPSCO(renaming, pscoId);
-                break;
-            default:
-                LOGGER.warn("WARN: Invalid new type " + newType + " for parameter " + renaming);
-                break;
-        }
-
     }
 
     /**

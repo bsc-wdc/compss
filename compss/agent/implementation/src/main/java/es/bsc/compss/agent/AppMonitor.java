@@ -179,7 +179,6 @@ public abstract class AppMonitor implements TaskMonitor {
 
         private final String externalDataId;
         private DataType type;
-        private String internalDataName;
         private String dataLocation;
 
 
@@ -193,14 +192,6 @@ public abstract class AppMonitor implements TaskMonitor {
 
         public void setType(DataType type) {
             this.type = type;
-        }
-
-        public String getDataName() {
-            return internalDataName;
-        }
-
-        public void setDataName(String dataName) {
-            this.internalDataName = dataName;
         }
 
         public String getDataLocation() {
@@ -221,7 +212,6 @@ public abstract class AppMonitor implements TaskMonitor {
             @Override
             public void onCreation(DataType type, String dataName, String dataLocation) {
                 TaskResult.this.type = type;
-                TaskResult.this.internalDataName = dataName;
                 TaskResult.this.dataLocation = dataLocation;
 
                 LogicalData ld = Comm.getData(dataName);

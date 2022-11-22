@@ -25,7 +25,6 @@ import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.DataAccessId;
-import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.exceptions.LangNotDefinedException;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
@@ -408,29 +407,38 @@ public class GATJob extends es.bsc.compss.types.job.JobImpl<GATWorkerNode> imple
                 sb.append("Parameter ").append(i).append("\n");
                 DataType type = param.getType();
                 sb.append("\t Type: ").append(param.getType()).append("\n");
-                if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.STREAM_T
-                    || type == DataType.BINDING_OBJECT_T) {
-                    DependencyParameter dPar = (DependencyParameter) param;
-                    DataAccessId dAccId = dPar.getDataAccessId();
-                    sb.append("\t Target: ").append(dPar.getDataTarget()).append("\n");
-                    if (type == DataType.OBJECT_T || type == DataType.STREAM_T || type == DataType.BINDING_OBJECT_T) {
-                        if (dAccId.isWrite()) {
-                            // For the worker to know it must write the object to disk
-                            sb.append("\t Direction: " + "W").append("\n");
-                        } else {
-                            sb.append("\t Direction: " + "R").append("\n");
+                switch (type) {
+                    case FILE_T:
+                    case OBJECT_T:
+                    case STREAM_T:
+                    case BINDING_OBJECT_T:
+                        DependencyParameter dPar = (DependencyParameter) param;
+                        DataAccessId dAccId = dPar.getDataAccessId();
+                        sb.append("\t Target: ").append(dPar.getDataTarget()).append("\n");
+                        if (type == DataType.OBJECT_T || type == DataType.STREAM_T
+                            || type == DataType.BINDING_OBJECT_T) {
+                            if (dAccId.isWrite()) {
+                                // For the worker to know it must write the object to disk
+                                sb.append("\t Direction: " + "W").append("\n");
+                            } else {
+                                sb.append("\t Direction: " + "R").append("\n");
+                            }
                         }
-                    }
-                } else if (type == DataType.STRING_T || type == DataType.STRING_64_T) {
-                    BasicTypeParameter btParS = (BasicTypeParameter) param;
-                    // Check spaces
-                    String value = btParS.getValue().toString();
-                    int numSubStrings = value.split(" ").length;
-                    sb.append("\t Num Substrings: " + Integer.toString(numSubStrings)).append("\n");
-                    sb.append("\t Value:" + value).append("\n");
-                } else { // Basic types
-                    BasicTypeParameter btParB = (BasicTypeParameter) param;
-                    sb.append("\t Value: " + btParB.getValue().toString()).append("\n");
+                        break;
+                    case STRING_T:
+                    case STRING_64_T:
+                        BasicTypeParameter btParS = (BasicTypeParameter) param;
+                        // Check spaces
+                        String value = btParS.getValue().toString();
+                        int numSubStrings = value.split(" ").length;
+                        sb.append("\t Num Substrings: ").append(Integer.toString(numSubStrings)).append("\n");
+                        sb.append("\t Value:").append(value).append("\n");
+                        break;
+                    default:
+                        // Basic types
+                        BasicTypeParameter btParB = (BasicTypeParameter) param;
+                        sb.append("\t Value: ").append(btParB.getValue().toString()).append("\n");
+                        break;
                 }
                 i++;
             }
@@ -691,8 +699,4 @@ public class GATJob extends es.bsc.compss.types.job.JobImpl<GATWorkerNode> imple
         super.failed(status);
     }
 
-    @Override
-    protected void registerAllJobOutputsAsExpected() {
-        // Overriding to avoid registering results again. This will be removed in future implementations
-    }
 }

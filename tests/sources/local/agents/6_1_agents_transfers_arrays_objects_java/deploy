@@ -1,0 +1,15 @@
+#!/bin/bash -e
+  
+  # Obtain parameter
+  source_base_dir=$1
+  target_base_dir=$2
+  
+  # Copy files
+  app_name="6_1_agents_transfers_arrays_objects_java"
+
+  cp "${source_base_dir}"/target/${app_name}.jar "${target_base_dir}"/${app_name}.jar
+
+  cp "${source_base_dir}"/project.xml "${target_base_dir}"/project.xml
+  cp "${source_base_dir}"/resources.xml "${target_base_dir}"/resources.xml
+
+  cp "${source_base_dir}"/execution "${target_base_dir}"/execution

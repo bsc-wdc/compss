@@ -97,13 +97,6 @@ sleep 5
   createIntColl_value=$( grep createIntCollectionResult: ${agent1_log_dir}/jobs/* | cut -d ":" -f3)
   createObjColl_value=$( grep createObjCollectionResult: ${agent1_log_dir}/jobs/* | cut -d ":" -f3)
 
-  echo ______ buscando en ${agent1_log_dir}
-
-  echo printIntColl_value $printIntColl_value
-  echo printObjColl_value $printObjColl_value
-  echo createIntColl_value $createIntColl_value
-  echo createObjColl_value $createObjColl_value
-
 
   if [ ! "${printIntColl_value}" == "[1, 2, 3, [41, 42, 43]]" ]; then
     echo "Unexpected value (${printIntColl_value}) for tag printIntCollResult." > >(tee -a "${error_log}")

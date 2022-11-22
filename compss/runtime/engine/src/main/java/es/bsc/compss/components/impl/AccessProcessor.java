@@ -63,6 +63,7 @@ import es.bsc.compss.types.request.ap.FinishDataAccessRequest;
 import es.bsc.compss.types.request.ap.GetLastRenamingRequest;
 import es.bsc.compss.types.request.ap.GetResultFilesRequest;
 import es.bsc.compss.types.request.ap.IsObjectHereRequest;
+import es.bsc.compss.types.request.ap.ObjectGetLastVersionRequest;
 import es.bsc.compss.types.request.ap.OpenTaskGroupRequest;
 import es.bsc.compss.types.request.ap.RegisterDataAccessRequest;
 import es.bsc.compss.types.request.ap.RegisterRemoteDataRequest;
@@ -513,6 +514,24 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         }
 
         return isValid;
+    }
+
+    /**
+     * Returns the Identifier of the data corresponding to the last version of an object.
+     *
+     * @param app application accessing the object.
+     * @param obj Object.
+     * @param hashCode Object hashcode.
+     * @return data corresponding to the last version of an object.
+     */
+    public LogicalData getObjectLastVersion(Application app, Object obj, int hashCode) {
+        // Ask for the object
+        ObjectGetLastVersionRequest odr = new ObjectGetLastVersionRequest(app, obj, hashCode);
+        if (!this.requestQueue.offer(odr)) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "data version query");
+        }
+
+        return odr.getData();
     }
 
     /**

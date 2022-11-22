@@ -47,6 +47,7 @@ public class LocalParameter implements InvocationParam {
 
     private Object value;
     private Class<?> valueClass;
+    private boolean forwardedResult;
 
 
     /**
@@ -60,6 +61,7 @@ public class LocalParameter implements InvocationParam {
         this.writeFinalValue = false;
         this.sourceDataMgmtId = null;
         this.dataMgmtId = null;
+        this.forwardedResult = false;
     }
 
     /**
@@ -128,6 +130,7 @@ public class LocalParameter implements InvocationParam {
                 this.sourceDataMgmtId = null;
                 this.dataMgmtId = null;
         }
+        this.forwardedResult = false;
     }
 
     @Override
@@ -248,6 +251,16 @@ public class LocalParameter implements InvocationParam {
     public List<? extends InvocationParamURI> getSources() {
         // Shouldn't be used on the local node
         return null;
+    }
+
+    @Override
+    public void resultIsForwarded() {
+        this.forwardedResult = true;
+    }
+
+    @Override
+    public boolean isForwardedResult() {
+        return this.forwardedResult;
     }
 
     public Parameter getParam() {

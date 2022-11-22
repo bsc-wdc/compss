@@ -47,6 +47,7 @@ import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
+import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
 import es.bsc.compss.types.data.accessparams.DataParams.CollectionData;
 import es.bsc.compss.types.data.accessparams.DataParams.FileData;
@@ -1310,6 +1311,29 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         }
 
         return oUpdated;
+    }
+
+    @Override
+    public boolean bindExistingVersionToData(Long appId, Object o, Integer hashCode, String dataId) {
+        Application app = Application.registerApplication(appId);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Binding object " + hashCode + "'s last version to data " + dataId);
+        }
+
+        LogicalData lastVersion = ap.getObjectLastVersion(app, o, hashCode);
+
+        if (lastVersion != null) {
+            LogicalData src = Comm.getData(dataId);
+            try {
+                LOGGER.debug("Binding " + src.getKnownAlias() + " to data " + dataId);
+                LogicalData.link(src, lastVersion);
+                return true;
+            } catch (Exception e) {
+                LOGGER.warn("Could not link " + dataId + " and " + lastVersion.getName());
+            }
+
+        }
+        return false;
     }
 
     @Override

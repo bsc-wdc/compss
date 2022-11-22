@@ -199,6 +199,34 @@ public class ObjectRegistry {
     }
 
     /**
+     * Links a data with the last known version for an object.
+     * 
+     * @param appId Application Id.
+     * @param o Object
+     * @param dataId dataId to link
+     * @return {@literal true} if the object was already registered; {@literal false} otherwise.
+     */
+    public boolean bindToDataIfExisting(Long appId, Object o, String dataId) {
+        if (o == null) {
+            return false;
+        }
+        Integer hashCode = getObjectHashCode(appId, o);
+        if (hashCode == null) {
+            // Not a task parameter object. Return the same object
+            return false;
+        }
+
+        /*
+         * The object has been accessed by a task before. Check with the API that the application has the last version,
+         * blocking if necessary.
+         */
+        if (DEBUG) {
+            LOGGER.debug("Linking data " + dataId + " with last value of object with hash code " + hashCode);
+        }
+        return this.itApi.bindExistingVersionToData(appId, o, hashCode, dataId);
+    }
+
+    /**
      * Collects the last value associated to an object.
      * 
      * @param appId Application Id.

@@ -22,12 +22,14 @@ import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.executor.InvocationRunner;
 import es.bsc.compss.invokers.types.StdIOStream;
 import es.bsc.compss.invokers.util.BinaryRunner;
+import es.bsc.compss.loader.total.ObjectRegistry;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
+import es.bsc.compss.types.execution.InvocationParamCollection;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.ExecType;
@@ -405,8 +407,51 @@ public abstract class Invoker implements ApplicationRunner {
     }
 
     protected void completeNestedApplication(long appId) {
+        // Wait for all nested tasks to end
+        this.context.getRuntimeAPI().barrier(appId);
+
+        // Handle Output Parameters
+        for (InvocationParam p : this.invocation.getParams()) {
+            if (p.isWriteFinalValue()) {
+                handleOutputValue(appId, p);
+            }
+        }
+        for (InvocationParam p : this.invocation.getResults()) {
+            handleOutputValue(appId, p);
+        }
+
         // this.context.getRuntimeAPI().removeApplicationData(appId);
+
+        // Removing internal application
         this.context.getRuntimeAPI().deregisterApplication(appId);
+    }
+
+    private void handleOutputValue(Long appId, InvocationParam p) {
+        if (p.isCollective()) {
+            InvocationParamCollection<InvocationParam> cp = (InvocationParamCollection<InvocationParam>) p;
+            for (InvocationParam sp : cp.getCollectionParameters()) {
+                handleOutputValue(appId, sp);
+            }
+        } else {
+            switch (p.getType()) {
+                case OBJECT_T:
+                case PSCO_T:
+                    ObjectRegistry or = this.context.getLoaderAPI().getObjectRegistry();
+                    if (!or.bindToDataIfExisting(appId, p.getValue(), p.getDataMgmtId())) {
+                        Object internal = or.collectObjectLastValue(appId, p.getValue());
+                        p.setValue(internal);
+                    } else {
+                        p.resultIsForwarded();
+                    }
+                    break;
+                case FILE_T:
+                    this.context.getRuntimeAPI().getFile(appId, p.getOriginalName());
+                    break;
+                default:
+                    // Do Nothing
+            }
+        }
+
     }
 
     @Override

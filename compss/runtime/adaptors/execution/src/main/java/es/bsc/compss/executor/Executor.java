@@ -1013,7 +1013,9 @@ public class Executor implements Runnable, InvocationRunner {
 
         if (param.isWriteFinalValue()) {
             try {
-                this.context.storeParam(param, createifNonExistent);
+                if (!param.isForwardedResult()) {
+                    this.context.storeParam(param, createifNonExistent);
+                }
                 this.invocationListener.onResultAvailable(param);
             } catch (NonExistentDataException nede) {
                 if (raiseExceptionIfNonExistent) {

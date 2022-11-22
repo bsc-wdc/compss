@@ -543,5 +543,15 @@ public class GATInvocation implements Invocation {
             return collective;
         }
 
+        @Override
+        public void resultIsForwarded() {
+            // Do nothing
+        }
+
+        @Override
+        public boolean isForwardedResult() {
+            return false;
+        }
+
     }
 }

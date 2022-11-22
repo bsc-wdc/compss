@@ -59,6 +59,7 @@ import es.bsc.compss.types.request.ap.DeleteBindingObjectRequest;
 import es.bsc.compss.types.request.ap.DeleteFileRequest;
 import es.bsc.compss.types.request.ap.DeregisterObject;
 import es.bsc.compss.types.request.ap.EndOfAppRequest;
+import es.bsc.compss.types.request.ap.FileGetLastVersionRequest;
 import es.bsc.compss.types.request.ap.FinishDataAccessRequest;
 import es.bsc.compss.types.request.ap.GetLastRenamingRequest;
 import es.bsc.compss.types.request.ap.GetResultFilesRequest;
@@ -324,6 +325,29 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         if (!this.requestQueue.offer(new FinishDataAccessRequest(fap))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "finishing data access");
         }
+    }
+
+    /**
+     * Returns the Identifier of the data corresponding to the last version of an object.
+     *
+     * @param app application accessing the object.
+     * @param sourceLocation location of the file
+     * @return data corresponding to the last version of an object.
+     */
+    public LogicalData getFileLastVersion(Application app, DataLocation sourceLocation) {
+        boolean alreadyAccessed = alreadyAccessed(app, sourceLocation);
+
+        if (!alreadyAccessed) {
+            LOGGER.debug("File not accessed before, returning the same location");
+            return null;
+        }
+        // Ask for the file version
+        FileGetLastVersionRequest fvr = new FileGetLastVersionRequest(app, sourceLocation);
+        if (!this.requestQueue.offer(fvr)) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "data version query");
+        }
+
+        return fvr.getData();
     }
 
     /**

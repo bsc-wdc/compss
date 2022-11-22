@@ -435,17 +435,25 @@ public abstract class Invoker implements ApplicationRunner {
         } else {
             switch (p.getType()) {
                 case OBJECT_T:
-                case PSCO_T:
+                case PSCO_T: {
+                    Object o = p.getValue();
+                    String dataId = p.getDataMgmtId();
                     ObjectRegistry or = this.context.getLoaderAPI().getObjectRegistry();
-                    if (!or.bindToDataIfExisting(appId, p.getValue(), p.getDataMgmtId())) {
+                    if (!or.bindToDataIfExisting(appId, o, dataId)) {
                         Object internal = or.collectObjectLastValue(appId, p.getValue());
                         p.setValue(internal);
                     } else {
                         p.resultIsForwarded();
                     }
+                }
                     break;
-                case FILE_T:
-                    this.context.getRuntimeAPI().getFile(appId, p.getOriginalName());
+                case FILE_T: {
+                    String originalName = (String) p.getValue();
+                    String dataId = p.getDataMgmtId();
+                    if (this.context.getRuntimeAPI().bindExistingVersionToData(appId, originalName, dataId)) {
+                        p.resultIsForwarded();
+                    }
+                }
                     break;
                 default:
                     // Do Nothing

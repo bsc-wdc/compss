@@ -418,6 +418,16 @@ public interface COMPSsRuntime {
     public boolean deleteFile(Long appId, String fileName, boolean waitForData, boolean applicationDelete);
 
     /**
+     * Bind the last known version of a file in the runtime system with another dataId.
+     *
+     * @param appId Id of the application accessing the file
+     * @param fileName File name.
+     * @param dataId data to bind the object
+     * @return {@literal true} if the data was bound to a previous version; {@literal false} otherwise.
+     */
+    public boolean bindExistingVersionToData(Long appId, String fileName, String dataId);
+
+    /**
      * Returns last version of file with its original name.
      *
      * @param appId Application id.

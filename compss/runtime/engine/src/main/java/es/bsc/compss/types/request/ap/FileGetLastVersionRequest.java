@@ -22,36 +22,34 @@ import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.LogicalData;
+import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.tracing.TraceEvent;
 
 import java.util.concurrent.Semaphore;
 
 
 /**
- * The ObjectGetLastVersionRequest is a request for the last version of an object contained in a remote worker.
+ * The FileGetLastVersionRequest is a request for the last version of a file contained in a remote worker.
  */
-public class ObjectGetLastVersionRequest extends APRequest {
+public class FileGetLastVersionRequest extends APRequest {
 
     private final Semaphore sem;
 
     private LogicalData response;
     private final Application app;
-    private final Object obj;
-    private final int code;
+    private final DataLocation loc;
 
 
     /**
      * Constructs a new TransferObjectRequest.
      *
-     * @param app application accessing the object.
-     * @param obj Object.
-     * @param hashCode Object hashcode.
+     * @param app application accessing the file.
+     * @param loc location of the file
      */
-    public ObjectGetLastVersionRequest(Application app, Object obj, int hashCode) {
+    public FileGetLastVersionRequest(Application app, DataLocation loc) {
         this.sem = new Semaphore(0);
         this.app = app;
-        this.obj = obj;
-        this.code = hashCode;
+        this.loc = loc;
     }
 
     /**
@@ -66,7 +64,7 @@ public class ObjectGetLastVersionRequest extends APRequest {
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
-        this.response = dip.getObjectLastVersion(app, obj, code);
+        this.response = dip.getFileLastVersion(app, loc);
         sem.release();
     }
 

@@ -30,6 +30,7 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.components.monitor.impl.GraphGenerator;
 import es.bsc.compss.components.monitor.impl.RuntimeMonitor;
+import es.bsc.compss.exceptions.CommException;
 import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.loader.total.ObjectRegistry;
 import es.bsc.compss.loader.total.StreamRegistry;
@@ -1311,6 +1312,40 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         }
 
         return oUpdated;
+    }
+
+    @Override
+    public boolean bindExistingVersionToData(Long appId, String fileName, String dataId) {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Binding file " + fileName + "'s last version to data " + dataId);
+        }
+
+        // Parse the file name
+        DataLocation sourceLocation = null;
+        try {
+            sourceLocation = createLocation(ProtocolType.FILE_URI, fileName);
+        } catch (IOException ioe) {
+            ErrorManager.fatal(ERROR_FILE_NAME, ioe);
+        }
+        if (sourceLocation == null) {
+            ErrorManager.fatal(ERROR_FILE_NAME);
+        }
+
+        Application app = Application.registerApplication(appId);
+        LogicalData lastVersion = ap.getFileLastVersion(app, sourceLocation);
+
+        if (lastVersion != null) {
+            LogicalData src = Comm.getData(dataId);
+            try {
+                LOGGER.debug("Binding " + src.getKnownAlias() + " to data " + dataId);
+                LogicalData.link(src, lastVersion);
+                return true;
+            } catch (CommException e) {
+                LOGGER.warn("Could not link " + dataId + " and " + lastVersion.getName());
+            }
+
+        }
+        return false;
     }
 
     @Override

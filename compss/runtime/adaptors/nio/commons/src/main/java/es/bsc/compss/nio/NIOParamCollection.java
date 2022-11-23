@@ -107,18 +107,4 @@ public class NIOParamCollection extends NIOParam implements InvocationParamColle
         return sb.toString();
     }
 
-    /**
-     * Creates a NIOResult instance describing how the task modifies the parameter value.
-     * 
-     * @return description of how the task modifies the parameter value.
-     */
-    @Override
-    public NIOResult getResult() {
-        List<NIOResult> elements = new LinkedList<>();
-
-        for (NIOParam element : collectionParameters) {
-            elements.add(element.getResult());
-        }
-        return new NIOResultCollection(this.getTargetPath(), elements);
-    }
 }

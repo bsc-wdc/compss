@@ -39,6 +39,8 @@ import es.bsc.compss.nio.NIOData;
 import es.bsc.compss.nio.NIOMessageHandler;
 import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOParamCollection;
+import es.bsc.compss.nio.NIOResult;
+import es.bsc.compss.nio.NIOResultCollection;
 import es.bsc.compss.nio.NIOTask;
 import es.bsc.compss.nio.NIOTaskProfile;
 import es.bsc.compss.nio.NIOTaskResult;
@@ -91,6 +93,7 @@ import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -517,23 +520,24 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
      */
     public void sendTaskDone(Invocation invocation, boolean successful, Exception e) {
         NIOTask nt = (NIOTask) invocation;
+        int jobId = nt.getJobId();
+        int taskId = nt.getTaskId();
+        nt.profileEndNotification();
+        NIOTaskResult tr = new NIOTaskResult(jobId);
+
         for (NIOParam param : nt.getParams()) {
-            updateParamTargetPaths(param);
+            tr.addParamResult(getParameterResult(param));
         }
 
         NIOParam targetParam = nt.getTarget();
         if (targetParam != null) {
-            updateParamTargetPaths(targetParam);
+            tr.addParamResult(getParameterResult(targetParam));
         }
 
         for (NIOParam param : nt.getResults()) {
-            updateParamTargetPaths(param);
+            tr.addParamResult(getParameterResult(param));
         }
 
-        int jobId = nt.getJobId();
-        int taskId = nt.getTaskId();
-        nt.profileEndNotification();
-        NIOTaskResult tr = new NIOTaskResult(jobId, nt.getParams(), nt.getTarget(), nt.getResults());
         if (WORKER_LOGGER_DEBUG) {
             WORKER_LOGGER.debug("RESULT FOR JOB " + jobId + " (TASK ID: " + taskId + ")");
             WORKER_LOGGER.debug(tr);
@@ -556,12 +560,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
     }
 
-    private void updateParamTargetPaths(NIOParam param) {
-        if (param.isCollective()) {
-            for (NIOParam p : ((NIOParamCollection) param).getCollectionParameters()) {
-                updateParamTargetPaths(p);
-            }
-        }
+    private static NIOResult getParameterResult(NIOParam param) {
         DataType type = param.getType();
         String path;
         switch (type) {
@@ -597,7 +596,17 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             default:
                 path = null;
         }
-        param.setTargetPath(path);
+
+        if (param.isCollective()) {
+            List<NIOResult> elements = new LinkedList<>();
+            for (NIOParam p : ((NIOParamCollection) param).getCollectionParameters()) {
+                elements.add(getParameterResult(p));
+            }
+            return new NIOResultCollection(path, elements);
+        } else {
+            return new NIOResult(path);
+        }
+
     }
 
     private void sendNIOTaskDoneCommandSequence(CommandNIOTaskDone cmd) {

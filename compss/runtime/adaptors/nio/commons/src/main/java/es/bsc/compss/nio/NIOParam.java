@@ -322,6 +322,6 @@ public class NIOParam implements Externalizable, InvocationParam {
      * @return description of how the task modifies the parameter value.
      */
     public NIOResult getResult() {
-        return new NIOResult(getType(), this.getTargetPath());
+        return new NIOResult(this.getTargetPath());
     }
 }

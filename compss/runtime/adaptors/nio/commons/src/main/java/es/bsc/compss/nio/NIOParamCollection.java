@@ -119,6 +119,6 @@ public class NIOParamCollection extends NIOParam implements InvocationParamColle
         for (NIOParam element : collectionParameters) {
             elements.add(element.getResult());
         }
-        return new NIOResultCollection(getType(), this.getTargetPath(), elements);
+        return new NIOResultCollection(this.getTargetPath(), elements);
     }
 }

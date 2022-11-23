@@ -30,8 +30,6 @@ import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessid.WAccessId;
-import es.bsc.compss.types.data.location.DataLocation;
-import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.TaskType;
@@ -44,10 +42,7 @@ import es.bsc.compss.types.parameter.BasicTypeParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Resource;
-import es.bsc.compss.types.uri.SimpleURI;
-import es.bsc.compss.worker.COMPSsException;
-
-import java.io.IOException;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.ws.rs.client.Entity;
@@ -211,17 +206,11 @@ public class RemoteRESTAgentJob extends JobImpl<RemoteRESTAgent> {
             RemoteJobsRegistry.registerJobListener(jobId, new RemoteJobListener() {
 
                 @Override
-                public void finishedExecution(JobEndStatus endStatus, DataType[] paramTypes, String[] paramLocations,
-                    TaskProfile profile) {
+                public void finishedExecution(JobEndStatus endStatus, String[] paramLocations, TaskProfile profile) {
                     RemoteRESTAgentJob.this.executionStartedAt(profile.getExecutionStart());
                     RemoteRESTAgentJob.this.executionEndsAt(profile.getExecutionEnd());
                     System.out.println("SUBMISSION[" + getJobId() + "] Job completed.");
-                    stageout(paramTypes, paramLocations);
-                    if (endStatus == JobEndStatus.OK) {
-                        RemoteRESTAgentJob.this.completed();
-                    } else {
-                        RemoteRESTAgentJob.this.failed(endStatus);
-                    }
+                    RemoteRESTAgentJob.this.taskFinished(endStatus, paramLocations);
                 }
             });
 
@@ -229,192 +218,73 @@ public class RemoteRESTAgentJob extends JobImpl<RemoteRESTAgent> {
     }
 
     @Override
-    public void completed() {
+    public void cancelJob() throws Exception {
+
+    }
+
+    private void taskFinished(JobEndStatus endStatus, String[] paramLocations) {
         if (this.history == JobHistory.CANCELLED) {
             LOGGER.error("Ignoring notification since the job was cancelled");
             removeTmpData();
             return;
         }
 
-        super.registerAllJobOutputsAsExpected();
+        if (endStatus == JobEndStatus.OK) {
+            RemoteRESTAgentJob.this.completed(paramLocations);
+        } else {
+            RemoteRESTAgentJob.this.failed(paramLocations, endStatus);
+        }
+    }
+
+    private void completed(String[] paramLocations) {
+        registerAllJobOutputs(paramLocations);
         super.completed();
     }
 
-    @Override
-    public void exception(COMPSsException e) {
-        if (this.history == JobHistory.CANCELLED) {
-            LOGGER.error("Ignoring notification since the job was cancelled");
-            removeTmpData();
-            return;
-        }
-
-        super.registerAllJobOutputsAsExpected();
-        super.exception(e);
-    }
-
-    @Override
-    public void failed(JobEndStatus status) {
-        if (this.history == JobHistory.CANCELLED) {
-            LOGGER.error("Ignoring notification since the job was cancelled");
-            removeTmpData();
-            return;
-        }
+    private void failed(String[] paramLocations, JobEndStatus status) {
         if (this.isBeingCancelled()) {
-            super.registerAllJobOutputsAsExpected();
-        }
-        switch (this.taskParams.getOnFailure()) {
-            case IGNORE:
-            case CANCEL_SUCCESSORS:
-                super.registerAllJobOutputsAsExpected();
-                break;
-            default:
-                // case RETRY:
-                // case FAIL:
-                removeTmpData();
+            registerAllJobOutputs(paramLocations);
+        } else {
+            switch (this.taskParams.getOnFailure()) {
+                case IGNORE:
+                case CANCEL_SUCCESSORS:
+                    registerAllJobOutputs(paramLocations);
+                    break;
+                default:
+                    // case RETRY:
+                    // case FAIL:
+                    removeTmpData();
+            }
         }
         super.failed(status);
     }
 
-    @Override
-    public void cancelJob() throws Exception {
+    private void registerAllJobOutputs(String[] paramLocations) {
+        // Update information
+        List<Parameter> taskParams = getTaskParams().getParameters();
+        Iterator<Parameter> taskParamsItr = taskParams.iterator();
+        int i = 0;
+        while (taskParamsItr.hasNext()) {
+            Parameter param = taskParamsItr.next();
+            String location = paramLocations[i++];
+            if (location != null) {
+                registerParameter(param, location);
+            }
+        }
     }
 
-    private void stageout(DataType[] paramTypes, String[] paramLocations) {
-        List<Parameter> params = taskParams.getParameters();
-        int numParams = params.size();
-
-        boolean hasReturn = taskParams.getNumReturns() > 0;
-        boolean hasTarget = taskParams.hasTargetObject();
-
-        if (hasReturn) {
-            numParams--;
-            DependencyParameter returnParameter = (DependencyParameter) taskParams.getParameters().get(numParams);
-            DataType type = paramTypes[numParams];
-            String locString = paramLocations[numParams];
-            System.out
-                .println("STAGE OUT[" + this.getJobId() + "]         * Return type: " + type + " Value: " + locString);
-
-            if (locString != null) {
-                SimpleURI uri = new SimpleURI(locString);
-                try {
-                    DataLocation loc = DataLocation.createLocation(worker, uri);
-                    if (loc.getProtocol() == ProtocolType.PERSISTENT_URI) {
-                        type = returnParameter.getType();
-                        if (type == DataType.OBJECT_T) {
-                            type = DataType.PSCO_T;
-                        }
-                        returnParameter.setType(type);
-                        String pscoId = loc.getLocationKey();
-                        returnParameter.setDataTarget(pscoId);
-                        System.out.println("STAGE OUT[" + this.getJobId() + "]         * Return : ");
-                        System.out.println("STAGE OUT[" + this.getJobId() + "]             Type: " + type);
-                        System.out.println("STAGE OUT[" + this.getJobId() + "]             ID: " + pscoId);
-                    } else {
-                        returnParameter.setType(type);
-                        System.out.println("STAGE OUT[" + this.getJobId() + "]         * Return : ");
-                        System.out.println("STAGE OUT[" + this.getJobId() + "]             Type: " + type);
-                        System.out.println("STAGE OUT[" + this.getJobId() + "]             Value location: " + loc);
-
-                    }
-                } catch (IOException ioe) {
-                    System.err.println("STAGE OUT[" + this.getJobId() + "] ERROR PROCESSING TASK RESULT");
-                }
-            }
+    private void registerParameter(Parameter param, String rloc) {
+        if (!param.isPotentialDependency()) {
+            return;
         }
 
-        if (hasTarget) {
-            numParams--;
-            DependencyParameter targetParameter = (DependencyParameter) taskParams.getParameters().get(numParams);
-            DataType type = paramTypes[numParams];
-            String locString = paramLocations[numParams];
-            if (locString != null) {
-                SimpleURI uri = new SimpleURI(locString);
-                try {
-                    DataLocation loc = DataLocation.createLocation(worker, uri);
-                    if (loc.getProtocol() == ProtocolType.PERSISTENT_URI) {
-                        type = targetParameter.getType();
-                        if (type == DataType.OBJECT_T) {
-                            type = DataType.PSCO_T;
-                        }
-                        targetParameter.setType(type);
-                        String pscoId = loc.getLocationKey();
-                        targetParameter.setDataTarget(pscoId);
-                        System.out.println("STAGE OUT[" + this.getJobId() + "]         * Target : ");
-                        System.out.println("STAGE OUT[" + this.getJobId() + "]             Type: " + type);
-                        System.out.println("STAGE OUT[" + this.getJobId() + "]             ID: " + pscoId);
-                    } else {
-                        targetParameter.setType(type);
-                        System.out.println("STAGE OUT[" + this.getJobId() + "]         * Target : ");
-                        System.out.println("STAGE OUT[" + this.getJobId() + "]             Type: " + type);
-                        System.out.println("STAGE OUT[" + this.getJobId() + "]             Value location: " + loc);
+        DependencyParameter dp = (DependencyParameter) param;
+        String rename = getOuputRename(dp);
 
-                    }
-                } catch (IOException ioe) {
-                    System.err.println("STAGE OUT[" + this.getJobId() + "] ERROR PROCESSING TASK TARGET");
-                }
-            }
+        if (rename != null && rloc != null) {
+            registerResultLocation(rloc, rename, this.worker);
+            notifyResultAvailability(dp, rename);
         }
-
-        System.out.println("STAGE OUT[" + this.getJobId() + "]     Parameters:");
-        for (int parIdx = 0; parIdx < numParams; parIdx++) {
-            DataType type = paramTypes[parIdx];
-            switch (type) {
-                case FILE_T:
-                case EXTERNAL_PSCO_T:
-                case OBJECT_T:
-                case PSCO_T:
-                    DependencyParameter dp = (DependencyParameter) params.get(parIdx);
-                    String locString = paramLocations[parIdx];
-                    if (locString != null) {
-                        SimpleURI uri = new SimpleURI(locString);
-                        try {
-                            DataLocation loc = DataLocation.createLocation(worker, uri);
-                            if (loc.getProtocol() == ProtocolType.PERSISTENT_URI) {
-                                String pscoId = loc.getLocationKey();
-                                switch (type) {
-                                    case FILE_T:
-                                        type = DataType.EXTERNAL_PSCO_T;
-                                        break;
-                                    case OBJECT_T:
-                                        type = DataType.PSCO_T;
-                                        break;
-                                    default:
-                                        // Nothing to do
-                                        break;
-                                }
-                                dp.setType(type);
-                                dp.setDataTarget(pscoId);
-                                System.out
-                                    .println("STAGE OUT[" + this.getJobId() + "]         * Parameter " + parIdx + ": ");
-                                System.out.println("STAGE OUT[" + this.getJobId() + "]             Type: " + type);
-                                System.out.println("STAGE OUT[" + this.getJobId() + "]             ID: " + pscoId);
-                            } else {
-                                switch (type) {
-                                    case EXTERNAL_PSCO_T:
-                                        type = DataType.FILE_T;
-                                        break;
-                                    case PSCO_T:
-                                        type = DataType.OBJECT_T;
-                                        break;
-                                    default:
-                                }
-                                dp.setType(type);
-                                System.out.println(
-                                    "STAGE OUT[" + this.getJobId() + "]          * Parameter " + parIdx + ": ");
-                                System.out.println("STAGE OUT[" + this.getJobId() + "]              Type: " + type);
-                                System.out
-                                    .println("STAGE OUT[" + this.getJobId() + "]              Value location: " + loc);
-                            }
-                        } catch (IOException ioe) {
-                            System.err.println(
-                                "STAGE OUT[" + this.getJobId() + "] ERROR PROCESSING TASK PARAMETER " + parIdx);
-                        }
-                    }
-                    break;
-                default:
-            }
-        }
-
     }
 
     @Override

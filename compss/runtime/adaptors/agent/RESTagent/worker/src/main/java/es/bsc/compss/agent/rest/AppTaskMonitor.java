@@ -24,7 +24,6 @@ import es.bsc.compss.agent.rest.types.TaskProfile;
 import es.bsc.compss.agent.rest.types.messages.EndApplicationNotification;
 import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.job.JobEndStatus;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.worker.COMPSsException;
@@ -196,16 +195,14 @@ public class AppTaskMonitor extends AppMonitor implements RESTAgentRequestHandle
         WebTarget wt = target.path(operation);
 
         TaskResult[] results = this.getResults();
-        DataType[] paramTypes = new DataType[results.length];
         String[] paramLocations = new String[results.length];
         int i = 0;
         for (TaskResult result : results) {
-            paramTypes[i] = result.getType();
             paramLocations[i] = result.getDataLocation();
             i++;
         }
         EndApplicationNotification ean = new EndApplicationNotification("" + getAppId(),
-            this.successful ? JobEndStatus.OK : JobEndStatus.EXECUTION_FAILED, paramTypes, paramLocations, profile);
+            this.successful ? JobEndStatus.OK : JobEndStatus.EXECUTION_FAILED, paramLocations, profile);
 
         Response response = wt.request(MediaType.APPLICATION_JSON).put(Entity.xml(ean), Response.class);
         if (response.getStatusInfo().getStatusCode() != 200) {

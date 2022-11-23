@@ -178,7 +178,6 @@ public abstract class AppMonitor implements TaskMonitor {
     public static class TaskResult {
 
         private final String externalDataId;
-        private DataType type;
         private String dataLocation;
 
 
@@ -186,12 +185,8 @@ public abstract class AppMonitor implements TaskMonitor {
             this.externalDataId = externalDataId;
         }
 
-        public DataType getType() {
-            return type;
-        }
-
-        public void setType(DataType type) {
-            this.type = type;
+        public boolean isCollective() {
+            return false;
         }
 
         public String getDataLocation() {
@@ -211,13 +206,11 @@ public abstract class AppMonitor implements TaskMonitor {
 
             @Override
             public void onCreation(DataType type, String dataName, String dataLocation) {
-                TaskResult.this.type = type;
                 TaskResult.this.dataLocation = dataLocation;
 
                 LogicalData ld = Comm.getData(dataName);
                 if (type == DataType.OBJECT_T) {
                     if (ld.getPscoId() != null) {
-                        TaskResult.this.type = DataType.PSCO_T;
                         SimpleURI targetURI = new SimpleURI(ProtocolType.PERSISTENT_URI.getSchema() + ld.getPscoId());
                         TaskResult.this.dataLocation = targetURI.toString();
                     } else {
@@ -249,6 +242,11 @@ public abstract class AppMonitor implements TaskMonitor {
         public CollectionTaskResult(String externalDataId, TaskResult[] subResults) {
             super(externalDataId);
             this.subElements = subResults;
+        }
+
+        @Override
+        public boolean isCollective() {
+            return true;
         }
 
         public TaskResult[] getSubelements() {

@@ -16,7 +16,6 @@
  */
 package es.bsc.compss.nio;
 
-import es.bsc.compss.types.annotations.parameter.DataType;
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -28,7 +27,6 @@ import java.io.ObjectOutput;
  */
 public class NIOResult implements Externalizable {
 
-    private DataType type;
     private String location;
 
 
@@ -38,13 +36,8 @@ public class NIOResult implements Externalizable {
     public NIOResult() {
     }
 
-    public NIOResult(DataType type, String location) {
-        this.type = type;
+    public NIOResult(String location) {
         this.location = location;
-    }
-
-    public DataType getType() {
-        return type;
     }
 
     public String getLocation() {
@@ -53,19 +46,17 @@ public class NIOResult implements Externalizable {
 
     @Override
     public void writeExternal(ObjectOutput oo) throws IOException {
-        oo.writeObject(type);
         oo.writeObject(location);
     }
 
     @Override
     public void readExternal(ObjectInput oi) throws IOException, ClassNotFoundException {
-        type = (DataType) oi.readObject();
         location = (String) oi.readObject();
     }
 
     @Override
     public String toString() {
-        return "[TYPE=" + type + " LOCATION=" + location + "]";
+        return "[LOCATION=" + location + "]";
     }
 
 }

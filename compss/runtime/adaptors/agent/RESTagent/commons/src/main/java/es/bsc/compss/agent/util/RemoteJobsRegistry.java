@@ -18,7 +18,6 @@ package es.bsc.compss.agent.util;
 
 import es.bsc.compss.agent.rest.types.RemoteJobListener;
 import es.bsc.compss.agent.rest.types.TaskProfile;
-import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.job.JobEndStatus;
 
 import java.util.HashMap;
@@ -47,14 +46,12 @@ public class RemoteJobsRegistry {
      *
      * @param jobId Id of the ended job.
      * @param endStatus end status of the job.
-     * @param paramTypes array containing the Data types of all the parameters involved in the operation.
      * @param paramLocations location where to find the parameter value on the node/id on the persistent storage system.
      * @param profile Profiling information related to the job execution
      */
-    public static synchronized void notifyJobEnd(String jobId, JobEndStatus endStatus, DataType[] paramTypes,
-        String[] paramLocations, TaskProfile profile) {
-
+    public static synchronized void notifyJobEnd(String jobId, JobEndStatus endStatus, String[] paramLocations,
+        TaskProfile profile) {
         RemoteJobListener listener = REGISTERED_JOBS.remove(jobId);
-        listener.finishedExecution(endStatus, paramTypes, paramLocations, profile);
+        listener.finishedExecution(endStatus, paramLocations, profile);
     }
 }

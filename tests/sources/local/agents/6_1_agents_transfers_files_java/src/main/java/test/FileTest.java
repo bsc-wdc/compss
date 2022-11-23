@@ -71,8 +71,8 @@ public class FileTest {
     public static void nested_in_return(String pathA, String pathC, String label) throws Exception {
         int[][] matA = loadMatrix(pathA);
         print_mat(pathA, "input " + label);
-        int current_value = matA[0][0];
-        create_mat(pathC, current_value + 1);
+        int currentValue = matA[0][0];
+        create_mat(pathC, currentValue + 1);
         print_mat(pathC, "output " + label);
     }
 
@@ -157,7 +157,7 @@ public class FileTest {
         print_mat(pathC, "main result in_return");
 
         create_mat(pathA, 10);
-        in_return(pathA, pathC);
+        in_return_w_print(pathA, pathC);
         print_mat(pathC, "main result in_return_w_print");
 
         create_mat(pathC, 20);

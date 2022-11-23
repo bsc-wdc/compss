@@ -58,7 +58,6 @@ compss_agent_start_service \
 
 python3 ${base_app_dir}/src/File_array.py > ${COMPSs_log_folder}/results_sequential_execution.out
 
-
 grep "${RESULT_IDENTIFIER}" ${COMPSs_log_folder}/results_sequential_execution.out | while read -r line; do
   seq_result=$(grep -A 5 "$line" ${COMPSs_log_folder}/results_sequential_execution.out)
   agent_result=$(grep -A 5 -R --no-filename "$line" ${log_dir}/*/jobs/*.out)
@@ -69,10 +68,13 @@ grep "${RESULT_IDENTIFIER}" ${COMPSs_log_folder}/results_sequential_execution.ou
     exit 1
   fi
 done
+loop_result=$?
 
-echo -e '\033[0;32m'"[ OK ] The results are correct"'\033[0m'
-
-
+if [ $loop_result == 0 ] ; then
+  echo -e '\033[0;32m'"[ OK ] The results are correct"'\033[0m'
+else
+  exit 1
+fi
 # Copy LOG files
 cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
 

@@ -198,7 +198,7 @@ sleep 1
   --pythonpath="${base_app_dir}/src" \
   --stop \
   --forward_to="COMPSsWorker02:46201;COMPSsWorker03:46301" \
-  Single_object > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
+  File_array > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
 
 (sleep ${expected_time} && kill_agents) 1>/dev/null 2>/dev/null &
 timeoutPID=$!
@@ -212,7 +212,7 @@ if [ "${exit_kill_timeout}" == "1" ]; then
 fi
 
 
-python3 ${base_app_dir}/src/Single_object.py > ${COMPSs_log_folder}/results_sequential_execution.out
+python3 ${base_app_dir}/src/File_array.py > ${COMPSs_log_folder}/results_sequential_execution.out
 
 
 grep "${RESULT_IDENTIFIER}" ${COMPSs_log_folder}/results_sequential_execution.out | while read -r line; do
@@ -225,9 +225,13 @@ grep "${RESULT_IDENTIFIER}" ${COMPSs_log_folder}/results_sequential_execution.ou
     exit 1
   fi
 done
+loop_result=$?
 
-echo -e '\033[0;32m'"[ OK ] The results are correct"'\033[0m'
-
+if [ $loop_result == 0 ] ; then
+  echo -e '\033[0;32m'"[ OK ] The results are correct"'\033[0m'
+else
+  exit 1
+fi
 
 # Copy LOG files
 cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"

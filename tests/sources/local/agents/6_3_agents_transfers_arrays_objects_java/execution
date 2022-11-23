@@ -213,7 +213,7 @@ if [ "${exit_kill_timeout}" == "1" ]; then
 fi
 
 
-java -cp ${base_app_dir}/${jar_name} test.ObjectTest > ${log_dir}/sequential_java_results
+java -cp ${base_app_dir}/${jar_name} test.ObjectArray > ${log_dir}/sequential_java_results
 
 
 

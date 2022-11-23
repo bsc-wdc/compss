@@ -114,8 +114,8 @@ public class ObjectTest {
         matC = generation_return();
         consumption(matC, "consumption_return");
 
-        // generation_inout(matC);
-        // consumption(matC, "consumption_inout");
+        generation_inout(matC);
+        consumption(matC, "consumption_inout");
 
         print_mat(matC, "end in main");
 

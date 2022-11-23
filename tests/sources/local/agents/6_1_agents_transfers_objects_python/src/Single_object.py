@@ -5,15 +5,6 @@ from sklearn import clone, datasets
 from sklearn.utils import shuffle
 import time
 
-import dislib as ds
-from dislib.classification import CascadeSVM, RandomForestClassifier
-from dislib.cluster import DBSCAN, KMeans, GaussianMixture
-from dislib.decomposition import PCA
-from dislib.neighbors import NearestNeighbors
-from dislib.preprocessing import StandardScaler
-from dislib.recommendation import ALS
-from dislib.regression import LinearRegression
-from dislib.model_selection import GridSearchCV, KFold
 from pycompss.runtime.management.classes import Future
 import time
 import sys

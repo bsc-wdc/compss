@@ -22,8 +22,8 @@ public class ObjectTest {
 
     public static Matrix nested_in_return(Matrix matA, String label) {
         print_mat(matA, "input " + label);
-        int current_value = matA.getVal();
-        Matrix matC = create_mat(current_value + 1);
+        int currentValue = matA.getVal();
+        Matrix matC = create_mat(currentValue + 1);
         print_mat(matC, "output " + label);
         return matC;
     }
@@ -112,8 +112,8 @@ public class ObjectTest {
         matC = generation_return();
         consumption(matC, "consumption_return");
 
-        // generation_inout(matC);
-        // consumption(matC, "consumption_inout");
+        generation_inout(matC);
+        consumption(matC, "consumption_inout");
 
         print_mat(matC, "end in main");
 

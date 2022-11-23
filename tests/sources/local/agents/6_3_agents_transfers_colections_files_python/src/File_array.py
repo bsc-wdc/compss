@@ -5,15 +5,6 @@ from sklearn import clone, datasets
 from sklearn.utils import shuffle
 import time
 
-import dislib as ds
-from dislib.classification import CascadeSVM, RandomForestClassifier
-from dislib.cluster import DBSCAN, KMeans, GaussianMixture
-from dislib.decomposition import PCA
-from dislib.neighbors import NearestNeighbors
-from dislib.preprocessing import StandardScaler
-from dislib.recommendation import ALS
-from dislib.regression import LinearRegression
-from dislib.model_selection import GridSearchCV, KFold
 from pycompss.runtime.management.classes import Future
 import time
 import sys
@@ -22,6 +13,7 @@ from pycompss.api.task import task
 from pycompss.api.api import compss_wait_on_file
 from pycompss.api.api import compss_barrier
 from pycompss.api.api import compss_delete_file
+from pycompss.api.constraint import constraint
 from pycompss.api.parameter import *
 
 
@@ -47,6 +39,7 @@ def fill_with(path, value):
 
 
 
+@constraint(processor_architecture = "processor_ag_3")
 @task(
     pathA={Type: COLLECTION_FILE_IN},
     pathC={Type: COLLECTION_FILE_OUT}
@@ -57,6 +50,7 @@ def nested_in_return(pathA, pathC, label):
     fill_with(pathC, current_value+1)
     print_mat(pathC, "output " + label)
 
+@constraint(processor_architecture = "processor_ag_2")
 @task(
     pathA={Type: COLLECTION_FILE_IN},
     pathC={Type: COLLECTION_FILE_OUT},
@@ -66,6 +60,7 @@ def in_return(pathA, pathC):
     nested_in_return(pathA, pathC, "nested in_return")
 
 
+@constraint(processor_architecture = "processor_ag_2")
 @task(
     pathA={Type: COLLECTION_FILE_IN},
     pathC={Type: COLLECTION_FILE_OUT},
@@ -80,6 +75,7 @@ def in_return_w_print(pathA, pathC):
 
 
 
+@constraint(processor_architecture = "processor_ag_3")
 @task(
     pathC={Type: COLLECTION_FILE_INOUT}
 )
@@ -94,12 +90,14 @@ def nested_inout(pathC, label):
 
     print_mat(pathC, "output " + label)
 
+@constraint(processor_architecture = "processor_ag_2")
 @task(
     pathC={Type: COLLECTION_FILE_INOUT},
 )
 def inout(pathC):
     nested_inout(pathC, "nested_inout")
 
+@constraint(processor_architecture = "processor_ag_2")
 @task(
     pathC={Type: COLLECTION_FILE_INOUT},
 )
@@ -112,6 +110,7 @@ def inout_w_print(pathC):
 
 
 
+@constraint(processor_architecture = "processor_ag_3")
 @task(
     pathC={Type: COLLECTION_FILE_IN}
 )
@@ -120,6 +119,7 @@ def print_task(pathC, label):
 
 
 
+@constraint(processor_architecture = "processor_ag_3")
 @task(
     pathC={Type: COLLECTION_FILE_OUT}
 )
@@ -127,6 +127,7 @@ def nested_generation_return(pathC):
     fill_with(pathC, 30)
     print_mat(pathC, "output nested_generation_return")
 
+@constraint(processor_architecture = "processor_ag_2")
 @task(
     pathC={Type: COLLECTION_FILE_OUT}
 )
@@ -134,6 +135,7 @@ def generation_return(pathC):
     nested_generation_return(pathC)
 
 
+@constraint(processor_architecture = "processor_ag_2")
 @task(
     pathC={Type: COLLECTION_FILE_IN}
 )
@@ -142,6 +144,7 @@ def consumption(pathC, label):
 
 
 
+@constraint(processor_architecture = "processor_ag_3")
 @task(
     pathC={Type: COLLECTION_FILE_INOUT}
 )
@@ -156,6 +159,7 @@ def nested_generation_inout(pathC):
 
     print_mat(pathC, "output nested_generation_inout")
 
+@constraint(processor_architecture = "processor_ag_2")
 @task(
     pathC={Type: COLLECTION_FILE_INOUT}
 )
@@ -181,9 +185,8 @@ def main():
     if os.path.exists(pathC[0][0]):
         os.remove(pathC[0][0])
 
-
     fill_with(pathA1, 0)
-    in_return(pathA1, pathC)
+    in_return_w_print(pathA1, pathC)
     pathC = compss_wait_on_file(pathC)
     print_mat(pathC, "main result in_return")
 

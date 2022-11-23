@@ -5,21 +5,13 @@ from sklearn import clone, datasets
 from sklearn.utils import shuffle
 import time
 
-import dislib as ds
-from dislib.classification import CascadeSVM, RandomForestClassifier
-from dislib.cluster import DBSCAN, KMeans, GaussianMixture
-from dislib.decomposition import PCA
-from dislib.neighbors import NearestNeighbors
-from dislib.preprocessing import StandardScaler
-from dislib.recommendation import ALS
-from dislib.regression import LinearRegression
-from dislib.model_selection import GridSearchCV, KFold
 from pycompss.runtime.management.classes import Future
 import time
 import sys
 import os
 from pycompss.api.task import task
 from pycompss.api.api import compss_wait_on
+from pycompss.api.constraint import constraint
 from pycompss.api.api import compss_barrier
 from pycompss.api.api import compss_delete_file
 from pycompss.api.parameter import *
@@ -43,6 +35,7 @@ def create_mat(value):
 
 
 
+@constraint(processor_architecture = "processor_ag_3")
 @task(
     returns=1
 )
@@ -53,6 +46,7 @@ def nested_in_return(matA, label):
     print_mat(matC, "output " + label)
     return matC
 
+@constraint(processor_architecture = "processor_ag_2")
 @task(
     returns=1
 )
@@ -62,6 +56,7 @@ def in_return(matA):
     return res
 
 
+@constraint(processor_architecture = "processor_ag_2")
 @task(
     returns=1
 )
@@ -75,6 +70,7 @@ def in_return_w_print(matA):
 
 
 
+@constraint(processor_architecture = "processor_ag_3")
 @task(
     matC=INOUT
 )
@@ -87,12 +83,14 @@ def nested_inout(matC, label):
 
     print_mat(matC, "output " + label)
 
+@constraint(processor_architecture = "processor_ag_2")
 @task(
     matC=INOUT
 )
 def inout(matC):
     nested_inout(matC, "nested_inout")
 
+@constraint(processor_architecture = "processor_ag_2")
 @task(
     matC=INOUT
 )
@@ -103,11 +101,13 @@ def inout_w_print(matC):
     print_mat(matC_res, "output inout_w_print")
 
 
+@constraint(processor_architecture = "processor_ag_3")
 @task()
 def print_task(matC, label):
     print_mat(matC, label)
 
 
+@constraint(processor_architecture = "processor_ag_3")
 @task(
     returns=1
 )
@@ -116,6 +116,7 @@ def nested_generation_return():
     print_mat(matC, "output nested_generation_return")
     return matC
 
+@constraint(processor_architecture = "processor_ag_2")
 @task(
     returns=1
 )
@@ -123,12 +124,14 @@ def generation_return():
     return nested_generation_return()
 
 
+@constraint(processor_architecture = "processor_ag_2")
 @task()
 def consumption(matC, label):
     print_task(matC, label)
 
 
 
+@constraint(processor_architecture = "processor_ag_3")
 @task(
     matC=INOUT
 )
@@ -141,6 +144,7 @@ def nested_generation_inout(matC):
 
     print_mat(matC, "output nested_generation_inout")
 
+@constraint(processor_architecture = "processor_ag_2")
 @task(
     matC=INOUT
 )

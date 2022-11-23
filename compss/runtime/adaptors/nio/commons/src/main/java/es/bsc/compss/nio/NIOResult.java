@@ -20,6 +20,8 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.Collection;
+import java.util.LinkedList;
 
 
 /**
@@ -27,36 +29,45 @@ import java.io.ObjectOutput;
  */
 public class NIOResult implements Externalizable {
 
-    private String location;
+    private Collection<String> locations;
 
 
     /**
      * Creates a new NIOResult instance for externalization.
      */
     public NIOResult() {
+        this.locations = new LinkedList<>();
     }
 
+    /**
+     * Creates a new NIOResult instance.
+     * 
+     * @param location location where the result is available
+     */
     public NIOResult(String location) {
-        this.location = location;
+        this.locations = new LinkedList<>();
+        if (location != null) {
+            this.locations.add(location);
+        }
     }
 
-    public String getLocation() {
-        return location;
+    public Collection<String> getLocations() {
+        return locations;
     }
 
     @Override
     public void writeExternal(ObjectOutput oo) throws IOException {
-        oo.writeObject(location);
+        oo.writeObject(locations);
     }
 
     @Override
     public void readExternal(ObjectInput oi) throws IOException, ClassNotFoundException {
-        location = (String) oi.readObject();
+        locations = (Collection<String>) oi.readObject();
     }
 
     @Override
     public String toString() {
-        return "[LOCATION=" + location + "]";
+        return "[LOCATION=" + locations + "]";
     }
 
 }

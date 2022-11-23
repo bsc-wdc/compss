@@ -29,7 +29,6 @@ import es.bsc.compss.nio.NIOResultCollection;
 import es.bsc.compss.nio.NIOTaskResult;
 import es.bsc.compss.nio.commands.CommandDataReceived;
 import es.bsc.compss.nio.commands.CommandNIOTaskDone;
-import es.bsc.compss.types.annotations.parameter.DataType;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -134,12 +133,12 @@ public class TaskMonitor extends AppMonitor {
 
         for (TaskResult param : this.getResults()) {
             if (param == null) {
-                tr.addParamResult(new NIOResult(null, null));
+                tr.addParamResult(new NIOResult(null));
             } else {
-                if (param.getType() == DataType.COLLECTION_T) {
+                if (param.isCollective()) {
                     tr.addParamResult(createNIOCollectionResult((CollectionTaskResult) param));
                 } else {
-                    tr.addParamResult(new NIOResult(param.getType(), param.getDataLocation()));
+                    tr.addParamResult(new NIOResult(param.getDataLocation()));
                 }
             }
         }
@@ -154,12 +153,12 @@ public class TaskMonitor extends AppMonitor {
     private NIOResultCollection createNIOCollectionResult(CollectionTaskResult param) {
         List<NIOResult> elements = new ArrayList<>();
         for (TaskResult subParam : param.getSubelements()) {
-            if (subParam.getType() == DataType.COLLECTION_T) {
+            if (subParam.isCollective()) {
                 elements.add(createNIOCollectionResult((CollectionTaskResult) subParam));
             } else {
-                elements.add(new NIOResult(subParam.getType(), subParam.getDataLocation()));
+                elements.add(new NIOResult(subParam.getDataLocation()));
             }
         }
-        return new NIOResultCollection(param.getType(), param.getDataLocation(), elements);
+        return new NIOResultCollection(param.getDataLocation(), elements);
     }
 }

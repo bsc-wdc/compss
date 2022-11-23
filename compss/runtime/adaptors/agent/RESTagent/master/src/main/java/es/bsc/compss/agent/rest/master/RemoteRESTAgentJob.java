@@ -206,8 +206,7 @@ public class RemoteRESTAgentJob extends JobImpl<RemoteRESTAgent> {
             RemoteJobsRegistry.registerJobListener(jobId, new RemoteJobListener() {
 
                 @Override
-                public void finishedExecution(JobEndStatus endStatus, DataType[] paramTypes, String[] paramLocations,
-                    TaskProfile profile) {
+                public void finishedExecution(JobEndStatus endStatus, String[] paramLocations, TaskProfile profile) {
                     RemoteRESTAgentJob.this.executionStartedAt(profile.getExecutionStart());
                     RemoteRESTAgentJob.this.executionEndsAt(profile.getExecutionEnd());
                     System.out.println("SUBMISSION[" + getJobId() + "] Job completed.");

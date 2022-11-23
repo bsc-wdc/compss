@@ -419,10 +419,9 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
         try {
             String jobId = notification.getJobId();
             JobEndStatus endStatus = notification.getEndStatus();
-            DataType[] resultTypes = notification.getParamTypes();
             String[] resultLocations = notification.getParamLocations();
             TaskProfile profile = notification.getProfile();
-            RemoteJobsRegistry.notifyJobEnd(jobId, endStatus, resultTypes, resultLocations, profile);
+            RemoteJobsRegistry.notifyJobEnd(jobId, endStatus, resultLocations, profile);
             return Response.ok().build();
         } catch (Exception e) {
             e.printStackTrace();

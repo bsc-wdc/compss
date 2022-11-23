@@ -17,8 +17,6 @@
 
 package es.bsc.compss.nio;
 
-import es.bsc.compss.types.annotations.parameter.DataType;
-
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -45,8 +43,8 @@ public class NIOResultCollection extends NIOResult implements Externalizable {
         super();
     }
 
-    public NIOResultCollection(DataType type, String location, List<NIOResult> elements) {
-        super(type, location);
+    public NIOResultCollection(String location, List<NIOResult> elements) {
+        super(location);
         this.elements = elements;
     }
 
@@ -70,7 +68,6 @@ public class NIOResultCollection extends NIOResult implements Externalizable {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("[COLLECTION");
-        sb.append(" TYPE=").append(getType());
         sb.append(" LOCATION=").append(getLocation());
         sb.append(" ELEMENTS=[");
         boolean many = false;

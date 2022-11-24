@@ -51,6 +51,10 @@ public class NIOResult implements Externalizable {
         }
     }
 
+    public void addLocation(String location) {
+        this.locations.add(location);
+    }
+
     public Collection<String> getLocations() {
         return locations;
     }
@@ -67,7 +71,7 @@ public class NIOResult implements Externalizable {
 
     @Override
     public String toString() {
-        return "[LOCATION=" + locations + "]";
+        return "[LOCATIONS=" + locations + "]";
     }
 
 }

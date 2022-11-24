@@ -20,6 +20,7 @@ import es.bsc.compss.agent.AppMonitor;
 import es.bsc.compss.agent.rest.types.OrchestratorNotification;
 import es.bsc.compss.agent.rest.types.RESTAgentRequestHandler;
 import es.bsc.compss.agent.rest.types.RESTAgentRequestListener;
+import es.bsc.compss.agent.rest.types.RESTResult;
 import es.bsc.compss.agent.rest.types.TaskProfile;
 import es.bsc.compss.agent.rest.types.messages.EndApplicationNotification;
 import es.bsc.compss.agent.types.ApplicationParameter;
@@ -194,15 +195,22 @@ public class AppTaskMonitor extends AppMonitor implements RESTAgentRequestHandle
         WebTarget target = CLIENT.target(host);
         WebTarget wt = target.path(operation);
 
-        TaskResult[] results = this.getResults();
-        String[] paramLocations = new String[results.length];
+        TaskResult[] taskResults = this.getResults();
+        RESTResult[] restResults = new RESTResult[taskResults.length];
         int i = 0;
-        for (TaskResult result : results) {
-            paramLocations[i] = result.getDataLocation();
+        for (TaskResult result : taskResults) {
+            String[] locs;
+            String loc = result.getDataLocation();
+            if (loc != null) {
+                locs = new String[1];
+            } else {
+                locs = new String[0];
+            }
+            restResults[i] = new RESTResult(locs);
             i++;
         }
         EndApplicationNotification ean = new EndApplicationNotification("" + getAppId(),
-            this.successful ? JobEndStatus.OK : JobEndStatus.EXECUTION_FAILED, paramLocations, profile);
+            this.successful ? JobEndStatus.OK : JobEndStatus.EXECUTION_FAILED, restResults, profile);
 
         Response response = wt.request(MediaType.APPLICATION_JSON).put(Entity.xml(ean), Response.class);
         if (response.getStatusInfo().getStatusCode() != 200) {

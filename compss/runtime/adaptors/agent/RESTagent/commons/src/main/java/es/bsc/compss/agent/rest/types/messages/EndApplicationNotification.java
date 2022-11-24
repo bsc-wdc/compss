@@ -16,8 +16,8 @@
  */
 package es.bsc.compss.agent.rest.types.messages;
 
+import es.bsc.compss.agent.rest.types.RESTResult;
 import es.bsc.compss.agent.rest.types.TaskProfile;
-import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.job.JobEndStatus;
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -30,7 +30,7 @@ public class EndApplicationNotification {
 
     private String jobId;
     private JobEndStatus endStatus;
-    private String[] paramLocations;
+    private RESTResult[] results;
     private TaskProfile profile;
 
 
@@ -43,14 +43,14 @@ public class EndApplicationNotification {
      *
      * @param jobId job of the ended application
      * @param status end status of the application execution
-     * @param paramLocations locations where to find the values of the job parameters
+     * @param results locations where to find the values of the job parameters
      * @param profile Profiling information related to the job execution
      */
-    public EndApplicationNotification(String jobId, JobEndStatus status, String[] paramLocations, TaskProfile profile) {
+    public EndApplicationNotification(String jobId, JobEndStatus status, RESTResult[] results, TaskProfile profile) {
 
         this.jobId = jobId;
         this.endStatus = status;
-        this.paramLocations = paramLocations;
+        this.results = results;
         this.profile = profile;
     }
 
@@ -70,12 +70,12 @@ public class EndApplicationNotification {
         return endStatus;
     }
 
-    public String[] getParamLocations() {
-        return paramLocations;
+    public RESTResult[] getResults() {
+        return results;
     }
 
-    public void setParamLocations(String[] paramLocations) {
-        this.paramLocations = paramLocations;
+    public void setResults(RESTResult[] results) {
+        this.results = results;
     }
 
     public TaskProfile getProfile() {

@@ -28,9 +28,9 @@ public interface RemoteJobListener {
      * Notifies the end of a job execution.
      *
      * @param endStatus end status of the job
-     * @param paramLocations location where to find the parameter value on the node/id on the persistent storage system
+     * @param results location where to find the parameter value
      * @param profile Profiling information related to the job execution
      */
-    public void finishedExecution(JobEndStatus endStatus, String[] paramLocations, TaskProfile profile);
+    public void finishedExecution(JobEndStatus endStatus, RESTResult[] results, TaskProfile profile);
 
 }

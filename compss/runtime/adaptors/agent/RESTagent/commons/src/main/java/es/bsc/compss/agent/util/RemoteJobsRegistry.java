@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.agent.util;
 
+import es.bsc.compss.agent.rest.types.RESTResult;
 import es.bsc.compss.agent.rest.types.RemoteJobListener;
 import es.bsc.compss.agent.rest.types.TaskProfile;
 import es.bsc.compss.types.job.JobEndStatus;
@@ -46,12 +47,12 @@ public class RemoteJobsRegistry {
      *
      * @param jobId Id of the ended job.
      * @param endStatus end status of the job.
-     * @param paramLocations location where to find the parameter value on the node/id on the persistent storage system.
+     * @param results locations where to find the parameter value
      * @param profile Profiling information related to the job execution
      */
-    public static synchronized void notifyJobEnd(String jobId, JobEndStatus endStatus, String[] paramLocations,
+    public static synchronized void notifyJobEnd(String jobId, JobEndStatus endStatus, RESTResult[] results,
         TaskProfile profile) {
         RemoteJobListener listener = REGISTERED_JOBS.remove(jobId);
-        listener.finishedExecution(endStatus, paramLocations, profile);
+        listener.finishedExecution(endStatus, results, profile);
     }
 }

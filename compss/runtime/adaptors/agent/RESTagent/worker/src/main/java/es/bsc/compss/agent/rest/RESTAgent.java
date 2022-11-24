@@ -23,6 +23,7 @@ import es.bsc.compss.agent.AgentInterface;
 import es.bsc.compss.agent.RESTAgentConfig;
 import es.bsc.compss.agent.rest.types.ApplicationParameterImpl;
 import es.bsc.compss.agent.rest.types.RESTAgentRequestListener;
+import es.bsc.compss.agent.rest.types.RESTResult;
 import es.bsc.compss.agent.rest.types.TaskProfile;
 import es.bsc.compss.agent.rest.types.messages.EndApplicationNotification;
 import es.bsc.compss.agent.rest.types.messages.IncreaseNodeNotification;
@@ -419,9 +420,9 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
         try {
             String jobId = notification.getJobId();
             JobEndStatus endStatus = notification.getEndStatus();
-            String[] resultLocations = notification.getParamLocations();
+            RESTResult[] resultsLocations = notification.getResults();
             TaskProfile profile = notification.getProfile();
-            RemoteJobsRegistry.notifyJobEnd(jobId, endStatus, resultLocations, profile);
+            RemoteJobsRegistry.notifyJobEnd(jobId, endStatus, resultsLocations, profile);
             return Response.ok().build();
         } catch (Exception e) {
             e.printStackTrace();

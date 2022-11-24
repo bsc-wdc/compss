@@ -43,6 +43,11 @@ public class NIOResultCollection extends NIOResult implements Externalizable {
         super();
     }
 
+    public NIOResultCollection(List<NIOResult> elements) {
+        this();
+        this.elements = elements;
+    }
+
     public NIOResultCollection(String location, List<NIOResult> elements) {
         super(location);
         this.elements = elements;
@@ -68,7 +73,7 @@ public class NIOResultCollection extends NIOResult implements Externalizable {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("[COLLECTION");
-        sb.append(" LOCATION=").append(getLocations());
+        sb.append(" LOCATIONS=").append(getLocations());
         sb.append(" ELEMENTS=[");
         boolean many = false;
         for (NIOResult nr : this.elements) {

@@ -18,6 +18,7 @@ package es.bsc.compss.agent.rest.master;
 
 import es.bsc.compss.agent.RESTAgentConfig;
 import es.bsc.compss.agent.rest.types.OrchestratorNotification;
+import es.bsc.compss.agent.rest.types.RESTResult;
 import es.bsc.compss.agent.rest.types.RemoteJobListener;
 import es.bsc.compss.agent.rest.types.TaskProfile;
 import es.bsc.compss.agent.rest.types.messages.StartApplicationRequest;
@@ -206,11 +207,11 @@ public class RemoteRESTAgentJob extends JobImpl<RemoteRESTAgent> {
             RemoteJobsRegistry.registerJobListener(jobId, new RemoteJobListener() {
 
                 @Override
-                public void finishedExecution(JobEndStatus endStatus, String[] paramLocations, TaskProfile profile) {
+                public void finishedExecution(JobEndStatus endStatus, RESTResult[] results, TaskProfile profile) {
                     RemoteRESTAgentJob.this.executionStartedAt(profile.getExecutionStart());
                     RemoteRESTAgentJob.this.executionEndsAt(profile.getExecutionEnd());
                     System.out.println("SUBMISSION[" + getJobId() + "] Job completed.");
-                    RemoteRESTAgentJob.this.taskFinished(endStatus, paramLocations);
+                    RemoteRESTAgentJob.this.taskFinished(endStatus, results);
                 }
             });
 
@@ -222,7 +223,7 @@ public class RemoteRESTAgentJob extends JobImpl<RemoteRESTAgent> {
 
     }
 
-    private void taskFinished(JobEndStatus endStatus, String[] paramLocations) {
+    private void taskFinished(JobEndStatus endStatus, RESTResult[] results) {
         if (this.history == JobHistory.CANCELLED) {
             LOGGER.error("Ignoring notification since the job was cancelled");
             removeTmpData();
@@ -230,25 +231,25 @@ public class RemoteRESTAgentJob extends JobImpl<RemoteRESTAgent> {
         }
 
         if (endStatus == JobEndStatus.OK) {
-            RemoteRESTAgentJob.this.completed(paramLocations);
+            RemoteRESTAgentJob.this.completed(results);
         } else {
-            RemoteRESTAgentJob.this.failed(paramLocations, endStatus);
+            RemoteRESTAgentJob.this.failed(results, endStatus);
         }
     }
 
-    private void completed(String[] paramLocations) {
-        registerAllJobOutputs(paramLocations);
+    private void completed(RESTResult[] results) {
+        registerAllJobOutputs(results);
         super.completed();
     }
 
-    private void failed(String[] paramLocations, JobEndStatus status) {
+    private void failed(RESTResult[] results, JobEndStatus status) {
         if (this.isBeingCancelled()) {
-            registerAllJobOutputs(paramLocations);
+            registerAllJobOutputs(results);
         } else {
             switch (this.taskParams.getOnFailure()) {
                 case IGNORE:
                 case CANCEL_SUCCESSORS:
-                    registerAllJobOutputs(paramLocations);
+                    registerAllJobOutputs(results);
                     break;
                 default:
                     // case RETRY:
@@ -259,21 +260,21 @@ public class RemoteRESTAgentJob extends JobImpl<RemoteRESTAgent> {
         super.failed(status);
     }
 
-    private void registerAllJobOutputs(String[] paramLocations) {
+    private void registerAllJobOutputs(RESTResult[] results) {
         // Update information
         List<Parameter> taskParams = getTaskParams().getParameters();
         Iterator<Parameter> taskParamsItr = taskParams.iterator();
         int i = 0;
         while (taskParamsItr.hasNext()) {
             Parameter param = taskParamsItr.next();
-            String location = paramLocations[i++];
-            if (location != null) {
-                registerParameter(param, location);
+            RESTResult result = results[i++];
+            if (result != null) {
+                registerParameter(param, result);
             }
         }
     }
 
-    private void registerParameter(Parameter param, String rloc) {
+    private void registerParameter(Parameter param, RESTResult result) {
         if (!param.isPotentialDependency()) {
             return;
         }
@@ -281,8 +282,10 @@ public class RemoteRESTAgentJob extends JobImpl<RemoteRESTAgent> {
         DependencyParameter dp = (DependencyParameter) param;
         String rename = getOuputRename(dp);
 
-        if (rename != null && rloc != null) {
-            registerResultLocation(rloc, rename, this.worker);
+        if (rename != null) {
+            for (String rloc : result.getLocations()) {
+                registerResultLocation(rloc, rename, this.worker);
+            }
             notifyResultAvailability(dp, rename);
         }
     }

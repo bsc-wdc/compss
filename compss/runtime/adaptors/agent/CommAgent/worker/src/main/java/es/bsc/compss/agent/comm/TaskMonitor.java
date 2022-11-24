@@ -29,7 +29,7 @@ import es.bsc.compss.nio.NIOResultCollection;
 import es.bsc.compss.nio.NIOTaskResult;
 import es.bsc.compss.nio.commands.CommandDataReceived;
 import es.bsc.compss.nio.commands.CommandNIOTaskDone;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 
@@ -132,15 +132,7 @@ public class TaskMonitor extends AppMonitor {
         NIOTaskResult tr = new NIOTaskResult(jobId);
 
         for (TaskResult param : this.getResults()) {
-            if (param == null) {
-                tr.addParamResult(new NIOResult(null));
-            } else {
-                if (param.isCollective()) {
-                    tr.addParamResult(createNIOCollectionResult((CollectionTaskResult) param));
-                } else {
-                    tr.addParamResult(new NIOResult(param.getDataLocation()));
-                }
-            }
+            tr.addParamResult(createNIOResult(param));
         }
 
         Connection c = TM.startConnection(n);
@@ -150,15 +142,25 @@ public class TaskMonitor extends AppMonitor {
         c.finishConnection();
     }
 
-    private NIOResultCollection createNIOCollectionResult(CollectionTaskResult param) {
-        List<NIOResult> elements = new ArrayList<>();
-        for (TaskResult subParam : param.getSubelements()) {
-            if (subParam.isCollective()) {
-                elements.add(createNIOCollectionResult((CollectionTaskResult) subParam));
-            } else {
-                elements.add(new NIOResult(subParam.getDataLocation()));
-            }
+    private NIOResult createNIOResult(TaskResult result) {
+        if (result == null) {
+            return new NIOResult();
         }
-        return new NIOResultCollection(param.getDataLocation(), elements);
+        NIOResult nr;
+        if (result.isCollective()) {
+            List<NIOResult> elements = new LinkedList<>();
+            CollectionTaskResult cResult = (CollectionTaskResult) result;
+            for (TaskResult subResult : cResult.getSubelements()) {
+                elements.add(createNIOResult(subResult));
+            }
+            nr = new NIOResultCollection(elements);
+        } else {
+            nr = new NIOResult();
+        }
+        String loc = result.getDataLocation();
+        if (loc != null) {
+            nr.addLocation(loc);
+        }
+        return nr;
     }
 }

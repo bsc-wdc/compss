@@ -48,30 +48,6 @@ public class NIOTaskResult implements Externalizable {
     }
 
     /**
-     * New task result with the given information.
-     *
-     * @param jobId Job Id.
-     * @param arguments Job arguments.
-     * @param targetParam Job target.
-     * @param results Job results.
-     */
-    public NIOTaskResult(int jobId, List<NIOParam> arguments, NIOParam targetParam, List<NIOParam> results) {
-        this.jobId = jobId;
-
-        for (NIOParam np : arguments) {
-            this.results.add(np.getResult());
-        }
-
-        if (targetParam != null) {
-            this.results.add(targetParam.getResult());
-        }
-
-        for (NIOParam np : results) {
-            this.results.add(np.getResult());
-        }
-    }
-
-    /**
      * Returns the job id associated to the result.
      *
      * @return The job Id associated to the result.

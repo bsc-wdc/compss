@@ -68,7 +68,7 @@ public class NIOResultCollection extends NIOResult implements Externalizable {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("[COLLECTION");
-        sb.append(" LOCATION=").append(getLocation());
+        sb.append(" LOCATION=").append(getLocations());
         sb.append(" ELEMENTS=[");
         boolean many = false;
         for (NIOResult nr : this.elements) {

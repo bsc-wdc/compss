@@ -37,6 +37,7 @@ import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.worker.COMPSsException;
+import java.util.Collection;
 import java.util.Iterator;
 
 import java.util.LinkedList;
@@ -199,7 +200,8 @@ public class NIOJob extends JobImpl<NIOWorkerNode> {
         while (taskParamsItr.hasNext()) {
             Parameter param = taskParamsItr.next();
             NIOResult result = taskResultItr.next();
-            if (result.getLocation() != null) {
+            Collection<String> rlocs = result.getLocations();
+            if (!rlocs.isEmpty()) {
                 registerParameter(param, result);
             }
         }
@@ -228,10 +230,14 @@ public class NIOJob extends JobImpl<NIOWorkerNode> {
             }
         }
 
-        String rloc = result.getLocation();
-        if (rename != null && rloc != null) {
-            registerResultLocation(rloc, rename, this.worker);
-            notifyResultAvailability(dp, rename);
+        Collection<String> rlocs = result.getLocations();
+        if (!rlocs.isEmpty()) {
+            if (rename != null) {
+                for (String rloc : rlocs) {
+                    registerResultLocation(rloc, rename, this.worker);
+                }
+                notifyResultAvailability(dp, rename);
+            }
         }
     }
 

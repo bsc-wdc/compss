@@ -39,6 +39,7 @@ class CE:  # pylint: disable=too-many-instance-attributes
         "impl_io",
         "impl_prolog",
         "impl_epilog",
+        "impl_container",
         "impl_type_args",
     ]
 
@@ -52,6 +53,7 @@ class CE:  # pylint: disable=too-many-instance-attributes
         impl_io: bool = False,
         impl_prolog: typing.Optional[typing.List[str]] = None,
         impl_epilog: typing.Optional[typing.List[str]] = None,
+        impl_container: typing.Optional[typing.List[str]] = None,
         impl_type_args: typing.Optional[typing.List[str]] = None,
     ) -> None:
         """Core Element constructor.
@@ -64,6 +66,7 @@ class CE:  # pylint: disable=too-many-instance-attributes
         :param impl_io: If the implementation has IO requirements.
         :param impl_prolog: Implementation prolog.
         :param impl_epilog: Implementation epilog.
+        :param impl_container: Implementation container.
         :param impl_type_args: Implementation type arguments.
         """
         self.ce_signature = ce_signature
@@ -86,6 +89,10 @@ class CE:  # pylint: disable=too-many-instance-attributes
         self.impl_epilog = (
             [INTERNAL_LABELS.unassigned] * 3 if impl_epilog is None else impl_epilog
         )
+        # engine, image, options
+        self.impl_container = (
+            [INTERNAL_LABELS.unassigned] * 3 if impl_container is None else impl_container
+        )
 
     ###########
     # METHODS #
@@ -105,6 +112,7 @@ class CE:  # pylint: disable=too-many-instance-attributes
         self.impl_type_args = []
         self.impl_prolog = []
         self.impl_epilog = []
+        self.impl_container = []
 
     ###########
     # GETTERS #
@@ -172,6 +180,13 @@ class CE:  # pylint: disable=too-many-instance-attributes
         :return: The core element implementation epilog.
         """
         return self.impl_epilog
+
+    def get_impl_container(self) -> typing.List[str]:
+        """Get the core element implementation container.
+
+        :return: The core element implementation container.
+        """
+        return self.impl_container
 
     ###########
     # SETTERS #
@@ -249,6 +264,14 @@ class CE:  # pylint: disable=too-many-instance-attributes
         """
         self.impl_epilog = impl_epilog
 
+    def set_impl_container(self, impl_container: list) -> None:
+        """Set the core element implementation container.
+
+        :param impl_container: The implementation container.
+        :return: None.
+        """
+        self.impl_container = impl_container
+
     ##################
     # REPRESENTATION #
     ##################
@@ -273,5 +296,6 @@ class CE:  # pylint: disable=too-many-instance-attributes
         _repr += f"\t - Impl. io         : {str(self.impl_io)}\n"
         _repr += f"\t - Impl. prolog     : {str(self.impl_prolog)}\n"
         _repr += f"\t - Impl. epilog     : {str(self.impl_epilog)}\n"
+        _repr += f"\t - Impl. container     : {str(self.impl_container)}\n"
         _repr += f"\t - Impl. type args  : {str(self.impl_type_args)}\n"
         return _repr

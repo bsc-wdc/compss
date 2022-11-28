@@ -259,7 +259,9 @@ public class GATWorker implements InvocationContext {
                 return genImplemenationDefinition(new BinaryDefinition(args, argPosition), debug, args,
                     argPosition + BinaryDefinition.NUM_PARAMS);
             case MPI:
-                return genImplemenationDefinition(new MPIDefinition(args, argPosition), debug, args,
+                // todo: nm: do we need this?
+                String[] container = new String[3];
+                return genImplemenationDefinition(new MPIDefinition(args, argPosition, container), debug, args,
                     argPosition + MPIDefinition.NUM_PARAMS);
             case COMPSs:
                 return genImplemenationDefinition(new COMPSsDefinition(args, argPosition), debug, args,

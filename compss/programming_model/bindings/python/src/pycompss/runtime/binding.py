@@ -708,6 +708,7 @@ def register_ce(core_element: CE) -> None:
         impl_type_args = core_element.get_impl_type_args()
         prolog = core_element.get_impl_prolog()
         epilog = core_element.get_impl_epilog()
+        container = core_element.get_impl_container()
 
         if __debug__:
             LOGGER.debug("Registering CE with signature: %s", ce_signature)
@@ -747,6 +748,7 @@ def register_ce(core_element: CE) -> None:
             impl_io,
             prolog,
             epilog,
+            container,
             impl_type_args,
         )
         if __debug__:

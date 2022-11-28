@@ -19,6 +19,7 @@ package es.bsc.compss.types.implementations.definition;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.TaskType;
+import es.bsc.compss.types.resources.ContainerDescription;
 import es.bsc.compss.util.EnvironmentLoader;
 
 import java.io.IOException;
@@ -42,6 +43,7 @@ public class MPIDefinition extends CommonMPIDefinition implements AbstractMethod
     private String binary;
     private String params;
 
+    private ContainerDescription container;
 
     /**
      * Creates a new MPIImplementation for serialization.
@@ -73,8 +75,9 @@ public class MPIDefinition extends CommonMPIDefinition implements AbstractMethod
      * 
      * @param implTypeArgs String array.
      * @param offset Element from the beginning of the string array.
+     * @param container String array for container description.
      */
-    public MPIDefinition(String[] implTypeArgs, int offset) {
+    public MPIDefinition(String[] implTypeArgs, int offset, String[] container) {
         this.binary = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset]);
         this.workingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 1]);
         this.mpiRunner = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 2]);
@@ -83,6 +86,15 @@ public class MPIDefinition extends CommonMPIDefinition implements AbstractMethod
         this.scaleByCU = Boolean.parseBoolean(implTypeArgs[offset + 5]);
         this.params = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 6]);
         this.failByEV = Boolean.parseBoolean(implTypeArgs[offset + 7]);
+
+        if (container[0] != null && !container[0].equals(Constants.UNASSIGNED)){
+            String engineStr = container[0].toUpperCase();
+            ContainerDescription.ContainerEngine engine = ContainerDescription.ContainerEngine.valueOf(engineStr);
+            this.container = new ContainerDescription(engine, container[1], container[2]);
+        } else{
+            this.container = null;
+        }
+
         checkArguments();
     }
 
@@ -116,6 +128,15 @@ public class MPIDefinition extends CommonMPIDefinition implements AbstractMethod
         return MethodType.MPI;
     }
 
+    /**
+     * Returns the container.
+     *
+     * @return The container implementation.
+     */
+    public ContainerDescription getContainer() {
+        return this.container;
+    }
+
     @Override
     public String toMethodDefinitionFormat() {
         StringBuilder sb = new StringBuilder();
@@ -124,6 +145,7 @@ public class MPIDefinition extends CommonMPIDefinition implements AbstractMethod
         sb.append(", MPI_FLAGS=").append(this.mpiFlags);
         sb.append(", BINARY=").append(this.binary);
         sb.append(", PARAMS=").append(this.params);
+        sb.append(", CONTAINER=").append(this.container);
         sb.append(" ]");
 
         return sb.toString();
@@ -144,6 +166,7 @@ public class MPIDefinition extends CommonMPIDefinition implements AbstractMethod
         this.scaleByCU = in.readBoolean();
         this.params = (String) in.readObject();
         this.failByEV = in.readBoolean();
+        this.container = (ContainerDescription) in.readObject();
     }
 
     @Override
@@ -156,6 +179,7 @@ public class MPIDefinition extends CommonMPIDefinition implements AbstractMethod
         out.writeBoolean(this.scaleByCU);
         out.writeObject(this.params);
         out.writeBoolean(this.failByEV);
+        out.writeObject(this.container);
     }
 
     @Override
@@ -170,6 +194,7 @@ public class MPIDefinition extends CommonMPIDefinition implements AbstractMethod
         sb.append("\t Scale by Computing Units: ").append(scaleByCU).append("\n");
         sb.append("\t Params String: ").append(this.params).append("\n");
         sb.append("\t Fail by EV: ").append(this.failByEV).append("\n");
+        sb.append("\t Container: ").append(this.container).append("\n");
         return sb.toString();
     }
 

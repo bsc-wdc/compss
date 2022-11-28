@@ -32,10 +32,13 @@ import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.definition.MPIDefinition;
+import es.bsc.compss.types.resources.ContainerDescription;
 
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
+
+import static es.bsc.compss.types.resources.ContainerDescription.ContainerEngine.SINGULARITY;
 
 
 public class MPIInvoker extends Invoker {
@@ -169,6 +172,12 @@ public class MPIInvoker extends Invoker {
         } else {
             cmdLength += binaryParams.size();
         }
+
+        ContainerDescription container = this.mpiDef.getContainer();
+        if (container !=null){
+            // engine, exec_command, options, image
+            cmdLength += 4;
+        }
         String[] cmd = new String[cmdLength];
 
         int pos = 0;
@@ -185,6 +194,14 @@ public class MPIInvoker extends Invoker {
 
         for (int i = 0; i < numMPIFlags; ++i) {
             cmd[pos++] = mpiflagsArray[i];
+        }
+
+        if(container != null){
+            // mpirun -H COMPSsWorker01,COMPSsWorker02 -n 2 <engine> <exec_command> <options> <image> binary args
+            cmd[pos++] = container.getEngine().name().toLowerCase();
+            cmd[pos++] = container.getEngine().equals(SINGULARITY)? "exec":"run";
+            cmd[pos++] = container.getOptions();
+            cmd[pos++] = container.getImage();
         }
 
         cmd[pos++] = this.mpiDef.getBinary();

@@ -82,7 +82,7 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
     @SuppressWarnings("unchecked")
     public static final <T extends WorkerResourceDescription, D extends ImplementationDefinition>
         ImplementationDescription<T, D> defineImplementation(String implType, String implSignature,
-            boolean localProcessing, T implConstraints, ExecType prolog, ExecType epilog, String... implTypeArgs)
+            boolean localProcessing, T implConstraints, ExecType prolog, ExecType epilog, String[] container, String... implTypeArgs)
             throws IllegalArgumentException {
 
         ImplementationDescription<T, D> id = null;
@@ -147,7 +147,7 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
                     if (implTypeArgs.length != MPIDefinition.NUM_PARAMS) {
                         throw new IllegalArgumentException("Incorrect parameters for type MPI on " + implSignature);
                     }
-                    MPIDefinition mpiDef = new MPIDefinition(implTypeArgs, 0);
+                    MPIDefinition mpiDef = new MPIDefinition(implTypeArgs, 0, container);
                     implConstraints.scaleUpBy(mpiDef.getPPN());
                     id = new ImplementationDescription<>((D) mpiDef, implSignature, localProcessing, implConstraints,
                         prolog, epilog);
@@ -157,8 +157,7 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
                     if (implTypeArgs.length < MpmdMPIDefinition.NUM_PARAMS) {
                         throw new IllegalArgumentException("Incorrect parameters for type MPMDMPI on " + implSignature);
                     }
-                    // todo: nm_1
-                    MpmdMPIDefinition mpmdDef = new MpmdMPIDefinition(implTypeArgs, 0);
+                    MpmdMPIDefinition mpmdDef = new MpmdMPIDefinition(implTypeArgs, 0, container);
                     implConstraints.scaleUpBy(mpmdDef.getPPN());
                     id = new ImplementationDescription<>((D) mpmdDef, implSignature, localProcessing, implConstraints,
                         prolog, epilog);

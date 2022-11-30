@@ -42,18 +42,18 @@ public abstract class AccessParams implements Serializable {
      */
     private static final long serialVersionUID = 1L;
 
-    protected final Application app;
+    protected final DataParams data;
     protected final AccessMode mode;
 
 
     /**
      * Creates a new AccessParams instance.
      *
-     * @param app Id of the application accessing the value
+     * @param data Data being accessed
      * @param mode Access Mode.
      */
-    public AccessParams(Application app, AccessMode mode) {
-        this.app = app;
+    public AccessParams(DataParams data, AccessMode mode) {
+        this.data = data;
         this.mode = mode;
     }
 
@@ -62,8 +62,8 @@ public abstract class AccessParams implements Serializable {
      * 
      * @return the Id of the application accessing the value
      */
-    public Application getApp() {
-        return app;
+    public final Application getApp() {
+        return data.getApp();
     }
 
     /**
@@ -71,7 +71,7 @@ public abstract class AccessParams implements Serializable {
      *
      * @return The access mode.
      */
-    public AccessMode getMode() {
+    public final AccessMode getMode() {
         return this.mode;
     }
 

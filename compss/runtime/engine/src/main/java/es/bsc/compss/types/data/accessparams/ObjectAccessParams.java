@@ -19,6 +19,7 @@ package es.bsc.compss.types.data.accessparams;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.accessparams.DataParams.ObjectData;
 
 
 public class ObjectAccessParams extends AccessParams {
@@ -41,7 +42,7 @@ public class ObjectAccessParams extends AccessParams {
      * @param hashCode Hashcode of the associated object.
      */
     public ObjectAccessParams(Application app, AccessMode mode, Object value, int hashCode) {
-        super(app, mode);
+        super(new ObjectData(app, hashCode), mode);
         this.value = value;
         this.hashCode = hashCode;
     }
@@ -66,7 +67,7 @@ public class ObjectAccessParams extends AccessParams {
 
     @Override
     public DataAccessId registerAccess(DataInfoProvider dip) {
-        return dip.registerObjectAccess(this.app, this.mode, this.value, this.hashCode);
+        return dip.registerObjectAccess(this.getApp(), this.mode, this.value, this.hashCode);
     }
 
     @Override
@@ -76,6 +77,6 @@ public class ObjectAccessParams extends AccessParams {
 
     @Override
     public String toString() {
-        return "[" + this.app + ", " + this.mode + " ," + this.hashCode + "]";
+        return "[" + this.getApp() + ", " + this.mode + " ," + this.hashCode + "]";
     }
 }

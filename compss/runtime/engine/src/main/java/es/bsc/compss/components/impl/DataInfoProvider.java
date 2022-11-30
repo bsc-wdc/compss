@@ -134,6 +134,10 @@ public class DataInfoProvider {
         this.collectionToId.put(collectionId, dataId);
     }
 
+    public void registerData(DataInfo dInfo) {
+        this.idToData.put(dInfo.getDataId(), dInfo);
+    }
+
     private void registerRemoteDataSources(DataParams internalData, String externalData) {
         DataInfo dInfo;
         Integer dId = internalData.getDataId(this);
@@ -141,7 +145,7 @@ public class DataInfoProvider {
             if (DEBUG) {
                 LOGGER.debug("Registering Remote data on DIP: " + internalData.getDescription());
             }
-            dInfo = registerData(internalData);
+            dInfo = internalData.registerData(this);
         } else {
             dInfo = idToData.get(dId);
         }
@@ -154,15 +158,6 @@ public class DataInfoProvider {
                     + " with data " + externalData, ce);
             }
         }
-    }
-
-    private DataInfo registerData(DataParams data) {
-        DataInfo dInfo;
-        dInfo = data.createDataInfo(this);
-        Application app = data.getApp();
-        app.addData(dInfo);
-        this.idToData.put(dInfo.getDataId(), dInfo);
-        return dInfo;
     }
 
     /**
@@ -211,115 +206,34 @@ public class DataInfoProvider {
     }
 
     /**
-     * DataAccess interface: registers a new file access.
+     * DataAccess interface: registers a new data access.
      *
-     * @param app application accessing the file
-     * @param mode File Access Mode.
-     * @param location File location.
+     * @param access Access Parameters.
      * @return The registered access Id.
      */
-    public DataAccessId registerFileAccess(Application app, AccessMode mode, DataLocation location) {
-        DataInfo fileInfo;
-        String locationKey = location.getLocationKey();
-        Integer fileId = app.getFileDataId(locationKey);
-        DataAccessId id;
-        // First access to this file
-        if (fileId == null) {
+    public DataAccessId registerDataParamsAccess(AccessParams access) {
+        AccessMode mode = access.getMode();
+
+        DataInfo dInfo;
+        Integer dId = access.getDataId(this);
+        if (dId == null) {
             if (DEBUG) {
-                LOGGER.debug("FIRST access to file " + locationKey);
+                LOGGER.debug("FIRST access to " + access.getDataDescription());
             }
-            id = generateFileInfo(app, mode, location);
+            dInfo = access.registerData(this);
         } else {
-            fileInfo = this.idToData.get(fileId);
-            if (fileInfo != null) {
-                // The file has already been accessed, all location are already registered
+            dInfo = idToData.get(dId);
+            if (dInfo != null) {
                 if (DEBUG) {
-                    LOGGER.debug("Another access to file " + locationKey);
+                    LOGGER.debug("Another access to " + access.getDataDescription());
                 }
-                id = willAccess(mode, fileInfo);
             } else {
-                ErrorManager.warn(
-                    "File was accessed but the file information not found. Maybe it has been previously canceled");
-                id = null;
+                ErrorManager.warn(access.getDataDescription() + " was accessed but the file information not found. "
+                    + "Maybe it has been previously canceled");
+                return null;
             }
-
         }
-
-        // Version management
-        return id;
-    }
-
-    private DataAccessId generateFileInfo(Application app, AccessMode mode, DataLocation location) {
-
-        FileInfo fileInfo = new FileInfo(app, location);
-        app.addData(fileInfo);
-        int fileId = fileInfo.getDataId();
-        app.registerFileData(location.getLocationKey(), fileInfo);
-        this.idToData.put(fileId, fileInfo);
-        DataAccessId id;
-        // Register the initial location of the file
-        if (mode == AccessMode.W) {
-            id = willAccess(mode, fileInfo);
-        } else {
-            DataInstanceId lastDID = fileInfo.getCurrentDataVersion().getDataInstanceId();
-            String renaming = lastDID.getRenaming();
-            // With the scores updates. Access function which creates the logical data must be invoked
-            // before registering the location when a new data is accessed (except W access)
-            id = willAccess(mode, fileInfo);
-            Comm.registerLocation(renaming, location);
-        }
-        return id;
-
-    }
-
-    /**
-     * DataAccess interface: registers a new object access.
-     *
-     * @param app application accessing the file
-     * @param mode Object access mode.
-     * @param value Object value.
-     * @param code Object hashcode.
-     * @return The registered access Id.
-     */
-    public DataAccessId registerObjectAccess(Application app, AccessMode mode, Object value, int code) {
-        DataInfo oInfo;
-        Integer aoId = codeToId.get(code);
-        DataAccessId id;
-
-        // First access to this datum
-        if (aoId == null) {
-            if (DEBUG) {
-                LOGGER.debug("FIRST access to object " + code);
-            }
-
-            // Update mappings
-            oInfo = new ObjectInfo(app, code);
-            app.addData(oInfo);
-            aoId = oInfo.getDataId();
-            this.codeToId.put(code, aoId);
-            this.idToData.put(aoId, oInfo);
-            // Serialize this first version of the object to a file
-            DataInstanceId lastDID = oInfo.getCurrentDataVersion().getDataInstanceId();
-            String renaming = lastDID.getRenaming();
-            // With the scores updates. Access function which creates the logical data must be invoked
-            // before registering the location when a new data is accessed (except W access)
-            id = willAccess(mode, oInfo);
-            // Inform the File Transfer Manager about the new file containing the object
-            if (mode != AccessMode.W) {
-                Comm.registerValue(renaming, value);
-            }
-
-        } else {
-            // The datum has already been accessed
-            if (DEBUG) {
-                LOGGER.debug("Another access to object " + code);
-            }
-            oInfo = this.idToData.get(aoId);
-            id = willAccess(mode, oInfo);
-        }
-
-        // Version management
-        return id;
+        return willAccess(mode, dInfo);
     }
 
     /**
@@ -349,14 +263,14 @@ public class DataInfoProvider {
             this.codeToId.put(code, aoId);
             this.idToData.put(aoId, oInfo);
 
-            // Serialize this first version of the object to a file
             DataInstanceId lastDID = oInfo.getCurrentDataVersion().getDataInstanceId();
             String renaming = lastDID.getRenaming();
+            Comm.registerValue(renaming, value);
+
             // With the scores updates. Access function which creates the logical data must be invoked
             // before registering the location when a new data is accessed (except W access)
             id = willAccess(mode, oInfo);
-            // Inform the File Transfer Manager about the new file containing the object
-            Comm.registerValue(renaming, value);
+
         } else {
             // The datum has already been accessed
             if (DEBUG) {

@@ -44,6 +44,20 @@ public abstract class DataParams {
         return app;
     }
 
+    /**
+     * Registers a new data into the system.
+     * 
+     * @param dip data repository
+     * @return new Registered data
+     */
+    public DataInfo registerData(DataInfoProvider dip) {
+        DataInfo dInfo;
+        dInfo = createDataInfo(dip);
+        app.addData(dInfo);
+        dip.registerData(dInfo);
+        return dInfo;
+    }
+
 
     public static class FileData extends DataParams {
 

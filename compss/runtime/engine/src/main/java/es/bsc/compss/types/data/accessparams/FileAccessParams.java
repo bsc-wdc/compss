@@ -16,9 +16,12 @@
  */
 package es.bsc.compss.types.data.accessparams;
 
+import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.DataInfo;
+import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.accessparams.DataParams.FileData;
 import es.bsc.compss.types.data.location.DataLocation;
 
@@ -57,7 +60,16 @@ public class FileAccessParams extends AccessParams {
 
     @Override
     public DataAccessId registerAccess(DataInfoProvider dip) {
-        return dip.registerFileAccess(this.getApp(), this.mode, this.loc);
+        return dip.registerDataParamsAccess(this);
+    }
+
+    @Override
+    protected void registeredAsFirstVersionForData(DataInfo dInfo) {
+        if (mode != AccessMode.W) {
+            DataInstanceId lastDID = dInfo.getCurrentDataVersion().getDataInstanceId();
+            String renaming = lastDID.getRenaming();
+            Comm.registerLocation(renaming, this.loc);
+        }
     }
 
     @Override
@@ -69,4 +81,5 @@ public class FileAccessParams extends AccessParams {
     public String toString() {
         return "[" + this.getApp() + ", " + this.mode + " ," + this.loc + "]";
     }
+
 }

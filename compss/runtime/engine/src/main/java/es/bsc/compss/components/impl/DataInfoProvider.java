@@ -40,6 +40,10 @@ import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
+import es.bsc.compss.types.data.accessparams.DataParams;
+import es.bsc.compss.types.data.accessparams.DataParams.CollectionData;
+import es.bsc.compss.types.data.accessparams.DataParams.FileData;
+import es.bsc.compss.types.data.accessparams.DataParams.ObjectData;
 import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.PersistentLocation;
@@ -88,9 +92,10 @@ public class DataInfoProvider {
     private static final String RES_FILE_TRANSFER_ERR = "Error transferring result files";
 
     // Map: collectionName -> collection identifier
-    private TreeMap<String, Integer> collectionToId;
+    private final TreeMap<String, Integer> collectionToId;
     // Map: hash code -> object identifier
-    private TreeMap<Integer, Integer> codeToId;
+    private final TreeMap<Integer, Integer> codeToId;
+
     // Map: file identifier -> file information
     private TreeMap<Integer, DataInfo> idToData;
     // Set: Object values available for main code
@@ -113,6 +118,53 @@ public class DataInfoProvider {
         LOGGER.info("Initialization finished");
     }
 
+    public Integer getObjectDataId(int code) {
+        return this.codeToId.get(code);
+    }
+
+    public void registerObjectDataId(int code, int dataId) {
+        this.codeToId.put(code, dataId);
+    }
+
+    public Integer getCollectionDataId(String collectionId) {
+        return this.collectionToId.get(collectionId);
+    }
+
+    public void registerCollectionDataId(String collectionId, int dataId) {
+        this.collectionToId.put(collectionId, dataId);
+    }
+
+    private void registerRemoteDataSources(DataParams internalData, String externalData) {
+        DataInfo dInfo;
+        Integer dId = internalData.getDataId(this);
+        if (dId == null) {
+            if (DEBUG) {
+                LOGGER.debug("Registering Remote data on DIP: " + internalData.getDescription());
+            }
+            dInfo = registerData(internalData);
+        } else {
+            dInfo = idToData.get(dId);
+        }
+        if (externalData != null && dInfo != null) {
+            String existingRename = dInfo.getCurrentDataVersion().getDataInstanceId().getRenaming();
+            try {
+                Comm.linkData(externalData, existingRename);
+            } catch (CommException ce) {
+                ErrorManager.error("Could not link the newly created data for " + internalData.getDescription()
+                    + " with data " + externalData, ce);
+            }
+        }
+    }
+
+    private DataInfo registerData(DataParams data) {
+        DataInfo dInfo;
+        dInfo = data.createDataInfo(this);
+        Application app = data.getApp();
+        app.addData(dInfo);
+        this.idToData.put(dInfo.getDataId(), dInfo);
+        return dInfo;
+    }
+
     /**
      * Registers the remote object resources.
      *
@@ -121,30 +173,7 @@ public class DataInfoProvider {
      * @param data Existing LogicalData to bind the value access.
      */
     public void registerRemoteObjectSources(Application app, int code, String data) {
-        DataInfo oInfo;
-        Integer aoId = this.codeToId.get(code);
-        if (aoId == null) {
-            if (DEBUG) {
-                LOGGER.debug("Registering Remote object on DIP with code " + code);
-            }
-            // Update mappings
-            oInfo = new ObjectInfo(app, code);
-            app.addData(oInfo);
-            aoId = oInfo.getDataId();
-            this.codeToId.put(code, aoId);
-            this.idToData.put(aoId, oInfo);
-        } else {
-            oInfo = idToData.get(aoId);
-        }
-        if (data != null) {
-            String existingRename = oInfo.getCurrentDataVersion().getDataInstanceId().getRenaming();
-            try {
-                Comm.linkData(data, existingRename);
-            } catch (CommException ce) {
-                ErrorManager.error(
-                    "Could not link the newly created LogicalData for the object with the external LogicalData", ce);
-            }
-        }
+        registerRemoteDataSources(new ObjectData(app, code), data);
     }
 
     /**
@@ -155,31 +184,7 @@ public class DataInfoProvider {
      * @param data Existing LogicalData to bind the value access.
      */
     public void registerRemoteFileSources(Application app, DataLocation loc, String data) {
-        DataInfo oInfo;
-        String locationKey = loc.getLocationKey();
-        Integer aoId = app.getFileDataId(locationKey);
-        if (aoId == null) {
-            if (DEBUG) {
-                LOGGER.debug("Registering Remote file on DIP at location " + locationKey);
-            }
-            // Update mappings
-            oInfo = new FileInfo(app, loc);
-            app.addData(oInfo);
-            aoId = oInfo.getDataId();
-            app.registerFileData(locationKey, oInfo);
-            this.idToData.put(aoId, oInfo);
-        } else {
-            oInfo = idToData.get(aoId);
-        }
-        if (data != null) {
-            String existingRename = oInfo.getCurrentDataVersion().getDataInstanceId().getRenaming();
-            try {
-                Comm.linkData(data, existingRename);
-            } catch (CommException ce) {
-                ErrorManager.error(
-                    "Could not link the newly created LogicalData for the object with the external LogicalData", ce);
-            }
-        }
+        registerRemoteDataSources(new FileData(app, loc), data);
     }
 
     /**
@@ -190,30 +195,7 @@ public class DataInfoProvider {
      * @param data Existing LogicalData to bind the value access.
      */
     public void registerRemoteCollectionSources(Application app, String collection, String data) {
-        DataInfo oInfo;
-        Integer aoId = this.collectionToId.get(collection);
-
-        if (aoId == null) {
-            if (DEBUG) {
-                LOGGER.debug("Registering on DIP Remote collection: " + collection.toString());
-            }
-            // Update mappings
-            oInfo = new CollectionInfo(app, collection);
-            app.addData(oInfo);
-            aoId = oInfo.getDataId();
-            this.idToData.put(aoId, oInfo);
-        } else {
-            oInfo = idToData.get(aoId);
-        }
-        if (data != null) {
-            String existingRename = oInfo.getCurrentDataVersion().getDataInstanceId().getRenaming();
-            try {
-                Comm.linkData(data, existingRename);
-            } catch (CommException ce) {
-                ErrorManager.error(
-                    "Could not link the newly created LogicalData for the object with the external LogicalData", ce);
-            }
-        }
+        registerRemoteDataSources(new CollectionData(app, collection), data);
     }
 
     /**

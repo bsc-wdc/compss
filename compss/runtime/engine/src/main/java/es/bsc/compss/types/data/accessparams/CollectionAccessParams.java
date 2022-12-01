@@ -22,51 +22,26 @@ import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
-import es.bsc.compss.types.data.LogicalData;
-import es.bsc.compss.types.data.accessparams.DataParams.ObjectData;
+import es.bsc.compss.types.data.accessparams.DataParams.CollectionData;
 
 
-public class ObjectAccessParams extends AccessParams {
+public class CollectionAccessParams extends AccessParams {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
      */
     private static final long serialVersionUID = 1L;
 
-    private int hashCode;
-    private Object value;
-
 
     /**
      * Creates a new ObjectAccessParams instance for the given object.
-     * 
+     *
      * @param app Id of the application accessing the object.
      * @param mode Access mode.
-     * @param value Associated object.
-     * @param hashCode Hashcode of the associated object.
+     * @param collectionId Id of the collection
      */
-    public ObjectAccessParams(Application app, AccessMode mode, Object value, int hashCode) {
-        super(new ObjectData(app, hashCode), mode);
-        this.value = value;
-        this.hashCode = hashCode;
-    }
-
-    /**
-     * Returns the associated object.
-     * 
-     * @return The associated object.
-     */
-    public Object getValue() {
-        return value;
-    }
-
-    /**
-     * Returns the hashcode of the associated object.
-     * 
-     * @return The hashcode of the associated object.
-     */
-    public int getCode() {
-        return hashCode;
+    public CollectionAccessParams(Application app, AccessMode mode, String collectionId) {
+        super(new CollectionData(app, collectionId), mode);
     }
 
     @Override
@@ -79,17 +54,13 @@ public class ObjectAccessParams extends AccessParams {
         if (mode != AccessMode.W) {
             DataInstanceId lastDID = dInfo.getCurrentDataVersion().getDataInstanceId();
             String renaming = lastDID.getRenaming();
-            Comm.registerValue(renaming, value);
+            // Null until the two-step transfer method is implemented
+            Comm.registerCollection(renaming, null);
         }
     }
 
     @Override
     public void registerAccessCompletion(DataInfoProvider dip) {
-        dip.finishObjectAccess(this.mode, this.hashCode);
     }
 
-    @Override
-    public String toString() {
-        return "[" + this.getApp() + ", " + this.mode + " ," + this.hashCode + "]";
-    }
 }

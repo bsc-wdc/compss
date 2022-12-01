@@ -41,6 +41,9 @@ import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
+import es.bsc.compss.types.data.accessparams.CollectionAccessParams;
+import es.bsc.compss.types.data.accessparams.FileAccessParams;
+import es.bsc.compss.types.data.accessparams.ObjectAccessParams;
 import es.bsc.compss.types.data.operation.ResultListener;
 import es.bsc.compss.types.parameter.BindingObjectParameter;
 import es.bsc.compss.types.parameter.CollectiveParameter;
@@ -622,17 +625,17 @@ public class TaskAnalyser implements GraphHandler {
             case DIRECTORY_T:
                 DirectoryParameter dp = (DirectoryParameter) p;
                 // register file access for now, and directory will be accessed as a file
-                daId = this.dip.registerFileAccess(app, am, dp.getLocation());
+                daId = this.dip.registerDataAccess(new FileAccessParams(app, am, dp.getLocation()));
                 break;
             case FILE_T:
                 FileParameter fp = (FileParameter) p;
-                daId = this.dip.registerFileAccess(app, am, fp.getLocation());
+                daId = this.dip.registerDataAccess(new FileAccessParams(app, am, fp.getLocation()));
                 break;
             case PSCO_T:
                 ObjectParameter pscop = (ObjectParameter) p;
                 // Check if its PSCO class and persisted to infer its type
                 pscop.setType(DataType.PSCO_T);
-                daId = this.dip.registerObjectAccess(app, am, pscop.getValue(), pscop.getCode());
+                daId = this.dip.registerDataAccess(new ObjectAccessParams(app, am, pscop.getValue(), pscop.getCode()));
                 break;
             case EXTERNAL_PSCO_T:
                 ExternalPSCOParameter externalPSCOparam = (ExternalPSCOParameter) p;
@@ -653,7 +656,7 @@ public class TaskAnalyser implements GraphHandler {
                 if (op.getValue() instanceof StubItf && ((StubItf) op.getValue()).getID() != null) {
                     op.setType(DataType.PSCO_T);
                 }
-                daId = this.dip.registerObjectAccess(app, am, op.getValue(), op.getCode());
+                daId = this.dip.registerDataAccess(new ObjectAccessParams(app, am, op.getValue(), op.getCode()));
                 break;
             case STREAM_T:
                 StreamParameter sp = (StreamParameter) p;
@@ -674,7 +677,7 @@ public class TaskAnalyser implements GraphHandler {
                         registerParameterAccessAndAddDependencies(app, currentTask, content, isConstraining);
                     hasParamEdge = hasParamEdge || hasCollectionParamEdge;
                 }
-                daId = dip.registerCollectionAccess(app, am, cp);
+                daId = dip.registerDataAccess(new CollectionAccessParams(app, am, cp.getCollectionId()));
                 if (IS_DRAW_GRAPH) {
                     this.gm.stopGroupingEdges();
                 }

@@ -16,9 +16,12 @@
  */
 package es.bsc.compss.types.data.accessparams;
 
+import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.DataInfo;
+import es.bsc.compss.types.data.DataInstanceId;
 
 import java.io.Serializable;
 
@@ -42,18 +45,18 @@ public abstract class AccessParams implements Serializable {
      */
     private static final long serialVersionUID = 1L;
 
-    protected final Application app;
+    protected final DataParams data;
     protected final AccessMode mode;
 
 
     /**
      * Creates a new AccessParams instance.
      *
-     * @param app Id of the application accessing the value
+     * @param data Data being accessed
      * @param mode Access Mode.
      */
-    public AccessParams(Application app, AccessMode mode) {
-        this.app = app;
+    public AccessParams(DataParams data, AccessMode mode) {
+        this.data = data;
         this.mode = mode;
     }
 
@@ -62,8 +65,8 @@ public abstract class AccessParams implements Serializable {
      * 
      * @return the Id of the application accessing the value
      */
-    public Application getApp() {
-        return app;
+    public final Application getApp() {
+        return data.getApp();
     }
 
     /**
@@ -71,9 +74,31 @@ public abstract class AccessParams implements Serializable {
      *
      * @return The access mode.
      */
-    public AccessMode getMode() {
+    public final AccessMode getMode() {
         return this.mode;
     }
+
+    public Integer getDataId(DataInfoProvider dip) {
+        return data.getDataId(dip);
+    }
+
+    public String getDataDescription() {
+        return data.getDescription();
+    }
+
+    /**
+     * Registers a new data into the system.
+     * 
+     * @param dip data repository
+     * @return new Registered data
+     */
+    public DataInfo registerData(DataInfoProvider dip) {
+        DataInfo dInfo = data.registerData(dip);
+        registeredAsFirstVersionForData(dInfo);
+        return dInfo;
+    }
+
+    protected abstract void registeredAsFirstVersionForData(DataInfo dInfo);
 
     /**
      * Registers the access on a given DataInfoProvider.

@@ -20,40 +20,37 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
-import es.bsc.compss.types.Application;
+import es.bsc.compss.types.data.accessparams.DataParams;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.tracing.TraceEvent;
 
 
-public class RegisterRemoteCollectionDataRequest extends APRequest {
+public class RegisterRemoteDataRequest extends APRequest {
 
-    private final Application app;
-    private final String collection;
+    private final DataParams accessedValue;
     private final String data;
 
 
     /**
      * Contructs a new Request to register an external file and bind it to an existing LogicalData.
      *
-     * @param app application accessing the value
-     * @param collection collection identifier
+     * @param accessedValue the value being accessed by the application
      * @param data Existing LogicalData to bind the value access.
      */
-    public RegisterRemoteCollectionDataRequest(Application app, String collection, String data) {
-        this.app = app;
-        this.collection = collection;
+    public RegisterRemoteDataRequest(DataParams accessedValue, String data) {
+        this.accessedValue = accessedValue;
         this.data = data;
     }
 
     @Override
     public TraceEvent getEvent() {
-        return TraceEvent.REGISTER_REMOTE_OBJECT;
+        return TraceEvent.REGISTER_REMOTE_DATA;
     }
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td)
         throws ShutdownException {
-        dip.registerRemoteCollectionSources(app, collection, data);
+        dip.registerRemoteDataSources(accessedValue, data);
     }
 
 }

@@ -41,6 +41,7 @@ import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
 import es.bsc.compss.types.data.accessparams.BindingObjectAccessParams;
+import es.bsc.compss.types.data.accessparams.DataParams;
 import es.bsc.compss.types.data.accessparams.FileAccessParams;
 import es.bsc.compss.types.data.accessparams.ObjectAccessParams;
 import es.bsc.compss.types.data.location.DataLocation;
@@ -64,9 +65,7 @@ import es.bsc.compss.types.request.ap.GetResultFilesRequest;
 import es.bsc.compss.types.request.ap.IsObjectHereRequest;
 import es.bsc.compss.types.request.ap.OpenTaskGroupRequest;
 import es.bsc.compss.types.request.ap.RegisterDataAccessRequest;
-import es.bsc.compss.types.request.ap.RegisterRemoteCollectionDataRequest;
-import es.bsc.compss.types.request.ap.RegisterRemoteFileDataRequest;
-import es.bsc.compss.types.request.ap.RegisterRemoteObjectDataRequest;
+import es.bsc.compss.types.request.ap.RegisterRemoteDataRequest;
 import es.bsc.compss.types.request.ap.SetObjectVersionValueRequest;
 import es.bsc.compss.types.request.ap.ShutdownNotificationRequest;
 import es.bsc.compss.types.request.ap.ShutdownRequest;
@@ -1061,40 +1060,11 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     /**
      * Registers a data value as available on remote locations.
      *
-     * @param app application accessing the object.
-     * @param code code identifying the object
+     * @param accessedValue the value being accessed by the application
      * @param dataId name of the data associated to the object
      */
-    public void registerRemoteObject(Application app, int code, String dataId) {
-        RegisterRemoteObjectDataRequest request = new RegisterRemoteObjectDataRequest(app, code, dataId);
-        if (!this.requestQueue.offer(request)) {
-            ErrorManager.error(ERROR_QUEUE_OFFER + "register data");
-        }
-    }
-
-    /**
-     * Registers a data value as available on remote locations.
-     *
-     * @param app application accessing the file.
-     * @param loc location of the file being accessed
-     * @param dataId name of the data associated to the file
-     */
-    public void registerRemoteFile(Application app, DataLocation loc, String dataId) {
-        RegisterRemoteFileDataRequest request = new RegisterRemoteFileDataRequest(app, loc, dataId);
-        if (!this.requestQueue.offer(request)) {
-            ErrorManager.error(ERROR_QUEUE_OFFER + "register data");
-        }
-    }
-
-    /**
-     * Registers a collection data as available on remote locations.
-     *
-     * @param app application accessing the file.
-     * @param collection collection identifier
-     * @param dataId name of the data associated to the file
-     */
-    public void registerRemoteCollection(Application app, String collection, String dataId) {
-        RegisterRemoteCollectionDataRequest request = new RegisterRemoteCollectionDataRequest(app, collection, dataId);
+    public void registerRemoteData(DataParams accessedValue, String dataId) {
+        RegisterRemoteDataRequest request = new RegisterRemoteDataRequest(accessedValue, dataId);
         if (!this.requestQueue.offer(request)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "register data");
         }

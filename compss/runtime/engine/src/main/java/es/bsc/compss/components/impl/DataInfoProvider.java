@@ -40,6 +40,10 @@ import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
+import es.bsc.compss.types.data.accessparams.DataParams;
+import es.bsc.compss.types.data.accessparams.DataParams.CollectionData;
+import es.bsc.compss.types.data.accessparams.DataParams.FileData;
+import es.bsc.compss.types.data.accessparams.DataParams.ObjectData;
 import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.PersistentLocation;
@@ -88,9 +92,10 @@ public class DataInfoProvider {
     private static final String RES_FILE_TRANSFER_ERR = "Error transferring result files";
 
     // Map: collectionName -> collection identifier
-    private TreeMap<String, Integer> collectionToId;
+    private final TreeMap<String, Integer> collectionToId;
     // Map: hash code -> object identifier
-    private TreeMap<Integer, Integer> codeToId;
+    private final TreeMap<Integer, Integer> codeToId;
+
     // Map: file identifier -> file information
     private TreeMap<Integer, DataInfo> idToData;
     // Set: Object values available for main code
@@ -113,105 +118,50 @@ public class DataInfoProvider {
         LOGGER.info("Initialization finished");
     }
 
-    /**
-     * Registers the remote object resources.
-     *
-     * @param app Application accessing the value
-     * @param code Object Id.
-     * @param data Existing LogicalData to bind the value access.
-     */
-    public void registerRemoteObjectSources(Application app, int code, String data) {
-        DataInfo oInfo;
-        Integer aoId = this.codeToId.get(code);
-        if (aoId == null) {
-            if (DEBUG) {
-                LOGGER.debug("Registering Remote object on DIP with code " + code);
-            }
-            // Update mappings
-            oInfo = new ObjectInfo(app, code);
-            app.addData(oInfo);
-            aoId = oInfo.getDataId();
-            this.codeToId.put(code, aoId);
-            this.idToData.put(aoId, oInfo);
-        } else {
-            oInfo = idToData.get(aoId);
-        }
-        if (data != null) {
-            String existingRename = oInfo.getCurrentDataVersion().getDataInstanceId().getRenaming();
-            try {
-                Comm.linkData(data, existingRename);
-            } catch (CommException ce) {
-                ErrorManager.error(
-                    "Could not link the newly created LogicalData for the object with the external LogicalData", ce);
-            }
-        }
+    public Integer getObjectDataId(int code) {
+        return this.codeToId.get(code);
+    }
+
+    public void registerObjectDataId(int code, int dataId) {
+        this.codeToId.put(code, dataId);
+    }
+
+    public Integer getCollectionDataId(String collectionId) {
+        return this.collectionToId.get(collectionId);
+    }
+
+    public void registerCollectionDataId(String collectionId, int dataId) {
+        this.collectionToId.put(collectionId, dataId);
+    }
+
+    public void registerData(DataInfo dInfo) {
+        this.idToData.put(dInfo.getDataId(), dInfo);
     }
 
     /**
-     * Registers the remote object resources.
+     * Registers the remote data.
      *
-     * @param app Application accessing the value
-     * @param loc Location of the file being registed.
-     * @param data Existing LogicalData to bind the value access.
+     * @param internalData local value
+     * @param externalData Existing LogicalData to bind the value
      */
-    public void registerRemoteFileSources(Application app, DataLocation loc, String data) {
-        DataInfo oInfo;
-        String locationKey = loc.getLocationKey();
-        Integer aoId = app.getFileDataId(locationKey);
-        if (aoId == null) {
+    public void registerRemoteDataSources(DataParams internalData, String externalData) {
+        DataInfo dInfo;
+        Integer dId = internalData.getDataId(this);
+        if (dId == null) {
             if (DEBUG) {
-                LOGGER.debug("Registering Remote file on DIP at location " + locationKey);
+                LOGGER.debug("Registering Remote data on DIP: " + internalData.getDescription());
             }
-            // Update mappings
-            oInfo = new FileInfo(app, loc);
-            app.addData(oInfo);
-            aoId = oInfo.getDataId();
-            app.registerFileData(locationKey, oInfo);
-            this.idToData.put(aoId, oInfo);
+            dInfo = internalData.registerData(this);
         } else {
-            oInfo = idToData.get(aoId);
+            dInfo = idToData.get(dId);
         }
-        if (data != null) {
-            String existingRename = oInfo.getCurrentDataVersion().getDataInstanceId().getRenaming();
+        if (externalData != null && dInfo != null) {
+            String existingRename = dInfo.getCurrentDataVersion().getDataInstanceId().getRenaming();
             try {
-                Comm.linkData(data, existingRename);
+                Comm.linkData(externalData, existingRename);
             } catch (CommException ce) {
-                ErrorManager.error(
-                    "Could not link the newly created LogicalData for the object with the external LogicalData", ce);
-            }
-        }
-    }
-
-    /**
-     * Registers the remote object resources.
-     *
-     * @param app Application accessing the value
-     * @param collection Collection parameter.
-     * @param data Existing LogicalData to bind the value access.
-     */
-    public void registerRemoteCollectionSources(Application app, String collection, String data) {
-        DataInfo oInfo;
-        Integer aoId = this.collectionToId.get(collection);
-
-        if (aoId == null) {
-            if (DEBUG) {
-                LOGGER.debug("Registering on DIP Remote collection: " + collection.toString());
-            }
-            // Update mappings
-            oInfo = new CollectionInfo(app, collection);
-            app.addData(oInfo);
-            aoId = oInfo.getDataId();
-            this.idToData.put(aoId, oInfo);
-        } else {
-            oInfo = idToData.get(aoId);
-        }
-        if (data != null) {
-            String existingRename = oInfo.getCurrentDataVersion().getDataInstanceId().getRenaming();
-            try {
-                Comm.linkData(data, existingRename);
-            } catch (CommException ce) {
-                ErrorManager.error(
-                    "Could not link the newly created LogicalData for the object with the external LogicalData", ce);
+                ErrorManager.error("Could not link the newly created data for " + internalData.getDescription()
+                    + " with data " + externalData, ce);
             }
         }
     }
@@ -229,115 +179,33 @@ public class DataInfoProvider {
     }
 
     /**
-     * DataAccess interface: registers a new file access.
+     * DataAccess interface: registers a new data access.
      *
-     * @param app application accessing the file
-     * @param mode File Access Mode.
-     * @param location File location.
+     * @param access Access Parameters.
      * @return The registered access Id.
      */
-    public DataAccessId registerFileAccess(Application app, AccessMode mode, DataLocation location) {
-        DataInfo fileInfo;
-        String locationKey = location.getLocationKey();
-        Integer fileId = app.getFileDataId(locationKey);
-        DataAccessId id;
-        // First access to this file
-        if (fileId == null) {
+    public DataAccessId registerDataParamsAccess(AccessParams access) {
+        DataInfo dInfo;
+        Integer dId = access.getDataId(this);
+        if (dId == null) {
             if (DEBUG) {
-                LOGGER.debug("FIRST access to file " + locationKey);
+                LOGGER.debug("FIRST access to " + access.getDataDescription());
             }
-            id = generateFileInfo(app, mode, location);
+            dInfo = access.registerData(this);
         } else {
-            fileInfo = this.idToData.get(fileId);
-            if (fileInfo != null) {
-                // The file has already been accessed, all location are already registered
+            dInfo = idToData.get(dId);
+            if (dInfo != null) {
                 if (DEBUG) {
-                    LOGGER.debug("Another access to file " + locationKey);
+                    LOGGER.debug("Another access to " + access.getDataDescription());
                 }
-                id = willAccess(mode, fileInfo);
             } else {
-                ErrorManager.warn(
-                    "File was accessed but the file information not found. Maybe it has been previously canceled");
-                id = null;
+                ErrorManager.warn(access.getDataDescription() + " was accessed but the file information not found. "
+                    + "Maybe it has been previously canceled");
+                return null;
             }
-
         }
-
-        // Version management
-        return id;
-    }
-
-    private DataAccessId generateFileInfo(Application app, AccessMode mode, DataLocation location) {
-
-        FileInfo fileInfo = new FileInfo(app, location);
-        app.addData(fileInfo);
-        int fileId = fileInfo.getDataId();
-        app.registerFileData(location.getLocationKey(), fileInfo);
-        this.idToData.put(fileId, fileInfo);
-        DataAccessId id;
-        // Register the initial location of the file
-        if (mode == AccessMode.W) {
-            id = willAccess(mode, fileInfo);
-        } else {
-            DataInstanceId lastDID = fileInfo.getCurrentDataVersion().getDataInstanceId();
-            String renaming = lastDID.getRenaming();
-            // With the scores updates. Access function which creates the logical data must be invoked
-            // before registering the location when a new data is accessed (except W access)
-            id = willAccess(mode, fileInfo);
-            Comm.registerLocation(renaming, location);
-        }
-        return id;
-
-    }
-
-    /**
-     * DataAccess interface: registers a new object access.
-     *
-     * @param app application accessing the file
-     * @param mode Object access mode.
-     * @param value Object value.
-     * @param code Object hashcode.
-     * @return The registered access Id.
-     */
-    public DataAccessId registerObjectAccess(Application app, AccessMode mode, Object value, int code) {
-        DataInfo oInfo;
-        Integer aoId = codeToId.get(code);
-        DataAccessId id;
-
-        // First access to this datum
-        if (aoId == null) {
-            if (DEBUG) {
-                LOGGER.debug("FIRST access to object " + code);
-            }
-
-            // Update mappings
-            oInfo = new ObjectInfo(app, code);
-            app.addData(oInfo);
-            aoId = oInfo.getDataId();
-            this.codeToId.put(code, aoId);
-            this.idToData.put(aoId, oInfo);
-            // Serialize this first version of the object to a file
-            DataInstanceId lastDID = oInfo.getCurrentDataVersion().getDataInstanceId();
-            String renaming = lastDID.getRenaming();
-            // With the scores updates. Access function which creates the logical data must be invoked
-            // before registering the location when a new data is accessed (except W access)
-            id = willAccess(mode, oInfo);
-            // Inform the File Transfer Manager about the new file containing the object
-            if (mode != AccessMode.W) {
-                Comm.registerValue(renaming, value);
-            }
-
-        } else {
-            // The datum has already been accessed
-            if (DEBUG) {
-                LOGGER.debug("Another access to object " + code);
-            }
-            oInfo = this.idToData.get(aoId);
-            id = willAccess(mode, oInfo);
-        }
-
-        // Version management
-        return id;
+        AccessMode mode = access.getMode();
+        return willAccess(mode, dInfo);
     }
 
     /**
@@ -367,14 +235,14 @@ public class DataInfoProvider {
             this.codeToId.put(code, aoId);
             this.idToData.put(aoId, oInfo);
 
-            // Serialize this first version of the object to a file
             DataInstanceId lastDID = oInfo.getCurrentDataVersion().getDataInstanceId();
             String renaming = lastDID.getRenaming();
+            Comm.registerValue(renaming, value);
+
             // With the scores updates. Access function which creates the logical data must be invoked
             // before registering the location when a new data is accessed (except W access)
             id = willAccess(mode, oInfo);
-            // Inform the File Transfer Manager about the new file containing the object
-            Comm.registerValue(renaming, value);
+
         } else {
             // The datum has already been accessed
             if (DEBUG) {
@@ -1255,44 +1123,6 @@ public class DataInfoProvider {
      */
     public void shutdown() {
         // Nothing to do
-    }
-
-    /**
-     * Registers the access to a collection.
-     *
-     * @param app application accessing the collection
-     * @param am AccesMode.
-     * @param cp CollectionParameter.
-     * @return DataAccessId Representation of the access to the collection.
-     */
-    public DataAccessId registerCollectionAccess(Application app, AccessMode am, CollectiveParameter cp) {
-        String collectionId = cp.getCollectionId();
-        Integer oId = this.collectionToId.get(collectionId);
-        DataAccessId id;
-        CollectionInfo cInfo;
-        if (oId == null) {
-            cInfo = new CollectionInfo(app, collectionId);
-            oId = cInfo.getDataId();
-            this.collectionToId.put(collectionId, oId);
-            this.idToData.put(oId, cInfo);
-            // Serialize this first version of the object to a file
-            DataInstanceId lastDID = cInfo.getCurrentDataVersion().getDataInstanceId();
-            String renaming = lastDID.getRenaming();
-
-            id = willAccess(am, cInfo);
-            // Inform the File Transfer Manager about the new file containing the object
-            if (am != AccessMode.W) {
-                if (DEBUG) {
-                    LOGGER.debug("Collection " + collectionId + " contains " + cp.getElements().size() + " accesses");
-                }
-                // Null until the two-step transfer method is implemented
-                Comm.registerCollection(renaming, null);
-            }
-        } else {
-            cInfo = (CollectionInfo) this.idToData.get(oId);
-            id = willAccess(am, cInfo);
-        }
-        return id;
     }
 
     /**

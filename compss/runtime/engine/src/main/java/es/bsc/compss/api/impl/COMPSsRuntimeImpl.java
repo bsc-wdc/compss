@@ -48,6 +48,9 @@ import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
+import es.bsc.compss.types.data.accessparams.DataParams.CollectionData;
+import es.bsc.compss.types.data.accessparams.DataParams.FileData;
+import es.bsc.compss.types.data.accessparams.DataParams.ObjectData;
 import es.bsc.compss.types.data.accessparams.FileAccessParams;
 import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
@@ -88,12 +91,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -670,7 +670,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                         ErrorManager.fatal(ERROR_FILE_NAME, ioe);
                         return;
                     }
-                    ap.registerRemoteFile(app, loc, data);
+                    ap.registerRemoteData(new FileData(app, loc), data);
                 } catch (NullPointerException npe) {
                     LOGGER.error(ERROR_FILE_NAME, npe);
                     ErrorManager.fatal(ERROR_FILE_NAME, npe);
@@ -679,7 +679,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             case OBJECT_T:
             case PSCO_T:
                 int hashcode = oReg.newObjectParameter(appId, stub);
-                ap.registerRemoteObject(app, hashcode, data);
+                ap.registerRemoteData(new ObjectData(app, hashcode), data);
                 break;
             case STREAM_T:
                 // int streamCode = oReg.newObjectParameter(stub);
@@ -720,7 +720,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 }
                 break;
             case COLLECTION_T:
-                ap.registerRemoteCollection(app, (String) stub, data);
+                ap.registerRemoteData(new CollectionData(app, (String) stub), data);
                 break;
             case DICT_COLLECTION_T:
                 throw new UnsupportedOperationException("Not implemented yet.");

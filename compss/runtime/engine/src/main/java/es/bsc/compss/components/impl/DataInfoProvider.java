@@ -138,7 +138,13 @@ public class DataInfoProvider {
         this.idToData.put(dInfo.getDataId(), dInfo);
     }
 
-    private void registerRemoteDataSources(DataParams internalData, String externalData) {
+    /**
+     * Registers the remote data.
+     *
+     * @param internalData local value
+     * @param externalData Existing LogicalData to bind the value
+     */
+    public void registerRemoteDataSources(DataParams internalData, String externalData) {
         DataInfo dInfo;
         Integer dId = internalData.getDataId(this);
         if (dId == null) {
@@ -161,39 +167,6 @@ public class DataInfoProvider {
     }
 
     /**
-     * Registers the remote object resources.
-     *
-     * @param app Application accessing the value
-     * @param code Object Id.
-     * @param data Existing LogicalData to bind the value access.
-     */
-    public void registerRemoteObjectSources(Application app, int code, String data) {
-        registerRemoteDataSources(new ObjectData(app, code), data);
-    }
-
-    /**
-     * Registers the remote object resources.
-     *
-     * @param app Application accessing the value
-     * @param loc Location of the file being registed.
-     * @param data Existing LogicalData to bind the value access.
-     */
-    public void registerRemoteFileSources(Application app, DataLocation loc, String data) {
-        registerRemoteDataSources(new FileData(app, loc), data);
-    }
-
-    /**
-     * Registers the remote object resources.
-     *
-     * @param app Application accessing the value
-     * @param collection Collection parameter.
-     * @param data Existing LogicalData to bind the value access.
-     */
-    public void registerRemoteCollectionSources(Application app, String collection, String data) {
-        registerRemoteDataSources(new CollectionData(app, collection), data);
-    }
-
-    /**
      * DataAccess interface: registers a new data access.
      *
      * @param access Access Parameters.
@@ -212,8 +185,6 @@ public class DataInfoProvider {
      * @return The registered access Id.
      */
     public DataAccessId registerDataParamsAccess(AccessParams access) {
-        AccessMode mode = access.getMode();
-
         DataInfo dInfo;
         Integer dId = access.getDataId(this);
         if (dId == null) {
@@ -233,6 +204,7 @@ public class DataInfoProvider {
                 return null;
             }
         }
+        AccessMode mode = access.getMode();
         return willAccess(mode, dInfo);
     }
 

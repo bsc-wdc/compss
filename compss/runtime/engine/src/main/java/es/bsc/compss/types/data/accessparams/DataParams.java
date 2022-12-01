@@ -130,7 +130,7 @@ public abstract class DataParams {
             Application app = this.getApp();
             DataInfo oInfo = new ObjectInfo(app, code);
             Integer aoId = oInfo.getDataId();
-            dip.registerObjectDataId(code, aoId);
+            dip.registerObjectDataId(code, oInfo.getDataId());
             return oInfo;
         }
 
@@ -166,6 +166,7 @@ public abstract class DataParams {
         public DataInfo createDataInfo(DataInfoProvider dip) {
             Application app = this.getApp();
             DataInfo oInfo = new CollectionInfo(app, collectionId);
+            dip.registerCollectionDataId(collectionId, oInfo.getDataId());
             return oInfo;
         }
     }

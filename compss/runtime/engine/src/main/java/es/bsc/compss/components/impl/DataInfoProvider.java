@@ -1154,44 +1154,6 @@ public class DataInfoProvider {
     }
 
     /**
-     * Registers the access to a collection.
-     *
-     * @param app application accessing the collection
-     * @param am AccesMode.
-     * @param cp CollectionParameter.
-     * @return DataAccessId Representation of the access to the collection.
-     */
-    public DataAccessId registerCollectionAccess(Application app, AccessMode am, CollectiveParameter cp) {
-        String collectionId = cp.getCollectionId();
-        Integer oId = this.collectionToId.get(collectionId);
-        DataAccessId id;
-        CollectionInfo cInfo;
-        if (oId == null) {
-            cInfo = new CollectionInfo(app, collectionId);
-            oId = cInfo.getDataId();
-            this.collectionToId.put(collectionId, oId);
-            this.idToData.put(oId, cInfo);
-            // Serialize this first version of the object to a file
-            DataInstanceId lastDID = cInfo.getCurrentDataVersion().getDataInstanceId();
-            String renaming = lastDID.getRenaming();
-
-            id = willAccess(am, cInfo);
-            // Inform the File Transfer Manager about the new file containing the object
-            if (am != AccessMode.W) {
-                if (DEBUG) {
-                    LOGGER.debug("Collection " + collectionId + " contains " + cp.getElements().size() + " accesses");
-                }
-                // Null until the two-step transfer method is implemented
-                Comm.registerCollection(renaming, null);
-            }
-        } else {
-            cInfo = (CollectionInfo) this.idToData.get(oId);
-            id = willAccess(am, cInfo);
-        }
-        return id;
-    }
-
-    /**
      * Removes all data bound to the specified application.
      *
      * @param app application whose that must be removed from the system

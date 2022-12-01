@@ -41,6 +41,7 @@ import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
+import es.bsc.compss.types.data.accessparams.CollectionAccessParams;
 import es.bsc.compss.types.data.accessparams.FileAccessParams;
 import es.bsc.compss.types.data.accessparams.ObjectAccessParams;
 import es.bsc.compss.types.data.operation.ResultListener;
@@ -676,7 +677,7 @@ public class TaskAnalyser implements GraphHandler {
                         registerParameterAccessAndAddDependencies(app, currentTask, content, isConstraining);
                     hasParamEdge = hasParamEdge || hasCollectionParamEdge;
                 }
-                daId = dip.registerCollectionAccess(app, am, cp);
+                daId = dip.registerDataAccess(new CollectionAccessParams(app, am, cp.getCollectionId()));
                 if (IS_DRAW_GRAPH) {
                     this.gm.stopGroupingEdges();
                 }

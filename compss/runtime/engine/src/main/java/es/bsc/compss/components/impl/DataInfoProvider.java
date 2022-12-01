@@ -838,23 +838,6 @@ public class DataInfoProvider {
     }
 
     /**
-     * Gets the dataInfo of the location.
-     *
-     * @param app application requesting the data information
-     * @param loc Location
-     * @return DataInfo associated with the given location {@code loc}.
-     */
-    public DataInfo getLocationDataInfo(Application app, DataLocation loc) {
-        String locationKey = loc.getLocationKey();
-        Integer dataId = app.getFileDataId(locationKey);
-        if (dataId != null) {
-            DataInfo dataInfo = this.idToData.get(dataId);
-            return dataInfo;
-        }
-        return null;
-    }
-
-    /**
      * Marks a data Id for deletion.
      *
      * @param app Application requesting the data deletion
@@ -927,25 +910,6 @@ public class DataInfoProvider {
      */
     public DataInfo deleteCollection(String collectionId, boolean noReuse) {
         Integer oId = this.collectionToId.get(collectionId);
-        DataInfo dataInfo = this.idToData.get(oId);
-
-        // We delete the data associated with all the versions of the same object
-        if (dataInfo.delete(noReuse)) {
-            removeDataFromInternalStructures(dataInfo);
-        }
-
-        return dataInfo;
-    }
-
-    /**
-     * Deletes a dictionary collection.
-     *
-     * @param dictCollectionId Dictionary Collection identifier
-     * @param noReuse no reuse flag
-     * @return DataInfo
-     */
-    public DataInfo deleteDictCollection(String dictCollectionId, boolean noReuse) {
-        Integer oId = this.collectionToId.get(dictCollectionId);
         DataInfo dataInfo = this.idToData.get(oId);
 
         // We delete the data associated with all the versions of the same object

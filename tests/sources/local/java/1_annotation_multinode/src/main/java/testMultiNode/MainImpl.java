@@ -1,5 +1,8 @@
 package testMultiNode;
 
+import java.util.HashMap;
+
+
 public class MainImpl {
 
     private static final String OMP_NUM_THREADS = "OMP_NUM_THREADS";
@@ -40,13 +43,58 @@ public class MainImpl {
         }
 
         String hostnames = System.getProperty(COMPSS_HOSTNAMES);
-        if (hostnames == null || hostnames.isEmpty() || !hostnames.equals(expectedHostnames)) {
+        if (hostnames == null || hostnames.isEmpty()) {
             System.err.println("ERROR: Incorrect hostlist");
-            System.err.println("  - Expected: " + expectedHostnames);
-            System.err.println("  - Got: " + hostnames);
+            System.err.println("  - No hosts obtained");
             return 1;
         }
 
+        String[] hosts = hostnames.split(",");
+        String[] expectedHosts = expectedHostnames.split(",");
+        if (hosts.length != expectedHosts.length) {
+            System.err.println("ERROR: Incorrect hostlist");
+            System.err.println("  - Expected: " + expectedHosts.length + " hosts");
+            System.err.println("  - Got: " + hosts.length + " hosts");
+            return 1;
+        }
+
+        HashMap<String, Integer> expectedCounts = new HashMap<>();
+        HashMap<String, Integer> counts = new HashMap<>();
+        for (String host : hosts) {
+            Integer count = counts.get(host);
+            if (count == null) {
+                count = 0;
+            }
+            count++;
+            counts.put(host, count);
+        }
+        for (String host : expectedHosts) {
+            Integer count = expectedCounts.get(host);
+            if (count == null) {
+                count = 0;
+            }
+            count++;
+            expectedCounts.put(host, count);
+        }
+
+        for (java.util.Map.Entry<String, Integer> pair : expectedCounts.entrySet()) {
+            String host = pair.getKey();
+            Integer expectedCount = pair.getValue();
+            Integer count = counts.remove(host);
+            if (expectedCount != count) {
+                System.err.println("ERROR: Incorrect hostlist");
+                System.err.println("  - Expected: " + expectedCount + " occurrences of host " + host);
+                System.err.println("  - Got: " + count + " occurrences");
+            }
+        }
+
+        if (!counts.isEmpty()) {
+            System.err.println("ERROR: Incorrect hostlist");
+            for (java.util.Map.Entry<String, Integer> pair : counts.entrySet()) {
+                System.err.println("  - Expecting no occurrences of host " + pair.getKey());
+                System.err.println("  - Got " + pair.getValue() + " occurrences");
+            }
+        }
         // All ok
         return 0;
     }

@@ -16,14 +16,13 @@
  */
 package es.bsc.compss.executor.types;
 
-import es.bsc.compss.invokers.types.TypeValuePair;
+import es.bsc.compss.executor.types.ParameterResult.CollectiveResult;
+import es.bsc.compss.executor.types.ParameterResult.SingleResult;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.parameter.DataType;
+import java.text.CharacterIterator;
+import java.text.StringCharacterIterator;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -37,23 +36,11 @@ import org.apache.logging.log4j.Logger;
 public class ExternalTaskStatus {
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
+
+    private static final String CANNOT_PARSE_ERROR = "Could not parse Collection results";
+
     private final Integer exitValue;
-    private final List<TypeValuePair> updatedParameters;
-
-
-    private static class CollectionBean {
-
-        // Necessary to parse the collection string representation
-        int token;
-        Object obj;
-
-
-        public CollectionBean(int token, Object o) {
-            super();
-            this.token = token;
-            this.obj = o;
-        }
-    }
+    private final List<ParameterResult> results;
 
 
     /**
@@ -63,7 +50,7 @@ public class ExternalTaskStatus {
      */
     public ExternalTaskStatus(Integer exitValue) {
         this.exitValue = exitValue;
-        this.updatedParameters = new LinkedList<>();
+        this.results = new LinkedList<>();
     }
 
     /**
@@ -72,7 +59,7 @@ public class ExternalTaskStatus {
      * @param line task status content as string array
      */
     public ExternalTaskStatus(String[] line) {
-        this.updatedParameters = new LinkedList<>();
+        this.results = new LinkedList<>();
 
         // Line of the form: "endTask" ID STATUS D paramType1 paramValue1 ... paramTypeD paramValueD
         this.exitValue = Integer.parseInt(line[2]);
@@ -99,11 +86,111 @@ public class ExternalTaskStatus {
                 if (paramValue.equalsIgnoreCase("null")) {
                     paramValue = null;
                 }
-                addParameter(paramType, paramValue);
+                this.results.add(createResult(paramType, paramValue));
             }
         } else {
             LOGGER.warn("WARN: endTask message does not have task result parameters");
         }
+    }
+
+    /**
+     * Adds a new parameter.
+     *
+     * @param type Parameter Type
+     * @param value Parameter Value
+     * @return object describing the results
+     */
+    private ParameterResult createResult(DataType type, String value) {
+        if (type == DataType.COLLECTION_T) {
+            return new CollectiveResult(type, createCollectionResultValue(value));
+        } else {
+            return new SingleResult(type, value);
+        }
+    }
+
+    private List<ParameterResult> createCollectionResultValue(String value) {
+        if (value == null || value.isEmpty()) {
+            return new LinkedList<>();
+        }
+        List<ParameterResult> result = null;
+        CharacterIterator it = new StringCharacterIterator(value);
+        char c = it.current();
+        while (c != CharacterIterator.DONE) {
+            if (c == '[') {
+                try {
+                    result = parseCollection(it);
+                } catch (Exception e) {
+                    LOGGER.warn(CANNOT_PARSE_ERROR + value);
+                    return null;
+                }
+                c = it.next();
+            } else {
+                LOGGER.warn(CANNOT_PARSE_ERROR + value);
+                return null;
+            }
+        }
+        return result;
+    }
+
+    private List<ParameterResult> parseCollection(CharacterIterator it) throws Exception {
+        List<ParameterResult> result = new LinkedList<>();
+        char c = it.next();
+        while (c != CharacterIterator.DONE) {
+            switch (c) {
+                case ']':
+                    it.next();
+                    return result;
+                case '[':
+                    try {
+                        List<ParameterResult> subCollection = parseCollection(it);
+                        result.add(new CollectiveResult(DataType.COLLECTION_T, subCollection));
+                        c = it.current();
+                    } catch (Exception e) {
+                        throw new Exception("CANNOT_PARSE_ERROR");
+                    }
+                    break;
+                case '(':
+                    try {
+                        ParameterResult element = parseElement(it);
+                        result.add(element);
+                        c = it.next();
+                    } catch (Exception e) {
+                        throw new Exception("CANNOT_PARSE_ERROR");
+                    }
+                    break;
+                case ',':
+                    // Ignore
+                    c = it.next();
+                    break;
+                default:
+                    throw new Exception("CANNOT_PARSE_ERROR");
+            }
+        }
+        return result;
+    }
+
+    private SingleResult parseElement(CharacterIterator it) throws Exception {
+        char c;
+        StringBuilder typeSB = new StringBuilder();
+        StringBuilder valueSB = new StringBuilder();
+        StringBuilder appender = typeSB;
+        while ((c = it.next()) != CharacterIterator.DONE) {
+            switch (c) {
+                case ')':
+                    DataType type = DataType.values()[Integer.parseInt(typeSB.toString())];
+                    String value = valueSB.toString();
+                    if (value.equalsIgnoreCase("null")) {
+                        value = null;
+                    }
+                    return new SingleResult(type, value);
+                case ',':
+                    appender = valueSB;
+                    break;
+                default:
+                    appender.append(c);
+            }
+        }
+        throw new Exception("CANNOT_PARSE_ERROR");
     }
 
     /**
@@ -120,8 +207,8 @@ public class ExternalTaskStatus {
      *
      * @return Updated parameters
      */
-    public List<TypeValuePair> getUpdatedParameters() {
-        return this.updatedParameters;
+    public List<ParameterResult> getResults() {
+        return this.results;
     }
 
     /**
@@ -130,145 +217,7 @@ public class ExternalTaskStatus {
      * @return Number of parameters
      */
     public int getNumParameters() {
-        return this.updatedParameters.size();
-    }
-
-    /**
-     * Returns the i-th parameter type. Null if i is out of the parameters range.
-     *
-     * @param i Parameter ordinal
-     * @return
-     */
-    public DataType getParameterType(int i) {
-        if (i >= 0 && i < this.updatedParameters.size()) {
-            return this.updatedParameters.get(i).getUpdatedParameterType();
-        }
-        return null;
-    }
-
-    /**
-     * Returns the i-th parameter value. Null if i is out of the parameters range
-     *
-     * @param i Parameter ordinal
-     * @return
-     */
-    public String getParameterValue(int i) {
-        if (i >= 0 && i < this.updatedParameters.size()) {
-            return (String) this.updatedParameters.get(i).getUpdatedParameterValue();
-        }
-        return null;
-    }
-
-    /**
-     * Returns the i-th parameter collection value. Null if i is out of the parameters range.
-     *
-     * @param i Parameter ordinal
-     * @return
-     */
-    public LinkedList<Object> getParameterValues(int i) {
-        if (i >= 0 && i < this.updatedParameters.size()) {
-            return this.updatedParameters.get(i).getUpdatedParameterValues();
-        }
-        return null;
-    }
-
-    /**
-     * Parses a collection from string representation. (((type, value), (type, value)), ((type, value), (type, value)))
-     * 
-     * @param collection String Collection representation
-     * @return
-     */
-    @SuppressWarnings("unchecked")
-    public List<Object> buildCollectionList(String collection) {
-        Deque<Object> stack = new ArrayDeque<Object>();
-        char[] chararray = collection.toCharArray();
-        String temp = "";
-        for (int i = 0; i < chararray.length; i++) {
-            if (chararray[i] == ')') {
-                if (!temp.equals("")) {
-                    stack.push(new CollectionBean(0, temp));
-                    temp = "";
-                }
-                List<Object> tmplist = new ArrayList<>();
-                while (true) {
-                    Object object = stack.pop();
-                    if (object instanceof CollectionBean) {
-                        CollectionBean b = (CollectionBean) object;
-                        if (b.token == 1) {
-                            break;
-                        }
-                        tmplist.add(b.obj);
-                    } else {
-                        tmplist.add(object);
-                        if (stack.isEmpty()) {
-                            break;
-                        }
-                    }
-                }
-                Collections.reverse(tmplist);
-                stack.push(tmplist);
-            } else {
-                if (chararray[i] == '(') {
-                    stack.push(new CollectionBean(1, Character.toString(chararray[i])));
-                } else if (chararray[i] == ',') {
-                    if (!temp.equals("")) {
-                        stack.push(new CollectionBean(0, temp));
-                        temp = "";
-                    }
-                } else {
-                    temp = temp + Character.toString(chararray[i]);
-                }
-            }
-        }
-        return (List<Object>) stack.pop();
-    }
-
-    /**
-     * Converts the list representation of a collection into a Type value pair recursively.
-     * 
-     * @param collection String Collection representation
-     */
-    @SuppressWarnings("unchecked")
-    public List<Object> buildCollectionParameter(List<Object> collection) {
-        // Recursive call to add parameter if detected collection (length == 2 is a single element)
-        List<Object> param = new LinkedList<Object>();
-        for (Object element : collection) {
-            List<Object> subParam = (List<Object>) element;
-            if (subParam.size() == 2 && subParam.get(0) instanceof String) {
-                // Simple element within collection
-                DataType subElemType = DataType.values()[Integer.parseInt((String) subParam.get(0))];
-                String value = (String) subParam.get(1);
-                if (value.compareTo("null") != 0) {
-                    param.add(new TypeValuePair(subElemType, (String) subParam.get(1)));
-                } else {
-                    param.add(new TypeValuePair(subElemType, null));
-                }
-            } else {
-                // It is a collection in the collection
-                param.add(buildCollectionParameter(subParam));
-            }
-        }
-        return param;
-    }
-
-    /**
-     * Adds a new parameter.
-     *
-     * @param type Parameter Type
-     * @param value Parameter Value
-     */
-    public void addParameter(DataType type, String value) {
-        if (type == DataType.COLLECTION_T && value != null) {
-            TypeValuePair collectionParameter = new TypeValuePair(type);
-            value = value.replace("[", "(");
-            value = value.replace("]", ")");
-            List<Object> collection = buildCollectionList(value);
-            List<Object> parameterValue = buildCollectionParameter(collection);
-            collectionParameter.setUpdatedParameterValue((LinkedList<Object>) parameterValue);
-            this.updatedParameters.add(collectionParameter);
-        } else {
-            this.updatedParameters.add(new TypeValuePair(type, value));
-        }
+        return this.results.size();
     }
 
     @Override
@@ -278,14 +227,9 @@ public class ExternalTaskStatus {
 
         sb.append("ExitValue = ").append(this.exitValue).append(", ");
         sb.append("NumParameters = ").append(getNumParameters()).append(", ");
-        sb.append("ParameterTypes = [");
-        for (TypeValuePair tvp : this.updatedParameters) {
-            sb.append(tvp.getUpdatedParameterType().ordinal()).append(" ");
-        }
-        sb.append("], ");
-        sb.append("ParameterValues = [");
-        for (TypeValuePair tvp : this.updatedParameters) {
-            sb.append((String) tvp.getUpdatedParameterValue()).append(" ");
+        sb.append("Parameter = [");
+        for (ParameterResult r : this.results) {
+            sb.append(r.toString()).append(" ");
         }
         sb.append("]");
 
@@ -293,5 +237,4 @@ public class ExternalTaskStatus {
 
         return sb.toString();
     }
-
 }

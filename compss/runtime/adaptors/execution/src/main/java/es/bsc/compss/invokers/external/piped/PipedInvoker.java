@@ -39,8 +39,10 @@ import es.bsc.compss.executor.external.piped.commands.PipeCommand;
 import es.bsc.compss.executor.external.piped.commands.RegisterCEPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.SynchPipeCommand;
 import es.bsc.compss.executor.types.ExternalTaskStatus;
+import es.bsc.compss.executor.types.ParameterResult;
+import es.bsc.compss.executor.types.ParameterResult.CollectiveResult;
+import es.bsc.compss.executor.types.ParameterResult.SingleResult;
 import es.bsc.compss.invokers.external.ExternalInvoker;
-import es.bsc.compss.invokers.types.TypeValuePair;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.execution.ExecutionSandbox;
@@ -50,9 +52,7 @@ import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.InvocationParamCollection;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.worker.COMPSsException;
-
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Iterator;
 
 
 public abstract class PipedInvoker extends ExternalInvoker {
@@ -295,19 +295,25 @@ public abstract class PipedInvoker extends ExternalInvoker {
                                 }
                                 // Update parameters
                                 LOGGER.debug("Updating parameters for job " + this.invocation.getJobId());
-                                int parIdx = 0;
+                                Iterator<ParameterResult> taskResults = taskStatus.getResults().iterator();
                                 for (InvocationParam param : this.invocation.getParams()) {
-                                    updateParam(param, taskStatus, parIdx);
-                                    parIdx++;
+                                    if (taskResults.hasNext()) {
+                                        updateParam(param, taskResults.next());
+                                    }
                                 }
+
                                 InvocationParam target = this.invocation.getTarget();
                                 if (target != null) {
-                                    updateParam(target, taskStatus, parIdx);
-                                    parIdx++;
+                                    if (taskResults.hasNext()) {
+                                        updateParam(target, taskResults.next());
+                                    }
                                 }
+
                                 for (InvocationParam param : this.invocation.getResults()) {
-                                    updateParam(param, taskStatus, parIdx);
-                                    parIdx++;
+                                    if (taskResults.hasNext()) {
+
+                                        updateParam(param, taskResults.next());
+                                    }
                                 }
                                 return;
                             case COMPSS_EXCEPTION:
@@ -331,67 +337,30 @@ public abstract class PipedInvoker extends ExternalInvoker {
 
     }
 
-    @SuppressWarnings({ "rawtypes" })
-    private void updateParam(InvocationParam param, ExternalTaskStatus taskStatus, int parIdx) {
-        DataType paramType = taskStatus.getParameterType(parIdx);
-        Object value;
-        if (paramType != null && paramType.equals(DataType.EXTERNAL_PSCO_T)) {
-            param.setType(paramType);
-            value = taskStatus.getParameterValue(parIdx);
-            param.setValue(value);
-            if (value != null) {
-                param.setValueClass(value.getClass());
-            }
-        } else {
-            if (paramType != null && paramType.equals(DataType.COLLECTION_T)) {
-                param.setType(paramType);
-                InvocationParamCollection ipc = (InvocationParamCollection) param;
-                LinkedList<Object> values = taskStatus.getParameterValues(parIdx);
-                if (ipc.getCollectionParameters().size() == values.size()) {
-                    updateParamCollection(ipc, values);
-                }
-                // otherwise the collection contains null - it was in and has not been changed.
-            }
-        }
-    }
+    private void updateParam(InvocationParam param, ParameterResult result) {
+        if (param.isCollective()) {
+            InvocationParamCollection cip = (InvocationParamCollection) param;
+            Iterator<InvocationParam> cipItr = cip.getCollectionParameters().iterator();
 
-    @SuppressWarnings({ "unchecked",
-        "rawtypes" })
-    private void updateParamCollection(InvocationParamCollection ipc, LinkedList<Object> values) {
-        List<Object> collectionParameters = ipc.getCollectionParameters();
-        int position = 0;
-        for (Object element : collectionParameters) {
-            InvocationParam param = (InvocationParam) element;
-            DataType elementType = param.getType();
-            if (elementType.equals(DataType.COLLECTION_T)) {
-                // The element is an inner collection. Resolve recursively.
-                param.setType(elementType);
-                updateParamCollection((InvocationParamCollection) param, (LinkedList<Object>) values.get(position));
-            } else {
-                if (elementType.equals(DataType.EXTERNAL_PSCO_T)) {
-                    param.setType(elementType);
-                    TypeValuePair pair = (TypeValuePair) values.get(position);
-                    if (pair != null) {
-                        Object value = pair.getUpdatedParameterValue();
-                        param.setValue(value);
-                        if (value != null) {
-                            param.setValueClass(value.getClass());
-                        }
-                    } else {
-                        param.setValue(null);
-                    }
-                } else {
-                    if (elementType.equals(DataType.FILE_T)) {
-                        TypeValuePair pair = (TypeValuePair) values.get(position);
-                        if (pair != null && pair.getUpdatedParameterValue() != null) {
-                            param.setType(pair.getUpdatedParameterType());
-                            param.setValue(pair.getUpdatedParameterValue());
-                            param.setValueClass(pair.getUpdatedParameterValue().getClass());
-                        }
+            if (result.isCollective()) {
+                CollectiveResult cr = (CollectiveResult) result;
+                Iterator<ParameterResult> crItr = cr.getElements().iterator();
+                while (cipItr.hasNext()) {
+                    if (crItr.hasNext()) {
+                        updateParam(cipItr.next(), crItr.next());
                     }
                 }
             }
-            position += 1;
+
+        } else {
+            DataType resultType = result.getType();
+            String value = ((SingleResult) result).getValue();
+            if (value != null) {
+                if (resultType == DataType.EXTERNAL_PSCO_T || resultType == DataType.FILE_T) {
+                    param.setType(resultType);
+                    param.setValue(value);
+                }
+            }
         }
     }
 

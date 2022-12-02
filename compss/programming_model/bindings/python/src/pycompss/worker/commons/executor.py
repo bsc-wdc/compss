@@ -40,11 +40,37 @@ def build_return_params_message(types: list, values: list) -> str:
     num_params = len(pairs)
     params = [str(num_params)]
     for pair in pairs:
-        value = str(pair[1])
         if pair[0] == TYPE.COLLECTION:
-            value = value.replace(" ", "")
-            value = value.replace("'", "")
+            value = __build_collection_representation__(pair[1])
+        else:
+            value = str(pair[1])
         params.append(str(pair[0]))
         params.append(value)
     message = " ".join(params)
     return message
+
+
+def __build_collection_representation__(value: list) -> str:
+    """Create the representation of a collection from the list of lists format.
+
+    CAUTION: Recursive function.
+    The runtime expects [[[(t1, v1), (t2, v2), ...], [(t1, v1), (t2, v2), ...], ...], ...]
+
+    :param value: Collection message before processing.
+    :return: The collection representation message.
+    """
+    result = "["
+    first = True
+    for i in value:
+        if isinstance(i[0], list):
+            # Has inner list
+            result = result + __build_collection_representation__(i)
+        else:
+            coll_type = i[0]
+            coll_value = i[1].replace("'", "")
+            if first:
+                result = f"{result}({coll_type},{coll_value})"
+                first = False
+            else:
+                result = f"{result},({coll_type},{coll_value})"
+    return f"{result}]"

@@ -20,13 +20,13 @@ package es.bsc.compss.invokers.test.utils.types;
 import static org.junit.Assert.fail;
 
 import es.bsc.compss.executor.types.ExternalTaskStatus;
-
-import java.util.List;
+import es.bsc.compss.executor.types.ParameterResult;
+import es.bsc.compss.executor.types.ParameterResult.CollectiveResult;
 
 import org.junit.Test;
 
 
-public class TypeValueParsingTest {
+public class TaskResultParsingTest {
 
     @Test
     public void testCollectionParsing() {
@@ -41,7 +41,11 @@ public class TypeValueParsingTest {
         if (ets.getNumParameters() != 1) {
             fail("Could not find the collection");
         }
-        if (ets.getUpdatedParameters().get(0).getUpdatedParameterValues().size() != 10) {
+        ParameterResult pr = ets.getResults().get(0);
+        if (!pr.isCollective()) {
+            fail("Result expected to be a collection.");
+        }
+        if (((CollectiveResult) pr).size() != 10) {
             fail("Could not find 10 elements in the collection");
         }
     }
@@ -49,24 +53,36 @@ public class TypeValueParsingTest {
     @Test
     @SuppressWarnings("unchecked")
     public void testCollectionInCollectionParsing() {
-        String message =
-            "END_TASK 5 0 1 27 [[(13,aecc04a4-c842-4ce5-9ed6-661a47de776e),(13,aecc04a4-c842-4ce5-9ed6-661a47de776e)]"
-                + ",[(13,aecc04a4-c842-4ce5-9ed6-661a47de776e),(13,aecc04a4-c842-4ce5-9ed6-661a47de776e)]]";
+        String message = "END_TASK 5 0 1 27 ["
+            + "[(13,aecc04a4-c842-4ce5-9ed6-661a47de7760),(13,aecc04a4-c842-4ce5-9ed6-661a47de7761)]"
+            + ",[(13,aecc04a4-c842-4ce5-9ed6-661a47de7762),(13,aecc04a4-c842-4ce5-9ed6-661a47de7763)]" + "]";
         String[] line = message.split(" ");
         ExternalTaskStatus ets = new ExternalTaskStatus(line);
-        System.out.println(ets.getNumParameters());
         if (ets.getNumParameters() != 1) {
             fail("Could not find the collection");
         }
-        if (ets.getUpdatedParameters().get(0).getUpdatedParameterValues().size() != 2) {
+
+        ParameterResult pr = ets.getResults().get(0);
+        if (!pr.isCollective()) {
+            fail("Result expected to be a collection.");
+        }
+        if (((CollectiveResult) pr).size() != 2) {
             fail("Could not find 2 subcollections in the collection");
         } else {
-            List<Object> subcol1 = (List<Object>) ets.getUpdatedParameters().get(0).getUpdatedParameterValues().get(0);
-            if (subcol1.size() != 2) {
+
+            ParameterResult r0 = ((CollectiveResult) pr).getElements().get(0);
+            if (!r0.isCollective()) {
+                fail("First subresult expected to be a collection.");
+            }
+            if (((CollectiveResult) r0).size() != 2) {
                 fail("Could not find 2 elements in the first subcollection of the collection");
             }
-            List<Object> subcol2 = (List<Object>) ets.getUpdatedParameters().get(0).getUpdatedParameterValues().get(1);
-            if (subcol2.size() != 2) {
+
+            ParameterResult r1 = ((CollectiveResult) pr).getElements().get(1);
+            if (!r1.isCollective()) {
+                fail("Second subresult expected to be a collection.");
+            }
+            if (((CollectiveResult) r1).size() != 2) {
                 fail("Could not find 2 elements in the second subcollection of the collection");
             }
         }

@@ -20,12 +20,17 @@ import es.bsc.compss.execution.types.ExecutorContext;
 import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.executor.external.persistent.PersistentMirror;
 import es.bsc.compss.executor.types.ExternalTaskStatus;
+import es.bsc.compss.executor.types.ParameterResult;
 import es.bsc.compss.invokers.external.ExternalInvoker;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
+import es.bsc.compss.types.execution.InvocationParam;
+import es.bsc.compss.types.execution.InvocationParamCollection;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
+import java.util.Collection;
+import java.util.Iterator;
 
 
 public abstract class PersistentInvoker extends ExternalInvoker {
@@ -59,11 +64,11 @@ public abstract class PersistentInvoker extends ExternalInvoker {
             LOGGER.debug("Executing in binding: " + taskCMD);
         }
 
-        String results = executeInBinding(taskCMD);
+        String result = executeInBinding(taskCMD);
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Result: " + results);
+            LOGGER.debug("Result: " + result);
         }
-        ExternalTaskStatus taskStatus = new ExternalTaskStatus(results.split(" "));
+        ExternalTaskStatus taskStatus = new ExternalTaskStatus(result.split(" "));
 
         // Check task exit value
         Integer exitValue = taskStatus.getExitValue();
@@ -73,16 +78,34 @@ public abstract class PersistentInvoker extends ExternalInvoker {
 
         // Update parameters
         LOGGER.debug("Updating parameters for job " + jobId);
-        for (int i = 0; i < taskStatus.getNumParameters(); ++i) {
-            DataType paramType = taskStatus.getParameterType(i);
-            if (paramType.equals(DataType.EXTERNAL_PSCO_T)) {
-                String paramValue = taskStatus.getParameterValue(i);
-                invocation.getParams().get(i).setType(DataType.EXTERNAL_PSCO_T);
-                invocation.getParams().get(i).setValue(paramValue);
-            }
+        Collection<ParameterResult> results = taskStatus.getResults();
+
+        Iterator<? extends InvocationParam> cip = invocation.getParams().iterator();
+        Iterator<ParameterResult> cr = results.iterator();
+        while (cr.hasNext()) {
+            updateParam(cip.next(), cr.next());
         }
 
         LOGGER.debug("Job " + jobId + " has finished with exit value 0");
+    }
+
+    private void updateParam(InvocationParam param, ParameterResult result) {
+        if (param.isCollective()) {
+            Iterator<InvocationParam> cip = ((InvocationParamCollection) param).getCollectionParameters().iterator();
+            Iterator<ParameterResult> cr = ((ParameterResult.CollectiveResult) param).getElements().iterator();
+            while (cip.hasNext()) {
+                updateParam(cip.next(), cr.next());
+            }
+        }
+
+        DataType resultType = result.getType();
+        if (resultType != null) {
+            if (resultType == DataType.EXTERNAL_PSCO_T) {
+                param.setType(resultType);
+                param.setValue(((ParameterResult.SingleResult) result).getValue());
+            }
+        }
+
     }
 
     public static native String executeInBinding(String args);

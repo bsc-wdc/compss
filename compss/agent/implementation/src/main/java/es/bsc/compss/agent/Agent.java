@@ -568,6 +568,37 @@ public class Agent {
         arguments[position + 8] = param.isKeepRename();
     }
 
+    /**
+     * Returns or creates the host from a remoteDataLocation.
+     */
+    public static es.bsc.compss.types.resources.Resource
+        getNodeFromRemoteDataLocation(RemoteDataLocation remoteDataLocation) {
+        if (remoteDataLocation == null) {
+            return null;
+        }
+        try {
+            Resource<?, ?> r = remoteDataLocation.getResource();
+            if (r == null) {
+                return null;
+            }
+            String workerName = r.getName();
+            Worker<? extends WorkerResourceDescription> host = ResourceManager.getWorker(workerName);
+            if (host == null) {
+                MethodResourceDescription mrd = r.getDescription();
+                String adaptor = r.getAdaptor();
+                Map<String, Object> projectConf = new HashMap<>();
+                projectConf.put("Properties", r.getProjectConf());
+                Map<String, Object> resourcesConf = new HashMap<>();
+                resourcesConf.put("Properties", r.getResourceConf());
+                host = registerWorker(workerName, mrd, adaptor, projectConf, resourcesConf);
+            }
+            return host;
+        } catch (AgentException e) {
+            LOGGER.error("Exception raised fetching host for remote data", e);
+            return null;
+        }
+    }
+
     private static void addRemoteData(RemoteDataInformation remote) throws AgentException {
         int addedSources = 0;
         LogicalData ld = Comm.getData(remote.getRenaming());

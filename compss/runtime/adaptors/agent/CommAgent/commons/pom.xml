@@ -38,6 +38,14 @@
             <artifactId>compss-agent-commons</artifactId>
             <scope>provided</scope>
         </dependency>
+
+        <!-- Adaptor engine classes -->
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-adaptors-engine</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
         
         <!-- NIO Adaptor common classes -->
         <dependency>
@@ -56,7 +64,6 @@
             <artifactId>compss-resources-schema</artifactId>
             <scope>provided</scope>
         </dependency>
-                
         <!-- Comm Library -->
         <dependency>
             <groupId>es.bsc.comm</groupId>

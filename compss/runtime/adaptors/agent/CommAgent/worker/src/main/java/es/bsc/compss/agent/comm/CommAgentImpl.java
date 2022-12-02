@@ -29,6 +29,7 @@ import es.bsc.compss.agent.comm.messages.types.CommParamCollection;
 import es.bsc.compss.agent.comm.messages.types.CommResource;
 import es.bsc.compss.agent.comm.messages.types.CommTask;
 import es.bsc.compss.agent.types.ApplicationParameter;
+import es.bsc.compss.agent.types.RemoteDataLocation;
 import es.bsc.compss.agent.types.Resource;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.log.Loggers;
@@ -220,6 +221,10 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
         CommAgentConfig config = new CommAgentConfig(cai, port);
         Agent.startInterface(config);
         Agent.start();
+    }
+
+    public es.bsc.compss.types.resources.Resource getNodeFromRemoteDataLocation(RemoteDataLocation remoteDataLocation) {
+        return Agent.getNodeFromRemoteDataLocation(remoteDataLocation);
     }
 
 }

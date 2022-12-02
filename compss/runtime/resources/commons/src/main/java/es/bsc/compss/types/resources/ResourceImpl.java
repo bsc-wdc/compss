@@ -232,7 +232,6 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
     @Override
     public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl,
         List<String> slaveWorkersNodeNames, JobListener listener, List<Integer> predecessors, Integer numSuccessors) {
-
         return this.node.newJob(taskId, taskParams, impl, this, slaveWorkersNodeNames, listener, predecessors,
             numSuccessors);
     }

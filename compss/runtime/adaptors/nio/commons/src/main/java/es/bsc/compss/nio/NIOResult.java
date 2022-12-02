@@ -16,6 +16,8 @@
  */
 package es.bsc.compss.nio;
 
+import es.bsc.compss.types.data.location.ProtocolType;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -29,49 +31,66 @@ import java.util.LinkedList;
  */
 public class NIOResult implements Externalizable {
 
-    private Collection<String> locations;
+    private Collection<NIOUri> uris;
 
 
     /**
      * Creates a new NIOResult instance for externalization.
      */
     public NIOResult() {
-        this.locations = new LinkedList<>();
+        this.uris = new LinkedList<>();
     }
 
     /**
      * Creates a new NIOResult instance.
      * 
-     * @param location location where the result is available
+     * @param location location that will be set as path in the uri where the result is available
      */
     public NIOResult(String location) {
-        this.locations = new LinkedList<>();
+        this();
         if (location != null) {
-            this.locations.add(location);
+            addLocation(location);
         }
     }
 
-    public void addLocation(String location) {
-        this.locations.add(location);
+    /**
+     * Creates a new NIOResult instance.
+     * 
+     * @param uri uri where the result is available
+     */
+    public NIOResult(NIOUri uri) {
+        this();
+        if (uri != null) {
+            this.uris.add(uri);
+        }
     }
 
-    public Collection<String> getLocations() {
-        return locations;
+    public void addUri(NIOUri uri) {
+        this.uris.add(uri);
+    }
+
+    public void addLocation(String location) {
+        NIOUri uri = new NIOUri(null, location, ProtocolType.ANY_URI);
+        this.addUri(uri);
+    }
+
+    public Collection<NIOUri> getUris() {
+        return uris;
     }
 
     @Override
     public void writeExternal(ObjectOutput oo) throws IOException {
-        oo.writeObject(locations);
+        oo.writeObject(uris);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void readExternal(ObjectInput oi) throws IOException, ClassNotFoundException {
-        locations = (Collection<String>) oi.readObject();
+        uris = (Collection<NIOUri>) oi.readObject();
     }
 
     @Override
     public String toString() {
-        return "[LOCATIONS=" + locations + "]";
+        return "[URIS=" + uris + "]";
     }
-
 }

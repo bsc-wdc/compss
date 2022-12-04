@@ -22,6 +22,8 @@ import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.LogicalData;
+import es.bsc.compss.types.data.accessparams.DataParams;
+import es.bsc.compss.types.data.accessparams.DataParams.FileData;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.tracing.TraceEvent;
 
@@ -29,27 +31,24 @@ import java.util.concurrent.Semaphore;
 
 
 /**
- * The FileGetLastVersionRequest is a request for the last version of a file contained in a remote worker.
+ * The DataGetLastVersionRequest is a request for the last version of a file contained in a remote worker.
  */
-public class FileGetLastVersionRequest extends APRequest {
+public class DataGetLastVersionRequest extends APRequest {
 
     private final Semaphore sem;
 
+    private final DataParams data;
     private LogicalData response;
-    private final Application app;
-    private final DataLocation loc;
 
 
     /**
-     * Constructs a new TransferObjectRequest.
+     * Constructs a new DataGetLastVersionRequest.
      *
-     * @param app application accessing the file.
-     * @param loc location of the file
+     * @param data data whose last version is wanted to be obtained
      */
-    public FileGetLastVersionRequest(Application app, DataLocation loc) {
+    public DataGetLastVersionRequest(DataParams data) {
         this.sem = new Semaphore(0);
-        this.app = app;
-        this.loc = loc;
+        this.data = data;
     }
 
     /**
@@ -64,7 +63,7 @@ public class FileGetLastVersionRequest extends APRequest {
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
-        this.response = dip.getFileLastVersion(app, loc);
+        this.response = dip.getDataLastVersion(data);
         sem.release();
     }
 

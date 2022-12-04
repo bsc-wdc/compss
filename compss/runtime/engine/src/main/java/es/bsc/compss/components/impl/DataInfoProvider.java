@@ -24,7 +24,6 @@ import es.bsc.compss.exceptions.ExternalPropertyException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.BindingObject;
-import es.bsc.compss.types.data.CollectionInfo;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
@@ -41,9 +40,6 @@ import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
 import es.bsc.compss.types.data.accessparams.DataParams;
-import es.bsc.compss.types.data.accessparams.DataParams.CollectionData;
-import es.bsc.compss.types.data.accessparams.DataParams.FileData;
-import es.bsc.compss.types.data.accessparams.DataParams.ObjectData;
 import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.PersistentLocation;
@@ -54,7 +50,6 @@ import es.bsc.compss.types.data.operation.FileTransferable;
 import es.bsc.compss.types.data.operation.ObjectTransferable;
 import es.bsc.compss.types.data.operation.OneOpWithSemListener;
 import es.bsc.compss.types.data.operation.ResultListener;
-import es.bsc.compss.types.parameter.CollectiveParameter;
 import es.bsc.compss.types.request.ap.TransferBindingObjectRequest;
 import es.bsc.compss.types.request.ap.TransferObjectRequest;
 import es.bsc.compss.types.tracing.TraceEvent;
@@ -167,15 +162,20 @@ public class DataInfoProvider {
     }
 
     /**
-     * DataAccess interface: registers a new data access.
+     * Obtains the last value produced for a data.
      *
-     * @param access Access Parameters.
-     * @return The registered access Id.
+     * @param internalData local value
+     * @return last data produced for that value.
      */
-    public DataAccessId registerDataAccess(AccessParams access) {
-        // The abstract method comes back to this class and executes the corresponding
-        // registerFileAccess, registerObjectAccess, registerBindingObjectAccess or registerStreamAccess
-        return access.registerAccess(this);
+    public LogicalData getDataLastVersion(DataParams internalData) {
+        Integer dId = internalData.getDataId(this);
+        if (dId != null) {
+            DataInfo fileInfo = this.idToData.get(dId);
+            if (fileInfo != null) {
+                return fileInfo.getCurrentDataVersion().getDataInstanceId().getData();
+            }
+        }
+        return null;
     }
 
     /**
@@ -197,6 +197,37 @@ public class DataInfoProvider {
         }
 
         return null;
+    }
+
+    /**
+     * Obtains the last data produced for an object.
+     * 
+     * @param app application accessing the file
+     * @param value Object value.
+     * @param code Object hashcode.
+     * @return last data produced for that value.
+     */
+    public LogicalData getObjectLastVersion(Application app, Object value, int code) {
+        DataInfo oInfo;
+        Integer aoId = codeToId.get(code);
+        LogicalData lastData = null;
+        if (aoId != null) {
+            oInfo = this.idToData.get(aoId);
+            return oInfo.getCurrentDataVersion().getDataInstanceId().getData();
+        }
+        return lastData;
+    }
+
+    /**
+     * DataAccess interface: registers a new data access.
+     *
+     * @param access Access Parameters.
+     * @return The registered access Id.
+     */
+    public DataAccessId registerDataAccess(AccessParams access) {
+        // The abstract method comes back to this class and executes the corresponding
+        // registerFileAccess, registerObjectAccess, registerBindingObjectAccess or registerStreamAccess
+        return access.registerAccess(this);
     }
 
     /**
@@ -227,25 +258,6 @@ public class DataInfoProvider {
         }
         AccessMode mode = access.getMode();
         return willAccess(mode, dInfo);
-    }
-
-    /**
-     * Obtains the last data produced for an object.
-     * 
-     * @param app application accessing the file
-     * @param value Object value.
-     * @param code Object hashcode.
-     * @return last data produced for that value.
-     */
-    public LogicalData getObjectLastVersion(Application app, Object value, int code) {
-        DataInfo oInfo;
-        Integer aoId = codeToId.get(code);
-        LogicalData lastData = null;
-        if (aoId != null) {
-            oInfo = this.idToData.get(aoId);
-            return oInfo.getCurrentDataVersion().getDataInstanceId().getData();
-        }
-        return lastData;
     }
 
     /**

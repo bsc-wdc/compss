@@ -42,6 +42,8 @@ import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
 import es.bsc.compss.types.data.accessparams.BindingObjectAccessParams;
 import es.bsc.compss.types.data.accessparams.DataParams;
+import es.bsc.compss.types.data.accessparams.DataParams.FileData;
+import es.bsc.compss.types.data.accessparams.DataParams.ObjectData;
 import es.bsc.compss.types.data.accessparams.FileAccessParams;
 import es.bsc.compss.types.data.accessparams.ObjectAccessParams;
 import es.bsc.compss.types.data.location.DataLocation;
@@ -54,17 +56,16 @@ import es.bsc.compss.types.request.ap.BarrierRequest;
 import es.bsc.compss.types.request.ap.CancelApplicationTasksRequest;
 import es.bsc.compss.types.request.ap.CancelTaskGroupRequest;
 import es.bsc.compss.types.request.ap.CloseTaskGroupRequest;
+import es.bsc.compss.types.request.ap.DataGetLastVersionRequest;
 import es.bsc.compss.types.request.ap.DeleteAllApplicationDataRequest;
 import es.bsc.compss.types.request.ap.DeleteBindingObjectRequest;
 import es.bsc.compss.types.request.ap.DeleteFileRequest;
 import es.bsc.compss.types.request.ap.DeregisterObject;
 import es.bsc.compss.types.request.ap.EndOfAppRequest;
-import es.bsc.compss.types.request.ap.FileGetLastVersionRequest;
 import es.bsc.compss.types.request.ap.FinishDataAccessRequest;
 import es.bsc.compss.types.request.ap.GetLastRenamingRequest;
 import es.bsc.compss.types.request.ap.GetResultFilesRequest;
 import es.bsc.compss.types.request.ap.IsObjectHereRequest;
-import es.bsc.compss.types.request.ap.ObjectGetLastVersionRequest;
 import es.bsc.compss.types.request.ap.OpenTaskGroupRequest;
 import es.bsc.compss.types.request.ap.RegisterDataAccessRequest;
 import es.bsc.compss.types.request.ap.RegisterRemoteDataRequest;
@@ -342,7 +343,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
             return null;
         }
         // Ask for the file version
-        FileGetLastVersionRequest fvr = new FileGetLastVersionRequest(app, sourceLocation);
+        DataGetLastVersionRequest fvr = new DataGetLastVersionRequest(new FileData(app, sourceLocation));
         if (!this.requestQueue.offer(fvr)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "data version query");
         }
@@ -550,7 +551,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
      */
     public LogicalData getObjectLastVersion(Application app, Object obj, int hashCode) {
         // Ask for the object
-        ObjectGetLastVersionRequest odr = new ObjectGetLastVersionRequest(app, obj, hashCode);
+        DataGetLastVersionRequest odr = new DataGetLastVersionRequest(new ObjectData(app, hashCode));
         if (!this.requestQueue.offer(odr)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "data version query");
         }

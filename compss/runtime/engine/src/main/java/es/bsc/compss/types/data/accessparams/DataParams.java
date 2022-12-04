@@ -129,7 +129,6 @@ public abstract class DataParams {
         public DataInfo createDataInfo(DataInfoProvider dip) {
             Application app = this.getApp();
             DataInfo oInfo = new ObjectInfo(app, code);
-            Integer aoId = oInfo.getDataId();
             dip.registerObjectDataId(code, oInfo.getDataId());
             return oInfo;
         }

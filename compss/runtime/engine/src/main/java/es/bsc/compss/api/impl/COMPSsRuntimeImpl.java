@@ -581,7 +581,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public void registerCoreElement(String coreElementSignature, String implSignature, String implConstraints,
-        String implType, String implLocal, String implIO, String[] prolog, String[] epilog, String[] container, String... implTypeArgs) {
+        String implType, String implLocal, String implIO, String[] prolog, String[] epilog, String[] container,
+        String... implTypeArgs) {
 
         LOGGER.info("Registering CoreElement " + coreElementSignature);
         if (prolog.length != ExecType.ARRAY_LENGTH) {

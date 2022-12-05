@@ -159,6 +159,11 @@ public abstract class Invoker implements ApplicationRunner {
             }
             out.println("");
 
+            out.print("  * Parameter names:");
+            for (InvocationParam p : invocation.getParams()) {
+                out.print(" " + p.getName());
+            }
+
             out.print("  * Parameter values:");
             for (InvocationParam p : invocation.getParams()) {
                 out.print(" " + p.getValue());

@@ -45,6 +45,7 @@ public class MPIDefinition extends CommonMPIDefinition implements AbstractMethod
 
     private ContainerDescription container;
 
+
     /**
      * Creates a new MPIImplementation for serialization.
      */
@@ -87,11 +88,11 @@ public class MPIDefinition extends CommonMPIDefinition implements AbstractMethod
         this.params = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 6]);
         this.failByEV = Boolean.parseBoolean(implTypeArgs[offset + 7]);
 
-        if (container[0] != null && !container[0].equals(Constants.UNASSIGNED)){
+        if (container[0] != null && !container[0].equals(Constants.UNASSIGNED)) {
             String engineStr = container[0].toUpperCase();
             ContainerDescription.ContainerEngine engine = ContainerDescription.ContainerEngine.valueOf(engineStr);
             this.container = new ContainerDescription(engine, container[1], container[2]);
-        } else{
+        } else {
             this.container = null;
         }
 

@@ -737,7 +737,7 @@ def register_ce(core_element: CE) -> None:
             LOGGER.debug(
                 "\t - Implementation type arguments: %s", " ".join(impl_type_args)
             )
-
+        # import pdb; pdb.set_trace()
         # Call runtime with the appropriate parameters
         COMPSs.register_core_element(
             ce_signature,

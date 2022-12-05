@@ -26,7 +26,7 @@
 #include <cassert>
 #include <cstddef>
 
-bool DEBUG_MODE = false;
+bool DEBUG_MODE = true;
 char* HEADER = "[PY-C EXTENSION]  -  ";
 
 struct module_state {
@@ -921,7 +921,7 @@ static PyObject* register_core_element(PyObject* self, PyObject* args) {
     PyObject* container;
     PyObject* typeArgs;
     if (!PyArg_ParseTuple(args, "ssssssOOOO", &CESignature, &ImplSignature,
-                         &ImplConstraints, &ImplType, &ImplLocal, &ImplIO, &prolog, &epilog, container, &typeArgs)) {
+                         &ImplConstraints, &ImplType, &ImplLocal, &ImplIO, &prolog, &epilog, &container, &typeArgs)) {
         return NULL;
     }
 
@@ -946,7 +946,7 @@ static PyObject* register_core_element(PyObject* self, PyObject* args) {
     cont[0] = _pystring_to_char(PyList_GetItem(container, 0));
     cont[1] = _pystring_to_char(PyList_GetItem(container, 1));
     cont[2] = _pystring_to_char(PyList_GetItem(container, 2));
-    debug("- Container: %s %s\n", container[0], container[1]);
+    debug("- Container: %s %s\n", cont[0], cont[1], cont[2]);
 
     int num_params = PyList_Size(typeArgs);
     debug("- Implementation Type num args: %i\n", num_params);

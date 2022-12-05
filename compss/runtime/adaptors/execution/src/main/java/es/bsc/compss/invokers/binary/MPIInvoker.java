@@ -16,6 +16,8 @@
  */
 package es.bsc.compss.invokers.binary;
 
+import static es.bsc.compss.types.resources.ContainerDescription.ContainerEngine.SINGULARITY;
+
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.exceptions.InvokeExecutionException;
 import es.bsc.compss.exceptions.StreamCloseException;
@@ -24,6 +26,7 @@ import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.invokers.types.PythonParams;
 import es.bsc.compss.invokers.types.StdIOStream;
 import es.bsc.compss.invokers.util.BinaryRunner;
+import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
@@ -37,8 +40,6 @@ import es.bsc.compss.types.resources.ContainerDescription;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
-
-import static es.bsc.compss.types.resources.ContainerDescription.ContainerEngine.SINGULARITY;
 
 
 public class MPIInvoker extends Invoker {
@@ -173,11 +174,26 @@ public class MPIInvoker extends Invoker {
             cmdLength += binaryParams.size();
         }
 
+        // Check container and its options
         ContainerDescription container = this.mpiDef.getContainer();
-        if (container !=null){
-            // engine, exec_command, options, image
-            cmdLength += 4;
+        int numOptions = 0;
+        String[] options = null;
+        if (container != null) {
+            // engine, exec_command, options[], image
+            cmdLength += 3;
+            if (!container.getOptions().isEmpty() && !container.getOptions().equals(Constants.UNASSIGNED)) {
+                options =
+                    BinaryRunner.buildAppParams(this.invocation.getParams(), container.getOptions(), pythonInterpreter);
+                numOptions = options.length;
+            }
+            // -e DOCKER_WORKING_DIR_VOLUME="working_dir" -e DOCKER_WORKING_DIR_MOUNT="/docker_working_dir/"
+            String dockerWorkDirVolume = System.getenv(COMPSsConstants.DOCKER_WORKING_DIR_VOLUME);
+            if (dockerWorkDirVolume != null && !dockerWorkDirVolume.isEmpty()) {
+                numOptions += 4;
+            }
+            cmdLength += numOptions;
         }
+
         String[] cmd = new String[cmdLength];
 
         int pos = 0;
@@ -196,11 +212,22 @@ public class MPIInvoker extends Invoker {
             cmd[pos++] = mpiflagsArray[i];
         }
 
-        if(container != null){
+        if (container != null) {
             // mpirun -H COMPSsWorker01,COMPSsWorker02 -n 2 <engine> <exec_command> <options> <image> binary args
             cmd[pos++] = container.getEngine().name().toLowerCase();
-            cmd[pos++] = container.getEngine().equals(SINGULARITY)? "exec":"run";
-            cmd[pos++] = container.getOptions();
+            cmd[pos++] = container.getEngine().equals(SINGULARITY) ? "exec" : "run";
+            // Check options
+            pos = ContainerInvoker.addContainerOptions(cmd, pos, options);
+            // todo: nm: if the env variable is defined, use that
+            // -e DOCKER_WORKING_DIR_VOLUME="working_dir" -e DOCKER_WORKING_DIR_MOUNT="/docker_working_dir/"
+            String dockerWorkDirVolume = System.getenv(COMPSsConstants.DOCKER_WORKING_DIR_VOLUME);
+            if (dockerWorkDirVolume != null && !dockerWorkDirVolume.isEmpty()) {
+                cmd[pos++] = "-e";
+                cmd[pos++] = COMPSsConstants.DOCKER_WORKING_DIR_VOLUME + "=\"" + dockerWorkDirVolume + "\"";
+                String dockerWorkDirMount = System.getenv(COMPSsConstants.DOCKER_WORKING_DIR_MOUNT);
+                cmd[pos++] = "-e";
+                cmd[pos++] = COMPSsConstants.DOCKER_WORKING_DIR_MOUNT + "=\"" + dockerWorkDirMount + "\"";
+            }
             cmd[pos++] = container.getImage();
         }
 

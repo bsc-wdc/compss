@@ -33,6 +33,7 @@ import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.definition.MpmdMPIDefinition;
+import es.bsc.compss.types.resources.ContainerDescription;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -132,6 +133,18 @@ public class MpmdMPIInvoker extends Invoker {
 
     private Object runInvocation() throws InvokeExecutionException, IOException {
 
+        // update container options for each program before building the command
+        ContainerDescription container = this.definition.getContainer();
+        if (container != null) {
+            String optionsStr = container.getOptions();
+            String[] options = BinaryRunner.buildAppParams(this.invocation.getParams(), optionsStr, null);
+            StringBuilder stringBuilder = new StringBuilder();
+            for (String option : options) {
+                stringBuilder.append(option);
+            }
+            container.setOptions(stringBuilder.toString());
+        }
+
         // Python interpreter for direct access on stream property calls
         String pythonInterpreter = null;
         LanguageParams lp = this.context.getLanguageParams(COMPSsConstants.Lang.PYTHON);
@@ -156,7 +169,8 @@ public class MpmdMPIInvoker extends Invoker {
             }
         }
 
-        String[] cmd = this.definition.generateCMD(this.sandBox.getFolder(), this.hostnames, this.computingUnits);
+        String[] cmd =
+            this.definition.generateCMD(this.sandBox.getFolder(), this.hostnames, this.computingUnits, container);
         // Launch command
         this.br = new BinaryRunner();
 

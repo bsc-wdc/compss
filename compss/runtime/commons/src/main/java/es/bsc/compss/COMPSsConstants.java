@@ -185,6 +185,11 @@ public class COMPSsConstants {
     // LOG 4J
     public static final String LOG4J = "log4j.configurationFile";
 
+    // Docker execution related variable names
+
+    public static final String DOCKER_WORKING_DIR_VOLUME = "DOCKER_WORKING_DIR_VOLUME";
+    public static final String DOCKER_WORKING_DIR_MOUNT = "DOCKER_WORKING_DIR_MOUNT";
+
 
     /**
      * Private constructor to avoid instantiation.

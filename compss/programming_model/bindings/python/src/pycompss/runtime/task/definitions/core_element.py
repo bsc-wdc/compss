@@ -91,7 +91,9 @@ class CE:  # pylint: disable=too-many-instance-attributes
         )
         # engine, image, options
         self.impl_container = (
-            [INTERNAL_LABELS.unassigned] * 3 if impl_container is None else impl_container
+            [INTERNAL_LABELS.unassigned] * 3
+            if impl_container is None
+            else impl_container
         )
 
     ###########

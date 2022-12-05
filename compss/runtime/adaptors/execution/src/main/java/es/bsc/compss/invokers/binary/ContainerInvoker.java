@@ -315,7 +315,14 @@ public class ContainerInvoker extends Invoker {
                 cmd[cmdIndex++] = "-i";
                 cmd[cmdIndex++] = "--rm";
                 cmd[cmdIndex++] = "-v";
-                cmd[cmdIndex++] = workingDirMountPoint + ":" + workingDirMountPoint;
+                // todo: nm: if the env variable is defined, use that
+                String dockerWorkDirVolume = System.getenv(COMPSsConstants.DOCKER_WORKING_DIR_VOLUME);
+                if (dockerWorkDirVolume != null && !dockerWorkDirVolume.isEmpty()) {
+                    String dockerWorkDirMount = System.getenv(COMPSsConstants.DOCKER_WORKING_DIR_MOUNT);
+                    cmd[cmdIndex++] = dockerWorkDirVolume + ":" + dockerWorkDirMount;
+                } else {
+                    cmd[cmdIndex++] = workingDirMountPoint + ":" + workingDirMountPoint;
+                }
                 switch (this.internalExecutionType) {
                     case CET_PYTHON:
                         cmd[cmdIndex++] = "-v";
@@ -332,11 +339,13 @@ public class ContainerInvoker extends Invoker {
                 }
                 cmd[cmdIndex++] = "-w";
                 cmd[cmdIndex++] = workingDir;
+                // nm:
                 cmdIndex = addContainerOptions(cmd, cmdIndex, options);
                 cmd[cmdIndex++] = this.container.getImage();
                 break;
 
             case SINGULARITY:
+                // nm: this part is the same everywhere
                 cmd[cmdIndex++] = "singularity";
                 cmd[cmdIndex++] = "exec";
                 cmd[cmdIndex++] = "--bind";
@@ -445,7 +454,7 @@ public class ContainerInvoker extends Invoker {
             this.context.getThreadErrStream(), completePythonpath, this.failByEV);
     }
 
-    private int addContainerOptions(String[] cmd, int cmdIndex, String[] options) {
+    protected static int addContainerOptions(String[] cmd, int cmdIndex, String[] options) {
         if (options != null && options.length > 0) {
             for (String option : options) {
                 cmd[cmdIndex++] = option;

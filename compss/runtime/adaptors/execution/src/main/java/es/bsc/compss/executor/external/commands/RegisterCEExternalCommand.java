@@ -31,6 +31,8 @@ public class RegisterCEExternalCommand implements ExternalCommand {
     protected String[] prolog;
     protected String[] epilog;
 
+    protected String[] container;
+
 
     public String getCESignature() {
         return this.ceSignature;
@@ -66,6 +68,10 @@ public class RegisterCEExternalCommand implements ExternalCommand {
 
     public String[] getEpilog() {
         return epilog;
+    }
+
+    public String[] getConatainer() {
+        return container;
     }
 
     @Override

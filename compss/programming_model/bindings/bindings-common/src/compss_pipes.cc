@@ -466,7 +466,7 @@ void PIPE_ExecuteTaskNew(long appId, char* signature, char* onFailure, int timeo
     debug_printf ("[BINDING-COMMONS] - @PIPE_ExecuteTaskNew - Task processed.\n");
 }
 
-void PIPE_RegisterCE(char* ceSignature, char* implSignature, char* implConstraints, char* implType, char* implLocal, char* implIO, char** prolog, char** epilog, int numArgs, char** implTypeArgs) {
+void PIPE_RegisterCE(char* ceSignature, char* implSignature, char* implConstraints, char* implType, char* implLocal, char* implIO, char** prolog, char** epilog, char** container, int numArgs, char** implTypeArgs) {
     //debug_printf ("[BINDING-COMMONS] - @PIPE_RegisterCE - ceSignature:     %s\n", ceSignature);
     //debug_printf ("[BINDING-COMMONS] - @PIPE_RegisterCE - implSignature:   %s\n", implSignature);
     //debug_printf ("[BINDING-COMMONS] - @PIPE_RegisterCE - implConstraints: %s\n", implConstraints);

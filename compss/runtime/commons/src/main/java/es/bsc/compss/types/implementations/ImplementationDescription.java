@@ -82,8 +82,8 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
     @SuppressWarnings("unchecked")
     public static final <T extends WorkerResourceDescription, D extends ImplementationDefinition>
         ImplementationDescription<T, D> defineImplementation(String implType, String implSignature,
-            boolean localProcessing, T implConstraints, ExecType prolog, ExecType epilog, String[] container, String... implTypeArgs)
-            throws IllegalArgumentException {
+            boolean localProcessing, T implConstraints, ExecType prolog, ExecType epilog, String[] container,
+            String... implTypeArgs) throws IllegalArgumentException {
 
         ImplementationDescription<T, D> id = null;
 

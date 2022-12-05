@@ -40,8 +40,6 @@ import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
-import static es.bsc.compss.types.resources.ContainerDescription.ContainerEngine.SINGULARITY;
-
 
 public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMethodImplementationDefinition {
 
@@ -131,8 +129,6 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
         } else {
             this.container = null;
         }
-
-
 
         checkArguments();
     }

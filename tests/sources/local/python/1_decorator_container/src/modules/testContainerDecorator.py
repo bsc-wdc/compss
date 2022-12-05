@@ -10,6 +10,7 @@ PyCOMPSs Testbench Tasks
 # For better print formatting
 from __future__ import print_function
 
+from pycompss.api.mpi import mpi
 # PyCOMPSs imports
 from pycompss.api.task import task
 from pycompss.api.binary import binary
@@ -136,6 +137,13 @@ def task_python_return_int_soft():
     return 3
 
 
+@container(engine="docker", image="hello-world", options="-d {{a}}")
+@mpi(binary="echo", runner="mpirun", args="testing container with mpi")
+@task(returns=1)
+def task_container_mpi(a):
+    pass
+
+
 # Tests
 
 class testContainerDecorator(unittest.TestCase):
@@ -143,6 +151,11 @@ class testContainerDecorator(unittest.TestCase):
     def test_software_container(self):
         task_container_basic()
         compss_barrier()
+
+    def test_mpi_container(self):
+        ret_int = task_container_mpi(1)
+        ret_int = compss_wait_on(ret_int)
+        self.assertEquals(ret_int, 0)
 
     def test_software_pycompss(self):
         ret_int = task_python_return_int_soft()

@@ -76,10 +76,13 @@ public class COMPSsRuntimeImplTest {
         String[] epilog = new String[] { "",
             "",
             "" };
+        String[] container = new String[] { "",
+            "",
+            "" };
         String[] implTypeArgs = new String[] { "methodClass",
             "methodName" };
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implLocal, implIO,
-            prolog, epilog, implTypeArgs);
+            prolog, epilog, container, implTypeArgs);
 
         CoreElement ce0 = CoreManager.getCore(0);
         AbstractMethodImplementation mi = (AbstractMethodImplementation) ce0.getImplementations().get(0);
@@ -101,7 +104,7 @@ public class COMPSsRuntimeImplTest {
             "[unassigned]",
             "false" };
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implLocal, implIO,
-            prolog, epilog, implTypeArgs);
+            prolog, epilog, container, implTypeArgs);
 
         mi = (AbstractMethodImplementation) CoreManager.getCore(1).getImplementations().get(0);
         assertEquals(MethodType.MPI, mi.getMethodType());
@@ -121,7 +124,7 @@ public class COMPSsRuntimeImplTest {
             "mpiRunner",
             "false" };
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implLocal, implIO,
-            prolog, epilog, implTypeArgs);
+            prolog, epilog, container, implTypeArgs);
 
         mi = (AbstractMethodImplementation) CoreManager.getCore(1).getImplementations().get(1);
         assertEquals(MethodType.DECAF, mi.getMethodType());
@@ -139,7 +142,7 @@ public class COMPSsRuntimeImplTest {
             "[unassigned]",
             "false" };
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implLocal, implIO,
-            prolog, epilog, implTypeArgs);
+            prolog, epilog, container, implTypeArgs);
 
         mi = (AbstractMethodImplementation) CoreManager.getCore(2).getImplementations().get(0);
         assertEquals(MethodType.BINARY, mi.getMethodType());
@@ -156,7 +159,7 @@ public class COMPSsRuntimeImplTest {
             "ompssWorkingDir",
             "false" };
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implLocal, implIO,
-            prolog, epilog, implTypeArgs);
+            prolog, epilog, container, implTypeArgs);
 
         mi = (AbstractMethodImplementation) CoreManager.getCore(3).getImplementations().get(0);
         assertEquals(MethodType.OMPSS, mi.getMethodType());
@@ -172,7 +175,7 @@ public class COMPSsRuntimeImplTest {
         implTypeArgs = new String[] { "openclKernel",
             "openclWorkingDir" };
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implLocal, implIO,
-            prolog, epilog, implTypeArgs);
+            prolog, epilog, container, implTypeArgs);
 
         mi = (AbstractMethodImplementation) CoreManager.getCore(4).getImplementations().get(0);
         assertEquals(MethodType.OPENCL, mi.getMethodType());

@@ -76,17 +76,17 @@ public class ResourceSchedulerTest {
         cedA.setCeSignature("methodA");
         ImplementationDescription<?, ?> implDef = null;
         implDef = ImplementationDescription.defineImplementation(METHOD, "ClassA.methodA", false,
-            new MethodResourceDescription(), null, null, "ClassA", "methodA");
+            new MethodResourceDescription(), null, null, new String[3],"ClassA", "methodA");
         cedA.addImplementation(implDef);
         implDef = ImplementationDescription.defineImplementation(METHOD, "ClassB.methodA", false,
-            new MethodResourceDescription(), null, null, "ClassB", "methodA");
+            new MethodResourceDescription(), null, null, new String[3],"ClassB", "methodA");
         cedA.addImplementation(implDef);
         CoreManager.registerNewCoreElement(cedA);
 
         CoreElementDefinition cedB = new CoreElementDefinition();
         cedB.setCeSignature("methodB");
         implDef = ImplementationDescription.defineImplementation(METHOD, "ClassA.methodB", false,
-            new MethodResourceDescription(), null, null, "ClassA", "methodB");
+            new MethodResourceDescription(), null, null, new String[3], "ClassA", "methodB");
         cedB.addImplementation(implDef);
         CoreManager.registerNewCoreElement(cedB);
     }

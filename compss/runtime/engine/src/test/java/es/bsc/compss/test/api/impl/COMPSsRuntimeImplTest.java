@@ -191,7 +191,7 @@ public class COMPSsRuntimeImplTest {
         implTypeArgs = new String[] { "anotherClass",
             "anotherMethodName" };
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implLocal, implIO,
-            prolog, epilog, implTypeArgs);
+            prolog, epilog, container, implTypeArgs);
 
         mi = (AbstractMethodImplementation) CoreManager.getCore(0).getImplementations().get(1);
         assertEquals(MethodType.METHOD, mi.getMethodType());

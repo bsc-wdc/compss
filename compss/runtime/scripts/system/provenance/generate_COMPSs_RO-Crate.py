@@ -483,6 +483,7 @@ def add_file_to_crate(
 
     if file_name != main_entity:
         # print(f"PROVENANCE DEBUG | Adding auxiliary source file: {file_name}")
+        file_properties["@type"] = ["File", "SoftwareSourceCode"]
         CRATE.add_file(
             source=file_name, dest_path=path_in_crate, properties=file_properties
         )
@@ -606,10 +607,10 @@ def main():
   description: Detailed description of your COMPSs application
   license: Apache-2.0  # Provide better a URL, but these strings are accepted:
             # https://about.workflowhub.eu/Workflow-RO-Crate/#supported-licenses
-  sources_dir: [path_to/dir_1, path_to/dir_2]  # Optional: List of directories containing application source files. 
+  sources_dir: [path_to/dir_1, path_to/dir_2]  # Optional: List of directories containing the application source files. 
             # Relative or absolute paths can be used
   sources_main_file: my_main_file.py  # Optional  Name of the main file of the application, located in one of the 
-            # sources_dir. Relative paths from a sources_dir or absolute paths can be used
+            # sources_dir. Relative paths from a sources_dir entry, or absolute paths can be used
   files: [main_file.py, aux_file_1.py, aux_file_2.py] # List of application files
             # Relative or absolute paths can be used
 Authors:
@@ -789,6 +790,67 @@ Authors:
         f"PROVENANCE | RO-CRATE adding output files' references TIME (add_file_not_in_crate): "
         f"{time.time() - part_time} s"
     )
+
+    # Compliance with WorkflowRun Level 2 profile
+    import socket
+    host_name = os.getenv("BSC_MACHINE")  # mn4, nord3, ...
+    if host_name is None:
+        host_name = os.getenv("HOSTNAME")
+        if host_name is None:
+            host_name = socket.gethostname()
+    print(f"Hostname: {host_name}")
+    job_id = os.getenv("SLURM_JOBID")
+    print(f"SLURM_ID: {job_id}")
+
+    main_entity_pathobj = Path(main_entity)
+
+    if job_id is None:
+        name_property = "COMPSs " + main_entity_pathobj.name + " execution at " + host_name
+        userportal_url = None
+        create_action_id = "#COMPSs_WorkflowRun_Level2_" + host_name
+    else:
+        name_property = "COMPSs " + main_entity_pathobj.name + " execution at " + host_name + " with JOB_ID " + job_id
+        userportal_url = "https://userportal.bsc.es/job/" + job_id
+        create_action_id =  "#COMPSs_WorkflowRun_Level2_" + host_name + "_SLURM_JOB_ID_" + job_id
+
+    # Find mainEntity but with resolved file_path
+    # resolved_mainEntity = resolved_file
+    # for f in added_files:
+    #     f_path = Path(f)
+    #     if f_path.name == main_entity:
+    #         resolved_mainEntity = f
+    #
+
+    resolved_mainEntity = main_entity
+    for e in CRATE.get_entities():
+        if "ComputationalWorkflow" in e.type:
+            resolved_mainEntity = e.id
+
+    create_action_properties = {
+        "@type": "CreateAction",
+        "instrument": {"@id": resolved_mainEntity},  # Resolved path of the main file
+        "actionStatus": {"@id": "http://schema.org/CompletedActionStatus"},
+        "agent": author_list,  # Add list of authors, not just 1
+        "endTime": iso_now(),  # Get current time
+        "name": name_property
+    }
+
+    create_action = CRATE.add(ContextEntity(CRATE, create_action_id, create_action_properties))  # id can be something fancy for MN4, otherwise, whatever
+    create_action.properties()
+    if userportal_url is not None:
+        create_action.append_to("subjectOf", userportal_url)
+    # "subjectOf": {"@id": userportal_url}
+    for item in ins:
+        create_action.append_to("object", {"@id": item})
+    for item in outs:
+        create_action.append_to("result", {"@id": item})
+
+    # "object": [{"@id":}],  # List of inputs
+    # "result": [{"@id":}]  # List of outputs
+
+    # Debug
+    # for e in CRATE.get_entities():
+    #    print(e.id, e.type)
 
     # Dump to file
     part_time = time.time()

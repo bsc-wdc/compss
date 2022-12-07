@@ -298,6 +298,6 @@ class CE:  # pylint: disable=too-many-instance-attributes
         _repr += f"\t - Impl. io         : {str(self.impl_io)}\n"
         _repr += f"\t - Impl. prolog     : {str(self.impl_prolog)}\n"
         _repr += f"\t - Impl. epilog     : {str(self.impl_epilog)}\n"
-        _repr += f"\t - Impl. container     : {str(self.impl_container)}\n"
+        _repr += f"\t - Impl. container  : {str(self.impl_container)}\n"
         _repr += f"\t - Impl. type args  : {str(self.impl_type_args)}\n"
         return _repr

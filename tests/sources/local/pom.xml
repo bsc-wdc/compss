@@ -207,6 +207,7 @@
     <!-- SUB-MODULES -->
     <modules>
         <module>agents</module>
+        <module>agents_transfers</module>
         <module>c</module>
         <module>cloud</module>
         <module>fault_tolerance</module>

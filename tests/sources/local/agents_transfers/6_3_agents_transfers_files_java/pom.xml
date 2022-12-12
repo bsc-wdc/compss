@@ -4,11 +4,11 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<!-- GENERAL INFORMATION -->
-	<artifactId>6_1_agents_transfers_objects_java</artifactId>
+	<artifactId>6_3_agents_transfers_files_java</artifactId>
 	<packaging>jar</packaging>
 	<parent>
 		<groupId>es.bsc.compss.tests</groupId>
-		<artifactId>compss-tests-agents</artifactId>
+		<artifactId>compss-tests-agents-transfers</artifactId>
 		<version>3.1.rc2212</version>
 		<relativePath>..</relativePath>
 	</parent>

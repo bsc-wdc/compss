@@ -137,8 +137,8 @@ def task_python_return_int_soft():
     return 3
 
 
-@container(engine="docker", image="hello-world", options="-d {{a}}")
-@mpi(binary="echo", runner="mpirun", args="testing container with mpi")
+@container(engine="docker", image="ubuntu")
+@mpi(binary="echo", runner="mpirun", args="testing+container+with+mpi")
 @task(returns=1)
 def task_container_mpi(a):
     pass

@@ -152,29 +152,29 @@ public class FileTest {
         String pathA = "matA";
         String pathC = "matC";
 
-        create_mat(pathA, 0);
-        in_return(pathA, pathC);
-        print_mat(pathC, "main result in_return");
+        // create_mat(pathA, 0);
+        // in_return(pathA, pathC);
+        // print_mat(pathC, "main result in_return");
 
-        create_mat(pathA, 10);
-        in_return_w_print(pathA, pathC);
-        print_mat(pathC, "main result in_return_w_print");
+        // create_mat(pathA, 10);
+        // in_return_w_print(pathA, pathC);
+        // print_mat(pathC, "main result in_return_w_print");
 
         create_mat(pathC, 20);
 
         inout_w_print(pathC);
         print_mat(pathC, "main result inout_w_print");
 
-        inout(pathC);
-        print_mat(pathC, "main result inout");
+        // inout(pathC);
+        // print_mat(pathC, "main result inout");
 
-        generation_return(pathC);
-        consumption(pathC, "consumption_return");
+        // generation_return(pathC);
+        // consumption(pathC, "consumption_return");
 
-        generation_inout(pathC);
-        consumption(pathC, "consumption_inout");
+        // generation_inout(pathC);
+        // consumption(pathC, "consumption_inout");
 
-        print_mat(pathC, "end in main");
+        // print_mat(pathC, "end in main");
 
     }
 

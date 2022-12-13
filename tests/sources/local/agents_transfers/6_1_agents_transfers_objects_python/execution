@@ -41,7 +41,7 @@ touch "${error_log}"
 
 #Agent execution
 agent1_log_dir="${log_dir}/COMPSsWorker01/"
-mkdir -p "${agent1_log_dir}" 
+mkdir -p "${agent1_log_dir}"
 compss_agent_start_service \
   --pythonpath="${base_app_dir}/src" \
   --log_dir="${log_dir}" \
@@ -54,9 +54,9 @@ compss_agent_start_service \
   --resources="${base_app_dir}/resources.xml" \
   --lang="PYTHON" \
   --method_name="main_agents" \
-  "Single_object"
+  "single_object"
 
-python3 ${base_app_dir}/src/Single_object.py > ${COMPSs_log_folder}/results_sequential_execution.out
+python3 ${base_app_dir}/src/single_object.py > ${COMPSs_log_folder}/results_sequential_execution.out
 if [ $? != 0 ]; then
   echo -e '\033[0;31m'"[ ERROR ] Couldn't execute sequential version of the test"
   exit 1
@@ -82,5 +82,3 @@ fi
 
 # Copy LOG files
 cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
-
-

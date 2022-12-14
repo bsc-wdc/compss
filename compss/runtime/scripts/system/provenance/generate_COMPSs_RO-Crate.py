@@ -791,27 +791,26 @@ Authors:
         f"{time.time() - part_time} s"
     )
 
-    # Compliance with WorkflowRun Level 2 profile
+    # Compliance with RO-Crate WorkflowRun Level 2 profile, aka. Workflow Run Crate
     import socket
-    host_name = os.getenv("BSC_MACHINE")  # mn4, nord3, ...
+    host_name = os.getenv("SLURM_CLUSTER_NAME")  # marenostrum4, nord3, ... BSC_MACHINE would also work
     if host_name is None:
         host_name = os.getenv("HOSTNAME")
         if host_name is None:
             host_name = socket.gethostname()
     print(f"Hostname: {host_name}")
-    job_id = os.getenv("SLURM_JOBID")
-    print(f"SLURM_ID: {job_id}")
+    job_id = os.getenv("SLURM_JOB_ID")
 
     main_entity_pathobj = Path(main_entity)
 
     if job_id is None:
         name_property = "COMPSs " + main_entity_pathobj.name + " execution at " + host_name
         userportal_url = None
-        create_action_id = "#COMPSs_WorkflowRun_Level2_" + host_name
+        create_action_id = "#COMPSs_Workflow_Run_Crate_" + host_name
     else:
         name_property = "COMPSs " + main_entity_pathobj.name + " execution at " + host_name + " with JOB_ID " + job_id
-        userportal_url = "https://userportal.bsc.es/job/" + job_id
-        create_action_id =  "#COMPSs_WorkflowRun_Level2_" + host_name + "_SLURM_JOB_ID_" + job_id
+        userportal_url = "https://userportal.bsc.es/"  # job_id cannot be added, does not match the one in userportal
+        create_action_id =  "#COMPSs_Workflow_Run_Crate_" + host_name + "_SLURM_JOB_ID_" + job_id
 
     # Find mainEntity but with resolved file_path
     # resolved_mainEntity = resolved_file
@@ -837,16 +836,17 @@ Authors:
 
     create_action = CRATE.add(ContextEntity(CRATE, create_action_id, create_action_properties))  # id can be something fancy for MN4, otherwise, whatever
     create_action.properties()
+
+    # "subjectOf": {"@id": userportal_url}
     if userportal_url is not None:
         create_action.append_to("subjectOf", userportal_url)
-    # "subjectOf": {"@id": userportal_url}
-    for item in ins:
-        create_action.append_to("object", {"@id": item})
-    for item in outs:
-        create_action.append_to("result", {"@id": item})
 
     # "object": [{"@id":}],  # List of inputs
     # "result": [{"@id":}]  # List of outputs
+    for item in ins:
+        create_action.append_to("object", {"@id": fix_dir_url(item)})
+    for item in outs:
+        create_action.append_to("result", {"@id": fix_dir_url(item)})
 
     # Debug
     # for e in CRATE.get_entities():

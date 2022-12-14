@@ -1,0 +1,76 @@
+#!/bin/bash -e
+
+  # Obtain parameters
+  output_file=$1
+  error_file=$2
+  target_log_folder=$3
+
+  # Log files
+  runtime_log="${target_log_folder}/runtime.log"
+  resources_log="${target_log_folder}/resources.log"
+  jobs_logs="${target_log_folder}/jobs"
+  echo $jobs_logs
+
+  #----------------------------------------------------------------------------------
+  # Check output standard out status
+  # Check that ErrorManager has not raised any ERROR or FATAL message
+  if [ -f "${error_file}" ]; then
+    if grep -E "\\[ERRMGR\\].*(ERROR|FATAL|Shutting down COMPSs)" "${error_file}"; then
+      echo "ERROR: ErrorManager has raised a fatal error" | tee -a "${output_file}"
+      exit 1
+    fi
+  else
+    # Empty error file, no exceptions could have been raised
+    :
+  fi
+  # Check that the Runtime has not registered any fatal error
+  if [ -f "${runtime_log}" ]; then
+    if grep -E "ErrorManager\\].*\\[ERRMGR\\].*Error detected. Shutting down COMPSs" "${runtime_log}"; then
+      echo "ERROR: ErrorManager has registered a fatal error in the runtime.log" | tee -a "${output_file}"
+      exit 1
+    fi
+  else
+    echo "[ERROR] runtime.log not found" | tee -a "${output_file}"
+    exit 1
+  fi
+
+  #----------------------------------------------------------------------------------
+  # Grep for unit test errors (ERROR or FAIL)
+  errors=$(cat "${output_file}" "${error_file}" | grep "ERROR" | cat)
+  fails=$(cat "${output_file}" "${error_file}" | grep "FAIL" | cat)
+  if [ "${errors}" != "" ] || [ "${fails}" != "" ]; then
+      echo "ERROR: UNIT TEST RAISED AN ERROR." | tee -a "${output_file}"
+      exit 1
+  fi
+
+  #----------------------------------------------------------------------------------
+
+  # testParams
+  monday_file=$(grep -r -l "Parameter values: next+monday next+friday" "$jobs_logs")
+  mondayDate1=$(LANG=en_US date -d "next monday")
+  mondayDate2=$(date -d "next monday")
+  monday=$(grep -E "$mondayDate1|$mondayDate2" "$monday_file")
+  if [ "$monday" = "" ]; then
+    exit 1
+  else
+    appearances=$(grep -c "$mondayDate2" "$monday_file")
+    if [ ! "$appearances" -eq "2" ]; then
+      exit 1
+    fi
+  fi
+
+  # testSlurm
+  saturday_file=$(grep -r -l "Parameter values: next+wednesday next+saturday" "$jobs_logs")
+  saturdayDate1=$(LANG=en_US date -d "next saturday")
+  saturdayDate2=$(date -d "next saturday")
+  saturday=$(grep -E "$saturdayDate1|$saturdayDate2" "$saturday_file")
+  if [ "$saturday" = "" ]; then
+    exit 1
+  else
+    appearances=$(grep -c "$saturdayDate2" "$saturday_file")
+    if [ ! "$appearances" -eq "2" ]; then
+      exit 1
+    fi
+  fi
+
+exit 0

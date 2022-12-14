@@ -908,6 +908,11 @@ public class Executor implements Runnable, InvocationRunner {
                         LOGGER.debug("Setting Original Name to " + inSandboxPath);
                         param.setOriginalName(inSandboxPath);
                         param.setValue(inSandboxPath);
+                    } else {
+                        // IN / INOUT file is originally located in the working dir, setting renamed name to
+                        // original name to avoid the deletion at the end of task execution
+                        param.setRenamedName(param.getOriginalName());
+                        param.setValue(param.getOriginalName());
                     }
                 }
             }

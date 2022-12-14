@@ -115,7 +115,28 @@ def myWd(wd, result):
     pass
 
 
+@mpi(runner="mpirun", binary="touch", args="{{fayl}}", working_dir="/tmp")
+@task(returns=1, fayl=FILE_OUT)
+def create_file_in_wd(fayl):
+    pass
+
+
+@mpi(runner="mpirun", binary="touch", args="holalaa", working_dir="/tmp")
+@task(returns=1, fayl=FILE_IN)
+def file_in_wd(fayl):
+    pass
+
+
 class testMpiDecorator(unittest.TestCase):
+
+    def testFileInWorkingDir(self):
+        new_file = "/tmp/hola.txt"
+        res = compss_wait_on(create_file_in_wd(new_file))
+        self.assertEqual(res, 0, "Failed to create a new file in working dir")
+        ret = compss_wait_on(file_in_wd(new_file))
+        compss_barrier()
+        self.assertTrue(os.path.isfile(new_file), "FILE_IN from working dir "
+                                                  "has been removed.")
 
     def testFunctionalUsage(self):
         myDate("-d", "next friday")

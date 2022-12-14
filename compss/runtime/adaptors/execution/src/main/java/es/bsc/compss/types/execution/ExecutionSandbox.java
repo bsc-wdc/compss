@@ -99,8 +99,9 @@ public class ExecutionSandbox {
                 if (Files.isSymbolicLink(internalP)) {
                     internalPath = manageOverlapInSymlink(dataId, internalName, internalP, externalFile);
                 } else {
-                    LOGGER.warn("WARNING: Strange case for param " + dataId
-                        + " where renamed and in sandbox already exists and it is not linked with a Symlink");
+                    // IN / INOUT File is originally located in the working dir
+                    LOGGER.info("IN or INOUT file is originally located in the working dir: " + internalFile.getName());
+                    return null;
                 }
             } else {
                 Path externalP = externalFile.toPath();

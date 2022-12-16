@@ -317,17 +317,15 @@ public class TaskAnalyser implements GraphHandler {
             Task task = (Task) aTask;
             boolean isFree = task.isFree();
             TaskState taskState = task.getStatus();
-            OnFailure onFailure = task.getOnFailure();
             LOGGER.info("Notification received for task " + taskId + " with end status " + taskState);
             // Check status
             if (!isFree) {
                 LOGGER.debug("Task " + taskId + " is not registered as free. Waiting for other executions to end");
                 return;
             }
-            TaskMonitor registeredMonitor = task.getTaskMonitor();
             switch (taskState) {
                 case FAILED:
-                    registeredMonitor.onFailure();
+                    OnFailure onFailure = task.getOnFailure();
                     if (onFailure == OnFailure.RETRY || onFailure == OnFailure.FAIL) {
                         ErrorManager.error(TASK_FAILED + task);
                         return;
@@ -338,18 +336,11 @@ public class TaskAnalyser implements GraphHandler {
                     }
                     break;
                 case CANCELED:
-                    registeredMonitor.onCancellation();
-
                     // Show warning
                     ErrorManager.warn(TASK_CANCELED + task);
                     break;
                 default:
-                    registeredMonitor.onCompletion();
-            }
-
-            // Free barrier dependencies
-            if (DEBUG) {
-                LOGGER.debug("Freeing barriers for task " + taskId);
+                    // Do nothing
             }
 
             // Mark parameter accesses
@@ -367,6 +358,11 @@ public class TaskAnalyser implements GraphHandler {
             for (Parameter param : task.getUnusedIntermediateParameters()) {
                 updateParameterAccess(task, param);
                 updateLastWritters(task, param);
+            }
+
+            // Free barrier dependencies
+            if (DEBUG) {
+                LOGGER.debug("Freeing barriers for task " + taskId);
             }
 
             // Free dependencies
@@ -388,32 +384,39 @@ public class TaskAnalyser implements GraphHandler {
             }
 
             Application app = task.getApplication();
-            if (app.isEnding()) {
-                checkResultFileTransfer(task);
-            }
-
             // Release task groups of the task
             app.endTask(task);
 
+            TaskMonitor registeredMonitor = task.getTaskMonitor();
+            switch (taskState) {
+                case FAILED:
+                    registeredMonitor.onFailure();
+                    break;
+                case CANCELED:
+                    registeredMonitor.onCancellation();
+                    break;
+                default:
+                    registeredMonitor.onCompletion();
+            }
+
             // Releases commutative groups dependent and releases all the waiting tasks
             releaseCommutativeGroups(task);
-        }
-        // Release data dependent tasks
-        if (DEBUG) {
-            LOGGER.debug("Releasing data dependant tasks for task " + taskId);
-        }
-        aTask.releaseDataDependents();
 
-        // If we are not retrieving the checkpoint
-        if (!checkpointing) {
-            if (aTask instanceof Task) {
-                Task task = (Task) aTask;
+            // If we are not retrieving the checkpoint
+            if (!checkpointing) {
                 if (DEBUG) {
                     LOGGER.debug("Checkpoint saving task " + taskId);
                 }
                 cp.endTask(task);
             }
         }
+
+        // Release data dependent tasks
+        if (DEBUG) {
+            LOGGER.debug("Releasing data dependant tasks for task " + taskId);
+        }
+        aTask.releaseDataDependents();
+
 
         if (DEBUG) {
             long time = System.currentTimeMillis() - start;

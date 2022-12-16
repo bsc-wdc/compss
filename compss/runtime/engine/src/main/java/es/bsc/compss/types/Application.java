@@ -64,8 +64,6 @@ public class Application {
      */
     // Task count
     private int totalTaskCount;
-    // Application has already reached its end
-    private boolean ending = false;
 
     /*
      * Application's task groups
@@ -219,7 +217,6 @@ public class Application {
         this.parallelismSource = parallelismSource;
         this.runner = runner;
         this.totalTaskCount = 0;
-        this.ending = false;
         this.currentTaskGroups = new Stack<>();
         this.taskGroups = new TreeMap<>();
         this.stackTaskGroup("App" + appId);
@@ -391,17 +388,7 @@ public class Application {
      * @param barrier barrier object to indicate that all task have finished.
      */
     public final void endReached(Barrier barrier) {
-        this.ending = true;
         reachesBarrier(barrier);
-    }
-
-    /**
-     * Returns @literal{true} if the application has reached its end and won't generate more tasks.
-     *
-     * @return @literal{true} if the application has reached its end and won't generate more tasks
-     */
-    public final boolean isEnding() {
-        return this.ending;
     }
 
     /*

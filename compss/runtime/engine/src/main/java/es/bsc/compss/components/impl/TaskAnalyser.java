@@ -417,7 +417,6 @@ public class TaskAnalyser implements GraphHandler {
         }
         aTask.releaseDataDependents();
 
-
         if (DEBUG) {
             long time = System.currentTimeMillis() - start;
             LOGGER.debug("Task " + taskId + " end message processed in " + time + " ms.");

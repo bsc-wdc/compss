@@ -23,20 +23,23 @@ import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.tracing.TraceEvent;
+import java.util.concurrent.Semaphore;
 
 
 public class DeleteAllApplicationDataRequest extends APRequest {
 
     private final Application app;
+    private final Semaphore sem;
 
 
     /**
-     * Contructs a new Request to remove all the data bound to an application.
+     * Constructs a new Request to remove all the data bound to an application.
      *
      * @param app application whose values are to be removed
      */
     public DeleteAllApplicationDataRequest(Application app) {
         this.app = app;
+        this.sem = new Semaphore(0);
     }
 
     @Override
@@ -48,6 +51,14 @@ public class DeleteAllApplicationDataRequest extends APRequest {
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td)
         throws ShutdownException {
         dip.removeAllApplicationData(app);
+        this.sem.release();
+    }
+
+    /**
+     * Waits until the operation has been processed.
+     */
+    public void waitForCompletion() {
+        this.sem.acquireUninterruptibly();
     }
 
 }

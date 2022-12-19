@@ -323,10 +323,12 @@ public class TaskAnalyser implements GraphHandler {
                 LOGGER.debug("Task " + taskId + " is not registered as free. Waiting for other executions to end");
                 return;
             }
+
             switch (taskState) {
                 case FAILED:
                     OnFailure onFailure = task.getOnFailure();
                     if (onFailure == OnFailure.RETRY || onFailure == OnFailure.FAIL) {
+                        // Raise error
                         ErrorManager.error(TASK_FAILED + task);
                         return;
                     }

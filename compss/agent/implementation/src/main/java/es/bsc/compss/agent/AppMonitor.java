@@ -105,49 +105,110 @@ public abstract class AppMonitor implements TaskMonitor {
     }
 
     @Override
-    public void onCreation() {
+    public final void onCreation() {
+        specificOnCreation();
     }
 
-    @Override
-    public void onAccessesProcessed() {
-    }
+    protected abstract void specificOnCreation();
 
     @Override
-    public void onSchedule() {
+    public final void onAccessesProcessed() {
+        specificOnAccessesProcessed();
     }
 
-    @Override
-    public void onSubmission() {
-    }
+    protected abstract void specificOnAccessesProcessed();
 
     @Override
-    public void onDataReception() {
+    public final void onSchedule() {
+        specificOnSchedule();
     }
 
-    @Override
-    public void onAbortedExecution() {
-    }
+    protected abstract void specificOnSchedule();
 
     @Override
-    public void onErrorExecution() {
+    public final void onSubmission() {
+        specificOnSubmission();
     }
 
-    @Override
-    public void onFailedExecution() {
-    }
+    protected abstract void specificOnSubmission();
 
     @Override
-    public void onSuccesfulExecution() {
+    public final void onDataReception() {
+        specificOnDataReception();
     }
 
-    @Override
-    public void onCancellation() {
-    }
+    protected abstract void specificOnDataReception();
 
     @Override
-    public void onException(COMPSsException e) {
+    public final void onExecutionStart() {
+        specificOnExecutionStart();
+    }
+
+    protected abstract void specificOnExecutionStart();
+
+    @Override
+    public final void onExecutionStartAt(long t) {
+        specificOnExecutionStartAt(t);
+    }
+
+    protected abstract void specificOnExecutionStartAt(long t);
+
+    @Override
+    public final void onExecutionEnd() {
+        specificOnExecutionEnd();
+    }
+
+    protected abstract void specificOnExecutionEnd();
+
+    @Override
+    public final void onExecutionEndAt(long t) {
+        specificOnExecutionEndAt(t);
+    }
+
+    protected abstract void specificOnExecutionEndAt(long t);
+
+    @Override
+    public final void onAbortedExecution() {
+        specificOnAbortedExecution();
+    }
+
+    protected abstract void specificOnAbortedExecution();
+
+    @Override
+    public final void onErrorExecution() {
+        specificOnErrorExecution();
+    }
+
+    protected abstract void specificOnErrorExecution();
+
+    @Override
+    public final void onFailedExecution() {
+        specificOnFailedExecution();
+    }
+
+    protected abstract void specificOnFailedExecution();
+
+    @Override
+    public final void onSuccesfulExecution() {
+        specificOnSuccessfulExecution();
+    }
+
+    protected abstract void specificOnSuccessfulExecution();
+
+    @Override
+    public final void onCancellation() {
+        specificOnCancellation();
+    }
+
+    protected abstract void specificOnCancellation();
+
+    @Override
+    public final void onException(COMPSsException e) {
         this.exception = e;
+        specificOnException(e);
     }
+
+    protected abstract void specificOnException(COMPSsException e);
 
     public TaskResult[] getResults() {
         return this.taskResults;
@@ -158,14 +219,32 @@ public abstract class AppMonitor implements TaskMonitor {
     }
 
     @Override
-    public void onCompletion() {
-        Agent.finishedApplication(appId);
+    public final void onCompletion() {
+        new Thread() {
+
+            @Override
+            public void run() {
+                Agent.finishedApplication(appId);
+                specificOnCompletion();
+            }
+        }.start();
     }
+
+    protected abstract void specificOnCompletion();
 
     @Override
     public void onFailure() {
-        Agent.finishedApplication(appId);
+        new Thread() {
+
+            @Override
+            public void run() {
+                Agent.finishedApplication(appId);
+                specificOnFailure();
+            }
+        }.start();
     }
+
+    protected abstract void specificOnFailure();
 
     public COMPSsException getException() {
         return exception;

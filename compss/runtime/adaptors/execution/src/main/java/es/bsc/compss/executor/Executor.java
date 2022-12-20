@@ -85,7 +85,6 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Collection;
 import java.util.LinkedList;
-import java.util.Map;
 import java.util.concurrent.Semaphore;
 
 import org.apache.commons.lang.exception.ExceptionUtils;

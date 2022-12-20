@@ -80,89 +80,78 @@ public class AppTaskMonitor extends AppMonitor implements RESTAgentRequestHandle
     }
 
     @Override
-    public void onCreation() {
-        super.onCreation();
+    public void specificOnCreation() {
         profile.setTaskCreated(System.currentTimeMillis());
     }
 
     @Override
-    public void onAccessesProcessed() {
-        super.onAccessesProcessed();
+    public void specificOnAccessesProcessed() {
         profile.setTaskAnalyzed(System.currentTimeMillis());
     }
 
     @Override
-    public void onSchedule() {
-        super.onSchedule();
+    public void specificOnSchedule() {
         profile.setTaskScheduled(System.currentTimeMillis());
     }
 
     @Override
-    public void onSubmission() {
-        super.onSubmission();
+    public void specificOnSubmission() {
         profile.setTaskSubmitted(System.currentTimeMillis());
     }
 
     @Override
-    public void onDataReception() {
-        super.onDataReception();
+    public void specificOnDataReception() {
     }
 
     @Override
-    public void onExecutionStart() {
+    public void specificOnExecutionStart() {
         profile.setExecutionStart(System.currentTimeMillis());
     }
 
     @Override
-    public void onExecutionStartAt(long ts) {
+    public void specificOnExecutionStartAt(long ts) {
         profile.setExecutionStart(ts);
     }
 
     @Override
-    public void onExecutionEnd() {
+    public void specificOnExecutionEnd() {
         profile.setExecutionEnd(System.currentTimeMillis());
     }
 
     @Override
-    public void onExecutionEndAt(long ts) {
+    public void specificOnExecutionEndAt(long ts) {
         profile.setExecutionEnd(ts);
     }
 
     @Override
-    public void onAbortedExecution() {
-        super.onAbortedExecution();
+    public void specificOnAbortedExecution() {
         profile.setEndNotification(System.currentTimeMillis());
     }
 
     @Override
-    public void onErrorExecution() {
-        super.onAbortedExecution();
+    public void specificOnErrorExecution() {
         profile.setEndNotification(System.currentTimeMillis());
     }
 
     @Override
-    public void onFailedExecution() {
-        super.onFailedExecution();
+    public void specificOnFailedExecution() {
         profile.setEndNotification(System.currentTimeMillis());
         this.successful = false;
     }
 
     @Override
-    public void onException(COMPSsException e) {
-        super.onException(e);
+    public void specificOnException(COMPSsException e) {
         profile.setEndNotification(System.currentTimeMillis());
     }
 
     @Override
-    public void onSuccesfulExecution() {
-        super.onSuccesfulExecution();
+    public void specificOnSuccessfulExecution() {
         profile.setEndNotification(System.currentTimeMillis());
         this.successful = true;
     }
 
     @Override
-    public void onCancellation() {
-        super.onCancellation();
+    public void specificOnCancellation() {
         profile.setTaskEnd(System.currentTimeMillis());
         if (this.requestListener != null) {
             this.requestListener.requestCompleted(this);
@@ -171,8 +160,7 @@ public class AppTaskMonitor extends AppMonitor implements RESTAgentRequestHandle
     }
 
     @Override
-    public void onCompletion() {
-        super.onCompletion();
+    public void specificOnCompletion() {
         profile.setTaskEnd(System.currentTimeMillis());
         if (this.requestListener != null) {
             this.requestListener.requestCompleted(this);
@@ -181,8 +169,7 @@ public class AppTaskMonitor extends AppMonitor implements RESTAgentRequestHandle
     }
 
     @Override
-    public void onFailure() {
-        super.onFailure();
+    public void specificOnFailure() {
         profile.setTaskEnd(System.currentTimeMillis());
         if (this.requestListener != null) {
             this.requestListener.requestCompleted(this);

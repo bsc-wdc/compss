@@ -29,6 +29,7 @@ import es.bsc.compss.nio.NIOResultCollection;
 import es.bsc.compss.nio.NIOTaskResult;
 import es.bsc.compss.nio.commands.CommandDataReceived;
 import es.bsc.compss.nio.commands.CommandNIOTaskDone;
+import es.bsc.compss.worker.COMPSsException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -64,8 +65,23 @@ public class TaskMonitor extends AppMonitor {
     }
 
     @Override
-    public void onDataReception() {
-        super.onDataReception();
+    protected void specificOnCreation() {
+    }
+
+    @Override
+    protected void specificOnAccessesProcessed() {
+    }
+
+    @Override
+    protected void specificOnSchedule() {
+    }
+
+    @Override
+    protected void specificOnSubmission() {
+    }
+
+    @Override
+    protected void specificOnDataReception() {
         this.task.profileFetchedData();
         if (this.orchestrator != null) {
             NIONode n = new NIONode(orchestrator.getName(), orchestrator.getPort());
@@ -80,34 +96,52 @@ public class TaskMonitor extends AppMonitor {
     }
 
     @Override
-    public void onExecutionStart() {
+    protected void specificOnExecutionStart() {
         task.getProfile().executionStarts();
     }
 
     @Override
-    public void onExecutionStartAt(long ts) {
+    protected void specificOnExecutionStartAt(long ts) {
         task.getProfile().executionStartsAt(ts);
     }
 
     @Override
-    public void onExecutionEnd() {
+    protected void specificOnExecutionEnd() {
         task.getProfile().executionEnds();
     }
 
     @Override
-    public void onExecutionEndAt(long ts) {
+    protected void specificOnExecutionEndAt(long ts) {
         task.getProfile().executionEndsAt(ts);
     }
 
     @Override
-    public void onSuccesfulExecution() {
-        super.onSuccesfulExecution();
+    protected void specificOnAbortedExecution() {
+    }
+
+    @Override
+    protected void specificOnErrorExecution() {
+    }
+
+    @Override
+    protected void specificOnFailedExecution() {
+    }
+
+    @Override
+    protected void specificOnSuccessfulExecution() {
         this.successful = true;
     }
 
     @Override
-    public void onCompletion() {
-        super.onCompletion();
+    protected void specificOnCancellation() {
+    }
+
+    @Override
+    protected void specificOnException(COMPSsException e) {
+    }
+
+    @Override
+    public void specificOnCompletion() {
         this.task.profileEndNotification();
         if (this.orchestrator != null) {
             notifyEnd();
@@ -115,8 +149,7 @@ public class TaskMonitor extends AppMonitor {
     }
 
     @Override
-    public void onFailure() {
-        super.onFailure();
+    public void specificOnFailure() {
         if (this.orchestrator != null) {
             notifyEnd();
         }
@@ -125,7 +158,7 @@ public class TaskMonitor extends AppMonitor {
     /**
      * Notifies the end of the task.
      */
-    public void notifyEnd() {
+    private void notifyEnd() {
         NIONode n = new NIONode(orchestrator.getName(), orchestrator.getPort());
 
         int jobId = task.getJobId();

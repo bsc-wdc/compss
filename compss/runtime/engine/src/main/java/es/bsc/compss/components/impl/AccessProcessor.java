@@ -1080,6 +1080,8 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         DeleteAllApplicationDataRequest request = new DeleteAllApplicationDataRequest(app);
         if (!this.requestQueue.offer(request)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "delete all data from application " + appId);
+        } else {
+            request.waitForCompletion();
         }
     }
 

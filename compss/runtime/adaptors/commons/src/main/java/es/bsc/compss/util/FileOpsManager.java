@@ -398,6 +398,18 @@ public class FileOpsManager {
     }
 
     /**
+     * Serialized object into a file Synchronously.
+     *
+     * @param tgt path where to read the object from
+     * @return Deserialized object
+     * @throws java.io.IOException Error reading from the file.
+     * @throws java.lang.ClassNotFoundException Class of the deserialized object not in classpath
+     */
+    public static Object deserializeSync(final String tgt) throws IOException, ClassNotFoundException {
+        return deserialize(tgt);
+    }
+
+    /**
      * Stops the File Operations Manager.
      */
     public static void shutdown() {
@@ -434,6 +446,26 @@ public class FileOpsManager {
             Serializer.serialize(o, target);
         } catch (IOException ioe) {
             throw ioe;
+        } finally {
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(TraceEvent.LOCAL_SERIALIZE);
+            }
+        }
+    }
+
+    private static Object deserialize(final String target) throws IOException, ClassNotFoundException {
+        if (DEBUG) {
+            LOGGER.debug("Serializing object to " + target);
+        }
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(TraceEvent.LOCAL_SERIALIZE);
+        }
+        try {
+            return Serializer.deserialize(target);
+        } catch (IOException ioe) {
+            throw ioe;
+        } catch (ClassNotFoundException ex) {
+            throw ex;
         } finally {
             if (Tracer.isActivated()) {
                 Tracer.emitEventEnd(TraceEvent.LOCAL_SERIALIZE);

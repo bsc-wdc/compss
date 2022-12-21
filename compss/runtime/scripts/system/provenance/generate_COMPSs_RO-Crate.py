@@ -398,12 +398,16 @@ def add_file_to_crate(
             file_properties["image"] = {
                 "@id": "complete_graph.svg"
             }  # Name as generated
-        file_properties["input"] = []
-        for item in ins:
-            file_properties["input"].append({"@id": fix_dir_url(item)})
-        file_properties["output"] = []
-        for item in outs:
-            file_properties["output"].append({"@id": fix_dir_url(item)})
+
+        # input and output properties not added to the workflow, since we do not comply with BioSchemas
+        # (i.e. no FormalParameters are defined)
+
+        # file_properties["input"] = []
+        # for item in ins:
+        #     file_properties["input"].append({"@id": fix_dir_url(item)})
+        # file_properties["output"] = []
+        # for item in outs:
+        #     file_properties["output"].append({"@id": fix_dir_url(item)})
 
     else:
         # Any other extra file needed
@@ -795,22 +799,27 @@ Authors:
     import socket
     host_name = os.getenv("SLURM_CLUSTER_NAME")  # marenostrum4, nord3, ... BSC_MACHINE would also work
     if host_name is None:
-        host_name = os.getenv("HOSTNAME")
-        if host_name is None:
-            host_name = socket.gethostname()
-    print(f"Hostname: {host_name}")
+        host_name = socket.gethostname()
     job_id = os.getenv("SLURM_JOB_ID")
 
     main_entity_pathobj = Path(main_entity)
 
+    run_uuid = str(uuid.uuid4())
+
     if job_id is None:
         name_property = "COMPSs " + main_entity_pathobj.name + " execution at " + host_name
         userportal_url = None
-        create_action_id = "#COMPSs_Workflow_Run_Crate_" + host_name
+        create_action_id = "#COMPSs_Workflow_Run_Crate_" + host_name + "_" + run_uuid
     else:
         name_property = "COMPSs " + main_entity_pathobj.name + " execution at " + host_name + " with JOB_ID " + job_id
         userportal_url = "https://userportal.bsc.es/"  # job_id cannot be added, does not match the one in userportal
         create_action_id =  "#COMPSs_Workflow_Run_Crate_" + host_name + "_SLURM_JOB_ID_" + job_id
+
+    # OSTYPE, HOSTTYPE, HOSTNAME defined by bash and not inherited
+    import subprocess
+    uname = subprocess.run(['uname', '-a'], stdout=subprocess.PIPE)
+    description_property = uname.stdout.decode('utf-8')[:-1]  # Remove final '\n'
+    print(f"description: {description_property}")
 
     # Find mainEntity but with resolved file_path
     # resolved_mainEntity = resolved_file
@@ -831,7 +840,8 @@ Authors:
         "actionStatus": {"@id": "http://schema.org/CompletedActionStatus"},
         "agent": author_list,  # Add list of authors, not just 1
         "endTime": iso_now(),  # Get current time
-        "name": name_property
+        "name": name_property,
+        "description": description_property
     }
 
     create_action = CRATE.add(ContextEntity(CRATE, create_action_id, create_action_properties))  # id can be something fancy for MN4, otherwise, whatever
@@ -847,6 +857,10 @@ Authors:
         create_action.append_to("object", {"@id": fix_dir_url(item)})
     for item in outs:
         create_action.append_to("result", {"@id": fix_dir_url(item)})
+    create_action.append_to("result", {"@id": "./"})  # The generated RO-Crate
+
+    # Temporary, until ro-crate-py includes this automatically
+    CRATE.metadata.append_to("conformsTo", {"@id": "https://w3id.org/ro/wfrun/workflow/0.1-DRAFT"})
 
     # Debug
     # for e in CRATE.get_entities():
@@ -854,7 +868,7 @@ Authors:
 
     # Dump to file
     part_time = time.time()
-    folder = "COMPSs_RO-Crate_" + str(uuid.uuid4()) + "/"
+    folder = "COMPSs_RO-Crate_" + run_uuid + "/"
     CRATE.write(folder)
     print(f"PROVENANCE | COMPSs RO-Crate created successfully in subfolder {folder}")
     print(f"PROVENANCE | RO-CRATE dump TIME: {time.time() - part_time} s")

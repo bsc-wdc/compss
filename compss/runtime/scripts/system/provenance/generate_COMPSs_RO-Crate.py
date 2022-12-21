@@ -815,11 +815,23 @@ Authors:
         userportal_url = "https://userportal.bsc.es/"  # job_id cannot be added, does not match the one in userportal
         create_action_id =  "#COMPSs_Workflow_Run_Crate_" + host_name + "_SLURM_JOB_ID_" + job_id
 
-    # OSTYPE, HOSTTYPE, HOSTNAME defined by bash and not inherited
+    # OSTYPE, HOSTTYPE, HOSTNAME defined by bash and not inherited. Changed to "uname -a"
     import subprocess
     uname = subprocess.run(['uname', '-a'], stdout=subprocess.PIPE)
-    description_property = uname.stdout.decode('utf-8')[:-1]  # Remove final '\n'
-    print(f"description: {description_property}")
+    uname_out = uname.stdout.decode('utf-8')[:-1]  # Remove final '\n'
+
+    # SLURM interesting variables: SLURM_JOB_NAME, SLURM_JOB_QOS, SLURM_JOB_USER, SLURM_SUBMIT_DIR, SLURM_NNODES or
+    # SLURM_JOB_NUM_NODES, SLURM_JOB_CPUS_PER_NODE, SLURM_MEM_PER_CPU, SLURM_JOB_NODELIST or SLURM_NODELIST.
+    slurm_env_vars = ""
+    for name, value in os.environ.items():
+        if name.startswith(('SLURM_JOB', 'SLURM_MEM', 'SLURM_SUBMIT', 'COMPSS')) and name != "SLURM_JOBID":
+            slurm_env_vars += "{0}={1} ".format(name, value)
+
+    if len(slurm_env_vars) > 0:
+        description_property = uname_out + " " + slurm_env_vars[:-1]  # Remove blank space
+    else:
+        description_property = uname_out
+    # print(f"description: {description_property}")
 
     # Find mainEntity but with resolved file_path
     # resolved_mainEntity = resolved_file

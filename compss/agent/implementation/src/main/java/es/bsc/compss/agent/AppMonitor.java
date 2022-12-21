@@ -25,7 +25,11 @@ import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.CommException;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.LogicalData;
+import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.location.ProtocolType;
+import es.bsc.compss.types.data.operation.DataOperation;
+import es.bsc.compss.types.data.transferable.SafeCopyTransferable;
+import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.worker.COMPSsException;
@@ -85,9 +89,9 @@ public abstract class AppMonitor implements TaskMonitor {
                     subResults[subElementIdx] = buildResult(subParam);
                     subElementIdx++;
                 }
-                return new CollectionTaskResult(param.getDataMgmtId(), subResults);
+                return new CollectionTaskResult(param.getDataMgmtId(), subResults, this);
             default:
-                return new TaskResult(param.getDataMgmtId());
+                return new TaskResult(param.getDataMgmtId(), this);
         }
     }
 
@@ -218,30 +222,59 @@ public abstract class AppMonitor implements TaskMonitor {
         this.taskResults = params;
     }
 
+
+    boolean failed = false;
+    boolean enabled = false;
+    int pendingOperations = 0;
+
+
+    private void addPendingOperation() {
+        this.pendingOperations++;
+    }
+
+    private void performedPendingOperation() {
+        pendingOperations--;
+        notifyEnd();
+    }
+
+    private void notifyEnd() {
+        if (enabled && pendingOperations == 0) {
+            if (failed) {
+                new Thread() {
+
+                    @Override
+                    public void run() {
+                        Agent.finishedApplication(appId);
+                        specificOnFailure();
+                    }
+                }.start();
+            } else {
+                new Thread() {
+
+                    @Override
+                    public void run() {
+                        Agent.finishedApplication(appId);
+                        specificOnCompletion();
+                    }
+                }.start();
+            }
+        }
+    }
+
     @Override
     public final void onCompletion() {
-        new Thread() {
-
-            @Override
-            public void run() {
-                Agent.finishedApplication(appId);
-                specificOnCompletion();
-            }
-        }.start();
+        failed = false;
+        enabled = true;
+        notifyEnd();
     }
 
     protected abstract void specificOnCompletion();
 
     @Override
     public void onFailure() {
-        new Thread() {
-
-            @Override
-            public void run() {
-                Agent.finishedApplication(appId);
-                specificOnFailure();
-            }
-        }.start();
+        failed = true;
+        enabled = true;
+        notifyEnd();
     }
 
     protected abstract void specificOnFailure();
@@ -258,10 +291,12 @@ public abstract class AppMonitor implements TaskMonitor {
 
         private final String externalDataId;
         private String dataLocation;
+        private final AppMonitor monitor;
 
 
-        public TaskResult(String externalDataId) {
+        public TaskResult(String externalDataId, AppMonitor monitor) {
             this.externalDataId = externalDataId;
+            this.monitor = monitor;
         }
 
         public boolean isCollective() {
@@ -285,6 +320,14 @@ public abstract class AppMonitor implements TaskMonitor {
 
             @Override
             public void onCreation(DataType type, String dataName, String dataLocation) {
+                if (dataName.compareTo(externalDataId) != 0) {
+                    try {
+                        Comm.linkData(externalDataId, dataName);
+                    } catch (CommException ce) {
+                        ErrorManager.error("Could not link " + externalDataId + " and " + dataName, ce);
+                    }
+                }
+
                 TaskResult.this.dataLocation = dataLocation;
 
                 LogicalData ld = Comm.getData(dataName);
@@ -297,12 +340,25 @@ public abstract class AppMonitor implements TaskMonitor {
                         TaskResult.this.dataLocation = targetURI.toString();
                     }
                 }
-                if (dataName.compareTo(externalDataId) != 0) {
-                    try {
-                        Comm.linkData(externalDataId, dataName);
-                    } catch (CommException ce) {
-                        ErrorManager.error("Could not link " + externalDataId + " and " + dataName, ce);
-                    }
+
+                if (!ld.getAllHosts().contains(Comm.getAppHost())) {
+                    monitor.addPendingOperation();
+                    Comm.getAppHost().getData(ld, new SafeCopyTransferable(), new EventListener() {
+
+                        @Override
+                        public void notifyEnd(DataOperation d) {
+                            String location = null;
+                            for (MultiURI mu : ld.getURIsInHost(Comm.getAppHost())) {
+                                location = mu.getPath();
+                            }
+                            TaskResult.this.dataLocation = location;
+                            monitor.performedPendingOperation();
+                        }
+
+                        @Override
+                        public void notifyFailure(DataOperation d, Exception excptn) {
+                        }
+                    });
                 }
             }
 
@@ -318,8 +374,8 @@ public abstract class AppMonitor implements TaskMonitor {
         private final TaskResult[] subElements;
 
 
-        public CollectionTaskResult(String externalDataId, TaskResult[] subResults) {
-            super(externalDataId);
+        public CollectionTaskResult(String externalDataId, TaskResult[] subResults, AppMonitor monitor) {
+            super(externalDataId, monitor);
             this.subElements = subResults;
         }
 

@@ -14,7 +14,7 @@ import unittest
 
 from pycompss.api.task import task
 from pycompss.api.parameter import *
-from pycompss.api.api import compss_wait_on as cwo, compss_barrier as cb
+from pycompss.api.api import compss_wait_on as cwo
 from pycompss.api.api import compss_wait_on_directory as cwod
 
 
@@ -208,7 +208,7 @@ class TestDirParams(unittest.TestCase):
 
         content = "this is some text to test directory_out".split(" ")
         self.dir_out_task(dir_out, content)
-        cb(True)
+        cwod(dir_out)
 
         self.assertTrue(os.path.exists(dir_out),
                         "directory_out has not been created")

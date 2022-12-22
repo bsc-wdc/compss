@@ -860,52 +860,6 @@ public class TaskAnalyser implements GraphHandler {
         }
     }
 
-    private void checkResultFileTransfer(Task t) {
-        LinkedList<DataInstanceId> fileIds = new LinkedList<>();
-        for (Parameter p : t.getTaskDescription().getParameters()) {
-            DataType type = p.getType();
-            if (type == DataType.DIRECTORY_T || type == DataType.FILE_T) {
-                DependencyParameter fp = (DependencyParameter) p;
-                DataInstanceId dId = null;
-                switch (fp.getDirection()) {
-                    case COMMUTATIVE:
-                    case INOUT:
-                        dId = ((RWAccessId) fp.getDataAccessId()).getWrittenDataInstance();
-                        break;
-                    case OUT:
-                        dId = ((WAccessId) fp.getDataAccessId()).getWrittenDataInstance();
-                        break;
-                    default:
-                        break;
-                }
-                if (dId != null) {
-                    DataAccessesInfo dai = this.accessesInfo.get(dId.getDataId());
-                    if (dai != null) {
-                        if (dai.isFinalProducer(t)) {
-                            fileIds.add(dId);
-                        }
-                    }
-                }
-            }
-        }
-
-        // Order the transfer of the result files
-        final int numFT = fileIds.size();
-        if (numFT > 0) {
-            if (DEBUG) {
-                LOGGER.debug("Ordering transfers for result files of task " + t.getId());
-            }
-            for (DataInstanceId fileId : fileIds) {
-                int id = fileId.getDataId();
-                if (DEBUG) {
-                    LOGGER.debug("- Requesting result file " + id + " because of task " + t.getId());
-                }
-                this.dip.blockDataAndGetResultFile(id, new ResultListener(new Semaphore(0)));
-                this.dip.unblockDataId(id);
-            }
-        }
-    }
-
     /*
      **************************************************************************************************************
      * GRAPH WRAPPERS

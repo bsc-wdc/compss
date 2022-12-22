@@ -72,7 +72,6 @@ import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.FileOpsManager;
 import es.bsc.compss.util.FileOpsManager.FileOpListener;
 import es.bsc.compss.util.Tracer;
-import es.bsc.compss.util.serializers.Serializer;
 import es.bsc.compss.utils.execution.ExecutionManager;
 import es.bsc.compss.utils.execution.ThreadedPrintStream;
 import es.bsc.compss.worker.COMPSsException;
@@ -767,35 +766,63 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         return false;
     }
 
-    private boolean handleLocalFileCopy(LogicalData ld, MultiURI localPath, LogicalData tgtData, DataLocation tgtLoc,
+    private boolean handleLocalFileCopy(LogicalData ld, MultiURI localURI, LogicalData tgtData, DataLocation tgtLoc,
         String tgtPath, Transferable reason, EventListener listener) {
-
+        String localPath = localURI.getPath();
         try {
             if (DEBUG) {
-                LOGGER.debug("Data " + ld.getName() + " is already accessible at " + localPath.getPath());
+                LOGGER.debug("Data " + ld.getName() + " is already accessible at " + localPath);
             }
-            if (reason.isSourcePreserved() || ld.countKnownAlias() > 1) {
-                if (DEBUG) {
-                    LOGGER.debug("Master local copy " + ld.getName() + " from " + localPath.getHost().getName() + " to "
-                        + tgtPath);
-                }
-                FileOpsManager.copySync(new File(localPath.getPath()), new File(tgtPath));
 
-            } else {
-                if (DEBUG) {
-                    LOGGER.debug("Master local move " + ld.getName() + " from " + localPath.getHost().getName() + " to "
-                        + tgtPath);
-                }
+            boolean inMemory = false;
+            if (tgtLoc.getProtocol() == ProtocolType.OBJECT_URI) {
                 try {
-                    SimpleURI deletedUri = new SimpleURI(localPath.getPath());
-                    DataLocation loc = DataLocation.createLocation(Comm.getAppHost(), deletedUri);
-                    synchronized (ld) {
-                        ld.removeLocation(loc);
+                    if (DEBUG) {
+                        LOGGER.debug("Deserializing from file " + localPath);
                     }
+                    Object o = FileOpsManager.deserializeSync(localPath);
+                    tgtData.setValue(o);
+                    inMemory = true;
                 } catch (Exception e) {
-                    ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + tgtPath, e);
+                    if (DEBUG) {
+                        LOGGER.debug("Could not deserialize from file " + localPath);
+                    }
                 }
-                FileOpsManager.moveSync(new File(localPath.getPath()), new File(tgtPath));
+            }
+
+            if (!inMemory) {
+                DataType type;
+                if (tgtLoc.getProtocol() == ProtocolType.DIR_URI) {
+                    type = DataType.DIRECTORY_T;
+                } else {
+                    type = DataType.FILE_T;
+                }
+                SimpleURI serialURI = getCompletePath(type, tgtPath);
+                tgtLoc = DataLocation.createLocation(Comm.getAppHost(), serialURI);
+
+                if (reason.isSourcePreserved() || ld.countKnownAlias() > 1) {
+                    if (DEBUG) {
+                        LOGGER.debug("Master local copy " + ld.getName() + " from " + localURI.getHost().getName()
+                            + " to " + tgtPath);
+                    }
+                    FileOpsManager.copySync(new File(localPath), new File(tgtPath));
+
+                } else {
+                    if (DEBUG) {
+                        LOGGER.debug("Master local move " + ld.getName() + " from " + localURI.getHost().getName()
+                            + " to " + tgtPath);
+                    }
+                    try {
+                        SimpleURI deletedUri = new SimpleURI(localPath);
+                        DataLocation loc = DataLocation.createLocation(Comm.getAppHost(), deletedUri);
+                        synchronized (ld) {
+                            ld.removeLocation(loc);
+                        }
+                    } catch (Exception e) {
+                        ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + tgtPath, e);
+                    }
+                    FileOpsManager.moveSync(new File(localPath), new File(tgtPath));
+                }
             }
 
             if (tgtData != null) {
@@ -809,7 +836,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             return true;
         } catch (IOException ex) {
             ErrorManager.warn(
-                "Error master local copy file from " + localPath.getPath() + " to " + tgtPath + " with replacing", ex);
+                "Error master local copy file from " + localURI.getPath() + " to " + tgtPath + " with replacing", ex);
         }
         return false;
     }
@@ -993,17 +1020,21 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         String path = null;
         switch (type) {
             case DIRECTORY_T:
-                path = ProtocolType.DIR_URI.getSchema() + tempDirPath + name;
+                if (!name.startsWith(File.separator)) {
+                    name = tempDirPath + name;
+                }
+                path = ProtocolType.DIR_URI.getSchema() + name;
                 break;
             case FILE_T:
-                path = ProtocolType.FILE_URI.getSchema() + tempDirPath + name;
+                if (!name.startsWith(File.separator)) {
+                    name = tempDirPath + name;
+                }
+                path = ProtocolType.FILE_URI.getSchema() + name;
                 break;
             case OBJECT_T:
                 path = ProtocolType.OBJECT_URI.getSchema() + name;
                 break;
             case COLLECTION_T:
-                path = ProtocolType.OBJECT_URI.getSchema() + tempDirPath + name;
-                break;
             case DICT_COLLECTION_T:
                 path = ProtocolType.OBJECT_URI.getSchema() + tempDirPath + name;
                 break;
@@ -1014,8 +1045,6 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                 path = ProtocolType.EXTERNAL_STREAM_URI.getSchema() + tempDirPath + name;
                 break;
             case PSCO_T:
-                path = ProtocolType.PERSISTENT_URI.getSchema() + name;
-                break;
             case EXTERNAL_PSCO_T:
                 path = ProtocolType.PERSISTENT_URI.getSchema() + name;
                 break;
@@ -1234,7 +1263,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             case OBJECT_T:
             case STREAM_T:
                 DependencyParameter dpar = (DependencyParameter) localParam.getParam();
-                String dataId = (String) localParam.getValue();
+                String dataId = localParam.getSourceDataId();
                 LogicalData ld = Comm.getData(dataId);
                 Object value = null;
                 if (ld.isInMemory()) {
@@ -1245,7 +1274,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                         value = ld.getValue();
                     } catch (CannotLoadException cle) {
                         try {
-                            value = Serializer.deserialize(dpar.getDataTarget());
+                            value = FileOpsManager.deserializeSync(dpar.getDataTarget());
                         } catch (ClassNotFoundException | IOException e) {
                             throw new UnloadableValueException(e);
                         }

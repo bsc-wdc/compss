@@ -91,12 +91,8 @@ public class LocalParameter implements InvocationParam {
                 if (faId instanceof RWAccessId) {
                     // Read write mode
                     RWAccessId rwaId = (RWAccessId) faId;
-                    this.sourceDataMgmtId = rwaId.getReadDataInstance().getRenaming();
                     this.dataMgmtId = rwaId.getWrittenDataInstance().getRenaming();
-                    if (type != DataType.FILE_T && type != DataType.COLLECTION_T
-                        && type != DataType.DICT_COLLECTION_T) {
-                        this.value = "tmp" + this.value;
-                    }
+                    this.sourceDataMgmtId = "tmp" + this.dataMgmtId;
                 } else if (faId instanceof RAccessId) {
                     // Read only mode
                     RAccessId raId = (RAccessId) faId;

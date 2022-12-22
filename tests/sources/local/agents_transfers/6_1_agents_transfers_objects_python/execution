@@ -1,5 +1,7 @@
 #!/bin/bash
 
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
 # Obtain parameters
 COMPSs_exec=$1
 comm=$2
@@ -10,12 +12,11 @@ target_log_folder=$6
 retry_num=$7
 execution_envs=$8
 
-RESULT_IDENTIFIER="printing matrix"
-
 # Global variables
 AGENT_PIDS=""
-app_name="6_1_agents_transfers_colection_objects_python"
+app_name="6_1_agents_transfers_objects_python"
 expected_time="30s"
+RESULT_IDENTIFIER="printing matrix"
 
 # Traps and Handlers
 function kill_agents() {
@@ -40,7 +41,7 @@ touch "${error_log}"
 
 #Agent execution
 agent1_log_dir="${log_dir}/COMPSsWorker01/"
-mkdir -p "${agent1_log_dir}" 
+mkdir -p "${agent1_log_dir}"
 compss_agent_start_service \
   --pythonpath="${base_app_dir}/src" \
   --log_dir="${log_dir}" \
@@ -53,10 +54,13 @@ compss_agent_start_service \
   --resources="${base_app_dir}/resources.xml" \
   --lang="PYTHON" \
   --method_name="main_agents" \
-  "Object_array"
+  "single_object"
 
-python3 ${base_app_dir}/src/Object_array.py > ${COMPSs_log_folder}/results_sequential_execution.out
-
+python3 ${base_app_dir}/src/single_object.py > ${COMPSs_log_folder}/results_sequential_execution.out
+if [ $? != 0 ]; then
+  echo -e '\033[0;31m'"[ ERROR ] Couldn't execute sequential version of the test"
+  exit 1
+fi
 
 grep "${RESULT_IDENTIFIER}" ${COMPSs_log_folder}/results_sequential_execution.out | while read -r line; do
   seq_result=$(grep -A 5 "$line" ${COMPSs_log_folder}/results_sequential_execution.out)
@@ -78,5 +82,3 @@ fi
 
 # Copy LOG files
 cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
-
-

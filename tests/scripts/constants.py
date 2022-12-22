@@ -24,6 +24,7 @@ DEFAULT_SC_FAMILIES = [
 DEFAULT_SC_IGNORED = [".target", "target", ".idea", ".settings", ".git", "geneDetection"]
 DEFAULT_FAMILIES = [
                     "agents",
+                    "agents_transfers",
                     "c",
                     "cloud",
                     "java",

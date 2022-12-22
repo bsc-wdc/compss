@@ -1330,6 +1330,7 @@ class TaskWorker:
                 parameter.TYPE.COLLECTION,
                 parameter.TYPE.DICT_COLLECTION,
                 parameter.TYPE.EXTERNAL_STREAM,
+                parameter.TYPE.OBJECT,
                 -1,
             ]
             return (

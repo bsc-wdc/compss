@@ -24,6 +24,7 @@ import es.bsc.compss.components.monitor.impl.GraphHandler;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.Application;
+import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.CommutativeGroupTask;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.TaskDescription;
@@ -41,6 +42,7 @@ import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
+import es.bsc.compss.types.data.accessparams.BindingObjectAccessParams;
 import es.bsc.compss.types.data.accessparams.CollectionAccessParams;
 import es.bsc.compss.types.data.accessparams.FileAccessParams;
 import es.bsc.compss.types.data.accessparams.ObjectAccessParams;
@@ -648,11 +650,11 @@ public class TaskAnalyser implements GraphHandler {
                 daId = dip.registerExternalPSCOAccess(app, am, externalPSCOparam.getId(), externalPSCOparam.getCode());
                 break;
             case BINDING_OBJECT_T:
-                BindingObjectParameter bindingObjectparam = (BindingObjectParameter) p;
+                BindingObjectParameter bop = (BindingObjectParameter) p;
                 // Check if its Binding OBJ and register its access
-                bindingObjectparam.setType(DataType.BINDING_OBJECT_T);
-                daId = dip.registerBindingObjectAccess(app, am, bindingObjectparam.getBindingObject(),
-                    bindingObjectparam.getCode());
+                bop.setType(DataType.BINDING_OBJECT_T);
+                BindingObject bo = bop.getBindingObject();
+                daId = this.dip.registerDataAccess(new BindingObjectAccessParams(app, am, bo, bop.getCode()));
                 break;
             case OBJECT_T:
                 ObjectParameter op = (ObjectParameter) p;

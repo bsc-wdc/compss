@@ -16,10 +16,12 @@
  */
 package es.bsc.compss.types.data.accessparams;
 
-import es.bsc.compss.components.impl.DataInfoProvider;
+import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.BindingObject;
-import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.DataInfo;
+import es.bsc.compss.types.data.DataInstanceId;
+import es.bsc.compss.types.data.accessparams.DataParams.BindingObjectData;
 
 
 public class BindingObjectAccessParams extends ObjectAccessParams {
@@ -39,7 +41,7 @@ public class BindingObjectAccessParams extends ObjectAccessParams {
      * @param hashCode Hashcode of the associated BindingObject.
      */
     public BindingObjectAccessParams(Application app, AccessMode mode, BindingObject bo, int hashCode) {
-        super(app, mode, bo, hashCode);
+        super(new BindingObjectData(app, hashCode), mode, bo, hashCode);
     }
 
     /**
@@ -52,8 +54,12 @@ public class BindingObjectAccessParams extends ObjectAccessParams {
     }
 
     @Override
-    public DataAccessId registerAccess(DataInfoProvider dip) {
-        return dip.registerBindingObjectAccess(this.getApp(), this.mode, this.getBindingObject(), this.getCode());
+    protected void registeredAsFirstVersionForData(DataInfo dInfo) {
+        if (mode != AccessMode.W) {
+            DataInstanceId lastDID = dInfo.getCurrentDataVersion().getDataInstanceId();
+            String renaming = lastDID.getRenaming();
+            Comm.registerBindingObject(renaming, getBindingObject());
+        }
     }
 
 }

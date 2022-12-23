@@ -106,10 +106,4 @@ public abstract class AccessParams implements Serializable {
      */
     public abstract DataAccessId registerAccess(DataInfoProvider dip);
 
-    /**
-     * Registers the completion of the access on a given DataInfoProvider.
-     * 
-     * @param dip DataInfoProvider where to register the DataAccess
-     */
-    public abstract void registerAccessCompletion(DataInfoProvider dip);
 }

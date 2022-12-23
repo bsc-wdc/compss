@@ -30,7 +30,6 @@ import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.DataVersion;
 import es.bsc.compss.types.data.FileInfo;
 import es.bsc.compss.types.data.LogicalData;
-import es.bsc.compss.types.data.ObjectInfo;
 import es.bsc.compss.types.data.ResultFile;
 import es.bsc.compss.types.data.StreamInfo;
 import es.bsc.compss.types.data.Transferable;
@@ -380,56 +379,24 @@ public class DataInfoProvider {
     }
 
     /**
-     * Marks an access to a file as finished.
-     *
-     * @param app Application accessing the file
-     * @param mode File Access Mode.
-     * @param location File location.
+     * Marks the access from the main as finished. .
+     * 
+     * @param access access being completed
      */
-    public void finishFileAccess(Application app, AccessMode mode, DataLocation location) {
-        DataInfo fileInfo;
-        String locationKey = location.getLocationKey();
-        Integer fileId = app.getFileDataId(locationKey);
-
+    public void finishDataAccess(AccessParams access) {
+        Integer dId = access.getDataId(this);
         // First access to this file
-        if (fileId == null) {
-            LOGGER.warn("File " + location.getLocationKey() + " has not been accessed before");
+        if (dId == null) {
+            LOGGER.warn(access.getDataDescription() + " has not been accessed before");
             return;
         }
-        fileInfo = this.idToData.get(fileId);
-        DataAccessId daid = getAccess(mode, fileInfo);
+        DataInfo dInfo = this.idToData.get(dId);
+        DataAccessId daid = getAccess(access.getMode(), dInfo);
         if (daid == null) {
-            LOGGER.warn("File " + location.getLocationKey() + " has not been accessed before");
+            LOGGER.warn(access.getDataDescription() + " has not been accessed before");
             return;
         }
         dataHasBeenAccessed(daid);
-
-    }
-
-    /**
-     * Marks the access to a Object as finished.
-     *
-     * @param mode Object Access Mode.
-     * @param code Object hashcode.
-     */
-    public void finishObjectAccess(AccessMode mode, int code) {
-        DataInfo oInfo;
-
-        Integer aoId = this.codeToId.get(code);
-
-        // First access to this file
-        if (aoId == null) {
-            LOGGER.warn("Binding Object " + code + " has not been accessed before");
-            return;
-        }
-        oInfo = this.idToData.get(aoId);
-        DataAccessId daid = getAccess(mode, oInfo);
-        if (daid == null) {
-            LOGGER.warn("Binding Object " + code + " has not been accessed before");
-            return;
-        }
-        dataHasBeenAccessed(daid);
-
     }
 
     private DataAccessId willAccess(AccessMode mode, DataInfo di) {

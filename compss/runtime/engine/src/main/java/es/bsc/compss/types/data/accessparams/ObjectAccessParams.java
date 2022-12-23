@@ -97,11 +97,6 @@ public class ObjectAccessParams extends AccessParams {
     }
 
     @Override
-    public void registerAccessCompletion(DataInfoProvider dip) {
-        dip.finishObjectAccess(this.mode, this.hashCode);
-    }
-
-    @Override
     public String toString() {
         return "[" + this.getApp() + ", " + this.mode + " ," + this.hashCode + "]";
     }

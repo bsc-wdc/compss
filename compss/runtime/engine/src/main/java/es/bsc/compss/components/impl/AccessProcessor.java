@@ -42,6 +42,8 @@ import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
 import es.bsc.compss.types.data.accessparams.BindingObjectAccessParams;
 import es.bsc.compss.types.data.accessparams.DataParams;
+import es.bsc.compss.types.data.accessparams.DataParams.FileData;
+import es.bsc.compss.types.data.accessparams.DataParams.ObjectData;
 import es.bsc.compss.types.data.accessparams.FileAccessParams;
 import es.bsc.compss.types.data.accessparams.ObjectAccessParams;
 import es.bsc.compss.types.data.location.DataLocation;
@@ -54,6 +56,7 @@ import es.bsc.compss.types.request.ap.BarrierRequest;
 import es.bsc.compss.types.request.ap.CancelApplicationTasksRequest;
 import es.bsc.compss.types.request.ap.CancelTaskGroupRequest;
 import es.bsc.compss.types.request.ap.CloseTaskGroupRequest;
+import es.bsc.compss.types.request.ap.DataGetLastVersionRequest;
 import es.bsc.compss.types.request.ap.DeleteAllApplicationDataRequest;
 import es.bsc.compss.types.request.ap.DeleteBindingObjectRequest;
 import es.bsc.compss.types.request.ap.DeleteFileRequest;
@@ -326,6 +329,29 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     }
 
     /**
+     * Returns the Identifier of the data corresponding to the last version of an object.
+     *
+     * @param app application accessing the object.
+     * @param sourceLocation location of the file
+     * @return data corresponding to the last version of an object.
+     */
+    public LogicalData getFileLastVersion(Application app, DataLocation sourceLocation) {
+        boolean alreadyAccessed = alreadyAccessed(app, sourceLocation);
+
+        if (!alreadyAccessed) {
+            LOGGER.debug("File not accessed before, returning the same location");
+            return null;
+        }
+        // Ask for the file version
+        DataGetLastVersionRequest fvr = new DataGetLastVersionRequest(new FileData(app, sourceLocation));
+        if (!this.requestQueue.offer(fvr)) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "data version query");
+        }
+
+        return fvr.getData();
+    }
+
+    /**
      * Notifies a main access to a given file {@code sourceLocation} in mode {@code fap}.
      *
      * @param app application accessing the file
@@ -513,6 +539,24 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         }
 
         return isValid;
+    }
+
+    /**
+     * Returns the Identifier of the data corresponding to the last version of an object.
+     *
+     * @param app application accessing the object.
+     * @param obj Object.
+     * @param hashCode Object hashcode.
+     * @return data corresponding to the last version of an object.
+     */
+    public LogicalData getObjectLastVersion(Application app, Object obj, int hashCode) {
+        // Ask for the object
+        DataGetLastVersionRequest odr = new DataGetLastVersionRequest(new ObjectData(app, hashCode));
+        if (!this.requestQueue.offer(odr)) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "data version query");
+        }
+
+        return odr.getData();
     }
 
     /**

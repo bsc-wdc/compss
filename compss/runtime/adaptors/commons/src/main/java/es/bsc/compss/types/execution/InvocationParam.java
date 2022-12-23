@@ -67,4 +67,17 @@ public interface InvocationParam {
 
     public List<? extends InvocationParamURI> getSources();
 
+    /**
+     * Marks that the result for the parameter is not computed by the task itself but from one nested task.
+     */
+    public void resultIsForwarded();
+
+    /**
+     * Returns whether the result for the parameter is computed by the task itself or by one nested task.
+     * 
+     * @return {@literal true} if the result is computed by a nested task; {@literal false}, if the task computed the
+     *         value.
+     */
+    public boolean isForwardedResult();
+
 }

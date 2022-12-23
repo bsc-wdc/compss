@@ -179,4 +179,14 @@ public class FakeInvocationParam implements InvocationParam {
         // No resource where to get the data. Value is automatically provided
         return new LinkedList<>();
     }
+
+    @Override
+    public void resultIsForwarded() {
+        // Do nothing
+    }
+
+    @Override
+    public boolean isForwardedResult() {
+        return false;
+    }
 }

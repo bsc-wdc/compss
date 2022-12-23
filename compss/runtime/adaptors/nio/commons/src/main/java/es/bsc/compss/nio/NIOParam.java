@@ -247,6 +247,16 @@ public class NIOParam implements Externalizable, InvocationParam {
     }
 
     @Override
+    public void resultIsForwarded() {
+        // Do nothing
+    }
+
+    @Override
+    public boolean isForwardedResult() {
+        return false;
+    }
+
+    @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         this.dataMgmtId = (String) in.readObject();
         this.type = (DataType) in.readObject();

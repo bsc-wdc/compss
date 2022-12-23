@@ -30,6 +30,7 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.components.monitor.impl.GraphGenerator;
 import es.bsc.compss.components.monitor.impl.RuntimeMonitor;
+import es.bsc.compss.exceptions.CommException;
 import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.loader.total.ObjectRegistry;
 import es.bsc.compss.loader.total.StreamRegistry;
@@ -47,6 +48,7 @@ import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
+import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
 import es.bsc.compss.types.data.accessparams.DataParams.CollectionData;
 import es.bsc.compss.types.data.accessparams.DataParams.FileData;
@@ -1310,6 +1312,63 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         }
 
         return oUpdated;
+    }
+
+    @Override
+    public boolean bindExistingVersionToData(Long appId, String fileName, String dataId) {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Binding file " + fileName + "'s last version to data " + dataId);
+        }
+
+        // Parse the file name
+        DataLocation sourceLocation = null;
+        try {
+            sourceLocation = createLocation(ProtocolType.FILE_URI, fileName);
+        } catch (IOException ioe) {
+            ErrorManager.fatal(ERROR_FILE_NAME, ioe);
+        }
+        if (sourceLocation == null) {
+            ErrorManager.fatal(ERROR_FILE_NAME);
+        }
+
+        Application app = Application.registerApplication(appId);
+        LogicalData lastVersion = ap.getFileLastVersion(app, sourceLocation);
+
+        if (lastVersion != null) {
+            LogicalData src = Comm.getData(dataId);
+            try {
+                LOGGER.debug("Binding " + src.getKnownAlias() + " to data " + dataId);
+                LogicalData.link(src, lastVersion);
+                return true;
+            } catch (CommException e) {
+                LOGGER.warn("Could not link " + dataId + " and " + lastVersion.getName());
+            }
+
+        }
+        return false;
+    }
+
+    @Override
+    public boolean bindExistingVersionToData(Long appId, Object o, Integer hashCode, String dataId) {
+        Application app = Application.registerApplication(appId);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Binding object " + hashCode + "'s last version to data " + dataId);
+        }
+
+        LogicalData lastVersion = ap.getObjectLastVersion(app, o, hashCode);
+
+        if (lastVersion != null) {
+            LogicalData src = Comm.getData(dataId);
+            try {
+                LOGGER.debug("Binding " + src.getKnownAlias() + " to data " + dataId);
+                LogicalData.link(src, lastVersion);
+                return true;
+            } catch (Exception e) {
+                LOGGER.warn("Could not link " + dataId + " and " + lastVersion.getName());
+            }
+
+        }
+        return false;
     }
 
     @Override

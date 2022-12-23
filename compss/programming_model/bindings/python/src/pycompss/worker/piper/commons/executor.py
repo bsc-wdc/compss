@@ -30,6 +30,7 @@ import os
 import signal
 import sys
 import time
+import traceback
 from pycompss.util.process.manager import Queue
 from pycompss.util.process.manager import DictProxy
 
@@ -93,6 +94,12 @@ def shutdown_handler(
     :return: None
     :raises PyCOMPSsException: Received signal.
     """
+    sys.stderr.write("[shutdown_handler] Received SIGTERM\n")
+    sys.stderr.write("SIGNAL: %d\n" % signal)
+    sys.stderr.write("FRAME: %s\n" % str(frame))
+    traceback.print_stack(frame)
+    sys.stderr.flush()
+    sys.stdout.flush()
     raise PyCOMPSsException("Received SIGTERM")
 
 

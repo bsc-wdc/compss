@@ -87,6 +87,7 @@ public enum TraceEvent {
     CP_SHUTDOWN_NOTIFICATION(81, TraceEventType.RUNTIME, "Access Processor: Checkpointed shutdown notification"), //
     AP_SNAPSHOT(82, TraceEventType.RUNTIME, "Access Processor: Snapshot"), //
     AP_CHECKPOINT_REQUEST(83, TraceEventType.RUNTIME, "Access Processor: CheckpointManager Request"), //
+    AP_GET_LAST_DATA(91, TraceEventType.RUNTIME, "Obtaining last data"), //
 
     // Task Dispatcher Events
     ACTION_UPDATE(45, TraceEventType.RUNTIME, "Task Dispatcher: Action update"), //

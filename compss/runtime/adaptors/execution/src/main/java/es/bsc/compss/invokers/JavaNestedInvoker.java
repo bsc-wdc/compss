@@ -24,19 +24,16 @@ import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.loader.LoaderConstants;
 import es.bsc.compss.loader.LoaderUtils;
 import es.bsc.compss.loader.total.ITAppEditor;
-import es.bsc.compss.loader.total.ObjectRegistry;
 import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
-import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.util.parsers.ITFParser;
 import es.bsc.compss.worker.COMPSsException;
 
-import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -275,39 +272,11 @@ public class JavaNestedInvoker extends JavaInvoker {
             }
             try {
                 super.runMethod();
-                for (InvocationParam p : this.invocation.getParams()) {
-                    if (p.isWriteFinalValue()) {
-                        getLastValue(appId, p);
-                    }
-                }
-                for (InvocationParam p : this.invocation.getResults()) {
-                    getLastValue(appId, p);
-                }
-                this.runtimeAPI.noMoreTasks(appId);
-
             } catch (Throwable e) {
                 throw new JobExecutionException("Error executing the instrumented method!", e);
             } finally {
                 this.completeNestedApplication(appId);
             }
-        }
-    }
-
-    private void getLastValue(Long appId, InvocationParam p) {
-        switch (p.getType()) {
-            case OBJECT_T:
-            case PSCO_T:
-                ObjectRegistry or = this.context.getLoaderAPI().getObjectRegistry();
-                Object internal = or.collectObjectLastValue(appId, p.getValue());
-                p.setValue(internal);
-                break;
-            case FILE_T:
-                this.context.getRuntimeAPI().getFile(appId, p.getOriginalName());
-                new File((String) p.getValue());
-                new File((String) p.getOriginalName());
-                break;
-            default:
-                // Do nothing
         }
     }
 }

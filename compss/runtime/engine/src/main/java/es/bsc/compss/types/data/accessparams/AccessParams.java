@@ -16,12 +16,10 @@
  */
 package es.bsc.compss.types.data.accessparams;
 
-import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInfo;
-import es.bsc.compss.types.data.DataInstanceId;
 
 import java.io.Serializable;
 
@@ -108,10 +106,4 @@ public abstract class AccessParams implements Serializable {
      */
     public abstract DataAccessId registerAccess(DataInfoProvider dip);
 
-    /**
-     * Registers the completion of the access on a given DataInfoProvider.
-     * 
-     * @param dip DataInfoProvider where to register the DataAccess
-     */
-    public abstract void registerAccessCompletion(DataInfoProvider dip);
 }

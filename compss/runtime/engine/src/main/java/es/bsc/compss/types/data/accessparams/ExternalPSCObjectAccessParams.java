@@ -18,13 +18,12 @@ package es.bsc.compss.types.data.accessparams;
 
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.Application;
-import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
-import es.bsc.compss.types.data.accessparams.DataParams.BindingObjectData;
+import es.bsc.compss.types.data.accessparams.DataParams.ExternalPSCObjectData;
 
 
-public class BindingObjectAccessParams extends ObjectAccessParams {
+public class ExternalPSCObjectAccessParams extends ObjectAccessParams {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
@@ -35,22 +34,22 @@ public class BindingObjectAccessParams extends ObjectAccessParams {
     /**
      * Creates a new BindingObjectAccessParams instance.
      * 
-     * @param app Id of the application accessing the BindingObject.
+     * @param app Id of the application accessing the External PSCO.
      * @param mode Access mode.
-     * @param bo Associated BindingObject.
-     * @param hashCode Hashcode of the associated BindingObject.
+     * @param pscoId Id of the accessed PSCO.
+     * @param hashCode Hashcode of the associated External PSCO
      */
-    public BindingObjectAccessParams(Application app, AccessMode mode, BindingObject bo, int hashCode) {
-        super(new BindingObjectData(app, hashCode), mode, bo, hashCode);
+    public ExternalPSCObjectAccessParams(Application app, AccessMode mode, String pscoId, int hashCode) {
+        super(new ExternalPSCObjectData(app, hashCode), mode, pscoId, hashCode);
     }
 
     /**
-     * Returns the associated BindingObject.
+     * Returns the id of associated PSCO.
      * 
-     * @return The associated BindingObject.
+     * @return Id of the associated PSCO.
      */
-    public BindingObject getBindingObject() {
-        return (BindingObject) this.getValue();
+    public String getPSCOId() {
+        return (String) this.getValue();
     }
 
     @Override
@@ -58,7 +57,7 @@ public class BindingObjectAccessParams extends ObjectAccessParams {
         if (mode != AccessMode.W) {
             DataInstanceId lastDID = dInfo.getCurrentDataVersion().getDataInstanceId();
             String renaming = lastDID.getRenaming();
-            Comm.registerBindingObject(renaming, getBindingObject());
+            Comm.registerExternalPSCO(renaming, this.getPSCOId());
         }
     }
 

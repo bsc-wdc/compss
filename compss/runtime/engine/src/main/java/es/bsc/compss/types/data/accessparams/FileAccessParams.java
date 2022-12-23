@@ -73,11 +73,6 @@ public class FileAccessParams extends AccessParams {
     }
 
     @Override
-    public void registerAccessCompletion(DataInfoProvider dip) {
-        dip.finishFileAccess(this.getApp(), this.mode, this.loc);
-    }
-
-    @Override
     public String toString() {
         return "[" + this.getApp() + ", " + this.mode + " ," + this.loc + "]";
     }

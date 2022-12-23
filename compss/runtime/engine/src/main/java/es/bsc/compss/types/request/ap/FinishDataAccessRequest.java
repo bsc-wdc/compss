@@ -47,8 +47,7 @@ public class FinishDataAccessRequest extends APRequest {
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td)
         throws ShutdownException {
-
-        access.registerAccessCompletion(dip);
+        dip.finishDataAccess(access);
     }
 
 }

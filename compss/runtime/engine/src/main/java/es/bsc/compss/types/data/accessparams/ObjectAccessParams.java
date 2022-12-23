@@ -22,7 +22,6 @@ import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
-import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.accessparams.DataParams.ObjectData;
 
 
@@ -39,7 +38,7 @@ public class ObjectAccessParams extends AccessParams {
 
     /**
      * Creates a new ObjectAccessParams instance for the given object.
-     * 
+     *
      * @param app Id of the application accessing the object.
      * @param mode Access mode.
      * @param value Associated object.
@@ -47,6 +46,20 @@ public class ObjectAccessParams extends AccessParams {
      */
     public ObjectAccessParams(Application app, AccessMode mode, Object value, int hashCode) {
         super(new ObjectData(app, hashCode), mode);
+        this.value = value;
+        this.hashCode = hashCode;
+    }
+
+    /**
+     * Creates a new ObjectAccessParams instance for the given object.
+     *
+     * @param data object being accessed
+     * @param mode Access mode.
+     * @param value Associated object.
+     * @param hashCode Hashcode of the associated object.
+     */
+    protected ObjectAccessParams(ObjectData data, AccessMode mode, Object value, int hashCode) {
+        super(data, mode);
         this.value = value;
         this.hashCode = hashCode;
     }
@@ -81,11 +94,6 @@ public class ObjectAccessParams extends AccessParams {
             String renaming = lastDID.getRenaming();
             Comm.registerValue(renaming, value);
         }
-    }
-
-    @Override
-    public void registerAccessCompletion(DataInfoProvider dip) {
-        dip.finishObjectAccess(this.mode, this.hashCode);
     }
 
     @Override

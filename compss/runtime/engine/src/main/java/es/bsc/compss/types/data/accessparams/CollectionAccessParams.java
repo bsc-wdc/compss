@@ -59,8 +59,4 @@ public class CollectionAccessParams extends AccessParams {
         }
     }
 
-    @Override
-    public void registerAccessCompletion(DataInfoProvider dip) {
-    }
-
 }

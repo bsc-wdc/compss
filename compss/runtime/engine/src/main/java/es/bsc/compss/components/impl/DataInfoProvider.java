@@ -30,7 +30,6 @@ import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.DataVersion;
 import es.bsc.compss.types.data.FileInfo;
 import es.bsc.compss.types.data.LogicalData;
-import es.bsc.compss.types.data.ObjectInfo;
 import es.bsc.compss.types.data.ResultFile;
 import es.bsc.compss.types.data.StreamInfo;
 import es.bsc.compss.types.data.Transferable;
@@ -271,11 +270,10 @@ public class DataInfoProvider {
      */
     public DataAccessId registerStreamAccess(Application app, AccessMode mode, Object value, int code) {
         DataInfo oInfo;
-        Integer aoId = this.codeToId.get(code);
-        DataAccessId id;
+        Integer dId = this.codeToId.get(code);
 
         // First access to this datum
-        if (aoId == null) {
+        if (dId == null) {
             if (DEBUG) {
                 LOGGER.debug("FIRST access to stream " + code);
             }
@@ -283,27 +281,22 @@ public class DataInfoProvider {
             // Update mappings
             oInfo = new StreamInfo(app, code);
             app.addData(oInfo);
-            aoId = oInfo.getDataId();
-            this.codeToId.put(code, aoId);
-            this.idToData.put(aoId, oInfo);
+            dId = oInfo.getDataId();
+            this.codeToId.put(code, dId);
+            this.idToData.put(dId, oInfo);
 
             DataInstanceId lastDID = oInfo.getCurrentDataVersion().getDataInstanceId();
             String renaming = lastDID.getRenaming();
             Comm.registerValue(renaming, value);
-
-            // With the scores updates. Access function which creates the logical data must be invoked
-            // before registering the location when a new data is accessed (except W access)
-            id = willAccess(mode, oInfo);
-
         } else {
             // The datum has already been accessed
             if (DEBUG) {
                 LOGGER.debug("Another access to stream " + code);
             }
 
-            oInfo = this.idToData.get(aoId);
-            id = willAccess(mode, oInfo);
+            oInfo = this.idToData.get(dId);
         }
+        DataAccessId id = willAccess(mode, oInfo);
 
         // Inform the StreamClient
         if (mode != AccessMode.R) {
@@ -333,7 +326,6 @@ public class DataInfoProvider {
         DataInfo externalStreamInfo;
         int locationKey = location.getLocationKey().hashCode();
         Integer externalStreamId = this.codeToId.get(locationKey);
-        DataAccessId id;
 
         // First access to this file
         if (externalStreamId == null) {
@@ -351,9 +343,6 @@ public class DataInfoProvider {
             // Register the initial location of the stream
             DataInstanceId lastDID = externalStreamInfo.getCurrentDataVersion().getDataInstanceId();
             String renaming = lastDID.getRenaming();
-            // With the scores updates. Access function which creates the logical data must be invoked
-            // before registering the location when a new data is accessed (except W access)
-            id = willAccess(mode, externalStreamInfo);
             Comm.registerLocation(renaming, location);
         } else {
             // The external stream has already been accessed, all location are already registered
@@ -361,8 +350,8 @@ public class DataInfoProvider {
                 LOGGER.debug("Another access to external stream " + locationKey);
             }
             externalStreamInfo = this.idToData.get(externalStreamId);
-            id = willAccess(mode, externalStreamInfo);
         }
+        DataAccessId id = willAccess(mode, externalStreamInfo);
 
         // Inform the StreamClient
         if (mode != AccessMode.R) {
@@ -390,155 +379,24 @@ public class DataInfoProvider {
     }
 
     /**
-     * DataAccess interface: registers a new binding object access.
-     *
-     * @param app Id of the application accessing the binding object
-     * @param mode Binding Object access mode.
-     * @param bo Binding Object.
-     * @param code Binding Object hashcode.
-     * @return The registered access Id.
+     * Marks the access from the main as finished. .
+     * 
+     * @param access access being completed
      */
-    public DataAccessId registerBindingObjectAccess(Application app, AccessMode mode, BindingObject bo, int code) {
-        DataInfo oInfo;
-        DataAccessId id;
-        Integer aoId = this.codeToId.get(code);
-
-        // First access to this datum
-        if (aoId == null) {
-            if (DEBUG) {
-                LOGGER.debug("FIRST access to external object " + code);
-            }
-
-            // Update mappings
-            oInfo = new ObjectInfo(app, code);
-            app.addData(oInfo);
-            aoId = oInfo.getDataId();
-            this.codeToId.put(code, aoId);
-            this.idToData.put(aoId, oInfo);
-
-            // Serialize this first version of the object to a file
-            DataInstanceId lastDID = oInfo.getCurrentDataVersion().getDataInstanceId();
-            String renaming = lastDID.getRenaming();
-
-            id = willAccess(mode, oInfo);
-            // Inform the File Transfer Manager about the new file containing the object
-            if (mode != AccessMode.W) {
-                Comm.registerBindingObject(renaming, bo);
-            }
-        } else {
-            // The datum has already been accessed
-            if (DEBUG) {
-                LOGGER.debug("Another access to external object " + code);
-            }
-
-            oInfo = this.idToData.get(aoId);
-
-            id = willAccess(mode, oInfo);
-        }
-
-        // Version management
-        return id;
-    }
-
-    /**
-     * DataAccess interface: registers a new PSCO access.
-     *
-     * @param app Id of the application accessing the file
-     * @param mode PSCO Access Mode.
-     * @param pscoId PSCO Id.
-     * @param code PSCO hashcode.
-     * @return The registered access Id.
-     */
-    public DataAccessId registerExternalPSCOAccess(Application app, AccessMode mode, String pscoId, int code) {
-        DataInfo oInfo;
-        Integer aoId = this.codeToId.get(code);
-        DataAccessId id;
-        // First access to this datum
-        if (aoId == null) {
-            if (DEBUG) {
-                LOGGER.debug("FIRST access to external object " + code);
-            }
-
-            // Update mappings
-            oInfo = new ObjectInfo(app, code);
-            app.addData(oInfo);
-            aoId = oInfo.getDataId();
-            this.codeToId.put(code, aoId);
-            this.idToData.put(aoId, oInfo);
-
-            // Serialize this first version of the object to a file
-            DataInstanceId lastDID = oInfo.getCurrentDataVersion().getDataInstanceId();
-            String renaming = lastDID.getRenaming();
-            id = willAccess(mode, oInfo);
-            // Inform the File Transfer Manager about the new file containing the object
-            if (mode != AccessMode.W) {
-                Comm.registerExternalPSCO(renaming, pscoId);
-            }
-        } else {
-            // The datum has already been accessed
-            if (DEBUG) {
-                LOGGER.debug("Another access to external object " + code);
-            }
-
-            oInfo = this.idToData.get(aoId);
-            id = willAccess(mode, oInfo);
-        }
-
-        // Version management
-        return id;
-    }
-
-    /**
-     * Marks an access to a file as finished.
-     *
-     * @param app Application accessing the file
-     * @param mode File Access Mode.
-     * @param location File location.
-     */
-    public void finishFileAccess(Application app, AccessMode mode, DataLocation location) {
-        DataInfo fileInfo;
-        String locationKey = location.getLocationKey();
-        Integer fileId = app.getFileDataId(locationKey);
-
+    public void finishDataAccess(AccessParams access) {
+        Integer dId = access.getDataId(this);
         // First access to this file
-        if (fileId == null) {
-            LOGGER.warn("File " + location.getLocationKey() + " has not been accessed before");
+        if (dId == null) {
+            LOGGER.warn(access.getDataDescription() + " has not been accessed before");
             return;
         }
-        fileInfo = this.idToData.get(fileId);
-        DataAccessId daid = getAccess(mode, fileInfo);
+        DataInfo dInfo = this.idToData.get(dId);
+        DataAccessId daid = getAccess(access.getMode(), dInfo);
         if (daid == null) {
-            LOGGER.warn("File " + location.getLocationKey() + " has not been accessed before");
+            LOGGER.warn(access.getDataDescription() + " has not been accessed before");
             return;
         }
         dataHasBeenAccessed(daid);
-
-    }
-
-    /**
-     * Marks the access to a Object as finished.
-     *
-     * @param mode Object Access Mode.
-     * @param code Object hashcode.
-     */
-    public void finishObjectAccess(AccessMode mode, int code) {
-        DataInfo oInfo;
-
-        Integer aoId = this.codeToId.get(code);
-
-        // First access to this file
-        if (aoId == null) {
-            LOGGER.warn("Binding Object " + code + " has not been accessed before");
-            return;
-        }
-        oInfo = this.idToData.get(aoId);
-        DataAccessId daid = getAccess(mode, oInfo);
-        if (daid == null) {
-            LOGGER.warn("Binding Object " + code + " has not been accessed before");
-            return;
-        }
-        dataHasBeenAccessed(daid);
-
     }
 
     private DataAccessId willAccess(AccessMode mode, DataInfo di) {
@@ -838,23 +696,6 @@ public class DataInfoProvider {
     }
 
     /**
-     * Gets the dataInfo of the location.
-     *
-     * @param app application requesting the data information
-     * @param loc Location
-     * @return DataInfo associated with the given location {@code loc}.
-     */
-    public DataInfo getLocationDataInfo(Application app, DataLocation loc) {
-        String locationKey = loc.getLocationKey();
-        Integer dataId = app.getFileDataId(locationKey);
-        if (dataId != null) {
-            DataInfo dataInfo = this.idToData.get(dataId);
-            return dataInfo;
-        }
-        return null;
-    }
-
-    /**
      * Marks a data Id for deletion.
      *
      * @param app Application requesting the data deletion
@@ -927,25 +768,6 @@ public class DataInfoProvider {
      */
     public DataInfo deleteCollection(String collectionId, boolean noReuse) {
         Integer oId = this.collectionToId.get(collectionId);
-        DataInfo dataInfo = this.idToData.get(oId);
-
-        // We delete the data associated with all the versions of the same object
-        if (dataInfo.delete(noReuse)) {
-            removeDataFromInternalStructures(dataInfo);
-        }
-
-        return dataInfo;
-    }
-
-    /**
-     * Deletes a dictionary collection.
-     *
-     * @param dictCollectionId Dictionary Collection identifier
-     * @param noReuse no reuse flag
-     * @return DataInfo
-     */
-    public DataInfo deleteDictCollection(String dictCollectionId, boolean noReuse) {
-        Integer oId = this.collectionToId.get(dictCollectionId);
         DataInfo dataInfo = this.idToData.get(oId);
 
         // We delete the data associated with all the versions of the same object

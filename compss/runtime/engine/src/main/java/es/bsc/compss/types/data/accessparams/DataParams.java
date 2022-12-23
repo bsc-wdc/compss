@@ -135,6 +135,25 @@ public abstract class DataParams {
 
     }
 
+    public static class ExternalPSCObjectData extends ObjectData {
+
+        /**
+         * Constructs a new DataParams for a binding object.
+         *
+         * @param app Application accessing the object
+         * @param code code identifying the object
+         */
+        public ExternalPSCObjectData(Application app, int code) {
+            super(app, code);
+        }
+
+        @Override
+        public String getDescription() {
+            return "external " + super.getDescription();
+        }
+
+    }
+
     public static class BindingObjectData extends ObjectData {
 
         /**

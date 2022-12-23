@@ -380,51 +380,6 @@ public class DataInfoProvider {
     }
 
     /**
-     * DataAccess interface: registers a new PSCO access.
-     *
-     * @param app Id of the application accessing the file
-     * @param mode PSCO Access Mode.
-     * @param pscoId PSCO Id.
-     * @param code PSCO hashcode.
-     * @return The registered access Id.
-     */
-    public DataAccessId registerExternalPSCOAccess(Application app, AccessMode mode, String pscoId, int code) {
-        DataInfo oInfo;
-        Integer aoId = this.codeToId.get(code);
-        DataAccessId id;
-        // First access to this datum
-        if (aoId == null) {
-            if (DEBUG) {
-                LOGGER.debug("FIRST access to external object " + code);
-            }
-
-            // Update mappings
-            oInfo = new ObjectInfo(app, code);
-            app.addData(oInfo);
-            aoId = oInfo.getDataId();
-            this.codeToId.put(code, aoId);
-            this.idToData.put(aoId, oInfo);
-
-            // Serialize this first version of the object to a file
-            DataInstanceId lastDID = oInfo.getCurrentDataVersion().getDataInstanceId();
-            String renaming = lastDID.getRenaming();
-            if (mode != AccessMode.W) {
-                Comm.registerExternalPSCO(renaming, pscoId);
-            }
-        } else {
-            // The datum has already been accessed
-            if (DEBUG) {
-                LOGGER.debug("Another access to external object " + code);
-            }
-
-            oInfo = this.idToData.get(aoId);
-        }
-
-        // Version management
-        return willAccess(mode, oInfo);
-    }
-
-    /**
      * Marks an access to a file as finished.
      *
      * @param app Application accessing the file

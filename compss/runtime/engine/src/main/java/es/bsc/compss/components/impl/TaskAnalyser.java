@@ -44,6 +44,7 @@ import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
 import es.bsc.compss.types.data.accessparams.BindingObjectAccessParams;
 import es.bsc.compss.types.data.accessparams.CollectionAccessParams;
+import es.bsc.compss.types.data.accessparams.ExternalPSCObjectAccessParams;
 import es.bsc.compss.types.data.accessparams.FileAccessParams;
 import es.bsc.compss.types.data.accessparams.ObjectAccessParams;
 import es.bsc.compss.types.data.operation.ResultListener;
@@ -647,7 +648,9 @@ public class TaskAnalyser implements GraphHandler {
                 ExternalPSCOParameter externalPSCOparam = (ExternalPSCOParameter) p;
                 // Check if its PSCO class and persisted to infer its type
                 externalPSCOparam.setType(DataType.EXTERNAL_PSCO_T);
-                daId = dip.registerExternalPSCOAccess(app, am, externalPSCOparam.getId(), externalPSCOparam.getCode());
+                String pscoId = externalPSCOparam.getId();
+                int code = externalPSCOparam.getCode();
+                daId = this.dip.registerDataAccess(new ExternalPSCObjectAccessParams(app, am, pscoId, code));
                 break;
             case BINDING_OBJECT_T:
                 BindingObjectParameter bop = (BindingObjectParameter) p;

@@ -54,9 +54,9 @@ compss_agent_start_service \
   --resources="${base_app_dir}/resources.xml" \
   --lang="PYTHON" \
   --method_name="main_agents" \
-  "File_array.py"
+  "file_array.py"
 
-python3 ${base_app_dir}/src/File_array.py > ${COMPSs_log_folder}/results_sequential_execution.out
+python3 ${base_app_dir}/src/file_array.py > ${COMPSs_log_folder}/results_sequential_execution.out
 
 grep "${RESULT_IDENTIFIER}" ${COMPSs_log_folder}/results_sequential_execution.out | while read -r line; do
   seq_result=$(grep -A 5 "$line" ${COMPSs_log_folder}/results_sequential_execution.out)

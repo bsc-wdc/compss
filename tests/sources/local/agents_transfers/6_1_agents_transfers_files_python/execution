@@ -52,9 +52,9 @@ compss_agent_start_service \
   --resources="${base_app_dir}/resources.xml" \
   --lang="PYTHON" \
   --method_name="main_agents" \
-  "Single_file"
+  "single_file"
 
-python3 ${base_app_dir}/src/Single_file.py > ${COMPSs_log_folder}/results_sequential_execution.out
+python3 ${base_app_dir}/src/single_file.py > ${COMPSs_log_folder}/results_sequential_execution.out
 
 
 grep "${RESULT_IDENTIFIER}" ${COMPSs_log_folder}/results_sequential_execution.out | while read -r line; do

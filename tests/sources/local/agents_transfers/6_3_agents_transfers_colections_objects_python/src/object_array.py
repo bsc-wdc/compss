@@ -6,6 +6,7 @@ import numpy as np
 
 from pycompss.api.task import task
 from pycompss.api.api import compss_wait_on
+from pycompss.api.constraint import constraint
 from pycompss.api.parameter import COLLECTION_IN
 from pycompss.api.parameter import COLLECTION_OUT
 from pycompss.api.parameter import COLLECTION_INOUT
@@ -49,6 +50,7 @@ def create_mat(value):
     return [[np.full((MATRIX_SIZE_Y, MATRIX_SIZE_X), value)]]
 
 
+@constraint(processor_architecture="processor_ag_3")
 @task(mat_a=COLLECTION_IN, mat_c=COLLECTION_OUT)
 def nested_in_out(mat_a, mat_c, label):
     """Sets al elements in mat_c[0][0] to the values en mat_a[0][0].
@@ -65,6 +67,7 @@ def nested_in_out(mat_a, mat_c, label):
     print_mat(mat_c, "output " + label)
 
 
+@constraint(processor_architecture="processor_ag_2")
 @task(mat_a=COLLECTION_IN, mat_c=COLLECTION_OUT)
 def in_out(mat_a, mat_c):
     """Check collection in and collection out invoking nested task.
@@ -76,6 +79,7 @@ def in_out(mat_a, mat_c):
     nested_in_out(mat_a, mat_c, "nested_in_out")
 
 
+@constraint(processor_architecture="processor_ag_2")
 @task(mat_a=COLLECTION_IN, mat_c=COLLECTION_OUT)
 def in_out_w_print(mat_a, mat_c):
     """Check collection in and collection out invoking nested task with print.
@@ -91,6 +95,7 @@ def in_out_w_print(mat_a, mat_c):
     print_mat(mat_c, "output in_out_w_print")
 
 
+@constraint(processor_architecture="processor_ag_3")
 @task(mat_c=COLLECTION_INOUT)
 def nested_inout(mat_c, label):
     """set al elements in mat_c[0][0] to mat_c[0][0][0][0] +1.
@@ -108,6 +113,8 @@ def nested_inout(mat_c, label):
     print_mat(mat_c, "output " + label)
 
 
+
+@constraint(processor_architecture="processor_ag_2")
 @task(mat_c=COLLECTION_INOUT)
 def inout(mat_c):
     """Check collection inout invoking nested task.
@@ -118,6 +125,7 @@ def inout(mat_c):
     nested_inout(mat_c, "nested_inout")
 
 
+@constraint(processor_architecture="processor_ag_2")
 @task(mat_c=COLLECTION_INOUT)
 def inout_w_print(mat_c):
     """Check collection inout invoking nested task with print.
@@ -132,6 +140,7 @@ def inout_w_print(mat_c):
     print_mat(mat_c, "output inout_w_print")
 
 
+@constraint(processor_architecture="processor_ag_3")
 @task()
 def print_task(mat_c, label):
     """Print mat_c and label.
@@ -143,6 +152,7 @@ def print_task(mat_c, label):
     print_mat(mat_c, label)
 
 
+@constraint(processor_architecture="processor_ag_3")
 @task(mat_c=COLLECTION_OUT)
 def nested_generation_out(mat_c):
     """Sets mat_c[0][0] to a matrix with values 30.
@@ -155,6 +165,7 @@ def nested_generation_out(mat_c):
     print_mat(mat_c, "output nested_generation_out")
 
 
+@constraint(processor_architecture="processor_ag_2")
 @task(mat_c=COLLECTION_OUT)
 def generation_out(mat_c):
     """Check out generation invoking nested task.
@@ -165,6 +176,7 @@ def generation_out(mat_c):
     nested_generation_out(mat_c)
 
 
+@constraint(processor_architecture="processor_ag_2")
 @task(mat_c=COLLECTION_INOUT)
 def consumption(mat_c, label):
     """Print mat_c and label invoking nested task (print_task -> print_mat).
@@ -176,6 +188,7 @@ def consumption(mat_c, label):
     print_task(mat_c, label)
 
 
+@constraint(processor_architecture="processor_ag_3")
 @task(mat_c=COLLECTION_INOUT)
 def nested_generation_inout(mat_c):
     """Check nested collection inout generation.
@@ -193,6 +206,7 @@ def nested_generation_inout(mat_c):
     print_mat(mat_c, "output nested_generation_inout")
 
 
+@constraint(processor_architecture="processor_ag_2")
 @task(mat_c=COLLECTION_INOUT)
 def generation_inout(mat_c):
     """Check collection inout generation invoking nested task.

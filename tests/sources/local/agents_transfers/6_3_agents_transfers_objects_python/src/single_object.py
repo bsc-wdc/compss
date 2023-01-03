@@ -6,11 +6,12 @@ import numpy as np
 
 from pycompss.api.task import task
 from pycompss.api.api import compss_wait_on
+from pycompss.api.constraint import constraint
 
 from pycompss.api.parameter import INOUT
 
 
-TEST_FILE_PATH = "/tmp/in_out_objects_file_python/"
+TEST_FILE_PATH = "/tmp/in_return_objects_file_python/"
 
 MATRIX_SIZE_Y = 5
 MATRIX_SIZE_X = 5
@@ -36,6 +37,7 @@ def create_mat(value):
     return np.full((MATRIX_SIZE_Y, MATRIX_SIZE_X), value)
 
 
+@constraint(processor_architecture="processor_ag_3")
 @task(returns=1)
 def nested_in_return(mat_a, label):
     """Check nested IN and return.
@@ -51,6 +53,7 @@ def nested_in_return(mat_a, label):
     return mat_c
 
 
+@constraint(processor_architecture="processor_ag_2")
 @task(returns=1)
 def in_return(mat_a):
     """Check IN and return.
@@ -62,6 +65,7 @@ def in_return(mat_a):
     return res
 
 
+@constraint(processor_architecture="processor_ag_2")
 @task(returns=1)
 def in_return_w_print(mat_a):
     """Check IN and return with print.
@@ -76,6 +80,7 @@ def in_return_w_print(mat_a):
     return mat_c
 
 
+@constraint(processor_architecture="processor_ag_3")
 @task(mat_c=INOUT)
 def nested_inout(mat_c, label):
     """Check nested INOUT.
@@ -93,6 +98,7 @@ def nested_inout(mat_c, label):
     print_mat(mat_c, "output " + label)
 
 
+@constraint(processor_architecture="processor_ag_2")
 @task(mat_c=INOUT)
 def inout(mat_c):
     """Check INOUT.
@@ -104,6 +110,7 @@ def inout(mat_c):
     nested_inout(mat_c, "nested_inout")
 
 
+@constraint(processor_architecture="processor_ag_2")
 @task(mat_c=INOUT)
 def inout_w_print(mat_c):
     """Check INOUT with print.
@@ -120,6 +127,7 @@ def inout_w_print(mat_c):
     print_mat(mat_c, "output inout_w_print")
 
 
+@constraint(processor_architecture="processor_ag_3")
 @task()
 def print_task(mat_c, label):
     """Print mat_c and label.
@@ -131,6 +139,7 @@ def print_task(mat_c, label):
     print_mat(mat_c, label)
 
 
+@constraint(processor_architecture="processor_ag_3")
 @task(returns=1)
 def nested_generation_return():
     """Check nested return generation.
@@ -142,6 +151,7 @@ def nested_generation_return():
     return mat_c
 
 
+@constraint(processor_architecture="processor_ag_2")
 @task(returns=1)
 def generation_return():
     """Check return generation invoking nested task.
@@ -151,6 +161,7 @@ def generation_return():
     return nested_generation_return()
 
 
+@constraint(processor_architecture="processor_ag_2")
 @task()
 def consumption(mat_c, label):
     """Print mat_c and label invoking nested task (print_task -> print_mat).
@@ -162,6 +173,7 @@ def consumption(mat_c, label):
     print_task(mat_c, label)
 
 
+@constraint(processor_architecture="processor_ag_3")
 @task(mat_c=INOUT)
 def nested_generation_inout(mat_c):
     """Check nested inout generation.
@@ -178,6 +190,7 @@ def nested_generation_inout(mat_c):
     print_mat(mat_c, "output nested_generation_inout")
 
 
+@constraint(processor_architecture="processor_ag_2")
 @task(mat_c=INOUT)
 def generation_inout(mat_c):
     """Check inout generation invoking nested task.

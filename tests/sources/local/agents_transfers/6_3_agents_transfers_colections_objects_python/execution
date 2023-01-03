@@ -198,7 +198,7 @@ sleep 1
   --pythonpath="${base_app_dir}/src" \
   --stop \
   --forward_to="COMPSsWorker02:46201;COMPSsWorker03:46301" \
-  Object_array > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
+  object_array > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
 
 (sleep ${expected_time} && kill_agents) 1>/dev/null 2>/dev/null &
 timeoutPID=$!
@@ -211,7 +211,7 @@ if [ "${exit_kill_timeout}" == "1" ]; then
   exit 124
 fi
 
-python3 ${base_app_dir}/src/Object_array.py > ${COMPSs_log_folder}/results_sequential_execution.out
+python3 ${base_app_dir}/src/object_array.py > ${COMPSs_log_folder}/results_sequential_execution.out
 
 
 grep "${RESULT_IDENTIFIER}" ${COMPSs_log_folder}/results_sequential_execution.out | while read -r line; do

@@ -30,38 +30,7 @@ import yaml
 import os
 import uuid
 import typing
-import datetime as DT
-
-yaml_template = (
-    'COMPSs Workflow Information:\n'
-    '  name: Name of your COMPSs application\n'
-    '  description: Detailed description of your COMPSs application\n'
-    '  license: Apache-2.0\n'
-    '    # URL preferred, but these strings are accepted: https://about.workflowhub.eu/Workflow-RO-Crate/#supported-licenses\n'
-    '  sources_dir: [path_to/dir_1, path_to/dir_2]\n'
-    '    # Optional: List of directories containing the application source files. Relative or absolute paths can be used\n'
-    '  sources_main_file: my_main_file.py\n'
-    '    # Optional: Name of the main file of the application, located in one of the sources_dir.\n'
-    '    # Relative paths from a sources_dir entry, or absolute paths can be used\n'
-    '  files: [main_file.py, aux_file_1.py, aux_file_2.py]\n'
-    '    # List of application files. Relative or absolute paths can be used\n'
-    '\n'
-    'Authors:\n'
-    '  - name: Author_1 Name\n'
-    '    e-mail: author_1@email.com\n'
-    '    orcid: https://orcid.org/XXXX-XXXX-XXXX-XXXX\n'
-    '    organisation_name: Institution_1 name\n'
-    '    ror: https://ror.org/XXXXXXXXX\n'
-    '      # Find them in ror.org\n'
-    '  - name: Author_2 Name\n'
-    '    e-mail: author2@email.com\n'
-    '    orcid: https://orcid.org/YYYY-YYYY-YYYY-YYYY\n'
-    '    organisation_name: Institution_2 name\n'
-    '    ror: https://ror.org/YYYYYYYYY\n'
-    '      # Find them in ror.org\n'
-)
-
-CRATE = ROCrate()
+import datetime as dt
 
 
 def fix_dir_url(in_url: str) -> str:
@@ -85,7 +54,7 @@ def fix_dir_url(in_url: str) -> str:
         return in_url  # No changes required
 
 
-def root_entity(compss_crate: ROCrate, yaml_content: dict) -> typing.Tuple[dict, dict]:
+def root_entity(compss_crate: ROCrate, yaml_content: dict) -> typing.Tuple[dict, list]:
     """
     Generate the Root Entity in the RO-Crate generated for the COMPSs application
 
@@ -106,17 +75,19 @@ def root_entity(compss_crate: ROCrate, yaml_content: dict) -> typing.Tuple[dict,
 
     # COMPSs Workflow RO Crate generation
     # Root Entity
-    CRATE.name = compss_wf_info["name"]
-    CRATE.description = compss_wf_info["description"]
-    CRATE.license = compss_wf_info["license"]  # Faltarà el detall de la llicència????
+    compss_crate.name = compss_wf_info["name"]
+    compss_crate.description = compss_wf_info["description"]
+    compss_crate.license = compss_wf_info[
+        "license"
+    ]  # Faltarà el detall de la llicència????
     authors_set = set()
     organisations_set = set()
     for author in authors_info:
         authors_set.add(author["orcid"])
         organisations_set.add(author["ror"])
-        CRATE.add(
+        compss_crate.add(
             Person(
-                CRATE,
+                compss_crate,
                 author["orcid"],
                 {
                     "name": author["name"],
@@ -125,9 +96,9 @@ def root_entity(compss_crate: ROCrate, yaml_content: dict) -> typing.Tuple[dict,
                 },
             )
         )
-        CRATE.add(
+        compss_crate.add(
             ContextEntity(
-                CRATE,
+                compss_crate,
                 "mailto:" + author["e-mail"],
                 {
                     "@type": "ContactPoint",
@@ -138,9 +109,9 @@ def root_entity(compss_crate: ROCrate, yaml_content: dict) -> typing.Tuple[dict,
                 },
             )
         )
-        CRATE.add(
+        compss_crate.add(
             ContextEntity(
-                CRATE,
+                compss_crate,
                 author["ror"],
                 {"@type": "Organization", "name": author["organisation_name"]},
             )
@@ -148,13 +119,14 @@ def root_entity(compss_crate: ROCrate, yaml_content: dict) -> typing.Tuple[dict,
     author_list = list()
     for creator in authors_set:
         author_list.append({"@id": creator})
-    CRATE.creator = author_list
+    compss_crate.creator = author_list
     org_list = list()
     for org in organisations_set:
         org_list.append({"@id": org})
-    CRATE.publisher = org_list
+    compss_crate.publisher = org_list
     # print(f"compss_wf_info at the beginning: {compss_wf_info}")
     return compss_wf_info, author_list
+
 
 def get_main_entities(wf_info: dict) -> typing.Tuple[str, str, str]:
     """
@@ -199,7 +171,9 @@ def get_main_entities(wf_info: dict) -> typing.Tuple[str, str, str]:
         for source in sources_list:
             path_sources = Path(source).expanduser()
             if not path_sources.exists():
-                print(f"PROVENANCE | WARNING: Specified path in ro-crate-info.yaml 'sources_dir' does not exist ({path_sources})")
+                print(
+                    f"PROVENANCE | WARNING: Specified path in ro-crate-info.yaml 'sources_dir' does not exist ({path_sources})"
+                )
                 continue
             resolved_sources = str(path_sources.resolve())
             # print(f"resolved_sources is: {resolved_sources}")
@@ -261,7 +235,9 @@ def get_main_entities(wf_info: dict) -> typing.Tuple[str, str, str]:
                 if not path_sources.exists():
                     continue
                 resolved_sources = str(path_sources.resolve())
-                resolved_sources_main_file = os.path.join(resolved_sources, wf_info["sources_main_file"])
+                resolved_sources_main_file = os.path.join(
+                    resolved_sources, wf_info["sources_main_file"]
+                )
                 if any(file == resolved_sources_main_file for file in list_of_sources):
                     # The file exists
                     # print(
@@ -363,23 +339,25 @@ def process_accessed_files() -> typing.Tuple[list, list]:
 
 
 def add_file_to_crate(
+    compss_crate: ROCrate,
     file_name: str,
     compss_ver: str,
     main_entity: str,
     out_profile: str,
     in_sources_dir: str,
-) -> None:
+) -> str:
     """
     Get details of a file, and add it physically to the Crate. The file will be an application source file, so,
     the destination directory should be 'application_sources/'
 
+    :param compss_crate: The COMPSs RO-Crate being generated
     :param file_name: File to be added physically to the Crate, full path resolved
     :param compss_ver: COMPSs version number
     :param main_entity: COMPSs file with the main code, full path resolved
     :param out_profile: COMPSs application profile output
     :param in_sources_dir: Path to the defined sources_dir. May be passed empty
 
-    :returns: None
+    :returns: Path where the file has been stored in the crate
     """
 
     file_path = Path(file_name)
@@ -406,9 +384,9 @@ def add_file_to_crate(
                 ],
             )
             # Add JAR as ContextEntity
-            CRATE.add(
+            compss_crate.add(
                 ContextEntity(
-                    CRATE,
+                    compss_crate,
                     "https://www.nationalarchives.gov.uk/PRONOM/x-fmt/412",
                     {"@type": "WebSite", "name": "Java Archive Format"},
                 )
@@ -421,9 +399,9 @@ def add_file_to_crate(
                 ],
             )
             # Add CLASS as ContextEntity
-            CRATE.add(
+            compss_crate.add(
                 ContextEntity(
-                    CRATE,
+                    compss_crate,
                     "https://www.nationalarchives.gov.uk/PRONOM/x-fmt/415",
                     {"@type": "WebSite", "name": "Java Compiled Object Code"},
                 )
@@ -477,9 +455,9 @@ def add_file_to_crate(
                 ],
             )
             # Add JAR as ContextEntity
-            CRATE.add(
+            compss_crate.add(
                 ContextEntity(
-                    CRATE,
+                    compss_crate,
                     "https://www.nationalarchives.gov.uk/PRONOM/x-fmt/412",
                     {"@type": "WebSite", "name": "Java Archive Format"},
                 )
@@ -492,9 +470,9 @@ def add_file_to_crate(
                 ],
             )
             # Add CLASS as ContextEntity
-            CRATE.add(
+            compss_crate.add(
                 ContextEntity(
-                    CRATE,
+                    compss_crate,
                     "https://www.nationalarchives.gov.uk/PRONOM/x-fmt/415",
                     {"@type": "WebSite", "name": "Java Compiled Object Code"},
                 )
@@ -524,13 +502,13 @@ def add_file_to_crate(
     if file_name != main_entity:
         # print(f"PROVENANCE DEBUG | Adding auxiliary source file: {file_name}")
         file_properties["@type"] = ["File", "SoftwareSourceCode"]
-        CRATE.add_file(
+        compss_crate.add_file(
             source=file_name, dest_path=path_in_crate, properties=file_properties
         )
     else:
         # We get lang_version from dataprovenance.log
         # print(f"PROVENANCE DEBUG | Adding main source file: {file_path.name}, file_name: {file_name}")
-        wf_entity = CRATE.add_workflow(
+        compss_crate.add_workflow(
             source=file_name,
             dest_path=path_in_crate,
             main=True,
@@ -539,9 +517,6 @@ def add_file_to_crate(
             properties=file_properties,
             gen_cwl=False,
         )
-
-        # Add auxiliary files as hasPart to the ComputationalWorkflow main file
-        # ********** wf_entity.append_to("hasPart", {"@id": fix_dir_url(item)})
 
         # complete_graph.svg
         if complete_graph.exists():
@@ -559,18 +534,18 @@ def add_file_to_crate(
             #     ],
             # )
             file_properties["encodingFormat"] = (
-                    [
-                        "image/svg+xml",
-                        {"@id": "https://www.nationalarchives.gov.uk/PRONOM/fmt/92"},
-                    ],
+                [
+                    "image/svg+xml",
+                    {"@id": "https://www.nationalarchives.gov.uk/PRONOM/fmt/92"},
+                ],
             )
             file_properties["about"] = {
                 "@id": path_in_crate
             }  # Must be main_entity_location, not main_entity alone
             # Add PDF as ContextEntity
-            # CRATE.add(
+            # compss_crate.add(
             #     ContextEntity(
-            #         CRATE,
+            #         compss_crate,
             #         "https://www.nationalarchives.gov.uk/PRONOM/fmt/276",
             #         {
             #             "@type": "WebSite",
@@ -578,9 +553,9 @@ def add_file_to_crate(
             #         },
             #     )
             # )
-            CRATE.add(
+            compss_crate.add(
                 ContextEntity(
-                    CRATE,
+                    compss_crate,
                     "https://www.nationalarchives.gov.uk/PRONOM/fmt/92",
                     {
                         "@type": "WebSite",
@@ -588,7 +563,7 @@ def add_file_to_crate(
                     },
                 )
             )
-            CRATE.add_file(complete_graph, properties=file_properties)
+            compss_crate.add_file(complete_graph, properties=file_properties)
         else:
             print(
                 f"PROVENANCE | WARNING: complete_graph.svg file not found. "
@@ -606,14 +581,14 @@ def add_file_to_crate(
                 {"@id": "https://www.nationalarchives.gov.uk/PRONOM/fmt/817"},
             ]
             # Add JSON as ContextEntity
-            CRATE.add(
+            compss_crate.add(
                 ContextEntity(
-                    CRATE,
+                    compss_crate,
                     "https://www.nationalarchives.gov.uk/PRONOM/fmt/817",
                     {"@type": "WebSite", "name": "JSON Data Interchange Format"},
                 )
             )
-            CRATE.add_file(out_profile, properties=file_properties)
+            compss_crate.add_file(out_profile, properties=file_properties)
         else:
             print(
                 f"PROVENANCE | WARNING: COMPSs application profile has not been generated. \
@@ -631,27 +606,30 @@ def add_file_to_crate(
             "description"
         ] = "COMPSs command line execution command, including parameters passed"
         file_properties["encodingFormat"] = "text/plain"
-        CRATE.add_file("compss_command_line_arguments.txt", properties=file_properties)
+        compss_crate.add_file(
+            "compss_command_line_arguments.txt", properties=file_properties
+        )
+        return ""
+
+    return path_in_crate
 
 
 def add_application_source_files(
+    compss_crate: ROCrate,
     compss_wf_info: dict,
     compss_ver: str,
     main_entity: str,
     out_profile: str,
-    ins: list,
-    outs: list
-    ) -> None:
+) -> None:
     """
     Add all application source files as part of the crate. This means, to include them physically in the resulting
     bundle
 
+    :param compss_crate: The COMPSs RO-Crate being generated
     :param compss_wf_info: YAML dict to extract info form the application, as specified by the user
     :param compss_ver: COMPSs version number
     :param main_entity: COMPSs file with the main code, full path resolved
     :param out_profile: COMPSs application profile output file
-    :param ins: List of input files
-    :param outs: List of output files
 
     :returns: None
     """
@@ -659,6 +637,7 @@ def add_application_source_files(
     part_time = time.time()
     # print(f"compss_wf_info: {compss_wf_info}")
     added_files = []
+    crate_paths = []
     if "sources_dir" in compss_wf_info:
         # Optional, the user specifies a directory with all sources
         sources_list = []
@@ -677,12 +656,15 @@ def add_application_source_files(
                 for f_name in files:
                     # print(f"Adding file from sources_dir: root: {root} f_name: {f_name}")
                     resolved_file = os.path.join(root, f_name)
-                    add_file_to_crate(
-                        resolved_file,
-                        compss_ver,
-                        main_entity,
-                        out_profile,
-                        resolved_sources,
+                    crate_paths.append(
+                        add_file_to_crate(
+                            compss_crate,
+                            resolved_file,
+                            compss_ver,
+                            main_entity,
+                            out_profile,
+                            resolved_sources,
+                        )
                     )
                     added_files.append(resolved_file)
 
@@ -704,8 +686,15 @@ def add_application_source_files(
                 continue
             if resolved_file not in added_files:
                 # print(f"Adding file from 'files': {file}")
-                add_file_to_crate(
-                    resolved_file, compss_ver, main_entity, out_profile, ""
+                crate_paths.append(
+                    add_file_to_crate(
+                        compss_crate,
+                        resolved_file,
+                        compss_ver,
+                        main_entity,
+                        out_profile,
+                        "",
+                    )
                 )
                 added_files.append(resolved_file)
             else:
@@ -713,17 +702,27 @@ def add_application_source_files(
                     f"PROVENANCE | WARNING: A file addition was attempted twice in 'files' and 'sources_dir': "
                     f"{resolved_file}"
                 )
+
+    # Add auxiliary files as hasPart to the ComputationalWorkflow main file
+    # Not working well when an application has several versions (ex: Java matmul files, objects, arrays)
+    # for e in compss_crate.data_entities:
+    #     if 'ComputationalWorkflow' in e.type:
+    #         for file in crate_paths:
+    #             if file is not "":
+    #                 e.append_to("hasPart", {"@id": file})
+
     print(
         f"PROVENANCE | RO-CRATE adding physical files TIME (add_file_to_crate): {time.time() - part_time} s"
     )
 
 
-def add_file_not_in_crate(in_url: str) -> None:
+def add_file_not_in_crate(compss_crate: ROCrate, in_url: str) -> None:
     """
     When adding local files that we don't want to be physically in the Crate, they must be added with a file:// URI
     CAUTION: If the file has been already added (e.g. for INOUT files) add_file won't succeed in adding a second entity
     with the same name
 
+    :param compss_crate: The COMPSs RO-Crate being generated
     :param in_url: File added as input or output, but not in the RO-Crate
 
     :returns: None
@@ -735,13 +734,15 @@ def add_file_not_in_crate(in_url: str) -> None:
     file_properties = {
         "name": final_item_name,
         "sdDatePublished": iso_now(),
-        "dateModified": DT.datetime.utcfromtimestamp(os.path.getmtime(url_parts.path)).replace(microsecond=0).isoformat(),  # Schema.org
+        "dateModified": dt.datetime.utcfromtimestamp(os.path.getmtime(url_parts.path))
+        .replace(microsecond=0)
+        .isoformat(),  # Schema.org
     }  # Register when the Data Entity was last accessible
 
     if url_parts.scheme == "file":  # Dealing with a local file
         file_properties["contentSize"] = os.path.getsize(url_parts.path)
         # add_file_time = time.time()
-        CRATE.add_file(
+        compss_crate.add_file(
             in_url,
             fetch_remote=False,
             validate_url=False,  # True fails at MN4 when file URI points to a node hostname (only localhost works)
@@ -765,11 +766,15 @@ def add_file_not_in_crate(in_url: str) -> None:
                 dir_f_properties = {
                     "name": f_name,
                     "sdDatePublished": iso_now(),  # Register when the Data Entity was last accessible
-                    "dateModified": DT.datetime.utcfromtimestamp(os.path.getmtime(url_parts.path)).replace(microsecond=0).isoformat(),
+                    "dateModified": dt.datetime.utcfromtimestamp(
+                        os.path.getmtime(url_parts.path)
+                    )
+                    .replace(microsecond=0)
+                    .isoformat(),
                     # Schema.org
                     "contentSize": os.path.getsize(listed_file),
                 }
-                CRATE.add_file(
+                compss_crate.add_file(
                     dir_f_url,
                     fetch_remote=False,
                     validate_url=False,
@@ -777,18 +782,20 @@ def add_file_not_in_crate(in_url: str) -> None:
                     properties=dir_f_properties,
                 )
         file_properties["hasPart"] = has_part_list
-        CRATE.add_dataset(
+        compss_crate.add_dataset(
             fix_dir_url(in_url), properties=file_properties
         )  # fetch_remote and validate_url false by default. add_dataset also ensures the URL ends with '/'
 
     else:  # Remote file, currently not supported in COMPSs. validate_url already adds contentSize and encodingFormat
         # from the remote file
-        CRATE.add_file(in_url, validate_url=True, properties=file_properties)
+        compss_crate.add_file(in_url, validate_url=True, properties=file_properties)
 
     # print(f"Method vs add_file TIME: {time.time() - method_time} vs {add_file_time}")
 
 
-def wrroc_create_action(compss_crate: ROCrate, main_entity: str, author_list: list, ins: list, outs: list) -> str:
+def wrroc_create_action(
+    compss_crate: ROCrate, main_entity: str, author_list: list, ins: list, outs: list
+) -> str:
     """
     Add a CreateAction term to the ROCrate to make it compliant with WRROC.  RO-Crate WorkflowRun Level 2 profile,
     aka. Workflow Run Crate.
@@ -804,7 +811,10 @@ def wrroc_create_action(compss_crate: ROCrate, main_entity: str, author_list: li
 
     # Compliance with RO-Crate WorkflowRun Level 2 profile, aka. Workflow Run Crate
     import socket
-    host_name = os.getenv("SLURM_CLUSTER_NAME")  # marenostrum4, nord3, ... BSC_MACHINE would also work
+
+    host_name = os.getenv(
+        "SLURM_CLUSTER_NAME"
+    )  # marenostrum4, nord3, ... BSC_MACHINE would also work
     if host_name is None:
         host_name = socket.gethostname()
     job_id = os.getenv("SLURM_JOB_ID")
@@ -814,28 +824,45 @@ def wrroc_create_action(compss_crate: ROCrate, main_entity: str, author_list: li
     run_uuid = str(uuid.uuid4())
 
     if job_id is None:
-        name_property = "COMPSs " + main_entity_pathobj.name + " execution at " + host_name
+        name_property = (
+            "COMPSs " + main_entity_pathobj.name + " execution at " + host_name
+        )
         userportal_url = None
         create_action_id = "#COMPSs_Workflow_Run_Crate_" + host_name + "_" + run_uuid
     else:
-        name_property = "COMPSs " + main_entity_pathobj.name + " execution at " + host_name + " with JOB_ID " + job_id
+        name_property = (
+            "COMPSs "
+            + main_entity_pathobj.name
+            + " execution at "
+            + host_name
+            + " with JOB_ID "
+            + job_id
+        )
         userportal_url = "https://userportal.bsc.es/"  # job_id cannot be added, does not match the one in userportal
-        create_action_id = "#COMPSs_Workflow_Run_Crate_" + host_name + "_SLURM_JOB_ID_" + job_id
+        create_action_id = (
+            "#COMPSs_Workflow_Run_Crate_" + host_name + "_SLURM_JOB_ID_" + job_id
+        )
 
     # OSTYPE, HOSTTYPE, HOSTNAME defined by bash and not inherited. Changed to "uname -a"
     import subprocess
-    uname = subprocess.run(['uname', '-a'], stdout=subprocess.PIPE)
-    uname_out = uname.stdout.decode('utf-8')[:-1]  # Remove final '\n'
+
+    uname = subprocess.run(["uname", "-a"], stdout=subprocess.PIPE)
+    uname_out = uname.stdout.decode("utf-8")[:-1]  # Remove final '\n'
 
     # SLURM interesting variables: SLURM_JOB_NAME, SLURM_JOB_QOS, SLURM_JOB_USER, SLURM_SUBMIT_DIR, SLURM_NNODES or
     # SLURM_JOB_NUM_NODES, SLURM_JOB_CPUS_PER_NODE, SLURM_MEM_PER_CPU, SLURM_JOB_NODELIST or SLURM_NODELIST.
     slurm_env_vars = ""
     for name, value in os.environ.items():
-        if name.startswith(('SLURM_JOB', 'SLURM_MEM', 'SLURM_SUBMIT', 'COMPSS')) and name != "SLURM_JOBID":
+        if (
+            name.startswith(("SLURM_JOB", "SLURM_MEM", "SLURM_SUBMIT", "COMPSS"))
+            and name != "SLURM_JOBID"
+        ):
             slurm_env_vars += "{0}={1} ".format(name, value)
 
     if len(slurm_env_vars) > 0:
-        description_property = uname_out + " " + slurm_env_vars[:-1]  # Remove blank space
+        description_property = (
+            uname_out + " " + slurm_env_vars[:-1]
+        )  # Remove blank space
     else:
         description_property = uname_out
     # print(f"description: {description_property}")
@@ -848,23 +875,24 @@ def wrroc_create_action(compss_crate: ROCrate, main_entity: str, author_list: li
     #         resolved_mainEntity = f
     #
 
-    resolved_mainEntity = main_entity
+    resolved_main_entity = main_entity
     for e in compss_crate.get_entities():
         if "ComputationalWorkflow" in e.type:
-            resolved_mainEntity = e.id
+            resolved_main_entity = e.id
 
     create_action_properties = {
         "@type": "CreateAction",
-        "instrument": {"@id": resolved_mainEntity},  # Resolved path of the main file
+        "instrument": {"@id": resolved_main_entity},  # Resolved path of the main file
         "actionStatus": {"@id": "http://schema.org/CompletedActionStatus"},
         "agent": author_list,  # Add list of authors, not just 1
         "endTime": iso_now(),  # Get current time
         "name": name_property,
-        "description": description_property
+        "description": description_property,
     }
 
-    create_action = compss_crate.add(ContextEntity(compss_crate, create_action_id,
-                                            create_action_properties))  # id can be something fancy for MN4, otherwise, whatever
+    create_action = compss_crate.add(
+        ContextEntity(compss_crate, create_action_id, create_action_properties)
+    )  # id can be something fancy for MN4, otherwise, whatever
     create_action.properties()
 
     # "subjectOf": {"@id": userportal_url}
@@ -881,7 +909,39 @@ def wrroc_create_action(compss_crate: ROCrate, main_entity: str, author_list: li
 
     return run_uuid
 
+
 def main():
+    yaml_template = (
+        "COMPSs Workflow Information:\n"
+        "  name: Name of your COMPSs application\n"
+        "  description: Detailed description of your COMPSs application\n"
+        "  license: Apache-2.0\n"
+        "    # URL preferred, but these strings are accepted: https://about.workflowhub.eu/Workflow-RO-Crate/#supported-licenses\n"
+        "  sources_dir: [path_to/dir_1, path_to/dir_2]\n"
+        "    # Optional: List of directories containing the application source files. Relative or absolute paths can be used\n"
+        "  sources_main_file: my_main_file.py\n"
+        "    # Optional: Name of the main file of the application, located in one of the sources_dir.\n"
+        "    # Relative paths from a sources_dir entry, or absolute paths can be used\n"
+        "  files: [main_file.py, aux_file_1.py, aux_file_2.py]\n"
+        "    # List of application files. Relative or absolute paths can be used\n"
+        "\n"
+        "Authors:\n"
+        "  - name: Author_1 Name\n"
+        "    e-mail: author_1@email.com\n"
+        "    orcid: https://orcid.org/XXXX-XXXX-XXXX-XXXX\n"
+        "    organisation_name: Institution_1 name\n"
+        "    ror: https://ror.org/XXXXXXXXX\n"
+        "      # Find them in ror.org\n"
+        "  - name: Author_2 Name\n"
+        "    e-mail: author2@email.com\n"
+        "    orcid: https://orcid.org/YYYY-YYYY-YYYY-YYYY\n"
+        "    organisation_name: Institution_2 name\n"
+        "    ror: https://ror.org/YYYYYYYYY\n"
+        "      # Find them in ror.org\n"
+    )
+
+    compss_crate = ROCrate()
+
     # First, read values defined by user from ro-crate-info.yaml
     try:
         with open(info_yaml, "r", encoding="utf-8") as fp:
@@ -900,7 +960,7 @@ def main():
         raise
 
     # Generate Root entity section in the RO-Crate
-    compss_wf_info, author_list = root_entity(CRATE, yaml_content)
+    compss_wf_info, author_list = root_entity(compss_crate, yaml_content)
 
     # Get mainEntity from COMPSs runtime log dataprovenance.log
     compss_ver, main_entity, out_profile = get_main_entities(compss_wf_info)
@@ -909,13 +969,15 @@ def main():
     # This must be done before adding the Workflow to the RO-Crate
     ins, outs = process_accessed_files()
 
-    # Add application source files, that will be physically in the crate
-    add_application_source_files(compss_wf_info, compss_ver, main_entity, out_profile, ins, outs)
+    # Add application source files to the RO-Crate, that will also be physically in the crate
+    add_application_source_files(
+        compss_crate, compss_wf_info, compss_ver, main_entity, out_profile
+    )
 
-    # Add files not to be physically in the Crate
+    # Add in and out files, not to be physically copied in the Crate
     part_time = time.time()
     for item in ins:
-        add_file_not_in_crate(item)
+        add_file_not_in_crate(compss_crate, item)
     print(
         f"PROVENANCE | RO-CRATE adding input files' references TIME (add_file_not_in_crate): "
         f"{time.time() - part_time} s"
@@ -923,25 +985,30 @@ def main():
 
     part_time = time.time()
     for item in outs:
-        add_file_not_in_crate(item)
+        add_file_not_in_crate(compss_crate, item)
     print(
         f"PROVENANCE | RO-CRATE adding output files' references TIME (add_file_not_in_crate): "
         f"{time.time() - part_time} s"
     )
 
-    run_uuid = wrroc_create_action(CRATE, main_entity, author_list, ins, outs)  # Compliance with RO-Crate WorkflowRun Level 2 profile, aka. Workflow Run Crate
+    # Register execution details using WRROC profile
+    run_uuid = wrroc_create_action(
+        compss_crate, main_entity, author_list, ins, outs
+    )  # Compliance with RO-Crate WorkflowRun Level 2 profile, aka. Workflow Run Crate
 
     # Temporary, until ro-crate-py includes this automatically
-    CRATE.metadata.append_to("conformsTo", {"@id": "https://w3id.org/ro/wfrun/workflow/0.1-DRAFT"})
+    compss_crate.metadata.append_to(
+        "conformsTo", {"@id": "https://w3id.org/ro/wfrun/workflow/0.1-DRAFT"}
+    )
 
     # Debug
-    # for e in CRATE.get_entities():
+    # for e in compss_crate.get_entities():
     #    print(e.id, e.type)
 
     # Dump to file
     part_time = time.time()
     folder = "COMPSs_RO-Crate_" + run_uuid + "/"
-    CRATE.write(folder)
+    compss_crate.write(folder)
     print(f"PROVENANCE | COMPSs RO-Crate created successfully in subfolder {folder}")
     print(f"PROVENANCE | RO-CRATE dump TIME: {time.time() - part_time} s")
     # cleanup from workingdir

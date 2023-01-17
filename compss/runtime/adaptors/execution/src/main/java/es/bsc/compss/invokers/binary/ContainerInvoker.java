@@ -315,7 +315,7 @@ public class ContainerInvoker extends Invoker {
                 cmd[cmdIndex++] = "-i";
                 cmd[cmdIndex++] = "--rm";
                 cmd[cmdIndex++] = "--mount";
-                cmd[cmdIndex++] = "source=pycompss_path,destination=\"/opt/COMPSs/Bindings/python/3/pycompss/\"";
+                cmd[cmdIndex++] = "source=pycompss_path,destination=/opt/COMPSs/Bindings/python/3/pycompss/";
                 cmd[cmdIndex++] = "-v";
                 // todo: nm: if the env variable is defined, use that
                 // nm: for the app dir, we need exactly the same as this, but it goes inside case CET_PYTHON..

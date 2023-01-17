@@ -331,8 +331,9 @@ public class ContainerInvoker extends Invoker {
                         cmd[cmdIndex++] = "--mount";
                         cmd[cmdIndex++] = "source=pycompss_path,destination=/opt/COMPSs/Bindings/python/3/pycompss/";
                         // cmd[cmdIndex++] = "-v";
-                        // cmd[cmdIndex++] = pyCompssDir + File.separator + "pycompss" + File.separator + ":" + pyCompssDir
-                        //    + File.separator + "pycompss" + File.separator;
+                        // cmd[cmdIndex++] = pyCompssDir + File.separator + "pycompss" + File.separator + ":" +
+                        // pyCompssDir
+                        // + File.separator + "pycompss" + File.separator;
                         cmd[cmdIndex++] = "--env";
                         cmd[cmdIndex++] = "PYTHONPATH=" + pythonPath + ":" + pyCompssDir;
                         break;

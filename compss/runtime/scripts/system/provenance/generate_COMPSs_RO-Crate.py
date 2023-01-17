@@ -79,7 +79,7 @@ def root_entity(compss_crate: ROCrate, yaml_content: dict) -> typing.Tuple[dict,
     compss_crate.description = compss_wf_info["description"]
     compss_crate.license = compss_wf_info[
         "license"
-    ]  # Faltarà el detall de la llicència????
+    ]  # License details could be also added as a Contextual Entity
     authors_set = set()
     organisations_set = set()
     for author in authors_info:
@@ -192,9 +192,6 @@ def get_main_entities(wf_info: dict) -> typing.Tuple[str, str, str]:
                         # print(
                         #     f"PROVENANCE DEBUG | FOUND SOURCE FILE AS BACKUP MAIN: {backup_main_entity}"
                         # )
-
-    print(f"PROVENANCE | Number of source files detected: {len(list_of_sources)}")
-    # print(f"PROVENANCE DEBUG | Source files detected: {list_of_sources}")
 
     # Can't get backup_main_entity from sources_main_file, because we do not know if it really exists
     if backup_main_entity is None:
@@ -364,14 +361,6 @@ def add_file_to_crate(
     file_properties = dict()
     file_properties["name"] = file_path.name
     file_properties["contentSize"] = os.path.getsize(file_name)
-    # Check file extension, to decide how to add it in the Crate file_path.suffix
-    # if file_path.suffix == ".jar":  # We can ignore main_entity
-    #     namespace = main_entity_in.rstrip().split(".")
-    #     print(f"namespace: {namespace}")
-    #     main_entity = namespace[0] + ".jar"  # Rebuild package name
-    # else:  # main_file.py or any other file
-    #     main_entity = main_entity_in
-    # print(f"main_entity is: {main_entity}, file_path is: {file_path}")
 
     # main_entity has its absolute path, as well as file_name
     if file_name == main_entity:
@@ -416,18 +405,12 @@ def add_file_to_crate(
         # input and output properties not added to the workflow, since we do not comply with BioSchemas
         # (i.e. no FormalParameters are defined)
 
-        # file_properties["input"] = []
-        # for item in ins:
-        #     file_properties["input"].append({"@id": fix_dir_url(item)})
-        # file_properties["output"] = []
-        # for item in outs:
-        #     file_properties["output"].append({"@id": fix_dir_url(item)})
-
     else:
         # Any other extra file needed
         file_properties["description"] = "Auxiliary File"
         if file_path.suffix == ".py" or file_path.suffix == ".java":
             file_properties["encodingFormat"] = "text/plain"
+            file_properties["@type"] = ["File", "SoftwareSourceCode"]
         elif file_path.suffix == ".json":
             file_properties["encodingFormat"] = [
                 "application/json",
@@ -485,23 +468,14 @@ def add_file_to_crate(
     if in_sources_dir:
         # /home/bsc/src/file.py must be translated to application_sources/src/file.py,
         # but in_sources_dir is /home/bsc/src
-        # print(f"in_sources_dir is {in_sources_dir}")
-        # list_root = list(Path(in_sources_dir).parts)
-        # list_root.pop()
-        # new_root = os.path.join(*list_root)
         new_root = str(Path(in_sources_dir).parents[0])
-        # print(f"new_root is {new_root}")
         final_name = file_name[len(new_root) + 1 :]
-        # print(f"final_name is {final_name}")
         path_in_crate = "application_sources/" + final_name
     else:
         path_in_crate = "application_sources/" + file_path.name
 
-    # print(f"path_in_crate: {path_in_crate}")
-
     if file_name != main_entity:
         # print(f"PROVENANCE DEBUG | Adding auxiliary source file: {file_name}")
-        file_properties["@type"] = ["File", "SoftwareSourceCode"]
         compss_crate.add_file(
             source=file_name, dest_path=path_in_crate, properties=file_properties
         )
@@ -635,7 +609,6 @@ def add_application_source_files(
     """
 
     part_time = time.time()
-    # print(f"compss_wf_info: {compss_wf_info}")
     added_files = []
     crate_paths = []
     if "sources_dir" in compss_wf_info:
@@ -650,11 +623,8 @@ def add_application_source_files(
             if not path_sources.exists():
                 continue
             resolved_sources = str(path_sources.resolve())
-            # print(f"resolved_sources is: {resolved_sources}")
-            # resolved_sources = compss_wf_info["sources_dir"]
             for root, dirs, files in os.walk(resolved_sources, topdown=True):
                 for f_name in files:
-                    # print(f"Adding file from sources_dir: root: {root} f_name: {f_name}")
                     resolved_file = os.path.join(root, f_name)
                     crate_paths.append(
                         add_file_to_crate(
@@ -669,7 +639,6 @@ def add_application_source_files(
                     added_files.append(resolved_file)
 
     if "files" in compss_wf_info:
-        # print(f"compss_wf_info(files): {compss_wf_info['files']}")
         files_list = []
         if isinstance(compss_wf_info["files"], list):
             files_list = compss_wf_info["files"]
@@ -685,7 +654,6 @@ def add_application_source_files(
                 )
                 continue
             if resolved_file not in added_files:
-                # print(f"Adding file from 'files': {file}")
                 crate_paths.append(
                     add_file_to_crate(
                         compss_crate,
@@ -710,6 +678,9 @@ def add_application_source_files(
     #         for file in crate_paths:
     #             if file is not "":
     #                 e.append_to("hasPart", {"@id": file})
+
+    print(f"PROVENANCE | Number of source files detected: {len(added_files)}")
+    # print(f"PROVENANCE DEBUG | Source files detected: {added_files}")
 
     print(
         f"PROVENANCE | RO-CRATE adding physical files TIME (add_file_to_crate): {time.time() - part_time} s"
@@ -865,15 +836,6 @@ def wrroc_create_action(
         )  # Remove blank space
     else:
         description_property = uname_out
-    # print(f"description: {description_property}")
-
-    # Find mainEntity but with resolved file_path
-    # resolved_mainEntity = resolved_file
-    # for f in added_files:
-    #     f_path = Path(f)
-    #     if f_path.name == main_entity:
-    #         resolved_mainEntity = f
-    #
 
     resolved_main_entity = main_entity
     for e in compss_crate.get_entities():

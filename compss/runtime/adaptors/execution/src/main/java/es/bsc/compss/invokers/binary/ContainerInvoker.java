@@ -314,8 +314,8 @@ public class ContainerInvoker extends Invoker {
                 cmd[cmdIndex++] = "run";
                 cmd[cmdIndex++] = "-i";
                 cmd[cmdIndex++] = "--rm";
-                cmd[cmdIndex++] =  "--mount";
-                cmd[cmdIndex++] =  "source=pycompss_path,destination=\"/opt/COMPSs/Bindings/python/3/pycompss/\"" ;
+                cmd[cmdIndex++] = "--mount";
+                cmd[cmdIndex++] = "source=pycompss_path,destination=\"/opt/COMPSs/Bindings/python/3/pycompss/\"";
                 cmd[cmdIndex++] = "-v";
                 // todo: nm: if the env variable is defined, use that
                 String dockerWorkDirVolume = System.getenv(COMPSsConstants.DOCKER_WORKING_DIR_VOLUME);

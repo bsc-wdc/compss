@@ -278,10 +278,10 @@ public class ContainerInvoker extends Invoker {
             case DOCKER:
                 switch (this.internalExecutionType) {
                     case CET_PYTHON:
-                        numCmdArgs = NUM_BASE_DOCKER_PYTHON_ARGS + numOptions + containerCallParams.size() + 2;
+                        numCmdArgs = NUM_BASE_DOCKER_PYTHON_ARGS + numOptions + containerCallParams.size();
                         break;
                     case CET_BINARY:
-                        numCmdArgs = NUM_BASE_DOCKER_BINARY_ARGS + numOptions + containerCallParams.size() + 2;
+                        numCmdArgs = NUM_BASE_DOCKER_BINARY_ARGS + numOptions + containerCallParams.size();
                 }
                 break;
             case SINGULARITY:
@@ -314,8 +314,6 @@ public class ContainerInvoker extends Invoker {
                 cmd[cmdIndex++] = "run";
                 cmd[cmdIndex++] = "-i";
                 cmd[cmdIndex++] = "--rm";
-                cmd[cmdIndex++] = "--mount";
-                cmd[cmdIndex++] = "source=pycompss_path,destination=/opt/COMPSs/Bindings/python/3/pycompss/";
                 cmd[cmdIndex++] = "-v";
                 // todo: nm: if the env variable is defined, use that
                 String dockerWorkDirVolume = System.getenv(COMPSsConstants.DOCKER_WORKING_DIR_VOLUME);
@@ -329,9 +327,11 @@ public class ContainerInvoker extends Invoker {
                     case CET_PYTHON:
                         cmd[cmdIndex++] = "-v";
                         cmd[cmdIndex++] = appDir + ":" + appDir;
-                        cmd[cmdIndex++] = "-v";
-                        cmd[cmdIndex++] = pyCompssDir + File.separator + "pycompss" + File.separator + ":" + pyCompssDir
-                            + File.separator + "pycompss" + File.separator;
+                        cmd[cmdIndex++] = "--mount";
+                        cmd[cmdIndex++] = "source=pycompss_path,destination=/opt/COMPSs/Bindings/python/3/pycompss/";
+                        // cmd[cmdIndex++] = "-v";
+                        // cmd[cmdIndex++] = pyCompssDir + File.separator + "pycompss" + File.separator + ":" + pyCompssDir
+                        //    + File.separator + "pycompss" + File.separator;
                         cmd[cmdIndex++] = "--env";
                         cmd[cmdIndex++] = "PYTHONPATH=" + pythonPath + ":" + pyCompssDir;
                         break;

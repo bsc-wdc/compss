@@ -25,13 +25,6 @@ import os
 
 from modules.tasks import *
 
-@container(engine="docker", image="ubuntu")
-@mpi(binary="echo", runner="mpirun", args="testing+container+with+mpi")
-@task(returns=1)
-def task_container_mpi(a):
-    pass
-
-
 # Tests
 
 class testContainerDecorator(unittest.TestCase):

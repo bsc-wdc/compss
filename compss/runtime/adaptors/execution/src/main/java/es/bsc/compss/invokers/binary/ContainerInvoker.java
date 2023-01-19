@@ -327,7 +327,13 @@ public class ContainerInvoker extends Invoker {
                 switch (this.internalExecutionType) {
                     case CET_PYTHON:
                         cmd[cmdIndex++] = "-v";
-                        cmd[cmdIndex++] = appDir + ":" + appDir;
+                        String appDirVolume = System.getenv(COMPSsConstants.DOCKER_APP_DIR_VOLUME);
+                        if (appDirVolume != null && !appDirVolume.isEmpty()) {
+                            String dockerAppDirMount = System.getenv(COMPSsConstants.DOCKER_APP_DIR_MOUNT);
+                            cmd[cmdIndex++] = appDirVolume + ":" + dockerAppDirMount;
+                        } else {
+                            cmd[cmdIndex++] = appDir + ":" + appDir;
+                        }
                         cmd[cmdIndex++] = "--mount";
                         cmd[cmdIndex++] = "source=pycompss_path,destination=/opt/COMPSs/Bindings/python/3/pycompss/";
                         // cmd[cmdIndex++] = "-v";

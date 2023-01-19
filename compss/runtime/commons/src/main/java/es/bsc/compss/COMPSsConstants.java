@@ -187,6 +187,8 @@ public class COMPSsConstants {
 
     // Docker execution related variable names
 
+    public static final String DOCKER_APP_DIR_VOLUME = "DOCKER_APP_DIR_VOLUME";
+    public static final String DOCKER_APP_DIR_MOUNT = "DOCKER_APP_DIR_MOUNT";
     public static final String DOCKER_WORKING_DIR_VOLUME = "DOCKER_WORKING_DIR_VOLUME";
     public static final String DOCKER_WORKING_DIR_MOUNT = "DOCKER_WORKING_DIR_MOUNT";
 

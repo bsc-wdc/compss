@@ -6,6 +6,8 @@
 PyCOMPSs Testbench Simple
 ========================
 """
+import sys
+
 """
 GROMACS Tutorial with PyCOMPSs
 Lysozyme in Water
@@ -25,15 +27,16 @@ images merge.
 
 import unittest
 
-from lysozyme_in_water import *
+from src.lysozyme_in_water import *
 
 
 class ContainerMPITest(unittest.TestCase):
 
     def test_gromacs(self):
-        config_path = os.getcwd().join("config")
+        base_app_dir = sys.argv[0].replace("decorator_container_mpi.py", "../")
+        config_path = os.path.join(base_app_dir, "config")
         dataset_path = "/gpfs/projects/bsc19/COMPSs_DATASETS/gromacs/2m"
-        output_path = os.getcwd().join("output")
+        output_path = os.path.join(base_app_dir, "output")
         self.assertTrue(main(dataset_path, output_path, config_path))
 
 

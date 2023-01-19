@@ -316,6 +316,7 @@ public class ContainerInvoker extends Invoker {
                 cmd[cmdIndex++] = "--rm";
                 cmd[cmdIndex++] = "-v";
                 // todo: nm: if the env variable is defined, use that
+                // nm: for the app dir, we need exactly the same as this, but it goes inside case CET_PYTHON..
                 String dockerWorkDirVolume = System.getenv(COMPSsConstants.DOCKER_WORKING_DIR_VOLUME);
                 if (dockerWorkDirVolume != null && !dockerWorkDirVolume.isEmpty()) {
                     String dockerWorkDirMount = System.getenv(COMPSsConstants.DOCKER_WORKING_DIR_MOUNT);

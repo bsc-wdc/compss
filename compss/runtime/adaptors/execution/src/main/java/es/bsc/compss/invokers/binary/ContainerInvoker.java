@@ -318,6 +318,7 @@ public class ContainerInvoker extends Invoker {
                 // todo: nm: if the env variable is defined, use that
                 // nm: for the app dir, we need exactly the same as this, but it goes inside case CET_PYTHON..
                 String dockerWorkDirVolume = System.getenv(COMPSsConstants.DOCKER_WORKING_DIR_VOLUME);
+                LOGGER.info("Docker Working Dir Volume: {}", dockerWorkDirVolume);
                 if (dockerWorkDirVolume != null && !dockerWorkDirVolume.isEmpty()) {
                     String dockerWorkDirMount = System.getenv(COMPSsConstants.DOCKER_WORKING_DIR_MOUNT);
                     cmd[cmdIndex++] = dockerWorkDirVolume + ":" + dockerWorkDirMount;
@@ -328,8 +329,10 @@ public class ContainerInvoker extends Invoker {
                     case CET_PYTHON:
                         cmd[cmdIndex++] = "-v";
                         String appDirVolume = System.getenv(COMPSsConstants.DOCKER_APP_DIR_VOLUME);
+                        LOGGER.info("Docker APP Dir Volume: {}", appDirVolume);
                         if (appDirVolume != null && !appDirVolume.isEmpty()) {
                             String dockerAppDirMount = System.getenv(COMPSsConstants.DOCKER_APP_DIR_MOUNT);
+                            LOGGER.info("Docker APP Dir mount: {}", dockerAppDirMount);
                             cmd[cmdIndex++] = appDirVolume + ":" + dockerAppDirMount;
                         } else {
                             cmd[cmdIndex++] = appDir + ":" + appDir;

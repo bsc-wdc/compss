@@ -31,6 +31,7 @@ import os
 import uuid
 import typing
 import datetime as dt
+import json
 
 
 def fix_dir_url(in_url: str) -> str:
@@ -178,6 +179,8 @@ def get_main_entities(wf_info: dict) -> typing.Tuple[str, str, str]:
             resolved_sources = str(path_sources.resolve())
             # print(f"resolved_sources is: {resolved_sources}")
             for root, dirs, files in os.walk(resolved_sources, topdown=True):
+                if "__pycache__" in root:
+                    continue  # We skip __pycache__ subdirectories
                 for f_name in files:
                     # print(f"PROVENANCE DEBUG | ADDING FILE to list_of_sources: {f_name}. root is: {root}")
                     full_name = os.path.join(root, f_name)
@@ -546,6 +549,9 @@ def add_file_to_crate(
 
         # out_profile
         if os.path.exists(out_profile):
+
+
+
             file_properties = dict()
             file_properties["name"] = out_profile
             file_properties["contentSize"] = os.path.getsize(out_profile)
@@ -554,6 +560,13 @@ def add_file_to_crate(
                 "application/json",
                 {"@id": "https://www.nationalarchives.gov.uk/PRONOM/fmt/817"},
             ]
+
+            # Fix COMPSs crappy format of JSON files
+            with open(out_profile) as op_file:
+                op_json = json.load(op_file)
+            with open(out_profile, "w") as op_file:
+                json.dump(op_json, op_file, indent=1)
+
             # Add JSON as ContextEntity
             compss_crate.add(
                 ContextEntity(
@@ -624,6 +637,8 @@ def add_application_source_files(
                 continue
             resolved_sources = str(path_sources.resolve())
             for root, dirs, files in os.walk(resolved_sources, topdown=True):
+                if "__pycache__" in root:
+                    continue  # We skip __pycache__ subdirectories
                 for f_name in files:
                     resolved_file = os.path.join(root, f_name)
                     crate_paths.append(

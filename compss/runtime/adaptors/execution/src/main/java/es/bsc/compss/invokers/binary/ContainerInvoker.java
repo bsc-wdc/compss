@@ -327,6 +327,7 @@ public class ContainerInvoker extends Invoker {
                 }
                 switch (this.internalExecutionType) {
                     case CET_PYTHON:
+                        // mount the app dir
                         cmd[cmdIndex++] = "-v";
                         String appDirVolume = System.getenv(COMPSsConstants.DOCKER_APP_DIR_VOLUME);
                         LOGGER.info("Docker APP Dir Volume: {}", appDirVolume);
@@ -337,8 +338,21 @@ public class ContainerInvoker extends Invoker {
                         } else {
                             cmd[cmdIndex++] = appDir + ":" + appDir;
                         }
-                        cmd[cmdIndex++] = "--mount";
-                        cmd[cmdIndex++] = "source=pycompss_path,destination=/opt/COMPSs/Bindings/python/3/pycompss/";
+                        // mount the pycompss dir
+                        cmd[cmdIndex++] = "-v";
+                        String pycompssVol = System.getenv(COMPSsConstants.DOCKER_PYCOMPSS_VOLUME);
+                        LOGGER.info("Docker PYCOMPSS Dir Volume: {}", pycompssVol);
+                        if (pycompssVol != null && !pycompssVol.isEmpty()) {
+                            String pycompssMount = System.getenv(COMPSsConstants.DOCKER_PYCOMPSS_MOUNT);
+                            LOGGER.info("Docker pycompss mount: {}", pycompssMount);
+                            cmd[cmdIndex++] = pycompssVol + ":" + pycompssMount;
+                        } else {
+                             cmd[cmdIndex++] = pyCompssDir + File.separator + "pycompss" + File.separator + ":" +
+                             pyCompssDir;
+                        }
+
+                        // cmd[cmdIndex++] = "--mount";
+                        // cmd[cmdIndex++] = "source=pycompss_path,destination=/opt/COMPSs/Bindings/python/3/pycompss/";
                         // cmd[cmdIndex++] = "-v";
                         // cmd[cmdIndex++] = pyCompssDir + File.separator + "pycompss" + File.separator + ":" +
                         // pyCompssDir

@@ -189,6 +189,8 @@ public class COMPSsConstants {
 
     public static final String DOCKER_APP_DIR_VOLUME = "DOCKER_APP_DIR_VOLUME";
     public static final String DOCKER_APP_DIR_MOUNT = "DOCKER_APP_DIR_MOUNT";
+    public static final String DOCKER_PYCOMPSS_VOLUME = "DOCKER_PYCOMPSS_VOLUME";
+    public static final String DOCKER_PYCOMPSS_MOUNT = "DOCKER_PYCOMPSS_MOUNT";
     public static final String DOCKER_WORKING_DIR_VOLUME = "DOCKER_WORKING_DIR_VOLUME";
     public static final String DOCKER_WORKING_DIR_MOUNT = "DOCKER_WORKING_DIR_MOUNT";
 

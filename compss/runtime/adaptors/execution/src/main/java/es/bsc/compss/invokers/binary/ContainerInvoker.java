@@ -347,8 +347,8 @@ public class ContainerInvoker extends Invoker {
                             LOGGER.info("Docker pycompss mount: {}", pycompssMount);
                             cmd[cmdIndex++] = pycompssVol + ":" + pycompssMount;
                         } else {
-                             cmd[cmdIndex++] = pyCompssDir + File.separator + "pycompss" + File.separator + ":" +
-                             pyCompssDir;
+                            cmd[cmdIndex++] =
+                                pyCompssDir + File.separator + "pycompss" + File.separator + ":" + pyCompssDir;
                         }
 
                         // cmd[cmdIndex++] = "--mount";

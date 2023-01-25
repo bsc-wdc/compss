@@ -81,6 +81,7 @@ def root_entity(compss_crate: ROCrate, yaml_content: dict) -> typing.Tuple[dict,
     compss_crate.license = compss_wf_info[
         "license"
     ]  # License details could be also added as a Contextual Entity
+
     authors_set = set()
     organisations_set = set()
     for author in authors_info:
@@ -549,9 +550,6 @@ def add_file_to_crate(
 
         # out_profile
         if os.path.exists(out_profile):
-
-
-
             file_properties = dict()
             file_properties["name"] = out_profile
             file_properties["contentSize"] = os.path.getsize(out_profile)
@@ -780,7 +778,12 @@ def add_file_not_in_crate(compss_crate: ROCrate, in_url: str) -> None:
 
 
 def wrroc_create_action(
-    compss_crate: ROCrate, main_entity: str, author_list: list, ins: list, outs: list
+    compss_crate: ROCrate,
+    main_entity: str,
+    author_list: list,
+    ins: list,
+    outs: list,
+    yaml_content: dict,
 ) -> str:
     """
     Add a CreateAction term to the ROCrate to make it compliant with WRROC.  RO-Crate WorkflowRun Level 2 profile,
@@ -791,6 +794,7 @@ def wrroc_create_action(
     :param author_list: List of authors as described in the YAML
     :param ins: List of input files of the workflow
     :param outs: List of output files of the workflow
+    :param yaml_content: Content of the YAML file specified by the user
 
     :returns: UUID generated for this run
     """
@@ -828,6 +832,7 @@ def wrroc_create_action(
         create_action_id = (
             "#COMPSs_Workflow_Run_Crate_" + host_name + "_SLURM_JOB_ID_" + job_id
         )
+    compss_crate.root_dataset["mentions"] = {"@id": create_action_id}
 
     # OSTYPE, HOSTTYPE, HOSTNAME defined by bash and not inherited. Changed to "uname -a"
     import subprocess
@@ -857,11 +862,56 @@ def wrroc_create_action(
         if "ComputationalWorkflow" in e.type:
             resolved_main_entity = e.id
 
+    # Register user submitting the workflow
+    if "Submitter" in yaml_content:
+        compss_crate.add(
+            Person(
+                compss_crate,
+                yaml_content["Submitter"]["orcid"],
+                {
+                    "name": yaml_content["Submitter"]["name"],
+                    "contactPoint": {
+                        "@id": "mailto:" + yaml_content["Submitter"]["e-mail"]
+                    },
+                    "affiliation": {"@id": yaml_content["Submitter"]["ror"]},
+                },
+            )
+        )
+        compss_crate.add(
+            ContextEntity(
+                compss_crate,
+                "mailto:" + yaml_content["Submitter"]["e-mail"],
+                {
+                    "@type": "ContactPoint",
+                    "contactType": "Author",
+                    "email": yaml_content["Submitter"]["e-mail"],
+                    "identifier": yaml_content["Submitter"]["e-mail"],
+                    "url": yaml_content["Submitter"]["orcid"],
+                },
+            )
+        )
+        compss_crate.add(
+            ContextEntity(
+                compss_crate,
+                yaml_content["Submitter"]["ror"],
+                {
+                    "@type": "Organization",
+                    "name": yaml_content["Submitter"]["organisation_name"],
+                },
+            )
+        )
+        submitter = {"@id": yaml_content["Submitter"]["orcid"]}
+    else:  # Choose first author, to avoid leaving it empty. May be true most of the times
+        submitter = author_list[0]
+        print(
+            f"PROVENANCE | WARNING: 'Submitter' not specified in ro-crate-info.yaml. First author selected by default."
+        )
+
     create_action_properties = {
         "@type": "CreateAction",
         "instrument": {"@id": resolved_main_entity},  # Resolved path of the main file
         "actionStatus": {"@id": "http://schema.org/CompletedActionStatus"},
-        "agent": author_list,  # Add list of authors, not just 1
+        "agent": submitter,
         "endTime": iso_now(),  # Get current time
         "name": name_property,
         "description": description_property,
@@ -915,6 +965,14 @@ def main():
         "    organisation_name: Institution_2 name\n"
         "    ror: https://ror.org/YYYYYYYYY\n"
         "      # Find them in ror.org\n"
+        "\n"
+        "Submitter:\n"
+        "  name: Name\n"
+        "  e-mail: submitter@email.com\n"
+        "  orcid: https://orcid.org/XXXX-XXXX-XXXX-XXXX\n"
+        "  organisation_name: Submitter Institution name\n"
+        "  ror: https://ror.org/XXXXXXXXX\n"
+        "    # Find them in ror.org\n"
     )
 
     compss_crate = ROCrate()
@@ -970,7 +1028,7 @@ def main():
 
     # Register execution details using WRROC profile
     run_uuid = wrroc_create_action(
-        compss_crate, main_entity, author_list, ins, outs
+        compss_crate, main_entity, author_list, ins, outs, yaml_content
     )  # Compliance with RO-Crate WorkflowRun Level 2 profile, aka. Workflow Run Crate
 
     # Temporary, until ro-crate-py includes this automatically

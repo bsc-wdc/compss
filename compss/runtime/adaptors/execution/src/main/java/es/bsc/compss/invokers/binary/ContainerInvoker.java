@@ -325,19 +325,19 @@ public class ContainerInvoker extends Invoker {
                 } else {
                     cmd[cmdIndex++] = workingDirMountPoint + ":" + workingDirMountPoint;
                 }
+                // mount the app dir
+                cmd[cmdIndex++] = "-v";
+                String appDirVolume = System.getenv(COMPSsConstants.DOCKER_APP_DIR_VOLUME);
+                LOGGER.info("Docker APP Dir Volume: {}", appDirVolume);
+                if (appDirVolume != null && !appDirVolume.isEmpty()) {
+                    String dockerAppDirMount = System.getenv(COMPSsConstants.DOCKER_APP_DIR_MOUNT);
+                    LOGGER.info("Docker APP Dir mount: {}", dockerAppDirMount);
+                    cmd[cmdIndex++] = appDirVolume + ":" + dockerAppDirMount;
+                } else {
+                    cmd[cmdIndex++] = appDir + ":" + appDir;
+                }
                 switch (this.internalExecutionType) {
                     case CET_PYTHON:
-                        // mount the app dir
-                        cmd[cmdIndex++] = "-v";
-                        String appDirVolume = System.getenv(COMPSsConstants.DOCKER_APP_DIR_VOLUME);
-                        LOGGER.info("Docker APP Dir Volume: {}", appDirVolume);
-                        if (appDirVolume != null && !appDirVolume.isEmpty()) {
-                            String dockerAppDirMount = System.getenv(COMPSsConstants.DOCKER_APP_DIR_MOUNT);
-                            LOGGER.info("Docker APP Dir mount: {}", dockerAppDirMount);
-                            cmd[cmdIndex++] = appDirVolume + ":" + dockerAppDirMount;
-                        } else {
-                            cmd[cmdIndex++] = appDir + ":" + appDir;
-                        }
                         // mount the pycompss dir
                         cmd[cmdIndex++] = "-v";
                         String pycompssVol = System.getenv(COMPSsConstants.DOCKER_PYCOMPSS_VOLUME);
@@ -377,10 +377,10 @@ public class ContainerInvoker extends Invoker {
                 cmd[cmdIndex++] = "exec";
                 cmd[cmdIndex++] = "--bind";
                 cmd[cmdIndex++] = workingDirMountPoint + ":" + workingDirMountPoint;
+                cmd[cmdIndex++] = "--bind";
+                cmd[cmdIndex++] = appDir + ":" + appDir;
                 switch (this.internalExecutionType) {
                     case CET_PYTHON:
-                        cmd[cmdIndex++] = "--bind";
-                        cmd[cmdIndex++] = appDir + ":" + appDir;
                         cmd[cmdIndex++] = "--bind";
                         cmd[cmdIndex++] = pyCompssDir + ":" + pyCompssDir;
                         break;
@@ -399,10 +399,10 @@ public class ContainerInvoker extends Invoker {
                 cmd[cmdIndex++] = "--rm";
                 cmd[cmdIndex++] = "-v";
                 cmd[cmdIndex++] = workingDirMountPoint + ":" + workingDirMountPoint;
+                cmd[cmdIndex++] = "-v";
+                cmd[cmdIndex++] = appDir + ":" + appDir;
                 switch (this.internalExecutionType) {
                     case CET_PYTHON:
-                        cmd[cmdIndex++] = "-v";
-                        cmd[cmdIndex++] = appDir + ":" + appDir;
                         cmd[cmdIndex++] = "-v";
                         cmd[cmdIndex++] = pyCompssDir + File.separator + "pycompss" + File.separator + ":" + pyCompssDir
                             + File.separator + "pycompss" + File.separator;

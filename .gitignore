@@ -185,6 +185,7 @@ compss/runtime/config/xml/resources/src/main/java/es/bsc/compss/types/resources/
 # Ignore configuration files
 tests/configurations/*.cfg
 !tests/configurations/NIO.cfg
+!tests/configurations/NIO_Docker.cfg
 !tests/configurations/GAT.cfg
 !tests/configurations/MT.cfg
 !tests/configurations/MN.cfg

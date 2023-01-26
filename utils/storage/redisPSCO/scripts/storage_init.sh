@@ -9,7 +9,9 @@
   #             "<workerNodes>"      Nodes set as COMPSs workers
   #             <network>            Network type
   #             <storageProps>       Properties file for storage specific variables
-  #            <filePathWithVariablesToBeSourced>  File path to store the variables to be sourced after storage_init.sh execution
+  #             <filePathWithVariablesToBeSourced>  File path to store the variables to be sourced after storage_init.sh execution
+  #             <storageContainerImage> Container image to be used. Can be a file path, default to use the default, or false to ignore
+  #             <storageCPUAffinity> Storage cpu affinity defined
   #############################################################
 
 
@@ -30,7 +32,7 @@
   usage() {
     local exitValue=$1
 
-    echo " Usage: $0 <jobId> <masterNode> <storageMasterNode> \"<workerNodes>\" <network> <storageProps> <filePathWithVariablesToBeSourced>"
+    echo " Usage: $0 <jobId> <masterNode> <storageMasterNode> \"<workerNodes>\" <network> <storageProps> <filePathWithVariablesToBeSourced> <storageContainerImage> <storageCPUAffinity>"
     echo " "
 
     exit $exitValue
@@ -55,7 +57,7 @@
   # Function to get args
   ####################
   get_args() {
-    NUM_PARAMS=7
+    NUM_PARAMS=9
 
     # Check parameters
     if [ $# -eq 1 ]; then
@@ -76,6 +78,8 @@
     network=$5
     storageProps=$6
     filePathWithVariablesToBeSourced=$7
+    storageContainerImage=$8
+    storageCPUAffinity=$9
   }
 
   ####################
@@ -111,6 +115,8 @@
     echo "Network:             $network"
     echo "Storage Props:       $storageProps"
     echo "File with variables to be sourced: $filePathWithVariablesToBeSourced"
+    echo "Container image:     $storageContainerImage -- UNSUPPORTED"
+    echo "CPU Affinity:        $storageCPUAffinity -- UNSUPPORTED"
     echo "-----------------------"
   }
   ####################

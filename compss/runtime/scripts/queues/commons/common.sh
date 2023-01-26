@@ -14,6 +14,8 @@ DEFAULT_AGENTS_ENABLED="disabled"
 DEFAULT_AGENTS_HIERARCHY="tree"
 DEFAULT_NVRAM_OPTIONS="none"
 DEFAULT_FORWARD_TIME_LIMIT="true"
+DEFAULT_STORAGE_CONTAINER_IMAGE="false"
+DEFAULT_STORAGE_CPU_AFFINITY="disabled"
 
 #---------------------------------------------------
 # ERROR CONSTANTS DECLARATION
@@ -101,6 +103,13 @@ show_opts() {
     --extra_submit_flag=<flag>              Flag to pass queue system flags not supported by default command flags.
                                             Spaces must be added as '#'
                                             Default: Empty
+    --storage_container_image=<string>      Path to the storage container image or default or false.
+                                            False indicates no container. Default uses the default container image.
+                                            Default: ${DEFAULT_STORAGE_CONTAINER_IMAGE}
+    --storage_cpu_affinity=<string>         Sets the CPU affinity for storage framework in the workers.
+                                            Supported options: disabled or user defined map of the form "0-8/9,10,11/12-14,15,16".
+                                            Tip: set --cpu_affinity and --cpus_per_node flags accordingly.
+                                            Default: ${DEFAULT_STORAGE_AFFINITY}
 EOT
    if [ -z "${DISABLE_QARG_CONSTRAINTS}" ] || [ "${DISABLE_QARG_CONSTRAINTS}" == "false" ]; then
     cat <<EOT
@@ -292,6 +301,8 @@ log_args() {
   # Display storage arguments
   echo "Storage Home:              ${storage_home}"
   echo "Storage Properties:        ${storage_props}"
+  echo "Storage container image:   ${storage_container_image}"
+  echo "Storage cpu affinity:      ${storage_cpu_affinity}"
 
   # Display arguments to runcompss
   local other
@@ -434,6 +445,12 @@ get_args() {
             licenses=${OPTARG//licenses=/}
             args_pass="$args_pass --$OPTARG"
             ;;
+          storage_container_image=*)
+            storage_container_image=${OPTARG//storage_container_image=/}
+            ;;
+          storage_cpu_affinity=*)
+            storage_cpu_affinity=${OPTARG//storage_cpu_affinity=/}
+            ;;
           cluster=*)
             cluster=${OPTARG//cluster=/}
             ;;
@@ -571,6 +588,14 @@ check_args() {
 
   if [ -z "${licenses}" ]; then
     licenses=${DEFAULT_LICENSES}
+  fi
+
+  if [ -z "${storage_container_image}" ]; then
+    storage_container_image=${DEFAULT_STORAGE_CONTAINER_IMAGE}
+  fi
+
+  if [ -z "${storage_cpu_affinity}" ]; then
+    storage_cpu_affinity=${DEFAULT_STORAGE_CPU_AFFINITY}
   fi
 
   if [ -z "${qos}" ]; then
@@ -1051,7 +1076,7 @@ storage_master_node="\${master_node}"
 
 # The storage_init.sh can put environment variables in the temporary file which will be sourced afterwards
 variables_to_be_sourced=$(mktemp)
-${storage_home}/scripts/storage_init.sh \$${ENV_VAR_JOB_ID} "\${master_node}" "\${storage_master_node}" "\${worker_nodes}" ${network} ${storage_props} "\${variables_to_be_sourced}"
+${storage_home}/scripts/storage_init.sh \$${ENV_VAR_JOB_ID} "\${master_node}" "\${storage_master_node}" "\${worker_nodes}" "${network}" "${storage_props}" "\${variables_to_be_sourced}" "${storage_container_image}" "${storage_cpu_affinity}"
 
 if [ -f "\${variables_to_be_sourced}" ]; then
     source "\${variables_to_be_sourced}"

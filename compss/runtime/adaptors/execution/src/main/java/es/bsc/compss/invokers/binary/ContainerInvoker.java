@@ -339,7 +339,7 @@ public class ContainerInvoker extends Invoker {
                 switch (this.internalExecutionType) {
                     case CET_PYTHON:
                         // mount the pycompss dir
-                        //    + File.separator + "pycompss" + File.separator;
+                        // + File.separator + "pycompss" + File.separator;
                         String pycompssVol = System.getenv(COMPSsConstants.DOCKER_PYCOMPSS_VOLUME);
                         LOGGER.info("Docker PYCOMPSS Dir Volume: {}", pycompssVol);
                         if (pycompssVol != null && !pycompssVol.isEmpty()) {

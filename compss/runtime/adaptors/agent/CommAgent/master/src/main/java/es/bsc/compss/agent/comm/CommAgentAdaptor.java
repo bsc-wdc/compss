@@ -173,7 +173,7 @@ public class CommAgentAdaptor extends NIOAdaptor implements CommAgent {
 
     // should not receive this call
     @Override
-    public es.bsc.compss.types.resources.Resource getNodeFromRemoteDataLocation(RemoteDataLocation remoteDataLocation) {
+    public es.bsc.compss.types.resources.Resource getNodeFromLocation(RemoteDataLocation remoteDataLocation) {
         return null;
     }
 }

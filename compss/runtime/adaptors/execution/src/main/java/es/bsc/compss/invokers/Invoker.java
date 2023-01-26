@@ -420,7 +420,7 @@ public abstract class Invoker implements ApplicationRunner {
             handleOutputValue(appId, p);
         }
 
-        // this.context.getRuntimeAPI().removeApplicationData(appId);
+        this.context.getRuntimeAPI().removeApplicationData(appId);
 
         // Removing internal application
         this.context.getRuntimeAPI().deregisterApplication(appId);

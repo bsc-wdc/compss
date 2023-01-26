@@ -19,6 +19,8 @@ package es.bsc.compss.agent.comm.messages.types;
 
 import es.bsc.compss.agent.types.Resource;
 import es.bsc.compss.types.resources.MethodResourceDescription;
+import es.bsc.compss.types.resources.ResourcesExternalAdaptorPropertiesSerializable;
+import es.bsc.compss.types.resources.ResourcesPropertyAdaptorTypeSerializable;
 import es.bsc.compss.types.resources.jaxb.ResourcesExternalAdaptorProperties;
 import es.bsc.compss.types.resources.jaxb.ResourcesPropertyAdaptorType;
 
@@ -60,17 +62,20 @@ public class CommResource extends Resource<Void, ResourcesExternalAdaptorPropert
     public void readExternal(ObjectInput oi) throws IOException, ClassNotFoundException {
         super.readExternal(oi);
         this.port = oi.readInt();
-
     }
 
     @Override
     public ResourcesExternalAdaptorProperties getResourceConf() {
-        ResourcesExternalAdaptorProperties properties = new ResourcesExternalAdaptorProperties();
-        ResourcesPropertyAdaptorType property = new ResourcesPropertyAdaptorType();
+        ResourcesExternalAdaptorProperties properties = new ResourcesExternalAdaptorPropertiesSerializable();
+        ResourcesPropertyAdaptorType property = new ResourcesPropertyAdaptorTypeSerializable();
         property.setName("Port");
         property.setValue(Integer.toString(port));
         properties.getProperty().add(property);
         return properties;
+    }
+
+    public String getAdaptor() {
+        return CommResource.ADAPTOR_NAME;
     }
 
     public int getPort() {

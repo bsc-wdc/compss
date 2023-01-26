@@ -132,7 +132,7 @@ def inout_w_print(path_c):
 
 
 @task(path_c=COLLECTION_FILE_IN)
-def print_task(path_c, label):
+def nested_print_task(path_c, label):
     """Print matrix on path_c[0][0] and label.
 
     :param path_c: Array with path to input matrix.
@@ -171,7 +171,7 @@ def consumption(path_c, label):
     :param path_c: Array with path to matrix.
     :return: None.
     """
-    print_task(path_c, label)
+    nested_print_task(path_c, label)
 
 
 @task(path_c=COLLECTION_FILE_INOUT)

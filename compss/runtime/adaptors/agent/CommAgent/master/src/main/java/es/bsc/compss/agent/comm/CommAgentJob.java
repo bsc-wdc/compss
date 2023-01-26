@@ -258,7 +258,7 @@ class CommAgentJob extends NIOJob {
     }
 
     @Override
-    protected void registerParameter(Parameter param, NIOResult result) {
+    protected void registerResult(Parameter param, NIOResult result) {
 
         if (!param.isPotentialDependency()) {
             return;
@@ -277,15 +277,14 @@ class CommAgentJob extends NIOJob {
             while (taskParamsItr.hasNext()) {
                 Parameter elemParam = taskParamsItr.next();
                 NIOResult elemResult = taskResultItr.next();
-                registerParameter(elemParam, elemResult);
+                registerResult(elemParam, elemResult);
             }
         } else {
             CommResult commResult = (CommResult) result;
-            // applicable on agents, where the results are CommResults
-            Collection<RemoteDataLocation> dataLocations = commResult.getRemoteDataInformation();
+            Collection<RemoteDataLocation> dataLocations = commResult.getLocations();
             for (RemoteDataLocation location : dataLocations) {
                 if (location != null) {
-                    Resource w = ownAgent.getNodeFromRemoteDataLocation(location);
+                    Resource w = ownAgent.getNodeFromLocation(location);
                     if (w == null) {
                         w = this.worker;
                     }

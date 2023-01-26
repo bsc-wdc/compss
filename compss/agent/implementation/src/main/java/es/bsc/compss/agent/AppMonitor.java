@@ -19,20 +19,17 @@ package es.bsc.compss.agent;
 import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.agent.types.ApplicationParameterCollection;
 import es.bsc.compss.agent.types.RemoteDataLocation;
+import es.bsc.compss.agent.types.Resource;
 import es.bsc.compss.api.ParameterCollectionMonitor;
 import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.CommException;
-import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.LogicalData;
-import es.bsc.compss.types.data.listener.EventListener;
-import es.bsc.compss.types.data.location.ProtocolType;
-import es.bsc.compss.types.data.operation.DataOperation;
-import es.bsc.compss.types.data.transferable.SafeCopyTransferable;
+import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.uri.MultiURI;
-import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.worker.COMPSsException;
 
@@ -40,17 +37,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 
 public abstract class AppMonitor implements TaskMonitor {
 
     private long appId;
     private TaskResult[] taskResults;
     private COMPSsException exception;
-
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.AGENT);
 
 
     /**
@@ -231,59 +223,30 @@ public abstract class AppMonitor implements TaskMonitor {
         this.taskResults = params;
     }
 
-
-    boolean failed = false;
-    boolean enabled = false;
-    int pendingOperations = 0;
-
-
-    private void addPendingOperation() {
-        this.pendingOperations++;
-    }
-
-    private void performedPendingOperation() {
-        pendingOperations--;
-        notifyEnd();
-    }
-
-    private void notifyEnd() {
-        if (enabled && pendingOperations == 0) {
-            if (failed) {
-                new Thread() {
-
-                    @Override
-                    public void run() {
-                        Agent.finishedApplication(appId);
-                        specificOnFailure();
-                    }
-                }.start();
-            } else {
-                new Thread() {
-
-                    @Override
-                    public void run() {
-                        Agent.finishedApplication(appId);
-                        specificOnCompletion();
-                    }
-                }.start();
-            }
-        }
-    }
-
     @Override
     public final void onCompletion() {
-        failed = false;
-        enabled = true;
-        notifyEnd();
+        new Thread() {
+
+            @Override
+            public void run() {
+                Agent.finishedApplication(appId);
+                specificOnCompletion();
+            }
+        }.start();
     }
 
     protected abstract void specificOnCompletion();
 
     @Override
     public void onFailure() {
-        failed = true;
-        enabled = true;
-        notifyEnd();
+        new Thread() {
+
+            @Override
+            public void run() {
+                Agent.finishedApplication(appId);
+                specificOnFailure();
+            }
+        }.start();
     }
 
     protected abstract void specificOnFailure();
@@ -299,45 +262,85 @@ public abstract class AppMonitor implements TaskMonitor {
     public static class TaskResult {
 
         private final String externalDataId;
-        private final AppMonitor monitor;
-        private Collection<RemoteDataLocation> remoteDataLocations;
 
 
         public TaskResult(String externalDataId, AppMonitor monitor) {
             this.externalDataId = externalDataId;
-            this.monitor = monitor;
         }
 
         public boolean isCollective() {
             return false;
         }
 
-        public Collection<RemoteDataLocation> getRemoteDataLocations() {
-            return remoteDataLocations;
-        }
-
-        public void setRemoteDataLocations(Collection<RemoteDataLocation> remoteDataLocations) {
-            this.remoteDataLocations = remoteDataLocations;
-        }
-
         public ParameterMonitor getMonitor() {
             return new ParameterUpdater();
         }
 
-        private Collection<RemoteDataLocation> createRDLfromLD(DataType type, LogicalData ld, String dataLocation) {
-            if (type == DataType.OBJECT_T) {
-                if (ld.getPscoId() != null) {
-                    SimpleURI targetURI = new SimpleURI(ProtocolType.PERSISTENT_URI.getSchema() + ld.getPscoId());
-                    dataLocation = targetURI.toString();
-                } else {
-                    SimpleURI targetURI = new SimpleURI(ProtocolType.OBJECT_URI.getSchema() + externalDataId);
-                    dataLocation = targetURI.toString();
+        /**
+         * Returns all the locstions where to find the task result.
+         * 
+         * @return returns a list of all the locations where to find the task result.
+         */
+        public Collection<RemoteDataLocation> getLocations() {
+            if (this.externalDataId != null) {
+                LogicalData ld = Comm.getData(this.externalDataId);
+                if (ld != null) {
+                    return createRDLfromLD(ld);
                 }
             }
+            return null;
+        }
 
-            Collection<RemoteDataLocation> locations = new ArrayList<RemoteDataLocation>();
-            locations.add(new RemoteDataLocation(null, dataLocation));
+        private Collection<RemoteDataLocation> createRDLfromLD(LogicalData ld) {
+
+            Collection<RemoteDataLocation> locations = new ArrayList<>();
+
+            boolean isLocal = false;
+            for (DataLocation loc : ld.getLocations()) {
+                if (isLocal(loc)) {
+                    isLocal = true;
+                } else {
+                    for (MultiURI uri : loc.getURIs()) {
+                        Resource<?, ?> hostResource = createRemoteResourceFromResource(uri.getHost());
+                        if (hostResource != null) {
+                            String pathInHost = uri.getPath();
+                            locations.add(new RemoteDataLocation(hostResource, pathInHost));
+                        }
+                    }
+                }
+            }
+            if (isLocal) {
+                for (String alias : ld.getKnownAlias()) {
+                    locations.add(new RemoteDataLocation(null, alias));
+                }
+            }
             return locations;
+        }
+
+        private Resource<?, ?> createRemoteResourceFromResource(es.bsc.compss.types.resources.Resource res) {
+            COMPSsNode node = res.getNode();
+
+            String name = node.getName();
+            String adaptor = node.getAdaptor();
+            Object project = node.getProjectProperties();
+            Object resources = node.getResourcesProperties();
+
+            if (resources == null) {
+                return null;
+            } else {
+                Resource<?, ?> remoteResource = new Resource<>(name, null, adaptor, project, resources);
+                return remoteResource;
+            }
+
+        }
+
+        private boolean isLocal(DataLocation dl) {
+            for (es.bsc.compss.types.resources.Resource host : dl.getHosts()) {
+                if (host == Comm.getAppHost()) {
+                    return true;
+                }
+            }
+            return false;
         }
 
 
@@ -353,30 +356,6 @@ public abstract class AppMonitor implements TaskMonitor {
                     }
                 }
 
-                LogicalData ld = Comm.getData(dataName);
-                LOGGER.debug("______ ld onCreation: " + ld.toString());
-                TaskResult.this.remoteDataLocations = createRDLfromLD(type, ld, dataLocation);
-
-                if (!ld.getAllHosts().contains(Comm.getAppHost())) {
-                    monitor.addPendingOperation();
-                    Comm.getAppHost().getData(ld, new SafeCopyTransferable(), new EventListener() {
-
-                        @Override
-                        public void notifyEnd(DataOperation d) {
-                            LOGGER.debug("______ ld notifyEnd: " + ld.toString());
-                            String location = null;
-                            for (MultiURI mu : ld.getURIsInHost(Comm.getAppHost())) {
-                                location = mu.getPath();
-                            }
-                            TaskResult.this.remoteDataLocations = createRDLfromLD(type, ld, location);
-                            monitor.performedPendingOperation();
-                        }
-
-                        @Override
-                        public void notifyFailure(DataOperation d, Exception excptn) {
-                        }
-                    });
-                }
             }
 
         }

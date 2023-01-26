@@ -14,18 +14,16 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.agent.types;
+package es.bsc.compss.types.project;
 
-import java.util.Collection;
+import es.bsc.compss.types.project.jaxb.ExternalAdaptorProperties;
+
+import java.io.Serializable;
 
 
-public interface ApplicationResult {
-
-    /**
-     * Return all the locations where to find the value.
-     * 
-     * @return Collection of remote locations
-     */
-    public Collection<RemoteDataLocation> getLocations();
+/**
+ * This class exists only to make ExternalAdaptorProperties Serializable.
+ */
+public class ExternalAdaptorPropertiesSerializable extends ExternalAdaptorProperties implements Serializable {
 
 }

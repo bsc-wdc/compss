@@ -124,8 +124,8 @@ public class CommParam extends NIOParam implements ApplicationParameter, Externa
 
     @Override
     public String toString() {
-        return direction + " " + super.getType() + (super.getValue() != null ? " = " + super.getValue() + " " : " ")
-            + remoteData;
+        return "CommParam: [ remoteData: " + (remoteData == null ? "null" : remoteData.toString()) + "," + "NIOParam: ["
+            + super.toString() + "] ]";
     }
 
 }

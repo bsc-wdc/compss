@@ -201,12 +201,11 @@ public class NIOJob extends JobImpl<NIOWorkerNode> {
         while (taskParamsItr.hasNext()) {
             Parameter param = taskParamsItr.next();
             NIOResult result = taskResultItr.next();
-            Collection<NIOUri> rlocs = result.getUris();
-            registerParameter(param, result);
+            registerResult(param, result);
         }
     }
 
-    protected void registerParameter(Parameter param, NIOResult result) {
+    protected void registerResult(Parameter param, NIOResult result) {
         if (!param.isPotentialDependency()) {
             return;
         }
@@ -225,7 +224,7 @@ public class NIOJob extends JobImpl<NIOWorkerNode> {
             while (taskParamsItr.hasNext()) {
                 Parameter elemParam = taskParamsItr.next();
                 NIOResult elemResult = taskResultItr.next();
-                registerParameter(elemParam, elemResult);
+                registerResult(elemParam, elemResult);
             }
         }
 

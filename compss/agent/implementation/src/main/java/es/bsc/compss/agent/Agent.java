@@ -570,33 +570,30 @@ public class Agent {
 
     /**
      * Returns or creates the host from a remoteDataLocation.
+     *
+     * @param loc remote location
+     * @return Internal Resource corresponding to the host of location passed in as parameter
+     * @throws AgentException Error while registering the remote node in the Agent
      */
-    public static es.bsc.compss.types.resources.Resource
-        getNodeFromRemoteDataLocation(RemoteDataLocation remoteDataLocation) {
-        if (remoteDataLocation == null) {
+    public static es.bsc.compss.types.resources.Resource getNodeFromLocation(RemoteDataLocation loc)
+        throws AgentException {
+        Resource<?, ?> r = loc.getResource();
+        if (r == null) {
             return null;
         }
-        try {
-            Resource<?, ?> r = remoteDataLocation.getResource();
-            if (r == null) {
-                return null;
-            }
-            String workerName = r.getName();
-            Worker<? extends WorkerResourceDescription> host = ResourceManager.getWorker(workerName);
-            if (host == null) {
-                MethodResourceDescription mrd = r.getDescription();
-                String adaptor = r.getAdaptor();
-                Map<String, Object> projectConf = new HashMap<>();
-                projectConf.put("Properties", r.getProjectConf());
-                Map<String, Object> resourcesConf = new HashMap<>();
-                resourcesConf.put("Properties", r.getResourceConf());
-                host = registerWorker(workerName, mrd, adaptor, projectConf, resourcesConf);
-            }
-            return host;
-        } catch (AgentException e) {
-            LOGGER.error("Exception raised fetching host for remote data", e);
-            return null;
+        String workerName = r.getName();
+        Worker<? extends WorkerResourceDescription> host = ResourceManager.getWorker(workerName);
+        if (host == null) {
+            MethodResourceDescription mrd = r.getDescription();
+            String adaptor = r.getAdaptor();
+            Map<String, Object> projectConf = new HashMap<>();
+            projectConf.put("Properties", r.getProjectConf());
+            Map<String, Object> resourcesConf = new HashMap<>();
+            resourcesConf.put("Properties", r.getResourceConf());
+            host = registerWorker(workerName, mrd, adaptor, projectConf, resourcesConf);
         }
+        return host;
+
     }
 
     private static void addRemoteData(RemoteDataInformation remote) throws AgentException {
@@ -606,21 +603,12 @@ public class Agent {
 
         LinkedList<DataLocation> locations = new LinkedList<>();
         for (RemoteDataLocation loc : remote.getSources()) {
-            try {
-                String path = loc.getPath();
-                SimpleURI uri = new SimpleURI(path);
-                Resource<?, ?> r = loc.getResource();
-                String workerName = r.getName();
-                Worker<? extends WorkerResourceDescription> host = ResourceManager.getWorker(workerName);
-                if (host == null) {
-                    MethodResourceDescription mrd = r.getDescription();
-                    String adaptor = r.getAdaptor();
-                    Map<String, Object> projectConf = new HashMap<>();
-                    projectConf.put("Properties", r.getProjectConf());
-                    Map<String, Object> resourcesConf = new HashMap<>();
-                    resourcesConf.put("Properties", r.getResourceConf());
-                    host = registerWorker(workerName, mrd, adaptor, projectConf, resourcesConf);
-                } else {
+            if (loc != null) {
+                try {
+                    String path = loc.getPath();
+                    SimpleURI uri = new SimpleURI(path);
+
+                    es.bsc.compss.types.resources.Resource host = getNodeFromLocation(loc);
                     if (host == Comm.getAppHost()) {
                         String name = uri.getPath();
                         LogicalData localData = Comm.getData(name);
@@ -630,12 +618,13 @@ public class Agent {
                             continue;
                         }
                     }
+
+                    DataLocation dl = DataLocation.createLocation(host, uri);
+                    locations.add(dl);
+                } catch (AgentException | IOException e) {
+                    // Do nothing. Ignore location
+                    LOGGER.warn("Exception adding remote data", e);
                 }
-                DataLocation dl = DataLocation.createLocation(host, uri);
-                locations.add(dl);
-            } catch (AgentException | IOException e) {
-                // Do nothing. Ignore location
-                LOGGER.warn("Exception adding remote data", e);
             }
         }
 

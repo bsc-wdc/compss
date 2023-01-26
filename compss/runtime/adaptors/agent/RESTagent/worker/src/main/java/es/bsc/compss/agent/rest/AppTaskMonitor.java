@@ -198,7 +198,7 @@ public class AppTaskMonitor extends AppMonitor implements RESTAgentRequestHandle
         RESTResult[] restResults = new RESTResult[taskResults.length];
         int i = 0;
         for (TaskResult result : taskResults) {
-            Collection<RemoteDataLocation> remoteLocations = result.getRemoteDataLocations();
+            Collection<RemoteDataLocation> remoteLocations = result.getLocations();
             String[] locs = remoteDataInfoToStringArray(remoteLocations);
             restResults[i] = new RESTResult(locs);
             i++;

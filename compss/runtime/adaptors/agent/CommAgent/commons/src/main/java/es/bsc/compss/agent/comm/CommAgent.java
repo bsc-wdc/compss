@@ -40,6 +40,12 @@ public interface CommAgent {
 
     public void receivedNewTask(NIONode master, CommTask request);
 
-    public es.bsc.compss.types.resources.Resource getNodeFromRemoteDataLocation(RemoteDataLocation remoteDataLocation);
+    /**
+     * Returns or creates the host from a remoteDataLocation.
+     *
+     * @param loc remote location
+     * @return Internal Resource corresponding to the host of location passed in as parameter
+     */
+    public es.bsc.compss.types.resources.Resource getNodeFromLocation(RemoteDataLocation loc);
 
 }

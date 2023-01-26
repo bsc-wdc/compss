@@ -223,8 +223,18 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
         Agent.start();
     }
 
-    public es.bsc.compss.types.resources.Resource getNodeFromRemoteDataLocation(RemoteDataLocation remoteDataLocation) {
-        return Agent.getNodeFromRemoteDataLocation(remoteDataLocation);
+    @Override
+    public es.bsc.compss.types.resources.Resource getNodeFromLocation(RemoteDataLocation loc) {
+        if (loc == null) {
+            return null;
+        } else {
+            try {
+                return Agent.getNodeFromLocation(loc);
+            } catch (AgentException e) {
+                LOGGER.error("Exception raised fetching host for remote data", e);
+                return null;
+            }
+        }
     }
 
 }

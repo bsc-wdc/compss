@@ -65,6 +65,21 @@ public class DummyWorkerNode extends COMPSsWorker {
     }
 
     @Override
+    public String getAdaptor() {
+        return DummyAdaptor.class.getCanonicalName();
+    }
+
+    @Override
+    public Object getProjectProperties() {
+        return null;
+    }
+
+    @Override
+    public Object getResourcesProperties() {
+        return null;
+    }
+
+    @Override
     public void start() throws InitNodeException {
     }
 
@@ -162,4 +177,5 @@ public class DummyWorkerNode extends COMPSsWorker {
     @Override
     public void verifyNodeIsRunning() {
     }
+
 }

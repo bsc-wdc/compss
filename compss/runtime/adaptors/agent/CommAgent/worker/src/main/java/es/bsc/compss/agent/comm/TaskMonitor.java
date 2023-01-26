@@ -197,8 +197,8 @@ public class TaskMonitor extends AppMonitor {
             res = new NIOResultCollection(elements);
         } else {
             CommResult commRes = new CommResult();
-            if (taskRes.getRemoteDataLocations() != null) {
-                commRes.setRemoteData(taskRes.getRemoteDataLocations());
+            if (taskRes.getLocations() != null) {
+                commRes.setRemoteData(taskRes.getLocations());
             }
             res = commRes;
         }

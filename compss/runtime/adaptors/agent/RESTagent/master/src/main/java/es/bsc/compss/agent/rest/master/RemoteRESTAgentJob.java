@@ -43,6 +43,7 @@ import es.bsc.compss.types.parameter.BasicTypeParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Resource;
+
 import java.util.Iterator;
 import java.util.List;
 
@@ -143,7 +144,8 @@ public class RemoteRESTAgentJob extends JobImpl<RemoteRESTAgent> {
                     String inRenaming;
                     // String outRenaming;
                     if (dAccId instanceof WAccessId) {
-                        throw new JobExecutionException("Target parameter is a Write access", null);
+                        throw new JobExecutionException("Parameter" + Integer.toString(parIdx) + " is a Write access",
+                            null);
                     } else {
                         if (dAccId instanceof RWAccessId) {
                             // Read write mode

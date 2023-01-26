@@ -299,6 +299,26 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     }
 
     @Override
+    public String getName() {
+        return MASTER_NAME;
+    }
+
+    @Override
+    public String getAdaptor() {
+        return null;
+    }
+
+    @Override
+    public Object getProjectProperties() {
+        return null;
+    }
+
+    @Override
+    public Object getResourcesProperties() {
+        return null;
+    }
+
+    @Override
     public void start() {
         synchronized (this) {
             if (this.started) {
@@ -306,11 +326,6 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             }
             this.started = true;
         }
-    }
-
-    @Override
-    public String getName() {
-        return MASTER_NAME;
     }
 
     @Override

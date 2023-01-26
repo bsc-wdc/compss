@@ -117,6 +117,21 @@ public class NIOWorkerNode extends COMPSsWorker {
     }
 
     @Override
+    public String getAdaptor() {
+        return NIOAdaptor.class.getCanonicalName();
+    }
+
+    @Override
+    public Object getProjectProperties() {
+        return null;
+    }
+
+    @Override
+    public Object getResourcesProperties() {
+        return null;
+    }
+
+    @Override
     public void start() throws InitNodeException {
         NIONode n = null;
         try {

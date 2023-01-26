@@ -64,6 +64,7 @@
             <artifactId>compss-resources-schema</artifactId>
             <scope>provided</scope>
         </dependency>
+        
         <!-- Comm Library -->
         <dependency>
             <groupId>es.bsc.comm</groupId>

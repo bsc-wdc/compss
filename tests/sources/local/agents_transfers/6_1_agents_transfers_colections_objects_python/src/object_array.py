@@ -133,7 +133,7 @@ def inout_w_print(mat_c):
 
 
 @task()
-def print_task(mat_c, label):
+def nested_print_task(mat_c, label):
     """Print mat_c and label.
 
     :param mat_c: Matrix containing output matrix.
@@ -173,7 +173,7 @@ def consumption(mat_c, label):
     :param label: Label string.
     :return: None.
     """
-    print_task(mat_c, label)
+    nested_print_task(mat_c, label)
 
 
 @task(mat_c=COLLECTION_INOUT)

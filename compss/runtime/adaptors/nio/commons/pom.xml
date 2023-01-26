@@ -49,8 +49,6 @@
             <groupId>es.bsc.comm</groupId>
             <artifactId>comm-all</artifactId>
         </dependency>
-
-
     </dependencies>
 
     <!-- BUILD -->

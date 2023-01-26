@@ -18,7 +18,6 @@ package es.bsc.compss.agent.comm.messages.types;
 
 import es.bsc.compss.agent.types.ApplicationResult;
 import es.bsc.compss.agent.types.RemoteDataLocation;
-import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOResult;
 import es.bsc.compss.nio.NIOUri;
 import es.bsc.compss.types.resources.Resource;
@@ -29,14 +28,10 @@ import java.io.ObjectOutput;
 import java.util.Collection;
 import java.util.LinkedList;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 
 public class CommResult extends NIOResult implements ApplicationResult {
 
     private Collection<RemoteDataLocation> sources = new LinkedList<>();
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.AGENT);
 
 
     public CommResult() {
@@ -52,6 +47,11 @@ public class CommResult extends NIOResult implements ApplicationResult {
     }
 
     @Override
+    public Collection<RemoteDataLocation> getLocations() {
+        return this.sources;
+    }
+
+    @Override
     public void writeExternal(ObjectOutput out) throws IOException {
         super.writeExternal(out);
         out.writeObject(sources);
@@ -64,21 +64,10 @@ public class CommResult extends NIOResult implements ApplicationResult {
         sources = (Collection<RemoteDataLocation>) in.readObject();
     }
 
-    public Collection<RemoteDataLocation> getRemoteDataInformation() {
-        return this.sources;
-    }
-
     @Override
     public String toString() {
         return "CommResult[remoteData: " + (this.sources == null ? "[ null ]" : this.sources.toString()) + " "
             + "nioResult: " + super.toString() + "]";
-    }
-
-    /**
-     * Creates and return the resource from remoteData.
-     */
-    public Resource getResource() {
-        return null;
     }
 
 }

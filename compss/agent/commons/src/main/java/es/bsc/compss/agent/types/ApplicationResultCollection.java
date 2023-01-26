@@ -20,17 +20,32 @@ import java.util.List;
 
 
 /**
- * Extension of the ApplicationParameter class to handle collection types. Basically, a ApplicationParameter plus a list
- * of ApplicationParameter representing the contents of the collection.
+ * Extension of the ApplicationResult class to handle collection types. Basically, an ApplicationResult plus a list of
+ * ApplicationResults representing the contents of the collection.
  *
- * @see ApplicationParameter
+ * @see ApplicationResult
  */
-public interface ApplicationResultCollection<T extends ApplicationResult> extends ApplicationParameter {
+public interface ApplicationResultCollection<T extends ApplicationResult> extends ApplicationResult {
 
-    public List<T> getCollectionParameters();
+    /**
+     * Get elements within the result collection.
+     * 
+     * @return List with all the elements of the collection.
+     */
+    public List<T> getSubresults();
 
-    public void addParameter(T param);
+    /**
+     * Adds a new result to the collection.
+     * 
+     * @param param result to be added.
+     */
+    public void addSubresult(T param);
 
+    /**
+     * Returns the number of results within the collection.
+     * 
+     * @return the number of results within the collection
+     */
     public int getSize();
 
 }

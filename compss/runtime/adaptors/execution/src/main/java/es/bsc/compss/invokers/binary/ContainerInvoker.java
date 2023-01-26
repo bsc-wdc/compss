@@ -326,7 +326,6 @@ public class ContainerInvoker extends Invoker {
                     cmd[cmdIndex++] = workingDirMountPoint + ":" + workingDirMountPoint;
                 }
                 // mount the app dir
-                        // mount the app dir
                 cmd[cmdIndex++] = "-v";
                 String appDirVolume = System.getenv(COMPSsConstants.DOCKER_APP_DIR_VOLUME);
                 LOGGER.info("Docker APP Dir Volume: {}", appDirVolume);

@@ -71,6 +71,7 @@ class _Labels:  # pylint: disable=too-few-public-methods, too-many-instance-attr
         "df_executor",
         "df_lib",
         "julia_executor",
+        "julia_args",
         "julia_script",
         "source_class",
         "method",
@@ -148,6 +149,7 @@ class _Labels:  # pylint: disable=too-few-public-methods, too-many-instance-attr
         self.df_executor = "df_executor"
         self.df_lib = "df_lib"
         self.julia_executor = "executor"
+        self.julia_args = "args"
         self.julia_script = "script"
         self.source_class = "source_class"
         self.method = "method"

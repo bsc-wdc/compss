@@ -50,11 +50,11 @@ import java.util.List;
 public class ContainerInvoker extends Invoker {
 
     private static final int NUM_BASE_DOCKER_PYTHON_ARGS = 25;
-    private static final int NUM_BASE_DOCKER_BINARY_ARGS = 10;
+    private static final int NUM_BASE_DOCKER_BINARY_ARGS = 12;
     private static final int NUM_BASE_SINGULARITY_PYTHON_ARGS = 21;
-    private static final int NUM_BASE_SINGULARITY_BINARY_ARGS = 8;
+    private static final int NUM_BASE_SINGULARITY_BINARY_ARGS = 10;
     private static final int NUM_BASE_UDOCKER_PYTHON_ARGS = 24;
-    private static final int NUM_BASE_UDOCKER_BINARY_ARGS = 9;
+    private static final int NUM_BASE_UDOCKER_BINARY_ARGS = 11;
 
     private static final String REL_PATH_WD = ".." + File.separator + ".." + File.separator;
     private static final String REL_PATH_WORKER_CONTAINER = File.separator + "pycompss" + File.separator + "worker"
@@ -339,7 +339,7 @@ public class ContainerInvoker extends Invoker {
                 switch (this.internalExecutionType) {
                     case CET_PYTHON:
                         // mount the pycompss dir
-                        // + File.separator + "pycompss" + File.separator;
+                        cmd[cmdIndex++] = "-v";
                         String pycompssVol = System.getenv(COMPSsConstants.DOCKER_PYCOMPSS_VOLUME);
                         LOGGER.info("Docker PYCOMPSS Dir Volume: {}", pycompssVol);
                         if (pycompssVol != null && !pycompssVol.isEmpty()) {
@@ -366,13 +366,11 @@ public class ContainerInvoker extends Invoker {
                 }
                 cmd[cmdIndex++] = "-w";
                 cmd[cmdIndex++] = workingDir;
-                // nm:
                 cmdIndex = addContainerOptions(cmd, cmdIndex, options);
                 cmd[cmdIndex++] = this.container.getImage();
                 break;
 
             case SINGULARITY:
-                // nm: this part is the same everywhere
                 cmd[cmdIndex++] = "singularity";
                 cmd[cmdIndex++] = "exec";
                 cmd[cmdIndex++] = "--bind";

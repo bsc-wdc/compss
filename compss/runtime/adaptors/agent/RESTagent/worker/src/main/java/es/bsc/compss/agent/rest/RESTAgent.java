@@ -394,7 +394,9 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
         MethodResourceDescription requirements = MethodResourceDescription.EMPTY_FOR_CONSTRAINTS;
         CoreElementDefinition ced = new CoreElementDefinition();
         ced.setCeSignature(ceSignature);
-        String[] container = new String[]{null, null, null};
+        String[] container = new String[] { null,
+            null,
+            null };
         ImplementationDescription<?, ?> implDef = ImplementationDescription.defineImplementation("METHOD",
             implSignature, false, requirements, request.getProlog(), request.getEpilog(), container, typeArgs);
         ced.addImplementation(implDef);

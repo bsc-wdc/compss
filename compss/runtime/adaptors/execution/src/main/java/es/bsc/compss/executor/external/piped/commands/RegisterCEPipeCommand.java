@@ -43,9 +43,9 @@ public class RegisterCEPipeCommand extends RegisterCEExternalCommand implements 
         System.arraycopy(command, 10, this.epilog, 0, 3);
 
         this.container = new String[3];
-        System.arraycopy(command, 13, this.epilog, 0, 3);
+        System.arraycopy(command, 13, this.container, 0, 3);
 
-        int typeArgsLength = Integer.parseInt(command[13]);
+        int typeArgsLength = Integer.parseInt(command[16]);
         this.typeArgs = new String[typeArgsLength];
         System.arraycopy(command, 17, this.typeArgs, 0, typeArgsLength);
     }

@@ -492,6 +492,11 @@ void PIPE_RegisterCE(char* ceSignature, char* implSignature, char* implConstrain
 
     }
 
+    for (int i = 0; i < 3; i++) {
+    	ss << " " << container[i];
+
+    }
+
 	ss << " " << numArgs;
 
     for (int i = 0; i < numArgs; i++) {

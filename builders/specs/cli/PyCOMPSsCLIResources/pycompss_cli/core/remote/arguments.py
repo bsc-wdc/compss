@@ -70,6 +70,7 @@ def remote_parser_app():
 
     app_subparsers = parser_app.add_subparsers(dest="app")
 
+    # DEPLOY
     app_deploy_parser = app_subparsers.add_parser("deploy",
                                 aliases=["d"],
                                 help="Deploy an application to a remote environment",
@@ -89,6 +90,15 @@ def remote_parser_app():
                              type=str,
                              help="Remote destination directory to copy the local app files")
 
+    app_deploy_parser.add_argument("--env_file",
+                                type=str,
+                                help="File containing modules or environment variables to be set for this application.")
+
+    app_deploy_parser.add_argument("-o", "--overwrite",
+                                action="store_true",
+                                help="Overwrite the application if it already exists.")
+
+    # REMOVE
     app_remove_parser = app_subparsers.add_parser("remove",
                                 aliases=["r"],
                                 help="Delete one or more deployed applications",
@@ -100,6 +110,7 @@ def remote_parser_app():
                              nargs='+',
                              help="Name of the application")
 
+    # LIST
     app_subparsers.add_parser("list",
                                 aliases=["l"],
                                 help="List all deployed applications",

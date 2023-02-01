@@ -44,7 +44,7 @@ class Actions(ABC):
 
     
     def env_add_conf(self, extra_conf):
-        current_env, env_conf_path = utils.get_current_env_conf(return_path=True)
+        current_env, env_conf_path = utils.get_current_env_conf(env_id=self.arguments.name, return_path=True)
         new_conf =  {**current_env, **extra_conf}
         with open(env_conf_path, 'w') as f:
             json.dump(new_conf, f)
@@ -76,12 +76,7 @@ class Actions(ABC):
 
         if self.arguments.config:
             shutil.copy2(self.arguments.config, env_path)
-
-        for current_file in glob(self.home_path + '/.COMPSs/envs/*/current'):
-            os.remove(current_file)
-
-        open(env_path + '/current', 'a').close()
-
+            
         print('Environment ID:', self.arguments.name)
 
     @abstractmethod
@@ -117,6 +112,10 @@ class Actions(ABC):
 
     @abstractmethod
     def gengraph(self):
+        pass
+
+    @abstractmethod
+    def gentrace(self):
         pass
 
     @abstractmethod

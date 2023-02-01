@@ -95,11 +95,6 @@ class DockerActions(Actions):
         :param debug: Debug mode
         :returns: None
         """
-        if self.debug:
-            print("Running...")
-            print("Parameters:")
-            print("\t- Application: " + self.arguments.application)
-            print("\t- self.Arguments: " + str(self.arguments.argument))
 
         app_args = self.arguments.rest_args
 
@@ -113,6 +108,10 @@ class DockerActions(Actions):
             app_args.insert(0, '--base_log_dir=/home/user ')
 
         command = "runcompss " + ' '.join(app_args)
+
+        if self.debug:
+            print("Running...")
+            print("\t- Docker command: ", command)
 
         self.docker_cmd.docker_exec_in_daemon(command)
 
@@ -180,6 +179,15 @@ class DockerActions(Actions):
         
         command = "compss_gengraph " + dot_path
         self.docker_cmd.docker_exec_in_daemon(command)
+
+
+    def gentrace(self):
+        command = f"compss_gentrace {self.arguments.trace_dir} "
+        command += ' '.join(self.arguments.rest_args)
+        self.docker_cmd.docker_exec_in_daemon(command)
+        if self.arguments.download_dir:
+            self.docker_cmd.docker_exec_in_daemon(f'cp {self.arguments.trace_dir}/* {self.arguments.download_dir}/')
+
 
     def app(self):
         print("ERROR: Wrong Environment! Try using a `remote` or `local` environment")

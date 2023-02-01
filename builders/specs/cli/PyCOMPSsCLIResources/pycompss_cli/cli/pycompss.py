@@ -20,7 +20,6 @@ from pycompss_cli.core.arguments import parse_sys_argv
 from pycompss_cli.core.actions_dispatcher import ActionsDispatcher
 
 # Globals
-DEBUG = False
 LINE_LENGTH = 79
 LINE = "-" * LINE_LENGTH
 
@@ -32,7 +31,7 @@ def main():
     
     arguments = parse_sys_argv()
 
-    if utils.is_debug():
+    if arguments.debug:
         print(LINE)
         
         if 'enqueue_args' in arguments:
@@ -43,7 +42,7 @@ def main():
         print()
         print("Arguments: " + str(arguments))
 
-    ActionsDispatcher().run_action(arguments, DEBUG)
+    ActionsDispatcher().run_action(arguments)
 
 
 if __name__ == "__main__":

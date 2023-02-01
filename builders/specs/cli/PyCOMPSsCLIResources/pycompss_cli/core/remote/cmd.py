@@ -64,7 +64,14 @@ def remote_deploy_compss(env_id: str, login_info: str, modules, envars=[]) -> No
     subprocess.run(f"scp -r {local_job_scripts_dir} '{login_info}:~/.COMPSs/'", shell=True, stdout=subprocess.PIPE)
     
 
-def remote_app_deploy(app_dir: str, login_info: str, local_source: str, remote_dest_dir: str = None):
+def remote_app_deploy(app_dir: str, login_info: str, local_source: str, remote_dest_dir: str = None, env_file: str = None):
+
+    if env_file:
+        if not os.path.isfile(env_file):
+            print(f'ERROR: env file `{env_file}` not found.')
+            exit(1)
+            
+
     print('Deploying app...')
     utils.ssh_run_commands(login_info, [f'mkdir -p {app_dir}'])
 
@@ -74,6 +81,10 @@ def remote_app_deploy(app_dir: str, login_info: str, local_source: str, remote_d
         cmd_copy_files = cmd_copy_files.replace('/*', '')
 
     subprocess.run(cmd_copy_files, shell=True)
+
+    if env_file:
+        cmd_copy_files = f"scp {env_file} {login_info}:'{app_dir}/.env'"
+        subprocess.run(cmd_copy_files, shell=True)
 
     if remote_dest_dir:
         print('App deployed to', remote_dest_dir)
@@ -97,14 +108,14 @@ def remote_run_app(remote_dir: str, login_info: str, env_name: str, command: str
     ]
     return utils.ssh_run_commands(login_info, commands)[0]
 
-def remote_submit_job(login_info: str, remote_dir: str, app_args: str, modules, envars=None) -> None:
+def remote_submit_job(login_info: str, remote_dir: str, app_args: str, modules, envars=None, debug=False) -> None:
     """ Execute the given command in the remote COMPSs environment.
 
     :param cmd: Command to execute.
     :returns: The execution stdout.
     """
 
-    enqueue_debug = '-d' if utils.is_debug() else ''
+    enqueue_debug = '-d' if debug else ''
 
     commands = [
         f'cd {remote_dir}',
@@ -115,7 +126,7 @@ def remote_submit_job(login_info: str, remote_dir: str, app_args: str, modules, 
     if envars:
         commands = [f'export {var}' for var in envars] + commands
 
-    if utils.is_debug():
+    if debug:
         print('********* DEBUG *********')
         print('Remote submit job commands:')
         for cmd in commands:
@@ -123,7 +134,7 @@ def remote_submit_job(login_info: str, remote_dir: str, app_args: str, modules, 
         print('***************************')
 
     stdout, stderr = utils.ssh_run_commands(login_info, commands)
-    if utils.is_debug():
+    if debug:
         print('Remote submit job stdout:')
         print(stdout.strip())
         print('***************************')

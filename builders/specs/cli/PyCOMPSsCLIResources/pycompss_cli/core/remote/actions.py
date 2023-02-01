@@ -69,8 +69,6 @@ class RemoteActions(Actions):
             self.arguments.modules = ['COMPSs']
         elif len(self.arguments.modules) == 1 and os.path.isfile(self.arguments.modules[0]):
             self.arguments.modules = self.arguments.modules[0]
-        # elif 'COMPSs' not in [m[:len('COMPSs')] for m in self.arguments.modules]:
-        #     self.arguments.modules.insert(0, 'COMPSs')
         
         print('Deploying environment...')
 
@@ -113,7 +111,9 @@ class RemoteActions(Actions):
 
     def __get_modules(self):
         with open(self.env_conf['env_path'] + '/modules.sh', 'r') as mod_file:
-            return mod_file.read().strip().split('\n')
+            mods = mod_file.read().strip().split('\n')
+            mods = [re.sub(r'#.*', '', mod).strip() for mod in mods]
+            return mods
 
     def job(self):
         super().job()
@@ -156,7 +156,7 @@ class RemoteActions(Actions):
         if 'COMPSS_PYTHON_VERSION' not in ''.join(env_vars):
             env_vars = ['COMPSS_PYTHON_VERSION=3.7.4'] + env_vars
         
-        job_id = remote_submit_job(login_info, remote_dir, app_args, modules, envars=env_vars)
+        job_id = remote_submit_job(login_info, remote_dir, app_args, modules, envars=env_vars, debug=self.debug)
 
         self.past_jobs[job_id] = {
             'app_name': app_name,
@@ -208,7 +208,7 @@ class RemoteActions(Actions):
         job_id = self.arguments.job_id if jid is None else jid
         modules = self.__get_modules()
         scripts_path = self.env_conf['remote_home'] + '/.COMPSs/job_scripts'
-        job_status = core.job_status(scripts_path, job_id, login_info, modules)
+        job_status = core.job_status(scripts_path, job_id, login_info, modules, debug=self.debug)
         if job_status == 'ERROR' and job_id in self.past_jobs:
             app_name = self.past_jobs[job_id]['app_name']
             env_id = self.env_conf['name']
@@ -245,17 +245,15 @@ class RemoteActions(Actions):
                 exit(1)
 
         app_name = self.arguments.app_name
-        if app_name in self.get_apps():
-            print(f'ERROR: There is already another application named `{app_name}`')
+        if app_name in self.get_apps() and not self.arguments.overwrite:
+            print(f'ERROR: There is already another application named `{app_name}`. Use `--overwrite` to overwrite it.')
             exit(1)
-
-        # if self.arguments.destination_dir:
-        #     self.arguments.destination_dir = self.arguments.destination_dir.replace('{COMPSS_REMOTE_HOME}', )
 
         env_id = self.env_conf['name']
         app_dir = self.env_conf['remote_home'] + f'/.COMPSsApps/{env_id}/{app_name}'
 
-        remote_app_deploy(app_dir, self.env_conf['login'], self.arguments.source_dir, self.arguments.destination_dir)
+        remote_app_deploy(app_dir, self.env_conf['login'], self.arguments.source_dir,
+                          self.arguments.destination_dir, self.arguments.env_file)
 
 
     def app_remove(self):
@@ -294,7 +292,7 @@ class RemoteActions(Actions):
             answer = 'y'
             if not self.arguments.force:
                 answer = input('Do you want to delete this environment and all the applications? (y/N) ')
-            if answer == 'Y' or answer == 'y' or answer == 'yes':
+            if answer.lower() == 'y' or answer == 'yes':
                 login_info = self.env_conf['login']
                 remote_env_remove(login_info, env_id, env_apps)
                 super().env_remove(eid=eid)
@@ -306,8 +304,20 @@ class RemoteActions(Actions):
         exit(1)
 
     def gengraph(self):
-        print('ERROR: Not Implemented Yet')
-        exit(1)
+        dot_path = self.arguments.dot_file
+        
+        command = "compss_gengraph " + dot_path
+        remote_exec_app(self.env_conf['login'], command)
+
+    def gentrace(self):
+        command = f"compss_gentrace {self.arguments.trace_dir} "
+        command += ' '.join(self.arguments.rest_args)
+
+        remote_exec_app(self.env_conf['login'], command)
+
+        if self.arguments.download_dir:
+            pass
+            # local_exec_app(f'cp {self.arguments.trace_dir}/* {self.arguments.download_dir}/')
 
     def monitor(self):
         print('ERROR: Not Implemented Yet')
@@ -348,7 +358,7 @@ class RemoteActions(Actions):
         if re.search(r'mn\d\.bsc\.es', self.env_conf['login']) is not None:
             envars.append('COMPSS_PYTHON_VERSION=3.7.4')
 
-        job_id = remote_submit_job(login_info, remote_dir, app_args, modules, envars)
+        job_id = remote_submit_job(login_info, remote_dir, app_args, modules, envars, debug=self.debug)
 
         scripts_path = self.env_conf['remote_home'] + '/.COMPSs/job_scripts'
 
@@ -356,10 +366,10 @@ class RemoteActions(Actions):
         jupyter_job_status = defaults.NOT_RUNNING_KEYWORD
         try:
             while jupyter_job_status != 'RUNNING':
-                jupyter_job_status = core.job_status(scripts_path, job_id, login_info, modules)
+                jupyter_job_status = core.job_status(scripts_path, job_id, login_info, modules, debug=self.debug)
         except:
             print('ERROR while waiting for jupyter to start')
-            core.cancel_job(scripts_path, [job_id], login_info, modules)
+            core.cancel_job(scripts_path, [job_id], login_info, modules, debug=self.debug)
             exit(1)
         else:
             print('Jupyter started')
@@ -367,6 +377,6 @@ class RemoteActions(Actions):
             print('Connecting to jupyter server...')
             time.sleep(5)
 
-            core.connect_job(scripts_path, job_id, login_info, modules, remote_dir, port_forward=port, web_browser=None)
+            core.connect_job(scripts_path, job_id, login_info, modules, remote_dir, port_forward=port, web_browser=None, debug=self.debug)
             
-            core.cancel_job(scripts_path, [job_id], login_info, modules)
+            core.cancel_job(scripts_path, [job_id], login_info, modules, debug=self.debug)

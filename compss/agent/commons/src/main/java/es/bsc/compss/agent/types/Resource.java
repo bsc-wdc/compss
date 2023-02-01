@@ -17,6 +17,7 @@
 package es.bsc.compss.agent.types;
 
 import es.bsc.compss.types.resources.MethodResourceDescription;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -102,29 +103,27 @@ public class Resource<P, R> implements Externalizable {
 
     @Override
     public void writeExternal(ObjectOutput oo) throws IOException {
-        try {
-            oo.writeUTF(name);
-            oo.writeUTF(adaptor);
-            oo.writeObject(description);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        oo.writeUTF(name);
+        oo.writeUTF(adaptor);
+        oo.writeObject(description);
+        oo.writeObject(projectConf);
+        oo.writeObject(resourceConf);
     }
 
     @Override
     public void readExternal(ObjectInput oi) throws IOException, ClassNotFoundException {
-        try {
-            this.name = oi.readUTF();
-            this.adaptor = oi.readUTF();
-            this.description = (MethodResourceDescription) oi.readObject();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        this.name = oi.readUTF();
+        this.adaptor = oi.readUTF();
+        this.description = (MethodResourceDescription) oi.readObject();
+        this.projectConf = (P) oi.readObject();
+        this.resourceConf = (R) oi.readObject();
     }
 
     @Override
     public String toString() {
-        return "NAME = " + name + ", ADAPTOR = " + adaptor;
+        return "NAME = " + name + ", ADAPTOR = " + adaptor + ", PROJECT = "
+            + (projectConf == null ? "null" : projectConf.toString()) + ", RESOURCES = "
+            + (resourceConf == null ? "null" : resourceConf.toString());
     }
 
 }

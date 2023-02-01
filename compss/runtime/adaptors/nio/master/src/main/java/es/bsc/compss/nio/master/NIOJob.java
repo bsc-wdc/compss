@@ -21,6 +21,7 @@ import es.bsc.compss.nio.NIOResult;
 import es.bsc.compss.nio.NIOResultCollection;
 import es.bsc.compss.nio.NIOTask;
 import es.bsc.compss.nio.NIOTaskResult;
+import es.bsc.compss.nio.NIOUri;
 import es.bsc.compss.nio.master.utils.NIOParamFactory;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
@@ -37,9 +38,9 @@ import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.worker.COMPSsException;
+
 import java.util.Collection;
 import java.util.Iterator;
-
 import java.util.LinkedList;
 import java.util.List;
 
@@ -200,14 +201,11 @@ public class NIOJob extends JobImpl<NIOWorkerNode> {
         while (taskParamsItr.hasNext()) {
             Parameter param = taskParamsItr.next();
             NIOResult result = taskResultItr.next();
-            Collection<String> rlocs = result.getLocations();
-            if (!rlocs.isEmpty()) {
-                registerParameter(param, result);
-            }
+            registerResult(param, result);
         }
     }
 
-    private void registerParameter(Parameter param, NIOResult result) {
+    protected void registerResult(Parameter param, NIOResult result) {
         if (!param.isPotentialDependency()) {
             return;
         }
@@ -226,15 +224,17 @@ public class NIOJob extends JobImpl<NIOWorkerNode> {
             while (taskParamsItr.hasNext()) {
                 Parameter elemParam = taskParamsItr.next();
                 NIOResult elemResult = taskResultItr.next();
-                registerParameter(elemParam, elemResult);
+                registerResult(elemParam, elemResult);
             }
         }
 
-        Collection<String> rlocs = result.getLocations();
-        if (!rlocs.isEmpty()) {
+        // applicable whene the results are NIOResults
+        Collection<NIOUri> uris = result.getUris();
+        if (!uris.isEmpty()) {
             if (rename != null) {
-                for (String rloc : rlocs) {
-                    registerResultLocation(rloc, rename, this.worker);
+                for (NIOUri uri : uris) {
+                    String loc = uri.getPath();
+                    registerResultLocation(loc, rename, this.worker);
                 }
                 notifyResultAvailability(dp, rename);
             }

@@ -72,8 +72,8 @@ import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
-import java.io.File;
 
+import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
@@ -114,6 +114,21 @@ public class NIOWorkerNode extends COMPSsWorker {
     @Override
     public String getName() {
         return this.config.getHost();
+    }
+
+    @Override
+    public String getAdaptor() {
+        return NIOAdaptor.class.getCanonicalName();
+    }
+
+    @Override
+    public Object getProjectProperties() {
+        return null;
+    }
+
+    @Override
+    public Object getResourcesProperties() {
+        return null;
     }
 
     @Override

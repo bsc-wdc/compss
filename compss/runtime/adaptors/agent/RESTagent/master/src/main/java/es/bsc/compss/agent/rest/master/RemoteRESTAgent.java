@@ -37,14 +37,22 @@ import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.resources.ExecutorShutdownListener;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.ResourceDescription;
+import es.bsc.compss.types.resources.ResourcesExternalAdaptorPropertiesSerializable;
+import es.bsc.compss.types.resources.ResourcesPropertyAdaptorTypeSerializable;
 import es.bsc.compss.types.resources.ShutdownListener;
+import es.bsc.compss.types.resources.jaxb.ResourcesExternalAdaptorProperties;
+import es.bsc.compss.types.resources.jaxb.ResourcesPropertyAdaptorType;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
+
 import java.util.List;
+
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
+
 import org.glassfish.jersey.client.ClientConfig;
+
 import storage.StorageException;
 import storage.StorageItf;
 import storage.StubItf;
@@ -85,6 +93,27 @@ public class RemoteRESTAgent extends COMPSsWorker {
     @Override
     public String getName() {
         return this.name;
+    }
+
+    @Override
+    public String getAdaptor() {
+        return Adaptor.class.getCanonicalName();
+    }
+
+    @Override
+    public Object getProjectProperties() {
+        return null;
+    }
+
+    @Override
+    public ResourcesExternalAdaptorProperties getResourcesProperties() {
+        ResourcesExternalAdaptorProperties properties = new ResourcesExternalAdaptorPropertiesSerializable();
+        ResourcesPropertyAdaptorType property = new ResourcesPropertyAdaptorTypeSerializable();
+        property.setName("Port");
+        String port = config.getProperty("Port");
+        property.setValue(port);
+        properties.getProperty().add(property);
+        return properties;
     }
 
     public WebTarget getTarget() {

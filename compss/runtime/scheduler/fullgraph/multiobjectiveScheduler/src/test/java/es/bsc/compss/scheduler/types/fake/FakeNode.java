@@ -49,6 +49,21 @@ public class FakeNode extends COMPSsNode {
     }
 
     @Override
+    public String getAdaptor() {
+        return null;
+    }
+
+    @Override
+    public Object getProjectProperties() {
+        return null;
+    }
+
+    @Override
+    public Object getResourcesProperties() {
+        return null;
+    }
+
+    @Override
     public void setInternalURI(MultiURI uri) {
 
     }

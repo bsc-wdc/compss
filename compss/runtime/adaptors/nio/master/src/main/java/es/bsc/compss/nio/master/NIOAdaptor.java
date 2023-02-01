@@ -20,7 +20,6 @@ import es.bsc.comm.Connection;
 import es.bsc.comm.exceptions.CommException;
 import es.bsc.comm.nio.NIONode;
 import es.bsc.comm.stage.Transfer.Destination;
-
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsDefaults;
 import es.bsc.compss.comm.Comm;
@@ -480,7 +479,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     }
 
     @Override
-    public final void receivedNIOTaskDone(Connection c, NIOTaskResult ntr, NIOTaskProfile profile, boolean successful,
+    public void receivedNIOTaskDone(Connection c, NIOTaskResult ntr, NIOTaskProfile profile, boolean successful,
         Exception e) {
         int jobId = ntr.getJobId();
 
@@ -501,8 +500,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
             // Mark task as finished and release waiters
             JobHistory prevJobHistory = nj.getHistory();
-            nj.taskFinished(successful, ntr, e);
-
+            finishJob(nj, successful, ntr, e);
             // Retrieve files if required
             retrieveAdditionalJobFiles(c, successful, jobId, taskId, prevJobHistory);
 
@@ -510,6 +508,11 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
         // Close connection
         c.finishConnection();
+    }
+
+    // needed as a different funciton to be overrided by commAgentAdaptor
+    protected void finishJob(NIOJob nj, boolean successful, NIOTaskResult ntr, Exception e) {
+        nj.taskFinished(successful, ntr, e);
     }
 
     private void produceFailOnTask(NIOTask task) {

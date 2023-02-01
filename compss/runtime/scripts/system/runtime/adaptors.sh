@@ -33,7 +33,7 @@ DEFAULT_MASTER_NAME=""
 # Available Adaptors
 NIO_ADAPTOR=es.bsc.compss.nio.master.NIOAdaptor
 GAT_ADAPTOR=es.bsc.compss.gat.master.GATAdaptor
-REST_AGENT_ADAPTOR=es.bsc.compss.agent.rest.Adaptor
+REST_AGENT_ADAPTOR=es.bsc.compss.agent.rest.master.Adaptor
 COMM_AGENT_ADAPTOR=es.bsc.compss.agent.comm.CommAgentAdaptor
 
 DEFAULT_COMMUNICATION_ADAPTOR=${NIO_ADAPTOR}

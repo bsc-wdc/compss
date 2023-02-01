@@ -112,6 +112,27 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
     }
 
     /**
+     * Name of the adaptor used to connect with this node.
+     * 
+     * @return Name of the adaptor used to connect with this node.
+     */
+    public abstract String getAdaptor();
+
+    /**
+     * Information related to the project's configuration of the node.
+     * 
+     * @return Information related to the project's configuration of the node.
+     */
+    public abstract Object getProjectProperties();
+
+    /**
+     * Information related to the resources' configuration of the node.
+     * 
+     * @return Information related to the resources' configuration of the node.
+     */
+    public abstract Object getResourcesProperties();
+
+    /**
      * Starts the node process.
      *
      * @throws InitNodeException Error starting node.

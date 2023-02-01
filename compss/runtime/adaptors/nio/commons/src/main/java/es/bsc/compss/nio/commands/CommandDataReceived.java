@@ -17,7 +17,6 @@
 package es.bsc.compss.nio.commands;
 
 import es.bsc.comm.Connection;
-
 import es.bsc.compss.nio.NIOAgent;
 
 import java.io.IOException;
@@ -64,7 +63,7 @@ public class CommandDataReceived extends RetriableCommand {
 
     @Override
     public String toString() {
-        return "Data for transfer group" + this.transfergroupID + "has been received in the remote worker";
+        return "Data for transfer group " + this.transfergroupID + " has been received in the remote worker";
     }
 
     @Override

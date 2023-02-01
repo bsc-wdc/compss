@@ -62,13 +62,28 @@ public class HTTPInstance extends COMPSsWorker {
     }
 
     @Override
-    public void start() throws InitNodeException {
-        // Do nothing
+    public String getName() {
+        return this.httpWorkerName;
     }
 
     @Override
-    public String getName() {
-        return this.httpWorkerName;
+    public String getAdaptor() {
+        return HTTPAdaptor.class.getCanonicalName();
+    }
+
+    @Override
+    public Object getProjectProperties() {
+        return null;
+    }
+
+    @Override
+    public Object getResourcesProperties() {
+        return null;
+    }
+
+    @Override
+    public void start() throws InitNodeException {
+        // Do nothing
     }
 
     @Override

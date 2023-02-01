@@ -14,7 +14,9 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.agent.types;
+package es.bsc.compss.types.resources;
+
+import es.bsc.compss.types.resources.jaxb.ResourcesPropertyAdaptorType;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -23,54 +25,40 @@ import java.io.ObjectOutput;
 
 
 /**
- * Data value location on an Agent.
+ * This class exists only to make ResourcesPropertyAdaptorType Serializable.
  */
-public class RemoteDataLocation implements Externalizable {
-
-    private Resource<?, ?> resource;
-    private String path;
-
-
-    public RemoteDataLocation() {
-        this.resource = null;
-    }
-
-    public RemoteDataLocation(Resource<?, ?> agent, String path) {
-        this.resource = agent;
-        this.path = path;
-    }
+public class ResourcesPropertyAdaptorTypeSerializable extends ResourcesPropertyAdaptorType implements Externalizable {
 
     /**
-     * Resource owning the data.
-     *
-     * @return Resource owning the data.
+     * Only for externalization.
      */
-    public Resource<?, ?> getResource() {
-        return this.resource;
-    }
-
-    /**
-     * Returns the path on the remote resource where to fetch the data.
-     *
-     * @return data path within the resource.
-     */
-    public String getPath() {
-        return this.path;
+    public ResourcesPropertyAdaptorTypeSerializable() {
     }
 
     @Override
     public void writeExternal(ObjectOutput oo) throws IOException {
-        oo.writeObject(this.resource);
-        oo.writeUTF(this.path);
+        try {
+            oo.writeUTF(this.name);
+            oo.writeUTF(this.value);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void readExternal(ObjectInput oi) throws IOException, ClassNotFoundException {
-        this.resource = (Resource<?, ?>) oi.readObject();
-        this.path = oi.readUTF();
+        try {
+            this.name = oi.readUTF();
+            this.value = oi.readUTF();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
+    @Override
     public String toString() {
-        return "RESOURCE = [" + (this.resource == null ? "null" : this.resource.toString()) + "], PATH =" + this.path;
+        return "name=" + this.getName() + ", value=" + this.getValue();
     }
+
 }

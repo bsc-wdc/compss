@@ -22,22 +22,30 @@ import es.bsc.comm.TransferManager;
 import es.bsc.comm.nio.NIONode;
 import es.bsc.compss.agent.AppMonitor;
 import es.bsc.compss.agent.comm.messages.types.CommResource;
+import es.bsc.compss.agent.comm.messages.types.CommResult;
 import es.bsc.compss.agent.comm.messages.types.CommTask;
 import es.bsc.compss.agent.types.ApplicationParameter;
+import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOResult;
 import es.bsc.compss.nio.NIOResultCollection;
 import es.bsc.compss.nio.NIOTaskResult;
 import es.bsc.compss.nio.commands.CommandDataReceived;
 import es.bsc.compss.nio.commands.CommandNIOTaskDone;
 import es.bsc.compss.worker.COMPSsException;
+
 import java.util.LinkedList;
 import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 /**
  * Monitor to detect changes on a task state and notify the orchestrator that commanded its execution.
  */
 public class TaskMonitor extends AppMonitor {
+
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.AGENT);
 
     private static final TransferManager TM = CommAgentAdaptor.getTransferManager();
     private final CommResource orchestrator;
@@ -165,7 +173,7 @@ public class TaskMonitor extends AppMonitor {
         NIOTaskResult tr = new NIOTaskResult(jobId);
 
         for (TaskResult param : this.getResults()) {
-            tr.addParamResult(createNIOResult(param));
+            tr.addParamResult(createCommResult(param));
         }
 
         Connection c = TM.startConnection(n);
@@ -175,25 +183,25 @@ public class TaskMonitor extends AppMonitor {
         c.finishConnection();
     }
 
-    private NIOResult createNIOResult(TaskResult result) {
-        if (result == null) {
-            return new NIOResult();
+    private NIOResult createCommResult(TaskResult taskRes) {
+        if (taskRes == null) {
+            return new CommResult();
         }
-        NIOResult nr;
-        if (result.isCollective()) {
+        NIOResult res;
+        if (taskRes.isCollective()) {
             List<NIOResult> elements = new LinkedList<>();
-            CollectionTaskResult cResult = (CollectionTaskResult) result;
+            CollectionTaskResult cResult = (CollectionTaskResult) taskRes;
             for (TaskResult subResult : cResult.getSubelements()) {
-                elements.add(createNIOResult(subResult));
+                elements.add(createCommResult(subResult));
             }
-            nr = new NIOResultCollection(elements);
+            res = new NIOResultCollection(elements);
         } else {
-            nr = new NIOResult();
+            CommResult commRes = new CommResult();
+            if (taskRes.getLocations() != null) {
+                commRes.setRemoteData(taskRes.getLocations());
+            }
+            res = commRes;
         }
-        String loc = result.getDataLocation();
-        if (loc != null) {
-            nr.addLocation(loc);
-        }
-        return nr;
+        return res;
     }
 }

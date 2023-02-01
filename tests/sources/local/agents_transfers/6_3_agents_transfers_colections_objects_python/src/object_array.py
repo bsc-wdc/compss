@@ -67,7 +67,7 @@ def nested_in_out(mat_a, mat_c, label):
     print_mat(mat_c, "output " + label)
 
 
-@constraint(processor_architecture="processor_ag_2")
+@constraint(processor_architecture="processor_ag_2", operating_system_type="agent_2")
 @task(mat_a=COLLECTION_IN, mat_c=COLLECTION_OUT)
 def in_out(mat_a, mat_c):
     """Check collection in and collection out invoking nested task.
@@ -79,7 +79,7 @@ def in_out(mat_a, mat_c):
     nested_in_out(mat_a, mat_c, "nested_in_out")
 
 
-@constraint(processor_architecture="processor_ag_2")
+@constraint(processor_architecture="processor_ag_2", operating_system_type="agent_2")
 @task(mat_a=COLLECTION_IN, mat_c=COLLECTION_OUT)
 def in_out_w_print(mat_a, mat_c):
     """Check collection in and collection out invoking nested task with print.
@@ -114,7 +114,7 @@ def nested_inout(mat_c, label):
 
 
 
-@constraint(processor_architecture="processor_ag_2")
+@constraint(processor_architecture="processor_ag_2", operating_system_type="agent_2")
 @task(mat_c=COLLECTION_INOUT)
 def inout(mat_c):
     """Check collection inout invoking nested task.
@@ -125,7 +125,7 @@ def inout(mat_c):
     nested_inout(mat_c, "nested_inout")
 
 
-@constraint(processor_architecture="processor_ag_2")
+@constraint(processor_architecture="processor_ag_2", operating_system_type="agent_2")
 @task(mat_c=COLLECTION_INOUT)
 def inout_w_print(mat_c):
     """Check collection inout invoking nested task with print.
@@ -142,7 +142,7 @@ def inout_w_print(mat_c):
 
 @constraint(processor_architecture="processor_ag_3")
 @task()
-def print_task(mat_c, label):
+def nested_print_task(mat_c, label):
     """Print mat_c and label.
 
     :param mat_c: Matrix containing output matrix.
@@ -165,7 +165,7 @@ def nested_generation_out(mat_c):
     print_mat(mat_c, "output nested_generation_out")
 
 
-@constraint(processor_architecture="processor_ag_2")
+@constraint(processor_architecture="processor_ag_2", operating_system_type="agent_2")
 @task(mat_c=COLLECTION_OUT)
 def generation_out(mat_c):
     """Check out generation invoking nested task.
@@ -176,7 +176,7 @@ def generation_out(mat_c):
     nested_generation_out(mat_c)
 
 
-@constraint(processor_architecture="processor_ag_2")
+@constraint(processor_architecture="processor_ag_2", operating_system_type="agent_2")
 @task(mat_c=COLLECTION_INOUT)
 def consumption(mat_c, label):
     """Print mat_c and label invoking nested task (print_task -> print_mat).
@@ -185,7 +185,7 @@ def consumption(mat_c, label):
     :param label: Label string.
     :return: None.
     """
-    print_task(mat_c, label)
+    nested_print_task(mat_c, label)
 
 
 @constraint(processor_architecture="processor_ag_3")
@@ -206,7 +206,7 @@ def nested_generation_inout(mat_c):
     print_mat(mat_c, "output nested_generation_inout")
 
 
-@constraint(processor_architecture="processor_ag_2")
+@constraint(processor_architecture="processor_ag_2", operating_system_type="agent_2")
 @task(mat_c=COLLECTION_INOUT)
 def generation_inout(mat_c):
     """Check collection inout generation invoking nested task.

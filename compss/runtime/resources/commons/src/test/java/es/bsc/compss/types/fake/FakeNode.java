@@ -50,6 +50,26 @@ public class FakeNode extends COMPSsWorker {
     }
 
     @Override
+    public String getName() {
+        return this.name;
+    }
+
+    @Override
+    public String getAdaptor() {
+        return null;
+    }
+
+    @Override
+    public Object getProjectProperties() {
+        return null;
+    }
+
+    @Override
+    public Object getResourcesProperties() {
+        return null;
+    }
+
+    @Override
     public String getUser() {
         return "";
     }
@@ -77,11 +97,6 @@ public class FakeNode extends COMPSsWorker {
     @Override
     public void announceCreation() throws AnnounceException {
 
-    }
-
-    @Override
-    public String getName() {
-        return this.name;
     }
 
     @Override

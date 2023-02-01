@@ -21,11 +21,15 @@ import es.bsc.comm.nio.NIONode;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.agent.comm.messages.types.CommResource;
 import es.bsc.compss.agent.comm.messages.types.CommTask;
+import es.bsc.compss.agent.types.RemoteDataLocation;
 import es.bsc.compss.agent.types.Resource;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.ConstructConfigurationException;
+import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOTask;
+import es.bsc.compss.nio.NIOTaskResult;
 import es.bsc.compss.nio.master.NIOAdaptor;
+import es.bsc.compss.nio.master.NIOJob;
 import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.NodeMonitor;
@@ -38,6 +42,9 @@ import es.bsc.compss.types.resources.jaxb.ResourcesPropertyAdaptorType;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 
 /**
  * Class handling all the Adaptor requests to manage Comm Agent Workers.
@@ -46,6 +53,7 @@ public class CommAgentAdaptor extends NIOAdaptor implements CommAgent {
 
     private static final String PROPERTY_PORT = "PORT";
     public static final CommResource LOCAL_RESOURCE;
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
 
     static {
         String localAgentName = COMPSsNode.getMasterName();
@@ -154,5 +162,18 @@ public class CommAgentAdaptor extends NIOAdaptor implements CommAgent {
     protected void retrieveAdditionalJobFiles(Connection connection, boolean success, int jobId, int taskId,
         JobHistory history) {
         // Agents do not retrieve information of how the job finished.
+    }
+
+    // ownAgent needed as an interface to avoid circular dependencies
+    @Override
+    protected void finishJob(NIOJob nj, boolean successful, NIOTaskResult ntr, Exception e) {
+        CommAgentJob commJob = (CommAgentJob) nj;
+        commJob.taskFinished(successful, ntr, e, ownAgent);
+    }
+
+    // should not receive this call
+    @Override
+    public es.bsc.compss.types.resources.Resource getNodeFromLocation(RemoteDataLocation remoteDataLocation) {
+        return null;
     }
 }

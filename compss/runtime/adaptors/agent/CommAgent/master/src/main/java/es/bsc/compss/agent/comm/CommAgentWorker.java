@@ -35,18 +35,22 @@ import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
+
 import java.util.List;
 
 
 /**
- * CommAgentWorker represents a remote remote Comm agent and implements the necessary methods to send/retrieve data
- * to/from such agent.
+ * CommAgentWorker represents a remote Comm agent and implements the necessary methods to send/retrieve data to/from
+ * such agent.
  */
-class CommAgentWorker extends NIOWorkerNode {
+public class CommAgentWorker extends NIOWorkerNode {
 
     private final CommResource remoteResource;
 
 
+    /**
+     * Creates a CommAgentWorker.
+     */
     public CommAgentWorker(String name, int port, CommAgentAdaptor adaptor, NodeMonitor monitor) {
         super(null, adaptor, monitor);
         remoteResource = new CommResource(name, port);
@@ -164,6 +168,35 @@ class CommAgentWorker extends NIOWorkerNode {
     @Override
     public void reduceComputingCapabilities(ResourceDescription description) {
         // CommAgents are independent and they manage their own resources
+    }
+
+    /**
+     * Returns the adaptor of the node.
+     */
+    @Override
+    public String getAdaptor() {
+        return this.remoteResource.getAdaptor();
+    }
+
+    /**
+     * Return a map{"Properties":project_properties_of_the_node}.
+     */
+    @Override
+    public Object getProjectProperties() {
+        return this.remoteResource.getProjectConf();
+    }
+
+    /**
+     * Return a map{"Properties":resource_properties_of_the_node}.
+     */
+    @Override
+    public Object getResourcesProperties() {
+        return this.remoteResource.getResourceConf();
+    }
+
+    public String toString() {
+        return "CommAgentWorker=[remoteResource=" + this.remoteResource.toString() + "; node" + this.node.toString()
+            + "]";
     }
 
 }

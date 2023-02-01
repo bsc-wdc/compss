@@ -5,7 +5,6 @@ Agent transfers single file python test.
 import os
 import numpy as np
 
-
 from pycompss.api.task import task
 from pycompss.api.api import compss_wait_on_file
 from pycompss.api.parameter import FILE_IN, FILE_OUT, FILE_INOUT
@@ -150,7 +149,7 @@ def generation_out(path_c):
 
 
 @task(path_c=FILE_IN)
-def print_task(path_c, label):
+def nested_print_task(path_c, label):
     """Print mat_c and label.
 
     :param mat_c: Matrix to print.
@@ -168,7 +167,7 @@ def consumption(path_c, label):
     :param path_c: Path to matrix C.
     :return: None.
     """
-    print_task(path_c, label)
+    nested_print_task(path_c, label)
 
 
 @task(path_c=FILE_INOUT)

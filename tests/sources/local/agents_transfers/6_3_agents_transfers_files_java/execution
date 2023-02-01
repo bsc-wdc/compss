@@ -175,6 +175,7 @@ echo "Adding additional resources to COMPSsWorker01." > >(tee -a "${output_log}"
   --agent_port="46101" \
   --comm="es.bsc.compss.agent.comm.CommAgentAdaptor" \
   --cpu=1 \
+  --os_type="agent_2" \
   "COMPSsWorker02" "Port=46202" > >(tee -a "${output_log}")  2> >(tee -a "${error_log}") 
 
   # Afegir un nou worker Comm agent adaptor
@@ -184,6 +185,7 @@ echo "Adding additional resources to COMPSsWorker02." > >(tee -a "${output_log}"
   --agent_port="46201" \
   --comm="es.bsc.compss.agent.comm.CommAgentAdaptor" \
   --cpu=1 \
+  --os_type="agent_3" \
   "COMPSsWorker03" "Port=46302" > >(tee -a "${output_log}")  2> >(tee -a "${error_log}") 
 sleep 1
 

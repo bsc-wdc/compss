@@ -45,8 +45,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.gridlab.gat.GATContext;
 import org.gridlab.gat.URI;
@@ -80,6 +82,27 @@ public class GATWorkerNode extends COMPSsWorker {
     @Override
     public String getName() {
         return this.config.getHost();
+    }
+
+    @Override
+    public String getAdaptor() {
+        return GATAdaptor.class.getCanonicalName();
+    }
+
+    @Override
+    public Map<String, Object> getProjectProperties() {
+        Map<String, Object> project = new HashMap<>();
+        Object brokerAdaptorName = this.config.getContext().getPreferences().get("ResourceBroker.adaptor.name");
+        project.put("BrokerAdaptor", brokerAdaptorName);
+        return project;
+    }
+
+    @Override
+    public Map<String, Object> getResourcesProperties() {
+        Map<String, Object> resources = new HashMap<>();
+        Object brokerAdaptorName = this.config.getContext().getPreferences().get("ResourceBroker.adaptor.name");
+        resources.put("BrokerAdaptor", brokerAdaptorName);
+        return resources;
     }
 
     @Override
@@ -452,4 +475,5 @@ public class GATWorkerNode extends COMPSsWorker {
     public void verifyNodeIsRunning() {
         // TODO should be verified that the worker is up.
     }
+
 }

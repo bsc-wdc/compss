@@ -24,11 +24,13 @@ import es.bsc.compss.agent.rest.types.RESTResult;
 import es.bsc.compss.agent.rest.types.TaskProfile;
 import es.bsc.compss.agent.rest.types.messages.EndApplicationNotification;
 import es.bsc.compss.agent.types.ApplicationParameter;
+import es.bsc.compss.agent.types.RemoteDataLocation;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.job.JobEndStatus;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.worker.COMPSsException;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
@@ -177,6 +179,16 @@ public class AppTaskMonitor extends AppMonitor implements RESTAgentRequestHandle
         System.out.println("Job failed after " + profile.getTotalTime());
     }
 
+    private String[] remoteDataInfoToStringArray(Collection<RemoteDataLocation> remoteLocations) {
+        String[] res = new String[remoteLocations.size()];
+        int i = 0;
+        for (RemoteDataLocation remoteLoc : remoteLocations) {
+            res[i] = remoteLoc.getPath();
+            i++;
+        }
+        return res;
+    }
+
     @Override
     public void notifyOrchestrator(String host, OrchestratorNotification.HttpMethod method, String operation) {
         WebTarget target = CLIENT.target(host);
@@ -186,13 +198,8 @@ public class AppTaskMonitor extends AppMonitor implements RESTAgentRequestHandle
         RESTResult[] restResults = new RESTResult[taskResults.length];
         int i = 0;
         for (TaskResult result : taskResults) {
-            String[] locs;
-            String loc = result.getDataLocation();
-            if (loc != null) {
-                locs = new String[1];
-            } else {
-                locs = new String[0];
-            }
+            Collection<RemoteDataLocation> remoteLocations = result.getLocations();
+            String[] locs = remoteDataInfoToStringArray(remoteLocations);
             restResults[i] = new RESTResult(locs);
             i++;
         }

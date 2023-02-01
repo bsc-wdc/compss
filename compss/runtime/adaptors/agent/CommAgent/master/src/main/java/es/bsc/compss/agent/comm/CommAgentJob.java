@@ -19,12 +19,16 @@ package es.bsc.compss.agent.comm;
 
 import es.bsc.compss.agent.comm.messages.types.CommParam;
 import es.bsc.compss.agent.comm.messages.types.CommParamCollection;
+import es.bsc.compss.agent.comm.messages.types.CommResult;
 import es.bsc.compss.agent.comm.messages.types.CommTask;
 import es.bsc.compss.agent.types.RemoteDataInformation;
 import es.bsc.compss.agent.types.RemoteDataLocation;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.nio.NIOData;
 import es.bsc.compss.nio.NIOParam;
+import es.bsc.compss.nio.NIOResult;
+import es.bsc.compss.nio.NIOResultCollection;
+import es.bsc.compss.nio.NIOTaskResult;
 import es.bsc.compss.nio.NIOUri;
 import es.bsc.compss.nio.master.NIOJob;
 import es.bsc.compss.types.CoreElement;
@@ -49,6 +53,8 @@ import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.util.CoreManager;
 
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -58,9 +64,24 @@ import java.util.List;
  */
 class CommAgentJob extends NIOJob {
 
+    private CommAgent ownAgent;
+
+
     public CommAgentJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res,
         List<String> slaveWorkersNodeNames, JobListener listener, List<Integer> predecessors, Integer numSuccessors) {
         super(taskId, taskParams, impl, res, slaveWorkersNodeNames, listener, predecessors, numSuccessors);
+    }
+
+    /**
+     * Marks the task as finished with the given {@code successful} error code.
+     *
+     * @param successful {@code true} if the task has successfully finished, {@code false} otherwise.
+     * @param ntr information referring the results of the task executed
+     * @param e Exception arose during the task execution, {@literal null} if no exception was raised.
+     */
+    public void taskFinished(boolean successful, NIOTaskResult ntr, Exception e, CommAgent ownAgent) {
+        this.ownAgent = ownAgent;
+        super.taskFinished(successful, ntr, e);
     }
 
     @Override
@@ -234,5 +255,43 @@ class CommAgentJob extends NIOJob {
         }
 
         return npc;
+    }
+
+    @Override
+    protected void registerResult(Parameter param, NIOResult result) {
+
+        if (!param.isPotentialDependency()) {
+            return;
+        }
+        DependencyParameter dp = (DependencyParameter) param;
+        String rename = getOuputRename(dp);
+        if (dp.isCollective()) {
+            CollectiveParameter colParam = (CollectiveParameter) param;
+            NIOResultCollection colResult = (NIOResultCollection) result;
+
+            List<NIOResult> taskResults = colResult.getElements();
+            List<Parameter> taskParams = colParam.getElements();
+            Iterator<Parameter> taskParamsItr = taskParams.iterator();
+            Iterator<NIOResult> taskResultItr = taskResults.iterator();
+
+            while (taskParamsItr.hasNext()) {
+                Parameter elemParam = taskParamsItr.next();
+                NIOResult elemResult = taskResultItr.next();
+                registerResult(elemParam, elemResult);
+            }
+        } else {
+            CommResult commResult = (CommResult) result;
+            Collection<RemoteDataLocation> dataLocations = commResult.getLocations();
+            for (RemoteDataLocation location : dataLocations) {
+                if (location != null) {
+                    Resource w = ownAgent.getNodeFromLocation(location);
+                    if (w == null) {
+                        w = this.worker;
+                    }
+                    LOGGER.debug("Registering result " + rename + " comming from worker " + w.getName());
+                    registerResultLocation(location.getPath(), rename, w);
+                }
+            }
+        }
     }
 }

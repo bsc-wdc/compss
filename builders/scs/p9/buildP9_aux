@@ -44,12 +44,14 @@
   #######
 
   # DEFINE MODULES
-  modules="gcc/8.3.0 openmpi/4.0.1 boost java atlas/3.10.3 python/2.7.14 dlb/git"
+  modules="gcc/8.3.0 openmpi/4.0.1 boost java atlas/3.10.3 dlb/git papi/5.6.0 bsc/commands"
   unload_before_python="ignore"
   run_before_py3_modules="ignore"
-  py3_modules="python/3.6.5"
+  # py3_modules="python/3.6.5"
+  py3_modules="python/3.8.2"
   run_before_py3_other_modules="module load cuda/10.2 cudnn/7.6.4 nccl/2.4.8 tensorrt/6.0.1 openmpi/4.0.1 scalapack/2.0.2 fftw/3.3.8 szip/2.1.1 ffmpeg/4.2.1 opencv/4.1.1"
-  py3_other_modules="python/3.7.4_ML python/3.8.2 python/3.9.0"
+  # py3_other_modules="python/3.7.4_ML python/3.8.2 python/3.9.0"
+  py3_other_modules="python/3.9.0"
 
   # DEFINE CONFIGURATION PARAMETERS
   #(Environment vars must be scaped to get the correct value if not it could take a value previous to load the modules)
@@ -59,7 +61,7 @@
   additional_module_use_folder="ignore"
   #additional_module_use_folder="/gpfs/projects/bsc32/software/rhel/7.4/ppc64le/POWER9/modules/all/"
   queues_cfg="p9.cfg"
-  extrae_with_openmpi="true"
+  extrae_with_openmpi="false"
   openmpi_version=""
   extrae_with_impi="false"
   impi_version=""

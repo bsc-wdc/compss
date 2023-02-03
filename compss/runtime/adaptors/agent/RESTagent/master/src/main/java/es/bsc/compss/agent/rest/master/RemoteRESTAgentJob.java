@@ -282,7 +282,7 @@ public class RemoteRESTAgentJob extends JobImpl<RemoteRESTAgent> {
         }
 
         DependencyParameter dp = (DependencyParameter) param;
-        String rename = getOuputRename(dp);
+        String rename = getOutputRename(dp);
 
         if (rename != null) {
             for (String rloc : result.getLocations()) {

@@ -211,7 +211,7 @@ public class NIOJob extends JobImpl<NIOWorkerNode> {
         }
 
         DependencyParameter dp = (DependencyParameter) param;
-        String rename = getOuputRename(dp);
+        String rename = getOutputRename(dp);
         if (dp.isCollective()) {
             CollectiveParameter colParam = (CollectiveParameter) param;
             NIOResultCollection colResult = (NIOResultCollection) result;

@@ -649,7 +649,7 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
             return;
         }
         DependencyParameter dp = (DependencyParameter) p;
-        String dataName = getOuputRename(p);
+        String dataName = getOutputRename(p);
         if (dp.isCollective()) {
             CollectiveParameter cp = (CollectiveParameter) dp;
             for (Parameter elem : cp.getElements()) {
@@ -677,7 +677,7 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
         }
     }
 
-    protected String getOuputRename(Parameter p) {
+    protected String getOutputRename(Parameter p) {
         String name = null;
         if (p.isPotentialDependency()) {
             // Notify the FileTransferManager about the generated/updated OUT/INOUT datums

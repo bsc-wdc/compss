@@ -264,7 +264,7 @@ class CommAgentJob extends NIOJob {
             return;
         }
         DependencyParameter dp = (DependencyParameter) param;
-        String rename = getOuputRename(dp);
+        String rename = getOutputRename(dp);
         if (dp.isCollective()) {
             CollectiveParameter colParam = (CollectiveParameter) param;
             NIOResultCollection colResult = (NIOResultCollection) result;
@@ -283,7 +283,7 @@ class CommAgentJob extends NIOJob {
             CommResult commResult = (CommResult) result;
             Collection<RemoteDataLocation> dataLocations = commResult.getLocations();
             for (RemoteDataLocation location : dataLocations) {
-                if (location != null) {
+                if (location != null && rename != null) {
                     Resource w = ownAgent.getNodeFromLocation(location);
                     if (w == null) {
                         w = this.worker;

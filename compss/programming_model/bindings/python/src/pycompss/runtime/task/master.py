@@ -145,6 +145,7 @@ SUPPORTED_ARGUMENTS = {
     LABELS.numba_signature,
     LABELS.numba_declaration,
     LABELS.varargs_type,
+    LABELS.config_file,
 }  # type: typing.Set[str]
 # Deprecated arguments. Still supported but shows a message when used.
 DEPRECATED_ARGUMENTS = {

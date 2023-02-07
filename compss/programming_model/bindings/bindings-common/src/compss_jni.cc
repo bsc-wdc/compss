@@ -380,7 +380,7 @@ void init_master_jni_types(ThreadStatus* status, jclass clsITimpl) {
     check_exception(status, "Cannot find cancelApplicationTasks");
 
     // RegisterCE method
-    midRegisterCE = status->localJniEnv->GetMethodID(clsITimpl, "registerCoreElement", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;[Ljava/lang/String;[Ljava/lang/String;)V");
+    midRegisterCE = status->localJniEnv->GetMethodID(clsITimpl, "registerCoreElement", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;[Ljava/lang/String;[Ljava/lang/String;[Ljava/lang/String;)V");
     check_exception(status, "Cannot find registerCoreElement");
 
     // isFileAccessed method
@@ -1246,7 +1246,7 @@ void JNI_ExecuteHttpTask(long appId, char* signature, char* onFailure, int timeo
 }
 
 
-void JNI_RegisterCE(char* ceSignature, char* implSignature, char* implConstraints, char* implType, char* implLocal, char* implIO, char** prolog, char** epilog, int numParams, char** implTypeArgs) {
+void JNI_RegisterCE(char* ceSignature, char* implSignature, char* implConstraints, char* implType, char* implLocal, char* implIO, char** prolog, char** epilog, char** container, int numParams, char** implTypeArgs) {
     //debug_printf ("[BINDING-COMMONS] - @JNI_RegisterCE - ceSignature:     %s\n", ceSignature);
     //debug_printf ("[BINDING-COMMONS] - @JNI_RegisterCE - implSignature:   %s\n", implSignature);
     //debug_printf ("[BINDING-COMMONS] - @JNI_RegisterCE - implConstraints: %s\n", implConstraints);
@@ -1261,14 +1261,18 @@ void JNI_RegisterCE(char* ceSignature, char* implSignature, char* implConstraint
     // Array of Objects to pass to the register
     jobjectArray prologArr;
     jobjectArray epilogArr;
+    jobjectArray containerArr;
     prologArr = (jobjectArray)status->localJniEnv->NewObjectArray(3, clsString, status->localJniEnv->NewStringUTF(""));
     epilogArr = (jobjectArray)status->localJniEnv->NewObjectArray(3, clsString, status->localJniEnv->NewStringUTF(""));
+    containerArr = (jobjectArray)status->localJniEnv->NewObjectArray(3, clsString, status->localJniEnv->NewStringUTF(""));
     for (int i = 0; i < 3; i++) {
         //debug_printf("[BINDING-COMMONS] - @JNI_RegisterCE -   Processing pos %d\n", i);
         jstring tmpro = status->localJniEnv->NewStringUTF(prolog[i]);
         jstring tmpepi = status->localJniEnv->NewStringUTF(epilog[i]);
+        jstring tmpcont = status->localJniEnv->NewStringUTF(container[i]);
         status->localJniEnv->SetObjectArrayElement(prologArr, i, tmpro);
         status->localJniEnv->SetObjectArrayElement(epilogArr, i, tmpepi);
+        status->localJniEnv->SetObjectArrayElement(containerArr, i, tmpcont);
     }
 
     // Array of Objects to pass to the register
@@ -1291,6 +1295,7 @@ void JNI_RegisterCE(char* ceSignature, char* implSignature, char* implConstraint
                               status->localJniEnv->NewStringUTF(implIO),
                               prologArr,
                               epilogArr,
+                              containerArr,
                               implArgs);
     check_exception(status, "Exception received when calling registerCE");
 

@@ -27,6 +27,7 @@ ERROR_IMPL_LOCAL = "ERROR: Wrong impl_local value."
 ERROR_IMPL_IO = "ERROR: Wrong impl_io value."
 ERROR_IMPL_PROLOG = "ERROR: Wrong impl_prolog value."
 ERROR_IMPL_EPILOG = "ERROR: Wrong impl_epilog value."
+ERROR_IMPL_CONTAINER = "ERROR: Wrong impl_container value."
 ERROR_IMPL_TYPE_ARGS = "ERROR: Wrong impl_type_args value."
 
 
@@ -39,6 +40,7 @@ def test_core_element():
     impl_io = False
     impl_prolog = ["impl_prolog"]
     impl_epilog = ["impl_epilog"]
+    impl_container = ["", "", ""]
     impl_type_args = ["impl_type_args"]
     core_element = CE(
         signature,
@@ -49,6 +51,7 @@ def test_core_element():
         impl_io,
         impl_prolog,
         impl_epilog,
+        impl_container,
         impl_type_args,
     )
 
@@ -116,6 +119,14 @@ def test_core_element():
     result = core_element.get_impl_epilog()
     assert result == new_impl_epilog, ERROR_IMPL_EPILOG
 
+    # Check impl_container
+    result = core_element.get_impl_container()
+    assert result == impl_container, ERROR_IMPL_CONTAINER
+    new_impl_container = ["my_new_impl_container", "", ""]
+    core_element.set_impl_container(new_impl_container)
+    result = core_element.get_impl_container()
+    assert result == new_impl_container, ERROR_IMPL_CONTAINER
+
     # Check impl_type_args
     result = core_element.get_impl_type_args()
     assert result == impl_type_args, ERROR_IMPL_TYPE_ARGS
@@ -139,6 +150,7 @@ def test_core_element():
         "\t - Impl. io         : True\n"
         "\t - Impl. prolog     : ['my_new_impl_prolog']\n"
         "\t - Impl. epilog     : ['my_new_impl_epilog']\n"
+        "\t - Impl. container  : ['my_new_impl_container', '', '']\n"
         "\t - Impl. type args  : ['my_new_impl_type_args']\n"
     )
     assert representation == expected, "ERROR: Wrong representation."
@@ -161,6 +173,7 @@ def test_core_element():
         "\t - Impl. io         : False\n"
         "\t - Impl. prolog     : []\n"
         "\t - Impl. epilog     : []\n"
+        "\t - Impl. container  : []\n"
         "\t - Impl. type args  : []\n"
     )
     assert representation == expected, "ERROR: Wrong empty representation."

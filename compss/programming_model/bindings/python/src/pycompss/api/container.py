@@ -161,6 +161,7 @@ class Container:  # pylint: disable=too-few-public-methods
             kwargs[CORE_ELEMENT_KEY].set_impl_type(impl_type)
             kwargs[CORE_ELEMENT_KEY].set_impl_signature(impl_signature)
             kwargs[CORE_ELEMENT_KEY].set_impl_type_args(impl_args)
+            kwargs[CORE_ELEMENT_KEY].set_impl_container(impl_args[:3])
         else:
             # @container is in the top of the decorators stack.
             # Instantiate a new core element object, update it and include
@@ -169,6 +170,7 @@ class Container:  # pylint: disable=too-few-public-methods
             core_element.set_impl_type(impl_type)
             core_element.set_impl_signature(impl_signature)
             core_element.set_impl_type_args(impl_args)
+            core_element.set_impl_container(impl_args[:3])
             kwargs[CORE_ELEMENT_KEY] = core_element
 
         # Set as configured

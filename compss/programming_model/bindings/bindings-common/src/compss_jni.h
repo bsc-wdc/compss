@@ -37,6 +37,7 @@ void JNI_RegisterCE(char* ceSignature,
                               char* implIO,
                               char** prolog,
                               char** epilog,
+                              char** container,
                               int numParams,
                               char** implTypeArgs
                              );

@@ -918,9 +918,10 @@ static PyObject* register_core_element(PyObject* self, PyObject* args) {
     char* ImplIO;
     PyObject* prolog;
     PyObject* epilog;
+    PyObject* container;
     PyObject* typeArgs;
-    if (!PyArg_ParseTuple(args, "ssssssOOO", &CESignature, &ImplSignature,
-                         &ImplConstraints, &ImplType, &ImplLocal, &ImplIO, &prolog, &epilog, &typeArgs)) {
+    if (!PyArg_ParseTuple(args, "ssssssOOOO", &CESignature, &ImplSignature,
+                         &ImplConstraints, &ImplType, &ImplLocal, &ImplIO, &prolog, &epilog, &container, &typeArgs)) {
         return NULL;
     }
 
@@ -941,6 +942,12 @@ static PyObject* register_core_element(PyObject* self, PyObject* args) {
     debug("- Prolog: %s %s\n", pro[0], pro[1]);
     debug("- Epilog: %s %s\n", epi[0], epi[1]);
 
+    char** cont = new char*[3];
+    cont[0] = _pystring_to_char(PyList_GetItem(container, 0));
+    cont[1] = _pystring_to_char(PyList_GetItem(container, 1));
+    cont[2] = _pystring_to_char(PyList_GetItem(container, 2));
+    debug("- Container: %s %s\n", cont[0], cont[1], cont[2]);
+
     int num_params = PyList_Size(typeArgs);
     debug("- Implementation Type num args: %i\n", num_params);
     char** ImplTypeArgs = new char*[num_params];
@@ -957,6 +964,7 @@ static PyObject* register_core_element(PyObject* self, PyObject* args) {
                   ImplIO,
                   pro,
                   epi,
+                  cont,
                   num_params,
                   ImplTypeArgs);
     debug("Core element registered\n");

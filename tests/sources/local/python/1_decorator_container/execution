@@ -47,6 +47,18 @@
        continue
     fi
 
+  cat > "${base_app_dir}/env_script.sh" << EOT
+export COMPSS_MPIRUN_TYPE=openmpi
+export DOCKER_WORKING_DIR_VOLUME=$DOCKER_WORKING_DIR_VOLUME
+export DOCKER_WORKING_DIR_MOUNT=$DOCKER_WORKING_DIR_MOUNT
+export DOCKER_APP_DIR_VOLUME=$DOCKER_APP_DIR_VOLUME
+export DOCKER_APP_DIR_MOUNT=$DOCKER_APP_DIR_MOUNT
+export DOCKER_PYCOMPSS_VOLUME=$DOCKER_PYCOMPSS_VOLUME
+export DOCKER_PYCOMPSS_MOUNT=$DOCKER_PYCOMPSS_MOUNT
+EOT
+
+    cat "${base_app_dir}/env_script.sh" > >(tee "${output_log}")
+
     # shellcheck disable=SC2086
     timeout --signal=2 $expectedTime "${COMPSs_exec}" \
       --project="${base_app_dir}"/project.xml \
@@ -63,7 +75,7 @@
       ${python_mpi_worker} \
       --pythonpath="${base_app_dir}"/src \
       --specific_log_dir="${specific_log_dir}" \
-      \
+      --env_script=${base_app_dir}/env_script.sh \
       "${base_app_dir}/src/${app_name}" > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 
     # Check timeout

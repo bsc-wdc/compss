@@ -122,12 +122,12 @@ void GS_ExecuteHttpTask(long appId, char* signature, char* onFailure, int timeou
 }
 
 
-void GS_RegisterCE(char* ceSignature, char* implSignature, char* implConstraints, char* implType, char* implLocal, char* implIO, char** prolog, char** epilog, int numArgs, char** implTypeArgs) {
+void GS_RegisterCE(char* ceSignature, char* implSignature, char* implConstraints, char* implType, char* implLocal, char* implIO, char** prolog, char** epilog, char** container, int numArgs, char** implTypeArgs) {
 	if (PIPES) {
 	    // todo: is it necessary here too?
-		PIPE_RegisterCE(ceSignature, implSignature, implConstraints, implType, implLocal, implIO, prolog, epilog, numArgs, implTypeArgs);
+		PIPE_RegisterCE(ceSignature, implSignature, implConstraints, implType, implLocal, implIO, prolog, epilog, container, numArgs, implTypeArgs);
 	} else {
-		JNI_RegisterCE(ceSignature, implSignature, implConstraints, implType, implLocal, implIO, prolog, epilog, numArgs, implTypeArgs);
+		JNI_RegisterCE(ceSignature, implSignature, implConstraints, implType, implLocal, implIO, prolog, epilog, container, numArgs, implTypeArgs);
 	}
 }
 

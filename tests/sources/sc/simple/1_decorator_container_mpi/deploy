@@ -13,3 +13,5 @@
   cp "${source_base_dir}"/project.xml "${target_base_dir}"/project.xml
   cp "${source_base_dir}"/resources.xml "${target_base_dir}"/resources.xml
 
+  cp -r "${source_base_dir}"/config "${target_base_dir}"
+  mkdir -p "${target_base_dir}"/output

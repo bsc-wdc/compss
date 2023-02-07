@@ -50,11 +50,11 @@ import java.util.List;
 public class ContainerInvoker extends Invoker {
 
     private static final int NUM_BASE_DOCKER_PYTHON_ARGS = 25;
-    private static final int NUM_BASE_DOCKER_BINARY_ARGS = 10;
+    private static final int NUM_BASE_DOCKER_BINARY_ARGS = 12;
     private static final int NUM_BASE_SINGULARITY_PYTHON_ARGS = 21;
-    private static final int NUM_BASE_SINGULARITY_BINARY_ARGS = 8;
+    private static final int NUM_BASE_SINGULARITY_BINARY_ARGS = 10;
     private static final int NUM_BASE_UDOCKER_PYTHON_ARGS = 24;
-    private static final int NUM_BASE_UDOCKER_BINARY_ARGS = 9;
+    private static final int NUM_BASE_UDOCKER_BINARY_ARGS = 11;
 
     private static final String REL_PATH_WD = ".." + File.separator + ".." + File.separator;
     private static final String REL_PATH_WORKER_CONTAINER = File.separator + "pycompss" + File.separator + "worker"
@@ -315,14 +315,48 @@ public class ContainerInvoker extends Invoker {
                 cmd[cmdIndex++] = "-i";
                 cmd[cmdIndex++] = "--rm";
                 cmd[cmdIndex++] = "-v";
-                cmd[cmdIndex++] = workingDirMountPoint + ":" + workingDirMountPoint;
+                // todo: nm: if the env variable is defined, use that
+                // nm: for the app dir, we need exactly the same as this, but it goes inside case CET_PYTHON..
+                String dockerWorkDirVolume = System.getenv(COMPSsConstants.DOCKER_WORKING_DIR_VOLUME);
+                LOGGER.info("Docker Working Dir Volume: {}", dockerWorkDirVolume);
+                if (dockerWorkDirVolume != null && !dockerWorkDirVolume.isEmpty()) {
+                    String dockerWorkDirMount = System.getenv(COMPSsConstants.DOCKER_WORKING_DIR_MOUNT);
+                    cmd[cmdIndex++] = dockerWorkDirVolume + ":" + dockerWorkDirMount;
+                } else {
+                    cmd[cmdIndex++] = workingDirMountPoint + ":" + workingDirMountPoint;
+                }
+                // mount the app dir
+                cmd[cmdIndex++] = "-v";
+                String appDirVolume = System.getenv(COMPSsConstants.DOCKER_APP_DIR_VOLUME);
+                LOGGER.info("Docker APP Dir Volume: {}", appDirVolume);
+                if (appDirVolume != null && !appDirVolume.isEmpty()) {
+                    String dockerAppDirMount = System.getenv(COMPSsConstants.DOCKER_APP_DIR_MOUNT);
+                    LOGGER.info("Docker APP Dir mount: {}", dockerAppDirMount);
+                    cmd[cmdIndex++] = appDirVolume + ":" + dockerAppDirMount;
+                } else {
+                    cmd[cmdIndex++] = appDir + ":" + appDir;
+                }
                 switch (this.internalExecutionType) {
                     case CET_PYTHON:
+                        // mount the pycompss dir
                         cmd[cmdIndex++] = "-v";
-                        cmd[cmdIndex++] = appDir + ":" + appDir;
-                        cmd[cmdIndex++] = "-v";
-                        cmd[cmdIndex++] = pyCompssDir + File.separator + "pycompss" + File.separator + ":" + pyCompssDir
-                            + File.separator + "pycompss" + File.separator;
+                        String pycompssVol = System.getenv(COMPSsConstants.DOCKER_PYCOMPSS_VOLUME);
+                        LOGGER.info("Docker PYCOMPSS Dir Volume: {}", pycompssVol);
+                        if (pycompssVol != null && !pycompssVol.isEmpty()) {
+                            String pycompssMount = System.getenv(COMPSsConstants.DOCKER_PYCOMPSS_MOUNT);
+                            LOGGER.info("Docker pycompss mount: {}", pycompssMount);
+                            cmd[cmdIndex++] = pycompssVol + ":" + pycompssMount;
+                        } else {
+                            cmd[cmdIndex++] =
+                                pyCompssDir + File.separator + "pycompss" + File.separator + ":" + pyCompssDir;
+                        }
+
+                        // cmd[cmdIndex++] = "--mount";
+                        // cmd[cmdIndex++] = "source=pycompss_path,destination=/opt/COMPSs/Bindings/python/3/pycompss/";
+                        // cmd[cmdIndex++] = "-v";
+                        // cmd[cmdIndex++] = pyCompssDir + File.separator + "pycompss" + File.separator + ":" +
+                        // pyCompssDir
+                        // + File.separator + "pycompss" + File.separator;
                         cmd[cmdIndex++] = "--env";
                         cmd[cmdIndex++] = "PYTHONPATH=" + pythonPath + ":" + pyCompssDir;
                         break;
@@ -341,10 +375,10 @@ public class ContainerInvoker extends Invoker {
                 cmd[cmdIndex++] = "exec";
                 cmd[cmdIndex++] = "--bind";
                 cmd[cmdIndex++] = workingDirMountPoint + ":" + workingDirMountPoint;
+                cmd[cmdIndex++] = "--bind";
+                cmd[cmdIndex++] = appDir + ":" + appDir;
                 switch (this.internalExecutionType) {
                     case CET_PYTHON:
-                        cmd[cmdIndex++] = "--bind";
-                        cmd[cmdIndex++] = appDir + ":" + appDir;
                         cmd[cmdIndex++] = "--bind";
                         cmd[cmdIndex++] = pyCompssDir + ":" + pyCompssDir;
                         break;
@@ -363,10 +397,10 @@ public class ContainerInvoker extends Invoker {
                 cmd[cmdIndex++] = "--rm";
                 cmd[cmdIndex++] = "-v";
                 cmd[cmdIndex++] = workingDirMountPoint + ":" + workingDirMountPoint;
+                cmd[cmdIndex++] = "-v";
+                cmd[cmdIndex++] = appDir + ":" + appDir;
                 switch (this.internalExecutionType) {
                     case CET_PYTHON:
-                        cmd[cmdIndex++] = "-v";
-                        cmd[cmdIndex++] = appDir + ":" + appDir;
                         cmd[cmdIndex++] = "-v";
                         cmd[cmdIndex++] = pyCompssDir + File.separator + "pycompss" + File.separator + ":" + pyCompssDir
                             + File.separator + "pycompss" + File.separator;
@@ -445,7 +479,7 @@ public class ContainerInvoker extends Invoker {
             this.context.getThreadErrStream(), completePythonpath, this.failByEV);
     }
 
-    private int addContainerOptions(String[] cmd, int cmdIndex, String[] options) {
+    protected static int addContainerOptions(String[] cmd, int cmdIndex, String[] options) {
         if (options != null && options.length > 0) {
             for (String option : options) {
                 cmd[cmdIndex++] = option;

@@ -464,6 +464,11 @@ public class ITFParser {
             epilog = new ExecType(ExecutionOrder.EPILOG, eAnnot.binary(), eAnnot.params(), eAnnot.failByExitValue());
         }
 
+        // so far container within other decorators is only supported with Python @mpi and @mpmd_mpi. this is the case
+        // where
+        // the command doesn't start with the container but with "mpi" or something similar
+        String[] dummyContainer = new String[3];
+
         /*
          * Check all annotations present at the method for versioning
          */
@@ -504,7 +509,7 @@ public class ITFParser {
             ImplementationDescription<?, ?> implDef = null;
             try {
                 implDef = ImplementationDescription.defineImplementation(MethodType.METHOD.toString(), methodSignature,
-                    implProcessLocal, implConstraints, prolog, epilog, declaringClass, methodName);
+                    implProcessLocal, implConstraints, prolog, epilog, dummyContainer, declaringClass, methodName);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }
@@ -529,7 +534,7 @@ public class ITFParser {
             ImplementationDescription<?, ?> implDef = null;
             try {
                 implDef = ImplementationDescription.defineImplementation(TaskType.HTTP.toString(),
-                    calleeMethodSignature.toString(), false, null, prolog, epilog, hAnno.serviceName(),
+                    calleeMethodSignature.toString(), false, null, prolog, epilog, dummyContainer, hAnno.serviceName(),
                     hAnno.resource(), hAnno.request(), hAnno.payload(), hAnno.payloadType(), hAnno.produces(),
                     hAnno.updates());
             } catch (Exception e) {
@@ -597,8 +602,8 @@ public class ITFParser {
             ImplementationDescription<?, ?> implDef = null;
             try {
                 implDef = ImplementationDescription.defineImplementation(MethodType.CONTAINER.toString(),
-                    containerSignature, implProcessLocal, implConstraints, prolog, epilog, engine, image, options,
-                    internalExecutionTypeStr, internalBinary, internalParams, internalFunc, hostDir,
+                    containerSignature, implProcessLocal, implConstraints, prolog, epilog, dummyContainer, engine,
+                    image, options, internalExecutionTypeStr, internalBinary, internalParams, internalFunc, hostDir,
                     containerFailByExitValue);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
@@ -636,7 +641,8 @@ public class ITFParser {
             ImplementationDescription<?, ?> implDef = null;
             try {
                 implDef = ImplementationDescription.defineImplementation(MethodType.BINARY.toString(), binarySignature,
-                    implProcessLocal, implConstraints, prolog, epilog, binary, workingDir, params, failByEVstr);
+                    implProcessLocal, implConstraints, prolog, epilog, dummyContainer, binary, workingDir, params,
+                    failByEVstr);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage(), e);
             }
@@ -687,8 +693,8 @@ public class ITFParser {
             ImplementationDescription<?, ?> implDef = null;
             try {
                 implDef = ImplementationDescription.defineImplementation(MethodType.MPI.toString(), mpiSignature,
-                    implProcessLocal, implConstraints, prolog, epilog, binary, workingDir, mpiRunner, mpiPPN, mpiFlags,
-                    scaleByCUStr, params, failByEVstr);
+                    implProcessLocal, implConstraints, prolog, epilog, dummyContainer, binary, workingDir, mpiRunner,
+                    mpiPPN, mpiFlags, scaleByCUStr, params, failByEVstr);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }
@@ -738,8 +744,8 @@ public class ITFParser {
             ImplementationDescription<?, ?> implDef = null;
             try {
                 implDef = ImplementationDescription.defineImplementation(MethodType.DECAF.toString(), decafSignature,
-                    implProcessLocal, implConstraints, prolog, epilog, dfScript, dfExecutor, dfLib, workingDir,
-                    mpiRunner, failByEVstr);
+                    implProcessLocal, implConstraints, prolog, epilog, dummyContainer, dfScript, dfExecutor, dfLib,
+                    workingDir, mpiRunner, failByEVstr);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }
@@ -786,8 +792,8 @@ public class ITFParser {
             ImplementationDescription<?, ?> implDef = null;
             try {
                 implDef = ImplementationDescription.defineImplementation(MethodType.COMPSs.toString(), compssSignature,
-                    implProcessLocal, implConstraints, prolog, epilog, runcompss, flags, appName, workerInMaster,
-                    workingDir, failByEVstr);
+                    implProcessLocal, implConstraints, prolog, epilog, dummyContainer, runcompss, flags, appName,
+                    workerInMaster, workingDir, failByEVstr);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }
@@ -829,8 +835,9 @@ public class ITFParser {
             // Register method implementation
             ImplementationDescription<?, ?> implDef = null;
             try {
-                implDef = ImplementationDescription.defineImplementation(MethodType.MULTI_NODE.toString(),
-                    methodSignature, implProcessLocal, implConstraints, prolog, epilog, declaringClass, methodName);
+                implDef =
+                    ImplementationDescription.defineImplementation(MethodType.MULTI_NODE.toString(), methodSignature,
+                        implProcessLocal, implConstraints, prolog, epilog, dummyContainer, declaringClass, methodName);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }
@@ -866,7 +873,7 @@ public class ITFParser {
             ImplementationDescription<?, ?> implDef = null;
             try {
                 implDef = ImplementationDescription.defineImplementation(MethodType.OMPSS.toString(), ompssSignature,
-                    implProcessLocal, implConstraints, prolog, epilog, binary, workingDir, failByEVstr);
+                    implProcessLocal, implConstraints, prolog, epilog, dummyContainer, binary, workingDir, failByEVstr);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }
@@ -901,7 +908,7 @@ public class ITFParser {
             ImplementationDescription<?, ?> implDef = null;
             try {
                 implDef = ImplementationDescription.defineImplementation(MethodType.OPENCL.toString(), openclSignature,
-                    implProcessLocal, implConstraints, prolog, epilog, kernel, workingDir);
+                    implProcessLocal, implConstraints, prolog, epilog, dummyContainer, kernel, workingDir);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }

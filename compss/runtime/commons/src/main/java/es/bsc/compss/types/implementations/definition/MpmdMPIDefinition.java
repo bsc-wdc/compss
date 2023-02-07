@@ -16,12 +16,15 @@
  */
 package es.bsc.compss.types.implementations.definition;
 
+import static es.bsc.compss.types.resources.ContainerDescription.ContainerEngine.SINGULARITY;
+
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsPaths;
 import es.bsc.compss.types.MPIProgram;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.TaskType;
+import es.bsc.compss.types.resources.ContainerDescription;
 import es.bsc.compss.util.EnvironmentLoader;
 
 import java.io.BufferedWriter;
@@ -70,6 +73,8 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
     private boolean isNopByRank = false;
     private String configFlag = "--config-file";
 
+    private ContainerDescription container;
+
 
     /**
      * Creates a new MPIImplementation for serialization.
@@ -97,8 +102,9 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
      *
      * @param implTypeArgs String array.
      * @param offset Element from the beginning of the string array.
+     * @param container String array for container description.
      */
-    public MpmdMPIDefinition(String[] implTypeArgs, int offset) {
+    public MpmdMPIDefinition(String[] implTypeArgs, int offset, String[] container) {
         this.mpiRunner = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset]);
         this.workingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 1]);
         this.ppn = Integer.parseInt(EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 2]));
@@ -115,6 +121,15 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
             int procs = Integer.parseInt(EnvironmentLoader.loadFromEnvironment(implTypeArgs[index + 2]));
             this.programs[i] = new MPIProgram(binary, params, procs);
         }
+
+        if (container[0] != null && !container[0].isEmpty() && !container[0].equals(Constants.UNASSIGNED)) {
+            String engineStr = container[0].toUpperCase();
+            ContainerDescription.ContainerEngine engine = ContainerDescription.ContainerEngine.valueOf(engineStr);
+            this.container = new ContainerDescription(engine, container[1], container[2]);
+        } else {
+            this.container = null;
+        }
+
         checkArguments();
     }
 
@@ -141,6 +156,16 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
         lArgs.add(Integer.toString(this.programs.length));
         for (MPIProgram program : this.programs) {
             lArgs.add(program.getBinary());
+            // if each program should run on a separate container
+            if (this.container != null) {
+                // <container_engine> <container_exec_command> <container_options>[] <container_image> binary args
+                lArgs.add(this.container.getEngine().name().toLowerCase());
+                lArgs.add(this.container.getEngine().equals(SINGULARITY) ? "exec" : "run");
+                for (String tmp : this.container.getOptions().split(" ")) {
+                    lArgs.add(tmp);
+                }
+                lArgs.add(this.container.getImage());
+            }
             lArgs.add(program.getParams());
             lArgs.add(Integer.toString(program.getProcesses()));
         }
@@ -149,6 +174,15 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
     @Override
     public MethodType getMethodType() {
         return MethodType.MPMDMPI;
+    }
+
+    /**
+     * Returns the container.
+     *
+     * @return The container implementation.
+     */
+    public ContainerDescription getContainer() {
+        return this.container;
     }
 
     @Override
@@ -161,6 +195,7 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
         sb.append(", PPN=").append(this.ppn);
         sb.append(", FAIL_BY_EV=").append(this.failByEV);
         sb.append(", NUM_OF_PROGRAMS=").append(this.programs.length);
+        sb.append(", CONTAINER=").append(this.container);
 
         sb.append(", PROGRAMS= [\n");
         for (MPIProgram program : this.getPrograms()) {
@@ -185,6 +220,7 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
         this.ppn = in.readInt();
         this.failByEV = in.readBoolean();
         this.programs = (MPIProgram[]) in.readObject();
+        this.container = (ContainerDescription) in.readObject();
     }
 
     @Override
@@ -194,6 +230,7 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
         out.writeInt(this.ppn);
         out.writeBoolean(this.failByEV);
         out.writeObject(this.programs);
+        out.writeObject(this.container);
     }
 
     @Override
@@ -205,6 +242,7 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
         sb.append("\t MPI PPN: ").append(this.ppn).append("\n");
         sb.append("\t Fail by EV: ").append(this.failByEV).append("\n");
         sb.append("\t Programs: ").append("\n");
+        sb.append("\t Container: ").append(this.container).append("\n");
 
         for (MPIProgram prog : this.programs) {
             sb.append("\t\t").append(prog).append("\n");
@@ -230,8 +268,8 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
      * @param hostnames names of the hosts this MPMD MPI command can use.
      * @return full CMD as string[].
      */
-    public String[] generateCMD(File taskSandboxWorkingDir, List<String> hostnames, int computingUnits)
-        throws IOException {
+    public String[] generateCMD(File taskSandboxWorkingDir, List<String> hostnames, int computingUnits,
+        ContainerDescription container) throws IOException {
         // Remove infiniband suffix
         for (int i = 0; i < hostnames.size(); i++) {
             String tmp = hostnames.get(i);
@@ -316,6 +354,19 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
 
             // binary
             if (!this.binaryInCmd) {
+                // container args come right before the binary
+
+                // if each program should run on a separate container
+                if (this.container != null) {
+                    // <container_engine> <container_exec_command> <container_options>[] <container_image> binary args
+                    content.append(this.container.getEngine().name().toLowerCase());
+                    content.append(this.container.getEngine().equals(SINGULARITY) ? "exec" : "run");
+                    for (String tmp : this.container.getOptions().split(" ")) {
+                        content.append(tmp);
+                    }
+                    content.append(this.container.getImage());
+                }
+
                 content.append(program.getBinary());
             }
 
@@ -384,6 +435,17 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
         if (this.nopInCmd) {
             ret.append(this.nopFlag).append(DUMMY_SEPARATOR);
             ret.append(program.getProcesses()).append(DUMMY_SEPARATOR);
+        }
+
+        // if each program should run on a separate container
+        if (this.container != null) {
+            // <container_engine> <container_exec_command> <container_options>[] <container_image> binary args
+            ret.append(this.container.getEngine().name().toLowerCase());
+            ret.append(this.container.getEngine().equals(SINGULARITY) ? "exec" : "run");
+            for (String tmp : this.container.getOptions().split(" ")) {
+                ret.append(tmp);
+            }
+            ret.append(this.container.getImage());
         }
 
         // binary

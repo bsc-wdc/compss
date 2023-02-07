@@ -555,6 +555,7 @@ class _COMPSs:
         impl_io: str,
         impl_prolog: typing.List[str],
         impl_epilog: typing.List[str],
+        impl_container: typing.List[str],
         impl_type_args: typing.List[str],
     ) -> None:
         """Call to register_core_element.
@@ -567,6 +568,7 @@ class _COMPSs:
         :param impl_io: Implementation IO.
         :param impl_prolog: [binary, params, fail_by_exit_value] of the prolog.
         :param impl_epilog: [binary, params, fail_by_exit_value] of the epilog.
+        :param impl_container: [engine, image, options] of the container.
         :param impl_type_args: Implementation type arguments.
         :return: None.
         """
@@ -581,6 +583,7 @@ class _COMPSs:
                 impl_io,
                 impl_prolog,
                 impl_epilog,
+                impl_container,
                 impl_type_args,
             )
         )

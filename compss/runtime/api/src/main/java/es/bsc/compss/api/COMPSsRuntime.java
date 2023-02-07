@@ -147,10 +147,12 @@ public interface COMPSsRuntime {
      * @param implIO Whether an implementation is IO.
      * @param prolog commands to execute before task execution
      * @param epilog commands to execute after task execution
+     * @param container available if @container is used with other decorators.
      * @param implTypeArgs The implementation specific arguments.
      */
     public void registerCoreElement(String coreElementSignature, String implSignature, String implConstraints,
-        String implType, String implLocal, String implIO, String[] prolog, String[] epilog, String... implTypeArgs);
+        String implType, String implLocal, String implIO, String[] prolog, String[] epilog, String[] container,
+        String... implTypeArgs);
 
     /**
      * New Method task for C Binding.

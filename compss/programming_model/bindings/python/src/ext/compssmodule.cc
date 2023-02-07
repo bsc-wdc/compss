@@ -26,7 +26,7 @@
 #include <cassert>
 #include <cstddef>
 
-bool DEBUG_MODE = true;
+bool DEBUG_MODE = false;
 char* HEADER = "[PY-C EXTENSION]  -  ";
 
 struct module_state {

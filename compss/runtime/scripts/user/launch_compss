@@ -376,7 +376,7 @@ worker_cmd() {
   if [ -z "${container_image}" ]; then
      WCMD="${COMPSS_HOME}/Runtime/scripts/system/adaptors/nio/persistent_worker_starter.sh"
   else
-     WCMD="singularity exec $container_opts $container_image ${COMPSS_HOME}/Runtime/scripts/system/adaptors/nio/persistent_worker_starter.sh"
+     WCMD="singularity exec $container_opts $container_image ${cont_COMPSS_HOME}/Runtime/scripts/system/adaptors/nio/persistent_worker_starter.sh"
   fi
 
   if [ ! -z "${NODE_NAME_XML}" ]; then
@@ -445,7 +445,7 @@ master_cmd() {
   if [ -z "${container_image}" ]; then
     MCMD="${COMPSS_HOME}/Runtime/scripts/user/runcompss"
   else
-    MCMD="singularity exec $container_opts $container_image ${COMPSS_HOME}/Runtime/scripts/user/runcompss"
+    MCMD="singularity exec $container_opts $container_image ${cont_COMPSS_HOME}/Runtime/scripts/user/runcompss"
   fi
  
   # WARNING: SETS GLOBAL SCRIPT VARIABLE MCMD
@@ -1850,13 +1850,15 @@ set_variables() {
     worker_install_dir=${COMPSS_HOME}
   else
     if [ -z "${container_compss_path}" ]; then
-      export COMPSS_HOME=/opt/COMPSs/
-      export GAT_LOCATION=/opt/COMPSs/Dependencies/JAVA_GAT
+      export SINGULARITYENV_COMPSS_HOME=/opt/COMPSs/
+      export SINGULARITYENV_GAT_LOCATION=/opt/COMPSs/Dependencies/JAVA_GAT
       worker_install_dir=/opt/COMPSs
+      cont_COMPSS_HOME=/opt/COMPSs/
     else
-      export COMPSS_HOME=${container_compss_path}/
-      export GAT_LOCATION=${container_compss_path}/Dependencies/JAVA_GAT
+      export SINGULARITYENV_COMPSS_HOME=${container_compss_path}/
+      export SINGULARITYENV_GAT_LOCATION=${container_compss_path}/Dependencies/JAVA_GAT
       worker_install_dir=${container_compss_path}/
+      cont_COMPSS_HOME=${container_compss_path}/
     fi
   fi
 

@@ -165,6 +165,8 @@ fi
 echo "Agent 3 started" > >(tee -a "${output_log}")
 sleep 2s
 
+# Afegir un nou worker Comm agent adaptor
+echo "Adding additional resources to COMPSsWorker01." > >(tee -a "${output_log}")
 compss_agent_add_resources \
     --agent_node="COMPSsWorker01" \
     --agent_port="46101" \
@@ -173,6 +175,7 @@ compss_agent_add_resources \
     --os_type="agent_2" \
     "COMPSsWorker02" "Port=46202" > >(tee -a "${output_log}")  2> >(tee -a "${error_log}")
 
+  # Afegir un nou worker Comm agent adaptor
 compss_agent_add_resources \
     --agent_node="COMPSsWorker01" \
     --agent_port="46101" \
@@ -229,201 +232,137 @@ fi
 #NUMBER OF JOBS
 created_jobs_ag_1=$(ls "${agent1_log_dir}jobs" | grep -c NEW.out)
 if [ ! "${created_jobs_ag_1}" == "1" ]; then
-    echo "[ERROR] agent 1 has generated ${created_jobs_ag_1} tasks but 1 were expected." > >(tee -a "${error_log}")
-    exit 1
+  echo -e '\033[0;31m'"[ERROR] agent 1 has generated ${created_jobs_ag_1} tasks but 1 were expected."'\033[0m' > >(tee -a "${error_log}")
+  exit 1
 fi 
 created_jobs_ag_2=$(ls "${agent2_log_dir}jobs" | grep -c NEW.out)
 if [ ! "${created_jobs_ag_2}" == "12" ]; then
-    echo "[ERROR] agent 2 has generated ${created_jobs_ag_2} tasks but 12 were expected." > >(tee -a "${error_log}")
-    exit 1
+  echo '\033[0;31m'"[ERROR] agent 2 has generated ${created_jobs_ag_2} tasks but 12 were expected."'\033[0m' > >(tee -a "${error_log}")
+  exit 1
 fi 
 created_jobs_ag_3=$(ls "${agent3_log_dir}jobs" | grep -c NEW.out)
 if [ ! "${created_jobs_ag_3}" == "6" ]; then
-    echo "[ERROR] agent 3 has generated ${created_jobs_ag_3} tasks but 6 were expected." > >(tee -a "${error_log}")
-    exit 1
+  echo '\033[0;31m'"[ERROR] agent 3 has generated ${created_jobs_ag_3} tasks but 6 were expected."'\033[0m' > >(tee -a "${error_log}")
+  exit 1
 fi 
 
 #METHOD NAMES
-job1_method=$( grep "METHOD NAME" "${agent1_log_dir}/jobs/job1_NEW.out" | cut -d '=' -f3)
-if [ -n "${job1_method}" ]; then
-    job1_method="${job1_method::-1}"
-fi
-if [ ! "${job1_method}" == "main" ]; then
-    echo "Unexpected method (${job1_method}) for job 1." > >(tee -a "${error_log}")
+
+OLD_IFS=$IFS
+IFS=$'\n'
+
+correct_method_names_1=("main")
+
+correct_method_names_2=(
+"print_obj_coll"
+"create_int_collection_worker"
+"print_worker_obj_coll"
+"create_int_collection"
+"print_mod_obj_coll"
+"gen_coll_out"
+"print_elem"
+"print_elem"
+"print_elem"
+"print_elem"
+"print_elem"
+"print_elem"
+)
+
+
+correct_method_names_3=(
+"print_int_coll"
+"print_worker_int_coll"
+"create_object_collection_worker"
+"create_object_collection"
+"modify_dummy_obj"
+"print_coll_out"
+)
+
+
+
+
+method_names_agent_1=($(grep "METHOD NAME" ${agent1_log_dir}jobs/*.out))
+
+method_names_agent_2=($(grep "METHOD NAME" ${agent2_log_dir}jobs/*.out))
+
+method_names_agent_3=($(grep "METHOD NAME" ${agent3_log_dir}jobs/*.out))
+
+
+
+if [ ${#correct_method_names_1[@]} != ${#method_names_agent_1[@]} ]; then
+    echo "[ERROR] incorrect number of tasks on agent 1. Expected ${#correct_method_names_1[@]}, got ${#method_names_agent_1[@]}"
     exit 1
 fi
-echo  "main method properly started" > >(tee -a "${output_log}")
-
-echo  "getting method names"
-ag2_job1_method=$( grep "METHOD NAME" "${agent2_log_dir}/jobs/job1_NEW.out" | cut -d '=' -f3)
-if [ -n "${ag2_job1_method}" ]; then
-    ag2_job1_method="${ag2_job1_method::-1}"
-fi
-ag2_job2_method=$( grep "METHOD NAME" "${agent2_log_dir}/jobs/job2_NEW.out" | cut -d '=' -f3)
-if [ -n "${ag2_job2_method}" ]; then
-    ag2_job2_method="${ag2_job2_method::-1}"
-fi
-ag2_job3_method=$( grep "METHOD NAME" "${agent2_log_dir}/jobs/job3_NEW.out" | cut -d '=' -f3)
-if [ -n "${ag2_job3_method}" ]; then
-    ag2_job3_method="${ag2_job3_method::-1}"
-fi
-ag2_job4_method=$( grep "METHOD NAME" "${agent2_log_dir}/jobs/job4_NEW.out" | cut -d '=' -f3)
-if [ -n "${ag2_job4_method}" ]; then
-    ag2_job4_method="${ag2_job4_method::-1}"
-fi
-ag2_job5_method=$( grep "METHOD NAME" "${agent2_log_dir}/jobs/job5_NEW.out" | cut -d '=' -f3)
-if [ -n "${ag2_job5_method}" ]; then
-    ag2_job5_method="${ag2_job5_method::-1}"
-fi
-ag2_job6_method=$( grep "METHOD NAME" "${agent2_log_dir}/jobs/job6_NEW.out" | cut -d '=' -f3)
-if [ -n "${ag2_job6_method}" ]; then
-    ag2_job6_method="${ag2_job6_method::-1}"
-fi
-ag2_job7_method=$( grep "METHOD NAME" "${agent2_log_dir}/jobs/job7_NEW.out" | cut -d '=' -f3)
-if [ -n "${ag2_job7_method}" ]; then
-    ag2_job7_method="${ag2_job7_method::-1}"
-fi
-ag2_job8_method=$( grep "METHOD NAME" "${agent2_log_dir}/jobs/job8_NEW.out" | cut -d '=' -f3)
-if [ -n "${ag2_job8_method}" ]; then
-    ag2_job8_method="${ag2_job8_method::-1}"
-fi
-ag2_job9_method=$( grep "METHOD NAME" "${agent2_log_dir}/jobs/job9_NEW.out" | cut -d '=' -f3)
-if [ -n "${ag2_job9_method}" ]; then
-    ag2_job9_method="${ag2_job9_method::-1}"
-fi
-ag2_job10_method=$( grep "METHOD NAME" "${agent2_log_dir}/jobs/job10_NEW.out" | cut -d '=' -f3)
-if [ -n "${ag2_job10_method}" ]; then
-    ag2_job10_method="${ag2_job10_method::-1}"
-fi
-ag2_job11_method=$( grep "METHOD NAME" "${agent2_log_dir}/jobs/job11_NEW.out" | cut -d '=' -f3)
-if [ -n "${ag2_job11_method}" ]; then
-    ag2_job11_method="${ag2_job11_method::-1}"
-fi
-ag2_job12_method=$( grep "METHOD NAME" "${agent2_log_dir}/jobs/job12_NEW.out" | cut -d '=' -f3)
-if [ -n "${ag2_job12_method}" ]; then
-    ag2_job12_method="${ag2_job12_method::-1}"
-fi
-
-ag3_job1_method=$( grep "METHOD NAME" "${agent3_log_dir}/jobs/job1_NEW.out" | cut -d '=' -f3)
-if [ -n "${ag3_job1_method}" ]; then
-    ag3_job1_method="${ag3_job1_method::-1}"
-fi
-ag3_job2_method=$( grep "METHOD NAME" "${agent3_log_dir}/jobs/job2_NEW.out" | cut -d '=' -f3)
-if [ -n "${ag3_job2_method}" ]; then
-    ag3_job2_method="${ag3_job2_method::-1}"
-fi
-ag3_job3_method=$( grep "METHOD NAME" "${agent3_log_dir}/jobs/job3_NEW.out" | cut -d '=' -f3)
-if [ -n "${ag3_job3_method}" ]; then
-    ag3_job3_method="${ag3_job3_method::-1}"
-fi
-ag3_job4_method=$( grep "METHOD NAME" "${agent3_log_dir}/jobs/job4_NEW.out" | cut -d '=' -f3)
-if [ -n "${ag3_job4_method}" ]; then
-    ag3_job4_method="${ag3_job4_method::-1}"
-fi
-
-ag3_job5_method=$( grep "METHOD NAME" "${agent3_log_dir}/jobs/job5_NEW.out" | cut -d '=' -f3)
-if [ -n "${ag3_job5_method}" ]; then
-    ag3_job5_method="${ag3_job5_method::-1}"
-fi
-
-ag3_job6_method=$( grep "METHOD NAME" "${agent3_log_dir}/jobs/job6_NEW.out" | cut -d '=' -f3)
-if [ -n "${ag3_job6_method}" ]; then
-    ag3_job6_method="${ag3_job6_method::-1}"
-fi
-
-
-echo  "checking method names"
-if [ ! "${ag2_job1_method}" == "print_obj_coll" ]; then
-    echo "[ERROR] Unexpected method name at agent 2, job 1, got ${ag2_job1_method}, expected print_obj_coll"
+if [ ${#correct_method_names_2[@]} != ${#method_names_agent_2[@]} ]; then
+    echo "[ERROR] incorrect number of tasks on agent 2. Expected ${#correct_method_names_2[@]}, got ${#method_names_agent_2[@]}"
     exit 1
 fi
-
-if [ ! "${ag2_job2_method}" == "create_int_collection_worker" ]; then
-    echo "[ERROR] Unexpected method name at agent 2, job 2, got ${ag2_job2_method}, expected create_int_collection_worker"
-    exit 1
-fi
-
-if [ ! "${ag2_job3_method}" == "print_worker_obj_coll" ]; then
-    echo "[ERROR] Unexpected method name at agent 2, job 3, got ${ag2_job3_method}, expected print_worker_obj_coll"
-    exit 1
-fi
-
-if [ ! "${ag2_job4_method}" == "create_int_collection" ]; then
-    echo "[ERROR] Unexpected method name at agent 2, job 4, got ${ag2_job4_method}, expected create_int_collection"
-    exit 1
-fi
-
-if [ ! "${ag2_job5_method}" == "print_mod_obj_coll" ]; then
-    echo "[ERROR] Unexpected method name at agent 2, job 5, got ${ag2_job5_method}, expected print_mod_obj_coll"
-    exit 1
-fi
-
-if [ ! "${ag2_job6_method}" == "gen_coll_out" ]; then
-    echo "[ERROR] Unexpected method name at agent 2, job 6, got ${ag2_job6_method}, expected gen_coll_out"
-    exit 1
-fi
-
-if [ ! "${ag2_job7_method}" == "print_elem" ]; then
-    echo "[ERROR] Unexpected method name at agent 2, job 7, got ${ag2_job7_method}, expected print_elem"
-    exit 1
-fi
-
-if [ ! "${ag2_job8_method}" == "print_elem" ]; then
-    echo "[ERROR] Unexpected method name at agent 2, job 8, got ${ag2_job8_method}, expected print_elem"
-    exit 1
-fi
-
-if [ ! "${ag2_job9_method}" == "print_elem" ]; then
-    echo "[ERROR] Unexpected method name at agent 2, job 9, got ${ag2_job9_method}, expected print_elem"
-    exit 1
-fi
-
-if [ ! "${ag2_job10_method}" == "print_elem" ]; then
-    echo "[ERROR] Unexpected method name at agent 2, job 10, got ${ag2_job10_method}, expected print_elem"
-    exit 1
-fi
-
-if [ ! "${ag2_job11_method}" == "print_elem" ]; then
-    echo "[ERROR] Unexpected method name at agent 2, job 11, got ${ag2_job11_method}, expected print_elem"
-    exit 1
-fi
-
-if [ ! "${ag2_job12_method}" == "print_elem" ]; then
-    echo "[ERROR] Unexpected method name at agent 2, job 12, got ${ag2_job12_method}, expected print_elem"
+if [ ${#correct_method_names_3[@]} != ${#method_names_agent_3[@]} ]; then
+    echo "[ERROR] incorrect number of tasks on agent 3. Expected ${#correct_method_names_3[@]}, got ${#method_names_agent_3[@]}"
     exit 1
 fi
 
 
 
-if [ ! "${ag3_job1_method}" == "print_int_coll" ]; then
-    echo "[ERROR] Unexpected method name at agent 3, job 1, got ${ag3_job1_method}, expected print_int_coll"
-    exit 1
-fi
+echo "correct_method_names_3[0]: ${correct_method_names_3[0]}"
+echo "correct_method_names_3[1]: ${correct_method_names_3[1]}"
+echo "correct_method_names_3[2]: ${correct_method_names_3[2]}"
+echo "correct_method_names_3[3]: ${correct_method_names_3[3]}"
+echo "correct_method_names_3[4]: ${correct_method_names_3[4]}"
+echo "correct_method_names_3[5]: ${correct_method_names_3[5]}"
+echo "correct_method_names_3[6]: ${correct_method_names_3[6]}"
 
-if [ ! "${ag3_job2_method}" == "print_worker_int_coll" ]; then
-    echo "[ERROR] Unexpected method name at agent 3, job 2, got ${ag3_job2_method}, expected print_worker_int_coll"
+for (( i=0; i<=${#correct_method_names_1[@]}-1; i++ )); do
+  m_n=$(echo ${method_names_agent_1[$i]} | cut -d '=' -f3)
+  m_n=${m_n::-1}
+  echo "m_n: $m_n"
+  
+  if [ $m_n != ${correct_method_names_1[$i]} ]; then
+    echo "[ERROR] Method $m_n not found in expected tasks"
     exit 1
-fi
+  fi
+done
+echo "____________"
 
-if [ ! "${ag3_job3_method}" == "create_object_collection_worker" ]; then
-    echo "[ERROR] Unexpected method name at agent 3, job 3, got ${ag3_job3_method}, expected create_object_collection_worker"
-    exit 1
-fi
+for (( i=0; i<=${#method_names_agent_2[@]}-1; i++ )); do
+  m_n=$(echo ${method_names_agent_2[$i]} | cut -d '=' -f3)
+  m_n=${m_n::-1}
+  echo "m_n: $m_n"
 
-if [ ! "${ag3_job4_method}" == "create_object_collection" ]; then
-    echo "[ERROR] Unexpected method name at agent 3, job 4, got ${ag3_job4_method}, expected create_object_collection"
+  found=false
+  for (( j=0; j<=${#correct_method_names_2[@]}-1; j++ )); do
+    if [ $m_n == ${correct_method_names_2[$j]} ]; then
+      echo "correct_method_names_2[$j]: ${correct_method_names_2[$j]}"
+      found=true
+    fi
+  done
+  if ! $found ; then
+    echo "[ERROR] Method $m_n not found in expected tasks"
     exit 1
-fi
+  fi
+done
+echo "____________"
 
-if [ ! "${ag3_job5_method}" == "modify_dummy_obj" ]; then
-    echo "[ERROR] Unexpected method name at agent 3, job 5, got ${ag3_job5_method}, expected modify_dummy_obj"
-    exit 1
-fi
+for (( i=0; i<=${#correct_method_names_3[@]}-1; i++ )); do
+  m_n=$(echo ${method_names_agent_3[$i]} | cut -d '=' -f3)
+  m_n=${m_n::-1}
+  echo "m_n: $m_n"
 
-if [ ! "${ag3_job6_method}" == "print_coll_out" ]; then
-    echo "[ERROR] Unexpected method name at agent 3, job 6, got ${ag3_job6_method}, expected print_coll_out"
+  found=false
+  for (( j=0; j<=${#correct_method_names_3[@]}-1; j++ )); do
+    if [ $m_n == ${correct_method_names_3[$j]} ]; then
+      echo "correct_method_names_3[$j]: ${correct_method_names_3[$j]}"
+      found=true
+    fi
+  done
+  if ! $found ; then
+    echo "[ERROR] Method $m_n not found in expected tasks"
     exit 1
-fi
+  fi
+done
+
+IFS=$OLD_IFS
+
 
 
 echo  "checking method results"

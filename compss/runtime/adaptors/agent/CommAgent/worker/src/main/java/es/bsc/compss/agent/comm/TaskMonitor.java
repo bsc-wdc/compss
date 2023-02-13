@@ -25,6 +25,7 @@ import es.bsc.compss.agent.comm.messages.types.CommResource;
 import es.bsc.compss.agent.comm.messages.types.CommResult;
 import es.bsc.compss.agent.comm.messages.types.CommTask;
 import es.bsc.compss.agent.types.ApplicationParameter;
+import es.bsc.compss.agent.types.RemoteDataLocation;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOResult;
 import es.bsc.compss.nio.NIOResultCollection;
@@ -33,6 +34,7 @@ import es.bsc.compss.nio.commands.CommandDataReceived;
 import es.bsc.compss.nio.commands.CommandNIOTaskDone;
 import es.bsc.compss.worker.COMPSsException;
 
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -197,8 +199,9 @@ public class TaskMonitor extends AppMonitor {
             res = new NIOResultCollection(elements);
         } else {
             CommResult commRes = new CommResult();
-            if (taskRes.getLocations() != null) {
-                commRes.setRemoteData(taskRes.getLocations());
+            Collection<RemoteDataLocation> rdl = taskRes.getLocations();
+            if (rdl != null) {
+                commRes.setRemoteData(rdl);
             }
             res = commRes;
         }

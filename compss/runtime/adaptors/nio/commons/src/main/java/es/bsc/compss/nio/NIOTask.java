@@ -389,9 +389,13 @@ public class NIOTask implements Externalizable, Invocation {
         for (NIOParam param : this.arguments) {
             sb.append(param);
         }
+        sb.append(" ] ");
+        sb.append(" [TARGET ");
         if (target != null) {
             sb.append(target);
         }
+        sb.append(" ] ");
+        sb.append(" [RESULTS ");
         for (NIOParam param : this.results) {
             sb.append(param);
         }

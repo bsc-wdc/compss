@@ -280,17 +280,20 @@ class CommAgentJob extends NIOJob {
                 registerResult(elemParam, elemResult);
             }
         } else {
-            CommResult commResult = (CommResult) result;
-            Collection<RemoteDataLocation> dataLocations = commResult.getLocations();
-            for (RemoteDataLocation location : dataLocations) {
-                if (location != null && rename != null) {
-                    Resource w = ownAgent.getNodeFromLocation(location);
-                    if (w == null) {
-                        w = this.worker;
+            if (rename != null) {
+                CommResult commResult = (CommResult) result;
+                Collection<RemoteDataLocation> dataLocations = commResult.getLocations();
+                for (RemoteDataLocation location : dataLocations) {
+                    if (location != null) {
+                        Resource w = ownAgent.getNodeFromLocation(location);
+                        if (w == null) {
+                            w = this.worker;
+                        }
+                        LOGGER.debug("Registering result " + rename + " comming from worker " + w.getName());
+                        registerResultLocation(location.getPath(), rename, w);
                     }
-                    LOGGER.debug("Registering result " + rename + " comming from worker " + w.getName());
-                    registerResultLocation(location.getPath(), rename, w);
                 }
+                notifyResultAvailability(dp, rename);
             }
         }
     }

@@ -25,6 +25,7 @@ import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.CommException;
+import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.LogicalData;
@@ -35,7 +36,11 @@ import es.bsc.compss.worker.COMPSsException;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.ConcurrentModificationException;
 import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 public abstract class AppMonitor implements TaskMonitor {
@@ -43,6 +48,8 @@ public abstract class AppMonitor implements TaskMonitor {
     private long appId;
     private TaskResult[] taskResults;
     private COMPSsException exception;
+
+    protected static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
 
 
     /**
@@ -309,11 +316,27 @@ public abstract class AppMonitor implements TaskMonitor {
                     }
                 }
             }
+
+            // this is done to prevent ConcurrentModificationException when iterating ld.getKnownAlias()
+            // and contain the performance loss to the less frequent part of the code (this one)
+            boolean done = false;
             if (isLocal) {
-                for (String alias : ld.getKnownAlias()) {
-                    locations.add(new RemoteDataLocation(null, alias));
+                Collection<RemoteDataLocation> localLocations;
+                while (!done) {
+                    localLocations = new ArrayList<>();
+                    try {
+                        for (String alias : ld.getKnownAlias()) {
+                            localLocations.add(new RemoteDataLocation(null, alias));
+                        }
+                    } catch (ConcurrentModificationException cme) {
+                        LOGGER.warn("Logical data was modified while constructing it's remote data location"
+                            + " to send as a result");
+                    }
+                    locations.addAll(localLocations);
+                    done = true;
                 }
             }
+
             return locations;
         }
 

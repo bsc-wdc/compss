@@ -235,13 +235,24 @@
     if [ -z "$LD_LIBRARY_PATH" ]; then
         if [ -n "$LIBRARY_PATH" ]; then
             export LD_LIBRARY_PATH=$LIBRARY_PATH
-            echo "[  INFO] LD_LIBRARY_PATH not defined set to LIBRARY_PATH"
+            echo "[persistent_worker.sh] LD_LIBRARY_PATH not defined set to LIBRARY_PATH"
         fi
     fi
 
     # Set lib path
     if [ "${envScriptPath}" != "null" ]; then
-        source "$envScriptPath"
+        if [ "$debug" == "true" ]; then
+		echo "[persistent_worker.sh] Loading environment scripts"
+        fi
+        scripts=$(echo "${envScriptPath}" | tr ":" " ")
+        echo "${scripts}"
+        for script in ${scripts}
+        do
+	   if [ "$debug" == "true" ]; then
+           	echo "[persistent_worker.sh] Loading ${script}"
+	   fi
+           source "$script"
+        done
     fi
 
     # Create sandbox

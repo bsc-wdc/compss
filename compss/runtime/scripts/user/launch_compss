@@ -1143,7 +1143,11 @@ get_args() {
           args_pass="$args_pass --$OPTARG"
           ;;
 	env_script=*)
-	  env_script=${OPTARG//env_script=/}
+          if [ -z "${env_script}" ]; then
+                env_script=${OPTARG//env_script=/}
+          else
+                env_script="${env_script}:${OPTARG//env_script=/}"
+          fi
 	  # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
           ;;
@@ -2208,6 +2212,16 @@ prolog() {
   fi
   for action in "${prologActions[@]}"; do
     realAction=$(echo "${action}" | tr "," " ")
+    for node in ${worker_nodes}; do
+        if [ ! -z "${NODE_NAME_QUEUE}" ]; then
+            node=$(${NODE_NAME_QUEUE} ${node})
+        fi
+        w_realAction="${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_EXTRA_FLAGS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${PRE_CMD}${realAction}${POST_CMD}"
+        if [ "${log_level}" != "off" ]; then
+            echo "- Prolog in $node: $realAction"
+        fi
+        ${w_realAction}
+    done
     if [ "${log_level}" != "off" ]; then
        echo "- Prolog: $realAction"
     fi
@@ -2229,6 +2243,16 @@ epilog() {
   fi
   for action in "${epilogActions[@]}"; do
     realAction=$(echo "${action}" | tr "," " ")
+    for node in ${worker_nodes}; do
+        if [ ! -z "${NODE_NAME_QUEUE}" ]; then
+            node=$(${NODE_NAME_QUEUE} ${node})
+        fi
+        w_realAction="${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_EXTRA_FLAGS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${PRE_CMD}${realAction}${POST_CMD}"
+        if [ "${log_level}" != "off" ]; then
+            echo "- Epilog in $node: $w_realAction"
+        fi
+        ${w_realAction}
+    done
     if [ "${log_level}" != "off" ]; then
        echo "- Epilog: $realAction"
     fi

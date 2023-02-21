@@ -440,7 +440,12 @@ get_args() {
             ;;
           env_script=*)
             # Application Environment script path
-            env_script_path=${OPTARG//env_script=/}
+            if [ -z "${env_script_path}" ]; then
+                env_script_path=${OPTARG//env_script=/}
+            else
+                env_script_path="${env_script_path}:${OPTARG//env_script=/}"
+            fi
+            # Application Environment script path
             ;;
           jvm_master_opts=*)
             # Master JVM option
@@ -717,8 +722,15 @@ check_args
 # Trap to ensure clean end
 trap clean_env EXIT
 
+echo "[RUNCOMPSS] ${env_script_path}"
 if [ -n "${env_script_path}" ]; then
-  source "${env_script_path}"
+  echo "[RUNCOMPSS] Loading environment scripts"
+  scripts=$(echo "${env_script_path}" | tr ":" " ")
+  for script in $scripts
+  do
+    echo "[RUNCOMPSS] Loading $script"
+    source $script
+  done
 fi
 # Real runtime execution
 start_compss_app

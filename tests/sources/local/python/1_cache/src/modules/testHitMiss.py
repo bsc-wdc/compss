@@ -14,18 +14,21 @@ from pycompss.api.task import task
 from pycompss.api.api import compss_wait_on
 from pycompss.api.api import compss_barrier
 from pycompss.api.parameter import *
+from pycompss.api.on_failure import on_failure
 
 
 def create_ndarray(size):
     return np.zeros((size, size))
 
 
+@on_failure(management ='FAIL')
 @task(returns=1, obj={Cache: True}, cache_returns=False)
 def increment_ndarray(obj):
     result = obj + 1
     return result
 
 
+@on_failure(management ='FAIL')
 @task(returns=1, cache_returns=True)
 def create_ndarray_task_cache_return(size):
     return np.zeros((size, size))

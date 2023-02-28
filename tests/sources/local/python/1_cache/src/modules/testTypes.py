@@ -13,13 +13,22 @@ import numpy as np
 from pycompss.api.task import task
 from pycompss.api.api import compss_wait_on
 from pycompss.api.parameter import *
+from pycompss.api.on_failure import on_failure
 
 
+@on_failure(management ='FAIL')
 @task(returns=1, param={Cache: True})
 def supported_ndarray(param):
     return param + 1
 
 
+@on_failure(management ='FAIL')
+@task(returns=1, param={Cache: True})
+def supported_none(param):
+    return param
+
+
+@on_failure(management ='FAIL')
 @task(returns=1, param={Cache: True})
 def supported_list(param):
     result = []
@@ -28,6 +37,7 @@ def supported_list(param):
     return result
 
 
+@on_failure(management ='FAIL')
 @task(returns=1, param={Cache: True})
 def supported_tuple(param):
     result = []
@@ -36,11 +46,19 @@ def supported_tuple(param):
     return tuple(result)
 
 
+@on_failure(management ='FAIL')
 @task(returns=1, param={Cache: True}, cache_returns=False)
 def supported_ndarray_no_cache_return(param):
     return param + 1
 
 
+@on_failure(management ='FAIL')
+@task(returns=1, param={Cache: True}, cache_returns=False)
+def supported_none_no_cache_return(param):
+    return param
+
+
+@on_failure(management ='FAIL')
 @task(returns=1, param={Cache: True}, cache_returns=False)
 def supported_list_no_cache_return(param):
     result = []
@@ -49,6 +67,7 @@ def supported_list_no_cache_return(param):
     return result
 
 
+@on_failure(management ='FAIL')
 @task(returns=1, param={Cache: True}, cache_returns=False)
 def supported_tuple_no_cache_return(param):
     result = []
@@ -65,6 +84,18 @@ class testTypes(unittest.TestCase):
         result = supported_ndarray(in_array)
         result = compss_wait_on(result)
         self.assertEqual(result.all(), expected.all())
+
+    def testCacheEmptyNumpyArray(self):
+        in_array = np.array([])
+        result = supported_ndarray(in_array)
+        result = compss_wait_on(result)
+        self.assertEqual(result.size, 0)
+
+    def testCacheNoneNumpyArray(self):
+        in_array = None
+        result = supported_none(in_array)
+        result = compss_wait_on(result)
+        self.assertEqual(result, None)
 
     def testCacheList(self):
         in_list = [1, 2, 3, 4]
@@ -86,6 +117,18 @@ class testTypes(unittest.TestCase):
         result = supported_ndarray_no_cache_return(in_array)
         result = compss_wait_on(result)
         self.assertEqual(result.all(), expected.all())
+
+    def testCacheEmptyNumpyArray_no_cache_return(self):
+        in_array = np.array([])
+        result = supported_ndarray_no_cache_return(in_array)
+        result = compss_wait_on(result)
+        self.assertEqual(result.size, 0)
+
+    def testCacheNoneNumpyArray_no_cache_return(self):
+        in_array = None
+        result = supported_none_no_cache_return(in_array)
+        result = compss_wait_on(result)
+        self.assertEqual(result, None)
 
     def testCacheList_no_cache_return(self):
         in_list = [4, 3, 2, 1]

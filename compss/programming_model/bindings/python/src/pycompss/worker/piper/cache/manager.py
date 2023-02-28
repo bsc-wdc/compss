@@ -25,7 +25,6 @@ This file contains the cache object tracker manager process.
 
 
 from multiprocessing import Queue
-
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.tracing.helpers import emit_manual_event_explicit
 from pycompss.util.tracing.helpers import EventWorkerCache
@@ -73,7 +72,7 @@ def cache_tracker(
 
     if __debug__:
         logger.debug(
-            "%s [%s] Starting Cache Tracker", CACHE_MANAGER_HEADER, str(process_name)
+            "%s [%s] Starting Cache Manager", CACHE_MANAGER_HEADER, str(process_name)
         )
 
     # MAIN CACHE TRACKER LOOP
@@ -213,15 +212,15 @@ def cache_tracker(
                                     get_file_name_clean(f_name),
                                     "PUT",
                                 )
-                            # Check if it is going to fit and remove if necessary
                             obj_size = int(obj_size)
+
                             if used_size + obj_size > max_size:
                                 # Cache is full, need to evict
-                                used_size = __check_cache_status__(
+                                used_size = __free_cache_space__(
                                     conf, used_size, obj_size
                                 )
                             # Accumulate size
-                            used_size = used_size + obj_size
+                            used_size += obj_size
                             # Initial hits
                             hits = 0
                             # Add without problems
@@ -247,11 +246,8 @@ def cache_tracker(
                             str(process_name),
                             str(f_name),
                         )
-                        cache_ids.pop(f_name)
-                        # Remove from cache hits
-                        current = cache_ids[f_name]
-                        current_hits = current[4]
-                        cache_hits[current_hits].pop(f_name)
+                        obj_size = __remove_from_cache__(f_name, cache_ids, cache_hits)
+                        used_size -= obj_size
                 elif action == "LOCK":
                     with EventWorkerCache(TRACING_WORKER_CACHE.cache_msg_lock_event):
                         f_name_msg = msg.messages[0]
@@ -321,7 +317,15 @@ def cache_tracker(
                 alive = False
 
 
-def __check_cache_status__(
+def __remove_from_cache__(f_name, cache_ids, cache_hits) -> int:
+    current = cache_ids.pop(f_name)
+    current_hits = current[4]
+    cache_hits[current_hits].pop(f_name)
+
+    return current[3]  # obj_size
+
+
+def __free_cache_space__(
     conf: CacheTrackerConf, used_size: int, requested_size: int
 ) -> int:
     """Check the cache status looking into the shared dictionary.
@@ -347,20 +351,21 @@ def __check_cache_status__(
     # Calculate size to recover
     size_to_recover = used_size + requested_size - max_size
     # Select how many to evict
-    to_evict, recovered_size = __evict__(sorted_hits, cache_hits, size_to_recover)
+    evicted, recovered_size = __evict__(
+        sorted_hits, cache_ids, cache_hits, size_to_recover
+    )
     if __debug__:
-        logger.debug("%s Evicting %d entries", CACHE_MANAGER_HEADER, (len(to_evict)))
-    # Evict
-    for entry in to_evict:
-        cache_ids.pop(entry)
+        logger.debug("%s Evicting %d entries", CACHE_MANAGER_HEADER, (evicted))
+
     return used_size - recovered_size
 
 
 def __evict__(
     sorted_hits: typing.List[int],
+    cache_ids,
     cache_hits: typing.Dict[int, typing.Dict[str, int]],
     size_to_recover: int,
-) -> typing.Tuple[typing.List[str], int]:
+) -> typing.Tuple[int, int]:
     """Select how many entries to evict.
 
     :param sorted_hits: List of current hits sorted from lower to higher.
@@ -370,14 +375,16 @@ def __evict__(
     """
     to_evict = []
     total_recovered_size = 0
+
     for hits in sorted_hits:
         # Does not check the order by size of the objects since they have
         # the same amount of hits
-        for f_name in cache_hits[hits]:
-            recovered_size = cache_hits[hits].pop(f_name)
+        files = list(cache_hits[hits])
+        for f_name in files:
+            recovered_size = __remove_from_cache__(f_name, cache_ids, cache_hits)
             to_evict.append(f_name)
             size_to_recover -= recovered_size
             total_recovered_size += recovered_size
             if size_to_recover <= 0:
-                return to_evict, total_recovered_size
-    return to_evict, total_recovered_size
+                return len(to_evict), total_recovered_size
+    return len(to_evict), total_recovered_size

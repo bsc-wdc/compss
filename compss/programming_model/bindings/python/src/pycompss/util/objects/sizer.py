@@ -33,11 +33,7 @@ from sys import stderr
 
 from pycompss.util.typing_helper import typing
 
-try:
-    from collections import Iterator  # type: ignore
-except ImportError:
-    # New place since python >= 3.9
-    from collections.abc import Iterator
+from collections.abc import Iterator
 
 
 def _dict_handler(given_dict: dict) -> Iterator:

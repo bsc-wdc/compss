@@ -161,7 +161,7 @@ class CacheTracker:
 
     def __init__(self) -> None:
         """Initialize a new SharedMemory instance object."""
-        self.header = "[PYTHON CACHE]"
+        self.header = "[PYTHON CACHE TRACKER]"
         # Shared memory manager to connect.
         self.shared_memory_manager = None  # type: typing.Any
         # Supported shared objects (remind that nested lists are not supported).
@@ -254,9 +254,11 @@ class CacheTracker:
             object_size = 0
             if shared_type == self.shared_memory_tag:
                 existing_shm = SharedMemory(name=obj_id)
-                output = NP.ndarray(
+                shm_np = NP.ndarray(
                     obj_shape, dtype=obj_d_type, buffer=existing_shm.buf
                 )
+                output = NP.empty(obj_shape, dtype=obj_d_type)
+                NP.copyto(output, shm_np)
                 object_size = len(existing_shm.buf)
             elif shared_type == self.shareable_list_tag:
                 existing_shm = ShareableList(name=obj_id)
@@ -400,71 +402,85 @@ class CacheTracker:
                         shape = obj.shape
                         d_type = obj.dtype
                         size = obj.nbytes
-                        # This line takes most of the time to put into cache
-                        shm = self.shared_memory_manager.SharedMemory(size=size)
-                        within_cache = NP.ndarray(shape, dtype=d_type, buffer=shm.buf)
-                        within_cache[:] = obj[:]  # Copy contents
-                        new_cache_id = shm.name
-                        message = CacheQueueMessage(
-                            action="PUT",
-                            messages=[
-                                f_name,
-                                new_cache_id,
-                                self.shared_memory_tag,
-                                parameter,
-                                function,
-                            ],
-                            size=size,
-                            d_type=d_type,
-                            shape=shape,
-                        )
-                        in_cache_queue.put(message)
+
+                        if size > 0:
+                            # This line takes most of the time to put into cache
+                            shm = self.shared_memory_manager.SharedMemory(size=size)
+                            within_cache = NP.ndarray(
+                                shape, dtype=d_type, buffer=shm.buf
+                            )
+                            within_cache[:] = obj[:]  # Copy contents
+                            new_cache_id = shm.name
+                            message = CacheQueueMessage(
+                                action="PUT",
+                                messages=[
+                                    f_name,
+                                    new_cache_id,
+                                    self.shared_memory_tag,
+                                    parameter,
+                                    function,
+                                ],
+                                size=size,
+                                d_type=d_type,
+                                shape=shape,
+                            )
+                            in_cache_queue.put(message)
+                        else:
+                            inserted = False
                     elif isinstance(obj, list):
                         emit_manual_event_explicit(
                             TRACING_WORKER.binding_serialization_cache_size_type, 0
                         )
-                        shareable_list = self.shared_memory_manager.ShareableList(
-                            obj
-                        )  # noqa
-                        new_cache_id = shareable_list.shm.name
                         size = total_sizeof(obj)
-                        message = CacheQueueMessage(
-                            action="PUT",
-                            messages=[
-                                f_name,
-                                new_cache_id,
-                                self.shareable_list_tag,
-                                parameter,
-                                function,
-                            ],
-                            size=size,
-                            d_type=type(list),
-                            shape=(),  # only used with numpy
-                        )
-                        in_cache_queue.put(message)
+
+                        if size > 0:
+                            shareable_list = self.shared_memory_manager.ShareableList(
+                                obj
+                            )  # noqa
+                            new_cache_id = shareable_list.shm.name
+                            message = CacheQueueMessage(
+                                action="PUT",
+                                messages=[
+                                    f_name,
+                                    new_cache_id,
+                                    self.shareable_list_tag,
+                                    parameter,
+                                    function,
+                                ],
+                                size=size,
+                                d_type=type(list),
+                                shape=(),  # only used with numpy
+                            )
+                            in_cache_queue.put(message)
+                        else:
+                            inserted = False
                     elif isinstance(obj, tuple):
                         emit_manual_event_explicit(
                             TRACING_WORKER.binding_serialization_cache_size_type, 0
                         )
-                        shareable_list = self.shared_memory_manager.ShareableList(
-                            obj
-                        )  # noqa
-                        new_cache_id = shareable_list.shm.name
                         size = total_sizeof(obj)
-                        message = CacheQueueMessage(
-                            action="PUT",
-                            messages=[
-                                f_name,
-                                new_cache_id,
-                                self.shareable_tuple_tag,
-                                parameter,
-                                function,
-                            ],
-                            size=size,
-                            d_type=type(list),
-                            shape=(),  # only used with numpy
-                        )
-                        in_cache_queue.put(message)
+
+                        if size > 0:
+                            shareable_list = self.shared_memory_manager.ShareableList(
+                                obj
+                            )  # noqa
+                            new_cache_id = shareable_list.shm.name
+                            message = CacheQueueMessage(
+                                action="PUT",
+                                messages=[
+                                    f_name,
+                                    new_cache_id,
+                                    self.shareable_tuple_tag,
+                                    parameter,
+                                    function,
+                                ],
+                                size=size,
+                                d_type=type(list),
+                                shape=(),  # only used with numpy
+                            )
+                            in_cache_queue.put(message)
+                        else:
+                            inserted = False
                     else:
                         inserted = False
                         if __debug__:

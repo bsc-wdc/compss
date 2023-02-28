@@ -12,31 +12,37 @@ import unittest
 import numpy as np
 
 from pycompss.api.task import task
-from pycompss.api.parameter import INOUT
+from pycompss.api.on_failure import on_failure
+from pycompss.api.parameter import *
 from pycompss.api.parameter import Cache
 from pycompss.api.api import compss_wait_on
 
 
+@on_failure(management ='FAIL')
 @task(returns=np.ndarray)
 def generate_np_array():
     return np.random.randint(10, size=(4,4))
 
 
+@on_failure(management ='FAIL')
 @task(returns=list)
 def generate_list():
     return np.random.randint(10, size=(4)).tolist()
 
 
+@on_failure(management ='FAIL')
 @task(returns=list)
 def generate_tuple():
     return tuple(np.random.randint(10, size=(4)))
 
 
+@on_failure(management ='FAIL')
 @task(returns=int)
 def compute_2d(nparray):
     return sum(sum(nparray + 1))
 
 
+@on_failure(management ='FAIL')
 @task(returns=int)
 def compute_1d(nparray):
     result = 0
@@ -45,12 +51,14 @@ def compute_1d(nparray):
     return result
 
 
+@on_failure(management ='FAIL')
 @task(returns=1, value={Cache: False})
 def store_in_cache(value):
     # It will cache the return
     return value
 
 
+@on_failure(management ='FAIL')
 @task(value=INOUT)
 def increment(value):
     # Increment cached value
@@ -59,11 +67,33 @@ def increment(value):
             value[x][y] = value[x][y] + 1
 
 
+@on_failure(management ='FAIL')
 @task(value=INOUT)
 def increment_lst(value):
     # Increment cached value
     for x in range(len(value)):
         value[x] = value[x] + 1
+
+
+@on_failure(management ='FAIL')
+@task(list={Type: COLLECTION_IN, Cache: True}, cache_returns=True)
+def numpy_col_in(list):
+    return list
+
+
+@on_failure(management ='FAIL')
+@task(list={Type: COLLECTION_OUT, Cache: True})
+def numpy_col_out(list):
+    blocks = np.array_split(np.arange(25), 5)
+    for i, block in enumerate(blocks):
+        list[i] = block
+
+
+@on_failure(management ='FAIL')
+@task(blocks={Type: COLLECTION_INOUT, Cache: True})
+def numpy_col_inout(blocks):
+    for i, block in enumerate(blocks):
+        blocks[i] = -block
 
 
 class testCache(unittest.TestCase):
@@ -77,7 +107,7 @@ class testCache(unittest.TestCase):
     def testReturnReuseNPArray(self):
         to_cache = generate_np_array()
         results = []
-        for i in range(20):
+        for _ in range(20):
             results.append(compute_2d(to_cache))
         results = compss_wait_on(results)
         to_cache = compss_wait_on(to_cache)
@@ -146,6 +176,31 @@ class testCache(unittest.TestCase):
         if not all(x == expected_result for x in results):
             raise Exception("Unexpected result from task using cache with tuple.")
 
+
+    def testNumpyCollectionIN(self):
+        blocks = np.array_split(np.arange(25), 5)
+        result = numpy_col_in(blocks)
+        result = np.array(compss_wait_on(result))
+
+        self.assertEqual(np.all(np.array(blocks) == result), True)
+
+    
+    def testNumpyCollectionOUT(self):
+        blocks = [object() for _ in range(5)]
+        numpy_col_out(blocks)
+        np_blocks = np.array_split(np.arange(25), 5)
+
+        result = np.array(compss_wait_on(blocks))
+        self.assertEqual(np.all(np.array(np_blocks) == result), True)
+
+
+    def testNumpyCollectionINOUT(self):
+        blocks = np.array_split(np.arange(25), 5)
+        numpy_col_inout(blocks)
+        np_blocks = np.array_split(-np.arange(25), 5)
+
+        result = np.array(compss_wait_on(blocks))
+        self.assertEqual(np.all(np.array(np_blocks) == result), True)
 
 
     # Tuple can not be INOUT

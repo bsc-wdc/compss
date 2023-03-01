@@ -7,7 +7,7 @@
     <!-- GENERAL INFORMATION -->
     <groupId>es.bsc.compss</groupId>
     <artifactId>compss-trunk</artifactId>
-    <version>3.1.rc2302</version>
+    <version>3.1.rc2303</version>
     <packaging>pom</packaging>
 
     <!-- PROJECT INFORMATION -->
@@ -50,7 +50,7 @@
 
     <!-- PROPERTIES -->
     <properties>
-        <compss.version>3.1.rc2302</compss.version>
+        <compss.version>3.1.rc2303</compss.version>
 
         <!-- BSC Streaming Component version -->
         <streaming.version>1.2-25</streaming.version>

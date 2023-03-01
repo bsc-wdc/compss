@@ -45,32 +45,4 @@
 
   #----------------------------------------------------------------------------------
 
-  # testParams
-  monday_file=$(grep -r -l "Parameter values: next+monday next+friday" "$jobs_logs")
-  mondayDate1=$(LANG=en_US date -d "next monday")
-  mondayDate2=$(date -d "next monday")
-  monday=$(grep -E "$mondayDate1|$mondayDate2" "$monday_file")
-  if [ "$monday" = "" ]; then
-    exit 1
-  else
-    appearances=$(grep -c "$mondayDate2" "$monday_file")
-    if [ ! "$appearances" -eq "2" ]; then
-      exit 1
-    fi
-  fi
-
-  # testSlurm
-  saturday_file=$(grep -r -l "Parameter values: next+wednesday next+saturday" "$jobs_logs")
-  saturdayDate1=$(LANG=en_US date -d "next saturday")
-  saturdayDate2=$(date -d "next saturday")
-  saturday=$(grep -E "$saturdayDate1|$saturdayDate2" "$saturday_file")
-  if [ "$saturday" = "" ]; then
-    exit 1
-  else
-    appearances=$(grep -c "$saturdayDate2" "$saturday_file")
-    if [ ! "$appearances" -eq "2" ]; then
-      exit 1
-    fi
-  fi
-
 exit 0

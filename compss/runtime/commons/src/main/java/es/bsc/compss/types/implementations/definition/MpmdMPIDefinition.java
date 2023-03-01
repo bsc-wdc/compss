@@ -279,6 +279,13 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
         }
 
         StringBuilder cmd = new StringBuilder();
+
+        String masterContImage = System.getenv(COMPSsConstants.MASTER_CONTAINER_IMAGE);
+        if (masterContImage != null && !masterContImage.isEmpty()) {
+            String script = System.getenv(COMPSsConstants.MPI_RUNNER_SCRIPT);
+            cmd.append(script).append(DUMMY_SEPARATOR);
+        }
+
         cmd.append(this.mpiRunner).append(DUMMY_SEPARATOR);
 
         // total # of processes for this MPMD
@@ -359,12 +366,14 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
                 // if each program should run on a separate container
                 if (this.container != null) {
                     // <container_engine> <container_exec_command> <container_options>[] <container_image> binary args
-                    content.append(this.container.getEngine().name().toLowerCase());
-                    content.append(this.container.getEngine().equals(SINGULARITY) ? "exec" : "run");
-                    for (String tmp : this.container.getOptions().split(" ")) {
-                        content.append(tmp);
+                    content.append(this.container.getEngine().name().toLowerCase()).append(" ");
+                    content.append(this.container.getEngine().equals(SINGULARITY) ? "exec" : "run").append(" ");
+                    if (!container.getOptions().isEmpty() && !container.getOptions().equals(Constants.UNASSIGNED)) {
+                        for (String tmp : this.container.getOptions().split(" ")) {
+                            content.append(tmp).append(" ");
+                        }
                     }
-                    content.append(this.container.getImage());
+                    content.append(this.container.getImage()).append(" ");
                 }
 
                 content.append(program.getBinary());

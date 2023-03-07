@@ -19,6 +19,10 @@
     <img src='http://bscgrid05.bsc.es/jenkins/job/COMPSs_Framework-Docker_testing/badge/icon'
          alt="Build Status">
   </a>
+  <a href='https://api.eu.badgr.io/public/assertions/WeehMRk9SWG5II8i8_k58w'>
+    <img src='https://github.com/EOSC-synergy/SQAaaS/raw/master/badges/badges_150x116/badge_software_bronze.png'
+         alt="SQAaaS bronze badge achieved" height="75px">
+  </a>
 </p>
 
 <p align="center"><b>

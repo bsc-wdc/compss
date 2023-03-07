@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Project>
+    <MasterNode/>
+    <ComputingCluster Name="COMPSsWorker01">
+        <LimitOfTasks>10</LimitOfTasks>
+        <Adaptors>
+            <Adaptor Name="es.bsc.compss.gos.master.GOSAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+            </Adaptor>
+        </Adaptors>
+        <InstallDir>/opt/COMPSs/</InstallDir>
+        <WorkingDir>/tmp/COMPSsWorker01/</WorkingDir>
+        <Application>
+            <AppDir></AppDir>
+        </Application>
+        <Software>
+            <Application>CustomProgram</Application>
+        </Software>
+        <ClusterNode Name="compute_node1">
+            <NumberOfNodes>1</NumberOfNodes>
+        </ClusterNode>
+    </ComputingCluster>
+</Project>

@@ -54,6 +54,17 @@
                 <User>user</User>
                 <BrokerAdaptor>sshtrilead</BrokerAdaptor>
             </Adaptor>
+            <Adaptor Name="es.bsc.compss.gos.master.GOSAdaptor">
+                <SubmissionSystem>
+                    <Batch>
+                        <Queue>sequential</Queue>
+                        <Queue>training</Queue>
+                    </Batch>
+                    <Interactive/>
+                </SubmissionSystem>
+                <User>user</User>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+            </Adaptor>
             <Adaptor Name="myCustomAdaptor.CustomAdaptor">
                 <SubmissionSystem>
                     <Batch>

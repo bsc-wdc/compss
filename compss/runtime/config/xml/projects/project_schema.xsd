@@ -13,6 +13,7 @@
                        	<xsd:element name="Service" type="ServiceType" minOccurs="0" maxOccurs="unbounded" />
                        	<xsd:element name="Http" type="HttpType" minOccurs="0" maxOccurs="unbounded" />
                        	<xsd:element name="Cloud" type="CloudType" minOccurs="0" maxOccurs="1" />
+                        <xsd:element name="ComputingCluster" type="ComputingClusterType" minOccurs="0" maxOccurs="unbounded" />
                	</xsd:choice>
     	</xsd:complexType>
 
@@ -37,14 +38,15 @@
         <!-- COMPUTE NODE Description -->
         <xsd:complexType name="ComputeNodeType">
                 <xsd:choice minOccurs="2" maxOccurs="unbounded">
-                        <!-- Mandatory -->
-			<xsd:element name="InstallDir" type="xsd:string" minOccurs="1" maxOccurs="1" />
-			<xsd:element name="WorkingDir" type="xsd:string" minOccurs="1" maxOccurs="1" />
-			<!-- NOT mandatory -->
-			<xsd:element name="User" type="xsd:string" minOccurs="0" maxOccurs="1" />
-			<xsd:element name="Application" type="ApplicationType" minOccurs="0" maxOccurs="1" />
-			<xsd:element name="LimitOfTasks" type="xsd:int" minOccurs="0" maxOccurs="1" />
-			<xsd:element name="Adaptors" type="AdaptorsListType" minOccurs="0" maxOccurs="1" />
+                    <!-- Mandatory -->
+                    <xsd:element name="InstallDir" type="xsd:string" minOccurs="1" maxOccurs="1" />
+                    <xsd:element name="WorkingDir" type="xsd:string" minOccurs="1" maxOccurs="1" />
+                    <!-- NOT mandatory -->
+                    <xsd:element name="User" type="xsd:string" minOccurs="0" maxOccurs="1" />
+                    <xsd:element name="Application" type="ApplicationType" minOccurs="0" maxOccurs="1" />
+                    <xsd:element name="LimitOfTasks" type="xsd:int" minOccurs="0" maxOccurs="1" />
+                    <xsd:element name="Adaptors" type="AdaptorsListType" minOccurs="0" maxOccurs="1" />
+
                 </xsd:choice>
                 <xsd:attribute name="Name" type="xsd:string" use="required"/>
         </xsd:complexType>
@@ -90,6 +92,26 @@
 			<xsd:element name="MinimumVMs" type="xsd:int" minOccurs="0" maxOccurs="1" />
 			<xsd:element name="MaximumVMs" type="xsd:int" minOccurs="0" maxOccurs="1" />
                 </xsd:choice>
+        </xsd:complexType>
+
+
+        <!-- Cluster Compute Description -->
+        <xsd:complexType name="ComputingClusterType">
+            <xsd:choice minOccurs="1" maxOccurs="unbounded">
+                <!-- Mandatory -->
+                <xsd:element name="LimitOfTasks" type="xsd:int" minOccurs="0" maxOccurs="1" />
+                <xsd:element name="InstallDir" type="xsd:string" minOccurs="1" maxOccurs="1" />
+                <xsd:element name="WorkingDir" type="xsd:string" minOccurs="1" maxOccurs="1" />
+
+                <xsd:element name="ClusterNode" type="ClusterNodeType" minOccurs="1" maxOccurs="unbounded" />
+                <!-- NOT Mandatory -->
+                <xsd:element name="Software" type="SoftwareListType" minOccurs="0" maxOccurs="1" />
+                <xsd:element name="User" type="xsd:string" minOccurs="0" maxOccurs="1" />
+                <xsd:element name="Application" type="ApplicationType" minOccurs="0" maxOccurs="1" />
+                <xsd:element name="Adaptors" type="AdaptorsListType" minOccurs="0" maxOccurs="1" />
+
+            </xsd:choice>
+            <xsd:attribute name="Name" type="xsd:string" use="required"/>
         </xsd:complexType>
 
 
@@ -233,7 +255,9 @@
                         </xsd:choice>
                         <!-- NOT mandatory -->
                         <xsd:element name="User" type="xsd:string" minOccurs="0" maxOccurs="1" />
-                        <xsd:element name="Properties" type="ExternalAdaptorProperties" minOccurs="0" maxOccurs="1" />
+                        <xsd:element name="KnownHostsPath" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+                        <xsd:element name="IdentityPath" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="Properties" type="ExternalAdaptorProperties" minOccurs="0" maxOccurs="1" />
                 </xsd:choice>
                 <xsd:attribute name="Name" type="xsd:string" use="required" />
         </xsd:complexType>
@@ -251,8 +275,12 @@
                         <!-- Mandatory -->
                         <xsd:element name="Queue" type="xsd:string" minOccurs="1" maxOccurs="unbounded"/>
                         <!-- NOT mandatory -->
+                        <xsd:element name="BatchProperties" type="GOSAdaptorProperties" minOccurs="0" maxOccurs="1"/>
+
                 </xsd:sequence>
         </xsd:complexType>
+
+
 
         <xsd:complexType name="InteractiveType">
                 <!-- Mandatory -->
@@ -267,6 +295,17 @@
                         <xsd:element name="MaxPort" type="xsd:int" minOccurs="1" maxOccurs="1"/>
                         <!-- NOT mandatory -->
                 </xsd:sequence>
+        </xsd:complexType>
+
+        <xsd:complexType name="GOSAdaptorProperties">
+            <xsd:sequence>
+                <!-- Mandatory -->
+                <!-- NOT mandatory -->
+                <xsd:element name="MaxExecTime" type="xsd:long" minOccurs="0" maxOccurs="1"/>
+                <xsd:element name="Reservation" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+                <xsd:element name="QOS" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+                <xsd:element name="FileCFG" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            </xsd:sequence>
         </xsd:complexType>
 
         <xsd:complexType name="ExternalAdaptorProperties">
@@ -319,7 +358,8 @@
 						<xsd:element name="User" type="xsd:string" minOccurs="0" maxOccurs="1" />
                         <xsd:element name="Application" type="ApplicationType" minOccurs="0" maxOccurs="1" />
                         <xsd:element name="LimitOfTasks" type="xsd:int" minOccurs="0" maxOccurs="1" />
-			<xsd:element name="Package" type="PackageType" minOccurs="0" maxOccurs="unbounded" />
+
+            <xsd:element name="Package" type="PackageType" minOccurs="0" maxOccurs="unbounded" />
 			<xsd:element name="Adaptors" type="AdaptorsListType" minOccurs="0" maxOccurs="1" />
 		</xsd:choice>
                 <xsd:attribute name="Name" type="xsd:string" use="required"/>
@@ -358,14 +398,24 @@
                 </xsd:sequence>
         </xsd:complexType>
 
-	<xsd:complexType name="CloudPropertyType">
-        	<xsd:sequence>
-			<!-- Mandatory -->
-                	<xsd:element name="Name" type="xsd:string" minOccurs="1"  maxOccurs="1"/>
-                	<xsd:element name="Value" type="xsd:string" minOccurs="1"  maxOccurs="1"/>
-			<!-- NOT mandatory -->
-        	</xsd:sequence>
-        	<xsd:attribute name="Context" type="xsd:string"/>
-	</xsd:complexType>
+    <xsd:complexType name="CloudPropertyType">
+        <xsd:sequence>
+            <!-- Mandatory -->
+            <xsd:element name="Name" type="xsd:string" minOccurs="1"  maxOccurs="1"/>
+            <xsd:element name="Value" type="xsd:string" minOccurs="1"  maxOccurs="1"/>
+            <!-- NOT mandatory -->
+        </xsd:sequence>
+        <xsd:attribute name="Context" type="xsd:string"/>
+    </xsd:complexType>
+
+
+    <xsd:complexType name="ClusterNodeType">
+        <xsd:sequence>
+            <!-- Mandatory -->
+            <xsd:element name="NumberOfNodes" type="xsd:int" minOccurs="1"  maxOccurs="1"/>
+            <!-- NOT mandatory -->
+        </xsd:sequence>
+        <xsd:attribute name="Name" type="xsd:string"/>
+    </xsd:complexType>
 
 </xsd:schema>

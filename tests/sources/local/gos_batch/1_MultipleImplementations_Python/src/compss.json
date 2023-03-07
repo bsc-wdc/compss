@@ -1,0 +1,14 @@
+{
+	"type":"compss",
+	"properties":{
+		"runcompss":"${RUNCOMPSS}",
+        "flags":"-d",
+        "app_name":"${APP_DIR}/src/simple_compss_nested.py",
+        "worker_in_master":"false",
+        "computing_nodes":2,
+        "fail_by_exit_value": "false"
+	},
+    "constraints": {
+      "computing_units": 2
+    }
+}

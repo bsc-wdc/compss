@@ -400,4 +400,23 @@ public class ProjectFileTest {
         return sb.toString();
     }
 
+    /* ********** XML String builder (PRIVATE) ************/
+    private String buildXMLString(String environmentScript) {
+        StringBuilder sb = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n");
+        sb.append("<Project>").append("\n");
+        sb.append("    ").append("<MasterNode/>").append("\n");
+
+        sb.append("    ").append("<ComputeNode Name=\"localhost\">").append("\n");
+        sb.append("    ").append("    ").append("<InstallDir>/opt/COMPSs/</InstallDir>").append("\n");
+        sb.append("    ").append("    ").append("<Application>").append("\n");
+        sb.append("    ").append("    ").append("<EnvironmentScript>").append(environmentScript)
+            .append("</EnvironmentScript>").append("\n");
+        sb.append("    ").append("    ").append("</Application>").append("\n");
+        sb.append("    ").append("</ComputeNode>").append("\n");
+
+        sb.append("</Project>").append("\n");
+
+        return sb.toString();
+    }
+
 }

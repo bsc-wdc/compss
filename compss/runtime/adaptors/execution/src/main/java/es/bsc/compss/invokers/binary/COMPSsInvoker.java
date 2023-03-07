@@ -271,6 +271,10 @@ public class COMPSsInvoker extends Invoker {
         }
 
         // Prepare and purge runcompss extra flags
+        String envScriptFlag = "";
+        if (this.context.getEnvironmentScript() != null && !this.context.getEnvironmentScript().isEmpty()) {
+            envScriptFlag = "--env_script=" + this.context.getEnvironmentScript();
+        }
         String nestedLogDir = this.sandBox.getFolder().getAbsolutePath() + File.separator + "nestedCOMPSsLog";
         JavaParams javaParams = (JavaParams) this.context.getLanguageParams(Lang.JAVA);
         String classpathFlag = "--classpath=" + javaParams.getClasspath();
@@ -325,6 +329,7 @@ public class COMPSsInvoker extends Invoker {
             this.invocation.getTarget(), streamValues, pythonInterpreter);
 
         // Prepare command (the +1 is for the appName)
+        //
         String[] cmd = new String[NUM_BASE_COMPSS_ARGS + extraFlagsList.size() + 1 + binaryParams.size()];
         cmd[0] = runcompss;
         cmd[1] = "--project=" + projectXml;

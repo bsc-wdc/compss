@@ -1390,6 +1390,11 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     }
 
     @Override
+    public String getEnvironmentScript() {
+        return null;
+    }
+
+    @Override
     public void generatePackage(Connection c) {
         NIOTracer.fini(new HashMap<>());
 

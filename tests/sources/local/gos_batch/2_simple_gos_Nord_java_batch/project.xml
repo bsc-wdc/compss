@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Project>
+    <MasterNode/>
+    <ComputeNode Name="nord3.bsc.es">
+        <InstallDir>/apps/compss/trunk</InstallDir>
+        <WorkingDir>/home/bsc19/bsc19409/COMPSsWorker/</WorkingDir>
+        <Application>
+            <AppDir>/home/bsc19/bsc19409/apps/sources/local/gos/0_simple_gos_Nord</AppDir>
+            <LibraryPath></LibraryPath>
+            <Classpath>/home/bsc19/bsc19409/apps/sources/local/gos/0_simple_gos_Nord/target/0_simple_gos_java.jar</Classpath>
+            <Pythonpath>/home/bsc19/bsc19409/apps/</Pythonpath>
+            <EnvironmentScript>/home/bsc19/bsc19409/env.sh</EnvironmentScript>
+        </Application>
+        <User>bsc19409</User>
+        <Adaptors>
+            <Adaptor Name="es.bsc.compss.gos.master.GOSAdaptor">
+                <SubmissionSystem>
+                    <Batch>
+                        <Queue>slurm</Queue>
+                        <BatchProperties>
+                            <MaxExecTime>30</MaxExecTime>
+                            <Reservation>disabled</Reservation>
+                            <QOS>debug</QOS>
+                            <FileCFG>/home/bsc19/bsc19409/COMPSsInstallDIR/opt/COMPSs/Runtime/scripts/queues/supercomputers/nord3.cfg</FileCFG>
+                        </BatchProperties>
+                    </Batch>
+                </SubmissionSystem>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+            </Adaptor>
+        </Adaptors>
+    </ComputeNode>
+</Project>

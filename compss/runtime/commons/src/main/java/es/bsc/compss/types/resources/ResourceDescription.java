@@ -151,4 +151,5 @@ public abstract class ResourceDescription implements Externalizable {
      * @return true if the method uses CPUs, false otherwise.
      */
     public abstract boolean usesCPUs();
+
 }

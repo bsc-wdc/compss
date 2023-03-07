@@ -271,6 +271,11 @@ public class FakeInvocationContext implements InvocationContext {
     public void reactivatedReservedResourcesDetected(ResourceDescription resources) {
     }
 
+    @Override
+    public String getEnvironmentScript() {
+        return null;
+    }
+
 
     public static class Builder {
 

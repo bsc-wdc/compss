@@ -81,5 +81,6 @@
         <module>execution</module>
         <module>local</module>
         <module>agent</module>
+        <module>gos</module>
     </modules>
 </project>

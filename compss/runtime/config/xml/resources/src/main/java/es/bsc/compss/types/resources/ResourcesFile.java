@@ -24,7 +24,9 @@ import es.bsc.compss.types.resources.jaxb.AttachedDiskType;
 import es.bsc.compss.types.resources.jaxb.AttachedDisksListType;
 import es.bsc.compss.types.resources.jaxb.BatchType;
 import es.bsc.compss.types.resources.jaxb.CloudProviderType;
+import es.bsc.compss.types.resources.jaxb.ClusterNodeType;
 import es.bsc.compss.types.resources.jaxb.ComputeNodeType;
+import es.bsc.compss.types.resources.jaxb.ComputingClusterType;
 import es.bsc.compss.types.resources.jaxb.DataNodeType;
 import es.bsc.compss.types.resources.jaxb.EndpointType;
 import es.bsc.compss.types.resources.jaxb.HttpType;
@@ -628,6 +630,25 @@ public class ResourcesFile {
     }
 
     /**
+     * Returns a List of the names of the declared ComputeNodes.
+     *
+     * @return
+     */
+    public List<String> getComputingCluster_names() {
+        ArrayList<String> list = new ArrayList<>();
+        List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
+        if (objList != null) {
+            for (Object obj : objList) {
+                if (obj instanceof ComputingClusterType) {
+                    list.add(((ComputingClusterType) obj).getName());
+                }
+            }
+        }
+
+        return list;
+    }
+
+    /**
      * Returns a List of the WSDLs of the declared Services.
      *
      * @return
@@ -853,6 +874,20 @@ public class ResourcesFile {
     }
 
     /**
+     * Returns the storage size of a given InstanceType.
+     *
+     * @param cluster Cluster Node type description
+     * @return
+     */
+    public float getStorageSize(ClusterNodeType cluster) {
+        StorageType storage = cluster.getStorage();
+        if (storage != null) {
+            return getStorageSize(storage);
+        }
+        return (float) -1.0;
+    }
+
+    /**
      * Get storage size.
      * 
      * @param storage Storage description
@@ -907,6 +942,20 @@ public class ResourcesFile {
             }
         }
 
+        return null;
+    }
+
+    /**
+     * Returns the storage type of a given ComputeNode.
+     *
+     * @param c Compute node description object
+     * @return Storage type
+     */
+    public String getStorageType(ClusterNodeType c) {
+        StorageType storage = c.getStorage();
+        if (storage != null) {
+            return getStorageType(storage);
+        }
         return null;
     }
 
@@ -990,6 +1039,20 @@ public class ResourcesFile {
     }
 
     /**
+     * Returns the storage bandwidth of a given ClusterNode.
+     *
+     * @param c Cluster node description object
+     * @return storage size
+     */
+    public int getStorageBW(ClusterNodeType c) {
+        StorageType storage = c.getStorage();
+        if (storage != null) {
+            return getStorageBW(storage);
+        }
+        return -1;
+    }
+
+    /**
      * Returns the storage bandwidth of a given InstanceType.
      *
      * @param instance Instance type description
@@ -1051,6 +1114,70 @@ public class ResourcesFile {
     }
 
     /**
+     * Returns the ComputingCluster with name=@name. Null if name doesn't exist
+     *
+     * @param name Compute Cluster name
+     * @return
+     */
+    public ComputingClusterType getComputingCluster(String name) {
+        List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
+        if (objList != null) {
+            for (Object obj : objList) {
+                if (obj instanceof ComputingClusterType) {
+                    ComputingClusterType cl = (ComputingClusterType) obj;
+                    if (cl.getName().equals(name)) {
+                        return cl;
+                    }
+                }
+            }
+        }
+
+        // Not found
+        return null;
+    }
+
+    /**
+     * Returns the ClusterNode with name=@name inside the given cluster @cluster.
+     *
+     * @param cluster the cluster
+     * @param name the name of the node
+     * @return the cluster node
+     */
+    public ClusterNodeType getClusterNode(ComputingClusterType cluster, String name) {
+        List<ClusterNodeType> list = cluster.getClusterNode();
+        if (list == null) {
+            return null;
+        }
+        for (ClusterNodeType node : list) {
+            if (node.getName().equals(name)) {
+                return node;
+            }
+        }
+        // Not found
+        return null;
+    }
+
+    /**
+     * Gets a list of a ll processors in a map with the key as the cluster node name.
+     *
+     * @param c the c
+     * @return the map processors
+     */
+    public Map<String, List<ProcessorType>> getMapProcessors(ComputingClusterType c) {
+        Map<String, List<ProcessorType>> map = new HashMap<>();
+        List<ClusterNodeType> objList = c.getClusterNode();
+        if (objList != null) {
+            for (ClusterNodeType node : objList) {
+                String clusterName = node.getName();
+                if (node.getProcessor() != null) {
+                    map.put(clusterName, node.getProcessor());
+                }
+            }
+        }
+        return map;
+    }
+
+    /**
      * Returns the processors of a given Compute Node @c.
      *
      * @param c Compute node object
@@ -1068,6 +1195,26 @@ public class ResourcesFile {
             }
         }
 
+        return processors;
+    }
+
+    /**
+     * Returns the all processors of a given ComputingClusterType @c.
+     *
+     * @param c Computing Cluster
+     * @return List of Processor description objects
+     */
+    public List<ProcessorType> getProcessors(ComputingClusterType c) {
+        List<ClusterNodeType> objList = c.getClusterNode();
+        List<ProcessorType> processors = new ArrayList<>();
+        if (objList != null) {
+            for (ClusterNodeType node : objList) {
+                String clusterName = node.getName();
+                if (node.getProcessor() != null) {
+                    processors.addAll(node.getProcessor());
+                }
+            }
+        }
         return processors;
     }
 
@@ -1151,6 +1298,27 @@ public class ResourcesFile {
     }
 
     /**
+     * Returns the memory size of a given ClusterNodeType.
+     *
+     * @param cluster Cluster node description
+     * @return
+     */
+    public float getMemorySize(ClusterNodeType cluster) {
+        MemoryType mem = cluster.getMemory();
+        if (mem != null) {
+            List<Serializable> memProps = mem.getSizeOrType();
+            if (memProps != null) {
+                for (Serializable prop : memProps) {
+                    if (prop instanceof Float) {
+                        return (float) prop;
+                    }
+                }
+            }
+        }
+        return (float) -1.0;
+    }
+
+    /**
      * Returns the memory type of a given ComputeNode.
      *
      * @param c Compute node description object
@@ -1176,6 +1344,27 @@ public class ResourcesFile {
             }
         }
 
+        return null;
+    }
+
+    /**
+     * Returns the memory type of a given ClusterNode.
+     *
+     * @param c Cluster Node description object
+     * @return memory type
+     */
+    public String getMemoryType(ClusterNodeType c) {
+        MemoryType mem = c.getMemory();
+        if (mem != null) {
+            List<Serializable> memProps = mem.getSizeOrType();
+            if (memProps != null) {
+                for (Serializable prop : memProps) {
+                    if (prop instanceof String) {
+                        return (String) prop;
+                    }
+                }
+            }
+        }
         return null;
     }
 
@@ -1358,6 +1547,20 @@ public class ResourcesFile {
     }
 
     /**
+     * Returns the OperatingSystem Version of a given ComputingCluster.
+     *
+     * @param c Computing cluster description object
+     * @return
+     */
+    public String getOperatingSystemVersion(ComputingClusterType c) {
+        OSType os = c.getOperatingSystem();
+        if (os != null) {
+            return getOperatingSystemVersion(os);
+        }
+        return null;
+    }
+
+    /**
      * Returns the OS Version associated to a given Image.
      *
      * @param image Image description
@@ -1529,6 +1732,28 @@ public class ResourcesFile {
 
         return null;
 
+    }
+
+    /**
+     * Returns the SharedDisks (name, mountpoint) of a given Computing Cluster.
+     *
+     * @param c Compute cluster description object
+     * @return
+     */
+    public HashMap<String, String> getSharedDisks(ComputingClusterType c) {
+        HashMap<String, String> disksInformation = new HashMap<>();
+        AttachedDisksListType disks = c.getSharedDisks();
+        OSType os = c.getOperatingSystem();
+        if (disks != null) {
+            for (AttachedDiskType disk : disks.getAttachedDisk()) {
+                disksInformation.put(disk.getName(), disk.getMountPoint());
+            }
+        }
+        if (disksInformation.isEmpty()) {
+            return null;
+        } else {
+            return disksInformation;
+        }
     }
 
     /**
@@ -1722,6 +1947,26 @@ public class ResourcesFile {
         AdaptorType adaptor = getAdaptor(cn, adaptorName);
         if (adaptor != null) {
             return getAdaptorProperties(adaptor);
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns the declared properties of a given Adaptor within a given ComputingCluster.
+     *
+     * @param cluster the cluster
+     * @param adaptorName the adaptor name
+     * @return the adaptor properties
+     */
+    public Map<String, Object> getAdaptorProperties(ComputingClusterType cluster, String adaptorName) {
+        if (cluster.getAdaptors() == null) {
+            return null;
+        }
+        for (AdaptorType adaptor : cluster.getAdaptors().getAdaptor()) {
+            if (adaptor.getName().equals(adaptorName)) {
+                return getAdaptorProperties(adaptor);
+            }
         }
 
         return null;

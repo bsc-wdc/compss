@@ -24,7 +24,9 @@ import es.bsc.compss.types.resources.jaxb.AttachedDiskType;
 import es.bsc.compss.types.resources.jaxb.AttachedDisksListType;
 import es.bsc.compss.types.resources.jaxb.BatchType;
 import es.bsc.compss.types.resources.jaxb.CloudProviderType;
+import es.bsc.compss.types.resources.jaxb.ClusterNodeType;
 import es.bsc.compss.types.resources.jaxb.ComputeNodeType;
+import es.bsc.compss.types.resources.jaxb.ComputingClusterType;
 import es.bsc.compss.types.resources.jaxb.DataNodeType;
 import es.bsc.compss.types.resources.jaxb.EndpointType;
 import es.bsc.compss.types.resources.jaxb.HttpType;
@@ -99,6 +101,8 @@ public class Validator {
                         validateHttpService(((HttpType) obj));
                     } else if (obj instanceof CloudProviderType) {
                         validateCloudProvider(((CloudProviderType) obj));
+                    } else if (obj instanceof ComputingClusterType) {
+                        validateClusterCompute(((ComputingClusterType) obj));
                     } else {
                         throw new InvalidElementException("Resources", "Attribute" + obj.getClass(),
                             "Incorrect attribute");
@@ -459,6 +463,66 @@ public class Validator {
         }
     }
 
+    /**
+     * Validates the given ComputingCluster @cc with the current ResourcesFileType. The content is correct if no
+     * exception is raised.
+     *
+     * @param cc Computing Cluster description
+     * @throws InvalidElementException Error invalid data
+     */
+    public void validateClusterCompute(ComputingClusterType cc) throws InvalidElementException {
+        // Check that name isn't used
+
+        int n = 0;
+        for (String s : rf.getComputingCluster_names()) {
+            if (s.equals(cc.getName())) {
+                n++;
+            }
+        }
+        if (n > 1) {
+            throw new InvalidElementException("ComputingCluster ", cc.getName(), "Name already in use");
+        }
+        // Check adaptor elements
+        AdaptorsListType adaptors = cc.getAdaptors();
+        if (adaptors != null) {
+            for (AdaptorType adaptor : adaptors.getAdaptor()) {
+                validateAdaptor(adaptor);
+            }
+        } else {
+            throw new InvalidElementException("ComputingCluster", cc.getName(), "Adaptors must be provided.");
+        }
+
+        validateOS(cc.getOperatingSystem());
+        validateSoftwareList(cc.getSoftware());
+        if (cc.getSharedDisks() != null) {
+            validateAttachedDisksList(cc.getSharedDisks());
+        }
+
+        // Check internal Cluster Nodes
+        List<ClusterNodeType> clusterNodes = cc.getClusterNode();
+        if (clusterNodes != null) {
+            // Check not repeated names in Cluster nodes
+            for (int i = 0; i < clusterNodes.size(); i++) {
+                for (int j = 0; j < clusterNodes.size(); j++) {
+                    if (i == j) {
+                        continue;
+                    }
+                    if (clusterNodes.get(i).getName() == clusterNodes.get(j).getName()) {
+                        throw new InvalidElementException("ComputingCluster", cc.getName(),
+                            "Two Cluster nodes with the same name: " + clusterNodes.get(i).getName());
+                    }
+                }
+            }
+            for (ClusterNodeType clusterNode : clusterNodes) {
+                validateClusterNode(clusterNode);
+            }
+        } else {
+            throw new InvalidElementException("ComputingCluster", cc.getName(),
+                "At least one cluster nodes must be provided in ComputingCluster");
+        }
+
+    }
+
     /* ********** HELPERS FOR VALIDATION (PRIVATE METHODS) *************/
 
     private void validateStorage(StorageType s) throws InvalidElementException {
@@ -603,6 +667,33 @@ public class Validator {
         } else {
             // Empty inner elements
             throw new InvalidElementException("Adaptor", "", "Content is empty");
+        }
+    }
+
+    private void validateClusterNode(ClusterNodeType clusterNode) throws InvalidElementException {
+
+        int nNodes = clusterNode.getMaxNumNodes();
+        if (nNodes == 0) {
+            logger.warn("ClusterNode " + clusterNode.getName() + " MaxNumNodes is 0, no task will be"
+                + "assigned to this resource.");
+        }
+        if (nNodes < 0) {
+            throw new InvalidElementException("ClusterNode", clusterNode.getName(),
+                "MaxNumNodes must be " + " larger than 0.");
+        }
+        for (ProcessorType processor : clusterNode.getProcessor()) {
+            validateProcessor(processor);
+        }
+        if (clusterNode.getMemory() != null) {
+            validateMemory(clusterNode.getMemory());
+        }
+
+        if (clusterNode.getStorage() != null) {
+            validateStorage(clusterNode.getStorage());
+        }
+
+        if (clusterNode.getPrice() != null) {
+            validatePrice(clusterNode.getPrice());
         }
     }
 

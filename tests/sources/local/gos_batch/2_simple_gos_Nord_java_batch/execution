@@ -1,0 +1,163 @@
+#!/bin/bash
+
+  # Obtain parameters
+  COMPSs_exec=$1
+  comm=$2
+  runcompss_opts=$3
+  base_app_dir=$4
+  COMPSs_log_folder=$5
+  target_log_folder=$6
+  retry_num=$7
+  execution_envs=$8
+  
+  # Global variables
+  exit_value=1
+  jar_name="2_simple_gos_Nord_java_batch.jar"
+  test_name="2_simple_gos_Nord_java_batch"
+  app_name="simple.SimpleGOS"
+
+  # Process extra execution envs
+
+  # shellcheck disable=SC2207
+  VARIABLES=($(echo "$execution_envs" | tr "|" "\n"))
+  for item in ${VARIABLES[*]}
+    do
+        # shellcheck disable=SC2207
+        var=($(echo "$item" | tr "=" "\n"))
+        echo "var : ${var[0]} value: ${var[1]}"
+        case ${var[0]} in
+        INSTALL_DIR)
+        	if [ "${var[1]}" = "DEFAULT" ]; then
+            INSTALL_DIR="/apps/COMPSs/Trunk"
+          else
+            INSTALL_DIR=${var[1]}
+          fi
+        	;;
+        USER)
+        	USER=${var[1]}
+        	;;
+        HOST)
+        	HOST=${var[1]}
+        	;;
+        ENV_SCRIPT)
+          if [ "${var[1]}" = "DEFAULT" ]; then
+            ENV_SCRIPT="${base_app_dir}"/env.sh
+          else
+        	  ENV_SCRIPT=${var[1]}
+        	fi
+        	;;
+        QUEUE)
+        	QUEUE=${var[1]}
+        	;;
+        QOS)
+        	QOS=${var[1]}
+        	;;
+        WK_DIR)
+          if [ "${var[1]}" = "DEFAULT" ]; then
+            ENV_SCRIPT="${base_app_dir}"/COMPSsWorker
+          else
+        	  WK_DIR=${var[1]}
+          fi
+          ;;
+        COMPUTER)
+          if [ "${var[1]}" = "DEFAULT" ]; then
+            COMPUTER="nord3"
+          else
+            COMPUTER=${var[1]}
+          fi
+        	;;
+       APP_DIR)
+          if [ "${var[1]}" = "DEFAULT" ]; then
+             CLASSPATH="${base_app_dir}/${jar_name}"
+             APP_DIR="${base_app_dir}"
+          else
+            if [ -n "$test_name" ]; then
+             test_name="${jar_name::-4}"
+            fi
+            CLASSPATH="${var[1]}/${test_name}/target/${jar_name}"
+            APP_DIR="${base_app_dir}"
+          fi
+          ;;
+        PYTHONPATH)
+             if [ "${var[1]}" = "DEFAULT" ]; then
+                PYTHONPATH="${base_app_dir}/src"
+             else
+               if [ -n "$test_name" ]; then
+                  test_name="${app_name::-3}"
+               fi
+               PYTHONPATH="${var[1]}/target/${test_name}"
+             fi
+          ;;
+        esac
+    done
+    FILE_CFG="${INSTALL_DIR}/Runtime/scripts/queues/supercomputers/${COMPUTER}.cfg"
+    projectFile="${base_app_dir}"/project.xml
+    resourcesFile="${base_app_dir}"/resources.xml
+
+    sed -i '/<Queue>/c<Queue>'"${QUEUE}"'<\/Queue>' "$resourcesFile"
+
+    sed -i '/<Queue>/c<Queue>'"${QUEUE}"'<\/Queue>' "$projectFile"
+    sed -i '/<QOS>/c<QOS>'"${QOS}"'<\/QOS>' "$projectFile"
+    sed -i '/<InstallDir>/c<InstallDir>'"${INSTALL_DIR}"'<\/InstallDir>' "$projectFile"
+    sed -i '/<WorkingDir>/c<WorkingDir>'"${WK_DIR}"'<\/WorkingDir>' "$projectFile"
+    sed -i '/<AppDir>/c<AppDir>'"${APP_DIR}"'<\/AppDir>' "$projectFile"
+    sed -i '/<Classpath>/c<Classpath>'"${CLASSPATH}"'<\/Classpath>' "$projectFile"
+    sed -i '/<Pythonpath>/c<Pythonpath>'"${PYTHONPATH}"'<\/Pythonpath>' "$projectFile"
+    sed -i '/<EnvironmentScript>/c<EnvironmentScript>'"${ENV_SCRIPT}"'<\/EnvironmentScript>' "$projectFile"
+    sed -i '/<User>/c<User>'"${USER}"'<\/User>' "$projectFile"
+    sed -i '/<FileCFG>/c<FileCFG>'"${FILE_CFG}"'<\/FileCFG>' "$projectFile"
+
+    sed -i '/<ComputeNode Name=/c<ComputeNode Name=\"'"${HOST}"'\">' "$resourcesFile"
+    sed -i '/<ComputingCluster Name=/c<ComputingCluster Name=\"'"${HOST}"'\">' "$resourcesFile"
+    sed -i '/<ComputeNode Name=/c<ComputeNode Name=\"'"${HOST}"'\">' "$projectFile"
+    sed -i '/<ComputingCluster Name=/c<ComputingCluster Name=\"'"${HOST}"'\">' "$projectFile"
+
+
+
+    execution_envs=""
+
+
+
+
+  #----------------------------------------------------------------------------------
+  # Run application
+  echo
+  echo "*** RUNNING NORD 3 JAVA APPLICATION SIMPLE"
+  output_log="${target_log_folder}/simple_gos_batch_0${retry_num}.outputlog"
+  error_log="${target_log_folder}/simple_gos_batch_0${retry_num}.errorlog"
+  expectedTime=120s
+  
+  # shellcheck disable=SC2086
+  timeout --signal=2 $expectedTime "${COMPSs_exec}" \
+     --project="${base_app_dir}"/project.xml \
+     --resources="${base_app_dir}"/resources.xml \
+     --comm="es.bsc.compss.gos.master.GOSAdaptor" \
+     \
+     --debug \
+     --summary \
+     ${runcompss_opts} \
+     \
+     --classpath="${base_app_dir}/${jar_name}" \
+     \
+     "${app_name}" 1 > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+  
+  # Check timeout
+  if [[ "$?" = "124" ]]; then
+     # Copy LOG files
+     cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}" "${target_log_folder}"
+
+     # Report time out
+     echo "[WARNING] Java Application timed out" >> "${output_log}"
+     exit_value=124
+  else
+     # Copy LOG files
+     cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
+  
+     # Check result
+     "${base_app_dir}"/result "${output_log}" "${error_log}" "${target_log_folder}"
+     exit_value=$?
+  fi
+  
+  #----------------------------------------------------------------------------------
+  # Return execution status
+  exit ${exit_value}

@@ -704,13 +704,12 @@ public class Executor implements Runnable, InvocationRunner {
         if (Tracer.isActivated()) {
             Tracer.emitEvent(TraceEvent.CREATING_TASK_SANDBOX);
         }
-
+        AbstractMethodImplementation impl = invocation.getMethodImplementation();
         ExecutionSandbox taskWD;
         try {
             // Check if an specific working dir is provided
-            String specificWD;
-            AbstractMethodImplementation impl = invocation.getMethodImplementation();
-            switch (impl.getMethodType()) {
+            String specificWD = "";
+            switch (invocation.getMethodImplementation().getMethodType()) {
                 case CONTAINER:
                     ContainerDefinition contImpl = (ContainerDefinition) impl.getDefinition();
                     specificWD = contImpl.getWorkingDir();
@@ -732,9 +731,16 @@ public class Executor implements Runnable, InvocationRunner {
                     specificWD = nativeMPIImpl.getWorkingDir();
                     break;
                 case COMPSs:
-                    COMPSsDefinition compssImpl = (COMPSsDefinition) impl.getDefinition();
-                    specificWD = compssImpl.getWorkingDir() + File.separator + compssImpl.getParentAppId()
-                        + File.separator + "compss_job_" + jobId + "_" + invocation.getHistory().name();
+                    COMPSsDefinition compssImpl =
+                        (COMPSsDefinition) invocation.getMethodImplementation().getDefinition();
+                    // if working dir is unassigned skip it for the construction of the specific working dir
+                    if (!compssImpl.getWorkingDir().equals(Constants.UNASSIGNED)) {
+                        specificWD = compssImpl.getWorkingDir() + File.separator;
+                    }
+                    if (compssImpl.getParentAppId() != null) {
+                        specificWD += compssImpl.getParentAppId() + File.separator;
+                    }
+                    specificWD += "compss_job_" + invocation.getJobId() + "_" + invocation.getHistory().name();
                     break;
                 case DECAF:
                     DecafDefinition decafImpl = (DecafDefinition) impl.getDefinition();

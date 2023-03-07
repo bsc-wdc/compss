@@ -1510,11 +1510,11 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         return compatible;
     }
 
-    protected boolean checkMemory(MethodResourceDescription rc2) {
+    private boolean checkMemory(MethodResourceDescription rc2) {
         return checkInclusion(this.memorySize, rc2.memorySize) && checkCompatibility(this.memoryType, rc2.memoryType);
     }
 
-    protected boolean checkStorage(MethodResourceDescription rc2) {
+    private boolean checkStorage(MethodResourceDescription rc2) {
         return checkInclusion(this.storageSize, rc2.storageSize)
             && checkCompatibility(this.storageType, rc2.storageType) && checkInclusion(this.storageBW, rc2.storageBW);
     }
@@ -1523,7 +1523,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         return type1 == type2;
     }
 
-    protected boolean checkCompatibility(String value1, String value2) {
+    private boolean checkCompatibility(String value1, String value2) {
         return value1.equals(value2) || value1.equals(UNASSIGNED_STR) || value2.equals(UNASSIGNED_STR);
     }
 
@@ -1531,7 +1531,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         return value1 >= value2 || value1 == UNASSIGNED_INT || value2 == UNASSIGNED_INT;
     }
 
-    protected boolean checkInclusion(float value1, float value2) {
+    private boolean checkInclusion(float value1, float value2) {
         return value1 >= value2 || value1 == UNASSIGNED_FLOAT || value2 == UNASSIGNED_FLOAT;
     }
 

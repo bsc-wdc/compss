@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <!-- GENERAL INFORMATION -->
@@ -26,27 +26,27 @@
         <url>http://www.bsc.es</url>
     </organization>
     <profiles>
-	<profile>
-		<id>java-9+</id>	
-        	<activation>
-            		<jdk>[9,)</jdk>
-    		</activation>
-		<properties>
-	    		<maven.compiler.release>8</maven.compiler.release>
-		</properties>
-    	</profile>
-	<profile>
-		<id>java-8</id>
-		<activation>
-			<activeByDefault>true</activeByDefault>
-			<jdk>1.8</jdk>
-    		</activation>
-		<properties>
-			<maven.compiler.source>1.8</maven.compiler.source>
-    			<maven.compiler.target>1.8</maven.compiler.target>
-        	</properties>
-	</profile>
-   </profiles>
+        <profile>
+            <id>java-9+</id>
+            <activation>
+                <jdk>[9,)</jdk>
+            </activation>
+            <properties>
+                <maven.compiler.release>8</maven.compiler.release>
+            </properties>
+        </profile>
+        <profile>
+            <id>java-8</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+                <jdk>1.8</jdk>
+            </activation>
+            <properties>
+                <maven.compiler.source>1.8</maven.compiler.source>
+                <maven.compiler.target>1.8</maven.compiler.target>
+            </properties>
+        </profile>
+    </profiles>
 
     <!-- PROPERTIES -->
     <properties>
@@ -88,7 +88,7 @@
 
         <!-- Project encoding -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
 
     <!-- SOURCE CONTROL MANAGEMENT -->
@@ -212,8 +212,8 @@
     <modules>
         <module>maven-plugins</module>
         <module>compss</module>
-	<module>tests/sources/local</module>
-	<module>tests/sources/sc</module>
+        <module>tests/sources/local</module>
+        <module>tests/sources/sc</module>
         <module>utils/storage</module>
         <module>performance_analysis/auto-cbm</module>
     </modules>

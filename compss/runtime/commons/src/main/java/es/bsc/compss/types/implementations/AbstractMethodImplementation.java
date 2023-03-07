@@ -18,7 +18,6 @@ package es.bsc.compss.types.implementations;
 
 import es.bsc.compss.types.implementations.definition.AbstractMethodImplementationDefinition;
 import es.bsc.compss.types.implementations.definition.MethodDefinition;
-import es.bsc.compss.types.resources.ClusterMethodResourceDescription;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 
 
@@ -48,11 +47,6 @@ public class AbstractMethodImplementation extends Implementation {
 
     public AbstractMethodImplementation(Integer coreId, Integer implId,
         ImplementationDescription<MethodResourceDescription, AbstractMethodImplementationDefinition> implDesc) {
-        super(coreId, implId, implDesc);
-    }
-
-    public AbstractMethodImplementation(boolean cluster, Integer coreId, Integer implId,
-        ImplementationDescription<ClusterMethodResourceDescription, AbstractMethodImplementationDefinition> implDesc) {
         super(coreId, implId, implDesc);
     }
 

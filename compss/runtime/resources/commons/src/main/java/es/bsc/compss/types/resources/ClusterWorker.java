@@ -20,10 +20,6 @@ import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.resources.MethodResourceDescription.MethodResourceType;
 import es.bsc.compss.types.resources.configuration.MethodConfiguration;
-import es.bsc.compss.util.CoreManager;
-
-import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -33,7 +29,6 @@ public class ClusterWorker extends Worker<MethodResourceDescription> {
     // Available resource capabilities
     // Task count
     private final int limitOfTasks;
-    private String dbgName;
     private AtomicInteger sharedRunningTasks;
 
     private int numNodes = 0;
@@ -46,7 +41,6 @@ public class ClusterWorker extends Worker<MethodResourceDescription> {
     private final int maxGPUs;
     private final int maxFPGAs;
     private final int maxOthers;
-    private final boolean debug = true;
 
 
     /**
@@ -58,62 +52,10 @@ public class ClusterWorker extends Worker<MethodResourceDescription> {
         this.numNodes = md.getNumClusters();
         this.limitOfTasks = md.getLimitOfTasks();
         this.sharedRunningTasks = sharedLimitTask;
-        this.dbgName = hostname + "_" + clusterNode;
         this.maxCPUs = numNodes * description.totalCPUComputingUnits;
         this.maxGPUs = numNodes * description.totalGPUComputingUnits;
         this.maxFPGAs = numNodes * description.totalFPGAComputingUnits;
         this.maxOthers = numNodes * description.totalOtherComputingUnits;
-    }
-
-    private void printMethodName(String res) {
-        if (!debug) {
-            return;
-        }
-        try {
-            String name = Thread.currentThread().getStackTrace()[2].getMethodName();
-            System.out.println("-----------ClusterWorker " + dbgName + " " + name + "    " + res);
-        } catch (Exception e) {
-            System.out.println("-----------ClusterWorker error in methodName");
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    protected int limitIdealSimultaneousTasks(int ideal) {
-        int internalLimit = Math.min(this.maxCPUs * numNodes, limitOfTasks);
-        return Math.min(internalLimit, ideal);
-    }
-
-    @Override
-    public Integer simultaneousCapacity(Implementation impl) {
-        return Math.min(limitOfTasks, numNodes * fitCount(impl));
-    }
-
-    /**
-     * Debug.
-     */
-    private void debug() {
-        System.out.println(super.getResourceLinks(dbgName));
-        if (!debug) {
-            return;
-        }
-        System.out.printf("------------------------%s----------------------\n", dbgName);
-        System.out.printf(
-            "Num nodes: %s, tasks %s of %s \n " + "CPUS %s of %s, GPUs %s of %s, FPGA %s of %s, Other %s of %s \n",
-            numNodes, sharedRunningTasks, limitOfTasks, usedCPUs, maxCPUs, usedGPUs, maxGPUs, usedFPGAs, maxFPGAs,
-            usedOthers, maxOthers);
-        System.out.println("Software: " + Arrays.toString(description.appSoftware.toArray()));
-        System.out.println("------------------------------------------------");
-    }
-
-    private void debug(MethodResourceDescription mrd) {
-        if (!debug) {
-            return;
-        }
-        System.out.printf("------------------------MethodResourceDescription----------------------\n", dbgName);
-        System.out.printf("CPUS %s, GPUs %s\n", mrd.totalCPUComputingUnits, mrd.totalGPUComputingUnits);
-        System.out.printf("Software: %s\n", Arrays.toString(mrd.appSoftware.toArray()));
-        System.out.println("------------------------------------------------");
     }
 
     /**
@@ -129,6 +71,17 @@ public class ClusterWorker extends Worker<MethodResourceDescription> {
         this.maxGPUs = cw.maxGPUs;
         this.maxFPGAs = cw.maxFPGAs;
         this.maxOthers = cw.maxOthers;
+    }
+
+    @Override
+    protected int limitIdealSimultaneousTasks(int ideal) {
+        int internalLimit = Math.min(this.maxCPUs * numNodes, limitOfTasks);
+        return Math.min(internalLimit, ideal);
+    }
+
+    @Override
+    public Integer simultaneousCapacity(Implementation impl) {
+        return Math.min(limitOfTasks, numNodes * fitCount(impl));
     }
 
     @Override
@@ -175,7 +128,6 @@ public class ClusterWorker extends Worker<MethodResourceDescription> {
         }
         MethodResourceDescription mrd = (MethodResourceDescription) impl.getRequirements();
         int res = Math.min(limitOfTasks, numNodes * this.description.canHostSimultaneously(mrd));
-        // printMethodName(String.valueOf(res));
         return res;
     }
 
@@ -218,7 +170,6 @@ public class ClusterWorker extends Worker<MethodResourceDescription> {
         usedFPGAs += consumption.totalFPGAComputingUnits;
         usedOthers += consumption.totalOtherComputingUnits;
 
-        // debug();
         return consumption;
     }
 
@@ -236,17 +187,13 @@ public class ClusterWorker extends Worker<MethodResourceDescription> {
 
     @Override
     public MethodResourceDescription reserveResource(MethodResourceDescription consumption) {
-        String name = Thread.currentThread().getStackTrace()[1].getMethodName();
-
         if (consumption == null || !hasAvailable(consumption)) {
             return null;
         }
         synchronized (this) {
             if (consumption.getMethodType().equals(MethodResourceType.CLUSTER)) {
-                // printMethodName("Cluster");
                 return reserveResourceCluster((ClusterMethodResourceDescription) consumption);
             } else {
-                // printMethodName("Method");
                 return reserveResourceMethod(consumption);
             }
         }
@@ -271,10 +218,7 @@ public class ClusterWorker extends Worker<MethodResourceDescription> {
 
     @Override
     public void releaseResource(MethodResourceDescription consumption) {
-        // printMethodName("");
-
         if (consumption == null) {
-            // debug();
             return;
         }
 
@@ -285,14 +229,10 @@ public class ClusterWorker extends Worker<MethodResourceDescription> {
                 releaseResourceMethod(consumption);
             }
         }
-        // debug();
-
     }
 
     @Override
     public void releaseAllResources() {
-        String name = Thread.currentThread().getStackTrace()[1].getMethodName();
-        // printMethodName("");
         super.resetUsedTaskCounts();
         this.usedCPUs = 0;
         this.usedGPUs = 0;

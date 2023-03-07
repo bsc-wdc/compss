@@ -288,7 +288,9 @@ def compss_main() -> None:
         # End
         if __debug__:
             logger.debug("--- END ---")
-    except SystemExit as system_exit:  # Re-raising would not allow to stop the runtime gracefully.
+    except (
+        SystemExit
+    ) as system_exit:  # Re-raising would not allow to stop the runtime gracefully.
         if system_exit.code != 0:
             print("[ ERROR ]: User program ended with exitcode %s.", system_exit.code)
             print("\t\tShutting down runtime...")

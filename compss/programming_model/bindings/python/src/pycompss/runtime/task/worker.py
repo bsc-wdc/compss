@@ -159,7 +159,6 @@ class TaskWorker:
             with std_redirector(
                 job_out, job_err
             ) if redirect_std else not_std_redirector():
-
                 # Update the on_failure attribute (could be defined by @on_failure)
                 if LABELS.on_failure in kwargs:
                     self.on_failure = kwargs.pop(LABELS.on_failure, "RETRY")
@@ -363,7 +362,7 @@ class TaskWorker:
 
             objects = getByID(*identifiers)
             # Just update the Parameter object with its content
-            for (obj, value) in zip(objects, pscos):
+            for obj, value in zip(objects, pscos):
                 obj.content = value
 
         # Deal with all the parameters that are NOT returns
@@ -532,7 +531,7 @@ class TaskWorker:
                     LOGGER.debug("Rank distribution is: %s", str(rank_distribution))
 
             with open(col_f_name, "r") as col_f_name_fd:
-                for (i, line) in enumerate(col_f_name_fd):
+                for i, line in enumerate(col_f_name_fd):
                     if in_mpi_collection_env and i not in rank_distribution:
                         # Isn't this my offset? skip
                         continue
@@ -700,7 +699,6 @@ class TaskWorker:
                 if _dict_col_dir == parameter.DIRECTION.OUT or (
                     (_dict_col_dir is None) and _dict_col_dep > 0
                 ):
-
                     # if we are at the last level of DICT_COL_OUT param,
                     # create "empty" instances of elements
                     if _dict_col_dep == 1 or content_type_elem != "collection:dict":
@@ -1143,7 +1141,7 @@ class TaskWorker:
                 if __debug__:
                     LOGGER.debug("Serializing collection: %s", str(arg.name))
                 # handle collections recursively
-                for (content, elem) in __get_collection_objects__(arg.content, arg):
+                for content, elem in __get_collection_objects__(arg.content, arg):
                     if elem.file_name:
                         _is_delegated = False
                         if CONTEXT.is_nesting_enabled():
@@ -1171,11 +1169,8 @@ class TaskWorker:
                 if __debug__:
                     LOGGER.debug("Serializing dictionary collection: " + str(arg.name))
                 # handle dictionary collections recursively
-                for (content, elem) in __get_dict_collection_objects__(
-                    arg.content, arg
-                ):
+                for content, elem in __get_dict_collection_objects__(arg.content, arg):
                     if elem.file_name:
-
                         _is_delegated = False
                         if CONTEXT.is_nesting_enabled():
                             if self._check_if_delegated(elem):
@@ -1323,7 +1318,7 @@ class TaskWorker:
                 ret_params = __get_ret_rank__(ret_params)
             # Note that we are implicitly assuming that the length of the user
             # returns matches the number of return parameters
-            for (obj, param) in zip(user_returns, ret_params):
+            for obj, param in zip(user_returns, ret_params):
                 # Store the object int ret_params (included in args)
                 param.content = obj
                 param.direction = parameter.DIRECTION.OUT
@@ -1479,7 +1474,7 @@ class TaskWorker:
             :returns: The collection representation.
             """
             coll = []  # type: list
-            for (_cont, _elem) in zip(_arg.content, _arg.collection_content):
+            for _cont, _elem in zip(_arg.content, _arg.collection_content):
                 if isinstance(_elem, str):
                     coll.append([parameter.TYPE.FILE, "null"])
                 else:
@@ -1589,7 +1584,7 @@ class TaskWorker:
         # assert len(args[params_end - 1:]) == len(user_returns)
         # add_parameter_new_types_and_values(args[params_end - 1:], True)
         if num_returns > 0:
-            for (ret, param) in zip(user_returns, ret_params):
+            for ret, param in zip(user_returns, ret_params):
                 ret_type = get_compss_type(ret)
                 ret_value = "null"
                 if ret_type == parameter.TYPE.EXTERNAL_PSCO:
@@ -1669,7 +1664,7 @@ def __get_collection_objects__(
     :returns: The collection representation.
     """
     if argument.content_type == parameter.TYPE.COLLECTION:
-        for (new_con, _elem) in zip(argument.content, argument.collection_content):
+        for new_con, _elem in zip(argument.content, argument.collection_content):
             # Update the sub-parameter content with the existing content
             # to keep track of the synchronized.
             _elem.content = new_con
@@ -1718,7 +1713,7 @@ def __get_dict_collection_objects__(
                 ]
             )
         # Loop recursively
-        for (new_con, _elem) in zip(elements, elements_parameters):
+        for new_con, _elem in zip(elements, elements_parameters):
             _elem.content = new_con
             for sub_el, sub_param in __get_dict_collection_objects__(new_con, _elem):
                 # Update the sub-parameter content with the existing content

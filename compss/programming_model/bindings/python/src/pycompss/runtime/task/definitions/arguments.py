@@ -235,7 +235,7 @@ class TaskArguments:
         # Argument: the rest (named function parameters).
         # The rest of the arguments are expected to be only the function
         # parameter related information
-        for (key, value) in kwargs.items():
+        for key, value in kwargs.items():
             if isinstance(value, dict):
                 # It is a dictionary for the given parameter (e.g. param={Direction: IN})
                 self.parameters[key] = get_parameter_from_dictionary(value)

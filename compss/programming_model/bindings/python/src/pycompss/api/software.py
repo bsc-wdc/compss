@@ -161,7 +161,6 @@ class Software(
 
         @wraps(user_function)
         def software_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
-
             if not self.scope:
                 # Execute the software as with PyCOMPSs so that sequential
                 # execution performs as parallel.

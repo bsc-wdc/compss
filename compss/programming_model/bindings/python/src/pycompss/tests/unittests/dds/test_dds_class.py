@@ -28,7 +28,6 @@ fayl = os.path.join(wc_dir, "1.txt")
 
 
 def test_data_loaders():
-
     dds = DDS()
     assert not dds.partitions, GENERIC_ERROR
 
@@ -50,7 +49,6 @@ def test_data_loaders():
 
 
 def test_methods():
-
     data = list(range(10))
 
     dds = DDS().load(data).map(lambda x: x * 2).collect()
@@ -84,7 +82,6 @@ def test_methods():
 
 
 def test_k_v_operations():
-
     data = list(range(10))
     dds = (
         DDS().load(data).map(lambda x: (x, x * 2)).map_values(lambda x: x / 2).collect()

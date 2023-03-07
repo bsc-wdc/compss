@@ -41,7 +41,6 @@ def cluster_points_partial(xp, mu, ind):
     """
     dic = {}
     for x in enumerate(xp):
-
         bestmukey = min(
             [(i[0], np.linalg.norm(x[1] - mu[i[0]])) for i in enumerate(mu)],
             key=lambda t: t[1],

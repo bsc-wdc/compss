@@ -60,7 +60,7 @@ def local(input_function: typing.Callable) -> typing.Callable:
             for arg in args:
                 sync_if_needed(arg)
                 _args.append(arg)
-            for (key, value) in kwargs.items():
+            for key, value in kwargs.items():
                 sync_if_needed(value)
                 _kwargs[key] = value
             return input_function(*_args, **_kwargs)

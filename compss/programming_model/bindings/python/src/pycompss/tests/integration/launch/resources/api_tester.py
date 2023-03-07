@@ -286,10 +286,10 @@ def dir_inout_task(dir_inout, i):
     """
     res = list()
     for _ in os.listdir(dir_inout):
-        with (open("{}{}{}".format(dir_inout, os.sep, _), "r")) as fd:
+        with open("{}{}{}".format(dir_inout, os.sep, _), "r") as fd:
             res.append(fd.read())
     f_inout = "{}{}{}".format(dir_inout, os.sep, i)
-    with (open(f_inout, "w")) as fd:
+    with open(f_inout, "w") as fd:
         fd.write("written by inout task #" + str(i))
     return res
 
@@ -304,7 +304,7 @@ def dir_in_task(dir_in):
     res = list()
     for _ in os.listdir(dir_in):
         _fp = dir_in + os.sep + _
-        with (open(_fp, "r")) as fd:
+        with open(_fp, "r") as fd:
             res.append(fd.read())
     return res
 
@@ -321,7 +321,7 @@ def dir_out_task(dir_out, i):
         shutil.rmtree(dir_out)
     os.mkdir(dir_out)
     f_out = "{}{}{}".format(dir_out, os.sep, i)
-    with (open(f_out, "w")) as fd:
+    with open(f_out, "w") as fd:
         fd.write("written in dir out #{}".format(i))
 
 
@@ -449,7 +449,7 @@ def test_task_groups():
     with TaskGroup("bigGroup", True):
         # Inside a big group, more groups are created
         for i in range(num_groups):
-            with (TaskGroup("group" + str(i), False)):
+            with TaskGroup("group" + str(i), False):
                 for j in range(num_tasks):
                     results.append(increment(i))
 

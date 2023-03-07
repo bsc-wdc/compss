@@ -130,7 +130,6 @@ def main() -> None:
         streaming = True
 
     with trace_multiprocessing_worker() if tracing else dummy_context():
-
         if streaming:
             # Start streaming
             DistroStreamClientHandler.init_and_start(

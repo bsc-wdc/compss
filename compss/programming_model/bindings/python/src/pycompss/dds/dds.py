@@ -703,7 +703,7 @@ class DDS:
 
         def dispatch(seq):
             buf_1, buf_2 = [], []
-            for (n, v) in seq:
+            for n, v in seq:
                 if n == 1:
                     buf_1.append(v)
                 elif n == 2:

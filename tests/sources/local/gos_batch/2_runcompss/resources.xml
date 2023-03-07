@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ResourcesList>
+    <ComputingCluster Name="nord3.bsc.es">
+        <Adaptors>
+            <Adaptor Name="es.bsc.compss.gos.master.GOSAdaptor">
+                <SubmissionSystem>
+                    <Batch>
+                        <Queue>sequential</Queue>
+                    </Batch>
+                    <Interactive/>
+                </SubmissionSystem>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+            </Adaptor>
+        </Adaptors>
+        <ClusterNode Name="compute_node1">
+            <MaxNumNodes>4</MaxNumNodes>
+            <Processor Name="P1">
+                <ComputingUnits>16</ComputingUnits>
+                <Type>CPU</Type>
+            </Processor>
+            <Processor Name="P2">
+                <ComputingUnits>2</ComputingUnits>
+                <Type>GPU</Type>
+            </Processor>
+        </ClusterNode>
+    </ComputingCluster>
+</ResourcesList>

@@ -32,7 +32,9 @@ import es.bsc.compss.types.project.jaxb.CloudPropertiesType;
 import es.bsc.compss.types.project.jaxb.CloudPropertyType;
 import es.bsc.compss.types.project.jaxb.CloudProviderType;
 import es.bsc.compss.types.project.jaxb.CloudType;
+import es.bsc.compss.types.project.jaxb.ClusterNodeType;
 import es.bsc.compss.types.project.jaxb.ComputeNodeType;
+import es.bsc.compss.types.project.jaxb.ComputingClusterType;
 import es.bsc.compss.types.project.jaxb.DataNodeType;
 import es.bsc.compss.types.project.jaxb.HttpType;
 import es.bsc.compss.types.project.jaxb.ImageType;
@@ -48,6 +50,8 @@ import es.bsc.compss.types.project.jaxb.ProcessorType;
 import es.bsc.compss.types.project.jaxb.ServiceType;
 import es.bsc.compss.types.project.jaxb.SoftwareListType;
 import es.bsc.compss.types.project.jaxb.StorageType;
+import es.bsc.compss.types.resources.ClusterMethodResourceDescription;
+import es.bsc.compss.types.resources.ClusterWorker;
 import es.bsc.compss.types.resources.DataResourceDescription;
 import es.bsc.compss.types.resources.DynamicMethodWorker;
 import es.bsc.compss.types.resources.HTTPResourceDescription;
@@ -60,15 +64,21 @@ import es.bsc.compss.types.resources.configuration.MethodConfiguration;
 import es.bsc.compss.types.resources.configuration.ServiceConfiguration;
 import es.bsc.compss.types.resources.description.CloudImageDescription;
 import es.bsc.compss.types.resources.description.CloudInstanceTypeDescription;
+
 import es.bsc.compss.types.resources.exceptions.ResourcesFileValidationException;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
+import javax.xml.namespace.QName;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -161,6 +171,7 @@ public class ResourceLoader {
         boolean computeNodeExist = false;
         boolean httpResourceExists = false;
         boolean cloudProviderExist = false;
+        boolean computeClusterExist = false;
 
         // Load master node information
         MasterNodeType master = ResourceLoader.project.getMasterNode();
@@ -221,8 +232,16 @@ public class ResourceLoader {
             }
         }
 
+        // Load Compute Cluster
+        List<ComputingClusterType> clusterList = ResourceLoader.project.getComputingCluster_list();
+        if (clusterList != null) {
+            for (ComputingClusterType cluster : clusterList) {
+                computeClusterExist = loadComputingCluster(cluster);
+            }
+        }
+
         // Availability checker
-        if (!computeNodeExist && !cloudProviderExist && !httpResourceExists) {
+        if (!computeNodeExist && !cloudProviderExist && !httpResourceExists && !computeClusterExist) {
             throw new NoResourceAvailableException();
         }
     }
@@ -820,6 +839,230 @@ public class ResourceLoader {
         LOGGER.warn("Cannot load DataNode " + name + ". DataNodes are not supported inside the Runtime");
         // LOGGER.debug("Adding data worker " + name);
         // ResourceManager.newDataWorker(name, dd);
+    }
+
+    private static boolean loadComputingCluster(es.bsc.compss.types.project.jaxb.ComputingClusterType clProject) {
+        String hostname = clProject.getName();
+        es.bsc.compss.types.resources.jaxb.ComputingClusterType clResources =
+            ResourceLoader.resources.getComputingCluster(clProject.getName());
+
+        if (clResources == null) {
+            ErrorManager.warn("No cluster resources " + clProject.getName() + " could be found, "
+                + "ignoring this computing cluster");
+            return false;
+        }
+
+        // ClusterMethodResourceDescription clmd = createComputingCluster(clProject, clResources);
+
+        Map<String, ClusterMethodResourceDescription> mapCMRD;
+        mapCMRD = createMapComputingCluster(clProject, clResources);
+
+        if (mapCMRD.isEmpty()) {
+            ErrorManager.warn("No node could be found, ignoring this computing cluster");
+            return false;
+        }
+
+        // Add the adaptors properties (queue types and adaptor properties)
+        // TODO Support multiple adaptor properties
+        final String loadedAdaptor = System.getProperty(COMPSsConstants.COMM_ADAPTOR);
+
+        Map<String, String> sharedDisks = resources.getSharedDisks(clResources);
+        if (sharedDisks != null) {
+            List<String> declaredSharedDisks = resources.getSharedDisks_names();
+            for (String diskName : sharedDisks.keySet()) {
+                if (declaredSharedDisks == null || !declaredSharedDisks.contains(diskName)) {
+                    ErrorManager.warn("SharedDisk " + diskName + " defined in the Cluster " + hostname
+                        + " is not defined in the resources.xml. Skipping");
+                    sharedDisks.remove(diskName);
+                    // TODO: Check the disk information (size and type)
+                }
+            }
+        }
+
+        Map<String, Object> adaptorPropertiesProject = project.getAdaptorProperties(clProject, loadedAdaptor);
+        Map<String, Object> adaptorPropertiesResources = resources.getAdaptorProperties(clResources, loadedAdaptor);
+
+        MethodConfiguration config = null;
+        try {
+            config = (MethodConfiguration) Comm.constructConfiguration(loadedAdaptor, adaptorPropertiesProject,
+                adaptorPropertiesResources);
+        } catch (ConstructConfigurationException cce) {
+            ErrorManager.warn("Adaptor " + loadedAdaptor + " configuration constructor failed", cce);
+        }
+        /* Add properties given by the project file **************************************** */
+        config.setHost(clProject.getName());
+        config.setUser(project.getUser(clProject));
+        config.setInstallDir(project.getInstallDir(clProject));
+        config.setWorkingDir(project.getWorkingDir(clProject));
+        config.setLimitOfTasks(project.getLimitOfTasks(clProject));
+        ApplicationType app = project.getApplication(clProject);
+        if (app != null) {
+            config.setAppDir(app.getAppDir());
+            config.setLibraryPath(app.getLibraryPath());
+            config.setClasspath(app.getClasspath());
+            config.setPythonpath(app.getClasspath());
+            config.setEnvScript(app.getEnvironmentScript());
+        }
+
+        Map<String, Integer> nClusters = project.getMapNumberOfCluster(clProject);
+
+        int lot = getLimitOfTasks(clProject);
+
+        AtomicInteger sharedRunningTasks = new AtomicInteger(0);
+        ClusterMethodResourceDescription cmr;
+        for (String clusterNode : nClusters.keySet()) {
+            cmr = mapCMRD.get(clusterNode);
+            cmr.setNumClusters(nClusters.get(clusterNode));
+            cmr.setLimitOfTasks(lot);
+
+            ClusterWorker worker =
+                createClusterWorker(hostname, clusterNode, cmr, config, sharedDisks, sharedRunningTasks);
+            ResourceManager.addStaticResource(worker);
+        }
+
+        return true;
+
+        // clmd.setNumClusters(numClusters);
+        // clmd.setLimitOfTasks(lot);
+        // ClusterWorker worker = new ClusterWorker(name, clmd, config, sharedDisks, sharedRunningTasks);
+        // ResourceManager.addStaticResource(worker);
+    }
+
+    private static ClusterWorker createClusterWorker(String hostname, String clusterName,
+        ClusterMethodResourceDescription rd, MethodConfiguration config, Map<String, String> sharedDisks,
+        AtomicInteger sharedRunningTasks) {
+        // Compute task count
+        int nCluster = rd.getNumClusters();
+        int taskCount = getValidMinimum(config.getLimitOfTasks(), rd.getTotalCPUComputingUnits());
+        config.setLimitOfTasks(nCluster * taskCount);
+
+        int taskCountGPU = getValidMinimum(config.getLimitOfGPUTasks(), rd.getTotalGPUComputingUnits());
+        config.setLimitOfGPUTasks(nCluster * taskCountGPU);
+
+        int taskCountFPGA = getValidMinimum(config.getLimitOfFPGATasks(), rd.getTotalFPGAComputingUnits());
+        config.setLimitOfFPGATasks(nCluster * taskCountFPGA);
+
+        int taskCountOther = getValidMinimum(config.getLimitOfOTHERsTasks(), rd.getTotalOTHERComputingUnits());
+        config.setLimitOfOTHERsTasks(nCluster * taskCountOther);
+
+        ClusterWorker cw = new ClusterWorker(hostname, clusterName, rd, config, sharedDisks, sharedRunningTasks);
+        return cw;
+    }
+
+    private static String getOSParameter(es.bsc.compss.types.resources.jaxb.OSType os, String key) {
+        List<JAXBElement<?>> elements = os.getTypeOrDistributionOrVersion();
+        if (elements != null) {
+            for (JAXBElement e : elements) {
+                if (e.getName().equals(new QName(key))) {
+                    return (String) e.getValue();
+                }
+            }
+        }
+        return null;
+    }
+
+    private static void addProcessorToComputingCluster(MethodResourceDescription clmd,
+        es.bsc.compss.types.resources.jaxb.ProcessorType p) {
+        String procName = p.getName();
+        int computingUnits = resources.getProcessorComputingUnits(p);
+        String architecture = resources.getProcessorArchitecture(p);
+        float speed = resources.getProcessorSpeed(p);
+        String type = resources.getProcessorType(p);
+        float internalMemory = resources.getProcessorMemorySize(p);
+        es.bsc.compss.types.resources.jaxb.ProcessorPropertyType procProp = resources.getProcessorProperty(p);
+        String propKey = (procProp != null) ? procProp.getKey() : "";
+        String propValue = (procProp != null) ? procProp.getValue() : "";
+        clmd.addProcessor(procName, computingUnits, architecture, speed, type, internalMemory, propKey, propValue);
+    }
+
+    private static ClusterMethodResourceDescription createComputingCluster(
+        es.bsc.compss.types.project.jaxb.ComputingClusterType clProject,
+        es.bsc.compss.types.resources.jaxb.ComputingClusterType clResources) {
+        ClusterMethodResourceDescription crd = new ClusterMethodResourceDescription();
+
+        List<es.bsc.compss.types.resources.jaxb.ProcessorType> processors;
+        processors = resources.getProcessors(clResources);
+        for (es.bsc.compss.types.resources.jaxb.ProcessorType p : processors) {
+            addProcessorToComputingCluster(crd, p);
+        }
+        return crd;
+    }
+
+    private static Map<String, ClusterMethodResourceDescription> createMapComputingCluster(
+        ComputingClusterType clProject, es.bsc.compss.types.resources.jaxb.ComputingClusterType clResources) {
+
+        Map<String, ClusterMethodResourceDescription> map = new HashMap<>();
+        List<ClusterNodeType> clusterNodes = getClusterNodes(clProject);
+        Map<String, es.bsc.compss.types.resources.jaxb.ClusterNodeType> clusterRList;
+        es.bsc.compss.types.resources.jaxb.OSType os;
+
+        List<String> softwareNames = project.getSoftwareNames(clProject);
+        es.bsc.compss.types.resources.jaxb.ClusterNodeType clusterR;
+        for (ClusterNodeType cn : clusterNodes) {
+            clusterR = resources.getClusterNode(clResources, cn.getName());
+            if (clusterR == null) {
+                ErrorManager.warn(
+                    "ClusterNode " + cn.getName() + " not found in resources. The program will " + "ignore this node");
+                continue;
+            }
+            ClusterMethodResourceDescription mrd = new ClusterMethodResourceDescription();
+            os = clResources.getOperatingSystem();
+            if (os != null) {
+                mrd.setOperatingSystemType(getOSParameter(os, "Type"));
+                mrd.setOperatingSystemDistribution(getOSParameter(os, "Distribution"));
+                mrd.setOperatingSystemVersion(getOSParameter(os, "Version"));
+            }
+            map.put(cn.getName(), mrd);
+            mrd.setMemorySize(resources.getMemorySize(clusterR));
+            mrd.setMemoryType(resources.getMemoryType(clusterR));
+            mrd.setStorageSize(resources.getStorageSize(clusterR));
+            mrd.setStorageBW(resources.getStorageBW(clusterR));
+            mrd.setStorageType(resources.getStorageType(clusterR));
+            for (String app : softwareNames) {
+                mrd.addApplication(app);
+            }
+
+        }
+
+        Map<String, List<es.bsc.compss.types.resources.jaxb.ProcessorType>> mapProcessors;
+        mapProcessors = resources.getMapProcessors(clResources);
+        for (String clusterNode : mapProcessors.keySet()) {
+            for (es.bsc.compss.types.resources.jaxb.ProcessorType p : mapProcessors.get(clusterNode)) {
+                ClusterMethodResourceDescription crd;
+                crd = map.get(clusterNode);
+                addProcessorToComputingCluster(crd, p);
+            }
+        }
+
+        return map;
+    }
+
+    private static List<ClusterNodeType> getClusterNodes(ComputingClusterType clProject) {
+        List<ClusterNodeType> list = new ArrayList<>();
+        List<JAXBElement<?>> elements = clProject.getLimitOfTasksOrInstallDirOrWorkingDir();
+        if (elements == null) {
+            return list;
+        }
+        for (JAXBElement e : elements) {
+            if (e.getName().equals(new QName("ClusterNode"))) {
+                ClusterNodeType node = (ClusterNodeType) e.getValue();
+                list.add(node);
+            }
+        }
+        return list;
+    }
+
+    private static int getLimitOfTasks(es.bsc.compss.types.project.jaxb.ComputingClusterType clProject) {
+        int lot = 100000;
+        List<JAXBElement<?>> list = clProject.getLimitOfTasksOrInstallDirOrWorkingDir();
+        boolean found = false;
+        for (JAXBElement e : list) {
+            if (e.getName().equals(new QName("LimitOfTasks"))) {
+                lot = (Integer) e.getValue();
+                break;
+            }
+        }
+        return lot;
     }
 
 }

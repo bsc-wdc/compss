@@ -1,0 +1,87 @@
+#!/bin/bash
+
+  # Obtain parameters
+  COMPSs_exec=$1
+  comm=$2
+  runcompss_opts=$3
+  base_app_dir=$4
+  COMPSs_log_folder=$5
+  target_log_folder=$6
+  retry_num=$7
+  execution_envs=$8
+
+  # Global variables
+  exit_value=1
+  app_name="simple_gos.py"
+
+  #----------------------------------------------------------------------------------
+  # Generate Project.xml according to system
+  sed -i '/<InstallDir>/c<InstallDir>'"${COMPSS_HOME}"'<\/InstallDir>' "${base_app_dir}"/project.xml
+
+  #----------------------------------------------------------------------------------
+  # Create all working dir folders
+  mkdir -p /tmp/COMPSsWorker01/
+
+  #----------------------------------------------------------------------------------
+  # Run application
+  echo
+  echo "*** RUNNING PYTHON APPLICATION GOS SIMPLE"
+
+  for python_interpreter in ${execution_envs}; do
+    echo "   - Running with Interpreter: ${python_interpreter}"
+    output_log="${target_log_folder}/${app_name}_${python_interpreter}_0${retry_num}.outputlog"
+    error_log="${target_log_folder}/${app_name}_${python_interpreter}_0${retry_num}.errorlog"
+    specific_log_dir="${COMPSs_log_folder}/${app_name}_${python_interpreter}_0${retry_num}"
+    exec_target_log_folder="${target_log_folder}/${app_name}_${python_interpreter}_0${retry_num}"
+    mkdir -p "${exec_target_log_folder}"
+    expectedTime=60s
+
+    python_mpi_worker=""
+    if [ "$python_interpreter" == 'python3_mpi' ]; then
+       echo "WARN: UNSUPPORTED FOR ${python_interpreter}" | tee -a "${output_log}"
+       continue
+    fi
+
+    # shellcheck disable=SC2086
+    timeout --signal=2 $expectedTime "${COMPSs_exec}" \
+      --project="${base_app_dir}"/project.xml \
+      --resources="${base_app_dir}"/resources.xml \
+      \
+      --comm="es.bsc.compss.gos.master.GOSAdaptor" \
+      \
+      --debug \
+      ${runcompss_opts} \
+      \
+      --lang=python \
+      --python_interpreter="${python_interpreter}" \
+      ${python_mpi_worker} \
+      --pythonpath="${base_app_dir}"/src \
+      --specific_log_dir="${specific_log_dir}" \
+      \
+      "${base_app_dir}/src/${app_name}" > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+
+    # Check timeout
+    if [[ "$?" = "124" ]]; then
+      # Copy LOG files
+      cp -rf "${specific_log_dir}"/* "${exec_target_log_folder}"
+
+      # Report time out
+      echo "[WARNING] Python Application timed out" >> "${output_log}"
+      exit_value=124
+    else
+      # Copy LOG files
+      cp -rf "${specific_log_dir}"/* "${exec_target_log_folder}"
+
+      # Check result
+      "${base_app_dir}"/result "${output_log}" "${error_log}" "${exec_target_log_folder}"
+      exit_value=$?
+    fi
+
+    if [ ${exit_value} -ne 0 ]; then
+      exit ${exit_value}
+    fi
+  done
+
+  #----------------------------------------------------------------------------------
+  # Return execution status
+  exit ${exit_value}

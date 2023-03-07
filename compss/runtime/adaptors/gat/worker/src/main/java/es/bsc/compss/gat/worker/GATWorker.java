@@ -524,4 +524,9 @@ public class GATWorker implements InvocationContext {
         // GAT Adaptor does not support remote resource updates
     }
 
+    @Override
+    public String getEnvironmentScript() {
+        return null;
+    }
+
 }

@@ -33,7 +33,7 @@
 	<!-- SUB-MODULES -->
         <modules>
                 <!-- 0_simple_c_sc -->
-                <module>0_simple_java_sc</module>
+				<module>0_simple_java_sc</module>
                 <!-- 0_simple_python_sc -->
 	</modules>
 </project>

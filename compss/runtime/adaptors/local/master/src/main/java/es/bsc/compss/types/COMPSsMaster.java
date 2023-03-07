@@ -1488,6 +1488,11 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         return this.loaderApi;
     }
 
+    @Override
+    public String getEnvironmentScript() {
+        return null;
+    }
+
     public void setLoaderApi(LoaderAPI loaderApi) {
         this.loaderApi = loaderApi;
     }

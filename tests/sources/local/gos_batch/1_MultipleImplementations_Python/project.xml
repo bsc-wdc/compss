@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Project>
+    <MasterNode/>
+    <ComputingCluster Name="nord3.bsc.es">
+        <LimitOfTasks>200</LimitOfTasks>
+        <Adaptors>
+            <Adaptor Name="es.bsc.compss.gos.master.GOSAdaptor">
+                <SubmissionSystem>
+                    <Batch>
+                        <Queue>slurm</Queue>
+                        <BatchProperties>
+                            <MaxExecTime>30</MaxExecTime>
+                            <Reservation>disabled</Reservation>
+                            <QOS>debug</QOS>
+                            <FileCFG>/home/bsc19/bsc19409/nord3Build/Runtime/scripts/queues/supercomputers/nord3.cfg</FileCFG>
+                        </BatchProperties>
+                    </Batch>
+                </SubmissionSystem>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+            </Adaptor>
+        </Adaptors>
+        <WorkingDir>/home/bsc19/bsc19409/COMPSsWorker</WorkingDir>
+        <InstallDir>/home/bsc19/bsc19409/nord3Build</InstallDir>
+        <Application>
+            <AppDir>FROM_CONFIGFILE</AppDir>
+            <LibraryPath></LibraryPath>
+            <Classpath>/home/bsc19/bsc19409/apps/sources/local/gos/0_MultipleConstraints_Nord_java/target/0_simple_gos_java.jar</Classpath>
+            <Pythonpath>/home/bsc19/bsc19409/apps/sources/local/python/1_decorator_compss//src/simple_compss_nested.py</Pythonpath>
+            <EnvironmentScript>/home/bsc19/bsc19409/env.sh</EnvironmentScript>
+        </Application>
+        <User>bsc19409</User>
+        <ClusterNode Name="compute_node1">
+            <NumberOfNodes>4</NumberOfNodes>
+        </ClusterNode>
+    </ComputingCluster>
+</Project>

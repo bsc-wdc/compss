@@ -199,9 +199,12 @@ public class MPIInvoker extends Invoker {
         int pos = 0;
         cmd[pos++] = this.mpiDef.getMpiRunner();
         cmd[pos++] = this.mpiDef.getHostsFlag();
+        String hostfilePath;
         try {
-            cmd[pos++] =
+            hostfilePath =
                 this.mpiDef.generateHostsDefinition(this.sandBox.getFolder(), this.hostnames, this.computingUnits);
+
+            cmd[pos++] = hostfilePath;
         } catch (IOException ioe) {
             throw new InvokeExecutionException("ERROR: writting hostfile", ioe);
         }

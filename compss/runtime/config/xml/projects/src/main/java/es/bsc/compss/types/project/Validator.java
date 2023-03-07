@@ -28,7 +28,9 @@ import es.bsc.compss.types.project.jaxb.CloudPropertiesType;
 import es.bsc.compss.types.project.jaxb.CloudPropertyType;
 import es.bsc.compss.types.project.jaxb.CloudProviderType;
 import es.bsc.compss.types.project.jaxb.CloudType;
+import es.bsc.compss.types.project.jaxb.ClusterNodeType;
 import es.bsc.compss.types.project.jaxb.ComputeNodeType;
+import es.bsc.compss.types.project.jaxb.ComputingClusterType;
 import es.bsc.compss.types.project.jaxb.DataNodeType;
 import es.bsc.compss.types.project.jaxb.ExternalAdaptorProperties;
 import es.bsc.compss.types.project.jaxb.HttpType;
@@ -51,6 +53,7 @@ import es.bsc.compss.types.project.jaxb.SubmissionSystemType;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import javax.xml.bind.JAXBElement;
@@ -111,6 +114,9 @@ public class Validator {
                 } else if (obj instanceof CloudType) {
                     minimumUsableElementFound = true;
                     validateCloud(((CloudType) obj));
+                } else if (obj instanceof ComputingClusterType) {
+                    minimumUsableElementFound = true;
+                    validateComputingCluster(((ComputingClusterType) obj));
                 } else {
                     throw new InvalidElementException("Project", "Attribute" + obj.getClass(), "Incorrect attribute");
                 }
@@ -537,6 +543,121 @@ public class Validator {
             }
         } else {
             throw new InvalidElementException("Cloud", "Attribute CloudProvider", "is null");
+        }
+    }
+
+    /**
+     * Validates computing cluster.
+     *
+     * @param cluster the cluster
+     * @throws InvalidElementException the invalid element exception
+     */
+    public void validateComputingCluster(ComputingClusterType cluster) throws InvalidElementException {
+        if (cluster == null) {
+            throw new InvalidElementException("ComputingCluster", "Attribute CloudProvider", "is null");
+        }
+        List<JAXBElement<?>> innerElements = cluster.getLimitOfTasksOrInstallDirOrWorkingDir();
+        if (innerElements == null) {
+            throw new InvalidElementException("Project", "Attribute ComputeNode " + cluster.getName(),
+                "has no inner fields");
+        }
+        boolean installDirTagFound = false;
+        boolean workingDirTagFound = false;
+        boolean appTagFound = false;
+        boolean adaptorsTagFound = false;
+        boolean clusterNodeTag = false;
+        boolean userTagFound = false;
+        boolean taskLimitTagFound = false;
+        boolean softwareTagFound = false;
+        for (JAXBElement<?> element : innerElements) {
+            if (element.getName().equals(new QName("InstallDir"))) {
+                if (installDirTagFound) {
+                    // Second occurrence, throw exception
+                    throw new InvalidElementException("ComputingCluster " + cluster.getName(),
+                        "Attribute " + element.getName(), "Appears more than once");
+                } else {
+                    installDirTagFound = true;
+                    validateInstallDir(((String) element.getValue()));
+                }
+            } else if (element.getName().equals(new QName("WorkingDir"))) {
+                if (workingDirTagFound) {
+                    // Second occurrence, throw exception
+                    throw new InvalidElementException("ComputingCluster " + cluster.getName(),
+                        "Attribute " + element.getName(), "Appears more than once");
+                } else {
+                    workingDirTagFound = true;
+                    validateWorkingDir(((String) element.getValue()));
+                }
+            } else if (element.getName().equals(new QName("LimitOfTasks"))) {
+                if (taskLimitTagFound) {
+                    // Second occurrence, throw exception
+                    throw new InvalidElementException("ComputingCluster " + cluster.getName(),
+                        "Attribute " + element.getName(), "Appears more than once");
+                } else {
+                    taskLimitTagFound = true;
+                    validateLimitOfTasks(((Integer) element.getValue()));
+                }
+            } else if (element.getName().equals(new QName("User"))) {
+                if (userTagFound) {
+                    // Second occurrence, throw exception
+                    throw new InvalidElementException("ComputingCluster " + cluster.getName(),
+                        "Attribute " + element.getName(), "Appears more than once");
+                } else {
+                    userTagFound = true;
+                    validateUser(((String) element.getValue()));
+                }
+            } else if (element.getName().equals(new QName("Application"))) {
+                if (appTagFound) {
+                    // Second occurrence, throw exception
+                    throw new InvalidElementException("ComputingCluster " + cluster.getName(),
+                        "Attribute " + element.getName(), "Appears more than once");
+                } else {
+                    appTagFound = true;
+                    validateApplication(((ApplicationType) element.getValue()));
+                }
+            } else if (element.getName().equals(new QName("Adaptors"))) {
+                if (adaptorsTagFound) {
+                    // Second occurrence, throw exception
+                    throw new InvalidElementException("ComputingCluster " + cluster.getName(),
+                        "Attribute " + element.getName(), "Appears more than once");
+                } else {
+                    adaptorsTagFound = true;
+                    validateAdaptors(((AdaptorsListType) element.getValue()));
+                }
+            } else if (element.getName().equals(new QName("Software"))) {
+                if (softwareTagFound) {
+                    // Second occurrence, throw exception
+                    throw new InvalidElementException("ComputingCluster " + cluster.getName(),
+                        "Attribute " + element.getName(), "Appears more than once");
+                } else {
+                    softwareTagFound = true;
+                    validateSoftwareList((SoftwareListType) element.getValue());
+                }
+            } else if (element.getName().equals(new QName("ClusterNode"))) {
+                clusterNodeTag = true;
+                validateClusterNode(cluster, ((ClusterNodeType) element.getValue()));
+            } else {
+                throw new InvalidElementException("ComputingCluster " + cluster.getName(),
+                    "Attribute " + element.getName(), "Incorrect attribute");
+            }
+        }
+
+        // Check mandatory fields have appeared
+        if (!installDirTagFound) {
+            throw new InvalidElementException("ComputingCluster " + cluster.getName(), "Attribute InstallDir",
+                "Doesn't appear");
+        }
+        if (!workingDirTagFound) {
+            throw new InvalidElementException("ComputingCluster " + cluster.getName(), "Attribute WorkingDir",
+                "Doesn't appear");
+        }
+        if (!clusterNodeTag) {
+            throw new InvalidElementException("ComputingCluster " + cluster.getName(), "Attribute ClusterNode",
+                "Doesn't appear");
+        }
+        if (!taskLimitTagFound) {
+            throw new InvalidElementException("ComputingCluster " + cluster.getName(), "Attribute Task Limit",
+                "Doesn't appear");
         }
     }
 
@@ -1241,6 +1362,36 @@ public class Validator {
         if (((int) lovms) == 0) {
             logger.warn("CloudProvider has LimitOfVMs = 0, no task will be scheduled to this resource");
         }
+    }
+
+    private void validateClusterNode(ComputingClusterType cluster, ClusterNodeType node)
+        throws InvalidElementException {
+        List<JAXBElement<?>> elements = cluster.getLimitOfTasksOrInstallDirOrWorkingDir();
+        int nApperances = 0;
+        for (JAXBElement el : elements) {
+            if (el.getName().equals(new QName("ClusterNode"))) {
+                ClusterNodeType n = (ClusterNodeType) el.getValue();
+                if (n.getName().equals(node.getName())) {
+                    nApperances++;
+                }
+            }
+        }
+
+        if (nApperances > 1) {
+            throw new InvalidElementException("ClusterNode " + node.getName() + " in cluster " + cluster.getName(),
+                "Name Value", "Is repeated");
+        }
+
+        Integer nNodes = node.getNumberOfNodes();
+        if (nNodes == 0) {
+            logger.warn("ClusterNode " + node.getName() + " in cluster " + cluster.getName(),
+                "Number of nodes is 0, no tasks will be assigned to this node.");
+        }
+        if (nNodes < 0) {
+            throw new InvalidElementException("ClusterNode " + node.getName() + " in cluster " + cluster.getName(),
+                "Number of nodes", "Cannot be less than 0.");
+        }
+
     }
 
 }

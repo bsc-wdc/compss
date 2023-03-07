@@ -1,0 +1,3 @@
+interface SimpleGOS {
+	void increment(inout File filename);
+};

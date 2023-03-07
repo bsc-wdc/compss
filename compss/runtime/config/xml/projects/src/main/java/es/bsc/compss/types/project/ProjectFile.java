@@ -26,9 +26,12 @@ import es.bsc.compss.types.project.jaxb.CloudPropertiesType;
 import es.bsc.compss.types.project.jaxb.CloudPropertyType;
 import es.bsc.compss.types.project.jaxb.CloudProviderType;
 import es.bsc.compss.types.project.jaxb.CloudType;
+import es.bsc.compss.types.project.jaxb.ClusterNodeType;
 import es.bsc.compss.types.project.jaxb.ComputeNodeType;
+import es.bsc.compss.types.project.jaxb.ComputingClusterType;
 import es.bsc.compss.types.project.jaxb.DataNodeType;
 import es.bsc.compss.types.project.jaxb.ExternalAdaptorProperties;
+import es.bsc.compss.types.project.jaxb.GOSAdaptorProperties;
 import es.bsc.compss.types.project.jaxb.HttpType;
 import es.bsc.compss.types.project.jaxb.ImageType;
 import es.bsc.compss.types.project.jaxb.ImagesType;
@@ -47,6 +50,7 @@ import es.bsc.compss.types.project.jaxb.ProcessorType;
 import es.bsc.compss.types.project.jaxb.ProjectType;
 import es.bsc.compss.types.project.jaxb.PropertyAdaptorType;
 import es.bsc.compss.types.project.jaxb.ServiceType;
+import es.bsc.compss.types.project.jaxb.SoftwareListType;
 import es.bsc.compss.types.project.jaxb.StorageType;
 import es.bsc.compss.types.project.jaxb.SubmissionSystemType;
 
@@ -79,6 +83,7 @@ public class ProjectFile {
     public static final String PORTS = "Ports";
     public static final String BROKER_ADAPTOR = "BrokerAdaptor";
     public static final String PROPERTIES = "Properties";
+    private static final String BATCH_PROPERTIES = "BatchProperties";
 
     // JAXB context
     private JAXBContext context;
@@ -450,6 +455,25 @@ public class ProjectFile {
                             }
                         }
                     }
+                }
+            }
+        }
+
+        return list;
+    }
+
+    /**
+     * Returns a list of declared ComputingCluster.
+     *
+     * @return Computing cluster object lists
+     */
+    public List<ComputingClusterType> getComputingCluster_list() {
+        ArrayList<ComputingClusterType> list = new ArrayList<>();
+        List<Object> objList = this.project.getMasterNodeOrComputeNodeOrDataNode();
+        if (objList != null) {
+            for (Object obj : objList) {
+                if (obj instanceof ComputingClusterType) {
+                    list.add((ComputingClusterType) obj);
                 }
             }
         }
@@ -937,6 +961,25 @@ public class ProjectFile {
     }
 
     /**
+     * Returns the user of a given ComputingCluster @cn.
+     *
+     * @param cn Computing cluster object
+     * @return Username. Null if not defined
+     */
+    public String getUser(ComputingClusterType cn) {
+        List<JAXBElement<?>> elementList = cn.getLimitOfTasksOrInstallDirOrWorkingDir();
+        if (elementList != null) {
+            for (JAXBElement<?> element : elementList) {
+                if (element.getName().equals(new QName("User"))) {
+                    return ((String) element.getValue());
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Get the defined username in a given Image @image.
      * 
      * @param image Image object.
@@ -963,6 +1006,25 @@ public class ProjectFile {
      */
     public String getInstallDir(ComputeNodeType cn) {
         List<JAXBElement<?>> elementList = cn.getInstallDirOrWorkingDirOrUser();
+        if (elementList != null) {
+            for (JAXBElement<?> element : elementList) {
+                if (element.getName().equals(new QName("InstallDir"))) {
+                    return ((String) element.getValue());
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns the installDir of a given ComputingClusterType @cn.
+     *
+     * @param cn Computing Cluster object
+     * @return Installation directory. Null if not defined.
+     */
+    public String getInstallDir(ComputingClusterType cn) {
+        List<JAXBElement<?>> elementList = cn.getLimitOfTasksOrInstallDirOrWorkingDir();
         if (elementList != null) {
             for (JAXBElement<?> element : elementList) {
                 if (element.getName().equals(new QName("InstallDir"))) {
@@ -1032,6 +1094,25 @@ public class ProjectFile {
     }
 
     /**
+     * Returns the workingDir of a given ComputingCluster @cn.
+     *
+     * @param cn Computing Cluster object
+     * @return Working directory. Null if not defined.
+     */
+    public String getWorkingDir(ComputingClusterType cn) {
+        List<JAXBElement<?>> elementList = cn.getLimitOfTasksOrInstallDirOrWorkingDir();
+        if (elementList != null) {
+            for (JAXBElement<?> element : elementList) {
+                if (element.getName().equals(new QName("WorkingDir"))) {
+                    return ((String) element.getValue());
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Get the defined limit of tasks in a given Image @image.
      * 
      * @param image Image object.
@@ -1070,6 +1151,25 @@ public class ProjectFile {
     }
 
     /**
+     * Returns the limitOfTasks of a given ComputingCluster @cn.
+     *
+     * @param cn Computing Cluster object
+     * @return Limit of tasks. -1 if not defined.
+     */
+    public int getLimitOfTasks(ComputingClusterType cn) {
+        List<JAXBElement<?>> elementList = cn.getLimitOfTasksOrInstallDirOrWorkingDir();
+        if (elementList != null) {
+            for (JAXBElement<?> element : elementList) {
+                if (element.getName().equals(new QName("LimitOfTasks"))) {
+                    return ((Integer) element.getValue());
+                }
+            }
+        }
+
+        return -1;
+    }
+
+    /**
      * Get the defined Application description in a given Image @image.
      * 
      * @param image Image object.
@@ -1096,6 +1196,25 @@ public class ProjectFile {
      */
     public ApplicationType getApplication(ComputeNodeType cn) {
         List<JAXBElement<?>> elementList = cn.getInstallDirOrWorkingDirOrUser();
+        if (elementList != null) {
+            for (JAXBElement<?> element : elementList) {
+                if (element.getName().equals(new QName("Application"))) {
+                    return ((ApplicationType) element.getValue());
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns the application information of a given Computing Cluster @cn.
+     *
+     * @param cn Computing cluster object
+     * @return Null if not defined
+     */
+    public ApplicationType getApplication(ComputingClusterType cn) {
+        List<JAXBElement<?>> elementList = cn.getLimitOfTasksOrInstallDirOrWorkingDir();
         if (elementList != null) {
             for (JAXBElement<?> element : elementList) {
                 if (element.getName().equals(new QName("Application"))) {
@@ -1216,6 +1335,44 @@ public class ProjectFile {
     }
 
     /**
+     * Returns the adaptor batch properties in a given Adaptor @adaptor.
+     *
+     * @param adaptor Adaptor description object.
+     * @return HashMap with the batchProperties. Empty list if not found.
+     */
+    public HashMap<String, Object> getQueuesAndBatchProperties(AdaptorType adaptor) {
+        HashMap<String, Object> adaptorBatchProperties = new HashMap<>();
+        adaptorBatchProperties.put("Interactive", false);
+        List<JAXBElement<?>> innerElements = adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor();
+        if (innerElements != null) {
+            for (JAXBElement<?> adaptorElement : innerElements) {
+                if (adaptorElement.getName().equals(new QName("SubmissionSystem"))) {
+                    SubmissionSystemType subSys = (SubmissionSystemType) adaptorElement.getValue();
+                    List<Object> subSysTypes = subSys.getBatchOrInteractive();
+                    if (subSysTypes != null) {
+                        // Loop for BATCH
+                        for (Object subSysType : subSysTypes) {
+                            if (subSysType instanceof InteractiveType) {
+                                // IF is interactive, set interactive to true
+                                adaptorBatchProperties.put("Interactive", true);
+                            }
+                            if (subSysType instanceof BatchType) {
+                                GOSAdaptorProperties properties = ((BatchType) subSysType).getBatchProperties();
+                                adaptorBatchProperties.put("Queue", ((BatchType) subSysType).getQueue());
+                                adaptorBatchProperties.put("MaxExecTime", properties.getMaxExecTime());
+                                adaptorBatchProperties.put("QOS", properties.getQOS());
+                                adaptorBatchProperties.put("Reservation", properties.getReservation());
+                                adaptorBatchProperties.put("FileCFG", properties.getFileCFG());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return adaptorBatchProperties;
+    }
+
+    /**
      * Returns the declared properties of a given Adaptor @adaptorName within a given ComputeNode @cn.
      *
      * @param cn Compute Node object
@@ -1247,6 +1404,38 @@ public class ProjectFile {
     }
 
     /**
+     * Returns the declared properties of a given Adaptor @adaptorName within a given ComputingClusterType @cluster.
+     *
+     * @param cluster the cluster
+     * @param adaptorName the adaptor name
+     * @return the adaptor properties
+     */
+    public Map<String, Object> getAdaptorProperties(ComputingClusterType cluster, String adaptorName) {
+        HashMap<String, Object> properties = new HashMap<String, Object>();
+        List<JAXBElement<?>> elementList = cluster.getLimitOfTasksOrInstallDirOrWorkingDir();
+        if (elementList != null) {
+            // Loop for adaptors tag
+            for (JAXBElement<?> element : elementList) {
+                if (element.getName().equals(new QName("Adaptors"))) {
+                    List<AdaptorType> adaptors = ((AdaptorsListType) element.getValue()).getAdaptor();
+                    if (adaptors != null) {
+                        // Loop for specific adaptor name
+                        for (AdaptorType adaptor : adaptors) {
+                            if (adaptor.getName().equals(adaptorName)) {
+                                return getAdaptorProperties(adaptor);
+                            }
+                        }
+                    } else {
+                        return null;
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Returns the defined properties for a given Adaptor description @adaptor.
      *
      * @param adaptor Adaptor description object.
@@ -1254,6 +1443,9 @@ public class ProjectFile {
      */
     public Map<String, Object> getAdaptorProperties(AdaptorType adaptor) {
         HashMap<String, Object> properties = new HashMap<String, Object>();
+        if (adaptor.getName().equals("es.bsc.compss.gos.master.GOSAdaptor")) {
+            properties = getQueuesAndBatchProperties(adaptor);
+        }
         List<JAXBElement<?>> innerElements = adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor();
         if (innerElements != null) {
             // Loop for submission system
@@ -2724,4 +2916,65 @@ public class ProjectFile {
         return false;
     }
 
+    /**
+     * Gets a map with the name of the different nodes as the key and the quantity of these cluster nodes as the value
+     * of a given ComputingCluster @cluster.
+     *
+     * @param cluster the cluster
+     * @return the map
+     */
+    public Map<String, Integer> getMapNumberOfCluster(ComputingClusterType cluster) {
+        Map<String, Integer> map = new HashMap<>();
+        List<ClusterNodeType> listNodes = getListOfClusterNodes(cluster);
+        for (ClusterNodeType node : listNodes) {
+            map.put(node.getName(), node.getNumberOfNodes());
+        }
+        return map;
+    }
+
+    /**
+     * Gets number of clusters.
+     *
+     * @param cluster the cluster
+     * @return the number of clusters
+     */
+    public int getIntNumberOfCluster(ComputingClusterType cluster) {
+        int acc = 0;
+        List<ClusterNodeType> listNodes = getListOfClusterNodes(cluster);
+        for (ClusterNodeType node : listNodes) {
+            acc += node.getNumberOfNodes();
+        }
+        return acc;
+    }
+
+    private List<ClusterNodeType> getListOfClusterNodes(ComputingClusterType c) {
+        List<ClusterNodeType> ret = new ArrayList<>();
+        List<JAXBElement<?>> elements = c.getLimitOfTasksOrInstallDirOrWorkingDir();
+        for (JAXBElement element : elements) {
+            if (element.getName().equals(new QName("ClusterNode"))) {
+                ret.add((ClusterNodeType) element.getValue());
+            }
+        }
+        return ret;
+    }
+
+    /**
+     * Gets the software names in a list given a computing cluster, if there is not a software given returns an empty
+     * list.
+     *
+     * @param cluster the cluster
+     * @return the list of softwares
+     */
+    public List<String> getSoftwareNames(ComputingClusterType cluster) {
+        List<String> list = new ArrayList<>();
+        List<JAXBElement<?>> elements = cluster.getLimitOfTasksOrInstallDirOrWorkingDir();
+        for (JAXBElement element : elements) {
+            if (element.getName().equals(new QName("Software"))) {
+                SoftwareListType software = (SoftwareListType) element.getValue();
+                list = software.getApplication();
+                break;
+            }
+        }
+        return list;
+    }
 }

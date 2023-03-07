@@ -72,7 +72,7 @@ public class BinaryDefinition implements AbstractMethodImplementationDefinition 
      * @param offset Element from the beginning of the string array.
      */
     public BinaryDefinition(String[] implTypeArgs, int offset) {
-        this.binary = EnvironmentLoader.loadFromEnvironment(implTypeArgs[0]);
+        this.binary = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset]);
         this.workingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 1]);
         this.params = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 2]);
         this.failByEV = Boolean.parseBoolean(implTypeArgs[offset + 3]);

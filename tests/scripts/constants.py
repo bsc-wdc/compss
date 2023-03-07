@@ -32,12 +32,13 @@ DEFAULT_FAMILIES = [
                     "pscos",
                     "python",
                     "tools",
-                    "fault_tolerance"]
+                    "fault_tolerance",
+                    "gos"]
 DEFAULT_CLI_FAMILIES = [
                     "environment",
                     "runapps",
                     "jupyter"]
-DEFAULT_IGNORED = [".target", "target", ".idea", ".settings", ".git", "gat"]
+DEFAULT_IGNORED = [".target", "target", ".idea", ".settings", ".git", "gat", "gos_batch"]
 DEFAULT_TESTS = []
 
 if sys.platform == "darwin":

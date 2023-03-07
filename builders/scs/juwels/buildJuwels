@@ -1,0 +1,54 @@
+#!/bin/bash -e
+
+  #############################################################
+  # Name: buildJuwels
+  # Description: SCRIPT FOR Juwels COMPSs BUILD
+  # Parameters: <Juwels_user> Juwels user account. Preferable with ssh keys inserted
+  #             <FullTmpPath> Tmp path on Juwels for deployment
+  #             <FullTargetPath> Base Target Installation folder on Juwels
+  #############################################################
+
+  ####################
+  # FUNCTIONS
+  ####################
+  usage() {
+    echo " Usage: buildJuwels <Juwels_user> <FullTmpPath> <FullTargetPath>"
+    echo " "
+  }
+
+
+  ####################
+  # MAIN
+  ####################
+  # Get parameters
+  if [ $# -eq 1 ]; then
+    if [ "$1" == "usage" ]; then
+      usage
+      exit 0
+    fi
+  fi
+  if [ $# -ne 3 ]; then
+    echo "Incorrect number of parameters"
+    usage
+    exit 1
+  fi
+
+  # SET SCRIPT VARIABLES
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+  JuwelsUser=$1
+  JuwelsTmpDir=$2
+  JuwelsTargetDir=$3
+  JuwelsLoginNode=juwels-booster.fz-juelich.de
+  JuwelsAuxScript=${SCRIPT_DIR}/buildJuwels_aux
+  PRELOAD_ENV="BASH_ENV=/etc/bashrc"
+
+  # Perform installation
+  cd "${SCRIPT_DIR}"/../commons
+  echo "./buildSC ${JuwelsUser} ${JuwelsLoginNode} ${JuwelsTmpDir} ${JuwelsTargetDir} ${JuwelsAuxScript} \"${PRELOAD_ENV}\""
+  ./buildSC "${JuwelsUser}" "${JuwelsLoginNode}" "${JuwelsTmpDir}" "${JuwelsTargetDir}" "${JuwelsAuxScript}" "${PRELOAD_ENV}"
+  exitStatus=$?
+  cd "${SCRIPT_DIR}"
+
+  # END
+  exit $exitStatus

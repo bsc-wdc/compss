@@ -16,7 +16,6 @@
  */
 package es.bsc.compss.gos.master.monitoring.transfermonitor;
 
-import es.bsc.compss.gos.master.GOSCopy;
 import es.bsc.compss.log.Loggers;
 
 import java.util.HashMap;

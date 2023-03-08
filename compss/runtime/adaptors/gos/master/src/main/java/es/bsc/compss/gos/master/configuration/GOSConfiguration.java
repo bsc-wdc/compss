@@ -57,6 +57,7 @@ public class GOSConfiguration extends MethodConfiguration {
         this.monitoring = clone.monitoring;
         this.projectProperties = clone.projectProperties;
         this.resourcesProperties = clone.resourcesProperties;
+        this.isBatch = clone.isBatch;
     }
 
     /**
@@ -71,7 +72,7 @@ public class GOSConfiguration extends MethodConfiguration {
             this.projectProperties = projectProperties;
         }
         if (!projectProperties.containsKey("Interactive")) {
-            LOGGER.warn("[GOSCONFIGURATiON] Not clear if is interactive or batch, defaulting " + "to interactive");
+            LOGGER.warn("[GOSCONFIGURATION] Not clear if is interactive or batch, defaulting " + "to interactive");
             isBatch = false;
         } else {
             isBatch = !(boolean) this.projectProperties.get("Interactive");

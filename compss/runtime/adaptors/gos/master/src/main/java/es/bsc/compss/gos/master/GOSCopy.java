@@ -51,10 +51,10 @@ public class GOSCopy extends ImmediateAsyncCopy {
     private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
     private static final String ERR_NO_TGT_URI = "No valid target URIs";
     private static final String ERR_NO_SRC_URI = "No valid source URIs";
-    private String dbgPrefix;
+    private final String dbgPrefix;
     private boolean isBindingObject;
-    private GOSWorkerNode workerNode;
-    private String type;
+    private final GOSWorkerNode workerNode;
+    private final String type;
 
 
     public void logError(String s, Exception e) {
@@ -118,15 +118,6 @@ public class GOSCopy extends ImmediateAsyncCopy {
         path = (tgtLoc != null) ? tgtLoc.getPath() : "null";
         s += "[" + name + " - " + path + "]";
         return s;
-    }
-
-    /**
-     * Constructor for Fake Copy.
-     * 
-     * @param dummyData dummy data
-     */
-    public GOSCopy(LogicalData dummyData) {
-        super(dummyData, null, null, null, null, null);
     }
 
     private void treatUris() {

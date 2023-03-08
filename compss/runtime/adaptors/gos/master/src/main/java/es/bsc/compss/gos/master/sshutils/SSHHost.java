@@ -35,18 +35,14 @@ import java.io.BufferedReader;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.security.NoSuchAlgorithmException;
-import java.security.Provider;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import sun.security.jca.Providers;
 
 
 public class SSHHost {
@@ -151,15 +147,6 @@ public class SSHHost {
         return SSHCommand.executeCommandBatch(jd.getSSHHost(), jd, jd.getOutput(), jd.getOutputError());
 
     }
-
-    /*
-     * Debugging.
-     * 
-     * public void debugging() { try { jsch.setKnownHosts("~/.ssh/known_hosts"); } catch (JSchException e) { throw new
-     * RuntimeException(e); } HostKeyRepository hkr = jsch.getHostKeyRepository(); HostKey[] hks = hkr.getHostKey(); if
-     * (hks != null) { LOGGER.info("Host keys in " + hkr.getKnownHostsRepositoryID()); for (HostKey hk : hks) {
-     * LOGGER.info(hk.getHost() + " " + hk.getType() + " " + hk.getFingerPrint(jsch)); } } }
-     */
 
     /**
      * Cancel job.

@@ -18,7 +18,6 @@ package es.bsc.compss.gos.master;
 
 import es.bsc.compss.gos.master.sshutils.SSHHost;
 import es.bsc.compss.gos.master.utils.ForbiddenCharacters;
-import es.bsc.compss.util.ErrorManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -229,7 +228,7 @@ public class GOSJobDescription {
      */
     public String getResponseFileDir() {
         if (pathResponse == null) {
-            pathResponse = this.getSandboxDir() + job.getResourceNode().SSH_RESPONSE_DIR;
+            pathResponse = this.getSandboxDir() + GOSWorkerNode.SSH_RESPONSE_DIR;
         }
         return pathResponse;
     }
@@ -241,7 +240,7 @@ public class GOSJobDescription {
      */
     public String getCancelScriptDir() {
         if (killDir == null) {
-            killDir = this.getSandboxDir() + job.getResourceNode().CANCEL_JOB_DIR;
+            killDir = this.getSandboxDir() + GOSWorkerNode.CANCEL_JOB_DIR;
         }
         return killDir;
     }

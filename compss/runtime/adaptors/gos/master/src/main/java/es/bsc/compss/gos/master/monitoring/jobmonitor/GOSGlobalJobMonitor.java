@@ -66,14 +66,6 @@ public class GOSGlobalJobMonitor {
         }
     }
 
-    private int countActiveJobs() {
-        int count = 0;
-        for (GOSHostsManager hm : hostsMonitor.values()) {
-            count += hm.countActiveJobs();
-        }
-        return count;
-    }
-
     /**
      * Returns if exists any job monitored.
      * 

@@ -27,7 +27,6 @@ import es.bsc.compss.gos.master.monitoring.transfermonitor.sftpmonitor.GOSJschTr
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Vector;
 
 
 public class SSHChannel {
@@ -240,11 +239,6 @@ public class SSHChannel {
     public SSHChannel recreateChannel() throws JSchException {
         this.releaseResources();
         return s.recreateChannel(this, type);
-    }
-
-    public Vector ls(String path) throws SftpException {
-        ChannelSftp channelSftp = (ChannelSftp) ch;
-        return channelSftp.ls(path);
     }
 
     public void delete(String path) throws SftpException {

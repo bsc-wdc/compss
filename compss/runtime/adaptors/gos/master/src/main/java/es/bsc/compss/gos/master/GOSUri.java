@@ -17,23 +17,18 @@
 package es.bsc.compss.gos.master;
 
 import es.bsc.compss.comm.Comm;
-import es.bsc.compss.gos.master.sshutils.SSHHost;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.resources.Resource;
 
 
 public class GOSUri {
 
-    private String user;
-    private String host;
-    private String path;
+    private final String user;
+    private final String host;
+    private final String path;
 
-    private ProtocolType protocol;
+    private final ProtocolType protocol;
 
-
-    public GOSUri() {
-        // Only for externalization
-    }
 
     /**
      * Creates a new GOSUri instance with the given information.

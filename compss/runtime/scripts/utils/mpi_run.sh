@@ -1,12 +1,17 @@
 #!/bin/bash
 
 echo "Running mpi_run.sh"
-echo "Following modules will be loaded:"
-echo "$MODULES_TO_LOAD"
+echo "$ENV_LOAD_MODULES_SCRIPT"
+
 
 ssh -o StrictHostKeyChecking=no $(hostname) /bin/bash <<EOF
+cd $COMPSS_MASTER_WORKING_DIR
 export COMPSS_MPIRUN_TYPE=$COMPSS_MPIRUN_TYPE
-module try-load ${MODULES_TO_LOAD//:/ }
+
+source $ENV_LOAD_MODULES_SCRIPT
+echo "$PWD"
+ls
+
 $@
 
 EOF

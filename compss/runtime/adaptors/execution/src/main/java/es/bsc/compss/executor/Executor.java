@@ -709,7 +709,7 @@ public class Executor implements Runnable, InvocationRunner {
         try {
             // Check if an specific working dir is provided
             String specificWD = "";
-            switch (invocation.getMethodImplementation().getMethodType()) {
+            switch (impl.getMethodType()) {
                 case CONTAINER:
                     ContainerDefinition contImpl = (ContainerDefinition) impl.getDefinition();
                     specificWD = contImpl.getWorkingDir();
@@ -731,8 +731,7 @@ public class Executor implements Runnable, InvocationRunner {
                     specificWD = nativeMPIImpl.getWorkingDir();
                     break;
                 case COMPSs:
-                    COMPSsDefinition compssImpl =
-                        (COMPSsDefinition) invocation.getMethodImplementation().getDefinition();
+                    COMPSsDefinition compssImpl = (COMPSsDefinition) impl.getDefinition();
                     // if working dir is unassigned skip it for the construction of the specific working dir
                     if (!compssImpl.getWorkingDir().equals(Constants.UNASSIGNED)) {
                         specificWD = compssImpl.getWorkingDir() + File.separator;

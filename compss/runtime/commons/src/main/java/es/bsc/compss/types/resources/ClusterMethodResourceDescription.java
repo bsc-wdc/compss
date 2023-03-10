@@ -16,13 +16,6 @@
  */
 package es.bsc.compss.types.resources;
 
-import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.TaskType;
-import es.bsc.compss.types.resources.components.Processor;
-
-import java.util.HashSet;
-
-
 public class ClusterMethodResourceDescription extends MethodResourceDescription {
 
     private int limitOfTasks;

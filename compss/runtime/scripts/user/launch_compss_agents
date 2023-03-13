@@ -969,6 +969,11 @@ check_args() {
   else
     streaming_master_port="null"
   fi
+
+  if [[ "${fullAppPath}" == "*.py" ]]; then
+    echo "[ WARNING ]: The python module to be executed ends in \".py\" this is probably an error so it's getting ignored"
+    fullAppPath=${fullAppPath:0:-3} #drop the last 3 characters
+  fi
 }
 
 

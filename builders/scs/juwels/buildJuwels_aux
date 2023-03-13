@@ -30,11 +30,12 @@
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
   # DEFINE MODULES
-  modules="Stages/2023 GCCcore/.11.3.0 zlib/.1.2.12 binutils/.2.38 StdEnv/2023 Intel/2022.1.0 Java/11.0.16 Boost/1.79.0 PAPI/7.0.0 Autotools/20220317"
-  #modules="GCCcore/.5.5.0 Intel/2018.2.199-GCC-5.5.0 Java/1.8.0_162 ParaStationMPI/5.2.1-1 Boost PAPI/5.6.0 Autotools/20170619"
+  # modules="Stages/2023 GCCcore/.11.3.0 zlib/.1.2.12 binutils/.2.38 StdEnv/2023 Intel/2022.1.0 Java/11.0.16 Boost/1.79.0 PAPI/7.0.0 Autotools/20220317"
+  modules="Stages/2022 GCCcore/.11.2.0 StdEnv/2022 Intel/2021.4.0 Java/15.0.1 Boost/1.78.0 PAPI/6.0.0.1 Autotools/20210726 lxml/4.6.3"
   unload_before_python="ignore"
   run_before_py3_modules="ignore"
-  py3_modules="Python/3.10.4"
+  # py3_modules="Python/3.10.4"
+  py3_modules="Python/3.9.6"
   run_before_py3_other_modules="ignore"
   py3_other_modules="ignore"
 

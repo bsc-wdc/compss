@@ -17,7 +17,6 @@
 package es.bsc.compss.gos.master.monitoring.transfermonitor.sftpmonitor;
 
 import com.jcraft.jsch.SftpProgressMonitor;
-import es.bsc.compss.gos.master.sshutils.SSHChannel;
 
 
 public class GOSJschTransferMonitor implements SftpProgressMonitor {

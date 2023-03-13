@@ -19,7 +19,7 @@ package es.bsc.compss.gos.master.monitoring.transfermonitor;
 public interface GOSTransferMonitor {
 
     /**
-     * Checks status of tranfer and controls multiple steps in case of complex transfers (Different hosts). If it
+     * Checks status of the transfer and controls multiple steps in case of complex transfers (Different hosts). If it
      * detects the end of the transfers, notify the state and releases the allocated channels.
      * 
      * @return true if the transfer has ended

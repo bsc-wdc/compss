@@ -46,7 +46,7 @@ public class GOSOneWayTransferMonitor implements GOSTransferMonitor {
     /**
      * Monitor transfer if it has ended.
      *
-     * @return whetether it has ended the transfer in channel
+     * @return whether it has ended the transfer in channel
      */
     public boolean monitor() {
         if (transferMonitor.finished) {

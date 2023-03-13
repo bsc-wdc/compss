@@ -137,27 +137,6 @@ public class GOSInvocation implements Invocation {
         }
     }
 
-    private void printDebug() {
-        String prefix = "[GOSInvocation] ";
-        System.out.println(prefix + "jobId " + jobId);
-        System.out.println(prefix + "taskId " + taskId);
-        System.out.println(prefix + "lang " + lang);
-        System.out.println(prefix + "history " + history);
-        System.out.println(prefix + "timeOut " + timeout);
-        System.out.println(prefix + "numNodes " + hostnames.size());
-        for (String h : hostnames) {
-            System.out.println(prefix + "hostname: " + h);
-        }
-        System.out.println(prefix + "cpuMap " + cpuMap);
-        System.out.println(prefix + "cus " + cus);
-        System.out.println(prefix + "gpuMap " + gpuMap);
-        System.out.println(prefix + "gus " + gus);
-        System.out.println(prefix + "fpgaMap " + fpgaMap);
-        System.out.println(prefix + "fpgaus " + fpgaus);
-        System.out.println(prefix + this.toLogString());
-        System.out.println(prefix + this);
-    }
-
     private LinkedList<Param> parseArguments(String[] args, int appArgsIdx, int numParams, int numReturns)
         throws Exception {
         LinkedList<Param> paramsList = new LinkedList<>();

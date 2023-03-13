@@ -650,7 +650,7 @@ public class GOSJob extends JobImpl<GOSWorkerNode> {
      */
     public String getBatchOutput() {
         if (isBatch()) {
-            return getConfig().getSandboxWorkingDir() + getResourceNode().BATCH_OUTPUT_DIR + "/" + getCompositeID();
+            return getConfig().getSandboxWorkingDir() + GOSWorkerNode.BATCH_OUTPUT_DIR + "/" + getCompositeID();
         }
         return null;
     }

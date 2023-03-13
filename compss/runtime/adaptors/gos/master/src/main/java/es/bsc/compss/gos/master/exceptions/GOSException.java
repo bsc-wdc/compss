@@ -19,15 +19,6 @@ package es.bsc.compss.gos.master.exceptions;
 public class GOSException extends Exception {
 
     /**
-     * Creates a new nested Exception {@code e}.
-     *
-     * @param e Nested exception.
-     */
-    public GOSException(Exception e) {
-        super(e);
-    }
-
-    /**
      * Creates a new Exception with a given message {@code msg}.
      *
      * @param msg Exception message.

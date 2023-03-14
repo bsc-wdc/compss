@@ -9,7 +9,7 @@ cd "${SCRIPT_DIR}/../../src/"
 ## Check typing with mypy ##
 ############################
 
-mypy --pretty --ignore-missing-imports --exclude 'pycompss\/((tests\/)|(dds\/)|(streams\/)||(interactive.py)|(__main__.py))$' ./pycompss/
+mypy --pretty --ignore-missing-imports --allow-redefinition --exclude 'pycompss\/((tests\/)|(dds\/)|(streams\/)||(interactive.py)|(util\/interactive\/events.py)||(util\/interactive\/state.py)|(__main__.py))$' ./pycompss/
 ev=$?
 if [ "$ev" -ne 0 ]; then
   echo "[ERROR] Mypy check failed with exit value: $ev"

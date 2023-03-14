@@ -1,12 +1,26 @@
 
-FROM ubuntu:20.04 as base_rt
+FROM ubuntu:20.04 as base
 LABEL maintainer="COMPSs Support <support-compss@bsc.es>" \
       vendor="Barcelona Supercomputing Center (BSC)" \
       url="http://compss.bsc.es"
 
 ARG DEBIAN_FRONTEND=noninteractive
+ARG TARGETARCH=amd
+
+FROM base as base_amd64
 
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
+ENV LD_LIBRARY_PATH=$JAVA_HOME/jre/lib/amd64/server:$LD_LIRBRARY_PATH
+ENV EXTRAE_MPI_HEADERS /usr/include/x86_64-linux-gnu/mpi
+
+FROM base as base_arm64
+
+ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-arm64/
+ENV LD_LIBRARY_PATH=$JAVA_HOME/jre/lib/aarch64/server:$LD_LIRBRARY_PATH
+ENV EXTRAE_MPI_HEADERS /usr/include/aarch64-linux-gnu/mpi
+
+
+FROM base_$TARGETARCH as base_rt 
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends openjdk-8-jdk graphviz xdg-utils uuid-runtime && \
@@ -36,9 +50,9 @@ RUN mkdir /run/sshd && \
 FROM base_all as base_tutorial
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends git vim wget ca-certificates maven curl unzip && \
-    pip3 install --no-cache-dir graphviz matplotlib numba numpy==1.21.5 scipy scikit-learn python-dateutil==2.8.2 pandas \
-    jupyter ipykernel && \
+    apt-get install -y --no-install-recommends git vim wget ca-certificates maven curl unzip cmake && \
+    pip3 install --no-cache-dir graphviz matplotlib>=2.2.3 numba==0.56.4 numpy==1.23.5 numpydoc>=0.8.0 scipy>=1.3.0 cvxpy>=1.1.5 scikit-learn>=1.0.2 python-dateutil==2.8.2 pandas>=0.24.2 \
+    tabulate==0.8.9 jupyter ipykernel ipython==8.3.0 && \
     python3 -m ipykernel install && \
     apt-get autoclean && \
     rm -rf /var/lib/apt/lists/*
@@ -52,12 +66,12 @@ RUN apt-get update && \
     sudo jq bc firefox gnupg lsb-release libgraphviz-dev julia && \
     apt-get autoclean && \
     rm -rf /var/lib/apt/lists/* && \
-    pip3 --no-cache-dir install pycodestyle selenium redis==3.5.3 redis-py-cluster==2.1.3 enum34 tabulate black memory-profiler && \
+    pip3 --no-cache-dir install pycodestyle selenium redis==3.5.3 redis-py-cluster==2.1.3 enum34 tabulate black==22.3.0 memory-profiler && \
     pip3 --no-cache-dir install pytest pytest-cov nbval nbconvert coverage pytest-html-profiling pytest-metadata pytest-profiling pytest-subprocess pytest-sugar pydocstyle && \
     pip3 --no-cache-dir install black[jupyter] && \
     #for fixing a nbcovert jinja2 compatibility problem
     jinja2==3.0.3 && \
-    pip3 --no-cache-dir install mypy mypy-extensions types-tabulate types-decorator && \
+    pip3 --no-cache-dir install mypy==0.990 mypy-extensions==0.4.3 py types-tabulate types-decorator && \
     wget https://services.gradle.org/distributions/gradle-5.4.1-bin.zip && \
     unzip -d /opt gradle-5.4.1-bin.zip && \
     rm gradle-5.4.1-bin.zip && \
@@ -72,7 +86,8 @@ RUN apt-get update && \
    apt-get autoclean && \
    rm -rf /var/lib/apt/lists/* && \
    # Geckodriver
-   curl -s https://api.github.com/repos/mozilla/geckodriver/releases/latest | grep "browser_download_url.*linux64.tar.gz" | cut -d : -f 2,3 | tr -d '\"' | head -1 | wget -i - && \
+   #curl -s https://api.github.com/repos/mozilla/geckodriver/releases/latest | grep "browser_download_url.*linux64.tar.gz" | cut -d : -f 2,3 | tr -d '\"' | head -n 1 | wget -i - && \
+   wget https://github.com/mozilla/geckodriver/releases/download/v0.32.2/geckodriver-v0.32.2-linux64.tar.gz && \
    tar -xvf *linux64.tar.gz && \
    rm *linux64.tar.gz && \
    mv geckodriver /usr/local/bin/ && \

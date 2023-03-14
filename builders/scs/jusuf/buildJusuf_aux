@@ -1,0 +1,64 @@
+#!/bin/bash -e
+
+  #############################################################
+  # Name: buildJusuf_aux
+  # Description: SCRIPT FOR LOCAL COMPSs BUILD in Jusuf
+  # Parameters: <targetDir> Base Target Installation folder
+  #
+  # ATTENTION: DO NOT EXECUTE THIS FILE. IT IS AUTOMATICALLY
+  #            EXECUTED FROM buildJusuf script
+  #############################################################
+
+  usage() {
+    echo "Incorrect number of parameters"
+    echo " Usage: buildJusuf_aux <FullTargetPath>"
+    echo " "
+    exit 1
+  }
+
+
+  ####################
+  # MAIN
+  ####################
+  # Get parameters
+  if [ $# -ne 1 ]; then
+    usage
+  fi
+
+  # SET SCRIPT VARIABLES
+  targetDir=$1
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+  # DEFINE MODULES
+  # modules="Stages/2023 GCCcore/.11.3.0 zlib/.1.2.12 binutils/.2.38 StdEnv/2023 Intel/2022.1.0 Java/11.0.16 Boost/1.79.0 PAPI/7.0.0 Autotools/20220317"
+  modules="Stages/2022 GCCcore/.11.2.0 StdEnv/2022 Intel/2021.4.0 Java/15.0.1 Boost/1.78.0 PAPI/6.0.0.1 Autotools/20210726 lxml/4.6.3"
+  unload_before_python="ignore"
+  run_before_py3_modules="ignore"
+  # py3_modules="Python/3.10.4"
+  py3_modules="Python/3.9.6"
+  run_before_py3_other_modules="ignore"
+  py3_other_modules="ignore"
+
+  # DEFINE CONFIGURATION PARAMETERS
+  #(Environment vars must be scaped to get the correct value if not it could take a value previous to load the modules)
+  additionalExports=""
+
+  additional_module_use_folder="ignore"
+  queues_cfg="jusuf.cfg"
+  extrae_with_openmpi="false"
+  openmpi_version=""
+  extrae_with_impi="false"
+  impi_version=""
+  autoparallel="false"
+  c_binding="true"
+
+  # CALL buildSC_aux
+  "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${unload_before_python}" "${run_before_py3_modules}" "${py3_modules}" "${run_before_py3_other_modules}" "${py3_other_modules}" "${additionalExports}" "${additional_module_use_folder}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "${autoparallel}" "${c_binding}"
+  ev=$?
+
+  # End
+  if [ $ev -ne 0 ]; then
+    echo "ERROR: Exception in auxiliar script"
+    exit $ev
+  fi
+  exit 0

@@ -1865,6 +1865,9 @@ set_variables() {
       export SINGULARITYENV_MPI_RUNNER_SCRIPT=/opt/COMPSs/Runtime/scripts/utils/mpi_run.sh
       # to load the modules when ssh'ing
       export SINGULARITYENV_ENV_SCRIPT=$ENV_LOAD_MODULES_SCRIPT
+      export SINGULARITYENV_SLURM_JOBID=$SLURM_JOBID
+      export SINGULARITYENV_SLURM_JOB_ID=$SLURM_JOB_ID
+
 
       worker_install_dir=/opt/COMPSs
       cont_COMPSS_HOME=/opt/COMPSs/
@@ -1879,6 +1882,8 @@ set_variables() {
       export SINGULARITYENV_MPI_RUNNER_SCRIPT=${container_compss_path}/Runtime/scripts/utils/mpi_run.sh
       # to load the modules when ssh'ing
       export SINGULARITYENV_ENV_SCRIPT=$ENV_LOAD_MODULES_SCRIPT
+      export SINGULARITYENV_SLURM_JOBID=$SLURM_JOBID
+      export SINGULARITYENV_SLURM_JOB_ID=$SLURM_JOB_ID
 
       worker_install_dir=${container_compss_path}/
       cont_COMPSS_HOME=${container_compss_path}/

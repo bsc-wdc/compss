@@ -178,46 +178,6 @@ public class DataInfoProvider {
     }
 
     /**
-     * Obtains the last data produced for a file.
-     * 
-     * @param app application accessing the file
-     * @param location File location.
-     * @return last data produced for that value.
-     */
-    public LogicalData getFileLastVersion(Application app, DataLocation location) {
-        String locationKey = location.getLocationKey();
-        Integer fileId = app.getFileDataId(locationKey);
-
-        if (fileId != null) {
-            DataInfo fileInfo = this.idToData.get(fileId);
-            if (fileInfo != null) {
-                return fileInfo.getCurrentDataVersion().getDataInstanceId().getData();
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Obtains the last data produced for an object.
-     * 
-     * @param app application accessing the file
-     * @param value Object value.
-     * @param code Object hashcode.
-     * @return last data produced for that value.
-     */
-    public LogicalData getObjectLastVersion(Application app, Object value, int code) {
-        DataInfo oInfo;
-        Integer aoId = codeToId.get(code);
-        LogicalData lastData = null;
-        if (aoId != null) {
-            oInfo = this.idToData.get(aoId);
-            return oInfo.getCurrentDataVersion().getDataInstanceId().getData();
-        }
-        return lastData;
-    }
-
-    /**
      * DataAccess interface: registers a new data access.
      *
      * @param access Access Parameters.

@@ -1,0 +1,54 @@
+#!/bin/bash -e
+
+  #############################################################
+  # Name: buildJusuf
+  # Description: SCRIPT FOR Jusuf COMPSs BUILD
+  # Parameters: <Jusuf_user> Jusuf user account. Preferable with ssh keys inserted
+  #             <FullTmpPath> Tmp path on Jusuf for deployment
+  #             <FullTargetPath> Base Target Installation folder on Jusuf
+  #############################################################
+
+  ####################
+  # FUNCTIONS
+  ####################
+  usage() {
+    echo " Usage: buildJusuf <Jusuf_user> <FullTmpPath> <FullTargetPath>"
+    echo " "
+  }
+
+
+  ####################
+  # MAIN
+  ####################
+  # Get parameters
+  if [ $# -eq 1 ]; then
+    if [ "$1" == "usage" ]; then
+      usage
+      exit 0
+    fi
+  fi
+  if [ $# -ne 3 ]; then
+    echo "Incorrect number of parameters"
+    usage
+    exit 1
+  fi
+
+  # SET SCRIPT VARIABLES
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+  JusufUser=$1
+  JusufTmpDir=$2
+  JusufTargetDir=$3
+  JusufLoginNode=jusuf.fz-juelich.de
+  JusufAuxScript=${SCRIPT_DIR}/buildJusuf_aux
+  PRELOAD_ENV="BASH_ENV=/etc/bashrc"
+
+  # Perform installation
+  cd "${SCRIPT_DIR}"/../commons
+  echo "./buildSC ${JusufUser} ${JusufLoginNode} ${JusufTmpDir} ${JusufTargetDir} ${JusufAuxScript} \"${PRELOAD_ENV}\""
+  ./buildSC "${JusufUser}" "${JusufLoginNode}" "${JusufTmpDir}" "${JusufTargetDir}" "${JusufAuxScript}" "${PRELOAD_ENV}"
+  exitStatus=$?
+  cd "${SCRIPT_DIR}"
+
+  # END
+  exit $exitStatus

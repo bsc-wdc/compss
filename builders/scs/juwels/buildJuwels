@@ -39,7 +39,7 @@
   JuwelsUser=$1
   JuwelsTmpDir=$2
   JuwelsTargetDir=$3
-  JuwelsLoginNode=juwels-booster.fz-juelich.de
+  JuwelsLoginNode=juwels.fz-juelich.de
   JuwelsAuxScript=${SCRIPT_DIR}/buildJuwels_aux
   PRELOAD_ENV="BASH_ENV=/etc/bashrc"
 

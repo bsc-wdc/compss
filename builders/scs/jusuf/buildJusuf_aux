@@ -1,17 +1,17 @@
 #!/bin/bash -e
 
   #############################################################
-  # Name: buildJuwels_aux
-  # Description: SCRIPT FOR LOCAL COMPSs BUILD in Juwels
+  # Name: buildJusuf_aux
+  # Description: SCRIPT FOR LOCAL COMPSs BUILD in Jusuf
   # Parameters: <targetDir> Base Target Installation folder
   #
   # ATTENTION: DO NOT EXECUTE THIS FILE. IT IS AUTOMATICALLY
-  #            EXECUTED FROM buildJuwels script
+  #            EXECUTED FROM buildJusuf script
   #############################################################
 
   usage() {
     echo "Incorrect number of parameters"
-    echo " Usage: buildJuwels_aux <FullTargetPath>"
+    echo " Usage: buildJusuf_aux <FullTargetPath>"
     echo " "
     exit 1
   }
@@ -44,7 +44,7 @@
   additionalExports=""
 
   additional_module_use_folder="ignore"
-  queues_cfg="juwels.cfg"
+  queues_cfg="jusuf.cfg"
   extrae_with_openmpi="false"
   openmpi_version=""
   extrae_with_impi="false"

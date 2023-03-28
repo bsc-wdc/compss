@@ -50,7 +50,7 @@ public class ExternalStreamAccessParams extends StreamAccessParams {
     }
 
     @Override
-    protected void registeredAsFirstVersionForData(DataInfo dInfo) {
+    public void registeredAsFirstVersionForData(DataInfo dInfo) {
         DataInstanceId lastDID = dInfo.getCurrentDataVersion().getDataInstanceId();
         String renaming = lastDID.getRenaming();
         Comm.registerLocation(renaming, (DataLocation) this.getValue());

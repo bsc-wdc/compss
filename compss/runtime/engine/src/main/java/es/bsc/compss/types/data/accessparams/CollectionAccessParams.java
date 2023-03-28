@@ -43,7 +43,7 @@ public class CollectionAccessParams extends AccessParams {
     }
 
     @Override
-    protected void registeredAsFirstVersionForData(DataInfo dInfo) {
+    public void registeredAsFirstVersionForData(DataInfo dInfo) {
         if (mode != AccessMode.W) {
             DataInstanceId lastDID = dInfo.getCurrentDataVersion().getDataInstanceId();
             String renaming = lastDID.getRenaming();

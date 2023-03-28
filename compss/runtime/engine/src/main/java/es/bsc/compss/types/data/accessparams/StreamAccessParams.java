@@ -51,7 +51,7 @@ public class StreamAccessParams extends ObjectAccessParams {
     }
 
     @Override
-    protected void registeredAsFirstVersionForData(DataInfo dInfo) {
+    public void registeredAsFirstVersionForData(DataInfo dInfo) {
         DataInstanceId lastDID = dInfo.getCurrentDataVersion().getDataInstanceId();
         String renaming = lastDID.getRenaming();
         Comm.registerValue(renaming, this.getValue());

@@ -74,6 +74,15 @@ public abstract class AccessParams implements Serializable {
     }
 
     /**
+     * Returns the data being accessed.
+     * 
+     * @return data being accessed
+     */
+    public DataParams getData() {
+        return data;
+    }
+
+    /**
      * Returns the access mode.
      *
      * @return The access mode.
@@ -90,19 +99,7 @@ public abstract class AccessParams implements Serializable {
         return data.getDescription();
     }
 
-    /**
-     * Registers a new data into the system.
-     * 
-     * @param dip data repository
-     * @return new Registered data
-     */
-    public DataInfo registerData(DataInfoProvider dip) {
-        DataInfo dInfo = data.registerData(dip);
-        registeredAsFirstVersionForData(dInfo);
-        return dInfo;
-    }
-
-    protected abstract void registeredAsFirstVersionForData(DataInfo dInfo);
+    public abstract void registeredAsFirstVersionForData(DataInfo dInfo);
 
     /**
      * Registers the access into an external service.

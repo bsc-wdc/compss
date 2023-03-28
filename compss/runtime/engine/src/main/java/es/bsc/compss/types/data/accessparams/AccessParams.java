@@ -106,4 +106,8 @@ public abstract class AccessParams implements Serializable {
      */
     public abstract DataAccessId registerAccess(DataInfoProvider dip);
 
+    /**
+     * Registers the access into an external service.
+     */
+    public abstract void externalRegister();
 }

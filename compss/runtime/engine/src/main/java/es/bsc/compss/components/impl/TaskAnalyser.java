@@ -47,6 +47,7 @@ import es.bsc.compss.types.data.accessparams.CollectionAccessParams;
 import es.bsc.compss.types.data.accessparams.ExternalPSCObjectAccessParams;
 import es.bsc.compss.types.data.accessparams.FileAccessParams;
 import es.bsc.compss.types.data.accessparams.ObjectAccessParams;
+import es.bsc.compss.types.data.accessparams.StreamAccessParams;
 import es.bsc.compss.types.data.operation.ResultListener;
 import es.bsc.compss.types.parameter.BindingObjectParameter;
 import es.bsc.compss.types.parameter.CollectiveParameter;
@@ -669,7 +670,7 @@ public class TaskAnalyser implements GraphHandler {
                 break;
             case STREAM_T:
                 StreamParameter sp = (StreamParameter) p;
-                daId = this.dip.registerStreamAccess(app, am, sp.getValue(), sp.getCode());
+                daId = this.dip.registerDataAccess(new StreamAccessParams(app, am, sp.getValue(), sp.getCode()));
                 break;
             case EXTERNAL_STREAM_T:
                 ExternalStreamParameter esp = (ExternalStreamParameter) p;

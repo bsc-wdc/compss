@@ -216,62 +216,9 @@ public class DataInfoProvider {
             }
         }
         AccessMode mode = access.getMode();
-        return willAccess(mode, dInfo);
-    }
-
-    /**
-     * DataAccess interface: registers a new stream access.
-     *
-     * @param app application accessing the stream
-     * @param mode Stream access mode.
-     * @param value Stream object value.
-     * @param code Stream hashcode.
-     * @return The registered access Id.
-     */
-    public DataAccessId registerStreamAccess(Application app, AccessMode mode, Object value, int code) {
-        DataInfo oInfo;
-        Integer dId = this.codeToId.get(code);
-
-        // First access to this datum
-        if (dId == null) {
-            if (DEBUG) {
-                LOGGER.debug("FIRST access to stream " + code);
-            }
-
-            // Update mappings
-            oInfo = new StreamInfo(app, code);
-            app.addData(oInfo);
-            dId = oInfo.getDataId();
-            this.codeToId.put(code, dId);
-            this.idToData.put(dId, oInfo);
-
-            DataInstanceId lastDID = oInfo.getCurrentDataVersion().getDataInstanceId();
-            String renaming = lastDID.getRenaming();
-            Comm.registerValue(renaming, value);
-        } else {
-            // The datum has already been accessed
-            if (DEBUG) {
-                LOGGER.debug("Another access to stream " + code);
-            }
-
-            oInfo = this.idToData.get(dId);
-        }
-        DataAccessId id = willAccess(mode, oInfo);
-
-        // Inform the StreamClient
-        if (mode != AccessMode.R) {
-            DistroStream<?> ds = (DistroStream<?>) value;
-            String streamId = ds.getId();
-            if (DEBUG) {
-                LOGGER.debug("Registering writer for stream " + streamId);
-            }
-            AddStreamWriterRequest req = new AddStreamWriterRequest(streamId);
-            // Registering the writer asynchronously (no check completion nor error)
-            DistroStreamClient.request(req);
-        }
-
-        // Version management
-        return id;
+        DataAccessId daId = willAccess(mode, dInfo);
+        access.externalRegister();
+        return daId;
     }
 
     /**

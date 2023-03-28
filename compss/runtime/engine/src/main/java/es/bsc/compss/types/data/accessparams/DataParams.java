@@ -22,6 +22,7 @@ import es.bsc.compss.types.data.CollectionInfo;
 import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.FileInfo;
 import es.bsc.compss.types.data.ObjectInfo;
+import es.bsc.compss.types.data.StreamInfo;
 import es.bsc.compss.types.data.location.DataLocation;
 
 
@@ -101,7 +102,7 @@ public abstract class DataParams {
 
     public static class ObjectData extends DataParams {
 
-        private final int code;
+        protected final int code;
 
 
         /**
@@ -169,6 +170,28 @@ public abstract class DataParams {
         @Override
         public String getDescription() {
             return "binding " + super.getDescription();
+        }
+
+    }
+
+    public static class StreamData extends ObjectData {
+
+        public StreamData(Application app, int code) {
+            super(app, code);
+
+        }
+
+        @Override
+        public String getDescription() {
+            return "stream " + code;
+        }
+
+        @Override
+        public DataInfo createDataInfo(DataInfoProvider dip) {
+            Application app = this.getApp();
+            DataInfo sInfo = new StreamInfo(app, code);
+            dip.registerObjectDataId(code, sInfo.getDataId());
+            return sInfo;
         }
 
     }

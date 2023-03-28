@@ -16,9 +16,19 @@
  */
 package es.bsc.compss.types.data.accessparams;
 
+import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.impl.DataInfoProvider;
+import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.DataInfo;
+import es.bsc.compss.types.data.DataInstanceId;
+import es.bsc.compss.types.data.accessparams.DataParams.StreamData;
+import es.bsc.distrostreamlib.api.DistroStream;
+import es.bsc.distrostreamlib.client.DistroStreamClient;
+import es.bsc.distrostreamlib.requests.AddStreamWriterRequest;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 public class StreamAccessParams extends ObjectAccessParams {
@@ -27,6 +37,10 @@ public class StreamAccessParams extends ObjectAccessParams {
      * Serializable objects Version UID are 1L in all Runtime.
      */
     private static final long serialVersionUID = 1L;
+
+    // Component logger - No need to configure, ProActive does
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.DIP_COMP);
+    private static final boolean DEBUG = LOGGER.isDebugEnabled();
 
 
     /**
@@ -38,12 +52,33 @@ public class StreamAccessParams extends ObjectAccessParams {
      * @param hashCode Hashcode of the associated object.
      */
     public StreamAccessParams(Application app, AccessMode mode, Object value, int hashCode) {
-        super(app, mode, value, hashCode);
+        super(new StreamData(app, hashCode), mode, value, hashCode);
     }
 
     @Override
     public DataAccessId registerAccess(DataInfoProvider dip) {
-        return dip.registerStreamAccess(this.getApp(), this.mode, getValue(), getCode());
+        return dip.registerDataParamsAccess(this);
     }
 
+    @Override
+    protected void registeredAsFirstVersionForData(DataInfo dInfo) {
+        DataInstanceId lastDID = dInfo.getCurrentDataVersion().getDataInstanceId();
+        String renaming = lastDID.getRenaming();
+        Comm.registerValue(renaming, this.getValue());
+    }
+
+    @Override
+    public void externalRegister() {
+        // Inform the StreamClient
+        if (mode != AccessMode.R) {
+            DistroStream<?> ds = (DistroStream<?>) this.getValue();
+            String streamId = ds.getId();
+            if (DEBUG) {
+                LOGGER.debug("Registering writer for stream " + streamId);
+            }
+            AddStreamWriterRequest req = new AddStreamWriterRequest(streamId);
+            // Registering the writer asynchronously (no check completion nor error)
+            DistroStreamClient.request(req);
+        }
+    }
 }

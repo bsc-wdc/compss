@@ -73,6 +73,11 @@ public class FileAccessParams extends AccessParams {
     }
 
     @Override
+    public void externalRegister() {
+        // Do nothing. No need to register the access anywhere.
+    }
+
+    @Override
     public String toString() {
         return "[" + this.getApp() + ", " + this.mode + " ," + this.loc + "]";
     }

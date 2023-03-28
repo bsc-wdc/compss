@@ -16,11 +16,8 @@
  */
 package es.bsc.compss.components.impl;
 
-import es.bsc.compss.COMPSsConstants;
-import es.bsc.compss.COMPSsDefaults;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.CommException;
-import es.bsc.compss.exceptions.ExternalPropertyException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.BindingObject;
@@ -31,7 +28,6 @@ import es.bsc.compss.types.data.DataVersion;
 import es.bsc.compss.types.data.FileInfo;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.ResultFile;
-import es.bsc.compss.types.data.StreamInfo;
 import es.bsc.compss.types.data.Transferable;
 import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.data.accessid.RWAccessId;
@@ -55,12 +51,8 @@ import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.util.ExternalStreamHandler;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.util.serializers.Serializer;
-import es.bsc.distrostreamlib.api.DistroStream;
-import es.bsc.distrostreamlib.client.DistroStreamClient;
-import es.bsc.distrostreamlib.requests.AddStreamWriterRequest;
 
 import java.io.File;
 import java.io.IOException;
@@ -178,46 +170,6 @@ public class DataInfoProvider {
     }
 
     /**
-     * Obtains the last data produced for a file.
-     * 
-     * @param app application accessing the file
-     * @param location File location.
-     * @return last data produced for that value.
-     */
-    public LogicalData getFileLastVersion(Application app, DataLocation location) {
-        String locationKey = location.getLocationKey();
-        Integer fileId = app.getFileDataId(locationKey);
-
-        if (fileId != null) {
-            DataInfo fileInfo = this.idToData.get(fileId);
-            if (fileInfo != null) {
-                return fileInfo.getCurrentDataVersion().getDataInstanceId().getData();
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Obtains the last data produced for an object.
-     * 
-     * @param app application accessing the file
-     * @param value Object value.
-     * @param code Object hashcode.
-     * @return last data produced for that value.
-     */
-    public LogicalData getObjectLastVersion(Application app, Object value, int code) {
-        DataInfo oInfo;
-        Integer aoId = codeToId.get(code);
-        LogicalData lastData = null;
-        if (aoId != null) {
-            oInfo = this.idToData.get(aoId);
-            return oInfo.getCurrentDataVersion().getDataInstanceId().getData();
-        }
-        return lastData;
-    }
-
-    /**
      * DataAccess interface: registers a new data access.
      *
      * @param access Access Parameters.
@@ -256,126 +208,9 @@ public class DataInfoProvider {
             }
         }
         AccessMode mode = access.getMode();
-        return willAccess(mode, dInfo);
-    }
-
-    /**
-     * DataAccess interface: registers a new stream access.
-     *
-     * @param app application accessing the stream
-     * @param mode Stream access mode.
-     * @param value Stream object value.
-     * @param code Stream hashcode.
-     * @return The registered access Id.
-     */
-    public DataAccessId registerStreamAccess(Application app, AccessMode mode, Object value, int code) {
-        DataInfo oInfo;
-        Integer dId = this.codeToId.get(code);
-
-        // First access to this datum
-        if (dId == null) {
-            if (DEBUG) {
-                LOGGER.debug("FIRST access to stream " + code);
-            }
-
-            // Update mappings
-            oInfo = new StreamInfo(app, code);
-            app.addData(oInfo);
-            dId = oInfo.getDataId();
-            this.codeToId.put(code, dId);
-            this.idToData.put(dId, oInfo);
-
-            DataInstanceId lastDID = oInfo.getCurrentDataVersion().getDataInstanceId();
-            String renaming = lastDID.getRenaming();
-            Comm.registerValue(renaming, value);
-        } else {
-            // The datum has already been accessed
-            if (DEBUG) {
-                LOGGER.debug("Another access to stream " + code);
-            }
-
-            oInfo = this.idToData.get(dId);
-        }
-        DataAccessId id = willAccess(mode, oInfo);
-
-        // Inform the StreamClient
-        if (mode != AccessMode.R) {
-            DistroStream<?> ds = (DistroStream<?>) value;
-            String streamId = ds.getId();
-            if (DEBUG) {
-                LOGGER.debug("Registering writer for stream " + streamId);
-            }
-            AddStreamWriterRequest req = new AddStreamWriterRequest(streamId);
-            // Registering the writer asynchronously (no check completion nor error)
-            DistroStreamClient.request(req);
-        }
-
-        // Version management
-        return id;
-    }
-
-    /**
-     * DataAccess interface: registers a new file access.
-     *
-     * @param app Id of the application accessing the external stream
-     * @param mode File Access Mode.
-     * @param location File location.
-     * @return The registered access Id.
-     */
-    public DataAccessId registerExternalStreamAccess(Application app, AccessMode mode, DataLocation location) {
-        DataInfo externalStreamInfo;
-        int locationKey = location.getLocationKey().hashCode();
-        Integer externalStreamId = this.codeToId.get(locationKey);
-
-        // First access to this file
-        if (externalStreamId == null) {
-            if (DEBUG) {
-                LOGGER.debug("FIRST access to external stream " + locationKey);
-            }
-
-            // Update mappings
-            externalStreamInfo = new StreamInfo(app, locationKey);
-            app.addData(externalStreamInfo);
-            externalStreamId = externalStreamInfo.getDataId();
-            this.codeToId.put(locationKey, externalStreamId);
-            this.idToData.put(externalStreamId, externalStreamInfo);
-
-            // Register the initial location of the stream
-            DataInstanceId lastDID = externalStreamInfo.getCurrentDataVersion().getDataInstanceId();
-            String renaming = lastDID.getRenaming();
-            Comm.registerLocation(renaming, location);
-        } else {
-            // The external stream has already been accessed, all location are already registered
-            if (DEBUG) {
-                LOGGER.debug("Another access to external stream " + locationKey);
-            }
-            externalStreamInfo = this.idToData.get(externalStreamId);
-        }
-        DataAccessId id = willAccess(mode, externalStreamInfo);
-
-        // Inform the StreamClient
-        if (mode != AccessMode.R) {
-            String filePath = location.getURIInHost(Comm.getAppHost()).getPath();
-
-            try {
-                String pythonInterpreter = System.getProperty(COMPSsConstants.PYTHON_INTERPRETER);
-                if (pythonInterpreter == null || pythonInterpreter.isEmpty() || pythonInterpreter.equals("null")) {
-                    pythonInterpreter = COMPSsDefaults.PYTHON_INTERPRETER;
-                }
-                String streamId = ExternalStreamHandler.getExternalStreamProperty(pythonInterpreter, filePath, "id");
-                if (DEBUG) {
-                    LOGGER.debug("Registering writer for stream " + streamId);
-                }
-                AddStreamWriterRequest req = new AddStreamWriterRequest(streamId);
-                // Registering the writer asynchronously (no check completion nor error)
-                DistroStreamClient.request(req);
-            } catch (ExternalPropertyException e) {
-                LOGGER.error("ERROR: Cannot retrieve external property. Not adding stream writer", e);
-            }
-        }
-
-        // Version management
-        return id;
+        DataAccessId daId = willAccess(mode, dInfo);
+        access.externalRegister();
+        return daId;
     }
 
     /**

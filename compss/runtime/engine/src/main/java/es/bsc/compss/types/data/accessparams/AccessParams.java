@@ -17,11 +17,14 @@
 package es.bsc.compss.types.data.accessparams;
 
 import es.bsc.compss.components.impl.DataInfoProvider;
+import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInfo;
 
 import java.io.Serializable;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 /**
@@ -42,6 +45,10 @@ public abstract class AccessParams implements Serializable {
      * Serializable objects Version UID are 1L in all Runtime.
      */
     private static final long serialVersionUID = 1L;
+
+    // Component logger
+    protected static final Logger LOGGER = LogManager.getLogger(Loggers.DIP_COMP);
+    protected static final boolean DEBUG = LOGGER.isDebugEnabled();
 
     protected final DataParams data;
     protected final AccessMode mode;
@@ -106,4 +113,8 @@ public abstract class AccessParams implements Serializable {
      */
     public abstract DataAccessId registerAccess(DataInfoProvider dip);
 
+    /**
+     * Registers the access into an external service.
+     */
+    public abstract void externalRegister();
 }

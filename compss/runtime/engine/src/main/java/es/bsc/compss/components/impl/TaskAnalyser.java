@@ -45,9 +45,10 @@ import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
 import es.bsc.compss.types.data.accessparams.BindingObjectAccessParams;
 import es.bsc.compss.types.data.accessparams.CollectionAccessParams;
 import es.bsc.compss.types.data.accessparams.ExternalPSCObjectAccessParams;
+import es.bsc.compss.types.data.accessparams.ExternalStreamAccessParams;
 import es.bsc.compss.types.data.accessparams.FileAccessParams;
 import es.bsc.compss.types.data.accessparams.ObjectAccessParams;
-import es.bsc.compss.types.data.operation.ResultListener;
+import es.bsc.compss.types.data.accessparams.StreamAccessParams;
 import es.bsc.compss.types.parameter.BindingObjectParameter;
 import es.bsc.compss.types.parameter.CollectiveParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
@@ -66,13 +67,11 @@ import es.bsc.compss.util.ErrorManager;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -669,11 +668,11 @@ public class TaskAnalyser implements GraphHandler {
                 break;
             case STREAM_T:
                 StreamParameter sp = (StreamParameter) p;
-                daId = this.dip.registerStreamAccess(app, am, sp.getValue(), sp.getCode());
+                daId = this.dip.registerDataAccess(new StreamAccessParams(app, am, sp.getValue(), sp.getCode()));
                 break;
             case EXTERNAL_STREAM_T:
                 ExternalStreamParameter esp = (ExternalStreamParameter) p;
-                daId = this.dip.registerExternalStreamAccess(app, am, esp.getLocation());
+                daId = this.dip.registerDataAccess(new ExternalStreamAccessParams(app, am, esp.getLocation()));
                 break;
             case COLLECTION_T:
             case DICT_COLLECTION_T:

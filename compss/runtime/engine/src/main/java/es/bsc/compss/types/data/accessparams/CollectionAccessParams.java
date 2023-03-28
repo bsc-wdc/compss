@@ -17,9 +17,7 @@
 package es.bsc.compss.types.data.accessparams;
 
 import es.bsc.compss.comm.Comm;
-import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.types.Application;
-import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.accessparams.DataParams.CollectionData;
@@ -42,11 +40,6 @@ public class CollectionAccessParams extends AccessParams {
      */
     public CollectionAccessParams(Application app, AccessMode mode, String collectionId) {
         super(new CollectionData(app, collectionId), mode);
-    }
-
-    @Override
-    public DataAccessId registerAccess(DataInfoProvider dip) {
-        return dip.registerDataParamsAccess(this);
     }
 
     @Override

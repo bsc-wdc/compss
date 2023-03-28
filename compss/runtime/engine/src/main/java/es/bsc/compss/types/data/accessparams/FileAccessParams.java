@@ -17,9 +17,7 @@
 package es.bsc.compss.types.data.accessparams;
 
 import es.bsc.compss.comm.Comm;
-import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.types.Application;
-import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.accessparams.DataParams.FileData;
@@ -56,11 +54,6 @@ public class FileAccessParams extends AccessParams {
      */
     public DataLocation getLocation() {
         return this.loc;
-    }
-
-    @Override
-    public DataAccessId registerAccess(DataInfoProvider dip) {
-        return dip.registerDataParamsAccess(this);
     }
 
     @Override

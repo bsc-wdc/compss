@@ -19,10 +19,8 @@ package es.bsc.compss.types.data.accessparams;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsDefaults;
 import es.bsc.compss.comm.Comm;
-import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.exceptions.ExternalPropertyException;
 import es.bsc.compss.types.Application;
-import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.accessparams.DataParams.ExternalStreamData;
@@ -49,11 +47,6 @@ public class ExternalStreamAccessParams extends StreamAccessParams {
      */
     public ExternalStreamAccessParams(Application app, AccessMode mode, DataLocation location) {
         super(new ExternalStreamData(app, location.hashCode()), mode, location, location.hashCode());
-    }
-
-    @Override
-    public DataAccessId registerAccess(DataInfoProvider dip) {
-        return dip.registerDataParamsAccess(this);
     }
 
     @Override

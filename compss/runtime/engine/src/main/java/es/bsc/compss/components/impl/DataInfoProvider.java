@@ -176,18 +176,6 @@ public class DataInfoProvider {
      * @return The registered access Id.
      */
     public DataAccessId registerDataAccess(AccessParams access) {
-        // The abstract method comes back to this class and executes the corresponding
-        // registerFileAccess, registerObjectAccess, registerBindingObjectAccess or registerStreamAccess
-        return access.registerAccess(this);
-    }
-
-    /**
-     * DataAccess interface: registers a new file access.
-     *
-     * @param access Access Parameters.
-     * @return The registered access Id.
-     */
-    public DataAccessId registerDataParamsAccess(AccessParams access) {
         DataInfo dInfo;
         Integer dId = access.getDataId(this);
         if (dId == null) {

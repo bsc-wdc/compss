@@ -26,7 +26,7 @@ import es.bsc.distrostreamlib.client.DistroStreamClient;
 import es.bsc.distrostreamlib.requests.AddStreamWriterRequest;
 
 
-public class StreamAccessParams extends ObjectAccessParams {
+public class StreamAccessParams<T extends Object> extends ObjectAccessParams<T> {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
@@ -42,11 +42,11 @@ public class StreamAccessParams extends ObjectAccessParams {
      * @param value Associated object.
      * @param hashCode Hashcode of the associated object.
      */
-    public StreamAccessParams(Application app, AccessMode mode, Object value, int hashCode) {
+    public StreamAccessParams(Application app, AccessMode mode, T value, int hashCode) {
         super(new StreamData(app, hashCode), mode, value, hashCode);
     }
 
-    protected StreamAccessParams(StreamData data, AccessMode mode, Object value, int hashCode) {
+    protected StreamAccessParams(StreamData data, AccessMode mode, T value, int hashCode) {
         super(data, mode, value, hashCode);
     }
 

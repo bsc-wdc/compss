@@ -30,7 +30,7 @@ import es.bsc.distrostreamlib.client.DistroStreamClient;
 import es.bsc.distrostreamlib.requests.AddStreamWriterRequest;
 
 
-public class ExternalStreamAccessParams extends StreamAccessParams {
+public class ExternalStreamAccessParams extends StreamAccessParams<DataLocation> {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
@@ -53,12 +53,12 @@ public class ExternalStreamAccessParams extends StreamAccessParams {
     public void registeredAsFirstVersionForData(DataInfo dInfo) {
         DataInstanceId lastDID = dInfo.getCurrentDataVersion().getDataInstanceId();
         String renaming = lastDID.getRenaming();
-        Comm.registerLocation(renaming, (DataLocation) this.getValue());
+        Comm.registerLocation(renaming, this.getValue());
     }
 
     @Override
     public void externalRegister() {
-        DataLocation location = (DataLocation) this.getValue();
+        DataLocation location = this.getValue();
         // Inform the StreamClient
         if (mode != AccessMode.R) {
             String filePath = location.getURIInHost(Comm.getAppHost()).getPath();

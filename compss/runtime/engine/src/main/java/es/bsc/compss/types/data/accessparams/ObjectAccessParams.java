@@ -23,7 +23,7 @@ import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.accessparams.DataParams.ObjectData;
 
 
-public class ObjectAccessParams extends AccessParams {
+public class ObjectAccessParams<T extends Object> extends AccessParams {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
@@ -31,7 +31,7 @@ public class ObjectAccessParams extends AccessParams {
     private static final long serialVersionUID = 1L;
 
     private int hashCode;
-    private Object value;
+    private T value;
 
 
     /**
@@ -42,7 +42,7 @@ public class ObjectAccessParams extends AccessParams {
      * @param value Associated object.
      * @param hashCode Hashcode of the associated object.
      */
-    public ObjectAccessParams(Application app, AccessMode mode, Object value, int hashCode) {
+    public ObjectAccessParams(Application app, AccessMode mode, T value, int hashCode) {
         super(new ObjectData(app, hashCode), mode);
         this.value = value;
         this.hashCode = hashCode;
@@ -56,7 +56,7 @@ public class ObjectAccessParams extends AccessParams {
      * @param value Associated object.
      * @param hashCode Hashcode of the associated object.
      */
-    protected ObjectAccessParams(ObjectData data, AccessMode mode, Object value, int hashCode) {
+    protected ObjectAccessParams(ObjectData data, AccessMode mode, T value, int hashCode) {
         super(data, mode);
         this.value = value;
         this.hashCode = hashCode;
@@ -67,7 +67,7 @@ public class ObjectAccessParams extends AccessParams {
      * 
      * @return The associated object.
      */
-    public Object getValue() {
+    public T getValue() {
         return value;
     }
 

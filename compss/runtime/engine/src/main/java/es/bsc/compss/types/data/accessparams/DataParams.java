@@ -196,6 +196,19 @@ public abstract class DataParams {
 
     }
 
+    public static class ExternalStreamData extends StreamData {
+
+        public ExternalStreamData(Application app, int code) {
+            super(app, code);
+        }
+
+        @Override
+        public String getDescription() {
+            return "external " + super.getDescription();
+        }
+
+    }
+
     public static class CollectionData extends DataParams {
 
         private final String collectionId;

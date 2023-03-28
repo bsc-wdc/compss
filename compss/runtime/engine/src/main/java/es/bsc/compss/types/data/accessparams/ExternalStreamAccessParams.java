@@ -16,19 +16,23 @@
  */
 package es.bsc.compss.types.data.accessparams;
 
+import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.COMPSsDefaults;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.impl.DataInfoProvider;
+import es.bsc.compss.exceptions.ExternalPropertyException;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
-import es.bsc.compss.types.data.accessparams.DataParams.StreamData;
-import es.bsc.distrostreamlib.api.DistroStream;
+import es.bsc.compss.types.data.accessparams.DataParams.ExternalStreamData;
+import es.bsc.compss.types.data.location.DataLocation;
+import es.bsc.compss.util.ExternalStreamHandler;
 import es.bsc.distrostreamlib.client.DistroStreamClient;
 import es.bsc.distrostreamlib.requests.AddStreamWriterRequest;
 
 
-public class StreamAccessParams extends ObjectAccessParams {
+public class ExternalStreamAccessParams extends StreamAccessParams {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
@@ -38,18 +42,13 @@ public class StreamAccessParams extends ObjectAccessParams {
 
     /**
      * Creates a new StreamAccessParams instance for the given object.
-     * 
+     *
      * @param app Id of the application accessing the stream.
      * @param mode Access mode.
-     * @param value Associated object.
-     * @param hashCode Hashcode of the associated object.
+     * @param location Location of the external stream.
      */
-    public StreamAccessParams(Application app, AccessMode mode, Object value, int hashCode) {
-        super(new StreamData(app, hashCode), mode, value, hashCode);
-    }
-
-    protected StreamAccessParams(StreamData data, AccessMode mode, Object value, int hashCode) {
-        super(data, mode, value, hashCode);
+    public ExternalStreamAccessParams(Application app, AccessMode mode, DataLocation location) {
+        super(new ExternalStreamData(app, location.hashCode()), mode, location, location.hashCode());
     }
 
     @Override
@@ -61,21 +60,31 @@ public class StreamAccessParams extends ObjectAccessParams {
     protected void registeredAsFirstVersionForData(DataInfo dInfo) {
         DataInstanceId lastDID = dInfo.getCurrentDataVersion().getDataInstanceId();
         String renaming = lastDID.getRenaming();
-        Comm.registerValue(renaming, this.getValue());
+        Comm.registerLocation(renaming, (DataLocation) this.getValue());
     }
 
     @Override
     public void externalRegister() {
+        DataLocation location = (DataLocation) this.getValue();
         // Inform the StreamClient
         if (mode != AccessMode.R) {
-            DistroStream<?> ds = (DistroStream<?>) this.getValue();
-            String streamId = ds.getId();
-            if (DEBUG) {
-                LOGGER.debug("Registering writer for stream " + streamId);
+            String filePath = location.getURIInHost(Comm.getAppHost()).getPath();
+
+            try {
+                String pythonInterpreter = System.getProperty(COMPSsConstants.PYTHON_INTERPRETER);
+                if (pythonInterpreter == null || pythonInterpreter.isEmpty() || pythonInterpreter.equals("null")) {
+                    pythonInterpreter = COMPSsDefaults.PYTHON_INTERPRETER;
+                }
+                String streamId = ExternalStreamHandler.getExternalStreamProperty(pythonInterpreter, filePath, "id");
+                if (DEBUG) {
+                    LOGGER.debug("Registering writer for stream " + streamId);
+                }
+                AddStreamWriterRequest req = new AddStreamWriterRequest(streamId);
+                // Registering the writer asynchronously (no check completion nor error)
+                DistroStreamClient.request(req);
+            } catch (ExternalPropertyException e) {
+                LOGGER.error("ERROR: Cannot retrieve external property. Not adding stream writer", e);
             }
-            AddStreamWriterRequest req = new AddStreamWriterRequest(streamId);
-            // Registering the writer asynchronously (no check completion nor error)
-            DistroStreamClient.request(req);
         }
     }
 }

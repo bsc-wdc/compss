@@ -19,7 +19,6 @@ package es.bsc.compss.types.data.accessparams;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.Application;
-import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInfo;
 
 import java.io.Serializable;
@@ -75,6 +74,15 @@ public abstract class AccessParams implements Serializable {
     }
 
     /**
+     * Returns the data being accessed.
+     * 
+     * @return data being accessed
+     */
+    public DataParams getData() {
+        return data;
+    }
+
+    /**
      * Returns the access mode.
      *
      * @return The access mode.
@@ -91,27 +99,7 @@ public abstract class AccessParams implements Serializable {
         return data.getDescription();
     }
 
-    /**
-     * Registers a new data into the system.
-     * 
-     * @param dip data repository
-     * @return new Registered data
-     */
-    public DataInfo registerData(DataInfoProvider dip) {
-        DataInfo dInfo = data.registerData(dip);
-        registeredAsFirstVersionForData(dInfo);
-        return dInfo;
-    }
-
-    protected abstract void registeredAsFirstVersionForData(DataInfo dInfo);
-
-    /**
-     * Registers the access on a given DataInfoProvider.
-     * 
-     * @param dip DataInfoProvider where to register the DataAccess
-     * @return Description of the dataAccess
-     */
-    public abstract DataAccessId registerAccess(DataInfoProvider dip);
+    public abstract void registeredAsFirstVersionForData(DataInfo dInfo);
 
     /**
      * Registers the access into an external service.

@@ -120,8 +120,12 @@ public class DataInfoProvider {
         this.collectionToId.put(collectionId, dataId);
     }
 
-    public void registerData(DataInfo dInfo) {
+    private DataInfo registerData(DataParams data) {
+        DataInfo dInfo = data.createDataInfo(this);
+        Application app = data.getApp();
+        app.addData(dInfo);
         this.idToData.put(dInfo.getDataId(), dInfo);
+        return dInfo;
     }
 
     /**
@@ -137,7 +141,7 @@ public class DataInfoProvider {
             if (DEBUG) {
                 LOGGER.debug("Registering Remote data on DIP: " + internalData.getDescription());
             }
-            dInfo = internalData.registerData(this);
+            dInfo = registerData(internalData);
         } else {
             dInfo = idToData.get(dId);
         }
@@ -176,25 +180,14 @@ public class DataInfoProvider {
      * @return The registered access Id.
      */
     public DataAccessId registerDataAccess(AccessParams access) {
-        // The abstract method comes back to this class and executes the corresponding
-        // registerFileAccess, registerObjectAccess, registerBindingObjectAccess or registerStreamAccess
-        return access.registerAccess(this);
-    }
-
-    /**
-     * DataAccess interface: registers a new file access.
-     *
-     * @param access Access Parameters.
-     * @return The registered access Id.
-     */
-    public DataAccessId registerDataParamsAccess(AccessParams access) {
         DataInfo dInfo;
         Integer dId = access.getDataId(this);
         if (dId == null) {
             if (DEBUG) {
                 LOGGER.debug("FIRST access to " + access.getDataDescription());
             }
-            dInfo = access.registerData(this);
+            dInfo = registerData(access.getData());
+            access.registeredAsFirstVersionForData(dInfo);
         } else {
             dInfo = idToData.get(dId);
             if (dInfo != null) {
@@ -207,14 +200,13 @@ public class DataInfoProvider {
                 return null;
             }
         }
-        AccessMode mode = access.getMode();
-        DataAccessId daId = willAccess(mode, dInfo);
-        access.externalRegister();
+
+        DataAccessId daId = willAccess(access, dInfo);
         return daId;
     }
 
     /**
-     * Marks the access from the main as finished. .
+     * Marks the access from the main as finished.
      * 
      * @param access access being completed
      */
@@ -234,10 +226,10 @@ public class DataInfoProvider {
         dataHasBeenAccessed(daid);
     }
 
-    private DataAccessId willAccess(AccessMode mode, DataInfo di) {
+    private DataAccessId willAccess(AccessParams access, DataInfo di) {
         // Version management
         DataAccessId daId = null;
-        switch (mode) {
+        switch (access.getMode()) {
             case C:
             case R:
                 di.willBeRead();
@@ -284,6 +276,7 @@ public class DataInfoProvider {
                 }
                 break;
         }
+        access.externalRegister();
         return daId;
     }
 

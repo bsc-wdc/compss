@@ -17,15 +17,13 @@
 package es.bsc.compss.types.data.accessparams;
 
 import es.bsc.compss.comm.Comm;
-import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.types.Application;
-import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.accessparams.DataParams.ObjectData;
 
 
-public class ObjectAccessParams extends AccessParams {
+public class ObjectAccessParams<T extends Object> extends AccessParams {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
@@ -33,7 +31,7 @@ public class ObjectAccessParams extends AccessParams {
     private static final long serialVersionUID = 1L;
 
     private int hashCode;
-    private Object value;
+    private T value;
 
 
     /**
@@ -44,7 +42,7 @@ public class ObjectAccessParams extends AccessParams {
      * @param value Associated object.
      * @param hashCode Hashcode of the associated object.
      */
-    public ObjectAccessParams(Application app, AccessMode mode, Object value, int hashCode) {
+    public ObjectAccessParams(Application app, AccessMode mode, T value, int hashCode) {
         super(new ObjectData(app, hashCode), mode);
         this.value = value;
         this.hashCode = hashCode;
@@ -58,7 +56,7 @@ public class ObjectAccessParams extends AccessParams {
      * @param value Associated object.
      * @param hashCode Hashcode of the associated object.
      */
-    protected ObjectAccessParams(ObjectData data, AccessMode mode, Object value, int hashCode) {
+    protected ObjectAccessParams(ObjectData data, AccessMode mode, T value, int hashCode) {
         super(data, mode);
         this.value = value;
         this.hashCode = hashCode;
@@ -69,7 +67,7 @@ public class ObjectAccessParams extends AccessParams {
      * 
      * @return The associated object.
      */
-    public Object getValue() {
+    public T getValue() {
         return value;
     }
 
@@ -83,12 +81,7 @@ public class ObjectAccessParams extends AccessParams {
     }
 
     @Override
-    public DataAccessId registerAccess(DataInfoProvider dip) {
-        return dip.registerDataParamsAccess(this);
-    }
-
-    @Override
-    protected void registeredAsFirstVersionForData(DataInfo dInfo) {
+    public void registeredAsFirstVersionForData(DataInfo dInfo) {
         if (mode != AccessMode.W) {
             DataInstanceId lastDID = dInfo.getCurrentDataVersion().getDataInstanceId();
             String renaming = lastDID.getRenaming();

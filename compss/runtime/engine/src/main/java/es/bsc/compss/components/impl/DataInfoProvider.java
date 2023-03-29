@@ -35,6 +35,7 @@ import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
 import es.bsc.compss.types.data.accessparams.DataParams;
+import es.bsc.compss.types.data.accessparams.DataParams.CollectionData;
 import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.PersistentLocation;
@@ -77,8 +78,6 @@ public class DataInfoProvider {
     // Constants definition
     private static final String RES_FILE_TRANSFER_ERR = "Error transferring result files";
 
-    // Map: collectionName -> collection identifier
-    private final TreeMap<String, Integer> collectionToId;
     // Map: hash code -> object identifier
     private final TreeMap<Integer, Integer> codeToId;
 
@@ -96,7 +95,6 @@ public class DataInfoProvider {
      * New Data Info Provider instance.
      */
     public DataInfoProvider() {
-        this.collectionToId = new TreeMap<>();
         this.codeToId = new TreeMap<>();
         this.idToData = new TreeMap<>();
         this.valuesOnMain = new TreeSet<>();
@@ -110,14 +108,6 @@ public class DataInfoProvider {
 
     public void registerObjectDataId(int code, int dataId) {
         this.codeToId.put(code, dataId);
-    }
-
-    public Integer getCollectionDataId(String collectionId) {
-        return this.collectionToId.get(collectionId);
-    }
-
-    public void registerCollectionDataId(String collectionId, int dataId) {
-        this.collectionToId.put(collectionId, dataId);
     }
 
     private DataInfo registerData(DataParams data) {
@@ -595,7 +585,8 @@ public class DataInfoProvider {
      * @return DataInfo
      */
     public DataInfo deleteCollection(Application app, String collectionId, boolean noReuse) {
-        Integer oId = this.collectionToId.get(collectionId);
+        CollectionData cd = new CollectionData(app, collectionId);
+        Integer oId = cd.getDataId(this);
         DataInfo dataInfo = this.idToData.get(oId);
 
         // We delete the data associated with all the versions of the same object

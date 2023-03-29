@@ -224,14 +224,16 @@ public abstract class DataParams {
 
         @Override
         public Integer getDataId(DataInfoProvider dip) {
-            return dip.getCollectionDataId(collectionId);
+            Application app = this.getApp();
+            return app.getCollectionDataId(this.collectionId);
         }
 
         @Override
         public DataInfo createDataInfo(DataInfoProvider dip) {
-            DataInfo oInfo = new CollectionInfo(this);
-            dip.registerCollectionDataId(collectionId, oInfo.getDataId());
-            return oInfo;
+            DataInfo cInfo = new CollectionInfo(this);
+            Application app = this.getApp();
+            app.registerCollectionData(this.collectionId, cInfo);
+            return cInfo;
         }
 
         public String getCollectionId() {

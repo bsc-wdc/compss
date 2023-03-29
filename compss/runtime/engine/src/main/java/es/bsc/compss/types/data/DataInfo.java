@@ -18,6 +18,7 @@ package es.bsc.compss.types.data;
 
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.Application;
+import es.bsc.compss.types.data.accessparams.DataParams;
 
 import java.util.LinkedList;
 import java.util.TreeMap;
@@ -25,16 +26,17 @@ import java.util.concurrent.Semaphore;
 
 
 // Information about a datum and its versions
-public abstract class DataInfo {
+public abstract class DataInfo<T extends DataParams> {
 
     private static final int FIRST_FILE_ID = 1;
     private static final int FIRST_VERSION_ID = 1;
 
     protected static int nextDataId = FIRST_FILE_ID;
+
     // Data identifier
     protected final int dataId;
     // Generating application
-    protected final Application app;
+    protected final T params;
 
     // Current version
     protected DataVersion currentVersion;
@@ -56,11 +58,11 @@ public abstract class DataInfo {
     /**
      * Creates a new DataInfo instance with and registers a new LogicalData.
      * 
-     * @param app application generating the data
+     * @param data description of the data related to the info
      */
-    public DataInfo(Application app) {
+    public DataInfo(T data) {
         this.dataId = nextDataId++;
-        this.app = app;
+        this.params = data;
         this.versions = new TreeMap<>();
         this.currentVersionId = FIRST_VERSION_ID;
         this.currentVersion = new DataVersion(dataId, 1);
@@ -81,12 +83,21 @@ public abstract class DataInfo {
     }
 
     /**
+     * Returns the description of the data related to the info.
+     * 
+     * @return description of the data related to the info
+     */
+    public T getParams() {
+        return params;
+    }
+
+    /**
      * Returns the application generating the DataInfo.
      * 
      * @return the application generating the DataInfo.
      */
     public Application getGeneratingAppId() {
-        return this.app;
+        return this.params.getApp();
     }
 
     /**

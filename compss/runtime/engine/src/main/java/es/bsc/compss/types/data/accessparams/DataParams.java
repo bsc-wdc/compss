@@ -72,7 +72,7 @@ public abstract class DataParams {
         @Override
         public DataInfo createDataInfo(DataInfoProvider dip) {
             Application app = this.getApp();
-            DataInfo dInfo = new FileInfo(app, loc);
+            DataInfo dInfo = new FileInfo(this);
             app.registerFileData(this.locKey, dInfo);
             return dInfo;
         }
@@ -82,6 +82,10 @@ public abstract class DataParams {
             Application app = this.getApp();
             String locationKey = loc.getLocationKey();
             return app.getFileDataId(locationKey);
+        }
+
+        public DataLocation getLocation() {
+            return this.loc;
         }
 
     }
@@ -114,10 +118,13 @@ public abstract class DataParams {
 
         @Override
         public DataInfo createDataInfo(DataInfoProvider dip) {
-            Application app = this.getApp();
-            DataInfo oInfo = new ObjectInfo(app, code);
+            DataInfo oInfo = new ObjectInfo(this);
             dip.registerObjectDataId(code, oInfo.getDataId());
             return oInfo;
+        }
+
+        public int getCode() {
+            return this.code;
         }
 
     }
@@ -174,8 +181,7 @@ public abstract class DataParams {
 
         @Override
         public DataInfo createDataInfo(DataInfoProvider dip) {
-            Application app = this.getApp();
-            DataInfo sInfo = new StreamInfo(app, code);
+            DataInfo sInfo = new StreamInfo(this);
             dip.registerObjectDataId(code, sInfo.getDataId());
             return sInfo;
         }
@@ -223,10 +229,13 @@ public abstract class DataParams {
 
         @Override
         public DataInfo createDataInfo(DataInfoProvider dip) {
-            Application app = this.getApp();
-            DataInfo oInfo = new CollectionInfo(app, collectionId);
+            DataInfo oInfo = new CollectionInfo(this);
             dip.registerCollectionDataId(collectionId, oInfo.getDataId());
             return oInfo;
+        }
+
+        public String getCollectionId() {
+            return this.collectionId;
         }
     }
 }

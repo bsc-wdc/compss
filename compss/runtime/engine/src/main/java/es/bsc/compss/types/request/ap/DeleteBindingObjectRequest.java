@@ -20,26 +20,30 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
+import es.bsc.compss.types.Application;
 import es.bsc.compss.types.tracing.TraceEvent;
 
 
 public class DeleteBindingObjectRequest extends APRequest {
 
+    private final Application app;
     private final int code;
 
 
     /**
      * Creates a new request to delete a binding object.
      * 
+     * @param app Application requesting unregistering the binding object.
      * @param code Binding Object code.
      */
-    public DeleteBindingObjectRequest(int code) {
+    public DeleteBindingObjectRequest(Application app, int code) {
         this.code = code;
+        this.app = app;
     }
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
-        dip.deleteData(code, true);
+        dip.deleteData(app, code, true);
     }
 
     @Override

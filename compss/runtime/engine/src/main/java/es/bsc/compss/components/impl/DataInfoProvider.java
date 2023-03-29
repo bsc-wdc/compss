@@ -557,10 +557,11 @@ public class DataInfoProvider {
     /**
      * Deletes the data associated with the code.
      *
+     * @param app Application requesting the data deletion
      * @param code Data code.
      * @return DataInfo associated with the given code.
      */
-    public DataInfo deleteData(int code, boolean noReuse) {
+    public DataInfo deleteData(Application app, int code, boolean noReuse) {
         if (DEBUG) {
             LOGGER.debug("Deleting Data associated with code: " + String.valueOf(code));
         }
@@ -590,11 +591,12 @@ public class DataInfoProvider {
     /**
      * Deletes a collection.
      *
+     * @param app Application requesting the data deletion
      * @param collectionId Collection identifier
      * @param noReuse no reuse flag
      * @return DataInfo
      */
-    public DataInfo deleteCollection(String collectionId, boolean noReuse) {
+    public DataInfo deleteCollection(Application app, String collectionId, boolean noReuse) {
         Integer oId = this.collectionToId.get(collectionId);
         DataInfo dataInfo = this.idToData.get(oId);
 

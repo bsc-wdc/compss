@@ -313,7 +313,7 @@ public class ObjectRegistry {
         if (DEBUG) {
             LOGGER.debug("About to remove object with hash code " + hashCode + " from object registry.");
         }
-        this.itApi.removeObject(o, hashCode);
+        this.itApi.removeObject(appId, o, hashCode);
 
         return deleteFromInternal(hashCode) && deleteFromApps(hashCode);
     }

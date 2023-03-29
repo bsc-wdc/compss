@@ -137,10 +137,11 @@ public interface LoaderAPI {
     /**
      * Removes the given object {@code o}.
      * 
+     * @param appId Application Id.
      * @param o Object.
      * @param hashcode Object hashcode.
      */
-    public void removeObject(Object o, int hashcode);
+    public void removeObject(Long appId, Object o, int hashcode);
 
     /**
      * Creates a new task group.

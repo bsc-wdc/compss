@@ -20,7 +20,7 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
-//import es.bsc.compss.types.data.DataInstanceId;
+import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.ObjectInfo;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.tracing.TraceEvent;
@@ -28,15 +28,18 @@ import es.bsc.compss.types.tracing.TraceEvent;
 
 public class DeregisterObject extends APRequest {
 
+    private final Application app;
     private final int hashCode;
 
 
     /**
      * Creates a new request to unregister an object.
      * 
+     * @param app Application requesting unregistering the object.
      * @param o Object to unregister.
      */
-    public DeregisterObject(Object o) {
+    public DeregisterObject(Application app, Object o, int hashcode) {
+        this.app = app;
         this.hashCode = o.hashCode();
     }
 
@@ -48,7 +51,7 @@ public class DeregisterObject extends APRequest {
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td)
         throws ShutdownException {
-        ObjectInfo objectInfo = (ObjectInfo) dip.deleteData(this.hashCode, true);
+        ObjectInfo objectInfo = (ObjectInfo) dip.deleteData(this.app, this.hashCode, true);
         if (objectInfo == null) {
             LOGGER.info("The object with code: " + String.valueOf(this.hashCode) + " is not used by any task");
 
@@ -56,7 +59,7 @@ public class DeregisterObject extends APRequest {
             // I think it's not possible to enter here, the problem we had was that
             // they were not deleted, but I think it's mandatory to log out what happens
         } else {
-            LOGGER.info("Data of : " + String.valueOf(hashCode) + " deleted");
+            LOGGER.info("Data of : " + String.valueOf(this.hashCode) + " deleted");
         }
         // At this point all the ObjectInfo versions (renamings) are
         // out of the DataInfoProvider data structures

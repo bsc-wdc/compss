@@ -71,6 +71,7 @@ public abstract class DataInfo<T extends DataParams> {
         this.pendingDeletions = new LinkedList<>();
         this.canceledVersions = new LinkedList<>();
         this.deleted = false;
+        this.params.getApp().addData(this);
     }
 
     /**

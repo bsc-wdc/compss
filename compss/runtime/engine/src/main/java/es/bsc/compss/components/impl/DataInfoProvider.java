@@ -122,8 +122,6 @@ public class DataInfoProvider {
 
     private DataInfo registerData(DataParams data) {
         DataInfo dInfo = data.createDataInfo(this);
-        Application app = data.getApp();
-        app.addData(dInfo);
         this.idToData.put(dInfo.getDataId(), dInfo);
         return dInfo;
     }

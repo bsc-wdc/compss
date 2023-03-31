@@ -32,6 +32,9 @@ public class DataVersion {
     private boolean canceled;
     private List<Semaphore> semReaders;
 
+    private DataVersion prevValidVersion;
+    private DataVersion nextValidVersion;
+
 
     /**
      * Creates a new DataVersion instance.
@@ -39,7 +42,7 @@ public class DataVersion {
      * @param dataId Data Id.
      * @param versionId Version Id.
      */
-    public DataVersion(int dataId, int versionId) {
+    public DataVersion(int dataId, int versionId, DataVersion validPred) {
         this.readers = 0;
         this.dataInstanceId = new DataInstanceId(dataId, versionId);
         this.writers = 0;
@@ -48,6 +51,10 @@ public class DataVersion {
         this.canceled = false;
         this.semReaders = new LinkedList<>();
         this.semUsed = false;
+        this.prevValidVersion = validPred;
+        if (validPred != null) {
+            validPred.nextValidVersion = this;
+        }
     }
 
     /**
@@ -179,6 +186,24 @@ public class DataVersion {
      */
     public void versionCancelled() {
         this.canceled = true;
+        if (this.nextValidVersion != null) {
+            this.nextValidVersion.prevValidVersion = this.prevValidVersion;
+        }
+        if (this.prevValidVersion != null) {
+            this.prevValidVersion.nextValidVersion = this.nextValidVersion;
+        }
+    }
+
+    /**
+     * Returns the closer previous version that has not been cancelled.
+     *
+     * @return closer previous version that has not been cancelled.
+     */
+    public DataVersion getPreviousValidPredecessor() {
+        if (this.prevValidVersion != null && this.prevValidVersion.hasBeenCancelled()) {
+            return this.prevValidVersion.getPreviousValidPredecessor();
+        }
+        return this.prevValidVersion;
     }
 
     /**

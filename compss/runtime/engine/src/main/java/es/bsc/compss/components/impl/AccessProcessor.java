@@ -372,11 +372,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         // Tell the DM that the application wants to access a file.
         // Wait until the last writer task for the file has finished.
         DataAccessId faId = registerDataAccess(fap, AccessMode.R);
-        if (faId != null && !faId.isValidVersion()) {
-            ErrorManager.warn("The version " + ((RAccessId) faId).getRVersionId() + " of " + sourceLocation
-                + " has been cancelled. Trying to access the latest version");
-            faId = registerDataAccess(fap, AccessMode.R);
-        }
+
         DataLocation tgtLocation = sourceLocation;
         if (faId == null) { // If fiId is null data is cancelled returning null location
             ErrorManager.warn("No version available. Returning null");
@@ -462,11 +458,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
 
         // Tell the DM that the application wants to access a file.
         DataAccessId faId = registerDataAccess(fap, AccessMode.R);
-        if (faId != null && !faId.isValidVersion()) {
-            ErrorManager.warn("The version " + faId.getDataId() + " of " + sourceLocation + " has been cancelled."
-                + " Trying to access the latest version");
-            faId = registerDataAccess(fap, AccessMode.R);
-        }
+
         DataLocation tgtLocation = sourceLocation;
         if (faId == null) { // If fiId is null data is cancelled returning null location
             ErrorManager.warn("No version available. Returning null");
@@ -575,11 +567,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         // Tell the DIP that the application wants to access an object
         ObjectAccessParams oap = new ObjectAccessParams(app, AccessMode.RW, obj, hashCode);
         DataAccessId oaId = registerDataAccess(oap, AccessMode.RW);
-        if (!oaId.isValidVersion()) {
-            ErrorManager.warn("The version " + oaId.getDataId() + " of " + hashCode + " has been cancelled."
-                + " Trying to access the latest version");
-            oaId = registerDataAccess(oap, AccessMode.RW);
-        }
+
         DataInstanceId wId = ((RWAccessId) oaId).getWrittenDataInstance();
         String wRename = wId.getRenaming();
 
@@ -615,11 +603,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         // Tell the DIP that the application wants to access an object
         ObjectAccessParams oap = new ObjectAccessParams(app, AccessMode.RW, id, hashCode);
         DataAccessId oaId = registerDataAccess(oap, AccessMode.RW);
-        if (!oaId.isValidVersion()) {
-            ErrorManager.warn("The version " + oaId.getDataId() + " of " + hashCode + " has been cancelled."
-                + " Trying to access the latest version");
-            oaId = registerDataAccess(oap, AccessMode.RW);
-        }
+
         // TODO: Check if the object was already piggybacked in the task notification
         String lastRenaming = ((RWAccessId) oaId).getReadDataInstance().getRenaming();
         String newId = Comm.getData(lastRenaming).getPscoId();
@@ -661,11 +645,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         // Tell the DIP that the application wants to access an object
         BindingObjectAccessParams oap = new BindingObjectAccessParams(app, AccessMode.R, bo, hashCode);
         DataAccessId oaId = registerDataAccess(oap, AccessMode.RW);
-        if (!oaId.isValidVersion()) {
-            ErrorManager.warn("The version " + oaId.getDataId() + " of " + hashCode + " has been cancelled."
-                + " Trying to access the latest version");
-            oaId = registerDataAccess(oap, AccessMode.RW);
-        }
+
         String bindingObjectID = obtainBindingObject((RAccessId) oaId);
 
         finishDataAccess(oap);
@@ -807,6 +787,21 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         // Wait for response
         request.waitForCompletion();
         DataAccessId daId = request.getAccessId();
+
+        if (daId != null && !daId.isValidVersion()) {
+            ErrorManager.warn("The version " + ((RAccessId) daId).getRVersionId() + " of " + access.getDataDescription()
+                + " has been cancelled. Trying to access the latest version");
+
+            request = new RegisterDataAccessRequest(access, taskMode);
+            if (!this.requestQueue.offer(request)) {
+                ErrorManager.error(ERROR_QUEUE_OFFER + "register data access");
+            }
+
+            // Wait for response
+            request.waitForCompletion();
+            daId = request.getAccessId();
+
+        }
         return daId;
     }
 

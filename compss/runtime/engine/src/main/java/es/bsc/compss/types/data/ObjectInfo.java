@@ -16,25 +16,19 @@
  */
 package es.bsc.compss.types.data;
 
-import es.bsc.compss.types.Application;
+import es.bsc.compss.types.data.accessparams.DataParams.ObjectData;
 import java.util.concurrent.Semaphore;
 
 
-public class ObjectInfo extends DataInfo {
-
-    // Hash code of the object
-    private final int code;
-
+public class ObjectInfo extends DataInfo<ObjectData> {
 
     /**
-     * Creates a new ObjectInfo instance with the given hashcode.
+     * Creates a new ObjectInfo instance for the given object.
      *
-     * @param app application generating the data
-     * @param code Object hashcode.
+     * @param object description of the object related to the info
      */
-    public ObjectInfo(Application app, int code) {
-        super(app);
-        this.code = code;
+    public ObjectInfo(ObjectData object) {
+        super(object);
     }
 
     /**
@@ -43,7 +37,7 @@ public class ObjectInfo extends DataInfo {
      * @return The object hashcode.
      */
     public int getCode() {
-        return this.code;
+        return this.getParams().getCode();
     }
 
     @Override

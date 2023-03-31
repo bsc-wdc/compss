@@ -18,7 +18,7 @@ package es.bsc.compss.types.data;
 
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.Application;
+import es.bsc.compss.types.data.accessparams.DataParams.FileData;
 import es.bsc.compss.types.data.listener.SafeCopyListener;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.LocationType;
@@ -36,22 +36,18 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
-public class FileInfo extends DataInfo {
+public class FileInfo extends DataInfo<FileData> {
 
-    // Original name and location of the file
-    private final DataLocation origLocation;
     private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
 
 
     /**
-     * Creates a new FileInfo instance with the given location {@code loc}.
+     * Creates a new FileInfo instance for a given file.
      * 
-     * @param app application generating the data
-     * @param loc File location.
+     * @param file description of the file related to the info
      */
-    public FileInfo(Application app, DataLocation loc) {
-        super(app);
-        this.origLocation = loc;
+    public FileInfo(FileData file) {
+        super(file);
     }
 
     /**
@@ -60,7 +56,7 @@ public class FileInfo extends DataInfo {
      * @return The original file location.
      */
     public DataLocation getOriginalLocation() {
-        return this.origLocation;
+        return this.getParams().getLocation();
     }
 
     @Override
@@ -74,7 +70,7 @@ public class FileInfo extends DataInfo {
                 for (DataLocation loc : ld.getLocations()) {
                     MultiURI uri = loc.getURIInHost(Comm.getAppHost());
                     if (uri != null) {
-                        if (loc.equals(this.origLocation)) {
+                        if (loc.equals(getOriginalLocation())) {
                             if (loc.getType() != LocationType.SHARED) {
                                 nPermits = waitForEndingCopies(ld, loc, semWait);
                             } else {

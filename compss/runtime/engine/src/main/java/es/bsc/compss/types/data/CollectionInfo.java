@@ -16,59 +16,35 @@
  */
 package es.bsc.compss.types.data;
 
-import es.bsc.compss.types.Application;
+import es.bsc.compss.types.data.accessparams.DataParams.CollectionData;
 
 import java.util.concurrent.Semaphore;
 
 
 /**
  * Information about a collection and its versions.
- * 
+ *
  * @see DataInfo
  * @see es.bsc.compss.components.impl.DataInfoProvider registerCollectionAccess method
  */
-public class CollectionInfo extends DataInfo {
-
-    private String collectionId;
-
+public class CollectionInfo extends DataInfo<CollectionData> {
 
     /**
-     * Default constructor.
-     * 
-     * @param app application generating the data
-     * @see DataInfo empty constructor.
+     * Creates a new CollectionInfo instance for the given collection.
+     *
+     * @param data description of the collection related to the info
      */
-    public CollectionInfo(Application app) {
-        super(app);
-    }
-
-    /**
-     * Constructor with a String representing the collection Id.
-     * 
-     * @param app application generating the data
-     * @param collectionId String representing the collection Id.
-     */
-    public CollectionInfo(Application app, String collectionId) {
-        super(app);
-        this.collectionId = collectionId;
+    public CollectionInfo(CollectionData data) {
+        super(data);
     }
 
     /**
      * Get the collectionId.
-     * 
+     *
      * @return String representing the collection Id.
      */
     public String getCollectionId() {
-        return collectionId;
-    }
-
-    /**
-     * Change the value of the collectionId.
-     * 
-     * @param collectionId String representing the collection Id.
-     */
-    public void setCollectionId(String collectionId) {
-        this.collectionId = collectionId;
+        return this.getParams().getCollectionId();
     }
 
     @Override

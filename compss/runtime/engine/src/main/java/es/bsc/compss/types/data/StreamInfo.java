@@ -16,34 +16,28 @@
  */
 package es.bsc.compss.types.data;
 
-import es.bsc.compss.types.Application;
+import es.bsc.compss.types.data.accessparams.DataParams.StreamData;
 import java.util.concurrent.Semaphore;
 
 
-public class StreamInfo extends DataInfo {
-
-    // Hash code of the object
-    private final int code;
-
+public class StreamInfo extends DataInfo<StreamData> {
 
     /**
-     * Creates a new StreamInfo instance with the given hashcode.
-     * 
-     * @param app application generating the data
-     * @param code Object hashcode.
+     * Creates a new StreamInfo instance for the given stream.
+     *
+     * @param stream description of the stream related to the info
      */
-    public StreamInfo(Application app, int code) {
-        super(app);
-        this.code = code;
+    public StreamInfo(StreamData stream) {
+        super(stream);
     }
 
     /**
      * Returns the object hashcode.
-     * 
+     *
      * @return The object hashcode.
      */
     public int getCode() {
-        return this.code;
+        return this.getParams().getCode();
     }
 
     @Override

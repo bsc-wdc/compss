@@ -961,10 +961,11 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     /**
      * Marks a BindingObject for its deletion.
      *
+     * @param app Application requesting unregistering the object.
      * @param code BindingObject code.
      */
-    public void markForBindingObjectDeletion(int code) {
-        if (!this.requestQueue.offer(new DeleteBindingObjectRequest(code))) {
+    public void markForBindingObjectDeletion(Application app, int code) {
+        if (!this.requestQueue.offer(new DeleteBindingObjectRequest(app, code))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "mark for deletion");
         }
     }
@@ -1090,13 +1091,15 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     /**
      * Unregisters the given object.
      *
+     * @param app Application.
      * @param o Object to unregister.
+     * @param hashcode code of the object being removed
      */
-    public void deregisterObject(Object o) {
+    public void deregisterObject(Application app, Object o, int hashcode) {
         if (DEBUG) {
-            LOGGER.debug("Deregistering object " + o.hashCode());
+            LOGGER.debug("Deregistering object " + hashcode);
         }
-        if (!this.requestQueue.offer(new DeregisterObject(o))) {
+        if (!this.requestQueue.offer(new DeregisterObject(app, o, hashcode))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "deregister object");
         }
     }

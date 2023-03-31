@@ -1100,10 +1100,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             Tracer.emitEvent(TraceEvent.DELETE);
         }
 
+        Application app = Application.registerApplication(appId);
         // Parse the binding object name and translate the access mode
         BindingObject bo = BindingObject.generate(fileName);
         int hashCode = externalObjectHashcode(bo.getId());
-        ap.markForBindingObjectDeletion(hashCode);
+        ap.markForBindingObjectDeletion(app, hashCode);
         if (Tracer.isActivated()) {
             Tracer.emitEventEnd(TraceEvent.DELETE);
         }
@@ -1124,10 +1125,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     }
 
     @Override
-    public void removeObject(Object o, int hashcode) {
+    public void removeObject(Long appId, Object o, int hashcode) {
+        Application app = Application.registerApplication(appId);
         // This will remove the object from the Object Registry and the Data Info Provider
         // eventually allowing the garbage collector to free it (better use of memory)
-        ap.deregisterObject(o);
+        ap.deregisterObject(app, o, hashcode);
     }
 
     @Override
@@ -1275,7 +1277,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 }
                 break;
             case BINDING_OBJECT_T:
-                ap.markForBindingObjectDeletion(((BindingObjectParameter) p).getCode());
+                ap.markForBindingObjectDeletion(app, ((BindingObjectParameter) p).getCode());
                 break;
             case OBJECT_T:
                 ObjectParameter op = (ObjectParameter) p;

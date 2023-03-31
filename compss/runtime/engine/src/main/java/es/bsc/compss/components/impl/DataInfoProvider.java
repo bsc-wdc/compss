@@ -35,6 +35,7 @@ import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
 import es.bsc.compss.types.data.accessparams.DataParams;
+import es.bsc.compss.types.data.accessparams.DataParams.CollectionData;
 import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.PersistentLocation;
@@ -77,8 +78,6 @@ public class DataInfoProvider {
     // Constants definition
     private static final String RES_FILE_TRANSFER_ERR = "Error transferring result files";
 
-    // Map: collectionName -> collection identifier
-    private final TreeMap<String, Integer> collectionToId;
     // Map: hash code -> object identifier
     private final TreeMap<Integer, Integer> codeToId;
 
@@ -96,7 +95,6 @@ public class DataInfoProvider {
      * New Data Info Provider instance.
      */
     public DataInfoProvider() {
-        this.collectionToId = new TreeMap<>();
         this.codeToId = new TreeMap<>();
         this.idToData = new TreeMap<>();
         this.valuesOnMain = new TreeSet<>();
@@ -112,18 +110,8 @@ public class DataInfoProvider {
         this.codeToId.put(code, dataId);
     }
 
-    public Integer getCollectionDataId(String collectionId) {
-        return this.collectionToId.get(collectionId);
-    }
-
-    public void registerCollectionDataId(String collectionId, int dataId) {
-        this.collectionToId.put(collectionId, dataId);
-    }
-
     private DataInfo registerData(DataParams data) {
         DataInfo dInfo = data.createDataInfo(this);
-        Application app = data.getApp();
-        app.addData(dInfo);
         this.idToData.put(dInfo.getDataId(), dInfo);
         return dInfo;
     }
@@ -557,10 +545,11 @@ public class DataInfoProvider {
     /**
      * Deletes the data associated with the code.
      *
+     * @param app Application requesting the data deletion
      * @param code Data code.
      * @return DataInfo associated with the given code.
      */
-    public DataInfo deleteData(int code, boolean noReuse) {
+    public DataInfo deleteData(Application app, int code, boolean noReuse) {
         if (DEBUG) {
             LOGGER.debug("Deleting Data associated with code: " + String.valueOf(code));
         }
@@ -590,12 +579,14 @@ public class DataInfoProvider {
     /**
      * Deletes a collection.
      *
+     * @param app Application requesting the data deletion
      * @param collectionId Collection identifier
      * @param noReuse no reuse flag
      * @return DataInfo
      */
-    public DataInfo deleteCollection(String collectionId, boolean noReuse) {
-        Integer oId = this.collectionToId.get(collectionId);
+    public DataInfo deleteCollection(Application app, String collectionId, boolean noReuse) {
+        CollectionData cd = new CollectionData(app, collectionId);
+        Integer oId = cd.getDataId(this);
         DataInfo dataInfo = this.idToData.get(oId);
 
         // We delete the data associated with all the versions of the same object

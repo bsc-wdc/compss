@@ -220,19 +220,19 @@ public class TaskAnalyser implements GraphHandler {
             case OBJECT_T:
             case PSCO_T:
                 ObjectParameter op = (ObjectParameter) p;
-                dip.deleteData(op.getCode(), noReuse);
+                dip.deleteData(app, op.getCode(), noReuse);
                 break;
             case EXTERNAL_PSCO_T:
                 ExternalPSCOParameter epscop = (ExternalPSCOParameter) p;
-                dip.deleteData(epscop.getCode(), noReuse);
+                dip.deleteData(app, epscop.getCode(), noReuse);
                 break;
             case BINDING_OBJECT_T:
                 BindingObjectParameter bindingObjectparam = (BindingObjectParameter) p;
-                dip.deleteData(bindingObjectparam.getCode(), noReuse);
+                dip.deleteData(app, bindingObjectparam.getCode(), noReuse);
                 break;
             case STREAM_T:
                 StreamParameter sp = (StreamParameter) p;
-                dip.deleteData(sp.getCode(), noReuse);
+                dip.deleteData(app, sp.getCode(), noReuse);
                 break;
             case EXTERNAL_STREAM_T:
                 ExternalStreamParameter esp = (ExternalStreamParameter) p;
@@ -241,7 +241,7 @@ public class TaskAnalyser implements GraphHandler {
             case COLLECTION_T:
             case DICT_COLLECTION_T:
                 CollectiveParameter cParam = (CollectiveParameter) p;
-                dip.deleteCollection(cParam.getCollectionId(), true);
+                dip.deleteCollection(app, cParam.getCollectionId(), true);
                 break;
             default:
                 // This is a basic type nothing to delete
@@ -689,7 +689,7 @@ public class TaskAnalyser implements GraphHandler {
                 if (IS_DRAW_GRAPH) {
                     this.gm.stopGroupingEdges();
                 }
-                DataInfo ci = dip.deleteCollection(cp.getCollectionId(), true);
+                DataInfo ci = dip.deleteCollection(app, cp.getCollectionId(), true);
                 deleteData(ci, false);
                 break;
             default:

@@ -26,6 +26,7 @@ import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
 import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.util.ErrorManager;
 
 import java.util.concurrent.Semaphore;
 
@@ -84,16 +85,7 @@ public class RegisterDataAccessRequest extends APRequest implements TaskListener
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
         this.accessId = ta.processMainAccess(this);
         if (pendingOperation == 0) {
-            if (DEBUG) {
-                if (accessId != null) {
-                    int dataId = this.accessId.getDataId();
-                    LOGGER.debug("Data " + dataId + " available for main access");
-                } else {
-                    LOGGER.debug("Accessed data was canceled");
-                }
-            }
-            released = true;
-            sem.release();
+            this.notifyReady();
         }
         sem.release();
     }
@@ -134,18 +126,25 @@ public class RegisterDataAccessRequest extends APRequest implements TaskListener
 
     @Override
     public void taskFinished() {
-        Application app = this.accessParams.getApp();
         synchronized (this) {
             pendingOperation--;
             if (pendingOperation == 0) {
-                if (DEBUG) {
-                    int dataId = this.accessId.getDataId();
-                    LOGGER.debug("Data " + dataId + " available for main access");
-                }
-                sem.release();
-                released = true;
+                notifyReady();
             }
         }
+    }
+
+    private void notifyReady() {
+        if (DEBUG) {
+            if (accessId != null) {
+                int dataId = this.accessId.getDataId();
+                LOGGER.debug("Data " + dataId + " available for main access");
+            } else {
+                LOGGER.debug("Inexisting data");
+            }
+        }
+        released = true;
+        sem.release();
     }
 
     @Override

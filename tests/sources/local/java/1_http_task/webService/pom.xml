@@ -10,7 +10,7 @@
     <parent>
         <groupId>es.bsc.compss.tests</groupId>
         <artifactId>1_http_task</artifactId>
-        <version>3.1.rc2303</version>
+        <version>3.1.rc2304</version>
         <relativePath>..</relativePath>
     </parent>
 

@@ -788,20 +788,6 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         request.waitForCompletion();
         DataAccessId daId = request.getAccessId();
 
-        if (daId != null && !daId.isValidVersion()) {
-            ErrorManager.warn("The version " + ((RAccessId) daId).getRVersionId() + " of " + access.getDataDescription()
-                + " has been cancelled. Trying to access the latest version");
-
-            request = new RegisterDataAccessRequest(access, taskMode);
-            if (!this.requestQueue.offer(request)) {
-                ErrorManager.error(ERROR_QUEUE_OFFER + "register data access");
-            }
-
-            // Wait for response
-            request.waitForCompletion();
-            daId = request.getAccessId();
-
-        }
         return daId;
     }
 

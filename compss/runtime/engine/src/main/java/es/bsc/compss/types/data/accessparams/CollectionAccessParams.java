@@ -20,6 +20,7 @@ import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
+import es.bsc.compss.types.data.DataVersion;
 import es.bsc.compss.types.data.accessparams.DataParams.CollectionData;
 
 
@@ -44,11 +45,14 @@ public class CollectionAccessParams extends AccessParams {
 
     @Override
     public void registeredAsFirstVersionForData(DataInfo dInfo) {
+        DataVersion dv = dInfo.getCurrentDataVersion();
         if (mode != AccessMode.W) {
-            DataInstanceId lastDID = dInfo.getCurrentDataVersion().getDataInstanceId();
+            DataInstanceId lastDID = dv.getDataInstanceId();
             String renaming = lastDID.getRenaming();
             // Null until the two-step transfer method is implemented
             Comm.registerCollection(renaming, null);
+        } else {
+            dv.invalidate();
         }
     }
 

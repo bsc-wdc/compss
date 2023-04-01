@@ -135,11 +135,14 @@ public class RegisterDataAccessRequest extends APRequest implements TaskListener
     }
 
     private void notifyReady() {
-        if (DEBUG) {
-            if (accessId != null) {
-                int dataId = this.accessId.getDataId();
+        if (accessId != null) {
+            int dataId = this.accessId.getDataId();
+            if (DEBUG) {
                 LOGGER.debug("Data " + dataId + " available for main access");
-            } else {
+            }
+            this.accessId = this.accessId.consolidateValidVersions();
+        } else {
+            if (DEBUG) {
                 LOGGER.debug("Inexisting data");
             }
         }

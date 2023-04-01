@@ -103,8 +103,16 @@ public class RAccessId extends DataAccessId {
     }
 
     @Override
-    public boolean isValidVersion() {
-        return !this.readDataVersion.hasBeenCancelled();
+    public DataAccessId consolidateValidVersions() {
+        if (!this.readDataVersion.isValid()) {
+            DataVersion validR = this.readDataVersion.getPreviousValidPredecessor();
+            if (validR != null) {
+                return new RAccessId(validR);
+            } else {
+                return null;
+            }
+        }
+        return this;
     }
 
 }

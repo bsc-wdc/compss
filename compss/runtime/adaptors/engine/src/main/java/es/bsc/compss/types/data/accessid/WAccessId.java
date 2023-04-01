@@ -101,8 +101,8 @@ public class WAccessId extends DataAccessId {
     }
 
     @Override
-    public boolean isValidVersion() {
-        return !this.writtenDataVersion.hasBeenCancelled();
+    public DataAccessId consolidateValidVersions() {
+        return this;
     }
 
 }

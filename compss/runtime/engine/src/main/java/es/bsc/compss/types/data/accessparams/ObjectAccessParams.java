@@ -20,6 +20,7 @@ import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
+import es.bsc.compss.types.data.DataVersion;
 import es.bsc.compss.types.data.accessparams.DataParams.ObjectData;
 
 
@@ -82,10 +83,13 @@ public class ObjectAccessParams<T extends Object> extends AccessParams {
 
     @Override
     public void registeredAsFirstVersionForData(DataInfo dInfo) {
+        DataVersion dv = dInfo.getCurrentDataVersion();
         if (mode != AccessMode.W) {
-            DataInstanceId lastDID = dInfo.getCurrentDataVersion().getDataInstanceId();
+            DataInstanceId lastDID = dv.getDataInstanceId();
             String renaming = lastDID.getRenaming();
             Comm.registerValue(renaming, value);
+        } else {
+            dv.invalidate();
         }
     }
 

@@ -41,16 +41,6 @@ public class RAccessId extends DataAccessId {
     }
 
     /**
-     * Creates a new Read Access Id for data id {@code dataId} and version {@code rVersionId}.
-     * 
-     * @param dataId Data id.
-     * @param rVersionId Read version id.
-     */
-    public RAccessId(int dataId, int rVersionId) {
-        this.readDataVersion = new DataVersion(dataId, rVersionId);
-    }
-
-    /**
      * Sets a new data version.
      * 
      * @param rdv New data version.
@@ -113,8 +103,16 @@ public class RAccessId extends DataAccessId {
     }
 
     @Override
-    public boolean isValidVersion() {
-        return !this.readDataVersion.hasBeenCancelled();
+    public DataAccessId consolidateValidVersions() {
+        if (!this.readDataVersion.isValid()) {
+            DataVersion validR = this.readDataVersion.getPreviousValidPredecessor();
+            if (validR != null) {
+                return new RAccessId(validR);
+            } else {
+                return null;
+            }
+        }
+        return this;
     }
 
 }

@@ -65,7 +65,7 @@ public abstract class DataInfo<T extends DataParams> {
         this.params = data;
         this.versions = new TreeMap<>();
         this.currentVersionId = FIRST_VERSION_ID;
-        this.currentVersion = new DataVersion(dataId, 1);
+        this.currentVersion = new DataVersion(dataId, 1, null);
         this.versions.put(currentVersionId, currentVersion);
         this.deletionBlocks = 0;
         this.pendingDeletions = new LinkedList<>();
@@ -176,7 +176,11 @@ public abstract class DataInfo<T extends DataParams> {
      */
     public void willBeWritten() {
         this.currentVersionId++;
-        DataVersion newVersion = new DataVersion(this.dataId, this.currentVersionId);
+        DataVersion validPred = currentVersion;
+        if (currentVersion.hasBeenCancelled()) {
+            validPred = currentVersion.getPreviousValidPredecessor();
+        }
+        DataVersion newVersion = new DataVersion(this.dataId, this.currentVersionId, this.currentVersion);
         newVersion.willBeWritten();
         this.versions.put(this.currentVersionId, newVersion);
         this.currentVersion = newVersion;

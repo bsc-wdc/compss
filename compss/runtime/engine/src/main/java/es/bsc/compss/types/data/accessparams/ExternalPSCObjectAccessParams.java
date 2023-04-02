@@ -20,6 +20,7 @@ import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
+import es.bsc.compss.types.data.DataVersion;
 import es.bsc.compss.types.data.accessparams.DataParams.ExternalPSCObjectData;
 
 
@@ -54,10 +55,13 @@ public class ExternalPSCObjectAccessParams extends ObjectAccessParams {
 
     @Override
     public void registeredAsFirstVersionForData(DataInfo dInfo) {
+        DataVersion dv = dInfo.getCurrentDataVersion();
         if (mode != AccessMode.W) {
-            DataInstanceId lastDID = dInfo.getCurrentDataVersion().getDataInstanceId();
+            DataInstanceId lastDID = dv.getDataInstanceId();
             String renaming = lastDID.getRenaming();
             Comm.registerExternalPSCO(renaming, this.getPSCOId());
+        } else {
+            dv.invalidate();
         }
     }
 

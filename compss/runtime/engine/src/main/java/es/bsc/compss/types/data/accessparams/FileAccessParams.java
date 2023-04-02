@@ -20,6 +20,7 @@ import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
+import es.bsc.compss.types.data.DataVersion;
 import es.bsc.compss.types.data.accessparams.DataParams.FileData;
 import es.bsc.compss.types.data.location.DataLocation;
 
@@ -58,10 +59,13 @@ public class FileAccessParams extends AccessParams {
 
     @Override
     public void registeredAsFirstVersionForData(DataInfo dInfo) {
+        DataVersion dv = dInfo.getCurrentDataVersion();
         if (mode != AccessMode.W) {
-            DataInstanceId lastDID = dInfo.getCurrentDataVersion().getDataInstanceId();
+            DataInstanceId lastDID = dv.getDataInstanceId();
             String renaming = lastDID.getRenaming();
             Comm.registerLocation(renaming, this.loc);
+        } else {
+            dv.invalidate();
         }
     }
 

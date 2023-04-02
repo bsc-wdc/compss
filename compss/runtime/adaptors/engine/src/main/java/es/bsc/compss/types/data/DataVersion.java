@@ -30,7 +30,11 @@ public class DataVersion {
     private boolean used; // The version has been read or written
     private boolean semUsed;
     private boolean canceled;
+    private boolean valid;
     private List<Semaphore> semReaders;
+
+    private DataVersion prevValidVersion;
+    private DataVersion nextValidVersion;
 
 
     /**
@@ -38,9 +42,9 @@ public class DataVersion {
      *
      * @param dataId Data Id.
      * @param versionId Version Id.
+     * @param predecessor Previous version of the same data
      */
-    public DataVersion(int dataId, int versionId) {
-        this.readers = 0;
+    public DataVersion(int dataId, int versionId, DataVersion predecessor) {
         this.dataInstanceId = new DataInstanceId(dataId, versionId);
         this.writers = 0;
         this.toDelete = false;
@@ -48,6 +52,20 @@ public class DataVersion {
         this.canceled = false;
         this.semReaders = new LinkedList<>();
         this.semUsed = false;
+        this.valid = true;
+        this.prevValidVersion = null;
+        if (predecessor != null) {
+            if (predecessor.isValid()) {
+                this.prevValidVersion = predecessor;
+                this.prevValidVersion.nextValidVersion = this;
+            } else {
+                predecessor = predecessor.getPreviousValidPredecessor();
+                if (predecessor != null) {
+                    this.prevValidVersion = predecessor;
+                    this.prevValidVersion.nextValidVersion = this;
+                }
+            }
+        }
     }
 
     /**
@@ -103,7 +121,11 @@ public class DataVersion {
                 s.release();
             }
         }
-        return this.toDelete && checkDeletion();
+        if (this.toDelete && checkDeletion()) {
+            invalidate();
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -113,7 +135,11 @@ public class DataVersion {
      */
     public boolean hasBeenWritten() {
         this.writers--;
-        return this.toDelete && checkDeletion();
+        if (this.toDelete && checkDeletion()) {
+            invalidate();
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -141,7 +167,11 @@ public class DataVersion {
      */
     public boolean markToDelete() {
         this.toDelete = true;
-        return checkDeletion();
+        if (checkDeletion()) {
+            invalidate();
+            return true;
+        }
+        return false;
     }
 
     public void unmarkToDelete() {
@@ -179,6 +209,43 @@ public class DataVersion {
      */
     public void versionCancelled() {
         this.canceled = true;
+        invalidate();
+    }
+
+    /**
+     * Marks the version as invalid.
+     */
+    public void invalidate() {
+        if (this.valid) {
+            this.valid = false;
+            if (this.nextValidVersion != null) {
+                this.nextValidVersion.prevValidVersion = this.prevValidVersion;
+            }
+            if (this.prevValidVersion != null) {
+                this.prevValidVersion.nextValidVersion = this.nextValidVersion;
+            }
+        }
+    }
+
+    /**
+     * Returns whether the version is valid or not.
+     *
+     * @return {@code false} if the version is valid, {@code true} otherwise.
+     */
+    public boolean isValid() {
+        return this.valid;
+    }
+
+    /**
+     * Returns the closer previous version that has not been cancelled.
+     *
+     * @return closer previous version that has not been cancelled.
+     */
+    public DataVersion getPreviousValidPredecessor() {
+        if (this.prevValidVersion != null && !this.prevValidVersion.isValid()) {
+            return this.prevValidVersion.getPreviousValidPredecessor();
+        }
+        return this.prevValidVersion;
     }
 
     /**

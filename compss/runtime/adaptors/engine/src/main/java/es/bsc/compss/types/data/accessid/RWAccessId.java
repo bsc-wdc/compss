@@ -133,8 +133,16 @@ public class RWAccessId extends DataAccessId {
     }
 
     @Override
-    public boolean isValidVersion() {
-        return !this.writtenDataVersion.hasBeenCancelled();
+    public DataAccessId consolidateValidVersions() {
+        if (!this.readDataVersion.isValid()) {
+            DataVersion validR = this.readDataVersion.getPreviousValidPredecessor();
+            if (validR != null) {
+                return new RWAccessId(validR, this.writtenDataVersion);
+            } else {
+                return null;
+            }
+        }
+        return this;
     }
 
 }

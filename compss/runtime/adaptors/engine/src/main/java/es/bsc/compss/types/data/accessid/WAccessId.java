@@ -40,16 +40,6 @@ public class WAccessId extends DataAccessId {
     }
 
     /**
-     * Creates a new Write Access Id for data id {@code dataId} and version {@code wVersionId}.
-     * 
-     * @param dataId Data id.
-     * @param wVersionId Write version id.
-     */
-    public WAccessId(int dataId, int wVersionId) {
-        this.writtenDataVersion = new DataVersion(dataId, wVersionId);
-    }
-
-    /**
      * Creates a new WriteAccessId with the given data version.
      * 
      * @param wdv Write version.
@@ -111,8 +101,8 @@ public class WAccessId extends DataAccessId {
     }
 
     @Override
-    public boolean isValidVersion() {
-        return !this.writtenDataVersion.hasBeenCancelled();
+    public DataAccessId consolidateValidVersions() {
+        return this;
     }
 
 }

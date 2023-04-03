@@ -33,9 +33,11 @@ public abstract class DataParams {
 
     public abstract String getDescription();
 
+    public abstract DataInfo createDataInfo(DataInfoProvider dip);
+
     public abstract Integer getDataId(DataInfoProvider dip);
 
-    public abstract DataInfo createDataInfo(DataInfoProvider dip);
+    public abstract Integer removeDataId(DataInfoProvider dip);
 
     public DataParams(Application app) {
         this.app = app;
@@ -84,6 +86,13 @@ public abstract class DataParams {
             return app.getFileDataId(locationKey);
         }
 
+        @Override
+        public Integer removeDataId(DataInfoProvider dip) {
+            Application app = this.getApp();
+            String locationKey = loc.getLocationKey();
+            return app.removeFileData(locationKey);
+        }
+
         public DataLocation getLocation() {
             return this.loc;
         }
@@ -121,6 +130,11 @@ public abstract class DataParams {
             DataInfo oInfo = new ObjectInfo(this);
             dip.registerObjectDataId(code, oInfo.getDataId());
             return oInfo;
+        }
+
+        @Override
+        public Integer removeDataId(DataInfoProvider dip) {
+            return dip.deregisterObjectDataId(code);
         }
 
         public int getCode() {
@@ -234,6 +248,12 @@ public abstract class DataParams {
             Application app = this.getApp();
             app.registerCollectionData(this.collectionId, cInfo);
             return cInfo;
+        }
+
+        @Override
+        public Integer removeDataId(DataInfoProvider dip) {
+            Application app = this.getApp();
+            return app.removeCollectionData(this.collectionId);
         }
 
         public String getCollectionId() {

@@ -109,8 +109,8 @@ public class DataInfoProvider {
         this.codeToId.put(code, dataId);
     }
 
-    public void deregisterObjectDataId(int code) {
-        this.codeToId.remove(code);
+    public Integer deregisterObjectDataId(int code) {
+        return this.codeToId.remove(code);
     }
 
     private DataInfo registerData(DataParams data) {
@@ -531,7 +531,7 @@ public class DataInfoProvider {
         if (DEBUG) {
             LOGGER.debug("Deleting Data associated to " + data.getDescription());
         }
-        Integer id = data.getDataId(this);
+        Integer id = data.removeDataId(this);
         if (id == null) {
             if (DEBUG) {
                 LOGGER.debug("No data id found for data associated to " + data.getDescription());
@@ -571,8 +571,9 @@ public class DataInfoProvider {
             return null;
         }
 
-        DataInfo dataInfo = this.idToData.get(dataId);
         app.removeFileData(locationKey);
+
+        DataInfo dataInfo = this.idToData.get(dataId);
         if (dataInfo != null) {
             if (dataInfo.delete(noReuse)) {
                 deregisterData(dataInfo);

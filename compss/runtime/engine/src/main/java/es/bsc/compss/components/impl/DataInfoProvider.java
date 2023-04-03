@@ -35,7 +35,6 @@ import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
 import es.bsc.compss.types.data.accessparams.DataParams;
-import es.bsc.compss.types.data.accessparams.DataParams.CollectionData;
 import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.PersistentLocation;
@@ -522,6 +521,40 @@ public class DataInfoProvider {
     }
 
     /**
+     * Marks a data for deletion.
+     *
+     * @param data data to be deleted
+     * @param noReuse no reuse flag
+     * @return DataInfo associated with the data to remove
+     */
+    public DataInfo deleteData(DataParams data, boolean noReuse) {
+        if (DEBUG) {
+            LOGGER.debug("Deleting Data associated to " + data.getDescription());
+        }
+        Integer id = data.getDataId(this);
+        if (id == null) {
+            if (DEBUG) {
+                LOGGER.debug("No data id found for data associated to " + data.getDescription());
+            }
+            return null;
+        }
+        DataInfo dataInfo = this.idToData.get(id);
+        if (dataInfo != null) {
+            // We delete the data associated with all the versions of the same object
+            if (dataInfo.delete(noReuse)) {
+                deregisterData(dataInfo);
+            }
+            return dataInfo;
+        } else {
+            if (DEBUG) {
+                LOGGER.debug("No data found for data associated to " + data.getDescription());
+            }
+            return null;
+        }
+
+    }
+
+    /**
      * Marks a data Id for deletion.
      *
      * @param app Application requesting the data deletion
@@ -584,27 +617,6 @@ public class DataInfoProvider {
             return null;
         }
 
-    }
-
-    /**
-     * Deletes a collection.
-     *
-     * @param app Application requesting the data deletion
-     * @param collectionId Collection identifier
-     * @param noReuse no reuse flag
-     * @return DataInfo
-     */
-    public DataInfo deleteCollection(Application app, String collectionId, boolean noReuse) {
-        CollectionData cd = new CollectionData(app, collectionId);
-        Integer oId = cd.getDataId(this);
-        DataInfo dataInfo = this.idToData.get(oId);
-
-        // We delete the data associated with all the versions of the same object
-        if (dataInfo.delete(noReuse)) {
-            deregisterData(dataInfo);
-        }
-
-        return dataInfo;
     }
 
     /**

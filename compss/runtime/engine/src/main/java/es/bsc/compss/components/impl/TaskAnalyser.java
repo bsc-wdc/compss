@@ -44,6 +44,8 @@ import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
 import es.bsc.compss.types.data.accessparams.BindingObjectAccessParams;
 import es.bsc.compss.types.data.accessparams.CollectionAccessParams;
+import es.bsc.compss.types.data.accessparams.DataParams;
+import es.bsc.compss.types.data.accessparams.DataParams.CollectionData;
 import es.bsc.compss.types.data.accessparams.ExternalPSCObjectAccessParams;
 import es.bsc.compss.types.data.accessparams.ExternalStreamAccessParams;
 import es.bsc.compss.types.data.accessparams.FileAccessParams;
@@ -241,7 +243,8 @@ public class TaskAnalyser implements GraphHandler {
             case COLLECTION_T:
             case DICT_COLLECTION_T:
                 CollectiveParameter cParam = (CollectiveParameter) p;
-                dip.deleteCollection(app, cParam.getCollectionId(), true);
+                CollectionData cd = new CollectionData(app, cParam.getCollectionId());
+                DataInfo ci = dip.deleteData(cd, true);
                 break;
             default:
                 // This is a basic type nothing to delete
@@ -689,7 +692,8 @@ public class TaskAnalyser implements GraphHandler {
                 if (IS_DRAW_GRAPH) {
                     this.gm.stopGroupingEdges();
                 }
-                DataInfo ci = dip.deleteCollection(app, cp.getCollectionId(), true);
+                CollectionData cd = new CollectionData(app, cp.getCollectionId());
+                DataInfo ci = dip.deleteData(cd, true);
                 deleteData(ci, false);
                 break;
             default:

@@ -80,6 +80,8 @@ public class Application {
     private LinkedList<DataInfo> data;
     // Map: filename:host:path -> file identifier
     private final TreeMap<String, Integer> nameToId;
+    // Map: hash code -> object identifier
+    private final TreeMap<Integer, Integer> codeToId;
     // Map: collectionName -> collection identifier
     private final TreeMap<String, Integer> collectionToId;
 
@@ -224,6 +226,7 @@ public class Application {
         this.stackTaskGroup("App" + appId);
         this.data = new LinkedList<>();
         this.nameToId = new TreeMap<>();
+        this.codeToId = new TreeMap<>();
         this.collectionToId = new TreeMap<>();
         this.writtenFileDataIds = new HashSet<>();
         this.writtenPSCODataIds = new HashSet<>();
@@ -443,6 +446,36 @@ public class Application {
      */
     public Integer removeFileData(String locationKey) {
         return this.nameToId.remove(locationKey);
+    }
+
+    /**
+     * Stores the relation between an object and the corresponding dataInfo.
+     *
+     * @param code hashcode of the object
+     * @param di data registered by the application
+     */
+    public void registerObjectData(int code, DataInfo di) {
+        this.codeToId.put(code, di.getDataId());
+    }
+
+    /**
+     * Returns the Data Id related to an object.
+     *
+     * @param code hashcode of the object
+     * @return data Id related to the object
+     */
+    public Integer getObjectDataId(int code) {
+        return this.codeToId.get(code);
+    }
+
+    /**
+     * Removes any data association related to an object.
+     *
+     * @param code hashcode of the object
+     * @return data Id related to the object
+     */
+    public Integer removeObjectData(int code) {
+        return this.codeToId.remove(code);
     }
 
     /**

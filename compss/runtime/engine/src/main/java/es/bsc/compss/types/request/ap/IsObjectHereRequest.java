@@ -20,7 +20,9 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
+import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.DataInstanceId;
+import es.bsc.compss.types.data.accessparams.DataParams.ObjectData;
 import es.bsc.compss.types.tracing.TraceEvent;
 
 import java.util.concurrent.Semaphore;
@@ -28,13 +30,22 @@ import java.util.concurrent.Semaphore;
 
 public class IsObjectHereRequest extends APRequest {
 
+    private final Application app;
     private final int code;
     private final Semaphore sem;
 
     private boolean response;
 
 
-    public IsObjectHereRequest(int code, Semaphore sem) {
+    /**
+     * Constructs a new AP request to check whether the object is in the main memory or not.
+     * 
+     * @param app Application accessing the object
+     * @param code Object being accessed
+     * @param sem semaphore where the request will wait
+     */
+    public IsObjectHereRequest(Application app, int code, Semaphore sem) {
+        this.app = app;
         this.code = code;
         this.sem = sem;
     }
@@ -68,7 +79,7 @@ public class IsObjectHereRequest extends APRequest {
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
-        DataInstanceId dId = dip.getLastDataAccess(this.code);
+        DataInstanceId dId = dip.getLastDataAccess(new ObjectData(this.app, this.code));
         this.response = dip.isHere(dId);
         this.sem.release();
     }

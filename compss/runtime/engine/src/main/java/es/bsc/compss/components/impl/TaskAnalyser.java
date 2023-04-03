@@ -44,6 +44,14 @@ import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
 import es.bsc.compss.types.data.accessparams.BindingObjectAccessParams;
 import es.bsc.compss.types.data.accessparams.CollectionAccessParams;
+import es.bsc.compss.types.data.accessparams.DataParams;
+import es.bsc.compss.types.data.accessparams.DataParams.BindingObjectData;
+import es.bsc.compss.types.data.accessparams.DataParams.CollectionData;
+import es.bsc.compss.types.data.accessparams.DataParams.ExternalPSCObjectData;
+import es.bsc.compss.types.data.accessparams.DataParams.ExternalStreamData;
+import es.bsc.compss.types.data.accessparams.DataParams.FileData;
+import es.bsc.compss.types.data.accessparams.DataParams.ObjectData;
+import es.bsc.compss.types.data.accessparams.DataParams.StreamData;
 import es.bsc.compss.types.data.accessparams.ExternalPSCObjectAccessParams;
 import es.bsc.compss.types.data.accessparams.ExternalStreamAccessParams;
 import es.bsc.compss.types.data.accessparams.FileAccessParams;
@@ -211,37 +219,38 @@ public class TaskAnalyser implements GraphHandler {
         switch (p.getType()) {
             case DIRECTORY_T:
                 DirectoryParameter dp = (DirectoryParameter) p;
-                dip.deleteData(app, dp.getLocation(), noReuse);
+                dip.deleteData(new FileData(app, dp.getLocation()), noReuse);
                 break;
             case FILE_T:
                 FileParameter fp = (FileParameter) p;
-                dip.deleteData(app, fp.getLocation(), noReuse);
+                dip.deleteData(new FileData(app, fp.getLocation()), noReuse);
                 break;
             case OBJECT_T:
             case PSCO_T:
                 ObjectParameter op = (ObjectParameter) p;
-                dip.deleteData(app, op.getCode(), noReuse);
+                dip.deleteData(new ObjectData(app, op.getCode()), noReuse);
                 break;
             case EXTERNAL_PSCO_T:
                 ExternalPSCOParameter epscop = (ExternalPSCOParameter) p;
-                dip.deleteData(app, epscop.getCode(), noReuse);
+                dip.deleteData(new ExternalPSCObjectData(app, epscop.getCode()), noReuse);
                 break;
             case BINDING_OBJECT_T:
                 BindingObjectParameter bindingObjectparam = (BindingObjectParameter) p;
-                dip.deleteData(app, bindingObjectparam.getCode(), noReuse);
+                dip.deleteData(new BindingObjectData(app, bindingObjectparam.getCode()), noReuse);
                 break;
             case STREAM_T:
                 StreamParameter sp = (StreamParameter) p;
-                dip.deleteData(app, sp.getCode(), noReuse);
+                dip.deleteData(new StreamData(app, sp.getCode()), noReuse);
                 break;
             case EXTERNAL_STREAM_T:
                 ExternalStreamParameter esp = (ExternalStreamParameter) p;
-                dip.deleteData(app, esp.getLocation(), noReuse);
+                dip.deleteData(new ExternalStreamData(app, esp.getLocation().hashCode()), noReuse);
                 break;
             case COLLECTION_T:
             case DICT_COLLECTION_T:
                 CollectiveParameter cParam = (CollectiveParameter) p;
-                dip.deleteCollection(app, cParam.getCollectionId(), true);
+                CollectionData cd = new CollectionData(app, cParam.getCollectionId());
+                DataInfo ci = dip.deleteData(cd, true);
                 break;
             default:
                 // This is a basic type nothing to delete
@@ -689,7 +698,8 @@ public class TaskAnalyser implements GraphHandler {
                 if (IS_DRAW_GRAPH) {
                     this.gm.stopGroupingEdges();
                 }
-                DataInfo ci = dip.deleteCollection(app, cp.getCollectionId(), true);
+                CollectionData cd = new CollectionData(app, cp.getCollectionId());
+                DataInfo ci = dip.deleteData(cd, true);
                 deleteData(ci, false);
                 break;
             default:

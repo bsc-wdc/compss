@@ -35,7 +35,6 @@ import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
 import es.bsc.compss.types.data.accessparams.DataParams;
-import es.bsc.compss.types.data.accessparams.DataParams.CollectionData;
 import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.PersistentLocation;
@@ -110,10 +109,20 @@ public class DataInfoProvider {
         this.codeToId.put(code, dataId);
     }
 
+    public Integer deregisterObjectDataId(int code) {
+        return this.codeToId.remove(code);
+    }
+
     private DataInfo registerData(DataParams data) {
         DataInfo dInfo = data.createDataInfo(this);
         this.idToData.put(dInfo.getDataId(), dInfo);
         return dInfo;
+    }
+
+    private void deregisterData(DataInfo di) {
+        int dataId = di.getDataId();
+        idToData.remove(dataId);
+        di.deleted(this);
     }
 
     /**
@@ -336,7 +345,7 @@ public class DataInfoProvider {
             }
 
             if (deleted) {
-                removeDataFromInternalStructures(di);
+                deregisterData(di);
             }
         } else {
             LOGGER.debug("Access of Data" + dAccId.getDataId() + " in Mode " + dAccId.getDirection().name()
@@ -380,7 +389,7 @@ public class DataInfoProvider {
             }
 
             if (deleted) {
-                removeDataFromInternalStructures(di);
+                deregisterData(di);
             }
         } else {
             LOGGER.warn("Access of Data" + dAccId.getDataId() + " in Mode " + dAccId.getDirection().name()
@@ -512,51 +521,20 @@ public class DataInfoProvider {
     }
 
     /**
-     * Marks a data Id for deletion.
+     * Marks a data for deletion.
      *
-     * @param app Application requesting the data deletion
-     * @param loc Data location.
-     * @return DataInfo associated with the given data.
+     * @param data data to be deleted
+     * @param noReuse no reuse flag
+     * @return DataInfo associated with the data to remove
      */
-    public DataInfo deleteData(Application app, DataLocation loc, boolean noReuse) {
-        LOGGER.debug("Deleting Data location: " + loc.getPath());
-        String locationKey = loc.getLocationKey();
-        Integer dataId = app.getFileDataId(locationKey);
-
-        if (dataId == null) {
-            LOGGER.debug("No data id found for this data location" + loc.getPath());
-            return null;
-        }
-
-        DataInfo dataInfo = this.idToData.get(dataId);
-        app.removeFileData(locationKey);
-        if (dataInfo != null) {
-            if (dataInfo.delete(noReuse)) {
-                removeDataFromInternalStructures(dataInfo);
-            }
-            return dataInfo;
-        } else {
-            LOGGER.debug("Data " + loc.getPath() + " already removed or cancelled");
-            return null;
-        }
-
-    }
-
-    /**
-     * Deletes the data associated with the code.
-     *
-     * @param app Application requesting the data deletion
-     * @param code Data code.
-     * @return DataInfo associated with the given code.
-     */
-    public DataInfo deleteData(Application app, int code, boolean noReuse) {
+    public DataInfo deleteData(DataParams data, boolean noReuse) {
         if (DEBUG) {
-            LOGGER.debug("Deleting Data associated with code: " + String.valueOf(code));
+            LOGGER.debug("Deleting Data associated to " + data.getDescription());
         }
-        Integer id = this.codeToId.get(code);
+        Integer id = data.removeDataId(this);
         if (id == null) {
             if (DEBUG) {
-                LOGGER.debug("No data id found for data with code " + String.valueOf(code));
+                LOGGER.debug("No data id found for data associated to " + data.getDescription());
             }
             return null;
         }
@@ -564,37 +542,16 @@ public class DataInfoProvider {
         if (dataInfo != null) {
             // We delete the data associated with all the versions of the same object
             if (dataInfo.delete(noReuse)) {
-                removeDataFromInternalStructures(dataInfo);
+                deregisterData(dataInfo);
             }
             return dataInfo;
         } else {
             if (DEBUG) {
-                LOGGER.debug("No data info found for data with code " + String.valueOf(code));
+                LOGGER.debug("No data found for data associated to " + data.getDescription());
             }
             return null;
         }
 
-    }
-
-    /**
-     * Deletes a collection.
-     *
-     * @param app Application requesting the data deletion
-     * @param collectionId Collection identifier
-     * @param noReuse no reuse flag
-     * @return DataInfo
-     */
-    public DataInfo deleteCollection(Application app, String collectionId, boolean noReuse) {
-        CollectionData cd = new CollectionData(app, collectionId);
-        Integer oId = cd.getDataId(this);
-        DataInfo dataInfo = this.idToData.get(oId);
-
-        // We delete the data associated with all the versions of the same object
-        if (dataInfo.delete(noReuse)) {
-            removeDataFromInternalStructures(dataInfo);
-        }
-
-        return dataInfo;
     }
 
     /**
@@ -802,7 +759,7 @@ public class DataInfoProvider {
                             LOGGER.debug("Trying to delete file " + origName);
                         }
                         if (fileInfo.delete(true)) {
-                            removeDataFromInternalStructures(fileInfo);
+                            deregisterData(fileInfo);
                         }
                     }
                 }
@@ -827,15 +784,6 @@ public class DataInfoProvider {
         List<DataInfo> data = app.popAllData();
         for (DataInfo di : data) {
             di.delete(true);
-        }
-    }
-
-    private void removeDataFromInternalStructures(DataInfo di) {
-        int dataId = di.getDataId();
-        idToData.remove(dataId);
-        Application app = di.getGeneratingAppId();
-        if (app != null) {
-            app.removeData(di);
         }
     }
 

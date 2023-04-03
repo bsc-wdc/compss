@@ -439,9 +439,10 @@ public class Application {
      * Removes any data association related to file location.
      *
      * @param locationKey file location
+     * @return data Id related to the file
      */
-    public void removeFileData(String locationKey) {
-        this.nameToId.remove(locationKey);
+    public Integer removeFileData(String locationKey) {
+        return this.nameToId.remove(locationKey);
     }
 
     /**
@@ -468,9 +469,10 @@ public class Application {
      * Removes any data association related to a collection.
      *
      * @param collectionId Id of the collection
+     * @return data Id related to the file
      */
-    public void removeCollectionData(String collectionId) {
-        this.collectionToId.remove(collectionId);
+    public Integer removeCollectionData(String collectionId) {
+        return this.collectionToId.remove(collectionId);
     }
 
     /**

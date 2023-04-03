@@ -22,6 +22,7 @@ import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.ObjectInfo;
+import es.bsc.compss.types.data.accessparams.DataParams.ObjectData;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.tracing.TraceEvent;
 
@@ -51,7 +52,7 @@ public class DeregisterObject extends APRequest {
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td)
         throws ShutdownException {
-        ObjectInfo objectInfo = (ObjectInfo) dip.deleteData(this.app, this.hashCode, true);
+        ObjectInfo objectInfo = (ObjectInfo) dip.deleteData(new ObjectData(this.app, this.hashCode), true);
         if (objectInfo == null) {
             LOGGER.info("The object with code: " + String.valueOf(this.hashCode) + " is not used by any task");
 

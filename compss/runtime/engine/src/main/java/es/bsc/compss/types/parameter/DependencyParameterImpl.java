@@ -22,6 +22,7 @@ import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
 
 import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.parameter.DependencyParameter;
 
 
 public abstract class DependencyParameterImpl extends ParameterImpl implements DependencyParameter {

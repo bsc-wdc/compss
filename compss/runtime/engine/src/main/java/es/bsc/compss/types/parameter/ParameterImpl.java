@@ -21,6 +21,7 @@ import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
+import es.bsc.compss.types.parameter.Parameter;
 
 
 public abstract class ParameterImpl implements Parameter {

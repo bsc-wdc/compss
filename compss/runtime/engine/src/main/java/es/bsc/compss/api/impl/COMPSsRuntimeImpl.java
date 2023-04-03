@@ -65,6 +65,7 @@ import es.bsc.compss.types.listeners.CancelTaskGroupOnResourceCreation;
 import es.bsc.compss.types.parameter.BasicTypeParameterImpl;
 import es.bsc.compss.types.parameter.BindingObjectParameter;
 import es.bsc.compss.types.parameter.CollectiveParameter;
+import es.bsc.compss.types.parameter.CollectiveParameterImpl;
 import es.bsc.compss.types.parameter.DirectoryParameter;
 import es.bsc.compss.types.parameter.ExternalPSCOParameter;
 import es.bsc.compss.types.parameter.ExternalStreamParameter;
@@ -1782,8 +1783,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     ret += addParameter(app, submonitor, elemContent, elemType, elemDir, elemStream, elemPrefix,
                         elemName, elemPyType, weight, keepRename, collectionParameters, offset + ret + 1, values) + 2;
                 }
-                CollectiveParameter cp = new CollectiveParameter(type, collectionId, direction, stream, prefix, name,
-                    colPyType, weight, keepRename, monitor, collectionParameters);
+                CollectiveParameter cp = new CollectiveParameterImpl(type, collectionId, direction, stream, prefix,
+                    name, colPyType, weight, keepRename, monitor, collectionParameters);
                 pars.add(cp);
                 return ret;
             case DICT_COLLECTION_T:
@@ -1866,7 +1867,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                         dictCollectionParams, offset + pointer, values1) + extraValue;
                     pointer += vDret;
                 }
-                CollectiveParameter dcp = new CollectiveParameter(type, dictCollectionId, direction, stream, prefix,
+                CollectiveParameter dcp = new CollectiveParameterImpl(type, dictCollectionId, direction, stream, prefix,
                     name, dictColPyType, weight, keepRename, monitor, dictCollectionParams);
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Add Dictionary Collection " + dcp.getName() + " with " + dcp.getElements().size() / 2

@@ -29,6 +29,7 @@ import es.bsc.compss.types.colors.ColorNode;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.parameter.CollectiveParameter;
+import es.bsc.compss.types.parameter.CollectiveParameterImpl;
 import es.bsc.compss.types.parameter.FileParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.uri.SimpleURI;
@@ -163,13 +164,13 @@ public class ReduceTask extends Task {
                         finalParameter.getPrefix(), finalParameter.getName(), finalParameter.getType().toString(),
                         finalParameter.getWeight(), finalParameter.isKeepRename(), dl, partialId, IGNORE_PARAM));
 
-                    CollectiveParameter cp = new CollectiveParameter(DataType.COLLECTION_T, partialId + "Collection",
-                        p.getDirection(), p.getStream(), p.getPrefix(), p.getName(), p.getContentType(), p.getWeight(),
-                        p.isKeepRename(), IGNORE_PARAM, new ArrayList<>());
+                    CollectiveParameter cp = new CollectiveParameterImpl(DataType.COLLECTION_T,
+                        partialId + "Collection", p.getDirection(), p.getStream(), p.getPrefix(), p.getName(),
+                        p.getContentType(), p.getWeight(), p.isKeepRename(), IGNORE_PARAM, new ArrayList<>());
                     intermediateCollections.add(cp);
                 }
                 String finalId = "finalReduceTask" + this.getId();
-                finalCol = new CollectiveParameter(DataType.COLLECTION_T, finalId, Direction.IN, p.getStream(),
+                finalCol = new CollectiveParameterImpl(DataType.COLLECTION_T, finalId, Direction.IN, p.getStream(),
                     p.getPrefix(), p.getName(), p.getContentType(), p.getWeight(), p.isKeepRename(), IGNORE_PARAM,
                     new ArrayList<>());
             } else {

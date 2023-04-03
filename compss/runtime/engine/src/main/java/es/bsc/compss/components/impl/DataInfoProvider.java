@@ -412,18 +412,6 @@ public class DataInfoProvider {
     }
 
     /**
-     * DataInformation interface: returns the last renaming of a given data.
-     *
-     * @param code Object code.
-     * @return Data renaming.
-     */
-    public String getLastRenaming(int code) {
-        Integer aoId = this.codeToId.get(code);
-        DataInfo oInfo = this.idToData.get(aoId);
-        return oInfo.getCurrentDataVersion().getDataInstanceId().getRenaming();
-    }
-
-    /**
      * Returns the original location of a data id.
      *
      * @param fileId File Id.

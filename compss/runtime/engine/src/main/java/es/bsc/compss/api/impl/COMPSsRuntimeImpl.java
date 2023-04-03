@@ -62,7 +62,7 @@ import es.bsc.compss.types.implementations.ExecType;
 import es.bsc.compss.types.implementations.ExecutionOrder;
 import es.bsc.compss.types.implementations.ImplementationDescription;
 import es.bsc.compss.types.listeners.CancelTaskGroupOnResourceCreation;
-import es.bsc.compss.types.parameter.BasicTypeParameter;
+import es.bsc.compss.types.parameter.BasicTypeParameterImpl;
 import es.bsc.compss.types.parameter.BindingObjectParameter;
 import es.bsc.compss.types.parameter.CollectiveParameter;
 import es.bsc.compss.types.parameter.DirectoryParameter;
@@ -1877,8 +1877,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 return pointer;
             case NULL_T:
                 LOGGER.warn(WARN_NULL_PARAM + "Parameter " + name + " is defined as None or Null");
-                pars.add(
-                    new BasicTypeParameter(type, Direction.IN, stream, prefix, name, content, weight, "null", monitor));
+                pars.add(new BasicTypeParameterImpl(type, Direction.IN, stream, prefix, name, content, weight, "null",
+                    monitor));
                 break;
             default:
                 // Basic types (including String)
@@ -1887,8 +1887,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     LOGGER.warn(WARN_WRONG_DIRECTION + "Parameter " + name
                         + " is a basic type, therefore it must have IN direction");
                 }
-                pars.add(
-                    new BasicTypeParameter(type, Direction.IN, stream, prefix, name, content, weight, pyType, monitor));
+                pars.add(new BasicTypeParameterImpl(type, Direction.IN, stream, prefix, name, content, weight, pyType,
+                    monitor));
                 break;
         }
         return 1;

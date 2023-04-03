@@ -16,75 +16,20 @@
  */
 package es.bsc.compss.types.parameter;
 
-import es.bsc.compss.api.ParameterMonitor;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.StdIOStream;
-
-
-public class BasicTypeParameter extends ParameterImpl {
-
-    /*
-     * Basic type parameter can be: - boolean - char - String - byte - short - int - long - float - double
-     */
-
-    /**
-     * Serializable objects Version UID are 1L in all Runtime.
-     */
-    private static final long serialVersionUID = 1L;
-
-    private Object value;
-
-
-    /**
-     * Creates a new BasicTypeParameter instance with the given information.
-     * 
-     * @param type Parameter type.
-     * @param direction Parameter direction.
-     * @param stream Parameter IO stream mode.
-     * @param prefix Parameter prefix.
-     * @param name Parameter name.
-     * @param value Parameter value.
-     * @param weight Parameter weight.
-     * @param monitor object to notify to changes on the parameter
-     */
-    public BasicTypeParameter(DataType type, Direction direction, StdIOStream stream, String prefix, String name,
-        Object value, double weight, String contentType, ParameterMonitor monitor) {
-        super(type, direction, stream, prefix, name, contentType, weight, false, monitor);
-        this.value = value;
-    }
-
-    @Override
-    public boolean isPotentialDependency() {
-        return false;
-    }
-
-    @Override
-    public boolean isCollective() {
-        return false;
-    }
+public interface BasicTypeParameter extends Parameter {
 
     /**
      * Returns the parameter value.
-     * 
+     *
      * @return The parameter value.
      */
-    public Object getValue() {
-        return this.value;
-    }
+    public Object getValue();
 
     /**
      * Sets a new value to the current parameter.
-     * 
+     *
      * @param value The new value.
      */
-    public void setValue(Object value) {
-        this.value = value;
-    }
-
-    @Override
-    public String toString() {
-        return this.value + " " + getType() + " " + getDirection();
-    }
+    public void setValue(Object value);
 
 }

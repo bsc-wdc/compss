@@ -23,7 +23,7 @@ import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.data.location.DataLocation;
 
 
-public class DirectoryParameter extends DependencyParameter {
+public class DirectoryParameter extends DependencyParameterImpl {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.

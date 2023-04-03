@@ -16,125 +16,45 @@
  */
 package es.bsc.compss.types.parameter;
 
-import es.bsc.compss.api.ParameterMonitor;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.StdIOStream;
-
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.Transferable;
 
 
-public abstract class DependencyParameter extends ParameterImpl implements Transferable {
-
-    /**
-     * Serializable objects Version UID are 1L in all Runtime.
-     */
-    private static final long serialVersionUID = 1L;
+public interface DependencyParameter extends Parameter, Transferable {
 
     public static final String NO_NAME = "NO_NAME";
 
-    private DataAccessId daId;
-    private Object dataSource;
-    private String dataTarget; // URI (including PROTOCOL) where to find the data within the executing resource
-
-
-    /**
-     * Creates a new DependencyParameter instance from the given parameters.
-     *
-     * @param type Parameter type.
-     * @param direction Parameter direction.
-     * @param stream Parameter IO stream mode.
-     * @param prefix Parameter prefix.
-     * @param name Parameter name.
-     * @param weight Parameter weight.
-     * @param keepRename Parameter keep rename property.
-     * @param monitor object to notify to changes on the parameter
-     */
-    public DependencyParameter(DataType type, Direction direction, StdIOStream stream, String prefix, String name,
-        String contentType, double weight, boolean keepRename, ParameterMonitor monitor) {
-        super(type, direction, stream, prefix, name, contentType, weight, keepRename, monitor);
-    }
 
     @Override
-    public boolean isPotentialDependency() {
-        return true;
-    }
+    public boolean isPotentialDependency();
 
     /**
      * Returns the data access id.
      *
      * @return The data access id.
      */
-    public DataAccessId getDataAccessId() {
-        return this.daId;
-    }
+    public DataAccessId getDataAccessId();
 
     /**
      * Sets a new data access id.
      *
      * @param daId New data access id.
      */
-    public void setDataAccessId(DataAccessId daId) {
-        this.daId = daId;
-    }
+    public void setDataAccessId(DataAccessId daId);
 
     /**
      * Returns the parameter's original name.
      *
      * @return The parameter's original name.
      */
-    public String getOriginalName() {
-        return NO_NAME;
-    }
-
-    @Override
-    public Object getDataSource() {
-        return this.dataSource;
-    }
-
-    @Override
-    public void setDataSource(Object dataSource) {
-        this.dataSource = dataSource;
-    }
-
-    @Override
-    public String getDataTarget() {
-        return this.dataTarget;
-    }
-
-    @Override
-    public void setDataTarget(String target) {
-        this.dataTarget = target;
-    }
+    public String getOriginalName();
 
     /**
      * Return the corresponding data target value for this type of dependency parameter.
-     * 
+     *
      * @param tgtName Proposed target name
      * @return data target name
      */
-    public String generateDataTargetName(String tgtName) {
-        if (getType().equals(DataType.PSCO_T) || getType().equals(DataType.EXTERNAL_PSCO_T)) {
-            return getDataTarget();
-        } else {
-            return tgtName;
-        }
-    }
-
-    @Override
-    public String toString() {
-        return "DependencyParameter";
-    }
-
-    @Override
-    public boolean isSourcePreserved() {
-        return this.daId.isPreserveSourceData();
-    }
-
-    @Override
-    public boolean isTargetFlexible() {
-        return true;
-    }
+    public String generateDataTargetName(String tgtName);
 
 }

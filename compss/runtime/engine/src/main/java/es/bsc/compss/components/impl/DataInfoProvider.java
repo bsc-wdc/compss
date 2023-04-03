@@ -586,40 +586,6 @@ public class DataInfoProvider {
     }
 
     /**
-     * Deletes the data associated with the code.
-     *
-     * @param app Application requesting the data deletion
-     * @param code Data code.
-     * @return DataInfo associated with the given code.
-     */
-    public DataInfo deleteData(Application app, int code, boolean noReuse) {
-        if (DEBUG) {
-            LOGGER.debug("Deleting Data associated with code: " + String.valueOf(code));
-        }
-        Integer id = this.codeToId.get(code);
-        if (id == null) {
-            if (DEBUG) {
-                LOGGER.debug("No data id found for data with code " + String.valueOf(code));
-            }
-            return null;
-        }
-        DataInfo dataInfo = this.idToData.get(id);
-        if (dataInfo != null) {
-            // We delete the data associated with all the versions of the same object
-            if (dataInfo.delete(noReuse)) {
-                deregisterData(dataInfo);
-            }
-            return dataInfo;
-        } else {
-            if (DEBUG) {
-                LOGGER.debug("No data info found for data with code " + String.valueOf(code));
-            }
-            return null;
-        }
-
-    }
-
-    /**
      * Transfers the value of an object.
      *
      * @param toRequest Transfer object request.

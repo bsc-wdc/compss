@@ -22,7 +22,7 @@ import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
 
 
-public class BasicTypeParameter extends Parameter {
+public class BasicTypeParameter extends ParameterImpl {
 
     /*
      * Basic type parameter can be: - boolean - char - String - byte - short - int - long - float - double

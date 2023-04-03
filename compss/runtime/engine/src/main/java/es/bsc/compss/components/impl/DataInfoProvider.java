@@ -110,10 +110,20 @@ public class DataInfoProvider {
         this.codeToId.put(code, dataId);
     }
 
+    public void deregisterObjectDataId(int code) {
+        this.codeToId.remove(code);
+    }
+
     private DataInfo registerData(DataParams data) {
         DataInfo dInfo = data.createDataInfo(this);
         this.idToData.put(dInfo.getDataId(), dInfo);
         return dInfo;
+    }
+
+    private void deregisterData(DataInfo di) {
+        int dataId = di.getDataId();
+        idToData.remove(dataId);
+        di.deleted(this);
     }
 
     /**
@@ -336,7 +346,7 @@ public class DataInfoProvider {
             }
 
             if (deleted) {
-                removeDataFromInternalStructures(di);
+                deregisterData(di);
             }
         } else {
             LOGGER.debug("Access of Data" + dAccId.getDataId() + " in Mode " + dAccId.getDirection().name()
@@ -380,7 +390,7 @@ public class DataInfoProvider {
             }
 
             if (deleted) {
-                removeDataFromInternalStructures(di);
+                deregisterData(di);
             }
         } else {
             LOGGER.warn("Access of Data" + dAccId.getDataId() + " in Mode " + dAccId.getDirection().name()
@@ -532,7 +542,7 @@ public class DataInfoProvider {
         app.removeFileData(locationKey);
         if (dataInfo != null) {
             if (dataInfo.delete(noReuse)) {
-                removeDataFromInternalStructures(dataInfo);
+                deregisterData(dataInfo);
             }
             return dataInfo;
         } else {
@@ -564,7 +574,7 @@ public class DataInfoProvider {
         if (dataInfo != null) {
             // We delete the data associated with all the versions of the same object
             if (dataInfo.delete(noReuse)) {
-                removeDataFromInternalStructures(dataInfo);
+                deregisterData(dataInfo);
             }
             return dataInfo;
         } else {
@@ -591,7 +601,7 @@ public class DataInfoProvider {
 
         // We delete the data associated with all the versions of the same object
         if (dataInfo.delete(noReuse)) {
-            removeDataFromInternalStructures(dataInfo);
+            deregisterData(dataInfo);
         }
 
         return dataInfo;
@@ -802,7 +812,7 @@ public class DataInfoProvider {
                             LOGGER.debug("Trying to delete file " + origName);
                         }
                         if (fileInfo.delete(true)) {
-                            removeDataFromInternalStructures(fileInfo);
+                            deregisterData(fileInfo);
                         }
                     }
                 }
@@ -827,15 +837,6 @@ public class DataInfoProvider {
         List<DataInfo> data = app.popAllData();
         for (DataInfo di : data) {
             di.delete(true);
-        }
-    }
-
-    private void removeDataFromInternalStructures(DataInfo di) {
-        int dataId = di.getDataId();
-        idToData.remove(dataId);
-        Application app = di.getGeneratingAppId();
-        if (app != null) {
-            app.removeData(di);
         }
     }
 

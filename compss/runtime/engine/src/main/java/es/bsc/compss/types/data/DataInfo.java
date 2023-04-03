@@ -17,6 +17,7 @@
 package es.bsc.compss.types.data;
 
 import es.bsc.compss.comm.Comm;
+import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.accessparams.DataParams;
 
@@ -72,6 +73,13 @@ public abstract class DataInfo<T extends DataParams> {
         this.canceledVersions = new LinkedList<>();
         this.deleted = false;
         this.params.getApp().addData(this);
+    }
+
+    /**
+     * Notifies that the DataInfo has been removed.
+     */
+    public void deleted(DataInfoProvider dip) {
+        this.params.getApp().removeData(this);
     }
 
     /**

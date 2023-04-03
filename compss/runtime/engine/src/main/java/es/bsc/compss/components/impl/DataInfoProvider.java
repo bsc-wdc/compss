@@ -555,38 +555,6 @@ public class DataInfoProvider {
     }
 
     /**
-     * Marks a data Id for deletion.
-     *
-     * @param app Application requesting the data deletion
-     * @param loc Data location.
-     * @return DataInfo associated with the given data.
-     */
-    public DataInfo deleteData(Application app, DataLocation loc, boolean noReuse) {
-        LOGGER.debug("Deleting Data location: " + loc.getPath());
-        String locationKey = loc.getLocationKey();
-        Integer dataId = app.getFileDataId(locationKey);
-
-        if (dataId == null) {
-            LOGGER.debug("No data id found for this data location" + loc.getPath());
-            return null;
-        }
-
-        app.removeFileData(locationKey);
-
-        DataInfo dataInfo = this.idToData.get(dataId);
-        if (dataInfo != null) {
-            if (dataInfo.delete(noReuse)) {
-                deregisterData(dataInfo);
-            }
-            return dataInfo;
-        } else {
-            LOGGER.debug("Data " + loc.getPath() + " already removed or cancelled");
-            return null;
-        }
-
-    }
-
-    /**
      * Transfers the value of an object.
      *
      * @param toRequest Transfer object request.

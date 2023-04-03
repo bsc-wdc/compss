@@ -22,6 +22,7 @@ import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.FileInfo;
+import es.bsc.compss.types.data.accessparams.DataParams.FileData;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.util.FileOpsManager;
@@ -70,7 +71,7 @@ public class DeleteFileRequest extends APRequest {
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
         LOGGER.info("[DeleteFileRequest] Notify data delete " + this.loc.getPath() + " to DIP...");
-        FileInfo fileInfo = (FileInfo) dip.deleteData(this.app, this.loc, this.noReuse);
+        FileInfo fileInfo = (FileInfo) dip.deleteData(new FileData(this.app, this.loc), this.noReuse);
         if (fileInfo == null) {
             // File is not used by any task, we can erase it
             // Retrieve the first valid URI location (private locations have only 1, shared locations may have more)

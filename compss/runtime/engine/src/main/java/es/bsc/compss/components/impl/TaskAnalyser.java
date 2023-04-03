@@ -48,6 +48,8 @@ import es.bsc.compss.types.data.accessparams.DataParams;
 import es.bsc.compss.types.data.accessparams.DataParams.BindingObjectData;
 import es.bsc.compss.types.data.accessparams.DataParams.CollectionData;
 import es.bsc.compss.types.data.accessparams.DataParams.ExternalPSCObjectData;
+import es.bsc.compss.types.data.accessparams.DataParams.ExternalStreamData;
+import es.bsc.compss.types.data.accessparams.DataParams.FileData;
 import es.bsc.compss.types.data.accessparams.DataParams.ObjectData;
 import es.bsc.compss.types.data.accessparams.DataParams.StreamData;
 import es.bsc.compss.types.data.accessparams.ExternalPSCObjectAccessParams;
@@ -217,11 +219,11 @@ public class TaskAnalyser implements GraphHandler {
         switch (p.getType()) {
             case DIRECTORY_T:
                 DirectoryParameter dp = (DirectoryParameter) p;
-                dip.deleteData(app, dp.getLocation(), noReuse);
+                dip.deleteData(new FileData(app, dp.getLocation()), noReuse);
                 break;
             case FILE_T:
                 FileParameter fp = (FileParameter) p;
-                dip.deleteData(app, fp.getLocation(), noReuse);
+                dip.deleteData(new FileData(app, fp.getLocation()), noReuse);
                 break;
             case OBJECT_T:
             case PSCO_T:
@@ -242,7 +244,7 @@ public class TaskAnalyser implements GraphHandler {
                 break;
             case EXTERNAL_STREAM_T:
                 ExternalStreamParameter esp = (ExternalStreamParameter) p;
-                dip.deleteData(app, esp.getLocation(), noReuse);
+                dip.deleteData(new ExternalStreamData(app, esp.getLocation().hashCode()), noReuse);
                 break;
             case COLLECTION_T:
             case DICT_COLLECTION_T:

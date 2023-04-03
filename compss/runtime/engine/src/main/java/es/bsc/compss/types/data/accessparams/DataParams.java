@@ -117,7 +117,8 @@ public abstract class DataParams {
 
         @Override
         public Integer getDataId(DataInfoProvider dip) {
-            return dip.getObjectDataId(code);
+            Application app = this.getApp();
+            return app.getObjectDataId(code);
         }
 
         @Override
@@ -128,13 +129,15 @@ public abstract class DataParams {
         @Override
         public DataInfo createDataInfo(DataInfoProvider dip) {
             DataInfo oInfo = new ObjectInfo(this);
-            dip.registerObjectDataId(code, oInfo.getDataId());
+            Application app = this.getApp();
+            app.registerObjectData(code, oInfo);
             return oInfo;
         }
 
         @Override
         public Integer removeDataId(DataInfoProvider dip) {
-            return dip.deregisterObjectDataId(code);
+            Application app = this.getApp();
+            return app.removeObjectData(code);
         }
 
         public int getCode() {
@@ -196,7 +199,8 @@ public abstract class DataParams {
         @Override
         public DataInfo createDataInfo(DataInfoProvider dip) {
             DataInfo sInfo = new StreamInfo(this);
-            dip.registerObjectDataId(code, sInfo.getDataId());
+            Application app = this.getApp();
+            app.registerObjectData(code, sInfo);
             return sInfo;
         }
 

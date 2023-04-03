@@ -1979,7 +1979,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     }
 
     private Object mainAccessToObject(Application app, Object obj, int hashCode) {
-        boolean validValue = ap.isCurrentRegisterValueValid(hashCode);
+        boolean validValue = ap.isCurrentRegisterValueValid(app, hashCode);
         if (validValue) {
             // Main code is still performing the same modification.
             // No need to register it as a new version.
@@ -1993,7 +1993,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     private String mainAccessToExternalPSCO(Application app, String fileName, DataLocation loc) {
         String id = ((PersistentLocation) loc).getId();
         int hashCode = externalObjectHashcode(id);
-        boolean validValue = ap.isCurrentRegisterValueValid(hashCode);
+        boolean validValue = ap.isCurrentRegisterValueValid(app, hashCode);
         if (validValue) {
             // Main code is still performing the same modification.
             // No need to register it as a new version.
@@ -2007,7 +2007,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     private String mainAccessToBindingObject(Application app, String fileName, BindingObjectLocation loc) {
         String id = loc.getId();
         int hashCode = externalObjectHashcode(id);
-        boolean validValue = ap.isCurrentRegisterValueValid(hashCode);
+        boolean validValue = ap.isCurrentRegisterValueValid(app, hashCode);
         if (validValue) {
             // Main code is still performing the same modification.
             // No need to register it as a new version.

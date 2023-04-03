@@ -77,9 +77,6 @@ public class DataInfoProvider {
     // Constants definition
     private static final String RES_FILE_TRANSFER_ERR = "Error transferring result files";
 
-    // Map: hash code -> object identifier
-    private final TreeMap<Integer, Integer> codeToId;
-
     // Map: file identifier -> file information
     private TreeMap<Integer, DataInfo> idToData;
     // Set: Object values available for main code
@@ -94,23 +91,10 @@ public class DataInfoProvider {
      * New Data Info Provider instance.
      */
     public DataInfoProvider() {
-        this.codeToId = new TreeMap<>();
         this.idToData = new TreeMap<>();
         this.valuesOnMain = new TreeSet<>();
 
         LOGGER.info("Initialization finished");
-    }
-
-    public Integer getObjectDataId(int code) {
-        return this.codeToId.get(code);
-    }
-
-    public void registerObjectDataId(int code, int dataId) {
-        this.codeToId.put(code, dataId);
-    }
-
-    public Integer deregisterObjectDataId(int code) {
-        return this.codeToId.remove(code);
     }
 
     private DataInfo registerData(DataParams data) {
@@ -412,18 +396,6 @@ public class DataInfoProvider {
     }
 
     /**
-     * DataInformation interface: returns the last renaming of a given data.
-     *
-     * @param code Object code.
-     * @return Data renaming.
-     */
-    public String getLastRenaming(int code) {
-        Integer aoId = this.codeToId.get(code);
-        DataInfo oInfo = this.idToData.get(aoId);
-        return oInfo.getCurrentDataVersion().getDataInstanceId().getRenaming();
-    }
-
-    /**
      * Returns the original location of a data id.
      *
      * @param fileId File Id.
@@ -456,13 +428,13 @@ public class DataInfoProvider {
     }
 
     /**
-     * Returns the last data access to a given renaming.
+     * Returns the last data access to a given data.
      *
-     * @param code Data code.
+     * @param data Data being accessed.
      * @return Data Instance Id with the last access.
      */
-    public DataInstanceId getLastDataAccess(int code) {
-        Integer aoId = this.codeToId.get(code);
+    public DataInstanceId getLastDataAccess(DataParams data) {
+        Integer aoId = data.getDataId(this);
         DataInfo oInfo = this.idToData.get(aoId);
         return oInfo.getCurrentDataVersion().getDataInstanceId();
     }

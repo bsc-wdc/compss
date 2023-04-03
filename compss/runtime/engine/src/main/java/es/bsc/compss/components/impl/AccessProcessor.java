@@ -63,7 +63,6 @@ import es.bsc.compss.types.request.ap.DeleteFileRequest;
 import es.bsc.compss.types.request.ap.DeregisterObject;
 import es.bsc.compss.types.request.ap.EndOfAppRequest;
 import es.bsc.compss.types.request.ap.FinishDataAccessRequest;
-import es.bsc.compss.types.request.ap.GetLastRenamingRequest;
 import es.bsc.compss.types.request.ap.GetResultFilesRequest;
 import es.bsc.compss.types.request.ap.IsObjectHereRequest;
 import es.bsc.compss.types.request.ap.OpenTaskGroupRequest;
@@ -505,14 +504,15 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     /**
      * Returns whether the value with hashCode {@code hashCode} is valid or obsolete.
      *
+     * @param app Application accessing the object
      * @param hashCode Object hashcode.
      * @return {@code true} if the object is valid, {@code false} otherwise.
      */
-    public boolean isCurrentRegisterValueValid(int hashCode) {
+    public boolean isCurrentRegisterValueValid(Application app, int hashCode) {
         LOGGER.debug("Checking if value of object with hashcode " + hashCode + " is valid");
 
         Semaphore sem = new Semaphore(0);
-        IsObjectHereRequest request = new IsObjectHereRequest(hashCode, sem);
+        IsObjectHereRequest request = new IsObjectHereRequest(app, hashCode, sem);
         if (!this.requestQueue.offer(request)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "valid object value");
         }
@@ -827,25 +827,6 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         if (!requestQueue.offer(request)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "closure of task group");
         }
-    }
-
-    /**
-     * Returns the last version of a file/object with code {@code code}.
-     *
-     * @param code File code.
-     * @return Renaming of the last version.
-     */
-    public String getLastRenaming(int code) {
-        Semaphore sem = new Semaphore(0);
-        GetLastRenamingRequest request = new GetLastRenamingRequest(code, sem);
-        if (!this.requestQueue.offer(request)) {
-            ErrorManager.error(ERROR_QUEUE_OFFER + "get last renaming");
-        }
-
-        // Wait for response
-        sem.acquireUninterruptibly();
-
-        return request.getResponse();
     }
 
     /**

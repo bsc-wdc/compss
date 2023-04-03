@@ -185,10 +185,10 @@ public abstract class DataInfo<T extends DataParams> {
     public void willBeWritten() {
         this.currentVersionId++;
         DataVersion validPred = currentVersion;
-        if (currentVersion.hasBeenCancelled()) {
-            validPred = currentVersion.getPreviousValidPredecessor();
+        if (validPred.hasBeenCancelled()) {
+            validPred = validPred.getPreviousValidPredecessor();
         }
-        DataVersion newVersion = new DataVersion(this.dataId, this.currentVersionId, this.currentVersion);
+        DataVersion newVersion = new DataVersion(this.dataId, this.currentVersionId, validPred);
         newVersion.willBeWritten();
         this.versions.put(this.currentVersionId, newVersion);
         this.currentVersion = newVersion;

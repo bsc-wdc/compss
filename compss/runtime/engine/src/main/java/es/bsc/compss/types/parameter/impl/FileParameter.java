@@ -14,27 +14,30 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.parameter;
+package es.bsc.compss.types.parameter.impl;
 
 import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
 
+import es.bsc.compss.types.data.location.DataLocation;
 
-public class ObjectParameter extends DependencyParameterImpl {
+
+public class FileParameter extends DependencyParameterImpl {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
      */
     private static final long serialVersionUID = 1L;
 
-    private final int hashCode;
-    private Object value;
+    // File parameter fields
+    private final DataLocation location;
+    private final String originalName;
 
 
     /**
-     * Creates a new Object Parameter.
+     * Creates a new Stream Parameter.
      * 
      * @param direction Parameter direction.
      * @param stream Standard IO Stream flags.
@@ -42,16 +45,18 @@ public class ObjectParameter extends DependencyParameterImpl {
      * @param name Parameter name.
      * @param contentType Parameter content type.
      * @param weight Parameter weight.
-     * @param value Parameter object value.
-     * @param hashCode Parameter object hashcode.
+     * @param keepRename Parameter keep rename property.
+     * @param location File location.
+     * @param originalName Original file name.
      * @param monitor object to notify to changes on the parameter
      */
-    public ObjectParameter(Direction direction, StdIOStream stream, String prefix, String name, String contentType,
-        double weight, Object value, int hashCode, ParameterMonitor monitor) {
+    public FileParameter(Direction direction, StdIOStream stream, String prefix, String name, String contentType,
+        double weight, boolean keepRename, DataLocation location, String originalName, ParameterMonitor monitor) {
 
-        super(DataType.OBJECT_T, direction, stream, prefix, name, contentType, weight, false, monitor);
-        this.value = value;
-        this.hashCode = hashCode;
+        super(DataType.FILE_T, direction, stream, prefix, name, contentType, weight, keepRename, monitor);
+        this.location = location;
+        this.originalName = originalName;
+
     }
 
     @Override
@@ -59,22 +64,19 @@ public class ObjectParameter extends DependencyParameterImpl {
         return false;
     }
 
-    public Object getValue() {
-        return this.value;
+    public DataLocation getLocation() {
+        return this.location;
     }
 
-    public void setValue(Object value) {
-        this.value = value;
-    }
-
-    public int getCode() {
-        return this.hashCode;
+    @Override
+    public String getOriginalName() {
+        return this.originalName;
     }
 
     @Override
     public String toString() {
-        return "ObjectParameter with hash code " + this.hashCode + ", type " + getType() + ", direction "
-            + getDirection();
+        return "FileParameter with location " + this.location + ", type " + getType() + ", direction " + getDirection()
+            + ", CONTENT TYPE" + getContentType();
     }
 
 }

@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.parameter;
+package es.bsc.compss.types.parameter.impl;
 
 import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.types.annotations.parameter.DataType;
@@ -22,7 +22,7 @@ import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
 
 
-public class ExternalPSCOParameter extends DependencyParameterImpl {
+public class ObjectParameter extends DependencyParameterImpl {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
@@ -30,26 +30,27 @@ public class ExternalPSCOParameter extends DependencyParameterImpl {
     private static final long serialVersionUID = 1L;
 
     private final int hashCode;
-    private String pscoId;
+    private Object value;
 
 
     /**
-     * Creates a new Stream Parameter.
+     * Creates a new Object Parameter.
      * 
      * @param direction Parameter direction.
      * @param stream Standard IO Stream flags.
      * @param prefix Parameter prefix.
      * @param name Parameter name.
+     * @param contentType Parameter content type.
      * @param weight Parameter weight.
-     * @param pscoId Parameter PSCO Id.
+     * @param value Parameter object value.
      * @param hashCode Parameter object hashcode.
      * @param monitor object to notify to changes on the parameter
      */
-    public ExternalPSCOParameter(Direction direction, StdIOStream stream, String prefix, String name, double weight,
-        String pscoId, int hashCode, ParameterMonitor monitor) {
+    public ObjectParameter(Direction direction, StdIOStream stream, String prefix, String name, String contentType,
+        double weight, Object value, int hashCode, ParameterMonitor monitor) {
 
-        super(DataType.EXTERNAL_PSCO_T, direction, stream, prefix, name, "null", weight, false, monitor);
-        this.pscoId = pscoId;
+        super(DataType.OBJECT_T, direction, stream, prefix, name, contentType, weight, false, monitor);
+        this.value = value;
         this.hashCode = hashCode;
     }
 
@@ -58,12 +59,12 @@ public class ExternalPSCOParameter extends DependencyParameterImpl {
         return false;
     }
 
-    public String getId() {
-        return this.pscoId;
+    public Object getValue() {
+        return this.value;
     }
 
-    public void setId(String pscoId) {
-        this.pscoId = pscoId;
+    public void setValue(Object value) {
+        this.value = value;
     }
 
     public int getCode() {
@@ -72,12 +73,8 @@ public class ExternalPSCOParameter extends DependencyParameterImpl {
 
     @Override
     public String toString() {
-        return "ExternalObjectParameter with Id " + this.pscoId + " and HashCode " + this.hashCode;
-    }
-
-    @Override
-    public String generateDataTargetName(String tgtName) {
-        return getId();
+        return "ObjectParameter with hash code " + this.hashCode + ", type " + getType() + ", direction "
+            + getDirection();
     }
 
 }

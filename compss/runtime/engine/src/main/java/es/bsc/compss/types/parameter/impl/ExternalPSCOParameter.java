@@ -14,48 +14,43 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.parameter;
+package es.bsc.compss.types.parameter.impl;
 
 import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
-import es.bsc.compss.types.data.location.DataLocation;
 
 
-public class DirectoryParameter extends DependencyParameterImpl {
+public class ExternalPSCOParameter extends DependencyParameterImpl {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
      */
     private static final long serialVersionUID = 1L;
 
-    // Same as FileParameter fields
-    private final DataLocation location;
-    private final String originalName;
+    private final int hashCode;
+    private String pscoId;
 
 
     /**
-     * Creates a new Directory Parameter.
-     *
+     * Creates a new Stream Parameter.
+     * 
      * @param direction Parameter direction.
      * @param stream Standard IO Stream flags.
      * @param prefix Parameter prefix.
      * @param name Parameter name.
-     * @param contentType Parameter content type.
      * @param weight Parameter weight.
-     * @param keepRename Parameter keep rename property.
-     * @param location Directory location.
-     * @param originalName Original dir name.
+     * @param pscoId Parameter PSCO Id.
+     * @param hashCode Parameter object hashcode.
      * @param monitor object to notify to changes on the parameter
      */
-    public DirectoryParameter(Direction direction, StdIOStream stream, String prefix, String name, String contentType,
-        double weight, boolean keepRename, DataLocation location, String originalName, ParameterMonitor monitor) {
+    public ExternalPSCOParameter(Direction direction, StdIOStream stream, String prefix, String name, double weight,
+        String pscoId, int hashCode, ParameterMonitor monitor) {
 
-        super(DataType.DIRECTORY_T, direction, stream, prefix, name, contentType, weight, keepRename, monitor);
-        this.location = location;
-        this.originalName = originalName;
-
+        super(DataType.EXTERNAL_PSCO_T, direction, stream, prefix, name, "null", weight, false, monitor);
+        this.pscoId = pscoId;
+        this.hashCode = hashCode;
     }
 
     @Override
@@ -63,19 +58,26 @@ public class DirectoryParameter extends DependencyParameterImpl {
         return false;
     }
 
-    public DataLocation getLocation() {
-        return this.location;
+    public String getId() {
+        return this.pscoId;
     }
 
-    @Override
-    public String getOriginalName() {
-        return this.originalName;
+    public void setId(String pscoId) {
+        this.pscoId = pscoId;
+    }
+
+    public int getCode() {
+        return this.hashCode;
     }
 
     @Override
     public String toString() {
-        return "DirectoryParameter with location " + this.location + ", type " + getType() + ", direction "
-            + getDirection();
+        return "ExternalObjectParameter with Id " + this.pscoId + " and HashCode " + this.hashCode;
+    }
+
+    @Override
+    public String generateDataTargetName(String tgtName) {
+        return getId();
     }
 
 }

@@ -14,31 +14,30 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.parameter;
+package es.bsc.compss.types.parameter.impl;
 
 import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
-
 import es.bsc.compss.types.data.location.DataLocation;
 
 
-public class FileParameter extends DependencyParameterImpl {
+public class DirectoryParameter extends DependencyParameterImpl {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
      */
     private static final long serialVersionUID = 1L;
 
-    // File parameter fields
+    // Same as FileParameter fields
     private final DataLocation location;
     private final String originalName;
 
 
     /**
-     * Creates a new Stream Parameter.
-     * 
+     * Creates a new Directory Parameter.
+     *
      * @param direction Parameter direction.
      * @param stream Standard IO Stream flags.
      * @param prefix Parameter prefix.
@@ -46,14 +45,14 @@ public class FileParameter extends DependencyParameterImpl {
      * @param contentType Parameter content type.
      * @param weight Parameter weight.
      * @param keepRename Parameter keep rename property.
-     * @param location File location.
-     * @param originalName Original file name.
+     * @param location Directory location.
+     * @param originalName Original dir name.
      * @param monitor object to notify to changes on the parameter
      */
-    public FileParameter(Direction direction, StdIOStream stream, String prefix, String name, String contentType,
+    public DirectoryParameter(Direction direction, StdIOStream stream, String prefix, String name, String contentType,
         double weight, boolean keepRename, DataLocation location, String originalName, ParameterMonitor monitor) {
 
-        super(DataType.FILE_T, direction, stream, prefix, name, contentType, weight, keepRename, monitor);
+        super(DataType.DIRECTORY_T, direction, stream, prefix, name, contentType, weight, keepRename, monitor);
         this.location = location;
         this.originalName = originalName;
 
@@ -75,8 +74,8 @@ public class FileParameter extends DependencyParameterImpl {
 
     @Override
     public String toString() {
-        return "FileParameter with location " + this.location + ", type " + getType() + ", direction " + getDirection()
-            + ", CONTENT TYPE" + getContentType();
+        return "DirectoryParameter with location " + this.location + ", type " + getType() + ", direction "
+            + getDirection();
     }
 
 }

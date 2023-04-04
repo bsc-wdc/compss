@@ -17,6 +17,7 @@
 package es.bsc.compss.types.parameter.impl;
 
 import es.bsc.compss.api.ParameterMonitor;
+import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
@@ -40,6 +41,7 @@ public abstract class DependencyParameter extends Parameter
     /**
      * Creates a new DependencyParameter instance from the given parameters.
      *
+     * @param app Application performing the access
      * @param type Parameter type.
      * @param direction Parameter direction.
      * @param stream Parameter IO stream mode.
@@ -49,8 +51,8 @@ public abstract class DependencyParameter extends Parameter
      * @param keepRename Parameter keep rename property.
      * @param monitor object to notify to changes on the parameter
      */
-    public DependencyParameter(DataType type, Direction direction, StdIOStream stream, String prefix, String name,
-        String contentType, double weight, boolean keepRename, ParameterMonitor monitor) {
+    public DependencyParameter(Application app, DataType type, Direction direction, StdIOStream stream, String prefix,
+        String name, String contentType, double weight, boolean keepRename, ParameterMonitor monitor) {
         super(type, direction, stream, prefix, name, contentType, weight, keepRename, monitor);
     }
 

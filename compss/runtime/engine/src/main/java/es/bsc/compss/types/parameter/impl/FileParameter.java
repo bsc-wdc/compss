@@ -17,6 +17,7 @@
 package es.bsc.compss.types.parameter.impl;
 
 import es.bsc.compss.api.ParameterMonitor;
+import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
@@ -39,6 +40,7 @@ public class FileParameter extends DependencyParameter {
     /**
      * Creates a new Stream Parameter.
      * 
+     * @param app Application performing the access
      * @param direction Parameter direction.
      * @param stream Standard IO Stream flags.
      * @param prefix Parameter prefix.
@@ -50,10 +52,11 @@ public class FileParameter extends DependencyParameter {
      * @param originalName Original file name.
      * @param monitor object to notify to changes on the parameter
      */
-    public FileParameter(Direction direction, StdIOStream stream, String prefix, String name, String contentType,
-        double weight, boolean keepRename, DataLocation location, String originalName, ParameterMonitor monitor) {
+    public FileParameter(Application app, Direction direction, StdIOStream stream, String prefix, String name,
+        String contentType, double weight, boolean keepRename, DataLocation location, String originalName,
+        ParameterMonitor monitor) {
 
-        super(DataType.FILE_T, direction, stream, prefix, name, contentType, weight, keepRename, monitor);
+        super(app, DataType.FILE_T, direction, stream, prefix, name, contentType, weight, keepRename, monitor);
         this.location = location;
         this.originalName = originalName;
 

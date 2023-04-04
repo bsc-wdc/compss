@@ -17,6 +17,7 @@
 package es.bsc.compss.types.parameter.impl;
 
 import es.bsc.compss.api.ParameterMonitor;
+import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
@@ -38,6 +39,7 @@ public class DirectoryParameter extends DependencyParameter {
     /**
      * Creates a new Directory Parameter.
      *
+     * @param app Application performing the access
      * @param direction Parameter direction.
      * @param stream Standard IO Stream flags.
      * @param prefix Parameter prefix.
@@ -49,10 +51,11 @@ public class DirectoryParameter extends DependencyParameter {
      * @param originalName Original dir name.
      * @param monitor object to notify to changes on the parameter
      */
-    public DirectoryParameter(Direction direction, StdIOStream stream, String prefix, String name, String contentType,
-        double weight, boolean keepRename, DataLocation location, String originalName, ParameterMonitor monitor) {
+    public DirectoryParameter(Application app, Direction direction, StdIOStream stream, String prefix, String name,
+        String contentType, double weight, boolean keepRename, DataLocation location, String originalName,
+        ParameterMonitor monitor) {
 
-        super(DataType.DIRECTORY_T, direction, stream, prefix, name, contentType, weight, keepRename, monitor);
+        super(app, DataType.DIRECTORY_T, direction, stream, prefix, name, contentType, weight, keepRename, monitor);
         this.location = location;
         this.originalName = originalName;
 

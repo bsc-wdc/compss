@@ -150,26 +150,27 @@ public class ReduceTask extends Task {
                 LOGGER.debug("[REDUCE-TASK] Creating intermediate data (" + this.totalOperations + ") for reduce Task "
                     + this.getId());
 
+                Application app = this.getApplication();
                 for (int i = 0; i < (int) totalOperations; i++) {
                     String partialId = "reduce" + i + "PartialResultTask" + this.getId();
                     String canonicalPath = new File(partialId).getCanonicalPath();
                     SimpleURI uri = new SimpleURI(ProtocolType.FILE_URI.getSchema() + canonicalPath);
                     DataLocation dl = DataLocation.createLocation(Comm.getAppHost(), uri);
 
-                    partialsOut.add(new FileParameter(Direction.OUT, finalParameter.getStream(),
+                    partialsOut.add(new FileParameter(app, Direction.OUT, finalParameter.getStream(),
                         finalParameter.getPrefix(), finalParameter.getName(), finalParameter.getType().toString(),
                         finalParameter.getWeight(), finalParameter.isKeepRename(), dl, partialId, IGNORE_PARAM));
-                    partialsIn.add(new FileParameter(Direction.IN, finalParameter.getStream(),
+                    partialsIn.add(new FileParameter(app, Direction.IN, finalParameter.getStream(),
                         finalParameter.getPrefix(), finalParameter.getName(), finalParameter.getType().toString(),
                         finalParameter.getWeight(), finalParameter.isKeepRename(), dl, partialId, IGNORE_PARAM));
 
-                    CollectiveParameter cp = new CollectiveParameter(DataType.COLLECTION_T, partialId + "Collection",
-                        p.getDirection(), p.getStream(), p.getPrefix(), p.getName(), p.getContentType(), p.getWeight(),
-                        p.isKeepRename(), IGNORE_PARAM, new ArrayList<>());
+                    CollectiveParameter cp = new CollectiveParameter(app, DataType.COLLECTION_T,
+                        partialId + "Collection", p.getDirection(), p.getStream(), p.getPrefix(), p.getName(),
+                        p.getContentType(), p.getWeight(), p.isKeepRename(), IGNORE_PARAM, new ArrayList<>());
                     intermediateCollections.add(cp);
                 }
                 String finalId = "finalReduceTask" + this.getId();
-                finalCol = new CollectiveParameter(DataType.COLLECTION_T, finalId, Direction.IN, p.getStream(),
+                finalCol = new CollectiveParameter(app, DataType.COLLECTION_T, finalId, Direction.IN, p.getStream(),
                     p.getPrefix(), p.getName(), p.getContentType(), p.getWeight(), p.isKeepRename(), IGNORE_PARAM,
                     new ArrayList<>());
             } else {

@@ -17,6 +17,7 @@
 package es.bsc.compss.types.parameter.impl;
 
 import es.bsc.compss.api.ParameterMonitor;
+import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
@@ -49,6 +50,7 @@ public class CollectiveParameter extends DependencyParameter
      * Default constructor. Intended to be called from COMPSsRuntimeImpl when gathering and compacting parameter
      * information fed from bindings or Java Loader
      * 
+     * @param app Application performing the access
      * @param type type of collection
      * @param id identifier of the collection
      * @param direction Direction of the collection
@@ -61,10 +63,10 @@ public class CollectiveParameter extends DependencyParameter
      * @param elements Elements of the collection
      * @see DependencyParameter
      */
-    public CollectiveParameter(DataType type, String id, Direction direction, StdIOStream stream, String prefix,
-        String name, String contentType, double weight, boolean keepRename, ParameterMonitor monitor,
+    public CollectiveParameter(Application app, DataType type, String id, Direction direction, StdIOStream stream,
+        String prefix, String name, String contentType, double weight, boolean keepRename, ParameterMonitor monitor,
         List<Parameter> elements) {
-        super(type, direction, stream, prefix, name, contentType, weight, keepRename, monitor);
+        super(app, type, direction, stream, prefix, name, contentType, weight, keepRename, monitor);
         this.collectionId = id;
         this.elements = elements;
     }

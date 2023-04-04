@@ -17,6 +17,7 @@
 package es.bsc.compss.types.parameter.impl;
 
 import es.bsc.compss.api.ParameterMonitor;
+import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
@@ -36,6 +37,7 @@ public class ObjectParameter extends DependencyParameter {
     /**
      * Creates a new Object Parameter.
      * 
+     * @param app Application performing the access
      * @param direction Parameter direction.
      * @param stream Standard IO Stream flags.
      * @param prefix Parameter prefix.
@@ -46,10 +48,10 @@ public class ObjectParameter extends DependencyParameter {
      * @param hashCode Parameter object hashcode.
      * @param monitor object to notify to changes on the parameter
      */
-    public ObjectParameter(Direction direction, StdIOStream stream, String prefix, String name, String contentType,
-        double weight, Object value, int hashCode, ParameterMonitor monitor) {
+    public ObjectParameter(Application app, Direction direction, StdIOStream stream, String prefix, String name,
+        String contentType, double weight, Object value, int hashCode, ParameterMonitor monitor) {
 
-        super(DataType.OBJECT_T, direction, stream, prefix, name, contentType, weight, false, monitor);
+        super(app, DataType.OBJECT_T, direction, stream, prefix, name, contentType, weight, false, monitor);
         this.value = value;
         this.hashCode = hashCode;
     }

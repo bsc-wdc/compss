@@ -75,38 +75,22 @@ public class CollectiveParameterImpl extends DependencyParameterImpl implements 
         return true;
     }
 
-    /**
-     * Get the identifier of the collection.
-     * 
-     * @return The collection identifier.
-     */
+    @Override
     public String getCollectionId() {
         return this.collectionId;
     }
 
-    /**
-     * Set the identifier of the collection.
-     * 
-     * @param collectionId The collection Id.
-     */
+    @Override
     public void setCollectionId(String collectionId) {
         this.collectionId = collectionId;
     }
 
-    /**
-     * Returns the collection parameters.
-     * 
-     * @return List of the internal parameters of the collection.
-     */
+    @Override
     public List<Parameter> getElements() {
         return this.elements;
     }
 
-    /**
-     * Sets the internal parameters of the collection.
-     * 
-     * @param elements New internal parameters of the collection.
-     */
+    @Override
     public void setElements(List<Parameter> elements) {
         this.elements = elements;
     }

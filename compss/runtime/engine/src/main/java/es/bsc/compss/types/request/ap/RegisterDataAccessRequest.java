@@ -26,7 +26,6 @@ import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
 import es.bsc.compss.types.tracing.TraceEvent;
-import es.bsc.compss.util.ErrorManager;
 
 import java.util.concurrent.Semaphore;
 

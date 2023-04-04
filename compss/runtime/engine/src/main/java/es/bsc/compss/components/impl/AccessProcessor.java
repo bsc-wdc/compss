@@ -48,7 +48,7 @@ import es.bsc.compss.types.data.accessparams.FileAccessParams;
 import es.bsc.compss.types.data.accessparams.ObjectAccessParams;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
-import es.bsc.compss.types.parameter.Parameter;
+import es.bsc.compss.types.parameter.impl.Parameter;
 import es.bsc.compss.types.request.ap.APRequest;
 import es.bsc.compss.types.request.ap.AlreadyAccessedRequest;
 import es.bsc.compss.types.request.ap.BarrierGroupRequest;

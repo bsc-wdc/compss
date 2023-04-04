@@ -21,10 +21,9 @@ import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
-import es.bsc.compss.types.parameter.Parameter;
 
 
-public abstract class ParameterImpl implements Parameter {
+public abstract class Parameter implements es.bsc.compss.types.parameter.Parameter {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
@@ -57,7 +56,7 @@ public abstract class ParameterImpl implements Parameter {
      *            the value recovers its original name
      * @param monitor object to notify to changes on the parameter
      */
-    public ParameterImpl(DataType type, Direction direction, StdIOStream stream, String prefix, String name,
+    public Parameter(DataType type, Direction direction, StdIOStream stream, String prefix, String name,
         String contentType, double weight, boolean keepRename, ParameterMonitor monitor) {
         this.type = type;
         this.direction = direction;

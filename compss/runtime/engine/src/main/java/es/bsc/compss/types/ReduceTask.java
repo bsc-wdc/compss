@@ -28,10 +28,9 @@ import es.bsc.compss.types.colors.ColorConfiguration;
 import es.bsc.compss.types.colors.ColorNode;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
-import es.bsc.compss.types.parameter.CollectiveParameter;
-import es.bsc.compss.types.parameter.Parameter;
-import es.bsc.compss.types.parameter.impl.CollectiveParameterImpl;
+import es.bsc.compss.types.parameter.impl.CollectiveParameter;
 import es.bsc.compss.types.parameter.impl.FileParameter;
+import es.bsc.compss.types.parameter.impl.Parameter;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
@@ -164,13 +163,13 @@ public class ReduceTask extends Task {
                         finalParameter.getPrefix(), finalParameter.getName(), finalParameter.getType().toString(),
                         finalParameter.getWeight(), finalParameter.isKeepRename(), dl, partialId, IGNORE_PARAM));
 
-                    CollectiveParameter cp = new CollectiveParameterImpl(DataType.COLLECTION_T,
-                        partialId + "Collection", p.getDirection(), p.getStream(), p.getPrefix(), p.getName(),
-                        p.getContentType(), p.getWeight(), p.isKeepRename(), IGNORE_PARAM, new ArrayList<>());
+                    CollectiveParameter cp = new CollectiveParameter(DataType.COLLECTION_T, partialId + "Collection",
+                        p.getDirection(), p.getStream(), p.getPrefix(), p.getName(), p.getContentType(), p.getWeight(),
+                        p.isKeepRename(), IGNORE_PARAM, new ArrayList<>());
                     intermediateCollections.add(cp);
                 }
                 String finalId = "finalReduceTask" + this.getId();
-                finalCol = new CollectiveParameterImpl(DataType.COLLECTION_T, finalId, Direction.IN, p.getStream(),
+                finalCol = new CollectiveParameter(DataType.COLLECTION_T, finalId, Direction.IN, p.getStream(),
                     p.getPrefix(), p.getName(), p.getContentType(), p.getWeight(), p.isKeepRename(), IGNORE_PARAM,
                     new ArrayList<>());
             } else {

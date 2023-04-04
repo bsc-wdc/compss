@@ -25,7 +25,6 @@ import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.ObjectValue;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.scheduler.types.Score;
-import es.bsc.compss.scheduler.types.schedulinginformation.DataLocality;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
@@ -63,7 +62,7 @@ public abstract class OrderStrictTS extends TaskScheduler {
 
     @Override
     public <T extends WorkerResourceDescription> SchedulingInformation
-        generateSchedulingInformation(ResourceScheduler<T> rs, List<Parameter> params, Integer coreId) {
+        generateSchedulingInformation(ResourceScheduler<T> rs, List<? extends Parameter> params, Integer coreId) {
         return new SchedulingInformation(rs);
     }
 

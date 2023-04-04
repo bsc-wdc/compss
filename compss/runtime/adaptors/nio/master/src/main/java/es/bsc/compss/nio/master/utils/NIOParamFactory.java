@@ -151,7 +151,7 @@ public class NIOParamFactory {
 
         NIOParamCollection npc = new NIOParamCollection(collNioParam);
 
-        CollectiveParameter collParam = (CollectiveParameter) param;
+        CollectiveParameter<Parameter> collParam = (CollectiveParameter) param;
         for (Parameter subParam : collParam.getElements()) {
             npc.addElement(NIOParamFactory.fromParameter(subParam, node, fromReplicatedTask));
         }

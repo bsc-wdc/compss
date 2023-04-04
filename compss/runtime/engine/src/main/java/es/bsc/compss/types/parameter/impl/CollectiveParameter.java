@@ -20,8 +20,6 @@ import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
-import es.bsc.compss.types.parameter.CollectiveParameter;
-import es.bsc.compss.types.parameter.Parameter;
 import java.util.Iterator;
 
 import java.util.List;
@@ -32,7 +30,8 @@ import java.util.List;
  * parameter objects. The object has an identifier by itself and points to other object identifiers (which are the ones
  * contained in it)
  */
-public class CollectiveParameterImpl extends DependencyParameterImpl implements CollectiveParameter {
+public class CollectiveParameter extends DependencyParameter
+    implements es.bsc.compss.types.parameter.CollectiveParameter<Parameter> {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
@@ -62,7 +61,7 @@ public class CollectiveParameterImpl extends DependencyParameterImpl implements 
      * @param elements Elements of the collection
      * @see DependencyParameter
      */
-    public CollectiveParameterImpl(DataType type, String id, Direction direction, StdIOStream stream, String prefix,
+    public CollectiveParameter(DataType type, String id, Direction direction, StdIOStream stream, String prefix,
         String name, String contentType, double weight, boolean keepRename, ParameterMonitor monitor,
         List<Parameter> elements) {
         super(type, direction, stream, prefix, name, contentType, weight, keepRename, monitor);

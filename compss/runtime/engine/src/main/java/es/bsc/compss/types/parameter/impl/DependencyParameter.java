@@ -22,10 +22,10 @@ import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
 
 import es.bsc.compss.types.data.DataAccessId;
-import es.bsc.compss.types.parameter.DependencyParameter;
 
 
-public abstract class DependencyParameterImpl extends ParameterImpl implements DependencyParameter {
+public abstract class DependencyParameter extends Parameter
+    implements es.bsc.compss.types.parameter.DependencyParameter {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
@@ -49,7 +49,7 @@ public abstract class DependencyParameterImpl extends ParameterImpl implements D
      * @param keepRename Parameter keep rename property.
      * @param monitor object to notify to changes on the parameter
      */
-    public DependencyParameterImpl(DataType type, Direction direction, StdIOStream stream, String prefix, String name,
+    public DependencyParameter(DataType type, Direction direction, StdIOStream stream, String prefix, String name,
         String contentType, double weight, boolean keepRename, ParameterMonitor monitor) {
         super(type, direction, stream, prefix, name, contentType, weight, keepRename, monitor);
     }

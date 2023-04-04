@@ -76,7 +76,7 @@ public class LocalJob extends JobImpl<COMPSsMaster> implements Invocation {
 
     private LocalParameter generateLocalParameter(Parameter p) {
         if (p.isCollective()) {
-            CollectiveParameter cp = (CollectiveParameter) p;
+            CollectiveParameter<Parameter> cp = (CollectiveParameter) p;
             LocalParameterCollection lpc = new LocalParameterCollection(p);
             for (Parameter subParam : cp.getElements()) {
                 lpc.addElement(generateLocalParameter(subParam));

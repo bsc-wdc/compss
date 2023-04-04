@@ -21,7 +21,7 @@ import es.bsc.compss.components.monitor.impl.GraphHandler;
 import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.parameter.DependencyParameter;
+import es.bsc.compss.types.parameter.impl.DependencyParameter;
 import es.bsc.compss.types.request.ap.RegisterDataAccessRequest;
 import java.util.ArrayList;
 import java.util.List;

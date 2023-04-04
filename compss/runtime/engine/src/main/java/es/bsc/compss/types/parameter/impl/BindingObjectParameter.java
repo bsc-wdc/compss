@@ -23,7 +23,7 @@ import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
 
 
-public class BindingObjectParameter extends DependencyParameterImpl {
+public class BindingObjectParameter extends DependencyParameter {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.

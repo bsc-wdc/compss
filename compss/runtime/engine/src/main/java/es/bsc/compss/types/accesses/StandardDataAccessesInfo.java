@@ -28,7 +28,7 @@ import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessparams.AccessParams;
-import es.bsc.compss.types.parameter.DependencyParameter;
+import es.bsc.compss.types.parameter.impl.DependencyParameter;
 import es.bsc.compss.types.request.ap.RegisterDataAccessRequest;
 import java.util.ArrayList;
 import java.util.LinkedList;

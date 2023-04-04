@@ -41,8 +41,8 @@ import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobEndStatus;
 import es.bsc.compss.types.job.JobListener;
-import es.bsc.compss.types.parameter.DependencyParameter;
-import es.bsc.compss.types.parameter.Parameter;
+import es.bsc.compss.types.parameter.impl.DependencyParameter;
+import es.bsc.compss.types.parameter.impl.Parameter;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.util.ErrorManager;
@@ -56,7 +56,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 
-public class ExecutionAction extends AllocatableAction implements JobListener {
+public class ExecutionAction extends AllocatableAction implements JobListener<Parameter> {
 
     // Fault tolerance parameters
     private static final int SCHEDULING_CHANCES = 2;

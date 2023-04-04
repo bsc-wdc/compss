@@ -26,8 +26,8 @@ import es.bsc.compss.types.colors.ColorConfiguration;
 import es.bsc.compss.types.colors.ColorNode;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.implementations.TaskType;
-import es.bsc.compss.types.parameter.DependencyParameter;
-import es.bsc.compss.types.parameter.Parameter;
+import es.bsc.compss.types.parameter.impl.DependencyParameter;
+import es.bsc.compss.types.parameter.impl.Parameter;
 import es.bsc.compss.util.CoreManager;
 import es.bsc.compss.util.SignatureBuilder;
 import java.util.LinkedList;
@@ -46,7 +46,7 @@ public class Task extends AbstractTask {
     private static final int FIRST_TASK_ID = 1;
     private static AtomicInteger nextTaskId = new AtomicInteger(FIRST_TASK_ID);
 
-    private final TaskDescription taskDescription;
+    private final TaskDescription<Parameter> taskDescription;
 
     // Scheduling info
     private Task enforcingTask;
@@ -80,7 +80,7 @@ public class Task extends AbstractTask {
 
         CoreElement core = CoreManager.getCore(signature);
         String parallelismSource = app.getParallelismSource();
-        this.taskDescription = new TaskDescription(type, lang, signature, core, parallelismSource, isPrioritary,
+        this.taskDescription = new TaskDescription<>(type, lang, signature, core, parallelismSource, isPrioritary,
             numNodes, isReduction, isReplicated, isDistributed, hasTarget, numReturns, onFailure, timeOut, parameters);
         this.submitted = false;
     }
@@ -185,7 +185,7 @@ public class Task extends AbstractTask {
      *
      * @return The task description.
      */
-    public TaskDescription getTaskDescription() {
+    public TaskDescription<Parameter> getTaskDescription() {
         return this.taskDescription;
     }
 
@@ -431,14 +431,17 @@ public class Task extends AbstractTask {
         return buffer.toString();
     }
 
+    @Override
     public List<Parameter> getParameterDataToRemove() {
         return new LinkedList<>();
     }
 
+    @Override
     public List<Parameter> getIntermediateParameters() {
         return new LinkedList<>();
     }
 
+    @Override
     public List<Parameter> getUnusedIntermediateParameters() {
         return new LinkedList<>();
     }

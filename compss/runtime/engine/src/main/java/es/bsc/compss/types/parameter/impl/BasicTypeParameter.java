@@ -20,10 +20,9 @@ import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
-import es.bsc.compss.types.parameter.BasicTypeParameter;
 
 
-public class BasicTypeParameterImpl extends ParameterImpl implements BasicTypeParameter {
+public class BasicTypeParameter extends Parameter implements es.bsc.compss.types.parameter.BasicTypeParameter {
 
     /*
      * Basic type parameter can be: - boolean - char - String - byte - short - int - long - float - double
@@ -49,7 +48,7 @@ public class BasicTypeParameterImpl extends ParameterImpl implements BasicTypePa
      * @param weight Parameter weight.
      * @param monitor object to notify to changes on the parameter
      */
-    public BasicTypeParameterImpl(DataType type, Direction direction, StdIOStream stream, String prefix, String name,
+    public BasicTypeParameter(DataType type, Direction direction, StdIOStream stream, String prefix, String name,
         Object value, double weight, String contentType, ParameterMonitor monitor) {
         super(type, direction, stream, prefix, name, contentType, weight, false, monitor);
         this.value = value;

@@ -261,7 +261,7 @@ public class TaskScheduler {
      * @return An empty Scheduling Information.
      */
     public <T extends WorkerResourceDescription> SchedulingInformation generateSchedulingInformation(
-        ResourceScheduler<T> rs, List<Parameter> params, Integer coreId) {
+        ResourceScheduler<T> rs, List<? extends Parameter> params, Integer coreId) {
         return new SchedulingInformation(rs);
     }
 

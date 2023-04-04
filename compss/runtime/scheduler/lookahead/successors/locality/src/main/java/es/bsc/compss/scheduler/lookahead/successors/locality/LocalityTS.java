@@ -59,7 +59,7 @@ public class LocalityTS extends SuccessorsTS {
 
     @Override
     public <T extends WorkerResourceDescription> SchedulingInformation
-        generateSchedulingInformation(ResourceScheduler<T> rs, List<Parameter> params, Integer coreId) {
+        generateSchedulingInformation(ResourceScheduler<T> rs, List<? extends Parameter> params, Integer coreId) {
         return new DataLocality(rs, params, coreId);
     }
 

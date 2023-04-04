@@ -205,7 +205,7 @@ public class CheckpointRecord {
 
     private void recoverTaskParameter(Parameter param) {
         if (param.isCollective()) {
-            CollectiveParameter cp = (CollectiveParameter) param;
+            CollectiveParameter<Parameter> cp = (CollectiveParameter) param;
             for (Parameter sp : cp.getElements()) {
                 recoverTaskParameter(sp);
             }
@@ -294,7 +294,7 @@ public class CheckpointRecord {
 
     private void registerTaskParameter(Parameter param, CheckpointTask ctl) {
         if (param.isCollective()) {
-            CollectiveParameter cp = (CollectiveParameter) param;
+            CollectiveParameter<Parameter> cp = (CollectiveParameter) param;
             for (Parameter sp : cp.getElements()) {
                 registerTaskParameter(sp, ctl);
             }
@@ -380,7 +380,7 @@ public class CheckpointRecord {
 
     private void computedTaskParameter(Parameter param) {
         if (param.isCollective()) {
-            CollectiveParameter cp = (CollectiveParameter) param;
+            CollectiveParameter<Parameter> cp = (CollectiveParameter) param;
             for (Parameter sp : cp.getElements()) {
                 computedTaskParameter(sp);
             }
@@ -432,7 +432,7 @@ public class CheckpointRecord {
 
     private void requestTaskParameterCheckpoint(Parameter param) {
         if (param.isCollective()) {
-            CollectiveParameter cp = (CollectiveParameter) param;
+            CollectiveParameter<Parameter> cp = (CollectiveParameter) param;
             for (Parameter sp : cp.getElements()) {
                 requestTaskParameterCheckpoint(sp);
             }
@@ -450,7 +450,7 @@ public class CheckpointRecord {
 
     private void requestTaskParameterCheckpoint(Parameter param, List<DataVersion> allowed) {
         if (param.isCollective()) {
-            CollectiveParameter cp = (CollectiveParameter) param;
+            CollectiveParameter<Parameter> cp = (CollectiveParameter) param;
             for (Parameter sp : cp.getElements()) {
                 requestTaskParameterCheckpoint(sp, allowed);
             }

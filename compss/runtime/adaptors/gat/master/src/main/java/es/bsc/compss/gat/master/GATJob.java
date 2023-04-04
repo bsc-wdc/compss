@@ -244,7 +244,6 @@ public class GATJob extends es.bsc.compss.types.job.JobImpl<GATWorkerNode> imple
     private JobDescription prepareJob() throws Exception {
         // Get the information related to the job
         LOGGER.debug("Preparing GAT Job " + this.jobId);
-        TaskDescription taskParams = this.taskParams;
 
         String targetPath = getResourceNode().getInstallDir();
         String targetUser = getResourceNode().getUser();

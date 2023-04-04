@@ -194,7 +194,7 @@ public abstract class CheckpointManagerImpl extends CheckpointRecord implements 
      */
     private void registerTaskParameterInGroup(Parameter param, CheckpointGroupImpl group) {
         if (param.isCollective()) {
-            CollectiveParameter cp = (CollectiveParameter) param;
+            CollectiveParameter<Parameter> cp = (CollectiveParameter<Parameter>) param;
             for (Parameter sp : cp.getElements()) {
                 registerTaskParameterInGroup(sp, group);
             }

@@ -14,24 +14,22 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.parameter;
+package es.bsc.compss.types.parameter.impl;
 
 import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
-
 import es.bsc.compss.types.data.location.DataLocation;
 
 
-public class FileParameter extends DependencyParameter {
+public class ExternalStreamParameter extends DependencyParameterImpl {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
      */
     private static final long serialVersionUID = 1L;
 
-    // File parameter fields
     private final DataLocation location;
     private final String originalName;
 
@@ -43,20 +41,16 @@ public class FileParameter extends DependencyParameter {
      * @param stream Standard IO Stream flags.
      * @param prefix Parameter prefix.
      * @param name Parameter name.
-     * @param contentType Parameter content type.
-     * @param weight Parameter weight.
-     * @param keepRename Parameter keep rename property.
      * @param location File location.
      * @param originalName Original file name.
      * @param monitor object to notify to changes on the parameter
      */
-    public FileParameter(Direction direction, StdIOStream stream, String prefix, String name, String contentType,
-        double weight, boolean keepRename, DataLocation location, String originalName, ParameterMonitor monitor) {
+    public ExternalStreamParameter(Direction direction, StdIOStream stream, String prefix, String name,
+        DataLocation location, String originalName, ParameterMonitor monitor) {
 
-        super(DataType.FILE_T, direction, stream, prefix, name, contentType, weight, keepRename, monitor);
+        super(DataType.EXTERNAL_STREAM_T, direction, stream, prefix, name, "null", 1.0, false, monitor);
         this.location = location;
         this.originalName = originalName;
-
     }
 
     @Override
@@ -75,8 +69,7 @@ public class FileParameter extends DependencyParameter {
 
     @Override
     public String toString() {
-        return "FileParameter with location " + this.location + ", type " + getType() + ", direction " + getDirection()
-            + ", CONTENT TYPE" + getContentType();
+        return "ExternalStreamParameter with location " + this.location + ", direction " + getDirection();
     }
 
 }

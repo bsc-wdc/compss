@@ -14,48 +14,50 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.parameter;
+package es.bsc.compss.types.parameter.impl;
 
 import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
-import es.bsc.compss.types.data.location.DataLocation;
+import es.bsc.compss.types.parameter.BasicTypeParameter;
 
 
-public class DirectoryParameter extends DependencyParameter {
+public class BasicTypeParameterImpl extends ParameterImpl implements BasicTypeParameter {
+
+    /*
+     * Basic type parameter can be: - boolean - char - String - byte - short - int - long - float - double
+     */
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
      */
     private static final long serialVersionUID = 1L;
 
-    // Same as FileParameter fields
-    private final DataLocation location;
-    private final String originalName;
+    private Object value;
 
 
     /**
-     * Creates a new Directory Parameter.
-     *
+     * Creates a new BasicTypeParameter instance with the given information.
+     * 
+     * @param type Parameter type.
      * @param direction Parameter direction.
-     * @param stream Standard IO Stream flags.
+     * @param stream Parameter IO stream mode.
      * @param prefix Parameter prefix.
      * @param name Parameter name.
-     * @param contentType Parameter content type.
+     * @param value Parameter value.
      * @param weight Parameter weight.
-     * @param keepRename Parameter keep rename property.
-     * @param location Directory location.
-     * @param originalName Original dir name.
      * @param monitor object to notify to changes on the parameter
      */
-    public DirectoryParameter(Direction direction, StdIOStream stream, String prefix, String name, String contentType,
-        double weight, boolean keepRename, DataLocation location, String originalName, ParameterMonitor monitor) {
+    public BasicTypeParameterImpl(DataType type, Direction direction, StdIOStream stream, String prefix, String name,
+        Object value, double weight, String contentType, ParameterMonitor monitor) {
+        super(type, direction, stream, prefix, name, contentType, weight, false, monitor);
+        this.value = value;
+    }
 
-        super(DataType.DIRECTORY_T, direction, stream, prefix, name, contentType, weight, keepRename, monitor);
-        this.location = location;
-        this.originalName = originalName;
-
+    @Override
+    public boolean isPotentialDependency() {
+        return false;
     }
 
     @Override
@@ -63,19 +65,19 @@ public class DirectoryParameter extends DependencyParameter {
         return false;
     }
 
-    public DataLocation getLocation() {
-        return this.location;
+    @Override
+    public Object getValue() {
+        return this.value;
     }
 
     @Override
-    public String getOriginalName() {
-        return this.originalName;
+    public void setValue(Object value) {
+        this.value = value;
     }
 
     @Override
     public String toString() {
-        return "DirectoryParameter with location " + this.location + ", type " + getType() + ", direction "
-            + getDirection();
+        return this.value + " " + getType() + " " + getDirection();
     }
 
 }

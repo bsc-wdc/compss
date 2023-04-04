@@ -17,7 +17,6 @@
 package es.bsc.compss.types.parameter;
 
 import es.bsc.compss.api.ParameterMonitor;
-import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
@@ -25,55 +24,7 @@ import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import java.io.Serializable;
 
 
-public abstract class Parameter implements Serializable {
-
-    /**
-     * Serializable objects Version UID are 1L in all Runtime.
-     */
-    private static final long serialVersionUID = 1L;
-
-    // Parameter fields
-    private DataType type;
-    private final Direction direction;
-    private final StdIOStream stream;
-    private final String prefix;
-    private final String name;
-    private final String contentType;
-    private final double weight;
-    private final boolean keepRename;
-    private final ParameterMonitor monitor;
-
-
-    /**
-     * Creates a new Parameter instance from the given values.
-     *
-     * @param type Parameter type.
-     * @param direction Parameter direction.
-     * @param stream Parameter IO stream mode.
-     * @param prefix Parameter prefix.
-     * @param name Parameter name.
-     * @param contentType Python object type.
-     * @param weight Parameter weight for taking scheduling decisions
-     * @param keepRename if {@literal true}, parameter remains renamed within the task's execution sandbox; otherwise,
-     *            the value recovers its original name
-     * @param monitor object to notify to changes on the parameter
-     */
-    public Parameter(DataType type, Direction direction, StdIOStream stream, String prefix, String name,
-        String contentType, double weight, boolean keepRename, ParameterMonitor monitor) {
-        this.type = type;
-        this.direction = direction;
-        this.stream = stream;
-        if (prefix == null || prefix.isEmpty()) {
-            this.prefix = Constants.PREFIX_EMPTY;
-        } else {
-            this.prefix = prefix;
-        }
-        this.name = name;
-        this.contentType = contentType;
-        this.weight = weight;
-        this.keepRename = keepRename;
-        this.monitor = monitor;
-    }
+public interface Parameter extends Serializable {
 
     /**
      * Returns whether the parameter is a DependencyParameter or a basic type parameter.
@@ -81,7 +32,7 @@ public abstract class Parameter implements Serializable {
      * @return {@literal true}, if the parameter represents a data that may incur a dependency; {@literal false} if it
      *         is a basic type
      */
-    public abstract boolean isPotentialDependency();
+    public boolean isPotentialDependency();
 
     /**
      * Returns whether the parameter is a Collective or Single value.
@@ -89,96 +40,76 @@ public abstract class Parameter implements Serializable {
      * @return {@literal true}, if the parameter represents a collection of values; {@literal false} if it a single
      *         value.
      */
-    public abstract boolean isCollective();
+    public boolean isCollective();
 
     /**
      * Returns the parameter type.
      *
      * @return The parameter type.
      */
-    public DataType getType() {
-        return this.type;
-    }
+    public DataType getType();
 
     /**
      * Sets a new parameter type.
      *
      * @param type New parameter type.
      */
-    public void setType(DataType type) {
-        this.type = type;
-    }
+    public void setType(DataType type);
 
     /**
      * Returns the parameter direction.
      *
      * @return The parameter direction.
      */
-    public Direction getDirection() {
-        return this.direction;
-    }
+    public Direction getDirection();
 
     /**
      * Returns the parameter IO stream mode.
      *
      * @return The parameter IO stream mode.
      */
-    public StdIOStream getStream() {
-        return this.stream;
-    }
+    public StdIOStream getStream();
 
     /**
      * Returns the parameter prefix.
      *
      * @return The parameter prefix.
      */
-    public String getPrefix() {
-        return this.prefix;
-    }
+    public String getPrefix();
 
     /**
      * Returns the parameter name.
      *
      * @return The parameter name.
      */
-    public String getName() {
-        return this.name;
-    }
+    public String getName();
 
     /**
      * Returns the python object type.
      *
      * @return The content type.
      */
-    public String getContentType() {
-        return this.contentType;
-    }
+    public String getContentType();
 
     /**
      * Returns the parameter weight.
      * 
      * @return The parameter weight.
      */
-    public double getWeight() {
-        return weight;
-    }
+    public double getWeight();
 
     /**
      * Check is parameter can keep the renamed name.
      * 
      * @return True if parameter can keep the renamed name. Otherwise, false.
      */
-    public boolean isKeepRename() {
-        return keepRename;
-    }
+    public boolean isKeepRename();
 
     /**
      * Returns the object monitoring changes on the parameter.
      * 
      * @return The object monitoring the parameter.
      */
-    public ParameterMonitor getMonitor() {
-        return monitor;
-    }
+    public ParameterMonitor getMonitor();
 
 }

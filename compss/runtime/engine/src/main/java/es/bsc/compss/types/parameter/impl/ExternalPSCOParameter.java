@@ -14,16 +14,15 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.parameter;
+package es.bsc.compss.types.parameter.impl;
 
 import es.bsc.compss.api.ParameterMonitor;
-import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
 
 
-public class BindingObjectParameter extends DependencyParameter {
+public class ExternalPSCOParameter extends DependencyParameterImpl {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
@@ -31,7 +30,7 @@ public class BindingObjectParameter extends DependencyParameter {
     private static final long serialVersionUID = 1L;
 
     private final int hashCode;
-    private final BindingObject bo;
+    private String pscoId;
 
 
     /**
@@ -42,15 +41,15 @@ public class BindingObjectParameter extends DependencyParameter {
      * @param prefix Parameter prefix.
      * @param name Parameter name.
      * @param weight Parameter weight.
-     * @param bo Parameter binding object.
+     * @param pscoId Parameter PSCO Id.
      * @param hashCode Parameter object hashcode.
      * @param monitor object to notify to changes on the parameter
      */
-    public BindingObjectParameter(Direction direction, StdIOStream stream, String prefix, String name,
-        String contentType, double weight, BindingObject bo, int hashCode, ParameterMonitor monitor) {
+    public ExternalPSCOParameter(Direction direction, StdIOStream stream, String prefix, String name, double weight,
+        String pscoId, int hashCode, ParameterMonitor monitor) {
 
-        super(DataType.BINDING_OBJECT_T, direction, stream, prefix, name, contentType, weight, false, monitor);
-        this.bo = bo;
+        super(DataType.EXTERNAL_PSCO_T, direction, stream, prefix, name, "null", weight, false, monitor);
+        this.pscoId = pscoId;
         this.hashCode = hashCode;
     }
 
@@ -60,7 +59,11 @@ public class BindingObjectParameter extends DependencyParameter {
     }
 
     public String getId() {
-        return this.bo.toString();
+        return this.pscoId;
+    }
+
+    public void setId(String pscoId) {
+        this.pscoId = pscoId;
     }
 
     public int getCode() {
@@ -69,39 +72,12 @@ public class BindingObjectParameter extends DependencyParameter {
 
     @Override
     public String toString() {
-        return "BindingObjectParameter with Id " + this.bo.getId() + ", type " + this.bo.getType() + ", elements "
-            + this.bo.getElements() + " and HashCode " + this.hashCode;
-    }
-
-    @Override
-    public String getOriginalName() {
-        return this.bo.getId();
-    }
-
-    @Override
-    public String getDataTarget() {
-        String dataTarget = super.getDataTarget();
-        if (dataTarget != null) {
-            if (dataTarget.contains("#")) {
-                return dataTarget;
-            } else {
-                return dataTarget + "#" + this.bo.getType() + "#" + this.bo.getElements();
-            }
-        } else {
-            return "null#" + this.bo.getType() + "#" + this.bo.getElements();
-        }
-    }
-
-    public BindingObject getBindingObject() {
-        return this.bo;
+        return "ExternalObjectParameter with Id " + this.pscoId + " and HashCode " + this.hashCode;
     }
 
     @Override
     public String generateDataTargetName(String tgtName) {
-        if (!tgtName.contains("#")) {
-            tgtName = tgtName + "#" + bo.getType() + "#" + bo.getElements();
-        }
-        return tgtName;
+        return getId();
     }
 
 }

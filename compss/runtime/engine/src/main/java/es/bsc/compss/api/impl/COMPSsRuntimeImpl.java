@@ -62,16 +62,17 @@ import es.bsc.compss.types.implementations.ExecType;
 import es.bsc.compss.types.implementations.ExecutionOrder;
 import es.bsc.compss.types.implementations.ImplementationDescription;
 import es.bsc.compss.types.listeners.CancelTaskGroupOnResourceCreation;
-import es.bsc.compss.types.parameter.BasicTypeParameter;
-import es.bsc.compss.types.parameter.BindingObjectParameter;
 import es.bsc.compss.types.parameter.CollectiveParameter;
-import es.bsc.compss.types.parameter.DirectoryParameter;
-import es.bsc.compss.types.parameter.ExternalPSCOParameter;
-import es.bsc.compss.types.parameter.ExternalStreamParameter;
-import es.bsc.compss.types.parameter.FileParameter;
-import es.bsc.compss.types.parameter.ObjectParameter;
 import es.bsc.compss.types.parameter.Parameter;
-import es.bsc.compss.types.parameter.StreamParameter;
+import es.bsc.compss.types.parameter.impl.BasicTypeParameterImpl;
+import es.bsc.compss.types.parameter.impl.BindingObjectParameter;
+import es.bsc.compss.types.parameter.impl.CollectiveParameterImpl;
+import es.bsc.compss.types.parameter.impl.DirectoryParameter;
+import es.bsc.compss.types.parameter.impl.ExternalPSCOParameter;
+import es.bsc.compss.types.parameter.impl.ExternalStreamParameter;
+import es.bsc.compss.types.parameter.impl.FileParameter;
+import es.bsc.compss.types.parameter.impl.ObjectParameter;
+import es.bsc.compss.types.parameter.impl.StreamParameter;
 import es.bsc.compss.types.resources.MasterResourceImpl;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Resource;
@@ -1782,8 +1783,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     ret += addParameter(app, submonitor, elemContent, elemType, elemDir, elemStream, elemPrefix,
                         elemName, elemPyType, weight, keepRename, collectionParameters, offset + ret + 1, values) + 2;
                 }
-                CollectiveParameter cp = new CollectiveParameter(type, collectionId, direction, stream, prefix, name,
-                    colPyType, weight, keepRename, monitor, collectionParameters);
+                CollectiveParameter cp = new CollectiveParameterImpl(type, collectionId, direction, stream, prefix,
+                    name, colPyType, weight, keepRename, monitor, collectionParameters);
                 pars.add(cp);
                 return ret;
             case DICT_COLLECTION_T:
@@ -1866,7 +1867,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                         dictCollectionParams, offset + pointer, values1) + extraValue;
                     pointer += vDret;
                 }
-                CollectiveParameter dcp = new CollectiveParameter(type, dictCollectionId, direction, stream, prefix,
+                CollectiveParameter dcp = new CollectiveParameterImpl(type, dictCollectionId, direction, stream, prefix,
                     name, dictColPyType, weight, keepRename, monitor, dictCollectionParams);
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Add Dictionary Collection " + dcp.getName() + " with " + dcp.getElements().size() / 2
@@ -1877,8 +1878,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 return pointer;
             case NULL_T:
                 LOGGER.warn(WARN_NULL_PARAM + "Parameter " + name + " is defined as None or Null");
-                pars.add(
-                    new BasicTypeParameter(type, Direction.IN, stream, prefix, name, content, weight, "null", monitor));
+                pars.add(new BasicTypeParameterImpl(type, Direction.IN, stream, prefix, name, content, weight, "null",
+                    monitor));
                 break;
             default:
                 // Basic types (including String)
@@ -1887,8 +1888,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     LOGGER.warn(WARN_WRONG_DIRECTION + "Parameter " + name
                         + " is a basic type, therefore it must have IN direction");
                 }
-                pars.add(
-                    new BasicTypeParameter(type, Direction.IN, stream, prefix, name, content, weight, pyType, monitor));
+                pars.add(new BasicTypeParameterImpl(type, Direction.IN, stream, prefix, name, content, weight, pyType,
+                    monitor));
                 break;
         }
         return 1;

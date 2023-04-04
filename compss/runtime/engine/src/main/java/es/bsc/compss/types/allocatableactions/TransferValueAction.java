@@ -37,8 +37,8 @@ import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.parameter.CollectiveParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
-import es.bsc.compss.types.parameter.ExternalPSCOParameter;
 import es.bsc.compss.types.parameter.Parameter;
+import es.bsc.compss.types.parameter.impl.ExternalPSCOParameter;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 

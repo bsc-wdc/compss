@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.parameter;
+package es.bsc.compss.types.parameter.impl;
 
 import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.types.annotations.parameter.DataType;
@@ -22,7 +22,7 @@ import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
 
 
-public class StreamParameter extends DependencyParameter {
+public class ObjectParameter extends DependencyParameterImpl {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
@@ -34,20 +34,22 @@ public class StreamParameter extends DependencyParameter {
 
 
     /**
-     * Creates a new Stream Parameter.
+     * Creates a new Object Parameter.
      * 
      * @param direction Parameter direction.
      * @param stream Standard IO Stream flags.
      * @param prefix Parameter prefix.
      * @param name Parameter name.
+     * @param contentType Parameter content type.
+     * @param weight Parameter weight.
      * @param value Parameter object value.
      * @param hashCode Parameter object hashcode.
      * @param monitor object to notify to changes on the parameter
      */
-    public StreamParameter(Direction direction, StdIOStream stream, String prefix, String name, Object value,
-        int hashCode, ParameterMonitor monitor) {
+    public ObjectParameter(Direction direction, StdIOStream stream, String prefix, String name, String contentType,
+        double weight, Object value, int hashCode, ParameterMonitor monitor) {
 
-        super(DataType.STREAM_T, direction, stream, prefix, name, "null", 1.0, false, monitor);
+        super(DataType.OBJECT_T, direction, stream, prefix, name, contentType, weight, false, monitor);
         this.value = value;
         this.hashCode = hashCode;
     }
@@ -71,7 +73,7 @@ public class StreamParameter extends DependencyParameter {
 
     @Override
     public String toString() {
-        return "StreamParameter with hash code " + this.hashCode + ", type " + getType() + ", direction "
+        return "ObjectParameter with hash code " + this.hashCode + ", type " + getType() + ", direction "
             + getDirection();
     }
 

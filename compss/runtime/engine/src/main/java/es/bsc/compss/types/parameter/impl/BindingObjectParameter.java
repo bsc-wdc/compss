@@ -22,6 +22,7 @@ import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
+import es.bsc.compss.types.data.accessparams.BindingObjectAccessParams;
 
 
 public class BindingObjectParameter extends DependencyParameter {
@@ -33,6 +34,7 @@ public class BindingObjectParameter extends DependencyParameter {
 
     private final int hashCode;
     private final BindingObject bo;
+    private final BindingObjectAccessParams access;
 
 
     /**
@@ -54,6 +56,7 @@ public class BindingObjectParameter extends DependencyParameter {
         super(app, DataType.BINDING_OBJECT_T, direction, stream, prefix, name, contentType, weight, false, monitor);
         this.bo = bo;
         this.hashCode = hashCode;
+        access = new BindingObjectAccessParams(app, getAccessMode(direction), bo, hashCode);
     }
 
     @Override
@@ -104,6 +107,11 @@ public class BindingObjectParameter extends DependencyParameter {
             tgtName = tgtName + "#" + bo.getType() + "#" + bo.getElements();
         }
         return tgtName;
+    }
+
+    @Override
+    public BindingObjectAccessParams getAccess() {
+        return access;
     }
 
 }

@@ -21,6 +21,7 @@ import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
+import es.bsc.compss.types.data.accessparams.ExternalStreamAccessParams;
 import es.bsc.compss.types.data.location.DataLocation;
 
 
@@ -33,6 +34,8 @@ public class ExternalStreamParameter extends DependencyParameter {
 
     private final DataLocation location;
     private final String originalName;
+
+    private final ExternalStreamAccessParams access;
 
 
     /**
@@ -53,6 +56,7 @@ public class ExternalStreamParameter extends DependencyParameter {
         super(app, DataType.EXTERNAL_STREAM_T, direction, stream, prefix, name, "null", 1.0, false, monitor);
         this.location = location;
         this.originalName = originalName;
+        this.access = new ExternalStreamAccessParams(app, getAccessMode(direction), this.location);
     }
 
     @Override
@@ -72,6 +76,11 @@ public class ExternalStreamParameter extends DependencyParameter {
     @Override
     public String toString() {
         return "ExternalStreamParameter with location " + this.location + ", direction " + getDirection();
+    }
+
+    @Override
+    public ExternalStreamAccessParams getAccess() {
+        return access;
     }
 
 }

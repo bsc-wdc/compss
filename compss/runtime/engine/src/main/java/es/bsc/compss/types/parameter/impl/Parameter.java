@@ -21,6 +21,8 @@ import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
+import es.bsc.compss.types.data.accessparams.AccessParams;
+import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
 
 
 public abstract class Parameter implements es.bsc.compss.types.parameter.Parameter {
@@ -41,6 +43,29 @@ public abstract class Parameter implements es.bsc.compss.types.parameter.Paramet
     private final boolean keepRename;
     private final ParameterMonitor monitor;
 
+
+    protected static final AccessMode getAccessMode(Direction d) {
+        AccessMode am = AccessMode.R;
+        switch (d) {
+            case IN:
+            case IN_DELETE:
+                am = AccessParams.AccessMode.R;
+                break;
+            case OUT:
+                am = AccessParams.AccessMode.W;
+                break;
+            case INOUT:
+                am = AccessParams.AccessMode.RW;
+                break;
+            case CONCURRENT:
+                am = AccessParams.AccessMode.C;
+                break;
+            case COMMUTATIVE:
+                am = AccessParams.AccessMode.CV;
+                break;
+        }
+        return am;
+    }
 
     /**
      * Creates a new Parameter instance from the given values.
@@ -128,5 +153,12 @@ public abstract class Parameter implements es.bsc.compss.types.parameter.Paramet
     public ParameterMonitor getMonitor() {
         return monitor;
     }
+
+    /**
+     * Returns a description of the access performed by the parameter.
+     * 
+     * @return description of the access performed by the parameter.
+     */
+    public abstract AccessParams getAccess();
 
 }

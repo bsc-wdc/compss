@@ -21,6 +21,7 @@ import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
+import es.bsc.compss.types.data.accessparams.FileAccessParams;
 
 import es.bsc.compss.types.data.location.DataLocation;
 
@@ -35,6 +36,7 @@ public class FileParameter extends DependencyParameter {
     // File parameter fields
     private final DataLocation location;
     private final String originalName;
+    private final FileAccessParams access;
 
 
     /**
@@ -59,7 +61,7 @@ public class FileParameter extends DependencyParameter {
         super(app, DataType.FILE_T, direction, stream, prefix, name, contentType, weight, keepRename, monitor);
         this.location = location;
         this.originalName = originalName;
-
+        this.access = new FileAccessParams(app, getAccessMode(direction), location);
     }
 
     @Override
@@ -80,6 +82,11 @@ public class FileParameter extends DependencyParameter {
     public String toString() {
         return "FileParameter with location " + this.location + ", type " + getType() + ", direction " + getDirection()
             + ", CONTENT TYPE" + getContentType();
+    }
+
+    @Override
+    public FileAccessParams getAccess() {
+        return access;
     }
 
 }

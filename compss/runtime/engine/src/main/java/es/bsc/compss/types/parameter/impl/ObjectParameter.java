@@ -21,6 +21,7 @@ import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
+import es.bsc.compss.types.data.accessparams.ObjectAccessParams;
 
 
 public class ObjectParameter extends DependencyParameter {
@@ -32,6 +33,8 @@ public class ObjectParameter extends DependencyParameter {
 
     private final int hashCode;
     private Object value;
+
+    private final ObjectAccessParams access;
 
 
     /**
@@ -54,6 +57,7 @@ public class ObjectParameter extends DependencyParameter {
         super(app, DataType.OBJECT_T, direction, stream, prefix, name, contentType, weight, false, monitor);
         this.value = value;
         this.hashCode = hashCode;
+        access = new ObjectAccessParams(app, getAccessMode(direction), value, hashCode);
     }
 
     @Override
@@ -77,6 +81,11 @@ public class ObjectParameter extends DependencyParameter {
     public String toString() {
         return "ObjectParameter with hash code " + this.hashCode + ", type " + getType() + ", direction "
             + getDirection();
+    }
+
+    @Override
+    public ObjectAccessParams getAccess() {
+        return access;
     }
 
 }

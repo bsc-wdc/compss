@@ -21,6 +21,8 @@ import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
+import es.bsc.compss.types.data.accessparams.AccessParams;
+import es.bsc.compss.types.data.accessparams.ExternalPSCObjectAccessParams;
 
 
 public class ExternalPSCOParameter extends DependencyParameter {
@@ -32,6 +34,8 @@ public class ExternalPSCOParameter extends DependencyParameter {
 
     private final int hashCode;
     private String pscoId;
+
+    private final ExternalPSCObjectAccessParams access;
 
 
     /**
@@ -53,6 +57,7 @@ public class ExternalPSCOParameter extends DependencyParameter {
         super(app, DataType.EXTERNAL_PSCO_T, direction, stream, prefix, name, "null", weight, false, monitor);
         this.pscoId = pscoId;
         this.hashCode = hashCode;
+        this.access = new ExternalPSCObjectAccessParams(app, getAccessMode(direction), pscoId, hashCode);
     }
 
     @Override
@@ -80,6 +85,11 @@ public class ExternalPSCOParameter extends DependencyParameter {
     @Override
     public String generateDataTargetName(String tgtName) {
         return getId();
+    }
+
+    @Override
+    public AccessParams getAccess() {
+        return this.access;
     }
 
 }

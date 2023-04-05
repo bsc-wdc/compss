@@ -637,34 +637,20 @@ public class TaskAnalyser implements GraphHandler {
         DataAccessId daId;
         switch (p.getType()) {
             case DIRECTORY_T:
-                DirectoryParameter dp = (DirectoryParameter) p;
                 // register file access for now, and directory will be accessed as a file
-                daId = this.dip.registerDataAccess(new FileAccessParams(app, am, dp.getLocation()));
+                daId = this.dip.registerDataAccess(p.getAccess());
                 break;
             case FILE_T:
-                FileParameter fp = (FileParameter) p;
-                daId = this.dip.registerDataAccess(new FileAccessParams(app, am, fp.getLocation()));
+                daId = this.dip.registerDataAccess(p.getAccess());
                 break;
             case PSCO_T:
-                ObjectParameter pscop = (ObjectParameter) p;
-                // Check if its PSCO class and persisted to infer its type
-                pscop.setType(DataType.PSCO_T);
-                daId = this.dip.registerDataAccess(new ObjectAccessParams(app, am, pscop.getValue(), pscop.getCode()));
+                daId = this.dip.registerDataAccess(p.getAccess());
                 break;
             case EXTERNAL_PSCO_T:
-                ExternalPSCOParameter externalPSCOparam = (ExternalPSCOParameter) p;
-                // Check if its PSCO class and persisted to infer its type
-                externalPSCOparam.setType(DataType.EXTERNAL_PSCO_T);
-                String pscoId = externalPSCOparam.getId();
-                int code = externalPSCOparam.getCode();
-                daId = this.dip.registerDataAccess(new ExternalPSCObjectAccessParams(app, am, pscoId, code));
+                daId = this.dip.registerDataAccess(p.getAccess());
                 break;
             case BINDING_OBJECT_T:
-                BindingObjectParameter bop = (BindingObjectParameter) p;
-                // Check if its Binding OBJ and register its access
-                bop.setType(DataType.BINDING_OBJECT_T);
-                BindingObject bo = bop.getBindingObject();
-                daId = this.dip.registerDataAccess(new BindingObjectAccessParams(app, am, bo, bop.getCode()));
+                daId = this.dip.registerDataAccess(p.getAccess());
                 break;
             case OBJECT_T:
                 ObjectParameter op = (ObjectParameter) p;
@@ -672,15 +658,13 @@ public class TaskAnalyser implements GraphHandler {
                 if (op.getValue() instanceof StubItf && ((StubItf) op.getValue()).getID() != null) {
                     op.setType(DataType.PSCO_T);
                 }
-                daId = this.dip.registerDataAccess(new ObjectAccessParams(app, am, op.getValue(), op.getCode()));
+                daId = this.dip.registerDataAccess(p.getAccess());
                 break;
             case STREAM_T:
-                StreamParameter sp = (StreamParameter) p;
-                daId = this.dip.registerDataAccess(new StreamAccessParams(app, am, sp.getValue(), sp.getCode()));
+                daId = this.dip.registerDataAccess(p.getAccess());
                 break;
             case EXTERNAL_STREAM_T:
-                ExternalStreamParameter esp = (ExternalStreamParameter) p;
-                daId = this.dip.registerDataAccess(new ExternalStreamAccessParams(app, am, esp.getLocation()));
+                daId = this.dip.registerDataAccess(p.getAccess());
                 break;
             case COLLECTION_T:
             case DICT_COLLECTION_T:
@@ -693,7 +677,7 @@ public class TaskAnalyser implements GraphHandler {
                         registerParameterAccessAndAddDependencies(app, currentTask, content, isConstraining);
                     hasParamEdge = hasParamEdge || hasCollectionParamEdge;
                 }
-                daId = dip.registerDataAccess(new CollectionAccessParams(app, am, cp.getCollectionId()));
+                daId = dip.registerDataAccess(p.getAccess());
                 if (IS_DRAW_GRAPH) {
                     this.gm.stopGroupingEdges();
                 }
@@ -704,7 +688,6 @@ public class TaskAnalyser implements GraphHandler {
             default:
                 // This is a basic type, there are no accesses to register
                 daId = null;
-                currentTask.registerFreeParam(p);
         }
 
         if (daId != null) {
@@ -714,6 +697,7 @@ public class TaskAnalyser implements GraphHandler {
             hasParamEdge = addDependencies(am, currentTask, isConstraining, dp);
         } else {
             // Basic types do not produce access dependencies
+            currentTask.registerFreeParam(p);
         }
         // Return data Id
         return hasParamEdge;

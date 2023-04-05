@@ -21,6 +21,7 @@ import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
+import es.bsc.compss.types.data.accessparams.CollectionAccessParams;
 import java.util.Iterator;
 
 import java.util.List;
@@ -44,6 +45,8 @@ public class CollectiveParameter extends DependencyParameter
 
     // Parameter objects of the collection contents
     private List<Parameter> elements;
+
+    private final CollectionAccessParams access;
 
 
     /**
@@ -69,6 +72,7 @@ public class CollectiveParameter extends DependencyParameter
         super(app, type, direction, stream, prefix, name, contentType, weight, keepRename, monitor);
         this.collectionId = id;
         this.elements = elements;
+        this.access = new CollectionAccessParams(app, getAccessMode(direction), this.collectionId);
     }
 
     @Override
@@ -131,5 +135,10 @@ public class CollectiveParameter extends DependencyParameter
             sb.append("\t").append(s).append("\n");
         }
         return sb.toString();
+    }
+
+    @Override
+    public CollectionAccessParams getAccess() {
+        return access;
     }
 }

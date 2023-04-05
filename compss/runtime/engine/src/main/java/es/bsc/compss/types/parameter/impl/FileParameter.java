@@ -33,14 +33,12 @@ public class FileParameter extends DependencyParameter<FileAccessParams> {
      */
     private static final long serialVersionUID = 1L;
 
-    // File parameter fields
-    private final DataLocation location;
     private final String originalName;
 
 
     /**
      * Creates a new Stream Parameter.
-     * 
+     *
      * @param app Application performing the access
      * @param direction Parameter direction.
      * @param stream Standard IO Stream flags.
@@ -59,7 +57,6 @@ public class FileParameter extends DependencyParameter<FileAccessParams> {
 
         super(app, DataType.FILE_T, direction, FileAccessParams.constructFAP(app, getAccessMode(direction), location),
             stream, prefix, name, contentType, weight, keepRename, monitor);
-        this.location = location;
         this.originalName = originalName;
     }
 
@@ -69,7 +66,7 @@ public class FileParameter extends DependencyParameter<FileAccessParams> {
     }
 
     public DataLocation getLocation() {
-        return this.location;
+        return this.getAccess().getLocation();
     }
 
     @Override
@@ -79,8 +76,8 @@ public class FileParameter extends DependencyParameter<FileAccessParams> {
 
     @Override
     public String toString() {
-        return "FileParameter with location " + this.location + ", type " + getType() + ", direction " + getDirection()
-            + ", CONTENT TYPE" + getContentType();
+        return "FileParameter with location " + this.getAccess().getLocation() + ", type " + getType() + ", direction "
+            + getDirection() + ", CONTENT TYPE" + getContentType();
     }
 
 }

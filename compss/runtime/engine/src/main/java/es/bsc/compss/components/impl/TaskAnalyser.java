@@ -24,7 +24,6 @@ import es.bsc.compss.components.monitor.impl.GraphHandler;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.Application;
-import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.CommutativeGroupTask;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.TaskDescription;
@@ -42,8 +41,7 @@ import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
-import es.bsc.compss.types.data.accessparams.BindingObjectAccessParams;
-import es.bsc.compss.types.data.accessparams.CollectionAccessParams;
+import es.bsc.compss.types.data.accessparams.DataParams;
 import es.bsc.compss.types.data.accessparams.DataParams.BindingObjectData;
 import es.bsc.compss.types.data.accessparams.DataParams.CollectionData;
 import es.bsc.compss.types.data.accessparams.DataParams.ExternalPSCObjectData;
@@ -51,11 +49,6 @@ import es.bsc.compss.types.data.accessparams.DataParams.ExternalStreamData;
 import es.bsc.compss.types.data.accessparams.DataParams.FileData;
 import es.bsc.compss.types.data.accessparams.DataParams.ObjectData;
 import es.bsc.compss.types.data.accessparams.DataParams.StreamData;
-import es.bsc.compss.types.data.accessparams.ExternalPSCObjectAccessParams;
-import es.bsc.compss.types.data.accessparams.ExternalStreamAccessParams;
-import es.bsc.compss.types.data.accessparams.FileAccessParams;
-import es.bsc.compss.types.data.accessparams.ObjectAccessParams;
-import es.bsc.compss.types.data.accessparams.StreamAccessParams;
 import es.bsc.compss.types.parameter.impl.BindingObjectParameter;
 import es.bsc.compss.types.parameter.impl.CollectiveParameter;
 import es.bsc.compss.types.parameter.impl.DependencyParameter;
@@ -611,90 +604,46 @@ public class TaskAnalyser implements GraphHandler {
      ***************************************************************************************************************/
     private boolean registerParameterAccessAndAddDependencies(Application app, Task currentTask, Parameter p,
         boolean isConstraining) {
-        // Conversion: direction -> access mode
-        AccessMode am = AccessMode.R;
-        switch (p.getDirection()) {
-            case IN:
-            case IN_DELETE:
-                am = AccessMode.R;
-                break;
-            case OUT:
-                am = AccessMode.W;
-                break;
-            case INOUT:
-                am = AccessMode.RW;
-                break;
-            case CONCURRENT:
-                am = AccessMode.C;
-                break;
-            case COMMUTATIVE:
-                am = AccessMode.CV;
-                break;
-        }
-
-        // Inform the Data Manager about the new accesses
         boolean hasParamEdge = false;
-        DataAccessId daId;
-        switch (p.getType()) {
-            case DIRECTORY_T:
-                // register file access for now, and directory will be accessed as a file
-                daId = this.dip.registerDataAccess(p.getAccess());
-                break;
-            case FILE_T:
-                daId = this.dip.registerDataAccess(p.getAccess());
-                break;
-            case PSCO_T:
-                daId = this.dip.registerDataAccess(p.getAccess());
-                break;
-            case EXTERNAL_PSCO_T:
-                daId = this.dip.registerDataAccess(p.getAccess());
-                break;
-            case BINDING_OBJECT_T:
-                daId = this.dip.registerDataAccess(p.getAccess());
-                break;
-            case OBJECT_T:
+        if (p.isCollective()) {
+            CollectiveParameter cp = (CollectiveParameter) p;
+            if (IS_DRAW_GRAPH) {
+                this.gm.startGroupingEdges();
+            }
+            for (Parameter content : cp.getElements()) {
+                boolean hasCollectionParamEdge =
+                    registerParameterAccessAndAddDependencies(app, currentTask, content, isConstraining);
+                hasParamEdge = hasParamEdge || hasCollectionParamEdge;
+            }
+        } else {
+            if (p.getType() == DataType.OBJECT_T) {
                 ObjectParameter op = (ObjectParameter) p;
                 // Check if its PSCO class and persisted to infer its type
                 if (op.getValue() instanceof StubItf && ((StubItf) op.getValue()).getID() != null) {
                     op.setType(DataType.PSCO_T);
                 }
-                daId = this.dip.registerDataAccess(p.getAccess());
-                break;
-            case STREAM_T:
-                daId = this.dip.registerDataAccess(p.getAccess());
-                break;
-            case EXTERNAL_STREAM_T:
-                daId = this.dip.registerDataAccess(p.getAccess());
-                break;
-            case COLLECTION_T:
-            case DICT_COLLECTION_T:
-                CollectiveParameter cp = (CollectiveParameter) p;
-                if (IS_DRAW_GRAPH) {
-                    this.gm.startGroupingEdges();
-                }
-                for (Parameter content : cp.getElements()) {
-                    boolean hasCollectionParamEdge =
-                        registerParameterAccessAndAddDependencies(app, currentTask, content, isConstraining);
-                    hasParamEdge = hasParamEdge || hasCollectionParamEdge;
-                }
-                daId = dip.registerDataAccess(p.getAccess());
-                if (IS_DRAW_GRAPH) {
-                    this.gm.stopGroupingEdges();
-                }
-                CollectionData cd = new CollectionData(app, cp.getCollectionId());
-                DataInfo ci = dip.deleteData(cd, true);
-                deleteData(ci, false);
-                break;
-            default:
-                // This is a basic type, there are no accesses to register
-                daId = null;
+            }
+        }
+
+        // Inform the Data Manager about the new accesses
+        DataAccessId daId;
+        AccessParams access = p.getAccess();
+        if (access != null) {
+            daId = dip.registerDataAccess(access);
+        } else {
+            daId = null;
+        }
+
+        if (p.isCollective()) {
+            DataInfo ci = dip.deleteData(access.getData(), true);
+            deleteData(ci, false);
         }
 
         if (daId != null) {
             // Add parameter dependencies
             DependencyParameter dp = (DependencyParameter) p;
             dp.setDataAccessId(daId);
-            hasParamEdge = addDependencies(am, currentTask, isConstraining, dp);
+            hasParamEdge = addDependencies(currentTask, isConstraining, dp);
         } else {
             // Basic types do not produce access dependencies
             currentTask.registerFreeParam(p);
@@ -703,13 +652,13 @@ public class TaskAnalyser implements GraphHandler {
         return hasParamEdge;
     }
 
-    private boolean addDependencies(AccessMode am, Task currentTask, boolean isConstraining, DependencyParameter dp) {
+    private boolean addDependencies(Task currentTask, boolean isConstraining, DependencyParameter dp) {
         // Add dependencies to the graph and register output values for future dependencies
         boolean hasParamEdge = false;
         DataAccessId daId = dp.getDataAccessId();
         int dataId = daId.getDataId();
         DataAccessesInfo dai = this.accessesInfo.get(dataId);
-        switch (am) {
+        switch (dp.getAccess().getMode()) {
             case R:
                 hasParamEdge = checkInputDependency(currentTask, dp, false, dataId, dai, isConstraining);
                 break;

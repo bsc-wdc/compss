@@ -25,16 +25,12 @@ import es.bsc.compss.types.data.accessparams.FileAccessParams;
 import es.bsc.compss.types.data.location.DataLocation;
 
 
-public class DirectoryParameter extends DependencyParameter<FileAccessParams> {
+public class DirectoryParameter extends FileParameter {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
      */
     private static final long serialVersionUID = 1L;
-
-    // Same as FileParameter fields
-    private final DataLocation location;
-    private final String originalName;
 
 
     /**
@@ -51,35 +47,27 @@ public class DirectoryParameter extends DependencyParameter<FileAccessParams> {
      * @param location Directory location.
      * @param originalName Original dir name.
      * @param monitor object to notify to changes on the parameter
+     * @return new Directory Parameter instance
      */
-    public DirectoryParameter(Application app, Direction direction, StdIOStream stream, String prefix, String name,
+    public static final DirectoryParameter newDP(Application app, Direction direction, StdIOStream stream,
+        String prefix, String name, String contentType, double weight, boolean keepRename, DataLocation location,
+        String originalName, ParameterMonitor monitor) {
+        return new DirectoryParameter(app, direction, stream, prefix, name, contentType, weight, keepRename, location,
+            originalName, monitor);
+    }
+
+    protected DirectoryParameter(Application app, Direction direction, StdIOStream stream, String prefix, String name,
         String contentType, double weight, boolean keepRename, DataLocation location, String originalName,
         ParameterMonitor monitor) {
 
-        super(app, DataType.DIRECTORY_T, direction,
-            FileAccessParams.constructFAP(app, getAccessMode(direction), location), stream, prefix, name, contentType,
-            weight, keepRename, monitor);
-        this.location = location;
-        this.originalName = originalName;
-    }
+        super(app, DataType.DIRECTORY_T, direction, stream, prefix, name, contentType, weight, keepRename, location,
+            originalName, monitor);
 
-    @Override
-    public boolean isCollective() {
-        return false;
-    }
-
-    public DataLocation getLocation() {
-        return this.location;
-    }
-
-    @Override
-    public String getOriginalName() {
-        return this.originalName;
     }
 
     @Override
     public String toString() {
-        return "DirectoryParameter with location " + this.location + ", type " + getType() + ", direction "
+        return "DirectoryParameter with location " + this.getLocation() + ", type " + getType() + ", direction "
             + getDirection();
     }
 

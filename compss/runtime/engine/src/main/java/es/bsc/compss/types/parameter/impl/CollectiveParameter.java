@@ -40,9 +40,6 @@ public class CollectiveParameter extends DependencyParameter<CollectionAccessPar
      */
     private static final long serialVersionUID = 1L;
 
-    // Identifier of the collection object
-    private String collectionId;
-
     // Parameter objects of the collection contents
     private List<Parameter> elements;
 
@@ -64,37 +61,38 @@ public class CollectiveParameter extends DependencyParameter<CollectionAccessPar
      * @param elements Elements of the collection
      * @see DependencyParameter
      */
-    public CollectiveParameter(Application app, DataType type, String id, Direction direction, StdIOStream stream,
+    public static final CollectiveParameter newCP(Application app, DataType type, String id, Direction direction,
+        StdIOStream stream, String prefix, String name, String contentType, double weight, boolean keepRename,
+        ParameterMonitor monitor, List<Parameter> elements) {
+        return new CollectiveParameter(app, type, id, direction, stream, prefix, name, contentType, weight, keepRename,
+            monitor, elements);
+    }
+
+    protected CollectiveParameter(Application app, DataType type, String id, Direction direction, StdIOStream stream,
         String prefix, String name, String contentType, double weight, boolean keepRename, ParameterMonitor monitor,
         List<Parameter> elements) {
         super(app, type, direction, CollectionAccessParams.constructCAP(app, getAccessMode(direction), id), stream,
             prefix, name, contentType, weight, keepRename, monitor);
-        this.collectionId = id;
         this.elements = elements;
     }
 
     @Override
-    public boolean isCollective() {
+    public final boolean isCollective() {
         return true;
     }
 
     @Override
-    public String getCollectionId() {
-        return this.collectionId;
+    public final String getCollectionId() {
+        return this.getAccess().getData().getCollectionId();
     }
 
     @Override
-    public void setCollectionId(String collectionId) {
-        this.collectionId = collectionId;
-    }
-
-    @Override
-    public List<Parameter> getElements() {
+    public final List<Parameter> getElements() {
         return this.elements;
     }
 
     @Override
-    public void setElements(List<Parameter> elements) {
+    public final void setElements(List<Parameter> elements) {
         this.elements = elements;
     }
 

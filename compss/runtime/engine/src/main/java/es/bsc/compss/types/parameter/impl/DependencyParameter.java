@@ -55,7 +55,7 @@ public abstract class DependencyParameter<T extends AccessParams> extends Parame
      * @param keepRename Parameter keep rename property.
      * @param monitor object to notify to changes on the parameter
      */
-    public DependencyParameter(Application app, DataType type, Direction direction, T access, StdIOStream stream,
+    protected DependencyParameter(Application app, DataType type, Direction direction, T access, StdIOStream stream,
         String prefix, String name, String contentType, double weight, boolean keepRename, ParameterMonitor monitor) {
         super(type, direction, stream, prefix, name, contentType, weight, keepRename, monitor);
         this.access = access;

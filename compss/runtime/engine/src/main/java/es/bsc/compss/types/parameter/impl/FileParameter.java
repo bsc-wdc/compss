@@ -37,7 +37,7 @@ public class FileParameter extends DependencyParameter<FileAccessParams> {
 
 
     /**
-     * Creates a new Stream Parameter.
+     * Creates a new File Parameter.
      *
      * @param app Application performing the access
      * @param direction Parameter direction.
@@ -50,13 +50,21 @@ public class FileParameter extends DependencyParameter<FileAccessParams> {
      * @param location File location.
      * @param originalName Original file name.
      * @param monitor object to notify to changes on the parameter
+     * @return creates a new File Parameter
      */
-    public FileParameter(Application app, Direction direction, StdIOStream stream, String prefix, String name,
-        String contentType, double weight, boolean keepRename, DataLocation location, String originalName,
+    public static final FileParameter newFP(Application app, Direction direction, StdIOStream stream, String prefix,
+        String name, String contentType, double weight, boolean keepRename, DataLocation location, String originalName,
+        ParameterMonitor monitor) {
+        return new FileParameter(app, DataType.FILE_T, direction, stream, prefix, name, contentType, weight, keepRename,
+            location, originalName, monitor);
+    }
+
+    protected FileParameter(Application app, DataType type, Direction direction, StdIOStream stream, String prefix,
+        String name, String contentType, double weight, boolean keepRename, DataLocation location, String originalName,
         ParameterMonitor monitor) {
 
-        super(app, DataType.FILE_T, direction, FileAccessParams.constructFAP(app, getAccessMode(direction), location),
-            stream, prefix, name, contentType, weight, keepRename, monitor);
+        super(app, type, direction, FileAccessParams.constructFAP(app, getAccessMode(direction), location), stream,
+            prefix, name, contentType, weight, keepRename, monitor);
         this.originalName = originalName;
     }
 
@@ -65,12 +73,12 @@ public class FileParameter extends DependencyParameter<FileAccessParams> {
         return false;
     }
 
-    public DataLocation getLocation() {
+    public final DataLocation getLocation() {
         return this.getAccess().getLocation();
     }
 
     @Override
-    public String getOriginalName() {
+    public final String getOriginalName() {
         return this.originalName;
     }
 

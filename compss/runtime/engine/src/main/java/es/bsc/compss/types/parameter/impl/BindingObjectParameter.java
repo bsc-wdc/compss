@@ -23,21 +23,20 @@ import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.data.accessparams.BindingObjectAccessParams;
+import es.bsc.compss.types.data.accessparams.DataParams.BindingObjectData;
 
 
-public class BindingObjectParameter extends DependencyParameter<BindingObjectAccessParams> {
+public class BindingObjectParameter
+    extends ObjectParameter<BindingObject, BindingObjectAccessParams, BindingObjectData> {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
      */
     private static final long serialVersionUID = 1L;
 
-    private final int hashCode;
-    private final BindingObject bo;
-
 
     /**
-     * Creates a new Stream Parameter.
+     * Creates a new BindingObjectParameter Parameter.
      * 
      * @param app Application performing the access
      * @param direction Parameter direction.
@@ -48,61 +47,61 @@ public class BindingObjectParameter extends DependencyParameter<BindingObjectAcc
      * @param bo Parameter binding object.
      * @param hashCode Parameter object hashcode.
      * @param monitor object to notify to changes on the parameter
+     * @return new BindingObjectParameter instance
      */
-    public BindingObjectParameter(Application app, Direction direction, StdIOStream stream, String prefix, String name,
+    public static final BindingObjectParameter newBOP(Application app, Direction direction, StdIOStream stream,
+        String prefix, String name, String contentType, double weight, BindingObject bo, int hashCode,
+        ParameterMonitor monitor) {
+        return new BindingObjectParameter(app, direction, stream, prefix, name, contentType, weight, bo, hashCode,
+            monitor);
+    }
+
+    private BindingObjectParameter(Application app, Direction direction, StdIOStream stream, String prefix, String name,
         String contentType, double weight, BindingObject bo, int hashCode, ParameterMonitor monitor) {
 
         super(app, DataType.BINDING_OBJECT_T, direction,
             BindingObjectAccessParams.constructBOAP(app, getAccessMode(direction), bo, hashCode), stream, prefix, name,
-            contentType, weight, false, monitor);
-        this.bo = bo;
-        this.hashCode = hashCode;
-    }
-
-    @Override
-    public boolean isCollective() {
-        return false;
+            contentType, weight, monitor);
     }
 
     public String getId() {
-        return this.bo.toString();
-    }
-
-    public int getCode() {
-        return this.hashCode;
-    }
-
-    @Override
-    public String toString() {
-        return "BindingObjectParameter with Id " + this.bo.getId() + ", type " + this.bo.getType() + ", elements "
-            + this.bo.getElements() + " and HashCode " + this.hashCode;
+        return this.getAccess().getBindingObject().toString();
     }
 
     @Override
     public String getOriginalName() {
-        return this.bo.getId();
+        return this.getAccess().getBindingObject().getId();
+    }
+
+    @Override
+    public String toString() {
+        BindingObject bo = this.getBindingObject();
+        return "BindingObjectParameter with Id " + bo.getId() + ", type " + bo.getType() + ", elements "
+            + bo.getElements() + " and HashCode " + this.getCode();
     }
 
     @Override
     public String getDataTarget() {
+        BindingObject bo = this.getBindingObject();
         String dataTarget = super.getDataTarget();
         if (dataTarget != null) {
             if (dataTarget.contains("#")) {
                 return dataTarget;
             } else {
-                return dataTarget + "#" + this.bo.getType() + "#" + this.bo.getElements();
+                return dataTarget + "#" + bo.getType() + "#" + bo.getElements();
             }
         } else {
-            return "null#" + this.bo.getType() + "#" + this.bo.getElements();
+            return "null#" + bo.getType() + "#" + bo.getElements();
         }
     }
 
     public BindingObject getBindingObject() {
-        return this.bo;
+        return this.getAccess().getBindingObject();
     }
 
     @Override
     public String generateDataTargetName(String tgtName) {
+        BindingObject bo = this.getBindingObject();
         if (!tgtName.contains("#")) {
             tgtName = tgtName + "#" + bo.getType() + "#" + bo.getElements();
         }

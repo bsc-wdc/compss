@@ -81,7 +81,7 @@ public abstract class Parameter implements es.bsc.compss.types.parameter.Paramet
      *            the value recovers its original name
      * @param monitor object to notify to changes on the parameter
      */
-    public Parameter(DataType type, Direction direction, StdIOStream stream, String prefix, String name,
+    protected Parameter(DataType type, Direction direction, StdIOStream stream, String prefix, String name,
         String contentType, double weight, boolean keepRename, ParameterMonitor monitor) {
         this.type = type;
         this.direction = direction;

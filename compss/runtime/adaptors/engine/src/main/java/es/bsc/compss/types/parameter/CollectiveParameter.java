@@ -34,13 +34,6 @@ public interface CollectiveParameter<T extends Parameter> extends DependencyPara
     public String getCollectionId();
 
     /**
-     * Set the identifier of the collection.
-     *
-     * @param collectionId The collection Id.
-     */
-    public void setCollectionId(String collectionId);
-
-    /**
      * Returns the collection parameters.
      *
      * @return List of the internal parameters of the collection.

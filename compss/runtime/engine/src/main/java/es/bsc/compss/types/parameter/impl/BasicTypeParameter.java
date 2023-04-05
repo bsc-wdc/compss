@@ -39,7 +39,7 @@ public class BasicTypeParameter extends Parameter implements es.bsc.compss.types
 
     /**
      * Creates a new BasicTypeParameter instance with the given information.
-     * 
+     *
      * @param type Parameter type.
      * @param direction Parameter direction.
      * @param stream Parameter IO stream mode.
@@ -48,8 +48,14 @@ public class BasicTypeParameter extends Parameter implements es.bsc.compss.types
      * @param value Parameter value.
      * @param weight Parameter weight.
      * @param monitor object to notify to changes on the parameter
+     * @return new BasicTypeParameter instance
      */
-    public BasicTypeParameter(DataType type, Direction direction, StdIOStream stream, String prefix, String name,
+    public static final BasicTypeParameter newBP(DataType type, Direction direction, StdIOStream stream, String prefix,
+        String name, Object value, double weight, String contentType, ParameterMonitor monitor) {
+        return new BasicTypeParameter(type, direction, stream, prefix, name, value, weight, contentType, monitor);
+    }
+
+    private BasicTypeParameter(DataType type, Direction direction, StdIOStream stream, String prefix, String name,
         Object value, double weight, String contentType, ParameterMonitor monitor) {
         super(type, direction, stream, prefix, name, contentType, weight, false, monitor);
         this.value = value;

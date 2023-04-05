@@ -21,18 +21,19 @@ import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
+import es.bsc.compss.types.data.accessparams.DataParams.ExternalStreamData;
 import es.bsc.compss.types.data.accessparams.ExternalStreamAccessParams;
 import es.bsc.compss.types.data.location.DataLocation;
 
 
-public class ExternalStreamParameter extends DependencyParameter {
+public class ExternalStreamParameter
+    extends StreamParameter<DataLocation, ExternalStreamAccessParams, ExternalStreamData> {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
      */
     private static final long serialVersionUID = 1L;
 
-    private final DataLocation location;
     private final String originalName;
 
 
@@ -47,24 +48,24 @@ public class ExternalStreamParameter extends DependencyParameter {
      * @param location File location.
      * @param originalName Original file name.
      * @param monitor object to notify to changes on the parameter
+     * @return new ExternalStreamParameter instance
      */
-    public ExternalStreamParameter(Application app, Direction direction, StdIOStream stream, String prefix, String name,
-        DataLocation location, String originalName, ParameterMonitor monitor) {
+    public static final ExternalStreamParameter newESP(Application app, Direction direction, StdIOStream stream,
+        String prefix, String name, DataLocation location, String originalName, ParameterMonitor monitor) {
+        return new ExternalStreamParameter(app, direction, stream, prefix, name, location, originalName, monitor);
+    }
+
+    private ExternalStreamParameter(Application app, Direction direction, StdIOStream stream, String prefix,
+        String name, DataLocation location, String originalName, ParameterMonitor monitor) {
 
         super(app, DataType.EXTERNAL_STREAM_T, direction,
             ExternalStreamAccessParams.constructESAP(app, getAccessMode(direction), location), stream, prefix, name,
-            "null", 1.0, false, monitor);
-        this.location = location;
+            monitor);
         this.originalName = originalName;
     }
 
-    @Override
-    public boolean isCollective() {
-        return false;
-    }
-
     public DataLocation getLocation() {
-        return this.location;
+        return this.getAccess().getValue();
     }
 
     @Override
@@ -74,7 +75,7 @@ public class ExternalStreamParameter extends DependencyParameter {
 
     @Override
     public String toString() {
-        return "ExternalStreamParameter with location " + this.location + ", direction " + getDirection();
+        return "ExternalStreamParameter with location " + this.getLocation() + ", direction " + getDirection();
     }
 
 }

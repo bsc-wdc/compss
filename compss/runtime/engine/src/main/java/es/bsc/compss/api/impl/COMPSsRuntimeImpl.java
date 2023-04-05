@@ -1642,7 +1642,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     File dirFile = new File(dirName);
                     String originalName = dirFile.getName();
                     DataLocation location = createLocation(ProtocolType.DIR_URI, dirName);
-                    pars.add(new DirectoryParameter(app, direction, stream, prefix, name, pyType, weight, keepRename,
+                    pars.add(DirectoryParameter.newDP(app, direction, stream, prefix, name, pyType, weight, keepRename,
                         location, originalName, monitor));
                     if (DP_ENABLED) {
                         // Log access to directory in the dataprovenance.log
@@ -1668,7 +1668,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     File f = new File(fileName);
                     String originalName = f.getName();
                     DataLocation location = createLocation(ProtocolType.FILE_URI, content.toString());
-                    pars.add(new FileParameter(app, direction, stream, prefix, name, pyType, weight, keepRename,
+                    pars.add(FileParameter.newFP(app, direction, stream, prefix, name, pyType, weight, keepRename,
                         location, originalName, monitor));
                     if (DP_ENABLED) {
                         // Log access to file in the dataprovenance.log.
@@ -1694,20 +1694,20 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             case OBJECT_T:
             case PSCO_T:
                 int code = oReg.newObjectParameter(appId, content);
-                pars.add(
-                    new ObjectParameter(app, direction, stream, prefix, name, pyType, weight, content, code, monitor));
+                pars.add(ObjectParameter.newOP(app, direction, stream, prefix, name, pyType, weight, content, code,
+                    monitor));
                 break;
             case STREAM_T:
                 int streamCode = oReg.newObjectParameter(appId, content);
-                pars.add(new StreamParameter(app, direction, stream, prefix, name, content, streamCode, monitor));
+                pars.add(StreamParameter.newSP(app, direction, stream, prefix, name, content, streamCode, monitor));
                 break;
             case EXTERNAL_STREAM_T:
                 try {
                     String fileName = content.toString();
                     DataLocation location = createLocation(ProtocolType.EXTERNAL_STREAM_URI, fileName);
                     String originalName = new File(fileName).getName();
-                    pars.add(new ExternalStreamParameter(app, direction, stream, prefix, name, location, originalName,
-                        monitor));
+                    pars.add(ExternalStreamParameter.newESP(app, direction, stream, prefix, name, location,
+                        originalName, monitor));
                 } catch (Exception e) {
                     LOGGER.error(ERROR_FILE_NAME, e);
                     ErrorManager.fatal(ERROR_FILE_NAME, e);
@@ -1715,7 +1715,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 break;
             case EXTERNAL_PSCO_T:
                 String id = content.toString();
-                pars.add(new ExternalPSCOParameter(app, direction, stream, prefix, name, weight, id,
+                pars.add(ExternalPSCOParameter.newEPOP(app, direction, stream, prefix, name, weight, id,
                     externalObjectHashcode(id), monitor));
                 break;
             case BINDING_OBJECT_T:
@@ -1726,7 +1726,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                         String extObjectId = fields[0];
                         int extObjectType = Integer.parseInt(fields[1]);
                         int extObjectElements = Integer.parseInt(fields[2]);
-                        pars.add(new BindingObjectParameter(app, direction, stream, prefix, name, pyType, weight,
+                        pars.add(BindingObjectParameter.newBOP(app, direction, stream, prefix, name, pyType, weight,
                             new BindingObject(extObjectId, extObjectType, extObjectElements),
                             externalObjectHashcode(extObjectId), monitor));
                     } else {
@@ -1783,7 +1783,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     ret += addParameter(app, submonitor, elemContent, elemType, elemDir, elemStream, elemPrefix,
                         elemName, elemPyType, weight, keepRename, collectionParameters, offset + ret + 1, values) + 2;
                 }
-                CollectiveParameter cp = new CollectiveParameter(app, type, collectionId, direction, stream, prefix,
+                CollectiveParameter cp = CollectiveParameter.newCP(app, type, collectionId, direction, stream, prefix,
                     name, colPyType, weight, keepRename, monitor, collectionParameters);
                 pars.add(cp);
                 return ret;
@@ -1867,7 +1867,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                         dictCollectionParams, offset + pointer, values1) + extraValue;
                     pointer += vDret;
                 }
-                CollectiveParameter dcp = new CollectiveParameter(app, type, dictCollectionId, direction, stream,
+                CollectiveParameter dcp = CollectiveParameter.newCP(app, type, dictCollectionId, direction, stream,
                     prefix, name, dictColPyType, weight, keepRename, monitor, dictCollectionParams);
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Add Dictionary Collection " + dcp.getName() + " with " + dcp.getElements().size() / 2
@@ -1878,8 +1878,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 return pointer;
             case NULL_T:
                 LOGGER.warn(WARN_NULL_PARAM + "Parameter " + name + " is defined as None or Null");
-                pars.add(
-                    new BasicTypeParameter(type, Direction.IN, stream, prefix, name, content, weight, "null", monitor));
+                pars.add(BasicTypeParameter.newBP(type, Direction.IN, stream, prefix, name, content, weight, "null",
+                    monitor));
                 break;
             default:
                 // Basic types (including String)
@@ -1888,8 +1888,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     LOGGER.warn(WARN_WRONG_DIRECTION + "Parameter " + name
                         + " is a basic type, therefore it must have IN direction");
                 }
-                pars.add(
-                    new BasicTypeParameter(type, Direction.IN, stream, prefix, name, content, weight, pyType, monitor));
+                pars.add(BasicTypeParameter.newBP(type, Direction.IN, stream, prefix, name, content, weight, pyType,
+                    monitor));
                 break;
         }
         return 1;

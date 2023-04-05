@@ -18,13 +18,17 @@ package es.bsc.compss.types.parameter.impl;
 
 import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.types.Application;
+import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
+import es.bsc.compss.types.data.accessparams.DataParams.ExternalPSCObjectData;
+
 import es.bsc.compss.types.data.accessparams.ExternalPSCObjectAccessParams;
 
 
-public class ExternalPSCOParameter extends DependencyParameter<ExternalPSCObjectAccessParams> {
+public class ExternalPSCOParameter
+    extends ObjectParameter<String, ExternalPSCObjectAccessParams, ExternalPSCObjectData> {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
@@ -36,8 +40,8 @@ public class ExternalPSCOParameter extends DependencyParameter<ExternalPSCObject
 
 
     /**
-     * Creates a new Stream Parameter.
-     * 
+     * Creates a new ExternalPSCO Parameter.
+     *
      * @param app Application performing the access
      * @param direction Parameter direction.
      * @param stream Standard IO Stream flags.
@@ -47,20 +51,21 @@ public class ExternalPSCOParameter extends DependencyParameter<ExternalPSCObject
      * @param pscoId Parameter PSCO Id.
      * @param hashCode Parameter object hashcode.
      * @param monitor object to notify to changes on the parameter
+     * @return new ExternalPSCO Parameter.
      */
-    public ExternalPSCOParameter(Application app, Direction direction, StdIOStream stream, String prefix, String name,
+    public static final ExternalPSCOParameter newEPOP(Application app, Direction direction, StdIOStream stream,
+        String prefix, String name, double weight, String pscoId, int hashCode, ParameterMonitor monitor) {
+        return new ExternalPSCOParameter(app, direction, stream, prefix, name, weight, pscoId, hashCode, monitor);
+    }
+
+    private ExternalPSCOParameter(Application app, Direction direction, StdIOStream stream, String prefix, String name,
         double weight, String pscoId, int hashCode, ParameterMonitor monitor) {
 
         super(app, DataType.EXTERNAL_PSCO_T, direction,
             ExternalPSCObjectAccessParams.constructEPOAP(app, getAccessMode(direction), pscoId, hashCode), stream,
-            prefix, name, "null", weight, false, monitor);
+            prefix, name, "null", weight, monitor);
         this.pscoId = pscoId;
         this.hashCode = hashCode;
-    }
-
-    @Override
-    public boolean isCollective() {
-        return false;
     }
 
     public String getId() {
@@ -69,10 +74,6 @@ public class ExternalPSCOParameter extends DependencyParameter<ExternalPSCObject
 
     public void setId(String pscoId) {
         this.pscoId = pscoId;
-    }
-
-    public int getCode() {
-        return this.hashCode;
     }
 
     @Override

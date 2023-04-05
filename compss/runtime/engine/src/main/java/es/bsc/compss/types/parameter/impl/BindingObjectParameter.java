@@ -25,7 +25,7 @@ import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.data.accessparams.BindingObjectAccessParams;
 
 
-public class BindingObjectParameter extends DependencyParameter {
+public class BindingObjectParameter extends DependencyParameter<BindingObjectAccessParams> {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
@@ -34,7 +34,6 @@ public class BindingObjectParameter extends DependencyParameter {
 
     private final int hashCode;
     private final BindingObject bo;
-    private final BindingObjectAccessParams access;
 
 
     /**
@@ -53,10 +52,11 @@ public class BindingObjectParameter extends DependencyParameter {
     public BindingObjectParameter(Application app, Direction direction, StdIOStream stream, String prefix, String name,
         String contentType, double weight, BindingObject bo, int hashCode, ParameterMonitor monitor) {
 
-        super(app, DataType.BINDING_OBJECT_T, direction, stream, prefix, name, contentType, weight, false, monitor);
+        super(app, DataType.BINDING_OBJECT_T, direction,
+            BindingObjectAccessParams.constructBOAP(app, getAccessMode(direction), bo, hashCode), stream, prefix, name,
+            contentType, weight, false, monitor);
         this.bo = bo;
         this.hashCode = hashCode;
-        access = BindingObjectAccessParams.constructBOAP(app, getAccessMode(direction), bo, hashCode);
     }
 
     @Override
@@ -108,10 +108,4 @@ public class BindingObjectParameter extends DependencyParameter {
         }
         return tgtName;
     }
-
-    @Override
-    public BindingObjectAccessParams getAccess() {
-        return access;
-    }
-
 }

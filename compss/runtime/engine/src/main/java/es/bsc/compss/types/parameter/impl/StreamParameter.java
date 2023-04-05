@@ -24,7 +24,7 @@ import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.data.accessparams.StreamAccessParams;
 
 
-public class StreamParameter extends DependencyParameter {
+public class StreamParameter extends DependencyParameter<StreamAccessParams> {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
@@ -33,7 +33,6 @@ public class StreamParameter extends DependencyParameter {
 
     private final int hashCode;
     private Object value;
-    private final StreamAccessParams access;
 
 
     /**
@@ -51,10 +50,11 @@ public class StreamParameter extends DependencyParameter {
     public StreamParameter(Application app, Direction direction, StdIOStream stream, String prefix, String name,
         Object value, int hashCode, ParameterMonitor monitor) {
 
-        super(app, DataType.STREAM_T, direction, stream, prefix, name, "null", 1.0, false, monitor);
+        super(app, DataType.STREAM_T, direction,
+            StreamAccessParams.constructStreamAP(app, getAccessMode(direction), value, hashCode), stream, prefix, name,
+            "null", 1.0, false, monitor);
         this.value = value;
         this.hashCode = hashCode;
-        this.access = StreamAccessParams.constructStreamAP(app, getAccessMode(direction), this.value, this.hashCode);
     }
 
     @Override
@@ -78,11 +78,6 @@ public class StreamParameter extends DependencyParameter {
     public String toString() {
         return "StreamParameter with hash code " + this.hashCode + ", type " + getType() + ", direction "
             + getDirection();
-    }
-
-    @Override
-    public StreamAccessParams getAccess() {
-        return access;
     }
 
 }

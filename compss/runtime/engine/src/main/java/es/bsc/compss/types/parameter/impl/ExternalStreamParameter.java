@@ -35,8 +35,6 @@ public class ExternalStreamParameter extends DependencyParameter {
     private final DataLocation location;
     private final String originalName;
 
-    private final ExternalStreamAccessParams access;
-
 
     /**
      * Creates a new Stream Parameter.
@@ -53,10 +51,11 @@ public class ExternalStreamParameter extends DependencyParameter {
     public ExternalStreamParameter(Application app, Direction direction, StdIOStream stream, String prefix, String name,
         DataLocation location, String originalName, ParameterMonitor monitor) {
 
-        super(app, DataType.EXTERNAL_STREAM_T, direction, stream, prefix, name, "null", 1.0, false, monitor);
+        super(app, DataType.EXTERNAL_STREAM_T, direction,
+            ExternalStreamAccessParams.constructESAP(app, getAccessMode(direction), location), stream, prefix, name,
+            "null", 1.0, false, monitor);
         this.location = location;
         this.originalName = originalName;
-        this.access = ExternalStreamAccessParams.constructESAP(app, getAccessMode(direction), this.location);
     }
 
     @Override
@@ -76,11 +75,6 @@ public class ExternalStreamParameter extends DependencyParameter {
     @Override
     public String toString() {
         return "ExternalStreamParameter with location " + this.location + ", direction " + getDirection();
-    }
-
-    @Override
-    public ExternalStreamAccessParams getAccess() {
-        return access;
     }
 
 }

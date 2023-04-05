@@ -32,7 +32,7 @@ import java.util.List;
  * parameter objects. The object has an identifier by itself and points to other object identifiers (which are the ones
  * contained in it)
  */
-public class CollectiveParameter extends DependencyParameter
+public class CollectiveParameter extends DependencyParameter<CollectionAccessParams>
     implements es.bsc.compss.types.parameter.CollectiveParameter<Parameter> {
 
     /**
@@ -45,8 +45,6 @@ public class CollectiveParameter extends DependencyParameter
 
     // Parameter objects of the collection contents
     private List<Parameter> elements;
-
-    private final CollectionAccessParams access;
 
 
     /**
@@ -69,10 +67,10 @@ public class CollectiveParameter extends DependencyParameter
     public CollectiveParameter(Application app, DataType type, String id, Direction direction, StdIOStream stream,
         String prefix, String name, String contentType, double weight, boolean keepRename, ParameterMonitor monitor,
         List<Parameter> elements) {
-        super(app, type, direction, stream, prefix, name, contentType, weight, keepRename, monitor);
+        super(app, type, direction, CollectionAccessParams.constructCAP(app, getAccessMode(direction), id), stream,
+            prefix, name, contentType, weight, keepRename, monitor);
         this.collectionId = id;
         this.elements = elements;
-        this.access = CollectionAccessParams.constructCAP(app, getAccessMode(direction), this.collectionId);
     }
 
     @Override
@@ -135,10 +133,5 @@ public class CollectiveParameter extends DependencyParameter
             sb.append("\t").append(s).append("\n");
         }
         return sb.toString();
-    }
-
-    @Override
-    public CollectionAccessParams getAccess() {
-        return access;
     }
 }

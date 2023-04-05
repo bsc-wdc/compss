@@ -24,7 +24,7 @@ import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.data.accessparams.ObjectAccessParams;
 
 
-public class ObjectParameter extends DependencyParameter {
+public class ObjectParameter extends DependencyParameter<ObjectAccessParams> {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
@@ -33,8 +33,6 @@ public class ObjectParameter extends DependencyParameter {
 
     private final int hashCode;
     private Object value;
-
-    private final ObjectAccessParams access;
 
 
     /**
@@ -54,10 +52,11 @@ public class ObjectParameter extends DependencyParameter {
     public ObjectParameter(Application app, Direction direction, StdIOStream stream, String prefix, String name,
         String contentType, double weight, Object value, int hashCode, ParameterMonitor monitor) {
 
-        super(app, DataType.OBJECT_T, direction, stream, prefix, name, contentType, weight, false, monitor);
+        super(app, DataType.OBJECT_T, direction,
+            ObjectAccessParams.constructObjectAP(app, getAccessMode(direction), value, hashCode), stream, prefix, name,
+            contentType, weight, false, monitor);
         this.value = value;
         this.hashCode = hashCode;
-        access = ObjectAccessParams.constructObjectAP(app, getAccessMode(direction), value, hashCode);
     }
 
     @Override
@@ -82,10 +81,4 @@ public class ObjectParameter extends DependencyParameter {
         return "ObjectParameter with hash code " + this.hashCode + ", type " + getType() + ", direction "
             + getDirection();
     }
-
-    @Override
-    public ObjectAccessParams getAccess() {
-        return access;
-    }
-
 }

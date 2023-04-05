@@ -23,15 +23,18 @@ import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
 
 import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.accessparams.AccessParams;
 
 
-public abstract class DependencyParameter extends Parameter
+public abstract class DependencyParameter<T extends AccessParams> extends Parameter
     implements es.bsc.compss.types.parameter.DependencyParameter {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
      */
     private static final long serialVersionUID = 1L;
+
+    private final T access;
 
     private DataAccessId daId;
     private Object dataSource;
@@ -44,6 +47,7 @@ public abstract class DependencyParameter extends Parameter
      * @param app Application performing the access
      * @param type Parameter type.
      * @param direction Parameter direction.
+     * @param access description of the access performed on the data
      * @param stream Parameter IO stream mode.
      * @param prefix Parameter prefix.
      * @param name Parameter name.
@@ -51,14 +55,20 @@ public abstract class DependencyParameter extends Parameter
      * @param keepRename Parameter keep rename property.
      * @param monitor object to notify to changes on the parameter
      */
-    public DependencyParameter(Application app, DataType type, Direction direction, StdIOStream stream, String prefix,
-        String name, String contentType, double weight, boolean keepRename, ParameterMonitor monitor) {
+    public DependencyParameter(Application app, DataType type, Direction direction, T access, StdIOStream stream,
+        String prefix, String name, String contentType, double weight, boolean keepRename, ParameterMonitor monitor) {
         super(type, direction, stream, prefix, name, contentType, weight, keepRename, monitor);
+        this.access = access;
     }
 
     @Override
     public boolean isPotentialDependency() {
         return true;
+    }
+
+    @Override
+    public final T getAccess() {
+        return access;
     }
 
     @Override
@@ -119,5 +129,4 @@ public abstract class DependencyParameter extends Parameter
     public boolean isTargetFlexible() {
         return true;
     }
-
 }

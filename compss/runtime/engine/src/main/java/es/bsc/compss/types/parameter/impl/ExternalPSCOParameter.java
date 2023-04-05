@@ -21,11 +21,10 @@ import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
-import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.accessparams.ExternalPSCObjectAccessParams;
 
 
-public class ExternalPSCOParameter extends DependencyParameter {
+public class ExternalPSCOParameter extends DependencyParameter<ExternalPSCObjectAccessParams> {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
@@ -34,8 +33,6 @@ public class ExternalPSCOParameter extends DependencyParameter {
 
     private final int hashCode;
     private String pscoId;
-
-    private final ExternalPSCObjectAccessParams access;
 
 
     /**
@@ -54,10 +51,11 @@ public class ExternalPSCOParameter extends DependencyParameter {
     public ExternalPSCOParameter(Application app, Direction direction, StdIOStream stream, String prefix, String name,
         double weight, String pscoId, int hashCode, ParameterMonitor monitor) {
 
-        super(app, DataType.EXTERNAL_PSCO_T, direction, stream, prefix, name, "null", weight, false, monitor);
+        super(app, DataType.EXTERNAL_PSCO_T, direction,
+            ExternalPSCObjectAccessParams.constructEPOAP(app, getAccessMode(direction), pscoId, hashCode), stream,
+            prefix, name, "null", weight, false, monitor);
         this.pscoId = pscoId;
         this.hashCode = hashCode;
-        this.access = ExternalPSCObjectAccessParams.constructEPOAP(app, getAccessMode(direction), pscoId, hashCode);
     }
 
     @Override
@@ -86,10 +84,4 @@ public class ExternalPSCOParameter extends DependencyParameter {
     public String generateDataTargetName(String tgtName) {
         return getId();
     }
-
-    @Override
-    public AccessParams getAccess() {
-        return this.access;
-    }
-
 }

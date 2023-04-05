@@ -25,7 +25,7 @@ import es.bsc.compss.types.data.accessparams.FileAccessParams;
 import es.bsc.compss.types.data.location.DataLocation;
 
 
-public class DirectoryParameter extends DependencyParameter {
+public class DirectoryParameter extends DependencyParameter<FileAccessParams> {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
@@ -35,7 +35,6 @@ public class DirectoryParameter extends DependencyParameter {
     // Same as FileParameter fields
     private final DataLocation location;
     private final String originalName;
-    private final FileAccessParams access;
 
 
     /**
@@ -57,10 +56,11 @@ public class DirectoryParameter extends DependencyParameter {
         String contentType, double weight, boolean keepRename, DataLocation location, String originalName,
         ParameterMonitor monitor) {
 
-        super(app, DataType.DIRECTORY_T, direction, stream, prefix, name, contentType, weight, keepRename, monitor);
+        super(app, DataType.DIRECTORY_T, direction,
+            FileAccessParams.constructFAP(app, getAccessMode(direction), location), stream, prefix, name, contentType,
+            weight, keepRename, monitor);
         this.location = location;
         this.originalName = originalName;
-        this.access = FileAccessParams.constructFAP(app, getAccessMode(direction), location);
     }
 
     @Override
@@ -81,11 +81,6 @@ public class DirectoryParameter extends DependencyParameter {
     public String toString() {
         return "DirectoryParameter with location " + this.location + ", type " + getType() + ", direction "
             + getDirection();
-    }
-
-    @Override
-    public FileAccessParams getAccess() {
-        return access;
     }
 
 }

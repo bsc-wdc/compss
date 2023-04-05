@@ -140,7 +140,7 @@ public abstract class DataParams {
             return app.removeObjectData(code);
         }
 
-        public int getCode() {
+        public final int getCode() {
             return this.code;
         }
 

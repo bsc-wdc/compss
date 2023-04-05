@@ -52,7 +52,7 @@ public class ExternalStreamAccessParams extends StreamAccessParams<DataLocation,
     }
 
     private ExternalStreamAccessParams(Application app, AccessMode mode, DataLocation location) {
-        super(new ExternalStreamData(app, location.hashCode()), mode, location, location.hashCode());
+        super(new ExternalStreamData(app, location.hashCode()), mode, location);
     }
 
     @Override

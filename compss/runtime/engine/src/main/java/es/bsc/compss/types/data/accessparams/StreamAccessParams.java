@@ -45,11 +45,11 @@ public class StreamAccessParams<T extends Object, D extends StreamData> extends 
      */
     public static final <T extends Object> StreamAccessParams<T, StreamData> constructStreamAP(Application app,
         AccessMode mode, T value, int code) {
-        return new StreamAccessParams(new StreamData(app, code), mode, value, code);
+        return new StreamAccessParams(new StreamData(app, code), mode, value);
     }
 
-    protected StreamAccessParams(D data, AccessMode mode, T value, int hashCode) {
-        super(data, mode, value, hashCode);
+    protected StreamAccessParams(D data, AccessMode mode, T value) {
+        super(data, mode, value);
     }
 
     @Override

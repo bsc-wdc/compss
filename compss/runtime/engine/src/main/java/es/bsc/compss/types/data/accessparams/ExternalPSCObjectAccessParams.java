@@ -47,7 +47,7 @@ public class ExternalPSCObjectAccessParams extends ObjectAccessParams<String, Ex
     }
 
     private ExternalPSCObjectAccessParams(Application app, AccessMode mode, String pscoId, int hashCode) {
-        super(new ExternalPSCObjectData(app, hashCode), mode, pscoId, hashCode);
+        super(new ExternalPSCObjectData(app, hashCode), mode, pscoId);
     }
 
     /**

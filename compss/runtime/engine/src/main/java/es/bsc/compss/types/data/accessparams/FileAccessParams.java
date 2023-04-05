@@ -32,8 +32,6 @@ public class FileAccessParams extends AccessParams<FileData> {
      */
     private static final long serialVersionUID = 1L;
 
-    private DataLocation loc;
-
 
     /**
      * Creates a new FileAccessParams instance with the given mode {@code mode} and for the given file location
@@ -50,7 +48,6 @@ public class FileAccessParams extends AccessParams<FileData> {
 
     private FileAccessParams(Application app, AccessMode mode, DataLocation loc) {
         super(new FileData(app, loc), mode);
-        this.loc = loc;
     }
 
     /**
@@ -58,8 +55,8 @@ public class FileAccessParams extends AccessParams<FileData> {
      * 
      * @return The file location.
      */
-    public DataLocation getLocation() {
-        return this.loc;
+    public final DataLocation getLocation() {
+        return this.data.getLocation();
     }
 
     @Override
@@ -68,7 +65,7 @@ public class FileAccessParams extends AccessParams<FileData> {
         if (mode != AccessMode.W) {
             DataInstanceId lastDID = dv.getDataInstanceId();
             String renaming = lastDID.getRenaming();
-            Comm.registerLocation(renaming, this.loc);
+            Comm.registerLocation(renaming, this.getLocation());
         } else {
             dv.invalidate();
         }
@@ -81,7 +78,7 @@ public class FileAccessParams extends AccessParams<FileData> {
 
     @Override
     public String toString() {
-        return "[" + this.getApp() + ", " + this.mode + " ," + this.loc + "]";
+        return "[" + this.getApp() + ", " + this.mode + " ," + this.getLocation() + "]";
     }
 
 }

@@ -31,7 +31,6 @@ public class ObjectAccessParams<T extends Object, D extends ObjectData> extends 
      */
     private static final long serialVersionUID = 1L;
 
-    private int hashCode;
     private T value;
 
 
@@ -46,13 +45,12 @@ public class ObjectAccessParams<T extends Object, D extends ObjectData> extends 
      */
     public static final <T extends Object> ObjectAccessParams<T, ObjectData> constructObjectAP(Application app,
         AccessMode mode, T value, int code) {
-        return new ObjectAccessParams(new ObjectData(app, code), mode, value, code);
+        return new ObjectAccessParams(new ObjectData(app, code), mode, value);
     }
 
-    protected ObjectAccessParams(D data, AccessMode mode, T value, int hashCode) {
+    protected ObjectAccessParams(D data, AccessMode mode, T value) {
         super(data, mode);
         this.value = value;
-        this.hashCode = hashCode;
     }
 
     /**
@@ -69,8 +67,8 @@ public class ObjectAccessParams<T extends Object, D extends ObjectData> extends 
      * 
      * @return The hashcode of the associated object.
      */
-    public int getCode() {
-        return hashCode;
+    public final int getCode() {
+        return this.data.getCode();
     }
 
     @Override
@@ -92,6 +90,6 @@ public class ObjectAccessParams<T extends Object, D extends ObjectData> extends 
 
     @Override
     public String toString() {
-        return "[" + this.getApp() + ", " + this.mode + " ," + this.hashCode + "]";
+        return "[" + this.getApp() + ", " + this.mode + " ," + this.getCode() + "]";
     }
 }

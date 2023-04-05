@@ -24,7 +24,7 @@ import es.bsc.compss.types.data.DataVersion;
 import es.bsc.compss.types.data.accessparams.DataParams.ExternalPSCObjectData;
 
 
-public class ExternalPSCObjectAccessParams extends ObjectAccessParams {
+public class ExternalPSCObjectAccessParams extends ObjectAccessParams<String, ExternalPSCObjectData> {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
@@ -33,14 +33,20 @@ public class ExternalPSCObjectAccessParams extends ObjectAccessParams {
 
 
     /**
-     * Creates a new BindingObjectAccessParams instance.
-     * 
+     * Creates a new ExternalPSCObjectAccessParams instance.
+     *
      * @param app Id of the application accessing the External PSCO.
      * @param mode Access mode.
      * @param pscoId Id of the accessed PSCO.
      * @param hashCode Hashcode of the associated External PSCO
+     * @return new ExternalPSCObjectAccessParams instance
      */
-    public ExternalPSCObjectAccessParams(Application app, AccessMode mode, String pscoId, int hashCode) {
+    public static final ExternalPSCObjectAccessParams constructEPOAP(Application app, AccessMode mode, String pscoId,
+        int hashCode) {
+        return new ExternalPSCObjectAccessParams(app, mode, pscoId, hashCode);
+    }
+
+    private ExternalPSCObjectAccessParams(Application app, AccessMode mode, String pscoId, int hashCode) {
         super(new ExternalPSCObjectData(app, hashCode), mode, pscoId, hashCode);
     }
 

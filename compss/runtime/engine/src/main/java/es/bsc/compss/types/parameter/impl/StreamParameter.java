@@ -54,7 +54,7 @@ public class StreamParameter extends DependencyParameter {
         super(app, DataType.STREAM_T, direction, stream, prefix, name, "null", 1.0, false, monitor);
         this.value = value;
         this.hashCode = hashCode;
-        this.access = new StreamAccessParams(app, getAccessMode(direction), this.value, this.hashCode);
+        this.access = StreamAccessParams.constructStreamAP(app, getAccessMode(direction), this.value, this.hashCode);
     }
 
     @Override

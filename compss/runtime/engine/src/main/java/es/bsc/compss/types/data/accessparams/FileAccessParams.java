@@ -25,7 +25,7 @@ import es.bsc.compss.types.data.accessparams.DataParams.FileData;
 import es.bsc.compss.types.data.location.DataLocation;
 
 
-public class FileAccessParams extends AccessParams {
+public class FileAccessParams extends AccessParams<FileData> {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
@@ -42,8 +42,13 @@ public class FileAccessParams extends AccessParams {
      * @param app Id of the application accessing the file.
      * @param mode Access mode.
      * @param loc File location.
+     * @return new FileAccessParams instance
      */
-    public FileAccessParams(Application app, AccessMode mode, DataLocation loc) {
+    public static final FileAccessParams constructFAP(Application app, AccessMode mode, DataLocation loc) {
+        return new FileAccessParams(app, mode, loc);
+    }
+
+    private FileAccessParams(Application app, AccessMode mode, DataLocation loc) {
         super(new FileData(app, loc), mode);
         this.loc = loc;
     }

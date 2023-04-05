@@ -56,7 +56,7 @@ public class ExternalStreamParameter extends DependencyParameter {
         super(app, DataType.EXTERNAL_STREAM_T, direction, stream, prefix, name, "null", 1.0, false, monitor);
         this.location = location;
         this.originalName = originalName;
-        this.access = new ExternalStreamAccessParams(app, getAccessMode(direction), this.location);
+        this.access = ExternalStreamAccessParams.constructESAP(app, getAccessMode(direction), this.location);
     }
 
     @Override

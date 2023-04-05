@@ -25,7 +25,7 @@ import es.bsc.compss.types.data.DataVersion;
 import es.bsc.compss.types.data.accessparams.DataParams.BindingObjectData;
 
 
-public class BindingObjectAccessParams extends ObjectAccessParams {
+public class BindingObjectAccessParams extends ObjectAccessParams<BindingObject, BindingObjectData> {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
@@ -35,13 +35,19 @@ public class BindingObjectAccessParams extends ObjectAccessParams {
 
     /**
      * Creates a new BindingObjectAccessParams instance.
-     * 
+     *
      * @param app Id of the application accessing the BindingObject.
      * @param mode Access mode.
      * @param bo Associated BindingObject.
      * @param hashCode Hashcode of the associated BindingObject.
+     * @return new BindingObjectAccessParams instance
      */
-    public BindingObjectAccessParams(Application app, AccessMode mode, BindingObject bo, int hashCode) {
+    public static final BindingObjectAccessParams constructBOAP(Application app, AccessMode mode, BindingObject bo,
+        int hashCode) {
+        return new BindingObjectAccessParams(app, mode, bo, hashCode);
+    }
+
+    private BindingObjectAccessParams(Application app, AccessMode mode, BindingObject bo, int hashCode) {
         super(new BindingObjectData(app, hashCode), mode, bo, hashCode);
     }
 

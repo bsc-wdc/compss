@@ -57,7 +57,7 @@ public class ObjectParameter extends DependencyParameter {
         super(app, DataType.OBJECT_T, direction, stream, prefix, name, contentType, weight, false, monitor);
         this.value = value;
         this.hashCode = hashCode;
-        access = new ObjectAccessParams(app, getAccessMode(direction), value, hashCode);
+        access = ObjectAccessParams.constructObjectAP(app, getAccessMode(direction), value, hashCode);
     }
 
     @Override

@@ -1944,14 +1944,14 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     }
 
     private void finishAccessToFile(Application app, String fileName, DataLocation loc, AccessMode am, String destDir) {
-        FileAccessParams fap = new FileAccessParams(app, am, loc);
+        FileAccessParams fap = FileAccessParams.constructFAP(app, am, loc);
         ap.finishAccessToFile(loc, fap, destDir);
     }
 
     private String mainAccessToFile(Application app, String fileName, DataLocation loc, AccessMode am, String destDir,
         boolean isDirectory) {
         // Tell the AP that the application wants to access a file.
-        FileAccessParams fap = new FileAccessParams(app, am, loc);
+        FileAccessParams fap = FileAccessParams.constructFAP(app, am, loc);
         DataLocation targetLocation;
         if (isDirectory) {
             targetLocation = ap.mainAccessToDirectory(app, loc, fap, destDir);

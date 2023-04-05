@@ -72,7 +72,7 @@ public class CollectiveParameter extends DependencyParameter
         super(app, type, direction, stream, prefix, name, contentType, weight, keepRename, monitor);
         this.collectionId = id;
         this.elements = elements;
-        this.access = new CollectionAccessParams(app, getAccessMode(direction), this.collectionId);
+        this.access = CollectionAccessParams.constructCAP(app, getAccessMode(direction), this.collectionId);
     }
 
     @Override

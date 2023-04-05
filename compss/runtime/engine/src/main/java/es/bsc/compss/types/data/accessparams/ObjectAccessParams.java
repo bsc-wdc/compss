@@ -24,7 +24,7 @@ import es.bsc.compss.types.data.DataVersion;
 import es.bsc.compss.types.data.accessparams.DataParams.ObjectData;
 
 
-public class ObjectAccessParams<T extends Object> extends AccessParams {
+public class ObjectAccessParams<T extends Object, D extends ObjectData> extends AccessParams<D> {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
@@ -41,23 +41,15 @@ public class ObjectAccessParams<T extends Object> extends AccessParams {
      * @param app Id of the application accessing the object.
      * @param mode Access mode.
      * @param value Associated object.
-     * @param hashCode Hashcode of the associated object.
+     * @param code Hashcode of the associated object.
+     * @return new ObjectAccessParams instance
      */
-    public ObjectAccessParams(Application app, AccessMode mode, T value, int hashCode) {
-        super(new ObjectData(app, hashCode), mode);
-        this.value = value;
-        this.hashCode = hashCode;
+    public static final <T extends Object> ObjectAccessParams<T, ObjectData> constructObjectAP(Application app,
+        AccessMode mode, T value, int code) {
+        return new ObjectAccessParams(new ObjectData(app, code), mode, value, code);
     }
 
-    /**
-     * Creates a new ObjectAccessParams instance for the given object.
-     *
-     * @param data object being accessed
-     * @param mode Access mode.
-     * @param value Associated object.
-     * @param hashCode Hashcode of the associated object.
-     */
-    protected ObjectAccessParams(ObjectData data, AccessMode mode, T value, int hashCode) {
+    protected ObjectAccessParams(D data, AccessMode mode, T value, int hashCode) {
         super(data, mode);
         this.value = value;
         this.hashCode = hashCode;

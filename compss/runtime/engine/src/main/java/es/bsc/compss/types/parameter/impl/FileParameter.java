@@ -61,7 +61,7 @@ public class FileParameter extends DependencyParameter {
         super(app, DataType.FILE_T, direction, stream, prefix, name, contentType, weight, keepRename, monitor);
         this.location = location;
         this.originalName = originalName;
-        this.access = new FileAccessParams(app, getAccessMode(direction), location);
+        this.access = FileAccessParams.constructFAP(app, getAccessMode(direction), location);
     }
 
     @Override

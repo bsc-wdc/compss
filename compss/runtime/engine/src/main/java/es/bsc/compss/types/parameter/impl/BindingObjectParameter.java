@@ -56,7 +56,7 @@ public class BindingObjectParameter extends DependencyParameter {
         super(app, DataType.BINDING_OBJECT_T, direction, stream, prefix, name, contentType, weight, false, monitor);
         this.bo = bo;
         this.hashCode = hashCode;
-        access = new BindingObjectAccessParams(app, getAccessMode(direction), bo, hashCode);
+        access = BindingObjectAccessParams.constructBOAP(app, getAccessMode(direction), bo, hashCode);
     }
 
     @Override

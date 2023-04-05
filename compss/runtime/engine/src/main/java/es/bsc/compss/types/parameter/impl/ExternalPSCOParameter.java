@@ -57,7 +57,7 @@ public class ExternalPSCOParameter extends DependencyParameter {
         super(app, DataType.EXTERNAL_PSCO_T, direction, stream, prefix, name, "null", weight, false, monitor);
         this.pscoId = pscoId;
         this.hashCode = hashCode;
-        this.access = new ExternalPSCObjectAccessParams(app, getAccessMode(direction), pscoId, hashCode);
+        this.access = ExternalPSCObjectAccessParams.constructEPOAP(app, getAccessMode(direction), pscoId, hashCode);
     }
 
     @Override

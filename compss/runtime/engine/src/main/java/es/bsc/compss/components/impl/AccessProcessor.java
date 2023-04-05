@@ -44,6 +44,7 @@ import es.bsc.compss.types.data.accessparams.BindingObjectAccessParams;
 import es.bsc.compss.types.data.accessparams.DataParams;
 import es.bsc.compss.types.data.accessparams.DataParams.FileData;
 import es.bsc.compss.types.data.accessparams.DataParams.ObjectData;
+import es.bsc.compss.types.data.accessparams.ExternalPSCObjectAccessParams;
 import es.bsc.compss.types.data.accessparams.FileAccessParams;
 import es.bsc.compss.types.data.accessparams.ObjectAccessParams;
 import es.bsc.compss.types.data.location.DataLocation;
@@ -565,7 +566,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         }
 
         // Tell the DIP that the application wants to access an object
-        ObjectAccessParams oap = new ObjectAccessParams(app, AccessMode.RW, obj, hashCode);
+        ObjectAccessParams oap = ObjectAccessParams.constructObjectAP(app, AccessMode.RW, obj, hashCode);
         DataAccessId oaId = registerDataAccess(oap, AccessMode.RW);
 
         DataInstanceId wId = ((RWAccessId) oaId).getWrittenDataInstance();
@@ -601,7 +602,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         }
 
         // Tell the DIP that the application wants to access an object
-        ObjectAccessParams oap = new ObjectAccessParams(app, AccessMode.RW, id, hashCode);
+        ObjectAccessParams oap = ExternalPSCObjectAccessParams.constructEPOAP(app, AccessMode.RW, id, hashCode);
         DataAccessId oaId = registerDataAccess(oap, AccessMode.RW);
 
         // TODO: Check if the object was already piggybacked in the task notification
@@ -643,7 +644,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
 
         // Defaut access is read because the binding object is removed after accessing it
         // Tell the DIP that the application wants to access an object
-        BindingObjectAccessParams oap = new BindingObjectAccessParams(app, AccessMode.R, bo, hashCode);
+        BindingObjectAccessParams oap = BindingObjectAccessParams.constructBOAP(app, AccessMode.R, bo, hashCode);
         DataAccessId oaId = registerDataAccess(oap, AccessMode.RW);
 
         String bindingObjectID = obtainBindingObject((RAccessId) oaId);

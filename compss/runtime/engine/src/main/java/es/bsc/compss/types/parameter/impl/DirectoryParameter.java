@@ -17,27 +17,26 @@
 package es.bsc.compss.types.parameter.impl;
 
 import es.bsc.compss.api.ParameterMonitor;
+import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
+import es.bsc.compss.types.data.accessparams.FileAccessParams;
 import es.bsc.compss.types.data.location.DataLocation;
 
 
-public class DirectoryParameter extends DependencyParameterImpl {
+public class DirectoryParameter extends FileParameter {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
      */
     private static final long serialVersionUID = 1L;
 
-    // Same as FileParameter fields
-    private final DataLocation location;
-    private final String originalName;
-
 
     /**
      * Creates a new Directory Parameter.
      *
+     * @param app Application performing the access
      * @param direction Parameter direction.
      * @param stream Standard IO Stream flags.
      * @param prefix Parameter prefix.
@@ -48,33 +47,27 @@ public class DirectoryParameter extends DependencyParameterImpl {
      * @param location Directory location.
      * @param originalName Original dir name.
      * @param monitor object to notify to changes on the parameter
+     * @return new Directory Parameter instance
      */
-    public DirectoryParameter(Direction direction, StdIOStream stream, String prefix, String name, String contentType,
-        double weight, boolean keepRename, DataLocation location, String originalName, ParameterMonitor monitor) {
-
-        super(DataType.DIRECTORY_T, direction, stream, prefix, name, contentType, weight, keepRename, monitor);
-        this.location = location;
-        this.originalName = originalName;
-
+    public static final DirectoryParameter newDP(Application app, Direction direction, StdIOStream stream,
+        String prefix, String name, String contentType, double weight, boolean keepRename, DataLocation location,
+        String originalName, ParameterMonitor monitor) {
+        return new DirectoryParameter(app, direction, stream, prefix, name, contentType, weight, keepRename, location,
+            originalName, monitor);
     }
 
-    @Override
-    public boolean isCollective() {
-        return false;
-    }
+    protected DirectoryParameter(Application app, Direction direction, StdIOStream stream, String prefix, String name,
+        String contentType, double weight, boolean keepRename, DataLocation location, String originalName,
+        ParameterMonitor monitor) {
 
-    public DataLocation getLocation() {
-        return this.location;
-    }
+        super(app, DataType.DIRECTORY_T, direction, stream, prefix, name, contentType, weight, keepRename, location,
+            originalName, monitor);
 
-    @Override
-    public String getOriginalName() {
-        return this.originalName;
     }
 
     @Override
     public String toString() {
-        return "DirectoryParameter with location " + this.location + ", type " + getType() + ", direction "
+        return "DirectoryParameter with location " + this.getLocation() + ", type " + getType() + ", direction "
             + getDirection();
     }
 

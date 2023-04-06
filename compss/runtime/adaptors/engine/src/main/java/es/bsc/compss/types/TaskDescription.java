@@ -26,7 +26,7 @@ import es.bsc.compss.util.ErrorManager;
 import java.util.List;
 
 
-public class TaskDescription {
+public class TaskDescription<P extends Parameter> {
 
     private final TaskType type;
     private final Lang lang;
@@ -38,7 +38,7 @@ public class TaskDescription {
     private final int numNodes;
     private final boolean mustReplicate;
     private final boolean mustDistribute;
-    private final List<Parameter> parameters;
+    private final List<P> parameters;
     private final boolean hasTarget;
     private final int numReturns;
     private final OnFailure onFailure;
@@ -69,7 +69,7 @@ public class TaskDescription {
     public TaskDescription(TaskType type, Lang lang, String signature, CoreElement coreElement,
         String parallelismSource, boolean isPrioritary, int numNodes, boolean isReduction, boolean isReplicated,
         boolean isDistributed, boolean hasTarget, int numReturns, OnFailure onFailure, long timeOut,
-        List<Parameter> parameters) {
+        List<P> parameters) {
 
         this.type = type;
         this.lang = lang;
@@ -197,7 +197,7 @@ public class TaskDescription {
      *
      * @return The task parameters.
      */
-    public List<Parameter> getParameters() {
+    public List<P> getParameters() {
         return this.parameters;
     }
 

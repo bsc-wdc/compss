@@ -30,7 +30,7 @@ import es.bsc.distrostreamlib.client.DistroStreamClient;
 import es.bsc.distrostreamlib.requests.AddStreamWriterRequest;
 
 
-public class ExternalStreamAccessParams extends StreamAccessParams<DataLocation> {
+public class ExternalStreamAccessParams extends StreamAccessParams<DataLocation, ExternalStreamData> {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
@@ -39,14 +39,20 @@ public class ExternalStreamAccessParams extends StreamAccessParams<DataLocation>
 
 
     /**
-     * Creates a new StreamAccessParams instance for the given object.
+     * Creates a new ExternalStreamAccessParams instance for the given object.
      *
      * @param app Id of the application accessing the stream.
      * @param mode Access mode.
      * @param location Location of the external stream.
+     * @return new ExternalStreamAccessParams instance
      */
-    public ExternalStreamAccessParams(Application app, AccessMode mode, DataLocation location) {
-        super(new ExternalStreamData(app, location.hashCode()), mode, location, location.hashCode());
+    public static final ExternalStreamAccessParams constructESAP(Application app, AccessMode mode,
+        DataLocation location) {
+        return new ExternalStreamAccessParams(app, mode, location);
+    }
+
+    private ExternalStreamAccessParams(Application app, AccessMode mode, DataLocation location) {
+        super(new ExternalStreamData(app, location.hashCode()), mode, location);
     }
 
     @Override

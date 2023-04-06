@@ -29,7 +29,7 @@ import org.apache.logging.log4j.Logger;
 /**
  * Description of the access parameters to an object, file, stream, or binding-object.
  */
-public abstract class AccessParams implements Serializable {
+public abstract class AccessParams<D extends DataParams> implements Serializable {
 
     public static enum AccessMode {
         R, // Read
@@ -49,7 +49,7 @@ public abstract class AccessParams implements Serializable {
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.DIP_COMP);
     protected static final boolean DEBUG = LOGGER.isDebugEnabled();
 
-    protected final DataParams data;
+    protected final D data;
     protected final AccessMode mode;
 
 
@@ -59,7 +59,7 @@ public abstract class AccessParams implements Serializable {
      * @param data Data being accessed
      * @param mode Access Mode.
      */
-    public AccessParams(DataParams data, AccessMode mode) {
+    protected AccessParams(D data, AccessMode mode) {
         this.data = data;
         this.mode = mode;
     }
@@ -78,7 +78,7 @@ public abstract class AccessParams implements Serializable {
      * 
      * @return data being accessed
      */
-    public DataParams getData() {
+    public D getData() {
         return data;
     }
 

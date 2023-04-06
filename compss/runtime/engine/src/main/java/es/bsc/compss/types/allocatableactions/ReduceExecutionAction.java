@@ -29,10 +29,10 @@ import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.data.accessid.RWAccessId;
-import es.bsc.compss.types.parameter.CollectiveParameter;
-import es.bsc.compss.types.parameter.DependencyParameter;
-import es.bsc.compss.types.parameter.Parameter;
+import es.bsc.compss.types.parameter.impl.CollectiveParameter;
+import es.bsc.compss.types.parameter.impl.DependencyParameter;
 import es.bsc.compss.types.parameter.impl.FileParameter;
+import es.bsc.compss.types.parameter.impl.Parameter;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.util.ErrorManager;
@@ -115,7 +115,7 @@ public class ReduceExecutionAction extends ExecutionAction {
         // Checking parameters without data dependency (excluding the extra parameters)
         List<Parameter> params = new ArrayList<>();
         for (Parameter p : task.getFreeParams()) {
-            if (!(p instanceof CollectiveParameter)
+            if (!(p.isCollective())
                 && !(p instanceof FileParameter && ((FileParameter) p).getOriginalName().startsWith("reduce"))
                 && !extraParameters.contains(p)) {
                 params.add(p);

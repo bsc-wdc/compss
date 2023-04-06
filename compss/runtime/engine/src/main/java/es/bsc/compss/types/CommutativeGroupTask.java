@@ -20,7 +20,7 @@ import es.bsc.compss.scheduler.types.ActionGroup.MutexGroup;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.accessid.RWAccessId;
-import es.bsc.compss.types.parameter.Parameter;
+import es.bsc.compss.types.parameter.impl.Parameter;
 
 import java.util.LinkedList;
 import java.util.List;

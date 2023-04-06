@@ -95,7 +95,7 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
         }
     }
 
-    private Map<String, String> constructMapOfNamedParameters(TaskDescription taskDescription)
+    private Map<String, String> constructMapOfNamedParameters(TaskDescription<Parameter> taskDescription)
         throws CannotLoadException {
 
         Map<String, String> namedParameters = new HashMap<>();

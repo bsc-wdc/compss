@@ -23,7 +23,7 @@ import es.bsc.compss.worker.COMPSsException;
 /**
  * Abstract Representation of a listener for the job execution.
  */
-public interface JobListener {
+public interface JobListener<P extends Parameter> {
 
     /**
      * Actions to perform when the job stageIn is finished.
@@ -133,7 +133,7 @@ public interface JobListener {
      * @param p Produced parameter
      * @param dataName name of the data produced
      */
-    public void resultAvailable(Parameter p, String dataName);
+    public void resultAvailable(P p, String dataName);
 
     /**
      * Actions when job has successfully been cancelled.

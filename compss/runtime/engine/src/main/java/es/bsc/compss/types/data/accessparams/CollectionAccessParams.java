@@ -24,7 +24,7 @@ import es.bsc.compss.types.data.DataVersion;
 import es.bsc.compss.types.data.accessparams.DataParams.CollectionData;
 
 
-public class CollectionAccessParams extends AccessParams {
+public class CollectionAccessParams extends AccessParams<CollectionData> {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
@@ -38,8 +38,13 @@ public class CollectionAccessParams extends AccessParams {
      * @param app Id of the application accessing the object.
      * @param mode Access mode.
      * @param collectionId Id of the collection
+     * @return new CollectionAccessParams instance
      */
-    public CollectionAccessParams(Application app, AccessMode mode, String collectionId) {
+    public static final CollectionAccessParams constructCAP(Application app, AccessMode mode, String collectionId) {
+        return new CollectionAccessParams(app, mode, collectionId);
+    }
+
+    private CollectionAccessParams(Application app, AccessMode mode, String collectionId) {
         super(new CollectionData(app, collectionId), mode);
     }
 

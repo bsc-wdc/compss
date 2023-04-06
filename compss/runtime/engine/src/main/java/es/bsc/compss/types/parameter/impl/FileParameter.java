@@ -17,28 +17,29 @@
 package es.bsc.compss.types.parameter.impl;
 
 import es.bsc.compss.api.ParameterMonitor;
+import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
+import es.bsc.compss.types.data.accessparams.FileAccessParams;
 
 import es.bsc.compss.types.data.location.DataLocation;
 
 
-public class FileParameter extends DependencyParameterImpl {
+public class FileParameter extends DependencyParameter<FileAccessParams> {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
      */
     private static final long serialVersionUID = 1L;
 
-    // File parameter fields
-    private final DataLocation location;
     private final String originalName;
 
 
     /**
-     * Creates a new Stream Parameter.
-     * 
+     * Creates a new File Parameter.
+     *
+     * @param app Application performing the access
      * @param direction Parameter direction.
      * @param stream Standard IO Stream flags.
      * @param prefix Parameter prefix.
@@ -49,14 +50,22 @@ public class FileParameter extends DependencyParameterImpl {
      * @param location File location.
      * @param originalName Original file name.
      * @param monitor object to notify to changes on the parameter
+     * @return creates a new File Parameter
      */
-    public FileParameter(Direction direction, StdIOStream stream, String prefix, String name, String contentType,
-        double weight, boolean keepRename, DataLocation location, String originalName, ParameterMonitor monitor) {
+    public static final FileParameter newFP(Application app, Direction direction, StdIOStream stream, String prefix,
+        String name, String contentType, double weight, boolean keepRename, DataLocation location, String originalName,
+        ParameterMonitor monitor) {
+        return new FileParameter(app, DataType.FILE_T, direction, stream, prefix, name, contentType, weight, keepRename,
+            location, originalName, monitor);
+    }
 
-        super(DataType.FILE_T, direction, stream, prefix, name, contentType, weight, keepRename, monitor);
-        this.location = location;
+    protected FileParameter(Application app, DataType type, Direction direction, StdIOStream stream, String prefix,
+        String name, String contentType, double weight, boolean keepRename, DataLocation location, String originalName,
+        ParameterMonitor monitor) {
+
+        super(app, type, direction, FileAccessParams.constructFAP(app, getAccessMode(direction), location), stream,
+            prefix, name, contentType, weight, keepRename, monitor);
         this.originalName = originalName;
-
     }
 
     @Override
@@ -64,19 +73,19 @@ public class FileParameter extends DependencyParameterImpl {
         return false;
     }
 
-    public DataLocation getLocation() {
-        return this.location;
+    public final DataLocation getLocation() {
+        return this.getAccess().getLocation();
     }
 
     @Override
-    public String getOriginalName() {
+    public final String getOriginalName() {
         return this.originalName;
     }
 
     @Override
     public String toString() {
-        return "FileParameter with location " + this.location + ", type " + getType() + ", direction " + getDirection()
-            + ", CONTENT TYPE" + getContentType();
+        return "FileParameter with location " + this.getAccess().getLocation() + ", type " + getType() + ", direction "
+            + getDirection() + ", CONTENT TYPE" + getContentType();
     }
 
 }

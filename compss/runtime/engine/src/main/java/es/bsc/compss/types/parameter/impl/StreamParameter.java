@@ -17,25 +17,27 @@
 package es.bsc.compss.types.parameter.impl;
 
 import es.bsc.compss.api.ParameterMonitor;
+import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
+import es.bsc.compss.types.data.accessparams.DataParams.StreamData;
+import es.bsc.compss.types.data.accessparams.StreamAccessParams;
 
 
-public class StreamParameter extends DependencyParameterImpl {
+public class StreamParameter<V extends Object, A extends StreamAccessParams<V, D>, D extends StreamData>
+    extends ObjectParameter<V, A, D> {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
      */
     private static final long serialVersionUID = 1L;
 
-    private final int hashCode;
-    private Object value;
-
 
     /**
      * Creates a new Stream Parameter.
      * 
+     * @param app Application performing the access
      * @param direction Parameter direction.
      * @param stream Standard IO Stream flags.
      * @param prefix Parameter prefix.
@@ -43,35 +45,26 @@ public class StreamParameter extends DependencyParameterImpl {
      * @param value Parameter object value.
      * @param hashCode Parameter object hashcode.
      * @param monitor object to notify to changes on the parameter
+     * @return new StreamParam instance
      */
-    public StreamParameter(Direction direction, StdIOStream stream, String prefix, String name, Object value,
-        int hashCode, ParameterMonitor monitor) {
+    public static <V extends Object> StreamParameter<V, StreamAccessParams<V, StreamData>, StreamData> newSP(
+        Application app, Direction direction, StdIOStream stream, String prefix, String name, V value, int hashCode,
+        ParameterMonitor monitor) {
+        StreamAccessParams<V, StreamData> sap;
+        sap = StreamAccessParams.constructStreamAP(app, getAccessMode(direction), value, hashCode);
 
-        super(DataType.STREAM_T, direction, stream, prefix, name, "null", 1.0, false, monitor);
-        this.value = value;
-        this.hashCode = hashCode;
+        return new StreamParameter(app, DataType.STREAM_T, direction, sap, stream, prefix, name, monitor);
     }
 
-    @Override
-    public boolean isCollective() {
-        return false;
-    }
+    protected StreamParameter(Application app, DataType type, Direction direction, A streamAP, StdIOStream stream,
+        String prefix, String name, ParameterMonitor monitor) {
+        super(app, type, direction, streamAP, stream, prefix, name, "null", 1.0, monitor);
 
-    public Object getValue() {
-        return this.value;
-    }
-
-    public void setValue(Object value) {
-        this.value = value;
-    }
-
-    public int getCode() {
-        return this.hashCode;
     }
 
     @Override
     public String toString() {
-        return "StreamParameter with hash code " + this.hashCode + ", type " + getType() + ", direction "
+        return "StreamParameter with hash code " + this.getCode() + ", type " + getType() + ", direction "
             + getDirection();
     }
 

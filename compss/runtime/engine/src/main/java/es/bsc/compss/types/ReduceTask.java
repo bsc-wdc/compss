@@ -28,10 +28,9 @@ import es.bsc.compss.types.colors.ColorConfiguration;
 import es.bsc.compss.types.colors.ColorNode;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
-import es.bsc.compss.types.parameter.CollectiveParameter;
-import es.bsc.compss.types.parameter.Parameter;
-import es.bsc.compss.types.parameter.impl.CollectiveParameterImpl;
+import es.bsc.compss.types.parameter.impl.CollectiveParameter;
 import es.bsc.compss.types.parameter.impl.FileParameter;
+import es.bsc.compss.types.parameter.impl.Parameter;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
@@ -151,26 +150,27 @@ public class ReduceTask extends Task {
                 LOGGER.debug("[REDUCE-TASK] Creating intermediate data (" + this.totalOperations + ") for reduce Task "
                     + this.getId());
 
+                Application app = this.getApplication();
                 for (int i = 0; i < (int) totalOperations; i++) {
                     String partialId = "reduce" + i + "PartialResultTask" + this.getId();
                     String canonicalPath = new File(partialId).getCanonicalPath();
                     SimpleURI uri = new SimpleURI(ProtocolType.FILE_URI.getSchema() + canonicalPath);
                     DataLocation dl = DataLocation.createLocation(Comm.getAppHost(), uri);
 
-                    partialsOut.add(new FileParameter(Direction.OUT, finalParameter.getStream(),
+                    partialsOut.add(FileParameter.newFP(app, Direction.OUT, finalParameter.getStream(),
                         finalParameter.getPrefix(), finalParameter.getName(), finalParameter.getType().toString(),
                         finalParameter.getWeight(), finalParameter.isKeepRename(), dl, partialId, IGNORE_PARAM));
-                    partialsIn.add(new FileParameter(Direction.IN, finalParameter.getStream(),
+                    partialsIn.add(FileParameter.newFP(app, Direction.IN, finalParameter.getStream(),
                         finalParameter.getPrefix(), finalParameter.getName(), finalParameter.getType().toString(),
                         finalParameter.getWeight(), finalParameter.isKeepRename(), dl, partialId, IGNORE_PARAM));
 
-                    CollectiveParameter cp = new CollectiveParameterImpl(DataType.COLLECTION_T,
+                    CollectiveParameter cp = CollectiveParameter.newCP(app, DataType.COLLECTION_T,
                         partialId + "Collection", p.getDirection(), p.getStream(), p.getPrefix(), p.getName(),
                         p.getContentType(), p.getWeight(), p.isKeepRename(), IGNORE_PARAM, new ArrayList<>());
                     intermediateCollections.add(cp);
                 }
                 String finalId = "finalReduceTask" + this.getId();
-                finalCol = new CollectiveParameterImpl(DataType.COLLECTION_T, finalId, Direction.IN, p.getStream(),
+                finalCol = CollectiveParameter.newCP(app, DataType.COLLECTION_T, finalId, Direction.IN, p.getStream(),
                     p.getPrefix(), p.getName(), p.getContentType(), p.getWeight(), p.isKeepRename(), IGNORE_PARAM,
                     new ArrayList<>());
             } else {

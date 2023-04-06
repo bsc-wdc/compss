@@ -24,7 +24,7 @@ import java.util.List;
  * parameter objects. The object has an identifier by itself and points to other object identifiers (which are the ones
  * contained in it)
  */
-public interface CollectiveParameter extends DependencyParameter {
+public interface CollectiveParameter<T extends Parameter> extends DependencyParameter {
 
     /**
      * Get the identifier of the collection.
@@ -34,24 +34,17 @@ public interface CollectiveParameter extends DependencyParameter {
     public String getCollectionId();
 
     /**
-     * Set the identifier of the collection.
-     *
-     * @param collectionId The collection Id.
-     */
-    public void setCollectionId(String collectionId);
-
-    /**
      * Returns the collection parameters.
      *
      * @return List of the internal parameters of the collection.
      */
-    public List<Parameter> getElements();
+    public List<T> getElements();
 
     /**
      * Sets the internal parameters of the collection.
      *
      * @param elements New internal parameters of the collection.
      */
-    public void setElements(List<Parameter> elements);
+    public void setElements(List<T> elements);
 
 }

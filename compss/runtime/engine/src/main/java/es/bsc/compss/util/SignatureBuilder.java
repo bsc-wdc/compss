@@ -20,7 +20,7 @@ import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.exceptions.LangNotDefinedException;
-import es.bsc.compss.types.parameter.Parameter;
+import es.bsc.compss.types.parameter.impl.Parameter;
 
 import java.util.List;
 

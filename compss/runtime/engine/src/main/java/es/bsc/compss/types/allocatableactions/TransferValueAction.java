@@ -35,10 +35,10 @@ import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.parameter.CollectiveParameter;
-import es.bsc.compss.types.parameter.DependencyParameter;
-import es.bsc.compss.types.parameter.Parameter;
+import es.bsc.compss.types.parameter.impl.CollectiveParameter;
+import es.bsc.compss.types.parameter.impl.DependencyParameter;
 import es.bsc.compss.types.parameter.impl.ExternalPSCOParameter;
+import es.bsc.compss.types.parameter.impl.Parameter;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 

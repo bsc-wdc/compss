@@ -84,7 +84,7 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
     protected int jobId;
 
     protected final int taskId;
-    protected final TaskDescription taskParams;
+    protected final TaskDescription<Parameter> taskParams;
     protected final Implementation impl;
     protected final Resource worker;
     private final JobListener listener;
@@ -384,7 +384,7 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
         switch (param.getType()) {
             case COLLECTION_T:
             case DICT_COLLECTION_T:
-                CollectiveParameter cp = (CollectiveParameter) param;
+                CollectiveParameter<Parameter> cp = (CollectiveParameter) param;
                 JOB_LOGGER.debug("Detected CollectiveParameter " + cp);
                 // Recursively send all the collection parameters
                 for (Parameter p : cp.getElements()) {
@@ -477,7 +477,7 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
     private void removeTmpData(DependencyParameter param) {
         if (param.getType() != DataType.STREAM_T && param.getType() != DataType.EXTERNAL_STREAM_T) {
             if (param.isCollective()) {
-                CollectiveParameter cp = (CollectiveParameter) param;
+                CollectiveParameter<Parameter> cp = (CollectiveParameter) param;
                 JOB_LOGGER.debug("Detected CollectiveParameter " + cp);
                 // Recursively send all the collection parameters
                 for (Parameter p : cp.getElements()) {
@@ -651,7 +651,7 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
         DependencyParameter dp = (DependencyParameter) p;
         String dataName = getOutputRename(p);
         if (dp.isCollective()) {
-            CollectiveParameter cp = (CollectiveParameter) dp;
+            CollectiveParameter<Parameter> cp = (CollectiveParameter) dp;
             for (Parameter elem : cp.getElements()) {
                 if (elem.isPotentialDependency()) {
                     registerJobOutputAsExpected(elem);

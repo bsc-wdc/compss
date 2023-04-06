@@ -20,10 +20,10 @@ import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
-import es.bsc.compss.types.parameter.BasicTypeParameter;
+import es.bsc.compss.types.data.accessparams.AccessParams;
 
 
-public class BasicTypeParameterImpl extends ParameterImpl implements BasicTypeParameter {
+public class BasicTypeParameter extends Parameter implements es.bsc.compss.types.parameter.BasicTypeParameter {
 
     /*
      * Basic type parameter can be: - boolean - char - String - byte - short - int - long - float - double
@@ -39,7 +39,7 @@ public class BasicTypeParameterImpl extends ParameterImpl implements BasicTypePa
 
     /**
      * Creates a new BasicTypeParameter instance with the given information.
-     * 
+     *
      * @param type Parameter type.
      * @param direction Parameter direction.
      * @param stream Parameter IO stream mode.
@@ -48,8 +48,14 @@ public class BasicTypeParameterImpl extends ParameterImpl implements BasicTypePa
      * @param value Parameter value.
      * @param weight Parameter weight.
      * @param monitor object to notify to changes on the parameter
+     * @return new BasicTypeParameter instance
      */
-    public BasicTypeParameterImpl(DataType type, Direction direction, StdIOStream stream, String prefix, String name,
+    public static final BasicTypeParameter newBP(DataType type, Direction direction, StdIOStream stream, String prefix,
+        String name, Object value, double weight, String contentType, ParameterMonitor monitor) {
+        return new BasicTypeParameter(type, direction, stream, prefix, name, value, weight, contentType, monitor);
+    }
+
+    private BasicTypeParameter(DataType type, Direction direction, StdIOStream stream, String prefix, String name,
         Object value, double weight, String contentType, ParameterMonitor monitor) {
         super(type, direction, stream, prefix, name, contentType, weight, false, monitor);
         this.value = value;
@@ -78,6 +84,11 @@ public class BasicTypeParameterImpl extends ParameterImpl implements BasicTypePa
     @Override
     public String toString() {
         return this.value + " " + getType() + " " + getDirection();
+    }
+
+    @Override
+    public AccessParams getAccess() {
+        return null;
     }
 
 }

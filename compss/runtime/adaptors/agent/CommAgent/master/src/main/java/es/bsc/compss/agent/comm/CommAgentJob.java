@@ -249,7 +249,7 @@ class CommAgentJob extends NIOJob {
 
         CommParamCollection npc = new CommParamCollection(commPar);
 
-        CollectiveParameter collParam = (CollectiveParameter) param;
+        CollectiveParameter<Parameter> collParam = (CollectiveParameter) param;
         for (Parameter subParam : collParam.getElements()) {
             npc.addParameter(CommAgentJob.createCommParamFromParameter(subParam));
         }

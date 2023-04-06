@@ -44,7 +44,7 @@ public class DataLocality extends SchedulingInformation {
      * @param coreId core element Id
      */
     public <T extends WorkerResourceDescription> DataLocality(ResourceScheduler<T> enforcedTargetResource,
-        List<Parameter> params, Integer coreId) {
+        List<? extends Parameter> params, Integer coreId) {
         super(enforcedTargetResource);
         if (enforcedTargetResource == null && coreId != null) {
             if (params != null) {
@@ -53,7 +53,7 @@ public class DataLocality extends SchedulingInformation {
         }
     }
 
-    private void registerLocalityScoreMonitoring(List<Parameter> params) {
+    private void registerLocalityScoreMonitoring(List<? extends Parameter> params) {
         for (Parameter p : params) {
             registerLocalityScoreMonitoring(p);
         }

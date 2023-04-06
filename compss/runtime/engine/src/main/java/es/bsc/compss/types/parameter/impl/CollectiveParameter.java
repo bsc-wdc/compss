@@ -17,11 +17,11 @@
 package es.bsc.compss.types.parameter.impl;
 
 import es.bsc.compss.api.ParameterMonitor;
+import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
-import es.bsc.compss.types.parameter.CollectiveParameter;
-import es.bsc.compss.types.parameter.Parameter;
+import es.bsc.compss.types.data.accessparams.CollectionAccessParams;
 import java.util.Iterator;
 
 import java.util.List;
@@ -32,15 +32,13 @@ import java.util.List;
  * parameter objects. The object has an identifier by itself and points to other object identifiers (which are the ones
  * contained in it)
  */
-public class CollectiveParameterImpl extends DependencyParameterImpl implements CollectiveParameter {
+public class CollectiveParameter extends DependencyParameter<CollectionAccessParams>
+    implements es.bsc.compss.types.parameter.CollectiveParameter<Parameter> {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
      */
     private static final long serialVersionUID = 1L;
-
-    // Identifier of the collection object
-    private String collectionId;
 
     // Parameter objects of the collection contents
     private List<Parameter> elements;
@@ -50,6 +48,7 @@ public class CollectiveParameterImpl extends DependencyParameterImpl implements 
      * Default constructor. Intended to be called from COMPSsRuntimeImpl when gathering and compacting parameter
      * information fed from bindings or Java Loader
      * 
+     * @param app Application performing the access
      * @param type type of collection
      * @param id identifier of the collection
      * @param direction Direction of the collection
@@ -62,52 +61,38 @@ public class CollectiveParameterImpl extends DependencyParameterImpl implements 
      * @param elements Elements of the collection
      * @see DependencyParameter
      */
-    public CollectiveParameterImpl(DataType type, String id, Direction direction, StdIOStream stream, String prefix,
-        String name, String contentType, double weight, boolean keepRename, ParameterMonitor monitor,
+    public static final CollectiveParameter newCP(Application app, DataType type, String id, Direction direction,
+        StdIOStream stream, String prefix, String name, String contentType, double weight, boolean keepRename,
+        ParameterMonitor monitor, List<Parameter> elements) {
+        return new CollectiveParameter(app, type, id, direction, stream, prefix, name, contentType, weight, keepRename,
+            monitor, elements);
+    }
+
+    protected CollectiveParameter(Application app, DataType type, String id, Direction direction, StdIOStream stream,
+        String prefix, String name, String contentType, double weight, boolean keepRename, ParameterMonitor monitor,
         List<Parameter> elements) {
-        super(type, direction, stream, prefix, name, contentType, weight, keepRename, monitor);
-        this.collectionId = id;
+        super(app, type, direction, CollectionAccessParams.constructCAP(app, getAccessMode(direction), id), stream,
+            prefix, name, contentType, weight, keepRename, monitor);
         this.elements = elements;
     }
 
     @Override
-    public boolean isCollective() {
+    public final boolean isCollective() {
         return true;
     }
 
-    /**
-     * Get the identifier of the collection.
-     * 
-     * @return The collection identifier.
-     */
-    public String getCollectionId() {
-        return this.collectionId;
+    @Override
+    public final String getCollectionId() {
+        return this.getAccess().getData().getCollectionId();
     }
 
-    /**
-     * Set the identifier of the collection.
-     * 
-     * @param collectionId The collection Id.
-     */
-    public void setCollectionId(String collectionId) {
-        this.collectionId = collectionId;
-    }
-
-    /**
-     * Returns the collection parameters.
-     * 
-     * @return List of the internal parameters of the collection.
-     */
-    public List<Parameter> getElements() {
+    @Override
+    public final List<Parameter> getElements() {
         return this.elements;
     }
 
-    /**
-     * Sets the internal parameters of the collection.
-     * 
-     * @param elements New internal parameters of the collection.
-     */
-    public void setElements(List<Parameter> elements) {
+    @Override
+    public final void setElements(List<Parameter> elements) {
         this.elements = elements;
     }
 

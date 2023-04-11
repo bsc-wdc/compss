@@ -26,7 +26,7 @@ import es.bsc.compss.types.data.accessparams.DataParams.FileData;
 import es.bsc.compss.types.data.location.DataLocation;
 
 
-public class FileAccessParams extends AccessParams<FileData> {
+public class FileAccessParams<D extends FileData> extends AccessParams<D> {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
@@ -44,11 +44,12 @@ public class FileAccessParams extends AccessParams<FileData> {
      * @return new FileAccessParams instance
      */
     public static final FileAccessParams constructFAP(Application app, Direction dir, DataLocation loc) {
-        return new FileAccessParams(app, dir, loc);
+        FileData fd = new FileData(app, loc);
+        return new FileAccessParams(fd, dir);
     }
 
-    private FileAccessParams(Application app, Direction dir, DataLocation loc) {
-        super(new FileData(app, loc), dir);
+    protected FileAccessParams(D data, Direction dir) {
+        super(data, dir);
     }
 
     /**

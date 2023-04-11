@@ -50,7 +50,7 @@ public abstract class DataParams {
 
     public static class FileData extends DataParams {
 
-        private final String locKey;
+        protected final String locKey;
         private final DataLocation loc;
 
 
@@ -95,6 +95,25 @@ public abstract class DataParams {
 
         public DataLocation getLocation() {
             return this.loc;
+        }
+
+    }
+
+    public static class DirectoryData extends FileData {
+
+        /**
+         * Constructs a new DataParams for a directory.
+         * 
+         * @param app Application accessing the directory
+         * @param loc location of the directory
+         */
+        public DirectoryData(Application app, DataLocation loc) {
+            super(app, loc);
+        }
+
+        @Override
+        public String getDescription() {
+            return "directory " + this.locKey;
         }
 
     }

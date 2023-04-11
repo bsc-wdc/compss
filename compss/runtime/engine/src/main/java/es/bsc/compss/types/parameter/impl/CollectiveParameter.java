@@ -64,15 +64,16 @@ public class CollectiveParameter extends DependencyParameter<CollectionAccessPar
     public static final CollectiveParameter newCP(Application app, DataType type, String id, Direction direction,
         StdIOStream stream, String prefix, String name, String contentType, double weight, boolean keepRename,
         ParameterMonitor monitor, List<Parameter> elements) {
-        return new CollectiveParameter(app, type, id, direction, stream, prefix, name, contentType, weight, keepRename,
+
+        CollectionAccessParams cap = CollectionAccessParams.constructCAP(app, direction, id);
+        return new CollectiveParameter(cap, type, direction, stream, prefix, name, contentType, weight, keepRename,
             monitor, elements);
     }
 
-    protected CollectiveParameter(Application app, DataType type, String id, Direction direction, StdIOStream stream,
+    protected CollectiveParameter(CollectionAccessParams cap, DataType type, Direction direction, StdIOStream stream,
         String prefix, String name, String contentType, double weight, boolean keepRename, ParameterMonitor monitor,
         List<Parameter> elements) {
-        super(app, type, direction, CollectionAccessParams.constructCAP(app, direction, id), stream, prefix, name,
-            contentType, weight, keepRename, monitor);
+        super(cap, type, direction, stream, prefix, name, contentType, weight, keepRename, monitor);
         this.elements = elements;
     }
 

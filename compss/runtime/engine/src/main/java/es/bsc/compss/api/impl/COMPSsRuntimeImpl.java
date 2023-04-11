@@ -54,6 +54,7 @@ import es.bsc.compss.types.data.accessparams.DataParams;
 import es.bsc.compss.types.data.accessparams.DataParams.CollectionData;
 import es.bsc.compss.types.data.accessparams.DataParams.FileData;
 import es.bsc.compss.types.data.accessparams.DataParams.ObjectData;
+import es.bsc.compss.types.data.accessparams.DirectoryAccessParams;
 import es.bsc.compss.types.data.accessparams.ExternalPSCObjectAccessParams;
 import es.bsc.compss.types.data.accessparams.FileAccessParams;
 import es.bsc.compss.types.data.accessparams.ObjectAccessParams;
@@ -1896,11 +1897,12 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     private String mainAccessToFile(Application app, String fileName, DataLocation loc, Direction direction,
         String destDir, boolean isDirectory) {
         // Tell the AP that the application wants to access a file.
-        FileAccessParams fap = FileAccessParams.constructFAP(app, direction, loc);
         DataLocation targetLocation;
         if (isDirectory) {
+            DirectoryAccessParams fap = DirectoryAccessParams.constructDAP(app, direction, loc);
             targetLocation = ap.mainAccessToDirectory(fap, destDir);
         } else {
+            FileAccessParams fap = FileAccessParams.constructFAP(app, direction, loc);
             targetLocation = ap.mainAccessToFile(fap, destDir);
         }
 

@@ -52,13 +52,12 @@ public class StreamParameter<V extends Object, A extends StreamAccessParams<V, D
         ParameterMonitor monitor) {
         StreamAccessParams<V, StreamData> sap;
         sap = StreamAccessParams.constructStreamAP(app, direction, value, hashCode);
-
-        return new StreamParameter(app, DataType.STREAM_T, direction, sap, stream, prefix, name, monitor);
+        return new StreamParameter(sap, DataType.STREAM_T, direction, stream, prefix, name, monitor);
     }
 
-    protected StreamParameter(Application app, DataType type, Direction direction, A streamAP, StdIOStream stream,
-        String prefix, String name, ParameterMonitor monitor) {
-        super(app, type, direction, streamAP, stream, prefix, name, "null", 1.0, monitor);
+    protected StreamParameter(A streamAP, DataType type, Direction direction, StdIOStream stream, String prefix,
+        String name, ParameterMonitor monitor) {
+        super(streamAP, type, direction, stream, prefix, name, "null", 1.0, monitor);
 
     }
 

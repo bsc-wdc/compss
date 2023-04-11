@@ -54,15 +54,15 @@ public class ExternalPSCOParameter
      */
     public static final ExternalPSCOParameter newEPOP(Application app, Direction direction, StdIOStream stream,
         String prefix, String name, double weight, String pscoId, int hashCode, ParameterMonitor monitor) {
-        return new ExternalPSCOParameter(app, direction, stream, prefix, name, weight, pscoId, hashCode, monitor);
+        ExternalPSCObjectAccessParams epoap;
+        epoap = ExternalPSCObjectAccessParams.constructEPOAP(app, direction, pscoId, hashCode);
+        return new ExternalPSCOParameter(epoap, direction, stream, prefix, name, weight, pscoId, hashCode, monitor);
     }
 
-    private ExternalPSCOParameter(Application app, Direction direction, StdIOStream stream, String prefix, String name,
-        double weight, String pscoId, int hashCode, ParameterMonitor monitor) {
+    private ExternalPSCOParameter(ExternalPSCObjectAccessParams epoap, Direction direction, StdIOStream stream,
+        String prefix, String name, double weight, String pscoId, int hashCode, ParameterMonitor monitor) {
 
-        super(app, DataType.EXTERNAL_PSCO_T, direction,
-            ExternalPSCObjectAccessParams.constructEPOAP(app, direction, pscoId, hashCode), stream, prefix, name,
-            "null", weight, monitor);
+        super(epoap, DataType.EXTERNAL_PSCO_T, direction, stream, prefix, name, "null", weight, monitor);
         this.pscoId = pscoId;
         this.hashCode = hashCode;
     }

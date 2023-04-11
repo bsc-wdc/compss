@@ -52,14 +52,13 @@ public class ExternalStreamParameter
      */
     public static final ExternalStreamParameter newESP(Application app, Direction direction, StdIOStream stream,
         String prefix, String name, DataLocation location, String originalName, ParameterMonitor monitor) {
-        return new ExternalStreamParameter(app, direction, stream, prefix, name, location, originalName, monitor);
+        ExternalStreamAccessParams esap = ExternalStreamAccessParams.constructESAP(app, direction, location);
+        return new ExternalStreamParameter(esap, direction, stream, prefix, name, originalName, monitor);
     }
 
-    private ExternalStreamParameter(Application app, Direction direction, StdIOStream stream, String prefix,
-        String name, DataLocation location, String originalName, ParameterMonitor monitor) {
-
-        super(app, DataType.EXTERNAL_STREAM_T, direction,
-            ExternalStreamAccessParams.constructESAP(app, direction, location), stream, prefix, name, monitor);
+    private ExternalStreamParameter(ExternalStreamAccessParams esap, Direction direction, StdIOStream stream,
+        String prefix, String name, String originalName, ParameterMonitor monitor) {
+        super(esap, DataType.EXTERNAL_STREAM_T, direction, stream, prefix, name, monitor);
         this.originalName = originalName;
     }
 

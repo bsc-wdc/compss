@@ -44,6 +44,7 @@ import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
 import es.bsc.compss.types.data.accessparams.BindingObjectAccessParams;
 import es.bsc.compss.types.data.accessparams.DataParams;
 import es.bsc.compss.types.data.accessparams.DataParams.ObjectData;
+import es.bsc.compss.types.data.accessparams.DirectoryAccessParams;
 import es.bsc.compss.types.data.accessparams.ExternalPSCObjectAccessParams;
 import es.bsc.compss.types.data.accessparams.FileAccessParams;
 import es.bsc.compss.types.data.accessparams.ObjectAccessParams;
@@ -404,7 +405,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
      * @param destDir Destination directory.
      * @return Final location.
      */
-    public DataLocation mainAccessToDirectory(FileAccessParams fap, String destDir) {
+    public DataLocation mainAccessToDirectory(DirectoryAccessParams fap, String destDir) {
         boolean alreadyAccessed = alreadyAccessed(fap.getData());
         DataLocation sourceLocation = fap.getLocation();
         if (!alreadyAccessed) {

@@ -49,12 +49,14 @@ import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.data.LogicalData;
-import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
+import es.bsc.compss.types.data.accessparams.BindingObjectAccessParams;
 import es.bsc.compss.types.data.accessparams.DataParams;
 import es.bsc.compss.types.data.accessparams.DataParams.CollectionData;
 import es.bsc.compss.types.data.accessparams.DataParams.FileData;
 import es.bsc.compss.types.data.accessparams.DataParams.ObjectData;
+import es.bsc.compss.types.data.accessparams.ExternalPSCObjectAccessParams;
 import es.bsc.compss.types.data.accessparams.FileAccessParams;
+import es.bsc.compss.types.data.accessparams.ObjectAccessParams;
 import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.PersistentLocation;
@@ -1923,7 +1925,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     }
 
     private Object mainAccessToObject(Application app, Object obj, int hashCode) {
-        boolean validValue = ap.isCurrentRegisterValueValid(app, hashCode);
+        ObjectAccessParams<?, ?> oap = ObjectAccessParams.constructObjectAP(app, Direction.INOUT, obj, hashCode);
+
+        boolean validValue = ap.isCurrentRegisterValueValid(oap.getData());
         if (validValue) {
             // Main code is still performing the same modification.
             // No need to register it as a new version.
@@ -1931,13 +1935,16 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         }
 
         // Otherwise we request it from a task
-        return ap.mainAccessToObject(app, obj, hashCode);
+        return ap.mainAccessToObject(oap);
     }
 
     private String mainAccessToExternalPSCO(Application app, String fileName, DataLocation loc) {
         String id = ((PersistentLocation) loc).getId();
         int hashCode = externalObjectHashcode(id);
-        boolean validValue = ap.isCurrentRegisterValueValid(app, hashCode);
+        ExternalPSCObjectAccessParams eoap;
+        eoap = ExternalPSCObjectAccessParams.constructEPOAP(app, Direction.INOUT, id, hashCode);
+
+        boolean validValue = ap.isCurrentRegisterValueValid(eoap.getData());
         if (validValue) {
             // Main code is still performing the same modification.
             // No need to register it as a new version.
@@ -1945,13 +1952,16 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         }
 
         // Otherwise we request it from a task
-        return ap.mainAccessToExternalPSCO(app, id, hashCode);
+        return ap.mainAccessToExternalPSCO(eoap);
     }
 
     private String mainAccessToBindingObject(Application app, String fileName, BindingObjectLocation loc) {
         String id = loc.getId();
         int hashCode = externalObjectHashcode(id);
-        boolean validValue = ap.isCurrentRegisterValueValid(app, hashCode);
+        BindingObject bo = loc.getBindingObject();
+        BindingObjectAccessParams boap = BindingObjectAccessParams.constructBOAP(app, Direction.IN, bo, hashCode);
+
+        boolean validValue = ap.isCurrentRegisterValueValid(boap.getData());
         if (validValue) {
             // Main code is still performing the same modification.
             // No need to register it as a new version.
@@ -1959,7 +1969,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         }
 
         // Otherwise we request it from a task
-        return ap.mainAccessToBindingObject(app, loc.getBindingObject(), hashCode);
+        return ap.mainAccessToBindingObject(boap);
     }
 
     private DataLocation createLocation(ProtocolType defaultSchema, String fileName) throws IOException {

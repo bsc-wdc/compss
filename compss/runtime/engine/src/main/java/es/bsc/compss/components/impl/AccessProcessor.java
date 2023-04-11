@@ -43,6 +43,7 @@ import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
 import es.bsc.compss.types.data.accessparams.BindingObjectAccessParams;
 import es.bsc.compss.types.data.accessparams.DataParams;
+import es.bsc.compss.types.data.accessparams.DataParams.ObjectData;
 import es.bsc.compss.types.data.accessparams.ExternalPSCObjectAccessParams;
 import es.bsc.compss.types.data.accessparams.FileAccessParams;
 import es.bsc.compss.types.data.accessparams.ObjectAccessParams;
@@ -460,29 +461,24 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     /**
      * Returns whether the value with hashCode {@code hashCode} is valid or obsolete.
      *
-     * @param app Application accessing the object
-     * @param hashCode Object hashcode.
+     * @param data Description of the object to check
      * @return {@code true} if the object is valid, {@code false} otherwise.
      */
-    public boolean isCurrentRegisterValueValid(Application app, int hashCode) {
-        LOGGER.debug("Checking if value of object with hashcode " + hashCode + " is valid");
+    public boolean isCurrentRegisterValueValid(ObjectData data) {
+        LOGGER.debug("Checking if value of " + data.getDescription() + " is valid");
 
-        Semaphore sem = new Semaphore(0);
-        IsObjectHereRequest request = new IsObjectHereRequest(app, hashCode, sem);
+        IsObjectHereRequest request = new IsObjectHereRequest(data);
         if (!this.requestQueue.offer(request)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "valid object value");
         }
-
-        // Wait for response
-        sem.acquireUninterruptibly();
 
         // Log response and return
         boolean isValid = request.getResponse();
         if (DEBUG) {
             if (isValid) {
-                LOGGER.debug("Value of object with hashcode " + hashCode + " is valid");
+                LOGGER.debug("Value of " + data.getDescription() + " is valid");
             } else {
-                LOGGER.debug("Value of object with hashcode " + hashCode + " is NOT valid");
+                LOGGER.debug("Value of " + data.getDescription() + " is NOT valid");
             }
         }
 
@@ -508,14 +504,12 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     /**
      * Notifies a main access to an object {@code obj}.
      *
-     * @param app application accessing the object.
-     * @param obj Object.
-     * @param hashCode Object hashcode.
+     * @param oap description of the object access
      * @return Synchronized object.
      */
     public Object mainAccessToObject(ObjectAccessParams oap) {
         if (DEBUG) {
-            LOGGER.debug("Requesting main access to "+oap.getDataDescription());
+            LOGGER.debug("Requesting main access to " + oap.getDataDescription());
         }
 
         // Tell the DIP that the application wants to access an object
@@ -543,19 +537,16 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     /**
      * Notifies a main access to an external PSCO {@code id}.
      *
-     * @param app application accessing the external PSCO.
-     * @param id PSCO Id.
-     * @param hashCode Object hashcode.
+     * @param eoap description of the external PSCO access
      * @return Location containing final the PSCO Id.
      */
-    public String mainAccessToExternalPSCO(Application app, String id, int hashCode) {
+    public String mainAccessToExternalPSCO(ExternalPSCObjectAccessParams eoap) {
         if (DEBUG) {
-            LOGGER.debug("Requesting main access to external object with hash code " + hashCode);
+            LOGGER.debug("Requesting main access to " + eoap.getDataDescription());
         }
 
         // Tell the DIP that the application wants to access an object
-        ObjectAccessParams oap = ExternalPSCObjectAccessParams.constructEPOAP(app, Direction.INOUT, id, hashCode);
-        DataAccessId oaId = registerDataAccess(oap, AccessMode.RW);
+        DataAccessId oaId = registerDataAccess(eoap, AccessMode.RW);
 
         // TODO: Check if the object was already piggybacked in the task notification
         String lastRenaming = ((RWAccessId) oaId).getReadDataInstance().getRenaming();
@@ -583,25 +574,21 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     /**
      * Notifies a main access to an external binding object.
      *
-     * @param app application accessing the binding object.
-     * @param bo Binding object.
-     * @param hashCode Binding object's hashcode.
+     * @param boap description of the binding object access
      * @return Location containing the binding's object final path.
      */
-    public String mainAccessToBindingObject(Application app, BindingObject bo, int hashCode) {
+    public String mainAccessToBindingObject(BindingObjectAccessParams boap) {
         if (DEBUG) {
-            LOGGER.debug(
-                "Requesting main access to binding object with bo " + bo.toString() + " and hash code " + hashCode);
+            LOGGER.debug("Requesting main access to " + boap.getDataDescription());
         }
 
         // Defaut access is read because the binding object is removed after accessing it
         // Tell the DIP that the application wants to access an object
-        BindingObjectAccessParams oap = BindingObjectAccessParams.constructBOAP(app, Direction.IN, bo, hashCode);
-        DataAccessId oaId = registerDataAccess(oap, AccessMode.RW);
+        DataAccessId oaId = registerDataAccess(boap, AccessMode.RW);
 
         String bindingObjectID = obtainBindingObject((RAccessId) oaId);
 
-        finishDataAccess(oap);
+        finishDataAccess(boap);
         return bindingObjectID;
     }
 

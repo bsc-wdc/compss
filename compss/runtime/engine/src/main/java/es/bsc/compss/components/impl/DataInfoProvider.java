@@ -382,16 +382,14 @@ public class DataInfoProvider {
     }
 
     /**
-     * Returns whether a given location has been accessed or not.
+     * Returns whether a given data has been accessed or not.
      *
-     * @param app Application accessing the data
-     * @param loc Location.
-     * @return {@code true} if the location has been accessed, {@code false} otherwise.
+     * @param data data whose last version is wanted to be obtained
+     * @return {@code true} if the data has been accessed, {@code false} otherwise.
      */
-    public boolean alreadyAccessed(Application app, DataLocation loc) {
-        LOGGER.debug("Check already accessed: " + loc.getLocationKey());
-        String locationKey = loc.getLocationKey();
-        Integer fileId = app.getFileDataId(locationKey);
+    public boolean alreadyAccessed(DataParams data) {
+        LOGGER.debug("Check already accessed: " + data.getDescription());
+        Integer fileId = data.getDataId(this);
         return fileId != null;
     }
 

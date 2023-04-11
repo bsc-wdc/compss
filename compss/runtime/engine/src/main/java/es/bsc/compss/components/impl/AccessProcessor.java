@@ -43,7 +43,6 @@ import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
 import es.bsc.compss.types.data.accessparams.BindingObjectAccessParams;
 import es.bsc.compss.types.data.accessparams.DataParams;
 import es.bsc.compss.types.data.accessparams.DataParams.FileData;
-import es.bsc.compss.types.data.accessparams.DataParams.ObjectData;
 import es.bsc.compss.types.data.accessparams.ExternalPSCObjectAccessParams;
 import es.bsc.compss.types.data.accessparams.FileAccessParams;
 import es.bsc.compss.types.data.accessparams.ObjectAccessParams;
@@ -303,52 +302,14 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     }
 
     /**
-     * Marks an access to a file as finished.
+     * Marks an access to a data as finished.
      *
-     * @param sourceLocation File location.
-     * @param fap File Access parameters.
-     * @param destDir Destination file location.
+     * @param ap Access parameters.
      */
-    public void finishAccessToFile(DataLocation sourceLocation, FileAccessParams fap, String destDir) {
-        boolean alreadyAccessed = alreadyAccessed(fap.getApp(), sourceLocation);
-
-        if (!alreadyAccessed) {
-            LOGGER.debug("File not accessed before. Nothing to do");
-            return;
-        }
-
-        // Tell the DM that the application wants to access a file.
-        finishDataAccess(fap);
-
-    }
-
-    private void finishDataAccess(AccessParams fap) {
-        if (!this.requestQueue.offer(new FinishDataAccessRequest(fap))) {
+    public void finishDataAccess(AccessParams ap) {
+        if (!this.requestQueue.offer(new FinishDataAccessRequest(ap))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "finishing data access");
         }
-    }
-
-    /**
-     * Returns the Identifier of the data corresponding to the last version of an object.
-     *
-     * @param app application accessing the object.
-     * @param sourceLocation location of the file
-     * @return data corresponding to the last version of an object.
-     */
-    public LogicalData getFileLastVersion(Application app, DataLocation sourceLocation) {
-        boolean alreadyAccessed = alreadyAccessed(app, sourceLocation);
-
-        if (!alreadyAccessed) {
-            LOGGER.debug("File not accessed before, returning the same location");
-            return null;
-        }
-        // Ask for the file version
-        DataGetLastVersionRequest fvr = new DataGetLastVersionRequest(new FileData(app, sourceLocation));
-        if (!this.requestQueue.offer(fvr)) {
-            ErrorManager.error(ERROR_QUEUE_OFFER + "data version query");
-        }
-
-        return fvr.getData();
     }
 
     /**
@@ -535,16 +496,14 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     }
 
     /**
-     * Returns the Identifier of the data corresponding to the last version of an object.
+     * Returns the Identifier of the data corresponding to the last version of an dat.
      *
-     * @param app application accessing the object.
-     * @param obj Object.
-     * @param hashCode Object hashcode.
-     * @return data corresponding to the last version of an object.
+     * @param data Description of the data being accessed.
+     * @return data corresponding to the last version of the data.
      */
-    public LogicalData getObjectLastVersion(Application app, Object obj, int hashCode) {
+    public LogicalData getDataLastVersion(DataParams data) {
         // Ask for the object
-        DataGetLastVersionRequest odr = new DataGetLastVersionRequest(new ObjectData(app, hashCode));
+        DataGetLastVersionRequest odr = new DataGetLastVersionRequest(data);
         if (!this.requestQueue.offer(odr)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "data version query");
         }
@@ -719,15 +678,12 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
      * @return {@code true} if the location has been accessed, {@code false} otherwise.
      */
     public boolean alreadyAccessed(Application app, DataLocation loc) {
-        Semaphore sem = new Semaphore(0);
-        AlreadyAccessedRequest request = new AlreadyAccessedRequest(app, loc, sem);
+        AlreadyAccessedRequest request = new AlreadyAccessedRequest(new FileData(app, loc));
         if (!this.requestQueue.offer(request)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "already accessed location");
         }
 
         // Wait for response
-        sem.acquireUninterruptibly();
-
         return request.getResponse();
     }
 

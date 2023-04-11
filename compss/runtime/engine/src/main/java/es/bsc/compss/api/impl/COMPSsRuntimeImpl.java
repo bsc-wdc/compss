@@ -50,6 +50,7 @@ import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
+import es.bsc.compss.types.data.accessparams.DataParams;
 import es.bsc.compss.types.data.accessparams.DataParams.CollectionData;
 import es.bsc.compss.types.data.accessparams.DataParams.FileData;
 import es.bsc.compss.types.data.accessparams.DataParams.ObjectData;
@@ -1324,10 +1325,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public boolean bindExistingVersionToData(Long appId, String fileName, String dataId) {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Binding file " + fileName + "'s last version to data " + dataId);
-        }
-
         // Parse the file name
         DataLocation sourceLocation = null;
         try {
@@ -1340,8 +1337,20 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         }
 
         Application app = Application.registerApplication(appId);
-        LogicalData lastVersion = ap.getFileLastVersion(app, sourceLocation);
+        FileData fd = new FileData(app, sourceLocation);
+        return bindExistingVersionToData(fd, dataId);
+    }
 
+    @Override
+    public boolean bindExistingVersionToData(Long appId, Object o, Integer hashCode, String dataId) {
+        Application app = Application.registerApplication(appId);
+        ObjectData od = new ObjectData(app, hashCode);
+        return bindExistingVersionToData(od, dataId);
+    }
+
+    private boolean bindExistingVersionToData(DataParams data, String dataId) {
+        LOGGER.debug("Binding " + data.getDescription() + "'s last version to data " + dataId);
+        LogicalData lastVersion = ap.getDataLastVersion(data);
         if (lastVersion != null) {
             LogicalData src = Comm.getData(dataId);
             try {
@@ -1349,29 +1358,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 LogicalData.link(src, lastVersion);
                 return true;
             } catch (CommException e) {
-                LOGGER.warn("Could not link " + dataId + " and " + lastVersion.getName());
-            }
-
-        }
-        return false;
-    }
-
-    @Override
-    public boolean bindExistingVersionToData(Long appId, Object o, Integer hashCode, String dataId) {
-        Application app = Application.registerApplication(appId);
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Binding object " + hashCode + "'s last version to data " + dataId);
-        }
-
-        LogicalData lastVersion = ap.getObjectLastVersion(app, o, hashCode);
-
-        if (lastVersion != null) {
-            LogicalData src = Comm.getData(dataId);
-            try {
-                LOGGER.debug("Binding " + src.getKnownAlias() + " to data " + dataId);
-                LogicalData.link(src, lastVersion);
-                return true;
-            } catch (Exception e) {
                 LOGGER.warn("Could not link " + dataId + " and " + lastVersion.getName());
             }
 
@@ -1567,7 +1553,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         switch (loc.getType()) {
             case PRIVATE:
             case SHARED:
-                finishAccessToFile(app, fileName, loc, am, null);
+                FileAccessParams fap = FileAccessParams.constructFAP(app, am, loc);
+                ap.finishDataAccess(fap);
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Closing file " + loc.getPath());
                 }
@@ -1941,11 +1928,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         }
 
         return hashCode;
-    }
-
-    private void finishAccessToFile(Application app, String fileName, DataLocation loc, AccessMode am, String destDir) {
-        FileAccessParams fap = FileAccessParams.constructFAP(app, am, loc);
-        ap.finishAccessToFile(loc, fap, destDir);
     }
 
     private String mainAccessToFile(Application app, String fileName, DataLocation loc, AccessMode am, String destDir,

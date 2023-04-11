@@ -19,6 +19,7 @@ package es.bsc.compss.types.data.accessparams;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.BindingObject;
+import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.DataVersion;
@@ -37,18 +38,18 @@ public class BindingObjectAccessParams extends ObjectAccessParams<BindingObject,
      * Creates a new BindingObjectAccessParams instance.
      *
      * @param app Id of the application accessing the BindingObject.
-     * @param mode Access mode.
+     * @param dir operation performed.
      * @param bo Associated BindingObject.
      * @param hashCode Hashcode of the associated BindingObject.
      * @return new BindingObjectAccessParams instance
      */
-    public static final BindingObjectAccessParams constructBOAP(Application app, AccessMode mode, BindingObject bo,
+    public static final BindingObjectAccessParams constructBOAP(Application app, Direction dir, BindingObject bo,
         int hashCode) {
-        return new BindingObjectAccessParams(app, mode, bo, hashCode);
+        return new BindingObjectAccessParams(app, dir, bo, hashCode);
     }
 
-    private BindingObjectAccessParams(Application app, AccessMode mode, BindingObject bo, int hashCode) {
-        super(new BindingObjectData(app, hashCode), mode, bo);
+    private BindingObjectAccessParams(Application app, Direction dir, BindingObject bo, int hashCode) {
+        super(new BindingObjectData(app, hashCode), dir, bo);
     }
 
     /**

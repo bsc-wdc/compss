@@ -18,6 +18,7 @@ package es.bsc.compss.types.data.accessparams;
 
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.Application;
+import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.DataVersion;
@@ -38,16 +39,16 @@ public class FileAccessParams extends AccessParams<FileData> {
      * {@code loc}.
      *
      * @param app Id of the application accessing the file.
-     * @param mode Access mode.
+     * @param dir operation performed.
      * @param loc File location.
      * @return new FileAccessParams instance
      */
-    public static final FileAccessParams constructFAP(Application app, AccessMode mode, DataLocation loc) {
-        return new FileAccessParams(app, mode, loc);
+    public static final FileAccessParams constructFAP(Application app, Direction dir, DataLocation loc) {
+        return new FileAccessParams(app, dir, loc);
     }
 
-    private FileAccessParams(Application app, AccessMode mode, DataLocation loc) {
-        super(new FileData(app, loc), mode);
+    private FileAccessParams(Application app, Direction dir, DataLocation loc) {
+        super(new FileData(app, loc), dir);
     }
 
     /**

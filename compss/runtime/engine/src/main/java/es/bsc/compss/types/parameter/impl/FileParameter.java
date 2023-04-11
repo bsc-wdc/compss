@@ -63,8 +63,8 @@ public class FileParameter extends DependencyParameter<FileAccessParams> {
         String name, String contentType, double weight, boolean keepRename, DataLocation location, String originalName,
         ParameterMonitor monitor) {
 
-        super(app, type, direction, FileAccessParams.constructFAP(app, getAccessMode(direction), location), stream,
-            prefix, name, contentType, weight, keepRename, monitor);
+        super(app, type, direction, FileAccessParams.constructFAP(app, direction, location), stream, prefix, name,
+            contentType, weight, keepRename, monitor);
         this.originalName = originalName;
     }
 

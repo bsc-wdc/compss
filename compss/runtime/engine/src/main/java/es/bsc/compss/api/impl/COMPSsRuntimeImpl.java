@@ -1424,8 +1424,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         return openFileSystemData(app, fileName, mode, false);
     }
 
-    private String openFileSystemData(Application app, String fileName, Direction mode, boolean isDir) {
-        LOGGER.info("Opening " + fileName + " in mode " + mode);
+    private String openFileSystemData(Application app, String fileName, Direction direction, boolean isDir) {
+        LOGGER.info("Opening " + fileName + " in direction " + direction);
         TraceEvent tEvent = null;
         if (Tracer.isActivated()) {
             if (isDir) {
@@ -1444,32 +1444,12 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             return null;
         }
 
-        AccessMode am = null;
-        switch (mode) {
-            case IN:
-            case IN_DELETE:
-                am = AccessMode.R;
-                break;
-            case OUT:
-                am = AccessMode.W;
-                break;
-            case INOUT:
-                am = AccessMode.RW;
-                break;
-            case CONCURRENT:
-                am = AccessMode.C;
-                break;
-            case COMMUTATIVE:
-                am = AccessMode.CV;
-                break;
-        }
-
         // Request AP that the application wants to access a FILE or a EXTERNAL_PSCO
         String finalPath;
         switch (loc.getType()) {
             case PRIVATE:
             case SHARED:
-                finalPath = mainAccessToFile(app, fileName, loc, am, null, isDir);
+                finalPath = mainAccessToFile(app, fileName, loc, direction, null, isDir);
                 if (LOGGER.isDebugEnabled()) {
 
                     LOGGER.debug("File " + (isDir ? "(dir) " : "") + "target Location: " + finalPath);
@@ -1511,15 +1491,15 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
      *
      * @param app application closing the file.
      * @param fileName File name.
-     * @param mode Access mode.
+     * @param direction Access mode.
      */
-    public void closeFile(Application app, String fileName, Direction mode) {
+    public void closeFile(Application app, String fileName, Direction direction) {
 
         // if (Tracer.isActivated()) {
         // Tracer.emitEvent(TraceEvent.CLOSE_FILE.getId(),
         // TraceEvent.CLOSE_FILE.getType());
         // }
-        LOGGER.info("Closing " + fileName + " in mode " + mode);
+        LOGGER.info("Closing " + fileName + " in direction " + direction);
 
         // Parse arguments to internal structures
         DataLocation loc;
@@ -1530,31 +1510,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             return;
         }
 
-        AccessMode am = null;
-        switch (mode) {
-            case IN:
-            case IN_DELETE:
-                am = AccessMode.R;
-                break;
-            case OUT:
-                am = AccessMode.W;
-                break;
-            case INOUT:
-                am = AccessMode.RW;
-                break;
-            case CONCURRENT:
-                am = AccessMode.C;
-                break;
-            case COMMUTATIVE:
-                am = AccessMode.CV;
-                break;
-        }
-
         // Request AP that the application wants to access a FILE or a EXTERNAL_PSCO
         switch (loc.getType()) {
             case PRIVATE:
             case SHARED:
-                FileAccessParams fap = FileAccessParams.constructFAP(app, am, loc);
+                FileAccessParams fap = FileAccessParams.constructFAP(app, direction, loc);
                 ap.finishDataAccess(fap);
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Closing file " + loc.getPath());
@@ -1931,10 +1891,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         return hashCode;
     }
 
-    private String mainAccessToFile(Application app, String fileName, DataLocation loc, AccessMode am, String destDir,
-        boolean isDirectory) {
+    private String mainAccessToFile(Application app, String fileName, DataLocation loc, Direction direction,
+        String destDir, boolean isDirectory) {
         // Tell the AP that the application wants to access a file.
-        FileAccessParams fap = FileAccessParams.constructFAP(app, am, loc);
+        FileAccessParams fap = FileAccessParams.constructFAP(app, direction, loc);
         DataLocation targetLocation;
         if (isDirectory) {
             targetLocation = ap.mainAccessToDirectory(fap, destDir);

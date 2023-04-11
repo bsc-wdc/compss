@@ -51,7 +51,7 @@ public class StreamParameter<V extends Object, A extends StreamAccessParams<V, D
         Application app, Direction direction, StdIOStream stream, String prefix, String name, V value, int hashCode,
         ParameterMonitor monitor) {
         StreamAccessParams<V, StreamData> sap;
-        sap = StreamAccessParams.constructStreamAP(app, getAccessMode(direction), value, hashCode);
+        sap = StreamAccessParams.constructStreamAP(app, direction, value, hashCode);
 
         return new StreamParameter(app, DataType.STREAM_T, direction, sap, stream, prefix, name, monitor);
     }

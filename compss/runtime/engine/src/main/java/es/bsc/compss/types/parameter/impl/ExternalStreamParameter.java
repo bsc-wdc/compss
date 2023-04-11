@@ -59,8 +59,7 @@ public class ExternalStreamParameter
         String name, DataLocation location, String originalName, ParameterMonitor monitor) {
 
         super(app, DataType.EXTERNAL_STREAM_T, direction,
-            ExternalStreamAccessParams.constructESAP(app, getAccessMode(direction), location), stream, prefix, name,
-            monitor);
+            ExternalStreamAccessParams.constructESAP(app, direction, location), stream, prefix, name, monitor);
         this.originalName = originalName;
     }
 

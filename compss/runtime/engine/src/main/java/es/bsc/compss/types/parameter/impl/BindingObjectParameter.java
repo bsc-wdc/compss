@@ -60,8 +60,8 @@ public class BindingObjectParameter
         String contentType, double weight, BindingObject bo, int hashCode, ParameterMonitor monitor) {
 
         super(app, DataType.BINDING_OBJECT_T, direction,
-            BindingObjectAccessParams.constructBOAP(app, getAccessMode(direction), bo, hashCode), stream, prefix, name,
-            contentType, weight, monitor);
+            BindingObjectAccessParams.constructBOAP(app, direction, bo, hashCode), stream, prefix, name, contentType,
+            weight, monitor);
     }
 
     public String getId() {

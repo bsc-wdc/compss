@@ -18,6 +18,7 @@ package es.bsc.compss.types.data.accessparams;
 
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.Application;
+import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.accessparams.DataParams.StreamData;
@@ -38,18 +39,18 @@ public class StreamAccessParams<T extends Object, D extends StreamData> extends 
      * Creates a new StreamAccessParams instance for the given object.
      * 
      * @param app Id of the application accessing the stream.
-     * @param mode Access mode.
+     * @param dir operation performed.
      * @param value Associated object.
      * @param code Hashcode of the associated object.
      * @return new StreamAccessParams instance
      */
     public static final <T extends Object> StreamAccessParams<T, StreamData> constructStreamAP(Application app,
-        AccessMode mode, T value, int code) {
-        return new StreamAccessParams(new StreamData(app, code), mode, value);
+        Direction dir, T value, int code) {
+        return new StreamAccessParams(new StreamData(app, code), dir, value);
     }
 
-    protected StreamAccessParams(D data, AccessMode mode, T value) {
-        super(data, mode, value);
+    protected StreamAccessParams(D data, Direction dir, T value) {
+        super(data, dir, value);
     }
 
     @Override

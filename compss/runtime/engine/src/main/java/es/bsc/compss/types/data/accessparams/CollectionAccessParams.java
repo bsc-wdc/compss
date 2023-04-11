@@ -18,6 +18,7 @@ package es.bsc.compss.types.data.accessparams;
 
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.Application;
+import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.DataVersion;
@@ -36,16 +37,16 @@ public class CollectionAccessParams extends AccessParams<CollectionData> {
      * Creates a new ObjectAccessParams instance for the given object.
      *
      * @param app Id of the application accessing the object.
-     * @param mode Access mode.
+     * @param dir operation performed.
      * @param collectionId Id of the collection
      * @return new CollectionAccessParams instance
      */
-    public static final CollectionAccessParams constructCAP(Application app, AccessMode mode, String collectionId) {
-        return new CollectionAccessParams(app, mode, collectionId);
+    public static final CollectionAccessParams constructCAP(Application app, Direction dir, String collectionId) {
+        return new CollectionAccessParams(app, dir, collectionId);
     }
 
-    private CollectionAccessParams(Application app, AccessMode mode, String collectionId) {
-        super(new CollectionData(app, collectionId), mode);
+    private CollectionAccessParams(Application app, Direction dir, String collectionId) {
+        super(new CollectionData(app, collectionId), dir);
     }
 
     @Override

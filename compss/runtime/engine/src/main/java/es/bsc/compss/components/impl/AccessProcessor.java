@@ -30,6 +30,7 @@ import es.bsc.compss.types.Application;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.ReduceTask;
 import es.bsc.compss.types.Task;
+import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
@@ -42,7 +43,6 @@ import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
 import es.bsc.compss.types.data.accessparams.BindingObjectAccessParams;
 import es.bsc.compss.types.data.accessparams.DataParams;
-import es.bsc.compss.types.data.accessparams.DataParams.FileData;
 import es.bsc.compss.types.data.accessparams.ExternalPSCObjectAccessParams;
 import es.bsc.compss.types.data.accessparams.FileAccessParams;
 import es.bsc.compss.types.data.accessparams.ObjectAccessParams;
@@ -513,13 +513,12 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
      * @param hashCode Object hashcode.
      * @return Synchronized object.
      */
-    public Object mainAccessToObject(Application app, Object obj, int hashCode) {
+    public Object mainAccessToObject(ObjectAccessParams oap) {
         if (DEBUG) {
-            LOGGER.debug("Requesting main access to object with hash code " + hashCode);
+            LOGGER.debug("Requesting main access to "+oap.getDataDescription());
         }
 
         // Tell the DIP that the application wants to access an object
-        ObjectAccessParams oap = ObjectAccessParams.constructObjectAP(app, AccessMode.RW, obj, hashCode);
         DataAccessId oaId = registerDataAccess(oap, AccessMode.RW);
 
         DataInstanceId wId = ((RWAccessId) oaId).getWrittenDataInstance();
@@ -555,7 +554,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         }
 
         // Tell the DIP that the application wants to access an object
-        ObjectAccessParams oap = ExternalPSCObjectAccessParams.constructEPOAP(app, AccessMode.RW, id, hashCode);
+        ObjectAccessParams oap = ExternalPSCObjectAccessParams.constructEPOAP(app, Direction.INOUT, id, hashCode);
         DataAccessId oaId = registerDataAccess(oap, AccessMode.RW);
 
         // TODO: Check if the object was already piggybacked in the task notification
@@ -597,7 +596,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
 
         // Defaut access is read because the binding object is removed after accessing it
         // Tell the DIP that the application wants to access an object
-        BindingObjectAccessParams oap = BindingObjectAccessParams.constructBOAP(app, AccessMode.R, bo, hashCode);
+        BindingObjectAccessParams oap = BindingObjectAccessParams.constructBOAP(app, Direction.IN, bo, hashCode);
         DataAccessId oaId = registerDataAccess(oap, AccessMode.RW);
 
         String bindingObjectID = obtainBindingObject((RAccessId) oaId);
@@ -667,7 +666,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     /**
      * Returns whether the @{code data} has already been accessed or not.
      *
-     * @param data querying data 
+     * @param data querying data
      * @return {@code true} if the data has been accessed, {@code false} otherwise.
      */
     public boolean alreadyAccessed(DataParams data) {

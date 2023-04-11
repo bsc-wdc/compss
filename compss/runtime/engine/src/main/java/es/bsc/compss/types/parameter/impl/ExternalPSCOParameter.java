@@ -18,7 +18,6 @@ package es.bsc.compss.types.parameter.impl;
 
 import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.types.Application;
-import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
@@ -62,8 +61,8 @@ public class ExternalPSCOParameter
         double weight, String pscoId, int hashCode, ParameterMonitor monitor) {
 
         super(app, DataType.EXTERNAL_PSCO_T, direction,
-            ExternalPSCObjectAccessParams.constructEPOAP(app, getAccessMode(direction), pscoId, hashCode), stream,
-            prefix, name, "null", weight, monitor);
+            ExternalPSCObjectAccessParams.constructEPOAP(app, direction, pscoId, hashCode), stream, prefix, name,
+            "null", weight, monitor);
         this.pscoId = pscoId;
         this.hashCode = hashCode;
     }

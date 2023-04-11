@@ -114,7 +114,9 @@ def element_tree_to_dict(element_tree: ElementTree.Element) -> dict:
     :param element_tree: Element tree.
     :return: Dictionary.
     """
-    build_dict = {element_tree.tag: {} if element_tree.attrib else None}  # type: dict
+    build_dict = {
+        element_tree.tag: {} if element_tree.attrib else None
+    }  # type: dict
     children = list(element_tree)
     if children:
         def_dict = defaultdict(list)
@@ -149,7 +151,9 @@ def show_tasks_info(log_path: str) -> None:
     """
     if supports_dynamic_state():
 
-        def play_widget(i: typing.Any) -> None:  # pylint: disable=unused-argument
+        def play_widget(
+            i: typing.Any,
+        ) -> None:  # pylint: disable=unused-argument
             __show_tasks_info__(log_path)
 
         play = __get_play_widget(play_widget)
@@ -217,7 +221,9 @@ def __show_tasks_info__(log_path: str) -> None:
     plt.tight_layout()
     plt.show()
     # Display table with values
-    display(HTML(tabulate.tabulate(cores, tablefmt="html", headers=labels)))  # noqa
+    display(
+        HTML(tabulate.tabulate(cores, tablefmt="html", headers=labels))
+    )  # noqa
 
 
 def show_tasks_status(log_path: str) -> None:
@@ -252,13 +258,20 @@ def __show_tasks_status__(log_path: str) -> None:
     _, ax1 = plt.subplots()  # first return (ignored) is fig1
     colors = ["b", "g"]
     ax1.pie(
-        sizes, explode=explode, labels=labels, colors=colors, shadow=True, startangle=90
+        sizes,
+        explode=explode,
+        labels=labels,
+        colors=colors,
+        shadow=True,
+        startangle=90,
     )
     ax1.axis("equal")
     plt.show()
     # Display table with values
     labels, values = __plain_lists__(tasks_info_dict)
-    display(HTML(tabulate.tabulate([values], tablefmt="html", headers=labels)))  # noqa
+    display(
+        HTML(tabulate.tabulate([values], tablefmt="html", headers=labels))
+    )  # noqa
 
 
 def show_statistics(log_path: str) -> None:
@@ -269,7 +282,9 @@ def show_statistics(log_path: str) -> None:
     """
     if supports_dynamic_state():
 
-        def play_widget(i: typing.Any) -> None:  # pylint: disable=unused-argument
+        def play_widget(
+            i: typing.Any,
+        ) -> None:  # pylint: disable=unused-argument
             __show_statistics__(log_path)
 
         play = __get_play_widget(play_widget)
@@ -288,7 +303,9 @@ def __show_statistics__(log_path: str) -> None:
     # Display table with values
     labels = [statistics_dict["Key"]]
     values = [statistics_dict["Value"]]
-    display(HTML(tabulate.tabulate([values], tablefmt="html", headers=labels)))  # noqa
+    display(
+        HTML(tabulate.tabulate([values], tablefmt="html", headers=labels))
+    )  # noqa
 
 
 def show_resources_status(log_path: str) -> None:
@@ -299,7 +316,9 @@ def show_resources_status(log_path: str) -> None:
     """
     if supports_dynamic_state():
 
-        def play_widget(i: typing.Any) -> None:  # pylint: disable=unused-argument
+        def play_widget(
+            i: typing.Any,
+        ) -> None:  # pylint: disable=unused-argument
             __show_resources_status__(log_path)
 
         play = __get_play_widget(play_widget)
@@ -317,7 +336,9 @@ def __show_resources_status__(log_path: str) -> None:
     resource_info_dict = parse_state_xml(log_path, "ResourceInfo")
     # Display table with values
     labels, values = __plain_lists__(resource_info_dict)
-    display(HTML(tabulate.tabulate([values], tablefmt="html", headers=labels)))  # noqa
+    display(
+        HTML(tabulate.tabulate([values], tablefmt="html", headers=labels))
+    )  # noqa
 
 
 def __plain_lists__(dictionary: dict) -> typing.Tuple[list, list]:

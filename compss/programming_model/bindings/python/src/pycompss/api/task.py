@@ -142,7 +142,9 @@ class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attribu
         self.decorated_function.function = user_function
 
         @wraps(user_function)
-        def task_decorator(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
+        def task_decorator(
+            *args: typing.Any, **kwargs: typing.Any
+        ) -> typing.Any:
             return self.__decorator_body__(user_function, args, kwargs)
 
         return task_decorator
@@ -170,7 +172,11 @@ class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attribu
                     self.decorated_function,
                 )
             master_result = master.call(args, kwargs)
-            (future_object, self.core_element, self.decorated_function) = master_result
+            (
+                future_object,
+                self.core_element,
+                self.decorated_function,
+            ) = master_result
             del master
             return future_object
         if CONTEXT.in_worker():
@@ -186,7 +192,9 @@ class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attribu
                             kwargs["compss_log_files"][1],
                         )
                 # @task being executed in the worker
-                with EventInsideWorker(TRACING_WORKER.worker_task_instantiation):
+                with EventInsideWorker(
+                    TRACING_WORKER.worker_task_instantiation
+                ):
                     worker = TaskWorker(
                         self.decorator_arguments,
                         self.decorated_function,
@@ -237,7 +245,9 @@ class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attribu
         # launch_compss/enqueue_compss/runcompss/interactive session
         return self._sequential_call(*args, **kwargs)
 
-    def _sequential_call(self, *args: typing.Any, **kwargs: typing.Any) -> typing.Any:
+    def _sequential_call(
+        self, *args: typing.Any, **kwargs: typing.Any
+    ) -> typing.Any:
         """Sequential task execution.
 
         The easiest case: just call the user function and return whatever it

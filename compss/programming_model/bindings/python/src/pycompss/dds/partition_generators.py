@@ -111,7 +111,9 @@ class IteratorLoader(IPartitionGenerator):
 class WorkerFileLoader(IPartitionGenerator):
     """Worker file loader."""
 
-    def __init__(self, file_paths, single_file=False, start=0, chunk_size=None):
+    def __init__(
+        self, file_paths, single_file=False, start=0, chunk_size=None
+    ):
         """Create new WorkerFileLoader object.
 
         :param file_paths: List of file paths.

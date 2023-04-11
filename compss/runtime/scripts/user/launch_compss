@@ -447,7 +447,7 @@ master_cmd() {
   else
     MCMD="singularity exec $container_opts $container_image ${cont_COMPSS_HOME}/Runtime/scripts/user/runcompss"
   fi
- 
+
   # WARNING: SETS GLOBAL SCRIPT VARIABLE MCMD
   MCMD="$MCMD --project=${PROJECT_FILE} \
             --resources=${RESOURCES_FILE} \
@@ -2186,9 +2186,18 @@ launch() {
 	 echo "Running command: ${command_to_run}"
          eval ${command_to_run}
       elif [ "${jupyter_notebook}" = true ]; then
-         # Run jupyter notebook instead of the master within the jupyter_notebook_path
-         # The master will be started when the user wants later from the notebook (the workers have already been launched)
-         (cd "${jupyter_notebook_path}" && jupyter notebook --no-browser --ip=127.0.0.1 --port=8888)
+         if [ "${jupyter_notebook_path}" = "jupyterhub" ]; then
+           # Do not run jupyter since it is running within jupyterhub, who will start jupyterlab
+           echo "Running within jupyterhub without master."
+	         # UPDATED_ENV_PATH must be defined in the environment
+	         env > ${UPDATED_ENV_PATH}
+           no_wait=true
+         else
+           # Run jupyter notebook instead of the master within the jupyter_notebook_path
+           # The master will be started when the user wants later from the notebook (the workers have already been launched)
+           (cd "${jupyter_notebook_path}" && jupyter notebook --no-browser --ip=127.0.0.1 --port=8888)
+           no_wait=false
+         fi
       fi
     fi
     no_wait=false

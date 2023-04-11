@@ -134,9 +134,9 @@ def test_container_worker_simple_task_compss_exception():
     exit_code = main()
     sys.argv = sys_argv_backup
     sys.path = sys_path_backup
-    assert exit_code == 2, "Wrong exit code received (expected 2, received %s)" % str(
-        exit_code
-    )
+    assert (
+        exit_code == 2
+    ), "Wrong exit code received (expected 2, received %s)" % str(exit_code)
 
 
 def test_container_worker_simple_task_exception():
@@ -160,6 +160,6 @@ def test_container_worker_simple_task_exception():
     exit_code = main()
     sys.argv = sys_argv_backup
     sys.path = sys_path_backup
-    assert exit_code == 1, "Wrong exit code received (expected 1, received %s)" % str(
-        exit_code
-    )
+    assert (
+        exit_code == 1
+    ), "Wrong exit code received (expected 1, received %s)" % str(exit_code)

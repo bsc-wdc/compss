@@ -31,7 +31,9 @@ def test_opencl_instantiation():
     CONTEXT.set_master()
     my_opencl = OpenCL(kernel="date")
     CONTEXT.set_out_of_scope()
-    assert my_opencl.decorator_name == "@opencl", "The decorator name must be @opencl."
+    assert (
+        my_opencl.decorator_name == "@opencl"
+    ), "The decorator name must be @opencl."
 
 
 def test_opencl_call():

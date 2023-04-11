@@ -53,8 +53,13 @@ def map_partition(func, partition, collection=None):
     return res
 
 
-@task(col={Type: COLLECTION_OUT, Depth: 1}, collection={Type: COLLECTION_IN, Depth: 1})
-def distribute_partition(col, func, partitioner_func, partition, collection=None):
+@task(
+    col={Type: COLLECTION_OUT, Depth: 1},
+    collection={Type: COLLECTION_IN, Depth: 1},
+)
+def distribute_partition(
+    col, func, partitioner_func, partition, collection=None
+):
     """Distribute (key, value) structured elements of the partition on 'buckets'.
 
     :param col: Empty 'buckets', must be repleced with COLLECTION_OUT.

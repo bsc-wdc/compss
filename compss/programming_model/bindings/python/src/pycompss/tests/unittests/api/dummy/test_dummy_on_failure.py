@@ -36,4 +36,6 @@ def test_dummy_task():
     initial = 3
     result = increment(initial)
     result = compss_wait_on(result)
-    assert result == initial + 1, "ERROR: Unexpected exit code with dummy @on_failure."
+    assert (
+        result == initial + 1
+    ), "ERROR: Unexpected exit code with dummy @on_failure."

@@ -112,7 +112,9 @@ class OnFailure:  # pylint: disable=too-few-public-methods, too-many-instance-at
         """
 
         @wraps(user_function)
-        def constrained_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
+        def constrained_f(
+            *args: typing.Any, **kwargs: typing.Any
+        ) -> typing.Any:
             if not self.scope:
                 d_c = dummy_on_failure(self.args, self.kwargs)
                 return d_c.__call__(user_function)(*args, **kwargs)

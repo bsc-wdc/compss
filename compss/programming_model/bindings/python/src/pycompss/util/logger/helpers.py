@@ -150,15 +150,21 @@ def init_logging_worker_piper(log_config_file: str, log_dir: str) -> None:
         handler = "error_worker_file_handler"
         if handler in conf["handlers"]:
             errors_file = conf["handlers"][handler].get("filename")
-            conf["handlers"][handler]["filename"] = os.path.join(log_dir, errors_file)
+            conf["handlers"][handler]["filename"] = os.path.join(
+                log_dir, errors_file
+            )
         handler = "info_worker_file_handler"
         if handler in conf["handlers"]:
             info_file = conf["handlers"][handler].get("filename")
-            conf["handlers"][handler]["filename"] = os.path.join(log_dir, info_file)
+            conf["handlers"][handler]["filename"] = os.path.join(
+                log_dir, info_file
+            )
         handler = "debug_worker_file_handler"
         if handler in conf["handlers"]:
             debug_file = conf["handlers"][handler].get("filename")
-            conf["handlers"][handler]["filename"] = os.path.join(log_dir, debug_file)
+            conf["handlers"][handler]["filename"] = os.path.join(
+                log_dir, debug_file
+            )
         CONFIG_FUNC(conf)
     else:
         logging.basicConfig(level=logging.INFO)  # NOSONAR
@@ -214,7 +220,9 @@ def add_new_logger(logger_name: str) -> None:
 
 
 @contextmanager
-def swap_logger_name(logger: logging.Logger, new_name: str) -> typing.Iterator[None]:
+def swap_logger_name(
+    logger: logging.Logger, new_name: str
+) -> typing.Iterator[None]:
     """Swap the current logger with the new one.
 
     :param logger: Logger facility.

@@ -83,7 +83,9 @@ class Constraint:  # pylint: disable=too-few-public-methods
         """
 
         @wraps(user_function)
-        def constrained_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
+        def constrained_f(
+            *args: typing.Any, **kwargs: typing.Any
+        ) -> typing.Any:
             if not self.scope:
                 d_c = dummy_constraint(self.args, self.kwargs)
                 return d_c.__call__(user_function)(*args, **kwargs)

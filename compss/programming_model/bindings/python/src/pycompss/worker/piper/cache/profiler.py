@@ -140,9 +140,13 @@ def profiler_print_message(
             if len(is_used) > 0:
                 final_dict[function][parameter]["USED"] = is_used
             elif total_get > 0:
-                final_dict[function][parameter]["USED"] = [function + "#" + parameter]
+                final_dict[function][parameter]["USED"] = [
+                    function + "#" + parameter
+                ]
             else:
                 final_dict[function][parameter]["USED"] = []
 
-    with open(log_dir + "/../cache_profiler.json", "a", encoding="utf-8") as json_file:
+    with open(
+        log_dir + "/../cache_profiler.json", "a", encoding="utf-8"
+    ) as json_file:
         json.dump(final_dict, json_file)

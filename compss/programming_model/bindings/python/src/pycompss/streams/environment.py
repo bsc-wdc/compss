@@ -35,7 +35,9 @@ if __debug__:
 
 
 def init_streaming(
-    streaming_backend: str, streaming_master_name: str, streaming_master_port: str
+    streaming_backend: str,
+    streaming_master_name: str,
+    streaming_master_port: str,
 ) -> bool:
     """Initialize the streaming client.
 

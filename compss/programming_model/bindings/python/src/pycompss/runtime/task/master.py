@@ -220,8 +220,12 @@ class TaskMaster:
         self.param_varargs = ""  # type: str
         self.param_defaults = None  # type: typing.Optional[tuple]
         self.first_arg_name = ""
-        self.parameters = OrderedDict()  # type: typing.OrderedDict[str, Parameter]
-        self.returns = OrderedDict()  # type: typing.OrderedDict[str, Parameter]
+        self.parameters = (
+            OrderedDict()
+        )  # type: typing.OrderedDict[str, Parameter]
+        self.returns = (
+            OrderedDict()
+        )  # type: typing.OrderedDict[str, Parameter]
 
     def call(
         self, args: tuple, kwargs: dict
@@ -347,7 +351,9 @@ class TaskMaster:
                 # Process the parameters, give them a proper direction
                 with EventMaster(TRACING_MASTER.process_parameters):
                     code_strings = self.decorated_function.code_strings
-                    self.process_parameters(args, kwargs, code_strings=code_strings)
+                    self.process_parameters(
+                        args, kwargs, code_strings=code_strings
+                    )
 
                 # Deal with the return part.
                 with EventMaster(TRACING_MASTER.process_return):
@@ -426,7 +432,9 @@ class TaskMaster:
                                 # Only happens when compiled
                                 pass
 
-                emit_manual_event_explicit(TRACING_WORKER.binding_tasks_func_type, 0)
+                emit_manual_event_explicit(
+                    TRACING_WORKER.binding_tasks_func_type, 0
+                )
 
         # The with statement automatically released the lock.
 
@@ -490,7 +498,9 @@ class TaskMaster:
             update_tasks_code_file(self.decorated_function.function, path)
             print(f"Found task: {self.decorated_function.function.__name__}")
 
-    def extract_core_element(self, ce: typing.Optional[CE]) -> typing.Tuple[bool, bool]:
+    def extract_core_element(
+        self, ce: typing.Optional[CE]
+    ) -> typing.Tuple[bool, bool]:
         """Get or instantiate the Task's core element.
 
         Extract the core element if created in a higher level decorator,
@@ -611,7 +621,9 @@ class TaskMaster:
     @staticmethod
     def _getargspec(
         function: typing.Callable,
-    ) -> typing.Tuple[typing.List[str], typing.Optional[str], typing.Optional[tuple]]:
+    ) -> typing.Tuple[
+        typing.List[str], typing.Optional[str], typing.Optional[tuple]
+    ]:
         """Private method that retrieves the function argspec.
 
         :param function: Function to analyse.
@@ -668,19 +680,25 @@ class TaskMaster:
             processes_per_node = self.decorator_arguments.processes_per_node
         if processes_per_node != 1:
             # Non default => parse
-            processes_per_node = self.parse_processes_per_node(processes_per_node)
+            processes_per_node = self.parse_processes_per_node(
+                processes_per_node
+            )
         else:
             processes_per_node = 1
         self.decorator_arguments.processes_per_node = processes_per_node
         if processes_per_node > 1:
             # Check processes per node
-            self.validate_processes_per_node(computing_nodes, processes_per_node)
+            self.validate_processes_per_node(
+                computing_nodes, processes_per_node
+            )
             computing_nodes = int(computing_nodes / processes_per_node)
             self.decorator_arguments.computing_nodes = computing_nodes
 
         # Deal with on_failure
         if LABELS.on_failure in kwargs:
-            self.decorator_arguments.on_failure = kwargs.pop(LABELS.on_failure, "RETRY")
+            self.decorator_arguments.on_failure = kwargs.pop(
+                LABELS.on_failure, "RETRY"
+            )
 
         # Deal with defaults
         if LABELS.defaults in kwargs:
@@ -758,8 +776,12 @@ class TaskMaster:
                 ):
                     if arg_name not in self.parameters:
                         real_arg_name = get_kwarg_name(arg_name)
-                        self.parameters[real_arg_name] = self.build_parameter_object(
-                            real_arg_name, default_value, code_strings=code_strings
+                        self.parameters[
+                            real_arg_name
+                        ] = self.build_parameter_object(
+                            real_arg_name,
+                            default_value,
+                            code_strings=code_strings,
                         )
 
         # Process variadic and keyword arguments
@@ -821,7 +843,9 @@ class TaskMaster:
             default_parameter = get_default_direction(
                 real_name, self.decorator_arguments, self.param_args
             )
-            param = self.decorator_arguments.get_parameter(real_name, default_parameter)
+            param = self.decorator_arguments.get_parameter(
+                real_name, default_parameter
+            )
         else:
             # The argument is named, check its direction
             # Default value = IN if not class or instance method and
@@ -834,12 +858,16 @@ class TaskMaster:
             default_parameter = get_default_direction(
                 arg_name, self.decorator_arguments, self.param_args
             )
-            param = self.decorator_arguments.get_parameter(arg_name, default_parameter)
+            param = self.decorator_arguments.get_parameter(
+                arg_name, default_parameter
+            )
 
         # If the parameter is a FILE then its type will already be defined,
         # and get_compss_type will misslabel it as a parameter.TYPE.STRING
         if param.is_object():
-            param.content_type = get_compss_type(arg_object, code_strings=code_strings)
+            param.content_type = get_compss_type(
+                arg_object, code_strings=code_strings
+            )
 
         # Set if the object is really a future.
         if isinstance(arg_object, Future):
@@ -923,7 +951,9 @@ class TaskMaster:
             # Get the file name
             file_name = os.path.splitext(os.path.basename(path))[0]
             # Get the module
-            self.decorated_function.module_name = get_module_name(path, file_name)
+            self.decorated_function.module_name = get_module_name(
+                path, file_name
+            )
 
     def compute_function_type(self, first_object: typing.Any) -> None:
         """Compute user function type.
@@ -943,7 +973,9 @@ class TaskMaster:
         self.decorated_function.function_type = FunctionType.FUNCTION
         self.decorated_function.class_name = ""
         if self.first_arg_name == "self":
-            self.decorated_function.function_type = FunctionType.INSTANCE_METHOD
+            self.decorated_function.function_type = (
+                FunctionType.INSTANCE_METHOD
+            )
             self.decorated_function.class_name = type(first_object).__name__
         elif self.first_arg_name == "cls":
             self.decorated_function.function_type = FunctionType.CLASS_METHOD
@@ -961,7 +993,9 @@ class TaskMaster:
         if name != qualified_name:
             # Then there is a class definition before the name in the
             # qualified name
-            self.decorated_function.class_name = qualified_name[: -len(name) - 1]
+            self.decorated_function.class_name = qualified_name[
+                : -len(name) - 1
+            ]
             # -1 to remove the last point
 
     def get_code_strings(self) -> None:
@@ -1011,7 +1045,10 @@ class TaskMaster:
         if self.decorated_function.class_name != "":
             # Within class or subclass
             impl_signature = ".".join([module_name, class_name, function_name])
-            impl_type_args = [".".join([module_name, class_name]), function_name]
+            impl_type_args = [
+                ".".join([module_name, class_name]),
+                function_name,
+            ]
         else:
             # The task is defined within the main app file.
             # Not in a class or subclass
@@ -1090,7 +1127,9 @@ class TaskMaster:
             # if the parameter with layout exists.
             if _impl_type == IMPLEMENTATION_TYPES.python_mpi:
                 self.check_layout_params(_impl_type_args)
-                set_impl_signature(".".join([IMPLEMENTATION_TYPES.mpi, impl_signature]))
+                set_impl_signature(
+                    ".".join([IMPLEMENTATION_TYPES.mpi, impl_signature])
+                )
                 if _impl_type_args:
                     set_impl_type_args(impl_type_args + _impl_type_args[1:])
                 else:
@@ -1126,7 +1165,9 @@ class TaskMaster:
                 if param_name:
                     if param_name in self.decorator_arguments.parameters:
                         if (
-                            self.decorator_arguments.parameters[param_name].content_type
+                            self.decorator_arguments.parameters[
+                                param_name
+                            ].content_type
                             != parameter.TYPE.COLLECTION
                         ):
                             raise PyCOMPSsException(
@@ -1163,7 +1204,9 @@ class TaskMaster:
         :return: None.
         """
         if computing_nodes < processes_per_node:
-            raise PyCOMPSsException("Processes is smaller than processes_per_node.")
+            raise PyCOMPSsException(
+                "Processes is smaller than processes_per_node."
+            )
         if (computing_nodes % processes_per_node) > 0:
             raise PyCOMPSsException(
                 "Processes is not a multiple of processes_per_node."
@@ -1246,7 +1289,9 @@ class TaskMaster:
 
         return parsed_processes_per_node
 
-    def parse_computing_nodes(self, computing_nodes: typing.Union[int, str]) -> int:
+    def parse_computing_nodes(
+        self, computing_nodes: typing.Union[int, str]
+    ) -> int:
         """Retrieve the number of computing nodes.
 
         This value can be defined by upper decorators and can also be defined
@@ -1290,11 +1335,15 @@ class TaskMaster:
                         try:
                             if self.is_numba_function():
                                 parsed_computing_nodes = (
-                                    self.user_func_py_func_glob_getter(computing_nodes)
+                                    self.user_func_py_func_glob_getter(
+                                        computing_nodes
+                                    )
                                 )
                             else:
                                 parsed_computing_nodes = (
-                                    self.user_func_wrapped_glob_getter(computing_nodes)
+                                    self.user_func_wrapped_glob_getter(
+                                        computing_nodes
+                                    )
                                 )
                         except AttributeError as attribute_error:
                             # No more chances
@@ -1354,8 +1403,12 @@ class TaskMaster:
                         # This is a numba jit declared task
                         try:
                             if self.is_numba_function():
-                                return self.user_func_py_func_glob_getter(chunk_size)
-                            return self.user_func_wrapped_glob_getter(chunk_size)
+                                return self.user_func_py_func_glob_getter(
+                                    chunk_size
+                                )
+                            return self.user_func_wrapped_glob_getter(
+                                chunk_size
+                            )
                         except AttributeError as attribute_error:
                             # No more chances
                             # Ignore error and parsed_chunk_size will
@@ -1363,7 +1416,9 @@ class TaskMaster:
                             raise PyCOMPSsException(
                                 "ERROR: Wrong chunk_size value."
                             ) from attribute_error
-        raise PyCOMPSsException("Unexpected chunk_size value. Must be str or int.")
+        raise PyCOMPSsException(
+            "Unexpected chunk_size value. Must be str or int."
+        )
 
     @staticmethod
     def parse_is_reduce(is_reduce: typing.Union[bool, str]) -> bool:
@@ -1381,7 +1436,9 @@ class TaskMaster:
                 return bool(is_reduce)
             except ValueError:
                 return False
-        raise PyCOMPSsException("Unexpected is_reduce value. Must be bool or str.")
+        raise PyCOMPSsException(
+            "Unexpected is_reduce value. Must be bool or str."
+        )
 
     def add_return_parameters(
         self, returns: typing.Any, code_strings: bool = True
@@ -1550,7 +1607,8 @@ class TaskMaster:
                     self.returns[get_return_name(i)] = param
             else:
                 param = Parameter(
-                    content_type=parameter.TYPE.FILE, direction=parameter.DIRECTION.OUT
+                    content_type=parameter.TYPE.FILE,
+                    direction=parameter.DIRECTION.OUT,
                 )
                 param.content = object()
                 self.returns[get_return_name(0)] = param
@@ -1565,7 +1623,9 @@ class TaskMaster:
         source_code = get_wrapped_source(function).strip()
 
         code = []  # type: list
-        if self.first_arg_name == "self" or source_code.startswith("@classmethod"):
+        if self.first_arg_name == "self" or source_code.startswith(
+            "@classmethod"
+        ):
             # It is a task defined within a class (can not parse the code
             # with ast since the class does not exist yet).
             # Alternatively, the only way I see is to parse it manually
@@ -1585,10 +1645,14 @@ class TaskMaster:
             has_multireturn = False
             lines = [i for i, li in enumerate(ret_mask) if li]
             max_num_returns = 0
-            if self.first_arg_name == "self" or source_code.startswith("@classmethod"):
+            if self.first_arg_name == "self" or source_code.startswith(
+                "@classmethod"
+            ):
                 # Parse code as string (it is a task defined within a class)
                 def _has_multireturn(statement: str) -> bool:
-                    parsed_ret = ast.parse(statement.strip())  # type: typing.Any
+                    parsed_ret = ast.parse(
+                        statement.strip()
+                    )  # type: typing.Any
                     try:
                         if len(parsed_ret.body[0].value.elts) > 1:
                             return True
@@ -1599,7 +1663,9 @@ class TaskMaster:
                         return False
 
                 def _get_return_elements(statement: str) -> int:
-                    parsed_ret = ast.parse(statement.strip())  # type: typing.Any
+                    parsed_ret = ast.parse(
+                        statement.strip()
+                    )  # type: typing.Any
                     return len(parsed_ret.body[0].value.elts)
 
                 for i in lines:
@@ -1614,7 +1680,9 @@ class TaskMaster:
                     try:
                         if "elts" in code[i].value.__dict__:  # noqa
                             has_multireturn = True
-                            num_returns = len(code[i].value.__dict__["elts"])  # noqa
+                            num_returns = len(
+                                code[i].value.__dict__["elts"]
+                            )  # noqa
                             if num_returns > max_num_returns:
                                 max_num_returns = num_returns
                     except (KeyError, AttributeError):
@@ -1631,7 +1699,8 @@ class TaskMaster:
                     self.returns[get_return_name(i)] = param
             else:
                 param = Parameter(
-                    content_type=parameter.TYPE.FILE, direction=parameter.DIRECTION.OUT
+                    content_type=parameter.TYPE.FILE,
+                    direction=parameter.DIRECTION.OUT,
                 )
                 param.content = object()
                 self.returns[get_return_name(0)] = param
@@ -1669,11 +1738,18 @@ class TaskMaster:
             if self._is_return_param_name(ret_value):
                 # for the cases like 'returns = {{param_name}}' we replace the
                 # return value with the parameter itself
-                tmp = ret_value[len(RETURN_OPEN_TOKEN) : -len(RETURN_CLOSE_TOKEN)]
+                tmp = ret_value[
+                    len(RETURN_OPEN_TOKEN) : -len(RETURN_CLOSE_TOKEN)
+                ]
                 if not self.parameters.get(tmp):
-                    raise PyCOMPSsException("Invalid parameter name in 'returns'")
+                    raise PyCOMPSsException(
+                        "Invalid parameter name in 'returns'"
+                    )
                 future_object = self.parameters[tmp].content
-            elif type(ret_value) in _PYTHON_TO_COMPSS or ret_value in _PYTHON_TO_COMPSS:
+            elif (
+                type(ret_value) in _PYTHON_TO_COMPSS
+                or ret_value in _PYTHON_TO_COMPSS
+            ):
                 future_object = Future()  # primitives,string,dic,list,tuple
             elif inspect.isclass(ret_value):
                 # For objects:
@@ -1888,7 +1964,10 @@ class TaskMaster:
             keep_renames.append(keep_rename)
         # Fill the values, compss_types, compss_directions, compss_streams and
         # compss_prefixes from self (if exist)
-        if self.decorated_function.function_type == FunctionType.INSTANCE_METHOD:
+        if (
+            self.decorated_function.function_type
+            == FunctionType.INSTANCE_METHOD
+        ):
             # self is always an object
             (
                 value,
@@ -1975,7 +2054,9 @@ class TaskMaster:
             num_bytes = total_sizeof(param.content)
             if __debug__:
                 megabytes = num_bytes / 1000000  # truncate
-                logger.debug("Object size %d bytes (%d Mb).", num_bytes, megabytes)
+                logger.debug(
+                    "Object size %d bytes (%d Mb).", num_bytes, megabytes
+                )
             if num_bytes < max_obj_arg_size:
                 # be careful... more than this value produces:
                 # Cannot run program "/bin/bash"...: error=7, \
@@ -1999,7 +2080,9 @@ class TaskMaster:
                     ) from serializer_exception
         else:
             if __debug__:
-                logger.warning("Could not serialize object to string conversion")
+                logger.warning(
+                    "Could not serialize object to string conversion"
+                )
             param = _serialize_object_into_file(name, param)
 
         return param
@@ -2096,7 +2179,9 @@ def _serialize_object_into_file(
             import traceback
 
             exc_type, exc_value, exc_traceback = sys.exc_info()
-            lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+            lines = traceback.format_exception(
+                exc_type, exc_value, exc_traceback
+            )
             logger.exception(
                 "Pickling error exception: non-serializable object found as a parameter."
             )
@@ -2182,7 +2267,9 @@ def _serialize_object_into_file(
                             Parameter(
                                 content=x,
                                 content_type=get_compss_type(
-                                    x, param.depth - 1, code_strings=code_strings
+                                    x,
+                                    param.depth - 1,
+                                    code_strings=code_strings,
                                 ),
                                 direction=param.direction,
                                 depth=param.depth - 1,
@@ -2233,7 +2320,9 @@ def _serialize_object_into_file(
     return param
 
 
-def _turn_into_file(param: Parameter, name: str, skip_creation: bool = False) -> None:
+def _turn_into_file(
+    param: Parameter, name: str, skip_creation: bool = False
+) -> None:
     """Write a object into a file if the object has not been already written.
 
     Consults the obj_id_to_filename to check if it has already been written
@@ -2263,7 +2352,9 @@ def _turn_into_file(param: Parameter, name: str, skip_creation: bool = False) ->
             # Main program generated the last version
             compss_file = OT.pop_written_obj(obj_id)
             if __debug__:
-                logger.debug("Serializing object %s to file %s", obj_id, compss_file)
+                logger.debug(
+                    "Serializing object %s to file %s", obj_id, compss_file
+                )
             if not skip_creation:
                 serialize_to_file(param.content, compss_file)
 
@@ -2299,7 +2390,9 @@ def _extract_parameter(
         con_type = CONSTANTS.extra_content_type_format.format(
             "builtins", str(param.content.__class__.__name__)
         )
-    elif param.content_type == TYPE.STRING and not param.is_future:  # noqa: E501
+    elif (
+        param.content_type == TYPE.STRING and not param.is_future
+    ):  # noqa: E501
         if len(param.content) == 0:
             param.content = CONSTANTS.empty_string_key
         con_type = CONSTANTS.extra_content_type_format.format(
@@ -2367,8 +2460,12 @@ def _extract_parameter(
         #     ...
         #     typeN IdN pyTypeN
         _class_name = str(param.content.__class__.__name__)
-        con_type = CONSTANTS.extra_content_type_format.format("collection", _class_name)
-        value = f"{OT.is_tracked(param.content)} {len(param.content)} {con_type}"
+        con_type = CONSTANTS.extra_content_type_format.format(
+            "collection", _class_name
+        )
+        value = (
+            f"{OT.is_tracked(param.content)} {len(param.content)} {con_type}"
+        )
         OT.stop_tracking(param.content, collection=True)
         typ = TYPE.COLLECTION
         for _, x_param in enumerate(param.content):
@@ -2401,7 +2498,9 @@ def _extract_parameter(
         con_type = CONSTANTS.extra_content_type_format.format(
             "dict_collection", _class_name
         )
-        value = f"{OT.is_tracked(param.content)} {len(param.content)} {con_type}"
+        value = (
+            f"{OT.is_tracked(param.content)} {len(param.content)} {con_type}"
+        )
         OT.stop_tracking(param.content, collection=True)
         typ = TYPE.DICT_COLLECTION
         for k_param, v_param in param.content.items():  # noqa

@@ -43,7 +43,9 @@ def local(input_function: typing.Callable) -> typing.Callable:
     if not CONTEXT.in_pycompss():
         # Return dummy local decorator
 
-        def wrapped_function(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
+        def wrapped_function(
+            *args: typing.Any, **kwargs: typing.Any
+        ) -> typing.Any:
             return input_function(*args, **kwargs)
 
     else:
@@ -53,7 +55,9 @@ def local(input_function: typing.Callable) -> typing.Callable:
                 new_val = compss_wait_on(obj)
                 replace(obj, new_val)
 
-        def wrapped_function(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
+        def wrapped_function(
+            *args: typing.Any, **kwargs: typing.Any
+        ) -> typing.Any:
             gc.collect()
             _args = []
             _kwargs = {}

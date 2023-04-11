@@ -84,10 +84,14 @@ class CE:  # pylint: disable=too-many-instance-attributes
             self.impl_type_args = impl_type_args
 
         self.impl_prolog = (
-            [INTERNAL_LABELS.unassigned] * 3 if impl_prolog is None else impl_prolog
+            [INTERNAL_LABELS.unassigned] * 3
+            if impl_prolog is None
+            else impl_prolog
         )
         self.impl_epilog = (
-            [INTERNAL_LABELS.unassigned] * 3 if impl_epilog is None else impl_epilog
+            [INTERNAL_LABELS.unassigned] * 3
+            if impl_epilog is None
+            else impl_epilog
         )
         # engine, image, options
         self.impl_container = (

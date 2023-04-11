@@ -159,7 +159,9 @@ def file_exists(*file_name: typing.Union[list, tuple, str]) -> typing.Any:
     :return: True if accessed, False otherwise.
     """
     if __debug__:
-        LOGGER.debug("Checking if file/s: %s has/have been accessed.", file_name)
+        LOGGER.debug(
+            "Checking if file/s: %s has/have been accessed.", file_name
+        )
     return __apply_recursively_to_file__(
         __file_exists__, TRACING_MASTER.accessed_file_event, True, *file_name
     )
@@ -195,7 +197,9 @@ def open_file(file_name: str, mode: str) -> str:
         app_id = 0
         compss_mode = get_compss_direction(mode)
         if __debug__:
-            LOGGER.debug("Getting file %s with mode %s", file_name, compss_mode)
+            LOGGER.debug(
+                "Getting file %s with mode %s", file_name, compss_mode
+            )
         compss_name = COMPSs.open_file(app_id, file_name, compss_mode)
         if __debug__:
             LOGGER.debug("COMPSs file name is %s", compss_name)
@@ -247,7 +251,9 @@ def wait_on_file(*file_name: typing.Union[list, tuple, str]) -> typing.Any:
     )
 
 
-def wait_on_directory(*directory_name: typing.Union[list, tuple, str]) -> typing.Any:
+def wait_on_directory(
+    *directory_name: typing.Union[list, tuple, str]
+) -> typing.Any:
     """Retrieve one or more directories.
 
     :param directory_name: Directory name/s to retrieve (can contain lists and tuples of strings).
@@ -256,7 +262,10 @@ def wait_on_directory(*directory_name: typing.Union[list, tuple, str]) -> typing
     if __debug__:
         LOGGER.debug("Getting directory/s: %s", directory_name)
     return __apply_recursively_to_file__(
-        COMPSs.get_directory, TRACING_MASTER.get_directory_event, False, *directory_name
+        COMPSs.get_directory,
+        TRACING_MASTER.get_directory_event,
+        False,
+        *directory_name,
     )
 
 
@@ -292,7 +301,9 @@ def __apply_recursively_to_file__(
         elif isinstance(f_name, list):
             files_list = list(
                 [
-                    __apply_recursively_to_file__(function, event, get_results, name)
+                    __apply_recursively_to_file__(
+                        function, event, get_results, name
+                    )
                     for name in f_name
                 ]
             )
@@ -300,7 +311,9 @@ def __apply_recursively_to_file__(
         elif isinstance(f_name, tuple):
             files_tuple = tuple(
                 [
-                    __apply_recursively_to_file__(function, event, get_results, name)
+                    __apply_recursively_to_file__(
+                        function, event, get_results, name
+                    )
                     for name in f_name
                 ]
             )
@@ -481,7 +494,9 @@ def get_tmp_path() -> str:
             LOGGER.debug("Requesting tmp path (master working dir)")
         tmp_path = COMPSs.get_master_working_path()
         if __debug__:
-            LOGGER.debug("Tmp path (master working dir) received: %s", tmp_path)
+            LOGGER.debug(
+                "Tmp path (master working dir) received: %s", tmp_path
+            )
         return tmp_path
 
 
@@ -501,7 +516,9 @@ def get_number_of_resources() -> int:
         return COMPSs.get_number_of_resources(app_id)
 
 
-def request_resources(num_resources: int, group_name: typing.Optional[str]) -> None:
+def request_resources(
+    num_resources: int, group_name: typing.Optional[str]
+) -> None:
     """Request new resources.
 
     Calls the external python library (that calls the bindings-common)
@@ -525,7 +542,9 @@ def request_resources(num_resources: int, group_name: typing.Optional[str]) -> N
         COMPSs.request_resources(app_id, num_resources, group_name)
 
 
-def free_resources(num_resources: int, group_name: typing.Optional[str]) -> None:
+def free_resources(
+    num_resources: int, group_name: typing.Optional[str]
+) -> None:
     """Liberate resources.
 
     Calls the external python library (that calls the bindings-common)
@@ -694,7 +713,9 @@ def register_ce(core_element: CE) -> None:
         # Retrieve Core element fields
         ce_signature = core_element.get_ce_signature()
         impl_signature_base = core_element.get_impl_signature()
-        impl_signature = None if impl_signature_base == "" else impl_signature_base
+        impl_signature = (
+            None if impl_signature_base == "" else impl_signature_base
+        )
         impl_constraints_base = core_element.get_impl_constraints()
         impl_constraints = None  # type: typing.Any
         if impl_constraints_base == "":
@@ -732,10 +753,13 @@ def register_ce(core_element: CE) -> None:
         impl_constraints_str = "".join(impl_constraints_lst)
 
         if __debug__:
-            LOGGER.debug("\t - Implementation constraints: %s", impl_constraints_str)
+            LOGGER.debug(
+                "\t - Implementation constraints: %s", impl_constraints_str
+            )
             LOGGER.debug("\t - Implementation type: %s", impl_type)
             LOGGER.debug(
-                "\t - Implementation type arguments: %s", " ".join(impl_type_args)
+                "\t - Implementation type arguments: %s",
+                " ".join(impl_type_args),
             )
         # import pdb; pdb.set_trace()
         # Call runtime with the appropriate parameters
@@ -789,7 +813,9 @@ def __wait_on__(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
     :param kwargs: Options: Write enable? [True | False] Default = True.
     :return: Real value of the objects requested.
     """
-    ret = list(map(wait_on_object, args, [kwargs.get("mode", "rw")] * len(args)))
+    ret = list(
+        map(wait_on_object, args, [kwargs.get("mode", "rw")] * len(args))
+    )
     if len(ret) == 1:
         ret_lst = ret[0]
     else:

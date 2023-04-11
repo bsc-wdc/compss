@@ -33,9 +33,13 @@ from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.private_tasks import transform as _transform
 from pycompss.api.commons.private_tasks import col_to_obj as _col_to_obj
 from pycompss.api.commons.private_tasks import col_to_file as _col_to_file
-from pycompss.api.commons.private_tasks import object_to_file as _object_to_file
+from pycompss.api.commons.private_tasks import (
+    object_to_file as _object_to_file,
+)
 from pycompss.api.commons.private_tasks import file_to_col as _file_to_col
-from pycompss.api.commons.private_tasks import file_to_object as _file_to_object
+from pycompss.api.commons.private_tasks import (
+    file_to_object as _file_to_object,
+)
 from pycompss.util.typing_helper import typing
 
 # from pycompss.runtime.task.definitions.core_element import CE
@@ -150,15 +154,25 @@ class DataTransformation:  # pylint: disable=too-few-public-methods
         elif len(self.args) == 2:
             dts.append((self.args[0], self.args[1], self.kwargs))
         elif self.type is OBJECT_TO_FILE:
-            dts.append((self.target, self.user_function, self.kwargs, args, kwargs))
+            dts.append(
+                (self.target, self.user_function, self.kwargs, args, kwargs)
+            )
         elif self.type is FILE_TO_OBJECT:
-            dts.append((self.target, self.user_function, self.kwargs, args, kwargs))
+            dts.append(
+                (self.target, self.user_function, self.kwargs, args, kwargs)
+            )
         elif self.type is FILE_TO_COLLECTION:
-            dts.append((self.target, self.user_function, self.kwargs, args, kwargs))
+            dts.append(
+                (self.target, self.user_function, self.kwargs, args, kwargs)
+            )
         elif self.type is COLLECTION_TO_OBJECT:
-            dts.append((self.target, self.user_function, self.kwargs, args, kwargs))
+            dts.append(
+                (self.target, self.user_function, self.kwargs, args, kwargs)
+            )
         elif self.type is COLLECTION_TO_FILE:
-            dts.append((self.target, self.user_function, self.kwargs, args, kwargs))
+            dts.append(
+                (self.target, self.user_function, self.kwargs, args, kwargs)
+            )
         for _dt in dts:
             self._apply_dt(_dt[0], _dt[1], _dt[2], args, kwargs)
 

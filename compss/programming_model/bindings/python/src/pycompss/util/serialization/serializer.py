@@ -121,7 +121,9 @@ FORCED_SERIALIZER = -1  # make a serializer the only option for serialization
 DISABLE_GC = False
 
 
-def get_serializer_priority(obj: typing.Any = ()) -> typing.List[types.ModuleType]:
+def get_serializer_priority(
+    obj: typing.Any = (),
+) -> typing.List[types.ModuleType]:
     """Compute the priority of the serializers.
 
     Returns a list with the available serializers in the most common order
@@ -167,7 +169,9 @@ def serialize_to_handler(obj: typing.Any, handler: typing.BinaryIO) -> None:
     """
     __set_cupy__()
 
-    emit_manual_event_explicit(TRACING_MASTER.binding_serialization_size_type, 0)
+    emit_manual_event_explicit(
+        TRACING_MASTER.binding_serialization_size_type, 0
+    )
     if hasattr(handler, "name"):
         emit_manual_event_explicit(
             TRACING_MASTER.binding_serialization_object_num_type,
@@ -238,7 +242,9 @@ def serialize_to_handler(obj: typing.Any, handler: typing.BinaryIO) -> None:
                     serializer.dump(obj, reopened_handler)
                     is_json = True
                 else:
-                    serializer.dump(obj, handler, protocol=serializer.HIGHEST_PROTOCOL)
+                    serializer.dump(
+                        obj, handler, protocol=serializer.HIGHEST_PROTOCOL
+                    )
                 success = True
             except Exception:  # noqa
                 success = False
@@ -252,7 +258,9 @@ def serialize_to_handler(obj: typing.Any, handler: typing.BinaryIO) -> None:
     emit_manual_event_explicit(
         TRACING_MASTER.binding_serialization_size_type, serialization_size
     )
-    emit_manual_event_explicit(TRACING_MASTER.binding_serialization_object_num_type, 0)
+    emit_manual_event_explicit(
+        TRACING_MASTER.binding_serialization_object_num_type, 0
+    )
     if DISABLE_GC:
         # Enable the garbage collector and force to clean the memory
         gc.enable()
@@ -335,7 +343,9 @@ def deserialize_from_handler(
     __set_cupy__()
 
     # Retrieve the used library (if possible)
-    emit_manual_event_explicit(TRACING_MASTER.binding_deserialization_size_type, 0)
+    emit_manual_event_explicit(
+        TRACING_MASTER.binding_deserialization_size_type, 0
+    )
     if hasattr(handler, "name"):
         emit_manual_event_explicit(
             TRACING_MASTER.binding_deserialization_object_num_type,
@@ -383,7 +393,11 @@ def deserialize_from_handler(
         else:
             ret = serializer.load(handler)
         # Special case: deserialized obj wraps a generator
-        if isinstance(ret, tuple) and ret and isinstance(ret[0], GeneratorIndicator):
+        if (
+            isinstance(ret, tuple)
+            and ret
+            and isinstance(ret[0], GeneratorIndicator)
+        ):
             ret = convert_to_generator(ret[1])
         if DISABLE_GC:
             # Enable the garbage collector and force to clean the memory
@@ -394,7 +408,8 @@ def deserialize_from_handler(
         else:
             deserialization_size = handler.tell()
         emit_manual_event_explicit(
-            TRACING_MASTER.binding_deserialization_size_type, deserialization_size
+            TRACING_MASTER.binding_deserialization_size_type,
+            deserialization_size,
         )
         emit_manual_event_explicit(
             TRACING_MASTER.binding_deserialization_object_num_type, 0

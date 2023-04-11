@@ -32,7 +32,9 @@ from pycompss.util.typing_helper import typing
 
 
 @task(returns=list)
-def gen_random(size: int, frag_size: int, seed: int) -> typing.List[typing.List[float]]:
+def gen_random(
+    size: int, frag_size: int, seed: int
+) -> typing.List[typing.List[float]]:
     """Generate random distribution fragment.
 
     :param size: Size
@@ -45,7 +47,9 @@ def gen_random(size: int, frag_size: int, seed: int) -> typing.List[typing.List[
 
 
 @task(returns=list)
-def gen_normal(size: int, frag_size: int, seed: int) -> typing.List[typing.List[float]]:
+def gen_normal(
+    size: int, frag_size: int, seed: int
+) -> typing.List[typing.List[float]]:
     """Generate normal distribution fragment.
 
     :param size: Size
@@ -55,7 +59,8 @@ def gen_normal(size: int, frag_size: int, seed: int) -> typing.List[typing.List[
     """
     random.seed(seed)
     return [
-        [random.gauss(mu=0.0, sigma=1.0) for _ in range(size)] for _ in range(frag_size)
+        [random.gauss(mu=0.0, sigma=1.0) for _ in range(size)]
+        for _ in range(frag_size)
     ]
 
 
@@ -71,4 +76,7 @@ def gen_uniform(
     :return: a fragment of elements
     """
     random.seed(seed)
-    return [[random.uniform(-1.0, 1.0) for _ in range(size)] for _ in range(frag_size)]
+    return [
+        [random.uniform(-1.0, 1.0) for _ in range(size)]
+        for _ in range(frag_size)
+    ]

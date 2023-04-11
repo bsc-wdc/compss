@@ -43,7 +43,11 @@ def test_check_arguments_fine():
         "mandatoryArgument2",
         "optional_argument",
     }
-    argument_names = ["mandatory_argument_1", "mandatoryArgument2", "optional_argument"]
+    argument_names = [
+        "mandatory_argument_1",
+        "mandatoryArgument2",
+        "optional_argument",
+    ]
     decorator = "Unittest"
 
     old_stderr = sys.stderr
@@ -189,7 +193,11 @@ def test_check_arguments_using_old_is_modifier():
         "mandatoryArgument2",
         "optional_argument",
     }
-    argument_names = ["mandatory_argument_1", "mandatoryArgument2", "isModifier"]
+    argument_names = [
+        "mandatory_argument_1",
+        "mandatoryArgument2",
+        "isModifier",
+    ]
     decorator = "Unittest"
 
     old_stderr = sys.stderr

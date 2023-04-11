@@ -116,7 +116,12 @@ def update_tasks_code_file(function: typing.Callable, file_path: str) -> None:
 
     # Update the file where the code is stored.
     _update_code_file(
-        new_imports, new_globals, new_classes, new_functions, new_tasks, file_path
+        new_imports,
+        new_globals,
+        new_classes,
+        new_functions,
+        new_tasks,
+        file_path,
     )
 
 
@@ -695,7 +700,10 @@ def _update_functions(
         if (
             DEBUG
             and function_name in old_functions
-            and (not new_functions[function_name] == old_functions[function_name])
+            and (
+                not new_functions[function_name]
+                == old_functions[function_name]
+            )
         ):
             __show_redefinition_warning__("Function", function_name)
         old_functions[function_name] = new_functions[function_name]

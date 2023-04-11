@@ -79,7 +79,9 @@ def show_graph(
     return None
 
 
-def __get_graph_snapshot__(file_name: str, fit: bool, source: typing.Any) -> typing.Any:
+def __get_graph_snapshot__(
+    file_name: str, fit: bool, source: typing.Any
+) -> typing.Any:
     """Read the graph file and returns it as graphviz object.
 
     It is able to fit the size if indicated.

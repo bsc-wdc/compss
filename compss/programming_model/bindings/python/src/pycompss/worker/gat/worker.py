@@ -165,7 +165,9 @@ def main() -> None:
                 initStorageAtWorker(config_file_path=storage_conf)
 
         # Init worker
-        exit_code = compss_worker(tracing, str(task_id), storage_conf, params, log_json)
+        exit_code = compss_worker(
+            tracing, str(task_id), storage_conf, params, log_json
+        )
 
         if streaming:
             # Finish streaming

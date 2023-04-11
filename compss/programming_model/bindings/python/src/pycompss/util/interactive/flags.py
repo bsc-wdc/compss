@@ -108,7 +108,9 @@ def check_flags(all_vars: dict) -> typing.Tuple[bool, list]:
 def __check_flag__(
     all_vars: dict,
     flag: str,
-    requirements: typing.List[typing.List[typing.Union[object, str, bool, type]]],
+    requirements: typing.List[
+        typing.List[typing.Union[object, str, bool, type]]
+    ],
 ) -> list:
     """Check the given flag against the requirements looking for issues.
 

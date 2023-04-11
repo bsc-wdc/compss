@@ -169,7 +169,9 @@ class MPMDMPI:  # pylint: disable=too-few-public-methods, too-many-instance-attr
 
         for program in programs:
             if not isinstance(program, dict):
-                raise PyCOMPSsException("Incorrect 'program' param in MPMD MPI")
+                raise PyCOMPSsException(
+                    "Incorrect 'program' param in MPMD MPI"
+                )
 
             binary = program.get(LABELS.binary, None)
             if not binary:

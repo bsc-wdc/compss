@@ -89,9 +89,13 @@ class TaskArguments:
         self.on_failure = "RETRY"
         self.tracing_hook = False
         # numba mode (jit, vectorize, guvectorize)
-        self.numba = False  # type: typing.Union[bool, str, typing.Dict[str, bool]]
+        self.numba = (
+            False
+        )  # type: typing.Union[bool, str, typing.Dict[str, bool]]
         # user defined extra numba flags
-        self.numba_flags = {}  # type: typing.Dict[str, typing.Union[str, bool]]
+        self.numba_flags = (
+            {}
+        )  # type: typing.Dict[str, typing.Union[str, bool]]
         # vectorize and guvectorize signature
         self.numba_signature = (
             None
@@ -114,7 +118,9 @@ class TaskArguments:
         :return: None
         """
         LOGGER.warning(
-            "Detected deprecated %s. Please, change it to %s", old_keyword, new_keyword
+            "Detected deprecated %s. Please, change it to %s",
+            old_keyword,
+            new_keyword,
         )
 
     def update_arguments(self, kwargs: typing.Dict[str, typing.Any]) -> None:
@@ -160,7 +166,9 @@ class TaskArguments:
             self.time_out = kwargs.pop(LABELS.time_out)
         elif LEGACY_LABELS.time_out in kwargs:
             self.time_out = kwargs.pop(LEGACY_LABELS.time_out)
-            self.__deprecation_warning__(LEGACY_LABELS.time_out, LABELS.time_out)
+            self.__deprecation_warning__(
+                LEGACY_LABELS.time_out, LABELS.time_out
+            )
         # Argument: is_replicated
         if LABELS.is_replicated in kwargs:
             self.is_replicated = kwargs.pop(LABELS.is_replicated)

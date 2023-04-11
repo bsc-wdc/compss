@@ -169,7 +169,9 @@ class Pipe:
 
         :return: String representing the Pipe object.
         """
-        return " ".join(("PIPE IN", self.input_pipe, "PIPE OUT", self.output_pipe))
+        return " ".join(
+            ("PIPE IN", self.input_pipe, "PIPE OUT", self.output_pipe)
+        )
 
 
 class ExecutorConf:
@@ -283,7 +285,9 @@ def executor(
             TRACING_WORKER.process_worker_executor_event,
         )
         # Second thing to do is to emit the executor process identifier event
-        emit_manual_event_explicit(TRACING_WORKER.executor_identifier, process_id)
+        emit_manual_event_explicit(
+            TRACING_WORKER.executor_identifier, process_id
+        )
 
         if COMPSS_WITH_DLB:
             dlb_affinity.init()
@@ -356,13 +360,17 @@ def executor(
 
         if streaming:
             # Initialize streaming
-            logger.debug(HEADER + "Starting streaming for process " + str(process_name))
+            logger.debug(
+                HEADER + "Starting streaming for process " + str(process_name)
+            )
             try:
                 DistroStreamClientHandler.init_and_start(
                     master_ip=conf.stream_master_ip,
                     master_port=conf.stream_master_port,
                 )
-            except Exception as general_exception:  # pylint: disable=broad-except
+            except (
+                Exception
+            ) as general_exception:  # pylint: disable=broad-except
                 logger.error(general_exception)
                 raise general_exception from general_exception
 
@@ -622,7 +630,9 @@ def process_task(
         current_line = current_line[0:-3]
 
         # task jobId command
-        job_id, working_dir, job_out, job_err = current_line[1:5]  # 5th is not taken
+        job_id, working_dir, job_out, job_err = current_line[
+            1:5
+        ]  # 5th is not taken
         # current_line[5] = <boolean> = tracing
         # current_line[6] = <integer> = task id
         # current_line[7] = <boolean> = debug
@@ -657,7 +667,10 @@ def process_task(
                 str(working_dir),
             )
             logger.debug(
-                "%s[%s] - TASK CMD: %s", HEADER, str(process_name), str(current_line)
+                "%s[%s] - TASK CMD: %s",
+                HEADER,
+                str(process_name),
+                str(current_line),
             )
 
         # Swap logger from stream handler to file handler
@@ -693,7 +706,9 @@ def process_task(
                 real_affinity = process_affinity.getaffinity()
                 cpus = str(real_affinity[0])
                 num_cpus = len(real_affinity)
-                emit_manual_event(int(cpus) + 1, inside=True, cpu_affinity=True)
+                emit_manual_event(
+                    int(cpus) + 1, inside=True, cpu_affinity=True
+                )
                 emit_manual_event(int(num_cpus), inside=True, cpu_number=True)
                 affinity_event_emit = True
                 if not binded_cpus:
@@ -710,8 +725,12 @@ def process_task(
                 logger.debug("Process environment:")
                 logger.debug("\t - Number of nodes: %s", (str(compss_nodes)))
                 logger.debug("\t - Hostnames: %s", str(compss_nodes_names))
-                logger.debug("\t - Number of threads: %s", (str(computing_units)))
-            setup_environment(compss_nodes, compss_nodes_names, computing_units)
+                logger.debug(
+                    "\t - Number of threads: %s", (str(computing_units))
+                )
+            setup_environment(
+                compss_nodes, compss_nodes_names, computing_units
+            )
 
             # Execute task
             result = execute_task(
@@ -752,7 +771,9 @@ def process_task(
             elif exit_value == 2:
                 # Task has finished with a COMPSs Exception
                 # compssExceptionTask jobId exitValue message
-                except_msg, message = build_compss_exception_message(except_msg, job_id)
+                except_msg, message = build_compss_exception_message(
+                    except_msg, job_id
+                )
                 if __debug__:
                     logger.debug(
                         "%s - Pipe %s COMPSS EXCEPTION TASK MESSAGE: %s",
@@ -850,7 +871,9 @@ def process_task(
         return True
 
 
-def process_ping(pipe: Pipe, logger: logging.Logger, process_name: str) -> bool:
+def process_ping(
+    pipe: Pipe, logger: logging.Logger, process_name: str
+) -> bool:
     """Process ping message.
 
     Response: Pong.
@@ -896,7 +919,10 @@ def bind_cpus(cpus: str, process_name: str, logger: logging.Logger) -> bool:
     with EventInsideWorker(TRACING_WORKER.bind_cpus_event):
         if __debug__:
             logger.debug(
-                "%s[%s] Assigning affinity %s", HEADER, str(process_name), str(cpus)
+                "%s[%s] Assigning affinity %s",
+                HEADER,
+                str(process_name),
+                str(cpus),
             )
         cpus_list = cpus.split(",")
         cpus_map = list(map(int, cpus_list))
@@ -916,6 +942,7 @@ def bind_cpus(cpus: str, process_name: str, logger: logging.Logger) -> bool:
             return False
         # Export only if success
         os.environ["COMPSS_BINDED_CPUS"] = cpus
+        os.environ["COMPSS_NUM_CPUS"] = str(len(cpus_list))
         return True
 
 
@@ -984,9 +1011,13 @@ def build_compss_exception_message(
     :param job_id: Job identifier.
     :return: Exception message and message.
     """
-    with EventInsideWorker(TRACING_WORKER.build_compss_exception_message_event):
+    with EventInsideWorker(
+        TRACING_WORKER.build_compss_exception_message_event
+    ):
         except_msg = except_msg.replace(" ", "_")
-        message = " ".join((TAGS.compss_exception, str(job_id), str(except_msg) + "\n"))
+        message = " ".join(
+            (TAGS.compss_exception, str(job_id), str(except_msg) + "\n")
+        )
         return except_msg, message
 
 
@@ -998,7 +1029,9 @@ def build_exception_message(job_id: str, exit_value: int) -> str:
     :return: Exception message.
     """
     with EventInsideWorker(TRACING_WORKER.build_exception_message_event):
-        message = " ".join((TAGS.end_task, str(job_id), str(exit_value) + "\n"))
+        message = " ".join(
+            (TAGS.end_task, str(job_id), str(exit_value) + "\n")
+        )
         return message
 
 

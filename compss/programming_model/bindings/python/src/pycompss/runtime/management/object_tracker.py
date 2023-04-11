@@ -134,7 +134,9 @@ class ObjectTracker:
             self._set_obj_name(obj_id, obj_name)
             self.set_pending_to_synchronize(obj_id)
             if __debug__:
-                LOGGER.debug("Tracking object %s to file %s", obj_id, file_name)
+                LOGGER.debug(
+                    "Tracking object %s to file %s", obj_id, file_name
+                )
         address = self._get_object_address(obj)
         self.address_to_obj_id[address] = obj_id
         if self.reporting:
@@ -358,7 +360,9 @@ class ObjectTracker:
 
         raise PyCOMPSsException("Reached unexpected object registry case.")
 
-    def _set_file_name(self, obj_id: str, filename: str, written: bool = False) -> None:
+    def _set_file_name(
+        self, obj_id: str, filename: str, written: bool = False
+    ) -> None:
         """Set a filename for the given object identifier.
 
         :param obj_id: Object identifier.
@@ -378,7 +382,9 @@ class ObjectTracker:
         """
         del self.file_names[obj_id]
 
-    def _set_obj_name(self, obj_id: str, obj_name: typing.Optional[str]) -> None:
+    def _set_obj_name(
+        self, obj_id: str, obj_name: typing.Optional[str]
+    ) -> None:
         """Set the object name for the given object identifier.
 
         :param obj_id: Object identifier.

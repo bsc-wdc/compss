@@ -33,7 +33,9 @@ OPTIONAL_MODULES = {
 }
 
 
-def get_optional_module_warning(module_name: str, module_description: str) -> str:
+def get_optional_module_warning(
+    module_name: str, module_description: str
+) -> str:
     """Get optional modules warning message.
 
     :param module_name: Module name.

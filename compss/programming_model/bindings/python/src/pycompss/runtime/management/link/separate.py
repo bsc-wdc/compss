@@ -90,7 +90,9 @@ class ExternalLink:
         self.reload = False
 
     def establish_interactive_link(
-        self, logger: typing.Optional[logging.Logger] = None, redirect_std: bool = False
+        self,
+        logger: typing.Optional[logging.Logger] = None,
+        redirect_std: bool = False,
     ) -> typing.Tuple[typing.Any, str, str]:
         """Start a new process which will be in charge of communicating with the C-extension.
 
@@ -396,7 +398,13 @@ class _COMPSs:
         :return: The deletion result.
         """
         self.in_queue.put(
-            (LINK_MESSAGES.delete_file, app_id, file_name, mode, application_delete)
+            (
+                LINK_MESSAGES.delete_file,
+                app_id,
+                file_name,
+                mode,
+                application_delete,
+            )
         )
         result = self.out_queue.get(block=True)
         if result is None:
@@ -420,7 +428,9 @@ class _COMPSs:
         :param directory_name: Directory name reference to get.
         :return: None.
         """
-        self.in_queue.put((LINK_MESSAGES.get_directory, app_id, directory_name))
+        self.in_queue.put(
+            (LINK_MESSAGES.get_directory, app_id, directory_name)
+        )
         _ = self.out_queue.get(block=True)
 
     def barrier(self, app_id: int, no_more_tasks: bool) -> None:
@@ -433,7 +443,9 @@ class _COMPSs:
         self.in_queue.put((LINK_MESSAGES.barrier, app_id, no_more_tasks))
         _ = self.out_queue.get(block=True)
 
-    def barrier_group(self, app_id: int, group_name: str) -> typing.Optional[str]:
+    def barrier_group(
+        self, app_id: int, group_name: str
+    ) -> typing.Optional[str]:
         """Call to barrier_group.
 
         :param app_id: Application identifier.
@@ -455,7 +467,12 @@ class _COMPSs:
         :return: None.
         """
         self.in_queue.put(
-            (LINK_MESSAGES.open_task_group, group_name, implicit_barrier, app_id)
+            (
+                LINK_MESSAGES.open_task_group,
+                group_name,
+                implicit_barrier,
+                app_id,
+            )
         )
         _ = self.out_queue.get(block=True)
 
@@ -476,7 +493,9 @@ class _COMPSs:
         :param app_id: Application identifier.
         :return: None.
         """
-        self.in_queue.put((LINK_MESSAGES.cancel_task_group, group_name, app_id))
+        self.in_queue.put(
+            (LINK_MESSAGES.cancel_task_group, group_name, app_id)
+        )
         _ = self.out_queue.get(block=True)
 
     def get_logging_path(self) -> str:
@@ -518,11 +537,18 @@ class _COMPSs:
         :return: None.
         """
         self.in_queue.put(
-            (LINK_MESSAGES.request_resources, app_id, num_resources, group_name)
+            (
+                LINK_MESSAGES.request_resources,
+                app_id,
+                num_resources,
+                group_name,
+            )
         )
         _ = self.out_queue.get(block=True)
 
-    def free_resources(self, app_id: int, num_resources: int, group_name: str) -> None:
+    def free_resources(
+        self, app_id: int, num_resources: int, group_name: str
+    ) -> None:
         """Call to free_resources.
 
         :param app_id: Application identifier.

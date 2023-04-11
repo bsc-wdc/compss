@@ -155,10 +155,15 @@ other
     ), "The sizes of the dictionaries does not match"
     for k, v in jvm_expected_result.items():
         if k not in result:
-            raise PyCOMPSsException("Key: %s is not in the result dictionary" % k)
+            raise PyCOMPSsException(
+                "Key: %s is not in the result dictionary" % k
+            )
         assert (
             v == result[k]
-        ), "The value of key: %s does not match the expected value: %s" % (k, str(v))
+        ), "The value of key: %s does not match the expected value: %s" % (
+            k,
+            str(v),
+        )
     assert (
         result == jvm_expected_result
     ), "The jvm opts file has not been parsed as expected"

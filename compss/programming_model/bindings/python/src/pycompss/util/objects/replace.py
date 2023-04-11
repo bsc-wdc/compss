@@ -100,7 +100,9 @@ def _replace_attribute(
         print("Unknown R_ATTRIBUTE (read-only):", rel, type(source))
 
 
-def _replace_indexval(source: typing.Any, rel: typing.Any, new: typing.Any) -> None:
+def _replace_indexval(
+    source: typing.Any, rel: typing.Any, new: typing.Any
+) -> None:
     if isinstance(source, tuple):
         temp = list(source)
         temp[rel] = new
@@ -109,7 +111,9 @@ def _replace_indexval(source: typing.Any, rel: typing.Any, new: typing.Any) -> N
     source[rel] = new
 
 
-def _replace_indexkey(source: typing.Any, rel: typing.Any, new: typing.Any) -> None:
+def _replace_indexkey(
+    source: typing.Any, rel: typing.Any, new: typing.Any
+) -> None:
     source[new] = source.pop(list(source.keys())[rel])
 
 

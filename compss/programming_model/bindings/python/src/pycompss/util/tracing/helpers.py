@@ -302,7 +302,9 @@ class EventInsideWorker:
         :returns: None.
         """
         if TRACING.is_tracing() and self.emitted:
-            TRACING.get_pyextrae().eventandcounters(TRACING_WORKER.inside_tasks_type, 0)
+            TRACING.get_pyextrae().eventandcounters(
+                TRACING_WORKER.inside_tasks_type, 0
+            )
 
 
 class EventWorkerCache:

@@ -148,7 +148,9 @@ def load_storage_library() -> None:
         :returns: None.
         :raises: PyCOMPSsException: If dummy task context is used.
         """
-        raise PyCOMPSsException(f"Unexpected call to getByID. Reason: {error_msg}")
+        raise PyCOMPSsException(
+            f"Unexpected call to getByID. Reason: {error_msg}"
+        )
 
     try:
         # Try to import the external storage API module methods

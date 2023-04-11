@@ -107,7 +107,9 @@ def file_checker(filename, direction):
     compss_delete_file(filename)
     must_not_exist = compss_file_exists(filename)
     assert must_exist is True, "File %s that must exist not found." % direction
-    assert must_not_exist is False, "File %s that must NOT exist is found." % direction
+    assert must_not_exist is False, (
+        "File %s that must NOT exist is found." % direction
+    )
 
 
 def multiple_file_checker(filenames, directions):
@@ -120,9 +122,9 @@ def multiple_file_checker(filenames, directions):
     must_exist = compss_file_exists(*filenames)
     compss_delete_file(*filenames)
     must_not_exist = compss_file_exists(*filenames)
-    assert all(must_exist), "Multiple files %s that must exist not found." % str(
-        directions
-    )
+    assert all(
+        must_exist
+    ), "Multiple files %s that must exist not found." % str(directions)
     assert not any(
         must_not_exist
     ), "Multiple files %s that must NOT exist is found." % str(directions)
@@ -160,7 +162,9 @@ def files():
         results.append(file_in(fin))
     results = compss_wait_on(results)
     for res in results:
-        assert res == content, "strings are not equal: {}, {}".format(res, content)
+        assert res == content, "strings are not equal: {}, {}".format(
+            res, content
+        )
 
     # Check if file exists:
     multiple_file_checker(fins, "IN")
@@ -388,9 +392,9 @@ def directories():
         )
 
     for res in res_multiple_dirs:
-        assert len(res) == 0, "ERROR in task of phase 0 multiple: {} != {}".format(
-            len(res), 0
-        )
+        assert (
+            len(res) == 0
+        ), "ERROR in task of phase 0 multiple: {} != {}".format(len(res), 0)
 
     for i, res in enumerate(res_phase_1):
         assert len(res) == 5, "ERROR in task #{} of phase 1: {} != 5".format(
@@ -398,9 +402,9 @@ def directories():
         )
 
     for i, res in enumerate(res_phase_2):
-        assert len(res) == i + 5, "ERROR in task #{} of phase 2: {} != {}".format(
-            i, len(res), i + 5
-        )
+        assert (
+            len(res) == i + 5
+        ), "ERROR in task #{} of phase 2: {} != {}".format(i, len(res), i + 5)
 
     for i, res in enumerate(res_phase_3):
         assert len(res) == 10, "ERROR in task #{} of phase 3: {} != 10".format(
@@ -410,7 +414,9 @@ def directories():
     time.sleep(3)  # TODO: Why it is needed a sleep to find the directory?
     assert 1 == len(
         os.listdir(dir_t)
-    ), "Directory has fewer or more files than 1: {}".format(len(os.listdir(dir_t)))
+    ), "Directory has fewer or more files than 1: {}".format(
+        len(os.listdir(dir_t))
+    )
     shutil.rmtree(dir_t)
     compressed_dir = "some_dir_t.zip"
     if os.path.exists(compressed_dir):
@@ -420,7 +426,9 @@ def directories():
     for dir_t in dir_ts:
         assert 1 == len(
             os.listdir(dir_t)
-        ), "Directory has fewer or more files than 1: {}".format(len(os.listdir(dir_t)))
+        ), "Directory has fewer or more files than 1: {}".format(
+            len(os.listdir(dir_t))
+        )
         shutil.rmtree(dir_t)
         compressed_dir = "some_dir_t_" + str(i) + ".zip"
         if os.path.exists(compressed_dir):

@@ -144,7 +144,9 @@ class Context:
         """
         if __debug__:
             return self.who
-        raise PyCOMPSsException("Get who contextualized only works in debug mode.")
+        raise PyCOMPSsException(
+            "Get who contextualized only works in debug mode."
+        )
 
     def is_nesting_enabled(self) -> bool:
         """Check if nesting is enabled.

@@ -135,7 +135,9 @@ def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
     logger, _, _, _ = load_loggers(config.debug, persistent_storage)
 
     if __debug__:
-        logger.debug("%s[mpi_piper_worker.py] rank: %s wake up", HEADER, str(RANK))
+        logger.debug(
+            "%s[mpi_piper_worker.py] rank: %s wake up", HEADER, str(RANK)
+        )
         config.print_on_logger(logger)
 
     # Start storage
@@ -171,21 +173,27 @@ def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
                 in_pipe = line[1]
                 out_pipe = line[2]
                 control_pipe.write(
-                    " ".join((TAGS.add_executor_failed, out_pipe, in_pipe, str(0)))
+                    " ".join(
+                        (TAGS.add_executor_failed, out_pipe, in_pipe, str(0))
+                    )
                 )
 
             elif line[0] == TAGS.remove_executor:
                 in_pipe = line[1]
                 out_pipe = line[2]
                 PROCESSES.pop(in_pipe, None)
-                control_pipe.write(" ".join((TAGS.removed_executor, out_pipe, in_pipe)))
+                control_pipe.write(
+                    " ".join((TAGS.removed_executor, out_pipe, in_pipe))
+                )
 
             elif line[0] == TAGS.query_executor_id:
                 in_pipe = line[1]
                 out_pipe = line[2]
                 pid = PROCESSES.get(in_pipe)
                 control_pipe.write(
-                    " ".join((TAGS.reply_executor_id, out_pipe, in_pipe, str(pid)))
+                    " ".join(
+                        (TAGS.reply_executor_id, out_pipe, in_pipe, str(pid))
+                    )
                 )
 
             elif line[0] == TAGS.cancel_task:
@@ -207,7 +215,9 @@ def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
                 alive = False
             else:
                 if __debug__:
-                    logger.debug("%sERROR: UNKNOWN COMMAND: %s", HEADER, command)
+                    logger.debug(
+                        "%sERROR: UNKNOWN COMMAND: %s", HEADER, command
+                    )
                 alive = False
 
     # Stop storage
@@ -294,7 +304,9 @@ def compss_persistent_executor(
         out_cache_queue,
         cache_profiler,
     )
-    executor(None, None, executor_id, executor_name, config.pipes[RANK - 1], conf)
+    executor(
+        None, None, executor_id, executor_name, config.pipes[RANK - 1], conf
+    )
 
     if persistent_storage:
         # Finish storage
@@ -364,14 +376,20 @@ def main() -> None:
     else:
         with trace_mpi_executor() if tracing else dummy_context():
             compss_persistent_executor(
-                worker_conf, tracing, in_cache_queue, out_cache_queue, cache_ids
+                worker_conf,
+                tracing,
+                in_cache_queue,
+                out_cache_queue,
+                cache_ids,
             )
 
     if cache and is_worker():
         # Beware of smm, in_cache_queue, out_cache_queue and cache_process
         # variables, since they are only initialized when is_worker() and
         # cache is enabled.# Reason for noqa.
-        stop_cache(smm, in_cache_queue, out_cache_queue, cache_profiler, cache_process)
+        stop_cache(
+            smm, in_cache_queue, out_cache_queue, cache_profiler, cache_process
+        )
 
 
 if __name__ == "__main__":

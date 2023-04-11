@@ -174,7 +174,9 @@ class Software(
 
             if CONTEXT.in_worker():
                 self.decorator_arguments.update_arguments(self.parameters)
-                worker = TaskWorker(self.decorator_arguments, self.decorated_function)
+                worker = TaskWorker(
+                    self.decorator_arguments, self.decorated_function
+                )
                 m_result = worker.call(*updated_args, **kwargs)
                 # Force flush stdout and stderr
                 sys.stdout.flush()
@@ -198,7 +200,9 @@ class Software(
             if self.prolog is not None:
                 resolve_fail_by_exit_value(self.prolog, "True")
                 prolog_binary = self.prolog[LABELS.binary]
-                prolog_params = self.prolog.get(LABELS.args, INTERNAL_LABELS.unassigned)
+                prolog_params = self.prolog.get(
+                    LABELS.args, INTERNAL_LABELS.unassigned
+                )
                 prolog_fail_by = self.prolog.get(LABELS.fail_by_exit_value)
                 _prolog = [prolog_binary, prolog_params, prolog_fail_by]
 
@@ -209,7 +213,9 @@ class Software(
             if self.epilog is not None:
                 resolve_fail_by_exit_value(self.epilog, "False")
                 epilog_binary = self.epilog[LABELS.binary]
-                epilog_params = self.epilog.get(LABELS.args, INTERNAL_LABELS.unassigned)
+                epilog_params = self.epilog.get(
+                    LABELS.args, INTERNAL_LABELS.unassigned
+                )
                 epilog_fail_by = self.epilog.get(LABELS.fail_by_exit_value)
                 _epilog = [epilog_binary, epilog_params, epilog_fail_by]
 
@@ -226,7 +232,9 @@ class Software(
                 impl_args = [
                     self.container[LABELS.engine],  # engine
                     self.container[LABELS.image],  # image
-                    self.container.get(LABELS.options, INTERNAL_LABELS.unassigned),
+                    self.container.get(
+                        LABELS.options, INTERNAL_LABELS.unassigned
+                    ),
                     INTERNAL_LABELS.unassigned,  # internal_type
                     INTERNAL_LABELS.unassigned,  # internal_binary
                     INTERNAL_LABELS.unassigned,  # internal_func
@@ -365,7 +373,10 @@ class Software(
         self.replace_param_types()
 
         # send the config file to the worker as well
-        if CONTEXT.in_master() and self.decor in [task.task, multinode.multinode]:
+        if CONTEXT.in_master() and self.decor in [
+            task.task,
+            multinode.multinode,
+        ]:
             self.parameters[LABELS.software_config_file] = parameter.FILE_IN
 
         self.config_args = execution

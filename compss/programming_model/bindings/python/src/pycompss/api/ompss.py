@@ -53,7 +53,10 @@ SUPPORTED_ARGUMENTS = {
     LABELS.binary,
     LABELS.fail_by_exit_value,
 }
-DEPRECATED_ARGUMENTS = {LEGACY_LABELS.computing_nodes, LEGACY_LABELS.working_dir}
+DEPRECATED_ARGUMENTS = {
+    LEGACY_LABELS.computing_nodes,
+    LEGACY_LABELS.working_dir,
+}
 
 
 class OmpSs:  # pylint: disable=too-few-public-methods
@@ -126,7 +129,9 @@ class OmpSs:  # pylint: disable=too-few-public-methods
 
             # Set the computing_nodes variable in kwargs for its usage
             # in @task decorator
-            kwargs[LABELS.computing_nodes] = self.kwargs[LABELS.computing_nodes]
+            kwargs[LABELS.computing_nodes] = self.kwargs[
+                LABELS.computing_nodes
+            ]
 
             with keep_arguments(args, kwargs, prepend_strings=False):
                 # Call the method

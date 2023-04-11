@@ -30,14 +30,20 @@ def dummy_function(*args, **kwargs):  # noqa
 
 def test_http_instantiation():
     CONTEXT.set_master()
-    my_http = http(service_name="service", resource="resource", request="request")
+    my_http = http(
+        service_name="service", resource="resource", request="request"
+    )
     serializer.FORCED_SERIALIZER = -1
-    assert my_http.decorator_name == "@http", "The decorator name must be @http"
+    assert (
+        my_http.decorator_name == "@http"
+    ), "The decorator name must be @http"
 
 
 def test_http_call():
     CONTEXT.set_master()
-    my_http = http(service_name="service", resource="resource", request="request")
+    my_http = http(
+        service_name="service", resource="resource", request="request"
+    )
     f = my_http(dummy_function)
     result = f()
     CONTEXT.set_out_of_scope()
@@ -47,7 +53,9 @@ def test_http_call():
 
 def test_http_call_outside():
     CONTEXT.set_out_of_scope()
-    my_http = http(service_name="service", resource="resource", request="request")
+    my_http = http(
+        service_name="service", resource="resource", request="request"
+    )
     f = my_http(dummy_function)
     _ = f()
     CONTEXT.set_out_of_scope()
@@ -56,7 +64,9 @@ def test_http_call_outside():
 
 def test_http_existing_core_element():
     CONTEXT.set_master()
-    my_http = http(service_name="service", resource="resource", request="request")
+    my_http = http(
+        service_name="service", resource="resource", request="request"
+    )
     f = my_http(dummy_function)
     # a higher level decorator would place the compss core element as follows:
     _ = f(compss_core_element=CE())

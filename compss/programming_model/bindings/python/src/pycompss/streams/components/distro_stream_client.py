@@ -69,7 +69,8 @@ class DistroStreamClientHandler:
 
     @staticmethod
     def init_and_start(
-        master_ip: typing.Optional[str] = None, master_port: typing.Optional[str] = None
+        master_ip: typing.Optional[str] = None,
+        master_port: typing.Optional[str] = None,
     ) -> None:
         """Initialize and starts the client.
 
@@ -121,7 +122,9 @@ class DistroStreamClient(Thread):
     BUFFER_SIZE = 4096
 
     def __init__(
-        self, master_ip: typing.Optional[str], master_port: typing.Optional[str]
+        self,
+        master_ip: typing.Optional[str],
+        master_port: typing.Optional[str],
     ) -> None:
         """Create a new Client associated to the given master properties.
 
@@ -131,7 +134,9 @@ class DistroStreamClient(Thread):
         super().__init__()
 
         if __debug__:
-            logger.info("Initializing DS Client on %s:%s", master_ip, master_port)
+            logger.info(
+                "Initializing DS Client on %s:%s", master_ip, master_port
+            )
 
         # Register information
         self.master_ip = master_ip
@@ -198,7 +203,11 @@ class DistroStreamClient(Thread):
             answer = chunk
             if __debug__:
                 logger.debug("Received answer from server: %s", str(answer))
-            while chunk is not None and chunk and not chunk.endswith("\n".encode()):
+            while (
+                chunk is not None
+                and chunk
+                and not chunk.endswith("\n".encode())
+            ):
                 if __debug__:
                     logger.debug(
                         "Received chunk answer from server with size = %s",
@@ -209,12 +218,15 @@ class DistroStreamClient(Thread):
                     answer = answer + chunk
             answer_str = answer.decode(encoding="UTF-8").strip()
             if __debug__:
-                logger.debug("Received answer from server: %s", str(answer_str))
+                logger.debug(
+                    "Received answer from server: %s", str(answer_str)
+                )
             req.set_response(answer_str)
         except Exception as general_exception:  # pylint: disable=broad-except
             if __debug__:
                 logger.error(
-                    "ERROR: Cannot process request \n %s", str(general_exception)
+                    "ERROR: Cannot process request \n %s",
+                    str(general_exception),
                 )
             # Some error occurred, mark request as failed and keep going
             req.set_error(1, str(general_exception))
@@ -226,5 +238,7 @@ class DistroStreamClient(Thread):
         :return: None.
         """
         if __debug__:
-            logger.debug("Adding new request to client queue: %s", str(req.get_type()))
+            logger.debug(
+                "Adding new request to client queue: %s", str(req.get_type())
+            )
         self.requests.put(req, block=True)

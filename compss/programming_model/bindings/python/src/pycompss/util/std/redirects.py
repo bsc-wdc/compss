@@ -55,7 +55,9 @@ def not_std_redirector() -> typing.Iterator[None]:
 
 
 @contextmanager
-def std_redirector(out_filename: str, err_filename: str) -> typing.Iterator[None]:
+def std_redirector(
+    out_filename: str, err_filename: str
+) -> typing.Iterator[None]:
     """Stdout and stderr redirector to the given out and err file names.
 
     :param out_filename: Output file filename (where to redirect stdout)

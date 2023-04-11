@@ -30,7 +30,9 @@ def dummy_function(*args, **kwargs):  # noqa
 def test_epilog_instantiation():
     CONTEXT.set_master()
     my_epilog = epilog(binary="date")
-    assert my_epilog.decorator_name == "@epilog", "The decorator name must be @epilog"
+    assert (
+        my_epilog.decorator_name == "@epilog"
+    ), "The decorator name must be @epilog"
 
 
 def test_epilog_call():

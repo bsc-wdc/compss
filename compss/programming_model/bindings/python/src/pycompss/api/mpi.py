@@ -230,7 +230,12 @@ class Mpi:  # pylint: disable=too-few-public-methods
                     msg = "Error: collection_layout must contain block_count!"
                     raise PyCOMPSsException(msg)
                 layout_params.extend(
-                    [param_name, str(block_count), str(block_length), str(stride)]
+                    [
+                        param_name,
+                        str(block_count),
+                        str(block_length),
+                        str(stride),
+                    ]
                 )
         layout_params.insert(0, str(num_layouts))
         return layout_params
@@ -293,7 +298,9 @@ class Mpi:  # pylint: disable=too-few-public-methods
         if LABELS.flags in self.kwargs:
             flags = self.kwargs[LABELS.flags]
         else:
-            flags = INTERNAL_LABELS.unassigned  # Empty or INTERNAL_LABELS.unassigned
+            flags = (
+                INTERNAL_LABELS.unassigned
+            )  # Empty or INTERNAL_LABELS.unassigned
 
         # Check if scale by cu is defined
         scale_by_cu_str = self.__resolve_scale_by_cu__()

@@ -56,11 +56,17 @@ def check_arguments(
     """
     decorator_str = f"{decorator} decorator"
     # Look for mandatory arguments
-    check_mandatory_arguments(mandatory_arguments, argument_names, decorator_str)
+    check_mandatory_arguments(
+        mandatory_arguments, argument_names, decorator_str
+    )
     # Look for deprecated arguments
-    __check_deprecated_arguments__(deprecated_arguments, argument_names, decorator_str)
+    __check_deprecated_arguments__(
+        deprecated_arguments, argument_names, decorator_str
+    )
     # Look for unexpected arguments
-    __check_unexpected_arguments__(supported_arguments, argument_names, decorator_str)
+    __check_unexpected_arguments__(
+        supported_arguments, argument_names, decorator_str
+    )
 
 
 def check_mandatory_arguments(
@@ -164,9 +170,7 @@ def __check_unexpected_arguments__(
     """
     for argument in argument_names:
         if argument not in supported_arguments:
-            message = (
-                f"WARNING: Unexpected argument: {str(argument)} Found in {str(where)}."
-            )
+            message = f"WARNING: Unexpected argument: {str(argument)} Found in {str(where)}."
             # The print through stdout is disabled to prevent the message to
             # appear twice in the console. So the warning message will only
             # appear in STDERR.

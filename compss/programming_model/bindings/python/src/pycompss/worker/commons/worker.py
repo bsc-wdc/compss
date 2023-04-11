@@ -167,7 +167,9 @@ def build_task_parameter(
                         try:
                             # try to recover the real object
                             # Convert bytes-string to actual bytes
-                            p_bin = bytes(new_aux[2:-1].encode("raw_unicode_escape"))
+                            p_bin = bytes(
+                                new_aux[2:-1].encode("raw_unicode_escape")
+                            )
                             deserialized_aux = pickle.loads(p_bin)
                             p_type = parameter.TYPE.OBJECT
                         except (
@@ -240,7 +242,9 @@ def build_task_parameter(
     )
 
 
-def get_task_params(num_params: int, logger: logging.Logger, args: list) -> list:
+def get_task_params(
+    num_params: int, logger: logging.Logger, args: list
+) -> list:
     """Get and prepare the input parameters from string to lists.
 
     :param num_params: Number of parameters.
@@ -273,11 +277,21 @@ def get_task_params(num_params: int, logger: logging.Logger, args: list) -> list
                     logger.debug("\t * Value: %r", p_value)
 
             task_param, offset = build_task_parameter(
-                p_type, p_stream, p_prefix, p_name, p_value, p_c_type, args, pos, logger
+                p_type,
+                p_stream,
+                p_prefix,
+                p_name,
+                p_value,
+                p_c_type,
+                args,
+                pos,
+                logger,
             )
 
             if __debug__:
-                logger.debug("\t * Updated type : %s", str(task_param.content_type))
+                logger.debug(
+                    "\t * Updated type : %s", str(task_param.content_type)
+                )
 
             ret.append(task_param)
             pos += offset + 6
@@ -329,7 +343,9 @@ def task_execution(
         # Alternatively, the after the execution we have the information
         # since the @task decorator has been able to extract it.
         # Then it is updated into the TaskContext.values before __exit__.
-        task_context = TaskContext(logger, values, config_file_path=storage_conf)
+        task_context = TaskContext(
+            logger, values, config_file_path=storage_conf
+        )
 
     try:
         # WARNING: the following call will not work if a user decorator
@@ -352,7 +368,9 @@ def task_execution(
             *values, compss_types=types, logger=logger, **compss_kwargs
         )
     except TimeOutError:
-        logger.exception("TIMEOUT ERROR IN %s - Time Out Exception", process_name)
+        logger.exception(
+            "TIMEOUT ERROR IN %s - Time Out Exception", process_name
+        )
         logger.exception("Task has taken too much time to process")
         new_values = _get_return_values_for_exception(types, values)
         return task_returns(3, types, new_values, None, True, "", logger)
@@ -362,7 +380,9 @@ def task_execution(
         if compss_exception.message is not None:
             return_message = compss_exception.message
         new_values = _get_return_values_for_exception(types, values)
-        return task_returns(2, types, new_values, None, False, return_message, logger)
+        return task_returns(
+            2, types, new_values, None, False, return_message, logger
+        )
     except AttributeError:
         # Appears with functions that have not been well defined.
         exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -414,7 +434,9 @@ def task_execution(
     # Clean objects
     del updated_args
 
-    return task_returns(0, new_types, new_values, target_direction, False, "", logger)
+    return task_returns(
+        0, new_types, new_values, target_direction, False, "", logger
+    )
 
 
 def _get_return_values_for_exception(types: list, values: list) -> list:
@@ -572,7 +594,12 @@ def execute_task(
         "compss_log_files": log_files,
         "compss_python_MPI": python_mpi,
         "compss_collections_layouts": collections_layouts,
-        "compss_cache": (in_cache_queue, out_cache_queue, cache_ids, cache_profiler),
+        "compss_cache": (
+            in_cache_queue,
+            out_cache_queue,
+            cache_ids,
+            cache_profiler,
+        ),
     }
 
     if __debug__:
@@ -669,14 +696,20 @@ def execute_task(
             klass = getattr(module, class_name)
         except Exception:  # pylint: disable=broad-except
             exc_type, exc_value, exc_traceback = sys.exc_info()
-            lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-            exception_message = f"EXCEPTION IMPORTING MODULE IN {process_name}\n"
+            lines = traceback.format_exception(
+                exc_type, exc_value, exc_traceback
+            )
+            exception_message = (
+                f"EXCEPTION IMPORTING MODULE IN {process_name}\n"
+            )
             exception_message += "".join(line for line in lines)
             logger.exception(exception_message)
             return 1, [], [], None, exception_message
 
         if __debug__:
-            logger.debug("Method in class %s of module %s", class_name, module_name)
+            logger.debug(
+                "Method in class %s of module %s", class_name, module_name
+            )
             logger.debug("Has target: %s", str(has_target))
 
         if has_target == "true":
@@ -718,7 +751,8 @@ def execute_task(
                         return 1, [], [], None, exception_message
                     if __debug__:
                         logger.debug(
-                            "Deserialized self object is: %s", self_elem.content
+                            "Deserialized self object is: %s",
+                            self_elem.content,
                         )
                         logger.debug(
                             "Processing callee, a hidden object of %s in file %s",

@@ -64,7 +64,9 @@ class ODSPublisher:
         from kafka import KafkaProducer
 
         bootstrap_server_info = str(bootstrap_server).split(":")
-        bootstrap_server_ip = str(socket.gethostbyname(bootstrap_server_info[0]))
+        bootstrap_server_ip = str(
+            socket.gethostbyname(bootstrap_server_info[0])
+        )
         bootstrap_server_port = str(bootstrap_server_info[1])
         self.kafka_producer = KafkaProducer(
             bootstrap_servers=f"{bootstrap_server_ip}:{bootstrap_server_port}",
@@ -126,7 +128,9 @@ class ODSConsumer:
             + type: KafkaConsumer
     """
 
-    def __init__(self, bootstrap_server: str, topic: str, access_mode: str) -> None:
+    def __init__(
+        self, bootstrap_server: str, topic: str, access_mode: str
+    ) -> None:
         """Create a new ODSConsumer instance.
 
         :param bootstrap_server: Associated boostrap server.
@@ -199,6 +203,8 @@ class ODSConsumer:
                     )
 
         if __debug__:
-            logger.debug("DONE Polling Messages (%s elements)", str(len(new_messages)))
+            logger.debug(
+                "DONE Polling Messages (%s elements)", str(len(new_messages))
+            )
 
         return new_messages

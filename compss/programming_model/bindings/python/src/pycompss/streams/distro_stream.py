@@ -200,7 +200,10 @@ class DistroStreamImpl(DistroStream):
 
         # Retrieve registration id
         req = RegisterStreamRequest(
-            self.alias, self.stream_type, self.access_mode, internal_stream_info
+            self.alias,
+            self.stream_type,
+            self.access_mode,
+            internal_stream_info,
         )
         DistroStreamClientHandler.request(req)
 
@@ -343,7 +346,9 @@ class FileDistroStream(DistroStreamImpl):
         :return: None.
         """
         if __debug__:
-            logger.warning("WARN: Unnecessary call on publish on FileDistroStream")
+            logger.warning(
+                "WARN: Unnecessary call on publish on FileDistroStream"
+            )
 
     def publish_list(self, messages: list) -> None:
         """Publish a list of messages.
@@ -354,7 +359,9 @@ class FileDistroStream(DistroStreamImpl):
         :return: None.
         """
         if __debug__:
-            logger.warning("WARN: Unnecessary call on publish on FileDistroStream")
+            logger.warning(
+                "WARN: Unnecessary call on publish on FileDistroStream"
+            )
 
     def poll(self, timeout: int = 0) -> list:
         """Poll the stream.
@@ -408,7 +415,9 @@ class ObjectDistroStream(DistroStreamImpl):
     DEFAULT_KAFKA_TIMEOUT = 200  # ms
 
     def __init__(
-        self, alias: typing.Optional[str] = None, access_mode: str = AT_MOST_ONCE
+        self,
+        alias: typing.Optional[str] = None,
+        access_mode: str = AT_MOST_ONCE,
     ) -> None:
         """Create a new ObjectDistroStream instance.
 
@@ -426,7 +435,9 @@ class ObjectDistroStream(DistroStreamImpl):
         self.kafka_topic_name = alias
         if alias != "":
             self.kafka_topic_name = (
-                ObjectDistroStream.TOPIC_REGULAR_MESSAGES_PREFIX + "-" + self.id
+                ObjectDistroStream.TOPIC_REGULAR_MESSAGES_PREFIX
+                + "-"
+                + self.id
             )  # noqa: E501
 
         self.bootstrap_server = "None"  # type: str
@@ -651,7 +662,9 @@ class RegistrationException(Exception):
     """Registration exception class."""
 
     def __init__(
-        self, code: typing.Optional[int] = None, message: typing.Optional[str] = None
+        self,
+        code: typing.Optional[int] = None,
+        message: typing.Optional[str] = None,
     ) -> None:
         """Create a new RegistrationException instance.
 
@@ -679,7 +692,9 @@ class BackendException(Exception):
     """Backend exception class."""
 
     def __init__(
-        self, code: typing.Optional[int] = None, message: typing.Optional[str] = None
+        self,
+        code: typing.Optional[int] = None,
+        message: typing.Optional[str] = None,
     ) -> None:
         """Create a new BackendException instance.
 

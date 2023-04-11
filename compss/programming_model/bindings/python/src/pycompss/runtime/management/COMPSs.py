@@ -25,7 +25,9 @@ Loads the external C module.
 """
 
 import logging
-from pycompss.runtime.management.link.separate import establish_interactive_link
+from pycompss.runtime.management.link.separate import (
+    establish_interactive_link,
+)
 from pycompss.runtime.management.link.direct import establish_link
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.typing_helper import typing
@@ -178,7 +180,9 @@ class COMPSsModule:
         :param application_delete: Application delete.
         :return: The deletion result.
         """
-        result = self.compss.delete_file(app_id, file_name, mode, application_delete)
+        result = self.compss.delete_file(
+            app_id, file_name, mode, application_delete
+        )
         if result is None:
             return False
         return result
@@ -291,7 +295,9 @@ class COMPSsModule:
         """
         self.compss.request_resources(app_id, num_resources, group_name)
 
-    def free_resources(self, app_id: int, num_resources: int, group_name: str) -> None:
+    def free_resources(
+        self, app_id: int, num_resources: int, group_name: str
+    ) -> None:
         """Call to free_resources.
 
         :param app_id: Application identifier.

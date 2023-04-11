@@ -30,7 +30,9 @@ def dummy_function(*args, **kwargs):  # noqa
 def test_prolog_instantiation():
     CONTEXT.set_master()
     my_prolog = prolog(binary="date")
-    assert my_prolog.decorator_name == "@prolog", "The decorator name must be @prolog"
+    assert (
+        my_prolog.decorator_name == "@prolog"
+    ), "The decorator name must be @prolog"
 
 
 def test_prolog_call():

@@ -87,13 +87,19 @@ def executor(process_name: str, command: str) -> None:
     worker_path = os.path.dirname(os.path.realpath(__file__))
     if log_level in ("true", "debug"):
         # Debug
-        log_json = "".join((worker_path, "/../../../log/logging_mpi_worker_debug.json"))
+        log_json = "".join(
+            (worker_path, "/../../../log/logging_mpi_worker_debug.json")
+        )
     elif log_level == "info":
         # Info
-        log_json = "".join((worker_path, "/../../../log/logging_mpi_worker_info.json"))
+        log_json = "".join(
+            (worker_path, "/../../../log/logging_mpi_worker_info.json")
+        )
     else:
         # Default (off)
-        log_json = "".join((worker_path, "/../../../log/logging_mpi_worker_off.json"))
+        log_json = "".join(
+            (worker_path, "/../../../log/logging_mpi_worker_off.json")
+        )
     init_logging_worker(log_json, tracing)
 
     logger = logging.getLogger("pycompss.worker.external.mpi_executor")
@@ -101,12 +107,16 @@ def executor(process_name: str, command: str) -> None:
     logger_level = logger.getEffectiveLevel()
     try:
         lh0_formatter = logger_handlers[0].formatter  # type: typing.Any
-        logger_formatter = logging.Formatter(lh0_formatter._fmt)  # type: typing.Any
+        logger_formatter = logging.Formatter(
+            lh0_formatter._fmt
+        )  # type: typing.Any
     except IndexError:
         logger_formatter = None
 
     if __debug__:
-        logger.debug("[PYTHON EXECUTOR] [%s] Starting process", str(process_name))
+        logger.debug(
+            "[PYTHON EXECUTOR] [%s] Starting process", str(process_name)
+        )
 
     sig, _ = process_task(
         command,
@@ -126,7 +136,9 @@ def executor(process_name: str, command: str) -> None:
     sys.stdout.flush()
     sys.stderr.flush()
     if __debug__:
-        logger.debug("[PYTHON EXECUTOR] [%s] Exiting process ", str(process_name))
+        logger.debug(
+            "[PYTHON EXECUTOR] [%s] Exiting process ", str(process_name)
+        )
     if sig != 0:
         sys.exit(sig)
 
@@ -266,9 +278,13 @@ def process_task(
                 os.environ["OMP_NUM_THREADS"] = str(computing_units)
                 if __debug__:
                     logger.debug("Process environment:")
-                    logger.debug("\t - Number of nodes: %s", (str(compss_nodes)))
+                    logger.debug(
+                        "\t - Number of nodes: %s", (str(compss_nodes))
+                    )
                     logger.debug("\t - Hostnames: %s", str(compss_nodes_names))
-                    logger.debug("\t - Number of threads: %s", (str(computing_units)))
+                    logger.debug(
+                        "\t - Number of threads: %s", (str(computing_units))
+                    )
 
                 # Execute task
                 storage_conf = "null"
@@ -321,7 +337,11 @@ def process_task(
                     # compssExceptionTask jobId exitValue message
                     except_msg = except_msg.replace(" ", "_")
                     message = " ".join(
-                        (TAGS.compss_exception, str(job_id), str(except_msg) + "\n")
+                        (
+                            TAGS.compss_exception,
+                            str(job_id),
+                            str(except_msg) + "\n",
+                        )
                     )
                     if __debug__:
                         logger.debug(
@@ -338,7 +358,9 @@ def process_task(
 
                 if __debug__:
                     logger.debug(
-                        "%s - END TASK MESSAGE: %s", str(process_name), str(message)
+                        "%s - END TASK MESSAGE: %s",
+                        str(process_name),
+                        str(message),
                     )
                 # The return message is:
                 #
@@ -363,12 +385,18 @@ def process_task(
                 # returns the id, the runtime can change the type (and locations)
                 # to a EXTERNAL_OBJ_T.
 
-            except Exception as general_exception:  # pylint: disable=broad-except
+            except (
+                Exception
+            ) as general_exception:  # pylint: disable=broad-except
                 logger.exception(
-                    "%s - Exception %s", str(process_name), str(general_exception)
+                    "%s - Exception %s",
+                    str(process_name),
+                    str(general_exception),
                 )
                 exit_value = 7
-                message = " ".join((TAGS.end_task, str(job_id), str(exit_value) + "\n"))
+                message = " ".join(
+                    (TAGS.end_task, str(job_id), str(exit_value) + "\n")
+                )
 
             # Clean environment variables
             if __debug__:
@@ -401,7 +429,9 @@ def process_task(
                     str(current_line_filtered),
                 )
             exit_value = 7
-            message = " ".join((TAGS.end_task, str(job_id), str(exit_value) + "\n"))
+            message = " ".join(
+                (TAGS.end_task, str(job_id), str(exit_value) + "\n")
+            )
 
         # Go back to initial current working directory
         os.chdir(current_working_dir)

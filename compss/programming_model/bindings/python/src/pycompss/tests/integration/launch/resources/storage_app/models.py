@@ -34,7 +34,9 @@ def update_file(obj):
     :returns: None
     """
     if obj.getID() is not None:
-        storage_path = "/tmp/PSCO/" + str(socket.gethostname()) + "/"  # NOSONAR
+        storage_path = (
+            "/tmp/PSCO/" + str(socket.gethostname()) + "/"
+        )  # NOSONAR
         serialize_to_file(obj, storage_path + obj.getID() + ".PSCO")
 
 

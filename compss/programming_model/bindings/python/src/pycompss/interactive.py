@@ -35,7 +35,9 @@ from pycompss.runtime.binding import get_tmp_path
 from pycompss.runtime.commons import CONSTANTS
 from pycompss.runtime.commons import GLOBALS
 from pycompss.runtime.start.initialization import LAUNCH_STATUS
-from pycompss.runtime.start.interactive_initialization import EXTRA_LAUNCH_STATUS
+from pycompss.runtime.start.interactive_initialization import (
+    EXTRA_LAUNCH_STATUS,
+)
 from pycompss.runtime.management.classes import Future
 from pycompss.runtime.management.object_tracker import OT
 
@@ -278,7 +280,9 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
     # Let the Python binding know we are at master
     CONTEXT.set_master()
     # Then we can import the appropriate start and stop functions from the API
-    from pycompss.api.api import compss_start  # pylint: disable=import-outside-toplevel
+    from pycompss.api.api import (
+        compss_start,
+    )  # pylint: disable=import-outside-toplevel
 
     ##############################################################
     # INITIALIZATION
@@ -367,17 +371,29 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
     if CONSTANTS.running_in_supercomputer:
         updated_vars = updated_variables_in_sc()
         if verbose:
-            print(f"- Overridden project xml with: {updated_vars['project_xml']}")
-            print(f"- Overridden resources xml with: {updated_vars['resources_xml']}")
-            print(f"- Overridden master name with: {updated_vars['master_name']}")
-            print(f"- Overridden master port with: {updated_vars['master_port']}")
+            print(
+                f"- Overridden project xml with: {updated_vars['project_xml']}"
+            )
+            print(
+                f"- Overridden resources xml with: {updated_vars['resources_xml']}"
+            )
+            print(
+                f"- Overridden master name with: {updated_vars['master_name']}"
+            )
+            print(
+                f"- Overridden master port with: {updated_vars['master_port']}"
+            )
             print(f"- Overridden uuid with: {updated_vars['uuid']}")
             print(f"- Overridden log dir with: {updated_vars['log_dir']}")
             print(
                 f"- Overridden master working dir with: {updated_vars['master_working_dir']}"
             )
-            print(f"- Overridden storage conf with: {updated_vars['storage_conf']}")
-            print(f"- Overridden log level with: {str(updated_vars['log_level'])}")
+            print(
+                f"- Overridden storage conf with: {updated_vars['storage_conf']}"
+            )
+            print(
+                f"- Overridden log level with: {str(updated_vars['log_level'])}"
+            )
             print(f"- Overridden debug with: {str(updated_vars['debug'])}")
             print(f"- Overridden trace with: {str(updated_vars['trace'])}")
         all_vars.update(updated_vars)
@@ -474,28 +490,64 @@ def __show_flower__() -> None:
     """
     line_separator = EXTRA_LAUNCH_STATUS.get_line_separator()
     print(line_separator)  # NOSONAR # noqa
-    print(r"**************** PyCOMPSs Interactive ******************")  # NOSONAR # noqa
+    print(
+        r"**************** PyCOMPSs Interactive ******************"
+    )  # NOSONAR # noqa
     print(line_separator)  # NOSONAR # noqa
-    print(r"*          .-~~-.--.           ______         ___      *")  # NOSONAR # noqa
-    print(r"*         :         )         |____  \       /   |     *")  # NOSONAR # noqa
-    print(r"*   .~ ~ -.\       /.- ~~ .      __) |      /_/| |     *")  # NOSONAR # noqa
-    print(r"*   >       `.   .'       <     |__  |         | |     *")  # NOSONAR # noqa
-    print(r"*  (         .- -.         )   ____) |   _     | |     *")  # NOSONAR # noqa
-    print(r"*   `- -.-~  `- -'  ~-.- -'   |______/  |_|    |_|     *")  # NOSONAR # noqa
-    print(r"*     (        :        )           _ _ .-:            *")  # NOSONAR # noqa
-    print(r"*      ~--.    :    .--~        .-~  .-~  }            *")  # NOSONAR # noqa
-    print(r"*          ~-.-^-.-~ \_      .~  .-~   .~              *")  # NOSONAR # noqa
-    print(r"*                   \ \ '     \ '_ _ -~                *")  # NOSONAR # noqa
-    print(r"*                    \`.\`.    //                      *")  # NOSONAR # noqa
-    print(r"*           . - ~ ~-.__\`.\`-.//                       *")  # NOSONAR # noqa
-    print(r"*       .-~   . - ~  }~ ~ ~-.~-.                       *")  # NOSONAR # noqa
-    print(r"*     .' .-~      .-~       :/~-.~-./:                 *")  # NOSONAR # noqa
-    print(r"*    /_~_ _ . - ~                 ~-.~-._              *")  # NOSONAR # noqa
-    print(r"*                                     ~-.<             *")  # NOSONAR # noqa
+    print(
+        r"*          .-~~-.--.           ______         ___      *"
+    )  # NOSONAR # noqa
+    print(
+        r"*         :         )         |____  \       /   |     *"
+    )  # NOSONAR # noqa
+    print(
+        r"*   .~ ~ -.\       /.- ~~ .      __) |      /_/| |     *"
+    )  # NOSONAR # noqa
+    print(
+        r"*   >       `.   .'       <     |__  |         | |     *"
+    )  # NOSONAR # noqa
+    print(
+        r"*  (         .- -.         )   ____) |   _     | |     *"
+    )  # NOSONAR # noqa
+    print(
+        r"*   `- -.-~  `- -'  ~-.- -'   |______/  |_|    |_|     *"
+    )  # NOSONAR # noqa
+    print(
+        r"*     (        :        )           _ _ .-:            *"
+    )  # NOSONAR # noqa
+    print(
+        r"*      ~--.    :    .--~        .-~  .-~  }            *"
+    )  # NOSONAR # noqa
+    print(
+        r"*          ~-.-^-.-~ \_      .~  .-~   .~              *"
+    )  # NOSONAR # noqa
+    print(
+        r"*                   \ \ '     \ '_ _ -~                *"
+    )  # NOSONAR # noqa
+    print(
+        r"*                    \`.\`.    //                      *"
+    )  # NOSONAR # noqa
+    print(
+        r"*           . - ~ ~-.__\`.\`-.//                       *"
+    )  # NOSONAR # noqa
+    print(
+        r"*       .-~   . - ~  }~ ~ ~-.~-.                       *"
+    )  # NOSONAR # noqa
+    print(
+        r"*     .' .-~      .-~       :/~-.~-./:                 *"
+    )  # NOSONAR # noqa
+    print(
+        r"*    /_~_ _ . - ~                 ~-.~-._              *"
+    )  # NOSONAR # noqa
+    print(
+        r"*                                     ~-.<             *"
+    )  # NOSONAR # noqa
     print(line_separator)  # NOSONAR # noqa
 
 
-def __print_setup__(verbose: bool, all_vars: typing.Dict[str, typing.Any]) -> None:
+def __print_setup__(
+    verbose: bool, all_vars: typing.Dict[str, typing.Any]
+) -> None:
     """Print the setup variables through stdout (only if verbose is True).
 
     :param verbose: Verbose mode [True | False]
@@ -530,7 +582,9 @@ def stop(sync: bool = False, _hard_stop: bool = False) -> None:
     if not CONTEXT.in_pycompss():
         return __hard_stop__(interactive_helpers.DEBUG, sync, logger, ipython)
 
-    from pycompss.api.api import compss_stop  # pylint: disable=import-outside-toplevel
+    from pycompss.api.api import (
+        compss_stop,
+    )  # pylint: disable=import-outside-toplevel
 
     line_separator = EXTRA_LAUNCH_STATUS.get_line_separator()
     print(line_separator)
@@ -578,21 +632,31 @@ def stop(sync: bool = False, _hard_stop: bool = False) -> None:
                     new_obj_k = compss_wait_on(obj_k)
                     if new_obj_k == obj_k:
                         print(f"\t - Could not retrieve object: {str(k)}")
-                        logger.debug("\t - Could not retrieve object: %s", str(k))
+                        logger.debug(
+                            "\t - Could not retrieve object: %s", str(k)
+                        )
                     else:
                         ipython.__dict__["user_ns"][k] = new_obj_k
                 elif k not in reserved_names:
                     try:
                         if OT.is_pending_to_synchronize(obj_k):
                             print(f"Found an object to synchronize: {str(k)}")
-                            logger.debug("Found an object to synchronize: %s", str(k))
-                            ipython.__dict__["user_ns"][k] = compss_wait_on(obj_k)
+                            logger.debug(
+                                "Found an object to synchronize: %s", str(k)
+                            )
+                            ipython.__dict__["user_ns"][k] = compss_wait_on(
+                                obj_k
+                            )
                     except TypeError:
                         # Unhashable type: List - could be a collection
                         if isinstance(obj_k, list):
                             print(f"Found a list to synchronize: {str(k)}")
-                            logger.debug("Found a list to synchronize: %s", str(k))
-                            ipython.__dict__["user_ns"][k] = compss_wait_on(obj_k)
+                            logger.debug(
+                                "Found a list to synchronize: %s", str(k)
+                            )
+                            ipython.__dict__["user_ns"][k] = compss_wait_on(
+                                obj_k
+                            )
     else:
         print("Warning: some of the variables used with PyCOMPSs may")
         print("         have not been brought to the master.")

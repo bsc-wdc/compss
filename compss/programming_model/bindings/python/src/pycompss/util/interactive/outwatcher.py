@@ -108,7 +108,8 @@ class StdWatcher:
             self.running = True
             out_file_name, err_file_name = COMPSs.get_redirection_file_names()
             thread = threading.Thread(
-                target=self.__std_follower__, args=(out_file_name, err_file_name)
+                target=self.__std_follower__,
+                args=(out_file_name, err_file_name),
             )
             thread.start()
         else:

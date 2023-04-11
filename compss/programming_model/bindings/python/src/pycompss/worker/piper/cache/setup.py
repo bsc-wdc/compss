@@ -91,9 +91,11 @@ def start_cache(
         log_dir,
         cache_profiler,
     )
-    cache_process, in_cache_queue, out_cache_queue = __create_cache_manager_process__(
-        "cache_tracker", conf
-    )
+    (
+        cache_process,
+        in_cache_queue,
+        out_cache_queue,
+    ) = __create_cache_manager_process__("cache_tracker", conf)
     return smm, cache_process, in_cache_queue, out_cache_queue, cache_ids
 
 
@@ -116,7 +118,9 @@ def stop_cache(
     if cache_profiler:
         message = CacheQueueMessage(action="END_PROFILING")
         in_cache_queue.put(message)
-    __destroy_cache_tracker_process__(cache_process, in_cache_queue, out_cache_queue)
+    __destroy_cache_tracker_process__(
+        cache_process, in_cache_queue, out_cache_queue
+    )
     CACHE_TRACKER.stop_shared_memory_manager(shared_memory_manager)
 
 
@@ -152,7 +156,9 @@ def __get_default_cache_size__() -> int:
     with open("/proc/meminfo") as meminfo_fd:
         full_meminfo = meminfo_fd.readlines()
 
-    mem_info = dict((i.split()[0].rstrip(":"), int(i.split()[1])) for i in full_meminfo)
+    mem_info = dict(
+        (i.split()[0].rstrip(":"), int(i.split()[1])) for i in full_meminfo
+    )
     cache_size = int(mem_info["MemTotal"] * 1024 / 4)
     return cache_size
 

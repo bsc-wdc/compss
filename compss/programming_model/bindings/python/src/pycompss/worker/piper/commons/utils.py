@@ -124,6 +124,10 @@ class PiperWorkerConfiguration:
             logger.debug(HEADER + "                 * " + str(pipe))
         logger.debug(HEADER + "Storage conf.  : " + str(self.storage_conf))
         logger.debug(HEADER + "Stream backend : " + str(self.stream_backend))
-        logger.debug(HEADER + "Stream master  : " + str(self.stream_master_name))
-        logger.debug(HEADER + "Stream port    : " + str(self.stream_master_port))
+        logger.debug(
+            HEADER + "Stream master  : " + str(self.stream_master_name)
+        )
+        logger.debug(
+            HEADER + "Stream port    : " + str(self.stream_master_port)
+        )
         logger.debug(HEADER + "-----------------------------")

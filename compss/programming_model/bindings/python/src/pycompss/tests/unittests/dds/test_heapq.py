@@ -45,13 +45,21 @@ def test_heapq_reverse():
 
 def test_heapq_key():
     result = list(
-        merge([["dog", "horse"], ["cat", "fish", "kangaroo"]], key=len, reverse=False)
+        merge(
+            [["dog", "horse"], ["cat", "fish", "kangaroo"]],
+            key=len,
+            reverse=False,
+        )
     )
     assert result == ["dog", "cat", "fish", "horse", "kangaroo"], GENERIC_ERROR
 
 
 def test_heapq_key_reversed():
     result = list(
-        merge([["dog", "horse"], ["cat", "fish", "kangaroo"]], key=len, reverse=True)
+        merge(
+            [["dog", "horse"], ["cat", "fish", "kangaroo"]],
+            key=len,
+            reverse=True,
+        )
     )
     assert result == ["dog", "horse", "cat", "fish", "kangaroo"], GENERIC_ERROR

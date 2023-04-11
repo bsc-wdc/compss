@@ -50,7 +50,10 @@ CP = None  # type: typing.Any
 
 
 def cache_manager(
-    in_queue: Queue, out_queue: Queue, process_name: str, conf: CacheTrackerConf
+    in_queue: Queue,
+    out_queue: Queue,
+    process_name: str,
+    conf: CacheTrackerConf
 ) -> None:
     """Process main body.
 
@@ -62,7 +65,8 @@ def cache_manager(
     """
     # First thing to do is to emit the process identifier event
     emit_manual_event_explicit(
-        TRACING_WORKER.process_identifier, TRACING_WORKER.process_worker_cache_event
+        TRACING_WORKER.process_identifier,
+        TRACING_WORKER.process_worker_cache_event,
     )
 
     # Process properties
@@ -95,7 +99,9 @@ def cache_manager(
 
     if __debug__:
         logger.debug(
-            "%s [%s] Starting Cache Manager", CACHE_MANAGER_HEADER, str(process_name)
+            "%s [%s] Starting Cache Manager",
+            CACHE_MANAGER_HEADER,
+            str(process_name),
         )
 
     # MAIN CACHE TRACKER LOOP
@@ -143,13 +149,19 @@ def cache_manager(
                     )
                 alive = False
         elif action == "END_PROFILING":
-            with EventWorkerCache(TRACING_WORKER_CACHE.cache_msg_end_profiling_event):
+            with EventWorkerCache(
+                TRACING_WORKER_CACHE.cache_msg_end_profiling_event
+            ):
                 if cache_profiler:
-                    profiler_print_message(profiler_dict, profiler_get_struct, log_dir)
+                    profiler_print_message(
+                        profiler_dict, profiler_get_struct, log_dir
+                    )
         else:
             try:
                 if action == "GET":
-                    with EventWorkerCache(TRACING_WORKER_CACHE.cache_msg_get_event):
+                    with EventWorkerCache(
+                        TRACING_WORKER_CACHE.cache_msg_get_event
+                    ):
                         f_name, parameter, function = msg.messages
                         if f_name not in cache_ids:
                             # The object does not exist in the Cache
@@ -166,11 +178,18 @@ def cache_manager(
                             if cache_profiler:
                                 # PROFILER GET
                                 add_profiler_get_put(
-                                    profiler_dict, function, parameter, f_name, "GET"
+                                    profiler_dict,
+                                    function,
+                                    parameter,
+                                    f_name,
+                                    "GET",
                                 )
                                 # PROFILER GET STRUCTURE
                                 add_profiler_get_struct(
-                                    profiler_get_struct, function, parameter, f_name
+                                    profiler_get_struct,
+                                    function,
+                                    parameter,
+                                    f_name,
                                 )
                             # Increment the number of hits
                             if __debug__:
@@ -185,7 +204,9 @@ def cache_manager(
                             current_hits = current[4]
                             new_hits = current_hits + 1
                             current[4] = new_hits
-                            cache_ids[f_name] = current  # forces updating whole entry
+                            cache_ids[
+                                f_name
+                            ] = current  # forces updating whole entry
                             # Keep cache_hits structure
                             try:
                                 cache_hits[current_hits].pop(f_name)
@@ -196,7 +217,9 @@ def cache_manager(
                             else:
                                 cache_hits[new_hits] = {f_name: obj_size}
                 elif action == "PUT":
-                    with EventWorkerCache(TRACING_WORKER_CACHE.cache_msg_put_event):
+                    with EventWorkerCache(
+                        TRACING_WORKER_CACHE.cache_msg_put_event
+                    ):
                         (
                             f_name,
                             cache_id,
@@ -362,7 +385,9 @@ def cache_manager(
                                 except Exception:
                                     CP.cuda.runtime.free(cache_mem.ptr)
                 elif action == "REMOVE":
-                    with EventWorkerCache(TRACING_WORKER_CACHE.cache_msg_remove_event):
+                    with EventWorkerCache(
+                        TRACING_WORKER_CACHE.cache_msg_remove_event
+                    ):
                         f_name_msg = msg.messages[0]
                         f_name = get_file_name(f_name_msg)
                         logger.debug(
@@ -380,7 +405,9 @@ def cache_manager(
                         else:
                             used_size -= obj_size
                 elif action == "LOCK":
-                    with EventWorkerCache(TRACING_WORKER_CACHE.cache_msg_lock_event):
+                    with EventWorkerCache(
+                        TRACING_WORKER_CACHE.cache_msg_lock_event
+                    ):
                         f_name_msg = msg.messages[0]
                         f_name = get_file_name(f_name_msg)
                         if f_name in locked:
@@ -395,7 +422,9 @@ def cache_manager(
                             str(f_name),
                         )
                 elif action == "UNLOCK":
-                    with EventWorkerCache(TRACING_WORKER_CACHE.cache_msg_unlock_event):
+                    with EventWorkerCache(
+                        TRACING_WORKER_CACHE.cache_msg_unlock_event
+                    ):
                         f_name_msg = msg.messages[0]
                         f_name = get_file_name(f_name_msg)
                         logger.debug(
@@ -443,7 +472,9 @@ def cache_manager(
 
             except Exception as general_exception:
                 logger.exception(
-                    "%s - Exception %s", str(process_name), str(general_exception)
+                    "%s - Exception %s",
+                    str(process_name),
+                    str(general_exception),
                 )
                 alive = False
 
@@ -520,7 +551,9 @@ def __cpu_evict__(
         # the same amount of hits
         files = list(cache_hits[hits])
         for f_name in files:
-            _, recovered_size, _ = __remove_from_cache__(f_name, cache_ids, cache_hits)
+            _, recovered_size, _ = __remove_from_cache__(
+                f_name, cache_ids, cache_hits
+            )
             to_evict.append(f_name)
             size_to_recover -= recovered_size
             total_recovered_size += recovered_size

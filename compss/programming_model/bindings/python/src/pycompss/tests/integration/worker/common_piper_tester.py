@@ -91,7 +91,9 @@ def evaluate_piper_worker_common(worker_process, mpi_worker=False):
 
     current_path = os.path.dirname(os.path.abspath(__file__))
     python_path = (
-        current_path + "/../../../tests/integration/worker/:" + os.environ["PYTHONPATH"]
+        current_path
+        + "/../../../tests/integration/worker/:"
+        + os.environ["PYTHONPATH"]
     )
 
     if mpi_worker:
@@ -154,7 +156,9 @@ def evaluate_piper_worker_common(worker_process, mpi_worker=False):
 
     sys.path.append(current_path)
     # Start the piper worker in a separate thread
-    worker = create_process(target=worker_process, args=(sys.argv, current_path))
+    worker = create_process(
+        target=worker_process, args=(sys.argv, current_path)
+    )
     if mpi_worker:
         evaluate_worker(
             worker,
@@ -317,7 +321,9 @@ def evaluate_worker(
     ]
     increment_task_message_str = " ".join(increment_task_message)
     print("Requesting: " + increment_task_message_str)
-    os.write(executor_out, (increment_task_message_str + "\n").encode())  # noqa
+    os.write(
+        executor_out, (increment_task_message_str + "\n").encode()
+    )  # noqa
     time.sleep(2)
     # Send quit message
     os.write(executor_out, b"QUIT\n")

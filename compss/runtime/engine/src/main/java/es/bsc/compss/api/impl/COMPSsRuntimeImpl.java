@@ -1411,7 +1411,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         }
         if (loc != null) {
             Application app = Application.registerApplication(appId);
-            return ap.alreadyAccessed(app, loc);
+            FileData fd = new FileData(app, loc);
+            return ap.alreadyAccessed(fd);
         } else {
             return false;
         }
@@ -1936,9 +1937,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         FileAccessParams fap = FileAccessParams.constructFAP(app, am, loc);
         DataLocation targetLocation;
         if (isDirectory) {
-            targetLocation = ap.mainAccessToDirectory(app, loc, fap, destDir);
+            targetLocation = ap.mainAccessToDirectory(fap, destDir);
         } else {
-            targetLocation = ap.mainAccessToFile(app, loc, fap, destDir);
+            targetLocation = ap.mainAccessToFile(fap, destDir);
         }
 
         // Checks on target

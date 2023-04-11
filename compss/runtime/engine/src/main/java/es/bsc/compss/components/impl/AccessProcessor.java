@@ -313,18 +313,15 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     }
 
     /**
-     * Notifies a main access to a given file {@code sourceLocation} in mode {@code fap}.
+     * Notifies a main access to a given file access {@code fap}.
      *
-     * @param app application accessing the file
-     * @param sourceLocation File location.
      * @param fap File Access Parameters.
      * @param destDir Destination file.
      * @return Final location.
      */
-    public DataLocation mainAccessToFile(Application app, DataLocation sourceLocation, FileAccessParams fap,
-        String destDir) {
-        boolean alreadyAccessed = alreadyAccessed(app, sourceLocation);
-
+    public DataLocation mainAccessToFile(FileAccessParams fap, String destDir) {
+        boolean alreadyAccessed = alreadyAccessed(fap.getData());
+        DataLocation sourceLocation = fap.getLocation();
         if (!alreadyAccessed) {
             LOGGER.debug("File not accessed before, returning the same location");
             return sourceLocation;
@@ -400,18 +397,15 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     }
 
     /**
-     * Notifies a main access to a given file {@code sourceLocation} in mode {@code fap}.
+     * Notifies a main access to a given directory access {@code sourceLocation}.
      *
-     * @param app application accessing the directory
-     * @param sourceLocation Directory location.
      * @param fap File Access Parameters.
      * @param destDir Destination directory.
      * @return Final location.
      */
-    public DataLocation mainAccessToDirectory(Application app, DataLocation sourceLocation, FileAccessParams fap,
-        String destDir) {
-        boolean alreadyAccessed = alreadyAccessed(app, sourceLocation);
-
+    public DataLocation mainAccessToDirectory(FileAccessParams fap, String destDir) {
+        boolean alreadyAccessed = alreadyAccessed(fap.getData());
+        DataLocation sourceLocation = fap.getLocation();
         if (!alreadyAccessed) {
             LOGGER.debug("Directory not accessed before, returning the same location");
             return sourceLocation;
@@ -671,14 +665,13 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     }
 
     /**
-     * Returns whether the @{code loc} has already been accessed or not.
+     * Returns whether the @{code data} has already been accessed or not.
      *
-     * @param app application querying the data access
-     * @param loc Location.
-     * @return {@code true} if the location has been accessed, {@code false} otherwise.
+     * @param data querying data 
+     * @return {@code true} if the data has been accessed, {@code false} otherwise.
      */
-    public boolean alreadyAccessed(Application app, DataLocation loc) {
-        AlreadyAccessedRequest request = new AlreadyAccessedRequest(new FileData(app, loc));
+    public boolean alreadyAccessed(DataParams data) {
+        AlreadyAccessedRequest request = new AlreadyAccessedRequest(data);
         if (!this.requestQueue.offer(request)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "already accessed location");
         }

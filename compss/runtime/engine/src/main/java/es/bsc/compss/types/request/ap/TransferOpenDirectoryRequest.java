@@ -22,11 +22,11 @@ import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.DataAccessId.ReadingDataAccessId;
+import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.accessid.RAccessId;
-import es.bsc.compss.types.data.accessid.RWAccessId;
-import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.operation.DataOperation;
@@ -104,55 +104,45 @@ public class TransferOpenDirectoryRequest extends APRequest {
         LOGGER.debug("Process TransferOpenDirectoryRequest");
 
         // Get target information
-        String targetName;
-        String targetPath;
-        if (this.faId instanceof WAccessId) {
-            // Write mode
-            WAccessId waId = (WAccessId) this.faId;
-            DataInstanceId targetFile = waId.getWrittenDataInstance();
-            targetName = targetFile.getRenaming();
-            targetPath = Comm.getAppHost().getWorkingDirectory() + targetName;
-        } else if (this.faId instanceof RWAccessId) {
-            // Read write mode
-            RWAccessId rwaId = (RWAccessId) this.faId;
-            targetName = rwaId.getWrittenDataInstance().getRenaming();
-            targetPath = Comm.getAppHost().getWorkingDirectory() + targetName;
+        DataInstanceId targetFile;
+        if (this.faId.isWrite()) {
+            WritingDataAccessId waId = (WritingDataAccessId) this.faId;
+            targetFile = waId.getWrittenDataInstance();
+
         } else {
             // Read only mode
             RAccessId raId = (RAccessId) this.faId;
-            targetName = raId.getReadDataInstance().getRenaming();
-            targetPath = Comm.getAppHost().getWorkingDirectory() + targetName;
+            targetFile = raId.getReadDataInstance();
         }
+        String targetName = targetFile.getRenaming();
+        String targetPath = Comm.getAppHost().getWorkingDirectory() + targetName;
         LOGGER.debug("Openning directory " + targetName + " at " + targetPath);
 
         // Create location
         DataLocation targetLocation = null;
-
         try {
             SimpleURI targetURI = new SimpleURI(ProtocolType.DIR_URI.getSchema() + targetPath);
             targetLocation = DataLocation.createLocation(Comm.getAppHost(), targetURI);
         } catch (IOException ioe) {
             ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, ioe);
         }
-        if (this.faId instanceof WAccessId) {
+        if (this.faId.isRead()) {
+            LOGGER.debug("Asking for transfer");
+            ReadingDataAccessId rdaId = (ReadingDataAccessId) this.faId;
+            LogicalData srcData = rdaId.getReadDataInstance().getData();
+            DirectoryTransferable dt = new DirectoryTransferable(faId.isPreserveSourceData());
+            if (this.faId.isWrite()) {
+                Comm.getAppHost().getData(srcData, targetName, (LogicalData) null, dt, new CopyListener(dt, this.sem));
+            } else {
+                Comm.getAppHost().getData(srcData, dt, new CopyListener(dt, this.sem));
+            }
+        } else {
             LOGGER.debug("Write only mode. Auto-release");
             Comm.registerLocation(targetName, targetLocation);
             // Register target location
             LOGGER.debug("Setting target location to " + targetLocation);
             setLocation(targetLocation);
             this.sem.release();
-        } else if (this.faId instanceof RWAccessId) {
-            LOGGER.debug("RW mode. Asking for transfer");
-            RWAccessId rwaId = (RWAccessId) this.faId;
-            LogicalData srcData = rwaId.getReadDataInstance().getData();
-            DirectoryTransferable dt = new DirectoryTransferable(rwaId.isPreserveSourceData());
-            Comm.getAppHost().getData(srcData, targetName, (LogicalData) null, dt, new CopyListener(dt, this.sem));
-        } else {
-            LOGGER.debug("Read only mode. Asking for transfer");
-            RAccessId raId = (RAccessId) this.faId;
-            LogicalData srcData = raId.getReadDataInstance().getData();
-            DirectoryTransferable dt = new DirectoryTransferable(raId.isPreserveSourceData());
-            Comm.getAppHost().getData(srcData, dt, new CopyListener(dt, this.sem));
         }
     }
 

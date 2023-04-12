@@ -53,16 +53,15 @@ public class ObjectParameter<V extends Object, A extends ObjectAccessParams<V, D
         Application app, Direction direction, StdIOStream stream, String prefix, String name, String contentType,
         double weight, V value, int hashCode, ParameterMonitor monitor) {
         ObjectAccessParams<V, ObjectData> oap;
-        oap = ObjectAccessParams.constructObjectAP(app, getAccessMode(direction), value, hashCode);
+        oap = ObjectAccessParams.constructObjectAP(app, direction, value, hashCode);
 
-        return new ObjectParameter(app, DataType.OBJECT_T, direction, oap, stream, prefix, name, contentType, weight,
+        return new ObjectParameter(oap, DataType.OBJECT_T, direction, stream, prefix, name, contentType, weight,
             monitor);
     }
 
-    protected ObjectParameter(Application app, DataType type, Direction direction, A objectAP, StdIOStream stream,
-        String prefix, String name, String contentType, double weight, ParameterMonitor monitor) {
-
-        super(app, type, direction, objectAP, stream, prefix, name, contentType, weight, false, monitor);
+    protected ObjectParameter(A objectAP, DataType type, Direction direction, StdIOStream stream, String prefix,
+        String name, String contentType, double weight, ParameterMonitor monitor) {
+        super(objectAP, type, direction, stream, prefix, name, contentType, weight, false, monitor);
 
     }
 

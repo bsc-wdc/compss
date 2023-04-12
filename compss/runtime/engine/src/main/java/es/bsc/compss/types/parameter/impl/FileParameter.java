@@ -21,12 +21,13 @@ import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
+import es.bsc.compss.types.data.accessparams.DataParams.FileData;
 import es.bsc.compss.types.data.accessparams.FileAccessParams;
 
 import es.bsc.compss.types.data.location.DataLocation;
 
 
-public class FileParameter extends DependencyParameter<FileAccessParams> {
+public class FileParameter<D extends FileData, A extends FileAccessParams<D>> extends DependencyParameter<A> {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
@@ -55,16 +56,15 @@ public class FileParameter extends DependencyParameter<FileAccessParams> {
     public static final FileParameter newFP(Application app, Direction direction, StdIOStream stream, String prefix,
         String name, String contentType, double weight, boolean keepRename, DataLocation location, String originalName,
         ParameterMonitor monitor) {
-        return new FileParameter(app, DataType.FILE_T, direction, stream, prefix, name, contentType, weight, keepRename,
-            location, originalName, monitor);
+        FileAccessParams fap = FileAccessParams.constructFAP(app, direction, location);
+        return new FileParameter(fap, DataType.FILE_T, direction, stream, prefix, name, contentType, weight, keepRename,
+            originalName, monitor);
     }
 
-    protected FileParameter(Application app, DataType type, Direction direction, StdIOStream stream, String prefix,
-        String name, String contentType, double weight, boolean keepRename, DataLocation location, String originalName,
-        ParameterMonitor monitor) {
+    protected FileParameter(A fap, DataType type, Direction direction, StdIOStream stream, String prefix, String name,
+        String contentType, double weight, boolean keepRename, String originalName, ParameterMonitor monitor) {
 
-        super(app, type, direction, FileAccessParams.constructFAP(app, getAccessMode(direction), location), stream,
-            prefix, name, contentType, weight, keepRename, monitor);
+        super(fap, type, direction, stream, prefix, name, contentType, weight, keepRename, monitor);
         this.originalName = originalName;
     }
 

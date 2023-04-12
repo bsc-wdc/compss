@@ -49,11 +49,15 @@ import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.data.LogicalData;
-import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
+import es.bsc.compss.types.data.accessparams.BindingObjectAccessParams;
+import es.bsc.compss.types.data.accessparams.DataParams;
 import es.bsc.compss.types.data.accessparams.DataParams.CollectionData;
 import es.bsc.compss.types.data.accessparams.DataParams.FileData;
 import es.bsc.compss.types.data.accessparams.DataParams.ObjectData;
+import es.bsc.compss.types.data.accessparams.DirectoryAccessParams;
+import es.bsc.compss.types.data.accessparams.ExternalPSCObjectAccessParams;
 import es.bsc.compss.types.data.accessparams.FileAccessParams;
+import es.bsc.compss.types.data.accessparams.ObjectAccessParams;
 import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.PersistentLocation;
@@ -1078,8 +1082,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         LOGGER.debug(" Calling get binding object : " + fileName);
 
         Application app = Application.registerApplication(appId);
-        BindingObjectLocation sourceLocation =
-            new BindingObjectLocation(Comm.getAppHost(), BindingObject.generate(fileName));
+        BindingObjectLocation sourceLocation;
+        sourceLocation = new BindingObjectLocation(Comm.getAppHost(), BindingObject.generate(fileName));
         // Ask the AP to
         String finalPath = mainAccessToBindingObject(app, fileName, sourceLocation);
         LOGGER.debug(" Returning binding object as id: " + finalPath);
@@ -1324,10 +1328,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public boolean bindExistingVersionToData(Long appId, String fileName, String dataId) {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Binding file " + fileName + "'s last version to data " + dataId);
-        }
-
         // Parse the file name
         DataLocation sourceLocation = null;
         try {
@@ -1340,8 +1340,20 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         }
 
         Application app = Application.registerApplication(appId);
-        LogicalData lastVersion = ap.getFileLastVersion(app, sourceLocation);
+        FileData fd = new FileData(app, sourceLocation);
+        return bindExistingVersionToData(fd, dataId);
+    }
 
+    @Override
+    public boolean bindExistingVersionToData(Long appId, Object o, Integer hashCode, String dataId) {
+        Application app = Application.registerApplication(appId);
+        ObjectData od = new ObjectData(app, hashCode);
+        return bindExistingVersionToData(od, dataId);
+    }
+
+    private boolean bindExistingVersionToData(DataParams data, String dataId) {
+        LOGGER.debug("Binding " + data.getDescription() + "'s last version to data " + dataId);
+        LogicalData lastVersion = ap.getDataLastVersion(data);
         if (lastVersion != null) {
             LogicalData src = Comm.getData(dataId);
             try {
@@ -1349,29 +1361,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 LogicalData.link(src, lastVersion);
                 return true;
             } catch (CommException e) {
-                LOGGER.warn("Could not link " + dataId + " and " + lastVersion.getName());
-            }
-
-        }
-        return false;
-    }
-
-    @Override
-    public boolean bindExistingVersionToData(Long appId, Object o, Integer hashCode, String dataId) {
-        Application app = Application.registerApplication(appId);
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Binding object " + hashCode + "'s last version to data " + dataId);
-        }
-
-        LogicalData lastVersion = ap.getObjectLastVersion(app, o, hashCode);
-
-        if (lastVersion != null) {
-            LogicalData src = Comm.getData(dataId);
-            try {
-                LOGGER.debug("Binding " + src.getKnownAlias() + " to data " + dataId);
-                LogicalData.link(src, lastVersion);
-                return true;
-            } catch (Exception e) {
                 LOGGER.warn("Could not link " + dataId + " and " + lastVersion.getName());
             }
 
@@ -1425,7 +1414,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         }
         if (loc != null) {
             Application app = Application.registerApplication(appId);
-            return ap.alreadyAccessed(app, loc);
+            FileData fd = new FileData(app, loc);
+            return ap.alreadyAccessed(fd);
         } else {
             return false;
         }
@@ -1437,8 +1427,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         return openFileSystemData(app, fileName, mode, false);
     }
 
-    private String openFileSystemData(Application app, String fileName, Direction mode, boolean isDir) {
-        LOGGER.info("Opening " + fileName + " in mode " + mode);
+    private String openFileSystemData(Application app, String fileName, Direction direction, boolean isDir) {
+        LOGGER.info("Opening " + fileName + " in direction " + direction);
         TraceEvent tEvent = null;
         if (Tracer.isActivated()) {
             if (isDir) {
@@ -1457,32 +1447,12 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             return null;
         }
 
-        AccessMode am = null;
-        switch (mode) {
-            case IN:
-            case IN_DELETE:
-                am = AccessMode.R;
-                break;
-            case OUT:
-                am = AccessMode.W;
-                break;
-            case INOUT:
-                am = AccessMode.RW;
-                break;
-            case CONCURRENT:
-                am = AccessMode.C;
-                break;
-            case COMMUTATIVE:
-                am = AccessMode.CV;
-                break;
-        }
-
         // Request AP that the application wants to access a FILE or a EXTERNAL_PSCO
         String finalPath;
         switch (loc.getType()) {
             case PRIVATE:
             case SHARED:
-                finalPath = mainAccessToFile(app, fileName, loc, am, null, isDir);
+                finalPath = mainAccessToFile(app, fileName, loc, direction, null, isDir);
                 if (LOGGER.isDebugEnabled()) {
 
                     LOGGER.debug("File " + (isDir ? "(dir) " : "") + "target Location: " + finalPath);
@@ -1524,15 +1494,15 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
      *
      * @param app application closing the file.
      * @param fileName File name.
-     * @param mode Access mode.
+     * @param direction Access mode.
      */
-    public void closeFile(Application app, String fileName, Direction mode) {
+    public void closeFile(Application app, String fileName, Direction direction) {
 
         // if (Tracer.isActivated()) {
         // Tracer.emitEvent(TraceEvent.CLOSE_FILE.getId(),
         // TraceEvent.CLOSE_FILE.getType());
         // }
-        LOGGER.info("Closing " + fileName + " in mode " + mode);
+        LOGGER.info("Closing " + fileName + " in direction " + direction);
 
         // Parse arguments to internal structures
         DataLocation loc;
@@ -1543,31 +1513,12 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             return;
         }
 
-        AccessMode am = null;
-        switch (mode) {
-            case IN:
-            case IN_DELETE:
-                am = AccessMode.R;
-                break;
-            case OUT:
-                am = AccessMode.W;
-                break;
-            case INOUT:
-                am = AccessMode.RW;
-                break;
-            case CONCURRENT:
-                am = AccessMode.C;
-                break;
-            case COMMUTATIVE:
-                am = AccessMode.CV;
-                break;
-        }
-
         // Request AP that the application wants to access a FILE or a EXTERNAL_PSCO
         switch (loc.getType()) {
             case PRIVATE:
             case SHARED:
-                finishAccessToFile(app, fileName, loc, am, null);
+                FileAccessParams fap = FileAccessParams.constructFAP(app, direction, loc);
+                ap.finishDataAccess(fap);
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Closing file " + loc.getPath());
                 }
@@ -1943,20 +1894,16 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         return hashCode;
     }
 
-    private void finishAccessToFile(Application app, String fileName, DataLocation loc, AccessMode am, String destDir) {
-        FileAccessParams fap = FileAccessParams.constructFAP(app, am, loc);
-        ap.finishAccessToFile(loc, fap, destDir);
-    }
-
-    private String mainAccessToFile(Application app, String fileName, DataLocation loc, AccessMode am, String destDir,
-        boolean isDirectory) {
+    private String mainAccessToFile(Application app, String fileName, DataLocation loc, Direction direction,
+        String destDir, boolean isDirectory) {
         // Tell the AP that the application wants to access a file.
-        FileAccessParams fap = FileAccessParams.constructFAP(app, am, loc);
         DataLocation targetLocation;
         if (isDirectory) {
-            targetLocation = ap.mainAccessToDirectory(app, loc, fap, destDir);
+            DirectoryAccessParams fap = DirectoryAccessParams.constructDAP(app, direction, loc);
+            targetLocation = ap.mainAccessToDirectory(fap, destDir);
         } else {
-            targetLocation = ap.mainAccessToFile(app, loc, fap, destDir);
+            FileAccessParams fap = FileAccessParams.constructFAP(app, direction, loc);
+            targetLocation = ap.mainAccessToFile(fap, destDir);
         }
 
         // Checks on target
@@ -1980,7 +1927,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     }
 
     private Object mainAccessToObject(Application app, Object obj, int hashCode) {
-        boolean validValue = ap.isCurrentRegisterValueValid(app, hashCode);
+        ObjectAccessParams<?, ?> oap = ObjectAccessParams.constructObjectAP(app, Direction.INOUT, obj, hashCode);
+
+        boolean validValue = ap.isCurrentRegisterValueValid(oap.getData());
         if (validValue) {
             // Main code is still performing the same modification.
             // No need to register it as a new version.
@@ -1988,13 +1937,16 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         }
 
         // Otherwise we request it from a task
-        return ap.mainAccessToObject(app, obj, hashCode);
+        return ap.mainAccessToObject(oap);
     }
 
     private String mainAccessToExternalPSCO(Application app, String fileName, DataLocation loc) {
         String id = ((PersistentLocation) loc).getId();
         int hashCode = externalObjectHashcode(id);
-        boolean validValue = ap.isCurrentRegisterValueValid(app, hashCode);
+        ExternalPSCObjectAccessParams eoap;
+        eoap = ExternalPSCObjectAccessParams.constructEPOAP(app, Direction.INOUT, id, hashCode);
+
+        boolean validValue = ap.isCurrentRegisterValueValid(eoap.getData());
         if (validValue) {
             // Main code is still performing the same modification.
             // No need to register it as a new version.
@@ -2002,13 +1954,16 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         }
 
         // Otherwise we request it from a task
-        return ap.mainAccessToExternalPSCO(app, id, hashCode);
+        return ap.mainAccessToExternalPSCO(eoap);
     }
 
     private String mainAccessToBindingObject(Application app, String fileName, BindingObjectLocation loc) {
         String id = loc.getId();
         int hashCode = externalObjectHashcode(id);
-        boolean validValue = ap.isCurrentRegisterValueValid(app, hashCode);
+        BindingObject bo = loc.getBindingObject();
+        BindingObjectAccessParams boap = BindingObjectAccessParams.constructBOAP(app, Direction.IN, bo, hashCode);
+
+        boolean validValue = ap.isCurrentRegisterValueValid(boap.getData());
         if (validValue) {
             // Main code is still performing the same modification.
             // No need to register it as a new version.
@@ -2016,7 +1971,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         }
 
         // Otherwise we request it from a task
-        return ap.mainAccessToBindingObject(app, loc.getBindingObject(), hashCode);
+        return ap.mainAccessToBindingObject(boap);
     }
 
     private DataLocation createLocation(ProtocolType defaultSchema, String fileName) throws IOException {

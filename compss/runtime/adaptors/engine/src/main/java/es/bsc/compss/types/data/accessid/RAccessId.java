@@ -17,11 +17,12 @@
 package es.bsc.compss.types.data.accessid;
 
 import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.DataAccessId.ReadingDataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.DataVersion;
 
 
-public class RAccessId extends DataAccessId {
+public class RAccessId implements ReadingDataAccessId {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
@@ -65,35 +66,28 @@ public class RAccessId extends DataAccessId {
     }
 
     @Override
-    public boolean isWrite() {
-        return false;
+    public boolean isRead() {
+        return true;
     }
 
-    /**
-     * Returns the data version read by the access.
-     * 
-     * @return data version read
-     */
+    @Override
     public DataVersion getReadDataVersion() {
         return this.readDataVersion;
     }
 
-    /**
-     * Returns the read data instance.
-     * 
-     * @return The read data instance.
-     */
+    @Override
     public DataInstanceId getReadDataInstance() {
         return this.readDataVersion.getDataInstanceId();
     }
 
-    /**
-     * Returns the read version id.
-     * 
-     * @return The read version id.
-     */
+    @Override
     public int getRVersionId() {
         return this.readDataVersion.getDataInstanceId().getVersionId();
+    }
+
+    @Override
+    public boolean isWrite() {
+        return false;
     }
 
     @Override

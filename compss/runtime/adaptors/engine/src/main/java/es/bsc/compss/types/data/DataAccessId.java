@@ -19,13 +19,7 @@ package es.bsc.compss.types.data;
 import java.io.Serializable;
 
 
-public abstract class DataAccessId implements Serializable {
-
-    /**
-     * Serializable objects Version UID are 1L in all Runtime.
-     */
-    private static final long serialVersionUID = 1L;
-
+public interface DataAccessId extends Serializable {
 
     /**
      * Data Direction.
@@ -54,6 +48,13 @@ public abstract class DataAccessId implements Serializable {
     public abstract Direction getDirection();
 
     /**
+     * Returns whether the data access will read or not.
+     * 
+     * @return {@code true} if the data access will read, {@code false} otherwise.
+     */
+    public abstract boolean isRead();
+
+    /**
      * Returns whether the data access will write or not.
      * 
      * @return {@code true} if the data access will write, {@code false} otherwise.
@@ -73,4 +74,53 @@ public abstract class DataAccessId implements Serializable {
      * @return new DataAccess with valid versions.
      */
     public abstract DataAccessId consolidateValidVersions();
+
+
+    public static interface ReadingDataAccessId extends DataAccessId {
+
+        /**
+         * Returns the data version read by the access.
+         *
+         * @return data version read
+         */
+        public DataVersion getReadDataVersion();
+
+        /**
+         * Returns the read data instance.
+         *
+         * @return The read data instance.
+         */
+        public DataInstanceId getReadDataInstance();
+
+        /**
+         * Returns the read version id.
+         *
+         * @return The read version id.
+         */
+        public int getRVersionId();
+    }
+
+    public static interface WritingDataAccessId extends DataAccessId {
+
+        /**
+         * Returns the written data version.
+         *
+         * @return data version written
+         */
+        public DataVersion getWrittenDataVersion();
+
+        /**
+         * Returns the written data instance.
+         *
+         * @return The written data instance.
+         */
+        public DataInstanceId getWrittenDataInstance();
+
+        /**
+         * Returns the write version id.
+         *
+         * @return The write version id.
+         */
+        public int getWVersionId();
+    }
 }

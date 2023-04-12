@@ -52,16 +52,14 @@ public class BindingObjectParameter
     public static final BindingObjectParameter newBOP(Application app, Direction direction, StdIOStream stream,
         String prefix, String name, String contentType, double weight, BindingObject bo, int hashCode,
         ParameterMonitor monitor) {
-        return new BindingObjectParameter(app, direction, stream, prefix, name, contentType, weight, bo, hashCode,
-            monitor);
+        BindingObjectAccessParams boap = BindingObjectAccessParams.constructBOAP(app, direction, bo, hashCode);
+        return new BindingObjectParameter(boap, direction, stream, prefix, name, contentType, weight, monitor);
     }
 
-    private BindingObjectParameter(Application app, Direction direction, StdIOStream stream, String prefix, String name,
-        String contentType, double weight, BindingObject bo, int hashCode, ParameterMonitor monitor) {
+    private BindingObjectParameter(BindingObjectAccessParams boap, Direction direction, StdIOStream stream,
+        String prefix, String name, String contentType, double weight, ParameterMonitor monitor) {
 
-        super(app, DataType.BINDING_OBJECT_T, direction,
-            BindingObjectAccessParams.constructBOAP(app, getAccessMode(direction), bo, hashCode), stream, prefix, name,
-            contentType, weight, monitor);
+        super(boap, DataType.BINDING_OBJECT_T, direction, stream, prefix, name, contentType, weight, monitor);
     }
 
     public String getId() {

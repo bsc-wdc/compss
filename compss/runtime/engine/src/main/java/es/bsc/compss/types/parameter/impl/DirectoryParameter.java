@@ -21,11 +21,12 @@ import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
-import es.bsc.compss.types.data.accessparams.FileAccessParams;
+import es.bsc.compss.types.data.accessparams.DataParams.DirectoryData;
+import es.bsc.compss.types.data.accessparams.DirectoryAccessParams;
 import es.bsc.compss.types.data.location.DataLocation;
 
 
-public class DirectoryParameter extends FileParameter {
+public class DirectoryParameter extends FileParameter<DirectoryData, DirectoryAccessParams> {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
@@ -52,16 +53,17 @@ public class DirectoryParameter extends FileParameter {
     public static final DirectoryParameter newDP(Application app, Direction direction, StdIOStream stream,
         String prefix, String name, String contentType, double weight, boolean keepRename, DataLocation location,
         String originalName, ParameterMonitor monitor) {
-        return new DirectoryParameter(app, direction, stream, prefix, name, contentType, weight, keepRename, location,
+        DirectoryAccessParams dap = DirectoryAccessParams.constructDAP(app, direction, location);
+        return new DirectoryParameter(dap, direction, stream, prefix, name, contentType, weight, keepRename,
             originalName, monitor);
     }
 
-    protected DirectoryParameter(Application app, Direction direction, StdIOStream stream, String prefix, String name,
-        String contentType, double weight, boolean keepRename, DataLocation location, String originalName,
+    protected DirectoryParameter(DirectoryAccessParams dap, Direction direction, StdIOStream stream, String prefix,
+        String name, String contentType, double weight, boolean keepRename, String originalName,
         ParameterMonitor monitor) {
 
-        super(app, DataType.DIRECTORY_T, direction, stream, prefix, name, contentType, weight, keepRename, location,
-            originalName, monitor);
+        super(dap, DataType.DIRECTORY_T, direction, stream, prefix, name, contentType, weight, keepRename, originalName,
+            monitor);
 
     }
 

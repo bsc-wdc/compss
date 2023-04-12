@@ -16,13 +16,22 @@
  */
 package es.bsc.compss.types.request.ap;
 
+import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
+import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.LogicalData;
+import es.bsc.compss.types.data.Transferable;
+import es.bsc.compss.types.data.accessid.RAccessId;
+import es.bsc.compss.types.data.location.BindingObjectLocation;
+import es.bsc.compss.types.data.location.DataLocation;
+import es.bsc.compss.types.data.operation.BindingObjectTransferable;
+import es.bsc.compss.types.data.operation.OneOpWithSemListener;
 import es.bsc.compss.types.tracing.TraceEvent;
+import es.bsc.compss.util.ErrorManager;
 
 import java.util.concurrent.Semaphore;
 
@@ -127,7 +136,41 @@ public class TransferBindingObjectRequest extends APRequest {
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
-        this.target = dip.transferBindingObject(this);
+        this.target = transferBindingObject();
+    }
+
+    private LogicalData transferBindingObject() {
+        DataAccessId daId = this.getDaId();
+        RAccessId rwaId = (RAccessId) daId;
+        String sourceName = rwaId.getReadDataInstance().getRenaming();
+
+        if (DEBUG) {
+            LOGGER.debug("[DataInfoProvider] Requesting getting object " + sourceName);
+        }
+        LogicalData srcLd = rwaId.getReadDataInstance().getData();
+        if (DEBUG) {
+            LOGGER.debug("[DataInfoProvider] Logical data for binding object is:" + srcLd);
+        }
+        if (srcLd == null) {
+            ErrorManager.error("Unregistered data " + sourceName);
+            return null;
+        }
+        if (DEBUG) {
+            LOGGER.debug("Requesting tranfers binding object " + sourceName + " to " + Comm.getAppHost().getName());
+        }
+
+        Semaphore sem = this.getSemaphore();
+        BindingObject srcBO = BindingObject.generate(srcLd.getURIs().get(0).getPath());
+        BindingObject tgtBO = new BindingObject(sourceName, srcBO.getType(), srcBO.getElements());
+        LogicalData tgtLd = srcLd;
+        DataLocation targetLocation = new BindingObjectLocation(Comm.getAppHost(), tgtBO);
+        Transferable transfer = new BindingObjectTransferable(this);
+
+        Comm.getAppHost().getData(srcLd, targetLocation, tgtLd, transfer, new OneOpWithSemListener(sem));
+        if (DEBUG) {
+            LOGGER.debug(" Setting tgtName " + transfer.getDataTarget() + " in " + Comm.getAppHost().getName());
+        }
+        return srcLd;
     }
 
     @Override

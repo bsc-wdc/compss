@@ -21,6 +21,7 @@ import es.bsc.compss.COMPSsDefaults;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.ExternalPropertyException;
 import es.bsc.compss.types.Application;
+import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.accessparams.DataParams.ExternalStreamData;
@@ -42,17 +43,17 @@ public class ExternalStreamAccessParams extends StreamAccessParams<DataLocation,
      * Creates a new ExternalStreamAccessParams instance for the given object.
      *
      * @param app Id of the application accessing the stream.
-     * @param mode Access mode.
+     * @param dir Access mode.
      * @param location Location of the external stream.
      * @return new ExternalStreamAccessParams instance
      */
-    public static final ExternalStreamAccessParams constructESAP(Application app, AccessMode mode,
+    public static final ExternalStreamAccessParams constructESAP(Application app, Direction dir,
         DataLocation location) {
-        return new ExternalStreamAccessParams(app, mode, location);
+        return new ExternalStreamAccessParams(app, dir, location);
     }
 
-    private ExternalStreamAccessParams(Application app, AccessMode mode, DataLocation location) {
-        super(new ExternalStreamData(app, location.hashCode()), mode, location);
+    private ExternalStreamAccessParams(Application app, Direction dir, DataLocation location) {
+        super(new ExternalStreamData(app, location.hashCode()), dir, location);
     }
 
     @Override

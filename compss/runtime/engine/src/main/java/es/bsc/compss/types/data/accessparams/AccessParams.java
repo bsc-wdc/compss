@@ -19,6 +19,7 @@ package es.bsc.compss.types.data.accessparams;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.Application;
+import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.DataInfo;
 
 import java.io.Serializable;
@@ -53,15 +54,38 @@ public abstract class AccessParams<D extends DataParams> implements Serializable
     protected final AccessMode mode;
 
 
+    private static AccessMode getAccessMode(Direction d) {
+        AccessMode am = AccessMode.R;
+        switch (d) {
+            case IN:
+            case IN_DELETE:
+                am = AccessParams.AccessMode.R;
+                break;
+            case OUT:
+                am = AccessParams.AccessMode.W;
+                break;
+            case INOUT:
+                am = AccessParams.AccessMode.RW;
+                break;
+            case CONCURRENT:
+                am = AccessParams.AccessMode.C;
+                break;
+            case COMMUTATIVE:
+                am = AccessParams.AccessMode.CV;
+                break;
+        }
+        return am;
+    }
+
     /**
      * Creates a new AccessParams instance.
      *
      * @param data Data being accessed
-     * @param mode Access Mode.
+     * @param dir operation performed.
      */
-    protected AccessParams(D data, AccessMode mode) {
+    protected AccessParams(D data, Direction dir) {
         this.data = data;
-        this.mode = mode;
+        this.mode = getAccessMode(dir);
     }
 
     /**

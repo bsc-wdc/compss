@@ -18,6 +18,7 @@ package es.bsc.compss.types.data.accessparams;
 
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.Application;
+import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.DataVersion;
@@ -36,18 +37,18 @@ public class ExternalPSCObjectAccessParams extends ObjectAccessParams<String, Ex
      * Creates a new ExternalPSCObjectAccessParams instance.
      *
      * @param app Id of the application accessing the External PSCO.
-     * @param mode Access mode.
+     * @param dir operation performed.
      * @param pscoId Id of the accessed PSCO.
      * @param hashCode Hashcode of the associated External PSCO
      * @return new ExternalPSCObjectAccessParams instance
      */
-    public static final ExternalPSCObjectAccessParams constructEPOAP(Application app, AccessMode mode, String pscoId,
+    public static final ExternalPSCObjectAccessParams constructEPOAP(Application app, Direction dir, String pscoId,
         int hashCode) {
-        return new ExternalPSCObjectAccessParams(app, mode, pscoId, hashCode);
+        return new ExternalPSCObjectAccessParams(app, dir, pscoId, hashCode);
     }
 
-    private ExternalPSCObjectAccessParams(Application app, AccessMode mode, String pscoId, int hashCode) {
-        super(new ExternalPSCObjectData(app, hashCode), mode, pscoId);
+    private ExternalPSCObjectAccessParams(Application app, Direction dir, String pscoId, int hashCode) {
+        super(new ExternalPSCObjectData(app, hashCode), dir, pscoId);
     }
 
     /**

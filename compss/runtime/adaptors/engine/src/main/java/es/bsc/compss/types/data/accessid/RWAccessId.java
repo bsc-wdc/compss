@@ -17,11 +17,13 @@
 package es.bsc.compss.types.data.accessid;
 
 import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.DataAccessId.ReadingDataAccessId;
+import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.DataVersion;
 
 
-public class RWAccessId extends DataAccessId {
+public class RWAccessId implements ReadingDataAccessId, WritingDataAccessId {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
@@ -68,60 +70,41 @@ public class RWAccessId extends DataAccessId {
     }
 
     @Override
-    public boolean isWrite() {
+    public boolean isRead() {
         return true;
     }
 
-    /**
-     * Returns the data version read by the access.
-     * 
-     * @return data version read
-     */
-    public DataVersion getReadDataVersion() {
-        return this.readDataVersion;
-    }
-
-    /**
-     * Returns the read data instance.
-     * 
-     * @return The read data instance.
-     */
-    public DataInstanceId getReadDataInstance() {
-        return this.readDataVersion.getDataInstanceId();
-    }
-
-    /**
-     * Returns the data version written by the access.
-     * 
-     * @return data version written
-     */
-    public DataVersion getWrittenDataVersion() {
-        return this.writtenDataVersion;
-    }
-
-    /**
-     * Returns the written data instance.
-     * 
-     * @return The written data instance.
-     */
-    public DataInstanceId getWrittenDataInstance() {
-        return this.writtenDataVersion.getDataInstanceId();
-    }
-
-    /**
-     * Returns the read version id.
-     * 
-     * @return The read version id.
-     */
+    @Override
     public int getRVersionId() {
         return this.readDataVersion.getDataInstanceId().getVersionId();
     }
 
-    /**
-     * Returns the write version id.
-     * 
-     * @return The write version id.
-     */
+    @Override
+    public DataVersion getReadDataVersion() {
+        return this.readDataVersion;
+    }
+
+    @Override
+    public DataInstanceId getReadDataInstance() {
+        return this.readDataVersion.getDataInstanceId();
+    }
+
+    @Override
+    public boolean isWrite() {
+        return true;
+    }
+
+    @Override
+    public DataVersion getWrittenDataVersion() {
+        return this.writtenDataVersion;
+    }
+
+    @Override
+    public DataInstanceId getWrittenDataInstance() {
+        return this.writtenDataVersion.getDataInstanceId();
+    }
+
+    @Override
     public int getWVersionId() {
         return this.writtenDataVersion.getDataInstanceId().getVersionId();
     }

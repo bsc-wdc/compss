@@ -18,6 +18,7 @@ package es.bsc.compss.types.data.accessparams;
 
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.Application;
+import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.DataVersion;
@@ -25,7 +26,7 @@ import es.bsc.compss.types.data.accessparams.DataParams.FileData;
 import es.bsc.compss.types.data.location.DataLocation;
 
 
-public class FileAccessParams extends AccessParams<FileData> {
+public class FileAccessParams<D extends FileData> extends AccessParams<D> {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
@@ -38,16 +39,17 @@ public class FileAccessParams extends AccessParams<FileData> {
      * {@code loc}.
      *
      * @param app Id of the application accessing the file.
-     * @param mode Access mode.
+     * @param dir operation performed.
      * @param loc File location.
      * @return new FileAccessParams instance
      */
-    public static final FileAccessParams constructFAP(Application app, AccessMode mode, DataLocation loc) {
-        return new FileAccessParams(app, mode, loc);
+    public static final FileAccessParams constructFAP(Application app, Direction dir, DataLocation loc) {
+        FileData fd = new FileData(app, loc);
+        return new FileAccessParams(fd, dir);
     }
 
-    private FileAccessParams(Application app, AccessMode mode, DataLocation loc) {
-        super(new FileData(app, loc), mode);
+    protected FileAccessParams(D data, Direction dir) {
+        super(data, dir);
     }
 
     /**

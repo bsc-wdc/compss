@@ -30,6 +30,7 @@ import es.bsc.compss.types.Application;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.ReduceTask;
 import es.bsc.compss.types.Task;
+import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
@@ -42,8 +43,8 @@ import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
 import es.bsc.compss.types.data.accessparams.BindingObjectAccessParams;
 import es.bsc.compss.types.data.accessparams.DataParams;
-import es.bsc.compss.types.data.accessparams.DataParams.FileData;
 import es.bsc.compss.types.data.accessparams.DataParams.ObjectData;
+import es.bsc.compss.types.data.accessparams.DirectoryAccessParams;
 import es.bsc.compss.types.data.accessparams.ExternalPSCObjectAccessParams;
 import es.bsc.compss.types.data.accessparams.FileAccessParams;
 import es.bsc.compss.types.data.accessparams.ObjectAccessParams;
@@ -303,67 +304,26 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     }
 
     /**
-     * Marks an access to a file as finished.
+     * Marks an access to a data as finished.
      *
-     * @param sourceLocation File location.
-     * @param fap File Access parameters.
-     * @param destDir Destination file location.
+     * @param ap Access parameters.
      */
-    public void finishAccessToFile(DataLocation sourceLocation, FileAccessParams fap, String destDir) {
-        boolean alreadyAccessed = alreadyAccessed(fap.getApp(), sourceLocation);
-
-        if (!alreadyAccessed) {
-            LOGGER.debug("File not accessed before. Nothing to do");
-            return;
-        }
-
-        // Tell the DM that the application wants to access a file.
-        finishDataAccess(fap);
-
-    }
-
-    private void finishDataAccess(AccessParams fap) {
-        if (!this.requestQueue.offer(new FinishDataAccessRequest(fap))) {
+    public void finishDataAccess(AccessParams ap) {
+        if (!this.requestQueue.offer(new FinishDataAccessRequest(ap))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "finishing data access");
         }
     }
 
     /**
-     * Returns the Identifier of the data corresponding to the last version of an object.
+     * Notifies a main access to a given file access {@code fap}.
      *
-     * @param app application accessing the object.
-     * @param sourceLocation location of the file
-     * @return data corresponding to the last version of an object.
-     */
-    public LogicalData getFileLastVersion(Application app, DataLocation sourceLocation) {
-        boolean alreadyAccessed = alreadyAccessed(app, sourceLocation);
-
-        if (!alreadyAccessed) {
-            LOGGER.debug("File not accessed before, returning the same location");
-            return null;
-        }
-        // Ask for the file version
-        DataGetLastVersionRequest fvr = new DataGetLastVersionRequest(new FileData(app, sourceLocation));
-        if (!this.requestQueue.offer(fvr)) {
-            ErrorManager.error(ERROR_QUEUE_OFFER + "data version query");
-        }
-
-        return fvr.getData();
-    }
-
-    /**
-     * Notifies a main access to a given file {@code sourceLocation} in mode {@code fap}.
-     *
-     * @param app application accessing the file
-     * @param sourceLocation File location.
      * @param fap File Access Parameters.
      * @param destDir Destination file.
      * @return Final location.
      */
-    public DataLocation mainAccessToFile(Application app, DataLocation sourceLocation, FileAccessParams fap,
-        String destDir) {
-        boolean alreadyAccessed = alreadyAccessed(app, sourceLocation);
-
+    public DataLocation mainAccessToFile(FileAccessParams fap, String destDir) {
+        boolean alreadyAccessed = alreadyAccessed(fap.getData());
+        DataLocation sourceLocation = fap.getLocation();
         if (!alreadyAccessed) {
             LOGGER.debug("File not accessed before, returning the same location");
             return sourceLocation;
@@ -439,18 +399,15 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     }
 
     /**
-     * Notifies a main access to a given file {@code sourceLocation} in mode {@code fap}.
+     * Notifies a main access to a given directory access {@code sourceLocation}.
      *
-     * @param app application accessing the directory
-     * @param sourceLocation Directory location.
      * @param fap File Access Parameters.
      * @param destDir Destination directory.
      * @return Final location.
      */
-    public DataLocation mainAccessToDirectory(Application app, DataLocation sourceLocation, FileAccessParams fap,
-        String destDir) {
-        boolean alreadyAccessed = alreadyAccessed(app, sourceLocation);
-
+    public DataLocation mainAccessToDirectory(DirectoryAccessParams fap, String destDir) {
+        boolean alreadyAccessed = alreadyAccessed(fap.getData());
+        DataLocation sourceLocation = fap.getLocation();
         if (!alreadyAccessed) {
             LOGGER.debug("Directory not accessed before, returning the same location");
             return sourceLocation;
@@ -463,8 +420,8 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         if (faId == null) { // If fiId is null data is cancelled returning null location
             ErrorManager.warn("No version available. Returning null");
             try {
-                tgtLocation = DataLocation.createLocation(Comm.getAppHost(),
-                    new SimpleURI(ProtocolType.FILE_URI.getSchema() + destDir + "null"));
+                String path = ProtocolType.DIR_URI.getSchema() + destDir + "null";
+                tgtLocation = DataLocation.createLocation(Comm.getAppHost(), new SimpleURI(path));
             } catch (Exception e) {
                 ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION, e);
             }
@@ -475,7 +432,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
 
             if (fap.getMode() != AccessMode.R && fap.getMode() != AccessMode.C) {
                 // Mode contains W
-                LOGGER.debug("File " + faId.getDataId() + " mode contains W, register new writer");
+                LOGGER.debug("Data " + faId.getDataId() + " mode contains W, register new writer");
                 DataInstanceId daId;
                 if (fap.getMode() == AccessMode.RW || fap.getMode() == AccessMode.CV) {
                     RWAccessId ra = (RWAccessId) faId;
@@ -505,29 +462,24 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     /**
      * Returns whether the value with hashCode {@code hashCode} is valid or obsolete.
      *
-     * @param app Application accessing the object
-     * @param hashCode Object hashcode.
+     * @param data Description of the object to check
      * @return {@code true} if the object is valid, {@code false} otherwise.
      */
-    public boolean isCurrentRegisterValueValid(Application app, int hashCode) {
-        LOGGER.debug("Checking if value of object with hashcode " + hashCode + " is valid");
+    public boolean isCurrentRegisterValueValid(ObjectData data) {
+        LOGGER.debug("Checking if value of " + data.getDescription() + " is valid");
 
-        Semaphore sem = new Semaphore(0);
-        IsObjectHereRequest request = new IsObjectHereRequest(app, hashCode, sem);
+        IsObjectHereRequest request = new IsObjectHereRequest(data);
         if (!this.requestQueue.offer(request)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "valid object value");
         }
-
-        // Wait for response
-        sem.acquireUninterruptibly();
 
         // Log response and return
         boolean isValid = request.getResponse();
         if (DEBUG) {
             if (isValid) {
-                LOGGER.debug("Value of object with hashcode " + hashCode + " is valid");
+                LOGGER.debug("Value of " + data.getDescription() + " is valid");
             } else {
-                LOGGER.debug("Value of object with hashcode " + hashCode + " is NOT valid");
+                LOGGER.debug("Value of " + data.getDescription() + " is NOT valid");
             }
         }
 
@@ -535,16 +487,14 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     }
 
     /**
-     * Returns the Identifier of the data corresponding to the last version of an object.
+     * Returns the Identifier of the data corresponding to the last version of an dat.
      *
-     * @param app application accessing the object.
-     * @param obj Object.
-     * @param hashCode Object hashcode.
-     * @return data corresponding to the last version of an object.
+     * @param data Description of the data being accessed.
+     * @return data corresponding to the last version of the data.
      */
-    public LogicalData getObjectLastVersion(Application app, Object obj, int hashCode) {
+    public LogicalData getDataLastVersion(DataParams data) {
         // Ask for the object
-        DataGetLastVersionRequest odr = new DataGetLastVersionRequest(new ObjectData(app, hashCode));
+        DataGetLastVersionRequest odr = new DataGetLastVersionRequest(data);
         if (!this.requestQueue.offer(odr)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "data version query");
         }
@@ -555,18 +505,15 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     /**
      * Notifies a main access to an object {@code obj}.
      *
-     * @param app application accessing the object.
-     * @param obj Object.
-     * @param hashCode Object hashcode.
+     * @param oap description of the object access
      * @return Synchronized object.
      */
-    public Object mainAccessToObject(Application app, Object obj, int hashCode) {
+    public Object mainAccessToObject(ObjectAccessParams oap) {
         if (DEBUG) {
-            LOGGER.debug("Requesting main access to object with hash code " + hashCode);
+            LOGGER.debug("Requesting main access to " + oap.getDataDescription());
         }
 
         // Tell the DIP that the application wants to access an object
-        ObjectAccessParams oap = ObjectAccessParams.constructObjectAP(app, AccessMode.RW, obj, hashCode);
         DataAccessId oaId = registerDataAccess(oap, AccessMode.RW);
 
         DataInstanceId wId = ((RWAccessId) oaId).getWrittenDataInstance();
@@ -591,19 +538,16 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     /**
      * Notifies a main access to an external PSCO {@code id}.
      *
-     * @param app application accessing the external PSCO.
-     * @param id PSCO Id.
-     * @param hashCode Object hashcode.
+     * @param eoap description of the external PSCO access
      * @return Location containing final the PSCO Id.
      */
-    public String mainAccessToExternalPSCO(Application app, String id, int hashCode) {
+    public String mainAccessToExternalPSCO(ExternalPSCObjectAccessParams eoap) {
         if (DEBUG) {
-            LOGGER.debug("Requesting main access to external object with hash code " + hashCode);
+            LOGGER.debug("Requesting main access to " + eoap.getDataDescription());
         }
 
         // Tell the DIP that the application wants to access an object
-        ObjectAccessParams oap = ExternalPSCObjectAccessParams.constructEPOAP(app, AccessMode.RW, id, hashCode);
-        DataAccessId oaId = registerDataAccess(oap, AccessMode.RW);
+        DataAccessId oaId = registerDataAccess(eoap, AccessMode.RW);
 
         // TODO: Check if the object was already piggybacked in the task notification
         String lastRenaming = ((RWAccessId) oaId).getReadDataInstance().getRenaming();
@@ -631,25 +575,21 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     /**
      * Notifies a main access to an external binding object.
      *
-     * @param app application accessing the binding object.
-     * @param bo Binding object.
-     * @param hashCode Binding object's hashcode.
+     * @param boap description of the binding object access
      * @return Location containing the binding's object final path.
      */
-    public String mainAccessToBindingObject(Application app, BindingObject bo, int hashCode) {
+    public String mainAccessToBindingObject(BindingObjectAccessParams boap) {
         if (DEBUG) {
-            LOGGER.debug(
-                "Requesting main access to binding object with bo " + bo.toString() + " and hash code " + hashCode);
+            LOGGER.debug("Requesting main access to " + boap.getDataDescription());
         }
 
         // Defaut access is read because the binding object is removed after accessing it
         // Tell the DIP that the application wants to access an object
-        BindingObjectAccessParams oap = BindingObjectAccessParams.constructBOAP(app, AccessMode.R, bo, hashCode);
-        DataAccessId oaId = registerDataAccess(oap, AccessMode.RW);
+        DataAccessId oaId = registerDataAccess(boap, AccessMode.RW);
 
         String bindingObjectID = obtainBindingObject((RAccessId) oaId);
 
-        finishDataAccess(oap);
+        finishDataAccess(boap);
         return bindingObjectID;
     }
 
@@ -712,22 +652,18 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     }
 
     /**
-     * Returns whether the @{code loc} has already been accessed or not.
+     * Returns whether the @{code data} has already been accessed or not.
      *
-     * @param app application querying the data access
-     * @param loc Location.
-     * @return {@code true} if the location has been accessed, {@code false} otherwise.
+     * @param data querying data
+     * @return {@code true} if the data has been accessed, {@code false} otherwise.
      */
-    public boolean alreadyAccessed(Application app, DataLocation loc) {
-        Semaphore sem = new Semaphore(0);
-        AlreadyAccessedRequest request = new AlreadyAccessedRequest(app, loc, sem);
+    public boolean alreadyAccessed(DataParams data) {
+        AlreadyAccessedRequest request = new AlreadyAccessedRequest(data);
         if (!this.requestQueue.offer(request)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "already accessed location");
         }
 
         // Wait for response
-        sem.acquireUninterruptibly();
-
         return request.getResponse();
     }
 

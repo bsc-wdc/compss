@@ -20,16 +20,14 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
-import es.bsc.compss.types.Application;
-import es.bsc.compss.types.data.location.DataLocation;
+import es.bsc.compss.types.data.accessparams.DataParams;
 import es.bsc.compss.types.tracing.TraceEvent;
 import java.util.concurrent.Semaphore;
 
 
 public class AlreadyAccessedRequest extends APRequest {
 
-    private final Application app;
-    private final DataLocation loc;
+    private final DataParams data;
     private final Semaphore sem;
     private boolean response;
 
@@ -37,46 +35,35 @@ public class AlreadyAccessedRequest extends APRequest {
     /**
      * Creates a new request for already accessed data.
      * 
-     * @param app application querying the data access.
-     * @param loc Data location
-     * @param sem Waiting semaphore.
+     * @param data data whose last version is wanted to be obtained
      */
-    public AlreadyAccessedRequest(Application app, DataLocation loc, Semaphore sem) {
-        this.app = app;
-        this.loc = loc;
-        this.sem = sem;
+    public AlreadyAccessedRequest(DataParams data) {
+        this.sem = new Semaphore(0);
+        this.data = data;
     }
 
     /**
-     * Returns the data location.
+     * Returns the data.
      * 
-     * @return The data location.
+     * @return The data.
      */
-    public DataLocation getLocation() {
-        return this.loc;
+    public DataParams getData() {
+        return this.data;
     }
 
     /**
-     * Returns the associated waiting semaphore.
+     * Waits for the completion and returns the response message.
      * 
-     * @return The associated waiting semaphore.
+     * @return {@code true} if the data has been accessed, {@code false} otherwise.
      */
-    public Semaphore getSemaphore() {
-        return this.sem;
-    }
-
-    /**
-     * Returns the response message.
-     * 
-     * @return {@code true} if the location has been accessed, {@code false} otherwise.
-     */
-    public boolean getResponse() {
+    public final boolean getResponse() {
+        this.sem.acquireUninterruptibly();
         return this.response;
     }
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
-        boolean aa = dip.alreadyAccessed(this.app, this.loc);
+        boolean aa = dip.alreadyAccessed(this.data);
         this.response = aa;
         this.sem.release();
     }

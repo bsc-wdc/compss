@@ -18,6 +18,7 @@ package es.bsc.compss.types.data.accessparams;
 
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.Application;
+import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.DataVersion;
@@ -31,25 +32,25 @@ public class ObjectAccessParams<T extends Object, D extends ObjectData> extends 
      */
     private static final long serialVersionUID = 1L;
 
-    private T value;
+    private final T value;
 
 
     /**
      * Creates a new ObjectAccessParams instance for the given object.
      *
      * @param app Id of the application accessing the object.
-     * @param mode Access mode.
+     * @param dir operation performed.
      * @param value Associated object.
      * @param code Hashcode of the associated object.
      * @return new ObjectAccessParams instance
      */
     public static final <T extends Object> ObjectAccessParams<T, ObjectData> constructObjectAP(Application app,
-        AccessMode mode, T value, int code) {
-        return new ObjectAccessParams(new ObjectData(app, code), mode, value);
+        Direction dir, T value, int code) {
+        return new ObjectAccessParams(new ObjectData(app, code), dir, value);
     }
 
-    protected ObjectAccessParams(D data, AccessMode mode, T value) {
-        super(data, mode);
+    protected ObjectAccessParams(D data, Direction dir, T value) {
+        super(data, dir);
         this.value = value;
     }
 

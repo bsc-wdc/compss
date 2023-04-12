@@ -22,6 +22,7 @@ import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.DataAccessId.ReadingDataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.accessid.RAccessId;
@@ -104,25 +105,18 @@ public class TransferOpenFileRequest extends APRequest {
         LOGGER.debug("Process TransferOpenFileRequest");
 
         // Get target information
-        String targetName;
-        String targetPath;
-        if (this.faId instanceof WAccessId) {
-            // Write mode
-            WAccessId waId = (WAccessId) this.faId;
-            DataInstanceId targetFile = waId.getWrittenDataInstance();
-            targetName = targetFile.getRenaming();
-            targetPath = Comm.getAppHost().getWorkingDirectory() + targetName;
-        } else if (this.faId instanceof RWAccessId) {
-            // Read write mode
-            RWAccessId rwaId = (RWAccessId) this.faId;
-            targetName = rwaId.getWrittenDataInstance().getRenaming();
-            targetPath = Comm.getAppHost().getWorkingDirectory() + targetName;
+        DataInstanceId targetFile;
+        if (faId.isWrite()) {
+            DataAccessId.WritingDataAccessId waId = (DataAccessId.WritingDataAccessId) faId;
+            targetFile = waId.getWrittenDataInstance();
+
         } else {
             // Read only mode
-            RAccessId raId = (RAccessId) this.faId;
-            targetName = raId.getReadDataInstance().getRenaming();
-            targetPath = Comm.getAppHost().getWorkingDirectory() + targetName;
+            RAccessId raId = (RAccessId) faId;
+            targetFile = raId.getReadDataInstance();
         }
+        String targetName = targetFile.getRenaming();
+        String targetPath = Comm.getAppHost().getWorkingDirectory() + targetName;
         LOGGER.debug("Openning file " + targetName + " at " + targetPath);
 
         // Create location
@@ -130,48 +124,37 @@ public class TransferOpenFileRequest extends APRequest {
         String pscoId = Comm.getData(targetName).getPscoId();
 
         // Ask for transfer when required
+        SimpleURI targetURI;
         if (pscoId != null) {
-            // It is an external object persisted inside the task
-            try {
-                SimpleURI targetURI = new SimpleURI(ProtocolType.PERSISTENT_URI.getSchema() + pscoId);
-                targetLocation = DataLocation.createLocation(Comm.getAppHost(), targetURI);
-            } catch (IOException ioe) {
-                ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, ioe);
+            targetURI = new SimpleURI(ProtocolType.PERSISTENT_URI.getSchema() + pscoId);
+        } else {
+            targetURI = new SimpleURI(ProtocolType.FILE_URI.getSchema() + targetPath);
+        }
+
+        try {
+            targetLocation = DataLocation.createLocation(Comm.getAppHost(), targetURI);
+        } catch (IOException ioe) {
+            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, ioe);
+        }
+
+        if (pscoId == null && this.faId.isRead()) {
+            LOGGER.debug("Asking for transfer");
+            ReadingDataAccessId rdaId = (ReadingDataAccessId) faId;
+            LogicalData srcData = rdaId.getReadDataInstance().getData();
+            if (this.faId.isWrite()) {
+                FileTransferable ft = new FileTransferable(faId.isPreserveSourceData());
+                Comm.getAppHost().getData(srcData, targetName, (LogicalData) null, ft, new CopyListener(ft, this.sem));
+            } else {
+                FileTransferable ft = new FileTransferable();
+                Comm.getAppHost().getData(srcData, ft, new CopyListener(ft, this.sem));
             }
+        } else {
             Comm.registerLocation(targetName, targetLocation);
             // Register target location
             LOGGER.debug("Setting target location to " + targetLocation);
             setLocation(targetLocation);
-            LOGGER.debug("External object detected. Auto-release");
-            Comm.registerLocation(targetName, targetLocation);
+            LOGGER.debug("Auto-release");
             this.sem.release();
-        } else {
-            try {
-                SimpleURI targetURI = new SimpleURI(ProtocolType.FILE_URI.getSchema() + targetPath);
-                targetLocation = DataLocation.createLocation(Comm.getAppHost(), targetURI);
-            } catch (IOException ioe) {
-                ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, ioe);
-            }
-            if (this.faId instanceof WAccessId) {
-                LOGGER.debug("Write only mode. Auto-release");
-                Comm.registerLocation(targetName, targetLocation);
-                // Register target location
-                LOGGER.debug("Setting target location to " + targetLocation);
-                setLocation(targetLocation);
-                this.sem.release();
-            } else if (this.faId instanceof RWAccessId) {
-                LOGGER.debug("RW mode. Asking for transfer");
-                RWAccessId rwaId = (RWAccessId) this.faId;
-                LogicalData srcData = rwaId.getReadDataInstance().getData();
-                FileTransferable ft = new FileTransferable(rwaId.isPreserveSourceData());
-                Comm.getAppHost().getData(srcData, targetName, (LogicalData) null, ft, new CopyListener(ft, this.sem));
-            } else {
-                LOGGER.debug("Read only mode. Asking for transfer");
-                RAccessId raId = (RAccessId) this.faId;
-                LogicalData srcData = raId.getReadDataInstance().getData();
-                FileTransferable ft = new FileTransferable();
-                Comm.getAppHost().getData(srcData, ft, new CopyListener(ft, this.sem));
-            }
         }
     }
 

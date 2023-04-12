@@ -23,6 +23,7 @@ PyCOMPSs DDS - API.
 This file contains the DDS interface.
 """
 
+import heapq
 import bisect
 import itertools
 import functools
@@ -32,7 +33,6 @@ from collections import deque, defaultdict
 from pycompss.api.api import compss_wait_on as cwo
 from pycompss.api.api import compss_delete_object as cdo
 from pycompss.api.api import compss_barrier
-from pycompss.dds import heapq3
 from pycompss.dds.partition_generators import IPartitionGenerator
 from pycompss.dds.partition_generators import BasicDataLoader
 from pycompss.dds.partition_generators import IteratorLoader
@@ -853,7 +853,7 @@ class DDS:
                     chunk.sort(key=lambda kv: key_func(kv[0]), reverse=not ascending)
                 )
 
-            return heapq3.merge(
+            return heapq.merge(
                 chunks, key=lambda kv: key_func(kv[0]), reverse=not ascending
             )
 

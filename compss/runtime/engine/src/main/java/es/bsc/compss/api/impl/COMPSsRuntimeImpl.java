@@ -1082,8 +1082,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         LOGGER.debug(" Calling get binding object : " + fileName);
 
         Application app = Application.registerApplication(appId);
-        BindingObjectLocation sourceLocation =
-            new BindingObjectLocation(Comm.getAppHost(), BindingObject.generate(fileName));
+        BindingObjectLocation sourceLocation;
+        sourceLocation = new BindingObjectLocation(Comm.getAppHost(), BindingObject.generate(fileName));
         // Ask the AP to
         String finalPath = mainAccessToBindingObject(app, fileName, sourceLocation);
         LOGGER.debug(" Returning binding object as id: " + finalPath);

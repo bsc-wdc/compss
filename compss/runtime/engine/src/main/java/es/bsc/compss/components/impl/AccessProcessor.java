@@ -420,8 +420,8 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         if (faId == null) { // If fiId is null data is cancelled returning null location
             ErrorManager.warn("No version available. Returning null");
             try {
-                tgtLocation = DataLocation.createLocation(Comm.getAppHost(),
-                    new SimpleURI(ProtocolType.FILE_URI.getSchema() + destDir + "null"));
+                String path = ProtocolType.DIR_URI.getSchema() + destDir + "null";
+                tgtLocation = DataLocation.createLocation(Comm.getAppHost(), new SimpleURI(path));
             } catch (Exception e) {
                 ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION, e);
             }
@@ -432,7 +432,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
 
             if (fap.getMode() != AccessMode.R && fap.getMode() != AccessMode.C) {
                 // Mode contains W
-                LOGGER.debug("File " + faId.getDataId() + " mode contains W, register new writer");
+                LOGGER.debug("Data " + faId.getDataId() + " mode contains W, register new writer");
                 DataInstanceId daId;
                 if (fap.getMode() == AccessMode.RW || fap.getMode() == AccessMode.CV) {
                     RWAccessId ra = (RWAccessId) faId;

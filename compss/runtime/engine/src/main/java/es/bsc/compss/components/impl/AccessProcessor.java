@@ -32,7 +32,6 @@ import es.bsc.compss.types.ReduceTask;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.data.DataAccessId;
-import es.bsc.compss.types.data.DataAccessId.ReadingDataAccessId;
 import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.LogicalData;
@@ -79,7 +78,6 @@ import es.bsc.compss.types.request.ap.TaskEndNotification;
 import es.bsc.compss.types.request.ap.TasksStateRequest;
 import es.bsc.compss.types.request.ap.TransferBindingObjectRequest;
 import es.bsc.compss.types.request.ap.TransferObjectRequest;
-import es.bsc.compss.types.request.ap.TransferRawFileRequest;
 import es.bsc.compss.types.request.ap.UnblockResultFilesRequest;
 import es.bsc.compss.types.request.ap.WaitForDataReadyToDeleteRequest;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
@@ -345,18 +343,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
                 if (destDir == null) {
                     tgtLocation = fap.fetchForOpen(faId);
                 } else {
-                    ReadingDataAccessId rdaId = (ReadingDataAccessId) faId;
-                    DataInstanceId diId = rdaId.getReadDataInstance();
-                    String rename = diId.getRenaming();
-                    String path = ProtocolType.FILE_URI.getSchema() + destDir + rename;
-                    try {
-                        SimpleURI uri = new SimpleURI(path);
-                        tgtLocation = DataLocation.createLocation(Comm.getAppHost(), uri);
-                    } catch (Exception e) {
-                        ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + path, e);
-                    }
-
-                    transferFileRaw(faId, tgtLocation);
+                    tgtLocation = fap.fetchRaw(faId, destDir);
                 }
             }
 
@@ -844,26 +831,6 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         if (!this.requestQueue.offer(new DeleteBindingObjectRequest(app, code))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "mark for deletion");
         }
-    }
-
-    /**
-     * Adds a request for file raw transfer.
-     *
-     * @param faId Data Access Id.
-     * @param location File location.
-     */
-    private void transferFileRaw(DataAccessId faId, DataLocation location) {
-        Semaphore sem = new Semaphore(0);
-        RAccessId faRId = (RAccessId) faId;
-        TransferRawFileRequest request = new TransferRawFileRequest(faRId, location, sem);
-        if (!this.requestQueue.offer(request)) {
-            ErrorManager.error(ERROR_QUEUE_OFFER + "transfer file raw");
-        }
-
-        // Wait for response
-        sem.acquireUninterruptibly();
-
-        LOGGER.debug("Raw file transferred");
     }
 
     /**

@@ -109,24 +109,10 @@ public class FileAccessParams<D extends FileData> extends AccessParams<D> {
             targetFile = raId.getReadDataInstance();
         }
         String targetName = targetFile.getRenaming();
-        String targetPath = Comm.getAppHost().getWorkingDirectory() + targetName;
-        LOGGER.debug("Openning file " + targetName + " at " + targetPath);
 
-        // Create location
+        LOGGER.debug("Openning file " + targetName);
+
         String pscoId = Comm.getData(targetName).getPscoId();
-        SimpleURI targetURI;
-        if (pscoId != null) {
-            targetURI = new SimpleURI(ProtocolType.PERSISTENT_URI.getSchema() + pscoId);
-        } else {
-            targetURI = new SimpleURI(ProtocolType.FILE_URI.getSchema() + targetPath);
-        }
-        DataLocation targetLocation = null;
-        try {
-            targetLocation = DataLocation.createLocation(Comm.getAppHost(), targetURI);
-        } catch (IOException ioe) {
-            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, ioe);
-        }
-
         if (pscoId == null && daId.isRead()) {
             LOGGER.debug("Asking for transfer");
             ReadingDataAccessId rdaId = (ReadingDataAccessId) daId;
@@ -146,11 +132,55 @@ public class FileAccessParams<D extends FileData> extends AccessParams<D> {
             return listener.getResult();
         } else {
             LOGGER.debug("Auto-release");
+            // Create location
+            SimpleURI targetURI;
+            if (pscoId != null) {
+                targetURI = new SimpleURI(ProtocolType.PERSISTENT_URI.getSchema() + pscoId);
+            } else {
+                String targetPath = Comm.getAppHost().getWorkingDirectory() + targetName;
+                targetURI = new SimpleURI(ProtocolType.FILE_URI.getSchema() + targetPath);
+            }
+            DataLocation targetLocation = null;
+            try {
+                targetLocation = DataLocation.createLocation(Comm.getAppHost(), targetURI);
+            } catch (IOException ioe) {
+                ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetURI, ioe);
+            }
+
             Comm.registerLocation(targetName, targetLocation);
             // Register target location
             LOGGER.debug("Setting target location to " + targetLocation);
             return targetLocation;
         }
+    }
+
+    /**
+     * Fetches the last version of the file at a given directory.
+     *
+     * @param daId Data Access Id.
+     * @param destDir directory where the file will be left
+     * @return Location of the transferred open file.
+     */
+    public DataLocation fetchRaw(DataAccessId daId, String destDir) {
+        ReadingDataAccessId rdaId = (ReadingDataAccessId) daId;
+        DataInstanceId diId = rdaId.getReadDataInstance();
+        String targetName = diId.getRenaming();
+        String path = ProtocolType.FILE_URI.getSchema() + destDir + targetName;
+        DataLocation targetLocation = null;
+        try {
+            SimpleURI targetURI = new SimpleURI(path);
+            targetLocation = DataLocation.createLocation(Comm.getAppHost(), targetURI);
+        } catch (Exception e) {
+            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + path, e);
+        }
+
+        LogicalData srcData = diId.getData();
+        Semaphore sem = new Semaphore(0);
+        FileTransferable ft = new FileTransferable();
+        Comm.getAppHost().getData(srcData, targetLocation, (LogicalData) null, ft, new OneOpWithSemListener(sem));
+        sem.acquireUninterruptibly();
+        LOGGER.debug("Raw file transferred");
+        return targetLocation;
     }
 
     @Override

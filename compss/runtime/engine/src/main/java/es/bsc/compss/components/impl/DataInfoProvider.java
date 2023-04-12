@@ -20,7 +20,6 @@ import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.CommException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.Application;
-import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
@@ -28,34 +27,23 @@ import es.bsc.compss.types.data.DataVersion;
 import es.bsc.compss.types.data.FileInfo;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.ResultFile;
-import es.bsc.compss.types.data.Transferable;
 import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
 import es.bsc.compss.types.data.accessparams.DataParams;
-import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.PersistentLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
-import es.bsc.compss.types.data.operation.BindingObjectTransferable;
 import es.bsc.compss.types.data.operation.DirectoryTransferable;
 import es.bsc.compss.types.data.operation.FileTransferable;
-import es.bsc.compss.types.data.operation.ObjectTransferable;
-import es.bsc.compss.types.data.operation.OneOpWithSemListener;
 import es.bsc.compss.types.data.operation.ResultListener;
-import es.bsc.compss.types.request.ap.TransferBindingObjectRequest;
-import es.bsc.compss.types.request.ap.TransferObjectRequest;
 import es.bsc.compss.types.tracing.TraceEvent;
-import es.bsc.compss.types.uri.MultiURI;
-import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
-import es.bsc.compss.util.serializers.Serializer;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
@@ -522,115 +510,6 @@ public class DataInfoProvider {
             return null;
         }
 
-    }
-
-    /**
-     * Transfers the value of an object.
-     *
-     * @param toRequest Transfer object request.
-     */
-    public void transferObjectValue(TransferObjectRequest toRequest) {
-        Semaphore sem = toRequest.getSemaphore();
-        DataAccessId daId = toRequest.getDaId();
-        RWAccessId rwaId = (RWAccessId) daId;
-        String sourceName = rwaId.getReadDataInstance().getRenaming();
-        // String targetName = rwaId.getWrittenDataInstance().getRenaming();
-        if (DEBUG) {
-            LOGGER.debug("Requesting getting object " + sourceName);
-        }
-        LogicalData ld = rwaId.getReadDataInstance().getData();
-
-        if (ld == null) {
-            ErrorManager.error("Unregistered data " + sourceName);
-            return;
-        }
-
-        if (ld.isInMemory()) {
-            Object value = null;
-            if (!rwaId.isPreserveSourceData()) {
-                value = ld.getValue();
-                // Clear value
-                ld.removeValue();
-            } else {
-                try {
-                    ld.writeToStorage();
-                } catch (Exception e) {
-                    ErrorManager.error("Exception writing object to file.", e);
-                }
-                for (DataLocation loc : ld.getLocations()) {
-                    if (loc.getProtocol() != ProtocolType.OBJECT_URI) {
-                        MultiURI mu = loc.getURIInHost(Comm.getAppHost());
-                        String path = mu.getPath();
-                        try {
-                            value = Serializer.deserialize(path);
-                            break;
-                        } catch (IOException | ClassNotFoundException e) {
-                            ErrorManager.error("Exception writing object to file.", e);
-                        }
-                    }
-                }
-            }
-            // Set response
-            toRequest.setResponse(value);
-            toRequest.setTargetData(ld);
-            sem.release();
-        } else {
-            if (DEBUG) {
-                LOGGER.debug(
-                    "Object " + sourceName + " not in memory. Requesting tranfers to " + Comm.getAppHost().getName());
-            }
-            DataLocation targetLocation = null;
-            String path = ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getWorkingDirectory() + sourceName;
-            try {
-                SimpleURI uri = new SimpleURI(path);
-                targetLocation = DataLocation.createLocation(Comm.getAppHost(), uri);
-            } catch (Exception e) {
-                ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + path, e);
-            }
-            toRequest.setTargetData(ld);
-            Comm.getAppHost().getData(ld, targetLocation, new ObjectTransferable(), new OneOpWithSemListener(sem));
-        }
-
-    }
-
-    /**
-     * Transfers the value of a binding object.
-     *
-     * @param toRequest Transfer binding object request.
-     * @return Associated LogicalData to the obtained value.
-     */
-    public LogicalData transferBindingObject(TransferBindingObjectRequest toRequest) {
-        DataAccessId daId = toRequest.getDaId();
-        RAccessId rwaId = (RAccessId) daId;
-        String sourceName = rwaId.getReadDataInstance().getRenaming();
-
-        if (DEBUG) {
-            LOGGER.debug("[DataInfoProvider] Requesting getting object " + sourceName);
-        }
-        LogicalData srcLd = rwaId.getReadDataInstance().getData();
-        if (DEBUG) {
-            LOGGER.debug("[DataInfoProvider] Logical data for binding object is:" + srcLd);
-        }
-        if (srcLd == null) {
-            ErrorManager.error("Unregistered data " + sourceName);
-            return null;
-        }
-        if (DEBUG) {
-            LOGGER.debug("Requesting tranfers binding object " + sourceName + " to " + Comm.getAppHost().getName());
-        }
-
-        Semaphore sem = toRequest.getSemaphore();
-        BindingObject srcBO = BindingObject.generate(srcLd.getURIs().get(0).getPath());
-        BindingObject tgtBO = new BindingObject(sourceName, srcBO.getType(), srcBO.getElements());
-        LogicalData tgtLd = srcLd;
-        DataLocation targetLocation = new BindingObjectLocation(Comm.getAppHost(), tgtBO);
-        Transferable transfer = new BindingObjectTransferable(toRequest);
-
-        Comm.getAppHost().getData(srcLd, targetLocation, tgtLd, transfer, new OneOpWithSemListener(sem));
-        if (DEBUG) {
-            LOGGER.debug(" Setting tgtName " + transfer.getDataTarget() + " in " + Comm.getAppHost().getName());
-        }
-        return srcLd;
     }
 
     /**

@@ -9,7 +9,7 @@ cd "${SCRIPT_DIR}/../../src/"
 ## Check pycodestyle ##
 #######################
 
-pycodestyle --max-line-length=120 --exclude=dds/heapq3.py --statistics --count  --ignore=E203,W503 ./pycompss/
+pycodestyle --max-line-length=80 --statistics --count  --ignore=E203,W503 ./pycompss/
 ev=$?
 if [ "$ev" -ne 0 ]; then
   echo "[ERROR] pycodestyle check failed with exit value: $ev"

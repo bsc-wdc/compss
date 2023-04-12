@@ -32,17 +32,15 @@ from pycompss.util.process.manager import create_proxy_dict
 from pycompss.util.process.manager import DictProxy  # typing only
 from pycompss.util.process.manager import new_queue
 from pycompss.util.typing_helper import typing
-
-# Used only for typing shortcut
-from pycompss.util.typing_helper.typing import Dict  # noqa: F401
-
-# Used only for typing shortcut
-from pycompss.util.typing_helper.typing import List  # noqa: F401
 from pycompss.worker.piper.cache.classes import CacheQueueMessage
 from pycompss.worker.piper.cache.tracker import CacheTrackerConf
 from pycompss.worker.piper.cache.tracker import CACHE_TRACKER
 from pycompss.worker.piper.cache.manager import cache_manager
 from pycompss.util.process.manager import create_process
+
+# Used only for typing shortcut
+Dict = typing.Dict
+List = typing.List
 
 
 def is_cache_enabled(cache_config: str) -> bool:

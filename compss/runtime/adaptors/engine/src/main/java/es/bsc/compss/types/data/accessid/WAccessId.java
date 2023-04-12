@@ -17,11 +17,12 @@
 package es.bsc.compss.types.data.accessid;
 
 import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.DataVersion;
 
 
-public class WAccessId extends DataAccessId {
+public class WAccessId implements WritingDataAccessId {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
@@ -64,33 +65,26 @@ public class WAccessId extends DataAccessId {
     }
 
     @Override
+    public boolean isRead() {
+        return false;
+    }
+
+    @Override
     public boolean isWrite() {
         return true;
     }
 
-    /**
-     * Returns the written data version.
-     * 
-     * @return data version written
-     */
+    @Override
     public DataVersion getWrittenDataVersion() {
         return this.writtenDataVersion;
     }
 
-    /**
-     * Returns the written data instance.
-     *
-     * @return The written data instance.
-     */
+    @Override
     public DataInstanceId getWrittenDataInstance() {
         return this.writtenDataVersion.getDataInstanceId();
     }
 
-    /**
-     * Returns the write version id.
-     * 
-     * @return The write version id.
-     */
+    @Override
     public int getWVersionId() {
         return this.writtenDataVersion.getDataInstanceId().getVersionId();
     }

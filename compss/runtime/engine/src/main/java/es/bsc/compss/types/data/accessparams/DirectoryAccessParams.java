@@ -66,8 +66,9 @@ public class DirectoryAccessParams extends FileAccessParams<DirectoryData> {
      * Fetches the last version of the directory.
      *
      * @param daId Data Access Id.
-     * @return Location of the transferred open file.
+     * @return Location of the transferred open directory.
      */
+    @Override
     public DataLocation fetchForOpen(DataAccessId daId) {
         // Get target information
         DataInstanceId targetFile;

@@ -79,7 +79,6 @@ import es.bsc.compss.types.request.ap.TaskEndNotification;
 import es.bsc.compss.types.request.ap.TasksStateRequest;
 import es.bsc.compss.types.request.ap.TransferBindingObjectRequest;
 import es.bsc.compss.types.request.ap.TransferObjectRequest;
-import es.bsc.compss.types.request.ap.TransferOpenFileRequest;
 import es.bsc.compss.types.request.ap.TransferRawFileRequest;
 import es.bsc.compss.types.request.ap.UnblockResultFilesRequest;
 import es.bsc.compss.types.request.ap.WaitForDataReadyToDeleteRequest;
@@ -344,7 +343,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         } else {
             if (faId.isRead()) {
                 if (destDir == null) {
-                    tgtLocation = transferFileOpen(faId);
+                    tgtLocation = fap.fetchForOpen(faId);
                 } else {
                     ReadingDataAccessId rdaId = (ReadingDataAccessId) faId;
                     DataInstanceId diId = rdaId.getReadDataInstance();
@@ -865,26 +864,6 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         sem.acquireUninterruptibly();
 
         LOGGER.debug("Raw file transferred");
-    }
-
-    /**
-     * Adds a request for open file transfer.
-     *
-     * @param faId Data Access Id.
-     * @return Location of the transferred open file.
-     */
-    private DataLocation transferFileOpen(DataAccessId faId) {
-        Semaphore sem = new Semaphore(0);
-        TransferOpenFileRequest request = new TransferOpenFileRequest(faId, sem);
-        if (!this.requestQueue.offer(request)) {
-            ErrorManager.error(ERROR_QUEUE_OFFER + "transfer file open");
-        }
-
-        // Wait for response
-        sem.acquireUninterruptibly();
-
-        LOGGER.debug("Open file transferred");
-        return request.getLocation();
     }
 
     /**

@@ -24,7 +24,8 @@ This file contains the implementation types definitions.
 """
 
 
-class _ImplementationTypes:  # pylint: disable=too-few-public-methods, too-many-instance-attributes
+class _ImplementationTypes:  # pylint: disable=R0903,R0902
+    # disable=too-few-public-methods, too-many-instance-attributes
     """Supported implementation types."""
 
     __slots__ = [

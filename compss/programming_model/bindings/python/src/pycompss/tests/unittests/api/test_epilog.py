@@ -54,9 +54,10 @@ def test_epilog_call_outside():
     except Exception:  # noqa
         thrown = True  # this is OK!
     CONTEXT.set_out_of_scope()
-    assert (
-        thrown
-    ), "The epilog decorator did not raise an exception when invoked out of scope."
+    assert thrown, (
+        "The epilog decorator did not raise an exception when "
+        "invoked out of scope."
+    )
 
 
 def test_epilog_existing_core_element():

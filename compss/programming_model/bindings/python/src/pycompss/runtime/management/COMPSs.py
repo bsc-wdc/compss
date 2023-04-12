@@ -66,7 +66,8 @@ class COMPSsModule:
     ) -> None:
         """Load the external C extension module.
 
-        :param external_process: Loads the runtime in an external process if true.
+        :param external_process: Loads the runtime in an external process
+                                 if true.
                                  Within this python process if false.
         :param _logger: Use this logger instead of the module LOGGER.
         :return: None

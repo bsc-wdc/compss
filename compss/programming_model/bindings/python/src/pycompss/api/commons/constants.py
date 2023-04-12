@@ -24,7 +24,8 @@ This file contains the common decorator labels.
 """
 
 
-class _Labels:  # pylint: disable=too-few-public-methods, too-many-instance-attributes
+class _Labels:  # pylint: disable=R0903,R0902
+    # disable=too-few-public-methods, too-many-instance-attributes
     """Currently supported labels in all decorators."""
 
     __slots__ = (
@@ -176,7 +177,8 @@ class _Labels:  # pylint: disable=too-few-public-methods, too-many-instance-attr
         self.type = "type"
 
 
-class _LegacyLabels:  # pylint: disable=too-few-public-methods, too-many-instance-attributes
+class _LegacyLabels:  # pylint: disable=R0903,R0902
+    # disable=too-few-public-methods, too-many-instance-attributes
     """Supported labels in all decorators but sensitive to be removed."""
 
     __slots__ = (

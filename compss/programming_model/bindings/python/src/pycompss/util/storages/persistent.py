@@ -37,7 +37,9 @@ from pycompss.util.typing_helper import typing
 
 # Definition helpers
 def __dummy_function__() -> None:
-    """Do nothing function to be used as definition of INIT, FINISH and GET_BY_ID globals.
+    """Do nothing function.
+
+    To be used as definition of INIT, FINISH and GET_BY_ID globals.
 
     :return: None
     :raises PyCOMPSsException: Always raises this function if invoked.

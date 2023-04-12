@@ -76,7 +76,7 @@ REQUIRED_FLAGS = {
     "external_adaptation": [[bool]],
     "propagate_virtual_environment": [[bool]],
     "mpi_worker": [[bool]],
-}  # type: typing.Dict[str, typing.List[typing.List[typing.Union[object, str, bool, type]]]]
+}  # type: typing.Dict[str, typing.List[typing.List[typing.Union[object, str, bool, type]]]]  # noqa # pylint: disable=line-too-long
 
 
 def check_flags(all_vars: dict) -> typing.Tuple[bool, list]:

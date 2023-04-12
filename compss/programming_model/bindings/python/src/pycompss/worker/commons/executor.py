@@ -54,7 +54,15 @@ def __build_collection_representation__(value: list) -> str:
     """Create the representation of a collection from the list of lists format.
 
     CAUTION: Recursive function.
-    The runtime expects [[[(t1, v1), (t2, v2), ...], [(t1, v1), (t2, v2), ...], ...], ...]
+    The runtime expects:
+      [
+        [
+          [(t1, v1), (t2, v2), ...],
+          [(t1, v1), (t2, v2), ...],
+          ...
+        ],
+        ...
+      ]
 
     :param value: Collection message before processing.
     :return: The collection representation message.

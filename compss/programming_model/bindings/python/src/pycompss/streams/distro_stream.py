@@ -676,7 +676,7 @@ class RegistrationException(Exception):
         self.message = message
 
     def __str__(self) -> str:
-        """Retrieve the string representation of the RegistrationException object.
+        """Retrieve the string repr. of the RegistrationException object.
 
         :return: The string representation.
         """

@@ -62,7 +62,10 @@ def shutdown_handler(
 def establish_interactive_link(
     logger: typing.Optional[logging.Logger] = None, redirect_std: bool = False
 ) -> typing.Tuple[typing.Any, str, str]:
-    """Start a new process which will be in charge of communicating with the C-extension.
+    """Start a process that communicates with the C-extension.
+
+    Starts a new process which will be in charge of communicating with
+    the C-extension.
 
     It will return stdout file name and stderr file name as None if
     redirect_std is False. Otherwise, returns the names which are the
@@ -94,7 +97,10 @@ class ExternalLink:
         logger: typing.Optional[logging.Logger] = None,
         redirect_std: bool = False,
     ) -> typing.Tuple[typing.Any, str, str]:
-        """Start a new process which will be in charge of communicating with the C-extension.
+        """Start a process that communicates with the C-extension.
+
+        Start a new process which will be in charge of communicating with
+        the C-extension.
 
         It will return stdout file name and stderr file name as None if
         redirect_std is False. Otherwise, returns the names which are the
@@ -160,7 +166,7 @@ class ExternalLink:
         self.in_queue.join_thread()
         self.out_queue.join_thread()
         self.link_process.join()
-        # Notify that if terminated, the queues must be reopened to start again.
+        # Notify that if terminated, the queues must be reopened to start again
         self.reload = True
 
     def terminate_interactive_link(self) -> None:
@@ -185,7 +191,10 @@ def c_extension_link(
     out_file_name: str,
     err_file_name: str,
 ) -> None:
-    """Establish C extension within an external process and communicates through queues.
+    """Establish C extension within external process.
+
+    Establish C extension within an external process and communicates
+    through queues.
 
     :param lock: Global lock for
     :param in_queue: Queue to receive messages.

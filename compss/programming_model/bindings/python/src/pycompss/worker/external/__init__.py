@@ -17,4 +17,8 @@
 
 # -*- coding: utf-8 -*-
 
-"""This package contains the external worker functions, constants and classes."""
+"""
+This package contains the external worker helpers.
+
+Where helpers are functions, constants and classes.
+"""

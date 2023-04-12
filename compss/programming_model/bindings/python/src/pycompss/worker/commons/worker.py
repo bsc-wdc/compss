@@ -52,7 +52,8 @@ from pycompss.util.typing_helper import typing
 # First load the storage library
 load_storage_library()
 # Then import the appropriate functions
-from pycompss.util.storages.persistent import (  # noqa: E402 pylint: disable=wrong-import-position
+from pycompss.util.storages.persistent import (  # noqa # pylint: disable=C0413
+    # disable=wrong-import-position
     TaskContext,
     is_psco,
     get_by_id,
@@ -712,6 +713,7 @@ def execute_task(
             )
             logger.debug("Has target: %s", str(has_target))
 
+        file_name = "None"
         if has_target == "true":
             # Instance method
             # The self object needs to be an object in order to call the
@@ -731,7 +733,6 @@ def execute_task(
                 obj = get_by_id(self_elem.content)
             else:
                 obj = None
-                file_name = "None"
                 if self_elem.content == "":
                     file_name = self_elem.file_name.original_path
                     if __debug__:
@@ -755,7 +756,8 @@ def execute_task(
                             self_elem.content,
                         )
                         logger.debug(
-                            "Processing callee, a hidden object of %s in file %s",
+                            "Processing callee, a hidden object of "
+                            "%s in file %s",
                             file_name,
                             type(self_elem.content),
                         )
@@ -811,7 +813,7 @@ def execute_task(
                         )
                     try:
                         serialize_to_file(obj, file_name)
-                    except Exception:  # pylint: disable=broad-except
+                    except Exception:  # noqa # pylint: disable=broad-except
                         # Catch any serialization exception
                         exc_type, exc_value, exc_traceback = sys.exc_info()
                         lines = traceback.format_exception(

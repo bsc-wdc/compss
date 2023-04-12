@@ -36,7 +36,7 @@ def __get_chunks__(
     :return: List of lists that contain chunksize elements.
     """
     for i in range(0, len(list(iterable)), chunksize):
-        yield iterable[i : i + chunksize]
+        yield iterable[i : i + chunksize]  # noqa: E203
 
 
 def map(  # pylint: disable=redefined-builtin

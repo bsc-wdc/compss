@@ -131,11 +131,13 @@ def cache_manager(
                     for hits, elements in cache_hits.items():
                         if elements:  # not empty entry
                             logger.debug(
-                                f"{CACHE_MANAGER_HEADER} [{process_name}] {hits} hits:"
+                                f"{CACHE_MANAGER_HEADER} [{process_name}] "
+                                f"{hits} hits:"
                             )
                             for obj_name, size in elements.items():
                                 logger.debug(
-                                    f"{CACHE_MANAGER_HEADER} [{process_name}] \t- {obj_name} {size}"
+                                    f"{CACHE_MANAGER_HEADER} [{process_name}] "
+                                    f"\t- {obj_name} {size}"
                                 )
                                 used_size += size
                                 entries += 1
@@ -235,7 +237,8 @@ def cache_manager(
                             # The object already exists
                             if __debug__:
                                 logger.debug(
-                                    "%s [%s] The object already exists NOT adding: %s",
+                                    "%s [%s] The object already exists "
+                                    "NOT adding: %s",
                                     CACHE_MANAGER_HEADER,
                                     str(process_name),
                                     str(msg),
@@ -412,7 +415,8 @@ def cache_manager(
                         f_name = get_file_name(f_name_msg)
                         if f_name in locked:
                             raise PyCOMPSsException(
-                                "Cache coherence issue: tried to lock an already locked file entry"
+                                "Cache coherence issue: "
+                                "tried to lock an already locked file entry"
                             )
                         locked.add(f_name)
                         logger.debug(
@@ -437,7 +441,8 @@ def cache_manager(
                             locked.remove(f_name)
                         except KeyError as key_error:
                             raise PyCOMPSsException(
-                                "Cache coherence issue: tried to remove locked but failed"
+                                "Cache coherence issue: "
+                                "tried to remove locked but failed"
                             ) from key_error
                 elif action == "IS_LOCKED":
                     with EventWorkerCache(
@@ -525,7 +530,7 @@ def __free_cache_space__(
         sorted_hits, cache_ids, cache_hits, size_to_recover
     )
     if __debug__:
-        logger.debug("%s Evicting %d entries", CACHE_MANAGER_HEADER, (evicted))
+        logger.debug("%s Evicting %d entries", CACHE_MANAGER_HEADER, evicted)
 
     return used_size - recovered_size
 

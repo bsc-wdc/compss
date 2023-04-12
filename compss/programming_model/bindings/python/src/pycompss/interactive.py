@@ -190,7 +190,8 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
     :param master_port: Master port
                         (default: "")
     :param scheduler: Scheduler (see runcompss)
-                      (default: es.bsc.compss.scheduler.lookahead.locality.LocalityTS)  # noqa: E501
+                      (default: es.bsc.compss.scheduler.
+                                lookahead.locality.LocalityTS)
     :param jvm_workers: Java VM parameters
                         (default: "-Xms1024m,-Xmx1024m,-Xmn400m")
     :param cpu_affinity: CPU Core affinity
@@ -209,7 +210,8 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
                              (default: "")
     :param external_adaptation: External adaptation [ True|False ]
                                 (default: False)
-    :param propagate_virtual_environment: Propagate virtual environment [ True|False ]  # noqa: E501
+    :param propagate_virtual_environment: Propagate virtual environment
+                                          [ True|False ]
                                           (default: False)
     :param mpi_worker: Use the MPI worker [ True|False ]
                        (default: False)
@@ -237,18 +239,21 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
     :param data_provenance: Enable data provenance [ True | False ]
                             (default: False)
     :param checkpoint_policy: Checkpointing policy.
-                              (default: "es.bsc.compss.checkpoint.policies.NoCheckpoint")
+                              (default: "es.bsc.compss.checkpoint.
+                                         policies.NoCheckpoint")
     :param checkpoint_params: Checkpointing parameters.
                               (default: "")
     :param checkpoint_folder: Checkpointing folder.
                               (default: "")
     :param verbose: Verbose mode [ True|False ]
                     (default: False)
-    :param disable_external: To avoid to load compss in external process [ True | False ]
-                             Necessary in scenarios like pytest which fails with
-                             multiprocessing. It also disables the outwatcher
-                             since pytest also captures stdout and stderr.
-                             (default: False)
+    :param disable_external: To avoid to load compss in external process
+                             [ True | False ]
+                             Necessary in scenarios like pytest which fails
+                             with multiprocessing. It also disables the
+                             outwatcher since pytest also captures stdout
+                             and stderr.
+                            (default: False)
     :return: None
     """
     # Initialize multiprocessing
@@ -375,7 +380,8 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
                 f"- Overridden project xml with: {updated_vars['project_xml']}"
             )
             print(
-                f"- Overridden resources xml with: {updated_vars['resources_xml']}"
+                f"- Overridden resources xml with: "
+                f"{updated_vars['resources_xml']}"
             )
             print(
                 f"- Overridden master name with: {updated_vars['master_name']}"
@@ -386,13 +392,16 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
             print(f"- Overridden uuid with: {updated_vars['uuid']}")
             print(f"- Overridden log dir with: {updated_vars['log_dir']}")
             print(
-                f"- Overridden master working dir with: {updated_vars['master_working_dir']}"
+                f"- Overridden master working dir with: "
+                f"{updated_vars['master_working_dir']}"
             )
             print(
-                f"- Overridden storage conf with: {updated_vars['storage_conf']}"
+                f"- Overridden storage conf with: "
+                f"{updated_vars['storage_conf']}"
             )
             print(
-                f"- Overridden log level with: {str(updated_vars['log_level'])}"
+                f"- Overridden log level with: "
+                f"{str(updated_vars['log_level'])}"
             )
             print(f"- Overridden debug with: {str(updated_vars['debug'])}")
             print(f"- Overridden trace with: {str(updated_vars['trace'])}")
@@ -489,60 +498,26 @@ def __show_flower__() -> None:
     :return: None
     """
     line_separator = EXTRA_LAUNCH_STATUS.get_line_separator()
-    print(line_separator)  # NOSONAR # noqa
-    print(
-        r"**************** PyCOMPSs Interactive ******************"
-    )  # NOSONAR # noqa
-    print(line_separator)  # NOSONAR # noqa
-    print(
-        r"*          .-~~-.--.           ______         ___      *"
-    )  # NOSONAR # noqa
-    print(
-        r"*         :         )         |____  \       /   |     *"
-    )  # NOSONAR # noqa
-    print(
-        r"*   .~ ~ -.\       /.- ~~ .      __) |      /_/| |     *"
-    )  # NOSONAR # noqa
-    print(
-        r"*   >       `.   .'       <     |__  |         | |     *"
-    )  # NOSONAR # noqa
-    print(
-        r"*  (         .- -.         )   ____) |   _     | |     *"
-    )  # NOSONAR # noqa
-    print(
-        r"*   `- -.-~  `- -'  ~-.- -'   |______/  |_|    |_|     *"
-    )  # NOSONAR # noqa
-    print(
-        r"*     (        :        )           _ _ .-:            *"
-    )  # NOSONAR # noqa
-    print(
-        r"*      ~--.    :    .--~        .-~  .-~  }            *"
-    )  # NOSONAR # noqa
-    print(
-        r"*          ~-.-^-.-~ \_      .~  .-~   .~              *"
-    )  # NOSONAR # noqa
-    print(
-        r"*                   \ \ '     \ '_ _ -~                *"
-    )  # NOSONAR # noqa
-    print(
-        r"*                    \`.\`.    //                      *"
-    )  # NOSONAR # noqa
-    print(
-        r"*           . - ~ ~-.__\`.\`-.//                       *"
-    )  # NOSONAR # noqa
-    print(
-        r"*       .-~   . - ~  }~ ~ ~-.~-.                       *"
-    )  # NOSONAR # noqa
-    print(
-        r"*     .' .-~      .-~       :/~-.~-./:                 *"
-    )  # NOSONAR # noqa
-    print(
-        r"*    /_~_ _ . - ~                 ~-.~-._              *"
-    )  # NOSONAR # noqa
-    print(
-        r"*                                     ~-.<             *"
-    )  # NOSONAR # noqa
-    print(line_separator)  # NOSONAR # noqa
+    print(line_separator)
+    print(r"**************** PyCOMPSs Interactive ******************")
+    print(line_separator)
+    print(r"*          .-~~-.--.           ______         ___      *")
+    print(r"*         :         )         |____  \       /   |     *")
+    print(r"*   .~ ~ -.\       /.- ~~ .      __) |      /_/| |     *")
+    print(r"*   >       `.   .'       <     |__  |         | |     *")
+    print(r"*  (         .- -.         )   ____) |   _     | |     *")
+    print(r"*   `- -.-~  `- -'  ~-.- -'   |______/  |_|    |_|     *")
+    print(r"*     (        :        )           _ _ .-:            *")
+    print(r"*      ~--.    :    .--~        .-~  .-~  }            *")
+    print(r"*          ~-.-^-.-~ \_      .~  .-~   .~              *")
+    print(r"*                   \ \ '     \ '_ _ -~                *")
+    print(r"*                    \`.\`.    //                      *")
+    print(r"*           . - ~ ~-.__\`.\`-.//                       *")
+    print(r"*       .-~   . - ~  }~ ~ ~-.~-.                       *")
+    print(r"*     .' .-~      .-~       :/~-.~-./:                 *")
+    print(r"*    /_~_ _ . - ~                 ~-.~-._              *")
+    print(r"*                                     ~-.<             *")
+    print(line_separator)
 
 
 def __print_setup__(
@@ -610,7 +585,8 @@ def stop(sync: bool = False, _hard_stop: bool = False) -> None:
         sync_msg = "Synchronizing all future objects left on the user scope."
         print(sync_msg)
         logger.debug(sync_msg)
-        from pycompss.api.api import (  # pylint: disable=import-outside-toplevel
+        from pycompss.api.api import (  # pylint: disable=C0415
+            # disable=import-outside-toplevel
             compss_wait_on,
         )
 

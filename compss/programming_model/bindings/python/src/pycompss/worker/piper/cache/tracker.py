@@ -136,7 +136,8 @@ class CacheTrackerConf:
         :param policy: Eviction policy.
         :param cache_ids: Shared dictionary proxy where the ids and
                           (size, hits) as its value are.
-        :param cache_hits: Dictionary containing size and keys to ease management.
+        :param cache_hits: Dictionary containing size and keys to ease
+                           management.
         :param profiler_dict: Profiling dictionary.
         :param profiler_get_struct: Profiling get structure.
         :param log_dir: Log directory.
@@ -201,7 +202,7 @@ class CacheTracker:
         self.lock = lock
 
     def connect_to_shared_memory_manager(self) -> None:
-        """Connect to the main shared memory manager initiated in piper_worker.py.
+        """Connect to the shared memory manager initiated in piper_worker.py.
 
         :return: None.
         """
@@ -557,14 +558,16 @@ class CacheTracker:
         if is_locked:
             if __debug__:
                 logger.debug(
-                    "%s Not inserting into cache due to it is being inserted by other process: %s",
+                    "%s Not inserting into cache due to it is being "
+                    "inserted by other process: %s",
                     self.header,
                     str(f_name),
                 )
         elif is_in_cache:
             if __debug__:
                 logger.debug(
-                    "%s Not inserting into cache due already exists in cache: %s",
+                    "%s Not inserting into cache due already exists "
+                    "in cache: %s",
                     self.header,
                     str(f_name),
                 )

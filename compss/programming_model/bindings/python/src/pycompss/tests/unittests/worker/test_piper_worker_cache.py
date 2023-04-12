@@ -21,7 +21,10 @@ import sys
 
 from pycompss.worker.piper.cache.setup import is_cache_enabled
 
-NOT_PYTHON_3_8 = "WARNING: Could not perform cache test since python version is lower than 3.8"  # noqa: E501
+NOT_PYTHON_3_8 = (
+    "WARNING: Could not perform cache test since python "
+    "version is lower than 3.8"
+)
 
 
 def test_is_cache_enabled():
@@ -147,7 +150,8 @@ def test_is_cache_enabled():
 #                                              np_objs[i], np_objs_names[i],
 #                                              np_objs_names[i], None)
 #         if obj_name not in cache_ids:
-#             raise Exception("Object " + obj_name + " not found in cache_ids.")
+#             raise Exception("Object " + obj_name +
+#                             " not found in cache_ids.")
 #         else:
 #             if cache_ids[obj_name][4] != 9:
 #                 raise Exception("Wrong number of hits!!!")

@@ -228,8 +228,8 @@ class ExecutorConf:
         :param stream_master_ip: Streaming master IP.
         :param stream_master_port: Streaming master port.
         :param cache_ids: Proxy cache dictionary.
-        :param in_cache_queue: Cache queue where to submit to add new entries to
-                               cache_ids.
+        :param in_cache_queue: Cache queue where to submit to add new entries
+                               to cache_ids.
         :param out_cache_queue: Cache queue where to the cache returns info.
         """
         self.debug = debug
@@ -272,7 +272,8 @@ def executor(
 
     :param lock: Lock to ensure mutual exclusion.
     :param queue: Queue where to put exception messages.
-    :param process_id: Process identifier (number that matches the java processes).
+    :param process_id: Process identifier (number that matches the java
+                       processes).
     :param process_name: Process name (Thread-X, where X is the thread id).
     :param pipe: Pipe to receive and send messages from/to the runtime.
     :param conf: Executor configuration.
@@ -320,9 +321,9 @@ def executor(
         # re-establish after each task
         logger_handlers = copy.copy(logger.handlers)
         logger_level = logger.getEffectiveLevel()
-        logger_formatter = logging.Formatter(
-            logger_handlers[0].formatter._fmt  # type: ignore # pylint: disable=protected-access
-        )
+        _fmt = logger_handlers[0].formatter._fmt  # type: ignore # pylint:W0212
+        # disable=protected-access
+        logger_formatter = logging.Formatter(_fmt)
         storage_loggers_handlers = []
         for storage_logger in storage_loggers:
             storage_loggers_handlers.append(copy.copy(storage_logger.handlers))
@@ -339,7 +340,8 @@ def executor(
 
         if storage_conf != "null":
             try:
-                from storage.api import (  # pylint: disable=import-error, import-outside-toplevel
+                from storage.api import (  # pylint: disable=E0401, C0415
+                    # disable=import-error, import-outside-toplevel
                     initWorkerPostFork,
                 )
 
@@ -348,7 +350,8 @@ def executor(
             except (ImportError, AttributeError):
                 if __debug__:
                     logger.info(
-                        "%s[%s] Could not find initWorkerPostFork storage call. Ignoring it.",
+                        "%s[%s] Could not find initWorkerPostFork "
+                        "storage call. Ignoring it.",
                         HEADER,
                         str(process_name),
                     )
@@ -420,7 +423,8 @@ def executor(
         # Stop storage
         if storage_conf != "null":
             try:
-                from storage.api import (  # pylint: disable=import-error, import-outside-toplevel
+                from storage.api import (  # pylint: disable=E0401, C0415
+                    # disable=import-error, import-outside-toplevel
                     finishWorkerPostFork,
                 )
 
@@ -429,7 +433,8 @@ def executor(
             except (ImportError, AttributeError):
                 if __debug__:
                     logger.info(
-                        "%s[%s] Could not find finishWorkerPostFork storage call. Ignoring it.",
+                        "%s[%s] Could not find finishWorkerPostFork "
+                        "storage call. Ignoring it.",
                         HEADER,
                         str(process_name),
                     )
@@ -713,13 +718,16 @@ def process_task(
                 affinity_event_emit = True
                 if not binded_cpus:
                     logger.warning(
-                        "This task is going to be executed with default thread affinity %s",
+                        "This task is going to be executed with default "
+                        "thread affinity %s",
                         str(real_affinity),
                     )
 
             # Setup process environment
             compss_nodes = int(current_line[13])
-            compss_nodes_names = ",".join(current_line[14 : 14 + compss_nodes])
+            compss_nodes_names = ",".join(
+                current_line[14 : 14 + compss_nodes]  # noqa: E203
+            )
             computing_units = current_line[14 + compss_nodes]
             if __debug__:
                 logger.debug("Process environment:")

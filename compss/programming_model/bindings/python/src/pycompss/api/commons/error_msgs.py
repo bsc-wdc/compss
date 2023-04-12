@@ -36,7 +36,7 @@ def not_in_pycompss(decorator_name: str) -> str:
 
 
 def cast_env_to_int_error(what: str) -> str:
-    """Retrieve the "can not cast from environment variable to integer" error message.
+    """Retrieve the "can not cast from env. variable to integer" error message.
 
     :param what: Environment variable name.
     :return: Can not cast from environment variable to integer.

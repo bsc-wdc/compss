@@ -158,7 +158,8 @@ def main() -> None:
         if persistent_storage:
             # Initialize storage
             with EventWorker(TRACING_WORKER.init_storage_at_worker_event):
-                from storage.api import (  # pylint: disable=import-error, import-outside-toplevel
+                from storage.api import (  # pylint: disable=E0401, C0415
+                    # disable=import-error, import-outside-toplevel
                     initWorker as initStorageAtWorker,
                 )
 
@@ -176,7 +177,8 @@ def main() -> None:
         if persistent_storage:
             # Finish storage
             with EventWorker(TRACING_WORKER.finish_storage_at_worker_event):
-                from storage.api import (  # pylint: disable=import-error, import-outside-toplevel
+                from storage.api import (  # pylint: disable=E0401, C0415
+                    # disable=import-error, import-outside-toplevel
                     finishWorker as finishStorageAtWorker,
                 )
 

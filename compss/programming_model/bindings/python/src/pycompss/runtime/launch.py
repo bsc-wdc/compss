@@ -89,9 +89,9 @@ def stop_all(exit_code: int) -> None:
     :param exit_code: Exit code.
     :return: None.
     """
-    from pycompss.api.api import (
+    from pycompss.api.api import (  # pylint: disable=import-outside-toplevel
         compss_stop,
-    )  # pylint: disable=import-outside-toplevel
+    )
 
     # Stop streaming
     if LAUNCH_STATUS.get_streaming():
@@ -199,12 +199,12 @@ def compss_main() -> None:
     # Let the Python binding know we are at master
     CONTEXT.set_master()
     # Then we can import the appropriate start and stop functions from the API
-    from pycompss.api.api import (
+    from pycompss.api.api import (  # pylint: disable=import-outside-toplevel
         compss_start,
-    )  # pylint: disable=import-outside-toplevel
-    from pycompss.api.api import (
+    )
+    from pycompss.api.api import (  # pylint: disable=import-outside-toplevel
         compss_set_wall_clock,
-    )  # pylint: disable=import-outside-toplevel
+    )
 
     # See parse_arguments, defined above
     # In order to avoid parsing user arguments, we are going to remove user
@@ -304,9 +304,8 @@ def compss_main() -> None:
         # End
         if __debug__:
             logger.debug("--- END ---")
-    except (
-        SystemExit
-    ) as system_exit:  # Re-raising would not allow to stop the runtime gracefully.
+    except SystemExit as system_exit:
+        # Re-raising would not allow to stop the runtime gracefully.
         if system_exit.code != 0:
             print(
                 "[ ERROR ]: User program ended with exitcode %s.",
@@ -481,7 +480,8 @@ def launch_pycompss_application(
     :param data_provenance: Enable data provenance [ True | False ]
                             (default: False)
     :param checkpoint_policy: Checkpointing policy.
-                              (default: "es.bsc.compss.checkpoint.policies.NoCheckpoint")
+                              (default: "es.bsc.compss.checkpoint.
+                                         policies.NoCheckpoint")
     :param checkpoint_params: Checkpointing parameters.
                               (default: "")
     :param checkpoint_folder: Checkpointing folder.
@@ -500,12 +500,12 @@ def launch_pycompss_application(
     # Let the Python binding know we are at master
     CONTEXT.set_master()
     # Then we can import the appropriate start and stop functions from the API
-    from pycompss.api.api import (
+    from pycompss.api.api import (  # pylint: disable=import-outside-toplevel
         compss_start,
-    )  # pylint: disable=import-outside-toplevel
-    from pycompss.api.api import (
+    )
+    from pycompss.api.api import (  # pylint: disable=import-outside-toplevel
         compss_stop,
-    )  # pylint: disable=import-outside-toplevel
+    )
 
     ##############################################################
     # INITIALIZATION

@@ -26,6 +26,15 @@ This file contains the cache object profiler functions.
 import json
 from pycompss.util.typing_helper import typing
 
+# Used only for typing shortcut
+from pycompss.util.typing_helper.typing import Dict  # noqa: F401
+
+# Used only for typing shortcut
+from pycompss.util.typing_helper.typing import List  # noqa: F401
+
+# Used only for typing shortcut
+from pycompss.util.typing_helper.typing import Union  # noqa: F401
+
 
 def add_profiler_get_put(
     profiler_dict: typing.Dict[
@@ -90,12 +99,13 @@ def profiler_print_message(
             f.write('\t' + '\t' + '\t' + "PARAMETER: " + str(parameter))
             logger.debug('\t' + '\t' + '\t' + "PARAMETER: " + str(parameter))
             for filename in profiler_dict[function][parameter]:
-                f.write('\t' + '\t' + '\t' + '\t' + "FILENAME: " + filename + '\t' + " PUT " +
-                        str(profiler_dict[function][parameter][filename]['PUT']) +
-                        " GET " + str(profiler_dict[function][parameter][filename]['GET']))
-                logger.debug('\t' + '\t' + '\t' + '\t' + "FILENAME: " + filename + '\t' + " PUT " +
-                             str(profiler_dict[function][parameter][filename]['PUT']) +
-                             " GET " + str(profiler_dict[function][parameter][filename]['GET']))
+                _put = profiler_dict[function][parameter][filename]['PUT']
+                _get = profiler_dict[function][parameter][filename]['GET']
+                f.write('\t' + '\t' + '\t' + '\t' + "FILENAME: " + filename +
+                        '\t' + " PUT " + str(_put) + " GET " + str(_get))
+                logger.debug('\t' + '\t' + '\t' + '\t' + "FILENAME: " +
+                             filename + '\t' + " PUT " +
+                             str(_put) + " GET " + str(_get))
     f.write("")
     logger.debug("")
     logger.debug("PROFILER GETS")
@@ -111,7 +121,7 @@ def profiler_print_message(
     """
     final_dict = (
         {}
-    )  # type: typing.Dict[str, typing.Dict[str, typing.Dict[str, typing.Union[str, int, bool, typing.List[str]]]]]
+    )  # type:Dict[str, Dict[str, Dict[str, Union[str, int, bool, List[str]]]]]
     for function in profiler_dict:
         final_dict[function] = {}
         for parameter in profiler_dict[function]:

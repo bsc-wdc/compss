@@ -26,7 +26,7 @@ This file contains the common definitions of the Python binding.
 import os
 from tempfile import mkdtemp
 
-from pycompss.util.typing_helper import typing
+from pycompss.util.typing_helper import typing  # noqa: F401
 
 
 #######################################
@@ -34,7 +34,8 @@ from pycompss.util.typing_helper import typing
 #######################################
 
 
-class Constants:
+class Constants:  # pylint: disable=R0902,R0903
+    # disable=too-many-instance-attributes, too-few-public-methods
     """Common constants definitions."""
 
     __slots__ = (
@@ -70,7 +71,9 @@ class Constants:
         environment = "terminal"
         is_interactive = False
         try:
-            from IPython import get_ipython  # noqa
+            from IPython import get_ipython  # noqa # pylint: disable=C0415
+
+            # disable=import-outside-toplevel
 
             ipy_str = str(type(get_ipython()))
             if "zmqshell" in ipy_str:

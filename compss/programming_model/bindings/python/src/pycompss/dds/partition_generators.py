@@ -92,10 +92,12 @@ class IteratorLoader(IPartitionGenerator):
         # If it's a dict
         if isinstance(self.iterable, dict):
             sorted_keys = sorted(self.iterable.keys())
-            for key in sorted_keys[self.start : self.end]:
+            for key in sorted_keys[self.start : self.end]:  # noqa: E203
                 ret.append((key, self.iterable[key]))
         elif isinstance(self.iterable, list):
-            for item in iter(self.iterable[self.start : self.end]):
+            for item in iter(
+                self.iterable[self.start : self.end]  # noqa: E203
+            ):
                 ret.append(item)
         else:
             index = 0

@@ -54,7 +54,8 @@ SUPPORTED_ARGUMENTS = {
 DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 
 
-class MPMDMPI:  # pylint: disable=too-few-public-methods, too-many-instance-attributes
+class MPMDMPI:  # pylint: disable=R0903,R0902
+    # disable=too-few-public-methods, too-many-instance-attributes
     """MPMDMPI decorator class.
 
     This decorator also preserves the argspec, but includes the __init__ and
@@ -115,7 +116,8 @@ class MPMDMPI:  # pylint: disable=too-few-public-methods, too-many-instance-attr
         """Parse and set the mpmd mpi parameters within the task core element.
 
         :param user_function: User function to be decorated.
-        :return: Decorated dummy user function, which will invoke MPMD MPI task.
+        :return: Decorated dummy user function, which will invoke MPMD MPI
+                 task.
         """
 
         @wraps(user_function)
@@ -133,7 +135,8 @@ class MPMDMPI:  # pylint: disable=too-few-public-methods, too-many-instance-attr
         :param user_function: Decorated function.
         :param args: Function arguments.
         :param kwargs: Function keyword arguments.
-        :returns: Result of executing the user_function with the given args and kwargs.
+        :returns: Result of executing the user_function with the given args
+                  and kwargs.
         """
         if not self.scope:
             raise NotImplementedError

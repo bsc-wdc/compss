@@ -17,4 +17,8 @@
 
 # -*- coding: utf-8 -*-
 
-"""This package contains the environment utils functions, constants and classes."""
+"""
+This package contains the environment utils helpers.
+
+Where the helpers are functions, constants and classes.
+"""

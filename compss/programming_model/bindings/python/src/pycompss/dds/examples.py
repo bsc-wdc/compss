@@ -354,7 +354,9 @@ def transitive_closure(partitions=None):
     # Commented out code for unknown reason:
     # path = sys.argv[1]
     # od = DDS().load_text_file(path, partitions) \
-    #     .map(lambda line: (int(line.split(",")[0]), int(line.split(",")[1])))\
+    #     .map(
+    #         lambda line: (int(line.split(",")[0]), int(line.split(",")[1]))
+    #     ) \
     #     .collect(future_objects=True)
     edges = _generate_graph()
     od = DDS().load(edges, partitions).collect(future_objects=True)

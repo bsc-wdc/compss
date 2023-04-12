@@ -32,6 +32,12 @@ from pycompss.util.process.manager import create_proxy_dict
 from pycompss.util.process.manager import DictProxy  # typing only
 from pycompss.util.process.manager import new_queue
 from pycompss.util.typing_helper import typing
+
+# Used only for typing shortcut
+from pycompss.util.typing_helper.typing import Dict  # noqa: F401
+
+# Used only for typing shortcut
+from pycompss.util.typing_helper.typing import List  # noqa: F401
 from pycompss.worker.piper.cache.classes import CacheQueueMessage
 from pycompss.worker.piper.cache.tracker import CacheTrackerConf
 from pycompss.worker.piper.cache.tracker import CACHE_TRACKER
@@ -72,11 +78,9 @@ def start_cache(
     gpu_cache_size = __get_gpu_cache_size__(cache_config)
     # Cache can be used - Create proxy dict
     cache_ids = create_proxy_dict()
-    cache_hits = {}  # type: typing.Dict[int, typing.Dict[str, int]]
-    profiler_dict = (
-        {}
-    )  # type: typing.Dict[str, typing.Dict[str, typing.Dict[str, typing.Dict[str, int]]]]
-    profiler_get_struct = [[], [], []]  # type: typing.List[typing.List[str]]
+    cache_hits = {}  # type: Dict[int, Dict[str, int]]
+    profiler_dict = {}  # type: Dict[str, Dict[str, Dict[str, Dict[str, int]]]]
+    profiler_get_struct = [[], [], []]  # type: List[List[str]]
     # profiler_get_struct structure: Filename, Parameter, Function
     smm = CACHE_TRACKER.start_shared_memory_manager()
     conf = CacheTrackerConf(

@@ -116,7 +116,7 @@ class StdWatcher:
             raise PyCOMPSsException("Can not find the stdout and stderr.")
 
     def stop_watching(self, clean: bool = True) -> None:
-        """Stop the monitoring thread and cleans the redirection files if clean is True.
+        """Stop the monitoring thread and cleans the redirection files.
 
         :param clean: Remove the redirection files.
         :return: None.

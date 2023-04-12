@@ -25,7 +25,7 @@ This file contains the extra interactive initialization functionalities.
 
 
 class ExtraLaunchStatus:
-    """This class contains the global status variables used specifically in interactive."""
+    """This class contains the global status variables used in interactive."""
 
     __slots__ = ["log_path", "graphing", "line_separator", "disable_external"]
 

@@ -99,6 +99,7 @@ def get_return_name(i: int) -> str:
     """Given some integer i, return the name of the ith return.
 
     :param i: A non-negative integer.
-    :return: The name of the return identifier according to our internal naming.
+    :return: The name of the return identifier according to our internal
+             naming.
     """
     return f"$return_{i}"

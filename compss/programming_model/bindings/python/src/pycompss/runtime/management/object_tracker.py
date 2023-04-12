@@ -267,7 +267,7 @@ class ObjectTracker:
         return obj_id in self.written_objects
 
     def pop_written_obj(self, obj_id: str) -> str:
-        """Pop a written filename with the given object id from written objects.
+        """Pop a written filename with the given obj_id from written objects.
 
         :param obj_id: Object identifier.
         :return: The file name.
@@ -456,9 +456,12 @@ class ObjectTracker:
         #     # they are not affected.
         #     import hashlib
         #     hash_id = hashlib.md5()
-        #     hash_id.update(str(id(obj)).encode())            # Consider the memory pointer
-        #     hash_id.update(str(total_sizeof(obj)).encode())  # Include the object size
-        #     hash_id.update(repr(obj).encode())               # Include the object representation
+        #     # Consider the memory pointer:
+        #     hash_id.update(str(id(obj)).encode())
+        #     # Include the object size:
+        #     hash_id.update(str(total_sizeof(obj)).encode())
+        #     # Include the object representation:
+        #     hash_id.update(repr(obj).encode())
         #     obj_address = str(hash_id.hexdigest())
         # return obj_address
 
@@ -555,7 +558,9 @@ class ObjectTracker:
 
             # Agg avoid issues in MN
             matplotlib.use("Agg")
-            import matplotlib.pyplot as plt  # pylint: disable=import-outside-toplevel
+            import matplotlib.pyplot as plt  # pylint: disable=C0415
+
+            # disable=import-outside-toplevel
         except ImportError:
             print("WARNING: Could not generate the Object Tracker report")
             print("REASON : matplotlib not available.")

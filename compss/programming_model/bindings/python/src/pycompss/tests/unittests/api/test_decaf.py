@@ -55,9 +55,10 @@ def test_decaf_call_outside():
     except Exception:  # noqa
         thrown = True  # this is OK!
     CONTEXT.set_out_of_scope()
-    assert (
-        thrown
-    ), "The decaf decorator did not raise an exception when invoked out of scope."
+    assert thrown, (
+        "The decaf decorator did not raise an exception when "
+        "invoked out of scope."
+    )
 
 
 def test_decaf_runner_parameter():

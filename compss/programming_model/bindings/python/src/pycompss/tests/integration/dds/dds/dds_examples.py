@@ -36,7 +36,8 @@ from pycompss.dds.examples import wordcount_k_means
 from pycompss.runtime.binding import barrier
 from pycompss.util.context import CONTEXT
 
-# The DDS examples unittest only checks functionality (not the validity of the results).
+# The DDS examples unittest only checks functionality (not the validity of
+# the results).
 # TODO: check that the results are OK.
 
 EXAMPLES_NAME = "examples.py"
@@ -136,6 +137,7 @@ def main():
     pi_estimation_example()
     transitive_closure_example()
     wordcount_example()
-    # wordcount_k_means_example() -- @unittest.skip("ERROR WITH SPACY (python 3.10 and spacy 2.3.2)")
+    # Next test @unittest.skip("ERROR WITH SPACY (python 3.10 + spacy 2.3.2)")
+    # wordcount_k_means_example()
     terasort_example()
     inverted_indexing_example()

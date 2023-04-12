@@ -36,7 +36,12 @@ from pycompss.api.api import compss_open
 from pycompss.api.api import compss_wait_on
 from pycompss.api.api import compss_wait_on_directory
 from pycompss.api.api import compss_wait_on_file
-from pycompss.api.parameter import *
+from pycompss.api.parameter import FILE
+from pycompss.api.parameter import FILE_INOUT
+from pycompss.api.parameter import FILE_OUT
+from pycompss.api.parameter import DIRECTORY_INOUT
+from pycompss.api.parameter import DIRECTORY_IN
+from pycompss.api.parameter import DIRECTORY_OUT
 from pycompss.api.task import task
 
 

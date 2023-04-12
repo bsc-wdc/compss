@@ -17,4 +17,8 @@
 
 # -*- coding: utf-8 -*-
 
-"""This package contains the container worker functions, constants and classes."""
+"""
+This package contains the container worker helpers.
+
+Where helpers are functions, constants and classes.
+"""

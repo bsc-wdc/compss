@@ -25,7 +25,6 @@ Provides auxiliary methods for the interactive mode.
 
 import inspect
 import os
-from typing import Tuple, Dict
 
 from pycompss.util.typing_helper import typing
 
@@ -746,7 +745,8 @@ def __show_redefinition_warning__(kind: str, name: str) -> None:
     :returns: None.
     """
     print(
-        f"WARNING! {kind} {name} has been redefined (the previous will be deprecated)."
+        f"WARNING! {kind} {name} has been redefined "
+        f"(the previous will be deprecated)."
     )
 
 

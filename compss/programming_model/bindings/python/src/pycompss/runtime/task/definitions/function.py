@@ -24,7 +24,7 @@ This file contains the task function definition.
 """
 import types
 
-from pycompss.util.typing_helper import typing
+from pycompss.util.typing_helper import typing  # noqa: F401
 from pycompss.util.typing_helper import dummy_function
 
 

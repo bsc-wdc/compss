@@ -36,7 +36,10 @@ from pycompss.api.dummy.reduction import reduction as dummy_reduction
 from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.typing_helper import typing
-from pycompss.runtime.task.definitions.core_element import CE
+
+# Used only for typing
+from pycompss.runtime.task.definitions.core_element import CE  # noqa: F401
+
 
 if __debug__:
     import logging

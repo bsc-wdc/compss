@@ -15,6 +15,10 @@
 #  limitations under the License.
 #
 
-"""This package contains the Streaming components functions, constants and classes."""
+"""
+This package contains the Streaming components helpers.
+
+Where the helpers are functions, constants and classes.
+"""
 
 __all__ = ["distro_stream_client"]

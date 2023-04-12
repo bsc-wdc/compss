@@ -136,7 +136,8 @@ class TaskArguments:
                 self.target_direction = target_direction.key
             else:
                 raise PyCOMPSsException(
-                    f"Unexpected {LABELS.target_direction} type. Must be a direction."
+                    f"Unexpected {LABELS.target_direction} type. "
+                    f"Must be a direction."
                 )
         elif LEGACY_LABELS.target_direction in kwargs:
             target_direction = kwargs.pop(LEGACY_LABELS.target_direction)
@@ -147,7 +148,8 @@ class TaskArguments:
                 )
             else:
                 raise PyCOMPSsException(
-                    f"Unexpected {LEGACY_LABELS.target_direction} type. Must be a direction."
+                    f"Unexpected {LEGACY_LABELS.target_direction} type. "
+                    f"Must be a direction."
                 )
         # Argument: returns
         if LABELS.returns in kwargs:
@@ -245,7 +247,8 @@ class TaskArguments:
         # parameter related information
         for key, value in kwargs.items():
             if isinstance(value, dict):
-                # It is a dictionary for the given parameter (e.g. param={Direction: IN})
+                # It is a dictionary for the given parameter
+                # (e.g. param={Direction: IN})
                 self.parameters[key] = get_parameter_from_dictionary(value)
             else:
                 # It is a keyword for the given parameter (e.g. param=IN)

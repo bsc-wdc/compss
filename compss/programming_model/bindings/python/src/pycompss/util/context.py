@@ -63,21 +63,21 @@ class Context:
         self.to_register = []  # type: typing.List[typing.Any]
 
     def in_master(self) -> bool:
-        """Determine if the execution is being performed in the master node.
+        """Determine if the execution is performed in the master node.
 
         :return: True if in master. False on the contrary.
         """
         return self.where == self.master
 
     def in_worker(self) -> bool:
-        """Determine if the execution is being performed in a worker node.
+        """Determine if the execution is performed in a worker node.
 
         :return: True if in worker. False on the contrary.
         """
         return self.where == self.worker
 
     def in_pycompss(self) -> bool:
-        """Determine if the execution is being performed within the PyCOMPSs scope.
+        """Determine if the execution is performed within the PyCOMPSs scope.
 
         :return: True if under scope. False on the contrary.
         """
@@ -92,7 +92,8 @@ class Context:
         self.where = where
         if __debug__:
             # Only check who contextualized if debugging
-            # 2 since it is called from set_master, set_worker or set_out_of_scope.
+            # 2 since it is called from set_master,
+            # set_worker or set_out_of_scope.
             try:
                 caller_stack = inspect.stack()[2]
             except IndexError:

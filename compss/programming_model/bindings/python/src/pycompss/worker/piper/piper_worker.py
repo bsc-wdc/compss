@@ -26,7 +26,9 @@ This file contains the multiprocessing piper worker code.
 import os
 import signal
 import sys
-from multiprocessing import Process  # Used only for typing
+
+# Used only for typing
+from multiprocessing import Process  # noqa: F401
 
 from pycompss.util.context import CONTEXT
 from pycompss.runtime.commons import GLOBALS
@@ -116,7 +118,8 @@ def compss_persistent_worker(
         # Initialize storage
         logger.debug("%sStarting persistent storage", HEADER)
         with EventWorker(TRACING_WORKER.init_storage_at_worker_event):
-            from storage.api import (  # pylint: disable=import-error, import-outside-toplevel
+            from storage.api import (  # pylint: disable=E0401, C0415
+                # disable=import-error, import-outside-toplevel
                 initWorker as initStorageAtWorker,
             )
 
@@ -298,7 +301,8 @@ def compss_persistent_worker(
         if __debug__:
             logger.debug("%sStopping persistent storage", HEADER)
         with EventWorker(TRACING_WORKER.finish_storage_at_worker_event):
-            from storage.api import (  # pylint: disable=import-error, import-outside-toplevel
+            from storage.api import (  # pylint: disable=E0401, C0415
+                # disable=import-error, import-outside-toplevel
                 finishWorker as finishStorageAtWorker,
             )
 

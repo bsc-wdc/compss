@@ -128,11 +128,12 @@ def get_by_id(id: str) -> typing.Any:
         except ValueError:
             # The id does not complain uuid4 --> raise an exception
             print(
-                "Error: the ID for get_by_id does not complain the uuid4 format."
-            )  # noqa: E501
+                "Error: the ID for get_by_id does not complain the "
+                "uuid4 format."
+            )
             raise ValueError(
                 "Using the dummy storage API get_by_id with wrong id."
-            )  # noqa: E501
+            )
     else:
         # Using a None id --> raise an exception
         print("Error: the ID for get_by_id is None.")

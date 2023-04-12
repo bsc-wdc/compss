@@ -124,7 +124,7 @@ class Software(
         self.container = None  # type: typing.Any
         self.prolog = None  # type: typing.Any
         self.epilog = None  # type: typing.Any
-        self.parameters = dict()  # type: typing.Dict
+        self.parameters = {}  # type: typing.Dict
         self.is_workflow = False  # type: bool
         self.file_path = None
 
@@ -149,18 +149,26 @@ class Software(
                 decorator_name,
             )
 
-    def __call__(self, user_function: typing.Callable) -> typing.Callable:
+    def __call__(  # pylint: disable=R0915
+        self, user_function: typing.Callable
+    ) -> typing.Callable:
+        # disable=too-many-statements
         """Parse and set the software parameters within the task core element.
 
         When called, @software decorator basically wraps the user function
         into the "real" decorator and passes the args and kwargs.
 
         :param user_function: User function to be decorated.
-        :return: User function decorated with the decor type defined by the user
+        :return: User function decorated with the decor type defined by the
+                 user.
         """
 
         @wraps(user_function)
-        def software_f(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
+        def software_f(  # pylint: disable=R0914,R0911,R0912,R0915
+            *args: typing.Any, **kwargs: typing.Any
+        ) -> typing.Any:
+            # disable=too-many-locals, too-many-return-statements
+            # disable=too-many-branches, too-many-statements
             if not self.scope:
                 # Execute the software as with PyCOMPSs so that sequential
                 # execution performs as parallel.
@@ -250,8 +258,9 @@ class Software(
                 self.core_element_configured = True
 
             if not self.decor:
-                # It's a PyCOMPSs task with only @task and @software decorators,
-                # so everything from the config file is already in the CE
+                # It's a PyCOMPSs task with only @task and @software
+                # decorators, so everything from the config file is already
+                # in the CE.
                 return user_function(*args, **kwargs)
 
             decorator = self.decor
@@ -276,36 +285,36 @@ class Software(
 
                 decor_f.__doc__ = user_function.__doc__
                 return decor_f()
-            else:
-                if self.decor is not task.task:
-                    # it is not a regular @task, build the decorator with
-                    # "execution" key-values and the @task decorator with
-                    # "parameters" key-values
-                    def decor_f():
-                        def function(*_, **__):
-                            tt = task.task(**self.parameters)
-                            return tt(user_function)(*_, **__)
 
-                        dec = decorator(**self.config_args)
-                        return dec(function)(*args, **kwargs)
+            if self.decor is not task.task:
+                # it is not a regular @task, build the decorator with
+                # "execution" key-values and the @task decorator with
+                # "parameters" key-values
+                def decor_f_nonregular():
+                    def function(*_, **__):
+                        t_t = task.task(**self.parameters)
+                        return t_t(user_function)(*_, **__)
 
-                    return decor_f()
-                else:
-                    # regular task definition inside a config file
-                    self.__check_core_element__(kwargs, user_function)
-                    master = TaskMaster(
-                        self.core_element,
-                        self.decorator_arguments,
-                        self.decorated_function,
-                    )
-                    (
-                        future_object,
-                        self.core_element,
-                        self.decorated_function,
-                    ) = master.call(args, kwargs)
+                    dec = decorator(**self.config_args)
+                    return dec(function)(*args, **kwargs)
 
-                    del master
-                    return future_object
+                return decor_f_nonregular()
+
+            # regular task definition inside a config file
+            self.__check_core_element__(kwargs, user_function)
+            master = TaskMaster(
+                self.core_element,
+                self.decorator_arguments,
+                self.decorated_function,
+            )
+            (
+                future_object,
+                self.core_element,
+                self.decorated_function,
+            ) = master.call(args, kwargs)
+
+            del master
+            return future_object
 
         software_f.__doc__ = user_function.__doc__
         return software_f
@@ -320,16 +329,17 @@ class Software(
             if not self.file_path:
                 self.file_path = self.kwargs.get(LABELS.config_file)
             return args
-        elif CONTEXT.in_worker():
-            tmp = list(*args)
-            for i, v in enumerate(tmp):
-                if v.name == "#kwarg_software_config_file":
-                    self.file_path = v.file_name.source_path
+        if CONTEXT.in_worker():
+            tmp = list(*args)  # type: typing.List[typing.Any]
+            for i, value in enumerate(tmp):
+                if value.name == "#kwarg_software_config_file":
+                    self.file_path = value.file_name.source_path
                     break
             else:
                 return args
             tmp.pop(i)
             return tuple(tmp)
+        raise PyCOMPSsException("Unexpected context!")
 
     def parse_config_file(self) -> None:
         """
@@ -345,7 +355,7 @@ class Software(
             config = json.load(file_path_descriptor)
 
         execution = config.get(LABELS.execution, {})
-        self.parameters = config.get(LABELS.parameters, dict())
+        self.parameters = config.get(LABELS.parameters, {})
         exec_type = execution.pop(LABELS.type, None)
         if exec_type is None:
             print("Execution type not provided for @software task")
@@ -391,9 +401,9 @@ class Software(
         :return:
         """
         # replace python param types if any
-        for k, v in self.parameters.items():
-            if isinstance(v, str) and hasattr(parameter, v):
-                self.parameters[k] = getattr(parameter, v)
+        for key, value in self.parameters.items():
+            if isinstance(value, str) and hasattr(parameter, value):
+                self.parameters[key] = getattr(parameter, value)
 
         # convert the "returns" value
         rets = self.parameters.get("returns", None)

@@ -398,7 +398,7 @@ def create_init_config_file(
     checkpoint_folder: str,
     **kwargs: typing.Any,
 ) -> None:
-    """Create the initialization files for the runtime start (java options file).
+    """Create the initialization file for the runtime start (java opts file).
 
     :param compss_home: <String> COMPSs installation path.
     :param debug:  <Boolean> Enable/Disable debugging
@@ -427,7 +427,8 @@ def create_init_config_file(
     :param trace: <Boolean> Enable/Disable trace generation.
     :param extrae_cfg: None|<String> Default extrae configuration/user
                        specific extrae configuration.
-    :param extrae_final_directory: None|<String> Default extrae final directory.
+    :param extrae_final_directory: None|<String>
+                                   Default extrae final directory.
     :param comm: <String> GAT/NIO.
     :param conn: <String> Connector
                  (normally: es.bsc.compss.connectors.DefaultSSHConnector).
@@ -451,10 +452,10 @@ def create_init_config_file(
     :param scheduler_config: <String> Path to the file which contains the
                              scheduler configuration..
     :param external_adaptation: <String> Enable external adaptation.
-                                This option will disable the Resource Optimizer.
+                                This option disables the Resource Optimizer.
     :param python_interpreter: <String> Python interpreter.
     :param python_version: <String> Python interpreter version.
-    :param python_virtual_environment: <String> Python virtual environment path.
+    :param python_virtual_environment: <String> Python virtual env path.
     :param propagate_virtual_environment: <Boolean> Propagate python virtual
                                           environment to workers.
     :param mpi_worker: Use the MPI worker [ True | False ] (default: False).

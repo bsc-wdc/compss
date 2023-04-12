@@ -105,7 +105,9 @@ def trace_multiprocessing_worker() -> typing.Iterator[None]:
 
     :return: None.
     """
-    import pyextrae.multiprocessing as pyextrae  # pylint: disable=import-outside-toplevel, import-error
+    import pyextrae.multiprocessing as pyextrae  # pylint: disable=C0415, E0401
+
+    # disable=import-outside-toplevel, import-error
 
     TRACING.set_pyextrae(pyextrae)
     TRACING.enable_tracing()
@@ -126,7 +128,9 @@ def trace_mpi_worker() -> typing.Iterator[None]:
 
     :return: None.
     """
-    import pyextrae.mpi as pyextrae  # pylint: disable=import-outside-toplevel, import-error
+    import pyextrae.mpi as pyextrae  # pylint: disable=C0415, E0401
+
+    # disable=import-outside-toplevel, import-error
 
     TRACING.set_pyextrae(pyextrae)
     TRACING.enable_tracing()
@@ -147,7 +151,9 @@ def trace_mpi_executor() -> typing.Iterator[None]:
 
     :return: None.
     """
-    import pyextrae.mpi as pyextrae  # pylint: disable=import-outside-toplevel, import-error
+    import pyextrae.mpi as pyextrae  # pylint: disable=C0415, E0401
+
+    # disable=import-outside-toplevel, import-error
 
     TRACING.set_pyextrae(pyextrae)
     TRACING.enable_tracing()
@@ -257,8 +263,9 @@ class EventWorker:
 
 
 class EventInsideWorker:
-    """Decorator that emits an event at worker (inside task) wrapping the desired code.
+    """Decorator that emits an event at worker (inside task).
 
+    Wraps the desired function code.
     Does nothing if tracing is disabled.
 
     :param event_id: Event identifier to emit.
@@ -292,7 +299,7 @@ class EventInsideWorker:
         value: typing.Any,
         traceback: typing.Any,
     ) -> None:
-        """Emit the 0 event in the inside worker group when the context is finished.
+        """Emit the 0 event in the inside worker group when context finishes.
 
         * Signature from context structure.
 
@@ -343,7 +350,7 @@ class EventWorkerCache:
         value: typing.Any,
         traceback: typing.Any,
     ) -> None:
-        """Emit the 0 event in the worker cache group when the context is finished.
+        """Emit the 0 event in the worker cache group when context finishes.
 
         * Signature from context structure.
 
@@ -467,7 +474,9 @@ def enable_trace_master() -> None:
 
     :return: None.
     """
-    import pyextrae.sequential as pyextrae  # pylint: disable=import-outside-toplevel, import-error
+    import pyextrae.sequential as pyextrae  # pylint: disable=C0415, E0401
+
+    # disable=import-outside-toplevel, import-error
 
     TRACING.set_pyextrae(pyextrae)
     TRACING.enable_tracing()

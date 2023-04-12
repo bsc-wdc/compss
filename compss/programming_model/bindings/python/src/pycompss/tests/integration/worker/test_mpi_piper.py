@@ -46,4 +46,5 @@ def test_piper_worker():
         evaluate_piper_worker_common(worker_thread, mpi_worker=True)
     except Exception as e:
         print("EXCEPTION: " + str(e))
-        # raise Exception("UNSUPPORTED WITH MYPY - Happened because the worker can not start with mpi")
+        # raise Exception("UNSUPPORTED WITH MYPY - Happened because the "
+        #                 "worker can not start with mpi")

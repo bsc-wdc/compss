@@ -106,9 +106,9 @@ def user_signal_handler(
 
 
 def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
-    """Retrieve the initial configuration and represents the main worker process.
+    """Create persistent worker main function.
 
-    Persistent worker main function.
+    Retrieve the initial configuration and represents the main worker process.
 
     :param config: Piper Worker Configuration description.
     :return: None.
@@ -145,7 +145,8 @@ def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
         # Initialize storage
         if __debug__:
             logger.debug("%sStarting persistent storage", HEADER)
-        from storage.api import (  # pylint: disable=import-error, import-outside-toplevel
+        from storage.api import (  # pylint: disable=E0401, C0415
+            # disable=import-error, import-outside-toplevel
             initWorker as initStorageAtWorker,
         )
 
@@ -225,7 +226,8 @@ def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
         # Finish storage
         if __debug__:
             logger.debug("%sStopping persistent storage", HEADER)
-        from storage.api import (  # pylint: disable=import-error, import-outside-toplevel
+        from storage.api import (  # pylint: disable=E0401, C0415
+            # disable=import-error, import-outside-toplevel
             finishWorker as finishStorageAtWorker,
         )
 
@@ -245,9 +247,10 @@ def compss_persistent_executor(
     out_cache_queue: typing.Optional[Queue],
     cache_ids: typing.Any,
 ) -> None:
-    """Retrieve the initial configuration and performs executor process functionality.
+    """Create persistent MPI executor main function.
 
-    Persistent MPI executor main function.
+    Retrieve the initial configuration and performs executor process
+    functionality.
 
     :param config: Piper Worker Configuration description.
     :param tracing: If tracing is activated.
@@ -279,7 +282,8 @@ def compss_persistent_executor(
     if persistent_storage:
         # Initialize storage
         with EventWorker(TRACING_WORKER.init_storage_at_worker_event):
-            from storage.api import (  # pylint: disable=import-error, import-outside-toplevel
+            from storage.api import (  # pylint: disable=E0401, C0415
+                # disable=import-error, import-outside-toplevel
                 initWorker as initStorageAtWorker,
             )
 
@@ -313,7 +317,8 @@ def compss_persistent_executor(
         if __debug__:
             logger.debug("%sStopping persistent storage", HEADER)
         with EventWorker(TRACING_WORKER.finish_storage_at_worker_event):
-            from storage.api import (  # pylint: disable=import-error, import-outside-toplevel
+            from storage.api import (  # pylint: disable=E0401, C0415
+                # disable=import-error, import-outside-toplevel
                 finishWorker as finishStorageAtWorker,
             )
 

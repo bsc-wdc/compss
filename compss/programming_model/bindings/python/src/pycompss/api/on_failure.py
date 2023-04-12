@@ -51,7 +51,8 @@ SUPPORTED_ARGUMENTS = {
 }
 
 
-class OnFailure:  # pylint: disable=too-few-public-methods, too-many-instance-attributes
+class OnFailure:  # pylint: disable=R0903,R0902
+    # disable=too-few-public-methods, too-many-instance-attributes
     """OnFailure decorator class.
 
     This decorator also preserves the argspec, but includes the __init__ and
@@ -99,7 +100,8 @@ class OnFailure:  # pylint: disable=too-few-public-methods, too-many-instance-at
             # Check supported management values
             if self.on_failure_action not in SUPPORTED_ARGUMENTS:
                 raise PyCOMPSsException(
-                    f"ERROR: Unsupported on failure action: {self.on_failure_action}"
+                    f"ERROR: Unsupported on failure action: "
+                    f"{self.on_failure_action}"
                 )
             # Keep all defaults in a dictionary
             self.defaults = kwargs

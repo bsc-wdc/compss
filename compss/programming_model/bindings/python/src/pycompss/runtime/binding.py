@@ -210,7 +210,8 @@ def delete_file(*file_name: typing.Union[list, tuple, str]) -> typing.Any:
     """Remove one or more files.
 
     :param file_name: File/s name to remove.
-    :return: True if success. False otherwise. With the same file_name structure.
+    :return: True if success. False otherwise. With the same file_name
+             structure.
     """
     if __debug__:
         LOGGER.debug("Deleting file/s: %s", file_name)
@@ -227,7 +228,8 @@ def __delete_file__(app_id: int, file_name: str) -> bool:
 
     :param app_id: Application identifier.
     :param file_name: File/s name to remove.
-    :return: True if success. False otherwise. With the same file_name structure.
+    :return: True if success. False otherwise. With the same file_name
+             structure.
     """
     result = COMPSs.delete_file(app_id, file_name, True)
     if __debug__:
@@ -241,7 +243,8 @@ def __delete_file__(app_id: int, file_name: str) -> bool:
 def wait_on_file(*file_name: typing.Union[list, tuple, str]) -> typing.Any:
     """Retrieve one or more files.
 
-    :param file_name: File name/s to retrieve (can contain lists and tuples of strings).
+    :param file_name: File name/s to retrieve (can contain lists and tuples
+                      of strings).
     :return: The file name/s (with the same structure).
     """
     if __debug__:
@@ -256,7 +259,8 @@ def wait_on_directory(
 ) -> typing.Any:
     """Retrieve one or more directories.
 
-    :param directory_name: Directory name/s to retrieve (can contain lists and tuples of strings).
+    :param directory_name: Directory name/s to retrieve (can contain lists
+                           and tuples of strings).
     :return: The directory name/s (with the same structure).
     """
     if __debug__:
@@ -320,7 +324,8 @@ def __apply_recursively_to_file__(
             ret.append(files_tuple)
         else:
             raise PyCOMPSsException(
-                "Unsupported type in apply_recursively. Must be str, list or tuple"
+                "Unsupported type in apply_recursively. "
+                "Must be str, list or tuple"
             )
     if len(ret) == 1:
         return ret[0]
@@ -333,7 +338,8 @@ def delete_object(
     """Remove object/s.
 
     :param objs: Object/s to remove.
-    :return: True if success. False otherwise. Keeps structure if lists or tuples are provided.
+    :return: True if success. False otherwise. Keeps structure if lists or
+             tuples are provided.
     """
     if __debug__:
         LOGGER.debug("Deleting object/s: %r", objs)
@@ -484,8 +490,8 @@ def get_log_path() -> str:
 def get_tmp_path() -> str:
     """Get tmp path.
 
-    Requests the master working path to the external python library (that calls
-    the bindings-common).
+    Requests the master working path to the external python library (that
+    calls the bindings-common).
 
     :return: The path where to store the master tmp files.
     """
@@ -534,7 +540,8 @@ def request_resources(
             group_name = "NULL"
         if __debug__:
             LOGGER.debug(
-                "Request the creation of %s resources with notification to task group %s",
+                "Request the creation of %s resources with notification to "
+                "task group %s",
                 str(num_resources),
                 str(group_name),
             )
@@ -560,7 +567,8 @@ def free_resources(
             group_name = "NULL"
         if __debug__:
             LOGGER.debug(
-                "Request the destruction of %s resources with notification to task group %s",
+                "Request the destruction of %s resources with notification to "
+                "task group %s",
                 str(num_resources),
                 str(group_name),
             )
@@ -581,7 +589,8 @@ def set_wall_clock(wall_clock_limit: int) -> None:
         # Activate wall clock limit alarm
         signal.signal(signal.SIGALRM, _wall_clock_exceed)
         signal.alarm(wall_clock_limit)
-        # Call the Runtime to set a timer in case wall clock is reached in a synch
+        # Call the Runtime to set a timer in case wall clock is
+        # reached in a synch
         COMPSs.set_wall_clock(app_id, wall_clock_limit)
 
 
@@ -699,12 +708,17 @@ def register_ce(core_element: CE) -> None:
 
     Core Element fields:
 
-    ce_signature: <String> Core Element signature  (e.g.- "methodClass.methodName")
-    impl_signature: <String> Implementation signature (e.g.- "methodClass.methodName")
-    impl_constraints: <Dict> Implementation constraints (e.g.- "{ComputingUnits:2}")
-    impl_type: <String> Implementation type ("METHOD" | "MPI" | "BINARY" | "OMPSS" | "OPENCL")
+    ce_signature: <String> Core Element signature
+                  (e.g.- "methodClass.methodName")
+    impl_signature: <String> Implementation signature
+                    (e.g.- "methodClass.methodName")
+    impl_constraints: <Dict> Implementation constraints
+                      (e.g.- "{ComputingUnits:2}")
+    impl_type: <String> Implementation type
+               ("METHOD" | "MPI" | "BINARY" | "OMPSS" | "OPENCL")
     impl_io: <String> IO Implementation
-    impl_type_args: <List(Strings)> Implementation arguments (e.g.- ["methodClass", "methodName"])
+    impl_type_args: <List(Strings)> Implementation arguments
+                    (e.g.- ["methodClass", "methodName"])
 
     :param core_element: <CE> Core Element to register.
     :return: None.
@@ -746,7 +760,8 @@ def register_ce(core_element: CE) -> None:
                 val = str(value).replace("'", "")
             else:
                 raise PyCOMPSsException(
-                    "Implementation constraints items must be str, int or list."
+                    "Implementation constraints items must be "
+                    "str, int or list."
                 )
             kv_constraint = "".join((key, ":", str(val), ";"))
             impl_constraints_lst.append(kv_constraint)
@@ -923,30 +938,30 @@ def process_task(
 
         # Submit task to the runtime (call to the C extension):
         # Parameters:
-        #     0 - <Integer>   - application id (by default always 0 due to it is
-        #                       not currently needed for the signature)
+        #     0 - <Integer>   - application id (by default always 0 due to it
+        #                       is not currently needed for the signature)
         #     1 - <String>    - path of the module where the task is
         #
         #     2 - <String>    - behavior if the task fails
         #
-        #     3 - <String>    - function name of the task (to be called from the
-        #                       worker)
+        #     3 - <String>    - function name of the task (to be called from
+        #                       the worker)
         #     4 - <String>    - priority flag (true|false)
         #
-        #     5 - <String>    - has target (true|false). If the task is within an
-        #                       object or not.
+        #     5 - <String>    - has target (true|false). If the task is within
+        #                       an object or not.
         #     6 - [<String>]  - task parameters (basic types or file paths for
         #                       objects)
-        #     7 - [<Integer>] - parameters types (number corresponding to the type
-        #                       of each parameter)
-        #     8 - [<Integer>] - parameters directions (number corresponding to the
-        #                       direction of each parameter)
+        #     7 - [<Integer>] - parameters types (number corresponding to the
+        #                       type of each parameter)
+        #     8 - [<Integer>] - parameters directions (number corresponding to
+        #                       the direction of each parameter)
         #     9 - [<Integer>] - parameters streams (number corresponding to the
         #                       stream of each parameter)
-        #     10 - [<String>] - parameters prefixes (string corresponding to the
-        #                       prefix of each parameter)
-        #     11 - [<String>] - parameters extra type (string corresponding to the
-        #                       extra type of each parameter)
+        #     10 - [<String>] - parameters prefixes (string corresponding to
+        #                       the prefix of each parameter)
+        #     11 - [<String>] - parameters extra type (string corresponding to
+        #                       the extra type of each parameter)
         #     12 - [<String>] - parameters weights (string corresponding to the
         #                       weight of each parameter
         #     13 - <String>   - Keep renames flag (true|false)
@@ -1046,7 +1061,7 @@ def _clean_temps() -> None:
     rmtree(temp_directory, True)
     cwd = os.getcwd()
     for temp_file in os.listdir(cwd):
-        if re.search(r"d\d+v\d+_\d+\.IT", temp_file):  # NOSONAR
+        if re.search(r"d\d+v\d+_\d+\.IT", temp_file):
             os.remove(os.path.join(cwd, temp_file))
 
 

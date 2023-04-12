@@ -75,7 +75,7 @@ def check_monitoring_file(log_path: str) -> bool:
 
 
 def get_compss_state_xml(log_path: str) -> str:
-    """Check if there is any missing package and return the status xml full path.
+    """Check if there is any missing pkg and return the status xml full path.
 
     :param log_path: Absolute path of the log folder.
     :return: The compss state full path.

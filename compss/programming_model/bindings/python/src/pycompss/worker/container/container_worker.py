@@ -29,7 +29,7 @@ import sys
 from pycompss.util.context import CONTEXT
 from pycompss.worker.container.pythonpath_fixer import fix_pythonpath
 from pycompss.util.logger.helpers import init_logging_worker
-from pycompss.util.typing_helper import typing
+from pycompss.util.typing_helper import typing  # noqa: F401
 from pycompss.worker.commons.executor import build_return_params_message
 from pycompss.worker.commons.worker import execute_task
 
@@ -164,7 +164,8 @@ def main() -> int:
     # Return
     if exit_value != 0:
         logger.debug(
-            "ERROR: Task execution finished with non-zero exit value (%s != 0)",
+            "ERROR: "
+            "Task execution finished with non-zero exit value (%s != 0)",
             str(exit_value),
         )
     else:

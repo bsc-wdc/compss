@@ -86,7 +86,8 @@ def _synchronize(obj: typing.Any, mode: int) -> typing.Any:
         file_path = COMPSs.open_file(
             app_id, "".join(("storage://", str(obj_id))), mode
         )
-        # TODO: Add switch on protocol (first parameter returned currently ignored)
+        # TODO: Add switch on protocol
+        #       (first parameter returned currently ignored)
         _, file_name = file_path.split("://")
         new_obj = get_by_id(file_name)
         OT.stop_tracking(obj)

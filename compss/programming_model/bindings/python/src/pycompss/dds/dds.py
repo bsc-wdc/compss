@@ -116,7 +116,8 @@ class DDS:
 
         :param file_path: A path to a file to be loaded.
         :param chunk_size: Size of chunks in bytes.
-        :param worker_read: If reading the file in the worker (skips first bytes).
+        :param worker_read: If reading the file in the worker
+                            (skips first bytes).
         :return: Self.
         """
         if worker_read:
@@ -271,7 +272,9 @@ class DDS:
         """Apply a function to each partition of this data set.
 
         Usage sample:
-            > DDS().load(range(10), 5).map_partitions(lambda x: [sum(x)]).collect(True)
+            > DDS().load(range(10), 5).map_partitions(
+                lambda x: [sum(x)]
+              ).collect(True)
             [[1], [5], [9], [13], [17]]
 
         :param func: Function to apply.
@@ -289,8 +292,8 @@ class DDS:
             > sorted(dds.flat_map(lambda x: range(1, x)).collect())
             [1, 1, 1, 2, 2, 3]
 
-        :param func: A function that should return a list, tuple or another kind of
-                  iterable
+        :param func: A function that should return a list, tuple or
+                     another kind of iterable.
         :param args: Arguments.
         :param kwargs: Keyword arguments.
         :returns: New child DDS object.
@@ -327,16 +330,17 @@ class DDS:
             > DDS().load(range(10), 5).reduce((lambda b, a: b + a) , 100)
             145
 
-        :param func: A reduce function which should take two parameters as inputs
-                  and return a single result which will be sent to itself again.
+        :param func: A reduce function which should take two parameters as
+                     inputs and return a single result which will be sent to
+                     itself again.
         :param initial: Initial value for reducer which will be used to reduce
-                the first element with.
+                        the first element with.
         :param arity: Tree depth.
         :return: Reduced result (inside a DDS if necessary).
         """
 
         def local_reducer(partition):
-            """Reduce a partition and retrieve it as a partition containing one element.
+            """Reduce a partition and retrieve it as a one element partition.
 
             :param partition: Partition.
             :return: One element partition.
@@ -453,15 +457,15 @@ class DDS:
         return DDS().load(new_partitions, -1)
 
     def key_by(self, func):
-        """Create a (key,value) pair for each element where the 'key' is f(value).
+        """Create a (key,value) pair for each element where 'key' is f(value).
 
         Usage sample:
             > dds = DDS().load(range(3), 2)
             > dds.key_by(lambda x: str(x)).collect()
             [('0', 0), ('1', 1), ('2', 2)]
 
-        :param func: A Key Creator function which takes the element as a parameter
-                  and returns the key.
+        :param func: A Key Creator function which takes the element as a
+                     parameter and returns the key.
         :return: List of (key, value) pairs.
         """
         return self.map(lambda x: (func(x), x))
@@ -489,7 +493,9 @@ class DDS:
         return self.map_partitions(lambda i: [sum(1 for _ in i)]).sum()
 
     def foreach(self, func):
-        """Apply a function to each element of this data set without returning anything.
+        """Apply a function to each element of this data set.
+
+        CAUTION: Does not return anything.
 
         :param func: A void function.
         :returns: None
@@ -548,7 +554,9 @@ class DDS:
         return ret
 
     def save_as_text_file(self, path):
-        """Save string representations of DDS elements as text files (one file per partition).
+        """Save string representations of DDS elements as text files.
+
+        This saving creates one file per partition.
 
         :param path: Destination file path.
         :return: None.
@@ -576,9 +584,9 @@ class DDS:
             for i, _p in enumerate(self.partitions):
                 map_and_save_pickle(self.func, i, path, _p)
 
-    ####################################################################
+    # ################################################################ #
     # ############## Functions for (Key, Value) pairs. ############### #
-    ####################################################################
+    # ################################################################ #
 
     def collect_as_dict(self):
         """Get (key,value) as { key: value }.
@@ -624,13 +632,14 @@ class DDS:
             [[(0, 0), (3, 3)], [(1, 1), (4, 4)], [(2, 2), (5, 5)]]
 
         :param partitioner_func: A Function distribute data on partitions based
-                                on for example, hash function.
+                                 on for example, hash function.
         :param num_of_partitions: Number of partitions to be created.
         :return: Partitions.
         """
 
         def combine_lists(_partition):
-            # Elements of the partition are grouped by their previous partitions
+            # Elements of the partition are grouped by their
+            # previous partitions
             ret = []
             for _li in _partition:
                 ret.extend(_li)
@@ -675,10 +684,12 @@ class DDS:
         )
 
     def map_values(self, func):
-        """Apply a function to each value of (key, value) element of this data set.
+        """Apply a function to each value of (k, v) element of this data set.
 
         Usage sample:
-            > DDS().load([("a", 1), ("b", 1)]).map_values(lambda x: x+1).collect()
+            > DDS().load(
+                [("a", 1), ("b", 1)]
+              ).map_values(lambda x: x+1).collect()
             [('a', 2), ('b', 2)]
 
         :param func: A function which takes 'value's as parameter.
@@ -691,10 +702,14 @@ class DDS:
         return self.map(dummy)
 
     def flatten_by_key(self, func):
-        """Reverse of combine by key.Flat (key, values) as (key, value1), (key, value2) etc.
+        """Reverse of combine by key.Flat (k, v) as (k, v1), (k, v2) etc.
+
+        In detail: (key, values) as (key, value1), (key, value2) ...
 
         Usage sample:
-            > DDS().load([('a',[1, 2]), ('b',[1])]).flatten_by_key(lambda x: x).collect()
+            > DDS().load(
+                [('a',[1, 2]), ('b',[1])]
+              ).flatten_by_key(lambda x: x).collect()
             [('a', 1), ('a', 2), ('b', 1)]
 
         :param func: A function to parse values.
@@ -752,14 +767,14 @@ class DDS:
         :param creator_func: To apply to the first element of the key. Takes
                              only one argument which is the value from (k, v)
                              pair. (e.g: v = list(v)).
-        :param combiner_func: To apply when a new element with the same 'key' is
-                              found. It is used to combine partitions locally.
-                              Takes 2 arguments; first one is the result of
-                              'creator_func' where the second one is a 'value'
-                              of the same 'key' from the same partition.
-                              (e.g: v1.append(v2)).
+        :param combiner_func: To apply when a new element with the same 'key'
+                              is found. It is used to combine partitions
+                              locally. Takes 2 arguments; first one is the
+                              result of 'creator_func' where the second one
+                              is a 'value' of the same 'key' from the same
+                              partition. (e.g: v1.append(v2)).
         :param merger_function: To merge local results. Basically takes two
-                                arguments- both are results of 'combiner_func'.
+                                arguments -both are results of 'combiner_func'.
                                 (e.g: list_1.extend(list_2)).
         :param total_parts: Number of partitions after combinations.
         :return: Combined by key DDS object.
@@ -805,10 +820,13 @@ class DDS:
         """Reduce values for each key.
 
         Usage sample:
-            > DDS().load([("a",1), ("a",2)]).reduce_by_key((lambda a, b: a+b)).collect()
+            > DDS().load(
+                [("a",1), ("a",2)]
+              ).reduce_by_key((lambda a, b: a+b)).collect()
             [('a', 3)]
 
-        :param func: a reducer function which takes two parameters and returns one.
+        :param func: a reducer function which takes two parameters and
+                     returns one.
         :returns: Reduced values.
         """
         return self.combine_by_key((lambda x: x), func, func)
@@ -821,7 +839,8 @@ class DDS:
             {'a': 2}
 
         :param as_dict: See 'as_dict' argument of 'combine_by_key'.
-        :return: A new DDS with data set of list of tuples (element, occurrence).
+        :return: A new DDS with data set of list of tuples
+                 (element, occurrence).
         """
         return self.map(lambda x: x[0]).count_by_value(as_dict=as_dict)
 

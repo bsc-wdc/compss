@@ -149,7 +149,10 @@ def __process_messages__(messages: typing.List[str]) -> typing.Optional[str]:
             )
             popup = Javascript(popup_js)
             display(popup)
-            warn_msg = "WARNING: Some objects may have not been synchronized and need to be recomputed."  # noqa  # pylint: disable=line-too-long
+            warn_msg = (
+                "WARNING: Some objects may have not been "
+                "synchronized and need to be recomputed."
+            )
             return f"\x1b[40;43m{warn_msg}\x1b[0m"
         elif found_errors:
             # Display popup with the warning messages
@@ -159,6 +162,7 @@ def __process_messages__(messages: typing.List[str]) -> typing.Optional[str]:
             error_messages_html = "<p>" + "<br>".join(popup_body) + "</p>"
             error_messages_html = error_messages_html.replace("'", "")
             popup_title_html = "WARNING: Some tasks may have failed"
+            # fmt: off
             popup_code = f"""require(["base/js/dialog"],
                                     function(dialog) OPENBRACKET
                                         dialog.modal(OPENBRACKET
@@ -169,7 +173,8 @@ def __process_messages__(messages: typing.List[str]) -> typing.Optional[str]:
                                             CLOSEBRACKET
                                         CLOSEBRACKET);
                                     CLOSEBRACKET
-                            );"""
+                            );"""  # noqa # pylint: disable=line-too-long
+            # fmt: on
             popup_js = popup_code.replace("OPENBRACKET", "{").replace(
                 "CLOSEBRACKET", "}"
             )

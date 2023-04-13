@@ -76,7 +76,6 @@ import es.bsc.compss.types.request.ap.SnapshotRequest;
 import es.bsc.compss.types.request.ap.TaskAnalysisRequest;
 import es.bsc.compss.types.request.ap.TaskEndNotification;
 import es.bsc.compss.types.request.ap.TasksStateRequest;
-import es.bsc.compss.types.request.ap.TransferBindingObjectRequest;
 import es.bsc.compss.types.request.ap.UnblockResultFilesRequest;
 import es.bsc.compss.types.request.ap.WaitForDataReadyToDeleteRequest;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
@@ -514,22 +513,6 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         return ProtocolType.PERSISTENT_URI.getSchema() + newId;
     }
 
-    private String obtainBindingObject(RAccessId oaId) {
-        // TODO: Add transfer request similar than java object
-        LOGGER.debug("[AccessProcessor] Obtaining binding object with id " + oaId);
-        // Ask for the object
-        Semaphore sem = new Semaphore(0);
-        TransferBindingObjectRequest tor = new TransferBindingObjectRequest(oaId, sem);
-        if (!this.requestQueue.offer(tor)) {
-            ErrorManager.error(ERROR_QUEUE_OFFER + "obtain object");
-        }
-
-        // Wait for response
-        sem.acquireUninterruptibly();
-        BindingObject bo = BindingObject.generate(tor.getTargetName());
-        return bo.getName();
-    }
-
     /**
      * Notifies a main access to an external binding object.
      *
@@ -545,7 +528,8 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         // Tell the DIP that the application wants to access an object
         DataAccessId oaId = registerDataAccess(boap, AccessMode.RW);
 
-        String bindingObjectID = obtainBindingObject((RAccessId) oaId);
+        BindingObject bo = boap.fetchObject(oaId);
+        String bindingObjectID = bo.getName();
 
         finishDataAccess(boap);
         return bindingObjectID;

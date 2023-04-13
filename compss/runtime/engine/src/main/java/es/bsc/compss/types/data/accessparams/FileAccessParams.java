@@ -99,16 +99,16 @@ public class FileAccessParams<D extends FileData> extends AccessParams<D> {
      */
     public DataLocation fetchForOpen(DataAccessId daId, String destDir) {
         // Get target information
-        DataInstanceId targetFile;
+        DataInstanceId diId;
         if (daId.isWrite()) {
             WritingDataAccessId waId = (WritingDataAccessId) daId;
-            targetFile = waId.getWrittenDataInstance();
+            diId = waId.getWrittenDataInstance();
         } else {
             // Read only mode
             RAccessId raId = (RAccessId) daId;
-            targetFile = raId.getReadDataInstance();
+            diId = raId.getReadDataInstance();
         }
-        String targetName = targetFile.getRenaming();
+        String targetName = diId.getRenaming();
 
         LOGGER.debug("Openning file " + targetName);
 

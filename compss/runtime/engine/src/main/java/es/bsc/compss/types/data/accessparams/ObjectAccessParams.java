@@ -123,7 +123,7 @@ public class ObjectAccessParams<T extends Object, D extends ObjectData> extends 
 
         if (ld.isInMemory()) {
             if (!daId.isPreserveSourceData()) {
-                return (T)ld.removeValue();
+                return (T) ld.removeValue();
             } else {
                 try {
                     ld.writeToStorage();
@@ -150,7 +150,7 @@ public class ObjectAccessParams<T extends Object, D extends ObjectData> extends 
         }
 
         try {
-            return (T)ld.readFromStorage();
+            return (T) ld.readFromStorage();
         } catch (Exception e) {
             String errMsg = ERROR_OBJECT_LOAD + ": " + ((ld == null) ? "null" : ld.getName());
             LOGGER.fatal(errMsg, e);

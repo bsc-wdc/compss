@@ -96,7 +96,7 @@ public class FileAccessParams<D extends FileData> extends AccessParams<D> {
      * @param daId Data Access Id.
      * @return Location of the transferred open file.
      */
-    public DataLocation fetchForOpen(DataAccessId daId) {
+    public DataLocation fetchForOpen(DataAccessId daId, String destDir) {
         // Get target information
         DataInstanceId targetFile;
         if (daId.isWrite()) {
@@ -119,34 +119,35 @@ public class FileAccessParams<D extends FileData> extends AccessParams<D> {
             LogicalData srcData = rdaId.getReadDataInstance().getData();
             Semaphore sem = new Semaphore(0);
             CopyListener listener;
-            if (rdaId.isWrite()) {
-                FileTransferable ft = new FileTransferable(daId.isPreserveSourceData());
-                listener = new CopyListener(ft, sem);
-                Comm.getAppHost().getData(srcData, targetName, (LogicalData) null, ft, listener);
-            } else {
+            if (destDir != null) {
+                String targetPath = destDir + targetName;
+                DataLocation targetLocation = createFileLocation(targetPath);
                 FileTransferable ft = new FileTransferable();
                 listener = new CopyListener(ft, sem);
-                Comm.getAppHost().getData(srcData, ft, listener);
+                Comm.getAppHost().getData(srcData, targetLocation, (LogicalData) null, ft, listener);
+            } else {
+                if (rdaId.isWrite()) {
+                    FileTransferable ft = new FileTransferable(daId.isPreserveSourceData());
+                    listener = new CopyListener(ft, sem);
+                    Comm.getAppHost().getData(srcData, targetName, (LogicalData) null, ft, listener);
+                } else {
+                    FileTransferable ft = new FileTransferable();
+                    listener = new CopyListener(ft, sem);
+                    Comm.getAppHost().getData(srcData, ft, listener);
+                }
             }
             sem.acquireUninterruptibly();
             return listener.getResult();
         } else {
             LOGGER.debug("Auto-release");
             // Create location
-            SimpleURI targetURI;
+            DataLocation targetLocation;
             if (pscoId != null) {
-                targetURI = new SimpleURI(ProtocolType.PERSISTENT_URI.getSchema() + pscoId);
+                targetLocation = createPSCOLocation(pscoId);
             } else {
                 String targetPath = Comm.getAppHost().getWorkingDirectory() + targetName;
-                targetURI = new SimpleURI(ProtocolType.FILE_URI.getSchema() + targetPath);
+                targetLocation = createFileLocation(targetPath);
             }
-            DataLocation targetLocation = null;
-            try {
-                targetLocation = DataLocation.createLocation(Comm.getAppHost(), targetURI);
-            } catch (IOException ioe) {
-                ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetURI, ioe);
-            }
-
             Comm.registerLocation(targetName, targetLocation);
             // Register target location
             LOGGER.debug("Setting target location to " + targetLocation);
@@ -154,32 +155,23 @@ public class FileAccessParams<D extends FileData> extends AccessParams<D> {
         }
     }
 
-    /**
-     * Fetches the last version of the file at a given directory.
-     *
-     * @param daId Data Access Id.
-     * @param destDir directory where the file will be left
-     * @return Location of the transferred open file.
-     */
-    public DataLocation fetchRaw(DataAccessId daId, String destDir) {
-        ReadingDataAccessId rdaId = (ReadingDataAccessId) daId;
-        DataInstanceId diId = rdaId.getReadDataInstance();
-        String targetName = diId.getRenaming();
-        String path = ProtocolType.FILE_URI.getSchema() + destDir + targetName;
+    private DataLocation createPSCOLocation(String pscoId) {
+        SimpleURI targetURI = new SimpleURI(ProtocolType.PERSISTENT_URI.getSchema() + pscoId);
+        return createLocation(targetURI);
+    }
+
+    private DataLocation createFileLocation(String localPath) {
+        SimpleURI targetURI = new SimpleURI(ProtocolType.FILE_URI.getSchema() + localPath);
+        return createLocation(targetURI);
+    }
+
+    private static DataLocation createLocation(SimpleURI targetURI) {
         DataLocation targetLocation = null;
         try {
-            SimpleURI targetURI = new SimpleURI(path);
             targetLocation = DataLocation.createLocation(Comm.getAppHost(), targetURI);
-        } catch (Exception e) {
-            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + path, e);
+        } catch (IOException ioe) {
+            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetURI, ioe);
         }
-
-        LogicalData srcData = diId.getData();
-        Semaphore sem = new Semaphore(0);
-        FileTransferable ft = new FileTransferable();
-        Comm.getAppHost().getData(srcData, targetLocation, (LogicalData) null, ft, new OneOpWithSemListener(sem));
-        sem.acquireUninterruptibly();
-        LOGGER.debug("Raw file transferred");
         return targetLocation;
     }
 

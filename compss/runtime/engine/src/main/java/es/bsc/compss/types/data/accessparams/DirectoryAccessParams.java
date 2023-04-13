@@ -69,7 +69,7 @@ public class DirectoryAccessParams extends FileAccessParams<DirectoryData> {
      * @return Location of the transferred open directory.
      */
     @Override
-    public DataLocation fetchForOpen(DataAccessId daId) {
+    public DataLocation fetchForOpen(DataAccessId daId, String destDir) {
         // Get target information
         DataInstanceId targetFile;
         if (daId.isWrite()) {

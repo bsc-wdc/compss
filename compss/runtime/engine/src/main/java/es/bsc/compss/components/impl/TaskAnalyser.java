@@ -41,24 +41,10 @@ import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
-import es.bsc.compss.types.data.accessparams.DataParams;
-import es.bsc.compss.types.data.accessparams.DataParams.BindingObjectData;
-import es.bsc.compss.types.data.accessparams.DataParams.CollectionData;
-import es.bsc.compss.types.data.accessparams.DataParams.ExternalPSCObjectData;
-import es.bsc.compss.types.data.accessparams.DataParams.ExternalStreamData;
-import es.bsc.compss.types.data.accessparams.DataParams.FileData;
-import es.bsc.compss.types.data.accessparams.DataParams.ObjectData;
-import es.bsc.compss.types.data.accessparams.DataParams.StreamData;
-import es.bsc.compss.types.parameter.impl.BindingObjectParameter;
 import es.bsc.compss.types.parameter.impl.CollectiveParameter;
 import es.bsc.compss.types.parameter.impl.DependencyParameter;
-import es.bsc.compss.types.parameter.impl.DirectoryParameter;
-import es.bsc.compss.types.parameter.impl.ExternalPSCOParameter;
-import es.bsc.compss.types.parameter.impl.ExternalStreamParameter;
-import es.bsc.compss.types.parameter.impl.FileParameter;
 import es.bsc.compss.types.parameter.impl.ObjectParameter;
 import es.bsc.compss.types.parameter.impl.Parameter;
-import es.bsc.compss.types.parameter.impl.StreamParameter;
 import es.bsc.compss.types.request.ap.BarrierGroupRequest;
 import es.bsc.compss.types.request.ap.BarrierRequest;
 import es.bsc.compss.types.request.ap.EndOfAppRequest;
@@ -169,9 +155,9 @@ public class TaskAnalyser implements GraphHandler {
         }
 
         // Process parameters
-        boolean taskHasEdge = processTaskParameters(app, currentTask, constrainingParam);
-        registerIntermediateParameter(app, currentTask);
-        markIntermediateParametersToDelete(app, currentTask);
+        boolean taskHasEdge = processTaskParameters(currentTask, constrainingParam);
+        registerIntermediateParameter(currentTask);
+        markIntermediateParametersToDelete(currentTask);
 
         if (IS_DRAW_GRAPH && !taskHasEdge) {
             // If the graph must be written and the task has no edge due to its parameters,
@@ -183,71 +169,31 @@ public class TaskAnalyser implements GraphHandler {
         cp.newTask(currentTask);
     }
 
-    private boolean processTaskParameters(Application app, Task currentTask, int constrainingParam) {
+    private boolean processTaskParameters(Task currentTask, int constrainingParam) {
         List<Parameter> parameters = currentTask.getParameters();
         boolean taskHasEdge = false;
         for (int paramIdx = 0; paramIdx < parameters.size(); paramIdx++) {
             boolean isConstraining = paramIdx == constrainingParam;
             Parameter param = parameters.get(paramIdx);
-            boolean paramHasEdge = registerParameterAccessAndAddDependencies(app, currentTask, param, isConstraining);
+            boolean paramHasEdge = registerParameterAccessAndAddDependencies(currentTask, param, isConstraining);
             taskHasEdge = taskHasEdge || paramHasEdge;
         }
         return taskHasEdge;
     }
 
-    private void markIntermediateParametersToDelete(Application app, Task task) {
+    private void markIntermediateParametersToDelete(Task task) {
         for (Parameter p : task.getParameterDataToRemove()) {
-            markParameterToDelete(app, p, true);
+            if (p.isPotentialDependency()) {
+                DependencyParameter dp = (DependencyParameter) p;
+                dip.deleteData(dp.getAccess().getData(), true);
+            }
         }
     }
 
-    private void registerIntermediateParameter(Application app, Task task) {
+    private void registerIntermediateParameter(Task task) {
         for (Parameter p : task.getIntermediateParameters()) {
-            registerParameterAccessAndAddDependencies(app, task, p, false);
+            registerParameterAccessAndAddDependencies(task, p, false);
         }
-    }
-
-    private void markParameterToDelete(Application app, Parameter p, boolean noReuse) {
-        switch (p.getType()) {
-            case DIRECTORY_T:
-                DirectoryParameter dp = (DirectoryParameter) p;
-                dip.deleteData(new FileData(app, dp.getLocation()), noReuse);
-                break;
-            case FILE_T:
-                FileParameter fp = (FileParameter) p;
-                dip.deleteData(new FileData(app, fp.getLocation()), noReuse);
-                break;
-            case OBJECT_T:
-            case PSCO_T:
-                ObjectParameter op = (ObjectParameter) p;
-                dip.deleteData(new ObjectData(app, op.getCode()), noReuse);
-                break;
-            case EXTERNAL_PSCO_T:
-                ExternalPSCOParameter epscop = (ExternalPSCOParameter) p;
-                dip.deleteData(new ExternalPSCObjectData(app, epscop.getCode()), noReuse);
-                break;
-            case BINDING_OBJECT_T:
-                BindingObjectParameter bindingObjectparam = (BindingObjectParameter) p;
-                dip.deleteData(new BindingObjectData(app, bindingObjectparam.getCode()), noReuse);
-                break;
-            case STREAM_T:
-                StreamParameter sp = (StreamParameter) p;
-                dip.deleteData(new StreamData(app, sp.getCode()), noReuse);
-                break;
-            case EXTERNAL_STREAM_T:
-                ExternalStreamParameter esp = (ExternalStreamParameter) p;
-                dip.deleteData(new ExternalStreamData(app, esp.getLocation().hashCode()), noReuse);
-                break;
-            case COLLECTION_T:
-            case DICT_COLLECTION_T:
-                CollectiveParameter cParam = (CollectiveParameter) p;
-                CollectionData cd = new CollectionData(app, cParam.getCollectionId());
-                DataInfo ci = dip.deleteData(cd, true);
-                break;
-            default:
-                // This is a basic type nothing to delete
-        }
-
     }
 
     /**
@@ -602,8 +548,7 @@ public class TaskAnalyser implements GraphHandler {
      * *************************************************************************************************************
      * DATA DEPENDENCY MANAGEMENT PRIVATE METHODS
      ***************************************************************************************************************/
-    private boolean registerParameterAccessAndAddDependencies(Application app, Task currentTask, Parameter p,
-        boolean isConstraining) {
+    private boolean registerParameterAccessAndAddDependencies(Task currentTask, Parameter p, boolean isConstraining) {
         boolean hasParamEdge = false;
         if (p.isCollective()) {
             CollectiveParameter cp = (CollectiveParameter) p;
@@ -612,7 +557,7 @@ public class TaskAnalyser implements GraphHandler {
             }
             for (Parameter content : cp.getElements()) {
                 boolean hasCollectionParamEdge =
-                    registerParameterAccessAndAddDependencies(app, currentTask, content, isConstraining);
+                    registerParameterAccessAndAddDependencies(currentTask, content, isConstraining);
                 hasParamEdge = hasParamEdge || hasCollectionParamEdge;
             }
         } else {

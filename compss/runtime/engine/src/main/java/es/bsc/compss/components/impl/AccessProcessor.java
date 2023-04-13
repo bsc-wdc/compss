@@ -311,10 +311,9 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
      * Notifies a main access to a given file access {@code fap}.
      *
      * @param fap File Access Parameters.
-     * @param destDir Destination file.
      * @return Final location.
      */
-    public DataLocation mainAccessToFile(FileAccessParams fap, String destDir) {
+    public DataLocation mainAccessToFile(FileAccessParams fap) {
         boolean alreadyAccessed = alreadyAccessed(fap.getData());
         DataLocation sourceLocation = fap.getLocation();
         if (!alreadyAccessed) {
@@ -330,14 +329,14 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         if (faId == null) { // If fiId is null data is cancelled returning null location
             ErrorManager.warn("No version available. Returning null");
             try {
-                tgtLocation = DataLocation.createLocation(Comm.getAppHost(),
-                    new SimpleURI(ProtocolType.FILE_URI.getSchema() + "null"));
+                String path = ProtocolType.FILE_URI.getSchema() + "null";
+                tgtLocation = DataLocation.createLocation(Comm.getAppHost(), new SimpleURI(path));
             } catch (Exception e) {
                 ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION, e);
             }
         } else {
             if (faId.isRead()) {
-                tgtLocation = fap.fetchForOpen(faId, destDir);
+                tgtLocation = fap.fetchForOpen(faId);
             }
 
             if (faId.isWrite()) {
@@ -367,10 +366,9 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
      * Notifies a main access to a given directory access {@code sourceLocation}.
      *
      * @param dap File Access Parameters.
-     * @param destDir Destination directory.
      * @return Final location.
      */
-    public DataLocation mainAccessToDirectory(DirectoryAccessParams dap, String destDir) {
+    public DataLocation mainAccessToDirectory(DirectoryAccessParams dap) {
         boolean alreadyAccessed = alreadyAccessed(dap.getData());
         DataLocation sourceLocation = dap.getLocation();
         if (!alreadyAccessed) {
@@ -385,14 +383,14 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         if (daId == null) { // If fiId is null data is cancelled returning null location
             ErrorManager.warn("No version available. Returning null");
             try {
-                String path = ProtocolType.DIR_URI.getSchema() + destDir + "null";
+                String path = ProtocolType.DIR_URI.getSchema() + "null";
                 tgtLocation = DataLocation.createLocation(Comm.getAppHost(), new SimpleURI(path));
             } catch (Exception e) {
                 ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION, e);
             }
         } else {
             if (daId.isRead()) {
-                tgtLocation = dap.fetchForOpen(daId, null);
+                tgtLocation = dap.fetchForOpen(daId);
             }
             if (daId.isWrite()) {
                 LOGGER.debug("Data " + daId.getDataId() + " mode contains W, register new writer");

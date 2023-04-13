@@ -1452,7 +1452,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         switch (loc.getType()) {
             case PRIVATE:
             case SHARED:
-                finalPath = mainAccessToFile(app, fileName, loc, direction, null, isDir);
+                finalPath = mainAccessToFile(app, fileName, loc, direction, isDir);
                 if (LOGGER.isDebugEnabled()) {
 
                     LOGGER.debug("File " + (isDir ? "(dir) " : "") + "target Location: " + finalPath);
@@ -1895,15 +1895,15 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     }
 
     private String mainAccessToFile(Application app, String fileName, DataLocation loc, Direction direction,
-        String destDir, boolean isDirectory) {
+        boolean isDirectory) {
         // Tell the AP that the application wants to access a file.
         DataLocation targetLocation;
         if (isDirectory) {
             DirectoryAccessParams fap = DirectoryAccessParams.constructDAP(app, direction, loc);
-            targetLocation = ap.mainAccessToDirectory(fap, destDir);
+            targetLocation = ap.mainAccessToDirectory(fap);
         } else {
             FileAccessParams fap = FileAccessParams.constructFAP(app, direction, loc);
-            targetLocation = ap.mainAccessToFile(fap, destDir);
+            targetLocation = ap.mainAccessToFile(fap);
         }
 
         // Checks on target

@@ -463,11 +463,18 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
      * @param oap description of the object access
      * @return Synchronized object.
      */
-    public Object mainAccessToObject(ObjectAccessParams oap) {
+    public Object mainAccessToObject(ObjectAccessParams<?,?> oap) {
         if (DEBUG) {
             LOGGER.debug("Requesting main access to " + oap.getDataDescription());
         }
 
+        boolean validValue = isCurrentRegisterValueValid(oap.getData());
+        if (validValue) {
+            // Main code is still performing the same modification.
+            // No need to register it as a new version.
+            return null;
+        }
+        
         // Tell the DIP that the application wants to access an object
         DataAccessId oaId = registerDataAccess(oap, AccessMode.RW);
 

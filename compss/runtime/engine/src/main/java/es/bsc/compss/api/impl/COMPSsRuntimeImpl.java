@@ -1313,7 +1313,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             LOGGER.debug("Getting object with hash code " + hashCode);
         }
 
-        Object oUpdated = mainAccessToObject(app, obj, hashCode);
+        ObjectAccessParams<?, ?> oap = ObjectAccessParams.constructObjectAP(app, Direction.INOUT, obj, hashCode);
+        Object oUpdated = ap.mainAccessToObject(oap);
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Object obtained " + ((oUpdated == null) ? oUpdated : oUpdated.hashCode()));
@@ -1924,20 +1925,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         }
 
         return finalPath;
-    }
-
-    private Object mainAccessToObject(Application app, Object obj, int hashCode) {
-        ObjectAccessParams<?, ?> oap = ObjectAccessParams.constructObjectAP(app, Direction.INOUT, obj, hashCode);
-
-        boolean validValue = ap.isCurrentRegisterValueValid(oap.getData());
-        if (validValue) {
-            // Main code is still performing the same modification.
-            // No need to register it as a new version.
-            return null;
-        }
-
-        // Otherwise we request it from a task
-        return ap.mainAccessToObject(oap);
     }
 
     private String mainAccessToExternalPSCO(Application app, String fileName, DataLocation loc) {

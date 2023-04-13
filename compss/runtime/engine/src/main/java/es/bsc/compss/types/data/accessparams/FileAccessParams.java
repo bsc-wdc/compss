@@ -97,7 +97,7 @@ public class FileAccessParams<D extends FileData> extends AccessParams<D> {
      * @param daId Data Access Id.
      * @return Location of the transferred open file.
      */
-    public DataLocation fetchForOpen(DataAccessId daId, String destDir) {
+    public DataLocation fetchForOpen(DataAccessId daId) {
         // Get target information
         DataInstanceId diId;
         if (daId.isWrite()) {
@@ -119,22 +119,14 @@ public class FileAccessParams<D extends FileData> extends AccessParams<D> {
             LogicalData srcData = rdaId.getReadDataInstance().getData();
             Semaphore sem = new Semaphore(0);
             CopyListener listener;
-            if (destDir != null) {
-                String targetPath = destDir + targetName;
-                DataLocation targetLocation = createFileLocation(targetPath);
+            if (rdaId.isWrite()) {
+                FileTransferable ft = new FileTransferable(daId.isPreserveSourceData());
+                listener = new CopyListener(ft, sem);
+                Comm.getAppHost().getData(srcData, targetName, (LogicalData) null, ft, listener);
+            } else {
                 FileTransferable ft = new FileTransferable();
                 listener = new CopyListener(ft, sem);
-                Comm.getAppHost().getData(srcData, targetLocation, (LogicalData) null, ft, listener);
-            } else {
-                if (rdaId.isWrite()) {
-                    FileTransferable ft = new FileTransferable(daId.isPreserveSourceData());
-                    listener = new CopyListener(ft, sem);
-                    Comm.getAppHost().getData(srcData, targetName, (LogicalData) null, ft, listener);
-                } else {
-                    FileTransferable ft = new FileTransferable();
-                    listener = new CopyListener(ft, sem);
-                    Comm.getAppHost().getData(srcData, ft, listener);
-                }
+                Comm.getAppHost().getData(srcData, ft, listener);
             }
             sem.acquireUninterruptibly();
             return listener.getResult();

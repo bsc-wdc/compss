@@ -1300,7 +1300,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public Object getObject(Long appId, Object obj, int hashCode, String destDir) {
-        Application app = Application.registerApplication(appId);
         /*
          * We know that the object has been accessed before by a task, otherwise the ObjectRegistry would have discarded
          * it and this method would not have been called.
@@ -1313,6 +1312,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             LOGGER.debug("Getting object with hash code " + hashCode);
         }
 
+        Application app = Application.registerApplication(appId);
         ObjectAccessParams<?, ?> oap = ObjectAccessParams.constructObjectAP(app, Direction.INOUT, obj, hashCode);
         Object oUpdated = ap.mainAccessToObject(oap);
 

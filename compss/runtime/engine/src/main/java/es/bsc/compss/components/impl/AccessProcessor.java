@@ -340,11 +340,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
             }
         } else {
             if (faId.isRead()) {
-                if (destDir == null) {
-                    tgtLocation = fap.fetchForOpen(faId);
-                } else {
-                    tgtLocation = fap.fetchRaw(faId, destDir);
-                }
+                tgtLocation = fap.fetchForOpen(faId, destDir);
             }
 
             if (faId.isWrite()) {
@@ -399,7 +395,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
             }
         } else {
             if (daId.isRead()) {
-                tgtLocation = dap.fetchForOpen(daId);
+                tgtLocation = dap.fetchForOpen(daId, null);
             }
             if (daId.isWrite()) {
                 LOGGER.debug("Data " + daId.getDataId() + " mode contains W, register new writer");

@@ -508,6 +508,13 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
             LOGGER.debug("Requesting main access to " + eoap.getDataDescription());
         }
 
+        boolean validValue = isCurrentRegisterValueValid(eoap.getData());
+        if (validValue) {
+            // Main code is still performing the same modification.
+            // No need to register it as a new version.
+            return eoap.getPSCOId();
+        }
+
         // Tell the DIP that the application wants to access an object
         DataAccessId oaId = registerDataAccess(eoap, AccessMode.RW);
 

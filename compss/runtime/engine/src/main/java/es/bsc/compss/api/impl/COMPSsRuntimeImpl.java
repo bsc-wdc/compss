@@ -1470,7 +1470,13 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 }
                 break;
             case PERSISTENT:
-                finalPath = mainAccessToExternalPSCO(app, fileName, loc);
+                String id = ((PersistentLocation) loc).getId();
+                int hashCode = externalObjectHashcode(id);
+                ExternalPSCObjectAccessParams eoap;
+                eoap = ExternalPSCObjectAccessParams.constructEPOAP(app, Direction.INOUT, id, hashCode);
+
+                // Otherwise we request it from a task
+                finalPath = ap.mainAccessToExternalPSCO(eoap);
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("External PSCO target Location: " + finalPath);
                 }
@@ -1935,23 +1941,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         }
 
         return finalPath;
-    }
-
-    private String mainAccessToExternalPSCO(Application app, String fileName, DataLocation loc) {
-        String id = ((PersistentLocation) loc).getId();
-        int hashCode = externalObjectHashcode(id);
-        ExternalPSCObjectAccessParams eoap;
-        eoap = ExternalPSCObjectAccessParams.constructEPOAP(app, Direction.INOUT, id, hashCode);
-
-        boolean validValue = ap.isCurrentRegisterValueValid(eoap.getData());
-        if (validValue) {
-            // Main code is still performing the same modification.
-            // No need to register it as a new version.
-            return fileName;
-        }
-
-        // Otherwise we request it from a task
-        return ap.mainAccessToExternalPSCO(eoap);
     }
 
     private DataLocation createLocation(ProtocolType defaultSchema, String fileName) throws IOException {

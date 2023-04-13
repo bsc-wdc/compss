@@ -21,6 +21,7 @@ import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataAccessId.ReadingDataAccessId;
+import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
 import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.DataVersion;
@@ -98,17 +99,16 @@ public class FileAccessParams<D extends FileData> extends AccessParams<D> {
      */
     public DataLocation fetchForOpen(DataAccessId daId, String destDir) {
         // Get target information
-        DataInstanceId targetFile;
+        DataInstanceId diId;
         if (daId.isWrite()) {
-            DataAccessId.WritingDataAccessId waId = (DataAccessId.WritingDataAccessId) daId;
-            targetFile = waId.getWrittenDataInstance();
-
+            WritingDataAccessId waId = (WritingDataAccessId) daId;
+            diId = waId.getWrittenDataInstance();
         } else {
             // Read only mode
             RAccessId raId = (RAccessId) daId;
-            targetFile = raId.getReadDataInstance();
+            diId = raId.getReadDataInstance();
         }
-        String targetName = targetFile.getRenaming();
+        String targetName = diId.getRenaming();
 
         LOGGER.debug("Openning file " + targetName);
 

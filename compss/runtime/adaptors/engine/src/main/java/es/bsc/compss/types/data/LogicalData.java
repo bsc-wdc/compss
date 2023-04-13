@@ -685,6 +685,61 @@ public class LogicalData {
     }
 
     /**
+     * Reads the value of the LogicalData from a file but does not keep it as the value.
+     *
+     * @returns the value of the LogicalData
+     * @throws CannotLoadException Error loading from storage
+     */
+    public synchronized Object readFromStorage() throws CannotLoadException {
+        synchronized (this.locations) {
+            for (DataLocation loc : this.locations) {
+                switch (loc.getType()) {
+                    case PRIVATE:
+                    case SHARED:
+                        // Get URI and deserialize object if possible
+                        MultiURI u = loc.getURIInHost(Comm.getAppHost());
+                        if (u == null) {
+                            continue;
+                        }
+
+                        String path = u.getPath();
+                        if (path.startsWith(File.separator)) {
+                            try {
+                                return Serializer.deserialize(path);
+                            } catch (ClassNotFoundException | IOException e) {
+                                // Check next location since deserialization was invalid
+                                this.value[0] = null;
+                                continue;
+                            }
+                        }
+                        break;
+                    case PERSISTENT:
+                        PersistentLocation pLoc = (PersistentLocation) loc;
+                        if (Tracer.isActivated()) {
+                            Tracer.emitEvent(TraceEvent.STORAGE_GETBYID);
+                        }
+                        try {
+                            this.pscoId = pLoc.getId();
+                            return StorageItf.getByID(this.pscoId);
+                        } catch (StorageException se) {
+                            // Check next location since cannot retrieve the object from the storage Back-end
+                            continue;
+                        } finally {
+                            if (Tracer.isActivated()) {
+                                Tracer.emitEventEnd(TraceEvent.STORAGE_GETBYID);
+                            }
+                        }
+                    case BINDING:
+                        // We should never reach this
+                        throw new CannotLoadException("ERROR: Trying to load from storage a BINDING location");
+                }
+            }
+        }
+        // Any location has been able to load the value
+        throw new CannotLoadException("Object has not any valid location available in the master");
+    }
+
+    /**
      * Loads the value of the LogicalData from a file.
      *
      * @throws CannotLoadException Error loading from storage

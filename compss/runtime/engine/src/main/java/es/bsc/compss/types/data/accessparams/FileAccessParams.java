@@ -21,6 +21,7 @@ import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataAccessId.ReadingDataAccessId;
+import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
 import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.DataVersion;
@@ -100,9 +101,8 @@ public class FileAccessParams<D extends FileData> extends AccessParams<D> {
         // Get target information
         DataInstanceId targetFile;
         if (daId.isWrite()) {
-            DataAccessId.WritingDataAccessId waId = (DataAccessId.WritingDataAccessId) daId;
+            WritingDataAccessId waId = (WritingDataAccessId) daId;
             targetFile = waId.getWrittenDataInstance();
-
         } else {
             // Read only mode
             RAccessId raId = (RAccessId) daId;

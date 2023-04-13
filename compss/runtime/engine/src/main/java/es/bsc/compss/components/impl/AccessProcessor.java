@@ -77,7 +77,6 @@ import es.bsc.compss.types.request.ap.TaskAnalysisRequest;
 import es.bsc.compss.types.request.ap.TaskEndNotification;
 import es.bsc.compss.types.request.ap.TasksStateRequest;
 import es.bsc.compss.types.request.ap.TransferBindingObjectRequest;
-import es.bsc.compss.types.request.ap.TransferObjectRequest;
 import es.bsc.compss.types.request.ap.UnblockResultFilesRequest;
 import es.bsc.compss.types.request.ap.WaitForDataReadyToDeleteRequest;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
@@ -114,8 +113,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     private static final String CHECKPOINTER_REL_PATH = File.separator + "Runtime" + File.separator + "checkpointer";
 
     private static final String ERR_LOAD_CHECKPOINTER = "Error loading checkpoint manager";
-    private static final String ERROR_OBJECT_LOAD_FROM_STORAGE =
-        "ERROR: Cannot load object from storage (file or PSCO)";
+
     private static final String ERROR_QUEUE_OFFER = "ERROR: AccessProcessor queue offer error on ";
 
     // Other super-components
@@ -483,7 +481,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         if (DEBUG) {
             LOGGER.debug("Request object transfer " + oaId.getDataId() + " with renaming " + wRename);
         }
-        Object oUpdated = obtainObject(oaId);
+        Object oUpdated = oap.fetchObject(oaId);
 
         if (DEBUG) {
             LOGGER.debug("Object retrieved. Set new version to: " + wRename);
@@ -827,43 +825,6 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         if (!this.requestQueue.offer(new DeleteBindingObjectRequest(app, code))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "mark for deletion");
         }
-    }
-
-    /**
-     * Adds a request to obtain an object from a worker to the master.
-     *
-     * @param oaId Data Access Id.
-     * @return The synchronized object value.
-     */
-    private Object obtainObject(DataAccessId oaId) {
-        // Ask for the object
-        Semaphore sem = new Semaphore(0);
-        TransferObjectRequest tor = new TransferObjectRequest(oaId, sem);
-        if (!this.requestQueue.offer(tor)) {
-            ErrorManager.error(ERROR_QUEUE_OFFER + "obtain object");
-        }
-
-        // Wait for response
-        sem.acquireUninterruptibly();
-
-        // Get response
-        Object oUpdated = tor.getResponse();
-        if (oUpdated == null) {
-            /*
-             * The Object didn't come from a WS but was transferred from a worker, we load it from its storage (file or
-             * persistent)
-             */
-            LogicalData ld = tor.getTargetData();
-            try {
-                ld.loadFromStorage();
-                oUpdated = ld.getValue();
-            } catch (CannotLoadException e) {
-                LOGGER.fatal(ERROR_OBJECT_LOAD_FROM_STORAGE + ": " + ((ld == null) ? "null" : ld.getName()), e);
-                ErrorManager.fatal(ERROR_OBJECT_LOAD_FROM_STORAGE + ": " + ((ld == null) ? "null" : ld.getName()), e);
-            }
-        }
-
-        return oUpdated;
     }
 
     /**

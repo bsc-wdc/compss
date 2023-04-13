@@ -30,15 +30,14 @@ import es.bsc.compss.types.Application;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.ReduceTask;
 import es.bsc.compss.types.Task;
-import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.ResultFile;
 import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.data.accessid.RWAccessId;
-import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
 import es.bsc.compss.types.data.accessparams.BindingObjectAccessParams;
@@ -79,9 +78,6 @@ import es.bsc.compss.types.request.ap.TaskEndNotification;
 import es.bsc.compss.types.request.ap.TasksStateRequest;
 import es.bsc.compss.types.request.ap.TransferBindingObjectRequest;
 import es.bsc.compss.types.request.ap.TransferObjectRequest;
-import es.bsc.compss.types.request.ap.TransferOpenDirectoryRequest;
-import es.bsc.compss.types.request.ap.TransferOpenFileRequest;
-import es.bsc.compss.types.request.ap.TransferRawFileRequest;
 import es.bsc.compss.types.request.ap.UnblockResultFilesRequest;
 import es.bsc.compss.types.request.ap.WaitForDataReadyToDeleteRequest;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
@@ -343,43 +339,19 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
                 ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION, e);
             }
         } else {
-            if (fap.getMode() != AccessMode.W) {
+            if (faId.isRead()) {
                 if (destDir == null) {
-                    tgtLocation = transferFileOpen(faId);
+                    tgtLocation = fap.fetchForOpen(faId);
                 } else {
-                    DataInstanceId daId;
-                    if (fap.getMode() == AccessMode.R) {
-                        RAccessId ra = (RAccessId) faId;
-                        daId = ra.getReadDataInstance();
-                    } else {
-                        RWAccessId ra = (RWAccessId) faId;
-                        daId = ra.getReadDataInstance();
-                    }
-
-                    String rename = daId.getRenaming();
-                    String path = ProtocolType.FILE_URI.getSchema() + destDir + rename;
-                    try {
-                        SimpleURI uri = new SimpleURI(path);
-                        tgtLocation = DataLocation.createLocation(Comm.getAppHost(), uri);
-                    } catch (Exception e) {
-                        ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + path, e);
-                    }
-
-                    transferFileRaw(faId, tgtLocation);
+                    tgtLocation = fap.fetchRaw(faId, destDir);
                 }
             }
 
-            if (fap.getMode() != AccessMode.R && fap.getMode() != AccessMode.C) {
+            if (faId.isWrite()) {
                 // Mode contains W
                 LOGGER.debug("File " + faId.getDataId() + " mode contains W, register new writer");
-                DataInstanceId daId;
-                if (fap.getMode() == AccessMode.RW || fap.getMode() == AccessMode.CV) {
-                    RWAccessId ra = (RWAccessId) faId;
-                    daId = ra.getWrittenDataInstance();
-                } else {
-                    WAccessId ra = (WAccessId) faId;
-                    daId = ra.getWrittenDataInstance();
-                }
+                WritingDataAccessId wdaId = (WritingDataAccessId) faId;
+                DataInstanceId daId = wdaId.getWrittenDataInstance();
                 String rename = daId.getRenaming();
                 String path = ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getWorkingDirectory() + rename;
                 try {
@@ -401,23 +373,23 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     /**
      * Notifies a main access to a given directory access {@code sourceLocation}.
      *
-     * @param fap File Access Parameters.
+     * @param dap File Access Parameters.
      * @param destDir Destination directory.
      * @return Final location.
      */
-    public DataLocation mainAccessToDirectory(DirectoryAccessParams fap, String destDir) {
-        boolean alreadyAccessed = alreadyAccessed(fap.getData());
-        DataLocation sourceLocation = fap.getLocation();
+    public DataLocation mainAccessToDirectory(DirectoryAccessParams dap, String destDir) {
+        boolean alreadyAccessed = alreadyAccessed(dap.getData());
+        DataLocation sourceLocation = dap.getLocation();
         if (!alreadyAccessed) {
             LOGGER.debug("Directory not accessed before, returning the same location");
             return sourceLocation;
         }
 
         // Tell the DM that the application wants to access a file.
-        DataAccessId faId = registerDataAccess(fap, AccessMode.R);
+        DataAccessId daId = registerDataAccess(dap, AccessMode.R);
 
         DataLocation tgtLocation = sourceLocation;
-        if (faId == null) { // If fiId is null data is cancelled returning null location
+        if (daId == null) { // If fiId is null data is cancelled returning null location
             ErrorManager.warn("No version available. Returning null");
             try {
                 String path = ProtocolType.DIR_URI.getSchema() + destDir + "null";
@@ -426,22 +398,14 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
                 ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION, e);
             }
         } else {
-            if (fap.getMode() != AccessMode.W) {
-                tgtLocation = transferDirectoryOpen(faId);
+            if (daId.isRead()) {
+                tgtLocation = dap.fetchForOpen(daId);
             }
-
-            if (fap.getMode() != AccessMode.R && fap.getMode() != AccessMode.C) {
-                // Mode contains W
-                LOGGER.debug("Data " + faId.getDataId() + " mode contains W, register new writer");
-                DataInstanceId daId;
-                if (fap.getMode() == AccessMode.RW || fap.getMode() == AccessMode.CV) {
-                    RWAccessId ra = (RWAccessId) faId;
-                    daId = ra.getWrittenDataInstance();
-                } else {
-                    WAccessId ra = (WAccessId) faId;
-                    daId = ra.getWrittenDataInstance();
-                }
-                String rename = daId.getRenaming();
+            if (daId.isWrite()) {
+                LOGGER.debug("Data " + daId.getDataId() + " mode contains W, register new writer");
+                WritingDataAccessId wdaId = (WritingDataAccessId) daId;
+                DataInstanceId diId = wdaId.getWrittenDataInstance();
+                String rename = diId.getRenaming();
                 String path = ProtocolType.DIR_URI.getSchema() + Comm.getAppHost().getWorkingDirectory() + rename;
                 try {
                     SimpleURI uri = new SimpleURI(path);
@@ -453,7 +417,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
             }
 
             if (DEBUG) {
-                LOGGER.debug("Directory " + faId.getDataId() + " located on " + tgtLocation.toString());
+                LOGGER.debug("Directory " + daId.getDataId() + " located on " + tgtLocation.toString());
             }
         }
         return tgtLocation;
@@ -867,66 +831,6 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         if (!this.requestQueue.offer(new DeleteBindingObjectRequest(app, code))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "mark for deletion");
         }
-    }
-
-    /**
-     * Adds a request for file raw transfer.
-     *
-     * @param faId Data Access Id.
-     * @param location File location.
-     */
-    private void transferFileRaw(DataAccessId faId, DataLocation location) {
-        Semaphore sem = new Semaphore(0);
-        RAccessId faRId = (RAccessId) faId;
-        TransferRawFileRequest request = new TransferRawFileRequest(faRId, location, sem);
-        if (!this.requestQueue.offer(request)) {
-            ErrorManager.error(ERROR_QUEUE_OFFER + "transfer file raw");
-        }
-
-        // Wait for response
-        sem.acquireUninterruptibly();
-
-        LOGGER.debug("Raw file transferred");
-    }
-
-    /**
-     * Adds a request for open file transfer.
-     *
-     * @param faId Data Access Id.
-     * @return Location of the transferred open file.
-     */
-    private DataLocation transferFileOpen(DataAccessId faId) {
-        Semaphore sem = new Semaphore(0);
-        TransferOpenFileRequest request = new TransferOpenFileRequest(faId, sem);
-        if (!this.requestQueue.offer(request)) {
-            ErrorManager.error(ERROR_QUEUE_OFFER + "transfer file open");
-        }
-
-        // Wait for response
-        sem.acquireUninterruptibly();
-
-        LOGGER.debug("Open file transferred");
-        return request.getLocation();
-    }
-
-    /**
-     * Adds a request for open file transfer.
-     *
-     * @param faId Data Access Id.
-     * @return Location of the transferred open file.
-     */
-    private DataLocation transferDirectoryOpen(DataAccessId faId) {
-        Semaphore sem = new Semaphore(0);
-        TransferOpenDirectoryRequest req = new TransferOpenDirectoryRequest(faId, sem);
-        if (!this.requestQueue.offer(req)) {
-            ErrorManager.error(ERROR_QUEUE_OFFER + "transfer directory open");
-        }
-
-        // Wait for response
-        sem.acquireUninterruptibly();
-
-        LOGGER.debug("Open directory transferred");
-        return req.getLocation();
     }
 
     /**

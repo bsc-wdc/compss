@@ -1078,15 +1078,25 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public String getBindingObject(Long appId, String fileName) {
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(TraceEvent.GET_BINDING_OBJECT);
+        }
+
         // Parse the file name
         LOGGER.debug(" Calling get binding object : " + fileName);
-
+        BindingObject bo = BindingObject.generate(fileName);
+        BindingObjectLocation boLoc = new BindingObjectLocation(Comm.getAppHost(), bo);
+        String boId = boLoc.getId();
+        int hashCode = externalObjectHashcode(boId);
         Application app = Application.registerApplication(appId);
-        BindingObjectLocation sourceLocation;
-        sourceLocation = new BindingObjectLocation(Comm.getAppHost(), BindingObject.generate(fileName));
-        // Ask the AP to
-        String finalPath = mainAccessToBindingObject(app, fileName, sourceLocation);
-        LOGGER.debug(" Returning binding object as id: " + finalPath);
+        BindingObjectAccessParams boap = BindingObjectAccessParams.constructBOAP(app, Direction.IN, bo, hashCode);
+
+        // Otherwise we request it from a task
+        String finalPath = ap.mainAccessToBindingObject(boap);
+        LOGGER.debug("Returning binding object as id: " + finalPath);
+        if (Tracer.isActivated()) {
+            Tracer.emitEventEnd(TraceEvent.GET_BINDING_OBJECT);
+        }
         return finalPath;
     }
 
@@ -1300,7 +1310,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public Object getObject(Long appId, Object obj, int hashCode, String destDir) {
-        Application app = Application.registerApplication(appId);
         /*
          * We know that the object has been accessed before by a task, otherwise the ObjectRegistry would have discarded
          * it and this method would not have been called.
@@ -1313,7 +1322,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             LOGGER.debug("Getting object with hash code " + hashCode);
         }
 
-        Object oUpdated = mainAccessToObject(app, obj, hashCode);
+        Application app = Application.registerApplication(appId);
+        ObjectAccessParams<?, ?> oap = ObjectAccessParams.constructObjectAP(app, Direction.INOUT, obj, hashCode);
+        Object oUpdated = ap.mainAccessToObject(oap);
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Object obtained " + ((oUpdated == null) ? oUpdated : oUpdated.hashCode()));
@@ -1459,7 +1470,13 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 }
                 break;
             case PERSISTENT:
-                finalPath = mainAccessToExternalPSCO(app, fileName, loc);
+                String id = ((PersistentLocation) loc).getId();
+                int hashCode = externalObjectHashcode(id);
+                ExternalPSCObjectAccessParams eoap;
+                eoap = ExternalPSCObjectAccessParams.constructEPOAP(app, Direction.INOUT, id, hashCode);
+
+                // Otherwise we request it from a task
+                finalPath = ap.mainAccessToExternalPSCO(eoap);
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("External PSCO target Location: " + finalPath);
                 }
@@ -1924,54 +1941,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         }
 
         return finalPath;
-    }
-
-    private Object mainAccessToObject(Application app, Object obj, int hashCode) {
-        ObjectAccessParams<?, ?> oap = ObjectAccessParams.constructObjectAP(app, Direction.INOUT, obj, hashCode);
-
-        boolean validValue = ap.isCurrentRegisterValueValid(oap.getData());
-        if (validValue) {
-            // Main code is still performing the same modification.
-            // No need to register it as a new version.
-            return null;
-        }
-
-        // Otherwise we request it from a task
-        return ap.mainAccessToObject(oap);
-    }
-
-    private String mainAccessToExternalPSCO(Application app, String fileName, DataLocation loc) {
-        String id = ((PersistentLocation) loc).getId();
-        int hashCode = externalObjectHashcode(id);
-        ExternalPSCObjectAccessParams eoap;
-        eoap = ExternalPSCObjectAccessParams.constructEPOAP(app, Direction.INOUT, id, hashCode);
-
-        boolean validValue = ap.isCurrentRegisterValueValid(eoap.getData());
-        if (validValue) {
-            // Main code is still performing the same modification.
-            // No need to register it as a new version.
-            return fileName;
-        }
-
-        // Otherwise we request it from a task
-        return ap.mainAccessToExternalPSCO(eoap);
-    }
-
-    private String mainAccessToBindingObject(Application app, String fileName, BindingObjectLocation loc) {
-        String id = loc.getId();
-        int hashCode = externalObjectHashcode(id);
-        BindingObject bo = loc.getBindingObject();
-        BindingObjectAccessParams boap = BindingObjectAccessParams.constructBOAP(app, Direction.IN, bo, hashCode);
-
-        boolean validValue = ap.isCurrentRegisterValueValid(boap.getData());
-        if (validValue) {
-            // Main code is still performing the same modification.
-            // No need to register it as a new version.
-            return fileName;
-        }
-
-        // Otherwise we request it from a task
-        return ap.mainAccessToBindingObject(boap);
     }
 
     private DataLocation createLocation(ProtocolType defaultSchema, String fileName) throws IOException {

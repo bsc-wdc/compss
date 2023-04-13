@@ -31,6 +31,7 @@ public enum TraceEvent {
     OPEN_DIRECTORY(57, TraceEventType.API, "Waiting for open directory"), //
     GET_FILE(8, TraceEventType.API, "Waiting for get file"), //
     GET_OBJECT(9, TraceEventType.API, "Waiting for get object"), //
+    GET_BINDING_OBJECT(10, TraceEventType.API, "Waiting for get binding object"), //
     GET_DIRECTORY(58, TraceEventType.API, "Waiting for get Directory"), //
     DELETE(12, TraceEventType.API, "Delete File"), //
     WAIT_FOR_CONCURRENT(59, TraceEventType.API, "Wait on concurrent"), //

@@ -463,7 +463,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
      * @param oap description of the object access
      * @return Synchronized object.
      */
-    public Object mainAccessToObject(ObjectAccessParams<?,?> oap) {
+    public Object mainAccessToObject(ObjectAccessParams<?, ?> oap) {
         if (DEBUG) {
             LOGGER.debug("Requesting main access to " + oap.getDataDescription());
         }
@@ -474,7 +474,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
             // No need to register it as a new version.
             return null;
         }
-        
+
         // Tell the DIP that the application wants to access an object
         DataAccessId oaId = registerDataAccess(oap, AccessMode.RW);
 
@@ -527,6 +527,13 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     public String mainAccessToBindingObject(BindingObjectAccessParams boap) {
         if (DEBUG) {
             LOGGER.debug("Requesting main access to " + boap.getDataDescription());
+        }
+
+        boolean validValue = isCurrentRegisterValueValid(boap.getData());
+        if (validValue) {
+            // Main code is still performing the same modification.
+            // No need to register it as a new version.
+            return boap.getBindingObject().toString();
         }
 
         // Defaut access is read because the binding object is removed after accessing it

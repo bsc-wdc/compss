@@ -82,7 +82,12 @@ public class BindingObjectAccessParams extends ObjectAccessParams<BindingObject,
         }
     }
 
-    @Override
+    /**
+     * Fetches the last version of the object.
+     *
+     * @param daId Data Access Id.
+     * @return Location of the transferred open file.
+     */
     public BindingObject fetchObject(DataAccessId daId) {
         LOGGER.debug("[AccessProcessor] Obtaining " + this.getDataDescription());
 

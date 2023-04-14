@@ -39,6 +39,7 @@ import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.ResultFile;
 import es.bsc.compss.types.data.access.DirectoryMainAccess;
 import es.bsc.compss.types.data.access.FileMainAccess;
+import es.bsc.compss.types.data.access.ObjectMainAccess;
 import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
@@ -308,7 +309,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     }
 
     /**
-     * Notifies a main access to a given file access {@code fap}.
+     * Notifies a main access {@code fma} to a given file.
      *
      * @param fma File Access.
      * @return Final location.
@@ -364,7 +365,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     }
 
     /**
-     * Notifies a main access to a given directory access {@code sourceLocation}.
+     * Notifies a main access {@code sourceLocation} to a given directory.
      *
      * @param dma Directory Access Description.
      * @return Final location.
@@ -460,12 +461,13 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     }
 
     /**
-     * Notifies a main access to an object {@code obj}.
+     * Notifies a main access {@code oma} to a given object.
      *
-     * @param oap description of the object access
-     * @return Synchronized object.
+     * @param oma Object Access.
+     * @return Final value.
      */
-    public Object mainAccessToObject(ObjectAccessParams<?, ?> oap) {
+    public Object mainAccessToObject(ObjectMainAccess<?, ?, ?> oma) {
+        ObjectAccessParams<?, ?> oap = oma.getParameters();
         if (DEBUG) {
             LOGGER.debug("Requesting main access to " + oap.getDataDescription());
         }
@@ -487,7 +489,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         if (DEBUG) {
             LOGGER.debug("Request object transfer " + oaId.getDataId() + " with renaming " + wRename);
         }
-        Object oUpdated = oap.fetchObject(oaId);
+        Object oUpdated = oma.fetchObject(oaId);
 
         if (DEBUG) {
             LOGGER.debug("Object retrieved. Set new version to: " + wRename);

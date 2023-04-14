@@ -31,9 +31,8 @@ import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.operation.FileTransferable;
 import es.bsc.compss.types.data.operation.OneOpWithSemListener;
 import es.bsc.compss.types.uri.SimpleURI;
-import es.bsc.compss.util.ErrorManager;
-import java.io.IOException;
 import java.util.concurrent.Semaphore;
+
 
 /**
  * Handling of an access from the main code to a file.
@@ -49,7 +48,7 @@ public class FileMainAccess<D extends FileData, P extends FileAccessParams<D>> e
      * @param loc File location.
      * @return new FileMainAccess instance
      */
-    public static FileMainAccess<FileData, FileAccessParams<FileData>> construct(Application app, Direction dir,
+    public static FileMainAccess<FileData, FileAccessParams<FileData>> constructFMA(Application app, Direction dir,
         DataLocation loc) {
         FileAccessParams<FileData> f = FileAccessParams.constructFAP(app, dir, loc);
         return new FileMainAccess(f);
@@ -118,21 +117,12 @@ public class FileMainAccess<D extends FileData, P extends FileAccessParams<D>> e
 
     private DataLocation createPSCOLocation(String pscoId) {
         SimpleURI targetURI = new SimpleURI(ProtocolType.PERSISTENT_URI.getSchema() + pscoId);
-        return createLocation(targetURI);
+        return createLocalLocation(targetURI);
     }
 
     private DataLocation createFileLocation(String localPath) {
         SimpleURI targetURI = new SimpleURI(ProtocolType.FILE_URI.getSchema() + localPath);
-        return createLocation(targetURI);
+        return createLocalLocation(targetURI);
     }
 
-    private static DataLocation createLocation(SimpleURI targetURI) {
-        DataLocation targetLocation = null;
-        try {
-            targetLocation = DataLocation.createLocation(Comm.getAppHost(), targetURI);
-        } catch (IOException ioe) {
-            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetURI, ioe);
-        }
-        return targetLocation;
-    }
 }

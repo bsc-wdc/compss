@@ -16,9 +16,14 @@
  */
 package es.bsc.compss.types.data.access;
 
+import es.bsc.compss.comm.Comm;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.data.DataParams;
 import es.bsc.compss.types.data.accessparams.AccessParams;
+import es.bsc.compss.types.data.location.DataLocation;
+import es.bsc.compss.types.uri.SimpleURI;
+import es.bsc.compss.util.ErrorManager;
+import java.io.IOException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -41,10 +46,20 @@ public abstract class MainAccess<D extends DataParams, P extends AccessParams<D>
 
     /**
      * Returns the access parameters associated to the Access.
-     * 
+     *
      * @return parameters of the access
      */
     public final P getParameters() {
         return parameters;
+    }
+
+    protected static DataLocation createLocalLocation(SimpleURI targetURI) {
+        DataLocation targetLocation = null;
+        try {
+            targetLocation = DataLocation.createLocation(Comm.getAppHost(), targetURI);
+        } catch (IOException ioe) {
+            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetURI, ioe);
+        }
+        return targetLocation;
     }
 }

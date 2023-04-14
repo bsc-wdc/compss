@@ -37,6 +37,7 @@ import es.bsc.compss.types.data.DataParams;
 import es.bsc.compss.types.data.DataParams.ObjectData;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.ResultFile;
+import es.bsc.compss.types.data.access.DirectoryMainAccess;
 import es.bsc.compss.types.data.access.FileMainAccess;
 import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessparams.AccessParams;
@@ -309,11 +310,11 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     /**
      * Notifies a main access to a given file access {@code fap}.
      *
-     * @param fa File Access Parameters.
+     * @param fma File Access.
      * @return Final location.
      */
-    public DataLocation mainAccessToFile(FileMainAccess<?, ?> fa) {
-        FileAccessParams fap = fa.getParameters();
+    public DataLocation mainAccessToFile(FileMainAccess<?, ?> fma) {
+        FileAccessParams fap = fma.getParameters();
         boolean alreadyAccessed = alreadyAccessed(fap.getData());
         DataLocation sourceLocation = fap.getLocation();
         if (!alreadyAccessed) {
@@ -336,7 +337,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
             }
         } else {
             if (faId.isRead()) {
-                tgtLocation = fa.fetchForOpen(faId);
+                tgtLocation = fma.fetchForOpen(faId);
             }
 
             if (faId.isWrite()) {
@@ -365,10 +366,11 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     /**
      * Notifies a main access to a given directory access {@code sourceLocation}.
      *
-     * @param dap File Access Parameters.
+     * @param dma Directory Access Description.
      * @return Final location.
      */
-    public DataLocation mainAccessToDirectory(DirectoryAccessParams dap) {
+    public DataLocation mainAccessToDirectory(DirectoryMainAccess dma) {
+        DirectoryAccessParams dap = dma.getParameters();
         boolean alreadyAccessed = alreadyAccessed(dap.getData());
         DataLocation sourceLocation = dap.getLocation();
         if (!alreadyAccessed) {
@@ -390,7 +392,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
             }
         } else {
             if (daId.isRead()) {
-                tgtLocation = dap.fetchForOpen(daId);
+                tgtLocation = dma.fetchForOpen(daId);
             }
             if (daId.isWrite()) {
                 LOGGER.debug("Data " + daId.getDataId() + " mode contains W, register new writer");

@@ -19,7 +19,6 @@ package es.bsc.compss.types.data;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.types.Application;
-import es.bsc.compss.types.data.accessparams.DataParams;
 
 import java.util.LinkedList;
 import java.util.TreeMap;

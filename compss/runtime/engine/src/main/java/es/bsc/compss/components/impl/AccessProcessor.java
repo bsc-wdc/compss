@@ -23,7 +23,6 @@ import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.checkpoint.CheckpointManager;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.monitor.impl.GraphGenerator;
-import es.bsc.compss.exceptions.CannotLoadException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.Application;
@@ -34,15 +33,19 @@ import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
+import es.bsc.compss.types.data.DataParams;
+import es.bsc.compss.types.data.DataParams.ObjectData;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.ResultFile;
-import es.bsc.compss.types.data.accessid.RAccessId;
+import es.bsc.compss.types.data.access.BindingObjectMainAccess;
+import es.bsc.compss.types.data.access.DirectoryMainAccess;
+import es.bsc.compss.types.data.access.ExternalPSCObjectMainAccess;
+import es.bsc.compss.types.data.access.FileMainAccess;
+import es.bsc.compss.types.data.access.ObjectMainAccess;
 import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
 import es.bsc.compss.types.data.accessparams.BindingObjectAccessParams;
-import es.bsc.compss.types.data.accessparams.DataParams;
-import es.bsc.compss.types.data.accessparams.DataParams.ObjectData;
 import es.bsc.compss.types.data.accessparams.DirectoryAccessParams;
 import es.bsc.compss.types.data.accessparams.ExternalPSCObjectAccessParams;
 import es.bsc.compss.types.data.accessparams.FileAccessParams;
@@ -308,12 +311,13 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     }
 
     /**
-     * Notifies a main access to a given file access {@code fap}.
+     * Notifies a main access {@code fma} to a given file.
      *
-     * @param fap File Access Parameters.
+     * @param fma File Access.
      * @return Final location.
      */
-    public DataLocation mainAccessToFile(FileAccessParams fap) {
+    public DataLocation mainAccessToFile(FileMainAccess<?, ?> fma) {
+        FileAccessParams fap = fma.getParameters();
         boolean alreadyAccessed = alreadyAccessed(fap.getData());
         DataLocation sourceLocation = fap.getLocation();
         if (!alreadyAccessed) {
@@ -336,7 +340,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
             }
         } else {
             if (faId.isRead()) {
-                tgtLocation = fap.fetchForOpen(faId);
+                tgtLocation = fma.fetchForOpen(faId);
             }
 
             if (faId.isWrite()) {
@@ -363,12 +367,13 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     }
 
     /**
-     * Notifies a main access to a given directory access {@code sourceLocation}.
+     * Notifies a main access {@code sourceLocation} to a given directory.
      *
-     * @param dap File Access Parameters.
+     * @param dma Directory Access Description.
      * @return Final location.
      */
-    public DataLocation mainAccessToDirectory(DirectoryAccessParams dap) {
+    public DataLocation mainAccessToDirectory(DirectoryMainAccess dma) {
+        DirectoryAccessParams dap = dma.getParameters();
         boolean alreadyAccessed = alreadyAccessed(dap.getData());
         DataLocation sourceLocation = dap.getLocation();
         if (!alreadyAccessed) {
@@ -390,7 +395,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
             }
         } else {
             if (daId.isRead()) {
-                tgtLocation = dap.fetchForOpen(daId);
+                tgtLocation = dma.fetchForOpen(daId);
             }
             if (daId.isWrite()) {
                 LOGGER.debug("Data " + daId.getDataId() + " mode contains W, register new writer");
@@ -458,12 +463,13 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     }
 
     /**
-     * Notifies a main access to an object {@code obj}.
+     * Notifies a main access {@code oma} to a given object.
      *
-     * @param oap description of the object access
-     * @return Synchronized object.
+     * @param oma Object Access.
+     * @return Final value.
      */
-    public Object mainAccessToObject(ObjectAccessParams<?, ?> oap) {
+    public Object mainAccessToObject(ObjectMainAccess<?, ?, ?> oma) {
+        ObjectAccessParams<?, ?> oap = oma.getParameters();
         if (DEBUG) {
             LOGGER.debug("Requesting main access to " + oap.getDataDescription());
         }
@@ -485,7 +491,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         if (DEBUG) {
             LOGGER.debug("Request object transfer " + oaId.getDataId() + " with renaming " + wRename);
         }
-        Object oUpdated = oap.fetchObject(oaId);
+        Object oUpdated = oma.fetchObject(oaId);
 
         if (DEBUG) {
             LOGGER.debug("Object retrieved. Set new version to: " + wRename);
@@ -500,10 +506,11 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     /**
      * Notifies a main access to an external PSCO {@code id}.
      *
-     * @param eoap description of the external PSCO access
+     * @param epoma description of the external PSCO access
      * @return Location containing final the PSCO Id.
      */
-    public String mainAccessToExternalPSCO(ExternalPSCObjectAccessParams eoap) {
+    public String mainAccessToExternalPSCO(ExternalPSCObjectMainAccess epoma) {
+        ExternalPSCObjectAccessParams eoap = epoma.getParameters();
         if (DEBUG) {
             LOGGER.debug("Requesting main access to " + eoap.getDataDescription());
         }
@@ -518,9 +525,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         // Tell the DIP that the application wants to access an object
         DataAccessId oaId = registerDataAccess(eoap, AccessMode.RW);
 
-        // TODO: Check if the object was already piggybacked in the task notification
-        String lastRenaming = ((RWAccessId) oaId).getReadDataInstance().getRenaming();
-        String newId = Comm.getData(lastRenaming).getPscoId();
+        String newId = epoma.fetchObject(oaId);
 
         return ProtocolType.PERSISTENT_URI.getSchema() + newId;
     }
@@ -528,10 +533,11 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     /**
      * Notifies a main access to an external binding object.
      *
-     * @param boap description of the binding object access
+     * @param boma description of the binding object access
      * @return Location containing the binding's object final path.
      */
-    public String mainAccessToBindingObject(BindingObjectAccessParams boap) {
+    public String mainAccessToBindingObject(BindingObjectMainAccess boma) {
+        BindingObjectAccessParams boap = boma.getParameters();
         if (DEBUG) {
             LOGGER.debug("Requesting main access to " + boap.getDataDescription());
         }
@@ -547,7 +553,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         // Tell the DIP that the application wants to access an object
         DataAccessId oaId = registerDataAccess(boap, AccessMode.RW);
 
-        BindingObject bo = boap.fetchObject(oaId);
+        BindingObject bo = boma.fetchObject(oaId);
         String bindingObjectID = bo.getName();
 
         finishDataAccess(boap);

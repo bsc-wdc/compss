@@ -48,16 +48,17 @@ import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
+import es.bsc.compss.types.data.DataParams;
+import es.bsc.compss.types.data.DataParams.CollectionData;
+import es.bsc.compss.types.data.DataParams.FileData;
+import es.bsc.compss.types.data.DataParams.ObjectData;
 import es.bsc.compss.types.data.LogicalData;
-import es.bsc.compss.types.data.accessparams.BindingObjectAccessParams;
-import es.bsc.compss.types.data.accessparams.DataParams;
-import es.bsc.compss.types.data.accessparams.DataParams.CollectionData;
-import es.bsc.compss.types.data.accessparams.DataParams.FileData;
-import es.bsc.compss.types.data.accessparams.DataParams.ObjectData;
-import es.bsc.compss.types.data.accessparams.DirectoryAccessParams;
-import es.bsc.compss.types.data.accessparams.ExternalPSCObjectAccessParams;
+import es.bsc.compss.types.data.access.BindingObjectMainAccess;
+import es.bsc.compss.types.data.access.DirectoryMainAccess;
+import es.bsc.compss.types.data.access.ExternalPSCObjectMainAccess;
+import es.bsc.compss.types.data.access.FileMainAccess;
+import es.bsc.compss.types.data.access.ObjectMainAccess;
 import es.bsc.compss.types.data.accessparams.FileAccessParams;
-import es.bsc.compss.types.data.accessparams.ObjectAccessParams;
 import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.PersistentLocation;
@@ -1089,7 +1090,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         String boId = boLoc.getId();
         int hashCode = externalObjectHashcode(boId);
         Application app = Application.registerApplication(appId);
-        BindingObjectAccessParams boap = BindingObjectAccessParams.constructBOAP(app, Direction.IN, bo, hashCode);
+        BindingObjectMainAccess boap = BindingObjectMainAccess.constructBOMA(app, Direction.IN, bo, hashCode);
 
         // Otherwise we request it from a task
         String finalPath = ap.mainAccessToBindingObject(boap);
@@ -1323,7 +1324,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         }
 
         Application app = Application.registerApplication(appId);
-        ObjectAccessParams<?, ?> oap = ObjectAccessParams.constructObjectAP(app, Direction.INOUT, obj, hashCode);
+        ObjectMainAccess<?, ?, ?> oap = ObjectMainAccess.constructOMA(app, Direction.INOUT, obj, hashCode);
         Object oUpdated = ap.mainAccessToObject(oap);
 
         if (LOGGER.isDebugEnabled()) {
@@ -1472,8 +1473,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             case PERSISTENT:
                 String id = ((PersistentLocation) loc).getId();
                 int hashCode = externalObjectHashcode(id);
-                ExternalPSCObjectAccessParams eoap;
-                eoap = ExternalPSCObjectAccessParams.constructEPOAP(app, Direction.INOUT, id, hashCode);
+                ExternalPSCObjectMainAccess eoap;
+                eoap = ExternalPSCObjectMainAccess.constructEPOMA(app, Direction.INOUT, id, hashCode);
 
                 // Otherwise we request it from a task
                 finalPath = ap.mainAccessToExternalPSCO(eoap);
@@ -1916,11 +1917,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         // Tell the AP that the application wants to access a file.
         DataLocation targetLocation;
         if (isDirectory) {
-            DirectoryAccessParams fap = DirectoryAccessParams.constructDAP(app, direction, loc);
-            targetLocation = ap.mainAccessToDirectory(fap);
+            DirectoryMainAccess dma = DirectoryMainAccess.constructDMA(app, direction, loc);
+            targetLocation = ap.mainAccessToDirectory(dma);
         } else {
-            FileAccessParams fap = FileAccessParams.constructFAP(app, direction, loc);
-            targetLocation = ap.mainAccessToFile(fap);
+            FileMainAccess fma = FileMainAccess.constructFMA(app, direction, loc);
+            targetLocation = ap.mainAccessToFile(fma);
         }
 
         // Checks on target

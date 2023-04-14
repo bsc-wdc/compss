@@ -22,8 +22,8 @@ import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
+import es.bsc.compss.types.data.DataParams.BindingObjectData;
 import es.bsc.compss.types.data.accessparams.BindingObjectAccessParams;
-import es.bsc.compss.types.data.accessparams.DataParams.BindingObjectData;
 
 
 public class BindingObjectParameter

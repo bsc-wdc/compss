@@ -53,6 +53,7 @@ import es.bsc.compss.types.data.DataParams.CollectionData;
 import es.bsc.compss.types.data.DataParams.FileData;
 import es.bsc.compss.types.data.DataParams.ObjectData;
 import es.bsc.compss.types.data.LogicalData;
+import es.bsc.compss.types.data.access.FileMainAccess;
 import es.bsc.compss.types.data.accessparams.BindingObjectAccessParams;
 import es.bsc.compss.types.data.accessparams.DirectoryAccessParams;
 import es.bsc.compss.types.data.accessparams.ExternalPSCObjectAccessParams;
@@ -1919,7 +1920,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             DirectoryAccessParams fap = DirectoryAccessParams.constructDAP(app, direction, loc);
             targetLocation = ap.mainAccessToDirectory(fap);
         } else {
-            FileAccessParams fap = FileAccessParams.constructFAP(app, direction, loc);
+            FileMainAccess fap = FileMainAccess.construct(app, direction, loc);
             targetLocation = ap.mainAccessToFile(fap);
         }
 

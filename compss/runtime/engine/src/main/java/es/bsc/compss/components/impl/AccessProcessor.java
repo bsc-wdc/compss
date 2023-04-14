@@ -37,6 +37,7 @@ import es.bsc.compss.types.data.DataParams;
 import es.bsc.compss.types.data.DataParams.ObjectData;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.ResultFile;
+import es.bsc.compss.types.data.access.FileMainAccess;
 import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
@@ -308,10 +309,11 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     /**
      * Notifies a main access to a given file access {@code fap}.
      *
-     * @param fap File Access Parameters.
+     * @param fa File Access Parameters.
      * @return Final location.
      */
-    public DataLocation mainAccessToFile(FileAccessParams fap) {
+    public DataLocation mainAccessToFile(FileMainAccess<?, ?> fa) {
+        FileAccessParams fap = fa.getParameters();
         boolean alreadyAccessed = alreadyAccessed(fap.getData());
         DataLocation sourceLocation = fap.getLocation();
         if (!alreadyAccessed) {
@@ -334,7 +336,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
             }
         } else {
             if (faId.isRead()) {
-                tgtLocation = fap.fetchForOpen(faId);
+                tgtLocation = fa.fetchForOpen(faId);
             }
 
             if (faId.isWrite()) {

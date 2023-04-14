@@ -19,24 +19,11 @@ package es.bsc.compss.types.data.accessparams;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.data.DataAccessId;
-import es.bsc.compss.types.data.DataAccessId.ReadingDataAccessId;
-import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
 import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.DataParams.FileData;
 import es.bsc.compss.types.data.DataVersion;
-import es.bsc.compss.types.data.LogicalData;
-import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.data.location.DataLocation;
-import es.bsc.compss.types.data.location.ProtocolType;
-import es.bsc.compss.types.data.operation.DataOperation;
-import es.bsc.compss.types.data.operation.FileTransferable;
-import es.bsc.compss.types.data.operation.OneOpWithSemListener;
-import es.bsc.compss.types.uri.SimpleURI;
-import es.bsc.compss.util.ErrorManager;
-import java.io.IOException;
-import java.util.concurrent.Semaphore;
 
 
 public class FileAccessParams<D extends FileData> extends AccessParams<D> {
@@ -91,114 +78,9 @@ public class FileAccessParams<D extends FileData> extends AccessParams<D> {
         // Do nothing. No need to register the access anywhere.
     }
 
-    /**
-     * Fetches the last version of the file.
-     *
-     * @param daId Data Access Id.
-     * @return Location of the transferred open file.
-     */
-    public DataLocation fetchForOpen(DataAccessId daId) {
-        // Get target information
-        DataInstanceId diId;
-        if (daId.isWrite()) {
-            WritingDataAccessId waId = (WritingDataAccessId) daId;
-            diId = waId.getWrittenDataInstance();
-        } else {
-            // Read only mode
-            RAccessId raId = (RAccessId) daId;
-            diId = raId.getReadDataInstance();
-        }
-        String targetName = diId.getRenaming();
-
-        LOGGER.debug("Openning file " + targetName);
-
-        String pscoId = Comm.getData(targetName).getPscoId();
-        if (pscoId == null && daId.isRead()) {
-            LOGGER.debug("Asking for transfer");
-            ReadingDataAccessId rdaId = (ReadingDataAccessId) daId;
-            LogicalData srcData = rdaId.getReadDataInstance().getData();
-            Semaphore sem = new Semaphore(0);
-            CopyListener listener;
-            if (rdaId.isWrite()) {
-                FileTransferable ft = new FileTransferable(daId.isPreserveSourceData());
-                listener = new CopyListener(ft, sem);
-                Comm.getAppHost().getData(srcData, targetName, (LogicalData) null, ft, listener);
-            } else {
-                FileTransferable ft = new FileTransferable();
-                listener = new CopyListener(ft, sem);
-                Comm.getAppHost().getData(srcData, ft, listener);
-            }
-            sem.acquireUninterruptibly();
-            return listener.getResult();
-        } else {
-            LOGGER.debug("Auto-release");
-            // Create location
-            DataLocation targetLocation;
-            if (pscoId != null) {
-                targetLocation = createPSCOLocation(pscoId);
-            } else {
-                String targetPath = Comm.getAppHost().getWorkingDirectory() + targetName;
-                targetLocation = createFileLocation(targetPath);
-            }
-            Comm.registerLocation(targetName, targetLocation);
-            // Register target location
-            LOGGER.debug("Setting target location to " + targetLocation);
-            return targetLocation;
-        }
-    }
-
-    private DataLocation createPSCOLocation(String pscoId) {
-        SimpleURI targetURI = new SimpleURI(ProtocolType.PERSISTENT_URI.getSchema() + pscoId);
-        return createLocation(targetURI);
-    }
-
-    private DataLocation createFileLocation(String localPath) {
-        SimpleURI targetURI = new SimpleURI(ProtocolType.FILE_URI.getSchema() + localPath);
-        return createLocation(targetURI);
-    }
-
-    private static DataLocation createLocation(SimpleURI targetURI) {
-        DataLocation targetLocation = null;
-        try {
-            targetLocation = DataLocation.createLocation(Comm.getAppHost(), targetURI);
-        } catch (IOException ioe) {
-            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetURI, ioe);
-        }
-        return targetLocation;
-    }
-
     @Override
     public String toString() {
         return "[" + this.getApp() + ", " + this.mode + " ," + this.getLocation() + "]";
     }
 
-
-    private class CopyListener extends OneOpWithSemListener {
-
-        private final FileTransferable reason;
-        private DataLocation targetLocation;
-
-
-        public CopyListener(FileTransferable reason, Semaphore sem) {
-            super(sem);
-            this.reason = reason;
-        }
-
-        @Override
-        public void notifyEnd(DataOperation fOp) {
-            String targetPath = this.reason.getDataTarget();
-            try {
-                SimpleURI targetURI = new SimpleURI(ProtocolType.FILE_URI.getSchema() + targetPath);
-                targetLocation = DataLocation.createLocation(Comm.getAppHost(), targetURI);
-            } catch (IOException ioe) {
-                ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, ioe);
-            }
-
-            super.notifyEnd(fOp);
-        }
-
-        private DataLocation getResult() {
-            return this.targetLocation;
-        }
-    }
 }

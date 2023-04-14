@@ -55,9 +55,9 @@ import es.bsc.compss.types.data.DataParams.ObjectData;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.access.BindingObjectMainAccess;
 import es.bsc.compss.types.data.access.DirectoryMainAccess;
+import es.bsc.compss.types.data.access.ExternalPSCObjectMainAccess;
 import es.bsc.compss.types.data.access.FileMainAccess;
 import es.bsc.compss.types.data.access.ObjectMainAccess;
-import es.bsc.compss.types.data.accessparams.ExternalPSCObjectAccessParams;
 import es.bsc.compss.types.data.accessparams.FileAccessParams;
 import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
@@ -1473,8 +1473,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             case PERSISTENT:
                 String id = ((PersistentLocation) loc).getId();
                 int hashCode = externalObjectHashcode(id);
-                ExternalPSCObjectAccessParams eoap;
-                eoap = ExternalPSCObjectAccessParams.constructEPOAP(app, Direction.INOUT, id, hashCode);
+                ExternalPSCObjectMainAccess eoap;
+                eoap = ExternalPSCObjectMainAccess.constructEPOMA(app, Direction.INOUT, id, hashCode);
 
                 // Otherwise we request it from a task
                 finalPath = ap.mainAccessToExternalPSCO(eoap);

@@ -39,6 +39,7 @@ import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.ResultFile;
 import es.bsc.compss.types.data.access.BindingObjectMainAccess;
 import es.bsc.compss.types.data.access.DirectoryMainAccess;
+import es.bsc.compss.types.data.access.ExternalPSCObjectMainAccess;
 import es.bsc.compss.types.data.access.FileMainAccess;
 import es.bsc.compss.types.data.access.ObjectMainAccess;
 import es.bsc.compss.types.data.accessid.RWAccessId;
@@ -505,10 +506,11 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     /**
      * Notifies a main access to an external PSCO {@code id}.
      *
-     * @param eoap description of the external PSCO access
+     * @param epoma description of the external PSCO access
      * @return Location containing final the PSCO Id.
      */
-    public String mainAccessToExternalPSCO(ExternalPSCObjectAccessParams eoap) {
+    public String mainAccessToExternalPSCO(ExternalPSCObjectMainAccess epoma) {
+        ExternalPSCObjectAccessParams eoap = epoma.getParameters();
         if (DEBUG) {
             LOGGER.debug("Requesting main access to " + eoap.getDataDescription());
         }
@@ -523,9 +525,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         // Tell the DIP that the application wants to access an object
         DataAccessId oaId = registerDataAccess(eoap, AccessMode.RW);
 
-        // TODO: Check if the object was already piggybacked in the task notification
-        String lastRenaming = ((RWAccessId) oaId).getReadDataInstance().getRenaming();
-        String newId = Comm.getData(lastRenaming).getPscoId();
+        String newId = epoma.fetchObject(oaId);
 
         return ProtocolType.PERSISTENT_URI.getSchema() + newId;
     }

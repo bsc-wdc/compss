@@ -37,6 +37,7 @@ import es.bsc.compss.types.data.DataParams;
 import es.bsc.compss.types.data.DataParams.ObjectData;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.ResultFile;
+import es.bsc.compss.types.data.access.BindingObjectMainAccess;
 import es.bsc.compss.types.data.access.DirectoryMainAccess;
 import es.bsc.compss.types.data.access.FileMainAccess;
 import es.bsc.compss.types.data.access.ObjectMainAccess;
@@ -532,10 +533,11 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     /**
      * Notifies a main access to an external binding object.
      *
-     * @param boap description of the binding object access
+     * @param boma description of the binding object access
      * @return Location containing the binding's object final path.
      */
-    public String mainAccessToBindingObject(BindingObjectAccessParams boap) {
+    public String mainAccessToBindingObject(BindingObjectMainAccess boma) {
+        BindingObjectAccessParams boap = boma.getParameters();
         if (DEBUG) {
             LOGGER.debug("Requesting main access to " + boap.getDataDescription());
         }
@@ -551,7 +553,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         // Tell the DIP that the application wants to access an object
         DataAccessId oaId = registerDataAccess(boap, AccessMode.RW);
 
-        BindingObject bo = boap.fetchObject(oaId);
+        BindingObject bo = boma.fetchObject(oaId);
         String bindingObjectID = bo.getName();
 
         finishDataAccess(boap);

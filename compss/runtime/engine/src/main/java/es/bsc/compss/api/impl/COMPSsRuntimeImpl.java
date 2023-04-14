@@ -53,14 +53,12 @@ import es.bsc.compss.types.data.DataParams.CollectionData;
 import es.bsc.compss.types.data.DataParams.FileData;
 import es.bsc.compss.types.data.DataParams.ObjectData;
 import es.bsc.compss.types.data.LogicalData;
+import es.bsc.compss.types.data.access.BindingObjectMainAccess;
 import es.bsc.compss.types.data.access.DirectoryMainAccess;
 import es.bsc.compss.types.data.access.FileMainAccess;
 import es.bsc.compss.types.data.access.ObjectMainAccess;
-import es.bsc.compss.types.data.accessparams.BindingObjectAccessParams;
-import es.bsc.compss.types.data.accessparams.DirectoryAccessParams;
 import es.bsc.compss.types.data.accessparams.ExternalPSCObjectAccessParams;
 import es.bsc.compss.types.data.accessparams.FileAccessParams;
-import es.bsc.compss.types.data.accessparams.ObjectAccessParams;
 import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.PersistentLocation;
@@ -1092,7 +1090,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         String boId = boLoc.getId();
         int hashCode = externalObjectHashcode(boId);
         Application app = Application.registerApplication(appId);
-        BindingObjectAccessParams boap = BindingObjectAccessParams.constructBOAP(app, Direction.IN, bo, hashCode);
+        BindingObjectMainAccess boap = BindingObjectMainAccess.constructBOMA(app, Direction.IN, bo, hashCode);
 
         // Otherwise we request it from a task
         String finalPath = ap.mainAccessToBindingObject(boap);

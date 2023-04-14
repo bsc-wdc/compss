@@ -20,19 +20,10 @@ import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.DataParams.BindingObjectData;
 import es.bsc.compss.types.data.DataVersion;
-import es.bsc.compss.types.data.LogicalData;
-import es.bsc.compss.types.data.accessid.RAccessId;
-import es.bsc.compss.types.data.location.BindingObjectLocation;
-import es.bsc.compss.types.data.location.DataLocation;
-import es.bsc.compss.types.data.operation.BindingObjectTransferable;
-import es.bsc.compss.types.data.operation.OneOpWithSemListener;
-import es.bsc.compss.util.ErrorManager;
-import java.util.concurrent.Semaphore;
 
 
 public class BindingObjectAccessParams extends ObjectAccessParams<BindingObject, BindingObjectData> {
@@ -80,52 +71,6 @@ public class BindingObjectAccessParams extends ObjectAccessParams<BindingObject,
         } else {
             dv.invalidate();
         }
-    }
-
-    /**
-     * Fetches the last version of the object.
-     *
-     * @param daId Data Access Id.
-     * @return Location of the transferred open file.
-     */
-    public BindingObject fetchObject(DataAccessId daId) {
-        LOGGER.debug("[AccessProcessor] Obtaining " + this.getDataDescription());
-
-        // Get target information
-        RAccessId raId = (RAccessId) daId;
-        DataInstanceId diId = raId.getReadDataInstance();
-        String targetName = diId.getRenaming();
-
-        if (DEBUG) {
-            LOGGER.debug("[DataInfoProvider] Requesting getting object " + targetName);
-        }
-        LogicalData srcData = diId.getData();
-        if (DEBUG) {
-            LOGGER.debug("[DataInfoProvider] Logical data for binding object is:" + srcData);
-        }
-        if (srcData == null) {
-            ErrorManager.error("Unregistered data " + targetName);
-            return null;
-        }
-        if (DEBUG) {
-            LOGGER.debug("Requesting tranfers binding object " + targetName + " to " + Comm.getAppHost().getName());
-        }
-
-        BindingObject srcBO = BindingObject.generate(srcData.getURIs().get(0).getPath());
-        BindingObject tgtBO = new BindingObject(targetName, srcBO.getType(), srcBO.getElements());
-        LogicalData tgtLd = srcData;
-        DataLocation targetLocation = new BindingObjectLocation(Comm.getAppHost(), tgtBO);
-        BindingObjectTransferable transfer = new BindingObjectTransferable();
-        Semaphore sem = new Semaphore(0);
-        Comm.getAppHost().getData(srcData, targetLocation, tgtLd, transfer, new OneOpWithSemListener(sem));
-        if (DEBUG) {
-            LOGGER.debug(" Setting tgtName " + transfer.getDataTarget() + " in " + Comm.getAppHost().getName());
-        }
-        sem.acquireUninterruptibly();
-
-        String boStr = transfer.getDataTarget();
-        BindingObject bo = BindingObject.generate(boStr);
-        return bo;
     }
 
 }

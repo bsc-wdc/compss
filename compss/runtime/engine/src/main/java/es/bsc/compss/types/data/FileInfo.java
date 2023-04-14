@@ -18,7 +18,7 @@ package es.bsc.compss.types.data;
 
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.data.accessparams.DataParams.FileData;
+import es.bsc.compss.types.data.DataParams.FileData;
 import es.bsc.compss.types.data.listener.SafeCopyListener;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.LocationType;

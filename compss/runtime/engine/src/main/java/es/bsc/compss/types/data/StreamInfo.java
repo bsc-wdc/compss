@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.types.data;
 
-import es.bsc.compss.types.data.accessparams.DataParams.StreamData;
+import es.bsc.compss.types.data.DataParams.StreamData;
 import java.util.concurrent.Semaphore;
 
 

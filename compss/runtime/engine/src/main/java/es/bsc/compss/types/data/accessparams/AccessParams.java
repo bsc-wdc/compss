@@ -21,6 +21,7 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.DataInfo;
+import es.bsc.compss.types.data.DataParams;
 
 import java.io.Serializable;
 import org.apache.logging.log4j.LogManager;

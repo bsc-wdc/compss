@@ -24,7 +24,7 @@ import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
-import es.bsc.compss.types.data.accessparams.DataParams.ExternalStreamData;
+import es.bsc.compss.types.data.DataParams.ExternalStreamData;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.util.ExternalStreamHandler;
 import es.bsc.distrostreamlib.client.DistroStreamClient;

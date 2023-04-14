@@ -23,20 +23,15 @@ import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
+import es.bsc.compss.types.data.DataParams.BindingObjectData;
 import es.bsc.compss.types.data.DataVersion;
 import es.bsc.compss.types.data.LogicalData;
-import es.bsc.compss.types.data.Transferable;
 import es.bsc.compss.types.data.accessid.RAccessId;
-import es.bsc.compss.types.data.accessparams.DataParams.BindingObjectData;
 import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
-import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.operation.BindingObjectTransferable;
-import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.data.operation.OneOpWithSemListener;
-import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
-import java.io.IOException;
 import java.util.concurrent.Semaphore;
 
 

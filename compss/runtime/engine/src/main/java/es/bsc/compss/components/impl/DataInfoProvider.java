@@ -400,7 +400,6 @@ public class DataInfoProvider {
      */
     public void setObjectVersionValue(String renaming, Object value) {
         this.valuesOnMain.add(renaming);
-        Comm.registerValue(renaming, value);
     }
 
     /**

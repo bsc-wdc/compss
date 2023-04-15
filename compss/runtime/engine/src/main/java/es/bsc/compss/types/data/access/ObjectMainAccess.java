@@ -17,6 +17,7 @@
 package es.bsc.compss.types.data.access;
 
 import es.bsc.compss.comm.Comm;
+import es.bsc.compss.exceptions.CannotLoadException;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.DataAccessId;
@@ -85,6 +86,18 @@ public class ObjectMainAccess<V extends Object, D extends ObjectData, P extends 
             return null;
         }
 
+        try {
+            V newValue = fetchObject(ld, daId, sourceName);
+            return newValue;
+        } catch (Exception e) {
+            String errMsg = ERROR_OBJECT_LOAD + ": " + ld.getName();
+            LOGGER.fatal(errMsg, e);
+            ErrorManager.fatal(errMsg, e);
+        }
+        return null;
+    }
+
+    private V fetchObject(LogicalData ld, DataAccessId daId, String sourceName) throws CannotLoadException {
         if (ld.isInMemory()) {
             if (!daId.isPreserveSourceData()) {
                 return (V) ld.removeValue();
@@ -113,14 +126,7 @@ public class ObjectMainAccess<V extends Object, D extends ObjectData, P extends 
             sem.acquireUninterruptibly();
         }
 
-        try {
-            return (V) ld.readFromStorage();
-        } catch (Exception e) {
-            String errMsg = ERROR_OBJECT_LOAD + ": " + ((ld == null) ? "null" : ld.getName());
-            LOGGER.fatal(errMsg, e);
-            ErrorManager.fatal(errMsg, e);
-        }
-        return null;
+        return (V) ld.readFromStorage();
     }
 
 }

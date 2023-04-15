@@ -494,7 +494,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         if (DEBUG) {
             LOGGER.debug("Object retrieved. Set new version to: " + wRename);
         }
-        Comm.registerValue(wRename, oUpdated);
+
         setObjectVersionValue(wRename, oUpdated);
         finishDataAccess(oap);
 

@@ -80,21 +80,28 @@ public class ObjectMainAccess<V extends Object, D extends ObjectData, P extends 
         if (DEBUG) {
             LOGGER.debug("Requesting getting object " + sourceName);
         }
+
+        V newValue = null;
+        DataInstanceId wId = ((RWAccessId) daId).getWrittenDataInstance();
+        String wRename = wId.getRenaming();
+
         LogicalData ld = diId.getData();
         if (ld == null) {
             ErrorManager.error("Unregistered data " + sourceName);
-            return null;
+        } else {
+            try {
+                newValue = fetchObject(ld, daId, sourceName);
+                if (DEBUG) {
+                    LOGGER.debug("Object retrieved. Set new version to: " + wRename);
+                }
+            } catch (Exception e) {
+                String errMsg = ERROR_OBJECT_LOAD + ": " + ld.getName();
+                LOGGER.fatal(errMsg, e);
+                ErrorManager.fatal(errMsg, e);
+            }
         }
-
-        try {
-            V newValue = fetchObject(ld, daId, sourceName);
-            return newValue;
-        } catch (Exception e) {
-            String errMsg = ERROR_OBJECT_LOAD + ": " + ld.getName();
-            LOGGER.fatal(errMsg, e);
-            ErrorManager.fatal(errMsg, e);
-        }
-        return null;
+        Comm.registerValue(wRename, newValue);
+        return newValue;
     }
 
     private V fetchObject(LogicalData ld, DataAccessId daId, String sourceName) throws CannotLoadException {

@@ -70,7 +70,9 @@ public class ObjectMainAccess<V extends Object, D extends ObjectData, P extends 
      * @return Location of the transferred open file.
      */
     public V fetchObject(DataAccessId daId) {
-
+        if (DEBUG) {
+            LOGGER.debug("Request object transfer " + daId.getDataId());
+        }
         RWAccessId rwaId = (RWAccessId) daId;
         DataInstanceId diId = rwaId.getReadDataInstance();
         String sourceName = diId.getRenaming();

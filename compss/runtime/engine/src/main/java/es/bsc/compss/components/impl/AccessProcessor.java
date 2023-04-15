@@ -486,15 +486,11 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         // Tell the DIP that the application wants to access an object
         DataAccessId oaId = registerDataAccess(oap, AccessMode.RW);
 
-        DataInstanceId wId = ((RWAccessId) oaId).getWrittenDataInstance();
-        String wRename = wId.getRenaming();
-
         // Ask for the object
-        if (DEBUG) {
-            LOGGER.debug("Request object transfer " + oaId.getDataId() + " with renaming " + wRename);
-        }
         Object oUpdated = oma.fetchObject(oaId);
 
+        DataInstanceId wId = ((RWAccessId) oaId).getWrittenDataInstance();
+        String wRename = wId.getRenaming();
         if (DEBUG) {
             LOGGER.debug("Object retrieved. Set new version to: " + wRename);
         }

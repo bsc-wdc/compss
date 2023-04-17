@@ -1096,7 +1096,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         // Otherwise we request it from a task
         String finalPath;
         try {
-            finalPath = ap.mainAccessToBindingObject(boap);
+            BindingObject newBO = ap.mainAccessToBindingObject(boap);
+            String bindingObjectID = newBO.getName();
+            finalPath = bindingObjectID;
         } catch (ValueUnawareRuntimeException e) {
             finalPath = bo.toString();
         }
@@ -1488,7 +1490,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
                 // Otherwise we request it from a task
                 try {
-                    finalPath = ap.mainAccessToExternalPSCO(eoap);
+                    String newPscoId = ap.mainAccessToExternalPSCO(eoap);
+                    finalPath = ProtocolType.PERSISTENT_URI.getSchema() + newPscoId;
                 } catch (ValueUnawareRuntimeException e) {
                     finalPath = id;
                 }

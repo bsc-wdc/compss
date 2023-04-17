@@ -523,7 +523,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
 
         String newId = epoma.fetchObject(oaId);
 
-        return ProtocolType.PERSISTENT_URI.getSchema() + newId;
+        return newId;
     }
 
     /**
@@ -532,7 +532,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
      * @param boma description of the binding object access
      * @return Location containing the binding's object final path.
      */
-    public String mainAccessToBindingObject(BindingObjectMainAccess boma) throws ValueUnawareRuntimeException {
+    public BindingObject mainAccessToBindingObject(BindingObjectMainAccess boma) throws ValueUnawareRuntimeException {
         BindingObjectAccessParams boap = boma.getParameters();
         if (DEBUG) {
             LOGGER.debug("Requesting main access to " + boap.getDataDescription());
@@ -550,10 +550,9 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         DataAccessId oaId = registerDataAccess(boap, AccessMode.RW);
 
         BindingObject bo = boma.fetchObject(oaId);
-        String bindingObjectID = bo.getName();
 
         finishDataAccess(boap);
-        return bindingObjectID;
+        return bo;
     }
 
     /**

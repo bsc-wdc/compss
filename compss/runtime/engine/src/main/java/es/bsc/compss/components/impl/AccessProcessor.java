@@ -82,6 +82,7 @@ import es.bsc.compss.types.request.ap.TasksStateRequest;
 import es.bsc.compss.types.request.ap.UnblockResultFilesRequest;
 import es.bsc.compss.types.request.ap.WaitForDataReadyToDeleteRequest;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
+import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
 import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.types.tracing.TraceEventType;
 import es.bsc.compss.types.uri.SimpleURI;
@@ -467,8 +468,9 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
      *
      * @param oma Object Access.
      * @return Final value.
+     * @throws ValueUnawareRuntimeException the runtime is not aware of the last value of the accessed data
      */
-    public Object mainAccessToObject(ObjectMainAccess<?, ?, ?> oma) {
+    public Object mainAccessToObject(ObjectMainAccess<?, ?, ?> oma) throws ValueUnawareRuntimeException {
         ObjectAccessParams<?, ?> oap = oma.getParameters();
         if (DEBUG) {
             LOGGER.debug("Requesting main access to " + oap.getDataDescription());
@@ -478,7 +480,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         if (validValue) {
             // Main code is still performing the same modification.
             // No need to register it as a new version.
-            return null;
+            throw new ValueUnawareRuntimeException();
         }
 
         // Tell the DIP that the application wants to access an object
@@ -509,7 +511,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
      * @param epoma description of the external PSCO access
      * @return Location containing final the PSCO Id.
      */
-    public String mainAccessToExternalPSCO(ExternalPSCObjectMainAccess epoma) {
+    public String mainAccessToExternalPSCO(ExternalPSCObjectMainAccess epoma) throws ValueUnawareRuntimeException {
         ExternalPSCObjectAccessParams eoap = epoma.getParameters();
         if (DEBUG) {
             LOGGER.debug("Requesting main access to " + eoap.getDataDescription());
@@ -519,7 +521,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         if (validValue) {
             // Main code is still performing the same modification.
             // No need to register it as a new version.
-            return eoap.getPSCOId();
+            throw new ValueUnawareRuntimeException();
         }
 
         // Tell the DIP that the application wants to access an object
@@ -536,7 +538,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
      * @param boma description of the binding object access
      * @return Location containing the binding's object final path.
      */
-    public String mainAccessToBindingObject(BindingObjectMainAccess boma) {
+    public String mainAccessToBindingObject(BindingObjectMainAccess boma) throws ValueUnawareRuntimeException {
         BindingObjectAccessParams boap = boma.getParameters();
         if (DEBUG) {
             LOGGER.debug("Requesting main access to " + boap.getDataDescription());
@@ -546,7 +548,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         if (validValue) {
             // Main code is still performing the same modification.
             // No need to register it as a new version.
-            return boap.getBindingObject().toString();
+            throw new ValueUnawareRuntimeException();
         }
 
         // Defaut access is read because the binding object is removed after accessing it

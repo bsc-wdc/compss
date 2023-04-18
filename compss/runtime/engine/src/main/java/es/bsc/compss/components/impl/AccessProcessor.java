@@ -489,13 +489,13 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         // Ask for the object
         Object oUpdated;
         oUpdated = oma.fetchObject(oaId);
-
-        DataInstanceId wId = ((RWAccessId) oaId).getWrittenDataInstance();
-        if (oap.resultRemainOnMain()) {
-            setObjectIsHere(wId);
+        if (oma.isAccessFinishedOnRegistration()) {
+            DataInstanceId wId = ((RWAccessId) oaId).getWrittenDataInstance();
+            if (oap.resultRemainOnMain()) {
+                setObjectIsHere(wId);
+            }
+            finishDataAccess(oap);
         }
-        finishDataAccess(oap);
-
         return oUpdated;
     }
 

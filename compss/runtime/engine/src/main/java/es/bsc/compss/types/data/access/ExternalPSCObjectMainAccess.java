@@ -62,4 +62,9 @@ public class ExternalPSCObjectMainAccess
         String lastRenaming = ((RWAccessId) daId).getReadDataInstance().getRenaming();
         return Comm.getData(lastRenaming).getPscoId();
     }
+
+    @Override
+    public boolean isAccessFinishedOnRegistration() {
+        return false;
+    }
 }

@@ -1554,7 +1554,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             case PRIVATE:
             case SHARED:
                 FileAccessParams fap = FileAccessParams.constructFAP(app, direction, loc);
-                ap.finishDataAccess(fap);
+                ap.finishDataAccess(fap, null);
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Closing file " + loc.getPath());
                 }

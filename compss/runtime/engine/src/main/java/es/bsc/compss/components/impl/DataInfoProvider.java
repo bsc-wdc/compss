@@ -179,7 +179,10 @@ public class DataInfoProvider {
      * 
      * @param access access being completed
      */
-    public void finishDataAccess(AccessParams access) {
+    public void finishDataAccess(AccessParams access, DataInstanceId generatedData) {
+        if (generatedData != null && access.resultRemainOnMain()) {
+            this.valuesOnMain.add(generatedData.getRenaming());
+        }
         Integer dId = access.getDataId(this);
         // First access to this file
         if (dId == null) {
@@ -390,15 +393,6 @@ public class DataInfoProvider {
     public DataLocation getOriginalLocation(int fileId) {
         FileInfo info = (FileInfo) this.idToData.get(fileId);
         return info.getOriginalLocation();
-    }
-
-    /**
-     * Marks the data as registered in the master.
-     *
-     * @param dId Data Instance Id.
-     */
-    public void objectIsHere(DataInstanceId dId) {
-        this.valuesOnMain.add(dId.getRenaming());
     }
 
     /**

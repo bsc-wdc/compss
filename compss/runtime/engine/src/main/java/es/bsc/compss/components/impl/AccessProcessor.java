@@ -63,7 +63,6 @@ import es.bsc.compss.types.request.ap.EndOfAppRequest;
 import es.bsc.compss.types.request.ap.FinishDataAccessRequest;
 import es.bsc.compss.types.request.ap.GetResultFilesRequest;
 import es.bsc.compss.types.request.ap.IsObjectHereRequest;
-import es.bsc.compss.types.request.ap.ObjectIsHereRequest;
 import es.bsc.compss.types.request.ap.OpenTaskGroupRequest;
 import es.bsc.compss.types.request.ap.RegisterDataAccessRequest;
 import es.bsc.compss.types.request.ap.RegisterRemoteDataRequest;
@@ -299,8 +298,8 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
      *
      * @param ap Access parameters.
      */
-    public void finishDataAccess(AccessParams ap) {
-        if (!this.requestQueue.offer(new FinishDataAccessRequest(ap))) {
+    public void finishDataAccess(AccessParams ap, DataInstanceId generatedDaId) {
+        if (!this.requestQueue.offer(new FinishDataAccessRequest(ap, generatedDaId))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "finishing data access");
         }
     }
@@ -484,13 +483,12 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         T oUpdated;
         oUpdated = oma.fetchObject(oaId);
         if (oma.isAccessFinishedOnRegistration()) {
+            DataInstanceId wId = null;
             if (oaId.isWrite()) {
-                DataInstanceId wId = ((WritingDataAccessId) oaId).getWrittenDataInstance();
-                if (oap.resultRemainOnMain()) {
-                    setObjectIsHere(wId);
-                }
+                wId = ((WritingDataAccessId) oaId).getWrittenDataInstance();
             }
-            finishDataAccess(oap);
+            finishDataAccess(oap, wId);
+
         }
         return oUpdated;
     }
@@ -628,18 +626,6 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         DataAccessId daId = request.getAccessId();
 
         return daId;
-    }
-
-    /**
-     * Marks the data as registered in the master.
-     *
-     * @param dId Data Instance Id.
-     */
-    public void setObjectIsHere(DataInstanceId dId) {
-        ObjectIsHereRequest request = new ObjectIsHereRequest(dId);
-        if (!this.requestQueue.offer(request)) {
-            ErrorManager.error(ERROR_QUEUE_OFFER + "new object version value");
-        }
     }
 
     /**

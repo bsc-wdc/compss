@@ -393,12 +393,12 @@ public class DataInfoProvider {
     }
 
     /**
-     * Sets the value {@code value} to the renaming {@code renaming}.
+     * Marks the data as registered in the master.
      *
-     * @param renaming Renaming.
+     * @param dId Data Instance Id.
      */
-    public void setObjectVersionValue(String renaming) {
-        this.valuesOnMain.add(renaming);
+    public void objectIsHere(DataInstanceId dId) {
+        this.valuesOnMain.add(dId.getRenaming());
     }
 
     /**

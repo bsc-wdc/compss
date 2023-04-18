@@ -69,10 +69,10 @@ import es.bsc.compss.types.request.ap.EndOfAppRequest;
 import es.bsc.compss.types.request.ap.FinishDataAccessRequest;
 import es.bsc.compss.types.request.ap.GetResultFilesRequest;
 import es.bsc.compss.types.request.ap.IsObjectHereRequest;
+import es.bsc.compss.types.request.ap.ObjectIsHereRequest;
 import es.bsc.compss.types.request.ap.OpenTaskGroupRequest;
 import es.bsc.compss.types.request.ap.RegisterDataAccessRequest;
 import es.bsc.compss.types.request.ap.RegisterRemoteDataRequest;
-import es.bsc.compss.types.request.ap.SetObjectVersionValueRequest;
 import es.bsc.compss.types.request.ap.ShutdownNotificationRequest;
 import es.bsc.compss.types.request.ap.ShutdownRequest;
 import es.bsc.compss.types.request.ap.SnapshotRequest;
@@ -491,12 +491,8 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         oUpdated = oma.fetchObject(oaId);
 
         DataInstanceId wId = ((RWAccessId) oaId).getWrittenDataInstance();
-        String wRename = wId.getRenaming();
-        if (DEBUG) {
-            LOGGER.debug("Object retrieved. Set new version to: " + wRename);
-        }
 
-        setObjectVersionValue(wRename);
+        setObjectIsHere(wId);
         finishDataAccess(oap);
 
         return oUpdated;
@@ -695,12 +691,12 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     }
 
     /**
-     * Sets a new value to a specific version of a file/object.
+     * Marks the data as registered in the master.
      *
-     * @param renaming Renaming version.
+     * @param dId Data Instance Id.
      */
-    public void setObjectVersionValue(String renaming) {
-        SetObjectVersionValueRequest request = new SetObjectVersionValueRequest(renaming);
+    public void setObjectIsHere(DataInstanceId dId) {
+        ObjectIsHereRequest request = new ObjectIsHereRequest(dId);
         if (!this.requestQueue.offer(request)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "new object version value");
         }

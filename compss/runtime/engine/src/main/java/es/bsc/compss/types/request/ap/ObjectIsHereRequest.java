@@ -20,35 +20,27 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
+import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.tracing.TraceEvent;
 
 
-public class SetObjectVersionValueRequest extends APRequest {
+public class ObjectIsHereRequest extends APRequest {
 
-    private final String renaming;
+    private final DataInstanceId daId;
 
 
     /**
      * Creates a new request to set a new value for an specific renaming.
      * 
-     * @param renaming Data renaming.
+     * @param daId Data in Master process
      */
-    public SetObjectVersionValueRequest(String renaming) {
-        this.renaming = renaming;
-    }
-
-    /**
-     * Returns the data renaming.
-     * 
-     * @return The data renaming.
-     */
-    public String getRenaming() {
-        return this.renaming;
+    public ObjectIsHereRequest(DataInstanceId daId) {
+        this.daId = daId;
     }
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
-        dip.setObjectVersionValue(this.renaming);
+        dip.objectIsHere(this.daId);
     }
 
     @Override

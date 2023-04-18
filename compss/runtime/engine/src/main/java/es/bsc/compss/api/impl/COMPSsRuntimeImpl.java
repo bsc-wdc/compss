@@ -1096,7 +1096,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         // Otherwise we request it from a task
         String finalPath;
         try {
-            BindingObject newBO = ap.mainAccessToBindingObject(boap);
+            BindingObject newBO = ap.mainAccess(boap);
             String bindingObjectID = newBO.getName();
             finalPath = bindingObjectID;
         } catch (ValueUnawareRuntimeException e) {
@@ -1335,7 +1335,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         ObjectMainAccess<?, ?, ?> oap = ObjectMainAccess.constructOMA(app, Direction.INOUT, obj, hashCode);
         Object oUpdated;
         try {
-            oUpdated = ap.mainAccessToObject(oap);
+            oUpdated = ap.mainAccess(oap);
         } catch (ValueUnawareRuntimeException e) {
             oUpdated = null;
         }
@@ -1490,7 +1490,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
                 // Otherwise we request it from a task
                 try {
-                    String newPscoId = ap.mainAccessToExternalPSCO(eoap);
+                    String newPscoId = ap.mainAccess(eoap);
                     finalPath = ProtocolType.PERSISTENT_URI.getSchema() + newPscoId;
                 } catch (ValueUnawareRuntimeException e) {
                     finalPath = id;

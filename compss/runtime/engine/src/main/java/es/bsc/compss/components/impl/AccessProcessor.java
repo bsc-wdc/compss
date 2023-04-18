@@ -26,7 +26,6 @@ import es.bsc.compss.components.monitor.impl.GraphGenerator;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.Application;
-import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.ReduceTask;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
@@ -37,17 +36,12 @@ import es.bsc.compss.types.data.DataParams;
 import es.bsc.compss.types.data.DataParams.ObjectData;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.ResultFile;
-import es.bsc.compss.types.data.access.BindingObjectMainAccess;
 import es.bsc.compss.types.data.access.DirectoryMainAccess;
-import es.bsc.compss.types.data.access.ExternalPSCObjectMainAccess;
 import es.bsc.compss.types.data.access.FileMainAccess;
 import es.bsc.compss.types.data.access.ObjectMainAccess;
-import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
-import es.bsc.compss.types.data.accessparams.BindingObjectAccessParams;
 import es.bsc.compss.types.data.accessparams.DirectoryAccessParams;
-import es.bsc.compss.types.data.accessparams.ExternalPSCObjectAccessParams;
 import es.bsc.compss.types.data.accessparams.FileAccessParams;
 import es.bsc.compss.types.data.accessparams.ObjectAccessParams;
 import es.bsc.compss.types.data.location.DataLocation;
@@ -470,8 +464,8 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
      * @return Final value.
      * @throws ValueUnawareRuntimeException the runtime is not aware of the last value of the accessed data
      */
-    public Object mainAccessToObject(ObjectMainAccess<?, ?, ?> oma) throws ValueUnawareRuntimeException {
-        ObjectAccessParams<?, ?> oap = oma.getParameters();
+    public <T> T mainAccess(ObjectMainAccess<T, ?, ?> oma) throws ValueUnawareRuntimeException {
+        ObjectAccessParams<T, ?> oap = oma.getParameters();
         if (DEBUG) {
             LOGGER.debug("Requesting main access to " + oap.getDataDescription());
         }
@@ -487,72 +481,18 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         DataAccessId oaId = registerDataAccess(oap, AccessMode.RW);
 
         // Ask for the object
-        Object oUpdated;
+        T oUpdated;
         oUpdated = oma.fetchObject(oaId);
         if (oma.isAccessFinishedOnRegistration()) {
-            DataInstanceId wId = ((RWAccessId) oaId).getWrittenDataInstance();
-            if (oap.resultRemainOnMain()) {
-                setObjectIsHere(wId);
+            if (oaId.isWrite()) {
+                DataInstanceId wId = ((WritingDataAccessId) oaId).getWrittenDataInstance();
+                if (oap.resultRemainOnMain()) {
+                    setObjectIsHere(wId);
+                }
             }
             finishDataAccess(oap);
         }
         return oUpdated;
-    }
-
-    /**
-     * Notifies a main access to an external PSCO {@code id}.
-     *
-     * @param epoma description of the external PSCO access
-     * @return Location containing final the PSCO Id.
-     */
-    public String mainAccessToExternalPSCO(ExternalPSCObjectMainAccess epoma) throws ValueUnawareRuntimeException {
-        ExternalPSCObjectAccessParams eoap = epoma.getParameters();
-        if (DEBUG) {
-            LOGGER.debug("Requesting main access to " + eoap.getDataDescription());
-        }
-
-        boolean validValue = isCurrentRegisterValueValid(eoap.getData());
-        if (validValue) {
-            // Main code is still performing the same modification.
-            // No need to register it as a new version.
-            throw new ValueUnawareRuntimeException();
-        }
-
-        // Tell the DIP that the application wants to access an object
-        DataAccessId oaId = registerDataAccess(eoap, AccessMode.RW);
-
-        String newId = epoma.fetchObject(oaId);
-
-        return newId;
-    }
-
-    /**
-     * Notifies a main access to an external binding object.
-     *
-     * @param boma description of the binding object access
-     * @return Location containing the binding's object final path.
-     */
-    public BindingObject mainAccessToBindingObject(BindingObjectMainAccess boma) throws ValueUnawareRuntimeException {
-        BindingObjectAccessParams boap = boma.getParameters();
-        if (DEBUG) {
-            LOGGER.debug("Requesting main access to " + boap.getDataDescription());
-        }
-
-        boolean validValue = isCurrentRegisterValueValid(boap.getData());
-        if (validValue) {
-            // Main code is still performing the same modification.
-            // No need to register it as a new version.
-            throw new ValueUnawareRuntimeException();
-        }
-
-        // Defaut access is read because the binding object is removed after accessing it
-        // Tell the DIP that the application wants to access an object
-        DataAccessId oaId = registerDataAccess(boap, AccessMode.RW);
-
-        BindingObject bo = boma.fetchObject(oaId);
-
-        finishDataAccess(boap);
-        return bo;
     }
 
     /**

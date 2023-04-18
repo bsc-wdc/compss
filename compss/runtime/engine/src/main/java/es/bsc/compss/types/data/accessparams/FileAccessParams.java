@@ -74,6 +74,11 @@ public class FileAccessParams<D extends FileData> extends AccessParams<D> {
     }
 
     @Override
+    public boolean resultRemainOnMain() {
+        return false;
+    }
+
+    @Override
     public void externalRegister() {
         // Do nothing. No need to register the access anywhere.
     }

@@ -491,8 +491,9 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         oUpdated = oma.fetchObject(oaId);
 
         DataInstanceId wId = ((RWAccessId) oaId).getWrittenDataInstance();
-
-        setObjectIsHere(wId);
+        if (oap.resultRemainOnMain()) {
+            setObjectIsHere(wId);
+        }
         finishDataAccess(oap);
 
         return oUpdated;
@@ -964,14 +965,18 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
                         if (values[1].endsWith("h")) {
                             values[1] = String.valueOf(
                                 Integer.parseInt(values[1].substring(0, values[1].length() - 1)) * 3600 * 1000);
-                        } else if (values[1].endsWith("m")) {
-                            values[1] = String
-                                .valueOf(Integer.parseInt(values[1].substring(0, values[1].length() - 1)) * 60 * 1000);
-                        } else if (values[1].endsWith("s")) {
-                            values[1] =
-                                String.valueOf(Integer.parseInt(values[1].substring(0, values[1].length() - 1)) * 1000);
                         } else {
-                            values[1] = String.valueOf(Integer.parseInt(values[1]) * 60 * 1000);
+                            if (values[1].endsWith("m")) {
+                                values[1] = String.valueOf(
+                                    Integer.parseInt(values[1].substring(0, values[1].length() - 1)) * 60 * 1000);
+                            } else {
+                                if (values[1].endsWith("s")) {
+                                    values[1] = String.valueOf(
+                                        Integer.parseInt(values[1].substring(0, values[1].length() - 1)) * 1000);
+                                } else {
+                                    values[1] = String.valueOf(Integer.parseInt(values[1]) * 60 * 1000);
+                                }
+                            }
                         }
                     }
                     paramsMap.put(values[0], values[1]);

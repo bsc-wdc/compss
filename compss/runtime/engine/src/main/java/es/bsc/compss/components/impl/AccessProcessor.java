@@ -487,7 +487,8 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         DataAccessId oaId = registerDataAccess(oap, AccessMode.RW);
 
         // Ask for the object
-        Object oUpdated = oma.fetchObject(oaId);
+        Object oUpdated;
+        oUpdated = oma.fetchObject(oaId);
 
         DataInstanceId wId = ((RWAccessId) oaId).getWrittenDataInstance();
         String wRename = wId.getRenaming();
@@ -495,7 +496,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
             LOGGER.debug("Object retrieved. Set new version to: " + wRename);
         }
 
-        setObjectVersionValue(wRename, oUpdated);
+        setObjectVersionValue(wRename);
         finishDataAccess(oap);
 
         return oUpdated;
@@ -697,10 +698,9 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
      * Sets a new value to a specific version of a file/object.
      *
      * @param renaming Renaming version.
-     * @param value New value.
      */
-    public void setObjectVersionValue(String renaming, Object value) {
-        SetObjectVersionValueRequest request = new SetObjectVersionValueRequest(renaming, value);
+    public void setObjectVersionValue(String renaming) {
+        SetObjectVersionValueRequest request = new SetObjectVersionValueRequest(renaming);
         if (!this.requestQueue.offer(request)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "new object version value");
         }

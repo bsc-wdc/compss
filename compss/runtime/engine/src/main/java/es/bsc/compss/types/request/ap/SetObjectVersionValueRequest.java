@@ -26,18 +26,15 @@ import es.bsc.compss.types.tracing.TraceEvent;
 public class SetObjectVersionValueRequest extends APRequest {
 
     private final String renaming;
-    private final Object value;
 
 
     /**
      * Creates a new request to set a new value for an specific renaming.
      * 
      * @param renaming Data renaming.
-     * @param value New value.
      */
-    public SetObjectVersionValueRequest(String renaming, Object value) {
+    public SetObjectVersionValueRequest(String renaming) {
         this.renaming = renaming;
-        this.value = value;
     }
 
     /**
@@ -49,18 +46,9 @@ public class SetObjectVersionValueRequest extends APRequest {
         return this.renaming;
     }
 
-    /**
-     * Returns the new value.
-     * 
-     * @return The new value.
-     */
-    public Object getValue() {
-        return this.value;
-    }
-
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
-        dip.setObjectVersionValue(this.renaming, this.value);
+        dip.setObjectVersionValue(this.renaming);
     }
 
     @Override

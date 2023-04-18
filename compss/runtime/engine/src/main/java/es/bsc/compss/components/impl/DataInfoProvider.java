@@ -396,9 +396,8 @@ public class DataInfoProvider {
      * Sets the value {@code value} to the renaming {@code renaming}.
      *
      * @param renaming Renaming.
-     * @param value Object value.
      */
-    public void setObjectVersionValue(String renaming, Object value) {
+    public void setObjectVersionValue(String renaming) {
         this.valuesOnMain.add(renaming);
     }
 

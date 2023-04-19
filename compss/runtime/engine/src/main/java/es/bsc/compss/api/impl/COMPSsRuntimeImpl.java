@@ -102,6 +102,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.logging.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -1936,10 +1937,18 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         DataLocation targetLocation;
         if (isDirectory) {
             DirectoryMainAccess dma = DirectoryMainAccess.constructDMA(app, direction, loc);
-            targetLocation = ap.mainAccessToDirectory(dma);
+            try {
+                targetLocation = ap.mainAccessToDirectory(dma);
+            } catch (ValueUnawareRuntimeException ex) {
+                targetLocation = dma.getParameters().getLocation();
+            }
         } else {
-            FileMainAccess fma = FileMainAccess.constructFMA(app, direction, loc);
-            targetLocation = ap.mainAccessToFile(fma);
+            FileMainAccess<?, ?> fma = FileMainAccess.constructFMA(app, direction, loc);
+            try {
+                targetLocation = ap.mainAccessToFile(fma);
+            } catch (ValueUnawareRuntimeException ex) {
+                targetLocation = fma.getParameters().getLocation();
+            }
         }
 
         // Checks on target

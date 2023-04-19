@@ -309,14 +309,15 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
      *
      * @param fma File Access.
      * @return Final location.
+     * @throws ValueUnawareRuntimeException the runtime is not aware of the last value of the accessed data
      */
-    public DataLocation mainAccessToFile(FileMainAccess<?, ?> fma) {
+    public DataLocation mainAccessToFile(FileMainAccess<?, ?> fma) throws ValueUnawareRuntimeException {
         FileAccessParams fap = fma.getParameters();
         boolean alreadyAccessed = alreadyAccessed(fap.getData());
         DataLocation sourceLocation = fap.getLocation();
         if (!alreadyAccessed) {
             LOGGER.debug("File not accessed before, returning the same location");
-            return sourceLocation;
+            throw new ValueUnawareRuntimeException();
         }
 
         // Tell the DM that the application wants to access a file.
@@ -365,14 +366,15 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
      *
      * @param dma Directory Access Description.
      * @return Final location.
+     * @throws ValueUnawareRuntimeException the runtime is not aware of the last value of the accessed data
      */
-    public DataLocation mainAccessToDirectory(DirectoryMainAccess dma) {
+    public DataLocation mainAccessToDirectory(DirectoryMainAccess dma) throws ValueUnawareRuntimeException {
         DirectoryAccessParams dap = dma.getParameters();
         boolean alreadyAccessed = alreadyAccessed(dap.getData());
         DataLocation sourceLocation = dap.getLocation();
         if (!alreadyAccessed) {
             LOGGER.debug("Directory not accessed before, returning the same location");
-            return sourceLocation;
+            throw new ValueUnawareRuntimeException();
         }
 
         // Tell the DM that the application wants to access a file.

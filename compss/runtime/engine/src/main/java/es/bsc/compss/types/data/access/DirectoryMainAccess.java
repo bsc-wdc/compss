@@ -56,6 +56,11 @@ public class DirectoryMainAccess extends FileMainAccess<DirectoryData, Directory
         super(p);
     }
 
+    @Override
+    public DataLocation getUnavailableValueResponse() {
+        return this.createDirLocation("null");
+    }
+
     /**
      * Fetches the last version of the directory.
      *

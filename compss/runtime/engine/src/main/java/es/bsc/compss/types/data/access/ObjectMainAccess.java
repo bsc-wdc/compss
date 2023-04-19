@@ -65,6 +65,11 @@ public class ObjectMainAccess<V extends Object, D extends ObjectData, P extends 
     }
 
     @Override
+    public V getUnavailableValueResponse() {
+        return null;
+    }
+
+    @Override
     public V fetch(DataAccessId daId) {
         if (DEBUG) {
             LOGGER.debug("Request object transfer " + daId.getDataId());

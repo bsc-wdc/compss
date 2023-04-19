@@ -59,6 +59,11 @@ public class FileMainAccess<D extends FileData, P extends FileAccessParams<D>> e
     }
 
     @Override
+    public DataLocation getUnavailableValueResponse() {
+        return this.createFileLocation("null");
+    }
+
+    @Override
     public DataLocation fetch(DataAccessId daId) {
         // Get target information
         DataInstanceId diId;

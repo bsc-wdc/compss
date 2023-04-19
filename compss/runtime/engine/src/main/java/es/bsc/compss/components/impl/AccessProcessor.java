@@ -307,19 +307,23 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
 
         // Tell the DIP that the application wants to access an object
         DataAccessId oaId = registerDataAccess(oap, AccessMode.RW);
+        if (oaId == null) {
+            ErrorManager.warn("No version available. Returning null");
+            return ma.getUnavailableValueResponse();
+        } else {
+            // Ask for the object
+            T oUpdated;
+            oUpdated = ma.fetch(oaId);
+            if (ma.isAccessFinishedOnRegistration()) {
+                DataInstanceId wId = null;
+                if (oaId.isWrite()) {
+                    wId = ((WritingDataAccessId) oaId).getWrittenDataInstance();
+                }
+                finishDataAccess(oap, wId);
 
-        // Ask for the object
-        T oUpdated;
-        oUpdated = ma.fetch(oaId);
-        if (ma.isAccessFinishedOnRegistration()) {
-            DataInstanceId wId = null;
-            if (oaId.isWrite()) {
-                wId = ((WritingDataAccessId) oaId).getWrittenDataInstance();
             }
-            finishDataAccess(oap, wId);
-
+            return oUpdated;
         }
-        return oUpdated;
     }
 
     /**
@@ -339,12 +343,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         DataLocation tgtLocation = fap.getLocation();
         if (faId == null) { // If fiId is null data is cancelled returning null location
             ErrorManager.warn("No version available. Returning null");
-            try {
-                String path = ProtocolType.FILE_URI.getSchema() + "null";
-                tgtLocation = DataLocation.createLocation(Comm.getAppHost(), new SimpleURI(path));
-            } catch (Exception e) {
-                ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION, e);
-            }
+            return fma.getUnavailableValueResponse();
         } else {
             if (faId.isRead()) {
                 tgtLocation = fma.fetch(faId);
@@ -389,12 +388,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         DataLocation tgtLocation = dap.getLocation();
         if (daId == null) { // If fiId is null data is cancelled returning null location
             ErrorManager.warn("No version available. Returning null");
-            try {
-                String path = ProtocolType.DIR_URI.getSchema() + "null";
-                tgtLocation = DataLocation.createLocation(Comm.getAppHost(), new SimpleURI(path));
-            } catch (Exception e) {
-                ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION, e);
-            }
+            return dma.getUnavailableValueResponse();
         } else {
             if (daId.isRead()) {
                 tgtLocation = dma.fetch(daId);

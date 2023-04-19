@@ -55,6 +55,13 @@ public abstract class MainAccess<V extends Object, D extends DataParams, P exten
     }
 
     /**
+     * Returns the value expected to be returned when there is no available version for the data.
+     * 
+     * @return Returns the value expected to be returned when there is no available version for the data.
+     */
+    public abstract V getUnavailableValueResponse();
+
+    /**
      * Fetches the last version of the accessed data.
      *
      * @param daId Data Access Id.
@@ -78,4 +85,5 @@ public abstract class MainAccess<V extends Object, D extends DataParams, P exten
         }
         return targetLocation;
     }
+
 }

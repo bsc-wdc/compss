@@ -39,6 +39,7 @@ import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.operation.DirectoryTransferable;
 import es.bsc.compss.types.data.operation.FileTransferable;
 import es.bsc.compss.types.data.operation.ResultListener;
+import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
 import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
@@ -140,6 +141,18 @@ public class DataInfoProvider {
             }
         }
         return null;
+    }
+
+    /**
+     * DataAccess interface: registers a new data access.
+     *
+     * @param access Access Parameters.
+     * @return The registered access Id.
+     * @throws ValueUnawareRuntimeException the runtime is not aware of the last value of the accessed data
+     */
+    public DataAccessId registerAccessToExistingData(AccessParams access) throws ValueUnawareRuntimeException {
+        access.checkAccessValidity(this);
+        return registerDataAccess(access);
     }
 
     /**

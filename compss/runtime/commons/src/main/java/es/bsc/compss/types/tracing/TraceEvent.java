@@ -70,7 +70,6 @@ public enum TraceEvent {
     TRANSFER_RAW_FILE(25, TraceEventType.RUNTIME, "Access Processor: Transfer raw file"), //
     TRANSFER_OBJECT(26, TraceEventType.RUNTIME, "Access Processor: Transfer object"), //
     NEW_VERSION_SAME_VALUE(27, TraceEventType.RUNTIME, "Access Processor: New version same value"), //
-    IS_OBJECT_HERE(28, TraceEventType.RUNTIME, "Access Processor: Is object here"), //
     BLOCK_AND_GET_RESULT_FILES(31, TraceEventType.RUNTIME, "Access Processor: Block and get result files"), //
     UNBLOCK_RESULT_FILES(32, TraceEventType.RUNTIME, "Access Processor: Unblock result files"), //
     SHUTDOWN(33, TraceEventType.RUNTIME, "Access Processor: Shutdown"), //

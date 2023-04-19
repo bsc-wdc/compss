@@ -33,7 +33,6 @@ import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.DataParams;
-import es.bsc.compss.types.data.DataParams.ObjectData;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.ResultFile;
 import es.bsc.compss.types.data.access.DirectoryMainAccess;
@@ -62,7 +61,6 @@ import es.bsc.compss.types.request.ap.DeregisterObject;
 import es.bsc.compss.types.request.ap.EndOfAppRequest;
 import es.bsc.compss.types.request.ap.FinishDataAccessRequest;
 import es.bsc.compss.types.request.ap.GetResultFilesRequest;
-import es.bsc.compss.types.request.ap.IsObjectHereRequest;
 import es.bsc.compss.types.request.ap.OpenTaskGroupRequest;
 import es.bsc.compss.types.request.ap.RegisterDataAccessRequest;
 import es.bsc.compss.types.request.ap.RegisterRemoteDataRequest;
@@ -313,7 +311,6 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
      */
     public DataLocation mainAccessToFile(FileMainAccess<?, ?> fma) throws ValueUnawareRuntimeException {
         FileAccessParams fap = fma.getParameters();
-        fap.checkAccessValidity(this);
 
         // Tell the DM that the application wants to access a file.
         // Wait until the last writer task for the file has finished.
@@ -365,7 +362,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
      */
     public DataLocation mainAccessToDirectory(DirectoryMainAccess dma) throws ValueUnawareRuntimeException {
         DirectoryAccessParams dap = dma.getParameters();
-        dap.checkAccessValidity(this);
+
         // Tell the DM that the application wants to access a file.
         DataAccessId daId = registerDataAccess(dap, AccessMode.R);
 
@@ -405,33 +402,6 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     }
 
     /**
-     * Returns whether the value with hashCode {@code hashCode} is valid or obsolete.
-     *
-     * @param data Description of the object to check
-     * @return {@code true} if the object is valid, {@code false} otherwise.
-     */
-    public boolean isCurrentRegisterValueValid(ObjectData data) {
-        LOGGER.debug("Checking if value of " + data.getDescription() + " is valid");
-
-        IsObjectHereRequest request = new IsObjectHereRequest(data);
-        if (!this.requestQueue.offer(request)) {
-            ErrorManager.error(ERROR_QUEUE_OFFER + "valid object value");
-        }
-
-        // Log response and return
-        boolean isValid = request.getResponse();
-        if (DEBUG) {
-            if (isValid) {
-                LOGGER.debug("Value of " + data.getDescription() + " is valid");
-            } else {
-                LOGGER.debug("Value of " + data.getDescription() + " is NOT valid");
-            }
-        }
-
-        return isValid;
-    }
-
-    /**
      * Returns the Identifier of the data corresponding to the last version of an dat.
      *
      * @param data Description of the data being accessed.
@@ -459,7 +429,6 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         if (DEBUG) {
             LOGGER.debug("Requesting main access to " + oap.getDataDescription());
         }
-        oap.checkAccessValidity(this);
 
         // Tell the DIP that the application wants to access an object
         DataAccessId oaId = registerDataAccess(oap, AccessMode.RW);
@@ -599,8 +568,10 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
      * @param access Access parameters.
      * @param taskMode Access mode to register the data access.
      * @return The registered access Id.
+     * @throws ValueUnawareRuntimeException the runtime is not aware of the last value of the accessed data
      */
-    private DataAccessId registerDataAccess(AccessParams access, AccessMode taskMode) {
+    private DataAccessId registerDataAccess(AccessParams access, AccessMode taskMode)
+        throws ValueUnawareRuntimeException {
         RegisterDataAccessRequest request = new RegisterDataAccessRequest(access, taskMode);
         if (!this.requestQueue.offer(request)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "register data access");

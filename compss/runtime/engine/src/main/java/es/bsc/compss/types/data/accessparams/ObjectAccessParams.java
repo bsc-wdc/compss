@@ -17,7 +17,7 @@
 package es.bsc.compss.types.data.accessparams;
 
 import es.bsc.compss.comm.Comm;
-import es.bsc.compss.components.impl.AccessProcessor;
+import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.DataInfo;
@@ -75,8 +75,9 @@ public class ObjectAccessParams<T extends Object, D extends ObjectData> extends 
     }
 
     @Override
-    public void checkAccessValidity(AccessProcessor ap) throws ValueUnawareRuntimeException {
-        boolean validValue = ap.isCurrentRegisterValueValid(this.getData());
+    public void checkAccessValidity(DataInfoProvider dip) throws ValueUnawareRuntimeException {
+        DataInstanceId dId = dip.getLastDataAccess(this.data);
+        boolean validValue = dip.isHere(dId);
         if (validValue) {
             // Main code is still performing the same modification.
             // No need to register it as a new version.

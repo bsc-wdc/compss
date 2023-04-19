@@ -17,7 +17,7 @@
 package es.bsc.compss.types.data.accessparams;
 
 import es.bsc.compss.comm.Comm;
-import es.bsc.compss.components.impl.AccessProcessor;
+import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.DataInfo;
@@ -64,8 +64,8 @@ public class FileAccessParams<D extends FileData> extends AccessParams<D> {
     }
 
     @Override
-    public void checkAccessValidity(AccessProcessor ap) throws ValueUnawareRuntimeException {
-        boolean alreadyAccessed = ap.alreadyAccessed(this.getData());
+    public void checkAccessValidity(DataInfoProvider dip) throws ValueUnawareRuntimeException {
+        boolean alreadyAccessed = dip.alreadyAccessed(this.getData());
         if (!alreadyAccessed) {
             LOGGER.debug(this.getDataDescription() + " accessed before, returning the same location");
             throw new ValueUnawareRuntimeException();

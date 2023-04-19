@@ -49,6 +49,7 @@ import es.bsc.compss.types.request.ap.BarrierGroupRequest;
 import es.bsc.compss.types.request.ap.BarrierRequest;
 import es.bsc.compss.types.request.ap.EndOfAppRequest;
 import es.bsc.compss.types.request.ap.RegisterDataAccessRequest;
+import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
 import es.bsc.compss.util.ErrorManager;
 
 import java.util.ArrayList;
@@ -208,13 +209,14 @@ public class TaskAnalyser implements GraphHandler {
      *
      * @param rdar request indicating the data being accessed
      * @return The registered access Id.
+     * @throws ValueUnawareRuntimeException the runtime is not aware of the last value of the accessed data
      */
-    public DataAccessId processMainAccess(RegisterDataAccessRequest rdar) {
+    public DataAccessId processMainAccess(RegisterDataAccessRequest rdar) throws ValueUnawareRuntimeException {
         AccessParams access = rdar.getAccessParams();
         if (DEBUG) {
             LOGGER.debug("Registering access " + access.toString() + " from main code");
         }
-        DataAccessId daId = dip.registerDataAccess(access);
+        DataAccessId daId = dip.registerAccessToExistingData(access);
         if (daId == null) {
             if (DEBUG) {
                 LOGGER.debug("Accessing a canceled data from main code. Returning null");

@@ -17,7 +17,7 @@
 package es.bsc.compss.types.data.accessparams;
 
 import es.bsc.compss.comm.Comm;
-import es.bsc.compss.components.impl.AccessProcessor;
+import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.DataInfo;
@@ -52,7 +52,7 @@ public class CollectionAccessParams extends AccessParams<CollectionData> {
     }
 
     @Override
-    public void checkAccessValidity(AccessProcessor ap) throws ValueUnawareRuntimeException {
+    public void checkAccessValidity(DataInfoProvider dip) throws ValueUnawareRuntimeException {
         // Accesses to collections are always valids.
     }
 

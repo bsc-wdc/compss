@@ -129,10 +129,10 @@ public abstract class AccessParams<D extends DataParams> implements Serializable
     /**
      * Verifies that the runtime is aware of the value and the access should be registered.
      *
-     * @param ap Acces processor controlling the execution
+     * @param dip DataInfoProvider
      * @throws ValueUnawareRuntimeException the runtime is not aware of the last value of the accessed data
      */
-    public abstract void checkAccessValidity(AccessProcessor ap) throws ValueUnawareRuntimeException;
+    public abstract void checkAccessValidity(DataInfoProvider dip) throws ValueUnawareRuntimeException;
 
     public abstract void registeredAsFirstVersionForData(DataInfo dInfo);
 

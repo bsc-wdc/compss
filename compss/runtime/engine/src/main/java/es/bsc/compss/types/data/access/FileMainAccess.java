@@ -37,7 +37,7 @@ import java.util.concurrent.Semaphore;
 /**
  * Handling of an access from the main code to a file.
  */
-public class FileMainAccess<D extends FileData, P extends FileAccessParams<D>> extends MainAccess<D, P> {
+public class FileMainAccess<D extends FileData, P extends FileAccessParams<D>> extends MainAccess<DataLocation, D, P> {
 
     /**
      * Creates a new FileMainAccess instance with the given mode {@code mode} and for the given file location
@@ -58,13 +58,8 @@ public class FileMainAccess<D extends FileData, P extends FileAccessParams<D>> e
         super(params);
     }
 
-    /**
-     * Fetches the last version of the file.
-     *
-     * @param daId Data Access Id.
-     * @return Location of the transferred open file.
-     */
-    public DataLocation fetchForOpen(DataAccessId daId) {
+    @Override
+    public DataLocation fetch(DataAccessId daId) {
         // Get target information
         DataInstanceId diId;
         if (daId.isWrite()) {

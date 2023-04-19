@@ -57,7 +57,7 @@ public class ExternalPSCObjectMainAccess
      * @return Location of the transferred open file.
      */
     @Override
-    public String fetchObject(DataAccessId daId) {
+    public String fetch(DataAccessId daId) {
         // TODO: Check if the object was already piggybacked in the task notification
         String lastRenaming = ((RWAccessId) daId).getReadDataInstance().getRenaming();
         return Comm.getData(lastRenaming).getPscoId();

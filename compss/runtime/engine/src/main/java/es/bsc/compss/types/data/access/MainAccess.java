@@ -18,6 +18,7 @@ package es.bsc.compss.types.data.access;
 
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataParams;
 import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.location.DataLocation;
@@ -31,7 +32,7 @@ import org.apache.logging.log4j.Logger;
 /**
  * Handling of an access from the main code to a data.
  */
-public abstract class MainAccess<D extends DataParams, P extends AccessParams<D>> {
+public abstract class MainAccess<V extends Object, D extends DataParams, P extends AccessParams<D>> {
 
     // Component logger
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.API);
@@ -52,6 +53,14 @@ public abstract class MainAccess<D extends DataParams, P extends AccessParams<D>
     public final P getParameters() {
         return parameters;
     }
+
+    /**
+     * Fetches the last version of the accessed data.
+     *
+     * @param daId Data Access Id.
+     * @return last version of the accessed data.
+     */
+    public abstract V fetch(DataAccessId daId);
 
     protected static DataLocation createLocalLocation(SimpleURI targetURI) {
         DataLocation targetLocation = null;

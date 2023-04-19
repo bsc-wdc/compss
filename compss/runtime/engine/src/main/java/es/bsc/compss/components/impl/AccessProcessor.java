@@ -309,7 +309,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
 
         // Ask for the object
         T oUpdated;
-        oUpdated = oma.fetchObject(oaId);
+        oUpdated = oma.fetch(oaId);
         if (oma.isAccessFinishedOnRegistration()) {
             DataInstanceId wId = null;
             if (oaId.isWrite()) {
@@ -346,7 +346,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
             }
         } else {
             if (faId.isRead()) {
-                tgtLocation = fma.fetchForOpen(faId);
+                tgtLocation = fma.fetch(faId);
             }
 
             if (faId.isWrite()) {
@@ -396,7 +396,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
             }
         } else {
             if (daId.isRead()) {
-                tgtLocation = dma.fetchForOpen(daId);
+                tgtLocation = dma.fetch(daId);
             }
             if (daId.isWrite()) {
                 LOGGER.debug("Data " + daId.getDataId() + " mode contains W, register new writer");

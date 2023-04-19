@@ -18,11 +18,6 @@ package es.bsc.compss.types.data;
 
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.types.Application;
-import es.bsc.compss.types.data.CollectionInfo;
-import es.bsc.compss.types.data.DataInfo;
-import es.bsc.compss.types.data.FileInfo;
-import es.bsc.compss.types.data.ObjectInfo;
-import es.bsc.compss.types.data.StreamInfo;
 import es.bsc.compss.types.data.location.DataLocation;
 
 

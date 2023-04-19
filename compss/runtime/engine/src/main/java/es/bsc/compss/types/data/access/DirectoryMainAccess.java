@@ -63,7 +63,7 @@ public class DirectoryMainAccess extends FileMainAccess<DirectoryData, Directory
      * @return Location of the transferred open directory.
      */
     @Override
-    public DataLocation fetchForOpen(DataAccessId daId) {
+    public DataLocation fetch(DataAccessId daId) {
         // Get target information
         DataInstanceId targetFile;
         if (daId.isWrite()) {

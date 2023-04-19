@@ -85,6 +85,11 @@ public class ObjectAccessParams<T extends Object, D extends ObjectData> extends 
     }
 
     @Override
+    public boolean resultRemainOnMain() {
+        return true;
+    }
+
+    @Override
     public void externalRegister() {
         // Do nothing. No need to register the access anywhere.
     }

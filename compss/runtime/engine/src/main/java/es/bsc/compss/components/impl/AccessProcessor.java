@@ -26,7 +26,6 @@ import es.bsc.compss.components.monitor.impl.GraphGenerator;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.Application;
-import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.ReduceTask;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
@@ -37,17 +36,12 @@ import es.bsc.compss.types.data.DataParams;
 import es.bsc.compss.types.data.DataParams.ObjectData;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.ResultFile;
-import es.bsc.compss.types.data.access.BindingObjectMainAccess;
 import es.bsc.compss.types.data.access.DirectoryMainAccess;
-import es.bsc.compss.types.data.access.ExternalPSCObjectMainAccess;
 import es.bsc.compss.types.data.access.FileMainAccess;
 import es.bsc.compss.types.data.access.ObjectMainAccess;
-import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
-import es.bsc.compss.types.data.accessparams.BindingObjectAccessParams;
 import es.bsc.compss.types.data.accessparams.DirectoryAccessParams;
-import es.bsc.compss.types.data.accessparams.ExternalPSCObjectAccessParams;
 import es.bsc.compss.types.data.accessparams.FileAccessParams;
 import es.bsc.compss.types.data.accessparams.ObjectAccessParams;
 import es.bsc.compss.types.data.location.DataLocation;
@@ -72,7 +66,6 @@ import es.bsc.compss.types.request.ap.IsObjectHereRequest;
 import es.bsc.compss.types.request.ap.OpenTaskGroupRequest;
 import es.bsc.compss.types.request.ap.RegisterDataAccessRequest;
 import es.bsc.compss.types.request.ap.RegisterRemoteDataRequest;
-import es.bsc.compss.types.request.ap.SetObjectVersionValueRequest;
 import es.bsc.compss.types.request.ap.ShutdownNotificationRequest;
 import es.bsc.compss.types.request.ap.ShutdownRequest;
 import es.bsc.compss.types.request.ap.SnapshotRequest;
@@ -82,6 +75,7 @@ import es.bsc.compss.types.request.ap.TasksStateRequest;
 import es.bsc.compss.types.request.ap.UnblockResultFilesRequest;
 import es.bsc.compss.types.request.ap.WaitForDataReadyToDeleteRequest;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
+import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
 import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.types.tracing.TraceEventType;
 import es.bsc.compss.types.uri.SimpleURI;
@@ -304,8 +298,8 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
      *
      * @param ap Access parameters.
      */
-    public void finishDataAccess(AccessParams ap) {
-        if (!this.requestQueue.offer(new FinishDataAccessRequest(ap))) {
+    public void finishDataAccess(AccessParams ap, DataInstanceId generatedDaId) {
+        if (!this.requestQueue.offer(new FinishDataAccessRequest(ap, generatedDaId))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "finishing data access");
         }
     }
@@ -467,9 +461,10 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
      *
      * @param oma Object Access.
      * @return Final value.
+     * @throws ValueUnawareRuntimeException the runtime is not aware of the last value of the accessed data
      */
-    public Object mainAccessToObject(ObjectMainAccess<?, ?, ?> oma) {
-        ObjectAccessParams<?, ?> oap = oma.getParameters();
+    public <T> T mainAccess(ObjectMainAccess<T, ?, ?> oma) throws ValueUnawareRuntimeException {
+        ObjectAccessParams<T, ?> oap = oma.getParameters();
         if (DEBUG) {
             LOGGER.debug("Requesting main access to " + oap.getDataDescription());
         }
@@ -478,86 +473,24 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         if (validValue) {
             // Main code is still performing the same modification.
             // No need to register it as a new version.
-            return null;
+            throw new ValueUnawareRuntimeException();
         }
 
         // Tell the DIP that the application wants to access an object
         DataAccessId oaId = registerDataAccess(oap, AccessMode.RW);
 
-        DataInstanceId wId = ((RWAccessId) oaId).getWrittenDataInstance();
-        String wRename = wId.getRenaming();
-
         // Ask for the object
-        if (DEBUG) {
-            LOGGER.debug("Request object transfer " + oaId.getDataId() + " with renaming " + wRename);
+        T oUpdated;
+        oUpdated = oma.fetchObject(oaId);
+        if (oma.isAccessFinishedOnRegistration()) {
+            DataInstanceId wId = null;
+            if (oaId.isWrite()) {
+                wId = ((WritingDataAccessId) oaId).getWrittenDataInstance();
+            }
+            finishDataAccess(oap, wId);
+
         }
-        Object oUpdated = oma.fetchObject(oaId);
-
-        if (DEBUG) {
-            LOGGER.debug("Object retrieved. Set new version to: " + wRename);
-        }
-
-        setObjectVersionValue(wRename, oUpdated);
-        finishDataAccess(oap);
-
         return oUpdated;
-    }
-
-    /**
-     * Notifies a main access to an external PSCO {@code id}.
-     *
-     * @param epoma description of the external PSCO access
-     * @return Location containing final the PSCO Id.
-     */
-    public String mainAccessToExternalPSCO(ExternalPSCObjectMainAccess epoma) {
-        ExternalPSCObjectAccessParams eoap = epoma.getParameters();
-        if (DEBUG) {
-            LOGGER.debug("Requesting main access to " + eoap.getDataDescription());
-        }
-
-        boolean validValue = isCurrentRegisterValueValid(eoap.getData());
-        if (validValue) {
-            // Main code is still performing the same modification.
-            // No need to register it as a new version.
-            return eoap.getPSCOId();
-        }
-
-        // Tell the DIP that the application wants to access an object
-        DataAccessId oaId = registerDataAccess(eoap, AccessMode.RW);
-
-        String newId = epoma.fetchObject(oaId);
-
-        return ProtocolType.PERSISTENT_URI.getSchema() + newId;
-    }
-
-    /**
-     * Notifies a main access to an external binding object.
-     *
-     * @param boma description of the binding object access
-     * @return Location containing the binding's object final path.
-     */
-    public String mainAccessToBindingObject(BindingObjectMainAccess boma) {
-        BindingObjectAccessParams boap = boma.getParameters();
-        if (DEBUG) {
-            LOGGER.debug("Requesting main access to " + boap.getDataDescription());
-        }
-
-        boolean validValue = isCurrentRegisterValueValid(boap.getData());
-        if (validValue) {
-            // Main code is still performing the same modification.
-            // No need to register it as a new version.
-            return boap.getBindingObject().toString();
-        }
-
-        // Defaut access is read because the binding object is removed after accessing it
-        // Tell the DIP that the application wants to access an object
-        DataAccessId oaId = registerDataAccess(boap, AccessMode.RW);
-
-        BindingObject bo = boma.fetchObject(oaId);
-        String bindingObjectID = bo.getName();
-
-        finishDataAccess(boap);
-        return bindingObjectID;
     }
 
     /**
@@ -693,19 +626,6 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         DataAccessId daId = request.getAccessId();
 
         return daId;
-    }
-
-    /**
-     * Sets a new value to a specific version of a file/object.
-     *
-     * @param renaming Renaming version.
-     * @param value New value.
-     */
-    public void setObjectVersionValue(String renaming, Object value) {
-        SetObjectVersionValueRequest request = new SetObjectVersionValueRequest(renaming, value);
-        if (!this.requestQueue.offer(request)) {
-            ErrorManager.error(ERROR_QUEUE_OFFER + "new object version value");
-        }
     }
 
     /**
@@ -970,14 +890,18 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
                         if (values[1].endsWith("h")) {
                             values[1] = String.valueOf(
                                 Integer.parseInt(values[1].substring(0, values[1].length() - 1)) * 3600 * 1000);
-                        } else if (values[1].endsWith("m")) {
-                            values[1] = String
-                                .valueOf(Integer.parseInt(values[1].substring(0, values[1].length() - 1)) * 60 * 1000);
-                        } else if (values[1].endsWith("s")) {
-                            values[1] =
-                                String.valueOf(Integer.parseInt(values[1].substring(0, values[1].length() - 1)) * 1000);
                         } else {
-                            values[1] = String.valueOf(Integer.parseInt(values[1]) * 60 * 1000);
+                            if (values[1].endsWith("m")) {
+                                values[1] = String.valueOf(
+                                    Integer.parseInt(values[1].substring(0, values[1].length() - 1)) * 60 * 1000);
+                            } else {
+                                if (values[1].endsWith("s")) {
+                                    values[1] = String.valueOf(
+                                        Integer.parseInt(values[1].substring(0, values[1].length() - 1)) * 1000);
+                                } else {
+                                    values[1] = String.valueOf(Integer.parseInt(values[1]) * 60 * 1000);
+                                }
+                            }
                         }
                     }
                     paramsMap.put(values[0], values[1]);

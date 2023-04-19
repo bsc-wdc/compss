@@ -179,7 +179,10 @@ public class DataInfoProvider {
      * 
      * @param access access being completed
      */
-    public void finishDataAccess(AccessParams access) {
+    public void finishDataAccess(AccessParams access, DataInstanceId generatedData) {
+        if (generatedData != null && access.resultRemainOnMain()) {
+            this.valuesOnMain.add(generatedData.getRenaming());
+        }
         Integer dId = access.getDataId(this);
         // First access to this file
         if (dId == null) {
@@ -390,17 +393,6 @@ public class DataInfoProvider {
     public DataLocation getOriginalLocation(int fileId) {
         FileInfo info = (FileInfo) this.idToData.get(fileId);
         return info.getOriginalLocation();
-    }
-
-    /**
-     * Sets the value {@code value} to the renaming {@code renaming}.
-     *
-     * @param renaming Renaming.
-     * @param value Object value.
-     */
-    public void setObjectVersionValue(String renaming, Object value) {
-        this.valuesOnMain.add(renaming);
-        Comm.registerValue(renaming, value);
     }
 
     /**

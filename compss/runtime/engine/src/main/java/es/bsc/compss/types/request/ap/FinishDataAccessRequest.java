@@ -20,6 +20,7 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
+import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.tracing.TraceEvent;
@@ -28,15 +29,18 @@ import es.bsc.compss.types.tracing.TraceEvent;
 public class FinishDataAccessRequest extends APRequest {
 
     private final AccessParams access;
+    private final DataInstanceId generatedData;
 
 
     /**
      * Creates a new finish FileAccess request.
      * 
      * @param ap Associated AccessParams.
+     * @param generatedData Associated AccessParams.
      */
-    public FinishDataAccessRequest(AccessParams ap) {
+    public FinishDataAccessRequest(AccessParams ap, DataInstanceId generatedData) {
         this.access = ap;
+        this.generatedData = generatedData;
     }
 
     @Override
@@ -47,7 +51,7 @@ public class FinishDataAccessRequest extends APRequest {
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td)
         throws ShutdownException {
-        dip.finishDataAccess(access);
+        dip.finishDataAccess(access, generatedData);
     }
 
 }

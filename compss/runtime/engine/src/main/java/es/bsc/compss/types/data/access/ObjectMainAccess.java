@@ -17,6 +17,7 @@
 package es.bsc.compss.types.data.access;
 
 import es.bsc.compss.comm.Comm;
+import es.bsc.compss.exceptions.CannotLoadException;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.DataAccessId;
@@ -70,19 +71,40 @@ public class ObjectMainAccess<V extends Object, D extends ObjectData, P extends 
      * @return Location of the transferred open file.
      */
     public V fetchObject(DataAccessId daId) {
-
+        if (DEBUG) {
+            LOGGER.debug("Request object transfer " + daId.getDataId());
+        }
         RWAccessId rwaId = (RWAccessId) daId;
         DataInstanceId diId = rwaId.getReadDataInstance();
         String sourceName = diId.getRenaming();
         if (DEBUG) {
             LOGGER.debug("Requesting getting object " + sourceName);
         }
+
+        V newValue = null;
+        DataInstanceId wId = ((RWAccessId) daId).getWrittenDataInstance();
+        String wRename = wId.getRenaming();
+
         LogicalData ld = diId.getData();
         if (ld == null) {
             ErrorManager.error("Unregistered data " + sourceName);
-            return null;
+        } else {
+            try {
+                newValue = fetchObject(ld, daId, sourceName);
+                if (DEBUG) {
+                    LOGGER.debug("Object retrieved. Set new version to: " + wRename);
+                }
+            } catch (Exception e) {
+                String errMsg = ERROR_OBJECT_LOAD + ": " + ld.getName();
+                LOGGER.fatal(errMsg, e);
+                ErrorManager.fatal(errMsg, e);
+            }
         }
+        Comm.registerValue(wRename, newValue);
+        return newValue;
+    }
 
+    private V fetchObject(LogicalData ld, DataAccessId daId, String sourceName) throws CannotLoadException {
         if (ld.isInMemory()) {
             if (!daId.isPreserveSourceData()) {
                 return (V) ld.removeValue();
@@ -111,14 +133,15 @@ public class ObjectMainAccess<V extends Object, D extends ObjectData, P extends 
             sem.acquireUninterruptibly();
         }
 
-        try {
-            return (V) ld.readFromStorage();
-        } catch (Exception e) {
-            String errMsg = ERROR_OBJECT_LOAD + ": " + ((ld == null) ? "null" : ld.getName());
-            LOGGER.fatal(errMsg, e);
-            ErrorManager.fatal(errMsg, e);
-        }
-        return null;
+        return (V) ld.readFromStorage();
     }
 
+    /**
+     * Returns whether the registration of the access leads to its immediate finalization.
+     *
+     * @return {@literal true} if the finalization of the access is to be registers; {@literal false} otherwise.
+     */
+    public boolean isAccessFinishedOnRegistration() {
+        return true;
+    }
 }

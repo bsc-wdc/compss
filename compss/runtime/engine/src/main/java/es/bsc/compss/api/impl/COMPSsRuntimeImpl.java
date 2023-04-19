@@ -77,6 +77,7 @@ import es.bsc.compss.types.parameter.impl.FileParameter;
 import es.bsc.compss.types.parameter.impl.ObjectParameter;
 import es.bsc.compss.types.parameter.impl.Parameter;
 import es.bsc.compss.types.parameter.impl.StreamParameter;
+import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
 import es.bsc.compss.types.resources.MasterResourceImpl;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Resource;
@@ -1093,7 +1094,14 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         BindingObjectMainAccess boap = BindingObjectMainAccess.constructBOMA(app, Direction.IN, bo, hashCode);
 
         // Otherwise we request it from a task
-        String finalPath = ap.mainAccessToBindingObject(boap);
+        String finalPath;
+        try {
+            BindingObject newBO = ap.mainAccess(boap);
+            String bindingObjectID = newBO.getName();
+            finalPath = bindingObjectID;
+        } catch (ValueUnawareRuntimeException e) {
+            finalPath = bo.toString();
+        }
         LOGGER.debug("Returning binding object as id: " + finalPath);
         if (Tracer.isActivated()) {
             Tracer.emitEventEnd(TraceEvent.GET_BINDING_OBJECT);
@@ -1325,8 +1333,12 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
         Application app = Application.registerApplication(appId);
         ObjectMainAccess<?, ?, ?> oap = ObjectMainAccess.constructOMA(app, Direction.INOUT, obj, hashCode);
-        Object oUpdated = ap.mainAccessToObject(oap);
-
+        Object oUpdated;
+        try {
+            oUpdated = ap.mainAccess(oap);
+        } catch (ValueUnawareRuntimeException e) {
+            oUpdated = null;
+        }
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Object obtained " + ((oUpdated == null) ? oUpdated : oUpdated.hashCode()));
         }
@@ -1477,11 +1489,17 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 eoap = ExternalPSCObjectMainAccess.constructEPOMA(app, Direction.INOUT, id, hashCode);
 
                 // Otherwise we request it from a task
-                finalPath = ap.mainAccessToExternalPSCO(eoap);
+                try {
+                    String newPscoId = ap.mainAccess(eoap);
+                    finalPath = ProtocolType.PERSISTENT_URI.getSchema() + newPscoId;
+                } catch (ValueUnawareRuntimeException e) {
+                    finalPath = id;
+                }
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("External PSCO target Location: " + finalPath);
                 }
                 break;
+
             default:
                 finalPath = null;
                 ErrorManager.error(
@@ -1536,7 +1554,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             case PRIVATE:
             case SHARED:
                 FileAccessParams fap = FileAccessParams.constructFAP(app, direction, loc);
-                ap.finishDataAccess(fap);
+                ap.finishDataAccess(fap, null);
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Closing file " + loc.getPath());
                 }

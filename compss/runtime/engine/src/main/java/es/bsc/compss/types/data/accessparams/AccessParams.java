@@ -127,6 +127,13 @@ public abstract class AccessParams<D extends DataParams> implements Serializable
     public abstract void registeredAsFirstVersionForData(DataInfo dInfo);
 
     /**
+     * Returns whether the result of the access should be marked as remaining on the Main process memory.
+     * 
+     * @return {@literal true} if the result is to be marked; {@literal false} otherwise.
+     */
+    public abstract boolean resultRemainOnMain();
+
+    /**
      * Registers the access into an external service.
      */
     public abstract void externalRegister();

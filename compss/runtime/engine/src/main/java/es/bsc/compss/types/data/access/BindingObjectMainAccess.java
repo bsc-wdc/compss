@@ -106,4 +106,8 @@ public class BindingObjectMainAccess
         return bo;
     }
 
+    @Override
+    public boolean isAccessFinishedOnRegistration() {
+        return true;
+    }
 }

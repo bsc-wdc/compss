@@ -97,6 +97,9 @@ def parse_state_xml(log_path: str, field: str) -> typing.Any:
     tree = ElementTree.parse(state_xml)
     root = tree.getroot()
     state_xml_dict = element_tree_to_dict(root)
+    if state_xml_dict["COMPSsState"][field] == "":
+        print("Please, submit any task in order to see the information")
+        return None
     if field == "TasksInfo":
         return state_xml_dict["COMPSsState"][field]["Application"]
     if field == "CoresInfo":
@@ -169,6 +172,9 @@ def __show_tasks_info__(log_path: str) -> None:
     :return: None.
     """
     cores_info = parse_state_xml(log_path, "CoresInfo")
+    if cores_info is None:
+        # Do not show anything if there is no information to display
+        return
     labels = [
         "Signature",
         "ExecutedCount",
@@ -251,6 +257,9 @@ def __show_tasks_status__(log_path: str) -> None:
     :return: None.
     """
     tasks_info_dict = parse_state_xml(log_path, "TasksInfo")
+    if tasks_info_dict is None:
+        # Do not show anything if there is no information to display
+        return
     # Display graph
     labels = ["InProgress", "Completed"]
     sizes = [tasks_info_dict[labels[0]], tasks_info_dict[labels[1]]]
@@ -300,6 +309,9 @@ def __show_statistics__(log_path: str) -> None:
     :return: None.
     """
     statistics_dict = parse_state_xml(log_path, "Statistics")
+    if statistics_dict is None:
+        # Do not show anything if there is no information to display
+        return
     # Display table with values
     labels = [statistics_dict["Key"]]
     values = [statistics_dict["Value"]]
@@ -334,6 +346,9 @@ def __show_resources_status__(log_path: str) -> None:
     :return: None.
     """
     resource_info_dict = parse_state_xml(log_path, "ResourceInfo")
+    if resource_info_dict is None:
+        # Do not show anything if there is no information to display
+        return
     # Display table with values
     labels, values = __plain_lists__(resource_info_dict)
     display(

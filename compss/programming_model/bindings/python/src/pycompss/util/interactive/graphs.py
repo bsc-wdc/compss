@@ -107,8 +107,8 @@ def __get_graph_snapshot__(
 
             image = Image(filename=file)
             return image
-        except Exception as general_exception:
+        except Exception:  # as general_exception:
             print("Oops! Failed rendering the graph.")
-            raise general_exception
+            # raise general_exception
     else:
         return source(text)

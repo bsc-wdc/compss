@@ -63,12 +63,7 @@ public class FileAccessParams<D extends FileData> extends AccessParams<D> {
         return this.data.getLocation();
     }
 
-    /**
-     * Verifies that the runtime is aware of the value and the access should be registered.
-     * 
-     * @param ap Acces processor controlling the execution
-     * @throws ValueUnawareRuntimeException the runtime is not aware of the last value of the accessed data
-     */
+    @Override
     public void checkAccessValidity(AccessProcessor ap) throws ValueUnawareRuntimeException {
         boolean alreadyAccessed = ap.alreadyAccessed(this.getData());
         if (!alreadyAccessed) {

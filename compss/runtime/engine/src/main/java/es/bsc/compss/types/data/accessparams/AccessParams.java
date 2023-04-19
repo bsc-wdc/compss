@@ -16,12 +16,14 @@
  */
 package es.bsc.compss.types.data.accessparams;
 
+import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataParams;
+import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
 
 import java.io.Serializable;
 import org.apache.logging.log4j.LogManager;
@@ -123,6 +125,14 @@ public abstract class AccessParams<D extends DataParams> implements Serializable
     public String getDataDescription() {
         return data.getDescription();
     }
+
+    /**
+     * Verifies that the runtime is aware of the value and the access should be registered.
+     *
+     * @param ap Acces processor controlling the execution
+     * @throws ValueUnawareRuntimeException the runtime is not aware of the last value of the accessed data
+     */
+    public abstract void checkAccessValidity(AccessProcessor ap) throws ValueUnawareRuntimeException;
 
     public abstract void registeredAsFirstVersionForData(DataInfo dInfo);
 

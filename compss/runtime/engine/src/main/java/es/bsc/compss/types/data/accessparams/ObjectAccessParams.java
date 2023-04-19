@@ -74,12 +74,7 @@ public class ObjectAccessParams<T extends Object, D extends ObjectData> extends 
         return this.data.getCode();
     }
 
-    /**
-     * Verifies that the runtime is aware of the value and the access should be registered.
-     * 
-     * @param ap Acces processor controlling the execution
-     * @throws ValueUnawareRuntimeException the runtime is not aware of the last value of the accessed data
-     */
+    @Override
     public void checkAccessValidity(AccessProcessor ap) throws ValueUnawareRuntimeException {
         boolean validValue = ap.isCurrentRegisterValueValid(this.getData());
         if (validValue) {

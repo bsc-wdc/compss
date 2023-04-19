@@ -62,6 +62,13 @@ public abstract class MainAccess<V extends Object, D extends DataParams, P exten
      */
     public abstract V fetch(DataAccessId daId);
 
+    /**
+     * Returns whether the registration of the access leads to its immediate finalization.
+     *
+     * @return {@literal true} if the finalization of the access is to be registers; {@literal false} otherwise.
+     */
+    public abstract boolean isAccessFinishedOnRegistration();
+
     protected static DataLocation createLocalLocation(SimpleURI targetURI) {
         DataLocation targetLocation = null;
         try {

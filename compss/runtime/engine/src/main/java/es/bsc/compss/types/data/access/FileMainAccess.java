@@ -120,4 +120,9 @@ public class FileMainAccess<D extends FileData, P extends FileAccessParams<D>> e
         return createLocalLocation(targetURI);
     }
 
+    @Override
+    public boolean isAccessFinishedOnRegistration() {
+        return false;
+    }
+
 }

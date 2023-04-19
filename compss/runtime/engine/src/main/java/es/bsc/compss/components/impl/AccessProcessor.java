@@ -37,6 +37,7 @@ import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.ResultFile;
 import es.bsc.compss.types.data.access.DirectoryMainAccess;
 import es.bsc.compss.types.data.access.FileMainAccess;
+import es.bsc.compss.types.data.access.MainAccess;
 import es.bsc.compss.types.data.access.ObjectMainAccess;
 import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
@@ -292,14 +293,14 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     }
 
     /**
-     * Notifies a main access {@code oma} to a given object.
+     * Notifies a main access {@code oma} to a given data.
      *
-     * @param oma Object Access.
+     * @param ma Main Access.
      * @return Final value.
      * @throws ValueUnawareRuntimeException the runtime is not aware of the last value of the accessed data
      */
-    public <T> T mainAccess(ObjectMainAccess<T, ?, ?> oma) throws ValueUnawareRuntimeException {
-        ObjectAccessParams<T, ?> oap = oma.getParameters();
+    public <T> T mainAccess(MainAccess<T, ?, ?> ma) throws ValueUnawareRuntimeException {
+        AccessParams<?> oap = ma.getParameters();
         if (DEBUG) {
             LOGGER.debug("Requesting main access to " + oap.getDataDescription());
         }
@@ -309,8 +310,8 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
 
         // Ask for the object
         T oUpdated;
-        oUpdated = oma.fetch(oaId);
-        if (oma.isAccessFinishedOnRegistration()) {
+        oUpdated = ma.fetch(oaId);
+        if (ma.isAccessFinishedOnRegistration()) {
             DataInstanceId wId = null;
             if (oaId.isWrite()) {
                 wId = ((WritingDataAccessId) oaId).getWrittenDataInstance();

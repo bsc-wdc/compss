@@ -131,11 +131,7 @@ public class ObjectMainAccess<V extends Object, D extends ObjectData, P extends 
         return (V) ld.readFromStorage();
     }
 
-    /**
-     * Returns whether the registration of the access leads to its immediate finalization.
-     *
-     * @return {@literal true} if the finalization of the access is to be registers; {@literal false} otherwise.
-     */
+    @Override
     public boolean isAccessFinishedOnRegistration() {
         return true;
     }

@@ -25,6 +25,7 @@ import es.bsc.compss.types.TaskListener;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
+import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
 import es.bsc.compss.types.tracing.TraceEvent;
 
 import java.util.concurrent.Semaphore;
@@ -38,6 +39,7 @@ public class RegisterDataAccessRequest extends APRequest implements TaskListener
 
     private int pendingOperation = 0;
     private boolean released = false;
+    private ValueUnawareRuntimeException unawareException = null;
     private final Semaphore sem;
 
 
@@ -82,7 +84,11 @@ public class RegisterDataAccessRequest extends APRequest implements TaskListener
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
-        this.accessId = ta.processMainAccess(this);
+        try {
+            this.accessId = ta.processMainAccess(this);
+        } catch (ValueUnawareRuntimeException e) {
+            this.unawareException = e;
+        }
         if (pendingOperation == 0) {
             this.notifyReady();
         }
@@ -91,8 +97,10 @@ public class RegisterDataAccessRequest extends APRequest implements TaskListener
 
     /**
      * Waits for the value's producing tasks to complete releasing and recovering the resources if needed.
+     * 
+     * @throws ValueUnawareRuntimeException the runtime is not aware of the last value of the accessed data
      */
-    public void waitForCompletion() {
+    public void waitForCompletion() throws ValueUnawareRuntimeException {
         // Wait for request processing
         sem.acquireUninterruptibly();
 
@@ -116,6 +124,9 @@ public class RegisterDataAccessRequest extends APRequest implements TaskListener
             app.readyToContinue(sem);
             sem.acquireUninterruptibly();
             LOGGER.info("App " + app.getId() + " reasources are ready.");
+        }
+        if (this.unawareException != null) {
+            throw this.unawareException;
         }
     }
 

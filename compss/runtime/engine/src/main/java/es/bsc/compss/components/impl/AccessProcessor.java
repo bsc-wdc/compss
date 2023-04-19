@@ -33,11 +33,11 @@ import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.DataParams;
-import es.bsc.compss.types.data.DataParams.ObjectData;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.ResultFile;
 import es.bsc.compss.types.data.access.DirectoryMainAccess;
 import es.bsc.compss.types.data.access.FileMainAccess;
+import es.bsc.compss.types.data.access.MainAccess;
 import es.bsc.compss.types.data.access.ObjectMainAccess;
 import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
@@ -62,7 +62,6 @@ import es.bsc.compss.types.request.ap.DeregisterObject;
 import es.bsc.compss.types.request.ap.EndOfAppRequest;
 import es.bsc.compss.types.request.ap.FinishDataAccessRequest;
 import es.bsc.compss.types.request.ap.GetResultFilesRequest;
-import es.bsc.compss.types.request.ap.IsObjectHereRequest;
 import es.bsc.compss.types.request.ap.OpenTaskGroupRequest;
 import es.bsc.compss.types.request.ap.RegisterDataAccessRequest;
 import es.bsc.compss.types.request.ap.RegisterRemoteDataRequest;
@@ -294,14 +293,33 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     }
 
     /**
-     * Marks an access to a data as finished.
+     * Notifies a main access {@code oma} to a given data.
      *
-     * @param ap Access parameters.
+     * @param ma Main Access.
+     * @return Final value.
+     * @throws ValueUnawareRuntimeException the runtime is not aware of the last value of the accessed data
      */
-    public void finishDataAccess(AccessParams ap, DataInstanceId generatedDaId) {
-        if (!this.requestQueue.offer(new FinishDataAccessRequest(ap, generatedDaId))) {
-            ErrorManager.error(ERROR_QUEUE_OFFER + "finishing data access");
+    public <T> T mainAccess(MainAccess<T, ?, ?> ma) throws ValueUnawareRuntimeException {
+        AccessParams<?> oap = ma.getParameters();
+        if (DEBUG) {
+            LOGGER.debug("Requesting main access to " + oap.getDataDescription());
         }
+
+        // Tell the DIP that the application wants to access an object
+        DataAccessId oaId = registerDataAccess(oap, AccessMode.RW);
+
+        // Ask for the object
+        T oUpdated;
+        oUpdated = ma.fetch(oaId);
+        if (ma.isAccessFinishedOnRegistration()) {
+            DataInstanceId wId = null;
+            if (oaId.isWrite()) {
+                wId = ((WritingDataAccessId) oaId).getWrittenDataInstance();
+            }
+            finishDataAccess(oap, wId);
+
+        }
+        return oUpdated;
     }
 
     /**
@@ -309,21 +327,16 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
      *
      * @param fma File Access.
      * @return Final location.
+     * @throws ValueUnawareRuntimeException the runtime is not aware of the last value of the accessed data
      */
-    public DataLocation mainAccessToFile(FileMainAccess<?, ?> fma) {
+    public DataLocation mainAccessToFile(FileMainAccess<?, ?> fma) throws ValueUnawareRuntimeException {
         FileAccessParams fap = fma.getParameters();
-        boolean alreadyAccessed = alreadyAccessed(fap.getData());
-        DataLocation sourceLocation = fap.getLocation();
-        if (!alreadyAccessed) {
-            LOGGER.debug("File not accessed before, returning the same location");
-            return sourceLocation;
-        }
 
         // Tell the DM that the application wants to access a file.
         // Wait until the last writer task for the file has finished.
         DataAccessId faId = registerDataAccess(fap, AccessMode.R);
 
-        DataLocation tgtLocation = sourceLocation;
+        DataLocation tgtLocation = fap.getLocation();
         if (faId == null) { // If fiId is null data is cancelled returning null location
             ErrorManager.warn("No version available. Returning null");
             try {
@@ -334,7 +347,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
             }
         } else {
             if (faId.isRead()) {
-                tgtLocation = fma.fetchForOpen(faId);
+                tgtLocation = fma.fetch(faId);
             }
 
             if (faId.isWrite()) {
@@ -365,20 +378,15 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
      *
      * @param dma Directory Access Description.
      * @return Final location.
+     * @throws ValueUnawareRuntimeException the runtime is not aware of the last value of the accessed data
      */
-    public DataLocation mainAccessToDirectory(DirectoryMainAccess dma) {
+    public DataLocation mainAccessToDirectory(DirectoryMainAccess dma) throws ValueUnawareRuntimeException {
         DirectoryAccessParams dap = dma.getParameters();
-        boolean alreadyAccessed = alreadyAccessed(dap.getData());
-        DataLocation sourceLocation = dap.getLocation();
-        if (!alreadyAccessed) {
-            LOGGER.debug("Directory not accessed before, returning the same location");
-            return sourceLocation;
-        }
 
         // Tell the DM that the application wants to access a file.
         DataAccessId daId = registerDataAccess(dap, AccessMode.R);
 
-        DataLocation tgtLocation = sourceLocation;
+        DataLocation tgtLocation = dap.getLocation();
         if (daId == null) { // If fiId is null data is cancelled returning null location
             ErrorManager.warn("No version available. Returning null");
             try {
@@ -389,7 +397,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
             }
         } else {
             if (daId.isRead()) {
-                tgtLocation = dma.fetchForOpen(daId);
+                tgtLocation = dma.fetch(daId);
             }
             if (daId.isWrite()) {
                 LOGGER.debug("Data " + daId.getDataId() + " mode contains W, register new writer");
@@ -414,30 +422,14 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     }
 
     /**
-     * Returns whether the value with hashCode {@code hashCode} is valid or obsolete.
+     * Marks an access to a data as finished.
      *
-     * @param data Description of the object to check
-     * @return {@code true} if the object is valid, {@code false} otherwise.
+     * @param ap Access parameters.
      */
-    public boolean isCurrentRegisterValueValid(ObjectData data) {
-        LOGGER.debug("Checking if value of " + data.getDescription() + " is valid");
-
-        IsObjectHereRequest request = new IsObjectHereRequest(data);
-        if (!this.requestQueue.offer(request)) {
-            ErrorManager.error(ERROR_QUEUE_OFFER + "valid object value");
+    public void finishDataAccess(AccessParams ap, DataInstanceId generatedDaId) {
+        if (!this.requestQueue.offer(new FinishDataAccessRequest(ap, generatedDaId))) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "finishing data access");
         }
-
-        // Log response and return
-        boolean isValid = request.getResponse();
-        if (DEBUG) {
-            if (isValid) {
-                LOGGER.debug("Value of " + data.getDescription() + " is valid");
-            } else {
-                LOGGER.debug("Value of " + data.getDescription() + " is NOT valid");
-            }
-        }
-
-        return isValid;
     }
 
     /**
@@ -454,43 +446,6 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         }
 
         return odr.getData();
-    }
-
-    /**
-     * Notifies a main access {@code oma} to a given object.
-     *
-     * @param oma Object Access.
-     * @return Final value.
-     * @throws ValueUnawareRuntimeException the runtime is not aware of the last value of the accessed data
-     */
-    public <T> T mainAccess(ObjectMainAccess<T, ?, ?> oma) throws ValueUnawareRuntimeException {
-        ObjectAccessParams<T, ?> oap = oma.getParameters();
-        if (DEBUG) {
-            LOGGER.debug("Requesting main access to " + oap.getDataDescription());
-        }
-
-        boolean validValue = isCurrentRegisterValueValid(oap.getData());
-        if (validValue) {
-            // Main code is still performing the same modification.
-            // No need to register it as a new version.
-            throw new ValueUnawareRuntimeException();
-        }
-
-        // Tell the DIP that the application wants to access an object
-        DataAccessId oaId = registerDataAccess(oap, AccessMode.RW);
-
-        // Ask for the object
-        T oUpdated;
-        oUpdated = oma.fetchObject(oaId);
-        if (oma.isAccessFinishedOnRegistration()) {
-            DataInstanceId wId = null;
-            if (oaId.isWrite()) {
-                wId = ((WritingDataAccessId) oaId).getWrittenDataInstance();
-            }
-            finishDataAccess(oap, wId);
-
-        }
-        return oUpdated;
     }
 
     /**
@@ -614,8 +569,10 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
      * @param access Access parameters.
      * @param taskMode Access mode to register the data access.
      * @return The registered access Id.
+     * @throws ValueUnawareRuntimeException the runtime is not aware of the last value of the accessed data
      */
-    private DataAccessId registerDataAccess(AccessParams access, AccessMode taskMode) {
+    private DataAccessId registerDataAccess(AccessParams access, AccessMode taskMode)
+        throws ValueUnawareRuntimeException {
         RegisterDataAccessRequest request = new RegisterDataAccessRequest(access, taskMode);
         if (!this.requestQueue.offer(request)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "register data access");

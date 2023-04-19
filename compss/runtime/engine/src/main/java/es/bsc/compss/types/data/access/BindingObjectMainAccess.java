@@ -66,7 +66,7 @@ public class BindingObjectMainAccess
      * @return Location of the transferred open file.
      */
     @Override
-    public BindingObject fetchObject(DataAccessId daId) {
+    public BindingObject fetch(DataAccessId daId) {
         LOGGER.debug("[AccessProcessor] Obtaining " + this.getParameters().getDataDescription());
 
         // Get target information

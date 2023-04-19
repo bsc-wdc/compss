@@ -40,7 +40,7 @@ import java.util.concurrent.Semaphore;
  * Handling of an access from the main code to an object.
  */
 public class ObjectMainAccess<V extends Object, D extends ObjectData, P extends ObjectAccessParams<V, D>>
-    extends MainAccess<D, P> {
+    extends MainAccess<V, D, P> {
 
     private static final String ERROR_OBJECT_LOAD = "ERROR: Cannot load object from storage (file or PSCO)";
 
@@ -64,13 +64,8 @@ public class ObjectMainAccess<V extends Object, D extends ObjectData, P extends 
         super(params);
     }
 
-    /**
-     * Fetches the last version of the object.
-     *
-     * @param daId Data Access Id.
-     * @return Location of the transferred open file.
-     */
-    public V fetchObject(DataAccessId daId) {
+    @Override
+    public V fetch(DataAccessId daId) {
         if (DEBUG) {
             LOGGER.debug("Request object transfer " + daId.getDataId());
         }
@@ -136,11 +131,7 @@ public class ObjectMainAccess<V extends Object, D extends ObjectData, P extends 
         return (V) ld.readFromStorage();
     }
 
-    /**
-     * Returns whether the registration of the access leads to its immediate finalization.
-     *
-     * @return {@literal true} if the finalization of the access is to be registers; {@literal false} otherwise.
-     */
+    @Override
     public boolean isAccessFinishedOnRegistration() {
         return true;
     }

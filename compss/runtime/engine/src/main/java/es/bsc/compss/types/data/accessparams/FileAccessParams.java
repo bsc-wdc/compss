@@ -17,6 +17,7 @@
 package es.bsc.compss.types.data.accessparams;
 
 import es.bsc.compss.comm.Comm;
+import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.DataInfo;
@@ -24,6 +25,7 @@ import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.DataParams.FileData;
 import es.bsc.compss.types.data.DataVersion;
 import es.bsc.compss.types.data.location.DataLocation;
+import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
 
 
 public class FileAccessParams<D extends FileData> extends AccessParams<D> {
@@ -59,6 +61,20 @@ public class FileAccessParams<D extends FileData> extends AccessParams<D> {
      */
     public final DataLocation getLocation() {
         return this.data.getLocation();
+    }
+
+    /**
+     * Verifies that the runtime is aware of the value and the access should be registered.
+     * 
+     * @param ap Acces processor controlling the execution
+     * @throws ValueUnawareRuntimeException the runtime is not aware of the last value of the accessed data
+     */
+    public void checkAccessValidity(AccessProcessor ap) throws ValueUnawareRuntimeException {
+        boolean alreadyAccessed = ap.alreadyAccessed(this.getData());
+        if (!alreadyAccessed) {
+            LOGGER.debug(this.getDataDescription() + " accessed before, returning the same location");
+            throw new ValueUnawareRuntimeException();
+        }
     }
 
     @Override

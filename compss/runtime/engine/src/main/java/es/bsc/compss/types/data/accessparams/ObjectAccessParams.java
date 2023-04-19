@@ -17,12 +17,14 @@
 package es.bsc.compss.types.data.accessparams;
 
 import es.bsc.compss.comm.Comm;
+import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.DataParams.ObjectData;
 import es.bsc.compss.types.data.DataVersion;
+import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
 
 
 public class ObjectAccessParams<T extends Object, D extends ObjectData> extends AccessParams<D> {
@@ -70,6 +72,21 @@ public class ObjectAccessParams<T extends Object, D extends ObjectData> extends 
      */
     public final int getCode() {
         return this.data.getCode();
+    }
+
+    /**
+     * Verifies that the runtime is aware of the value and the access should be registered.
+     * 
+     * @param ap Acces processor controlling the execution
+     * @throws ValueUnawareRuntimeException the runtime is not aware of the last value of the accessed data
+     */
+    public void checkAccessValidity(AccessProcessor ap) throws ValueUnawareRuntimeException {
+        boolean validValue = ap.isCurrentRegisterValueValid(this.getData());
+        if (validValue) {
+            // Main code is still performing the same modification.
+            // No need to register it as a new version.
+            throw new ValueUnawareRuntimeException();
+        }
     }
 
     @Override

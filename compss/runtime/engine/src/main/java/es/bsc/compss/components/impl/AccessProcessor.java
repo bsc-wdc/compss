@@ -313,18 +313,13 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
      */
     public DataLocation mainAccessToFile(FileMainAccess<?, ?> fma) throws ValueUnawareRuntimeException {
         FileAccessParams fap = fma.getParameters();
-        boolean alreadyAccessed = alreadyAccessed(fap.getData());
-        DataLocation sourceLocation = fap.getLocation();
-        if (!alreadyAccessed) {
-            LOGGER.debug("File not accessed before, returning the same location");
-            throw new ValueUnawareRuntimeException();
-        }
+        fap.checkAccessValidity(this);
 
         // Tell the DM that the application wants to access a file.
         // Wait until the last writer task for the file has finished.
         DataAccessId faId = registerDataAccess(fap, AccessMode.R);
 
-        DataLocation tgtLocation = sourceLocation;
+        DataLocation tgtLocation = fap.getLocation();
         if (faId == null) { // If fiId is null data is cancelled returning null location
             ErrorManager.warn("No version available. Returning null");
             try {
@@ -370,17 +365,11 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
      */
     public DataLocation mainAccessToDirectory(DirectoryMainAccess dma) throws ValueUnawareRuntimeException {
         DirectoryAccessParams dap = dma.getParameters();
-        boolean alreadyAccessed = alreadyAccessed(dap.getData());
-        DataLocation sourceLocation = dap.getLocation();
-        if (!alreadyAccessed) {
-            LOGGER.debug("Directory not accessed before, returning the same location");
-            throw new ValueUnawareRuntimeException();
-        }
-
+        dap.checkAccessValidity(this);
         // Tell the DM that the application wants to access a file.
         DataAccessId daId = registerDataAccess(dap, AccessMode.R);
 
-        DataLocation tgtLocation = sourceLocation;
+        DataLocation tgtLocation = dap.getLocation();
         if (daId == null) { // If fiId is null data is cancelled returning null location
             ErrorManager.warn("No version available. Returning null");
             try {
@@ -470,13 +459,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         if (DEBUG) {
             LOGGER.debug("Requesting main access to " + oap.getDataDescription());
         }
-
-        boolean validValue = isCurrentRegisterValueValid(oap.getData());
-        if (validValue) {
-            // Main code is still performing the same modification.
-            // No need to register it as a new version.
-            throw new ValueUnawareRuntimeException();
-        }
+        oap.checkAccessValidity(this);
 
         // Tell the DIP that the application wants to access an object
         DataAccessId oaId = registerDataAccess(oap, AccessMode.RW);

@@ -292,14 +292,33 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     }
 
     /**
-     * Marks an access to a data as finished.
+     * Notifies a main access {@code oma} to a given object.
      *
-     * @param ap Access parameters.
+     * @param oma Object Access.
+     * @return Final value.
+     * @throws ValueUnawareRuntimeException the runtime is not aware of the last value of the accessed data
      */
-    public void finishDataAccess(AccessParams ap, DataInstanceId generatedDaId) {
-        if (!this.requestQueue.offer(new FinishDataAccessRequest(ap, generatedDaId))) {
-            ErrorManager.error(ERROR_QUEUE_OFFER + "finishing data access");
+    public <T> T mainAccess(ObjectMainAccess<T, ?, ?> oma) throws ValueUnawareRuntimeException {
+        ObjectAccessParams<T, ?> oap = oma.getParameters();
+        if (DEBUG) {
+            LOGGER.debug("Requesting main access to " + oap.getDataDescription());
         }
+
+        // Tell the DIP that the application wants to access an object
+        DataAccessId oaId = registerDataAccess(oap, AccessMode.RW);
+
+        // Ask for the object
+        T oUpdated;
+        oUpdated = oma.fetchObject(oaId);
+        if (oma.isAccessFinishedOnRegistration()) {
+            DataInstanceId wId = null;
+            if (oaId.isWrite()) {
+                wId = ((WritingDataAccessId) oaId).getWrittenDataInstance();
+            }
+            finishDataAccess(oap, wId);
+
+        }
+        return oUpdated;
     }
 
     /**
@@ -402,6 +421,17 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     }
 
     /**
+     * Marks an access to a data as finished.
+     *
+     * @param ap Access parameters.
+     */
+    public void finishDataAccess(AccessParams ap, DataInstanceId generatedDaId) {
+        if (!this.requestQueue.offer(new FinishDataAccessRequest(ap, generatedDaId))) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "finishing data access");
+        }
+    }
+
+    /**
      * Returns the Identifier of the data corresponding to the last version of an dat.
      *
      * @param data Description of the data being accessed.
@@ -415,36 +445,6 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         }
 
         return odr.getData();
-    }
-
-    /**
-     * Notifies a main access {@code oma} to a given object.
-     *
-     * @param oma Object Access.
-     * @return Final value.
-     * @throws ValueUnawareRuntimeException the runtime is not aware of the last value of the accessed data
-     */
-    public <T> T mainAccess(ObjectMainAccess<T, ?, ?> oma) throws ValueUnawareRuntimeException {
-        ObjectAccessParams<T, ?> oap = oma.getParameters();
-        if (DEBUG) {
-            LOGGER.debug("Requesting main access to " + oap.getDataDescription());
-        }
-
-        // Tell the DIP that the application wants to access an object
-        DataAccessId oaId = registerDataAccess(oap, AccessMode.RW);
-
-        // Ask for the object
-        T oUpdated;
-        oUpdated = oma.fetchObject(oaId);
-        if (oma.isAccessFinishedOnRegistration()) {
-            DataInstanceId wId = null;
-            if (oaId.isWrite()) {
-                wId = ((WritingDataAccessId) oaId).getWrittenDataInstance();
-            }
-            finishDataAccess(oap, wId);
-
-        }
-        return oUpdated;
     }
 
     /**

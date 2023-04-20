@@ -895,7 +895,8 @@ class DDS:
                 chunk.sort(
                     key=lambda kv: key_func(kv[0]), reverse=not ascending
                 )
-                chunks.append(chunk)
+                if len(chunk) > 0:
+                    chunks.append(chunk[0])
                 if len(chunk) < chunk_size:
                     break
             else:

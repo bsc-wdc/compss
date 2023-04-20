@@ -251,6 +251,7 @@ public class Executor implements Runnable, InvocationRunner {
 
         try {
             execute();
+            success = true;
         } catch (COMPSsException e) {
             throw e;
         } catch (Exception e) {
@@ -355,13 +356,20 @@ public class Executor implements Runnable, InvocationRunner {
             }
 
             filesWrapperAndRun(twd);
-        } finally {
             // Clean the task sandbox working dir if no error
             if (IS_TIMER_COMPSS_ENABLED) {
                 cleanTaskSandboxWithTimer(twd);
             } else {
                 cleanTaskSandbox(twd);
             }
+        } catch (COMPSsException e) {
+            // Clean the task sandbox working dir if no error
+            if (IS_TIMER_COMPSS_ENABLED) {
+                cleanTaskSandboxWithTimer(twd);
+            } else {
+                cleanTaskSandbox(twd);
+            }
+            throw e;
         }
     }
 

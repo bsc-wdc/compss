@@ -194,6 +194,9 @@ public class COMPSsConstants {
     public static final String DOCKER_WORKING_DIR_VOLUME = "DOCKER_WORKING_DIR_VOLUME";
     public static final String DOCKER_WORKING_DIR_MOUNT = "DOCKER_WORKING_DIR_MOUNT";
 
+    public static final String MASTER_CONTAINER_IMAGE = "MASTER_CONTAINER_IMAGE";
+    public static final String MPI_RUNNER_SCRIPT = "MPI_RUNNER_SCRIPT";
+
 
     /**
      * Private constructor to avoid instantiation.

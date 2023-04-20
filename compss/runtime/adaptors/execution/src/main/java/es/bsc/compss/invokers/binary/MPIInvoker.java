@@ -194,9 +194,19 @@ public class MPIInvoker extends Invoker {
             cmdLength += numOptions;
         }
 
+        String masterContImage = System.getenv(COMPSsConstants.MASTER_CONTAINER_IMAGE);
+        if (masterContImage != null && !masterContImage.isEmpty()) {
+            cmdLength++;
+        }
         String[] cmd = new String[cmdLength];
 
         int pos = 0;
+
+        if (masterContImage != null && !masterContImage.isEmpty()) {
+            String script = System.getenv(COMPSsConstants.MPI_RUNNER_SCRIPT);
+            cmd[pos++] = script;
+        }
+
         cmd[pos++] = this.mpiDef.getMpiRunner();
         cmd[pos++] = this.mpiDef.getHostsFlag();
         String hostfilePath;

@@ -1854,13 +1854,37 @@ set_variables() {
     worker_install_dir=${COMPSS_HOME}
   else
     if [ -z "${container_compss_path}" ]; then
+
       export SINGULARITYENV_COMPSS_HOME=/opt/COMPSs/
+      export SINGULARITYENV_COMPSS_MASTER_WORKING_DIR=$COMPSS_MASTER_WORKING_DIR
       export SINGULARITYENV_GAT_LOCATION=/opt/COMPSs/Dependencies/JAVA_GAT
+
+      export MASTER_CONTAINER_IMAGE=${container_image}
+      export MPI_RUNNER_SCRIPT=/opt/COMPSs/Runtime/scripts/utils/mpi_run.sh
+      export SINGULARITYENV_MASTER_CONTAINER_IMAGE=${container_image}
+      export SINGULARITYENV_MPI_RUNNER_SCRIPT=/opt/COMPSs/Runtime/scripts/utils/mpi_run.sh
+      # to load the modules when ssh'ing
+      export SINGULARITYENV_ENV_SCRIPT=$ENV_LOAD_MODULES_SCRIPT
+      export SINGULARITYENV_SLURM_JOBID=$SLURM_JOBID
+      export SINGULARITYENV_SLURM_JOB_ID=$SLURM_JOB_ID
+
+
       worker_install_dir=/opt/COMPSs
       cont_COMPSS_HOME=/opt/COMPSs/
     else
       export SINGULARITYENV_COMPSS_HOME=${container_compss_path}/
+      export SINGULARITYENV_COMPSS_MASTER_WORKING_DIR=$COMPSS_MASTER_WORKING_DIR
       export SINGULARITYENV_GAT_LOCATION=${container_compss_path}/Dependencies/JAVA_GAT
+
+      export MASTER_CONTAINER_IMAGE=${container_image}
+      export MPI_RUNNER_SCRIPT=${container_compss_path}/Runtime/scripts/utils/mpi_run.sh
+      export SINGULARITYENV_MASTER_CONTAINER_IMAGE=${container_image}
+      export SINGULARITYENV_MPI_RUNNER_SCRIPT=${container_compss_path}/Runtime/scripts/utils/mpi_run.sh
+      # to load the modules when ssh'ing
+      export SINGULARITYENV_ENV_SCRIPT=$ENV_LOAD_MODULES_SCRIPT
+      export SINGULARITYENV_SLURM_JOBID=$SLURM_JOBID
+      export SINGULARITYENV_SLURM_JOB_ID=$SLURM_JOB_ID
+
       worker_install_dir=${container_compss_path}/
       cont_COMPSS_HOME=${container_compss_path}/
     fi

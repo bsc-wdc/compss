@@ -20,6 +20,7 @@ import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.CommutativeGroupTask;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.DataInstanceId;
 
 
 /**
@@ -33,10 +34,9 @@ public interface GraphHandler {
      *
      * @param task Task that generated the value.
      * @param edgeType Type of edge for the DOT representation.
-     * @param dataId Data causing the dependency.
-     * @param dataVersion Version of the data causing the dependency
+     * @param accessedData Data being accessed
      */
-    public void addEdgeFromTaskToMain(AbstractTask task, EdgeType edgeType, int dataId, int dataVersion);
+    public void addEdgeFromTaskToMain(AbstractTask task, EdgeType edgeType, DataInstanceId accessedData);
 
     /**
      * Adds edges to graph.

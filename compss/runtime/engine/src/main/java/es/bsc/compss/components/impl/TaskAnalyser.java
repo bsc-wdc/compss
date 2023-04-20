@@ -34,6 +34,8 @@ import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataAccessId.Direction;
+import es.bsc.compss.types.data.DataAccessId.ReadingDataAccessId;
+import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
 import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.accessid.RAccessId;
@@ -227,29 +229,22 @@ public class TaskAnalyser implements GraphHandler {
             LOGGER.debug("Registered access to data " + daId.getDataId() + " from main code");
         }
 
-        if (access.getMode() != AccessMode.W) {
-            int dataId = daId.getDataId();
-
-            DataInstanceId di;
-            if (daId.getDirection() == Direction.R) {
-                di = ((RAccessId) daId).getReadDataInstance();
-            } else {
-                // Access is RW
-                di = ((RWAccessId) daId).getReadDataInstance();
-            }
+        if (daId.isRead()) {
+            ReadingDataAccessId rdaId = (ReadingDataAccessId) daId;
+            DataInstanceId di = rdaId.getReadDataInstance();
             cp.mainAccess(di);
 
+            int dataId = daId.getDataId();
             // Retrieve writers information
             DataAccessesInfo dai = this.accessesInfo.get(dataId);
             if (dai != null) {
-                int dataVersion = 0;
-                if (IS_DRAW_GRAPH) {
-                    TreeSet<Integer> toPass = new TreeSet<>();
-                    toPass.add(dataId);
-                    DataInstanceId dii = this.dip.getLastVersions(toPass).get(0);
-                    dataVersion = dii.getVersionId();
+                DataInstanceId depInstance;
+                if (daId.isWrite()) {
+                    depInstance = ((WritingDataAccessId) daId).getWrittenDataInstance();
+                } else {
+                    depInstance = di;
                 }
-                dai.mainAccess(rdar, this, dataId, dataVersion);
+                dai.mainAccess(rdar, this, depInstance);
             }
         }
         return daId;
@@ -898,7 +893,7 @@ public class TaskAnalyser implements GraphHandler {
     }
 
     @Override
-    public void addEdgeFromTaskToMain(AbstractTask task, EdgeType edgeType, int dataId, int dataVersion) {
+    public void addEdgeFromTaskToMain(AbstractTask task, EdgeType edgeType, DataInstanceId accessedData) {
         // Add Sync if any task has been created
         if (this.taskDetectedAfterSync) {
             this.taskDetectedAfterSync = false;
@@ -913,6 +908,8 @@ public class TaskAnalyser implements GraphHandler {
             this.gm.addEdgeToGraph(oldSync, currentSync, edgeType, "");
         }
 
+        int dataId = accessedData.getDataId();
+        int dataVersion = accessedData.getVersionId();
         // Add edge from task to sync
         String dest = "Synchro" + this.synchronizationId;
         if (task instanceof CommutativeGroupTask && !((CommutativeGroupTask) task).getCommutativeTasks().isEmpty()) {

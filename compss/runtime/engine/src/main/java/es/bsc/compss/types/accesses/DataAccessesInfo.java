@@ -22,6 +22,7 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.parameter.impl.DependencyParameter;
 import es.bsc.compss.types.request.ap.RegisterDataAccessRequest;
 import java.util.List;
@@ -107,10 +108,9 @@ public abstract class DataAccessesInfo {
      *
      * @param rdar Request to access the data value
      * @param gh class handling the requests to add edges to the monitoring graph
-     * @param dataId data id
-     * @param dataVersion version id
+     * @param depInstance data instance being accessed
      */
-    public abstract void mainAccess(RegisterDataAccessRequest rdar, GraphHandler gh, int dataId, int dataVersion);
+    public abstract void mainAccess(RegisterDataAccessRequest rdar, GraphHandler gh, DataInstanceId depInstance);
 
     /**
      * Checks whether t is responsible for the generation of the last version of the value.

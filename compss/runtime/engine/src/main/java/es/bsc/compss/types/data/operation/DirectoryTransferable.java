@@ -17,57 +17,21 @@
 package es.bsc.compss.types.data.operation;
 
 import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.data.Transferable;
 
 
-public class DirectoryTransferable implements Transferable {
-
-    private Object source;
-    private String target;
-    private boolean preserveSourceData;
-
+public class DirectoryTransferable extends FileTransferable {
 
     public DirectoryTransferable() {
-        this.preserveSourceData = true;
+        super();
     }
 
     public DirectoryTransferable(boolean preserveSource) {
-        this.preserveSourceData = preserveSource;
-    }
-
-    @Override
-    public Object getDataSource() {
-        return source;
-    }
-
-    @Override
-    public void setDataSource(Object dataSource) {
-        this.source = dataSource;
-    }
-
-    @Override
-    public String getDataTarget() {
-        return target;
-    }
-
-    @Override
-    public void setDataTarget(String target) {
-        this.target = target;
+        super(preserveSource);
     }
 
     @Override
     public DataType getType() {
         return DataType.DIRECTORY_T;
-    }
-
-    @Override
-    public boolean isSourcePreserved() {
-        return this.preserveSourceData;
-    }
-
-    @Override
-    public boolean isTargetFlexible() {
-        return false;
     }
 
 }

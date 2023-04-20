@@ -29,6 +29,7 @@ import es.bsc.compss.types.data.accessparams.DirectoryAccessParams;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.operation.DirectoryTransferable;
+import es.bsc.compss.types.data.operation.FileTransferable;
 import es.bsc.compss.types.data.operation.OneOpWithSemListener;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
@@ -60,87 +61,17 @@ public class DirectoryMainAccess extends FileMainAccess<DirectoryData, Directory
 
     @Override
     public DataLocation getUnavailableValueResponse() {
-        return this.createDirLocation("null");
+        return this.createExpectedLocalLocation("null");
     }
 
-    /**
-     * Fetches the last version of the directory.
-     *
-     * @param daId Data Access Id.
-     * @return Location of the transferred open directory.
-     */
     @Override
-    public DataLocation fetch(DataAccessId daId) {
-        DataLocation tgtLocation = this.getParameters().getLocation();
-        if (daId.isRead()) {
-            tgtLocation = fetchR(daId);
-        }
-        if (daId.isWrite()) {
-            LOGGER.debug("Data " + daId.getDataId() + " mode contains W, register new writer");
-            WritingDataAccessId wdaId = (WritingDataAccessId) daId;
-            DataInstanceId diId = wdaId.getWrittenDataInstance();
-            String rename = diId.getRenaming();
-            String path = ProtocolType.DIR_URI.getSchema() + Comm.getAppHost().getWorkingDirectory() + rename;
-            try {
-                SimpleURI uri = new SimpleURI(path);
-                tgtLocation = DataLocation.createLocation(Comm.getAppHost(), uri);
-            } catch (Exception e) {
-                ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + path, e);
-            }
-            Comm.registerLocation(rename, tgtLocation);
-        }
-
-        if (DEBUG) {
-            LOGGER.debug("Directory " + daId.getDataId() + " located on " + tgtLocation.toString());
-        }
-        return tgtLocation;
+    protected DirectoryTransferable createExpectedTransferable(boolean preserveSource) {
+        return new DirectoryTransferable(preserveSource);
     }
 
-    private DataLocation fetchR(DataAccessId daId) {
-        // Get target information
-        DataInstanceId targetFile;
-        if (daId.isWrite()) {
-            DataAccessId.WritingDataAccessId waId = (DataAccessId.WritingDataAccessId) daId;
-            targetFile = waId.getWrittenDataInstance();
-
-        } else {
-            // Read only mode
-            RAccessId raId = (RAccessId) daId;
-            targetFile = raId.getReadDataInstance();
-        }
-        String targetName = targetFile.getRenaming();
-        String targetPath = Comm.getAppHost().getWorkingDirectory() + targetName;
-        LOGGER.debug("Openning directory " + targetName + " at " + targetPath);
-
-        // Create location
-        DataLocation targetLocation = createDirLocation(targetPath);
-        if (daId.isRead()) {
-            LOGGER.debug("Asking for transfer");
-            DataAccessId.ReadingDataAccessId rdaId = (DataAccessId.ReadingDataAccessId) daId;
-            LogicalData srcData = rdaId.getReadDataInstance().getData();
-            DirectoryTransferable dt = new DirectoryTransferable(daId.isPreserveSourceData());
-            Semaphore sem = new Semaphore(0);
-            OneOpWithSemListener listener = new OneOpWithSemListener(sem);
-            if (daId.isWrite()) {
-                Comm.getAppHost().getData(srcData, targetName, (LogicalData) null, dt, listener);
-            } else {
-                Comm.getAppHost().getData(srcData, dt, listener);
-            }
-            sem.acquireUninterruptibly();
-            String finalPath = dt.getDataTarget();
-            return createDirLocation(finalPath);
-        } else {
-            LOGGER.debug("Write only mode. Auto-release");
-            Comm.registerLocation(targetName, targetLocation);
-            // Register target location
-            LOGGER.debug("Setting target location to " + targetLocation);
-            return targetLocation;
-        }
-    }
-
-    private DataLocation createDirLocation(String localPath) {
-        SimpleURI targetURI = new SimpleURI(ProtocolType.DIR_URI.getSchema() + localPath);
-        return createLocalLocation(targetURI);
+    @Override
+    protected ProtocolType expectedProtocol() {
+        return ProtocolType.DIR_URI;
     }
 
 }

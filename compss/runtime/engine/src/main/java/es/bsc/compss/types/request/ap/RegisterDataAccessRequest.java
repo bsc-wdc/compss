@@ -35,7 +35,6 @@ public class RegisterDataAccessRequest extends APRequest implements TaskListener
 
     private final AccessParams accessParams;
     private DataAccessId accessId;
-    private final AccessMode accessMode;
 
     private int pendingOperation = 0;
     private boolean released = false;
@@ -47,11 +46,9 @@ public class RegisterDataAccessRequest extends APRequest implements TaskListener
      * Creates a new request to register a data access.
      *
      * @param access AccessParams to register.
-     * @param accessMode Access mode to register the data access.
      */
-    public RegisterDataAccessRequest(AccessParams access, AccessMode accessMode) {
+    public RegisterDataAccessRequest(AccessParams access) {
         this.accessParams = access;
-        this.accessMode = accessMode;
         this.sem = new Semaphore(0);
     }
 
@@ -70,7 +67,7 @@ public class RegisterDataAccessRequest extends APRequest implements TaskListener
      * @return The associated access mode to the data.
      */
     public AccessParams.AccessMode getTaskAccessMode() {
-        return this.accessMode;
+        return this.accessParams.getMode();
     }
 
     /**

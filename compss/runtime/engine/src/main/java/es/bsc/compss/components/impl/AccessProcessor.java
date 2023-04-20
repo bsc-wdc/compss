@@ -304,7 +304,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         }
 
         // Tell the DIP that the application wants to access an object
-        DataAccessId daId = registerDataAccess(ap, AccessMode.RW);
+        DataAccessId daId = registerDataAccess(ap);
         if (daId == null) {
             ErrorManager.warn("No version available. Returning null");
             return ma.getUnavailableValueResponse();
@@ -336,7 +336,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
 
         // Tell the DM that the application wants to access a file.
         // Wait until the last writer task for the file has finished.
-        DataAccessId faId = registerDataAccess(fap, AccessMode.R);
+        DataAccessId faId = registerDataAccess(fap);
 
         if (faId == null) { // If fiId is null data is cancelled returning null location
             ErrorManager.warn("No version available. Returning null");
@@ -492,13 +492,11 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
      * Registers a new data access and waits for it to be available.
      *
      * @param access Access parameters.
-     * @param taskMode Access mode to register the data access.
      * @return The registered access Id.
      * @throws ValueUnawareRuntimeException the runtime is not aware of the last value of the accessed data
      */
-    private DataAccessId registerDataAccess(AccessParams access, AccessMode taskMode)
-        throws ValueUnawareRuntimeException {
-        RegisterDataAccessRequest request = new RegisterDataAccessRequest(access, taskMode);
+    private DataAccessId registerDataAccess(AccessParams access) throws ValueUnawareRuntimeException {
+        RegisterDataAccessRequest request = new RegisterDataAccessRequest(access);
         if (!this.requestQueue.offer(request)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "register data access");
         }

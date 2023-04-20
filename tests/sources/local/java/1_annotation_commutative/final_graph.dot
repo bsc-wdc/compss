@@ -29,6 +29,19 @@ Synchro0 -> 8;
 Synchro1[label="sync", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
 Synchro0 -> Synchro1;
 3 -> Synchro1 [label="d1v7"][ ltail="clusterCommutative1_3" ];
+subgraph clusterCommutative1_3 {
+shape=rect;
+node[height=0.75];
+color="#A9A9A9";
+rank=same;
+label="CGT1_3";
+
+3[shape=circle, style=filled fillcolor="#ff00ae" fontcolor="#000000"];
+5[shape=circle, style=filled fillcolor="#ff00ae" fontcolor="#000000"];
+7[shape=circle, style=filled fillcolor="#ff00ae" fontcolor="#000000"];
+9[shape=circle, style=filled fillcolor="#ff00ae" fontcolor="#000000"];
+}
+
 10[shape=circle, style=filled fillcolor="#eb0000" fontcolor="#ffffff"];
 Synchro1 -> 10;
 11[shape=circle, style=filled fillcolor="#ff00ff" fontcolor="#000000"];
@@ -95,6 +108,18 @@ label="CGT6_0";
 Synchro3[label="sync", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
 Synchro2 -> Synchro3;
 24 -> Synchro3 [label="d6v9"][ ltail="clusterCommutative6_1" ];
+subgraph clusterCommutative6_1 {
+shape=rect;
+node[height=0.75];
+color="#A9A9A9";
+rank=same;
+label="CGT6_1";
+
+24[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+25[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+26[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+}
+
 27[shape=circle, style=filled fillcolor="#ffff00" fontcolor="#000000"];
 Synchro3 -> 27;
 28[shape=circle, style=filled fillcolor="#ffff00" fontcolor="#000000"];
@@ -117,31 +142,6 @@ label="CGT13_8";
 30[shape=circle, style=filled fillcolor="#00a200" fontcolor="#ffffff"];
 31[shape=circle, style=filled fillcolor="#00a200" fontcolor="#ffffff"];
 32[shape=circle, style=filled fillcolor="#00a200" fontcolor="#ffffff"];
-}
-
-subgraph clusterCommutative1_3 {
-shape=rect;
-node[height=0.75];
-color="#A9A9A9";
-rank=same;
-label="CGT1_3";
-
-3[shape=circle, style=filled fillcolor="#ff00ae" fontcolor="#000000"];
-5[shape=circle, style=filled fillcolor="#ff00ae" fontcolor="#000000"];
-7[shape=circle, style=filled fillcolor="#ff00ae" fontcolor="#000000"];
-9[shape=circle, style=filled fillcolor="#ff00ae" fontcolor="#000000"];
-}
-
-subgraph clusterCommutative6_1 {
-shape=rect;
-node[height=0.75];
-color="#A9A9A9";
-rank=same;
-label="CGT6_1";
-
-24[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
-25[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
-26[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
 }
 
 Synchro5[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
@@ -186,6 +186,10 @@ Synchro5 -> Synchro6;
 <td bgcolor="#b30000">&nbsp;</td>
 </tr>
 <tr>
+<td align="right">reduce_and_check_task</td>
+<td bgcolor="#ff00ae">&nbsp;</td>
+</tr>
+<tr>
 <td align="right">writeTwoSlow</td>
 <td bgcolor="#ff00ff">&nbsp;</td>
 </tr>
@@ -212,10 +216,6 @@ Synchro5 -> Synchro6;
 <tr>
 <td align="right">writeThree</td>
 <td bgcolor="#00a200">&nbsp;</td>
-</tr>
-<tr>
-<td align="right">reduce_and_check_task</td>
-<td bgcolor="#ff00ae">&nbsp;</td>
 </tr>
       </table>
     >]

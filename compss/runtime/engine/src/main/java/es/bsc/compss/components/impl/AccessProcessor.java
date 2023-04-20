@@ -38,12 +38,10 @@ import es.bsc.compss.types.data.ResultFile;
 import es.bsc.compss.types.data.access.DirectoryMainAccess;
 import es.bsc.compss.types.data.access.FileMainAccess;
 import es.bsc.compss.types.data.access.MainAccess;
-import es.bsc.compss.types.data.access.ObjectMainAccess;
 import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
 import es.bsc.compss.types.data.accessparams.DirectoryAccessParams;
 import es.bsc.compss.types.data.accessparams.FileAccessParams;
-import es.bsc.compss.types.data.accessparams.ObjectAccessParams;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.parameter.impl.Parameter;
@@ -300,26 +298,30 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
      * @throws ValueUnawareRuntimeException the runtime is not aware of the last value of the accessed data
      */
     public <T> T mainAccess(MainAccess<T, ?, ?> ma) throws ValueUnawareRuntimeException {
-        AccessParams<?> oap = ma.getParameters();
+        AccessParams<?> ap = ma.getParameters();
         if (DEBUG) {
-            LOGGER.debug("Requesting main access to " + oap.getDataDescription());
+            LOGGER.debug("Requesting main access to " + ap.getDataDescription());
         }
 
         // Tell the DIP that the application wants to access an object
-        DataAccessId oaId = registerDataAccess(oap, AccessMode.RW);
+        DataAccessId daId = registerDataAccess(ap, AccessMode.RW);
+        if (daId == null) {
+            ErrorManager.warn("No version available. Returning null");
+            return ma.getUnavailableValueResponse();
+        } else {
+            // Ask for the object
+            T oUpdated;
+            oUpdated = ma.fetch(daId);
+            if (ma.isAccessFinishedOnRegistration()) {
+                DataInstanceId wId = null;
+                if (daId.isWrite()) {
+                    wId = ((WritingDataAccessId) daId).getWrittenDataInstance();
+                }
+                finishDataAccess(ap, wId);
 
-        // Ask for the object
-        T oUpdated;
-        oUpdated = ma.fetch(oaId);
-        if (ma.isAccessFinishedOnRegistration()) {
-            DataInstanceId wId = null;
-            if (oaId.isWrite()) {
-                wId = ((WritingDataAccessId) oaId).getWrittenDataInstance();
             }
-            finishDataAccess(oap, wId);
-
+            return oUpdated;
         }
-        return oUpdated;
     }
 
     /**
@@ -336,89 +338,12 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         // Wait until the last writer task for the file has finished.
         DataAccessId faId = registerDataAccess(fap, AccessMode.R);
 
-        DataLocation tgtLocation = fap.getLocation();
         if (faId == null) { // If fiId is null data is cancelled returning null location
             ErrorManager.warn("No version available. Returning null");
-            try {
-                String path = ProtocolType.FILE_URI.getSchema() + "null";
-                tgtLocation = DataLocation.createLocation(Comm.getAppHost(), new SimpleURI(path));
-            } catch (Exception e) {
-                ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION, e);
-            }
+            return fma.getUnavailableValueResponse();
         } else {
-            if (faId.isRead()) {
-                tgtLocation = fma.fetch(faId);
-            }
-
-            if (faId.isWrite()) {
-                // Mode contains W
-                LOGGER.debug("File " + faId.getDataId() + " mode contains W, register new writer");
-                WritingDataAccessId wdaId = (WritingDataAccessId) faId;
-                DataInstanceId daId = wdaId.getWrittenDataInstance();
-                String rename = daId.getRenaming();
-                String path = ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getWorkingDirectory() + rename;
-                try {
-                    SimpleURI uri = new SimpleURI(path);
-                    tgtLocation = DataLocation.createLocation(Comm.getAppHost(), uri);
-                } catch (Exception e) {
-                    ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + path, e);
-                }
-                Comm.registerLocation(rename, tgtLocation);
-            }
-            if (DEBUG) {
-                LOGGER.debug("File " + faId.getDataId() + " located on "
-                    + (tgtLocation != null ? tgtLocation.toString() : "null"));
-            }
+            return fma.fetch(faId);
         }
-        return tgtLocation;
-    }
-
-    /**
-     * Notifies a main access {@code sourceLocation} to a given directory.
-     *
-     * @param dma Directory Access Description.
-     * @return Final location.
-     * @throws ValueUnawareRuntimeException the runtime is not aware of the last value of the accessed data
-     */
-    public DataLocation mainAccessToDirectory(DirectoryMainAccess dma) throws ValueUnawareRuntimeException {
-        DirectoryAccessParams dap = dma.getParameters();
-
-        // Tell the DM that the application wants to access a file.
-        DataAccessId daId = registerDataAccess(dap, AccessMode.R);
-
-        DataLocation tgtLocation = dap.getLocation();
-        if (daId == null) { // If fiId is null data is cancelled returning null location
-            ErrorManager.warn("No version available. Returning null");
-            try {
-                String path = ProtocolType.DIR_URI.getSchema() + "null";
-                tgtLocation = DataLocation.createLocation(Comm.getAppHost(), new SimpleURI(path));
-            } catch (Exception e) {
-                ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION, e);
-            }
-        } else {
-            if (daId.isRead()) {
-                tgtLocation = dma.fetch(daId);
-            }
-            if (daId.isWrite()) {
-                LOGGER.debug("Data " + daId.getDataId() + " mode contains W, register new writer");
-                WritingDataAccessId wdaId = (WritingDataAccessId) daId;
-                DataInstanceId diId = wdaId.getWrittenDataInstance();
-                String rename = diId.getRenaming();
-                String path = ProtocolType.DIR_URI.getSchema() + Comm.getAppHost().getWorkingDirectory() + rename;
-                try {
-                    SimpleURI uri = new SimpleURI(path);
-                    tgtLocation = DataLocation.createLocation(Comm.getAppHost(), uri);
-                } catch (Exception e) {
-                    ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + path, e);
-                }
-                Comm.registerLocation(rename, tgtLocation);
-            }
-
-            if (DEBUG) {
-                LOGGER.debug("Directory " + daId.getDataId() + " located on " + tgtLocation.toString());
-            }
-        }
-        return tgtLocation;
     }
 
     /**

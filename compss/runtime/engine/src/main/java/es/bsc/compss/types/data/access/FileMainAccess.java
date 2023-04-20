@@ -20,6 +20,8 @@ import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.DataAccessId.ReadingDataAccessId;
+import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.DataParams.FileData;
 import es.bsc.compss.types.data.LogicalData;
@@ -31,6 +33,7 @@ import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.operation.FileTransferable;
 import es.bsc.compss.types.data.operation.OneOpWithSemListener;
 import es.bsc.compss.types.uri.SimpleURI;
+import es.bsc.compss.util.ErrorManager;
 import java.util.concurrent.Semaphore;
 
 
@@ -59,55 +62,59 @@ public class FileMainAccess<D extends FileData, P extends FileAccessParams<D>> e
     }
 
     @Override
-    public DataLocation fetch(DataAccessId daId) {
+    public DataLocation getUnavailableValueResponse() {
+        return this.createExpectedLocalLocation("null");
+    }
+
+    @Override
+    public final DataLocation fetch(DataAccessId daId) {
         // Get target information
-        DataInstanceId diId;
+        DataInstanceId tgtDiId;
         if (daId.isWrite()) {
-            DataAccessId.WritingDataAccessId waId = (DataAccessId.WritingDataAccessId) daId;
-            diId = waId.getWrittenDataInstance();
+            WritingDataAccessId wdaId = (WritingDataAccessId) daId;
+            tgtDiId = wdaId.getWrittenDataInstance();
         } else {
             // Read only mode
-            RAccessId raId = (RAccessId) daId;
-            diId = raId.getReadDataInstance();
+            RAccessId rdaId = (RAccessId) daId;
+            tgtDiId = rdaId.getReadDataInstance();
         }
-        String targetName = diId.getRenaming();
+        String targetName = tgtDiId.getRenaming();
 
+        String dataDesc = this.getParameters().getDataDescription();
         LOGGER.debug("Openning file " + targetName);
 
-        String pscoId = Comm.getData(targetName).getPscoId();
-        if (pscoId == null && daId.isRead()) {
-            LOGGER.debug("Asking for transfer");
-            DataAccessId.ReadingDataAccessId rdaId = (DataAccessId.ReadingDataAccessId) daId;
-            LogicalData srcData = rdaId.getReadDataInstance().getData();
-            Semaphore sem = new Semaphore(0);
-            FileTransferable ft;
-            if (rdaId.isWrite()) {
-                ft = new FileTransferable(daId.isPreserveSourceData());
-                OneOpWithSemListener listener = new OneOpWithSemListener(sem);
-                Comm.getAppHost().getData(srcData, targetName, (LogicalData) null, ft, listener);
-            } else {
-                ft = new FileTransferable();
-                OneOpWithSemListener listener = new OneOpWithSemListener(sem);
-                Comm.getAppHost().getData(srcData, ft, listener);
-            }
-            sem.acquireUninterruptibly();
-            String finalPath = ft.getDataTarget();
-            return createFileLocation(finalPath);
-        } else {
-            LOGGER.debug("Auto-release");
-            // Create location
-            DataLocation targetLocation;
+        DataLocation tgtLocation = this.getParameters().getLocation();
+        if (daId.isRead()) {
+            String pscoId = tgtDiId.getData().getPscoId();
             if (pscoId != null) {
-                targetLocation = createPSCOLocation(pscoId);
+                tgtLocation = fetchPSCO(pscoId, targetName);
             } else {
-                String targetPath = Comm.getAppHost().getWorkingDirectory() + targetName;
-                targetLocation = createFileLocation(targetPath);
+                tgtLocation = fetchData(daId, targetName);
             }
-            Comm.registerLocation(targetName, targetLocation);
-            // Register target location
-            LOGGER.debug("Setting target location to " + targetLocation);
-            return targetLocation;
         }
+
+        if (daId.isWrite()) {
+            // Mode contains W
+            LOGGER.debug("Access to " + dataDesc + " mode contains W, register new writer");
+            String targetPath = Comm.getAppHost().getWorkingDirectory() + targetName;
+            tgtLocation = createExpectedLocalLocation(targetPath);
+            Comm.registerLocation(targetName, tgtLocation);
+        }
+        if (DEBUG) {
+            LOGGER.debug(dataDesc + " located on " + (tgtLocation != null ? tgtLocation.toString() : "null"));
+        }
+        return tgtLocation;
+    }
+
+    private DataLocation fetchPSCO(String pscoId, String targetName) {
+        LOGGER.debug("Auto-release");
+        // Create location
+        DataLocation targetLocation;
+        targetLocation = createPSCOLocation(pscoId);
+        Comm.registerLocation(targetName, targetLocation);
+        // Register target location
+        LOGGER.debug("Setting target location to " + targetLocation);
+        return targetLocation;
     }
 
     private DataLocation createPSCOLocation(String pscoId) {
@@ -115,9 +122,38 @@ public class FileMainAccess<D extends FileData, P extends FileAccessParams<D>> e
         return createLocalLocation(targetURI);
     }
 
-    private DataLocation createFileLocation(String localPath) {
-        SimpleURI targetURI = new SimpleURI(ProtocolType.FILE_URI.getSchema() + localPath);
+    protected DataLocation fetchData(DataAccessId daId, String targetName) {
+        LOGGER.debug("Asking for transfer");
+        ReadingDataAccessId rdaId = (ReadingDataAccessId) daId;
+        LogicalData srcData = rdaId.getReadDataInstance().getData();
+        Semaphore sem = new Semaphore(0);
+        FileTransferable ft;
+        LogicalData tgtData;
+        if (rdaId.isWrite()) {
+            ft = createExpectedTransferable(daId.isPreserveSourceData());
+            tgtData = null;
+        } else {
+            ft = createExpectedTransferable(true);
+            tgtData = srcData;
+        }
+        OneOpWithSemListener listener = new OneOpWithSemListener(sem);
+        Comm.getAppHost().getData(srcData, targetName, tgtData, ft, listener);
+        sem.acquireUninterruptibly();
+        String finalPath = ft.getDataTarget();
+        return createExpectedLocalLocation(finalPath);
+    }
+
+    protected final DataLocation createExpectedLocalLocation(String localPath) {
+        SimpleURI targetURI = new SimpleURI(expectedProtocol().getSchema() + localPath);
         return createLocalLocation(targetURI);
+    }
+
+    protected FileTransferable createExpectedTransferable(boolean preserveSource) {
+        return new FileTransferable(preserveSource);
+    }
+
+    protected ProtocolType expectedProtocol() {
+        return ProtocolType.FILE_URI;
     }
 
     @Override

@@ -374,10 +374,14 @@ def __plain_lists__(dictionary: dict) -> typing.Tuple[list, list]:
     return labels, values
 
 
-def __get_play_widget(function: typing.Callable) -> widgets.interactive:
+def __get_play_widget(
+    function: typing.Callable,
+    interval: int = 5000,
+) -> widgets.interactive:
     """Generate play widget.
 
     :param function: Function to associate with Play.
+    :param interval: Refresh interval.
     :return: Play widget.
     """
     play = widgets.interactive(
@@ -387,7 +391,7 @@ def __get_play_widget(function: typing.Callable) -> widgets.interactive:
             min=0,
             max=500,
             step=1,
-            interval=5000,
+            interval=interval,
             description="Press play",
             disabled=False,
         ),

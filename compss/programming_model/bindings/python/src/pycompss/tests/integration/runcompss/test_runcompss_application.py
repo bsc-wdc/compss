@@ -46,3 +46,30 @@ def test_runcompss_increment():
     )
     process.wait()
     outs, errs = process.communicate()
+
+
+def test_runcompss_increment_with_gat():
+    current_path = os.path.dirname(os.path.abspath(__file__))
+
+    # Call to runcompss for increment application
+    app = os.path.join(
+        current_path, "..", "launch", "resources", "increment.py"
+    )
+    if sys.version_info < (3, 0):
+        raise Exception("Unsupported python version. Required Python 3.X")
+    else:
+        cmd = [
+            "runcompss",
+            "--log_level=debug",
+            "--python_interpreter=python3",
+            "--comm=es.bsc.compss.gat.master.GATAdaptor",
+            app,
+        ]
+    process = subprocess.Popen(
+        " ".join(cmd),
+        shell=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    process.wait()
+    outs, errs = process.communicate()

@@ -285,9 +285,9 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
     # Let the Python binding know we are at master
     CONTEXT.set_master()
     # Then we can import the appropriate start and stop functions from the API
-    from pycompss.api.api import (
+    from pycompss.api.api import (  # pylint: disable=import-outside-toplevel
         compss_start,
-    )  # pylint: disable=import-outside-toplevel
+    )
 
     ##############################################################
     # INITIALIZATION
@@ -557,9 +557,9 @@ def stop(sync: bool = False, _hard_stop: bool = False) -> None:
     if not CONTEXT.in_pycompss():
         return __hard_stop__(interactive_helpers.DEBUG, sync, logger, ipython)
 
-    from pycompss.api.api import (
+    from pycompss.api.api import (  # pylint: disable=import-outside-toplevel
         compss_stop,
-    )  # pylint: disable=import-outside-toplevel
+    )
 
     line_separator = EXTRA_LAUNCH_STATUS.get_line_separator()
     print(line_separator)

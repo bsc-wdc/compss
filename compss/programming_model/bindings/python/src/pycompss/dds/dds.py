@@ -121,7 +121,7 @@ class DDS:
         :return: Self.
         """
         if worker_read:
-            with open(file_path) as file_path_fd:
+            with open(file_path) as file_path_fd:  # pylint: disable=W1514
                 file_path_fd.seek(0, 2)
                 total = file_path_fd.tell()
             parsed = 0
@@ -135,7 +135,7 @@ class DDS:
                 self.partitions.append(_partition_loader)
                 parsed += chunk_size
         else:
-            with open(file_path, "r") as file_path_fd:
+            with open(file_path, "r") as file_path_fd:  # pylint: disable=W1514
                 chunk = file_path_fd.read(chunk_size)
                 while chunk:
                     _partition_loader = BasicDataLoader(chunk)

@@ -97,8 +97,8 @@
     "pycompss.functions.profile":                    { "level": "INFO", "handlers": ["info_file_handler", "error_file_handler"], "propagate": "no" },
     "pycompss.functions.reduce":                     { "level": "INFO", "handlers": ["info_file_handler", "error_file_handler"], "propagate": "no" },
 
-    "pycompss.runtime.crank.initialization":         { "level": "INFO", "handlers": ["info_file_handler", "error_file_handler"], "propagate": "no" },
-    "pycompss.runtime.crank.interactive_initialization": { "level": "INFO", "handlers": ["info_file_handler", "error_file_handler"], "propagate": "no" },
+    "pycompss.runtime.start.initialization":         { "level": "INFO", "handlers": ["info_file_handler", "error_file_handler"], "propagate": "no" },
+    "pycompss.runtime.start.interactive_initialization": { "level": "INFO", "handlers": ["info_file_handler", "error_file_handler"], "propagate": "no" },
     "pycompss.runtime.management.classes":           { "level": "INFO", "handlers": ["info_file_handler", "error_file_handler"], "propagate": "no" },
     "pycompss.runtime.management.COMPSs":            { "level": "INFO", "handlers": ["info_file_handler", "error_file_handler"], "propagate": "no" },
     "pycompss.runtime.management.direction":         { "level": "INFO", "handlers": ["info_file_handler", "error_file_handler"], "propagate": "no" },
@@ -165,7 +165,6 @@
     "pycompss.worker.container.container_worker":    { "level": "INFO", "handlers": ["info_file_handler", "error_file_handler"], "propagate": "no" },
     "pycompss.worker.container.pythonpath_fixer":    { "level": "INFO", "handlers": ["info_file_handler", "error_file_handler"], "propagate": "no" },
     "pycompss.worker.external.mpi_executor":         { "level": "INFO", "handlers": ["info_file_handler", "error_file_handler"], "propagate": "no" },
-    "pycompss.worker.gat.commons.constants":         { "level": "INFO", "handlers": ["info_file_handler", "error_file_handler"], "propagate": "no" },
     "pycompss.worker.gat.worker":                    { "level": "INFO", "handlers": ["info_file_handler", "error_file_handler"], "propagate": "no" },
     "pycompss.worker.piper.cache.classes":           { "level": "INFO", "handlers": ["info_file_handler", "error_file_handler"], "propagate": "no" },
     "pycompss.worker.piper.cache.manager":           { "level": "INFO", "handlers": ["info_file_handler", "error_file_handler"], "propagate": "no" },

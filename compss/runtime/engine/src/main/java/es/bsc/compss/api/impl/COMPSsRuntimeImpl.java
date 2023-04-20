@@ -102,7 +102,6 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.logging.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -1477,7 +1476,13 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         switch (loc.getType()) {
             case PRIVATE:
             case SHARED:
-                finalPath = mainAccessToFile(app, fileName, loc, direction, isDir);
+                FileMainAccess<?, ?> access;
+                if (isDir) {
+                    access = DirectoryMainAccess.constructDMA(app, direction, loc);
+                } else {
+                    access = FileMainAccess.constructFMA(app, direction, loc);
+                }
+                finalPath = mainAccessToFile(access, fileName);
                 if (LOGGER.isDebugEnabled()) {
 
                     LOGGER.debug("File " + (isDir ? "(dir) " : "") + "target Location: " + finalPath);
@@ -1931,29 +1936,18 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         return hashCode;
     }
 
-    private String mainAccessToFile(Application app, String fileName, DataLocation loc, Direction direction,
-        boolean isDirectory) {
+    private String mainAccessToFile(FileMainAccess<?, ?> access, String fileName) {
         // Tell the AP that the application wants to access a file.
         DataLocation targetLocation;
-        if (isDirectory) {
-            DirectoryMainAccess dma = DirectoryMainAccess.constructDMA(app, direction, loc);
-            try {
-                targetLocation = ap.mainAccessToDirectory(dma);
-            } catch (ValueUnawareRuntimeException ex) {
-                targetLocation = dma.getParameters().getLocation();
-            }
-        } else {
-            FileMainAccess<?, ?> fma = FileMainAccess.constructFMA(app, direction, loc);
-            try {
-                targetLocation = ap.mainAccessToFile(fma);
-            } catch (ValueUnawareRuntimeException ex) {
-                targetLocation = fma.getParameters().getLocation();
-            }
+        try {
+            targetLocation = ap.mainAccessToFile(access);
+        } catch (ValueUnawareRuntimeException ex) {
+            targetLocation = access.getParameters().getLocation();
         }
 
         // Checks on target
         String path = (targetLocation == null) ? fileName : targetLocation.getPath();
-        DataLocation finalLocation = (targetLocation == null) ? loc : targetLocation;
+        DataLocation finalLocation = (targetLocation == null) ? access.getParameters().getLocation() : targetLocation;
         if (finalLocation == null) {
             ErrorManager.fatal(ERROR_FILE_NAME);
             return null;

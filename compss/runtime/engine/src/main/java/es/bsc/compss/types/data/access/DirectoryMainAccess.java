@@ -20,6 +20,7 @@ import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.DataParams.DirectoryData;
 import es.bsc.compss.types.data.LogicalData;
@@ -30,6 +31,7 @@ import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.operation.DirectoryTransferable;
 import es.bsc.compss.types.data.operation.OneOpWithSemListener;
 import es.bsc.compss.types.uri.SimpleURI;
+import es.bsc.compss.util.ErrorManager;
 import java.util.concurrent.Semaphore;
 
 
@@ -69,6 +71,32 @@ public class DirectoryMainAccess extends FileMainAccess<DirectoryData, Directory
      */
     @Override
     public DataLocation fetch(DataAccessId daId) {
+        DataLocation tgtLocation = this.getParameters().getLocation();
+        if (daId.isRead()) {
+            tgtLocation = fetchR(daId);
+        }
+        if (daId.isWrite()) {
+            LOGGER.debug("Data " + daId.getDataId() + " mode contains W, register new writer");
+            WritingDataAccessId wdaId = (WritingDataAccessId) daId;
+            DataInstanceId diId = wdaId.getWrittenDataInstance();
+            String rename = diId.getRenaming();
+            String path = ProtocolType.DIR_URI.getSchema() + Comm.getAppHost().getWorkingDirectory() + rename;
+            try {
+                SimpleURI uri = new SimpleURI(path);
+                tgtLocation = DataLocation.createLocation(Comm.getAppHost(), uri);
+            } catch (Exception e) {
+                ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + path, e);
+            }
+            Comm.registerLocation(rename, tgtLocation);
+        }
+
+        if (DEBUG) {
+            LOGGER.debug("Directory " + daId.getDataId() + " located on " + tgtLocation.toString());
+        }
+        return tgtLocation;
+    }
+
+    private DataLocation fetchR(DataAccessId daId) {
         // Get target information
         DataInstanceId targetFile;
         if (daId.isWrite()) {

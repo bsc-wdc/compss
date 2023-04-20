@@ -309,7 +309,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
             ErrorManager.warn("No version available. Returning null");
             return ma.getUnavailableValueResponse();
         } else {
-            // Ask for the object
+            // Ask for the data
             T oUpdated;
             oUpdated = ma.fetch(daId);
             if (ma.isAccessFinishedOnRegistration()) {
@@ -321,28 +321,6 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
 
             }
             return oUpdated;
-        }
-    }
-
-    /**
-     * Notifies a main access {@code fma} to a given file.
-     *
-     * @param fma File Access.
-     * @return Final location.
-     * @throws ValueUnawareRuntimeException the runtime is not aware of the last value of the accessed data
-     */
-    public DataLocation mainAccessToFile(FileMainAccess<?, ?> fma) throws ValueUnawareRuntimeException {
-        FileAccessParams fap = fma.getParameters();
-
-        // Tell the DM that the application wants to access a file.
-        // Wait until the last writer task for the file has finished.
-        DataAccessId faId = registerDataAccess(fap);
-
-        if (faId == null) { // If fiId is null data is cancelled returning null location
-            ErrorManager.warn("No version available. Returning null");
-            return fma.getUnavailableValueResponse();
-        } else {
-            return fma.fetch(faId);
         }
     }
 

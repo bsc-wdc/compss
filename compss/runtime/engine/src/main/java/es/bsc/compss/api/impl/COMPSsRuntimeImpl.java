@@ -1940,7 +1940,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         // Tell the AP that the application wants to access a file.
         DataLocation targetLocation;
         try {
-            targetLocation = ap.mainAccessToFile(access);
+            targetLocation = ap.mainAccess(access);
         } catch (ValueUnawareRuntimeException ex) {
             targetLocation = access.getParameters().getLocation();
         }

@@ -24,7 +24,6 @@ import es.bsc.compss.types.Application;
 import es.bsc.compss.types.TaskListener;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.accessparams.AccessParams;
-import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
 import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
 import es.bsc.compss.types.tracing.TraceEvent;
 

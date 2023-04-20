@@ -1091,7 +1091,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         String boId = boLoc.getId();
         int hashCode = externalObjectHashcode(boId);
         Application app = Application.registerApplication(appId);
-        BindingObjectMainAccess boap = BindingObjectMainAccess.constructBOMA(app, Direction.IN, bo, hashCode);
+        BindingObjectMainAccess boap = BindingObjectMainAccess.constructBOMA(app, Direction.INOUT, bo, hashCode);
 
         // Otherwise we request it from a task
         String finalPath;

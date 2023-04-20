@@ -21,6 +21,7 @@ import es.bsc.compss.types.Application;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.DataAccessId.ReadingDataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.DataParams.BindingObjectData;
 import es.bsc.compss.types.data.LogicalData;
@@ -70,7 +71,7 @@ public class BindingObjectMainAccess
         LOGGER.debug("[AccessProcessor] Obtaining " + this.getParameters().getDataDescription());
 
         // Get target information
-        RAccessId raId = (RAccessId) daId;
+        ReadingDataAccessId raId = (ReadingDataAccessId) daId;
         DataInstanceId diId = raId.getReadDataInstance();
         String targetName = diId.getRenaming();
 

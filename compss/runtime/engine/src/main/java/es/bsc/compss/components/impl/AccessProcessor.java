@@ -32,6 +32,7 @@ import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.DataParams;
+import es.bsc.compss.types.data.DataParams.ObjectData;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.ResultFile;
 import es.bsc.compss.types.data.access.MainAccess;
@@ -47,7 +48,6 @@ import es.bsc.compss.types.request.ap.CancelTaskGroupRequest;
 import es.bsc.compss.types.request.ap.CloseTaskGroupRequest;
 import es.bsc.compss.types.request.ap.DataGetLastVersionRequest;
 import es.bsc.compss.types.request.ap.DeleteAllApplicationDataRequest;
-import es.bsc.compss.types.request.ap.DeleteBindingObjectRequest;
 import es.bsc.compss.types.request.ap.DeleteFileRequest;
 import es.bsc.compss.types.request.ap.DeregisterObject;
 import es.bsc.compss.types.request.ap.EndOfAppRequest;
@@ -595,18 +595,6 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     }
 
     /**
-     * Marks a BindingObject for its deletion.
-     *
-     * @param app Application requesting unregistering the object.
-     * @param code BindingObject code.
-     */
-    public void markForBindingObjectDeletion(Application app, int code) {
-        if (!this.requestQueue.offer(new DeleteBindingObjectRequest(app, code))) {
-            ErrorManager.error(ERROR_QUEUE_OFFER + "mark for deletion");
-        }
-    }
-
-    /**
      * Adds a request to retrieve the result files from the workers to the master.
      *
      * @param app Application.
@@ -630,15 +618,13 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     /**
      * Unregisters the given object.
      *
-     * @param app Application.
-     * @param o Object to unregister.
-     * @param hashcode code of the object being removed
+     * @param data data to delete
      */
-    public void deregisterObject(Application app, Object o, int hashcode) {
+    public void deregisterObject(ObjectData data) {
         if (DEBUG) {
-            LOGGER.debug("Deregistering object " + hashcode);
+            LOGGER.debug("Deregistering " + data.getDescription());
         }
-        if (!this.requestQueue.offer(new DeregisterObject(app, o, hashcode))) {
+        if (!this.requestQueue.offer(new DeregisterObject(data))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "deregister object");
         }
     }

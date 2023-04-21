@@ -408,7 +408,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     /*
      * ************************************************************************************************************
-     * COMPSsRuntime INTERFACE
+     * ***************************************** RUNTIME CONTROL **************************************************
      * ************************************************************************************************************
      */
     @Override
@@ -544,6 +544,36 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     }
 
+    /*
+     * ************************************************************************************************************
+     * ************************************* RUNTIME SETUP MANAGEMENT *********************************************
+     * ************************************************************************************************************
+     */
+    @Override
+    public ObjectRegistry getObjectRegistry() {
+        return oReg;
+    }
+
+    @Override
+    public StreamRegistry getStreamRegistry() {
+        return sReg;
+    }
+
+    @Override
+    public void setObjectRegistry(ObjectRegistry oReg) {
+        COMPSsRuntimeImpl.oReg = oReg;
+    }
+
+    @Override
+    public void setStreamRegistry(StreamRegistry sReg) {
+        COMPSsRuntimeImpl.sReg = sReg;
+    }
+
+    @Override
+    public String getTempDir() {
+        return Comm.getAppHost().getWorkingDirectory();
+    }
+
     @Override
     public String getApplicationDirectory() {
         return LoggerManager.getLogDir();
@@ -558,6 +588,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         return td;
     }
 
+    /*
+     * ************************************************************************************************************
+     * ************************************* APPLICATION MANAGEMENT ***********************************************
+     * ************************************************************************************************************
+     */
     @Override
     public long registerApplication() {
         Application app = Application.registerApplication();
@@ -667,6 +702,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         td.registerNewCoreElement(ced);
     }
 
+    /*
+     * ************************************************************************************************************
+     * **************************************** DATA MANAGEMENT ***************************************************
+     * ************************************************************************************************************
+     */
     @Override
     public void registerData(Long appId, DataType type, Object stub, String data) {
 
@@ -745,6 +785,434 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         }
     }
 
+    @Override
+    public boolean bindExistingVersionToData(Long appId, String fileName, String dataId) {
+        // Parse the file name
+        DataLocation sourceLocation = null;
+        try {
+            sourceLocation = createLocation(ProtocolType.FILE_URI, fileName);
+        } catch (IOException ioe) {
+            ErrorManager.fatal(ERROR_FILE_NAME, ioe);
+        }
+        if (sourceLocation == null) {
+            ErrorManager.fatal(ERROR_FILE_NAME);
+        }
+
+        Application app = Application.registerApplication(appId);
+        FileData fd = new FileData(app, sourceLocation);
+        return bindExistingVersionToData(fd, dataId);
+    }
+
+    @Override
+    public boolean bindExistingVersionToData(Long appId, Object o, Integer hashCode, String dataId) {
+        Application app = Application.registerApplication(appId);
+        ObjectData od = new ObjectData(app, hashCode);
+        return bindExistingVersionToData(od, dataId);
+    }
+
+    private boolean bindExistingVersionToData(DataParams data, String dataId) {
+        LOGGER.debug("Binding " + data.getDescription() + "'s last version to data " + dataId);
+        LogicalData lastVersion = ap.getDataLastVersion(data);
+        if (lastVersion != null) {
+            LogicalData src = Comm.getData(dataId);
+            try {
+                LOGGER.debug("Binding " + src.getKnownAlias() + " to data " + dataId);
+                LogicalData.link(src, lastVersion);
+                return true;
+            } catch (CommException e) {
+                LOGGER.warn("Could not link " + dataId + " and " + lastVersion.getName());
+            }
+
+        }
+        return false;
+    }
+
+    @Override
+    public void getFile(Long appId, String fileName) {
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(TraceEvent.GET_FILE);
+        }
+
+        // Parse the file name
+        DataLocation sourceLocation = null;
+        try {
+            sourceLocation = createLocation(ProtocolType.FILE_URI, fileName);
+        } catch (IOException ioe) {
+            ErrorManager.fatal(ERROR_FILE_NAME, ioe);
+        }
+        if (sourceLocation == null) {
+            ErrorManager.fatal(ERROR_FILE_NAME);
+        }
+
+        LOGGER.debug("Getting file " + fileName);
+        Application app = Application.registerApplication(appId);
+        String renamedPath = openFileSystemData(app, fileName, Direction.INOUT, false);
+        // If renamePth is the same as original, file has not accessed. Nothing to do.
+        if (!renamedPath.equals(sourceLocation.getPath())) {
+            try {
+                String intermediateTmpPath = renamedPath + ".tmp";
+                FileOpsManager.moveSync(new File(renamedPath), new File(intermediateTmpPath));
+                closeFile(app, fileName, Direction.INOUT);
+                ap.markForDeletion(app, sourceLocation, true, false);
+                // In the case of Java file can be stored in the Stream Registry
+                if (sReg != null) {
+                    sReg.deleteTaskFile(appId, fileName);
+                }
+                FileOpsManager.moveSync(new File(intermediateTmpPath), new File(fileName));
+            } catch (IOException ioe) {
+                LOGGER.error("Move not possible ", ioe);
+            }
+        }
+        if (Tracer.isActivated()) {
+            Tracer.emitEventEnd(TraceEvent.GET_FILE);
+        }
+    }
+
+    @Override
+    public String openFile(Long appId, String fileName, Direction mode) {
+        Application app = Application.registerApplication(appId);
+        return openFileSystemData(app, fileName, mode, false);
+    }
+
+    @Override
+    public void getDirectory(Long appId, String dirName) {
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(TraceEvent.GET_DIRECTORY);
+        }
+
+        // Parse the dir name
+        DataLocation sourceLocation = null;
+        try {
+            sourceLocation = createLocation(ProtocolType.DIR_URI, dirName);
+        } catch (IOException ioe) {
+            ErrorManager.fatal(ERROR_DIR_NAME, ioe);
+        }
+        if (sourceLocation == null) {
+            ErrorManager.fatal(ERROR_DIR_NAME);
+        }
+
+        LOGGER.debug("Getting directory " + dirName);
+        Application app = Application.registerApplication(appId);
+        String renamedPath = openFileSystemData(app, dirName, Direction.IN, true);
+        try {
+            LOGGER.debug("Getting directory renamed path: " + renamedPath);
+            String intermediateTmpPath = renamedPath + ".tmp";
+            FileOpsManager.moveDirSync(new File(renamedPath), new File(intermediateTmpPath));
+            closeFile(app, dirName, Direction.IN);
+
+            ap.markForDeletion(app, sourceLocation, true, false);
+            // In the case of Java file can be stored in the Stream Registry
+            if (sReg != null) {
+                sReg.deleteTaskFile(appId, dirName);
+            }
+
+            FileOpsManager.moveDirSync(new File(intermediateTmpPath), new File(dirName));
+        } catch (IOException ioe) {
+            LOGGER.error("Move not possible ", ioe);
+        }
+        if (Tracer.isActivated()) {
+            Tracer.emitEventEnd(TraceEvent.GET_DIRECTORY);
+        }
+    }
+
+    @Override
+    public String openDirectory(Long appId, String dirName, Direction mode) {
+        Application app = Application.registerApplication(appId);
+        return openFileSystemData(app, dirName, mode, true);
+    }
+
+    private String openFileSystemData(Application app, String fileName, Direction direction, boolean isDir) {
+        LOGGER.info("Opening " + fileName + " in direction " + direction);
+        TraceEvent tEvent = null;
+        if (Tracer.isActivated()) {
+            if (isDir) {
+                tEvent = TraceEvent.OPEN_DIRECTORY;
+            } else {
+                tEvent = TraceEvent.OPEN_FILE;
+            }
+            Tracer.emitEvent(tEvent);
+        }
+        // Parse arguments to internal structures
+        DataLocation loc;
+        try {
+            loc = createLocation(isDir ? ProtocolType.DIR_URI : ProtocolType.FILE_URI, fileName);
+        } catch (IOException ioe) {
+            ErrorManager.fatal(ERROR_FILE_NAME, ioe);
+            return null;
+        }
+
+        // Request AP that the application wants to access a FILE or a EXTERNAL_PSCO
+        String finalPath;
+        switch (loc.getType()) {
+            case PRIVATE:
+            case SHARED:
+                FileMainAccess<?, ?> access;
+                if (isDir) {
+                    access = DirectoryMainAccess.constructDMA(app, direction, loc);
+                } else {
+                    access = FileMainAccess.constructFMA(app, direction, loc);
+                }
+                finalPath = mainAccessToFile(access, fileName);
+                if (LOGGER.isDebugEnabled()) {
+
+                    LOGGER.debug("File " + (isDir ? "(dir) " : "") + "target Location: " + finalPath);
+                }
+                break;
+            case PERSISTENT:
+                String id = ((PersistentLocation) loc).getId();
+                int hashCode = externalObjectHashcode(id);
+                ExternalPSCObjectMainAccess eoap;
+                eoap = ExternalPSCObjectMainAccess.constructEPOMA(app, Direction.INOUT, id, hashCode);
+
+                // Otherwise we request it from a task
+                try {
+                    String newPscoId = ap.mainAccess(eoap);
+                    finalPath = ProtocolType.PERSISTENT_URI.getSchema() + newPscoId;
+                } catch (ValueUnawareRuntimeException e) {
+                    finalPath = id;
+                }
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("External PSCO target Location: " + finalPath);
+                }
+                break;
+
+            default:
+                finalPath = null;
+                ErrorManager.error(
+                    "ERROR: Unrecognised protocol requesting " + (isDir ? "openDirectory " : "openFile ") + fileName);
+        }
+
+        if (Tracer.isActivated()) {
+            Tracer.emitEventEnd(tEvent);
+        }
+
+        return finalPath;
+    }
+
+    @Override
+    public boolean isFileAccessed(Long appId, String fileName) {
+        DataLocation loc;
+        try {
+            loc = createLocation(ProtocolType.FILE_URI, fileName);
+        } catch (IOException ioe) {
+            ErrorManager.fatal(ERROR_FILE_NAME, ioe);
+            loc = null;
+        }
+        if (loc != null) {
+            Application app = Application.registerApplication(appId);
+            FileData fd = new FileData(app, loc);
+            return ap.alreadyAccessed(fd);
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public void closeFile(Long appId, String fileName, Direction mode) {
+        Application app = Application.registerApplication(appId);
+        closeFile(app, fileName, mode);
+    }
+
+    /**
+     * Closes the opened file version.
+     *
+     * @param app application closing the file.
+     * @param fileName File name.
+     * @param direction Access mode.
+     */
+    public void closeFile(Application app, String fileName, Direction direction) {
+
+        // if (Tracer.isActivated()) {
+        // Tracer.emitEvent(TraceEvent.CLOSE_FILE.getId(),
+        // TraceEvent.CLOSE_FILE.getType());
+        // }
+        LOGGER.info("Closing " + fileName + " in direction " + direction);
+
+        // Parse arguments to internal structures
+        DataLocation loc;
+        try {
+            loc = createLocation(ProtocolType.FILE_URI, fileName);
+        } catch (Exception e) {
+            ErrorManager.fatal(ERROR_FILE_NAME, e);
+            return;
+        }
+
+        // Request AP that the application wants to access a FILE or a EXTERNAL_PSCO
+        switch (loc.getType()) {
+            case PRIVATE:
+            case SHARED:
+                FileAccessParams fap = FileAccessParams.constructFAP(app, direction, loc);
+                ap.finishDataAccess(fap, null);
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Closing file " + loc.getPath());
+                }
+                break;
+            case PERSISTENT:
+                // Nothing to do
+                ErrorManager.warn("WARN: Cannot close file " + fileName + " with PSCO protocol");
+                break;
+            case BINDING:
+                // Nothing to do
+                ErrorManager.warn("WARN: Cannot close binding object " + fileName + " with PSCO protocol");
+                break;
+            default:
+                ErrorManager.error("ERROR: Unrecognised protocol requesting closeFile " + fileName);
+        }
+
+        // if (Tracer.isActivated()) {
+        // Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+        // }
+    }
+
+    @Override
+    public Object getObject(Long appId, Object obj, int hashCode, String destDir) {
+        /*
+         * We know that the object has been accessed before by a task, otherwise the ObjectRegistry would have discarded
+         * it and this method would not have been called.
+         */
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(TraceEvent.GET_OBJECT);
+        }
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Getting object with hash code " + hashCode);
+        }
+
+        Application app = Application.registerApplication(appId);
+        ObjectMainAccess<?, ?, ?> oap = ObjectMainAccess.constructOMA(app, Direction.INOUT, obj, hashCode);
+        Object oUpdated;
+        try {
+            oUpdated = ap.mainAccess(oap);
+        } catch (ValueUnawareRuntimeException e) {
+            oUpdated = null;
+        }
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Object obtained " + ((oUpdated == null) ? oUpdated : oUpdated.hashCode()));
+        }
+
+        if (Tracer.isActivated()) {
+            Tracer.emitEventEnd(TraceEvent.GET_OBJECT);
+        }
+
+        return oUpdated;
+    }
+
+    @Override
+    public String getBindingObject(Long appId, String fileName) {
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(TraceEvent.GET_BINDING_OBJECT);
+        }
+
+        // Parse the file name
+        LOGGER.debug(" Calling get binding object : " + fileName);
+        BindingObject bo = BindingObject.generate(fileName);
+        BindingObjectLocation boLoc = new BindingObjectLocation(Comm.getAppHost(), bo);
+        String boId = boLoc.getId();
+        int hashCode = externalObjectHashcode(boId);
+        Application app = Application.registerApplication(appId);
+        BindingObjectMainAccess boap = BindingObjectMainAccess.constructBOMA(app, Direction.INOUT, bo, hashCode);
+
+        // Otherwise we request it from a task
+        String finalPath;
+        try {
+            BindingObject newBO = ap.mainAccess(boap);
+            String bindingObjectID = newBO.getName();
+            finalPath = bindingObjectID;
+        } catch (ValueUnawareRuntimeException e) {
+            finalPath = bo.toString();
+        }
+        LOGGER.debug("Returning binding object as id: " + finalPath);
+        if (Tracer.isActivated()) {
+            Tracer.emitEventEnd(TraceEvent.GET_BINDING_OBJECT);
+        }
+        return finalPath;
+    }
+
+    @Override
+    public boolean deleteFile(Long appId, String fileName) {
+        return deleteFile(appId, fileName, true, true);
+    }
+
+    @Override
+    public boolean deleteFile(Long appId, String fileName, boolean waitForData, boolean applicationDelete) {
+        // Check parameters
+        if (fileName == null || fileName.isEmpty()) {
+            return false;
+        }
+
+        LOGGER.info("Deleting File " + fileName + " with wait for data " + waitForData);
+
+        // Emit event
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(TraceEvent.DELETE);
+        }
+
+        // Parse the file name and translate the access mode
+        try {
+            DataLocation loc = createLocation(ProtocolType.FILE_URI, fileName);
+            Application app = Application.registerApplication(appId);
+            ap.markForDeletion(app, loc, waitForData, applicationDelete);
+            // Java case where task files are stored in the registry
+            if (sReg != null) {
+                sReg.deleteTaskFile(appId, fileName);
+            }
+        } catch (IOException ioe) {
+            ErrorManager.fatal(ERROR_FILE_NAME, ioe);
+        } finally {
+            if (Tracer.isActivated()) {
+                Tracer.emitEventEnd(TraceEvent.DELETE);
+            }
+        }
+        LOGGER.info("File " + fileName + " Deleted.");
+        // Return deletion was successful
+        return true;
+    }
+
+    @Override
+    public void deregisterObject(Long appId, Object o) {
+        oReg.delete(appId, o);
+    }
+
+    @Override
+    public void removeObject(Long appId, Object o, int hashcode) {
+        Application app = Application.registerApplication(appId);
+        // This will remove the object from the Object Registry and the Data Info Provider
+        // eventually allowing the garbage collector to free it (better use of memory)
+        ap.deregisterObject(app, o, hashcode);
+    }
+
+    @Override
+    public boolean deleteBindingObject(Long appId, String fileName) {
+        // Check parameters
+        if (fileName == null || fileName.isEmpty()) {
+            return false;
+        }
+
+        LOGGER.info("Deleting BindingObject " + fileName);
+
+        // Emit event
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(TraceEvent.DELETE);
+        }
+
+        Application app = Application.registerApplication(appId);
+        // Parse the binding object name and translate the access mode
+        BindingObject bo = BindingObject.generate(fileName);
+        int hashCode = externalObjectHashcode(bo.getId());
+        ap.markForBindingObjectDeletion(app, hashCode);
+        if (Tracer.isActivated()) {
+            Tracer.emitEventEnd(TraceEvent.DELETE);
+        }
+
+        // Return deletion was successful
+        return true;
+    }
+
+    /*
+     * ************************************************************************************************************
+     * **************************************** TASK MANAGEMENT ***************************************************
+     * ************************************************************************************************************
+     */
     // C
     @Override
     public int executeTask(Long appId, String methodClass, String onFailure, int timeOut, String methodName,
@@ -829,7 +1297,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
         for (Parameter p : pars) {
             if (p.getDirection().equals(Direction.IN_DELETE)) {
-                processDelete(app, p);
+                deleteParameter(app, p);
             }
         }
         if (Tracer.isActivated()) {
@@ -912,7 +1380,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
         for (Parameter p : pars) {
             if (p.getDirection().equals(Direction.IN_DELETE)) {
-                processDelete(app, p);
+                deleteParameter(app, p);
             }
         }
 
@@ -923,6 +1391,33 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
         // Return the taskId
         return task;
+    }
+
+    @Override
+    public void cancelApplicationTasks(Long appId) {
+        Application app = Application.registerApplication(appId);
+        ap.cancelApplicationTasks(app);
+    }
+
+    @Override
+    public void openTaskGroup(String groupName, boolean implicitBarrier, Long appId) {
+        Application app = Application.registerApplication(appId);
+        ap.setCurrentTaskGroup(groupName, implicitBarrier, app);
+    }
+
+    @Override
+    public void closeTaskGroup(String groupName, Long appId) {
+        Application app = Application.registerApplication(appId);
+        ap.closeCurrentTaskGroup(app);
+    }
+
+    @Override
+    public void cancelTaskGroup(String groupName, Long appId) throws COMPSsException {
+        Application app = Application.registerApplication(appId);
+        ap.cancelTaskGroup(app, groupName);
+        // This is required that changes in metadata have been applied before
+        // generating new tasks
+        ap.barrierGroup(app, groupName);
     }
 
     @Override
@@ -997,164 +1492,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         }
     }
 
-    @Override
-    public boolean deleteFile(Long appId, String fileName, boolean waitForData, boolean applicationDelete) {
-        // Check parameters
-        if (fileName == null || fileName.isEmpty()) {
-            return false;
-        }
-
-        LOGGER.info("Deleting File " + fileName + " with wait for data " + waitForData);
-
-        // Emit event
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.DELETE);
-        }
-
-        // Parse the file name and translate the access mode
-        try {
-            DataLocation loc = createLocation(ProtocolType.FILE_URI, fileName);
-            Application app = Application.registerApplication(appId);
-            ap.markForDeletion(app, loc, waitForData, applicationDelete);
-            // Java case where task files are stored in the registry
-            if (sReg != null) {
-                sReg.deleteTaskFile(appId, fileName);
-            }
-        } catch (IOException ioe) {
-            ErrorManager.fatal(ERROR_FILE_NAME, ioe);
-        } finally {
-            if (Tracer.isActivated()) {
-                Tracer.emitEventEnd(TraceEvent.DELETE);
-            }
-        }
-        LOGGER.info("File " + fileName + " Deleted.");
-        // Return deletion was successful
-        return true;
-    }
-
-    @Override
-    public boolean deleteFile(Long appId, String fileName) {
-        return deleteFile(appId, fileName, true, true);
-    }
-
-    @Override
-    public void emitEvent(int type, long id) {
-        Tracer.emitEvent(type, id);
-    }
-
-    @Override
-    public void openTaskGroup(String groupName, boolean implicitBarrier, Long appId) {
-        Application app = Application.registerApplication(appId);
-        ap.setCurrentTaskGroup(groupName, implicitBarrier, app);
-    }
-
-    @Override
-    public void closeTaskGroup(String groupName, Long appId) {
-        Application app = Application.registerApplication(appId);
-        ap.closeCurrentTaskGroup(app);
-    }
-
-    @Override
-    public void cancelTaskGroup(String groupName, Long appId) throws COMPSsException {
-        Application app = Application.registerApplication(appId);
-        ap.cancelTaskGroup(app, groupName);
-        // This is required that changes in metadata have been applied before
-        // generating new tasks
-        ap.barrierGroup(app, groupName);
-    }
-
-    @Override
-    public void snapshot(Long appId) {
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.SNAPSHOT_API);
-        }
-        Application app = Application.registerApplication(appId);
-        // Wait until all tasks have finished
-        LOGGER.info("Requesting snapshot for application " + appId);
-
-        ap.snapshot(app);
-        if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(TraceEvent.SNAPSHOT_API);
-        }
-    }
-
-    @Override
-    public String getBindingObject(Long appId, String fileName) {
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.GET_BINDING_OBJECT);
-        }
-
-        // Parse the file name
-        LOGGER.debug(" Calling get binding object : " + fileName);
-        BindingObject bo = BindingObject.generate(fileName);
-        BindingObjectLocation boLoc = new BindingObjectLocation(Comm.getAppHost(), bo);
-        String boId = boLoc.getId();
-        int hashCode = externalObjectHashcode(boId);
-        Application app = Application.registerApplication(appId);
-        BindingObjectMainAccess boap = BindingObjectMainAccess.constructBOMA(app, Direction.INOUT, bo, hashCode);
-
-        // Otherwise we request it from a task
-        String finalPath;
-        try {
-            BindingObject newBO = ap.mainAccess(boap);
-            String bindingObjectID = newBO.getName();
-            finalPath = bindingObjectID;
-        } catch (ValueUnawareRuntimeException e) {
-            finalPath = bo.toString();
-        }
-        LOGGER.debug("Returning binding object as id: " + finalPath);
-        if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(TraceEvent.GET_BINDING_OBJECT);
-        }
-        return finalPath;
-    }
-
-    @Override
-    public boolean deleteBindingObject(Long appId, String fileName) {
-        // Check parameters
-        if (fileName == null || fileName.isEmpty()) {
-            return false;
-        }
-
-        LOGGER.info("Deleting BindingObject " + fileName);
-
-        // Emit event
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.DELETE);
-        }
-
-        Application app = Application.registerApplication(appId);
-        // Parse the binding object name and translate the access mode
-        BindingObject bo = BindingObject.generate(fileName);
-        int hashCode = externalObjectHashcode(bo.getId());
-        ap.markForBindingObjectDeletion(app, hashCode);
-        if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(TraceEvent.DELETE);
-        }
-
-        // Return deletion was successful
-        return true;
-    }
-
-    @Override
-    public void cancelApplicationTasks(Long appId) {
-        Application app = Application.registerApplication(appId);
-        ap.cancelApplicationTasks(app);
-    }
-
-    @Override
-    public void deregisterObject(Long appId, Object o) {
-        oReg.delete(appId, o);
-    }
-
-    @Override
-    public void removeObject(Long appId, Object o, int hashcode) {
-        Application app = Application.registerApplication(appId);
-        // This will remove the object from the Object Registry and the Data Info Provider
-        // eventually allowing the garbage collector to free it (better use of memory)
-        ap.deregisterObject(app, o, hashcode);
-    }
-
+    /*
+     * ************************************************************************************************************
+     * ************************************** RESOURCE MANAGEMENT *************************************************
+     * ************************************************************************************************************
+     */
     @Override
     public int getNumberOfResources() {
         LOGGER.info("Received request for number of active resources");
@@ -1197,389 +1539,33 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     }
 
     /*
-     * *********************************************************************************************************
-     * LoaderAPI INTERFACE IMPLEMENTATION
-     * *********************************************************************************************************
+     * ************************************************************************************************************
+     * ************************************** OTHER FUNCTIONALITIES ***********************************************
+     * ************************************************************************************************************
      */
-    @Override
-    public void getFile(Long appId, String fileName) {
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.GET_FILE);
-        }
-
-        // Parse the file name
-        DataLocation sourceLocation = null;
-        try {
-            sourceLocation = createLocation(ProtocolType.FILE_URI, fileName);
-        } catch (IOException ioe) {
-            ErrorManager.fatal(ERROR_FILE_NAME, ioe);
-        }
-        if (sourceLocation == null) {
-            ErrorManager.fatal(ERROR_FILE_NAME);
-        }
-
-        LOGGER.debug("Getting file " + fileName);
-        Application app = Application.registerApplication(appId);
-        String renamedPath = openFileSystemData(app, fileName, Direction.INOUT, false);
-        // If renamePth is the same as original, file has not accessed. Nothing to do.
-        if (!renamedPath.equals(sourceLocation.getPath())) {
-            try {
-                String intermediateTmpPath = renamedPath + ".tmp";
-                FileOpsManager.moveSync(new File(renamedPath), new File(intermediateTmpPath));
-                closeFile(app, fileName, Direction.INOUT);
-                ap.markForDeletion(app, sourceLocation, true, false);
-                // In the case of Java file can be stored in the Stream Registry
-                if (sReg != null) {
-                    sReg.deleteTaskFile(appId, fileName);
-                }
-                FileOpsManager.moveSync(new File(intermediateTmpPath), new File(fileName));
-            } catch (IOException ioe) {
-                LOGGER.error("Move not possible ", ioe);
-            }
-        }
-        if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(TraceEvent.GET_FILE);
-        }
-    }
-
-    @Override
-    public void getDirectory(Long appId, String dirName) {
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.GET_DIRECTORY);
-        }
-
-        // Parse the dir name
-        DataLocation sourceLocation = null;
-        try {
-            sourceLocation = createLocation(ProtocolType.DIR_URI, dirName);
-        } catch (IOException ioe) {
-            ErrorManager.fatal(ERROR_DIR_NAME, ioe);
-        }
-        if (sourceLocation == null) {
-            ErrorManager.fatal(ERROR_DIR_NAME);
-        }
-
-        LOGGER.debug("Getting directory " + dirName);
-        Application app = Application.registerApplication(appId);
-        String renamedPath = openFileSystemData(app, dirName, Direction.IN, true);
-        try {
-            LOGGER.debug("Getting directory renamed path: " + renamedPath);
-            String intermediateTmpPath = renamedPath + ".tmp";
-            FileOpsManager.moveDirSync(new File(renamedPath), new File(intermediateTmpPath));
-            closeFile(app, dirName, Direction.IN);
-
-            ap.markForDeletion(app, sourceLocation, true, false);
-            // In the case of Java file can be stored in the Stream Registry
-            if (sReg != null) {
-                sReg.deleteTaskFile(appId, dirName);
-            }
-
-            FileOpsManager.moveDirSync(new File(intermediateTmpPath), new File(dirName));
-        } catch (IOException ioe) {
-            LOGGER.error("Move not possible ", ioe);
-        }
-        if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(TraceEvent.GET_DIRECTORY);
-        }
-    }
-
-    private void processDelete(Application app, Parameter p) {
-        switch (p.getType()) {
-            case DIRECTORY_T:
-                ap.markForDeletion(app, ((DirectoryParameter) p).getLocation(), false, false);
-                // Java case where task files are stored in the registry
-                if (sReg != null) {
-                    sReg.deleteTaskFile(app.getId(), ((DirectoryParameter) p).getOriginalName());
-                }
-                break;
-            case FILE_T:
-                ap.markForDeletion(app, ((FileParameter) p).getLocation(), false, false);
-                // Java case where task files are stored in the registry
-                if (sReg != null) {
-                    sReg.deleteTaskFile(app.getId(), ((FileParameter) p).getOriginalName());
-                }
-                break;
-            case BINDING_OBJECT_T:
-                ap.markForBindingObjectDeletion(app, ((BindingObjectParameter) p).getCode());
-                break;
-            case OBJECT_T:
-                ObjectParameter op = (ObjectParameter) p;
-                oReg.delete(app.getId(), op.getValue());
-                break;
-            case COLLECTION_T:
-            case DICT_COLLECTION_T:
-                for (Parameter sp : ((CollectiveParameter) p).getElements()) {
-                    processDelete(app, sp);
-                }
-                break;
-            default:
-                break;
-        }
-    }
-
-    @Override
-    public Object getObject(Long appId, Object obj, int hashCode, String destDir) {
-        /*
-         * We know that the object has been accessed before by a task, otherwise the ObjectRegistry would have discarded
-         * it and this method would not have been called.
-         */
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(TraceEvent.GET_OBJECT);
-        }
-
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Getting object with hash code " + hashCode);
-        }
-
-        Application app = Application.registerApplication(appId);
-        ObjectMainAccess<?, ?, ?> oap = ObjectMainAccess.constructOMA(app, Direction.INOUT, obj, hashCode);
-        Object oUpdated;
-        try {
-            oUpdated = ap.mainAccess(oap);
-        } catch (ValueUnawareRuntimeException e) {
-            oUpdated = null;
-        }
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Object obtained " + ((oUpdated == null) ? oUpdated : oUpdated.hashCode()));
-        }
-
-        if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(TraceEvent.GET_OBJECT);
-        }
-
-        return oUpdated;
-    }
-
-    @Override
-    public boolean bindExistingVersionToData(Long appId, String fileName, String dataId) {
-        // Parse the file name
-        DataLocation sourceLocation = null;
-        try {
-            sourceLocation = createLocation(ProtocolType.FILE_URI, fileName);
-        } catch (IOException ioe) {
-            ErrorManager.fatal(ERROR_FILE_NAME, ioe);
-        }
-        if (sourceLocation == null) {
-            ErrorManager.fatal(ERROR_FILE_NAME);
-        }
-
-        Application app = Application.registerApplication(appId);
-        FileData fd = new FileData(app, sourceLocation);
-        return bindExistingVersionToData(fd, dataId);
-    }
-
-    @Override
-    public boolean bindExistingVersionToData(Long appId, Object o, Integer hashCode, String dataId) {
-        Application app = Application.registerApplication(appId);
-        ObjectData od = new ObjectData(app, hashCode);
-        return bindExistingVersionToData(od, dataId);
-    }
-
-    private boolean bindExistingVersionToData(DataParams data, String dataId) {
-        LOGGER.debug("Binding " + data.getDescription() + "'s last version to data " + dataId);
-        LogicalData lastVersion = ap.getDataLastVersion(data);
-        if (lastVersion != null) {
-            LogicalData src = Comm.getData(dataId);
-            try {
-                LOGGER.debug("Binding " + src.getKnownAlias() + " to data " + dataId);
-                LogicalData.link(src, lastVersion);
-                return true;
-            } catch (CommException e) {
-                LOGGER.warn("Could not link " + dataId + " and " + lastVersion.getName());
-            }
-
-        }
-        return false;
-    }
-
     @Override
     public void serializeObject(Object o, int hashCode, String destDir) {
         // throw new NotImplementedException();
     }
 
     @Override
-    public ObjectRegistry getObjectRegistry() {
-        return oReg;
+    public void emitEvent(int type, long id) {
+        Tracer.emitEvent(type, id);
     }
 
     @Override
-    public StreamRegistry getStreamRegistry() {
-        return sReg;
-    }
-
-    @Override
-    public void setObjectRegistry(ObjectRegistry oReg) {
-        COMPSsRuntimeImpl.oReg = oReg;
-    }
-
-    @Override
-    public void setStreamRegistry(StreamRegistry sReg) {
-        COMPSsRuntimeImpl.sReg = sReg;
-    }
-
-    @Override
-    public String getTempDir() {
-        return Comm.getAppHost().getWorkingDirectory();
-    }
-
-    /*
-     * ************************************************************************************************************
-     * COMMON IN BOTH APIs
-     * ************************************************************************************************************
-     */
-    @Override
-    public boolean isFileAccessed(Long appId, String fileName) {
-        DataLocation loc;
-        try {
-            loc = createLocation(ProtocolType.FILE_URI, fileName);
-        } catch (IOException ioe) {
-            ErrorManager.fatal(ERROR_FILE_NAME, ioe);
-            loc = null;
-        }
-        if (loc != null) {
-            Application app = Application.registerApplication(appId);
-            FileData fd = new FileData(app, loc);
-            return ap.alreadyAccessed(fd);
-        } else {
-            return false;
-        }
-    }
-
-    @Override
-    public String openFile(Long appId, String fileName, Direction mode) {
-        Application app = Application.registerApplication(appId);
-        return openFileSystemData(app, fileName, mode, false);
-    }
-
-    private String openFileSystemData(Application app, String fileName, Direction direction, boolean isDir) {
-        LOGGER.info("Opening " + fileName + " in direction " + direction);
-        TraceEvent tEvent = null;
+    public void snapshot(Long appId) {
         if (Tracer.isActivated()) {
-            if (isDir) {
-                tEvent = TraceEvent.OPEN_DIRECTORY;
-            } else {
-                tEvent = TraceEvent.OPEN_FILE;
-            }
-            Tracer.emitEvent(tEvent);
+            Tracer.emitEvent(TraceEvent.SNAPSHOT_API);
         }
-        // Parse arguments to internal structures
-        DataLocation loc;
-        try {
-            loc = createLocation(isDir ? ProtocolType.DIR_URI : ProtocolType.FILE_URI, fileName);
-        } catch (IOException ioe) {
-            ErrorManager.fatal(ERROR_FILE_NAME, ioe);
-            return null;
-        }
+        Application app = Application.registerApplication(appId);
+        // Wait until all tasks have finished
+        LOGGER.info("Requesting snapshot for application " + appId);
 
-        // Request AP that the application wants to access a FILE or a EXTERNAL_PSCO
-        String finalPath;
-        switch (loc.getType()) {
-            case PRIVATE:
-            case SHARED:
-                FileMainAccess<?, ?> access;
-                if (isDir) {
-                    access = DirectoryMainAccess.constructDMA(app, direction, loc);
-                } else {
-                    access = FileMainAccess.constructFMA(app, direction, loc);
-                }
-                finalPath = mainAccessToFile(access, fileName);
-                if (LOGGER.isDebugEnabled()) {
-
-                    LOGGER.debug("File " + (isDir ? "(dir) " : "") + "target Location: " + finalPath);
-                }
-                break;
-            case PERSISTENT:
-                String id = ((PersistentLocation) loc).getId();
-                int hashCode = externalObjectHashcode(id);
-                ExternalPSCObjectMainAccess eoap;
-                eoap = ExternalPSCObjectMainAccess.constructEPOMA(app, Direction.INOUT, id, hashCode);
-
-                // Otherwise we request it from a task
-                try {
-                    String newPscoId = ap.mainAccess(eoap);
-                    finalPath = ProtocolType.PERSISTENT_URI.getSchema() + newPscoId;
-                } catch (ValueUnawareRuntimeException e) {
-                    finalPath = id;
-                }
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("External PSCO target Location: " + finalPath);
-                }
-                break;
-
-            default:
-                finalPath = null;
-                ErrorManager.error(
-                    "ERROR: Unrecognised protocol requesting " + (isDir ? "openDirectory " : "openFile ") + fileName);
-        }
-
+        ap.snapshot(app);
         if (Tracer.isActivated()) {
-            Tracer.emitEventEnd(tEvent);
+            Tracer.emitEventEnd(TraceEvent.SNAPSHOT_API);
         }
-
-        return finalPath;
-    }
-
-    @Override
-    public String openDirectory(Long appId, String dirName, Direction mode) {
-        Application app = Application.registerApplication(appId);
-        return openFileSystemData(app, dirName, mode, true);
-    }
-
-    @Override
-    public void closeFile(Long appId, String fileName, Direction mode) {
-        Application app = Application.registerApplication(appId);
-        closeFile(app, fileName, mode);
-    }
-
-    /**
-     * Closes the opened file version.
-     *
-     * @param app application closing the file.
-     * @param fileName File name.
-     * @param direction Access mode.
-     */
-    public void closeFile(Application app, String fileName, Direction direction) {
-
-        // if (Tracer.isActivated()) {
-        // Tracer.emitEvent(TraceEvent.CLOSE_FILE.getId(),
-        // TraceEvent.CLOSE_FILE.getType());
-        // }
-        LOGGER.info("Closing " + fileName + " in direction " + direction);
-
-        // Parse arguments to internal structures
-        DataLocation loc;
-        try {
-            loc = createLocation(ProtocolType.FILE_URI, fileName);
-        } catch (Exception e) {
-            ErrorManager.fatal(ERROR_FILE_NAME, e);
-            return;
-        }
-
-        // Request AP that the application wants to access a FILE or a EXTERNAL_PSCO
-        switch (loc.getType()) {
-            case PRIVATE:
-            case SHARED:
-                FileAccessParams fap = FileAccessParams.constructFAP(app, direction, loc);
-                ap.finishDataAccess(fap, null);
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Closing file " + loc.getPath());
-                }
-                break;
-            case PERSISTENT:
-                // Nothing to do
-                ErrorManager.warn("WARN: Cannot close file " + fileName + " with PSCO protocol");
-                break;
-            case BINDING:
-                // Nothing to do
-                ErrorManager.warn("WARN: Cannot close binding object " + fileName + " with PSCO protocol");
-                break;
-            default:
-                ErrorManager.error("ERROR: Unrecognised protocol requesting closeFile " + fileName);
-        }
-
-        // if (Tracer.isActivated()) {
-        // Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
-        // }
     }
 
     /*
@@ -1888,11 +1874,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         return 1;
     }
 
-    /*
-     * *********************************************************************************************************
-     * *********************************** PRIVATE HELPER METHODS **********************************************
-     * *********************************************************************************************************
-     */
     private List<Parameter> processParameters(Application app, int parameterCount, Object[] parameters,
         ParameterCollectionMonitor monitors) {
         ArrayList<Parameter> pars = new ArrayList<>();
@@ -1925,6 +1906,40 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
         // Return parameters
         return pars;
+    }
+
+    private void deleteParameter(Application app, Parameter p) {
+        switch (p.getType()) {
+            case DIRECTORY_T:
+                ap.markForDeletion(app, ((DirectoryParameter) p).getLocation(), false, false);
+                // Java case where task files are stored in the registry
+                if (sReg != null) {
+                    sReg.deleteTaskFile(app.getId(), ((DirectoryParameter) p).getOriginalName());
+                }
+                break;
+            case FILE_T:
+                ap.markForDeletion(app, ((FileParameter) p).getLocation(), false, false);
+                // Java case where task files are stored in the registry
+                if (sReg != null) {
+                    sReg.deleteTaskFile(app.getId(), ((FileParameter) p).getOriginalName());
+                }
+                break;
+            case BINDING_OBJECT_T:
+                ap.markForBindingObjectDeletion(app, ((BindingObjectParameter) p).getCode());
+                break;
+            case OBJECT_T:
+                ObjectParameter op = (ObjectParameter) p;
+                oReg.delete(app.getId(), op.getValue());
+                break;
+            case COLLECTION_T:
+            case DICT_COLLECTION_T:
+                for (Parameter sp : ((CollectiveParameter) p).getElements()) {
+                    deleteParameter(app, sp);
+                }
+                break;
+            default:
+                break;
+        }
     }
 
     private int externalObjectHashcode(String id) {

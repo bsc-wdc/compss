@@ -854,7 +854,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 String intermediateTmpPath = renamedPath + ".tmp";
                 FileOpsManager.moveSync(new File(renamedPath), new File(intermediateTmpPath));
                 closeFile(app, fileName, Direction.INOUT);
-                ap.markForDeletion(app, sourceLocation, true, false);
+                ap.markForDeletion(new FileData(app, sourceLocation), true, false);
                 // In the case of Java file can be stored in the Stream Registry
                 if (sReg != null) {
                     sReg.deleteTaskFile(appId, fileName);
@@ -901,7 +901,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             FileOpsManager.moveDirSync(new File(renamedPath), new File(intermediateTmpPath));
             closeFile(app, dirName, Direction.IN);
 
-            ap.markForDeletion(app, sourceLocation, true, false);
+            ap.markForDeletion(new FileData(app, sourceLocation), true, false);
             // In the case of Java file can be stored in the Stream Registry
             if (sReg != null) {
                 sReg.deleteTaskFile(appId, dirName);
@@ -1152,7 +1152,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         try {
             DataLocation loc = createLocation(ProtocolType.FILE_URI, fileName);
             Application app = Application.registerApplication(appId);
-            ap.markForDeletion(app, loc, waitForData, applicationDelete);
+            ap.markForDeletion(new FileData(app, loc), waitForData, applicationDelete);
             // Java case where task files are stored in the registry
             if (sReg != null) {
                 sReg.deleteTaskFile(appId, fileName);
@@ -1912,14 +1912,14 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     private void deleteParameter(Application app, Parameter p) {
         switch (p.getType()) {
             case DIRECTORY_T:
-                ap.markForDeletion(app, ((DirectoryParameter) p).getLocation(), false, false);
+                ap.markForDeletion(((DirectoryParameter) p).getAccess().getData(), false, false);
                 // Java case where task files are stored in the registry
                 if (sReg != null) {
                     sReg.deleteTaskFile(app.getId(), ((DirectoryParameter) p).getOriginalName());
                 }
                 break;
             case FILE_T:
-                ap.markForDeletion(app, ((FileParameter) p).getLocation(), false, false);
+                ap.markForDeletion(((FileParameter<?, ?>) p).getAccess().getData(), false, false);
                 // Java case where task files are stored in the registry
                 if (sReg != null) {
                     sReg.deleteTaskFile(app.getId(), ((FileParameter) p).getOriginalName());

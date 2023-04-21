@@ -20,10 +20,8 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
-import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.DataParams.FileData;
 import es.bsc.compss.types.data.FileInfo;
-import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.util.FileOpsManager;
 
@@ -34,8 +32,7 @@ import java.util.concurrent.Semaphore;
 
 public class DeleteFileRequest extends APRequest {
 
-    private final Application app;
-    private final DataLocation loc;
+    private final FileData data;
     private final Semaphore sem;
     private boolean noReuse;
     private final boolean applicationDelete;
@@ -44,38 +41,27 @@ public class DeleteFileRequest extends APRequest {
     /**
      * Creates a new request to delete a file.
      * 
-     * @param app Application requesting the file deletion
-     * @param loc File location.
+     * @param data data to delete
      * @param sem Waiting semaphore.
+     * @param noReuse {@literal false}, if the application must be able to use the same data name for a new data
      * @param applicationDelete Whether the deletion was requested by the user code of the application {@literal true},
      *            or automatically removed by the runtime {@literal false}.
      */
-    public DeleteFileRequest(Application app, DataLocation loc, Semaphore sem, boolean noReuse,
-        boolean applicationDelete) {
-        this.app = app;
-        this.loc = loc;
+    public DeleteFileRequest(FileData data, Semaphore sem, boolean noReuse, boolean applicationDelete) {
+        this.data = data;
         this.sem = sem;
         this.noReuse = noReuse;
         this.applicationDelete = applicationDelete;
     }
 
-    /**
-     * Returns the file location.
-     * 
-     * @return The file location.
-     */
-    public DataLocation getLocation() {
-        return this.loc;
-    }
-
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
-        LOGGER.info("[DeleteFileRequest] Notify data delete " + this.loc.getPath() + " to DIP...");
-        FileInfo fileInfo = (FileInfo) dip.deleteData(new FileData(this.app, this.loc), this.noReuse);
+        LOGGER.info("[DeleteFileRequest] Notify data delete " + this.data.getDescription() + " to DIP...");
+        FileInfo fileInfo = (FileInfo) dip.deleteData(this.data, this.noReuse);
         if (fileInfo == null) {
             // File is not used by any task, we can erase it
             // Retrieve the first valid URI location (private locations have only 1, shared locations may have more)
-            String filePath = this.loc.getURIs().get(0).getPath();
+            String filePath = this.data.getLocation().getURIs().get(0).getPath();
             File f = new File(filePath);
             try {
                 FileOpsManager.deleteSync(f);

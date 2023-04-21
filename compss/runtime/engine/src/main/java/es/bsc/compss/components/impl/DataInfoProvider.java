@@ -45,7 +45,6 @@ import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -443,18 +442,15 @@ public class DataInfoProvider {
     /**
      * Waits until data is ready for its safe deletion.
      *
-     * @param app Application requesting the data deletion
-     * @param loc Data location.
+     * @param data data to wait to be ready to delete
      * @param semWait Waiting semaphore.
      * @return Number of permits.
      */
-    public int waitForDataReadyToDelete(Application app, DataLocation loc, Semaphore semWait) {
-        LOGGER.debug("Waiting for data to be ready for deletion: " + loc.getPath());
-        String locationKey = loc.getLocationKey();
-
-        Integer dataId = app.getFileDataId(locationKey);
+    public int waitForDataReadyToDelete(DataParams data, Semaphore semWait) {
+        LOGGER.debug("Waiting for data " + data.getDescription() + " to be ready for deletion");
+        Integer dataId = data.getDataId(this);
         if (dataId == null) {
-            LOGGER.debug("No data id found for this data location" + loc.getPath());
+            LOGGER.debug("No data id found for " + data.getDescription());
             semWait.release();
             return 0;
         }
@@ -468,7 +464,7 @@ public class DataInfoProvider {
      * Marks a data for deletion.
      *
      * @param data data to be deleted
-     * @param noReuse no reuse flag
+     * @param noReuse {@literal false}, if the application must be able to use the same data name for a new data
      * @return DataInfo associated with the data to remove
      */
     public DataInfo deleteData(DataParams data, boolean noReuse) {

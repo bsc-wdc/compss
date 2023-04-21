@@ -32,12 +32,12 @@ import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.DataParams;
+import es.bsc.compss.types.data.DataParams.FileData;
 import es.bsc.compss.types.data.DataParams.ObjectData;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.ResultFile;
 import es.bsc.compss.types.data.access.MainAccess;
 import es.bsc.compss.types.data.accessparams.AccessParams;
-import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.parameter.impl.Parameter;
 import es.bsc.compss.types.request.ap.APRequest;
 import es.bsc.compss.types.request.ap.AlreadyAccessedRequest;
@@ -550,19 +550,19 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     /**
      * Marks a location for deletion.
      *
-     * @param app Application requesting the file deletion
-     * @param loc Location to delete.
+     * @param data data to be marked for deletion
+     * @param enableReuse {@literal true}, if the application must be able to use the same data name for a new data
      * @param applicationDelete {@literal true}, if the application requested the data deletion; {@literal false}
      *            otherwise
      */
-    public void markForDeletion(Application app, DataLocation loc, boolean enableReuse, boolean applicationDelete) {
-        LOGGER.debug("Marking data " + loc + " for deletion");
+    public void markForDeletion(FileData data, boolean enableReuse, boolean applicationDelete) {
+        LOGGER.debug("Marking data " + data.getDescription() + " for deletion");
         Semaphore sem = new Semaphore(0);
 
         // No need to wait if data is noReuse
         if (enableReuse) {
             Semaphore semWait = new Semaphore(0);
-            WaitForDataReadyToDeleteRequest request = new WaitForDataReadyToDeleteRequest(app, loc, sem, semWait);
+            WaitForDataReadyToDeleteRequest request = new WaitForDataReadyToDeleteRequest(data, sem, semWait);
             // Wait for data to be ready for deletion
             if (!this.requestQueue.offer(request)) {
                 ErrorManager.error(ERROR_QUEUE_OFFER + "wait for data ready to delete");
@@ -579,8 +579,8 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
             }
         }
         // Request to delete data
-        LOGGER.debug("Sending delete request response for " + loc);
-        if (!this.requestQueue.offer(new DeleteFileRequest(app, loc, sem, !enableReuse, applicationDelete))) {
+        LOGGER.debug("Sending delete request response for " + data.getDescription());
+        if (!this.requestQueue.offer(new DeleteFileRequest(data, sem, !enableReuse, applicationDelete))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "mark for deletion");
         }
 
@@ -589,7 +589,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
             // Wait for response
             LOGGER.debug("Waiting for delete request response...");
             sem.acquireUninterruptibly();
-            LOGGER.debug("Data " + loc + " deleted.");
+            LOGGER.debug("Data " + data.getDescription() + " deleted.");
         }
 
     }

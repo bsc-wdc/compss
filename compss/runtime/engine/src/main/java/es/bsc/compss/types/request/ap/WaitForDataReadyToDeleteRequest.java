@@ -20,8 +20,7 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
-import es.bsc.compss.types.Application;
-import es.bsc.compss.types.data.location.DataLocation;
+import es.bsc.compss.types.data.DataParams;
 import es.bsc.compss.types.tracing.TraceEvent;
 
 import java.util.concurrent.Semaphore;
@@ -29,8 +28,7 @@ import java.util.concurrent.Semaphore;
 
 public class WaitForDataReadyToDeleteRequest extends APRequest {
 
-    private final Application app;
-    private final DataLocation loc;
+    private final DataParams data;
     private final Semaphore sem;
     private final Semaphore semWait;
 
@@ -40,26 +38,15 @@ public class WaitForDataReadyToDeleteRequest extends APRequest {
     /**
      * Creates a new request to wait for the data to be ready to be deleted.
      * 
-     * @param app Application requesting to wait for the value to be ready for deletion
-     * @param loc Data Location.
+     * @param data data to wait to be ready for its removal
      * @param sem Waiting semaphore.
      * @param semWait Tasks semaphore.
      */
-    public WaitForDataReadyToDeleteRequest(Application app, DataLocation loc, Semaphore sem, Semaphore semWait) {
-        this.app = app;
-        this.loc = loc;
+    public WaitForDataReadyToDeleteRequest(DataParams data, Semaphore sem, Semaphore semWait) {
+        this.data = data;
         this.sem = sem;
         this.semWait = semWait;
         this.nPermits = 0;
-    }
-
-    /**
-     * Returns the associated data location.
-     * 
-     * @return The associated data location.
-     */
-    public DataLocation getLocation() {
-        return this.loc;
     }
 
     /**
@@ -73,8 +60,8 @@ public class WaitForDataReadyToDeleteRequest extends APRequest {
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
-        LOGGER.info("[WaitForDataReadyToDelete] Notifying waiting data " + this.loc.getPath() + "to DIP...");
-        this.nPermits = dip.waitForDataReadyToDelete(this.app, this.loc, this.semWait);
+        LOGGER.info("[WaitForDataReadyToDelete] Notifying waiting data " + this.data.getDescription() + "to DIP...");
+        this.nPermits = dip.waitForDataReadyToDelete(this.data, this.semWait);
         this.sem.release();
     }
 

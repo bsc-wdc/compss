@@ -280,7 +280,7 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
     if debug:
         log_level = "debug"
 
-    __show_flower__()
+    __show_flower()
 
     # Let the Python binding know we are at master
     CONTEXT.set_master()
@@ -461,7 +461,7 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
     binding_tmp_path = get_tmp_path()  # master.workingDir
     GLOBALS.set_temporary_directory(binding_tmp_path)
 
-    __print_setup__(verbose, all_vars)
+    __print_setup(verbose, all_vars)
 
     logger.debug("--- START ---")
     logger.debug("PyCOMPSs Log path: %s", log_path)
@@ -492,7 +492,7 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
     return None
 
 
-def __show_flower__() -> None:
+def __show_flower() -> None:
     """Show the flower and version through stdout.
 
     :return: None
@@ -520,7 +520,7 @@ def __show_flower__() -> None:
     print(line_separator)
 
 
-def __print_setup__(
+def __print_setup(
     verbose: bool, all_vars: typing.Dict[str, typing.Any]
 ) -> None:
     """Print the setup variables through stdout (only if verbose is True).
@@ -555,7 +555,7 @@ def stop(sync: bool = False, _hard_stop: bool = False) -> None:
     ipython = globals()["__builtins__"]["get_ipython"]()
 
     if not CONTEXT.in_pycompss():
-        return __hard_stop__(interactive_helpers.DEBUG, sync, logger, ipython)
+        return __hard_stop(interactive_helpers.DEBUG, sync, logger, ipython)
 
     from pycompss.api.api import (  # pylint: disable=import-outside-toplevel
         compss_stop,
@@ -653,7 +653,7 @@ def stop(sync: bool = False, _hard_stop: bool = False) -> None:
 
     # Cleanup events and files
     release_event_manager(ipython)
-    __clean_temp_files__()
+    __clean_temp_files()
 
     # Stop watching stdout and stderr
     if not disable_external:
@@ -673,7 +673,7 @@ def stop(sync: bool = False, _hard_stop: bool = False) -> None:
     return None
 
 
-def __hard_stop__(
+def __hard_stop(
     debug: bool, sync: bool, logger: logging.Logger, ipython: typing.Any
 ) -> None:
     """Stop the binding securely when the runtime crashes.
@@ -703,7 +703,7 @@ def __hard_stop__(
 
     # Cleanup events and files
     release_event_manager(ipython)
-    __clean_temp_files__()
+    __clean_temp_files()
 
     # Stop watching stdout and stderr
     if not EXTRA_LAUNCH_STATUS.get_disable_external():
@@ -841,7 +841,7 @@ def resources_status() -> None:
 # ########################################################################### #
 
 
-def __clean_temp_files__() -> None:
+def __clean_temp_files() -> None:
     """Remove any temporary files that may exist.
 
     Currently: APP_PATH, which contains the file path where all interactive

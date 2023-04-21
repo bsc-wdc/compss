@@ -1144,7 +1144,7 @@ class TaskWorker:
             if restore_hook:
                 sys.setprofile(pro_f)
 
-            __clean_cupy_env__()
+            clean_cupy_env()
 
             return user_returns, compss_exception, default_values
 
@@ -1270,9 +1270,7 @@ class TaskWorker:
                 if __debug__:
                     LOGGER.debug("Serializing collection: %s", str(arg.name))
                 # handle collections recursively
-                for content, elem in __get_collection_objects__(
-                    arg.content, arg
-                ):
+                for content, elem in get_collection_objects(arg.content, arg):
                     if elem.file_name:
                         _is_delegated = False
                         if CONTEXT.is_nesting_enabled():
@@ -1304,7 +1302,7 @@ class TaskWorker:
                         "Serializing dictionary collection: " + str(arg.name)
                     )
                 # handle dictionary collections recursively
-                for content, elem in __get_dict_collection_objects__(
+                for content, elem in get_dict_collection_objects(
                     arg.content, arg
                 ):
                     if elem.file_name:
@@ -1463,7 +1461,7 @@ class TaskWorker:
                 user_returns = [user_returns]
             elif num_returns > 1 and python_mpi:
                 user_returns = [user_returns]
-                ret_params = __get_ret_rank__(ret_params)
+                ret_params = __get_ret_rank(ret_params)
             # Note that we are implicitly assuming that the length of the user
             # returns matches the number of return parameters
             for obj, param in zip(user_returns, ret_params):
@@ -1813,7 +1811,7 @@ class TaskWorker:
 #######################
 
 
-def __clean_cupy_env__():
+def clean_cupy_env():
     try:
         import cupy
 
@@ -1823,7 +1821,7 @@ def __clean_cupy_env__():
         pass
 
 
-def __get_collection_objects__(
+def get_collection_objects(
     content: typing.Any, argument: Parameter
 ) -> typing.Generator[typing.Tuple[typing.Any, Parameter], None, None]:
     """Retrieve collection objects recursively generator.
@@ -1841,9 +1839,7 @@ def __get_collection_objects__(
             # Update the sub-parameter content with the existing content
             # to keep track of the synchronized.
             _elem.content = new_con
-            for sub_el, sub_param in __get_collection_objects__(
-                new_con, _elem
-            ):
+            for sub_el, sub_param in get_collection_objects(new_con, _elem):
                 # Update the sub-parameter content with the existing content
                 # to keep track of the synchronized.
                 sub_param.content = sub_el
@@ -1858,7 +1854,7 @@ def __get_collection_objects__(
         yield content, argument
 
 
-def __get_dict_collection_objects__(
+def get_dict_collection_objects(
     content: typing.Any, argument: Parameter
 ) -> typing.Generator[typing.Tuple[typing.Any, Parameter], None, None]:
     """Retrieve the dictionary collection objects recursively generator.
@@ -1897,7 +1893,7 @@ def __get_dict_collection_objects__(
         # Loop recursively
         for new_con, _elem in zip(elements, elements_parameters):
             _elem.content = new_con
-            for sub_el, sub_param in __get_dict_collection_objects__(
+            for sub_el, sub_param in get_dict_collection_objects(
                 new_con, _elem
             ):
                 # Update the sub-parameter content with the existing content
@@ -1914,7 +1910,7 @@ def __get_dict_collection_objects__(
         yield content, argument
 
 
-def __get_ret_rank__(_ret_params: list) -> list:
+def __get_ret_rank(_ret_params: list) -> list:
     """Retrieve the rank id within MPI.
 
     :param _ret_params: Return parameters.

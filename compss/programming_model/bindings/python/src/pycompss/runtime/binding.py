@@ -162,12 +162,12 @@ def file_exists(*file_name: typing.Union[list, tuple, str]) -> typing.Any:
         LOGGER.debug(
             "Checking if file/s: %s has/have been accessed.", file_name
         )
-    return __apply_recursively_to_file__(
-        __file_exists__, TRACING_MASTER.accessed_file_event, True, *file_name
+    return __apply_recursively_to_file(
+        __file_exists, TRACING_MASTER.accessed_file_event, True, *file_name
     )
 
 
-def __file_exists__(app_id: int, file_name: str) -> bool:
+def __file_exists(app_id: int, file_name: str) -> bool:
     """Check if one files exists (has been accessed).
 
     Calls the external python library (that calls the bindings-common)
@@ -215,12 +215,12 @@ def delete_file(*file_name: typing.Union[list, tuple, str]) -> typing.Any:
     """
     if __debug__:
         LOGGER.debug("Deleting file/s: %s", file_name)
-    return __apply_recursively_to_file__(
-        __delete_file__, TRACING_MASTER.delete_file_event, True, *file_name
+    return __apply_recursively_to_file(
+        __delete_file, TRACING_MASTER.delete_file_event, True, *file_name
     )
 
 
-def __delete_file__(app_id: int, file_name: str) -> bool:
+def __delete_file(app_id: int, file_name: str) -> bool:
     """Remove one or more files.
 
     Calls the external python library (that calls the bindings-common)
@@ -249,7 +249,7 @@ def wait_on_file(*file_name: typing.Union[list, tuple, str]) -> typing.Any:
     """
     if __debug__:
         LOGGER.debug("Getting file/s: %s", file_name)
-    return __apply_recursively_to_file__(
+    return __apply_recursively_to_file(
         COMPSs.get_file, TRACING_MASTER.get_file_event, False, *file_name
     )
 
@@ -265,7 +265,7 @@ def wait_on_directory(
     """
     if __debug__:
         LOGGER.debug("Getting directory/s: %s", directory_name)
-    return __apply_recursively_to_file__(
+    return __apply_recursively_to_file(
         COMPSs.get_directory,
         TRACING_MASTER.get_directory_event,
         False,
@@ -273,7 +273,7 @@ def wait_on_directory(
     )
 
 
-def __apply_recursively_to_file__(
+def __apply_recursively_to_file(
     function: typing.Callable,
     event: int,
     get_results: bool,
@@ -305,7 +305,7 @@ def __apply_recursively_to_file__(
         elif isinstance(f_name, list):
             files_list = list(
                 [
-                    __apply_recursively_to_file__(
+                    __apply_recursively_to_file(
                         function, event, get_results, name
                     )
                     for name in f_name
@@ -315,7 +315,7 @@ def __apply_recursively_to_file__(
         elif isinstance(f_name, tuple):
             files_tuple = tuple(
                 [
-                    __apply_recursively_to_file__(
+                    __apply_recursively_to_file(
                         function, event, get_results, name
                     )
                     for name in f_name
@@ -347,14 +347,14 @@ def delete_object(
     ret = []  # type: typing.List[typing.Union[bool, list]]
     for obj in objs:
         with EventMaster(TRACING_MASTER.delete_object_event):
-            result = __delete_object__(app_id, obj)
+            result = __delete_object(app_id, obj)
         ret.append(result)
     if len(ret) == 1:
         return ret[0]
     return ret
 
 
-def __delete_object__(app_id: int, obj: typing.Any) -> bool:
+def __delete_object(app_id: int, obj: typing.Any) -> bool:
     """Remove object function.
 
     Removes a used object from the internal structures and calls the
@@ -812,13 +812,13 @@ def wait_on(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
         master_event = kwargs["master_event"]
     if master_event:
         with EventMaster(TRACING_MASTER.wait_on_event):
-            return __wait_on__(*args, **kwargs)
+            return __wait_on(*args, **kwargs)
     else:
         with EventInsideWorker(TRACING_WORKER.wait_on_event):
-            return __wait_on__(*args, **kwargs)
+            return __wait_on(*args, **kwargs)
 
 
-def __wait_on__(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
+def __wait_on(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
     """Wait on a set of objects.
 
     Waits on a set of objects defined in args with the options defined in

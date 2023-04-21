@@ -79,8 +79,8 @@ class SCO(object):
         api.updatePersistent(self)
 
     # Renaming
-    getID = get_id  # NOSONAR
-    setID = set_id  # NOSONAR
-    makePersistent = make_persistent  # NOSONAR
-    deletePersistent = delete_persistent  # NOSONAR
-    updatePersistent = update_persistent  # NOSONAR
+    getID = get_id  # noqa: N815
+    setID = set_id  # noqa: N815
+    makePersistent = make_persistent  # noqa: N815
+    deletePersistent = delete_persistent  # noqa: N815
+    updatePersistent = update_persistent  # noqa: N815

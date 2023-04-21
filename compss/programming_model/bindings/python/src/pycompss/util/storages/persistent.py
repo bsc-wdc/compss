@@ -36,7 +36,7 @@ from pycompss.util.typing_helper import typing
 
 
 # Definition helpers
-def __dummy_function__() -> None:
+def __dummy_function() -> None:
     """Do nothing function.
 
     To be used as definition of INIT, FINISH and GET_BY_ID globals.
@@ -51,14 +51,14 @@ def __dummy_function__() -> None:
 
 # Globals
 # Contain the actual storage api functions set on initialization
-INIT = __dummy_function__  # type: typing.Callable
-FINISH = __dummy_function__  # type: typing.Callable
-GET_BY_ID = __dummy_function__  # type: typing.Callable
+INIT = __dummy_function  # type: typing.Callable
+FINISH = __dummy_function  # type: typing.Callable
+GET_BY_ID = __dummy_function  # type: typing.Callable
 TaskContext = None  # type: typing.Any
 DUMMY_STORAGE = False  # type: bool
 
 
-class dummy_task_context(object):
+class DummyTaskContext(object):
     """Dummy task context to be used with storage frameworks."""
 
     def __init__(
@@ -67,7 +67,7 @@ class dummy_task_context(object):
         values: typing.Any,
         config_file_path: typing.Optional[str] = None,
     ) -> None:
-        """Create a new instance of dummy_task_context.
+        """Create a new instance of DummyTaskContext.
 
         :param logger: Logger facility.
         :param values: Values.
@@ -159,7 +159,7 @@ def load_storage_library() -> None:
         from storage.api import init as real_init  # noqa
         from storage.api import finish as real_finish  # noqa
         from storage.api import getByID as real_get_by_id  # noqa
-        from storage.api import TaskContext as real_task_context  # noqa
+        from storage.api import TaskContext as RealTaskContext  # noqa
 
         DUMMY_STORAGE = False
         print("INFO: Storage API successfully imported.")
@@ -174,12 +174,12 @@ def load_storage_library() -> None:
         INIT = dummy_init
         FINISH = dummy_finish
         GET_BY_ID = dummy_get_by_id
-        TaskContext = dummy_task_context
+        TaskContext = DummyTaskContext
     else:
         INIT = real_init
         FINISH = real_finish
         GET_BY_ID = real_get_by_id
-        TaskContext = real_task_context
+        TaskContext = RealTaskContext
 
 
 def is_psco(obj: typing.Any) -> bool:
@@ -236,7 +236,7 @@ def master_init_storage(storage_conf: str, logger: logging.Logger) -> bool:
     :return: True if initialized. False on the contrary.
     """
     with EventMaster(TRACING_MASTER.init_storage_event):
-        return __init_storage__(storage_conf, logger)
+        return __init_storage(storage_conf, logger)
 
 
 def use_storage(storage_conf: str) -> bool:
@@ -260,10 +260,10 @@ def init_storage(storage_conf: str, logger: logging.Logger) -> bool:
     :return: True if initialized. False on the contrary.
     """
     with EventWorker(TRACING_WORKER.init_storage_event):
-        return __init_storage__(storage_conf, logger)
+        return __init_storage(storage_conf, logger)
 
 
-def __init_storage__(storage_conf: str, logger: logging.Logger) -> bool:
+def __init_storage(storage_conf: str, logger: logging.Logger) -> bool:
     """Call to init storage.
 
     Initializes the persistent storage with the given storage_conf file.
@@ -292,7 +292,7 @@ def master_stop_storage(logger: logging.Logger) -> None:
     :return: None
     """
     with EventMaster(TRACING_MASTER.stop_storage_event):
-        __stop_storage__(logger)
+        __stop_storage(logger)
 
 
 def stop_storage(logger: logging.Logger) -> None:
@@ -304,10 +304,10 @@ def stop_storage(logger: logging.Logger) -> None:
     :return: None
     """
     with EventWorker(TRACING_WORKER.stop_storage_event):
-        __stop_storage__(logger)
+        __stop_storage(logger)
 
 
-def __stop_storage__(logger: logging.Logger) -> None:
+def __stop_storage(logger: logging.Logger) -> None:
     """Stop the persistent storage.
 
     :param logger: Logger where to log the messages.

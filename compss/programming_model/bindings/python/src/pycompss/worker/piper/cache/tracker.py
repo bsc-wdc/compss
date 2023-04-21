@@ -341,8 +341,8 @@ class CacheTracker:
         )
 
         # Profiling
-        filename = get_file_name_clean(f_name)
-        function_name = __function_clean__(user_function)
+        filename = get_file_name_clean(identifier)
+        function_name = function_clean(user_function)
 
         message = CacheQueueMessage(
             action="GET",
@@ -538,7 +538,7 @@ class CacheTracker:
         except ImportError:
             print("WARNING: Import ERROR importing Cupy")
 
-        function = __function_clean__(user_function)
+        function = function_clean(user_function)
         f_name = get_file_name(f_name)
         # Exclusion in locking to avoid multiple insertions
         # If no lock is defined may lead to unstable behaviour.
@@ -778,7 +778,7 @@ def get_file_name_clean(f_name: str) -> str:
     return f_name.rsplit("/", 1)[-1]
 
 
-def __function_clean__(function: typing.Callable) -> str:
+def function_clean(function: typing.Callable) -> str:
     """Retrieve the clean function name.
 
     :param function: Function.

@@ -157,15 +157,15 @@ def show_tasks_info(log_path: str) -> None:
         def play_widget(
             i: typing.Any,
         ) -> None:  # pylint: disable=unused-argument
-            __show_tasks_info__(log_path)
+            __show_tasks_info(log_path)
 
         play = __get_play_widget(play_widget)
         display(play)  # noqa
     else:
-        __show_tasks_info__(log_path)
+        __show_tasks_info(log_path)
 
 
-def __show_tasks_info__(log_path: str) -> None:
+def __show_tasks_info(log_path: str) -> None:
     """Show tasks info.
 
     :param log_path: Absolute path of the log folder.
@@ -242,15 +242,15 @@ def show_tasks_status(log_path: str) -> None:
 
         def play_widget(i):  # pylint: disable=unused-argument
             # type: (typing.Any) -> None
-            __show_tasks_status__(log_path)
+            __show_tasks_status(log_path)
 
         play = __get_play_widget(play_widget)
         display(play)  # noqa
     else:
-        __show_tasks_info__(log_path)
+        __show_tasks_info(log_path)
 
 
-def __show_tasks_status__(log_path: str) -> None:
+def __show_tasks_status(log_path: str) -> None:
     """Show tasks status.
 
     :param log_path: Absolute path of the log folder.
@@ -277,7 +277,7 @@ def __show_tasks_status__(log_path: str) -> None:
     ax1.axis("equal")
     plt.show()
     # Display table with values
-    labels, values = __plain_lists__(tasks_info_dict)
+    labels, values = __plain_lists(tasks_info_dict)
     display(
         HTML(tabulate.tabulate([values], tablefmt="html", headers=labels))
     )  # noqa
@@ -294,15 +294,15 @@ def show_statistics(log_path: str) -> None:
         def play_widget(
             i: typing.Any,
         ) -> None:  # pylint: disable=unused-argument
-            __show_statistics__(log_path)
+            __show_statistics(log_path)
 
         play = __get_play_widget(play_widget)
         display(play)  # noqa
     else:
-        __show_statistics__(log_path)
+        __show_statistics(log_path)
 
 
-def __show_statistics__(log_path: str) -> None:
+def __show_statistics(log_path: str) -> None:
     """Show statistics info.
 
     :param log_path: Absolute path of the log folder.
@@ -331,15 +331,15 @@ def show_resources_status(log_path: str) -> None:
         def play_widget(
             i: typing.Any,
         ) -> None:  # pylint: disable=unused-argument
-            __show_resources_status__(log_path)
+            __show_resources_status(log_path)
 
         play = __get_play_widget(play_widget)
         display(play)  # noqa
     else:
-        __show_resources_status__(log_path)
+        __show_resources_status(log_path)
 
 
-def __show_resources_status__(log_path: str) -> None:
+def __show_resources_status(log_path: str) -> None:
     """Show resources status info.
 
     :param log_path: Absolute path of the log folder.
@@ -350,13 +350,13 @@ def __show_resources_status__(log_path: str) -> None:
         # Do not show anything if there is no information to display
         return
     # Display table with values
-    labels, values = __plain_lists__(resource_info_dict)
+    labels, values = __plain_lists(resource_info_dict)
     display(
         HTML(tabulate.tabulate([values], tablefmt="html", headers=labels))
     )  # noqa
 
 
-def __plain_lists__(dictionary: dict) -> typing.Tuple[list, list]:
+def __plain_lists(dictionary: dict) -> typing.Tuple[list, list]:
     """Convert a dictionary to two lists.
 
     IMPORTANT! Removes last element.

@@ -98,14 +98,14 @@ def check_flags(all_vars: dict) -> typing.Tuple[bool, list]:
     else:
         # Check that each element is of the correct type and supported value
         for flag, requirements in REQUIRED_FLAGS.items():
-            issues += __check_flag__(all_vars, flag, requirements)
+            issues += __check_flag(all_vars, flag, requirements)
         if issues:
             is_ok = False
 
     return is_ok, issues
 
 
-def __check_flag__(
+def __check_flag(
     all_vars: dict,
     flag: str,
     requirements: typing.List[

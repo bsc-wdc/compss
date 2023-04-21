@@ -67,22 +67,22 @@ def show_graph(
     file_name = os.path.join(log_path, "monitor", name)
     # Act
     if timeout == 0:
-        display(__get_graph_snapshot__(file_name, fit, Source))
+        display(__get_graph_snapshot(file_name, fit, Source))
     else:
         try:
             while timeout >= 0:
                 clear_output(wait=True)
-                display(__get_graph_snapshot__(file_name, fit, Source))
+                display(__get_graph_snapshot(file_name, fit, Source))
                 time.sleep(refresh_rate)
                 timeout = timeout - refresh_rate
         except KeyboardInterrupt:
             # User hit stop on the cell
             clear_output(wait=True)
-            display(__get_graph_snapshot__(file_name, fit, Source))
+            display(__get_graph_snapshot(file_name, fit, Source))
     return None
 
 
-def __get_graph_snapshot__(
+def __get_graph_snapshot(
     file_name: str, fit: bool, source: typing.Any
 ) -> typing.Any:
     """Read the graph file and returns it as graphviz object.

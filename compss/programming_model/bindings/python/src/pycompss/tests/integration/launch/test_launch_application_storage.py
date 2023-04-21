@@ -28,7 +28,7 @@ JAVA_API_JAR = ""
 STORAGE_API = None
 
 
-def __initialize_storage__() -> None:
+def __initialize_storage() -> None:
     """Initializes the dummy storage backend.
     Compiles the dummy storage backend from the tests sources.
     Sets the JAVA_API_JAR on the first call to this initialization.
@@ -83,7 +83,7 @@ def __initialize_storage__() -> None:
             fd.write("localhost")
 
 
-def __clean_storage__():
+def __clean_storage():
     # Remove python storage api from sys.path
     sys.path.pop(0)
     # Clean directories
@@ -101,7 +101,7 @@ def test_launch_application():
 
     current_path = os.path.dirname(os.path.abspath(__file__))
     app = os.path.join(current_path, "resources", "storage_app", "pscos.py")
-    __initialize_storage__()
+    __initialize_storage()
     launch_pycompss_application(
         app,
         "main",
@@ -112,4 +112,4 @@ def test_launch_application():
         classpath=JAVA_API_JAR,
         pythonpath=STORAGE_API,
     )
-    __clean_storage__()
+    __clean_storage()

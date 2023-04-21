@@ -42,7 +42,7 @@ except ImportError:
 #######################################
 
 
-def __pre_execute__() -> None:
+def __pre_execute() -> None:
     """Fire prior to interactive execution.
 
     :return: None.
@@ -50,7 +50,7 @@ def __pre_execute__() -> None:
     print("pre_execute")
 
 
-def __pre_run_cell__() -> None:
+def __pre_run_cell() -> None:
     """Like pre_run_cell, but is triggered prior to any execution.
 
     Sometimes code can be executed by libraries, etc. which skipping the
@@ -61,7 +61,7 @@ def __pre_run_cell__() -> None:
     print("pre_run_cell")
 
 
-def __post_execute__() -> None:
+def __post_execute() -> None:
     """Run after interactive execution (e.g. a cell in a notebook).
 
     :return: None.
@@ -69,7 +69,7 @@ def __post_execute__() -> None:
     print("post_execute")
 
 
-def __post_run_cell__() -> None:
+def __post_run_cell() -> None:
     """Run for all cells after execution.
 
     The same as pre_execute, post_execute is like post_run_cell, but
@@ -80,12 +80,12 @@ def __post_run_cell__() -> None:
     :return: None.
     """
     messages = STDW.get_messages()
-    last_message = __process_messages__(messages)
+    last_message = __process_messages(messages)
     if last_message:
         print(last_message)
 
 
-def __process_messages__(messages: typing.List[str]) -> typing.Optional[str]:
+def __process_messages(messages: typing.List[str]) -> typing.Optional[str]:
     """Process the messages and builds a popup with the information.
 
     :param messages: List of messages to show.
@@ -199,10 +199,10 @@ def setup_event_manager(ipython: typing.Any) -> None:
     :param ipython: IPython instance where to register the event manager.
     :return: None.
     """
-    # ipython.events.register("pre_execute", __pre_execute__)
-    # ipython.events.register("pre_run_cell", __pre_run_cell__)
-    # ipython.events.register("post_execute", __post_execute__)
-    ipython.events.register("post_run_cell", __post_run_cell__)
+    # ipython.events.register("pre_execute", __pre_execute)
+    # ipython.events.register("pre_run_cell", __pre_run_cell)
+    # ipython.events.register("post_execute", __post_execute)
+    ipython.events.register("post_run_cell", __post_run_cell)
 
 
 def release_event_manager(ipython: typing.Any) -> None:
@@ -212,10 +212,10 @@ def release_event_manager(ipython: typing.Any) -> None:
     :return: None.
     """
     try:
-        # ipython.events.unregister("pre_execute", __pre_execute__)
-        # ipython.events.unregister("pre_run_cell", __pre_run_cell__)
-        # ipython.events.unregister("post_execute", __post_execute__)
-        ipython.events.unregister("post_run_cell", __post_run_cell__)
+        # ipython.events.unregister("pre_execute", __pre_execute)
+        # ipython.events.unregister("pre_run_cell", __pre_run_cell)
+        # ipython.events.unregister("post_execute", __post_execute)
+        ipython.events.unregister("post_run_cell", __post_run_cell)
     except ValueError:
         # The event was already unregistered
         pass

@@ -510,9 +510,9 @@ def create_init_config_file(
             jvm_options_file.write("-Dcompss.shutdown_in_node_failure=false\n")
 
         if log_dir == "":
-            log_dir = __create_log_dir__()
+            log_dir = __create_log_dir()
         if master_working_dir == "":
-            master_working_dir = __create_master_working_dir__(log_dir)
+            master_working_dir = __create_master_working_dir(log_dir)
         jvm_options_file.write(
             "-Dcompss.master.workingDir=" + master_working_dir + "\n"
         )
@@ -775,7 +775,7 @@ def create_init_config_file(
             extrae_xml_final_path = os.path.join(
                 extrae_xml_final_path_dir, extrae_xml_name
             )
-            got_extrae_final_directory = __process_extrae_file__(
+            got_extrae_final_directory = __process_extrae_file(
                 extrae_xml_path, extrae_xml_final_path, extrae_trace_path
             )
         else:
@@ -827,7 +827,7 @@ def create_init_config_file(
     # print("JVM_OPTIONS_FILE: %s" % temp_path)
 
 
-def __process_extrae_file__(
+def __process_extrae_file(
     extrae_xml_path: str,
     extrae_xml_final_path: str,
     extrae_trace_path: str,
@@ -859,7 +859,7 @@ def __process_extrae_file__(
     return got_extrae_final_directory
 
 
-def __create_log_dir__() -> str:
+def __create_log_dir() -> str:
     """Create log directory.
 
     :return: Updated log directory.
@@ -880,7 +880,7 @@ def __create_log_dir__() -> str:
     return log_dir
 
 
-def __create_master_working_dir__(log_dir: str) -> str:
+def __create_master_working_dir(log_dir: str) -> str:
     """Create master working directory (log_dir/tmpFiles).
 
     :return: Updated master working directory.

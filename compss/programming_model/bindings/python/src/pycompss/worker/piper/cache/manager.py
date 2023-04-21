@@ -265,7 +265,7 @@ def cache_manager(
 
                             if used_size + obj_size > max_size:
                                 # Cache is full, need to evict
-                                used_size = __free_cache_space__(
+                                used_size = free_cache_space(
                                     conf, used_size, obj_size
                                 )
                             # Accumulate size
@@ -340,7 +340,7 @@ def cache_manager(
                                 if gpu_used_size + obj_size > gpu_max_size:
                                     gpu_used_size_dict[
                                         device_id
-                                    ] = __free_gpu_cache_space__(
+                                    ] = free_gpu_cache_space(
                                         conf, gpu_used_size, obj_size, device_id
                                     )
 
@@ -399,8 +399,11 @@ def cache_manager(
                             str(process_name),
                             str(f_name),
                         )
-                        shared_type, obj_size, device_id = __remove_from_cache__(
-                            f_name, cache_ids, cache_hits, gpu_arr_ptr=conf.gpu_arr_ptr
+                        shared_type, obj_size, device_id = remove_from_cache(
+                            f_name,
+                            cache_ids,
+                            cache_hits,
+                            gpu_arr_ptr=conf.gpu_arr_ptr
                         )
 
                         if shared_type == SHARED_MEMORY_CUPY_TAG:
@@ -484,7 +487,7 @@ def cache_manager(
                 alive = False
 
 
-def __remove_from_cache__(f_name, cache_ids, cache_hits, gpu_arr_ptr=None):
+def remove_from_cache(f_name, cache_ids, cache_hits, gpu_arr_ptr=None):
     (cache_id, _, _, size, current_hits, shared_type) = cache_ids.pop(f_name)
 
     if shared_type == SHARED_MEMORY_CUPY_TAG:
@@ -499,7 +502,7 @@ def __remove_from_cache__(f_name, cache_ids, cache_hits, gpu_arr_ptr=None):
     return shared_type, size, device_id
 
 
-def __free_cache_space__(
+def free_cache_space(
     conf: CacheTrackerConf, used_size: int, requested_size: int
 ) -> int:
     """Check the cache status looking into the shared dictionary.
@@ -526,7 +529,7 @@ def __free_cache_space__(
     # Calculate size to recover
     size_to_recover = used_size + requested_size - max_size
     # Select how many to evict
-    evicted, recovered_size = __cpu_evict__(
+    evicted, recovered_size = cpu_evict(
         sorted_hits, cache_ids, cache_hits, size_to_recover
     )
     if __debug__:
@@ -535,7 +538,7 @@ def __free_cache_space__(
     return used_size - recovered_size
 
 
-def __cpu_evict__(
+def cpu_evict(
     sorted_hits: typing.List[int],
     cache_ids,
     cache_hits: typing.Dict[int, typing.Dict[str, int]],
@@ -556,7 +559,7 @@ def __cpu_evict__(
         # the same amount of hits
         files = list(cache_hits[hits])
         for f_name in files:
-            _, recovered_size, _ = __remove_from_cache__(
+            _, recovered_size, _ = remove_from_cache(
                 f_name, cache_ids, cache_hits
             )
             to_evict.append(f_name)
@@ -567,7 +570,7 @@ def __cpu_evict__(
     return len(to_evict), total_recovered_size
 
 
-def __free_gpu_cache_space__(
+def free_gpu_cache_space(
     conf: CacheTrackerConf, gpu_used_size: int, requested_size: int, device_id: int
 ) -> int:
     """Check the cache status looking into the shared dictionary.
@@ -594,7 +597,7 @@ def __free_gpu_cache_space__(
     # Calculate size to recover
     size_to_recover = gpu_used_size + requested_size - max_size
     # Select how many to evict
-    evicted, recovered_size = __gpu_evict__(
+    evicted, recovered_size = gpu_evict(
         sorted_hits, cache_ids, cache_hits, conf.gpu_arr_ptr, size_to_recover, device_id
     )
     if __debug__:
@@ -603,7 +606,7 @@ def __free_gpu_cache_space__(
     return gpu_used_size - recovered_size
 
 
-def __gpu_evict__(
+def gpu_evict(
     sorted_hits: typing.List[int],
     cache_ids,
     cache_hits: typing.Dict[int, typing.Dict[str, int]],
@@ -632,7 +635,7 @@ def __gpu_evict__(
                 shared_type == SHARED_MEMORY_CUPY_TAG
                 and device_id == gpu_arr_ptr[obj_id][1]
             ):
-                _, obj_size, _ = __remove_from_cache__(
+                _, obj_size, _ = remove_from_cache(
                     f_name, cache_ids, cache_hits, gpu_arr_ptr=gpu_arr_ptr
                 )
                 to_evict.append(f_name)

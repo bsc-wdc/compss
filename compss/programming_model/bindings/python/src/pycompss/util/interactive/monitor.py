@@ -45,12 +45,12 @@ def show_monitoring_information(log_path):
         def play_widget(
             i: typing.Any,  # pylint: disable=unused-argument
         ) -> None:
-            __show_monitoring_info__(log_path)
+            __show_monitoring_info(log_path)
 
         play = __get_play_widget(play_widget, interval=250)
         display(play)  # noqa
     else:
-        __show_monitoring_info__(log_path)
+        __show_monitoring_info(log_path)
 
 
 def read_monitoring_file(log_path: str) -> typing.List[str]:
@@ -66,7 +66,7 @@ def read_monitoring_file(log_path: str) -> typing.List[str]:
     return contents
 
 
-def __show_monitoring_info__(log_path: str) -> None:
+def __show_monitoring_info(log_path: str) -> None:
     """Show tasks status.
 
     :param log_path: Absolute path of the log folder.

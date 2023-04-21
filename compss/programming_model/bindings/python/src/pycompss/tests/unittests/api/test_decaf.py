@@ -76,7 +76,7 @@ def test_decaf_runner_parameter():
     ), "Runner parameter has not been initialized."
 
 
-def test_decaf_dfScript_parameter():
+def test_decaf_dfscript_parameter():
     CONTEXT.set_master()
     df_script = "my_dfScript"  # noqa
     my_decaf = Decaf(df_script="date", dfScript=df_script)
@@ -106,7 +106,7 @@ def test_decaf_df_executor_parameter():
     ), "df_executor parameter has not been initialized."
 
 
-def test_decaf_dfExecutor_parameter():  # NOSONAR
+def test_decaf_dfexecutor_parameter():  # NOSONAR
     CONTEXT.set_master()
     df_executor = "my_dfExecutor"  # noqa
     my_decaf = Decaf(df_script="date", dfExecutor=df_executor)
@@ -136,7 +136,7 @@ def test_decaf_df_lib_parameter():
     ), "df_lib parameter has not been initialized."
 
 
-def test_decaf_dfLib_parameter():  # NOSONAR
+def test_decaf_dflib_parameter():  # NOSONAR
     CONTEXT.set_master()
     df_lib = "my_dfLib"  # noqa
     my_decaf = Decaf(df_script="date", dfLib=df_lib)

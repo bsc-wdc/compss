@@ -171,4 +171,4 @@ class OnFailure:  # pylint: disable=R0903,R0902
 # ########################################################################### #
 
 on_failure = OnFailure  # pylint: disable=invalid-name
-onFailure = OnFailure  # pylint: disable=invalid-name
+onFailure = OnFailure  # noqa: N816 # pylint: disable=invalid-name

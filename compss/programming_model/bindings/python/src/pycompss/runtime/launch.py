@@ -139,7 +139,7 @@ def parse_arguments() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def __load_user_module__(app_path: str, log_level: str) -> None:
+def __load_user_module(app_path: str, log_level: str) -> None:
     """Load the user module (resolve all user imports).
 
     This has shown to be necessary before doing "start_compss" in order
@@ -166,7 +166,7 @@ def __load_user_module__(app_path: str, log_level: str) -> None:
             )
 
 
-def __register_implementation_core_elements__() -> None:
+def __register_implementation_core_elements() -> None:
     """Register all implementations accumulated during initialization.
 
     Register the @implements core elements accumulated during the
@@ -231,14 +231,14 @@ def compss_main() -> None:
     # It is disabled if using storage (with dataClay this can not be done)
     if preload_user_code() and not use_storage(storage_conf):
         with loading_context():
-            __load_user_module__(args.app_path, log_level)
+            __load_user_module(args.app_path, log_level)
 
     # Start the runtime
     compss_start(log_level, tracing, False)
 
     # Register @implements core elements (they can not be registered in
     # __load_user__module__).
-    __register_implementation_core_elements__()
+    __register_implementation_core_elements()
 
     # Get application wall clock limit
     wall_clock = int(args.wall_clock)

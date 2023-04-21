@@ -259,9 +259,9 @@ class TaskContext(object):
 
 
 # Renaming
-initWorker = init_worker
-finishWorker = finish_worker
-getByID = get_by_id
-makePersistent = make_persistent
-updatePersistent = update_persistent
-removeById = remove_by_id
+initWorker = init_worker  # noqa: N816
+finishWorker = finish_worker  # noqa: N816
+getByID = get_by_id  # noqa: N816
+makePersistent = make_persistent  # noqa: N816
+updatePersistent = update_persistent  # noqa: N816
+removeById = remove_by_id  # noqa: N816

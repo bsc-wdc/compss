@@ -674,7 +674,7 @@ def _update_classes(
             and class_name in old_classes
             and (not new_classes[class_name] == old_classes[class_name])
         ):
-            __show_redefinition_warning__("Class", class_name)
+            __show_redefinition_warning("Class", class_name)
         old_classes[class_name] = new_classes[class_name]
     return old_classes
 
@@ -704,7 +704,7 @@ def _update_functions(
                 == old_functions[function_name]
             )
         ):
-            __show_redefinition_warning__("Function", function_name)
+            __show_redefinition_warning("Function", function_name)
         old_functions[function_name] = new_functions[function_name]
     return old_functions
 
@@ -734,12 +734,12 @@ def _update_tasks(
             and task_name in old_tasks
             and (not new_tasks[task_name] == old_tasks[task_name])
         ):
-            __show_redefinition_warning__("Task", task_name)
+            __show_redefinition_warning("Task", task_name)
         old_tasks[task_name] = new_tasks[task_name]
     return old_tasks
 
 
-def __show_redefinition_warning__(kind: str, name: str) -> None:
+def __show_redefinition_warning(kind: str, name: str) -> None:
     """Show a warning notifying the redefinition of "kind" type.
 
     :returns: None.

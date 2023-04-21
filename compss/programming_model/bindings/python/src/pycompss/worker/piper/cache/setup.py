@@ -72,8 +72,8 @@ def start_cache(
     :return: Shared memory manager, cache process, cache message queue and
              cache ids dictionary.
     """
-    main_memory_cache_size = __get_cache_size__(cache_config)
-    gpu_cache_size = __get_gpu_cache_size__(cache_config)
+    main_memory_cache_size = get_cache_size(cache_config)
+    gpu_cache_size = get_gpu_cache_size(cache_config)
     # Cache can be used - Create proxy dict
     cache_ids = create_proxy_dict()
     cache_hits = {}  # type: Dict[int, Dict[str, int]]
@@ -97,7 +97,7 @@ def start_cache(
         cache_process,
         in_cache_queue,
         out_cache_queue,
-    ) = __create_cache_manager_process__("cache_tracker", conf)
+    ) = create_cache_tracker_process("cache_tracker", conf)
     return smm, cache_process, in_cache_queue, out_cache_queue, cache_ids
 
 
@@ -120,13 +120,13 @@ def stop_cache(
     if cache_profiler:
         message = CacheQueueMessage(action="END_PROFILING")
         in_cache_queue.put(message)
-    __destroy_cache_tracker_process__(
+    __destroy_cache_tracker_process(
         cache_process, in_cache_queue, out_cache_queue
     )
     CACHE_TRACKER.stop_shared_memory_manager(shared_memory_manager)
 
 
-def __get_cache_size__(cache_config: str) -> int:
+def get_cache_size(cache_config: str) -> int:
     """Retrieve the cache size for the given config.
 
     :param cache_config: Cache configuration defined on startup.
@@ -136,20 +136,21 @@ def __get_cache_size__(cache_config: str) -> int:
         _, cache_s = cache_config.split(":")
         cache_size = int(cache_s)
     else:
-        cache_size = __get_default_cache_size__()
+        cache_size = get_default_cache_size()
     return cache_size
 
 
-def __get_gpu_cache_size__(cache_config: str) -> int:
+def get_gpu_cache_size(cache_config: str) -> int:
     """Retrieve the cache size in the GPU for the given config.
 
     :param cache_config: Cache configuration defined on startup.
     :return: GPU cache size.
     """
+    # TODO: why this number?
     return 2999238656
 
 
-def __get_default_cache_size__() -> int:
+def get_default_cache_size() -> int:
     """Return the default cache size.
 
     :return: The size in bytes.
@@ -165,7 +166,7 @@ def __get_default_cache_size__() -> int:
     return cache_size
 
 
-def __create_cache_manager_process__(
+def create_cache_tracker_process(
     process_name: str, conf: CacheTrackerConf
 ) -> typing.Tuple[Process, Queue, Queue]:
     """Start a new cache tracker process.
@@ -183,7 +184,7 @@ def __create_cache_manager_process__(
     return process, in_queue, out_queue
 
 
-def __destroy_cache_tracker_process__(
+def __destroy_cache_tracker_process(
     cache_process: Process, in_queue: Queue, out_queue: Queue
 ) -> None:
     """Stop the given cache tracker process.

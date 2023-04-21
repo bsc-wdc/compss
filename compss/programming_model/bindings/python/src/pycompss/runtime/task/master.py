@@ -174,8 +174,8 @@ ATTRIBUTES_TO_BE_REMOVED = {
 # ensuring that no attribute is overwritten
 MASTER_LOCK = Lock()
 VALUE_OF = "value_of"
-RETURN_OPEN_TOKEN = "{{"
-RETURN_CLOSE_TOKEN = "}}"
+RETURN_OPEN_SYMBOL = "{{"
+RETURN_CLOSE_SYMBOL = "}}"
 
 
 class TaskMaster:
@@ -1589,8 +1589,8 @@ class TaskMaster:
     def _is_return_param_name(returns_str):
         return (
             isinstance(returns_str, str)
-            and returns_str.startswith(RETURN_OPEN_TOKEN)
-            and returns_str.endswith(RETURN_CLOSE_TOKEN)
+            and returns_str.startswith(RETURN_OPEN_SYMBOL)
+            and returns_str.endswith(RETURN_CLOSE_SYMBOL)
         )
 
     def update_return_if_no_returns(self, function: typing.Callable) -> int:
@@ -1758,8 +1758,8 @@ class TaskMaster:
                 # for the cases like 'returns = {{param_name}}' we replace the
                 # return value with the parameter itself
                 tmp = ret_value[
-                    len(RETURN_OPEN_TOKEN) : -len(  # noqa: E203
-                        RETURN_CLOSE_TOKEN
+                    len(RETURN_OPEN_SYMBOL) : -len(  # noqa: E203
+                        RETURN_CLOSE_SYMBOL
                     )
                 ]
                 if not self.parameters.get(tmp):

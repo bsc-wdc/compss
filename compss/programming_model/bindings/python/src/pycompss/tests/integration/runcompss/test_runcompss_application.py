@@ -39,8 +39,7 @@ def test_runcompss_increment():
             app,
         ]
     process = subprocess.Popen(
-        " ".join(cmd),
-        shell=True,
+        cmd,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
@@ -66,8 +65,7 @@ def test_runcompss_increment_with_gat():
             app,
         ]
     process = subprocess.Popen(
-        " ".join(cmd),
-        shell=True,
+        cmd,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )

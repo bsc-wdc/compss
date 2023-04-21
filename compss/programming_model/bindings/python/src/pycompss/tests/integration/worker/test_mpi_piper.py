@@ -33,8 +33,7 @@ def worker_thread(argv, current_path):
     # Start the piper worker
     setup_argv(argv, current_path)
     p = subprocess.Popen(
-        " ".join(argv),
-        shell=True,
+        argv,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )

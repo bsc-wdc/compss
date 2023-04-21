@@ -336,7 +336,8 @@ class ObjectTracker:
         :return: Object id.
         """
         # Force_insertion implies assign_new_key
-        assert not force_insertion or assign_new_key
+        if not (not force_insertion or assign_new_key):
+            raise PyCOMPSsException("Force insertion implies assign new key")
 
         identifier = self.is_tracked(obj)
         if identifier != "":

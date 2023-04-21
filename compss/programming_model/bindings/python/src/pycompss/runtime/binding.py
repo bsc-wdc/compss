@@ -925,7 +925,7 @@ def process_task(
 
         # Check that there is the same amount of values as their types, as well
         # as their directions, streams and prefixes.
-        assert (
+        if not (
             len(values)
             == len(compss_types)
             == len(compss_directions)
@@ -934,7 +934,11 @@ def process_task(
             == len(content_types)
             == len(weights)
             == len(keep_renames)
-        )
+        ):
+            raise PyCOMPSsException(
+                "Issue with the amount of values, types, "
+                "directions, streams, prefixes, etc."
+            )
 
         # Submit task to the runtime (call to the C extension):
         # Parameters:

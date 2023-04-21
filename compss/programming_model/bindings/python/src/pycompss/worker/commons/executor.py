@@ -24,6 +24,7 @@ This file contains the common worker executor methods.
 """
 
 from pycompss.api.parameter import TYPE
+from pycompss.util.exceptions import PyCOMPSsException
 
 
 def build_return_params_message(types: list, values: list) -> str:
@@ -34,7 +35,8 @@ def build_return_params_message(types: list, values: list) -> str:
     :return: Message as string.
     """
     err_msg = "return type-value length mismatch for return message."
-    assert len(types) == len(values), "Inconsistent state: " + err_msg
+    if len(types) != len(values):
+        raise PyCOMPSsException(f"Inconsistent state: {err_msg}")
 
     pairs = list(zip(types, values))
     num_params = len(pairs)

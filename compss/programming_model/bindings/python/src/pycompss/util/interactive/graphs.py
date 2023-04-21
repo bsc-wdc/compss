@@ -26,6 +26,7 @@ Provides auxiliary methods for the interactive mode with regard to graphs
 import os
 import time
 
+from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.typing_helper import typing
 
 
@@ -55,11 +56,13 @@ def show_graph(
     from IPython.display import display  # noqa
 
     # Check refresh rate and timeout
-    assert timeout >= 0, "ERROR: timeout has to be >= 0"
+    if timeout < 0:
+        raise PyCOMPSsException("ERROR: timeout has to be >= 0")
     if timeout > 0:
-        assert (
-            refresh_rate < timeout
-        ), "ERROR: refresh_rate can not be higher than timeout"
+        if refresh_rate > timeout:
+            raise PyCOMPSsException(
+                "ERROR: refresh_rate can not be higher than timeout"
+            )
     # Set file name
     file_name = os.path.join(log_path, "monitor", name)
     # Act

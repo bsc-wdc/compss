@@ -27,6 +27,7 @@ import logging
 
 from pycompss.util.context import CONTEXT
 from pycompss.runtime.commons import GLOBALS
+from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.typing_helper import typing
 from pycompss.worker.piper.commons.constants import HEADER
 from pycompss.worker.piper.commons.executor import Pipe
@@ -99,8 +100,16 @@ class PiperWorkerConfiguration:
         ]
         out_pipes = argv[12 + (self.tasks_x_node * 2) : -2]  # noqa: E203
         if self.debug:
-            assert self.tasks_x_node == len(in_pipes)
-            assert self.tasks_x_node == len(out_pipes)
+            if self.tasks_x_node != len(in_pipes):
+                raise PyCOMPSsException(
+                    f"Tasks per node different than input pipes ("
+                    f"{self.tasks_x_node} != {len(in_pipes)})"
+                )
+            if self.tasks_x_node != len(out_pipes):
+                raise PyCOMPSsException(
+                    f"Tasks per node different than output pipes ("
+                    f"{self.tasks_x_node} != {len(out_pipes)})"
+                )
         self.pipes = []
         for i in range(0, self.tasks_x_node):
             self.pipes.append(Pipe(in_pipes[i], out_pipes[i]))

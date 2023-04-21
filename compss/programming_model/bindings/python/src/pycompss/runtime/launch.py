@@ -299,7 +299,9 @@ def compss_main() -> None:
         with EventMaster(TRACING_MASTER.application_running_event):
             # MAIN EXECUTION
             with open(app_path) as user_file:
-                exec(compile(user_file.read(), app_path, "exec"), globals())
+                exec(  # nosec B102  # need to run the user application
+                    compile(user_file.read(), app_path, "exec"), globals()
+                )
 
         # End
         if __debug__:
@@ -660,7 +662,9 @@ def launch_pycompss_application(
     with EventMaster(TRACING_MASTER.application_running_event):
         if func is None or func == "__main__":
             with open(app, "r") as app_fd:
-                exec(app_fd.read())
+                exec(  # nosec B102  # need to run the user application
+                    app_fd.read()
+                )
             result = None
         else:
             from importlib.machinery import SourceFileLoader  # noqa

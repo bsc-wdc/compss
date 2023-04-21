@@ -8,7 +8,7 @@ cd "${SCRIPT_DIR}/../../src/pycompss/"
 ## Check Pylint ##
 ##################
 
-bandit -r .
+bandit -r -c ../../pyproject.toml .
 
 cd "${CURRENT_DIR}"
 

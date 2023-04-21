@@ -4,3 +4,17 @@ requires = [
     "wheel"
 ]
 build-backend = "setuptools.build_meta"
+
+[tool.bandit]
+ exclude_dirs = ["tests/"]
+ # tests = []
+ skips = [
+     "B301",  # skips pickle
+     "B403",  # skips import_pickle
+     "B404",  # skips import_subprocess
+     "B603",  # skips subprocess_without_shell_equals_true
+     "B311",  # skips random
+ ]
+
+#[tool.bandit.assert_used]
+# skips = ["*/test_*.py"]  # skips assertions in unittest files

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-python3 -m pip install mypy
-python3 -m pip install mypy-extensions
-python3 -m pip install types-tabulate
-python3 -m pip install types-decorator
+python3 -m pip install mypy --user
+python3 -m pip install mypy-extensions --user
+python3 -m pip install types-tabulate --user
+python3 -m pip install types-decorator --user

@@ -20,28 +20,24 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
-import es.bsc.compss.types.Application;
+import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataParams.ObjectData;
-import es.bsc.compss.types.data.ObjectInfo;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.tracing.TraceEvent;
 
 
 public class DeregisterObject extends APRequest {
 
-    private final Application app;
-    private final int hashCode;
+    private final ObjectData data;
 
 
     /**
      * Creates a new request to unregister an object.
      * 
-     * @param app Application requesting unregistering the object.
-     * @param o Object to unregister.
+     * @param data data being unregistered
      */
-    public DeregisterObject(Application app, Object o, int hashcode) {
-        this.app = app;
-        this.hashCode = o.hashCode();
+    public DeregisterObject(ObjectData data) {
+        this.data = data;
     }
 
     @Override
@@ -52,20 +48,15 @@ public class DeregisterObject extends APRequest {
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td)
         throws ShutdownException {
-        ObjectInfo objectInfo = (ObjectInfo) dip.deleteData(new ObjectData(this.app, this.hashCode), true);
-        if (objectInfo == null) {
-            LOGGER.info("The object with code: " + String.valueOf(this.hashCode) + " is not used by any task");
-
-            return;
-            // I think it's not possible to enter here, the problem we had was that
-            // they were not deleted, but I think it's mandatory to log out what happens
+        DataInfo dInfo = (DataInfo) dip.deleteData(data, true);
+        if (dInfo == null) {
+            LOGGER.info("Data " + data.getDescription() + " is not used by any task");
         } else {
-            LOGGER.info("Data of : " + String.valueOf(this.hashCode) + " deleted");
+            LOGGER.info("Data " + data.getDescription() + " deleted");
+            // At this point all the ObjectInfo versions (renamings) are
+            // out of the DataInfoProvider data structures
+            ta.deleteData(dInfo, false);
         }
-        // At this point all the ObjectInfo versions (renamings) are
-        // out of the DataInfoProvider data structures
-
-        ta.deleteData(objectInfo, false);
     }
 
 }

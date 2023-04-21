@@ -49,6 +49,7 @@ import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.data.DataParams;
+import es.bsc.compss.types.data.DataParams.BindingObjectData;
 import es.bsc.compss.types.data.DataParams.CollectionData;
 import es.bsc.compss.types.data.DataParams.FileData;
 import es.bsc.compss.types.data.DataParams.ObjectData;
@@ -1178,7 +1179,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         Application app = Application.registerApplication(appId);
         // This will remove the object from the Object Registry and the Data Info Provider
         // eventually allowing the garbage collector to free it (better use of memory)
-        ap.deregisterObject(app, o, hashcode);
+        ap.deregisterObject(new ObjectData(app, hashcode));
     }
 
     @Override
@@ -1199,7 +1200,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         // Parse the binding object name and translate the access mode
         BindingObject bo = BindingObject.generate(fileName);
         int hashCode = externalObjectHashcode(bo.getId());
-        ap.markForBindingObjectDeletion(app, hashCode);
+        ap.deregisterObject(new BindingObjectData(app, hashCode));
         if (Tracer.isActivated()) {
             Tracer.emitEventEnd(TraceEvent.DELETE);
         }
@@ -1925,7 +1926,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 }
                 break;
             case BINDING_OBJECT_T:
-                ap.markForBindingObjectDeletion(app, ((BindingObjectParameter) p).getCode());
+                ap.deregisterObject(((BindingObjectParameter) p).getAccess().getData());
                 break;
             case OBJECT_T:
                 ObjectParameter op = (ObjectParameter) p;

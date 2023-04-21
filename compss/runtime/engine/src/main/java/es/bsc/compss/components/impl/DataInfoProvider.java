@@ -431,25 +431,6 @@ public class DataInfoProvider {
     }
 
     /**
-     * Returns the last version of all the specified data Ids {@code dataIds}.
-     *
-     * @param dataIds Data Ids.
-     * @return A list of DataInstaceId containing the last version for each of the specified dataIds.
-     */
-    public List<DataInstanceId> getLastVersions(TreeSet<Integer> dataIds) {
-        List<DataInstanceId> versionIds = new ArrayList<>(dataIds.size());
-        for (Integer dataId : dataIds) {
-            DataInfo dataInfo = this.idToData.get(dataId);
-            if (dataInfo != null) {
-                versionIds.add(dataInfo.getCurrentDataVersion().getDataInstanceId());
-            } else {
-                versionIds.add(null);
-            }
-        }
-        return versionIds;
-    }
-
-    /**
      * Unblocks a dataId.
      *
      * @param dataId Data Id.

@@ -21,7 +21,6 @@ import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.COMPSsDefaults;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.checkpoint.CheckpointManager;
-import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.monitor.impl.GraphGenerator;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.AbstractTask;
@@ -35,15 +34,9 @@ import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.DataParams;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.ResultFile;
-import es.bsc.compss.types.data.access.DirectoryMainAccess;
-import es.bsc.compss.types.data.access.FileMainAccess;
 import es.bsc.compss.types.data.access.MainAccess;
 import es.bsc.compss.types.data.accessparams.AccessParams;
-import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
-import es.bsc.compss.types.data.accessparams.DirectoryAccessParams;
-import es.bsc.compss.types.data.accessparams.FileAccessParams;
 import es.bsc.compss.types.data.location.DataLocation;
-import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.parameter.impl.Parameter;
 import es.bsc.compss.types.request.ap.APRequest;
 import es.bsc.compss.types.request.ap.AlreadyAccessedRequest;
@@ -75,7 +68,6 @@ import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
 import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.types.tracing.TraceEventType;
-import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.Classpath;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
@@ -304,12 +296,12 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         }
 
         // Tell the DIP that the application wants to access an object
-        DataAccessId daId = registerDataAccess(ap, AccessMode.RW);
+        DataAccessId daId = registerDataAccess(ap);
         if (daId == null) {
             ErrorManager.warn("No version available. Returning null");
             return ma.getUnavailableValueResponse();
         } else {
-            // Ask for the object
+            // Ask for the data
             T oUpdated;
             oUpdated = ma.fetch(daId);
             if (ma.isAccessFinishedOnRegistration()) {
@@ -321,28 +313,6 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
 
             }
             return oUpdated;
-        }
-    }
-
-    /**
-     * Notifies a main access {@code fma} to a given file.
-     *
-     * @param fma File Access.
-     * @return Final location.
-     * @throws ValueUnawareRuntimeException the runtime is not aware of the last value of the accessed data
-     */
-    public DataLocation mainAccessToFile(FileMainAccess<?, ?> fma) throws ValueUnawareRuntimeException {
-        FileAccessParams fap = fma.getParameters();
-
-        // Tell the DM that the application wants to access a file.
-        // Wait until the last writer task for the file has finished.
-        DataAccessId faId = registerDataAccess(fap, AccessMode.R);
-
-        if (faId == null) { // If fiId is null data is cancelled returning null location
-            ErrorManager.warn("No version available. Returning null");
-            return fma.getUnavailableValueResponse();
-        } else {
-            return fma.fetch(faId);
         }
     }
 
@@ -492,13 +462,11 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
      * Registers a new data access and waits for it to be available.
      *
      * @param access Access parameters.
-     * @param taskMode Access mode to register the data access.
      * @return The registered access Id.
      * @throws ValueUnawareRuntimeException the runtime is not aware of the last value of the accessed data
      */
-    private DataAccessId registerDataAccess(AccessParams access, AccessMode taskMode)
-        throws ValueUnawareRuntimeException {
-        RegisterDataAccessRequest request = new RegisterDataAccessRequest(access, taskMode);
+    private DataAccessId registerDataAccess(AccessParams access) throws ValueUnawareRuntimeException {
+        RegisterDataAccessRequest request = new RegisterDataAccessRequest(access);
         if (!this.requestQueue.offer(request)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "register data access");
         }

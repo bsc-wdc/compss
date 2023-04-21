@@ -1091,7 +1091,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         String boId = boLoc.getId();
         int hashCode = externalObjectHashcode(boId);
         Application app = Application.registerApplication(appId);
-        BindingObjectMainAccess boap = BindingObjectMainAccess.constructBOMA(app, Direction.IN, bo, hashCode);
+        BindingObjectMainAccess boap = BindingObjectMainAccess.constructBOMA(app, Direction.INOUT, bo, hashCode);
 
         // Otherwise we request it from a task
         String finalPath;
@@ -1940,7 +1940,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         // Tell the AP that the application wants to access a file.
         DataLocation targetLocation;
         try {
-            targetLocation = ap.mainAccessToFile(access);
+            targetLocation = ap.mainAccess(access);
         } catch (ValueUnawareRuntimeException ex) {
             targetLocation = access.getParameters().getLocation();
         }

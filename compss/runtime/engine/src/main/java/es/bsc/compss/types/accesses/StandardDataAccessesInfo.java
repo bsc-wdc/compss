@@ -26,6 +26,7 @@ import es.bsc.compss.types.Task;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.parameter.impl.DependencyParameter;
@@ -203,10 +204,10 @@ public class StandardDataAccessesInfo extends DataAccessesInfo {
     }
 
     @Override
-    public void mainAccess(RegisterDataAccessRequest rdar, GraphHandler gh, int dataId, int dataVersion) {
+    public void mainAccess(RegisterDataAccessRequest rdar, GraphHandler gh, DataInstanceId accessedData) {
         if (lastWriter != null) {
             if (IS_DRAW_GRAPH) {
-                gh.addEdgeFromTaskToMain(lastWriter, EdgeType.DATA_DEPENDENCY, dataId, dataVersion);
+                gh.addEdgeFromTaskToMain(lastWriter, EdgeType.DATA_DEPENDENCY, accessedData);
             }
             // Release task if possible. Otherwise add to waiting
             if (lastWriter.isPending()) {
@@ -220,7 +221,7 @@ public class StandardDataAccessesInfo extends DataAccessesInfo {
 
         for (AbstractTask task : this.concurrentReaders) {
             if (IS_DRAW_GRAPH) {
-                gh.addEdgeFromTaskToMain(task, EdgeType.DATA_DEPENDENCY, dataId, dataVersion);
+                gh.addEdgeFromTaskToMain(task, EdgeType.DATA_DEPENDENCY, accessedData);
             }
             if (task != null && task.isPending()) {
                 task.addListener(rdar);

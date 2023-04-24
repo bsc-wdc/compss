@@ -33,7 +33,6 @@ import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.operation.FileTransferable;
 import es.bsc.compss.types.data.operation.OneOpWithSemListener;
 import es.bsc.compss.types.uri.SimpleURI;
-import es.bsc.compss.util.ErrorManager;
 import java.util.concurrent.Semaphore;
 
 

@@ -602,7 +602,7 @@ public class GOSJob extends JobImpl<GOSWorkerNode> {
      */
     public void setCommandArgsBatch(GOSJobDescription jd) {
         StringBuilder sb = new StringBuilder();
-        sb.append(" --exec_time=").append(getConfig().getProjectProperty("MaxExecTime"));
+        sb.append(" --exec_time=").append(jd.getMaxExecTime());
         sb.append(" --sc_cfg=").append(jd.getCFG());
         // sb.append(" --queue=").append(jd.getQueues().get(0));
         sb.append(" --num_nodes=").append(taskParams.getNumNodes());

@@ -31,7 +31,7 @@ def proccesPerNode():
 def scaleBYCU():
     pass
 
-@compss(runcompss="${RUNCOMPSS}", flags="-d", app_name="${APP_DIR}/src/simple_compss_nested.py",
+@compss(runcompss="${RUNCOMPSS}", flags="-d", app_name="${APP_DIR}/src/testMpiDecorator.py",
         worker_in_master="false", computing_nodes="2", fail_by_exit_value=False)
 @constraint(computing_units="2")
 @task(returns=int)

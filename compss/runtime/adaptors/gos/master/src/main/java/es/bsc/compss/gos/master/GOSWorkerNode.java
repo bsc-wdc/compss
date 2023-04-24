@@ -89,6 +89,7 @@ public class GOSWorkerNode extends COMPSsWorker {
         this.adaptor = adaptor;
         this.runningJobs = new HashMap<>();
         this.host = config.getAdaptor().getHost(config.getUser(), config.getHost());
+        this.host.setPort(config.getPort());
         this.dbgPrefix = "[GOSWorkerNode " + host.getFullHostName() + "] ";
         monitorList.add(monitor);
 

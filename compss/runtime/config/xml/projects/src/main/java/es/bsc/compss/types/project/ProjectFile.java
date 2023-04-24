@@ -1359,6 +1359,7 @@ public class ProjectFile {
                             if (subSysType instanceof BatchType) {
                                 GOSAdaptorProperties properties = ((BatchType) subSysType).getBatchProperties();
                                 adaptorBatchProperties.put("Queue", ((BatchType) subSysType).getQueue());
+                                adaptorBatchProperties.put("Port", properties.getPort());
                                 adaptorBatchProperties.put("MaxExecTime", properties.getMaxExecTime());
                                 adaptorBatchProperties.put("QOS", properties.getQOS());
                                 adaptorBatchProperties.put("Reservation", properties.getReservation());

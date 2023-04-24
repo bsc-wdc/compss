@@ -24,6 +24,7 @@ import es.bsc.compss.exceptions.InitNodeException;
 import es.bsc.compss.gos.master.GOSAdaptor;
 import es.bsc.compss.gos.master.GOSJob;
 import es.bsc.compss.gos.master.GOSJobDescription;
+import es.bsc.compss.gos.master.configuration.GOSConfiguration;
 import es.bsc.compss.gos.master.exceptions.GOSWarningException;
 import es.bsc.compss.gos.master.monitoring.transfermonitor.sftpmonitor.GOSJschTransferMonitor;
 import es.bsc.compss.gos.master.sshutils.staticmethods.SSHCommand;
@@ -52,7 +53,7 @@ public class SSHHost {
     JSch jsch = new JSch();
     private final String host;
     private final String username;
-
+    private Integer port = GOSConfiguration.DEFAULT_SSH_PORT;
     private final SSHSessionManager sessionManager;
 
 
@@ -89,8 +90,8 @@ public class SSHHost {
     }
 
     private void configJSCH() {
-        List<String> possibleIdentityFiles = new ArrayList<String>();
-        List<String> identityFiles = new ArrayList<String>();
+        List<String> possibleIdentityFiles = new ArrayList<>();
+        List<String> identityFiles = new ArrayList<>();
         String homeDir = System.getProperty("user.home");
         possibleIdentityFiles.add(homeDir + "/.ssh/id_rsa");
         possibleIdentityFiles.add(homeDir + "/.ssh/id_ecdsa");
@@ -257,5 +258,13 @@ public class SSHHost {
             }
         }
         ch.disconnect();
+    }
+
+    protected int getPort() {
+        return port;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
     }
 }

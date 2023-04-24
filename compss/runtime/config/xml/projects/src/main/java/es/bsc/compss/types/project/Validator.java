@@ -33,6 +33,7 @@ import es.bsc.compss.types.project.jaxb.ComputeNodeType;
 import es.bsc.compss.types.project.jaxb.ComputingClusterType;
 import es.bsc.compss.types.project.jaxb.DataNodeType;
 import es.bsc.compss.types.project.jaxb.ExternalAdaptorProperties;
+import es.bsc.compss.types.project.jaxb.GOSAdaptorProperties;
 import es.bsc.compss.types.project.jaxb.HttpType;
 import es.bsc.compss.types.project.jaxb.ImageType;
 import es.bsc.compss.types.project.jaxb.ImagesType;
@@ -53,7 +54,6 @@ import es.bsc.compss.types.project.jaxb.SubmissionSystemType;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 import javax.xml.bind.JAXBElement;
@@ -1106,8 +1106,10 @@ public class Validator {
     }
 
     private void validateBatch(BatchType batch) throws InvalidElementException {
-        // The queue information is only a string name selected by the user
-        // and thus it is always valid. Nothing to check
+        GOSAdaptorProperties batchProperties = batch.getBatchProperties();
+        if (batchProperties != null) {
+            validateGOSAdaptorProperties(batchProperties);
+        }
     }
 
     private void validateInteractive(InteractiveType interactive) throws InvalidElementException {
@@ -1131,6 +1133,18 @@ public class Validator {
         if ((broker == null) || (broker.isEmpty())) {
             throw new InvalidElementException("GATAdaptor", "Attribute BrokerAdaptor", "Doesn't appear");
         }
+    }
+
+    private void validateGOSAdaptorProperties(GOSAdaptorProperties prop) throws InvalidElementException {
+        Long maxExecTime = prop.getMaxExecTime();
+        if (maxExecTime != null && maxExecTime < 1) {
+            throw new InvalidElementException("Properties of GOSAdaptor", "Attribute maxExecTime", "Invalid value");
+        }
+        Integer port = prop.getPort();
+        if (port != null && port < 0) {
+            throw new InvalidElementException("Properties of GOSAdaptor", "Attribute port", "Invalid value");
+        }
+        // The rest of the attributes are user defined string in remote machine, so we consider them valid
     }
 
     private void validateExternalAdaptorProperties(ExternalAdaptorProperties props) throws InvalidElementException {

@@ -27,10 +27,11 @@ import java.util.Map;
 
 public class GOSConfiguration extends MethodConfiguration {
 
+    public static final int DEFAULT_SSH_PORT = 22;
     private final GOSMonitoring monitoring;
     private Map<String, Object> resourcesProperties;
     private Map<String, Object> projectProperties;
-
+    private int port = DEFAULT_SSH_PORT;
     private boolean isBatch;
     private final GOSAdaptor adaptor;
 
@@ -63,14 +64,14 @@ public class GOSConfiguration extends MethodConfiguration {
     /**
      * Project properties, and determines if the submissionMode is batch.
      *
-     * @param projectProperties the resources properties
+     * @param prop the project properties
      */
-    public void addProjectProperties(Map<String, Object> projectProperties) throws GOSException {
-        if (projectProperties == null) {
-            projectProperties = new HashMap<>();
-        } else {
-            this.projectProperties = projectProperties;
+    public void addProjectProperties(Map<String, Object> prop) {
+        if (prop == null) {
+            prop = new HashMap<>();
         }
+        this.projectProperties = prop;
+        this.setPort();
         if (!projectProperties.containsKey("Interactive")) {
             LOGGER.warn("[GOSCONFIGURATION] Not clear if is interactive or batch, defaulting " + "to interactive");
             isBatch = false;
@@ -114,7 +115,9 @@ public class GOSConfiguration extends MethodConfiguration {
         if (projectProperties.containsKey(key)) {
             return projectProperties.get(key);
         } else {
-            LOGGER.warn(key + " key not in project properties");
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.warn(key + " key not in project properties");
+            }
             return null;
         }
     }
@@ -125,5 +128,26 @@ public class GOSConfiguration extends MethodConfiguration {
 
     public Map<String, Object> getResourcesProperties() {
         return resourcesProperties;
+    }
+
+    /**
+     * Gets the port for ssh connection.
+     *
+     * @return the port
+     */
+    public int getPort() {
+        return this.port;
+    }
+
+    /**
+     * Sets port.
+     */
+    private void setPort() {
+        Object p = projectProperties.get("Port");
+        if (p != null) {
+            port = (int) p;
+        } else {
+            port = DEFAULT_SSH_PORT;
+        }
     }
 }

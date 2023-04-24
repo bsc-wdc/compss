@@ -224,9 +224,10 @@ get_invocation_params () {
     fi
 
     if [ $numSlaves -gt 0 ]; then
+        sshOptions="-o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no -p 22"
         for singleSlave in $slaves ; do
-            sshOptions="-o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no -p 22"
-            ssh "$sshOptions $singleSlave ${envScript}"
+            command="ssh ${sshOptions} ${singleSlave} source ${envScript}"
+            eval $command
         done
     fi
 

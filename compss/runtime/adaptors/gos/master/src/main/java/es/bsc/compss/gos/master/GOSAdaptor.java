@@ -94,11 +94,7 @@ public class GOSAdaptor implements CommAdaptor {
         GOSConfiguration config = new GOSConfiguration(this, gosMonitoring);
         LOGGER.debug("Constructing GOSConfiguration");
         config.addResourcesProperties(resourcesProperties);
-        try {
-            config.addProjectProperties(projectProperties);
-        } catch (GOSException e) {
-            ErrorManager.error("Exception in configuration of GOSAdaptor", e);
-        }
+        config.addProjectProperties(projectProperties);
         config.setUser(MASTER_USER);
         return config;
     }

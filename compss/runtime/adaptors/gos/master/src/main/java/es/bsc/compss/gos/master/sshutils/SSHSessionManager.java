@@ -30,8 +30,6 @@ public class SSHSessionManager {
 
     private static final int CHANNELS_PER_SESSION = 2;
     private static final int MAX_EMPTY_SESSIONS = 3;
-    private static final int DEFAULT_PORT = 22;
-
     private final JSch jsch;
     private final SSHHost host;
     private final Map<String, SSHSession> openSessions = new ConcurrentHashMap<>();
@@ -46,8 +44,7 @@ public class SSHSessionManager {
     }
 
     private void createSession() throws JSchException {
-        Session s = jsch.getSession(host.getUser(), host.getHost(), DEFAULT_PORT);
-
+        Session s = jsch.getSession(host.getUser(), host.getHost(), host.getPort());
         SSHSession t = new SSHSession(this, s, CHANNELS_PER_SESSION);
         t.connect();
         openSessions.put(t.id, t);
@@ -147,6 +144,6 @@ public class SSHSessionManager {
     }
 
     public Session recreateSession() throws JSchException {
-        return jsch.getSession(host.getUser(), host.getHost(), DEFAULT_PORT);
+        return jsch.getSession(host.getUser(), host.getHost(), host.getPort());
     }
 }

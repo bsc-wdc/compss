@@ -712,6 +712,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     public void registerData(Long appId, DataType type, Object stub, String data) {
 
         Application app = Application.registerApplication(appId);
+        DataParams dp = null;
         switch (type) {
             case DIRECTORY_T:
             case FILE_T:
@@ -725,7 +726,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                         ErrorManager.fatal(ERROR_FILE_NAME, ioe);
                         return;
                     }
-                    ap.registerRemoteData(new FileData(app, loc), data);
+                    dp = new FileData(app, loc);
                 } catch (NullPointerException npe) {
                     LOGGER.error(ERROR_FILE_NAME, npe);
                     ErrorManager.fatal(ERROR_FILE_NAME, npe);
@@ -734,11 +735,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             case OBJECT_T:
             case PSCO_T:
                 int hashcode = oReg.newObjectParameter(appId, stub);
-                ap.registerRemoteData(new ObjectData(app, hashcode), data);
+                dp = new ObjectData(app, hashcode);
                 break;
             case STREAM_T:
                 // int streamCode = oReg.newObjectParameter(stub);
-                break;
+                throw new UnsupportedOperationException("Not implemented yet.");
             case EXTERNAL_STREAM_T:
                 try {
                     String fileName = (String) stub;
@@ -747,10 +748,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     LOGGER.error(ERROR_FILE_NAME, npe);
                     ErrorManager.fatal(ERROR_FILE_NAME, npe);
                 }
-                break;
+                throw new UnsupportedOperationException("Not implemented yet.");
             case EXTERNAL_PSCO_T:
                 // String id = (String) stub;
-                break;
+                throw new UnsupportedOperationException("Not implemented yet.");
             case BINDING_OBJECT_T:
                 String value = (String) stub;
                 if (value.contains(":")) {
@@ -764,7 +765,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     // int externalCode = externalObjectHashcode(extObjectId);
                     // externalObjectHashcode(extObjectId);
                     // }
-
                     if (fields.length != 3) {
                         LOGGER.error(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
                         ErrorManager.fatal(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
@@ -773,9 +773,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     LOGGER.error(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
                     ErrorManager.fatal(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
                 }
-                break;
+                throw new UnsupportedOperationException("Not implemented yet.");
             case COLLECTION_T:
-                ap.registerRemoteData(new CollectionData(app, (String) stub), data);
+                dp = new CollectionData(app, (String) stub);
                 break;
             case DICT_COLLECTION_T:
                 throw new UnsupportedOperationException("Not implemented yet.");
@@ -783,6 +783,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 // Basic types (including String)
                 // Already passed in as a value
                 break;
+        }
+        if (dp != null) {
+            ap.registerRemoteData(dp, data);
         }
     }
 

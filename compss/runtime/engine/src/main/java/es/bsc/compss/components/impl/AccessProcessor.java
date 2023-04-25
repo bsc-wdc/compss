@@ -48,7 +48,7 @@ import es.bsc.compss.types.request.ap.CancelTaskGroupRequest;
 import es.bsc.compss.types.request.ap.CloseTaskGroupRequest;
 import es.bsc.compss.types.request.ap.DataGetLastVersionRequest;
 import es.bsc.compss.types.request.ap.DeleteAllApplicationDataRequest;
-import es.bsc.compss.types.request.ap.DeleteFileRequest;
+import es.bsc.compss.types.request.ap.DeleteDataRequest;
 import es.bsc.compss.types.request.ap.DeregisterObject;
 import es.bsc.compss.types.request.ap.EndOfAppRequest;
 import es.bsc.compss.types.request.ap.FinishDataAccessRequest;
@@ -70,10 +70,12 @@ import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.types.tracing.TraceEventType;
 import es.bsc.compss.util.Classpath;
 import es.bsc.compss.util.ErrorManager;
+import es.bsc.compss.util.FileOpsManager;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -580,7 +582,8 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         }
         // Request to delete data
         LOGGER.debug("Sending delete request response for " + data.getDescription());
-        if (!this.requestQueue.offer(new DeleteFileRequest(data, sem, !enableReuse, applicationDelete))) {
+        DeleteDataRequest req = new DeleteDataRequest(data, !enableReuse, applicationDelete);
+        if (!this.requestQueue.offer(req)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "mark for deletion");
         }
 
@@ -588,7 +591,21 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         if (enableReuse) {
             // Wait for response
             LOGGER.debug("Waiting for delete request response...");
-            sem.acquireUninterruptibly();
+            try {
+                req.waitForCompletion();
+            } catch (ValueUnawareRuntimeException e) {
+                // File is not used by any task, we can erase it
+                // Retrieve the first valid URI location (private locations have only 1, shared locations may have more)
+                String filePath = data.getLocation().getURIs().get(0).getPath();
+                File f = new File(filePath);
+                try {
+                    FileOpsManager.deleteSync(f);
+                    LOGGER.info("[DeleteFileRequest] File " + filePath + " deleted.");
+                } catch (IOException ioe) {
+                    LOGGER.error("[DeleteFileRequest] Error on deleting file " + filePath, ioe);
+                }
+
+            }
             LOGGER.debug("Data " + data.getDescription() + " deleted.");
         }
 

@@ -75,10 +75,9 @@ public enum TraceEvent {
     SHUTDOWN(33, TraceEventType.RUNTIME, "Access Processor: Shutdown"), //
     GRAPHSTATE(34, TraceEventType.RUNTIME, "Access Processor: Graphstate"), //
     TASKSTATE(35, TraceEventType.RUNTIME, "Access Processor: Taskstate"), //
-    DELETE_FILE(36, TraceEventType.RUNTIME, "Access Processor: Delete file"), //
+    DELETE_DATA(36, TraceEventType.RUNTIME, "Access Processor: Delete Data"), //
     FINISH_DATA_ACCESS(37, TraceEventType.RUNTIME, "Access Processor: Finish access to file"), //
     REGISTER_REMOTE_DATA(38, TraceEventType.RUNTIME, "Access Processor: Register remote data access"), //
-    DEREGISTER_OBJECT(40, TraceEventType.RUNTIME, "Access Processor: Deregister object"), //
     CANCEL_TASK_GROUP(41, TraceEventType.RUNTIME, "Access Processor: Cancel task group"), //
     REMOVE_APP_DATA(42, TraceEventType.RUNTIME, "Access Processor: Remove application data"), //
     CANCEL_ALL_TASKS(56, TraceEventType.RUNTIME, "Access Processor: Cancel all tasks"), //

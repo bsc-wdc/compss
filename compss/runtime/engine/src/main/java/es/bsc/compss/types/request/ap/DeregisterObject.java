@@ -16,20 +16,10 @@
  */
 package es.bsc.compss.types.request.ap;
 
-import es.bsc.compss.components.impl.AccessProcessor;
-import es.bsc.compss.components.impl.DataInfoProvider;
-import es.bsc.compss.components.impl.TaskAnalyser;
-import es.bsc.compss.components.impl.TaskDispatcher;
-import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataParams.ObjectData;
-import es.bsc.compss.types.request.exceptions.ShutdownException;
-import es.bsc.compss.types.tracing.TraceEvent;
 
 
-public class DeregisterObject extends APRequest {
-
-    private final ObjectData data;
-
+public class DeregisterObject extends DeleteDataRequest {
 
     /**
      * Creates a new request to unregister an object.
@@ -37,26 +27,7 @@ public class DeregisterObject extends APRequest {
      * @param data data being unregistered
      */
     public DeregisterObject(ObjectData data) {
-        this.data = data;
-    }
-
-    @Override
-    public TraceEvent getEvent() {
-        return TraceEvent.DEREGISTER_OBJECT;
-    }
-
-    @Override
-    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td)
-        throws ShutdownException {
-        DataInfo dInfo = (DataInfo) dip.deleteData(data, true);
-        if (dInfo == null) {
-            LOGGER.info("Data " + data.getDescription() + " is not used by any task");
-        } else {
-            LOGGER.info("Data " + data.getDescription() + " deleted");
-            // At this point all the ObjectInfo versions (renamings) are
-            // out of the DataInfoProvider data structures
-            ta.deleteData(dInfo, false);
-        }
+        super(data, true, false);
     }
 
 }

@@ -32,7 +32,6 @@ import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.DataParams;
-import es.bsc.compss.types.data.DataParams.ObjectData;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.ResultFile;
 import es.bsc.compss.types.data.access.MainAccess;
@@ -48,7 +47,6 @@ import es.bsc.compss.types.request.ap.CloseTaskGroupRequest;
 import es.bsc.compss.types.request.ap.DataGetLastVersionRequest;
 import es.bsc.compss.types.request.ap.DeleteAllApplicationDataRequest;
 import es.bsc.compss.types.request.ap.DeleteDataRequest;
-import es.bsc.compss.types.request.ap.DeregisterObject;
 import es.bsc.compss.types.request.ap.EndOfAppRequest;
 import es.bsc.compss.types.request.ap.FinishDataAccessRequest;
 import es.bsc.compss.types.request.ap.GetResultFilesRequest;
@@ -554,7 +552,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
      * @param applicationDelete {@literal true}, if the application requested the data deletion; {@literal false}
      *            otherwise
      */
-    public void markForDeletion(DataParams data, boolean enableReuse, boolean applicationDelete) {
+    public void deleteData(DataParams data, boolean enableReuse, boolean applicationDelete) {
         LOGGER.debug("Marking data " + data.getDescription() + " for deletion");
         Semaphore sem = new Semaphore(0);
 
@@ -620,20 +618,6 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         UnblockResultFilesRequest urfr = new UnblockResultFilesRequest(request.getBlockedData());
         if (!this.requestQueue.offer(urfr)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "unlock result files");
-        }
-    }
-
-    /**
-     * Unregisters the given object.
-     *
-     * @param data data to delete
-     */
-    public void deregisterObject(ObjectData data) {
-        if (DEBUG) {
-            LOGGER.debug("Deregistering " + data.getDescription());
-        }
-        if (!this.requestQueue.offer(new DeregisterObject(data))) {
-            ErrorManager.error(ERROR_QUEUE_OFFER + "deregister object");
         }
     }
 

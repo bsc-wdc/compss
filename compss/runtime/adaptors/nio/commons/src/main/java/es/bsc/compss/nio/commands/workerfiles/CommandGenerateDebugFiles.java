@@ -20,25 +20,26 @@ import es.bsc.comm.Connection;
 import es.bsc.compss.nio.NIOAgent;
 
 import es.bsc.compss.nio.commands.Command;
+
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 
-public class CommandWorkerDebugFilesDone implements Command {
+public class CommandGenerateDebugFiles implements Command {
 
-    public CommandWorkerDebugFilesDone() {
+    public CommandGenerateDebugFiles() {
         super();
     }
 
     @Override
     public void handle(NIOAgent agent, Connection c) {
-        agent.notifyWorkersDebugInfoGeneration();
+        agent.generateDebugFiles(c);
     }
 
     @Override
     public String toString() {
-        return "GeneratingWorkerDebugFilesDone";
+        return "GenerateWorkerDebugFiles";
     }
 
     @Override
@@ -53,7 +54,7 @@ public class CommandWorkerDebugFilesDone implements Command {
 
     @Override
     public void error(NIOAgent agent, Connection c) {
-        agent.handleGenerateWorkerDebugDoneCommandError(c, this);
+        agent.handleGenerateWorkerDebugCommandError(c, this);
 
     }
 

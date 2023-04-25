@@ -335,7 +335,7 @@ def main() -> None:
 
     :return: None.
     """
-    tracing = sys.argv[4] == "true"
+    tracing = sys.argv[6] == "true"
 
     # Enable coverage if performed
     if "COVERAGE_PROCESS_START" in os.environ:
@@ -349,6 +349,7 @@ def main() -> None:
 
     persistent_storage = worker_conf.storage_conf != "null"
     logger, _, _, log_dir = load_loggers(worker_conf.debug, persistent_storage)
+    analysis_dir = GLOBALS.get_analysis_directory()
 
     cache_profiler = False
     if worker_conf.cache_profiler.lower() == "true":
@@ -365,7 +366,7 @@ def main() -> None:
             # Deploy the necessary processes
             cache = True
             cache_params = start_cache(
-                logger, str(worker_conf.cache), cache_profiler, log_dir
+                logger, str(worker_conf.cache), cache_profiler, analysis_dir
             )
             (
                 smm,

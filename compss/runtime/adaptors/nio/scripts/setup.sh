@@ -124,11 +124,17 @@
     pythonWorkerCache=${38}
     pythonCacheProfiler=${39}
 
+    #This decides where the worker.* files are stored
+    #NIOWorker.java getLogDir decides where the binding_worker.* files are stored
+    #TODO: unify this with NIOWorker.java file getLogDir function to have it defined only in one place
+    logDir=${workingDir}/log
+
     if [ "$debug" == "true" ]; then
-      echo "PERSISTENT_WORKER.sh"
+      echo "setup.sh"
       echo "- HostName:            $hostName"
       echo "- WorkerPort:          ${worker_port}"
       echo "- WorkingDir:          $workingDir"
+      echo "- LogDir:              $logDir"
       echo "- InstallDir:          $installDir"
 
       echo "- Streaming Type:      ${streaming}"

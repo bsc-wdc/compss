@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ResourcesList>
-    <ComputeNode Name="COMPSsWorker01">
+    <ComputeNode Name="localhost">
         <Processor Name="MainProcessor">
             <ComputingUnits>1</ComputingUnits>
         </Processor>

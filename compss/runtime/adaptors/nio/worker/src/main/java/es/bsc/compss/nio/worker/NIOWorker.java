@@ -54,10 +54,10 @@ import es.bsc.compss.nio.commands.CommandNewTask;
 import es.bsc.compss.nio.commands.CommandRemoveObsoletes;
 import es.bsc.compss.nio.commands.CommandShutdown;
 import es.bsc.compss.nio.commands.CommandShutdownACK;
-import es.bsc.compss.nio.commands.tracing.CommandGenerateDone;
-import es.bsc.compss.nio.commands.tracing.CommandGeneratePackage;
-import es.bsc.compss.nio.commands.workerfiles.CommandGenerateWorkerDebugFiles;
-import es.bsc.compss.nio.commands.workerfiles.CommandWorkerDebugFilesDone;
+import es.bsc.compss.nio.commands.tracing.CommandGenerateAnalysisFiles;
+import es.bsc.compss.nio.commands.tracing.CommandGenerateAnalysisFilesDone;
+import es.bsc.compss.nio.commands.workerfiles.CommandGenerateDebugFiles;
+import es.bsc.compss.nio.commands.workerfiles.CommandGenerateDebugFilesDone;
 import es.bsc.compss.nio.datarequest.WorkerDataRequest;
 import es.bsc.compss.nio.exceptions.DataNotAvailableException;
 import es.bsc.compss.nio.listeners.FetchDataOperationListener;
@@ -86,16 +86,23 @@ import es.bsc.compss.utils.execution.ThreadedPrintStream;
 import es.bsc.compss.worker.COMPSsException;
 import es.bsc.distrostreamlib.server.types.StreamBackend;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.io.FileUtils;
@@ -795,47 +802,50 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     }
 
     @Override
-    public void waitUntilTracingPackageGenerated() {
+    public void notifyAnalysisFilesDone(Set<String> tracingFilesPaths) {
         // Nothing to do
     }
 
     @Override
-    public void notifyTracingPackageGeneration() {
+    public void notifyDebugFilesDone(Set<String> logPath) {
         // Nothing to do
     }
 
-    @Override
-    public void waitUntilWorkersDebugInfoGenerated() {
-        // Nothing to do
+    /**
+     * Freezes the files on the folder and returns the paths to those frozen files.
+     * 
+     * @param foldername folder path to the files
+     * @return Set the paths of the files in that folder
+     */
+    private Set<String> getFilesPathFromFolder(String folderPath) {
+
+        Set<String> pathSet = Stream.of(new File(folderPath).listFiles()).filter(file -> !file.isDirectory())
+            .map(File::getName).collect(Collectors.toSet());
+
+        Set<String> frozenPaths = new HashSet<String>();
+
+        for (String path : pathSet) {
+            String completePath = folderPath + File.separator + path;
+            String frozenPath = folderPath + File.separator + "static_" + path;
+            freezeFile(completePath, frozenPath);
+            frozenPaths.add(frozenPath);
+        }
+        return frozenPaths;
     }
 
-    @Override
-    public void notifyWorkersDebugInfoGeneration() {
-        // Nothing to do
-    }
-
-    @Override
-    public void generateWorkersDebugInfo(Connection c) {
-        // Freeze output
-        String outSourcePath = workingDir + File.separator + "log" + File.separator + "worker_" + hostName + ".out";
-        String outTarget =
-            workingDir + File.separator + "log" + File.separator + "static_" + "worker_" + hostName + ".out";
-        freezeFile(outSourcePath, outTarget);
-
-        // Freeze error
-        String errSourcePath = workingDir + File.separator + "log" + File.separator + "worker_" + hostName + ".err";
-        String errTarget =
-            workingDir + File.separator + "log" + File.separator + "static_" + "worker_" + hostName + ".err";
-        freezeFile(errSourcePath, errTarget);
-
-        // End
-        c.sendCommand(new CommandWorkerDebugFilesDone());
-        c.finishConnection();
+    private void freezeFolderFiles(String folderPath) throws Exception {
+        // cd to the folder and cp every file onto static_${file} and removes the original file
+        String cmd = "cd " + folderPath + " && for file in *; do cp ${file} static_${file} && rm -rf ${file}; done";
+        WORKER_LOGGER.debug("Executing: " + cmd.toString());
+        int exitCode = new ProcessBuilder("/bin/bash", "-c", cmd.toString()).inheritIO().start().waitFor();
+        if (exitCode != 0) {
+            throw new Exception("freezeFolderFailed");
+        }
     }
 
     private void freezeFile(String sourcePath, String targetPath) {
         File source = new File(sourcePath);
-        if (source.exists()) {
+        if (source.exists() && source.length() > 0) {
             try {
                 Files.copy(source.toPath(), new File(targetPath).toPath());
             } catch (Exception e) {
@@ -850,6 +860,67 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
                 WORKER_LOGGER.error("Exception writing empty file", e);
             }
         }
+    }
+
+    private Set<String> generatePackageFromFolder(String sourceFolder, String tarTargetPath) throws Exception {
+        // we create the tar.gz in the workingDir because otherwise it creates an empty file with the name of the tar
+        // inside the tar
+        freezeFolderFiles(sourceFolder);
+
+        StringBuilder sb = new StringBuilder();
+        // need to cd to the analysis director in order for the tar to contain relative paths
+        sb.append("cd " + sourceFolder + " && ");
+        // we only want to make the tar if we can get into the apropiate folder
+        sb.append("tar -czf " + tarTargetPath + " " + ".");
+
+        WORKER_LOGGER.debug("Executing: " + sb.toString());
+        int exitCode = new ProcessBuilder("/bin/bash", "-c", sb.toString()).inheritIO().start().waitFor();
+        if (exitCode != 0) {
+            throw new Exception("package from folder creation returned not 0 exit code");
+        }
+
+        Set<String> res = new HashSet<String>();
+        res.add(tarTargetPath);
+        return res;
+    }
+
+    @Override
+    public void generateDebugFiles(Connection c) {
+
+        Set<String> logFilesPaths;
+        try {
+            // Tries to generate a tar.gz file with the contents of the analysis folder.
+            final String tarTargetPath = this.getWorkingDir() + File.separator + "debug.tar.gz";
+            logFilesPaths = generatePackageFromFolder(this.getLogDir(), tarTargetPath);
+        } catch (Exception e) {
+            // If it runs out of space to do the tar.gz package sends the paths to the files
+            WORKER_LOGGER.warn("Something failed while generatin tar.gz package with the contents of the debug folder.",
+                e);
+            logFilesPaths = getFilesPathFromFolder(this.getLogDir());
+        }
+
+        c.sendCommand(new CommandGenerateDebugFilesDone(logFilesPaths));
+        c.finishConnection();
+    }
+
+    @Override
+    public void generateAnalysisFiles(Connection c) {
+
+        generateTracingFiles();
+        Set<String> analysisFilesPaths;
+        try {
+            // Tries to generate a tar.gz file with the contents of the analysis folder.
+            final String tarTargetPath = this.getWorkingDir() + File.separator + "analysis.tar.gz";
+            analysisFilesPaths = generatePackageFromFolder(this.getAnalysisDir(), tarTargetPath);
+        } catch (Exception e) {
+            // If it runs out of space to do the tar.gz package sends the paths to the files
+            WORKER_LOGGER
+                .warn("Something failed while generatin tar.gz package with the contents of the analysis folder.", e);
+            analysisFilesPaths = getFilesPathFromFolder(this.getAnalysisDir());
+        }
+
+        c.sendCommand(new CommandGenerateAnalysisFilesDone(analysisFilesPaths));
+        c.finishConnection();
     }
 
     @Override
@@ -893,7 +964,16 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
     @Override
     public String getLogDir() {
-        return this.workingDir;
+        // This decides where the binding files are stored
+        // Setup.sh logDir decides where the worker.out files are stored
+        // TODO: unify this with setup.sh file logDir variable to have it defined only in one place
+        return this.workingDir + "log/";
+    }
+
+    @Override
+    public String getAnalysisDir() {
+        // This decides where the files generated by the worker that are not log are stored
+        return this.workingDir + "analysis/";
     }
 
     @Override
@@ -1304,14 +1384,16 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     }
 
     @Override
-    public void handleTracingGenerateDoneCommandError(Connection c, CommandGenerateDone commandGenerateDone) {
+    public void handleTracingGenerateDoneCommandError(Connection c,
+        CommandGenerateAnalysisFilesDone commandGenerateAnalysisFilesDone) {
         // Nothing to do at worker
         WORKER_LOGGER.warn("Error sending tracing generate done. Not handeled");
 
     }
 
     @Override
-    public void handleTracingGenerateCommandError(Connection c, CommandGeneratePackage commandGeneratePackage) {
+    public void handleTracingGenerateCommandError(Connection c,
+        CommandGenerateAnalysisFiles commandGenerateAnalysisFiles) {
         // Nothing to do at worker
         WORKER_LOGGER.warn("Error receiving tracing generate command. Not handeled");
 
@@ -1319,7 +1401,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
     @Override
     public void handleGenerateWorkerDebugCommandError(Connection c,
-        CommandGenerateWorkerDebugFiles commandGenerateWorkerDebugFiles) {
+        CommandGenerateDebugFiles commandGenerateDebugFiles) {
         // Nothing to do at worker
         WORKER_LOGGER.warn("Error receiving generate worker debug command. Not handeled");
 
@@ -1327,7 +1409,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
     @Override
     public void handleGenerateWorkerDebugDoneCommandError(Connection c,
-        CommandWorkerDebugFilesDone commandWorkerDebugFilesDone) {
+        CommandGenerateDebugFilesDone commandGenerateDebugFilesDone) {
         // Nothing to do at worker
         WORKER_LOGGER.warn("Error sending  generate worker debug done. Not handeled");
 
@@ -1394,19 +1476,22 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         return null;
     }
 
-    @Override
-    public void generatePackage(Connection c) {
+    /**
+     * / Generates the tracing files in the Analysis folder.
+     */
+    public void generateTracingFiles() {
         NIOTracer.fini(new HashMap<>());
 
-        String packagePath = this.workingDir;
+        String packagePath = this.getAnalysisDir();
         if (!packagePath.endsWith(File.separator)) {
             packagePath += File.separator;
         }
         packagePath += this.hostName + NIOTracer.PACKAGE_SUFFIX;
         NIOTracer.generatePackage(packagePath);
+    }
 
-        c.sendCommand(new CommandGenerateDone());
-        c.finishConnection();
+    public Set<String> generateProfilingFiles() {
+        return null;
     }
 
 }

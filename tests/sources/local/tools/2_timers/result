@@ -65,7 +65,7 @@
     exit 1
   fi
 
-  num_worker_timers=$(grep "\\[TIMER\\]" "${target_log_folder}/workers/worker_COMPSsWorker01.out" | wc -l)
+  num_worker_timers=$(grep "\\[TIMER\\]" "${target_log_folder}/workers/COMPSsWorker01/Log/static_worker_COMPSsWorker01.out" | wc -l)
   expected_num_worker_timers=11
   if [ "${num_worker_timers}" -ne "${expected_num_worker_timers}" ]; then
     echo "ERROR: INVALID NUMBER OF WORKER TIMERS"

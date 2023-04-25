@@ -15,8 +15,9 @@ get_args() {
     # Get Control pipes
     controlCMDpipe=$1
     controlRESULTpipe=$2
-    controlLogPath=$3
-    shift 3
+    controlWdirPath=$3
+    controlLogPath=$4
+    shift 4
 
     # Get CMD pipes
     CMDpipes=()
@@ -158,9 +159,9 @@ process_pipe_commands() {
                 create_pipe "${workerRESULTpipe}"
 
                 # Touch the binding_worker.out and err files
-                mkdir -p "${worker_log_dir}/log"
-                touch "${worker_log_dir}/log/binding_worker.out"
-                touch "${worker_log_dir}/log/binding_worker.err"
+                mkdir -p "${worker_log_dir}"
+                touch "${worker_log_dir}/binding_worker.out"
+                touch "${worker_log_dir}/binding_worker.err"
 
                 # Build workerCMD
                 workerCMD=$(echo "${line}" | cut -d' ' -f4-)
@@ -201,7 +202,7 @@ process_pipe_commands() {
                     dlbArgs="DLB_ARGS=\"--lewi --drom --ompt --lewi-respect-cpuset=no\" LD_PRELOAD=\"\$LD_PRELOAD:\$DLB_HOME/lib/libdlb.so\""
                     workerCMD="${dlbArgs} ${workerCMD}"
                 elif [ "${COMPSS_WITH_DLB}" == "2" ]; then
-		    dlbArgs="DLB_ARGS=\"--lewi --drom --ompt --lewi-respect-cpuset=no --verbose=all\" LD_PRELOAD=\"\$LD_PRELOAD:\$DLB_HOME/lib/libdlb.so\""
+                    dlbArgs="DLB_ARGS=\"--lewi --drom --ompt --lewi-respect-cpuset=no --verbose=all\" LD_PRELOAD=\"\$LD_PRELOAD:\$DLB_HOME/lib/libdlb.so\""
                     workerCMD="${dlbArgs} ${workerCMD}"
                 fi
 

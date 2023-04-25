@@ -78,7 +78,7 @@ def cache_manager(
     cache_hits = conf.cache_hits
     profiler_dict = conf.profiler_dict
     profiler_get_struct = conf.profiler_get_struct
-    log_dir = conf.log_dir
+    analysis_dir = conf.analysis_dir
     cache_profiler = conf.cache_profiler
 
     global CP
@@ -156,7 +156,7 @@ def cache_manager(
             ):
                 if cache_profiler:
                     profiler_print_message(
-                        profiler_dict, profiler_get_struct, log_dir
+                        profiler_dict, profiler_get_struct, analysis_dir
                     )
         else:
             try:

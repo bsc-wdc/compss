@@ -8,7 +8,7 @@
   # Log files
   runtime_log="${target_log_folder}/runtime.log"
   resources_log="${target_log_folder}/resources.log"
-  worker_log="${target_log_folder}/workers/*.out"
+  worker_log="${target_log_folder}/workers/localhost/Log/*.out"
 
   #----------------------------------------------------------------------------------
   # Check output standard out status

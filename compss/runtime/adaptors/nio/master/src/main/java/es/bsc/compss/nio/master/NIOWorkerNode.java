@@ -38,8 +38,8 @@ import es.bsc.compss.nio.commands.CommandRemoveObsoletes;
 import es.bsc.compss.nio.commands.CommandResourcesIncrease;
 import es.bsc.compss.nio.commands.CommandResourcesReduce;
 import es.bsc.compss.nio.commands.CommandShutdown;
-import es.bsc.compss.nio.commands.tracing.CommandGeneratePackage;
-import es.bsc.compss.nio.commands.workerfiles.CommandGenerateWorkerDebugFiles;
+import es.bsc.compss.nio.commands.tracing.CommandGenerateAnalysisFiles;
+import es.bsc.compss.nio.commands.workerfiles.CommandGenerateDebugFiles;
 import es.bsc.compss.nio.master.configuration.NIOConfiguration;
 import es.bsc.compss.nio.master.utils.NIOParamFactory;
 import es.bsc.compss.nio.requests.DataRequest;
@@ -76,6 +76,7 @@ import es.bsc.compss.util.ErrorManager;
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;
@@ -733,54 +734,58 @@ public class NIOWorkerNode extends COMPSsWorker {
         // Nothing to do
     }
 
+    /**
+     * Sends the NIOWorker CommandGenerateAnalysisFiles and waits for a CommandGenerateAnalysisFilesDone containing the
+     * paths of the analysis files.
+     */
     @Override
-    public boolean generatePackage() {
-        if (started) {
-            LOGGER.debug("Sending command to generated tracing package for " + this.getHost());
-            if (node == null) {
-                LOGGER.error("ERROR: Package generation for " + this.getHost() + " has failed.");
-                return false;
-            } else {
-
-                Connection c = NIOAgent.getTransferManager().startConnection(node);
-                CommandGeneratePackage cmd = new CommandGeneratePackage();
-                NIOAgent.registerOngoingCommand(c, cmd);
-                c.sendCommand(cmd);
-                c.receive();
-                c.finishConnection();
-                commManager.waitUntilTracingPackageGenerated();
-                LOGGER.debug("Tracing Package generated");
-                return true;
-            }
-        } else {
-            LOGGER.debug("Worker " + this.getHost() + " not started. No tracing package generated");
-            return false;
+    public Set<String> generateWorkerAnalysisFiles() {
+        if (!started) {
+            LOGGER.debug("Worker debug files not generated because worker was not started");
+            return null;
         }
+        LOGGER.debug("Sending command to generated tracing package for " + this.getHost());
+        if (node == null) {
+            LOGGER.error("ERROR: Package generation for " + this.getHost() + " has failed.");
+            return null;
+        }
+        Connection c = NIOAgent.getTransferManager().startConnection(node);
+        CommandGenerateAnalysisFiles cmd = new CommandGenerateAnalysisFiles();
+        NIOAgent.registerOngoingCommand(c, cmd);
+        c.sendCommand(cmd);
+        c.receive();
+        c.finishConnection();
+        Set<String> traceFilesPaths = commManager.waitForAnalysisFiles();
+        LOGGER.debug("Worker analysis files generated");
+        return traceFilesPaths;
 
     }
 
+    /**
+     * Sends the NIOWorker CommandGenerateDebugFiles and waits for a CommandGenerateDebugFilesDone containing the paths
+     * of the debug files.
+     */
     @Override
-    public boolean generateWorkersDebugInfo() {
-        if (started) {
-            LOGGER.debug("Sending command to generate worker debug files for " + this.getHost());
-            if (node == null) {
-                LOGGER.error("Worker debug files generation has failed.");
-            }
-
-            Connection c = NIOAgent.getTransferManager().startConnection(node);
-            CommandGenerateWorkerDebugFiles cmd = new CommandGenerateWorkerDebugFiles();
-            NIOAgent.registerOngoingCommand(c, cmd);
-            c.sendCommand(cmd);
-            c.receive();
-            c.finishConnection();
-
-            commManager.waitUntilWorkersDebugInfoGenerated();
-            LOGGER.debug("Worker debug files generated");
-            return true;
-        } else {
+    public Set<String> generateWorkerDebugFiles() {
+        if (!started) {
             LOGGER.debug("Worker debug files not generated because worker was not started");
-            return false;
+            return null;
         }
+        LOGGER.debug("Sending command to generate worker debug files for " + this.getHost());
+        if (node == null) {
+            LOGGER.error("Worker debug files generation has failed.");
+            return null;
+        }
+
+        Connection c = NIOAgent.getTransferManager().startConnection(node);
+        CommandGenerateDebugFiles cmd = new CommandGenerateDebugFiles();
+        NIOAgent.registerOngoingCommand(c, cmd);
+        c.sendCommand(cmd);
+        c.receive();
+        c.finishConnection();
+        Set<String> logPath = commManager.waitUntilWorkersDebugInfoGenerated();
+        LOGGER.debug("Worker debug files generated");
+        return logPath;
     }
 
     /**

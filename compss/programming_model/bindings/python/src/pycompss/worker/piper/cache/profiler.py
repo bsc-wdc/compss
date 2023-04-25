@@ -79,7 +79,7 @@ def profiler_print_message(
         str, typing.Dict[str, typing.Dict[str, typing.Dict[str, int]]]
     ],
     profiler_get_struct: typing.List[typing.List[str]],
-    log_dir: str,
+    analysis_dir: str,
 ) -> None:
     r"""Export profiling information to json.
 
@@ -107,7 +107,7 @@ def profiler_print_message(
 
     :param profiler_dict: Profiling dictionary.
     :param profiler_get_struct: Profiling struct.
-    :param log_dir: Log directory.
+    :param analysis_dir: Analysis directory.
     :return: None.
     """
     f_d_type = typing.Dict[  # noqa # pylint: disable=unused-variable
@@ -153,6 +153,6 @@ def profiler_print_message(
                 final_dict[function][parameter]["USED"] = []
 
     with open(
-        log_dir + "/../cache_profiler.json", "a", encoding="utf-8"
+        analysis_dir + "/cache_profiler.json", "a", encoding="utf-8"
     ) as json_file:
         json.dump(final_dict, json_file)

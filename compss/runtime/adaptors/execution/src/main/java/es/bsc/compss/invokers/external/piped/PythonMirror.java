@@ -146,6 +146,8 @@ public class PythonMirror extends PipedMirror {
 
         // Add Python worker arguments
         cmd.append(context.getWorkingDir()).append(TOKEN_SEP);
+        cmd.append(context.getLogDir()).append(TOKEN_SEP);
+        cmd.append(context.getAnalysisDir()).append(TOKEN_SEP);
         cmd.append(context.getRuntimeAPI() != null).append(TOKEN_SEP);
         cmd.append(LOGGER.isDebugEnabled()).append(TOKEN_SEP);
         cmd.append(Tracer.isActivated()).append(TOKEN_SEP);

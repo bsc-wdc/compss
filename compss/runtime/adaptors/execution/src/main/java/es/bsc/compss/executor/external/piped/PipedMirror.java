@@ -210,6 +210,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
         this.pipeBuilderPipe = new ControlPipePair(basePipePath, "control", this);
         cmd.append(this.pipeBuilderPipe.getOutboundPipe()).append(TOKEN_SEP);
         cmd.append(this.pipeBuilderPipe.getInboundPipe()).append(TOKEN_SEP);
+        cmd.append(context.getWorkingDir()).append(TOKEN_SEP);
         cmd.append(context.getLogDir()).append(TOKEN_SEP);
 
         // Executor Pipes
@@ -461,6 +462,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
                     this.pipeWorkerPipe.waitForCommand(reply);
                     executorPID = reply.getPids().get(0);
                 } catch (ClosedPipeException ie) {
+                    LOGGER.error("Trying to send a command through a closed pipe");
                     throw new UnsupportedOperationException("Not yet implemented. Specific exception should be raised");
                 }
             } else {

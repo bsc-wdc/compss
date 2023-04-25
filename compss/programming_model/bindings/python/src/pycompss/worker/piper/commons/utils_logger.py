@@ -26,7 +26,6 @@ This file contains the common pipers methods related to logging.
 import logging
 import os
 
-from pycompss.util.context import CONTEXT
 from pycompss.runtime.commons import GLOBALS
 from pycompss.util.logger.helpers import init_logging_worker_piper
 from pycompss.util.typing_helper import typing
@@ -55,8 +54,6 @@ def load_loggers(
     else:
         # Default
         log_json = "/".join((log_cfg_path, "logging_worker_off.json"))
-    log_dir = GLOBALS.get_temporary_directory()
-    log_dir_temp = log_dir
     # log_dir is of the form:
     #    With agents or worker in master:
     #        /path/to/working_directory/tmpFiles/pycompssID/../../log
@@ -66,10 +63,14 @@ def load_loggers(
     # files in the expected folder to the master.
     # With agents or worker in master it does not, so keep it in previous
     # two folders:
-    if CONTEXT.is_nesting_enabled() or "tmpFiles" in log_dir:
-        log_dir = os.path.join(log_dir, "..", "..", "log")
-    else:
-        log_dir = os.path.join(log_dir, "..", "log")
+    log_dir = GLOBALS.get_log_directory()
+    if not log_dir:
+        if __debug__:
+            print(
+                "WARNING: Log dir not set, "
+                + "using temporrary directory as log dir."
+            )
+        log_dir = GLOBALS.get_temporary_directory()
 
     init_logging_worker_piper(log_json, log_dir)
 
@@ -81,4 +82,4 @@ def load_loggers(
         storage_loggers.append(logging.getLogger("hecuba"))
         storage_loggers.append(logging.getLogger("redis"))
         storage_loggers.append(logging.getLogger("storage"))
-    return logger, log_json, storage_loggers, log_dir_temp
+    return logger, log_json, storage_loggers, log_dir

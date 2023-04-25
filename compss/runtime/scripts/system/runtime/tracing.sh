@@ -216,6 +216,7 @@ generate_trace() {
 
   echo "Creating prvs "
   packages=$(find "${extraeWDir}" -name "*.tar.gz")
+  echo "found trace packages to merge: ${packages}"
   gen_traces "${extraeWDir}" "${trace_name}" "1" ${packages}
   if [ ! "${endCode}" -eq "0" ]; then
     exit "${endCode}"

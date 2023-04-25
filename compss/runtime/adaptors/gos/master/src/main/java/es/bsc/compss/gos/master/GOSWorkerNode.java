@@ -49,6 +49,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -191,9 +192,9 @@ public class GOSWorkerNode extends COMPSsWorker {
     }
 
     @Override
-    public boolean generatePackage() {
+    public Set<String> generateWorkerAnalysisFiles() {
         LOGGER.info("GOSWorker generatePackage");
-        return false;
+        return null;
     }
 
     @Override
@@ -239,10 +240,10 @@ public class GOSWorkerNode extends COMPSsWorker {
     }
 
     @Override
-    public boolean generateWorkersDebugInfo() {
+    public Set<String> generateWorkerDebugFiles() {
         // This feature is only for persistent workers (NIO)
         LOGGER.info(dbgPrefix + "Worker debug files not supported on GOS Adaptor");
-        return false;
+        return null;
     }
 
     @Override

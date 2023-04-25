@@ -37,10 +37,10 @@ import es.bsc.compss.nio.commands.CommandRemoveObsoletes;
 import es.bsc.compss.nio.commands.CommandShutdown;
 import es.bsc.compss.nio.commands.CommandShutdownACK;
 import es.bsc.compss.nio.commands.CommandTracingID;
-import es.bsc.compss.nio.commands.tracing.CommandGenerateDone;
-import es.bsc.compss.nio.commands.tracing.CommandGeneratePackage;
-import es.bsc.compss.nio.commands.workerfiles.CommandGenerateWorkerDebugFiles;
-import es.bsc.compss.nio.commands.workerfiles.CommandWorkerDebugFilesDone;
+import es.bsc.compss.nio.commands.tracing.CommandGenerateAnalysisFiles;
+import es.bsc.compss.nio.commands.tracing.CommandGenerateAnalysisFilesDone;
+import es.bsc.compss.nio.commands.workerfiles.CommandGenerateDebugFiles;
+import es.bsc.compss.nio.commands.workerfiles.CommandGenerateDebugFilesDone;
 import es.bsc.compss.nio.exceptions.SerializedObjectException;
 import es.bsc.compss.nio.requests.DataRequest;
 import es.bsc.compss.nio.utils.NIOBindingDataManager;
@@ -68,6 +68,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -1024,13 +1025,6 @@ public abstract class NIOAgent {
      */
     public abstract boolean isPersistentCEnabled();
 
-    /**
-     * Generates the tracing package.
-     *
-     * @param c Requester connection.
-     */
-    public abstract void generatePackage(Connection c);
-
     // Must be implemented on both sides (Master will do nothing)
     public abstract void setMaster(NIONode master);
 
@@ -1076,15 +1070,15 @@ public abstract class NIOAgent {
 
     public abstract void shutdownExecutionManagerNotification(Connection c);
 
-    public abstract void waitUntilTracingPackageGenerated();
+    // Generates the debug files to be retrieved by the master post mortem and returns the paths to those files
+    public abstract void generateDebugFiles(Connection c);
 
-    public abstract void notifyTracingPackageGeneration();
+    // Generates the analysis files to be retrieved by the master post mortem and returns the paths to those files
+    public abstract void generateAnalysisFiles(Connection c);
 
-    public abstract void generateWorkersDebugInfo(Connection c);
+    public abstract void notifyDebugFilesDone(Set<String> logPath);
 
-    public abstract void waitUntilWorkersDebugInfoGenerated();
-
-    public abstract void notifyWorkersDebugInfoGeneration();
+    public abstract void notifyAnalysisFilesDone(Set<String> tracingFilesPaths);
 
     public void receivedPartialBindingObjects(Connection c, Transfer t) {
         NIOBindingDataManager.receivedPartialBindingObject((NIOConnection) c, t);
@@ -1118,15 +1112,17 @@ public abstract class NIOAgent {
 
     public abstract void handleShutdownACKCommandError(Connection c, CommandShutdownACK commandShutdownACK);
 
-    public abstract void handleTracingGenerateDoneCommandError(Connection c, CommandGenerateDone commandGenerateDone);
+    public abstract void handleTracingGenerateDoneCommandError(Connection c,
+        CommandGenerateAnalysisFilesDone commandGenerateAnalysisFilesDone);
 
-    public abstract void handleTracingGenerateCommandError(Connection c, CommandGeneratePackage commandGeneratePackage);
+    public abstract void handleTracingGenerateCommandError(Connection c,
+        CommandGenerateAnalysisFiles commandGenerateAnalysisFiles);
 
     public abstract void handleGenerateWorkerDebugCommandError(Connection c,
-        CommandGenerateWorkerDebugFiles commandGenerateWorkerDebugFiles);
+        CommandGenerateDebugFiles commandGenerateDebugFiles);
 
     public abstract void handleGenerateWorkerDebugDoneCommandError(Connection c,
-        CommandWorkerDebugFilesDone commandWorkerDebugFilesDone);
+        CommandGenerateDebugFilesDone commandGenerateDebugFilesDone);
 
     /**
      * Re-send a given command to a given NIONode.

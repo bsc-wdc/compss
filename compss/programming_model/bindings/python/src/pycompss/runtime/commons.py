@@ -134,6 +134,7 @@ class Globals:
     __slots__ = (
         "log_dir",
         "temp_dir",
+        "analysis_dir",
         "object_conversion",
         "tracing_task_name_to_id",
     )
@@ -145,6 +146,7 @@ class Globals:
         """
         self.log_dir = ""
         self.temp_dir = ""
+        self.analysis_dir = ""
         self.object_conversion = False
         self.tracing_task_name_to_id = {}  # type: typing.Dict[str, int]
 
@@ -161,6 +163,8 @@ class Globals:
         :param folder: Log directory path.
         :return: None.
         """
+        if not os.path.exists(folder):
+            os.mkdir(folder)
         self.log_dir = folder
 
     def get_temporary_directory(self) -> str:
@@ -181,6 +185,26 @@ class Globals:
         """
         temp_dir = mkdtemp(prefix=CONSTANTS.temp_dir_prefix, dir=folder)
         self.temp_dir = temp_dir
+
+    def get_analysis_directory(self) -> str:
+        """Analysis directory getter.
+
+        :return: Analysis directory path.
+        """
+        return self.analysis_dir
+
+    def set_analysis_directory(self, folder: str) -> None:
+        """Set the analysis directory.
+
+        Creates the analysis directory from the folder parameter and
+        sets the analysis directory variable.
+
+        :param folder: Analysis directory path.
+        :return: None.
+        """
+        if not os.path.exists(folder):
+            os.mkdir(folder)
+        self.analysis_dir = folder
 
     def in_tracing_task_name_to_id(self, task_name: str) -> bool:
         """Check if task_name is in tracing_task_name_to_id dictionary.

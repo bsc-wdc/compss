@@ -139,7 +139,10 @@ def compss_persistent_worker(
         # Deploy the necessary processes
         CACHE = True
         cache_params = start_cache(
-            logger, str(config.cache), cache_profiler, log_dir
+            logger,
+            str(config.cache),
+            cache_profiler,
+            GLOBALS.get_analysis_directory(),
         )
         (
             smm,
@@ -348,7 +351,7 @@ def main() -> None:
     :return: None.
     """
     # Configure the global tracing variable from the argument
-    tracing = sys.argv[4] == "true"
+    tracing = sys.argv[6] == "true"
     with trace_multiprocessing_worker() if tracing else dummy_context():
         # First thing to do is to emit the process identifier event
         emit_manual_event_explicit(

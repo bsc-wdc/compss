@@ -322,7 +322,6 @@ for (( i=0; i<=${#correct_method_names_1[@]}-1; i++ )); do
     exit 1
   fi
 done
-echo "____________"
 
 for (( i=0; i<=${#method_names_agent_2[@]}-1; i++ )); do
   m_n=$(echo ${method_names_agent_2[$i]} | cut -d '=' -f3)
@@ -341,7 +340,6 @@ for (( i=0; i<=${#method_names_agent_2[@]}-1; i++ )); do
     exit 1
   fi
 done
-echo "____________"
 
 for (( i=0; i<=${#correct_method_names_3[@]}-1; i++ )); do
   m_n=$(echo ${method_names_agent_3[$i]} | cut -d '=' -f3)

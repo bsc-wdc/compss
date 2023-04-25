@@ -37,6 +37,7 @@ import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 
 import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -143,9 +144,9 @@ public class CommAgentWorker extends NIOWorkerNode {
     }
 
     @Override
-    public boolean generatePackage() {
-        // Agent do not support tracing yet
-        return false;
+    public Set<String> generateWorkerAnalysisFiles() {
+        // Agents don't need to transfer files post mortem
+        return null;
     }
 
     @Override
@@ -155,9 +156,9 @@ public class CommAgentWorker extends NIOWorkerNode {
     }
 
     @Override
-    public boolean generateWorkersDebugInfo() {
-        // Comm agents debug info remains on the agent node.
-        return false;
+    public Set<String> generateWorkerDebugFiles() {
+        // Agents don't need to transfer files post mortem
+        return null;
     }
 
     @Override

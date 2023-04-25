@@ -16,24 +16,13 @@
  */
 package es.bsc.compss.types.data.access;
 
-import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.data.DataAccessId;
-import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
-import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.DataParams.DirectoryData;
-import es.bsc.compss.types.data.LogicalData;
-import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.data.accessparams.DirectoryAccessParams;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.operation.DirectoryTransferable;
-import es.bsc.compss.types.data.operation.FileTransferable;
-import es.bsc.compss.types.data.operation.OneOpWithSemListener;
-import es.bsc.compss.types.uri.SimpleURI;
-import es.bsc.compss.util.ErrorManager;
-import java.util.concurrent.Semaphore;
 
 
 /**

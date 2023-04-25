@@ -67,7 +67,7 @@ public class WaitForDataReadyToDeleteRequest extends APRequest {
 
     @Override
     public TraceEvent getEvent() {
-        return TraceEvent.DELETE_FILE;
+        return TraceEvent.DELETE_DATA;
     }
 
 }

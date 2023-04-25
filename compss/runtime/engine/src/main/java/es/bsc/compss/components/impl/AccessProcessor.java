@@ -32,8 +32,6 @@ import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.DataParams;
-import es.bsc.compss.types.data.DataParams.FileData;
-import es.bsc.compss.types.data.DataParams.ObjectData;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.ResultFile;
 import es.bsc.compss.types.data.access.MainAccess;
@@ -48,8 +46,7 @@ import es.bsc.compss.types.request.ap.CancelTaskGroupRequest;
 import es.bsc.compss.types.request.ap.CloseTaskGroupRequest;
 import es.bsc.compss.types.request.ap.DataGetLastVersionRequest;
 import es.bsc.compss.types.request.ap.DeleteAllApplicationDataRequest;
-import es.bsc.compss.types.request.ap.DeleteFileRequest;
-import es.bsc.compss.types.request.ap.DeregisterObject;
+import es.bsc.compss.types.request.ap.DeleteDataRequest;
 import es.bsc.compss.types.request.ap.EndOfAppRequest;
 import es.bsc.compss.types.request.ap.FinishDataAccessRequest;
 import es.bsc.compss.types.request.ap.GetResultFilesRequest;
@@ -555,7 +552,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
      * @param applicationDelete {@literal true}, if the application requested the data deletion; {@literal false}
      *            otherwise
      */
-    public void markForDeletion(FileData data, boolean enableReuse, boolean applicationDelete) {
+    public void deleteData(DataParams data, boolean enableReuse, boolean applicationDelete) {
         LOGGER.debug("Marking data " + data.getDescription() + " for deletion");
         Semaphore sem = new Semaphore(0);
 
@@ -579,8 +576,9 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
             }
         }
         // Request to delete data
-        LOGGER.debug("Sending delete request response for " + data.getDescription());
-        if (!this.requestQueue.offer(new DeleteFileRequest(data, sem, !enableReuse, applicationDelete))) {
+        LOGGER.debug("Sending delete request for " + data.getDescription());
+        DeleteDataRequest req = new DeleteDataRequest(data, !enableReuse, applicationDelete);
+        if (!this.requestQueue.offer(req)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "mark for deletion");
         }
 
@@ -588,8 +586,16 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         if (enableReuse) {
             // Wait for response
             LOGGER.debug("Waiting for delete request response...");
-            sem.acquireUninterruptibly();
-            LOGGER.debug("Data " + data.getDescription() + " deleted.");
+            try {
+                req.waitForCompletion();
+            } catch (ValueUnawareRuntimeException vure) {
+                try {
+                    data.deleteLocal();
+                    LOGGER.info("[DeleteData] Data " + data.getDescription() + " deleted.");
+                } catch (Exception e) {
+                    LOGGER.error("[DeleteData] Error on deleting " + data.getDescription(), e);
+                }
+            }
         }
 
     }
@@ -612,20 +618,6 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         UnblockResultFilesRequest urfr = new UnblockResultFilesRequest(request.getBlockedData());
         if (!this.requestQueue.offer(urfr)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "unlock result files");
-        }
-    }
-
-    /**
-     * Unregisters the given object.
-     *
-     * @param data data to delete
-     */
-    public void deregisterObject(ObjectData data) {
-        if (DEBUG) {
-            LOGGER.debug("Deregistering " + data.getDescription());
-        }
-        if (!this.requestQueue.offer(new DeregisterObject(data))) {
-            ErrorManager.error(ERROR_QUEUE_OFFER + "deregister object");
         }
     }
 

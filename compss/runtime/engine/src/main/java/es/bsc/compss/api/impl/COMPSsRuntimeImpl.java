@@ -712,6 +712,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     public void registerData(Long appId, DataType type, Object stub, String data) {
 
         Application app = Application.registerApplication(appId);
+        DataParams dp = null;
         switch (type) {
             case DIRECTORY_T:
             case FILE_T:
@@ -725,7 +726,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                         ErrorManager.fatal(ERROR_FILE_NAME, ioe);
                         return;
                     }
-                    ap.registerRemoteData(new FileData(app, loc), data);
+                    dp = new FileData(app, loc);
                 } catch (NullPointerException npe) {
                     LOGGER.error(ERROR_FILE_NAME, npe);
                     ErrorManager.fatal(ERROR_FILE_NAME, npe);
@@ -734,11 +735,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             case OBJECT_T:
             case PSCO_T:
                 int hashcode = oReg.newObjectParameter(appId, stub);
-                ap.registerRemoteData(new ObjectData(app, hashcode), data);
+                dp = new ObjectData(app, hashcode);
                 break;
             case STREAM_T:
                 // int streamCode = oReg.newObjectParameter(stub);
-                break;
+                throw new UnsupportedOperationException("Not implemented yet.");
             case EXTERNAL_STREAM_T:
                 try {
                     String fileName = (String) stub;
@@ -747,10 +748,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     LOGGER.error(ERROR_FILE_NAME, npe);
                     ErrorManager.fatal(ERROR_FILE_NAME, npe);
                 }
-                break;
+                throw new UnsupportedOperationException("Not implemented yet.");
             case EXTERNAL_PSCO_T:
                 // String id = (String) stub;
-                break;
+                throw new UnsupportedOperationException("Not implemented yet.");
             case BINDING_OBJECT_T:
                 String value = (String) stub;
                 if (value.contains(":")) {
@@ -764,7 +765,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     // int externalCode = externalObjectHashcode(extObjectId);
                     // externalObjectHashcode(extObjectId);
                     // }
-
                     if (fields.length != 3) {
                         LOGGER.error(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
                         ErrorManager.fatal(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
@@ -773,9 +773,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     LOGGER.error(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
                     ErrorManager.fatal(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
                 }
-                break;
+                throw new UnsupportedOperationException("Not implemented yet.");
             case COLLECTION_T:
-                ap.registerRemoteData(new CollectionData(app, (String) stub), data);
+                dp = new CollectionData(app, (String) stub);
                 break;
             case DICT_COLLECTION_T:
                 throw new UnsupportedOperationException("Not implemented yet.");
@@ -783,6 +783,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 // Basic types (including String)
                 // Already passed in as a value
                 break;
+        }
+        if (dp != null) {
+            ap.registerRemoteData(dp, data);
         }
     }
 
@@ -854,7 +857,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 String intermediateTmpPath = renamedPath + ".tmp";
                 FileOpsManager.moveSync(new File(renamedPath), new File(intermediateTmpPath));
                 closeFile(app, fileName, Direction.INOUT);
-                ap.markForDeletion(new FileData(app, sourceLocation), true, false);
+                ap.deleteData(new FileData(app, sourceLocation), true, false);
                 // In the case of Java file can be stored in the Stream Registry
                 if (sReg != null) {
                     sReg.deleteTaskFile(appId, fileName);
@@ -901,7 +904,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             FileOpsManager.moveDirSync(new File(renamedPath), new File(intermediateTmpPath));
             closeFile(app, dirName, Direction.IN);
 
-            ap.markForDeletion(new FileData(app, sourceLocation), true, false);
+            ap.deleteData(new FileData(app, sourceLocation), true, false);
             // In the case of Java file can be stored in the Stream Registry
             if (sReg != null) {
                 sReg.deleteTaskFile(appId, dirName);
@@ -1152,7 +1155,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         try {
             DataLocation loc = createLocation(ProtocolType.FILE_URI, fileName);
             Application app = Application.registerApplication(appId);
-            ap.markForDeletion(new FileData(app, loc), waitForData, applicationDelete);
+            ap.deleteData(new FileData(app, loc), waitForData, applicationDelete);
             // Java case where task files are stored in the registry
             if (sReg != null) {
                 sReg.deleteTaskFile(appId, fileName);
@@ -1179,7 +1182,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         Application app = Application.registerApplication(appId);
         // This will remove the object from the Object Registry and the Data Info Provider
         // eventually allowing the garbage collector to free it (better use of memory)
-        ap.deregisterObject(new ObjectData(app, hashcode));
+        ap.deleteData(new ObjectData(app, hashcode), false, false);
     }
 
     @Override
@@ -1200,7 +1203,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         // Parse the binding object name and translate the access mode
         BindingObject bo = BindingObject.generate(fileName);
         int hashCode = externalObjectHashcode(bo.getId());
-        ap.deregisterObject(new BindingObjectData(app, hashCode));
+        ap.deleteData(new BindingObjectData(app, hashCode), false, false);
         if (Tracer.isActivated()) {
             Tracer.emitEventEnd(TraceEvent.DELETE);
         }
@@ -1912,21 +1915,15 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     private void deleteParameter(Application app, Parameter p) {
         switch (p.getType()) {
             case DIRECTORY_T:
-                ap.markForDeletion(((DirectoryParameter) p).getAccess().getData(), false, false);
-                // Java case where task files are stored in the registry
-                if (sReg != null) {
-                    sReg.deleteTaskFile(app.getId(), ((DirectoryParameter) p).getOriginalName());
-                }
-                break;
             case FILE_T:
-                ap.markForDeletion(((FileParameter<?, ?>) p).getAccess().getData(), false, false);
+                ap.deleteData(((FileParameter<?, ?>) p).getAccess().getData(), false, false);
                 // Java case where task files are stored in the registry
                 if (sReg != null) {
                     sReg.deleteTaskFile(app.getId(), ((FileParameter) p).getOriginalName());
                 }
                 break;
             case BINDING_OBJECT_T:
-                ap.deregisterObject(((BindingObjectParameter) p).getAccess().getData());
+                ap.deleteData(((BindingObjectParameter) p).getAccess().getData(), false, false);
                 break;
             case OBJECT_T:
                 ObjectParameter op = (ObjectParameter) p;

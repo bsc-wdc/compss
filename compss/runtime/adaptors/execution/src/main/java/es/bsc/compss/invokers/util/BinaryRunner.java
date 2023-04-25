@@ -542,7 +542,13 @@ public class BinaryRunner {
         // System.setProperty(Invoker.OMP_NUM_THREADS, String.valueOf(maxNumThreads));
 
         // Prepare process builder with command and working directory
-        ProcessBuilder builder = new ProcessBuilder(cmd);
+        // String execCmd = "bash -c " + String.join(" ", cmd).trim();
+        // String execCmd = "bash " + "-c '" + String.join(" ", cmd).trim() + "'";
+        // outLog.println("[BINARY EXECUTION WRAPPER] EXEC CMD ------------------------------------ " + execCmd);
+        String[] execCmd = { "bash", "-c", String.join(" ", cmd).trim() };
+        // ProcessBuilder builder = new ProcessBuilder(cmd);
+        ProcessBuilder builder = new ProcessBuilder(execCmd);
+
         builder.directory(sandbox.getFolder());
         outLog.println("[BINARY EXECUTION WRAPPER] CMD " + cmd[0]);
 
@@ -635,6 +641,12 @@ public class BinaryRunner {
             outLog.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
             outLog.println("[BINARY EXECUTION WRAPPER] Executing binary command");
             this.process = builder.start();
+            /*
+             * outLog.println("[BINARY EXECUTION WRAPPER] USING RUNTIME.EXEC ------------------------------------");
+             * String[] execCmd = new String[cmd.length + 2]; execCmd[0] = "bash"; execCmd[1] = "-c"; execCmd[2] =
+             * String.join(" ") System.arraycopy(cmd, 0, execCmd, 2, cmd.length); this.process =
+             * Runtime.getRuntime().exec(execCmd); this.process = Runtime.getRuntime().exec(execCmd);
+             */
 
             // Disable inputs to process
             this.process.getOutputStream().close();

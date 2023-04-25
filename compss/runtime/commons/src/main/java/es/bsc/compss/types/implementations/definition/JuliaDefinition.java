@@ -35,13 +35,14 @@ public class JuliaDefinition implements AbstractMethodImplementationDefinition {
      */
     private static final long serialVersionUID = 1L;
 
-    public static final int NUM_PARAMS = 5;
+    public static final int NUM_PARAMS = 6;
     private static final String ERROR_JULIA_SCRIPT = "ERROR: Invalid juliaScript";
 
     public static final String SCRIPT_PATH = File.separator + "Runtime" + File.separator + "scripts" + File.separator
         + "system" + File.separator + "julia" + File.separator + "run_julia.sh";
 
     private String juliaExecutor;
+    private String juliaArgs;
     private String juliaScript;
     private String workingDir;
     private boolean failByEV;
@@ -59,14 +60,16 @@ public class JuliaDefinition implements AbstractMethodImplementationDefinition {
      * Creates a new JuliaImplementation instance from the given parameters.
      * 
      * @param juliaScript Path to julia script.
+     * @param juliaArgs Julia script arguments.
      * @param juliaExecutor Path to julia executor.
      * @param workingDir Working directory.
      * @param failByEV Flag to enable failure with EV.
      * @param computingNodes Number of computing nodes.
      */
-    public JuliaDefinition(String juliaExecutor, String juliaScript, String workingDir, boolean failByEV,
-        int computingNodes) {
+    public JuliaDefinition(String juliaExecutor, String juliaArgs, String juliaScript, String workingDir,
+        boolean failByEV, int computingNodes) {
         this.juliaExecutor = juliaExecutor;
+        this.juliaArgs = juliaArgs;
         this.juliaScript = juliaScript;
         this.workingDir = workingDir;
         this.failByEV = failByEV;
@@ -81,10 +84,11 @@ public class JuliaDefinition implements AbstractMethodImplementationDefinition {
      */
     public JuliaDefinition(String[] implTypeArgs, int offset) {
         this.juliaExecutor = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset]);
-        this.juliaScript = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 1]);
-        this.workingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 2]);
-        this.failByEV = Boolean.parseBoolean(implTypeArgs[offset + 3]);
-        this.computingNodes = Integer.parseInt(implTypeArgs[offset + 4]);
+        this.juliaArgs = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 1]);
+        this.juliaScript = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 2]);
+        this.workingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 3]);
+        this.failByEV = Boolean.parseBoolean(implTypeArgs[offset + 4]);
+        this.computingNodes = Integer.parseInt(implTypeArgs[offset + 5]);
         if (juliaScript == null || juliaScript.isEmpty()) {
             throw new IllegalArgumentException("Empty juliaScript annotation for JULIA method ");
         }
@@ -103,6 +107,12 @@ public class JuliaDefinition implements AbstractMethodImplementationDefinition {
             executor = "julia";
         }
         lArgs.add(executor);
+
+        String args = this.juliaArgs;
+        if (args == null || args.isEmpty() || args.equals(Constants.UNASSIGNED)) {
+            args = "";
+        }
+        lArgs.add(args);
 
         String workingDir = this.workingDir;
         if (workingDir == null || workingDir.isEmpty() || workingDir.equals(Constants.UNASSIGNED)) {
@@ -130,6 +140,15 @@ public class JuliaDefinition implements AbstractMethodImplementationDefinition {
      */
     public String getJuliaExecutor() {
         return this.juliaExecutor;
+    }
+
+    /**
+     * Returns the julia arguments.
+     * 
+     * @return The julia arguments.
+     */
+    public String getJuliaArgs() {
+        return this.juliaArgs;
     }
 
     /**
@@ -175,8 +194,8 @@ public class JuliaDefinition implements AbstractMethodImplementationDefinition {
 
     @Override
     public String toShortFormat() {
-        return super.toString() + " Julia Method with executor " + this.juliaExecutor + " and script "
-            + this.juliaScript;
+        return super.toString() + " Julia Method with executor " + this.juliaExecutor + " and args " + this.juliaArgs
+            + " and script " + this.juliaScript;
     }
 
     @Override
@@ -184,6 +203,7 @@ public class JuliaDefinition implements AbstractMethodImplementationDefinition {
         StringBuilder sb = new StringBuilder();
         sb.append("JULIA Implementation \n");
         sb.append("\t Julia executor: ").append(juliaExecutor).append("\n");
+        sb.append("\t Julia args: ").append(juliaArgs).append("\n");
         sb.append("\t Julia script: ").append(juliaScript).append("\n");
         sb.append("\t Working directory: ").append(workingDir).append("\n");
         sb.append("\t Fail by EV: ").append(this.failByEV).append("\n");
@@ -195,6 +215,7 @@ public class JuliaDefinition implements AbstractMethodImplementationDefinition {
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         this.juliaScript = (String) in.readObject();
         this.juliaExecutor = (String) in.readObject();
+        this.juliaArgs = (String) in.readObject();
         this.workingDir = (String) in.readObject();
         this.failByEV = in.readBoolean();
         this.computingNodes = in.readInt();
@@ -204,6 +225,7 @@ public class JuliaDefinition implements AbstractMethodImplementationDefinition {
     public void writeExternal(ObjectOutput out) throws IOException {
         out.writeObject(this.juliaScript);
         out.writeObject(this.juliaExecutor);
+        out.writeObject(this.juliaArgs);
         out.writeObject(this.workingDir);
         out.writeBoolean(this.failByEV);
         out.writeInt(this.computingNodes);
@@ -221,6 +243,9 @@ public class JuliaDefinition implements AbstractMethodImplementationDefinition {
         if (this.juliaExecutor == null || this.juliaExecutor.isEmpty()
             || this.juliaExecutor.equals(Constants.UNASSIGNED)) {
             this.juliaExecutor = "julia";
+        }
+        if (this.juliaArgs == null || this.juliaArgs.isEmpty() || this.juliaArgs.equals(Constants.UNASSIGNED)) {
+            this.juliaArgs = "";
         }
         if (this.juliaScript == null || this.juliaScript.isEmpty()) {
             throw new IllegalArgumentException(ERROR_JULIA_SCRIPT);

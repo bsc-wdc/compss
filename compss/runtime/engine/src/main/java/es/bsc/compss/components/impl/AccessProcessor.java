@@ -32,7 +32,6 @@ import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.DataParams;
-import es.bsc.compss.types.data.DataParams.FileData;
 import es.bsc.compss.types.data.DataParams.ObjectData;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.ResultFile;
@@ -70,12 +69,10 @@ import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.types.tracing.TraceEventType;
 import es.bsc.compss.util.Classpath;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.util.FileOpsManager;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -557,7 +554,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
      * @param applicationDelete {@literal true}, if the application requested the data deletion; {@literal false}
      *            otherwise
      */
-    public void markForDeletion(FileData data, boolean enableReuse, boolean applicationDelete) {
+    public void markForDeletion(DataParams data, boolean enableReuse, boolean applicationDelete) {
         LOGGER.debug("Marking data " + data.getDescription() + " for deletion");
         Semaphore sem = new Semaphore(0);
 
@@ -581,7 +578,7 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
             }
         }
         // Request to delete data
-        LOGGER.debug("Sending delete request response for " + data.getDescription());
+        LOGGER.debug("Sending delete request for " + data.getDescription());
         DeleteDataRequest req = new DeleteDataRequest(data, !enableReuse, applicationDelete);
         if (!this.requestQueue.offer(req)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "mark for deletion");
@@ -593,20 +590,14 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
             LOGGER.debug("Waiting for delete request response...");
             try {
                 req.waitForCompletion();
-            } catch (ValueUnawareRuntimeException e) {
-                // File is not used by any task, we can erase it
-                // Retrieve the first valid URI location (private locations have only 1, shared locations may have more)
-                String filePath = data.getLocation().getURIs().get(0).getPath();
-                File f = new File(filePath);
+            } catch (ValueUnawareRuntimeException vure) {
                 try {
-                    FileOpsManager.deleteSync(f);
-                    LOGGER.info("[DeleteFileRequest] File " + filePath + " deleted.");
-                } catch (IOException ioe) {
-                    LOGGER.error("[DeleteFileRequest] Error on deleting file " + filePath, ioe);
+                    data.deleteLocal();
+                    LOGGER.info("[DeleteData] Data " + data.getDescription() + " deleted.");
+                } catch (Exception e) {
+                    LOGGER.error("[DeleteData] Error on deleting " + data.getDescription(), e);
                 }
-
             }
-            LOGGER.debug("Data " + data.getDescription() + " deleted.");
         }
 
     }

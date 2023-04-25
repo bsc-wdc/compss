@@ -16,9 +16,12 @@
  */
 package es.bsc.compss.types.data;
 
+import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.location.DataLocation;
+import es.bsc.compss.util.FileOpsManager;
+import java.io.File;
 
 
 public abstract class DataParams {
@@ -33,6 +36,13 @@ public abstract class DataParams {
     public abstract Integer getDataId(DataInfoProvider dip);
 
     public abstract Integer removeDataId(DataInfoProvider dip);
+
+    /**
+     * Deletes the local instance of the data.
+     * 
+     * @throws Exception An error arised during the deletion
+     */
+    public abstract void deleteLocal() throws Exception;
 
     public DataParams(Application app) {
         this.app = app;
@@ -90,6 +100,13 @@ public abstract class DataParams {
 
         public DataLocation getLocation() {
             return this.loc;
+        }
+
+        @Override
+        public void deleteLocal() throws Exception {
+            String filePath = getLocation().getURIInHost(Comm.getAppHost()).getPath();
+            File f = new File(filePath);
+            FileOpsManager.deleteSync(f);
         }
 
     }
@@ -158,6 +175,10 @@ public abstract class DataParams {
             return this.code;
         }
 
+        @Override
+        public void deleteLocal() throws Exception {
+            // No need to do anything to remove the local instance
+        }
     }
 
     public static class ExternalPSCObjectData extends ObjectData {
@@ -276,6 +297,11 @@ public abstract class DataParams {
 
         public String getCollectionId() {
             return this.collectionId;
+        }
+
+        @Override
+        public void deleteLocal() throws Exception {
+            // No need to do anything to remove the local instance
         }
     }
 }

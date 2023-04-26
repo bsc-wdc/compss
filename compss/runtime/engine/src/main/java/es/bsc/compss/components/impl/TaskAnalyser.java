@@ -38,6 +38,7 @@ import es.bsc.compss.types.data.DataAccessId.ReadingDataAccessId;
 import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
 import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
+import es.bsc.compss.types.data.DataParams;
 import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessid.WAccessId;
@@ -431,11 +432,15 @@ public class TaskAnalyser implements GraphHandler {
     /**
      * Deletes the specified data and its renamings.
      *
-     * @param dataInfo DataInfo.
+     * @param data data to be deleted
+     * @param noReuse {@literal false}, if the application must be able to use the same data name for a new data
      * @param applicationDelete whether the user code requested to delete the data ({@literal true}) or was removed by
      *            the runtime ({@literal false})
+     * @throws ValueUnawareRuntimeException the runtime is not aware of the data
      */
-    public void deleteData(DataInfo dataInfo, boolean applicationDelete) {
+    public void deleteData(DataParams data, boolean noReuse, boolean applicationDelete)
+        throws ValueUnawareRuntimeException {
+        DataInfo dataInfo = dip.deleteData(data, noReuse);
         int dataId = dataInfo.getDataId();
         LOGGER.info("Deleting data " + dataId);
 
@@ -580,8 +585,7 @@ public class TaskAnalyser implements GraphHandler {
 
         if (p.isCollective()) {
             try {
-                DataInfo ci = dip.deleteData(access.getData(), true);
-                deleteData(ci, false);
+                deleteData(access.getData(), true, false);
             } catch (ValueUnawareRuntimeException e) {
                 // If not existing, the collection was already removed. No need to do anything
             }

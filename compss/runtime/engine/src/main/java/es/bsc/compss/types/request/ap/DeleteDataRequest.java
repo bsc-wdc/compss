@@ -54,14 +54,12 @@ public class DeleteDataRequest extends APRequest {
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
-        LOGGER.info("[DeleteDataRequest] Notify data delete " + this.data.getDescription() + " to DIP...");
         try {
-            DataInfo dInfo = dip.deleteData(this.data, this.noReuse);
-            // file is involved in some task execution
+            // File is involved in some task execution
             // File Won't be read by any future task or from the main code.
             // Remove it from the dependency analysis and the files to be transferred back
             LOGGER.info("[DeleteDataRequest] Deleting Data in Task Analyser");
-            ta.deleteData(dInfo, applicationDelete);
+            ta.deleteData(this.data, this.noReuse, applicationDelete);
         } catch (ValueUnawareRuntimeException vure) {
             unawareException = vure;
         }

@@ -466,8 +466,9 @@ public class DataInfoProvider {
      * @param data data to be deleted
      * @param noReuse {@literal false}, if the application must be able to use the same data name for a new data
      * @return DataInfo associated with the data to remove
+     * @throws ValueUnawareRuntimeException the runtime is not aware of the data
      */
-    public DataInfo deleteData(DataParams data, boolean noReuse) {
+    public DataInfo deleteData(DataParams data, boolean noReuse) throws ValueUnawareRuntimeException {
         if (DEBUG) {
             LOGGER.debug("Deleting Data associated to " + data.getDescription());
         }
@@ -476,22 +477,21 @@ public class DataInfoProvider {
             if (DEBUG) {
                 LOGGER.debug("No data id found for data associated to " + data.getDescription());
             }
-            return null;
+            throw new ValueUnawareRuntimeException();
         }
+
         DataInfo dataInfo = this.idToData.get(id);
-        if (dataInfo != null) {
-            // We delete the data associated with all the versions of the same object
-            if (dataInfo.delete(noReuse)) {
-                deregisterData(dataInfo);
-            }
-            return dataInfo;
-        } else {
+        if (dataInfo == null) {
             if (DEBUG) {
                 LOGGER.debug("No data found for data associated to " + data.getDescription());
             }
-            return null;
+            throw new ValueUnawareRuntimeException();
         }
-
+        // We delete the data associated with all the versions of the same object
+        if (dataInfo.delete(noReuse)) {
+            deregisterData(dataInfo);
+        }
+        return dataInfo;
     }
 
     /**

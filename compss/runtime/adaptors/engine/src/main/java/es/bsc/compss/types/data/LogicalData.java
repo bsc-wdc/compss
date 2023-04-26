@@ -334,20 +334,7 @@ public class LogicalData {
             if (!(dl.isCheckpointing() && this.accessedByMain)) {
                 File f = new File(uri.getPath());
                 if (asynch) {
-                    FileOpsManager.FileOpListener fileOpListener = new FileOpsManager.FileOpListener() {
-
-                        @Override
-                        public void completed() {
-                            LOGGER.info("Deleted file async " + uri.getPath());
-                        }
-
-                        @Override
-                        public void failed(IOException e) {
-                            LOGGER.info("Could not delete file async " + uri.getPath());
-                        }
-                    };
-
-                    FileOpsManager.deleteAsync(f, fileOpListener);
+                    FileOpsManager.deleteAsync(f);
                 } else {
                     try {
                         FileOpsManager.deleteSync(f);

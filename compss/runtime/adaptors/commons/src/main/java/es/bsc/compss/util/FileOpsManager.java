@@ -245,8 +245,10 @@ public class FileOpsManager {
                 public void run() {
                     try {
                         deleteFile(file);
+                        LOGGER.info("Deleted file async " + file.getPath());
                         listener.completed();
                     } catch (IOException ioe) {
+                        LOGGER.info("Could not delete file async " + file.getPath());
                         listener.failed(ioe);
                     }
                 }

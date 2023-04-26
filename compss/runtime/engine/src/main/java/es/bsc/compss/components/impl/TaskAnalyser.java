@@ -186,7 +186,11 @@ public class TaskAnalyser implements GraphHandler {
         for (Parameter p : task.getParameterDataToRemove()) {
             if (p.isPotentialDependency()) {
                 DependencyParameter dp = (DependencyParameter) p;
-                dip.deleteData(dp.getAccess().getData(), true);
+                try {
+                    dip.deleteData(dp.getAccess().getData(), true);
+                } catch (ValueUnawareRuntimeException e) {
+                    // If not existing, the parameter was already removed. No need to do anything
+                }
             }
         }
     }
@@ -575,8 +579,12 @@ public class TaskAnalyser implements GraphHandler {
         }
 
         if (p.isCollective()) {
-            DataInfo ci = dip.deleteData(access.getData(), true);
-            deleteData(ci, false);
+            try {
+                DataInfo ci = dip.deleteData(access.getData(), true);
+                deleteData(ci, false);
+            } catch (ValueUnawareRuntimeException e) {
+                // If not existing, the collection was already removed. No need to do anything
+            }
         }
 
         if (daId != null) {

@@ -1461,7 +1461,7 @@ class TaskWorker:
                 user_returns = [user_returns]
             elif num_returns > 1 and python_mpi:
                 user_returns = [user_returns]
-                ret_params = __get_ret_rank(ret_params)
+                ret_params = get_ret_rank(ret_params)
             # Note that we are implicitly assuming that the length of the user
             # returns matches the number of return parameters
             for obj, param in zip(user_returns, ret_params):
@@ -1910,7 +1910,7 @@ def get_dict_collection_objects(
         yield content, argument
 
 
-def __get_ret_rank(_ret_params: list) -> list:
+def get_ret_rank(_ret_params: list) -> list:
     """Retrieve the rank id within MPI.
 
     :param _ret_params: Return parameters.

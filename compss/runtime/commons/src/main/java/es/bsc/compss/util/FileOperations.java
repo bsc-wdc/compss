@@ -43,7 +43,12 @@ public class FileOperations {
         Path tgtPath = (target).toPath();
         Path sourcePath = (source).toPath();
         if (tgtPath.compareTo(sourcePath) != 0) {
-            Files.copy(sourcePath, tgtPath, StandardCopyOption.REPLACE_EXISTING);
+            try {
+                Files.copy(sourcePath, tgtPath, StandardCopyOption.REPLACE_EXISTING);
+            } catch (DirectoryNotEmptyException dne) {
+                // directories must be removed recursively
+                deleteDirectoryContent(tgtPath, logger);
+            }
             Files.walk(sourcePath).forEach((Path content) -> {
                 try {
                     Path fileDest = tgtPath.resolve(sourcePath.relativize(content));
@@ -73,30 +78,43 @@ public class FileOperations {
             }
         } catch (DirectoryNotEmptyException dne) {
             // directories must be removed recursively
-            try {
-                Files.walkFileTree(directory, new SimpleFileVisitor<Path>() {
-
-                    @Override
-                    public FileVisitResult visitFile(Path file, BasicFileAttributes attributes) throws IOException {
-                        Files.delete(file);
-                        return FileVisitResult.CONTINUE;
-                    }
-
-                    @Override
-                    public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-                        Files.delete(dir);
-                        return FileVisitResult.CONTINUE;
-                    }
-                });
-            } catch (IOException e) {
-                if (logger != null) {
-                    logger.error("Cannot delete directory " + f.getAbsolutePath(), e);
-                }
-                throw e;
-            }
+            deleteDirectoryContent(directory, logger);
             Files.delete(directory);
         }
     }
+
+
+    /**
+     * Deletes content of a given directory.
+     *
+     * @param directory dir that to delete contents of
+     * @param logger logger where to print the errors
+     * @throws IOException error raised during the file deletion
+     */
+    private static void deleteDirectoryContent(Path directory, Logger logger) throws IOException {
+        try {
+            Files.walkFileTree(directory, new SimpleFileVisitor<Path>() {
+
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attributes) throws IOException {
+                    Files.delete(file);
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                    Files.delete(dir);
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        } catch (IOException e) {
+            if (logger != null) {
+                logger.error("Cannot delete directory " + directory, e);
+            }
+            throw e;
+        }
+    }
+
 
     /**
      * moves a file/folder location from a source to a target.

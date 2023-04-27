@@ -37,6 +37,7 @@ PROFILES_BASE = "https://w3id.org/ro/wfrun"
 PROFILES_VERSION = "0.1"
 WROC_PROFILE_VERSION = "1.0"
 
+
 def fix_dir_url(in_url: str) -> str:
     """
     Fix dir:// URL returned by the runtime, change it to file:// and ensure it ends with '/'
@@ -703,7 +704,9 @@ def add_application_source_files(
     )
 
 
-def add_dataset_file_to_crate(compss_crate: ROCrate, in_url: str, persist: bool, common_paths: list) -> str:
+def add_dataset_file_to_crate(
+    compss_crate: ROCrate, in_url: str, persist: bool, common_paths: list
+) -> str:
     """
     Add the file (or a reference to it) belonging to the dataset of the application (both input or output)
     When adding local files that we don't want to be physically in the Crate, they must be added with a file:// URI
@@ -736,10 +739,14 @@ def add_dataset_file_to_crate(compss_crate: ROCrate, in_url: str, persist: bool,
         if persist:  # Remove scheme so it is added as a regular file
             for i, item in enumerate(common_paths):  # All files must have a match
                 if url_parts.path.startswith(item):
-                    crate_path = "dataset/" + "folder_" + str(i) + url_parts.path[len(item):]  # Slice out the common part of the path
+                    crate_path = (
+                        "dataset/" + "folder_" + str(i) + url_parts.path[len(item) :]
+                    )  # Slice out the common part of the path
                     break
             print(f"ADDING {url_parts.path} as {crate_path}")
-            compss_crate.add_file(source=url_parts.path, dest_path=crate_path, properties=file_properties)
+            compss_crate.add_file(
+                source=url_parts.path, dest_path=crate_path, properties=file_properties
+            )
             return crate_path
         else:
             compss_crate.add_file(
@@ -750,9 +757,6 @@ def add_dataset_file_to_crate(compss_crate: ROCrate, in_url: str, persist: bool,
             )
             return in_url
         # add_file_time = time.time() - add_file_time
-
-
-
 
     # DIRECTORIES ENCARA FALTA IMPLEMENTAR I TESTING
 
@@ -807,7 +811,7 @@ def wrroc_create_action(
     author_list: list,
     ins: list,
     outs: list,
-    yaml_content: dict
+    yaml_content: dict,
 ) -> str:
     """
     Add a CreateAction term to the ROCrate to make it compliant with WRROC.  RO-Crate WorkflowRun Level 2 profile,
@@ -975,7 +979,7 @@ def get_common_paths(url_list: list) -> list:
         return list_common_paths
 
     url_parts = urlsplit(url_list[0])
-    common_path = url_parts.path # Need to remove schema and hostname from reference
+    common_path = url_parts.path  # Need to remove schema and hostname from reference
     for i, item in enumerate(url_list):
         # url_list is a sorted list, important for this algorithm to work
         # if item and common_path have a common path, store that common path in common_path and continue, until the
@@ -991,10 +995,10 @@ def get_common_paths(url_list: list) -> list:
             continue
         # Remove schema and hostname
         tmp = os.path.commonpath([url_parts.path, common_path])
-        if tmp != '/':  # String not empty, they have a common path
+        if tmp != "/":  # String not empty, they have a common path
             # print(f"Searching. Previous common path is: {common_path}. tmp: {tmp}")
             common_path = tmp
-        else: # if they don't, we are in a new path, so, store the old in list_common_paths, and assign item to common_path
+        else:  # if they don't, we are in a new path, so, store the old in list_common_paths, and assign item to common_path
             print(f"New root to search common_path: {url_parts.path}")
             if common_path not in list_common_paths:
                 list_common_paths.append(common_path)
@@ -1019,8 +1023,8 @@ def main():
         "    # Relative paths from a sources_dir entry, or absolute paths can be used\n"
         "  files: [main_file.py, aux_file_1.py, aux_file_2.py]\n"
         "    # List of application files. Relative or absolute paths can be used\n"
-#        "  data_persistence: False\n"
-#        "    # True to include all input and output files of the application in the resulting crate"
+        #        "  data_persistence: False\n"
+        #        "    # True to include all input and output files of the application in the resulting crate"
         "\n"
         "Authors:\n"
         "  - name: Author_1 Name\n"
@@ -1087,16 +1091,23 @@ def main():
 
     list_common_paths = []
     part_time = time.time()
-    if "data_persistence" in compss_wf_info and compss_wf_info["data_persistence"] == True:
+    if (
+        "data_persistence" in compss_wf_info
+        and compss_wf_info["data_persistence"] == True
+    ):
         persistence = True
         list_common_paths = get_common_paths(ins_and_outs)
         print(f"List of common paths INS and OUTS: {list_common_paths}")
     else:
         persistence = False
 
-    fixed_ins = [] # ins are file://host/path/file, fixed_ins are crate_path/file
+    fixed_ins = []  # ins are file://host/path/file, fixed_ins are crate_path/file
     for item in ins:
-        fixed_ins.append(add_dataset_file_to_crate(compss_crate, item, persistence, list_common_paths))
+        fixed_ins.append(
+            add_dataset_file_to_crate(
+                compss_crate, item, persistence, list_common_paths
+            )
+        )
     print(
         f"PROVENANCE | RO-CRATE adding input files' references TIME (add_dataset_file_to_crate): "
         f"{time.time() - part_time} s"
@@ -1106,7 +1117,11 @@ def main():
 
     fixed_outs = []
     for item in outs:
-        fixed_outs.append(add_dataset_file_to_crate(compss_crate, item, persistence, list_common_paths))
+        fixed_outs.append(
+            add_dataset_file_to_crate(
+                compss_crate, item, persistence, list_common_paths
+            )
+        )
     print(
         f"PROVENANCE | RO-CRATE adding output files' references TIME (add_dataset_file_to_crate): "
         f"{time.time() - part_time} s"
@@ -1128,19 +1143,37 @@ def main():
     profiles = []
     for p in "process", "workflow":
         id_ = f"{PROFILES_BASE}/{p}/{PROFILES_VERSION}"
-        profiles.append(compss_crate.add(ContextEntity(compss_crate, id_, properties={
-            "@type": "CreativeWork",
-            "name": f"{p.title()} Run Crate",
-            "version": PROFILES_VERSION,
-        })))
+        profiles.append(
+            compss_crate.add(
+                ContextEntity(
+                    compss_crate,
+                    id_,
+                    properties={
+                        "@type": "CreativeWork",
+                        "name": f"{p.title()} Run Crate",
+                        "version": PROFILES_VERSION,
+                    },
+                )
+            )
+        )
     # FIXME: in the future, this could go out of sync with the wroc
     # profile added by ro-crate-py to the metadata descriptor
-    wroc_profile_id = f"https://w3id.org/workflowhub/workflow-ro-crate/{WROC_PROFILE_VERSION}"
-    profiles.append(compss_crate.add(ContextEntity(compss_crate, wroc_profile_id, properties={
-        "@type": "CreativeWork",
-        "name": "Workflow RO-Crate",
-        "version": WROC_PROFILE_VERSION,
-    })))
+    wroc_profile_id = (
+        f"https://w3id.org/workflowhub/workflow-ro-crate/{WROC_PROFILE_VERSION}"
+    )
+    profiles.append(
+        compss_crate.add(
+            ContextEntity(
+                compss_crate,
+                wroc_profile_id,
+                properties={
+                    "@type": "CreativeWork",
+                    "name": "Workflow RO-Crate",
+                    "version": WROC_PROFILE_VERSION,
+                },
+            )
+        )
+    )
     compss_crate.root_dataset["conformsTo"] = profiles
 
     # Debug

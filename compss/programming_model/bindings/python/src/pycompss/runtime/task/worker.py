@@ -843,7 +843,7 @@ class TaskWorker:
                 # Try to insert in cache.
                 # May not be inserted if there is other process inserting the
                 # same file.
-                CACHE_TRACKER.insert_object_into_cache_wrapper(
+                CACHE_TRACKER.insert_object_into_cache(
                     LOGGER,
                     self.cache.in_queue,
                     self.cache.out_queue,
@@ -1019,6 +1019,8 @@ class TaskWorker:
             # Reestablish the hook if it was disabled
             if restore_hook:
                 sys.setprofile(pro_f)
+
+            __clean_cupy_env__()
 
             return user_returns, compss_exception, default_values
 
@@ -1270,6 +1272,7 @@ class TaskWorker:
         if NP and cache and use_cache:
             if CACHE_TRACKER.in_cache(LOGGER, original_path, self.cache.ids):
                 CACHE_TRACKER.replace_object_into_cache(
+                    self.cache.ids,
                     LOGGER,
                     self.cache.in_queue,
                     self.cache.out_queue,
@@ -1279,7 +1282,9 @@ class TaskWorker:
                     self.user_function,
                 )
             else:
-                CACHE_TRACKER.insert_object_into_cache_wrapper(
+                with EventInsideWorker(TRACING_WORKER.cache_miss_event):
+                    pass
+                CACHE_TRACKER.insert_object_into_cache(
                     LOGGER,
                     self.cache.in_queue,
                     self.cache.out_queue,
@@ -1372,9 +1377,10 @@ class TaskWorker:
                     and (self.cache.profiler or self.decorator_arguments.cache_returns)
                     and not CACHE_TRACKER.in_cache(LOGGER, f_name, self.cache.ids)
                 ):
-                    if __debug__:
-                        LOGGER.debug("Storing return in cache")
-                    CACHE_TRACKER.insert_object_into_cache_wrapper(
+                    with EventInsideWorker(TRACING_WORKER.cache_miss_event):
+                        if __debug__:
+                            LOGGER.debug("Storing return in cache")
+                    CACHE_TRACKER.insert_object_into_cache(
                         LOGGER,
                         self.cache.in_queue,
                         self.cache.out_queue,
@@ -1639,6 +1645,16 @@ class TaskWorker:
 #######################
 # AUXILIARY FUNCTIONS #
 #######################
+
+
+def __clean_cupy_env__():
+    try:
+        import cupy
+
+        cupy.get_default_memory_pool().free_all_blocks()
+        CACHE_TRACKER.close_cupy_mem_handles()
+    except ImportError:
+        pass
 
 
 def __get_collection_objects__(

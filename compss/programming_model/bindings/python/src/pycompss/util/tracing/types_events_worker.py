@@ -81,6 +81,11 @@ class TypesEventsWorker:
         "wait_on_event",
         "cache_hit_event",
         "cache_miss_event",
+        "check_access_gpu_event",
+        "cache_hit_gpu_event",
+        "cache_miss_gpu_event",
+        "retrieve_object_from_gpu_cache_event",
+        "insert_object_into_gpu_cache_event",
     )
 
     def __init__(self) -> None:
@@ -127,6 +132,11 @@ class TypesEventsWorker:
         self.worker_task_instantiation = 23  # task worker __init__
         self.cache_hit_event = 24
         self.cache_miss_event = 25
+        self.check_access_gpu_event = 26
+        self.cache_hit_gpu_event = 27
+        self.cache_miss_gpu_event = 28
+        self.retrieve_object_from_gpu_cache_event = 29
+        self.insert_object_into_gpu_cache_event = 30
 
         # Task affinity events:
         self.inside_tasks_cpu_affinity_type = 9000150
@@ -168,6 +178,8 @@ class TypesEventsWorkerCache:
         "cache_msg_unlock_event",
         "cache_msg_is_locked_event",
         "cache_msg_is_in_cache_event",
+        "cache_msg_put_gpu_event",
+        "cache_msg_get_gpu_event",
     )
 
     def __init__(self) -> None:
@@ -186,6 +198,8 @@ class TypesEventsWorkerCache:
         self.cache_msg_unlock_event = 8
         self.cache_msg_is_locked_event = 9
         self.cache_msg_is_in_cache_event = 10
+        self.cache_msg_get_gpu_event = 11
+        self.cache_msg_put_gpu_event = 12
 
 
 TRACING_WORKER_CACHE = TypesEventsWorkerCache()

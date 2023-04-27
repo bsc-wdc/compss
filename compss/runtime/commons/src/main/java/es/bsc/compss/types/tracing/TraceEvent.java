@@ -148,6 +148,11 @@ public enum TraceEvent {
     WORKER_TASK_INSTANTIATION(23, TraceEventType.BINDING_INSIDE_TASKS, "Task instantiation"), //
     CACHE_HIT(24, TraceEventType.BINDING_INSIDE_TASKS, "Cache hit"), //
     CACHE_MISS(25, TraceEventType.BINDING_INSIDE_TASKS, "Cache miss"), //
+    CACHE_GPU_ACCESS(26, TraceEventType.BINDING_INSIDE_TASKS, "Check GPU Access"), //
+    CACHE_GPU_HIT(27, TraceEventType.BINDING_INSIDE_TASKS, "Cache hit GPU"), //
+    CACHE_GPU_MISS(28, TraceEventType.BINDING_INSIDE_TASKS, "Cache miss GPU"), //
+    RETRIEVE_OBJECT_FROM_GPU_CACHE(29, TraceEventType.BINDING_INSIDE_TASKS, "Get object from GPU cache"), //
+    INSERT_OBJECT_INTO_GPU_CACHE(30, TraceEventType.BINDING_INSIDE_TASKS, "Put object in GPU cache"), //
 
     // Python Events Inside Tasks
     CACHE_MSG_RECEIVE(1, TraceEventType.BINDING_WORKER_CACHE, "Receive message"), //

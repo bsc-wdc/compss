@@ -35,7 +35,8 @@ from pycompss.util.typing_helper import typing
 from pycompss.worker.piper.cache.classes import CacheQueueMessage
 from pycompss.worker.piper.cache.tracker import CacheTrackerConf
 from pycompss.worker.piper.cache.tracker import CACHE_TRACKER
-from pycompss.worker.piper.cache.manager import cache_tracker
+from pycompss.worker.piper.cache.manager import cache_manager
+from pycompss.util.process.manager import create_process
 
 
 def is_cache_enabled(cache_config: str) -> bool:
@@ -67,7 +68,8 @@ def start_cache(
     :return: Shared memory manager, cache process, cache message queue and
              cache ids dictionary.
     """
-    cache_size = __get_cache_size__(cache_config)
+    main_memory_cache_size = __get_cache_size__(cache_config)
+    gpu_cache_size = __get_gpu_cache_size__(cache_config)
     # Cache can be used - Create proxy dict
     cache_ids = create_proxy_dict()
     cache_hits = {}  # type: typing.Dict[int, typing.Dict[str, int]]
@@ -79,7 +81,8 @@ def start_cache(
     smm = CACHE_TRACKER.start_shared_memory_manager()
     conf = CacheTrackerConf(
         logger,
-        cache_size,
+        main_memory_cache_size,
+        gpu_cache_size,
         "default",
         cache_ids,
         cache_hits,
@@ -88,7 +91,7 @@ def start_cache(
         log_dir,
         cache_profiler,
     )
-    cache_process, in_cache_queue, out_cache_queue = __create_cache_tracker_process__(
+    cache_process, in_cache_queue, out_cache_queue = __create_cache_manager_process__(
         "cache_tracker", conf
     )
     return smm, cache_process, in_cache_queue, out_cache_queue, cache_ids
@@ -131,6 +134,15 @@ def __get_cache_size__(cache_config: str) -> int:
     return cache_size
 
 
+def __get_gpu_cache_size__(cache_config: str) -> int:
+    """Retrieve the cache size in the GPU for the given config.
+
+    :param cache_config: Cache configuration defined on startup.
+    :return: GPU cache size.
+    """
+    return 2999238656
+
+
 def __get_default_cache_size__() -> int:
     """Return the default cache size.
 
@@ -145,7 +157,7 @@ def __get_default_cache_size__() -> int:
     return cache_size
 
 
-def __create_cache_tracker_process__(
+def __create_cache_manager_process__(
     process_name: str, conf: CacheTrackerConf
 ) -> typing.Tuple[Process, Queue, Queue]:
     """Start a new cache tracker process.
@@ -157,7 +169,7 @@ def __create_cache_tracker_process__(
     in_queue = new_queue()
     out_queue = new_queue()
     process = create_process(
-        target=cache_tracker, args=(in_queue, out_queue, process_name, conf)
+        target=cache_manager, args=(in_queue, out_queue, "cache_manager", conf)
     )
     process.start()
     return process, in_queue, out_queue

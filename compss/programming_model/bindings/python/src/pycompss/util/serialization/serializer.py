@@ -76,6 +76,9 @@ try:
 except ImportError:
     NUMPY_AVAILABLE = False
 
+
+CUPY_AVAILABLE = False
+
 try:
     import pyarrow
 
@@ -105,6 +108,7 @@ if PYARROW_AVAILABLE:
 LIB2IDX[json] = 4
 if EDDL_AVAILABLE:
     LIB2IDX[eddlNet] = 5
+# NUMBER '6' RESERVERD FOR CUPY (see __set_cupy__())
 # IDX2LIB contains as key the integer and the value its associated serializer
 IDX2LIB = dict(
     ((v, k) for (k, v) in LIB2IDX.items())
@@ -126,6 +130,8 @@ def get_serializer_priority(obj: typing.Any = ()) -> typing.List[types.ModuleTyp
     :param obj: Object to be analysed.
     :return: <List> The serializers sorted by priority in descending order.
     """
+    __set_cupy__()
+
     primitives = (int, str, bool, float)
     # primitives should be (de)serialized with for the compatibility with the
     # Runtime- only JSON objects can be deserialized in Java.
@@ -136,6 +142,10 @@ def get_serializer_priority(obj: typing.Any = ()) -> typing.List[types.ModuleTyp
         serializers = [pickle, dill]
     if object_belongs_to_module(obj, "numpy") and NUMPY_AVAILABLE:
         return [numpy] + serializers
+    if object_belongs_to_module(obj, "cupy") and CUPY_AVAILABLE:
+        import cupy
+
+        return [cupy] + serializers
     if object_belongs_to_module(obj, "pyarrow") and PYARROW_AVAILABLE:
         return [pyarrow] + serializers
     if object_belongs_to_module(obj, "pyeddl") and PYARROW_AVAILABLE:
@@ -155,6 +165,8 @@ def serialize_to_handler(obj: typing.Any, handler: typing.BinaryIO) -> None:
     :raises SerializerException: If something wrong happens during
                                  serialization.
     """
+    __set_cupy__()
+
     emit_manual_event_explicit(TRACING_MASTER.binding_serialization_size_type, 0)
     if hasattr(handler, "name"):
         emit_manual_event_explicit(
@@ -189,7 +201,11 @@ def serialize_to_handler(obj: typing.Any, handler: typing.BinaryIO) -> None:
         # General case
         else:
             try:
-                # If it is a numpy object then use its saving mechanism
+                if CUPY_AVAILABLE:
+                    import cupy
+
+                    if serializer is cupy and isinstance(obj, cupy.ndarray):
+                        serializer.save(handler, obj, allow_pickle=False)
                 if (
                     NUMPY_AVAILABLE
                     and serializer is numpy
@@ -316,6 +332,8 @@ def deserialize_from_handler(
     :return: The object and if the handler has to be closed.
     :raises SerializerException: If deserialization can not be done.
     """
+    __set_cupy__()
+
     # Retrieve the used library (if possible)
     emit_manual_event_explicit(TRACING_MASTER.binding_deserialization_size_type, 0)
     if hasattr(handler, "name"):
@@ -338,6 +356,12 @@ def deserialize_from_handler(
         if DISABLE_GC:
             # Disable the garbage collector while serializing -> performance?
             gc.disable()
+        if CUPY_AVAILABLE:
+            import cupy
+
+            if serializer is cupy:
+                cupy.get_default_memory_pool().free_all_blocks()
+                ret = serializer.load(handler, allow_pickle=False)
         if NUMPY_AVAILABLE and serializer is numpy:
             ret = serializer.load(handler, allow_pickle=False)
         elif PYARROW_AVAILABLE and serializer is pyarrow:
@@ -441,3 +465,20 @@ def serialize_objects(to_serialize: list) -> None:
     """
     for obj_and_file in to_serialize:
         serialize_to_file(*obj_and_file)
+
+
+def __set_cupy__():
+    """Add cupy to the serilization list if it is available."""
+    global CUPY_AVAILABLE
+    global IDX2LIB
+
+    try:
+        import cupy
+
+        CUPY_AVAILABLE = True
+    except ImportError:
+        CUPY_AVAILABLE = False
+
+    if CUPY_AVAILABLE:
+        LIB2IDX[cupy] = 6
+        IDX2LIB = dict(((v, k) for (k, v) in LIB2IDX.items()))

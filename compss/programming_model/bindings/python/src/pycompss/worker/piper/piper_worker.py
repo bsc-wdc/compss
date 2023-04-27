@@ -101,6 +101,8 @@ def compss_persistent_worker(
     # Catch SIGTERM sent by bindings_piper
     signal.signal(signal.SIGTERM, shutdown_handler)
 
+    print("LD_PRELOAD piper_worker.py SUBPROCESS: " + str(os.environ["LD_PRELOAD"]))
+
     # Set the binding in worker mode
     CONTEXT.set_worker()
 
@@ -350,6 +352,7 @@ def main() -> None:
 
     :return: None.
     """
+    print("LD_PRELOAD piper_worker.py: " + str(os.environ["LD_PRELOAD"]))
     # Configure the global tracing variable from the argument
     tracing = sys.argv[6] == "true"
     with trace_multiprocessing_worker() if tracing else dummy_context():

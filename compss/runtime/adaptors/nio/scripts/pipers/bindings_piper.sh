@@ -206,6 +206,10 @@ process_pipe_commands() {
                     workerCMD="${dlbArgs} ${workerCMD}"
                 fi
 
+                echo "LD_PRELOAD bindings_piper.sh: ${LD_PRELOAD}"
+                keepLDPRELOAD="LD_PRELOAD=\"\$LD_PRELOAD\""
+                workerCMD="${keepLDPRELOAD} ${workerCMD}"
+
                 # INVOKE WORKER
                 echo "[BINDINGS PIPER] Executing command: ${workerCMD}"
                 # shellcheck disable=SC2086
@@ -257,6 +261,7 @@ process_pipe_commands() {
 
 main() {
     echo "[BINDINGS PIPER] STARTING BINDINGS PIPER"
+    echo "LD_PRELOAD bindings_piper.sh main: ${LD_PRELOAD}"
 
     # Arguments
     # shellcheck disable=SC2068

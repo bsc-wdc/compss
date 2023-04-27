@@ -12,7 +12,7 @@ export COMPSS_HOME=${COMPSS_HOME}
 # shellcheck source=../system/runtime/tracing.sh
 # shellcheck disable=SC1091
 source "${COMPSS_HOME}Runtime/scripts/system/runtime/tracing.sh"
-# shellcheck source=../system/runtime/tracing.sh
+# shellcheck source=../system/runtime/adaptors.sh
 # shellcheck disable=SC1091
 source "${COMPSS_HOME}Runtime/scripts/system/runtime/adaptors.sh"
 # shellcheck source=../system/runtime/scheduler.sh
@@ -1035,17 +1035,17 @@ get_args() {
           show_opts 0
           ;;
         master_node=*)
-	  if [ -z "${master_node}" ]; then
-             master_node=${OPTARG//master_node=/}
+          if [ -z "${master_node}" ]; then
+            master_node=${OPTARG//master_node=/}
           else
-             action_error "Duplicated master_node parameter. Please check command arguments."
-	  fi
+            action_error "Duplicated master_node parameter. Please check command arguments."
+          fi
           ;;
         worker_nodes=*)
-	  if [ -z "${worker_nodes}" ]; then
-             worker_nodes=${OPTARG//worker_nodes=/}
-	  else
-             action_error "Duplicated worker_nodes parameter. Please check command arguments."
+          if [ -z "${worker_nodes}" ]; then
+            worker_nodes=${OPTARG//worker_nodes=/}
+          else
+            action_error "Duplicated worker_nodes parameter. Please check command arguments."
           fi
           ;;
         resources=*)
@@ -1142,13 +1142,13 @@ get_args() {
           # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
           ;;
-	env_script=*)
+        env_script=*)
           if [ -z "${env_script}" ]; then
-                env_script=${OPTARG//env_script=/}
+            env_script=${OPTARG//env_script=/}
           else
-                env_script="${env_script}:${OPTARG//env_script=/}"
+            env_script="${env_script}:${OPTARG//env_script=/}"
           fi
-	  # Keep it for runcompss (to add them to master)
+          # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
           ;;
         log_level=*)
@@ -1377,7 +1377,7 @@ get_args() {
         gen_coredump)
           # Generate the coredump
           gen_coredump=true
-                args_pass="$args_pass --$OPTARG"
+          args_pass="$args_pass --$OPTARG"
           ;;
         keep_workingdir)
           #Keep the working dir after execution
@@ -2105,11 +2105,25 @@ launch() {
             fi
         fi
 
-        WCMD="${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_EXTRA_FLAGS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node} ${PRE_CMD}${WCMD}${POST_CMD}"
+        ## ADD here erun options, module etc
+        module load ear
+        export EAR_CPU_TDP=150
+        export SLURM_HACK_EARL_VERBOSE=2
+        export SLURM_COMP_VERBOSE=4
+        export SLURM_EAR_LOADER_VERBOSE=3
+
+        PRE_CMD="erun --ear=on "
+        PRE_CMD="/home/bsc19/bsc19620/MN4/ear_private-development/src/slurm_plugin/erun --ear=on "
+        POST_CMD=
+        echo "[LAUNCH_COMPSS] Launching worker BEFORE ERUN $WCMD"
+        WCMD="/bin/bash $WCMD"
+        #WCMD="${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_EXTRA_FLAGS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node} ${PRE_CMD}" "--program=""$WCMD" ${POST_CMD}
+        #WCMD="${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_EXTRA_FLAGS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node} /home/bsc19/bsc19620/MN4/ear_private-development/src/slurm_plugin/erun --ear=on --program='${WCMD}'"
         if [ "${log_level}" != "off" ]; then
 	    echo "[LAUNCH_COMPSS] Launching worker in master with id $hostid and command: $WCMD"
         fi
-        $WCMD&
+        ${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_EXTRA_FLAGS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node} ${PRE_CMD} --program="$WCMD" ${POST_CMD}&
+
         hostid=$((hostid+1))
       fi
     fi
@@ -2134,12 +2148,13 @@ launch() {
                 AUXILIAR_LAUNCH_PARAMS="${QARG_CPUS_PER_TASK} ${cpus_per_node} "
             fi
         fi
-
-        WCMD="${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_EXTRA_FLAGS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${PRE_CMD}${WCMD}${POST_CMD}"
+        WCMD="/bin/bash $WCMD"
+        #WCMD="${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_EXTRA_FLAGS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${PRE_CMD}" "--program=""$WCMD" "${POST_CMD}"
         if [ "${log_level}" != "off" ]; then
 	    echo "[LAUNCH_COMPSS] Launching worker with id $hostid and command: $WCMD"
         fi
-        $WCMD&
+        #$WCMD&
+        ${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_EXTRA_FLAGS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${PRE_CMD} --program="$WCMD" ${POST_CMD}&
         hostid=$((hostid+1))
       done
     fi

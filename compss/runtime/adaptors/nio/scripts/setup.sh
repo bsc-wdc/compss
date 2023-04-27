@@ -379,7 +379,8 @@ EOT
 
   post_launch() {
     if [ "${tracing}" == "true" ]; then
-      unset LD_PRELOAD
+      #unset LD_PRELOAD
+      echo "Unsetting LD_PRELOAD"
     fi
   }
 

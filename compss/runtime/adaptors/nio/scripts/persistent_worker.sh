@@ -68,14 +68,12 @@
     SETSID="setsid"
   fi
 
-  export LD_PRELOAD=${AFTER_EXTRAE_LD_PRELOAD}
+  # export LD_PRELOAD=${AFTER_EXTRAE_LD_PRELOAD}
   "${SETSID}" $cmd ${paramsToCOMPSsWorker} 1> "${logDir}/worker_${hostName}.out" 2> "${logDir}/worker_${hostName}.err" < /dev/null | echo "$!" &
   exitValue=$?
   if [ "$exitValue" != "0" ]; then
     echo "[WARNING][persistent_worker_starter.sh] Failed to start worker ${hostName}. Exit value: ${exitValue}"
   fi
-
-
 
   post_launch
 

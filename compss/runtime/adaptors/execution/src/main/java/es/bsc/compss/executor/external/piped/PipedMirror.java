@@ -152,8 +152,11 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
             pb.environment().put(ENV_EXTRAE_LIB, installDir + COMPSsPaths.REL_DEPS_EXTRAE_DIR + "lib");
 
             for (String envVar : Tracer.ENVIRONMENT_VARIABLES) {
+                // removes LD_PRELOAD
                 pb.environment().remove(envVar);
             }
+            // FORCE EAR LD_PRELOAD: TO BE FIXED AND HANDLE VARIOUS LD_PRELOADS
+            pb.environment().put("LD_PRELOAD", "/apps/EAR/ear4.2/lib/libearld.so");
 
             // Emit event for worker initialisation
             if (Tracer.isActivated()) {

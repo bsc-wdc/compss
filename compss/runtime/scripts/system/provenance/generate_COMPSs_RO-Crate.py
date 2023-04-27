@@ -1019,8 +1019,8 @@ def main():
         "    # Relative paths from a sources_dir entry, or absolute paths can be used\n"
         "  files: [main_file.py, aux_file_1.py, aux_file_2.py]\n"
         "    # List of application files. Relative or absolute paths can be used\n"
-        "  data_persistence: False\n"
-        "    # True to include all input and output files of the application in the resulting crate"
+#        "  data_persistence: False\n"
+#        "    # True to include all input and output files of the application in the resulting crate"
         "\n"
         "Authors:\n"
         "  - name: Author_1 Name\n"
@@ -1112,8 +1112,8 @@ def main():
         f"{time.time() - part_time} s"
     )
 
-    print(f"FIXED_INS: {fixed_ins}")
-    print(f"FIXED_OUTS: {fixed_outs}")
+    # print(f"FIXED_INS: {fixed_ins}")
+    # print(f"FIXED_OUTS: {fixed_outs}")
     # Register execution details using WRROC profile
     run_uuid = wrroc_create_action(
         compss_crate, main_entity, author_list, fixed_ins, fixed_outs, yaml_content

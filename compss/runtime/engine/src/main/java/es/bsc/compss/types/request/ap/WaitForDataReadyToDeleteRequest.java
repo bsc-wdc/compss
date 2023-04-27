@@ -21,16 +21,24 @@ import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.data.DataParams;
+import es.bsc.compss.types.request.exceptions.NonExistingValueException;
+import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
 import es.bsc.compss.types.tracing.TraceEvent;
 
 import java.util.concurrent.Semaphore;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 public class WaitForDataReadyToDeleteRequest extends APRequest {
 
     private final DataParams data;
-    private final Semaphore sem;
-    private final Semaphore semWait;
+    private final Semaphore processedSem;
+
+    private ValueUnawareRuntimeException vure = null;
+    private NonExistingValueException neve = null;
+
+    private final Semaphore readinessSem;
 
     private int nPermits;
 
@@ -39,30 +47,43 @@ public class WaitForDataReadyToDeleteRequest extends APRequest {
      * Creates a new request to wait for the data to be ready to be deleted.
      * 
      * @param data data to wait to be ready for its removal
-     * @param sem Waiting semaphore.
-     * @param semWait Tasks semaphore.
      */
-    public WaitForDataReadyToDeleteRequest(DataParams data, Semaphore sem, Semaphore semWait) {
+    public WaitForDataReadyToDeleteRequest(DataParams data) {
         this.data = data;
-        this.sem = sem;
-        this.semWait = semWait;
+        this.processedSem = new Semaphore(0);
+        this.readinessSem = new Semaphore(0);
         this.nPermits = 0;
-    }
-
-    /**
-     * Returns the number of permits of the tasks waiting semaphore.
-     * 
-     * @return The number of permits of the tasks waiting semaphore.
-     */
-    public int getNumPermits() {
-        return this.nPermits;
     }
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
         LOGGER.info("[WaitForDataReadyToDelete] Notifying waiting data " + this.data.getDescription() + "to DIP...");
-        this.nPermits = dip.waitForDataReadyToDelete(this.data, this.semWait);
-        this.sem.release();
+        try {
+            this.nPermits = dip.waitForDataReadyToDelete(this.data, this.readinessSem);
+        } catch (ValueUnawareRuntimeException vure) {
+            this.vure = vure;
+        } catch (NonExistingValueException neve) {
+            this.neve = neve;
+        } finally {
+            this.processedSem.release();
+        }
+    }
+
+    /**
+     * Wait until the data is ready to be deleted.
+     * 
+     * @throws ValueUnawareRuntimeException the runtime is not aware of the data
+     * @throws NonExistingValueException the data to delete does not actually exist
+     */
+    public void waitForDataReadiness() throws ValueUnawareRuntimeException, NonExistingValueException {
+        this.processedSem.acquireUninterruptibly();
+        if (vure != null) {
+            throw vure;
+        }
+        if (neve != null) {
+            throw neve;
+        }
+        this.readinessSem.acquireUninterruptibly(nPermits);
     }
 
     @Override

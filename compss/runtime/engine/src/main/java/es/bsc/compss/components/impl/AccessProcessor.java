@@ -61,6 +61,7 @@ import es.bsc.compss.types.request.ap.TaskEndNotification;
 import es.bsc.compss.types.request.ap.TasksStateRequest;
 import es.bsc.compss.types.request.ap.UnblockResultFilesRequest;
 import es.bsc.compss.types.request.ap.WaitForDataReadyToDeleteRequest;
+import es.bsc.compss.types.request.exceptions.NonExistingValueException;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
 import es.bsc.compss.types.tracing.TraceEvent;
@@ -78,6 +79,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
+import java.util.logging.Level;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -554,25 +556,26 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
      */
     public void deleteData(DataParams data, boolean enableReuse, boolean applicationDelete) {
         LOGGER.debug("Marking data " + data.getDescription() + " for deletion");
-        Semaphore sem = new Semaphore(0);
-
+        boolean delete = true;
         // No need to wait if data is noReuse
         if (enableReuse) {
-            Semaphore semWait = new Semaphore(0);
-            WaitForDataReadyToDeleteRequest request = new WaitForDataReadyToDeleteRequest(data, sem, semWait);
+            WaitForDataReadyToDeleteRequest request = new WaitForDataReadyToDeleteRequest(data);
             // Wait for data to be ready for deletion
             if (!this.requestQueue.offer(request)) {
                 ErrorManager.error(ERROR_QUEUE_OFFER + "wait for data ready to delete");
             }
-
-            // Wait for response
-            LOGGER.debug("Waiting for ready to delete request response...");
-            sem.acquireUninterruptibly();
-
-            int nPermits = request.getNumPermits();
-            if (nPermits > 0) {
-                LOGGER.debug("Waiting for " + nPermits + " tasks to finish...");
-                semWait.acquireUninterruptibly(nPermits);
+            try {
+                request.waitForDataReadiness();
+            } catch (ValueUnawareRuntimeException vure) {
+                try {
+                    data.deleteLocal();
+                    LOGGER.info("[DeleteData] Data " + data.getDescription() + " deleted.");
+                } catch (Exception e) {
+                    LOGGER.error("[DeleteData] Error on deleting " + data.getDescription(), e);
+                }
+                return;
+            } catch (NonExistingValueException ex) {
+                delete = false;
             }
         }
         // Request to delete data
@@ -583,12 +586,13 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
         }
 
         // No need to wait if no reuse
-        if (enableReuse) {
+        if (enableReuse && delete) {
             // Wait for response
             LOGGER.debug("Waiting for delete request response...");
             try {
                 req.waitForCompletion();
             } catch (ValueUnawareRuntimeException vure) {
+                // This will never happen since it was already been detected before
                 try {
                     data.deleteLocal();
                     LOGGER.info("[DeleteData] Data " + data.getDescription() + " deleted.");

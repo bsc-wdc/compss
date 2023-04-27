@@ -39,6 +39,7 @@ import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.operation.DirectoryTransferable;
 import es.bsc.compss.types.data.operation.FileTransferable;
 import es.bsc.compss.types.data.operation.ResultListener;
+import es.bsc.compss.types.request.exceptions.NonExistingValueException;
 import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
 import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.util.ErrorManager;
@@ -445,17 +446,25 @@ public class DataInfoProvider {
      * @param data data to wait to be ready to delete
      * @param semWait Waiting semaphore.
      * @return Number of permits.
+     * @throws ValueUnawareRuntimeException the runtime is not aware of the data
+     * @throws NonExistingValueException the data to delete does not actually exist
      */
-    public int waitForDataReadyToDelete(DataParams data, Semaphore semWait) {
+    public int waitForDataReadyToDelete(DataParams data, Semaphore semWait)
+        throws ValueUnawareRuntimeException, NonExistingValueException {
         LOGGER.debug("Waiting for data " + data.getDescription() + " to be ready for deletion");
         Integer dataId = data.getDataId(this);
         if (dataId == null) {
             LOGGER.debug("No data id found for " + data.getDescription());
-            semWait.release();
-            return 0;
+            throw new ValueUnawareRuntimeException();
         }
 
         DataInfo dataInfo = this.idToData.get(dataId);
+        if (dataInfo == null) {
+            if (DEBUG) {
+                LOGGER.debug("No data found for data associated to " + data.getDescription());
+            }
+            throw new ValueUnawareRuntimeException();
+        }
         int nPermits = dataInfo.waitForDataReadyToDelete(semWait);
         return nPermits;
     }

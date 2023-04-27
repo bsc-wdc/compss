@@ -19,6 +19,7 @@ package es.bsc.compss.types.data;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.types.Application;
+import es.bsc.compss.types.request.exceptions.NonExistingValueException;
 
 import java.util.LinkedList;
 import java.util.TreeMap;
@@ -271,9 +272,10 @@ public abstract class DataInfo<T extends DataParams> {
      * Waits for the data to be ready to be deleted.
      *
      * @param semWait Semaphore.
-     * @return
+     * @return number of tokens to be acquired from the semaphore
+     * @throws NonExistingValueException the data to delete does not actually exist
      */
-    public abstract int waitForDataReadyToDelete(Semaphore semWait);
+    public abstract int waitForDataReadyToDelete(Semaphore semWait) throws NonExistingValueException;
 
     /**
      * Returns whether the current version is marked to deleted or not.

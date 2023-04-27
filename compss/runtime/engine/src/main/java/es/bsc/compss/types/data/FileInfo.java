@@ -23,6 +23,7 @@ import es.bsc.compss.types.data.listener.SafeCopyListener;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.LocationType;
 import es.bsc.compss.types.data.operation.copy.Copy;
+import es.bsc.compss.types.request.exceptions.NonExistingValueException;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.FileOpsManager;
@@ -60,11 +61,11 @@ public class FileInfo extends DataInfo<FileData> {
     }
 
     @Override
-    public int waitForDataReadyToDelete(Semaphore semWait) {
+    public int waitForDataReadyToDelete(Semaphore semWait) throws NonExistingValueException {
         int nPermits = 1;
         LOGGER.debug("[FileInfo] Deleting file of data " + this.getDataId());
         DataVersion firstVersion = this.getFirstVersion();
-        if (firstVersion != null) {
+        if (firstVersion != null && firstVersion.isValid()) {
             LogicalData ld = firstVersion.getDataInstanceId().getData();
             if (ld != null) {
                 for (DataLocation loc : ld.getLocations()) {
@@ -85,14 +86,10 @@ public class FileInfo extends DataInfo<FileData> {
                         }
                     }
                 }
-                LOGGER.debug("[FileInfo] No location in " + this.getDataId()
-                    + " equal to original. Nothing to do. Releasing semaphore.");
-                semWait.release();
+                throw new NonExistingValueException();
             }
         } else {
-            LOGGER.debug("[FileInfo] First version of data " + this.getDataId()
-                + " is null. Nothing to do. Releasing semaphore.");
-            semWait.release();
+            throw new NonExistingValueException();
         }
         return nPermits;
     }

@@ -740,7 +740,7 @@ if [ ${provenance} ]; then
   start=`date +%s`
   "${COMPSS_HOME}Runtime/scripts/utils/compss_gengraph" "svg" "${specific_log_dir}/monitor/complete_graph.dot"
   end=`date +%s`
-  echo "PROVENANCE | ENDED GENERATING GRAPH FOR DATA PROVENANCE. TIME: $(( end - start ))"
+  echo "PROVENANCE | ENDED GENERATING GRAPH FOR DATA PROVENANCE. TIME: $(( end - start )) s"
 
   echo "PROVENANCE | RUNNING DATA PROVENANCE SCRIPT"
   python "${COMPSS_HOME}Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py" "ro-crate-info.yaml" "${specific_log_dir}/dataprovenance.log"

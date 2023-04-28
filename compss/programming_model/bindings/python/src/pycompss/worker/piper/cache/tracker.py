@@ -26,7 +26,6 @@ IMPORTANT: Only used with python >= 3.8.
 import base64
 import logging
 import os
-from this import d
 from typing import Union
 
 from pycompss.util.exceptions import PyCOMPSsException
@@ -238,14 +237,30 @@ class CacheTracker:
         smm.shutdown()
 
     def get_shared_numpy(self, obj_id, obj_shape: typing.Tuple, obj_d_type):
+        """Get shared numpy array.
+
+        :param obj_id: Object identifier.
+        :param obj_shape: Numpy array shape.
+        :param obj_d_type: Numpy array dtype.
+        :return: Shared memory segment, numpy array and its size.
+        """
         existing_shm = SharedMemory(name=obj_id)
-        shm_np = NP.ndarray(obj_shape, dtype=obj_d_type, buffer=existing_shm.buf)
+        shm_np = NP.ndarray(
+            obj_shape, dtype=obj_d_type, buffer=existing_shm.buf
+        )
         output = NP.empty(obj_shape, dtype=obj_d_type)
         NP.copyto(output, shm_np)
         object_size = len(existing_shm.buf)
         return existing_shm, output, object_size
 
     def get_shared_cupy(self, obj_id, obj_shape: typing.Tuple, obj_d_type):
+        """Get shared cupy array.
+
+        :param obj_id: Object identifier.
+        :param obj_shape: Cupy array shape.
+        :param obj_d_type: Cupy array dtype.
+        :return: None, cupy array and its size.
+        """
         global CP
         try:
             import cupy
@@ -268,14 +283,23 @@ class CacheTracker:
 
         return None, output, output.nbytes
 
-    def get_shared_list(self, obj_id, type):
+    def get_shared_list(self, obj_id, i_type):
+        """Get iterable object.
+
+        :param obj_id: Object identifier.
+        :param i_type: Object type (can be typle or list).
+        :return: Shared memory segment, iterable object and its size.
+        """
         existing_shm = ShareableList(name=obj_id)
-        output = type(existing_shm)
+        output = i_type(existing_shm)
         object_size = len(existing_shm.shm.buf)
         return existing_shm, output, object_size
 
     def close_cupy_mem_handles(self):
-        """Close all memory handles from cupy arrays."""
+        """Close all memory handles from cupy arrays.
+
+        :return: None.
+        """
         for handle in self.cupy_handlers.values():
             CP.cuda.runtime.ipcCloseMemHandle(handle)
         self.cupy_handlers.clear()
@@ -304,7 +328,7 @@ class CacheTracker:
         :return: The object from cache.
         """
         emit_manual_event_explicit(
-            TRACING_WORKER.binding_deserialization_cache_size_type, 0
+            TRACING_WORKER.deserialization_cache_size_type, 0
         )
         f_name = get_file_name(identifier)
         if __debug__:
@@ -315,29 +339,41 @@ class CacheTracker:
         object_size = 0
 
         if shared_type == self.shared_memory_tag:
-            with EventInsideWorker(TRACING_WORKER.retrieve_object_from_cache_event):
+            with EventInsideWorker(
+                TRACING_WORKER.retrieve_object_from_cache_event
+            ):
                 existing_shm, output, object_size = self.get_shared_numpy(
                     obj_id, obj_shape, obj_d_type
                 )
         elif shared_type == self.shared_cupy_tag:
-            with EventInsideWorker(TRACING_WORKER.retrieve_object_from_gpu_cache_event):
+            with EventInsideWorker(
+                TRACING_WORKER.retrieve_object_from_gpu_cache_event
+            ):
                 existing_shm, output, object_size = self.get_shared_cupy(
                     obj_id, obj_shape, obj_d_type
                 )
         elif shared_type == self.shareable_list_tag:
-            with EventInsideWorker(TRACING_WORKER.retrieve_object_from_cache_event):
-                existing_shm, output, object_size = self.get_shared_list(obj_id, list)
+            with EventInsideWorker(
+                TRACING_WORKER.retrieve_object_from_cache_event
+            ):
+                existing_shm, output, object_size = self.get_shared_list(
+                    obj_id, list
+                )
         elif shared_type == self.shareable_tuple_tag:
-            with EventInsideWorker(TRACING_WORKER.retrieve_object_from_cache_event):
+            with EventInsideWorker(
+                TRACING_WORKER.retrieve_object_from_cache_event
+            ):
                 existing_shm, output, object_size = self.get_shared_list(
                     obj_id, tuple
                 )
         else:
             raise PyCOMPSsException("Unknown cacheable type.")
         if __debug__:
-            logger.debug("%s Retrieved: %s as %s", self.header, str(f_name), obj_id)
+            logger.debug(
+                "%s Retrieved: %s as %s", self.header, str(f_name), obj_id
+            )
         emit_manual_event_explicit(
-            TRACING_WORKER.binding_deserialization_cache_size_type, object_size
+            TRACING_WORKER.deserialization_cache_size_type, object_size
         )
 
         # Profiling
@@ -345,8 +381,7 @@ class CacheTracker:
         function_name = function_clean(user_function)
 
         message = CacheQueueMessage(
-            action="GET",
-            messages=[filename, parameter_name, function_name]
+            action="GET", messages=[filename, parameter_name, function_name]
         )
         in_cache_queue.put(message)
 
@@ -388,11 +423,15 @@ class CacheTracker:
             and out_cache_queue is not None
             and (
                 (isinstance(obj, NP.ndarray) and not obj.dtype == object)
-                or (CP and isinstance(obj, CP.ndarray) and not obj.dtype == object)
+                or (
+                    CP
+                    and isinstance(obj, CP.ndarray)
+                    and not obj.dtype == object
+                )
                 or isinstance(obj, (list, tuple))
             )
         ):
-            self.insert_object_into_cache(
+            self.__insert_object_into_cache(
                 logger,
                 in_cache_queue,
                 out_cache_queue,
@@ -402,9 +441,19 @@ class CacheTracker:
                 user_function,
             )
 
-    def insert_numpy_cache(self, obj, f_name, parameter, function, in_cache_queue):
+    def insert_numpy_cache(
+        self, obj, f_name, parameter, function, in_cache_queue
+    ):
+        """Insert numpy array into cache.
+
+        :param f_name: File name that corresponds to the object (used as id).
+        :param parameter: Parameter name.
+        :param function: Function.
+        :param in_cache_queue: Cache notification input queue.
+        :return: Size and identifier.
+        """
         emit_manual_event_explicit(
-            TRACING_WORKER.binding_serialization_cache_size_type, 0
+            TRACING_WORKER.serialization_cache_size_type, 0
         )
         shape = obj.shape
         d_type = obj.dtype
@@ -412,7 +461,9 @@ class CacheTracker:
         new_cache_id = None
 
         if size > 0:
-            with EventInsideWorker(TRACING_WORKER.insert_object_into_cache_event):
+            with EventInsideWorker(
+                TRACING_WORKER.insert_object_into_cache_event
+            ):
                 # This line takes most of the time to put into cache
                 shm = self.shared_memory_manager.SharedMemory(size=size)
                 within_cache = NP.ndarray(shape, dtype=d_type, buffer=shm.buf)
@@ -423,7 +474,7 @@ class CacheTracker:
                     messages=[
                         f_name,
                         new_cache_id,
-                        SHARED_MEMORY_TAG,
+                        self.shared_memory_tag,
                         parameter,
                         function,
                     ],
@@ -442,10 +493,17 @@ class CacheTracker:
         parameter,
         function,
         in_cache_queue: Queue,
-        out_cache_queue: Queue,
     ):
+        """Insert cupy array into cache.
+
+        :param f_name: File name that corresponds to the object (used as id).
+        :param parameter: Parameter name.
+        :param function: Function.
+        :param in_cache_queue: Cache notification input queue.
+        :return: Size and identifier.
+        """
         emit_manual_event_explicit(
-            TRACING_WORKER.binding_serialization_cache_size_type, 0
+            TRACING_WORKER.serialization_cache_size_type, 0
         )
         shape = obj.shape
         d_type = obj.dtype
@@ -453,7 +511,9 @@ class CacheTracker:
         new_cache_id = None
 
         if size > 0:
-            with EventInsideWorker(TRACING_WORKER.insert_object_into_gpu_cache_event):
+            with EventInsideWorker(
+                TRACING_WORKER.insert_object_into_gpu_cache_event
+            ):
                 ipc_handle = CP.cuda.runtime.ipcGetMemHandle(obj.data.ptr)
 
                 new_cache_id = base64.b64encode(ipc_handle)
@@ -476,20 +536,41 @@ class CacheTracker:
         return size, new_cache_id
 
     def insert_iterable_cache(
-        self, obj: Union[list, tuple], f_name, parameter, function, in_cache_queue, type
+        self,
+        obj: Union[list, tuple],
+        f_name,
+        parameter,
+        function,
+        in_cache_queue,
+        i_type,
     ):
+        """Insert iterable object into cache.
+
+        :param f_name: File name that corresponds to the object (used as id).
+        :param parameter: Parameter name.
+        :param function: Function.
+        :param in_cache_queue: Cache notification input queue.
+        :param i_type: Iterable type (can be list or tuple).
+        :return: Size and identifier.
+        """
         size = total_sizeof(obj)
         new_cache_id = None
 
         if size > 0:
-            with EventInsideWorker(TRACING_WORKER.insert_object_into_cache_event):
+            with EventInsideWorker(
+                TRACING_WORKER.insert_object_into_cache_event
+            ):
                 emit_manual_event_explicit(
-                    TRACING_WORKER.binding_serialization_cache_size_type, 0
+                    TRACING_WORKER.serialization_cache_size_type, 0
                 )
-                shareable_list = self.shared_memory_manager.ShareableList(obj)  # noqa
+                shareable_list = self.shared_memory_manager.ShareableList(
+                    obj
+                )  # noqa
                 new_cache_id = shareable_list.shm.name
                 tag = (
-                    SHAREABLE_LIST_TAG if isinstance(obj, list) else SHAREABLE_TUPLE_TAG
+                    self.shareable_list_tag
+                    if isinstance(obj, list)
+                    else self.shareable_tuple_tag
                 )
                 message = CacheQueueMessage(
                     action="PUT",
@@ -501,14 +582,14 @@ class CacheTracker:
                         function,
                     ],
                     size=size,
-                    d_type=type,
+                    d_type=i_type,
                     shape=(),  # only used with numpy
                 )
                 in_cache_queue.put(message)
 
         return size, new_cache_id
 
-    def insert_object_into_cache(
+    def __insert_object_into_cache(
         self,
         logger: logging.Logger,
         in_cache_queue: Queue,
@@ -594,17 +675,22 @@ class CacheTracker:
                         parameter,
                         function,
                         in_cache_queue,
-                        out_cache_queue,
                     )
                 elif isinstance(obj, list) or isinstance(obj, tuple):
                     size, new_cache_id = self.insert_iterable_cache(
-                        obj, f_name, parameter, function, in_cache_queue, type(obj)
+                        obj,
+                        f_name,
+                        parameter,
+                        function,
+                        in_cache_queue,
+                        type(obj),
                     )
                 else:
                     inserted = False
                     if __debug__:
                         logger.debug(
-                            "%s Can not put into cache: Not a [NP.ndarray | list | tuple ] object",
+                            "%s Can not put into cache: "
+                            "Not a [NP.ndarray | list | tuple ] object",
                             self.header,
                         )
 
@@ -613,7 +699,7 @@ class CacheTracker:
 
                 if inserted:
                     emit_manual_event_explicit(
-                        TRACING_WORKER.binding_serialization_cache_size_type,
+                        TRACING_WORKER.serialization_cache_size_type,
                         size,
                     )
                 if __debug__ and inserted:
@@ -723,15 +809,23 @@ class CacheTracker:
             if f_name in cache:
                 obj_id, _, _, _, _, shared_type = cache[f_name]
                 if __debug__:
-                    logger.debug("%s Is in cache? %s", self.header, str(f_name))
+                    logger.debug(
+                        "%s Is in cache? %s", self.header, str(f_name)
+                    )
 
                 if shared_type == self.shared_cupy_tag:
-                    with EventInsideWorker(TRACING_WORKER.check_access_gpu_event):
+                    with EventInsideWorker(
+                        TRACING_WORKER.check_access_gpu_event
+                    ):
                         is_in_gpu = self.check_cupy_access(obj_id)
                     if is_in_gpu:
-                        event = EventInsideWorker(TRACING_WORKER.cache_hit_gpu_event)
+                        event = EventInsideWorker(
+                            TRACING_WORKER.cache_hit_gpu_event
+                        )
                     else:
-                        event = EventInsideWorker(TRACING_WORKER.cache_miss_gpu_event)
+                        event = EventInsideWorker(
+                            TRACING_WORKER.cache_miss_gpu_event
+                        )
                     with event:
                         return is_in_gpu
                 return True
@@ -739,7 +833,11 @@ class CacheTracker:
         return False
 
     def check_cupy_access(self, obj_id):
-        """Check if current GPU has access to the memory of the gpu where the hanle is pointing."""
+        """Check if object accessible by cupy.
+
+        Check if current GPU has access to the memory of the gpu where the
+        handle is pointing.
+        """
         if obj_id in self.cupy_handlers:
             return True
 

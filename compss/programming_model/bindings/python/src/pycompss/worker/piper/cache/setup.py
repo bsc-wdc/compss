@@ -36,7 +36,6 @@ from pycompss.worker.piper.cache.classes import CacheQueueMessage
 from pycompss.worker.piper.cache.tracker import CacheTrackerConf
 from pycompss.worker.piper.cache.tracker import CACHE_TRACKER
 from pycompss.worker.piper.cache.manager import cache_manager
-from pycompss.util.process.manager import create_process
 
 # Used only for typing shortcut
 Dict = typing.Dict

@@ -108,7 +108,7 @@ if PYARROW_AVAILABLE:
 LIB2IDX[json] = 4
 if EDDL_AVAILABLE:
     LIB2IDX[eddlNet] = 5
-# NUMBER '6' RESERVERD FOR CUPY (see __set_cupy__())
+# NUMBER '6' RESERVERD FOR CUPY (see set_cupy())
 # IDX2LIB contains as key the integer and the value its associated serializer
 IDX2LIB = dict(
     ((v, k) for (k, v) in LIB2IDX.items())
@@ -132,7 +132,7 @@ def get_serializer_priority(
     :param obj: Object to be analysed.
     :return: <List> The serializers sorted by priority in descending order.
     """
-    __set_cupy__()
+    set_cupy()
 
     primitives = (int, str, bool, float)
     # primitives should be (de)serialized with for the compatibility with the
@@ -167,7 +167,7 @@ def serialize_to_handler(obj: typing.Any, handler: typing.BinaryIO) -> None:
     :raises SerializerException: If something wrong happens during
                                  serialization.
     """
-    __set_cupy__()
+    set_cupy()
 
     emit_manual_event_explicit(
         TRACING_MASTER.binding_serialization_size_type, 0
@@ -340,7 +340,7 @@ def deserialize_from_handler(
     :return: The object and if the handler has to be closed.
     :raises SerializerException: If deserialization can not be done.
     """
-    __set_cupy__()
+    set_cupy()
 
     # Retrieve the used library (if possible)
     emit_manual_event_explicit(
@@ -482,8 +482,8 @@ def serialize_objects(to_serialize: list) -> None:
         serialize_to_file(*obj_and_file)
 
 
-def __set_cupy__():
-    """Add cupy to the serilization list if it is available."""
+def set_cupy():
+    """Add cupy to the serialization list if it is available."""
     global CUPY_AVAILABLE
     global IDX2LIB
 

@@ -1812,6 +1812,10 @@ class TaskWorker:
 
 
 def clean_cupy_env():
+    """Clean cupy environment.
+
+    :return: None
+    """
     try:
         import cupy
 
@@ -1830,7 +1834,7 @@ def get_collection_objects(
 
     :param content: Object or list of objects.
     :param argument: Argument or list of arguments of the given objects.
-    :returns: The collection representation.
+    :return: The collection representation.
     """
     if argument.content_type == parameter.TYPE.COLLECTION:
         for new_con, _elem in zip(
@@ -1864,7 +1868,7 @@ def get_dict_collection_objects(
 
     :param content: Object or list of objects.
     :param argument: Argument or list of arguments of the given objects.
-    :returns: The collection representation.
+    :return: The collection representation.
     """
     if argument.content_type == parameter.TYPE.DICT_COLLECTION:
         elements = []

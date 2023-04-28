@@ -27,7 +27,9 @@ WARNING: This file can not be compiled with mypy since it contains
 """
 
 from pycompss.api.task import task
-from pycompss.api.parameter import *
+from pycompss.api.parameter import COLLECTION_IN
+from pycompss.api.parameter import FILE_OUT
+from pycompss.api.parameter import FILE_IN
 
 
 @task(returns=1)

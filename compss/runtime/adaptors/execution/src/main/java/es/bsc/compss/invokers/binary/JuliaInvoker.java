@@ -41,7 +41,7 @@ import java.util.ArrayList;
 
 public class JuliaInvoker extends Invoker {
 
-    private static final int NUM_BASE_JULIA_ARGS = 8;
+    private static final int NUM_BASE_JULIA_ARGS = 9;
 
     private static final String ERROR_TARGET_PARAM = "ERROR: Julia execution doesn't support target parameters";
 
@@ -169,11 +169,12 @@ public class JuliaInvoker extends Invoker {
         final String juliaRunner = this.context.getInstallDir() + JuliaDefinition.SCRIPT_PATH;
         cmd[0] = juliaRunner;
         cmd[1] = this.juliaDef.getJuliaExecutor();
-        cmd[2] = this.juliaDef.getJuliaScript();
-        cmd[3] = this.juliaDef.getWorkingDir();
-        cmd[4] = String.valueOf(this.juliaDef.getFailByEV());
-        cmd[5] = String.valueOf(this.juliaDef.getComputingNodes());
-        cmd[6] = String.valueOf(this.invocation.isDebugEnabled());
+        cmd[2] = this.juliaDef.getJuliaArgs();
+        cmd[3] = this.juliaDef.getJuliaScript();
+        cmd[4] = this.juliaDef.getWorkingDir();
+        cmd[5] = String.valueOf(this.juliaDef.getFailByEV());
+        cmd[6] = String.valueOf(this.juliaDef.getComputingNodes());
+        cmd[7] = String.valueOf(this.invocation.isDebugEnabled());
 
         if (!args.isEmpty()) {
             cmd[7] = args;
@@ -183,7 +184,8 @@ public class JuliaInvoker extends Invoker {
         if (this.invocation.isDebugEnabled()) {
             PrintStream outLog = context.getThreadOutStream();
             outLog.println("");
-            outLog.println("[JULIA INVOKER] Begin JULIA call to " + this.juliaDef.getJuliaScript());
+            outLog.println("[JULIA INVOKER] Begin JULIA with args: " + this.juliaDef.getJuliaArgs());
+            outLog.println("[JULIA INVOKER] For script : " + this.juliaDef.getJuliaScript());
             outLog.println("[JULIA INVOKER] On WorkingDir : " + this.sandBox.getFolder().getAbsolutePath());
             // Debug command
             outLog.print("[JULIA INVOKER] Julia CMD: ");

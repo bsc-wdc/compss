@@ -24,6 +24,7 @@ This file contains the common worker executor methods.
 """
 
 from pycompss.api.parameter import TYPE
+from pycompss.util.exceptions import PyCOMPSsException
 
 
 def build_return_params_message(types: list, values: list) -> str:
@@ -34,14 +35,15 @@ def build_return_params_message(types: list, values: list) -> str:
     :return: Message as string.
     """
     err_msg = "return type-value length mismatch for return message."
-    assert len(types) == len(values), "Inconsistent state: " + err_msg
+    if len(types) != len(values):
+        raise PyCOMPSsException(f"Inconsistent state: {err_msg}")
 
     pairs = list(zip(types, values))
     num_params = len(pairs)
     params = [str(num_params)]
     for pair in pairs:
         if pair[0] == TYPE.COLLECTION:
-            value = __build_collection_representation__(pair[1])
+            value = __build_collection_representation(pair[1])
         else:
             value = str(pair[1])
         params.append(str(pair[0]))
@@ -50,11 +52,19 @@ def build_return_params_message(types: list, values: list) -> str:
     return message
 
 
-def __build_collection_representation__(value: list) -> str:
+def __build_collection_representation(value: list) -> str:
     """Create the representation of a collection from the list of lists format.
 
     CAUTION: Recursive function.
-    The runtime expects [[[(t1, v1), (t2, v2), ...], [(t1, v1), (t2, v2), ...], ...], ...]
+    The runtime expects:
+      [
+        [
+          [(t1, v1), (t2, v2), ...],
+          [(t1, v1), (t2, v2), ...],
+          ...
+        ],
+        ...
+      ]
 
     :param value: Collection message before processing.
     :return: The collection representation message.
@@ -64,7 +74,7 @@ def __build_collection_representation__(value: list) -> str:
     for i in value:
         if isinstance(i[0], list):
             # Has inner list
-            result = result + __build_collection_representation__(i)
+            result = result + __build_collection_representation(i)
         else:
             coll_type = i[0]
             coll_value = i[1].replace("'", "")

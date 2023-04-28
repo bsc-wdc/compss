@@ -26,6 +26,7 @@ Provides auxiliary methods for the interactive mode with regard to graphs
 import os
 import time
 
+from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.typing_helper import typing
 
 
@@ -55,31 +56,35 @@ def show_graph(
     from IPython.display import display  # noqa
 
     # Check refresh rate and timeout
-    assert timeout >= 0, "ERROR: timeout has to be >= 0"
+    if timeout < 0:
+        raise PyCOMPSsException("ERROR: timeout has to be >= 0")
     if timeout > 0:
-        assert (
-            refresh_rate < timeout
-        ), "ERROR: refresh_rate can not be higher than timeout"
+        if refresh_rate > timeout:
+            raise PyCOMPSsException(
+                "ERROR: refresh_rate can not be higher than timeout"
+            )
     # Set file name
     file_name = os.path.join(log_path, "monitor", name)
     # Act
     if timeout == 0:
-        display(__get_graph_snapshot__(file_name, fit, Source))
+        display(__get_graph_snapshot(file_name, fit, Source))
     else:
         try:
             while timeout >= 0:
                 clear_output(wait=True)
-                display(__get_graph_snapshot__(file_name, fit, Source))
+                display(__get_graph_snapshot(file_name, fit, Source))
                 time.sleep(refresh_rate)
                 timeout = timeout - refresh_rate
         except KeyboardInterrupt:
             # User hit stop on the cell
             clear_output(wait=True)
-            display(__get_graph_snapshot__(file_name, fit, Source))
+            display(__get_graph_snapshot(file_name, fit, Source))
     return None
 
 
-def __get_graph_snapshot__(file_name: str, fit: bool, source: typing.Any) -> typing.Any:
+def __get_graph_snapshot(
+    file_name: str, fit: bool, source: typing.Any
+) -> typing.Any:
     """Read the graph file and returns it as graphviz object.
 
     It is able to fit the size if indicated.
@@ -105,8 +110,8 @@ def __get_graph_snapshot__(file_name: str, fit: bool, source: typing.Any) -> typ
 
             image = Image(filename=file)
             return image
-        except Exception as general_exception:
+        except Exception:  # as general_exception:
             print("Oops! Failed rendering the graph.")
-            raise general_exception
+            # raise general_exception
     else:
         return source(text)

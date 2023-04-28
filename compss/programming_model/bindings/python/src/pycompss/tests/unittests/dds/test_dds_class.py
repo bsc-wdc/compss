@@ -28,7 +28,6 @@ fayl = os.path.join(wc_dir, "1.txt")
 
 
 def test_data_loaders():
-
     dds = DDS()
     assert not dds.partitions, GENERIC_ERROR
 
@@ -50,7 +49,6 @@ def test_data_loaders():
 
 
 def test_methods():
-
     data = list(range(10))
 
     dds = DDS().load(data).map(lambda x: x * 2).collect()
@@ -84,10 +82,13 @@ def test_methods():
 
 
 def test_k_v_operations():
-
     data = list(range(10))
     dds = (
-        DDS().load(data).map(lambda x: (x, x * 2)).map_values(lambda x: x / 2).collect()
+        DDS()
+        .load(data)
+        .map(lambda x: (x, x * 2))
+        .map_values(lambda x: x / 2)
+        .collect()
     )
     for i in dds:
         assert i[0] == i[1]
@@ -102,8 +103,18 @@ def test_k_v_operations():
     for i in range(5):
         assert abs(dds[0][i][0] - dds[1][i][0]) == 1
 
-    dds = DDS().load([("a", [1, 2]), ("b", [1])]).flatten_by_key(lambda x: x).collect()
+    dds = (
+        DDS()
+        .load([("a", [1, 2]), ("b", [1])])
+        .flatten_by_key(lambda x: x)
+        .collect()
+    )
     assert len(dds) == 3
 
-    dds = DDS().load([("z", 1), ("b", 3), ("a", 1), ("c", 3)]).sort_by_key().collect()
+    dds = (
+        DDS()
+        .load([("z", 1), ("b", 3), ("a", 1), ("c", 3)])
+        .sort_by_key()
+        .collect()
+    )
     assert dds[0][0] == "a"

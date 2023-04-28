@@ -89,9 +89,13 @@ class TaskArguments:
         self.on_failure = "RETRY"
         self.tracing_hook = False
         # numba mode (jit, vectorize, guvectorize)
-        self.numba = False  # type: typing.Union[bool, str, typing.Dict[str, bool]]
+        self.numba = (
+            False
+        )  # type: typing.Union[bool, str, typing.Dict[str, bool]]
         # user defined extra numba flags
-        self.numba_flags = {}  # type: typing.Dict[str, typing.Union[str, bool]]
+        self.numba_flags = (
+            {}
+        )  # type: typing.Dict[str, typing.Union[str, bool]]
         # vectorize and guvectorize signature
         self.numba_signature = (
             None
@@ -114,7 +118,9 @@ class TaskArguments:
         :return: None
         """
         LOGGER.warning(
-            "Detected deprecated %s. Please, change it to %s", old_keyword, new_keyword
+            "Detected deprecated %s. Please, change it to %s",
+            old_keyword,
+            new_keyword,
         )
 
     def update_arguments(self, kwargs: typing.Dict[str, typing.Any]) -> None:
@@ -130,7 +136,8 @@ class TaskArguments:
                 self.target_direction = target_direction.key
             else:
                 raise PyCOMPSsException(
-                    f"Unexpected {LABELS.target_direction} type. Must be a direction."
+                    f"Unexpected {LABELS.target_direction} type. "
+                    f"Must be a direction."
                 )
         elif LEGACY_LABELS.target_direction in kwargs:
             target_direction = kwargs.pop(LEGACY_LABELS.target_direction)
@@ -141,7 +148,8 @@ class TaskArguments:
                 )
             else:
                 raise PyCOMPSsException(
-                    f"Unexpected {LEGACY_LABELS.target_direction} type. Must be a direction."
+                    f"Unexpected {LEGACY_LABELS.target_direction} type. "
+                    f"Must be a direction."
                 )
         # Argument: returns
         if LABELS.returns in kwargs:
@@ -160,7 +168,9 @@ class TaskArguments:
             self.time_out = kwargs.pop(LABELS.time_out)
         elif LEGACY_LABELS.time_out in kwargs:
             self.time_out = kwargs.pop(LEGACY_LABELS.time_out)
-            self.__deprecation_warning__(LEGACY_LABELS.time_out, LABELS.time_out)
+            self.__deprecation_warning__(
+                LEGACY_LABELS.time_out, LABELS.time_out
+            )
         # Argument: is_replicated
         if LABELS.is_replicated in kwargs:
             self.is_replicated = kwargs.pop(LABELS.is_replicated)
@@ -235,9 +245,10 @@ class TaskArguments:
         # Argument: the rest (named function parameters).
         # The rest of the arguments are expected to be only the function
         # parameter related information
-        for (key, value) in kwargs.items():
+        for key, value in kwargs.items():
             if isinstance(value, dict):
-                # It is a dictionary for the given parameter (e.g. param={Direction: IN})
+                # It is a dictionary for the given parameter
+                # (e.g. param={Direction: IN})
                 self.parameters[key] = get_parameter_from_dictionary(value)
             else:
                 # It is a keyword for the given parameter (e.g. param=IN)

@@ -33,7 +33,11 @@ MAIN_NAME = "__main__.py"
 
 
 def check_output(stdout, stderr, error_expected=False):
-    if os.path.exists(stderr) and os.path.getsize(stderr) > 0 and not error_expected:
+    if (
+        os.path.exists(stderr)
+        and os.path.getsize(stderr) > 0
+        and not error_expected
+    ):
         # Non empty file exists
         raise PyCOMPSsException("An error happened. Please check " + stderr)
     else:

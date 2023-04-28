@@ -26,7 +26,9 @@ This file contains the multiprocessing piper worker code.
 import os
 import signal
 import sys
-from multiprocessing import Process  # Used only for typing
+
+# Used only for typing
+from multiprocessing import Process  # noqa: F401
 
 from pycompss.util.context import CONTEXT
 from pycompss.runtime.commons import GLOBALS
@@ -82,7 +84,9 @@ def shutdown_handler(
 ######################
 
 
-def compss_persistent_worker(config: PiperWorkerConfiguration, tracing: bool) -> None:
+def compss_persistent_worker(
+    config: PiperWorkerConfiguration, tracing: bool
+) -> None:
     """Retrieve the initial configuration and spawns the worker processes.
 
     Persistent worker main function.
@@ -114,7 +118,8 @@ def compss_persistent_worker(config: PiperWorkerConfiguration, tracing: bool) ->
         # Initialize storage
         logger.debug("%sStarting persistent storage", HEADER)
         with EventWorker(TRACING_WORKER.init_storage_at_worker_event):
-            from storage.api import (  # pylint: disable=import-error, import-outside-toplevel
+            from storage.api import (  # pylint: disable=E0401, C0415
+                # disable=import-error, import-outside-toplevel
                 initWorker as initStorageAtWorker,
             )
 
@@ -133,7 +138,9 @@ def compss_persistent_worker(config: PiperWorkerConfiguration, tracing: bool) ->
     if is_cache_enabled(str(config.cache)):
         # Deploy the necessary processes
         CACHE = True
-        cache_params = start_cache(logger, str(config.cache), cache_profiler, log_dir)
+        cache_params = start_cache(
+            logger, str(config.cache), cache_profiler, log_dir
+        )
         (
             smm,
             cache_process,
@@ -191,10 +198,14 @@ def compss_persistent_worker(config: PiperWorkerConfiguration, tracing: bool) ->
                 in_pipe = line[2]
                 out_pipe = line[3]
                 pipe = Pipe(in_pipe, out_pipe)
-                pid, queue = create_executor_process(exec_id, process_name, conf, pipe)
+                pid, queue = create_executor_process(
+                    exec_id, process_name, conf, pipe
+                )
                 queues.append(queue)
                 control_pipe.write(
-                    " ".join((TAGS.added_executor, out_pipe, in_pipe, str(pid)))
+                    " ".join(
+                        (TAGS.added_executor, out_pipe, in_pipe, str(pid))
+                    )
                 )
 
             elif line[0] == TAGS.query_executor_id:
@@ -204,7 +215,12 @@ def compss_persistent_worker(config: PiperWorkerConfiguration, tracing: bool) ->
                 query_pid = query_proc.pid
                 control_pipe.write(
                     " ".join(
-                        (TAGS.reply_executor_id, out_pipe, in_pipe, str(query_pid))
+                        (
+                            TAGS.reply_executor_id,
+                            out_pipe,
+                            in_pipe,
+                            str(query_pid),
+                        )
                     )
                 )
 
@@ -232,10 +248,14 @@ def compss_persistent_worker(config: PiperWorkerConfiguration, tracing: bool) ->
                 proc = PROCESSES.pop(in_pipe, None)
                 if proc:
                     if proc.is_alive():
-                        logger.warning("%sForcing terminate on : %s", HEADER, proc.name)
+                        logger.warning(
+                            "%sForcing terminate on : %s", HEADER, proc.name
+                        )
                         proc.terminate()
                     proc.join()
-                control_pipe.write(" ".join((TAGS.removed_executor, out_pipe, in_pipe)))
+                control_pipe.write(
+                    " ".join((TAGS.removed_executor, out_pipe, in_pipe))
+                )
 
             elif line[0] == TAGS.ping:
                 control_pipe.write(TAGS.pong)
@@ -251,7 +271,9 @@ def compss_persistent_worker(config: PiperWorkerConfiguration, tracing: bool) ->
     for i in range(0, config.tasks_x_node):
         if not queues[i].empty():
             logger.error(
-                "%sException in threads queue: %s", HEADER, str(queues[i].get())
+                "%sException in threads queue: %s",
+                HEADER,
+                str(queues[i].get()),
             )
 
     # Check if there is any exception from the messages
@@ -267,7 +289,11 @@ def compss_persistent_worker(config: PiperWorkerConfiguration, tracing: bool) ->
         # cache_process variables, since they are only initialized when
         # cache is enabled. Reason for noqa.
         stop_cache(
-            smm, in_cache_queue_act, out_cache_queue_act, cache_profiler, cache_process
+            smm,
+            in_cache_queue_act,
+            out_cache_queue_act,
+            cache_profiler,
+            cache_process,
         )
 
     if persistent_storage:
@@ -275,7 +301,8 @@ def compss_persistent_worker(config: PiperWorkerConfiguration, tracing: bool) ->
         if __debug__:
             logger.debug("%sStopping persistent storage", HEADER)
         with EventWorker(TRACING_WORKER.finish_storage_at_worker_event):
-            from storage.api import (  # pylint: disable=import-error, import-outside-toplevel
+            from storage.api import (  # pylint: disable=E0401, C0415
+                # disable=import-error, import-outside-toplevel
                 finishWorker as finishStorageAtWorker,
             )
 
@@ -325,7 +352,8 @@ def main() -> None:
     with trace_multiprocessing_worker() if tracing else dummy_context():
         # First thing to do is to emit the process identifier event
         emit_manual_event_explicit(
-            TRACING_WORKER.process_identifier, TRACING_WORKER.process_worker_event
+            TRACING_WORKER.process_identifier,
+            TRACING_WORKER.process_worker_event,
         )
         # Configure the piper worker with the arguments
         worker_conf = PiperWorkerConfiguration()

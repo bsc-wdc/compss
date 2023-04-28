@@ -143,7 +143,12 @@ def prepare_environment(
     # Set storage classpath
     if storage_impl != "":
         if storage_impl == "redis":
-            cp = cp + ":" + compss_home + "/Tools/storage/redis/compss-redisPSCO.jar"
+            cp = (
+                cp
+                + ":"
+                + compss_home
+                + "/Tools/storage/redis/compss-redisPSCO.jar"
+            )
         else:
             cp = cp + ":" + storage_impl
 
@@ -210,7 +215,11 @@ def prepare_loglevel_graph_for_monitoring(
         # If debug is enabled, the output is more verbose
         log_level = "debug"
 
-    monitoring_vars = {"monitor": monitor, "graph": graph, "log_level": log_level}
+    monitoring_vars = {
+        "monitor": monitor,
+        "graph": graph,
+        "log_level": log_level,
+    }
     return monitoring_vars
 
 
@@ -295,9 +304,13 @@ def check_infrastructure_variables(
                                 python_virtual_environment).
     """
     if project_xml == "":
-        project_xml = compss_home + DEFAULT_PROJECT_PATH + "default_project.xml"
+        project_xml = (
+            compss_home + DEFAULT_PROJECT_PATH + "default_project.xml"
+        )
     if resources_xml == "":
-        resources_xml = compss_home + DEFAULT_RESOURCES_PATH + "default_resources.xml"
+        resources_xml = (
+            compss_home + DEFAULT_RESOURCES_PATH + "default_resources.xml"
+        )
     app_name = file_name if app_name == "" else app_name
     external_adaptation_str = "true" if external_adaptation else "false"
     major_version = str(sys.version_info[0])
@@ -385,7 +398,7 @@ def create_init_config_file(
     checkpoint_folder: str,
     **kwargs: typing.Any,
 ) -> None:
-    """Create the initialization files for the runtime start (java options file).
+    """Create the initialization file for the runtime start (java opts file).
 
     :param compss_home: <String> COMPSs installation path.
     :param debug:  <Boolean> Enable/Disable debugging
@@ -414,7 +427,8 @@ def create_init_config_file(
     :param trace: <Boolean> Enable/Disable trace generation.
     :param extrae_cfg: None|<String> Default extrae configuration/user
                        specific extrae configuration.
-    :param extrae_final_directory: None|<String> Default extrae final directory.
+    :param extrae_final_directory: None|<String>
+                                   Default extrae final directory.
     :param comm: <String> GAT/NIO.
     :param conn: <String> Connector
                  (normally: es.bsc.compss.connectors.DefaultSSHConnector).
@@ -438,10 +452,10 @@ def create_init_config_file(
     :param scheduler_config: <String> Path to the file which contains the
                              scheduler configuration..
     :param external_adaptation: <String> Enable external adaptation.
-                                This option will disable the Resource Optimizer.
+                                This option disables the Resource Optimizer.
     :param python_interpreter: <String> Python interpreter.
     :param python_version: <String> Python interpreter version.
-    :param python_virtual_environment: <String> Python virtual environment path.
+    :param python_virtual_environment: <String> Python virtual env path.
     :param propagate_virtual_environment: <Boolean> Propagate python virtual
                                           environment to workers.
     :param mpi_worker: Use the MPI worker [ True | False ] (default: False).
@@ -496,9 +510,9 @@ def create_init_config_file(
             jvm_options_file.write("-Dcompss.shutdown_in_node_failure=false\n")
 
         if log_dir == "":
-            log_dir = __create_log_dir__()
+            log_dir = __create_log_dir()
         if master_working_dir == "":
-            master_working_dir = __create_master_working_dir__(log_dir)
+            master_working_dir = __create_master_working_dir(log_dir)
         jvm_options_file.write(
             "-Dcompss.master.workingDir=" + master_working_dir + "\n"
         )
@@ -524,7 +538,10 @@ def create_init_config_file(
             log_off = False
         if log_off:
             jvm_options_file.write(
-                conf_file_key + compss_home + DEFAULT_LOG_PATH + "COMPSsMaster-log4j\n"
+                conf_file_key
+                + compss_home
+                + DEFAULT_LOG_PATH
+                + "COMPSsMaster-log4j\n"
             )  # NO DEBUG
 
         if graph:
@@ -552,17 +569,27 @@ def create_init_config_file(
             + "\n"
         )
         jvm_options_file.write("-Dcompss.worker.appdir=" + cp + "\n")
-        jvm_options_file.write("-Dcompss.worker.jvm_opts=" + jvm_workers + "\n")
-        jvm_options_file.write("-Dcompss.worker.cpu_affinity=" + cpu_affinity + "\n")
-        jvm_options_file.write("-Dcompss.worker.gpu_affinity=" + gpu_affinity + "\n")
-        jvm_options_file.write("-Dcompss.worker.fpga_affinity=" + fpga_affinity + "\n")
+        jvm_options_file.write(
+            "-Dcompss.worker.jvm_opts=" + jvm_workers + "\n"
+        )
+        jvm_options_file.write(
+            "-Dcompss.worker.cpu_affinity=" + cpu_affinity + "\n"
+        )
+        jvm_options_file.write(
+            "-Dcompss.worker.gpu_affinity=" + gpu_affinity + "\n"
+        )
+        jvm_options_file.write(
+            "-Dcompss.worker.fpga_affinity=" + fpga_affinity + "\n"
+        )
         jvm_options_file.write(
             "-Dcompss.worker.fpga_reprogram=" + fpga_reprogram + "\n"
         )
         jvm_options_file.write(
             "-Dcompss.worker.io_executors=" + str(io_executors) + "\n"
         )
-        jvm_options_file.write("-Dcompss.worker.env_script=" + env_script + "\n")
+        jvm_options_file.write(
+            "-Dcompss.worker.env_script=" + env_script + "\n"
+        )
 
         if comm == "GAT":
             gat = "-Dcompss.comm=es.bsc.compss.gat.master.GATAdaptor"
@@ -597,12 +624,20 @@ def create_init_config_file(
             jvm_options_file.write("-Dcompss.execution.nested.enabled=false\n")
 
         jvm_options_file.write("-Dcompss.scheduler=" + scheduler + "\n")
-        jvm_options_file.write("-Dcompss.scheduler.config=" + scheduler_config + "\n")
-        jvm_options_file.write("-Dcompss.profile.input=" + profile_input + "\n")
-        jvm_options_file.write("-Dcompss.profile.output=" + profile_output + "\n")
+        jvm_options_file.write(
+            "-Dcompss.scheduler.config=" + scheduler_config + "\n"
+        )
+        jvm_options_file.write(
+            "-Dcompss.profile.input=" + profile_input + "\n"
+        )
+        jvm_options_file.write(
+            "-Dcompss.profile.output=" + profile_output + "\n"
+        )
 
         jvm_options_file.write("-Dcompss.project.file=" + project_xml + "\n")
-        jvm_options_file.write("-Dcompss.resources.file=" + resources_xml + "\n")
+        jvm_options_file.write(
+            "-Dcompss.resources.file=" + resources_xml + "\n"
+        )
         jvm_options_file.write(
             "-Dcompss.project.schema="
             + compss_home
@@ -653,9 +688,13 @@ def create_init_config_file(
         jvm_options_file.write(
             "-Dcompss.python.interpreter=" + python_interpreter + "\n"
         )
-        jvm_options_file.write("-Dcompss.python.version=" + python_version + "\n")
         jvm_options_file.write(
-            "-Dcompss.python.virtualenvironment=" + python_virtual_environment + "\n"
+            "-Dcompss.python.version=" + python_version + "\n"
+        )
+        jvm_options_file.write(
+            "-Dcompss.python.virtualenvironment="
+            + python_virtual_environment
+            + "\n"
         )
         virtualenv_prefix = "-Dcompss.python.propagate_virtualenvironment="
         if propagate_virtual_environment:
@@ -673,7 +712,9 @@ def create_init_config_file(
 
         if cache_profiler:
             jvm_options_file.write(
-                "-Dcompss.python.cache_profiler=" + str(worker_cache).lower() + "\n"
+                "-Dcompss.python.cache_profiler="
+                + str(worker_cache).lower()
+                + "\n"
             )
         else:
             jvm_options_file.write("-Dcompss.python.cache_profiler=false\n")
@@ -689,26 +730,36 @@ def create_init_config_file(
             jvm_options_file.write("-Dcompss.streaming.masterName=null\n")
         else:
             jvm_options_file.write(
-                "-Dcompss.streaming.masterName=" + str(streaming_master_name) + "\n"
+                "-Dcompss.streaming.masterName="
+                + str(streaming_master_name)
+                + "\n"
             )
         if streaming_master_port == "":
             jvm_options_file.write("-Dcompss.streaming.masterPort=null\n")
         else:
             jvm_options_file.write(
-                "-Dcompss.streaming.masterPort=" + str(streaming_master_port) + "\n"
+                "-Dcompss.streaming.masterPort="
+                + str(streaming_master_port)
+                + "\n"
             )
 
         # STORAGE SPECIFIC
-        jvm_options_file.write("-Dcompss.task.execution=" + task_execution + "\n")
+        jvm_options_file.write(
+            "-Dcompss.task.execution=" + task_execution + "\n"
+        )
         if storage_conf == "":
             jvm_options_file.write("-Dcompss.storage.conf=null\n")
         else:
-            jvm_options_file.write("-Dcompss.storage.conf=" + storage_conf + "\n")
+            jvm_options_file.write(
+                "-Dcompss.storage.conf=" + storage_conf + "\n"
+            )
 
         # TOOLS SPECIFIC
         if extrae_cfg == "":
             extrae_xml_name = "extrae_basic.xml"
-            extrae_xml_path = compss_home + DEFAULT_TRACING_PATH + extrae_xml_name
+            extrae_xml_path = (
+                compss_home + DEFAULT_TRACING_PATH + extrae_xml_name
+            )
             extrae_cfg = "null"
         else:
             extrae_xml_name = os.path.basename(extrae_cfg)
@@ -717,12 +768,14 @@ def create_init_config_file(
             jvm_options_file.write("-Dcompss.tracing=true\n")
             # Process extrae_xml_path
             extrae_xml_final_path_dir = os.path.join(log_dir, "cfgfiles")
-            pathlib.Path(extrae_xml_final_path_dir).mkdir(parents=False, exist_ok=True)
+            pathlib.Path(extrae_xml_final_path_dir).mkdir(
+                parents=False, exist_ok=True
+            )
             extrae_trace_path = os.path.join(log_dir, "trace")
             extrae_xml_final_path = os.path.join(
                 extrae_xml_final_path_dir, extrae_xml_name
             )
-            got_extrae_final_directory = __process_extrae_file__(
+            got_extrae_final_directory = __process_extrae_file(
                 extrae_xml_path, extrae_xml_final_path, extrae_trace_path
             )
         else:
@@ -732,10 +785,14 @@ def create_init_config_file(
         if tracing_task_dependencies:
             jvm_options_file.write("-Dcompss.tracing.task.dependencies=true\n")
         else:
-            jvm_options_file.write("-Dcompss.tracing.task.dependencies=false\n")
+            jvm_options_file.write(
+                "-Dcompss.tracing.task.dependencies=false\n"
+            )
         if extrae_final_directory == "":
             jvm_options_file.write(
-                "-Dcompss.extrae.working_dir=" + got_extrae_final_directory + "\n"
+                "-Dcompss.extrae.working_dir="
+                + got_extrae_final_directory
+                + "\n"
             )
         else:
             jvm_options_file.write(
@@ -751,7 +808,9 @@ def create_init_config_file(
         if trace_label == "":
             jvm_options_file.write("-Dcompss.trace.label=None\n")
         else:
-            jvm_options_file.write("-Dcompss.trace.label=" + str(trace_label) + "\n")
+            jvm_options_file.write(
+                "-Dcompss.trace.label=" + str(trace_label) + "\n"
+            )
 
         # WALLCLOCK LIMIT
         jvm_options_file.write("-Dcompss.wcl=" + str(wcl) + "\n")
@@ -768,7 +827,7 @@ def create_init_config_file(
     # print("JVM_OPTIONS_FILE: %s" % temp_path)
 
 
-def __process_extrae_file__(
+def __process_extrae_file(
     extrae_xml_path: str,
     extrae_xml_final_path: str,
     extrae_trace_path: str,
@@ -787,7 +846,9 @@ def __process_extrae_file__(
     for i, line in enumerate(extrae_xml_data):
         if "{{TRACE_OUTPUT_DIR}}" in line:
             # Sed with real path
-            extrae_xml_data[i] = line.replace("{{TRACE_OUTPUT_DIR}}", extrae_trace_path)
+            extrae_xml_data[i] = line.replace(
+                "{{TRACE_OUTPUT_DIR}}", extrae_trace_path
+            )
         if "final-directory" in line:
             # Extract final-directory
             key = '<final-directory enabled="(.*)">(.*)</final-directory>'
@@ -798,7 +859,7 @@ def __process_extrae_file__(
     return got_extrae_final_directory
 
 
-def __create_log_dir__() -> str:
+def __create_log_dir() -> str:
     """Create log directory.
 
     :return: Updated log directory.
@@ -819,7 +880,7 @@ def __create_log_dir__() -> str:
     return log_dir
 
 
-def __create_master_working_dir__(log_dir: str) -> str:
+def __create_master_working_dir(log_dir: str) -> str:
     """Create master working directory (log_dir/tmpFiles).
 
     :return: Updated master working directory.

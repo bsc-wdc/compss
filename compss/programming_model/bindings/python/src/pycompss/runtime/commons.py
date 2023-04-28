@@ -26,7 +26,7 @@ This file contains the common definitions of the Python binding.
 import os
 from tempfile import mkdtemp
 
-from pycompss.util.typing_helper import typing
+from pycompss.util.typing_helper import typing  # noqa: F401
 
 
 #######################################
@@ -34,7 +34,8 @@ from pycompss.util.typing_helper import typing
 #######################################
 
 
-class Constants:
+class Constants:  # pylint: disable=R0902,R0903
+    # disable=too-many-instance-attributes, too-few-public-methods
     """Common constants definitions."""
 
     __slots__ = (
@@ -70,7 +71,9 @@ class Constants:
         environment = "terminal"
         is_interactive = False
         try:
-            from IPython import get_ipython  # noqa
+            from IPython import get_ipython  # noqa # pylint: disable=C0415
+
+            # disable=import-outside-toplevel
 
             ipy_str = str(type(get_ipython()))
             if "zmqshell" in ipy_str:
@@ -91,7 +94,9 @@ class Constants:
             and os.environ["COMPSS_RUNNING_IN_SC"] == "true"
         ):
             self.running_in_supercomputer = True
-        elif "BSC_MACHINE" in os.environ and os.environ["BSC_MACHINE"] == "mn4":
+        elif (
+            "BSC_MACHINE" in os.environ and os.environ["BSC_MACHINE"] == "mn4"
+        ):
             # Only supported in MN4 currently
             self.running_in_supercomputer = True
         # Tracing hook environment variable
@@ -101,7 +106,9 @@ class Constants:
         # Interactive mode file name
         self.interactive_file_name = "InteractiveMode"
         # LONG DEFAULTS
-        self.default_sched = "es.bsc.compss.scheduler.lookahead.locality.LocalityTS"
+        self.default_sched = (
+            "es.bsc.compss.scheduler.lookahead.locality.LocalityTS"
+        )
         self.default_conn = "es.bsc.compss.connectors.DefaultSSHConnector"
         self.default_jvm_workers = "-Xms1024m,-Xmx1024m,-Xmn400m"
         self.default_checkpoint_policy = (
@@ -124,7 +131,12 @@ CONSTANTS = Constants()
 class Globals:
     """Common global definitions."""
 
-    __slots__ = ("log_dir", "temp_dir", "object_conversion", "tracing_task_name_to_id")
+    __slots__ = (
+        "log_dir",
+        "temp_dir",
+        "object_conversion",
+        "tracing_task_name_to_id",
+    )
 
     def __init__(self) -> None:
         """Global object constructor.

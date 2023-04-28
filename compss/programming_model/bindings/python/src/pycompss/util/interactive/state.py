@@ -75,7 +75,7 @@ def check_monitoring_file(log_path: str) -> bool:
 
 
 def get_compss_state_xml(log_path: str) -> str:
-    """Check if there is any missing package and return the status xml full path.
+    """Check if there is any missing pkg and return the status xml full path.
 
     :param log_path: Absolute path of the log folder.
     :return: The compss state full path.
@@ -97,6 +97,9 @@ def parse_state_xml(log_path: str, field: str) -> typing.Any:
     tree = ElementTree.parse(state_xml)
     root = tree.getroot()
     state_xml_dict = element_tree_to_dict(root)
+    if state_xml_dict["COMPSsState"][field] == "":
+        print("Please, submit any task in order to see the information")
+        return None
     if field == "TasksInfo":
         return state_xml_dict["COMPSsState"][field]["Application"]
     if field == "CoresInfo":
@@ -114,7 +117,9 @@ def element_tree_to_dict(element_tree: ElementTree.Element) -> dict:
     :param element_tree: Element tree.
     :return: Dictionary.
     """
-    build_dict = {element_tree.tag: {} if element_tree.attrib else None}  # type: dict
+    build_dict = {
+        element_tree.tag: {} if element_tree.attrib else None
+    }  # type: dict
     children = list(element_tree)
     if children:
         def_dict = defaultdict(list)
@@ -149,22 +154,27 @@ def show_tasks_info(log_path: str) -> None:
     """
     if supports_dynamic_state():
 
-        def play_widget(i: typing.Any) -> None:  # pylint: disable=unused-argument
-            __show_tasks_info__(log_path)
+        def play_widget(
+            i: typing.Any,
+        ) -> None:  # pylint: disable=unused-argument
+            __show_tasks_info(log_path)
 
         play = __get_play_widget(play_widget)
         display(play)  # noqa
     else:
-        __show_tasks_info__(log_path)
+        __show_tasks_info(log_path)
 
 
-def __show_tasks_info__(log_path: str) -> None:
+def __show_tasks_info(log_path: str) -> None:
     """Show tasks info.
 
     :param log_path: Absolute path of the log folder.
     :return: None.
     """
     cores_info = parse_state_xml(log_path, "CoresInfo")
+    if cores_info is None:
+        # Do not show anything if there is no information to display
+        return
     labels = [
         "Signature",
         "ExecutedCount",
@@ -217,7 +227,9 @@ def __show_tasks_info__(log_path: str) -> None:
     plt.tight_layout()
     plt.show()
     # Display table with values
-    display(HTML(tabulate.tabulate(cores, tablefmt="html", headers=labels)))  # noqa
+    display(
+        HTML(tabulate.tabulate(cores, tablefmt="html", headers=labels))
+    )  # noqa
 
 
 def show_tasks_status(log_path: str) -> None:
@@ -230,21 +242,24 @@ def show_tasks_status(log_path: str) -> None:
 
         def play_widget(i):  # pylint: disable=unused-argument
             # type: (typing.Any) -> None
-            __show_tasks_status__(log_path)
+            __show_tasks_status(log_path)
 
         play = __get_play_widget(play_widget)
         display(play)  # noqa
     else:
-        __show_tasks_info__(log_path)
+        __show_tasks_info(log_path)
 
 
-def __show_tasks_status__(log_path: str) -> None:
+def __show_tasks_status(log_path: str) -> None:
     """Show tasks status.
 
     :param log_path: Absolute path of the log folder.
     :return: None.
     """
     tasks_info_dict = parse_state_xml(log_path, "TasksInfo")
+    if tasks_info_dict is None:
+        # Do not show anything if there is no information to display
+        return
     # Display graph
     labels = ["InProgress", "Completed"]
     sizes = [tasks_info_dict[labels[0]], tasks_info_dict[labels[1]]]
@@ -252,13 +267,20 @@ def __show_tasks_status__(log_path: str) -> None:
     _, ax1 = plt.subplots()  # first return (ignored) is fig1
     colors = ["b", "g"]
     ax1.pie(
-        sizes, explode=explode, labels=labels, colors=colors, shadow=True, startangle=90
+        sizes,
+        explode=explode,
+        labels=labels,
+        colors=colors,
+        shadow=True,
+        startangle=90,
     )
     ax1.axis("equal")
     plt.show()
     # Display table with values
-    labels, values = __plain_lists__(tasks_info_dict)
-    display(HTML(tabulate.tabulate([values], tablefmt="html", headers=labels)))  # noqa
+    labels, values = __plain_lists(tasks_info_dict)
+    display(
+        HTML(tabulate.tabulate([values], tablefmt="html", headers=labels))
+    )  # noqa
 
 
 def show_statistics(log_path: str) -> None:
@@ -269,26 +291,33 @@ def show_statistics(log_path: str) -> None:
     """
     if supports_dynamic_state():
 
-        def play_widget(i: typing.Any) -> None:  # pylint: disable=unused-argument
-            __show_statistics__(log_path)
+        def play_widget(
+            i: typing.Any,
+        ) -> None:  # pylint: disable=unused-argument
+            __show_statistics(log_path)
 
         play = __get_play_widget(play_widget)
         display(play)  # noqa
     else:
-        __show_statistics__(log_path)
+        __show_statistics(log_path)
 
 
-def __show_statistics__(log_path: str) -> None:
+def __show_statistics(log_path: str) -> None:
     """Show statistics info.
 
     :param log_path: Absolute path of the log folder.
     :return: None.
     """
     statistics_dict = parse_state_xml(log_path, "Statistics")
+    if statistics_dict is None:
+        # Do not show anything if there is no information to display
+        return
     # Display table with values
     labels = [statistics_dict["Key"]]
     values = [statistics_dict["Value"]]
-    display(HTML(tabulate.tabulate([values], tablefmt="html", headers=labels)))  # noqa
+    display(
+        HTML(tabulate.tabulate([values], tablefmt="html", headers=labels))
+    )  # noqa
 
 
 def show_resources_status(log_path: str) -> None:
@@ -299,28 +328,35 @@ def show_resources_status(log_path: str) -> None:
     """
     if supports_dynamic_state():
 
-        def play_widget(i: typing.Any) -> None:  # pylint: disable=unused-argument
-            __show_resources_status__(log_path)
+        def play_widget(
+            i: typing.Any,
+        ) -> None:  # pylint: disable=unused-argument
+            __show_resources_status(log_path)
 
         play = __get_play_widget(play_widget)
         display(play)  # noqa
     else:
-        __show_resources_status__(log_path)
+        __show_resources_status(log_path)
 
 
-def __show_resources_status__(log_path: str) -> None:
+def __show_resources_status(log_path: str) -> None:
     """Show resources status info.
 
     :param log_path: Absolute path of the log folder.
     :return: None.
     """
     resource_info_dict = parse_state_xml(log_path, "ResourceInfo")
+    if resource_info_dict is None:
+        # Do not show anything if there is no information to display
+        return
     # Display table with values
-    labels, values = __plain_lists__(resource_info_dict)
-    display(HTML(tabulate.tabulate([values], tablefmt="html", headers=labels)))  # noqa
+    labels, values = __plain_lists(resource_info_dict)
+    display(
+        HTML(tabulate.tabulate([values], tablefmt="html", headers=labels))
+    )  # noqa
 
 
-def __plain_lists__(dictionary: dict) -> typing.Tuple[list, list]:
+def __plain_lists(dictionary: dict) -> typing.Tuple[list, list]:
     """Convert a dictionary to two lists.
 
     IMPORTANT! Removes last element.
@@ -338,10 +374,14 @@ def __plain_lists__(dictionary: dict) -> typing.Tuple[list, list]:
     return labels, values
 
 
-def __get_play_widget(function: typing.Callable) -> widgets.interactive:
+def __get_play_widget(
+    function: typing.Callable,
+    interval: int = 5000,
+) -> widgets.interactive:
     """Generate play widget.
 
     :param function: Function to associate with Play.
+    :param interval: Refresh interval.
     :return: Play widget.
     """
     play = widgets.interactive(
@@ -351,7 +391,7 @@ def __get_play_widget(function: typing.Callable) -> widgets.interactive:
             min=0,
             max=500,
             step=1,
-            interval=5000,
+            interval=interval,
             description="Press play",
             disabled=False,
         ),

@@ -17,4 +17,4 @@
 
 # -*- coding: utf-8 -*-
 
-"""This package contains the launch integration tests storage application resources."""
+"""This package contains the launch integration tests storage app resources."""

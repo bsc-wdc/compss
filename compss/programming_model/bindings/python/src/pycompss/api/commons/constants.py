@@ -24,7 +24,8 @@ This file contains the common decorator labels.
 """
 
 
-class _Labels:  # pylint: disable=too-few-public-methods, too-many-instance-attributes
+class _Labels:  # pylint: disable=R0903,R0902
+    # disable=too-few-public-methods, too-many-instance-attributes
     """Currently supported labels in all decorators."""
 
     __slots__ = (
@@ -71,6 +72,7 @@ class _Labels:  # pylint: disable=too-few-public-methods, too-many-instance-attr
         "df_executor",
         "df_lib",
         "julia_executor",
+        "julia_args",
         "julia_script",
         "source_class",
         "method",
@@ -148,6 +150,7 @@ class _Labels:  # pylint: disable=too-few-public-methods, too-many-instance-attr
         self.df_executor = "df_executor"
         self.df_lib = "df_lib"
         self.julia_executor = "executor"
+        self.julia_args = "args"
         self.julia_script = "script"
         self.source_class = "source_class"
         self.method = "method"
@@ -174,7 +177,8 @@ class _Labels:  # pylint: disable=too-few-public-methods, too-many-instance-attr
         self.type = "type"
 
 
-class _LegacyLabels:  # pylint: disable=too-few-public-methods, too-many-instance-attributes
+class _LegacyLabels:  # pylint: disable=R0903,R0902
+    # disable=too-few-public-methods, too-many-instance-attributes
     """Supported labels in all decorators but sensitive to be removed."""
 
     __slots__ = (

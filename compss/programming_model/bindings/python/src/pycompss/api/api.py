@@ -120,7 +120,9 @@ def compss_start(
     if CONTEXT.in_pycompss():
         __start_runtime__(log_level, tracing, interactive, disable_external)
     else:
-        __dummy_compss_start__(log_level, tracing, interactive, disable_external)
+        __dummy_compss_start__(
+            log_level, tracing, interactive, disable_external
+        )
 
 
 def compss_stop(code: int = 0, _hard_stop: bool = False) -> None:
@@ -222,7 +224,9 @@ def compss_wait_on_directory(
     return __dummy_compss_wait_on_directory__(*directory_name)
 
 
-def compss_delete_object(*obj: typing.Any) -> typing.Union[list, tuple, str, bool]:
+def compss_delete_object(
+    *obj: typing.Any,
+) -> typing.Union[list, tuple, str, bool]:
     """Delete object/s.
 
     Removes one or more used object from the internal structures and calls the
@@ -340,7 +344,9 @@ def compss_request_resources(
         __dummy_compss_request_resources__(num_resources, group_name)
 
 
-def compss_free_resources(num_resources: int, group_name: typing.Optional[str]) -> None:
+def compss_free_resources(
+    num_resources: int, group_name: typing.Optional[str]
+) -> None:
     """Request the destruction of num_resources resources.
 
     :param num_resources: Number of resources to destroy.
@@ -378,7 +384,9 @@ def compss_add_logger(logger_name: str) -> None:
     if CONTEXT.in_pycompss():
         __add_logger__(logger_name)
     else:
-        raise NotInPyCOMPSsException("Add logger is only supported within PyCOMPSs")
+        raise NotInPyCOMPSsException(
+            "Add logger is only supported within PyCOMPSs"
+        )
 
 
 class TaskGroup:

@@ -24,7 +24,9 @@ This file contains the cache required classes.
 """
 
 from pycompss.util.process.manager import Queue
-from pycompss.util.process.manager import DictProxy  # typing only
+
+# Used only for typing
+from pycompss.util.process.manager import DictProxy  # noqa: F401
 from pycompss.util.typing_helper import typing
 
 

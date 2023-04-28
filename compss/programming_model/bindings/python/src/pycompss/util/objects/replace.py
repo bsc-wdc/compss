@@ -94,13 +94,15 @@ def _replace_attribute(
             return
     try:
         setattr(source, rel, new)
-    except TypeError as exc:  # NOSONAR
+    except TypeError:
         print("Unknown R_ATTRIBUTE (read-only):", rel, type(source))
-    except AttributeError as exc:  # NOSONAR
+    except AttributeError:
         print("Unknown R_ATTRIBUTE (read-only):", rel, type(source))
 
 
-def _replace_indexval(source: typing.Any, rel: typing.Any, new: typing.Any) -> None:
+def _replace_indexval(
+    source: typing.Any, rel: typing.Any, new: typing.Any
+) -> None:
     if isinstance(source, tuple):
         temp = list(source)
         temp[rel] = new
@@ -109,7 +111,9 @@ def _replace_indexval(source: typing.Any, rel: typing.Any, new: typing.Any) -> N
     source[rel] = new
 
 
-def _replace_indexkey(source: typing.Any, rel: typing.Any, new: typing.Any) -> None:
+def _replace_indexkey(
+    source: typing.Any, rel: typing.Any, new: typing.Any
+) -> None:
     source[new] = source.pop(list(source.keys())[rel])
 
 
@@ -160,7 +164,7 @@ def replace(old: typing.Any, new: typing.Any) -> None:
 
 
 # Commented out due to fails with mypy.
-# # -----------------------------------------------------------------------------
+# # ---------------------------------------------------------------------------
 # class A(object):     # NOSONAR
 #     def func(self):  # NOSONAR
 #         return self  # NOSONAR
@@ -215,7 +219,7 @@ def replace(old: typing.Any, new: typing.Any) -> None:
 #     pass     # NOSONAR
 #
 #
-# # -----------------------------------------------------------------------------
+# # ---------------------------------------------------------------------------
 # a = A()
 # b = B()
 #
@@ -237,7 +241,7 @@ def replace(old: typing.Any, new: typing.Any) -> None:
 # sd = S.q
 #
 #
-# # -----------------------------------------------------------------------------
+# # ---------------------------------------------------------------------------
 # def examine_vars(id1, id2, id3):
 #     def ex(v, id_):  # NOSONAR
 #         return str(v) + ("" if id(v) == id_ else " - ERROR!")

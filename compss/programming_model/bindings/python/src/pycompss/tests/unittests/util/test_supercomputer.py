@@ -91,7 +91,9 @@ def test_get_master_working_dir():
     os.environ["COMPSS_MASTER_WORKING_DIR"] = master_working_dir
     result = get_master_working_dir()
     del os.environ["COMPSS_MASTER_WORKING_DIR"]
-    assert result == master_working_dir, "ERROR: Wrong master working directory."
+    assert (
+        result == master_working_dir
+    ), "ERROR: Wrong master working directory."
 
 
 def test_get_log_level():

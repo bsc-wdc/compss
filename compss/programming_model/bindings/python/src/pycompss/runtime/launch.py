@@ -89,7 +89,9 @@ def stop_all(exit_code: int) -> None:
     :param exit_code: Exit code.
     :return: None.
     """
-    from pycompss.api.api import compss_stop  # pylint: disable=import-outside-toplevel
+    from pycompss.api.api import (  # pylint: disable=import-outside-toplevel
+        compss_stop,
+    )
 
     # Stop streaming
     if LAUNCH_STATUS.get_streaming():
@@ -108,24 +110,36 @@ def parse_arguments() -> argparse.Namespace:
 
     :return: Argument's parser.
     """
-    parser = argparse.ArgumentParser(description="PyCOMPSs application launcher")
+    parser = argparse.ArgumentParser(
+        description="PyCOMPSs application launcher"
+    )
     parser.add_argument(
         "wall_clock",
         help="Application Wall Clock limit "
         "[wall_clock<=0 deactivated|wall_clock>0 max duration in seconds]",
     )
-    parser.add_argument("log_level", help="Logging level [trace|debug|api|info|off]")
+    parser.add_argument(
+        "log_level", help="Logging level [trace|debug|api|info|off]"
+    )
     parser.add_argument("tracing", help="Tracing [True | False]")
-    parser.add_argument("object_conversion", help="Object_conversion [true|false]")
-    parser.add_argument("storage_configuration", help="Storage configuration [null|*]")
+    parser.add_argument(
+        "object_conversion", help="Object_conversion [true|false]"
+    )
+    parser.add_argument(
+        "storage_configuration", help="Storage configuration [null|*]"
+    )
     parser.add_argument("streaming_backend", help="Streaming Backend [null|*]")
-    parser.add_argument("streaming_master_name", help="Streaming Master Name [*]")
-    parser.add_argument("streaming_master_port", help="Streaming Master Port [*]")
+    parser.add_argument(
+        "streaming_master_name", help="Streaming Master Name [*]"
+    )
+    parser.add_argument(
+        "streaming_master_port", help="Streaming Master Port [*]"
+    )
     parser.add_argument("app_path", help="Application path")
     return parser.parse_args()
 
 
-def __load_user_module__(app_path: str, log_level: str) -> None:
+def __load_user_module(app_path: str, log_level: str) -> None:
     """Load the user module (resolve all user imports).
 
     This has shown to be necessary before doing "start_compss" in order
@@ -152,7 +166,7 @@ def __load_user_module__(app_path: str, log_level: str) -> None:
             )
 
 
-def __register_implementation_core_elements__() -> None:
+def __register_implementation_core_elements() -> None:
     """Register all implementations accumulated during initialization.
 
     Register the @implements core elements accumulated during the
@@ -185,10 +199,12 @@ def compss_main() -> None:
     # Let the Python binding know we are at master
     CONTEXT.set_master()
     # Then we can import the appropriate start and stop functions from the API
-    from pycompss.api.api import compss_start  # pylint: disable=import-outside-toplevel
-    from pycompss.api.api import (
+    from pycompss.api.api import (  # pylint: disable=import-outside-toplevel
+        compss_start,
+    )
+    from pycompss.api.api import (  # pylint: disable=import-outside-toplevel
         compss_set_wall_clock,
-    )  # pylint: disable=import-outside-toplevel
+    )
 
     # See parse_arguments, defined above
     # In order to avoid parsing user arguments, we are going to remove user
@@ -215,14 +231,14 @@ def compss_main() -> None:
     # It is disabled if using storage (with dataClay this can not be done)
     if preload_user_code() and not use_storage(storage_conf):
         with loading_context():
-            __load_user_module__(args.app_path, log_level)
+            __load_user_module(args.app_path, log_level)
 
     # Start the runtime
     compss_start(log_level, tracing, False)
 
     # Register @implements core elements (they can not be registered in
     # __load_user__module__).
-    __register_implementation_core_elements__()
+    __register_implementation_core_elements()
 
     # Get application wall clock limit
     wall_clock = int(args.wall_clock)
@@ -283,14 +299,20 @@ def compss_main() -> None:
         with EventMaster(TRACING_MASTER.application_running_event):
             # MAIN EXECUTION
             with open(app_path) as user_file:
-                exec(compile(user_file.read(), app_path, "exec"), globals())
+                exec(  # nosec B102  # need to run the user application
+                    compile(user_file.read(), app_path, "exec"), globals()
+                )
 
         # End
         if __debug__:
             logger.debug("--- END ---")
-    except SystemExit as system_exit:  # Re-raising would not allow to stop the runtime gracefully.
+    except SystemExit as system_exit:
+        # Re-raising would not allow to stop the runtime gracefully.
         if system_exit.code != 0:
-            print("[ ERROR ]: User program ended with exitcode %s.", system_exit.code)
+            print(
+                "[ ERROR ]: User program ended with exitcode %s.",
+                system_exit.code,
+            )
             print("\t\tShutting down runtime...")
             if system_exit.code is None:
                 exit_code = -1
@@ -310,7 +332,9 @@ def compss_main() -> None:
         exit_code = 1
     except COMPSsException as compss_exception:
         # Any other exception occurred
-        print("[ ERROR ]: A COMPSs exception occurred: %s", str(compss_exception))
+        print(
+            "[ ERROR ]: A COMPSs exception occurred: %s", str(compss_exception)
+        )
         traceback.print_exc()
         exit_code = 0  # COMPSs exception is not considered an error
     except Exception as general_exception:  # pylint: disable=broad-except
@@ -458,7 +482,8 @@ def launch_pycompss_application(
     :param data_provenance: Enable data provenance [ True | False ]
                             (default: False)
     :param checkpoint_policy: Checkpointing policy.
-                              (default: "es.bsc.compss.checkpoint.policies.NoCheckpoint")
+                              (default: "es.bsc.compss.checkpoint.
+                                         policies.NoCheckpoint")
     :param checkpoint_params: Checkpointing parameters.
                               (default: "")
     :param checkpoint_folder: Checkpointing folder.
@@ -470,13 +495,19 @@ def launch_pycompss_application(
     # Check that COMPSs is available
     if "COMPSS_HOME" not in os.environ:
         # Do not allow to continue if COMPSS_HOME is not defined
-        raise PyCOMPSsException("ERROR: COMPSS_HOME is not defined in the environment")
+        raise PyCOMPSsException(
+            "ERROR: COMPSS_HOME is not defined in the environment"
+        )
 
     # Let the Python binding know we are at master
     CONTEXT.set_master()
     # Then we can import the appropriate start and stop functions from the API
-    from pycompss.api.api import compss_start  # pylint: disable=import-outside-toplevel
-    from pycompss.api.api import compss_stop  # pylint: disable=import-outside-toplevel
+    from pycompss.api.api import (  # pylint: disable=import-outside-toplevel
+        compss_start,
+    )
+    from pycompss.api.api import (  # pylint: disable=import-outside-toplevel
+        compss_stop,
+    )
 
     ##############################################################
     # INITIALIZATION
@@ -552,7 +583,9 @@ def launch_pycompss_application(
         return None
 
     # Prepare the environment
-    env_vars = prepare_environment(False, o_c, storage_impl, app, debug, mpi_worker)
+    env_vars = prepare_environment(
+        False, o_c, storage_impl, app, debug, mpi_worker
+    )
     all_vars.update(env_vars)
 
     monitoring_vars = prepare_loglevel_graph_for_monitoring(
@@ -610,7 +643,9 @@ def launch_pycompss_application(
 
     if storage_impl and storage_conf:
         logger.debug("Starting storage")
-        persistent_storage = master_init_storage(all_vars["storage_conf"], logger)
+        persistent_storage = master_init_storage(
+            all_vars["storage_conf"], logger
+        )
     else:
         persistent_storage = False
 
@@ -627,12 +662,16 @@ def launch_pycompss_application(
     with EventMaster(TRACING_MASTER.application_running_event):
         if func is None or func == "__main__":
             with open(app, "r") as app_fd:
-                exec(app_fd.read())
+                exec(  # nosec B102  # need to run the user application
+                    app_fd.read()
+                )
             result = None
         else:
             from importlib.machinery import SourceFileLoader  # noqa
 
-            imported_module = SourceFileLoader(all_vars["file_name"], app).load_module()
+            imported_module = SourceFileLoader(
+                all_vars["file_name"], app
+            ).load_module()
             method_to_call = getattr(imported_module, func)
             try:
                 result = method_to_call(*args, **kwargs)

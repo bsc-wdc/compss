@@ -131,7 +131,9 @@ class MultiNode:  # pylint: disable=too-few-public-methods
 
             # Set the computing_nodes variable in kwargs for its usage
             # in @task decorator
-            kwargs[LABELS.computing_nodes] = self.kwargs[LABELS.computing_nodes]
+            kwargs[LABELS.computing_nodes] = self.kwargs[
+                LABELS.computing_nodes
+            ]
 
             with keep_arguments(args, kwargs, prepend_strings=True):
                 # Call the method
@@ -216,7 +218,9 @@ def remove_slurm_environment() -> dict:
     return old_slurm_env
 
 
-def reset_slurm_environment(old_slurm_env: typing.Optional[dict] = None) -> None:
+def reset_slurm_environment(
+    old_slurm_env: typing.Optional[dict] = None,
+) -> None:
     """Reestablish SLURM environment.
 
     :return: None

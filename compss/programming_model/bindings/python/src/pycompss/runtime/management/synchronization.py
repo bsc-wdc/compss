@@ -83,8 +83,11 @@ def _synchronize(obj: typing.Any, mode: int) -> typing.Any:
             return obj
         # file_path is of the form storage://pscoId or
         # file://sys_path_to_file
-        file_path = COMPSs.open_file(app_id, "".join(("storage://", str(obj_id))), mode)
-        # TODO: Add switch on protocol (first parameter returned currently ignored)
+        file_path = COMPSs.open_file(
+            app_id, "".join(("storage://", str(obj_id))), mode
+        )
+        # TODO: Add switch on protocol
+        #       (first parameter returned currently ignored)
         _, file_name = file_path.split("://")
         new_obj = get_by_id(file_name)
         OT.stop_tracking(obj)
@@ -123,7 +126,9 @@ def _synchronize(obj: typing.Any, mode: int) -> typing.Any:
     if CONTEXT.is_nesting_enabled() and CONTEXT.in_worker():
         # If nesting and in worker, the user wants to synchronize an object.
         # So it is necessary to update the parameter with the new object.
-        SHARED_ARGUMENTS.update_worker_argument_parameter_content(obj_name, new_obj)
+        SHARED_ARGUMENTS.update_worker_argument_parameter_content(
+            obj_name, new_obj
+        )
 
     if mode == "r":
         OT.update_mapping(obj_id, new_obj)
@@ -151,7 +156,9 @@ def _wait_on_iterable(iter_obj: typing.Any, compss_mode: int) -> typing.Any:
         return [_wait_on_iterable(x, compss_mode) for x in iter_obj]
     if isinstance(iter_obj, dict):
         return {
-            _wait_on_iterable(k, compss_mode): _wait_on_iterable(v, compss_mode)
+            _wait_on_iterable(k, compss_mode): _wait_on_iterable(
+                v, compss_mode
+            )
             for k, v in iter_obj.items()
         }
     return _synchronize(iter_obj, compss_mode)

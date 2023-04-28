@@ -105,7 +105,9 @@ def trace_multiprocessing_worker() -> typing.Iterator[None]:
 
     :return: None.
     """
-    import pyextrae.multiprocessing as pyextrae  # pylint: disable=import-outside-toplevel, import-error
+    import pyextrae.multiprocessing as pyextrae  # pylint: disable=C0415, E0401
+
+    # disable=import-outside-toplevel, import-error
 
     TRACING.set_pyextrae(pyextrae)
     TRACING.enable_tracing()
@@ -126,7 +128,9 @@ def trace_mpi_worker() -> typing.Iterator[None]:
 
     :return: None.
     """
-    import pyextrae.mpi as pyextrae  # pylint: disable=import-outside-toplevel, import-error
+    import pyextrae.mpi as pyextrae  # pylint: disable=C0415, E0401
+
+    # disable=import-outside-toplevel, import-error
 
     TRACING.set_pyextrae(pyextrae)
     TRACING.enable_tracing()
@@ -147,7 +151,9 @@ def trace_mpi_executor() -> typing.Iterator[None]:
 
     :return: None.
     """
-    import pyextrae.mpi as pyextrae  # pylint: disable=import-outside-toplevel, import-error
+    import pyextrae.mpi as pyextrae  # pylint: disable=C0415, E0401
+
+    # disable=import-outside-toplevel, import-error
 
     TRACING.set_pyextrae(pyextrae)
     TRACING.enable_tracing()
@@ -257,8 +263,9 @@ class EventWorker:
 
 
 class EventInsideWorker:
-    """Decorator that emits an event at worker (inside task) wrapping the desired code.
+    """Decorator that emits an event at worker (inside task).
 
+    Wraps the desired function code.
     Does nothing if tracing is disabled.
 
     :param event_id: Event identifier to emit.
@@ -292,7 +299,7 @@ class EventInsideWorker:
         value: typing.Any,
         traceback: typing.Any,
     ) -> None:
-        """Emit the 0 event in the inside worker group when the context is finished.
+        """Emit the 0 event in the inside worker group when context finishes.
 
         * Signature from context structure.
 
@@ -302,7 +309,9 @@ class EventInsideWorker:
         :returns: None.
         """
         if TRACING.is_tracing() and self.emitted:
-            TRACING.get_pyextrae().eventandcounters(TRACING_WORKER.inside_tasks_type, 0)
+            TRACING.get_pyextrae().eventandcounters(
+                TRACING_WORKER.inside_tasks_type, 0
+            )
 
 
 class EventWorkerCache:
@@ -341,7 +350,7 @@ class EventWorkerCache:
         value: typing.Any,
         traceback: typing.Any,
     ) -> None:
-        """Emit the 0 event in the worker cache group when the context is finished.
+        """Emit the 0 event in the worker cache group when context finishes.
 
         * Signature from context structure.
 
@@ -380,7 +389,7 @@ def emit_manual_event(
     :return: None.
     """
     if TRACING.is_tracing():
-        event_group, event_id = __get_proper_type_event__(
+        event_group, event_id = __get_proper_type_event(
             event_id, master, inside, cpu_affinity, gpu_affinity, cpu_number
         )
         TRACING.get_pyextrae().eventandcounters(event_group, event_id)  # noqa
@@ -399,7 +408,7 @@ def emit_manual_event_explicit(event_group: int, event_id: int) -> None:
         TRACING.get_pyextrae().eventandcounters(event_group, event_id)  # noqa
 
 
-def __get_proper_type_event__(
+def __get_proper_type_event(
     event_id: int,
     master: bool,
     inside: bool,
@@ -429,10 +438,10 @@ def __get_proper_type_event__(
         if inside:
             if cpu_affinity:
                 event_group = TRACING_WORKER.inside_tasks_cpu_affinity_type
-                event_id = __parse_affinity_event_id__(event_id)
+                event_id = __parse_affinity_event_id(event_id)
             elif gpu_affinity:
                 event_group = TRACING_WORKER.inside_tasks_gpu_affinity_type
-                event_id = __parse_affinity_event_id__(event_id)
+                event_id = __parse_affinity_event_id(event_id)
             elif cpu_number:
                 event_group = TRACING_WORKER.inside_tasks_cpu_count_type
                 event_id = int(event_id)
@@ -443,7 +452,7 @@ def __get_proper_type_event__(
     return event_group, event_id
 
 
-def __parse_affinity_event_id__(event_id: typing.Any) -> int:
+def __parse_affinity_event_id(event_id: typing.Any) -> int:
     """Parse the affinity event identifier.
 
     :param event_id: Event identifier.
@@ -465,7 +474,9 @@ def enable_trace_master() -> None:
 
     :return: None.
     """
-    import pyextrae.sequential as pyextrae  # pylint: disable=import-outside-toplevel, import-error
+    import pyextrae.sequential as pyextrae  # pylint: disable=C0415, E0401
+
+    # disable=import-outside-toplevel, import-error
 
     TRACING.set_pyextrae(pyextrae)
     TRACING.enable_tracing()

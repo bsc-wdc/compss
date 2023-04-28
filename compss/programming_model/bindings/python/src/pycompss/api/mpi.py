@@ -95,7 +95,8 @@ class Mpi:  # pylint: disable=too-few-public-methods
             if __debug__:
                 logger.debug("Init @mpi decorator...")
 
-            # noqa TODO: Maybe add here the collection layout to avoid iterate twice per elements
+            # TODO: Maybe add here the collection layout to avoid iterate
+            #       twice per elements
             # Add <param_name>_layout params to SUPPORTED_ARGUMENTS
             for key in self.kwargs:
                 if "_layout" in key:
@@ -132,7 +133,8 @@ class Mpi:  # pylint: disable=too-few-public-methods
         :param user_function: Decorated function.
         :param args: Function arguments.
         :param kwargs: Function keyword arguments.
-        :returns: Result of executing the user_function with the given args and kwargs.
+        :returns: Result of executing the user_function with the given args
+                  and kwargs.
         """
         if not self.scope:
             # Execute the mpi as with PyCOMPSs so that sequential
@@ -142,7 +144,8 @@ class Mpi:  # pylint: disable=too-few-public-methods
             if "binary" in self.kwargs:
                 return self.__run_mpi__(args, kwargs)
             print(
-                "WARN: Python MPI as dummy is not fully supported. Executing decorated function."
+                "WARN: Python MPI as dummy is not fully supported. "
+                "Executing decorated function."
             )
             return user_function(*args, **kwargs)
 
@@ -172,7 +175,8 @@ class Mpi:  # pylint: disable=too-few-public-methods
             kwargs["processes_per_node"] = 1
         if __debug__:
             logger.debug(
-                "This MPI task will have %s processes and %s processes per node.",
+                "This MPI task will have %s processes "
+                "and %s processes per node.",
                 str(kwargs["computing_nodes"]),
                 str(kwargs["processes_per_node"]),
             )
@@ -209,8 +213,9 @@ class Mpi:  # pylint: disable=too-few-public-methods
     def __resolve_collection_layout_params__(self) -> list:
         """Resolve the collection layout, such as blocks, strides, etc.
 
-        :return: list(param_name, block_count, block_length, stride)
-        :raises PyCOMPSsException: If the collection layout does not contain block_count.
+        :return: list(param_name, block_count, block_length, stride).
+        :raises PyCOMPSsException: If the collection layout does not contain
+                                   block_count.
         """
         num_layouts = 0
         layout_params = []
@@ -230,7 +235,12 @@ class Mpi:  # pylint: disable=too-few-public-methods
                     msg = "Error: collection_layout must contain block_count!"
                     raise PyCOMPSsException(msg)
                 layout_params.extend(
-                    [param_name, str(block_count), str(block_length), str(stride)]
+                    [
+                        param_name,
+                        str(block_count),
+                        str(block_length),
+                        str(stride),
+                    ]
                 )
         layout_params.insert(0, str(num_layouts))
         return layout_params
@@ -268,7 +278,9 @@ class Mpi:  # pylint: disable=too-few-public-methods
             return collection_layout["stride"]
         return -1
 
-    def __configure_core_element__(self, kwargs: dict) -> None:
+    def __configure_core_element__(  # pylint: disable=too-many-branches
+        self, kwargs: dict
+    ) -> None:
         """Include the registering info related to @mpi.
 
         IMPORTANT! Updates self.kwargs[CORE_ELEMENT_KEY].
@@ -293,7 +305,9 @@ class Mpi:  # pylint: disable=too-few-public-methods
         if LABELS.flags in self.kwargs:
             flags = self.kwargs[LABELS.flags]
         else:
-            flags = INTERNAL_LABELS.unassigned  # Empty or INTERNAL_LABELS.unassigned
+            flags = (
+                INTERNAL_LABELS.unassigned
+            )  # Empty or INTERNAL_LABELS.unassigned
 
         # Check if scale by cu is defined
         scale_by_cu_str = self.__resolve_scale_by_cu__()

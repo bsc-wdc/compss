@@ -17,4 +17,4 @@
 
 """This package contains the DDS functions, constants and classes."""
 
-from pycompss.dds.dds import DDS
+from pycompss.dds.dds import DDS  # noqa: F401

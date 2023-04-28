@@ -106,9 +106,9 @@ def user_signal_handler(
 
 
 def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
-    """Retrieve the initial configuration and represents the main worker process.
+    """Create persistent worker main function.
 
-    Persistent worker main function.
+    Retrieve the initial configuration and represents the main worker process.
 
     :param config: Piper Worker Configuration description.
     :return: None.
@@ -135,7 +135,9 @@ def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
     logger, _, _, _ = load_loggers(config.debug, persistent_storage)
 
     if __debug__:
-        logger.debug("%s[mpi_piper_worker.py] rank: %s wake up", HEADER, str(RANK))
+        logger.debug(
+            "%s[mpi_piper_worker.py] rank: %s wake up", HEADER, str(RANK)
+        )
         config.print_on_logger(logger)
 
     # Start storage
@@ -143,7 +145,8 @@ def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
         # Initialize storage
         if __debug__:
             logger.debug("%sStarting persistent storage", HEADER)
-        from storage.api import (  # pylint: disable=import-error, import-outside-toplevel
+        from storage.api import (  # pylint: disable=E0401, C0415
+            # disable=import-error, import-outside-toplevel
             initWorker as initStorageAtWorker,
         )
 
@@ -171,21 +174,27 @@ def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
                 in_pipe = line[1]
                 out_pipe = line[2]
                 control_pipe.write(
-                    " ".join((TAGS.add_executor_failed, out_pipe, in_pipe, str(0)))
+                    " ".join(
+                        (TAGS.add_executor_failed, out_pipe, in_pipe, str(0))
+                    )
                 )
 
             elif line[0] == TAGS.remove_executor:
                 in_pipe = line[1]
                 out_pipe = line[2]
                 PROCESSES.pop(in_pipe, None)
-                control_pipe.write(" ".join((TAGS.removed_executor, out_pipe, in_pipe)))
+                control_pipe.write(
+                    " ".join((TAGS.removed_executor, out_pipe, in_pipe))
+                )
 
             elif line[0] == TAGS.query_executor_id:
                 in_pipe = line[1]
                 out_pipe = line[2]
                 pid = PROCESSES.get(in_pipe)
                 control_pipe.write(
-                    " ".join((TAGS.reply_executor_id, out_pipe, in_pipe, str(pid)))
+                    " ".join(
+                        (TAGS.reply_executor_id, out_pipe, in_pipe, str(pid))
+                    )
                 )
 
             elif line[0] == TAGS.cancel_task:
@@ -207,7 +216,9 @@ def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
                 alive = False
             else:
                 if __debug__:
-                    logger.debug("%sERROR: UNKNOWN COMMAND: %s", HEADER, command)
+                    logger.debug(
+                        "%sERROR: UNKNOWN COMMAND: %s", HEADER, command
+                    )
                 alive = False
 
     # Stop storage
@@ -215,7 +226,8 @@ def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
         # Finish storage
         if __debug__:
             logger.debug("%sStopping persistent storage", HEADER)
-        from storage.api import (  # pylint: disable=import-error, import-outside-toplevel
+        from storage.api import (  # pylint: disable=E0401, C0415
+            # disable=import-error, import-outside-toplevel
             finishWorker as finishStorageAtWorker,
         )
 
@@ -235,9 +247,10 @@ def compss_persistent_executor(
     out_cache_queue: typing.Optional[Queue],
     cache_ids: typing.Any,
 ) -> None:
-    """Retrieve the initial configuration and performs executor process functionality.
+    """Create persistent MPI executor main function.
 
-    Persistent MPI executor main function.
+    Retrieve the initial configuration and performs executor process
+    functionality.
 
     :param config: Piper Worker Configuration description.
     :param tracing: If tracing is activated.
@@ -269,7 +282,8 @@ def compss_persistent_executor(
     if persistent_storage:
         # Initialize storage
         with EventWorker(TRACING_WORKER.init_storage_at_worker_event):
-            from storage.api import (  # pylint: disable=import-error, import-outside-toplevel
+            from storage.api import (  # pylint: disable=E0401, C0415
+                # disable=import-error, import-outside-toplevel
                 initWorker as initStorageAtWorker,
             )
 
@@ -294,14 +308,17 @@ def compss_persistent_executor(
         out_cache_queue,
         cache_profiler,
     )
-    executor(None, None, executor_id, executor_name, config.pipes[RANK - 1], conf)
+    executor(
+        None, None, executor_id, executor_name, config.pipes[RANK - 1], conf
+    )
 
     if persistent_storage:
         # Finish storage
         if __debug__:
             logger.debug("%sStopping persistent storage", HEADER)
         with EventWorker(TRACING_WORKER.finish_storage_at_worker_event):
-            from storage.api import (  # pylint: disable=import-error, import-outside-toplevel
+            from storage.api import (  # pylint: disable=E0401, C0415
+                # disable=import-error, import-outside-toplevel
                 finishWorker as finishStorageAtWorker,
             )
 
@@ -364,14 +381,20 @@ def main() -> None:
     else:
         with trace_mpi_executor() if tracing else dummy_context():
             compss_persistent_executor(
-                worker_conf, tracing, in_cache_queue, out_cache_queue, cache_ids
+                worker_conf,
+                tracing,
+                in_cache_queue,
+                out_cache_queue,
+                cache_ids,
             )
 
     if cache and is_worker():
         # Beware of smm, in_cache_queue, out_cache_queue and cache_process
         # variables, since they are only initialized when is_worker() and
         # cache is enabled.# Reason for noqa.
-        stop_cache(smm, in_cache_queue, out_cache_queue, cache_profiler, cache_process)
+        stop_cache(
+            smm, in_cache_queue, out_cache_queue, cache_profiler, cache_process
+        )
 
 
 if __name__ == "__main__":

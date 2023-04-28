@@ -17,4 +17,8 @@
 
 # -*- coding: utf-8 -*-
 
-"""This package contains the serialization utils functions, constants and classes."""
+"""
+This package contains the serialization utils helpers.
+
+Where helpers are functions, constants and classes.
+"""

@@ -76,7 +76,7 @@ REQUIRED_FLAGS = {
     "external_adaptation": [[bool]],
     "propagate_virtual_environment": [[bool]],
     "mpi_worker": [[bool]],
-}  # type: typing.Dict[str, typing.List[typing.List[typing.Union[object, str, bool, type]]]]
+}  # type: typing.Dict[str, typing.List[typing.List[typing.Union[object, str, bool, type]]]]  # noqa # pylint: disable=line-too-long
 
 
 def check_flags(all_vars: dict) -> typing.Tuple[bool, list]:
@@ -98,17 +98,19 @@ def check_flags(all_vars: dict) -> typing.Tuple[bool, list]:
     else:
         # Check that each element is of the correct type and supported value
         for flag, requirements in REQUIRED_FLAGS.items():
-            issues += __check_flag__(all_vars, flag, requirements)
+            issues += __check_flag(all_vars, flag, requirements)
         if issues:
             is_ok = False
 
     return is_ok, issues
 
 
-def __check_flag__(
+def __check_flag(
     all_vars: dict,
     flag: str,
-    requirements: typing.List[typing.List[typing.Union[object, str, bool, type]]],
+    requirements: typing.List[
+        typing.List[typing.Union[object, str, bool, type]]
+    ],
 ) -> list:
     """Check the given flag against the requirements looking for issues.
 

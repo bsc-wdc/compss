@@ -354,7 +354,9 @@ def transitive_closure(partitions=None):
     # Commented out code for unknown reason:
     # path = sys.argv[1]
     # od = DDS().load_text_file(path, partitions) \
-    #     .map(lambda line: (int(line.split(",")[0]), int(line.split(",")[1])))\
+    #     .map(
+    #         lambda line: (int(line.split(",")[0]), int(line.split(",")[1]))
+    #     ) \
     #     .collect(future_objects=True)
     edges = _generate_graph()
     od = DDS().load(edges, partitions).collect(future_objects=True)
@@ -369,9 +371,18 @@ def transitive_closure(partitions=None):
         # Perform the join, obtaining an RDD of (y, (z, x)) pairs,
         # then project the result to obtain the new (x, z) paths.
         new_edges = (
-            DDS().load(od, -1).join(edges).map(lambda __a_b: (__a_b[1][1], __a_b[1][0]))
+            DDS()
+            .load(od, -1)
+            .join(edges)
+            .map(lambda __a_b: (__a_b[1][1], __a_b[1][0]))
         )
-        od = DDS().load(od, -1).union(new_edges).distinct().collect(future_objects=True)
+        od = (
+            DDS()
+            .load(od, -1)
+            .union(new_edges)
+            .distinct()
+            .collect(future_objects=True)
+        )
 
         next_count = DDS().load(od, -1).count()
 

@@ -176,7 +176,8 @@ class Binary:  # pylint: disable=too-few-public-methods
         ):
             # @container decorator sits on top of @binary decorator
             # Note: impl_type and impl_signature are NOT modified
-            # (IMPLEMENTATION_TYPES.container and "CONTAINER.function_name" respectively)
+            # (IMPLEMENTATION_TYPES.container and "CONTAINER.function_name"
+            # respectively)
 
             impl_args = kwargs[CORE_ELEMENT_KEY].get_impl_type_args()
 

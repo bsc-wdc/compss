@@ -94,7 +94,11 @@ def main() -> None:
     parser = None  # type: typing.Optional[argparse.ArgumentParser]
 
     # Check params
-    if len(sys.argv) > 1 and sys.argv[1] not in TAGS and sys.argv[1] not in _help:
+    if (
+        len(sys.argv) > 1
+        and sys.argv[1] not in TAGS
+        and sys.argv[1] not in _help
+    ):
         # No action specified. Assume run.
         args = Object()
         args.action = RUN_TAG
@@ -110,7 +114,9 @@ def main() -> None:
         python_interpreter = []
     else:
         # Use the same as current
-        python_interpreter = [f"--python_interpreter={CONSTANTS.python_interpreter}"]
+        python_interpreter = [
+            f"--python_interpreter={CONSTANTS.python_interpreter}"
+        ]
 
     # Take an action
     if args.action == RUN_TAG:

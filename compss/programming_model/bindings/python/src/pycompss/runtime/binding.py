@@ -159,13 +159,15 @@ def file_exists(*file_name: typing.Union[list, tuple, str]) -> typing.Any:
     :return: True if accessed, False otherwise.
     """
     if __debug__:
-        LOGGER.debug("Checking if file/s: %s has/have been accessed.", file_name)
-    return __apply_recursively_to_file__(
-        __file_exists__, TRACING_MASTER.accessed_file_event, True, *file_name
+        LOGGER.debug(
+            "Checking if file/s: %s has/have been accessed.", file_name
+        )
+    return __apply_recursively_to_file(
+        __file_exists, TRACING_MASTER.accessed_file_event, True, *file_name
     )
 
 
-def __file_exists__(app_id: int, file_name: str) -> bool:
+def __file_exists(app_id: int, file_name: str) -> bool:
     """Check if one files exists (has been accessed).
 
     Calls the external python library (that calls the bindings-common)
@@ -195,7 +197,9 @@ def open_file(file_name: str, mode: str) -> str:
         app_id = 0
         compss_mode = get_compss_direction(mode)
         if __debug__:
-            LOGGER.debug("Getting file %s with mode %s", file_name, compss_mode)
+            LOGGER.debug(
+                "Getting file %s with mode %s", file_name, compss_mode
+            )
         compss_name = COMPSs.open_file(app_id, file_name, compss_mode)
         if __debug__:
             LOGGER.debug("COMPSs file name is %s", compss_name)
@@ -206,16 +210,17 @@ def delete_file(*file_name: typing.Union[list, tuple, str]) -> typing.Any:
     """Remove one or more files.
 
     :param file_name: File/s name to remove.
-    :return: True if success. False otherwise. With the same file_name structure.
+    :return: True if success. False otherwise. With the same file_name
+             structure.
     """
     if __debug__:
         LOGGER.debug("Deleting file/s: %s", file_name)
-    return __apply_recursively_to_file__(
-        __delete_file__, TRACING_MASTER.delete_file_event, True, *file_name
+    return __apply_recursively_to_file(
+        __delete_file, TRACING_MASTER.delete_file_event, True, *file_name
     )
 
 
-def __delete_file__(app_id: int, file_name: str) -> bool:
+def __delete_file(app_id: int, file_name: str) -> bool:
     """Remove one or more files.
 
     Calls the external python library (that calls the bindings-common)
@@ -223,7 +228,8 @@ def __delete_file__(app_id: int, file_name: str) -> bool:
 
     :param app_id: Application identifier.
     :param file_name: File/s name to remove.
-    :return: True if success. False otherwise. With the same file_name structure.
+    :return: True if success. False otherwise. With the same file_name
+             structure.
     """
     result = COMPSs.delete_file(app_id, file_name, True)
     if __debug__:
@@ -237,30 +243,37 @@ def __delete_file__(app_id: int, file_name: str) -> bool:
 def wait_on_file(*file_name: typing.Union[list, tuple, str]) -> typing.Any:
     """Retrieve one or more files.
 
-    :param file_name: File name/s to retrieve (can contain lists and tuples of strings).
+    :param file_name: File name/s to retrieve (can contain lists and tuples
+                      of strings).
     :return: The file name/s (with the same structure).
     """
     if __debug__:
         LOGGER.debug("Getting file/s: %s", file_name)
-    return __apply_recursively_to_file__(
+    return __apply_recursively_to_file(
         COMPSs.get_file, TRACING_MASTER.get_file_event, False, *file_name
     )
 
 
-def wait_on_directory(*directory_name: typing.Union[list, tuple, str]) -> typing.Any:
+def wait_on_directory(
+    *directory_name: typing.Union[list, tuple, str]
+) -> typing.Any:
     """Retrieve one or more directories.
 
-    :param directory_name: Directory name/s to retrieve (can contain lists and tuples of strings).
+    :param directory_name: Directory name/s to retrieve (can contain lists
+                           and tuples of strings).
     :return: The directory name/s (with the same structure).
     """
     if __debug__:
         LOGGER.debug("Getting directory/s: %s", directory_name)
-    return __apply_recursively_to_file__(
-        COMPSs.get_directory, TRACING_MASTER.get_directory_event, False, *directory_name
+    return __apply_recursively_to_file(
+        COMPSs.get_directory,
+        TRACING_MASTER.get_directory_event,
+        False,
+        *directory_name,
     )
 
 
-def __apply_recursively_to_file__(
+def __apply_recursively_to_file(
     function: typing.Callable,
     event: int,
     get_results: bool,
@@ -292,7 +305,9 @@ def __apply_recursively_to_file__(
         elif isinstance(f_name, list):
             files_list = list(
                 [
-                    __apply_recursively_to_file__(function, event, get_results, name)
+                    __apply_recursively_to_file(
+                        function, event, get_results, name
+                    )
                     for name in f_name
                 ]
             )
@@ -300,14 +315,17 @@ def __apply_recursively_to_file__(
         elif isinstance(f_name, tuple):
             files_tuple = tuple(
                 [
-                    __apply_recursively_to_file__(function, event, get_results, name)
+                    __apply_recursively_to_file(
+                        function, event, get_results, name
+                    )
                     for name in f_name
                 ]
             )
             ret.append(files_tuple)
         else:
             raise PyCOMPSsException(
-                "Unsupported type in apply_recursively. Must be str, list or tuple"
+                "Unsupported type in apply_recursively. "
+                "Must be str, list or tuple"
             )
     if len(ret) == 1:
         return ret[0]
@@ -320,7 +338,8 @@ def delete_object(
     """Remove object/s.
 
     :param objs: Object/s to remove.
-    :return: True if success. False otherwise. Keeps structure if lists or tuples are provided.
+    :return: True if success. False otherwise. Keeps structure if lists or
+             tuples are provided.
     """
     if __debug__:
         LOGGER.debug("Deleting object/s: %r", objs)
@@ -328,14 +347,14 @@ def delete_object(
     ret = []  # type: typing.List[typing.Union[bool, list]]
     for obj in objs:
         with EventMaster(TRACING_MASTER.delete_object_event):
-            result = __delete_object__(app_id, obj)
+            result = __delete_object(app_id, obj)
         ret.append(result)
     if len(ret) == 1:
         return ret[0]
     return ret
 
 
-def __delete_object__(app_id: int, obj: typing.Any) -> bool:
+def __delete_object(app_id: int, obj: typing.Any) -> bool:
     """Remove object function.
 
     Removes a used object from the internal structures and calls the
@@ -471,8 +490,8 @@ def get_log_path() -> str:
 def get_tmp_path() -> str:
     """Get tmp path.
 
-    Requests the master working path to the external python library (that calls
-    the bindings-common).
+    Requests the master working path to the external python library (that
+    calls the bindings-common).
 
     :return: The path where to store the master tmp files.
     """
@@ -481,7 +500,9 @@ def get_tmp_path() -> str:
             LOGGER.debug("Requesting tmp path (master working dir)")
         tmp_path = COMPSs.get_master_working_path()
         if __debug__:
-            LOGGER.debug("Tmp path (master working dir) received: %s", tmp_path)
+            LOGGER.debug(
+                "Tmp path (master working dir) received: %s", tmp_path
+            )
         return tmp_path
 
 
@@ -501,7 +522,9 @@ def get_number_of_resources() -> int:
         return COMPSs.get_number_of_resources(app_id)
 
 
-def request_resources(num_resources: int, group_name: typing.Optional[str]) -> None:
+def request_resources(
+    num_resources: int, group_name: typing.Optional[str]
+) -> None:
     """Request new resources.
 
     Calls the external python library (that calls the bindings-common)
@@ -517,7 +540,8 @@ def request_resources(num_resources: int, group_name: typing.Optional[str]) -> N
             group_name = "NULL"
         if __debug__:
             LOGGER.debug(
-                "Request the creation of %s resources with notification to task group %s",
+                "Request the creation of %s resources with notification to "
+                "task group %s",
                 str(num_resources),
                 str(group_name),
             )
@@ -525,7 +549,9 @@ def request_resources(num_resources: int, group_name: typing.Optional[str]) -> N
         COMPSs.request_resources(app_id, num_resources, group_name)
 
 
-def free_resources(num_resources: int, group_name: typing.Optional[str]) -> None:
+def free_resources(
+    num_resources: int, group_name: typing.Optional[str]
+) -> None:
     """Liberate resources.
 
     Calls the external python library (that calls the bindings-common)
@@ -541,7 +567,8 @@ def free_resources(num_resources: int, group_name: typing.Optional[str]) -> None
             group_name = "NULL"
         if __debug__:
             LOGGER.debug(
-                "Request the destruction of %s resources with notification to task group %s",
+                "Request the destruction of %s resources with notification to "
+                "task group %s",
                 str(num_resources),
                 str(group_name),
             )
@@ -562,7 +589,8 @@ def set_wall_clock(wall_clock_limit: int) -> None:
         # Activate wall clock limit alarm
         signal.signal(signal.SIGALRM, _wall_clock_exceed)
         signal.alarm(wall_clock_limit)
-        # Call the Runtime to set a timer in case wall clock is reached in a synch
+        # Call the Runtime to set a timer in case wall clock is
+        # reached in a synch
         COMPSs.set_wall_clock(app_id, wall_clock_limit)
 
 
@@ -680,12 +708,17 @@ def register_ce(core_element: CE) -> None:
 
     Core Element fields:
 
-    ce_signature: <String> Core Element signature  (e.g.- "methodClass.methodName")
-    impl_signature: <String> Implementation signature (e.g.- "methodClass.methodName")
-    impl_constraints: <Dict> Implementation constraints (e.g.- "{ComputingUnits:2}")
-    impl_type: <String> Implementation type ("METHOD" | "MPI" | "BINARY" | "OMPSS" | "OPENCL")
+    ce_signature: <String> Core Element signature
+                  (e.g.- "methodClass.methodName")
+    impl_signature: <String> Implementation signature
+                    (e.g.- "methodClass.methodName")
+    impl_constraints: <Dict> Implementation constraints
+                      (e.g.- "{ComputingUnits:2}")
+    impl_type: <String> Implementation type
+               ("METHOD" | "MPI" | "BINARY" | "OMPSS" | "OPENCL")
     impl_io: <String> IO Implementation
-    impl_type_args: <List(Strings)> Implementation arguments (e.g.- ["methodClass", "methodName"])
+    impl_type_args: <List(Strings)> Implementation arguments
+                    (e.g.- ["methodClass", "methodName"])
 
     :param core_element: <CE> Core Element to register.
     :return: None.
@@ -694,7 +727,9 @@ def register_ce(core_element: CE) -> None:
         # Retrieve Core element fields
         ce_signature = core_element.get_ce_signature()
         impl_signature_base = core_element.get_impl_signature()
-        impl_signature = None if impl_signature_base == "" else impl_signature_base
+        impl_signature = (
+            None if impl_signature_base == "" else impl_signature_base
+        )
         impl_constraints_base = core_element.get_impl_constraints()
         impl_constraints = None  # type: typing.Any
         if impl_constraints_base == "":
@@ -725,17 +760,21 @@ def register_ce(core_element: CE) -> None:
                 val = str(value).replace("'", "")
             else:
                 raise PyCOMPSsException(
-                    "Implementation constraints items must be str, int or list."
+                    "Implementation constraints items must be "
+                    "str, int or list."
                 )
             kv_constraint = "".join((key, ":", str(val), ";"))
             impl_constraints_lst.append(kv_constraint)
         impl_constraints_str = "".join(impl_constraints_lst)
 
         if __debug__:
-            LOGGER.debug("\t - Implementation constraints: %s", impl_constraints_str)
+            LOGGER.debug(
+                "\t - Implementation constraints: %s", impl_constraints_str
+            )
             LOGGER.debug("\t - Implementation type: %s", impl_type)
             LOGGER.debug(
-                "\t - Implementation type arguments: %s", " ".join(impl_type_args)
+                "\t - Implementation type arguments: %s",
+                " ".join(impl_type_args),
             )
         # import pdb; pdb.set_trace()
         # Call runtime with the appropriate parameters
@@ -773,13 +812,13 @@ def wait_on(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
         master_event = kwargs["master_event"]
     if master_event:
         with EventMaster(TRACING_MASTER.wait_on_event):
-            return __wait_on__(*args, **kwargs)
+            return __wait_on(*args, **kwargs)
     else:
         with EventInsideWorker(TRACING_WORKER.wait_on_event):
-            return __wait_on__(*args, **kwargs)
+            return __wait_on(*args, **kwargs)
 
 
-def __wait_on__(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
+def __wait_on(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
     """Wait on a set of objects.
 
     Waits on a set of objects defined in args with the options defined in
@@ -789,7 +828,9 @@ def __wait_on__(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
     :param kwargs: Options: Write enable? [True | False] Default = True.
     :return: Real value of the objects requested.
     """
-    ret = list(map(wait_on_object, args, [kwargs.get("mode", "rw")] * len(args)))
+    ret = list(
+        map(wait_on_object, args, [kwargs.get("mode", "rw")] * len(args))
+    )
     if len(ret) == 1:
         ret_lst = ret[0]
     else:
@@ -884,7 +925,7 @@ def process_task(
 
         # Check that there is the same amount of values as their types, as well
         # as their directions, streams and prefixes.
-        assert (
+        if not (
             len(values)
             == len(compss_types)
             == len(compss_directions)
@@ -893,34 +934,38 @@ def process_task(
             == len(content_types)
             == len(weights)
             == len(keep_renames)
-        )
+        ):
+            raise PyCOMPSsException(
+                "Issue with the amount of values, types, "
+                "directions, streams, prefixes, etc."
+            )
 
         # Submit task to the runtime (call to the C extension):
         # Parameters:
-        #     0 - <Integer>   - application id (by default always 0 due to it is
-        #                       not currently needed for the signature)
+        #     0 - <Integer>   - application id (by default always 0 due to it
+        #                       is not currently needed for the signature)
         #     1 - <String>    - path of the module where the task is
         #
         #     2 - <String>    - behavior if the task fails
         #
-        #     3 - <String>    - function name of the task (to be called from the
-        #                       worker)
+        #     3 - <String>    - function name of the task (to be called from
+        #                       the worker)
         #     4 - <String>    - priority flag (true|false)
         #
-        #     5 - <String>    - has target (true|false). If the task is within an
-        #                       object or not.
+        #     5 - <String>    - has target (true|false). If the task is within
+        #                       an object or not.
         #     6 - [<String>]  - task parameters (basic types or file paths for
         #                       objects)
-        #     7 - [<Integer>] - parameters types (number corresponding to the type
-        #                       of each parameter)
-        #     8 - [<Integer>] - parameters directions (number corresponding to the
-        #                       direction of each parameter)
+        #     7 - [<Integer>] - parameters types (number corresponding to the
+        #                       type of each parameter)
+        #     8 - [<Integer>] - parameters directions (number corresponding to
+        #                       the direction of each parameter)
         #     9 - [<Integer>] - parameters streams (number corresponding to the
         #                       stream of each parameter)
-        #     10 - [<String>] - parameters prefixes (string corresponding to the
-        #                       prefix of each parameter)
-        #     11 - [<String>] - parameters extra type (string corresponding to the
-        #                       extra type of each parameter)
+        #     10 - [<String>] - parameters prefixes (string corresponding to
+        #                       the prefix of each parameter)
+        #     11 - [<String>] - parameters extra type (string corresponding to
+        #                       the extra type of each parameter)
         #     12 - [<String>] - parameters weights (string corresponding to the
         #                       weight of each parameter
         #     13 - <String>   - Keep renames flag (true|false)
@@ -1020,7 +1065,7 @@ def _clean_temps() -> None:
     rmtree(temp_directory, True)
     cwd = os.getcwd()
     for temp_file in os.listdir(cwd):
-        if re.search(r"d\d+v\d+_\d+\.IT", temp_file):  # NOSONAR
+        if re.search(r"d\d+v\d+_\d+\.IT", temp_file):
             os.remove(os.path.join(cwd, temp_file))
 
 

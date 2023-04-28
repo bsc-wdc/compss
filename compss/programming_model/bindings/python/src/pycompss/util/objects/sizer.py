@@ -81,7 +81,9 @@ def total_sizeof(
         set: iter,
         frozenset: iter,
     }  # type: typing.Dict[typing.Any, typing.Any]
-    if type(given_object) not in all_handlers and hasattr(given_object, "__dict__"):
+    if type(given_object) not in all_handlers and hasattr(
+        given_object, "__dict__"
+    ):
         # It is something else include its __dict__
         all_handlers[type(given_object)] = _user_object_handler
     if handlers is not None:

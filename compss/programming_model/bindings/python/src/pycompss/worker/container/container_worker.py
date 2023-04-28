@@ -29,7 +29,7 @@ import sys
 from pycompss.util.context import CONTEXT
 from pycompss.worker.container.pythonpath_fixer import fix_pythonpath
 from pycompss.util.logger.helpers import init_logging_worker
-from pycompss.util.typing_helper import typing
+from pycompss.util.typing_helper import typing  # noqa: F401
 from pycompss.worker.commons.executor import build_return_params_message
 from pycompss.worker.commons.worker import execute_task
 
@@ -63,16 +63,22 @@ def main() -> int:
     worker_path = os.path.dirname(os.path.realpath(__file__))
     if log_level in ("true", "debug"):
         # Debug
-        log_json = "".join((worker_path, "/log/logging_container_worker_debug.json"))
+        log_json = "".join(
+            (worker_path, "/log/logging_container_worker_debug.json")
+        )
     elif log_level in ("info", "off"):
         # Info or no debug
-        log_json = "".join((worker_path, "/log/logging_container_worker_off.json"))
+        log_json = "".join(
+            (worker_path, "/log/logging_container_worker_off.json")
+        )
     else:
         # Default
         log_json = "".join((worker_path, "/log/logging_container_worker.json"))
     init_logging_worker(log_json, tracing)
     if __debug__:
-        logger = logging.getLogger("pycompss.worker.container.container_worker")
+        logger = logging.getLogger(
+            "pycompss.worker.container.container_worker"
+        )
         logger.debug("Initialising Python worker inside the container...")
 
     task_params = [
@@ -107,7 +113,9 @@ def main() -> int:
     tracing = False
     log_files = ()
     python_mpi = False
-    collections_layouts = {}  # type: typing.Dict[str, typing.Tuple[int, int, int]]
+    collections_layouts = (
+        {}
+    )  # type: typing.Dict[str, typing.Tuple[int, int, int]]
     CONTEXT.set_worker()
     result = execute_task(
         process_name,
@@ -149,12 +157,15 @@ def main() -> int:
         # An exception has been raised in task
         if __debug__:
             except_msg = except_msg.replace(" ", "_")
-            logger.debug("Registered Exception in task execution %s", str(except_msg))
+            logger.debug(
+                "Registered Exception in task execution %s", str(except_msg)
+            )
 
     # Return
     if exit_value != 0:
         logger.debug(
-            "ERROR: Task execution finished with non-zero exit value (%s != 0)",
+            "ERROR: "
+            "Task execution finished with non-zero exit value (%s != 0)",
             str(exit_value),
         )
     else:

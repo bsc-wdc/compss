@@ -35,7 +35,9 @@ from pycompss.runtime.binding import get_tmp_path
 from pycompss.runtime.commons import CONSTANTS
 from pycompss.runtime.commons import GLOBALS
 from pycompss.runtime.start.initialization import LAUNCH_STATUS
-from pycompss.runtime.start.interactive_initialization import EXTRA_LAUNCH_STATUS
+from pycompss.runtime.start.interactive_initialization import (
+    EXTRA_LAUNCH_STATUS,
+)
 from pycompss.runtime.management.classes import Future
 from pycompss.runtime.management.object_tracker import OT
 
@@ -188,7 +190,8 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
     :param master_port: Master port
                         (default: "")
     :param scheduler: Scheduler (see runcompss)
-                      (default: es.bsc.compss.scheduler.lookahead.locality.LocalityTS)  # noqa: E501
+                      (default: es.bsc.compss.scheduler.
+                                lookahead.locality.LocalityTS)
     :param jvm_workers: Java VM parameters
                         (default: "-Xms1024m,-Xmx1024m,-Xmn400m")
     :param cpu_affinity: CPU Core affinity
@@ -207,7 +210,8 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
                              (default: "")
     :param external_adaptation: External adaptation [ True|False ]
                                 (default: False)
-    :param propagate_virtual_environment: Propagate virtual environment [ True|False ]  # noqa: E501
+    :param propagate_virtual_environment: Propagate virtual environment
+                                          [ True|False ]
                                           (default: False)
     :param mpi_worker: Use the MPI worker [ True|False ]
                        (default: False)
@@ -235,18 +239,21 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
     :param data_provenance: Enable data provenance [ True | False ]
                             (default: False)
     :param checkpoint_policy: Checkpointing policy.
-                              (default: "es.bsc.compss.checkpoint.policies.NoCheckpoint")
+                              (default: "es.bsc.compss.checkpoint.
+                                         policies.NoCheckpoint")
     :param checkpoint_params: Checkpointing parameters.
                               (default: "")
     :param checkpoint_folder: Checkpointing folder.
                               (default: "")
     :param verbose: Verbose mode [ True|False ]
                     (default: False)
-    :param disable_external: To avoid to load compss in external process [ True | False ]
-                             Necessary in scenarios like pytest which fails with
-                             multiprocessing. It also disables the outwatcher
-                             since pytest also captures stdout and stderr.
-                             (default: False)
+    :param disable_external: To avoid to load compss in external process
+                             [ True | False ]
+                             Necessary in scenarios like pytest which fails
+                             with multiprocessing. It also disables the
+                             outwatcher since pytest also captures stdout
+                             and stderr.
+                            (default: False)
     :return: None
     """
     # Initialize multiprocessing
@@ -273,12 +280,14 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
     if debug:
         log_level = "debug"
 
-    __show_flower__()
+    __show_flower()
 
     # Let the Python binding know we are at master
     CONTEXT.set_master()
     # Then we can import the appropriate start and stop functions from the API
-    from pycompss.api.api import compss_start  # pylint: disable=import-outside-toplevel
+    from pycompss.api.api import (  # pylint: disable=import-outside-toplevel
+        compss_start,
+    )
 
     ##############################################################
     # INITIALIZATION
@@ -367,17 +376,33 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
     if CONSTANTS.running_in_supercomputer:
         updated_vars = updated_variables_in_sc()
         if verbose:
-            print(f"- Overridden project xml with: {updated_vars['project_xml']}")
-            print(f"- Overridden resources xml with: {updated_vars['resources_xml']}")
-            print(f"- Overridden master name with: {updated_vars['master_name']}")
-            print(f"- Overridden master port with: {updated_vars['master_port']}")
+            print(
+                f"- Overridden project xml with: {updated_vars['project_xml']}"
+            )
+            print(
+                f"- Overridden resources xml with: "
+                f"{updated_vars['resources_xml']}"
+            )
+            print(
+                f"- Overridden master name with: {updated_vars['master_name']}"
+            )
+            print(
+                f"- Overridden master port with: {updated_vars['master_port']}"
+            )
             print(f"- Overridden uuid with: {updated_vars['uuid']}")
             print(f"- Overridden log dir with: {updated_vars['log_dir']}")
             print(
-                f"- Overridden master working dir with: {updated_vars['master_working_dir']}"
+                f"- Overridden master working dir with: "
+                f"{updated_vars['master_working_dir']}"
             )
-            print(f"- Overridden storage conf with: {updated_vars['storage_conf']}")
-            print(f"- Overridden log level with: {str(updated_vars['log_level'])}")
+            print(
+                f"- Overridden storage conf with: "
+                f"{updated_vars['storage_conf']}"
+            )
+            print(
+                f"- Overridden log level with: "
+                f"{str(updated_vars['log_level'])}"
+            )
             print(f"- Overridden debug with: {str(updated_vars['debug'])}")
             print(f"- Overridden trace with: {str(updated_vars['trace'])}")
         all_vars.update(updated_vars)
@@ -436,7 +461,7 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
     binding_tmp_path = get_tmp_path()  # master.workingDir
     GLOBALS.set_temporary_directory(binding_tmp_path)
 
-    __print_setup__(verbose, all_vars)
+    __print_setup(verbose, all_vars)
 
     logger.debug("--- START ---")
     logger.debug("PyCOMPSs Log path: %s", log_path)
@@ -467,35 +492,37 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
     return None
 
 
-def __show_flower__() -> None:
+def __show_flower() -> None:
     """Show the flower and version through stdout.
 
     :return: None
     """
     line_separator = EXTRA_LAUNCH_STATUS.get_line_separator()
-    print(line_separator)  # NOSONAR # noqa
-    print(r"**************** PyCOMPSs Interactive ******************")  # NOSONAR # noqa
-    print(line_separator)  # NOSONAR # noqa
-    print(r"*          .-~~-.--.           ______         ___      *")  # NOSONAR # noqa
-    print(r"*         :         )         |____  \       /   |     *")  # NOSONAR # noqa
-    print(r"*   .~ ~ -.\       /.- ~~ .      __) |      /_/| |     *")  # NOSONAR # noqa
-    print(r"*   >       `.   .'       <     |__  |         | |     *")  # NOSONAR # noqa
-    print(r"*  (         .- -.         )   ____) |   _     | |     *")  # NOSONAR # noqa
-    print(r"*   `- -.-~  `- -'  ~-.- -'   |______/  |_|    |_|     *")  # NOSONAR # noqa
-    print(r"*     (        :        )           _ _ .-:            *")  # NOSONAR # noqa
-    print(r"*      ~--.    :    .--~        .-~  .-~  }            *")  # NOSONAR # noqa
-    print(r"*          ~-.-^-.-~ \_      .~  .-~   .~              *")  # NOSONAR # noqa
-    print(r"*                   \ \ '     \ '_ _ -~                *")  # NOSONAR # noqa
-    print(r"*                    \`.\`.    //                      *")  # NOSONAR # noqa
-    print(r"*           . - ~ ~-.__\`.\`-.//                       *")  # NOSONAR # noqa
-    print(r"*       .-~   . - ~  }~ ~ ~-.~-.                       *")  # NOSONAR # noqa
-    print(r"*     .' .-~      .-~       :/~-.~-./:                 *")  # NOSONAR # noqa
-    print(r"*    /_~_ _ . - ~                 ~-.~-._              *")  # NOSONAR # noqa
-    print(r"*                                     ~-.<             *")  # NOSONAR # noqa
-    print(line_separator)  # NOSONAR # noqa
+    print(line_separator)
+    print(r"**************** PyCOMPSs Interactive ******************")
+    print(line_separator)
+    print(r"*          .-~~-.--.           ______         ___      *")
+    print(r"*         :         )         |____  \       /   |     *")
+    print(r"*   .~ ~ -.\       /.- ~~ .      __) |      /_/| |     *")
+    print(r"*   >       `.   .'       <     |__  |         | |     *")
+    print(r"*  (         .- -.         )   ____) |   _     | |     *")
+    print(r"*   `- -.-~  `- -'  ~-.- -'   |______/  |_|    |_|     *")
+    print(r"*     (        :        )           _ _ .-:            *")
+    print(r"*      ~--.    :    .--~        .-~  .-~  }            *")
+    print(r"*          ~-.-^-.-~ \_      .~  .-~   .~              *")
+    print(r"*                   \ \ '     \ '_ _ -~                *")
+    print(r"*                    \`.\`.    //                      *")
+    print(r"*           . - ~ ~-.__\`.\`-.//                       *")
+    print(r"*       .-~   . - ~  }~ ~ ~-.~-.                       *")
+    print(r"*     .' .-~      .-~       :/~-.~-./:                 *")
+    print(r"*    /_~_ _ . - ~                 ~-.~-._              *")
+    print(r"*                                     ~-.<             *")
+    print(line_separator)
 
 
-def __print_setup__(verbose: bool, all_vars: typing.Dict[str, typing.Any]) -> None:
+def __print_setup(
+    verbose: bool, all_vars: typing.Dict[str, typing.Any]
+) -> None:
     """Print the setup variables through stdout (only if verbose is True).
 
     :param verbose: Verbose mode [True | False]
@@ -528,9 +555,11 @@ def stop(sync: bool = False, _hard_stop: bool = False) -> None:
     ipython = globals()["__builtins__"]["get_ipython"]()
 
     if not CONTEXT.in_pycompss():
-        return __hard_stop__(interactive_helpers.DEBUG, sync, logger, ipython)
+        return __hard_stop(interactive_helpers.DEBUG, sync, logger, ipython)
 
-    from pycompss.api.api import compss_stop  # pylint: disable=import-outside-toplevel
+    from pycompss.api.api import (  # pylint: disable=import-outside-toplevel
+        compss_stop,
+    )
 
     line_separator = EXTRA_LAUNCH_STATUS.get_line_separator()
     print(line_separator)
@@ -556,7 +585,8 @@ def stop(sync: bool = False, _hard_stop: bool = False) -> None:
         sync_msg = "Synchronizing all future objects left on the user scope."
         print(sync_msg)
         logger.debug(sync_msg)
-        from pycompss.api.api import (  # pylint: disable=import-outside-toplevel
+        from pycompss.api.api import (  # pylint: disable=C0415
+            # disable=import-outside-toplevel
             compss_wait_on,
         )
 
@@ -578,21 +608,31 @@ def stop(sync: bool = False, _hard_stop: bool = False) -> None:
                     new_obj_k = compss_wait_on(obj_k)
                     if new_obj_k == obj_k:
                         print(f"\t - Could not retrieve object: {str(k)}")
-                        logger.debug("\t - Could not retrieve object: %s", str(k))
+                        logger.debug(
+                            "\t - Could not retrieve object: %s", str(k)
+                        )
                     else:
                         ipython.__dict__["user_ns"][k] = new_obj_k
                 elif k not in reserved_names:
                     try:
                         if OT.is_pending_to_synchronize(obj_k):
                             print(f"Found an object to synchronize: {str(k)}")
-                            logger.debug("Found an object to synchronize: %s", str(k))
-                            ipython.__dict__["user_ns"][k] = compss_wait_on(obj_k)
+                            logger.debug(
+                                "Found an object to synchronize: %s", str(k)
+                            )
+                            ipython.__dict__["user_ns"][k] = compss_wait_on(
+                                obj_k
+                            )
                     except TypeError:
                         # Unhashable type: List - could be a collection
                         if isinstance(obj_k, list):
                             print(f"Found a list to synchronize: {str(k)}")
-                            logger.debug("Found a list to synchronize: %s", str(k))
-                            ipython.__dict__["user_ns"][k] = compss_wait_on(obj_k)
+                            logger.debug(
+                                "Found a list to synchronize: %s", str(k)
+                            )
+                            ipython.__dict__["user_ns"][k] = compss_wait_on(
+                                obj_k
+                            )
     else:
         print("Warning: some of the variables used with PyCOMPSs may")
         print("         have not been brought to the master.")
@@ -613,7 +653,7 @@ def stop(sync: bool = False, _hard_stop: bool = False) -> None:
 
     # Cleanup events and files
     release_event_manager(ipython)
-    __clean_temp_files__()
+    __clean_temp_files()
 
     # Stop watching stdout and stderr
     if not disable_external:
@@ -633,7 +673,7 @@ def stop(sync: bool = False, _hard_stop: bool = False) -> None:
     return None
 
 
-def __hard_stop__(
+def __hard_stop(
     debug: bool, sync: bool, logger: logging.Logger, ipython: typing.Any
 ) -> None:
     """Stop the binding securely when the runtime crashes.
@@ -663,7 +703,7 @@ def __hard_stop__(
 
     # Cleanup events and files
     release_event_manager(ipython)
-    __clean_temp_files__()
+    __clean_temp_files()
 
     # Stop watching stdout and stderr
     if not EXTRA_LAUNCH_STATUS.get_disable_external():
@@ -801,7 +841,7 @@ def resources_status() -> None:
 # ########################################################################### #
 
 
-def __clean_temp_files__() -> None:
+def __clean_temp_files() -> None:
     """Remove any temporary files that may exist.
 
     Currently: APP_PATH, which contains the file path where all interactive

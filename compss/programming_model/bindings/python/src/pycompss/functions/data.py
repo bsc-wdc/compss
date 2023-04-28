@@ -52,9 +52,12 @@ def generator(
     elif distribution == "normal":
         data = [_gen_normal(size[1], frag_size, seed) for _ in range(num_frag)]
     elif distribution == "uniform":
-        data = [_gen_uniform(size[1], frag_size, seed) for _ in range(num_frag)]
+        data = [
+            _gen_uniform(size[1], frag_size, seed) for _ in range(num_frag)
+        ]
     if wait:
-        from pycompss.api.api import (  # pylint: disable=import-outside-toplevel
+        from pycompss.api.api import (  # pylint: disable=C0415
+            # disable=import-outside-toplevel
             compss_wait_on,
         )
 
@@ -76,13 +79,13 @@ def chunks(
     """
     if not balanced or not len(lst) % number:
         for i in range(0, len(lst), number):
-            yield lst[i : i + number]
+            yield lst[i : i + number]  # noqa: E203
     else:
         rest = len(lst) % number
         start = 0
         while rest:
-            yield lst[start : start + number + 1]
+            yield lst[start : start + number + 1]  # noqa: E203
             rest -= 1
             start += number + 1
         for i in range(start, len(lst), number):
-            yield lst[i : i + number]
+            yield lst[i : i + number]  # noqa: E203

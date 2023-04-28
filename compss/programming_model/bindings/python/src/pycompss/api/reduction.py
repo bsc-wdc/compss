@@ -36,7 +36,10 @@ from pycompss.api.dummy.reduction import reduction as dummy_reduction
 from pycompss.util.arguments import check_arguments
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.typing_helper import typing
-from pycompss.runtime.task.definitions.core_element import CE
+
+# Used only for typing
+from pycompss.runtime.task.definitions.core_element import CE  # noqa: F401
+
 
 if __debug__:
     import logging
@@ -151,9 +154,12 @@ class Reduction:  # pylint: disable=too-few-public-methods
             is_reduce = self.kwargs[LABELS.is_reduce]
 
         if __debug__:
-            logger.debug("The task is_reduce flag is set to: %s", str(is_reduce))
             logger.debug(
-                "This Reduction task will have %s sized chunks", str(chunk_size)
+                "The task is_reduce flag is set to: %s", str(is_reduce)
+            )
+            logger.debug(
+                "This Reduction task will have %s sized chunks",
+                str(chunk_size),
             )
 
         # Set the chunk_size variable in kwargs for its usage in @task

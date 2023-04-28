@@ -55,7 +55,8 @@ def test_launch_application():
 #             worker_cache=True
 #         )
 #     else:
-#         print("WARNING: Cache not tested because python version is not >= 3.8")
+#         print("WARNING: Cache not tested because python version is not "
+#               ">= 3.8")
 #
 #
 # def test_launch_increment_mpi_worker():

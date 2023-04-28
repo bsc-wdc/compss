@@ -30,7 +30,9 @@ def dummy_function(*args, **kwargs):  # noqa
 def test_prolog_instantiation():
     CONTEXT.set_master()
     my_prolog = prolog(binary="date")
-    assert my_prolog.decorator_name == "@prolog", "The decorator name must be @prolog"
+    assert (
+        my_prolog.decorator_name == "@prolog"
+    ), "The decorator name must be @prolog"
 
 
 def test_prolog_call():
@@ -52,9 +54,10 @@ def test_prolog_call_outside():
     except Exception:  # noqa
         thrown = True  # this is OK!
     CONTEXT.set_out_of_scope()
-    assert (
-        thrown
-    ), "The prolog decorator did not raise an exception when invoked out of scope."
+    assert thrown, (
+        "The prolog decorator did not raise an exception when "
+        "invoked out of scope."
+    )
 
 
 def test_prolog_existing_core_element():

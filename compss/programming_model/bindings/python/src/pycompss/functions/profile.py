@@ -53,7 +53,10 @@ class Profile:
     __slots__ = ("stream", "full_report", "precision", "backend", "redirect")
 
     def __init__(
-        self, full_report: bool = True, precision: int = 1, backend: str = "psutil"
+        self,
+        full_report: bool = True,
+        precision: int = 1,
+        backend: str = "psutil",
     ) -> None:
         """Store arguments passed to the decorator.
 
@@ -84,7 +87,8 @@ class Profile:
 
             :param args: Task arguments.
             :param kwargs: Task keyword arguments.
-            :return: The result of executing function with the given *args and **kwargs.
+            :return: The result of executing function with the given *args and
+                     **kwargs.
             """
             # Get job name from log file
             if CONTEXT.in_master():
@@ -127,7 +131,8 @@ class Profile:
 
         return wrapped_f
 
-    def __print_report__(  # pylint: disable=too-many-arguments, too-many-locals
+    def __print_report__(  # pylint: disable=R0913,R0914
+        # disable=too-many-arguments, too-many-locals
         self,
         start_time: float,
         job_name: str,
@@ -155,7 +160,12 @@ class Profile:
             pre_mem = f"Initial memory: {initial_memory}"
             post_mem = f"Final memory: {final_memory}"
             report_info = (
-                f"{report}\n{job_name}\n{st_time}\n{el_time}\n{pre_mem}\n{post_mem}"
+                f"{report}\n"
+                f"{job_name}\n"
+                f"{st_time}\n"
+                f"{el_time}\n"
+                f"{pre_mem}\n"
+                f"{post_mem}"
             )
             self.__redirect__(report_info)
         else:
@@ -176,7 +186,9 @@ class Profile:
                     if usage > peak_memory:
                         peak_memory = usage
             mem_usage = f"{initial_memory} {final_memory} {peak_memory} MiB"
-            info_line = f"{start_time:.7f} {job_name} {file_name} {function_name}"
+            info_line = (
+                f"{start_time:.7f} {job_name} {file_name} {function_name}"
+            )
             info_line = f"{info_line} {elapsed_time} {mem_usage}"
             self.__redirect__(info_line)
         # Clear the stream for the next usage

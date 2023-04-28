@@ -77,8 +77,8 @@
     "pycompss.functions.profile":                    { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.functions.reduce":                     { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
 
-    "pycompss.runtime.crank.initialization":         { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
-    "pycompss.runtime.crank.interactive_initialization": { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
+    "pycompss.runtime.start.initialization":         { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
+    "pycompss.runtime.start.interactive_initialization": { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.runtime.management.classes":           { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.runtime.management.COMPSs":            { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.runtime.management.direction":         { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
@@ -145,7 +145,6 @@
     "pycompss.worker.container.container_worker":    { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.worker.container.pythonpath_fixer":    { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.worker.external.mpi_executor":         { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
-    "pycompss.worker.gat.commons.constants":         { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.worker.gat.worker":                    { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.worker.piper.cache.classes":           { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },
     "pycompss.worker.piper.cache.manager":           { "level": "ERROR", "handlers": ["console", "error_console"], "propagate": "no" },

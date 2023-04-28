@@ -9,7 +9,7 @@ cd "${SCRIPT_DIR}/../../src/"
 ## Check black style ##
 #######################
 
-black --check --diff ./pycompss/
+black --check --diff --line-length 79 ./pycompss/
 ev=$?
 if [ "$ev" -ne 0 ]; then
   echo "[ERROR] black check failed with exit value: $ev"

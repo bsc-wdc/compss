@@ -53,9 +53,14 @@ def map_partition(func, partition, collection=None):
     return res
 
 
-@task(col={Type: COLLECTION_OUT, Depth: 1}, collection={Type: COLLECTION_IN, Depth: 1})
-def distribute_partition(col, func, partitioner_func, partition, collection=None):
-    """Distribute (key, value) structured elements of the partition on 'buckets'.
+@task(
+    col={Type: COLLECTION_OUT, Depth: 1},
+    collection={Type: COLLECTION_IN, Depth: 1},
+)
+def distribute_partition(
+    col, func, partitioner_func, partition, collection=None
+):
+    """Distribute (k, v) structured elements of the partition on 'buckets'.
 
     :param col: Empty 'buckets', must be repleced with COLLECTION_OUT.
     :param func: Function from DDS object to be applied to the partition before
@@ -114,7 +119,7 @@ def task_dict_to_list(iterator, total_parts, partition_num):
         for i in sorted_keys[start:]:
             ret.append((i, iterator[i]))
     else:
-        for i in sorted_keys[start : start + chunk_size]:
+        for i in sorted_keys[start : start + chunk_size]:  # noqa: E203
             ret.append((i, iterator[i]))
 
     return ret

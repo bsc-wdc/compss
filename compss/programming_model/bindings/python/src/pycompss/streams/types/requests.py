@@ -184,7 +184,11 @@ class RegisterStreamRequest(Request):
     """
 
     def __init__(
-        self, alias: str, stream_type: str, access_mode: str, internal_stream_info: list
+        self,
+        alias: str,
+        stream_type: str,
+        access_mode: str,
+        internal_stream_info: list,
     ) -> None:
         """Create a new RegisterStreamRequest instance.
 
@@ -348,4 +352,6 @@ class PublishRequest(Request):
 
         :return: Message.
         """
-        return " ".join((str(self.request_type), str(self.stream_id), str(self.msg)))
+        return " ".join(
+            (str(self.request_type), str(self.stream_id), str(self.msg))
+        )

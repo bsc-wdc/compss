@@ -27,7 +27,10 @@ DECORATOR_NAME = "@unittest"
 
 def test_err_msgs_not_in_pycompss():
     decorator_name = DECORATOR_NAME
-    expected = "The %s decorator only works within PyCOMPSs framework." % decorator_name
+    expected = (
+        "The %s decorator only works within PyCOMPSs framework."
+        % decorator_name
+    )
     error = not_in_pycompss(decorator_name=decorator_name)
     assert error == expected, "Received wrong NOT IN PYCOMPSS error message."
 
@@ -43,7 +46,9 @@ def test_err_msgs_cast_string_to_int_error():
     what = DECORATOR_NAME
     expected = "ERROR: %s value cannot be cast from string to int" % what
     error = cast_string_to_int_error(what=what)
-    assert error == expected, "Received wrong Cast string to int error message."
+    assert (
+        error == expected
+    ), "Received wrong Cast string to int error message."
 
 
 def test_err_msgs_wrong_value():

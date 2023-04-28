@@ -42,7 +42,8 @@ from pycompss.worker.commons.worker import execute_task
 from pycompss.worker.piper.commons.constants import TAGS
 
 
-# noqa TODO: Comments about exit value and return following values was in another branch need to be reviewed if it works in trunk
+# TODO: Comments about exit value and return following values was in another
+#       branch need to be reviewed if it works in trunk
 # SUCCESS_SIG = 0
 # FAILURE_SIG = 1
 # UNEXPECTED_SIG = 2
@@ -87,13 +88,19 @@ def executor(process_name: str, command: str) -> None:
     worker_path = os.path.dirname(os.path.realpath(__file__))
     if log_level in ("true", "debug"):
         # Debug
-        log_json = "".join((worker_path, "/../../../log/logging_mpi_worker_debug.json"))
+        log_json = "".join(
+            (worker_path, "/../../../log/logging_mpi_worker_debug.json")
+        )
     elif log_level == "info":
         # Info
-        log_json = "".join((worker_path, "/../../../log/logging_mpi_worker_info.json"))
+        log_json = "".join(
+            (worker_path, "/../../../log/logging_mpi_worker_info.json")
+        )
     else:
         # Default (off)
-        log_json = "".join((worker_path, "/../../../log/logging_mpi_worker_off.json"))
+        log_json = "".join(
+            (worker_path, "/../../../log/logging_mpi_worker_off.json")
+        )
     init_logging_worker(log_json, tracing)
 
     logger = logging.getLogger("pycompss.worker.external.mpi_executor")
@@ -101,12 +108,16 @@ def executor(process_name: str, command: str) -> None:
     logger_level = logger.getEffectiveLevel()
     try:
         lh0_formatter = logger_handlers[0].formatter  # type: typing.Any
-        logger_formatter = logging.Formatter(lh0_formatter._fmt)  # type: typing.Any
+        logger_formatter = logging.Formatter(
+            lh0_formatter._fmt
+        )  # type: typing.Any
     except IndexError:
         logger_formatter = None
 
     if __debug__:
-        logger.debug("[PYTHON EXECUTOR] [%s] Starting process", str(process_name))
+        logger.debug(
+            "[PYTHON EXECUTOR] [%s] Starting process", str(process_name)
+        )
 
     sig, _ = process_task(
         command,
@@ -126,7 +137,9 @@ def executor(process_name: str, command: str) -> None:
     sys.stdout.flush()
     sys.stderr.flush()
     if __debug__:
-        logger.debug("[PYTHON EXECUTOR] [%s] Exiting process ", str(process_name))
+        logger.debug(
+            "[PYTHON EXECUTOR] [%s] Exiting process ", str(process_name)
+        )
     if sig != 0:
         sys.exit(sig)
 
@@ -173,7 +186,7 @@ def process_task(
             )  # type: typing.Dict[str, typing.Tuple[int, int, int]]
             if num_collection_params > 0:
                 raw_layouts = splitted_current_line[
-                    ((num_collection_params * -4) - 1) : -1
+                    ((num_collection_params * -4) - 1) : -1  # noqa: E203
                 ]
                 for i in range(num_collection_params):
                     param = raw_layouts[i * 4]
@@ -184,7 +197,8 @@ def process_task(
                     )
                     collections_layouts[param] = layout
 
-            # Remove the last elements: cpu and gpu bindings and collection params
+            # Remove the last elements: cpu and gpu bindings and
+            # collection params
             current_line_filtered = splitted_current_line[0:-3]
 
             # task jobId command
@@ -196,16 +210,20 @@ def process_task(
             # current_line_filtered[6] = <integer> = task id
             # current_line_filtered[7] = <boolean> = debug
             # current_line_filtered[8] = <string>  = storage conf.
-            # current_line_filtered[9] = <string>  = operation type (e.g. METHOD)
-            # current_line_filtered[10] = <string>  = module
+            # current_line_filtered[9] = <string>  = operation type
+            #                                        (e.g. METHOD)
+            # current_line_filtered[10] = <string> = module
             # current_line_filtered[11]= <string>  = method
             # current_line_filtered[12]= <string>  = time out
-            # current_line_filtered[13]= <integer> = Number of slaves (worker nodes)==#nodes
+            # current_line_filtered[13]= <integer> = Number of slaves
+            #                                        (worker nodes)==#nodes
             # <<list of slave nodes>>
             # current_line_filtered[13 + #nodes] = <integer> = computing units
             # current_line_filtered[14 + #nodes] = <boolean> = has target
-            # current_line_filtered[15 + #nodes] = <string>  = has return (always "null")
-            # current_line_filtered[16 + #nodes] = <integer> = Number of parameters
+            # current_line_filtered[15 + #nodes] = <string>  = has return
+            #                                                  (always "null")
+            # current_line_filtered[16 + #nodes] = <integer> = Number of
+            #                                                  parameters
             # <<list of parameters>>
             #       !---> type, stream, prefix , value
 
@@ -257,7 +275,7 @@ def process_task(
                 # Setup process environment
                 compss_nodes = int(current_line_filtered[13])
                 compss_nodes_names = ",".join(
-                    current_line_filtered[14 : 14 + compss_nodes]
+                    current_line_filtered[14 : 14 + compss_nodes]  # noqa: E203
                 )
                 computing_units = int(current_line_filtered[14 + compss_nodes])
                 os.environ["COMPSS_NUM_NODES"] = str(compss_nodes)
@@ -266,9 +284,13 @@ def process_task(
                 os.environ["OMP_NUM_THREADS"] = str(computing_units)
                 if __debug__:
                     logger.debug("Process environment:")
-                    logger.debug("\t - Number of nodes: %s", (str(compss_nodes)))
+                    logger.debug(
+                        "\t - Number of nodes: %s", (str(compss_nodes))
+                    )
                     logger.debug("\t - Hostnames: %s", str(compss_nodes_names))
-                    logger.debug("\t - Number of threads: %s", (str(computing_units)))
+                    logger.debug(
+                        "\t - Number of threads: %s", (str(computing_units))
+                    )
 
                 # Execute task
                 storage_conf = "null"
@@ -321,7 +343,11 @@ def process_task(
                     # compssExceptionTask jobId exitValue message
                     except_msg = except_msg.replace(" ", "_")
                     message = " ".join(
-                        (TAGS.compss_exception, str(job_id), str(except_msg) + "\n")
+                        (
+                            TAGS.compss_exception,
+                            str(job_id),
+                            str(except_msg) + "\n",
+                        )
                     )
                     if __debug__:
                         logger.debug(
@@ -338,7 +364,9 @@ def process_task(
 
                 if __debug__:
                     logger.debug(
-                        "%s - END TASK MESSAGE: %s", str(process_name), str(message)
+                        "%s - END TASK MESSAGE: %s",
+                        str(process_name),
+                        str(message),
                     )
                 # The return message is:
                 #
@@ -360,15 +388,21 @@ def process_task(
                 #
                 # This is sent through the pipe with the END_TASK message.
                 # If the task had an object or file as parameter and the worker
-                # returns the id, the runtime can change the type (and locations)
-                # to a EXTERNAL_OBJ_T.
+                # returns the id, the runtime can change the type (and
+                # locations) to a EXTERNAL_OBJ_T.
 
-            except Exception as general_exception:  # pylint: disable=broad-except
+            except (
+                Exception
+            ) as general_exception:  # pylint: disable=broad-except
                 logger.exception(
-                    "%s - Exception %s", str(process_name), str(general_exception)
+                    "%s - Exception %s",
+                    str(process_name),
+                    str(general_exception),
                 )
                 exit_value = 7
-                message = " ".join((TAGS.end_task, str(job_id), str(exit_value) + "\n"))
+                message = " ".join(
+                    (TAGS.end_task, str(job_id), str(exit_value) + "\n")
+                )
 
             # Clean environment variables
             if __debug__:
@@ -391,17 +425,19 @@ def process_task(
                     str(job_id),
                 )
             # return SUCCESS_SIG,
-            #        "{0} -- Task Ended Successfully!".format(str(process_name))
+            #        f"{str(process_name)} -- Task Ended Successfully!"
 
         else:
             if __debug__:
                 logger.debug(
                     "[PYTHON EXECUTOR] [%s] Unexpected message: %s",
                     str(process_name),
-                    str(current_line_filtered),
+                    str(current_line),
                 )
             exit_value = 7
-            message = " ".join((TAGS.end_task, str(job_id), str(exit_value) + "\n"))
+            message = " ".join(
+                (TAGS.end_task, str(job_id), str(exit_value) + "\n")
+            )
 
         # Go back to initial current working directory
         os.chdir(current_working_dir)

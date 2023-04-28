@@ -56,11 +56,17 @@ def check_arguments(
     """
     decorator_str = f"{decorator} decorator"
     # Look for mandatory arguments
-    check_mandatory_arguments(mandatory_arguments, argument_names, decorator_str)
+    check_mandatory_arguments(
+        mandatory_arguments, argument_names, decorator_str
+    )
     # Look for deprecated arguments
-    __check_deprecated_arguments__(deprecated_arguments, argument_names, decorator_str)
+    __check_deprecated_arguments(
+        deprecated_arguments, argument_names, decorator_str
+    )
     # Look for unexpected arguments
-    __check_unexpected_arguments__(supported_arguments, argument_names, decorator_str)
+    __check_unexpected_arguments(
+        supported_arguments, argument_names, decorator_str
+    )
 
 
 def check_mandatory_arguments(
@@ -79,18 +85,18 @@ def check_mandatory_arguments(
         if "_" in argument:
             if (
                 argument not in argument_names
-                and __to_camel_case__(argument) not in argument_names
+                and __to_camel_case(argument) not in argument_names
             ):
                 # The mandatory argument or it converted to camel case is
                 # not in the arguments
-                __error_mandatory_argument__(where, argument)
+                __error_mandatory_argument(where, argument)
         else:
             if argument not in argument_names:
                 # The mandatory argument is not in the arguments
-                __error_mandatory_argument__(where, argument)
+                __error_mandatory_argument(where, argument)
 
 
-def __to_camel_case__(argument: str) -> str:
+def __to_camel_case(argument: str) -> str:
     """Convert the given argument to camel case.
 
     :param argument: String to convert to camel case.
@@ -100,7 +106,7 @@ def __to_camel_case__(argument: str) -> str:
     return components[0] + "".join(x.title() for x in components[1:])
 
 
-def __error_mandatory_argument__(decorator: str, argument: str) -> None:
+def __error_mandatory_argument(decorator: str, argument: str) -> None:
     """Raise an exception when the argument is mandatory in the decorator.
 
     :param argument: Argument name.
@@ -110,11 +116,12 @@ def __error_mandatory_argument__(decorator: str, argument: str) -> None:
                               the error.
     """
     raise PyCOMPSsException(
-        f"The argument {str(argument)} is mandatory in the {str(decorator)} decorator."
+        f"The argument {str(argument)} is mandatory "
+        f"in the {str(decorator)} decorator."
     )
 
 
-def __check_deprecated_arguments__(
+def __check_deprecated_arguments(
     deprecated_arguments: typing.Set[str],
     argument_names: typing.List[str],
     where: str,
@@ -130,7 +137,8 @@ def __check_deprecated_arguments__(
     for argument in argument_names:
         if argument == "isModifier":
             message = (
-                f"ERROR: Unsupported argument: isModifier Found in {str(where)}.\n"
+                f"ERROR: Unsupported argument: isModifier Found "
+                f"in {str(where)}.\n"
                 "       Please, use: target_direction"
             )
             print(message, file=sys.stderr)  # also show the warn in stderr
@@ -139,7 +147,8 @@ def __check_deprecated_arguments__(
         if argument in deprecated_arguments:
             current_argument = re.sub("([A-Z]+)", r"_\1", argument).lower()
             message = (
-                f"WARNING: Deprecated argument: {str(argument)} Found in {str(where)}.\n"
+                f"WARNING: Deprecated argument: {str(argument)} Found "
+                f"in {str(where)}.\n"
                 f"         Please, use: {current_argument}"
             )
 
@@ -150,7 +159,7 @@ def __check_deprecated_arguments__(
             print(message, file=sys.stderr)  # also show the warn in stderr
 
 
-def __check_unexpected_arguments__(
+def __check_unexpected_arguments(
     supported_arguments: typing.Set[str],
     argument_names: typing.List[str],
     where: str,
@@ -165,7 +174,8 @@ def __check_unexpected_arguments__(
     for argument in argument_names:
         if argument not in supported_arguments:
             message = (
-                f"WARNING: Unexpected argument: {str(argument)} Found in {str(where)}."
+                f"WARNING: Unexpected argument: {str(argument)} Found "
+                f"in {str(where)}."
             )
             # The print through stdout is disabled to prevent the message to
             # appear twice in the console. So the warning message will only

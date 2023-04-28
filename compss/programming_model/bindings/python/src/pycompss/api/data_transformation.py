@@ -33,9 +33,13 @@ from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.private_tasks import transform as _transform
 from pycompss.api.commons.private_tasks import col_to_obj as _col_to_obj
 from pycompss.api.commons.private_tasks import col_to_file as _col_to_file
-from pycompss.api.commons.private_tasks import object_to_file as _object_to_file
+from pycompss.api.commons.private_tasks import (
+    object_to_file as _object_to_file,
+)
 from pycompss.api.commons.private_tasks import file_to_col as _file_to_col
-from pycompss.api.commons.private_tasks import file_to_object as _file_to_object
+from pycompss.api.commons.private_tasks import (
+    file_to_object as _file_to_object,
+)
 from pycompss.util.typing_helper import typing
 
 # from pycompss.runtime.task.definitions.core_element import CE
@@ -56,7 +60,8 @@ COLLECTION_TO_OBJECT = 3
 COLLECTION_TO_FILE = 4
 
 
-class DataTransformation:  # pylint: disable=too-few-public-methods
+class DataTransformation:  # pylint: disable=R0902,R0903
+    # disable=too-many-instance-attributes, too-few-public-methods
     """Data Transformation decorator for PyCOMPSs tasks."""
 
     __slots__ = [
@@ -83,7 +88,9 @@ class DataTransformation:  # pylint: disable=too-few-public-methods
         :param kwargs: kwargs of the user DT function.
         """
         decorator_name = "".join(("@", DataTransformation.__name__.lower()))
-        # super(DataTransformation, self).__init__(decorator_name, *args, **kwargs)
+        # super(DataTransformation, self).__init__(
+        #     decorator_name, *args, **kwargs
+        # )
         self.decorator_name = decorator_name
         self.args = args
         self.kwargs = kwargs
@@ -150,19 +157,32 @@ class DataTransformation:  # pylint: disable=too-few-public-methods
         elif len(self.args) == 2:
             dts.append((self.args[0], self.args[1], self.kwargs))
         elif self.type is OBJECT_TO_FILE:
-            dts.append((self.target, self.user_function, self.kwargs, args, kwargs))
+            dts.append(
+                (self.target, self.user_function, self.kwargs, args, kwargs)
+            )
         elif self.type is FILE_TO_OBJECT:
-            dts.append((self.target, self.user_function, self.kwargs, args, kwargs))
+            dts.append(
+                (self.target, self.user_function, self.kwargs, args, kwargs)
+            )
         elif self.type is FILE_TO_COLLECTION:
-            dts.append((self.target, self.user_function, self.kwargs, args, kwargs))
+            dts.append(
+                (self.target, self.user_function, self.kwargs, args, kwargs)
+            )
         elif self.type is COLLECTION_TO_OBJECT:
-            dts.append((self.target, self.user_function, self.kwargs, args, kwargs))
+            dts.append(
+                (self.target, self.user_function, self.kwargs, args, kwargs)
+            )
         elif self.type is COLLECTION_TO_FILE:
-            dts.append((self.target, self.user_function, self.kwargs, args, kwargs))
+            dts.append(
+                (self.target, self.user_function, self.kwargs, args, kwargs)
+            )
         for _dt in dts:
             self._apply_dt(_dt[0], _dt[1], _dt[2], args, kwargs)
 
-    def _apply_dt(self, param_name, func, func_kwargs, args, kwargs):
+    def _apply_dt(
+        self, param_name, func, func_kwargs, args, kwargs
+    ):  # pylint: disable=R0913,R0912,R0903
+        # disable=too-many-arguments, too-many-branches, too-few-public-methods
         """Call the data transformation function for the given parameter.
 
         :param param_name: parameter that DT will be applied to
@@ -182,7 +202,7 @@ class DataTransformation:  # pylint: disable=too-few-public-methods
         if is_kwarg:
             p_value = kwargs.get(param_name)
         else:
-            all_params = inspect.signature(self.user_function)
+            all_params = inspect.signature(self.user_function)  # type: ignore
             keyz = all_params.parameters.keys()
             if param_name not in keyz:
                 raise Exception("Wrong Param Name in DT")
@@ -190,9 +210,11 @@ class DataTransformation:  # pylint: disable=too-few-public-methods
             if i < len(args):
                 p_value = args[i]
             else:
-                p_value = all_params.parameters.get(param_name).default
+                p_value = all_params.parameters.get(
+                    param_name
+                ).default  # type: ignore
 
-        new_value: typing.Any
+        new_value = None
         if is_workflow:
             # no need to create a task if it's a workflow
             new_value = func(p_value, **func_kwargs)
@@ -203,7 +225,11 @@ class DataTransformation:  # pylint: disable=too-few-public-methods
             new_value = _file_to_object(p_value, self.dt_function)
         elif self.type is FILE_TO_COLLECTION:
             size = int(self.kwargs.pop("size"))
-            new_value = _file_to_col(p_value, self.dt_function, returns=size)
+            new_value = _file_to_col(  # pylint: disable=unexpected-keyword-arg
+                p_value,
+                self.dt_function,
+                returns=size,
+            )
         elif self.type is COLLECTION_TO_OBJECT:
             new_value = _col_to_obj(p_value, self.dt_function)
         elif self.type is COLLECTION_TO_FILE:
@@ -218,7 +244,8 @@ class DataTransformation:  # pylint: disable=too-few-public-methods
             args[i] = new_value
 
 
-class DTObject(object):
+class DTObject:  # pylint: disable=R0903
+    # disable=too-few-public-methods
     """Data Transformation Object is a replacement for DT decorator definition.
 
     Data Transformation Object is a helper class to avoid stack of
@@ -253,5 +280,5 @@ class DTObject(object):
 
 
 dt = DataTransformation  # pylint: disable=invalid-name
-data_transformation = DataTransformation
-dto = DTObject
+data_transformation = DataTransformation  # pylint: disable=invalid-name
+dto = DTObject  # pylint: disable=invalid-name

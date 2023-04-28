@@ -57,9 +57,10 @@ def test_mpmd_mpi_call_outside():
     except Exception:  # noqa
         thrown = True  # this is OK!
     CONTEXT.set_out_of_scope()
-    assert (
-        thrown
-    ), "The mpmd_mpi decorator did not raise an exception when invoked out of scope."
+    assert thrown, (
+        "The mpmd_mpi decorator did not raise an exception when "
+        "invoked out of scope."
+    )
 
 
 def test_mpmd_mpi_call_outside_invalid_program():
@@ -72,9 +73,10 @@ def test_mpmd_mpi_call_outside_invalid_program():
     except PyCOMPSsException:  # noqa
         thrown = True  # this is OK!
     CONTEXT.set_out_of_scope()
-    assert (
-        thrown
-    ), "The mpmd_mpi decorator did not raise an exception for an incorrect program."
+    assert thrown, (
+        "The mpmd_mpi decorator did not raise an exception "
+        "for an incorrect program."
+    )
 
 
 def test_mpmd_mpi_call_outside_not_binary():
@@ -87,9 +89,10 @@ def test_mpmd_mpi_call_outside_not_binary():
     except PyCOMPSsException:  # noqa
         thrown = True  # this is OK!
     CONTEXT.set_out_of_scope()
-    assert (
-        thrown
-    ), "The mpmd_mpi decorator did not raise an exception when no binary is provided in program."
+    assert thrown, (
+        "The mpmd_mpi decorator did not raise an exception when no binary "
+        "is provided in program."
+    )
 
 
 def test_mpmd_mpi_existing_core_element():

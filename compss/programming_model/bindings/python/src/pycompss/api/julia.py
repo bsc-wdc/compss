@@ -51,6 +51,7 @@ if __debug__:
 MANDATORY_ARGUMENTS = {LABELS.julia_script}
 SUPPORTED_ARGUMENTS = {
     LABELS.julia_executor,
+    LABELS.julia_args,
     LABELS.julia_script,
     LABELS.fail_by_exit_value,
     LABELS.working_dir,
@@ -131,6 +132,7 @@ class Julia:  # pylint: disable=too-few-public-methods
                 self.__configure_core_element__(kwargs)
 
             multinode_decorator_defined = False
+            old_slurm_env = {}
             if LABELS.computing_nodes in kwargs:
                 multinode_decorator_defined = True
                 # We need to do what @multinode does:
@@ -139,7 +141,9 @@ class Julia:  # pylint: disable=too-few-public-methods
 
             # Set the computing_nodes variable in kwargs for its usage
             # in @task decorator
-            kwargs[LABELS.computing_nodes] = self.kwargs[LABELS.computing_nodes]
+            kwargs[LABELS.computing_nodes] = self.kwargs[
+                LABELS.computing_nodes
+            ]
 
             with keep_arguments(args, kwargs, prepend_strings=False):
                 # Call the method
@@ -169,6 +173,10 @@ class Julia:  # pylint: disable=too-few-public-methods
         if LABELS.julia_executor in self.kwargs:
             julia_executor = self.kwargs[LABELS.julia_executor]
 
+        julia_args = ""
+        if LABELS.julia_args in self.kwargs:
+            julia_args = self.kwargs[LABELS.julia_args]
+
         julia_script = self.kwargs[LABELS.julia_script]
 
         # Resolve computing nodes
@@ -192,6 +200,7 @@ class Julia:  # pylint: disable=too-few-public-methods
         impl_signature = ".".join((impl_type, julia_script))
         impl_args = [
             julia_executor,
+            julia_args,
             julia_script,
             self.kwargs[LABELS.working_dir],
             self.kwargs[LABELS.fail_by_exit_value],

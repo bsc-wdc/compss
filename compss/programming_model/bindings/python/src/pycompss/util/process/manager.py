@@ -42,7 +42,8 @@ except ImportError:
     ShareableList = None  # type: ignore
     SharedMemoryManager = None  # type: ignore
 
-# from multiprocessing.managers import DictProxy  # Used only for typing Python >= 3.8
+# Next import can be used only for typing with Python >= 3.8
+# from multiprocessing.managers import DictProxy
 DictProxy = typing.Any  # type: ignore
 
 
@@ -101,7 +102,7 @@ def new_manager() -> SyncManager:
 def create_process(
     target: typing.Callable, args: tuple = (), prepend_lock: bool = False
 ) -> Process:
-    """Create a new process instance for the given target with the provided arguments.
+    """Create a new process for the given target with the provided arguments.
 
     :param target: Function to execute in a multiprocessing process.
     :param args: function arguments.
@@ -117,7 +118,9 @@ def create_process(
 def create_shared_memory_manager(
     address: typing.Tuple[str, int], authkey: typing.Optional[bytes]
 ) -> SharedMemoryManager:
-    """Create a new shared memory manager process at the given address with the provided authkey.
+    """Create a new shared memory manager process.
+
+    At the given address with the provided authkey.
 
     :param address: Shared memory manager address (IP, PORT).
     :param authkey: Shared memory manager authentication key.
@@ -128,7 +131,9 @@ def create_shared_memory_manager(
 
 
 def create_proxy_dict() -> DictProxy:
-    """Create a proxy dictionary to share the information across workers within the same node.
+    """Create a proxy dictionary.
+
+    Aimed at sharing the information across workers within the same node.
 
     :return: Proxy dictionary.
     """

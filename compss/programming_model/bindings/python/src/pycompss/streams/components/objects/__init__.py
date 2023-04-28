@@ -15,6 +15,10 @@
 #  limitations under the License.
 #
 
-"""This package contains the Streaming component objects functions, constants and classes."""
+"""
+This package contains the Streaming component objects helpers.
+
+Where the helpers are functions, constants and classes.
+"""
 
 __all__ = ["kafka_connectors"]

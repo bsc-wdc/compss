@@ -23,6 +23,7 @@ PyCOMPSs DDS - API.
 This file contains the DDS interface.
 """
 
+import heapq
 import bisect
 import itertools
 import functools
@@ -32,7 +33,6 @@ from collections import deque, defaultdict
 from pycompss.api.api import compss_wait_on as cwo
 from pycompss.api.api import compss_delete_object as cdo
 from pycompss.api.api import compss_barrier
-from pycompss.dds import heapq3
 from pycompss.dds.partition_generators import IPartitionGenerator
 from pycompss.dds.partition_generators import BasicDataLoader
 from pycompss.dds.partition_generators import IteratorLoader
@@ -116,22 +116,26 @@ class DDS:
 
         :param file_path: A path to a file to be loaded.
         :param chunk_size: Size of chunks in bytes.
-        :param worker_read: If reading the file in the worker (skips first bytes).
+        :param worker_read: If reading the file in the worker
+                            (skips first bytes).
         :return: Self.
         """
         if worker_read:
-            with open(file_path) as file_path_fd:
+            with open(file_path) as file_path_fd:  # pylint: disable=W1514
                 file_path_fd.seek(0, 2)
                 total = file_path_fd.tell()
             parsed = 0
             while parsed < total:
                 _partition_loader = WorkerFileLoader(
-                    [file_path], single_file=True, start=parsed, chunk_size=chunk_size
+                    [file_path],
+                    single_file=True,
+                    start=parsed,
+                    chunk_size=chunk_size,
                 )
                 self.partitions.append(_partition_loader)
                 parsed += chunk_size
         else:
-            with open(file_path, "r") as file_path_fd:
+            with open(file_path, "r") as file_path_fd:  # pylint: disable=W1514
                 chunk = file_path_fd.read(chunk_size)
                 while chunk:
                     _partition_loader = BasicDataLoader(chunk)
@@ -140,7 +144,9 @@ class DDS:
 
         return self
 
-    def load_text_file(self, file_name, chunk_size=1024, in_bytes=True, strip=True):
+    def load_text_file(
+        self, file_name, chunk_size=1024, in_bytes=True, strip=True
+    ):
         r"""Load a text file into partitions with 'chunk_size' lines on each.
 
         Usage sample:
@@ -266,7 +272,9 @@ class DDS:
         """Apply a function to each partition of this data set.
 
         Usage sample:
-            > DDS().load(range(10), 5).map_partitions(lambda x: [sum(x)]).collect(True)
+            > DDS().load(range(10), 5).map_partitions(
+                lambda x: [sum(x)]
+              ).collect(True)
             [[1], [5], [9], [13], [17]]
 
         :param func: Function to apply.
@@ -284,8 +292,8 @@ class DDS:
             > sorted(dds.flat_map(lambda x: range(1, x)).collect())
             [1, 1, 1, 2, 2, 3]
 
-        :param func: A function that should return a list, tuple or another kind of
-                  iterable
+        :param func: A function that should return a list, tuple or
+                     another kind of iterable.
         :param args: Arguments.
         :param kwargs: Keyword arguments.
         :returns: New child DDS object.
@@ -322,16 +330,17 @@ class DDS:
             > DDS().load(range(10), 5).reduce((lambda b, a: b + a) , 100)
             145
 
-        :param func: A reduce function which should take two parameters as inputs
-                  and return a single result which will be sent to itself again.
+        :param func: A reduce function which should take two parameters as
+                     inputs and return a single result which will be sent to
+                     itself again.
         :param initial: Initial value for reducer which will be used to reduce
-                the first element with.
+                        the first element with.
         :param arity: Tree depth.
         :return: Reduced result (inside a DDS if necessary).
         """
 
         def local_reducer(partition):
-            """Reduce a partition and retrieve it as a partition containing one element.
+            """Reduce a partition and retrieve it as a one element partition.
 
             :param partition: Partition.
             :return: One element partition.
@@ -344,7 +353,9 @@ class DDS:
 
             return [functools.reduce(func, iterator, init)]
 
-        local_results = self.map_partitions(local_reducer).collect(future_objects=True)
+        local_results = self.map_partitions(local_reducer).collect(
+            future_objects=True
+        )
 
         local_results = deque(local_results)
 
@@ -446,15 +457,15 @@ class DDS:
         return DDS().load(new_partitions, -1)
 
     def key_by(self, func):
-        """Create a (key,value) pair for each element where the 'key' is f(value).
+        """Create a (key,value) pair for each element where 'key' is f(value).
 
         Usage sample:
             > dds = DDS().load(range(3), 2)
             > dds.key_by(lambda x: str(x)).collect()
             [('0', 0), ('1', 1), ('2', 2)]
 
-        :param func: A Key Creator function which takes the element as a parameter
-                  and returns the key.
+        :param func: A Key Creator function which takes the element as a
+                     parameter and returns the key.
         :return: List of (key, value) pairs.
         """
         return self.map(lambda x: (func(x), x))
@@ -482,7 +493,9 @@ class DDS:
         return self.map_partitions(lambda i: [sum(1 for _ in i)]).sum()
 
     def foreach(self, func):
-        """Apply a function to each element of this data set without returning anything.
+        """Apply a function to each element of this data set.
+
+        CAUTION: Does not return anything.
 
         :param func: A void function.
         :returns: None
@@ -541,7 +554,9 @@ class DDS:
         return ret
 
     def save_as_text_file(self, path):
-        """Save string representations of DDS elements as text files (one file per partition).
+        """Save string representations of DDS elements as text files.
+
+        This saving creates one file per partition.
 
         :param path: Destination file path.
         :return: None.
@@ -569,9 +584,9 @@ class DDS:
             for i, _p in enumerate(self.partitions):
                 map_and_save_pickle(self.func, i, path, _p)
 
-    ####################################################################
+    # ################################################################ #
     # ############## Functions for (Key, Value) pairs. ############### #
-    ####################################################################
+    # ################################################################ #
 
     def collect_as_dict(self):
         """Get (key,value) as { key: value }.
@@ -606,7 +621,9 @@ class DDS:
         """
         return self.map(lambda x: x[1])
 
-    def partition_by(self, partitioner_func=default_hash, num_of_partitions=-1):
+    def partition_by(
+        self, partitioner_func=default_hash, num_of_partitions=-1
+    ):
         """Create partitions by a Partition Func.
 
         Usage sample:
@@ -615,19 +632,24 @@ class DDS:
             [[(0, 0), (3, 3)], [(1, 1), (4, 4)], [(2, 2), (5, 5)]]
 
         :param partitioner_func: A Function distribute data on partitions based
-                                on for example, hash function.
+                                 on for example, hash function.
         :param num_of_partitions: Number of partitions to be created.
         :return: Partitions.
         """
 
         def combine_lists(_partition):
-            # Elements of the partition are grouped by their previous partitions
+            # Elements of the partition are grouped by their
+            # previous partitions
             ret = []
             for _li in _partition:
                 ret.extend(_li)
             return ret
 
-        nop = len(self.partitions) if num_of_partitions == -1 else num_of_partitions
+        nop = (
+            len(self.partitions)
+            if num_of_partitions == -1
+            else num_of_partitions
+        )
 
         grouped = defaultdict(list)
 
@@ -645,7 +667,9 @@ class DDS:
             for _part in self.partitions:
                 col = [[] for _ in range(nop)]
                 with EventMaster(3002):
-                    distribute_partition(col, self.func, partitioner_func, _part)
+                    distribute_partition(
+                        col, self.func, partitioner_func, _part
+                    )
                 for _i in range(nop):
                     grouped[_i].append(col[_i])
 
@@ -653,13 +677,19 @@ class DDS:
         for key in sorted(grouped.keys()):
             future_partitions.append(grouped[key])
 
-        return DDS().load(future_partitions, -1, True).map_partitions(combine_lists)
+        return (
+            DDS()
+            .load(future_partitions, -1, True)
+            .map_partitions(combine_lists)
+        )
 
     def map_values(self, func):
-        """Apply a function to each value of (key, value) element of this data set.
+        """Apply a function to each value of (k, v) element of this data set.
 
         Usage sample:
-            > DDS().load([("a", 1), ("b", 1)]).map_values(lambda x: x+1).collect()
+            > DDS().load(
+                [("a", 1), ("b", 1)]
+              ).map_values(lambda x: x+1).collect()
             [('a', 2), ('b', 2)]
 
         :param func: A function which takes 'value's as parameter.
@@ -672,10 +702,14 @@ class DDS:
         return self.map(dummy)
 
     def flatten_by_key(self, func):
-        """Reverse of combine by key.Flat (key, values) as (key, value1), (key, value2) etc.
+        """Reverse of combine by key.Flat (k, v) as (k, v1), (k, v2) etc.
+
+        In detail: (key, values) as (key, value1), (key, value2) ...
 
         Usage sample:
-            > DDS().load([('a',[1, 2]), ('b',[1])]).flatten_by_key(lambda x: x).collect()
+            > DDS().load(
+                [('a',[1, 2]), ('b',[1])]
+              ).flatten_by_key(lambda x: x).collect()
             [('a', 1), ('a', 2), ('b', 1)]
 
         :param func: A function to parse values.
@@ -703,14 +737,18 @@ class DDS:
 
         def dispatch(seq):
             buf_1, buf_2 = [], []
-            for (n, v) in seq:
+            for n, v in seq:
                 if n == 1:
                     buf_1.append(v)
                 elif n == 2:
                     buf_2.append(v)
             return [(v, w) for v in buf_1 for w in buf_2]
 
-        nop = len(self.partitions) if num_of_partitions == -1 else num_of_partitions
+        nop = (
+            len(self.partitions)
+            if num_of_partitions == -1
+            else num_of_partitions
+        )
 
         buf_a = self.map_values(lambda v: (1, v))
         buf_b = other.map_values(lambda y: (2, y))
@@ -729,14 +767,14 @@ class DDS:
         :param creator_func: To apply to the first element of the key. Takes
                              only one argument which is the value from (k, v)
                              pair. (e.g: v = list(v)).
-        :param combiner_func: To apply when a new element with the same 'key' is
-                              found. It is used to combine partitions locally.
-                              Takes 2 arguments; first one is the result of
-                              'creator_func' where the second one is a 'value'
-                              of the same 'key' from the same partition.
-                              (e.g: v1.append(v2)).
+        :param combiner_func: To apply when a new element with the same 'key'
+                              is found. It is used to combine partitions
+                              locally. Takes 2 arguments; first one is the
+                              result of 'creator_func' where the second one
+                              is a 'value' of the same 'key' from the same
+                              partition. (e.g: v1.append(v2)).
         :param merger_function: To merge local results. Basically takes two
-                                arguments- both are results of 'combiner_func'.
+                                arguments -both are results of 'combiner_func'.
                                 (e.g: list_1.extend(list_2)).
         :param total_parts: Number of partitions after combinations.
         :return: Combined by key DDS object.
@@ -751,7 +789,9 @@ class DDS:
             res = {}
             for key, val in partition:
                 res[key] = (
-                    combiner_func(res[key], val) if key in res else creator_func(val)
+                    combiner_func(res[key], val)
+                    if key in res
+                    else creator_func(val)
                 )
             return list(res.items())
 
@@ -763,7 +803,9 @@ class DDS:
             """
             res = {}
             for key, val in partition:
-                res[key] = merger_function(res[key], val) if key in res else val
+                res[key] = (
+                    merger_function(res[key], val) if key in res else val
+                )
             return list(res.items())
 
         ret = (
@@ -778,10 +820,13 @@ class DDS:
         """Reduce values for each key.
 
         Usage sample:
-            > DDS().load([("a",1), ("a",2)]).reduce_by_key((lambda a, b: a+b)).collect()
+            > DDS().load(
+                [("a",1), ("a",2)]
+              ).reduce_by_key((lambda a, b: a+b)).collect()
             [('a', 3)]
 
-        :param func: a reducer function which takes two parameters and returns one.
+        :param func: a reducer function which takes two parameters and
+                     returns one.
         :returns: Reduced values.
         """
         return self.combine_by_key((lambda x: x), func, func)
@@ -794,11 +839,14 @@ class DDS:
             {'a': 2}
 
         :param as_dict: See 'as_dict' argument of 'combine_by_key'.
-        :return: A new DDS with data set of list of tuples (element, occurrence).
+        :return: A new DDS with data set of list of tuples
+                 (element, occurrence).
         """
         return self.map(lambda x: x[0]).count_by_value(as_dict=as_dict)
 
-    def sort_by_key(self, ascending=True, num_of_parts=None, key_func=lambda x: x):
+    def sort_by_key(
+        self, ascending=True, num_of_parts=None, key_func=lambda x: x
+    ):
         """Sort by key.
 
         :param ascending: Ascending.
@@ -844,16 +892,21 @@ class DDS:
             chunks = []
             while True:
                 chunk = list(itertools.islice(iterator, chunk_size))
-                chunk.sort(key=lambda kv: key_func(kv[0]), reverse=not ascending)
-                chunks.append(chunk)
+                chunk.sort(
+                    key=lambda kv: key_func(kv[0]), reverse=not ascending
+                )
+                if len(chunk) > 0:
+                    chunks.append(chunk[0])
                 if len(chunk) < chunk_size:
                     break
             else:
                 chunks.append(
-                    chunk.sort(key=lambda kv: key_func(kv[0]), reverse=not ascending)
+                    chunk.sort(
+                        key=lambda kv: key_func(kv[0]), reverse=not ascending
+                    )
                 )
 
-            return heapq3.merge(
+            return heapq.merge(
                 chunks, key=lambda kv: key_func(kv[0]), reverse=not ascending
             )
 
@@ -885,7 +938,9 @@ class DDS:
             a.extend(b)
             return a
 
-        return self.combine_by_key(_create, _merge, _combine, total_parts=num_of_parts)
+        return self.combine_by_key(
+            _create, _merge, _combine, total_parts=num_of_parts
+        )
 
     def take(self, num):
         """Take the first num elements of DDS.

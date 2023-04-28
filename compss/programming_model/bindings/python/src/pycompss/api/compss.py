@@ -135,7 +135,9 @@ class COMPSs:  # pylint: disable=too-few-public-methods
 
             # Set the computing_nodes variable in kwargs for its usage
             # in @task decorator
-            kwargs[LABELS.computing_nodes] = self.kwargs[LABELS.computing_nodes]
+            kwargs[LABELS.computing_nodes] = self.kwargs[
+                LABELS.computing_nodes
+            ]
 
             with keep_arguments(args, kwargs, prepend_strings=False):
                 # Call the method
@@ -168,7 +170,9 @@ class COMPSs:  # pylint: disable=too-few-public-methods
         if LABELS.flags in self.kwargs:
             flags = self.kwargs[LABELS.flags]
         else:
-            flags = INTERNAL_LABELS.unassigned  # Empty or INTERNAL_LABELS.unassigned
+            flags = (
+                INTERNAL_LABELS.unassigned
+            )  # Empty or INTERNAL_LABELS.unassigned
 
         if LABELS.worker_in_master in self.kwargs:
             worker_in_master = self.kwargs[LABELS.worker_in_master]

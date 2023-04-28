@@ -36,7 +36,10 @@ from pycompss.worker.piper.cache.classes import CacheQueueMessage
 from pycompss.worker.piper.cache.tracker import CacheTrackerConf
 from pycompss.worker.piper.cache.tracker import CACHE_TRACKER
 from pycompss.worker.piper.cache.manager import cache_manager
-from pycompss.util.process.manager import create_process
+
+# Used only for typing shortcut
+Dict = typing.Dict
+List = typing.List
 
 
 def is_cache_enabled(cache_config: str) -> bool:
@@ -68,15 +71,13 @@ def start_cache(
     :return: Shared memory manager, cache process, cache message queue and
              cache ids dictionary.
     """
-    main_memory_cache_size = __get_cache_size__(cache_config)
-    gpu_cache_size = __get_gpu_cache_size__(cache_config)
+    main_memory_cache_size = get_cache_size(cache_config)
+    gpu_cache_size = get_gpu_cache_size(cache_config)
     # Cache can be used - Create proxy dict
     cache_ids = create_proxy_dict()
-    cache_hits = {}  # type: typing.Dict[int, typing.Dict[str, int]]
-    profiler_dict = (
-        {}
-    )  # type: typing.Dict[str, typing.Dict[str, typing.Dict[str, typing.Dict[str, int]]]]
-    profiler_get_struct = [[], [], []]  # type: typing.List[typing.List[str]]
+    cache_hits = {}  # type: Dict[int, Dict[str, int]]
+    profiler_dict = {}  # type: Dict[str, Dict[str, Dict[str, Dict[str, int]]]]
+    profiler_get_struct = [[], [], []]  # type: List[List[str]]
     # profiler_get_struct structure: Filename, Parameter, Function
     smm = CACHE_TRACKER.start_shared_memory_manager()
     conf = CacheTrackerConf(
@@ -91,9 +92,11 @@ def start_cache(
         log_dir,
         cache_profiler,
     )
-    cache_process, in_cache_queue, out_cache_queue = __create_cache_manager_process__(
-        "cache_tracker", conf
-    )
+    (
+        cache_process,
+        in_cache_queue,
+        out_cache_queue,
+    ) = create_cache_tracker_process("cache_tracker", conf)
     return smm, cache_process, in_cache_queue, out_cache_queue, cache_ids
 
 
@@ -116,11 +119,13 @@ def stop_cache(
     if cache_profiler:
         message = CacheQueueMessage(action="END_PROFILING")
         in_cache_queue.put(message)
-    __destroy_cache_tracker_process__(cache_process, in_cache_queue, out_cache_queue)
+    __destroy_cache_tracker_process(
+        cache_process, in_cache_queue, out_cache_queue
+    )
     CACHE_TRACKER.stop_shared_memory_manager(shared_memory_manager)
 
 
-def __get_cache_size__(cache_config: str) -> int:
+def get_cache_size(cache_config: str) -> int:
     """Retrieve the cache size for the given config.
 
     :param cache_config: Cache configuration defined on startup.
@@ -130,20 +135,21 @@ def __get_cache_size__(cache_config: str) -> int:
         _, cache_s = cache_config.split(":")
         cache_size = int(cache_s)
     else:
-        cache_size = __get_default_cache_size__()
+        cache_size = get_default_cache_size()
     return cache_size
 
 
-def __get_gpu_cache_size__(cache_config: str) -> int:
+def get_gpu_cache_size(cache_config: str) -> int:
     """Retrieve the cache size in the GPU for the given config.
 
     :param cache_config: Cache configuration defined on startup.
     :return: GPU cache size.
     """
+    # TODO: why this number?
     return 2999238656
 
 
-def __get_default_cache_size__() -> int:
+def get_default_cache_size() -> int:
     """Return the default cache size.
 
     :return: The size in bytes.
@@ -152,12 +158,14 @@ def __get_default_cache_size__() -> int:
     with open("/proc/meminfo") as meminfo_fd:
         full_meminfo = meminfo_fd.readlines()
 
-    mem_info = dict((i.split()[0].rstrip(":"), int(i.split()[1])) for i in full_meminfo)
+    mem_info = dict(
+        (i.split()[0].rstrip(":"), int(i.split()[1])) for i in full_meminfo
+    )
     cache_size = int(mem_info["MemTotal"] * 1024 / 4)
     return cache_size
 
 
-def __create_cache_manager_process__(
+def create_cache_tracker_process(
     process_name: str, conf: CacheTrackerConf
 ) -> typing.Tuple[Process, Queue, Queue]:
     """Start a new cache tracker process.
@@ -175,7 +183,7 @@ def __create_cache_manager_process__(
     return process, in_queue, out_queue
 
 
-def __destroy_cache_tracker_process__(
+def __destroy_cache_tracker_process(
     cache_process: Process, in_queue: Queue, out_queue: Queue
 ) -> None:
     """Stop the given cache tracker process.

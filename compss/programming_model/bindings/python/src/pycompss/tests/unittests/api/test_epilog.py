@@ -30,7 +30,9 @@ def dummy_function(*args, **kwargs):  # noqa
 def test_epilog_instantiation():
     CONTEXT.set_master()
     my_epilog = epilog(binary="date")
-    assert my_epilog.decorator_name == "@epilog", "The decorator name must be @epilog"
+    assert (
+        my_epilog.decorator_name == "@epilog"
+    ), "The decorator name must be @epilog"
 
 
 def test_epilog_call():
@@ -52,9 +54,10 @@ def test_epilog_call_outside():
     except Exception:  # noqa
         thrown = True  # this is OK!
     CONTEXT.set_out_of_scope()
-    assert (
-        thrown
-    ), "The epilog decorator did not raise an exception when invoked out of scope."
+    assert thrown, (
+        "The epilog decorator did not raise an exception when "
+        "invoked out of scope."
+    )
 
 
 def test_epilog_existing_core_element():

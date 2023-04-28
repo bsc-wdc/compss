@@ -38,7 +38,9 @@ def test_object_replace():
 
     replace(o, p)
 
-    assert id(o) == id(p), "ERROR: The objects do not have the same identifier."
+    assert id(o) == id(
+        p
+    ), "ERROR: The objects do not have the same identifier."
 
 
 # # Commented out due to incompatibility with mypy

@@ -108,14 +108,15 @@ class StdWatcher:
             self.running = True
             out_file_name, err_file_name = COMPSs.get_redirection_file_names()
             thread = threading.Thread(
-                target=self.__std_follower__, args=(out_file_name, err_file_name)
+                target=self.__std_follower__,
+                args=(out_file_name, err_file_name),
             )
             thread.start()
         else:
             raise PyCOMPSsException("Can not find the stdout and stderr.")
 
     def stop_watching(self, clean: bool = True) -> None:
-        """Stop the monitoring thread and cleans the redirection files if clean is True.
+        """Stop the monitoring thread and cleans the redirection files.
 
         :param clean: Remove the redirection files.
         :return: None.

@@ -30,7 +30,9 @@ if __debug__:
     link_logger = logging.getLogger(__name__)
 
 
-def establish_link(logger: typing.Optional[logging.Logger] = None) -> typing.Any:
+def establish_link(
+    logger: typing.Optional[logging.Logger] = None,
+) -> typing.Any:
     """Load the compss C extension within the same process.
 
     Does not implement support for stdout and stderr redirecting as the

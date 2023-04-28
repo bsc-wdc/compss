@@ -17,4 +17,4 @@
 
 # -*- coding: utf-8 -*-
 
-"""This package contains the PyCOMPSs runtime object management link helpers."""
+"""This package contains the PyCOMPSs runtime management link helpers."""

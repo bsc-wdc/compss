@@ -130,7 +130,6 @@ def main() -> None:
         streaming = True
 
     with trace_multiprocessing_worker() if tracing else dummy_context():
-
         if streaming:
             # Start streaming
             DistroStreamClientHandler.init_and_start(
@@ -159,14 +158,17 @@ def main() -> None:
         if persistent_storage:
             # Initialize storage
             with EventWorker(TRACING_WORKER.init_storage_at_worker_event):
-                from storage.api import (  # pylint: disable=import-error, import-outside-toplevel
+                from storage.api import (  # pylint: disable=E0401, C0415
+                    # disable=import-error, import-outside-toplevel
                     initWorker as initStorageAtWorker,
                 )
 
                 initStorageAtWorker(config_file_path=storage_conf)
 
         # Init worker
-        exit_code = compss_worker(tracing, str(task_id), storage_conf, params, log_json)
+        exit_code = compss_worker(
+            tracing, str(task_id), storage_conf, params, log_json
+        )
 
         if streaming:
             # Finish streaming
@@ -175,7 +177,8 @@ def main() -> None:
         if persistent_storage:
             # Finish storage
             with EventWorker(TRACING_WORKER.finish_storage_at_worker_event):
-                from storage.api import (  # pylint: disable=import-error, import-outside-toplevel
+                from storage.api import (  # pylint: disable=E0401, C0415
+                    # disable=import-error, import-outside-toplevel
                     finishWorker as finishStorageAtWorker,
                 )
 

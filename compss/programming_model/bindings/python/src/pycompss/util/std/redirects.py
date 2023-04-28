@@ -55,7 +55,9 @@ def not_std_redirector() -> typing.Iterator[None]:
 
 
 @contextmanager
-def std_redirector(out_filename: str, err_filename: str) -> typing.Iterator[None]:
+def std_redirector(
+    out_filename: str, err_filename: str
+) -> typing.Iterator[None]:
     """Stdout and stderr redirector to the given out and err file names.
 
     :param out_filename: Output file filename (where to redirect stdout)
@@ -122,7 +124,7 @@ def std_redirector(out_filename: str, err_filename: str) -> typing.Iterator[None
 def ipython_std_redirector(
     out_filename: str, err_filename: str
 ) -> typing.Iterator[None]:
-    """Stdout and stderr redirector within ipython environments to the given out and err file names.
+    """Redirects stdout and stderr to the given files within ipython envs.
 
     :param out_filename: Output file filename (where to redirect stdout)
     :param err_filename: Error output file filename (where to redirect stderr)
@@ -145,7 +147,8 @@ def ipython_std_redirector(
         # Make stdout_fd point to_fd
         os.dup2(to_fd, stdout_fd)
         # Create a new sys.__stdout__ that points to the redirected fd
-        sys.__stdout__ = io.TextIOWrapper(os.fdopen(stdout_fd, "wb"))
+        new_out = io.TextIOWrapper(os.fdopen(stdout_fd, "wb"))
+        sys.__stdout__ = new_out  # type: ignore
         sys.stdout = sys.__stdout__
 
     def _redirect_stderr(to_fd: int) -> None:
@@ -162,7 +165,8 @@ def ipython_std_redirector(
         # Make stderr_fd point to_fd
         os.dup2(to_fd, stderr_fd)
         # Create a new sys.__stderr__ that points to the redirected fd
-        sys.__stderr__ = io.TextIOWrapper(os.fdopen(stderr_fd, "wb"))
+        new_err = io.TextIOWrapper(os.fdopen(stderr_fd, "wb"))
+        sys.__stderr__ = new_err  # type: ignore
         sys.stderr = sys.__stderr__
 
     # Save a copy of the original stdout and stderr

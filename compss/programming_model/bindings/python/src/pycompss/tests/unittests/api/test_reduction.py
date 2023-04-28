@@ -68,7 +68,9 @@ def test_reduction_chunk_size_parameter():
     _ = f()
     CONTEXT.set_out_of_scope()
     assert "chunk_size" in my_reduction.kwargs, CHUNK_SIZE_ERROR
-    assert chunk_size == my_reduction.kwargs["chunk_size"], CHUNK_SIZE_NOT_INIT_ERROR
+    assert (
+        chunk_size == my_reduction.kwargs["chunk_size"]
+    ), CHUNK_SIZE_NOT_INIT_ERROR
 
 
 def test_reduction_chunk_size_str_parameter():

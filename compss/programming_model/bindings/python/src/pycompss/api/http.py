@@ -121,7 +121,8 @@ class HTTP:  # pylint: disable=too-few-public-methods
 
     @staticmethod
     def __run_http__(
-        *args: typing.Any, **kwargs: typing.Any  # pylint: disable=unused-argument
+        *args: typing.Any,  # pylint: disable=unused-argument
+        **kwargs: typing.Any  # pylint: disable=unused-argument
     ) -> int:
         """HTTP tasks are meant to be dummy.
 

@@ -31,7 +31,9 @@ def test_decaf_instantiation():
     CONTEXT.set_master()
     my_decaf = Decaf(df_script="date")
     CONTEXT.set_out_of_scope()
-    assert my_decaf.decorator_name == "@decaf", "The decorator name must be @decaf."
+    assert (
+        my_decaf.decorator_name == "@decaf"
+    ), "The decorator name must be @decaf."
 
 
 def test_decaf_call():
@@ -53,9 +55,10 @@ def test_decaf_call_outside():
     except Exception:  # noqa
         thrown = True  # this is OK!
     CONTEXT.set_out_of_scope()
-    assert (
-        thrown
-    ), "The decaf decorator did not raise an exception when invoked out of scope."
+    assert thrown, (
+        "The decaf decorator did not raise an exception when "
+        "invoked out of scope."
+    )
 
 
 def test_decaf_runner_parameter():
@@ -65,13 +68,15 @@ def test_decaf_runner_parameter():
     f = my_decaf(dummy_function)
     _ = f()
     CONTEXT.set_out_of_scope()
-    assert "runner" in my_decaf.kwargs, "Runner is not defined in kwargs dictionary."
+    assert (
+        "runner" in my_decaf.kwargs
+    ), "Runner is not defined in kwargs dictionary."
     assert (
         runner == my_decaf.kwargs["runner"]
     ), "Runner parameter has not been initialized."
 
 
-def test_decaf_dfScript_parameter():
+def test_decaf_dfscript_parameter():
     CONTEXT.set_master()
     df_script = "my_dfScript"  # noqa
     my_decaf = Decaf(df_script="date", dfScript=df_script)
@@ -101,7 +106,7 @@ def test_decaf_df_executor_parameter():
     ), "df_executor parameter has not been initialized."
 
 
-def test_decaf_dfExecutor_parameter():  # NOSONAR
+def test_decaf_dfexecutor_parameter():  # NOSONAR
     CONTEXT.set_master()
     df_executor = "my_dfExecutor"  # noqa
     my_decaf = Decaf(df_script="date", dfExecutor=df_executor)
@@ -123,20 +128,24 @@ def test_decaf_df_lib_parameter():
     f = my_decaf(dummy_function)
     _ = f()
     CONTEXT.set_out_of_scope()
-    assert "df_lib" in my_decaf.kwargs, "df_lib is not defined in kwargs dictionary."
+    assert (
+        "df_lib" in my_decaf.kwargs
+    ), "df_lib is not defined in kwargs dictionary."
     assert (
         df_lib == my_decaf.kwargs["df_lib"]
     ), "df_lib parameter has not been initialized."
 
 
-def test_decaf_dfLib_parameter():  # NOSONAR
+def test_decaf_dflib_parameter():  # NOSONAR
     CONTEXT.set_master()
     df_lib = "my_dfLib"  # noqa
     my_decaf = Decaf(df_script="date", dfLib=df_lib)
     f = my_decaf(dummy_function)
     _ = f()
     CONTEXT.set_out_of_scope()
-    assert "dfLib" in my_decaf.kwargs, "dfLib is not defined in kwargs dictionary."
+    assert (
+        "dfLib" in my_decaf.kwargs
+    ), "dfLib is not defined in kwargs dictionary."
     assert (
         df_lib == my_decaf.kwargs["dfLib"]
     ), "dfLib parameter has not been initialized."

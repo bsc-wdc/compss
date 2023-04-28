@@ -27,13 +27,14 @@ import logging
 
 from pycompss.util.context import CONTEXT
 from pycompss.runtime.commons import GLOBALS
+from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.typing_helper import typing
 from pycompss.worker.piper.commons.constants import HEADER
 from pycompss.worker.piper.commons.executor import Pipe
 
 
 class PiperWorkerConfiguration:
-    """Description of the configuration parameters for the Piper Worker class."""
+    """Configuration parameters for the Piper Worker class."""
 
     __slots__ = [
         "nesting",
@@ -71,7 +72,10 @@ class PiperWorkerConfiguration:
         self.cache_profiler = ""  # type: str
 
     def update_params(self, argv: typing.List[str]) -> None:
-        """Construct a configuration description for the piper worker using the arguments.
+        """Update the PiperWorkerConfiguration parameters from arguments.
+
+        Construct a configuration description for the piper worker using
+        the arguments.
 
         :param argv: Arguments from the command line.
         :return: None.
@@ -89,13 +93,23 @@ class PiperWorkerConfiguration:
         self.cache = argv[9]
         self.cache_profiler = argv[10]
         self.tasks_x_node = int(argv[11])
-        exec_ids = argv[12 : 12 + self.tasks_x_node]
+        exec_ids = argv[12 : 12 + self.tasks_x_node]  # noqa: E203
         self.exec_ids = [int(exec_id) for exec_id in exec_ids]
-        in_pipes = argv[12 + self.tasks_x_node : 12 + (self.tasks_x_node * 2)]
-        out_pipes = argv[12 + (self.tasks_x_node * 2) : -2]
+        in_pipes = argv[
+            12 + self.tasks_x_node : 12 + (self.tasks_x_node * 2)  # noqa: E203
+        ]
+        out_pipes = argv[12 + (self.tasks_x_node * 2) : -2]  # noqa: E203
         if self.debug:
-            assert self.tasks_x_node == len(in_pipes)
-            assert self.tasks_x_node == len(out_pipes)
+            if self.tasks_x_node != len(in_pipes):
+                raise PyCOMPSsException(
+                    f"Tasks per node different than input pipes ("
+                    f"{self.tasks_x_node} != {len(in_pipes)})"
+                )
+            if self.tasks_x_node != len(out_pipes):
+                raise PyCOMPSsException(
+                    f"Tasks per node different than output pipes ("
+                    f"{self.tasks_x_node} != {len(out_pipes)})"
+                )
         self.pipes = []
         for i in range(0, self.tasks_x_node):
             self.pipes.append(Pipe(in_pipes[i], out_pipes[i]))
@@ -124,6 +138,10 @@ class PiperWorkerConfiguration:
             logger.debug(HEADER + "                 * " + str(pipe))
         logger.debug(HEADER + "Storage conf.  : " + str(self.storage_conf))
         logger.debug(HEADER + "Stream backend : " + str(self.stream_backend))
-        logger.debug(HEADER + "Stream master  : " + str(self.stream_master_name))
-        logger.debug(HEADER + "Stream port    : " + str(self.stream_master_port))
+        logger.debug(
+            HEADER + "Stream master  : " + str(self.stream_master_name)
+        )
+        logger.debug(
+            HEADER + "Stream port    : " + str(self.stream_master_port)
+        )
         logger.debug(HEADER + "-----------------------------")

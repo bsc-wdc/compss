@@ -98,7 +98,9 @@ def test_mpi_layout_empty_parameter():
     f = my_mpi(dummy_function)
     _ = f()
     CONTEXT.set_out_of_scope()
-    assert "_layout" in my_mpi.kwargs, "_layout is not defined in kwargs dictionary."
+    assert (
+        "_layout" in my_mpi.kwargs
+    ), "_layout is not defined in kwargs dictionary."
 
 
 def test_mpi_binary():
@@ -112,7 +114,9 @@ def test_mpi_binary():
 
 def test_mpi_binary_scale_bool_true():
     CONTEXT.set_master()
-    my_mpi = Mpi(runner=MPI_RUNNER, binary="date", flags="flags", scale_by_cu=True)
+    my_mpi = Mpi(
+        runner=MPI_RUNNER, binary="date", flags="flags", scale_by_cu=True
+    )
     f = my_mpi(dummy_function)
     result = f()
     CONTEXT.set_out_of_scope()
@@ -121,7 +125,9 @@ def test_mpi_binary_scale_bool_true():
 
 def test_mpi_binary_scale_bool_false():
     CONTEXT.set_master()
-    my_mpi = Mpi(runner=MPI_RUNNER, binary="date", flags="flags", scale_by_cu=False)
+    my_mpi = Mpi(
+        runner=MPI_RUNNER, binary="date", flags="flags", scale_by_cu=False
+    )
     f = my_mpi(dummy_function)
     result = f()
     CONTEXT.set_out_of_scope()
@@ -130,7 +136,9 @@ def test_mpi_binary_scale_bool_false():
 
 def test_mpi_binary_scale_str():
     CONTEXT.set_master()
-    my_mpi = Mpi(runner=MPI_RUNNER, binary="date", flags="flags", scale_by_cu="true")
+    my_mpi = Mpi(
+        runner=MPI_RUNNER, binary="date", flags="flags", scale_by_cu="true"
+    )
     f = my_mpi(dummy_function)
     result = f()
     CONTEXT.set_out_of_scope()
@@ -139,7 +147,9 @@ def test_mpi_binary_scale_str():
 
 def test_mpi_binary_scale_incorrect():
     CONTEXT.set_master()
-    my_mpi = Mpi(runner=MPI_RUNNER, binary="date", flags="flags", scale_by_cu=1)
+    my_mpi = Mpi(
+        runner=MPI_RUNNER, binary="date", flags="flags", scale_by_cu=1
+    )
     f = my_mpi(dummy_function)
     exception = False
     try:

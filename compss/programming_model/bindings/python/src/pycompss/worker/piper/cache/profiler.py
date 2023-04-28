@@ -90,12 +90,13 @@ def profiler_print_message(
             f.write('\t' + '\t' + '\t' + "PARAMETER: " + str(parameter))
             logger.debug('\t' + '\t' + '\t' + "PARAMETER: " + str(parameter))
             for filename in profiler_dict[function][parameter]:
-                f.write('\t' + '\t' + '\t' + '\t' + "FILENAME: " + filename + '\t' + " PUT " +
-                        str(profiler_dict[function][parameter][filename]['PUT']) +
-                        " GET " + str(profiler_dict[function][parameter][filename]['GET']))
-                logger.debug('\t' + '\t' + '\t' + '\t' + "FILENAME: " + filename + '\t' + " PUT " +
-                             str(profiler_dict[function][parameter][filename]['PUT']) +
-                             " GET " + str(profiler_dict[function][parameter][filename]['GET']))
+                _put = profiler_dict[function][parameter][filename]['PUT']
+                _get = profiler_dict[function][parameter][filename]['GET']
+                f.write('\t' + '\t' + '\t' + '\t' + "FILENAME: " + filename +
+                        '\t' + " PUT " + str(_put) + " GET " + str(_get))
+                logger.debug('\t' + '\t' + '\t' + '\t' + "FILENAME: " +
+                             filename + '\t' + " PUT " +
+                             str(_put) + " GET " + str(_get))
     f.write("")
     logger.debug("")
     logger.debug("PROFILER GETS")
@@ -109,9 +110,14 @@ def profiler_print_message(
     :param log_dir: Log directory.
     :return: None.
     """
-    final_dict = (
-        {}
-    )  # type: typing.Dict[str, typing.Dict[str, typing.Dict[str, typing.Union[str, int, bool, typing.List[str]]]]]
+    f_d_type = typing.Dict[  # noqa # pylint: disable=unused-variable
+        str,
+        typing.Dict[
+            str,
+            typing.Dict[str, typing.Union[str, int, bool, typing.List[str]]],
+        ],
+    ]
+    final_dict = {}  # type: f_d_type
     for function in profiler_dict:
         final_dict[function] = {}
         for parameter in profiler_dict[function]:
@@ -140,9 +146,13 @@ def profiler_print_message(
             if len(is_used) > 0:
                 final_dict[function][parameter]["USED"] = is_used
             elif total_get > 0:
-                final_dict[function][parameter]["USED"] = [function + "#" + parameter]
+                final_dict[function][parameter]["USED"] = [
+                    function + "#" + parameter
+                ]
             else:
                 final_dict[function][parameter]["USED"] = []
 
-    with open(log_dir + "/../cache_profiler.json", "a", encoding="utf-8") as json_file:
+    with open(
+        log_dir + "/../cache_profiler.json", "a", encoding="utf-8"
+    ) as json_file:
         json.dump(final_dict, json_file)

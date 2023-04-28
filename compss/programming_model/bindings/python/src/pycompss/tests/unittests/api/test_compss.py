@@ -31,7 +31,9 @@ def test_compss_instantiation():
     CONTEXT.set_master()
     my_compss = COMPSs(app_name="date")
     CONTEXT.set_out_of_scope()
-    assert my_compss.decorator_name == "@compss", "The decorator name must be @compss."
+    assert (
+        my_compss.decorator_name == "@compss"
+    ), "The decorator name must be @compss."
 
 
 def test_compss_call():
@@ -58,14 +60,16 @@ def test_compss_call_outside():
     ), "The compss decorator did not raise an exception when invoked out of scope."  # noqa: E501
 
 
-def test_compss_appName_parameter():  # NOSONAR
+def test_compss_appname_parameter():  # NOSONAR
     CONTEXT.set_master()
     app_name = "my_appName"  # noqa
     my_compss = COMPSs(app_name="date", appName=app_name)
     f = my_compss(dummy_function)
     _ = f()
     CONTEXT.set_out_of_scope()
-    assert "appName" in my_compss.kwargs, "appName is not defined in kwargs dictionary."
+    assert (
+        "appName" in my_compss.kwargs
+    ), "appName is not defined in kwargs dictionary."
     assert (
         app_name == my_compss.kwargs["appName"]
     ), "appName parameter has not been initialized."
@@ -93,7 +97,9 @@ def test_compss_flags_parameter():
     f = my_compss(dummy_function)
     _ = f()
     CONTEXT.set_out_of_scope()
-    assert "flags" in my_compss.kwargs, "flags is not defined in kwargs dictionary."
+    assert (
+        "flags" in my_compss.kwargs
+    ), "flags is not defined in kwargs dictionary."
     assert (
         flags == my_compss.kwargs["flags"]
     ), "flags parameter has not been initialized."
@@ -114,7 +120,7 @@ def test_compss_worker_in_master_parameter():
     ), "worker_in_master parameter has not been initialized."
 
 
-def test_compss_workerInMaster_parameter():  # NOSONAR
+def test_compss_workerinmaster_parameter():  # NOSONAR
     CONTEXT.set_master()
     worker_in_master = "my_workerInMaster"  # noqa
     my_compss = COMPSs(app_name="date", workerInMaster=worker_in_master)

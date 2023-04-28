@@ -53,7 +53,8 @@ DEPRECATED_ARGUMENTS = set()  # type: typing.Set[str]
 class Prolog:  # pylint: disable=too-few-public-methods
     """Prolog decorator class.
 
-    If defined, will execute the binary before the task execution on the worker.
+    If defined, will execute the binary before the task execution on the
+    worker.
     Should always be added on top of the 'task' definition.
     """
 

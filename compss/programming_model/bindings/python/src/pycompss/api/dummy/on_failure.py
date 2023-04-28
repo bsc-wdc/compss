@@ -27,4 +27,4 @@ from pycompss.api.dummy._decorator import _Dummy as Dummy
 
 OnFailure = Dummy  # pylint: disable=invalid-name
 on_failure = Dummy  # pylint: disable=invalid-name
-onFailure = Dummy  # pylint: disable=invalid-name
+onFailure = Dummy  # noqa: N816 # pylint: disable=invalid-name

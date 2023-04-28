@@ -23,10 +23,16 @@ from pycompss.api.api import compss_wait_on
 from pycompss.api.parameter import INOUT
 from pycompss.api.parameter import OUT
 from pycompss.api.task import task
-from pycompss.tests.integration.launch.resources.storage_app.models import InputData
+from pycompss.tests.integration.launch.resources.storage_app.models import (
+    InputData,
+)
 from pycompss.tests.integration.launch.resources.storage_app.models import MySO
-from pycompss.tests.integration.launch.resources.storage_app.models import Result
-from pycompss.tests.integration.launch.resources.storage_app.models import Words
+from pycompss.tests.integration.launch.resources.storage_app.models import (
+    Result,
+)
+from pycompss.tests.integration.launch.resources.storage_app.models import (
+    Words,
+)
 
 GENERIC_STRING = "This is a test"
 FIRST = "first"
@@ -385,12 +391,12 @@ def tiramisu_mockup() -> bool:
     out3 = compss_wait_on(out3)
 
     print("INOUTS:")
-    return __check_transformations__(
+    return __check_transformations(
         "Tiramisu Mockup", out1, out2, out3, result
     )  # noqa
 
 
-def __check_transformations__(
+def __check_transformations(
     transformation: str,
     out1: InputData,
     out2: InputData,
@@ -545,7 +551,7 @@ def tiramisu_mockup2() -> bool:
     out3 = compss_wait_on(out3)
 
     print("OUTPUTS:")
-    return __check_transformations__(
+    return __check_transformations(
         "Tiramisu Mockup 2", out1, out2, out3, result
     )  # noqa
 

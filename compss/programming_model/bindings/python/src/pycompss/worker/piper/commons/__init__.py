@@ -17,4 +17,8 @@
 
 # -*- coding: utf-8 -*-
 
-"""This package contains the piper worker common functions, constants and classes."""
+"""
+This package contains the piper worker common helpers.
+
+Where helpers are functions, constants and classes.
+"""

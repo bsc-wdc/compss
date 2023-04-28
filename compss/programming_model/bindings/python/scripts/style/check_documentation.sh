@@ -9,7 +9,7 @@ cd "${SCRIPT_DIR}/../../src/"
 ## Check pydocstyle ##
 ######################
 
-pydocstyle --match='(?!data_type|test_|heapq3).*\.py' ./pycompss/
+pydocstyle --match='(?!data_type|test_).*\.py' ./pycompss/
 ev=$?
 if [ "$ev" -ne 0 ]; then
   echo "[ERROR] pydocstyle check failed with exit value: $ev"

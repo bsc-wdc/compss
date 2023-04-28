@@ -17,4 +17,8 @@
 
 # -*- coding: utf-8 -*-
 
-"""This package contains the supercomputer utils functions, constants and classes."""
+"""
+This package contains the supercomputer utils helpers.
+
+Where helpers are functions, constants and classes.
+"""

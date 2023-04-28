@@ -52,7 +52,9 @@ def test_who_contextualized():
     CONTEXT.set_master()
     who = CONTEXT.get_who_contextualized()
     assert (
-        __name__ in who or "None" in who or "_callers"  # callers when using mypy
+        __name__ in who
+        or "None" in who
+        or "_callers"  # callers when using mypy
     ), "ERROR: Wrong who (%s) contextualized." % str(who)
     CONTEXT.set_out_of_scope()
 
@@ -67,8 +69,12 @@ def test_get_context():
     assert (
         pre_context == CONTEXT.out_of_scope
     ), "ERROR: The context was not OUT_OF_SCOPE before setting"  # noqa: E501
-    assert master_context == CONTEXT.master, "ERROR: The context was not in MASTER."
-    assert worker_context == CONTEXT.worker, "ERROR: The context was not in WORKER."
+    assert (
+        master_context == CONTEXT.master
+    ), "ERROR: The context was not in MASTER."
+    assert (
+        worker_context == CONTEXT.worker
+    ), "ERROR: The context was not in WORKER."
     CONTEXT.set_out_of_scope()
 
 
@@ -78,6 +84,8 @@ def test_enable_nesting():
     is_enabled = CONTEXT.is_nesting_enabled()
     CONTEXT.disable_nesting()
     is_disabled = CONTEXT.is_nesting_enabled()
-    assert not_enabled is False, "ERROR: Nesting must not be enabled by default."
+    assert (
+        not_enabled is False
+    ), "ERROR: Nesting must not be enabled by default."
     assert is_enabled is True, "ERROR: Nesting has not been enabled."
     assert is_disabled is False, "ERROR: Nesting has not been disabled."

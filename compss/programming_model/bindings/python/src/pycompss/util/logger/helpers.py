@@ -66,7 +66,7 @@ def clean_log_configs() -> None:
     CONFIGS.clear()
 
 
-def __read_log_config_file__(log_config_file: str) -> typing.Dict[str, dict]:
+def __read_log_config_file(log_config_file: str) -> typing.Dict[str, dict]:
     """Read the given config file.
 
     If already read, retrieves from global dictionary.
@@ -91,7 +91,7 @@ def init_logging(log_config_file: str, log_path: str) -> None:
     :return: None.
     """
     if os.path.exists(log_config_file):
-        conf = __read_log_config_file__(log_config_file)
+        conf = __read_log_config_file(log_config_file)
         handler = "error_file_handler"
         if handler in conf["handlers"]:
             errors_file = conf["handlers"][handler].get("filename")
@@ -117,7 +117,7 @@ def init_logging_worker(log_config_file: str, tracing: bool) -> None:
     :return: None.
     """
     if os.path.exists(log_config_file):
-        conf = __read_log_config_file__(log_config_file)
+        conf = __read_log_config_file(log_config_file)
         if tracing:
             # The workspace is within the folder "workspace/python"
             # Remove the last folder
@@ -146,19 +146,25 @@ def init_logging_worker_piper(log_config_file: str, log_dir: str) -> None:
     :return: None.
     """
     if os.path.exists(log_config_file):
-        conf = __read_log_config_file__(log_config_file)
+        conf = __read_log_config_file(log_config_file)
         handler = "error_worker_file_handler"
         if handler in conf["handlers"]:
             errors_file = conf["handlers"][handler].get("filename")
-            conf["handlers"][handler]["filename"] = os.path.join(log_dir, errors_file)
+            conf["handlers"][handler]["filename"] = os.path.join(
+                log_dir, errors_file
+            )
         handler = "info_worker_file_handler"
         if handler in conf["handlers"]:
             info_file = conf["handlers"][handler].get("filename")
-            conf["handlers"][handler]["filename"] = os.path.join(log_dir, info_file)
+            conf["handlers"][handler]["filename"] = os.path.join(
+                log_dir, info_file
+            )
         handler = "debug_worker_file_handler"
         if handler in conf["handlers"]:
             debug_file = conf["handlers"][handler].get("filename")
-            conf["handlers"][handler]["filename"] = os.path.join(log_dir, debug_file)
+            conf["handlers"][handler]["filename"] = os.path.join(
+                log_dir, debug_file
+            )
         CONFIG_FUNC(conf)
     else:
         logging.basicConfig(level=logging.INFO)  # NOSONAR
@@ -177,7 +183,7 @@ def update_logger_handlers(
     :return: None.
     """
     if os.path.exists(log_config_file):
-        conf = __read_log_config_file__(log_config_file)
+        conf = __read_log_config_file(log_config_file)
         if job_err:
             handler = "error_worker_file_handler"
             if handler in conf["handlers"]:
@@ -214,7 +220,9 @@ def add_new_logger(logger_name: str) -> None:
 
 
 @contextmanager
-def swap_logger_name(logger: logging.Logger, new_name: str) -> typing.Iterator[None]:
+def swap_logger_name(
+    logger: logging.Logger, new_name: str
+) -> typing.Iterator[None]:
     """Swap the current logger with the new one.
 
     :param logger: Logger facility.

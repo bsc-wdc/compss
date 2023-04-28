@@ -32,7 +32,9 @@ class GeneratorIndicator:
 
 
 def pickle_generator(
-    f_gen: typing.Generator, handler: typing.BinaryIO, serializer: types.ModuleType
+    f_gen: typing.Generator,
+    handler: typing.BinaryIO,
+    serializer: types.ModuleType,
 ) -> None:
     """Pickle a generator and store the serialization result in a file.
 

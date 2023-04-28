@@ -76,8 +76,8 @@ class TypesEventsWorker:
         "init_worker_postfork_event",
         "finish_worker_postfork_event",
         "worker_task_instantiation",
-        "binding_serialization_cache_size_type",
-        "binding_deserialization_cache_size_type",
+        "serialization_cache_size_type",
+        "deserialization_cache_size_type",
         "wait_on_event",
         "cache_hit_event",
         "cache_miss_event",
@@ -156,8 +156,8 @@ class TypesEventsWorker:
         self.init_worker_postfork_event = 9  # initWorkerPostFork
         self.finish_worker_postfork_event = 10  # finishWorkerPostFork
         # Other worker events:
-        self.binding_serialization_cache_size_type = 9000602
-        self.binding_deserialization_cache_size_type = 9000603
+        self.serialization_cache_size_type = 9000602
+        self.deserialization_cache_size_type = 9000603
 
 
 TRACING_WORKER = TypesEventsWorker()

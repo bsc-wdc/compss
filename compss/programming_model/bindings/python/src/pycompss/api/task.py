@@ -41,7 +41,6 @@ from pycompss.runtime.task.definitions.arguments import TaskArguments
 from pycompss.runtime.task.definitions.function import FunctionDefinition
 from pycompss.runtime.task.master import TaskMaster
 from pycompss.runtime.task.worker import TaskWorker
-from pycompss.runtime.task.shared_args import SHARED_ARGUMENTS
 from pycompss.util.logger.helpers import update_logger_handlers
 from pycompss.util.objects.properties import get_module_name
 from pycompss.util.tracing.helpers import EventInsideWorker
@@ -57,7 +56,8 @@ if __debug__:
     logger = logging.getLogger(__name__)
 
 
-class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attributes
+class Task:  # pylint: disable=R0903, R0913
+    # disable=too-few-public-methods, too-many-instance-attributes
     """This is the Task decorator implementation.
 
     It is implemented as a class and consequently this implementation can be
@@ -90,7 +90,10 @@ class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attribu
         "decorated_function",
     ]
 
-    def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
+    def __init__(
+        self, *args: typing.Any, **kwargs: typing.Any  # pylint: disable=W0613
+    ) -> None:
+        # disable = unused - argument
         """Task constructor.
 
         This part is called in the decoration process, not as an
@@ -142,7 +145,9 @@ class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attribu
         self.decorated_function.function = user_function
 
         @wraps(user_function)
-        def task_decorator(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
+        def task_decorator(
+            *args: typing.Any, **kwargs: typing.Any
+        ) -> typing.Any:
             return self.__decorator_body__(user_function, args, kwargs)
 
         return task_decorator
@@ -155,7 +160,8 @@ class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attribu
         :param user_function: Decorated function.
         :param args: Function arguments.
         :param kwargs: Function keyword arguments.
-        :returns: Result of executing the user_function with the given args and kwargs.
+        :returns: Result of executing the user_function with the given args
+                  and kwargs.
         """
         # Determine the context and decide what to do
         if CONTEXT.in_master():
@@ -170,7 +176,11 @@ class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attribu
                     self.decorated_function,
                 )
             master_result = master.call(args, kwargs)
-            (future_object, self.core_element, self.decorated_function) = master_result
+            (
+                future_object,
+                self.core_element,
+                self.decorated_function,
+            ) = master_result
             del master
             return future_object
         if CONTEXT.in_worker():
@@ -179,14 +189,17 @@ class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attribu
                 is_nesting_enabled = CONTEXT.is_nesting_enabled()
                 if is_nesting_enabled:
                     if __debug__:
-                        # Update the whole logger since it will be in job out/err
+                        # Update the whole logger since it will be in the
+                        # job out/err files
                         update_logger_handlers(
                             kwargs["compss_log_cfg"],
                             kwargs["compss_log_files"][0],
                             kwargs["compss_log_files"][1],
                         )
                 # @task being executed in the worker
-                with EventInsideWorker(TRACING_WORKER.worker_task_instantiation):
+                with EventInsideWorker(
+                    TRACING_WORKER.worker_task_instantiation
+                ):
                     worker = TaskWorker(
                         self.decorator_arguments,
                         self.decorated_function,
@@ -203,7 +216,8 @@ class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attribu
                         update_logger_handlers(kwargs["compss_log_cfg"])
                 return worker_result
 
-            # There is no compss_key in kwargs.keys() => task invocation within task:
+            # There is no compss_key in kwargs.keys() => task invocation
+            # within task:
             #  - submit the task to the runtime if nesting is enabled.
             #  - execute sequentially if nested is not enabled.
             if CONTEXT.is_nesting_enabled():
@@ -226,8 +240,10 @@ class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attribu
             # Called from another task within the worker
             # Ignore the @task decorator and run it sequentially
             message = (
-                f"WARNING: Calling task: {str(user_function.__name__)} from this task.\n"
-                f"         It will be executed sequentially within the caller task."
+                f"WARNING: Calling task: {str(user_function.__name__)} from "
+                f"this task.\n"
+                f"         It will be executed sequentially within the caller "
+                f"task."
             )
             print(message, file=sys.stderr)
             return self._sequential_call(*args, **kwargs)
@@ -237,7 +253,9 @@ class Task:  # pylint: disable=too-few-public-methods, too-many-instance-attribu
         # launch_compss/enqueue_compss/runcompss/interactive session
         return self._sequential_call(*args, **kwargs)
 
-    def _sequential_call(self, *args: typing.Any, **kwargs: typing.Any) -> typing.Any:
+    def _sequential_call(
+        self, *args: typing.Any, **kwargs: typing.Any
+    ) -> typing.Any:
         """Sequential task execution.
 
         The easiest case: just call the user function and return whatever it

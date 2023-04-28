@@ -92,10 +92,12 @@ class IteratorLoader(IPartitionGenerator):
         # If it's a dict
         if isinstance(self.iterable, dict):
             sorted_keys = sorted(self.iterable.keys())
-            for key in sorted_keys[self.start : self.end]:
+            for key in sorted_keys[self.start : self.end]:  # noqa: E203
                 ret.append((key, self.iterable[key]))
         elif isinstance(self.iterable, list):
-            for item in iter(self.iterable[self.start : self.end]):
+            for item in iter(
+                self.iterable[self.start : self.end]  # noqa: E203
+            ):
                 ret.append(item)
         else:
             index = 0
@@ -111,7 +113,9 @@ class IteratorLoader(IPartitionGenerator):
 class WorkerFileLoader(IPartitionGenerator):
     """Worker file loader."""
 
-    def __init__(self, file_paths, single_file=False, start=0, chunk_size=None):
+    def __init__(
+        self, file_paths, single_file=False, start=0, chunk_size=None
+    ):
         """Create new WorkerFileLoader object.
 
         :param file_paths: List of file paths.

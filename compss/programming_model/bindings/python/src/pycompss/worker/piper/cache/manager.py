@@ -40,17 +40,20 @@ from pycompss.worker.piper.cache.profiler import profiler_print_message
 from pycompss.worker.piper.cache.tracker import CacheTrackerConf
 from pycompss.worker.piper.cache.tracker import get_file_name
 from pycompss.worker.piper.cache.tracker import get_file_name_clean
-from pycompss.worker.piper.cache.tracker import SHARED_MEMORY_CUPY_TAG
 
 
 CACHE_MANAGER_HEADER = "[PYTHON CACHE MANAGER]"
+SHARED_MEMORY_CUPY_TAG = "SharedCupyMemory"
 
 
 CP = None  # type: typing.Any
 
 
 def cache_manager(
-    in_queue: Queue, out_queue: Queue, process_name: str, conf: CacheTrackerConf
+    in_queue: Queue,
+    out_queue: Queue,
+    process_name: str,
+    conf: CacheTrackerConf,
 ) -> None:
     """Process main body.
 
@@ -62,7 +65,8 @@ def cache_manager(
     """
     # First thing to do is to emit the process identifier event
     emit_manual_event_explicit(
-        TRACING_WORKER.process_identifier, TRACING_WORKER.process_worker_cache_event
+        TRACING_WORKER.process_identifier,
+        TRACING_WORKER.process_worker_cache_event,
     )
 
     # Process properties
@@ -95,7 +99,9 @@ def cache_manager(
 
     if __debug__:
         logger.debug(
-            "%s [%s] Starting Cache Manager", CACHE_MANAGER_HEADER, str(process_name)
+            "%s [%s] Starting Cache Manager",
+            CACHE_MANAGER_HEADER,
+            str(process_name),
         )
 
     # MAIN CACHE TRACKER LOOP
@@ -125,11 +131,13 @@ def cache_manager(
                     for hits, elements in cache_hits.items():
                         if elements:  # not empty entry
                             logger.debug(
-                                f"{CACHE_MANAGER_HEADER} [{process_name}] {hits} hits:"
+                                f"{CACHE_MANAGER_HEADER} [{process_name}] "
+                                f"{hits} hits:"
                             )
                             for obj_name, size in elements.items():
                                 logger.debug(
-                                    f"{CACHE_MANAGER_HEADER} [{process_name}] \t- {obj_name} {size}"
+                                    f"{CACHE_MANAGER_HEADER} [{process_name}] "
+                                    f"\t- {obj_name} {size}"
                                 )
                                 used_size += size
                                 entries += 1
@@ -143,13 +151,19 @@ def cache_manager(
                     )
                 alive = False
         elif action == "END_PROFILING":
-            with EventWorkerCache(TRACING_WORKER_CACHE.cache_msg_end_profiling_event):
+            with EventWorkerCache(
+                TRACING_WORKER_CACHE.cache_msg_end_profiling_event
+            ):
                 if cache_profiler:
-                    profiler_print_message(profiler_dict, profiler_get_struct, log_dir)
+                    profiler_print_message(
+                        profiler_dict, profiler_get_struct, log_dir
+                    )
         else:
             try:
                 if action == "GET":
-                    with EventWorkerCache(TRACING_WORKER_CACHE.cache_msg_get_event):
+                    with EventWorkerCache(
+                        TRACING_WORKER_CACHE.cache_msg_get_event
+                    ):
                         f_name, parameter, function = msg.messages
                         if f_name not in cache_ids:
                             # The object does not exist in the Cache
@@ -166,11 +180,18 @@ def cache_manager(
                             if cache_profiler:
                                 # PROFILER GET
                                 add_profiler_get_put(
-                                    profiler_dict, function, parameter, f_name, "GET"
+                                    profiler_dict,
+                                    function,
+                                    parameter,
+                                    f_name,
+                                    "GET",
                                 )
                                 # PROFILER GET STRUCTURE
                                 add_profiler_get_struct(
-                                    profiler_get_struct, function, parameter, f_name
+                                    profiler_get_struct,
+                                    function,
+                                    parameter,
+                                    f_name,
                                 )
                             # Increment the number of hits
                             if __debug__:
@@ -185,7 +206,9 @@ def cache_manager(
                             current_hits = current[4]
                             new_hits = current_hits + 1
                             current[4] = new_hits
-                            cache_ids[f_name] = current  # forces updating whole entry
+                            cache_ids[
+                                f_name
+                            ] = current  # forces updating whole entry
                             # Keep cache_hits structure
                             try:
                                 cache_hits[current_hits].pop(f_name)
@@ -196,7 +219,9 @@ def cache_manager(
                             else:
                                 cache_hits[new_hits] = {f_name: obj_size}
                 elif action == "PUT":
-                    with EventWorkerCache(TRACING_WORKER_CACHE.cache_msg_put_event):
+                    with EventWorkerCache(
+                        TRACING_WORKER_CACHE.cache_msg_put_event
+                    ):
                         (
                             f_name,
                             cache_id,
@@ -212,7 +237,8 @@ def cache_manager(
                             # The object already exists
                             if __debug__:
                                 logger.debug(
-                                    "%s [%s] The object already exists NOT adding: %s",
+                                    "%s [%s] The object already exists "
+                                    "NOT adding: %s",
                                     CACHE_MANAGER_HEADER,
                                     str(process_name),
                                     str(msg),
@@ -239,7 +265,7 @@ def cache_manager(
 
                             if used_size + obj_size > max_size:
                                 # Cache is full, need to evict
-                                used_size = __free_cache_space__(
+                                used_size = free_cache_space(
                                     conf, used_size, obj_size
                                 )
                             # Accumulate size
@@ -260,7 +286,9 @@ def cache_manager(
                                 cache_hits[hits] = {}
                             cache_hits[hits][f_name] = obj_size
                 elif action == "PUT_GPU":
-                    with EventWorkerCache(TRACING_WORKER_CACHE.cache_msg_put_gpu_event):
+                    with EventWorkerCache(
+                        TRACING_WORKER_CACHE.cache_msg_put_gpu_event
+                    ):
                         (
                             f_name,
                             cache_id,
@@ -271,14 +299,18 @@ def cache_manager(
                         ) = msg.messages
 
                         for i in range(CP.cuda.runtime.getDeviceCount()):
-                            if CP.cuda.Device(i).pci_bus_id == device_pci_bus_id:
+                            if (
+                                CP.cuda.Device(i).pci_bus_id
+                                == device_pci_bus_id
+                            ):
                                 device_id = i
 
                         if f_name in cache_ids:
                             # The object already exists
                             if __debug__:
                                 logger.debug(
-                                    "%s [%s] The object already exists NOT adding: %s",
+                                    "%s [%s] The object already exists "
+                                    "NOT adding: %s",
                                     CACHE_MANAGER_HEADER,
                                     str(process_name),
                                     str(msg),
@@ -310,35 +342,45 @@ def cache_manager(
                             device_id = int(device_id)
                             gpu_used_size = gpu_used_size_dict[device_id]
                             with CP.cuda.Device(device_id):
-
                                 if gpu_used_size + obj_size > gpu_max_size:
                                     gpu_used_size_dict[
                                         device_id
-                                    ] = __free_gpu_cache_space__(
-                                        conf, gpu_used_size, obj_size, device_id
+                                    ] = free_gpu_cache_space(
+                                        conf,
+                                        gpu_used_size,
+                                        obj_size,
+                                        device_id,
                                     )
 
                                 cache_mem = CP.cuda.memory.BaseMemory()
-                                cache_mem.ptr = CP.cuda.runtime.malloc(obj_size)
+                                cache_mem.ptr = CP.cuda.runtime.malloc(
+                                    obj_size
+                                )
 
                                 try:
                                     handler = base64.b64decode(cache_id)
-                                    array_open = CP.cuda.runtime.ipcOpenMemHandle(
-                                        handler
+                                    array_open = (
+                                        CP.cuda.runtime.ipcOpenMemHandle(
+                                            handler
+                                        )
                                     )
 
                                     CP.cuda.runtime.memcpy(
                                         cache_mem.ptr, array_open, obj_size, 0
                                     )
 
-                                    CP.cuda.runtime.ipcCloseMemHandle(array_open)
+                                    CP.cuda.runtime.ipcCloseMemHandle(
+                                        array_open
+                                    )
 
-                                    new_handler = CP.cuda.runtime.ipcGetMemHandle(
-                                        cache_mem.ptr
+                                    new_handler = (
+                                        CP.cuda.runtime.ipcGetMemHandle(
+                                            cache_mem.ptr
+                                        )
                                     )
-                                    new_cache_id = base64.b64encode(new_handler).decode(
-                                        "ascii"
-                                    )
+                                    new_cache_id = base64.b64encode(
+                                        new_handler
+                                    ).decode("ascii")
 
                                     conf.gpu_arr_ptr[new_cache_id] = [
                                         cache_mem.ptr,
@@ -362,7 +404,9 @@ def cache_manager(
                                 except Exception:
                                     CP.cuda.runtime.free(cache_mem.ptr)
                 elif action == "REMOVE":
-                    with EventWorkerCache(TRACING_WORKER_CACHE.cache_msg_remove_event):
+                    with EventWorkerCache(
+                        TRACING_WORKER_CACHE.cache_msg_remove_event
+                    ):
                         f_name_msg = msg.messages[0]
                         f_name = get_file_name(f_name_msg)
                         logger.debug(
@@ -371,8 +415,11 @@ def cache_manager(
                             str(process_name),
                             str(f_name),
                         )
-                        shared_type, obj_size, device_id = __remove_from_cache__(
-                            f_name, cache_ids, cache_hits, gpu_arr_ptr=conf.gpu_arr_ptr
+                        shared_type, obj_size, device_id = remove_from_cache(
+                            f_name,
+                            cache_ids,
+                            cache_hits,
+                            gpu_arr_ptr=conf.gpu_arr_ptr,
                         )
 
                         if shared_type == SHARED_MEMORY_CUPY_TAG:
@@ -380,12 +427,15 @@ def cache_manager(
                         else:
                             used_size -= obj_size
                 elif action == "LOCK":
-                    with EventWorkerCache(TRACING_WORKER_CACHE.cache_msg_lock_event):
+                    with EventWorkerCache(
+                        TRACING_WORKER_CACHE.cache_msg_lock_event
+                    ):
                         f_name_msg = msg.messages[0]
                         f_name = get_file_name(f_name_msg)
                         if f_name in locked:
                             raise PyCOMPSsException(
-                                "Cache coherence issue: tried to lock an already locked file entry"
+                                "Cache coherence issue: "
+                                "tried to lock an already locked file entry"
                             )
                         locked.add(f_name)
                         logger.debug(
@@ -395,7 +445,9 @@ def cache_manager(
                             str(f_name),
                         )
                 elif action == "UNLOCK":
-                    with EventWorkerCache(TRACING_WORKER_CACHE.cache_msg_unlock_event):
+                    with EventWorkerCache(
+                        TRACING_WORKER_CACHE.cache_msg_unlock_event
+                    ):
                         f_name_msg = msg.messages[0]
                         f_name = get_file_name(f_name_msg)
                         logger.debug(
@@ -408,7 +460,8 @@ def cache_manager(
                             locked.remove(f_name)
                         except KeyError as key_error:
                             raise PyCOMPSsException(
-                                "Cache coherence issue: tried to remove locked but failed"
+                                "Cache coherence issue: "
+                                "tried to remove locked but failed"
                             ) from key_error
                 elif action == "IS_LOCKED":
                     with EventWorkerCache(
@@ -443,12 +496,22 @@ def cache_manager(
 
             except Exception as general_exception:
                 logger.exception(
-                    "%s - Exception %s", str(process_name), str(general_exception)
+                    "%s - Exception %s",
+                    str(process_name),
+                    str(general_exception),
                 )
                 alive = False
 
 
-def __remove_from_cache__(f_name, cache_ids, cache_hits, gpu_arr_ptr=None):
+def remove_from_cache(f_name, cache_ids, cache_hits, gpu_arr_ptr=None):
+    """Remove object from cache.
+
+    :param f_name: File name (object identifier).
+    :param cache_ids: Cache identifiers.
+    :param cache_hits: Cache hits structure.
+    :param gpu_arr_ptr: Gpu array pointer.
+    :return: Type, size and device identifier.
+    """
     (cache_id, _, _, size, current_hits, shared_type) = cache_ids.pop(f_name)
 
     if shared_type == SHARED_MEMORY_CUPY_TAG:
@@ -463,7 +526,7 @@ def __remove_from_cache__(f_name, cache_ids, cache_hits, gpu_arr_ptr=None):
     return shared_type, size, device_id
 
 
-def __free_cache_space__(
+def free_cache_space(
     conf: CacheTrackerConf, used_size: int, requested_size: int
 ) -> int:
     """Check the cache status looking into the shared dictionary.
@@ -490,16 +553,16 @@ def __free_cache_space__(
     # Calculate size to recover
     size_to_recover = used_size + requested_size - max_size
     # Select how many to evict
-    evicted, recovered_size = __cpu_evict__(
+    evicted, recovered_size = cpu_evict(
         sorted_hits, cache_ids, cache_hits, size_to_recover
     )
     if __debug__:
-        logger.debug("%s Evicting %d entries", CACHE_MANAGER_HEADER, (evicted))
+        logger.debug("%s Evicting %d entries", CACHE_MANAGER_HEADER, evicted)
 
     return used_size - recovered_size
 
 
-def __cpu_evict__(
+def cpu_evict(
     sorted_hits: typing.List[int],
     cache_ids,
     cache_hits: typing.Dict[int, typing.Dict[str, int]],
@@ -508,6 +571,7 @@ def __cpu_evict__(
     """Select how many entries to evict.
 
     :param sorted_hits: List of current hits sorted from lower to higher.
+    :param cache_ids: Cache identifiers.
     :param cache_hits: Cache hits structure.
     :param size_to_recover: Amount of size to recover.
     :return: List of f_names to evict.
@@ -520,7 +584,9 @@ def __cpu_evict__(
         # the same amount of hits
         files = list(cache_hits[hits])
         for f_name in files:
-            _, recovered_size, _ = __remove_from_cache__(f_name, cache_ids, cache_hits)
+            _, recovered_size, _ = remove_from_cache(
+                f_name, cache_ids, cache_hits
+            )
             to_evict.append(f_name)
             size_to_recover -= recovered_size
             total_recovered_size += recovered_size
@@ -529,8 +595,11 @@ def __cpu_evict__(
     return len(to_evict), total_recovered_size
 
 
-def __free_gpu_cache_space__(
-    conf: CacheTrackerConf, gpu_used_size: int, requested_size: int, device_id: int
+def free_gpu_cache_space(
+    conf: CacheTrackerConf,
+    gpu_used_size: int,
+    requested_size: int,
+    device_id: int,
 ) -> int:
     """Check the cache status looking into the shared dictionary.
 
@@ -556,16 +625,23 @@ def __free_gpu_cache_space__(
     # Calculate size to recover
     size_to_recover = gpu_used_size + requested_size - max_size
     # Select how many to evict
-    evicted, recovered_size = __gpu_evict__(
-        sorted_hits, cache_ids, cache_hits, conf.gpu_arr_ptr, size_to_recover, device_id
+    evicted, recovered_size = gpu_evict(
+        sorted_hits,
+        cache_ids,
+        cache_hits,
+        conf.gpu_arr_ptr,
+        size_to_recover,
+        device_id,
     )
     if __debug__:
-        logger.debug("%s Evicting %d entries from GPU", CACHE_MANAGER_HEADER, (evicted))
+        logger.debug(
+            "%s Evicting %d entries from GPU", CACHE_MANAGER_HEADER, (evicted)
+        )
 
     return gpu_used_size - recovered_size
 
 
-def __gpu_evict__(
+def gpu_evict(
     sorted_hits: typing.List[int],
     cache_ids,
     cache_hits: typing.Dict[int, typing.Dict[str, int]],
@@ -594,7 +670,7 @@ def __gpu_evict__(
                 shared_type == SHARED_MEMORY_CUPY_TAG
                 and device_id == gpu_arr_ptr[obj_id][1]
             ):
-                _, obj_size, _ = __remove_from_cache__(
+                _, obj_size, _ = remove_from_cache(
                     f_name, cache_ids, cache_hits, gpu_arr_ptr=gpu_arr_ptr
                 )
                 to_evict.append(f_name)

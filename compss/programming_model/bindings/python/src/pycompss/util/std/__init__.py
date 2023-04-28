@@ -17,4 +17,8 @@
 
 # -*- coding: utf-8 -*-
 
-"""This package contains the stdout and stderr utils functions, constants and classes."""
+"""
+This package contains the stdout and stderr utils helpers.
+
+Where helpers are functions, constants and classes.
+"""

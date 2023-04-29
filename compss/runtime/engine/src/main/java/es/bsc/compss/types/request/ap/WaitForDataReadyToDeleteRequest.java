@@ -21,48 +21,60 @@ import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.data.DataParams;
+import es.bsc.compss.types.request.exceptions.NonExistingValueException;
+import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
 import es.bsc.compss.types.tracing.TraceEvent;
-
 import java.util.concurrent.Semaphore;
 
 
 public class WaitForDataReadyToDeleteRequest extends APRequest {
 
     private final DataParams data;
-    private final Semaphore sem;
-    private final Semaphore semWait;
 
-    private int nPermits;
+    private ValueUnawareRuntimeException vure = null;
+    private NonExistingValueException neve = null;
+    private final Semaphore sem;
 
 
     /**
      * Creates a new request to wait for the data to be ready to be deleted.
      * 
      * @param data data to wait to be ready for its removal
-     * @param sem Waiting semaphore.
-     * @param semWait Tasks semaphore.
      */
-    public WaitForDataReadyToDeleteRequest(DataParams data, Semaphore sem, Semaphore semWait) {
+    public WaitForDataReadyToDeleteRequest(DataParams data) {
         this.data = data;
-        this.sem = sem;
-        this.semWait = semWait;
-        this.nPermits = 0;
-    }
-
-    /**
-     * Returns the number of permits of the tasks waiting semaphore.
-     * 
-     * @return The number of permits of the tasks waiting semaphore.
-     */
-    public int getNumPermits() {
-        return this.nPermits;
+        this.sem = new Semaphore(0);
     }
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
         LOGGER.info("[WaitForDataReadyToDelete] Notifying waiting data " + this.data.getDescription() + "to DIP...");
-        this.nPermits = dip.waitForDataReadyToDelete(this.data, this.semWait);
-        this.sem.release();
+        try {
+            dip.waitForDataReadyToDelete(this.data, this.sem);
+        } catch (ValueUnawareRuntimeException vure) {
+            this.vure = vure;
+            this.sem.release();
+        } catch (NonExistingValueException neve) {
+            this.neve = neve;
+            this.sem.release();
+        }
+    }
+
+    /**
+     * Wait until the data is ready to be deleted.
+     * 
+     * @throws ValueUnawareRuntimeException the runtime is not aware of the data
+     * @throws NonExistingValueException the data to delete does not actually exist
+     */
+    public void waitForDataReadiness() throws ValueUnawareRuntimeException, NonExistingValueException {
+        this.sem.acquireUninterruptibly();
+        if (vure != null) {
+            throw vure;
+        }
+        if (neve != null) {
+            throw neve;
+        }
+
     }
 
     @Override

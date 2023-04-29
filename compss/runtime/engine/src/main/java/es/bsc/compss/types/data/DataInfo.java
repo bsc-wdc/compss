@@ -19,6 +19,7 @@ package es.bsc.compss.types.data;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.types.Application;
+import es.bsc.compss.types.request.exceptions.NonExistingValueException;
 
 import java.util.LinkedList;
 import java.util.TreeMap;
@@ -241,10 +242,8 @@ public abstract class DataInfo<T extends DataParams> {
 
     /**
      * Delete DataInfo (can be overwritten by implementations).
-     *
-     * @return {@code true} if all the versions have been removed, {@code false} otherwise.
      */
-    public boolean delete(boolean noReuse) {
+    public boolean delete() {
         this.deleted = true;
         if (this.deletionBlocks > 0) {
             this.pendingDeletions.addAll(this.versions.values());
@@ -253,7 +252,7 @@ public abstract class DataInfo<T extends DataParams> {
             for (DataVersion version : this.versions.values()) {
                 String sourceName = version.getDataInstanceId().getRenaming();
                 if (version.markToDelete()) {
-                    Comm.removeData(sourceName, noReuse);
+                    Comm.removeData(sourceName, true);
                     removedVersions.add(version.getDataInstanceId().getVersionId());
                 }
             }
@@ -270,10 +269,10 @@ public abstract class DataInfo<T extends DataParams> {
     /**
      * Waits for the data to be ready to be deleted.
      *
-     * @param semWait Semaphore.
-     * @return
+     * @param sem Semaphore.
+     * @throws NonExistingValueException the data to delete does not actually exist
      */
-    public abstract int waitForDataReadyToDelete(Semaphore semWait);
+    public abstract void waitForDataReadyToDelete(Semaphore sem) throws NonExistingValueException;
 
     /**
      * Returns whether the current version is marked to deleted or not.

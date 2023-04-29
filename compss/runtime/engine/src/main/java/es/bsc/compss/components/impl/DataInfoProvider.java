@@ -39,6 +39,7 @@ import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.operation.DirectoryTransferable;
 import es.bsc.compss.types.data.operation.FileTransferable;
 import es.bsc.compss.types.data.operation.ResultListener;
+import es.bsc.compss.types.request.exceptions.NonExistingValueException;
 import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
 import es.bsc.compss.types.tracing.TraceEvent;
 import es.bsc.compss.util.ErrorManager;
@@ -443,32 +444,37 @@ public class DataInfoProvider {
      * Waits until data is ready for its safe deletion.
      *
      * @param data data to wait to be ready to delete
-     * @param semWait Waiting semaphore.
-     * @return Number of permits.
+     * @param sem element to notify the operations completeness.
+     * @throws ValueUnawareRuntimeException the runtime is not aware of the data
+     * @throws NonExistingValueException the data to delete does not actually exist
      */
-    public int waitForDataReadyToDelete(DataParams data, Semaphore semWait) {
+    public void waitForDataReadyToDelete(DataParams data, Semaphore sem)
+        throws ValueUnawareRuntimeException, NonExistingValueException {
         LOGGER.debug("Waiting for data " + data.getDescription() + " to be ready for deletion");
         Integer dataId = data.getDataId(this);
         if (dataId == null) {
             LOGGER.debug("No data id found for " + data.getDescription());
-            semWait.release();
-            return 0;
+            throw new ValueUnawareRuntimeException();
         }
 
         DataInfo dataInfo = this.idToData.get(dataId);
-        int nPermits = dataInfo.waitForDataReadyToDelete(semWait);
-        return nPermits;
+        if (dataInfo == null) {
+            if (DEBUG) {
+                LOGGER.debug("No data found for data associated to " + data.getDescription());
+            }
+            throw new ValueUnawareRuntimeException();
+        }
+        dataInfo.waitForDataReadyToDelete(sem);
     }
 
     /**
      * Marks a data for deletion.
      *
      * @param data data to be deleted
-     * @param noReuse {@literal false}, if the application must be able to use the same data name for a new data
      * @return DataInfo associated with the data to remove
      * @throws ValueUnawareRuntimeException the runtime is not aware of the data
      */
-    public DataInfo deleteData(DataParams data, boolean noReuse) throws ValueUnawareRuntimeException {
+    public DataInfo deleteData(DataParams data) throws ValueUnawareRuntimeException {
         if (DEBUG) {
             LOGGER.debug("Deleting Data associated to " + data.getDescription());
         }
@@ -488,7 +494,7 @@ public class DataInfoProvider {
             throw new ValueUnawareRuntimeException();
         }
         // We delete the data associated with all the versions of the same object
-        if (dataInfo.delete(noReuse)) {
+        if (dataInfo.delete()) {
             deregisterData(dataInfo);
         }
         return dataInfo;
@@ -589,7 +595,7 @@ public class DataInfoProvider {
                             String origName = splitPath[splitPath.length - 1];
                             LOGGER.debug("Trying to delete file " + origName);
                         }
-                        if (fileInfo.delete(true)) {
+                        if (fileInfo.delete()) {
                             deregisterData(fileInfo);
                         }
                     }
@@ -614,7 +620,7 @@ public class DataInfoProvider {
     public void removeAllApplicationData(Application app) {
         List<DataInfo> data = app.popAllData();
         for (DataInfo di : data) {
-            di.delete(true);
+            di.delete();
         }
     }
 

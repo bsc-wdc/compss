@@ -631,6 +631,8 @@ public class Comm {
      * Removes the data with id {@code renaming}.
      *
      * @param renaming Data Id.
+     * @param asynch Whether to perform local deletions in a synchronous or asynchronous way. {@literal true} if the
+     *            deletion is asynchronous; {@literal false} otherwise.
      * @return return removed logical data
      */
     public static synchronized LogicalData removeData(String renaming, boolean asynch) {

@@ -188,7 +188,7 @@ public class TaskAnalyser implements GraphHandler {
             if (p.isPotentialDependency()) {
                 DependencyParameter dp = (DependencyParameter) p;
                 try {
-                    dip.deleteData(dp.getAccess().getData(), true);
+                    dip.deleteData(dp.getAccess().getData());
                 } catch (ValueUnawareRuntimeException e) {
                     // If not existing, the parameter was already removed. No need to do anything
                 }
@@ -433,14 +433,12 @@ public class TaskAnalyser implements GraphHandler {
      * Deletes the specified data and its renamings.
      *
      * @param data data to be deleted
-     * @param noReuse {@literal false}, if the application must be able to use the same data name for a new data
      * @param applicationDelete whether the user code requested to delete the data ({@literal true}) or was removed by
      *            the runtime ({@literal false})
      * @throws ValueUnawareRuntimeException the runtime is not aware of the data
      */
-    public void deleteData(DataParams data, boolean noReuse, boolean applicationDelete)
-        throws ValueUnawareRuntimeException {
-        DataInfo dataInfo = dip.deleteData(data, noReuse);
+    public void deleteData(DataParams data, boolean applicationDelete) throws ValueUnawareRuntimeException {
+        DataInfo dataInfo = dip.deleteData(data);
         int dataId = dataInfo.getDataId();
         LOGGER.info("Deleting data " + dataId);
 
@@ -585,7 +583,7 @@ public class TaskAnalyser implements GraphHandler {
 
         if (p.isCollective()) {
             try {
-                deleteData(access.getData(), true, false);
+                deleteData(access.getData(), false);
             } catch (ValueUnawareRuntimeException e) {
                 // If not existing, the collection was already removed. No need to do anything
             }

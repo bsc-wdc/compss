@@ -20,7 +20,6 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
-import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataParams;
 import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
 import es.bsc.compss.types.tracing.TraceEvent;
@@ -33,7 +32,6 @@ public class DeleteDataRequest extends APRequest {
     private final Semaphore sem;
 
     private ValueUnawareRuntimeException unawareException = null;
-    private final boolean noReuse;
     private final boolean applicationDelete;
 
 
@@ -41,14 +39,12 @@ public class DeleteDataRequest extends APRequest {
      * Creates a new request to delete a file.
      * 
      * @param data data to delete
-     * @param noReuse {@literal false}, if the application must be able to use the same data name for a new data
      * @param applicationDelete Whether the deletion was requested by the user code of the application {@literal true},
      *            or automatically removed by the runtime {@literal false}.
      */
-    public DeleteDataRequest(DataParams data, boolean noReuse, boolean applicationDelete) {
+    public DeleteDataRequest(DataParams data, boolean applicationDelete) {
         this.data = data;
         this.sem = new Semaphore(0);
-        this.noReuse = noReuse;
         this.applicationDelete = applicationDelete;
     }
 
@@ -59,7 +55,7 @@ public class DeleteDataRequest extends APRequest {
             // File Won't be read by any future task or from the main code.
             // Remove it from the dependency analysis and the files to be transferred back
             LOGGER.info("[DeleteDataRequest] Deleting Data in Task Analyser");
-            ta.deleteData(this.data, this.noReuse, applicationDelete);
+            ta.deleteData(this.data, applicationDelete);
         } catch (ValueUnawareRuntimeException vure) {
             unawareException = vure;
         }
@@ -71,15 +67,4 @@ public class DeleteDataRequest extends APRequest {
         return TraceEvent.DELETE_DATA;
     }
 
-    /**
-     * Waits for the value to be removed.
-     * 
-     * @throws ValueUnawareRuntimeException the runtime is not aware of the data
-     */
-    public void waitForCompletion() throws ValueUnawareRuntimeException {
-        this.sem.acquireUninterruptibly();
-        if (this.unawareException != null) {
-            throw this.unawareException;
-        }
-    }
 }

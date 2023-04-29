@@ -17,7 +17,6 @@
 package es.bsc.compss.types.data;
 
 import es.bsc.compss.types.data.DataParams.CollectionData;
-
 import java.util.concurrent.Semaphore;
 
 
@@ -48,8 +47,7 @@ public class CollectionInfo extends DataInfo<CollectionData> {
     }
 
     @Override
-    public int waitForDataReadyToDelete(Semaphore semWait) {
+    public void waitForDataReadyToDelete(Semaphore sem) {
         // Nothing to wait for
-        return 0;
     }
 }

@@ -79,7 +79,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
-import java.util.logging.Level;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -578,27 +577,21 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
                 delete = false;
             }
         }
+
         // Request to delete data
         LOGGER.debug("Sending delete request for " + data.getDescription());
-        DeleteDataRequest req = new DeleteDataRequest(data, !enableReuse, applicationDelete);
+        DeleteDataRequest req = new DeleteDataRequest(data, applicationDelete);
         if (!this.requestQueue.offer(req)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "mark for deletion");
         }
 
         // No need to wait if no reuse
         if (enableReuse && delete) {
-            // Wait for response
-            LOGGER.debug("Waiting for delete request response...");
             try {
-                req.waitForCompletion();
-            } catch (ValueUnawareRuntimeException vure) {
-                // This will never happen since it was already been detected before
-                try {
-                    data.deleteLocal();
-                    LOGGER.info("[DeleteData] Data " + data.getDescription() + " deleted.");
-                } catch (Exception e) {
-                    LOGGER.error("[DeleteData] Error on deleting " + data.getDescription(), e);
-                }
+                data.deleteLocal();
+                LOGGER.info("[DeleteData] Data " + data.getDescription() + " deleted.");
+            } catch (Exception e) {
+                LOGGER.error("[DeleteData] Error on deleting " + data.getDescription(), e);
             }
         }
 

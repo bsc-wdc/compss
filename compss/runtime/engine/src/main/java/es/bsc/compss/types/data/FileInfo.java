@@ -61,8 +61,7 @@ public class FileInfo extends DataInfo<FileData> {
     }
 
     @Override
-    public int waitForDataReadyToDelete(Semaphore semWait) throws NonExistingValueException {
-        int nPermits = 1;
+    public void waitForDataReadyToDelete(Semaphore sem) throws NonExistingValueException {
         LOGGER.debug("[FileInfo] Deleting file of data " + this.getDataId());
         DataVersion firstVersion = this.getFirstVersion();
         if (firstVersion != null && firstVersion.isValid()) {
@@ -72,17 +71,20 @@ public class FileInfo extends DataInfo<FileData> {
                     MultiURI uri = loc.getURIInHost(Comm.getAppHost());
                     if (uri != null) {
                         if (loc.equals(getOriginalLocation())) {
+                            DeletionListener listener = new DeletionListener(sem, firstVersion, loc, uri);
                             if (loc.getType() != LocationType.SHARED) {
-                                nPermits = waitForEndingCopies(ld, loc, semWait);
+                                waitForEndingCopies(ld, listener);
                             } else {
+                                listener.addPendingOperation();
                                 // Add a semaphore to notify if all readers to finish
-                                if (!firstVersion.addSemaphore(semWait)) {
+                                if (!firstVersion.addSemaphore(listener)) {
                                     LOGGER.debug("[FileInfo] Readers for first version of " + this.getDataId()
                                         + " finished. Nothing to do. Releasing semaphore.");
-                                    semWait.release();
+                                    listener.release();
                                 }
                             }
-                            return nPermits;
+                            listener.enable();
+                            return;
                         }
                     }
                 }
@@ -91,63 +93,89 @@ public class FileInfo extends DataInfo<FileData> {
         } else {
             throw new NonExistingValueException();
         }
-        return nPermits;
     }
 
-    @Override
-    public boolean delete(boolean noReuse) {
-        LOGGER.debug("[FileInfo] Deleting file of data " + this.getDataId());
-        if (!noReuse) {
-            DataVersion firstVersion = this.getFirstVersion();
-            if (firstVersion != null) {
-                LogicalData ld = firstVersion.getDataInstanceId().getData();
-                if (ld != null) {
-                    for (DataLocation loc : ld.getLocations()) {
-                        MultiURI uri = loc.getURIInHost(Comm.getAppHost());
-                        if (uri != null
-                            && uri.getPath().equals(getOriginalLocation().getURIInHost(Comm.getAppHost()).getPath())) {
-                            String newPath = Comm.getAppHost().getWorkingDirectory() + File.separator
-                                + firstVersion.getDataInstanceId().getRenaming();
-                            LOGGER.debug("[FileInfo] Modifying path in location " + loc + " with new path " + newPath);
-                            loc.modifyPath(newPath);
-                            try {
-                                LOGGER.debug("[FileInfo] Moving " + uri.getPath() + " to " + newPath);
-                                FileOpsManager.moveSync(new File(uri.getPath()), new File(newPath));
-                            } catch (IOException e) {
-                                ErrorManager.warn("File " + uri.getPath() + " cannot be moved to " + newPath
-                                    + "Reason: " + e.getMessage());
-                            }
-                        }
-                    }
-                }
-
-            } else {
-                LOGGER.debug("[FileInfo] First Version is null. Nothing to delete");
-            }
-        }
-        return super.delete(noReuse);
-    }
-
-    private int waitForEndingCopies(LogicalData ld, DataLocation loc, Semaphore semWait) {
+    private void waitForEndingCopies(LogicalData ld, DeletionListener listener) {
         Collection<Copy> copiesInProgress = ld.getCopiesInProgress();
-        int nPermits = 1;
         if (copiesInProgress != null && !copiesInProgress.isEmpty()) {
             // length copiesInProgress son els permits
-            nPermits = copiesInProgress.size();
             for (Copy copy : copiesInProgress) {
                 if (copy.getSourceData().equals(ld)) {
                     LOGGER.debug("[FileInfo] Waiting for copy of data " + ld.getName() + " to finish...");
-                    SafeCopyListener currentCopylistener = new SafeCopyListener(semWait);
+                    SafeCopyListener currentCopylistener = new SafeCopyListener(listener);
+                    listener.addPendingOperation();
                     copy.addEventListener(currentCopylistener);
                     currentCopylistener.addOperation();
                     currentCopylistener.enable();
-                    // Copy.waitForCopyTofinish(copy, Comm.getAppHost().getNode());
                 }
             }
-        } else {
-            semWait.release();
         }
-        return nPermits;
+    }
+
+
+    private static class DeletionListener extends Semaphore {
+
+        private final Semaphore sem;
+        private final DataVersion version;
+        private final DataLocation loc;
+        private final MultiURI uri;
+
+        private int missingOperations = 1; // Starts with 1 for enabling
+
+
+        public DeletionListener(Semaphore sem, DataVersion version, DataLocation location, MultiURI uri) {
+            super(0);
+            this.sem = sem;
+            this.version = version;
+            this.loc = location;
+            this.uri = uri;
+        }
+
+        public void addPendingOperation() {
+            missingOperations++;
+        }
+
+        public void enable() {
+            missingOperations--;
+            if (this.missingOperations == 0) {
+                completed();
+            }
+        }
+
+        @Override
+        public void release() {
+            missingOperations--;
+            if (this.missingOperations == 0) {
+                completed();
+            }
+        }
+
+        public void completed() {
+            DataInstanceId daId = version.getDataInstanceId();
+            LogicalData ld = daId.getData();
+            // The number of readers can only be higher than 0 in local disks. The overhead of moving should be low.
+            if (version.getNumberOfReaders() > 0) {
+                String rename = daId.getRenaming();
+                moveToWorkingDir(loc, uri, rename);
+            } else {
+                ld.removeLocation(loc);
+            }
+            sem.release();
+        }
+
+        private void moveToWorkingDir(DataLocation loc, MultiURI uri, String renaming) {
+            String newPath = Comm.getAppHost().getWorkingDirectory() + File.separator + renaming;
+            LOGGER.debug("[FileInfo] Modifying path in location " + loc + " with new path " + newPath);
+            loc.modifyPath(newPath);
+            try {
+                LOGGER.debug("[FileInfo] Moving " + uri.getPath() + " to " + newPath);
+                FileOpsManager.moveSync(new File(uri.getPath()), new File(newPath));
+            } catch (IOException e) {
+                ErrorManager
+                    .warn("File " + uri.getPath() + " cannot be moved to " + newPath + "Reason: " + e.getMessage());
+            }
+        }
+
     }
 
 }

@@ -24,23 +24,16 @@ import es.bsc.compss.types.data.DataParams;
 import es.bsc.compss.types.request.exceptions.NonExistingValueException;
 import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
 import es.bsc.compss.types.tracing.TraceEvent;
-
 import java.util.concurrent.Semaphore;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 
 public class WaitForDataReadyToDeleteRequest extends APRequest {
 
     private final DataParams data;
-    private final Semaphore processedSem;
 
     private ValueUnawareRuntimeException vure = null;
     private NonExistingValueException neve = null;
-
-    private final Semaphore readinessSem;
-
-    private int nPermits;
+    private final Semaphore sem;
 
 
     /**
@@ -50,22 +43,20 @@ public class WaitForDataReadyToDeleteRequest extends APRequest {
      */
     public WaitForDataReadyToDeleteRequest(DataParams data) {
         this.data = data;
-        this.processedSem = new Semaphore(0);
-        this.readinessSem = new Semaphore(0);
-        this.nPermits = 0;
+        this.sem = new Semaphore(0);
     }
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
         LOGGER.info("[WaitForDataReadyToDelete] Notifying waiting data " + this.data.getDescription() + "to DIP...");
         try {
-            this.nPermits = dip.waitForDataReadyToDelete(this.data, this.readinessSem);
+            dip.waitForDataReadyToDelete(this.data, this.sem);
         } catch (ValueUnawareRuntimeException vure) {
             this.vure = vure;
+            this.sem.release();
         } catch (NonExistingValueException neve) {
             this.neve = neve;
-        } finally {
-            this.processedSem.release();
+            this.sem.release();
         }
     }
 
@@ -76,14 +67,14 @@ public class WaitForDataReadyToDeleteRequest extends APRequest {
      * @throws NonExistingValueException the data to delete does not actually exist
      */
     public void waitForDataReadiness() throws ValueUnawareRuntimeException, NonExistingValueException {
-        this.processedSem.acquireUninterruptibly();
+        this.sem.acquireUninterruptibly();
         if (vure != null) {
             throw vure;
         }
         if (neve != null) {
             throw neve;
         }
-        this.readinessSem.acquireUninterruptibly(nPermits);
+
     }
 
     @Override

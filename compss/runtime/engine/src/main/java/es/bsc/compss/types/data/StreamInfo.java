@@ -48,9 +48,8 @@ public class StreamInfo extends DataInfo<StreamData> {
     }
 
     @Override
-    public int waitForDataReadyToDelete(Semaphore semWait) {
+    public void waitForDataReadyToDelete(Semaphore sem) {
         // Nothing to wait for
-        return 0;
     }
 
 }

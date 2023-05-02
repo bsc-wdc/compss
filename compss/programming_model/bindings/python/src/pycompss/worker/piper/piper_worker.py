@@ -101,7 +101,10 @@ def compss_persistent_worker(
     # Catch SIGTERM sent by bindings_piper
     signal.signal(signal.SIGTERM, shutdown_handler)
 
-    print("LD_PRELOAD piper_worker.py SUBPROCESS: " + str(os.environ["LD_PRELOAD"]))
+    print(
+        "LD_PRELOAD piper_worker.py SUBPROCESS: "
+        + str(os.environ["LD_PRELOAD"])
+    )
 
     # Set the binding in worker mode
     CONTEXT.set_worker()
@@ -332,6 +335,11 @@ def create_executor_process(
     :return: Process identifier and queue used by the process.
     """
     queue = new_queue()
+    if "LD_PRELOAD" in os.environ:
+        ld_preload = str(os.environ["LD_PRELOAD"])
+        print(f"PYTHON - PARENT PROCESS LD_PRELOAD: {ld_preload}")
+    else:
+        print("PYTHON - PARENT PROCESS NO LD_PRELOAD: ")
     process = create_process(
         target=executor,
         args=(queue, executor_id, executor_name, pipe, conf),

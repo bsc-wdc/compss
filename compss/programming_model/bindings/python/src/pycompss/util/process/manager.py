@@ -24,6 +24,7 @@ This file centralizes the multiprocessing management.
 It helps to homogenize the behaviour between linux and mac.
 """
 
+import os
 import multiprocessing
 from multiprocessing import Manager
 from multiprocessing.managers import SyncManager  # Used only for typing

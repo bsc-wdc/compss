@@ -77,6 +77,15 @@ public abstract class LookaheadTS extends TaskScheduler {
      * *********************************************************************************************************
      */
     @Override
+    public void customCoreElementsUpdated() {
+        for (ResourceScheduler w : getWorkers()) {
+            if (w.canRunSomething()) {
+                this.availableWorkers.add(w);
+            }
+        }
+    }
+
+    @Override
     public <T extends WorkerResourceDescription> void workerLoadUpdate(ResourceScheduler<T> resource) {
         LOGGER.debug("[ReadyScheduler] Update load on worker " + resource.getName() + ". Nothing to do.");
         if (resource.canRunSomething()) {

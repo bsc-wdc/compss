@@ -8,7 +8,7 @@ fi
 # Displays version
 ###############################################
 show_version() {
-  echo "COMPSs version 3.1 Margarita"
+  echo "COMPSs version 3.2 Narcissus"
   echo " "
 }
 
@@ -18,12 +18,12 @@ show_version() {
 show_full_version() {
   cat << EOF
 
-        .-~~-.--.           ______        ___
-       :         )         |____  \\      /   |
- .~ ~ -.\\       /.- ~~ .      __) |     /_/| |
- >       \`.   .'       <     |__  |        | |
-(         .- -.         )   ____) |   _    | |
- \`- -.-~  \`- -'  ~-.- -'   |______/  |_|   |_|
+        .-~~-.--.           ______        ____
+       :         )         |____  \\      |__  \\
+ .~ ~ -.\\       /.- ~~ .      __) |         ) |
+ >       \`.   .'       <     |__  |        / /
+(         .- -.         )   ____) |   _   / /__
+ \`- -.-~  \`- -'  ~-.- -'   |______/  |_| |_____|
    (        :        )           _ _ .-:
     ~--.    :    .--~        .-~  .-~  }
         ~-.-^-.-~ \\       .~  .-~   .~
@@ -43,10 +43,10 @@ EOF
 ###############################################
 show_flower() {
   cat << EOF
-Margarita (Bellis perennis) is a common European species of daisy, of the Asteraceae family, often considered the archetypal species of that name. Many related plants also share the name "daisy", so to distinguish this species from other daisies it is sometimes qualified as common daisy, lawn daisy or English daisy. It is a herbaceous perennial plant with short creeping rhizomes and rosettes of small rounded or spoon-shaped leaves that are from 3/4 to 2 inches (approx. 2–5 cm) long and grow flat to the ground. The flowerheads are composite, in the form of a pseudanthium, consisting of many sessile flowers about 3/4 to 1-1/4 in (approx. 2–3 cm) in diameter, with white ray florets (often tipped red) and yellow disc florets. Each inflorescence is borne on single leafless stems 3/4 - 4 in (approx. 2–10 cm), rarely 6 in (approx. 15 cm) tall. The capitulum, or disc of florets, is surrounded by two rows of green bracts known as "phyllaries". 
+Narcissus is a genus of predominantly spring flowering perennial plants of the amaryllis family, Amaryllidaceae. Various common names including daffodil, narcissus, and jonquil are used to describe all or some members of the genus. Narcissus has conspicuous flowers with six petal-like tepals surmounted by a cup- or trumpet-shaped corona. The flowers are generally white and yellow (also orange or pink in garden varieties), with either uniform or contrasting coloured tepals and corona.
 
 Check more information:
-   https://en.wikipedia.org/wiki/Bellis_perennis
+   https://en.wikipedia.org/wiki/Narcissus_(plant)
 
 EOF
 }
@@ -57,14 +57,18 @@ EOF
 show_recipe() {
   cat << EOF
 
-Margarita (Daisy) - Cocktail
-   
-   35 ml Tequila
-   20 ml Triple Sec
-   15 ml Lime Juice   
+Spritzus Narcissus - Cocktail
 
-   Pour all ingredients into shaker with ice. Shake well
-   and strain into cocktail glass rimmed with salt.
+   1 ounce Giffard Wild Elderflower
+   ¼ ounce Garalis retsina (or other craft retsina)
+   1 dash absinthe
+   ¼ ounce lemon juice
+   1 ½ ounces Perrier
+   3 ounces Domaine Karanika Amyntaion Brut (or other Champagne-method dry sparkling wine)
+
+   Combine all ingredients except Perrier and sparkling wine in a chilled wine glass, then add ice.
+   Top wine glass with Perrier and sparkling wine.
+   Garnish with grapefruit peel, spiraled into a flower.
 
 EOF
 }

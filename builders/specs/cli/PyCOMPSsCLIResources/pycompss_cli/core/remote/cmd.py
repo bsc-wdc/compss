@@ -21,6 +21,7 @@ import tempfile
 from shutil import copyfile
 import subprocess
 import tempfile
+import zipfile
 import pycompss_cli.core.utils as utils
 
 # ################ #
@@ -120,6 +121,7 @@ def remote_submit_job(login_info: str, remote_dir: str, app_args: str, modules, 
     commands = [
         f'cd {remote_dir}',
         *modules,
+        'if [ -f .env ]; then source .env; fi',
         f'enqueue_compss {enqueue_debug} {app_args}'
     ]
 
@@ -191,5 +193,35 @@ def remote_cancel_job(login_info: str, job_id: str, modules):
     stdout = utils.ssh_run_commands(login_info, commands)[0].strip()
     print(stdout)
 
-def remote_exec_app(login_info: str, exec_cmd: str):
+def remote_exec_app(login_info: str, exec_cmd: str, debug=False):
+    if debug:
+        print('Remote exec app command:')
+        print('\t', '->', exec_cmd)
     return utils.ssh_run_commands(login_info, [exec_cmd])[0].strip()
+
+
+def remote_download_file(login_info: str, remote_path: str, local_path: str, debug=False, compressed=False):
+    if not os.path.isdir(local_path):
+        if os.path.exists(local_path):
+            print(f'ERROR: local path `{local_path}` is not a directory.')
+            exit(1)
+        else:
+            os.makedirs(local_path)
+
+    if compressed:
+        cmd = f'scp -r {login_info}:{remote_path}/trace.zip {local_path}'
+    else:
+        cmd = f'scp -r {login_info}:{remote_path}/* {local_path}'
+
+    if debug:
+        print('Remote download file command:')
+        print('\t', cmd)
+
+    subprocess.run(cmd, shell=True)
+
+    if compressed:
+        print('Uncompressing trace...')
+        zip_path = os.path.join(local_path, 'trace.zip')
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            zip_ref.extractall(local_path)
+        os.remove(zip_path)

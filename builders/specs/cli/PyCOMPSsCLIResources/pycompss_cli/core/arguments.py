@@ -185,7 +185,7 @@ def parse_sys_argv():
                                  type=str,
                                  help="Directory where the traces are located.")
 
-    parser_gentrace.add_argument("-d", "--download_dir",
+    parser_gentrace.add_argument("--download_dir",
                                     type=str,
                                     help="Directory where the traces will be downloaded.")
 

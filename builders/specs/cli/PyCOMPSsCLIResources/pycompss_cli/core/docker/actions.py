@@ -44,8 +44,12 @@ class DockerActions(Actions):
         if self.arguments.working_dir == 'current directory':
             self.arguments.working_dir = os.getcwd()
 
+        if self.arguments.log_dir == 'current directory':
+            self.arguments.log_dir = os.getcwd()
+
         try:
             self.docker_cmd.docker_deploy_compss(self.arguments.working_dir,
+                                self.arguments.log_dir,
                                 self.arguments.image,
                                 self.arguments.restart,
                                 self.arguments.privileged)
@@ -115,6 +119,9 @@ class DockerActions(Actions):
 
         self.docker_cmd.docker_exec_in_daemon(command)
 
+        if 'log_dir' in self.env_conf and \
+            self.env_conf['log_dir'] == self.env_conf['working_dir']:
+            return
         self.docker_cmd.docker_exec_in_daemon('cp -a /home/user/.COMPSs/. /root/.COMPSs/')
 
 
@@ -160,8 +167,12 @@ class DockerActions(Actions):
                 f"--ip={self.env_conf['master_ip']} " + \
                 "--allow-root " + \
                 "--NotebookApp.token="
-        for out_line in self.docker_cmd.docker_exec_in_daemon(jupyter_cmd, return_stream=True):
-            print(out_line.decode().strip().replace(self.env_conf['master_ip'], 'localhost'))
+
+        try:
+            for out_line in self.docker_cmd.docker_exec_in_daemon(jupyter_cmd, return_stream=True):
+                print(out_line.decode().strip().replace(self.env_conf['master_ip'], 'localhost'), flush=True)
+        except KeyboardInterrupt:
+            print('Closing jupyter server...')
 
         if self.docker_cmd.exists():
             self.docker_cmd.docker_exec_in_daemon('pkill jupyter')

@@ -27,13 +27,7 @@ LINE = "-" * LINE_LENGTH
 def main():
     """
     MAIN ENTRY POINT
-    """
-
-    all_cmd = ' '.join(sys.argv)
-    if any(not c.isalnum() for c in all_cmd):
-        print("ERROR: Command contains non alphanumeric characters!")
-        exit(1)
-        
+    """        
     
     arguments = parse_sys_argv()
 

@@ -20,6 +20,7 @@ package es.bsc.compss.types.implementations.definition;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.TaskType;
+import es.bsc.compss.types.resources.ContainerDescription;
 import es.bsc.compss.util.EnvironmentLoader;
 
 import java.io.IOException;
@@ -45,6 +46,7 @@ public class BinaryDefinition implements AbstractMethodImplementationDefinition 
     private String workingDir;
     private String params;
     private boolean failByEV;
+    private ContainerDescription container;
 
 
     public BinaryDefinition() {
@@ -71,7 +73,7 @@ public class BinaryDefinition implements AbstractMethodImplementationDefinition 
      * @param implTypeArgs String array.
      * @param offset Element from the beginning of the string array.
      */
-    public BinaryDefinition(String[] implTypeArgs, int offset) {
+    public BinaryDefinition(String[] implTypeArgs, int offset, String[] container) {
         this.binary = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset]);
         this.workingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 1]);
         this.params = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 2]);
@@ -80,6 +82,15 @@ public class BinaryDefinition implements AbstractMethodImplementationDefinition 
         if (binary == null || binary.isEmpty() || binary.equals("[unassigned]")) {
             throw new IllegalArgumentException("Empty binary annotation for BINARY method");
         }
+
+        if (container[0] != null && !container[0].isEmpty() && !container[0].equals(Constants.UNASSIGNED)) {
+            String engineStr = container[0].toUpperCase();
+            ContainerDescription.ContainerEngine engine = ContainerDescription.ContainerEngine.valueOf(engineStr);
+            this.container = new ContainerDescription(engine, container[1], container[2]);
+        } else {
+            this.container = null;
+        }
+
     }
 
     @Override
@@ -131,11 +142,21 @@ public class BinaryDefinition implements AbstractMethodImplementationDefinition 
         return MethodType.BINARY;
     }
 
+    /**
+     * Returns the container.
+     *
+     * @return The container implementation.
+     */
+    public ContainerDescription getContainer() {
+        return this.container;
+    }
+
     @Override
     public String toMethodDefinitionFormat() {
         StringBuilder sb = new StringBuilder();
         sb.append("[BINARY=").append(this.binary);
         sb.append("\t   PARAMS=").append(this.params);
+        sb.append("\t   CONTAINER=").append(this.container);
         sb.append("]");
 
         return sb.toString();
@@ -152,6 +173,7 @@ public class BinaryDefinition implements AbstractMethodImplementationDefinition 
         this.workingDir = (String) in.readObject();
         this.params = (String) in.readObject();
         this.failByEV = in.readBoolean();
+        this.container = (ContainerDescription) in.readObject();
     }
 
     @Override
@@ -160,6 +182,7 @@ public class BinaryDefinition implements AbstractMethodImplementationDefinition 
         out.writeObject(this.workingDir);
         out.writeObject(this.params);
         out.writeBoolean(this.failByEV);
+        out.writeObject(this.container);
     }
 
     @Override
@@ -170,6 +193,7 @@ public class BinaryDefinition implements AbstractMethodImplementationDefinition 
         sb.append("\t Working directory: ").append(this.workingDir).append("\n");
         sb.append("\t Params String: ").append(this.params).append("\n");
         sb.append("\t Fail by EV: ").append(this.failByEV).append("\n");
+        sb.append("\t Container: ").append(this.container).append("\n");
         return sb.toString();
     }
 

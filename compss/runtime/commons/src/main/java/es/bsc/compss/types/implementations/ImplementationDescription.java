@@ -139,8 +139,8 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
                         throw new IllegalArgumentException("Incorrect parameters for type BINARY on " + implSignature);
                     }
 
-                    id = new ImplementationDescription<>((D) new BinaryDefinition(implTypeArgs, 0), implSignature,
-                        localProcessing, implConstraints, prolog, epilog);
+                    id = new ImplementationDescription<>((D) new BinaryDefinition(implTypeArgs, 0, container),
+                        implSignature, localProcessing, implConstraints, prolog, epilog);
                     break;
 
                 case MPI:

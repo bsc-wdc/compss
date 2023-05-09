@@ -83,7 +83,6 @@ public class FileOperations {
         }
     }
 
-
     /**
      * Deletes content of a given directory.
      *
@@ -114,7 +113,6 @@ public class FileOperations {
             throw e;
         }
     }
-
 
     /**
      * moves a file/folder location from a source to a target.

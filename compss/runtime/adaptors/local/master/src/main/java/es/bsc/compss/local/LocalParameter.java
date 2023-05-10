@@ -75,6 +75,7 @@ public class LocalParameter implements InvocationParam {
         this.originalType = type;
         switch (type) {
             case FILE_T:
+            case DIRECTORY_T:
             case OBJECT_T:
             case COLLECTION_T:
             case DICT_COLLECTION_T:

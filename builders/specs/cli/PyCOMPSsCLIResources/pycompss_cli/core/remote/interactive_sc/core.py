@@ -134,7 +134,7 @@ def __display_warning(message):
     print("WARNING: " + message)
 
 
-def job_status(scripts_path, job_id, login_info, modules):
+def job_status(scripts_path, job_id, login_info, modules, debug=False):
     """
     Checks the status of a job in the supercomputer.
     :param scripts_path: Remote helper scripts path
@@ -144,7 +144,7 @@ def job_status(scripts_path, job_id, login_info, modules):
     cmd = [INTERPRETER,
            str(scripts_path + '/' + STATUS_SCRIPT),
            job_id]
-    return_code, stdout, stderr = _command_runner(cmd, login_info, modules=modules)
+    return_code, stdout, stderr = _command_runner(cmd, login_info, modules=modules, debug=debug)
     if return_code != 0:
         # __display_error(ERROR_STATUS_JOB, return_code, stdout, stderr)
         return 'ERROR'
@@ -158,7 +158,7 @@ def job_status(scripts_path, job_id, login_info, modules):
         return status
     return ERROR_STATUS_JOB
 
-def job_list(scripts_path, login_info, modules):
+def job_list(scripts_path, login_info, modules, debug=False):
     """
     Checks the list of available jobs in the supercomputer.
     :param scripts_path: Remote helper scripts path
@@ -166,7 +166,7 @@ def job_list(scripts_path, login_info, modules):
     """
     cmd = [INTERPRETER,
            str(scripts_path + '/' + FIND_SCRIPT)]
-    return_code, stdout, stderr = _command_runner(cmd, login_info, modules=modules)
+    return_code, stdout, stderr = _command_runner(cmd, login_info, modules=modules, debug=debug)
     if return_code != 0:
         __display_error(ERROR_STATUS_JOB, return_code, stdout, stderr)
 
@@ -179,7 +179,7 @@ def job_list(scripts_path, login_info, modules):
     else:
         __display_error(ERROR_STATUS_JOB, return_code, stdout, stderr)
 
-def connect_job(scripts_path, job_id, login_info, modules, app_path, port_forward='8888', web_browser='firefox'):
+def connect_job(scripts_path, job_id, login_info, modules, app_path, port_forward='8888', web_browser='firefox', debug=False):
     """
     Establish the connection with an existing notebook.
     :param scripts_path: Remote helper scripts path
@@ -196,7 +196,7 @@ def connect_job(scripts_path, job_id, login_info, modules, app_path, port_forwar
     cmd = [INTERPRETER,
            str(scripts_path + '/' + INFO_SCRIPT),
            job_id, app_path]
-    return_code, stdout, stderr = _command_runner(cmd, login_info, modules=modules)
+    return_code, stdout, stderr = _command_runner(cmd, login_info, modules=modules, debug=debug)
     if return_code != 0:
         __display_error(ERROR_INFO_JOB, return_code, stdout, stderr)
 
@@ -224,12 +224,12 @@ def connect_job(scripts_path, job_id, login_info, modules, app_path, port_forwar
            'ssh', node,
            '-L', f'{port_forward}:localhost:8888']
 
-    if utils.is_debug():
+    if debug:
         print('****** DEBUG ******')
         print("\t -> Connecting to node: " + node)
         print("\t -> Token: " + token)
     
-    _command_runner(cmd, login_info, blocking=False)
+    _command_runner(cmd, login_info, blocking=False, debug=debug)
 
     time.sleep(5)  # Wait 5 seconds
 
@@ -243,7 +243,7 @@ def connect_job(scripts_path, job_id, login_info, modules, app_path, port_forwar
         else:
             cmd = [web_browser]
         cmd = cmd + [CONNECTION_URL + token]
-        return_code, stdout, stderr = _command_runner(cmd, login_info, remote=False)
+        return_code, stdout, stderr = _command_runner(cmd, login_info, remote=False, debug=debug)
         if return_code != 0:
             message = ERROR_BROWSER + '\n\n' \
                       + "Alternatively, please use the following URL to connect to the job.\n" \
@@ -268,7 +268,7 @@ def connect_job(scripts_path, job_id, login_info, modules, app_path, port_forwar
     # The signal is captured and everything cleaned and canceled (if needed)
 
 
-def cancel_job(scripts_path, job_ids, login_info, modules):
+def cancel_job(scripts_path, job_ids, login_info, modules, debug=False):
     """
     Cancel a list of notebook jobs running in the supercomputer.
     :param scripts_path: Path where the remote helper scripts are
@@ -277,7 +277,7 @@ def cancel_job(scripts_path, job_ids, login_info, modules):
     """
     cmd = [INTERPRETER,
            str(scripts_path + '/' + CANCEL_SCRIPT)] + job_ids
-    return_code, stdout, stderr = _command_runner(cmd, login_info, modules=modules)
+    return_code, stdout, stderr = _command_runner(cmd, login_info, modules=modules, debug=debug)
     if return_code != 0:
         __display_error(ERROR_CANCELLING_JOB, return_code, stdout, stderr)
 
@@ -289,7 +289,7 @@ def cancel_job(scripts_path, job_ids, login_info, modules):
         __display_error(ERROR_CANCELLING_JOB, return_code, stdout, stderr)
 
 
-def _command_runner(cmd, login_info, modules=None, blocking=True, remote=True):
+def _command_runner(cmd, login_info, modules=None, blocking=True, remote=True, debug=False):
     """
     Run the command defined in the cmd list.
     Decodes the stdout and stderr following the DECODING_FORMAT.
@@ -320,7 +320,7 @@ def _command_runner(cmd, login_info, modules=None, blocking=True, remote=True):
         # Execute the command as requested
         pass
 
-    if utils.is_debug():
+    if debug:
         print('****** DEBUG ******')
         print("\t -> Command: " + cmd)
         print('********************')

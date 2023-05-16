@@ -14,6 +14,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+import io
 import json
 import os
 import sys
@@ -40,7 +41,7 @@ default_image_file = "image"
 default_image = default_workdir + default_image_file
 
 
-IMAGE_NAME = "compss/compss:2.10"  # Update when releasing new version
+IMAGE_NAME = "compss/compss:3.1"  # Update when releasing new version
 DOCKER_AVAILABALE = True
 
 try:
@@ -101,7 +102,8 @@ class DockerCmd(object):
             # But since it is undefined yet, we do it explicitly.
             IMAGE_NAME = master.image.attrs["RepoTags"][0]
 
-    def docker_deploy_compss(self, working_dir,
+    def docker_deploy_compss(self, working_dir: str,
+                            log_dir: str,
                             image: str = "",
                             restart: bool = True,
                             privileged: bool = False) -> None:
@@ -134,7 +136,7 @@ class DockerCmd(object):
                 "while because it needs to download the docker image. " +
                 "Please be patient.")
             subprocess.run(f'docker pull {docker_image}', shell=True)
-            mounts = self._get_mounts(user_working_dir=working_dir)
+            mounts = self._get_mounts(user_working_dir=working_dir, log_dir=log_dir)
             ports = {"8888/tcp": 8888,  # required for jupyter notebooks
                     "8080/tcp": 8080}  # required for monitor
             m = self.client.containers.run(image=docker_image, name=master_name,
@@ -391,7 +393,7 @@ class DockerCmd(object):
                 " OF MASTER CONTAINER!!!")
 
 
-    def _get_mounts(self, user_working_dir: str) -> list:
+    def _get_mounts(self, user_working_dir: str, log_dir: str) -> list:
         """ Retrieve the list of folders to be mounted. It gets the Mount object
         from the given user working directory, and can include any other needed
         folder.
@@ -405,13 +407,14 @@ class DockerCmd(object):
                         source=user_working_dir,
                         type="bind")
         # WARNING: mounting .COMPSs makes it fail
-        # compss_logs_dir = os.environ["HOME"] + f"/.COMPSs"
-        # os.makedirs(compss_logs_dir, exist_ok=True)
+        if '.COMPSs' not in log_dir:
+            log_dir = log_dir + "/.COMPSs"
+        os.makedirs(log_dir, exist_ok=True)
 
-        # compss_log_dir = Mount(target="/root/.COMPSs",
-        #                        source=compss_logs_dir,
-        #                        type="bind")
-        mounts = [user_dir]
+        compss_log_dir = Mount(target="/root/.COMPSs",
+                               source=log_dir,
+                               type="bind")
+        mounts = [user_dir, compss_log_dir]
         return mounts
 
 
@@ -600,3 +603,17 @@ class DockerCmd(object):
         containers = self.client.containers.list(filters={"name": name}, all=True)
         for c in containers:
             c.remove(force=True)
+
+    def docker_copy_to_host(self, container_name, src, dst):
+        """ Copy files from a container directory to a host directory.
+
+        :param container_name: Name of the container.
+        :param src: Source path.
+        :param dst: Destination path.
+        :returns: None
+        """
+        container = self.client.containers.get(container_name)
+        data, stat = container.get_archive(src)
+        with open(dst, 'wb') as f:
+            for chunk in data:
+                f.write(chunk)

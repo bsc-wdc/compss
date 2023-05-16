@@ -36,6 +36,11 @@ def parse_sys_argv():
                         help="Enable debug mode. Overrides log_level",
                         action="store_true")
 
+    parser.add_argument("-eid", "--env_id",
+                             default="",
+                             type=str,
+                             help="Environment ID")
+
     # Parent parser - includes all arguments which are common to all actions
     parent_parser = argparse.ArgumentParser(add_help=False,
                                             formatter_class=FORMATTER_CLASS)
@@ -81,10 +86,6 @@ def parse_sys_argv():
     parser_exec.set_defaults(action='exec')
 
     
-    # parser_exec.add_argument("-eid", "--env_id",
-    #                          default="",
-    #                          type=str,
-    #                          help="Environment ID")
     parser_exec.add_argument('exec_cmd', 
                             nargs=argparse.REMAINDER,   
                             help="Exec program arguments")
@@ -102,11 +103,7 @@ def parse_sys_argv():
         assets_folder = os.path.dirname(os.path.abspath(__file__)) + '/..'
         with open(assets_folder + '/assets/runcompss_args.txt', 'r', encoding='utf-8') as f:
             parser_run.epilog = f.read()
-
-    # parser_run.add_argument("-eid", "--env_id",
-    #                          default="",
-    #                          type=str,
-    #                          help="Environment ID")
+            
 
     parser_run.add_argument("-app", "--app_name",
                              default="",
@@ -132,11 +129,6 @@ def parse_sys_argv():
     parser_job.set_defaults(action='job')
     
 
-    # parser_job.add_argument("-eid", "--env_id",
-    #                          default="",
-    #                          type=str,
-    #                          help="Environment ID")
-
     # MONITOR
     parser_monitor = subparsers.add_parser("monitor",
                                            aliases=["m"],
@@ -159,10 +151,7 @@ def parse_sys_argv():
                                            formatter_class=FORMATTER_CLASS)
     parser_jupyter.set_defaults(action='jupyter')
     
-    # parser_jupyter.add_argument("-eid", "--env_id",
-    #                          default="",
-    #                          type=str,
-    #                          help="Environment ID")
+    
     parser_jupyter.add_argument("-app", "--app_name",
                              default="",
                              type=str,
@@ -170,21 +159,40 @@ def parse_sys_argv():
     parser_jupyter.add_argument('rest_args', 
                             nargs=argparse.REMAINDER,   
                             help="Jupyter arguments")
+
     # GENGRAPH
     parser_gengraph = subparsers.add_parser("gengraph",
-                                            aliases=["g"],
+                                            aliases=["gg"],
                                             help="Converts the given graph into pdf.",  # noqa: E501
                                             parents=[parent_parser],
                                             formatter_class=FORMATTER_CLASS)
     parser_gengraph.set_defaults(action='gengraph')
 
-    # parser_gengraph.add_argument("-eid", "--env_id",
-    #                          default="",
-    #                          type=str,
-    #                          help="Environment ID")                                            
     parser_gengraph.add_argument("dot_file",
                                  type=str,
                                  help="Dot file to convert to pdf")
+
+
+    # GENTRACE
+    parser_gentrace = subparsers.add_parser("gentrace",
+                                            aliases=["gt"],
+                                            help="Merges traces from all nodes into a Paraver trace.",  # noqa: E501
+                                            parents=[parent_parser],
+                                            formatter_class=FORMATTER_CLASS)
+    parser_gentrace.set_defaults(action='gentrace')
+
+    parser_gentrace.add_argument("trace_dir",
+                                 type=str,
+                                 help="Directory where the traces are located.")
+
+    parser_gentrace.add_argument("--download_dir",
+                                    type=str,
+                                    help="Directory where the traces will be downloaded.")
+
+    parser_gentrace.add_argument('rest_args', 
+                            nargs=argparse.REMAINDER,
+                            help="compss_gentrace arguments")
+
     # COMPONENTS
     parser_components = subparsers.add_parser("components",
                                               aliases=["c"],
@@ -193,10 +201,7 @@ def parse_sys_argv():
                                               formatter_class=FORMATTER_CLASS)
     parser_components.set_defaults(action='components')
 
-    # parser_components.add_argument("-eid", "--env_id",
-    #                          default="",
-    #                          type=str,
-    #                          help="Environment ID")                                                  
+                                                 
     subparsers_components = parser_components.add_subparsers(dest="components")
     
     subparsers_components.add_parser("list",

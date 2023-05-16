@@ -14,10 +14,9 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-from dataclasses import dataclass
 
 
-@dataclass
 class App:
-    name: str
-    remote_dir: str = None
+    def __init__(self, name, remote_dir=None):
+        self.name = name
+        self.remote_dir = remote_dir

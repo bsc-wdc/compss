@@ -83,12 +83,6 @@ class LocalActions(Actions):
         :param debug: Debug mode
         :returns: None
         """
-        if self.debug:
-            print("Running...")
-            print("Parameters:")
-            print("\t- Application: " + self.arguments.application)
-            print("\t- Arguments: " + str(self.arguments.argument))
-
         app_args = self.arguments.rest_args
 
         commands = [
@@ -97,6 +91,10 @@ class LocalActions(Actions):
 
         if 'working_dir' in self.env_conf:
             commands.insert(0, 'cd ' + self.env_conf['working_dir'])
+
+        if self.debug:
+            print("Running...")
+            print("\t- Local command: ", ' '.join(commands))
                 
         local_run_app(commands)
 
@@ -297,6 +295,13 @@ class LocalActions(Actions):
     def gengraph(self):
         command = "compss_gengraph " + self.arguments.dot_file
         local_exec_app(command)
+
+    def gentrace(self):
+        command = f"compss_gentrace {self.arguments.trace_dir} "
+        command += ' '.join(self.arguments.rest_args)
+        local_exec_app(command)
+        if self.arguments.download_dir:
+            local_exec_app(f'cp {self.arguments.trace_dir}/* {self.arguments.download_dir}/')
 
     def get_apps(self, env_id=None) -> List[App]:
         if self.apps is not None:

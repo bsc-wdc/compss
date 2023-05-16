@@ -20,8 +20,6 @@ from pathlib import Path
 import subprocess
 import os
 
-def is_debug():
-    return os.getenv('PYCOMPSS_CLI_DEBUG', 'false').lower() == 'true'
 
 def get_object_method_by_name(obj, method_name, include_in_name=False):
     for class_method_name in dir(obj):
@@ -32,9 +30,12 @@ def get_object_method_by_name(obj, method_name, include_in_name=False):
 def table_print(col_names, data):
     print_table(data, header=col_names)
 
-def get_current_env_conf(return_path=False):
+def get_current_env_conf(env_id=None, return_path=False):
     home_path = str(Path.home())
-    current_env = glob(home_path + '/.COMPSs/envs/*/current')[0].replace('current', 'env.json')
+    if env_id:
+        current_env = glob(home_path + '/.COMPSs/envs/' + env_id + '/env.json')[0]
+    else:
+        current_env = glob(home_path + '/.COMPSs/envs/*/current')[0].replace('current', 'env.json')
     with open(current_env, 'r') as env:
         if return_path:
             return json.load(env), current_env

@@ -6,30 +6,17 @@ COMP Superscalar (COMPSs) is a programming model that aims to ease the developme
 such as Clusters, Grids and Clouds. COMP Superscalar also features a runtime system that exploits the inherent parallelism of 
 applications at execution time.
 
-Release number: 3.1 (Margarita) 
-Release date: June-2022
+Release number: 3.2 (Narcissus) 
+Release date: May-2023
 -------------------------------
 New features
-	- Support for Julia applications as tasks
-	- Support for uDocker for container tasks.
-	- New decorator to apply a transformation to a parameter (@data_transformation)
-	- Automatic creation of Data Provenance information from Java applications.
-	- Constraint to force execution in the local agent. (is_local=True)
-	- Extended external software description (JSON file in Software decorator) to allow the definition of task parameters.
-        - Enable the specification of master working directory (location where data serializations are stored).  
+	- Support for Containers in MPI and MPMD tasks
+	- Cache for cuPy Objects in GPU tasks.
+	- New SSH/SCP Adaptor to submit tasks to remote clusters (GOS Adaptor).
 
 Improvements:
-        - Data Provenance: enhanced addition of source files using directories
-	- Fix issues when wait_on cancelled data. Get the latest version.
-	- Swap distutils with setuptools in the Python binding installation.
-	- Improvements in the management of tasks returning a modified parameter (a=task(a)).
-	- Container decorator allows to define flags to be passed to the container execution commands. 
-	- Improvements in the support for agents and task nesting.
-	- Improvements in pluggable schedulers.
-	- Improvements in python cache.
-	- Improvements in tracing system: Fix assigned gpus events, include python cache events.
-	- Fix issues in Collection graph generation
-	- Configuration files for Hawk, Mahti, Dardel and Lenox system.
+        - Workflow Provenance: support the new Workflow Run Crate profile (v0.1), improved the structuring of source files for the application, new term to specify a submitter, more details on the machine that run the workflow (architecture and COMPSs environment variables)
+	- Configuration files for Jusuf system.
 	- Several Bug fixes.
 
 Known Limitations:
@@ -43,7 +30,7 @@ Known Limitations:
 	- Master as worker feature is not working for executions with persistent worker in C++.
 	- Coherence and concurrent writing in parameters annotated with the "Concurrent" direction must be managed by the underlying distributed storage system.
 	- Delete file calls for files used as input can produce a significant synchronization of the main code.
-	- Defining a parameter as OUT is only allowed for files and colleions of objects with a default constructor.   
+	- Defining a parameter as OUT is only allowed for files and collections of objects with a default constructor.   
 
 For further information, please refer to the COMPSs Documentation at: 
 	https://compss-doc.readthedocs.io/en/stable/

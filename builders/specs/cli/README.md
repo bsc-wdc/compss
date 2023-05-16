@@ -99,7 +99,7 @@ In order to upload a PyPI package the following command must be executed:
 	# Check that the package is valid (the result must be PASSED)
 	twine check pycompss-cli-<version>.tar.gz
 	# Upload to the test repository
-	twine upload --repository-url https://test.pypi.org/legacy/ pycompss-cli-<version>.tar.gz
+	twine upload --repository-url https://test.pypi.org/simple/ pycompss-cli-<version>.tar.gz
 	# Check that the installation works fine:
 
 	# Upload the definitive package to pypi:

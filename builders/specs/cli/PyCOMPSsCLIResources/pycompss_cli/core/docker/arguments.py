@@ -41,6 +41,10 @@ def docker_init_parser():
                              default='current directory',
                              type=str,
                              help="Working directory")
+    parser_init.add_argument("-log", "--log_dir",
+                             default='current directory',
+                             type=str,
+                             help="Logs directory (.COMPSs)")
     parser_init.add_argument("-i", "--image",
                              default="",
                              type=str,

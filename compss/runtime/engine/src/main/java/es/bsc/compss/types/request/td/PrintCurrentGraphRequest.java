@@ -30,7 +30,9 @@ import es.bsc.compss.util.ResourceManager;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.ConcurrentModificationException;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Set;
@@ -115,8 +117,17 @@ public class PrintCurrentGraphRequest extends TDRequest {
                     Task t = se.getTask();
                     this.graph.write(prefix + prefix + prefix + t.getDotDescription());
                     this.graph.newLine();
-
-                    pending.addAll(t.getSuccessors());
+                    LinkedList<AbstractTask> tmpList = new LinkedList<>();
+                    boolean done = false;
+                    while (!done) {
+                        try {
+                            tmpList.addAll(t.getSuccessors());
+                            done = true;
+                        } catch (ConcurrentModificationException cme) {
+                            tmpList.clear();
+                        }
+                    }
+                    pending.addAll(tmpList);
                     tasks.add(t);
                 }
             }
@@ -143,7 +154,17 @@ public class PrintCurrentGraphRequest extends TDRequest {
                     this.graph.write(prefix + prefix + prefix + t.getDotDescription());
                     this.graph.newLine();
 
-                    pending.addAll(t.getSuccessors());
+                    LinkedList<AbstractTask> tmpList = new LinkedList<>();
+                    boolean done = false;
+                    while (!done) {
+                        try {
+                            tmpList.addAll(t.getSuccessors());
+                            done = true;
+                        } catch (ConcurrentModificationException cme) {
+                            tmpList.clear();
+                        }
+                    }
+                    pending.addAll(tmpList);
                     tasks.add(t);
                 }
             }
@@ -178,7 +199,17 @@ public class PrintCurrentGraphRequest extends TDRequest {
                         this.graph.write(prefix + prefix + prefix + prefix + t.getDotDescription());
                         this.graph.newLine();
 
-                        pending.addAll(t.getSuccessors());
+                        LinkedList<AbstractTask> tmpList = new LinkedList<>();
+                        boolean done = false;
+                        while (!done) {
+                            try {
+                                tmpList.addAll(t.getSuccessors());
+                                done = true;
+                            } catch (ConcurrentModificationException cme) {
+                                tmpList.clear();
+                            }
+                        }
+                        pending.addAll(tmpList);
                         tasks.add(t);
                     }
                 }
@@ -203,7 +234,17 @@ public class PrintCurrentGraphRequest extends TDRequest {
                         this.graph.write(prefix + prefix + prefix + prefix + t.getDotDescription());
                         this.graph.newLine();
 
-                        pending.addAll(t.getSuccessors());
+                        LinkedList<AbstractTask> tmpList = new LinkedList<>();
+                        boolean done = false;
+                        while (!done) {
+                            try {
+                                tmpList.addAll(t.getSuccessors());
+                                done = true;
+                            } catch (ConcurrentModificationException cme) {
+                                tmpList.clear();
+                            }
+                        }
+                        pending.addAll(tmpList);
                         tasks.add(t);
                     }
                 }
@@ -239,7 +280,17 @@ public class PrintCurrentGraphRequest extends TDRequest {
                     this.graph.write(prefix + prefix + t.getDotDescription());
                     this.graph.newLine();
                     tasks.add((Task) t);
-                    pending.addAll(t.getSuccessors());
+                    LinkedList<AbstractTask> tmpList = new LinkedList<>();
+                    boolean done = false;
+                    while (!done) {
+                        try {
+                            tmpList.addAll(t.getSuccessors());
+                            done = true;
+                        } catch (ConcurrentModificationException cme) {
+                            tmpList.clear();
+                        }
+                    }
+                    pending.addAll(tmpList);
                 }
             }
 

@@ -1,0 +1,111 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: COMPSs
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Jorge
+    family-names: Ejarque
+    email: jorgq.ejarque@bsc.es
+    affiliation: Barcelona Supercomputing Center
+    orcid: 'https://orcid.org/0000-0003-4725-5097'
+  - given-names: Francesc
+    family-names: Lordan
+    email: francesc.lordan@bsc.es
+    affiliation: Barcelona Supercomputing Center
+    orcid: 'https://orcid.org/0000-0002-9845-8890'
+  - given-names: Rosa Maria
+    family-names: Badia
+    email: rosa.m.badia@bsc.es
+    affiliation: Barcelona Supercomputing Center
+    orcid: 'https://orcid.org/0000-0003-2941-5499'
+  - given-names: Raul
+    family-names: Sirvent
+    email: raul.sirvent@bsc.es
+    affiliation: Barcelona Supercomputing Center
+    orcid: 'https://orcid.org/0000-0003-0606-2512'
+  - given-names: Daniele
+    family-names: Lezzi
+    email: daniele.lezzi@bsc.es
+    affiliation: Barcelona Supercomputing Center
+    orcid: 'https://orcid.org/0000-0001-5081-7244'
+  - given-names: Fernando
+    family-names: Vazquez
+    email: fernando.vazquez@bsc.es
+    affiliation: Barcelona Supercomputing Center
+    orcid: 'https://orcid.org/0000-0001-5634-509X'
+  - given-names: Cristian
+    family-names: Tatu
+    email: cristian.tatu@bsc.es
+    affiliation: Barcelona Supercomputing Center
+    orcid: 'https://orcid.org/0009-0003-8848-9436'
+  - given-names: Gabriel
+    family-names: Puigdemunt
+    email: gabriel.puigdemunt@bsc.es
+    affiliation: Barcelona Supercomputing Center
+    orcid: 'https://orcid.org/0000-0002-5576-9912'
+  - email: nihad.mammadli@bsc.es
+    given-names: Nihad
+    affiliation: Barcelona Supercomputing Center
+    family-names: Mammadli
+    orcid: 'https://orcid.org/0000-0001-8089-921X'
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.6362594
+    description: software
+repository-code: 'https://github.com/bsc-wdc/compss'
+url: 'https://compss.bsc.es'
+abstract: >
+  COMP Superscalar (COMPSs) is a framework which aims to
+  ease the development and execution of parallel
+  applications for distributed infrastructures, such as
+  Clusters, Clouds and containerized platforms.
+keywords:
+  - hpc
+  - workflows
+  - distributed computing
+license: Apache-2.0
+version: '3.2'
+preferred-citation:
+  type: article
+  authors:
+  - family-names: "Francesc"
+    given-names: "Lordan"
+    orcid: "https://orcid.org/0000-0002-9845-8890"
+  - family-names: "Tejedor"
+    given-names: "Enric"
+    orcid: "https://orcid.org/0000-0000-0000-0000"
+  - family-names: "Ejarque"
+    given-names: "Jorge"
+    orcid: "https://orcid.org/0000-0003-4725-5097"
+  - family-names: "Alvarez"
+    given-names: "Javier"
+    orcid: "https://orcid.org/0000-0001-7153-4649"
+  - family-names: "Marozzo"
+    given-names: "Fabrizio"
+    orcid: "https://orcid.org/0000-0001-7887-1314"
+  - family-names: "Lezzi"
+    given-names: "Daniele"
+    orcid: "https://orcid.org/0000-0001-5081-7244"
+  - family-names: "Sirvent"
+    given-names: "Raul"
+    orcid: "https://orcid.org/0000-0003-0606-2512"
+  - family-names: "Talia"
+    given-names: "Domenico"
+    orcid: "https://orcid.org/0000-0003-1910-9236"
+  - family-names: "Badia"
+    given-names: "Rosa M."
+    orcid: "https://orcid.org/0000-0003-2941-5499"
+  doi: "10.1007/s10723-013-9272-5"
+  journal: "Journal of Grid Computing"
+  month: 3
+  start: 67 # First page number
+  end: 91 # Last page number
+  title: "Servicess: An interoperable programming framework for the cloud"
+  issue: 1
+  volume: 12
+  year: 2014

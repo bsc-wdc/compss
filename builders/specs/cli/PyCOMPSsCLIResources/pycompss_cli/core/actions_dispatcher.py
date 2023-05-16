@@ -28,7 +28,7 @@ class ActionsDispatcher(object):
         super().__init__()
         self.home_path = str(Path.home())
 
-    def run_action(self, arguments, debug):
+    def run_action(self, arguments):
         self.__ensure_default_env()
 
         if 'env' in arguments and arguments.env:
@@ -43,11 +43,13 @@ class ActionsDispatcher(object):
             if arguments.action == 'environment':
                 if arguments.environment and arguments.environment.startswith('r'):
                     self.__delete_envs(arguments.env_id, arguments)
+
+            env_id = arguments.env_id if arguments.env_id else None
                 
-            env_conf = utils.get_current_env_conf()
+            env_conf = utils.get_current_env_conf(env_id=env_id)
             env_type = env_conf['env']
 
-        self.__actions_cmd = self.__getactions_cmd(env_type, arguments, debug, env_conf)
+        self.__actions_cmd = self.__getactions_cmd(env_type, arguments, env_conf)
 
         action_name = utils.get_object_method_by_name(self.__actions_cmd, arguments.action)
         action_func = getattr(self.__actions_cmd, action_name)
@@ -79,7 +81,9 @@ class ActionsDispatcher(object):
                 return json.load(open(env_dir_tree[i][0] + '/env.json'))['env']
         return None
 
-    def __getactions_cmd(self, env_type, arguments, debug=False, env_conf=None):
+    def __getactions_cmd(self, env_type, arguments, env_conf=None):
+        debug = arguments.debug
+
         if env_type == "local":
             return LocalActions(arguments, debug, env_conf)
         elif env_type == "docker":

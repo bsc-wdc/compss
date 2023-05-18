@@ -101,11 +101,6 @@ def compss_persistent_worker(
     # Catch SIGTERM sent by bindings_piper
     signal.signal(signal.SIGTERM, shutdown_handler)
 
-    print(
-        "LD_PRELOAD piper_worker.py SUBPROCESS: "
-        + str(os.environ["LD_PRELOAD"])
-    )
-
     # Set the binding in worker mode
     CONTEXT.set_worker()
 
@@ -184,6 +179,8 @@ def compss_persistent_worker(
         if __debug__:
             logger.debug("%sLaunching process %s", HEADER, str(exec_id))
         process_name = "".join(("Process-", str(exec_id)))
+        # set name for ear
+        os.environ["SLURM_JOB_NAME"] = "python_executor_" + str(i)
         pid, queue = create_executor_process(
             exec_id, process_name, conf, config.pipes[i]
         )
@@ -335,11 +332,6 @@ def create_executor_process(
     :return: Process identifier and queue used by the process.
     """
     queue = new_queue()
-    if "LD_PRELOAD" in os.environ:
-        ld_preload = str(os.environ["LD_PRELOAD"])
-        print(f"PYTHON - PARENT PROCESS LD_PRELOAD: {ld_preload}")
-    else:
-        print("PYTHON - PARENT PROCESS NO LD_PRELOAD: ")
     process = create_process(
         target=executor,
         args=(queue, executor_id, executor_name, pipe, conf),
@@ -360,7 +352,6 @@ def main() -> None:
 
     :return: None.
     """
-    print("LD_PRELOAD piper_worker.py: " + str(os.environ["LD_PRELOAD"]))
     # Configure the global tracing variable from the argument
     tracing = sys.argv[6] == "true"
     with trace_multiprocessing_worker() if tracing else dummy_context():

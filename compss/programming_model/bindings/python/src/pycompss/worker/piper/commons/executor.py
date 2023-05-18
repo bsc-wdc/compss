@@ -328,12 +328,6 @@ def executor(
         for storage_logger in storage_loggers:
             storage_loggers_handlers.append(copy.copy(storage_logger.handlers))
 
-        if "LD_PRELOAD" in os.environ:
-            ld_preload = str(os.environ["LD_PRELOAD"])
-            logger.debug(f"PYTHON - CHILD PROCESS LD_PRELOAD: {ld_preload}")
-        else:
-            logger.debug("PYTHON - CHILD PROCESS NO LD_PRELOAD: ")
-
         # Establish link with the binding-commons to enable task nesting
         if __debug__:
             logger.debug(

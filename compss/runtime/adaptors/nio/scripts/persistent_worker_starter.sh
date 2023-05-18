@@ -8,13 +8,6 @@
   # MAIN PROGRAM
   ######################
 
-  echo "EAR log: Worker  starting----------------" >> $HOME/ear_compss_logs
-
-  echo "LD_PRELOAD_LD_PRELOAD INICIAL"
-  echo "LD_PRELOAD: ${LD_PRELOAD}"
-  echo "LD_PRELOAD_LD_PRELOAD INICIAL"
-
-
   # Load common setup functions --------------------------------------
   if [ -z "${COMPSS_HOME}" ]; then
     SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -25,36 +18,27 @@
   # shellcheck source=setup.sh
   # shellcheck disable=SC1091
 
-  echo "EAR log: loading setup" >> $HOME/ear_compss_logs
   source "${SCRIPT_DIR}"/setup.sh
-  echo "EAR log: setup loaded" >> $HOME/ear_compss_logs
 
   # Load parameters --------------------------------------------------
 
-  echo "EAR log: loading parameters $@ " >> $HOME/ear_compss_logs
   load_parameters "$@"
 
   # Trap to clean environment
 
-  echo "EAR log: before trap " >> $HOME/ear_compss_logs
   trap clean_env EXIT
 
   # Normal start -----------------------------------------------------
   # Setup
 
-  echo "EAR log: Starting normal start "  >> $HOME/ear_compss_logs
   setup_environment
-  echo "EAR log: setup_extrae "  >> $HOME/ear_compss_logs
   setup_extrae
-  echo "EAR log: setup_jvm "  >> $HOME/ear_compss_logs
   setup_jvm
 
   # Launch the Worker JVM
 
-  echo "EAR log: pre_launch "  >> $HOME/ear_compss_logs
   pre_launch
 
-  echo "EAR log: reprogram_fpga "  >> $HOME/ear_compss_logs
   reprogram_fpga
 
   if [ "$debug" == "true" ]; then
@@ -93,10 +77,6 @@
   if [ "$debug" == "true" ]; then
     echo "[persistent_worker_starter.sh] Exit NIOWorker of host ${hostName} with exit value ${exitValue}"
   fi
-
-  echo "LD_PRELOAD_LD_PRELOAD FINAL"
-  echo "LD_PRELOAD: ${LD_PRELOAD}"
-  echo "LD_PRELOAD_LD_PRELOAD FINAL"
 
   exit $exitValue
 

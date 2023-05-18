@@ -222,9 +222,8 @@ EOT
   }
 
   post_launch() {
-    if [ "${tracing}" == "true" ]; then
-      unset LD_PRELOAD
-    fi
+    # Do nothing
+    :
   }
 
   clean_env() {

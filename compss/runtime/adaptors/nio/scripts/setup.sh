@@ -199,8 +199,8 @@
       fi
     else
       export COMPSS_WITH_DLB=0
-    fi        
-    
+    fi
+
   }
 
   setup_extrae() {
@@ -208,7 +208,7 @@
     if [ "${tracing}" == "true" ]; then
 
       configPath="${SCRIPT_DIR}/../../../../configuration/xml/tracing"
-      
+
       # Determine source extrae config file
       if [ -z "${extraeFile}" ] || [ "${extraeFile}" == "null" ] || [ "${extraeFile}" == "false" ]; then
         # Only define extraeFile if it is not a custom location
@@ -216,8 +216,7 @@
       else
           baseConfigFile="${extraeFile}"
       fi
-      
-      
+
       tracing_output_dir="${workingDir}"
       mkdir -p "${tracing_output_dir}"
       extraeFile="${workingDir}/extrae.xml"
@@ -308,12 +307,12 @@
     if [ "$cp" == "null" ]; then
   	cp=""
     fi
-    
+
     # Coredump
     if [ "$genCoredump" == "true" ]; then
         ulimit -c unlimited
     fi
-    
+
     # Export environment
     export CLASSPATH=$cpNW:$CLASSPATH
     export PYTHONPATH=$pythonpath:$PYTHONPATH
@@ -335,9 +334,9 @@
     -Dcompss.extrae.file.python=${pythonExtraeFile}
     -Djava.library.path=$LD_LIBRARY_PATH"
     if [ "$(uname -m)" == "riscv64" ]; then
-	worker_jvm_flags="${jvmFlags} ${compss_jvm_flags}"
-    else 
-        worker_jvm_flags="${jvmFlags} ${perf_jvm_flags} ${compss_jvm_flags}"
+      worker_jvm_flags="${jvmFlags} ${compss_jvm_flags}"
+    else
+      worker_jvm_flags="${jvmFlags} ${perf_jvm_flags} ${compss_jvm_flags}"
     fi
 
     if [ "$lang" = "c" ] && [ "${persistentBinding}" = "true" ]; then
@@ -378,10 +377,8 @@ EOT
   }
 
   post_launch() {
-    if [ "${tracing}" == "true" ]; then
-      #unset LD_PRELOAD
-      echo "Unsetting LD_PRELOAD"
-    fi
+    # Do nothing
+    :
   }
 
   clean_env() {

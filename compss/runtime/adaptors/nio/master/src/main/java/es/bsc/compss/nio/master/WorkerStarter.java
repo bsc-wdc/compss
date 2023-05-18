@@ -199,6 +199,7 @@ public class WorkerStarter {
 
         }
         String[] command = generateStartCommand(workerPort, masterName, tracingHostId);
+        // AQUI MODIFICAR CUANDO ES EAR PARA AÑADIR SU LLAMADA ANTES Y DESPUÉS
         do {
             boolean error = false;
             ProcessOut po = executeCommand(user, name, command);
@@ -365,9 +366,10 @@ public class WorkerStarter {
         // Execute command
         try {
             ProcessBuilder pb = new ProcessBuilder();
-            for (String env : Tracer.ENVIRONMENT_VARIABLES) {
-                pb.environment().remove(env);
-            }
+
+            // Setup process environment -- Tracing entries
+            Tracer.prepareEnvironment(pb.environment(), false);
+
             pb.command(cmd);
             Process process = pb.start();
 

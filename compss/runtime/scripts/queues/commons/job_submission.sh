@@ -327,7 +327,7 @@ check_job_submission_options() {
  # file systes can be empty
 
   if [ -z "${submission_working_dir}" ]; then
-    submission_working_dir=${DEFAULT_MASTER_WORKING_DIR}
+    submission_working_dir=${DEFAULT_JOB_EXECUTION_DIR}
   fi
 
  # extra_submission_flags can be empty
@@ -624,7 +624,7 @@ append_cd_master_wd_to_script(){
   #Add change to master working dir if not working dir option in job definition
   if [ -z "${QARG_WD}" ]; then
     cat >> "${submit_script}" << EOT
-  cd ${master_working_dir}
+  cd ${submission_working_dir}
 EOT
   fi
 }

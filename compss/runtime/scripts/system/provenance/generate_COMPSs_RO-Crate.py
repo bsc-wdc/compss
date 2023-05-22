@@ -1109,7 +1109,7 @@ def main():
             )
         )
     print(
-        f"PROVENANCE | RO-CRATE adding input files' references TIME (add_dataset_file_to_crate): "
+        f"PROVENANCE | RO-CRATE adding input files TIME (add_dataset_file_to_crate. Persistence: {persistence}): "
         f"{time.time() - part_time} s"
     )
 
@@ -1123,7 +1123,7 @@ def main():
             )
         )
     print(
-        f"PROVENANCE | RO-CRATE adding output files' references TIME (add_dataset_file_to_crate): "
+        f"PROVENANCE | RO-CRATE adding output files TIME (add_dataset_file_to_crate. Persistence: {persistence}): "
         f"{time.time() - part_time} s"
     )
 

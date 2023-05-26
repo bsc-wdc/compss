@@ -215,7 +215,7 @@ show_opts() {
                                             Default: ${DEFAULT_WALL_CLOCK_LIMIT}
     --shutdown_in_node_failure=<bool>       Stop the whole execution in case of Node Failure.
                                             Default: ${DEFAULT_SHUTDOWN_IN_NODE_FAILURE}
-    --provenance, -p                        Generate COMPSs workflow provenance data in RO-Crate format from YAML file. Automatically activates -graph and -output_profile.
+    --provenance, -p                        Generate COMPSs workflow provenance data in RO-Crate format from YAML file. Automatically activates --graph and --output_profile.
                                             Default: false
 
 * Application name:

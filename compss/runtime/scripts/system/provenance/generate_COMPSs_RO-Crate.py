@@ -739,9 +739,15 @@ def add_dataset_file_to_crate(
         if persist:  # Remove scheme so it is added as a regular file
             for i, item in enumerate(common_paths):  # All files must have a match
                 if url_parts.path.startswith(item):
-                    crate_path = (
-                        "dataset/" + "folder_" + str(i) + url_parts.path[len(item) :]
-                    )  # Slice out the common part of the path
+                    if len(common_paths) == 1:
+                        # Single dataset folder, add it to the root
+                        crate_path = (
+                                "dataset" + url_parts.path[len(item):]
+                        )  # Slice out the common part of the path
+                    else:
+                        crate_path = (
+                            "dataset/" + "folder_" + str(i) + url_parts.path[len(item):]
+                        )  # Slice out the common part of the path
                     break
             print(f"ADDING {url_parts.path} as {crate_path}")
             compss_crate.add_file(

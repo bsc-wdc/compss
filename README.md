@@ -7,29 +7,30 @@
   <a href="https://www.bsc.es/research-and-development/software-and-apps/software-list/comp-superscalar/">
     <img src="files/logos/COMPSs_logo.png" alt="COMP Superscalar" height="60px">
   </a>
-  <br>
-  <br>
-  COMPSs Framework
-  <br>
+  COMPSs/PyCOMPSs Framework
 </h1>
 
-<h3 align="center">Component Superscalar framework and programming model for HPC.</h3>
 <p align="center">
-  <a href='http://bscgrid05.bsc.es/jenkins/job/COMPSs_Framework-Docker_testing'>
-    <img src='http://bscgrid05.bsc.es/jenkins/job/COMPSs_Framework-Docker_testing/badge/icon'
-         alt="Build Status">
-  </a>
   <a href='https://eu.badgr.com/public/assertions/DyM-w_V-SEKU64D90AsrEA'>
-    <img src='https://api.eu.badgr.io/public/assertions/DyM-w_V-SEKU64D90AsrEA/image'
-         alt="SQAaaS silver badge achieved" height="75px">
+  <img src='https://api.eu.badgr.io/public/assertions/DyM-w_V-SEKU64D90AsrEA/image' alt="SQAaaS silver badge achieved" height="75px"/>
+  </a>
+  <a href='https://compss.bsc.es/jenkins/job/COMPSs_Framework_Create_Release/'>
+  <img src='https://compss.bsc.es/jenkins/job/COMPSs_Framework_Create_Release/badge/icon' alt="Build Status"/>
+  </a>
+  <a href='https://compss-doc.readthedocs.io/en/stable/?badge=stable'>
+  <img src='https://readthedocs.org/projects/compss-doc/badge/?version=stable' alt='Documentation Status' />
+  </a>
+  <a href='https://opensource.org/licenses/Apache-2.0'>
+  <img src='https://img.shields.io/badge/License-Apache_2.0-blue.svg' alt='License'/>
   </a>
 </p>
 
 <p align="center"><b>
     <a href="https://www.bsc.es/research-and-development/software-and-apps/software-list/comp-superscalar/">Website</a> •  
-    <a href="https://www.bsc.es/research-and-development/software-and-apps/software-list/comp-superscalar/documentation">Documentation</a> •
+    <a href="https://compss-doc.readthedocs.io/en/latest/">Documentation</a> •
     <a href="https://github.com/bsc-wdc/compss/releasess">Releases</a> •
-    <a href="https://bit.ly/bsc-wdc-community">Slack</a>
+    <a href="https://bit.ly/bsc-wdc-community">Slack</a> •
+    <a href="mailto:support-compss@bsc.es">&#9993</a>
 </b></p>
 
 COMP Superscalar (COMPSs) is a programming model which aims to ease the development
@@ -37,127 +38,34 @@ of applications for distributed infrastructures, such as Clusters, Grids and Clo
 COMP Superscalar also features a runtime system that exploits the inherent parallelism
 of applications at execution time.
 
-
-<!-- SECTIONS -->
-
-<!-- DOCUMENTATION -->
-# Documentation
-
-COMPSs documentation can be found at the [COMPSs Webpage][1] or at
-the `doc/` folder.
-
-  * COMPSs_Installation_Manual.pdf
-  * COMPSs_User_Manual_App_Development.pdf
-  * COMPSs_User_Manual_App_Execution.pdf
-  * COMPSs_Supercomputers_Manual.pdf
-  * Tracing_Manual.pdf
-  * COMPSs_Developer_Manual.pdf
-
-
-<!-- PACKAGES -->
-# Packages
-
-The COMP Superscalar Framework packages are available at the [COMPSs Webpage][1] or
-can be found on the `builders/packages/` directory.
-
-
 <!-- SOURCES STRUCTURE -->
-# Sources Structure
+## Repository Structure
 
   * **builders**: Packages, scripts for local installations, scripts for supercomputers
    installation and package building scripts
-  * **compss** : COMPSs Runtime
-  * **dependencies** : COMPSs embeded dependencies
-  * **doc** : COMPSs documentation
+  * **compss** : Programming Model, Bindings and Runtime source code
+  * **dependencies** : Embeded dependencies
   * **files** : Dependency files (i.e. paraver configurations)
-  * **tests** : COMPSs integration tests
+  * **tests** : Integration tests
   * **utils** : Misc utils (i.e. OVA scripts, Docker generation, Storage implementations)
 
 
-<!-- SAMPLE APPLICATIONS -->
-# Sample Applications
+## Supported Systems
 
-You can find extended information about COMPSs Sample applications at the
-Sample_Applications manual available at the [COMPSs Webpage][1] or at the
-`doc/Sample_applications.pdf`.
+COMPSs/PyCOMPSs fully supports Linux systems for x86_64, amd64, ppc64, arm64 and riscv64 architectures. OSX systems are also supported with some limitations. 
 
 
 <!-- BUILDING COMPSS -->
-# Building COMPSs
+## Building From Sources
 
 Follow the next steps to build COMPSs in your current machine.
 
-## 1. Install dependencies
+### 1. Install dependencies
 
-Install the listed dependencies for each component you wish to install. For a complete build please install all the dependencies.
-
-* COMPSs Runtime dependencies
-  * openjdk-8-jre
-  * openssh-server
-  * uuid-runtime
-  * graphviz
-  * xdg-utils
-* Build dependencies
-  * wget
-  * openjdk-8-jdk
-  * maven
-  * curl
-  * jq
-  * OSX dependencies(use Brew to install it)
-    * libtool
-    * coreutils
-    * boost
-    * util-linux
-* Bindings-common dependencies
-  * build-essential
-  * autoconf
-  * automake
-  * autotools-dev
-  * libtool
-* C-binding dependencies
-  * libboost-all-dev
-  * libxml2-dev
-  * csh
-* Python-binding dependencies
-  * python-dev | python3-dev
-  * python-pip | python3-pip
-  * python-setuptools | python3-setuptools
-  * libpython3
-  * wheel
-  * numpy
-  * dill
-  * guppy
-* Extrae dependencies
-  * libxml2
-  * gfortran
-  * libpapi-dev
-  * papi-tools
-* AutoParallel dependencies
-  * libgmp3-dev
-  * flex
-  * bison
-  * libbison-dev
-  * texinfo
-  * libffi-dev
-  * astor
-  * sympy
-  * enum34
-  * islpy
-* Streaming dependencies
-  * Gradle
-* Testing dependencies
-  * openmpi-bin
-  * openmpi-doc
-  * libopenmpi-dev
-  * bc
-  * decorator
-  * mpi4py
-  * redis-py-cluster
-  * enum34
-  * tabulate
+For an updated list of COMPSs dependencies and how to install them for different systems visit the [dependencies section](https://compss-doc.readthedocs.io/en/latest/Sections/01_Installation/01_Dependencies.html) of the COMPSs documentation website.
 
 
-## 2. Get GIT submodules
+### 2. Get GIT submodules
 
 Before installing COMPSs you need to download the git submodules that contain its dependencies. To do that execute the following two commands at the root of the repository.
 
@@ -165,7 +73,7 @@ Before installing COMPSs you need to download the git submodules that contain it
 ./submodules_get.sh
 ```
 
-## 3. Build COMPSs
+### 3. Build COMPSs
 
 **Note**: Remember to install the COMPSs dependencies and to get the GIT submodules before trying to build COMPSs from sources.
 
@@ -207,9 +115,9 @@ cd builders
 ```
 
 <!-- RUNNING DOCKER TESTS -->
-# Running docker tests
+## Running docker tests
 
-## 1. Install Docker and docker-py
+### 1. Install Docker and docker-py
 
 Follow these instructions
 
@@ -222,16 +130,16 @@ Add user to docker group to run docker as non-root user.
  - [Instructions](https://docs.docker.com/install/linux/linux-postinstall/).
 
 
-## 2. Build the docker image
+### 2. Build the docker image
 
 Run the following command at the root of the project to build the image that will used for testing. The command create an image named **compss** and install the current branch into the image.
 
 ```
-docker build --target= ci -t compss .
+docker build --target=ci -t compss .
 ```
 
 
-## 3. Run the tests
+### 3. Run the tests
 
 To run the tests inside the docker image use the script found in `./tests/scripts/docker_main`. This command is a wrapper for the `./main` test command
 so it has de the syntax and options. For example, you can run the first test without retrials as follows:
@@ -253,16 +161,10 @@ and runs its tests. **Note**: the testing scripts assumes you have named the tes
 
 
 <!-- CONTACT -->
-# Contact
+## Support
+For support please send and e-mail to support-compss@bsc.es
 
-:envelope: COMPSs Support <support-compss@bsc.es> :envelope:
-
-Workflows and Distributed Computing Group (WDC)
-
-Department of Computer Science (CS)
-
-Barcelona Supercomputing Center (BSC)
+(c) Workflows and Distributed Computing Group (WDC) - Department of Computer Science (CS) - Barcelona Supercomputing Center (BSC)
 
 
-<!-- LINKS -->
-[1]: http://compss.bsc.es
+

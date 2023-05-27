@@ -15,10 +15,13 @@
   <img src='https://api.eu.badgr.io/public/assertions/DyM-w_V-SEKU64D90AsrEA/image' alt="SQAaaS silver badge achieved" height="75px"/>
   </a>
   <a href='https://compss.bsc.es/jenkins/job/COMPSs_Framework_Create_Release/'>
-  <img src='https://compss.bsc.es/jenkins/job/COMPSs_Framework_Create_Release/badge/icon' alt="Build Status"/>
+  <img src='https://compss.bsc.es/jenkins/buildStatus/icon?job=COMPSs_Framework_Create_Release' alt="Build Status">
   </a>
   <a href='https://compss-doc.readthedocs.io/en/stable/?badge=stable'>
   <img src='https://readthedocs.org/projects/compss-doc/badge/?version=stable' alt='Documentation Status' />
+  </a>
+  <a href="https://doi.org/10.5281/zenodo.6362594">
+  <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.6362594.svg" alt="DOI">
   </a>
   <a href='https://opensource.org/licenses/Apache-2.0'>
   <img src='https://img.shields.io/badge/License-Apache_2.0-blue.svg' alt='License'/>

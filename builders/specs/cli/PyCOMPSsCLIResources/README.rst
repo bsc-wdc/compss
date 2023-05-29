@@ -95,7 +95,7 @@ Usage
 ~~~~~
 
 For detailed instructions and examples of usage please visit official documentation.
-   -  `PyCOMPSs-CLI Usage Documentation <https://compss-doc.readthedocs.io/en/stable/Sections/08_PyCOMPSs_Player/02_Usage.html>`__
+   -  `PyCOMPSs-CLI Usage Documentation <https://compss-doc.readthedocs.io/en/stable/Sections/08_PyCOMPSs_CLI/02_Usage.html>`__
 
 License
 =======

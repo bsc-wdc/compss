@@ -232,7 +232,7 @@ class DockerActions(Actions):
                             self.arguments.worker)
 
     def env_remove(self, env_id=None):
-        if self.docker_cmd.exists():
+        if self.docker_cmd.exists(self.env_conf['name']):
             self.docker_cmd.docker_exec_in_daemon('rm -rf .COMPSs')
             self.docker_cmd.docker_kill_compss()
         super().env_remove(eid=env_id)

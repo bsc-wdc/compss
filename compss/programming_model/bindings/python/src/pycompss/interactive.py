@@ -719,7 +719,10 @@ def __hard_stop(
 
 
 def current_task_graph(
-    fit: bool = False, refresh_rate: int = 1, timeout: int = 0
+    fit: bool = False,
+    refresh_rate: int = 1,
+    timeout: int = 0,
+    widget=None,
 ) -> typing.Any:
     """Show current graph.
 
@@ -727,6 +730,7 @@ def current_task_graph(
     :param refresh_rate: Update the current task graph every "refresh_rate"
                          seconds. Default 1 second if timeout != 0.
     :param timeout: Time during the current task graph is going to be updated.
+    :param widget: Widget where to show the current task graph.
     :return: None
     """
     if not EXTRA_LAUNCH_STATUS.get_graphing():
@@ -742,11 +746,15 @@ def current_task_graph(
         fit=fit,
         refresh_rate=refresh_rate,
         timeout=timeout,
+        widget=widget,
     )
 
 
 def complete_task_graph(
-    fit: bool = False, refresh_rate: int = 1, timeout: int = 0
+    fit: bool = False,
+    refresh_rate: int = 1,
+    timeout: int = 0,
+    widget=None,
 ) -> typing.Any:
     """Show complete graph.
 
@@ -754,6 +762,7 @@ def complete_task_graph(
     :param refresh_rate: Update the current task graph every "refresh_rate"
                          seconds. Default 1 second if timeout != 0
     :param timeout: Time during the current task graph is going to be updated.
+    :param widget: Widget where to show the current task graph.
     :return: None
     """
     if not EXTRA_LAUNCH_STATUS.get_graphing():
@@ -769,6 +778,7 @@ def complete_task_graph(
         fit=fit,
         refresh_rate=refresh_rate,
         timeout=timeout,
+        widget=widget,
     )
 
 

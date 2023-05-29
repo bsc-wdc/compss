@@ -36,6 +36,7 @@ def show_graph(
     fit: bool = False,
     refresh_rate: int = 1,
     timeout: int = 0,
+    widget=None,
 ) -> None:
     """Show graph.
 
@@ -45,6 +46,7 @@ def show_graph(
     :param refresh_rate: Update the current task graph every "refresh_rate"
                          seconds. Default 1 second if timeout != 0.
     :param timeout: Time during the current task graph is going to be updated.
+    :param widget: Widget where to show the graph.
     :return: None.
     """
     try:
@@ -53,7 +55,6 @@ def show_graph(
         print("Oops! graphviz is not available.")
         return None
     from IPython.display import clear_output  # noqa
-    from IPython.display import display  # noqa
 
     # Check refresh rate and timeout
     if timeout < 0:
@@ -67,19 +68,37 @@ def show_graph(
     file_name = os.path.join(log_path, "monitor", name)
     # Act
     if timeout == 0:
-        display(__get_graph_snapshot(file_name, fit, Source))
+        source = __get_graph_snapshot(file_name, fit, Source)
+        __show_snapshot(source, widget)
     else:
         try:
             while timeout >= 0:
                 clear_output(wait=True)
-                display(__get_graph_snapshot(file_name, fit, Source))
+                source = __get_graph_snapshot(file_name, fit, Source)
+                __show_snapshot(source, widget)
                 time.sleep(refresh_rate)
                 timeout = timeout - refresh_rate
         except KeyboardInterrupt:
             # User hit stop on the cell
             clear_output(wait=True)
-            display(__get_graph_snapshot(file_name, fit, Source))
+            source = __get_graph_snapshot(file_name, fit, Source)
+            __show_snapshot(source, widget)
     return None
+
+
+def __show_snapshot(source: typing.Any, widget: typing.Any) -> None:
+    """Display snapshot in the appropriate output.
+
+    :param source: Source to be displayed.
+    :param widget: Widget to be used. Displayed normally if not provided.
+    :return: None
+    """
+    from IPython.display import display  # noqa
+
+    if widget:
+        widget.append_display_data(source)
+    else:
+        display(source)
 
 
 def __get_graph_snapshot(

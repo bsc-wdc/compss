@@ -742,14 +742,17 @@ def add_dataset_file_to_crate(
                     if len(common_paths) == 1:
                         # Single dataset folder, add it to the root
                         crate_path = (
-                                "dataset" + url_parts.path[len(item):]
+                            "dataset" + url_parts.path[len(item) :]
                         )  # Slice out the common part of the path
                     else:
                         crate_path = (
-                            "dataset/" + "folder_" + str(i) + url_parts.path[len(item):]
+                            "dataset/"
+                            + "folder_"
+                            + str(i)
+                            + url_parts.path[len(item) :]
                         )  # Slice out the common part of the path
                     break
-            print(f"ADDING {url_parts.path} as {crate_path}")
+            # print(f"PROVENANCE DEBUG | Adding {url_parts.path} as {crate_path}")
             compss_crate.add_file(
                 source=url_parts.path, dest_path=crate_path, properties=file_properties
             )
@@ -764,9 +767,15 @@ def add_dataset_file_to_crate(
             return in_url
         # add_file_time = time.time() - add_file_time
 
-    # DIRECTORIES ENCARA FALTA IMPLEMENTAR I TESTING
-
     elif url_parts.scheme == "dir":  # DIRECTORY parameter
+        # if persist:
+        #     # Add whole dataset, and return. Clean path name first
+        #     crate_path = "dataset/" + final_item_name
+        #     print(f"PROVENANCE DEBUG | Adding DATASET {url_parts.path} as {crate_path}")
+        #     compss_crate.add_tree(compss_crate, source=url_parts.path, dest_path=crate_path, properties=file_properties)
+        #     # fetch_remote and validate_url false by default. add_dataset also ensures the URL ends with '/'
+        #     return crate_path
+
         # For directories, describe all files inside the directory
         has_part_list = []
         for root, dirs, files in os.walk(
@@ -777,7 +786,11 @@ def add_dataset_file_to_crate(
             files.sort()
             for f_name in files:
                 listed_file = os.path.join(root, f_name)
-                dir_f_url = "file://" + url_parts.netloc + listed_file
+                if persist:
+                    filtered_url = listed_file[len(url_parts.path) :]
+                    dir_f_url = "dataset/" + final_item_name + filtered_url
+                else:
+                    dir_f_url = "file://" + url_parts.netloc + listed_file
                 has_part_list.append({"@id": dir_f_url})
                 dir_f_properties = {
                     "name": f_name,
@@ -790,17 +803,37 @@ def add_dataset_file_to_crate(
                     # Schema.org
                     "contentSize": os.path.getsize(listed_file),
                 }
-                compss_crate.add_file(
-                    dir_f_url,
-                    fetch_remote=False,
-                    validate_url=False,
-                    # True fails at MN4 when file URI points to a node hostname (only localhost works)
-                    properties=dir_f_properties,
-                )
+                if persist:
+                    # print(f"PROVENANCE DEBUG | Adding DATASET FILE {listed_file} as {dir_f_url}")
+                    compss_crate.add_file(
+                        source=listed_file,
+                        dest_path=dir_f_url,
+                        fetch_remote=False,
+                        validate_url=False,
+                        # True fails at MN4 when file URI points to a node hostname (only localhost works)
+                        properties=dir_f_properties,
+                    )
+                else:
+                    compss_crate.add_file(
+                        dir_f_url,
+                        fetch_remote=False,
+                        validate_url=False,
+                        # True fails at MN4 when file URI points to a node hostname (only localhost works)
+                        properties=dir_f_properties,
+                    )
         file_properties["hasPart"] = has_part_list
-        compss_crate.add_dataset(
-            fix_dir_url(in_url), properties=file_properties
-        )  # fetch_remote and validate_url false by default. add_dataset also ensures the URL ends with '/'
+        if persist:
+            dataset_path = url_parts.path + "/"
+            path_in_crate = "dataset/" + final_item_name + "/"
+            # print(f"PROVENANCE DEBUG | Adding DATASET {dataset_path} as {path_in_crate}")
+            compss_crate.add_dataset(
+                source=dataset_path, dest_path=path_in_crate, properties=file_properties
+            )  # fetch_remote and validate_url false by default. add_dataset also ensures the URL ends with '/'
+            return path_in_crate
+        else:
+            compss_crate.add_dataset(
+                fix_dir_url(in_url), properties=file_properties
+            )  # fetch_remote and validate_url false by default. add_dataset also ensures the URL ends with '/'
 
     else:  # Remote file, currently not supported in COMPSs. validate_url already adds contentSize and encodingFormat
         # from the remote file

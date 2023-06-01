@@ -86,11 +86,13 @@ def root_entity(compss_crate: ROCrate, yaml_content: dict) -> typing.Tuple[dict,
         "license"
     ]  # License details could be also added as a Contextual Entity
 
-    authors_set = set()
-    organisations_set = set()
+    author_list = list()
+    org_list = list()
     for author in authors_info:
-        authors_set.add(author["orcid"])
-        organisations_set.add(author["ror"])
+        if author["orcid"] not in author_list:
+            author_list.append(author["orcid"])
+        if author["ror"] not in org_list:
+            org_list.append(author["ror"])
         compss_crate.add(
             Person(
                 compss_crate,
@@ -122,16 +124,16 @@ def root_entity(compss_crate: ROCrate, yaml_content: dict) -> typing.Tuple[dict,
                 {"@type": "Organization", "name": author["organisation_name"]},
             )
         )
-    author_list = list()
-    for creator in authors_set:
-        author_list.append({"@id": creator})
-    compss_crate.creator = author_list
-    org_list = list()
-    for org in organisations_set:
-        org_list.append({"@id": org})
-    compss_crate.publisher = org_list
-    # print(f"compss_wf_info at the beginning: {compss_wf_info}")
-    return compss_wf_info, author_list
+    crate_author_list = list()
+    crate_org_list = list()
+    for author_orcid in author_list:
+        crate_author_list.append({"@id": author_orcid})
+    compss_crate.creator = crate_author_list
+    for org_ror in org_list:
+        crate_org_list.append({"@id": org_ror})
+    compss_crate.publisher = crate_org_list
+
+    return compss_wf_info, crate_author_list
 
 
 def get_main_entities(wf_info: dict) -> typing.Tuple[str, str, str]:
@@ -593,7 +595,7 @@ def add_file_to_crate(
         )
         file_properties[
             "description"
-        ] = "COMPSs command line execution command, including parameters passed"
+        ] = "COMPSs command line execution command (runcompss), including flags and parameters passed"
         file_properties["encodingFormat"] = "text/plain"
         compss_crate.add_file(
             "compss_command_line_arguments.txt", properties=file_properties
@@ -700,7 +702,7 @@ def add_application_source_files(
     # print(f"PROVENANCE DEBUG | Source files detected: {added_files}")
 
     print(
-        f"PROVENANCE | RO-CRATE adding physical files TIME (add_file_to_crate): {time.time() - part_time} s"
+        f"PROVENANCE | RO-CRATE adding source files TIME (add_file_to_crate): {time.time() - part_time} s"
     )
 
 
@@ -1062,8 +1064,8 @@ def main():
         "    # Relative paths from a sources_dir entry, or absolute paths can be used\n"
         "  files: [main_file.py, aux_file_1.py, aux_file_2.py]\n"
         "    # List of application files. Relative or absolute paths can be used\n"
-        #        "  data_persistence: False\n"
-        #        "    # True to include all input and output files of the application in the resulting crate"
+        "  data_persistence: False\n"
+        "    # True to include all input and output files of the application in the resulting crate. False by default or if not set\n"
         "\n"
         "Authors:\n"
         "  - name: Author_1 Name\n"
@@ -1136,7 +1138,7 @@ def main():
     ):
         persistence = True
         list_common_paths = get_common_paths(ins_and_outs)
-        print(f"List of common paths INS and OUTS: {list_common_paths}")
+        # print(f"PROVENANCE DEBUG | List of common paths INS and OUTS: {list_common_paths}")
     else:
         persistence = False
 

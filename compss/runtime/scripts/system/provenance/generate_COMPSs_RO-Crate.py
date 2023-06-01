@@ -1225,8 +1225,8 @@ def main():
     compss_crate.write(folder)
     print(f"PROVENANCE | COMPSs RO-Crate created successfully in subfolder {folder}")
     print(f"PROVENANCE | RO-CRATE dump TIME: {time.time() - part_time} s")
-    # cleanup from workingdir
-    os.remove("compss_command_line_arguments.txt")
+    # Do not cleanup from workingdir, because the user could invoke this script manually
+    # os.remove("compss_command_line_arguments.txt")
 
 
 if __name__ == "__main__":

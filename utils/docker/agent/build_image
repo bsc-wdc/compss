@@ -1,5 +1,5 @@
 #!/bin/bash -e
-COMPSs_VERSION="3.2.rc2305"
+COMPSs_VERSION="3.2.rc2306"
 SANDBOX="/tmp/agent_container"
 rm -rf ${SANDBOX}
 mkdir -p ${SANDBOX}

@@ -774,7 +774,7 @@ def add_dataset_file_to_crate(
         #     # Add whole dataset, and return. Clean path name first
         #     crate_path = "dataset/" + final_item_name
         #     print(f"PROVENANCE DEBUG | Adding DATASET {url_parts.path} as {crate_path}")
-        #     compss_crate.add_tree(compss_crate, source=url_parts.path, dest_path=crate_path, properties=file_properties)
+        #     compss_crate.add_tree(source=url_parts.path, dest_path=crate_path, properties=file_properties)
         #     # fetch_remote and validate_url false by default. add_dataset also ensures the URL ends with '/'
         #     return crate_path
 

@@ -174,6 +174,7 @@ class TaskWorker:
                 self.decorator_arguments.defaults = self.defaults
 
                 # Pop cache if available
+                cache_on = False
                 cache = kwargs.pop("compss_cache", None)
                 if cache:
                     (
@@ -182,6 +183,7 @@ class TaskWorker:
                         self.cache.ids,
                         self.cache.profiler,
                     ) = cache
+                    cache_on = True
 
                 if __debug__:
                     LOGGER.debug("Revealing objects")
@@ -244,7 +246,7 @@ class TaskWorker:
                     LOGGER.debug("Invoking user code")
                 # Now execute the user code
                 result = self.execute_user_code(
-                    user_args, user_kwargs, kwargs["compss_tracing"]
+                    user_args, user_kwargs, kwargs["compss_tracing"], cache_on
                 )
                 user_returns, compss_exception, default_values = result
 
@@ -1014,6 +1016,7 @@ class TaskWorker:
         user_args: list,
         user_kwargs: dict,
         tracing: bool,
+        cache_on: bool,
     ) -> typing.Tuple[
         typing.Any, typing.Optional[COMPSsException], typing.Optional[dict]
     ]:
@@ -1144,7 +1147,8 @@ class TaskWorker:
             if restore_hook:
                 sys.setprofile(pro_f)
 
-            clean_cupy_env()
+            if cache_on:
+                clean_cupy_env()
 
             return user_returns, compss_exception, default_values
 

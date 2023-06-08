@@ -14,24 +14,31 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-import datetime
 
-from rocrate.rocrate import ROCrate
-from rocrate.model.person import Person
-from rocrate.model.contextentity import ContextEntity
-from rocrate.model.entity import Entity
-from rocrate.model.file import File
-from rocrate.utils import iso_now
+"""
+    The generate_COMPSs_RO-Crate.py module generates the resulting RO-Crate metadata from a COMPSs application run
+    following the Workflow Run Crate profile specification. Takes as parameters the ro-crate-info.yaml, and the
+    dataprovenance.log generated from the run.
+"""
 
 from pathlib import Path
 from urllib.parse import urlsplit
-
-import yaml
 import os
 import uuid
 import typing
 import datetime as dt
 import json
+import socket
+import subprocess
+import yaml
+
+from rocrate.rocrate import ROCrate
+from rocrate.model.person import Person
+from rocrate.model.contextentity import ContextEntity
+
+# from rocrate.model.entity import Entity
+# from rocrate.model.file import File
+from rocrate.utils import iso_now
 
 PROFILES_BASE = "https://w3id.org/ro/wfrun"
 PROFILES_VERSION = "0.1"
@@ -55,8 +62,8 @@ def fix_dir_url(in_url: str) -> str:
         if new_url[-1] != "/":
             new_url += "/"  # Add end slash if needed
         return new_url
-    else:
-        return in_url  # No changes required
+    # else
+    return in_url  # No changes required
 
 
 def root_entity(compss_crate: ROCrate, yaml_content: dict) -> typing.Tuple[dict, list]:
@@ -86,11 +93,13 @@ def root_entity(compss_crate: ROCrate, yaml_content: dict) -> typing.Tuple[dict,
         "license"
     ]  # License details could be also added as a Contextual Entity
 
-    authors_set = set()
-    organisations_set = set()
+    author_list = []
+    org_list = []
     for author in authors_info:
-        authors_set.add(author["orcid"])
-        organisations_set.add(author["ror"])
+        if author["orcid"] not in author_list:
+            author_list.append(author["orcid"])
+        if author["ror"] not in org_list:
+            org_list.append(author["ror"])
         compss_crate.add(
             Person(
                 compss_crate,
@@ -122,16 +131,16 @@ def root_entity(compss_crate: ROCrate, yaml_content: dict) -> typing.Tuple[dict,
                 {"@type": "Organization", "name": author["organisation_name"]},
             )
         )
-    author_list = list()
-    for creator in authors_set:
-        author_list.append({"@id": creator})
-    compss_crate.creator = author_list
-    org_list = list()
-    for org in organisations_set:
-        org_list.append({"@id": org})
-    compss_crate.publisher = org_list
-    # print(f"compss_wf_info at the beginning: {compss_wf_info}")
-    return compss_wf_info, author_list
+    crate_author_list = []
+    crate_org_list = []
+    for author_orcid in author_list:
+        crate_author_list.append({"@id": author_orcid})
+    compss_crate.creator = crate_author_list
+    for org_ror in org_list:
+        crate_org_list.append({"@id": org_ror})
+    compss_crate.publisher = crate_org_list
+
+    return compss_wf_info, crate_author_list
 
 
 def get_main_entities(wf_info: dict) -> typing.Tuple[str, str, str]:
@@ -183,7 +192,7 @@ def get_main_entities(wf_info: dict) -> typing.Tuple[str, str, str]:
                 continue
             resolved_sources = str(path_sources.resolve())
             # print(f"resolved_sources is: {resolved_sources}")
-            for root, dirs, files in os.walk(resolved_sources, topdown=True):
+            for root, _, files in os.walk(resolved_sources, topdown=True):
                 if "__pycache__" in root:
                     continue  # We skip __pycache__ subdirectories
                 for f_name in files:
@@ -204,15 +213,15 @@ def get_main_entities(wf_info: dict) -> typing.Tuple[str, str, str]:
     # Can't get backup_main_entity from sources_main_file, because we do not know if it really exists
     if backup_main_entity is None:
         print(
-            f"PROVENANCE | ERROR: Unable to find application source files. Please, review your "
-            f"ro_crate_info.yaml definition ('sources_dir', and 'files' terms)"
+            "PROVENANCE | ERROR: Unable to find application source files. Please, review your "
+            "ro_crate_info.yaml definition ('sources_dir', and 'files' terms)"
         )
         raise FileNotFoundError
     # print(f"PROVENANCE DEBUG | backup_main_entity is: {backup_main_entity}")
 
-    with open(dp_log, "r") as f:
-        compss_v = next(f).rstrip()  # First line, COMPSs version number
-        second_line = next(f).rstrip()
+    with open(DP_LOG, "r", encoding="UTF-8") as dp_file:
+        compss_v = next(dp_file).rstrip()  # First line, COMPSs version number
+        second_line = next(dp_file).rstrip()
         # Second, main_entity. Use better rstrip, just in case there is no '\n'
         if second_line.endswith(".py"):
             # Python. Line contains only the file name, need to locate it
@@ -277,7 +286,7 @@ def get_main_entities(wf_info: dict) -> typing.Tuple[str, str, str]:
                 f"of application files provided in ro-crate-info.yaml. Setting {main_entity} as mainEntity"
             )
 
-        third_line = next(f).rstrip()
+        third_line = next(dp_file).rstrip()
         out_profile_fn = Path(third_line)
 
     print(
@@ -302,8 +311,8 @@ def process_accessed_files() -> typing.Tuple[list, list]:
     inputs = set()
     outputs = set()
 
-    with open(dp_log, "r") as f:
-        for line in f:
+    with open(DP_LOG, "r", encoding="UTF-8") as dp_file:
+        for line in dp_file:
             file_record = line.rstrip().split(" ")
             if len(file_record) == 2:
                 if (
@@ -366,9 +375,10 @@ def add_file_to_crate(
     """
 
     file_path = Path(file_name)
-    file_properties = dict()
-    file_properties["name"] = file_path.name
-    file_properties["contentSize"] = os.path.getsize(file_name)
+    file_properties = {
+        "name": file_path.name,
+        "contentSize": os.path.getsize(file_name),
+    }
 
     # main_entity has its absolute path, as well as file_name
     if file_name == main_entity:
@@ -416,7 +426,7 @@ def add_file_to_crate(
     else:
         # Any other extra file needed
         file_properties["description"] = "Auxiliary File"
-        if file_path.suffix == ".py" or file_path.suffix == ".java":
+        if file_path.suffix in (".py", ".java"):
             file_properties["encodingFormat"] = "text/plain"
             file_properties["@type"] = ["File", "SoftwareSourceCode"]
         elif file_path.suffix == ".json":
@@ -502,7 +512,7 @@ def add_file_to_crate(
 
         # complete_graph.svg
         if complete_graph.exists():
-            file_properties = dict()
+            file_properties = {}
             file_properties["name"] = "complete_graph.svg"
             file_properties["contentSize"] = complete_graph.stat().st_size
             file_properties["@type"] = ["File", "ImageObject", "WorkflowSketch"]
@@ -548,13 +558,13 @@ def add_file_to_crate(
             compss_crate.add_file(complete_graph, properties=file_properties)
         else:
             print(
-                f"PROVENANCE | WARNING: complete_graph.svg file not found. "
-                f"Provenance will be generated without image property"
+                "PROVENANCE | WARNING: complete_graph.svg file not found. "
+                "Provenance will be generated without image property"
             )
 
         # out_profile
         if os.path.exists(out_profile):
-            file_properties = dict()
+            file_properties = {}
             file_properties["name"] = out_profile
             file_properties["contentSize"] = os.path.getsize(out_profile)
             file_properties["description"] = "COMPSs application Tasks profile"
@@ -564,9 +574,9 @@ def add_file_to_crate(
             ]
 
             # Fix COMPSs crappy format of JSON files
-            with open(out_profile) as op_file:
+            with open(out_profile, encoding="UTF-8") as op_file:
                 op_json = json.load(op_file)
-            with open(out_profile, "w") as op_file:
+            with open(out_profile, "w", encoding="UTF-8") as op_file:
                 json.dump(op_json, op_file, indent=1)
 
             # Add JSON as ContextEntity
@@ -580,20 +590,20 @@ def add_file_to_crate(
             compss_crate.add_file(out_profile, properties=file_properties)
         else:
             print(
-                f"PROVENANCE | WARNING: COMPSs application profile has not been generated. \
+                "PROVENANCE | WARNING: COMPSs application profile has not been generated. \
                   Make sure you use runcompss with --output_profile=file_name"
-                f"Provenance will be generated without profiling information"
+                "Provenance will be generated without profiling information"
             )
 
         # compss_command_line_arguments.txt
-        file_properties = dict()
+        file_properties = {}
         file_properties["name"] = "compss_command_line_arguments.txt"
         file_properties["contentSize"] = os.path.getsize(
             "compss_command_line_arguments.txt"
         )
         file_properties[
             "description"
-        ] = "COMPSs command line execution command, including parameters passed"
+        ] = "COMPSs command line execution command (runcompss), including flags and parameters passed"
         file_properties["encodingFormat"] = "text/plain"
         compss_crate.add_file(
             "compss_command_line_arguments.txt", properties=file_properties
@@ -638,7 +648,7 @@ def add_application_source_files(
             if not path_sources.exists():
                 continue
             resolved_sources = str(path_sources.resolve())
-            for root, dirs, files in os.walk(resolved_sources, topdown=True):
+            for root, _, files in os.walk(resolved_sources, topdown=True):
                 if "__pycache__" in root:
                     continue  # We skip __pycache__ subdirectories
                 for f_name in files:
@@ -700,7 +710,7 @@ def add_application_source_files(
     # print(f"PROVENANCE DEBUG | Source files detected: {added_files}")
 
     print(
-        f"PROVENANCE | RO-CRATE adding physical files TIME (add_file_to_crate): {time.time() - part_time} s"
+        f"PROVENANCE | RO-CRATE adding source files TIME (add_file_to_crate): {time.time() - part_time} s"
     )
 
 
@@ -739,28 +749,43 @@ def add_dataset_file_to_crate(
         if persist:  # Remove scheme so it is added as a regular file
             for i, item in enumerate(common_paths):  # All files must have a match
                 if url_parts.path.startswith(item):
-                    crate_path = (
-                        "dataset/" + "folder_" + str(i) + url_parts.path[len(item) :]
-                    )  # Slice out the common part of the path
+                    if len(common_paths) == 1:
+                        # Single dataset folder, add it to the root
+                        crate_path = (
+                            "dataset" + url_parts.path[len(item) :]
+                        )  # Slice out the common part of the path
+                    else:
+                        crate_path = (
+                            "dataset/"
+                            + "folder_"
+                            + str(i)
+                            + url_parts.path[len(item) :]
+                        )  # Slice out the common part of the path
                     break
-            print(f"ADDING {url_parts.path} as {crate_path}")
+            # print(f"PROVENANCE DEBUG | Adding {url_parts.path} as {crate_path}")
             compss_crate.add_file(
                 source=url_parts.path, dest_path=crate_path, properties=file_properties
             )
             return crate_path
-        else:
-            compss_crate.add_file(
-                in_url,
-                fetch_remote=False,
-                validate_url=False,  # True fails at MN4 when file URI points to a node hostname (only localhost works)
-                properties=file_properties,
-            )
-            return in_url
+        # else:
+        compss_crate.add_file(
+            in_url,
+            fetch_remote=False,
+            validate_url=False,  # True fails at MN4 when file URI points to a node hostname (only localhost works)
+            properties=file_properties,
+        )
+        return in_url
         # add_file_time = time.time() - add_file_time
 
-    # DIRECTORIES ENCARA FALTA IMPLEMENTAR I TESTING
+    if url_parts.scheme == "dir":  # DIRECTORY parameter
+        # if persist:
+        #     # Add whole dataset, and return. Clean path name first
+        #     crate_path = "dataset/" + final_item_name
+        #     print(f"PROVENANCE DEBUG | Adding DATASET {url_parts.path} as {crate_path}")
+        #     compss_crate.add_tree(source=url_parts.path, dest_path=crate_path, properties=file_properties)
+        #     # fetch_remote and validate_url false by default. add_dataset also ensures the URL ends with '/'
+        #     return crate_path
 
-    elif url_parts.scheme == "dir":  # DIRECTORY parameter
         # For directories, describe all files inside the directory
         has_part_list = []
         for root, dirs, files in os.walk(
@@ -771,7 +796,11 @@ def add_dataset_file_to_crate(
             files.sort()
             for f_name in files:
                 listed_file = os.path.join(root, f_name)
-                dir_f_url = "file://" + url_parts.netloc + listed_file
+                if persist:
+                    filtered_url = listed_file[len(url_parts.path) :]
+                    dir_f_url = "dataset/" + final_item_name + filtered_url
+                else:
+                    dir_f_url = "file://" + url_parts.netloc + listed_file
                 has_part_list.append({"@id": dir_f_url})
                 dir_f_properties = {
                     "name": f_name,
@@ -784,14 +813,34 @@ def add_dataset_file_to_crate(
                     # Schema.org
                     "contentSize": os.path.getsize(listed_file),
                 }
-                compss_crate.add_file(
-                    dir_f_url,
-                    fetch_remote=False,
-                    validate_url=False,
-                    # True fails at MN4 when file URI points to a node hostname (only localhost works)
-                    properties=dir_f_properties,
-                )
+                if persist:
+                    # print(f"PROVENANCE DEBUG | Adding DATASET FILE {listed_file} as {dir_f_url}")
+                    compss_crate.add_file(
+                        source=listed_file,
+                        dest_path=dir_f_url,
+                        fetch_remote=False,
+                        validate_url=False,
+                        # True fails at MN4 when file URI points to a node hostname (only localhost works)
+                        properties=dir_f_properties,
+                    )
+                else:
+                    compss_crate.add_file(
+                        dir_f_url,
+                        fetch_remote=False,
+                        validate_url=False,
+                        # True fails at MN4 when file URI points to a node hostname (only localhost works)
+                        properties=dir_f_properties,
+                    )
         file_properties["hasPart"] = has_part_list
+        if persist:
+            dataset_path = url_parts.path + "/"
+            path_in_crate = "dataset/" + final_item_name + "/"
+            # print(f"PROVENANCE DEBUG | Adding DATASET {dataset_path} as {path_in_crate}")
+            compss_crate.add_dataset(
+                source=dataset_path, dest_path=path_in_crate, properties=file_properties
+            )  # fetch_remote and validate_url false by default. add_dataset also ensures the URL ends with '/'
+            return path_in_crate
+        # else:
         compss_crate.add_dataset(
             fix_dir_url(in_url), properties=file_properties
         )  # fetch_remote and validate_url false by default. add_dataset also ensures the URL ends with '/'
@@ -828,8 +877,6 @@ def wrroc_create_action(
     """
 
     # Compliance with RO-Crate WorkflowRun Level 2 profile, aka. Workflow Run Crate
-    import socket
-
     host_name = os.getenv(
         "SLURM_CLUSTER_NAME"
     )  # marenostrum4, nord3, ... BSC_MACHINE would also work
@@ -863,9 +910,7 @@ def wrroc_create_action(
     compss_crate.root_dataset["mentions"] = {"@id": create_action_id}
 
     # OSTYPE, HOSTTYPE, HOSTNAME defined by bash and not inherited. Changed to "uname -a"
-    import subprocess
-
-    uname = subprocess.run(["uname", "-a"], stdout=subprocess.PIPE)
+    uname = subprocess.run(["uname", "-a"], stdout=subprocess.PIPE, check=True)
     uname_out = uname.stdout.decode("utf-8")[:-1]  # Remove final '\n'
 
     # SLURM interesting variables: SLURM_JOB_NAME, SLURM_JOB_QOS, SLURM_JOB_USER, SLURM_SUBMIT_DIR, SLURM_NNODES or
@@ -876,7 +921,7 @@ def wrroc_create_action(
             name.startswith(("SLURM_JOB", "SLURM_MEM", "SLURM_SUBMIT", "COMPSS"))
             and name != "SLURM_JOBID"
         ):
-            slurm_env_vars += "{0}={1} ".format(name, value)
+            slurm_env_vars += f"{name}={value} "
 
     if len(slurm_env_vars) > 0:
         description_property = (
@@ -886,9 +931,9 @@ def wrroc_create_action(
         description_property = uname_out
 
     resolved_main_entity = main_entity
-    for e in compss_crate.get_entities():
-        if "ComputationalWorkflow" in e.type:
-            resolved_main_entity = e.id
+    for entity in compss_crate.get_entities():
+        if "ComputationalWorkflow" in entity.type:
+            resolved_main_entity = entity.id
 
     # Register user submitting the workflow
     if "Submitter" in yaml_content:
@@ -932,7 +977,7 @@ def wrroc_create_action(
     else:  # Choose first author, to avoid leaving it empty. May be true most of the times
         submitter = author_list[0]
         print(
-            f"PROVENANCE | WARNING: 'Submitter' not specified in ro-crate-info.yaml. First author selected by default."
+            "PROVENANCE | WARNING: 'Submitter' not specified in ro-crate-info.yaml. First author selected by default."
         )
 
     create_action_properties = {
@@ -974,6 +1019,7 @@ def get_common_paths(url_list: list) -> list:
     :returns: List of identified common paths among the URLs
     """
 
+    # print(f"PROVENANCE DEBUG | Input to get_common_paths INS and OUTS: {url_list}")
     list_common_paths = []  # Create common_paths list, with counter of occurrences
     if not url_list:  # Empty list
         return list_common_paths
@@ -991,7 +1037,7 @@ def get_common_paths(url_list: list) -> list:
             continue
         url_parts = urlsplit(item)
         if url_parts.scheme == "dir":
-            print(f"SKIPPING DIRECTORY")
+            print("PROVENANCE DEBUG | SKIPPING DIRECTORY")
             continue
         # Remove schema and hostname
         tmp = os.path.commonpath([url_parts.path, common_path])
@@ -999,7 +1045,9 @@ def get_common_paths(url_list: list) -> list:
             # print(f"Searching. Previous common path is: {common_path}. tmp: {tmp}")
             common_path = tmp
         else:  # if they don't, we are in a new path, so, store the old in list_common_paths, and assign item to common_path
-            print(f"New root to search common_path: {url_parts.path}")
+            print(
+                f"PROVENANCE DEBUG | New root to search common_path: {url_parts.path}"
+            )
             if common_path not in list_common_paths:
                 list_common_paths.append(common_path)
             common_path = url_parts.path
@@ -1010,6 +1058,14 @@ def get_common_paths(url_list: list) -> list:
 
 
 def main():
+    """
+    Generate an RO-Crate from a COMPSs execution dataprovenance.log file.
+
+    :param None
+
+    :returns: None
+    """
+
     yaml_template = (
         "COMPSs Workflow Information:\n"
         "  name: Name of your COMPSs application\n"
@@ -1023,8 +1079,8 @@ def main():
         "    # Relative paths from a sources_dir entry, or absolute paths can be used\n"
         "  files: [main_file.py, aux_file_1.py, aux_file_2.py]\n"
         "    # List of application files. Relative or absolute paths can be used\n"
-        #        "  data_persistence: False\n"
-        #        "    # True to include all input and output files of the application in the resulting crate"
+        "  data_persistence: False\n"
+        "    # True to include all input and output files of the application in the resulting crate. False by default or if not set\n"
         "\n"
         "Authors:\n"
         "  - name: Author_1 Name\n"
@@ -1053,18 +1109,18 @@ def main():
 
     # First, read values defined by user from ro-crate-info.yaml
     try:
-        with open(info_yaml, "r", encoding="utf-8") as fp:
+        with open(INFO_YAML, "r", encoding="utf-8") as f_p:
             try:
-                yaml_content = yaml.safe_load(fp)
+                yaml_content = yaml.safe_load(f_p)
             except yaml.YAMLError as exc:
                 print(exc)
                 raise exc
     except IOError:
-        with open("ro-crate-info_TEMPLATE.yaml", "w", encoding="utf-8") as ft:
-            ft.write(yaml_template)
+        with open("ro-crate-info_TEMPLATE.yaml", "w", encoding="utf-8") as f_t:
+            f_t.write(yaml_template)
             print(
-                f"PROVENANCE | ERROR: YAML file ro-crate-info.yaml not found in your working directory. A template"
-                f" has been generated in file ro-crate-info_TEMPLATE.yaml"
+                "PROVENANCE | ERROR: YAML file ro-crate-info.yaml not found in your working directory. A template"
+                " has been generated in file ro-crate-info_TEMPLATE.yaml"
             )
         raise
 
@@ -1093,11 +1149,11 @@ def main():
     part_time = time.time()
     if (
         "data_persistence" in compss_wf_info
-        and compss_wf_info["data_persistence"] == True
+        and compss_wf_info["data_persistence"] is True
     ):
         persistence = True
         list_common_paths = get_common_paths(ins_and_outs)
-        print(f"List of common paths INS and OUTS: {list_common_paths}")
+        # print(f"PROVENANCE DEBUG | List of common paths INS and OUTS: {list_common_paths}")
     else:
         persistence = False
 
@@ -1109,7 +1165,7 @@ def main():
             )
         )
     print(
-        f"PROVENANCE | RO-CRATE adding input files' references TIME (add_dataset_file_to_crate): "
+        f"PROVENANCE | RO-CRATE adding input files TIME (add_dataset_file_to_crate. Persistence: {persistence}): "
         f"{time.time() - part_time} s"
     )
 
@@ -1123,7 +1179,7 @@ def main():
             )
         )
     print(
-        f"PROVENANCE | RO-CRATE adding output files' references TIME (add_dataset_file_to_crate): "
+        f"PROVENANCE | RO-CRATE adding output files TIME (add_dataset_file_to_crate. Persistence: {persistence}): "
         f"{time.time() - part_time} s"
     )
 
@@ -1141,8 +1197,8 @@ def main():
 
     #  Code from runcrate https://github.com/ResearchObject/runcrate/blob/411c70da556b60ee2373fea0928c91eb78dd9789/src/runcrate/convert.py#L270
     profiles = []
-    for p in "process", "workflow":
-        id_ = f"{PROFILES_BASE}/{p}/{PROFILES_VERSION}"
+    for proc in "process", "workflow":
+        id_ = f"{PROFILES_BASE}/{proc}/{PROFILES_VERSION}"
         profiles.append(
             compss_crate.add(
                 ContextEntity(
@@ -1150,13 +1206,13 @@ def main():
                     id_,
                     properties={
                         "@type": "CreativeWork",
-                        "name": f"{p.title()} Run Crate",
+                        "name": f"{proc.title()} Run Crate",
                         "version": PROFILES_VERSION,
                     },
                 )
             )
         )
-    # FIXME: in the future, this could go out of sync with the wroc
+    # In the future, this could go out of sync with the wroc
     # profile added by ro-crate-py to the metadata descriptor
     wroc_profile_id = (
         f"https://w3id.org/workflowhub/workflow-ro-crate/{WROC_PROFILE_VERSION}"
@@ -1186,8 +1242,8 @@ def main():
     compss_crate.write(folder)
     print(f"PROVENANCE | COMPSs RO-Crate created successfully in subfolder {folder}")
     print(f"PROVENANCE | RO-CRATE dump TIME: {time.time() - part_time} s")
-    # cleanup from workingdir
-    os.remove("compss_command_line_arguments.txt")
+    # Do not cleanup from workingdir, because the user could invoke this script manually
+    # os.remove("compss_command_line_arguments.txt")
 
 
 if __name__ == "__main__":
@@ -1202,10 +1258,10 @@ if __name__ == "__main__":
             "PROVENANCE | Usage: python /path_to/generate_COMPSs_RO-Crate.py "
             "ro-crate-info.yaml /path_to/dataprovenance.log"
         )
-        exit()
+        sys.exit()
     else:
-        info_yaml = sys.argv[1]
-        dp_log = sys.argv[2]
+        INFO_YAML = sys.argv[1]
+        DP_LOG = sys.argv[2]
         path_dplog = Path(sys.argv[2])
         complete_graph = path_dplog.parent / "monitor/complete_graph.svg"
     main()

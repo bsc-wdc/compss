@@ -215,7 +215,7 @@ show_opts() {
                                             Default: ${DEFAULT_WALL_CLOCK_LIMIT}
     --shutdown_in_node_failure=<bool>       Stop the whole execution in case of Node Failure.
                                             Default: ${DEFAULT_SHUTDOWN_IN_NODE_FAILURE}
-    --provenance, -p                        Generate COMPSs workflow provenance data in RO-Crate format from YAML file. Automatically activates -graph and -output_profile.
+    --provenance, -p                        Generate COMPSs workflow provenance data in RO-Crate format from YAML file. Automatically activates --graph and --output_profile.
                                             Default: false
 
 * Application name:
@@ -259,7 +259,7 @@ arguments_error() {
 # Parses arguments from the command line
 get_args() {
   # Parse COMPSs Options
-  while getopts hvgtmdp-: flag; do
+  while getopts hvgtmdp-: flag; do    
     # Treat the argument
     case "$flag" in
       h)
@@ -650,7 +650,7 @@ get_args() {
         esac
         ;;
       *)
-        # Flag didn't match any patern. End of COMPSs flags
+        # Flag didn't match any pattern. End of COMPSs flags
         break
         ;;
     esac
@@ -672,9 +672,6 @@ get_args() {
 
   # Parse application arguments
   application_args=$*
-  if [ $provenance ]; then
-    echo $fullAppPath $application_args > compss_command_line_arguments.txt
-  fi
 }
 
 check_args() {
@@ -704,7 +701,6 @@ check_args() {
 
 clean_env() {
   clear_compss_app
-  rm -f App_Profile.json compss_command_line_arguments.txt
 }
 
 
@@ -716,6 +712,7 @@ clean_env() {
 check_compss_env
 
 # Validate arguments
+all_arguments="$@"   # Store all flags in a variable, just in case we need it for provenance
 get_args "$@"
 check_args
 
@@ -736,6 +733,7 @@ fi
 start_compss_app
 
 if [ ${provenance} ]; then
+  echo "runcompss" $all_arguments > compss_command_line_arguments.txt
   echo "PROVENANCE | GENERATING GRAPH FOR DATA PROVENANCE"
   start=`date +%s`
   "${COMPSS_HOME}Runtime/scripts/utils/compss_gengraph" "svg" "${specific_log_dir}/monitor/complete_graph.dot"
@@ -744,8 +742,16 @@ if [ ${provenance} ]; then
 
   echo "PROVENANCE | RUNNING DATA PROVENANCE SCRIPT"
   python "${COMPSS_HOME}Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py" "ro-crate-info.yaml" "${specific_log_dir}/dataprovenance.log"
-  if [ "${output_profile}" == "App_Profile.json" ]; then # Auto-generated, user doesn't want it
-    rm -f App_Profile.json
+  if [ $? == 0 ]; then # Check if generation has ended correctly, if not, do not cleanup
+    if [ "${output_profile}" == "App_Profile.json" ]; then # Auto-generated, user doesn't want it
+      rm -f App_Profile.json compss_command_line_arguments.txt "${specific_log_dir}/monitor/complete_graph.svg"
+    fi
+  else
+    echo "PROVENANCE | PROVENANCE GENERATION HAS FAILED"
+    echo "PROVENANCE | Temporary files have not been erased: App_Profile.json compss_command_line_arguments.txt ${specific_log_dir}/monitor/complete_graph.svg"
+    echo "PROVENANCE | Provenance generation can be triggered by hand using the following commands:"
+    echo "PROVENANCE | ${COMPSS_HOME}Runtime/scripts/utils/compss_gengraph svg ${specific_log_dir}/monitor/complete_graph.dot"
+    echo "PROVENANCE | python ${COMPSS_HOME}Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py ro-crate-info.yaml ${specific_log_dir}/dataprovenance.log"
   fi
   echo "PROVENANCE | ENDED DATA PROVENANCE SCRIPT"
 fi

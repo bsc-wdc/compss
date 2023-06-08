@@ -2178,29 +2178,32 @@ launch() {
         echo "Master execution failed. Exiting job."
         exit $ev
       fi
+      no_wait=false
     else
       load_external_compss_environment
       if [ "${ipython}" = true ]; then
-      	 ipython
+        ipython
+        no_wait=false
       elif [ "${run_command}" = true ]; then
-	 echo "Running command: ${command_to_run}"
-         eval ${command_to_run}
+        echo "Running command: ${command_to_run}"
+        eval ${command_to_run}
+        no_wait=false
       elif [ "${jupyter_notebook}" = true ]; then
-         if [ "${jupyter_notebook_path}" = "jupyterhub" ]; then
-           # Do not run jupyter since it is running within jupyterhub, who will start jupyterlab
-           echo "Running within jupyterhub without master."
-	         # UPDATED_ENV_PATH must be defined in the environment
-	         env > ${UPDATED_ENV_PATH}
-           no_wait=true
-         else
-           # Run jupyter notebook instead of the master within the jupyter_notebook_path
-           # The master will be started when the user wants later from the notebook (the workers have already been launched)
-           (cd "${jupyter_notebook_path}" && jupyter notebook --no-browser --ip=127.0.0.1 --port=8888)
-           no_wait=false
-         fi
+        if [ "${jupyter_notebook_path}" = "jupyterhub" ]; then
+          # Do not run jupyter since it is running within jupyterhub, who will start jupyterlab
+          echo "Running within jupyterhub without master."
+          # UPDATED_ENV_PATH must be defined in the environment
+          env > ${UPDATED_ENV_PATH}
+          no_wait=true
+        else
+          # Run jupyter notebook instead of the master within the jupyter_notebook_path
+          # The master will be started when the user wants later from the notebook (the workers have already been launched)
+          (cd "${jupyter_notebook_path}" && jupyter notebook --no-browser --ip=127.0.0.1 --port=8888)
+          no_wait=false
+        fi
       fi
     fi
-    no_wait=false
+    # no_wait=false
   else
     echo "No master to run..."
     no_wait=true

@@ -169,6 +169,9 @@ public class COMPSsConstants {
     public static final String PYTHON_CACHE_PROFILER = "compss.python.cache_profiler";
     public static final String PYTHON_EXTRAE_CONFIG_FILE = "compss.extrae.file.python";
 
+    // EAR
+    public static final String EAR = "compss.ear";
+
     // System properties for Instrumentation flags
     public static final String COMPSS_TO_FILE = "compss.to.file";
     public static final String COMPSS_IS_WS = "compss.is.ws";

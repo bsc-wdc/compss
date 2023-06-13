@@ -199,7 +199,6 @@ public class WorkerStarter {
 
         }
         String[] command = generateStartCommand(workerPort, masterName, tracingHostId);
-        // AQUI MODIFICAR CUANDO ES EAR PARA AÑADIR SU LLAMADA ANTES Y DESPUÉS
         do {
             boolean error = false;
             ProcessOut po = executeCommand(user, name, command);

@@ -129,6 +129,7 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
     extrae_cfg_python: str = "",
     wcl: int = 0,
     cache_profiler: bool = False,
+    ear: bool = False,
     data_provenance: bool = False,
     checkpoint_policy: str = CONSTANTS.default_checkpoint_policy,
     checkpoint_params: str = "",
@@ -234,8 +235,7 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
                 0 means forever.
     :param cache_profiler: Use the cache profiler [ True | False]
                          (default: False)
-    :param cache_profiler: Use the cache profiler [ True | False ]
-                           (default: False)
+    :param ear: Use EAR [ True | False ] (default: False)
     :param data_provenance: Enable data provenance [ True | False ]
                             (default: False)
     :param checkpoint_policy: Checkpointing policy.
@@ -344,6 +344,7 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
         extrae_cfg_python,
         wcl,
         cache_profiler,
+        ear,
         data_provenance,
         checkpoint_policy,
         checkpoint_params,

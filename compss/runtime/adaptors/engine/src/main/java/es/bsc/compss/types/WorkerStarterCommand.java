@@ -117,6 +117,7 @@ public abstract class WorkerStarterCommand implements StarterCommand {
     protected String pythonMpiWorker;
     protected String pythonWorkerCache;
     protected String pythonCacheProfiler;
+    protected String ear;
     protected int totalCPU;
     protected int totalGPU;
     protected int totalFPGA;
@@ -306,6 +307,12 @@ public abstract class WorkerStarterCommand implements StarterCommand {
         if (this.pythonCacheProfiler == null || this.pythonCacheProfiler.isEmpty()
             || this.pythonCacheProfiler.equals("null")) {
             this.pythonCacheProfiler = COMPSsDefaults.PYTHON_CACHE_PROFILER;
+        }
+
+        // Configure EAR
+        this.ear = System.getProperty(COMPSsConstants.EAR);
+        if (this.ear == null || this.ear.isEmpty() || this.ear.equals("null")) {
+            this.ear = COMPSsDefaults.EAR;
         }
 
         this.lang = System.getProperty(COMPSsConstants.LANG);

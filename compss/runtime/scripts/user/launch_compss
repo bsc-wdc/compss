@@ -437,7 +437,8 @@ worker_cmd() {
             ${custom_extrae_config_file_python} \
             ${python_mpi_worker} \
             ${python_worker_cache} \
-            ${python_cache_profiler}"
+            ${python_cache_profiler} \
+            ${ear}"
 }
 
 ###############################################

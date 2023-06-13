@@ -617,4 +617,9 @@ public class GOSWorker implements InvocationContext {
     public String getEnvironmentScript() {
         return envScriptPath;
     }
+
+    @Override
+    public boolean getEar() {
+        return false;
+    }
 }

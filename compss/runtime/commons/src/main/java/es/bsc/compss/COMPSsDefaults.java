@@ -52,6 +52,9 @@ public class COMPSsDefaults {
     public static final String PYTHON_WORKER_CACHE = "false";
     public static final String PYTHON_CACHE_PROFILER = "false";
 
+    // EAR
+    public static final String EAR = "false";
+
     // ANALYSIS TOOLS CONFIG
     // LOG
     public static final String LOG_DIR = System.getProperty("user.home") + File.separator + ".COMPSs" + File.separator;

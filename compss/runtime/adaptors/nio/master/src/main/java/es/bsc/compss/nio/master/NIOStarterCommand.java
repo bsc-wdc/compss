@@ -179,6 +179,10 @@ public class NIOStarterCommand extends WorkerStarterCommand {
         cmd[nextPosition++] = this.pythonWorkerCache;
         // Python use cache profiler
         cmd[nextPosition++] = this.pythonCacheProfiler;
+
+        // Ear
+        cmd[nextPosition++] = this.ear;
+
         if (cmd.length != nextPosition) {
             throw new Exception(
                 "ERROR: Incorrect number of parameters. Expected: " + cmd.length + ". Got: " + nextPosition);

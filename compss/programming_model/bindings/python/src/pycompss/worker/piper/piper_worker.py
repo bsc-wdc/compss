@@ -172,6 +172,7 @@ def compss_persistent_worker(
         in_cache_queue,
         out_cache_queue,
         cache_profiler,
+        config.ear,
     )
 
     for i in range(0, config.tasks_x_node):

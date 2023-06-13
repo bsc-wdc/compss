@@ -282,6 +282,11 @@ public class FakeInvocationContext implements InvocationContext {
         return null;
     }
 
+    @Override
+    public boolean getEar() {
+        return false;
+    }
+
 
     public static class Builder {
 

@@ -1,7 +1,7 @@
 #!/bin/bash
   JAVA_JRE_ERROR="ERROR: Can't find JVM libraries in JAVA_HOME. Please check your Java JRE Installation."
 
-  NUM_PARAMS=39
+  NUM_PARAMS=40
 
   ######################
   # INTERNAL FUNCTIONS
@@ -123,6 +123,7 @@
     pythonMpiWorker=${37}
     pythonWorkerCache=${38}
     pythonCacheProfiler=${39}
+    ear=${40}
 
     #This decides where the worker.* files are stored
     #NIOWorker.java getLogDir decides where the binding_worker.* files are stored
@@ -168,6 +169,7 @@
       echo "- StorageConf:         ${storageConf}"
       echo "- ExecType:            ${execType}"
       echo "- Persistent:          ${persistentBinding}"
+      echo "- Ear:                 ${ear}"
     fi
 
     # Calculate Log4j file
@@ -274,7 +276,7 @@
     	if [ -z "$libjava" ]; then
             libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.dylib | head -n 1)
             if [ -z "$libjava" ]; then
-                error_msg "${JAVA_JRE_ERROR}" 
+                error_msg "${JAVA_JRE_ERROR}"
             fi
         fi
     else # Java 9+
@@ -331,7 +333,8 @@
     -Dcompss.python.version=${pythonVersion} \
     -Dcompss.python.virtualenvironment=${pythonVirtualEnvironment} \
     -Dcompss.python.propagate_virtualenvironment=${pythonPropagateVirtualEnvironment} \
-    -Dcompss.extrae.file.python=${pythonExtraeFile}
+    -Dcompss.extrae.file.python=${pythonExtraeFile} \
+    -Dcompss.ear=${ear} \
     -Djava.library.path=$LD_LIBRARY_PATH"
     if [ "$(uname -m)" == "riscv64" ]; then
       worker_jvm_flags="${jvmFlags} ${compss_jvm_flags}"

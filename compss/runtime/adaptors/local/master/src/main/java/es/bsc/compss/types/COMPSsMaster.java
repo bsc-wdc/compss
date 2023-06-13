@@ -123,6 +123,8 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     private final ThreadedPrintStream err;
     private boolean started = false;
 
+    private boolean ear = false; // TODO: PILLAR TAMBIEN ESTE PARAMETRO
+
 
     /**
      * New COMPSs Master.
@@ -1494,6 +1496,11 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     @Override
     public String getEnvironmentScript() {
         return null;
+    }
+
+    @Override
+    public boolean getEar() {
+        return this.ear;
     }
 
     public void setLoaderApi(LoaderAPI loaderApi) {

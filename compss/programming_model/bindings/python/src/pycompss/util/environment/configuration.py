@@ -392,6 +392,7 @@ def create_init_config_file(
     extrae_cfg_python: str,
     wcl: int,
     cache_profiler: bool,
+    ear: bool,
     data_provenance: bool,
     checkpoint_policy: str,
     checkpoint_params: str,
@@ -476,6 +477,7 @@ def create_init_config_file(
                 0 means forever.
     :param cache_profiler: Use the cache profiler [ True | False ]
                            (default: False).
+    :param ear: Use the EAR [ True | False ] (default: False).
     :param kwargs: Any other parameter.
     :return: None.
     """
@@ -814,6 +816,12 @@ def create_init_config_file(
 
         # WALLCLOCK LIMIT
         jvm_options_file.write("-Dcompss.wcl=" + str(wcl) + "\n")
+
+        # EAR
+        if ear:
+            jvm_options_file.write("-Dcompss.ear=true\n")
+        else:
+            jvm_options_file.write("-Dcompss.ear=false\n")
 
         # Uncomment for debugging purposes
         # jvm_options_file.write("-Xcheck:jni\n")

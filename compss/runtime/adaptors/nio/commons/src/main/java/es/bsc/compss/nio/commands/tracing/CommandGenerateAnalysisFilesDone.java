@@ -18,42 +18,50 @@ package es.bsc.compss.nio.commands.tracing;
 
 import es.bsc.comm.Connection;
 import es.bsc.compss.nio.NIOAgent;
-
 import es.bsc.compss.nio.commands.Command;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.Set;
 
 
-public class CommandGeneratePackage implements Command {
+public class CommandGenerateAnalysisFilesDone implements Command {
 
-    public CommandGeneratePackage() {
+    Set<String> tracingFilesPaths;
+
+
+    public CommandGenerateAnalysisFilesDone() {
         super();
     }
 
-    @Override
-    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        // Nothing to write
-    }
-
-    @Override
-    public void writeExternal(ObjectOutput out) throws IOException {
-        // Nothing to read
+    public CommandGenerateAnalysisFilesDone(Set<String> tracingFilesPaths) {
+        super();
+        this.tracingFilesPaths = tracingFilesPaths;
     }
 
     @Override
     public void handle(NIOAgent agent, Connection c) {
-        agent.generatePackage(c);
+        agent.notifyAnalysisFilesDone(this.tracingFilesPaths);
+    }
+
+    @Override
+    public void writeExternal(ObjectOutput out) throws IOException {
+        out.writeObject(this.tracingFilesPaths);
+    }
+
+    @Override
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+        this.tracingFilesPaths = (Set<String>) in.readObject();
     }
 
     @Override
     public String toString() {
-        return "GenerateTraceCommand";
+        return "GeneratingTraceCommandDone";
     }
 
     @Override
     public void error(NIOAgent agent, Connection c) {
-        agent.handleTracingGenerateCommandError(c, this);
+        agent.handleTracingGenerateDoneCommandError(c, this);
 
     }
 

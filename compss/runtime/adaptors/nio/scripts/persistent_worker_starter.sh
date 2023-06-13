@@ -41,7 +41,7 @@
       export NX_ARGS="--summary"
       export NANOS6=debug
 
-      echo "[persistent_worker.sh] Calling NIOWorker of host ${hostName}"
+      echo "[persistent_worker_starter.sh] Calling NIOWorker of host ${hostName}"
       echo "Calling NIOWorker"
       echo "Cmd: $cmd ${paramsToCOMPSsWorker}"
   fi
@@ -53,19 +53,24 @@
 
   # Prepare binding log files
   # TODO: avoid to create always these log files. Create and transfer only when needed.
-  mkdir -p "${workingDir}/log"
-  touch "${workingDir}/log/binding_worker.out"
-  touch "${workingDir}/log/binding_worker.err"
+  mkdir -p "${logDir}"
+  touch "${logDir}/binding_worker.out"
+  touch "${logDir}/binding_worker.err"
 
   export LD_PRELOAD=${AFTER_EXTRAE_LD_PRELOAD}
-  $cmd ${paramsToCOMPSsWorker} 1>"$workingDir/log/worker_${hostName}.out" 2>"$workingDir/log/worker_${hostName}.err"
+
+  $cmd ${paramsToCOMPSsWorker} 1>"${logDir}/worker_${hostName}.out" 2>"${logDir}/worker_${hostName}.err"
 
   exitValue=$?
+  if [ "$exitValue" != "0" ]; then
+    echo "[WARNING][persistent_worker_starter.sh] Failed to start worker ${hostName}. Exit value: ${exitValue}"
+  fi
 
   post_launch
 
   # Exit with the worker status (last command)
   if [ "$debug" == "true" ]; then
-    echo "[persistent_worker.sh] Exit NIOWorker of host ${hostName} with exit value ${exitValue}"
+    echo "[persistent_worker_starter.sh] Exit NIOWorker of host ${hostName} with exit value ${exitValue}"
   fi
   exit $exitValue
+

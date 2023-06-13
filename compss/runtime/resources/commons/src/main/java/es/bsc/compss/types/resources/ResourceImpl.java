@@ -52,6 +52,10 @@ import es.bsc.compss.util.SharedDiskManager;
 import es.bsc.compss.util.Tracer;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -59,6 +63,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.Semaphore;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -119,6 +125,15 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
         this.name = clone.name;
         this.node = clone.node;
         ResourcesPool.add(this);
+    }
+
+    // names of the folders that store the log and analysis files retrieved from each worker in the master
+    private String getAnalysisFolder() {
+        return LoggerManager.getWorkersLogDir() + File.separator + this.getName() + File.separator + "Analysis";
+    }
+
+    private String getLogFolder() {
+        return LoggerManager.getWorkersLogDir() + File.separator + this.getName() + File.separator + "Log";
     }
 
     @Override
@@ -368,33 +383,108 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
         }
     }
 
+    private Boolean isCompressedFile(Set<String> files) {
+        if (files == null) {
+            return false;
+        }
+        if (files.isEmpty()) {
+            return false;
+        }
+        if (files.size() == 1) {
+            String path = files.iterator().next();
+            return path.endsWith(".tar.gz");
+        }
+        return false;
+    }
+
+    private void decompressAndDelete(String tarFile, String targetFolder) {
+        if (DEBUG) {
+            LOGGER.debug("Decompressing tar: " + tarFile + "; to: " + targetFolder);
+        }
+        StringBuilder cmd = new StringBuilder();
+        cmd.append("tar -xf " + tarFile + " -C " + targetFolder + " && ");
+        cmd.append("rm -rf " + tarFile);
+        LOGGER.debug("Executing: " + cmd);
+        try {
+            new ProcessBuilder("/bin/bash", "-c", cmd.toString()).inheritIO().start().waitFor();
+        } catch (InterruptedException | IOException e) {
+            LOGGER.warn("Could not decompress: " + tarFile + "; to: " + targetFolder, e);
+        }
+    }
+
+    private void copyTracingFilesToTracingFolder() {
+        String srcFiles = this.getAnalysisFolder() + File.separator + "*" + Tracer.PACKAGE_SUFFIX;
+        String tgtFolder = Tracer.getExtraeOutputDir();
+        if (DEBUG) {
+            LOGGER.debug("Coping : " + srcFiles + "onto" + tgtFolder);
+        }
+        String cmd = "cp " + srcFiles + " " + tgtFolder;
+        LOGGER.debug("Executing: " + cmd);
+        try {
+            new ProcessBuilder("/bin/bash", "-c", cmd).inheritIO().start().waitFor();
+        } catch (InterruptedException | IOException e) {
+            LOGGER.warn("Could not copy files: " + srcFiles + " to: " + tgtFolder, e);
+        }
+
+    }
+
+    private void generateAndRetrieveWorkerAnalysis() {
+        Set<String> analysisFiles = this.node.generateWorkerAnalysisFiles();
+        if (analysisFiles == null || analysisFiles.isEmpty()) {
+            LOGGER.debug("analysis files don't need to be retrieved");
+            return;
+        }
+        if (DEBUG) {
+            LOGGER.debug("Retrieving analysis files from worker: " + this.getName() + " : " + analysisFiles.toString());
+        }
+        retrieveWorkerFiles(analysisFiles, this.getAnalysisFolder());
+        if (DEBUG) {
+            LOGGER.debug("Tracing files obtained for " + this.getName());
+        }
+        if (isCompressedFile(analysisFiles)) {
+            String remoteCompressedFile = analysisFiles.iterator().next();
+            String compressedFileName = Paths.get(remoteCompressedFile).getFileName().toString();
+            String localCompressedFile = this.getAnalysisFolder() + File.separator + compressedFileName;
+            decompressAndDelete(localCompressedFile, this.getAnalysisFolder());
+        }
+        copyTracingFilesToTracingFolder();
+
+    }
+
+    private void generateAndRetrieveWorkerDebug() {
+        Set<String> logFiles = this.node.generateWorkerDebugFiles();
+        if (logFiles == null || logFiles.isEmpty()) {
+            LOGGER.debug("log files don't need to be retrieved");
+            return;
+        }
+        if (DEBUG) {
+            LOGGER.debug("Retrieving debug files from worker: " + this.getName() + " : " + logFiles.toString());
+            LOGGER.debug("    files: " + logFiles.toString());
+        }
+        retrieveWorkerFiles(logFiles, this.getLogFolder());
+        if (DEBUG) {
+            LOGGER.debug("Log files obtained for " + this.getName());
+        }
+        if (isCompressedFile(logFiles)) {
+            String remoteCompressedFile = logFiles.iterator().next();
+            String compressedFileName = Paths.get(remoteCompressedFile).getFileName().toString();
+            String localCompressedFile = this.getLogFolder() + File.separator + compressedFileName;
+            decompressAndDelete(localCompressedFile, this.getLogFolder());
+        }
+    }
+
     @Override
     public void retrieveTracingAndDebugData() {
         if (this.isLost) {
-            LOGGER.debug(" Will not retrieve Tracing and Debug Data because the node: " + this.getName() + " is lost.");
+            LOGGER.debug("Will not retrieve Tracing and Debug Data because the node: " + this.getName() + " is lost.");
             return;
         }
-        if (Tracer.isActivated()) {
-            if (this.node.generatePackage()) {
-                getTracingPackageToMaster();
-                if (DEBUG) {
-                    LOGGER.debug("Tracing package obtained for " + this.getName());
-                }
-            }
+        if (Tracer.isActivated() || CACHE_PROFILING_ENABLED) {
+            generateAndRetrieveWorkerAnalysis();
         }
 
         if (DEBUG) {
-            if (this.node.generateWorkersDebugInfo()) {
-                getWorkersDebugInfo();
-                LOGGER.debug("Workers Debug files obtained for " + this.getName());
-                getBindingWorkersDebugInfo();
-                LOGGER.debug("Binding Workers Debug files obtained for " + this.getName());
-            }
-        }
-
-        if (CACHE_PROFILING_ENABLED) {
-            getCacheProfilerDebugInfo();
-            LOGGER.debug("Cache Profiler Debug files obtained for " + this.getName());
+            generateAndRetrieveWorkerDebug();
         }
     }
 
@@ -446,272 +536,102 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
     }
 
     /**
-     * Retrieves the tracing package to the master.
+     * Retrieves the set logFilesPaths of the worker's files to the .
      */
-    private void getTracingPackageToMaster() {
-        Semaphore sem = new Semaphore(0);
-        String fileName = getName() + "_compss_trace.tar.gz";
-        SimpleURI fileOriginURI = this.node.getCompletePath(DataType.FILE_T, fileName);
-
-        if (DEBUG) {
-            LOGGER.debug("Copying tracing package from : " + fileOriginURI.getPath() + ",to : "
-                + Tracer.getExtraeOutputDir() + File.separator + fileName);
-        }
-
-        TracingCopyListener tracingListener = new TracingCopyListener(sem);
-
-        tracingListener.addOperation();
-
-        // Source data location
-        DataLocation source;
-        try {
-            source = DataLocation.createLocation(this, fileOriginURI);
-        } catch (Exception e) {
-            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + fileOriginURI.getPath(), e);
-            return;
-        }
-
-        // Target data location
-        DataLocation tgt;
-        String targetPath = ProtocolType.FILE_URI.getSchema() + Tracer.getExtraeOutputDir() + File.separator + fileName;
-        try {
-            SimpleURI uri = new SimpleURI(targetPath);
-            tgt = DataLocation.createLocation(Comm.getAppHost(), uri);
-        } catch (Exception e) {
-            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath);
-            return;
-        }
-
-        // Ask for data
-        COMPSsNode masterNode = Comm.getAppHost().getNode();
-        masterNode.obtainData(new LogicalData("tracing" + this.getName()), source, tgt,
-            new LogicalData("tracing" + this.getName()), new TracingCopyTransferable(), tracingListener);
-
-        tracingListener.enable();
-        try {
-            sem.acquire();
-        } catch (InterruptedException ex) {
-            LOGGER.error("Error waiting for tracing files in resource " + getName() + " to get saved");
-        }
-        if (DEBUG) {
-            LOGGER.debug("Removing " + this.getName() + " tracing temporary files");
-        }
-
-        File f = null;
-        try {
-            f = new File(source.getPath());
-            if (!f.delete()) {
-                LOGGER.error("Unable to remove tracing temporary files of node " + this.getName());
-            }
-        } catch (Exception e) {
-            LOGGER.error("Unable to remove tracing temporary files of node " + this.getName(), e);
-        }
-    }
-
-    /**
-     * Retrieves the worker debug files.
-     */
-    private void getWorkersDebugInfo() {
+    private void retrieveWorkerFiles(Set<String> filesPaths, String folderPath) {
+        // TODO: check if files are in an already accesible path
         if (DEBUG) {
             LOGGER.debug("Copying Workers Information");
         }
 
-        Semaphore sem = new Semaphore(0);
-        WorkersDebugInformationListener wdil = new WorkersDebugInformationListener(sem);
-
-        // Get Worker output
-        wdil.addOperation();
-        String outFileName = "worker_" + getName() + ".out";
-        SimpleURI outFileOrigin =
-            this.node.getCompletePath(DataType.FILE_T, "log" + File.separator + "static_" + outFileName);
-        String outFileTarget = ProtocolType.FILE_URI.getSchema() + LoggerManager.getWorkersLogDir() + outFileName;
-
-        DataLocation outSource = null;
-        try {
-            outSource = DataLocation.createLocation(this, outFileOrigin);
-        } catch (Exception e) {
-            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + outFileOrigin.toString(), e);
-        }
-
-        DataLocation outTarget = null;
-        try {
-            SimpleURI uri = new SimpleURI(outFileTarget);
-            outTarget = DataLocation.createLocation(Comm.getAppHost(), uri);
-        } catch (Exception e) {
-            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + outFileTarget);
-        }
-
-        LOGGER.debug("- Source: " + outFileOrigin);
-        LOGGER.debug("- Target: " + outFileTarget);
         COMPSsNode masterNode = Comm.getAppHost().getNode();
-        masterNode.obtainData(new LogicalData("workerOut" + this.getName()), outSource, outTarget,
-            new LogicalData("workerOut" + this.getName()), new WorkersDebugInfoCopyTransferable(), wdil);
 
-        // Get Worker error
-        wdil.addOperation();
-        String errFileName = "worker_" + getName() + ".err";
-        SimpleURI errFileOrigin =
-            this.node.getCompletePath(DataType.FILE_T, "log" + File.separator + "static_" + errFileName);
-        String errFileTarget = ProtocolType.FILE_URI.getSchema() + LoggerManager.getWorkersLogDir() + errFileName;
-
-        DataLocation errSource = null;
+        // TODO: this block should prolly be on the obtain data function
+        Path pathPath = Paths.get(folderPath);
         try {
-            errSource = DataLocation.createLocation(this, errFileOrigin);
+            Files.createDirectories(pathPath);
         } catch (Exception e) {
-            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + errFileOrigin.toString(), e);
+            LOGGER.warn("Error while creating folder to store worker files", e);
         }
 
-        DataLocation errTarget = null;
-        try {
-            SimpleURI uri = new SimpleURI(errFileTarget);
-            errTarget = DataLocation.createLocation(Comm.getAppHost(), uri);
-        } catch (Exception e) {
-            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + errFileTarget);
+        Semaphore[] completedObtainData = new Semaphore[filesPaths.size()];
+        int semaphoreCounter = 0;
+
+        for (String sourcePath : filesPaths) {
+            final String fileName = sourcePath.substring(sourcePath.lastIndexOf("/") + 1);
+            final String targetPath = ProtocolType.FILE_URI.getSchema() + folderPath + File.separator + fileName;
+
+            Semaphore sem = new Semaphore(0);
+            completedObtainData[semaphoreCounter++] = sem;
+            WorkersDebugInformationListener wdil = new WorkersDebugInformationListener(sem);
+
+            // Get Worker output
+            wdil.addOperation();
+
+            DataLocation sourceDataLocation = null;
+            SimpleURI sourceUri = new SimpleURI(ProtocolType.FILE_URI.getSchema() + sourcePath);
+            try {
+                sourceDataLocation = DataLocation.createLocation(this, sourceUri);
+            } catch (Exception e) {
+                ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + sourceUri.toString(), e);
+            }
+
+            DataLocation targetDataLocation = null;
+            SimpleURI targetUri = new SimpleURI(ProtocolType.FILE_URI.getSchema() + targetPath);
+            try {
+                targetDataLocation = DataLocation.createLocation(Comm.getAppHost(), targetUri);
+            } catch (Exception e) {
+                ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetUri.toString(), e);
+            }
+
+            LOGGER.debug("- Retrieving file from worker: " + sourceDataLocation.toString());
+            masterNode.obtainData(new LogicalData(fileName), sourceDataLocation, targetDataLocation,
+                new LogicalData(fileName), new WorkersDebugInfoCopyTransferable(), wdil);
+
+            wdil.enable();
+
         }
+        for (Semaphore sem : completedObtainData) {
+            try {
+                sem.acquire();
+            } catch (InterruptedException ex) {
+                LOGGER.error("Error waiting for worker debug files in resource " + getName() + " to get saved");
+            }
 
-        LOGGER.debug("- Source: " + errFileOrigin);
-        LOGGER.debug("- Target: " + errFileTarget);
-        masterNode.obtainData(new LogicalData("workerErr" + this.getName()), errSource, errTarget,
-            new LogicalData("workerErr" + this.getName()), new WorkersDebugInfoCopyTransferable(), wdil);
-
-        // Wait transfers
-        wdil.enable();
-        try {
-            sem.acquire();
-        } catch (InterruptedException ex) {
-            LOGGER.error("Error waiting for worker debug files in resource " + getName() + " to get saved");
+            LOGGER.debug("Worker files from resource " + getName() + "received");
         }
-
-        LOGGER.debug("Worker files from resource " + getName() + "received");
     }
 
     /**
-     * Retrieves the binding worker debug files.
+     * Returns the paths to the files from a folder files.
+     * 
+     * @param foldername folder path to the files
+     * @return Set the paths of the files in that folder
      */
-    private void getBindingWorkersDebugInfo() {
-        if (DEBUG) {
-            LOGGER.debug("Copying Binding Workers Information");
-        }
+    private Set<String> getFilesPathFromFolder(String folderPath) {
 
-        Semaphore sem = new Semaphore(0);
-        WorkersDebugInformationListener wdil = new WorkersDebugInformationListener(sem);
-
-        // Get Worker output
-        wdil.addOperation();
-        String outFileNameOriginal = "log/binding_worker.out";
-        String outFileName = "binding_worker_" + getName() + ".out";
-        SimpleURI outFileOrigin = this.node.getCompletePath(DataType.FILE_T, outFileNameOriginal);
-        String outFileTarget = ProtocolType.FILE_URI.getSchema() + LoggerManager.getWorkersLogDir() + outFileName;
-
-        DataLocation outSource = null;
-        try {
-            outSource = DataLocation.createLocation(this, outFileOrigin);
-        } catch (Exception e) {
-            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + outFileOrigin.toString(), e);
-        }
-
-        DataLocation outTarget = null;
-        try {
-            SimpleURI uri = new SimpleURI(outFileTarget);
-            outTarget = DataLocation.createLocation(Comm.getAppHost(), uri);
-        } catch (Exception e) {
-            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + outFileTarget);
-        }
-
-        LOGGER.debug("- Source: " + outFileOrigin);
-        LOGGER.debug("- Target: " + outFileTarget);
-        COMPSsNode masterNode = Comm.getAppHost().getNode();
-        masterNode.obtainData(new LogicalData("bindingWorkerOut" + this.getName()), outSource, outTarget,
-            new LogicalData("bindingWorkerOut" + this.getName()), new WorkersDebugInfoCopyTransferable(), wdil);
-
-        // Get Worker error
-        wdil.addOperation();
-        String errFileNameOriginal = "log/binding_worker.err";
-        String errFileName = "binding_worker_" + getName() + ".err";
-        SimpleURI errFileOrigin = this.node.getCompletePath(DataType.FILE_T, errFileNameOriginal);
-        String errFileTarget = ProtocolType.FILE_URI.getSchema() + LoggerManager.getWorkersLogDir() + errFileName;
-
-        DataLocation errSource = null;
-        try {
-            errSource = DataLocation.createLocation(this, errFileOrigin);
-        } catch (Exception e) {
-            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + errFileOrigin.toString(), e);
-        }
-
-        DataLocation errTarget = null;
-        try {
-            SimpleURI uri = new SimpleURI(errFileTarget);
-            errTarget = DataLocation.createLocation(Comm.getAppHost(), uri);
-        } catch (Exception e) {
-            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + errFileTarget);
-        }
-
-        LOGGER.debug("- Source: " + errFileOrigin);
-        LOGGER.debug("- Target: " + errFileTarget);
-        masterNode.obtainData(new LogicalData("bindingWorkerErr" + this.getName()), errSource, errTarget,
-            new LogicalData("bindingWorkerErr" + this.getName()), new WorkersDebugInfoCopyTransferable(), wdil);
-
-        // Wait transfers
-        wdil.enable();
-        try {
-            sem.acquire();
-        } catch (InterruptedException ex) {
-            LOGGER.error("Error waiting for worker debug files in resource " + getName() + " to get saved");
-        }
-
-        LOGGER.debug("Worker files from resource " + getName() + "received");
+        Set<String> pathSet = Stream.of(new File(folderPath).listFiles()).filter(file -> !file.isDirectory())
+            .map(File::getName).collect(Collectors.toSet());
+        return pathSet;
     }
 
-    /**
-     * Retrieves cache profiler data.
-     */
-    private void getCacheProfilerDebugInfo() {
-        if (DEBUG) {
-            LOGGER.debug("Copying Cache Profiler Workers Information");
+    private void copyTracingFiles() {
+        String folderPath = this.getAnalysisFolder();
+        Set<String> files = getFilesPathFromFolder(folderPath);
+
+        LOGGER.debug("Copying files" + files.toString() + " from folder " + folderPath.toString() + " to folder "
+            + Tracer.getExtraeOutputDir());
+        for (String fileName : files) {
+            if (fileName.endsWith(Tracer.PACKAGE_SUFFIX)) {
+                Path src = Paths.get(folderPath + File.separator + fileName);
+                Path tgt = Paths.get(Tracer.getExtraeOutputDir() + File.separator + this.getName() + fileName);
+                try {
+                    Files.copy(src, tgt);
+                } catch (IOException e) {
+                    LOGGER.error("Failed to copy tracing files inside master folders", e);
+                }
+            }
         }
-
-        Semaphore sem = new Semaphore(0);
-        WorkersDebugInformationListener wdil = new WorkersDebugInformationListener(sem);
-
-        // Get Worker output
-        wdil.addOperation();
-
-        String cacheProfiler = "cache_profiler.json";
-        String outCacheProfiler = "cache_profiler_" + getName() + ".json";
-        SimpleURI cacheProfilerOutFileOrigin = this.node.getCompletePath(DataType.FILE_T, cacheProfiler);
-        String cacheProfilerOutFileTarget =
-            ProtocolType.FILE_URI.getSchema() + LoggerManager.getWorkersLogDir() + outCacheProfiler;
-
-        DataLocation cacheProfilerOutSource = null;
-        try {
-            cacheProfilerOutSource = DataLocation.createLocation(this, cacheProfilerOutFileOrigin);
-        } catch (Exception e) {
-            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + cacheProfilerOutFileOrigin.toString(), e);
-        }
-
-        DataLocation cacheProfilerOutTarget = null;
-        try {
-            SimpleURI uriCacheProfiler = new SimpleURI(cacheProfilerOutFileTarget);
-            cacheProfilerOutTarget = DataLocation.createLocation(Comm.getAppHost(), uriCacheProfiler);
-        } catch (Exception e) {
-            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + cacheProfilerOutFileTarget);
-        }
-
-        LOGGER.debug("- Cache Source: " + cacheProfilerOutSource);
-        LOGGER.debug("- Cache Target: " + cacheProfilerOutTarget);
-        COMPSsNode masterNode = Comm.getAppHost().getNode();
-        masterNode.obtainData(new LogicalData("cache_profiler.json"), cacheProfilerOutSource, cacheProfilerOutTarget,
-            new LogicalData("cache_profiler.json"), new WorkersDebugInfoCopyTransferable(), wdil);
-
-        // Wait transfers
-        wdil.enable();
-        try {
-            sem.acquire();
-        } catch (InterruptedException ex) {
-            LOGGER.error("Error waiting for cache profiler debug files in resource " + getName() + " to get saved");
-        }
-
-        LOGGER.debug("Cache profiler files from resource " + getName() + " received");
     }
 
     @Override

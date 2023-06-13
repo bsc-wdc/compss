@@ -60,14 +60,14 @@ def start_cache(
     logger: logging.Logger,
     cache_config: str,
     cache_profiler: bool,
-    log_dir: str,
+    analysis_dir: str,
 ) -> typing.Tuple[typing.Any, Process, Queue, Queue, DictProxy]:
     """Set up the cache process which keeps the consistency of the cache.
 
     :param logger: Logger.
     :param cache_config: Cache configuration defined on startup.
     :param cache_profiler: If cache profiling is enabled or not.
-    :param log_dir: Log directory where to store the profiling.
+    :param analysis_dir: Directory where to store the profiling.
     :return: Shared memory manager, cache process, cache message queue and
              cache ids dictionary.
     """
@@ -89,7 +89,7 @@ def start_cache(
         cache_hits,
         profiler_dict,
         profiler_get_struct,
-        log_dir,
+        analysis_dir,
         cache_profiler,
     )
     (

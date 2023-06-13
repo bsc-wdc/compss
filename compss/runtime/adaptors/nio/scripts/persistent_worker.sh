@@ -52,14 +52,14 @@
 
       echo "[persistent_worker.sh] Calling NIOWorker of host ${hostName}"
       echo "Calling NIOWorker"
-      # echo "Cmd: $cmd ${paramsToCOMPSsWorker}"
+      echo "Cmd: $cmd ${paramsToCOMPSsWorker}"
   fi
 
   # Prepare binding log files
   # TODO: avoid to create always these log files. Create and transfer only when needed.
-  mkdir -p "${workingDir}/log"
-  touch "${workingDir}/log/binding_worker.out"
-  touch "${workingDir}/log/binding_worker.err"
+  mkdir -p "${logDir}"
+  touch "${logDir}/binding_worker.out"
+  touch "${logDir}/binding_worker.err"
 
   # shellcheck disable=SC2086
   if [ "$(uname)" == "Darwin" ]; then
@@ -69,13 +69,18 @@
   fi
 
   export LD_PRELOAD=${AFTER_EXTRAE_LD_PRELOAD}
-  "${SETSID}" $cmd ${paramsToCOMPSsWorker} 1> "$workingDir/log/worker_${hostName}.out" 2> "$workingDir/log/worker_${hostName}.err" < /dev/null | echo "$!" &
-  endCode=$?
+  "${SETSID}" $cmd ${paramsToCOMPSsWorker} 1> "${logDir}/worker_${hostName}.out" 2> "${logDir}/worker_${hostName}.err" < /dev/null | echo "$!" &
+  exitValue=$?
+  if [ "$exitValue" != "0" ]; then
+    echo "[WARNING][persistent_worker_starter.sh] Failed to start worker ${hostName}. Exit value: ${exitValue}"
+  fi
+
+
 
   post_launch
 
   # Exit
-  if [ $endCode -eq 0 ]; then
+  if [ $exitValue -eq 0 ]; then
 	exit 0
   else
 	echo 1>&2 "[persistent_worker.sh] Worker could not be initalized"

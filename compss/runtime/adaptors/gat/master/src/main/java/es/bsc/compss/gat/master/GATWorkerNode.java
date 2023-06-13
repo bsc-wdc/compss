@@ -49,6 +49,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.gridlab.gat.GATContext;
 import org.gridlab.gat.URI;
@@ -434,17 +435,16 @@ public class GATWorkerNode extends COMPSsWorker {
     }
 
     @Override
-    public boolean generatePackage() {
+    public Set<String> generateWorkerAnalysisFiles() {
         LOGGER.debug("Generating GAT tracing package");
-        GATTracer.generatePackage(this);
-        return true;
+        return GATTracer.generatePackage(this);
     }
 
     @Override
-    public boolean generateWorkersDebugInfo() {
+    public Set<String> generateWorkerDebugFiles() {
         // This feature is only for persistent workers (NIO)
         LOGGER.info("Worker debug files not supported on GAT Adaptor");
-        return false;
+        return null;
     }
 
     @Override

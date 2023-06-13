@@ -141,6 +141,7 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
     public boolean sendCommand(PipeCommand command) {
         synchronized (this) {
             if (this.closed) {
+                LOGGER.warn("Trying to send a command through a closed pipe");
                 return false;
             }
             this.senders++;

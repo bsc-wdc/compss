@@ -18,41 +18,42 @@ package es.bsc.compss.nio.commands.tracing;
 
 import es.bsc.comm.Connection;
 import es.bsc.compss.nio.NIOAgent;
+
 import es.bsc.compss.nio.commands.Command;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 
-public class CommandGenerateDone implements Command {
+public class CommandGenerateAnalysisFiles implements Command {
 
-    public CommandGenerateDone() {
+    public CommandGenerateAnalysisFiles() {
         super();
     }
 
     @Override
-    public void handle(NIOAgent agent, Connection c) {
-        agent.notifyTracingPackageGeneration();
-    }
-
-    @Override
-    public void writeExternal(ObjectOutput out) throws IOException {
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         // Nothing to write
     }
 
     @Override
-    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+    public void writeExternal(ObjectOutput out) throws IOException {
         // Nothing to read
     }
 
     @Override
+    public void handle(NIOAgent agent, Connection c) {
+        agent.generateAnalysisFiles(c);
+    }
+
+    @Override
     public String toString() {
-        return "GeneratingTraceCommandDone";
+        return "GenerateTraceCommand";
     }
 
     @Override
     public void error(NIOAgent agent, Connection c) {
-        agent.handleTracingGenerateDoneCommandError(c, this);
+        agent.handleTracingGenerateCommandError(c, this);
 
     }
 

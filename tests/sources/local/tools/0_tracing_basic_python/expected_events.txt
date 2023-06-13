@@ -62,8 +62,8 @@ Family 9000000 Binding
 8000002 range 1 100 100
 8000003 event 0 100
 8000003 range 1 100 100
-8000004 event 0 24
-8000004 range 1 3000000000 24
+8000004 event 0 28
+8000004 range 1 3000000000 28
 8000150 event 0 100
 8000150 range 1 4 100   # NOTE: cpu affinity is forced from 0-3 in runcompss
 8000160 event 0 28

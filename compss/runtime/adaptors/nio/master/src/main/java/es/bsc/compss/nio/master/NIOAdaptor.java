@@ -47,10 +47,10 @@ import es.bsc.compss.nio.commands.CommandNewTask;
 import es.bsc.compss.nio.commands.CommandRemoveObsoletes;
 import es.bsc.compss.nio.commands.CommandShutdown;
 import es.bsc.compss.nio.commands.CommandShutdownACK;
-import es.bsc.compss.nio.commands.tracing.CommandGenerateDone;
-import es.bsc.compss.nio.commands.tracing.CommandGeneratePackage;
-import es.bsc.compss.nio.commands.workerfiles.CommandGenerateWorkerDebugFiles;
-import es.bsc.compss.nio.commands.workerfiles.CommandWorkerDebugFilesDone;
+import es.bsc.compss.nio.commands.tracing.CommandGenerateAnalysisFiles;
+import es.bsc.compss.nio.commands.tracing.CommandGenerateAnalysisFilesDone;
+import es.bsc.compss.nio.commands.workerfiles.CommandGenerateDebugFiles;
+import es.bsc.compss.nio.commands.workerfiles.CommandGenerateDebugFilesDone;
 import es.bsc.compss.nio.exceptions.SerializedObjectException;
 import es.bsc.compss.nio.master.configuration.NIOConfiguration;
 import es.bsc.compss.nio.master.types.TransferGroup;
@@ -148,6 +148,8 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     private final Semaphore tracingGeneration;
     private final Semaphore workersDebugInfo;
+    private Set<String> workerLogFilesPaths;
+    private Set<String> workerTracingFilesPaths;
 
     static {
         int masterPort;
@@ -178,6 +180,8 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         // Initialize tracing and workers debug semaphores
         this.tracingGeneration = new Semaphore(0);
         this.workersDebugInfo = new Semaphore(0);
+        this.workerLogFilesPaths = null;
+        this.workerTracingFilesPaths = null;
 
         // Create jobs directory
         File file = new File(JOBS_DIR);
@@ -803,7 +807,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     }
 
     @Override
-    public void generatePackage(Connection c) {
+    public void generateAnalysisFiles(Connection c) {
         // Master side, nothing to do
     }
 
@@ -825,43 +829,53 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         listener.notifyEnd();
     }
 
-    @Override
-    public void waitUntilTracingPackageGenerated() {
+    // @Override
+    /**
+     * Waits until the tracing package is generated.
+     */
+    public Set<String> waitForAnalysisFiles() {
         try {
             tracingGeneration.acquire();
+            return workerTracingFilesPaths;
         } catch (InterruptedException ex) {
             LOGGER.error("Error waiting for package generation");
             // Restore interrupted state...
             Thread.currentThread().interrupt();
         }
+        return null;
 
     }
 
     @Override
-    public void notifyTracingPackageGeneration() {
+    public void notifyAnalysisFilesDone(Set<String> tracingFilesPaths) {
+        this.workerTracingFilesPaths = tracingFilesPaths;
         tracingGeneration.release();
     }
 
-    @Override
-    public void waitUntilWorkersDebugInfoGenerated() {
+    /**
+     * Waits until the Debug Info is generated.
+     */
+    public Set<String> waitUntilWorkersDebugInfoGenerated() {
         try {
             workersDebugInfo.acquire();
+            return workerLogFilesPaths;
         } catch (InterruptedException ex) {
-            LOGGER.error("Error waiting for package generation");
             // Restore interrupted state...
             Thread.currentThread().interrupt();
         }
+        return null;
 
     }
 
     @Override
-    public void notifyWorkersDebugInfoGeneration() {
+    public void notifyDebugFilesDone(Set<String> logPaths) {
+        this.workerLogFilesPaths = logPaths;
         workersDebugInfo.release();
     }
 
     @Override
-    public void generateWorkersDebugInfo(Connection c) {
-        c.sendCommand(new CommandWorkerDebugFilesDone());
+    public void generateDebugFiles(Connection c) {
+        c.sendCommand(new CommandGenerateDebugFilesDone(null));
         c.finishConnection();
     }
 
@@ -1010,28 +1024,30 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     }
 
     @Override
-    public void handleTracingGenerateDoneCommandError(Connection c, CommandGenerateDone commandGenerateDone) {
+    public void handleTracingGenerateDoneCommandError(Connection c,
+        CommandGenerateAnalysisFilesDone commandGenerateAnalysisFilesDone) {
         // Nothing to do at master
         LOGGER.warn("Error receiving tracing generate done. Not handeled");
     }
 
     @Override
-    public void handleTracingGenerateCommandError(Connection c, CommandGeneratePackage commandGeneratePackage) {
+    public void handleTracingGenerateCommandError(Connection c,
+        CommandGenerateAnalysisFiles commandGenerateAnalysisFiles) {
         LOGGER.error("Error sending tracing generate command.");
-        notifyTracingPackageGeneration();
+        notifyAnalysisFilesDone(null);
 
     }
 
     @Override
     public void handleGenerateWorkerDebugCommandError(Connection c,
-        CommandGenerateWorkerDebugFiles commandGenerateWorkerDebugFiles) {
+        CommandGenerateDebugFiles commandGenerateDebugFiles) {
         LOGGER.error("Error sending generate worker debug command.");
-        notifyWorkersDebugInfoGeneration();
+        notifyDebugFilesDone(null);
     }
 
     @Override
     public void handleGenerateWorkerDebugDoneCommandError(Connection c,
-        CommandWorkerDebugFilesDone commandWorkerDebugFilesDone) {
+        CommandGenerateDebugFilesDone commandGenerateDebugFilesDone) {
         // Nothing to do at master
         LOGGER.warn("Error receiving generate worker debug done. Not handeled");
 

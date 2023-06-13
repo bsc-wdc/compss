@@ -24,7 +24,10 @@ import es.bsc.compss.util.tracing.TraceScript;
 
 import java.io.File;
 import java.net.URISyntaxException;
+import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Set;
+import java.util.stream.Stream;
 
 import org.gridlab.gat.GAT;
 import org.gridlab.gat.URI;
@@ -163,7 +166,7 @@ public class GATTracer extends Tracer {
      * @param node Worker node where to generate the tracing package.
      * @return {@literal true} if the tracing package has been generated, {@literal false} otherwise.
      */
-    public static boolean generatePackage(GATWorkerNode node) {
+    public static Set<String> generatePackage(GATWorkerNode node) {
         final LinkedList<URI> traceScripts = new LinkedList<>();
         final LinkedList<String> traceParams = new LinkedList<>();
         final String host = node.getHost();
@@ -182,7 +185,7 @@ public class GATTracer extends Tracer {
                 + TraceScript.RELATIVE_PATH));
         } catch (URISyntaxException e) {
             LOGGER.error("Error deleting tracing host", e);
-            return false;
+            return null;
         }
         String mode = "package";
         String pars = mode + " " + workingDir + " " + host;
@@ -190,7 +193,15 @@ public class GATTracer extends Tracer {
         traceParams.add(pars);
 
         // Use cleaner to run the trace script and generate the package
-        return new GATScriptExecutor(node).executeScript(traceScripts, traceParams, "trace_packaging_" + host);
+        boolean scriptResult =
+            new GATScriptExecutor(node).executeScript(traceScripts, traceParams, "trace_packaging_" + host);
+        if (!scriptResult) {
+            LOGGER.error("Tracing package generation scripts failed to execute properly");
+            return null;
+        }
+        Set<String> tracingFiles = new HashSet<String>();
+        tracingFiles.add(workingDir);
+        return tracingFiles;
 
     }
 

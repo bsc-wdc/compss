@@ -49,7 +49,7 @@ public class GOSTracer extends Tracer {
      *
      * @param node Worker node where to generate the tracing package.
      */
-    public static void generatePackage(GOSWorkerNode node) throws JSchException, IOException {
+    public static void generateAnalysisFiles(GOSWorkerNode node) throws JSchException, IOException {
         String traceScript;
         final LinkedList<String> traceParams = new LinkedList<>();
         final SSHHost host = node.getSSHHost();

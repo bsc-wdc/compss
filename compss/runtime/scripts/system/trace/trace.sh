@@ -97,6 +97,7 @@
         fi
     fi
     echo "Creating package ${package_path} with files: ${files}"
+    mkdir -p "${package_path%/*}/"
     tar czf "${package_path}" ${files}
 
     # shellcheck disable=SC2086

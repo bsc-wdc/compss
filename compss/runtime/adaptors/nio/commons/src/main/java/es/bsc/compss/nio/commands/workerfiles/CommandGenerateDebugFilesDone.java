@@ -20,41 +20,49 @@ import es.bsc.comm.Connection;
 import es.bsc.compss.nio.NIOAgent;
 
 import es.bsc.compss.nio.commands.Command;
-
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.Set;
 
 
-public class CommandGenerateWorkerDebugFiles implements Command {
+public class CommandGenerateDebugFilesDone implements Command {
 
-    public CommandGenerateWorkerDebugFiles() {
+    Set<String> logPaths;
+
+
+    public CommandGenerateDebugFilesDone() {
         super();
+    }
+
+    public CommandGenerateDebugFilesDone(Set<String> logPaths) {
+        super();
+        this.logPaths = logPaths;
     }
 
     @Override
     public void handle(NIOAgent agent, Connection c) {
-        agent.generateWorkersDebugInfo(c);
+        agent.notifyDebugFilesDone(logPaths);
     }
 
     @Override
     public String toString() {
-        return "GenerateWorkerDebugFiles";
+        return "GeneratingWorkerDebugFilesDone";
     }
 
     @Override
-    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        // Nothing to do
+    public void readExternal(ObjectInput oi) throws IOException, ClassNotFoundException {
+        this.logPaths = (Set<String>) oi.readObject();
     }
 
     @Override
-    public void writeExternal(ObjectOutput out) throws IOException {
-        // Nothing to do
+    public void writeExternal(ObjectOutput oo) throws IOException {
+        oo.writeObject(this.logPaths);
     }
 
     @Override
     public void error(NIOAgent agent, Connection c) {
-        agent.handleGenerateWorkerDebugCommandError(c, this);
+        agent.handleGenerateWorkerDebugDoneCommandError(c, this);
 
     }
 

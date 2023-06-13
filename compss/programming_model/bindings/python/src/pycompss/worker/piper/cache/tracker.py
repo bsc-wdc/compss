@@ -108,7 +108,7 @@ class CacheTrackerConf:
         "cache_hits",
         "profiler_dict",
         "profiler_get_struct",
-        "log_dir",
+        "analysis_dir",
         "cache_profiler",
         "gpu_arr_ptr",
     ]
@@ -125,7 +125,7 @@ class CacheTrackerConf:
             str, typing.Dict[str, typing.Dict[str, typing.Dict[str, int]]]
         ],
         profiler_get_struct: typing.List[typing.List[str]],
-        log_dir: str,
+        analysis_dir: str,
         cache_profiler: bool,
     ) -> None:
         """Construct a new cache tracker configuration.
@@ -139,7 +139,7 @@ class CacheTrackerConf:
                            management.
         :param profiler_dict: Profiling dictionary.
         :param profiler_get_struct: Profiling get structure.
-        :param log_dir: Log directory.
+        :param analysis_dir: Analysis directory.
         :param cache_profiler: Cache profiler.
         """
         self.logger = logger
@@ -151,7 +151,7 @@ class CacheTrackerConf:
         self.cache_hits = cache_hits  # hits - {key1: size1, key2: size2, etc.}
         self.profiler_dict = profiler_dict
         self.profiler_get_struct = profiler_get_struct
-        self.log_dir = log_dir
+        self.analysis_dir = analysis_dir
         self.cache_profiler = cache_profiler
 
         self.gpu_cache_size = gpu_cache_size

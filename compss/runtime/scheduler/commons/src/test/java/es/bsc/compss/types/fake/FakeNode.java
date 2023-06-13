@@ -35,6 +35,7 @@ import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 
 import java.util.List;
+import java.util.Set;
 
 
 public class FakeNode extends COMPSsNode {
@@ -108,9 +109,8 @@ public class FakeNode extends COMPSsNode {
     }
 
     @Override
-    public boolean generatePackage() {
-        return false;
-
+    public Set<String> generateWorkerAnalysisFiles() {
+        return null;
     }
 
     @Override
@@ -118,8 +118,8 @@ public class FakeNode extends COMPSsNode {
     }
 
     @Override
-    public boolean generateWorkersDebugInfo() {
-        return false;
+    public Set<String> generateWorkerDebugFiles() {
+        return null;
     }
 
     @Override

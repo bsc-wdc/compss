@@ -81,24 +81,26 @@ class PiperWorkerConfiguration:
         :return: None.
         """
         GLOBALS.set_temporary_directory(argv[1])
-        if argv[2] == "true":
+        GLOBALS.set_log_directory(argv[2])
+        GLOBALS.set_analysis_directory(argv[3])
+        if argv[4] == "true":
             CONTEXT.enable_nesting()
             self.nesting = True
-        self.debug = argv[3] == "true"
-        self.tracing = argv[4] == "true"
-        self.storage_conf = argv[5]
-        self.stream_backend = argv[6]
-        self.stream_master_name = argv[7]
-        self.stream_master_port = argv[8]
-        self.cache = argv[9]
-        self.cache_profiler = argv[10]
-        self.tasks_x_node = int(argv[11])
-        exec_ids = argv[12 : 12 + self.tasks_x_node]  # noqa: E203
+        self.debug = argv[5] == "true"
+        self.tracing = argv[6] == "true"
+        self.storage_conf = argv[7]
+        self.stream_backend = argv[8]
+        self.stream_master_name = argv[9]
+        self.stream_master_port = argv[10]
+        self.cache = argv[11]
+        self.cache_profiler = argv[12]
+        self.tasks_x_node = int(argv[13])
+        exec_ids = argv[14 : 14 + self.tasks_x_node]  # noqa: E203
         self.exec_ids = [int(exec_id) for exec_id in exec_ids]
         in_pipes = argv[
-            12 + self.tasks_x_node : 12 + (self.tasks_x_node * 2)  # noqa: E203
+            14 + self.tasks_x_node : 14 + (self.tasks_x_node * 2)  # noqa: E203
         ]
-        out_pipes = argv[12 + (self.tasks_x_node * 2) : -2]  # noqa: E203
+        out_pipes = argv[14 + (self.tasks_x_node * 2) : -2]  # noqa: E203
         if self.debug:
             if self.tasks_x_node != len(in_pipes):
                 raise PyCOMPSsException(
@@ -124,6 +126,17 @@ class PiperWorkerConfiguration:
         logger.debug(HEADER + "-----------------------------")
         logger.debug(HEADER + "Persistent worker parameters:")
         logger.debug(HEADER + "-----------------------------")
+        logger.debug(
+            HEADER
+            + "working_dir    : "
+            + str(GLOBALS.get_temporary_directory())
+        )
+        logger.debug(
+            HEADER + "log_dir        : " + str(GLOBALS.get_log_directory())
+        )
+        logger.debug(
+            HEADER + "analysis_dir   : " + str(GLOBALS.get_analysis_directory)
+        )
         logger.debug(HEADER + "Nesting        : " + str(self.nesting))
         logger.debug(HEADER + "Debug          : " + str(self.debug))
         logger.debug(HEADER + "Tracing        : " + str(self.tracing))

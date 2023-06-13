@@ -68,6 +68,13 @@ public interface InvocationContext {
     public String getLogDir();
 
     /**
+     * Returns the analysis directory in the current node.
+     * 
+     * @return The analysis directory in the current node.
+     */
+    public String getAnalysisDir();
+
+    /**
      * Returns the application directory.
      * 
      * @return The application directory.

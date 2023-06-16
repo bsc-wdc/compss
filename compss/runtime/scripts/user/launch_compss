@@ -2122,21 +2122,6 @@ launch() {
 
         if [ "${ear}" = true ]; then
           # Launch worker with ear
-
-          #module load ear
-          #export EAR_CPU_TDP=150
-          #export SLURM_HACK_EARL_VERBOSE=2
-          #export SLURM_COMP_VERBOSE=4
-          #export SLURM_EAR_LOADER_VERBOSE=3
-          #export SLURM_EARL_VERBOSE_PATH=$HOME/ear_compps_logs/$SLURM_JOB_ID
-          #mkdir -p $SLURM_EARL_VERBOSE_PATH
-          #export EAR_ROOT=/gpfs/scratch/bsc19/bsc19620/ear4.2_mn4_wf
-          #export SLURM_HACK_LOADER_FILE=${EAR_ROOT}/lib/libearld.so
-          #export SLURM_HACK_EARL_INSTALL_PATH=${EAR_ROOT}/lib
-          #export EAR_LOGS_PATH=$HOME/ear_compps_metrics/$SLURM_JOB_ID
-          #mkdir -p $EAR_LOGS_PATH
-          #PRE_CMD="$EAR_ROOT/bin/erun --ear=on --ear-verbose=1 --ear-user-db=$EAR_LOGS_PATH/metrics"
-
           PRE_CMD="$EAR_ROOT/bin/erun ${ear_flags}"
           POST_CMD=
           WCMD="/bin/bash $WCMD"

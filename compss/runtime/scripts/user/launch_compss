@@ -2206,23 +2206,36 @@ launch() {
       MCMD="${MCMD} ${args_pass}"
 
       # if [ "${ear}" = true ]; then
-      #   WCMD="/bin/bash $MCMD"
+      #   # Launch master with ear
+      #   PRE_CMD="$EAR_ROOT/bin/erun ${ear_flags}"
+      #   POST_CMD=
+      #   MCMD="/bin/bash $MCMD"
+      #
       #   if [ "${log_level}" != "off" ]; then
-      #       echo "[LAUNCH_COMPSS] Executing Master (with ear) with command: ${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_EXTRA_FLAGS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_name} ${PRE_CMD} --program=\"$MCMD\" ${POST_CMD}"
+      #     echo "[LAUNCH_COMPSS] Launching master (with ear) with id $hostid and command: ${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node} ${PRE_CMD} --program=\"$MCMD\" ${POST_CMD}"
       #   fi
-      #   ${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_EXTRA_FLAGS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_name} ${PRE_CMD} --program="$MCMD" ${POST_CMD} &
+      #   ${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node} ${PRE_CMD} --program="$MCMD" ${POST_CMD} &
+      #   ev=$?
       # else
+      #   # Launch normal master
       #   if [ "${log_level}" != "off" ]; then
-      #       echo "[LAUNCH_COMPSS] Executing Master with command: ${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_EXTRA_FLAGS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_name} $MCMD"
+      #     echo "[LAUNCH_COMPSS] Launching master with id $hostid and command: ${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node} ${PRE_CMD} $MCMD ${POST_CMD}"
       #   fi
-      #   ${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_EXTRA_FLAGS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_name} $MCMD &
+      #   ${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node} ${PRE_CMD} $MCMD ${POST_CMD} &
+      #   ev=$?
       # fi
+      # if [ $ev -ne 0 ]; then
+      #   echo "Master execution failed. Exiting job."
+      #   exit $ev
+      # fi
+
       $MCMD
       ev=$?
       if [ $ev -ne 0 ]; then
         echo "Master execution failed. Exiting job."
         exit $ev
       fi
+
       no_wait=false
     else
       load_external_compss_environment

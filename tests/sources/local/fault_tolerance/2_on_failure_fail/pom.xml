@@ -8,7 +8,7 @@
     <parent>
         <groupId>es.bsc.compss.tests</groupId>
         <artifactId>compss-tests-fault_tolerance</artifactId>
-        <version>3.2.rc2306</version>
+        <version>3.2.rc2307</version>
         <relativePath>..</relativePath>
     </parent>
 

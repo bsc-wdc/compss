@@ -176,6 +176,16 @@ public class MPIInvoker extends Invoker {
 
         // Check container and its options
         ContainerDescription container = this.mpiDef.getContainer();
+
+        // if the master is launched inside a container
+        if (isOnContainer() && container == null) {
+            ContainerDescription.ContainerEngine engine =
+                ContainerDescription.ContainerEngine.valueOf(System.getenv(COMPSsConstants.COMPSS_CONTAINER_ENGINE));
+            String masterImage = System.getenv(COMPSsConstants.MASTER_CONTAINER_IMAGE);
+            String contOptions = System.getenv(COMPSsConstants.MASTER_CONTAINER_OPTIONS);
+            container = new ContainerDescription(engine, masterImage, contOptions);
+        }
+
         int numOptions = 0;
         String[] options = null;
         if (container != null) {
@@ -194,15 +204,14 @@ public class MPIInvoker extends Invoker {
             cmdLength += numOptions;
         }
 
-        String masterContImage = System.getenv(COMPSsConstants.MASTER_CONTAINER_IMAGE);
-        if (masterContImage != null && !masterContImage.isEmpty()) {
+        if (isOnContainer()) {
             cmdLength++;
         }
         String[] cmd = new String[cmdLength];
 
         int pos = 0;
 
-        if (masterContImage != null && !masterContImage.isEmpty()) {
+        if (isOnContainer()) {
             String script = System.getenv(COMPSsConstants.MPI_RUNNER_SCRIPT);
             cmd[pos++] = script;
         }
@@ -278,6 +287,11 @@ public class MPIInvoker extends Invoker {
         this.br = new BinaryRunner();
         return this.br.executeCMD(cmd, streamValues, this.sandBox, this.context.getThreadOutStream(),
             this.context.getThreadErrStream(), null, this.mpiDef.isFailByEV());
+    }
+
+    private static boolean isOnContainer() {
+        String masterContImage = System.getenv(COMPSsConstants.MASTER_CONTAINER_IMAGE);
+        return masterContImage != null && !masterContImage.isEmpty();
     }
 
     @Override

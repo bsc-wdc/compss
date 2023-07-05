@@ -23,10 +23,12 @@ import tempfile
 
 from pycompss.api.exceptions import COMPSsException
 from pycompss.api.task import task
+from pycompss.tests.outlog import create_logger
 from pycompss.util.serialization.serializer import serialize_to_file
 from pycompss.worker.container.container_worker import main
 
 CONTAINER_WORKER = "container_worker.py"
+LOGGER = create_logger()
 
 
 @task()
@@ -81,7 +83,7 @@ def test_container_worker_increment_task():
     sys_path_backup = list(sys.path)
     temp_file = tempfile.NamedTemporaryFile(delete=False).name
     temp_file_name = os.path.basename(temp_file)
-    serialize_to_file(1, temp_file)
+    serialize_to_file(1, temp_file, logger=LOGGER)
     sys.argv = [
         CONTAINER_WORKER,
         "test_container_worker",

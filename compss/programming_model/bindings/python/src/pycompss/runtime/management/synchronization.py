@@ -118,7 +118,7 @@ def _synchronize(obj: typing.Any, mode: int) -> typing.Any:
                 + " CANCELLED. Please, check the logs. Returning None."
             )
             return None
-        new_obj = deserialize_from_file(compss_file)
+        new_obj = deserialize_from_file(compss_file, LOGGER)
         COMPSs.close_file(app_id, file_name, mode)
     else:
         new_obj = get_by_id(compss_file)

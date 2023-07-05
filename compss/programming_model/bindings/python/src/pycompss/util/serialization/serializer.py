@@ -44,12 +44,14 @@ following functions:
 
 import gc
 import json
+import logging  # typing purposes
 import os
 import pickle
 import struct
 import traceback
 import types
-from io import BytesIO
+
+# from io import BytesIO
 
 from pycompss.util.exceptions import SerializerException
 from pycompss.util.objects.properties import object_belongs_to_module
@@ -78,6 +80,7 @@ except ImportError:
 
 
 CUPY_AVAILABLE = False
+SET_CUPY = False
 
 try:
     import pyarrow
@@ -121,8 +124,26 @@ FORCED_SERIALIZER = -1  # make a serializer the only option for serialization
 DISABLE_GC = False
 
 
+def get_available_libraries() -> (
+    typing.List[typing.Tuple[int, str, typing.Optional[str]]]
+):
+    """Return the available serialization libraries.
+
+    Checks the available serializers and returns a dict of names and
+    its module for the active serializers.
+
+    :return: Dictionary of available serializers.
+    """
+    active_serializers = []
+    for library, priority in LIB2IDX.items():
+        active_serializers.append(
+            (priority, library.__name__, library.__file__)
+        )
+    return active_serializers
+
+
 def get_serializer_priority(
-    obj: typing.Any = (),
+    obj: typing.Any, logger: logging.Logger
 ) -> typing.List[types.ModuleType]:
     """Compute the priority of the serializers.
 
@@ -130,9 +151,15 @@ def get_serializer_priority(
     (i.e: the order that will work for almost the 90% of our objects).
 
     :param obj: Object to be analysed.
+    :param logger: Logger to output the serialization messages.
     :return: <List> The serializers sorted by priority in descending order.
     """
-    set_cupy()
+    set_cupy(logger)
+
+    if __debug__:
+        logger.debug(
+            "Get serializer priority for object of type: %s" % str(type(obj))
+        )
 
     primitives = (int, str, bool, float)
     # primitives should be (de)serialized with for the compatibility with the
@@ -157,17 +184,20 @@ def get_serializer_priority(
     return serializers
 
 
-def serialize_to_handler(obj: typing.Any, handler: typing.BinaryIO) -> None:
+def serialize_to_handler(
+    obj: typing.Any, handler: typing.BinaryIO, logger: logging.Logger
+) -> None:
     """Serialize an object to a handler.
 
     :param obj: Object to be serialized.
     :param handler: A handler object. It must implement methods like write,
                     writeline and similar stuff.
+    :param logger: Logger to output the serialization messages.
     :return: None.
     :raises SerializerException: If something wrong happens during
                                  serialization.
     """
-    set_cupy()
+    set_cupy(logger)
 
     emit_manual_event_explicit(
         TRACING_MASTER.binding_serialization_size_type, 0
@@ -177,11 +207,15 @@ def serialize_to_handler(obj: typing.Any, handler: typing.BinaryIO) -> None:
             TRACING_MASTER.binding_serialization_object_num_type,
             (abs(hash(os.path.basename(handler.name))) % PLATFORM_C_MAXINT),
         )
+    if __debug__:
+        logger.debug("Serializing to handler: %s" % str(handler.name))
     if DISABLE_GC:
         # Disable the garbage collector while serializing -> more performance?
         gc.disable()
     # Get the serializer priority
-    serializer_priority = get_serializer_priority(obj)
+    serializer_priority = get_serializer_priority(obj, logger)
+    if __debug__:
+        logger.debug("Serializer priority: %s" % str(serializer_priority))
     i = 0
     success = False
     original_position = handler.tell()
@@ -194,13 +228,21 @@ def serialize_to_handler(obj: typing.Any, handler: typing.BinaryIO) -> None:
         serializer = serializer_priority[i]
         handler.write(bytearray(f"{LIB2IDX[serializer]:04d}", "utf8"))
 
+        if __debug__:
+            logger.debug(
+                "Trying to serialize using %s" % str(serializer.__name__)
+            )
+
         # Special case: obj is a generator
         if isinstance(obj, types.GeneratorType):
             try:
+                if __debug__:
+                    logger.debug("Serializing a generator")
                 pickle_generator(obj, handler, serializer)
                 success = True
             except Exception:  # noqa
                 if __debug__:
+                    logger.debug("Failed serializing a generator")
                     traceback.print_exc()
         # General case
         else:
@@ -209,28 +251,46 @@ def serialize_to_handler(obj: typing.Any, handler: typing.BinaryIO) -> None:
                     import cupy
 
                     if serializer is cupy and isinstance(obj, cupy.ndarray):
+                        if __debug__:
+                            logger.debug("Serializing using cupy...")
                         serializer.save(handler, obj, allow_pickle=False)
+                        if __debug__:
+                            logger.debug("Serializing using cupy success")
                 if (
                     NUMPY_AVAILABLE
                     and serializer is numpy
                     and isinstance(obj, (numpy.ndarray, numpy.matrix))
                 ):
+                    if __debug__:
+                        logger.debug("Serializing using numpy...")
                     serializer.save(handler, obj, allow_pickle=False)
+                    if __debug__:
+                        logger.debug("Serializing using numpy success")
                 elif (
                     PYARROW_AVAILABLE
                     and serializer is pyarrow
                     and object_belongs_to_module(obj, "pyarrow")
                 ):
+                    if __debug__:
+                        logger.debug("Serializing using pyarrow...")
                     writer = pyarrow.ipc.new_file(handler, obj.schema)  # noqa
                     writer.write(obj)
                     writer.close()
+                    if __debug__:
+                        logger.debug("Serializing using pyarrow success")
                 elif (
                     EDDL_AVAILABLE
                     and serializer is eddlNet
                     and object_belongs_to_module(obj, "pyeddl")
                 ):
+                    if __debug__:
+                        logger.debug("Serializing using pyeddl...")
                     handler.write(serialize_net_to_onnx_string(obj, False))
+                    if __debug__:
+                        logger.debug("Serializing using pyeddl success")
                 elif serializer is json:
+                    if __debug__:
+                        logger.debug("Serializing using json...")
                     # JSON doesn't like the binary mode: close handler
                     h_name = handler.name
                     handler.close()
@@ -241,15 +301,34 @@ def serialize_to_handler(obj: typing.Any, handler: typing.BinaryIO) -> None:
                     reopened_handler.write(f"{LIB2IDX[serializer]:04d}")
                     serializer.dump(obj, reopened_handler)
                     is_json = True
+                    if __debug__:
+                        logger.debug("Serializing using json success")
                 else:
+                    if __debug__:
+                        logger.debug(
+                            "Serializing using %s..."
+                            % str(serializer.__name__)
+                        )
                     serializer.dump(
                         obj, handler, protocol=serializer.HIGHEST_PROTOCOL
                     )
+                    if __debug__:
+                        logger.debug(
+                            "Serializing using %s success"
+                            % str(serializer.__name__)
+                        )
                 success = True
+                if __debug__:
+                    logger.debug("Serialization accomplished")
             except Exception:  # noqa
                 success = False
                 traceback_exc = traceback.format_exc()
                 serialization_issues.append((serializer, traceback_exc))
+                if __debug__:
+                    logger.debug(
+                        "Could not perform serialization using %s"
+                        % str(serializer.__name__)
+                    )
         i += 1
     if is_json:
         serialization_size = reopened_handler.tell()
@@ -268,6 +347,8 @@ def serialize_to_handler(obj: typing.Any, handler: typing.BinaryIO) -> None:
 
     # if ret_value is None then all the serializers have failed
     if not success:
+        if __debug__:
+            logger.debug("Serialization TOTALLY FAILED")
         try:
             traceback.print_exc()
         except AttributeError:
@@ -279,20 +360,26 @@ def serialize_to_handler(obj: typing.Any, handler: typing.BinaryIO) -> None:
         raise SerializerException(error_msg)
 
 
-def serialize_to_file(obj: typing.Any, file_name: str) -> None:
+def serialize_to_file(
+    obj: typing.Any, file_name: str, logger: logging.Logger
+) -> None:
     """Serialize an object to a file.
 
     :param obj: Object to be serialized.
     :param file_name: File name where the object is going to be serialized.
+    :param logger: Logger to output the serialization messages.
     :return: Nothing, it just serializes the object.
     """
     with EventInsideWorker(TRACING_WORKER.serialize_to_file_event):
         with open(file_name, "wb") as handler:
-            serialize_to_handler(obj, handler)
+            serialize_to_handler(obj, handler, logger)
 
 
 def serialize_to_file_mpienv(
-    obj: typing.Any, file_name: str, rank_zero_reduce: bool
+    obj: typing.Any,
+    file_name: str,
+    rank_zero_reduce: bool,
+    logger: logging.Logger,
 ) -> None:
     """Serialize an object to a file for Python MPI Tasks.
 
@@ -301,9 +388,12 @@ def serialize_to_file_mpienv(
     :param rank_zero_reduce: A boolean to indicate whether objects should be
                              reduced to MPI rank zero.
                              False for INOUT objects and True otherwise.
+    :param logger: Logger to output the serialization messages.
     :return: Nothing, it just serializes the object.
     """
     with EventInsideWorker(TRACING_WORKER.serialize_to_file_mpienv_event):
+        if __debug__:
+            logger.debug("Serializing to file mpienv")
         from mpi4py import MPI
 
         if rank_zero_reduce:
@@ -311,36 +401,38 @@ def serialize_to_file_mpienv(
             if nprocs > 1:
                 obj = MPI.COMM_WORLD.reduce([obj], root=0)
             if MPI.COMM_WORLD.rank == 0:
-                serialize_to_file(obj, file_name)
+                serialize_to_file(obj, file_name, logger)
         else:
-            serialize_to_file(obj, file_name)
+            serialize_to_file(obj, file_name, logger)
 
 
-def serialize_to_bytes(obj: typing.Any) -> bytes:
-    """Serialize an object to a byte array.
-
-    :param obj: Object to be serialized.
-    :return: The serialized content.
-    """
-    handler = BytesIO()
-    serialize_to_handler(obj, handler)
-    ret = handler.getvalue()
-    handler.close()
-    return ret
+# def serialize_to_bytes(obj: typing.Any, logger: logging.Logger) -> bytes:
+#     """Serialize an object to a byte array.
+#
+#     :param obj: Object to be serialized.
+#     :param logger: Logger to output the serialization messages.
+#     :return: The serialized content.
+#     """
+#     handler = BytesIO()
+#     serialize_to_handler(obj, handler, logger)
+#     ret = handler.getvalue()
+#     handler.close()
+#     return ret
 
 
 def deserialize_from_handler(
-    handler: typing.BinaryIO, show_exception: bool = True
+    handler: typing.BinaryIO, show_exception: bool, logger: logging.Logger
 ) -> typing.Any:
     """Deserialize an object from a file.
 
     :param handler: File name from where the object is going to be
                     deserialized.
     :param show_exception: Show exception if happen (only with debug).
+    :param logger: Logger to output the deserialization messages.
     :return: The object and if the handler has to be closed.
     :raises SerializerException: If deserialization can not be done.
     """
-    set_cupy()
+    set_cupy(logger)
 
     # Retrieve the used library (if possible)
     emit_manual_event_explicit(
@@ -351,10 +443,14 @@ def deserialize_from_handler(
             TRACING_MASTER.binding_deserialization_object_num_type,
             (abs(hash(os.path.basename(handler.name))) % PLATFORM_C_MAXINT),
         )
+    if __debug__:
+        logger.debug("Deserializing from handler: %s" % str(handler.name))
     original_position = 0
     try:
         original_position = handler.tell()
         serializer = IDX2LIB[int(handler.read(4))]
+        if __debug__:
+            logger.debug("Using deserializer: %s" % str(serializer.__name__))
     except KeyError as key_error:
         # The first 4 bytes return a value that is not within IDX2LIB
         handler.seek(original_position)
@@ -369,20 +465,35 @@ def deserialize_from_handler(
         if CUPY_AVAILABLE:
             import cupy
 
+            if __debug__:
+                logger.debug("Cupy available")
             if serializer is cupy:
+                if __debug__:
+                    logger.debug("Deserializing using cupy")
                 cupy.get_default_memory_pool().free_all_blocks()
                 ret = serializer.load(handler, allow_pickle=False)
         if NUMPY_AVAILABLE and serializer is numpy:
+            if __debug__:
+                logger.debug("Numpy available")
+                logger.debug("Deserializing using numpy")
             ret = serializer.load(handler, allow_pickle=False)
         elif PYARROW_AVAILABLE and serializer is pyarrow:
+            if __debug__:
+                logger.debug("Pyarrow available")
+                logger.debug("Deserializing using pyarrow")
             ret = pyarrow.ipc.open_file(handler)
             if isinstance(ret, pyarrow.ipc.RecordBatchFileReader):
                 close_handler = False
         elif EDDL_AVAILABLE and serializer is eddlNet:
+            if __debug__:
+                logger.debug("Pyeddl available")
+                logger.debug("Deserializing using pyeddl")
             h_name = handler.name
             # handler.seek(4)  # Ignore first byte?
             ret = import_net_from_onnx_file(h_name)
         elif serializer is json:
+            if __debug__:
+                logger.debug("Deserializing using json")
             # Deserialization of json files is not in binary: close handler
             h_name = handler.name
             handler.close()
@@ -391,6 +502,10 @@ def deserialize_from_handler(
             reopened_handler.seek(4)  # Ignore first byte
             ret = serializer.load(reopened_handler)
         else:
+            if __debug__:
+                logger.debug(
+                    "Deserializing using %s" % str(serializer.__name__)
+                )
             ret = serializer.load(handler)
         # Special case: deserialized obj wraps a generator
         if (
@@ -398,6 +513,8 @@ def deserialize_from_handler(
             and ret
             and isinstance(ret[0], GeneratorIndicator)
         ):
+            if __debug__:
+                logger.debug("Recovering a generator")
             ret = convert_to_generator(ret[1])
         if DISABLE_GC:
             # Enable the garbage collector and force to clean the memory
@@ -414,11 +531,15 @@ def deserialize_from_handler(
         emit_manual_event_explicit(
             TRACING_MASTER.binding_deserialization_object_num_type, 0
         )
+        if __debug__:
+            logger.debug("Deserialization accomplished")
         return ret, close_handler
     except Exception as general_exception:
         traceback_exc = traceback.format_exc()
         if DISABLE_GC:
             gc.enable()
+        if __debug__:
+            logger.debug("Deserialization TOTALLY FAILED")
         if __debug__ and show_exception:
             print(f"ERROR! Deserialization with {str(serializer)} failed.")
             try:
@@ -433,40 +554,46 @@ def deserialize_from_handler(
         raise SerializerException(error_msg) from general_exception
 
 
-def deserialize_from_file(file_name: str) -> typing.Any:
+def deserialize_from_file(
+    file_name: str, logger: logging.Logger
+) -> typing.Any:
     """Deserialize the contents in a given file.
 
-    :param file_name: Name of the file with the contents to be deserialized
-    :return: A deserialized object
+    :param file_name: Name of the file with the contents to be deserialized.
+    :param logger: Logger to output the deserialization messages.
+    :return: A deserialized object.
     """
     with EventInsideWorker(TRACING_WORKER.deserialize_from_file_event):
         handler = open(file_name, "rb")
-        ret, close_handler = deserialize_from_handler(handler)
+        ret, close_handler = deserialize_from_handler(handler, True, logger)
         if close_handler:
             handler.close()
         return ret
 
 
-def deserialize_from_bytes(
-    serialized_content_bytes: bytes, show_exception: bool = True
-) -> typing.Any:
-    """Deserialize the contents in a given byte array.
+# def deserialize_from_bytes(
+#     serialized_content_bytes: bytes,
+#     show_exception: bool = True,
+#     logger: logging.Logger
+# ) -> typing.Any:
+#     """Deserialize the contents in a given byte array.
+#
+#     :param serialized_content_bytes: A byte array with serialized contents.
+#     :param show_exception: Show exception if happen (only with debug).
+#     :param logger: Logger to output the deserialization messages.
+#     :return: A deserialized object.
+#     """
+#     with EventInsideWorker(TRACING_WORKER.deserialize_from_bytes_event):
+#         handler = BytesIO(serialized_content_bytes)
+#         ret, close_handler = deserialize_from_handler(
+#             handler, show_exception, logger
+#         )
+#         if close_handler:
+#             handler.close()
+#         return ret
 
-    :param serialized_content_bytes: A byte array with serialized contents
-    :param show_exception: Show exception if happen (only with debug).
-    :return: A deserialized object.
-    """
-    with EventInsideWorker(TRACING_WORKER.deserialize_from_bytes_event):
-        handler = BytesIO(serialized_content_bytes)
-        ret, close_handler = deserialize_from_handler(
-            handler, show_exception=show_exception
-        )
-        if close_handler:
-            handler.close()
-        return ret
 
-
-def serialize_objects(to_serialize: list) -> None:
+def serialize_objects(to_serialize: list, logger: logging.Logger) -> None:
     """Serialize a list of objects to file.
 
     If a single object fails to be serialized, then an Exception by
@@ -475,25 +602,40 @@ def serialize_objects(to_serialize: list) -> None:
          [(object1, file_name1), ... , (objectN, file_nameN)].
 
     :param to_serialize: List of lists to be serialized. Each sublist is a
-                         pair of the form ['object','file name']
+                         pair of the form ['object','file name'].
+    :param logger: Logger to output the deserialization messages.
     :return: None.
     """
-    for obj_and_file in to_serialize:
-        serialize_to_file(*obj_and_file)
+    for obj, file in to_serialize:
+        serialize_to_file(obj, file, logger)
 
 
-def set_cupy():
-    """Add cupy to the serialization list if it is available."""
+def set_cupy(logger: logging.Logger):
+    """Add cupy to the serialization list if it is available.
+
+    :param logger: Logger to output the cupy setting.
+    :return: None.
+    """
     global CUPY_AVAILABLE
     global IDX2LIB
+    global SET_CUPY
 
-    try:
-        import cupy
+    if not SET_CUPY:
+        try:
+            import cupy
 
-        CUPY_AVAILABLE = True
-    except ImportError:
-        CUPY_AVAILABLE = False
+            CUPY_AVAILABLE = True
+        except ImportError:
+            CUPY_AVAILABLE = False
 
-    if CUPY_AVAILABLE:
-        LIB2IDX[cupy] = 6
-        IDX2LIB = dict(((v, k) for (k, v) in LIB2IDX.items()))
+        if CUPY_AVAILABLE:
+            LIB2IDX[cupy] = 6
+            IDX2LIB = dict(((v, k) for (k, v) in LIB2IDX.items()))
+
+            if __debug__:
+                logger.debug("Added Cupy serializer")
+        else:
+            if __debug__:
+                logger.debug("Can NOT add Cupy serializer")
+
+        SET_CUPY = True

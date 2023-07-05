@@ -355,7 +355,7 @@ def evaluate_worker(
     check_task(job1_out, job1_err)
     # Check task 2
     check_task(job2_out, job2_err)
-    result = deserialize_from_file(job2_result)
+    result = deserialize_from_file(job2_result, None)
     if result != 2:
         raise PyCOMPSsException(
             "Wrong result obtained for increment task. Expected 2, received: "

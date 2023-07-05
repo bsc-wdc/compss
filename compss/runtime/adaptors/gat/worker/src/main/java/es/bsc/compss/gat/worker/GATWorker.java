@@ -535,4 +535,9 @@ public class GATWorker implements InvocationContext {
         return null;
     }
 
+    @Override
+    public boolean getEar() {
+        return false;
+    }
+
 }

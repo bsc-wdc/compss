@@ -23,6 +23,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Map;
 
 
 public class ExternalStreamHandler {
@@ -65,9 +66,9 @@ public class ExternalStreamHandler {
 
         // Build ProcessBuilder
         ProcessBuilder builder = new ProcessBuilder(cmd);
-        for (String env : Tracer.ENVIRONMENT_VARIABLES) {
-            builder.environment().remove(env);
-        }
+
+        // Setup process environment -- Tracing entries
+        Tracer.prepareEnvironment(builder.environment(), false);
 
         // Execute command
         Process process;

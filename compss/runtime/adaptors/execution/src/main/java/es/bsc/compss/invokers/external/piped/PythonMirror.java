@@ -158,6 +158,9 @@ public class PythonMirror extends PipedMirror {
         cmd.append(this.pyParams.getPythonWorkerCache()).append(TOKEN_SEP);
         cmd.append(this.pyParams.getPythonCacheProfiler()).append(TOKEN_SEP);
 
+        // Ear integration
+        cmd.append(context.getEar()).append(TOKEN_SEP);
+
         cmd.append(this.size).append(TOKEN_SEP);
         for (int i = 0; i < this.size; ++i) {
             cmd.append(i).append(TOKEN_SEP);

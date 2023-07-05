@@ -50,6 +50,7 @@ class PiperWorkerConfiguration:
         "control_pipe",
         "cache",
         "cache_profiler",
+        "ear",
     ]
 
     def __init__(self) -> None:
@@ -70,6 +71,7 @@ class PiperWorkerConfiguration:
         self.control_pipe = Pipe()  # type: Pipe
         self.cache = False  # type: typing.Union[str, bool]
         self.cache_profiler = ""  # type: str
+        self.ear = False  # type: bool
 
     def update_params(self, argv: typing.List[str]) -> None:
         """Update the PiperWorkerConfiguration parameters from arguments.
@@ -94,13 +96,14 @@ class PiperWorkerConfiguration:
         self.stream_master_port = argv[10]
         self.cache = argv[11]
         self.cache_profiler = argv[12]
-        self.tasks_x_node = int(argv[13])
-        exec_ids = argv[14 : 14 + self.tasks_x_node]  # noqa: E203
+        self.ear = argv[13] == "true"
+        self.tasks_x_node = int(argv[14])
+        exec_ids = argv[15 : 15 + self.tasks_x_node]  # noqa: E203
         self.exec_ids = [int(exec_id) for exec_id in exec_ids]
         in_pipes = argv[
-            14 + self.tasks_x_node : 14 + (self.tasks_x_node * 2)  # noqa: E203
+            15 + self.tasks_x_node : 15 + (self.tasks_x_node * 2)  # noqa: E203
         ]
-        out_pipes = argv[14 + (self.tasks_x_node * 2) : -2]  # noqa: E203
+        out_pipes = argv[15 + (self.tasks_x_node * 2) : -2]  # noqa: E203
         if self.debug:
             if self.tasks_x_node != len(in_pipes):
                 raise PyCOMPSsException(
@@ -142,6 +145,7 @@ class PiperWorkerConfiguration:
         logger.debug(HEADER + "Tracing        : " + str(self.tracing))
         logger.debug(HEADER + "Cache          : " + str(self.cache))
         logger.debug(HEADER + "Cache profiler : " + str(self.cache_profiler))
+        logger.debug(HEADER + "Ear            : " + str(self.ear))
         logger.debug(HEADER + "Tasks per node : " + str(self.tasks_x_node))
         logger.debug(HEADER + "Exec ids       : ")
         for exec_id in self.exec_ids:

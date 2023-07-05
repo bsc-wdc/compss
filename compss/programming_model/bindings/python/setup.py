@@ -28,7 +28,8 @@ import os
 import re
 import sys
 import pathlib
-from setuptools import setup, Extension
+from setuptools import setup
+from setuptools import Extension
 
 GCC_DEBUG_FLAGS = [
     "-Wall",
@@ -86,7 +87,7 @@ PROCESS_AFFINITY_EXT = Extension(
     sources=["src/ext/process_affinity.cc"],
 )
 
-# dlb affinity extension
+# DLB affinity extension
 DLB_HOME = os.environ.get("DLB_HOME", None)
 DLB_AFFINITY_EXT = None
 if DLB_HOME is not None:
@@ -97,6 +98,19 @@ if DLB_HOME is not None:
         libraries=["dlb"],
         extra_compile_args=["-std=c++11"],
         sources=["src/ext/dlb_affinity.c"],
+    )
+
+# EAR affinity extension
+EAR_HOME = os.environ.get("EAR_HOME", None)  # EAR_INSTALL_PATH
+EAR_EXT = None
+if EAR_HOME is not None:
+    EAR_EXT = Extension(
+        "ear",
+        include_dirs=[os.path.join(EAR_HOME, "include")],
+        library_dirs=[os.path.join(EAR_HOME, "lib")],
+        libraries=["ear"],
+        extra_compile_args=["-std=c++11"],
+        sources=["src/ext/ear.c"],
     )
 
 
@@ -126,6 +140,8 @@ if TARGET_OS == "Linux":
         OS_MODULES = [COMPSS_MODULE_EXT, PROCESS_AFFINITY_EXT]
     else:
         OS_MODULES = [COMPSS_MODULE_EXT, PROCESS_AFFINITY_EXT, DLB_AFFINITY_EXT]
+    if EAR_HOME is not None:
+        OS_MODULES += [EAR_EXT]
 elif TARGET_OS == "Darwin":
     OS_MODULES = [COMPSS_MODULE_EXT]
 else:

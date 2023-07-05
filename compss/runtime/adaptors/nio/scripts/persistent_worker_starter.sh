@@ -17,21 +17,26 @@
   fi
   # shellcheck source=setup.sh
   # shellcheck disable=SC1091
+
   source "${SCRIPT_DIR}"/setup.sh
 
   # Load parameters --------------------------------------------------
+
   load_parameters "$@"
 
   # Trap to clean environment
+
   trap clean_env EXIT
 
   # Normal start -----------------------------------------------------
   # Setup
+
   setup_environment
   setup_extrae
   setup_jvm
 
   # Launch the Worker JVM
+
   pre_launch
 
   reprogram_fpga
@@ -57,7 +62,7 @@
   touch "${logDir}/binding_worker.out"
   touch "${logDir}/binding_worker.err"
 
-  export LD_PRELOAD=${AFTER_EXTRAE_LD_PRELOAD}
+  export LD_PRELOAD=${LD_PRELOAD}:${AFTER_EXTRAE_LD_PRELOAD}
 
   $cmd ${paramsToCOMPSsWorker} 1>"${logDir}/worker_${hostName}.out" 2>"${logDir}/worker_${hostName}.err"
 
@@ -72,5 +77,6 @@
   if [ "$debug" == "true" ]; then
     echo "[persistent_worker_starter.sh] Exit NIOWorker of host ${hostName} with exit value ${exitValue}"
   fi
+
   exit $exitValue
 

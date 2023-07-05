@@ -123,6 +123,8 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     private final ThreadedPrintStream err;
     private boolean started = false;
 
+    private boolean ear = false;
+
 
     /**
      * New COMPSs Master.
@@ -272,6 +274,13 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                 }
             }
         }
+
+        // EAR
+        String earing = System.getProperty(COMPSsConstants.EAR);
+        if (earing == null || earing.isEmpty() || earing.equals("null")) {
+            earing = COMPSsDefaults.EAR;
+        }
+        this.ear = earing.toUpperCase().compareTo("TRUE") == 0;
 
         JavaParams javaParams = new JavaParams(classPath);
         PythonParams pyParams = new PythonParams(pythonInterpreter, pythonVersion, pythonVEnv, pythonPropagateVEnv,
@@ -1494,6 +1503,11 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     @Override
     public String getEnvironmentScript() {
         return null;
+    }
+
+    @Override
+    public boolean getEar() {
+        return this.ear;
     }
 
     public void setLoaderApi(LoaderAPI loaderApi) {

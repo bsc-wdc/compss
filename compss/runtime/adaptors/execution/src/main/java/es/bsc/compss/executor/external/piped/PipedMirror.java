@@ -59,9 +59,6 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
 
-    private static final String ENV_EXTRAE_SKIP_AUTO_LIBRARY_INITIALIZE = "EXTRAE_SKIP_AUTO_LIBRARY_INITIALIZE";
-    private static final String ENV_EXTRAE_LIB = "EXTRAE_LIB";
-
     // Logger messages
     private static final String ERROR_PB_START = "Error starting ProcessBuilder";
     private static final String ERROR_W_START = "Error starting Worker";
@@ -147,13 +144,8 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
             pb.directory(new File(getPBWorkingDir(context)));
             pb.environment().putAll(env);
 
-            // Clean the EXTRAE environment
-            pb.environment().put(ENV_EXTRAE_SKIP_AUTO_LIBRARY_INITIALIZE, "1");
-            pb.environment().put(ENV_EXTRAE_LIB, installDir + COMPSsPaths.REL_DEPS_EXTRAE_DIR + "lib");
-
-            for (String envVar : Tracer.ENVIRONMENT_VARIABLES) {
-                pb.environment().remove(envVar);
-            }
+            // Setup process environment -- Tracing entries
+            Tracer.prepareEnvironment(pb.environment(), true);
 
             // Emit event for worker initialisation
             if (Tracer.isActivated()) {

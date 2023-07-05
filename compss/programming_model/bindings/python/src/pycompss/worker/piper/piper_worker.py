@@ -172,6 +172,7 @@ def compss_persistent_worker(
         in_cache_queue,
         out_cache_queue,
         cache_profiler,
+        config.ear,
     )
 
     for i in range(0, config.tasks_x_node):
@@ -179,6 +180,8 @@ def compss_persistent_worker(
         if __debug__:
             logger.debug("%sLaunching process %s", HEADER, str(exec_id))
         process_name = "".join(("Process-", str(exec_id)))
+        # set name for ear
+        os.environ["SLURM_JOB_NAME"] = "python_executor_" + str(i)
         pid, queue = create_executor_process(
             exec_id, process_name, conf, config.pipes[i]
         )

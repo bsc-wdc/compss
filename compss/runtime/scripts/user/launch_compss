@@ -12,7 +12,7 @@ export COMPSS_HOME=${COMPSS_HOME}
 # shellcheck source=../system/runtime/tracing.sh
 # shellcheck disable=SC1091
 source "${COMPSS_HOME}Runtime/scripts/system/runtime/tracing.sh"
-# shellcheck source=../system/runtime/tracing.sh
+# shellcheck source=../system/runtime/adaptors.sh
 # shellcheck disable=SC1091
 source "${COMPSS_HOME}Runtime/scripts/system/runtime/adaptors.sh"
 # shellcheck source=../system/runtime/scheduler.sh
@@ -70,6 +70,7 @@ DEFAULT_PYTHON_CACHE_PROFILER=false
 DEFAULT_JUPYTER_NOTEBOOK=false
 DEFAULT_JUPYTER_NOTEBOOK_PATH=$HOME
 DEFAULT_IPYTHON=false
+DEFAULT_EAR=false
 DEFAULT_SHARED_DISK_SCHEDULER=${LA_MT_SUCC_FIFO_SCHEDULER}
 DEFAULT_LOCAL_DISK_SCHEDULER=${LA_MT_SUCC_LOCALITY_SCHEDULER}
 
@@ -191,8 +192,8 @@ show_opts() {
     --worker_in_master_memory=<int> MB      Maximum memory in master node assigned to the worker. Cannot exceed the node_memory.
                                             Mandatory if worker_in_master_cpus is specified.
                                             Default: ${DEFAULT_WORKER_IN_MASTER_MEMORY}
-    --worker_port_range=<min>,<max>	    Port range used by the NIO adaptor at the worker side
-					    Default: ${DEFAULT_WORKER_MIN_PORT},${DEFAULT_WORKER_MAX_PORT}
+    --worker_port_range=<min>,<max>         Port range used by the NIO adaptor at the worker side
+                                            Default: ${DEFAULT_WORKER_MIN_PORT},${DEFAULT_WORKER_MAX_PORT}
     --jvm_worker_in_master_opts="<string>"  Extra options for the JVM of the COMPSs Worker in the Master Node.
                                             Each option separed by "," and without blank spaces (Notice the quotes)
                                             Default: ${DEFAULT_JVM_WORKER_IN_MASTER}
@@ -210,6 +211,9 @@ show_opts() {
     --jupyter_notebook                      Default: ${DEFAULT_JUPYTER_NOTEBOOK}
     --ipython                               Swap the COMPSs master initialization with ipython.
                                             Default: empty
+    --ear=<string>                          Activate the usage of EAR for power consumption measurement.
+                                            The value of string are the parameter to be used with EAR.
+                                            Default: false
 
 
   Runcompss configuration:
@@ -433,7 +437,8 @@ worker_cmd() {
             ${custom_extrae_config_file_python} \
             ${python_mpi_worker} \
             ${python_worker_cache} \
-            ${python_cache_profiler}"
+            ${python_cache_profiler} \
+            ${ear}"
 }
 
 ###############################################
@@ -1035,17 +1040,17 @@ get_args() {
           show_opts 0
           ;;
         master_node=*)
-	  if [ -z "${master_node}" ]; then
-             master_node=${OPTARG//master_node=/}
+          if [ -z "${master_node}" ]; then
+            master_node=${OPTARG//master_node=/}
           else
-             action_error "Duplicated master_node parameter. Please check command arguments."
-	  fi
+            action_error "Duplicated master_node parameter. Please check command arguments."
+          fi
           ;;
         worker_nodes=*)
-	  if [ -z "${worker_nodes}" ]; then
-             worker_nodes=${OPTARG//worker_nodes=/}
-	  else
-             action_error "Duplicated worker_nodes parameter. Please check command arguments."
+          if [ -z "${worker_nodes}" ]; then
+            worker_nodes=${OPTARG//worker_nodes=/}
+          else
+            action_error "Duplicated worker_nodes parameter. Please check command arguments."
           fi
           ;;
         resources=*)
@@ -1142,13 +1147,13 @@ get_args() {
           # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
           ;;
-	env_script=*)
+        env_script=*)
           if [ -z "${env_script}" ]; then
-                env_script=${OPTARG//env_script=/}
+            env_script=${OPTARG//env_script=/}
           else
-                env_script="${env_script}:${OPTARG//env_script=/}"
+            env_script="${env_script}:${OPTARG//env_script=/}"
           fi
-	  # Keep it for runcompss (to add them to master)
+          # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
           ;;
         log_level=*)
@@ -1359,6 +1364,11 @@ get_args() {
         ipython)
           ipython=true
           ;;
+        ear=*)
+          # Added for EAR integration
+          ear=true
+          ear_flags=${OPTARG//ear=/}
+          ;;
         command)
           run_command=true
           ;;
@@ -1377,7 +1387,7 @@ get_args() {
         gen_coredump)
           # Generate the coredump
           gen_coredump=true
-                args_pass="$args_pass --$OPTARG"
+          args_pass="$args_pass --$OPTARG"
           ;;
         keep_workingdir)
           #Keep the working dir after execution
@@ -1727,6 +1737,10 @@ check_args() {
     ipython=${DEFAULT_IPYTHON}
   fi
 
+  if [ -z "${ear}" ]; then
+    ear=${DEFAULT_EAR}
+  fi
+
   if [ -z "${run_command}" ]; then
     run_command=false
   fi
@@ -2031,6 +2045,7 @@ log_variables() {
   echo "Python memory profile      ${python_memory_profile}"
   echo "Python worker cache        ${python_worker_cache}"
   echo "Python profiler cache      ${python_cache_profiler}"
+  echo "EAR                        ${ear_flags}"
   echo "COMM:                      ${comm}"
   echo "Prolog:                    ${prologActions[*]}"
   echo "Epilog:                    ${epilogActions[*]}"
@@ -2105,11 +2120,24 @@ launch() {
             fi
         fi
 
-        WCMD="${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_EXTRA_FLAGS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node} ${PRE_CMD}${WCMD}${POST_CMD}"
-        if [ "${log_level}" != "off" ]; then
-	    echo "[LAUNCH_COMPSS] Launching worker in master with id $hostid and command: $WCMD"
+        if [ "${ear}" = true ]; then
+          # Launch worker with ear
+          PRE_CMD="$EAR_ROOT/bin/erun ${ear_flags}"
+          POST_CMD=
+          WCMD="/bin/bash $WCMD"
+
+          if [ "${log_level}" != "off" ]; then
+            echo "[LAUNCH_COMPSS] Launching worker in master (with ear) with id $hostid and command: ${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_EXTRA_FLAGS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node} ${PRE_CMD} --program=\"$WCMD\" ${POST_CMD}"
+          fi
+          ${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_EXTRA_FLAGS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node} ${PRE_CMD} --program="$WCMD" ${POST_CMD} &
+        else
+          # Launch normal worker
+          if [ "${log_level}" != "off" ]; then
+            echo "[LAUNCH_COMPSS] Launching worker in master with id $hostid and command: ${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_EXTRA_FLAGS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node} ${PRE_CMD} $WCMD ${POST_CMD}"
+          fi
+          ${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_EXTRA_FLAGS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node} ${PRE_CMD} $WCMD ${POST_CMD} &
         fi
-        $WCMD&
+
         hostid=$((hostid+1))
       fi
     fi
@@ -2135,11 +2163,18 @@ launch() {
             fi
         fi
 
-        WCMD="${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_EXTRA_FLAGS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${PRE_CMD}${WCMD}${POST_CMD}"
-        if [ "${log_level}" != "off" ]; then
-	    echo "[LAUNCH_COMPSS] Launching worker with id $hostid and command: $WCMD"
+        if [ "${ear}" = true ]; then
+          WCMD="/bin/bash $WCMD"
+          if [ "${log_level}" != "off" ]; then
+            echo "[LAUNCH_COMPSS] Launching worker (with ear) with id $hostid and command: ${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_EXTRA_FLAGS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${PRE_CMD} --program=\"$WCMD\" ${POST_CMD}"
+          fi
+          ${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_EXTRA_FLAGS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${PRE_CMD} --program="$WCMD" ${POST_CMD} &
+        else
+          if [ "${log_level}" != "off" ]; then
+            echo "[LAUNCH_COMPSS] Launching worker with id $hostid and command: ${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_EXTRA_FLAGS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${PRE_CMD} $WCMD ${POST_CMD}"
+          fi
+          ${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_EXTRA_FLAGS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${PRE_CMD} $WCMD ${POST_CMD} &
         fi
-        $WCMD&
         hostid=$((hostid+1))
       done
     fi
@@ -2169,15 +2204,38 @@ launch() {
     if [ "${jupyter_notebook}" = false ] && [ "${ipython}" = false ] && [ "${run_command}" = false ]; then
       master_cmd "${master_node}${network}"
       MCMD="${MCMD} ${args_pass}"
-      if [ "${log_level}" != "off" ]; then
-          echo "[LAUNCH_COMPSS] Executing Master with command: $MCMD"
-      fi
+
+      # if [ "${ear}" = true ]; then
+      #   # Launch master with ear
+      #   PRE_CMD="$EAR_ROOT/bin/erun ${ear_flags}"
+      #   POST_CMD=
+      #   MCMD="/bin/bash $MCMD"
+      #
+      #   if [ "${log_level}" != "off" ]; then
+      #     echo "[LAUNCH_COMPSS] Launching master (with ear) with id $hostid and command: ${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node} ${PRE_CMD} --program=\"$MCMD\" ${POST_CMD}"
+      #   fi
+      #   ${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node} ${PRE_CMD} --program="$MCMD" ${POST_CMD} &
+      #   ev=$?
+      # else
+      #   # Launch normal master
+      #   if [ "${log_level}" != "off" ]; then
+      #     echo "[LAUNCH_COMPSS] Launching master with id $hostid and command: ${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node} ${PRE_CMD} $MCMD ${POST_CMD}"
+      #   fi
+      #   ${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node} ${PRE_CMD} $MCMD ${POST_CMD} &
+      #   ev=$?
+      # fi
+      # if [ $ev -ne 0 ]; then
+      #   echo "Master execution failed. Exiting job."
+      #   exit $ev
+      # fi
+
       $MCMD
       ev=$?
       if [ $ev -ne 0 ]; then
         echo "Master execution failed. Exiting job."
         exit $ev
       fi
+
       no_wait=false
     else
       load_external_compss_environment

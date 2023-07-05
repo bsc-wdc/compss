@@ -84,7 +84,7 @@ export_tracing() {
 
         # determine path for customized extrae config file
         workerConfigFile="$(pwd)/extrae_python_worker.xml"
-        
+
         escapedConfigPath=$(echo "${configPath}" | sed 's_/_\\/_g')
         sed "s/{{PATH}}/${escapedConfigPath}/g" "${baseConfigFile}" > "${workerConfigFile}"
 
@@ -206,6 +206,10 @@ process_pipe_commands() {
                     workerCMD="${dlbArgs} ${workerCMD}"
                 fi
 
+                echo "LD_PRELOAD bindings_piper.sh: ${LD_PRELOAD}"
+                keepLDPRELOAD="LD_PRELOAD=\"\$LD_PRELOAD\""
+                workerCMD="${keepLDPRELOAD} ${workerCMD}"
+
                 # INVOKE WORKER
                 echo "[BINDINGS PIPER] Executing command: ${workerCMD}"
                 # shellcheck disable=SC2086
@@ -227,7 +231,7 @@ process_pipe_commands() {
                 if [ "${line}" != "GET_ALIVE" ]; then
                     pids="${line}"
                     # shellcheck disable=SC2086
-            if [[ "$OSTYPE" == "darwin"* ]]; then
+                    if [[ "$OSTYPE" == "darwin"* ]]; then
                       alive_processes=$(ps h -o pid,stat ${pids} | awk '$2 != "Z" {print $1}'| sed 1d)
                     else
                       alive_processes=$(ps h -o pid,stat ${pids} | awk '$2 != "Z" {print $1}')

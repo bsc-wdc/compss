@@ -1,7 +1,7 @@
 #!/bin/bash
   JAVA_JRE_ERROR="ERROR: Can't find JVM libraries in JAVA_HOME. Please check your Java JRE Installation."
 
-  NUM_PARAMS=39
+  NUM_PARAMS=40
 
   ######################
   # INTERNAL FUNCTIONS
@@ -123,6 +123,7 @@
     pythonMpiWorker=${37}
     pythonWorkerCache=${38}
     pythonCacheProfiler=${39}
+    ear=${40}
 
     #This decides where the worker.* files are stored
     #NIOWorker.java getLogDir decides where the binding_worker.* files are stored
@@ -168,6 +169,7 @@
       echo "- StorageConf:         ${storageConf}"
       echo "- ExecType:            ${execType}"
       echo "- Persistent:          ${persistentBinding}"
+      echo "- Ear:                 ${ear}"
     fi
 
     # Calculate Log4j file
@@ -199,8 +201,8 @@
       fi
     else
       export COMPSS_WITH_DLB=0
-    fi        
-    
+    fi
+
   }
 
   setup_extrae() {
@@ -208,7 +210,7 @@
     if [ "${tracing}" == "true" ]; then
 
       configPath="${SCRIPT_DIR}/../../../../configuration/xml/tracing"
-      
+
       # Determine source extrae config file
       if [ -z "${extraeFile}" ] || [ "${extraeFile}" == "null" ] || [ "${extraeFile}" == "false" ]; then
         # Only define extraeFile if it is not a custom location
@@ -216,8 +218,7 @@
       else
           baseConfigFile="${extraeFile}"
       fi
-      
-      
+
       tracing_output_dir="${workingDir}"
       mkdir -p "${tracing_output_dir}"
       extraeFile="${workingDir}/extrae.xml"
@@ -275,7 +276,7 @@
     	if [ -z "$libjava" ]; then
             libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.dylib | head -n 1)
             if [ -z "$libjava" ]; then
-                error_msg "${JAVA_JRE_ERROR}" 
+                error_msg "${JAVA_JRE_ERROR}"
             fi
         fi
     else # Java 9+
@@ -308,12 +309,12 @@
     if [ "$cp" == "null" ]; then
   	cp=""
     fi
-    
+
     # Coredump
     if [ "$genCoredump" == "true" ]; then
         ulimit -c unlimited
     fi
-    
+
     # Export environment
     export CLASSPATH=$cpNW:$CLASSPATH
     export PYTHONPATH=$pythonpath:$PYTHONPATH
@@ -332,12 +333,13 @@
     -Dcompss.python.version=${pythonVersion} \
     -Dcompss.python.virtualenvironment=${pythonVirtualEnvironment} \
     -Dcompss.python.propagate_virtualenvironment=${pythonPropagateVirtualEnvironment} \
-    -Dcompss.extrae.file.python=${pythonExtraeFile}
+    -Dcompss.extrae.file.python=${pythonExtraeFile} \
+    -Dcompss.ear=${ear} \
     -Djava.library.path=$LD_LIBRARY_PATH"
     if [ "$(uname -m)" == "riscv64" ]; then
-	worker_jvm_flags="${jvmFlags} ${compss_jvm_flags}"
-    else 
-        worker_jvm_flags="${jvmFlags} ${perf_jvm_flags} ${compss_jvm_flags}"
+      worker_jvm_flags="${jvmFlags} ${compss_jvm_flags}"
+    else
+      worker_jvm_flags="${jvmFlags} ${perf_jvm_flags} ${compss_jvm_flags}"
     fi
 
     if [ "$lang" = "c" ] && [ "${persistentBinding}" = "true" ]; then
@@ -378,9 +380,8 @@ EOT
   }
 
   post_launch() {
-    if [ "${tracing}" == "true" ]; then
-      unset LD_PRELOAD
-    fi
+    # Do nothing
+    :
   }
 
   clean_env() {

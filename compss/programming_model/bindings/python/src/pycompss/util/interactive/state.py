@@ -46,14 +46,14 @@ try:
     np.random.seed(0)
     MISSING_DEPENDENCY = "None"  # noqa
 except ImportError:
-    HTML = None
-    display = None
-    plt = None
+    HTML = None  # type: ignore
+    display = None  # type: ignore
+    plt = None  # type: ignore
 
 try:
     import ipywidgets as widgets  # noqa
 except ImportError:
-    widgets = None
+    widgets = None  # type: ignore
 
 
 def supports_dynamic_state() -> bool:

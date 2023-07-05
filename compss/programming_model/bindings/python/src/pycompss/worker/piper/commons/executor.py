@@ -193,6 +193,7 @@ class ExecutorConf:
         "in_cache_queue",
         "out_cache_queue",
         "cache_profiler",
+        "ear",
     ]
 
     def __init__(
@@ -212,6 +213,7 @@ class ExecutorConf:
         in_cache_queue: typing.Optional[Queue] = None,
         out_cache_queue: typing.Optional[Queue] = None,
         cache_profiler: bool = False,
+        ear: bool = False,
     ) -> None:
         """Construct a new executor configuration.
 
@@ -231,6 +233,7 @@ class ExecutorConf:
         :param in_cache_queue: Cache queue where to submit to add new entries
                                to cache_ids.
         :param out_cache_queue: Cache queue where to the cache returns info.
+        :param ear: Ear energy metering.
         """
         self.debug = debug
         self.tmp_dir = tmp_dir
@@ -247,6 +250,7 @@ class ExecutorConf:
         self.in_cache_queue = in_cache_queue
         self.out_cache_queue = out_cache_queue
         self.cache_profiler = cache_profiler
+        self.ear = ear
 
 
 ######################
@@ -363,9 +367,12 @@ def executor(
 
         if streaming:
             # Initialize streaming
-            logger.debug(
-                HEADER + "Starting streaming for process " + str(process_name)
-            )
+            if __debug__:
+                logger.debug(
+                    "%s[%s] Starting streaming for process",
+                    HEADER,
+                    str(process_name),
+                )
             try:
                 DistroStreamClientHandler.init_and_start(
                     master_ip=conf.stream_master_ip,
@@ -376,6 +383,21 @@ def executor(
             ) as general_exception:  # pylint: disable=broad-except
                 logger.error(general_exception)
                 raise general_exception from general_exception
+
+        # Load ear if necessary
+        earing = False
+        if conf.ear:
+            earing = True
+
+        if earing:
+            # Initialize streaming
+            if __debug__:
+                logger.debug(
+                    "%s[%s] Loading ear",
+                    HEADER,
+                    str(process_name),
+                )
+            import ear
 
         # Connect to Shared memory manager
         if conf.in_cache_queue and conf.out_cache_queue:
@@ -441,15 +463,23 @@ def executor(
 
         # Stop streaming
         if streaming:
-            logger.debug(
-                "%s Stopping streaming for process ", HEADER, str(process_name)
-            )
+            if __debug__:
+                logger.debug(
+                    "%s Stopping streaming for process ",
+                    HEADER,
+                    str(process_name),
+                )
             DistroStreamClientHandler.set_stop()
 
         sys.stdout.flush()
         sys.stderr.flush()
+        if earing:
+            logger.debug("%s[%s] Stopping EAR", HEADER, str(process_name))
+            # Only needed in multiprocessing subprocesses
+            ear.finalize()
         if __debug__:
             logger.debug("%s[%s] Exiting process ", HEADER, str(process_name))
+        # Send quit message back to the runtime
         pipe.write(TAGS.quit)
         pipe.close()
     except Exception as general_exception:  # pylint: disable=broad-except

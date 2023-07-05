@@ -547,9 +547,7 @@ public class BinaryRunner {
         outLog.println("[BINARY EXECUTION WRAPPER] CMD " + cmd[0]);
 
         // Setup process environment -- Tracing entries
-        for (String env : Tracer.ENVIRONMENT_VARIABLES) {
-            builder.environment().remove(env);
-        }
+        Tracer.prepareEnvironment(builder.environment(), false);
 
         // Setup process environment -- COMPSs entries
         // WARN: THE COMPSS ENVIRONMENT DOES NOT HAVE TO MATCH SLURM CONFIGURATION

@@ -219,8 +219,15 @@ public interface InvocationContext {
     /**
      * Returns a path to a script file where the application environment variables are defined.
      * 
-     * @return Enviorment script file path
+     * @return Environment script file path
      */
     public String getEnvironmentScript();
+
+    /**
+     * Returns if EAR is activated.
+     * 
+     * @return If ear is activated.
+     */
+    public boolean getEar();
 
 }

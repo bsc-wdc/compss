@@ -19,6 +19,7 @@ package es.bsc.compss.util;
 
 import es.bsc.cepbatools.extrae.Wrapper;
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.COMPSsPaths;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.tracing.TraceEvent;
@@ -56,10 +57,14 @@ public abstract class Tracer {
     private static final String EXTRAE_FILE;
     private static final String EXTRAE_OUTPUT_DIR;
 
-    // Extrae environment flags
-    public static final String[] ENVIRONMENT_VARIABLES = new String[] { "LD_PRELOAD",
-        "EXTRAE_CONFIG_FILE",
+    private static final String ENV_EXTRAE_SKIP_AUTO_LIBRARY_INITIALIZE = "EXTRAE_SKIP_AUTO_LIBRARY_INITIALIZE";
+    private static final String ENV_EXTRAE_LIB = "EXTRAE_LIB";
+
+    // Extrae environment variables to be removed when tracing
+    public static final String[] REMOVE_ENVIRONMENT_VARIABLES = new String[] { "EXTRAE_CONFIG_FILE",
         "EXTRAE_USE_POSIX_CLOCK" };
+    // Extrae environment variables
+    public static final String[] CLEAN_ENVIRONMENT_VARIABLES = new String[] { "LD_PRELOAD" };
 
     public static final int EVENT_END = 0;
 
@@ -94,6 +99,41 @@ public abstract class Tracer {
         EXTRAE_OUTPUT_DIR = folder;
     }
 
+
+    /**
+     * Checks and updates the environment variables for tracing. In particular, removes the content of the variables
+     * defined in REMOVE_ENVIRONMENT_VARIABLES and also removes any link to extrae from CLEAN_ENVIRONMENT_VARIABLES.
+     *
+     * @param env Environment to prepare for tracing.
+     * @param defineExtra Add extra variables.
+     */
+    public static void prepareEnvironment(Map<String, String> env, Boolean defineExtra) {
+        // Remove all unnecessary environment variables.
+        for (String envVar : Tracer.REMOVE_ENVIRONMENT_VARIABLES) {
+            env.remove(envVar);
+        }
+        // Remove all unnecessary links to extrae
+        for (String envVar : Tracer.CLEAN_ENVIRONMENT_VARIABLES) {
+            String envVarValue = System.getenv(envVar);
+            if (envVarValue != null) {
+                String[] envVarValuePaths = envVarValue.split(":");
+                List<String> finalEnvVarValuePaths = new ArrayList<String>();
+                // Look for paths that do not contain extrae
+                for (String valuePath : envVarValuePaths) {
+                    if (!valuePath.toLowerCase().contains("extrae")) {
+                        finalEnvVarValuePaths.add(valuePath);
+                    }
+                }
+                String finalEnvVarValue = String.join(":", finalEnvVarValuePaths);
+                // Update the environment variable without extrae paths
+                env.put(envVar, finalEnvVarValue);
+            }
+        }
+        if (defineExtra) {
+            env.put(ENV_EXTRAE_SKIP_AUTO_LIBRARY_INITIALIZE, "1");
+            env.put(ENV_EXTRAE_LIB, installDir + COMPSsPaths.REL_DEPS_EXTRAE_DIR + "lib");
+        }
+    }
 
     /**
      * Initializes tracer creating the trace folder.If tracing is used then the current node (master) sets its nodeID

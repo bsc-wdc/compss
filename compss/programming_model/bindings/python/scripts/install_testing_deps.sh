@@ -5,7 +5,7 @@ echo "Installing required dependencies to run the unittests..."
 # Testing, analysis, etc.
 python3 -m pip install coverage --user
 python3 -m pip install pycodestyle pydocstyle flake8 pep8-naming --user
-python3 -m pip install pylint bandit prospector --user
+python3 -m pip install pylint bandit prospector py --user
 
 # General
 python3 -m pip install mpi4py --user

@@ -62,7 +62,7 @@
   touch "${logDir}/binding_worker.out"
   touch "${logDir}/binding_worker.err"
 
-  # export LD_PRELOAD=${AFTER_EXTRAE_LD_PRELOAD}
+  export LD_PRELOAD=${LD_PRELOAD}:${AFTER_EXTRAE_LD_PRELOAD}
 
   $cmd ${paramsToCOMPSsWorker} 1>"${logDir}/worker_${hostName}.out" 2>"${logDir}/worker_${hostName}.err"
 

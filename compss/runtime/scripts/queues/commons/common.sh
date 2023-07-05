@@ -98,7 +98,7 @@ show_opts() {
                                             Default: ${DEFAULT_RESERVATION:-Empty}
     --job_execution_dir=<path>              Path where job is executed.
                                             Default: ${DEFAULT_JOB_EXECUTION_DIR:-Empty}
-    --env_script=<path/to/script>           Script to source the required environment for the application.
+    --pre_env_script=<path/to/script>       Script to source the required environment before launching the application.
                                             Default: Empty
     --extra_submit_flag=<flag>              Flag to pass queue system flags not supported by default command flags.
                                             Spaces must be added as '#'
@@ -514,13 +514,12 @@ get_args() {
             wcl=${OPTARG//wall_clock_limit=/}
             args_pass="$args_pass --$OPTARG"
             ;;
-          env_script=*)
-            if [ -z ${env_script}]; then
-                env_script=${OPTARG//env_script=/}
+          pre_env_script=*)
+            if [ -z ${pre_env_script}]; then
+                pre_env_script=${OPTARG//pre_env_script=/}
             else
-                env_script="${env_script}:${OPTARG//env_script=/}"
+                pre_env_script="${pre_env_script}:${OPTARG//pre_env_script=/}"
             fi
-            args_pass="$args_pass --$OPTARG"
             ;;
           extra_submit_flag=*)
             extra_submit_flag=(${extra_submit_flag[@]} ${OPTARG//extra_submit_flag=/})
@@ -774,9 +773,9 @@ create_normal_tmp_submit(){
 }
 
 add_env_source(){
-  if [ -n "${env_script}" ]; then
+  if [ -n "${pre_env_script}" ]; then
      cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
-scripts="$(echo "${env_script}" | tr ":" " ")"
+scripts="$(echo "${pre_env_script}" | tr ":" " ")"
 for script in \${scripts}
 do
     source \$script

@@ -1038,20 +1038,13 @@ def add_logger(logger_name: str) -> None:
 def _clean_objects(hard_stop: bool = False) -> None:
     """Clean all objects.
 
-    Clean the objects stored in the global dictionaries:
-        - pending_to_synchronize dict.
-        - _addr2id2obj dict.
-        - obj_id_to_filename dict.
-        - _objs_written_by_mp dict.
+    Clean the objects stored in the global dictionaries from the object
+    tracker.
 
     :param hard_stop: avoid call to delete_file when the runtime has died.
     :return: None.
     """
-    app_id = 0
-    if not hard_stop:
-        for filename in OT.get_all_file_names():
-            COMPSs.delete_file(app_id, filename, False)
-    OT.clean_object_tracker()
+    OT.clean_object_tracker(hard_stop=hard_stop)
 
 
 def _clean_temps() -> None:

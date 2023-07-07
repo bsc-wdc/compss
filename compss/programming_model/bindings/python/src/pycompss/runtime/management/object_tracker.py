@@ -28,6 +28,7 @@ import time
 import uuid
 
 from pycompss.runtime.commons import GLOBALS
+from pycompss.runtime.management.COMPSs import COMPSs
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.typing_helper import typing
 
@@ -289,11 +290,17 @@ class ObjectTracker:
         new_file_name = old_file_name.replace(obj_id, str(new_obj_id))
         self._set_file_name(new_obj_id, new_file_name, written=True)
 
-    def clean_object_tracker(self) -> None:
+    def clean_object_tracker(self, hard_stop: bool = False) -> None:
         """Clear all object tracker internal structures.
 
+        :param hard_stop: avoid call to delete_file when the runtime has died.
         :return: None
         """
+        app_id = 0
+        if not hard_stop:
+            for filename in OT.get_all_file_names():
+                COMPSs.delete_file(app_id, filename, False)
+
         self.file_names.clear()
         self.obj_names.clear()
         self.pending_to_synchronize.clear()

@@ -183,7 +183,7 @@ public class MPIInvoker extends Invoker {
                 ContainerDescription.ContainerEngine.valueOf(System.getenv(COMPSsConstants.COMPSS_CONTAINER_ENGINE));
             String masterImage = System.getenv(COMPSsConstants.MASTER_CONTAINER_IMAGE);
             String contOptions = System.getenv(COMPSsConstants.MASTER_CONTAINER_OPTIONS);
-            contOptions += "--pwd " + this.sandBox.getFolder().getAbsolutePath();
+            contOptions += " --pwd " + this.sandBox.getFolder().getAbsolutePath();
             container = new ContainerDescription(engine, masterImage, contOptions);
         }
 

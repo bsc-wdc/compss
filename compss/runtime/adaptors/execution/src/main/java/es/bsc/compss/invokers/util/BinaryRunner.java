@@ -545,9 +545,15 @@ public class BinaryRunner {
         // String execCmd = "bash -c " + String.join(" ", cmd).trim();
         // String execCmd = "bash " + "-c '" + String.join(" ", cmd).trim() + "'";
         // outLog.println("[BINARY EXECUTION WRAPPER] EXEC CMD ------------------------------------ " + execCmd);
+        StringBuilder command = new StringBuilder();
+        for (String s : cmd) {
+            command.append(" ").append(s.replaceAll(" ", "\\\\ "));
+        }
+        // outLog.println("[BINARY EXECUTION WRAPPER] EXEC CMD ------------------------------------ " + command);
+
         String[] execCmd = { "bash",
             "-c",
-            String.join(" ", cmd).trim() };
+            command.toString() };
         // ProcessBuilder builder = new ProcessBuilder(cmd);
         ProcessBuilder builder = new ProcessBuilder(execCmd);
 

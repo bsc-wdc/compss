@@ -22,6 +22,7 @@ import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
@@ -79,7 +80,12 @@ public class FileOperations {
         } catch (DirectoryNotEmptyException dne) {
             // directories must be removed recursively
             deleteDirectoryContent(directory, logger);
-            Files.delete(directory);
+            try {
+                Files.delete(directory);
+            } catch (NoSuchFileException e) {
+                // directory has been removed already
+                return;
+            }
         }
     }
 

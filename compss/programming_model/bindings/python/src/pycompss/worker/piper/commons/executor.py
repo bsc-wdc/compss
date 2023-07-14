@@ -33,6 +33,7 @@ import time
 import traceback
 from pycompss.util.process.manager import Queue
 from pycompss.util.process.manager import DictProxy
+from pycompss.runtime.management.object_tracker import OT
 
 from pycompss.util.typing_helper import typing
 
@@ -770,6 +771,9 @@ def process_task(
                 compss_nodes, compss_nodes_names, computing_units
             )
 
+            # Clean object tracker
+            OT.clean_object_tracker(hard_stop=False)
+
             # Execute task
             result = execute_task(
                 process_name,
@@ -860,6 +864,8 @@ def process_task(
             )
             if queue:
                 queue.put("EXCEPTION")
+            # Clean object tracker
+            OT.clean_object_tracker(hard_stop=True)
             # Go back to initial current working directory
             os.chdir(current_working_dir)
             # Stop the worker process
@@ -902,6 +908,8 @@ def process_task(
                 str(job_id),
             )
 
+        # Clean object tracker
+        OT.clean_object_tracker(hard_stop=True)
         # Notify the runtime that the task has finished
         pipe.write(message)
         # Go back to original working directory

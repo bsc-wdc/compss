@@ -700,7 +700,7 @@ def __hard_stop(
         master_stop_storage(logger)
 
     # Clean any left object in the object tracker
-    OT.clean_object_tracker()
+    OT.clean_object_tracker(hard_stop=True)
 
     # Cleanup events and files
     release_event_manager(ipython)

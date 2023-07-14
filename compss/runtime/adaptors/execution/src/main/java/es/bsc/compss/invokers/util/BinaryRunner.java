@@ -547,7 +547,10 @@ public class BinaryRunner {
         // outLog.println("[BINARY EXECUTION WRAPPER] EXEC CMD ------------------------------------ " + execCmd);
         StringBuilder command = new StringBuilder();
         for (String s : cmd) {
-            command.append(" ").append(s.replaceAll(" ", "\\\\ "));
+            if (s.contains("$")) {
+                s = s.replaceAll("\\$", "\"\\\\\\$\"");
+            }
+            command.append(" ").append(s.replaceAll(" ", "\\\\ ").replaceAll("#", "\\\\#"));
         }
         // outLog.println("[BINARY EXECUTION WRAPPER] EXEC CMD ------------------------------------ " + command);
 

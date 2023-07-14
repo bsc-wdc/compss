@@ -294,9 +294,12 @@ class ObjectTracker:
 
         :return: None
         """
-        self.pending_to_synchronize.clear()
         self.file_names.clear()
+        self.obj_names.clear()
+        self.pending_to_synchronize.clear()
         self.written_objects.clear()
+        self.current_id = 1
+        self.runtime_id = str(uuid.uuid1())
         self.obj_id_to_obj.clear()
         self.address_to_obj_id.clear()
         self.report_now()

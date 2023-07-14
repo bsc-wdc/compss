@@ -771,6 +771,9 @@ def process_task(
                 compss_nodes, compss_nodes_names, computing_units
             )
 
+            # Clean object tracker
+            OT.clean_object_tracker(hard_stop=False)
+
             # Execute task
             result = execute_task(
                 process_name,

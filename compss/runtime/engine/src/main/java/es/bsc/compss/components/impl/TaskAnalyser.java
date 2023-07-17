@@ -562,6 +562,9 @@ public class TaskAnalyser implements GraphHandler {
                     registerParameterAccessAndAddDependencies(currentTask, content, isConstraining);
                 hasParamEdge = hasParamEdge || hasCollectionParamEdge;
             }
+            if (IS_DRAW_GRAPH) {
+                this.gm.stopGroupingEdges();
+            }
         } else {
             if (p.getType() == DataType.OBJECT_T) {
                 ObjectParameter op = (ObjectParameter) p;

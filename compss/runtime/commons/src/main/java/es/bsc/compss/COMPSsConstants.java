@@ -200,6 +200,7 @@ public class COMPSsConstants {
     public static final String COMPSS_CONTAINER_ENGINE = "COMPSS_CONTAINER_ENGINE";
     public static final String MASTER_CONTAINER_IMAGE = "MASTER_CONTAINER_IMAGE";
     public static final String MASTER_CONTAINER_OPTIONS = "MASTER_CONTAINER_OPTIONS";
+    public static final String NESTED_CONTAINER_OPTIONS = "NESTED_CONTAINER_OPTIONS";
     public static final String MPI_RUNNER_SCRIPT = "MPI_RUNNER_SCRIPT";
 
 

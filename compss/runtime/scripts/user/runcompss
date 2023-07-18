@@ -719,7 +719,6 @@ check_args
 # Trap to ensure clean end
 trap clean_env EXIT
 
-echo "[RUNCOMPSS] ${env_script_path}"
 if [ -n "${env_script_path}" ]; then
   echo "[RUNCOMPSS] Loading environment scripts"
   scripts=$(echo "${env_script_path}" | tr ":" " ")

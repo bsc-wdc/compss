@@ -409,26 +409,57 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
 
     private void transferSingleParameter(DependencyParameter param, JobTransfersListener listener) {
         DataAccessId access = param.getDataAccessId();
-        if (access instanceof WAccessId) {
-            String outRename = ((WAccessId) access).getWrittenDataInstance().getRenaming();
-            String dataTarget = this.worker.getNode().getOutputDataTarget(outRename, param);
-            param.setDataTarget(dataTarget);
+        if (access != null) {
+            if (access instanceof WAccessId) {
+                String outRename = ((WAccessId) access).getWrittenDataInstance().getRenaming();
+                String dataTarget = this.worker.getNode().getOutputDataTarget(outRename, param);
+                param.setDataTarget(dataTarget);
 
-        } else {
-            if (access instanceof RAccessId) {
-                // Read Access, transfer object
-                listener.addOperation();
-
-                LogicalData srcData = ((RAccessId) access).getReadDataInstance().getData();
-                this.worker.getData(srcData, param, listener);
             } else {
-                // ReadWrite Access, transfer object
-                listener.addOperation();
-                LogicalData srcData = ((RWAccessId) access).getReadDataInstance().getData();
-                String tgtName = ((RWAccessId) access).getWrittenDataInstance().getRenaming();
-                LogicalData tmpData = Comm.registerData("tmp" + tgtName);
-                this.worker.getData(srcData, tgtName, tmpData, param, listener);
+                if (access instanceof RAccessId) {
+                    // Read Access, transfer object
+
+                    listener.addOperation();
+                    DataInstanceId dId = ((RAccessId) access).getReadDataInstance();
+                    if (dId == null) {
+                        ErrorManager.warn(
+                            "Read Data Instance for Param: " + param.getName() + " Task: " + this.taskId + " Job: "
+                                + this.jobId + " Method: " + this.taskParams.getName() + " is not defined (null)");
+                        listener.notifyFailure(null,
+                            new Exception(
+                                "Read Data Instance for Param: " + param.getName() + " Task: " + this.taskId + " Job: "
+                                    + this.jobId + " Method: " + this.taskParams.getName() + " is not defined (null)"));
+                    }
+                    LogicalData srcData = dId.getData();
+
+                    this.worker.getData(srcData, param, listener);
+                } else {
+                    // ReadWrite Access, transfer object
+                    listener.addOperation();
+                    DataInstanceId dId = ((RWAccessId) access).getReadDataInstance();
+                    if (dId == null) {
+                        ErrorManager.warn(
+                            "Read Data Instance for Param: " + param.getName() + " Task: " + this.taskId + " Job: "
+                                + this.jobId + " Method: " + this.taskParams.getName() + " is not defined (null)");
+                        listener.notifyFailure(null,
+                            new Exception(
+                                "Read Data Instance for Param: " + param.getName() + " Task: " + this.taskId + " Job: "
+                                    + this.jobId + " Method: " + this.taskParams.getName() + " is not defined (null)"));
+                    }
+                    LogicalData srcData = dId.getData();
+                    String tgtName = ((RWAccessId) access).getWrittenDataInstance().getRenaming();
+                    LogicalData tmpData = Comm.registerData("tmp" + tgtName);
+
+                    this.worker.getData(srcData, tgtName, tmpData, param, listener);
+                }
             }
+        } else {
+            listener.addOperation();
+            ErrorManager.warn("Access for Param: " + param.getName() + " Task: " + this.taskId + " Job: " + this.jobId
+                + " Method: " + this.taskParams.getName() + " is not defined (null)");
+            listener.notifyFailure(null, new Exception("Access for Param: " + param.getName() + " Task: " + this.taskId
+                + " Job: " + this.jobId + " Method: " + this.taskParams.getName() + " is not defined (null)"));
+
         }
     }
 

@@ -198,12 +198,13 @@ public abstract class CheckpointManagerImpl extends CheckpointRecord implements 
             for (Parameter sp : cp.getElements()) {
                 registerTaskParameterInGroup(sp, group);
             }
-        }
-        DataType type = param.getType();
-        if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T
-            || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T) {
-            DependencyParameter dp = (DependencyParameter) param;
-            registerTaskSimpleParameterInGroup(dp, group);
+        } else {
+            if (param.isPotentialDependency()) {
+                DependencyParameter dp = (DependencyParameter) param;
+                registerTaskSimpleParameterInGroup(dp, group);
+            } else {
+                LOGGER.warn("Checkpoint does nor support parameter type " + param.getType());
+            }
         }
     }
 

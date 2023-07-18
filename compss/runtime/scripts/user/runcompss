@@ -750,7 +750,7 @@ if [ ${provenance} ]; then
     echo "PROVENANCE | Temporary files have not been erased: App_Profile.json compss_command_line_arguments.txt ${specific_log_dir}/monitor/complete_graph.svg"
     echo "PROVENANCE | Provenance generation can be triggered by hand using the following commands:"
     echo "PROVENANCE | ${COMPSS_HOME}Runtime/scripts/utils/compss_gengraph svg ${specific_log_dir}/monitor/complete_graph.dot"
-    echo "PROVENANCE | python ${COMPSS_HOME}Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py ro-crate-info.yaml ${specific_log_dir}/dataprovenance.log"
+    echo "PROVENANCE | python3 ${COMPSS_HOME}Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py ro-crate-info.yaml ${specific_log_dir}/dataprovenance.log"
   fi
   echo "PROVENANCE | ENDED DATA PROVENANCE SCRIPT"
 fi

@@ -1025,34 +1025,43 @@ def get_common_paths(url_list: list) -> list:
         return list_common_paths
 
     url_parts = urlsplit(url_list[0])
-    common_path = url_parts.path  # Need to remove schema and hostname from reference
+    common_path = str(
+        Path(url_parts.path).parents[0]
+    )  # Need to remove schema and hostname from reference, and filename
+    list_common_paths.append(
+        common_path
+    )  # First folder of first file, needs to be added
     for i, item in enumerate(url_list):
         # url_list is a sorted list, important for this algorithm to work
         # if item and common_path have a common path, store that common path in common_path and continue, until the
         # shortest common path different than 0 has been identified
         # https://docs.python.org/3/library/os.path.html  # os.path.commonpath
 
-        # First or last element, ignore. Directories, ignore
-        if i == 0 or i == len(url_list):
+        # First element, ignore. Directories, ignore
+        if i == 0:
             continue
         url_parts = urlsplit(item)
         if url_parts.scheme == "dir":
-            print("PROVENANCE DEBUG | SKIPPING DIRECTORY")
+            # print("PROVENANCE DEBUG | SKIPPING DIRECTORY")
             continue
         # Remove schema and hostname
         tmp = os.path.commonpath([url_parts.path, common_path])
         if tmp != "/":  # String not empty, they have a common path
-            # print(f"Searching. Previous common path is: {common_path}. tmp: {tmp}")
+            # print(f"PROVENANCE DEBUG | Searching. Previous common path is: {common_path}. tmp: {tmp}")
             common_path = tmp
         else:  # if they don't, we are in a new path, so, store the old in list_common_paths, and assign item to common_path
-            print(
-                f"PROVENANCE DEBUG | New root to search common_path: {url_parts.path}"
-            )
+            # print(f"PROVENANCE DEBUG | New root to search common_path: {url_parts.path}")
             if common_path not in list_common_paths:
                 list_common_paths.append(common_path)
-            common_path = url_parts.path
+            common_path = str(
+                Path(url_parts.path).parents[0]
+            )  # Need to remove filename from url_parts.path
+
+    # Add last element's path
     if common_path not in list_common_paths:
         list_common_paths.append(common_path)
+
+    # print(f"PROVENANCE DEBUG | Resulting list of common paths is: {list_common_paths}")
 
     return list_common_paths
 

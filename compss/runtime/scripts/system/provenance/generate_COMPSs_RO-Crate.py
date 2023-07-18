@@ -1028,9 +1028,6 @@ def get_common_paths(url_list: list) -> list:
     common_path = str(
         Path(url_parts.path).parents[0]
     )  # Need to remove schema and hostname from reference, and filename
-    list_common_paths.append(
-        common_path
-    )  # First folder of first file, needs to be added
     for i, item in enumerate(url_list):
         # url_list is a sorted list, important for this algorithm to work
         # if item and common_path have a common path, store that common path in common_path and continue, until the
@@ -1044,12 +1041,13 @@ def get_common_paths(url_list: list) -> list:
         if url_parts.scheme == "dir":
             # print("PROVENANCE DEBUG | SKIPPING DIRECTORY")
             continue
+
         # Remove schema and hostname
         tmp = os.path.commonpath([url_parts.path, common_path])
         if tmp != "/":  # String not empty, they have a common path
             # print(f"PROVENANCE DEBUG | Searching. Previous common path is: {common_path}. tmp: {tmp}")
             common_path = tmp
-        else:  # if they don't, we are in a new path, so, store the old in list_common_paths, and assign item to common_path
+        else:  # if they don't, we are in a new path, so, store the previous in list_common_paths, and assign the new to common_path
             # print(f"PROVENANCE DEBUG | New root to search common_path: {url_parts.path}")
             if common_path not in list_common_paths:
                 list_common_paths.append(common_path)
@@ -1162,7 +1160,6 @@ def main():
     ):
         persistence = True
         list_common_paths = get_common_paths(ins_and_outs)
-        # print(f"PROVENANCE DEBUG | List of common paths INS and OUTS: {list_common_paths}")
     else:
         persistence = False
 

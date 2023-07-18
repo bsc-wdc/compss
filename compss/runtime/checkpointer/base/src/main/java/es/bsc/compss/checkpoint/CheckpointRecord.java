@@ -73,6 +73,7 @@ public class CheckpointRecord {
     private static final String DEFAULT_CHECKPOINT_FILE_NAME = "checkpoint.cp";
 
     private static final String CHECKPOINT_FOLDER;
+    private static final String NOT_SUPPORTED_TYPE_MSG = "Checkpoint does nor support parameter type ";
 
     static {
         String folder = System.getProperty(COMPSsConstants.CHECKPOINT_FOLDER_PATH);
@@ -209,12 +210,13 @@ public class CheckpointRecord {
             for (Parameter sp : cp.getElements()) {
                 recoverTaskParameter(sp);
             }
-        }
-        DataType type = param.getType();
-        if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T
-            || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T) {
-            DependencyParameter dp = ((DependencyParameter) param);
-            recoverTaskSimpleTaskParameter(dp);
+        } else {
+            if (param.isPotentialDependency()) {
+                DependencyParameter dp = ((DependencyParameter) param);
+                recoverTaskSimpleTaskParameter(dp);
+            } else {
+                LOGGER.warn(NOT_SUPPORTED_TYPE_MSG + param.getType());
+            }
         }
     }
 
@@ -298,13 +300,13 @@ public class CheckpointRecord {
             for (Parameter sp : cp.getElements()) {
                 registerTaskParameter(sp, ctl);
             }
-        }
-
-        DataType type = param.getType();
-        if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T
-            || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T) {
-            DependencyParameter dp = (DependencyParameter) param;
-            registerTaskSimpleParameter(dp, ctl);
+        } else {
+            if (param.isPotentialDependency()) {
+                DependencyParameter dp = (DependencyParameter) param;
+                registerTaskSimpleParameter(dp, ctl);
+            } else {
+                LOGGER.warn(NOT_SUPPORTED_TYPE_MSG + param.getType());
+            }
         }
     }
 
@@ -318,6 +320,9 @@ public class CheckpointRecord {
             outDV = ((WAccessId) paramId).getWrittenDataVersion();
         }
         if (outDV != null) {
+            LOGGER.debug("Adding data " + outDV.getDataInstanceId().getRenaming() + " to task " + ctl.getTask().getId()
+                + " checkpoint.");
+
             ctl.addOutputToCheckpoint();
             CheckpointDataVersion cdvi = new CheckpointDataVersion(outDV, ctl);
 
@@ -384,15 +389,13 @@ public class CheckpointRecord {
             for (Parameter sp : cp.getElements()) {
                 computedTaskParameter(sp);
             }
-        }
-
-        DataType type = param.getType();
-        if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T
-            || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T) {
-            DependencyParameter dp = (DependencyParameter) param;
-            computedTaskSimpleParameter(dp);
         } else {
-            LOGGER.warn("Checkpoint does nor support parameter type " + param.getType());
+            if (param.isPotentialDependency()) {
+                DependencyParameter dp = (DependencyParameter) param;
+                computedTaskSimpleParameter(dp);
+            } else {
+                LOGGER.warn(NOT_SUPPORTED_TYPE_MSG + param.getType());
+            }
         }
     }
 
@@ -436,15 +439,13 @@ public class CheckpointRecord {
             for (Parameter sp : cp.getElements()) {
                 requestTaskParameterCheckpoint(sp);
             }
-        }
-
-        DataType type = param.getType();
-        if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T
-            || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T) {
-            DependencyParameter dp = (DependencyParameter) param;
-            requestTaskSimpleParameterCheckpoint(dp);
         } else {
-            LOGGER.warn("Checkpoint does nor support parameter type " + param.getType());
+            if (param.isPotentialDependency()) {
+                DependencyParameter dp = (DependencyParameter) param;
+                requestTaskSimpleParameterCheckpoint(dp);
+            } else {
+                LOGGER.warn(NOT_SUPPORTED_TYPE_MSG + param.getType());
+            }
         }
     }
 
@@ -454,15 +455,13 @@ public class CheckpointRecord {
             for (Parameter sp : cp.getElements()) {
                 requestTaskParameterCheckpoint(sp, allowed);
             }
-        }
-
-        DataType type = param.getType();
-        if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T
-            || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T) {
-            DependencyParameter dp = (DependencyParameter) param;
-            requestTaskSimpleParameterCheckpoint(dp, allowed);
         } else {
-            LOGGER.warn("Checkpoint does nor support parameter type " + param.getType());
+            if (param.isPotentialDependency()) {
+                DependencyParameter dp = (DependencyParameter) param;
+                requestTaskSimpleParameterCheckpoint(dp, allowed);
+            } else {
+                LOGGER.warn(NOT_SUPPORTED_TYPE_MSG + param.getType());
+            }
         }
     }
 
@@ -656,9 +655,14 @@ public class CheckpointRecord {
                         checkpointProducerTasks(readValue);
                     }
                 }
+            } else {
+                LOGGER.debug("Task not checkpointed " + producer.getTask().getId()
+                    + " not checkpointed because there is output data pending to checkpoint");
             }
 
             deleteIntermidateVersionsRecursively(getShortName(dv.getDataInstanceId().getRenaming()), true);
+        } else {
+            LOGGER.warn("Data " + cdvi.getDataId() + " not checkpointed because produces is null");
         }
     }
 

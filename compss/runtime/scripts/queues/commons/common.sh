@@ -507,7 +507,7 @@ get_args() {
           uuid=*)
             echo "WARNING: uuid is automatically generated. Omitting parameter"
             ;;
-          forward_time_limit=)
+          forward_time_limit=*)
             forward_wcl=${OPTARG//forward_time_limit=/}
             ;;
           wall_clock_limit=*)

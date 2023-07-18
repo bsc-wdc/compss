@@ -248,16 +248,20 @@ public class DataInfoProvider {
                 DataVersion readInstance = di.getCurrentDataVersion();
                 di.willBeWritten();
                 DataVersion writtenInstance = di.getCurrentDataVersion();
-                daId = new RWAccessId(readInstance, writtenInstance);
-                if (DEBUG) {
-                    StringBuilder sb = new StringBuilder("");
-                    sb.append("Access:").append("\n");
-                    sb.append("  * Type: RW").append("\n");
-                    sb.append("  * Read Datum: d").append(daId.getDataId()).append("v")
-                        .append(((RWAccessId) daId).getRVersionId()).append("\n");
-                    sb.append("  * Write Datum: d").append(daId.getDataId()).append("v")
-                        .append(((RWAccessId) daId).getWVersionId()).append("\n");
-                    LOGGER.debug(sb.toString());
+                if (readInstance != null) {
+                    daId = new RWAccessId(readInstance, writtenInstance);
+                    if (DEBUG) {
+                        StringBuilder sb = new StringBuilder("");
+                        sb.append("Access:").append("\n");
+                        sb.append("  * Type: RW").append("\n");
+                        sb.append("  * Read Datum: d").append(daId.getDataId()).append("v")
+                            .append(((RWAccessId) daId).getRVersionId()).append("\n");
+                        sb.append("  * Write Datum: d").append(daId.getDataId()).append("v")
+                            .append(((RWAccessId) daId).getWVersionId()).append("\n");
+                        LOGGER.debug(sb.toString());
+                    }
+                } else {
+                    ErrorManager.warn("Previous instance for data" + di.getDataId() + " is null.");
                 }
                 break;
         }

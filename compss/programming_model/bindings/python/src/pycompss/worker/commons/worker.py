@@ -136,6 +136,7 @@ def build_task_parameter(
 
     if p_type in (parameter.TYPE.STRING, parameter.TYPE.STRING_64):
         aux = ""  # type: typing.Union[str, bytes]
+        new_aux = ""  # type: typing.Union[str, bytes]
         if args is not None:
             num_substrings = int(p_value)  # noqa
             aux_str = []
@@ -150,7 +151,9 @@ def build_task_parameter(
             # getting empty encodings in the case of empty strings, so we need
             # to remove it when decoding
             aux = base64.b64decode(aux.encode())
-        new_aux = aux[1:]
+            new_aux = aux[1:]
+        else:
+            new_aux = aux
 
         if new_aux:
             if p_type == parameter.TYPE.STRING_64:

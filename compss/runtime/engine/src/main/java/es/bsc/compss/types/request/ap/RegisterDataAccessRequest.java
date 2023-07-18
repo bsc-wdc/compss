@@ -119,7 +119,7 @@ public class RegisterDataAccessRequest extends APRequest implements TaskListener
             LOGGER.info("App " + app.getId() + " waits for resources.");
             app.readyToContinue(sem);
             sem.acquireUninterruptibly();
-            LOGGER.info("App " + app.getId() + " reasources are ready.");
+            LOGGER.info("App " + app.getId() + " resources are ready.");
         }
         if (this.unawareException != null) {
             throw this.unawareException;

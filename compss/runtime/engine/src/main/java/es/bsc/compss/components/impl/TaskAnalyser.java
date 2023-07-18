@@ -300,15 +300,13 @@ public class TaskAnalyser implements GraphHandler {
             }
 
             for (Parameter param : task.getTaskDescription().getParameters()) {
-                updateParameterAccess(task, param);
-                updateLastWritters(task, param);
+                updateParameter(task, param);
             }
 
             // When a task can have internal temporal parameters,
             // the not used ones have to be updated to perform the data delete
             for (Parameter param : task.getUnusedIntermediateParameters()) {
-                updateParameterAccess(task, param);
-                updateLastWritters(task, param);
+                updateParameter(task, param);
             }
 
             // Free barrier dependencies
@@ -701,58 +699,44 @@ public class TaskAnalyser implements GraphHandler {
         }
     }
 
-    private void updateLastWritters(AbstractTask task, Parameter p) {
+    private void updateParameter(Task task, Parameter p) {
         if (p.isCollective()) {
             CollectiveParameter cParam = (CollectiveParameter) p;
             for (Parameter sp : cParam.getElements()) {
-                updateLastWritters(task, sp);
+                updateParameter(task, sp);
             }
         }
-        DataType type = p.getType();
-        if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T
-            || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T || type == DataType.COLLECTION_T
-            || type == DataType.DICT_COLLECTION_T) {
+        if (p.isPotentialDependency()) {
             DependencyParameter dp = (DependencyParameter) p;
-            int dataId = dp.getDataAccessId().getDataId();
-            if (DEBUG) {
-                int currentTaskId = task.getId();
-                LOGGER.debug("Removing writters info for datum " + dataId + " and task " + currentTaskId);
-            }
-            DataAccessesInfo dai = this.accessesInfo.get(dataId);
-            if (dai != null) {
-                switch (dp.getDirection()) {
-                    case OUT:
-                    case INOUT:
-                        dai.completedProducer(task, this);
-                        break;
-                    default:
-                        break;
+            DataAccessId dAccId = dp.getDataAccessId();
+            int dataId = dAccId.getDataId();
+
+            DataType type = p.getType();
+            if (type != DataType.DIRECTORY_T || type != DataType.STREAM_T || type != DataType.EXTERNAL_STREAM_T) {
+                if (DEBUG) {
+                    int currentTaskId = task.getId();
+                    LOGGER.debug("Removing writters info for datum " + dataId + " and task " + currentTaskId);
+                }
+                DataAccessesInfo dai = this.accessesInfo.get(dataId);
+                if (dai != null) {
+                    switch (dp.getDirection()) {
+                        case OUT:
+                        case INOUT:
+                            dai.completedProducer(task, this);
+                            break;
+                        default:
+                            break;
+                    }
                 }
             }
-        }
-    }
 
-    private void updateParameterAccess(Task t, Parameter p) {
-        if (p.isCollective()) {
-            for (Parameter subParam : ((CollectiveParameter) p).getElements()) {
-                updateParameterAccess(t, subParam);
-            }
-        }
-        DataType type = p.getType();
-        if (type == DataType.FILE_T || type == DataType.DIRECTORY_T || type == DataType.OBJECT_T
-            || type == DataType.PSCO_T || type == DataType.STREAM_T || type == DataType.EXTERNAL_STREAM_T
-            || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T || type == DataType.COLLECTION_T
-            || type == DataType.DICT_COLLECTION_T) {
-
-            DependencyParameter dPar = (DependencyParameter) p;
-            DataAccessId dAccId = dPar.getDataAccessId();
             if (DEBUG) {
-                LOGGER.debug("Treating that data " + dAccId + " has been accessed at " + dPar.getDataTarget());
+                LOGGER.debug("Treating that data " + dAccId + " has been accessed at " + dp.getDataTarget());
             }
 
-            if ((t.getOnFailure() == OnFailure.CANCEL_SUCCESSORS && (t.getStatus() == TaskState.FAILED))
-                || t.getStatus() == TaskState.CANCELED) {
-                this.dip.dataAccessHasBeenCanceled(dAccId, t.wasSubmited());
+            if ((task.getOnFailure() == OnFailure.CANCEL_SUCCESSORS && (task.getStatus() == TaskState.FAILED))
+                || task.getStatus() == TaskState.CANCELED) {
+                this.dip.dataAccessHasBeenCanceled(dAccId, task.wasSubmited());
             } else {
                 this.dip.dataHasBeenAccessed(dAccId);
             }

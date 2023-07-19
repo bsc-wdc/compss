@@ -39,9 +39,6 @@ import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
 import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.DataParams;
-import es.bsc.compss.types.data.accessid.RAccessId;
-import es.bsc.compss.types.data.accessid.RWAccessId;
-import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.parameter.impl.CollectiveParameter;
 import es.bsc.compss.types.parameter.impl.DependencyParameter;
@@ -768,17 +765,10 @@ public class TaskAnalyser implements GraphHandler {
         int dataId = daId.getDataId();
         Direction d = daId.getDirection();
         int dataVersion;
-        switch (d) {
-            case C:
-            case R:
-                dataVersion = ((RAccessId) daId).getRVersionId();
-                break;
-            case W:
-                dataVersion = ((WAccessId) daId).getWVersionId();
-                break;
-            default:
-                dataVersion = ((RWAccessId) daId).getRVersionId();
-                break;
+        if (daId.isRead()) {
+            dataVersion = ((ReadingDataAccessId) daId).getRVersionId();
+        } else {
+            dataVersion = ((WritingDataAccessId) daId).getWVersionId();
         }
 
         if (producer != null && producer != consumer) {

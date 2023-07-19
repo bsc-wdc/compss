@@ -20,9 +20,8 @@ import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.data.DataAccessId;
-import es.bsc.compss.types.data.accessid.RAccessId;
-import es.bsc.compss.types.data.accessid.RWAccessId;
-import es.bsc.compss.types.data.accessid.WAccessId;
+import es.bsc.compss.types.data.DataAccessId.ReadingDataAccessId;
+import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.InvocationParamURI;
 import es.bsc.compss.types.parameter.BasicTypeParameter;
@@ -91,20 +90,16 @@ public class LocalParameter implements InvocationParam {
                 // Check if the parameter has a valid PSCO and change its type
                 // OUT objects are restricted by the API
                 DataAccessId faId = dPar.getDataAccessId();
-                if (faId instanceof RWAccessId) {
-                    // Read write mode
-                    RWAccessId rwaId = (RWAccessId) faId;
-                    this.dataMgmtId = rwaId.getWrittenDataInstance().getRenaming();
-                    this.sourceDataMgmtId = "tmp" + this.dataMgmtId;
-                } else if (faId instanceof RAccessId) {
-                    // Read only mode
-                    RAccessId raId = (RAccessId) faId;
-                    this.sourceDataMgmtId = raId.getReadDataInstance().getRenaming();
-                    this.dataMgmtId = this.sourceDataMgmtId;
+                if (faId.isWrite()) {
+                    this.dataMgmtId = ((WritingDataAccessId) faId).getWrittenDataInstance().getRenaming();
+                    if (faId.isRead()) {
+                        this.sourceDataMgmtId = "tmp" + this.dataMgmtId;
+                    } else {
+                        this.sourceDataMgmtId = null;
+                    }
                 } else {
-                    WAccessId waId = (WAccessId) faId;
-                    this.sourceDataMgmtId = null;
-                    this.dataMgmtId = waId.getWrittenDataInstance().getRenaming();
+                    this.sourceDataMgmtId = ((ReadingDataAccessId) faId).getReadDataInstance().getRenaming();
+                    this.dataMgmtId = this.sourceDataMgmtId;
                 }
                 if (this.sourceDataMgmtId != null) {
                     String pscoId = Comm.getData(this.sourceDataMgmtId).getPscoId();

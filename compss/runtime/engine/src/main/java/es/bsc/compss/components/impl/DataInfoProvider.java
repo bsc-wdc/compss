@@ -354,30 +354,22 @@ public class DataInfoProvider {
         Integer dataId = dAccId.getDataId();
         DataInfo di = this.idToData.get(dataId);
         if (di != null) {
-            Integer rVersionId;
+            Integer rVersionId = null;
             Integer wVersionId;
             boolean deleted = false;
-            switch (dAccId.getDirection()) {
-                case C:
-                case R:
-                    rVersionId = ((RAccessId) dAccId).getReadDataInstance().getVersionId();
-                    deleted = di.versionHasBeenRead(rVersionId);
-                    break;
-                case CV:
-                case RW:
-                    rVersionId = ((RWAccessId) dAccId).getReadDataInstance().getVersionId();
-                    di.versionHasBeenRead(rVersionId);
-                    // read data version can be removed
-                    di.tryRemoveVersion(rVersionId);
-                    wVersionId = ((RWAccessId) dAccId).getWrittenDataInstance().getVersionId();
-                    deleted = di.versionHasBeenWritten(wVersionId);
-                    break;
-                default:// case W:
-                    wVersionId = ((WAccessId) dAccId).getWrittenDataInstance().getVersionId();
-                    Integer prevVersionId = wVersionId - 1;
-                    di.tryRemoveVersion(prevVersionId);
-                    deleted = di.versionHasBeenWritten(wVersionId);
-                    break;
+
+            if (dAccId.isRead()) {
+                rVersionId = ((DataAccessId.ReadingDataAccessId) dAccId).getReadDataInstance().getVersionId();
+                deleted = di.versionHasBeenRead(rVersionId);
+            }
+
+            if (dAccId.isWrite()) {
+                wVersionId = ((DataAccessId.WritingDataAccessId) dAccId).getWrittenDataInstance().getVersionId();
+                if (rVersionId == null) {
+                    rVersionId = wVersionId - 1;
+                }
+                di.tryRemoveVersion(rVersionId);
+                deleted = di.versionHasBeenWritten(wVersionId);
             }
 
             if (deleted) {

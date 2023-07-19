@@ -28,9 +28,8 @@ import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.DataAccessId;
-import es.bsc.compss.types.data.accessid.RAccessId;
-import es.bsc.compss.types.data.accessid.RWAccessId;
-import es.bsc.compss.types.data.accessid.WAccessId;
+import es.bsc.compss.types.data.DataAccessId.ReadingDataAccessId;
+import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.TaskType;
@@ -105,20 +104,10 @@ public class RemoteRESTAgentJob extends JobImpl<RemoteRESTAgent> {
             DependencyParameter dPar = (DependencyParameter) param;
             DataAccessId faId = dPar.getDataAccessId();
             String renaming;
-            if (faId instanceof WAccessId) {
-                // Write mode
-                WAccessId waId = (WAccessId) faId;
-                renaming = waId.getWrittenDataInstance().getRenaming();
+            if (faId.isWrite()) {
+                renaming = ((DataAccessId.WritingDataAccessId) faId).getWrittenDataInstance().getRenaming();
             } else {
-                if (faId instanceof RWAccessId) {
-                    // Read write mode
-                    RWAccessId rwaId = (RWAccessId) faId;
-                    renaming = rwaId.getWrittenDataInstance().getRenaming();
-                } else {
-                    // Read only mode
-                    RAccessId raId = (RAccessId) faId;
-                    renaming = raId.getReadDataInstance().getRenaming();
-                }
+                renaming = ((DataAccessId.ReadingDataAccessId) faId).getReadDataInstance().getRenaming();
             }
             Object target = Comm.getData(renaming).getValue();
             System.out.println("Target: " + target);
@@ -142,22 +131,11 @@ public class RemoteRESTAgentJob extends JobImpl<RemoteRESTAgent> {
                     DependencyParameter dPar = (DependencyParameter) param;
                     DataAccessId dAccId = dPar.getDataAccessId();
                     String inRenaming;
-                    // String outRenaming;
-                    if (dAccId instanceof WAccessId) {
+                    if (dAccId.isRead()) {
+                        inRenaming = ((ReadingDataAccessId) dAccId).getReadDataInstance().getRenaming();
+                    } else {
                         throw new JobExecutionException("Parameter" + Integer.toString(parIdx) + " is a Write access",
                             null);
-                    } else {
-                        if (dAccId instanceof RWAccessId) {
-                            // Read write mode
-                            RWAccessId rwaId = (RWAccessId) dAccId;
-                            inRenaming = rwaId.getReadDataInstance().getRenaming();
-                            // outRenaming = rwaId.getWrittenDataInstance().getRenaming();
-                        } else {
-                            // Read only mode
-                            RAccessId raId = (RAccessId) dAccId;
-                            inRenaming = raId.getReadDataInstance().getRenaming();
-                            // outRenaming = inRenaming;
-                        }
                     }
 
                     if (inRenaming != null) {

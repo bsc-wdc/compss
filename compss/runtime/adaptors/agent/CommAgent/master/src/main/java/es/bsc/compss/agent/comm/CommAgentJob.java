@@ -37,10 +37,9 @@ import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.DataAccessId.ReadingDataAccessId;
+import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
 import es.bsc.compss.types.data.LogicalData;
-import es.bsc.compss.types.data.accessid.RAccessId;
-import es.bsc.compss.types.data.accessid.RWAccessId;
-import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.definition.MethodDefinition;
@@ -179,21 +178,13 @@ class CommAgentJob extends NIOJob {
         String renaming = null;
         String dataMgmtId;
         DataAccessId dAccId = dPar.getDataAccessId();
-        if (dAccId instanceof RWAccessId) {
-            // Read write mode
-            RWAccessId rwaId = (RWAccessId) dAccId;
-            renaming = rwaId.getReadDataInstance().getRenaming();
-            dataMgmtId = rwaId.getWrittenDataInstance().getRenaming();
+        if (dAccId.isRead()) {
+            renaming = ((ReadingDataAccessId) dAccId).getReadDataInstance().getRenaming();
+        }
+        if (dAccId.isWrite()) {
+            dataMgmtId = ((WritingDataAccessId) dAccId).getWrittenDataInstance().getRenaming();
         } else {
-            if (dAccId instanceof RAccessId) {
-                // Read only mode
-                RAccessId raId = (RAccessId) dAccId;
-                renaming = raId.getReadDataInstance().getRenaming();
-                dataMgmtId = renaming;
-            } else {
-                WAccessId waId = (WAccessId) dAccId;
-                dataMgmtId = waId.getWrittenDataInstance().getRenaming();
-            }
+            dataMgmtId = renaming;
         }
         LogicalData sourceDataLD = null;
         String pscoId = null;

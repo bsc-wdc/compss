@@ -23,10 +23,9 @@ import es.bsc.compss.nio.NIOParamCollection;
 import es.bsc.compss.nio.master.NIOWorkerNode;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.DataAccessId.ReadingDataAccessId;
+import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
 import es.bsc.compss.types.data.LogicalData;
-import es.bsc.compss.types.data.accessid.RAccessId;
-import es.bsc.compss.types.data.accessid.RWAccessId;
-import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.parameter.BasicTypeParameter;
 import es.bsc.compss.types.parameter.CollectiveParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
@@ -91,25 +90,18 @@ public class NIOParamFactory {
         String dataMgmtId;
         DataAccessId dAccId = dPar.getDataAccessId();
         boolean preserveSourceData = fromReplicatedTask;
-        if (dAccId instanceof RWAccessId) {
-            // Read write mode
-            RWAccessId rwaId = (RWAccessId) dAccId;
-            ld = rwaId.getReadDataInstance().getData();
-            dataMgmtId = rwaId.getWrittenDataInstance().getRenaming();
-            if (!fromReplicatedTask) {
-                preserveSourceData = dPar.isSourcePreserved();
+        if (dAccId.isRead()) {
+            ld = ((ReadingDataAccessId) dAccId).getReadDataInstance().getData();
+            if (dAccId.isWrite()) {
+                dataMgmtId = ((WritingDataAccessId) dAccId).getWrittenDataInstance().getRenaming();
+            } else {
+                dataMgmtId = ld.getName();
             }
-        } else if (dAccId instanceof RAccessId) {
-            // Read only mode
-            RAccessId raId = (RAccessId) dAccId;
-            ld = raId.getReadDataInstance().getData();
-            dataMgmtId = ld.getName();
             if (!fromReplicatedTask) {
                 preserveSourceData = dPar.isSourcePreserved();
             }
         } else {
-            WAccessId waId = (WAccessId) dAccId;
-            dataMgmtId = waId.getWrittenDataInstance().getRenaming();
+            dataMgmtId = ((WritingDataAccessId) dAccId).getWrittenDataInstance().getRenaming();
             preserveSourceData = dPar.isSourcePreserved();
         }
         if (ld != null) {
@@ -129,14 +121,14 @@ public class NIOParamFactory {
          * Fix for the is replicated tasks with inout/out parameters. We have to generate output data target according
          * to the node
          */
-        if ((dAccId instanceof RWAccessId) || (dAccId instanceof WAccessId)) {
+        if (dAccId.isWrite()) {
             if (!param.getType().equals(DataType.PSCO_T) && !param.getType().equals(DataType.EXTERNAL_PSCO_T)) {
                 value = node.getOutputDataTarget(dataMgmtId, dPar);
             }
         }
 
         // Create the NIO Param
-        boolean writeFinalValue = !(dAccId instanceof RAccessId); // Only store W and RW
+        boolean writeFinalValue = dAccId.isWrite(); // Only store W and RW
         NIOParam np = new NIOParam(dataMgmtId, param.getType(), param.getStream(), param.getPrefix(), param.getName(),
             param.getContentType(), param.getWeight(), param.isKeepRename(), preserveSourceData, writeFinalValue, value,
             (NIOData) dPar.getDataSource(), dPar.getOriginalName());

@@ -31,13 +31,12 @@ import es.bsc.compss.types.TaskState;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataAccessId.Direction;
+import es.bsc.compss.types.data.DataAccessId.ReadingDataAccessId;
+import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
 import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.DataVersion;
 import es.bsc.compss.types.data.LogicalData;
-import es.bsc.compss.types.data.accessid.RAccessId;
-import es.bsc.compss.types.data.accessid.RWAccessId;
-import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
@@ -223,10 +222,8 @@ public class CheckpointRecord {
     private void recoverTaskSimpleTaskParameter(DependencyParameter dp) {
         DataAccessId paramId = dp.getDataAccessId();
         DataVersion outDV = null;
-        if (paramId instanceof RWAccessId) {
-            outDV = ((RWAccessId) paramId).getWrittenDataVersion();
-        } else if (paramId instanceof WAccessId) {
-            outDV = ((WAccessId) paramId).getWrittenDataVersion();
+        if (paramId.isWrite()) {
+            outDV = ((WritingDataAccessId) paramId).getWrittenDataVersion();
         }
         if (outDV != null) {
             DataInstanceId outDaId = outDV.getDataInstanceId();
@@ -314,10 +311,8 @@ public class CheckpointRecord {
 
         DataAccessId paramId = dp.getDataAccessId();
         DataVersion outDV = null;
-        if (paramId instanceof RWAccessId) {
-            outDV = ((RWAccessId) paramId).getWrittenDataVersion();
-        } else if (paramId instanceof WAccessId) {
-            outDV = ((WAccessId) paramId).getWrittenDataVersion();
+        if (paramId.isWrite()) {
+            outDV = ((WritingDataAccessId) paramId).getWrittenDataVersion();
         }
         if (outDV != null) {
             LOGGER.debug("Adding data " + outDV.getDataInstanceId().getRenaming() + " to task " + ctl.getTask().getId()
@@ -346,10 +341,8 @@ public class CheckpointRecord {
         }
 
         DataInstanceId inDaId = null;
-        if (paramId instanceof RWAccessId) {
-            inDaId = ((RWAccessId) paramId).getReadDataInstance();
-        } else if (paramId instanceof RAccessId) {
-            inDaId = ((RAccessId) paramId).getReadDataInstance();
+        if (paramId.isRead()) {
+            inDaId = ((ReadingDataAccessId) paramId).getReadDataInstance();
         }
         if (inDaId != null) {
             String inRename = inDaId.getRenaming();
@@ -401,7 +394,7 @@ public class CheckpointRecord {
 
     private void computedTaskSimpleParameter(DependencyParameter dp) {
         DataAccessId paramId = dp.getDataAccessId();
-        if (paramId instanceof RWAccessId || paramId instanceof WAccessId) {
+        if (paramId.isWrite()) {
             int dataId = paramId.getDataId();
             registerLastCompletedProducer(dataId, dp);
         }
@@ -468,12 +461,8 @@ public class CheckpointRecord {
     private void requestTaskSimpleParameterCheckpoint(DependencyParameter dp) {
         DataAccessId paramId = dp.getDataAccessId();
         DataVersion outDV = null;
-        if (paramId instanceof RWAccessId) {
-            outDV = ((RWAccessId) paramId).getWrittenDataVersion();
-        } else {
-            if (paramId instanceof WAccessId) {
-                outDV = ((WAccessId) paramId).getWrittenDataVersion();
-            }
+        if (paramId.isWrite()) {
+            outDV = ((WritingDataAccessId) paramId).getWrittenDataVersion();
         }
         if (outDV != null) {
             DataInstanceId outDaId = outDV.getDataInstanceId();
@@ -491,12 +480,8 @@ public class CheckpointRecord {
     private void requestTaskSimpleParameterCheckpoint(DependencyParameter dp, List<DataVersion> allowed) {
         DataAccessId paramId = dp.getDataAccessId();
         DataVersion outDV = null;
-        if (paramId instanceof RWAccessId) {
-            outDV = ((RWAccessId) paramId).getWrittenDataVersion();
-        } else {
-            if (paramId instanceof WAccessId) {
-                outDV = ((WAccessId) paramId).getWrittenDataVersion();
-            }
+        if (paramId.isWrite()) {
+            outDV = ((WritingDataAccessId) paramId).getWrittenDataVersion();
         }
         if (outDV != null && allowed.contains(outDV)) {
             DataInstanceId outDaId = outDV.getDataInstanceId();

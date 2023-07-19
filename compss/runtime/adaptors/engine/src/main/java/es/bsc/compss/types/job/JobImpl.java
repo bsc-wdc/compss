@@ -25,11 +25,10 @@ import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.DataAccessId.ReadingDataAccessId;
+import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.LogicalData;
-import es.bsc.compss.types.data.accessid.RAccessId;
-import es.bsc.compss.types.data.accessid.RWAccessId;
-import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.TaskType;
@@ -410,47 +409,30 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
     private void transferSingleParameter(DependencyParameter param, JobTransfersListener listener) {
         DataAccessId access = param.getDataAccessId();
         if (access != null) {
-            if (access instanceof WAccessId) {
-                String outRename = ((WAccessId) access).getWrittenDataInstance().getRenaming();
+            if (!access.isRead()) {
+                String outRename = ((WritingDataAccessId) access).getWrittenDataInstance().getRenaming();
                 String dataTarget = this.worker.getNode().getOutputDataTarget(outRename, param);
                 param.setDataTarget(dataTarget);
 
             } else {
-                if (access instanceof RAccessId) {
-                    // Read Access, transfer object
-
-                    listener.addOperation();
-                    DataInstanceId dId = ((RAccessId) access).getReadDataInstance();
-                    if (dId == null) {
-                        ErrorManager.warn(
+                listener.addOperation();
+                DataInstanceId dId = ((ReadingDataAccessId) access).getReadDataInstance();
+                if (dId == null) {
+                    ErrorManager.warn("Read Data Instance for Param: " + param.getName() + " Task: " + this.taskId
+                        + " Job: " + this.jobId + " Method: " + this.taskParams.getName() + " is not defined (null)");
+                    listener.notifyFailure(null,
+                        new Exception(
                             "Read Data Instance for Param: " + param.getName() + " Task: " + this.taskId + " Job: "
-                                + this.jobId + " Method: " + this.taskParams.getName() + " is not defined (null)");
-                        listener.notifyFailure(null,
-                            new Exception(
-                                "Read Data Instance for Param: " + param.getName() + " Task: " + this.taskId + " Job: "
-                                    + this.jobId + " Method: " + this.taskParams.getName() + " is not defined (null)"));
-                    }
-                    LogicalData srcData = dId.getData();
+                                + this.jobId + " Method: " + this.taskParams.getName() + " is not defined (null)"));
+                }
 
-                    this.worker.getData(srcData, param, listener);
-                } else {
-                    // ReadWrite Access, transfer object
-                    listener.addOperation();
-                    DataInstanceId dId = ((RWAccessId) access).getReadDataInstance();
-                    if (dId == null) {
-                        ErrorManager.warn(
-                            "Read Data Instance for Param: " + param.getName() + " Task: " + this.taskId + " Job: "
-                                + this.jobId + " Method: " + this.taskParams.getName() + " is not defined (null)");
-                        listener.notifyFailure(null,
-                            new Exception(
-                                "Read Data Instance for Param: " + param.getName() + " Task: " + this.taskId + " Job: "
-                                    + this.jobId + " Method: " + this.taskParams.getName() + " is not defined (null)"));
-                    }
-                    LogicalData srcData = dId.getData();
-                    String tgtName = ((RWAccessId) access).getWrittenDataInstance().getRenaming();
+                LogicalData srcData = dId.getData();
+                if (access.isWrite()) {
+                    String tgtName = ((WritingDataAccessId) access).getWrittenDataInstance().getRenaming();
                     LogicalData tmpData = Comm.registerData("tmp" + tgtName);
-
                     this.worker.getData(srcData, tgtName, tmpData, param, listener);
+                } else {
+                    this.worker.getData(srcData, param, listener);
                 }
             }
         } else {
@@ -467,20 +449,16 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
         DataAccessId access = param.getDataAccessId();
         LogicalData source;
         LogicalData target;
-        if (access instanceof WAccessId) {
-            WAccessId wAccess = (WAccessId) access;
-            source = wAccess.getWrittenDataInstance().getData();
-            target = source;
-        } else {
-            if (access instanceof RAccessId) {
-                RAccessId rAccess = (RAccessId) access;
-                source = rAccess.getReadDataInstance().getData();
-                target = source;
+        if (access.isRead()) {
+            source = ((ReadingDataAccessId) access).getReadDataInstance().getData();
+            if (access.isWrite()) {
+                target = ((WritingDataAccessId) access).getWrittenDataInstance().getData();
             } else {
-                RWAccessId rwAccess = (RWAccessId) access;
-                source = rwAccess.getReadDataInstance().getData();
-                target = rwAccess.getWrittenDataInstance().getData();
+                target = source;
             }
+        } else {
+            target = ((WritingDataAccessId) access).getWrittenDataInstance().getData();
+            source = target;
         }
 
         // Ask for transfer
@@ -519,8 +497,8 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
                 }
             }
             DataAccessId access = param.getDataAccessId();
-            if (access instanceof RWAccessId) {
-                String tgtName = "tmp" + ((RWAccessId) access).getWrittenDataInstance().getRenaming();
+            if (access.isRead() && access.isWrite()) {
+                String tgtName = "tmp" + ((WritingDataAccessId) access).getWrittenDataInstance().getRenaming();
                 Comm.removeDataKeepingValue(tgtName);
             }
         }
@@ -702,8 +680,8 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
         this.listener.resultAvailable(dp, dataName);
         // Removing Temporary data
         DataAccessId access = dp.getDataAccessId();
-        if (access instanceof RWAccessId) {
-            String tgtName = "tmp" + ((RWAccessId) access).getWrittenDataInstance().getRenaming();
+        if (access.isRead() && access.isWrite()) {
+            String tgtName = "tmp" + ((WritingDataAccessId) access).getWrittenDataInstance().getRenaming();
             Comm.removeDataKeepingValue(tgtName);
         }
     }
@@ -714,22 +692,11 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
             // Notify the FileTransferManager about the generated/updated OUT/INOUT datums
             DependencyParameter dp = (DependencyParameter) p;
             DataInstanceId dId = null;
-            switch (p.getDirection()) {
-                case OUT:
-                    dId = ((WAccessId) dp.getDataAccessId()).getWrittenDataInstance();
-                    break;
-                case COMMUTATIVE:
-                    dId = ((RWAccessId) dp.getDataAccessId()).getWrittenDataInstance();
-                    break;
-                case INOUT:
-                    dId = ((RWAccessId) dp.getDataAccessId()).getWrittenDataInstance();
-                    break;
-                case CONCURRENT:
-                case IN_DELETE:
-                case IN:
-                default:
-                    // FTM already knows about this datum
-                    return null;
+            DataAccessId daId = dp.getDataAccessId();
+            if (daId.isWrite()) {
+                dId = ((WritingDataAccessId) dp.getDataAccessId()).getWrittenDataInstance();
+            } else {
+                return null;
             }
 
             // Retrieve parameter information

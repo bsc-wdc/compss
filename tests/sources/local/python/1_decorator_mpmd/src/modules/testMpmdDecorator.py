@@ -27,6 +27,16 @@ def basic():
     pass
 
 
+@mpmd_mpi(runner="mpirun", processes_per_node=2,
+          programs=[
+               dict(binary="date", processes=2),
+               dict(binary="date", processes=6)
+          ])
+@task()
+def basic_2():
+    pass
+
+
 @mpmd_mpi(runner="mpirun",
           programs=[
                dict(binary="date", processes=2, args="-d {{first}}"),
@@ -96,6 +106,10 @@ class TestMpmdDecorator(unittest.TestCase):
 
     def testBasic(self):
         basic()
+        compss_barrier()
+
+    def testBasic2(self):
+        basic_2()
         compss_barrier()
 
     def testParams(self):

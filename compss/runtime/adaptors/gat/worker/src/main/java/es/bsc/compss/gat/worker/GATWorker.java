@@ -256,7 +256,7 @@ public class GATWorker implements InvocationContext {
                 return genImplemenationDefinition(new MethodDefinition(args, argPosition), debug, args,
                     argPosition + MethodDefinition.NUM_PARAMS);
             case BINARY:
-                return genImplemenationDefinition(new BinaryDefinition(args, argPosition), debug, args,
+                return genImplemenationDefinition(new BinaryDefinition(args, argPosition, null), debug, args,
                     argPosition + BinaryDefinition.NUM_PARAMS);
             case MPI:
                 // todo: nm: do we need this?

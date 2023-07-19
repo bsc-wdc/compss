@@ -138,6 +138,12 @@ def checkStringParam4(string_param):
     pass
 
 
+@binary(binary="tar", args="-czvf {{tar_file}} src/*.txt", fail_by_exit_value=True, working_dir=os.getcwd())
+@task(tar_file=FILE_OUT)
+def compress(tar_file):
+    pass
+
+
 class testBinaryDecorator(unittest.TestCase):
     def testFunctionalUsage(self):
         myDate("-d", "next friday")
@@ -266,3 +272,6 @@ class testBinaryDecorator(unittest.TestCase):
         myWd(wd, outfile)
         compss_barrier()
 
+    def testWildcards(self):
+        compress("out_file.tar.gz")
+        compss_barrier()

@@ -1869,13 +1869,19 @@ set_variables() {
   else
     if [ -z "${container_compss_path}" ]; then
 
+      if [ -z "$COMPSS_CONTAINER_ENGINE" ]; then
+        export COMPSS_CONTAINER_ENGINE=SINGULARITY
+        export SINGULARITYENV_COMPSS_CONTAINER_ENGINE=SINGULARITY
+      fi
       export SINGULARITYENV_COMPSS_HOME=/opt/COMPSs/
       export SINGULARITYENV_COMPSS_MASTER_WORKING_DIR=$COMPSS_MASTER_WORKING_DIR
       export SINGULARITYENV_GAT_LOCATION=/opt/COMPSs/Dependencies/JAVA_GAT
 
       export MASTER_CONTAINER_IMAGE=${container_image}
+      export MASTER_CONTAINER_OPTIONS=${container_opts}
       export MPI_RUNNER_SCRIPT=/opt/COMPSs/Runtime/scripts/utils/mpi_run.sh
       export SINGULARITYENV_MASTER_CONTAINER_IMAGE=${container_image}
+      export SINGULARITYENV_MASTER_CONTAINER_OPTIONS=${container_opts}
       export SINGULARITYENV_MPI_RUNNER_SCRIPT=/opt/COMPSs/Runtime/scripts/utils/mpi_run.sh
       # to load the modules when ssh'ing
       export SINGULARITYENV_ENV_SCRIPT=$ENV_LOAD_MODULES_SCRIPT
@@ -1886,13 +1892,20 @@ set_variables() {
       worker_install_dir=/opt/COMPSs
       cont_COMPSS_HOME=/opt/COMPSs/
     else
+      if [ -z "$COMPSS_CONTAINER_ENGINE" ]; then
+        export COMPSS_CONTAINER_ENGINE=SINGULARITY
+        export SINGULARITYENV_COMPSS_CONTAINER_ENGINE=SINGULARITY
+      fi
+
       export SINGULARITYENV_COMPSS_HOME=${container_compss_path}/
       export SINGULARITYENV_COMPSS_MASTER_WORKING_DIR=$COMPSS_MASTER_WORKING_DIR
       export SINGULARITYENV_GAT_LOCATION=${container_compss_path}/Dependencies/JAVA_GAT
 
       export MASTER_CONTAINER_IMAGE=${container_image}
+      export MASTER_CONTAINER_OPTIONS=${container_opts}
       export MPI_RUNNER_SCRIPT=${container_compss_path}/Runtime/scripts/utils/mpi_run.sh
       export SINGULARITYENV_MASTER_CONTAINER_IMAGE=${container_image}
+      export SINGULARITYENV_MASTER_CONTAINER_OPTIONS=${container_opts}
       export SINGULARITYENV_MPI_RUNNER_SCRIPT=${container_compss_path}/Runtime/scripts/utils/mpi_run.sh
       # to load the modules when ssh'ing
       export SINGULARITYENV_ENV_SCRIPT=$ENV_LOAD_MODULES_SCRIPT

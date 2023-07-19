@@ -184,5 +184,10 @@
     exit 1
   fi
 
+  # testWildcards
+  tar_file=$(ls out_file.tar.gz "$jobs_logs")
+  if [ "$?" != 0 ]; then
+    exit 1
+  fi
 
   exit 0

@@ -49,6 +49,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -531,10 +532,11 @@ public class BinaryRunner {
             hostnames2numThreads.put(hostname, nt);
         }
         final int uniqueNumNodes = hostnames2numThreads.size();
-        int maxNumProcsPerNode = hostnames2numThreads.entrySet().stream()
-            .max((entry1, entry2) -> entry1.getValue() > entry2.getValue() ? 1 : -1).get().getValue();
+        int maxNumProcsPerNode = Collections.max(hostnames2numThreads.values());
+        // nm: make sure next line commented doesn't make it fail with MPMD..
+        // maxNumProcsPerNode *= theoreticalNumProcs;
+        outLog.println("[BINARY EXECUTION WRAPPER] CMD: setting maxNumProcsPerNode to: " + maxNumProcsPerNode);
 
-        maxNumProcsPerNode *= theoreticalNumProcs;
         // Re-set COMPSs properties
         // We do not reset COMPSs properties because it does not have to match SLURM
         // System.setProperty(Invoker.COMPSS_NUM_NODES, String.valueOf(uniqueNumNodes));
@@ -542,7 +544,24 @@ public class BinaryRunner {
         // System.setProperty(Invoker.OMP_NUM_THREADS, String.valueOf(maxNumThreads));
 
         // Prepare process builder with command and working directory
-        ProcessBuilder builder = new ProcessBuilder(cmd);
+        // String execCmd = "bash -c " + String.join(" ", cmd).trim();
+        // String execCmd = "bash " + "-c '" + String.join(" ", cmd).trim() + "'";
+        // outLog.println("[BINARY EXECUTION WRAPPER] EXEC CMD ------------------------------------ " + execCmd);
+        StringBuilder command = new StringBuilder();
+        for (String s : cmd) {
+            if (s.contains("$")) {
+                s = s.replaceAll("\\$", "\"\\\\\\$\"");
+            }
+            command.append(" ").append(s.replaceAll(" ", "\\\\ ").replaceAll("#", "\\\\#"));
+        }
+        // outLog.println("[BINARY EXECUTION WRAPPER] EXEC CMD ------------------------------------ " + command);
+
+        String[] execCmd = { "bash",
+            "-c",
+            command.toString() };
+        // ProcessBuilder builder = new ProcessBuilder(cmd);
+        ProcessBuilder builder = new ProcessBuilder(execCmd);
+
         builder.directory(sandbox.getFolder());
         outLog.println("[BINARY EXECUTION WRAPPER] CMD " + cmd[0]);
 
@@ -635,6 +654,12 @@ public class BinaryRunner {
             outLog.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
             outLog.println("[BINARY EXECUTION WRAPPER] Executing binary command");
             this.process = builder.start();
+            /*
+             * outLog.println("[BINARY EXECUTION WRAPPER] USING RUNTIME.EXEC ------------------------------------");
+             * String[] execCmd = new String[cmd.length + 2]; execCmd[0] = "bash"; execCmd[1] = "-c"; execCmd[2] =
+             * String.join(" ") System.arraycopy(cmd, 0, execCmd, 2, cmd.length); this.process =
+             * Runtime.getRuntime().exec(execCmd); this.process = Runtime.getRuntime().exec(execCmd);
+             */
 
             // Disable inputs to process
             this.process.getOutputStream().close();

@@ -12,7 +12,7 @@ get_args() {
   #mpirunner=$4
   num_nodes=$6
   hostfile=$8
-  args=${10}
+  args=${@: 10}
 }
 
 main() {

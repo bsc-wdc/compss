@@ -154,7 +154,7 @@ public class DecafInvoker extends Invoker {
             this.invocation.getTarget(), streamValues, pythonInterpreter);
 
         // Prepare command
-        String args = new String();
+        String args = "";
         for (int i = 0; i < binaryParams.size(); ++i) {
             if (i == 0) {
                 args = args.concat(binaryParams.get(i));
@@ -166,7 +166,7 @@ public class DecafInvoker extends Invoker {
         if (args.isEmpty()) {
             cmd = new String[NUM_BASE_DECAF_ARGS - 2];
         } else {
-            cmd = new String[NUM_BASE_DECAF_ARGS];
+            cmd = new String[NUM_BASE_DECAF_ARGS - 1 + binaryParams.size()];
         }
         final String dfRunner = this.context.getInstallDir() + DecafDefinition.SCRIPT_PATH;
         cmd[0] = dfRunner;
@@ -186,8 +186,10 @@ public class DecafInvoker extends Invoker {
             throw new InvokeExecutionException("ERROR: writting hostfile", ioe);
         }
         if (!args.isEmpty()) {
-            cmd[9] = "--args=\"";
-            cmd[10] = args;
+            cmd[9] = "--args";
+            for (int i = 0; i < binaryParams.size(); ++i) {
+                cmd[10 + i] = binaryParams.get(i);
+            }
         }
 
         // Prepare environment

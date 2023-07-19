@@ -49,6 +49,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -531,10 +532,11 @@ public class BinaryRunner {
             hostnames2numThreads.put(hostname, nt);
         }
         final int uniqueNumNodes = hostnames2numThreads.size();
-        int maxNumProcsPerNode = hostnames2numThreads.entrySet().stream()
-            .max((entry1, entry2) -> entry1.getValue() > entry2.getValue() ? 1 : -1).get().getValue();
+        int maxNumProcsPerNode = Collections.max(hostnames2numThreads.values());
+        // nm: make sure next line commented doesn't make it fail with MPMD..
+        // maxNumProcsPerNode *= theoreticalNumProcs;
+        outLog.println("[BINARY EXECUTION WRAPPER] CMD: setting maxNumProcsPerNode to: " + maxNumProcsPerNode);
 
-        maxNumProcsPerNode *= theoreticalNumProcs;
         // Re-set COMPSs properties
         // We do not reset COMPSs properties because it does not have to match SLURM
         // System.setProperty(Invoker.COMPSS_NUM_NODES, String.valueOf(uniqueNumNodes));

@@ -25,4 +25,29 @@
             </Adaptor>
         </Adaptors>
     </ComputeNode>
+    <ComputeNode Name="COMPSsWorker02">
+        <Processor Name="MainProcessor2">
+            <ComputingUnits>4</ComputingUnits>
+        </Processor>
+        <Adaptors>
+            <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <Ports>
+                    <MinPort>43003</MinPort>
+                    <MaxPort>43004</MaxPort>
+                </Ports>
+            </Adaptor>
+            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
+                <SubmissionSystem>
+                    <Batch>
+                        <Queue>sequential</Queue>
+                    </Batch>
+                    <Interactive/>
+                </SubmissionSystem>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+            </Adaptor>
+        </Adaptors>
+    </ComputeNode>
 </ResourcesList>

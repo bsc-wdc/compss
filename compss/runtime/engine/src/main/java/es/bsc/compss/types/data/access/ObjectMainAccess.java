@@ -21,10 +21,11 @@ import es.bsc.compss.exceptions.CannotLoadException;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.DataAccessId.ReadingDataAccessId;
+import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.DataParams.ObjectData;
 import es.bsc.compss.types.data.LogicalData;
-import es.bsc.compss.types.data.accessid.RWAccessId;
 
 import es.bsc.compss.types.data.accessparams.ObjectAccessParams;
 import es.bsc.compss.types.data.location.DataLocation;
@@ -74,15 +75,14 @@ public class ObjectMainAccess<V extends Object, D extends ObjectData, P extends 
         if (DEBUG) {
             LOGGER.debug("Request object transfer " + daId.getDataId());
         }
-        RWAccessId rwaId = (RWAccessId) daId;
-        DataInstanceId diId = rwaId.getReadDataInstance();
+        DataInstanceId diId = ((ReadingDataAccessId) daId).getReadDataInstance();
         String sourceName = diId.getRenaming();
         if (DEBUG) {
             LOGGER.debug("Requesting getting object " + sourceName);
         }
 
         V newValue = null;
-        DataInstanceId wId = ((RWAccessId) daId).getWrittenDataInstance();
+        DataInstanceId wId = ((WritingDataAccessId) daId).getWrittenDataInstance();
         String wRename = wId.getRenaming();
 
         LogicalData ld = diId.getData();

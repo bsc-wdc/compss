@@ -20,8 +20,8 @@ import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.DataAccessId.ReadingDataAccessId;
 import es.bsc.compss.types.data.DataParams.ExternalPSCObjectData;
-import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessparams.ExternalPSCObjectAccessParams;
 
 
@@ -59,7 +59,7 @@ public class ExternalPSCObjectMainAccess
     @Override
     public String fetch(DataAccessId daId) {
         // TODO: Check if the object was already piggybacked in the task notification
-        String lastRenaming = ((RWAccessId) daId).getReadDataInstance().getRenaming();
+        String lastRenaming = ((ReadingDataAccessId) daId).getReadDataInstance().getRenaming();
         return Comm.getData(lastRenaming).getPscoId();
     }
 

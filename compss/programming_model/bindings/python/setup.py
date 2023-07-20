@@ -28,6 +28,7 @@ import os
 import re
 import sys
 import pathlib
+import platform
 from setuptools import setup, Extension
 
 GCC_DEBUG_FLAGS = [
@@ -49,7 +50,7 @@ GCC_DEBUG_FLAGS = [
     "-fstack-protector",
 ]
 
-TARGET_OS = os.environ["TARGET_OS"]
+TARGET_OS = platform.system()
 if TARGET_OS == "Linux":
     INCLUDE_JDK = os.path.join(os.environ["JAVA_HOME"], "include", "linux")
     OS_EXTRA_COMPILE_COMPSS = ["-fPIC", "-std=c++11"]

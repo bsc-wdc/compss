@@ -111,6 +111,9 @@ target/
 # Jupyter Notebook
 .ipynb_checkpoints
 
+# virtualenv
+venv/
+
 
 # ========== C & C++ ignores =================
 

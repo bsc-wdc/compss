@@ -877,7 +877,7 @@ class TaskMaster:
             )
 
         # If the parameter is a FILE then its type will already be defined,
-        # and get_compss_type will misslabel it as a parameter.TYPE.STRING
+        # and get_compss_type will mislabel it as a parameter.TYPE.STRING
         if param.is_object():
             param.content_type = get_compss_type(
                 arg_object, code_strings=code_strings
@@ -2356,7 +2356,7 @@ def _turn_into_file(
     registered in the obj_id_to_filename dictionary.
     This functions stores the object into pending_to_synchronize.
 
-    :param p: Wrapper of the object to turn into file.
+    :param param: Wrapper of the object to turn into file.
     :param name: Name of the object.
     :param skip_creation: Skips the serialization to file.
     :return: None.

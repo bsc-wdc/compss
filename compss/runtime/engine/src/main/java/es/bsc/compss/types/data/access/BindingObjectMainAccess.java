@@ -25,7 +25,6 @@ import es.bsc.compss.types.data.DataAccessId.ReadingDataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.DataParams.BindingObjectData;
 import es.bsc.compss.types.data.LogicalData;
-import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.data.accessparams.BindingObjectAccessParams;
 import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;

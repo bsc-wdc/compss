@@ -20,11 +20,11 @@ import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.scheduler.types.LocationScoreMonitor;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.types.annotations.parameter.Direction;
+import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.DataAccessId.ReadingDataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.LocationMonitor;
 import es.bsc.compss.types.data.LogicalData;
-import es.bsc.compss.types.data.accessid.RAccessId;
-import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.parameter.CollectiveParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
@@ -67,21 +67,10 @@ public class DataLocality extends SchedulingInformation {
             } else {
                 DependencyParameter dp = (DependencyParameter) p;
                 DataInstanceId dId = null;
-                switch (dp.getDirection()) {
-                    case IN:
-                    case IN_DELETE:
-                    case CONCURRENT:
-                        RAccessId raId = (RAccessId) dp.getDataAccessId();
-                        dId = raId.getReadDataInstance();
-                        break;
-                    case COMMUTATIVE:
-                    case INOUT:
-                        RWAccessId rwaId = (RWAccessId) dp.getDataAccessId();
-                        dId = rwaId.getReadDataInstance();
-                        break;
-                    case OUT:
-                        // Cannot happen because of previous if
-                        return;
+                DataAccessId access = dp.getDataAccessId();
+                if (access.isRead()) {
+                    ReadingDataAccessId raId = (ReadingDataAccessId) access;
+                    dId = raId.getReadDataInstance();
                 }
                 if (dId != null) {
                     LogicalData dataLD = dId.getData();

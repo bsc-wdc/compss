@@ -25,7 +25,6 @@ import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.DataParams.FileData;
 import es.bsc.compss.types.data.LogicalData;
-import es.bsc.compss.types.data.accessid.RAccessId;
 
 import es.bsc.compss.types.data.accessparams.FileAccessParams;
 import es.bsc.compss.types.data.location.DataLocation;
@@ -74,7 +73,7 @@ public class FileMainAccess<D extends FileData, P extends FileAccessParams<D>> e
             tgtDiId = wdaId.getWrittenDataInstance();
         } else {
             // Read only mode
-            RAccessId rdaId = (RAccessId) daId;
+            ReadingDataAccessId rdaId = (ReadingDataAccessId) daId;
             tgtDiId = rdaId.getReadDataInstance();
         }
         String targetName = tgtDiId.getRenaming();

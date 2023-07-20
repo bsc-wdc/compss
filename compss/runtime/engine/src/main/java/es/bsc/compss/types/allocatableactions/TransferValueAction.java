@@ -27,10 +27,9 @@ import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.scheduler.types.Score;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.DataAccessId.ReadingDataAccessId;
+import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
 import es.bsc.compss.types.data.LogicalData;
-import es.bsc.compss.types.data.accessid.RAccessId;
-import es.bsc.compss.types.data.accessid.RWAccessId;
-import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
@@ -122,8 +121,18 @@ public class TransferValueAction<T extends WorkerResourceDescription> extends Al
 
         Worker<? extends WorkerResourceDescription> w = getAssignedResource().getResource();
         DataAccessId access = dataToTransfer.getDataAccessId();
-        if (access instanceof WAccessId) {
-            String tgtName = ((WAccessId) access).getWrittenDataInstance().getRenaming();
+        if (access.isRead()) {
+            listener.addOperation();
+            LogicalData srcData = ((ReadingDataAccessId) access).getReadDataInstance().getData();
+            if (access.isWrite()) {
+                w.getData(srcData, dataToTransfer, listener);
+            } else {
+                // Is RWAccess
+                String tgtName = ((WritingDataAccessId) access).getWrittenDataInstance().getRenaming();
+                w.getData(srcData, tgtName, (LogicalData) null, dataToTransfer, listener);
+            }
+        } else {
+            String tgtName = ((WritingDataAccessId) access).getWrittenDataInstance().getRenaming();
             // Workaround for return objects in bindings converted to PSCOs inside tasks
             if (dataToTransfer instanceof ExternalPSCOParameter) {
                 ExternalPSCOParameter epp = (ExternalPSCOParameter) dataToTransfer;
@@ -135,16 +144,6 @@ public class TransferValueAction<T extends WorkerResourceDescription> extends Al
             }
             dataToTransfer.setDataTarget(w.getCompleteRemotePath(dataToTransfer.getType(), tgtName).getPath());
             return;
-        }
-        listener.addOperation();
-        if (access instanceof RAccessId) {
-            LogicalData srcData = ((RAccessId) access).getReadDataInstance().getData();
-            w.getData(srcData, dataToTransfer, listener);
-        } else {
-            // Is RWAccess
-            LogicalData srcData = ((RWAccessId) access).getReadDataInstance().getData();
-            String tgtName = ((RWAccessId) access).getWrittenDataInstance().getRenaming();
-            w.getData(srcData, tgtName, (LogicalData) null, dataToTransfer, listener);
         }
     }
 

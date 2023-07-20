@@ -16,15 +16,12 @@
  */
 package es.bsc.compss.checkpoint;
 
-import es.bsc.compss.checkpoint.CheckpointManager.User;
 import es.bsc.compss.checkpoint.types.CheckpointGroupImpl;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.Task;
-import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
 import es.bsc.compss.types.data.DataVersion;
-import es.bsc.compss.types.data.accessid.RWAccessId;
-import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.parameter.CollectiveParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
@@ -211,12 +208,8 @@ public abstract class CheckpointManagerImpl extends CheckpointRecord implements 
     private void registerTaskSimpleParameterInGroup(DependencyParameter dp, CheckpointGroupImpl group) {
         DataAccessId paramId = dp.getDataAccessId();
         DataVersion outDV = null;
-        if (paramId instanceof RWAccessId) {
-            outDV = ((RWAccessId) paramId).getWrittenDataVersion();
-        } else {
-            if (paramId instanceof WAccessId) {
-                outDV = ((WAccessId) paramId).getWrittenDataVersion();
-            }
+        if (paramId.isWrite()) {
+            outDV = ((WritingDataAccessId) paramId).getWrittenDataVersion();
         }
         if (outDV != null) {
             group.producesData(outDV);

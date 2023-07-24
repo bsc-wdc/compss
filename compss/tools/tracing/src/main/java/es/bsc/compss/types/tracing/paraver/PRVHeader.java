@@ -188,6 +188,7 @@ public class PRVHeader {
             cpusPerNode.add(Integer.toString(node.getNumberOfDirectSubcomponents()));
         }
 
+        int numNode = 1;
         List<String> tasksPerApp = new ArrayList();
         for (ApplicationStructure systemComponent : threadOrganization.getSubComponents()) {
 
@@ -197,11 +198,12 @@ public class PRVHeader {
             for (ApplicationStructure appComponent : app.getSubComponents()) {
                 ApplicationComposition task = (ApplicationComposition) appComponent;
                 int numThreadsPerTask = task.getNumberOfDirectSubcomponents();
-                threadsPerTask.add(numThreadsPerTask + ":" + "1");
+                threadsPerTask.add(numThreadsPerTask + ":" + numNode);
             }
             int numTasks = app.getNumberOfDirectSubcomponents();
             String taskDescription = numTasks + "(" + String.join(",", threadsPerTask) + ")";
             tasksPerApp.add(taskDescription);
+            numNode++;
         }
 
         final String nodesString = cpusPerNode.size() + "(" + String.join(",", cpusPerNode) + ")";

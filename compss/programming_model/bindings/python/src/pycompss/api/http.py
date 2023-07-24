@@ -152,6 +152,8 @@ class HTTP:  # pylint: disable=too-few-public-methods
             self.kwargs.get("payload_type", "application/json"),
             self.kwargs.get("produces", "#"),
             self.kwargs.get("updates", "#"),
+            # default value in case of failure
+            kwargs.get("defaults", {}).get("returns", "#"),
         ]
 
         if CORE_ELEMENT_KEY in kwargs:

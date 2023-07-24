@@ -37,7 +37,7 @@ public class HTTPImplementation extends Implementation {
      */
     public static HTTPImplementation generateDummy() {
         return new HTTPImplementation(null, null,
-            new ImplementationDescription<>(new HTTPDefinition("", "", "", "", "", "", ""), "", false,
+            new ImplementationDescription<>(new HTTPDefinition("", "", "", "", "", "", "", ""), "", false,
                 new HTTPResourceDescription(new ArrayList<String>(), 0), null, null));
     }
 
@@ -84,6 +84,10 @@ public class HTTPImplementation extends Implementation {
 
     public String getUpdates() {
         return getDescription().getDefinition().getUpdates();
+    }
+
+    public String getDefaultReturn() {
+        return getDescription().getDefinition().getDefReturn();
     }
 
     @Override

@@ -25,6 +25,7 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.Direction;
+import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.LogicalData;
@@ -87,7 +88,10 @@ class HTTPCaller extends RequestDispatcher<HTTPJob> {
                 processResponse(job, httpResponse);
 
             } catch (Exception e) {
-                job.failed(JobEndStatus.EXECUTION_FAILED);
+                JsonObject ret = new JsonObject();
+                HTTPImplementation httpImplementation = (HTTPImplementation) job.getImplementation();
+                ret.addProperty("$return_0", httpImplementation.getDefaultReturn());
+                job.failed(JobEndStatus.EXECUTION_FAILED, ret);
                 LOGGER.error(SUBMIT_ERROR, e);
             }
         }

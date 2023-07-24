@@ -536,7 +536,7 @@ public class ITFParser {
                 implDef = ImplementationDescription.defineImplementation(TaskType.HTTP.toString(),
                     calleeMethodSignature.toString(), false, null, prolog, epilog, dummyContainer, hAnno.serviceName(),
                     hAnno.resource(), hAnno.request(), hAnno.payload(), hAnno.payloadType(), hAnno.produces(),
-                    hAnno.updates());
+                    hAnno.updates(), hAnno.defReturn());
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }

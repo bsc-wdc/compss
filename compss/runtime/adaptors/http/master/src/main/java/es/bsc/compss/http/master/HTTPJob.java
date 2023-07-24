@@ -182,6 +182,43 @@ public class HTTPJob extends JobImpl<HTTPInstance> {
         super.failed(status);
     }
 
+    /**
+     * Actions to be done when the job execution fails.
+     *
+     * @param status end status of the job
+     * @param retValue return value as JSON object
+     */
+
+    public void failed(JobEndStatus status, JsonObject retValue) {
+        if (this.history == JobHistory.CANCELLED) {
+            LOGGER.error("Ignoring notification since the job was cancelled");
+            removeTmpData();
+            return;
+        }
+
+        switch (this.taskParams.getOnFailure()) {
+            case IGNORE:
+            case CANCEL_SUCCESSORS:
+                List<Parameter> params = this.taskParams.getParameters();
+                for (Parameter p : params) {
+                    if (p.isPotentialDependency()) {
+                        DependencyParameter dp = (DependencyParameter) p;
+                        String dataName = getOutputRename(p);
+                        if (dataName != null) {
+                            registerParameterResult(dp, dataName, retValue);
+                            notifyResultAvailability(dp, dataName);
+                        }
+                    }
+                }
+                break;
+            default:
+                // case RETRY:
+                // case FAIL:
+                removeTmpData();
+        }
+        super.failed(status);
+    }
+
     private void emptyParameterResult(DependencyParameter dp, String dataName) {
         if (dp.getType() == DataType.FILE_T) {
             try {

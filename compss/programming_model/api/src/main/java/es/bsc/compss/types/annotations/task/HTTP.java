@@ -106,4 +106,11 @@ public @interface HTTP {
      * @return the declaring class.
      */
     String declaringClass();
+
+    /**
+     * Returns the default return value in case of failures.
+     *
+     * @return default return string.
+     */
+    String defReturn() default Constants.UNASSIGNED;
 }

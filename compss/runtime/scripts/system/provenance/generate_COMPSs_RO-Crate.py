@@ -608,6 +608,27 @@ def add_file_to_crate(
         compss_crate.add_file(
             "compss_command_line_arguments.txt", properties=file_properties
         )
+
+        # ro-crate-info.yaml
+        file_properties = {}
+        file_properties["name"] = "ro-crate-info.yaml"
+        file_properties["contentSize"] = os.path.getsize("ro-crate-info.yaml")
+        file_properties["description"] = "COMPSs Workflow Provenance YAML configuration file"
+        file_properties["encodingFormat"] = [
+                "YAML",
+                {"@id": "https://www.nationalarchives.gov.uk/PRONOM/fmt/818"},
+            ]
+
+        # Add YAML as ContextEntity
+        compss_crate.add(
+            ContextEntity(
+                compss_crate,
+                "https://www.nationalarchives.gov.uk/PRONOM/fmt/818",
+                {"@type": "WebSite", "name": "YAML"},
+            )
+        )
+        compss_crate.add_file("ro-crate-info.yaml", properties=file_properties)
+
         return ""
 
     return path_in_crate
@@ -1180,6 +1201,12 @@ def main():
         persistence = False
 
     fixed_ins = []  # ins are file://host/path/file, fixed_ins are crate_path/file
+
+    # if inputs in compss_wf_info  # Dataset added by hand
+    #   if os.path.isdir() -> new_input = dir:// + resolved_dir
+    #   if os.path.isfile() -> new_input = file:// + resolved_file
+    #   ins.append(new_input)
+
     for item in ins:
         fixed_ins.append(
             add_dataset_file_to_crate(
@@ -1192,6 +1219,11 @@ def main():
     )
 
     part_time = time.time()
+
+    # if outputs in compss_wf_info  # Dataset added by hand
+    #   if os.path.isdir() -> new_output = dir:// + resolved_dir
+    #   if os.path.isfile() -> new_output = file:// + resolved_file
+    #   ins.append(new_output)
 
     fixed_outs = []
     for item in outs:

@@ -85,6 +85,7 @@
 
   compss_agent_start_service \
   --num_agents=1 \
+  --agent_name_prefix="COMPSsWorker" \
   --classpath="${base_app_dir}/${jar_name}" \
   --log_dir="${agent1_log_dir}" \
   -d \

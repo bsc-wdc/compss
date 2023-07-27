@@ -37,7 +37,7 @@ RUN apt-get update && \
 FROM base_python as base_all
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends libboost-all-dev libxml2 papi-tools openmpi-bin libopenmpi-dev libtool automake build-essential python3-pip openssh-server && \
+    apt-get install -y --no-install-recommends libboost-all-dev libxml2 papi-tools openmpi-bin libopenmpi-dev libtool automake build-essential python3-pip openssh-server jq bc && \
     pip3 install --no-cache-dir wheel dill guppy3==3.1.0 decorator \
     # here or in tutorial
     mpi4py kafka-python && \
@@ -63,7 +63,7 @@ RUN apt-get update && \
 
     #Required for compilation and tests
     apt-get install -y --no-install-recommends libxml2-dev libpapi-dev python3-setuptools python3-dev gfortran \
-    sudo jq bc firefox gnupg lsb-release libgraphviz-dev julia && \
+    sudo firefox gnupg lsb-release libgraphviz-dev julia && \
     apt-get autoclean && \
     rm -rf /var/lib/apt/lists/* && \
     pip3 --no-cache-dir install pycodestyle selenium redis==3.5.3 redis-py-cluster==2.1.3 enum34 tabulate black==22.3.0 memory-profiler && \

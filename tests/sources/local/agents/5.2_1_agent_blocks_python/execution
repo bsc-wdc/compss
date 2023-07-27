@@ -82,6 +82,7 @@
   # Starting agent
   compss_agent_start_service \
     --num_agents=2 \
+    --agent_name_prefix="COMPSsWorker" \
     --pythonpath="${base_app_dir}/src" \
     --log_dir="${log_dir}" \
     -d \

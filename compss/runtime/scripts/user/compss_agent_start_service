@@ -39,7 +39,7 @@ source "${COMPSS_HOME}Runtime/scripts/system/agents/commons.sh"
 AGENTS_SCRIPTS_HOME="${COMPSS_HOME}Runtime/scripts/user/"
 DEFAULT_NUM_AGENTS=1
 
-DEFAULT_AGENTNAME_PREFIX="COMPSsWorker"
+DEFAULT_AGENTNAME_PREFIX="127.0.0."
 DEFAULT_INITIAL_PORT=46000
 
 DEFAULT_PROJECT="${COMPSS_HOME}Runtime/configuration/xml/projects/examples/local/project.xml"
@@ -146,13 +146,16 @@ show_service_opts() {
   cat <<EOT
     --num_agents=<int>                      Number of agents deployed.
                                             Default: ${DEFAULT_NUM_AGENTS}
-
+    
     --topology=<string>                     Topology created for the agents deployed
                                             Supported topologies:
                                                 ├── plain
                                                 ├── chain
                                                 └── tree
                                             Default: ${DEFAULT_TOPOLOGY}
+
+    --agent_name_prefix=<string>            Prefix to be added to the number of the agent to create the name.
+                                            Default: ${DEFAULT_AGENTNAME_PREFIX}
 
     --log_dir=<string>                      Log directory.
                                             Default: ${DEFAULT_LOG_DIR}
@@ -216,6 +219,9 @@ get_args() {
             ;;
 
           # Invocation options
+          agent_name_prefix=*)
+            agent_name_prefix=${OPTARG//agent_name_prefix=/}
+            ;;
           array)
             add_param_to_call_operation "--array"
             ;;
@@ -293,6 +299,10 @@ check_args() {
     fatal_error "Topology not supported. Available options: tree, chain, plain (default)" 1
   fi
 
+  if [ -z "${agent_name_prefix}" ]; then
+    agent_name_prefix=${DEFAULT_AGENTNAME_PREFIX}
+  fi
+
   if [ -z "${project}" ]; then
     project=${DEFAULT_PROJECT}
   fi
@@ -335,9 +345,9 @@ compute_agent_setup() {
   agent_name=""
   # define agent name with 2 digits
   if [ "${agent_id}" -lt 10 ]; then
-    agent_name="${DEFAULT_AGENTNAME_PREFIX}0${agent_id}"
+    agent_name="${agent_name_prefix}0${agent_id}"
   else
-    agent_name="${DEFAULT_AGENTNAME_PREFIX}${agent_id}"
+    agent_name="${agent_name_prefix}${agent_id}"
   fi
 
   agent_log="${log_dir}/${agent_name}"

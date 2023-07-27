@@ -54,7 +54,12 @@ ENV LD_LIBRARY_PATH /opt/COMPSs/Bindings/bindings-common/lib:$LD_LIBRARY_PATH
 ENV COMPSS_HOME=/opt/COMPSs/
 ENV PYTHONPATH=$COMPSS_HOME/Bindings/python/3:$PYTHONPATH
 
-RUN python3 -m pip install --no-cache-dir dislib
+RUN python3 -m pip install --no-cache-dir dislib && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends jq bc && \
+    apt-get autoclean && \
+    rm -rf /var/lib/apt/lists/*
+
 
 EXPOSE 22
 EXPOSE 43000-44000

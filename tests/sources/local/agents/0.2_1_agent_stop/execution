@@ -54,6 +54,7 @@ test1_log_dir="${log_dir}/test1"
 
 compss_agent_start_service \
   --num_agents=1 \
+  --agent_name_prefix="COMPSsWorker" \
   --classpath="${base_app_dir}/${jar_name}" \
   --log_dir="${test1_log_dir}" \
   -d \
@@ -92,6 +93,7 @@ agent2_log_dir="${log_dir}/test2"
 
 compss_agent_start_service \
   --num_agents=1 \
+  --agent_name_prefix="COMPSsWorker" \
   --classpath="${base_app_dir}/${jar_name}" \
   --log_dir=${agent2_log_dir} \
   -d \
@@ -117,6 +119,7 @@ test3_log_dir="${log_dir}/test3"
 
 compss_agent_start_service \
   --num_agents=3 \
+  --agent_name_prefix="COMPSsWorker" \
   --classpath="${base_app_dir}/${jar_name}" \
   --log_dir="${test3_log_dir}" \
   -d \
@@ -146,6 +149,7 @@ test4_log_dir="${log_dir}/test4"
 
 compss_agent_start_service \
   --num_agents=1 \
+  --agent_name_prefix="COMPSsWorker" \
   --classpath="${base_app_dir}/${jar_name}" \
   --log_dir=${test4_log_dir} \
   -d \

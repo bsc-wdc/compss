@@ -44,6 +44,7 @@ touch "${error_log}"
 agent1_log_dir="${log_dir}/COMPSsWorker01/"
 mkdir -p "${agent1_log_dir}" 
 compss_agent_start_service \
+  --agent_name_prefix="COMPSsWorker" \
   --classpath="${base_app_dir}/${jar_name}" \
   --log_dir="${log_dir}" \
   --rest_port="46101" \

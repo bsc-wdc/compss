@@ -86,16 +86,12 @@ import es.bsc.compss.utils.execution.ThreadedPrintStream;
 import es.bsc.compss.worker.COMPSsException;
 import es.bsc.distrostreamlib.server.types.StreamBackend;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -894,16 +890,21 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     public void generateDebugFiles(Connection c) {
 
         Set<String> logFilesPaths;
-        try {
-            // Tries to generate a tar.gz file with the contents of the analysis folder.
-            final String tarTargetPath = this.getWorkingDir() + File.separator + "debug.tar.gz";
-            logFilesPaths = generatePackageFromFolder(this.getLogDir(), tarTargetPath);
-        } catch (Exception e) {
-            // If it runs out of space to do the tar.gz package sends the paths to the files
-            WORKER_LOGGER.warn("Something failed while generatin tar.gz package with the contents of the debug folder.",
-                e);
-            logFilesPaths = getFilesPathFromFolder(this.getLogDir());
-        }
+        // Ideally the transfer should bea single compressed file
+        // following comented code was a try at that but was not working properly
+
+        // try {
+        // // Tries to generate a tar.gz file with the contents of the analysis folder.
+        // final String tarTargetPath = this.getWorkingDir() + File.separator + "debug.tar.gz";
+        // logFilesPaths = generatePackageFromFolder(this.getLogDir(), tarTargetPath);
+        // } catch (Exception e) {
+        // // If it runs out of space to do the tar.gz package sends the paths to the files
+        // WORKER_LOGGER.warn("Something failed while generatin tar.gz package with the contents of the debug folder.",
+        // e);
+        // logFilesPaths = getFilesPathFromFolder(this.getLogDir());
+        // }
+
+        logFilesPaths = getFilesPathFromFolder(this.getLogDir());
 
         c.sendCommand(new CommandGenerateDebugFilesDone(logFilesPaths));
         c.finishConnection();
@@ -914,16 +915,22 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
         generateTracingFiles();
         Set<String> analysisFilesPaths;
-        try {
-            // Tries to generate a tar.gz file with the contents of the analysis folder.
-            final String tarTargetPath = this.getWorkingDir() + File.separator + "analysis.tar.gz";
-            analysisFilesPaths = generatePackageFromFolder(this.getAnalysisDir(), tarTargetPath);
-        } catch (Exception e) {
-            // If it runs out of space to do the tar.gz package sends the paths to the files
-            WORKER_LOGGER
-                .warn("Something failed while generatin tar.gz package with the contents of the analysis folder.", e);
-            analysisFilesPaths = getFilesPathFromFolder(this.getAnalysisDir());
-        }
+
+        // Ideally the transfer should bea single compressed file
+        // following comented code was a try at that but was not working properly
+
+        // try {
+        // // Tries to generate a tar.gz file with the contents of the analysis folder.
+        // final String tarTargetPath = this.getWorkingDir() + File.separator + "analysis.tar.gz";
+        // analysisFilesPaths = generatePackageFromFolder(this.getAnalysisDir(), tarTargetPath);
+        // } catch (Exception e) {
+        // // If it runs out of space to do the tar.gz package sends the paths to the files
+        // WORKER_LOGGER
+        // .warn("Something failed while generatin tar.gz package with the contents of the analysis folder.", e);
+        // analysisFilesPaths = getFilesPathFromFolder(this.getAnalysisDir());
+        // }
+
+        analysisFilesPaths = getFilesPathFromFolder(this.getAnalysisDir());
 
         c.sendCommand(new CommandGenerateAnalysisFilesDone(analysisFilesPaths));
         c.finishConnection();

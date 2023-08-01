@@ -26,20 +26,25 @@ DEFAULT_JACOCO=true
 DEFAULT_CLI=true
 DEFAULT_USER=false
 DEFAULT_TARGET_DIR=/opt/COMPSs
+DEFAULT_TESTS=true
 DEFAULT_MVN_TESTS=""
 MVN_SKIP_TESTS_OPT="-Dmaven.test.skip=true"
-DEFAULT_PYTHON_TESTS=true
+DEFAULT_PYCOMPSS_COMPILATION=true
+DEFAULT_PYTHON_STYLE=true
 
 INCORRECT_PARAMETER="Error: No such parameter"
 NO_MONITOR="Warning: No monitor specified. Loading default value"
 NO_BINDINGS="Warning: No bindings specified. Loading default value"
-NO_PYCOMPSS="Warning: No pycompss specified. Loading default value"
+NO_PYCOMPSS="Warning: No PyCOMPSs specified. Loading default value"
 NO_TRACING="Warning: No tracing specified. Loading default value"
 NO_KAFKA="Warning: No Kafka module specified. Loading default value"
 NO_JACOCO="Warning: No jacoco module specified. Loading default value"
 NO_DLB="Warning: No dlb module specified. Loading default value"
 NO_CLI="Warning: No CLI module specified. Loading default value"
 NO_TARGET_DIR="Warning: No install directory specified. Loading default location"
+NO_TESTS="Warning: No Testing specified. Loading default value"
+NO_PYCOMPSS_COMPILATION="Warning: No PyCOMPSs compilation specified. Loading default value"
+NO_PYTHON_STYLE="Warning: No Python style check specified. Loading default value"
 
 
 #---------------------------------------------------
@@ -94,6 +99,14 @@ show_opts() {
     --no-cli, -C                Disable Command Line Interface module installation
                                 Default: ${DEFAULT_CLI}
 
+    --pycompss-compile, -x      Enable PyCOMPSs compilation with MyPy check
+    --no-pycompss-compile, -X   Disable PyCOMPSs compilation with MyPy check
+                                Default: ${DEFAULT_PYCOMPSS_COMPILATION}
+
+    --python-style, -s          Enable Python style check
+    --no-python-style, -S       Disable Python style check
+                                Default: ${DEFAULT_PYTHON_STYLE}
+
     --nothing, -N               Disable all previous options
                                 Default: unused
 
@@ -101,8 +114,8 @@ show_opts() {
                                 When used the maven install is not cleaned.
                                 Default: ${DEFAULT_USER}
 
-    --skip-tests                Disables MVN unit tests
-                                Default: ${DEFAULT_MVN_TESTS}
+    --skip-tests                Disables MVN and Python unit tests
+                                Default: ${DEFAULT_TESTS}
 
 * Parameters:
     targetDir                   COMPSs installation directory
@@ -144,7 +157,7 @@ display_error() {
 
 get_args() {
   # Parse COMPSs Options
-  while getopts hvmMbBpPtTkKjJdDcCN-: flag; do
+  while getopts hvmMbBpPtTkKjJdDcCNxXsS-: flag; do
     # Treat the argument
     case "$flag" in
       h)
@@ -222,6 +235,22 @@ get_args() {
         # Custom CLI value
         cli=false
         ;;
+      x)
+        # Custom PyCOMPSs compilation value
+        pycompss_compile=true
+        ;;
+      X)
+        # Custom PyCOMPSs compilation value
+        pycompss_compile=false
+        ;;
+      s)
+        # Custom Python style value
+        python_style=true
+        ;;
+      S)
+        # Custom Python style value
+        python_style=false
+        ;;
       N)
         # Disables all flags
         tracing=false
@@ -232,6 +261,8 @@ get_args() {
         jacoco=false
         cli=false
         dlb=false
+        pycompss_compile=false
+        python_style=false
         ;;
       -)
         # Check more complex arguments
@@ -316,6 +347,22 @@ get_args() {
             # Custom CLI value
             cli=false
             ;;
+          pycompss-compile)
+            # Custom PyCOMPSs compilation value
+            pycompss_compile=true
+            ;;
+          no-pycompss-compile)
+            # Custom PyCOMPSs compilation value
+            pycompss_compile=false
+            ;;
+          python-style)
+            # Custom Python style value
+            python_style=true
+            ;;
+          no-python-style)
+            # Custom Python style value
+            python_style=false
+            ;;
           nothing)
             # Disables all flags
             tracing=false
@@ -326,15 +373,17 @@ get_args() {
             jacoco=false
             cli=false
             dlb=false
+            pycompss_compile=false
+            python_style=false
             ;;
           user-exec=*)
             # Enables specific user mvn execution
             user_exec=${OPTARG//user-exec=/}
             ;;
           skip-tests)
-            # Disable mvn unit tests
+            # Disable mvn and python unit tests
+            unittests=false
             mvnTests=${MVN_SKIP_TESTS_OPT}
-            pythonTests=false
             ;;
           *)
             # Flag didn't match any patern. End of COMPSs flags
@@ -413,8 +462,20 @@ check_args() {
     mvnTests=${DEFAULT_MVN_TESTS}
   fi
 
-  if [ -z "${pythonTests}" ]; then
-    pythonTests=${DEFAULT_PYTHON_TESTS}
+  if [ -z "${unittests}" ]; then
+    display_warning "${NO_TESTS}"
+    unittests=${DEFAULT_TESTS}
+    mvnTests=${MVN_SKIP_TESTS_OPT}
+  fi
+
+  if [ -z "${pycompss_compile}" ]; then
+    display_warning "${NO_PYCOMPSS_COMPILATION}"
+    pycompss_compile=${DEFAULT_PYCOMPSS_COMPILATION}
+  fi
+
+  if [ -z "${python_style}" ]; then
+    display_warning "${NO_PYTHON_STYLE}"
+    python_style=${DEFAULT_PYTHON_STYLE}
   fi
 
   if [ -z "$targetDir" ]; then
@@ -431,17 +492,20 @@ warn_and_log_parameters() {
   echo "    !! Remember to export JAVA_HOME on root"
   sleep 5
 
-  echo "- Target DIR     = ${targetDir}"
-  echo "- Monitor        = ${monitor}"
-  echo "- Bindings       = ${bindings}"
-  echo "- PyCOMPSs       = ${pycompss}"
-  echo "- Tracing        = ${tracing}"
-  echo "- Stream Backend = ${kafka}"
-  echo "- CLI            = ${cli}"
-  echo "- DLB            = ${dlb}"
-  echo "- SCRIPT_DIR     = ${SCRIPT_DIR}"
-  echo "- SOURCES DIR    = ${SOURCES_DIR}"
-  echo "- TMP_DIR        = ${TMP_DIR}"
+  echo "- Target DIR       = ${targetDir}"
+  echo "- Monitor          = ${monitor}"
+  echo "- Bindings         = ${bindings}"
+  echo "- PyCOMPSs         = ${pycompss}"
+  echo "- Tracing          = ${tracing}"
+  echo "- Stream Backend   = ${kafka}"
+  echo "- CLI              = ${cli}"
+  echo "- DLB              = ${dlb}"
+  echo "- Unit tests       = ${unittests}"
+  echo "- PyCOMPSs compile = ${pycompss_compile}"
+  echo "- Python style     = ${python_style}"
+  echo "- SCRIPT_DIR       = ${SCRIPT_DIR}"
+  echo "- SOURCES DIR      = ${SOURCES_DIR}"
+  echo "- TMP_DIR          = ${TMP_DIR}"
   sleep 5
 }
 
@@ -509,56 +573,61 @@ install_compss() {
 
   # CHECKING pycodestyle IN BINDING - only if 'pycodestyle' is available (MUST be in the test infrastructure)
   if [ "${pycompss}" == "true" ]; then
-    echo "- Checking pycodestyle in Python Binding"
-    if command_exists "pycodestyle" ; then
-      cd "${SOURCES_DIR}/compss/programming_model/bindings/python/scripts/style"
-      env $PATH=PATH ./check_code.sh
-      ev=$?
-      if [ $ev -ne 0 ]; then
-        echo "ERROR: Python binding pycodestyle errors. Please, fix them and reinstall."
+    if [ "${python_style}" == "true" ]; then
+      echo "- Checking pycodestyle in Python Binding"
+      if command_exists "pycodestyle" ; then
+        cd "${SOURCES_DIR}/compss/programming_model/bindings/python/scripts/style"
+        env $PATH=PATH ./check_code.sh
+        ev=$?
+        if [ $ev -ne 0 ]; then
+          echo "ERROR: Python binding pycodestyle errors. Please, fix them and reinstall."
+          cd "${SCRIPT_DIR}"
+          exit 1
+        fi
+        echo "  - Python Binding format is OK."
         cd "${SCRIPT_DIR}"
+      else
+        echo "WARNING: Could not check pycodestyle format of Python Binding (pycodestyle not installed)."
         exit 1
       fi
-      echo "  - Python Binding format is OK."
-      cd "${SCRIPT_DIR}"
-    else
-      echo "WARNING: Could not check pycodestyle format of Python Binding (pycodestyle not installed)."
-    fi
-
-    echo "- Checking pydocstyle in Python Binding"
-    if command_exists "pydocstyle" ; then
-      cd "${SOURCES_DIR}/compss/programming_model/bindings/python/scripts/style"
-      env $PATH=PATH ./check_documentation.sh
-      ev=$?
-      if [ $ev -ne 0 ]; then
-        echo "ERROR: Python binding pydocstyle errors. Please, fix them and reinstall."
+      echo "- Checking pydocstyle in Python Binding"
+      if command_exists "pydocstyle" ; then
+        cd "${SOURCES_DIR}/compss/programming_model/bindings/python/scripts/style"
+        env $PATH=PATH ./check_documentation.sh
+        ev=$?
+        if [ $ev -ne 0 ]; then
+          echo "ERROR: Python binding pydocstyle errors. Please, fix them and reinstall."
+          cd "${SCRIPT_DIR}"
+          exit 1
+        fi
+        echo "  - Python Binding code documentation is OK."
         cd "${SCRIPT_DIR}"
+      else
+        echo "WARNING: Could not check pydocstyle format of Python Binding (pydocstyle not installed)."
         exit 1
       fi
-      echo "  - Python Binding code documentation is OK."
-      cd "${SCRIPT_DIR}"
-    else
-      echo "WARNING: Could not check pydocstyle format of Python Binding (pydocstyle not installed)."
-    fi
-
-    echo "- Checking Black in Python Binding"
-    if command_exists "black" ; then
-      cd "${SOURCES_DIR}/compss/programming_model/bindings/python/scripts/style"
-      env $PATH=PATH ./check_black.sh
-      ev=$?
-      if [ $ev -ne 0 ]; then
-        echo "ERROR: Python binding Black errors. Please, fix them and reinstall."
+      echo "- Checking Black in Python Binding"
+      if command_exists "black" ; then
+        cd "${SOURCES_DIR}/compss/programming_model/bindings/python/scripts/style"
+        env $PATH=PATH ./check_black.sh
+        ev=$?
+        if [ $ev -ne 0 ]; then
+          echo "ERROR: Python binding Black errors. Please, fix them and reinstall."
+          cd "${SCRIPT_DIR}"
+          exit 1
+        fi
+        echo "  - Python Binding Black format is OK."
         cd "${SCRIPT_DIR}"
+      else
+        echo "WARNING: Could not check Black format of Python Binding (black not installed)."
         exit 1
       fi
-      echo "  - Python Binding Black format is OK."
-      cd "${SCRIPT_DIR}"
     else
-      echo "WARNING: Could not check Black format of Python Binding (black not installed)."
+      echo "SKIP: Skipping Python style check."
     fi
 
     # Run unittests
-    if [ "${pythonTests}" == "true" ]; then
+    if [ "${unittests}" == "true" ]; then
       echo " - Run Python Binding Unittests"
       # These tests do not need to be installed
       cd "${SOURCES_DIR}/compss/programming_model/bindings/python/scripts/test"
@@ -571,32 +640,40 @@ install_compss() {
       fi
       echo "  - Python Binding unittests is OK."
       cd "${SCRIPT_DIR}"
+    else
+      echo "SKIP: Skipping PyCOMPSs binding unittests."
     fi
 
-    echo "- Checking mypy in Python Binding"
-    specific_python_command="python3"
-    specific_python_command_complete_version=$(${specific_python_command} -V 2>&1)
-    specific_python_collapsed_version=$(echo "${specific_python_command_complete_version}" | cut -d ' ' -f 2 | cut -d '.' -f 1,2 | sed -e 's/\.//g')
-    if [ "${specific_python_collapsed_version}" -ge "38" ]; then
-      if command_exists "mypy" ; then
-        cd "${SOURCES_DIR}/compss/programming_model/bindings/python/scripts/compilation"
-        env $PATH=PATH ./check.sh
-        ev=$?
-        if [ $ev -ne 0 ]; then
-          echo "ERROR: Python binding mypy errors. Please, fix them and reinstall."
+    if [ "${pycompss_compile}" == "true" ]; then
+      echo "- Checking mypy in Python Binding"
+      specific_python_command="python3"
+      specific_python_command_complete_version=$(${specific_python_command} -V 2>&1)
+      specific_python_collapsed_version=$(echo "${specific_python_command_complete_version}" | cut -d ' ' -f 2 | cut -d '.' -f 1,2 | sed -e 's/\.//g')
+      if [ "${specific_python_collapsed_version}" -ge "38" ]; then
+        if command_exists "mypy" ; then
+          cd "${SOURCES_DIR}/compss/programming_model/bindings/python/scripts/compilation"
+          env $PATH=PATH ./check.sh
+          ev=$?
+          if [ $ev -ne 0 ]; then
+            echo "ERROR: Python binding mypy errors. Please, fix them and reinstall."
+            cd "${SCRIPT_DIR}"
+            exit 1
+          fi
+          echo "  - Python Binding typing is OK."
           cd "${SCRIPT_DIR}"
+        else
+          echo "WARNING: Could not check typing of Python Binding (mypy not installed)."
           exit 1
         fi
-        echo "  - Python Binding typing is OK."
-        cd "${SCRIPT_DIR}"
       else
-        echo "WARNING: Could not check typing of Python Binding (mypy not installed)."
+        echo "WARNING: Could not check typing of Python Binding (Python version required > 3.8)."
+        exit 1
       fi
     else
-      echo "WARNING: Could not check typing of Python Binding (Python version required > 3.8)."
+      echo "SKIP: Skipping PyCOMPSs binding compilation with mypy."
     fi
   fi
-  
+
   # COPY TRUNK
   echo "- Copy trunk to tmpdir"
   rm -rf "${TMP_DIR}"
@@ -754,7 +831,7 @@ install_compss() {
   # Checkpointer
   echo "--- Copy checkpointers policies"
   find "${TMP_DIR}/compss/runtime/checkpointer/" -name "*.jar" -exec cp {} ${targetDir}/Runtime/checkpointer/ \;
-  
+
   # Schedulers
   echo "--- Copy schedulers"
   rm -r "${TMP_DIR}/compss/runtime/scheduler/commons"

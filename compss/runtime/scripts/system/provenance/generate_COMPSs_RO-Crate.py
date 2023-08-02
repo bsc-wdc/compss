@@ -192,7 +192,7 @@ def get_main_entities(wf_info: dict) -> typing.Tuple[str, str, str]:
                 continue
             resolved_sources = str(path_sources.resolve())
             # print(f"resolved_sources is: {resolved_sources}")
-            for root, _, files in os.walk(resolved_sources, topdown=True):
+            for root, _, files in os.walk(resolved_sources, topdown=True, followlinks=True):
                 if "__pycache__" in root:
                     continue  # We skip __pycache__ subdirectories
                 for f_name in files:
@@ -669,7 +669,7 @@ def add_application_source_files(
             if not path_sources.exists():
                 continue
             resolved_sources = str(path_sources.resolve())
-            for root, _, files in os.walk(resolved_sources, topdown=True):
+            for root, dirs, files in os.walk(resolved_sources, topdown=True, followlinks=True):
                 if "__pycache__" in root:
                     continue  # We skip __pycache__ subdirectories
                 for f_name in files:
@@ -685,6 +685,19 @@ def add_application_source_files(
                         )
                     )
                     added_files.append(resolved_file)
+                for dir_name in dirs:  # Check if it's an empty directory, needs to be added by hand
+                    full_dir_name = os.path.join(root, dir_name)
+                    if not os.listdir(full_dir_name):
+                        print(f"PROVENANCE DEBUG | Adding an empty directory. root ({root}), full_dir_name ({full_dir_name}), resolved_sources ({resolved_sources})")
+                        dir_properties = {
+                            "name": dir_name,
+                            "sdDatePublished": iso_now(),
+                            "dateModified": dt.datetime.utcfromtimestamp(os.path.getmtime(full_dir_name))
+                            .replace(microsecond=0)
+                            .isoformat(),  # Schema.org
+                        }  # Register when the Data Entity was last accessible
+                        path_in_crate = "application_sources/" + os.path.basename(resolved_sources) + "/" + full_dir_name[len(resolved_sources):]  # Remove resolved_sources from full_dir_name, adding basename
+                        compss_crate.add_dataset(source=full_dir_name, dest_path=path_in_crate, properties=dir_properties)
 
     if "files" in compss_wf_info:
         files_list = []
@@ -812,19 +825,13 @@ def add_dataset_file_to_crate(
         # For directories, describe all files inside the directory
         has_part_list = []
         for root, dirs, files in os.walk(
-            url_parts.path, topdown=True
+            url_parts.path, topdown=True, followlinks=True
         ):  # Ignore references to sub-directories (they are not a specific in or out of the workflow),
             # but not their files
             dirs.sort()
             files.sort()
             for f_name in files:
                 listed_file = os.path.join(root, f_name)
-                if persist:
-                    filtered_url = listed_file[len(url_parts.path) :]
-                    dir_f_url = "dataset/" + final_item_name + filtered_url
-                else:
-                    dir_f_url = "file://" + url_parts.netloc + listed_file
-                has_part_list.append({"@id": dir_f_url})
                 dir_f_properties = {
                     "name": f_name,
                     "sdDatePublished": iso_now(),  # Register when the Data Entity was last accessible
@@ -837,6 +844,8 @@ def add_dataset_file_to_crate(
                     "contentSize": os.path.getsize(listed_file),
                 }
                 if persist:
+                    filtered_url = listed_file[len(url_parts.path) :]
+                    dir_f_url = "dataset/" + final_item_name + filtered_url
                     # print(f"PROVENANCE DEBUG | Adding DATASET FILE {listed_file} as {dir_f_url}")
                     compss_crate.add_file(
                         source=listed_file,
@@ -847,6 +856,7 @@ def add_dataset_file_to_crate(
                         properties=dir_f_properties,
                     )
                 else:
+                    dir_f_url = "file://" + url_parts.netloc + listed_file
                     compss_crate.add_file(
                         dir_f_url,
                         fetch_remote=False,
@@ -854,6 +864,28 @@ def add_dataset_file_to_crate(
                         # True fails at MN4 when file URI points to a node hostname (only localhost works)
                         properties=dir_f_properties,
                     )
+                has_part_list.append({"@id": dir_f_url})
+
+            for dir_name in dirs:  # Check if it's an empty directory, needs to be added by hand
+                full_dir_name = os.path.join(root, dir_name)
+                if not os.listdir(full_dir_name):
+                    print(f"PROVENANCE DEBUG | Adding an empty directory in data persistence. root ({root}), full_dir_name ({full_dir_name})")
+                    dir_properties = {
+                        "name": dir_name,
+                        "sdDatePublished": iso_now(),
+                        "dateModified": dt.datetime.utcfromtimestamp(os.path.getmtime(full_dir_name))
+                        .replace(microsecond=0)
+                        .isoformat(),  # Schema.org
+                    }  # Register when the Data Entity was last accessible
+                    if persist:
+                        path_final_part = full_dir_name[len(url_parts.path):]
+                        dir_f_url = "dataset/" + final_item_name + path_final_part + "/"
+                        compss_crate.add_dataset(source=full_dir_name, dest_path=dir_f_url, properties=dir_properties)
+                    else:
+                        dir_f_url = "file://" + url_parts.netloc + full_dir_name + "/"  # Directories must finish with slash
+                        compss_crate.add_dataset(source=dir_f_url, properties=dir_properties)
+                    has_part_list.append({"@id": dir_f_url})
+
         file_properties["hasPart"] = has_part_list
         if persist:
             dataset_path = url_parts.path + "/"

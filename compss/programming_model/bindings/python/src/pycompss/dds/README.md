@@ -32,7 +32,7 @@ Please feel free to suggest more methods!
 
 
 ### Examples
-Please see 'examples.py' and 'doctests' from 'dds.py'.
+Please see 'examples' and 'doctests' from 'dds.py'.
 
 
 Copyright 2018 [Barcelona Supercomputing Center](www.bsc.es)

@@ -28,10 +28,11 @@ import bisect
 import itertools
 import functools
 import os
-from collections import deque, defaultdict
+from collections import defaultdict
+from collections import deque
 
-from pycompss.api.api import compss_wait_on as cwo
-from pycompss.api.api import compss_delete_object as cdo
+from pycompss.api.api import compss_wait_on
+from pycompss.api.api import compss_delete_object
 from pycompss.api.api import compss_barrier
 from pycompss.dds.partition_generators import IPartitionGenerator
 from pycompss.dds.partition_generators import BasicDataLoader
@@ -372,7 +373,7 @@ class DDS:
                 branch.append(temp)
 
             if len(branch) == 1:
-                branch = cwo(branch[0])
+                branch = compss_wait_on(branch[0])
                 break
 
             temp = reduce_multiple(func, branch)
@@ -446,7 +447,7 @@ class DDS:
         if as_dict:
             if as_fo:
                 return branch[0]
-            branch[0] = cwo(branch[0])
+            branch[0] = compss_wait_on(branch[0])
             return dict(branch[0])
 
         length = self.num_of_partitions()
@@ -542,7 +543,7 @@ class DDS:
         if future_objects:
             return processed
 
-        processed = cwo(processed)
+        processed = compss_wait_on(processed)
 
         ret = []
         if not keep_partitions:
@@ -564,7 +565,7 @@ class DDS:
         if self.paac:
             for i, _p in enumerate(self.partitions):
                 map_and_save_text_file(self.func, i, path, None, _p)
-                cdo(_p)
+                compss_delete_object(_p)
         else:
             for i, _p in enumerate(self.partitions):
                 map_and_save_text_file(self.func, i, path, _p)
@@ -660,7 +661,7 @@ class DDS:
                     distribute_partition(
                         col, self.func, partitioner_func, None, collection
                     )
-                cdo(collection)
+                compss_delete_object(collection)
                 for _i in range(nop):
                     grouped[_i].append(col[_i])
         else:
@@ -863,7 +864,7 @@ class DDS:
         for _part in col_parts:
             samples.append(task_collect_samples(_part, 20, key_func))
 
-        samples = sorted(list(itertools.chain.from_iterable(cwo(samples))))
+        samples = sorted(list(itertools.chain.from_iterable(compss_wait_on(samples))))
 
         bounds = [
             samples[int(len(samples) * (i + 1) / num_of_parts)]
@@ -953,7 +954,7 @@ class DDS:
         taken = 0
 
         for part in partitions:
-            _p = iter(cwo(part))
+            _p = iter(compss_wait_on(part))
             while taken < num:
                 try:
                     items.append(next(_p))

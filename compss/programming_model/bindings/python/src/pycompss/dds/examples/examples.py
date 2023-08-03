@@ -31,7 +31,7 @@ from collections import deque
 from collections import defaultdict
 import numpy as np
 
-from pycompss.api.api import compss_wait_on as cwo
+from pycompss.api.api import compss_wait_on
 from pycompss.dds import DDS
 from pycompss.dds.example_tasks import cluster_points_partial
 from pycompss.dds.example_tasks import partial_sum
@@ -217,14 +217,14 @@ def wordcount_k_means(dim=742):
             for f in range(frags)
         ]
         mu = merge_reduce(reduce_centers, partial_result)
-        mu = cwo(mu)
+        mu = compss_wait_on(mu)
         mu = [mu[c][1] / mu[c][0] for c in mu]
         while len(mu) < k:
             # Add a new random center if one of the centers has no points.
             mu.append(np.random.randint(1, 3, dim))
         n += 1
 
-    clusters_with_frag = cwo(clusters)
+    clusters_with_frag = compss_wait_on(clusters)
     cluster_sets = defaultdict(list)
 
     for _d in clusters_with_frag:
@@ -239,7 +239,7 @@ def wordcount_k_means(dim=742):
         for fayl in clus:
             sims_per_file[fayl] = get_similar_files(fayl, clus)
 
-    sims_per_file = cwo(sims_per_file)
+    sims_per_file = compss_wait_on(sims_per_file)
 
     for k in list(sims_per_file.keys())[:10]:
         print(k, "-----------sims --------->", sims_per_file[k][:5])

@@ -31,7 +31,7 @@ import sys
 from pycompss.util.exceptions import DDSException
 
 
-class IPartitionGenerator:
+class IPartitionGenerator:  # pylint: disable=too-few-public-methods
     """Everyone implements this."""
 
     def retrieve_data(self):
@@ -42,7 +42,7 @@ class IPartitionGenerator:
         raise NotImplementedError
 
 
-class BasicDataLoader(IPartitionGenerator):
+class BasicDataLoader(IPartitionGenerator):  # pylint: disable=R0903
     """Basic data loader."""
 
     def __init__(self, data):
@@ -67,7 +67,7 @@ class BasicDataLoader(IPartitionGenerator):
         return ret
 
 
-class IteratorLoader(IPartitionGenerator):
+class IteratorLoader(IPartitionGenerator):  # pylint: disable=R0903
     """Iterator Loader."""
 
     def __init__(self, iterable, start, end):
@@ -110,7 +110,7 @@ class IteratorLoader(IPartitionGenerator):
         return ret
 
 
-class WorkerFileLoader(IPartitionGenerator):
+class WorkerFileLoader(IPartitionGenerator):  # pylint: disable=R0903
     """Worker file loader."""
 
     def __init__(
@@ -139,21 +139,22 @@ class WorkerFileLoader(IPartitionGenerator):
         :returns: Data.
         """
         if self.single_file:
-            with open(self.file_paths[0]) as file_paths_fd:
+            file_path = self.file_paths[0]
+            with open(file_path) as file_paths_fd:  # pylint: disable=W1514
                 file_paths_fd.seek(self.start)
                 temp = file_paths_fd.read(self.chunk_size)
             return [temp]
 
         ret = []
         for file_path in self.file_paths:
-            with open(file_path) as file_path_fd:
+            with open(file_path) as file_path_fd:  # pylint: disable=W1514
                 content = file_path_fd.read()
             ret.append((file_path, content))
 
         return ret
 
 
-class PickleLoader(IPartitionGenerator):
+class PickleLoader(IPartitionGenerator):  # pylint: disable=R0903
     """Pickle loader."""
 
     def __init__(self, pickle_path):
@@ -184,7 +185,7 @@ def read_in_chunks(file_name, chunk_size=1024, strip=True):
     :returns: Next partition.
     """
     partition = []
-    with open(file_name) as file_name_fd:
+    with open(file_name) as file_name_fd:  # pylint: disable=W1514
         collected = 0
         for line in file_name_fd:
             _line = line.rstrip("\n") if strip else line
@@ -208,7 +209,7 @@ def read_lines(file_name, num_of_lines=1024, strip=True):
     :returns: Next partition.
     """
     partition = []
-    with open(file_name) as file_name_fd:
+    with open(file_name) as file_name_fd:  # pylint: disable=W1514
         collected = 0
         for line in file_name_fd:
             _line = line.rstrip("\n") if strip else line

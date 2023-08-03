@@ -23,8 +23,6 @@ PyCOMPSs DDS - Utils.
 This file contains the DDS interface utilities.
 """
 
-import os
-
 
 def default_hash(obj):
     """Get the hash of the given object.

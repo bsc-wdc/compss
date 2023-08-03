@@ -44,7 +44,7 @@ def map_partition(func, partition, collection=None):
     :param collection: Partition when partition is a collection.
     :return: The transformed partition.
     """
-    partition = partition or collection or list()
+    partition = partition or collection or []
     if isinstance(partition, IPartitionGenerator):
         partition = partition.retrieve_data()
 
@@ -70,7 +70,7 @@ def distribute_partition(
     :param collection: If the partition is a collection of future objects.
     :return: Fill the empty 'buckets' with the elements of the partition.
     """
-    partition = partition or collection or list()
+    partition = partition or collection or []
 
     if isinstance(partition, IPartitionGenerator):
         partition = partition.retrieve_data()
@@ -78,8 +78,8 @@ def distribute_partition(
     partition = func(partition) if func else partition
 
     nop = len(col)
-    for k, v in partition:
-        col[partitioner_func(k) % nop].append((k, v))
+    for key, value in partition:
+        col[partitioner_func(key) % nop].append((key, value))
 
 
 @task(first=INOUT, rest={Type: COLLECTION_IN, Depth: 1})
@@ -108,7 +108,7 @@ def task_dict_to_list(iterator, total_parts, partition_num):
     :param partition_num: Number of partitions.
     :return: List of (key, value) pairs
     """
-    ret = list()
+    ret = []
     sorted_keys = sorted(iterator.keys())
     total = len(sorted_keys)
     chunk_size = max(1, total / total_parts)
@@ -126,10 +126,10 @@ def task_dict_to_list(iterator, total_parts, partition_num):
 
 
 @task(returns=1, parts={Type: COLLECTION_IN, Depth: 1})
-def reduce_multiple(f, parts):
+def reduce_multiple(function, parts):
     """Reduce multiple.
 
-    :param f: Reducing function.
+    :param function: Reducing function.
     :param parts: List of elements.
     :returns: Reduction result.
     """
@@ -137,11 +137,11 @@ def reduce_multiple(f, parts):
     try:
         res = next(partitions)[0]
     except StopIteration:
-        return
+        return None
 
     for part in partitions:
         if part:
-            res = f(res, part[0])
+            res = function(res, part[0])
 
     return [res]
 
@@ -155,7 +155,7 @@ def task_collect_samples(partition, num_of_samples, key_func):
     :param key_func: Key function.
     :return: Collected samples.
     """
-    ret = list()
+    ret = []
     total = len(partition)
     step = max(total // num_of_samples, 1)
     for _i in range(0, total, step):
@@ -178,7 +178,7 @@ def map_and_save_text_file(func, index, path, partition, collection=None):
     :param collection: Is collection?
     :return: No return value skips the serialization phase.
     """
-    partition = partition or collection or list()
+    partition = partition or collection or []
 
     if isinstance(partition, IPartitionGenerator):
         partition = partition.retrieve_data()
@@ -186,7 +186,7 @@ def map_and_save_text_file(func, index, path, partition, collection=None):
     partition = func(partition) if func else partition
 
     file_name = os.path.join(path, str(index).zfill(FILE_NAME_LENGTH))
-    with open(file_name, "w") as _:
+    with open(file_name, "w") as _:  # pylint: disable=W1514
         for item in partition:
             _.write("\n".join([str(item)]))
 
@@ -205,7 +205,7 @@ def map_and_save_pickle(func, index, path, partition, collection=None):
     :param collection: Is collection?
     :return: None.
     """
-    partition = partition or collection or list()
+    partition = partition or collection or []
 
     if isinstance(partition, IPartitionGenerator):
         partition = partition.retrieve_data()

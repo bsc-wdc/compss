@@ -54,7 +54,7 @@ from pycompss.dds.utils import default_hash
 from pycompss.util.tracing.helpers import EventMaster
 
 
-class DDS:
+class DDS:  # pylint: disable=too-many-public-methods
     """Distributed Data Set object."""
 
     def __init__(self):
@@ -499,7 +499,11 @@ class DDS:
         # Wait for all the tasks to finish
         compss_barrier()
 
-    def collect(self, keep_partitions=False, future_objects=False):
+    def collect(
+        self,  # pylint: disable=R0912
+        keep_partitions=False,
+        future_objects=False,
+    ):
         """Return all elements from all partitions.
 
         Elements can be grouped by partitions by setting keep_partitions value
@@ -732,11 +736,11 @@ class DDS:
 
         def dispatch(seq):
             buf_1, buf_2 = [], []
-            for n, v in seq:
-                if n == 1:
-                    buf_1.append(v)
-                elif n == 2:
-                    buf_2.append(v)
+            for num, value in seq:
+                if num == 1:
+                    buf_1.append(value)
+                elif num == 2:
+                    buf_2.append(value)
             return [(v, w) for v in buf_1 for w in buf_2]
 
         nop = (
@@ -751,7 +755,7 @@ class DDS:
         return (
             buf_a.union(buf_b)
             .group_by_key(num_of_parts=nop)
-            .flatten_by_key(lambda x: dispatch(x.__iter__()))
+            .flatten_by_key(lambda x: dispatch(iter(x)))
         )
 
     def combine_by_key(
@@ -873,10 +877,10 @@ class DDS:
             :param key: Partition key.
             :return: Partitioned range.
             """
-            p = bisect.bisect_left(bounds, key_func(key))
+            part = bisect.bisect_left(bounds, key_func(key))
             if ascending:
-                return p
-            return num_of_parts - 1 - p
+                return part
+            return num_of_parts - 1 - part
 
         def sort_partition(iterator):
             """Sort a partition locally.
@@ -924,16 +928,16 @@ class DDS:
         :returns: Grouped by key DDS object.
         """
 
-        def _create(x):
-            return [x]
+        def _create(value):
+            return [value]
 
-        def _merge(xs, x):
-            xs.append(x)
-            return xs
+        def _merge(container, value):
+            container.append(value)
+            return container
 
-        def _combine(a, b):
-            a.extend(b)
-            return a
+        def _combine(container_a, container_b):
+            container_a.extend(container_b)
+            return container_a
 
         return self.combine_by_key(
             _create, _merge, _combine, total_parts=num_of_parts
@@ -977,7 +981,7 @@ class ChildDDS(DDS):
         :param parent: Parent DDS object.
         :param func: Function.
         """
-        super(ChildDDS, self).__init__()
+        super().__init__()
         self.paac = parent.paac
 
         if not isinstance(parent, ChildDDS):
@@ -999,7 +1003,7 @@ def _run_tests():
 
     :returns: None.
     """
-    import doctest
+    import doctest  # pylint: disable=C0415
 
     doctest.testmod()
 

@@ -33,11 +33,11 @@ import numpy as np
 
 from pycompss.api.api import compss_wait_on
 from pycompss.dds import DDS
-from pycompss.dds.example_tasks import cluster_points_partial
-from pycompss.dds.example_tasks import partial_sum
-from pycompss.dds.example_tasks import task_count_locally
-from pycompss.dds.example_tasks import reduce_centers
-from pycompss.dds.example_tasks import get_similar_files
+from pycompss.dds.examples.example_tasks import cluster_points_partial
+from pycompss.dds.examples.example_tasks import partial_sum
+from pycompss.dds.examples.example_tasks import task_count_locally
+from pycompss.dds.examples.example_tasks import reduce_centers
+from pycompss.dds.examples.example_tasks import get_similar_files
 
 
 def inside(_):

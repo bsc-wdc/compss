@@ -23,8 +23,8 @@ PyCOMPSs DDS - Tasks example.
 This file contains the DDS tasks example.
 """
 
-import numpy as np
 from collections import Counter
+import numpy as np
 from pycompss.api.parameter import COLLECTION_IN
 
 from pycompss.api.task import task
@@ -79,7 +79,7 @@ def task_count_locally(file_path, vocab):
     :returns: np array with the appearances.
     """
     # read the file
-    with open(file_path) as file_path_fd:
+    with open(file_path) as file_path_fd:  # pylint: disable=W1514
         text = file_path_fd.read()
 
     filtered_words = [word for word in text.split() if word.isalnum()]
@@ -119,18 +119,18 @@ def get_similar_files(fayl, cluster, threshold=0.90):
     :param cluster: File names to be compared with the file.
     :return: Average similarity.
     """
-    import spacy
+    import spacy  # pylint: disable=import-outside-toplevel
 
     nlp = spacy.load("en_core_web_sm")
 
-    with open(fayl) as fayl_fd:
+    with open(fayl) as fayl_fd:  # pylint: disable=W1514
         d1 = nlp(fayl_fd.read())
     ret = []
 
     for other in cluster:
         if other == fayl:
             continue
-        with open(other) as other_fd:
+        with open(other) as other_fd:  # pylint: disable=W1514
             d2 = nlp(other_fd.read())
         s = d1.similarity(d2)
         if s >= threshold:

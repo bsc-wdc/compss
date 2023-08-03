@@ -29,7 +29,7 @@
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
   # DEFINE MODULES
-  modules="intel/2017.4 transfer/1.0 bsc/1.0 impi/2017.4 mkl/2017.4 java/8u131 papi/5.5.1 gcc/7.2.0 boost/1.64.0 dlb/git"
+  modules="intel/2017.4 transfer/1.0 bsc/1.0 impi/2017.4 mkl/2017.4 java/8u131 papi/5.5.1 gcc/7.2.0 boost/1.64.0 dlb/git" # ear/4.2"
   unload_before_python="boost/1.64.0"
   # Plain python modules:
   run_before_py3_modules="ignore"
@@ -41,7 +41,8 @@
 
   # DEFINE CONFIGURATION PARAMETERS
   #(Environment vars must be scaped to get the correct value if not it could take a value previous to load the modules)
-  additionalExports=""
+  # additionalExports="export EAR_HOME=/apps/EAR/ear4.2/"  # Not exported by ear/4.2 module load
+  additionalExports="export EAR_HOME=/gpfs/scratch/bsc19/bsc19620/ear4.2_mn4_wf/"  # Particular ear installation (testing purposes).
 
   additional_module_use_folder="ignore"
   queues_cfg="mn.cfg"

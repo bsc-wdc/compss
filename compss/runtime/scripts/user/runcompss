@@ -733,9 +733,9 @@ start_compss_app
 
 if [ ${provenance} ]; then
   if [ -e .enqueue_compss ]; then
-    mv .enqueue_compss compss_command_line_arguments.txt
+    mv .enqueue_compss compss_submission_command_line.txt
   else
-    echo "runcompss" $all_arguments > compss_command_line_arguments.txt
+    echo "runcompss" $all_arguments > compss_submission_command_line.txt
   fi
 
   echo "PROVENANCE | GENERATING GRAPH FOR DATA PROVENANCE"
@@ -748,11 +748,11 @@ if [ ${provenance} ]; then
   python "${COMPSS_HOME}Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py" "ro-crate-info.yaml" "${specific_log_dir}/dataprovenance.log"
   if [ $? == 0 ]; then # Check if generation has ended correctly, if not, do not cleanup
     if [ "${output_profile}" == "App_Profile.json" ]; then # Auto-generated, user doesn't want it
-      rm -f App_Profile.json compss_command_line_arguments.txt "${specific_log_dir}/monitor/complete_graph.svg"
+      rm -f App_Profile.json compss_submission_command_line.txt "${specific_log_dir}/monitor/complete_graph.svg"
     fi
   else
     echo "PROVENANCE | PROVENANCE GENERATION HAS FAILED"
-    echo "PROVENANCE | Temporary files have not been erased: App_Profile.json compss_command_line_arguments.txt ${specific_log_dir}/monitor/complete_graph.svg"
+    echo "PROVENANCE | Temporary files have not been erased: App_Profile.json compss_submission_command_line.txt ${specific_log_dir}/monitor/complete_graph.svg"
     echo "PROVENANCE | Provenance generation can be triggered by hand using the following commands:"
     echo "PROVENANCE | ${COMPSS_HOME}Runtime/scripts/utils/compss_gengraph svg ${specific_log_dir}/monitor/complete_graph.dot"
     echo "PROVENANCE | python3 ${COMPSS_HOME}Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py ro-crate-info.yaml ${specific_log_dir}/dataprovenance.log"

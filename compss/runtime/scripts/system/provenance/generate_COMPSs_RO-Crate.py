@@ -595,18 +595,18 @@ def add_file_to_crate(
                 "Provenance will be generated without profiling information"
             )
 
-        # compss_command_line_arguments.txt
+        # compss_submission_command_line.txt. Old compss_command_line_arguments.txt
         file_properties = {}
-        file_properties["name"] = "compss_command_line_arguments.txt"
+        file_properties["name"] = "compss_submission_command_line.txt"
         file_properties["contentSize"] = os.path.getsize(
-            "compss_command_line_arguments.txt"
+            "compss_submission_command_line.txt"
         )
         file_properties[
             "description"
-        ] = "COMPSs command line execution command (runcompss), including flags and parameters passed"
+        ] = "COMPSs submission command line (runcompss / enqueue_compss), including flags and parameters passed to the application"
         file_properties["encodingFormat"] = "text/plain"
         compss_crate.add_file(
-            "compss_command_line_arguments.txt", properties=file_properties
+            "compss_submission_command_line.txt", properties=file_properties
         )
 
         # ro-crate-info.yaml
@@ -1328,8 +1328,6 @@ def main():
     compss_crate.write(folder)
     print(f"PROVENANCE | COMPSs RO-Crate created successfully in subfolder {folder}")
     print(f"PROVENANCE | RO-CRATE dump TIME: {time.time() - part_time} s")
-    # Do not cleanup from workingdir, because the user could invoke this script manually
-    # os.remove("compss_command_line_arguments.txt")
 
 
 if __name__ == "__main__":

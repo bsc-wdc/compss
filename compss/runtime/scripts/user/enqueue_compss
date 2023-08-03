@@ -205,6 +205,9 @@ check_args() {
   # Get command args
   get_args "$@"
 
+  # For provenance
+  echo "enqueue_compss" "$@"  > .enqueue_compss
+
   # Check other command args
   check_args
 

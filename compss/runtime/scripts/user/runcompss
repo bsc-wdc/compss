@@ -732,7 +732,12 @@ fi
 start_compss_app
 
 if [ ${provenance} ]; then
-  echo "runcompss" $all_arguments > compss_command_line_arguments.txt
+  if [ -e .enqueue_compss ]; then
+    mv .enqueue_compss compss_command_line_arguments.txt
+  else
+    echo "runcompss" $all_arguments > compss_command_line_arguments.txt
+  fi
+
   echo "PROVENANCE | GENERATING GRAPH FOR DATA PROVENANCE"
   start=`date +%s`
   "${COMPSS_HOME}Runtime/scripts/utils/compss_gengraph" "svg" "${specific_log_dir}/monitor/complete_graph.dot"
@@ -754,3 +759,5 @@ if [ ${provenance} ]; then
   fi
   echo "PROVENANCE | ENDED DATA PROVENANCE SCRIPT"
 fi
+
+rm -f .enqueue_compss

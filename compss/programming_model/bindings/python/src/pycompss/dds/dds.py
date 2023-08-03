@@ -50,16 +50,8 @@ from pycompss.dds.tasks import task_collect_samples
 from pycompss.dds.tasks import map_and_save_text_file
 from pycompss.dds.tasks import map_and_save_pickle
 from pycompss.dds.tasks import MARKER
+from pycompss.dds.utils import default_hash
 from pycompss.util.tracing.helpers import EventMaster
-
-
-def default_hash(obj):
-    """Get the hash of the given object.
-
-    :param obj: Object to calculate the hash.
-    :return: Hash value.
-    """
-    return hash(obj)
 
 
 class DDS:
@@ -110,9 +102,9 @@ class DDS:
         """Read file in chunks and save it onto partitions.
 
         Usage sample:
-            > with open("test.file", "w") as testFile:
-            >     _ = testFile.write("Hello world!")
-            > DDS().load_file("test.file", 6).collect()
+            >>> with open("test.file", "w") as testFile:
+            ...     _ = testFile.write("Hello world!")
+            >>> DDS().load_file("test.file", 6).collect()
             ['Hello ', 'world!']
 
         :param file_path: A path to a file to be loaded.
@@ -151,10 +143,10 @@ class DDS:
         r"""Load a text file into partitions with 'chunk_size' lines on each.
 
         Usage sample:
-            > with open("test.txt", "w") as testFile:
-            >     _ = testFile.write("First Line! \\n")
-            >     _ = testFile.write("Second Line! \\n")
-            > DDS().load_text_file("test.txt").collect()
+            >>> with open("test.txt", "w") as testFile:
+            ...     _ = testFile.write("First Line! \n")
+            ...     _ = testFile.write("Second Line! \n")
+            >>> DDS().load_text_file("test.txt").collect()
             ['First Line! ', 'Second Line! ']
 
         :param file_name: A path to a file to be loaded.
@@ -221,9 +213,9 @@ class DDS:
         """Combine this data set with some other DDS data.
 
         Usage sample:
-            > first = DDS().load([0, 1, 2, 3, 4], 2)
-            > second = DDS().load([5, 6, 7, 8, 9], 3)
-            > first.union(second).count()
+            >>> first = DDS().load([0, 1, 2, 3, 4], 2)
+            >>> second = DDS().load([5, 6, 7, 8, 9], 3)
+            >>> first.union(second).count()
             10
 
         :param args: Arbitrary amount of DDS objects.
@@ -240,7 +232,7 @@ class DDS:
         """Get the total amount of partitions.
 
         Usage sample:
-            > DDS().load(range(10), 5).num_of_partitions()
+            >>> DDS().load(range(10), 5).num_of_partitions()
             5
 
         :return: Number of partitions.
@@ -251,8 +243,8 @@ class DDS:
         """Apply the given function to each element of the dataset.
 
         Usage sample:
-            > dds = DDS().load(range(10), 5).map(lambda x: x * 2)
-            > sorted(dds.collect())
+            >>> dds = DDS().load(range(10), 5).map(lambda x: x * 2)
+            >>> sorted(dds.collect())
             [0, 2, 4, 6, 8, 10, 12, 14, 16, 18]
 
         :param func: Function to apply.
@@ -273,9 +265,9 @@ class DDS:
         """Apply a function to each partition of this data set.
 
         Usage sample:
-            > DDS().load(range(10), 5).map_partitions(
-                lambda x: [sum(x)]
-              ).collect(True)
+            >>> DDS().load(range(10), 5).map_partitions(
+            ...     lambda x: [sum(x)]
+            ... ).collect(True)
             [[1], [5], [9], [13], [17]]
 
         :param func: Function to apply.
@@ -289,8 +281,8 @@ class DDS:
         NOTE: Extends the derived element(s) if possible.
 
         Usage sample:
-            > dds = DDS().load([2, 3, 4])
-            > sorted(dds.flat_map(lambda x: range(1, x)).collect())
+            >>> dds = DDS().load([2, 3, 4])
+            >>> sorted(dds.flat_map(lambda x: range(1, x)).collect())
             [1, 1, 1, 2, 2, 3]
 
         :param func: A function that should return a list, tuple or
@@ -312,7 +304,7 @@ class DDS:
         """Filter elements of this data set by applying a given function.
 
         Usage sample:
-            DDS().load(range(10), 5).filter(lambda x: x % 2).count()
+            >>> DDS().load(range(10), 5).filter(lambda x: x % 2).count()
             5
 
         :param func: Filtering function.
@@ -328,7 +320,7 @@ class DDS:
         """Reduce the whole data set.
 
         Usage sample:
-            > DDS().load(range(10), 5).reduce((lambda b, a: b + a) , 100)
+            >>> DDS().load(range(10), 5).reduce((lambda b, a: b + a) , 100)
             145
 
         :param func: A reduce function which should take two parameters as
@@ -386,11 +378,11 @@ class DDS:
         """Get the distinct elements of this data set.
 
         Usage sample:
-            > test = list(range(10))
-            > test.extend(list(range(5)))
-            > len(test)
+            >>> test = list(range(10))
+            >>> test.extend(list(range(5)))
+            >>> len(test)
             15
-            > DDS().load(test, 5).distinct().count()
+            >>> DDS().load(test, 5).distinct().count()
             10
 
         :returns: New child DDS object with distinct elements.
@@ -405,9 +397,11 @@ class DDS:
         """Amount of each element on this data set.
 
         Usage sample:
-            > first = DDS().load([0, 1, 2], 2)
-            > second = DDS().load([2, 3, 4], 3)
-            > first.union(second).count_by_value(as_dict=True)
+            >>> first = DDS().load([0, 1, 2], 2)
+            >>> second = DDS().load([2, 3, 4], 3)
+            >>> dict(sorted(
+            ...     first.union(second).count_by_value(as_dict=True).items()
+            ... ))
             {0: 1, 1: 1, 2: 2, 3: 1, 4: 1}
 
         :param arity: Tree depth.
@@ -461,8 +455,8 @@ class DDS:
         """Create a (key,value) pair for each element where 'key' is f(value).
 
         Usage sample:
-            > dds = DDS().load(range(3), 2)
-            > dds.key_by(lambda x: str(x)).collect()
+            >>> dds = DDS().load(range(3), 2)
+            >>> dds.key_by(lambda x: str(x)).collect()
             [('0', 0), ('1', 1), ('2', 2)]
 
         :param func: A Key Creator function which takes the element as a
@@ -475,7 +469,7 @@ class DDS:
         """Sum everything up.
 
         Usage sample:
-            > DDS().load(range(3), 2).sum()
+            >>> DDS().load(range(3), 2).sum()
             3
 
         :returns: The sum of everything.
@@ -486,7 +480,7 @@ class DDS:
         """Count everything up.
 
         Usage sample:
-            > DDS().load(range(3), 2).count()
+            >>> DDS().load(range(3), 2).count()
             3
 
         :return: Total number of elements.
@@ -512,10 +506,10 @@ class DDS:
         as True.
 
         Usage sample:
-            > dds = DDS().load(range(10), 2)
-            > dds.collect(True)
+            >>> dds = DDS().load(range(10), 2)
+            >>> dds.collect(True)
             [[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]]
-            > DDS().load(range(10), 2).collect()
+            >>> DDS().load(range(10), 2).collect()
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
         :param keep_partitions: Keep Partitions?
@@ -593,7 +587,7 @@ class DDS:
         """Get (key,value) as { key: value }.
 
         Usage sample:
-            > DDS().load([("a", 1), ("b", 1)]).collect_as_dict()
+            >>> DDS().load([("a", 1), ("b", 1)]).collect_as_dict()
             {'a': 1, 'b': 1}
 
         :return: Dict.
@@ -604,7 +598,7 @@ class DDS:
         """Get keys.
 
         Usage sample:
-            > DDS().load([("a", 1), ("b", 1)]).keys().collect()
+            >>> DDS().load([("a", 1), ("b", 1)]).keys().collect()
             ['a', 'b']
 
         :return: List of keys.
@@ -615,7 +609,7 @@ class DDS:
         """Get values.
 
         Usage sample:
-            > DDS().load([("a", 1), ("b", 2)]).values().collect()
+            >>> DDS().load([("a", 1), ("b", 2)]).values().collect()
             [1, 2]
 
         :return: List of values.
@@ -628,8 +622,8 @@ class DDS:
         """Create partitions by a Partition Func.
 
         Usage sample:
-            > dds = DDS().load(range(6)).map(lambda x: (x, x))
-            > dds.partition_by(num_of_partitions=3).collect(True)
+            >>> dds = DDS().load(range(6)).map(lambda x: (x, x))
+            >>> dds.partition_by(num_of_partitions=3).collect(True)
             [[(0, 0), (3, 3)], [(1, 1), (4, 4)], [(2, 2), (5, 5)]]
 
         :param partitioner_func: A Function distribute data on partitions based
@@ -688,9 +682,9 @@ class DDS:
         """Apply a function to each value of (k, v) element of this data set.
 
         Usage sample:
-            > DDS().load(
-                [("a", 1), ("b", 1)]
-              ).map_values(lambda x: x+1).collect()
+            >>> DDS().load([("a", 1), ("b", 1)]).map_values(
+            ...     lambda x: x+1
+            ... ).collect()
             [('a', 2), ('b', 2)]
 
         :param func: A function which takes 'value's as parameter.
@@ -708,9 +702,9 @@ class DDS:
         In detail: (key, values) as (key, value1), (key, value2) ...
 
         Usage sample:
-            > DDS().load(
-                [('a',[1, 2]), ('b',[1])]
-              ).flatten_by_key(lambda x: x).collect()
+            >>> DDS().load([('a',[1, 2]), ('b',[1])]).flatten_by_key(
+            ...     lambda x: x
+            ... ).collect()
             [('a', 1), ('a', 2), ('b', 1)]
 
         :param func: A function to parse values.
@@ -726,9 +720,9 @@ class DDS:
         """Join DDS objects.
 
         Usage sample:
-            > x = DDS().load([("a", 1), ("b", 3)])
-            > y = DDS().load([("a", 2), ("b", 4)])
-            > sorted(x.join(y).collect())
+            >>> x = DDS().load([("a", 1), ("b", 3)])
+            >>> y = DDS().load([("a", 2), ("b", 4)])
+            >>> sorted(x.join(y).collect())
             [('a', (1, 2)), ('b', (3, 4))]
 
         :param other: Another DDS object.
@@ -821,9 +815,9 @@ class DDS:
         """Reduce values for each key.
 
         Usage sample:
-            > DDS().load(
-                [("a",1), ("a",2)]
-              ).reduce_by_key((lambda a, b: a+b)).collect()
+            >>> DDS().load([("a",1), ("a",2)]).reduce_by_key(
+            ...     (lambda a, b: a+b)
+            ... ).collect()
             [('a', 3)]
 
         :param func: a reducer function which takes two parameters and
@@ -836,7 +830,7 @@ class DDS:
         """Count by key.
 
         Usage sample:
-            > DDS().load([("a", 100), ("a", 200)]).count_by_key(True)
+            >>> DDS().load([("a", 100), ("a", 200)]).count_by_key(True)
             {'a': 2}
 
         :param as_dict: See 'as_dict' argument of 'combine_by_key'.
@@ -864,7 +858,9 @@ class DDS:
         for _part in col_parts:
             samples.append(task_collect_samples(_part, 20, key_func))
 
-        samples = sorted(list(itertools.chain.from_iterable(compss_wait_on(samples))))
+        samples = sorted(
+            list(itertools.chain.from_iterable(compss_wait_on(samples)))
+        )
 
         bounds = [
             samples[int(len(samples) * (i + 1) / num_of_parts)]
@@ -920,8 +916,8 @@ class DDS:
         A special and most used case of 'combine_by_key'.
 
         Usage sample:
-            > x = DDS().load([("a", 1), ("b", 2), ("a", 2), ("b", 4)])
-            > sorted(x.group_by_key().collect())
+            >>> x = DDS().load([("a", 1), ("b", 2), ("a", 2), ("b", 4)])
+            >>> sorted(x.group_by_key().collect())
             [('a', [1, 2]), ('b', [2, 4])]
 
         :param num_of_parts: Number of parts.
@@ -1006,8 +1002,14 @@ def _run_tests():
     import doctest
 
     doctest.testmod()
-    os.remove("test.file")
-    os.remove("test.txt")
+
+    # Clean after testing
+    to_be_removed = ["test.file", "test.txt"]
+    for file_name in to_be_removed:
+        try:
+            os.remove(file_name)
+        except OSError:
+            pass
 
 
 if __name__ == "__main__":

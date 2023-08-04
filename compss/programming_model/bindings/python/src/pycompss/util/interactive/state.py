@@ -375,8 +375,7 @@ def __plain_lists(dictionary: dict) -> typing.Tuple[list, list]:
 
 
 def __get_play_widget(
-    function: typing.Callable,
-    interval: int = 5000,
+    function: typing.Callable, interval: int = 5000
 ) -> widgets.interactive:
     """Generate play widget.
 

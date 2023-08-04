@@ -157,66 +157,91 @@ def get_main_entities(wf_info: dict) -> typing.Tuple[str, str, str]:
 
     # Build the whole source files list in list_of_sources, and get a backup main entity, in case we can't find one
     # automatically. The mainEntity must be an existing file, otherwise the RO-Crate won't have a ComputationalWorkflow
-    list_of_sources = []
-    sources_list = []
+    yaml_sources_list = []  # YAML sources list
+    list_of_sources = []  # Full list of source files, once directories are traversed
     # Should contain absolute paths, for correct comparison (two files in different directories
     # could be named the same)
+
     main_entity = None
     backup_main_entity = None
+
+    if "sources" in wf_info:
+        if isinstance(wf_info["sources"], list):
+            yaml_sources_list.extend(wf_info["sources"])
+        else:
+            yaml_sources_list.append(wf_info["sources"])
     if "files" in wf_info:
-        files_list = []
+        # Backward compatibility: if old "sources_dir" and "files" have been used, merge in yaml_sources_list.
         if isinstance(wf_info["files"], list):
-            files_list = wf_info["files"]
+            yaml_sources_list.extend(wf_info["files"])
         else:
-            files_list.append(wf_info["files"])
-        for file in files_list:
-            path_file = Path(file).expanduser()
-            resolved_file = str(path_file.resolve())
-            if path_file.exists():
-                list_of_sources.append(resolved_file)
-        # list_of_sources = wf_info["files"].copy()
-        if list_of_sources:  # List of files not empty
-            backup_main_entity = list_of_sources[0]
-            # Assign first file name as mainEntity
+            yaml_sources_list.append(wf_info["files"])
     if "sources_dir" in wf_info:
+        #  Backward compatibility: if old "sources_dir" and "files" have been used, merge in yaml_sources_list.
+        # sources_list = list(tuple(wf_info["files"])) + list(tuple(wf_info["sources"]))
         if isinstance(wf_info["sources_dir"], list):
-            sources_list = wf_info["sources_dir"]
+            yaml_sources_list.extend(wf_info["sources_dir"])
         else:
-            sources_list.append(wf_info["sources_dir"])
-        for source in sources_list:
-            path_sources = Path(source).expanduser()
-            if not path_sources.exists():
+            yaml_sources_list.append(wf_info["sources_dir"])
+    # else: If no sources are defined, define automatically the main_entity?????? Return error????
+
+    # Find a backup_main_entity while building the full list of source files
+    for source in yaml_sources_list:
+        path_source = Path(source).expanduser()
+        resolved_source = str(path_source.resolve())
+        if path_source.exists():
+            if os.path.isfile(resolved_source):
+                list_of_sources.append(resolved_source)
+                if backup_main_entity is None and path_source.suffix in {
+                    ".py",
+                    ".java",
+                    ".jar",
+                    ".class",
+                }:
+                    backup_main_entity = resolved_source
+                    # print(
+                    #     f"PROVENANCE DEBUG | FOUND SOURCE FILE AS BACKUP MAIN: {backup_main_entity}"
+                    # )
+            elif os.path.isdir(resolved_source):
+                for root, _, files in os.walk(
+                    resolved_source, topdown=True, followlinks=True
+                ):
+                    if "__pycache__" in root:
+                        continue  # We skip __pycache__ subdirectories
+                    for f_name in files:
+                        # print(f"PROVENANCE DEBUG | ADDING FILE to list_of_sources: {f_name}. root is: {root}")
+                        full_name = os.path.join(root, f_name)
+                        list_of_sources.append(full_name)
+                        if backup_main_entity is None and Path(f_name).suffix in {
+                            ".py",
+                            ".java",
+                            ".jar",
+                            ".class",
+                        }:
+                            backup_main_entity = full_name
+                            # print(
+                            #     f"PROVENANCE DEBUG | FOUND SOURCE FILE IN A DIRECTORY AS BACKUP MAIN: {backup_main_entity}"
+                            # )
+            else:
                 print(
-                    f"PROVENANCE | WARNING: Specified path in ro-crate-info.yaml 'sources_dir' does not exist ({path_sources})"
+                    f"PROVENANCE | WARNING: A defined source is neither a directory, nor a file ({resolved_source})"
                 )
-                continue
-            resolved_sources = str(path_sources.resolve())
-            # print(f"resolved_sources is: {resolved_sources}")
-            for root, _, files in os.walk(resolved_sources, topdown=True, followlinks=True):
-                if "__pycache__" in root:
-                    continue  # We skip __pycache__ subdirectories
-                for f_name in files:
-                    # print(f"PROVENANCE DEBUG | ADDING FILE to list_of_sources: {f_name}. root is: {root}")
-                    full_name = os.path.join(root, f_name)
-                    list_of_sources.append(full_name)
-                    if backup_main_entity is None and Path(f_name).suffix in {
-                        ".py",
-                        ".java",
-                        ".jar",
-                        ".class",
-                    }:
-                        backup_main_entity = full_name
-                        # print(
-                        #     f"PROVENANCE DEBUG | FOUND SOURCE FILE AS BACKUP MAIN: {backup_main_entity}"
-                        # )
+        else:
+            print(
+                f"PROVENANCE | WARNING: Specified file or directory in ro-crate-info.yaml 'sources' does not exist ({path_source})"
+            )
 
     # Can't get backup_main_entity from sources_main_file, because we do not know if it really exists
-    if backup_main_entity is None:
+    if len(list_of_sources) == 0:
         print(
-            "PROVENANCE | ERROR: Unable to find application source files. Please, review your "
-            "ro_crate_info.yaml definition ('sources_dir', and 'files' terms)"
+            "PROVENANCE | WARNING: Unable to find application source files. Please, review your "
+            "ro_crate_info.yaml definition ('sources' term)"
         )
-        raise FileNotFoundError
+        # raise FileNotFoundError
+    elif backup_main_entity is None:
+        # No source files found in list_of_sources, set any file as backup
+        backup_main_entity = list_of_sources[0]
+
     # print(f"PROVENANCE DEBUG | backup_main_entity is: {backup_main_entity}")
 
     with open(DP_LOG, "r", encoding="UTF-8") as dp_file:
@@ -231,63 +256,110 @@ def get_main_entities(wf_info: dict) -> typing.Tuple[str, str, str]:
             me_sub_path = second_line.replace(".", "/")
             detected_app = me_sub_path + ".java"
         # print(f"PROVENANCE DEBUG | Detected app is: {detected_app}")
+        third_line = next(dp_file).rstrip()
+        out_profile_fn = Path(third_line)
 
-        for file in list_of_sources:  # Try to find the identified mainEntity
-            if file.endswith(detected_app):
-                # print(
-                #     f"PROVENANCE DEBUG | IDENTIFIED MAIN ENTITY FOUND IN LIST OF FILES: {file}"
-                # )
-                main_entity = file
-                break
-        # main_entity has a value if mainEntity has been automatically detected
-        if "sources_dir" in wf_info and "sources_main_file" in wf_info:
-            # Check what the user has defined
+    for file in list_of_sources:  # Try to find the identified mainEntity
+        if file.endswith(detected_app):
+            # print(
+            #     f"PROVENANCE DEBUG | IDENTIFIED MAIN ENTITY FOUND IN LIST OF FILES: {file}"
+            # )
+            main_entity = file
+            break
+    # main_entity has a value if mainEntity has been automatically detected
+
+    if "sources_main_file" in wf_info:
+        # Check what the user has defined
+        # If it directly exists, we are done, no need to search in 'sources'
+        found = False
+        path_smf = Path(wf_info["sources_main_file"]).expanduser()
+        resolved_sources_main_file = str(path_smf.resolve())
+        if os.path.isfile(path_smf):
+            # Checks if exists
+            if main_entity is None:
+                # the detected_app was not found previously in the list of files
+                found = True
+                print(
+                    f"PROVENANCE | WARNING: The file defined at sources_main_file is assigned as mainEntity: {resolved_sources_main_file}"
+                )
+            else:
+                print(
+                    f"PROVENANCE | WARNING: The file defined at sources_main_file "
+                    f"({resolved_sources_main_file}) in ro-crate-info.yaml does not match with the "
+                    f"automatically identified mainEntity ({main_entity})"
+                )
+            main_entity = resolved_sources_main_file
+            found = True
+        else:
+            # If the file defined in sources_main_file is not directly found, try to find it in 'sources'
             # if sources_main_file is an absolute path, the join has no effect
-            found = False
-            for source in sources_list:  # Created before
+            for source in yaml_sources_list:  # Created at the beginning
                 path_sources = Path(source).expanduser()
-                if not path_sources.exists():
+                if not path_sources.exists() or os.path.isfile(source):
                     continue
                 resolved_sources = str(path_sources.resolve())
                 resolved_sources_main_file = os.path.join(
                     resolved_sources, wf_info["sources_main_file"]
                 )
-                if any(file == resolved_sources_main_file for file in list_of_sources):
-                    # The file exists
-                    # print(
-                    #     f"PROVENANCE DEBUG | The file defined at sources_main_file exists: "
-                    #     f" {resolved_sources_main_file}"
-                    # )
-                    if resolved_sources_main_file != main_entity:
-                        print(
-                            f"PROVENANCE | WARNING: The file defined at sources_main_file "
-                            f"({resolved_sources_main_file}) in ro-crate-info.yaml does not match with the "
-                            f"automatically identified mainEntity ({main_entity})"
-                        )
-                    # else: the user has defined exactly the file we found
-                    # In both cases: set file defined by user
-                    main_entity = resolved_sources_main_file
-                    # Can't use Path, file may not be in cwd
-                    found = True
-                    break
+                for file in list_of_sources:
+                    if file == resolved_sources_main_file:
+                        # The file exists
+                        # print(
+                        #     f"PROVENANCE DEBUG | The file defined at sources_main_file exists: "
+                        #     f" {resolved_sources_main_file}"
+                        # )
+                        if resolved_sources_main_file != main_entity:
+                            print(
+                                f"PROVENANCE | WARNING: The file defined at sources_main_file "
+                                f"({resolved_sources_main_file}) in ro-crate-info.yaml does not match with the "
+                                f"automatically identified mainEntity ({main_entity})"
+                            )
+                        # else: the user has defined exactly the file we found
+                        # In both cases: set file defined by user
+                        main_entity = resolved_sources_main_file
+                        # Can't use Path, file may not be in cwd
+                        found = True
+                        break
+                    if file.endswith(wf_info["sources_main_file"]):
+                        # The file exists
+                        # print(
+                        #     f"PROVENANCE DEBUG | The file defined at sources_main_file exists: "
+                        #     f" {resolved_sources_main_file}"
+                        # )
+                        if file != main_entity:
+                            print(
+                                f"PROVENANCE | WARNING: The file defined at sources_main_file "
+                                f"({file}) in ro-crate-info.yaml does not match with the "
+                                f"automatically identified mainEntity ({main_entity})"
+                            )
+                        # else: the user has defined exactly the file we found
+                        # In both cases: set file defined by user
+                        main_entity = file
+                        # Can't use Path, file may not be in cwd
+                        found = True
+                        break
             if not found:
                 print(
                     f"PROVENANCE | WARNING: the defined 'sources_main_file' ({wf_info['sources_main_file']}) does "
-                    f"not exist in the defined 'sources_dir' ({wf_info['sources_dir']}). Check your ro-crate-info.yaml."
+                    f"not exist in the defined 'sources'. Check your ro-crate-info.yaml."
                 )
                 # If we identified the mainEntity automatically, we select it when the one defined
                 # by the user is not found
 
-        if main_entity is None:
-            # When neither identified, nor defined by user: get backup
-            main_entity = backup_main_entity
+    if main_entity is None:
+        # When neither identified, nor defined by user: get backup if exists
+        if backup_main_entity is None:
+            # We have a fatal problem
             print(
-                f"PROVENANCE | WARNING: the detected mainEntity {detected_app} does not exist in the list "
-                f"of application files provided in ro-crate-info.yaml. Setting {main_entity} as mainEntity"
+                f"PROVENANCE | ERROR: no mainEntity has been found. Check the definition of 'sources' and "
+                f"'sources_main_file' in ro-crate-info.yaml"
             )
-
-        third_line = next(dp_file).rstrip()
-        out_profile_fn = Path(third_line)
+            raise FileNotFoundError
+        main_entity = backup_main_entity
+        print(
+            f"PROVENANCE | WARNING: the detected mainEntity {detected_app} does not exist in the list "
+            f"of application files provided in ro-crate-info.yaml. Setting {main_entity} as mainEntity"
+        )
 
     print(
         f"PROVENANCE | COMPSs version: {compss_v}, main_entity is: {main_entity}, out_profile is: {out_profile_fn.name}"
@@ -613,11 +685,13 @@ def add_file_to_crate(
         file_properties = {}
         file_properties["name"] = "ro-crate-info.yaml"
         file_properties["contentSize"] = os.path.getsize("ro-crate-info.yaml")
-        file_properties["description"] = "COMPSs Workflow Provenance YAML configuration file"
+        file_properties[
+            "description"
+        ] = "COMPSs Workflow Provenance YAML configuration file"
         file_properties["encodingFormat"] = [
-                "YAML",
-                {"@id": "https://www.nationalarchives.gov.uk/PRONOM/fmt/818"},
-            ]
+            "YAML",
+            {"@id": "https://www.nationalarchives.gov.uk/PRONOM/fmt/818"},
+        ]
 
         # Add YAML as ContextEntity
         compss_crate.add(
@@ -655,82 +729,150 @@ def add_application_source_files(
     """
 
     part_time = time.time()
-    added_files = []
+
     crate_paths = []
+    sources_list = []
+
+    if "sources" in compss_wf_info:
+        if isinstance(compss_wf_info["sources"], list):
+            sources_list.extend(compss_wf_info["sources"])
+        else:
+            sources_list.append(compss_wf_info["sources"])
+    if "files" in compss_wf_info:
+        # Backward compatibility: if old "sources_dir" and "files" have been used, merge in sources_list.
+        if isinstance(compss_wf_info["files"], list):
+            sources_list.extend(compss_wf_info["files"])
+        else:
+            sources_list.append(compss_wf_info["files"])
     if "sources_dir" in compss_wf_info:
-        # Optional, the user specifies a directory with all sources
-        sources_list = []
+        #  Backward compatibility: if old "sources_dir" and "files" have been used, merge in sources_list.
+        # sources_list = list(tuple(wf_info["files"])) + list(tuple(wf_info["sources"]))
         if isinstance(compss_wf_info["sources_dir"], list):
-            sources_list = compss_wf_info["sources_dir"]
+            sources_list.extend(compss_wf_info["sources_dir"])
         else:
             sources_list.append(compss_wf_info["sources_dir"])
-        for source in sources_list:
-            path_sources = Path(source).expanduser()
-            if not path_sources.exists():
+    # else: Define automatically the main_entity?????? Return error????
+
+    added_files = []
+    added_dirs = []
+
+    for source in sources_list:
+        path_source = Path(source).expanduser()
+        if not path_source.exists():
+            print(
+                f"PROVENANCE | WARNING: A file or directory defined as 'sources' in ro-crate-info.yaml does not exist "
+                f"({source})"
+            )
+            continue
+        resolved_source = str(path_source.resolve())
+        if os.path.isdir(resolved_source):
+            # Adding files twice is not a drama, since add_file_to_crate won't add them twice, but we save traversing directories
+            if resolved_source in added_dirs:
+                print(
+                    f"PROVENANCE | WARNING: A directory addition was attempted twice: {resolved_source}"
+                )
+                continue  # Do not traverse the directory again
+            if any(resolved_source.startswith(dir_item) for dir_item in added_dirs):
+                print(
+                    f"PROVENANCE | WARNING: A sub-directory addition was attempted twice: {resolved_source}"
+                )
                 continue
-            resolved_sources = str(path_sources.resolve())
-            for root, dirs, files in os.walk(resolved_sources, topdown=True, followlinks=True):
+            if any(dir_item.startswith(resolved_source) for dir_item in added_dirs):
+                print(
+                    f"PROVENANCE | WARNING: A parent directory of a previously added sub-directory is being added. Files "
+                    f"will be traversed twice in: {resolved_source}"
+                )
+                # Can't continue, we need to traverse the parent directory. Luckily, files won't be added twice
+
+            added_dirs.append(resolved_source)
+            for root, dirs, files in os.walk(
+                resolved_source, topdown=True, followlinks=True
+            ):
                 if "__pycache__" in root:
                     continue  # We skip __pycache__ subdirectories
                 for f_name in files:
                     resolved_file = os.path.join(root, f_name)
-                    crate_paths.append(
-                        add_file_to_crate(
-                            compss_crate,
-                            resolved_file,
-                            compss_ver,
-                            main_entity,
-                            out_profile,
-                            resolved_sources,
+                    if resolved_file not in added_files:
+                        crate_paths.append(
+                            add_file_to_crate(
+                                compss_crate,
+                                resolved_file,
+                                compss_ver,
+                                main_entity,
+                                out_profile,
+                                resolved_source,
+                            )
                         )
-                    )
-                    added_files.append(resolved_file)
-                for dir_name in dirs:  # Check if it's an empty directory, needs to be added by hand
+                        added_files.append(resolved_file)
+                    else:
+                        print(
+                            f"PROVENANCE | WARNING: A file addition was attempted twice: "
+                            f"{resolved_file} in {resolved_source}"
+                        )
+                for (
+                    dir_name
+                ) in (
+                    dirs
+                ):  # Check if it's an empty directory, needs to be added by hand
                     full_dir_name = os.path.join(root, dir_name)
                     if not os.listdir(full_dir_name):
-                        print(f"PROVENANCE DEBUG | Adding an empty directory. root ({root}), full_dir_name ({full_dir_name}), resolved_sources ({resolved_sources})")
+                        # print(f"PROVENANCE DEBUG | Adding an empty directory. root ({root}), full_dir_name ({full_dir_name}), resolved_sources ({resolved_sources})")
                         dir_properties = {
                             "name": dir_name,
                             "sdDatePublished": iso_now(),
-                            "dateModified": dt.datetime.utcfromtimestamp(os.path.getmtime(full_dir_name))
+                            "dateModified": dt.datetime.utcfromtimestamp(
+                                os.path.getmtime(full_dir_name)
+                            )
                             .replace(microsecond=0)
                             .isoformat(),  # Schema.org
                         }  # Register when the Data Entity was last accessible
-                        path_in_crate = "application_sources/" + os.path.basename(resolved_sources) + "/" + full_dir_name[len(resolved_sources):]  # Remove resolved_sources from full_dir_name, adding basename
-                        compss_crate.add_dataset(source=full_dir_name, dest_path=path_in_crate, properties=dir_properties)
-
-    if "files" in compss_wf_info:
-        files_list = []
-        if isinstance(compss_wf_info["files"], list):
-            files_list = compss_wf_info["files"]
-        else:
-            files_list.append(compss_wf_info["files"])
-        for file in files_list:
-            path_file = Path(file).expanduser()
-            resolved_file = str(path_file.resolve())
-            if not path_file.exists():
-                print(
-                    f"PROVENANCE | WARNING: A file defined as 'files' in ro-crate-info.yaml does not exist "
-                    f"({resolved_file})"
-                )
-                continue
-            if resolved_file not in added_files:
+                        path_in_crate = (
+                            "application_sources/"
+                            + os.path.basename(resolved_source)
+                            + "/"
+                            + full_dir_name[len(resolved_source) :]
+                        )  # Remove resolved_source from full_dir_name, adding basename
+                        compss_crate.add_dataset(
+                            source=full_dir_name,
+                            dest_path=path_in_crate,
+                            properties=dir_properties,
+                        )
+        elif os.path.isfile(resolved_source):
+            if resolved_source not in added_files:
                 crate_paths.append(
                     add_file_to_crate(
                         compss_crate,
-                        resolved_file,
+                        resolved_source,
                         compss_ver,
                         main_entity,
                         out_profile,
                         "",
                     )
                 )
-                added_files.append(resolved_file)
+                added_files.append(resolved_source)
             else:
                 print(
-                    f"PROVENANCE | WARNING: A file addition was attempted twice in 'files' and 'sources_dir': "
-                    f"{resolved_file}"
+                    f"PROVENANCE | WARNING: A file addition was attempted twice: "
+                    f"{resolved_source} in {added_dirs}"
                 )
+        else:
+            print(
+                f"PROVENANCE | WARNING: A defined source is neither a directory, nor a file ({resolved_source})"
+            )
+
+    if len(sources_list) == 0:
+        # No sources defined by the user, add the selected main_entity at least
+        crate_paths.append(
+            add_file_to_crate(
+                compss_crate,
+                main_entity,
+                compss_ver,
+                main_entity,
+                out_profile,
+                "",
+            )
+        )
+        added_files.append(main_entity)
 
     # Add auxiliary files as hasPart to the ComputationalWorkflow main file
     # Not working well when an application has several versions (ex: Java matmul files, objects, arrays)
@@ -789,16 +931,20 @@ def add_dataset_file_to_crate(
                             "dataset" + url_parts.path[len(item) :]
                         )  # Slice out the common part of the path
                     else:
-                        cp_path = Path(item)  # Looking for the name of the previous folder
+                        cp_path = Path(
+                            item
+                        )  # Looking for the name of the previous folder
                         crate_path = (
                             "dataset/"
                             # + "folder_"
                             # + str(i)
-                            + cp_path.parts[-1]  # Base name of the identified common path. Now it does not avoid collisions if the user defines the same folder name in two different locations
+                            + cp_path.parts[
+                                -1
+                            ]  # Base name of the identified common path. Now it does not avoid collisions if the user defines the same folder name in two different locations
                             + url_parts.path[len(item) :]
                         )  # Slice out the common part of the path
                     break
-            print(f"PROVENANCE DEBUG | Adding {url_parts.path} as {crate_path}")
+            # print(f"PROVENANCE DEBUG | Adding {url_parts.path} as {crate_path}")
             compss_crate.add_file(
                 source=url_parts.path, dest_path=crate_path, properties=file_properties
             )
@@ -866,24 +1012,38 @@ def add_dataset_file_to_crate(
                     )
                 has_part_list.append({"@id": dir_f_url})
 
-            for dir_name in dirs:  # Check if it's an empty directory, needs to be added by hand
+            for (
+                dir_name
+            ) in dirs:  # Check if it's an empty directory, needs to be added by hand
                 full_dir_name = os.path.join(root, dir_name)
                 if not os.listdir(full_dir_name):
-                    print(f"PROVENANCE DEBUG | Adding an empty directory in data persistence. root ({root}), full_dir_name ({full_dir_name})")
+                    print(
+                        f"PROVENANCE DEBUG | Adding an empty directory in data persistence. root ({root}), full_dir_name ({full_dir_name})"
+                    )
                     dir_properties = {
                         "name": dir_name,
                         "sdDatePublished": iso_now(),
-                        "dateModified": dt.datetime.utcfromtimestamp(os.path.getmtime(full_dir_name))
+                        "dateModified": dt.datetime.utcfromtimestamp(
+                            os.path.getmtime(full_dir_name)
+                        )
                         .replace(microsecond=0)
                         .isoformat(),  # Schema.org
                     }  # Register when the Data Entity was last accessible
                     if persist:
-                        path_final_part = full_dir_name[len(url_parts.path):]
+                        path_final_part = full_dir_name[len(url_parts.path) :]
                         dir_f_url = "dataset/" + final_item_name + path_final_part + "/"
-                        compss_crate.add_dataset(source=full_dir_name, dest_path=dir_f_url, properties=dir_properties)
+                        compss_crate.add_dataset(
+                            source=full_dir_name,
+                            dest_path=dir_f_url,
+                            properties=dir_properties,
+                        )
                     else:
-                        dir_f_url = "file://" + url_parts.netloc + full_dir_name + "/"  # Directories must finish with slash
-                        compss_crate.add_dataset(source=dir_f_url, properties=dir_properties)
+                        dir_f_url = (
+                            "file://" + url_parts.netloc + full_dir_name + "/"
+                        )  # Directories must finish with slash
+                        compss_crate.add_dataset(
+                            source=dir_f_url, properties=dir_properties
+                        )
                     has_part_list.append({"@id": dir_f_url})
 
         file_properties["hasPart"] = has_part_list
@@ -1122,7 +1282,6 @@ def get_common_paths(url_list: list) -> list:
             common_path = str(
                 Path(url_parts.path).parents[0]
             )  # Need to remove filename from url_parts.path
-
 
     # Add last element's path
     if common_path not in list_common_paths:

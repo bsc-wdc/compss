@@ -130,7 +130,8 @@ class HTTP:  # pylint: disable=too-few-public-methods
         :param kwargs: Keyword arguments received from call.
         :return: Execution return code.
         """
-        print("running http")
+        if __debug__:
+            logger.debug("Running HTTP task ...")
         return 200
 
     def __configure_core_element__(self, kwargs: dict) -> None:

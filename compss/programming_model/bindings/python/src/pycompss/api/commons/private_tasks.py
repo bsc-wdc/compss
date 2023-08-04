@@ -30,6 +30,8 @@ from pycompss.api.task import task
 from pycompss.api.parameter import COLLECTION_IN
 from pycompss.api.parameter import FILE_OUT
 from pycompss.api.parameter import FILE_IN
+from pycompss.api.parameter import DIRECTORY_IN
+from pycompss.api.parameter import DIRECTORY_OUT
 
 
 @task(returns=1)
@@ -47,7 +49,7 @@ def transform(target, function, **kwargs):
 
 
 @task(returns=object, target=COLLECTION_IN)
-def col_to_obj(target, function):
+def col_to_obj(target, function, **kwargs):
     """Replace the user function with its @task equivalent.
 
     NOTE: Used from @data_transformation.
@@ -57,11 +59,11 @@ def col_to_obj(target, function):
     produces an object.
     :return:
     """
-    return function(target)
+    return function(target, **kwargs)
 
 
 @task(destination=FILE_OUT, target=COLLECTION_IN)
-def col_to_file(target, destination, function):
+def col_to_file(target, destination, function, **kwargs):
     """Replace the user function with its @task equivalent.
 
     NOTE: Used from @data_transformation.
@@ -72,11 +74,26 @@ def col_to_file(target, destination, function):
     produces a file.
     :return:
     """
-    function(target, destination)
+    function(target, destination, **kwargs)
+
+
+@task(destination=DIRECTORY_OUT, target=COLLECTION_IN)
+def col_to_dir(target, destination, function, **kwargs):
+    """Replace the user function with its @task equivalent.
+
+    NOTE: Used from @data_transformation.
+
+    @param target: the parameter that DT will be applied to
+    @param destination: name of the file that will be produced by this task
+    @param function: DT function which accepts a collection as input and
+    produces a file.
+    :return:
+    """
+    function(target, destination, **kwargs)
 
 
 @task(returns=object(), target=FILE_IN)
-def file_to_object(target, function):
+def file_to_object(target, function, **kwargs):
     """Replace the user function with its @task equivalent.
 
     NOTE: Used from @data_transformation.
@@ -86,11 +103,25 @@ def file_to_object(target, function):
     produces an object.
     :return:
     """
-    return function(target)
+    return function(target, **kwargs)
+
+
+@task(returns=object(), target=DIRECTORY_IN)
+def dir_to_object(target, function, **kwargs):
+    """Replace the user function with its @task equivalent.
+
+    NOTE: Used from @data_transformation.
+
+    @param target: the parameter that DT will be applied to
+    @param function: DT function which accepts a file as input and
+    produces an object.
+    :return:
+    """
+    return function(target, **kwargs)
 
 
 @task(destination=FILE_OUT)
-def object_to_file(target, destination, function):
+def object_to_file(target, destination, function, **kwargs):
     """Replace the user function with its @task equivalent.
 
     NOTE: Used from @data_transformation.
@@ -101,11 +132,26 @@ def object_to_file(target, destination, function):
     produces a file.
     :return:
     """
-    function(target, destination)
+    function(target, destination, **kwargs)
+
+
+@task(destination=DIRECTORY_OUT)
+def object_to_dir(target, destination, function, **kwargs):
+    """Replace the user function with its @task equivalent.
+
+    NOTE: Used from @data_transformation.
+
+    @param target: the parameter that DT will be applied to
+    @param destination: name of the file that will be produced by this task
+    @param function: DT function which accepts an object as input and
+    produces a file.
+    :return:
+    """
+    function(target, destination, **kwargs)
 
 
 @task(target=FILE_IN)
-def file_to_col(target, function):
+def file_to_col(target, function, **kwargs):
     """Replace the user function with its @task equivalent.
 
     NOTE: Used from @data_transformation.
@@ -115,7 +161,7 @@ def file_to_col(target, function):
     produces a collection.
     :return:
     """
-    return function(target)
+    return function(target, **kwargs)
 
 
 # @task(target=FILE_IN, destination=COLLECTION_OUT)

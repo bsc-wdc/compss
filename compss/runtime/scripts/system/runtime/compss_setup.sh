@@ -451,12 +451,6 @@ prepare_runtime_environment() {
     prepare_coverage
   fi
 
-  # Create JVM Options file
-  generate_jvm_opts_file
-
-  # Start streaming backend if required
-  start_stream_backends
-
   if [ -n "${gen_core}" ]; then
     prepare_coredump_generation
   fi
@@ -464,6 +458,13 @@ prepare_runtime_environment() {
   if [ -n "${keepWD}" ]; then
     prepare_keep_workingdir
   fi
+
+  # Create JVM Options file
+  generate_jvm_opts_file
+
+  # Start streaming backend if required
+  start_stream_backends
+
 }
 
 prepare_coredump_generation() {

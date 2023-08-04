@@ -368,12 +368,14 @@ class Software(
         self.parameters = config.get(LABELS.parameters, {})
         exec_type = execution.pop(LABELS.type, None)
         if exec_type is None:
-            print("Execution type not provided for @software task")
+            print("WARN: Execution type not provided for @software task")
         elif exec_type == LABELS.task:
             self.task_type, self.decor = SUPPORTED_DECORATORS[exec_type]
-            print("Executing task function..")
+            if __debug__:
+                logger.debug("Executing Software as task function ...")
         elif exec_type == "workflow":
-            print("Executing workflow..")
+            if __debug__:
+                logger.debug("Executing Software as Workflow ...")
             self.is_workflow = True
             return
         elif exec_type.lower() not in SUPPORTED_DECORATORS:

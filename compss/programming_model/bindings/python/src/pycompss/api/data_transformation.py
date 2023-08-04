@@ -33,12 +33,19 @@ from pycompss.api.commons.decorator import keep_arguments
 from pycompss.api.commons.private_tasks import transform as _transform
 from pycompss.api.commons.private_tasks import col_to_obj as _col_to_obj
 from pycompss.api.commons.private_tasks import col_to_file as _col_to_file
+from pycompss.api.commons.private_tasks import col_to_dir as _col_to_dir
 from pycompss.api.commons.private_tasks import (
     object_to_file as _object_to_file,
+)
+from pycompss.api.commons.private_tasks import (
+    object_to_dir as _object_to_dir,
 )
 from pycompss.api.commons.private_tasks import file_to_col as _file_to_col
 from pycompss.api.commons.private_tasks import (
     file_to_object as _file_to_object,
+)
+from pycompss.api.commons.private_tasks import (
+    dir_to_object as _dir_to_object,
 )
 from pycompss.util.typing_helper import typing
 
@@ -58,6 +65,9 @@ FILE_TO_OBJECT = 1
 FILE_TO_COLLECTION = 2
 COLLECTION_TO_OBJECT = 3
 COLLECTION_TO_FILE = 4
+OBJECT_TO_DIRECTORY = 5
+DIRECTORY_TO_OBJECT = 6
+COLLECTION_TO_DIRECTORY = 7
 
 
 class DataTransformation:  # pylint: disable=R0902,R0903
@@ -146,6 +156,7 @@ class DataTransformation:  # pylint: disable=R0902,R0903
         """
         dts = []
         self.user_function = user_function
+        dt_kwargs = self.kwargs.copy()
         if __debug__:
             logger.debug("Configuring DT core element.")
         if "dt" in kwargs:
@@ -155,27 +166,41 @@ class DataTransformation:  # pylint: disable=R0902,R0903
             elif isinstance(tmp, list):
                 dts = [obj.extract() for obj in tmp]
         elif len(self.args) == 2:
-            dts.append((self.args[0], self.args[1], self.kwargs))
+            dts.append((self.args[0], self.args[1], dt_kwargs))
         elif self.type is OBJECT_TO_FILE:
             dts.append(
-                (self.target, self.user_function, self.kwargs, args, kwargs)
+                (self.target, self.user_function, dt_kwargs, args, kwargs)
+            )
+        elif self.type is OBJECT_TO_DIRECTORY:
+            dts.append(
+                (self.target, self.user_function, dt_kwargs, args, kwargs)
             )
         elif self.type is FILE_TO_OBJECT:
             dts.append(
-                (self.target, self.user_function, self.kwargs, args, kwargs)
+                (self.target, self.user_function, dt_kwargs, args, kwargs)
+            )
+        elif self.type is DIRECTORY_TO_OBJECT:
+            dts.append(
+                (self.target, self.user_function, dt_kwargs, args, kwargs)
             )
         elif self.type is FILE_TO_COLLECTION:
             dts.append(
-                (self.target, self.user_function, self.kwargs, args, kwargs)
+                (self.target, self.user_function, dt_kwargs, args, kwargs)
             )
         elif self.type is COLLECTION_TO_OBJECT:
             dts.append(
-                (self.target, self.user_function, self.kwargs, args, kwargs)
+                (self.target, self.user_function, dt_kwargs, args, kwargs)
             )
         elif self.type is COLLECTION_TO_FILE:
             dts.append(
-                (self.target, self.user_function, self.kwargs, args, kwargs)
+                (self.target, self.user_function, dt_kwargs, args, kwargs)
             )
+        elif self.type is COLLECTION_TO_DIRECTORY:
+            dts.append(
+                (self.target, self.user_function, dt_kwargs, args, kwargs)
+            )
+        if __debug__:
+            logger.debug("Applying " + str(len(dts)) + " DTs.")
         for _dt in dts:
             self._apply_dt(_dt[0], _dt[1], _dt[2], args, kwargs)
 
@@ -205,7 +230,9 @@ class DataTransformation:  # pylint: disable=R0902,R0903
             all_params = inspect.signature(self.user_function)  # type: ignore
             keyz = all_params.parameters.keys()
             if param_name not in keyz:
-                raise Exception("Wrong Param Name in DT")
+                raise Exception(
+                    "Wrong Param " + param_name + " in data transformation"
+                )
             i = list(keyz).index(param_name)
             if i < len(args):
                 p_value = args[i]
@@ -215,25 +242,46 @@ class DataTransformation:  # pylint: disable=R0902,R0903
                 ).default  # type: ignore
 
         new_value = None
+        func_kwargs = _replace_func_kwargs(
+            func_kwargs, kwargs, args, self.user_function
+        )
         if is_workflow:
             # no need to create a task if it's a workflow
             new_value = func(p_value, **func_kwargs)
         elif self.type is OBJECT_TO_FILE:
-            _object_to_file(p_value, self.destination, self.dt_function)
+            _object_to_file(
+                p_value, self.destination, self.dt_function, **func_kwargs
+            )
+            new_value = self.destination
+        elif self.type is OBJECT_TO_DIRECTORY:
+            _object_to_dir(
+                p_value, self.destination, self.dt_function, **func_kwargs
+            )
             new_value = self.destination
         elif self.type is FILE_TO_OBJECT:
-            new_value = _file_to_object(p_value, self.dt_function)
+            new_value = _file_to_object(
+                p_value, self.dt_function, **func_kwargs
+            )
+        elif self.type is DIRECTORY_TO_OBJECT:
+            new_value = _dir_to_object(
+                p_value, self.dt_function, **func_kwargs
+            )
         elif self.type is FILE_TO_COLLECTION:
             size = int(self.kwargs.pop("size"))
             new_value = _file_to_col(  # pylint: disable=unexpected-keyword-arg
-                p_value,
-                self.dt_function,
-                returns=size,
+                p_value, self.dt_function, returns=size, **func_kwargs
             )
         elif self.type is COLLECTION_TO_OBJECT:
-            new_value = _col_to_obj(p_value, self.dt_function)
+            new_value = _col_to_obj(p_value, self.dt_function, **func_kwargs)
         elif self.type is COLLECTION_TO_FILE:
-            _col_to_file(p_value, self.destination, self.dt_function)
+            _col_to_file(
+                p_value, self.destination, self.dt_function, **func_kwargs
+            )
+            new_value = self.destination
+        elif self.type is COLLECTION_TO_DIRECTORY:
+            _col_to_dir(
+                p_value, self.destination, self.dt_function, **func_kwargs
+            )
             new_value = self.destination
         else:
             new_value = _transform(p_value, func, **func_kwargs)
@@ -242,6 +290,36 @@ class DataTransformation:  # pylint: disable=R0902,R0903
             kwargs[param_name] = new_value
         else:
             args[i] = new_value
+
+
+def _replace_func_kwargs(dt_f_kwargs, f_kwargs, f_args, f):
+    for key, value in dt_f_kwargs.items():
+        if (
+            type(value) == str
+            and value.startswith("{{")
+            and value.endswith("}}")
+        ):
+            name = value[2:-2]
+            if name in f_kwargs:
+                dt_f_kwargs[key] = f_kwargs[name]
+            else:
+                dt_f_kwargs[key] = _get_param_from_signature(f, name, f_args)
+    return dt_f_kwargs
+
+
+def _get_param_from_signature(function, param_name, args):
+    all_params = inspect.signature(function)  # type: ignore
+    keyz = all_params.parameters.keys()
+    if param_name not in keyz:
+        raise Exception(
+            "Wrong Param " + param_name + " in data transformation"
+        )
+    i = list(keyz).index(param_name)
+    if i < len(args):
+        p_value = args[i]
+    else:
+        p_value = all_params.parameters.get(param_name).default  # type: ignore
+    return p_value
 
 
 class DTObject:  # pylint: disable=R0903

@@ -36,10 +36,8 @@ from pycompss.util.storages.persistent import is_psco
 from pycompss.util.typing_helper import typing
 
 # Setup LOGGER
-if __debug__:
-    import logging
-
-    LOGGER = logging.getLogger(__name__)
+import logging
+LOGGER = logging.getLogger(__name__)
 
 
 def wait_on_object(obj: typing.Any, mode: str) -> typing.Any:

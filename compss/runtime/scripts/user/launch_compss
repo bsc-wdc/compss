@@ -1321,7 +1321,11 @@ get_args() {
           container_compss_path=${OPTARG//container_compss_path=/}
           ;;
         container_opts=*)
-          container_opts=${OPTARG//container_opts=/}
+          if [ -z "${container_opts}" ]; then
+                container_opts=${OPTARG//container_opts=/}
+          else
+                container_opts="${container_opts} ${OPTARG//container_opts=/}"
+          fi
           ;;
         elasticity=*)
           elasticity=${OPTARG//elasticity=/}

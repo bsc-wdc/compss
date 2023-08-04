@@ -291,9 +291,9 @@ public class MPIInvoker extends Invoker {
             this.context.getThreadErrStream(), null, this.mpiDef.isFailByEV());
     }
 
-    private static boolean isOnContainer() {
+    private boolean isOnContainer() {
         String masterContImage = System.getenv(COMPSsConstants.MASTER_CONTAINER_IMAGE);
-        return masterContImage != null && !masterContImage.isEmpty();
+        return masterContImage != null && !masterContImage.isEmpty() && this.numWorkers > 1;
     }
 
     @Override

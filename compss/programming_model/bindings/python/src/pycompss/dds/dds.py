@@ -259,7 +259,7 @@ class DDS:  # pylint: disable=too-many-public-methods
                 results.append(func(element, *args, **kwargs))
             return results
 
-        return ChildDDS(self, mapper)
+        return _ChildDDS(self, mapper)
 
     def map_partitions(self, func):
         """Apply a function to each partition of this data set.
@@ -273,7 +273,7 @@ class DDS:  # pylint: disable=too-many-public-methods
         :param func: Function to apply.
         :returns: New child DDS object.
         """
-        return ChildDDS(self, func)
+        return _ChildDDS(self, func)
 
     def flat_map(self, func, *args, **kwargs):
         """Apply a function to each element of the dataset.
@@ -967,16 +967,16 @@ class DDS:  # pylint: disable=too-many-public-methods
         return items[:num]
 
 
-class ChildDDS(DDS):
-    """ChildDDS class.
+class _ChildDDS(DDS):
+    """_ChildDDS class.
 
-    Similar as DDS objects, with the only difference that ChildDDS objects
+    Similar as DDS objects, with the only difference that _ChildDDS objects
     inherit the partitions from their parents, and have functions to be mapped
     to their partitions.
     """
 
     def __init__(self, parent, func):
-        """Create a new ChildDDS object.
+        """Create a new _ChildDDS object.
 
         :param parent: Parent DDS object.
         :param func: Function.
@@ -984,7 +984,7 @@ class ChildDDS(DDS):
         super().__init__()
         self.paac = parent.paac
 
-        if not isinstance(parent, ChildDDS):
+        if not isinstance(parent, _ChildDDS):
             self.func = func
             if isinstance(parent, DDS):
                 self.partitions = parent.partitions

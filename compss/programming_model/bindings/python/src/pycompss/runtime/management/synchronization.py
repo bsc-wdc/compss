@@ -37,6 +37,7 @@ from pycompss.util.typing_helper import typing
 
 # Setup LOGGER
 import logging
+
 LOGGER = logging.getLogger(__name__)
 
 

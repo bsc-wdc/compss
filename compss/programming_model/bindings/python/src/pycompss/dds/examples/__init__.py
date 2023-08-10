@@ -16,3 +16,10 @@
 #
 
 """This package contains the DDS examples."""
+
+from pycompss.dds.examples.examples import inverted_indexing
+from pycompss.dds.examples.examples import pi_estimation
+from pycompss.dds.examples.examples import terasort
+from pycompss.dds.examples.examples import transitive_closure
+from pycompss.dds.examples.examples import word_count
+from pycompss.dds.examples.examples import wordcount_k_means

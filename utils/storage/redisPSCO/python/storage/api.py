@@ -160,7 +160,7 @@ def getByIDOld(identifier):
         # In case that we have read a None then it means that the requested
         # object was not present in the Redis backend
         bio.seek(0)
-        ret = deserialize_from_handler(bio)
+        ret = deserialize_from_handler(bio, True, logger)
     return ret
 
 
@@ -184,7 +184,9 @@ def getByID(*identifiers):
         ret[i] = deserialize_from_bytes(
                 b''.join(
                     ret[i]
-                )
+                ),
+                True,
+                logger
             )
         ret[i].pycompss_mark_as_unmodified()
     return ret[0] if len(ret) == 1 else ret
@@ -210,7 +212,7 @@ def makePersistent(obj, identifier=None):
     else:
         obj.pycompss_psco_identifier = identifier
     # Serialize the object and store the pair (id, serialized_object)
-    serialized_object = serialize_to_bytes(obj)
+    serialized_object = serialize_to_bytes(obj, logger)
     bytes_size = len(serialized_object)
     num_blocks = (bytes_size + MAX_BLOCK_SIZE - 1) // MAX_BLOCK_SIZE
     for block in range(num_blocks):

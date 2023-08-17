@@ -58,6 +58,7 @@ from pycompss.util.interactive.events import setup_event_manager
 from pycompss.util.interactive.flags import check_flags
 from pycompss.util.interactive.flags import print_flag_issues
 from pycompss.util.interactive.graphs import show_graph
+from pycompss.util.interactive.monitor import show_monitoring_information
 from pycompss.util.interactive.outwatcher import STDW
 from pycompss.util.interactive.state import check_monitoring_file
 from pycompss.util.interactive.state import show_resources_status
@@ -845,6 +846,15 @@ def resources_status() -> None:
             "      Please, enable it by setting the monitor flag when"
             + " starting PyCOMPSs."
         )
+
+
+def monitoring_information() -> None:
+    """Show monitoring evolution information.
+
+    :return: None
+    """
+    log_path = GLOBALS.get_log_directory()
+    show_monitoring_information(log_path)
 
 
 # ########################################################################### #

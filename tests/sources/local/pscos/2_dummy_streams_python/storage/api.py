@@ -30,6 +30,10 @@ from pycompss.util.serialization.serializer import deserialize_from_file
 import socket
 storage_path = '/tmp/PSCO/' + str(socket.gethostname()) + '/'
 
+from pycompss.tests.outlog import create_logger
+
+LOGGER = create_logger()
+
 
 def init(config_file_path=None, **kwargs):
     '''
@@ -101,7 +105,7 @@ def getByID(id):
         try:
             file_name = id + '.PSCO'
             file_path = storage_path + file_name
-            obj = deserialize_from_file(file_path)
+            obj = deserialize_from_file(file_path, LOGGER)
             obj.setID(id)
             return obj
         except ValueError:
@@ -136,7 +140,7 @@ def makePersistent(obj, *args):
         file_name = str(uid) + '.PSCO'
         file_path = storage_path + file_name
         print("MAKE PERSISTENT: Serializing object to file " + file_path)
-        serialize_to_file(obj, file_path)
+        serialize_to_file(obj, file_path, LOGGER)
     else:
         # The obj is already persistent
         pass
@@ -154,7 +158,7 @@ def updatePersistent(obj, *args):
         else:
             raise Exception("Can not delete the file %s doesn't exists" % str(file_path))
         # Create a new one
-        serialize_to_file(obj, file_path)
+        serialize_to_file(obj, file_path, LOGGER)
     else:
         # The obj is not persistent
         pass

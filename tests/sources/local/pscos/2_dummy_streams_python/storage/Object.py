@@ -18,7 +18,7 @@ Dummy SCO class
 ---------------
 
 WARNING! Only for testing purposes.
-         Considers the persitence within the /tmp folder of the localhost.
+         Considers the persistence within the /tmp folder of the localhost.
 '''
 from . import api
 

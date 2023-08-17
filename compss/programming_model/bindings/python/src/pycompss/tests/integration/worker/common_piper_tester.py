@@ -29,6 +29,7 @@ from pycompss.api.task import task
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.process.manager import create_process
 from pycompss.util.serialization.serializer import deserialize_from_file
+from pycompss.tests.outlog import get_logger
 
 # Globals
 STD_OUT_FILE = "/../../../../std.out"
@@ -82,7 +83,9 @@ def evaluate_piper_worker_common(worker_process, mpi_worker=False):
 
     files = create_files()
     (
-        temp_folder,
+        temp_directory,
+        log_directory,
+        analysis_directory,
         executor_outbound,
         executor_inbound,
         control_worker_outbound,
@@ -105,7 +108,9 @@ def evaluate_piper_worker_common(worker_process, mpi_worker=False):
             "PYTHONPATH=" + python_path,
             "python",
             current_path + "/../../../worker/piper/mpi_piper_worker.py",
-            temp_folder,
+            temp_directory,
+            log_directory,
+            analysis_directory,
             "false",
             "true",
             "0",
@@ -113,6 +118,7 @@ def evaluate_piper_worker_common(worker_process, mpi_worker=False):
             "NONE",
             "localhost",
             "49049",
+            "false",
             "false",
             "false",
             "1",
@@ -125,7 +131,9 @@ def evaluate_piper_worker_common(worker_process, mpi_worker=False):
     else:
         sys.argv = [
             "piper_worker.py",
-            temp_folder,
+            temp_directory,
+            log_directory,
+            analysis_directory,
             "false",
             "true",
             "0",
@@ -133,6 +141,7 @@ def evaluate_piper_worker_common(worker_process, mpi_worker=False):
             "NONE",
             "localhost",
             "49049",
+            "false",
             "false",
             "false",
             "1",
@@ -194,14 +203,20 @@ def create_files():
 
     :returns: A list with the temporary folder containing files.
     """
-    temp_folder = tempfile.mkdtemp()
-    os.mkdir(os.path.join(temp_folder, "log"))
+    temp_directory = tempfile.mkdtemp()
+    os.mkdir(os.path.join(temp_directory, "temp"))
+    log_directory = tempfile.mkdtemp()
+    os.mkdir(os.path.join(log_directory, "log"))
+    analysis_directory = tempfile.mkdtemp()
+    os.mkdir(os.path.join(analysis_directory, "analysis"))
     executor_outbound = tempfile.NamedTemporaryFile(delete=False).name
     executor_inbound = tempfile.NamedTemporaryFile(delete=False).name
     control_worker_outbound = tempfile.NamedTemporaryFile(delete=False).name
     control_worker_inbound = tempfile.NamedTemporaryFile(delete=False).name
     return (
-        temp_folder,
+        temp_directory,
+        log_directory,
+        analysis_directory,
         executor_outbound,
         executor_inbound,
         control_worker_outbound,
@@ -234,7 +249,9 @@ def evaluate_worker(
     :returns: None.
     """
     (
-        temp_folder,
+        temp_directory,
+        log_directory,
+        analysis_directory,
         executor_outbound,
         executor_inbound,
         control_worker_outbound,
@@ -242,7 +259,7 @@ def evaluate_worker(
     ) = files
     print("Starting " + name + " worker")
     worker.start()
-    print("Temp folder: " + temp_folder)
+    print("Log folder: " + log_directory)
     # Wait 2 seconds to start the worker.
     print("Waiting 2 seconds to send a task request")
     time.sleep(2)
@@ -342,8 +359,8 @@ def evaluate_worker(
         if os.path.isfile(pipe):
             os.remove(pipe)
     # Check logs
-    out_log = os.path.join(temp_folder, "log", "binding_worker.out")
-    err_log = os.path.join(temp_folder, "log", "binding_worker.err")
+    out_log = os.path.join(log_directory, "binding_worker.out")
+    err_log = os.path.join(log_directory, "binding_worker.err")
     if os.path.exists(err_log):
         raise PyCOMPSsException(ERROR_MESSAGE + err_log)
     with open(out_log, "r") as f:
@@ -355,7 +372,7 @@ def evaluate_worker(
     check_task(job1_out, job1_err)
     # Check task 2
     check_task(job2_out, job2_err)
-    result = deserialize_from_file(job2_result)
+    result = deserialize_from_file(job2_result, get_logger())
     if result != 2:
         raise PyCOMPSsException(
             "Wrong result obtained for increment task. Expected 2, received: "
@@ -376,7 +393,7 @@ def evaluate_worker(
         os.remove(current_path + STD_OUT_FILE)
     if os.path.isfile(current_path + STD_ERR_FILE):
         os.remove(current_path + STD_ERR_FILE)
-    shutil.rmtree(temp_folder)
+    shutil.rmtree(log_directory)
     if os.path.isfile(executor_outbound):
         os.remove(executor_outbound)
     if os.path.isfile(executor_inbound):

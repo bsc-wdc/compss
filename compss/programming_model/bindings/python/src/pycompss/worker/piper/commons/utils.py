@@ -28,6 +28,7 @@ import logging
 from pycompss.util.context import CONTEXT
 from pycompss.runtime.commons import GLOBALS
 from pycompss.util.exceptions import PyCOMPSsException
+from pycompss.util.serialization.serializer import get_available_libraries
 from pycompss.util.typing_helper import typing
 from pycompss.worker.piper.commons.constants import HEADER
 from pycompss.worker.piper.commons.executor import Pipe
@@ -161,4 +162,16 @@ class PiperWorkerConfiguration:
         logger.debug(
             HEADER + "Stream port    : " + str(self.stream_master_port)
         )
+        logger.debug(HEADER + "-----------------------------")
+
+        available_libs = get_available_libraries()
+
+        logger.debug(
+            HEADER + "Available serialization/deserialization libraries:"
+        )
+        for priority, lib, lib_file in available_libs:
+            logger.debug(
+                HEADER + " - %s : %s : %s" % (str(priority), lib, lib_file)
+            )
+
         logger.debug(HEADER + "-----------------------------")

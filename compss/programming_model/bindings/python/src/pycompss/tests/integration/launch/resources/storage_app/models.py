@@ -24,7 +24,10 @@ import socket
 from pycompss.api.parameter import INOUT
 from pycompss.api.task import task
 from pycompss.tests.integration.launch.resources.storage.Object import SCO
+from pycompss.tests.outlog import get_logger
 from pycompss.util.serialization.serializer import serialize_to_file
+
+LOGGER = get_logger()
 
 
 def update_file(obj):
@@ -37,7 +40,9 @@ def update_file(obj):
         storage_path = (
             "/tmp/PSCO/" + str(socket.gethostname()) + "/"
         )  # NOSONAR
-        serialize_to_file(obj, storage_path + obj.getID() + ".PSCO")
+        serialize_to_file(
+            obj, storage_path + obj.getID() + ".PSCO", logger=LOGGER
+        )
 
 
 class MySO(SCO):

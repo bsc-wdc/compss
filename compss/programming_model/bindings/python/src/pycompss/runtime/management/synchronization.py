@@ -36,10 +36,9 @@ from pycompss.util.storages.persistent import is_psco
 from pycompss.util.typing_helper import typing
 
 # Setup LOGGER
-if __debug__:
-    import logging
+import logging
 
-    LOGGER = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
 def wait_on_object(obj: typing.Any, mode: str) -> typing.Any:
@@ -118,7 +117,7 @@ def _synchronize(obj: typing.Any, mode: int) -> typing.Any:
                 + " CANCELLED. Please, check the logs. Returning None."
             )
             return None
-        new_obj = deserialize_from_file(compss_file)
+        new_obj = deserialize_from_file(compss_file, LOGGER)
         COMPSs.close_file(app_id, file_name, mode)
     else:
         new_obj = get_by_id(compss_file)

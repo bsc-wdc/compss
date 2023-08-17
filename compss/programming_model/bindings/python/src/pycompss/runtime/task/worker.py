@@ -953,7 +953,7 @@ class TaskWorker:
                         "- deserializing: %s",
                         str(original_path),
                     )
-            obj = deserialize_from_file(original_path)
+            obj = deserialize_from_file(original_path, LOGGER)
             if (
                 argument.file_name.keep_source
                 and argument.direction != parameter.DIRECTION.IN_DELETE
@@ -972,7 +972,7 @@ class TaskWorker:
                 )
             return obj
 
-        return deserialize_from_file(original_path)
+        return deserialize_from_file(original_path, LOGGER)
 
     def segregate_objects(self, args: tuple) -> typing.Tuple[list, dict, list]:
         """Split a list of arguments.
@@ -1292,10 +1292,10 @@ class TaskWorker:
                                 )
                             if python_mpi:
                                 serialize_to_file_mpienv(
-                                    content, f_name, False
+                                    content, f_name, False, LOGGER
                                 )
                             else:
-                                serialize_to_file(content, f_name)
+                                serialize_to_file(content, f_name, LOGGER)
                                 self.update_object_in_cache(content, arg)
                     else:
                         # It is None --> PSCO
@@ -1326,10 +1326,10 @@ class TaskWorker:
                                 )
                             if python_mpi:
                                 serialize_to_file_mpienv(
-                                    content, f_name, False
+                                    content, f_name, False, LOGGER
                                 )
                             else:
-                                serialize_to_file(content, f_name)
+                                serialize_to_file(content, f_name, LOGGER)
                                 self.update_object_in_cache(content, arg)
                     else:
                         # It is None --> PSCO
@@ -1353,9 +1353,11 @@ class TaskWorker:
                     )
 
                 if python_mpi:
-                    serialize_to_file_mpienv(arg.content, f_name, False)
+                    serialize_to_file_mpienv(
+                        arg.content, f_name, False, LOGGER
+                    )
                 else:
-                    serialize_to_file(arg.content, f_name)
+                    serialize_to_file(arg.content, f_name, LOGGER)
                     self.update_object_in_cache(arg.content, arg)
 
     @staticmethod
@@ -1516,9 +1518,11 @@ class TaskWorker:
                     else:
                         rank_zero_reduce = True
 
-                    serialize_to_file_mpienv(obj, f_name, rank_zero_reduce)
+                    serialize_to_file_mpienv(
+                        obj, f_name, rank_zero_reduce, LOGGER
+                    )
                 else:
-                    serialize_to_file(obj, f_name)
+                    serialize_to_file(obj, f_name, LOGGER)
                 if (
                     self.cache.in_queue is not None
                     and self.cache.out_queue is not None

@@ -741,7 +741,7 @@ def execute_task(
                     if __debug__:
                         logger.debug("\t- Deserialize self from file.")
                     try:
-                        obj = deserialize_from_file(file_name)
+                        obj = deserialize_from_file(file_name, logger)
                     except Exception:  # pylint: disable=broad-except
                         exc_type, exc_value, exc_traceback = sys.exc_info()
                         lines = traceback.format_exception(
@@ -815,7 +815,7 @@ def execute_task(
                             "Serializing self (%r) to file: %s", obj, file_name
                         )
                     try:
-                        serialize_to_file(obj, file_name)
+                        serialize_to_file(obj, file_name, logger)
                     except Exception:  # noqa # pylint: disable=broad-except
                         # Catch any serialization exception
                         exc_type, exc_value, exc_traceback = sys.exc_info()

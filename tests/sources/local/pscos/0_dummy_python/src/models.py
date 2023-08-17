@@ -18,7 +18,9 @@ def updateFile(obj):
         import socket
         storage_path = '/tmp/PSCO/' + str(socket.gethostname()) + '/'
         from pycompss.util.serialization.serializer import serialize_to_file
-        serialize_to_file(obj, storage_path + obj.getID() + ".PSCO")
+        from pycompss.tests.outlog import create_logger
+        logger = create_logger()
+        serialize_to_file(obj, storage_path + obj.getID() + ".PSCO", logger)
 
 
 # For simple PSCO test

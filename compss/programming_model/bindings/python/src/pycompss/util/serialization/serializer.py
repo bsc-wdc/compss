@@ -51,7 +51,7 @@ import struct
 import traceback
 import types
 
-# from io import BytesIO
+from io import BytesIO
 
 from pycompss.util.exceptions import SerializerException
 from pycompss.util.objects.properties import object_belongs_to_module
@@ -208,7 +208,10 @@ def serialize_to_handler(
             (abs(hash(os.path.basename(handler.name))) % PLATFORM_C_MAXINT),
         )
     if __debug__:
-        logger.debug("Serializing to handler: %s" % str(handler.name))
+        if isinstance(handler, BytesIO):
+            logger.debug("Serializing to BytesIO handler: %s" % str(handler))
+        else:
+            logger.debug("Serializing to handler: %s" % str(handler.name))
     if DISABLE_GC:
         # Disable the garbage collector while serializing -> more performance?
         gc.disable()
@@ -406,18 +409,20 @@ def serialize_to_file_mpienv(
             serialize_to_file(obj, file_name, logger)
 
 
-# def serialize_to_bytes(obj: typing.Any, logger: logging.Logger) -> bytes:
-#     """Serialize an object to a byte array.
-#
-#     :param obj: Object to be serialized.
-#     :param logger: Logger to output the serialization messages.
-#     :return: The serialized content.
-#     """
-#     handler = BytesIO()
-#     serialize_to_handler(obj, handler, logger)
-#     ret = handler.getvalue()
-#     handler.close()
-#     return ret
+def serialize_to_bytes(obj: typing.Any, logger: logging.Logger) -> bytes:
+    """Serialize an object to a byte array.
+
+    CAUTION: Used in redis storage integration.
+
+    :param obj: Object to be serialized.
+    :param logger: Logger to output the serialization messages.
+    :return: The serialized content.
+    """
+    handler = BytesIO()
+    serialize_to_handler(obj, handler, logger)
+    ret = handler.getvalue()
+    handler.close()
+    return ret
 
 
 def deserialize_from_handler(
@@ -444,7 +449,12 @@ def deserialize_from_handler(
             (abs(hash(os.path.basename(handler.name))) % PLATFORM_C_MAXINT),
         )
     if __debug__:
-        logger.debug("Deserializing from handler: %s" % str(handler.name))
+        if isinstance(handler, BytesIO):
+            logger.debug(
+                "Deserializing from BytesIO handler: %s" % str(handler)
+            )
+        else:
+            logger.debug("Deserializing from handler: %s" % str(handler.name))
     original_position = 0
     try:
         original_position = handler.tell()
@@ -571,26 +581,29 @@ def deserialize_from_file(
         return ret
 
 
-# def deserialize_from_bytes(
-#     serialized_content_bytes: bytes,
-#     show_exception: bool = True,
-#     logger: logging.Logger
-# ) -> typing.Any:
-#     """Deserialize the contents in a given byte array.
-#
-#     :param serialized_content_bytes: A byte array with serialized contents.
-#     :param show_exception: Show exception if happen (only with debug).
-#     :param logger: Logger to output the deserialization messages.
-#     :return: A deserialized object.
-#     """
-#     with EventInsideWorker(TRACING_WORKER.deserialize_from_bytes_event):
-#         handler = BytesIO(serialized_content_bytes)
-#         ret, close_handler = deserialize_from_handler(
-#             handler, show_exception, logger
-#         )
-#         if close_handler:
-#             handler.close()
-#         return ret
+def deserialize_from_bytes(
+    serialized_content_bytes: bytes,
+    show_exception: bool,
+    logger: logging.Logger,
+) -> typing.Any:
+    """Deserialize the contents in a given byte array.
+
+    CAUTION: Used in redis storage integration.
+
+    :param serialized_content_bytes: A byte array with serialized contents.
+    :param show_exception: Show exception if happen (only with debug -
+                           uses to be True).
+    :param logger: Logger to output the deserialization messages.
+    :return: A deserialized object.
+    """
+    with EventInsideWorker(TRACING_WORKER.deserialize_from_bytes_event):
+        handler = BytesIO(serialized_content_bytes)
+        ret, close_handler = deserialize_from_handler(
+            handler, show_exception, logger
+        )
+        if close_handler:
+            handler.close()
+        return ret
 
 
 def serialize_objects(to_serialize: list, logger: logging.Logger) -> None:

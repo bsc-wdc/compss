@@ -74,10 +74,6 @@ class Constraint:  # pylint: disable=too-few-public-methods
         self.scope = CONTEXT.in_pycompss()
         self.core_element = None  # type: typing.Optional[CE]
         self.core_element_configured = False
-        print("XXXXXXXXXXXXXXXXXXX- INIT")
-        print(args)
-        print(kwargs)
-        print("XXXXXXXXXXXXXXXXXXX- INIT")
 
     def __call__(self, user_function: typing.Callable) -> typing.Callable:
         """Parse and set the constraints within the task core element.
@@ -96,10 +92,6 @@ class Constraint:  # pylint: disable=too-few-public-methods
 
             if __debug__:
                 logger.debug("Executing constrained_f wrapper.")
-                print("XXXXXXXXXXXXXXXXXXX")
-                print(args)
-                print(kwargs)
-                print("XXXXXXXXXXXXXXXXXXX")
 
             if (
                 CONTEXT.in_master() or CONTEXT.is_nesting_enabled()
@@ -150,9 +142,6 @@ class Constraint:  # pylint: disable=too-few-public-methods
             core_element.set_impl_constraints(self.kwargs)
             core_element.set_impl_local(is_local)
             kwargs[CORE_ELEMENT_KEY] = core_element
-            print("____________________________CORE ELEMENT_______________________")
-            print(core_element)
-            print("____________________________CORE ELEMENT_______________________")
 
         # Set as configured
         self.core_element_configured = True

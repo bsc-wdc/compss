@@ -88,6 +88,9 @@ class Task:  # pylint: disable=R0903, R0913
         "core_element_configured",
         "decorator_arguments",
         "decorated_function",
+        "constraint_args",
+        "registered_signatures",
+        "constraint_args",
     ]
 
     def __init__(
@@ -121,6 +124,8 @@ class Task:  # pylint: disable=R0903, R0913
         self.decorator_arguments = task_decorator_arguments
         # Instantiate FunctionDefinition object
         self.decorated_function = FunctionDefinition()
+        self.registered_signatures = {}
+        self.constraint_args = {}
 
     def __call__(self, user_function: typing.Callable) -> typing.Callable:
         """Perform the task processing.
@@ -171,15 +176,20 @@ class Task:  # pylint: disable=R0903, R0913
             self.__check_core_element__(kwargs, user_function)
             with EventMaster(TRACING_MASTER.task_instantiation):
                 master = TaskMaster(
+                    user_function,
                     self.core_element,
                     self.decorator_arguments,
                     self.decorated_function,
+                    self.registered_signatures,
+                    self.constraint_args,
                 )
             master_result = master.call(args, kwargs)
             (
                 future_object,
                 self.core_element,
                 self.decorated_function,
+                self.registered_signatures,
+                self.constraint_args,
             ) = master_result
             del master
             return future_object
@@ -225,15 +235,20 @@ class Task:  # pylint: disable=R0903, R0913
                 # not be shared.
                 with EventMaster(TRACING_MASTER.task_instantiation):
                     master = TaskMaster(
+                        user_function,
                         self.core_element,
                         self.decorator_arguments,
                         self.decorated_function,
+                        self.registered_signatures,
+                        self.constraint_args,
                     )
                 master_result = master.call(args, kwargs)
                 (
                     future_object,
                     self.core_element,
                     self.decorated_function,
+                    self.registered_signatures,
+                    self.constraint_args,
                 ) = master_result
                 del master
                 return future_object

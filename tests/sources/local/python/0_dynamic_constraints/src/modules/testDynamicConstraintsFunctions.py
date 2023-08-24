@@ -14,6 +14,9 @@ from pycompss.api.api import compss_wait_on
 from pycompss.api.constraint import constraint
 from pycompss.api.task import task
 
+CU = 1
+MS = 1
+SS = 1
 
 @constraint(computing_units="comp")
 @task(returns=int)
@@ -49,6 +52,26 @@ def multexpconstTask(comp):
     return 1
 
 
+@constraint(computing_units="CU")
+@task(returns=int)
+def singleglobalconstTask():
+    global CU
+    print("computing_units=", CU)
+    time.sleep(1)
+    return 1
+
+
+@constraint(computing_units="CU", memory_size="MS")
+@task(returns=int)
+def multglobalconstTask():
+    global CU
+    global MS
+    print("computing_units=", CU)
+    print("memory_size=", MS)
+    time.sleep(1)
+    return 1
+
+
 @constraint(memory_type="memt")
 @task(returns=int)
 def singlestrconstTask(memt):
@@ -66,11 +89,14 @@ def multstrconstTask(memt, stot):
     return 1
 
 
-@constraint(computing_units="comp", memory_type="memt", memory_size="comp + comp/1")
+@constraint(computing_units="comp", memory_type="memt", memory_size="comp + comp/1", storage_size="SS")
 @task(returns=int)
-def multintstrexpconstTask(comp, memt):
+def multintstrexpglobalconstTask(comp, memt):
+    global SS
     print("computing_units=", comp)
     print("memory_type=", memt)
+    print("memory_size=", comp + comp/1)
+    print("storage_size=", SS)
     time.sleep(1)
     return 1
 
@@ -87,10 +113,21 @@ def dynamicstaticintconstTask(comp):
 @constraint(computing_units="1", memory_size="mems*2")
 @task(returns=int)
 def dynamicstaticexpconstTask(mems):
-    print("computing_units=", mems*2)
-    print("memory_size=", 1)
+    print("computing_units=", 1)
+    print("memory_size=", mems*2)
     time.sleep(1)
     return 1
+
+
+@constraint(computing_units="1", memory_size="MS")
+@task(returns=int)
+def dynamicstaticglobalconstTask():
+    global MS
+    print("computing_units=", 1)
+    print("memory_size=", MS)
+    time.sleep(1)
+    return 1
+
 
 
 @constraint(computing_units="1", memory_type="memt")
@@ -185,6 +222,44 @@ class testDynamicConstraintsFunctions(unittest.TestCase):
         self.assertEqual((result1, result2, result3), (1, 1, 1))
 
     '''
+    CONSTRAINTS WITH GLOBALS
+    '''
+
+    # we have one global dynamic constraint
+    def testsingleglobalconstTask1(self):
+        global CU
+        pending1 = singleglobalconstTask()
+        CU = 2
+        pending2 = singleglobalconstTask()
+        CU = 3
+        pending3 = singleglobalconstTask()
+        CU = 2
+        pending4 = singleglobalconstTask()
+
+        result1 = compss_wait_on(pending1)
+        result2 = compss_wait_on(pending2)
+        result3 = compss_wait_on(pending3)
+        result4 = compss_wait_on(pending4)
+        self.assertEqual((result1, result2, result3, result4), (1, 1, 1, 1))
+
+    # we have multiple global dynamic constraints
+    def testmultglobalconstTask1(self):
+        global CU
+        global MS
+        pending1 = multglobalconstTask()
+        CU = 2
+        MS = 3
+        pending2 = multglobalconstTask()
+        CU = 1
+        MS = 1
+        pending3 = multglobalconstTask()
+
+        result1 = compss_wait_on(pending1)
+        result2 = compss_wait_on(pending2)
+        result3 = compss_wait_on(pending3)
+        self.assertEqual((result1, result2, result3), (1, 1, 1))
+
+    '''
     CONSTRAINTS WITH STRINGS
     '''
 
@@ -228,18 +303,21 @@ class testDynamicConstraintsFunctions(unittest.TestCase):
         self.assertEqual((result1, result2, result3), (1, 1, 1))
 
     '''
-    CONSTRAINTS WITH INT + STRING * EXPRESSION
+    CONSTRAINTS WITH INT + STRING + EXPRESSION + GLOBAL
     '''
 
     # we have multiple int, string and expression dynamic constraints and different ways to pass the argument
-    def testmultintstrexpconstTask1(self):
+    def testmultintstrexpglobalconstTask1(self):
+        global SS
         comp = 1
         memt = "DRAM"
-        pending1 = multintstrexpconstTask(comp, memt)
+        pending1 = multintstrexpglobalconstTask(comp, memt)
+        SS = 2
         comp = 2
         memt = "SRAM"
-        pending2 = multintstrexpconstTask(comp, memt)
-        pending3 = multintstrexpconstTask(comp=1, memt="DRAM")
+        pending2 = multintstrexpglobalconstTask(comp, memt)
+        SS = 1
+        pending3 = multintstrexpglobalconstTask(comp=1, memt="DRAM")
 
         result1 = compss_wait_on(pending1)
         result2 = compss_wait_on(pending2)
@@ -272,6 +350,20 @@ class testDynamicConstraintsFunctions(unittest.TestCase):
         pending2 = dynamicstaticexpconstTask(mems)
         mems = 1
         pending3 = dynamicstaticexpconstTask(mems)
+
+        result1 = compss_wait_on(pending1)
+        result2 = compss_wait_on(pending2)
+        result3 = compss_wait_on(pending3)
+        self.assertEqual((result1, result2, result3), (1, 1, 1))
+
+    # we have dynamic global constraint and static int constraint
+    def testdynamicstaticglobalconstTask1(self):
+        global MS
+        pending1 = dynamicstaticglobalconstTask()
+        MS = 2
+        pending2 = dynamicstaticglobalconstTask()
+        MS = 1
+        pending3 = dynamicstaticglobalconstTask()
 
         result1 = compss_wait_on(pending1)
         result2 = compss_wait_on(pending2)

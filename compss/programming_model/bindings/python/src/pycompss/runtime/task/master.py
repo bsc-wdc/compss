@@ -202,13 +202,13 @@ class TaskMaster:
     ]
 
     def __init__(
-            self,
-            user_function: typing.Callable,
-            core_element: CE,
-            decorator_arguments: TaskArguments,
-            decorated_function: FunctionDefinition,
-            registered_signatures: dict = {},
-            constraint_args: dict = {},
+        self,
+        user_function: typing.Callable,
+        core_element: CE,
+        decorator_arguments: TaskArguments,
+        decorated_function: FunctionDefinition,
+        registered_signatures: dict = {},
+        constraint_args: dict = {},
     ) -> None:
         """Task at master constructor.
 
@@ -238,9 +238,8 @@ class TaskMaster:
         self.constraint_args = constraint_args
 
     def call(
-            self, args: tuple, kwargs: dict
+        self, args: tuple, kwargs: dict
     ) -> typing.Tuple[typing.Any, CE, FunctionDefinition, dict, dict]:
-
 
         """Run the task as master.
 
@@ -330,8 +329,8 @@ class TaskMaster:
             # may be inherited, and in this case it has to be registered again
             # with the new implementation signature).
             if (
-                    not self.decorated_function.registered
-                    or self.decorated_function.signature != impl_signature
+                not self.decorated_function.registered
+                or self.decorated_function.signature != impl_signature
             ):
                 with EventMaster(TRACING_MASTER.update_core_element):
                     self.update_core_element(
@@ -367,8 +366,8 @@ class TaskMaster:
                     # Check if the function is an instance method or
                     # a class method.
                     has_target = (
-                            self.decorated_function.function_type
-                            == FunctionType.INSTANCE_METHOD
+                        self.decorated_function.function_type
+                        == FunctionType.INSTANCE_METHOD
                     )
                     is_http = self.core_element.get_impl_type() == "HTTP"
 
@@ -376,7 +375,9 @@ class TaskMaster:
                 with EventMaster(TRACING_MASTER.process_parameters):
                     code_strings = self.decorated_function.code_strings
                     self.process_parameters(
-                        args, kwargs, code_strings=code_strings  # como es que se procesan los parametros aqui
+                        args,
+                        kwargs,
+                        code_strings=code_strings,  # como es que se procesan los parametros aqui
                     )
 
                 # Deal with the return part.
@@ -486,7 +487,6 @@ class TaskMaster:
             self.registered_signatures[signature][a] = []
             self.registered_signatures[signature][a].append(constraints[a])
 
-
     def inspect_constraints(self, args: tuple, kwargs: dict) -> None:
         """Get constraint arguments.
 
@@ -505,38 +505,61 @@ class TaskMaster:
             constraints = kwargs[CORE_ELEMENT_KEY].get_impl_constraints()
             for a in constraints:
                 self.constraint_args[a] = ConstraintDescription(constraints[a])
-                if constraints[a].isdigit() or (isinstance(constraints[a], str) and constraints[a].startswith("$")):
+                if constraints[a].isdigit() or (
+                    isinstance(constraints[a], str)
+                    and constraints[a].startswith("$")
+                ):
                     if __debug__:
-                        logger.debug("Detected constraint as static value or environment variable")
+                        logger.debug(
+                            "Detected constraint as static value or environment variable"
+                        )
                 elif constraints[a] in kwargs:
                     if __debug__:
-                        logger.debug("Detected dynamic constraint passed as a dict")
+                        logger.debug(
+                            "Detected dynamic constraint passed as a dict"
+                        )
                     constraints[a] = kwargs[constraints[a]]
                     self.constraint_args[a].set_is_static(False)
                 elif constraints[a] in self.param_args:
                     if __debug__:
-                        logger.debug("Detected dynamic constraint passed as a value")
+                        logger.debug(
+                            "Detected dynamic constraint passed as a value"
+                        )
                     index = self.param_args.index(constraints[a])
                     constraints[a] = args[index]
                     self.constraint_args[a].set_is_static(False)
                 elif constraints[a] in self.user_function.__globals__:
-                    constraints[a] = int(self.user_function.__globals__[constraints[a]])
+                    constraints[a] = int(
+                        self.user_function.__globals__[constraints[a]]
+                    )
                     self.constraint_args[a].set_is_static(False)
                 else:
                     try:
-                        args_dict = {self.param_args[i]: args[i] for i in range(len(self.param_args))}
+                        args_dict = {
+                            self.param_args[i]: args[i]
+                            for i in range(len(self.param_args))
+                        }
                     except IndexError:
                         args_dict = kwargs
                     else:
                         args_dict.update(kwargs)
                     try:
-                        constraints[a] = int(eval(constraints[a], {"__builtins__": {}}, args_dict))
+                        constraints[a] = int(
+                            eval(
+                                constraints[a], {"__builtins__": {}}, args_dict
+                            )
+                        )
                         self.constraint_args[a].set_is_static(False)
                         if __debug__:
-                            logger.debug("Detected dynamic constraint as a regular expression")
+                            logger.debug(
+                                "Detected dynamic constraint as a regular expression"
+                            )
                     except NameError:
                         if __debug__:
-                            logger.debug("Parameter not found, treating value %s as static string" % constraints[a])
+                            logger.debug(
+                                "Parameter not found, treating value %s as static string"
+                                % constraints[a]
+                            )
             kwargs[CORE_ELEMENT_KEY].set_impl_constraints(constraints)
         else:
             constraints = self.core_element.get_impl_constraints()
@@ -551,19 +574,31 @@ class TaskMaster:
                         if constraints[a] != args[index]:
                             constraints[a] = args[index]
                     elif param_name in self.user_function.__globals__:
-                        constraints[a] = int(self.user_function.__globals__[param_name])
+                        constraints[a] = int(
+                            self.user_function.__globals__[param_name]
+                        )
                     else:
                         try:
-                            args_dict = {self.param_args[i]: args[i] for i in range(len(self.param_args))}
+                            args_dict = {
+                                self.param_args[i]: args[i]
+                                for i in range(len(self.param_args))
+                            }
                         except IndexError:
                             args_dict = kwargs
                         else:
                             args_dict.update(kwargs)
                         try:
-                            constraints[a] = int(eval(param_name, {"__builtins__": {}}, args_dict))
+                            constraints[a] = int(
+                                eval(
+                                    param_name, {"__builtins__": {}}, args_dict
+                                )
+                            )
                         except NameError:
                             if __debug__:
-                                logger.debug("Parameter not found, treating value %s as static string" % constraints[a])
+                                logger.debug(
+                                    "Parameter not found, treating value %s as static string"
+                                    % constraints[a]
+                                )
 
             self.core_element.set_impl_constraints(constraints)
 
@@ -580,8 +615,8 @@ class TaskMaster:
         else:
             module_name = mod.__name__
         if CONTEXT.in_pycompss() and module_name in (
-                "__main__",
-                "pycompss.runtime.launch",
+            "__main__",
+            "pycompss.runtime.launch",
         ):
             # 1.- The runtime is running.
             # 2.- The module where the function is defined was run as __main__.
@@ -602,8 +637,8 @@ class TaskMaster:
         file_name = os.path.splitext(os.path.basename(path))[0]
         # Do any necessary pre-processing action before executing any code
         if (
-                file_name.startswith(CONSTANTS.interactive_file_name)
-                and not self.decorated_function.registered
+            file_name.startswith(CONSTANTS.interactive_file_name)
+            and not self.decorated_function.registered
         ):
             # If the file_name starts with "InteractiveMode" means that
             # the user is using PyCOMPSs from jupyter-notebook.
@@ -616,7 +651,7 @@ class TaskMaster:
             print(f"Found task: {self.decorated_function.function.__name__}")
 
     def extract_core_element(
-            self, ce: typing.Optional[CE]
+        self, ce: typing.Optional[CE]
     ) -> typing.Tuple[bool, bool]:
         """Get or instantiate the Task's core element.
 
@@ -750,7 +785,7 @@ class TaskMaster:
 
     @staticmethod
     def _getargspec(
-            function: typing.Callable,
+        function: typing.Callable,
     ) -> typing.Tuple[
         typing.List[str], typing.Optional[str], typing.Optional[tuple]
     ]:
@@ -857,7 +892,7 @@ class TaskMaster:
         self.decorator_arguments.chunk_size = updated_chunk_size
 
     def process_parameters(
-            self, args: tuple, kwargs: dict, code_strings: bool = True
+        self, args: tuple, kwargs: dict, code_strings: bool = True
     ) -> None:
         """Process all the input parameters.
 
@@ -897,12 +932,12 @@ class TaskMaster:
                 # ...
                 # Also, |defaults| <= |positionals|
                 for arg_name, default_value in reversed(
-                        list(
-                            zip(
-                                list(reversed(self.param_args))[:num_defaults],
-                                list(reversed(self.param_defaults)),
-                            )
+                    list(
+                        zip(
+                            list(reversed(self.param_args))[:num_defaults],
+                            list(reversed(self.param_defaults)),
                         )
+                    )
                 ):
                     if arg_name not in self.parameters:
                         real_arg_name = get_kwarg_name(arg_name)
@@ -950,7 +985,7 @@ class TaskMaster:
         )
 
     def build_parameter_object(
-            self, arg_name: str, arg_object: typing.Any, code_strings=True
+        self, arg_name: str, arg_object: typing.Any, code_strings=True
     ) -> Parameter:
         """Create the Parameter object from an argument name and object.
 
@@ -1072,8 +1107,8 @@ class TaskMaster:
         elif self.first_arg_name == "cls":
             self.decorated_function.module_name = first_object.__module__
         if self.decorated_function.module_name in (
-                "__main__",
-                "pycompss.runtime.launch",
+            "__main__",
+            "pycompss.runtime.launch",
         ):
             # The module where the function is defined was run as __main__,
             # We need to find out the real module name
@@ -1124,8 +1159,8 @@ class TaskMaster:
             # Then there is a class definition before the name in the
             # qualified name
             self.decorated_function.class_name = qualified_name[
-                                                 : -len(name) - 1
-                                                 ]
+                : -len(name) - 1
+            ]
             # -1 to remove the last point
 
     def get_code_strings(self) -> None:
@@ -1195,10 +1230,10 @@ class TaskMaster:
         return impl_signature, impl_type_args
 
     def update_core_element(
-            self,
-            impl_signature: str,
-            impl_type_args: list,
-            pre_defined_ce: typing.Tuple[bool, bool],
+        self,
+        impl_signature: str,
+        impl_type_args: list,
+        pre_defined_ce: typing.Tuple[bool, bool],
     ) -> None:
         """Add the @task decorator information to the core element.
 
@@ -1301,10 +1336,10 @@ class TaskMaster:
                 if param_name:
                     if param_name in self.decorator_arguments.parameters:
                         if (
-                                self.decorator_arguments.parameters[
-                                    param_name
-                                ].content_type
-                                != parameter.TYPE.COLLECTION
+                            self.decorator_arguments.parameters[
+                                param_name
+                            ].content_type
+                            != parameter.TYPE.COLLECTION
                         ):
                             raise PyCOMPSsException(
                                 f"Parameter {param_name} is not a collection!"
@@ -1333,7 +1368,7 @@ class TaskMaster:
 
     @staticmethod
     def validate_processes_per_node(
-            computing_nodes: int, processes_per_node: int
+        computing_nodes: int, processes_per_node: int
     ) -> None:
         """Check the processes per node property.
 
@@ -1349,7 +1384,7 @@ class TaskMaster:
             )
 
     def parse_processes_per_node(
-            self, processes_per_node: typing.Union[int, str]
+        self, processes_per_node: typing.Union[int, str]
     ) -> int:
         """Retrieve the number of processes per node.
 
@@ -1427,7 +1462,7 @@ class TaskMaster:
         return parsed_processes_per_node
 
     def parse_computing_nodes(
-            self, computing_nodes: typing.Union[int, str]
+        self, computing_nodes: typing.Union[int, str]
     ) -> int:
         """Retrieve the number of computing nodes.
 
@@ -1580,7 +1615,7 @@ class TaskMaster:
         )
 
     def add_return_parameters(
-            self, returns: typing.Any, code_strings: bool = True
+        self, returns: typing.Any, code_strings: bool = True
     ) -> int:
         """Modify the return parameters accordingly to the return statement.
 
@@ -1710,9 +1745,9 @@ class TaskMaster:
     @staticmethod
     def _is_return_param_name(returns_str):
         return (
-                isinstance(returns_str, str)
-                and returns_str.startswith(RETURN_OPEN_SYMBOL)
-                and returns_str.endswith(RETURN_CLOSE_SYMBOL)
+            isinstance(returns_str, str)
+            and returns_str.startswith(RETURN_OPEN_SYMBOL)
+            and returns_str.endswith(RETURN_CLOSE_SYMBOL)
         )
 
     def update_return_if_no_returns(self, function: typing.Callable) -> int:
@@ -1765,7 +1800,7 @@ class TaskMaster:
 
         code = []  # type: list
         if self.first_arg_name == "self" or source_code.startswith(
-                "@classmethod"
+            "@classmethod"
         ):
             # It is a task defined within a class (can not parse the code
             # with ast since the class does not exist yet).
@@ -1787,7 +1822,7 @@ class TaskMaster:
             lines = [i for i, li in enumerate(ret_mask) if li]
             max_num_returns = 0
             if self.first_arg_name == "self" or source_code.startswith(
-                    "@classmethod"
+                "@classmethod"
             ):
                 # Parse code as string (it is a task defined within a class)
                 def _has_multireturn(statement: str) -> bool:
@@ -1880,18 +1915,18 @@ class TaskMaster:
                 # for the cases like 'returns = {{param_name}}' we replace the
                 # return value with the parameter itself
                 tmp = ret_value[
-                      len(RETURN_OPEN_SYMBOL): -len(  # noqa: E203
-                          RETURN_CLOSE_SYMBOL
-                      )
-                      ]
+                    len(RETURN_OPEN_SYMBOL) : -len(  # noqa: E203
+                        RETURN_CLOSE_SYMBOL
+                    )
+                ]
                 if not self.parameters.get(tmp):
                     raise PyCOMPSsException(
                         "Invalid parameter name in 'returns'"
                     )
                 future_object = self.parameters[tmp].content
             elif (
-                    type(ret_value) in _PYTHON_TO_COMPSS
-                    or ret_value in _PYTHON_TO_COMPSS
+                type(ret_value) in _PYTHON_TO_COMPSS
+                or ret_value in _PYTHON_TO_COMPSS
             ):
                 future_object = Future()  # primitives,string,dic,list,tuple
             elif inspect.isclass(ret_value):
@@ -2032,7 +2067,7 @@ class TaskMaster:
         serializer.FORCED_SERIALIZER = -1
 
     def _build_values_types_directions(
-            self,
+        self,
     ) -> typing.Tuple[
         typing.List[typing.Union[COMPSsFile, str]],
         typing.List[str],
@@ -2076,8 +2111,8 @@ class TaskMaster:
 
         # Build the range of elements
         if self.decorated_function.function_type in (
-                FunctionType.INSTANCE_METHOD,
-                FunctionType.CLASS_METHOD,
+            FunctionType.INSTANCE_METHOD,
+            FunctionType.CLASS_METHOD,
         ):
             slf_name = arg_names.pop(0)
         # Fill the values, compss_types, compss_directions, compss_streams and
@@ -2108,8 +2143,8 @@ class TaskMaster:
         # Fill the values, compss_types, compss_directions, compss_streams and
         # compss_prefixes from self (if exist)
         if (
-                self.decorated_function.function_type
-                == FunctionType.INSTANCE_METHOD
+            self.decorated_function.function_type
+            == FunctionType.INSTANCE_METHOD
         ):
             # self is always an object
             (
@@ -2166,7 +2201,7 @@ class TaskMaster:
 
     @staticmethod
     def _convert_parameter_obj_to_string(
-            name: str, param: Parameter, max_obj_arg_size: float
+        name: str, param: Parameter, max_obj_arg_size: float
     ) -> Parameter:
         """Convert object to string.
 
@@ -2186,10 +2221,10 @@ class TaskMaster:
         # Warning: calculate the size of a python object can be difficult
         # in terms of time and precision.
         if (
-                param.content_type == TYPE.OBJECT
-                and not is_future
-                and param.direction == DIRECTION.IN
-                and not isinstance(param.content, base_string)
+            param.content_type == TYPE.OBJECT
+            and not is_future
+            and param.direction == DIRECTION.IN
+            and not isinstance(param.content, base_string)
         ):
             # check object size - The following line does not work
             # properly with recursive objects
@@ -2264,7 +2299,7 @@ def _manage_persistent_object(param: Parameter) -> None:
 
 
 def _serialize_object_into_file(
-        name: str, param: Parameter, code_strings=True, force_file=False
+    name: str, param: Parameter, code_strings=True, force_file=False
 ) -> Parameter:
     """Serialize an object into a file if necessary.
 
@@ -2290,16 +2325,16 @@ def _serialize_object_into_file(
     # #########################################################################
 
     if (
-            param.content_type == TYPE.OBJECT
-            or param.content_type == TYPE.EXTERNAL_STREAM
-            or param.is_future
+        param.content_type == TYPE.OBJECT
+        or param.content_type == TYPE.EXTERNAL_STREAM
+        or param.is_future
     ):
         # 2nd condition: real type can be primitive, but now it's acting as a
         # future (object)
         try:
             val_type = type(param.content)
             if isinstance(val_type, list) and any(
-                    isinstance(value, Future) for value in param.content
+                isinstance(value, Future) for value in param.content
             ):
                 # Is there a future object within the list?
                 if __debug__:
@@ -2312,8 +2347,8 @@ def _serialize_object_into_file(
                     map(wait_on, param.content, [mode] * len(param.content))
                 )
             _skip_file_creation = (
-                    param.direction == DIRECTION.OUT
-                    and param.content_type != TYPE.EXTERNAL_STREAM
+                param.direction == DIRECTION.OUT
+                and param.content_type != TYPE.EXTERNAL_STREAM
             )
             if __debug__ and _skip_file_creation:
                 logger.debug(
@@ -2469,7 +2504,7 @@ def _serialize_object_into_file(
 
 
 def _turn_into_file(
-        param: Parameter, name: str, skip_creation: bool = False
+    param: Parameter, name: str, skip_creation: bool = False
 ) -> None:
     """Write a object into a file if the object has not been already written.
 
@@ -2511,7 +2546,7 @@ def _turn_into_file(
 
 
 def _extract_parameter(
-        param: Parameter, code_strings: bool, collection_depth: int = 0
+    param: Parameter, code_strings: bool, collection_depth: int = 0
 ) -> typing.Tuple[typing.Any, int, int, int, str, str, str, bool]:
     """Extract the information of a single parameter.
 
@@ -2539,7 +2574,7 @@ def _extract_parameter(
             "builtins", str(param.content.__class__.__name__)
         )
     elif (
-            param.content_type == TYPE.STRING and not param.is_future
+        param.content_type == TYPE.STRING and not param.is_future
     ):  # noqa: E501
         if len(param.content) == 0:
             param.content = CONSTANTS.empty_string_key
@@ -2592,7 +2627,7 @@ def _extract_parameter(
         value = param.file_name
         typ = TYPE.EXTERNAL_STREAM
     elif param.content_type == TYPE.COLLECTION or (
-            collection_depth > 0 and is_basic_iterable(param.content)
+        collection_depth > 0 and is_basic_iterable(param.content)
     ):
         # An object will be considered a collection if at least one of the
         # following is true:
@@ -2625,7 +2660,7 @@ def _extract_parameter(
             else:
                 value += f" {x_type} {x_value} {x_con_type}"
     elif param.content_type == TYPE.DICT_COLLECTION or (
-            collection_depth > 0 and is_dict(param.content)
+        collection_depth > 0 and is_dict(param.content)
     ):
         # An object will be considered a dictionary collection if at least one
         # of the following is true:

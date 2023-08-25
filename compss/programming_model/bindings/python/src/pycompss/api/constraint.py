@@ -95,7 +95,7 @@ class Constraint:  # pylint: disable=too-few-public-methods
 
             if (
                 CONTEXT.in_master() or CONTEXT.is_nesting_enabled()
-            ) and not self.core_element_configured:  # se configura si es la primera vez y no esta en worker
+            ) and not self.core_element_configured:
                 # master code - or worker with nesting enabled
                 self.__configure_core_element__(kwargs)
 

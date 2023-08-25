@@ -273,8 +273,9 @@ class TaskMaster:
                 if self.param_defaults is None:
                     self.param_defaults = ()
 
-            # Inspect the constraints to see if there are any dynamic constraints,
-            # in order to get the value from the given parameter name.
+            # Inspect the constraints to see if there are any dynamic
+            # constraints, in order to get the value from the given
+            # parameter name.
             with EventMaster(TRACING_MASTER.inspect_constraints):
                 self.inspect_constraints(args, kwargs)
 
@@ -377,7 +378,7 @@ class TaskMaster:
                     self.process_parameters(
                         args,
                         kwargs,
-                        code_strings=code_strings,  # como es que se procesan los parametros aqui
+                        code_strings=code_strings,
                     )
 
                 # Deal with the return part.
@@ -511,7 +512,7 @@ class TaskMaster:
                 ):
                     if __debug__:
                         logger.debug(
-                            "Detected constraint as static value or environment variable"
+                            "Detected constraint as static value or env var"
                         )
                 elif constraints[a] in kwargs:
                     if __debug__:
@@ -552,12 +553,13 @@ class TaskMaster:
                         self.constraint_args[a].set_is_static(False)
                         if __debug__:
                             logger.debug(
-                                "Detected dynamic constraint as a regular expression"
+                                "Detected dynamic constraint as an expression"
                             )
                     except NameError:
                         if __debug__:
                             logger.debug(
-                                "Parameter not found, treating value %s as static string"
+                                "Parameter not found, treating value %s as "
+                                "static string"
                                 % constraints[a]
                             )
             kwargs[CORE_ELEMENT_KEY].set_impl_constraints(constraints)
@@ -596,7 +598,8 @@ class TaskMaster:
                         except NameError:
                             if __debug__:
                                 logger.debug(
-                                    "Parameter not found, treating value %s as static string"
+                                    "Parameter not found, treating value %s as"
+                                    " static string"
                                     % constraints[a]
                                 )
 

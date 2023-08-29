@@ -565,8 +565,7 @@ class TaskMaster:
                         if __debug__:
                             logger.debug(
                                 "Parameter not found, treating value %s as "
-                                "static string"
-                                % constraints[a]
+                                "static string" % constraints[a]
                             )
             kwargs[CORE_ELEMENT_KEY].set_impl_constraints(constraints)
         else:
@@ -605,8 +604,7 @@ class TaskMaster:
                             if __debug__:
                                 logger.debug(
                                     "Parameter not found, treating value %s as"
-                                    " static string"
-                                    % constraints[a]
+                                    " static string" % constraints[a]
                                 )
 
             self.core_element.set_impl_constraints(constraints)

@@ -65,7 +65,7 @@ class ConstraintDescription:
     ###########
 
     def get_param_name(self) -> str:
-        """Get the parameter name
+        """Get the parameter name.
 
         :return: The parameter name.
         """

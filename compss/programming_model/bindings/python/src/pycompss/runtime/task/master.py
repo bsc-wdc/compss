@@ -240,7 +240,6 @@ class TaskMaster:
     def call(
         self, args: tuple, kwargs: dict
     ) -> typing.Tuple[typing.Any, CE, FunctionDefinition, dict, dict]:
-
         """Run the task as master.
 
         This part deals with task calls in the master's side
@@ -479,6 +478,13 @@ class TaskMaster:
         )
 
     def register_constraints(self):
+        """Register constraints signature.
+
+        Stores the signature, so it will not be registered
+        again.
+
+        :return: the signatures are updated.
+        """
         if __debug__:
             logger.debug("Registering signature")
         signature = self.decorated_function.signature

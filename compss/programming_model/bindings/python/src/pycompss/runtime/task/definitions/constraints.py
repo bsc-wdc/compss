@@ -23,9 +23,6 @@ PyCOMPSs runtime - Task - Definitions - Constraints.
 This file contains the Constraints class, needed for the task registration.
 """
 
-from pycompss.api.commons.constants import INTERNAL_LABELS
-from pycompss.util.typing_helper import typing
-
 
 class ConstraintDescription:
     """Constraint Description class."""

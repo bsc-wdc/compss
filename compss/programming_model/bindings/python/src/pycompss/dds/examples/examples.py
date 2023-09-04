@@ -114,7 +114,7 @@ def has_converged(mu, old_mu, epsilon):
     aux = [np.linalg.norm(old_mu[i] - mu[i]) for i in range(len(mu))]
     distance = sum(aux)
     print("Distance_T: " + str(distance))
-    return distance < (epsilon ** 2)
+    return distance < (epsilon**2)
 
 
 def merge_reduce(f, data):

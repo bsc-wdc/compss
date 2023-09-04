@@ -434,7 +434,7 @@ public abstract class NIOAgent {
                         c.sendDataFile(renamed.getAbsolutePath());
                     } else {
                         ErrorManager
-                            .warn("Can't send niether file '" + path + "' nor file '" + renamed.getAbsolutePath()
+                            .warn("Can't send neither file '" + path + "' nor file '" + renamed.getAbsolutePath()
                                 + "' via connection " + c.hashCode() + " because files don't exist.");
                         releaseSendSlot(c);
                         handleDataToSendNotAvailable(c, d);

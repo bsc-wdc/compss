@@ -24,7 +24,6 @@ This file contains the Constraints class, needed for the task registration.
 """
 
 
-
 class ConstraintDescription:
     """Constraint Description class."""
 

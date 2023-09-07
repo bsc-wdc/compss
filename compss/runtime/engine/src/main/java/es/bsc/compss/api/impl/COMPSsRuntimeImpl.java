@@ -1981,16 +1981,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     private DataLocation createLocation(ProtocolType defaultSchema, String fileName) throws IOException {
         // Check if fileName contains schema
         SimpleURI uri = new SimpleURI(fileName);
-        if (uri.getSchema().isEmpty()) {
-            if (fileName.startsWith("/")) {
-                // todo: make pretty and sure it works
-                uri = new SimpleURI(defaultSchema.getSchema() + fileName);
-            } else {
-                // Add default File scheme and wrap local paths
-                String canonicalPath = new File(fileName).getCanonicalPath();
-                uri = new SimpleURI(defaultSchema.getSchema() + canonicalPath);
-            }
-        }
 
         // Check host
         Resource host = Comm.getAppHost();
@@ -1999,6 +1989,17 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             host = ResourcesPool.getResource(hostName);
             if (host == null) {
                 ErrorManager.error("Host " + hostName + " not found when creating data location.");
+            }
+        }
+        fileName = uri.getPath();
+        if (uri.getSchema().isEmpty()) {
+            if (fileName.startsWith("/")) {
+                // todo: make pretty and sure it works
+                uri = new SimpleURI(defaultSchema.getSchema() + fileName);
+            } else {
+                // Add default File scheme and wrap local paths
+                String canonicalPath = new File(fileName).getCanonicalPath();
+                uri = new SimpleURI(defaultSchema.getSchema() + canonicalPath);
             }
         }
 

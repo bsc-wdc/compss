@@ -1,4 +1,3 @@
-
 FROM ubuntu:20.04 as base
 LABEL maintainer="COMPSs Support <support-compss@bsc.es>" \
       vendor="Barcelona Supercomputing Center (BSC)" \
@@ -52,7 +51,7 @@ FROM base_all as base_tutorial
 RUN apt-get update && \
     apt-get install -y --no-install-recommends git vim wget ca-certificates maven curl unzip cmake && \
     pip3 install --no-cache-dir graphviz matplotlib>=2.2.3 numba==0.56.4 numpy==1.23.5 numpydoc>=0.8.0 scipy>=1.3.0 cvxpy>=1.1.5 scikit-learn>=1.0.2 python-dateutil==2.8.2 pandas>=0.24.2 \
-    tabulate==0.8.9 jupyter ipykernel ipython==8.3.0 && \
+    tabulate==0.8.9 jupyter ipykernel ipython==8.3.0 jupyterlab && \
     python3 -m ipykernel install && \
     apt-get autoclean && \
     rm -rf /var/lib/apt/lists/*

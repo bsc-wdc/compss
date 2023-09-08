@@ -1983,15 +1983,19 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         SimpleURI uri = new SimpleURI(fileName);
 
         // Check host
-        Resource host = Comm.getAppHost();
+        Resource host;
         String hostName = uri.getHost();
+        host = Comm.getAppHost();
         if (hostName != null && !hostName.isEmpty()) {
-            host = ResourcesPool.getResource(hostName);
-            if (host == null) {
+            Resource uriHost = ResourcesPool.getResource(hostName);
+            if (uriHost == null) {
                 ErrorManager.error("Host " + hostName + " not found when creating data location.");
+            } else {
+                host = uriHost;
+                fileName = uri.getPath();
             }
         }
-        fileName = uri.getPath();
+
         if (uri.getSchema().isEmpty()) {
             if (fileName.startsWith("/")) {
                 // todo: make pretty and sure it works

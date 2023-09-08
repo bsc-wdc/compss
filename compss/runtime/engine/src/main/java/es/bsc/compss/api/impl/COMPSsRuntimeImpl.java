@@ -1990,8 +1990,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             Resource uriHost = ResourcesPool.getResource(hostName);
             if (uriHost == null) {
                 ErrorManager.error("Host " + hostName + " not found when creating data location.");
-            }else {
-                host=uriHost;
+            } else {
+                host = uriHost;
                 fileName = uri.getPath();
             }
         }

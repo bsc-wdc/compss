@@ -39,6 +39,7 @@ from pycompss.runtime.start.initialization import LAUNCH_STATUS
 from pycompss.runtime.task.definitions.core_element import CE
 from pycompss.runtime.task.definitions.arguments import TaskArguments
 from pycompss.runtime.task.definitions.function import FunctionDefinition
+from pycompss.runtime.task.definitions.constraints import ConstraintDescription
 from pycompss.runtime.task.master import TaskMaster
 from pycompss.runtime.task.worker import TaskWorker
 from pycompss.util.logger.helpers import update_logger_handlers
@@ -124,8 +125,12 @@ class Task:  # pylint: disable=R0903, R0913
         self.decorator_arguments = task_decorator_arguments
         # Instantiate FunctionDefinition object
         self.decorated_function = FunctionDefinition()
-        self.registered_signatures = {}
-        self.constraint_args = {}
+        self.registered_signatures = (
+            {}
+        )  # type: typing.Dict[str, typing.Dict[str, typing.List[str]]]
+        self.constraint_args = (
+            {}
+        )  # type: typing.Dict[str, ConstraintDescription]
 
     def __call__(self, user_function: typing.Callable) -> typing.Callable:
         """Perform the task processing.

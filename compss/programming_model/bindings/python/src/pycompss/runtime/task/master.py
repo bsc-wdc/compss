@@ -207,8 +207,10 @@ class TaskMaster:
         core_element: CE,
         decorator_arguments: TaskArguments,
         decorated_function: FunctionDefinition,
-        registered_signatures: dict = {},
-        constraint_args: dict = {},
+        registered_signatures: typing.Dict[
+            str, typing.Dict[str, typing.List[str]]
+        ] = {},
+        constraint_args: typing.Dict[str, ConstraintDescription] = {},
     ) -> None:
         """Task at master constructor.
 

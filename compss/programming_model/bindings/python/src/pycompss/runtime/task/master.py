@@ -28,6 +28,7 @@ import inspect
 import logging
 import pickle
 import os
+import re
 import sys
 import types
 from base64 import b64encode
@@ -1233,8 +1234,13 @@ class TaskMaster:
         constraints = self.core_element.get_impl_constraints()
         for a in constraints:
             impl_signature += "."
-            impl_signature += a.split("_", 1)[0][:1]
-            impl_signature += a.split("_", 1)[1][:1]
+            if a.__contains__("_"):
+                impl_signature += a.split("_", 1)[0][:1]
+                impl_signature += a.split("_", 1)[1][:1]
+            else:
+                upperLetter = re.findall("[A-Z]+", a)
+                impl_signature += a[:1]
+                impl_signature += upperLetter[0][:1]
             impl_signature += str(constraints[a])
         return impl_signature, impl_type_args
 

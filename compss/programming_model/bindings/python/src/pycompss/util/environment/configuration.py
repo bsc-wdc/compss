@@ -596,9 +596,11 @@ def create_init_config_file(
         if comm == "GAT":
             gat = "-Dcompss.comm=es.bsc.compss.gat.master.GATAdaptor"
             jvm_options_file.write(gat + "\n")
-        else:
+        elif comm == "NIO":
             nio = "-Dcompss.comm=es.bsc.compss.nio.master.NIOAdaptor"
             jvm_options_file.write(nio + "\n")
+        else:
+            jvm_options_file.write("-Dcompss.comm=" + comm + "\n")
 
         jvm_options_file.write("-Dcompss.masterName=" + master_name + "\n")
         jvm_options_file.write("-Dcompss.masterPort=" + master_port + "\n")

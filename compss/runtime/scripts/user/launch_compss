@@ -2139,7 +2139,7 @@ launch() {
 
         if [ "${ear}" = true ]; then
           # Launch worker with ear
-          PRE_CMD="$EAR_ROOT/bin/erun ${ear_flags}"
+          PRE_CMD="$EAR_INSTALL_PATH/bin/erun ${ear_flags}"
           POST_CMD=
           WCMD="/bin/bash $WCMD"
 
@@ -2224,7 +2224,7 @@ launch() {
 
       # if [ "${ear}" = true ]; then
       #   # Launch master with ear
-      #   PRE_CMD="$EAR_ROOT/bin/erun ${ear_flags}"
+      #   PRE_CMD="$EAR_INSTALL_PATH/bin/erun ${ear_flags}"
       #   POST_CMD=
       #   MCMD="/bin/bash $MCMD"
       #

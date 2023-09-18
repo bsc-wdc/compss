@@ -515,11 +515,14 @@ class TaskMaster:
             constraints = kwargs[CORE_ELEMENT_KEY].get_impl_constraints()
             for a in constraints:
                 self.constraint_args[a] = ConstraintDescription(constraints[a])
-                if (isinstance(constraints[a], int) or
-                    constraints[a].isdigit() or (
-                    isinstance(constraints[a], str)
-                    and constraints[a].startswith("$")
-                )):
+                if (
+                    isinstance(constraints[a], int)
+                    or constraints[a].isdigit()
+                    or (
+                        isinstance(constraints[a], str)
+                        and constraints[a].startswith("$")
+                    )
+                ):
                     if __debug__:
                         logger.debug(
                             "Detected constraint as static value or env var"

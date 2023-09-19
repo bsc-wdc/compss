@@ -29,7 +29,7 @@
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
   # DEFINE MODULES
-  modules="intel/2017.4 transfer/1.0 bsc/1.0 impi/2017.4 mkl/2017.4 java/8u131 papi/5.5.1 gcc/7.2.0 boost/1.64.0 dlb/git"
+  modules="intel/2017.4 transfer/1.0 bsc/1.0 impi/2017.4 mkl/2017.4 java/8u131 papi/5.5.1 gcc/7.2.0 boost/1.64.0 dlb/git ear/4.3-compss"
   unload_before_python="boost/1.64.0"
   # Plain python modules:
   run_before_py3_modules="ignore"
@@ -40,7 +40,7 @@
   py3_other_modules="python/3.7.4 python/3-intel-2018.2 python/3-intel-2019.2 python/3.8.2 python/3.9.10 python/3.10.2"
 
   # DEFINE CONFIGURATION PARAMETERS
-  #(Environment vars must be scaped to get the correct value if not it could take a value previous to load the modules)
+  # (Environment vars must be scaped to get the correct value if not it could take a value previous to load the modules)
   additionalExports=""
 
   additional_module_use_folder="ignore"

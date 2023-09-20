@@ -575,7 +575,7 @@ class TaskMaster:
                                 "static string" % constraints[a]
                             )
             kwargs[CORE_ELEMENT_KEY].set_impl_constraints(constraints)
-        elif not self.core_element is None:
+        elif self.core_element is not None:
             constraints = self.core_element.get_impl_constraints()
             for a in constraints:
                 if not self.constraint_args[a].get_is_static():

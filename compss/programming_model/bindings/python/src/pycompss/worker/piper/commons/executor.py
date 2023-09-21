@@ -793,7 +793,7 @@ def process_task(
             )
             # The ignored variable is timed_out
             exit_value, new_types, new_values, _, except_msg = result
-            
+
             gc.collect()
 
             if COMPSS_WITH_DLB:

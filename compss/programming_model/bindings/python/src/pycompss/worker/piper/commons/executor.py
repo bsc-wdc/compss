@@ -31,6 +31,7 @@ import signal
 import sys
 import time
 import traceback
+import gc
 from pycompss.util.process.manager import Queue
 from pycompss.util.process.manager import DictProxy
 from pycompss.runtime.management.object_tracker import OT
@@ -792,6 +793,8 @@ def process_task(
             )
             # The ignored variable is timed_out
             exit_value, new_types, new_values, _, except_msg = result
+            
+            gc.collect()
 
             if COMPSS_WITH_DLB:
                 dlb_affinity.setaffinity([], os.getpid())

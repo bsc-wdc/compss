@@ -573,15 +573,13 @@ public class Agent {
     }
 
     /**
-     * Returns or creates the host from a remoteDataLocation.
+     * Returns or creates the host from a remote Resource description.
      *
-     * @param loc remote location
-     * @return Internal Resource corresponding to the host of location passed in as parameter
+     * @param r remote resource description
+     * @return Internal Resource corresponding to the resource description passed in as parameter
      * @throws AgentException Error while registering the remote node in the Agent
      */
-    public static es.bsc.compss.types.resources.Resource getNodeFromLocation(RemoteDataLocation loc)
-        throws AgentException {
-        Resource<?, ?> r = loc.getResource();
+    public static es.bsc.compss.types.resources.Resource getNodeForResource(Resource<?, ?> r) throws AgentException {
         if (r == null) {
             return null;
         }
@@ -612,19 +610,22 @@ public class Agent {
                     String path = loc.getPath();
                     SimpleURI uri = new SimpleURI(path);
 
-                    es.bsc.compss.types.resources.Resource host = getNodeFromLocation(loc);
-                    if (host == Comm.getAppHost()) {
-                        String name = uri.getPath();
-                        LogicalData localData = Comm.getData(name);
-                        if (localData != null) {
-                            otherDataNameInLocal = name;
-                            addedSources++;
-                            continue;
+                    Resource<?, ?> r = loc.getResource();
+                    if (r != null) {
+                        es.bsc.compss.types.resources.Resource host = getNodeForResource(r);
+                        if (host == Comm.getAppHost()) {
+                            String name = uri.getPath();
+                            LogicalData localData = Comm.getData(name);
+                            if (localData != null) {
+                                otherDataNameInLocal = name;
+                                addedSources++;
+                                continue;
+                            }
                         }
-                    }
 
-                    DataLocation dl = DataLocation.createLocation(host, uri);
-                    locations.add(dl);
+                        DataLocation dl = DataLocation.createLocation(host, uri);
+                        locations.add(dl);
+                    }
                 } catch (AgentException | IOException e) {
                     // Do nothing. Ignore location
                     LOGGER.warn("Exception adding remote data", e);

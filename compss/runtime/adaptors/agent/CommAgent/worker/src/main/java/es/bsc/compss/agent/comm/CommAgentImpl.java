@@ -229,7 +229,8 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
             return null;
         } else {
             try {
-                return Agent.getNodeFromLocation(loc);
+                Resource<?, ?> r = loc.getResource();
+                return Agent.getNodeForResource(r);
             } catch (AgentException e) {
                 LOGGER.error("Exception raised fetching host for remote data", e);
                 return null;

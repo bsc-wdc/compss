@@ -21,6 +21,7 @@ import es.bsc.compss.agent.comm.messages.types.CommParam;
 import es.bsc.compss.agent.comm.messages.types.CommParamCollection;
 import es.bsc.compss.agent.comm.messages.types.CommResult;
 import es.bsc.compss.agent.comm.messages.types.CommTask;
+import es.bsc.compss.agent.types.PrivateRemoteDataLocation;
 import es.bsc.compss.agent.types.RemoteDataInformation;
 import es.bsc.compss.agent.types.RemoteDataLocation;
 import es.bsc.compss.comm.Comm;
@@ -222,10 +223,10 @@ class CommAgentJob extends NIOJob {
             for (NIOUri uri : sourceData.getSources()) {
                 if (uri instanceof CommAgentURI) {
                     CommAgentURI caURI = (CommAgentURI) uri;
-                    remoteData.addSource(new RemoteDataLocation(caURI.getAgent(), uri.getPath()));
+                    remoteData.addSource(new PrivateRemoteDataLocation(caURI.getAgent(), uri.getPath()));
                 } else {
                     CommAgentURI caURI = new CommAgentURI(uri);
-                    remoteData.addSource(new RemoteDataLocation(caURI.getAgent(), uri.getPath()));
+                    remoteData.addSource(new PrivateRemoteDataLocation(caURI.getAgent(), uri.getPath()));
                 }
 
             }
@@ -276,12 +277,17 @@ class CommAgentJob extends NIOJob {
                 Collection<RemoteDataLocation> dataLocations = commResult.getLocations();
                 for (RemoteDataLocation location : dataLocations) {
                     if (location != null) {
-                        Resource w = ownAgent.getNodeFromLocation(location);
+                        if (location.getType() == RemoteDataLocation.Type.SHARED) {
+                            LOGGER.warn("WARN: SHARED LOCATIONS ARE NOT YET SUPPORTED. IGNORING LOCATION");
+                            continue;
+                        }
+                        PrivateRemoteDataLocation plocation = (PrivateRemoteDataLocation) location;
+                        Resource w = ownAgent.getNodeFromResource(plocation.getResource());
                         if (w == null) {
                             w = this.worker;
                         }
                         LOGGER.debug("Registering result " + rename + " comming from worker " + w.getName());
-                        registerResultLocation(location.getPath(), rename, w);
+                        registerResultLocation(plocation.getPath(), rename, w);
                     }
                 }
                 notifyResultAvailability(dp, rename);

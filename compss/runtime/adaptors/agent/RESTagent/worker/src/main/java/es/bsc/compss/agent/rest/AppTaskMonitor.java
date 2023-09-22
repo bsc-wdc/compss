@@ -24,6 +24,7 @@ import es.bsc.compss.agent.rest.types.RESTResult;
 import es.bsc.compss.agent.rest.types.TaskProfile;
 import es.bsc.compss.agent.rest.types.messages.EndApplicationNotification;
 import es.bsc.compss.agent.types.ApplicationParameter;
+import es.bsc.compss.agent.types.PrivateRemoteDataLocation;
 import es.bsc.compss.agent.types.RemoteDataLocation;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.job.JobEndStatus;
@@ -183,7 +184,7 @@ public class AppTaskMonitor extends AppMonitor implements RESTAgentRequestHandle
         String[] res = new String[remoteLocations.size()];
         int i = 0;
         for (RemoteDataLocation remoteLoc : remoteLocations) {
-            res[i] = remoteLoc.getPath();
+            res[i] = ((PrivateRemoteDataLocation) remoteLoc).getPath();
             i++;
         }
         return res;

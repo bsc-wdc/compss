@@ -22,6 +22,7 @@ import es.bsc.compss.COMPSsDefaults;
 import es.bsc.compss.COMPSsPaths;
 import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.agent.types.ApplicationParameterCollection;
+import es.bsc.compss.agent.types.PrivateRemoteDataLocation;
 import es.bsc.compss.agent.types.RemoteDataInformation;
 import es.bsc.compss.agent.types.RemoteDataLocation;
 import es.bsc.compss.agent.types.Resource;
@@ -606,11 +607,17 @@ public class Agent {
         LinkedList<DataLocation> locations = new LinkedList<>();
         for (RemoteDataLocation loc : remote.getSources()) {
             if (loc != null) {
+                if (loc.getType() == RemoteDataLocation.Type.SHARED) {
+                    LOGGER.warn("WARN: SHARED LOCATIONS ARE NOT YET SUPPORTED. IGNORING LOCATION");
+                    continue;
+                }
+
+                PrivateRemoteDataLocation ploc = (PrivateRemoteDataLocation) loc;
                 try {
-                    String path = loc.getPath();
+                    String path = ploc.getPath();
                     SimpleURI uri = new SimpleURI(path);
 
-                    Resource<?, ?> r = loc.getResource();
+                    Resource<?, ?> r = ploc.getResource();
                     if (r != null) {
                         es.bsc.compss.types.resources.Resource host = getNodeForResource(r);
                         if (host == Comm.getAppHost()) {

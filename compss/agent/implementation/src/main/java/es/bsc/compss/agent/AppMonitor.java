@@ -18,6 +18,7 @@ package es.bsc.compss.agent;
 
 import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.agent.types.ApplicationParameterCollection;
+import es.bsc.compss.agent.types.PrivateRemoteDataLocation;
 import es.bsc.compss.agent.types.RemoteDataLocation;
 import es.bsc.compss.agent.types.Resource;
 import es.bsc.compss.api.ParameterCollectionMonitor;
@@ -311,7 +312,7 @@ public abstract class AppMonitor implements TaskMonitor {
                         Resource<?, ?> hostResource = createRemoteResourceFromResource(uri.getHost());
                         if (hostResource != null) {
                             String pathInHost = uri.getPath();
-                            locations.add(new RemoteDataLocation(hostResource, pathInHost));
+                            locations.add(new PrivateRemoteDataLocation(hostResource, pathInHost));
                         }
                     }
                 }
@@ -326,7 +327,7 @@ public abstract class AppMonitor implements TaskMonitor {
                     localLocations = new ArrayList<>();
                     try {
                         for (String alias : ld.getKnownAlias()) {
-                            localLocations.add(new RemoteDataLocation(null, alias));
+                            localLocations.add(new PrivateRemoteDataLocation(null, alias));
                         }
                     } catch (ConcurrentModificationException cme) {
                         LOGGER.warn("Logical data was modified while constructing it's remote data location"

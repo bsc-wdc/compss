@@ -608,7 +608,8 @@ public class Agent {
         for (RemoteDataLocation loc : remote.getSources()) {
             if (loc != null) {
                 if (loc.getType() == RemoteDataLocation.Type.SHARED) {
-                    LOGGER.warn("WARN: SHARED LOCATIONS ARE NOT YET SUPPORTED. IGNORING LOCATION");
+                    System.out.println("WARN: SHARED LOCATIONS ARE NOT YET SUPPORTED. IGNORING LOCATION");
+                    new Exception().printStackTrace(System.out);
                     continue;
                 }
 

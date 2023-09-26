@@ -24,6 +24,7 @@ import es.bsc.compss.agent.comm.messages.types.CommTask;
 import es.bsc.compss.agent.types.PrivateRemoteDataLocation;
 import es.bsc.compss.agent.types.RemoteDataInformation;
 import es.bsc.compss.agent.types.RemoteDataLocation;
+import es.bsc.compss.agent.types.SharedRemoteDataLocation;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.nio.NIOData;
 import es.bsc.compss.nio.NIOParam;
@@ -41,6 +42,7 @@ import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataAccessId.ReadingDataAccessId;
 import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
 import es.bsc.compss.types.data.LogicalData;
+import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.definition.MethodDefinition;
@@ -251,7 +253,6 @@ class CommAgentJob extends NIOJob {
 
     @Override
     protected void registerResult(Parameter param, NIOResult result) {
-
         if (!param.isPotentialDependency()) {
             return;
         }
@@ -278,20 +279,29 @@ class CommAgentJob extends NIOJob {
                 for (RemoteDataLocation location : dataLocations) {
                     if (location != null) {
                         if (location.getType() == RemoteDataLocation.Type.SHARED) {
-                            LOGGER.warn("WARN: SHARED LOCATIONS ARE NOT YET SUPPORTED. IGNORING LOCATION");
-                            continue;
+                            registerSharedResult((SharedRemoteDataLocation) location, rename);
+                        } else {
+                            registerPrivateResult((PrivateRemoteDataLocation) location, rename);
                         }
-                        PrivateRemoteDataLocation plocation = (PrivateRemoteDataLocation) location;
-                        Resource w = ownAgent.getNodeFromResource(plocation.getResource());
-                        if (w == null) {
-                            w = this.worker;
-                        }
-                        LOGGER.debug("Registering result " + rename + " comming from worker " + w.getName());
-                        registerResultLocation(plocation.getPath(), rename, w);
                     }
                 }
                 notifyResultAvailability(dp, rename);
             }
         }
+    }
+
+    private void registerSharedResult(SharedRemoteDataLocation sLocation, String rename) {
+        String diskName = sLocation.getDiskName();
+        LOGGER.debug("Registering result " + rename + " on shared disk " + diskName);
+        registerResultSharedLocation(sLocation.getDiskName(), sLocation.getPathOnDisk(), rename);
+    }
+
+    private void registerPrivateResult(PrivateRemoteDataLocation pLocation, String rename) {
+        Resource w = ownAgent.getNodeFromResource(pLocation.getResource());
+        if (w == null) {
+            w = this.worker;
+        }
+        LOGGER.debug("Registering result " + rename + " comming from worker " + w.getName());
+        registerResultPrivateLocation(pLocation.getPath(), rename, w);
     }
 }

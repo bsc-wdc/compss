@@ -30,6 +30,7 @@ import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.location.DataLocation;
+import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.parameter.CollectiveParameter;
@@ -41,6 +42,7 @@ import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.JobDispatcher;
 import es.bsc.compss.worker.COMPSsException;
 
+import java.io.File;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
@@ -668,7 +670,7 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
             }
         } else {
             if (dataName != null) {
-                registerResultLocation(dp.getDataTarget(), dataName, this.worker);
+                registerResultPrivateLocation(dp.getDataTarget(), dataName, this.worker);
             }
         }
         if (dataName != null) {
@@ -705,7 +707,24 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
         return name;
     }
 
-    protected DataLocation registerResultLocation(String dataLocation, String dataName, Resource res) {
+    protected DataLocation registerResultSharedLocation(String sharedDisk, String dataLocation, String dataName) {
+        DataLocation outLoc = null;
+        try {
+            if (DEBUG) {
+                JOB_LOGGER.debug("Proposed URI for storing output param: " + dataLocation + "@" + sharedDisk);
+            }
+            String sharedPath = ProtocolType.SHARED_URI.getSchema() + sharedDisk + File.separator + dataLocation;
+            SimpleURI resultURI = new SimpleURI(sharedPath);
+            outLoc = DataLocation.createLocation(null, resultURI);
+            Comm.registerLocation(dataName, outLoc);
+        } catch (Exception e) {
+            e.printStackTrace(System.out);
+            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + dataLocation, e);
+        }
+        return null;
+    }
+
+    protected DataLocation registerResultPrivateLocation(String dataLocation, String dataName, Resource res) {
         // Request transfer
         DataLocation outLoc = null;
         try {

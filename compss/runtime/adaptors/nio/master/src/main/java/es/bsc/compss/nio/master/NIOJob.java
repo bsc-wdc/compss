@@ -234,7 +234,7 @@ public class NIOJob extends JobImpl<NIOWorkerNode> {
             if (rename != null) {
                 for (NIOUri uri : uris) {
                     String loc = uri.getPath();
-                    registerResultLocation(loc, rename, this.worker);
+                    registerResultPrivateLocation(loc, rename, this.worker);
                 }
                 notifyResultAvailability(dp, rename);
             }

@@ -27,18 +27,26 @@ import java.io.ObjectOutput;
  */
 public class SharedRemoteDataLocation implements RemoteDataLocation {
 
-    private static class Mountpoint implements Externalizable {
+    public static class Mountpoint implements Externalizable {
 
         private Resource<?, ?> resource;
         private String path;
 
 
-        private Mountpoint() {
+        public Mountpoint() {
         }
 
         private Mountpoint(Resource<?, ?> r, String path) {
             this.resource = r;
             this.path = path;
+        }
+
+        public Resource<?, ?> getResource() {
+            return resource;
+        }
+
+        public String getPath() {
+            return path;
         }
 
         @Override
@@ -114,6 +122,15 @@ public class SharedRemoteDataLocation implements RemoteDataLocation {
             locs[i] = new PrivateRemoteDataLocation(m.resource, m.path + this.pathOnDisk);
         }
         return locs;
+    }
+
+    /**
+     * Returns an array with the mountPoint for all the known nodes that have the shared disk mounted.
+     * 
+     * @return mountPoint for all the known nodes that have the shared disk mounted
+     */
+    public Mountpoint[] getMountpoints() {
+        return mountpoints;
     }
 
     @Override

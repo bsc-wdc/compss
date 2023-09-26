@@ -21,6 +21,7 @@ import es.bsc.compss.agent.types.ApplicationParameterCollection;
 import es.bsc.compss.agent.types.PrivateRemoteDataLocation;
 import es.bsc.compss.agent.types.RemoteDataLocation;
 import es.bsc.compss.agent.types.Resource;
+import es.bsc.compss.agent.types.SharedRemoteDataLocation;
 import es.bsc.compss.api.ParameterCollectionMonitor;
 import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.api.TaskMonitor;
@@ -31,6 +32,7 @@ import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.location.DataLocation;
+import es.bsc.compss.types.data.location.SharedDisk;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.worker.COMPSsException;
@@ -305,19 +307,13 @@ public abstract class AppMonitor implements TaskMonitor {
 
             boolean isLocal = false;
             for (DataLocation loc : ld.getLocations()) {
-                if (isLocal(loc)) {
-                    isLocal = true;
-                } else {
-                    for (MultiURI uri : loc.getURIs()) {
-                        Resource<?, ?> hostResource = createRemoteResourceFromResource(uri.getHost());
-                        if (hostResource != null) {
-                            String pathInHost = uri.getPath();
-                            locations.add(new PrivateRemoteDataLocation(hostResource, pathInHost));
-                        }
-                    }
+                boolean localLocation = isLocal(loc);
+                isLocal = isLocal || localLocation;
+                RemoteDataLocation rdl = createRemoteDLFromLocation(loc, localLocation);
+                if (rdl != null) {
+                    locations.add(rdl);
                 }
             }
-
             // this is done to prevent ConcurrentModificationException when iterating ld.getKnownAlias()
             // and contain the performance loss to the less frequent part of the code (this one)
             boolean done = false;
@@ -337,8 +333,31 @@ public abstract class AppMonitor implements TaskMonitor {
                     done = true;
                 }
             }
-
             return locations;
+        }
+
+        private RemoteDataLocation createRemoteDLFromLocation(DataLocation loc, boolean isLocal) {
+            RemoteDataLocation rdl = null;
+            switch (loc.getType()) {
+                case PRIVATE:
+                    if (!isLocal) {
+                        for (MultiURI uri : loc.getURIs()) {
+                            Resource<?, ?> hostResource = createRemoteResourceFromResource(uri.getHost());
+                            if (hostResource != null) {
+                                String pathInHost = uri.getPath();
+                                rdl = new PrivateRemoteDataLocation(hostResource, pathInHost);
+                            }
+                        }
+                    }
+                    break;
+                case SHARED:
+                    SharedDisk sd = loc.getSharedDisk();
+                    String diskName = sd.getName();
+                    rdl = new SharedRemoteDataLocation(diskName, loc.getPath());
+                    break;
+                default:
+            }
+            return rdl;
         }
 
         private Resource<?, ?> createRemoteResourceFromResource(es.bsc.compss.types.resources.Resource res) {

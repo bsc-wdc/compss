@@ -522,6 +522,14 @@ class TaskMaster:
                         isinstance(constraints[a], str)
                         and constraints[a].startswith("$")
                     )
+                    or (
+                        a != ("computing_units")
+                        and a != ("computingUnits")
+                        and a != ("memory_size")
+                        and a != ("memorySize")
+                        and a != ("storage_size")
+                        and a != ("storageSize")
+                    )
                 ):
                     if __debug__:
                         logger.debug(
@@ -1237,15 +1245,16 @@ class TaskMaster:
             impl_type_args = [module_name, function_name]
         constraints = self.core_element.get_impl_constraints()
         for a in constraints:
-            impl_signature += "."
-            if a.__contains__("_"):
-                impl_signature += a.split("_", 1)[0][:1]
-                impl_signature += a.split("_", 1)[1][:1]
-            else:
-                upperLetter = re.findall("[A-Z]+", a)
-                impl_signature += a[:1]
-                impl_signature += upperLetter[0][:1]
-            impl_signature += str(constraints[a])
+            if not self.constraint_args[a].get_is_static():
+                impl_signature += "."
+                if a.__contains__("_"):
+                    impl_signature += a.split("_", 1)[0][:1]
+                    impl_signature += a.split("_", 1)[1][:1]
+                else:
+                    upper_letter = re.findall("[A-Z]+", a)
+                    impl_signature += a[:1]
+                    impl_signature += upper_letter[0][:1]
+                impl_signature += str(constraints[a])
         return impl_signature, impl_type_args
 
     def update_core_element(

@@ -517,7 +517,10 @@ class TaskMaster:
                 self.constraint_args[a] = ConstraintDescription(constraints[a])
                 if (
                     isinstance(constraints[a], int)
-                    or constraints[a].isdigit()
+                    or (
+                        isinstance(constraints[a], str)
+                        and constraints[a].isdigit()
+                    )
                     or (
                         isinstance(constraints[a], str)
                         and constraints[a].startswith("$")

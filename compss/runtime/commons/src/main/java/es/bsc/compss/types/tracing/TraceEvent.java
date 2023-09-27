@@ -198,21 +198,22 @@ public enum TraceEvent {
     // Internal events
     PYTHON_TASK_INSTANTIATION(100, TraceEventType.BINDING_MASTER, "Task instantiation"), //
     PYTHON_INSPECT_FUNCTION_ARGUMENTS(101, TraceEventType.BINDING_MASTER, "Inspect function arguments"), //
-    PYTHON_GET_FUNCTION_INFORMATION(102, TraceEventType.BINDING_MASTER, "Get function information"), //
-    PYTHON_GET_FUNCTION_SIGNATURE(103, TraceEventType.BINDING_MASTER, "Check function signature"), //
-    PYTHON_CHECK_INTERACTIVE(104, TraceEventType.BINDING_MASTER, "Check interactive"), //
-    PYTHON_EXTRACT_CORE_ELEMENT(105, TraceEventType.BINDING_MASTER, "Extract core element"), //
-    PYTHON_PREPARE_CORE_ELEMENT(106, TraceEventType.BINDING_MASTER, "Prepare Core Element"), //
-    PYTHON_UPDATE_CORE_ELEMENT(107, TraceEventType.BINDING_MASTER, "Update Core Element"), //
-    PYTHON_GET_UPPER_DECORATORS_KWARGS(108, TraceEventType.BINDING_MASTER, "Get upper decorators kwargs"), //
-    PYTHON_PROCESS_OTHER_ARGUMENTS(109, TraceEventType.BINDING_MASTER, "Process task hints"), //
-    PYTHON_PROCESS_PARAMETERS(110, TraceEventType.BINDING_MASTER, "Process function parameters"), //
-    PYTHON_PROCESS_RETURN(111, TraceEventType.BINDING_MASTER, "Process return"), //
-    PYTHON_BUILD_RETURN_OBJECTS(112, TraceEventType.BINDING_MASTER, "Build return objects"), //
-    PYTHON_SERIALIZE_OBJECTS(113, TraceEventType.BINDING_MASTER, "Serialize objects"), //
-    PYTHON_BUILD_COMPSS_TYPES_DIRECTIONS(114, TraceEventType.BINDING_MASTER, "Build COMPSs types and directions"), //
-    PYTHON_PROCESS_TASK_BINDING(115, TraceEventType.BINDING_MASTER, "Process task binding"), //
-    PYTHON_ATTRIBUTES_CLEANUP(116, TraceEventType.BINDING_MASTER, "Cleanup"), //
+    PYTHON_INSPECT_CONSTRAINTS(102, TraceEventType.BINDING_MASTER, "Inspect constraints"), //
+    PYTHON_GET_FUNCTION_INFORMATION(103, TraceEventType.BINDING_MASTER, "Get function information"), //
+    PYTHON_GET_FUNCTION_SIGNATURE(104, TraceEventType.BINDING_MASTER, "Check function signature"), //
+    PYTHON_CHECK_INTERACTIVE(105, TraceEventType.BINDING_MASTER, "Check interactive"), //
+    PYTHON_EXTRACT_CORE_ELEMENT(106, TraceEventType.BINDING_MASTER, "Extract core element"), //
+    PYTHON_PREPARE_CORE_ELEMENT(107, TraceEventType.BINDING_MASTER, "Prepare Core Element"), //
+    PYTHON_UPDATE_CORE_ELEMENT(108, TraceEventType.BINDING_MASTER, "Update Core Element"), //
+    PYTHON_GET_UPPER_DECORATORS_KWARGS(109, TraceEventType.BINDING_MASTER, "Get upper decorators kwargs"), //
+    PYTHON_PROCESS_OTHER_ARGUMENTS(110, TraceEventType.BINDING_MASTER, "Process task hints"), //
+    PYTHON_PROCESS_PARAMETERS(111, TraceEventType.BINDING_MASTER, "Process function parameters"), //
+    PYTHON_PROCESS_RETURN(112, TraceEventType.BINDING_MASTER, "Process return"), //
+    PYTHON_BUILD_RETURN_OBJECTS(113, TraceEventType.BINDING_MASTER, "Build return objects"), //
+    PYTHON_SERIALIZE_OBJECTS(114, TraceEventType.BINDING_MASTER, "Serialize objects"), //
+    PYTHON_BUILD_COMPSS_TYPES_DIRECTIONS(115, TraceEventType.BINDING_MASTER, "Build COMPSs types and directions"), //
+    PYTHON_PROCESS_TASK_BINDING(116, TraceEventType.BINDING_MASTER, "Process task binding"), //
+    PYTHON_ATTRIBUTES_CLEANUP(117, TraceEventType.BINDING_MASTER, "Cleanup"), //
 
     // Agent events
     AGENT_ADD_RESOURCE(6002, TraceEventType.AGENT, "Add resources agent"), //

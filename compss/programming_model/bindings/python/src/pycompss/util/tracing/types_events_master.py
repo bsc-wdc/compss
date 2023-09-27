@@ -61,6 +61,7 @@ class TypesEventsMaster:
         "snapshot_event",
         "task_instantiation",
         "inspect_function_arguments",
+        "inspect_constraints",
         "get_function_information",
         "get_function_signature",
         "check_interactive",
@@ -121,21 +122,22 @@ class TypesEventsMaster:
         # CALL EVENTS
         self.task_instantiation = 100
         self.inspect_function_arguments = 101
-        self.get_function_information = 102
-        self.get_function_signature = 103
-        self.check_interactive = 104
-        self.extract_core_element = 105
-        self.prepare_core_element = 106
-        self.update_core_element = 107
-        self.get_upper_decorators_kwargs = 108
-        self.process_other_arguments = 109
-        self.process_parameters = 110
-        self.process_return = 111
-        self.build_return_objects = 112
-        self.serialize_object = 113
-        self.build_compss_types_directions = 114
-        self.process_task_binding = 115
-        self.attributes_cleanup = 116
+        self.inspect_constraints = 102
+        self.get_function_information = 103
+        self.get_function_signature = 104
+        self.check_interactive = 105
+        self.extract_core_element = 106
+        self.prepare_core_element = 107
+        self.update_core_element = 108
+        self.get_upper_decorators_kwargs = 109
+        self.process_other_arguments = 110
+        self.process_parameters = 111
+        self.process_return = 112
+        self.build_return_objects = 113
+        self.serialize_object = 114
+        self.build_compss_types_directions = 115
+        self.process_task_binding = 116
+        self.attributes_cleanup = 117
 
         # Serialization/Deserialization types:
         self.binding_serialization_size_type = 9000600

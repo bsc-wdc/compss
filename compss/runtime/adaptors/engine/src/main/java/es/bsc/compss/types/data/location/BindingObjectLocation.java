@@ -96,7 +96,7 @@ public class BindingObjectLocation extends DataLocation {
     }
 
     @Override
-    public String getSharedDisk() {
+    public SharedDisk getSharedDisk() {
         return null;
     }
 

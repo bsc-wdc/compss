@@ -18,16 +18,17 @@ package es.bsc.compss.types.data.location;
 
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.uri.MultiURI;
-import es.bsc.compss.util.SharedDiskManager;
 
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 
 public class SharedLocation extends DataLocation {
 
     private final String diskName;
+    private final SharedDisk disk;
     private String path;
     private final ProtocolType protocol;
 
@@ -41,13 +42,28 @@ public class SharedLocation extends DataLocation {
      */
     public SharedLocation(ProtocolType protocol, String sharedDisk, String path) {
         this.diskName = sharedDisk;
+        this.disk = SharedDisk.createDisk(sharedDisk);
+        this.path = path;
+        this.protocol = protocol;
+    }
+
+    /**
+     * Shared location constructor.
+     *
+     * @param protocol Protocol
+     * @param sharedDisk Shared disk
+     * @param path Path from mount point
+     */
+    public SharedLocation(ProtocolType protocol, SharedDisk sharedDisk, String path) {
+        this.disk = sharedDisk;
+        this.diskName = sharedDisk.getName();
         this.path = path;
         this.protocol = protocol;
     }
 
     @Override
     public MultiURI getURIInHost(Resource host) {
-        String diskPath = SharedDiskManager.getMounpoint(host, this.diskName);
+        String diskPath = this.disk.getMountpoint(host);
         if (diskPath == null) {
             return null;
         }
@@ -71,13 +87,24 @@ public class SharedLocation extends DataLocation {
     @Override
     public List<MultiURI> getURIs() {
         List<MultiURI> uris = new LinkedList<>();
-        List<Resource> resList = SharedDiskManager.getAllMachinesfromDisk(this.diskName);
+        Map<Resource, String> resList = this.disk.getAllMountpoints();
         Resource[] resources;
+        String[] mountpoints;
+        int size = 0;
         synchronized (resList) {
-            resources = resList.toArray(new Resource[resList.size()]);
+            size = resList.size();
+            resources = new Resource[size];
+            mountpoints = new String[size];
+            int idx = 0;
+            for (Map.Entry<Resource, String> e : resList.entrySet()) {
+                resources[idx] = e.getKey();
+                mountpoints[idx] = e.getValue();
+                idx++;
+            }
         }
-        for (Resource host : resources) {
-            String diskPath = SharedDiskManager.getMounpoint(host, this.diskName);
+        for (int i = 0; i < size; i++) {
+            Resource host = resources[i];
+            String diskPath = mountpoints[i];
             if (!diskPath.endsWith(File.separator)) {
                 diskPath = diskPath + File.separator;
             }
@@ -90,7 +117,7 @@ public class SharedLocation extends DataLocation {
 
     @Override
     public List<Resource> getHosts() {
-        return SharedDiskManager.getAllMachinesfromDisk(this.diskName);
+        return this.disk.getAllResources();
     }
 
     @Override
@@ -110,8 +137,8 @@ public class SharedLocation extends DataLocation {
     }
 
     @Override
-    public String getSharedDisk() {
-        return this.diskName;
+    public SharedDisk getSharedDisk() {
+        return this.disk;
     }
 
     @Override

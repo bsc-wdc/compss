@@ -337,7 +337,7 @@ public class ResourceLoader {
         // Registering Master's shared disks
         Comm.getAppHost().updateDisks(sharedDisks);
         for (Map.Entry<String, String> disk : sharedDisks.entrySet()) {
-            SharedDiskManager.addSharedToMachine(disk.getKey(), disk.getValue(), Comm.getAppHost());
+            Comm.getAppHost().addSharedDisk(disk.getKey(), disk.getValue());
         }
 
         if (mrd.getTotalCPUComputingUnits() > 0) {

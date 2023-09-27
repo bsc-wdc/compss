@@ -77,7 +77,7 @@ public class PrivateLocation extends DataLocation {
     }
 
     @Override
-    public String getSharedDisk() {
+    public SharedDisk getSharedDisk() {
         return null;
     }
 

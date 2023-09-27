@@ -35,6 +35,7 @@ import es.bsc.compss.types.data.listener.WorkersDebugInformationListener;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.LocationType;
 import es.bsc.compss.types.data.location.ProtocolType;
+import es.bsc.compss.types.data.location.SharedDisk;
 import es.bsc.compss.types.data.transferable.SafeCopyTransferable;
 import es.bsc.compss.types.data.transferable.WorkersDebugInfoCopyTransferable;
 import es.bsc.compss.types.implementations.Implementation;
@@ -46,7 +47,6 @@ import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
-import es.bsc.compss.util.SharedDiskManager;
 import es.bsc.compss.util.Tracer;
 
 import java.io.File;
@@ -54,6 +54,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -77,7 +78,11 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
         Boolean.parseBoolean(System.getProperty(COMPSsConstants.PYTHON_CACHE_PROFILER));
     protected final String name;
     private final COMPSsNode node;
-    protected Map<String, String> sharedDisks;
+
+    protected Map<String, String> sharedDisksSetup;
+
+    private final List<SharedDisk> sharedDisks = new LinkedList<>();
+    private final Map<SharedDisk, String> sharedDisk2Mountpoint = new HashMap<>();
 
     private final List<LogicalData> obsoletes = new LinkedList<>();
     private final Set<LogicalData> privateFiles = new HashSet<>();
@@ -94,8 +99,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
     public ResourceImpl(String name, Configuration conf, Map<String, String> sharedDisks) {
         this.name = name;
         this.node = Comm.initWorker(conf, this);
-        this.sharedDisks = sharedDisks;
-        SharedDiskManager.addMachine(this);
+        this.sharedDisksSetup = sharedDisks;
         ResourcesPool.add(this);
     }
 
@@ -109,8 +113,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
         this.name = node.getName();
         this.node = node;
         node.setMonitor(this);
-        this.sharedDisks = sharedDisks;
-        SharedDiskManager.addMachine(this);
+        this.sharedDisksSetup = sharedDisks;
         ResourcesPool.add(this);
     }
 
@@ -135,11 +138,32 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
     }
 
     @Override
+    public void addSharedDisk(String diskName, String mountpoint) {
+        SharedDisk disk = SharedDisk.createDisk(diskName);
+        disk.addMountpoint(this, mountpoint);
+        this.sharedDisks.add(disk);
+        this.sharedDisk2Mountpoint.put(disk, mountpoint);
+    }
+
+    @Override
+    public SharedDisk getSharedDiskFromPath(String path) {
+        if (path == null) {
+            return null;
+        }
+        for (Entry<SharedDisk, String> e : this.sharedDisk2Mountpoint.entrySet()) {
+            if (path.startsWith(e.getValue())) {
+                return e.getKey();
+            }
+        }
+        return null;
+    }
+
+    @Override
     public void start() throws InitNodeException {
         this.node.start();
-        if (this.sharedDisks != null) {
-            for (Entry<String, String> disk : this.sharedDisks.entrySet()) {
-                SharedDiskManager.addSharedToMachine(disk.getKey(), disk.getValue(), this);
+        if (this.sharedDisksSetup != null) {
+            for (Entry<String, String> disk : this.sharedDisksSetup.entrySet()) {
+                this.addSharedDisk(disk.getKey(), disk.getValue());
             }
         }
     }
@@ -148,13 +172,11 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
     public Set<LogicalData> getAllDataFromHost() {
         Set<LogicalData> data = new HashSet<>();
 
-        List<String> sharedDisks = SharedDiskManager.getAllSharedNames(this);
-        for (String diskName : sharedDisks) {
-            Set<LogicalData> sharedData = SharedDiskManager.getAllSharedFiles(diskName);
-            if (sharedData != null) {
-                synchronized (sharedData) {
-                    data.addAll(sharedData);
-                }
+        for (SharedDisk disk : sharedDisks) {
+            Set<LogicalData> sharedData = disk.getAllSharedFiles();
+            synchronized (sharedData) {
+                data.addAll(sharedData);
+
             }
         }
 
@@ -191,9 +213,8 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
         removeLogicalData(obsolete);
 
         // Remove from shared disk files
-        List<String> sharedDisks = SharedDiskManager.getAllSharedNames(this);
-        for (String diskName : sharedDisks) {
-            SharedDiskManager.removeLogicalData(diskName, obsolete);
+        for (SharedDisk disk : sharedDisks) {
+            disk.removeLogicalData(obsolete);
         }
 
     }
@@ -329,7 +350,14 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
         Semaphore sem = new Semaphore(0);
         SafeCopyListener listener = new SafeCopyListener(sem);
         Set<LogicalData> lds = getAllDataFromHost();
-        Map<String, String> disks = SharedDiskManager.terminate(this);
+
+        Map<SharedDisk, String> disks = new HashMap<>();
+        for (SharedDisk sd : this.sharedDisks) {
+            String mountpoint = sd.removeMountpoint(this);
+            disks.put(sd, mountpoint);
+        }
+        this.sharedDisks.clear();
+
         for (LogicalData ld : lds) {
             if (ld.getCopiesInProgress().size() > 0) {
                 ld.notifyToInProgressCopiesEnd(listener);
@@ -612,7 +640,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
     /**
      * Returns the paths to the files from a folder files.
      * 
-     * @param foldername folder path to the files
+     * @param folderPath folder path to the files
      * @return Set the paths of the files in that folder
      */
     private Set<String> getFilesPathFromFolder(String folderPath) {

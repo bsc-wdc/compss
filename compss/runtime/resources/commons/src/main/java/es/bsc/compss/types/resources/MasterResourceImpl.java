@@ -78,7 +78,7 @@ public class MasterResourceImpl extends DynamicMethodWorker implements MasterRes
 
     @Override
     public void updateDisks(Map<String, String> sharedDisks) {
-        super.sharedDisks = sharedDisks;
+        super.sharedDisksSetup = sharedDisks;
     }
 
     /**

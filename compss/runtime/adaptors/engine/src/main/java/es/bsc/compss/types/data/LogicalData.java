@@ -27,6 +27,7 @@ import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.PersistentLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
+import es.bsc.compss.types.data.location.SharedDisk;
 import es.bsc.compss.types.data.operation.copy.Copy;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.tracing.TraceEvent;
@@ -34,7 +35,6 @@ import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.FileOpsManager;
-import es.bsc.compss.util.SharedDiskManager;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.util.serializers.Serializer;
 
@@ -440,7 +440,8 @@ public class LogicalData {
                 }
                 break;
             case SHARED:
-                SharedDiskManager.addLogicalData(loc.getSharedDisk(), this);
+                SharedDisk disk = loc.getSharedDisk();
+                disk.addLogicalData(this);
                 break;
             case PERSISTENT:
                 this.pscoId = ((PersistentLocation) loc).getId();
@@ -662,7 +663,8 @@ public class LogicalData {
                     r.addLogicalData(this);
                     break;
                 case SHARED:
-                    SharedDiskManager.addLogicalData(loc.getSharedDisk(), this);
+                    SharedDisk disk = loc.getSharedDisk();
+                    disk.addLogicalData(this);
                     break;
                 case PERSISTENT:
                     // Nothing to do
@@ -827,11 +829,11 @@ public class LogicalData {
      * Removes all the locations assigned to a given host and returns a valid location if the file is unique.
      *
      * @param host Resource
-     * @param sharedMountPoints Shared mount point
+     * @param sharedMountPoints map relating all the shared disks in the resource and their corresponding mountpoints
      * @return a valid location if the file is unique
      */
     public synchronized DataLocation removeHostAndCheckLocationToSave(Resource host,
-        Map<String, String> sharedMountPoints) {
+        Map<SharedDisk, String> sharedMountPoints) {
         // If the file is being saved means that this function has already been executed
         // for the same LogicalData. Thus, all the host locations are already removed
         // and there is no unique file to save
@@ -857,15 +859,15 @@ public class LogicalData {
                         }
                         break;
                     case SHARED:
-                        // When calling this function the host inside the
+                        // When calling this function, the host inside the
                         // SharedDiskManager has been removed
                         // If there are no remaining hosts it means it was the last
                         // host thus, the location
                         // is unique and must be saved
                         if (loc.getHosts().isEmpty()) {
-                            String sharedDisk = loc.getSharedDisk();
-                            if (sharedDisk != null) {
-                                String mountPoint = sharedMountPoints.get(sharedDisk);
+                            SharedDisk disk = loc.getSharedDisk();
+                            if (disk != null) {
+                                String mountPoint = sharedMountPoints.get(disk);
                                 if (mountPoint != null) {
                                     if (uniqueHostLocation == null) {
                                         this.isBeingSaved = true;

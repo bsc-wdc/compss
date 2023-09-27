@@ -25,6 +25,7 @@ import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.Transferable;
 import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.location.DataLocation;
+import es.bsc.compss.types.data.location.SharedDisk;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobListener;
@@ -36,6 +37,23 @@ import java.util.Set;
 
 
 public interface Resource extends Comparable<Resource> {
+
+    /**
+     * Adds a new shared disk to the resource.
+     * 
+     * @param diskName name of the disk to be added
+     * @param mountpoint path where the shared disk is mounted
+     */
+    public void addSharedDisk(String diskName, String mountpoint);
+
+    /**
+     * Gets the name of a shared disk which contains the files in a resource path.
+     *
+     * @param path File path contained by the disk
+     * @return null if there is no shared disk containing that file path on the resource. The shared disk identifier
+     *         containing that file path.
+     */
+    public SharedDisk getSharedDiskFromPath(String path);
 
     /**
      * Starts a resource execution.

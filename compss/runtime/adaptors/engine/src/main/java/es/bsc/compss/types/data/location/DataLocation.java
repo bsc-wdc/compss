@@ -21,7 +21,6 @@ import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
-import es.bsc.compss.util.SharedDiskManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -146,10 +145,10 @@ public abstract class DataLocation implements Comparable<DataLocation> {
      * @return Data location object
      */
     private static DataLocation createLocation(ProtocolType protocol, Resource host, String path) {
-        String diskName = SharedDiskManager.getSharedName(host, path);
-        if (diskName != null) {
-            String mountpoint = SharedDiskManager.getMounpoint(host, diskName);
-            SharedLocation sharLoc = new SharedLocation(protocol, diskName, path.substring(mountpoint.length()));
+        SharedDisk disk = host.getSharedDiskFromPath(path);
+        if (disk != null) {
+            String mountpoint = disk.getMountpoint(host);
+            SharedLocation sharLoc = new SharedLocation(protocol, disk, path.substring(mountpoint.length()));
             return sharLoc;
         } else {
             PrivateLocation privLoc = new PrivateLocation(protocol, host, path);
@@ -163,7 +162,7 @@ public abstract class DataLocation implements Comparable<DataLocation> {
 
     public abstract List<MultiURI> getURIs();
 
-    public abstract String getSharedDisk();
+    public abstract SharedDisk getSharedDisk();
 
     public abstract List<Resource> getHosts();
 

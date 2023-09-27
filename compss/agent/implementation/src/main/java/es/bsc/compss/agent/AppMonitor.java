@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -353,7 +354,16 @@ public abstract class AppMonitor implements TaskMonitor {
                 case SHARED:
                     SharedDisk sd = loc.getSharedDisk();
                     String diskName = sd.getName();
-                    rdl = new SharedRemoteDataLocation(diskName, loc.getPath());
+                    Map<es.bsc.compss.types.resources.Resource, String> sdMountpoints = sd.getAllMountpoints();
+                    SharedRemoteDataLocation.Mountpoint[] srdlMountpoints;
+                    srdlMountpoints = new SharedRemoteDataLocation.Mountpoint[sdMountpoints.size()];
+                    int i = 0;
+                    for (Map.Entry<es.bsc.compss.types.resources.Resource, String> sdMp : sdMountpoints.entrySet()) {
+                        Resource r = createRemoteResourceFromResource(sdMp.getKey());
+                        String mountpoint = sdMp.getValue();
+                        srdlMountpoints[i++] = new SharedRemoteDataLocation.Mountpoint(r, mountpoint);
+                    }
+                    rdl = new SharedRemoteDataLocation(diskName, loc.getPath(), srdlMountpoints);
                     break;
                 default:
             }

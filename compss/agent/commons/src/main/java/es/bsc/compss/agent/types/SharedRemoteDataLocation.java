@@ -36,7 +36,7 @@ public class SharedRemoteDataLocation implements RemoteDataLocation {
         public Mountpoint() {
         }
 
-        private Mountpoint(Resource<?, ?> r, String path) {
+        public Mountpoint(Resource<?, ?> r, String path) {
             this.resource = r;
             this.path = path;
         }
@@ -90,11 +90,12 @@ public class SharedRemoteDataLocation implements RemoteDataLocation {
      * 
      * @param sharedDisk name of the disk
      * @param pathOnDisk path of data in the sahred disk
+     * @param mountpoints mountpoints of the shared disk for all known resources
      */
-    public SharedRemoteDataLocation(String sharedDisk, String pathOnDisk) {
+    public SharedRemoteDataLocation(String sharedDisk, String pathOnDisk, Mountpoint[] mountpoints) {
         this.diskName = sharedDisk;
         this.pathOnDisk = pathOnDisk;
-        this.mountpoints = new Mountpoint[0];
+        this.mountpoints = mountpoints;
     }
 
     @Override

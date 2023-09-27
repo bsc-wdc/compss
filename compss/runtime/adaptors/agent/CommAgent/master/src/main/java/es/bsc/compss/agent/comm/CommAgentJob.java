@@ -292,6 +292,13 @@ class CommAgentJob extends NIOJob {
 
     private void registerSharedResult(SharedRemoteDataLocation sLocation, String rename) {
         String diskName = sLocation.getDiskName();
+        for (SharedRemoteDataLocation.Mountpoint mp : sLocation.getMountpoints()) {
+            Resource w = ownAgent.getNodeFromResource(mp.getResource());
+            if (w == null) {
+                w = this.worker;
+            }
+            w.addSharedDisk(diskName, mp.getPath());
+        }
         LOGGER.debug("Registering result " + rename + " on shared disk " + diskName);
         registerResultSharedLocation(sLocation.getDiskName(), sLocation.getPathOnDisk(), rename);
     }

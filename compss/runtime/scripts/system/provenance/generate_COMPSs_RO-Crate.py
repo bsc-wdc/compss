@@ -88,9 +88,13 @@ def root_entity(compss_crate: ROCrate, yaml_content: dict) -> typing.Tuple[dict,
 
     # COMPSs Workflow RO Crate generation
     # Root Entity
-    compss_crate.name = compss_wf_info["name"]  # SHOULD in RO-Crate 1.1. MUST in WorkflowHub
+    compss_crate.name = compss_wf_info[
+        "name"
+    ]  # SHOULD in RO-Crate 1.1. MUST in WorkflowHub
     if "description" in compss_wf_info:
-        compss_crate.description = compss_wf_info["description"]  # SHOULD in Workflow Profile and WorkflowHub
+        compss_crate.description = compss_wf_info[
+            "description"
+        ]  # SHOULD in Workflow Profile and WorkflowHub
     if "license" in compss_wf_info:
         # License details could be also added as a Contextual Entity. MUST in Workflow RO-Crate Profile, but WorkflowHub does not consider it a mandatory field
         compss_crate.license = compss_wf_info["license"]
@@ -107,7 +111,8 @@ def root_entity(compss_crate: ROCrate, yaml_content: dict) -> typing.Tuple[dict,
             properties_dict["name"] = author["name"]  # MUST in WorkflowHub
         except KeyError:
             print(
-                f"PROVENANCE | ERROR in your ro-crate-info.yaml file. Both 'orcid' and 'name' must be defined together for an Author")
+                f"PROVENANCE | ERROR in your ro-crate-info.yaml file. Both 'orcid' and 'name' must be defined together for an Author"
+            )
             raise
         if "ror" in author:
             # ror is not mandatory on any profile
@@ -124,7 +129,9 @@ def root_entity(compss_crate: ROCrate, yaml_content: dict) -> typing.Tuple[dict,
                     )
                 )
             except KeyError:
-                print(f"PROVENANCE | ERROR in your ro-crate-info.yaml file. Both 'ror' and 'organisation_name' must be defined together for an Organisation")
+                print(
+                    f"PROVENANCE | ERROR in your ro-crate-info.yaml file. Both 'ror' and 'organisation_name' must be defined together for an Organisation"
+                )
                 raise
         if "e-mail" in author:
             properties_dict["contactPoint"] = {"@id": "mailto:" + author["e-mail"]}
@@ -225,7 +232,9 @@ def get_main_entities(wf_info: dict) -> typing.Tuple[str, str, str]:
         if os.path.isfile(detected_app):
             main_entity = detected_app
         else:
-            print(f"PROVENANCE | ERROR: No 'sources' defined at ro-crate-info.yaml, and detected mainEntity not found in Current Working Directory")
+            print(
+                f"PROVENANCE | ERROR: No 'sources' defined at ro-crate-info.yaml, and detected mainEntity not found in Current Working Directory"
+            )
             raise KeyError("No 'sources' key defined at ro-crate-info.yaml")
 
     # Find a backup_main_entity while building the full list of source files
@@ -864,10 +873,11 @@ def add_application_source_files(
                             "name": dir_name,
                             "sdDatePublished": iso_now(),
                             "dateModified": dt.datetime.utcfromtimestamp(
-                                os.path.getmtime(full_dir_name)
+                                os.path.getmtime(full_dir_name),
                             )
                             .replace(microsecond=0)
-                            .isoformat(),  # Schema.org
+                            .isoformat()  # Schema.org
+                            # "hasPart": [{}]
                         }  # Register when the Data Entity was last accessible
                         path_in_crate = (
                             "application_sources/"
@@ -1073,7 +1083,8 @@ def add_dataset_file_to_crate(
                             os.path.getmtime(full_dir_name)
                         )
                         .replace(microsecond=0)
-                        .isoformat(),  # Schema.org
+                        .isoformat()  # Schema.org
+                        # "hasPart": [{}]
                     }  # Register when the Data Entity was last accessible
                     if persist:
                         path_final_part = full_dir_name[len(url_parts.path) :]
@@ -1312,10 +1323,9 @@ def get_common_paths(url_list: list) -> list:
             file_found = True
             break
 
-    if not file_found:  # All are directories
-        print(
-            f"PROVENANCE DEBUG | Resulting list of common paths with only directories is: {list_common_paths}"
-        )
+    if not file_found:
+        # All are directories
+        # print(f"PROVENANCE DEBUG | Resulting list of common paths with only directories is: {list_common_paths}")
         return list_common_paths
 
     # Add first found file
@@ -1350,7 +1360,7 @@ def get_common_paths(url_list: list) -> list:
     if common_path not in list_common_paths:
         list_common_paths.append(common_path)
 
-    print(f"PROVENANCE DEBUG | Resulting list of common paths is: {list_common_paths}")
+    # print(f"PROVENANCE DEBUG | Resulting list of common paths is: {list_common_paths}")
 
     return list_common_paths
 
@@ -1366,7 +1376,7 @@ def add_manual_datasets(yaml_term: str, compss_wf_info: dict, data_list: list) -
     :returns: Updated List of identified common paths among the URLs
     """
 
-    if (yaml_term in compss_wf_info):
+    if yaml_term in compss_wf_info:
         # Input files or directories added by hand from the user
         data_entities_list = []
         if isinstance(compss_wf_info[yaml_term], list):
@@ -1421,15 +1431,17 @@ def add_manual_datasets(yaml_term: str, compss_wf_info: dict, data_list: list) -
     for item in url_files_list:
         url_parts = urlsplit(item)
         if any(url_parts.path.startswith(dir_path) for dir_path in directories_list):
-            print(f"NEED TO REMOVE FILE {item}")
+            # print(f"PROVENANCE DEBUG | NEED TO REMOVE FILE {item}, belongs to a dataset")
             data_list.remove(item)
 
-    # print(f"RESULT FROM add_manual_datasets:\n {data_list}")
+    # print(f"PROVENANCE DEBUG | RESULT FROM add_manual_datasets:\n {data_list}")
 
     return data_list
 
 
-def fix_in_files_at_out_dirs(inputs_list: list, outputs_list: list) -> typing.Tuple[list, list]:
+def fix_in_files_at_out_dirs(
+    inputs_list: list, outputs_list: list
+) -> typing.Tuple[list, list]:
     """
     Remove any file inputs that the user may have declared as directory outputs
 
@@ -1469,10 +1481,10 @@ def fix_in_files_at_out_dirs(inputs_list: list, outputs_list: list) -> typing.Tu
     for item in url_files_list:
         url_parts = urlsplit(item)
         if any(url_parts.path.startswith(dir_path) for dir_path in directories_list):
-            print(f"NEED TO REMOVE IN FILE INCLUDED IN AN OUT DIR {item}")
+            # print(f"PROVENANCE DEBUG | NEED TO REMOVE IN FILE INCLUDED AT AN OUT DIR {item}")
             inputs_list.remove(item)
 
-    # print(f"RESULT FROM fix_in_files_at_out_dirs:\n {inputs_list}")
+    # print(f"PROVENANCE DEBUG | RESULT FROM fix_in_files_at_out_dirs:\n {inputs_list}")
 
     return inputs_list, outputs_list
 
@@ -1569,11 +1581,12 @@ def main():
 
     # Merge lists to avoid duplication when detecting common_paths
     ins_and_outs = ins.copy() + outs.copy()
+    ins_and_outs.sort()  # Put together shared paths between ins an outs
 
     # print(f"PROVENANCE DEBUG | List of ins and outs: {ins_and_outs}")
 
     # The list has at this point detected ins and outs, but also added any ins an outs defined by the user
-    ins_and_outs.sort()  # Put together shared paths between ins an outs
+
     list_common_paths = []
     part_time = time.time()
     if (
@@ -1615,9 +1628,10 @@ def main():
     # print(f"FIXED_INS: {fixed_ins}")
     # print(f"FIXED_OUTS: {fixed_outs}")
     # Register execution details using WRROC profile
+    # Compliance with RO-Crate WorkflowRun Level 2 profile, aka. Workflow Run Crate
     run_uuid = wrroc_create_action(
         compss_crate, main_entity, author_list, fixed_ins, fixed_outs, yaml_content
-    )  # Compliance with RO-Crate WorkflowRun Level 2 profile, aka. Workflow Run Crate
+    )
 
     # ro-crate-py does not deal with profiles
     # compss_crate.metadata.append_to(

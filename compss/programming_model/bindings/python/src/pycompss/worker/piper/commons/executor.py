@@ -794,8 +794,6 @@ def process_task(
             # The ignored variable is timed_out
             exit_value, new_types, new_values, _, except_msg = result
 
-            gc.collect()
-
             if COMPSS_WITH_DLB:
                 dlb_affinity.setaffinity([], os.getpid())
                 dlb_affinity.lend()
@@ -903,6 +901,10 @@ def process_task(
             for handler in storage_loggers_handlers[i]:
                 storage_logger.addHandler(handler)
             i += 1
+
+        with EventInsideWorker(TRACING_WORKER.cleanup_task):
+            gc.collect()
+
         if __debug__:
             logger.debug(
                 "%s[%s] Finished task with id: %s",

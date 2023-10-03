@@ -86,6 +86,7 @@ class TypesEventsWorker:
         "cache_miss_gpu_event",
         "retrieve_object_from_gpu_cache_event",
         "insert_object_into_gpu_cache_event",
+        "cleanup_task",
     )
 
     def __init__(self) -> None:
@@ -137,6 +138,7 @@ class TypesEventsWorker:
         self.cache_miss_gpu_event = 28
         self.retrieve_object_from_gpu_cache_event = 29
         self.insert_object_into_gpu_cache_event = 30
+        self.cleanup_task = 31
 
         # Task affinity events:
         self.inside_tasks_cpu_affinity_type = 9000150

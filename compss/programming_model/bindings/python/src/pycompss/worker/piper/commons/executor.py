@@ -31,6 +31,7 @@ import signal
 import sys
 import time
 import traceback
+import gc
 from pycompss.util.process.manager import Queue
 from pycompss.util.process.manager import DictProxy
 from pycompss.runtime.management.object_tracker import OT
@@ -900,6 +901,10 @@ def process_task(
             for handler in storage_loggers_handlers[i]:
                 storage_logger.addHandler(handler)
             i += 1
+
+        with EventInsideWorker(TRACING_WORKER.cleanup_task):
+            gc.collect()
+
         if __debug__:
             logger.debug(
                 "%s[%s] Finished task with id: %s",

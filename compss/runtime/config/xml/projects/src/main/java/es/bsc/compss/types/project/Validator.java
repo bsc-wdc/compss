@@ -655,10 +655,10 @@ public class Validator {
             throw new InvalidElementException("ComputingCluster " + cluster.getName(), "Attribute ClusterNode",
                 "Doesn't appear");
         }
-        // if (!taskLimitTagFound) {
-        // throw new InvalidElementException("ComputingCluster " + cluster.getName(), "Attribute Task Limit",
-        // "Doesn't appear");
-        // }
+        if (!taskLimitTagFound) {
+            throw new InvalidElementException("ComputingCluster " + cluster.getName(), "Attribute Task Limit",
+                "Doesn't appear");
+        }
     }
 
     /*

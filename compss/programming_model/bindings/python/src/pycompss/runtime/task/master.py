@@ -1046,7 +1046,7 @@ class TaskMaster:
         param = get_new_parameter(direction)
         param.file_name = COMPSsFile(str(self.interactive_task_file))
         param.extra_content_type = "FILE"
-        self.parameters["compss_interactive_source_file"] = param
+        self.parameters[CONSTANTS.compss_interactive_source_file] = param
 
     def build_parameter_object(
         self, arg_name: str, arg_object: typing.Any, code_strings=True
@@ -2185,10 +2185,11 @@ class TaskMaster:
             FunctionType.CLASS_METHOD,
         ):
             slf_name = arg_names.pop(0)
-        # Put the compss_interactive_source_file in first position if exists
-        if "compss_interactive_source_file" in arg_names:
-            arg_names.remove("compss_interactive_source_file")
-            arg_names.insert(0, "compss_interactive_source_file")
+        # Put the CONSTANTS.compss_interactive_source_file in first position
+        # if exists
+        if CONSTANTS.compss_interactive_source_file in arg_names:
+            arg_names.remove(CONSTANTS.compss_interactive_source_file)
+            arg_names.insert(0, CONSTANTS.compss_interactive_source_file)
         # Fill the values, compss_types, compss_directions, compss_streams and
         # compss_prefixes from function parameters
         for name in arg_names:

@@ -586,7 +586,7 @@ def execute_task(
     # Check if received the interactive source file as parameter
     # and pop it from args.
     compss_interactive_source_file = ""
-    if num_params > 0 and "compss_interactive_source_file" in args[3]:
+    if num_params > 0 and CONSTANTS.compss_interactive_source_file in args[3]:
         compss_interactive_source_file = args[5].split(":")[0]
         args = args[6:]
         num_params -= 1

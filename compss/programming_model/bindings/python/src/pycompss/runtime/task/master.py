@@ -68,6 +68,7 @@ from pycompss.runtime.task.definitions.constraints import ConstraintDescription
 from pycompss.runtime.task.definitions.arguments import TaskArguments
 from pycompss.runtime.task.definitions.function import FunctionDefinition
 from pycompss.runtime.task.features import TASK_FEATURES
+from pycompss.runtime.task.keys import PARAM_ALIAS_KEYS
 from pycompss.runtime.task.parameter import COMPSsFile
 from pycompss.runtime.task.parameter import JAVA_MAX_INT
 from pycompss.runtime.task.parameter import JAVA_MAX_LONG
@@ -196,6 +197,7 @@ class TaskMaster:
         "param_varargs",
         "param_defaults",
         "first_arg_name",
+        "interactive_task_file",
         "parameters",
         "returns",
         "constraint_args",
@@ -231,6 +233,7 @@ class TaskMaster:
         self.param_varargs = ""  # type: str
         self.param_defaults = None  # type: typing.Optional[tuple]
         self.first_arg_name = ""
+        self.interactive_task_file = ""
         self.parameters = (
             OrderedDict()
         )  # type: typing.OrderedDict[str, Parameter]
@@ -659,7 +662,8 @@ class TaskMaster:
         # We need to find out the real module name from launched
         path = LAUNCH_STATUS.get_app_path()
         # Get the file name
-        file_name = os.path.splitext(os.path.basename(path))[0]
+        file_path, full_file_name = os.path.split(path)
+        file_name, file_name_ext = os.path.splitext(full_file_name)
         # Do any necessary pre-processing action before executing any code
         if (
             file_name.startswith(CONSTANTS.interactive_file_name)
@@ -671,9 +675,25 @@ class TaskMaster:
             # In this case it is necessary to do a pre-processing step
             # that consists of putting all user code that may be executed
             # in the worker on a file.
-            # This file has to be visible for all workers.
+            # This file will be sent to all workers as first parameter.
+
+            self.interactive_task_file = path
+            # Update the code also calls compss_delete_object if the file
+            # "path" is updated.
             update_tasks_code_file(self.decorated_function.function, path)
-            print(f"Found task: {self.decorated_function.function.__name__}")
+            # # It is possible to create a specific file per task
+            # file_name_fields = file_name.split("_")
+            # file_name_fields.insert(1, self.decorated_function.function_name)
+            # file_name_fields.insert(2, str(time.time_ns()))
+            # updated_file_name = "_".join(file_name_fields)
+            # updated_path = os.path.join(
+            #     file_path, updated_file_name + file_name_ext
+            # )
+            # # Copy file to accompany the task
+            # shutil.copyfile(path, updated_path)
+
+            print(f"Found task: {self.decorated_function.function_name}")
+            # print(f"Written in file: {self.interactive_task_file}")
 
     def extract_core_element(
         self, ce: typing.Optional[CE]
@@ -1008,6 +1028,25 @@ class TaskMaster:
             + list(self.decorator_arguments.parameters.keys()),
             "@task",
         )
+        # Add interactive FILE_IN parameter if necessary
+        if self.interactive_task_file != "":
+            self.add_synthetic_parameter_interactive_file()
+
+    def add_synthetic_parameter_interactive_file(self) -> None:
+        """Include a synthetic Parameter object for interactive source file.
+
+        This function includes a special FILE_IN parameter with the interactive
+        source file. This parameter will be removed in the worker side.
+        However, it will be used to transfer the interactive source file
+        automatically by the runtime.
+
+        :return: None
+        """
+        direction = PARAM_ALIAS_KEYS.FILE_IN
+        param = get_new_parameter(direction)
+        param.file_name = COMPSsFile(str(self.interactive_task_file))
+        param.extra_content_type = "FILE"
+        self.parameters[CONSTANTS.compss_interactive_source_file] = param
 
     def build_parameter_object(
         self, arg_name: str, arg_object: typing.Any, code_strings=True
@@ -2146,6 +2185,11 @@ class TaskMaster:
             FunctionType.CLASS_METHOD,
         ):
             slf_name = arg_names.pop(0)
+        # Put the CONSTANTS.compss_interactive_source_file in first position
+        # if exists
+        if CONSTANTS.compss_interactive_source_file in arg_names:
+            arg_names.remove(CONSTANTS.compss_interactive_source_file)
+            arg_names.insert(0, CONSTANTS.compss_interactive_source_file)
         # Fill the values, compss_types, compss_directions, compss_streams and
         # compss_prefixes from function parameters
         for name in arg_names:

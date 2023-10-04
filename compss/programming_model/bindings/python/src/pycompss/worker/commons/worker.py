@@ -24,6 +24,7 @@ Currently, it is used by all worker types (container, external, gat and piper).
 
 import base64
 import logging
+import os
 import pickle
 import signal
 import sys
@@ -582,6 +583,14 @@ def execute_task(
 
     args = args[4:]
 
+    # Check if received the interactive source file as parameter
+    # and pop it from args.
+    compss_interactive_source_file = ""
+    if num_params > 0 and CONSTANTS.compss_interactive_source_file in args[3]:
+        compss_interactive_source_file = args[5].split(":")[0]
+        args = args[6:]
+        num_params -= 1
+
     # COMPSs keywords for tasks (ie: tracing, process name...)
     # compss_key is included to be checked in the @task decorator, so that
     # the task knows if it has been called from the worker or from the
@@ -626,6 +635,9 @@ def execute_task(
         logger.debug("\t- Return Length: %s", str(return_length))
         logger.debug("\t- Args: %r", args)
         logger.debug("\t- COMPSs kwargs:")
+        logger.debug(
+            "\t- Interactive source: %s", str(compss_interactive_source_file)
+        )
         for kw_key, kw_value in compss_kwargs.items():
             logger.debug("\t\t- %s: %s", str(kw_key), str(kw_value))
 
@@ -653,6 +665,19 @@ def execute_task(
     import_error = False
     if __debug__:
         logger.debug("LOAD TASK:")
+    # Add dynamically source path to sys if received interactive source file
+    if compss_interactive_source_file != "":
+        interactive_source_path = os.path.dirname(
+            compss_interactive_source_file
+        )
+        if __debug__:
+            logger.debug(
+                "\t- Using interactive source file: %s",
+                compss_interactive_source_file,
+            )
+        sys.path.append(interactive_source_path)
+        if __debug__:
+            logger.debug("\t- Added to path: %s", interactive_source_path)
     try:
         # Try to import the module (for functions)
         if __debug__:
@@ -851,6 +876,15 @@ def execute_task(
             # Next return: target_direction = result[3]
             timed_out = result[4]
             except_msg = result[5]
+
+    # Clean
+    if __debug__:
+        logger.debug("CLEAN TASK:")
+    if compss_interactive_source_file != "":
+        # Remove the interactive path from sys.path (last element)
+        last_elem = sys.path.pop()
+        if __debug__:
+            logger.debug("\t- [Interactive] Removed from path: %s", last_elem)
 
     if __debug__:
         if exit_code != 0:

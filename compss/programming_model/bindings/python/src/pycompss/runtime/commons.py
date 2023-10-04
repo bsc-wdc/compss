@@ -48,6 +48,7 @@ class Constants:  # pylint: disable=R0902,R0903
         "tracing_hook_env_var",
         "extra_content_type_format",
         "interactive_file_name",
+        "compss_interactive_source_file",
         "default_sched",
         "default_conn",
         "default_jvm_workers",
@@ -103,8 +104,10 @@ class Constants:  # pylint: disable=R0902,R0903
         self.tracing_hook_env_var = "COMPSS_TRACING_HOOK"
         # Extra content type format
         self.extra_content_type_format = "{}:{}"  # <module_path>:<class_name>
-        # Interactive mode file name
+        # Interactive mode file name prefix
         self.interactive_file_name = "InteractiveMode"
+        # Interactive source file that will be used
+        self.compss_interactive_source_file = "compss_interactive_source_file"
         # LONG DEFAULTS
         self.default_sched = (
             "es.bsc.compss.scheduler.lookahead.locality.LocalityTS"

@@ -54,7 +54,7 @@ REQUIRED_FLAGS = {
     "log_dir": [[str, NONETYPE]],
     "master_working_dir": [[str, NONETYPE]],
     "extrae_cfg": [[str, NONETYPE]],
-    "comm": [[str], ["NIO", "GAT"]],
+    "comm": [[str]],
     "conn": [
         [str],
         [

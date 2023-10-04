@@ -660,10 +660,10 @@ public class Validator {
                 throw new InvalidElementException("Adaptor " + adaptor.getName(), "Attribute SubmissionSystem",
                     "Doesn't appear");
             }
-            if (!portsTagFound && !brokerAdaptorTagFound && !propertiesTagFound) {
-                throw new InvalidElementException("Adaptor " + adaptor.getName(),
-                    "Attribute Adaptor properties (NIO, GAT or External)", "Doesn't appear");
-            }
+            // if (!portsTagFound && !brokerAdaptorTagFound && !propertiesTagFound) {
+            // throw new InvalidElementException("Adaptor " + adaptor.getName(),
+            // "Attribute Adaptor properties (NIO, GAT or External)", "Doesn't appear");
+            // }
         } else {
             // Empty inner elements
             throw new InvalidElementException("Adaptor", "", "Content is empty");

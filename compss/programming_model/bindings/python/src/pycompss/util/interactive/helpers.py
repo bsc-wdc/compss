@@ -75,8 +75,10 @@ def update_tasks_code_file(function: typing.Callable, file_path: str) -> None:
     :param file_path: File where the code is stored.
     :return: None.
     """
+    first_time = False
     if not os.path.exists(file_path):
         _create_tasks_code_file(file_path)
+        first_time = True
 
     if DEBUG:
         print("Task definition detected.")
@@ -112,6 +114,15 @@ def update_tasks_code_file(function: typing.Callable, file_path: str) -> None:
     # Continue with comparisons
     new_functions = _update_functions(functions_code, old_code_functions)
     new_tasks = _update_tasks(task_code, old_code_tasks)
+
+    is_updated = False
+    if new_imports or new_globals or new_classes or new_functions or new_tasks:
+        is_updated = True
+
+    if not first_time and is_updated:
+        from pycompss.api.api import compss_delete_file
+
+        compss_delete_file(file_path)
 
     # Update the file where the code is stored.
     _update_code_file(

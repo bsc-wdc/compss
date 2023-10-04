@@ -267,16 +267,6 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
     EXTRA_LAUNCH_STATUS.set_graphing(graph)
     EXTRA_LAUNCH_STATUS.set_disable_external(disable_external)
 
-    temp_app_filename = "".join(
-        (
-            os.path.join(os.getcwd(), CONSTANTS.interactive_file_name),
-            "_",
-            str(time.strftime("%d%m%y_%H%M%S")),
-            ".py",
-        )
-    )
-    LAUNCH_STATUS.set_app_path(temp_app_filename)
-
     interactive_helpers.DEBUG = debug
     if debug:
         log_level = "debug"
@@ -447,8 +437,7 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
     print("* - Log path : " + log_path)
 
     # Setup logging
-    binding_log_path = get_log_path()
-    log_path = os.path.join(
+    log_cfg_path = os.path.join(
         all_vars["compss_home"],
         "Bindings",
         "python",
@@ -456,12 +445,31 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
         "log",
     )
     logging_cfg_file = get_logging_cfg_file(log_level)
-    init_logging(os.path.join(log_path, logging_cfg_file), binding_log_path)
+    init_logging(os.path.join(log_cfg_path, logging_cfg_file), log_path)
     logger = logging.getLogger("pycompss.runtime.launch")
 
     # Setup tmp path
-    binding_tmp_path = get_tmp_path()  # master.workingDir
-    GLOBALS.set_temporary_directory(binding_tmp_path)
+    tmp_path = get_tmp_path()  # master.workingDir
+    GLOBALS.set_temporary_directory(tmp_path)
+
+    # Setup interactive file
+    interactive_tmp_files_path = os.path.join(
+        tmp_path, "compss_interactive_app"
+    )
+    if not os.path.exists(interactive_tmp_files_path):
+        os.makedirs(interactive_tmp_files_path)
+    temp_app_filename = "".join(
+        (
+            CONSTANTS.interactive_file_name,
+            "_",
+            str(time.strftime("%d%m%y_%H%M%S")),
+            ".py",
+        )
+    )
+    temp_app_file_path = os.path.join(
+        interactive_tmp_files_path, temp_app_filename
+    )
+    LAUNCH_STATUS.set_app_path(temp_app_file_path)
 
     __print_setup(verbose, all_vars)
 

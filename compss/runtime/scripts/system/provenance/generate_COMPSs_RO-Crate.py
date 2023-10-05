@@ -834,8 +834,8 @@ def add_application_source_files(
                 continue
             if any(dir_item.startswith(resolved_source) for dir_item in added_dirs):
                 print(
-                    f"PROVENANCE | WARNING: A parent directory of a previously added sub-directory is being added. Files "
-                    f"will be traversed twice in: {resolved_source}"
+                    f"PROVENANCE | WARNING: A parent directory of a previously added sub-directory is being added. Some "
+                    f"files will be traversed twice in: {resolved_source}"
                 )
                 # Can't continue, we need to traverse the parent directory. Luckily, files won't be added twice
 
@@ -879,7 +879,7 @@ def add_application_source_files(
                             compss_ver,
                             main_entity,
                             out_profile,
-                            full_dir_name
+                            resolved_source
                         )
                         # dir_properties = {
                         #     "name": ".gitkeep",

@@ -785,7 +785,6 @@ def add_application_source_files(
 
     part_time = time.time()
 
-    crate_paths = []
     sources_list = []
 
     if "sources" in compss_wf_info:
@@ -806,10 +805,15 @@ def add_application_source_files(
             sources_list.extend(compss_wf_info["sources_dir"])
         else:
             sources_list.append(compss_wf_info["sources_dir"])
-    # else: Define automatically the main_entity?????? Return error????
+    # else: Nothing defined, covered at the end
 
     added_files = []
     added_dirs = []
+
+    #  TODO: before dealing with all files from all directories, update the list of sources, removing any sub-folders
+    #  already included in other folders. Do it with source_list_copy, to avoid strange iterations
+    #  This would avoid the issue of sources: [sources_empty/empty_dir_1/, sources_empty/] which adds empty_dir_1
+    #  to the root of application_sources/.
 
     for source in sources_list:
         path_source = Path(source).expanduser()
@@ -838,7 +842,6 @@ def add_application_source_files(
                     f"files will be traversed twice in: {resolved_source}"
                 )
                 # Can't continue, we need to traverse the parent directory. Luckily, files won't be added twice
-
             added_dirs.append(resolved_source)
             for root, dirs, files in os.walk(
                 resolved_source, topdown=True, followlinks=True
@@ -848,15 +851,13 @@ def add_application_source_files(
                 for f_name in files:
                     resolved_file = os.path.join(root, f_name)
                     if resolved_file not in added_files:
-                        crate_paths.append(
-                            add_file_to_crate(
-                                compss_crate,
-                                resolved_file,
-                                compss_ver,
-                                main_entity,
-                                out_profile,
-                                resolved_source,
-                            )
+                        add_file_to_crate(
+                            compss_crate,
+                            resolved_file,
+                            compss_ver,
+                            main_entity,
+                            out_profile,
+                            resolved_source
                         )
                         added_files.append(resolved_file)
                     else:
@@ -881,37 +882,6 @@ def add_application_source_files(
                             out_profile,
                             resolved_source
                         )
-                        # dir_properties = {
-                        #     "name": ".gitkeep",
-                        #     "sdDatePublished": iso_now(),
-                        #     "dateModified": dt.datetime.utcfromtimestamp(
-                        #         os.path.getmtime(full_dir_name)
-                        #     )
-                        #     .replace(microsecond=0)
-                        #     .isoformat(),  # Schema.org
-                        # }  # Register when the Data Entity was last accessible
-                        # path_in_crate = (
-                        #     "application_sources/"
-                        #     + os.path.basename(resolved_source)
-                        #     + "/"
-                        #     + full_dir_name[len(resolved_source) :]
-                        #     + "/"
-                        #     + ".gitkeep"
-                        # )  # Remove resolved_source from full_dir_name, adding basename
-                        # # compss_crate.add_dataset(
-                        # #     source=full_dir_name,
-                        # #     dest_path=path_in_crate,
-                        # #     properties=dir_properties,
-                        # # )
-                        # # print(f"ADDING FILE {git_keep} as {path_in_crate}")
-                        # compss_crate.add_file(
-                        #     source=git_keep,
-                        #     dest_path=path_in_crate,
-                        #     fetch_remote=False,
-                        #     validate_url=False,
-                        #     # True fails at MN4 when file URI points to a node hostname (only localhost works)
-                        #     properties=dir_properties,
-                        # )
             if not os.listdir(resolved_source):
                 # The root directory itself is empty
                 # print(f"PROVENANCE DEBUG | Adding an empty directory. resolved_source ({resolved_source})")
@@ -927,48 +897,16 @@ def add_application_source_files(
                     out_profile,
                     resolved_source
                 )
-                # dir_properties = {
-                #     "name": ".gitkeep",
-                #     "sdDatePublished": iso_now(),
-                #     "dateModified": dt.datetime.utcfromtimestamp(
-                #         os.path.getmtime(resolved_source)
-                #     )
-                #     .replace(microsecond=0)
-                #     .isoformat(),  # Schema.org
-                # }  # Register when the Data Entity was last accessible
-                # path_in_crate = (
-                #     "application_sources/"
-                #     + os.path.basename(resolved_source)
-                #     + "/"
-                #     + ".gitkeep"
-                # )  # Remove resolved_source from full_dir_name, adding basename
-                # # compss_crate.add_dataset(
-                # #     source=full_dir_name,
-                # #     dest_path=path_in_crate,
-                # #     properties=dir_properties,
-                # # )
-                # # print(f"ADDING FILE {git_keep} as {path_in_crate}")
-                # compss_crate.add_file(
-                #     source=git_keep,
-                #     dest_path=path_in_crate,
-                #     fetch_remote=False,
-                #     validate_url=False,
-                #     # True fails at MN4 when file URI points to a node hostname (only localhost works)
-                #     properties=dir_properties,
-                # )
-
         elif os.path.isfile(resolved_source):
             if resolved_source not in added_files:
-                crate_paths.append(
-                    add_file_to_crate(
+                add_file_to_crate(
                         compss_crate,
                         resolved_source,
                         compss_ver,
                         main_entity,
                         out_profile,
-                        "",
+                        ""
                     )
-                )
                 added_files.append(resolved_source)
             else:
                 print(
@@ -982,16 +920,14 @@ def add_application_source_files(
 
     if len(sources_list) == 0:
         # No sources defined by the user, add the selected main_entity at least
-        crate_paths.append(
-            add_file_to_crate(
+        add_file_to_crate(
                 compss_crate,
                 main_entity,
                 compss_ver,
                 main_entity,
                 out_profile,
-                "",
+                ""
             )
-        )
         added_files.append(main_entity)
 
     # Add auxiliary files as hasPart to the ComputationalWorkflow main file
@@ -1531,39 +1467,43 @@ def add_manual_datasets(yaml_term: str, compss_wf_info: dict, data_list: list) -
     data_list.sort()
 
     # Add entities defined by the user
-    if yaml_term in compss_wf_info:
-        # Input files or directories added by hand from the user
-        data_entities_list = []
-        if isinstance(compss_wf_info[yaml_term], list):
-            data_entities_list.extend(compss_wf_info[yaml_term])
+    # Input files or directories added by hand from the user
+    data_entities_list = []
+    if isinstance(compss_wf_info[yaml_term], list):
+        data_entities_list.extend(compss_wf_info[yaml_term])
+    else:
+        data_entities_list.append(compss_wf_info[yaml_term])
+    for item in data_entities_list:
+        path_data_entity = Path(item).expanduser()
+        if not path_data_entity.exists():
+            print(
+                f"PROVENANCE | WARNING: A file or directory defined as '{yaml_term}' in ro-crate-info.yaml does not exist "
+                f"({item})"
+            )
+            continue
+        resolved_data_entity = str(path_data_entity.resolve())
+        if os.path.isfile(resolved_data_entity):
+            new_data_entity = (
+                "file://" + socket.gethostname() + resolved_data_entity
+            )
+        elif os.path.isdir(resolved_data_entity):
+            new_data_entity = (
+                "dir://" + socket.gethostname() + resolved_data_entity + "/"
+            )
         else:
-            data_entities_list.append(compss_wf_info[yaml_term])
-        for item in data_entities_list:
-            path_data_entity = Path(item).expanduser()
-            if not path_data_entity.exists():
-                print(
-                    f"PROVENANCE | WARNING: A file or directory defined as '{yaml_term}' in ro-crate-info.yaml does not exist "
-                    f"({item})"
-                )
-                continue
-            resolved_data_entity = str(path_data_entity.resolve())
-            if os.path.isfile(resolved_data_entity):
-                new_data_entity = (
-                    "file://" + socket.gethostname() + resolved_data_entity
-                )
-            elif os.path.isdir(resolved_data_entity):
-                new_data_entity = (
-                    "dir://" + socket.gethostname() + resolved_data_entity + "/"
-                )
-            if new_data_entity not in data_list:
-                # Checking if a file is in a dir would be costly
-                data_list.append(new_data_entity)
-            else:
-                print(
-                    f"PROVENANCE | WARNING: A file or directory defined as '{yaml_term}' in ro-crate-info.yaml was already part of the dataset "
-                    f"({item})"
-                )
-        data_list.sort()  # Sort again, needed for next methods applied to the list
+            print(f"FATAL ERROR: a reference is neither a file, nor a directory ({resolved_data_entity})")
+            raise FileNotFoundError
+        if new_data_entity not in data_list:
+            # Checking if a file is in a dir would be costly
+            data_list.append(new_data_entity)
+        else:
+            print(
+                f"PROVENANCE | WARNING: A file or directory defined as '{yaml_term}' in ro-crate-info.yaml was already part of the dataset "
+                f"({item})"
+            )
+    data_list.sort()  # Sort again, needed for next methods applied to the list
+
+    # POSSIBLE TODO: keep dir and files in separated lists to avoid traversing them too many times, improving efficiency
 
     # Now erase any file:// that is inside dir://
     i = 0
@@ -1581,6 +1521,8 @@ def add_manual_datasets(yaml_term: str, compss_wf_info: dict, data_list: list) -
             break
     if not file_found:  # All are directories
         return data_list
+
+    #  TODO Can this two loops be merged????
 
     data_list_copy = data_list.copy()  # So we can remove the element we are iterating upon
 
@@ -1671,15 +1613,18 @@ def main():
         "  description: Detailed description of your COMPSs application\n"
         "  license: Apache-2.0\n"
         "    # URL preferred, but these strings are accepted: https://about.workflowhub.eu/Workflow-RO-Crate/#supported-licenses\n"
-        "  sources_dir: [path_to/dir_1, path_to/dir_2]\n"
-        "    # Optional: List of directories containing the application source files. Relative or absolute paths can be used\n"
+        "  sources: [/absolute_path_to/dir_1/, relative_path_to/dir_2/, main_file.py, relative_path/aux_file_1.py, /abs_path/aux_file_2.py]\n"
+        "    # List of application source files and directories. Relative or absolute paths can be used.\n"
         "  sources_main_file: my_main_file.py\n"
-        "    # Optional: Name of the main file of the application, located in one of the sources_dir.\n"
-        "    # Relative paths from a sources_dir entry, or absolute paths can be used\n"
-        "  files: [main_file.py, aux_file_1.py, aux_file_2.py]\n"
-        "    # List of application files. Relative or absolute paths can be used\n"
+        "    # Optional: Manually specify the name of the main file of the application, located in one of the 'sources' defined.\n"
+        "    # Relative paths from a 'sources' entry, or absolute paths can be used.\n"
         "  data_persistence: False\n"
-        "    # True to include all input and output files of the application in the resulting crate. False by default or if not set\n"
+        "    # True to include all input and output files of the application in the resulting crate.\n"
+        "    # If False, input and output files of the application won't be included, just referenced. False by default or if not set.\n"
+        "  inputs: [/abs_path_to/dir_1, rel_path_to/dir_2, file_1, rel_path/file_2]\n"
+        "    # Optional: Manually specify the inputs of the workflow. Relative or absolute paths can be used.\n"
+        "  outputs: [/abs_path_to/dir_1, rel_path_to/dir_2, file_1, rel_path/file_2]\n"
+        "    # Optional: Manually specify the outputs of the workflow. Relative or absolute paths can be used.\n"
         "\n"
         "Authors:\n"
         "  - name: Author_1 Name\n"
@@ -1741,8 +1686,10 @@ def main():
     # Add in and out files, not to be physically copied in the Crate by default
 
     # First, add to the lists any inputs or outputs defined by the user, in case they exist
-    ins = add_manual_datasets("inputs", compss_wf_info, ins)
-    outs = add_manual_datasets("outputs", compss_wf_info, outs)
+    if "inputs" in compss_wf_info:
+        ins = add_manual_datasets("inputs", compss_wf_info, ins)
+    if "outputs" in compss_wf_info:
+        outs = add_manual_datasets("outputs", compss_wf_info, outs)
 
     ins, outs = fix_in_files_at_out_dirs(ins, outs)
 

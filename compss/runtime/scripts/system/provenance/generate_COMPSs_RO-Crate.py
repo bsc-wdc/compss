@@ -857,7 +857,7 @@ def add_application_source_files(
                             compss_ver,
                             main_entity,
                             out_profile,
-                            resolved_source
+                            resolved_source,
                         )
                         added_files.append(resolved_file)
                     else:
@@ -880,7 +880,7 @@ def add_application_source_files(
                             compss_ver,
                             main_entity,
                             out_profile,
-                            resolved_source
+                            resolved_source,
                         )
             if not os.listdir(resolved_source):
                 # The root directory itself is empty
@@ -895,18 +895,18 @@ def add_application_source_files(
                     compss_ver,
                     main_entity,
                     out_profile,
-                    resolved_source
+                    resolved_source,
                 )
         elif os.path.isfile(resolved_source):
             if resolved_source not in added_files:
                 add_file_to_crate(
-                        compss_crate,
-                        resolved_source,
-                        compss_ver,
-                        main_entity,
-                        out_profile,
-                        ""
-                    )
+                    compss_crate,
+                    resolved_source,
+                    compss_ver,
+                    main_entity,
+                    out_profile,
+                    "",
+                )
                 added_files.append(resolved_source)
             else:
                 print(
@@ -921,13 +921,8 @@ def add_application_source_files(
     if len(sources_list) == 0:
         # No sources defined by the user, add the selected main_entity at least
         add_file_to_crate(
-                compss_crate,
-                main_entity,
-                compss_ver,
-                main_entity,
-                out_profile,
-                ""
-            )
+            compss_crate, main_entity, compss_ver, main_entity, out_profile, ""
+        )
         added_files.append(main_entity)
 
     # Add auxiliary files as hasPart to the ComputationalWorkflow main file
@@ -1174,9 +1169,7 @@ def add_dataset_file_to_crate(
                 return path_in_crate
             else:
                 # Directories must finish with slash
-                compss_crate.add_dataset(
-                    source=in_url, properties=file_properties
-                )
+                compss_crate.add_dataset(source=in_url, properties=file_properties)
         else:
             # Directory had content
             file_properties["hasPart"] = has_part_list
@@ -1483,15 +1476,15 @@ def add_manual_datasets(yaml_term: str, compss_wf_info: dict, data_list: list) -
             continue
         resolved_data_entity = str(path_data_entity.resolve())
         if os.path.isfile(resolved_data_entity):
-            new_data_entity = (
-                "file://" + socket.gethostname() + resolved_data_entity
-            )
+            new_data_entity = "file://" + socket.gethostname() + resolved_data_entity
         elif os.path.isdir(resolved_data_entity):
             new_data_entity = (
                 "dir://" + socket.gethostname() + resolved_data_entity + "/"
             )
         else:
-            print(f"FATAL ERROR: a reference is neither a file, nor a directory ({resolved_data_entity})")
+            print(
+                f"FATAL ERROR: a reference is neither a file, nor a directory ({resolved_data_entity})"
+            )
             raise FileNotFoundError
         if new_data_entity not in data_list:
             # Checking if a file is in a dir would be costly
@@ -1512,7 +1505,11 @@ def add_manual_datasets(yaml_term: str, compss_wf_info: dict, data_list: list) -
     for item in data_list:
         url_parts = urlsplit(item)
         if url_parts.scheme == "dir":
-            if url_parts.path not in directories_list and not(any(url_parts.path.startswith(dir_item) for dir_item in directories_list)):
+            if url_parts.path not in directories_list and not (
+                any(
+                    url_parts.path.startswith(dir_item) for dir_item in directories_list
+                )
+            ):
                 directories_list.append(url_parts.path)
             i += 1
             continue
@@ -1524,16 +1521,21 @@ def add_manual_datasets(yaml_term: str, compss_wf_info: dict, data_list: list) -
 
     #  TODO Can this two loops be merged????
 
-    data_list_copy = data_list.copy()  # So we can remove the element we are iterating upon
+    data_list_copy = (
+        data_list.copy()
+    )  # So we can remove the element we are iterating upon
 
     for item in data_list_copy:
         # Check both dir:// and file:// references
         url_parts = urlsplit(item)
-        if any((url_parts.path != dir_path and url_parts.path.startswith(dir_path)) for dir_path in directories_list):
+        if any(
+            (url_parts.path != dir_path and url_parts.path.startswith(dir_path))
+            for dir_path in directories_list
+        ):
             # If the url dir:// does not finish with a slash, can add errors (e.g. /inputs vs /inputs.zip)
             print(
-                    f"PROVENANCE | WARNING: Item {url_parts.path} removed as {yaml_term}, since it already belongs to a dataset"
-                )
+                f"PROVENANCE | WARNING: Item {url_parts.path} removed as {yaml_term}, since it already belongs to a dataset"
+            )
             data_list.remove(item)
 
         # if any((url_parts.path != dir_path and url_parts.path.startswith(dir_path)) for dir_path in directories_list):
@@ -1590,7 +1592,9 @@ def fix_in_files_at_out_dirs(
     for item in url_files_list:
         url_parts = urlsplit(item)
         if any(url_parts.path.startswith(dir_path) for dir_path in directories_list):
-            # print(f"PROVENANCE DEBUG | NEED TO REMOVE IN FILE INCLUDED AT AN OUT DIR {item}")
+            print(
+                f"PROVENANCE | WARNING: Metadata of an input file has been removed since it is included at an output directory: {url_parts.path}"
+            )
             inputs_list.remove(item)
 
     # print(f"PROVENANCE DEBUG | RESULT FROM fix_in_files_at_out_dirs:\n {inputs_list}")

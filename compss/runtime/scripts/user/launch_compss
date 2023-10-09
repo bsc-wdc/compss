@@ -211,7 +211,7 @@ show_opts() {
     --jupyter_notebook                      Default: ${DEFAULT_JUPYTER_NOTEBOOK}
     --ipython                               Swap the COMPSs master initialization with ipython.
                                             Default: empty
-    --ear=<string>                          Activate the usage of EAR for power consumption measurement.
+    --ear=<bool|string>                     Activate the usage of EAR for power consumption measurement.
                                             The value of string are the parameter to be used with EAR.
                                             Default: false
 
@@ -2139,7 +2139,12 @@ launch() {
 
         if [ "${ear}" = true ]; then
           # Launch worker with ear
-          PRE_CMD="$EAR_INSTALL_PATH/bin/erun ${ear_flags}"
+          if [ "${ear_flags}" = true ]; then
+            mkdir -p ${specific_log_dir}/energy
+            PRE_CMD="$EAR_INSTALL_PATH/bin/erun \"--ear=on --ear-user-db=${specific_log_dir}/energy/ear \""
+          else
+            PRE_CMD="$EAR_INSTALL_PATH/bin/erun ${ear_flags}"
+          fi
           POST_CMD=
           WCMD="/bin/bash $WCMD"
 
@@ -2224,7 +2229,12 @@ launch() {
 
       # if [ "${ear}" = true ]; then
       #   # Launch master with ear
-      #   PRE_CMD="$EAR_INSTALL_PATH/bin/erun ${ear_flags}"
+      #   if [ "${ear_flags}" = true ]; then
+      #      mkdir -p ${specific_log_dir}/energy
+      #      PRE_CMD="$EAR_INSTALL_PATH/bin/erun \"--ear=on --ear-user-db=${specific_log_dir}/energy/ear \""
+      #   else:
+      #      PRE_CMD="$EAR_INSTALL_PATH/bin/erun ${ear_flags}"
+      #   fi
       #   POST_CMD=
       #   MCMD="/bin/bash $MCMD"
       #

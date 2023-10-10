@@ -17,6 +17,7 @@
 from pycompss_cli.core.local.actions import LocalActions
 from pycompss_cli.core.docker.actions import DockerActions
 from pycompss_cli.core.remote.actions import RemoteActions
+from pycompss_cli.core.unicore.actions import UnicoreActions
 from pycompss_cli.core import utils
 from copy import deepcopy
 import os
@@ -90,6 +91,10 @@ class ActionsDispatcher(object):
             return DockerActions(arguments, debug, env_conf)
         elif env_type == "remote":
             return RemoteActions(arguments, debug, env_conf)
+        elif env_type == "unicore":
+            return UnicoreActions(arguments, debug, env_conf)
+        else:
+            raise NotImplementedError(f"Environment `{env_type}` not implemented")
 
     
     def __ensure_default_env(self):

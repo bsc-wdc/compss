@@ -15,11 +15,19 @@
 #  limitations under the License.
 #
 import argparse
+import os
+import subprocess
 
-FORMATTER_CLASS = argparse.ArgumentDefaultsHelpFormatter
+from pycompss_cli.core import utils
 
+from pycompss_cli.core.unicore import UNICORE_URL_ENVAR
+from pycompss_cli.core.unicore import UNICORE_USER_ENVAR
+from pycompss_cli.core.unicore import UNICORE_PASSWORD_ENVAR
+from pycompss_cli.core.unicore import UNICORE_TOKEN_ENVAR
 
-def docker_init_parser():
+FORMATTER_CLASS = argparse.RawDescriptionHelpFormatter
+
+def unicore_init_parser():
     """ Parses the sys.argv.
 
     :returns: All arguments as namespace.
@@ -34,32 +42,28 @@ def docker_init_parser():
     # INIT
     parser_init = subparsers.add_parser("init",
                                         aliases=["i"],
-                                        help="Initialize COMPSs with docker.",
+                                        help="Initialize COMPSs within a given unicore node.",
                                         parents=[parent_parser],
                                         formatter_class=FORMATTER_CLASS)
-    parser_init.add_argument("-w", "--working_dir",
-                             default='current directory',
+
+    parser_init.add_argument("-url", "--base_url",
                              type=str,
-                             help="Working directory")
-    parser_init.add_argument("-log", "--log_dir",
-                             default='current directory',
+                             help=f"Unicore base url. Also can be used envar {UNICORE_URL_ENVAR}")
+
+    parser_init.add_argument("-u", "--user",
                              type=str,
-                             help="Logs directory (.COMPSs)")
-    parser_init.add_argument("-i", "--image",
-                             default="",
+                             help=f"Unicore username for login. Also can be used envar {UNICORE_USER_ENVAR}")
+
+    parser_init.add_argument("-p", "--password",
                              type=str,
-                             help="Docker image")
-    parser_init.add_argument("-nr", "--no_restart",
-                             dest="restart",
-                             action="store_false",
-                             help='Do not restart if already deployed.')
-    parser_init.add_argument("-p", "--privileged",
-                             dest="privileged",
-                             action="store_true",
-                             help='Run container with privileged permissions.')
-    parser_init.add_argument("-ui", "--update_image",
-                             dest="update_image",
-                             action="store_true",
-                             help='Update image before deployment.')
-    
+                             help=f"Unicore password for login. Also can be used envar {UNICORE_PASSWORD_ENVAR}")
+
+    parser_init.add_argument("-t", "--token",
+                             type=str,
+                             help=f"Unicore JWT token signed by the server. Also can be used envar {UNICORE_TOKEN_ENVAR}")
+
+    parser_init.add_argument("-m", "--modules",
+                             nargs='*',
+                             help="Modules file to load in remote environment")
+
     return parser_init

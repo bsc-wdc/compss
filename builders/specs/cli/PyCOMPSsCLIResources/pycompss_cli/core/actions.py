@@ -77,7 +77,7 @@ class Actions(ABC):
         if self.arguments.config:
             shutil.copy2(self.arguments.config, env_path)
             
-        print('Environment ID:', self.arguments.name)
+        print('Environment created ID:', self.arguments.name)
 
     @abstractmethod
     def exec(self):

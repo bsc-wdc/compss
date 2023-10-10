@@ -313,33 +313,30 @@ class RemoteActions(Actions):
     def gentrace(self):
         modules = self.__get_modules()
 
-        gentrace_cmd = f"compss_gentrace {self.arguments.trace_dir} "
-        gentrace_cmd += ' '.join(self.arguments.rest_args)
+        trace_ls = f"ls {self.arguments.trace_dir}"
+        trace_ls = remote_exec_app(self.env_conf['login'], trace_ls, self.debug)
+        if not '.prv.gz' in trace_ls:
+            gentrace_cmd = f"compss_gentrace {self.arguments.trace_dir} "
+            gentrace_cmd += ' '.join(self.arguments.rest_args)
 
-        commands = [
-            *modules,
-            gentrace_cmd
-        ]
+            commands = [
+                *modules,
+                gentrace_cmd
+            ]
 
-        command = ';'.join(commands)
+            command = ';'.join(commands)
 
-        print('Generating trace...')
-        remote_exec_app(self.env_conf['login'], command, self.debug)
+            print('Generating trace...')
+            remote_exec_app(self.env_conf['login'], command, self.debug)
+        else:
+            print('Trace already exists')
 
         if self.arguments.download_dir:
-            compressed = False
-            size_cmd = f"du -m {self.arguments.trace_dir}/*.prv | cut -f1"
-            trace_size = remote_exec_app(self.env_conf['login'], size_cmd, self.debug)
-            if int(trace_size) > 100:
-                answer = input(f'Trace size is {trace_size}MB. Do you want to compress it before downloading it? (y/N) ')
-                if answer.lower() == 'y' or answer.lower() == 'yes':
-                    compress_cmd = f"cd {self.arguments.trace_dir};zip -r trace.zip *"
-                    print('Compressing trace...')
-                    remote_exec_app(self.env_conf['login'], compress_cmd, self.debug)
-                    compressed = True
+            compress_cmd = f"cd {self.arguments.trace_dir};gzip trace.prv"
+            remote_exec_app(self.env_conf['login'], compress_cmd, self.debug)
             
             print('Downloading trace...')
-            remote_download_file(self.env_conf['login'], self.arguments.trace_dir, self.arguments.download_dir, self.debug, compressed)
+            remote_download_file(self.env_conf['login'], self.arguments.trace_dir, self.arguments.download_dir, self.debug)
 
         
 

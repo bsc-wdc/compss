@@ -41,7 +41,7 @@ default_image_file = "image"
 default_image = default_workdir + default_image_file
 
 
-IMAGE_NAME = "compss/compss:3.1"  # Update when releasing new version
+IMAGE_NAME = "compss/compss:3.2"  # Update when releasing new version
 DOCKER_AVAILABALE = True
 
 try:
@@ -98,13 +98,15 @@ class DockerCmd(object):
             master = self.client.containers.list(filters={"name": self.master_name})[0]
             # Command equivalent to: master = _get_master()
             # But since it is undefined yet, we do it explicitly.
-            IMAGE_NAME = master.image.attrs["RepoTags"][0]
+
+            IMAGE_NAME = master.image.attrs["Id"][7:7+12]
 
     def docker_deploy_compss(self, working_dir: str,
                             log_dir: str,
                             image: str = "",
                             restart: bool = True,
-                            privileged: bool = False) -> None:
+                            privileged: bool = False,
+                            update_image: bool = False) -> None:
         """ Starts the main COMPSs image in Docker.
         It stops any existing one since it can not coexist with itself.
 
@@ -133,7 +135,8 @@ class DockerCmd(object):
             print("If this is your first time running PyCOMPSs it may take a " +
                 "while because it needs to download the docker image. " +
                 "Please be patient.")
-            subprocess.run(f'docker pull {docker_image}', shell=True)
+            if update_image:
+                subprocess.run(f'docker pull {docker_image}', shell=True)
             mounts = self._get_mounts(user_working_dir=working_dir, log_dir=log_dir)
             ports = {"8888/tcp": 8888,  # required for jupyter notebooks
                     "8080/tcp": 8080}  # required for monitor

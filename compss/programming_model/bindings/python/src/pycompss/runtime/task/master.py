@@ -1286,17 +1286,17 @@ class TaskMaster:
             impl_signature = ".".join([module_name, function_name])
             impl_type_args = [module_name, function_name]
         constraints = self.core_element.get_impl_constraints()
-        for a in constraints:
-            if not self.constraint_args[a].get_is_static():
+        for key, value in constraints.items():
+            if not self.constraint_args[key].get_is_static():
                 impl_signature += "."
-                if a.__contains__("_"):
-                    impl_signature += a.split("_", 1)[0][:1]
-                    impl_signature += a.split("_", 1)[1][:1]
+                if key.__contains__("_"):
+                    impl_signature += key.split("_", 1)[0][:1]
+                    impl_signature += key.split("_", 1)[1][:1]
                 else:
-                    upper_letter = re.findall("[A-Z]+", a)
-                    impl_signature += a[:1]
+                    upper_letter = re.findall("[A-Z]+", key)
+                    impl_signature += key[:1]
                     impl_signature += upper_letter[0][:1]
-                impl_signature += str(constraints[a])
+                impl_signature += str(value)
         return impl_signature, impl_type_args
 
     def update_core_element(

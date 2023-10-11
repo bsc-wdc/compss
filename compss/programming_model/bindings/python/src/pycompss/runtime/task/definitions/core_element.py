@@ -47,7 +47,9 @@ class CE:  # pylint: disable=too-many-instance-attributes
         self,
         ce_signature: str = "",
         impl_signature: str = "",
-        impl_constraints: typing.Optional[typing.Dict[str, str]] = None,
+        impl_constraints: typing.Optional[
+            typing.Dict[str, typing.Union[str, int]]
+        ] = None,
         impl_type: typing.Optional[str] = None,
         impl_local: bool = False,
         impl_io: bool = False,
@@ -138,7 +140,7 @@ class CE:  # pylint: disable=too-many-instance-attributes
         """
         return self.impl_signature
 
-    def get_impl_constraints(self) -> typing.Dict[str, str]:
+    def get_impl_constraints(self) -> typing.Dict[str, typing.Union[str, int]]:
         """Get the core element implementation constraints.
 
         :return: The core element implementation constraints.
@@ -214,7 +216,9 @@ class CE:  # pylint: disable=too-many-instance-attributes
         """
         self.impl_signature = impl_signature
 
-    def set_impl_constraints(self, impl_constraints: dict) -> None:
+    def set_impl_constraints(
+        self, impl_constraints: typing.Dict[str, typing.Union[str, int]]
+    ) -> None:
         """Set the core element implementation constraints.
 
         :param impl_constraints: The implementation constraints.

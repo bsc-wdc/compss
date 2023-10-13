@@ -20,7 +20,7 @@ import es.bsc.compss.types.tracing.ThreadIdentifier;
 import java.util.Objects;
 
 
-public class PRVThreadIdentifier extends ThreadIdentifier {
+public class PRVThreadIdentifier implements ThreadIdentifier {
 
     private String app;
     private String task;

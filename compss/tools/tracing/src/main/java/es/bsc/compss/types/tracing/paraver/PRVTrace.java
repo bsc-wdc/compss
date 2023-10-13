@@ -19,9 +19,9 @@ package es.bsc.compss.types.tracing.paraver;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.tracing.ApplicationComposition;
 import es.bsc.compss.types.tracing.EventsDefinition;
-import es.bsc.compss.types.tracing.InfrastructureElement;
 import es.bsc.compss.types.tracing.MalformedException;
 import es.bsc.compss.types.tracing.SynchEvent;
+import es.bsc.compss.types.tracing.SystemComposition;
 import es.bsc.compss.types.tracing.Trace;
 import es.bsc.compss.util.tracing.TraceTransformation;
 import java.io.BufferedReader;
@@ -55,7 +55,7 @@ public class PRVTrace implements Trace {
     private final String duration;
 
     private final ApplicationComposition threadOrganization;
-    private final ArrayList<InfrastructureElement> infrastructure;
+    private final SystemComposition infrastructure;
     private final EventsDefinition definitions;
 
 
@@ -107,8 +107,8 @@ public class PRVTrace implements Trace {
         return dirPath + (dirPath.endsWith(File.separator) ? "" : File.separator);
     }
 
-    private PRVTrace(String directory, String name, String date, String duration,
-        ArrayList<InfrastructureElement> infrastructure, ApplicationComposition threads, EventsDefinition definitions) {
+    private PRVTrace(String directory, String name, String date, String duration, SystemComposition infrastructure,
+        ApplicationComposition threads, EventsDefinition definitions) {
         this.directory = directory + (directory.endsWith(File.separator) ? "" : File.separator);
         this.name = name;
         this.path = this.directory + name;
@@ -133,7 +133,7 @@ public class PRVTrace implements Trace {
      * @throws IOException error creating one of the files
      */
     public static PRVTrace generateNew(String directory, String name, String date, String duration,
-        ArrayList<InfrastructureElement> infrastructure, ApplicationComposition threads, EventsDefinition definitions)
+        SystemComposition infrastructure, ApplicationComposition threads, EventsDefinition definitions)
         throws IOException {
         PRVTrace trace = new PRVTrace(directory, name, date, duration, infrastructure, threads, definitions);
 
@@ -148,7 +148,7 @@ public class PRVTrace implements Trace {
         try (PrintWriter writer = new PrintWriter(new FileWriter(prvFile, false))) {
             writer.println(header);
         }
-        RowFile.generateRowFile(infrastructure, threads, trace.getRowFilePath());
+        RowFile.generateRowFile(trace.infrastructure, trace.threadOrganization, trace.getRowFilePath());
         PcfFile.generatePCFFile(definitions, trace.getPcfFilePath());
 
         return trace;
@@ -226,7 +226,7 @@ public class PRVTrace implements Trace {
     }
 
     @Override
-    public ArrayList<InfrastructureElement> getInfrastructure() {
+    public SystemComposition getInfrastructure() {
         return infrastructure;
     }
 

@@ -56,7 +56,7 @@ public interface Trace {
      */
     public long getDurationInNS();
 
-    public ArrayList<InfrastructureElement> getInfrastructure();
+    public SystemComposition getInfrastructure();
 
     public ApplicationComposition getThreadOrganization();
 

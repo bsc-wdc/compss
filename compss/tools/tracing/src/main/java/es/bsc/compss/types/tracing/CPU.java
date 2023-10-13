@@ -21,27 +21,14 @@ import java.util.LinkedList;
 import java.util.List;
 
 
-public class InfrastructureElement {
+public class CPU implements SystemStructure {
 
-    private final List<InfrastructureElement> components;
     private String label;
 
 
-    public InfrastructureElement(String label) {
+    public CPU(String label) {
         this.label = label;
-        this.components = new LinkedList<>();
-    }
 
-    public void appendComponent(InfrastructureElement c) {
-        this.components.add(c);
-    }
-
-    public List<InfrastructureElement> getSubComponents() {
-        return this.components;
-    }
-
-    public int getNumberOfDirectSubcomponents() {
-        return this.components.size();
     }
 
     public void setLabel(String label) {
@@ -50,6 +37,11 @@ public class InfrastructureElement {
 
     public String getLabel() {
         return label;
+    }
+
+    @Override
+    public int getNumberOfDirectSubcomponents() {
+        return 0;
     }
 
     /**
@@ -61,9 +53,6 @@ public class InfrastructureElement {
 
     public String print(String pad) {
         StringBuilder s = new StringBuilder(pad + label + "\n");
-        for (InfrastructureElement component : components) {
-            s.append(component.print(pad + "\t"));
-        }
         return s.toString();
     }
 }

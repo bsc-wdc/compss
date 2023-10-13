@@ -14,15 +14,11 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.tracing;
+package es.bsc.compss.types.tracing.paraver;
 
-public interface ThreadIdentifier {
+import es.bsc.compss.types.tracing.ApplicationComposition;
 
-    /**
-     * Returns the position of the thread in the system's organization at a certain level depth.
-     * 
-     * @param level depth level in the system organization
-     * @return position of the thread in the system's organization at a certain level depth;
-     */
-    public int getIdAtLevel(int level);
+
+public class PRVApplication extends ApplicationComposition<PRVTask> {
+
 }

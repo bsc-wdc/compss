@@ -19,8 +19,8 @@ package es.bsc.compss.tracing;
 import es.bsc.compss.types.tracing.ApplicationComposition;
 import es.bsc.compss.types.tracing.ApplicationStructure;
 import es.bsc.compss.types.tracing.EventsDefinition;
-import es.bsc.compss.types.tracing.InfrastructureElement;
 import es.bsc.compss.types.tracing.SynchEvent;
+import es.bsc.compss.types.tracing.SystemComposition;
 import es.bsc.compss.types.tracing.Thread;
 import es.bsc.compss.types.tracing.ThreadIdentifier;
 import es.bsc.compss.types.tracing.Threads;
@@ -83,7 +83,7 @@ public class PythonTraceMerger extends TraceMerger {
         duration = masterTrace.getDuration();
         ApplicationComposition masterThreads;
         masterThreads = masterTrace.getThreadOrganization();
-        ArrayList<InfrastructureElement> infrastructure;
+        SystemComposition infrastructure;
         infrastructure = masterTrace.getInfrastructure();
 
         EventsDefinition events;
@@ -230,7 +230,7 @@ public class PythonTraceMerger extends TraceMerger {
         private final ThreadIdentifier[] appToExec;
 
 
-        public PythonMergeTranslation(ApplicationComposition mainTO, ApplicationComposition pyTO, int workerId,
+        public PythonMergeTranslation(ApplicationComposition<?> mainTO, ApplicationComposition<?> pyTO, int workerId,
             HashMap<PRVThreadIdentifier, Integer> pythonRuntime, HashMap<PRVThreadIdentifier, String> pythonExecutors,
             ThreadIdentifier[] exec2Thread) {
             this.threads = mainTO;
@@ -241,9 +241,9 @@ public class PythonTraceMerger extends TraceMerger {
             int numPyThreads = 0;
             Set<PRVThreadIdentifier> unknownThreads = new HashSet<>();
             for (ApplicationStructure a : pyTO.getSubComponents()) {
-                ApplicationComposition pyApp = (ApplicationComposition) a;
+                ApplicationComposition<?> pyApp = (ApplicationComposition) a;
                 for (ApplicationStructure tk : pyApp.getSubComponents()) {
-                    ApplicationComposition pyTask = (ApplicationComposition) tk;
+                    ApplicationComposition<?> pyTask = (ApplicationComposition) tk;
                     for (ApplicationStructure t : pyTask.getSubComponents()) {
                         Thread thread = (Thread) t;
                         PRVThreadIdentifier tId = (PRVThreadIdentifier) thread.getIdentifier();

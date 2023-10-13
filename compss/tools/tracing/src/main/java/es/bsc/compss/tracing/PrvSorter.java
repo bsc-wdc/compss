@@ -18,12 +18,16 @@ package es.bsc.compss.tracing;
 
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.tracing.ApplicationComposition;
+import es.bsc.compss.types.tracing.SystemComposition;
 import es.bsc.compss.types.tracing.Thread;
 import es.bsc.compss.types.tracing.ThreadIdentifier;
 import es.bsc.compss.types.tracing.Threads;
 import es.bsc.compss.types.tracing.Trace.RecordScanner;
 import es.bsc.compss.types.tracing.TraceEventType;
+import es.bsc.compss.types.tracing.paraver.PRVApplication;
 import es.bsc.compss.types.tracing.paraver.PRVLine;
+import es.bsc.compss.types.tracing.paraver.PRVNode;
+import es.bsc.compss.types.tracing.paraver.PRVTask;
 import es.bsc.compss.types.tracing.paraver.PRVThreadIdentifier;
 import es.bsc.compss.types.tracing.paraver.PRVTrace;
 import es.bsc.compss.util.tracing.ThreadTranslator;
@@ -60,7 +64,7 @@ public class PrvSorter implements ThreadTranslator {
     private static final String EXEC_ID_EVENT_TYPE = Integer.toString(TraceEventType.EXECUTOR_IDENTIFICATION.code);
 
     private Map<ThreadIdentifier, ThreadIdentifier> threadTranslations;
-    private ApplicationComposition system;
+    private ApplicationComposition<PRVApplication> system;
 
 
     /**
@@ -83,6 +87,8 @@ public class PrvSorter implements ThreadTranslator {
      * @throws IOException error raised during prv file reading
      */
     private static List<Machine> identifyThreads(PRVTrace trace) throws FileNotFoundException, IOException {
+        ApplicationComposition<PRVApplication> apps = trace.getThreadOrganization();
+
         List<Machine> machines = new ArrayList<>();
         try (RecordScanner events = trace.getRecords()) {
             String line;
@@ -93,7 +99,9 @@ public class PrvSorter implements ThreadTranslator {
                 PRVThreadIdentifier threadId = prvLine.getEmisorThreadIdentifier();
                 int machineId = Integer.parseInt(threadId.getTask());
                 while (machines.size() < machineId) {
-                    machines.add(new Machine());
+                    PRVApplication app = apps.getSubComponents().get(Integer.parseInt(threadId.getApp()) - 1);
+                    PRVTask task = app.getSubComponents().get(Integer.parseInt(threadId.getTask()) - 1);
+                    machines.add(new Machine(task.getNode()));
                 }
                 Machine machine = machines.get(machineId - 1);
                 machine.registerThread(threadId);
@@ -114,10 +122,12 @@ public class PrvSorter implements ThreadTranslator {
 
     private void computeTranslationMap(List<Machine> machines) {
         threadTranslations = new HashMap<>();
-        system = new ApplicationComposition();
+        system = new ApplicationComposition<>();
 
         for (int i = 0; i < machines.size(); i++) {
-            ApplicationComposition runtime = new ApplicationComposition();
+            Machine m = machines.get(i);
+            PRVTask runtime = new PRVTask();
+            runtime.setNode(m.getNode());
 
             String machineId = Integer.toString(i + 1);
             // for thread 1.X.1 -> X.1.1, main thread has no event and thus is not by addThread()
@@ -133,7 +143,6 @@ public class PrvSorter implements ThreadTranslator {
             Thread main = new Thread(newMainId, label);
             runtime.appendComponent(main);
 
-            Machine m = machines.get(i);
             int runtimeThreadsNum = 2;
 
             Map<Integer, PRVThreadIdentifier> runtimeIdentifiedThreads = m.getRuntimeIdentifiers();
@@ -156,7 +165,8 @@ public class PrvSorter implements ThreadTranslator {
                 }
             }
 
-            ApplicationComposition executors = new ApplicationComposition();
+            PRVTask executors = new PRVTask();
+            executors.setNode(m.getNode());
 
             // SortExecutor Threads
             TreeSet<Entry<PRVThreadIdentifier, String>> tree;
@@ -203,7 +213,7 @@ public class PrvSorter implements ThreadTranslator {
                 }
             }
 
-            ApplicationComposition machine = new ApplicationComposition();
+            PRVApplication machine = new PRVApplication();
             if (runtime.getNumberOfDirectSubcomponents() > 0) {
                 machine.appendComponent(runtime);
             }
@@ -251,6 +261,7 @@ public class PrvSorter implements ThreadTranslator {
 
     private static class Machine {
 
+        private PRVNode node;
         private Map<Integer, PRVThreadIdentifier> runtimeIdentifiers;
         private Set<PRVThreadIdentifier> threads;
 
@@ -258,11 +269,16 @@ public class PrvSorter implements ThreadTranslator {
         private Set<PRVThreadIdentifier> unknownExecutors;
 
 
-        public Machine() {
+        public Machine(PRVNode node) {
+            this.node = node;
             threads = new HashSet<>();
             unknownExecutors = new HashSet<>();
             knownExecutors = new HashMap<>();
             runtimeIdentifiers = new HashMap<>();
+        }
+
+        private PRVNode getNode() {
+            return this.node;
         }
 
         private Set<PRVThreadIdentifier> getThreads() {

@@ -23,6 +23,8 @@ PyCOMPSs runtime - Task - Definitions - Constraints.
 This file contains the Constraints class, needed for the task registration.
 """
 
+from pycompss.util.typing_helper import typing
+
 
 class ConstraintDescription:
     """Constraint Description class."""
@@ -34,7 +36,7 @@ class ConstraintDescription:
 
     def __init__(
         self,
-        param_name: str,
+        param_name: typing.Union[str, int],
         is_static: bool = True,
     ) -> None:
         """Constraint Description constructor.
@@ -61,7 +63,7 @@ class ConstraintDescription:
     # GETTERS #
     ###########
 
-    def get_param_name(self) -> str:
+    def get_param_name(self) -> typing.Union[str, int]:
         """Get the parameter name.
 
         :return: The parameter name.
@@ -79,7 +81,7 @@ class ConstraintDescription:
     # SETTERS #
     ###########
 
-    def set_param_name(self, param_name: str) -> None:
+    def set_param_name(self, param_name: typing.Union[str, int]) -> None:
         """Set the param name.
 
         :param param_name: The name of the parameter.

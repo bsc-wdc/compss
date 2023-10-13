@@ -516,51 +516,45 @@ class TaskMaster:
             if __debug__:
                 logger.debug("Inspecting constraint arguments first time")
             constraints = kwargs[CORE_ELEMENT_KEY].get_impl_constraints()
-            for a in constraints:
-                self.constraint_args[a] = ConstraintDescription(constraints[a])
+            for key, value in constraints.items():
+                self.constraint_args[key] = ConstraintDescription(value)
                 if (
-                    isinstance(constraints[a], int)
+                    isinstance(value, int)
+                    or (isinstance(value, str) and value.isdigit())
+                    or (isinstance(value, str) and value.startswith("$"))
                     or (
-                        isinstance(constraints[a], str)
-                        and constraints[a].isdigit()
-                    )
-                    or (
-                        isinstance(constraints[a], str)
-                        and constraints[a].startswith("$")
-                    )
-                    or (
-                        a != ("computing_units")
-                        and a != ("computingUnits")
-                        and a != ("memory_size")
-                        and a != ("memorySize")
-                        and a != ("storage_size")
-                        and a != ("storageSize")
+                        key != "computing_units"
+                        and key != "computingUnits"
+                        and key != "memory_size"
+                        and key != "memorySize"
+                        and key != "storage_size"
+                        and key != "storageSize"
                     )
                 ):
                     if __debug__:
                         logger.debug(
                             "Detected constraint as static value or env var"
                         )
-                elif constraints[a] in kwargs:
+                elif value in kwargs:
                     if __debug__:
                         logger.debug(
                             "Detected dynamic constraint passed as a dict"
                         )
-                    constraints[a] = kwargs[constraints[a]]
-                    self.constraint_args[a].set_is_static(False)
-                elif constraints[a] in self.param_args:
+                    constraints[key] = kwargs[value]
+                    self.constraint_args[key].set_is_static(False)
+                elif value in self.param_args:
                     if __debug__:
                         logger.debug(
                             "Detected dynamic constraint passed as a value"
                         )
-                    index = self.param_args.index(constraints[a])
-                    constraints[a] = args[index]
-                    self.constraint_args[a].set_is_static(False)
-                elif constraints[a] in self.user_function.__globals__:
-                    constraints[a] = int(
-                        self.user_function.__globals__[constraints[a]]
+                    index = self.param_args.index(value)
+                    constraints[key] = args[index]
+                    self.constraint_args[key].set_is_static(False)
+                elif value in self.user_function.__globals__:
+                    constraints[key] = int(
+                        self.user_function.__globals__[value]
                     )
-                    self.constraint_args[a].set_is_static(False)
+                    self.constraint_args[key].set_is_static(False)
                 else:
                     try:
                         args_dict = {
@@ -572,12 +566,10 @@ class TaskMaster:
                     else:
                         args_dict.update(kwargs)
                     try:
-                        constraints[a] = int(
-                            eval(
-                                constraints[a], {"__builtins__": {}}, args_dict
-                            )
+                        constraints[key] = int(
+                            eval(value, {"__builtins__": {}}, args_dict)
                         )
-                        self.constraint_args[a].set_is_static(False)
+                        self.constraint_args[key].set_is_static(False)
                         if __debug__:
                             logger.debug(
                                 "Detected dynamic constraint as an expression"
@@ -586,24 +578,24 @@ class TaskMaster:
                         if __debug__:
                             logger.debug(
                                 "Parameter not found, treating value %s as "
-                                "static string" % constraints[a]
+                                "static string" % value
                             )
             kwargs[CORE_ELEMENT_KEY].set_impl_constraints(constraints)
         elif self.core_element is not None:
             constraints = self.core_element.get_impl_constraints()
-            for a in constraints:
-                if not self.constraint_args[a].get_is_static():
-                    param_name = self.constraint_args[a].get_param_name()
+            for key, value in constraints.items():
+                if not self.constraint_args[key].get_is_static():
+                    param_name = self.constraint_args[key].get_param_name()
                     if param_name in kwargs:
-                        if constraints[a] != kwargs[param_name]:
-                            constraints[a] = kwargs[param_name]
+                        if value != kwargs[param_name]:
+                            constraints[key] = kwargs[param_name]
                     elif param_name in self.param_args:
-                        index = self.param_args.index(param_name)
-                        if constraints[a] != args[index]:
-                            constraints[a] = args[index]
+                        index = self.param_args.index(str(param_name))
+                        if value != args[index]:
+                            constraints[key] = args[index]
                     elif param_name in self.user_function.__globals__:
-                        constraints[a] = int(
-                            self.user_function.__globals__[param_name]
+                        constraints[key] = int(
+                            self.user_function.__globals__[str(param_name)]
                         )
                     else:
                         try:
@@ -616,16 +608,18 @@ class TaskMaster:
                         else:
                             args_dict.update(kwargs)
                         try:
-                            constraints[a] = int(
+                            constraints[key] = int(
                                 eval(
-                                    param_name, {"__builtins__": {}}, args_dict
+                                    str(param_name),
+                                    {"__builtins__": {}},
+                                    args_dict,
                                 )
                             )
                         except NameError:
                             if __debug__:
                                 logger.debug(
                                     "Parameter not found, treating value %s as"
-                                    " static string" % constraints[a]
+                                    " static string" % value
                                 )
 
             self.core_element.set_impl_constraints(constraints)
@@ -1286,17 +1280,17 @@ class TaskMaster:
             impl_signature = ".".join([module_name, function_name])
             impl_type_args = [module_name, function_name]
         constraints = self.core_element.get_impl_constraints()
-        for a in constraints:
-            if not self.constraint_args[a].get_is_static():
+        for key, value in constraints.items():
+            if not self.constraint_args[key].get_is_static():
                 impl_signature += "."
-                if a.__contains__("_"):
-                    impl_signature += a.split("_", 1)[0][:1]
-                    impl_signature += a.split("_", 1)[1][:1]
+                if key.__contains__("_"):
+                    impl_signature += key.split("_", 1)[0][:1]
+                    impl_signature += key.split("_", 1)[1][:1]
                 else:
-                    upper_letter = re.findall("[A-Z]+", a)
-                    impl_signature += a[:1]
+                    upper_letter = re.findall("[A-Z]+", key)
+                    impl_signature += key[:1]
                     impl_signature += upper_letter[0][:1]
-                impl_signature += str(constraints[a])
+                impl_signature += str(value)
         return impl_signature, impl_type_args
 
     def update_core_element(

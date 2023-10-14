@@ -21,6 +21,7 @@ import es.bsc.compss.types.tracing.ApplicationStructure;
 import es.bsc.compss.types.tracing.EventsDefinition;
 import es.bsc.compss.types.tracing.SynchEvent;
 import es.bsc.compss.types.tracing.SystemComposition;
+import es.bsc.compss.types.tracing.SystemStructure;
 import es.bsc.compss.types.tracing.Thread;
 import es.bsc.compss.types.tracing.ThreadIdentifier;
 import es.bsc.compss.types.tracing.Threads;
@@ -28,11 +29,14 @@ import es.bsc.compss.types.tracing.Trace;
 import es.bsc.compss.types.tracing.Trace.RecordScanner;
 import es.bsc.compss.types.tracing.TraceEventType;
 import es.bsc.compss.types.tracing.paraver.PRVLine;
+import es.bsc.compss.types.tracing.paraver.PRVNode;
+import es.bsc.compss.types.tracing.paraver.PRVTask;
 import es.bsc.compss.types.tracing.paraver.PRVThreadIdentifier;
 import es.bsc.compss.types.tracing.paraver.PRVTrace;
 import es.bsc.compss.util.tracing.ThreadTranslator;
 import es.bsc.compss.util.tracing.TraceMerger;
 import es.bsc.compss.util.tracing.TraceTransformation;
+import es.bsc.compss.util.tracing.transformations.CPUOffset;
 import es.bsc.compss.util.tracing.transformations.ThreadTranslation;
 import es.bsc.compss.util.tracing.transformations.TimeOffset;
 import java.io.File;
@@ -146,7 +150,7 @@ public class PythonTraceMerger extends TraceMerger {
 
                 SynchEvent synchOffset = computeOffset(masterSyncEvents.get(workerID), workerSyncEvents.get(workerID));
                 long timeOffset = synchOffset.getTimestamp();
-                modifications[idx] = new TraceTransformation[2];
+                modifications[idx] = new TraceTransformation[3];
                 modifications[idx][0] = new TimeOffset(timeOffset);
 
                 HashMap<PRVThreadIdentifier, Integer> pythonRuntime = new HashMap<>();
@@ -177,6 +181,7 @@ public class PythonTraceMerger extends TraceMerger {
                 PythonMergeTranslation translation = new PythonMergeTranslation(masterThreads, pyThreads, workerIdx,
                     pythonRuntime, pythonExecutors, wExec2Thread);
                 modifications[idx][1] = new ThreadTranslation(translation);
+                modifications[idx][2] = computeCPUOffset(masterThreads, infrastructure, workerIdx);
             } else {
                 modifications[idx] = new TraceTransformation[0];
             }
@@ -220,6 +225,28 @@ public class PythonTraceMerger extends TraceMerger {
         Long realStart = Math.abs(refSync.getTimestamp() - localSync.getTimestamp()) - syncDifference;
 
         return new SynchEvent(refStart.getResourceId(), "", realStart, refStart.getValue());
+    }
+
+    private CPUOffset computeCPUOffset(ApplicationComposition<?> mainTO, SystemComposition<?> mainInf, int workerId) {
+        for (SystemStructure s : mainInf.getSubComponents()) {
+            PRVNode node = (PRVNode) s;
+        }
+        ApplicationComposition app = (ApplicationComposition) mainTO.getSubComponents().get(0);
+        PRVTask task = (PRVTask) app.getSubComponents().get(workerId);
+        PRVNode node = task.getNode();
+        int cpuOffset = getNodeCPUOffset(node, mainInf);
+        return new CPUOffset(cpuOffset);
+    }
+
+    private int getNodeCPUOffset(PRVNode node, SystemComposition<?> infra) {
+        int cpuOffset = 0;
+        for (SystemStructure s : infra.getSubComponents()) {
+            if (s == node) {
+                return cpuOffset;
+            }
+            cpuOffset += s.getNumberOfDirectSubcomponents();
+        }
+        return cpuOffset;
     }
 
 
@@ -325,7 +352,6 @@ public class PythonTraceMerger extends TraceMerger {
     public static void main(String[] args) throws Exception {
         String workingDir = args[0];
         String traceName = args[1];
-
         final PRVTrace mainTrace = new PRVTrace(workingDir, traceName);
         if (!mainTrace.exists()) {
             throw new FileNotFoundException("Master trace " + traceName + " not found at directory " + workingDir);

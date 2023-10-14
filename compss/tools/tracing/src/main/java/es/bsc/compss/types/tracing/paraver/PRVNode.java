@@ -33,4 +33,19 @@ public class PRVNode extends SystemComposition<CPU> {
     public int getNodeId() {
         return nodeId;
     }
+
+    @Override
+    /**
+     * debug method.
+     *
+     * @param pad pad
+     * @return message
+     */
+    public String print(String pad) {
+        StringBuilder s = new StringBuilder(pad + this.getLabel() + "\n");
+        for (CPU component : this.getSubComponents()) {
+            s.append(component.print(pad + "\t"));
+        }
+        return s.toString();
+    }
 }

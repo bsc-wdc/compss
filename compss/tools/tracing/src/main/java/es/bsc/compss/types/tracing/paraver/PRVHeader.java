@@ -107,7 +107,8 @@ public class PRVHeader {
                     Thread thread = new Thread(threadIdentifier, "");
                     task.appendComponent(thread);
                 }
-                task.setNode(infrastructureOrganization.getSubComponents().get(numNode - 1));
+                PRVNode node = infrastructureOrganization.getSubComponents().get(numNode - 1);
+                task.setNode(node);
                 app.appendComponent(task);
                 taskId++;
             }

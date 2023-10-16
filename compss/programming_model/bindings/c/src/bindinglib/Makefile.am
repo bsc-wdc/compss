@@ -14,6 +14,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+BOOST_INCLUDE ?= /usr/include/boost/
 
 include_HEADERS = generated_executor.h customStream.h c_compss.h c_compss_commons.h CBindingCache.h CBindingExecutor.h c_compss_base64.h
 lib_LTLIBRARIES = libcbindings.la

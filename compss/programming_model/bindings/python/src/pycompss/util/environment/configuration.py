@@ -785,6 +785,8 @@ def create_init_config_file(
             got_extrae_final_directory = __process_extrae_file(
                 extrae_xml_path, extrae_xml_final_path, extrae_trace_path
             )
+            if extrae_cfg == "null":
+                os.environ["EXTRAE_CONFIG_FILE"] = extrae_xml_final_path
         else:
             # Any other case: deactivated
             jvm_options_file.write("-Dcompss.tracing=false" + "\n")

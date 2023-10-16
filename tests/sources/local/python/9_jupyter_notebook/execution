@@ -74,12 +74,6 @@
       --ExecutePreprocessor.kernel_name=${kernel} \
       --execute "${base_app_dir}/src/${app_ipynb}" > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 
-    # Print the latest redirected stdout and stderr
-    last_compss_out_file=`ls -tr ${base_app_dir}/src/ | grep out | tail -n 1`
-    last_compss_err_file=`ls -tr ${base_app_dir}/src/ | grep err | tail -n 1`
-    cat ${base_app_dir}/src/${last_compss_out_file}
-    cat ${base_app_dir}/src/${last_compss_err_file}
-
     mv "${COMPSs_log_folder}/${app_name}_01" "${COMPSs_log_folder}/${app_name}_${python_interpreter}_0${retry_num}"
 
     # Check timeout

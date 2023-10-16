@@ -8,6 +8,14 @@
   comm=$5
   html=$6
 
+  echo "Result parameters:"
+  echo " - output_file: ${output_file}"
+  echo " - error_file: ${error_file}"
+  echo " - target_log_folder: ${target_log_folder}"
+  echo " - base_app_dir: ${base_app_dir}"
+  echo " - comm: ${comm}"
+  echo " - html: ${html}"
+
   # Log files
   runtime_log="${target_log_folder}/runtime.log"
   resources_log="${target_log_folder}/resources.log"
@@ -27,7 +35,7 @@
   # Check output standard out status of simple.ipynb or simpleGAT.ipynb
   if [ -f "${html}" ]; then
      result_expected="RESULT=EXPECTED"
-     test_result=$(grep -oE '\bRESULT=\w*' "${html}" | tail -n 1)
+     test_result=$(grep -aoE '\bRESULT=\w*' "${html}" | tail -n 1)
      if [ "${result_expected}" != "${test_result}" ]; then
         echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file}"
         exit 1
@@ -77,7 +85,7 @@
   #----------------------------------------------------------------------------------
   # Check that trace has been generated
   # shellcheck disable=SC2144 #because we know there is 0 or 1 match only
-  if [ ! -f "${target_log_folder}"/trace/*.tar.gz ]; then
+  if [ ! -f "${target_log_folder}"/trace/master_compss_trace.tar.gz ] || [ ! -f "${target_log_folder}"/trace/static_COMPSsWorker01_compss_trace.tar.gz ]; then
     echo "SOME ERROR WAS FOUND. TRACE TAR.GZ NOT GENERATED." | tee -a "${output_file}"
     exit 1
   else
@@ -85,7 +93,7 @@
     cd "${target_log_folder}/trace/"
     compss_gentrace
     cd ${current_path}
-    if [ ! -f "${target_log_folder}"/trace/*.prv ] || [ ! -f "${target_log_folder}"/trace/*.pcf ] || [ ! -f "${target_log_folder}"/trace/*.row ]; then
+    if [ ! -f "${target_log_folder}"/trace/trace.prv ] || [ ! -f "${target_log_folder}"/trace/trace.pcf ] || [ ! -f "${target_log_folder}"/trace/trace.row ]; then
       echo "SOME ERROR WAS FOUND. TRACE NOT GENERATED." | tee -a "${output_file}"
       exit 1
     fi

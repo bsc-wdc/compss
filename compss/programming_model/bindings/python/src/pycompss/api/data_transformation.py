@@ -267,7 +267,7 @@ class DataTransformation:  # pylint: disable=R0902,R0903
                 p_value, self.dt_function, **func_kwargs
             )
         elif self.type is FILE_TO_COLLECTION:
-            size = int(self.kwargs.pop("size"))
+            size = int(func_kwargs.pop("size"))
             new_value = _file_to_col(  # pylint: disable=unexpected-keyword-arg
                 p_value, self.dt_function, returns=size, **func_kwargs
             )

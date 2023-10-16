@@ -21,16 +21,16 @@ import java.util.LinkedList;
 import java.util.List;
 
 
-public class ApplicationComposition implements ApplicationStructure {
+public class ApplicationComposition<T extends ApplicationStructure> implements ApplicationStructure {
 
-    private final List<ApplicationStructure> components;
+    private final List<T> components;
 
 
     public ApplicationComposition() {
         this.components = new LinkedList<>();
     }
 
-    public void appendComponent(ApplicationStructure c) {
+    public void appendComponent(T c) {
         this.components.add(c);
     }
 
@@ -39,12 +39,12 @@ public class ApplicationComposition implements ApplicationStructure {
      * 
      * @param subComponents new subcomponents
      */
-    public void replaceSubcomponents(List<ApplicationStructure> subComponents) {
+    public void replaceSubcomponents(List<T> subComponents) {
         components.clear();
         components.addAll(subComponents);
     }
 
-    public List<ApplicationStructure> getSubComponents() {
+    public List<T> getSubComponents() {
         return this.components;
     }
 

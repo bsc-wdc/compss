@@ -19,8 +19,10 @@ package es.bsc.compss.types.tracing.paraver;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.tracing.ApplicationComposition;
 import es.bsc.compss.types.tracing.ApplicationStructure;
-import es.bsc.compss.types.tracing.InfrastructureElement;
+import es.bsc.compss.types.tracing.CPU;
 import es.bsc.compss.types.tracing.MalformedException;
+import es.bsc.compss.types.tracing.SystemComposition;
+import es.bsc.compss.types.tracing.SystemStructure;
 import es.bsc.compss.types.tracing.Thread;
 import es.bsc.compss.types.tracing.ThreadIdentifier;
 
@@ -51,8 +53,8 @@ public class PRVHeader {
     private String date;
     private String duration;
 
-    private ArrayList<InfrastructureElement> infrastructureOrganization;
-    private ApplicationComposition threadOrganization;
+    private SystemComposition<PRVNode> infrastructureOrganization;
+    private ApplicationComposition<PRVApplication> threadOrganization;
 
 
     /**
@@ -76,12 +78,12 @@ public class PRVHeader {
 
         String[] cpusPerNode = getInsideParenthesis(headerParts[2]).split(",");
         int numNodes = cpusPerNode.length;
-        this.infrastructureOrganization = new ArrayList<>(numNodes);
+        this.infrastructureOrganization = new SystemComposition<>("");
         for (int nodeIdx = 0; nodeIdx < numNodes; nodeIdx++) {
-            InfrastructureElement node = new InfrastructureElement("NODE" + nodeIdx);
-            infrastructureOrganization.add(node);
+            PRVNode node = new PRVNode(nodeIdx, "NODE" + nodeIdx);
+            infrastructureOrganization.appendComponent(node);
             for (int cpuIdx = 0; cpuIdx < Integer.parseInt(cpusPerNode[nodeIdx]); cpuIdx++) {
-                InfrastructureElement cpu = new InfrastructureElement("cpu" + nodeIdx + "." + cpuIdx);
+                CPU cpu = new CPU("cpu" + nodeIdx + "." + cpuIdx);
                 node.appendComponent(cpu);
             }
         }
@@ -91,19 +93,22 @@ public class PRVHeader {
         Matcher m = Pattern.compile("\\((.*?)\\)").matcher(systemDescription);
         int appId = 1;
         while (m.find()) {
-            ApplicationComposition app = new ApplicationComposition();
+            PRVApplication app = new PRVApplication();
             String appDescription = m.group(1);
             String[] taskDescriptions = appDescription.split(",");
             int taskId = 1;
             for (String taskDescription : taskDescriptions) {
-                ApplicationComposition task = new ApplicationComposition();
+                PRVTask task = new PRVTask();
                 String[] threads = taskDescription.split(":");
                 int numThreads = Integer.parseInt(threads[0]);
+                int numNode = Integer.parseInt(threads[1]);
                 for (int threadId = 0; threadId < numThreads; threadId++) {
                     ThreadIdentifier threadIdentifier = new PRVThreadIdentifier(appId, taskId, threadId + 1);
                     Thread thread = new Thread(threadIdentifier, "");
                     task.appendComponent(thread);
                 }
+                PRVNode node = infrastructureOrganization.getSubComponents().get(numNode - 1);
+                task.setNode(node);
                 app.appendComponent(task);
                 taskId++;
             }
@@ -135,7 +140,7 @@ public class PRVHeader {
      *
      * @return number of cpus per node
      */
-    public ArrayList<InfrastructureElement> getInfrastructure() {
+    public SystemComposition getInfrastructure() {
         return this.infrastructureOrganization;
     }
 
@@ -167,7 +172,7 @@ public class PRVHeader {
      * @param cpusPerNode number of cpus for each node
      * @param system System description
      */
-    public void setStructure(ArrayList<InfrastructureElement> cpusPerNode, ApplicationComposition system) {
+    public void setStructure(SystemComposition cpusPerNode, ApplicationComposition system) {
         this.infrastructureOrganization = cpusPerNode;
         this.threadOrganization = system;
     }
@@ -182,28 +187,25 @@ public class PRVHeader {
      * @return PRV file header for a trace given the information
      */
     public static String generateTraceHeader(String date, String duration,
-        ArrayList<InfrastructureElement> infrastructureOrganization, ApplicationComposition threadOrganization) {
+        SystemComposition<PRVNode> infrastructureOrganization,
+        ApplicationComposition<PRVApplication> threadOrganization) {
         List<String> cpusPerNode = new ArrayList();
-        for (InfrastructureElement node : infrastructureOrganization) {
+        for (SystemStructure node : infrastructureOrganization.getSubComponents()) {
             cpusPerNode.add(Integer.toString(node.getNumberOfDirectSubcomponents()));
         }
 
-        int numNode = 1;
         List<String> tasksPerApp = new ArrayList();
-        for (ApplicationStructure systemComponent : threadOrganization.getSubComponents()) {
-
-            ApplicationComposition app = (ApplicationComposition) systemComponent;
-
+        for (PRVApplication app : threadOrganization.getSubComponents()) {
             List<String> threadsPerTask = new ArrayList();
-            for (ApplicationStructure appComponent : app.getSubComponents()) {
-                ApplicationComposition task = (ApplicationComposition) appComponent;
+            for (PRVTask task : app.getSubComponents()) {
                 int numThreadsPerTask = task.getNumberOfDirectSubcomponents();
+                PRVNode node = task.getNode();
+                int numNode = node.getNodeId() + 1;
                 threadsPerTask.add(numThreadsPerTask + ":" + numNode);
             }
             int numTasks = app.getNumberOfDirectSubcomponents();
             String taskDescription = numTasks + "(" + String.join(",", threadsPerTask) + ")";
             tasksPerApp.add(taskDescription);
-            numNode++;
         }
 
         final String nodesString = cpusPerNode.size() + "(" + String.join(",", cpusPerNode) + ")";

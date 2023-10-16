@@ -17,8 +17,8 @@
 package es.bsc.compss.types.tracing.paraver;
 
 import es.bsc.compss.types.tracing.ApplicationComposition;
-import es.bsc.compss.types.tracing.ApplicationStructure;
-import es.bsc.compss.types.tracing.InfrastructureElement;
+import es.bsc.compss.types.tracing.CPU;
+import es.bsc.compss.types.tracing.SystemComposition;
 import es.bsc.compss.types.tracing.Thread;
 
 import java.io.BufferedReader;
@@ -46,33 +46,6 @@ public class RowFile {
     }
 
     /**
-     * Merges the information in another rowFile with this one.
-     *
-     * @throws Exception Unknown format
-     */
-    /*
-     * public void mergeAgentRow(RowFile fileToMerge, int agentId) throws Exception { final List<String> cpus =
-     * this.information[RowBlock.CPUS.ordinal()]; final List<String> threads =
-     * this.information[RowBlock.THREADS.ordinal()]; final List<String> cpusToMerge =
-     * fileToMerge.information[RowBlock.CPUS.ordinal()]; final List<String> threadsToMerge =
-     * fileToMerge.information[RowBlock.THREADS.ordinal()];
-     * 
-     * int previousCpuNum = cpus.size(); for (String cp : cpusToMerge) { // replace the index of the cpu in the other
-     * file with the next index of this file String newCp = Integer.toString(previousCpuNum) +
-     * cp.substring(cp.indexOf(".")); cpus.add(newCp); previousCpuNum++; }
-     * 
-     * for (String th : threadsToMerge) { String newTh; if (th.contains("(")) { int prefixIndex = th.indexOf("(") + 1;
-     * int sufixIndex = th.indexOf(")"); String oldThId = th.substring(prefixIndex, sufixIndex); String[] oldIdValues =
-     * oldThId.split("\\."); // PRV_MACHINE_IDENTIFIER_POSITION-2 because it's not a line, it's only the threadId
-     * oldIdValues[PRVLine.STATE_MACHINE_POS - 2] = Integer.toString(agentId); String newThId = String.join(".",
-     * oldIdValues); newTh = th.substring(0, prefixIndex) + newThId + th.substring(sufixIndex, th.length()); } else if
-     * (th.startsWith("THREAD ")) { String[] oldIdValues = th.split("\\."); // PRV_MACHINE_IDENTIFIER_POSITION-2 because
-     * it's not a line, it's only the threadId oldIdValues[PRVLine.STATE_MACHINE_POS - 2] = "THREAD " +
-     * Integer.toString(agentId); newTh = String.join(".", oldIdValues); } else { throw new Exception(
-     * "Thread id in .row file with unknown format, don't know how to merge: " + th.toString()); } threads.add(newTh); }
-     * }
-     */
-    /**
      * Updates the infrastructure and application information with the labels from a given row file.
      *
      * @param source path to the source row file
@@ -81,8 +54,8 @@ public class RowFile {
      * @throws FileNotFoundException Could not find the source row file
      * @throws IOException Error reading from the file
      */
-    public static void updateStructuresWithRowContent(String source, ArrayList<InfrastructureElement> infrastructure,
-        ApplicationComposition applications) throws FileNotFoundException, IOException {
+    public static void updateStructuresWithRowContent(String source, SystemComposition<PRVNode> infrastructure,
+        ApplicationComposition<PRVApplication> applications) throws FileNotFoundException, IOException {
         List<String> nodes = new ArrayList<>();
         List<String> cpus = new ArrayList<>();
         List<String> threads = new ArrayList<>();
@@ -107,24 +80,20 @@ public class RowFile {
         }
 
         int globalCPUIdx = 0;
-        for (int nodeIdx = 0; nodeIdx < infrastructure.size(); nodeIdx++) {
-            InfrastructureElement node = infrastructure.get(nodeIdx);
+        int nodeIdx = 0;
+        for (PRVNode node : infrastructure.getSubComponents()) {
             node.setLabel(nodes.get(nodeIdx));
-
-            List<InfrastructureElement> nodeCpus = node.getSubComponents();
-            for (int nodeCPUIdx = 0; nodeCPUIdx < nodeCpus.size(); nodeCPUIdx++) {
-                nodeCpus.get(nodeCPUIdx).setLabel(cpus.get(globalCPUIdx));
+            for (CPU cpu : node.getSubComponents()) {
+                cpu.setLabel(cpus.get(globalCPUIdx));
                 globalCPUIdx++;
             }
+            nodeIdx++;
         }
 
         int globalthreadIdx = 0;
-        for (ApplicationStructure systemElement : applications.getSubComponents()) {
-            ApplicationComposition app = (ApplicationComposition) systemElement;
-            for (ApplicationStructure appElement : app.getSubComponents()) {
-                ApplicationComposition task = (ApplicationComposition) appElement;
-                for (ApplicationStructure taskElement : task.getSubComponents()) {
-                    Thread thread = (Thread) taskElement;
+        for (PRVApplication app : applications.getSubComponents()) {
+            for (PRVTask task : app.getSubComponents()) {
+                for (Thread thread : task.getSubComponents()) {
                     thread.setLabel(threads.get(globalthreadIdx++));
                 }
             }
@@ -140,8 +109,8 @@ public class RowFile {
      * @param target path where to leave the row file
      * @throws IOException row file could not be created or there was an error writing it
      */
-    public static void generateRowFile(ArrayList<InfrastructureElement> infrastructure,
-        ApplicationComposition application, String target) throws IOException {
+    public static void generateRowFile(SystemComposition<PRVNode> infrastructure,
+        ApplicationComposition<PRVApplication> application, String target) throws IOException {
         File outputFile = new File(target);
         if (outputFile.exists()) {
             outputFile.delete();
@@ -149,13 +118,14 @@ public class RowFile {
         }
 
         List<String> cpus = new LinkedList<>();
-        List<String> nodes = new ArrayList<>(infrastructure.size());
-        for (InfrastructureElement node : infrastructure) {
+        List<String> nodes = new ArrayList<>(infrastructure.getNumberOfDirectSubcomponents());
+        for (PRVNode node : infrastructure.getSubComponents()) {
             nodes.add(node.getLabel());
-            for (InfrastructureElement cpu : node.getSubComponents()) {
+            for (CPU cpu : node.getSubComponents()) {
                 cpus.add(cpu.getLabel());
             }
         }
+
         final PrintWriter rowWriter = new PrintWriter(new FileWriter(outputFile.getAbsolutePath(), false));
         rowWriter.println(CPU_TITLE + " " + cpus.size());
         for (int i = 0; i < cpus.size(); i++) {

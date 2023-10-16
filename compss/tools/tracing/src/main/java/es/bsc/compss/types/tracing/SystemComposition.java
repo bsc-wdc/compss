@@ -21,23 +21,27 @@ import java.util.LinkedList;
 import java.util.List;
 
 
-public class Thread<I extends ThreadIdentifier> implements ApplicationStructure {
+public class SystemComposition<T extends SystemStructure> implements SystemStructure {
 
-    private I identifier;
+    private final List<T> components;
     private String label;
 
 
-    public Thread(I identifier, String label) {
-        this.identifier = identifier;
+    public SystemComposition(String label) {
         this.label = label;
+        this.components = new LinkedList<>();
     }
 
-    public void setIdentifier(I identifier) {
-        this.identifier = identifier;
+    public void appendComponent(T c) {
+        this.components.add(c);
     }
 
-    public I getIdentifier() {
-        return identifier;
+    public List<T> getSubComponents() {
+        return this.components;
+    }
+
+    public int getNumberOfDirectSubcomponents() {
+        return this.components.size();
     }
 
     public void setLabel(String label) {
@@ -48,26 +52,18 @@ public class Thread<I extends ThreadIdentifier> implements ApplicationStructure 
         return label;
     }
 
-    @Override
-    public int getNumberOfDirectSubcomponents() {
-        return 0;
-    }
+    /**
+     * debug method.
+     * 
+     * @param pad pad
+     * @return message
+     */
 
-    @Override
-    public int getNumberOfTotalLowestSubcomponents() {
-        return 1;
+    public String print(String pad) {
+        StringBuilder s = new StringBuilder(pad + label + "\n");
+        for (T component : components) {
+            s.append(component.print(pad + "\t"));
+        }
+        return s.toString();
     }
-
-    @Override
-    public List<String> getAllLabels() {
-        List<String> labels = new LinkedList<>();
-        labels.add(label);
-        return labels;
-    }
-
-    @Override
-    public void print(String pad) {
-        System.out.println(pad + " " + this.label);
-    }
-
 }

@@ -14,23 +14,38 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.util.tracing;
+package es.bsc.compss.types.tracing.paraver;
 
-import es.bsc.compss.types.tracing.ApplicationComposition;
-import es.bsc.compss.types.tracing.EventsDefinition;
-import es.bsc.compss.types.tracing.MalformedException;
+import es.bsc.compss.types.tracing.CPU;
 import es.bsc.compss.types.tracing.SystemComposition;
-import es.bsc.compss.types.tracing.paraver.PRVLine;
-import java.util.ArrayList;
 
 
-public interface TraceTransformation {
+public class PRVNode extends SystemComposition<CPU> {
 
-    public void apply(SystemComposition infrastructure, ApplicationComposition threadOrganization);
+    private final int nodeId;
 
-    public void apply(EventsDefinition events);
 
-    public void apply(PRVLine prvLine) throws MalformedException;
+    public PRVNode(int nodeId, String label) {
+        super(label);
+        this.nodeId = nodeId;
+    }
 
-    public String getDescription();
+    public int getNodeId() {
+        return nodeId;
+    }
+
+    @Override
+    /**
+     * debug method.
+     *
+     * @param pad pad
+     * @return message
+     */
+    public String print(String pad) {
+        StringBuilder s = new StringBuilder(pad + this.getLabel() + "\n");
+        for (CPU component : this.getSubComponents()) {
+            s.append(component.print(pad + "\t"));
+        }
+        return s.toString();
+    }
 }

@@ -20,10 +20,13 @@ package es.bsc.compss.tracing;
 import es.bsc.compss.types.tracing.ApplicationComposition;
 import es.bsc.compss.types.tracing.ApplicationStructure;
 import es.bsc.compss.types.tracing.EventsDefinition;
-import es.bsc.compss.types.tracing.InfrastructureElement;
+import es.bsc.compss.types.tracing.SystemComposition;
+import es.bsc.compss.types.tracing.SystemStructure;
 import es.bsc.compss.types.tracing.Thread;
 import es.bsc.compss.types.tracing.ThreadIdentifier;
 import es.bsc.compss.types.tracing.Trace;
+import es.bsc.compss.types.tracing.paraver.PRVApplication;
+import es.bsc.compss.types.tracing.paraver.PRVTask;
 import es.bsc.compss.types.tracing.paraver.PRVThreadIdentifier;
 import es.bsc.compss.types.tracing.paraver.PRVTrace;
 import es.bsc.compss.util.tracing.EventTranslator;
@@ -81,8 +84,8 @@ public class AgentTraceMerger extends TraceMerger {
         ApplicationComposition threads;
         threads = new ApplicationComposition();
 
-        ArrayList<InfrastructureElement> infrastructure;
-        infrastructure = new ArrayList<>();
+        SystemComposition infrastructure;
+        infrastructure = new SystemComposition("");
 
         EventsDefinition events;
         events = this.inputTraces[0].getEventsDefinition();
@@ -144,13 +147,15 @@ public class AgentTraceMerger extends TraceMerger {
         System.out.println("Merge finished.");
     }
 
-    private static TraceTransformation mergeTraceNodes(Trace trace, ArrayList<InfrastructureElement> global) {
+    private static TraceTransformation mergeTraceNodes(Trace trace, SystemComposition<SystemStructure> global) {
         int cpuOffset = 0;
-        for (InfrastructureElement node : global) {
+        for (SystemStructure node : global.getSubComponents()) {
             cpuOffset += node.getNumberOfDirectSubcomponents();
         }
-        ArrayList<InfrastructureElement> traceNodes = trace.getInfrastructure();
-        global.addAll(traceNodes);
+        SystemComposition<?> traceNodes = trace.getInfrastructure();
+        for (SystemStructure node : traceNodes.getSubComponents()) {
+            global.appendComponent(node);
+        }
         return new CPUOffset(cpuOffset);
     }
 
@@ -159,19 +164,17 @@ public class AgentTraceMerger extends TraceMerger {
 
         int appOffset = global.getNumberOfDirectSubcomponents();
         appOffset++;
-        ApplicationComposition system = trace.getThreadOrganization();
+        ApplicationComposition<PRVApplication> system = trace.getThreadOrganization();
 
-        for (ApplicationStructure traceElement : system.getSubComponents()) {
-            ApplicationComposition app = (ApplicationComposition) traceElement;
-            ApplicationComposition newApp = new ApplicationComposition();
+        for (PRVApplication app : system.getSubComponents()) {
+            PRVApplication newApp = new PRVApplication();
 
             int taskOffset = 1;
-            for (ApplicationStructure appElement : app.getSubComponents()) {
-                ApplicationComposition task = (ApplicationComposition) appElement;
-                ApplicationComposition newTask = new ApplicationComposition();
+            for (PRVTask task : app.getSubComponents()) {
+                PRVTask newTask = new PRVTask();
+                newTask.setNode(task.getNode());
                 int threadOffset = 1;
-                for (ApplicationStructure taskElement : task.getSubComponents()) {
-                    Thread thread = (Thread) taskElement;
+                for (Thread thread : task.getSubComponents()) {
                     ThreadIdentifier oldThreadID = thread.getIdentifier();
                     ThreadIdentifier newThreadID = new PRVThreadIdentifier(appOffset, taskOffset, threadOffset);
                     translator.registerTranslation(oldThreadID, newThreadID);

@@ -14,15 +14,21 @@
  *  limitations under the License.
  *
  */
+
 package es.bsc.compss.types.tracing;
 
-public interface ThreadIdentifier {
+import java.util.List;
+
+
+public interface SystemStructure {
+
+    public int getNumberOfDirectSubcomponents();
 
     /**
-     * Returns the position of the thread in the system's organization at a certain level depth.
+     * Prints the component.
      * 
-     * @param level depth level in the system organization
-     * @return position of the thread in the system's organization at a certain level depth;
+     * @param string padding
      */
-    public int getIdAtLevel(int level);
+    public String print(String string);
+
 }

@@ -18,14 +18,13 @@ package es.bsc.compss.util.tracing.transformations;
 
 import es.bsc.compss.types.tracing.ApplicationComposition;
 import es.bsc.compss.types.tracing.EventsDefinition;
-import es.bsc.compss.types.tracing.InfrastructureElement;
+import es.bsc.compss.types.tracing.SystemComposition;
 import es.bsc.compss.types.tracing.TraceEventType;
 import es.bsc.compss.types.tracing.paraver.PRVLine;
 
 import es.bsc.compss.util.tracing.EventTranslator;
 import es.bsc.compss.util.tracing.TraceTransformation;
 
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -43,7 +42,7 @@ public class CETranslation implements TraceTransformation {
     }
 
     @Override
-    public void apply(ArrayList<InfrastructureElement> infrastructure, ApplicationComposition threadOrganization) {
+    public void apply(SystemComposition infrastructure, ApplicationComposition threadOrganization) {
         // Do nothing
     }
 

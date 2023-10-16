@@ -200,7 +200,7 @@ def remote_exec_app(login_info: str, exec_cmd: str, debug=False):
     return utils.ssh_run_commands(login_info, [exec_cmd])[0].strip()
 
 
-def remote_download_file(login_info: str, remote_path: str, local_path: str, debug=False, compressed=False):
+def remote_download_file(login_info: str, remote_path: str, local_path: str, debug=False):
     if not os.path.isdir(local_path):
         if os.path.exists(local_path):
             print(f'ERROR: local path `{local_path}` is not a directory.')
@@ -208,20 +208,10 @@ def remote_download_file(login_info: str, remote_path: str, local_path: str, deb
         else:
             os.makedirs(local_path)
 
-    if compressed:
-        cmd = f'scp -r {login_info}:{remote_path}/trace.zip {local_path}'
-    else:
-        cmd = f'scp -r {login_info}:{remote_path}/* {local_path}'
+    cmd = f'scp -r {login_info}:{remote_path}/* {local_path}'
 
     if debug:
         print('Remote download file command:')
         print('\t', cmd)
 
     subprocess.run(cmd, shell=True)
-
-    if compressed:
-        print('Uncompressing trace...')
-        zip_path = os.path.join(local_path, 'trace.zip')
-        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-            zip_ref.extractall(local_path)
-        os.remove(zip_path)

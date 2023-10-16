@@ -52,7 +52,8 @@ class DockerActions(Actions):
                                 self.arguments.log_dir,
                                 self.arguments.image,
                                 self.arguments.restart,
-                                self.arguments.privileged)
+                                self.arguments.privileged,
+                                self.arguments.update_image)
 
             master_ip = self.docker_cmd.docker_exec_in_daemon("hostname -i", return_output=True)
             self.env_add_conf({'master_ip': master_ip})
@@ -232,8 +233,11 @@ class DockerActions(Actions):
                             self.arguments.worker)
 
     def env_remove(self, env_id=None):
-        if self.docker_cmd.exists():
-            self.docker_cmd.docker_exec_in_daemon('rm -rf .COMPSs')
+        if self.docker_cmd.exists(self.env_conf['name']):
+            try:
+                self.docker_cmd.docker_exec_in_daemon('rm -rf .COMPSs')
+            except:
+                pass
             self.docker_cmd.docker_kill_compss()
         super().env_remove(eid=env_id)
 

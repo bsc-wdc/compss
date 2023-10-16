@@ -35,7 +35,14 @@ def get_current_env_conf(env_id=None, return_path=False):
     if env_id:
         current_env = glob(home_path + '/.COMPSs/envs/' + env_id + '/env.json')[0]
     else:
-        current_env = glob(home_path + '/.COMPSs/envs/*/current')[0].replace('current', 'env.json')
+        current_file = glob(home_path + '/.COMPSs/envs/*/current')
+        if len(current_file) > 0:
+            current_file = current_file[0]
+        else:
+            current_file = home_path + '/.COMPSs/envs/default/current'
+            with open(current_file, 'w') as env:
+                pass
+        current_env = current_file.replace('current', 'env.json')
     with open(current_env, 'r') as env:
         if return_path:
             return json.load(env), current_env

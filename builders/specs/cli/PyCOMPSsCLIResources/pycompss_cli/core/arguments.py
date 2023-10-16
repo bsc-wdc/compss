@@ -21,7 +21,10 @@ import subprocess
 
 from pycompss_cli.core.docker.arguments import docker_init_parser
 from pycompss_cli.core.local.arguments import local_init_parser
-from pycompss_cli.core.remote.arguments import remote_init_parser, remote_parser_job, remote_parser_app
+from pycompss_cli.core.remote.arguments import remote_init_parser
+from pycompss_cli.core.remote.arguments import remote_parser_job
+from pycompss_cli.core.remote.arguments import remote_parser_app
+from pycompss_cli.core.unicore.arguments import unicore_init_parser
 from pycompss_cli.core import utils
 
 FORMATTER_CLASS = argparse.RawTextHelpFormatter
@@ -76,6 +79,9 @@ def parse_sys_argv():
 
     init_env_subparser.add_parser("remote", add_help=False, 
                                     parents=[remote_init_parser()])
+
+    init_env_subparser.add_parser("unicore", add_help=False, 
+                                    parents=[unicore_init_parser()])
 
     # EXEC
     parser_exec = subparsers.add_parser("exec",

@@ -41,13 +41,14 @@ default_image_file = "image"
 default_image = default_workdir + default_image_file
 
 
-IMAGE_NAME = "compss/compss:3.1"  # Update when releasing new version
+IMAGE_NAME = "compss/compss:3.2"  # Update when releasing new version
 DOCKER_AVAILABALE = True
 
 try:
     import docker
     from docker.types import Mount
     from docker.errors import DockerException
+    from docker.models.containers import Container
 except ImportError:
     DOCKER_AVAILABALE = False
 
@@ -60,9 +61,6 @@ class ErrorContainerNotRunning(Exception):
 
 class DockerCmd(object):
     def __init__(self, env_id) -> None:
-        global master_name
-        global worker_name
-
         self.env_id = env_id
 
         if not DOCKER_AVAILABALE:
@@ -79,9 +77,9 @@ class DockerCmd(object):
             print("       Please, start docker service and try again", file=sys.stderr)
             exit(1)
 
+        self.master_name = master_name + "-" + self.env_id
+        self.worker_name = worker_name + "-" + self.env_id
         self.__setup_image_name()
-        master_name = master_name + "-" + self.env_id
-        worker_name = worker_name + "-" + self.env_id
 
     def __setup_image_name(self):
         global IMAGE_NAME
@@ -93,20 +91,22 @@ class DockerCmd(object):
         elif os.environ.get("COMPSS_DOCKER_IMAGE") is not None:
             # If specified in an environment variable, take it
             IMAGE_NAME = os.environ["COMPSS_DOCKER_IMAGE"]
-        elif len(self.client.containers.list(filters={"name": master_name})) > 0:
+        elif len(self.client.containers.list(filters={"name": self.master_name})) > 0:
             # Condition equivalent to: is_running(master_name):
             # But since it is undefined yet, we do it explicitly.
             # If exists in the file (means that has been defined with init)
-            master = self.client.containers.list(filters={"name": master_name})[0]
+            master = self.client.containers.list(filters={"name": self.master_name})[0]
             # Command equivalent to: master = _get_master()
             # But since it is undefined yet, we do it explicitly.
-            IMAGE_NAME = master.image.attrs["RepoTags"][0]
+
+            IMAGE_NAME = master.image.attrs["Id"][7:7+12]
 
     def docker_deploy_compss(self, working_dir: str,
                             log_dir: str,
                             image: str = "",
                             restart: bool = True,
-                            privileged: bool = False) -> None:
+                            privileged: bool = False,
+                            update_image: bool = False) -> None:
         """ Starts the main COMPSs image in Docker.
         It stops any existing one since it can not coexist with itself.
 
@@ -122,27 +122,32 @@ class DockerCmd(object):
         else:
             docker_image = IMAGE_NAME
 
-        masters = self.client.containers.list(filters={"name": master_name},
+        masters = self.client.containers.list(filters={"name": self.master_name},
                                         all=True)
 
         assert len(masters) < 2  # never should we run 2 masters
 
-        if restart or self._exists(master_name):
+        if restart or self._exists(self.master_name):
             self.docker_kill_compss(False)
 
-        if not self.is_running(master_name):
-            print("Starting %s container in dir %s" % (master_name, working_dir))
+        if not self.is_running(self.master_name):
+            print("Starting %s container in dir %s" % (self.master_name, working_dir))
             print("If this is your first time running PyCOMPSs it may take a " +
                 "while because it needs to download the docker image. " +
                 "Please be patient.")
-            subprocess.run(f'docker pull {docker_image}', shell=True)
+            if update_image:
+                subprocess.run(f'docker pull {docker_image}', shell=True)
             mounts = self._get_mounts(user_working_dir=working_dir, log_dir=log_dir)
             ports = {"8888/tcp": 8888,  # required for jupyter notebooks
                     "8080/tcp": 8080}  # required for monitor
-            m = self.client.containers.run(image=docker_image, name=master_name,
+            container: Container = self.client.containers.run(image=docker_image, name=self.master_name,
                                     mounts=mounts, detach=True, ports=ports, privileged=privileged)
             self._generate_resources_cfg(ips=["localhost"])
             self._generate_project_cfg(ips=["localhost"])
+
+            container.exec_run(f'mkdir -p {os.path.dirname(working_dir)}')
+            container.exec_run(f'ln -s {default_workdir} {working_dir}')
+
             # don't pass configs because they need to be  overwritten when adding
             # new nodes
             cfg_content = '{"working_dir":"' + working_dir + \
@@ -153,7 +158,7 @@ class DockerCmd(object):
 
     
     def docker_start_compss(self):
-        self.client.containers.get(master_name).start()
+        self.client.containers.get(self.master_name).start()
 
 
     def docker_update_image(self) -> None:
@@ -187,8 +192,8 @@ class DockerCmd(object):
             except ErrorContainerNotRunning:
                 print("WARNING: No master container running.")
 
-        self._stop_by_name(master_name)
-        self._stop_by_name(worker_name)
+        self._stop_by_name(self.master_name)
+        self._stop_by_name(self.worker_name)
 
 
     def docker_exec_in_daemon(self, cmd: str, return_output=False, return_stream=False) -> None:
@@ -198,7 +203,7 @@ class DockerCmd(object):
         :returns: The execution stdout.
         """
 
-        if not self.is_running(master_name):
+        if not self.is_running(self.master_name):
             self.docker_start_compss()
 
         master = self._get_master()
@@ -221,7 +226,7 @@ class DockerCmd(object):
         :returns: The monitoring initialization stdout.
         """
         print("Starting Monitor")
-        if not self.is_running(master_name):
+        if not self.is_running(self.master_name):
             self.start_daemon()
 
         cmd = "/etc/init.d/compss-monitor start"
@@ -262,8 +267,8 @@ class DockerCmd(object):
         :returns: None
         """
         if option == "list":
-            masters = self.client.containers.list(filters={"name": master_name})
-            workers = self.client.containers.list(filters={"name": worker_name})
+            masters = self.client.containers.list(filters={"name": self.master_name})
+            workers = self.client.containers.list(filters={"name": self.worker_name})
             for c in masters + workers:
                 print(c.name)
         elif option == "add":
@@ -295,12 +300,14 @@ class DockerCmd(object):
         cs = self.client.containers.list(filters={"name": name})
         return len(cs) > 0
 
-    def exists(self, name: str = master_name) -> bool:
+    def exists(self, name: str = None) -> bool:
         """ Checks if a docker instance exists.
 
         :param name: Instance name.
         :returns: True if exists. False otherwise.
         """
+        if name is None:
+            name = master_name
         cs = self.client.containers.list(all=True, filters={"name": name})
         return len(cs) > 0
 

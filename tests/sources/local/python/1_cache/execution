@@ -247,7 +247,7 @@
       --pythonpath="${base_app_dir}"/src \
       --specific_log_dir="${specific_log_dir}" \
       \
-      --python_worker_cache=true:1000000 \
+      --python_worker_cache=cpu:1000000B \
       \
       "${base_app_dir}/src/${app_name}" > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 

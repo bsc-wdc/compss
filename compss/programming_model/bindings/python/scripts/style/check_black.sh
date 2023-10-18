@@ -15,7 +15,7 @@ if [ "$ev" -ne 0 ]; then
   echo "[ERROR] black check failed with exit value: $ev"
   echo ""
   echo "Please, run:"
-  echo "    black $(pwd)/pycompss"
+  echo "    ./apply_black.sh"
   echo "Then, review changes and push them again."
   echo ""
   exit $ev

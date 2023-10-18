@@ -24,6 +24,8 @@ This file contains the cache setup and instantiation.
 IMPORTANT: Only used with python >= 3.8.
 """
 import logging
+import re
+from typing import Union
 
 from pycompss.util.process.manager import Process
 from pycompss.util.process.manager import Queue
@@ -42,18 +44,26 @@ Dict = typing.Dict
 List = typing.List
 
 
+# For calculating cache size
+size_units = {
+    "B": 1,
+    "KB": 10**3,
+    "MB": 10**6,
+    "GB": 10**9,
+    "TB": 10**12,
+}
+
+# RegEx for parsing ``cpu:25%`` or ``gpu:5.5GB`` ...
+CACHE_SIZE_REGEX = r"(\d+(\.\d+)?)\s*([A-Za-z%]+)"
+
+
 def is_cache_enabled(cache_config: str) -> bool:
     """Check if the cache is enabled.
 
     :param cache_config: Cache configuration defined on startup.
     :return: True if enabled, False otherwise. And size if enabled.
     """
-    if ":" in cache_config:
-        cache, _ = cache_config.split(":")
-        cache_status = cache.lower() == "true"
-    else:
-        cache_status = cache_config.lower() == "true"
-    return cache_status
+    return cache_config.lower() != "false"
 
 
 def start_cache(
@@ -71,8 +81,9 @@ def start_cache(
     :return: Shared memory manager, cache process, cache message queue and
              cache ids dictionary.
     """
-    main_memory_cache_size = get_cache_size(cache_config)
-    gpu_cache_size = get_gpu_cache_size(cache_config)
+    cache_config = cache_config.replace(" ", "").strip()
+    main_memory_cache_size = get_cache_size("cpu", cache_config)
+    gpu_cache_size = get_cache_size("gpu", cache_config)
     # Cache can be used - Create proxy dict
     cache_ids = create_proxy_dict()
     cache_hits = {}  # type: Dict[int, Dict[str, int]]
@@ -96,7 +107,7 @@ def start_cache(
         cache_process,
         in_cache_queue,
         out_cache_queue,
-    ) = create_cache_tracker_process("cache_tracker", conf)
+    ) = create_cache_manager_process(conf)
     return smm, cache_process, in_cache_queue, out_cache_queue, cache_ids
 
 
@@ -125,48 +136,33 @@ def stop_cache(
     CACHE_TRACKER.stop_shared_memory_manager(shared_memory_manager)
 
 
-def get_cache_size(cache_config: str) -> int:
-    """Retrieve the cache size for the given config.
+def get_cache_size(device: str, cache_config: str) -> Union[float, int]:
+    """Retrieve the CPU/GPU Cache size for the given config.
 
+    :param device: `cpu` or `gpu`.
     :param cache_config: Cache configuration defined on startup.
     :return: The cache size.
     """
-    if ":" in cache_config:
-        _, cache_s = cache_config.split(":")
-        cache_size = int(cache_s)
+    pattern = device + ":" + CACHE_SIZE_REGEX
+
+    matches = re.findall(pattern, cache_config)
+
+    if not matches:
+        cache_size = 0.25  # Default value 25% of node memory
     else:
-        cache_size = get_default_cache_size()
+        num, _, unit = matches[0]
+        num = float(num)
+        if unit == "%":
+            num = num / 100
+        else:
+            num = size_units[unit.upper()] * num
+        cache_size = num
+
     return cache_size
 
 
-def get_gpu_cache_size(cache_config: str) -> int:
-    """Retrieve the cache size in the GPU for the given config.
-
-    :param cache_config: Cache configuration defined on startup.
-    :return: GPU cache size.
-    """
-    # TODO: why this number?
-    return 2999238656
-
-
-def get_default_cache_size() -> int:
-    """Return the default cache size.
-
-    :return: The size in bytes.
-    """
-    # Default cache_size (bytes) = total_memory (bytes) / 4
-    with open("/proc/meminfo") as meminfo_fd:
-        full_meminfo = meminfo_fd.readlines()
-
-    mem_info = dict(
-        (i.split()[0].rstrip(":"), int(i.split()[1])) for i in full_meminfo
-    )
-    cache_size = int(mem_info["MemTotal"] * 1024 / 4)
-    return cache_size
-
-
-def create_cache_tracker_process(
-    process_name: str, conf: CacheTrackerConf
+def create_cache_manager_process(
+    conf: CacheTrackerConf,
 ) -> typing.Tuple[Process, Queue, Queue]:
     """Start a new cache tracker process.
 

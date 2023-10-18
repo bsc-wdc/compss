@@ -79,8 +79,13 @@ except ImportError:
     NUMPY_AVAILABLE = False
 
 
-CUPY_AVAILABLE = False
-SET_CUPY = False
+try:
+    import cupy
+
+    CUPY_AVAILABLE = True
+except ImportError:
+    CUPY_AVAILABLE = False
+
 
 try:
     import pyarrow
@@ -111,7 +116,8 @@ if PYARROW_AVAILABLE:
 LIB2IDX[json] = 4
 if EDDL_AVAILABLE:
     LIB2IDX[eddlNet] = 5
-# NUMBER '6' RESERVERD FOR CUPY (see set_cupy())
+if CUPY_AVAILABLE:
+    LIB2IDX[cupy] = 6
 # IDX2LIB contains as key the integer and the value its associated serializer
 IDX2LIB = dict(
     ((v, k) for (k, v) in LIB2IDX.items())
@@ -154,8 +160,6 @@ def get_serializer_priority(
     :param logger: Logger to output the serialization messages.
     :return: <List> The serializers sorted by priority in descending order.
     """
-    set_cupy(logger)
-
     if __debug__:
         logger.debug(
             "Get serializer priority for object of type: %s" % str(type(obj))
@@ -172,8 +176,6 @@ def get_serializer_priority(
     if object_belongs_to_module(obj, "numpy") and NUMPY_AVAILABLE:
         return [numpy] + serializers
     if object_belongs_to_module(obj, "cupy") and CUPY_AVAILABLE:
-        import cupy
-
         return [cupy] + serializers
     if object_belongs_to_module(obj, "pyarrow") and PYARROW_AVAILABLE:
         return [pyarrow] + serializers
@@ -197,8 +199,6 @@ def serialize_to_handler(
     :raises SerializerException: If something wrong happens during
                                  serialization.
     """
-    set_cupy(logger)
-
     emit_manual_event_explicit(
         TRACING_MASTER.binding_serialization_size_type, 0
     )
@@ -250,16 +250,17 @@ def serialize_to_handler(
         # General case
         else:
             try:
-                if CUPY_AVAILABLE:
-                    import cupy
-
-                    if serializer is cupy and isinstance(obj, cupy.ndarray):
-                        if __debug__:
-                            logger.debug("Serializing using cupy...")
-                        serializer.save(handler, obj, allow_pickle=False)
-                        if __debug__:
-                            logger.debug("Serializing using cupy success")
                 if (
+                    CUPY_AVAILABLE
+                    and serializer is cupy
+                    and isinstance(obj, cupy.ndarray)
+                ):
+                    if __debug__:
+                        logger.debug("Serializing using cupy...")
+                    serializer.save(handler, obj, allow_pickle=False)
+                    if __debug__:
+                        logger.debug("Serializing using cupy success")
+                elif (
                     NUMPY_AVAILABLE
                     and serializer is numpy
                     and isinstance(obj, (numpy.ndarray, numpy.matrix))
@@ -437,8 +438,6 @@ def deserialize_from_handler(
     :return: The object and if the handler has to be closed.
     :raises SerializerException: If deserialization can not be done.
     """
-    set_cupy(logger)
-
     # Retrieve the used library (if possible)
     emit_manual_event_explicit(
         TRACING_MASTER.binding_deserialization_size_type, 0
@@ -472,17 +471,12 @@ def deserialize_from_handler(
         if DISABLE_GC:
             # Disable the garbage collector while serializing -> performance?
             gc.disable()
-        if CUPY_AVAILABLE:
-            import cupy
-
+        if CUPY_AVAILABLE and serializer is cupy:
             if __debug__:
                 logger.debug("Cupy available")
-            if serializer is cupy:
-                if __debug__:
-                    logger.debug("Deserializing using cupy")
-                cupy.get_default_memory_pool().free_all_blocks()
-                ret = serializer.load(handler, allow_pickle=False)
-        if NUMPY_AVAILABLE and serializer is numpy:
+                logger.debug("Deserializing using cupy")
+            ret = serializer.load(handler, allow_pickle=False)
+        elif NUMPY_AVAILABLE and serializer is numpy:
             if __debug__:
                 logger.debug("Numpy available")
                 logger.debug("Deserializing using numpy")
@@ -621,34 +615,3 @@ def serialize_objects(to_serialize: list, logger: logging.Logger) -> None:
     """
     for obj, file in to_serialize:
         serialize_to_file(obj, file, logger)
-
-
-def set_cupy(logger: logging.Logger):
-    """Add cupy to the serialization list if it is available.
-
-    :param logger: Logger to output the cupy setting.
-    :return: None.
-    """
-    global CUPY_AVAILABLE
-    global IDX2LIB
-    global SET_CUPY
-
-    if not SET_CUPY:
-        try:
-            import cupy
-
-            CUPY_AVAILABLE = True
-        except ImportError:
-            CUPY_AVAILABLE = False
-
-        if CUPY_AVAILABLE:
-            LIB2IDX[cupy] = 6
-            IDX2LIB = dict(((v, k) for (k, v) in LIB2IDX.items()))
-
-            if __debug__:
-                logger.debug("Added Cupy serializer")
-        else:
-            if __debug__:
-                logger.debug("Can NOT add Cupy serializer")
-
-        SET_CUPY = True

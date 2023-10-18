@@ -25,6 +25,7 @@ This file contains the task core functions when acting as worker.
 
 import gc
 import os
+import re
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import wait
@@ -296,7 +297,7 @@ class TaskWorker:
                     self.cache.references = []  # loose all references
 
                 # Release memory after task execution
-                self.__release_memory__()
+                self.__release_memory__(user_returns)
 
                 if __debug__ and "COMPSS_WORKER_PROFILE_PATH" in os.environ:
                     self.__report_heap__()
@@ -312,7 +313,7 @@ class TaskWorker:
         )
 
     @staticmethod
-    def __release_memory__() -> None:
+    def __release_memory__(user_returns) -> None:
         """Release memory after task execution explicitly.
 
         :return: None.
@@ -330,6 +331,16 @@ class TaskWorker:
         except Exception:  # pylint: disable=broad-except
             if __debug__:
                 LOGGER.warning("Could NOT deallocate memory.")
+
+        try:
+            import cupy
+
+            if user_returns is not None:
+                for obj in user_returns:
+                    if isinstance(obj, cupy.ndarray):
+                        obj.data.mem.free()
+        except ImportError:
+            pass
 
     @staticmethod
     def __report_heap__() -> None:
@@ -863,6 +874,20 @@ class TaskWorker:
         name = argument.name
         original_path = argument.file_name.original_path
 
+        if is_vararg(name):
+            param_name = name
+        else:
+            regex_param_name = r"(?:@|^)([a-zA-Z_]\w*)(?=\.\d+|$)"
+            match = re.match(regex_param_name, name)
+            if match:
+                param_name = match.group(1)
+            else:
+                if __debug__:
+                    LOGGER.debug(
+                        "\t\t - Couldn't extract param name '%s'", str(name)
+                    )
+                param_name = name
+
         # Check if cache is available
         cache = (
             self.cache.in_queue is not None
@@ -875,9 +900,11 @@ class TaskWorker:
             # stored in cache explicitly
             if (
                 not self.cache.profiler
-                and name in self.decorator_arguments.parameters
+                and param_name in self.decorator_arguments.parameters
             ):
-                use_cache = self.decorator_arguments.parameters[name].cache
+                use_cache = self.decorator_arguments.parameters[
+                    param_name
+                ].cache
             else:
                 if is_vararg(name):
                     vararg_name = get_name_from_vararg(name)
@@ -1827,7 +1854,6 @@ def clean_cupy_env():
     try:
         import cupy
 
-        cupy.get_default_memory_pool().free_all_blocks()
         CACHE_TRACKER.close_cupy_mem_handles()
     except ImportError:
         pass

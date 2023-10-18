@@ -49,15 +49,42 @@ except ImportError:
     ShareableList = None  # type: ignore
     SharedMemoryManager = None  # type: ignore
 
+
+# Supported shared objects (remind that nested lists are not supported).
+SHARED_MEMORY_TAG = "SharedMemory"
+SHARED_MEMORY_CUPY_TAG = "SharedCupyCudaMemory"
+SHAREABLE_LIST_TAG = "ShareableList"
+SHAREABLE_TUPLE_TAG = "ShareableTuple"
+SHARED_MEMORY_TORCH_TAG = "SharedTorchCudaMemory"
+
 # Try to import numpy
 NP = None  # type: typing.Any
 CP = None  # type: typing.Any
+TORCH = None  # type: typing.Any
 try:
     import numpy  # noqa
 
     NP = numpy
 except ImportError:
     print("WARNING: Import ERROR importing Numpy")
+
+
+def __set_cuda_libs__():
+    global TORCH
+    try:
+        import torch  # noqa
+
+        TORCH = torch
+    except ImportError:
+        pass
+
+    global CP
+    try:
+        import cupy
+
+        CP = cupy
+    except ImportError:
+        pass
 
 
 class SharedMemoryConfig:
@@ -116,8 +143,8 @@ class CacheTrackerConf:
     def __init__(
         self,
         logger: logging.Logger,
-        size: int,
-        gpu_cache_size: int,
+        size: Union[float, int],
+        gpu_cache_size: Union[float, int],
         policy: str,
         cache_ids: DictProxy,
         cache_hits: typing.Dict[int, typing.Dict[str, int]],
@@ -166,10 +193,6 @@ class CacheTracker:
     __slots__ = [
         "header",
         "shared_memory_manager",
-        "shared_memory_tag",
-        "shared_cupy_tag",
-        "shareable_list_tag",
-        "shareable_tuple_tag",
         "config",
         "cupy_handlers",
         "lock",
@@ -180,11 +203,6 @@ class CacheTracker:
         self.header = "[PYTHON CACHE TRACKER]"
         # Shared memory manager to connect.
         self.shared_memory_manager = None  # type: typing.Any
-        # Supported shared objects (remind that nested lists are not supported)
-        self.shared_memory_tag = "SharedMemory"
-        self.shared_cupy_tag = "SharedCupyMemory"
-        self.shareable_list_tag = "ShareableList"
-        self.shareable_tuple_tag = "ShareableTuple"
         # Configuration
         self.config = SharedMemoryConfig()
         # Others
@@ -236,7 +254,7 @@ class CacheTracker:
         """
         smm.shutdown()
 
-    def get_shared_numpy(self, obj_id, obj_shape: typing.Tuple, obj_d_type):
+    def __get_shared_numpy(self, obj_id, obj_shape: typing.Tuple, obj_d_type):
         """Get shared numpy array.
 
         :param obj_id: Object identifier.
@@ -253,7 +271,7 @@ class CacheTracker:
         object_size = len(existing_shm.buf)
         return existing_shm, output, object_size
 
-    def get_shared_cupy(self, obj_id, obj_shape: typing.Tuple, obj_d_type):
+    def __get_shared_cupy(self, obj_id, obj_shape: typing.Tuple, obj_d_type):
         """Get shared cupy array.
 
         :param obj_id: Object identifier.
@@ -261,14 +279,6 @@ class CacheTracker:
         :param obj_d_type: Cupy array dtype.
         :return: None, cupy array and its size.
         """
-        global CP
-        try:
-            import cupy
-
-            CP = cupy
-        except ImportError:
-            pass
-
         if obj_id in self.cupy_handlers:
             array_open = self.cupy_handlers[obj_id]
         else:
@@ -283,11 +293,11 @@ class CacheTracker:
 
         return None, output, output.nbytes
 
-    def get_shared_list(self, obj_id, i_type):
+    def __get_shared_list(self, obj_id, i_type):
         """Get iterable object.
 
         :param obj_id: Object identifier.
-        :param i_type: Object type (can be typle or list).
+        :param i_type: Object type (can be tuple or list).
         :return: Shared memory segment, iterable object and its size.
         """
         existing_shm = ShareableList(name=obj_id)
@@ -327,6 +337,8 @@ class CacheTracker:
         :param cache_profiler: If cache profiling is enabled.
         :return: The object from cache.
         """
+        __set_cuda_libs__()
+
         emit_manual_event_explicit(
             TRACING_WORKER.deserialization_cache_size_type, 0
         )
@@ -338,32 +350,40 @@ class CacheTracker:
         existing_shm = None  # type: typing.Any
         object_size = 0
 
-        if shared_type == self.shared_memory_tag:
+        if shared_type == SHARED_MEMORY_TAG:
             with EventInsideWorker(
                 TRACING_WORKER.retrieve_object_from_cache_event
             ):
-                existing_shm, output, object_size = self.get_shared_numpy(
+                existing_shm, output, object_size = self.__get_shared_numpy(
                     obj_id, obj_shape, obj_d_type
                 )
-        elif shared_type == self.shared_cupy_tag:
+        elif shared_type == SHARED_MEMORY_TORCH_TAG:
             with EventInsideWorker(
                 TRACING_WORKER.retrieve_object_from_gpu_cache_event
             ):
-                existing_shm, output, object_size = self.get_shared_cupy(
+                existing_shm, output, object_size = self.__get_shared_cupy(
                     obj_id, obj_shape, obj_d_type
                 )
-        elif shared_type == self.shareable_list_tag:
+                output = TORCH.as_tensor(output, device="cuda")
+        elif shared_type == SHARED_MEMORY_CUPY_TAG:
+            with EventInsideWorker(
+                TRACING_WORKER.retrieve_object_from_gpu_cache_event
+            ):
+                existing_shm, output, object_size = self.__get_shared_cupy(
+                    obj_id, obj_shape, obj_d_type
+                )
+        elif shared_type == SHAREABLE_LIST_TAG:
             with EventInsideWorker(
                 TRACING_WORKER.retrieve_object_from_cache_event
             ):
-                existing_shm, output, object_size = self.get_shared_list(
+                existing_shm, output, object_size = self.__get_shared_list(
                     obj_id, list
                 )
-        elif shared_type == self.shareable_tuple_tag:
+        elif shared_type == SHAREABLE_TUPLE_TAG:
             with EventInsideWorker(
                 TRACING_WORKER.retrieve_object_from_cache_event
             ):
-                existing_shm, output, object_size = self.get_shared_list(
+                existing_shm, output, object_size = self.__get_shared_list(
                     obj_id, tuple
                 )
         else:
@@ -377,8 +397,8 @@ class CacheTracker:
         )
 
         # Profiling
-        filename = get_file_name_clean(identifier)
-        function_name = function_clean(user_function)
+        filename = get_file_name_clean(f_name)
+        function_name = __function_clean__(user_function)
 
         message = CacheQueueMessage(
             action="GET", messages=[filename, parameter_name, function_name]
@@ -408,14 +428,7 @@ class CacheTracker:
         :param user_function: Function.
         :return: None.
         """
-        global CP
-
-        try:
-            import cupy
-
-            CP = cupy
-        except ImportError:
-            print("WARNING: CUPY import ERROR")
+        __set_cuda_libs__()
 
         if (
             NP
@@ -427,6 +440,11 @@ class CacheTracker:
                     CP
                     and isinstance(obj, CP.ndarray)
                     and not obj.dtype == object
+                )
+                or (
+                    TORCH
+                    and isinstance(obj, TORCH.Tensor)
+                    and obj.device.type == "cuda"
                 )
                 or isinstance(obj, (list, tuple))
             )
@@ -441,17 +459,9 @@ class CacheTracker:
                 user_function,
             )
 
-    def insert_numpy_cache(
+    def __insert_numpy_cache(
         self, obj, f_name, parameter, function, in_cache_queue
     ):
-        """Insert numpy array into cache.
-
-        :param f_name: File name that corresponds to the object (used as id).
-        :param parameter: Parameter name.
-        :param function: Function.
-        :param in_cache_queue: Cache notification input queue.
-        :return: Size and identifier.
-        """
         emit_manual_event_explicit(
             TRACING_WORKER.serialization_cache_size_type, 0
         )
@@ -474,7 +484,7 @@ class CacheTracker:
                     messages=[
                         f_name,
                         new_cache_id,
-                        self.shared_memory_tag,
+                        SHARED_MEMORY_TAG,
                         parameter,
                         function,
                     ],
@@ -486,20 +496,24 @@ class CacheTracker:
 
         return size, new_cache_id
 
-    def insert_cupy_cache(
+    def __insert_cupy_cache(
         self,
         obj,
         f_name,
         parameter,
         function,
+        shared_tag,
         in_cache_queue: Queue,
+        out_cache_queue: Queue,
     ):
         """Insert cupy array into cache.
 
         :param f_name: File name that corresponds to the object (used as id).
         :param parameter: Parameter name.
         :param function: Function.
+        :param shared_tag: Tag of the object (CUPY or TORCH)
         :param in_cache_queue: Cache notification input queue.
+        :param out_cache_queue: Cache notification output queue.
         :return: Size and identifier.
         """
         emit_manual_event_explicit(
@@ -522,7 +536,7 @@ class CacheTracker:
                     messages=[
                         f_name,
                         new_cache_id.decode("ascii"),
-                        self.shared_cupy_tag,
+                        shared_tag,
                         parameter,
                         function,
                         obj.device.pci_bus_id,
@@ -532,17 +546,17 @@ class CacheTracker:
                     shape=shape,
                 )
                 in_cache_queue.put(message)
-
+        out_cache_queue.get()
         return size, new_cache_id
 
-    def insert_iterable_cache(
+    def __insert_iterable_cache(
         self,
         obj: Union[list, tuple],
         f_name,
         parameter,
         function,
         in_cache_queue,
-        i_type,
+        type,
     ):
         """Insert iterable object into cache.
 
@@ -550,7 +564,7 @@ class CacheTracker:
         :param parameter: Parameter name.
         :param function: Function.
         :param in_cache_queue: Cache notification input queue.
-        :param i_type: Iterable type (can be list or tuple).
+        :param type: Iterable type (can be list or tuple).
         :return: Size and identifier.
         """
         size = total_sizeof(obj)
@@ -567,11 +581,10 @@ class CacheTracker:
                     obj
                 )  # noqa
                 new_cache_id = shareable_list.shm.name
-                tag = (
-                    self.shareable_list_tag
-                    if isinstance(obj, list)
-                    else self.shareable_tuple_tag
-                )
+                if isinstance(obj, list):
+                    tag = SHAREABLE_LIST_TAG
+                else:
+                    tag = SHAREABLE_TUPLE_TAG
                 message = CacheQueueMessage(
                     action="PUT",
                     messages=[
@@ -582,7 +595,7 @@ class CacheTracker:
                         function,
                     ],
                     size=size,
-                    d_type=i_type,
+                    d_type=type,
                     shape=(),  # only used with numpy
                 )
                 in_cache_queue.put(message)
@@ -610,16 +623,9 @@ class CacheTracker:
         :param user_function: Function.
         :return: None.
         """
-        global CP
+        __set_cuda_libs__()
 
-        try:
-            import cupy
-
-            CP = cupy
-        except ImportError:
-            print("WARNING: Import ERROR importing Cupy")
-
-        function = function_clean(user_function)
+        function = __function_clean__(user_function)
         f_name = get_file_name(f_name)
         # Exclusion in locking to avoid multiple insertions
         # If no lock is defined may lead to unstable behaviour.
@@ -665,19 +671,34 @@ class CacheTracker:
                 inserted = True
                 size = 0
                 if isinstance(obj, NP.ndarray):
-                    size, new_cache_id = self.insert_numpy_cache(
+                    size, new_cache_id = self.__insert_numpy_cache(
                         obj, f_name, parameter, function, in_cache_queue
                     )
+                elif TORCH and isinstance(obj, TORCH.Tensor) and CP:
+                    cupy_tensor = CP.asarray(obj)
+                    shared_tag = SHARED_MEMORY_TORCH_TAG
+                    size, new_cache_id = self.__insert_cupy_cache(
+                        cupy_tensor,
+                        f_name,
+                        parameter,
+                        function,
+                        shared_tag,
+                        in_cache_queue,
+                        out_cache_queue,
+                    )
                 elif CP and isinstance(obj, CP.ndarray):
-                    size, new_cache_id = self.insert_cupy_cache(
+                    shared_tag = SHARED_MEMORY_CUPY_TAG
+                    size, new_cache_id = self.__insert_cupy_cache(
                         obj,
                         f_name,
                         parameter,
                         function,
+                        shared_tag,
                         in_cache_queue,
+                        out_cache_queue,
                     )
                 elif isinstance(obj, list) or isinstance(obj, tuple):
-                    size, new_cache_id = self.insert_iterable_cache(
+                    size, new_cache_id = self.__insert_iterable_cache(
                         obj,
                         f_name,
                         parameter,
@@ -721,7 +742,7 @@ class CacheTracker:
             message = CacheQueueMessage(action="UNLOCK", messages=[f_name])
             in_cache_queue.put(message)
 
-    def remove_object_from_cache(
+    def __remove_object_from_cache(
         self,
         logger: logging.Logger,
         in_cache_queue: Queue,
@@ -775,10 +796,10 @@ class CacheTracker:
             logger.debug(
                 "%s Replacing from cache: %s", self.header, str(f_name)
             )
-        self.remove_object_from_cache(
+        self.__remove_object_from_cache(
             logger, in_cache_queue, out_cache_queue, f_name
         )
-        self.insert_object_into_cache(
+        self.__insert_object_into_cache(
             logger,
             in_cache_queue,
             out_cache_queue,
@@ -805,19 +826,17 @@ class CacheTracker:
         # It can be checked if it is locked and wait for it to be unlocked
         if cache:
             f_name = get_file_name(f_name)
+            if __debug__:
+                logger.debug("%s Is in cache? %s", self.header, str(f_name))
 
             if f_name in cache:
                 obj_id, _, _, _, _, shared_type = cache[f_name]
-                if __debug__:
-                    logger.debug(
-                        "%s Is in cache? %s", self.header, str(f_name)
-                    )
 
-                if shared_type == self.shared_cupy_tag:
+                if shared_type == SHARED_MEMORY_CUPY_TAG:
                     with EventInsideWorker(
                         TRACING_WORKER.check_access_gpu_event
                     ):
-                        is_in_gpu = self.check_cupy_access(obj_id)
+                        is_in_gpu = self.__check_cupy_access__(logger, obj_id)
                     if is_in_gpu:
                         event = EventInsideWorker(
                             TRACING_WORKER.cache_hit_gpu_event
@@ -832,7 +851,7 @@ class CacheTracker:
 
         return False
 
-    def check_cupy_access(self, obj_id):
+    def __check_cupy_access__(self, logger, obj_id):
         """Check if object accessible by cupy.
 
         Check if current GPU has access to the memory of the gpu where the
@@ -849,7 +868,10 @@ class CacheTracker:
             array_open = cupy.cuda.runtime.ipcOpenMemHandle(handler)
             cupy.cuda.runtime.ipcCloseMemHandle(array_open)
             return True
-        except CUDARuntimeError:
+        except CUDARuntimeError as e:
+            logger.debug(
+                "%s CHECK CUPY ACCESS CUDARuntimeError %s", self.header, str(e)
+            )
             return False
 
 
@@ -876,7 +898,7 @@ def get_file_name_clean(f_name: str) -> str:
     return f_name.rsplit("/", 1)[-1]
 
 
-def function_clean(function: typing.Callable) -> str:
+def __function_clean__(function: typing.Callable) -> str:
     """Retrieve the clean function name.
 
     :param function: Function.

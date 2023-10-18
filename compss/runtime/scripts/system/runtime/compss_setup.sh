@@ -585,6 +585,8 @@ start_compss_app() {
     exec_c
   elif [ "${lang}" == "python" ]; then
     exec_python
+  elif [ "${lang}" == "r"]; then
+  | exec_r
   fi
 
   # End
@@ -668,7 +670,20 @@ exec_python() {
 
   if [ $endCode -ne 0 ]; then
     fatal_error "${RUNTIME_ERROR}" ${endCode}
+  fi 
+}
+
+exec_r(){
+  # Launch application
+  start_tracing
+  R "${fullAppPath}" ${application_args}
+  endCode=$?
+  stop_tracing
+
+  if [ $endCode -ne 0 ]; then
+    fatal_error "${RUNTIME_ERROR}" ${endCode}
   fi
+
 }
 
 #----------------------------------------------

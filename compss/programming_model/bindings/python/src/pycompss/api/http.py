@@ -30,6 +30,7 @@ from pycompss.util.context import CONTEXT
 from pycompss.api.commons.constants import LABELS
 from pycompss.api.commons.decorator import CORE_ELEMENT_KEY
 from pycompss.api.commons.decorator import keep_arguments
+from pycompss.api.commons.implementation_types import IMPLEMENTATION_TYPES
 from pycompss.runtime.task.definitions.core_element import CE
 from pycompss.util.arguments import check_arguments
 from pycompss.util.serialization import serializer
@@ -144,7 +145,7 @@ class HTTP:  # pylint: disable=too-few-public-methods
         """
         if __debug__:
             logger.debug("Configuring @http core element.")
-        impl_type = "HTTP"
+        impl_type = IMPLEMENTATION_TYPES.http
         impl_args = [
             self.kwargs["service_name"],
             self.kwargs["resource"],

@@ -41,6 +41,7 @@ class _ImplementationTypes:  # pylint: disable=R0903,R0902
         "ompss",
         "opencl",
         "python_mpi",
+        "http",
     ]
 
     def __init__(self) -> None:
@@ -56,6 +57,7 @@ class _ImplementationTypes:  # pylint: disable=R0903,R0902
         self.ompss = "OMPSS"
         self.opencl = "OPENCL"
         self.python_mpi = "PYTHON_MPI"
+        self.http = "HTTP"
 
 
 IMPLEMENTATION_TYPES = _ImplementationTypes()

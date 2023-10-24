@@ -375,7 +375,10 @@ class TaskMaster:
                         self.decorated_function.function_type
                         == FunctionType.INSTANCE_METHOD
                     )
-                    is_http = self.core_element.get_impl_type() == "HTTP"
+                    is_http = (
+                        self.core_element.get_impl_type()
+                        == IMPLEMENTATION_TYPES.http
+                    )
 
                 # Process the parameters, give them a proper direction
                 with EventMaster(TRACING_MASTER.process_parameters):

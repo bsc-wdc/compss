@@ -841,6 +841,7 @@ public class Agent {
                 ErrorManager.warn("Unexpected format for agent config: " + arg);
             }
         }
+        start();
 
         for (AgentInterfaceConfig agent : agents) {
             try {
@@ -851,8 +852,8 @@ public class Agent {
         }
         if (INTERFACES.isEmpty()) {
             ErrorManager.fatal("Could not start any interface");
+            stop();
         }
-        start();
     }
 
     /**

@@ -32,6 +32,7 @@ import traceback
 import importlib
 
 from pycompss.api import parameter
+from pycompss.api.commons.data_type import DataType
 from pycompss.api.exceptions import COMPSsException
 from pycompss.runtime.commons import CONSTANTS
 from pycompss.runtime.task.parameter import COMPSsFile
@@ -315,6 +316,7 @@ def task_execution(
     compss_kwargs: dict,
     persistent_storage: bool,
     storage_conf: str,
+    is_interactive: bool,
 ) -> typing.Tuple[int, list, list, typing.Optional[str], bool, str]:
     """Execute task.
 
@@ -333,13 +335,14 @@ def task_execution(
     """
     if __debug__:
         logger.debug("Starting task execution")
-        logger.debug("module     : %s ", str(module))
-        logger.debug("method_name: %s ", str(method_name))
-        logger.debug("time_out   : %s ", str(time_out))
-        logger.debug("Types      : %s ", str(types))
-        logger.debug("Values     : %s ", str(values))
-        logger.debug("P. storage : %s ", str(persistent_storage))
-        logger.debug("Storage cfg: %s ", str(storage_conf))
+        logger.debug("module        : %s ", str(module))
+        logger.debug("method_name   : %s ", str(method_name))
+        logger.debug("time_out      : %s ", str(time_out))
+        logger.debug("Types         : %s ", str(types))
+        logger.debug("Values        : %s ", str(values))
+        logger.debug("P. storage    : %s ", str(persistent_storage))
+        logger.debug("Storage cfg   : %s ", str(storage_conf))
+        logger.debug("Is interactive: %s ", str(is_interactive))
 
     if persistent_storage:
         # TODO: Fix the values information.
@@ -435,6 +438,11 @@ def task_execution(
         task_context.values = updated_args
         task_context.__exit__(*sys.exc_info())  # noqa
         del task_context
+
+    if is_interactive:
+        # Add to new_types and new_values the source file that was removed
+        new_types.insert(0, DataType.FILE)
+        new_values.insert(0, "null")
 
     # Clean objects
     del updated_args
@@ -586,10 +594,12 @@ def execute_task(
     # Check if received the interactive source file as parameter
     # and pop it from args.
     compss_interactive_source_file = ""
+    is_interactive = False
     if num_params > 0 and CONSTANTS.compss_interactive_source_file in args[3]:
         compss_interactive_source_file = args[5].split(":")[0]
         args = args[6:]
         num_params -= 1
+        is_interactive = True
 
     # COMPSs keywords for tasks (ie: tracing, process name...)
     # compss_key is included to be checked in the @task decorator, so that
@@ -635,6 +645,7 @@ def execute_task(
         logger.debug("\t- Return Length: %s", str(return_length))
         logger.debug("\t- Args: %r", args)
         logger.debug("\t- COMPSs kwargs:")
+        logger.debug("\t- Is interactive: %s", str(is_interactive))
         logger.debug(
             "\t- Interactive source: %s", str(compss_interactive_source_file)
         )
@@ -666,7 +677,7 @@ def execute_task(
     if __debug__:
         logger.debug("LOAD TASK:")
     # Add dynamically source path to sys if received interactive source file
-    if compss_interactive_source_file != "":
+    if is_interactive:
         interactive_source_path = os.path.dirname(
             compss_interactive_source_file
         )
@@ -704,6 +715,7 @@ def execute_task(
             compss_kwargs,
             persistent_storage,
             storage_conf,
+            is_interactive,
         )
         exit_code = result[0]
         new_types = result[1]
@@ -807,6 +819,7 @@ def execute_task(
                 compss_kwargs,
                 persistent_storage,
                 storage_conf,
+                is_interactive,
             )
             exit_code = result[0]
             new_types = result[1]
@@ -869,6 +882,7 @@ def execute_task(
                 compss_kwargs,
                 persistent_storage,
                 storage_conf,
+                is_interactive,
             )
             exit_code = result[0]
             new_types = result[1]
@@ -880,7 +894,7 @@ def execute_task(
     # Clean
     if __debug__:
         logger.debug("CLEAN TASK:")
-    if compss_interactive_source_file != "":
+    if is_interactive:
         # Remove the interactive path from sys.path (last element)
         last_elem = sys.path.pop()
         if __debug__:

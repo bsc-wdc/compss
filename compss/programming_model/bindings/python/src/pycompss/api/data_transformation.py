@@ -295,7 +295,7 @@ class DataTransformation:  # pylint: disable=R0902,R0903
 def _replace_func_kwargs(dt_f_kwargs, f_kwargs, f_args, f):
     for key, value in dt_f_kwargs.items():
         if (
-            type(value) == str
+            isinstance(value, str)
             and value.startswith("{{")
             and value.endswith("}}")
         ):

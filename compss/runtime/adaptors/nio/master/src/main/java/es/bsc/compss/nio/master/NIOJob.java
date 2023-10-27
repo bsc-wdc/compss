@@ -91,7 +91,7 @@ public class NIOJob extends JobImpl<NIOWorkerNode> {
      *
      * @return The new task for the current job.
      */
-    public NIOTask prepareJob() {
+    public NIOTask createNIOTask() {
         AbstractMethodImplementation absMethodImpl = (AbstractMethodImplementation) this.impl;
 
         // If it is a native method, check that methodname is defined (otherwise define it from job parameters)

@@ -87,7 +87,7 @@ class CommAgentJob extends NIOJob {
     }
 
     @Override
-    public CommTask prepareJob() {
+    public CommTask createNIOTask() {
         AbstractMethodImplementation absMethodImpl = (AbstractMethodImplementation) this.impl;
 
         // If it is a native method, check that methodname is defined (otherwise define it from job parameters)

@@ -799,7 +799,7 @@ public class NIOWorkerNode extends COMPSsWorker {
         if (node == null) {
             throw new UnstartedNodeException();
         }
-        NIOTask t = job.prepareJob();
+        NIOTask t = job.createNIOTask();
         CommandNewTask cmd = new CommandNewTask(t, obsolete);
         Connection c = NIOAgent.getTransferManager().startConnection(node);
         NIOAgent.registerOngoingCommand(c, cmd);

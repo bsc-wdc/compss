@@ -212,7 +212,7 @@ def get_main_entities(wf_info: dict) -> typing.Tuple[str, str, str]:
         else:
             yaml_sources_list.append(wf_info["sources_dir"])
 
-    if not ("sources" or "files" or "sources_dir") in wf_info:
+    if "sources" and "files" and "sources_dir" not in wf_info:
         # If no sources are defined, define automatically the main_entity or return error
         # We try directly to add the mainEntity identified in dataprovenance.log, if exists in the CWD
         with open(DP_LOG, "r", encoding="UTF-8") as dp_file:
@@ -226,7 +226,7 @@ def get_main_entities(wf_info: dict) -> typing.Tuple[str, str, str]:
                 # Translate identified main entity matmul.files.Matmul to a comparable path
                 me_file_name = second_line.split(".")[-1]
                 detected_app = me_file_name + ".java"
-            # print(f"PROVENANCE DEBUG | Detected app when no 'sources' defined is: {detected_app}")
+            print(f"PROVENANCE DEBUG | Detected app when no 'sources' defined is: {detected_app}")
             third_line = next(dp_file).rstrip()
             out_profile_fn = Path(third_line)
         if os.path.isfile(detected_app):

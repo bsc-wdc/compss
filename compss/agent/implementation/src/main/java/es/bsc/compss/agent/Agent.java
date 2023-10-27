@@ -26,6 +26,7 @@ import es.bsc.compss.agent.types.PrivateRemoteDataLocation;
 import es.bsc.compss.agent.types.RemoteDataInformation;
 import es.bsc.compss.agent.types.RemoteDataLocation;
 import es.bsc.compss.agent.types.Resource;
+import es.bsc.compss.agent.types.SharedRemoteDataLocation;
 import es.bsc.compss.api.impl.COMPSsRuntimeImpl;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.CommException;
@@ -41,6 +42,7 @@ import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.location.DataLocation;
+import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.resources.DynamicMethodWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Worker;
@@ -607,31 +609,41 @@ public class Agent {
         LinkedList<DataLocation> locations = new LinkedList<>();
         for (RemoteDataLocation loc : remote.getSources()) {
             if (loc != null) {
-                if (loc.getType() == RemoteDataLocation.Type.SHARED) {
-                    System.out.println("WARN: SHARED LOCATIONS ARE NOT YET SUPPORTED. IGNORING LOCATION");
-                    new Exception().printStackTrace(System.out);
-                    continue;
-                }
-
-                PrivateRemoteDataLocation ploc = (PrivateRemoteDataLocation) loc;
                 try {
-                    String path = ploc.getPath();
-                    SimpleURI uri = new SimpleURI(path);
-
-                    Resource<?, ?> r = ploc.getResource();
-                    if (r != null) {
-                        es.bsc.compss.types.resources.Resource host = getNodeForResource(r);
-                        if (host == Comm.getAppHost()) {
-                            String name = uri.getPath();
-                            LogicalData localData = Comm.getData(name);
-                            if (localData != null) {
-                                otherDataNameInLocal = name;
-                                addedSources++;
-                                continue;
+                    DataLocation dl = null;
+                    if (loc.getType() == RemoteDataLocation.Type.SHARED) {
+                        SharedRemoteDataLocation sloc = (SharedRemoteDataLocation) loc;
+                        String diskName = sloc.getDiskName();
+                        String pathOnDisk = sloc.getPathOnDisk();
+                        for (SharedRemoteDataLocation.Mountpoint mp : sloc.getMountpoints()) {
+                            Resource<?, ?> r = mp.getResource();
+                            es.bsc.compss.types.resources.Resource host = getNodeForResource(r);
+                            host.addSharedDisk(diskName, mp.getPath());
+                        }
+                        String sPath = ProtocolType.SHARED_URI.getSchema() + diskName + File.separator + pathOnDisk;
+                        SimpleURI resultURI = new SimpleURI(sPath);
+                        dl = DataLocation.createLocation(null, resultURI);
+                    } else {
+                        PrivateRemoteDataLocation ploc = (PrivateRemoteDataLocation) loc;
+                        String path = ploc.getPath();
+                        SimpleURI uri = new SimpleURI(path);
+                        Resource<?, ?> r = ploc.getResource();
+                        if (r != null) {
+                            es.bsc.compss.types.resources.Resource host = getNodeForResource(r);
+                            if (host == Comm.getAppHost()) {
+                                String name = uri.getPath();
+                                LogicalData localData = Comm.getData(name);
+                                if (localData != null) {
+                                    otherDataNameInLocal = name;
+                                    addedSources++;
+                                    continue;
+                                }
                             }
+                            dl = DataLocation.createLocation(host, uri);
                         }
 
-                        DataLocation dl = DataLocation.createLocation(host, uri);
+                    }
+                    if (dl != null) {
                         locations.add(dl);
                     }
                 } catch (AgentException | IOException e) {

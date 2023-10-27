@@ -182,7 +182,7 @@ public class CommAgentWorker extends NIOWorkerNode {
                 localLocations = new ArrayList<>();
                 try {
                     for (String alias : ld.getKnownAlias()) {
-                        localLocations.add(new PrivateRemoteDataLocation(null, alias));
+                        localLocations.add(new PrivateRemoteDataLocation(CommAgentAdaptor.LOCAL_RESOURCE, alias));
                     }
                 } catch (ConcurrentModificationException cme) {
                     LOGGER.warn("Logical data was modified while constructing it's remote data location"
@@ -200,10 +200,14 @@ public class CommAgentWorker extends NIOWorkerNode {
             case PRIVATE:
                 if (!isLocal) {
                     for (MultiURI uri : loc.getURIs()) {
-                        es.bsc.compss.agent.types.Resource<?, ?> hostResource =
-                            createRemoteResourceFromResource(uri.getHost());
+                        es.bsc.compss.agent.types.Resource<?, ?> hostResource;
+                        if (uri.getHost() == Comm.getAppHost()) {
+                            hostResource = CommAgentAdaptor.LOCAL_RESOURCE;
+                        } else {
+                            hostResource = createRemoteResourceFromResource(uri.getHost());
+                        }
+                        String pathInHost = uri.getPath();
                         if (hostResource != null) {
-                            String pathInHost = uri.getPath();
                             rdl = new PrivateRemoteDataLocation(hostResource, pathInHost);
                         }
                     }
@@ -217,7 +221,13 @@ public class CommAgentWorker extends NIOWorkerNode {
                 srdlMountpoints = new SharedRemoteDataLocation.Mountpoint[sdMountpoints.size()];
                 int i = 0;
                 for (Map.Entry<es.bsc.compss.types.resources.Resource, String> sdMp : sdMountpoints.entrySet()) {
-                    es.bsc.compss.agent.types.Resource r = createRemoteResourceFromResource(sdMp.getKey());
+                    es.bsc.compss.types.resources.Resource host = sdMp.getKey();
+                    es.bsc.compss.agent.types.Resource r;
+                    if (host == Comm.getAppHost()) {
+                        r = CommAgentAdaptor.LOCAL_RESOURCE;
+                    } else {
+                        r = createRemoteResourceFromResource(host);
+                    }
                     String mountpoint = sdMp.getValue();
                     srdlMountpoints[i++] = new SharedRemoteDataLocation.Mountpoint(r, mountpoint);
                 }

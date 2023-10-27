@@ -20,17 +20,23 @@ package es.bsc.compss.agent.comm;
 import es.bsc.comm.nio.NIONode;
 import es.bsc.compss.agent.comm.messages.types.CommResource;
 import es.bsc.compss.agent.types.PrivateRemoteDataLocation;
+import es.bsc.compss.agent.types.RemoteDataLocation;
+import es.bsc.compss.agent.types.SharedRemoteDataLocation;
+import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.InitNodeException;
 import es.bsc.compss.exceptions.UnstartedNodeException;
 import es.bsc.compss.nio.NIOAgent;
 import es.bsc.compss.nio.NIOData;
 import es.bsc.compss.nio.NIOUri;
 import es.bsc.compss.nio.master.NIOWorkerNode;
+import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.NodeMonitor;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.LogicalData;
+import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
+import es.bsc.compss.types.data.location.SharedDisk;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobListener;
@@ -41,7 +47,11 @@ import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.ConcurrentModificationException;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 
@@ -143,19 +153,107 @@ public class CommAgentWorker extends NIOWorkerNode {
                 NIOUri o = (NIOUri) uri.getInternalURI(NIOAgent.ID);
                 if (o != null) {
                     data.addSource((NIOUri) o);
-                    if (o instanceof CommAgentURI) {
-                        CommAgentURI caURI = (CommAgentURI) o;
-                        data.addRemoteLocation(new PrivateRemoteDataLocation(caURI.getAgent(), uri.getPath()));
-                    } else {
-                        CommAgentURI caURI = new CommAgentURI(o);
-                        data.addRemoteLocation(new PrivateRemoteDataLocation(caURI.getAgent(), uri.getPath()));
-                    }
                 }
             } catch (UnstartedNodeException une) {
                 // Ignore internal URI.
             }
         }
+        this.appendRDLfromLD(ld, data.getRemoteLocations());
         return data;
+    }
+
+    private void appendRDLfromLD(LogicalData ld, Collection<RemoteDataLocation> locations) {
+
+        boolean isLocal = false;
+        for (DataLocation loc : ld.getLocations()) {
+            boolean localLocation = isLocal(loc);
+            isLocal = isLocal || localLocation;
+            RemoteDataLocation rdl = createRemoteDLFromLocation(loc, localLocation);
+            if (rdl != null) {
+                locations.add(rdl);
+            }
+        }
+        // this is done to prevent ConcurrentModificationException when iterating ld.getKnownAlias()
+        // and contain the performance loss to the less frequent part of the code (this one)
+        boolean done = false;
+        if (isLocal) {
+            Collection<RemoteDataLocation> localLocations;
+            while (!done) {
+                localLocations = new ArrayList<>();
+                try {
+                    for (String alias : ld.getKnownAlias()) {
+                        localLocations.add(new PrivateRemoteDataLocation(null, alias));
+                    }
+                } catch (ConcurrentModificationException cme) {
+                    LOGGER.warn("Logical data was modified while constructing it's remote data location"
+                        + " to send as a result");
+                }
+                locations.addAll(localLocations);
+                done = true;
+            }
+        }
+    }
+
+    private RemoteDataLocation createRemoteDLFromLocation(DataLocation loc, boolean isLocal) {
+        RemoteDataLocation rdl = null;
+        switch (loc.getType()) {
+            case PRIVATE:
+                if (!isLocal) {
+                    for (MultiURI uri : loc.getURIs()) {
+                        es.bsc.compss.agent.types.Resource<?, ?> hostResource =
+                            createRemoteResourceFromResource(uri.getHost());
+                        if (hostResource != null) {
+                            String pathInHost = uri.getPath();
+                            rdl = new PrivateRemoteDataLocation(hostResource, pathInHost);
+                        }
+                    }
+                }
+                break;
+            case SHARED:
+                SharedDisk sd = loc.getSharedDisk();
+                String diskName = sd.getName();
+                Map<Resource, String> sdMountpoints = sd.getAllMountpoints();
+                SharedRemoteDataLocation.Mountpoint[] srdlMountpoints;
+                srdlMountpoints = new SharedRemoteDataLocation.Mountpoint[sdMountpoints.size()];
+                int i = 0;
+                for (Map.Entry<es.bsc.compss.types.resources.Resource, String> sdMp : sdMountpoints.entrySet()) {
+                    es.bsc.compss.agent.types.Resource r = createRemoteResourceFromResource(sdMp.getKey());
+                    String mountpoint = sdMp.getValue();
+                    srdlMountpoints[i++] = new SharedRemoteDataLocation.Mountpoint(r, mountpoint);
+                }
+                rdl = new SharedRemoteDataLocation(diskName, loc.getPath(), srdlMountpoints);
+                break;
+            default:
+        }
+        return rdl;
+    }
+
+    private es.bsc.compss.agent.types.Resource<?, ?>
+        createRemoteResourceFromResource(es.bsc.compss.types.resources.Resource res) {
+        COMPSsNode node = res.getNode();
+
+        String name = node.getName();
+        String adaptor = node.getAdaptor();
+        Object project = node.getProjectProperties();
+        Object resources = node.getResourcesProperties();
+
+        if (resources == null) {
+            return null;
+        } else {
+            es.bsc.compss.agent.types.Resource<?, ?> remoteResource =
+                new es.bsc.compss.agent.types.Resource<>(name, null, adaptor, project, resources);
+            return remoteResource;
+        }
+
+    }
+
+    private boolean isLocal(DataLocation dl) {
+        for (es.bsc.compss.types.resources.Resource host : dl.getHosts()) {
+            if (host == Comm.getAppHost()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

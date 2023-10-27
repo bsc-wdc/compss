@@ -19,12 +19,17 @@ package es.bsc.compss.agent.comm;
 
 import es.bsc.comm.nio.NIONode;
 import es.bsc.compss.agent.comm.messages.types.CommResource;
+import es.bsc.compss.agent.types.PrivateRemoteDataLocation;
 import es.bsc.compss.exceptions.InitNodeException;
 import es.bsc.compss.exceptions.UnstartedNodeException;
+import es.bsc.compss.nio.NIOAgent;
+import es.bsc.compss.nio.NIOData;
+import es.bsc.compss.nio.NIOUri;
 import es.bsc.compss.nio.master.NIOWorkerNode;
 import es.bsc.compss.types.NodeMonitor;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.job.Job;
@@ -128,6 +133,29 @@ public class CommAgentWorker extends NIOWorkerNode {
     public void stop(ShutdownListener sl) {
         // Comm agents are to remain running when another agent ends using them.
         sl.notifyEnd();
+    }
+
+    @Override
+    protected NIOData getNIODatafromLogicalData(LogicalData ld) {
+        CommData data = new CommData(ld.getName());
+        for (MultiURI uri : ld.getURIs()) {
+            try {
+                NIOUri o = (NIOUri) uri.getInternalURI(NIOAgent.ID);
+                if (o != null) {
+                    data.addSource((NIOUri) o);
+                    if (o instanceof CommAgentURI) {
+                        CommAgentURI caURI = (CommAgentURI) o;
+                        data.addRemoteLocation(new PrivateRemoteDataLocation(caURI.getAgent(), uri.getPath()));
+                    } else {
+                        CommAgentURI caURI = new CommAgentURI(o);
+                        data.addRemoteLocation(new PrivateRemoteDataLocation(caURI.getAgent(), uri.getPath()));
+                    }
+                }
+            } catch (UnstartedNodeException une) {
+                // Ignore internal URI.
+            }
+        }
+        return data;
     }
 
     @Override

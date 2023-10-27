@@ -867,7 +867,7 @@ public class NIOWorkerNode extends COMPSsWorker {
         }
     }
 
-    private NIOData getNIODatafromLogicalData(LogicalData ld) {
+    protected NIOData getNIODatafromLogicalData(LogicalData ld) {
         NIOData data = new NIOData(ld.getName());
 
         for (MultiURI uri : ld.getURIs()) {

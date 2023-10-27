@@ -219,20 +219,12 @@ class CommAgentJob extends NIOJob {
         CommParam commParam = new CommParam(dataMgmtId, type, dir, stdIOStream, prefix, name, pyType, weight,
             keepRename, dPar.getOriginalName());
         commParam.setValue(dPar.getOriginalName());
-        NIOData sourceData = (NIOData) dPar.getDataSource();
+        CommData sourceData = (CommData) dPar.getDataSource();
         if (sourceData != null) {
             RemoteDataInformation remoteData = new RemoteDataInformation(renaming);
-            for (NIOUri uri : sourceData.getSources()) {
-                if (uri instanceof CommAgentURI) {
-                    CommAgentURI caURI = (CommAgentURI) uri;
-                    remoteData.addSource(new PrivateRemoteDataLocation(caURI.getAgent(), uri.getPath()));
-                } else {
-                    CommAgentURI caURI = new CommAgentURI(uri);
-                    remoteData.addSource(new PrivateRemoteDataLocation(caURI.getAgent(), uri.getPath()));
-                }
-
+            for (RemoteDataLocation rdl : sourceData.getRemoteLocations()) {
+                remoteData.addSource(rdl);
             }
-
             commParam.setRemoteData(remoteData);
         }
 

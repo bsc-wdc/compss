@@ -330,10 +330,6 @@ public class BindToMap implements ThreadBinder {
 
     private void auxiliarConstructor(int numThreads, ArrayList<ArrayList<Integer>> computingUnitsIds,
         int totalAmountThreads, int maxThreadNum) {
-        if (DEBUG) {
-            LOGGER.debug("[ThreadBinderCPUs] Constructing with numThreads: " + numThreads + " totalAmmuntThreads: "
-                + totalAmountThreads + " maxThreadNum: " + maxThreadNum);
-        }
         // Initialize binds ArrayList
         this.bindedComputingUnits = new int[maxThreadNum + 1];
         for (int i = 0; i <= maxThreadNum; i++) {
@@ -344,11 +340,7 @@ public class BindToMap implements ThreadBinder {
 
         // Replicate socket structure
         for (int i = 0; i < this.idList.get(0).size() && (totalAmountThreads < numThreads); i++) {
-            LOGGER.debug("[ThreadBinderCPUs] Iteration i: " + i + "Current size: " + this.idList.get(0).size()
-                + "numThreads: " + numThreads + " totalAmmuntThreads: " + totalAmountThreads);
             for (int j = 0; j < this.idList.size() && (totalAmountThreads < numThreads); j++) {
-                LOGGER.debug("[ThreadBinderCPUs] Iteration j: " + i + "Current size: " + this.idList.size()
-                    + " numThreads: " + numThreads + " totalAmmuntThreads: " + totalAmountThreads);
                 ArrayList<Integer> currentSocketIds = this.idList.get(j);
                 currentSocketIds.add(this.idList.get(j).get(i));
                 this.idList.set(j, currentSocketIds);

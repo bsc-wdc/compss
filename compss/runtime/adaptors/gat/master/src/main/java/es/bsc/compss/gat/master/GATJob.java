@@ -307,6 +307,7 @@ public class GATJob extends es.bsc.compss.types.job.JobImpl<GATWorkerNode> imple
                         lArgs.add(getClasspath());
                         break;
                     case C:
+                    case R:
                         break;
                     case PYTHON:
                         lArgs.add(getPythonpath());

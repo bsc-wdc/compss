@@ -586,8 +586,8 @@ start_compss_app() {
     exec_c
   elif [ "${lang}" == "python" ]; then
     exec_python
-  elif [ "${lang}" == "r"]; then
-  | exec_r
+  elif [ "${lang}" == "r" ]; then
+    exec_r
   fi
 
   # End
@@ -677,7 +677,7 @@ exec_python() {
 exec_r(){
   # Launch application
   start_tracing
-  R "${fullAppPath}" ${application_args}
+  Rscript "${fullAppPath}" ${application_args}
   endCode=$?
   stop_tracing
 

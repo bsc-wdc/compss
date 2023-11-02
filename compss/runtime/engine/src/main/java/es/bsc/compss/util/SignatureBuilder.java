@@ -39,6 +39,8 @@ public class SignatureBuilder {
                 l = Lang.PYTHON;
             } else if (langProperty.equalsIgnoreCase("c")) {
                 l = Lang.C;
+            } else if (langProperty.equalsIgnoreCase("r")) {
+                l = Lang.R;
             }
         }
 
@@ -88,6 +90,7 @@ public class SignatureBuilder {
                 }
                 break;
             case PYTHON:
+            case R:
                 // There is no function overloading in Python
                 break;
             case UNKNOWN:
@@ -147,7 +150,7 @@ public class SignatureBuilder {
 
         String langStr = System.getProperty(COMPSsConstants.LANG);
         Lang lang = ((langStr == null) ? Lang.JAVA : Lang.valueOf(langStr.toUpperCase()));
-        if (lang == Lang.PYTHON) {
+        if (lang == Lang.PYTHON || lang == Lang.R) {
             return declareMethodFullyQualifiedName;
         }
 

@@ -1233,8 +1233,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     public int executeTask(Long appId, String signature, String onFailure, int timeOut, boolean isPrioritary,
         int numNodes, boolean isReduce, int reduceChunkSize, boolean isReplicated, boolean isDistributed,
         boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters) {
-
-        return executeTask(appId, null, Lang.PYTHON, true, null, null, signature, OnFailure.valueOf(onFailure), timeOut,
+        Lang lang = Lang.PYTHON;
+        if (DEFAULT_LANG == Lang.R) {
+            lang = Lang.R;
+        }
+        return executeTask(appId, null, lang, true, null, null, signature, OnFailure.valueOf(onFailure), timeOut,
             isPrioritary, numNodes, isReduce, reduceChunkSize, isReplicated, isDistributed, hasTarget, numReturns,
             parameterCount, parameters);
     }

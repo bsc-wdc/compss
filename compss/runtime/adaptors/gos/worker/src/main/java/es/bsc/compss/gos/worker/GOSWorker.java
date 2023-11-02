@@ -24,6 +24,7 @@ import es.bsc.compss.gos.master.utils.ForbiddenCharacters;
 import es.bsc.compss.invokers.types.CParams;
 import es.bsc.compss.invokers.types.JavaParams;
 import es.bsc.compss.invokers.types.PythonParams;
+import es.bsc.compss.invokers.types.RParams;
 import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.ErrorHandler;
@@ -107,7 +108,7 @@ public class GOSWorker implements InvocationContext {
     private final boolean debug;
     private final boolean tracing;
     private final int tracingSlot;
-    private final COMPSsConstants.Lang lang;
+    private final Lang lang;
     private String[] tracingParams;
     private final LanguageParams[] langParams;
     private String envScriptPath;
@@ -173,11 +174,12 @@ public class GOSWorker implements InvocationContext {
             pythonPropagateVirtualEnvironment, pythonpath, pythonExtraeFile, pythonMpiWorker, pythonWorkerCache,
             pythonCacheProfiler);
         final CParams cParams = new CParams(classpath);
-
+        final RParams rParams = new RParams(classpath);
         LanguageParams[] langParams = new LanguageParams[COMPSsConstants.Lang.values().length];
-        langParams[COMPSsConstants.Lang.JAVA.ordinal()] = javaParams;
-        langParams[COMPSsConstants.Lang.PYTHON.ordinal()] = pyParams;
-        langParams[COMPSsConstants.Lang.C.ordinal()] = cParams;
+        langParams[Lang.JAVA.ordinal()] = javaParams;
+        langParams[Lang.PYTHON.ordinal()] = pyParams;
+        langParams[Lang.C.ordinal()] = cParams;
+        langParams[Lang.R.ordinal()] = rParams;
 
         // Initialize errorHandler for shutting down worker in case of errro.
         ErrorHandler errorHandlerGOS = new ErrorHandler() {

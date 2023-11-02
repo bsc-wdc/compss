@@ -29,6 +29,7 @@ import es.bsc.compss.exceptions.CannotLoadException;
 import es.bsc.compss.invokers.types.CParams;
 import es.bsc.compss.invokers.types.JavaParams;
 import es.bsc.compss.invokers.types.PythonParams;
+import es.bsc.compss.invokers.types.RParams;
 import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.local.LocalJob;
 import es.bsc.compss.local.LocalParameter;
@@ -290,6 +291,8 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         this.langParams[Lang.JAVA.ordinal()] = javaParams;
         this.langParams[Lang.PYTHON.ordinal()] = pyParams;
         this.langParams[Lang.C.ordinal()] = cParams;
+        RParams rParams = new RParams(classPath);
+        this.langParams[Lang.R.ordinal()] = rParams;
 
         String workerPersistentC = System.getProperty(COMPSsConstants.WORKER_PERSISTENT_C);
         if (workerPersistentC == null || workerPersistentC.isEmpty() || workerPersistentC.equals("null")) {

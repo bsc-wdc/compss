@@ -36,7 +36,7 @@ DEFAULT_DEBUGGER_ARGUMENT=true
 DEFAULT_SHUTDOWN_IN_NODE_FAILURE=false
 
 APPLICATION_ERROR="ERROR: Application name not provided"
-LANGUAGE_ERROR="ERROR: Value of option --lang must be: java, c or python"
+LANGUAGE_ERROR="ERROR: Value of option --lang must be: java, c, python or r"
 TRACING_ERROR="ERROR: Value of option --tracing must be: false, true, basic, advanced, scorep, arm-map, and arm-ddt"
 
 
@@ -688,6 +688,8 @@ check_args() {
     lang=c
   elif [ "$lang" == "python" ]; then
     lang=python
+  elif [ "$lang" == "r" ]; then
+    lang=r
   else
     arguments_error "${LANGUAGE_ERROR}"
   fi

@@ -32,6 +32,7 @@ import es.bsc.compss.data.MultiOperationFetchListener;
 import es.bsc.compss.invokers.types.CParams;
 import es.bsc.compss.invokers.types.JavaParams;
 import es.bsc.compss.invokers.types.PythonParams;
+import es.bsc.compss.invokers.types.RParams;
 import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOAgent;
@@ -213,7 +214,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         String gpuMap, String fpgaMap, int limitOfTasks, int ioExecNum, String appUuid, String traceFlag,
         String traceHost, String tracingTaskDependencies, String storageConf, TaskExecution executionType,
         boolean persistentC, String workingDir, String installDir, String appDir, JavaParams javaParams,
-        PythonParams pyParams, CParams cParams, String lang, boolean ear) {
+        PythonParams pyParams, CParams cParams, RParams rParams, String lang, boolean ear) {
 
         super(snd, rcv, masterPort);
 
@@ -249,6 +250,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         this.langParams[Lang.JAVA.ordinal()] = javaParams;
         this.langParams[Lang.PYTHON.ordinal()] = pyParams;
         this.langParams[Lang.C.ordinal()] = cParams;
+        this.langParams[Lang.R.ordinal()] = rParams;
 
         this.ear = ear;
 
@@ -1006,8 +1008,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
     @Override
     public LanguageParams getLanguageParams(Lang lang) {
-        WORKER_LOGGER
-            .info("GETTING LANGUAGE PARAMS :" + Lang.PYTHON.ordinal() + " -> " + this.langParams[lang.ordinal()]);
+        WORKER_LOGGER.info("GETTING LANGUAGE PARAMS :" + lang.ordinal() + " -> " + this.langParams[lang.ordinal()]);
         return this.langParams[lang.ordinal()];
     }
 
@@ -1212,6 +1213,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             pythonPropagateVirtualEnvironment, pythonpath, pythonExtraeFile, pythonMpiWorker, pythonWorkerCache,
             pythonCacheProfiler);
         final CParams cParams = new CParams(classpath);
+        final RParams rParams = new RParams(classpath);
 
         // Print arguments
         if (WORKER_LOGGER.isDebugEnabled()) {
@@ -1285,7 +1287,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         NIOWorker nw = new NIOWorker(debug, maxSnd, maxRcv, workerIP, mName, mPort, streamingPort, computingUnitsCPU,
             computingUnitsGPU, computingUnitsFPGA, cpuMap, gpuMap, fpgaMap, limitOfTasks, ioExecNum, appUuid, traceFlag,
             traceHost, traceTaskDependencies, storageConf, executionType, persistentC, workingDir, installDir, appDir,
-            javaParams, pyParams, cParams, lang, ear);
+            javaParams, pyParams, cParams, rParams, lang, ear);
 
         NIOMessageHandler mh = new NIOMessageHandler(nw);
 

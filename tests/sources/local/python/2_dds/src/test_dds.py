@@ -17,6 +17,7 @@ from collections import defaultdict
 
 from pycompss.dds import DDS
 from tasks import gen_fragment
+from tasks import gen_big_fragment
 
 
 def test_loader_functions():
@@ -86,9 +87,20 @@ def test_terasort():
     dds = DDS().load(dataset, -1).sort_by_key().collect()
     prev = 0
 
-    for i, k in dds:
-        assert i > prev
-        prev = i
+    for key, _ in dds:
+        assert key > prev
+        prev = key
+
+
+def test_big_terasort():
+
+    dataset = [gen_big_fragment() for _ in range(10)]
+    dds = DDS().load(dataset, -1).sort_by_key().collect()
+    prev = 0
+
+    for key, _ in dds:
+        assert key > prev
+        prev = key
 
 
 def inverted_indexing():
@@ -136,6 +148,7 @@ def main_program():
     test_loader_functions()
     test_word_count()
     test_terasort()
+    test_big_terasort()
     inverted_indexing()
     print("- Test DDS: OK")
 

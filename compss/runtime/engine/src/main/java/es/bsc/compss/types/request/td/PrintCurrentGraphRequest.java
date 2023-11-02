@@ -301,7 +301,15 @@ public class PrintCurrentGraphRequest extends TDRequest {
             /* Write edges *************************************************** */
             for (Task t : tasks) {
                 Set<AbstractTask> successors = new HashSet<>();
-                successors.addAll(t.getSuccessors());
+                boolean done = false;
+                while (!done) {
+                    try {
+                        successors.addAll(t.getSuccessors());
+                        done = true;
+                    } catch (ConcurrentModificationException cme) {
+                        successors.clear();
+                    }
+                }
                 for (AbstractTask t2 : successors) {
                     this.graph.write(prefix + t.getId() + " -> " + t2.getId() + ";");
                     this.graph.newLine();

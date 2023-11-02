@@ -18,7 +18,7 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs DDS - Tasks example.
+PyCOMPSs DDS - examples - wordcount k-means tasks.
 
 This file contains the DDS tasks example.
 """

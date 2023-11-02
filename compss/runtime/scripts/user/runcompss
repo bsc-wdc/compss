@@ -205,7 +205,7 @@ show_opts() {
                                             Default: ${DEFAULT_PYTHON_MPI_WORKER}
     --python_memory_profile                 Generate a memory profile of the master.
                                             Default: ${DEFAULT_PYTHON_MEMORY_PROFILE}
-    --python_worker_cache=<string>          Python worker cache (true/size/false).
+    --python_worker_cache=<string>          Python worker CPU and GPU cache (false/cpu:10GB/gpu:25%).
                                             Only for NIO without mpi worker and python >= 3.8.
                                             Default: ${DEFAULT_PYTHON_WORKER_CACHE:-false}
     --python_cache_profiler=<bool>          Python cache profiler (true/false).

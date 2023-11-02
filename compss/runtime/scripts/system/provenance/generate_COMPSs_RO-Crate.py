@@ -212,7 +212,8 @@ def get_main_entities(wf_info: dict) -> typing.Tuple[str, str, str]:
         else:
             yaml_sources_list.append(wf_info["sources_dir"])
 
-    if not ("sources" or "files" or "sources_dir") in wf_info:
+    keys = ["sources", "files", "sources_dir"]
+    if not any(key in wf_info for key in keys):
         # If no sources are defined, define automatically the main_entity or return error
         # We try directly to add the mainEntity identified in dataprovenance.log, if exists in the CWD
         with open(DP_LOG, "r", encoding="UTF-8") as dp_file:

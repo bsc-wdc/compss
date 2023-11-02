@@ -375,7 +375,10 @@ class TaskMaster:
                         self.decorated_function.function_type
                         == FunctionType.INSTANCE_METHOD
                     )
-                    is_http = self.core_element.get_impl_type() == "HTTP"
+                    is_http = (
+                        self.core_element.get_impl_type()
+                        == IMPLEMENTATION_TYPES.http
+                    )
 
                 # Process the parameters, give them a proper direction
                 with EventMaster(TRACING_MASTER.process_parameters):
@@ -659,35 +662,34 @@ class TaskMaster:
         file_path, full_file_name = os.path.split(path)
         file_name, file_name_ext = os.path.splitext(full_file_name)
         # Do any necessary pre-processing action before executing any code
-        if (
-            file_name.startswith(CONSTANTS.interactive_file_name)
-            and not self.decorated_function.registered
-        ):
-            # If the file_name starts with "InteractiveMode" means that
-            # the user is using PyCOMPSs from jupyter-notebook.
-            # Convention between this file and interactive.py
-            # In this case it is necessary to do a pre-processing step
-            # that consists of putting all user code that may be executed
-            # in the worker on a file.
-            # This file will be sent to all workers as first parameter.
-
+        if file_name.startswith(CONSTANTS.interactive_file_name):
             self.interactive_task_file = path
-            # Update the code also calls compss_delete_object if the file
-            # "path" is updated.
-            update_tasks_code_file(self.decorated_function.function, path)
-            # # It is possible to create a specific file per task
-            # file_name_fields = file_name.split("_")
-            # file_name_fields.insert(1, self.decorated_function.function_name)
-            # file_name_fields.insert(2, str(time.time_ns()))
-            # updated_file_name = "_".join(file_name_fields)
-            # updated_path = os.path.join(
-            #     file_path, updated_file_name + file_name_ext
-            # )
-            # # Copy file to accompany the task
-            # shutil.copyfile(path, updated_path)
+            if not self.decorated_function.registered:
+                # If the file_name starts with "InteractiveMode" means that
+                # the user is using PyCOMPSs from jupyter-notebook.
+                # Convention between this file and interactive.py
+                # In this case it is necessary to do a pre-processing step
+                # that consists of putting all user code that may be executed
+                # in the worker on a file.
+                # This file will be sent to all workers as first parameter.
+                # Update the code also calls compss_delete_object if the file
+                # "path" is updated.
+                update_tasks_code_file(self.decorated_function.function, path)
+                # # It is possible to create a specific file per task
+                # file_name_fields = file_name.split("_")
+                # file_name_fields.insert(1,
+                #     self.decorated_function.function_name)
+                # file_name_fields.insert(2,
+                #     str(time.time_ns()))
+                # updated_file_name = "_".join(file_name_fields)
+                # updated_path = os.path.join(
+                #     file_path, updated_file_name + file_name_ext
+                # )
+                # # Copy file to accompany the task
+                # shutil.copyfile(path, updated_path)
 
-            print(f"Found task: {self.decorated_function.function_name}")
-            # print(f"Written in file: {self.interactive_task_file}")
+                print(f"Found task: {self.decorated_function.function_name}")
+                # print(f"Written in file: {self.interactive_task_file}")
 
     def extract_core_element(
         self, ce: typing.Optional[CE]
@@ -1023,7 +1025,11 @@ class TaskMaster:
             "@task",
         )
         # Add interactive FILE_IN parameter if necessary
-        if self.interactive_task_file != "":
+        if (
+            self.interactive_task_file != ""
+            and self.core_element.get_impl_type()
+            == IMPLEMENTATION_TYPES.method
+        ):
             self.add_synthetic_parameter_interactive_file()
 
     def add_synthetic_parameter_interactive_file(self) -> None:

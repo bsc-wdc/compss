@@ -8,7 +8,7 @@ fi
 # Displays version
 ###############################################
 show_version() {
-  echo "COMPSs version 3.2 Narcissus"
+  echo "COMPSs version 3.3 Orchid"
   echo " "
 }
 
@@ -43,10 +43,10 @@ EOF
 ###############################################
 show_flower() {
   cat << EOF
-Narcissus is a genus of predominantly spring flowering perennial plants of the amaryllis family, Amaryllidaceae. Various common names including daffodil, narcissus, and jonquil are used to describe all or some members of the genus. Narcissus has conspicuous flowers with six petal-like tepals surmounted by a cup- or trumpet-shaped corona. The flowers are generally white and yellow (also orange or pink in garden varieties), with either uniform or contrasting coloured tepals and corona.
+Orchids are plants that belong to the family Orchidaceae, a diverse and widespread group of flowering plants with blooms that are often colourful and fragrant. Orchids are cosmopolitan plants that are found in almost every habitat on Earth except glaciers. The world's richest diversity of orchid genera and species is found in the tropics.
 
 Check more information:
-   https://en.wikipedia.org/wiki/Narcissus_(plant)
+   https://en.wikipedia.org/wiki/Orchid
 
 EOF
 }
@@ -57,18 +57,26 @@ EOF
 show_recipe() {
   cat << EOF
 
-Spritzus Narcissus - Cocktail
+Black Orchid - Cocktail
 
-   1 ounce Giffard Wild Elderflower
-   ¼ ounce Garalis retsina (or other craft retsina)
-   1 dash absinthe
-   ¼ ounce lemon juice
-   1 ½ ounces Perrier
-   3 ounces Domaine Karanika Amyntaion Brut (or other Champagne-method dry sparkling wine)
+  Source: https://www.greygoose.com/en-gl/cocktails/l-orange/black-orchid.html
 
-   Combine all ingredients except Perrier and sparkling wine in a chilled wine glass, then add ice.
-   Top wine glass with Perrier and sparkling wine.
-   Garnish with grapefruit peel, spiraled into a flower.
+  The black orchid martini drink is a distinctive and elegant mixture of
+  GREY GOOSE® L'Orange Flavoured Vodka, fresh lemon, crème de violette,
+  simple syrup, and peach bitters.
+
+  50 ml   GREY GOOSE® L'Orange Flavoured Vodka
+  30 ml   Fresh Lemon Juice
+  20 ml   Crème De Violette®
+  20 ml   Simple Syrup
+  +       Dash of Peach Bitters
+  +       Edible Orchid
+
+  How to make:
+
+  1 - Add all ingredients to a cocktail shaker filled with ice and shake.
+  2 - Strain into a chilled martini glass.
+  3 - Garnish with an edible orchid.
 
 EOF
 }

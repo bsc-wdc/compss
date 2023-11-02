@@ -51,9 +51,11 @@ import es.bsc.compss.util.Tracer;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -439,17 +441,19 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
     }
 
     private void copyTracingFilesToTracingFolder() {
-        String srcFiles = this.getAnalysisFolder() + File.separator + "*" + Tracer.PACKAGE_SUFFIX;
-        String tgtFolder = Tracer.getExtraeOutputDir();
-        if (DEBUG) {
-            LOGGER.debug("Coping : " + srcFiles + "onto" + tgtFolder);
-        }
-        String cmd = "cp " + srcFiles + " " + tgtFolder;
-        LOGGER.debug("Executing: " + cmd);
-        try {
-            new ProcessBuilder("/bin/bash", "-c", cmd).inheritIO().start().waitFor();
-        } catch (InterruptedException | IOException e) {
-            LOGGER.warn("Could not copy files: " + srcFiles + " to: " + tgtFolder, e);
+        Path sourceDirectory = Paths.get(this.getAnalysisFolder());
+        Path targetDirectory = Paths.get(Tracer.getExtraeOutputDir());
+
+        try (DirectoryStream<Path> directoryStream =
+            Files.newDirectoryStream(sourceDirectory, "*" + Tracer.PACKAGE_SUFFIX)) {
+
+            for (Path sourceFile : directoryStream) {
+                // Construct the target file path
+                Path targetFile = targetDirectory.resolve(sourceFile.getFileName());
+                Files.copy(sourceFile, targetFile, StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (IOException e) {
+            LOGGER.warn("Could not copy tracing files from " + sourceDirectory + " to: " + targetDirectory);
         }
 
     }

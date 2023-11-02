@@ -74,6 +74,9 @@ public class CEIParser {
             case PYTHON:
                 loadPython();
                 break;
+            case R:
+                loadR();
+                break;
             case UNKNOWN:
                 // No need to load anything. CEIs will be provided at runtime.
                 break;
@@ -123,6 +126,14 @@ public class CEIParser {
     private static void loadPython() {
         LOGGER.debug("Loading Python Annotation Interface");
         // Nothing to do since python CoreElements are registered through TD Requests
+    }
+
+    /*
+     * R CONSTRUCTOR
+     */
+    private static void loadR() {
+        LOGGER.debug("Loading R Annotation Interface");
+        // Nothing to do since R CoreElements are registered through TD Requests
     }
 
 }

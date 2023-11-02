@@ -907,9 +907,14 @@ class DDS:  # pylint: disable=too-many-public-methods
                     )
                 )
 
-            return heapq.merge(
-                chunks, key=lambda kv: key_func(kv[0]), reverse=not ascending
-            )
+            if len(chunks) == 1:
+                return chunks[0]
+            else:
+                return heapq.merge(
+                    *chunks,
+                    key=lambda kv: key_func(kv[0]),
+                    reverse=not ascending
+                )
 
         partitioned = DDS().load(col_parts, -1).partition_by(range_partitioner)
         return partitioned.map_partitions(sort_partition)

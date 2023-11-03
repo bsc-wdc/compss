@@ -289,7 +289,7 @@ check_compss_setup () {
   fi
 
   if [ -n "${wdir_in_master}" ]; then
-    wdir_in_master="${wdir_in_master}/.COMPSs/${uuid}/"
+    wdir_in_master="${wdir_in_master}/.COMPSs/${uuid}/tmpFiles/"
   else
     wdir_in_master="${exec_dir}/tmpFiles/"
   fi

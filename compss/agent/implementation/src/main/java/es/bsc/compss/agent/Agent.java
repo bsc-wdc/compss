@@ -400,6 +400,10 @@ public class Agent {
         if (Tracer.isActivated()) {
             Tracer.emitEvent(TraceEvent.AGENT_RUN_TASK);
         }
+
+        synchronized (RUNTIME) {
+            // Making sure that the runtime has already been started
+        }
         Long appId = RUNTIME.registerApplication(ceiClass, null);
         monitor.setAppId(appId);
         LOGGER.debug("New request to run as a " + lang + " task " + ced.getCeSignature());
@@ -828,31 +832,32 @@ public class Agent {
                 ErrorManager.warn("Could not find the agent configuration file " + agentConfig);
             }
         }
-
-        for (String arg : args) {
-            try {
-                JSONObject jo = new JSONObject(arg);
-                String interfaceClass = jo.getString("AGENT_IMPL");
-                JSONObject conf = jo.getJSONObject("CONF");
-                LOGGER.info("Loading " + agentConfig + "'s agent interface");
-                AgentInterfaceConfig aic = getInterfaceConfig(interfaceClass, conf);
-                agents.add(aic);
-            } catch (Exception e) {
-                ErrorManager.warn("Unexpected format for agent config: " + arg);
+        synchronized(RUNTIME) {
+            for (String arg : args) {
+                try {
+                    JSONObject jo = new JSONObject(arg);
+                    String interfaceClass = jo.getString("AGENT_IMPL");
+                    JSONObject conf = jo.getJSONObject("CONF");
+                    LOGGER.info("Loading " + agentConfig + "'s agent interface");
+                    AgentInterfaceConfig aic = getInterfaceConfig(interfaceClass, conf);
+                    agents.add(aic);
+                } catch (Exception e) {
+                    ErrorManager.warn("Unexpected format for agent config: " + arg);
+                }
             }
-        }
 
-        for (AgentInterfaceConfig agent : agents) {
-            try {
-                startInterface(agent);
-            } catch (Exception e) {
-                ErrorManager.warn("Could not start Agent", e);
+            for (AgentInterfaceConfig agent : agents) {
+                try {
+                    startInterface(agent);
+                } catch (Exception e) {
+                    ErrorManager.warn("Could not start Agent", e);
+                }
             }
+            if (INTERFACES.isEmpty()) {
+                ErrorManager.fatal("Could not start any interface");
+            }
+            start();
         }
-        if (INTERFACES.isEmpty()) {
-            ErrorManager.fatal("Could not start any interface");
-        }
-        start();
     }
 
     /**
@@ -861,6 +866,9 @@ public class Agent {
      * @param appId Identifier of the finished application
      */
     public static void finishedApplication(long appId) {
+        synchronized(RUNTIME){
+            // Making sure that the runtime has already been started
+        }
         // Remove all data bound to the application
         RUNTIME.removeApplicationData(appId);
         RUNTIME.deregisterApplication(appId);

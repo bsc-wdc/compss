@@ -31,6 +31,8 @@ import json
 import socket
 import subprocess
 import yaml
+import time
+import sys
 
 from rocrate.rocrate import ROCrate
 from rocrate.model.person import Person
@@ -415,7 +417,7 @@ def get_main_entities(wf_info: dict) -> typing.Tuple[str, str, str]:
         )
 
     print(
-        f"PROVENANCE | COMPSs version: {compss_v}, main_entity is: {main_entity}, out_profile is: {out_profile_fn.name}"
+        f"PROVENANCE | COMPSs version: {compss_v}, out_profile: {out_profile_fn.name}, main_entity: {main_entity}"
     )
 
     return compss_v, main_entity, out_profile_fn.name
@@ -467,10 +469,10 @@ def process_accessed_files() -> typing.Tuple[list, list]:
     l_outs = list(outputs)
     l_outs.sort()
 
-    print(f"PROVENANCE | DETECTED INPUTS ({len(l_ins)})")
-    print(f"PROVENANCE | DETECTED OUTPUTS ({len(l_outs)})")
+    print(f"PROVENANCE | COMPSs runtime detected inputs ({len(l_ins)})")
+    print(f"PROVENANCE | COMPSs runtime detected outputs ({len(l_outs)})")
     print(
-        f"PROVENANCE | RO-CRATE data_provenance.log processing TIME (process_accessed_files): "
+        f"PROVENANCE | dataprovenance.log processing TIME: "
         f"{time.time() - part_time} s"
     )
 
@@ -934,11 +936,11 @@ def add_application_source_files(
     #             if file is not "":
     #                 e.append_to("hasPart", {"@id": file})
 
-    print(f"PROVENANCE | Number of source files detected: {len(added_files)}")
+    print(f"PROVENANCE | Application source files detected ({len(added_files)})")
     # print(f"PROVENANCE DEBUG | Source files detected: {added_files}")
 
     print(
-        f"PROVENANCE | RO-CRATE adding source files TIME (add_file_to_crate): {time.time() - part_time} s"
+        f"PROVENANCE | RO-Crate adding source files TIME: {time.time() - part_time} s"
     )
 
 
@@ -1517,36 +1519,35 @@ def add_manual_datasets(yaml_term: str, compss_wf_info: dict, data_list: list) -
         else:
             file_found = True
             break
-    if not file_found:  # All are directories
-        return data_list
+    if file_found:  # Not all are directories
+        #  TODO Can this two loops be merged????
+        data_list_copy = (
+            data_list.copy()
+        )  # So we can remove the element we are iterating upon
 
-    #  TODO Can this two loops be merged????
+        for item in data_list_copy:
+            # Check both dir:// and file:// references
+            url_parts = urlsplit(item)
+            if any(
+                (url_parts.path != dir_path and url_parts.path.startswith(dir_path))
+                for dir_path in directories_list
+            ):
+                # If the url dir:// does not finish with a slash, can add errors (e.g. /inputs vs /inputs.zip)
+                print(
+                    f"PROVENANCE | WARNING: Item {url_parts.path} removed as {yaml_term}, since it already belongs to a dataset"
+                )
+                data_list.remove(item)
 
-    data_list_copy = (
-        data_list.copy()
-    )  # So we can remove the element we are iterating upon
+            # if any((url_parts.path != dir_path and url_parts.path.startswith(dir_path)) for dir_path in directories_list):
+            #     # if the url dir:// does not finish with a slash, can add errors (e.g. /inputs vs /inputs.zip)
+            #     print(
+            #         f"PROVENANCE | WARNING: Item {item} removed as {yaml_term}, since it already belongs to a dataset"
+            #     )
+            #     data_list.remove(item)
 
-    for item in data_list_copy:
-        # Check both dir:// and file:// references
-        url_parts = urlsplit(item)
-        if any(
-            (url_parts.path != dir_path and url_parts.path.startswith(dir_path))
-            for dir_path in directories_list
-        ):
-            # If the url dir:// does not finish with a slash, can add errors (e.g. /inputs vs /inputs.zip)
-            print(
-                f"PROVENANCE | WARNING: Item {url_parts.path} removed as {yaml_term}, since it already belongs to a dataset"
-            )
-            data_list.remove(item)
-
-        # if any((url_parts.path != dir_path and url_parts.path.startswith(dir_path)) for dir_path in directories_list):
-        #     # if the url dir:// does not finish with a slash, can add errors (e.g. /inputs vs /inputs.zip)
-        #     print(
-        #         f"PROVENANCE | WARNING: Item {item} removed as {yaml_term}, since it already belongs to a dataset"
-        #     )
-        #     data_list.remove(item)
-
-    # print(f"PROVENANCE DEBUG | RESULT FROM add_manual_datasets:\n {data_list}")
+    print(
+        f"PROVENANCE | Manually added data assets as '{yaml_term}' ({len(data_list)})"
+    )
 
     return data_list
 
@@ -1611,6 +1612,8 @@ def main():
 
     :returns: None
     """
+
+    exec_time = time.time()
 
     yaml_template = (
         "COMPSs Workflow Information:\n"
@@ -1726,7 +1729,7 @@ def main():
             )
         )
     print(
-        f"PROVENANCE | RO-CRATE adding input files TIME (add_dataset_file_to_crate. Persistence: {persistence}): "
+        f"PROVENANCE | RO-Crate adding input files TIME (Persistence: {persistence}): "
         f"{time.time() - part_time} s"
     )
 
@@ -1740,7 +1743,7 @@ def main():
             )
         )
     print(
-        f"PROVENANCE | RO-CRATE adding output files TIME (add_dataset_file_to_crate. Persistence: {persistence}): "
+        f"PROVENANCE | RO-Crate adding output files TIME (Persistence: {persistence}): "
         f"{time.time() - part_time} s"
     )
 
@@ -1802,15 +1805,16 @@ def main():
     part_time = time.time()
     folder = "COMPSs_RO-Crate_" + run_uuid + "/"
     compss_crate.write(folder)
-    print(f"PROVENANCE | COMPSs RO-Crate created successfully in subfolder {folder}")
-    print(f"PROVENANCE | RO-CRATE writing to disk TIME: {time.time() - part_time} s")
+    print(f"PROVENANCE | RO-Crate writing to disk TIME: {time.time() - part_time} s")
+    print(
+        f"PROVENANCE | Workflow Provenance generation TOTAL EXECUTION TIME: {time.time() - exec_time} s"
+    )
+    print(
+        f"PROVENANCE | COMPSs Workflow Provenance successfully generated in sub-folder:\n\t{folder}"
+    )
 
 
 if __name__ == "__main__":
-    import sys
-    import time
-
-    exec_time = time.time()
 
     # Usage: python /path_to/generate_COMPSs_RO-Crate.py ro-crate-info.yaml /path_to/dataprovenance.log
     if len(sys.argv) != 3:
@@ -1825,7 +1829,3 @@ if __name__ == "__main__":
         path_dplog = Path(sys.argv[2])
         complete_graph = path_dplog.parent / "monitor/complete_graph.svg"
     main()
-
-    print(
-        f"PROVENANCE | RO-CRATE GENERATION TOTAL EXECUTION TIME: {time.time() - exec_time} s"
-    )

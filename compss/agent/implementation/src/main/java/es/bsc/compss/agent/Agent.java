@@ -832,7 +832,7 @@ public class Agent {
                 ErrorManager.warn("Could not find the agent configuration file " + agentConfig);
             }
         }
-        synchronized(RUNTIME) {
+        synchronized (RUNTIME) {
             for (String arg : args) {
                 try {
                     JSONObject jo = new JSONObject(arg);
@@ -866,7 +866,7 @@ public class Agent {
      * @param appId Identifier of the finished application
      */
     public static void finishedApplication(long appId) {
-        synchronized(RUNTIME){
+        synchronized (RUNTIME) {
             // Making sure that the runtime has already been started
         }
         // Remove all data bound to the application

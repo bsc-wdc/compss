@@ -63,7 +63,7 @@ def is_cache_enabled(cache_config: str) -> bool:
     :param cache_config: Cache configuration defined on startup.
     :return: True if enabled, False otherwise. And size if enabled.
     """
-    return cache_config.lower() != "false"
+    return cache_config.lower() not in ["false", "null"]
 
 
 def start_cache(

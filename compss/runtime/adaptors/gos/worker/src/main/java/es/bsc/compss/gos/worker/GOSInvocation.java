@@ -208,6 +208,7 @@ public class GOSInvocation implements Invocation {
                     value = args[appArgsIdx++].charAt(0);
                     break;
                 case STRING_T:
+                case STRING_64_T:
                     int numSubStrings = Integer.parseInt(args[appArgsIdx++]);
                     String aux = "";
                     for (int j = 0; j < numSubStrings; j++) {
@@ -217,17 +218,6 @@ public class GOSInvocation implements Invocation {
                         aux += args[appArgsIdx++];
                     }
                     value = aux;
-                    break;
-                case STRING_64_T:
-                    int total = Integer.parseInt(args[appArgsIdx++]);
-                    StringBuilder temp = new StringBuilder();
-                    for (int j = 0; j < total; j++) {
-                        if (j != 0) {
-                            temp.append(" ");
-                        }
-                        temp.append(args[appArgsIdx++]);
-                    }
-                    value = temp.toString();
                     break;
                 case BYTE_T:
                     value = new Byte(args[appArgsIdx++]);

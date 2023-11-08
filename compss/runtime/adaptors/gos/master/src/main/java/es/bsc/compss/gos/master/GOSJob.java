@@ -404,12 +404,10 @@ public class GOSJob extends JobImpl<GOSWorkerNode> {
                     break;
                 case STRING_64_T:
                     BasicTypeParameter btp = (BasicTypeParameter) param;
-                    // decode the string
-                    byte[] decodedBytes = Base64.getDecoder().decode(btp.getValue().toString());
-                    String[] values = new String(decodedBytes).split(" ");
-                    // add total # of strings
-                    singleParamDesc.add(Integer.toString(values.length));
-                    singleParamDesc.addAll(Arrays.asList(values));
+                    // Check spaces
+                    String value64 = btp.getValue().toString();
+                    singleParamDesc.add("1");
+                    singleParamDesc.add(value64);
                     break;
                 default:
                     // Basic Types

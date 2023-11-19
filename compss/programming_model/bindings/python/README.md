@@ -3,7 +3,7 @@ PyCOMPSs
 ========
 
 PyCOMPSs is the Python binding for the COMP Superscalar (COMPSs) framework.
-It allows to run Python applications with COMPSs.
+It allows running Python applications with COMPSs.
 
 
 CONTENT
@@ -35,7 +35,7 @@ DEPENDENCIES
 INSTALLATION
 ------------
 
-- Execute the install script (requires root privileges):
+- Execute the `install` script (requires root privileges):
     ./install
 
 This will install PyCOMPSs in /usr/local/lib/pythonX.Y/site-packages.
@@ -47,3 +47,10 @@ This will install PyCOMPSs in /usr/local/lib/pythonX.Y/site-packages.
     <create_symlinks>: Create symbolic links within site-packages (options: true | false).
     <specific_python_version>: Install a specific version (e.g. python3.10).
     <compile>: Compile the installation (options: true | false).
+
+- For a developer editable installation, you can install it with
+    `pip install -e .`.
+
+- For optional dependencies, you can install using the dependencies groups
+    between `[]`'s.
+    - `pip install -e .[docker]`

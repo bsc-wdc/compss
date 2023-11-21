@@ -884,10 +884,9 @@ def add_application_source_files(
                     full_dir_name = os.path.join(root, dir_name)
                     if not os.listdir(full_dir_name):
                         # print(f"PROVENANCE DEBUG | Adding an empty directory. root ({root}), full_dir_name ({full_dir_name}), resolved_source ({resolved_source})")
+                        # Workaround to add empty directories in a git repository
                         git_keep = Path(full_dir_name + "/" + ".gitkeep")
-                        Path.touch(
-                            git_keep
-                        )  # Workaround to add empty directories in a git repository
+                        Path.touch(git_keep)
                         add_file_to_crate(
                             compss_crate,
                             str(git_keep),
@@ -899,10 +898,9 @@ def add_application_source_files(
             if not os.listdir(resolved_source):
                 # The root directory itself is empty
                 # print(f"PROVENANCE DEBUG | Adding an empty directory. resolved_source ({resolved_source})")
+                # Workaround to add empty directories in a git repository
                 git_keep = Path(resolved_source + "/" + ".gitkeep")
-                Path.touch(
-                    git_keep
-                )  # Workaround to add empty directories in a git repository
+                Path.touch(git_keep)
                 add_file_to_crate(
                     compss_crate,
                     str(git_keep),
@@ -1055,7 +1053,7 @@ def add_dataset_file_to_crate(
                     "name": f_name,
                     "sdDatePublished": iso_now(),  # Register when the Data Entity was last accessible
                     "dateModified": dt.datetime.utcfromtimestamp(
-                        os.path.getmtime(url_parts.path)
+                        os.path.getmtime(listed_file)
                     )
                     .replace(microsecond=0)
                     .isoformat(),
@@ -1091,21 +1089,19 @@ def add_dataset_file_to_crate(
                 full_dir_name = os.path.join(root, dir_name)
                 if not os.listdir(full_dir_name):
                     print(f"PROVENANCE DEBUG | Adding an empty directory in data persistence. root ({root}), full_dir_name ({full_dir_name})")
+                    dir_properties = {
+                        "sdDatePublished": iso_now(),
+                        "dateModified": dt.datetime.utcfromtimestamp(
+                            os.path.getmtime(full_dir_name)
+                        )
+                        .replace(microsecond=0)
+                        .isoformat(),  # Schema.org
+                    }  # Register when the Data Entity was last accessible
                     if persist:
+                        # Workaround to add empty directories in a git repository
                         git_keep = Path(full_dir_name + "/" + ".gitkeep")
-                        Path.touch(
-                            git_keep
-                        )  # Workaround to add empty directories in a git repository
-                        dir_properties = {
-                            "name": ".gitkeep",
-                            "sdDatePublished": iso_now(),
-                            "dateModified": dt.datetime.utcfromtimestamp(
-                                os.path.getmtime(full_dir_name)
-                                # os.path.getmtime(git_keep)
-                            )
-                            .replace(microsecond=0)
-                            .isoformat(),  # Schema.org
-                        }  # Register when the Data Entity was last accessible
+                        Path.touch(git_keep)
+                        dir_properties["name"] = ".gitkeep"
                         path_final_part = full_dir_name[len(url_parts.path) :]
                         dir_f_url = (
                             "dataset/"
@@ -1130,29 +1126,22 @@ def add_dataset_file_to_crate(
                             properties=dir_properties,
                         )
                     else:
-                        dir_properties = {
-                            "name": dir_name,
-                            "sdDatePublished": iso_now(),
-                            "dateModified": dt.datetime.utcfromtimestamp(
-                                os.path.getmtime(full_dir_name)
-                            )
-                            .replace(microsecond=0)
-                            .isoformat(),  # Schema.org
-                        }  # Register when the Data Entity was last accessible
+                        dir_properties["name"] = dir_name
                         dir_f_url = "file://" + url_parts.netloc + full_dir_name + "/"
                         # Directories must finish with slash
                         compss_crate.add_dataset(
                             source=dir_f_url, properties=dir_properties
                         )
                         has_part_list.append({"@id": dir_f_url})
+
+        # After checking all directory structure, represent correctly the dataset
         if not os.listdir(url_parts.path):
             # The root directory itself is empty
-            # print(f"PROVENANCE DEBUG | Adding an empty directory. url_parts.path ({url_parts.path})")
+            print(f"PROVENANCE DEBUG | Adding an empty directory. url_parts.path ({url_parts.path})")
             if persist:
+                # Workaround to add empty directories in a git repository
                 git_keep = Path(url_parts.path + "/" + ".gitkeep")
-                Path.touch(
-                    git_keep
-                )  # Workaround to add empty directories in a git repository
+                Path.touch(git_keep)
                 dir_properties = {
                     "name": ".gitkeep",
                     "sdDatePublished": iso_now(),
@@ -1179,6 +1168,17 @@ def add_dataset_file_to_crate(
                     # True fails at MN4 when file URI points to a node hostname (only localhost works)
                     properties=dir_properties,
                 )
+                has_part_list.append({"@id": str(git_keep)})
+                path_in_crate = ("dataset/" + final_item_name + "/")
+                # fetch_remote and validate_url false by default. add_dataset also ensures the URL ends with '/'
+                dir_properties["name"] = final_item_name
+                dir_properties["hasPart"] = has_part_list
+                print(f"ADDING DATASET FOR THE EMPTY DIRECTORY {final_item_name} as {path_in_crate}, with hasPart {has_part_list}")
+                compss_crate.add_dataset(
+                    source=url_parts.path,
+                    dest_path=path_in_crate,
+                    properties=dir_properties,
+                )
                 return path_in_crate
             else:
                 # Directories must finish with slash
@@ -1189,7 +1189,7 @@ def add_dataset_file_to_crate(
             if persist:
                 dataset_path = url_parts.path
                 path_in_crate = "dataset/" + final_item_name + "/"
-                # print(f"PROVENANCE DEBUG | Adding DATASET {dataset_path} as {path_in_crate}")
+                print(f"PROVENANCE DEBUG | Adding DATASET {dataset_path} as {path_in_crate}")
                 compss_crate.add_dataset(
                     source=dataset_path,
                     dest_path=path_in_crate,

@@ -465,9 +465,20 @@ def process_accessed_files() -> typing.Tuple[list, list]:
             # else dismiss the line
 
     l_ins = list(inputs)
-    l_ins.sort()
+    l_ins.sort()  # Put directories first
     l_outs = list(outputs)
-    l_outs.sort()
+    l_outs.sort()  # Put directories first
+
+    # Fix dir:// references, they don't end with slash '/' at dataprovenance.log
+    for data_list in [l_ins, l_outs]:
+        for item in data_list:
+            url_parts = urlsplit(item)
+            if url_parts.scheme == "dir":
+                data_list.append("dir://" + socket.gethostname() + url_parts.path + "/")
+                data_list.remove(item)
+            else:
+                break  # File has been reached, all directories have been treated
+        data_list.sort()
 
     print(f"PROVENANCE | COMPSs runtime detected inputs ({len(l_ins)})")
     print(f"PROVENANCE | COMPSs runtime detected outputs ({len(l_outs)})")
@@ -956,7 +967,7 @@ def add_dataset_file_to_crate(
     :param compss_crate: The COMPSs RO-Crate being generated
     :param in_url: File added as input or output
     :param persist: True to attach the file to the crate, False otherwise
-    :param common_paths: List of identified common paths among all dataset files
+    :param common_paths: List of identified common paths among all dataset files, all finish with '/'
 
     :returns: The original url if persist is false, the crate_path if persist is true
     """
@@ -983,15 +994,13 @@ def add_dataset_file_to_crate(
         if persist:  # Remove scheme so it is added as a regular file
             for i, item in enumerate(common_paths):  # All files must have a match
                 if url_parts.path.startswith(item):
-                    # print(f"DEBUG: cwd is {os.getcwd()}. item is {item}")
-                    if (
-                        os.getcwd() == item
-                    ):  # Check if it is the working directory. When this script runs, user application has finished,
+                    cwd_endslash = os.getcwd() + '/'  # os.getcwd does not add the final slash
+                    if cwd_endslash == item:
+                        # Check if it is the working directory. When this script runs, user application has finished,
                         # so we can ensure cwd is the original folder where the application was started
                         # Workingdir dataset folder, add it to the root
-                        crate_path = (
-                            "dataset" + url_parts.path[len(item) :]
-                        )  # Slice out the common part of the path
+                        crate_path = "dataset/" + url_parts.path[len(item) :]
+                        # Slice out the common part of the path
                     else:  # Now includes len(common_paths) == 1
                         cp_path = Path(
                             item
@@ -1003,6 +1012,7 @@ def add_dataset_file_to_crate(
                             + cp_path.parts[
                                 -1
                             ]  # Base name of the identified common path. Now it does not avoid collisions if the user defines the same folder name in two different locations
+                            + '/'  # Common part now always ends with '/'
                             + url_parts.path[len(item) :]
                         )  # Slice out the common part of the path
                     break
@@ -1040,7 +1050,7 @@ def add_dataset_file_to_crate(
             files.sort()
             for f_name in files:
                 listed_file = os.path.join(root, f_name)
-                # print(f"DEBUG: listed_file is {listed_file}")
+                # print(f"PROVENANCE DEBUG: listed_file is {listed_file}")
                 dir_f_properties = {
                     "name": f_name,
                     "sdDatePublished": iso_now(),  # Register when the Data Entity was last accessible
@@ -1053,8 +1063,9 @@ def add_dataset_file_to_crate(
                     "contentSize": os.path.getsize(listed_file),
                 }
                 if persist:
-                    filtered_url = listed_file[len(url_parts.path) :]
-                    dir_f_url = "dataset/" + final_item_name + "/" + filtered_url
+                    # url_parts.path includes a final '/'
+                    filtered_url = listed_file[len(url_parts.path) :]  # Does not include an initial '/'
+                    dir_f_url = "dataset/" + final_item_name + '/'+ filtered_url
                     # print(f"PROVENANCE DEBUG | Adding DATASET FILE {listed_file} as {dir_f_url}")
                     compss_crate.add_file(
                         source=listed_file,
@@ -1079,7 +1090,7 @@ def add_dataset_file_to_crate(
                 # Check if it's an empty directory, needs to be added by hand
                 full_dir_name = os.path.join(root, dir_name)
                 if not os.listdir(full_dir_name):
-                    # print(f"PROVENANCE DEBUG | Adding an empty directory in data persistence. root ({root}), full_dir_name ({full_dir_name})")
+                    print(f"PROVENANCE DEBUG | Adding an empty directory in data persistence. root ({root}), full_dir_name ({full_dir_name})")
                     if persist:
                         git_keep = Path(full_dir_name + "/" + ".gitkeep")
                         Path.touch(
@@ -1090,6 +1101,7 @@ def add_dataset_file_to_crate(
                             "sdDatePublished": iso_now(),
                             "dateModified": dt.datetime.utcfromtimestamp(
                                 os.path.getmtime(full_dir_name)
+                                # os.path.getmtime(git_keep)
                             )
                             .replace(microsecond=0)
                             .isoformat(),  # Schema.org
@@ -1108,7 +1120,7 @@ def add_dataset_file_to_crate(
                         #     dest_path=dir_f_url,
                         #     properties=dir_properties,
                         # )
-                        # print(f"ADDING DATASET FILE {git_keep} as {dir_f_url}")
+                        print(f"ADDING DATASET FILE {git_keep} as {dir_f_url}")
                         compss_crate.add_file(
                             source=git_keep,
                             dest_path=dir_f_url,
@@ -1135,9 +1147,7 @@ def add_dataset_file_to_crate(
                         has_part_list.append({"@id": dir_f_url})
         if not os.listdir(url_parts.path):
             # The root directory itself is empty
-            print(
-                f"PROVENANCE DEBUG | Adding an empty directory. url_parts.path ({url_parts.path})"
-            )
+            # print(f"PROVENANCE DEBUG | Adding an empty directory. url_parts.path ({url_parts.path})")
             if persist:
                 git_keep = Path(url_parts.path + "/" + ".gitkeep")
                 Path.touch(
@@ -1160,7 +1170,7 @@ def add_dataset_file_to_crate(
                 #     dest_path=path_in_crate,
                 #     properties=dir_properties,
                 # )
-                print(f"ADDING FILE {git_keep} as {path_in_crate}")
+                # print(f"ADDING FILE {git_keep} as {path_in_crate}")
                 compss_crate.add_file(
                     source=git_keep,
                     dest_path=path_in_crate,
@@ -1177,7 +1187,7 @@ def add_dataset_file_to_crate(
             # Directory had content
             file_properties["hasPart"] = has_part_list
             if persist:
-                dataset_path = url_parts.path + "/"
+                dataset_path = url_parts.path
                 path_in_crate = "dataset/" + final_item_name + "/"
                 # print(f"PROVENANCE DEBUG | Adding DATASET {dataset_path} as {path_in_crate}")
                 compss_crate.add_dataset(
@@ -1404,9 +1414,8 @@ def get_common_paths(url_list: list) -> list:
 
     # Add first found file
     url_parts = urlsplit(url_list[i])
-    common_path = str(
-        Path(url_parts.path).parents[0]
-    )  # Need to remove schema and hostname from reference, and filename
+    # Need to remove schema and hostname from reference, and filename
+    common_path = str(Path(url_parts.path).parents[0])
     i += 1
 
     url_files_list = url_list[i:]  # Slice out directories and the first file
@@ -1418,7 +1427,7 @@ def get_common_paths(url_list: list) -> list:
 
         url_parts = urlsplit(item)
         # Remove schema and hostname
-        tmp = os.path.commonpath([url_parts.path, common_path])
+        tmp = os.path.commonpath([url_parts.path, common_path])  # url_parts.path does not end with '/'
         if tmp != "/":  # String not empty, they have a common path
             # print(f"PROVENANCE DEBUG | Searching. Previous common path is: {common_path}. tmp: {tmp}")
             common_path = tmp
@@ -1434,6 +1443,12 @@ def get_common_paths(url_list: list) -> list:
     if common_path not in list_common_paths:
         list_common_paths.append(common_path)
 
+    # All paths internally need to finish with a '/'
+    for item in list_common_paths:
+        if item[-1] != '/':
+            list_common_paths.append(item + '/')
+            list_common_paths.remove(item)
+
     # print(f"PROVENANCE DEBUG | Resulting list of common paths is: {list_common_paths}")
 
     return list_common_paths
@@ -1441,9 +1456,8 @@ def get_common_paths(url_list: list) -> list:
 
 def add_manual_datasets(yaml_term: str, compss_wf_info: dict, data_list: list) -> list:
     """
-    First fixes dir:// references to end with slash '/'. Then, adds to a list of dataset entities (files or
-    directories) the ones specified by the user. Finally, removes any file:// references that belong to other
-    dir:// references
+    Adds to a list of dataset entities (files or directories) the ones specified by the user. At the end, removes any
+    file:// references that belong to other dir:// references
 
     :param yaml_term: Term specified in the YAML file (i.e. 'inputs' or 'outputs')
     :param compss_wf_info: YAML dict to extract info form the application, as specified by the user
@@ -1452,15 +1466,6 @@ def add_manual_datasets(yaml_term: str, compss_wf_info: dict, data_list: list) -
     :returns: Updated List of identified common paths among the URLs
     """
 
-    # Fix dir:// references, they don't end with slash '/' at dataprovenance.log
-    for item in data_list:
-        url_parts = urlsplit(item)
-        if url_parts.scheme == "dir":
-            data_list.append("dir://" + socket.gethostname() + url_parts.path + "/")
-            data_list.remove(item)
-        else:
-            break
-    data_list.sort()
 
     # Add entities defined by the user
     # Input files or directories added by hand from the user
@@ -1471,6 +1476,7 @@ def add_manual_datasets(yaml_term: str, compss_wf_info: dict, data_list: list) -
         data_entities_list.append(compss_wf_info[yaml_term])
     for item in data_entities_list:
         path_data_entity = Path(item).expanduser()
+
         if not path_data_entity.exists():
             print(
                 f"PROVENANCE | WARNING: A file or directory defined as '{yaml_term}' in ro-crate-info.yaml does not exist "
@@ -1478,6 +1484,7 @@ def add_manual_datasets(yaml_term: str, compss_wf_info: dict, data_list: list) -
             )
             continue
         resolved_data_entity = str(path_data_entity.resolve())
+
         if os.path.isfile(resolved_data_entity):
             new_data_entity = "file://" + socket.gethostname() + resolved_data_entity
         elif os.path.isdir(resolved_data_entity):
@@ -1546,7 +1553,7 @@ def add_manual_datasets(yaml_term: str, compss_wf_info: dict, data_list: list) -
             #     data_list.remove(item)
 
     print(
-        f"PROVENANCE | Manually added data assets as '{yaml_term}' ({len(data_list)})"
+        f"PROVENANCE | Manually added data assets as '{yaml_term}' ({len(data_entities_list)})"
     )
 
     return data_list
@@ -1721,7 +1728,6 @@ def main():
         persistence = False
 
     fixed_ins = []  # ins are file://host/path/file, fixed_ins are crate_path/file
-
     for item in ins:
         fixed_ins.append(
             add_dataset_file_to_crate(

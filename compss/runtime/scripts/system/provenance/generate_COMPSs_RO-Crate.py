@@ -1088,7 +1088,7 @@ def add_dataset_file_to_crate(
                 # Check if it's an empty directory, needs to be added by hand
                 full_dir_name = os.path.join(root, dir_name)
                 if not os.listdir(full_dir_name):
-                    print(f"PROVENANCE DEBUG | Adding an empty directory in data persistence. root ({root}), full_dir_name ({full_dir_name})")
+                    # print(f"PROVENANCE DEBUG | Adding an empty directory in data persistence. root ({root}), full_dir_name ({full_dir_name})")
                     dir_properties = {
                         "sdDatePublished": iso_now(),
                         "dateModified": dt.datetime.utcfromtimestamp(
@@ -1116,7 +1116,7 @@ def add_dataset_file_to_crate(
                         #     dest_path=dir_f_url,
                         #     properties=dir_properties,
                         # )
-                        print(f"ADDING DATASET FILE {git_keep} as {dir_f_url}")
+                        # print(f"ADDING DATASET FILE {git_keep} as {dir_f_url}")
                         compss_crate.add_file(
                             source=git_keep,
                             dest_path=dir_f_url,
@@ -1137,7 +1137,7 @@ def add_dataset_file_to_crate(
         # After checking all directory structure, represent correctly the dataset
         if not os.listdir(url_parts.path):
             # The root directory itself is empty
-            print(f"PROVENANCE DEBUG | Adding an empty directory. url_parts.path ({url_parts.path})")
+            # print(f"PROVENANCE DEBUG | Adding an empty directory. url_parts.path ({url_parts.path})")
             if persist:
                 # Workaround to add empty directories in a git repository
                 git_keep = Path(url_parts.path + "/" + ".gitkeep")
@@ -1168,12 +1168,12 @@ def add_dataset_file_to_crate(
                     # True fails at MN4 when file URI points to a node hostname (only localhost works)
                     properties=dir_properties,
                 )
-                has_part_list.append({"@id": str(git_keep)})
+                has_part_list.append({"@id": path_in_crate})
                 path_in_crate = ("dataset/" + final_item_name + "/")
                 # fetch_remote and validate_url false by default. add_dataset also ensures the URL ends with '/'
                 dir_properties["name"] = final_item_name
                 dir_properties["hasPart"] = has_part_list
-                print(f"ADDING DATASET FOR THE EMPTY DIRECTORY {final_item_name} as {path_in_crate}, with hasPart {has_part_list}")
+                # print(f"ADDING DATASET FOR THE EMPTY DIRECTORY {final_item_name} as {path_in_crate}, with hasPart {has_part_list}")
                 compss_crate.add_dataset(
                     source=url_parts.path,
                     dest_path=path_in_crate,
@@ -1182,14 +1182,14 @@ def add_dataset_file_to_crate(
                 return path_in_crate
             else:
                 # Directories must finish with slash
-                compss_crate.add_dataset(source=in_url, properties=file_properties)
+                compss_crate.add_dataset(source=fix_dir_url(in_url), properties=file_properties)
         else:
             # Directory had content
             file_properties["hasPart"] = has_part_list
             if persist:
                 dataset_path = url_parts.path
                 path_in_crate = "dataset/" + final_item_name + "/"
-                print(f"PROVENANCE DEBUG | Adding DATASET {dataset_path} as {path_in_crate}")
+                # print(f"PROVENANCE DEBUG | Adding DATASET {dataset_path} as {path_in_crate}")
                 compss_crate.add_dataset(
                     source=dataset_path,
                     dest_path=path_in_crate,
@@ -1197,9 +1197,8 @@ def add_dataset_file_to_crate(
                 )  # fetch_remote and validate_url false by default. add_dataset also ensures the URL ends with '/'
                 return path_in_crate
             # else:
-            compss_crate.add_dataset(
-                fix_dir_url(in_url), properties=file_properties
-            )  # fetch_remote and validate_url false by default. add_dataset also ensures the URL ends with '/'
+            # fetch_remote and validate_url false by default. add_dataset also ensures the URL ends with '/'
+            compss_crate.add_dataset(fix_dir_url(in_url), properties=file_properties)
 
     else:  # Remote file, currently not supported in COMPSs. validate_url already adds contentSize and encodingFormat
         # from the remote file
@@ -1207,7 +1206,7 @@ def add_dataset_file_to_crate(
 
     # print(f"Method vs add_file TIME: {time.time() - method_time} vs {add_file_time}")
 
-    return in_url
+    return fix_dir_url(in_url)
 
 
 def wrroc_create_action(

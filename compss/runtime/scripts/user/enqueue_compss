@@ -206,7 +206,7 @@ check_args() {
   get_args "$@"
 
   # For provenance
-  echo "enqueue_compss" "$@"  > .enqueue_compss
+  export ENQUEUE_COMPSS_ARGS="$@"
 
   # Check other command args
   check_args

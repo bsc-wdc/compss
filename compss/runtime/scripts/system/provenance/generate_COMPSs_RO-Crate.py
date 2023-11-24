@@ -265,6 +265,9 @@ def get_main_entities(wf_info: dict) -> typing.Tuple[str, str, str]:
                         continue  # We skip __pycache__ subdirectories
                     for f_name in files:
                         # print(f"PROVENANCE DEBUG | ADDING FILE to list_of_sources: {f_name}. root is: {root}")
+                        if f_name.startswith("*"):
+                            # Avoid dealing with symlinks with wildcards
+                            continue
                         full_name = os.path.join(root, f_name)
                         list_of_sources.append(full_name)
                         if backup_main_entity is None and Path(f_name).suffix in {
@@ -863,6 +866,9 @@ def add_application_source_files(
                 if "__pycache__" in root:
                     continue  # We skip __pycache__ subdirectories
                 for f_name in files:
+                    if f_name.startswith("*"):
+                        # Avoid dealing with symlinks with wildcards
+                        continue
                     resolved_file = os.path.join(root, f_name)
                     if resolved_file not in added_files:
                         add_file_to_crate(
@@ -1044,9 +1050,14 @@ def add_dataset_file_to_crate(
             url_parts.path, topdown=True, followlinks=True
         ):  # Ignore references to sub-directories (they are not a specific in or out of the workflow),
             # but not their files
+            if "__pycache__" in root:
+                continue  # We skip __pycache__ subdirectories
             dirs.sort()
             files.sort()
             for f_name in files:
+                if f_name.startswith("*"):
+                    # Avoid dealing with symlinks with wildcards
+                    continue
                 listed_file = os.path.join(root, f_name)
                 # print(f"PROVENANCE DEBUG: listed_file is {listed_file}")
                 dir_f_properties = {
@@ -1232,11 +1243,12 @@ def wrroc_create_action(
     """
 
     # Compliance with RO-Crate WorkflowRun Level 2 profile, aka. Workflow Run Crate
-    host_name = os.getenv(
-        "SLURM_CLUSTER_NAME"
-    )  # marenostrum4, nord3, ... BSC_MACHINE would also work
+    # marenostrum4, nord3, ... BSC_MACHINE would also work
+    host_name = os.getenv("SLURM_CLUSTER_NAME")
     if host_name is None:
-        host_name = socket.gethostname()
+        host_name = os.getenv("BSC_MACHINE")
+        if host_name is None:
+            host_name = socket.gethostname()
     job_id = os.getenv("SLURM_JOB_ID")
 
     main_entity_pathobj = Path(main_entity)

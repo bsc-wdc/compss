@@ -5,7 +5,7 @@ usage() {
 
   echo " "
   echo "Usage ${0} new_version"
-  echo "E.g. ${0} 3.3.rc2311"
+  echo "E.g. ${0} 3.3.rc2312"
   echo " "
 
   exit "$exitValue"

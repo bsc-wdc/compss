@@ -162,7 +162,7 @@ public class MPIInvoker extends Invoker {
         int numMPIFlags = 0;
         String[] mpiflagsArray = null;
         if (mpiFlags != null && !mpiFlags.isEmpty() && !mpiFlags.equals("[unassigned]")) {
-            mpiflagsArray = mpiFlags.split(" ");
+            mpiflagsArray = BinaryRunner.buildAppParams(this.invocation.getParams(), mpiFlags, pythonInterpreter);
             numMPIFlags = mpiflagsArray.length;
         }
 

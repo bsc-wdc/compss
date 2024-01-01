@@ -10,7 +10,7 @@
     <parent>
         <groupId>es.bsc.compss.tests</groupId>
         <artifactId>compss-tests-python</artifactId>
-        <version>3.3.rc2312</version>
+        <version>3.3.rc2401</version>
         <relativePath>../..</relativePath>
     </parent>
 

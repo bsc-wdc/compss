@@ -151,7 +151,6 @@ public class LogicalData {
                         throw new CommException("Linking two LogicalData with multiple links");
                     }
                 }
-                value[0] = valueContent;
 
                 String pscoId = null;
                 if (ld.pscoId != null) {
@@ -198,6 +197,7 @@ public class LogicalData {
                     }
                 }
 
+                value[0] = valueContent;
                 ld.value = value;
                 ld2.value = value;
                 ld.pscoId = pscoId;
@@ -554,20 +554,22 @@ public class LogicalData {
      * @return
      */
     public synchronized Object removeValue() {
-        DataLocation loc = null;
-        String targetPath = ProtocolType.OBJECT_URI.getSchema() + this.name;
-        try {
-            SimpleURI uri = new SimpleURI(targetPath);
-            loc = DataLocation.createLocation(Comm.getAppHost(), uri);
-        } catch (Exception e) {
-            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, e);
+        for (String alias : getKnownAlias()) {
+            DataLocation loc = null;
+
+            String targetPath = ProtocolType.OBJECT_URI.getSchema() + alias;
+            try {
+                SimpleURI uri = new SimpleURI(targetPath);
+                loc = DataLocation.createLocation(Comm.getAppHost(), uri);
+            } catch (Exception e) {
+                ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, e);
+            }
+            // Removes only the memory location (no need to check private, shared, persistent)
+            synchronized (this.locations) {
+                this.locations.remove(loc);
+            }
         }
 
-        // Removes only the memory location (no need to check private, shared,
-        // persistent)
-        synchronized (this.locations) {
-            this.locations.remove(loc);
-        }
         Object val = this.value[0];
         this.value[0] = null;
 

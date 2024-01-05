@@ -106,7 +106,7 @@ public class ObjectMainAccess<V extends Object, D extends ObjectData, P extends 
 
     private V fetchObject(LogicalData ld, DataAccessId daId, String sourceName) throws CannotLoadException {
         if (ld.isInMemory()) {
-            if (!daId.isPreserveSourceData()) {
+            if (!daId.isPreserveSourceData() && ld.getKnownAlias().size() == 1) {
                 return (V) ld.removeValue();
             } else {
                 try {

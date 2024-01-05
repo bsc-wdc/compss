@@ -689,6 +689,7 @@ def process_task(
 
         # Setting working directory
         os.chdir(working_dir)
+        GLOBALS.set_temporary_directory(working_dir)
 
         if __debug__:
             logger.debug(
@@ -869,6 +870,7 @@ def process_task(
             OT.clean_object_tracker(hard_stop=True)
             # Go back to initial current working directory
             os.chdir(current_working_dir)
+            GLOBALS.set_temporary_directory(current_working_dir)
             # Stop the worker process
             return False
 
@@ -919,6 +921,7 @@ def process_task(
         pipe.write(message)
         # Go back to original working directory
         os.chdir(current_working_dir)
+        GLOBALS.set_temporary_directory(current_working_dir)
         return True
 
 

@@ -409,7 +409,40 @@ public abstract class Invoker implements ApplicationRunner {
     protected long becomesNestedApplication(String parallelismSource) {
         long appId = this.context.getRuntimeAPI().registerApplication(parallelismSource, this);
         LOGGER.info("Job " + this.invocation.getJobId() + " becomes app " + appId);
+        for (InvocationParam p : this.invocation.getParams()) {
+            handleInputValue(appId, p);
+        }
+        InvocationParam p = this.invocation.getTarget();
+        if (p != null) {
+            handleInputValue(appId, p);
+        }
         return appId;
+    }
+
+    private void handleInputValue(Long appId, InvocationParam p) {
+        if (p.isCollective()) {
+            InvocationParamCollection<InvocationParam> cp = (InvocationParamCollection<InvocationParam>) p;
+            for (InvocationParam sp : cp.getCollectionParameters()) {
+                handleInputValue(appId, sp);
+            }
+        } else {
+            switch (p.getType()) {
+                case OBJECT_T:
+                case PSCO_T: {
+                    Object o = p.getValue();
+                    this.context.getRuntimeAPI().registerData(appId, p.getType(), o, p.getSourceDataId());
+                }
+                    break;
+                case FILE_T: {
+                    String originalName = p.getOriginalName();
+                    this.context.getRuntimeAPI().registerData(appId, p.getType(), originalName, p.getSourceDataId());
+                }
+                    break;
+                default:
+                    // Do Nothing
+            }
+        }
+
     }
 
     protected void completeNestedApplication(long appId) {

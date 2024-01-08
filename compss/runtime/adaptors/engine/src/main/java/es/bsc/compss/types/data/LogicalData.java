@@ -72,7 +72,7 @@ public class LogicalData {
     // Id if PSCO, null otherwise
     private String[] pscoId;
     // Id if Binding object, null otherwise
-    private String bindingId;
+    private String[] bindingId;
 
     // List of names the identify the value
     private Set<String> knownAlias = new TreeSet<>();
@@ -109,7 +109,7 @@ public class LogicalData {
         this.knownAlias.add(name);
         this.value = new Object[] { null };
         this.pscoId = new String[] { null };
-        this.bindingId = null;
+        this.bindingId = new String[] { null };
         this.isBeingSaved = false;
         this.isBindingData = false;
         this.size = 0;
@@ -165,10 +165,10 @@ public class LogicalData {
                     pscoId = ld2.pscoId;
                 }
 
-                String bindingId = null;
-                if (ld.bindingId != null) {
-                    if (ld2.bindingId != null) {
-                        if (ld2.bindingId.compareTo(ld.bindingId) != 0) {
+                String[] bindingId = null;
+                if (ld.bindingId[0] != null) {
+                    if (ld2.bindingId[0] != null) {
+                        if (ld2.bindingId[0].compareTo(ld.bindingId[0]) != 0) {
                             throw new CommException("Linking two LogicalData with different value in memory");
                         }
                     } else {
@@ -433,8 +433,8 @@ public class LogicalData {
             case BINDING:
                 for (Resource r : loc.getHosts()) {
                     this.isBindingData = true;
-                    if (this.bindingId == null) {
-                        this.bindingId = ((BindingObjectLocation) loc).getId();
+                    if (this.bindingId[0] == null) {
+                        this.bindingId[0] = ((BindingObjectLocation) loc).getId();
                     }
                     r.addLogicalData(this);
                 }
@@ -607,8 +607,8 @@ public class LogicalData {
             String targetPath = Comm.getAppHost().getWorkingDirectory() + this.name;
             String id;
             // decide the id where the object is stored in the binding
-            if (this.bindingId != null) {
-                id = this.bindingId;
+            if (this.bindingId[0] != null) {
+                id = this.bindingId[0];
             } else {
                 if (this.value[0] != null) {
                     id = (String) this.value[0];

@@ -412,8 +412,7 @@ public class ExecutionAction extends AllocatableAction implements JobListener<Pa
                 dp.setDataAccessId(performedAccess);
             }
 
-            String dataLocation = dp.getDataTarget();
-            p.getMonitor().onCreation(p.getType(), dataName, dataLocation);
+            p.getMonitor().onCreation(p.getType(), dataName);
         }
     }
 

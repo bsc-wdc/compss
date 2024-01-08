@@ -27,8 +27,7 @@ public interface ParameterMonitor {
      *
      * @param type type of the created data
      * @param dataName id of the data generated
-     * @param dataLocation location where the data has been stored
      */
-    public void onCreation(DataType type, String dataName, String dataLocation);
+    public void onCreation(DataType type, String dataName);
 
 }

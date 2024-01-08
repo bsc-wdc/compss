@@ -400,7 +400,7 @@ public abstract class AppMonitor implements TaskMonitor {
         public class ParameterUpdater implements ParameterMonitor {
 
             @Override
-            public void onCreation(DataType type, String dataName, String dataLocation) {
+            public void onCreation(DataType type, String dataName) {
                 if (dataName.compareTo(externalDataId) != 0) {
                     try {
                         Comm.linkData(externalDataId, dataName);

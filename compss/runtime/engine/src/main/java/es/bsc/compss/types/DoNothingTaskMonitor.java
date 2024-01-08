@@ -107,7 +107,7 @@ public class DoNothingTaskMonitor implements TaskMonitor {
         }
 
         @Override
-        public void onCreation(DataType type, String dataName, String dataLocation) {
+        public void onCreation(DataType type, String dataName) {
             // Ignore Notification
         }
 

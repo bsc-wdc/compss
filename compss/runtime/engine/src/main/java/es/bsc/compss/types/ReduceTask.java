@@ -50,7 +50,7 @@ public class ReduceTask extends Task {
     private static final ParameterMonitor IGNORE_PARAM = new ParameterMonitor() {
 
         @Override
-        public void onCreation(DataType type, String dataName, String dataLocation) {
+        public void onCreation(DataType type, String dataName) {
             // Ignore Notification
         }
     };

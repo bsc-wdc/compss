@@ -70,7 +70,7 @@ public class LogicalData {
     // setValue assigns the value to all Linked Data at a time
     private Object[] value;
     // Id if PSCO, null otherwise
-    private String pscoId;
+    private String[] pscoId;
     // Id if Binding object, null otherwise
     private String bindingId;
 
@@ -108,7 +108,7 @@ public class LogicalData {
         this.name = name;
         this.knownAlias.add(name);
         this.value = new Object[] { null };
-        this.pscoId = null;
+        this.pscoId = new String[] { null };
         this.bindingId = null;
         this.isBeingSaved = false;
         this.isBindingData = false;
@@ -152,10 +152,10 @@ public class LogicalData {
                     }
                 }
 
-                String pscoId = null;
-                if (ld.pscoId != null) {
-                    if (ld2.pscoId != null) {
-                        if (ld2.pscoId.compareTo(ld.pscoId) != 0) {
+                String[] pscoId = null;
+                if (ld.getPscoId() != null) {
+                    if (ld2.getPscoId() != null) {
+                        if (ld2.getPscoId().compareTo(ld.getPscoId()) != 0) {
                             throw new CommException("Linking two LogicalData with different pscoId in memory");
                         }
                     } else {
@@ -354,7 +354,7 @@ public class LogicalData {
      * @return
      */
     public String getPscoId() {
-        return this.pscoId;
+        return this.pscoId[0];
     }
 
     /**
@@ -444,7 +444,7 @@ public class LogicalData {
                 disk.addLogicalData(this);
                 break;
             case PERSISTENT:
-                this.pscoId = ((PersistentLocation) loc).getId();
+                this.pscoId[0] = ((PersistentLocation) loc).getId();
                 break;
         }
         if (isDeleted) {
@@ -591,7 +591,7 @@ public class LogicalData {
      * @param id PSCO Identifier
      */
     public synchronized void setPscoId(String id) {
-        this.pscoId = id;
+        this.pscoId[0] = id;
     }
 
     /**
@@ -630,7 +630,7 @@ public class LogicalData {
                 throw (new Exception(" Error " + id + " not found in binding"));
             }
         } else {
-            if (this.pscoId != null) {
+            if (this.pscoId[0] != null) {
                 // It is a persistent object that is already persisted
                 // Nothing to do
                 // If the PSCO is not persisted we treat it as a normal object
@@ -710,8 +710,8 @@ public class LogicalData {
                             Tracer.emitEvent(TraceEvent.STORAGE_GETBYID);
                         }
                         try {
-                            this.pscoId = pLoc.getId();
-                            return StorageItf.getByID(this.pscoId);
+                            this.pscoId[0] = pLoc.getId();
+                            return StorageItf.getByID(this.pscoId[0]);
                         } catch (StorageException se) {
                             // Check next location since cannot retrieve the object from the storage Back-end
                             continue;
@@ -779,7 +779,7 @@ public class LogicalData {
                         }
                         try {
                             this.value[0] = StorageItf.getByID(pLoc.getId());
-                            this.pscoId = pLoc.getId();
+                            this.pscoId[0] = pLoc.getId();
                         } catch (StorageException se) {
                             // Check next location since cannot retrieve the object from the storage Back-end
                             continue;
@@ -1016,7 +1016,7 @@ public class LogicalData {
                 }
                 sb.append("\n");
                 sb.append("\t Value: ").append(value[0]).append("\n");
-                sb.append("\t Id: ").append(pscoId).append("\n");
+                sb.append("\t Id: ").append(pscoId[0]).append("\n");
                 sb.append("\t Locations:\n");
                 for (DataLocation dl : locations) {
                     sb.append("\t\t * ").append(dl).append("\n");

@@ -594,26 +594,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
      * ************************************* APPLICATION MANAGEMENT ***********************************************
      * ************************************************************************************************************
      */
-    @Override
-    public long registerApplication() {
-        Application app = Application.registerApplication();
-        return app.getId();
-    }
-
-    @Override
-    public void registerApplication(Long appId) {
-        Application.registerApplication(appId);
-    }
 
     @Override
     public long registerApplication(String parallelismSource, ApplicationRunner runner) {
         Application app = Application.registerApplication(parallelismSource, runner);
         return app.getId();
-    }
-
-    @Override
-    public void registerApplication(Long appId, String parallelismSource, ApplicationRunner runner) {
-        Application.registerApplication(appId, parallelismSource, runner);
     }
 
     @Override

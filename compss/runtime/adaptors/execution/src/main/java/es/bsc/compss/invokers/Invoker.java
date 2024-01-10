@@ -445,7 +445,6 @@ public abstract class Invoker implements ApplicationRunner {
 
     }
 
-
     @Override
     public void stalledApplication() {
         // Resources should be released so other tasks run in the node
@@ -457,7 +456,7 @@ public abstract class Invoker implements ApplicationRunner {
         // Resources should be re-acquired to continue the execution
         this.runner.readyToContinueExecution(sem);
     }
-    
+
     protected void completeNestedApplication(long appId) {
         // Wait for all nested tasks to end
         this.context.getRuntimeAPI().barrier(appId);
@@ -471,8 +470,6 @@ public abstract class Invoker implements ApplicationRunner {
         for (InvocationParam p : this.invocation.getResults()) {
             handleOutputValue(appId, p);
         }
-
-        this.context.getRuntimeAPI().removeApplicationData(appId);
 
         // Removing internal application
         this.context.getRuntimeAPI().deregisterApplication(appId);

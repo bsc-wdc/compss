@@ -881,8 +881,7 @@ public class Agent {
         synchronized (RUNTIME) {
             // Making sure that the runtime has already been started
         }
-        // Remove all data bound to the application
-        RUNTIME.removeApplicationData(appId);
+        // Remove all data bound to the application and remove app
         RUNTIME.deregisterApplication(appId);
     }
 }

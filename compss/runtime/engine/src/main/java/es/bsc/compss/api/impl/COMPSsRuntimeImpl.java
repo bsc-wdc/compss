@@ -603,7 +603,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
     @Override
     public void deregisterApplication(Long appId) {
-        Application.deregisterApplication(appId);
+        Application app = Application.deregisterApplication(appId);
+        ap.deleteAllApplicationDataRequest(app);
     }
 
     @Override
@@ -1994,12 +1995,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
         // Create location
         return DataLocation.createLocation(host, uri);
-    }
-
-    @Override
-    public void removeApplicationData(Long appId) {
-        Application app = Application.registerApplication(appId);
-        ap.deleteAllApplicationDataRequest(app);
     }
 
     @Override

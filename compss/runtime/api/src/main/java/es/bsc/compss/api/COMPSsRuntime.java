@@ -447,13 +447,6 @@ public interface COMPSsRuntime {
      */
     public void cancelApplicationTasks(Long appId);
 
-    /**
-     * Removes all the data information related to a specific application.
-     *
-     * @param appId Id of the application whose data is to be remove
-     */
-    public void removeApplicationData(Long appId);
-
     /*
      * *****************************************************************************************************************
      * TOOLS ACCESS FOR BINDINGS

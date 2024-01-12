@@ -60,7 +60,7 @@ public class NIOUri implements Externalizable, InvocationParamURI {
      * @return The internal URI.
      */
     public String getInternalURI() {
-        return toString();
+        return this.toString();
     }
 
     @Override

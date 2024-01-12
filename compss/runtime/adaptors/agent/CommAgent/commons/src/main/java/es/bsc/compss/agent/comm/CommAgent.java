@@ -19,7 +19,6 @@ package es.bsc.compss.agent.comm;
 
 import es.bsc.comm.nio.NIONode;
 import es.bsc.compss.agent.comm.messages.types.CommTask;
-import es.bsc.compss.agent.types.RemoteDataLocation;
 import es.bsc.compss.agent.types.Resource;
 
 
@@ -41,11 +40,11 @@ public interface CommAgent {
     public void receivedNewTask(NIONode master, CommTask request);
 
     /**
-     * Returns or creates the host from a remoteDataLocation.
+     * Returns or creates the host from a resource description.
      *
-     * @param loc remote location
-     * @return Internal Resource corresponding to the host of location passed in as parameter
+     * @param res remote resource description
+     * @return Internal Resource corresponding to the host passed in as parameter
      */
-    public es.bsc.compss.types.resources.Resource getNodeFromLocation(RemoteDataLocation loc);
+    public es.bsc.compss.types.resources.Resource getNodeFromResource(Resource<?, ?> res);
 
 }

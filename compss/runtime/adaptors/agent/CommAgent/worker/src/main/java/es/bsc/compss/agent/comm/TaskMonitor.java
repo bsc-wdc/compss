@@ -169,8 +169,6 @@ public class TaskMonitor extends AppMonitor {
      * Notifies the end of the task.
      */
     private void notifyEnd() {
-        NIONode n = new NIONode(orchestrator.getName(), orchestrator.getPort());
-
         int jobId = task.getJobId();
         NIOTaskResult tr = new NIOTaskResult(jobId);
 
@@ -178,6 +176,7 @@ public class TaskMonitor extends AppMonitor {
             tr.addParamResult(createCommResult(param));
         }
 
+        NIONode n = new NIONode(orchestrator.getName(), orchestrator.getPort());
         Connection c = TM.startConnection(n);
         CommandNIOTaskDone cmd = new CommandNIOTaskDone(tr, successful, task.getProfile(), task.getHistory().toString(),
             this.getException());

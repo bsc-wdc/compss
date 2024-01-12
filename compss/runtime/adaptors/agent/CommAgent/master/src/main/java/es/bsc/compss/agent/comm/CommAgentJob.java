@@ -21,8 +21,10 @@ import es.bsc.compss.agent.comm.messages.types.CommParam;
 import es.bsc.compss.agent.comm.messages.types.CommParamCollection;
 import es.bsc.compss.agent.comm.messages.types.CommResult;
 import es.bsc.compss.agent.comm.messages.types.CommTask;
+import es.bsc.compss.agent.types.PrivateRemoteDataLocation;
 import es.bsc.compss.agent.types.RemoteDataInformation;
 import es.bsc.compss.agent.types.RemoteDataLocation;
+import es.bsc.compss.agent.types.SharedRemoteDataLocation;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.nio.NIOData;
 import es.bsc.compss.nio.NIOParam;
@@ -40,6 +42,7 @@ import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataAccessId.ReadingDataAccessId;
 import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
 import es.bsc.compss.types.data.LogicalData;
+import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.definition.MethodDefinition;
@@ -84,7 +87,7 @@ class CommAgentJob extends NIOJob {
     }
 
     @Override
-    public CommTask prepareJob() {
+    public CommTask createNIOTask() {
         AbstractMethodImplementation absMethodImpl = (AbstractMethodImplementation) this.impl;
 
         // If it is a native method, check that methodname is defined (otherwise define it from job parameters)
@@ -216,20 +219,12 @@ class CommAgentJob extends NIOJob {
         CommParam commParam = new CommParam(dataMgmtId, type, dir, stdIOStream, prefix, name, pyType, weight,
             keepRename, dPar.getOriginalName());
         commParam.setValue(dPar.getOriginalName());
-        NIOData sourceData = (NIOData) dPar.getDataSource();
+        CommData sourceData = (CommData) dPar.getDataSource();
         if (sourceData != null) {
             RemoteDataInformation remoteData = new RemoteDataInformation(renaming);
-            for (NIOUri uri : sourceData.getSources()) {
-                if (uri instanceof CommAgentURI) {
-                    CommAgentURI caURI = (CommAgentURI) uri;
-                    remoteData.addSource(new RemoteDataLocation(caURI.getAgent(), uri.getPath()));
-                } else {
-                    CommAgentURI caURI = new CommAgentURI(uri);
-                    remoteData.addSource(new RemoteDataLocation(caURI.getAgent(), uri.getPath()));
-                }
-
+            for (RemoteDataLocation rdl : sourceData.getRemoteLocations()) {
+                remoteData.addSource(rdl);
             }
-
             commParam.setRemoteData(remoteData);
         }
 
@@ -250,7 +245,6 @@ class CommAgentJob extends NIOJob {
 
     @Override
     protected void registerResult(Parameter param, NIOResult result) {
-
         if (!param.isPotentialDependency()) {
             return;
         }
@@ -276,16 +270,37 @@ class CommAgentJob extends NIOJob {
                 Collection<RemoteDataLocation> dataLocations = commResult.getLocations();
                 for (RemoteDataLocation location : dataLocations) {
                     if (location != null) {
-                        Resource w = ownAgent.getNodeFromLocation(location);
-                        if (w == null) {
-                            w = this.worker;
+                        if (location.getType() == RemoteDataLocation.Type.SHARED) {
+                            registerSharedResult((SharedRemoteDataLocation) location, rename);
+                        } else {
+                            registerPrivateResult((PrivateRemoteDataLocation) location, rename);
                         }
-                        LOGGER.debug("Registering result " + rename + " comming from worker " + w.getName());
-                        registerResultLocation(location.getPath(), rename, w);
                     }
                 }
                 notifyResultAvailability(dp, rename);
             }
         }
+    }
+
+    private void registerSharedResult(SharedRemoteDataLocation sLocation, String rename) {
+        String diskName = sLocation.getDiskName();
+        for (SharedRemoteDataLocation.Mountpoint mp : sLocation.getMountpoints()) {
+            Resource w = ownAgent.getNodeFromResource(mp.getResource());
+            if (w == null) {
+                w = this.worker;
+            }
+            w.addSharedDisk(diskName, mp.getPath());
+        }
+        LOGGER.debug("Registering result " + rename + " on shared disk " + diskName);
+        registerResultSharedLocation(sLocation.getDiskName(), sLocation.getPathOnDisk(), rename);
+    }
+
+    private void registerPrivateResult(PrivateRemoteDataLocation pLocation, String rename) {
+        Resource w = ownAgent.getNodeFromResource(pLocation.getResource());
+        if (w == null) {
+            w = this.worker;
+        }
+        LOGGER.debug("Registering result " + rename + " comming from worker " + w.getName());
+        registerResultPrivateLocation(pLocation.getPath(), rename, w);
     }
 }

@@ -22,9 +22,11 @@ import es.bsc.compss.COMPSsDefaults;
 import es.bsc.compss.COMPSsPaths;
 import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.agent.types.ApplicationParameterCollection;
+import es.bsc.compss.agent.types.PrivateRemoteDataLocation;
 import es.bsc.compss.agent.types.RemoteDataInformation;
 import es.bsc.compss.agent.types.RemoteDataLocation;
 import es.bsc.compss.agent.types.Resource;
+import es.bsc.compss.agent.types.SharedRemoteDataLocation;
 import es.bsc.compss.api.impl.COMPSsRuntimeImpl;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.CommException;
@@ -40,6 +42,7 @@ import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.location.DataLocation;
+import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.resources.DynamicMethodWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Worker;
@@ -573,15 +576,13 @@ public class Agent {
     }
 
     /**
-     * Returns or creates the host from a remoteDataLocation.
+     * Returns or creates the host from a remote Resource description.
      *
-     * @param loc remote location
-     * @return Internal Resource corresponding to the host of location passed in as parameter
+     * @param r remote resource description
+     * @return Internal Resource corresponding to the resource description passed in as parameter
      * @throws AgentException Error while registering the remote node in the Agent
      */
-    public static es.bsc.compss.types.resources.Resource getNodeFromLocation(RemoteDataLocation loc)
-        throws AgentException {
-        Resource<?, ?> r = loc.getResource();
+    public static es.bsc.compss.types.resources.Resource getNodeForResource(Resource<?, ?> r) throws AgentException {
         if (r == null) {
             return null;
         }
@@ -609,22 +610,42 @@ public class Agent {
         for (RemoteDataLocation loc : remote.getSources()) {
             if (loc != null) {
                 try {
-                    String path = loc.getPath();
-                    SimpleURI uri = new SimpleURI(path);
-
-                    es.bsc.compss.types.resources.Resource host = getNodeFromLocation(loc);
-                    if (host == Comm.getAppHost()) {
-                        String name = uri.getPath();
-                        LogicalData localData = Comm.getData(name);
-                        if (localData != null) {
-                            otherDataNameInLocal = name;
-                            addedSources++;
-                            continue;
+                    DataLocation dl = null;
+                    if (loc.getType() == RemoteDataLocation.Type.SHARED) {
+                        SharedRemoteDataLocation sloc = (SharedRemoteDataLocation) loc;
+                        String diskName = sloc.getDiskName();
+                        String pathOnDisk = sloc.getPathOnDisk();
+                        for (SharedRemoteDataLocation.Mountpoint mp : sloc.getMountpoints()) {
+                            Resource<?, ?> r = mp.getResource();
+                            es.bsc.compss.types.resources.Resource host = getNodeForResource(r);
+                            host.addSharedDisk(diskName, mp.getPath());
                         }
-                    }
+                        String sPath = ProtocolType.SHARED_URI.getSchema() + diskName + File.separator + pathOnDisk;
+                        SimpleURI resultURI = new SimpleURI(sPath);
+                        dl = DataLocation.createLocation(null, resultURI);
+                    } else {
+                        PrivateRemoteDataLocation ploc = (PrivateRemoteDataLocation) loc;
+                        String path = ploc.getPath();
+                        SimpleURI uri = new SimpleURI(path);
+                        Resource<?, ?> r = ploc.getResource();
+                        if (r != null) {
+                            es.bsc.compss.types.resources.Resource host = getNodeForResource(r);
+                            if (host == Comm.getAppHost()) {
+                                String name = uri.getPath();
+                                LogicalData localData = Comm.getData(name);
+                                if (localData != null) {
+                                    otherDataNameInLocal = name;
+                                    addedSources++;
+                                    continue;
+                                }
+                            }
+                            dl = DataLocation.createLocation(host, uri);
+                        }
 
-                    DataLocation dl = DataLocation.createLocation(host, uri);
-                    locations.add(dl);
+                    }
+                    if (dl != null) {
+                        locations.add(dl);
+                    }
                 } catch (AgentException | IOException e) {
                     // Do nothing. Ignore location
                     LOGGER.warn("Exception adding remote data", e);

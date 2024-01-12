@@ -18,8 +18,10 @@ package es.bsc.compss.agent;
 
 import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.agent.types.ApplicationParameterCollection;
+import es.bsc.compss.agent.types.PrivateRemoteDataLocation;
 import es.bsc.compss.agent.types.RemoteDataLocation;
 import es.bsc.compss.agent.types.Resource;
+import es.bsc.compss.agent.types.SharedRemoteDataLocation;
 import es.bsc.compss.api.ParameterCollectionMonitor;
 import es.bsc.compss.api.ParameterMonitor;
 import es.bsc.compss.api.TaskMonitor;
@@ -30,6 +32,7 @@ import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.location.DataLocation;
+import es.bsc.compss.types.data.location.SharedDisk;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.worker.COMPSsException;
@@ -38,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -304,19 +308,13 @@ public abstract class AppMonitor implements TaskMonitor {
 
             boolean isLocal = false;
             for (DataLocation loc : ld.getLocations()) {
-                if (isLocal(loc)) {
-                    isLocal = true;
-                } else {
-                    for (MultiURI uri : loc.getURIs()) {
-                        Resource<?, ?> hostResource = createRemoteResourceFromResource(uri.getHost());
-                        if (hostResource != null) {
-                            String pathInHost = uri.getPath();
-                            locations.add(new RemoteDataLocation(hostResource, pathInHost));
-                        }
-                    }
+                boolean localLocation = isLocal(loc);
+                isLocal = isLocal || localLocation;
+                RemoteDataLocation rdl = createRemoteDLFromLocation(loc, localLocation);
+                if (rdl != null) {
+                    locations.add(rdl);
                 }
             }
-
             // this is done to prevent ConcurrentModificationException when iterating ld.getKnownAlias()
             // and contain the performance loss to the less frequent part of the code (this one)
             boolean done = false;
@@ -326,7 +324,7 @@ public abstract class AppMonitor implements TaskMonitor {
                     localLocations = new ArrayList<>();
                     try {
                         for (String alias : ld.getKnownAlias()) {
-                            localLocations.add(new RemoteDataLocation(null, alias));
+                            localLocations.add(new PrivateRemoteDataLocation(null, alias));
                         }
                     } catch (ConcurrentModificationException cme) {
                         LOGGER.warn("Logical data was modified while constructing it's remote data location"
@@ -336,8 +334,40 @@ public abstract class AppMonitor implements TaskMonitor {
                     done = true;
                 }
             }
-
             return locations;
+        }
+
+        private RemoteDataLocation createRemoteDLFromLocation(DataLocation loc, boolean isLocal) {
+            RemoteDataLocation rdl = null;
+            switch (loc.getType()) {
+                case PRIVATE:
+                    if (!isLocal) {
+                        for (MultiURI uri : loc.getURIs()) {
+                            Resource<?, ?> hostResource = createRemoteResourceFromResource(uri.getHost());
+                            if (hostResource != null) {
+                                String pathInHost = uri.getPath();
+                                rdl = new PrivateRemoteDataLocation(hostResource, pathInHost);
+                            }
+                        }
+                    }
+                    break;
+                case SHARED:
+                    SharedDisk sd = loc.getSharedDisk();
+                    String diskName = sd.getName();
+                    Map<es.bsc.compss.types.resources.Resource, String> sdMountpoints = sd.getAllMountpoints();
+                    SharedRemoteDataLocation.Mountpoint[] srdlMountpoints;
+                    srdlMountpoints = new SharedRemoteDataLocation.Mountpoint[sdMountpoints.size()];
+                    int i = 0;
+                    for (Map.Entry<es.bsc.compss.types.resources.Resource, String> sdMp : sdMountpoints.entrySet()) {
+                        Resource r = createRemoteResourceFromResource(sdMp.getKey());
+                        String mountpoint = sdMp.getValue();
+                        srdlMountpoints[i++] = new SharedRemoteDataLocation.Mountpoint(r, mountpoint);
+                    }
+                    rdl = new SharedRemoteDataLocation(diskName, loc.getPath(), srdlMountpoints);
+                    break;
+                default:
+            }
+            return rdl;
         }
 
         private Resource<?, ?> createRemoteResourceFromResource(es.bsc.compss.types.resources.Resource res) {
@@ -370,7 +400,7 @@ public abstract class AppMonitor implements TaskMonitor {
         public class ParameterUpdater implements ParameterMonitor {
 
             @Override
-            public void onCreation(DataType type, String dataName, String dataLocation) {
+            public void onCreation(DataType type, String dataName) {
                 if (dataName.compareTo(externalDataId) != 0) {
                     try {
                         Comm.linkData(externalDataId, dataName);

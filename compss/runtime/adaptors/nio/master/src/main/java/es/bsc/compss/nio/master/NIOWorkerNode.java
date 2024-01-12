@@ -799,7 +799,7 @@ public class NIOWorkerNode extends COMPSsWorker {
         if (node == null) {
             throw new UnstartedNodeException();
         }
-        NIOTask t = job.prepareJob();
+        NIOTask t = job.createNIOTask();
         CommandNewTask cmd = new CommandNewTask(t, obsolete);
         Connection c = NIOAgent.getTransferManager().startConnection(node);
         NIOAgent.registerOngoingCommand(c, cmd);
@@ -867,7 +867,7 @@ public class NIOWorkerNode extends COMPSsWorker {
         }
     }
 
-    private NIOData getNIODatafromLogicalData(LogicalData ld) {
+    protected NIOData getNIODatafromLogicalData(LogicalData ld) {
         NIOData data = new NIOData(ld.getName());
 
         for (MultiURI uri : ld.getURIs()) {

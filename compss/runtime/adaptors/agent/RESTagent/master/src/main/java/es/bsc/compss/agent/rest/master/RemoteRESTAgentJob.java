@@ -29,7 +29,6 @@ import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataAccessId.ReadingDataAccessId;
-import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.TaskType;
@@ -264,7 +263,7 @@ public class RemoteRESTAgentJob extends JobImpl<RemoteRESTAgent> {
 
         if (rename != null) {
             for (String rloc : result.getLocations()) {
-                registerResultLocation(rloc, rename, this.worker);
+                registerResultPrivateLocation(rloc, rename, this.worker);
             }
             notifyResultAvailability(dp, rename);
         }

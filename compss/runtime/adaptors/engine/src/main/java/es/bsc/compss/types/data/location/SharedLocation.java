@@ -87,11 +87,19 @@ public class SharedLocation extends DataLocation {
     @Override
     public List<MultiURI> getURIs() {
         List<MultiURI> uris = new LinkedList<>();
+
         Map<Resource, String> resList = this.disk.getAllMountpoints();
+        if (resList == null) {
+            return uris;
+        }
         Resource[] resources;
         String[] mountpoints;
         int size = 0;
         synchronized (resList) {
+            if (resList.isEmpty()) {
+                return uris;
+            }
+
             size = resList.size();
             resources = new Resource[size];
             mountpoints = new String[size];
@@ -101,6 +109,7 @@ public class SharedLocation extends DataLocation {
                 mountpoints[idx] = e.getValue();
                 idx++;
             }
+
         }
         for (int i = 0; i < size; i++) {
             Resource host = resources[i];

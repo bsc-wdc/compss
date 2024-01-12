@@ -25,52 +25,18 @@ import java.io.ObjectOutput;
 /**
  * Data value location on an Agent.
  */
-public class RemoteDataLocation implements Externalizable {
+public interface RemoteDataLocation extends Externalizable {
 
-    private Resource<?, ?> resource;
-    private String path;
-
-
-    public RemoteDataLocation() {
-        this.resource = null;
+    public static enum Type {
+        PRIVATE, // location from a private dataspace of a single node
+        SHARED // location from a dataspace shared among several nodes
     }
 
-    public RemoteDataLocation(Resource<?, ?> agent, String path) {
-        this.resource = agent;
-        this.path = path;
-    }
 
     /**
-     * Resource owning the data.
-     *
-     * @return Resource owning the data.
+     * Returns the type of remote location.
+     * 
+     * @return type of remote location
      */
-    public Resource<?, ?> getResource() {
-        return this.resource;
-    }
-
-    /**
-     * Returns the path on the remote resource where to fetch the data.
-     *
-     * @return data path within the resource.
-     */
-    public String getPath() {
-        return this.path;
-    }
-
-    @Override
-    public void writeExternal(ObjectOutput oo) throws IOException {
-        oo.writeObject(this.resource);
-        oo.writeUTF(this.path);
-    }
-
-    @Override
-    public void readExternal(ObjectInput oi) throws IOException, ClassNotFoundException {
-        this.resource = (Resource<?, ?>) oi.readObject();
-        this.path = oi.readUTF();
-    }
-
-    public String toString() {
-        return "RESOURCE = [" + (this.resource == null ? "null" : this.resource.toString()) + "], PATH =" + this.path;
-    }
+    public Type getType();
 }

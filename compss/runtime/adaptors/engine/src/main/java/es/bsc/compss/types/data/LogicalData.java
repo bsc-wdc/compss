@@ -70,9 +70,9 @@ public class LogicalData {
     // setValue assigns the value to all Linked Data at a time
     private Object[] value;
     // Id if PSCO, null otherwise
-    private String pscoId;
+    private String[] pscoId;
     // Id if Binding object, null otherwise
-    private String bindingId;
+    private String[] bindingId;
 
     // List of names the identify the value
     private Set<String> knownAlias = new TreeSet<>();
@@ -95,10 +95,11 @@ public class LogicalData {
     // The data has been removed
     private boolean isDeleted;
 
-
     /*
      * Constructors
      */
+
+
     /**
      * Constructs a LogicalData for a given data version.
      *
@@ -108,8 +109,8 @@ public class LogicalData {
         this.name = name;
         this.knownAlias.add(name);
         this.value = new Object[] { null };
-        this.pscoId = null;
-        this.bindingId = null;
+        this.pscoId = new String[] { null };
+        this.bindingId = new String[] { null };
         this.isBeingSaved = false;
         this.isBindingData = false;
         this.size = 0;
@@ -129,9 +130,9 @@ public class LogicalData {
         synchronized (ld) {
             synchronized (ld2) {
                 Object valueContent = null;
-                if (ld.value[0] != null) {
-                    if (ld2.value[0] != null) {
-                        if (ld2.value[0] != ld.value[0]) {
+                if (ld.isInMemory()) {
+                    if (ld2.isInMemory()) {
+                        if (ld2.getValue() != ld.getValue()) {
                             throw new CommException("Linking two LogicalData with different value in memory");
                         }
                     } else {
@@ -141,22 +142,10 @@ public class LogicalData {
                     valueContent = ld2.value[0];
                 }
 
-                Object[] value = null;
-                if (ld.knownAlias.size() == 1) {
-                    value = ld2.value;
-                } else {
-                    if (ld2.knownAlias.size() == 1) {
-                        value = ld.value;
-                    } else {
-                        throw new CommException("Linking two LogicalData with multiple links");
-                    }
-                }
-                value[0] = valueContent;
-
-                String pscoId = null;
-                if (ld.pscoId != null) {
-                    if (ld2.pscoId != null) {
-                        if (ld2.pscoId.compareTo(ld.pscoId) != 0) {
+                String[] pscoId = null;
+                if (ld.getPscoId() != null) {
+                    if (ld2.getPscoId() != null) {
+                        if (ld2.getPscoId().compareTo(ld.getPscoId()) != 0) {
                             throw new CommException("Linking two LogicalData with different pscoId in memory");
                         }
                     } else {
@@ -166,10 +155,10 @@ public class LogicalData {
                     pscoId = ld2.pscoId;
                 }
 
-                String bindingId = null;
-                if (ld.bindingId != null) {
-                    if (ld2.bindingId != null) {
-                        if (ld2.bindingId.compareTo(ld.bindingId) != 0) {
+                String[] bindingId = null;
+                if (ld.bindingId[0] != null) {
+                    if (ld2.bindingId[0] != null) {
+                        if (ld2.bindingId[0].compareTo(ld.bindingId[0]) != 0) {
                             throw new CommException("Linking two LogicalData with different value in memory");
                         }
                     } else {
@@ -179,44 +168,67 @@ public class LogicalData {
                     bindingId = ld2.bindingId;
                 }
 
-                if (ld.isInMemory()) {
-                    if (!ld2.isInMemory()) {
-                        for (String alias : ld2.knownAlias) {
-                            ld.addKnownAlias(alias);
-                        }
-                        ld2.knownAlias = ld.knownAlias;
-                    } // If they both have the same value, it will be locations will be added later on
+                LogicalData slave;
+                LogicalData master;
+                if (ld.knownAlias.size() == 1) {
+                    // LD becomes LD2
+                    slave = ld;
+                    master = ld2;
                 } else {
-                    if (ld2.isInMemory()) {
-                        for (String alias : ld.knownAlias) {
-                            ld2.addKnownAlias(alias);
-                        }
-                        ld.knownAlias = ld2.knownAlias;
+                    if (ld2.knownAlias.size() == 1) {
+                        // LD2 becomes LD
+                        slave = ld;
+                        master = ld2;
                     } else {
-                        ld.knownAlias.addAll(ld2.knownAlias);
-                        ld2.knownAlias = ld.knownAlias;
+                        throw new CommException("Linking two LogicalData with multiple links");
                     }
                 }
 
-                ld.value = value;
-                ld2.value = value;
-                ld.pscoId = pscoId;
-                ld2.pscoId = pscoId;
-                ld.bindingId = bindingId;
-                ld2.bindingId = bindingId;
-                synchronized (ld.locations) {
-                    ld.locations.addAll(ld2.locations);
+                // Include locations for in memory values of the slave LD.
+                // If the value is on slave, locations will be added later.
+                if (master.isInMemory() && !slave.isInMemory()) {
+                    synchronized (slave.knownAlias) {
+                        for (String alias : slave.getKnownAlias()) {
+                            String targetPath = ProtocolType.OBJECT_URI.getSchema() + alias;
+                            try {
+                                DataLocation loc;
+                                SimpleURI uri = new SimpleURI(targetPath);
+                                loc = DataLocation.createLocation(Comm.getAppHost(), uri);
+                                synchronized (master.locations) {
+                                    master.locations.add(loc);
+                                }
+                            } catch (Exception e) {
+                                ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, e);
+                            }
+                        }
+                    }
                 }
-                synchronized (ld2.locations) {
-                    ld2.locations = ld.locations;
-                }
-                ld.locMonitors.addAll(ld2.locMonitors);
-                ld2.locMonitors = ld.locMonitors;
+                master.value[0] = valueContent;
+                slave.value = master.value;
+                master.pscoId = pscoId;
+                slave.pscoId = master.pscoId;
+                master.bindingId = bindingId;
+                slave.bindingId = master.bindingId;
 
-                synchronized (ld.inProgress) {
-                    ld.inProgress.addAll(ld2.inProgress);
+                synchronized (master.locMonitors) {
+                    master.locMonitors.addAll(slave.locMonitors);
                 }
-                ld2.inProgress = ld.inProgress;
+                slave.locMonitors = master.locMonitors;
+
+                synchronized (master.inProgress) {
+                    master.inProgress.addAll(slave.inProgress);
+                }
+                slave.inProgress = master.inProgress;
+
+                synchronized (master.locations) {
+                    master.locations.addAll(slave.locations);
+                }
+                slave.locations = master.locations;
+
+                synchronized (master.knownAlias) {
+                    master.knownAlias.addAll(slave.knownAlias);
+                }
+                slave.knownAlias = master.knownAlias;
             }
         }
     }
@@ -242,7 +254,7 @@ public class LogicalData {
 
     /**
      * Checks whether a logical data is a known aliases of the same data.
-     * 
+     *
      * @param data data whose aliasing is to be checked
      * @return {@literal true}, if they both represent the same data; {@literal false} otherwise
      */
@@ -252,7 +264,7 @@ public class LogicalData {
 
     /**
      * Counts the number of alias known for the data.
-     * 
+     *
      * @return number of known alias for the data
      */
     public synchronized int countKnownAlias() {
@@ -353,8 +365,8 @@ public class LogicalData {
      *
      * @return
      */
-    public String getPscoId() {
-        return this.pscoId;
+    public final String getPscoId() {
+        return this.pscoId[0];
     }
 
     /**
@@ -377,7 +389,7 @@ public class LogicalData {
 
     /**
      * Registers a new element monitoring data's locations changes.
-     * 
+     *
      * @param monitor element to notify location updates
      */
     public void registerLocationMonitor(LocationMonitor monitor) {
@@ -388,7 +400,7 @@ public class LogicalData {
 
     /**
      * Unregisters a new element monitoring data's locations changes.
-     * 
+     *
      * @param monitor element to stop notifying location updates
      */
     public void unregisterLocationMonitor(LocationMonitor monitor) {
@@ -433,8 +445,8 @@ public class LogicalData {
             case BINDING:
                 for (Resource r : loc.getHosts()) {
                     this.isBindingData = true;
-                    if (this.bindingId == null) {
-                        this.bindingId = ((BindingObjectLocation) loc).getId();
+                    if (this.bindingId[0] == null) {
+                        this.bindingId[0] = ((BindingObjectLocation) loc).getId();
                     }
                     r.addLogicalData(this);
                 }
@@ -444,7 +456,7 @@ public class LogicalData {
                 disk.addLogicalData(this);
                 break;
             case PERSISTENT:
-                this.pscoId = ((PersistentLocation) loc).getId();
+                this.pscoId[0] = ((PersistentLocation) loc).getId();
                 break;
         }
         if (isDeleted) {
@@ -515,7 +527,7 @@ public class LogicalData {
      *
      * @return
      */
-    public synchronized boolean isInMemory() {
+    public final synchronized boolean isInMemory() {
         return (this.value[0] != null);
     }
 
@@ -533,7 +545,7 @@ public class LogicalData {
      *
      * @return
      */
-    public synchronized Object getValue() {
+    public final synchronized Object getValue() {
         return this.value[0];
     }
 
@@ -554,20 +566,22 @@ public class LogicalData {
      * @return
      */
     public synchronized Object removeValue() {
-        DataLocation loc = null;
-        String targetPath = ProtocolType.OBJECT_URI.getSchema() + this.name;
-        try {
-            SimpleURI uri = new SimpleURI(targetPath);
-            loc = DataLocation.createLocation(Comm.getAppHost(), uri);
-        } catch (Exception e) {
-            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, e);
+        for (String alias : getKnownAlias()) {
+            DataLocation loc = null;
+
+            String targetPath = ProtocolType.OBJECT_URI.getSchema() + alias;
+            try {
+                SimpleURI uri = new SimpleURI(targetPath);
+                loc = DataLocation.createLocation(Comm.getAppHost(), uri);
+            } catch (Exception e) {
+                ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, e);
+            }
+            // Removes only the memory location (no need to check private, shared, persistent)
+            synchronized (this.locations) {
+                this.locations.remove(loc);
+            }
         }
 
-        // Removes only the memory location (no need to check private, shared,
-        // persistent)
-        synchronized (this.locations) {
-            this.locations.remove(loc);
-        }
         Object val = this.value[0];
         this.value[0] = null;
 
@@ -589,7 +603,7 @@ public class LogicalData {
      * @param id PSCO Identifier
      */
     public synchronized void setPscoId(String id) {
-        this.pscoId = id;
+        this.pscoId[0] = id;
     }
 
     /**
@@ -605,8 +619,8 @@ public class LogicalData {
             String targetPath = Comm.getAppHost().getWorkingDirectory() + this.name;
             String id;
             // decide the id where the object is stored in the binding
-            if (this.bindingId != null) {
-                id = this.bindingId;
+            if (this.bindingId[0] != null) {
+                id = this.bindingId[0];
             } else {
                 if (this.value[0] != null) {
                     id = (String) this.value[0];
@@ -628,7 +642,7 @@ public class LogicalData {
                 throw (new Exception(" Error " + id + " not found in binding"));
             }
         } else {
-            if (this.pscoId != null) {
+            if (this.pscoId[0] != null) {
                 // It is a persistent object that is already persisted
                 // Nothing to do
                 // If the PSCO is not persisted we treat it as a normal object
@@ -676,8 +690,8 @@ public class LogicalData {
     /**
      * Reads the value of the LogicalData from a file but does not keep it as the value.
      *
-     * @returns the value of the LogicalData
      * @throws CannotLoadException Error loading from storage
+     * @returns the value of the LogicalData
      */
     public synchronized Object readFromStorage() throws CannotLoadException {
         synchronized (this.locations) {
@@ -708,8 +722,8 @@ public class LogicalData {
                             Tracer.emitEvent(TraceEvent.STORAGE_GETBYID);
                         }
                         try {
-                            this.pscoId = pLoc.getId();
-                            return StorageItf.getByID(this.pscoId);
+                            this.pscoId[0] = pLoc.getId();
+                            return StorageItf.getByID(this.pscoId[0]);
                         } catch (StorageException se) {
                             // Check next location since cannot retrieve the object from the storage Back-end
                             continue;
@@ -777,7 +791,7 @@ public class LogicalData {
                         }
                         try {
                             this.value[0] = StorageItf.getByID(pLoc.getId());
-                            this.pscoId = pLoc.getId();
+                            this.pscoId[0] = pLoc.getId();
                         } catch (StorageException se) {
                             // Check next location since cannot retrieve the object from the storage Back-end
                             continue;
@@ -1014,7 +1028,7 @@ public class LogicalData {
                 }
                 sb.append("\n");
                 sb.append("\t Value: ").append(value[0]).append("\n");
-                sb.append("\t Id: ").append(pscoId).append("\n");
+                sb.append("\t Id: ").append(pscoId[0]).append("\n");
                 sb.append("\t Locations:\n");
                 for (DataLocation dl : locations) {
                     sb.append("\t\t * ").append(dl).append("\n");

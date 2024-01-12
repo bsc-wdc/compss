@@ -103,7 +103,12 @@ def parse_state_xml(log_path: str, field: str) -> typing.Any:
     if field == "TasksInfo":
         return state_xml_dict["COMPSsState"][field]["Application"]
     if field == "CoresInfo":
-        return state_xml_dict["COMPSsState"][field]["Core"]  # this is a list
+        # This is a list if there is more than one core info
+        # Otherwise it is a dictionary with the only core
+        cores_info = state_xml_dict["COMPSsState"][field]["Core"]
+        if isinstance(cores_info, dict):
+            return [cores_info]
+        return cores_info
     if field == "Statistics":
         return state_xml_dict["COMPSsState"][field]["Statistic"]
     if field == "ResourceInfo":

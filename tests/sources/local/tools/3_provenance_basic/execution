@@ -60,7 +60,7 @@
       --pythonpath="${base_app_dir}"/src \
       --specific_log_dir="${specific_log_dir}" \
       \
-      "${base_app_dir}/src/${app_name}" > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+      "${base_app_dir}/src/${app_name}" 2 2 > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 
     # Check timeout
     if [[ "$?" = "124" ]]; then

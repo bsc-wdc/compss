@@ -3,7 +3,7 @@ COMPSs Workflow Information:
   description: Hypermatrix size 2x2 blocks, block size 2x2 elements
   license: Apache-2.0 #Provide better a URL, but these strings are accepted: 
                     # https://about.workflowhub.eu/Workflow-RO-Crate/#supported-licenses
-  sources: [matmul_files.py, matmul_tasks.py]
+  sources: [src/matmul_files.py, src/matmul_tasks.py]
   data_persistence: True
 
 Authors:

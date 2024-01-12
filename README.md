@@ -55,7 +55,7 @@ of applications at execution time.
 
 ## Supported Systems
 
-COMPSs/PyCOMPSs fully supports Linux systems for x86_64, amd64, ppc64, arm64 and riscv64 architectures. OSX systems are also supported with some limitations. 
+COMPSs/PyCOMPSs fully supports Linux systems for x86_64, amd64, ppc64, arm64 and riscv64 architectures. macOS systems are also supported with some limitations. 
 
 
 <!-- BUILDING COMPSS -->
@@ -80,7 +80,7 @@ Before installing COMPSs you need to download the git submodules that contain it
 
 **Note**: Remember to install the COMPSs dependencies and to get the GIT submodules before trying to build COMPSs from sources.
 
-* Building COMPSs for all users (not supported in OSX)
+* Building COMPSs for all users (not supported in macOS)
 
 ```
 cd builders/
@@ -96,7 +96,7 @@ cd builders/
 INSTALL_DIR=$HOME/opt/COMPSs/
 ./buildlocal [options] ${INSTALL_DIR}
 ```
-For OSX:
+For macOS:
 ```
 cd builders/
 alias libtoolize=/usr/local/bin/glibtoolize
@@ -162,6 +162,21 @@ and runs its tests. **Note**: the testing scripts assumes you have named the tes
 * To delete the created image issue `docker rmi compss`
 * To delete the compss_test container use `docker rm -f compss_test`.
 
+### 4. Run the tests locally on macOS
+
+In order to run Jenkins tests locally on macOS, GNU sed (gsed) is needed. To install it, use:
+
+```
+brew install gsed
+```
+
+Some environment variables also need to be defined to ensure gsed is used instead of macOS sed.
+
+```
+export PATH="/usr/local/opt/gnu-sed/libexec/gnubin:$PATH
+```
+
+Finally, the `NIO_mac.cfg` file needs to be updated with any specific features of the local macOS environment, commonly variables such as the `java_home`, `compss_home` and `runcompss_opts` parameters should be updated.
 
 <!-- CONTACT -->
 ## Support

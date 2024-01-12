@@ -223,7 +223,7 @@ public class TaskAnalyser implements GraphHandler {
             if (DEBUG) {
                 LOGGER.debug("Accessing a canceled data from main code. Returning null");
             }
-            return daId;
+            return null;
         }
         if (DEBUG) {
             LOGGER.debug("Registered access to data " + daId.getDataId() + " from main code");
@@ -464,16 +464,6 @@ public class TaskAnalyser implements GraphHandler {
         } else {
             LOGGER.warn("Writters info for data " + dataId + " not found.");
         }
-    }
-
-    /**
-     * Returns the written files and deletes them.
-     *
-     * @param app Application.
-     * @return List of written files of the application.
-     */
-    public Set<Integer> getAndRemoveWrittenFiles(Application app) {
-        return app.getWrittenFileIds();
     }
 
     /**

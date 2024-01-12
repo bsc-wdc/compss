@@ -54,9 +54,63 @@
 
 
   #----------------------------------------------------------------------------------
+  # Message "PROVENANCE | WORKFLOW PROVENANCE GENERATION HAS FAILED" is cached by previous block
   # Check that provenance directory has been generated
 
+  prov_dir=$(cat "${output_file}" | grep "COMPSs_RO-Crate_" | sed -e 's/^[ \t]*//')
+  echo "DIRECTORY OF GENERATED PROVENANCE IS: ${prov_dir}" | tee -a "${output_file}"
 
+  if [ -d "${prov_dir}" ]; then
+    echo "PROVENANCE DIRECTORY EXISTS"
+    # Test all directories/files inside the provenance directory exist
+    if [ ! -d "${prov_dir}application_sources/" ]; then
+      echo "PROVENANCE application_sources/ DIRECTORY DOES NOT EXIST"
+      exit 1
+    else
+      echo "PROVENANCE application_sources/ DIRECTORY EXISTS"
+    fi
+    if [ ! -d "${prov_dir}dataset/" ]; then
+      echo "PROVENANCE dataset/ DIRECTORY DOES NOT EXIST"
+      exit 1
+    else
+      echo "PROVENANCE dataset/ DIRECTORY EXISTS"
+    fi
+    if [ ! -f "${prov_dir}App_Profile.json" ]; then
+      echo "PROVENANCE App_Profile.json FILE DOES NOT EXIST"
+      exit 1
+    else
+      echo "PROVENANCE App_Profile.json FILE EXISTS"
+    fi
+    if [ ! -f "${prov_dir}complete_graph.svg" ]; then
+      echo "PROVENANCE complete_graph.svg FILE DOES NOT EXIST"
+      exit 1
+    else
+      echo "PROVENANCE complete_graph.svg FILE EXISTS"
+    fi
+    if [ ! -f "${prov_dir}compss_submission_command_line.txt" ]; then
+      echo "PROVENANCE compss_submission_command_line.txt FILE DOES NOT EXIST"
+      exit 1
+    else
+      echo "PROVENANCE compss_submission_command_line.txt FILE EXISTS"
+    fi
+    if [ ! -f "${prov_dir}ro-crate-info.yaml" ]; then
+      echo "PROVENANCE ro-crate-info.yaml FILE DOES NOT EXIST"
+      exit 1
+    else
+      echo "PROVENANCE ro-crate-info.yaml FILE EXISTS"
+    fi
+    if [ ! -f "${prov_dir}ro-crate-metadata.json" ]; then
+      echo "PROVENANCE ro-crate-metadata.json FILE DOES NOT EXIST"
+      exit 1
+    else
+      echo "PROVENANCE ro-crate-metadata.json FILE EXISTS"
+    fi
+
+
+  else
+    echo "PROVENANCE DIRECTORY DOES NOT EXIST"
+    exit 1
+  fi
 
 
 

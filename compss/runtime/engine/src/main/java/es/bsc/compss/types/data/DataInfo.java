@@ -19,6 +19,7 @@ package es.bsc.compss.types.data;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.types.Application;
+import es.bsc.compss.types.data.params.DataParams;
 import es.bsc.compss.types.request.exceptions.NonExistingValueException;
 
 import java.util.LinkedList;

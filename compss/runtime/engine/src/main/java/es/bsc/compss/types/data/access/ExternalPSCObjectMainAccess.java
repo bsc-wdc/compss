@@ -21,8 +21,8 @@ import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataAccessId.ReadingDataAccessId;
-import es.bsc.compss.types.data.DataParams.ExternalPSCObjectData;
 import es.bsc.compss.types.data.accessparams.ExternalPSCObjectAccessParams;
+import es.bsc.compss.types.data.params.ExternalPSCObjectData;
 
 
 /**

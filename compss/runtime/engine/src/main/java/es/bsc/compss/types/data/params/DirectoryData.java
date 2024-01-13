@@ -14,35 +14,27 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.data;
+package es.bsc.compss.types.data.params;
 
-import es.bsc.compss.types.data.params.ObjectData;
-import java.util.concurrent.Semaphore;
+import es.bsc.compss.types.Application;
+import es.bsc.compss.types.data.location.DataLocation;
 
 
-public class ObjectInfo extends DataInfo<ObjectData> {
-
-    /**
-     * Creates a new ObjectInfo instance for the given object.
-     *
-     * @param object description of the object related to the info
-     */
-    public ObjectInfo(ObjectData object) {
-        super(object);
-    }
+public class DirectoryData extends FileData {
 
     /**
-     * Returns the object hashcode.
+     * Constructs a new DataParams for a directory.
      *
-     * @return The object hashcode.
+     * @param app Application accessing the directory
+     * @param loc location of the directory
      */
-    public int getCode() {
-        return this.getParams().getCode();
+    public DirectoryData(Application app, DataLocation loc) {
+        super(app, loc);
     }
 
     @Override
-    public void waitForDataReadyToDelete(Semaphore sem) {
-        // Nothing to wait for
+    public String getDescription() {
+        return "directory " + this.locKey;
     }
 
 }

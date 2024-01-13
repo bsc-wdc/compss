@@ -23,14 +23,13 @@ import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataAccessId.ReadingDataAccessId;
 import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
-import es.bsc.compss.types.data.DataParams.FileData;
 import es.bsc.compss.types.data.LogicalData;
-
 import es.bsc.compss.types.data.accessparams.FileAccessParams;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.operation.FileTransferable;
 import es.bsc.compss.types.data.operation.OneOpWithSemListener;
+import es.bsc.compss.types.data.params.FileData;
 import es.bsc.compss.types.uri.SimpleURI;
 import java.util.concurrent.Semaphore;
 

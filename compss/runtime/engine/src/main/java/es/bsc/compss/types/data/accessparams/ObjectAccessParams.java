@@ -22,8 +22,8 @@ import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
-import es.bsc.compss.types.data.DataParams.ObjectData;
 import es.bsc.compss.types.data.DataVersion;
+import es.bsc.compss.types.data.params.ObjectData;
 import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
 
 

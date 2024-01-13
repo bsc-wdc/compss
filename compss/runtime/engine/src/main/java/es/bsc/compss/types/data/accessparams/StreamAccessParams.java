@@ -21,7 +21,7 @@ import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
-import es.bsc.compss.types.data.DataParams.StreamData;
+import es.bsc.compss.types.data.params.StreamData;
 import es.bsc.distrostreamlib.api.DistroStream;
 import es.bsc.distrostreamlib.client.DistroStreamClient;
 import es.bsc.distrostreamlib.requests.AddStreamWriterRequest;

@@ -14,35 +14,32 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.data;
+package es.bsc.compss.types.data.params;
 
-import es.bsc.compss.types.data.params.ObjectData;
-import java.util.concurrent.Semaphore;
+import es.bsc.compss.components.impl.DataInfoProvider;
+import es.bsc.compss.types.Application;
+import es.bsc.compss.types.data.DataInfo;
+import es.bsc.compss.types.data.StreamInfo;
 
 
-public class ObjectInfo extends DataInfo<ObjectData> {
+public class StreamData extends ObjectData {
 
-    /**
-     * Creates a new ObjectInfo instance for the given object.
-     *
-     * @param object description of the object related to the info
-     */
-    public ObjectInfo(ObjectData object) {
-        super(object);
-    }
+    public StreamData(Application app, int code) {
+        super(app, code);
 
-    /**
-     * Returns the object hashcode.
-     *
-     * @return The object hashcode.
-     */
-    public int getCode() {
-        return this.getParams().getCode();
     }
 
     @Override
-    public void waitForDataReadyToDelete(Semaphore sem) {
-        // Nothing to wait for
+    public String getDescription() {
+        return "stream " + code;
+    }
+
+    @Override
+    public DataInfo createDataInfo(DataInfoProvider dip) {
+        DataInfo sInfo = new StreamInfo(this);
+        Application app = this.getApp();
+        app.registerObjectData(code, sInfo);
+        return sInfo;
     }
 
 }

@@ -14,35 +14,26 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.data;
+package es.bsc.compss.types.data.params;
 
-import es.bsc.compss.types.data.params.ObjectData;
-import java.util.concurrent.Semaphore;
+import es.bsc.compss.types.Application;
 
 
-public class ObjectInfo extends DataInfo<ObjectData> {
-
-    /**
-     * Creates a new ObjectInfo instance for the given object.
-     *
-     * @param object description of the object related to the info
-     */
-    public ObjectInfo(ObjectData object) {
-        super(object);
-    }
+public class ExternalPSCObjectData extends ObjectData {
 
     /**
-     * Returns the object hashcode.
+     * Constructs a new DataParams for a binding object.
      *
-     * @return The object hashcode.
+     * @param app Application accessing the object
+     * @param code code identifying the object
      */
-    public int getCode() {
-        return this.getParams().getCode();
+    public ExternalPSCObjectData(Application app, int code) {
+        super(app, code);
     }
 
     @Override
-    public void waitForDataReadyToDelete(Semaphore sem) {
-        // Nothing to wait for
+    public String getDescription() {
+        return "external " + super.getDescription();
     }
 
 }

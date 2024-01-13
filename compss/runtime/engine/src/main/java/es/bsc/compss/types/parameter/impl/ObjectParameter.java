@@ -21,8 +21,8 @@ import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
-import es.bsc.compss.types.data.DataParams.ObjectData;
 import es.bsc.compss.types.data.accessparams.ObjectAccessParams;
+import es.bsc.compss.types.data.params.ObjectData;
 
 
 public class ObjectParameter<V extends Object, A extends ObjectAccessParams<V, D>, D extends ObjectData>

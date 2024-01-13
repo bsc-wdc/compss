@@ -21,7 +21,7 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.DataInfo;
-import es.bsc.compss.types.data.DataParams;
+import es.bsc.compss.types.data.params.DataParams;
 import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
 
 import java.io.Serializable;

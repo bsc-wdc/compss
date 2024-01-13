@@ -20,8 +20,8 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
-import es.bsc.compss.types.data.DataParams;
 import es.bsc.compss.types.data.LogicalData;
+import es.bsc.compss.types.data.params.DataParams;
 import es.bsc.compss.types.tracing.TraceEvent;
 
 import java.util.concurrent.Semaphore;

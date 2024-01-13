@@ -21,10 +21,9 @@ import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
-import es.bsc.compss.types.data.DataParams.FileData;
 import es.bsc.compss.types.data.accessparams.FileAccessParams;
-
 import es.bsc.compss.types.data.location.DataLocation;
+import es.bsc.compss.types.data.params.FileData;
 
 
 public class FileParameter<D extends FileData, A extends FileAccessParams<D>> extends DependencyParameter<A> {

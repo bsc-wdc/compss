@@ -20,8 +20,8 @@ package es.bsc.compss.checkpoint.policies;
 import es.bsc.compss.checkpoint.CheckpointManager;
 import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.types.Task;
-import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
+import es.bsc.compss.types.data.info.DataInfo;
 
 import java.util.HashMap;
 

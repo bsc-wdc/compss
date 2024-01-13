@@ -18,7 +18,7 @@ package es.bsc.compss.types;
 
 import es.bsc.compss.api.ApplicationRunner;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.data.DataInfo;
+import es.bsc.compss.types.data.info.DataInfo;
 
 import java.security.SecureRandom;
 import java.util.HashSet;

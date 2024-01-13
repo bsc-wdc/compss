@@ -14,21 +14,21 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.data;
+package es.bsc.compss.types.data.info;
 
-import es.bsc.compss.types.data.params.ObjectData;
+import es.bsc.compss.types.data.params.StreamData;
 import java.util.concurrent.Semaphore;
 
 
-public class ObjectInfo extends DataInfo<ObjectData> {
+public class StreamInfo extends DataInfo<StreamData> {
 
     /**
-     * Creates a new ObjectInfo instance for the given object.
+     * Creates a new StreamInfo instance for the given stream.
      *
-     * @param object description of the object related to the info
+     * @param stream description of the stream related to the info
      */
-    public ObjectInfo(ObjectData object) {
-        super(object);
+    public StreamInfo(StreamData stream) {
+        super(stream);
     }
 
     /**
@@ -38,6 +38,13 @@ public class ObjectInfo extends DataInfo<ObjectData> {
      */
     public int getCode() {
         return this.getParams().getCode();
+    }
+
+    @Override
+    public void willBeWritten() {
+        // Do not increase version on write, since Stream just publish values
+        this.currentVersion.willBeWritten();
+        this.currentVersion.versionUsed();
     }
 
     @Override

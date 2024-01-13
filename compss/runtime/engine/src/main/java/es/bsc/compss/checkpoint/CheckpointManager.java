@@ -17,8 +17,8 @@
 package es.bsc.compss.checkpoint;
 
 import es.bsc.compss.types.Task;
-import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
+import es.bsc.compss.types.data.info.DataInfo;
 import es.bsc.compss.types.request.ap.APRequest;
 
 

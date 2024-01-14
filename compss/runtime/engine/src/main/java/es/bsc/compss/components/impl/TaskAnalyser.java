@@ -83,9 +83,6 @@ public class TaskAnalyser implements GraphHandler {
     // Map: data Id -> WritersInfo
     private final Map<Integer, DataAccessesInfo> accessesInfo;
 
-    // List of submitted reduce tasks
-    private final List<String> reduceTasksNames;
-
     // Graph drawing
     private static final boolean IS_DRAW_GRAPH = GraphGenerator.isEnabled();
     private int synchronizationId;
@@ -99,7 +96,6 @@ public class TaskAnalyser implements GraphHandler {
         this.accessesInfo = new TreeMap<>();
         this.synchronizationId = 0;
         this.taskDetectedAfterSync = false;
-        this.reduceTasksNames = new ArrayList<>();
         LOGGER.info("Initialization finished");
     }
 
@@ -147,12 +143,7 @@ public class TaskAnalyser implements GraphHandler {
 
         // Check scheduling enforcing data
         int constrainingParam = -1;
-
-        // Add reduction task to reduce task list
-        if (description.isReduction()) {
-            this.reduceTasksNames.add(description.getName());
-        }
-
+        
         // Process parameters
         boolean taskHasEdge = processTaskParameters(currentTask, constrainingParam);
         registerIntermediateParameter(currentTask);

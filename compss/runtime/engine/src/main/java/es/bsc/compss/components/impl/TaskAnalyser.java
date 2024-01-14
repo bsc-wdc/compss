@@ -143,7 +143,7 @@ public class TaskAnalyser implements GraphHandler {
 
         // Check scheduling enforcing data
         int constrainingParam = -1;
-        
+
         // Process parameters
         boolean taskHasEdge = processTaskParameters(currentTask, constrainingParam);
         registerIntermediateParameter(currentTask);

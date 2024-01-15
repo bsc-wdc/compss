@@ -420,8 +420,6 @@ public class Agent {
 
         try {
             // PREPARING PARAMETERS
-            StringBuilder typesSB = new StringBuilder();
-
             int paramsCount = arguments.length;
             if (target != null) {
                 paramsCount++;
@@ -433,40 +431,27 @@ public class Agent {
             LOGGER.debug("Handles parameters:");
             for (ApplicationParameter param : arguments) {
                 LOGGER.debug("\t Parameter:" + param.getParamName());
-                if (typesSB.length() > 0) {
-                    typesSB.append(",");
-                }
-                if (param.getType() != DataType.PSCO_T) {
-                    typesSB.append(param.getType().toString());
-                } else {
-                    typesSB.append("OBJECT_T");
-                }
-                addParameterToTaskArguments(appId, param, position, params);
+                processParameter(appId, param, position, params);
                 position += PARAM_LENGTH;
             }
 
             if (target != null) {
                 LOGGER.debug("\t Target:" + target.getParamName());
-                addParameterToTaskArguments(appId, target, position, params);
+                processParameter(appId, target, position, params);
                 position += PARAM_LENGTH;
             }
 
             for (ApplicationParameter param : results) {
+                Object value;
                 if (DataType.FILE_T.equals(param.getType())) {
-                    params[position] = UUID.randomUUID().toString();
+                    value = UUID.randomUUID().toString();
                 } else {
-                    params[position] = new Object();
+                    value = new Object();
                 }
-                params[position + 1] = param.getType();
-                params[position + 2] = param.getDirection();
-                params[position + 3] = param.getStdIOStream();
-                params[position + 4] = param.getPrefix();
-                params[position + 5] = param.getParamName();
-                params[position + 6] = param.getContentType();
-                params[position + 7] = Double.toString(param.getWeight());
-                params[position + 8] = param.isKeepRename();
+                addTaskParameter(value, param, position, params);
                 position += PARAM_LENGTH;
             }
+
             onFailure = OnFailure.FAIL;
             RUNTIME.registerCoreElement(ced);
             int numNodes = 1;
@@ -494,47 +479,46 @@ public class Agent {
         return appId;
     }
 
-    private static String createTaskArgumentValueFromCollection(
-        ApplicationParameterCollection<ApplicationParameter> param, Long appId, int position, String fatherName)
-        throws Exception {
+    private static String processCollParamValue(ApplicationParameterCollection<ApplicationParameter> param, Long appId,
+        String colName) throws Exception {
+
+        int collSize = param.getCollectionParameters().size();
         StringBuilder sb = new StringBuilder();
-        sb.append((String) fatherName);
-        String collSize = Integer.toString(param.getCollectionParameters().size());
-        sb.append(" ").append(collSize).append(" ").append(param.getContentType()).append(" ");
+        sb.append(colName).append(" ");
+        sb.append(collSize).append(" ");
+        sb.append(param.getContentType()).append(" ");
         List<ApplicationParameter> subParams = param.getCollectionParameters();
         for (int i = 0; i < subParams.size(); i++) {
-            Object stub;
             ApplicationParameter subParam = subParams.get(i);
+            sb.append(subParam.getType().ordinal()).append(" ");
             String paramValue;
             if (subParam.getType() == DataType.COLLECTION_T) {
-                String subParamName = fatherName + "_" + Integer.toString(i);
+                String subParamName = colName + "_" + i;
                 @SuppressWarnings("unchecked")
                 ApplicationParameterCollection<ApplicationParameter> collSubParam =
                     (ApplicationParameterCollection<ApplicationParameter>) (subParam);
-                paramValue = Integer.toString(subParam.getType().ordinal()) + " "
-                    + createTaskArgumentValueFromCollection(collSubParam, appId, position, subParamName);
+                paramValue = processCollParamValue(collSubParam, appId, subParamName);
             } else {
-                paramValue = Integer.toString(subParam.getType().ordinal()) + " "
-                    + subParam.getValueContent().toString() + " " + subParam.getContentType();
+                paramValue = subParam.getValueContent().toString() + " " + subParam.getContentType();
+            }
+            sb.append(paramValue).append(" ");
 
-            }
-            if (subParam.getType() == DataType.FILE_T) {
-                stub = subParam.getValueContent();
-            } else {
-                stub = paramValue;
-            }
             RemoteDataInformation remote = subParam.getRemoteData();
             if (remote != null) {
+                Object stub;
+                if (subParam.getType() == DataType.FILE_T) {
+                    stub = subParam.getValueContent();
+                } else {
+                    stub = paramValue;
+                }
                 addRemoteData(remote);
                 RUNTIME.registerData(appId, subParam.getType(), stub, remote.getRenaming());
             }
-            sb.append(paramValue).append(" ");
         }
         return sb.toString();
     }
 
-    private static Object createTaskArgumentValueFromApplicationParameter(String fatherParamName, Long appId,
-        int position, ApplicationParameter param) throws Exception {
+    private static Object processParamValue(Long appId, int position, ApplicationParameter param) throws Exception {
         RemoteDataInformation remote = param.getRemoteData();
         Object stub;
         if (remote == null && param.getType() != DataType.COLLECTION_T) {
@@ -549,7 +533,7 @@ public class Agent {
                     @SuppressWarnings("unchecked")
                     ApplicationParameterCollection<ApplicationParameter> collSubParam =
                         (ApplicationParameterCollection<ApplicationParameter>) (param);
-                    stub = createTaskArgumentValueFromCollection(collSubParam, appId, position, (String) stub);
+                    stub = processCollParamValue(collSubParam, appId, (String) stub);
                 }
             }
 
@@ -561,10 +545,17 @@ public class Agent {
         return stub;
     }
 
-    private static void addParameterToTaskArguments(Long appId, ApplicationParameter param, int position,
-        Object[] arguments) throws AgentException, Exception {
+    private static void processParameter(Long appId, ApplicationParameter param, int position, Object[] arguments)
+        throws AgentException, Exception {
 
-        arguments[position] = createTaskArgumentValueFromApplicationParameter("", appId, position, param);
+        Object value = processParamValue(appId, position, param);
+        addTaskParameter(value, param, position, arguments);
+    }
+
+    private static void addTaskParameter(Object value, ApplicationParameter param, int position, Object[] arguments)
+        throws AgentException, Exception {
+
+        arguments[position] = value;
         arguments[position + 1] = param.getType();
         arguments[position + 2] = param.getDirection();
         arguments[position + 3] = param.getStdIOStream();
@@ -890,8 +881,7 @@ public class Agent {
         synchronized (RUNTIME) {
             // Making sure that the runtime has already been started
         }
-        // Remove all data bound to the application
-        RUNTIME.removeApplicationData(appId);
+        // Remove all data bound to the application and remove app
         RUNTIME.deregisterApplication(appId);
     }
 }

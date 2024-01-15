@@ -14,15 +14,18 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.data;
+package es.bsc.compss.types.data.info;
 
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.data.DataParams.FileData;
+import es.bsc.compss.types.data.DataInstanceId;
+import es.bsc.compss.types.data.DataVersion;
+import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.listener.SafeCopyListener;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.LocationType;
 import es.bsc.compss.types.data.operation.copy.Copy;
+import es.bsc.compss.types.data.params.FileData;
 import es.bsc.compss.types.request.exceptions.NonExistingValueException;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.util.ErrorManager;

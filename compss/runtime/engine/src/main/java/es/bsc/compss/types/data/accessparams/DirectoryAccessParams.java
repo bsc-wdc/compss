@@ -18,8 +18,8 @@ package es.bsc.compss.types.data.accessparams;
 
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.data.DataParams.DirectoryData;
 import es.bsc.compss.types.data.location.DataLocation;
+import es.bsc.compss.types.data.params.DirectoryData;
 
 
 public class DirectoryAccessParams extends FileAccessParams<DirectoryData> {

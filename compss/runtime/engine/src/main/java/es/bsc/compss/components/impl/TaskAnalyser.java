@@ -36,10 +36,10 @@ import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataAccessId.Direction;
 import es.bsc.compss.types.data.DataAccessId.ReadingDataAccessId;
 import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
-import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
-import es.bsc.compss.types.data.DataParams;
 import es.bsc.compss.types.data.accessparams.AccessParams;
+import es.bsc.compss.types.data.info.DataInfo;
+import es.bsc.compss.types.data.params.DataParams;
 import es.bsc.compss.types.parameter.impl.CollectiveParameter;
 import es.bsc.compss.types.parameter.impl.DependencyParameter;
 import es.bsc.compss.types.parameter.impl.ObjectParameter;
@@ -83,9 +83,6 @@ public class TaskAnalyser implements GraphHandler {
     // Map: data Id -> WritersInfo
     private final Map<Integer, DataAccessesInfo> accessesInfo;
 
-    // List of submitted reduce tasks
-    private final List<String> reduceTasksNames;
-
     // Graph drawing
     private static final boolean IS_DRAW_GRAPH = GraphGenerator.isEnabled();
     private int synchronizationId;
@@ -99,7 +96,6 @@ public class TaskAnalyser implements GraphHandler {
         this.accessesInfo = new TreeMap<>();
         this.synchronizationId = 0;
         this.taskDetectedAfterSync = false;
-        this.reduceTasksNames = new ArrayList<>();
         LOGGER.info("Initialization finished");
     }
 
@@ -147,11 +143,6 @@ public class TaskAnalyser implements GraphHandler {
 
         // Check scheduling enforcing data
         int constrainingParam = -1;
-
-        // Add reduction task to reduce task list
-        if (description.isReduction()) {
-            this.reduceTasksNames.add(description.getName());
-        }
 
         // Process parameters
         boolean taskHasEdge = processTaskParameters(currentTask, constrainingParam);
@@ -223,7 +214,7 @@ public class TaskAnalyser implements GraphHandler {
             if (DEBUG) {
                 LOGGER.debug("Accessing a canceled data from main code. Returning null");
             }
-            return daId;
+            return null;
         }
         if (DEBUG) {
             LOGGER.debug("Registered access to data " + daId.getDataId() + " from main code");
@@ -464,16 +455,6 @@ public class TaskAnalyser implements GraphHandler {
         } else {
             LOGGER.warn("Writters info for data " + dataId + " not found.");
         }
-    }
-
-    /**
-     * Returns the written files and deletes them.
-     *
-     * @param app Application.
-     * @return List of written files of the application.
-     */
-    public Set<Integer> getAndRemoveWrittenFiles(Application app) {
-        return app.getWrittenFileIds();
     }
 
     /**

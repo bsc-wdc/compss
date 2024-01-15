@@ -18,7 +18,7 @@ package es.bsc.compss.types;
 
 import es.bsc.compss.api.ApplicationRunner;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.data.DataInfo;
+import es.bsc.compss.types.data.info.DataInfo;
 
 import java.security.SecureRandom;
 import java.util.HashSet;
@@ -115,15 +115,6 @@ public class Application {
     }
 
     /**
-     * Registers a new application with a non-currently-used appId.
-     *
-     * @return Application instance registered.
-     */
-    public static Application registerApplication() {
-        return registerApplication(null, null);
-    }
-
-    /**
      * Registers an application with Id @code{appId}. If the application has already been registered, it returns the
      * previous instance. Otherwise, it creates a new application instance.
      *
@@ -158,7 +149,7 @@ public class Application {
      * @param runner element running the main code of the application
      * @return Application instance registered for that appId.
      */
-    public static Application registerApplication(Long appId, String parallelismSource, ApplicationRunner runner) {
+    private static Application registerApplication(Long appId, String parallelismSource, ApplicationRunner runner) {
         Application app;
         if (appId == null) {
             LOGGER.error("No application id", new Exception("Application id is null"));

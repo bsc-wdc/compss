@@ -21,9 +21,9 @@ import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
-import es.bsc.compss.types.data.DataParams.ExternalStreamData;
 import es.bsc.compss.types.data.accessparams.ExternalStreamAccessParams;
 import es.bsc.compss.types.data.location.DataLocation;
+import es.bsc.compss.types.data.params.ExternalStreamData;
 
 
 public class ExternalStreamParameter

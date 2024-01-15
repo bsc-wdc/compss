@@ -19,10 +19,10 @@ package es.bsc.compss.types.data.accessparams;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
-import es.bsc.compss.types.data.DataParams.ExternalPSCObjectData;
 import es.bsc.compss.types.data.DataVersion;
+import es.bsc.compss.types.data.info.DataInfo;
+import es.bsc.compss.types.data.params.ExternalPSCObjectData;
 
 
 public class ExternalPSCObjectAccessParams extends ObjectAccessParams<String, ExternalPSCObjectData> {

@@ -80,7 +80,7 @@ public class GetResultFilesRequest extends APRequest {
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
         ResultListener listener = new ResultListener(sem);
-        Set<Integer> writtenDataIds = ta.getAndRemoveWrittenFiles(this.app);
+        Set<Integer> writtenDataIds = this.app.getWrittenFileIds();
         if (writtenDataIds != null) {
             for (int dataId : writtenDataIds) {
                 ResultFile rf;

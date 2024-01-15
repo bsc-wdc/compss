@@ -48,11 +48,6 @@ import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
-import es.bsc.compss.types.data.DataParams;
-import es.bsc.compss.types.data.DataParams.BindingObjectData;
-import es.bsc.compss.types.data.DataParams.CollectionData;
-import es.bsc.compss.types.data.DataParams.FileData;
-import es.bsc.compss.types.data.DataParams.ObjectData;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.access.BindingObjectMainAccess;
 import es.bsc.compss.types.data.access.DirectoryMainAccess;
@@ -64,6 +59,11 @@ import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.PersistentLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
+import es.bsc.compss.types.data.params.BindingObjectData;
+import es.bsc.compss.types.data.params.CollectionData;
+import es.bsc.compss.types.data.params.DataParams;
+import es.bsc.compss.types.data.params.FileData;
+import es.bsc.compss.types.data.params.ObjectData;
 import es.bsc.compss.types.implementations.ExecType;
 import es.bsc.compss.types.implementations.ExecutionOrder;
 import es.bsc.compss.types.implementations.ImplementationDescription;
@@ -594,16 +594,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
      * ************************************* APPLICATION MANAGEMENT ***********************************************
      * ************************************************************************************************************
      */
-    @Override
-    public long registerApplication() {
-        Application app = Application.registerApplication();
-        return app.getId();
-    }
-
-    @Override
-    public void registerApplication(Long appId) {
-        Application.registerApplication(appId);
-    }
 
     @Override
     public long registerApplication(String parallelismSource, ApplicationRunner runner) {
@@ -612,13 +602,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     }
 
     @Override
-    public void registerApplication(Long appId, String parallelismSource, ApplicationRunner runner) {
-        Application.registerApplication(appId, parallelismSource, runner);
-    }
-
-    @Override
     public void deregisterApplication(Long appId) {
-        Application.deregisterApplication(appId);
+        Application app = Application.deregisterApplication(appId);
+        ap.deleteAllApplicationDataRequest(app);
     }
 
     @Override
@@ -2009,12 +1995,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
         // Create location
         return DataLocation.createLocation(host, uri);
-    }
-
-    @Override
-    public void removeApplicationData(Long appId) {
-        Application app = Application.registerApplication(appId);
-        ap.deleteAllApplicationDataRequest(app);
     }
 
     @Override

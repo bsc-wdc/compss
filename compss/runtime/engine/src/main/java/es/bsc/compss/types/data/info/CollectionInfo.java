@@ -14,42 +14,40 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.data;
+package es.bsc.compss.types.data.info;
 
-import es.bsc.compss.types.data.DataParams.StreamData;
+import es.bsc.compss.types.data.params.CollectionData;
 import java.util.concurrent.Semaphore;
 
 
-public class StreamInfo extends DataInfo<StreamData> {
+/**
+ * Information about a collection and its versions.
+ *
+ * @see DataInfo
+ * @see es.bsc.compss.components.impl.DataInfoProvider registerCollectionAccess method
+ */
+public class CollectionInfo extends DataInfo<CollectionData> {
 
     /**
-     * Creates a new StreamInfo instance for the given stream.
+     * Creates a new CollectionInfo instance for the given collection.
      *
-     * @param stream description of the stream related to the info
+     * @param data description of the collection related to the info
      */
-    public StreamInfo(StreamData stream) {
-        super(stream);
+    public CollectionInfo(CollectionData data) {
+        super(data);
     }
 
     /**
-     * Returns the object hashcode.
+     * Get the collectionId.
      *
-     * @return The object hashcode.
+     * @return String representing the collection Id.
      */
-    public int getCode() {
-        return this.getParams().getCode();
-    }
-
-    @Override
-    public void willBeWritten() {
-        // Do not increase version on write, since Stream just publish values
-        this.currentVersion.willBeWritten();
-        this.currentVersion.versionUsed();
+    public String getCollectionId() {
+        return this.getParams().getCollectionId();
     }
 
     @Override
     public void waitForDataReadyToDelete(Semaphore sem) {
         // Nothing to wait for
     }
-
 }

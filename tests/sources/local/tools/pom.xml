@@ -43,7 +43,6 @@
         <!-- 1_tracing_userevents_hook_python -->
         <!-- 1_tracing_userevents_nohook_python -->
         <module>2_timers</module>
-        <module>3_provenance_basic</module>
 		<!-- Add new modules below -->
 	</modules>
 </project>

@@ -21,7 +21,7 @@ RUN cd /framework && \
     mv /root/.m2 /home/jenkins && \
     chown -R jenkins: /framework && \
     chown -R jenkins: /home/jenkins/ && \
-    python3 -m pip install --no-cache-dir rocrate
+    python3 -m pip install --no-cache-dir rocrate==0.9.0
 
 # Expose SSH port and run SSHD
 EXPOSE 22
@@ -55,7 +55,7 @@ ENV LD_LIBRARY_PATH /opt/COMPSs/Bindings/bindings-common/lib:$LD_LIBRARY_PATH
 ENV COMPSS_HOME=/opt/COMPSs/
 ENV PYTHONPATH=$COMPSS_HOME/Bindings/python/3:$PYTHONPATH
 
-RUN python3 -m pip install --no-cache-dir dislib rocrate && \
+RUN python3 -m pip install --no-cache-dir dislib rocrate==0.9.0 && \
     apt-get update && \
     apt-get install -y --no-install-recommends jq bc && \
     apt-get autoclean && \

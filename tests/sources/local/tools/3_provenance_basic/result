@@ -1,0 +1,177 @@
+#!/bin/bash -e
+
+  # Obtain parameters
+  output_file=$1
+  error_file=$2
+  target_log_folder=$3
+
+  # Log files
+  runtime_log="${target_log_folder}/runtime.log"
+  resources_log="${target_log_folder}/resources.log"
+
+  #----------------------------------------------------------------------------------
+  # Check output standard out status
+  if [ -f "${output_file}" ]; then
+     result_expected="PROVENANCE | ENDED WORKFLOW PROVENANCE SCRIPT"
+     test_result=$(tail -1 "${output_file}")
+     if [ "${result_expected}" != "${test_result}" ]; then
+        echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file}"
+        exit 1
+     fi
+  else
+     echo "[ERROR] Output file not found" | tee -a "${output_file}"
+     exit 1
+  fi
+  # Check that ErrorManager has not raised any ERROR or FATAL message
+  if [ -f "${error_file}" ]; then
+    if grep -E "\\[ERRMGR\\].*(ERROR|FATAL|Shutting down COMPSs)" "${error_file}"; then
+      echo "ERROR: ErrorManager has raised a fatal error" | tee -a "${output_file}"
+      exit 1
+    fi
+  else
+    # Empty error file, no exceptions could have been raised
+    :
+  fi
+  # Check that the Runtime has not registered any fatal error
+  if [ -f "${runtime_log}" ]; then
+    if grep -E "ErrorManager\\].*\\[ERRMGR\\].*Error detected. Shutting down COMPSs" "${runtime_log}"; then
+      echo "ERROR: ErrorManager has registered a fatal error in the runtime.log" | tee -a "${output_file}"
+      exit 1
+    fi
+  else
+    echo "[ERROR] runtime.log not found" | tee -a "${output_file}"
+    exit 1
+  fi
+
+  #----------------------------------------------------------------------------------
+  # Grep for unit test errors (ERROR or FAIL)
+  errors=$(cat "${output_file}" "${error_file}" | grep "ERROR" | cat)
+  fails=$(cat "${output_file}" "${error_file}" | grep "FAIL" | cat)
+  if [ "${errors}" != "" ] || [ "${fails}" != "" ]; then
+      echo "ERROR: UNIT TEST RAISED AN ERROR." | tee -a "${output_file}"
+      exit 1
+  fi
+
+
+  #----------------------------------------------------------------------------------
+  # Message "PROVENANCE | WORKFLOW PROVENANCE GENERATION HAS FAILED" is cached by previous block
+  # Check that provenance directory has been generated
+
+  prov_dir=$(cat "${output_file}" | grep "COMPSs_RO-Crate_" | sed -e 's/^[ \t]*//')
+  # echo "DIRECTORY OF GENERATED PROVENANCE IS: ${prov_dir}" | tee -a "${output_file}"
+
+  if [ -d "${prov_dir}" ]; then
+    echo "PROVENANCE DIRECTORY ${prov_dir} EXISTS"
+    # Test all directories/files inside the provenance directory exist
+    if [ ! -d "${prov_dir}application_sources/" ]; then
+      echo "PROVENANCE application_sources/ DIRECTORY DOES NOT EXIST" | tee -a "${output_file}"
+      exit 1
+    else
+      echo "PROVENANCE application_sources/ DIRECTORY EXISTS" | tee -a "${output_file}"
+    fi
+    if [ ! -d "${prov_dir}dataset/" ]; then
+      echo "PROVENANCE dataset/ DIRECTORY DOES NOT EXIST" | tee -a "${output_file}"
+      exit 1
+    else
+      echo "PROVENANCE dataset/ DIRECTORY EXISTS" | tee -a "${output_file}"
+    fi
+    if [ ! -f "${prov_dir}App_Profile.json" ]; then
+      echo "PROVENANCE App_Profile.json FILE DOES NOT EXIST" | tee -a "${output_file}"
+      exit 1
+    else
+      echo "PROVENANCE App_Profile.json FILE EXISTS" | tee -a "${output_file}"
+    fi
+    if [ ! -f "${prov_dir}complete_graph.svg" ]; then
+      echo "PROVENANCE complete_graph.svg FILE DOES NOT EXIST" | tee -a "${output_file}"
+      exit 1
+    else
+      echo "PROVENANCE complete_graph.svg FILE EXISTS" | tee -a "${output_file}"
+    fi
+    if [ ! -f "${prov_dir}compss_submission_command_line.txt" ]; then
+      echo "PROVENANCE compss_submission_command_line.txt FILE DOES NOT EXIST" | tee -a "${output_file}"
+      exit 1
+    else
+      echo "PROVENANCE compss_submission_command_line.txt FILE EXISTS" | tee -a "${output_file}"
+    fi
+    if [ ! -f "${prov_dir}ro-crate-info.yaml" ]; then
+      echo "PROVENANCE ro-crate-info.yaml FILE DOES NOT EXIST" | tee -a "${output_file}"
+      exit 1
+    else
+      echo "PROVENANCE ro-crate-info.yaml FILE EXISTS" | tee -a "${output_file}"
+    fi
+    if [ ! -f "${prov_dir}ro-crate-metadata.json" ]; then
+      echo "PROVENANCE ro-crate-metadata.json FILE DOES NOT EXIST" | tee -a "${output_file}"
+      exit 1
+    else
+      echo "PROVENANCE ro-crate-metadata.json FILE EXISTS" | tee -a "${output_file}"
+    fi
+    
+    # Check ro-crate-metadata.json content
+
+    # if jq available: jq '."@graph".[] | select(."@type"==["File","SoftwareSourceCode","ComputationalWorkflow"])' ro-crate-metadata.json
+    computational_workflow=$(grep ComputationalWorkflow "${prov_dir}ro-crate-metadata.json" | sed -e 's/^[ \t]*//')
+    if [ "${computational_workflow}" != "\"ComputationalWorkflow\"" ]; then
+      echo "ro-crate-metadata.json: ComputationalWorkflow NOT FOUND" | tee -a "${output_file}"
+      exit 1
+    else
+      echo "ro-crate-metadata.json: ComputationalWorkflow FOUND" | tee -a "${output_file}"
+    fi
+
+    # if jq available: jq '."@graph".[] | select(."@id"=="./").mainEntity' ro-crate-metadata.json
+    main_entity=$(grep mainEntity "${prov_dir}ro-crate-metadata.json" | sed -e 's/^[ \t]*//')
+    if [ "${main_entity}" != "\"mainEntity\": {" ]; then
+      echo "ro-crate-metadata.json: mainEntity NOT FOUND" | tee -a "${output_file}"
+      exit 1
+    else
+      echo "ro-crate-metadata.json: mainEntity FOUND" | tee -a "${output_file}"
+    fi 
+
+    # if jq available: jq '."@graph".[] | select(."@type"==["File","ImageObject","WorkflowSketch"])' ro-crate-metadata.json
+    workflow_sketch=$(grep WorkflowSketch "${prov_dir}ro-crate-metadata.json" | sed -e 's/^[ \t]*//')
+    if [ "${workflow_sketch}" != "\"WorkflowSketch\"" ]; then
+      echo "ro-crate-metadata.json: WorkflowSketch NOT FOUND" | tee -a "${output_file}"
+      exit 1
+    else
+      echo "ro-crate-metadata.json: WorkflowSketch FOUND" | tee -a "${output_file}"
+    fi
+
+    # if jq available: jq '."@graph".[] | select(."@type"=="CreateAction")' ro-crate-metadata.json
+    create_action=$(grep CreateAction "${prov_dir}ro-crate-metadata.json" | sed -e 's/^[ \t]*//')
+    if [ "${create_action}" != "\"@type\": \"CreateAction\"," ]; then
+      echo "ro-crate-metadata.json: CreateAction NOT FOUND" | tee -a "${output_file}"
+      exit 1
+    else
+      echo "ro-crate-metadata.json: CreateAction FOUND" | tee -a "${output_file}"
+    fi 
+
+    # Check RO-Crate conformsTo versions
+    # jq '."@graph".[] | select(."@id"=="./").conformsTo' ro-crate-metadata.json
+    # Must be equal to: 
+    # [
+    #   {
+    #     "@id": "https://w3id.org/ro/wfrun/process/0.1"
+    #   },
+    #   {
+    #     "@id": "https://w3id.org/ro/wfrun/workflow/0.1"
+    #   },
+    #   {
+    #     "@id": "https://w3id.org/workflowhub/workflow-ro-crate/1.0"
+    #   }
+    # ]    
+
+    # RO-Crate check Workflow and Workflow Run profile defined versions
+    # jq '."@graph".[] | select(."@type"=="CreativeWork".version)' ro-crate-metadata.json
+    # Must be: null, "0.1", "0.1", "1.0"
+
+
+
+  else
+    echo "PROVENANCE DIRECTORY DOES NOT EXIST"
+    exit 1
+  fi
+
+
+
+  #----------------------------------------------------------------------------------
+  # Report result status
+  exit 0

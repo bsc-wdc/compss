@@ -1,0 +1,25 @@
+COMPSs Workflow Information:
+  name: COMPSs Matrix Multiplication, out-of-core using files
+  description: Hypermatrix size 2x2 blocks, block size 2x2 elements
+  license: Apache-2.0 #Provide better a URL, but these strings are accepted: 
+                    # https://about.workflowhub.eu/Workflow-RO-Crate/#supported-licenses
+  sources: [src/matmul_files.py, src/matmul_tasks.py]
+  data_persistence: True
+
+Authors:
+  - name: Raül Sirvent
+    e-mail: Raul.Sirvent@bsc.es
+    orcid: https://orcid.org/0000-0003-0606-2512
+    organisation_name: Barcelona Supercomputing Center
+    ror: https://ror.org/05sd8tv96
+  - name: Rosa M. Badia
+    e-mail: Rosa.M.Badia@bsc.es
+    orcid: https://orcid.org/0000-0003-2941-5499
+    organisation_name: Barcelona Supercomputing Center
+    ror: https://ror.org/05sd8tv96
+  - name: Adam Hospital
+    e-mail: adam.hospital@irbbarcelona.org
+    orcid: https://orcid.org/0000-0002-8291-8071
+    organisation_name: IRB Barcelona
+    ror: https://ror.org/01z1gye03
+

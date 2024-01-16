@@ -732,10 +732,10 @@ fi
 start_compss_app
 
 if [ ${provenance} ]; then
-  if [ -e .enqueue_compss ]; then
-    mv .enqueue_compss compss_submission_command_line.txt
-  else
+  if [ -z "${ENQUEUE_COMPSS_ARGS}" ]; then
     echo "runcompss" $all_arguments > compss_submission_command_line.txt
+  else
+    echo "enqueue_compss ${ENQUEUE_COMPSS_ARGS}" > compss_submission_command_line.txt
   fi
 
   echo "PROVENANCE | Generating graph for Workflow Provenance"
@@ -745,7 +745,7 @@ if [ ${provenance} ]; then
   echo "PROVENANCE | Ended generating graph for Workflow Provenance. TIME: $(( end - start )) s"
 
   echo "PROVENANCE | STARTING WORKFLOW PROVENANCE SCRIPT"
-  python "${COMPSS_HOME}Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py" "ro-crate-info.yaml" "${specific_log_dir}/dataprovenance.log"
+  python3 "${COMPSS_HOME}Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py" "ro-crate-info.yaml" "${specific_log_dir}/dataprovenance.log"
   if [ $? == 0 ]; then # Check if generation has ended correctly, if not, do not cleanup
     if [ "${output_profile}" == "App_Profile.json" ]; then # Auto-generated, user doesn't want it
       rm -f App_Profile.json compss_submission_command_line.txt "${specific_log_dir}/monitor/complete_graph.svg"
@@ -760,4 +760,4 @@ if [ ${provenance} ]; then
   echo "PROVENANCE | ENDED WORKFLOW PROVENANCE SCRIPT"
 fi
 
-rm -f .enqueue_compss
+unset ENQUEUE_COMPSS_ARGS

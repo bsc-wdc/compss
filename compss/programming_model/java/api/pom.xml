@@ -8,7 +8,7 @@
     <packaging>jar</packaging>
     <parent>
         <groupId>es.bsc.compss</groupId>
-        <artifactId>compss-pm</artifactId>
+        <artifactId>compss-java</artifactId>
         <version>3.3.rc2401</version>
         <relativePath>..</relativePath>
     </parent>

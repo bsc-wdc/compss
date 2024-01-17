@@ -102,8 +102,7 @@
 
     <!-- SUB-MODULES -->
     <modules>
-        <module>api</module>
         <module>bindings/python</module>
-        <module>loader</module>
+        <module>java</module>
     </modules>
 </project>

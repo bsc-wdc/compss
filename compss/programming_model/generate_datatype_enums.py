@@ -16,7 +16,7 @@
 #
 
 # Data types source file:
-JAVA_PATH = "./api/src/main/java/es/bsc/compss/types/annotations/parameter/DataType.java"
+JAVA_PATH = "./java/api/src/main/java/es/bsc/compss/types/annotations/parameter/DataType.java"
 # Data types destination files:
 CPP_PATH = "./bindings/bindings-common/src/data_type.h"
 PYTHON_PATH = "./bindings/python/src/pycompss/api/commons/data_type.py"

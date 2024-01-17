@@ -1,11 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <!-- GENERAL INFORMATION -->
-    <artifactId>compss-loader</artifactId>
-    <packaging>jar</packaging>
+    <artifactId>compss-java</artifactId>
+    <packaging>pom</packaging>
     <parent>
         <groupId>es.bsc.compss</groupId>
         <artifactId>compss-pm</artifactId>
@@ -14,8 +15,8 @@
     </parent>
 
     <!-- PROJECT INFORMATION -->
-    <name>COMPSs Loader</name>
-    <description>COMPSs runtime loader. Instruments COMPSs applications classes replacing CE calls by runtime invocations and adds synchronization points on data accesses.</description>
+    <name>COMPSs Programming Model Java</name>
+    <description>COMPSs Programming Model for Java</description>
     <url>http://www.bsc.es</url>
     <inceptionYear>2014</inceptionYear>
     <licenses>
@@ -28,41 +29,6 @@
         <name>BSC</name>
         <url>http://www.bsc.es</url>
     </organization>
-
-    <!-- DEPENDENCIES -->
-    <dependencies>
-        <!-- COMPSs PM classes -->
-        <dependency>
-            <groupId>es.bsc.compss</groupId>
-            <artifactId>compss-runtime-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- COMPSs PM classes -->
-        <dependency>
-            <groupId>es.bsc.compss</groupId>
-            <artifactId>compss-commons</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <!-- Storage -->
-        <dependency>
-            <groupId>es.bsc.compss</groupId>
-            <artifactId>compss-storage</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-		<!-- Javassist - Class Editing -->
-        <dependency>
-            <groupId>org.javassist</groupId>
-            <artifactId>javassist</artifactId>
-        </dependency>
-
-        <!-- Log4j -->
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-core</artifactId>
-        </dependency>
-    </dependencies>
 
     <!-- BUILD -->
     <build>
@@ -81,4 +47,10 @@
             </plugin>
         </plugins>
     </build>
+
+    <!-- SUB-MODULES -->
+    <modules>
+        <module>api</module>
+        <module>loader</module>
+    </modules>
 </project>

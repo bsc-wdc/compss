@@ -1,22 +1,21 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <!-- GENERAL INFORMATION -->
-    <artifactId>compss-runtime</artifactId>
-    <packaging>pom</packaging>
+    <artifactId>compss-api</artifactId>
+    <packaging>jar</packaging>
     <parent>
         <groupId>es.bsc.compss</groupId>
-        <artifactId>compss-framework</artifactId>
+        <artifactId>compss-java</artifactId>
         <version>3.3.rc2401</version>
         <relativePath>..</relativePath>
     </parent>
 
     <!-- PROJECT INFORMATION -->
-    <name>COMPSs Runtime</name>
-    <description>COMPSs Runtime</description>
+    <name>COMPSs Programming Model API and Annotations</name>
+    <description>COMPSs Runtime API and Annotations</description>
     <url>http://www.bsc.es</url>
     <inceptionYear>2014</inceptionYear>
     <licenses>
@@ -30,16 +29,21 @@
         <url>http://www.bsc.es</url>
     </organization>
 
-    <!-- SUB-MODULES -->
-    <modules>
-        <module>api</module>
-        <module>commons</module>
-        <module>storage</module>
-        <module>config/xml</module>
-        <module>adaptors</module>
-        <module>resources</module>
-        <module>scheduler</module>
-        <module>engine</module>
-        <module>checkpointer</module>
-    </modules>
+    <!-- BUILD -->
+    <build>
+        <finalName>${project.artifactId}</finalName>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
+            </plugin>
+            <plugin>
+                <artifactId>exec-maven-plugin</artifactId>
+                <groupId>org.codehaus.mojo</groupId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

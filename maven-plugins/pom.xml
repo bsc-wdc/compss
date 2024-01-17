@@ -34,6 +34,5 @@
     <modules>
         <module>checkstyle</module>
         <module>code_formatter</module>
-        <module>instrumentation</module>
     </modules>
 </project>

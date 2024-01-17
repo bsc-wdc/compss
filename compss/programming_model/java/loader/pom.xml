@@ -8,13 +8,13 @@
     <packaging>jar</packaging>
     <parent>
         <groupId>es.bsc.compss</groupId>
-        <artifactId>compss-runtime</artifactId>
+        <artifactId>compss-java</artifactId>
         <version>3.3.rc2401</version>
         <relativePath>..</relativePath>
     </parent>
 
     <!-- PROJECT INFORMATION -->
-    <name>COMPSs Loader</name>
+    <name>COMPSs Java Loader</name>
     <description>COMPSs runtime loader. Instruments COMPSs applications classes replacing CE calls by runtime invocations and adds synchronization points on data accesses.</description>
     <url>http://www.bsc.es</url>
     <inceptionYear>2014</inceptionYear>
@@ -71,6 +71,13 @@
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${maven-compiler-plugin.version}</version>
+            </plugin>
+            <plugin>
+                <artifactId>exec-maven-plugin</artifactId>
+                <groupId>org.codehaus.mojo</groupId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
             </plugin>
         </plugins>
     </build>

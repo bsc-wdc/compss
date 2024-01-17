@@ -34,7 +34,7 @@
 		<!-- Runtime dependencies -->
 		<dependency>
 			<groupId>es.bsc.compss</groupId>
-			<artifactId>compss-loader</artifactId>
+			<artifactId>compss-runtime-api</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>

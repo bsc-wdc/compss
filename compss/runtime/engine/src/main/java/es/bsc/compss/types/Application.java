@@ -88,6 +88,7 @@ public class Application {
     // Set of written data ids (for result files)
     private Set<Integer> writtenFileDataIds;
 
+
     /**
      * Returns the tasks state.
      *
@@ -176,19 +177,6 @@ public class Application {
             app = APPLICATIONS.remove(appId);
         }
         return app;
-    }
-
-    /**
-     * Removes a data as an output File of any task.
-     *
-     * @param dataId Id of the data to be removed
-     */
-    public static void removeWrittenFileIdFromAllApps(int dataId) {
-        synchronized (APPLICATIONS) {
-            for (Application app : APPLICATIONS.values()) {
-                app.removeWrittenFileId(dataId);
-            }
-        }
     }
 
     private Application(Long appId, String parallelismSource, ApplicationRunner runner) {
@@ -521,7 +509,6 @@ public class Application {
     public Set<Integer> getWrittenFileIds() {
         return this.writtenFileDataIds;
     }
-
 
     public void setTimerTask(WallClockTimerTask wcTimerTask) {
         this.wallClockKiller = wcTimerTask;

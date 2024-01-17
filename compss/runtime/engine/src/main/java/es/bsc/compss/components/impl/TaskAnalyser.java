@@ -51,7 +51,6 @@ import es.bsc.compss.types.request.ap.RegisterDataAccessRequest;
 import es.bsc.compss.types.request.exceptions.ValueUnawareRuntimeException;
 import es.bsc.compss.util.ErrorManager;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -442,7 +441,8 @@ public class TaskAnalyser implements GraphHandler {
                     break;
                 case FILE_T:
                     // Remove file data form the list of written files
-                    Application.removeWrittenFileIdFromAllApps(dataId);
+                    Application app = data.getApp();
+                    app.removeWrittenFileId(dataId);
                     break;
                 default:
                     // Nothing to do for other types

@@ -61,6 +61,11 @@
                 <artifactId>compss-loader</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>es.bsc.compss</groupId>
+                <artifactId>compss-runtime-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
             
              <!-- COMPSs storage classes -->
             <dependency>

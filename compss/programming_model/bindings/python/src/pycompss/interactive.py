@@ -782,6 +782,13 @@ def complete_task_graph(
             + " starting PyCOMPSs."
         )
         return None
+    elif CONTEXT.in_pycompss():
+        print("Oops! The complete graph is not available yet.")
+        print(
+            "      In order to see the complete task graph you must stop"
+            + " the COMPSs runtime with ipycompss.stop()."
+        )
+        return None
     return show_graph(
         log_path=GLOBALS.get_log_directory(),
         name="complete_graph",

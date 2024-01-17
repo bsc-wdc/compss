@@ -444,10 +444,6 @@ public class TaskAnalyser implements GraphHandler {
                     // Remove file data form the list of written files
                     Application.removeWrittenFileIdFromAllApps(dataId);
                     break;
-                case PSCO_T:
-                    // Remove PSCO data from the list of written PSCO
-                    Application.removeWrittenPSCOIdFromAllApps(dataId);
-                    break;
                 default:
                     // Nothing to do for other types
                     break;
@@ -661,9 +657,6 @@ public class TaskAnalyser implements GraphHandler {
             case DIRECTORY_T:
             case FILE_T:
                 app.addWrittenFileId(dataId);
-                break;
-            case PSCO_T:
-                app.addWrittenPSCOId(dataId);
                 break;
             default:
                 // Nothing to do with basic types

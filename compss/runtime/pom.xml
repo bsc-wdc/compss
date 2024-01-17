@@ -35,7 +35,6 @@
         <module>api</module>
         <module>commons</module>
         <module>storage</module>
-        <module>loader</module>
         <module>config/xml</module>
         <module>adaptors</module>
         <module>resources</module>

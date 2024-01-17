@@ -482,8 +482,8 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
      * @param groupName Name of the task group
      * @param app Application.
      */
-    public void setCurrentTaskGroup(String groupName, boolean implicitBarrier, Application app) {
-        OpenTaskGroupRequest request = new OpenTaskGroupRequest(groupName, implicitBarrier, app);
+    public void setCurrentTaskGroup(String groupName, Application app) {
+        OpenTaskGroupRequest request = new OpenTaskGroupRequest(groupName, app);
         if (!requestQueue.offer(request)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "new task group");
         }

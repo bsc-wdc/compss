@@ -1392,7 +1392,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     @Override
     public void openTaskGroup(String groupName, boolean implicitBarrier, Long appId) {
         Application app = Application.registerApplication(appId);
-        ap.setCurrentTaskGroup(groupName, implicitBarrier, app);
+        ap.setCurrentTaskGroup(groupName, app);
     }
 
     @Override

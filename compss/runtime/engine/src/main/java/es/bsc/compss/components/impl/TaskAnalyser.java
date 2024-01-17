@@ -475,10 +475,9 @@ public class TaskAnalyser implements GraphHandler {
      * Sets the current task group to assign to tasks.
      *
      * @param app application to which the group belongs.
-     * @param barrier Flag stating if the group has to perform a barrier.
      * @param groupName Name of the group to set
      */
-    public void setCurrentTaskGroup(Application app, boolean barrier, String groupName) {
+    public void setCurrentTaskGroup(Application app, String groupName) {
         app.stackTaskGroup(groupName);
         if (IS_DRAW_GRAPH) {
             this.gm.addTaskGroupToGraph(groupName);

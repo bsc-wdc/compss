@@ -485,7 +485,8 @@ def executor(
         pipe.write(TAGS.quit)
         pipe.close()
     except Exception as general_exception:  # pylint: disable=broad-except
-        logger.error(general_exception)
+        sys.stderr.write(f"\n{str(general_exception)}\n")
+        sys.stderr.flush()
         raise general_exception from general_exception
 
 

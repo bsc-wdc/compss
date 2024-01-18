@@ -22,6 +22,7 @@ import es.bsc.compss.COMPSsDefaults;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.checkpoint.CheckpointManager;
 import es.bsc.compss.components.monitor.impl.GraphGenerator;
+import es.bsc.compss.components.monitor.impl.GraphHandler;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.Application;
@@ -147,12 +148,12 @@ public class AccessProcessor implements Runnable, CheckpointManager.User {
     }
 
     /**
-     * Sets the GraphGenerator co-worker.
+     * Sets the GraphHandler.
      *
-     * @param gm co-worker.
+     * @param gh graphandler.
      */
-    public void setGM(GraphGenerator gm) {
-        this.taskAnalyser.setGM(gm);
+    public void setGM(GraphHandler gh) {
+        this.taskAnalyser.setGM(gh);
     }
 
     @Override

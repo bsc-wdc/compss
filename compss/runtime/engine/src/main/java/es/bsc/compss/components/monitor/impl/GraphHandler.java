@@ -24,6 +24,7 @@ import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.request.ap.BarrierGroupRequest;
 
+import java.io.BufferedWriter;
 import java.util.Map;
 
 
@@ -93,6 +94,9 @@ public interface GraphHandler {
 
     void endApp();
 
-    void shutdown();
+    BufferedWriter getAndOpenCurrentGraph();
 
+    void closeCurrentGraph();
+
+    void removeCurrentGraph();
 }

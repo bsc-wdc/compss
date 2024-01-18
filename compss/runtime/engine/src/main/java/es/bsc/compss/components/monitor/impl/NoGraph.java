@@ -24,6 +24,7 @@ import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.request.ap.BarrierGroupRequest;
 
+import java.io.BufferedWriter;
 import java.util.Map;
 
 
@@ -106,7 +107,18 @@ public class NoGraph implements GraphHandler {
     }
 
     @Override
-    public final void shutdown() {
+    public BufferedWriter getAndOpenCurrentGraph() {
+        // Do nothing
+        return null;
+    }
+
+    @Override
+    public void closeCurrentGraph() {
+        // Do nothing
+    }
+
+    @Override
+    public final void removeCurrentGraph() {
         // Do nothing
     }
 }

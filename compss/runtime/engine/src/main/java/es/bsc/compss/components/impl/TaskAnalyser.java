@@ -18,8 +18,6 @@ package es.bsc.compss.components.impl;
 
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.checkpoint.CheckpointManager;
-import es.bsc.compss.components.monitor.impl.DotGraph;
-import es.bsc.compss.components.monitor.impl.GraphGenerator;
 import es.bsc.compss.components.monitor.impl.GraphHandler;
 import es.bsc.compss.components.monitor.impl.NoGraph;
 import es.bsc.compss.log.Loggers;
@@ -102,14 +100,12 @@ public class TaskAnalyser {
     }
 
     /**
-     * Sets the graph generator co-worker.
+     * Sets the graph handler for the detected task and dependencies.
      *
-     * @param gm Graph Generator co-worker.
+     * @param gh Graph Handler.
      */
-    public void setGM(GraphGenerator gm) {
-        if (GraphGenerator.isEnabled()) {
-            this.gh = new DotGraph(gm);
-        }
+    public void setGM(GraphHandler gh) {
+        this.gh = gh;
     }
 
     /**
@@ -419,7 +415,7 @@ public class TaskAnalyser {
      * Shutdown the component.
      */
     public void shutdown() {
-        this.gh.shutdown();
+        this.gh.removeCurrentGraph();
         this.cp.shutdown();
     }
 

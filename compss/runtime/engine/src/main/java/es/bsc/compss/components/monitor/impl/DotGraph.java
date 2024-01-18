@@ -24,6 +24,7 @@ import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.request.ap.BarrierGroupRequest;
 
+import java.io.BufferedWriter;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -41,11 +42,9 @@ public class DotGraph implements GraphHandler {
 
     /**
      * Constructs a new Graph Handler.
-     *
-     * @param gg Graph generator
      */
-    public DotGraph(GraphGenerator gg) {
-        this.gm = gg;
+    public DotGraph(String graphDir) {
+        this.gm = new GraphGenerator(graphDir);
 
         // Add initial synchronization point
         this.synchronizationId = 0;
@@ -285,26 +284,24 @@ public class DotGraph implements GraphHandler {
         this.gm.commitGraph(false);
     }
 
-    @Override
-    public void shutdown() {
-        GraphGenerator.removeTemporaryGraph();
-    }
-
     private String addSynchro(boolean barrier) {
         // Add barrier node
         int oldSync = this.synchronizationId;
         String oldSyncStr = "Synchro" + oldSync;
         String newSyncStr;
-        if (this.taskDetectedAfterSync) {
+        if (this.taskDetectedAfterSync || barrier) {
             // Add barrier node and edge from last sync
             this.synchronizationId++;
             newSyncStr = "Synchro" + this.synchronizationId;
+            EdgeType eType;
             if (barrier) {
                 this.gm.addBarrierToGraph(this.synchronizationId);
+                eType = EdgeType.USER_DEPENDENCY;
             } else {
                 this.gm.addSynchroToGraph(this.synchronizationId);
+                eType = EdgeType.DATA_DEPENDENCY;
             }
-            this.gm.addEdgeToGraph(oldSyncStr, newSyncStr, EdgeType.USER_DEPENDENCY, "");
+            this.gm.addEdgeToGraph(oldSyncStr, newSyncStr, eType, "");
 
             // Reset task detection
             this.taskDetectedAfterSync = false;
@@ -312,6 +309,21 @@ public class DotGraph implements GraphHandler {
             newSyncStr = oldSyncStr;
         }
         return newSyncStr;
+    }
+
+    @Override
+    public BufferedWriter getAndOpenCurrentGraph() {
+        return this.gm.getAndOpenCurrentGraph();
+    }
+
+    @Override
+    public void closeCurrentGraph() {
+        this.gm.closeCurrentGraph();
+    }
+
+    @Override
+    public void removeCurrentGraph() {
+        this.gm.removeTemporaryGraph();
     }
 
 }

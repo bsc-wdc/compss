@@ -37,6 +37,7 @@ import es.bsc.compss.types.data.DataAccessId.WritingDataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.info.DataInfo;
+import es.bsc.compss.types.data.info.FileInfo;
 import es.bsc.compss.types.data.params.DataParams;
 import es.bsc.compss.types.parameter.impl.CollectiveParameter;
 import es.bsc.compss.types.parameter.impl.DependencyParameter;
@@ -400,7 +401,8 @@ public class TaskAnalyser {
                 case FILE_T:
                     // Remove file data form the list of written files
                     Application app = data.getApp();
-                    app.removeWrittenFileId(dataId);
+                    FileInfo fInfo = (FileInfo) data.getDataInfo(dip);
+                    app.removeWrittenFile(fInfo);
                     break;
                 default:
                     // Nothing to do for other types
@@ -603,7 +605,8 @@ public class TaskAnalyser {
         switch (dp.getType()) {
             case DIRECTORY_T:
             case FILE_T:
-                app.addWrittenFileId(dataId);
+                FileInfo fInfo = (FileInfo) dp.getAccess().getDataInfo(dip);
+                app.addWrittenFile(fInfo);
                 break;
             default:
                 // Nothing to do with basic types

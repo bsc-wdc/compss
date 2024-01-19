@@ -19,6 +19,7 @@ package es.bsc.compss.types;
 import es.bsc.compss.api.ApplicationRunner;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.data.info.DataInfo;
+import es.bsc.compss.types.data.info.FileInfo;
 
 import java.security.SecureRandom;
 import java.util.HashSet;
@@ -86,7 +87,7 @@ public class Application {
     private final TreeMap<String, DataInfo> collectionToData;
 
     // Set of written data ids (for result files)
-    private Set<Integer> writtenFileDataIds;
+    private Set<FileInfo> writtenFileData;
 
 
     /**
@@ -191,7 +192,7 @@ public class Application {
         this.nameToData = new TreeMap<>();
         this.codeToData = new TreeMap<>();
         this.collectionToData = new TreeMap<>();
-        this.writtenFileDataIds = new HashSet<>();
+        this.writtenFileData = new HashSet<>();
     }
 
     public Long getId() {
@@ -529,20 +530,20 @@ public class Application {
     /**
      * Adds a data as an output file of the task.
      *
-     * @param dataId data to be registered as a file output.
+     * @param fInfo data to be registered as a file output.
      */
-    public void addWrittenFileId(int dataId) {
-        this.writtenFileDataIds.add(dataId);
+    public void addWrittenFile(FileInfo fInfo) {
+        this.writtenFileData.add(fInfo);
     }
 
     /**
      * REmoves a data as an output file of the task.
      *
-     * @param dataId data to be unregistered as a file output.
+     * @param fInfo data to be unregistered as a file output.
      */
-    public void removeWrittenFileId(int dataId) {
-        if (this.writtenFileDataIds.remove(dataId)) {
-            LOGGER.info(" Removed data " + dataId + " from written files");
+    public void removeWrittenFile(FileInfo fInfo) {
+        if (this.writtenFileData.remove(fInfo)) {
+            LOGGER.info(" Removed data " + fInfo.getDataId() + " from written files");
         }
     }
 
@@ -551,8 +552,8 @@ public class Application {
      *
      * @return set with all the DataIds corresponding to files written by the application.
      */
-    public Set<Integer> getWrittenFileIds() {
-        return this.writtenFileDataIds;
+    public Set<FileInfo> getWrittenFiles() {
+        return this.writtenFileData;
     }
 
     public void setTimerTask(WallClockTimerTask wcTimerTask) {

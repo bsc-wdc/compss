@@ -497,23 +497,23 @@ public class DataInfoProvider {
     }
 
     /**
-     * Blocks dataId and retrieves its result file.
+     * Blocks fInfo and retrieves its result file.
      *
-     * @param dataId Data Id.
+     * @param fInfo Data Id.
      * @param listener Result listener.
      * @return The result file.
      */
-    public ResultFile blockDataAndGetResultFile(int dataId, ResultListener listener) {
+    public ResultFile blockDataAndGetResultFile(FileInfo fInfo, ResultListener listener) {
+        int dataId = fInfo.getDataId();
         DataInstanceId lastVersion;
         if (DEBUG) {
             LOGGER.debug("Get Result file for data " + dataId);
         }
-        FileInfo fileInfo = (FileInfo) this.idToData.get(dataId);
-        if (fileInfo != null) { // FileInfo
-            if (fileInfo.hasBeenCanceled()) {
-                if (!fileInfo.isCurrentVersionToDelete()) { // If current version is to delete do not
+        if (fInfo != null) { // FileInfo
+            if (fInfo.hasBeenCanceled()) {
+                if (!fInfo.isCurrentVersionToDelete()) { // If current version is to delete do not
                     // transfer
-                    String[] splitPath = fileInfo.getOriginalLocation().getPath().split(File.separator);
+                    String[] splitPath = fInfo.getOriginalLocation().getPath().split(File.separator);
                     String origName = splitPath[splitPath.length - 1];
                     if (origName.startsWith("compss-serialized-obj_")) {
                         // Do not transfer objects serialized by the bindings
@@ -522,11 +522,11 @@ public class DataInfoProvider {
                         }
                         return null;
                     }
-                    fileInfo.blockDeletions();
+                    fInfo.blockDeletions();
 
-                    lastVersion = fileInfo.getCurrentDataVersion().getDataInstanceId();
+                    lastVersion = fInfo.getCurrentDataVersion().getDataInstanceId();
 
-                    ResultFile rf = new ResultFile(lastVersion, fileInfo.getOriginalLocation());
+                    ResultFile rf = new ResultFile(lastVersion, fInfo.getOriginalLocation());
 
                     DataInstanceId fId = rf.getFileInstanceId();
                     String renaming = fId.getRenaming();
@@ -585,14 +585,14 @@ public class DataInfoProvider {
 
                     return rf;
                 } else {
-                    if (fileInfo.isCurrentVersionToDelete()) {
+                    if (fInfo.isCurrentVersionToDelete()) {
                         if (DEBUG) {
-                            String[] splitPath = fileInfo.getOriginalLocation().getPath().split(File.separator);
+                            String[] splitPath = fInfo.getOriginalLocation().getPath().split(File.separator);
                             String origName = splitPath[splitPath.length - 1];
                             LOGGER.debug("Trying to delete file " + origName);
                         }
-                        if (fileInfo.delete()) {
-                            deregisterData(fileInfo);
+                        if (fInfo.delete()) {
+                            deregisterData(fInfo);
                         }
                     }
                 }

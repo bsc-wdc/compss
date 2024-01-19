@@ -30,6 +30,8 @@ public abstract class DataParams {
 
     public abstract DataInfo createDataInfo(DataInfoProvider dip);
 
+    public abstract DataInfo getDataInfo(DataInfoProvider dip);
+
     public abstract Integer getDataId(DataInfoProvider dip);
 
     public abstract Integer removeDataId(DataInfoProvider dip);

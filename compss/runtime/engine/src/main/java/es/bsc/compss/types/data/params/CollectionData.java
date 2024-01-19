@@ -58,6 +58,12 @@ public class CollectionData extends DataParams {
     }
 
     @Override
+    public DataInfo getDataInfo(DataInfoProvider dip) {
+        Application app = this.getApp();
+        return app.getCollectionData(this.collectionId);
+    }
+
+    @Override
     public Integer removeDataId(DataInfoProvider dip) {
         Application app = this.getApp();
         DataInfo di = app.removeCollectionData(this.collectionId);

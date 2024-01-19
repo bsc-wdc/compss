@@ -22,6 +22,7 @@ import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.ResultFile;
+import es.bsc.compss.types.data.info.FileInfo;
 import es.bsc.compss.types.data.operation.ResultListener;
 import es.bsc.compss.types.tracing.TraceEvent;
 
@@ -80,11 +81,11 @@ public class GetResultFilesRequest extends APRequest {
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
         ResultListener listener = new ResultListener(sem);
-        Set<Integer> writtenDataIds = this.app.getWrittenFileIds();
-        if (writtenDataIds != null) {
-            for (int dataId : writtenDataIds) {
+        Set<FileInfo> writtenData = this.app.getWrittenFiles();
+        if (writtenData != null) {
+            for (FileInfo fInfo : writtenData) {
                 ResultFile rf;
-                rf = dip.blockDataAndGetResultFile(dataId, listener);
+                rf = dip.blockDataAndGetResultFile(fInfo, listener);
                 if (rf == null) {
                     continue;
                 }

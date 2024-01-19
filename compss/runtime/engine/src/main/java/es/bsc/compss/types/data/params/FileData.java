@@ -66,6 +66,13 @@ public class FileData extends DataParams {
     }
 
     @Override
+    public DataInfo getDataInfo(DataInfoProvider dip) {
+        Application app = this.getApp();
+        String locationKey = loc.getLocationKey();
+        return app.getFileData(locationKey);
+    }
+
+    @Override
     public Integer removeDataId(DataInfoProvider dip) {
         Application app = this.getApp();
         String locationKey = loc.getLocationKey();

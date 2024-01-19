@@ -55,12 +55,17 @@ ENV LD_LIBRARY_PATH /opt/COMPSs/Bindings/bindings-common/lib:$LD_LIBRARY_PATH
 ENV COMPSS_HOME=/opt/COMPSs/
 ENV PYTHONPATH=$COMPSS_HOME/Bindings/python/3:$PYTHONPATH
 
-RUN python3 -m pip install --no-cache-dir dislib rocrate==0.9.0 && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends jq bc && \
+RUN python3 -m pip install --no-cache-dir dislib jupyterlab==3.6.3 rocrate==0.9.0 && \
+    apt-get update && apt-get install -y --no-install-recommends jq bc ca-certificates curl gnupg && \
     apt-get autoclean && \
-    rm -rf /var/lib/apt/lists/*
-
+    rm -rf /var/lib/apt/lists/* && \
+    git clone https://github.com/bsc-wdc/jupyter-extension.git je && \
+    cd je && python3 -m pip install ./ipycompss_kernel && \
+    cd ipycompss_lab_extension && mkdir -p /etc/apt/keyrings && \
+    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
+    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_16.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list && \
+    apt-get update && apt-get install -y nodejs python3.8-tk policykit-1 && \
+    jlpm install && jlpm run build:prod && python3 -m pip install . && service dbus start
 
 EXPOSE 22
 EXPOSE 43000-44000

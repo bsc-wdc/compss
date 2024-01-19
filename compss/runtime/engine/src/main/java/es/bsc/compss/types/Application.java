@@ -79,11 +79,11 @@ public class Application {
     // Data registered by the application
     private LinkedList<DataInfo> data;
     // Map: filename:host:path -> file identifier
-    private final TreeMap<String, Integer> nameToId;
+    private final TreeMap<String, DataInfo> nameToData;
     // Map: hash code -> object identifier
-    private final TreeMap<Integer, Integer> codeToId;
+    private final TreeMap<Integer, DataInfo> codeToData;
     // Map: collectionName -> collection identifier
-    private final TreeMap<String, Integer> collectionToId;
+    private final TreeMap<String, DataInfo> collectionToData;
 
     // Set of written data ids (for result files)
     private Set<Integer> writtenFileDataIds;
@@ -188,9 +188,9 @@ public class Application {
         this.taskGroups = new TreeMap<>();
         this.stackTaskGroup("App" + appId);
         this.data = new LinkedList<>();
-        this.nameToId = new TreeMap<>();
-        this.codeToId = new TreeMap<>();
-        this.collectionToId = new TreeMap<>();
+        this.nameToData = new TreeMap<>();
+        this.codeToData = new TreeMap<>();
+        this.collectionToData = new TreeMap<>();
         this.writtenFileDataIds = new HashSet<>();
     }
 
@@ -387,7 +387,17 @@ public class Application {
      * @param di data registered by the application
      */
     public void registerFileData(String locationKey, DataInfo di) {
-        this.nameToId.put(locationKey, di.getDataId());
+        this.nameToData.put(locationKey, di);
+    }
+
+    /**
+     * Returns the Data related to a file.
+     *
+     * @param locationKey file location
+     * @return data related to the file
+     */
+    public DataInfo getFileData(String locationKey) {
+        return this.nameToData.get(locationKey);
     }
 
     /**
@@ -397,7 +407,12 @@ public class Application {
      * @return data Id related to the file
      */
     public Integer getFileDataId(String locationKey) {
-        return this.nameToId.get(locationKey);
+        DataInfo di = getFileData(locationKey);
+        Integer id = null;
+        if (di != null) {
+            id = di.getDataId();
+        }
+        return id;
     }
 
     /**
@@ -406,8 +421,8 @@ public class Application {
      * @param locationKey file location
      * @return data Id related to the file
      */
-    public Integer removeFileData(String locationKey) {
-        return this.nameToId.remove(locationKey);
+    public DataInfo removeFileData(String locationKey) {
+        return this.nameToData.remove(locationKey);
     }
 
     /**
@@ -417,7 +432,17 @@ public class Application {
      * @param di data registered by the application
      */
     public void registerObjectData(int code, DataInfo di) {
-        this.codeToId.put(code, di.getDataId());
+        this.codeToData.put(code, di);
+    }
+
+    /**
+     * Returns the Data related to an object.
+     *
+     * @param code hashcode of the object
+     * @return data related to the object
+     */
+    public DataInfo getObjectData(int code) {
+        return this.codeToData.get(code);
     }
 
     /**
@@ -427,7 +452,12 @@ public class Application {
      * @return data Id related to the object
      */
     public Integer getObjectDataId(int code) {
-        return this.codeToId.get(code);
+        DataInfo di = getObjectData(code);
+        Integer id = null;
+        if (di != null) {
+            id = di.getDataId();
+        }
+        return id;
     }
 
     /**
@@ -436,8 +466,8 @@ public class Application {
      * @param code hashcode of the object
      * @return data Id related to the object
      */
-    public Integer removeObjectData(int code) {
-        return this.codeToId.remove(code);
+    public DataInfo removeObjectData(int code) {
+        return this.codeToData.remove(code);
     }
 
     /**
@@ -447,7 +477,17 @@ public class Application {
      * @param di data registered by the application
      */
     public void registerCollectionData(String collectionId, DataInfo di) {
-        this.collectionToId.put(collectionId, di.getDataId());
+        this.collectionToData.put(collectionId, di);
+    }
+
+    /**
+     * Returns the Data related to a collection.
+     *
+     * @param collectionId Id of the collection
+     * @return data related to the file
+     */
+    public DataInfo getCollectionData(String collectionId) {
+        return this.collectionToData.get(collectionId);
     }
 
     /**
@@ -457,7 +497,12 @@ public class Application {
      * @return data Id related to the file
      */
     public Integer getCollectionDataId(String collectionId) {
-        return this.collectionToId.get(collectionId);
+        DataInfo di = this.getCollectionData(collectionId);
+        Integer id = null;
+        if (di != null) {
+            id = di.getDataId();
+        }
+        return id;
     }
 
     /**
@@ -466,8 +511,8 @@ public class Application {
      * @param collectionId Id of the collection
      * @return data Id related to the file
      */
-    public Integer removeCollectionData(String collectionId) {
-        return this.collectionToId.remove(collectionId);
+    public DataInfo removeCollectionData(String collectionId) {
+        return this.collectionToData.remove(collectionId);
     }
 
     /**

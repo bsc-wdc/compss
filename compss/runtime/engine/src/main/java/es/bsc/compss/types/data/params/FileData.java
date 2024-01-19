@@ -69,7 +69,8 @@ public class FileData extends DataParams {
     public Integer removeDataId(DataInfoProvider dip) {
         Application app = this.getApp();
         String locationKey = loc.getLocationKey();
-        return app.removeFileData(locationKey);
+        DataInfo di = app.removeFileData(locationKey);
+        return di != null ? di.getDataId() : null;
     }
 
     public DataLocation getLocation() {

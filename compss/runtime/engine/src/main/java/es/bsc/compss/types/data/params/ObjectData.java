@@ -60,7 +60,8 @@ public class ObjectData extends DataParams {
     @Override
     public Integer removeDataId(DataInfoProvider dip) {
         Application app = this.getApp();
-        return app.removeObjectData(code);
+        DataInfo di = app.removeObjectData(code);
+        return di != null ? di.getDataId() : null;
     }
 
     public final int getCode() {

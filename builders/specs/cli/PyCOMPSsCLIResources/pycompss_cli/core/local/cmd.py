@@ -60,8 +60,8 @@ def local_run_app(cmd: List[str]) -> None:
     subprocess.run(cmd, shell=True)
 
 
-def local_jupyter(work_dir, jupyter_args):
-    cmd = 'jupyter notebook --notebook-dir=' + work_dir
+def local_jupyter(work_dir, lab_or_notebook, jupyter_args):
+    cmd = f'jupyter {lab_or_notebook} --notebook-dir=' + work_dir
     process = subprocess.Popen(cmd + ' ' + jupyter_args, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     try:
         while True:

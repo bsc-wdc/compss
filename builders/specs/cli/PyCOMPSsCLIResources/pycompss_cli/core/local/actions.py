@@ -107,8 +107,9 @@ class LocalActions(Actions):
         if 'working_dir' in self.env_conf:
             working_dir = self.env_conf['working_dir']
 
-        jupyter_args = self.arguments.rest_args
-        local_jupyter(working_dir, ' '.join(jupyter_args))
+        lab_or_notebook = 'lab' if self.arguments.lab else 'notebook'
+
+        local_jupyter(working_dir, lab_or_notebook, ' '.join(self.arguments.rest_args))
 
     def exec(self):
         command = ' '.join(self.arguments.exec_cmd)

@@ -94,19 +94,15 @@ public class StreamDataAccessesInfo extends DataAccessesInfo {
         }
 
         // Add edge to graph
-        if (IS_DRAW_GRAPH) {
-            gh.drawStreamEdge(task, dataId, false);
-        }
+        gh.addStreamDependency(task, dataId, false);
         return true;
     }
 
     @Override
     public void writeValue(Task t, DependencyParameter dp, boolean isConcurrent, GraphHandler gh) {
         this.streamWriters.add(t);
-        if (IS_DRAW_GRAPH) {
-            Integer dataId = dp.getDataAccessId().getDataId();
-            gh.drawStreamEdge(t, dataId, true);
-        }
+        Integer dataId = dp.getDataAccessId().getDataId();
+        gh.addStreamDependency(t, dataId, true);
     }
 
     @Override
@@ -114,7 +110,7 @@ public class StreamDataAccessesInfo extends DataAccessesInfo {
         // Add graph description
         if (IS_DRAW_GRAPH) {
             for (AbstractTask lastWriter : this.streamWriters) {
-                gh.addEdgeFromTaskToMain(lastWriter, EdgeType.STREAM_DEPENDENCY, accesedData);
+                gh.mainAccessToData(lastWriter, EdgeType.STREAM_DEPENDENCY, accesedData);
             }
         }
     }

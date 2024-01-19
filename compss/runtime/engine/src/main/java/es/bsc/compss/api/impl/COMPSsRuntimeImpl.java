@@ -28,7 +28,6 @@ import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.TaskDispatcher;
-import es.bsc.compss.components.monitor.impl.GraphGenerator;
 import es.bsc.compss.components.monitor.impl.RuntimeMonitor;
 import es.bsc.compss.exceptions.CommException;
 import es.bsc.compss.loader.LoaderAPI;
@@ -95,6 +94,7 @@ import es.bsc.compss.util.RuntimeConfigManager;
 import es.bsc.compss.util.SignatureBuilder;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -103,6 +103,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -145,7 +146,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     private static TaskDispatcher td;
 
     // Monitor
-    private static GraphGenerator graphMonitor;
     private static RuntimeMonitor runtimeMonitor;
 
     // Application Timer
@@ -375,6 +375,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
      * CONSTRUCTOR
      * ************************************************************************************************************
      */
+
     /**
      * Creates a new COMPSs Runtime instance.
      */
@@ -442,24 +443,21 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             synchronized (this) {
                 LOGGER.debug("Initializing components");
 
-                // Initialize object registry for bindings if needed
-                // String lang = System.getProperty(COMPSsConstants.LANG);
-                // if (lang != COMPSsConstants.Lang.JAVA.name() && oReg == null) {
-                // oReg = new ObjectRegistry(this);
-                // }
                 // Initialize main runtime components
                 td = new TaskDispatcher();
                 ap = new AccessProcessor(td);
 
                 // Initialize runtime tools components
-                if (GraphGenerator.isEnabled()) {
-                    graphMonitor = new GraphGenerator();
-                    ap.setGM(graphMonitor);
+                long monitoringPeriod = 1000;
+                try {
+                    String monitoringPeriodStr = System.getProperty(COMPSsConstants.MONITOR);
+                    monitoringPeriod = Long.parseLong(monitoringPeriodStr);
+                } catch (Exception e) {
+                    // Keep default value
                 }
-                if (RuntimeMonitor.isEnabled()) {
-                    runtimeMonitor = new RuntimeMonitor(ap, td, graphMonitor,
-                        Long.parseLong(System.getProperty(COMPSsConstants.MONITOR)));
-                }
+                runtimeMonitor = new RuntimeMonitor(ap, td, monitoringPeriod);
+                ap.setGM(runtimeMonitor.getGraphHandler());
+
                 // Log initialization
                 initialized = true;
                 LOGGER.debug("Ready to process tasks");
@@ -510,14 +508,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
 
                 // Stop monitor components
                 LOGGER.info("Stop IT reached");
-                if (GraphGenerator.isEnabled()) {
-                    LOGGER.debug("Stopping Graph generation...");
-                    // Graph committed by noMoreTasks, nothing to do
-                }
-                if (RuntimeMonitor.isEnabled()) {
-                    LOGGER.debug("Stopping Monitor...");
-                    runtimeMonitor.shutdown();
-                }
+                runtimeMonitor.shutdown();
 
                 // Stop runtime components
                 LOGGER.debug("Stopping AP...");
@@ -1392,7 +1383,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     @Override
     public void openTaskGroup(String groupName, boolean implicitBarrier, Long appId) {
         Application app = Application.registerApplication(appId);
-        ap.setCurrentTaskGroup(groupName, implicitBarrier, app);
+        ap.setCurrentTaskGroup(groupName, app);
     }
 
     @Override

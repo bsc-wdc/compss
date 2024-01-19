@@ -27,7 +27,6 @@ import es.bsc.compss.types.tracing.TraceEvent;
 public class OpenTaskGroupRequest extends APRequest {
 
     private String groupName;
-    private boolean barrier;
     private Application app;
 
 
@@ -35,18 +34,16 @@ public class OpenTaskGroupRequest extends APRequest {
      * Request to open a task group.
      * 
      * @param groupName Name of the group.
-     * @param implicitBarrier Barrier for all tasks before closure.
      * @param app Application.
      */
-    public OpenTaskGroupRequest(String groupName, boolean implicitBarrier, Application app) {
-        this.barrier = implicitBarrier;
+    public OpenTaskGroupRequest(String groupName, Application app) {
         this.groupName = groupName;
         this.app = app;
     }
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
-        ta.setCurrentTaskGroup(app, barrier, this.groupName);
+        ta.setCurrentTaskGroup(app, this.groupName);
     }
 
     @Override

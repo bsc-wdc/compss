@@ -87,8 +87,6 @@ public class Application {
 
     // Set of written data ids (for result files)
     private Set<Integer> writtenFileDataIds;
-    // Set of written data ids (for result SCOs)
-    private Set<Integer> writtenPSCODataIds;
 
 
     /**
@@ -181,32 +179,6 @@ public class Application {
         return app;
     }
 
-    /**
-     * Removes a data as an output File of any task.
-     *
-     * @param dataId Id of the data to be removed
-     */
-    public static void removeWrittenFileIdFromAllApps(int dataId) {
-        synchronized (APPLICATIONS) {
-            for (Application app : APPLICATIONS.values()) {
-                app.removeWrittenFileId(dataId);
-            }
-        }
-    }
-
-    /**
-     * Removes a data as an output PSCO of any task.
-     *
-     * @param dataId Id of the data to be removed
-     */
-    public static void removeWrittenPSCOIdFromAllApps(int dataId) {
-        synchronized (APPLICATIONS) {
-            for (Application app : APPLICATIONS.values()) {
-                app.removeWrittenPSCOId(dataId);
-            }
-        }
-    }
-
     private Application(Long appId, String parallelismSource, ApplicationRunner runner) {
         this.id = appId;
         this.parallelismSource = parallelismSource;
@@ -220,7 +192,6 @@ public class Application {
         this.codeToId = new TreeMap<>();
         this.collectionToId = new TreeMap<>();
         this.writtenFileDataIds = new HashSet<>();
-        this.writtenPSCODataIds = new HashSet<>();
     }
 
     public Long getId() {
@@ -537,26 +508,6 @@ public class Application {
      */
     public Set<Integer> getWrittenFileIds() {
         return this.writtenFileDataIds;
-    }
-
-    /**
-     * Adds a data as an output PSCO of the task.
-     *
-     * @param dataId data to be registered as a PSCO output.
-     */
-    public void addWrittenPSCOId(int dataId) {
-        this.writtenPSCODataIds.add(dataId);
-    }
-
-    /**
-     * Removes a data as an output PSCO of the task.
-     *
-     * @param dataId data to be deregistered as a PSCO output.
-     */
-    public void removeWrittenPSCOId(int dataId) {
-        if (this.writtenPSCODataIds.remove(dataId)) {
-            LOGGER.info(" Removed data " + dataId + " from written pscos");
-        }
     }
 
     public void setTimerTask(WallClockTimerTask wcTimerTask) {

@@ -19,14 +19,64 @@ package es.bsc.compss.components.monitor.impl;
 import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.CommutativeGroupTask;
 import es.bsc.compss.types.Task;
+import es.bsc.compss.types.accesses.DataAccessesInfo;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
+import es.bsc.compss.types.request.ap.BarrierGroupRequest;
+
+import java.io.BufferedWriter;
+import java.util.Map;
 
 
 /**
  * Interface to handle additions to the monitoring graph.
  **/
 public interface GraphHandler {
+
+    void openTaskGroup(String groupName);
+
+    void closeTaskGroup();
+
+    /**
+     * Closes a commutative group in the graph.
+     *
+     * @param group group to close in the graph.
+     */
+    public void closeCommutativeTasksGroup(CommutativeGroupTask group);
+
+    void startTaskAnalysis(Task currentTask);
+
+    /**
+     * Adds a task in a commutative Group.
+     *
+     * @param task Task to be drawn in the graph
+     * @param group group to whom the task belongs.
+     */
+    public void taskBelongsToCommutativeGroup(Task task, CommutativeGroupTask group);
+
+    void startGroupingEdges();
+
+    void stopGroupingEdges();
+
+    /**
+     * Adds edges to graph.
+     *
+     * @param consumer Consumer task
+     * @param daId DataAccess causing the dependency
+     * @param producer Producer task
+     */
+    public void addStandandDependency(Task consumer, DataAccessId daId, AbstractTask producer);
+
+    /**
+     * Adds the stream node and edge to the graph.
+     *
+     * @param task Writer or reader task.
+     * @param streamDataId id of the stream generating the edge
+     * @param isWrite Whether the task is reading or writing the stream parameter.
+     */
+    public void addStreamDependency(AbstractTask task, Integer streamDataId, boolean isWrite);
+
+    void endTaskAnalysis(Task task, boolean taskHasEdge);
 
     /**
      * We have accessed to data produced by a task from the main code STEPS: Adds a new synchronization point if any
@@ -36,39 +86,17 @@ public interface GraphHandler {
      * @param edgeType Type of edge for the DOT representation.
      * @param accessedData Data being accessed
      */
-    public void addEdgeFromTaskToMain(AbstractTask task, EdgeType edgeType, DataInstanceId accessedData);
+    public void mainAccessToData(AbstractTask task, EdgeType edgeType, DataInstanceId accessedData);
 
-    /**
-     * Adds edges to graph.
-     *
-     * @param consumer Consumer task
-     * @param daId DataAccess causing the dependency
-     * @param producer Producer task
-     */
-    public void drawStandardEdge(Task consumer, DataAccessId daId, AbstractTask producer);
+    void groupBarrier(BarrierGroupRequest barrier);
 
-    /**
-     * Adds the stream node and edge to the graph.
-     *
-     * @param currentTask Writer or reader task.
-     * @param dataId id of the stream generating the edge
-     * @param isWrite Whether the task is reading or writing the stream parameter.
-     */
-    public void drawStreamEdge(AbstractTask currentTask, Integer dataId, boolean isWrite);
+    void barrier(Map<Integer, DataAccessesInfo> accessesInfo);
 
-    /**
-     * Adds a task in a commutative Group.
-     *
-     * @param task Task to be drawn in the graph
-     * @param group group to whom the task belongs.
-     */
-    public void drawTaskInCommutativeGroup(Task task, CommutativeGroupTask group);
+    void endApp();
 
-    /**
-     * Closes a commutative group in the graph.
-     *
-     * @param group group to close in the graph.
-     */
-    public void closeCommutativeTasksGroup(CommutativeGroupTask group);
+    BufferedWriter getAndOpenCurrentGraph();
 
+    void closeCurrentGraph();
+
+    void removeCurrentGraph();
 }

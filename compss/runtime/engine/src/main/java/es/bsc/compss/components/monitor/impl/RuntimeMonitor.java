@@ -19,7 +19,9 @@ package es.bsc.compss.components.monitor.impl;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.TaskDispatcher;
+import es.bsc.compss.log.LoggerManager;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
 
 import java.io.BufferedWriter;
@@ -38,31 +40,43 @@ public class RuntimeMonitor implements Runnable {
 
     // Logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.ALL_COMP);
+    private static final Logger LOGGER_API = LogManager.getLogger(Loggers.API);
+
+    private static final String ERROR_MONITOR_DIR = "ERROR: Cannot create monitor directory";
     private static final String ERROR_GENERATING_DATA = "Error generating monitoring data";
 
     // Monitor properties
     private static final boolean MONITOR_ENABLED =
-        System.getProperty(COMPSsConstants.MONITOR) != null && !System.getProperty(COMPSsConstants.MONITOR).equals("0")
-            ? true
-            : false;
-    private static final String MONITOR_DIR_PATH;
+        System.getProperty(COMPSsConstants.MONITOR) != null && !System.getProperty(COMPSsConstants.MONITOR).equals("0");
+    private static final String MONITOR_DIR_PATH = LoggerManager.getLogDir() + "monitor" + File.separator;
+
+
+    /**
+     * Returns whether the monitor is enabled or not.
+     *
+     * @return {@code true} if the monitor is enabled, {@code false} otherwise.
+     */
+    public static boolean isEnabled() {
+        return MONITOR_ENABLED;
+    }
+
 
     /**
      * Task Dispatcher associated to the monitor.
      */
-    private TaskDispatcher td;
+    private final TaskDispatcher td;
     /**
      * Access Processor associated to the monitor.
      */
-    private AccessProcessor ap;
+    private final AccessProcessor ap;
     /**
      * Graph Generator associated to the monitor.
      */
-    private GraphGenerator gm;
+    private final GraphHandler gh;
     /**
      * Time between two state queries.
      */
-    private long sleepTime;
+    private final long sleepTime;
     /**
      * Monitor keeps making queries.
      */
@@ -74,17 +88,12 @@ public class RuntimeMonitor implements Runnable {
     /**
      * Monitor Thread.
      */
-    private Thread monitor;
+    private final Thread monitor;
 
     /**
      * COMPSs installation directory.
      */
-    private String installDir;
-
-    static {
-        // Get the monitorDirPath from the graph because it is always initialized before the RuntimeMonitor
-        MONITOR_DIR_PATH = GraphGenerator.getMonitorDirPath();
-    }
+    private final String installDir;
 
 
     /**
@@ -94,21 +103,40 @@ public class RuntimeMonitor implements Runnable {
      *
      * @param ap Task Processor associated to the monitor
      * @param td Task Dispatcher associated to the monitor
-     * @param gm Graph Generator to be used by the monitor
      * @param sleepTime interval of time between state queries
      */
-    public RuntimeMonitor(AccessProcessor ap, TaskDispatcher td, GraphGenerator gm, long sleepTime) {
+    public RuntimeMonitor(AccessProcessor ap, TaskDispatcher td, long sleepTime) {
         this.td = td;
         this.ap = ap;
-        this.gm = gm;
+        if (GraphGenerator.isEnabled()) {
+            if (!new File(MONITOR_DIR_PATH).mkdir()) {
+                ErrorManager.error(ERROR_MONITOR_DIR);
+            }
+            this.gh = new DotGraph(MONITOR_DIR_PATH);
+        } else {
+            this.gh = new NoGraph();
+        }
 
         // Configure and start internal monitor thread
         this.keepRunning = true;
         this.sleepTime = sleepTime;
         this.installDir = System.getenv().get(COMPSsConstants.COMPSS_HOME);
-        this.monitor = new Thread(this);
-        this.monitor.setName("Monitor Thread");
-        this.monitor.start();
+        if (isEnabled()) {
+            this.monitor = new Thread(this);
+            this.monitor.setName("Monitor Thread");
+            this.monitor.start();
+        } else {
+            this.monitor = null;
+        }
+    }
+
+    /**
+     * Returns the Graph Handler for the monitoring.
+     * 
+     * @return graphHandler for the monitoring.
+     */
+    public GraphHandler getGraphHandler() {
+        return this.gh;
     }
 
     /**
@@ -144,24 +172,32 @@ public class RuntimeMonitor implements Runnable {
      * Stops the monitoring.
      */
     public void shutdown() {
-        this.keepRunning = false;
+        if (isEnabled()) {
+            LOGGER_API.debug("Stopping Monitor...");
 
-        try {
-            while (this.running) {
-                Thread.sleep(this.sleepTime);
+            this.keepRunning = false;
+
+            try {
+                while (this.running) {
+                    Thread.sleep(this.sleepTime);
+                }
+                // Print XML state for Monitor
+                getXMLTaskState();
+
+                // Print current task graph
+                printCurrentGraph();
+            } catch (IOException | InterruptedException ioe) {
+                LOGGER.error(ERROR_GENERATING_DATA, ioe);
             }
-            // Print XML state for Monitor
-            getXMLTaskState();
 
-            // Print current task graph
-            printCurrentGraph();
-        } catch (IOException | InterruptedException ioe) {
-            LOGGER.error(ERROR_GENERATING_DATA, ioe);
+            // Clears the execution files
+            if (!new File(MONITOR_DIR_PATH + "monitor.xml").delete()) {
+                LOGGER.error("Error clearing monitor.xml execution files");
+            }
         }
-
-        // Clears the execution files
-        if (!new File(MONITOR_DIR_PATH + "monitor.xml").delete()) {
-            LOGGER.error("Error clearing monitor.xml execution files");
+        if (GraphGenerator.isEnabled()) {
+            LOGGER_API.debug("Stopping Graph generation...");
+            this.gh.removeCurrentGraph();
         }
     }
 
@@ -181,34 +217,17 @@ public class RuntimeMonitor implements Runnable {
         BufferedWriter fw = new BufferedWriter(new FileWriter(MONITOR_DIR_PATH + "COMPSs_state.xml"));
         fw.write(sb.toString());
         fw.close();
-        fw = null;
     }
 
     /**
      * Prints the current graph to the specified GM file.
      */
     private void printCurrentGraph() {
-        BufferedWriter graph = this.gm.getAndOpenCurrentGraph();
-        this.td.printCurrentGraph(graph);
-        this.gm.closeCurrentGraph();
-    }
-
-    /**
-     * Returns the monitor directory path.
-     *
-     * @return The monitor directory path
-     */
-    public static String getMonitorDirPath() {
-        return MONITOR_DIR_PATH;
-    }
-
-    /**
-     * Returns whether the monitor is enabled or not.
-     *
-     * @return {@code true} if the monitor is enabled, {@code false} otherwise.
-     */
-    public static boolean isEnabled() {
-        return MONITOR_ENABLED;
+        BufferedWriter graph = this.gh.getAndOpenCurrentGraph();
+        if (graph != null) {
+            this.td.printCurrentGraph(graph);
+            this.gh.closeCurrentGraph();
+        }
     }
 
 }

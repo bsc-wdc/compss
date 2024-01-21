@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.data;
 
+import es.bsc.compss.types.data.info.FileInfo;
 import es.bsc.compss.types.data.location.DataLocation;
 
 import java.io.File;
@@ -23,6 +24,7 @@ import java.io.File;
 
 public class ResultFile implements Comparable<ResultFile> {
 
+    private final FileInfo fi;
     private DataInstanceId fId;
     private DataLocation originalLocation;
 
@@ -33,7 +35,8 @@ public class ResultFile implements Comparable<ResultFile> {
      * @param fId Associated DataInstanceId
      * @param location Data location.
      */
-    public ResultFile(DataInstanceId fId, DataLocation location) {
+    public ResultFile(FileInfo fi, DataInstanceId fId, DataLocation location) {
+        this.fi = fi;
         this.fId = fId;
         this.originalLocation = location;
     }
@@ -56,16 +59,6 @@ public class ResultFile implements Comparable<ResultFile> {
         return this.originalLocation;
     }
 
-    /**
-     * Returns the original file name.
-     * 
-     * @return The original file name.
-     */
-    public String getOriginalName() {
-        String[] splitPath = originalLocation.getPath().split(File.separator);
-        return splitPath[splitPath.length - 1];
-    }
-
     // Comparable interface implementation
     @Override
     public int compareTo(ResultFile resFile) throws NullPointerException {
@@ -74,7 +67,7 @@ public class ResultFile implements Comparable<ResultFile> {
         }
 
         // Compare file identifiers
-        return this.fId.compareTo(resFile.getFileInstanceId());
+        return this.fId.compareTo(resFile.fId);
     }
 
     @Override
@@ -82,4 +75,7 @@ public class ResultFile implements Comparable<ResultFile> {
         return this.fId.getRenaming();
     }
 
+    public FileInfo getFileInfo() {
+        return this.fi;
+    }
 }

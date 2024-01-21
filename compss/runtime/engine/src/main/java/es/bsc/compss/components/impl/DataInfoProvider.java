@@ -474,15 +474,8 @@ public class DataInfoProvider {
         if (DEBUG) {
             LOGGER.debug("Deleting Data associated to " + data.getDescription());
         }
-        Integer id = data.removeDataId(this);
-        if (id == null) {
-            if (DEBUG) {
-                LOGGER.debug("No data id found for data associated to " + data.getDescription());
-            }
-            throw new ValueUnawareRuntimeException();
-        }
 
-        DataInfo dataInfo = this.idToData.get(id);
+        DataInfo dataInfo = data.removeDataInfo(this);
         if (dataInfo == null) {
             if (DEBUG) {
                 LOGGER.debug("No data found for data associated to " + data.getDescription());

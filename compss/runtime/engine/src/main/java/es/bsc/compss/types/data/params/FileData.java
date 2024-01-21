@@ -51,18 +51,18 @@ public class FileData extends DataParams {
     }
 
     @Override
+    public Integer getDataId(DataInfoProvider dip) {
+        Application app = this.getApp();
+        String locationKey = loc.getLocationKey();
+        return app.getFileDataId(locationKey);
+    }
+
+    @Override
     public DataInfo createDataInfo(DataInfoProvider dip) {
         Application app = this.getApp();
         DataInfo dInfo = new FileInfo(this);
         app.registerFileData(this.locKey, dInfo);
         return dInfo;
-    }
-
-    @Override
-    public Integer getDataId(DataInfoProvider dip) {
-        Application app = this.getApp();
-        String locationKey = loc.getLocationKey();
-        return app.getFileDataId(locationKey);
     }
 
     @Override
@@ -73,11 +73,10 @@ public class FileData extends DataParams {
     }
 
     @Override
-    public Integer removeDataId(DataInfoProvider dip) {
+    public DataInfo removeDataInfo(DataInfoProvider dip) {
         Application app = this.getApp();
         String locationKey = loc.getLocationKey();
-        DataInfo di = app.removeFileData(locationKey);
-        return di != null ? di.getDataId() : null;
+        return app.removeFileData(locationKey);
     }
 
     public DataLocation getLocation() {

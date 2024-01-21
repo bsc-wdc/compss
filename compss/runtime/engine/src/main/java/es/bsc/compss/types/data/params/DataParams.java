@@ -32,9 +32,9 @@ public abstract class DataParams {
 
     public abstract DataInfo getDataInfo(DataInfoProvider dip);
 
-    public abstract Integer getDataId(DataInfoProvider dip);
+    public abstract DataInfo removeDataInfo(DataInfoProvider dip);
 
-    public abstract Integer removeDataId(DataInfoProvider dip);
+    public abstract Integer getDataId(DataInfoProvider dip);
 
     /**
      * Deletes the local instance of the data.

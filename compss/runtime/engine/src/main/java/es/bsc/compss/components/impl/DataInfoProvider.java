@@ -95,7 +95,6 @@ public class DataInfoProvider {
     private void deregisterData(DataInfo di) {
         int dataId = di.getDataId();
         idToData.remove(dataId);
-        di.deleted(this);
     }
 
     /**

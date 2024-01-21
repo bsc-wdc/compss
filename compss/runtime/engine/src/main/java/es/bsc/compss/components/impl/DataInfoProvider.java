@@ -588,16 +588,4 @@ public class DataInfoProvider {
         // Nothing to do
     }
 
-    /**
-     * Removes all data bound to the specified application.
-     *
-     * @param app application whose that must be removed from the system
-     */
-    public void removeAllApplicationData(Application app) {
-        List<DataInfo> data = app.popAllData();
-        for (DataInfo di : data) {
-            di.delete();
-        }
-    }
-
 }

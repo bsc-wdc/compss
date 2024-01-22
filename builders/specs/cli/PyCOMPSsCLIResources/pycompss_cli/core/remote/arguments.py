@@ -47,7 +47,6 @@ def remote_init_parser():
                              help="Login info username@remote_hostname")
 
     parser_init.add_argument("-m", "--modules",
-                             nargs='*',
                              help="Module list or file to load in remote environment")
 
     return parser_init

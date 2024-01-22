@@ -142,9 +142,14 @@ def get_available_libraries() -> (
     """
     active_serializers = []
     for library, priority in LIB2IDX.items():
-        active_serializers.append(
-            (priority, library.__name__, library.__file__)
-        )
+        try:
+            active_serializers.append(
+                (priority, library.__name__, library.__file__)
+            )
+        except AttributeError:
+            active_serializers.append(
+                (priority, library.__name__, str(library))
+            )
     return active_serializers
 
 

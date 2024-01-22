@@ -193,7 +193,7 @@ get_args() {
     # Install Python-binding
     echo "- Install Python binding"
     cd "${SCRIPT_DIR}"/Bindings/python
-    ./install "${targetDir}"/Bindings/python false python3
+    ./install.sh "${targetDir}"/Bindings/python false python3
     cd "${SCRIPT_DIR}"
     echo "   Success"
   fi

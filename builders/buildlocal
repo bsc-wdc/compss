@@ -929,7 +929,7 @@ install_compss() {
       cd "${TMP_DIR}/compss/programming_model/bindings/python"
       if command_exists "python3" ; then
         # Install python binding only for python3
-        ./install "${targetDir}/Bindings/python" true python3 && :
+        ./install.sh "${targetDir}/Bindings/python" true python3 && :
         ev=$?
       else
         # Error no python 3

@@ -24,7 +24,6 @@ This file contains the DDS wordcount k-means example.
 """
 
 import os
-import sys
 import time
 import numpy as np
 from collections import deque

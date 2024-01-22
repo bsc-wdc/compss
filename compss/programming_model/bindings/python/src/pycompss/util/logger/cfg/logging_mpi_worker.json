@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "disable_existing_loggers": false,
+  "formatters": {
+    "verbose": {
+      "format": "%(asctime)s %(levelname)s %(module)s %(process)d %(thread)d - %(message)s"
+    },
+    "medium": {
+      "format": "%(asctime)s %(levelname)s %(name)s %(module)s - %(message)s"
+    },
+    "simple": {
+      "format": "%(name)s %(module)s - %(message)s"
+    }
+  },
+  "handlers": {
+    "console": {
+      "class": "logging.StreamHandler",
+      "level": "DEBUG",
+      "formatter": "medium",
+      "stream": "ext://sys.stdout"
+    },
+    "error_console": {
+      "class": "logging.StreamHandler",
+      "level": "ERROR",
+      "formatter": "medium",
+      "stream": "ext://sys.stderr"
+    }
+  },
+  "loggers": {
+    "dataclay": { "level": "DEBUG", "handlers": ["console", "error_console"], "propagate": "no" },
+    "hecuba":   { "level": "DEBUG", "handlers": ["console", "error_console"], "propagate": "no" },
+    "redis":    { "level": "DEBUG", "handlers": ["console", "error_console"], "propagate": "no" },
+    "storage":  { "level": "DEBUG", "handlers": ["console", "error_console"], "propagate": "no" },
+    "user":     { "level": "DEBUG", "handlers": ["console", "error_console"], "propagate": "no" }
+  },
+  "root": {
+    "level": "DEBUG"
+  }
+}

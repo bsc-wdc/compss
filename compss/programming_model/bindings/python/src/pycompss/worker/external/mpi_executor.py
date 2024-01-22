@@ -34,6 +34,8 @@ from pycompss.util.context import CONTEXT
 from mpi4py import MPI
 from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.logger.helpers import init_logging_worker
+from pycompss.util.logger.remittent import LOG_REMITTENT
+from pycompss.util.logger.level import LOG_LEVEL
 from pycompss.util.tracing.helpers import EventWorker
 from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.util.typing_helper import typing
@@ -85,23 +87,15 @@ def executor(process_name: str, command: str) -> None:
     tracing = command.split()[8] == "true"
 
     # Load log level configuration file
-    worker_path = os.path.dirname(os.path.realpath(__file__))
     if log_level in ("true", "debug"):
         # Debug
-        log_json = "".join(
-            (worker_path, "/../../../log/logging_mpi_worker_debug.json")
-        )
+        init_logging_worker(LOG_REMITTENT.MPI_WORKER, LOG_LEVEL.DEBUG, tracing)
     elif log_level == "info":
         # Info
-        log_json = "".join(
-            (worker_path, "/../../../log/logging_mpi_worker_info.json")
-        )
+        init_logging_worker(LOG_REMITTENT.MPI_WORKER, LOG_LEVEL.INFO, tracing)
     else:
         # Default (off)
-        log_json = "".join(
-            (worker_path, "/../../../log/logging_mpi_worker_off.json")
-        )
-    init_logging_worker(log_json, tracing)
+        init_logging_worker(LOG_REMITTENT.MPI_WORKER, LOG_LEVEL.OFF, tracing)
 
     logger = logging.getLogger("pycompss.worker.external.mpi_executor")
     logger_handlers = copy.copy(logger.handlers)
@@ -123,7 +117,6 @@ def executor(process_name: str, command: str) -> None:
         command,
         process_name,
         logger,
-        log_json,
         logger_handlers,
         logger_level,
         logger_formatter,
@@ -148,7 +141,6 @@ def process_task(
     current_line: str,
     process_name: str,
     logger: logging.Logger,
-    log_json: str,
     logger_handlers: typing.Any,
     logger_level: int,
     logger_formatter: typing.Any,
@@ -158,7 +150,6 @@ def process_task(
     :param current_line: Current command (line) to process.
     :param process_name: Process name for logger messages.
     :param logger: Logger.
-    :param log_json: Logger configuration file.
     :param logger_handlers: Logger handlers.
     :param logger_level: Logger level.
     :param logger_formatter: Logger formatter.
@@ -305,7 +296,6 @@ def process_task(
                     current_line_filtered[10:],
                     tracing,
                     logger,
-                    log_json,
                     (job_out, job_err),
                     python_mpi,
                     collections_layouts,

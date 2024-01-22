@@ -187,6 +187,7 @@ class _LegacyLabels:  # pylint: disable=R0903,R0902
         "varargs_type",
         "target_direction",
         "time_out",
+        "computing_units",
         "computing_nodes",
         "working_dir",
         "app_name",
@@ -203,6 +204,7 @@ class _LegacyLabels:  # pylint: disable=R0903,R0902
         self.varargs_type = "varargsType"
         self.target_direction = "targetDirection"
         self.time_out = "timeOut"
+        self.computing_units = "computingUnits"
         self.computing_nodes = "computingNodes"
         self.working_dir = "workingDir"
         self.app_name = "appName"

@@ -17,27 +17,17 @@
 
 # -*- coding: utf-8 -*-
 
-"""
-PyCOMPSs Binding - Management - Classes.
-
-This file contains the internal classes.
-"""
+"""This file contains the logger remittent functions."""
 
 
-class SupportedFunctionTypes:  # pylint: disable=too-few-public-methods
-    """Used as enum to identify the function type."""
+class _LogRemittent:  # pylint: disable=too-few-public-methods
+    """Supported PyCOMPSs modules."""
 
-    FUNCTION = 1
-    INSTANCE_METHOD = 2
-    CLASS_METHOD = 3
-
-
-class Future:  # pylint: disable=too-few-public-methods
-    """Future object class definition."""
+    MASTER = "master"
+    WORKER = "worker"
+    GAT_WORKER = "gat_worker"
+    MPI_WORKER = "mpi_worker"
+    CONTAINER_WORKER = "container_worker"
 
 
-class EmptyReturn:  # pylint: disable=too-few-public-methods
-    """For functions with empty return."""
-
-
-FunctionType = SupportedFunctionTypes()
+LOG_REMITTENT = _LogRemittent()

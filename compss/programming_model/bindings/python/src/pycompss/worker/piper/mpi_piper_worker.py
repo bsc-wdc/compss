@@ -132,7 +132,7 @@ def compss_persistent_worker(config: PiperWorkerConfiguration) -> None:
 
     persistent_storage = config.storage_conf != "null"
 
-    logger, _, _, _ = load_loggers(config.debug, persistent_storage)
+    logger, _, _ = load_loggers(config.debug, persistent_storage)
 
     if __debug__:
         logger.debug(
@@ -271,9 +271,7 @@ def compss_persistent_executor(
 
     persistent_storage = config.storage_conf != "null"
 
-    logger, logger_cfg, storage_loggers, _ = load_loggers(
-        config.debug, persistent_storage
-    )
+    logger, storage_loggers, _ = load_loggers(config.debug, persistent_storage)
 
     cache_profiler = False
     if config.cache_profiler.lower() == "true":
@@ -297,7 +295,6 @@ def compss_persistent_executor(
         tracing,
         config.storage_conf,
         logger,
-        logger_cfg,
         persistent_storage,
         storage_loggers,
         config.stream_backend,
@@ -348,7 +345,7 @@ def main() -> None:
     worker_conf.update_params(sys.argv)
 
     persistent_storage = worker_conf.storage_conf != "null"
-    logger, _, _, log_dir = load_loggers(worker_conf.debug, persistent_storage)
+    logger, _, log_dir = load_loggers(worker_conf.debug, persistent_storage)
     analysis_dir = GLOBALS.get_analysis_directory()
 
     cache_profiler = False

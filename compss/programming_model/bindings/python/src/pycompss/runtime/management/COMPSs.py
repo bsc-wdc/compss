@@ -36,7 +36,7 @@ if __debug__:
     LOGGER = logging.getLogger(__name__)
 
 
-class COMPSsModule:
+class COMPSsModule:  # pylint: disable=invalid-name, too-many-public-methods
     """C module extension for the communication with the runtime.
 
     See ext/compssmodule.cc
@@ -317,7 +317,7 @@ class COMPSsModule:
         """
         self.compss.set_wall_clock(app_id, wcl)
 
-    def register_core_element(
+    def register_core_element(  # pylint: disable=too-many-arguments
         self,
         ce_signature: str,
         impl_signature: typing.Optional[str],
@@ -357,7 +357,7 @@ class COMPSsModule:
             impl_type_args,
         )
 
-    def process_task(
+    def process_task(  # pylint: disable=too-many-arguments, too-many-locals
         self,
         app_id: int,
         signature: str,
@@ -430,7 +430,7 @@ class COMPSsModule:
             keep_renames,
         )
 
-    def process_http_task(
+    def process_http_task(  # pylint: disable=too-many-arguments, R0914
         self,
         app_id: int,
         signature: str,

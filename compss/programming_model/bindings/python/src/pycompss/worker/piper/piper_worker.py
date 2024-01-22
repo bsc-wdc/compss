@@ -106,7 +106,7 @@ def compss_persistent_worker(
 
     persistent_storage = config.storage_conf != "null"
 
-    logger, logger_cfg, storage_loggers, log_dir = load_loggers(
+    logger, storage_loggers, log_dir = load_loggers(
         config.debug, persistent_storage
     )
 
@@ -162,7 +162,6 @@ def compss_persistent_worker(
         tracing,
         config.storage_conf,
         logger,
-        logger_cfg,
         persistent_storage,
         storage_loggers,
         config.stream_backend,

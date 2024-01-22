@@ -6,7 +6,6 @@
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-
 #---------------------------------------------------
 # SCRIPT GLOBAL HELPERS
 #---------------------------------------------------
@@ -38,3 +37,8 @@ remove_symbolic_links (){
 if [ -d "${SCRIPT_DIR}/3" ]; then
     remove_symbolic_links python3
 fi
+
+rm -rf dist
+rm -rf build
+rm -rf target
+rm -rf src/pycompss.egg-info

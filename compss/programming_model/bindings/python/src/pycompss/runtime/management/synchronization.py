@@ -23,6 +23,7 @@ PyCOMPSs Binding - Management - Object Synchronization.
 This file contains the object synchronization core methods.
 """
 
+import logging
 from pycompss.runtime.management.COMPSs import COMPSs
 from pycompss.util.context import CONTEXT
 from pycompss.runtime.management.classes import Future
@@ -35,8 +36,6 @@ from pycompss.util.storages.persistent import get_id
 from pycompss.util.storages.persistent import is_psco
 from pycompss.util.typing_helper import typing
 
-# Setup LOGGER
-import logging
 
 LOGGER = logging.getLogger(__name__)
 

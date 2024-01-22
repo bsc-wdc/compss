@@ -47,6 +47,7 @@ from pycompss.api.commons.private_tasks import (
 from pycompss.api.commons.private_tasks import (
     dir_to_object as _dir_to_object,
 )
+from pycompss.util.exceptions import PyCOMPSsException
 from pycompss.util.typing_helper import typing
 
 # from pycompss.runtime.task.definitions.core_element import CE
@@ -111,8 +112,8 @@ class DataTransformation:  # pylint: disable=R0902,R0903
         self.target = self.kwargs.pop("target", None)
         self.dt_function = self.kwargs.pop("function", None)
         self.type = self.kwargs.pop("type", None)
-        # todo: so far we use default unique file name for all DTs,
-        #  should it be replaced?
+        # TODO: so far we use default unique file name for all DTs,
+        #       should it be replaced?
         self.destination = self.kwargs.pop("destination", "dt_file_out")
 
     def __call__(self, user_function: typing.Callable) -> typing.Callable:
@@ -148,7 +149,9 @@ class DataTransformation:  # pylint: disable=R0902,R0903
         _transform.__doc__ = user_function.__doc__
         return dt_f
 
-    def __call_dt__(self, user_function, args: list, kwargs: dict) -> None:
+    def __call_dt__(  # pylint: disable=too-many-branches
+        self, user_function, args: list, kwargs: dict
+    ) -> None:
         """Extract and call the DT functions.
 
         :param kwargs: Keyword arguments received from call.
@@ -200,7 +203,7 @@ class DataTransformation:  # pylint: disable=R0902,R0903
                 (self.target, self.user_function, dt_kwargs, args, kwargs)
             )
         if __debug__:
-            logger.debug("Applying " + str(len(dts)) + " DTs.")
+            logger.debug("Applying %s DTs.", str(len(dts)))
         for _dt in dts:
             self._apply_dt(_dt[0], _dt[1], _dt[2], args, kwargs)
 
@@ -230,8 +233,8 @@ class DataTransformation:  # pylint: disable=R0902,R0903
             all_params = inspect.signature(self.user_function)  # type: ignore
             keyz = all_params.parameters.keys()
             if param_name not in keyz:
-                raise Exception(
-                    "Wrong Param " + param_name + " in data transformation"
+                raise PyCOMPSsException(
+                    f"Wrong Param {param_name} in data transformation"
                 )
             i = list(keyz).index(param_name)
             if i < len(args):
@@ -292,7 +295,7 @@ class DataTransformation:  # pylint: disable=R0902,R0903
             args[i] = new_value
 
 
-def _replace_func_kwargs(dt_f_kwargs, f_kwargs, f_args, f):
+def _replace_func_kwargs(dt_f_kwargs, f_kwargs, f_args, func):
     for key, value in dt_f_kwargs.items():
         if (
             isinstance(value, str)
@@ -303,7 +306,9 @@ def _replace_func_kwargs(dt_f_kwargs, f_kwargs, f_args, f):
             if name in f_kwargs:
                 dt_f_kwargs[key] = f_kwargs[name]
             else:
-                dt_f_kwargs[key] = _get_param_from_signature(f, name, f_args)
+                dt_f_kwargs[key] = _get_param_from_signature(
+                    func, name, f_args
+                )
     return dt_f_kwargs
 
 
@@ -311,8 +316,8 @@ def _get_param_from_signature(function, param_name, args):
     all_params = inspect.signature(function)  # type: ignore
     keyz = all_params.parameters.keys()
     if param_name not in keyz:
-        raise Exception(
-            "Wrong Param " + param_name + " in data transformation"
+        raise PyCOMPSsException(
+            f"Wrong Param {param_name} in data transformation"
         )
     i = list(keyz).index(param_name)
     if i < len(args):
@@ -322,8 +327,7 @@ def _get_param_from_signature(function, param_name, args):
     return p_value
 
 
-class DTObject:  # pylint: disable=R0903
-    # disable=too-few-public-methods
+class DTObject:  # pylint: disable=too-few-public-methods
     """Data Transformation Object is a replacement for DT decorator definition.
 
     Data Transformation Object is a helper class to avoid stack of

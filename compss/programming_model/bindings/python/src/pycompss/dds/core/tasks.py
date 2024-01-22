@@ -29,7 +29,7 @@ from pycompss.api.parameter import COLLECTION_IN
 from pycompss.api.parameter import Type
 from pycompss.api.parameter import Depth
 from pycompss.api.task import task
-from pycompss.dds.partition_generators import IPartitionGenerator
+from pycompss.dds.core.partition_generators import IPartitionGenerator
 
 MARKER = "COMPSS_DEFAULT_VALUE_TO_BE_USED_AS_A_MARKER"
 FILE_NAME_LENGTH = 5

@@ -23,27 +23,31 @@
 
   # Create distributable folder
   mkdir -p pyCOMPSs
-  
+
+  # Update __init__.py from binding
+  cp ../../../compss/programming_model/bindings/python/src/pycompss/__init__.py pyCOMPSsResources/src/pycompss/
+
   # Copy scripts and other files into the pyCOMPSs directory
   # Please, resist the temptation to replace all these lines by
   # cp -rf pyCOMPSsResources/* pyCOMPSs/ or something equivalent
   # It may be possible that not all of the files in that folder are
   # necessary or even appropriate for the installation
   cp pyCOMPSsResources/setup.py pyCOMPSs/
+  cp pyCOMPSsResources/pyproject.toml pyCOMPSs/
   cp pyCOMPSsResources/pycompssenv pyCOMPSs/
   cp pyCOMPSsResources/MANIFEST.in pyCOMPSs/
   cp pyCOMPSsResources/VERSION.txt pyCOMPSs/
   cp pyCOMPSsResources/url pyCOMPSs/
-  cp pyCOMPSsResources/backend.py pyCOMPSs/
   cp pyCOMPSsResources/README.rst pyCOMPSs/
   cp pyCOMPSsResources/LICENSE.txt pyCOMPSs/
+  cp -r pyCOMPSsResources/src pyCOMPSs/.
 
   # Change permissions. This will avoid issues with, for example, python's subprocess.call
   cd pyCOMPSs
   chmod -R 777 *
   # Create the tar.gz distributable
   # This should leave a .tar.gz in pyCOMPSs/dist
-  python3 setup.py sdist
+  python3 -m build . --sdist
   cd "${SCRIPT_DIR}"
 
   # Finally, move the pyCOMPSs distributable to packages/pip (tgz included)

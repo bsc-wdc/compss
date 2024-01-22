@@ -66,8 +66,8 @@ from pycompss.util.interactive.state import show_statistics
 from pycompss.util.interactive.state import show_tasks_info
 from pycompss.util.interactive.state import show_tasks_status
 from pycompss.util.interactive.utils import parameters_to_dict
-from pycompss.util.logger.helpers import get_logging_cfg_file
 from pycompss.util.logger.helpers import init_logging
+from pycompss.util.logger.remittent import LOG_REMITTENT
 from pycompss.util.process.manager import initialize_multiprocessing
 
 # Storage imports
@@ -437,15 +437,7 @@ def start(  # pylint: disable=too-many-arguments, too-many-locals
     print("* - Log path : " + log_path)
 
     # Setup logging
-    log_cfg_path = os.path.join(
-        all_vars["compss_home"],
-        "Bindings",
-        "python",
-        str(all_vars["major_version"]),
-        "log",
-    )
-    logging_cfg_file = get_logging_cfg_file(log_level)
-    init_logging(os.path.join(log_cfg_path, logging_cfg_file), log_path)
+    init_logging(LOG_REMITTENT.MASTER, log_level, log_path)
     logger = logging.getLogger("pycompss.runtime.launch")
 
     # Setup tmp path

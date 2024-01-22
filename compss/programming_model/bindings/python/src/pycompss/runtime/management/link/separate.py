@@ -45,7 +45,8 @@ if __debug__:
 
 
 def shutdown_handler(
-    signal: int, frame: typing.Any  # pylint: disable=unused-argument
+    signal: int,  # pylint: disable=unused-argument, redefined-outer-name
+    frame: typing.Any,  # pylint: disable=unused-argument
 ) -> None:
     """Shutdown handler.
 
@@ -184,7 +185,7 @@ class ExternalLink:
 EXTERNAL_LINK = ExternalLink()
 
 
-def c_extension_link(
+def c_extension_link(  # pylint: disable=too-many-locals
     in_queue: Queue,
     out_queue: Queue,
     redirect_std: bool,
@@ -269,6 +270,9 @@ def c_extension_link(
                 out_queue.put(command_done)
             elif command == LINK_MESSAGES.cancel_task_group:
                 compss.cancel_task_group(*parameters)
+                out_queue.put(command_done)
+            elif command == LINK_MESSAGES.snapshot:
+                compss.snapshot(*parameters)
                 out_queue.put(command_done)
             elif command == LINK_MESSAGES.get_logging_path:
                 log_path = compss.get_logging_path()
@@ -507,6 +511,15 @@ class _COMPSs:
         self.in_queue.put(
             (LINK_MESSAGES.cancel_task_group, group_name, app_id)
         )
+        _ = self.out_queue.get(block=True)
+
+    def snapshot(self, code: int) -> None:
+        """Call to snapshot.
+
+        :param code: Stopping code.
+        :return: None.
+        """
+        self.in_queue.put((LINK_MESSAGES.snapshot, code))
         _ = self.out_queue.get(block=True)
 
     def get_logging_path(self) -> str:

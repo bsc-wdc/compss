@@ -341,7 +341,7 @@
       module load ${py3_modules}
     fi
     # If installed, unify installations (second boolean to true)
-    ./install "${targetDir}"/Bindings/python false python3
+    ./install.sh "${targetDir}"/Bindings/python false python3
     ev=$?
     if [ $ev -ne 0 ]; then
       echo "ERROR: Failed to install Python-binding for Python 3"
@@ -366,7 +366,7 @@
             #shellcheck disable=SC2086
             module load ${py3_mod}
             # If installed, unify installations (second boolean to true)
-            ./install "${targetDir}"/Bindings/python false python3
+            ./install.sh "${targetDir}"/Bindings/python false python3
             ev=$?
             if [ $ev -ne 0 ]; then
               echo "ERROR: Failed to install Python-binding for Python 3"

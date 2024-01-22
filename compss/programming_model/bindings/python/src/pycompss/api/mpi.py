@@ -60,7 +60,7 @@ SUPPORTED_ARGUMENTS = {
     LABELS.fail_by_exit_value,
 }
 DEPRECATED_ARGUMENTS = {
-    LABELS.computing_nodes,
+    LEGACY_LABELS.computing_units,
     LEGACY_LABELS.computing_nodes,
     LEGACY_LABELS.working_dir,
 }

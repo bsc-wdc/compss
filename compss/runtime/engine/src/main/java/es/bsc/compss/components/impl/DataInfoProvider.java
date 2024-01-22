@@ -46,7 +46,6 @@ import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
 
 import java.io.File;
-import java.util.List;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.Semaphore;
@@ -393,36 +392,16 @@ public class DataInfoProvider {
     }
 
     /**
-     * Returns the original location of a data id.
+     * Returns whether the data is registered in the master or not.
      *
-     * @param fileId File Id.
-     * @return Location of the original Data Id.
-     */
-    public DataLocation getOriginalLocation(int fileId) {
-        FileInfo info = (FileInfo) this.idToData.get(fileId);
-        return info.getOriginalLocation();
-    }
-
-    /**
-     * Returns whether the dataInstanceId is registered in the master or not.
-     *
-     * @param dId Data Instance Id.
+     * @param data Data Params.
      * @return {@code true} if the renaming is registered in the master, {@code false} otherwise.
      */
-    public boolean isHere(DataInstanceId dId) {
-        return this.valuesOnMain.contains(dId.getRenaming());
-    }
-
-    /**
-     * Returns the last data access to a given data.
-     *
-     * @param data Data being accessed.
-     * @return Data Instance Id with the last access.
-     */
-    public DataInstanceId getLastDataAccess(DataParams data) {
+    public boolean isHere(DataParams data) {
         Integer aoId = data.getDataId(this);
         DataInfo oInfo = this.idToData.get(aoId);
-        return oInfo.getCurrentDataVersion().getDataInstanceId();
+        DataInstanceId dId = oInfo.getCurrentDataVersion().getDataInstanceId();
+        return this.valuesOnMain.contains(dId.getRenaming());
     }
 
     /**

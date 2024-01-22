@@ -76,8 +76,7 @@ public class ObjectAccessParams<T extends Object, D extends ObjectData> extends 
 
     @Override
     public void checkAccessValidity(DataInfoProvider dip) throws ValueUnawareRuntimeException {
-        DataInstanceId dId = dip.getLastDataAccess(this.data);
-        boolean validValue = dip.isHere(dId);
+        boolean validValue = dip.isHere(this.data);
         if (validValue) {
             // Main code is still performing the same modification.
             // No need to register it as a new version.

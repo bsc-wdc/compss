@@ -155,15 +155,10 @@ class DockerActions(Actions):
 
         self.docker_cmd.docker_exec_in_daemon('pkill jupyter')
         
-        arguments = " ".join(self.arguments.rest_args)
-        working_dir = self.env_conf['working_dir']
-        for arg in self.arguments.rest_args:
-            dir = working_dir + '/' + arg
-            if os.path.isdir(dir):
-                print(f"Opening jupyter server in `{dir}`")
-                break
+        lab_or_notebook = 'lab' if self.arguments.lab else 'notebook'
 
-        jupyter_cmd = "jupyter-notebook " + \
+        arguments = " ".join(self.arguments.rest_args)
+        jupyter_cmd = f"jupyter {lab_or_notebook} " + \
                 arguments + " " + \
                 f"--ip={self.env_conf['master_ip']} " + \
                 "--allow-root " + \

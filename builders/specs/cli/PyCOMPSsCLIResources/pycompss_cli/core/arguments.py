@@ -156,6 +156,10 @@ def parse_sys_argv():
                                            parents=[parent_parser],
                                            formatter_class=FORMATTER_CLASS)
     parser_jupyter.set_defaults(action='jupyter')
+
+    parser_jupyter.add_argument("-lab",
+                             action="store_true",
+                             help="Run Jupyter Lab")
     
     
     parser_jupyter.add_argument("-app", "--app_name",

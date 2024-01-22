@@ -15,9 +15,7 @@
 #  limitations under the License.
 #
 
-import re
 from shutil import copyfile
-import tempfile
 import traceback
 from pycompss_cli.core.actions import Actions
 from pycompss_cli.core.unicore import UNICORE_URL_ENVAR

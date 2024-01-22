@@ -14,10 +14,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-from pycompss_cli.core.local.actions import LocalActions
-from pycompss_cli.core.docker.actions import DockerActions
-from pycompss_cli.core.remote.actions import RemoteActions
-from pycompss_cli.core.unicore.actions import UnicoreActions
 from pycompss_cli.core import utils
 from copy import deepcopy
 import os
@@ -86,12 +82,16 @@ class ActionsDispatcher(object):
         debug = arguments.debug
 
         if env_type == "local":
+            from pycompss_cli.core.local.actions import LocalActions
             return LocalActions(arguments, debug, env_conf)
         elif env_type == "docker":
+            from pycompss_cli.core.docker.actions import DockerActions
             return DockerActions(arguments, debug, env_conf)
         elif env_type == "remote":
+            from pycompss_cli.core.remote.actions import RemoteActions
             return RemoteActions(arguments, debug, env_conf)
         elif env_type == "unicore":
+            from pycompss_cli.core.unicore.actions import UnicoreActions
             return UnicoreActions(arguments, debug, env_conf)
         else:
             raise NotImplementedError(f"Environment `{env_type}` not implemented")

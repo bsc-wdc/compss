@@ -103,15 +103,12 @@ public class DataInfoProvider {
      * @param externalData Existing LogicalData to bind the value
      */
     public void registerRemoteDataSources(DataParams internalData, String externalData) {
-        DataInfo dInfo;
-        Integer dId = internalData.getDataId(this);
-        if (dId == null) {
+        DataInfo dInfo = internalData.getDataInfo(this);
+        if (dInfo == null) {
             if (DEBUG) {
                 LOGGER.debug("Registering Remote data on DIP: " + internalData.getDescription());
             }
             dInfo = registerData(internalData);
-        } else {
-            dInfo = idToData.get(dId);
         }
         if (externalData != null && dInfo != null) {
             String existingRename = dInfo.getCurrentDataVersion().getDataInstanceId().getRenaming();
@@ -131,12 +128,9 @@ public class DataInfoProvider {
      * @return last data produced for that value.
      */
     public LogicalData getDataLastVersion(DataParams internalData) {
-        Integer dId = internalData.getDataId(this);
-        if (dId != null) {
-            DataInfo fileInfo = this.idToData.get(dId);
-            if (fileInfo != null) {
-                return fileInfo.getCurrentDataVersion().getDataInstanceId().getData();
-            }
+        DataInfo dInfo = internalData.getDataInfo(this);
+        if (dInfo != null) {
+            return dInfo.getCurrentDataVersion().getDataInstanceId().getData();
         }
         return null;
     }
@@ -160,24 +154,16 @@ public class DataInfoProvider {
      * @return The registered access Id.
      */
     public DataAccessId registerDataAccess(AccessParams access) {
-        DataInfo dInfo;
-        Integer dId = access.getDataId(this);
-        if (dId == null) {
+        DataInfo dInfo = access.getDataInfo(this);
+        if (dInfo == null) {
             if (DEBUG) {
                 LOGGER.debug("FIRST access to " + access.getDataDescription());
             }
             dInfo = registerData(access.getData());
             access.registeredAsFirstVersionForData(dInfo);
         } else {
-            dInfo = idToData.get(dId);
-            if (dInfo != null) {
-                if (DEBUG) {
-                    LOGGER.debug("Another access to " + access.getDataDescription());
-                }
-            } else {
-                ErrorManager.warn(access.getDataDescription() + " was accessed but the file information not found. "
-                    + "Maybe it has been previously canceled");
-                return null;
+            if (DEBUG) {
+                LOGGER.debug("Another access to " + access.getDataDescription());
             }
         }
 
@@ -194,13 +180,12 @@ public class DataInfoProvider {
         if (generatedData != null && access.resultRemainOnMain()) {
             this.valuesOnMain.add(generatedData.getRenaming());
         }
-        Integer dId = access.getDataId(this);
+        DataInfo dInfo = access.getDataInfo(this);
         // First access to this file
-        if (dId == null) {
+        if (dInfo == null) {
             LOGGER.warn(access.getDataDescription() + " has not been accessed before");
             return;
         }
-        DataInfo dInfo = this.idToData.get(dId);
         DataAccessId daid = getAccess(access.getMode(), dInfo);
         if (daid == null) {
             LOGGER.warn(access.getDataDescription() + " has not been accessed before");
@@ -387,8 +372,8 @@ public class DataInfoProvider {
      */
     public boolean alreadyAccessed(DataParams data) {
         LOGGER.debug("Check already accessed: " + data.getDescription());
-        Integer fileId = data.getDataId(this);
-        return fileId != null;
+        DataInfo dInfo = data.getDataInfo(this);
+        return dInfo != null;
     }
 
     /**
@@ -398,8 +383,7 @@ public class DataInfoProvider {
      * @return {@code true} if the renaming is registered in the master, {@code false} otherwise.
      */
     public boolean isHere(DataParams data) {
-        Integer aoId = data.getDataId(this);
-        DataInfo oInfo = this.idToData.get(aoId);
+        DataInfo oInfo = data.getDataInfo(this);
         DataInstanceId dId = oInfo.getCurrentDataVersion().getDataInstanceId();
         return this.valuesOnMain.contains(dId.getRenaming());
     }
@@ -415,13 +399,7 @@ public class DataInfoProvider {
     public void waitForDataReadyToDelete(DataParams data, Semaphore sem)
         throws ValueUnawareRuntimeException, NonExistingValueException {
         LOGGER.debug("Waiting for data " + data.getDescription() + " to be ready for deletion");
-        Integer dataId = data.getDataId(this);
-        if (dataId == null) {
-            LOGGER.debug("No data id found for " + data.getDescription());
-            throw new ValueUnawareRuntimeException();
-        }
-
-        DataInfo dataInfo = this.idToData.get(dataId);
+        DataInfo dataInfo = data.getDataInfo(this);
         if (dataInfo == null) {
             if (DEBUG) {
                 LOGGER.debug("No data found for data associated to " + data.getDescription());

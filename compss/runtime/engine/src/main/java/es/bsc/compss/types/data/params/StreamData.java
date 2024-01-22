@@ -16,7 +16,6 @@
  */
 package es.bsc.compss.types.data.params;
 
-import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.info.DataInfo;
 import es.bsc.compss.types.data.info.StreamInfo;
@@ -35,7 +34,7 @@ public class StreamData extends ObjectData {
     }
 
     @Override
-    public DataInfo createDataInfo(DataInfoProvider dip) {
+    public DataInfo createDataInfo() {
         DataInfo sInfo = new StreamInfo(this);
         Application app = this.getApp();
         app.registerObjectData(code, sInfo);

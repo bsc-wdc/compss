@@ -16,7 +16,6 @@
  */
 package es.bsc.compss.types.data.params;
 
-import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.info.DataInfo;
 import es.bsc.compss.types.data.info.ObjectInfo;
@@ -39,7 +38,7 @@ public class ObjectData extends DataParams {
     }
 
     @Override
-    public Integer getDataId(DataInfoProvider dip) {
+    public Integer getDataId() {
         Application app = this.getApp();
         return app.getObjectDataId(code);
     }
@@ -50,7 +49,7 @@ public class ObjectData extends DataParams {
     }
 
     @Override
-    public DataInfo createDataInfo(DataInfoProvider dip) {
+    public DataInfo createDataInfo() {
         DataInfo oInfo = new ObjectInfo(this);
         Application app = this.getApp();
         app.registerObjectData(code, oInfo);
@@ -58,13 +57,13 @@ public class ObjectData extends DataParams {
     }
 
     @Override
-    public DataInfo getDataInfo(DataInfoProvider dip) {
+    public DataInfo getDataInfo() {
         Application app = this.getApp();
         return app.getObjectData(code);
     }
 
     @Override
-    public DataInfo removeDataInfo(DataInfoProvider dip) {
+    public DataInfo removeDataInfo() {
         Application app = this.getApp();
         return app.removeObjectData(code);
     }

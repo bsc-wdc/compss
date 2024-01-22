@@ -401,7 +401,7 @@ public class TaskAnalyser {
                 case FILE_T:
                     // Remove file data form the list of written files
                     Application app = data.getApp();
-                    FileInfo fInfo = (FileInfo) data.getDataInfo(dip);
+                    FileInfo fInfo = (FileInfo) data.getDataInfo();
                     app.removeWrittenFile(fInfo);
                     break;
                 default:
@@ -605,7 +605,7 @@ public class TaskAnalyser {
         switch (dp.getType()) {
             case DIRECTORY_T:
             case FILE_T:
-                FileInfo fInfo = (FileInfo) dp.getAccess().getDataInfo(dip);
+                FileInfo fInfo = (FileInfo) dp.getAccess().getDataInfo();
                 app.addWrittenFile(fInfo);
                 break;
             default:

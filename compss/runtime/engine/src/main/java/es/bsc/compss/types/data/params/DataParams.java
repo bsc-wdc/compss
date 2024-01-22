@@ -16,7 +16,6 @@
  */
 package es.bsc.compss.types.data.params;
 
-import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.info.DataInfo;
 
@@ -28,13 +27,13 @@ public abstract class DataParams {
 
     public abstract String getDescription();
 
-    public abstract DataInfo createDataInfo(DataInfoProvider dip);
+    public abstract DataInfo createDataInfo();
 
-    public abstract DataInfo getDataInfo(DataInfoProvider dip);
+    public abstract DataInfo getDataInfo();
 
-    public abstract DataInfo removeDataInfo(DataInfoProvider dip);
+    public abstract DataInfo removeDataInfo();
 
-    public abstract Integer getDataId(DataInfoProvider dip);
+    public abstract Integer getDataId();
 
     /**
      * Deletes the local instance of the data.

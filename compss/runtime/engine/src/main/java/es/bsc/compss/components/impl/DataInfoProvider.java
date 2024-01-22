@@ -19,7 +19,6 @@ package es.bsc.compss.components.impl;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.CommException;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.DataVersion;
@@ -86,7 +85,7 @@ public class DataInfoProvider {
     }
 
     private DataInfo registerData(DataParams data) {
-        DataInfo dInfo = data.createDataInfo(this);
+        DataInfo dInfo = data.createDataInfo();
         this.idToData.put(dInfo.getDataId(), dInfo);
         return dInfo;
     }
@@ -103,7 +102,7 @@ public class DataInfoProvider {
      * @param externalData Existing LogicalData to bind the value
      */
     public void registerRemoteDataSources(DataParams internalData, String externalData) {
-        DataInfo dInfo = internalData.getDataInfo(this);
+        DataInfo dInfo = internalData.getDataInfo();
         if (dInfo == null) {
             if (DEBUG) {
                 LOGGER.debug("Registering Remote data on DIP: " + internalData.getDescription());
@@ -128,7 +127,7 @@ public class DataInfoProvider {
      * @return last data produced for that value.
      */
     public LogicalData getDataLastVersion(DataParams internalData) {
-        DataInfo dInfo = internalData.getDataInfo(this);
+        DataInfo dInfo = internalData.getDataInfo();
         if (dInfo != null) {
             return dInfo.getCurrentDataVersion().getDataInstanceId().getData();
         }
@@ -154,7 +153,7 @@ public class DataInfoProvider {
      * @return The registered access Id.
      */
     public DataAccessId registerDataAccess(AccessParams access) {
-        DataInfo dInfo = access.getDataInfo(this);
+        DataInfo dInfo = access.getDataInfo();
         if (dInfo == null) {
             if (DEBUG) {
                 LOGGER.debug("FIRST access to " + access.getDataDescription());
@@ -180,7 +179,7 @@ public class DataInfoProvider {
         if (generatedData != null && access.resultRemainOnMain()) {
             this.valuesOnMain.add(generatedData.getRenaming());
         }
-        DataInfo dInfo = access.getDataInfo(this);
+        DataInfo dInfo = access.getDataInfo();
         // First access to this file
         if (dInfo == null) {
             LOGGER.warn(access.getDataDescription() + " has not been accessed before");
@@ -372,7 +371,7 @@ public class DataInfoProvider {
      */
     public boolean alreadyAccessed(DataParams data) {
         LOGGER.debug("Check already accessed: " + data.getDescription());
-        DataInfo dInfo = data.getDataInfo(this);
+        DataInfo dInfo = data.getDataInfo();
         return dInfo != null;
     }
 
@@ -383,7 +382,7 @@ public class DataInfoProvider {
      * @return {@code true} if the renaming is registered in the master, {@code false} otherwise.
      */
     public boolean isHere(DataParams data) {
-        DataInfo oInfo = data.getDataInfo(this);
+        DataInfo oInfo = data.getDataInfo();
         DataInstanceId dId = oInfo.getCurrentDataVersion().getDataInstanceId();
         return this.valuesOnMain.contains(dId.getRenaming());
     }
@@ -399,7 +398,7 @@ public class DataInfoProvider {
     public void waitForDataReadyToDelete(DataParams data, Semaphore sem)
         throws ValueUnawareRuntimeException, NonExistingValueException {
         LOGGER.debug("Waiting for data " + data.getDescription() + " to be ready for deletion");
-        DataInfo dataInfo = data.getDataInfo(this);
+        DataInfo dataInfo = data.getDataInfo();
         if (dataInfo == null) {
             if (DEBUG) {
                 LOGGER.debug("No data found for data associated to " + data.getDescription());
@@ -421,7 +420,7 @@ public class DataInfoProvider {
             LOGGER.debug("Deleting Data associated to " + data.getDescription());
         }
 
-        DataInfo dataInfo = data.removeDataInfo(this);
+        DataInfo dataInfo = data.removeDataInfo();
         if (dataInfo == null) {
             if (DEBUG) {
                 LOGGER.debug("No data found for data associated to " + data.getDescription());

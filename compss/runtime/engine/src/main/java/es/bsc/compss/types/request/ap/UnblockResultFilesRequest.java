@@ -21,6 +21,7 @@ import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.data.ResultFile;
+import es.bsc.compss.types.data.info.FileInfo;
 import es.bsc.compss.types.tracing.TraceEvent;
 
 import java.util.List;
@@ -40,19 +41,11 @@ public class UnblockResultFilesRequest extends APRequest {
         this.resultFiles = resultFiles;
     }
 
-    /**
-     * Returns the list of associated result files to unlock.
-     * 
-     * @return The list of associated result files to unlock.
-     */
-    public List<ResultFile> getResultFiles() {
-        return this.resultFiles;
-    }
-
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
         for (ResultFile resFile : this.resultFiles) {
-            dip.unblockDataId(resFile.getFileInstanceId().getDataId());
+            FileInfo fi = resFile.getFileInfo();
+            fi.unblockDeletions();
         }
     }
 

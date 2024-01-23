@@ -19,7 +19,6 @@ package es.bsc.compss.components.impl;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.CommException;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.DataVersion;
@@ -46,7 +45,6 @@ import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
 
 import java.io.File;
-import java.util.List;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.Semaphore;
@@ -87,7 +85,7 @@ public class DataInfoProvider {
     }
 
     private DataInfo registerData(DataParams data) {
-        DataInfo dInfo = data.createDataInfo(this);
+        DataInfo dInfo = data.createDataInfo();
         this.idToData.put(dInfo.getDataId(), dInfo);
         return dInfo;
     }
@@ -95,7 +93,6 @@ public class DataInfoProvider {
     private void deregisterData(DataInfo di) {
         int dataId = di.getDataId();
         idToData.remove(dataId);
-        di.deleted(this);
     }
 
     /**
@@ -105,15 +102,12 @@ public class DataInfoProvider {
      * @param externalData Existing LogicalData to bind the value
      */
     public void registerRemoteDataSources(DataParams internalData, String externalData) {
-        DataInfo dInfo;
-        Integer dId = internalData.getDataId(this);
-        if (dId == null) {
+        DataInfo dInfo = internalData.getDataInfo();
+        if (dInfo == null) {
             if (DEBUG) {
                 LOGGER.debug("Registering Remote data on DIP: " + internalData.getDescription());
             }
             dInfo = registerData(internalData);
-        } else {
-            dInfo = idToData.get(dId);
         }
         if (externalData != null && dInfo != null) {
             String existingRename = dInfo.getCurrentDataVersion().getDataInstanceId().getRenaming();
@@ -133,12 +127,9 @@ public class DataInfoProvider {
      * @return last data produced for that value.
      */
     public LogicalData getDataLastVersion(DataParams internalData) {
-        Integer dId = internalData.getDataId(this);
-        if (dId != null) {
-            DataInfo fileInfo = this.idToData.get(dId);
-            if (fileInfo != null) {
-                return fileInfo.getCurrentDataVersion().getDataInstanceId().getData();
-            }
+        DataInfo dInfo = internalData.getDataInfo();
+        if (dInfo != null) {
+            return dInfo.getCurrentDataVersion().getDataInstanceId().getData();
         }
         return null;
     }
@@ -162,24 +153,16 @@ public class DataInfoProvider {
      * @return The registered access Id.
      */
     public DataAccessId registerDataAccess(AccessParams access) {
-        DataInfo dInfo;
-        Integer dId = access.getDataId(this);
-        if (dId == null) {
+        DataInfo dInfo = access.getDataInfo();
+        if (dInfo == null) {
             if (DEBUG) {
                 LOGGER.debug("FIRST access to " + access.getDataDescription());
             }
             dInfo = registerData(access.getData());
             access.registeredAsFirstVersionForData(dInfo);
         } else {
-            dInfo = idToData.get(dId);
-            if (dInfo != null) {
-                if (DEBUG) {
-                    LOGGER.debug("Another access to " + access.getDataDescription());
-                }
-            } else {
-                ErrorManager.warn(access.getDataDescription() + " was accessed but the file information not found. "
-                    + "Maybe it has been previously canceled");
-                return null;
+            if (DEBUG) {
+                LOGGER.debug("Another access to " + access.getDataDescription());
             }
         }
 
@@ -196,13 +179,12 @@ public class DataInfoProvider {
         if (generatedData != null && access.resultRemainOnMain()) {
             this.valuesOnMain.add(generatedData.getRenaming());
         }
-        Integer dId = access.getDataId(this);
+        DataInfo dInfo = access.getDataInfo();
         // First access to this file
-        if (dId == null) {
+        if (dInfo == null) {
             LOGGER.warn(access.getDataDescription() + " has not been accessed before");
             return;
         }
-        DataInfo dInfo = this.idToData.get(dId);
         DataAccessId daid = getAccess(access.getMode(), dInfo);
         if (daid == null) {
             LOGGER.warn(access.getDataDescription() + " has not been accessed before");
@@ -389,51 +371,20 @@ public class DataInfoProvider {
      */
     public boolean alreadyAccessed(DataParams data) {
         LOGGER.debug("Check already accessed: " + data.getDescription());
-        Integer fileId = data.getDataId(this);
-        return fileId != null;
+        DataInfo dInfo = data.getDataInfo();
+        return dInfo != null;
     }
 
     /**
-     * Returns the original location of a data id.
+     * Returns whether the data is registered in the master or not.
      *
-     * @param fileId File Id.
-     * @return Location of the original Data Id.
-     */
-    public DataLocation getOriginalLocation(int fileId) {
-        FileInfo info = (FileInfo) this.idToData.get(fileId);
-        return info.getOriginalLocation();
-    }
-
-    /**
-     * Returns whether the dataInstanceId is registered in the master or not.
-     *
-     * @param dId Data Instance Id.
+     * @param data Data Params.
      * @return {@code true} if the renaming is registered in the master, {@code false} otherwise.
      */
-    public boolean isHere(DataInstanceId dId) {
+    public boolean isHere(DataParams data) {
+        DataInfo oInfo = data.getDataInfo();
+        DataInstanceId dId = oInfo.getCurrentDataVersion().getDataInstanceId();
         return this.valuesOnMain.contains(dId.getRenaming());
-    }
-
-    /**
-     * Returns the last data access to a given data.
-     *
-     * @param data Data being accessed.
-     * @return Data Instance Id with the last access.
-     */
-    public DataInstanceId getLastDataAccess(DataParams data) {
-        Integer aoId = data.getDataId(this);
-        DataInfo oInfo = this.idToData.get(aoId);
-        return oInfo.getCurrentDataVersion().getDataInstanceId();
-    }
-
-    /**
-     * Unblocks a dataId.
-     *
-     * @param dataId Data Id.
-     */
-    public void unblockDataId(Integer dataId) {
-        DataInfo dataInfo = this.idToData.get(dataId);
-        dataInfo.unblockDeletions();
     }
 
     /**
@@ -447,13 +398,7 @@ public class DataInfoProvider {
     public void waitForDataReadyToDelete(DataParams data, Semaphore sem)
         throws ValueUnawareRuntimeException, NonExistingValueException {
         LOGGER.debug("Waiting for data " + data.getDescription() + " to be ready for deletion");
-        Integer dataId = data.getDataId(this);
-        if (dataId == null) {
-            LOGGER.debug("No data id found for " + data.getDescription());
-            throw new ValueUnawareRuntimeException();
-        }
-
-        DataInfo dataInfo = this.idToData.get(dataId);
+        DataInfo dataInfo = data.getDataInfo();
         if (dataInfo == null) {
             if (DEBUG) {
                 LOGGER.debug("No data found for data associated to " + data.getDescription());
@@ -474,15 +419,8 @@ public class DataInfoProvider {
         if (DEBUG) {
             LOGGER.debug("Deleting Data associated to " + data.getDescription());
         }
-        Integer id = data.removeDataId(this);
-        if (id == null) {
-            if (DEBUG) {
-                LOGGER.debug("No data id found for data associated to " + data.getDescription());
-            }
-            throw new ValueUnawareRuntimeException();
-        }
 
-        DataInfo dataInfo = this.idToData.get(id);
+        DataInfo dataInfo = data.removeDataInfo();
         if (dataInfo == null) {
             if (DEBUG) {
                 LOGGER.debug("No data found for data associated to " + data.getDescription());
@@ -497,107 +435,105 @@ public class DataInfoProvider {
     }
 
     /**
-     * Blocks dataId and retrieves its result file.
+     * Blocks fInfo and retrieves its result file.
      *
-     * @param dataId Data Id.
+     * @param fInfo Data Id.
      * @param listener Result listener.
      * @return The result file.
      */
-    public ResultFile blockDataAndGetResultFile(int dataId, ResultListener listener) {
+    public ResultFile blockDataAndGetResultFile(FileInfo fInfo, ResultListener listener) {
+        int dataId = fInfo.getDataId();
         DataInstanceId lastVersion;
         if (DEBUG) {
             LOGGER.debug("Get Result file for data " + dataId);
         }
-        FileInfo fileInfo = (FileInfo) this.idToData.get(dataId);
-        if (fileInfo != null) { // FileInfo
-            if (fileInfo.hasBeenCanceled()) {
-                if (!fileInfo.isCurrentVersionToDelete()) { // If current version is to delete do not
-                    // transfer
-                    String[] splitPath = fileInfo.getOriginalLocation().getPath().split(File.separator);
-                    String origName = splitPath[splitPath.length - 1];
-                    if (origName.startsWith("compss-serialized-obj_")) {
-                        // Do not transfer objects serialized by the bindings
-                        if (DEBUG) {
-                            LOGGER.debug("Discarding file " + origName + " as a result");
+        if (fInfo.hasBeenCanceled()) {
+            if (!fInfo.isCurrentVersionToDelete()) { // If current version is to delete do not
+                // transfer
+                String[] splitPath = fInfo.getOriginalLocation().getPath().split(File.separator);
+                String origName = splitPath[splitPath.length - 1];
+                if (origName.startsWith("compss-serialized-obj_")) {
+                    // Do not transfer objects serialized by the bindings
+                    if (DEBUG) {
+                        LOGGER.debug("Discarding file " + origName + " as a result");
+                    }
+                    return null;
+                }
+                fInfo.blockDeletions();
+
+                lastVersion = fInfo.getCurrentDataVersion().getDataInstanceId();
+
+                ResultFile rf = new ResultFile(fInfo, lastVersion, fInfo.getOriginalLocation());
+
+                String renaming = lastVersion.getRenaming();
+
+                // Look for the last available version
+                while (renaming != null && !Comm.existsData(renaming)) {
+                    renaming = DataInstanceId.previousVersionRenaming(renaming);
+                }
+                if (renaming == null) {
+                    LOGGER.error(RES_FILE_TRANSFER_ERR + ": Cannot transfer file " + lastVersion.getRenaming()
+                        + " nor any of its previous versions");
+                    return null;
+                }
+
+                LogicalData data = Comm.getData(renaming);
+                // Check if data is a PSCO and must be consolidated
+                for (DataLocation loc : data.getLocations()) {
+                    if (loc instanceof PersistentLocation) {
+                        String pscoId = ((PersistentLocation) loc).getId();
+                        if (Tracer.isActivated()) {
+                            Tracer.emitEvent(TraceEvent.STORAGE_CONSOLIDATE);
                         }
-                        return null;
-                    }
-                    fileInfo.blockDeletions();
-
-                    lastVersion = fileInfo.getCurrentDataVersion().getDataInstanceId();
-
-                    ResultFile rf = new ResultFile(lastVersion, fileInfo.getOriginalLocation());
-
-                    DataInstanceId fId = rf.getFileInstanceId();
-                    String renaming = fId.getRenaming();
-
-                    // Look for the last available version
-                    while (renaming != null && !Comm.existsData(renaming)) {
-                        renaming = DataInstanceId.previousVersionRenaming(renaming);
-                    }
-                    if (renaming == null) {
-                        LOGGER.error(RES_FILE_TRANSFER_ERR + ": Cannot transfer file " + fId.getRenaming()
-                            + " nor any of its previous versions");
-                        return null;
-                    }
-
-                    LogicalData data = Comm.getData(renaming);
-                    // Check if data is a PSCO and must be consolidated
-                    for (DataLocation loc : data.getLocations()) {
-                        if (loc instanceof PersistentLocation) {
-                            String pscoId = ((PersistentLocation) loc).getId();
+                        try {
+                            StorageItf.consolidateVersion(pscoId);
+                        } catch (StorageException e) {
+                            LOGGER.error("Cannot consolidate PSCO " + pscoId, e);
+                        } finally {
                             if (Tracer.isActivated()) {
-                                Tracer.emitEvent(TraceEvent.STORAGE_CONSOLIDATE);
+                                Tracer.emitEventEnd(TraceEvent.STORAGE_CONSOLIDATE);
                             }
-                            try {
-                                StorageItf.consolidateVersion(pscoId);
-                            } catch (StorageException e) {
-                                LOGGER.error("Cannot consolidate PSCO " + pscoId, e);
-                            } finally {
-                                if (Tracer.isActivated()) {
-                                    Tracer.emitEventEnd(TraceEvent.STORAGE_CONSOLIDATE);
-                                }
-                            }
-                            LOGGER.debug("Returned because persistent object");
-                            return rf;
                         }
-
+                        LOGGER.debug("Returned because persistent object");
+                        return rf;
                     }
 
-                    // If no PSCO location is found, perform normal getData
-                    if (rf.getOriginalLocation().getProtocol() == ProtocolType.BINDING_URI) {
-                        // Comm.getAppHost().getData(data, rf.getOriginalLocation(), new
-                        // BindingObjectTransferable(),
-                        // listener);
-                        if (DEBUG) {
-                            LOGGER.debug("Discarding data d" + dataId + " as a result beacuse it is a binding object");
-                        }
-                    } else {
-                        if (rf.getOriginalLocation().getProtocol() == ProtocolType.DIR_URI) {
-                            listener.addOperation();
-                            Comm.getAppHost().getData(data, rf.getOriginalLocation(), new DirectoryTransferable(),
-                                listener);
-                        } else {
-                            listener.addOperation();
-                            Comm.getAppHost().getData(data, rf.getOriginalLocation(), new FileTransferable(), listener);
-                        }
-                    }
+                }
 
-                    return rf;
+                // If no PSCO location is found, perform normal getData
+                if (rf.getOriginalLocation().getProtocol() == ProtocolType.BINDING_URI) {
+                    // Comm.getAppHost().getData(data, rf.getOriginalLocation(), new
+                    // BindingObjectTransferable(),
+                    // listener);
+                    if (DEBUG) {
+                        LOGGER.debug("Discarding data d" + dataId + " as a result beacuse it is a binding object");
+                    }
                 } else {
-                    if (fileInfo.isCurrentVersionToDelete()) {
-                        if (DEBUG) {
-                            String[] splitPath = fileInfo.getOriginalLocation().getPath().split(File.separator);
-                            String origName = splitPath[splitPath.length - 1];
-                            LOGGER.debug("Trying to delete file " + origName);
-                        }
-                        if (fileInfo.delete()) {
-                            deregisterData(fileInfo);
-                        }
+                    if (rf.getOriginalLocation().getProtocol() == ProtocolType.DIR_URI) {
+                        listener.addOperation();
+                        Comm.getAppHost().getData(data, rf.getOriginalLocation(), new DirectoryTransferable(),
+                            listener);
+                    } else {
+                        listener.addOperation();
+                        Comm.getAppHost().getData(data, rf.getOriginalLocation(), new FileTransferable(), listener);
+                    }
+                }
+
+                return rf;
+            } else {
+                if (fInfo.isCurrentVersionToDelete()) {
+                    if (DEBUG) {
+                        String[] splitPath = fInfo.getOriginalLocation().getPath().split(File.separator);
+                        String origName = splitPath[splitPath.length - 1];
+                        LOGGER.debug("Trying to delete file " + origName);
+                    }
+                    if (fInfo.delete()) {
+                        deregisterData(fInfo);
                     }
                 }
             }
         }
+
         return null;
     }
 
@@ -606,18 +542,6 @@ public class DataInfoProvider {
      */
     public void shutdown() {
         // Nothing to do
-    }
-
-    /**
-     * Removes all data bound to the specified application.
-     *
-     * @param app application whose that must be removed from the system
-     */
-    public void removeAllApplicationData(Application app) {
-        List<DataInfo> data = app.popAllData();
-        for (DataInfo di : data) {
-            di.delete();
-        }
     }
 
 }

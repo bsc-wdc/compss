@@ -17,7 +17,6 @@
 package es.bsc.compss.types.data.params;
 
 import es.bsc.compss.comm.Comm;
-import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.types.Application;
 import es.bsc.compss.types.data.info.DataInfo;
 import es.bsc.compss.types.data.info.FileInfo;
@@ -51,7 +50,14 @@ public class FileData extends DataParams {
     }
 
     @Override
-    public DataInfo createDataInfo(DataInfoProvider dip) {
+    public Integer getDataId() {
+        Application app = this.getApp();
+        String locationKey = loc.getLocationKey();
+        return app.getFileDataId(locationKey);
+    }
+
+    @Override
+    public DataInfo createDataInfo() {
         Application app = this.getApp();
         DataInfo dInfo = new FileInfo(this);
         app.registerFileData(this.locKey, dInfo);
@@ -59,14 +65,14 @@ public class FileData extends DataParams {
     }
 
     @Override
-    public Integer getDataId(DataInfoProvider dip) {
+    public DataInfo getDataInfo() {
         Application app = this.getApp();
         String locationKey = loc.getLocationKey();
-        return app.getFileDataId(locationKey);
+        return app.getFileData(locationKey);
     }
 
     @Override
-    public Integer removeDataId(DataInfoProvider dip) {
+    public DataInfo removeDataInfo() {
         Application app = this.getApp();
         String locationKey = loc.getLocationKey();
         return app.removeFileData(locationKey);

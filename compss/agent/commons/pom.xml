@@ -8,7 +8,7 @@
     <parent>
         <groupId>es.bsc.compss</groupId>
         <artifactId>compss-agent</artifactId>
-        <version>3.3.rc2401</version>
+        <version>3.3.rc2402</version>
         <relativePath>..</relativePath>
     </parent>
 

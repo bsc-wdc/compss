@@ -160,7 +160,7 @@ AUTHOR = "Workflows and Distributed Computing Group (WDC) - Barcelona Supercompu
 setup(
     # Metadata
     name="pycompss",
-    version="3.3.rc2401",
+    version="3.3.rc2402",
     description="Python Binding for COMP Superscalar Runtime",
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",

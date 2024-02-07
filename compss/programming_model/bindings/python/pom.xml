@@ -9,9 +9,9 @@
     <packaging>pom</packaging>
     <parent>
         <groupId>es.bsc.compss</groupId>
-        <artifactId>compss-pm</artifactId>
+        <artifactId>compss-bindings</artifactId>
         <version>3.3.rc2402</version>
-	<relativePath>../../</relativePath>
+	<relativePath>../</relativePath>
     </parent>
 
     <!-- PROJECT INFORMATION -->
@@ -34,7 +34,7 @@
 	    <!--sonar.skip>true</sonar.skip-->
     </properties>
     <build>
-	    <plugins>
+        <plugins>
             <plugin>
                 <artifactId>exec-maven-plugin</artifactId>
                 <groupId>org.codehaus.mojo</groupId>
@@ -42,9 +42,9 @@
                 <executions>
                     <execution>
                         <id>Datatype Generation</id>
-			            <phase/>
-		            </execution>
-	            </executions>
+                        <phase/>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

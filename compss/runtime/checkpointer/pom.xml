@@ -10,7 +10,7 @@
     <parent>
         <groupId>es.bsc.compss</groupId>
         <artifactId>compss-runtime</artifactId>
-        <version>3.3.rc2402</version>
+        <version>3.3.rc2403</version>
         <relativePath>..</relativePath>
     </parent>
 

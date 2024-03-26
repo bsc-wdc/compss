@@ -36,6 +36,7 @@
       if [ -n "${I_MPI_ROOT}" ]; then
         mpiPath="${I_MPI_ROOT}"
         argMpi="--with-mpi=${mpiPath}"
+	argMpiLibs="--with-mpi-libs=${mpiPath}/lib/release/"
       else
         mpiPath=$(which mpirun 2> /dev/null)
         if [ -n "${mpiPath}" ]; then
@@ -79,23 +80,27 @@
     fi
 
     # Set MPI libs by user or from the system
-    if [ -n "${mpiPath}" ]; then
-      if [ -n "${EXTRAE_MPI_LIBS}" ]; then
-        argMpiLibs="--with-mpi-libs=${EXTRAE_MPI_LIBS}"
-      else
-        if [ -d "${mpiPath}/lib64" ]; then
-          argMpiLibs="--with-mpi-libs=${mpiPath}/lib64"
+    if [ -n "${argMpiLibs}" ]; then
+	echo "WARN: MPI lbs already set in a previous step"
+    else
+      if [ -n "${mpiPath}" ]; then
+        if [ -n "${EXTRAE_MPI_LIBS}" ]; then
+          argMpiLibs="--with-mpi-libs=${EXTRAE_MPI_LIBS}"
         else
-          if [ -d "${mpiPath}/lib" ]; then
-            argMpiLibs="--with-mpi-libs=${mpiPath}/lib"
+          if [ -d "${mpiPath}/lib64" ]; then
+            argMpiLibs="--with-mpi-libs=${mpiPath}/lib64"
           else
-            echo "ERROR: Cannot automatically infer MPI libs folder"
-            exit 1
+            if [ -d "${mpiPath}/lib" ]; then
+              argMpiLibs="--with-mpi-libs=${mpiPath}/lib"
+            else
+              echo "ERROR: Cannot automatically infer MPI libs folder"
+              exit 1
+            fi
           fi
         fi
+      else
+        argMpiLibs=""
       fi
-    else
-      argMpiLibs=""
     fi
   }
 

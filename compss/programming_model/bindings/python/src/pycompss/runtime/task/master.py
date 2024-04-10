@@ -983,12 +983,12 @@ class TaskMaster:
                 ):
                     if arg_name not in self.parameters:
                         real_arg_name = get_kwarg_name(arg_name)
-                        self.parameters[
-                            real_arg_name
-                        ] = self.build_parameter_object(
-                            real_arg_name,
-                            default_value,
-                            code_strings=code_strings,
+                        self.parameters[real_arg_name] = (
+                            self.build_parameter_object(
+                                real_arg_name,
+                                default_value,
+                                code_strings=code_strings,
+                            )
                         )
 
         # Process variadic and keyword arguments

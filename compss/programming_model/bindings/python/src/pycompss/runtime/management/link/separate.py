@@ -212,9 +212,11 @@ def c_extension_link(
 
     command_done = LINK_MESSAGES.command_done
 
-    with ipython_std_redirector(
-        out_file_name, err_file_name
-    ) if redirect_std else not_std_redirector():
+    with (
+        ipython_std_redirector(out_file_name, err_file_name)
+        if redirect_std
+        else not_std_redirector()
+    ):
         alive = True
         while alive:
             message = list(in_queue.get())

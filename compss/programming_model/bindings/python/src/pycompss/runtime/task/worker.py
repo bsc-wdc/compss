@@ -161,9 +161,11 @@ class TaskWorker:
             if __debug__:
                 LOGGER.debug("Redirecting stdout to: %s", str(job_out))
                 LOGGER.debug("Redirecting stderr to: %s", str(job_err))
-            with std_redirector(
-                job_out, job_err
-            ) if redirect_std else not_std_redirector():
+            with (
+                std_redirector(job_out, job_err)
+                if redirect_std
+                else not_std_redirector()
+            ):
                 # Update the on_failure attribute
                 # (could be defined by @on_failure)
                 if LABELS.on_failure in kwargs:
@@ -802,12 +804,12 @@ class TaskWorker:
                             )
                         sub_arg_key.content = temp_k
                         sub_arg_value.content = temp_v
-                        argument.content[
-                            sub_arg_key.content
-                        ] = sub_arg_value.content
-                        argument.dict_collection_content[
-                            sub_arg_key
-                        ] = sub_arg_value
+                        argument.content[sub_arg_key.content] = (
+                            sub_arg_value.content
+                        )
+                        argument.dict_collection_content[sub_arg_key] = (
+                            sub_arg_value
+                        )
                     else:
                         self.retrieve_content(
                             sub_arg_key,
@@ -823,12 +825,12 @@ class TaskWorker:
                             collections_layouts,
                             depth=_dict_col_dep - 1,
                         )
-                        argument.content[
-                            sub_arg_key.content
-                        ] = sub_arg_value.content
-                        argument.dict_collection_content[
-                            sub_arg_key
-                        ] = sub_arg_value
+                        argument.content[sub_arg_key.content] = (
+                            sub_arg_value.content
+                        )
+                        argument.dict_collection_content[sub_arg_key] = (
+                            sub_arg_value
+                        )
                 else:
                     # Recursively call the retrieve method, fill the
                     # content field in our new taskParameter object
@@ -844,12 +846,12 @@ class TaskWorker:
                         python_mpi,
                         collections_layouts,
                     )
-                    argument.content[
-                        sub_arg_key.content
-                    ] = sub_arg_value.content  # noqa: E501
-                    argument.dict_collection_content[
-                        sub_arg_key
-                    ] = sub_arg_value  # noqa: E501
+                    argument.content[sub_arg_key.content] = (
+                        sub_arg_value.content
+                    )  # noqa: E501
+                    argument.dict_collection_content[sub_arg_key] = (
+                        sub_arg_value  # noqa: E501
+                    )
         elif (
             not self.storage_supports_pipelining()
             and content_type == type_external_psco

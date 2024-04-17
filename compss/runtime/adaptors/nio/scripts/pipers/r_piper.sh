@@ -41,24 +41,6 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
     echo "[R EXECUTOR] Launching R_executor for $cmdPipe to $resultPipe"
     Rscript $SCRIPT_DIR/executor.R $cmdPipe $resultPipe
-    #while true; do
-    #  if read -r line ; then
-    #    echo "[R EXECUTOR] Processing $line"
-    #    local command
-    #    IFS=" " read -ra command <<< "${line}"
-    #    local tag=${command[0]}
-    #    if [ "$tag" == "${EXECUTE_TASK_TAG}" ]; then
-    #      local taskId=${command[1]}
-    #      local toCall=${command[*]:2}
-    #      # shellcheck disable=SC2086
-    #      execute_task "$taskId" $toCall
-    #    elif [ "$tag" == "${QUIT_TAG}" ]; then
-    #      break
-    #    else
-    #      echo "[R EXECUTOR] Unrecognised tag $tag. Skipping"
-    #    fi
-    #  fi
-    #done <"$cmdPipe" 3>"${cmdPipe}"
 
     echo "${QUIT_TAG}" > "${resultPipe}"
     echo "[R EXECUTOR] Pipe processor on $cmdPipe finished"
@@ -108,7 +90,9 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
     i=0
     while [ $i -lt ${#pipe_pids[@]} ]; do
       pid=${pipe_pids[$i]}
-      kill -9 "$pid"
+      if [ ${pid} -gt 0 ]; then
+      	kill -9 "$pid"
+      fi
       i=$((i+1))
     done
   }
@@ -163,7 +147,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
         out_pipe=$(echo "${line}" | tr " " "\t" | awk '{ print $3 }')
         get_executor_index "${in_pipe}"
         pipe_pid=${pipe_pids[${executor_index}]}
-        if [ "${pipe_pid}" != "-1" ]; then
+        if [ "${pipe_pid}" -gt 0 ]; then
           kill -9 ${pipe_pid} >/dev/null 2>/dev/null
           wait ${pipe_pid}
           pipe_pids[${executor_index}]=-1
@@ -174,7 +158,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
           stop_received=true
           ;;
       *)
-        echo "[C WORKER] UNKNOWN COMMAND ${line}"
+        echo "[R WORKER] UNKNOWN COMMAND ${line}"
     esac
   done <"${controlCMDpipe}" 3>"${controlCMDpipe}"
 
@@ -191,10 +175,10 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
   # Exit message
   if [ $errorStatus -ne 0 ]; then
-      echo "[C PIPER] Sub proccess failed"
+      echo "[R PIPER] Sub proccess failed"
       exit 1
   else 
-      echo "[C PIPER] Finished"
+      echo "[R PIPER] Finished"
       exit 0
   fi
 

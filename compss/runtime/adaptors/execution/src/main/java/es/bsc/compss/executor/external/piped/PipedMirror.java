@@ -132,7 +132,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
         }
 
         String args = constructPipeBuilderArgs(context);
-        LOGGER.info("Init piper PipeBuilder. Args: " + args);
+        LOGGER.debug("Init piper PipeBuilder. Args: " + args);
         ProcessBuilder pb = new ProcessBuilder(piperScript, args);
         try {
             // Set NW environment

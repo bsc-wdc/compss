@@ -573,6 +573,7 @@ public class Executor implements Runnable, InvocationRunner {
                         isRegistered = true;
                     }
                 } else {
+
                     if (cPipes == null) {
                         PipedMirror mirror;
                         synchronized (platform) {
@@ -591,13 +592,14 @@ public class Executor implements Runnable, InvocationRunner {
                 if (rPipes == null) {
                     PipedMirror mirror;
                     synchronized (platform) {
-                        mirror = (PipedMirror) platform.getMirror(PythonInvoker.class);
+                        mirror = (PipedMirror) platform.getMirror(RInvoker.class);
                         if (mirror == null) {
                             mirror = (PipedMirror) RInvoker.getMirror(context, platform);
                             platform.registerMirror(RInvoker.class, mirror);
                         }
                     }
                     rPipes = mirror.registerExecutor(this.id, this.name);
+
                 }
                 return new RInvoker(context, invocation, sandbox, assignedResources, rPipes);
 

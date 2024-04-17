@@ -47,7 +47,7 @@ display_error() {
 
 get_args() {
   # Parse COMPSs Options
-  while getopts hvBTAC-: flag; do
+  while getopts hvBTACP-: flag; do
     # Treat the argument
     case "$flag" in
       h)
@@ -66,11 +66,16 @@ get_args() {
         # Custom C++ binding value
         c_binding=false
         ;;
+      P)
+        # Custom Python binding value
+        python_binding=false
+        ;;
       N)
         # Disables all flags
         tracing=false
         bindings=false
         c_binding=false
+        python_binding=false
         ;;
       -)
         # Check more complex arguments
@@ -90,11 +95,15 @@ get_args() {
           no-c-binding)
             c_binding=false
             ;;
+          no-python-binding)
+            python_binding=false
+            ;;
           nothing)
             # Disables all flags
             tracing=false
             bindings=false
             c_binding=false
+            python_binding=false
             ;;
           *)
             # Flag didn't match any patern. End of COMPSs flags
@@ -128,6 +137,7 @@ get_args() {
   tracing=true
   bindings=true
   c_binding=true
+  python_binding=true
 
   system_os=$(uname)
   if [[ "$system_os" == "Darwin" ]]; then
@@ -143,6 +153,7 @@ get_args() {
   echo "  - Tracing: $tracing"
   echo "  - Bindings: $bindings"
   echo "  - C_Binding: $c_binding"
+  echo "  - Python Binding: $python_binding"
   echo " "
   echo "Parameters:"
   echo "  - Target Installation Folder = $targetDir"
@@ -191,11 +202,13 @@ get_args() {
     fi
 
     # Install Python-binding
-    echo "- Install Python binding"
-    cd "${SCRIPT_DIR}"/Bindings/python
-    ./install.sh "${targetDir}"/Bindings/python false python3
-    cd "${SCRIPT_DIR}"
-    echo "   Success"
+    if [ "${python_binding}" == "true" ]; then
+      echo "- Install Python binding"
+      cd "${SCRIPT_DIR}"/Bindings/python
+      ./install "${targetDir}"/Bindings/python false python3
+      cd "${SCRIPT_DIR}"
+      echo "   Success"
+    fi
   fi
   if [ "${tracing}" == "true" ]; then
     # Install extrae

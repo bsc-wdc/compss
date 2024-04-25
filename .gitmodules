@@ -9,3 +9,6 @@
 [submodule "dependencies/dlb"]
 	path = dependencies/dlb
 	url = https://github.com/bsc-pm/dlb.git
+[submodule "dependencies/threadpoolctl"]
+	path = dependencies/threadpoolctl
+	url = https://github.com/joblib/threadpoolctl.git

@@ -32,6 +32,7 @@ import sys
 import time
 import traceback
 import gc
+import contextlib
 from pycompss.util.process.manager import Queue
 from pycompss.util.process.manager import DictProxy
 from pycompss.runtime.management.object_tracker import OT
@@ -74,6 +75,13 @@ from pycompss.worker.piper.cache.tracker import CACHE_TRACKER
 from pycompss.streams.components.distro_stream_client import (
     DistroStreamClientHandler,
 )
+
+try:
+    from threadpoolctl import threadpool_limits
+
+    THREADPOOLCTL_AVAILABLE = True
+except ImportError:
+    THREADPOOLCTL_AVAILABLE = False
 
 COMPSS_WITH_DLB = False
 if int(os.getenv("COMPSS_WITH_DLB", 0)) >= 1:
@@ -777,22 +785,29 @@ def process_task(
             # Clean object tracker
             OT.clean_object_tracker(hard_stop=False)
 
-            # Execute task
-            result = execute_task(
-                process_name,
-                storage_conf,
-                current_line[10:],
-                tracing,
-                logger,
-                logger_cfg,
-                (job_out, job_err),
-                False,
-                {},
-                in_cache_queue,
-                out_cache_queue,
-                cache_ids,
-                cache_profiler,
-            )
+            if not COMPSS_WITH_DLB and THREADPOOLCTL_AVAILABLE:
+                thread_context = threadpool_limits(limits=int(computing_units))
+            else:
+                thread_context = contextlib.nullcontext()
+
+            with thread_context:
+                # Execute task
+                result = execute_task(
+                    process_name,
+                    storage_conf,
+                    current_line[10:],
+                    tracing,
+                    logger,
+                    logger_cfg,
+                    (job_out, job_err),
+                    False,
+                    {},
+                    in_cache_queue,
+                    out_cache_queue,
+                    cache_ids,
+                    cache_profiler,
+                )
+
             # The ignored variable is timed_out
             exit_value, new_types, new_values, _, except_msg = result
 

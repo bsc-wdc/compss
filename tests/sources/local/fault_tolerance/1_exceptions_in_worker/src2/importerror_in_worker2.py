@@ -23,7 +23,7 @@ def main():
     value = increment(value)
     result = compss_wait_on(value)
 
-    if result == 1:
+    if result == None:
         print("- Result value: OK")
     else:
         print("- Result value: ERROR")

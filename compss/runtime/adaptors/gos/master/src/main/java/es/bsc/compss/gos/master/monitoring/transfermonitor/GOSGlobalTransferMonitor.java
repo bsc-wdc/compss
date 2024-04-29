@@ -18,7 +18,8 @@ package es.bsc.compss.gos.master.monitoring.transfermonitor;
 
 import es.bsc.compss.log.Loggers;
 
-import java.util.HashMap;
+import java.util.Collection;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -27,15 +28,23 @@ import org.apache.logging.log4j.Logger;
 public class GOSGlobalTransferMonitor {
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
-    private final HashMap<Integer, GOSTransferMonitor> activeTransfers;
+    private final ConcurrentHashMap<Integer, GOSTransferMonitor> activeTransfers;
+    private static final String DBG_PREFIX = "[GOS Transfer Monitor]";
 
 
     public GOSGlobalTransferMonitor() {
-        activeTransfers = new HashMap<>();
+        activeTransfers = new ConcurrentHashMap<>();
     }
 
+    /**
+     * Add a transfer monitor to check.
+     * 
+     * @param m GOS transfer monitor
+     */
     public void addTransferMonitor(GOSTransferMonitor m) {
-        activeTransfers.put(m.getID(), m);
+        synchronized (activeTransfers) {
+            activeTransfers.put(m.getID(), m);
+        }
     }
 
     /**
@@ -44,20 +53,47 @@ public class GOSGlobalTransferMonitor {
      * @return if there is activeTransfers
      */
     public boolean monitor() {
-        for (Object o : activeTransfers.values().toArray()) {
-            GOSTransferMonitor tm = (GOSTransferMonitor) o;
-            if (tm.monitor()) {
-                removeTransferMonitor(tm.getID());
+        LOGGER.debug(DBG_PREFIX + "Monitoring GOS transfers");
+        if (!existsActiveTransfers()) {
+            LOGGER.debug(DBG_PREFIX + "No more active transfers");
+            return false;
+        } else {
+            GOSTransferMonitor[] transfers = null;
+            synchronized (activeTransfers) {
+                Collection<GOSTransferMonitor> colTransfers = activeTransfers.values();
+                if (!colTransfers.isEmpty()) {
+                    transfers = colTransfers.toArray(new GOSTransferMonitor[colTransfers.size()]);
+                }
+            }
+            if (transfers != null) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug(DBG_PREFIX + "Transfers to monitor: " + transfers.length);
+                }
+                for (GOSTransferMonitor tm : transfers) {
+                    if (tm.monitor()) {
+                        removeTransferMonitor(tm.getID());
+                    }
+                }
+            }
+            if (existsActiveTransfers()) {
+                LOGGER.debug(DBG_PREFIX + "There are more active transfers. Keep running...");
+                return true;
+            } else {
+                LOGGER.debug(DBG_PREFIX + "No more active transfers");
+                return false;
             }
         }
-        if (existsActiveTransfers()) {
-            return true;
-        }
-        return false;
     }
 
-    public synchronized void removeTransferMonitor(int id) {
-        activeTransfers.remove(id);
+    /**
+     * Remove Transfer monitor.
+     * 
+     * @param id Identifier of the monitor.
+     */
+    public void removeTransferMonitor(int id) {
+        synchronized (activeTransfers) {
+            activeTransfers.remove(id);
+        }
     }
 
     public boolean existsActiveTransfers() {

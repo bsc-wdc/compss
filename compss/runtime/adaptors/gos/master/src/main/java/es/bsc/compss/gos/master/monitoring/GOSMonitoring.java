@@ -33,7 +33,7 @@ public class GOSMonitoring {
     private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
     private static final int SLEEP_TIME = 350;
 
-    public static AtomicBoolean awaken = new AtomicBoolean(false);
+    public Boolean awaken = false;
 
     private final GOSGlobalTransferMonitor globalTransferMonitor;
     private final GOSGlobalJobMonitor globalJobMonitor;
@@ -70,8 +70,10 @@ public class GOSMonitoring {
      */
     public boolean monitoringJobsAndTransfers() {
         boolean ret;
-        ret = monitoringActiveJobs();
-        ret = ret || monitoringActiveTransfers();
+        synchronized (this) {
+            ret = monitoringActiveTransfers();
+            ret = ret || monitoringActiveJobs();
+        }
         return running && ret;
     }
 
@@ -80,11 +82,22 @@ public class GOSMonitoring {
      *
      * @param job the job
      */
-    public synchronized void addJobMonitor(GOSJob job) {
-        globalJobMonitor.addJobMonitor(job);
-        if (!awaken.get()) {
-            awakenMonitoring();
+    public void addJobMonitor(GOSJob job) {
+        synchronized (this) {
+            globalJobMonitor.addJobMonitor(job);
+            if (!awaken) {
+                awakenMonitoring();
+            }
         }
+    }
+
+    /**
+     * Add job monitor.
+     *
+     * @param job the job
+     */
+    public void removeJobMonitor(GOSJob job) {
+        globalJobMonitor.removeJobMonitor(job);
     }
 
     /**
@@ -93,15 +106,17 @@ public class GOSMonitoring {
      * @param monitor the monitor to add
      */
     public void addTransferMonitor(GOSTransferMonitor monitor) {
-        globalTransferMonitor.addTransferMonitor(monitor);
-        if (!awaken.get()) {
-            awakenMonitoring();
+        synchronized (this) {
+            globalTransferMonitor.addTransferMonitor(monitor);
+            if (!awaken) {
+                awakenMonitoring();
+            }
         }
     }
 
     private void awakenMonitoring() {
         LOGGER.info("[GOSMonitoring] awaking monitoring jobs");
-        awaken.set(true);
+        awaken = true;
         GOSMonitoringThread thread = new GOSMonitoringThread(this, SLEEP_TIME);
         LOGGER.info("[GOSMonitoring] Monitoring AWAKEN");
         // Launch monitor in a thread and continuously run the monitor function
@@ -129,8 +144,10 @@ public class GOSMonitoring {
      * Make monitoring thread go dormant.
      */
     public void dormant() {
-        awaken.set(false);
-        LOGGER.info("Monitoring thread going dormant");
+        synchronized (this) {
+            awaken = false;
+            LOGGER.info("Monitoring thread going dormant");
+        }
     }
 
     /**

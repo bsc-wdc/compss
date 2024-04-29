@@ -92,8 +92,9 @@ public class FakeAllocatableAction extends AllocatableAction {
     }
 
     @Override
-    protected void doCanceled() {
+    protected boolean doCanceled() {
         // Nothing to do
+        return true;
     }
 
     @Override

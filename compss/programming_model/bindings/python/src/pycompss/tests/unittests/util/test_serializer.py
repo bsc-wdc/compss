@@ -24,12 +24,12 @@ import dill
 import numpy
 import numpy as np
 
+from pycompss.tests.outlog import create_logger
+
 if sys.version_info >= (3, 0):
     import pickle as pickle  # Uses _pickle if available
 else:
     import cPickle as pickle  # noqa
-
-from pycompss.tests.outlog import create_logger
 
 LOGGER = create_logger()
 

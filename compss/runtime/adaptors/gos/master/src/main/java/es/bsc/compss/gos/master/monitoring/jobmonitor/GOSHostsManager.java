@@ -30,4 +30,6 @@ public interface GOSHostsManager {
     void shutdown();
 
     void monitor();
+
+    void removeJobMonitor(GOSJob job);
 }

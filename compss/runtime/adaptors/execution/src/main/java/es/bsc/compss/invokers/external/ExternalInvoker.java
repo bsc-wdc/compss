@@ -116,11 +116,13 @@ public abstract class ExternalInvoker extends Invoker {
         MethodType methodType = invocation.getMethodImplementation().getMethodType();
         String methodClass;
         String methodName;
+        String ppn = "1";
         switch (methodType) {
             case METHOD:
                 MethodDefinition methodImpl = (MethodDefinition) invocation.getMethodImplementation().getDefinition();
                 methodClass = methodImpl.getDeclaringClass();
                 methodName = methodImpl.getAlternativeMethodName();
+
                 break;
             case PYTHON_MPI:
                 PythonMPIDefinition pythonMPIImpl =
@@ -133,6 +135,7 @@ public abstract class ExternalInvoker extends Invoker {
                     (MultiNodeDefinition) invocation.getMethodImplementation().getDefinition();
                 methodClass = multiNodeImpl.getDeclaringClass();
                 methodName = multiNodeImpl.getMethodName();
+                ppn = String.valueOf(multiNodeImpl.getPPN());
                 break;
             default:
                 throw new JobExecutionException(ERROR_UNSUPPORTED_JOB_TYPE);
@@ -144,6 +147,7 @@ public abstract class ExternalInvoker extends Invoker {
 
         // Slave nodes and cus description
         List<String> nodeNames = getNodeNames(context, invocation);
+        lArgs.add(ppn);
         lArgs.add(String.valueOf(nodeNames.size()));
         lArgs.addAll(nodeNames);
         MethodResourceDescription requirements = (MethodResourceDescription) invocation.getRequirements();
@@ -190,7 +194,13 @@ public abstract class ExternalInvoker extends Invoker {
 
     protected int getNumThreads(InvocationContext context, Invocation invocation) {
         MethodResourceDescription requirements = (MethodResourceDescription) invocation.getRequirements();
-        return requirements.getTotalCPUComputingUnits();
+        if (invocation.getMethodImplementation().getMethodType() == MethodType.MULTI_NODE) {
+            MultiNodeDefinition multiNodeImpl =
+                (MultiNodeDefinition) invocation.getMethodImplementation().getDefinition();
+            return requirements.getTotalCPUComputingUnits() / multiNodeImpl.getPPN();
+        } else {
+            return requirements.getTotalCPUComputingUnits();
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -202,15 +212,16 @@ public abstract class ExternalInvoker extends Invoker {
         paramArgs.add(Integer.toString(np.getStdIOStream().ordinal()));
         paramArgs.add(np.getPrefix());
         String name = np.getName();
+        String contentType = np.getContentType();
         if (name == null || name.isEmpty()) {
             paramArgs.add("null");
         } else {
             paramArgs.add(name);
         }
-        if (name == null || name.isEmpty()) {
+        if (contentType == null || contentType.isEmpty()) {
             paramArgs.add("null");
         } else {
-            paramArgs.add(np.getContentType());
+            paramArgs.add(contentType);
         }
         switch (type) {
             case FILE_T:

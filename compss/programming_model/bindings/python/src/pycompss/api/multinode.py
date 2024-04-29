@@ -46,7 +46,7 @@ if __debug__:
     logger = logging.getLogger(__name__)
 
 MANDATORY_ARGUMENTS = set()  # type: typing.Set[str]
-SUPPORTED_ARGUMENTS = {LABELS.computing_nodes}
+SUPPORTED_ARGUMENTS = {LABELS.computing_nodes, LABELS.processes_per_node}
 DEPRECATED_ARGUMENTS = {LEGACY_LABELS.computing_nodes}
 SLURM_SKIP_VARS = [
     "SLURM_JOBID",
@@ -104,6 +104,8 @@ class MultiNode:  # pylint: disable=too-few-public-methods
 
             # Get the computing nodes
             process_computing_nodes(decorator_name, self.kwargs)
+            if LABELS.processes_per_node not in kwargs:
+                kwargs[LABELS.processes_per_node] = 1
 
     def __call__(self, user_function: typing.Callable) -> typing.Callable:
         """Parse and set the multinode parameters within the task core element.
@@ -134,7 +136,10 @@ class MultiNode:  # pylint: disable=too-few-public-methods
             kwargs[LABELS.computing_nodes] = self.kwargs[
                 LABELS.computing_nodes
             ]
-
+            if LABELS.processes_per_node in self.kwargs:
+                kwargs[LABELS.processes_per_node] = self.kwargs[
+                    LABELS.processes_per_node
+                ]
             with keep_arguments(args, kwargs, prepend_strings=True):
                 # Call the method
                 ret = user_function(*args, **kwargs)
@@ -160,7 +165,10 @@ class MultiNode:  # pylint: disable=too-few-public-methods
 
         # Resolve @multinode specific parameters
         impl_type = IMPLEMENTATION_TYPES.multi_node
-
+        if LABELS.processes_per_node in self.kwargs:
+            ppn = str(self.kwargs[LABELS.processes_per_node])
+        else:
+            ppn = "1"
         if CORE_ELEMENT_KEY in kwargs:
             # Core element has already been created in a higher level decorator
             # (e.g. @constraint)
@@ -172,6 +180,9 @@ class MultiNode:  # pylint: disable=too-few-public-methods
             core_element = CE()
             core_element.set_impl_type(impl_type)
             kwargs[CORE_ELEMENT_KEY] = core_element
+        if __debug__:
+            logger.debug("Adding ppn in core element impl type args.")
+        kwargs[CORE_ELEMENT_KEY].set_impl_type_args([ppn])
 
         # Set as configured
         self.core_element_configured = True

@@ -757,11 +757,12 @@ def process_task(
                     )
 
             # Setup process environment
-            compss_nodes = int(current_line[13])
+            compss_procs = int(current_line[13])
+            compss_nodes = int(current_line[14])
             compss_nodes_names = ",".join(
-                current_line[14 : 14 + compss_nodes]  # noqa: E203
+                current_line[15 : 15 + compss_nodes]  # noqa: E203
             )
-            computing_units = current_line[14 + compss_nodes]
+            computing_units = current_line[15 + compss_nodes]
             if __debug__:
                 logger.debug("Process environment:")
                 logger.debug("\t - Number of nodes: %s", (str(compss_nodes)))
@@ -770,7 +771,7 @@ def process_task(
                     "\t - Number of threads: %s", (str(computing_units))
                 )
             setup_environment(
-                compss_nodes, compss_nodes_names, computing_units
+                compss_nodes, compss_procs, compss_nodes_names, computing_units
             )
 
             # Clean object tracker
@@ -1017,7 +1018,10 @@ def bind_gpus(gpus: str, process_name: str, logger: logging.Logger) -> None:
 
 
 def setup_environment(
-    compss_nodes: int, compss_nodes_names: str, computing_units: str
+    compss_nodes: int,
+    compss_ppn: int,
+    compss_nodes_names: str,
+    computing_units: str,
 ) -> None:
     """Set the environment (mainly environment variables).
 
@@ -1028,6 +1032,7 @@ def setup_environment(
     """
     with EventInsideWorker(TRACING_WORKER.setup_environment_event):
         os.environ["COMPSS_NUM_NODES"] = str(compss_nodes)
+        os.environ["COMPSS_NUM_PROCS"] = str(compss_ppn * compss_nodes)
         os.environ["COMPSS_HOSTNAMES"] = compss_nodes_names
         os.environ["COMPSS_NUM_THREADS"] = computing_units
         os.environ["OMP_NUM_THREADS"] = computing_units

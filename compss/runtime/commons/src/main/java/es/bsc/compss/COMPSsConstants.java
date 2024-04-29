@@ -202,6 +202,8 @@ public class COMPSsConstants {
     public static final String MASTER_CONTAINER_OPTIONS = "MASTER_CONTAINER_OPTIONS";
     public static final String NESTED_CONTAINER_OPTIONS = "NESTED_CONTAINER_OPTIONS";
     public static final String MPI_RUNNER_SCRIPT = "MPI_RUNNER_SCRIPT";
+    public static final String COMPSS_THROTTLE_MAX_TASKS = "COMPSS_THROTTLE_MAX_TASKS";
+    public static final String COMPSS_THROTTLE_INTERVAL = "COMPSS_THROTTLE_INTERVAL";
 
 
     /**

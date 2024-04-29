@@ -158,7 +158,7 @@ public abstract class DataInfo<T extends DataParams> {
      *
      * @return {@code true} if the data has been cancelled, {@code false} otherwise.
      */
-    public final boolean hasBeenCanceled() {
+    public final boolean hasBeenUsed() {
         return this.currentVersion.hasBeenUsed();
     }
 

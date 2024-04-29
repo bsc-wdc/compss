@@ -762,6 +762,7 @@ public class ITFParser {
             String flags = EnvironmentLoader.loadFromEnvironment(compssAnnot.flags());
             String workerInMaster = EnvironmentLoader.loadFromEnvironment(compssAnnot.workerInMaster());
             String appName = EnvironmentLoader.loadFromEnvironment(compssAnnot.appName());
+            String appArgs = EnvironmentLoader.loadFromEnvironment(compssAnnot.appArgs());
             String workingDir = EnvironmentLoader.loadFromEnvironment(compssAnnot.workingDir());
             String failByEVstr = Boolean.toString(compssAnnot.failByExitValue());
 
@@ -774,6 +775,7 @@ public class ITFParser {
                 LOGGER.debug("flags: " + flags);
                 LOGGER.debug("workerInMaster: " + workerInMaster);
                 LOGGER.debug("appName: " + appName);
+                LOGGER.debug("appArgs: " + appArgs);
             }
 
             String compssSignature = calleeMethodSignature.toString() + COMPSsDefinition.SIGNATURE;
@@ -793,7 +795,7 @@ public class ITFParser {
             try {
                 implDef = ImplementationDescription.defineImplementation(MethodType.COMPSs.toString(), compssSignature,
                     implProcessLocal, implConstraints, prolog, epilog, dummyContainer, runcompss, flags, appName,
-                    workerInMaster, workingDir, failByEVstr);
+                    appArgs, workerInMaster, workingDir, failByEVstr);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }
@@ -826,6 +828,7 @@ public class ITFParser {
             MethodResourceDescription implConstraints = defaultConstraints;
             boolean implProcessLocal = processLocalGeneral;
             if (multiNodeAnnot.constraints() != null) {
+
                 Constraints implConstraintsAnnot = multiNodeAnnot.constraints();
                 implProcessLocal = processLocalGeneral || implConstraintsAnnot.isLocal();
                 implConstraints = new MethodResourceDescription(implConstraintsAnnot);
@@ -835,9 +838,9 @@ public class ITFParser {
             // Register method implementation
             ImplementationDescription<?, ?> implDef = null;
             try {
-                implDef =
-                    ImplementationDescription.defineImplementation(MethodType.MULTI_NODE.toString(), methodSignature,
-                        implProcessLocal, implConstraints, prolog, epilog, dummyContainer, declaringClass, methodName);
+                implDef = ImplementationDescription.defineImplementation(MethodType.MULTI_NODE.toString(),
+                    methodSignature, implProcessLocal, implConstraints, prolog, epilog, dummyContainer, declaringClass,
+                    methodName, multiNodeAnnot.processesPerNode());
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }

@@ -81,6 +81,7 @@ public class BinaryRunner {
     private static final String APP_PARAMETER_CLOSE_TOKEN = "}}";
     private static final String DUMMY_SEPARATOR = "<_<<>>_>";
     private static final String DUMMY_SPACE_REPLACE = "<___>";
+    private static final String DUMMY_PYTHON_EMPTY_STRING = "3mPtY57r1Ng";
 
     private Process process;
 
@@ -159,39 +160,16 @@ public class BinaryRunner {
      * @param parameters Binary parameters
      * @param workingDir original working dir string
      * @return formatted string where param names are replaces with the values.
+     * @throws InvokeExecutionException Exception processing parameters.
      */
-    public static File getUpdatedWorkingDir(List<? extends InvocationParam> parameters, String workingDir) {
+    public static File getUpdatedWorkingDir(List<? extends InvocationParam> parameters, String workingDir)
+        throws InvokeExecutionException {
         if (!(workingDir.contains(APP_PARAMETER_OPEN_TOKEN_ORIG) && workingDir.contains(APP_PARAMETER_CLOSE_TOKEN))) {
             return new File(workingDir);
-        }
-        for (InvocationParam param : parameters) {
-            if (param.getStdIOStream() != es.bsc.compss.types.annotations.parameter.StdIOStream.UNSPECIFIED) {
-                continue;
-            }
-            if (param.getValue() != null && param.getValue().getClass().isArray()) {
-                continue;
-            }
-            if (param.getValue() != null && param.getValue() instanceof Collection<?>) {
-                continue;
-            }
-            switch (param.getType()) {
-                case FILE_T:
-                case COLLECTION_T:
-                case STREAM_T:
-                case EXTERNAL_STREAM_T:
-                    continue;
-            }
-            String pv = String.valueOf(param.getValue());
-            if (param.getType().equals(DataType.STRING_64_T)) {
-                byte[] encoded = Base64.getEncoder().encode(pv.getBytes());
-                pv = new String(encoded).substring(1);
-            }
-            String replacement =
-                APP_PARAMETER_OPEN_TOKEN + param.getName().replaceFirst("#kwarg_", "") + APP_PARAMETER_CLOSE_TOKEN;
-            workingDir = workingDir.replaceAll(replacement, pv);
+        } else {
+            return new File(String.join(" ", buildAppParams(parameters, workingDir, "python3")));
         }
 
-        return new File(workingDir);
     }
 
     // PRIVATE STATIC METHODS
@@ -312,7 +290,11 @@ public class BinaryRunner {
                     binaryParamFields.add(tmp);
                     break;
                 default:
-                    binaryParamFields.add(param.getPrefix() + String.valueOf(param.getValue()));
+                    String value = String.valueOf(param.getValue());
+                    if (value.equals(DUMMY_PYTHON_EMPTY_STRING)) {
+                        value = "";
+                    }
+                    binaryParamFields.add(param.getPrefix() + value);
                     break;
             }
         } else {
@@ -324,8 +306,12 @@ public class BinaryRunner {
                         if (param.getContentType().equals("Future")) {
                             Serializer.Format[] priorities = new Serializer.Format[1];
                             priorities[0] = Serializer.Format.PYBINDING;
-                            String val = Serializer.deserialize(param.getValue().toString(), priorities).toString();
-                            binaryParamFields.add(val);
+                            Object oVal = Serializer.deserialize(param.getValue().toString(), priorities);
+                            if (oVal == null) {
+                                throw new Exception(
+                                    "Couldn't deserialize future object parameter with name" + param.getName());
+                            }
+                            binaryParamFields.add(oVal.toString());
                         } else {
                             binaryParamFields.add(param.getOriginalName());
                         }
@@ -380,7 +366,11 @@ public class BinaryRunner {
                     binaryParamFields.add(tmp.substring(1));
                     break;
                 default:
-                    binaryParamFields.add(String.valueOf(param.getValue()));
+                    String value = String.valueOf(param.getValue());
+                    if (value.equals(DUMMY_PYTHON_EMPTY_STRING)) {
+                        value = "";
+                    }
+                    binaryParamFields.add(value);
                     break;
             }
         }
@@ -574,7 +564,8 @@ public class BinaryRunner {
         builder.environment().put(Invoker.COMPSS_NUM_NODES, String.valueOf(theoreticalNumNodes));
         builder.environment().put(Invoker.COMPSS_NUM_THREADS, String.valueOf(theoreticalNumThreads));
         builder.environment().put(Invoker.OMP_NUM_THREADS, String.valueOf(theoreticalNumThreads));
-
+        builder.environment().put(Invoker.COMPSS_BINDED_CPUS, System.getProperty(Invoker.COMPSS_BINDED_CPUS));
+        builder.environment().put(Invoker.COMPSS_BINDED_GPUS, System.getProperty(Invoker.COMPSS_BINDED_GPUS));
         // Setup process environment -- Extra entries
         if (pythonPath != null) {
             builder.environment().put("PYTHONPATH", pythonPath);

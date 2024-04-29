@@ -68,7 +68,7 @@ public class DataLocality extends SchedulingInformation {
                 DependencyParameter dp = (DependencyParameter) p;
                 DataInstanceId dId = null;
                 DataAccessId access = dp.getDataAccessId();
-                if (access.isRead()) {
+                if (access != null && access.isRead()) {
                     ReadingDataAccessId raId = (ReadingDataAccessId) access;
                     dId = raId.getReadDataInstance();
                 }

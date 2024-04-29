@@ -215,14 +215,15 @@ def process_task(
             # current_line_filtered[10] = <string> = module
             # current_line_filtered[11]= <string>  = method
             # current_line_filtered[12]= <string>  = time out
-            # current_line_filtered[13]= <integer> = Number of slaves
+            # current_line_filteres[13]= <integer> = ppn
+            # current_line_filtered[14]= <integer> = Number of slaves
             #                                        (worker nodes)==#nodes
             # <<list of slave nodes>>
-            # current_line_filtered[13 + #nodes] = <integer> = computing units
-            # current_line_filtered[14 + #nodes] = <boolean> = has target
-            # current_line_filtered[15 + #nodes] = <string>  = has return
+            # current_line_filtered[14 + #nodes] = <integer> = computing units
+            # current_line_filtered[15 + #nodes] = <boolean> = has target
+            # current_line_filtered[16 + #nodes] = <string>  = has return
             #                                                  (always "null")
-            # current_line_filtered[16 + #nodes] = <integer> = Number of
+            # current_line_filtered[17 + #nodes] = <integer> = Number of
             #                                                  parameters
             # <<list of parameters>>
             #       !---> type, stream, prefix , value
@@ -273,12 +274,14 @@ def process_task(
                 sys.stderr = err
 
                 # Setup process environment
-                compss_nodes = int(current_line_filtered[13])
+                compss_ppn = int(current_line_filtered[13])
+                compss_nodes = int(current_line_filtered[14])
                 compss_nodes_names = ",".join(
-                    current_line_filtered[14 : 14 + compss_nodes]  # noqa: E203
+                    current_line_filtered[15 : 15 + compss_nodes]  # noqa: E203
                 )
-                computing_units = int(current_line_filtered[14 + compss_nodes])
+                computing_units = int(current_line_filtered[15 + compss_nodes])
                 os.environ["COMPSS_NUM_NODES"] = str(compss_nodes)
+                os.environ["COMPSS_NUM_PROCS"] = str(compss_ppn * compss_nodes)
                 os.environ["COMPSS_HOSTNAMES"] = compss_nodes_names
                 os.environ["COMPSS_NUM_THREADS"] = str(computing_units)
                 os.environ["OMP_NUM_THREADS"] = str(computing_units)

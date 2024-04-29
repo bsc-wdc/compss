@@ -88,7 +88,7 @@ public class SSHFileSystem {
         }
         if (dst.isLocal()) {
             // get file from remote
-            LOGGER.info(DBG_PREFIX + "Sending data with sftp from remote: " + src + " to local: " + dst.getPath());
+            LOGGER.info(DBG_PREFIX + "Receiving data with sftp from remote: " + src + " to local: " + dst.getPath());
 
             return getFile(copy, src, dst);
         }

@@ -62,6 +62,13 @@ public @interface MultiNode {
      */
     String computingNodes() default Constants.UNASSIGNED;
 
+    /**
+     * Returns the mpi processes per node.
+     *
+     * @return the mpi processes per node.
+     */
+    String processesPerNode() default "1";
+
     /*
      * METHOD PROPERTIES
      * 

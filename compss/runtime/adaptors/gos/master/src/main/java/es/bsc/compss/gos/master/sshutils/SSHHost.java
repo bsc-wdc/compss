@@ -158,6 +158,7 @@ public class SSHHost {
     public SSHChannel killJob(GOSJob job, String cancelScript, String outFile, String errFile)
         throws JSchException, FileNotFoundException {
         String pathResponse = job.getResponseFile();
+        LOGGER.info(dbgPrefix + "Executing kill Job " + cancelScript + " " + pathResponse);
         return SSHCommand.killJob(this, cancelScript, pathResponse, job, outFile, errFile);
     }
 

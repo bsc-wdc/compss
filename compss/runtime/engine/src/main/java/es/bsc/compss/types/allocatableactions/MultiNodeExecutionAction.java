@@ -93,6 +93,9 @@ public class MultiNodeExecutionAction extends ExecutionAction {
                 // Notify orchestrator
                 LOGGER.debug("Notify slave " + this + " to orchestrator " + this.orchestrator);
                 this.orchestrator.actionError(this);
+            } else if (isCancelling()) {
+                LOGGER.debug("Notify slave cancelation " + this + " to orchestrator " + this.orchestrator);
+                this.orchestrator.actionError(this);
             }
         }
     }
@@ -174,13 +177,15 @@ public class MultiNodeExecutionAction extends ExecutionAction {
     }
 
     @Override
-    protected void doCanceled() {
+    protected boolean doCanceled() {
+        LOGGER.info("Registering cancel for task " + task.getId());
         this.group.increaseCancelled();
         if (this.group.isCancelled()) {
-            super.doCanceled();
+            return super.doCanceled();
         } else {
             this.task.setStatus(TaskState.CANCELED);
             this.task.decreaseExecutionCount();
+            return false;
         }
     }
 

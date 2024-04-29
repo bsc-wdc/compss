@@ -16,9 +16,11 @@
  */
 package es.bsc.compss.types;
 
+import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.api.ApplicationRunner;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.data.DataInfo;
+import es.bsc.compss.util.ErrorManager;
 
 import java.security.SecureRandom;
 import java.util.HashSet;
@@ -44,6 +46,10 @@ public class Application {
     private static final TreeMap<Long, Application> APPLICATIONS = new TreeMap<>();
     private static final Application NO_APPLICATION = new Application(null, null, null);
 
+    private static final int DEFAULT_THROTTLE_WAIT_TASK_COUNT = Integer.MAX_VALUE;
+
+    private static final int DEFAULT_THROTTLE_INTERVAL = 10;
+
     /*
      * Application definition
      */
@@ -64,6 +70,10 @@ public class Application {
      */
     // Task count
     private int totalTaskCount;
+    private int throttleTaskCount;
+    private int throttleWaitTaskCount;
+    private int throttleReleaseTaskCount;
+    private Semaphore throttle = null;
 
     /*
      * Application's task groups
@@ -216,6 +226,17 @@ public class Application {
         }
     }
 
+    /**
+     * Get all the registered applications.
+     * 
+     * @return array with registered applications.
+     */
+    public static Application[] getApplications() {
+        synchronized (APPLICATIONS) {
+            return APPLICATIONS.values().toArray(new Application[APPLICATIONS.size()]);
+        }
+    }
+
     private Application(Long appId, String parallelismSource, ApplicationRunner runner) {
         this.id = appId;
         this.parallelismSource = parallelismSource;
@@ -230,6 +251,35 @@ public class Application {
         this.collectionToId = new TreeMap<>();
         this.writtenFileDataIds = new HashSet<>();
         this.writtenPSCODataIds = new HashSet<>();
+        setThrottleValues();
+    }
+
+    private void setThrottleValues() {
+        this.throttleTaskCount = 0;
+        String maxTasks = System.getenv(COMPSsConstants.COMPSS_THROTTLE_MAX_TASKS);
+        if (maxTasks != null && !maxTasks.isEmpty()) {
+            this.throttleWaitTaskCount = Integer.parseInt(maxTasks);
+        } else {
+            this.throttleWaitTaskCount = DEFAULT_THROTTLE_WAIT_TASK_COUNT;
+        }
+        String interval = System.getenv(COMPSsConstants.COMPSS_THROTTLE_INTERVAL);
+        if (interval != null && !interval.isEmpty()) {
+            this.throttleReleaseTaskCount = this.throttleWaitTaskCount - Integer.parseInt(interval);
+        } else {
+            this.throttleReleaseTaskCount = this.throttleWaitTaskCount - DEFAULT_THROTTLE_INTERVAL;
+        }
+
+    }
+
+    /**
+     * Check if throttle is exceeded and wait until throttle is correct.
+     */
+    public void checkThrottle() {
+        if (this.throttleTaskCount > this.throttleWaitTaskCount) {
+            ErrorManager.warn("Application " + this.id + "blocked by throttle...");
+            this.throttle = new Semaphore(0);
+            this.throttle.acquireUninterruptibly();
+        }
     }
 
     public Long getId() {
@@ -305,6 +355,9 @@ public class Application {
      * @param task task to be added to the application's task groups
      */
     public void newTask(Task task) {
+        synchronized (this) {
+            this.throttleTaskCount++;
+        }
         this.totalTaskCount++;
         // Add task to the groups
         for (TaskGroup group : this.getCurrentGroups()) {
@@ -320,6 +373,13 @@ public class Application {
      * @param task finished task to be removed
      */
     public void endTask(Task task) {
+        synchronized (this) {
+            this.throttleTaskCount--;
+            if (this.throttleTaskCount < this.throttleReleaseTaskCount && throttle != null) {
+                throttle.release();
+                throttle = null;
+            }
+        }
         for (TaskGroup group : task.getTaskGroupList()) {
             group.removeTask(task);
             LOGGER.debug("Group " + group.getName() + " released task " + task.getId());

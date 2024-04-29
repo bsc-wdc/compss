@@ -195,8 +195,9 @@ public class TransferValueAction<T extends WorkerResourceDescription> extends Al
     }
 
     @Override
-    protected void doCanceled() {
+    protected boolean doCanceled() {
         ErrorManager.warn("Transfer of data " + dataToTransfer.getName() + " to " + receiver + " has been cancelled.");
+        return true;
     }
 
     @Override

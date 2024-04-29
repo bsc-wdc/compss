@@ -9,9 +9,6 @@
             <BrokerAdaptor>sshtrilead</BrokerAdaptor>
         </Adaptor>
     </Adaptors>
-    <Software>
-        <Application>CustomProgram</Application>
-    </Software>
     <ClusterNode Name="compute_node1">
         <MaxNumNodes>1</MaxNumNodes>
         <Processor Name="P1">
@@ -21,7 +18,10 @@
         <Processor Name="P2">
             <ComputingUnits>2</ComputingUnits>
             <Type>GPU</Type>
-        </Processor>
+    	</Processor>
+        <Software>
+        	<Application>CustomProgram</Application>
+    	</Software>
     </ClusterNode>
 </ComputingCluster>
 </ResourcesList>

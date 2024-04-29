@@ -163,8 +163,9 @@ public class StopWorkerAction extends AllocatableAction {
     }
 
     @Override
-    protected void doCanceled() {
+    protected boolean doCanceled() {
         removeResource();
+        return true;
     }
 
     @Override

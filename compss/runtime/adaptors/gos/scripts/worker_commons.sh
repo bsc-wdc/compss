@@ -154,8 +154,8 @@ get_implementation_parameters() {
             implNumArguments=10
             implArguments=(${@:2:$implNumArguments});;
           "COMPSs")
-              implNumArguments=6
-              implArguments=(${@:2:$implNumArguments});;
+            implNumArguments=7
+            implArguments=(${@:2:$implNumArguments});;
           "PYTHON_MPI")
             implNumArguments=6
             implArguments=(${@:2:$implNumArguments});;
@@ -368,9 +368,10 @@ printImplementationParams(){
         echo "[WORKER_COMMONS.SH]         - compss exec                        = ${implArguments[0]}"
         echo "[WORKER_COMMONS.SH]         - compss flags                       = ${implArguments[1]}"
         echo "[WORKER_COMMONS.SH]         - appName                            = ${implArguments[2]}"
-        echo "[WORKER_COMMONS.SH]         - workerInMaster                     = ${implArguments[3]}"
-        echo "[WORKER_COMMONS.SH]         - workingDir                         = ${implArguments[4]}"
-        echo "[WORKER_COMMONS.SH]         - failByEV                           = ${implArguments[5]}"
+        echo "[WORKER_COMMONS.SH]         - appParams                          = ${implArguments[3]}"
+        echo "[WORKER_COMMONS.SH]         - workerInMaster                     = ${implArguments[4]}"
+        echo "[WORKER_COMMONS.SH]         - workingDir                         = ${implArguments[5]}"
+        echo "[WORKER_COMMONS.SH]         - failByEV                           = ${implArguments[6]}"
         ;;
       "DECAF")
         echo "[WORKER_COMMONS.SH]         - Decaf dfScript                     = ${implArguments[0]}"

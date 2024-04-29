@@ -1,5 +1,12 @@
 #!/bin/bash
 
+if [ -z "${COMPSS_HOME}" ]; then
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+  export COMPSS_HOME=${SCRIPT_DIR}/../../../../../
+else
+  SCRIPT_DIR="${COMPSS_HOME}/Runtime/scripts/system/adaptors/gos"
+fi
+
 ### Handles communication of responses for asynchronous behaviour of GOS Adaptor
 
 #Batch task, order of calls
@@ -34,6 +41,16 @@ mark_as_fail() {
   mkdir -p "$pathDir"
   echo "[RESPONSE.SH] fail $id in $pathFile";
   echo "$id FAIL"> "$pathFile";
+}
+
+mark_as_cancel() {
+  local pathDir=$1
+  local pathFile=$2
+  local id=$3
+
+  mkdir -p "$pathDir"
+  echo "[RESPONSE.SH] fail $id in $pathFile";
+  echo "$id CANCEL"> "$pathFile";
 }
 
 mark_as_end() {
@@ -77,7 +94,19 @@ create_kill_script_interactive() {
     local killFileScript=$2
     local PID=$3
     mkdir -p "$killResponseDir"
+    echo "source $SCRIPT_DIR/response.sh" > "$killFileScript";
+    echo "create_empty_files \$@" >> "$killFileScript"
     echo "kill -9 $PID" > "$killFileScript";
+
+}
+
+create_empty_files(){
+   for FILE in "$@"; do 
+        if [ ! -f "$FILE" ]; then
+		echo "Creating empty file $FILE"
+		touch "$FILE"
+	fi
+    done
 }
 
 create_kill_script_batch() {
@@ -85,7 +114,10 @@ create_kill_script_batch() {
    local killFileScript=$2
    local killCommand=$3
    mkdir -p "$killResponseDir"
-   echo "$killCommand" > "$killFileScript";
+   echo "source $SCRIPT_DIR/response.sh" > "$killFileScript";
+   echo "create_empty_files \$@" >> "$killFileScript";
+   echo "$killCommand" >> "$killFileScript";
+   chmod +x "$killFileScript"
 }
 
 

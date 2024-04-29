@@ -574,12 +574,13 @@ def execute_task(
     # Retrieve the parameters from the params argument
     path = params[0]
     method_name = params[1]
-    num_slaves = int(params[3])
+    ppn = params[3]
+    num_slaves = int(params[4])
     time_out = int(params[2])
     slaves = []
-    for i in range(3, 3 + num_slaves):
+    for i in range(4, 4 + num_slaves):
         slaves.append(params[i])
-    arg_position = 4 + num_slaves
+    arg_position = 5 + num_slaves
 
     args = params[arg_position:]
     cus = args[0]  # noqa

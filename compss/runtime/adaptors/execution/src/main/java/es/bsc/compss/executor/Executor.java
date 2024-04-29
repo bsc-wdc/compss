@@ -685,7 +685,7 @@ public class Executor implements Runnable, InvocationRunner {
      * ---------------------- SANDBOX MANAGEMENT --------------------------------
      */
 
-    private ExecutionSandbox createTaskSandboxWithTimer() throws IOException {
+    private ExecutionSandbox createTaskSandboxWithTimer() throws Exception {
         // Start timer
         long timeSandboxStart = 0L;
         timeSandboxStart = System.nanoTime();
@@ -703,9 +703,9 @@ public class Executor implements Runnable, InvocationRunner {
      * Creates a sandbox for a task.
      *
      * @return Sandbox dir
-     * @throws IOException Error creating sandbox
+     * @throws Exception Error creating sandbox
      */
-    private ExecutionSandbox createTaskSandbox() throws IOException {
+    private ExecutionSandbox createTaskSandbox() throws Exception {
         final int jobId = invocation.getJobId();
         LOGGER.debug("Creating task sandbox for Job " + jobId);
 
@@ -744,10 +744,10 @@ public class Executor implements Runnable, InvocationRunner {
                     if (!compssImpl.getWorkingDir().equals(Constants.UNASSIGNED)) {
                         specificWD = compssImpl.getWorkingDir() + File.separator;
                     }
-                    if (compssImpl.getParentAppId() != null) {
-                        specificWD += compssImpl.getParentAppId() + File.separator;
-                    }
-                    specificWD += "compss_job_" + invocation.getJobId() + "_" + invocation.getHistory().name();
+                    // if (compssImpl.getParentAppId() != null) {
+                    // specificWD += compssImpl.getParentAppId() + File.separator;
+                    // }
+                    // specificWD += "compss_job_" + invocation.getJobId() + "_" + invocation.getHistory().name();
                     break;
                 case DECAF:
                     DecafDefinition decafImpl = (DecafDefinition) impl.getDefinition();

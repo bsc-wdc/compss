@@ -61,12 +61,7 @@ public class COMPSsInvoker extends Invoker {
     private static final String ERROR_APP_NAME = "ERROR: Invalid appName";
     private static final String ERROR_TARGET_PARAM = "ERROR: COMPSs Execution doesn't support target parameters";
 
-    private final String runcompss;
-    private final String extraFlags;
-    private final String appName;
-    private final String workerInMaster;
-    private final boolean failByEV;
-
+    private COMPSsDefinition compssDef;
     private BinaryRunner br;
 
 
@@ -84,30 +79,23 @@ public class COMPSsInvoker extends Invoker {
 
         super(context, invocation, sandbox, assignedResources);
         // Get method definition properties
-        COMPSsDefinition compssImpl = null;
         try {
-            compssImpl = (COMPSsDefinition) this.invocation.getMethodImplementation().getDefinition();
+            this.compssDef = (COMPSsDefinition) this.invocation.getMethodImplementation().getDefinition();
         } catch (Exception e) {
             throw new JobExecutionException(
                 ERROR_METHOD_DEFINITION + this.invocation.getMethodImplementation().getMethodType(), e);
         }
-
-        // COMPSs specific flags
-        this.runcompss = compssImpl.getRuncompss();
-        this.extraFlags = compssImpl.getFlags();
-        this.appName = compssImpl.getAppName();
-        this.workerInMaster = compssImpl.getWorkerInMaster();
-        this.failByEV = compssImpl.isFailByEV();
-
         // Internal binary runner
         this.br = null;
     }
 
     private void checkArguments() throws JobExecutionException {
-        if (this.runcompss == null || this.runcompss.isEmpty()) {
+        String runcompss = this.compssDef.getRuncompss();
+        if (runcompss == null || runcompss.isEmpty()) {
             throw new JobExecutionException(ERROR_RUNCOMPSS);
         }
-        if (this.appName == null || this.appName.isEmpty()) {
+        String appName = this.compssDef.getAppName();
+        if (appName == null || appName.isEmpty()) {
             throw new JobExecutionException(ERROR_APP_NAME);
         }
         if (this.invocation.getTarget() != null && this.invocation.getTarget().getValue() != null) {
@@ -119,7 +107,7 @@ public class COMPSsInvoker extends Invoker {
     public void invokeMethod() throws JobExecutionException {
         checkArguments();
 
-        LOGGER.info("Invoked " + this.appName + " in " + this.context.getHostName());
+        LOGGER.info("Invoked " + this.compssDef.getAppName() + " in " + this.context.getHostName());
 
         // Execute binary
         Object retValue;
@@ -168,8 +156,9 @@ public class COMPSsInvoker extends Invoker {
 
     private Object runInvocation() throws InvokeExecutionException {
         System.out.println("");
-        System.out.println("[COMPSs INVOKER] Begin COMPSs call to " + this.appName);
+        System.out.println("[COMPSs INVOKER] Begin COMPSs call to " + this.compssDef.getAppName());
         System.out.println("[COMPSs INVOKER] On WorkingDir : " + this.sandBox.getFolder().getAbsolutePath());
+        System.out.println("[COMPSs INVOKER] Worker in Master : " + this.compssDef.getWorkerInMaster());
 
         // Command similar to:
         // export OMP_NUM_THREADS=1
@@ -191,7 +180,8 @@ public class COMPSsInvoker extends Invoker {
         }
 
         String masterName = this.context.getHostName();
-        if (!Boolean.parseBoolean(this.workerInMaster)) {
+        if (this.compssDef.getWorkerInMaster().equalsIgnoreCase("false")) {
+            System.out.println("[COMPSs INVOKER] Worker in master is false: Removing master from slave nodes...");
             // User has selected a separated master, take resources from slaveNodes
             if (hostnames2cus.containsKey(masterName)) {
                 int accumComputingUnits = hostnames2cus.remove(masterName);
@@ -207,6 +197,11 @@ public class COMPSsInvoker extends Invoker {
             if (hostnames2cus.isEmpty()) {
                 throw new InvokeExecutionException("Error no remaining resources after reserving nested master");
             }
+        } else {
+            if (!hostnames2cus.containsKey(masterName)) {
+                System.out.println("[COMPSs INVOKER] Adding master to slave nodes");
+                hostnames2cus.put(masterName, this.computingUnits);
+            }
         }
 
         StringBuilder masterInfoBuilder = new StringBuilder();
@@ -217,7 +212,8 @@ public class COMPSsInvoker extends Invoker {
             System.out.println("[COMPSs INVOKER] Slave hostname " + hostname + " with " + String.valueOf(cus) + " cus");
 
             String nodeInfo = computeNodeDescription(hostname, cus);
-            if (hostname.compareTo(masterName) == 0) {
+            if (hostname.compareTo(masterName) == 0 && !this.compssDef.getWorkerInMaster().equalsIgnoreCase("worker")) {
+                System.out.println("[COMPSs INVOKER] Adding master node info");
                 masterInfoBuilder.append(nodeInfo);
             } else {
                 if (workersInfoBuilder.length() > 0) {
@@ -277,12 +273,25 @@ public class COMPSsInvoker extends Invoker {
             envScriptFlag = "--env_script=" + this.context.getEnvironmentScript();
         }
         String nestedLogDir = this.sandBox.getFolder().getAbsolutePath() + File.separator + "nestedCOMPSsLog";
+
         JavaParams javaParams = (JavaParams) this.context.getLanguageParams(Lang.JAVA);
         String classpathFlag = "--classpath=" + javaParams.getClasspath();
+
+        // Python interpreter for direct access on stream property calls
+        String pythonInterpreter = null;
+        LanguageParams lp = this.context.getLanguageParams(COMPSsConstants.Lang.PYTHON);
+        if (lp instanceof PythonParams) {
+            PythonParams pp = (PythonParams) lp;
+            pythonInterpreter = pp.getPythonInterpreter();
+        }
+
         List<String> extraFlagsList = new ArrayList<>();
-        if (this.extraFlags != null && !this.extraFlags.isEmpty()) {
+        String extraFlags = this.compssDef.getFlags();
+        if (extraFlags != null && !extraFlags.isEmpty()) {
+            String[] extraFlagsArray =
+                BinaryRunner.buildAppParams(this.invocation.getParams(), extraFlags, pythonInterpreter);
             // Covert STR to partial list and add only the purged values to the final argument list
-            List<String> partialExtraFlagsList = Arrays.asList(this.extraFlags.split(" "));
+            List<String> partialExtraFlagsList = Arrays.asList(extraFlagsArray);
             for (String flag : partialExtraFlagsList) {
                 if (flag.startsWith("--base_log_dir=")) {
                     // Capturing base log dir and creating UUID random entry
@@ -316,23 +325,23 @@ public class COMPSsInvoker extends Invoker {
             throw new InvokeExecutionException("Error creating COMPSs nested log directory " + nestedLogDir);
         }
 
-        // Python interpreter for direct access on stream property calls
-        String pythonInterpreter = null;
-        LanguageParams lp = this.context.getLanguageParams(COMPSsConstants.Lang.PYTHON);
-        if (lp instanceof PythonParams) {
-            PythonParams pp = (PythonParams) lp;
-            pythonInterpreter = pp.getPythonInterpreter();
-        }
-
         // Convert binary parameters and calculate binary-streams redirection
         StdIOStream streamValues = new StdIOStream();
         ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(this.invocation.getParams(),
             this.invocation.getTarget(), streamValues, pythonInterpreter);
 
+        String[] appParams = new String[0];
+        int appParamsSize = binaryParams.size();
+        if (this.compssDef.hasParamsString()) {
+            appParams = BinaryRunner.buildAppParams(this.invocation.getParams(), this.compssDef.getAppParams(),
+                pythonInterpreter);
+            appParamsSize = appParams.length;
+        }
+
         // Prepare command (the +1 is for the appName)
         //
-        String[] cmd = new String[NUM_BASE_COMPSS_ARGS + extraFlagsList.size() + 1 + binaryParams.size()];
-        cmd[0] = runcompss;
+        String[] cmd = new String[NUM_BASE_COMPSS_ARGS + extraFlagsList.size() + 1 + appParamsSize];
+        cmd[0] = this.compssDef.getRuncompss();
         cmd[1] = "--project=" + projectXml;
         cmd[2] = "--resources=" + resourcesXml;
 
@@ -343,9 +352,15 @@ public class COMPSsInvoker extends Invoker {
         for (String flag : extraFlagsList) {
             cmd[i++] = flag;
         }
-        cmd[i++] = this.appName;
-        for (String param : binaryParams) {
-            cmd[i++] = param;
+        cmd[i++] = genAppName(pythonInterpreter);
+        if (this.compssDef.hasParamsString()) {
+            for (String appParam : appParams) {
+                cmd[i++] = appParam;
+            }
+        } else {
+            for (String binParam : binaryParams) {
+                cmd[i++] = binParam;
+            }
         }
 
         // Debug command
@@ -361,7 +376,13 @@ public class COMPSsInvoker extends Invoker {
         // Launch command
         this.br = new BinaryRunner();
         return this.br.executeCMD(cmd, streamValues, this.sandBox, this.context.getThreadOutStream(),
-            this.context.getThreadErrStream(), null, this.failByEV);
+            this.context.getThreadErrStream(), null, this.compssDef.isFailByEV());
+    }
+
+    private String genAppName(String pythonInterpreter) throws InvokeExecutionException {
+        String[] appNameArray =
+            BinaryRunner.buildAppParams(this.invocation.getParams(), this.compssDef.getAppName(), pythonInterpreter);
+        return appNameArray[0];
     }
 
     private int xmlGenerationScript(String[] cmd) throws IOException, InterruptedException {

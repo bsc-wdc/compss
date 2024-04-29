@@ -565,6 +565,7 @@ public class TaskScheduler {
         // Process the action error (removes the assigned resource)
         try {
             if (action.isCancelling()) {
+                LOGGER.debug("[TaskScheduler] Action " + action + "is being cancelled. Invoking cancel...");
                 action.cancel();
             } else {
                 action.error();

@@ -1019,17 +1019,19 @@ public abstract class AllocatableAction {
                 successors.addAll(this.dataSuccessors);
 
                 // Action notification
-                doCanceled();
+                boolean cancelSuccessors = doCanceled();
 
-                // Forward cancellation to successors
-                for (AllocatableAction succ : successors) {
-                    if (!succ.isFinished()) {
-                        LOGGER.debug("Cancelling action " + succ.getId() + " because of successor of canceled action "
-                            + this.getId());
-                        cancel.addAll(succ.cancel());
+                if (cancelSuccessors) {
+                    // Forward cancellation to successors
+
+                    for (AllocatableAction succ : successors) {
+                        if (!succ.isFinished()) {
+                            LOGGER.debug("Cancelling action " + succ.getId()
+                                + " because of successor of canceled action " + this.getId());
+                            cancel.addAll(succ.cancel());
+                        }
                     }
                 }
-
                 this.dataPredecessors.clear();
                 this.dataSuccessors.clear();
             }
@@ -1101,8 +1103,10 @@ public abstract class AllocatableAction {
 
     /**
      * Triggers the cancellation action notification.
+     * 
+     * @return if cancellation must be forwarded to successors
      */
-    protected abstract void doCanceled();
+    protected abstract boolean doCanceled();
 
     /**
      * Triggers the ignored unsuccessful action.

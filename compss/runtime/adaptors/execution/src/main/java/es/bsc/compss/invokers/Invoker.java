@@ -47,6 +47,7 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
@@ -68,6 +69,8 @@ public abstract class Invoker implements ApplicationRunner {
     public static final String COMPSS_NUM_PROCS = "COMPSS_NUM_PROCS";
     public static final String COMPSS_NUM_THREADS = "COMPSS_NUM_THREADS";
     public static final String OMP_NUM_THREADS = "OMP_NUM_THREADS";
+    public static final String COMPSS_BINDED_GPUS = "COMPSS_BINDED_GPUS";
+    public static final String COMPSS_BINDED_CPUS = "COMPSS_BINDED_CPUS";
     public static final String IB_SUFFIX = "-ib0";
 
     protected final InvocationContext context;
@@ -362,6 +365,12 @@ public abstract class Invoker implements ApplicationRunner {
         System.setProperty(COMPSS_NUM_THREADS, String.valueOf(this.computingUnits));
         System.setProperty(COMPSS_NUM_PROCS, "1");
         System.setProperty(OMP_NUM_THREADS, String.valueOf(this.computingUnits));
+        String gpus = String.join(", ",
+            Arrays.stream(this.assignedResources.getAssignedGPUs()).mapToObj(String::valueOf).toArray(String[]::new));
+        System.setProperty(COMPSS_BINDED_GPUS, gpus);
+        String cpus = String.join(", ",
+            Arrays.stream(this.assignedResources.getAssignedCPUs()).mapToObj(String::valueOf).toArray(String[]::new));
+        System.setProperty(COMPSS_BINDED_CPUS, cpus);
 
         // LOG ENV VARS
         if (LOGGER.isDebugEnabled()) {

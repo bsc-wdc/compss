@@ -114,8 +114,8 @@ public class Action extends AllocatableAction {
     }
 
     @Override
-    protected void doCanceled() {
-
+    protected boolean doCanceled() {
+        return true;
     }
 
     @Override

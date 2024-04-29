@@ -123,7 +123,8 @@ public class BusyWorkerAction<T extends WorkerResourceDescription> extends Alloc
     }
 
     @Override
-    protected void doCanceled() {
+    protected boolean doCanceled() {
+        return true;
 
     }
 

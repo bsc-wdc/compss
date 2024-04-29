@@ -18,11 +18,12 @@ from pycompss.api.api import compss_wait_on
 
 
 @constraint(computingUnits="2")
-@multinode(computing_nodes="2")
+@multinode(computing_nodes="2", processes_per_node="2")
 @task()
 def multi_node_task():
     # Expected values
     expected_num_nodes = 2
+    expected_num_procs = 4
     expected_num_threads = 2
     expected_hostnames = ["COMPSsWorker01", "COMPSsWorker02"]
 
@@ -55,6 +56,12 @@ def multi_node_task():
         print("ERROR: Incorrect number of OMP threads")
         print("  - Expected: " + str(expected_num_threads))
         print("  - Got: " + str(omp_num_threads))
+        return 4
+    procs = int(os.environ["COMPSS_NUM_PROCS"])
+    if procs != expected_num_procs:
+        print("ERROR: Incorrect number of proceses_per_node")
+        print("  - Expected: " + str(expected_num_procs))
+        print("  - Got: " + str(procs))
         return 4
 
     # All ok

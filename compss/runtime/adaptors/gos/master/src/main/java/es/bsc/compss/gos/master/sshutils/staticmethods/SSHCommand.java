@@ -170,7 +170,7 @@ public class SSHCommand {
 
         SSHChannel channel = sshHost.openChannel("exec", "cancelJob " + job.getCompositeID());
 
-        String executionCommand = killCommand + " " + pathResponse;
+        String executionCommand = "sh " + killCommand + " " + pathResponse;
         channel.setCommand(executionCommand);
         OutputStream outputStream = new FileOutputStream(outFile, true);
         OutputStream errorStream = new FileOutputStream(errFile, true);

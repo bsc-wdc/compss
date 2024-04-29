@@ -510,7 +510,7 @@ public class DataInfoProvider {
         }
         FileInfo fileInfo = (FileInfo) this.idToData.get(dataId);
         if (fileInfo != null) { // FileInfo
-            if (fileInfo.hasBeenCanceled()) {
+            if (fileInfo.hasBeenUsed()) {
                 if (!fileInfo.isCurrentVersionToDelete()) { // If current version is to delete do not
                     // transfer
                     String[] splitPath = fileInfo.getOriginalLocation().getPath().split(File.separator);

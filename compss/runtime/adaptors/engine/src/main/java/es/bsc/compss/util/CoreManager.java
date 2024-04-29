@@ -335,6 +335,7 @@ public class CoreManager {
 
         for (CoreElement ce : CORE_ELEMENTS) {
             for (Implementation impl : ce.getImplementations()) {
+                LOGGER.debug("******* Executing Can Host ");
                 if (rd.canHost(impl)) {
                     // Add core to executable list
                     executableList.add(ce);

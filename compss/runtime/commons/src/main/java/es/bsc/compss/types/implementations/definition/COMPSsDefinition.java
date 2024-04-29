@@ -37,7 +37,7 @@ public class COMPSsDefinition implements AbstractMethodImplementationDefinition 
      */
     private static final long serialVersionUID = 1L;
 
-    public static final int NUM_PARAMS = 6;
+    public static final int NUM_PARAMS = 7;
     public static final String SIGNATURE = "compss.NESTED";
 
     private static final String DEFAULT_RUNCOMPSS = "runcompss";
@@ -47,6 +47,7 @@ public class COMPSsDefinition implements AbstractMethodImplementationDefinition 
     private String runcompss;
     private String flags;
     private String appName;
+    private String appParams;
     private String workerInMaster;
     private String workingDir;
     private boolean failByEV;
@@ -72,8 +73,8 @@ public class COMPSsDefinition implements AbstractMethodImplementationDefinition 
      * @param workingDir The nested COMPSs working directory.
      * @param failByEV Flag to enable failure with EV.
      */
-    public COMPSsDefinition(String runcompss, String flags, String appName, String workerInMaster, String workingDir,
-        boolean failByEV) {
+    public COMPSsDefinition(String runcompss, String flags, String workerInMaster, String appName, String appParams,
+        String workingDir, boolean failByEV) {
 
         if (runcompss != null && !runcompss.isEmpty() && !runcompss.equals(Constants.UNASSIGNED)) {
             this.runcompss = runcompss;
@@ -87,6 +88,7 @@ public class COMPSsDefinition implements AbstractMethodImplementationDefinition 
         }
         this.appName = appName;
         this.workerInMaster = workerInMaster;
+        this.appParams = appParams;
         this.workingDir = workingDir;
         this.failByEV = failByEV;
         this.parentAppId = new File(System.getProperty(LoggerManager.getLogDir())).getName();
@@ -108,9 +110,10 @@ public class COMPSsDefinition implements AbstractMethodImplementationDefinition 
             this.flags = DEFAULT_FLAGS;
         }
         this.appName = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 2]);
-        this.workerInMaster = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 3]);
-        this.workingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 4]);
-        this.failByEV = Boolean.parseBoolean(implTypeArgs[5]);
+        this.appParams = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 3]);
+        this.workerInMaster = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 4]);
+        this.workingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset + 5]);
+        this.failByEV = Boolean.parseBoolean(implTypeArgs[6]);
         String appLogDir = LoggerManager.getLogDir();
         if (appLogDir != null && !appLogDir.isEmpty()) {
             this.parentAppId = new File(appLogDir).getName();
@@ -125,6 +128,7 @@ public class COMPSsDefinition implements AbstractMethodImplementationDefinition 
         lArgs.add(this.runcompss);
         lArgs.add(this.flags);
         lArgs.add(this.appName);
+        lArgs.add(this.appParams);
         lArgs.add(this.workerInMaster);
         lArgs.add(this.workingDir);
         lArgs.add(Boolean.toString(this.failByEV));
@@ -155,6 +159,15 @@ public class COMPSsDefinition implements AbstractMethodImplementationDefinition 
      */
     public String getAppName() {
         return this.appName;
+    }
+
+    /**
+     * Returns the nested application params.
+     * 
+     * @return The nested application params.
+     */
+    public String getAppParams() {
+        return this.appParams;
     }
 
     /**
@@ -204,6 +217,7 @@ public class COMPSsDefinition implements AbstractMethodImplementationDefinition 
         sb.append("[RUNCOMPSS=").append(this.runcompss);
         sb.append(", FLAGS=").append(this.flags);
         sb.append(", APP_NAME=").append(this.appName);
+        sb.append(", APP_PARAMS=").append(this.appParams);
         sb.append(", WORKER_IN_MASTER=").append(this.workerInMaster);
         sb.append(", WORKING_DIR=").append(this.workingDir);
         sb.append(", FAIL_BY_EV=").append(this.failByEV);
@@ -223,6 +237,7 @@ public class COMPSsDefinition implements AbstractMethodImplementationDefinition 
         this.runcompss = (String) in.readObject();
         this.flags = (String) in.readObject();
         this.appName = (String) in.readObject();
+        this.appParams = (String) in.readObject();
         this.workerInMaster = (String) in.readObject();
         this.workingDir = (String) in.readObject();
         this.failByEV = in.readBoolean();
@@ -234,6 +249,7 @@ public class COMPSsDefinition implements AbstractMethodImplementationDefinition 
         out.writeObject(this.runcompss);
         out.writeObject(this.flags);
         out.writeObject(this.appName);
+        out.writeObject(this.appParams);
         out.writeObject(this.workerInMaster);
         out.writeObject(this.workingDir);
         out.writeBoolean(this.failByEV);
@@ -243,6 +259,11 @@ public class COMPSsDefinition implements AbstractMethodImplementationDefinition 
     @Override
     public TaskType getTaskType() {
         return TaskType.METHOD;
+    }
+
+    public boolean hasParamsString() {
+        return this.appParams != null && !this.appParams.equals(Constants.UNASSIGNED);
+
     }
 
 }

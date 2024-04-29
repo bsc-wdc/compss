@@ -535,7 +535,7 @@ public class ExecutionAction extends AllocatableAction implements JobListener<Pa
     }
 
     @Override
-    protected void doCanceled() {
+    protected boolean doCanceled() {
         // Cancelled log message
         String taskName = this.task.getTaskDescription().getName();
         ErrorManager.warn("Task " + this.task.getId() + "(Action: " + this.getId() + ") with name " + taskName
@@ -545,6 +545,11 @@ public class ExecutionAction extends AllocatableAction implements JobListener<Pa
         this.task.decreaseExecutionCount();
         this.task.setStatus(TaskState.CANCELED);
         this.ap.notifyTaskEnd(this.task);
+        if (this.task.getOnFailure().equals(OnFailure.IGNORE)) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
     @Override

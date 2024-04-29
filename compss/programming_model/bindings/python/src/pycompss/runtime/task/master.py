@@ -893,12 +893,13 @@ class TaskMaster:
             processes_per_node = 1
         self.decorator_arguments.processes_per_node = processes_per_node
         if processes_per_node > 1:
-            # Check processes per node
-            self.validate_processes_per_node(
-                computing_nodes, processes_per_node
-            )
-            computing_nodes = int(computing_nodes / processes_per_node)
-            self.decorator_arguments.computing_nodes = computing_nodes
+            if self.core_element.impl_type != IMPLEMENTATION_TYPES.multi_node:
+                # Check processes per node
+                self.validate_processes_per_node(
+                    computing_nodes, processes_per_node
+                )
+                computing_nodes = int(computing_nodes / processes_per_node)
+                self.decorator_arguments.computing_nodes = computing_nodes
 
         # Deal with on_failure
         if LABELS.on_failure in kwargs:
@@ -1338,6 +1339,8 @@ class TaskMaster:
         if pre_defined_core_element:
             # Core element has already been created in an upper decorator
             # (e.g. @implements and @compss)
+            if __debug__:
+                logger.debug("Predefined core element.")
             _ce_signature = self.core_element.get_ce_signature()
             _impl_constraints = self.core_element.get_impl_constraints()
             _impl_type = self.core_element.get_impl_type()
@@ -1375,6 +1378,9 @@ class TaskMaster:
                     set_impl_type_args(impl_type_args + _impl_type_args[1:])
                 else:
                     set_impl_type_args(impl_type_args)
+            elif _impl_type == IMPLEMENTATION_TYPES.multi_node:
+                if _impl_type_args:
+                    set_impl_type_args(impl_type_args + _impl_type_args)
             if not _impl_local:
                 set_impl_local(impl_local)
             if not _impl_io:

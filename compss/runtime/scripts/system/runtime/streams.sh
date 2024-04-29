@@ -95,6 +95,7 @@ check_stream_setup () {
 generate_stream_config_files() {
   # Create zookeeper properties
   zookeeper_log_dir="/tmp/zookeeper"
+  rm -rf "${zookeeper_log_dir}"
   mkdir -p "${zookeeper_log_dir}"
   zookeeper_props_file=$(mktemp -p "${zookeeper_log_dir}") || fatal_error "${ERROR_ZOOKEEPER_CONFIG}" 1
   cat > "${zookeeper_props_file}" << EOT
@@ -105,6 +106,7 @@ EOT
 
   # Create kafka properties
   kafka_log_dir="/tmp/kafka-logs"
+  rm -rf "${kafka_log_dir}"
   mkdir -p "${kafka_log_dir}"
   kafka_props_file=$(mktemp -p "${kafka_log_dir}") || fatal_error "${ERROR_KAFKA_CONFIG}" 1
   cat > "${kafka_props_file}" << EOT
@@ -147,12 +149,12 @@ EOT
 #----------------------------------------------
 start_stream_backends() {
   if [ "${streaming}" == "${STREAMING_OBJECTS}" ] || [ "${streaming}" == "${STREAMING_ALL}" ]; then
+  
   echo ""
   display_info "Starting Streaming Backend"
     if [ -d "${KAFKA_HOME}" ]; then
       # Generate stream configuration files
       generate_stream_config_files
-
       # Clean classpath before starting daemons
       local backup_classpath="$CLASSPATH"
       local backup_log_dir="${LOG_DIR}"
@@ -162,6 +164,7 @@ start_stream_backends() {
       export LOG_DIR="${zookeeper_log_dir}"
       # echo "ZK: ${KAFKA_HOME}/bin/zookeeper-server-start.sh -daemon ${zookeeper_props_file}"
       "${KAFKA_HOME}"/bin/zookeeper-server-start.sh -daemon "${zookeeper_props_file}"
+      sleep 1s
       export LOG_DIR="${kafka_log_dir}"
       # echo "KAFKA: ${KAFKA_HOME}/bin/kafka-server-start.sh -daemon ${kafka_props_file}"
       "${KAFKA_HOME}"/bin/kafka-server-start.sh -daemon "${kafka_props_file}"

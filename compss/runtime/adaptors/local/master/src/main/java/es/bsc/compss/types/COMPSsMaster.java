@@ -1073,6 +1073,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                 path = ProtocolType.BINDING_URI.getSchema() + tempDirPath + name;
                 break;
             default:
+                LOGGER.warn("Unrecognized type: " + type);
                 return null;
         }
 

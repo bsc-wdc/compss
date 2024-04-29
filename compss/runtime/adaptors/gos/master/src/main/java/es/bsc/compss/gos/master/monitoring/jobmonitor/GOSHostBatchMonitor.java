@@ -24,6 +24,7 @@ import es.bsc.compss.gos.master.sshutils.SSHChannel;
 import es.bsc.compss.gos.master.sshutils.SSHHost;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.job.JobEndStatus;
+import es.bsc.compss.types.job.JobHistory;
 import es.bsc.compss.util.ErrorManager;
 
 import java.io.BufferedReader;
@@ -31,6 +32,7 @@ import java.io.File;
 import java.io.IOException;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 import org.apache.logging.log4j.LogManager;
@@ -44,7 +46,7 @@ public class GOSHostBatchMonitor implements GOSHostsManager {
     private static final String CHECK_COMMAND_SCRIPT = GOSJob.SCRIPT_PATH + "check.sh";
 
     private final String installDir;
-    final ConcurrentHashMap<String, GOSJob> activeJobs = new ConcurrentHashMap<>();
+    final ConcurrentHashMap<String, GOSSingleBatchJobManager> activeJobs = new ConcurrentHashMap<>();
     HashSet<String> failedResponse = new HashSet<>();
 
     String responseDir;
@@ -64,9 +66,37 @@ public class GOSHostBatchMonitor implements GOSHostsManager {
         if (activeJobs.isEmpty()) {
             return;
         }
+
+        GOSSingleBatchJobManager[] jobs = null;
+        synchronized (activeJobs) {
+            Collection<GOSSingleBatchJobManager> col = activeJobs.values();
+            if (!col.isEmpty()) {
+                jobs = col.toArray(new GOSSingleBatchJobManager[col.size()]);
+            }
+        }
+        if (jobs == null) {
+            return;
+        }
+
         StringBuilder jobsId = new StringBuilder();
-        for (GOSJob job : activeJobs.values()) {
-            jobsId.append(job.getCompositeID()).append(" ");
+
+        for (GOSSingleBatchJobManager jm : jobs) {
+            GOSJob job = jm.getGosJob();
+            if (job.isBeingCancelled()) {
+                job.notifyFailure(JobEndStatus.EXECUTION_FAILED);
+                synchronized (activeJobs) {
+                    activeJobs.remove(jm.getId());
+                }
+                break;
+            }
+            if (job.getHistory() == JobHistory.CANCELLED) {
+                LOGGER.error("Ignoring notification since the job was cancelled");
+                synchronized (activeJobs) {
+                    activeJobs.remove(jm.getId());
+                }
+                break;
+            }
+            jobsId.append(jm.getId()).append(" ");
             // disconnect channel that launched the job
             SSHChannel channel = job.getChannel();
             if (channel != null && channel.isConnected() && channel.getExitStatus() != -1) {
@@ -99,6 +129,7 @@ public class GOSHostBatchMonitor implements GOSHostsManager {
             LOGGER.error("Error in batch job monitor " + e);
             ErrorManager.error(e);
         } catch (GOSWarningException e) {
+            LOGGER.warn("Warning in batch job monitor " + e.getLocalizedMessage());
             // Non-fatal error in command
         }
 
@@ -106,10 +137,11 @@ public class GOSHostBatchMonitor implements GOSHostsManager {
 
     private boolean treatJob(String id, String batchId, String status)
         throws JSchException, SftpException, IOException {
-        GOSJob job = activeJobs.get(id);
-        if (job == null) {
+        GOSSingleBatchJobManager jm = activeJobs.get(id);
+        if (jm == null) {
             return false;
         }
+        GOSJob job = jm.getGosJob();
         boolean finished = false;
         String batchOutput = job.getBatchOutput();
         String jobID = job.getCompositeID();
@@ -119,6 +151,7 @@ public class GOSHostBatchMonitor implements GOSHostsManager {
                 job.setBatchId(batchId);
                 job.notifySuccess();
                 break;
+            case "CANCEL":
             case "FAIL":
                 finished = true;
                 job.setBatchId(batchId);
@@ -155,7 +188,7 @@ public class GOSHostBatchMonitor implements GOSHostsManager {
 
     @Override
     public void addJobMonitor(GOSJob job) {
-        activeJobs.put(job.getCompositeID(), job);
+        activeJobs.put(job.getCompositeID(), new GOSSingleBatchJobManager(job));
     }
 
     @Override
@@ -170,10 +203,44 @@ public class GOSHostBatchMonitor implements GOSHostsManager {
 
     @Override
     public void shutdown() {
-        for (GOSJob job : activeJobs.values()) {
-            job.cancelJob();
+        for (GOSSingleBatchJobManager jm : activeJobs.values()) {
+            GOSJob job = jm.getGosJob();
+            try {
+                job.cancelJob();
+            } catch (Exception e) {
+                LOGGER.warn("Error cancelling job when shutdown. Ignoring.");
+            }
         }
         activeJobs.clear();
+    }
+
+    @Override
+    public void removeJobMonitor(GOSJob job) {
+        synchronized (activeJobs) {
+            activeJobs.remove(job.getCompositeID());
+        }
+
+    }
+
+
+    private class GOSSingleBatchJobManager {
+
+        private final GOSJob gosJob;
+        private final String id;
+
+
+        public GOSSingleBatchJobManager(GOSJob job) {
+            this.gosJob = job;
+            this.id = job.getCompositeID();
+        }
+
+        public GOSJob getGosJob() {
+            return gosJob;
+        }
+
+        public String getId() {
+            return id;
+        }
     }
 
 }

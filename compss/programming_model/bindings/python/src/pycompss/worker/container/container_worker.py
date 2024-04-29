@@ -50,6 +50,7 @@ def main() -> int:
     num_slaves = 0
     timeout = 0
     cus = 1
+    ppn = 1
     log_level = sys.argv[3]
     tracing = sys.argv[4] == "true"
     has_target = str(sys.argv[5]).lower() == "true"
@@ -84,8 +85,9 @@ def main() -> int:
     task_params = [
         func_file_path,
         func_name,
-        num_slaves,
         timeout,
+        ppn,
+        num_slaves,
         cus,
         has_target,
         return_type,

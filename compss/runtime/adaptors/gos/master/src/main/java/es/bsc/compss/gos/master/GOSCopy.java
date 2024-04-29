@@ -183,6 +183,8 @@ public class GOSCopy extends ImmediateAsyncCopy {
         // If the transfer is fully local transferFile return null;
         if (monitor != null) {
             getMonitoring().addTransferMonitor(monitor);
+        } else {
+            LOGGER.warn("Monitor for " + this + " is null");
         }
     }
 

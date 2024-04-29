@@ -38,6 +38,7 @@ public class GOSJobDescription {
     private String pathResponse;
     public ArrayList<String> arguments;
     private final ArrayList<String> argumentsKey;
+    public ArrayList<String> killArguments;
     private String executable;
     private String commandOptionsBatch;
     private SSHHost host;
@@ -102,6 +103,7 @@ public class GOSJobDescription {
         this.arguments = new ArrayList<>();
         this.argumentsKey = new ArrayList<>();
         this.job = gosJob;
+        this.killArguments = new ArrayList<>();
         ForbiddenCharacters.init();
     }
 
@@ -243,6 +245,20 @@ public class GOSJobDescription {
             killDir = this.getSandboxDir() + GOSWorkerNode.CANCEL_JOB_DIR;
         }
         return killDir;
+    }
+
+    /**
+     * Gets kill script.
+     * 
+     * @param compositeID Composite ID
+     * @return The cancel script
+     */
+    public String getCancelScript(String compositeID) {
+        String script = getCancelScriptDir() + "/" + compositeID;
+        if (!killArguments.isEmpty()) {
+            script = script + " " + StringUtils.join(killArguments, " ");
+        }
+        return script;
     }
 
     public void setQueueType(ArrayList<String> queues) {

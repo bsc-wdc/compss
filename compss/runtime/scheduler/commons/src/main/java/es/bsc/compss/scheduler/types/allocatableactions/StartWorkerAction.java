@@ -180,7 +180,8 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
     }
 
     @Override
-    protected void doCanceled() {
+    protected boolean doCanceled() {
+        return true;
 
     }
 

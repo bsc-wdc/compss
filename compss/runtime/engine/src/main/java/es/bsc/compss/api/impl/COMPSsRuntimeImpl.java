@@ -490,7 +490,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
     public void stopIT(boolean terminate) {
         synchronized (this) {
             if (!stopped) {
-
                 if (Tracer.isActivated()) {
                     Tracer.emitEvent(TraceEvent.STOP);
                 }
@@ -500,6 +499,13 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                     timer.cancel();
                 }
 
+                LOGGER.debug("Cancelling all remaining tasks...");
+                // In some case, when runtime is stop because an error the java process is not stopped
+                // because some threads are blocked at barriers waiting for the end of tasks
+                for (Application app : Application.getApplications()) {
+                    ap.cancelApplicationTasks(app);
+                    // ap.barrier(app);
+                }
                 // Add task summary
                 boolean taskSummaryEnabled = System.getProperty(COMPSsConstants.TASK_SUMMARY) != null
                     && !System.getProperty(COMPSsConstants.TASK_SUMMARY).isEmpty()
@@ -539,8 +545,19 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
                 Comm.stop(CoreManager.getSignaturesToCEIds());
                 LOGGER.debug("Runtime stopped");
                 stopped = true;
+                // LOGGER.debug("Releasing all barriers...");
+                // In some case, when runtime is stop because an error the java process is not stopped
+                // because some threads are blocked at barriers waiting for the end of tasks
+                for (Application app : Application.getApplications()) {
+                    app.getBaseTaskGroup().releaseBarrier();
+                }
+            } else {
+                LOGGER.debug("Duplicated Stop");
+                throw (new RuntimeException("Runtime already stopped"));
             }
+
         }
+
         LOGGER.warn("Execution Finished");
 
     }
@@ -662,6 +679,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         }
 
         MethodResourceDescription mrd = new MethodResourceDescription(implConstraints);
+        LOGGER.debug("Registere MRD:");
+        LOGGER.debug(mrd.toString());
         boolean isImplIO = Boolean.parseBoolean(implIO);
         boolean isLocalImpl = Boolean.parseBoolean(implLocal);
 
@@ -1358,7 +1377,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         }
 
         Application app = Application.registerApplication(appId);
-
+        app.checkThrottle();
         if (monitor == null) {
             monitor = DO_NOTHING_MONITOR;
         }
@@ -1485,12 +1504,12 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         LOGGER.info("No more tasks for app " + app.getId());
         // Wait until all tasks have finished
         ap.noMoreTasks(app);
-
-        app.cancelTimerTask();
-        // Retrieve result files
-        LOGGER.debug("Getting Result Files for app" + app.getId());
-        ap.getResultFiles(app);
-
+        if (!stopped) {
+            app.cancelTimerTask();
+            // Retrieve result files
+            LOGGER.debug("Getting Result Files for app" + app.getId());
+            ap.getResultFiles(app);
+        }
         if (Tracer.isActivated()) {
             Tracer.emitEventEnd(TraceEvent.NO_MORE_TASKS);
         }
@@ -1590,8 +1609,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
             public void run() {
                 ErrorManager.logError("Error detected. Shutting down COMPSs", null);
                 COMPSsRuntimeImpl.this.stopIT(true);
-                System.err.println("Shutting down the running process");
-                System.exit(1);
+                ErrorManager.logError("Shutting down the running process", null);
+                Runtime.getRuntime().halt(1);
             }
         }.start();
         return true;

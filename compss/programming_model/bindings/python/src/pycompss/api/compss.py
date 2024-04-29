@@ -54,6 +54,7 @@ SUPPORTED_ARGUMENTS = {
     LABELS.flags,
     LABELS.worker_in_master,
     LABELS.app_name,
+    LABELS.args,
     LABELS.working_dir,
     LABELS.fail_by_exit_value,
 }
@@ -185,6 +186,8 @@ class COMPSs:  # pylint: disable=too-few-public-methods
             app_name = self.kwargs[LEGACY_LABELS.app_name]
         else:
             app_name = self.kwargs[LABELS.app_name]
+        # Resolve args
+        _args = self.kwargs.get(LABELS.args, INTERNAL_LABELS.unassigned)
 
         # Resolve the working directory
         resolve_working_dir(self.kwargs)
@@ -197,6 +200,7 @@ class COMPSs:  # pylint: disable=too-few-public-methods
             runcompss,
             flags,
             app_name,
+            _args,
             worker_in_master,
             self.kwargs[LABELS.working_dir],
             self.kwargs[LABELS.fail_by_exit_value],

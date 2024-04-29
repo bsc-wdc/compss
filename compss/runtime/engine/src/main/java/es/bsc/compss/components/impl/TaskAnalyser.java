@@ -706,6 +706,11 @@ public class TaskAnalyser implements GraphHandler {
         if (p.isPotentialDependency()) {
             DependencyParameter dp = (DependencyParameter) p;
             DataAccessId dAccId = dp.getDataAccessId();
+            if (dAccId == null) {
+                LOGGER.warn("Parameter for task " + task.getId()
+                    + " has no access ID. It could be from a cancelled type. Ignoring ... ");
+                return;
+            }
             int dataId = dAccId.getDataId();
 
             DataType type = p.getType();
@@ -732,9 +737,12 @@ public class TaskAnalyser implements GraphHandler {
             }
 
             if ((task.getOnFailure() == OnFailure.CANCEL_SUCCESSORS && (task.getStatus() == TaskState.FAILED))
-                || task.getStatus() == TaskState.CANCELED) {
+                || (task.getStatus() == TaskState.CANCELED && task.getOnFailure() != OnFailure.IGNORE)) {
+
+                LOGGER.debug("Data access canceled");
                 this.dip.dataAccessHasBeenCanceled(dAccId, task.wasSubmited());
             } else {
+                LOGGER.debug("Data access accesses");
                 this.dip.dataHasBeenAccessed(dAccId);
             }
         }
@@ -939,6 +947,10 @@ public class TaskAnalyser implements GraphHandler {
      */
     private void addEdgeFromCommutativeToTask(Task dest, int dataId, int dataVersion, CommutativeGroupTask cgt,
         boolean comToTask) {
+        if (cgt.getCommutativeTasks().isEmpty()) {
+            LOGGER.warn("Commutative task is empty at this point. Not writting the edge");
+            return;
+        }
         String src = String.valueOf(cgt.getCommutativeTasks().get(0).getId());
         String dst = String.valueOf(dest.getId());
         String dep = String.valueOf(dataId) + "v" + String.valueOf(dataVersion);

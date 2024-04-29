@@ -491,9 +491,6 @@ public class Validator {
         } else {
             throw new InvalidElementException("ComputingCluster", cc.getName(), "Adaptors must be provided.");
         }
-
-        validateOS(cc.getOperatingSystem());
-        validateSoftwareList(cc.getSoftware());
         if (cc.getSharedDisks() != null) {
             validateAttachedDisksList(cc.getSharedDisks());
         }
@@ -670,30 +667,105 @@ public class Validator {
         }
     }
 
-    private void validateClusterNode(ClusterNodeType clusterNode) throws InvalidElementException {
+    private void validateClusterNode(ClusterNodeType cn) throws InvalidElementException {
+        // Check inner elements
+        List<Object> innerElements = cn.getMaxNumNodesOrProcessorOrOperatingSystem();
+        if (innerElements != null) {
+            List<String> processorNames = new ArrayList<String>();
+            boolean processorTagFound = false;
+            boolean memoryTagFound = false;
+            boolean storageTagFound = false;
+            boolean osTagFound = false;
+            boolean softwareTagFound = false;
+            boolean priceTagFound = false;
+            boolean maxNumNodesFound = false;
 
-        int nNodes = clusterNode.getMaxNumNodes();
-        if (nNodes == 0) {
-            logger.warn("ClusterNode " + clusterNode.getName() + " MaxNumNodes is 0, no task will be"
-                + "assigned to this resource.");
-        }
-        if (nNodes < 0) {
-            throw new InvalidElementException("ClusterNode", clusterNode.getName(),
-                "MaxNumNodes must be " + " larger than 0.");
-        }
-        for (ProcessorType processor : clusterNode.getProcessor()) {
-            validateProcessor(processor);
-        }
-        if (clusterNode.getMemory() != null) {
-            validateMemory(clusterNode.getMemory());
-        }
-
-        if (clusterNode.getStorage() != null) {
-            validateStorage(clusterNode.getStorage());
-        }
-
-        if (clusterNode.getPrice() != null) {
-            validatePrice(clusterNode.getPrice());
+            for (Object obj : innerElements) {
+                if (obj instanceof ProcessorType) {
+                    ProcessorType p = (ProcessorType) obj;
+                    if (processorNames.contains(p.getName())) {
+                        throw new InvalidElementException("ComputeNode " + cn.getName(),
+                            "Attribute Processor" + p.getName(), "Appears more than once");
+                    } else {
+                        processorTagFound = true;
+                        processorNames.add(p.getName());
+                        validateProcessor(p);
+                    }
+                } else if (obj instanceof MemoryType) {
+                    if (memoryTagFound) {
+                        // Second occurency, throw exception
+                        throw new InvalidElementException("ComputeNode " + cn.getName(), "Attribute " + obj.getClass(),
+                            "Appears more than once");
+                    } else {
+                        memoryTagFound = true;
+                        validateMemory(((MemoryType) obj));
+                    }
+                } else if (obj instanceof StorageType) {
+                    if (storageTagFound) {
+                        // Second occurency, throw exception
+                        throw new InvalidElementException("ComputeNode " + cn.getName(), "Attribute " + obj.getClass(),
+                            "Appears more than once");
+                    } else {
+                        storageTagFound = true;
+                        validateStorage(((StorageType) obj));
+                    }
+                } else if (obj instanceof OSType) {
+                    if (osTagFound) {
+                        // Second occurency, throw exception
+                        throw new InvalidElementException("ComputeNode " + cn.getName(), "Attribute " + obj.getClass(),
+                            "Appears more than once");
+                    } else {
+                        osTagFound = true;
+                        validateOS(((OSType) obj));
+                    }
+                } else if (obj instanceof SoftwareListType) {
+                    if (softwareTagFound) {
+                        // Second occurency, throw exception
+                        throw new InvalidElementException("ClusterNode " + cn.getName(), "Attribute " + obj.getClass(),
+                            "Appears more than once");
+                    } else {
+                        softwareTagFound = true;
+                        validateSoftwareList(((SoftwareListType) obj));
+                    }
+                } else if (obj instanceof PriceType) {
+                    if (priceTagFound) {
+                        // Second occurency, throw exception
+                        throw new InvalidElementException("ClusterNode " + cn.getName(), "Attribute " + obj.getClass(),
+                            "Appears more than once");
+                    } else {
+                        priceTagFound = true;
+                        validatePrice(((PriceType) obj));
+                    }
+                } else if (obj instanceof Integer) {
+                    if (maxNumNodesFound) {
+                        // Second occurency, throw exception
+                        throw new InvalidElementException("ClusterNode " + cn.getName(), "Attribute " + obj.getClass(),
+                            "Appears more than once");
+                    } else {
+                        maxNumNodesFound = true;
+                        int nNodes = (Integer) obj;
+                        if (nNodes == 0) {
+                            logger.warn("ClusterNode " + cn.getName() + " MaxNumNodes is 0, no task will be"
+                                + "assigned to this resource.");
+                        }
+                        if (nNodes < 0) {
+                            throw new InvalidElementException("ClusterNode", cn.getName(),
+                                "MaxNumNodes must be " + " larger than 0.");
+                        }
+                    }
+                } else {
+                    throw new InvalidElementException("ComputeNode " + cn.getName(), "Attribute " + obj.getClass(),
+                        "Incorrect attribute");
+                }
+            }
+            // Check minimum appearences
+            if (!processorTagFound) {
+                throw new InvalidElementException("ComputeNode " + cn.getName(), "Attribute Processor",
+                    "Doesn't appear");
+            }
+        } else {
+            // Empty inner elements
+            throw new InvalidElementException("ComputeNode " + cn.getName(), "", "Content is empty");
         }
     }
 

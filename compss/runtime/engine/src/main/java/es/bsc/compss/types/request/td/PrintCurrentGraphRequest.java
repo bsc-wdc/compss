@@ -82,7 +82,7 @@ public class PrintCurrentGraphRequest extends TDRequest {
         try {
             PriorityQueue<AbstractTask> pending = new PriorityQueue<>();
 
-            Set<Task> tasks = new HashSet<>();
+            Set<AbstractTask> tasks = new HashSet<>();
             String prefix = "  ";
 
             // Header options
@@ -279,7 +279,7 @@ public class PrintCurrentGraphRequest extends TDRequest {
                 if (!tasks.contains(t)) {
                     this.graph.write(prefix + prefix + t.getDotDescription());
                     this.graph.newLine();
-                    tasks.add((Task) t);
+                    tasks.add(t);
                     LinkedList<AbstractTask> tmpList = new LinkedList<>();
                     boolean done = false;
                     while (!done) {
@@ -299,7 +299,7 @@ public class PrintCurrentGraphRequest extends TDRequest {
             this.graph.newLine();
 
             /* Write edges *************************************************** */
-            for (Task t : tasks) {
+            for (AbstractTask t : tasks) {
                 Set<AbstractTask> successors = new HashSet<>();
                 boolean done = false;
                 while (!done) {

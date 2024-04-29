@@ -553,7 +553,7 @@ static void generate_enum(FILE *outFile, function *first_function) {
 
     // Add constants (according to COMPSs Runtime)
     fprintf(outFile, "static const int N_OPS=%d;\n", n);
-    fprintf(outFile, "static const int NUM_BASE_ARGS = 10;\n");
+    fprintf(outFile, "static const int NUM_BASE_ARGS = 11;\n");
     fprintf(outFile, "static const int MIN_NUM_INTERNAL_ARGS = 15;\n");
     fprintf(outFile, "static const int METHOD_NAME_POS = 7;\n");
     fprintf(outFile,"\n");
@@ -2237,7 +2237,7 @@ void generate_worker_executor(Types current_types) {
 
     generate_executor_prototype(workerFile);
     // Args consistent with Runtime [0, NUM_INTERNAL_ARGS]: executable, tracing, taskId, workerDebug, storageConf, method_type, className, methodName,
-    //                                                      numSlaves, [slaves], numCus, hasTarget, returnType, numAppParams
+    //                                                      timeout, ppn, numSlaves, [slaves], numCus, hasTarget, returnType, numAppParams
     fprintf(workerFile, "\t if(is_debug()){\n"); //Open if debug
     fprintf(workerFile, "\t\t cout << endl;\n");
     fprintf(workerFile, "\t\t cout << \"[C-BINDING] ----------------- C WORKER -----------------\" << endl;\n");
@@ -2262,10 +2262,11 @@ void generate_worker_executor(Types current_types) {
     fprintf(workerFile, "\t\t cout << \"[C-BINDING] ClassName: \" << argv[6] << endl;\n");
     fprintf(workerFile, "\t\t cout << \"[C-BINDING] MethodName: \" << argv[7] << endl;\n");
     fprintf(workerFile, "\t\t cout << \"[C-BINDING] TimeOut: \" << argv[8] << endl;\n");
-    fprintf(workerFile, "\t\t cout << \"[C-BINDING] NumSlaves: \" << argv[9] << endl;\n");
+    fprintf(workerFile, "\t\t cout << \"[C-BINDING] ppn: \" << argv[9] << endl;\n"); 
+    fprintf(workerFile, "\t\t cout << \"[C-BINDING] NumSlaves: \" << argv[10] << endl;\n");
     fprintf(workerFile, "\t }\n"); //Close if debug
 
-    fprintf(workerFile, "\t int numSlaves=atoi(argv[9]);\n");
+    fprintf(workerFile, "\t int numSlaves=atoi(argv[10]);\n");
 
     fprintf(workerFile, "\t if(is_debug()){\n"); //Open if debug clause
     fprintf(workerFile, "\t\t for (int i = 0; i < numSlaves; ++i) {\n"); //Open for

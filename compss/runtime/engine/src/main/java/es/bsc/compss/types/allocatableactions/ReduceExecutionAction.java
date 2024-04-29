@@ -458,11 +458,11 @@ public class ReduceExecutionAction extends ExecutionAction {
     }
 
     @Override
-    protected void doCanceled() {
+    protected boolean doCanceled() {
         List<Parameter> finalParameters = this.task.getTaskDescription().getParameters();
         finalParameters.set(this.colIndex, initialCollection);
 
-        super.doCanceled();
+        return super.doCanceled();
     }
 
     @Override

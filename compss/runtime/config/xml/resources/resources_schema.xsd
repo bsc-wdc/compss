@@ -98,8 +98,6 @@
     <xsd:complexType name="ComputingClusterType">
         <xsd:sequence>
             <xsd:element name="Adaptors" type="AdaptorsListType" minOccurs="1" maxOccurs="1" />
-            <xsd:element name="OperatingSystem" type="OSType" minOccurs="0" maxOccurs="1" />
-            <xsd:element name="Software" type="SoftwareListType" minOccurs="0" maxOccurs="1" />
             <xsd:element name="SharedDisks" type="AttachedDisksListType" minOccurs="0" maxOccurs="1" />
             <xsd:element name="ClusterNode" type="ClusterNodeType" minOccurs="1" maxOccurs="unbounded" />
         </xsd:sequence>
@@ -349,16 +347,18 @@
 
     <!-- Cluster Node TYPE -->
     <xsd:complexType name="ClusterNodeType">
-        <xsd:sequence>
+        <xsd:choice minOccurs="2" maxOccurs="unbounded">
             <!-- Mandatory -->
             <xsd:element name="MaxNumNodes" type="xsd:int" minOccurs="1" maxOccurs="1" />
             <xsd:element name="Processor" type="ProcessorType" minOccurs="1" maxOccurs="unbounded" />
             <!-- NOT mandatory -->
+            <xsd:element name="OperatingSystem" type="OSType" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="Software" type="SoftwareListType" minOccurs="0" maxOccurs="1" />
             <xsd:element name="Price" type="PriceType" minOccurs="0" maxOccurs="1" />
             <xsd:element name="Memory" type="MemoryType" minOccurs="0" maxOccurs="1" />
             <xsd:element name="Storage" type="StorageType" minOccurs="0" maxOccurs="1" />
             <!-- Mandatory -->
-        </xsd:sequence>
+        </xsd:choice>
         <xsd:attribute name="Name" type="xsd:string" use="required"/>
 
     </xsd:complexType>

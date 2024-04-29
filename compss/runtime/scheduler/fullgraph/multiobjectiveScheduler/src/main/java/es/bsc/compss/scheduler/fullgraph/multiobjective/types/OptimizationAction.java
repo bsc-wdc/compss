@@ -76,8 +76,8 @@ public class OptimizationAction extends AllocatableAction {
     }
 
     @Override
-    protected void doCanceled() {
-        // Nothing to do
+    protected boolean doCanceled() {
+        return true;
     }
 
     @Override

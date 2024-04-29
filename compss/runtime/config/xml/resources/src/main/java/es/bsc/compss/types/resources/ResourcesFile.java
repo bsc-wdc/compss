@@ -880,7 +880,7 @@ public class ResourcesFile {
      * @return
      */
     public float getStorageSize(ClusterNodeType cluster) {
-        StorageType storage = cluster.getStorage();
+        StorageType storage = getStorage(cluster);
         if (storage != null) {
             return getStorageSize(storage);
         }
@@ -903,6 +903,18 @@ public class ResourcesFile {
             }
         }
         return (float) -1.0;
+    }
+
+    private StorageType getStorage(ClusterNodeType c) {
+        List<Object> objList = c.getMaxNumNodesOrProcessorOrOperatingSystem();
+        if (objList != null) {
+            for (Object obj : objList) {
+                if (obj instanceof StorageType) {
+                    return ((StorageType) obj);
+                }
+            }
+        }
+        return null;
     }
 
     /**
@@ -952,7 +964,7 @@ public class ResourcesFile {
      * @return Storage type
      */
     public String getStorageType(ClusterNodeType c) {
-        StorageType storage = c.getStorage();
+        StorageType storage = getStorage(c);
         if (storage != null) {
             return getStorageType(storage);
         }
@@ -1045,7 +1057,7 @@ public class ResourcesFile {
      * @return storage size
      */
     public int getStorageBW(ClusterNodeType c) {
-        StorageType storage = c.getStorage();
+        StorageType storage = getStorage(c);
         if (storage != null) {
             return getStorageBW(storage);
         }
@@ -1169,9 +1181,7 @@ public class ResourcesFile {
         if (objList != null) {
             for (ClusterNodeType node : objList) {
                 String clusterName = node.getName();
-                if (node.getProcessor() != null) {
-                    map.put(clusterName, node.getProcessor());
-                }
+                map.put(clusterName, getProcessors(node));
             }
         }
         return map;
@@ -1209,9 +1219,19 @@ public class ResourcesFile {
         List<ProcessorType> processors = new ArrayList<>();
         if (objList != null) {
             for (ClusterNodeType node : objList) {
-                String clusterName = node.getName();
-                if (node.getProcessor() != null) {
-                    processors.addAll(node.getProcessor());
+                processors.addAll(getProcessors(node));
+            }
+        }
+        return processors;
+    }
+
+    private List<ProcessorType> getProcessors(ClusterNodeType node) {
+        List<ProcessorType> processors = new ArrayList<>();
+        List<Object> objList = node.getMaxNumNodesOrProcessorOrOperatingSystem();
+        if (objList != null) {
+            for (Object obj : objList) {
+                if (obj instanceof ProcessorType) {
+                    processors.add(((ProcessorType) obj));
                 }
             }
         }
@@ -1304,7 +1324,7 @@ public class ResourcesFile {
      * @return
      */
     public float getMemorySize(ClusterNodeType cluster) {
-        MemoryType mem = cluster.getMemory();
+        MemoryType mem = this.getMemory(cluster);
         if (mem != null) {
             List<Serializable> memProps = mem.getSizeOrType();
             if (memProps != null) {
@@ -1316,6 +1336,18 @@ public class ResourcesFile {
             }
         }
         return (float) -1.0;
+    }
+
+    private MemoryType getMemory(ClusterNodeType cluster) {
+        List<Object> objList = cluster.getMaxNumNodesOrProcessorOrOperatingSystem();
+        if (objList != null) {
+            for (Object obj : objList) {
+                if (obj instanceof MemoryType) {
+                    return (MemoryType) obj;
+                }
+            }
+        }
+        return null;
     }
 
     /**
@@ -1354,7 +1386,7 @@ public class ResourcesFile {
      * @return memory type
      */
     public String getMemoryType(ClusterNodeType c) {
-        MemoryType mem = c.getMemory();
+        MemoryType mem = getMemory(c);
         if (mem != null) {
             List<Serializable> memProps = mem.getSizeOrType();
             if (memProps != null) {
@@ -1405,6 +1437,10 @@ public class ResourcesFile {
      */
     public OSType getOperatingSystem(ComputeNodeType c) {
         List<Object> objList = c.getProcessorOrAdaptorsOrMemory();
+        return getOperatingSystem(objList);
+    }
+
+    private OSType getOperatingSystem(List<Object> objList) {
         if (objList != null) {
             for (Object obj : objList) {
                 if (obj instanceof OSType) {
@@ -1412,8 +1448,18 @@ public class ResourcesFile {
                 }
             }
         }
-
         return null;
+    }
+
+    /**
+     * Returns the OperatingSystem properties of a given Cluster ComputeNode.
+     *
+     * @param c Cluster Compute node description object
+     * @return
+     */
+    public OSType getOperatingSystem(ClusterNodeType c) {
+        List<Object> objList = c.getMaxNumNodesOrProcessorOrOperatingSystem();
+        return getOperatingSystem(objList);
     }
 
     /**
@@ -1439,13 +1485,9 @@ public class ResourcesFile {
      */
     public String getOperatingSystemType(ImageType image) {
         List<Object> objList = image.getAdaptorsOrOperatingSystemOrSoftware();
-        if (objList != null) {
-            for (Object obj : objList) {
-                if (obj instanceof OSType) {
-                    OSType os = (OSType) obj;
-                    return getOperatingSystemType(os);
-                }
-            }
+        OSType os = getOperatingSystem(objList);
+        if (os != null) {
+            return getOperatingSystemType(os);
         }
         return null;
     }
@@ -1477,15 +1519,10 @@ public class ResourcesFile {
      */
     public String getOperatingSystemDistribution(ComputeNodeType c) {
         List<Object> objList = c.getProcessorOrAdaptorsOrMemory();
-        if (objList != null) {
-            for (Object obj : objList) {
-                if (obj instanceof OSType) {
-                    OSType os = ((OSType) obj);
-                    return getOperatingSystemDistribution(os);
-                }
-            }
+        OSType os = getOperatingSystem(objList);
+        if (os != null) {
+            return getOperatingSystemDistribution(os);
         }
-
         return null;
     }
 
@@ -1497,13 +1534,9 @@ public class ResourcesFile {
      */
     public String getOperatingSystemDistribution(ImageType image) {
         List<Object> objList = image.getAdaptorsOrOperatingSystemOrSoftware();
-        if (objList != null) {
-            for (Object obj : objList) {
-                if (obj instanceof OSType) {
-                    OSType os = (OSType) obj;
-                    return getOperatingSystemDistribution(os);
-                }
-            }
+        OSType os = getOperatingSystem(objList);
+        if (os != null) {
+            return getOperatingSystemDistribution(os);
         }
         return null;
     }
@@ -1534,26 +1567,21 @@ public class ResourcesFile {
      */
     public String getOperatingSystemVersion(ComputeNodeType c) {
         List<Object> objList = c.getProcessorOrAdaptorsOrMemory();
-        if (objList != null) {
-            for (Object obj : objList) {
-                if (obj instanceof OSType) {
-                    OSType os = ((OSType) obj);
-                    return getOperatingSystemVersion(os);
-                }
-            }
+        OSType os = getOperatingSystem(objList);
+        if (os != null) {
+            return getOperatingSystemVersion(os);
         }
-
         return null;
     }
 
     /**
-     * Returns the OperatingSystem Version of a given ComputingCluster.
+     * Returns the OperatingSystem Version of a given Computing Cluster node.
      *
-     * @param c Computing cluster description object
+     * @param c Computing cluster node description object
      * @return
      */
-    public String getOperatingSystemVersion(ComputingClusterType c) {
-        OSType os = c.getOperatingSystem();
+    public String getOperatingSystemVersion(ClusterNodeType c) {
+        OSType os = getOperatingSystem(c);
         if (os != null) {
             return getOperatingSystemVersion(os);
         }
@@ -1568,13 +1596,9 @@ public class ResourcesFile {
      */
     public String getOperatingSystemVersion(ImageType image) {
         List<Object> objList = image.getAdaptorsOrOperatingSystemOrSoftware();
-        if (objList != null) {
-            for (Object obj : objList) {
-                if (obj instanceof OSType) {
-                    OSType os = (OSType) obj;
-                    return getOperatingSystemVersion(os);
-                }
-            }
+        OSType os = getOperatingSystem(objList);
+        if (os != null) {
+            return getOperatingSystemVersion(os);
         }
         return null;
     }
@@ -1605,6 +1629,21 @@ public class ResourcesFile {
      */
     public List<String> getApplications(ComputeNodeType c) {
         List<Object> objList = c.getProcessorOrAdaptorsOrMemory();
+        return getApplications(objList);
+    }
+
+    /**
+     * Returns the applications of a given ComputeNode.
+     *
+     * @param c Compute node description object
+     * @return
+     */
+    public List<String> getApplications(ClusterNodeType c) {
+        List<Object> objList = c.getMaxNumNodesOrProcessorOrOperatingSystem();
+        return getApplications(objList);
+    }
+
+    private List<String> getApplications(List<Object> objList) {
         if (objList != null) {
             for (Object obj : objList) {
                 if (obj instanceof SoftwareListType) {
@@ -1612,7 +1651,6 @@ public class ResourcesFile {
                 }
             }
         }
-
         return null;
     }
 
@@ -1624,16 +1662,7 @@ public class ResourcesFile {
      */
     public List<String> getApplications(ImageType image) {
         List<Object> objList = image.getAdaptorsOrOperatingSystemOrSoftware();
-        if (objList != null) {
-            // Loop for adaptors tag
-            for (Object obj : objList) {
-                if (obj instanceof SoftwareListType) {
-                    return ((SoftwareListType) obj).getApplication();
-                }
-            }
-        }
-
-        return null;
+        return getApplications(objList);
     }
 
     /**
@@ -1743,7 +1772,6 @@ public class ResourcesFile {
     public HashMap<String, String> getSharedDisks(ComputingClusterType c) {
         HashMap<String, String> disksInformation = new HashMap<>();
         AttachedDisksListType disks = c.getSharedDisks();
-        OSType os = c.getOperatingSystem();
         if (disks != null) {
             for (AttachedDiskType disk : disks.getAttachedDisk()) {
                 disksInformation.put(disk.getName(), disk.getMountPoint());

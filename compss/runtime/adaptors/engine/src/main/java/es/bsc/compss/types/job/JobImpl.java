@@ -497,7 +497,7 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
                 }
             }
             DataAccessId access = param.getDataAccessId();
-            if (access.isRead() && access.isWrite()) {
+            if (access != null && access.isRead() && access.isWrite()) {
                 String tgtName = "tmp" + ((WritingDataAccessId) access).getWrittenDataInstance().getRenaming();
                 Comm.removeDataKeepingValue(tgtName);
             }
@@ -522,8 +522,14 @@ public abstract class JobImpl<T extends COMPSsWorker> implements Job<T> {
     @Override
     public void cancel() throws Exception {
         this.cancelling = true;
-        this.cancelJob();
-        registerAllJobOutputsAsExpected();
+        try {
+            this.cancelJob();
+            registerAllJobOutputsAsExpected();
+        } catch (Exception e) {
+            LOGGER.error("ERROR: Cancelling job. Continuing the cancellation. Results will be ignored.", e);
+            registerAllJobOutputsAsExpected();
+            cancelled();
+        }
     }
 
     /**

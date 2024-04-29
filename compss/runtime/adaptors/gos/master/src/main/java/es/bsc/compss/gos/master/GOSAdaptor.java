@@ -142,7 +142,11 @@ public class GOSAdaptor implements CommAdaptor {
     public void stopSubmittedJobs() {
         for (GOSWorkerNode worker : workerNodes) {
             for (GOSJob job : worker.runningJobs.values()) {
-                job.cancelJob();
+                try {
+                    job.cancelJob();
+                } catch (Exception e) {
+                    LOGGER.warn("Exception cancelling job");
+                }
             }
         }
 

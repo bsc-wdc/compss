@@ -18,6 +18,7 @@ package es.bsc.compss.gos.master.monitoring.jobmonitor;
 
 import es.bsc.compss.gos.master.GOSJob;
 
+import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -36,8 +37,11 @@ public class GOSHostsInteractiveManager implements GOSHostsManager {
     }
 
     @Override
-    public synchronized void addJobMonitor(GOSJob job) {
-        activeJobs.put(job.getCompositeID(), new GOSSingleJobManager(job));
+    public void addJobMonitor(GOSJob job) {
+        synchronized (activeJobs) {
+            activeJobs.put(job.getCompositeID(), new GOSSingleJobManager(job));
+        }
+
     }
 
     @Override
@@ -49,16 +53,32 @@ public class GOSHostsInteractiveManager implements GOSHostsManager {
      * Monitor.
      */
     public void monitor() {
-        for (Object o : activeJobs.values().toArray()) {
-            GOSSingleJobManager sjm = (GOSSingleJobManager) o;
+        if (activeJobs.isEmpty()) {
+            return;
+        }
+
+        GOSSingleJobManager[] jobs = null;
+        synchronized (activeJobs) {
+            Collection<GOSSingleJobManager> col = activeJobs.values();
+            if (!col.isEmpty()) {
+                jobs = col.toArray(new GOSSingleJobManager[col.size()]);
+            }
+        }
+        if (jobs == null) {
+            return;
+        }
+
+        for (GOSSingleJobManager sjm : jobs) {
             if (sjm.monitor()) {
-                removeJobMonitor(sjm.getID());
+                removeJobMonitorID(sjm.getID());
             }
         }
     }
 
-    private synchronized void removeJobMonitor(String id) {
-        activeJobs.remove(id);
+    private void removeJobMonitorID(String id) {
+        synchronized (activeJobs) {
+            activeJobs.remove(id);
+        }
     }
 
     public int countActiveJobs() {
@@ -74,4 +94,9 @@ public class GOSHostsInteractiveManager implements GOSHostsManager {
 
     }
 
+    @Override
+    public void removeJobMonitor(GOSJob job) {
+        removeJobMonitorID(job.getCompositeID());
+
+    }
 }

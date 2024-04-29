@@ -975,28 +975,13 @@ public class ResourceLoader {
         clmd.addProcessor(procName, computingUnits, architecture, speed, type, internalMemory, propKey, propValue);
     }
 
-    private static ClusterMethodResourceDescription createComputingCluster(
-        es.bsc.compss.types.project.jaxb.ComputingClusterType clProject,
-        es.bsc.compss.types.resources.jaxb.ComputingClusterType clResources) {
-        ClusterMethodResourceDescription crd = new ClusterMethodResourceDescription();
-
-        List<es.bsc.compss.types.resources.jaxb.ProcessorType> processors;
-        processors = resources.getProcessors(clResources);
-        for (es.bsc.compss.types.resources.jaxb.ProcessorType p : processors) {
-            addProcessorToComputingCluster(crd, p);
-        }
-        return crd;
-    }
-
     private static Map<String, ClusterMethodResourceDescription> createMapComputingCluster(
         ComputingClusterType clProject, es.bsc.compss.types.resources.jaxb.ComputingClusterType clResources) {
 
         Map<String, ClusterMethodResourceDescription> map = new HashMap<>();
         List<ClusterNodeType> clusterNodes = getClusterNodes(clProject);
-        Map<String, es.bsc.compss.types.resources.jaxb.ClusterNodeType> clusterRList;
         es.bsc.compss.types.resources.jaxb.OSType os;
 
-        List<String> softwareNames = project.getSoftwareNames(clProject);
         es.bsc.compss.types.resources.jaxb.ClusterNodeType clusterR;
         for (ClusterNodeType cn : clusterNodes) {
             clusterR = resources.getClusterNode(clResources, cn.getName());
@@ -1006,7 +991,7 @@ public class ResourceLoader {
                 continue;
             }
             ClusterMethodResourceDescription mrd = new ClusterMethodResourceDescription();
-            os = clResources.getOperatingSystem();
+            os = resources.getOperatingSystem(clusterR);
             if (os != null) {
                 mrd.setOperatingSystemType(getOSParameter(os, "Type"));
                 mrd.setOperatingSystemDistribution(getOSParameter(os, "Distribution"));
@@ -1018,8 +1003,11 @@ public class ResourceLoader {
             mrd.setStorageSize(resources.getStorageSize(clusterR));
             mrd.setStorageBW(resources.getStorageBW(clusterR));
             mrd.setStorageType(resources.getStorageType(clusterR));
-            for (String app : softwareNames) {
-                mrd.addApplication(app);
+            List<String> apps = resources.getApplications(clusterR);
+            if (apps != null) {
+                for (String app : apps) {
+                    mrd.addApplication(app);
+                }
             }
 
         }

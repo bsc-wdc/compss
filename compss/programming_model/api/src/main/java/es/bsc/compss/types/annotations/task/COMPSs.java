@@ -54,6 +54,13 @@ public @interface COMPSs {
      */
     String appName() default Constants.UNASSIGNED;
 
+    /**
+     * Returns the COMPSs application main class.
+     * 
+     * @return the COMPSs application main class.
+     */
+    String appArgs() default Constants.UNASSIGNED;
+
     /*
      * COMPSs PROPERTIES
      * 

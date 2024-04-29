@@ -30,6 +30,7 @@ public class GOSGlobalJobMonitor {
     private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
 
     private final HashMap<String, GOSHostsManager> hostsMonitor = new HashMap<>();
+    private static final String DBG_PREFIX = "[GOS Transfer Monitor]";
 
 
     /**
@@ -38,6 +39,7 @@ public class GOSGlobalJobMonitor {
      * @return if there is active jobs running
      */
     public boolean monitor() {
+        LOGGER.debug(DBG_PREFIX + "Monitoring GOS jobs");
         for (GOSHostsManager hm : hostsMonitor.values()) {
             hm.monitor();
         }
@@ -52,7 +54,7 @@ public class GOSGlobalJobMonitor {
     public void addJobMonitor(GOSJob job) {
         String hostID = job.getHostName();
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(job.jobPrefix + "Added job monitor");
+            LOGGER.debug(DBG_PREFIX + job.jobPrefix + "Added job monitor");
         }
         if (!hostsMonitor.containsKey(hostID)) {
             // Init HostJobManager
@@ -67,6 +69,23 @@ public class GOSGlobalJobMonitor {
     }
 
     /**
+     * Remove job monitor.
+     * 
+     * @param job Job to remove.
+     */
+    public void removeJobMonitor(GOSJob job) {
+        String hostID = job.getHostName();
+        if (hostID != null) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug(DBG_PREFIX + job.jobPrefix + "Removing job monitor");
+            }
+            if (hostsMonitor.containsKey(hostID)) {
+                hostsMonitor.get(hostID).removeJobMonitor(job);
+            }
+        }
+    }
+
+    /**
      * Returns if exists any job monitored.
      * 
      * @return true if there is a job been monitored.
@@ -77,6 +96,7 @@ public class GOSGlobalJobMonitor {
                 return true;
             }
         }
+        LOGGER.debug(DBG_PREFIX + "No more jobs running.");
         return false;
     }
 

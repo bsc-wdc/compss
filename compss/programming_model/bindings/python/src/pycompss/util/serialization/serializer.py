@@ -165,6 +165,9 @@ def get_serializer_priority(
             "Get serializer priority for object of type: %s" % str(type(obj))
         )
 
+    if FORCED_SERIALIZER > -1:
+        return [IDX2LIB[FORCED_SERIALIZER]]
+
     primitives = (int, str, bool, float)
     # primitives should be (de)serialized with for the compatibility with the
     # Runtime- only JSON objects can be deserialized in Java.
@@ -181,8 +184,6 @@ def get_serializer_priority(
         return [pyarrow] + serializers
     if object_belongs_to_module(obj, "pyeddl") and PYARROW_AVAILABLE:
         return [eddlNet] + serializers
-    if FORCED_SERIALIZER > -1:
-        return [IDX2LIB[FORCED_SERIALIZER]]
     return serializers
 
 

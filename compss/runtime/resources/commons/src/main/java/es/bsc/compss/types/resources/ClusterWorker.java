@@ -91,13 +91,18 @@ public class ClusterWorker extends Worker<MethodResourceDescription> {
 
     @Override
     public boolean canRun(Implementation implementation) {
+
         if (this.isLost()) {
             return false;
         }
         if (implementation.getTaskType() == TaskType.METHOD) {
+            LOGGER.debug("******* Executiong Can Run in " + this.name);
+            LOGGER.debug("******* Description: " + this.description);
             MethodResourceDescription requirements = (MethodResourceDescription) implementation.getRequirements();
             boolean res = this.description.contains(requirements);
+            LOGGER.debug("******** Result in Can Run in " + this.name + " is " + res);
             return res;
+
         }
         return false;
 

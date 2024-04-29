@@ -146,7 +146,8 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
     }
 
     @Override
-    protected void doCanceled() {
+    protected boolean doCanceled() {
+        return true;
 
     }
 

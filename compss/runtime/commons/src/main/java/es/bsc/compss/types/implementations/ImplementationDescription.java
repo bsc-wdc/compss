@@ -165,7 +165,7 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
 
                 case COMPSs:
                     if (implTypeArgs.length != COMPSsDefinition.NUM_PARAMS) {
-                        throw new IllegalArgumentException("Incorrect parameters for type MPI on " + implSignature);
+                        throw new IllegalArgumentException("Incorrect parameters for type COMPSS on " + implSignature);
                     }
                     id = new ImplementationDescription<>((D) new COMPSsDefinition(implTypeArgs, 0), implSignature,
                         localProcessing, implConstraints, prolog, epilog);
@@ -212,8 +212,11 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
                         throw new IllegalArgumentException(
                             "Incorrect parameters for type MultiNode on " + implSignature);
                     }
-                    id = new ImplementationDescription<>((D) new MultiNodeDefinition(implTypeArgs, 0), implSignature,
-                        localProcessing, implConstraints, prolog, epilog);
+                    MultiNodeDefinition mnDef = new MultiNodeDefinition(implTypeArgs, 0);
+                    implConstraints.scaleUpBy(mnDef.getPPN());
+
+                    id = new ImplementationDescription<>((D) mnDef, implSignature, localProcessing, implConstraints,
+                        prolog, epilog);
                     break;
             }
         }

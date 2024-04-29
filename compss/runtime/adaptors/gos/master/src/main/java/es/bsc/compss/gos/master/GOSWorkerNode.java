@@ -173,12 +173,15 @@ public class GOSWorkerNode extends COMPSsWorker {
             case EXTERNAL_STREAM_T:
             case PSCO_T:
             case EXTERNAL_PSCO_T:
+            case COLLECTION_T:
+            case DICT_COLLECTION_T:
                 path = ProtocolType.FILE_URI.getSchema() + this.config.getSandboxWorkingDir() + name;
                 break;
             case BINDING_OBJECT_T:
                 path = ProtocolType.BINDING_URI.getSchema() + this.config.getSandboxWorkingDir() + name;
                 break;
             default:
+                LOGGER.warn("Unrecognized type: " + type);
                 return null;
         }
         // Convert path to URI

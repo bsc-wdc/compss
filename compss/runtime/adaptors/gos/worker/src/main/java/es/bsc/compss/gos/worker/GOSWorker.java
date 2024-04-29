@@ -379,6 +379,7 @@ public class GOSWorker implements InvocationContext {
         ImplementationDescription<MethodResourceDescription, AbstractMethodImplementationDefinition> implDesc =
             new ImplementationDescription<>(implDef, "", false, null, null, null);
         AbstractMethodImplementation impl = new AbstractMethodImplementation(0, 0, implDesc);
+        System.out.println("Implementation:" + impl.toString());
         return new GOSInvocation(debug, lang, impl, args, argPosition);
     }
 

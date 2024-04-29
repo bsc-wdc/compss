@@ -64,7 +64,7 @@ submit() {
   fi
   local killCommand=$QUEUE_JOB_CANCEL_CMD
   #substitute %JOBID% with the batchId
-  killCommand="${killCommand/"%JOBID%"/"$batchID"}"
+  killCommand="${killCommand/"%JOBID%"/"$batchID"}""; echo $batchID CANCEL > $responsePath" 
   create_kill_script_batch "$killScriptDir" "$killScriptPath" "$killCommand"
 }
 
@@ -114,6 +114,7 @@ EOT
 
 add_trap_to_script(){
        cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
+  source "${GOS_SCRIPTS_DIR}response.sh"
   on_error_pre(){
         if [ "${REDIRECT_ERROR_TRAP}" = "true" ]; then
                 exit 1

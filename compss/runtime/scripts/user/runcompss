@@ -34,6 +34,7 @@ DEFAULT_GRAPH_ARGUMENT=true
 DEFAULT_MONITORING_INTERVAL_ARGUMENT=2000
 DEFAULT_DEBUGGER_ARGUMENT=true
 DEFAULT_SHUTDOWN_IN_NODE_FAILURE=false
+DEFAULT_PROVENANCE_YAML="ro-crate-info.yaml"
 
 APPLICATION_ERROR="ERROR: Application name not provided"
 LANGUAGE_ERROR="ERROR: Value of option --lang must be: java, c or python"
@@ -215,8 +216,9 @@ show_opts() {
                                             Default: ${DEFAULT_WALL_CLOCK_LIMIT}
     --shutdown_in_node_failure=<bool>       Stop the whole execution in case of Node Failure.
                                             Default: ${DEFAULT_SHUTDOWN_IN_NODE_FAILURE}
-    --provenance, -p                        Generate COMPSs workflow provenance data in RO-Crate format from YAML file. Automatically activates --graph and --output_profile.
-                                            Default: false
+    --provenance=<yaml>,
+    --provenance, -p                        Generate COMPSs workflow provenance data in RO-Crate format using a YAML configuration file. Automatically activates --graph and --output_profile.
+                                            Default: ro-crate-info.yaml
 
 * Application name:
     For Java applications:   Fully qualified name of the application
@@ -289,13 +291,15 @@ get_args() {
         ;;
       p)
         # Enable provenance
+        provenance_yaml=${DEFAULT_PROVENANCE_YAML}
+        echo "PROVENANCE | Setting YAML to 'ro-crate-info.yaml' by default"
         provenance=true
         if [ -z "$output_profile" ] ; then
-          echo "PROVENANCE | Setting output_profile to App_Profile.json by default"
-          output_profile="App_Profile.json"
+          echo "PROVENANCE | Setting 'output_profile' to 'App_Profile.json' by default"
+          output_profile="${PWD}/App_Profile.json"
         fi
         if [ -z "$graph" ] ; then
-          echo "PROVENANCE | Setting --graph to true by default"
+          echo "PROVENANCE | Setting 'graph' to 'true' by default"
           graph=${DEFAULT_GRAPH_ARGUMENT}
         fi
         ;;
@@ -631,15 +635,31 @@ get_args() {
             # Set wall_clock_limit
             wall_clock_limit=${OPTARG//wall_clock_limit=/}
             ;;
-          provenance)
-            # Enable provenance
+          provenance=*)
+            # Enable provenance, YAML file specified as parameter
+            provenance_yaml=${OPTARG//provenance=/}
+            echo "PROVENANCE | Setting YAML to '${provenance_yaml}'"
             provenance=true
             if [ -z "$output_profile" ] ; then
-              echo "PROVENANCE | Setting output_profile to App_Profile.json by default"
-              output_profile="App_Profile.json"
+              echo "PROVENANCE | Setting 'output_profile' to 'App_Profile.json' by default"
+              output_profile="${PWD}/App_Profile.json"
             fi
             if [ -z "$graph" ] ; then
-              echo "PROVENANCE | Setting --graph to true by default"
+              echo "PROVENANCE | Setting 'graph' to 'true' by default"
+              graph=${DEFAULT_GRAPH_ARGUMENT}
+            fi
+            ;;
+          provenance)
+            # Enable provenance
+            provenance_yaml=${DEFAULT_PROVENANCE_YAML}
+            echo "PROVENANCE | Setting YAML to 'ro-crate-info.yaml' by default"
+            provenance=true
+            if [ -z "$output_profile" ] ; then
+              echo "PROVENANCE | Setting 'output_profile' to 'App_Profile.json' by default"
+              output_profile="${PWD}/App_Profile.json"
+            fi
+            if [ -z "$graph" ] ; then
+              echo "PROVENANCE | Setting 'graph' to 'true' by default"
               graph=${DEFAULT_GRAPH_ARGUMENT}
             fi
             ;;
@@ -732,32 +752,45 @@ fi
 start_compss_app
 
 if [ ${provenance} ]; then
-  if [ -e .enqueue_compss ]; then
-    mv .enqueue_compss compss_submission_command_line.txt
-  else
+  if [ -z "${ENQUEUE_COMPSS_ARGS}" ]; then
     echo "runcompss" $all_arguments > compss_submission_command_line.txt
+  else
+    echo "enqueue_compss ${ENQUEUE_COMPSS_ARGS}" > compss_submission_command_line.txt
   fi
 
-  echo "PROVENANCE | Generating graph for Workflow Provenance"
-  start=`date +%s`
-  "${COMPSS_HOME}Runtime/scripts/utils/compss_gengraph" "svg" "${specific_log_dir}/monitor/complete_graph.dot"
-  end=`date +%s`
-  echo "PROVENANCE | Ended generating graph for Workflow Provenance. TIME: $(( end - start )) s"
-
   echo "PROVENANCE | STARTING WORKFLOW PROVENANCE SCRIPT"
-  python "${COMPSS_HOME}Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py" "ro-crate-info.yaml" "${specific_log_dir}/dataprovenance.log"
+  echo "PROVENANCE | If needed, Provenance generation can be triggered by hand using the following commands:"
+  echo "PROVENANCE | ${COMPSS_HOME}Runtime/scripts/utils/compss_gengraph svg ${specific_log_dir}/monitor/complete_graph.dot"
+  echo "PROVENANCE | python3 ${COMPSS_HOME}Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py ${provenance_yaml} ${specific_log_dir}/dataprovenance.log"
+  if [ ! -z "${BSC_MACHINE}" ]; then
+    echo "PROVENANCE | TIP for BSC cluster users: before triggering generation by hand, run first: salloc -p interactive"
+  fi
+  echo "PROVENANCE | Generating graph for Workflow Provenance"
+  edges=`grep "\->" ${specific_log_dir}/monitor/complete_graph.dot | wc -l`
+  echo "PROVENANCE | Number of edges in the graph: ${edges}"
+  if [ ${edges} -lt 6500 ]; then
+    start=`date +%s`
+    "${COMPSS_HOME}Runtime/scripts/utils/compss_gengraph" "svg" "${specific_log_dir}/monitor/complete_graph.dot"
+    end=`date +%s`
+    echo "PROVENANCE | Ended generating graph for Workflow Provenance. TIME: $(( end - start )) s"
+  else
+    echo "PROVENANCE | WARNING: the workflow has an extremely large number of edges. Aborting workflow diagram generation"
+  fi
+
+  echo "PROVENANCE | STARTING RO-CRATE GENERATION SCRIPT"
+  python3 "${COMPSS_HOME}Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py" "${provenance_yaml}" "${specific_log_dir}/dataprovenance.log"
   if [ $? == 0 ]; then # Check if generation has ended correctly, if not, do not cleanup
-    if [ "${output_profile}" == "App_Profile.json" ]; then # Auto-generated, user doesn't want it
-      rm -f App_Profile.json compss_submission_command_line.txt "${specific_log_dir}/monitor/complete_graph.svg"
+    if [ "${output_profile}" == "${PWD}/App_Profile.json" ]; then # Auto-generated, user doesn't want it
+      rm -f "${PWD}/App_Profile.json" compss_submission_command_line.txt "${specific_log_dir}/monitor/complete_graph.svg"
+    else
+      rm -f compss_submission_command_line.txt "${specific_log_dir}/monitor/complete_graph.svg"
     fi
   else
     echo "PROVENANCE | WORKFLOW PROVENANCE GENERATION HAS FAILED"
     echo "PROVENANCE | Temporary files have not been erased: App_Profile.json compss_submission_command_line.txt ${specific_log_dir}/monitor/complete_graph.svg"
-    echo "PROVENANCE | Provenance generation can be triggered by hand using the following commands:"
-    echo "PROVENANCE | ${COMPSS_HOME}Runtime/scripts/utils/compss_gengraph svg ${specific_log_dir}/monitor/complete_graph.dot"
-    echo "PROVENANCE | python3 ${COMPSS_HOME}Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py ro-crate-info.yaml ${specific_log_dir}/dataprovenance.log"
   fi
   echo "PROVENANCE | ENDED WORKFLOW PROVENANCE SCRIPT"
 fi
+  
 
-rm -f .enqueue_compss
+unset ENQUEUE_COMPSS_ARGS

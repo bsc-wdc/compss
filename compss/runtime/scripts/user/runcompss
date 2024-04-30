@@ -752,10 +752,10 @@ fi
 start_compss_app
 
 if [ ${provenance} ]; then
-  if [ -e .enqueue_compss ]; then
-    mv .enqueue_compss compss_submission_command_line.txt
-  else
+  if [ -z "${ENQUEUE_COMPSS_ARGS}" ]; then
     echo "runcompss" $all_arguments > compss_submission_command_line.txt
+  else
+    echo "enqueue_compss ${ENQUEUE_COMPSS_ARGS}" > compss_submission_command_line.txt
   fi
 
   echo "PROVENANCE | STARTING WORKFLOW PROVENANCE SCRIPT"
@@ -793,4 +793,4 @@ if [ ${provenance} ]; then
 fi
   
 
-rm -f .enqueue_compss
+unset ENQUEUE_COMPSS_ARGS

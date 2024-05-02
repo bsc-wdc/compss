@@ -521,7 +521,8 @@ setup_environment(){
   # Export environment
   #added
   #export CLASSPATH=$cpNW:$CLASSPATH
-  #export PYTHONPATH=$pythonpath:$PYTHONPATH
+  COMPSS_HOME="${SCRIPT_DIR}/../../../../.."
+  export PYTHONPATH=$pythonpath:$PYTHONPATH:${COMPSS_HOME}/Dependencies/threadpoolctl/
   #export LD_LIBRARY_PATH=$libPathNW:${SCRIPT_DIR}/../../../../../Bindings/bindings-common/lib:${SCRIPT_DIR}/../../../../../Bindings/c/lib:$LD_LIBRARY_PATH
 }
 

@@ -536,7 +536,6 @@ def execute_task(
     params: list,
     tracing: bool,
     logger: logging.Logger,
-    logger_cfg: str,
     log_files: tuple,
     python_mpi: bool = False,
     collections_layouts: typing.Dict[str, typing.Tuple[int, int, int]] = {},
@@ -552,7 +551,6 @@ def execute_task(
     :param params: List of parameters.
     :param tracing: Tracing flag.
     :param logger: Logger to use.
-    :param logger_cfg: Logger configuration file.
     :param log_files: Tuple with (out filename, err filename).
                       None to avoid stdout and sdterr fd redirection.
     :param python_mpi: If it is a MPI task.
@@ -614,7 +612,6 @@ def execute_task(
         "compss_storage_conf": storage_conf,
         "compss_return_length": return_length,
         "compss_logger": logger,
-        "compss_log_cfg": logger_cfg,
         "compss_log_files": log_files,
         "compss_python_MPI": python_mpi,
         "compss_collections_layouts": collections_layouts,
@@ -629,7 +626,6 @@ def execute_task(
     if __debug__:
         logger.debug("COMPSs parameters:")
         logger.debug("\t- Storage conf: %s", str(storage_conf))
-        logger.debug("\t- Logger cfg: %s", str(logger_cfg))
         if log_files:
             logger.debug("\t- Log out file: %s", str(log_files[0]))
             logger.debug("\t- Log err file: %s", str(log_files[1]))

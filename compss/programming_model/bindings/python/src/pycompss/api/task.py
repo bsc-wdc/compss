@@ -42,10 +42,13 @@ from pycompss.runtime.task.definitions.function import FunctionDefinition
 from pycompss.runtime.task.definitions.constraints import ConstraintDescription
 from pycompss.runtime.task.master import TaskMaster
 from pycompss.runtime.task.worker import TaskWorker
-from pycompss.util.logger.helpers import update_logger_handlers
+from pycompss.util.logger.helpers import init_logging_worker
+from pycompss.util.logger.remittent import LOG_REMITTENT
+from pycompss.util.logger.level import LOG_LEVEL
 from pycompss.util.objects.properties import get_module_name
 from pycompss.util.tracing.helpers import EventInsideWorker
 from pycompss.util.tracing.helpers import EventMaster
+from pycompss.util.tracing.helpers import TRACING
 from pycompss.util.tracing.types_events_master import TRACING_MASTER
 from pycompss.util.tracing.types_events_worker import TRACING_WORKER
 from pycompss.util.typing_helper import typing
@@ -57,8 +60,8 @@ if __debug__:
     logger = logging.getLogger(__name__)
 
 
-class Task:  # pylint: disable=R0903, R0913
-    # disable=too-few-public-methods, too-many-instance-attributes
+class Task:  # pylint: disable=R0902, R0903
+    # disable=too-many-instance-attributes, too-few-public-methods,
     """This is the Task decorator implementation.
 
     It is implemented as a class and consequently this implementation can be
@@ -206,8 +209,10 @@ class Task:  # pylint: disable=R0903, R0913
                     if __debug__:
                         # Update the whole logger since it will be in the
                         # job out/err files
-                        update_logger_handlers(
-                            kwargs["compss_log_cfg"],
+                        init_logging_worker(
+                            LOG_REMITTENT.WORKER,
+                            LOG_LEVEL.DEBUG,
+                            TRACING.is_tracing(),
                             kwargs["compss_log_files"][0],
                             kwargs["compss_log_files"][1],
                         )
@@ -228,7 +233,11 @@ class Task:  # pylint: disable=R0903, R0913
                 if is_nesting_enabled:
                     if __debug__:
                         # Reestablish logger handlers
-                        update_logger_handlers(kwargs["compss_log_cfg"])
+                        init_logging_worker(
+                            LOG_REMITTENT.WORKER,
+                            LOG_LEVEL.DEBUG,
+                            TRACING.is_tracing(),
+                        )
                 return worker_result
 
             # There is no compss_key in kwargs.keys() => task invocation
@@ -289,7 +298,7 @@ class Task:  # pylint: disable=R0903, R0913
         # self.param_kwargs and self.param_defaults
         # And gives non-None default values to them if necessary
         d_t = dummy_task(args, kwargs)
-        return d_t.__call__(self.decorated_function.function)(*args, **kwargs)
+        return d_t(self.decorated_function.function)(*args, **kwargs)
 
     def __check_core_element__(
         self, kwargs: dict, user_function: typing.Callable

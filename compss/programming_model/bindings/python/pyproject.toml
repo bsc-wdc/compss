@@ -1,20 +1,91 @@
 [build-system]
 requires = [
-    "setuptools>=42",
-    "wheel"
+    "setuptools>=61.0",
+    "wheel",
+    "cython"
 ]
 build-backend = "setuptools.build_meta"
 
-[tool.bandit]
- exclude_dirs = ["tests/"]
- # tests = []
- skips = [
-     "B301",  # skips pickle
-     "B403",  # skips import_pickle
-     "B404",  # skips import_subprocess
-     "B603",  # skips subprocess_without_shell_equals_true
-     "B311",  # skips random
- ]
+[project]
+    name = "pycompss"
+    dynamic = ["version"]
+    authors = [
+      { name="Workflows and Distributed Computing Group (WDC) - Barcelona Supercomputing Center (BSC)", email="support-compss@bsc.es" },
+    ]
+    maintainers = [
+      { name="Workflows and Distributed Computing Group (WDC) - Barcelona Supercomputing Center (BSC)", email="support-compss@bsc.es" },
+    ]
+    description = "Python Binding for COMP Superscalar Runtime"
+    readme = "README.md"
+    requires-python = ">=3.6"
+    license = { file = "LICENSE.txt" }
+    keywords = ["distributed computing", "PyCOMPSs", "COMPSs", "HPC", "parallelization"]
+    classifiers = [
+        "Development Status :: 5 - Production/Stable",
+        "Environment :: Console",
+        "Intended Audience :: Science/Research",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Information Technology",
+        "License :: OSI Approved :: Apache Software License",
+        "Operating System :: Unix",
+        "Operating System :: POSIX :: Linux",
+        "Operating System :: MacOS",
+        "Programming Language :: C",
+        "Programming Language :: C++",
+        "Programming Language :: Java",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3 :: Only",
+        "Topic :: System :: Distributed Computing",
+        "Topic :: Scientific/Engineering",
+        "Topic :: Software Development",
+        "Topic :: Utilities"
+    ]
 
-#[tool.bandit.assert_used]
-# skips = ["*/test_*.py"]  # skips assertions in unittest files
+[project.optional-dependencies]
+    extended = ["dill",
+                "numpy",
+    ]
+    full = ["dill",
+            "numpy",
+            "jupyter",
+            "mypy",
+    ]
+
+[project.urls]
+    Homepage = "http://compss.bsc.es"
+    Documentation = "https://pycompss.readthedocs.io/"
+    Repository = "https://github.com/bsc-wdc/compss"
+    Issues = "https://github.com/bsc-wdc/compss/issues"
+    Changelog = "https://github.com/bsc-wdc/compss/blob/stable/changelog"
+
+[tool.setuptools.dynamic]
+    version = { file = ["VERSION.txt"] }
+
+[tool.setuptools]
+    include-package-data = true
+
+[tool.setuptools.packages.find]
+    where = ["src"]
+
+[tool.setuptools.package-data]
+    "*" = ["*.c", "*.h", "*.cc", "*.json"]
+
+[tool.bandit]
+    exclude_dirs = ["tests/"]
+    # tests = []
+    skips = [
+        "B301",  # skips pickle
+        "B403",  # skips import_pickle
+        "B404",  # skips import_subprocess
+        "B603",  # skips subprocess_without_shell_equals_true
+        "B311",  # skips random
+    ]
+
+# [tool.bandit.assert_used]
+#     skips = ["*/test_*.py"]  # skips assertions in unittest files

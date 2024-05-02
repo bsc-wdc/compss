@@ -43,6 +43,7 @@ class LinkMessages:
         "open_task_group",
         "close_task_group",
         "cancel_task_group",
+        "snapshot",
         "get_logging_path",
         "get_master_working_path",
         "get_number_of_resources",
@@ -74,6 +75,7 @@ class LinkMessages:
         self.open_task_group = "OPEN_TASK_GROUP"
         self.close_task_group = "CLOSE_TASK_GROUP"
         self.cancel_task_group = "CANCEL_TASK_GROUP"
+        self.snapshot = "SNAPSHOT"
         self.get_logging_path = "GET_LOGGING_PATH"
         self.get_master_working_path = "GET_MASTER_WORKING_PATH"
         self.get_number_of_resources = "GET_NUMBER_OF_RESOURCES"

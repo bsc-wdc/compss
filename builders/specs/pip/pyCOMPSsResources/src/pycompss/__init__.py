@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #
-#  Copyright 2002-2022 Barcelona Supercomputing Center (www.bsc.es)
+#  Copyright 2002-2023 Barcelona Supercomputing Center (www.bsc.es)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -17,6 +17,4 @@
 
 # -*- coding: utf-8 -*-
 
-[metadata]
-# This includes the license file(s) in the wheel.
-license_files = LICENSE.txt
+"""This package contains the COMPSs Python Binding, known as PyCOMPSs."""

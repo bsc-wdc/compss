@@ -26,7 +26,6 @@ method_name has_target num_params par_type_1 par_1 ... par_type_n par_n
 """
 
 import logging
-import os
 import sys
 
 from pycompss.streams.components.distro_stream_client import (
@@ -34,6 +33,8 @@ from pycompss.streams.components.distro_stream_client import (
 )
 from pycompss.util.context import CONTEXT
 from pycompss.util.logger.helpers import init_logging_worker
+from pycompss.util.logger.remittent import LOG_REMITTENT
+from pycompss.util.logger.level import LOG_LEVEL
 from pycompss.util.tracing.helpers import dummy_context
 from pycompss.util.tracing.helpers import EventWorker
 from pycompss.util.tracing.helpers import trace_multiprocessing_worker
@@ -46,7 +47,10 @@ from pycompss.worker.commons.worker import execute_task
 
 
 def compss_worker(
-    tracing: bool, task_id: str, storage_conf: str, params: list, log_json: str
+    tracing: bool,
+    task_id: str,
+    storage_conf: str,
+    params: list,
 ) -> int:
     """Worker main method (invoked from __main__).
 
@@ -54,7 +58,6 @@ def compss_worker(
     :param task_id: Task identifier.
     :param storage_conf: Storage configuration file.
     :param params: Parameters following the common order of the workers.
-    :param log_json: Logger configuration file.
     :return: Exit code.
     """
     if __debug__:
@@ -70,7 +73,6 @@ def compss_worker(
         params,
         tracing,
         logger,
-        log_json,
         (),
         False,
         {},
@@ -137,23 +139,21 @@ def main() -> None:
             )
 
         # Load log level configuration file
-        worker_path = os.path.dirname(os.path.realpath(__file__))
         if log_level in ("true", "debug"):
             # Debug
-            log_json = "".join(
-                (worker_path, "/../../../log/logging_gat_worker_debug.json")
+            init_logging_worker(
+                LOG_REMITTENT.GAT_WORKER, LOG_LEVEL.DEBUG, tracing
             )
         elif log_level == "info":
             # Info
-            log_json = "".join(
-                (worker_path, "/../../../log/logging_gat_worker_info.json")
+            init_logging_worker(
+                LOG_REMITTENT.GAT_WORKER, LOG_LEVEL.INFO, tracing
             )
         else:
             # Default (off)
-            log_json = "".join(
-                (worker_path, "/../../../log/logging_gat_worker_off.json")
+            init_logging_worker(
+                LOG_REMITTENT.GAT_WORKER, LOG_LEVEL.OFF, tracing
             )
-        init_logging_worker(log_json, tracing)
 
         if persistent_storage:
             # Initialize storage
@@ -166,9 +166,7 @@ def main() -> None:
                 initStorageAtWorker(config_file_path=storage_conf)
 
         # Init worker
-        exit_code = compss_worker(
-            tracing, str(task_id), storage_conf, params, log_json
-        )
+        exit_code = compss_worker(tracing, str(task_id), storage_conf, params)
 
         if streaming:
             # Finish streaming

@@ -63,7 +63,7 @@
   module unload python3/intel/3.6.2 intel/compiler/64/2017/17.0.2
   module load python-intel-19.5/3.6-with-tensorflow
   cd Bindings/python
-  ./install "${targetDir}"/Bindings/python false python3
+  ./install.sh "${targetDir}"/Bindings/python false python3
   module unload python-intel-19.5/3.6-with-tensorflow
   cd ../..
 

@@ -32,6 +32,7 @@ import sys
 import time
 import traceback
 import gc
+import contextlib
 from pycompss.util.process.manager import Queue
 from pycompss.util.process.manager import DictProxy
 from pycompss.runtime.management.object_tracker import OT
@@ -74,6 +75,13 @@ from pycompss.worker.piper.cache.tracker import CACHE_TRACKER
 from pycompss.streams.components.distro_stream_client import (
     DistroStreamClientHandler,
 )
+
+try:
+    from threadpoolctl import threadpool_limits
+
+    THREADPOOLCTL_AVAILABLE = True
+except ImportError:
+    THREADPOOLCTL_AVAILABLE = False
 
 COMPSS_WITH_DLB = False
 if int(os.getenv("COMPSS_WITH_DLB", 0)) >= 1:
@@ -185,7 +193,6 @@ class ExecutorConf:
         "tracing",
         "storage_conf",
         "logger",
-        "logger_cfg",
         "persistent_storage",
         "storage_loggers",
         "stream_backend",
@@ -205,7 +212,6 @@ class ExecutorConf:
         tracing: bool,
         storage_conf: str,
         logger: logging.Logger,
-        logger_cfg: str,
         persistent_storage: bool,
         storage_loggers: typing.List[logging.Logger],
         stream_backend: str,
@@ -224,7 +230,6 @@ class ExecutorConf:
         :param tracing: Enable tracing for the executor.
         :param storage_conf: Storage configuration file.
         :param logger: Main logger.
-        :param logger_cfg: Logger configuration file.
         :param persistent_storage: If persistent storage is enabled
         :param storage_loggers: List of supported storage loggers
                                 (empty if running w/o storage).
@@ -242,7 +247,6 @@ class ExecutorConf:
         self.tracing = tracing
         self.storage_conf = storage_conf
         self.logger = logger
-        self.logger_cfg = logger_cfg
         self.persistent_storage = persistent_storage
         self.storage_loggers = storage_loggers
         self.stream_backend = stream_backend
@@ -311,7 +315,6 @@ def executor(
             # Reload logger
             (
                 conf.logger,
-                conf.logger_cfg,
                 conf.storage_loggers,
                 _,
             ) = load_loggers(conf.debug, conf.persistent_storage)
@@ -432,7 +435,6 @@ def executor(
                     queue,
                     tracing,
                     logger,
-                    conf.logger_cfg,
                     logger_handlers,
                     logger_level,
                     logger_formatter,
@@ -497,7 +499,6 @@ def process_message(
     queue: typing.Optional[Queue],
     tracing: bool,
     logger: logging.Logger,
-    logger_cfg: str,
     logger_handlers: list,
     logger_level: int,
     logger_formatter: typing.Any,
@@ -517,7 +518,6 @@ def process_message(
     :param queue: Queue where to drop the process exceptions.
     :param tracing: Tracing.
     :param logger: Logger.
-    :param logger_cfg: Logger configuration file.
     :param logger_handlers: Logger handlers.
     :param logger_level: Logger level.
     :param logger_formatter: Logger formatter.
@@ -548,7 +548,6 @@ def process_message(
             queue,
             tracing,
             logger,
-            logger_cfg,
             logger_handlers,
             logger_level,
             logger_formatter,
@@ -586,7 +585,6 @@ def process_task(
     queue: typing.Optional[Queue],
     tracing: bool,
     logger: logging.Logger,
-    logger_cfg: str,
     logger_handlers: list,
     logger_level: int,
     logger_formatter: typing.Any,
@@ -606,7 +604,6 @@ def process_task(
     :param queue: Queue where to drop the process exceptions.
     :param tracing: Tracing.
     :param logger: Logger.
-    :param logger_cfg: Logger configuration file
     :param logger_handlers: Logger handlers.
     :param logger_level: Logger level.
     :param logger_formatter: Logger formatter.
@@ -777,22 +774,28 @@ def process_task(
             # Clean object tracker
             OT.clean_object_tracker(hard_stop=False)
 
-            # Execute task
-            result = execute_task(
-                process_name,
-                storage_conf,
-                current_line[10:],
-                tracing,
-                logger,
-                logger_cfg,
-                (job_out, job_err),
-                False,
-                {},
-                in_cache_queue,
-                out_cache_queue,
-                cache_ids,
-                cache_profiler,
-            )
+            if not COMPSS_WITH_DLB and THREADPOOLCTL_AVAILABLE:
+                thread_context = threadpool_limits(limits=int(computing_units))
+            else:
+                thread_context = contextlib.nullcontext()
+
+            with thread_context:
+                # Execute task
+                result = execute_task(
+                    process_name,
+                    storage_conf,
+                    current_line[10:],
+                    tracing,
+                    logger,
+                    (job_out, job_err),
+                    False,
+                    {},
+                    in_cache_queue,
+                    out_cache_queue,
+                    cache_ids,
+                    cache_profiler,
+                )
+
             # The ignored variable is timed_out
             exit_value, new_types, new_values, _, except_msg = result
 

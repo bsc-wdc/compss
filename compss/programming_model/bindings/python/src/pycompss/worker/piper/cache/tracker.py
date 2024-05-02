@@ -66,7 +66,10 @@ try:
 
     NP = numpy
 except ImportError:
-    print("WARNING: Import ERROR importing Numpy")
+    print(
+        "WARNING: No Numpy available. "
+        "Cache using Numpy objects will not be available"
+    )
 
 
 def __set_cuda_libs__():
@@ -182,9 +185,9 @@ class CacheTrackerConf:
         self.cache_profiler = cache_profiler
 
         self.gpu_cache_size = gpu_cache_size
-        self.gpu_arr_ptr: typing.Dict[
-            str, typing.List[int]
-        ] = {}  # cache_id - (cupy_data_ptr, device_id)
+        self.gpu_arr_ptr: typing.Dict[str, typing.List[int]] = (
+            {}
+        )  # cache_id - (cupy_data_ptr, device_id)
 
 
 class CacheTracker:

@@ -64,8 +64,8 @@ from pycompss.util.interactive.flags import check_flags
 from pycompss.util.interactive.flags import print_flag_issues
 from pycompss.util.interactive.utils import parameters_to_dict
 from pycompss.util.logger.helpers import clean_log_configs
-from pycompss.util.logger.helpers import get_logging_cfg_file
 from pycompss.util.logger.helpers import init_logging
+from pycompss.util.logger.remittent import LOG_REMITTENT
 from pycompss.util.process.manager import initialize_multiprocessing
 from pycompss.util.storages.persistent import master_init_storage
 from pycompss.util.storages.persistent import master_stop_storage
@@ -254,11 +254,7 @@ def compss_main() -> None:
     # Setup logging
     binding_log_path = get_log_path()
     GLOBALS.set_log_directory(binding_log_path)
-    log_path = os.path.join(
-        str(os.getenv("COMPSS_HOME")), "Bindings", "python", "3", "log"
-    )
-    logging_cfg_file = get_logging_cfg_file(log_level)
-    init_logging(os.path.join(log_path, logging_cfg_file), binding_log_path)
+    init_logging(LOG_REMITTENT.MASTER, log_level, binding_log_path)
     logger = logging.getLogger("pycompss.runtime.launch")
     LAUNCH_STATUS.set_logger(logger)
 
@@ -626,15 +622,7 @@ def launch_pycompss_application(
     # Setup logging
     binding_log_path = get_log_path()
     GLOBALS.set_log_directory(binding_log_path)
-    log_path = os.path.join(
-        all_vars["compss_home"],
-        "Bindings",
-        "python",
-        str(all_vars["major_version"]),
-        "log",
-    )
-    logging_cfg_file = get_logging_cfg_file(log_level)
-    init_logging(os.path.join(log_path, logging_cfg_file), binding_log_path)
+    init_logging(LOG_REMITTENT.MASTER, log_level, binding_log_path)
     logger = logging.getLogger("pycompss.runtime.launch")
 
     # Setup tmp path
@@ -642,7 +630,7 @@ def launch_pycompss_application(
     GLOBALS.set_temporary_directory(binding_tmp_path)
 
     logger.debug("--- START ---")
-    logger.debug("PyCOMPSs Log path: %s", log_path)
+    logger.debug("PyCOMPSs Log path: %s", binding_log_path)
 
     if storage_impl and storage_conf:
         logger.debug("Starting storage")

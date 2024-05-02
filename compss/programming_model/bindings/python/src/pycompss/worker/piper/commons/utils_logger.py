@@ -24,16 +24,17 @@ This file contains the common pipers methods related to logging.
 """
 
 import logging
-import os
 
 from pycompss.runtime.commons import GLOBALS
 from pycompss.util.logger.helpers import init_logging_worker_piper
+from pycompss.util.logger.remittent import LOG_REMITTENT
+from pycompss.util.logger.level import LOG_LEVEL
 from pycompss.util.typing_helper import typing
 
 
 def load_loggers(
     debug: bool, persistent_storage: bool
-) -> typing.Tuple[logging.Logger, str, typing.List[logging.Logger], str]:
+) -> typing.Tuple[logging.Logger, typing.List[logging.Logger], str]:
     """Load all loggers.
 
     :param debug: Is Debug enabled.
@@ -42,18 +43,6 @@ def load_loggers(
              a list of loggers for the persistent data framework, and
              the temporary log directory.
     """
-    # Load log level configuration file
-    worker_path = os.path.dirname(os.path.realpath(__file__))
-    log_cfg_path = "".join((worker_path, "/../../../../log"))
-    if not os.path.isdir(log_cfg_path):
-        # If not exists, then we are using the source for unit testing
-        log_cfg_path = "".join((worker_path, "/../../../../../log"))
-    if debug:
-        # Debug
-        log_json = "/".join((log_cfg_path, "logging_worker_debug.json"))
-    else:
-        # Default
-        log_json = "/".join((log_cfg_path, "logging_worker_off.json"))
     # log_dir is of the form:
     #    With agents or worker in master:
     #        /path/to/working_directory/tmpFiles/pycompssID/../../log
@@ -68,11 +57,19 @@ def load_loggers(
         if __debug__:
             print(
                 "WARNING: Log dir not set, "
-                + "using temporrary directory as log dir."
+                + "using temporary directory as log dir."
             )
         log_dir = GLOBALS.get_temporary_directory()
 
-    init_logging_worker_piper(log_json, log_dir)
+    # Load log level configuration file
+    if debug:
+        # Debug
+        init_logging_worker_piper(
+            LOG_REMITTENT.WORKER, LOG_LEVEL.DEBUG, log_dir
+        )
+    else:
+        # Default
+        init_logging_worker_piper(LOG_REMITTENT.WORKER, LOG_LEVEL.OFF, log_dir)
 
     # Define logger facilities
     logger = logging.getLogger("pycompss.worker.piper.piper_worker")
@@ -82,4 +79,4 @@ def load_loggers(
         storage_loggers.append(logging.getLogger("hecuba"))
         storage_loggers.append(logging.getLogger("redis"))
         storage_loggers.append(logging.getLogger("storage"))
-    return logger, log_json, storage_loggers, log_dir
+    return logger, storage_loggers, log_dir

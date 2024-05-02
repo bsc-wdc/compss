@@ -234,9 +234,9 @@ def cache_manager(
                             current_hits = current[4]
                             new_hits = current_hits + 1
                             current[4] = new_hits
-                            cache_ids[
-                                f_name
-                            ] = current  # forces updating whole entry
+                            cache_ids[f_name] = (
+                                current  # forces updating whole entry
+                            )
                             # Keep cache_hits structure
                             try:
                                 cache_hits[current_hits].pop(f_name)
@@ -388,13 +388,13 @@ def cache_manager(
                             gpu_used_size = gpu_used_size_dict[device_id]
                             with CP.cuda.Device(device_id):
                                 if gpu_used_size + obj_size > gpu_max_size:
-                                    gpu_used_size_dict[
-                                        device_id
-                                    ] = __free_gpu_cache_space__(
-                                        conf,
-                                        gpu_used_size,
-                                        obj_size,
-                                        device_id,
+                                    gpu_used_size_dict[device_id] = (
+                                        __free_gpu_cache_space__(
+                                            conf,
+                                            gpu_used_size,
+                                            obj_size,
+                                            device_id,
+                                        )
                                     )
 
                                 cache_mem = CP.cuda.memory.BaseMemory()

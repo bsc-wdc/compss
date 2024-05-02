@@ -229,6 +229,10 @@
   cp -r ${trunk_rel_path}/compss/programming_model/bindings/c ${COMPSs_target}/Bindings/
   echo "--- Copy python-binding files"
   cp -r ${trunk_rel_path}/compss/programming_model/bindings/python ${COMPSs_target}/Bindings/
+  rm -rf ${COMPSs_target}/Bindings/python/.pytest*
+  rm -rf ${COMPSs_target}/Bindings/python/.project*
+  rm -rf ${COMPSs_target}/Bindings/python/.settings*
+  rm -rf ${COMPSs_target}/Bindings/python/.idea*
 
   # Clean git files
   find "${COMPSs_target}" -name ".git*" -print0 | xargs -0 rm -rf # Clean git files

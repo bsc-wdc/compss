@@ -15,29 +15,4 @@
 #  limitations under the License.
 #
 
-# -*- coding: utf-8 -*-
-
-"""
-PyCOMPSs Binding - Management - Classes.
-
-This file contains the internal classes.
-"""
-
-
-class SupportedFunctionTypes:  # pylint: disable=too-few-public-methods
-    """Used as enum to identify the function type."""
-
-    FUNCTION = 1
-    INSTANCE_METHOD = 2
-    CLASS_METHOD = 3
-
-
-class Future:  # pylint: disable=too-few-public-methods
-    """Future object class definition."""
-
-
-class EmptyReturn:  # pylint: disable=too-few-public-methods
-    """For functions with empty return."""
-
-
-FunctionType = SupportedFunctionTypes()
+"""This package contains the DDS core."""

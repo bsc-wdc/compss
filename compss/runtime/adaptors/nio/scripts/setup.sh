@@ -34,6 +34,7 @@
     if [ -z "${SCRIPT_DIR}" ]; then
         if [ -z "$COMPSS_HOME" ]; then
            SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+           COMPSS_HOME="${SCRIPT_DIR}/../../../../.."
         else
            SCRIPT_DIR="${COMPSS_HOME}/Runtime/scripts/system/adaptors/nio"
         fi
@@ -226,7 +227,7 @@
       sed "s/{{TRACE_OUTPUT_DIR}}/${escaped_tracing_output_dir}/g" "${baseConfigFile}" > "${extraeFile}"
 
       if [ -z "$EXTRAE_HOME" ]; then
-        export EXTRAE_HOME=${SCRIPT_DIR}/../../../../../Dependencies/extrae/
+        export EXTRAE_HOME=${COMPSS_HOME}/Dependencies/extrae/
       fi
 
       export EXTRAE_LIB=${EXTRAE_HOME}/lib
@@ -317,7 +318,7 @@
 
     # Export environment
     export CLASSPATH=$cpNW:$CLASSPATH
-    export PYTHONPATH=$pythonpath:$PYTHONPATH
+    export PYTHONPATH=$pythonpath:$PYTHONPATH:${COMPSS_HOME}/Dependencies/threadpoolctl/
     export LD_LIBRARY_PATH=$libPathNW:${SCRIPT_DIR}/../../../../../Bindings/bindings-common/lib:${SCRIPT_DIR}/../../../../../Bindings/c/lib:$LD_LIBRARY_PATH
   }
 

@@ -2,7 +2,7 @@
 
 #####################################################################
 # Name:         install.sh
-# Description:  COMPSs' Python binding install script
+# Description:  COMPSs' Python binding building script.
 # Parameters:
 #		[--unittests]                 Enable unittests
 #		[--no-unittests]              Disable unittests
@@ -10,6 +10,10 @@
 #		create_symlinks               Create symbolic links within site/dist-packages folders (true or false)
 #		specific_python_command       Use specific python command (usually python3)
 #		compile                       Compile the installation (true or false)
+######################################################################
+
+
+
 ######################################################################
 
 #---------------------------------------------------
@@ -29,10 +33,12 @@ NO_UNITTESTS="Warning: No unittests specified. Loading default value"
 # SET SCRIPT VARIABLES
 #---------------------------------------------------
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-# shellcheck source=./commons
-# shellcheck disable=SC1091
-source "${SCRIPT_DIR}"/commons
 BINDING_DIR="$( dirname "${SCRIPT_DIR}")"
+export BINDING_DIR  # used from setup.py
+
+# shellcheck source=./commons.sh
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}"/commons.sh
 
 
 #---------------------------------------------------
@@ -124,14 +130,14 @@ get_args() {
             unittests=false
             ;;
           *)
-            # Flag didn't match any patern. End of COMPSs' Python Binding flags
+            # Flag didn't match any pattern. End of COMPSs' Python Binding flags
             display_error "${INCORRECT_PARAMETER}"
             break
             ;;
         esac
         ;;
       *)
-        # Flag didn't match any patern. End of COMPSs flags
+        # Flag didn't match any pattern. End of COMPSs flags
         display_error "${INCORRECT_PARAMETER}"
         break
         ;;
@@ -206,6 +212,7 @@ command_exists () {
 
 clean() {
   rm -rf "${SCRIPT_DIR}"/build
+  rm -rf "${SCRIPT_DIR}"/target
 }
 
 install () {
@@ -241,7 +248,8 @@ install () {
 
   # Do the installation
   echo "INFO: Starting the installation... Please wait..."
-  ${python_command} "${SCRIPT_DIR}"/setup.py install --single-version-externally-managed --root="/" --install-lib="${pycompss_home}" -O2
+  # ${python_command} "${SCRIPT_DIR}"/setup.py install --single-version-externally-managed --root="/" --install-lib="${pycompss_home}" -O2
+  ${python_command} -m pip install --target="${pycompss_home}" "${SCRIPT_DIR}/."
   exitCode=$?
   if [ $exitCode -ne 0 ]; then
     echo "ERROR: Cannot install PyCOMPSs using ${python_command}"
@@ -258,7 +266,6 @@ install () {
 
   # Clean unnecessary files
   echo "INFO: Cleaning unnecessary files..."
-  rm ${pycompss_home}/sitecustomize.*
   if [ -d "${pycompss_home}/__pycache__" ]; then
       rm -rf ${pycompss_home}/__pycache__
   fi
@@ -289,13 +296,13 @@ install () {
   fi
 
   # Copy cleaning and commons scripts for setup or uninstalling
-  cp "${SCRIPT_DIR}/commons" "${target_directory}"
-  cp "${SCRIPT_DIR}/clean" "${target_directory}"
+  cp "${SCRIPT_DIR}/commons.sh" "${target_directory}"
+  cp "${SCRIPT_DIR}/clean.sh" "${target_directory}"
 }
 
 
 #---------------------------------------------------
-# UNITTESTING FUNCTION
+# UNIT TESTING FUNCTION
 #---------------------------------------------------
 
 run_unittests () {

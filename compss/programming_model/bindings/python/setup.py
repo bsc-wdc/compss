@@ -25,11 +25,10 @@ associated C/C++ modules.
 """
 
 import os
-import re
 import sys
-import pathlib
 from setuptools import setup
 from setuptools import Extension
+
 
 GCC_DEBUG_FLAGS = [
     "-Wall",
@@ -51,11 +50,14 @@ GCC_DEBUG_FLAGS = [
 ]
 
 TARGET_OS = os.environ["TARGET_OS"]
+JAVA_HOME = os.environ["JAVA_HOME"]
+BINDING_DIR = os.environ["BINDING_DIR"]
+
 if TARGET_OS == "Linux":
-    INCLUDE_JDK = os.path.join(os.environ["JAVA_HOME"], "include", "linux")
+    INCLUDE_JDK = os.path.join(JAVA_HOME, "include", "linux")
     OS_EXTRA_COMPILE_COMPSS = ["-fPIC", "-std=c++11"]
 elif TARGET_OS == "Darwin":
-    INCLUDE_JDK = os.path.join(os.environ["JAVA_HOME"], "include", "darwin")
+    INCLUDE_JDK = os.path.join(JAVA_HOME, "include", "darwin")
     OS_EXTRA_COMPILE_COMPSS = ["-fPIC", "-DGTEST_USE_OWN_TR1_TUPLE=1"]
 else:
     INCLUDE_JDK = None
@@ -67,24 +69,24 @@ else:
 COMPSS_MODULE_EXT = Extension(
     "compss",
     include_dirs=[
-        "../bindings-common/src",
-        "../bindings-common/include",
-        os.path.join(os.environ["JAVA_HOME"], "include"),
+        os.path.join(BINDING_DIR, "bindings-common", "src"),
+        os.path.join(BINDING_DIR, "bindings-common", "include"),
+        os.path.join(JAVA_HOME, "include"),
         INCLUDE_JDK,
     ],
-    library_dirs=["../bindings-common/lib"],
+    library_dirs=[os.path.join(BINDING_DIR, "bindings-common", "lib")],
     libraries=["bindings_common"],
     extra_compile_args=OS_EXTRA_COMPILE_COMPSS,
-    sources=["src/ext/compssmodule.cc"],
+    sources=["src/pycompss/ext/compssmodule.cc"],
 )
 
 # Thread affinity extension
 PROCESS_AFFINITY_EXT = Extension(
     "process_affinity",
-    include_dirs=["src/ext"],
+    include_dirs=["src/pycompss/ext"],
     extra_compile_args=["-std=c++11"],
     # extra_compile_args=["-fPIC %s" % (" ".join(GCC_DEBUG_FLAGS.split("\n")))],
-    sources=["src/ext/process_affinity.cc"],
+    sources=["src/pycompss/ext/process_affinity.cc"],
 )
 
 # DLB affinity extension
@@ -97,7 +99,8 @@ if DLB_HOME is not None:
         library_dirs=[os.path.join(DLB_HOME, "lib"), os.path.join(DLB_HOME, "lib64")],
         libraries=["dlb"],
         extra_compile_args=["-std=c++11"],
-        sources=["src/ext/dlb_affinity.c"],
+        # extra_compile_args=["-fPIC %s" % (" ".join(GCC_DEBUG_FLAGS.split("\n")))],
+        sources=["src/pycompss/ext/dlb_affinity.c"],
     )
 
 # EAR extension
@@ -110,30 +113,9 @@ if EAR_HOME is not None:
         library_dirs=[os.path.join(EAR_HOME, "lib")],
         libraries=["ear"],
         extra_compile_args=["-std=c++11"],
-        sources=["src/ext/ear.c"],
+        # extra_compile_args=["-fPIC %s" % (" ".join(GCC_DEBUG_FLAGS.split("\n")))],
+        sources=["src/pycompss/ext/ear.c"],
     )
-
-
-# Helper method to find packages
-def find_packages(path="./src"):
-    """Find packages within the given path.
-
-    :param path: Source path.
-    :return: List of packages.
-    """
-    ret = []
-    for root, _, files in os.walk(path, followlinks=True):
-        if "__init__.py" in files:
-            # Erase src header from package name
-            pkg_name = root[6:]
-            # Replace / by .
-            pkg_name = pkg_name.replace("/", ".")
-            # Erase non UTF characters
-            pkg_name = re.sub("^[^A-z0-9_]+", "", pkg_name)
-            # Add package to list
-            ret.append(pkg_name)
-    return ret
-
 
 if TARGET_OS == "Linux":
     if DLB_HOME is None:
@@ -151,68 +133,11 @@ else:
     sys.exit(1)
 
 
-HERE = pathlib.Path(__file__).parent.resolve()
-# Get the long description from the README file
-LONG_DESCRIPTION = (HERE / "README.md").read_text(encoding="utf-8")
-AUTHOR = "Workflows and Distributed Computing Group (WDC) - Barcelona Supercomputing Center (BSC)"
+def main():
+    """Adds extensions to pyproject.toml definition."""
+    # This uses pyproject.toml metadata
+    setup(ext_modules=OS_MODULES)
 
-# Setup
-setup(
-    # Metadata
-    name="pycompss",
-    version="3.3",
-    description="Python Binding for COMP Superscalar Runtime",
-    long_description=LONG_DESCRIPTION,
-    long_description_content_type="text/markdown",
-    url="https://compss.bsc.es",
-    author=AUTHOR,
-    author_email="support-compss@bsc.es",
-    project_urls={
-        "Bug Reports": "https://github.com/bsc-wdc/compss/issues",
-        "Source": "https://github.com/bsc-wdc/compss",
-    },
-    # License
-    license="Apache 2.0",
-    license_files=["LICENSE.txt"],
-    # Other
-    classifiers=[
-        "Development Status :: 5 - Production/Stable",
-        "License :: OSI Approved :: Apache Software License",
-        "Operating System :: Unix",
-        "Operating System :: POSIX :: Linux",
-        "Operating System :: MacOS",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
-        "Programming Language :: Python :: 3.11",
-        "Programming Language :: Python :: 3 :: Only",
-        "Topic :: System :: Distributed Computing",
-    ],
-    # Build
-    package_dir={"pycompss": "src/pycompss"},
-    packages=[""] + find_packages(),
-    python_requires=">=3.6",
-    install_requires=[],
-    package_data={
-        "": [
-            "log/logging_off.json",
-            "log/logging_info.json",
-            "log/logging_debug.json",
-            "log/logging_worker_debug.json",
-            "log/logging_worker_off.json",
-            "log/logging_mpi_worker_info.json",
-            "log/logging_mpi_worker_debug.json",
-            "log/logging_mpi_worker_off.json",
-            "log/logging_gat_worker_info.json",
-            "log/logging_gat_worker_debug.json",
-            "log/logging_gat_worker_off.json",
-            "README.md",
-            "LICENSE.txt",
-        ]
-    },
-    ext_modules=OS_MODULES,
-    # entry_points={"console_scripts": ["pycompss_binding = pycompss.__main__:main"]},
-)
+
+if __name__ == "__main__":
+    main()

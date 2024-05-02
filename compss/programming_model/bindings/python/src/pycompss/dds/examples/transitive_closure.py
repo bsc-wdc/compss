@@ -23,7 +23,6 @@ PyCOMPSs DDS - Examples - transitive closure.
 This file contains the DDS transitive closure example.
 """
 
-import sys
 import time
 import random
 

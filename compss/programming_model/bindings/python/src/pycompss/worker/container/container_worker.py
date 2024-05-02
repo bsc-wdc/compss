@@ -23,12 +23,13 @@ inside containers.
 """
 
 import logging
-import os
 import sys
 
 from pycompss.util.context import CONTEXT
 from pycompss.worker.container.pythonpath_fixer import fix_pythonpath
 from pycompss.util.logger.helpers import init_logging_worker
+from pycompss.util.logger.remittent import LOG_REMITTENT
+from pycompss.util.logger.level import LOG_LEVEL
 from pycompss.util.typing_helper import typing  # noqa: F401
 from pycompss.worker.commons.executor import build_return_params_message
 from pycompss.worker.commons.worker import execute_task
@@ -60,22 +61,21 @@ def main() -> int:
     func_params = sys.argv[9:]
 
     # Log initialisation
-    # Load log level configuration file
-    worker_path = os.path.dirname(os.path.realpath(__file__))
     if log_level in ("true", "debug"):
         # Debug
-        log_json = "".join(
-            (worker_path, "/log/logging_container_worker_debug.json")
+        init_logging_worker(
+            LOG_REMITTENT.CONTAINER_WORKER, LOG_LEVEL.DEBUG, tracing
         )
-    elif log_level in ("info", "off"):
+    elif log_level == "info":
         # Info or no debug
-        log_json = "".join(
-            (worker_path, "/log/logging_container_worker_off.json")
+        init_logging_worker(
+            LOG_REMITTENT.CONTAINER_WORKER, LOG_LEVEL.INFO, tracing
         )
     else:
         # Default
-        log_json = "".join((worker_path, "/log/logging_container_worker.json"))
-    init_logging_worker(log_json, tracing)
+        init_logging_worker(
+            LOG_REMITTENT.CONTAINER_WORKER, LOG_LEVEL.OFF, tracing
+        )
     if __debug__:
         logger = logging.getLogger(
             "pycompss.worker.container.container_worker"
@@ -125,7 +125,6 @@ def main() -> int:
         execute_task_params,
         tracing,
         logger,
-        "None",
         log_files,  # noqa
         python_mpi,
         collections_layouts,

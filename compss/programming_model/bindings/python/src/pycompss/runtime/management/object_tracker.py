@@ -38,7 +38,7 @@ if __debug__:
     LOGGER = logging.getLogger(__name__)
 
 
-class ObjectTracker:
+class ObjectTracker:  # pylint: disable=too-many-instance-attributes
     """Object tracker class.
 
     This class has all needed data structures and functionalities

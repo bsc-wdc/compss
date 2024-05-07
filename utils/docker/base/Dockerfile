@@ -37,7 +37,8 @@ FROM base_python as base_all
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends libboost-all-dev libxml2 papi-tools openmpi-bin libopenmpi-dev libtool automake build-essential python3-pip openssh-server jq bc && \
-    pip3 install --no-cache-dir wheel dill guppy3==3.1.0 decorator mpi4py kafka-python && \
+    pip3 --no-cache-dir install pip setuptools wheel --upgrade && \
+    pip3 install --no-cache-dir dill guppy3==3.1.0 decorator mpi4py kafka-python && \
     apt-get autoclean && \
     rm -rf /var/lib/apt/lists/*
 RUN mkdir /run/sshd && \
@@ -58,7 +59,7 @@ FROM base_tutorial as base_ci
 RUN apt-get update && \
 
     #Required for compilation and tests
-    apt-get install -y --no-install-recommends libxml2-dev libpapi-dev python3-setuptools python3-dev gfortran \
+    apt-get install -y --no-install-recommends libxml2-dev libpapi-dev python3-dev gfortran \
     sudo firefox gnupg lsb-release libgraphviz-dev julia && \
     apt-get autoclean && \
     rm -rf /var/lib/apt/lists/* && \

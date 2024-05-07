@@ -249,7 +249,8 @@ install () {
   # Do the installation
   echo "INFO: Starting the installation... Please wait..."
   # ${python_command} "${SCRIPT_DIR}"/setup.py install --single-version-externally-managed --root="/" --install-lib="${pycompss_home}" -O2
-  ${python_command} -m pip install --target="${pycompss_home}" "${SCRIPT_DIR}/."
+  ${python_command} -m pip install --no-build-isolation --target="${pycompss_home}" "${SCRIPT_DIR}/."
+  # ${python_command} -m pip install --target="${pycompss_home}" "${SCRIPT_DIR}/."
   exitCode=$?
   if [ $exitCode -ne 0 ]; then
     echo "ERROR: Cannot install PyCOMPSs using ${python_command}"

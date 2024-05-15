@@ -8,7 +8,7 @@
   # Define remote parameters
   BranchName=$(git branch | grep \* | cut -d ' ' -f2)
   SCuser=compss
-  SCtmp=/home/bsc/compss/tmpCOMPSs/
+  SCtmp=/home/genu/compss/tmpCOMPSs/
   SCtarget=/apps/COMPSs/${BranchName^} # capitalize branch name
 
   # Install on each enabled supercomputer

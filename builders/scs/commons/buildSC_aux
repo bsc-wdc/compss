@@ -67,7 +67,7 @@
   ####################
 
   # Get parameters
-  if [ $# -ne 16 ]; then
+  if [ $# -ne 17 ]; then
     usage
   fi
 
@@ -88,7 +88,7 @@
   impi_version=${14}
   autoparallel=${15}
   c_binding=${16}
-
+  extrae_no_mpi=${17}
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
   TMP_DIR=${SCRIPT_DIR}/tmp
 
@@ -160,12 +160,14 @@
 
   echo "---- Install extrae ----"
   cd "${TMP_DIR}"/dependencies || exit 1
-  # Sequential installation
-  ./install_extrae.sh "${TMP_DIR}"/dependencies/extrae "${targetDir}"/Dependencies/extrae false
-  ev=$?
-  if [ $ev -ne 0 ]; then
-    echo "ERROR: Failed to install extrae sequential dependency"
-    exit $ev
+  if [ "${extrae_no_mpi}" == "true" ]; then
+    # Sequential installation
+    ./install_extrae.sh "${TMP_DIR}"/dependencies/extrae "${targetDir}"/Dependencies/extrae false
+    ev=$?
+    if [ $ev -ne 0 ]; then
+      echo "ERROR: Failed to install extrae sequential dependency"
+      exit $ev
+    fi
   fi
 
   # OpenMPI

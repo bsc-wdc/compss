@@ -8,21 +8,23 @@
   # Define remote parameters
   BranchName=$(git branch | grep \* | cut -d ' ' -f2)
   SCuser=compss
-  SCtmp=/home/bsc19/compss/tmpCOMPSs/
+  SCtmp=/home/genu/compss/tmpCOMPSs/
   SCtarget=/apps/COMPSs/${BranchName^} # capitalize branch name
 
   # Install on each enabled supercomputer
   #ENABLED_SCS=("mn" "mt" "nord" "p9" "cte-amd")
   #SCS_SCRIPT_NAMES=("buildMN" "buildMT" "buildNord" "buildP9" "buildCTE-AMD")
 
-  ENABLED_SCS=("mn" "mt" "p9" "cte-amd" "nord3")
-  SCS_SCRIPT_NAMES=("buildMN" "buildMT" "buildP9" "buildCTE-AMD" "buildNord3")
+  ENABLED_SCS=("mn5" "mn5_acc" "cte-amd" "nord3")
+  SCS_SCRIPT_NAMES=("buildMN5" "buildMN5_acc" "buildCTE-AMD" "buildNord3")
+  SCS_TARGETS=("/apps/GPP/COMPSs/" "/apps/ACC/COMPSs/" "/apps/COMPSs/" "/apps/COMPSs/")
   echo "Installing COMPSs branch ${BranchName} at SCs"
 
   for i in "${!ENABLED_SCS[@]}"; do
+    SCtarget_pre="${SCS_TARGETS[$i]}"
     SCName="${ENABLED_SCS[$i]}"
     SCscript="${SCS_SCRIPT_NAMES[$i]}"
-
+    SCtarget=${SCtarget_pre}${BranchName^}
     echo "-- Installing COMPSs at $SCName SuperComputer"
     cd "${SCS_BASE_DIR}"/"$SCName"
     ./"${SCscript}" "$SCuser" "$SCtmp" "$SCtarget"

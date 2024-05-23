@@ -1953,15 +1953,25 @@ set_variables() {
     else
       worker_working_dir=$(mktemp -d -p "${SHARED_DISK_PREFIX}${HOME}")
     fi
+    CREATE_WORKING_DIRS=false
   elif [ "${worker_working_dir}" == "${LOCAL_DISK_NAME}" ]; then
     worker_working_dir=${LOCAL_DISK_PREFIX}/${!ENV_VAR_JOB_ID}
     mkdir -p "${worker_working_dir}"
+    CREATE_WORKING_DIRS=true
   else
     # The working dir is a custom absolute path, create tmp
     if [[ "$OSTYPE" == "darwin"* ]]; then
       worker_working_dir=$(mktemp -d -t "${worker_working_dir}")
     else
       worker_working_dir=$(mktemp -d -p "${worker_working_dir}")
+    fi
+    if [[ ${worker_working_dir}/ = ${SHARED_DISK_PREFIX}* ]]; then 
+	CREATE_WORKING_DIRS=false
+    elif [[ ${worker_working_dir}/ = ${SHARED_DISK_2_PREFIX}* ]]; then
+	CREATE_WORKING_DIRS=false
+    else
+	echo "Setting CREATE_working_dirs to true..."
+	CREATE_WORKING_DIRS=true
     fi
   fi
 
@@ -2458,7 +2468,6 @@ cleanup() {
   trap cleanup EXIT
 
   # Create XML files
-  CREATE_WORKING_DIRS=true  # used by xml_project_add_worker_in_master and xml_project_add_workers
   if [ -z "${xmls_phase}" ] || [ "${xmls_phase}" == "all" ]; then
     create_xml_files
   elif [ "${xmls_phase}" == "init" ]; then

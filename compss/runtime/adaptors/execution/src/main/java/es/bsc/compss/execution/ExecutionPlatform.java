@@ -377,7 +377,9 @@ public class ExecutionPlatform implements ExecutorContext {
         } else {
             long timeout = invocation.getTimeOut();
             if (timeout > 0) {
-                timer.schedule(timeOutHandler, timeout);
+                LOGGER.debug("Setting timeout for job " + jobId + " with timeout " + timeout);
+                // set timeout (in seconds)
+                timer.schedule(timeOutHandler, timeout * 1000);
             }
         }
     }

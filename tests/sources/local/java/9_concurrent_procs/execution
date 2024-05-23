@@ -35,8 +35,8 @@
   error_log_app2="${target_log_folder}/applicationConcurrent2_0${retry_num}.errorlog"
   log_folder_app2="${target_log_folder}/app2"
   mkdir -p "${log_folder_app2}"
-
-  expectedTime=60s
+  export COMPSS_WORKER_INIT_TIMEOUT=60000
+  expectedTime=120s
   sleep 5s
   # shellcheck disable=SC2086
   timeout --signal=2 $expectedTime "${COMPSs_exec}" \

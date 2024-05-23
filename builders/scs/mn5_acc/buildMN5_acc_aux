@@ -37,7 +37,7 @@
   # Python modules with jupyter:
   # py3_modules="ANACONDA/5.1.0_py3"      # "ANACONDA/5.1.0.py3conda" # python 3.6.3
   run_before_py3_other_modules=""
-  py3_other_modules="python/3.8.1 python/3.11.5"
+  py3_other_modules="python/3.8.1 python/3.11.5-gcc"
 
   # DEFINE CONFIGURATION PARAMETERS
   # (Environment vars must be scaped to get the correct value if not it could take a value previous to load the modules)
@@ -48,12 +48,12 @@
   extrae_with_openmpi="false"
   openmpi_version="/4.1.5"
   extrae_with_impi="true"
-  impi_version="/2021.10.0"
+  impi_version="/2021.11.0"
   autoparallel="false"
   c_binding="false"
-
+  extrae_no_mpi="true"
   # CALL buildSC_aux
-  "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${unload_before_python}" "${run_before_py3_modules}" "${py3_modules}" "${run_before_py3_other_modules}" "${py3_other_modules}" "${additionalExports}" "${additional_module_use_folder}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "${autoparallel}" "${c_binding}"
+  "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${unload_before_python}" "${run_before_py3_modules}" "${py3_modules}" "${run_before_py3_other_modules}" "${py3_other_modules}" "${additionalExports}" "${additional_module_use_folder}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "${autoparallel}" "${c_binding}" "${extrae_no_mpi}"
   ev=$?
 
   # End

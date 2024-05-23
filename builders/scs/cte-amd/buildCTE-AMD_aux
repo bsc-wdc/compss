@@ -29,30 +29,31 @@
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
   # DEFINE MODULES
-  modules="bsc/current java/8u291 papi/6.0.0.1 gcc/10.2.0 impi/2018.4 mkl/2018.4 python/3.9.1 boost/1.76.0 dlb/git"
-  unload_before_python="impi/2018.4 boost/1.76.0"
+  modules="bsc/current java/8u291 papi/6.0.0.1 gcc/10.2.0 impi/2023.1 python/3.9.1 boost/1.76.0 dlb/git"
+  unload_before_python=""
   # Plain python modules:
   run_before_py3_modules="ignore"
   py3_modules="python/3.9.1"
   # Python modules with jupyter:
   run_before_py3_other_modules="ignore"
-  py3_other_modules="python/3.7.4"
+  py3_other_modules=""
 
   # DEFINE CONFIGURATION PARAMETERS
   #(Environment vars must be scaped to get the correct value if not it could take a value previous to load the modules)
-  additionalExports="export BOOST_CPPFLAGS=-I\${BOOST_INCLUDE} PATH=/apps/BSCTOOLS/deps/libxml/2.9.10/bin/:$PATH"
+  additionalExports="export BOOST_CPPFLAGS=-I/apps/BOOST/1.76.0/GCC/IMPI/include PYTHONPATH=/home/genu/compss/.local/lib/python3.9/site-packages:$PYTHONPATH PATH=/apps/BSCTOOLS/deps/libxml/2.9.10/bin/:$PATH"
 
   additional_module_use_folder="ignore"
   queues_cfg="cte-amd.cfg"
   extrae_with_openmpi="true"  # takes impi since openmpi module does not update MPI_ROOT
   openmpi_version="/4.0.5"
   extrae_with_impi="false"  # fails with error
-  impi_version="/2018.4"
+  impi_version="/2023.1"
   autoparallel="false"  # missing gmp to compile autoparallel
   c_binding="true"
+  extrae_no_mpi="true"
 
   # CALL buildSC_aux
-  "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${unload_before_python}" "${run_before_py3_modules}" "${py3_modules}" "${run_before_py3_other_modules}" "${py3_other_modules}" "${additionalExports}" "${additional_module_use_folder}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "${autoparallel}" "${c_binding}"
+  "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${unload_before_python}" "${run_before_py3_modules}" "${py3_modules}" "${run_before_py3_other_modules}" "${py3_other_modules}" "${additionalExports}" "${additional_module_use_folder}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "${autoparallel}" "${c_binding}" "${extrae_no_mpi}"
   ev=$?
 
   # End

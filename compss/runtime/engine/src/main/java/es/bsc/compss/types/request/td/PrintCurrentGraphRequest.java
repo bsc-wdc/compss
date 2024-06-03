@@ -121,7 +121,9 @@ public class PrintCurrentGraphRequest extends TDRequest {
                     boolean done = false;
                     while (!done) {
                         try {
-                            tmpList.addAll(t.getSuccessors());
+                            synchronized (t) {
+                                tmpList.addAll(t.getSuccessors());
+                            }
                             done = true;
                         } catch (ConcurrentModificationException cme) {
                             tmpList.clear();
@@ -158,7 +160,9 @@ public class PrintCurrentGraphRequest extends TDRequest {
                     boolean done = false;
                     while (!done) {
                         try {
-                            tmpList.addAll(t.getSuccessors());
+                            synchronized (t) {
+                                tmpList.addAll(t.getSuccessors());
+                            }
                             done = true;
                         } catch (ConcurrentModificationException cme) {
                             tmpList.clear();
@@ -203,7 +207,9 @@ public class PrintCurrentGraphRequest extends TDRequest {
                         boolean done = false;
                         while (!done) {
                             try {
-                                tmpList.addAll(t.getSuccessors());
+                                synchronized (t) {
+                                    tmpList.addAll(t.getSuccessors());
+                                }
                                 done = true;
                             } catch (ConcurrentModificationException cme) {
                                 tmpList.clear();
@@ -238,7 +244,9 @@ public class PrintCurrentGraphRequest extends TDRequest {
                         boolean done = false;
                         while (!done) {
                             try {
-                                tmpList.addAll(t.getSuccessors());
+                                synchronized (t) {
+                                    tmpList.addAll(t.getSuccessors());
+                                }
                                 done = true;
                             } catch (ConcurrentModificationException cme) {
                                 tmpList.clear();
@@ -284,7 +292,9 @@ public class PrintCurrentGraphRequest extends TDRequest {
                     boolean done = false;
                     while (!done) {
                         try {
-                            tmpList.addAll(t.getSuccessors());
+                            synchronized (t) {
+                                tmpList.addAll(t.getSuccessors());
+                            }
                             done = true;
                         } catch (ConcurrentModificationException cme) {
                             tmpList.clear();
@@ -304,7 +314,9 @@ public class PrintCurrentGraphRequest extends TDRequest {
                 boolean done = false;
                 while (!done) {
                     try {
-                        successors.addAll(t.getSuccessors());
+                        synchronized (t) {
+                            successors.addAll(t.getSuccessors());
+                        }
                         done = true;
                     } catch (ConcurrentModificationException cme) {
                         successors.clear();

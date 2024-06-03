@@ -28,8 +28,14 @@ import es.bsc.compss.scheduler.types.Score;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
+
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Set;
+
 import org.json.JSONObject;
 
 
@@ -39,6 +45,8 @@ import org.json.JSONObject;
 public abstract class OrderStrictTS extends TaskScheduler {
 
     protected final PriorityQueue<ObjectValue<AllocatableAction>> readyQueue;
+    protected Set<AllocatableAction> upgradedActions;
+    protected final Map<AllocatableAction, ObjectValue<AllocatableAction>> addedActions;
 
 
     /**
@@ -46,7 +54,10 @@ public abstract class OrderStrictTS extends TaskScheduler {
      */
     public OrderStrictTS() {
         super();
-        readyQueue = new PriorityQueue<>();
+        LOGGER.debug("[OrderStrict] Loading OrderStrict TS");
+        this.readyQueue = new PriorityQueue<>();
+        this.upgradedActions = new HashSet<>();
+        this.addedActions = new HashMap<>();
     }
 
     /*
@@ -66,6 +77,17 @@ public abstract class OrderStrictTS extends TaskScheduler {
         return new SchedulingInformation(rs);
     }
 
+    @Override
+    public void upgradeAction(AllocatableAction action) {
+        if (DEBUG) {
+            LOGGER.debug("[OrderStrict] Upgrading action " + action);
+        }
+        upgradedActions.add(action);
+        ObjectValue<AllocatableAction> obj = addedActions.remove(action);
+        readyQueue.remove(obj);
+
+    }
+
     /*
      * *********************************************************************************************************
      * *********************************************************************************************************
@@ -73,27 +95,69 @@ public abstract class OrderStrictTS extends TaskScheduler {
      * *********************************************************************************************************
      * *********************************************************************************************************
      */
+    private PriorityQueue<ObjectValue<AllocatableAction>> sortActions(Iterable<AllocatableAction> actions) {
+
+        if (DEBUG) {
+            LOGGER.debug("[OrcerStrict] Managing " + upgradedActions.size() + " upgraded actions.");
+        }
+        PriorityQueue<ObjectValue<AllocatableAction>> sortedActions = new PriorityQueue<>();
+        for (AllocatableAction action : actions) {
+            Score fullScore = this.generateActionScore(action);
+            ObjectValue<AllocatableAction> obj = new ObjectValue<>(action, fullScore);
+            sortedActions.add(obj);
+        }
+
+        return sortedActions;
+    }
+
+    private void manageUpgradedActions(ResourceScheduler<?> resource) {
+        if (!upgradedActions.isEmpty()) {
+            if (DEBUG) {
+                LOGGER.debug("[OrderStrict] Managing " + upgradedActions.size() + " upgraded actions.");
+            }
+
+            PriorityQueue<ObjectValue<AllocatableAction>> executableActions = sortActions(upgradedActions);
+
+            while (!executableActions.isEmpty()) {
+                ObjectValue<AllocatableAction> obj = executableActions.poll();
+                AllocatableAction freeAction = obj.getObject();
+                if (freeAction.getCompatibleWorkers().contains(resource) && resource.canRunSomething()) {
+                    try {
+                        freeAction.schedule(resource, obj.getScore());
+                        tryToLaunch(freeAction);
+                        upgradedActions.remove(freeAction);
+
+                    } catch (UnassignedActionException e) {
+                        // Nothing to do it could be scheduled in another resource
+                    }
+                }
+            }
+        }
+    }
 
     private void addActionToReadyQueue(AllocatableAction action, Score actionScore) {
         ObjectValue<AllocatableAction> obj = new ObjectValue<>(action, actionScore);
+        addedActions.put(action, obj);
         readyQueue.add(obj);
     }
 
     @Override
     protected void scheduleAction(AllocatableAction action, Score actionScore) throws BlockedActionException {
         if (!action.hasDataPredecessors()) {
-            ObjectValue<AllocatableAction> topReady = readyQueue.peek();
-            if (topReady == null || actionScore.isBetter(topReady.getScore())) {
-                try {
-                    action.schedule(actionScore);
-                } catch (UnassignedActionException uae) {
+            if (upgradedActions.isEmpty()) {
+                ObjectValue<AllocatableAction> topReady = readyQueue.peek();
+                if (topReady == null || actionScore.isBetter(topReady.getScore())) {
+                    try {
+                        action.schedule(actionScore);
+                    } catch (UnassignedActionException uae) {
+                        addActionToReadyQueue(action, actionScore);
+                    }
+                } else {
+                    if (action.getCompatibleWorkers().isEmpty()) {
+                        throw new BlockedActionException();
+                    }
                     addActionToReadyQueue(action, actionScore);
                 }
-            } else {
-                if (action.getCompatibleWorkers().isEmpty()) {
-                    throw new BlockedActionException();
-                }
-                addActionToReadyQueue(action, actionScore);
             }
         }
     }
@@ -102,6 +166,7 @@ public abstract class OrderStrictTS extends TaskScheduler {
     public final <T extends WorkerResourceDescription> void handleDependencyFreeActions(
         List<AllocatableAction> dataFreeActions, List<AllocatableAction> resourceFreeActions,
         List<AllocatableAction> blockedCandidates, ResourceScheduler<T> resource) {
+        manageUpgradedActions(resource);
 
         PriorityQueue<ObjectValue<AllocatableAction>> executableActions = new PriorityQueue<>();
         for (AllocatableAction freeAction : dataFreeActions) {
@@ -139,6 +204,7 @@ public abstract class OrderStrictTS extends TaskScheduler {
 
                 if (topReadyQueue == topPriority) {
                     readyQueue.poll();
+                    addedActions.remove(aa);
                     readyQueueEmpty = readyQueue.isEmpty();
                 } else {
                     executableActions.poll();

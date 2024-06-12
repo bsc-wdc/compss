@@ -151,6 +151,16 @@ else:
     sys.exit(1)
 
 
+INSTALL_REQUIRES = []
+DOCKER_DEPS = [
+    'docker >= 5.0.*'
+]
+EXTRAS_REQUIRE = {
+    'docker': DOCKER_DEPS,
+    'all': INSTALL_REQUIRES + DOCKER_DEPS
+}
+
+
 HERE = pathlib.Path(__file__).parent.resolve()
 # Get the long description from the README file
 LONG_DESCRIPTION = (HERE / "README.md").read_text(encoding="utf-8")
@@ -195,7 +205,8 @@ setup(
     package_dir={"pycompss": "src/pycompss"},
     packages=[""] + find_packages(),
     python_requires=">=3.6",
-    install_requires=[],
+    install_requires=INSTALL_REQUIRES,
+    extras_require=EXTRAS_REQUIRE,
     package_data={
         "": [
             "log/logging_off.json",

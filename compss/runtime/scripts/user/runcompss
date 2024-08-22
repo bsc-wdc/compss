@@ -73,7 +73,7 @@ show_opts() {
                                             Default: ${DEFAULT_PROJECT}
     --resources=<path>                      Path to the resources XML file
                                             Default: ${DEFAULT_RESOURCES}
-    --lang=<name>                           Language of the application (java/c/python)
+    --lang=<name>                           Language of the application (java/c/python/r)
                                             Default: Inferred is possible. Otherwise: ${DEFAULT_LANGUAGE}
     --summary                               Displays a task execution summary at the end of the application execution
                                             Default: ${DEFAULT_SUMMARY}

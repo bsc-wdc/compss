@@ -20,7 +20,9 @@
 """COMPSs trace merger with EAR trace."""
 
 import argparse
+import collections
 import glob
+import operator
 import os
 import shutil
 import typing
@@ -128,7 +130,7 @@ def get_ids(compss: Trace) -> typing.Tuple[bool, list[str], dict]:
             plain_nodes.append(node)
     print(f"\t- Trace header: {header}")
     total_procs = 0
-    ids = [0]  # master id is 0
+    ids = [1]  # master id is 0
     master_procs_list = []
     worker_procs_list = []
     for node in plain_nodes:
@@ -146,7 +148,7 @@ def get_ids(compss: Trace) -> typing.Tuple[bool, list[str], dict]:
             for proc in processes:
                 total_procs += int(proc.split(":")[0])
                 worker_procs_list.append(int(proc.split(":")[0]))
-                ids.append(int(proc.split(":")[1]))
+                ids.append(int(proc.split(":")[1]) + 1)
     # Remove all worker master procs from worker_procs_list.
     del worker_procs_list[1::2]
     # Remove all master ids from ids.
@@ -161,7 +163,8 @@ def get_ids(compss: Trace) -> typing.Tuple[bool, list[str], dict]:
     node_dict = {}
     accum_procs = master_procs[1]
     first = True
-    for id, m, w in worker_procs:
+    worker_procs_ids = list(zip(*worker_procs))[0]
+    for id, m, w in sorted(worker_procs, key=operator.itemgetter(0)):
         accum_procs += m - 1  # the last one is the python main worker process
         worker_relative_threads = list(range(1, w + 1))
         worker_relative_threads.reverse()
@@ -175,7 +178,8 @@ def get_ids(compss: Trace) -> typing.Tuple[bool, list[str], dict]:
             main_thread = [(all_threads[0], m - 1)]
             worker_threads = list(zip(all_threads[1:], worker_relative_threads))
         threads = main_thread + worker_threads
-        node_dict[str(id + 1)] = threads
+        real_id = worker_procs_ids.index(id) + 2
+        node_dict[str(real_id)] = threads
         accum_procs += w
     filter_data = []
     for id, proc_ids in node_dict.items():

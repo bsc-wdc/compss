@@ -97,7 +97,7 @@ arguments_error() {
 ###############################################
 display_configuration() {
   display_info \
-"COMPSs Paraver trace generation. 
+"COMPSs Paraver trace generation.
 Traces:
   Input folder: ${in_dir}
   Output folder: ${out_dir}
@@ -106,11 +106,11 @@ Traces:
 Options:
   Custom threads: ${custom_threads}
   Keep packages: ${keep_packages}
-  
+
 Logging:
   Level: ${gen_tracing_log_level}
   Folder: ${gen_tracing_log_dir}"
-  
+
 }
 
 ###############################################
@@ -121,17 +121,17 @@ Logging:
 
 ###############################################
 # Display All Script Options
-############################################### 
+###############################################
 show_gen_trace_opts() {
   cat <<EOF
 Debug options:
-    -d,--debug                              Enables log at level ${DEFAULT_LOG_LEVEL_ENABLED}. 
+    -d,--debug                              Enables log at level ${DEFAULT_LOG_LEVEL_ENABLED}.
                                             Default level: ${DEFAULT_LOG_LEVEL}
 
     --log_dir=<path>                        Path where to leave the log information
                                             Default: same as output directory
-                                            
-    --log_level=<log_level>                 Sets the log level: : ${GEN_TRACING_LOG_LEVEL_OFF} | ${GEN_TRACING_LOG_LEVEL_DEBUG} 
+
+    --log_level=<log_level>                 Sets the log level: : ${GEN_TRACING_LOG_LEVEL_OFF} | ${GEN_TRACING_LOG_LEVEL_DEBUG}
                                             Default level: ${DEFAULT_LOG_LEVEL}
 
 Trace Merging options:
@@ -147,7 +147,7 @@ Trace Merging options:
     --trace_name=<string>                   Name of the trace gathering all the events.
                                             Default: ${DEFAULT_TRACE_NAME}
 EOF
-  
+
 }
 
 ###############################################
@@ -185,7 +185,7 @@ get_args() {
             # Display options
             show_gen_trace_opts
             exit 0
-            ;;  
+            ;;
           # Version Options
           flower)
             # Display flower
@@ -263,7 +263,7 @@ check_args() {
   fi
   in_dir=$(eval "readlink -f ${in_dir}")
 
-  
+
   if [ -z "${out_dir}" ]; then
     out_dir=${in_dir}
   fi
@@ -277,7 +277,7 @@ check_args() {
   if [ -z "${trace_name}" ]; then
     trace_name=${DEFAULT_TRACE_NAME}
   fi
-  
+
   if [ -z "${custom_threads}" ]; then
     custom_threads=${DEFAULT_CUSTOM_THREADS}
   fi
@@ -298,7 +298,7 @@ check_args
 display_configuration
 
 # Generate all traces from packages
-packages=$(find "${in_dir}" -name "*.tar.gz")
+packages=$(find "${in_dir}" -name "*.tar.gz" | sort -h)
 gen_traces "${out_dir}" "${trace_name}" "1" ${packages}
 if [[ ${endCode} -ne 0 ]]; then
   echo "FAILED gen_traces"
@@ -308,7 +308,7 @@ else
 fi
 
 # Merge python traces into main
-python_traces=$(find "${out_dir}/python" -name "*.prv")
+python_traces=$(find "${out_dir}/python" -name "*.prv" | sort -h)
 merge_python_traces "${out_dir}" "${trace_name}" ${python_traces}
 if [[ ${endCode} -ne 0 ]]; then
   echo "FAILED merge_python_traces"

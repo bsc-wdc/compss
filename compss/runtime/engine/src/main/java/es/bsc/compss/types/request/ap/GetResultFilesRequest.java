@@ -211,10 +211,10 @@ public class GetResultFilesRequest implements APRequest {
             DataLocation origLoc = rf.getOriginalLocation();
             if (origLoc.getProtocol() == ProtocolType.DIR_URI) {
                 listener.addOperation();
-                Comm.getAppHost().getData(data, origLoc, new DirectoryTransferable(false), listener);
+                Comm.getAppHost().getData(data, origLoc, new DirectoryTransferable(), listener);
             } else {
                 listener.addOperation();
-                Comm.getAppHost().getData(data, origLoc, new FileTransferable(false), listener);
+                Comm.getAppHost().getData(data, origLoc, new FileTransferable(), listener);
             }
         }
     }

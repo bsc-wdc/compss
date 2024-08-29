@@ -327,7 +327,7 @@
     local JAVA=java
     worker_jar=${SCRIPT_DIR}/../../../../adaptors/nio/worker/compss-adaptors-nio-worker.jar
     local main_worker_class=es.bsc.compss.nio.worker.NIOWorker
-    perf_jvm_flags="-XX:+PerfDisableSharedMem -XX:-UsePerfData -XX:+UseG1GC"
+    perf_jvm_flags="-XX:+PerfDisableSharedMem -XX:-UsePerfData -XX:+UseG1GC -XX:ParallelGCThreads=1"  # -XX:+UseSerialGC"
     compss_jvm_flags="-Dlog4j.configurationFile=${installDir}/Runtime/configuration/log/${itlog4j_file} \
     -Dcompss.streaming=${streaming} \
     -Dcompss.python.interpreter=${pythonInterpreter} \

@@ -10,4 +10,4 @@ fi
 export COMPSS_HOME=${COMPSS_HOME}
 
 # Run the energy merger tool
-${COMPSS_HOME}Runtime/scripts/system/trace/./energy_merger.py $@
+python3 ${COMPSS_HOME}Runtime/scripts/system/trace/energy_merger.py $@

@@ -12,8 +12,9 @@
 
   getParams() {
     # Check parameters
-    if [ $# -ne 8 ]; then
-      echo "ERROR: Incorrect number of parameters"
+    if [ $# -ne 7 ]; then
+      echo "ERROR: Incorrect number of parameters ($#)"
+      echo "Params: $@"
       usage 1
     fi
   

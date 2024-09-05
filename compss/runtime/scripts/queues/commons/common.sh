@@ -16,7 +16,8 @@ DEFAULT_NVRAM_OPTIONS="none"
 DEFAULT_FORWARD_TIME_LIMIT="true"
 DEFAULT_STORAGE_CONTAINER_IMAGE="false"
 DEFAULT_STORAGE_CPU_AFFINITY="disabled"
-
+DEFAULT_MASTER_PORT_BASE=43000
+DEFAULT_MASTER_PORT_RAND_RANGE=1000
 #---------------------------------------------------
 # ERROR CONSTANTS DECLARATION
 #---------------------------------------------------
@@ -512,6 +513,10 @@ get_args() {
             ;;
           wall_clock_limit=*)
             wcl=${OPTARG//wall_clock_limit=/}
+            args_pass="$args_pass --$OPTARG"
+            ;;
+	  master_port=*)
+	    master_port=${OPTARG//master_port=/}
             args_pass="$args_pass --$OPTARG"
             ;;
           pre_env_script=*)
@@ -1068,6 +1073,37 @@ add_only_worker_nodes(){
 EOT
 }
 
+add_master_port_generation(){
+  if [ -z "${master_port}" ]; then
+	echo "Generating master_port"
+	rand_num=$RANDOM
+  	offset=$((rand_num % DEFAULT_MASTER_PORT_RAND_RANGE))
+  	master_port=$((DEFAULT_MASTER_PORT_BASE + offset))
+  	cat >> "$TMP_SUBMIT_SCRIPT" << EOT
+  master_port=${master_port}
+  while [ "\$(netstat | grep -v CLOSED | grep -c \${master_port})" -gt 0 ] || [ ! -z "\$(lsof -i :\${master_port})" ]; do
+    echo "Port \${master_port} is already in use or time_wait, incrementing port by 1"
+    master_port=\$((master_port+1))
+  done
+EOT
+  fi
+}
+
+add_only_worker_nodes_with_master_name(){
+ # Host list parsing
+  local env_var_suffix=$1
+  cat >> "$TMP_SUBMIT_SCRIPT" << EOT
+  if [ "${HOSTLIST_CMD}" == "nodes.sh" ]; then
+    source "${COMPSS_HOME}/Runtime/scripts/system/${HOSTLIST_CMD}"
+  else
+    host_list=\$(${HOSTLIST_CMD} \$${ENV_VAR_NODE_LIST}${env_var_suffix} ${HOSTLIST_TREATMENT})
+    export COMPSS_WORKER_NODES=\$(echo \${host_list})
+    export COMPSS_MASTER_NODE=\$(${MASTER_NAME_CMD})
+  fi
+
+EOT
+}
+
 add_launch(){
   if [ "${agents_enabled}" = "enabled" ]; then
     AGENTS_SUFFIX="_agents"
@@ -1085,7 +1121,6 @@ storage_master_node="\${COMPSS_MASTER_NODE}"
 variables_to_be_sourced=\$(mktemp -p \$PWD .storage_env_XXXXXXXX)
 
 ${storage_home}/scripts/storage_init.sh \$${ENV_VAR_JOB_ID} "\${COMPSS_MASTER_NODE}" "\${storage_master_node}" "\${COMPSS_WORKER_NODES}" "${network}" "${storage_props}" "\${variables_to_be_sourced}" "${storage_container_image}" "${storage_cpu_affinity}"
-
 ${COMPSS_HOME}/Runtime/scripts/user/launch_compss${AGENTS_SUFFIX} ${AGENTS_HIERARCHY} --master_node="\${COMPSS_MASTER_NODE}" --worker_nodes="\${COMPSS_WORKER_NODES}" --node_memory=${node_memory} --node_storage_bandwidth=${node_storage_bandwidth} --storage_conf=\${storage_conf} --env_script=\${variables_to_be_sourced} ${args_pass}
 
 if [ -f "\${variables_to_be_sourced}" ]; then

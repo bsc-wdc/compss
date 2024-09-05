@@ -638,9 +638,13 @@ xml_project_add_elasticity() {
     fi
     if [ -n "${cpus_per_task}" ] && [ "${cpus_per_task}" == "true" ]; then
             if [ -n "${cpus_per_node}" ] && [ "${cpus_per_node}" != "0" ]; then
-                AUXILIAR_LAUNCH_PARAMS="${QARG_CPUS_PER_TASK} ${cpus_per_node} "
+                AUXILIAR_LAUNCH_PARAMS="${QARG_CPUS_PER_TASK} ${cpus_per_node} ${AUXILIAR_LAUNCH_PARAMS}"
             fi
-        fi
+    fi
+    if [ -n "${het_group}" ]; then
+	    AUXILIAR_LAUNCH_PARAMS="${QARG_HET_GROUP}${het_group} ${AUXILIAR_LAUNCH_PARAMS}"
+    fi
+
      launch_command=$(echo "${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_EXTRA_FLAGS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}" | tr " " "#" | tr "=" "%")
      props="$props launch_command=${launch_command}"
 
@@ -869,7 +873,9 @@ init_het_xml_files() {
   # Add master information (from generate_project.sh)
   add_master_node "0" "0" "0" "NULL" "${shared_disks_info}"
   # Add workers
-  xml_project_add_worker_in_master
+  if [ -n "${master_node}" ]; then
+  	xml_project_add_worker_in_master
+  fi
   xml_project_add_workers
   # Add elasticity
   if [ -n "${elasticity}" ]; then
@@ -1388,6 +1394,13 @@ get_args() {
           # Added for tracing in heterogeneity
           initial_hostid=${OPTARG//initial_hostid=/}
           ;;
+	het_group=*)
+	  # Addded for heterogeneity
+	  het_group=${OPTARG//het_group=/}
+          ;;
+        no_master)
+	  no_master=true
+	  ;;
         gen_coredump)
           # Generate the coredump
           gen_coredump=true
@@ -1643,12 +1656,11 @@ check_args() {
     rand_num=$RANDOM
     offset=$((rand_num % DEFAULT_MASTER_PORT_RAND_RANGE))
     master_port=$((DEFAULT_MASTER_PORT_BASE + offset))
+    while [ "$(netstat | grep -v CLOSED | grep -c ${master_port})" -gt 0 ] || [ ! -z "$(lsof -i :${master_port})" ]; do
+       echo "Port ${master_port} is already in use or time_wait, incrementing port by 1"
+       master_port=$((master_port+1))
+    done
   fi
-
-  while [ "$(netstat | grep -v CLOSED | grep -c ${master_port})" -gt 0 ] || [ ! -z "$(lsof -i :${master_port})" ]; do
-    echo "Port ${master_port} is already in use or time_wait, incrementing port by 1"
-    master_port=$((master_port+1))
-  done
 
   #
   # Worker port range
@@ -2180,7 +2192,7 @@ launch() {
         fpga_reprogram_str=$(echo "${fpga_prog}" | tr "," " ")
         fpga_reprogram_size=$(echo "${fpga_prog}" | wc -w)
         # worker_cmd id name master_name jvmOptsSize jvmOpts cpus gpus cpuMap gpuMap lot streaming_backend streaming_master_port
-        worker_cmd "$hostid" "${master_node}${network}" "${master_node}${network}" "${jvm_worker_in_master_opts_size}" "${jvm_worker_in_master_opts_str}" "${fpga_reprogram_size}" "${fpga_reprogram_str}" "${worker_in_master_cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${cpu_affinity}" "${gpu_affinity}" "${fpga_affinity}" "${io_executors}" "${max_tasks_per_node}" "${streaming}" "${streaming_master_port}"
+	worker_cmd "$hostid" "${master_node}${network}" "${master_node}${network}" "${jvm_worker_in_master_opts_size}" "${jvm_worker_in_master_opts_str}" "${fpga_reprogram_size}" "${fpga_reprogram_str}" "${worker_in_master_cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${cpu_affinity}" "${gpu_affinity}" "${fpga_affinity}" "${io_executors}" "${max_tasks_per_node}" "${streaming}" "${streaming_master_port}"
 
         if [ ! -z "${NODE_NAME_QUEUE}" ]; then
           master_node=$(${NODE_NAME_QUEUE} "${master_node}")
@@ -2190,6 +2202,9 @@ launch() {
             if [ -n "${worker_in_master_cpus}" ] && [ "${worker_in_master_cpus}" != "0" ]; then
                 AUXILIAR_LAUNCH_PARAMS="${QARG_CPUS_PER_TASK} ${worker_in_master_cpus} "
             fi
+        fi
+	if [ -n "${het_group}" ]; then
+            AUXILIAR_LAUNCH_PARAMS="${QARG_HET_GROUP}${het_group} ${AUXILIAR_LAUNCH_PARAMS}"
         fi
 
         if [ "${ear}" = true ]; then
@@ -2223,9 +2238,14 @@ launch() {
       jvm_workers_opts_size=$(echo "${jvm_workers_opts_str}" | wc -w)
       fpga_reprogram_str=$(echo "${fpga_prog}" | tr "," " ")
       fpga_reprogram_size=$(echo "${fpga_prog}" | wc -w)
+      if [ ! -z "${master_node}" ]; then 
+	master_name="${master_node}${network}"
+      else
+	master_name="null"
+      fi
       for node in ${worker_nodes}; do
         # worker_cmd id name master_name jvmOptsSize jvmOpts cpus gpus cpuMap gpuMap lot streaming_backend streaming_master_port
-        worker_cmd $hostid "$node${network}" "${master_node}${network}" "${jvm_workers_opts_size}" "${jvm_workers_opts_str}" "${fpga_reprogram_size}" "${fpga_reprogram_str}" "${cpus_per_node}" "${gpus_per_node}" "${fpgas_per_node}" "${cpu_affinity}" "${gpu_affinity}" "${fpga_affinity}" "${io_executors}" "${max_tasks_per_node}" "${streaming}" "${streaming_master_port}"
+        worker_cmd $hostid "$node${network}" "${master_name}" "${jvm_workers_opts_size}" "${jvm_workers_opts_str}" "${fpga_reprogram_size}" "${fpga_reprogram_str}" "${cpus_per_node}" "${gpus_per_node}" "${fpgas_per_node}" "${cpu_affinity}" "${gpu_affinity}" "${fpga_affinity}" "${io_executors}" "${max_tasks_per_node}" "${streaming}" "${streaming_master_port}"
 
         if [ ! -z "${NODE_NAME_QUEUE}" ]; then
             node=$(${NODE_NAME_QUEUE} ${node})
@@ -2235,6 +2255,9 @@ launch() {
             if [ -n "${cpus_per_node}" ] && [ "${cpus_per_node}" != "0" ]; then
                 AUXILIAR_LAUNCH_PARAMS="${QARG_CPUS_PER_TASK} ${cpus_per_node} "
             fi
+        fi
+	if [ -n "${het_group}" ]; then
+            AUXILIAR_LAUNCH_PARAMS="${QARG_HET_GROUP}${het_group} ${AUXILIAR_LAUNCH_PARAMS}"
         fi
 
         if [ "${ear}" = true ]; then
@@ -2279,7 +2302,7 @@ launch() {
   fi
 
   # Launching the master
-  if [ ! -z "${master_node}" ]; then
+  if [ ! -z "${master_node}" ] && [ -z "${no_master}" ]; then
     # Launch master
     if [ "${jupyter_notebook}" = false ] && [ "${ipython}" = false ] && [ "${run_command}" = false ]; then
       master_cmd "${master_node}${network}"

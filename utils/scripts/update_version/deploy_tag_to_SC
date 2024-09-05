@@ -4,7 +4,7 @@
     exitValue=$1
   
     echo " "
-    echo "Usage $0 <version> <buildFolder> <buildScript> <SCuser> <SCendpoint>"
+    echo "Usage $0 <version> <buildFolder> <buildScript> <SCuser> <SCendpoint> <modules_folder> <install_folder>"
     echo " "
   
     exit "$exitValue"
@@ -12,8 +12,9 @@
 
   getParams() {
     # Check parameters
-    if [ $# -ne 6 ]; then
-      echo "ERROR: Incorrect number of parameters"
+    if [ $# -ne 7 ]; then
+      echo "ERROR: Incorrect number of parameters ($#)"
+      echo "Params: $@"
       usage 1
     fi
   

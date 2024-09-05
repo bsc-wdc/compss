@@ -27,7 +27,7 @@
   buildScript="buildMN5"
   user=compss
   endpoint=glogin1.bsc.es
-  modules_folder="/apps/GPP/modules/modulefiles/applications/COMPSs/"
+  modules_folder="/apps/GPP/modulefiles/applications/COMPSs/"
   install_folder="/apps/GPP/COMPSs/"
   # Call generic script
   ./deploy_tag_to_SC "${version}" ${buildFolder} ${buildScript} ${user} ${endpoint} "${modules_folder}" "${install_folder}"

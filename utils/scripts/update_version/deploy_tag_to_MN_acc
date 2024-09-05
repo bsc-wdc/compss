@@ -27,7 +27,7 @@
   buildScript="buildMN5_acc"
   user=compss
   endpoint=alogin1.bsc.es
-  modules_folder="/apps/ACC/modules/modulefiles/applications/COMPSs/"
+  modules_folder="/apps/ACC/modulefiles/applications/COMPSs/"
   install_folder="/apps/ACC/COMPSs/"
   # Call generic script
   ./deploy_tag_to_SC "${version}" ${buildFolder} ${buildScript} ${user} ${endpoint} "${modules_folder}" "${install_folder}"

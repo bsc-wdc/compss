@@ -37,7 +37,7 @@
   py3_other_modules="anaconda/2021.05-py38 python/3.9.10"
 
   # DEFINE CONFIGURATION PARAMETERS
-  additionalExports="export JAVA_HOME=/apps/COMPSs/JAVA/jdk-11.0.2 PATH=$JAVA_HOME/bin:$PATH EXTRAE_MPI_LIBS=\${I_MPI_ROOT}/lib/release"
+  additionalExports='export JAVA_HOME=/apps/COMPSs/JAVA/jdk-11.0.2 PATH=$JAVA_HOME/bin:$PATH EXTRAE_MPI_LIBS=\${I_MPI_ROOT}/lib/release CFLAGS="-I/usr/include/libxml2/ $CFLAGS"'
   additional_module_use_folder="ignore"
   queues_cfg="nord3.cfg"
   extrae_with_openmpi="false"

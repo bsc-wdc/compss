@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.loader;
 
-import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.loader.total.ITAppModifier;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.util.ErrorManager;
 
@@ -35,7 +35,7 @@ public class ITAppLoader {
     /**
      * Factored out loading function so that subclasses of ITAppLoader can re-use this code.
      */
-    protected static void load(String chosenLoader, String appName, String[] appArgs) throws Exception {
+    protected static void load(String appName, String[] appArgs) throws Exception {
         /*
          * We will have two class loaders: - Custom loader: to load our javassist version classes and the classes that
          * use them. - System loader: parent of the custom loader, it will load the rest of the classes (including the
@@ -46,25 +46,17 @@ public class ITAppLoader {
         try {
             myLoader = new CustomLoader(new URL[] {});
 
-            // Add the jars that the custom class loader needs
-            String compssHome = System.getenv(COMPSsConstants.COMPSS_HOME);
-            myLoader.addFile(compssHome + LoaderConstants.ENGINE_JAR_WITH_REL_PATH);
-
-            /*
-             * The custom class loader must load the class that will modify the application and invoke the modify method
-             * on an instance of this class
-             */
-            String loaderName =
-                LoaderConstants.CUSTOM_LOADER_PREFIX + chosenLoader + LoaderConstants.CUSTOM_LOADER_SUFFIX;
-            Class<?> modifierClass = myLoader.loadClass(loaderName);
-
-            Object modifier = modifierClass.newInstance();
-            LOGGER.debug("Modifying application " + appName + " with loader " + chosenLoader);
-
-            Method method = modifierClass.getMethod("modify", new Class[] { String.class });
-            Class<?> modAppClass = (Class<?>) method.invoke(modifier, new Object[] { appName });
+            LOGGER.debug("Modifying application " + appName);
+            ITAppModifier modifier = new ITAppModifier();
+            // Get annotated interface and run main modify method
+            Class<?> annotItf = Class.forName(appName + LoaderConstants.ITF_SUFFIX);
+            Class<?> modAppClass = modifier.modifyToMemory(appName, null, annotItf, true, false, false, true);
             if (modAppClass != null) { // if null, the modified app has been written to a file, and thus we're done
                 LOGGER.debug("Application " + appName + " instrumented, executing...");
+                // Start runtime
+                Method initializer = modAppClass.getDeclaredMethod("initCOMPSsVariables");
+                initializer.invoke(null);
+                // Start main
                 Method main = modAppClass.getDeclaredMethod("main", new Class[] { String[].class });
                 main.invoke(null, new Object[] { appArgs });
             }
@@ -79,7 +71,7 @@ public class ITAppLoader {
     }
 
     /**
-     * TODO javadoc.
+     * Entry point for the instrumentation and start of the COMPSs application.
      */
     public static void main(String[] args) throws Exception {
         // Check args
@@ -93,7 +85,7 @@ public class ITAppLoader {
 
         // Load the application
         try {
-            load(args[0], args[1], appArgs);
+            load(args[1], appArgs);
         } catch (Exception e) {
             LOGGER.fatal("There was an error when loading or executing your application.", e);
             System.exit(1);

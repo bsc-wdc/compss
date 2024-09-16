@@ -35,7 +35,7 @@
         <!-- BSC Components versions -->
         <cepbatools-extrae.version>1.4</cepbatools-extrae.version>
         <comm.version>1.8-2</comm.version>
-        <conn.version>1.8-12</conn.version>
+        <conn.version>1.8-13</conn.version>
         <java-affinity.version>0.0.2-3</java-affinity.version>
 
         <!-- ZK version -->

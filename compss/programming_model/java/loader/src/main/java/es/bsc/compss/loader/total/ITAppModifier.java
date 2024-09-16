@@ -30,6 +30,7 @@ import javassist.CtClass;
 import javassist.CtConstructor;
 import javassist.CtField;
 import javassist.CtMethod;
+import javassist.CtNewMethod;
 import javassist.Modifier;
 import javassist.NotFoundException;
 import org.apache.logging.log4j.LogManager;
@@ -44,17 +45,10 @@ public class ITAppModifier {
 
     // Constants
     private static final String COMPSS_APP_CONSTANT = LoaderConstants.CLASS_COMPSS_CONSTANTS + ".APP_NAME";
-    private static final ClassPool CLASS_POOL = ClassPool.getDefault();
-    private static final boolean WRITE_TO_FILE = System.getProperty(COMPSsConstants.COMPSS_TO_FILE) != null
-        && System.getProperty(COMPSsConstants.COMPSS_TO_FILE).equals("true") ? true : false;
 
     // Flag to indicate in class is WS
     private static final boolean IS_WS_CLASS = System.getProperty(COMPSsConstants.COMPSS_IS_WS) != null
         && System.getProperty(COMPSsConstants.COMPSS_IS_WS).equals("true") ? true : false;
-
-    // Flag to instrument main method. if COMPSS_IS_MAINCLASS main class not defined (Default case) isMain gets true;
-    private static final boolean IS_MAIN_CLASS = System.getProperty(COMPSsConstants.COMPSS_IS_MAINCLASS) != null
-        && System.getProperty(COMPSsConstants.COMPSS_IS_MAINCLASS).equals("false") ? false : true;
 
     private static final long WALL_CLOCK_LIMIT =
         Long.parseLong(System.getProperty(COMPSsConstants.COMPSS_WALL_CLOCK_LIMIT, "0"));
@@ -63,63 +57,148 @@ public class ITAppModifier {
     /**
      * Modify method.
      */
-    public Class<?> modify(String appName) throws NotFoundException, CannotCompileException, ClassNotFoundException {
-        /*
-         * Use the application editor to include the COMPSs API calls on the application code
-         */
-        CLASS_POOL.importPackage(LoaderConstants.PACKAGE_COMPSS_ROOT);
-        CLASS_POOL.importPackage(LoaderConstants.PACKAGE_COMPSS_API);
-        CLASS_POOL.importPackage(LoaderConstants.PACKAGE_COMPSS_API_IMPL);
-        CLASS_POOL.importPackage(LoaderConstants.PACKAGE_COMPSS_LOADER);
-        CLASS_POOL.importPackage(LoaderConstants.PACKAGE_COMPSS_LOADER_TOTAL);
-
+    private CtClass modify(String appName, String originalClassName, Class<?> annotItf, boolean threadIdAsAppId,
+        boolean useNewAppClassName, boolean isMainClass)
+        throws NotFoundException, CannotCompileException, ClassNotFoundException {
+        // Use the application editor to include the COMPSs API calls on the application code
+        ClassPool classPool = getClassPool();
+        CtClass appClass = classPool.get(appName);
+        appClass.defrost();
         String varName = LoaderUtils.randomName(5, LoaderConstants.STR_COMPSS_PREFIX);
-        CtClass appClass = CLASS_POOL.get(appName);
-
-        CtClass itApiClass = CLASS_POOL.get(LoaderConstants.CLASS_COMPSSRUNTIME_API);
+        if (useNewAppClassName) {
+            appClass.setName(appName + "_" + varName);
+        }
         String itApiVar = varName + LoaderConstants.STR_COMPSS_API;
+        String itSRVar = varName + LoaderConstants.STR_COMPSS_STREAM_REGISTRY;
+        String itORVar = varName + LoaderConstants.STR_COMPSS_OBJECT_REGISTRY;
+        String itAppIdVar = varName + LoaderConstants.STR_COMPSS_APP_ID;
+
+        // Use thread ID for instrumentation
+        String instrumentationAppId;
+        if (threadIdAsAppId) {
+            instrumentationAppId = "new Long(Thread.currentThread().getId())";
+        } else {
+            instrumentationAppId = itAppIdVar;
+        }
+
+        // Instrument class
+        addVariables(classPool, appClass, itApiVar, itSRVar, itORVar, itAppIdVar);
+        instrumentClass(classPool, appClass, annotItf, itApiVar, itSRVar, itORVar, instrumentationAppId,
+            originalClassName, isMainClass);
+        addModifyVariablesMethods(appClass, itApiVar, itSRVar, itORVar, itAppIdVar, instrumentationAppId, isMainClass);
+
+        return appClass;
+    }
+
+    /**
+     * Load the modified class into memory and return it. Generally, once a class is loaded into memory no further
+     * modifications can be performed on it.
+     *
+     * @param appName Application name
+     * @param originalClassName Original class name
+     * @param annotItf Annotated interface class
+     * @param threadIdAsAppId If true, the method provides the current thread ID as the itAppIdVar for instrumentation,
+     *            otherwise uses the same "compssXXXXXAppId"
+     * @param useNewAppClassName Use a different name for appClass with additional numbers appended to appName (used by
+     *            nested)
+     * @param returnOrigClass Whether to return or not the original class (used by nested)
+     * @param isMainClass Whether the calling class is the main application class
+     * @return Instrumented class
+     */
+    public Class<?> modifyToMemory(String appName, String originalClassName, Class<?> annotItf, boolean threadIdAsAppId,
+        boolean useNewAppClassName, boolean returnOrigClass, boolean isMainClass)
+        throws NotFoundException, CannotCompileException, ClassNotFoundException {
+        CtClass appClass =
+            modify(appName, originalClassName, annotItf, threadIdAsAppId, useNewAppClassName, isMainClass);
+
+        // Return original method class
+        if (returnOrigClass) {
+            Class<?> origClass = Class.forName(appName);
+            Class<?> methodClass = appClass.toClass(origClass);
+            appClass.defrost();
+            return methodClass;
+        } else {
+            return appClass.toClass(annotItf);
+        }
+    }
+
+    /**
+     * Write the modified class to disk.
+     *
+     * @param appName Application name
+     * @param originalClassName Original class name
+     * @param annotItf Annotated interface class
+     * @param threadIdAsAppId If true, the method provides the current thread ID as the itAppIdVar for instrumentation,
+     *            otherwise uses the same "compssXXXXXAppId"
+     * @param useNewAppClassName Use a different name for appClass with additional numbers appended to appName (used by
+     *            nested)
+     * @param isMainClass Whether the calling class is the main application class
+     */
+    public void modifyToFile(String appName, String originalClassName, Class<?> annotItf, boolean threadIdAsAppId,
+        boolean useNewAppClassName, boolean isMainClass)
+        throws NotFoundException, CannotCompileException, ClassNotFoundException {
+        CtClass appClass =
+            modify(appName, originalClassName, annotItf, threadIdAsAppId, useNewAppClassName, isMainClass);
+        try {
+            appClass.writeFile();
+        } catch (Exception e) {
+            ErrorManager.fatal("Error writing the instrumented class file");
+        }
+    }
+
+    /** Create new ClassPool object and load packages into it. */
+    private static ClassPool getClassPool() {
+        ClassPool cp = new ClassPool();
+        cp.appendSystemPath();
+        cp.importPackage(LoaderConstants.PACKAGE_COMPSS_ROOT);
+        cp.importPackage(LoaderConstants.PACKAGE_COMPSS_API);
+        cp.importPackage(LoaderConstants.PACKAGE_COMPSS_API_IMPL);
+        cp.importPackage(LoaderConstants.PACKAGE_COMPSS_LOADER);
+        cp.importPackage(LoaderConstants.PACKAGE_COMPSS_LOADER_TOTAL);
+        return cp;
+    }
+
+    /**
+     * Add main variables to the instrumented class.
+     */
+    private static void addVariables(ClassPool cp, CtClass appClass, String itApiVar, String itSRVar, String itORVar,
+        String itAppIdVar) throws NotFoundException, CannotCompileException {
+        CtClass itApiClass = cp.get(LoaderConstants.CLASS_COMPSSRUNTIME_API);
         CtField itApiField = new CtField(itApiClass, itApiVar, appClass);
         itApiField.setModifiers(Modifier.PRIVATE | Modifier.STATIC);
         appClass.addField(itApiField);
 
-        CtClass itSRClass = CLASS_POOL.get(LoaderConstants.CLASS_STREAM_REGISTRY);
-        String itSRVar = varName + LoaderConstants.STR_COMPSS_STREAM_REGISTRY;
+        CtClass itSRClass = cp.get(LoaderConstants.CLASS_STREAM_REGISTRY);
         CtField itSRField = new CtField(itSRClass, itSRVar, appClass);
         itSRField.setModifiers(Modifier.PRIVATE | Modifier.STATIC);
         appClass.addField(itSRField);
 
-        CtClass itORClass = CLASS_POOL.get(LoaderConstants.CLASS_OBJECT_REGISTRY);
-        String itORVar = varName + LoaderConstants.STR_COMPSS_OBJECT_REGISTRY;
+        CtClass itORClass = cp.get(LoaderConstants.CLASS_OBJECT_REGISTRY);
         CtField itORField = new CtField(itORClass, itORVar, appClass);
         itORField.setModifiers(Modifier.PRIVATE | Modifier.STATIC);
         appClass.addField(itORField);
 
-        CtClass appIdClass = CLASS_POOL.get(LoaderConstants.CLASS_APP_ID);
-        String itAppIdVar = "new Long(Thread.currentThread().getId())";
-        // String itAppIdVar = varName + LoaderConstants.STR_COMPSS_APP_ID;
+        CtClass appIdClass = cp.get(LoaderConstants.CLASS_APP_ID);
         CtField appIdField = new CtField(appIdClass, itAppIdVar, appClass);
         appIdField.setModifiers(Modifier.PRIVATE | Modifier.STATIC);
-        // appClass.addField(appIdField);
+        appClass.addField(appIdField);
+    }
 
-        /*
-         * Create a static constructor to initialize the runtime Create a shutdown hook to stop the runtime before the
-         * JVM ends
-         */
-        manageStartAndStop(appClass, itApiVar, itSRVar, itORVar, itAppIdVar);
-
-        /*
-         * Create IT App Editor
-         */
-        Class<?> annotItf = Class.forName(appName + LoaderConstants.ITF_SUFFIX);
-
+    /*
+     * Create a Code Converter object and instrument each method based on whether it is the main method, an
+     * orchestration method, or a web service method.
+     */
+    private static void instrumentClass(ClassPool cp, CtClass appClass, Class<?> annotItf, String itApiVar,
+        String itSRVar, String itORVar, String itAppIdVar, String originalClassName, boolean isMainClass)
+        throws NotFoundException, CannotCompileException {
         // Methods declared in the annotated interface
         Method[] remoteMethods = annotItf.getMethods();
 
         // Candidates to be instrumented if they are not remote
         CtMethod[] instrCandidates = appClass.getDeclaredMethods();
 
-        ITAppEditor itAppEditor =
-            new ITAppEditor(remoteMethods, instrCandidates, itApiVar, itSRVar, itORVar, itAppIdVar, appClass, null);
+        ITAppEditor itAppEditor = new ITAppEditor(remoteMethods, instrCandidates, itApiVar, itSRVar, itORVar,
+            itAppIdVar, appClass, originalClassName);
         // itAppEditor.setAppId(itAppIdVar);
         // itAppEditor.setAppClass(appClass);
 
@@ -127,7 +206,7 @@ public class ITAppModifier {
          * Create Code Converter
          */
         CodeConverter converter = new CodeConverter();
-        CtClass arrayWatcher = CLASS_POOL.get(LoaderConstants.CLASS_ARRAY_ACCESS_WATCHER);
+        CtClass arrayWatcher = cp.get(LoaderConstants.CLASS_ARRAY_ACCESS_WATCHER);
         CodeConverter.DefaultArrayAccessReplacementMethodNames names =
             new CodeConverter.DefaultArrayAccessReplacementMethodNames();
         converter.replaceArrayAccess(arrayWatcher, (CodeConverter.ArrayAccessReplacementMethodNames) names);
@@ -137,8 +216,7 @@ public class ITAppModifier {
          * that are not in the remote list
          */
         if (DEBUG) {
-            LOGGER
-                .debug("Flags: ToFile: " + WRITE_TO_FILE + " isWS: " + IS_WS_CLASS + " isMainClass: " + IS_MAIN_CLASS);
+            LOGGER.debug("Flags: isWS: " + IS_WS_CLASS + " isMainClass: " + isMainClass);
         }
         for (CtMethod m : instrCandidates) {
             if (LoaderUtils.checkRemote(m, remoteMethods, null, null) == null) {
@@ -146,85 +224,49 @@ public class ITAppModifier {
                 if (DEBUG) {
                     LOGGER.debug("Instrumenting method " + m.getName());
                 }
-                StringBuilder toInsertBefore = new StringBuilder();
                 StringBuilder toInsertAfter = new StringBuilder();
 
-                /*
-                 * Add local variable to method representing the execution id, which will be the current thread id. Used
-                 * for Services, to handle multiple service executions simultaneously with a single runtime For normal
-                 * applications, there will be only one execution id.
-                 */
-                // m.addLocalVariable(itAppIdVar, appIdClass);
-                // toInsertBefore.append(itAppIdVar).append(" = new Long(Thread.currentThread().getId());");
-
-                // TODO remove old code:
-                // boolean isMainProgram = writeToFile ? LoaderUtils.isOrchestration(m) : LoaderUtils.isMainMethod(m);
                 boolean isMainProgram = LoaderUtils.isMainMethod(m);
                 boolean isOrchestration = LoaderUtils.isOrchestration(m);
 
-                if (isMainProgram && IS_MAIN_CLASS) {
+                if ((isMainProgram && isMainClass) || (isOrchestration && IS_WS_CLASS)) {
                     LOGGER.debug("Inserting calls at the beginning and at the end of main");
+                    if (!IS_WS_CLASS) { // Main program
+                        LOGGER.debug("Inserting call stopIT at the end of main");
+                        toInsertAfter.insert(0, itApiVar + ".stopIT(true);");
+                    }
+                    LOGGER.debug("Inserting call noMoreTasks at the end of main");
+                    toInsertAfter.insert(0, itApiVar + ".noMoreTasks(" + itAppIdVar + ");");
 
-                    if (IS_WS_CLASS) { //
-                        LOGGER.debug("Inserting calls noMoreTasks at the end of main");
-                        toInsertAfter.insert(0, itApiVar + ".noMoreTasks(" + itAppIdVar + ");");
-                        m.insertBefore(toInsertBefore.toString());
+                    // Do insertions
+                    if (IS_WS_CLASS) {
                         m.insertAfter(toInsertAfter.toString()); // executed only if Orchestration finishes properly
                     } else { // Main program
-                        LOGGER.debug("Inserting calls noMoreTasks and stopIT at the end of main");
-                        // Set global variable for main as well, will be used in code inserted after to be run no matter
-                        // what
-                        // toInsertBefore.append(appName).append('.').append(itAppIdVar)
-                        // .append(" = new Long(Thread.currentThread().getId());");
-                        // toInsertAfter.append("System.exit(0);");
-                        toInsertAfter.insert(0, itApiVar + ".stopIT(true);");
-                        toInsertAfter.insert(0, itApiVar + ".noMoreTasks(" + itAppIdVar + ");");
-                        m.insertBefore(toInsertBefore.toString());
-                        m.insertAfter(toInsertAfter.toString(), true); // executed no matter what
+                        m.insertAfter(toInsertAfter.toString(), true); // no matter what
                     }
-
-                    /*
-                     * Instrumenting first the array accesses makes each array access become a call to a black box
-                     * method of class ArrayAccessWatcher, whose parameters include the array. For the second round of
-                     * instrumentation, the synchronization by transition to black box automatically synchronizes the
-                     * arrays accessed. TODO: Change the order of instrumentation, so that we have more control about
-                     * the synchronization, and we can distinguish between a write access and a read access (now it's
-                     * read/write access by default, because it goes into the black box).
-                     */
-                    m.instrument(converter);
-                    m.instrument(itAppEditor);
-                } else if (isOrchestration) {
-                    if (IS_WS_CLASS) { //
-                        LOGGER.debug("Inserting calls noMoreTasks and stopIT at the end of orchestration");
-                        toInsertAfter.insert(0, itApiVar + ".noMoreTasks(" + itAppIdVar + ");");
-                        m.insertBefore(toInsertBefore.toString());
-                        m.insertAfter(toInsertAfter.toString()); // executed only if Orchestration finishes properly
-                    } else {
-                        LOGGER.debug("Inserting only before at the beginning of an orchestration");
-                        m.insertBefore(toInsertBefore.toString());
-                        // TODO remove old code m.insertAfter(toInsertAfter.toString());
-                        // executed only if Orchestration finishes properly
-                    }
-                    m.instrument(converter);
-                    m.instrument(itAppEditor);
                 } else {
-                    LOGGER.debug("Inserting only before");
-                    m.insertBefore(toInsertBefore.toString());
                     if (IS_WS_CLASS) {
                         // If we're instrumenting a service class, only instrument private methods, public might be
                         // non-OE operations
-                        if (Modifier.isPrivate(m.getModifiers())) {
-                            m.instrument(converter);
-                            m.instrument(itAppEditor);
+                        if (!Modifier.isPrivate(m.getModifiers())) {
+                            continue;
                         }
-                    } else {
-                        // For an application class, instrument all non-remote methods
-                        m.instrument(converter);
-                        m.instrument(itAppEditor);
                     }
                 }
+
+                /*
+                 * Instrumenting first the array accesses makes each array access become a call to a black box method of
+                 * class ArrayAccessWatcher, whose parameters include the array. For the second round of
+                 * instrumentation, the synchronization by transition to black box automatically synchronizes the arrays
+                 * accessed. TODO: Change the order of instrumentation, so that we have more control about the
+                 * synchronization, and we can distinguish between a write access and a read access (now it's read/write
+                 * access by default, because it goes into the black box).
+                 */
+                m.instrument(converter);
+                m.instrument(itAppEditor);
             }
         }
+
         // Instrument constructors
         for (CtConstructor c : appClass.getDeclaredConstructors()) {
             if (DEBUG) {
@@ -233,52 +275,65 @@ public class ITAppModifier {
             c.instrument(converter);
             c.instrument(itAppEditor);
         }
-
-        if (WRITE_TO_FILE) {
-            // Write the modified class to disk
-            try {
-                appClass.writeFile();
-            } catch (Exception e) {
-                ErrorManager.fatal("Error writing the instrumented class file");
-            }
-            return null;
-        } else {
-            /*
-             * Load the modified class into memory and return it. Generally, once a class is loaded into memory no
-             * further modifications can be performed on it.
-             */
-            return appClass.toClass(annotItf);
-        }
     }
 
-    private void manageStartAndStop(CtClass appClass, String itApiVar, String itSRVar, String itORVar,
-        String itAppIdVar) throws CannotCompileException, NotFoundException {
-
-        if (DEBUG) {
-            LOGGER.debug("Previous class initializer is " + appClass.getClassInitializer());
-        }
+    private static void addModifyVariablesMethods(CtClass appClass, String itApiVar, String itSRVar, String itORVar,
+        String itAppIdVar, String instrumentationAppId, boolean isMainClass) throws CannotCompileException {
+        /*
+         * Insert printer method
+         */
+        StringBuilder methodBody = new StringBuilder();
+        methodBody.append("public static void printCOMPSsVariables() { ");
+        methodBody.append("System.out.println(\"Api Var: \" + ").append(itApiVar).append(");");
+        methodBody.append("System.out.println(\"SR Var: \" + ").append(itSRVar).append(");");
+        methodBody.append("System.out.println(\"OR Var: \" + ").append(itORVar).append(");");
+        methodBody.append("System.out.println(\"App Id: \" + ").append(itAppIdVar).append(");");
+        methodBody.append("}");
+        CtMethod m;
+        m = CtNewMethod.make(methodBody.toString(), appClass);
+        appClass.addMethod(m);
 
         /*
-         * - Creation of the COMPSsRuntimeImpl - Creation of the stream registry to keep track of streams (with error
-         * handling) - Setting of the COMPSsRuntime interface variable - Start of the COMPSsRuntimeImpl
+         * Insert method to retrieve the runtime instead of instantiating a new one
          */
-        StringBuilder toInsertBefore = new StringBuilder();
-        if (IS_MAIN_CLASS || IS_WS_CLASS) {
-            toInsertBefore.append("System.setProperty(" + COMPSS_APP_CONSTANT + ", \"" + appClass.getName() + "\");");
+        methodBody = new StringBuilder();
+        methodBody.append("public static void setCOMPSsVariables( ").append(LoaderConstants.CLASS_COMPSSRUNTIME_API)
+            .append(" runtime" + ", ").append(LoaderConstants.CLASS_LOADERAPI).append(" loader" + ", ")
+            .append(LoaderConstants.CLASS_APP_ID).append(" appId" + ") {");
+        methodBody.append(itApiVar).append("= runtime;");
+        methodBody.append(itSRVar).append("= loader.getStreamRegistry();");
+        methodBody.append(itORVar).append("= loader.getObjectRegistry();");
+        methodBody.append(itAppIdVar).append("= appId;");
+        methodBody.append("}");
+        m = CtNewMethod.make(methodBody.toString(), appClass);
+        appClass.addMethod(m);
+
+        /*
+         * Insert method to start runtime - Creation of the COMPSsRuntimeImpl - Creation of the stream registry to keep
+         * track of streams (with error handling) - Setting of the COMPSsRuntime interface variable - Start of the
+         * COMPSsRuntimeImpl
+         */
+        methodBody = new StringBuilder();
+        methodBody.append("public static void initCOMPSsVariables() {");
+        if (isMainClass || IS_WS_CLASS) {
+            methodBody.append("System.setProperty(").append(COMPSS_APP_CONSTANT).append(", \"")
+                .append(appClass.getName()).append("\");");
         }
-        toInsertBefore.append(itApiVar + " = new " + LoaderConstants.CLASS_COMPSS_API_IMPL + "();")
-            .append(itApiVar + " = (" + LoaderConstants.CLASS_COMPSSRUNTIME_API + ")" + itApiVar + ";")
-            .append(itSRVar + " = new " + LoaderConstants.CLASS_STREAM_REGISTRY + "((" + LoaderConstants.CLASS_LOADERAPI
-                + ") " + itApiVar + " );")
-            .append(itORVar + " = new " + LoaderConstants.CLASS_OBJECT_REGISTRY + "((" + LoaderConstants.CLASS_LOADERAPI
-                + ") " + itApiVar + " );")
-            .append(itApiVar + ".startIT();");
+        methodBody.append(itApiVar).append(" = new ").append(LoaderConstants.CLASS_COMPSS_API_IMPL).append("();");
+        methodBody.append(itApiVar).append(" = (").append(LoaderConstants.CLASS_COMPSSRUNTIME_API).append(")")
+            .append(itApiVar).append(";");
+        methodBody.append(itSRVar).append(" = new ").append(LoaderConstants.CLASS_STREAM_REGISTRY).append("((")
+            .append(LoaderConstants.CLASS_LOADERAPI).append(") ").append(itApiVar).append(" );");
+        methodBody.append(itORVar).append(" = new ").append(LoaderConstants.CLASS_OBJECT_REGISTRY).append("((")
+            .append(LoaderConstants.CLASS_LOADERAPI).append(") ").append(itApiVar).append(" );");
+        methodBody.append(itApiVar).append(".startIT();");
         if (WALL_CLOCK_LIMIT > 0) {
             // Setting wall clock limit with runtime stop.
-            toInsertBefore.append(itApiVar + ".setWallClockLimit(" + itAppIdVar + "," + WALL_CLOCK_LIMIT + "L, true);");
+            methodBody.append(itApiVar).append(".setWallClockLimit(").append(instrumentationAppId).append(",")
+                .append(WALL_CLOCK_LIMIT).append("L, true);");
         }
-        CtConstructor initializer = appClass.makeClassInitializer();
-        initializer.insertBefore(toInsertBefore.toString());
+        methodBody.append("}");
+        m = CtNewMethod.make(methodBody.toString(), appClass);
+        appClass.addMethod(m);
     }
-
 }

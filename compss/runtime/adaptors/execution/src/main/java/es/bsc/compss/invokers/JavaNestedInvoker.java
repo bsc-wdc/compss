@@ -22,8 +22,7 @@ import es.bsc.compss.execution.types.InvocationResources;
 import es.bsc.compss.invokers.util.ClassUtils;
 import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.loader.LoaderConstants;
-import es.bsc.compss.loader.LoaderUtils;
-import es.bsc.compss.loader.total.ITAppEditor;
+import es.bsc.compss.loader.total.ITAppModifier;
 import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.execution.ExecutionSandbox;
 import es.bsc.compss.types.execution.Invocation;
@@ -39,17 +38,6 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.List;
-
-import javassist.CannotCompileException;
-import javassist.ClassPool;
-import javassist.CodeConverter;
-import javassist.CtClass;
-import javassist.CtConstructor;
-import javassist.CtField;
-import javassist.CtMethod;
-import javassist.CtNewMethod;
-import javassist.Modifier;
-import javassist.NotFoundException;
 
 
 public class JavaNestedInvoker extends JavaInvoker {
@@ -115,22 +103,12 @@ public class JavaNestedInvoker extends JavaInvoker {
 
                 Thread.currentThread().setContextClassLoader(myLoader);
 
-                ClassPool classPool = getClassPool();
-                CtClass appClass = classPool.get(className);
-                appClass.defrost();
-                String varName = LoaderUtils.randomName(5, LoaderConstants.STR_COMPSS_PREFIX);
-                appClass.setName(className + "_" + varName);
-                String itApiVar = varName + LoaderConstants.STR_COMPSS_API;
-                String itSRVar = varName + LoaderConstants.STR_COMPSS_STREAM_REGISTRY;
-                String itORVar = varName + LoaderConstants.STR_COMPSS_OBJECT_REGISTRY;
-                String itAppIdVar = varName + LoaderConstants.STR_COMPSS_APP_ID;
+                // Call class modifier
+                LOGGER.debug("Modifying application " + className);
+                ITAppModifier modifier = new ITAppModifier();
+                methodClass = modifier.modifyToMemory(className, className, ceiClass, false, true, true, false);
 
-                addVariables(classPool, appClass, itApiVar, itSRVar, itORVar, itAppIdVar);
-                instrumentClass(classPool, appClass, ceiClass, itApiVar, itSRVar, itORVar, itAppIdVar, className);
-                addModifyVariablesMethod(appClass, itApiVar, itSRVar, itORVar, itAppIdVar);
-                Class<?> origClass = Class.forName(className);
-                methodClass = appClass.toClass(origClass);
-                appClass.defrost();
+                // Find the corresponding method
                 method = ClassUtils.findMethod(methodClass, methodName, this.invocation.getParams());
             } catch (Exception e) {
                 LOGGER.warn("Could not instrument the method to detect nested tasks.", e);
@@ -143,103 +121,6 @@ public class JavaNestedInvoker extends JavaInvoker {
             }
         }
         return method;
-    }
-
-    private static ClassPool getClassPool() {
-        ClassPool cp = new ClassPool();
-        cp.appendSystemPath();
-        cp.importPackage(LoaderConstants.PACKAGE_COMPSS_ROOT);
-        cp.importPackage(LoaderConstants.PACKAGE_COMPSS_API);
-        cp.importPackage(LoaderConstants.PACKAGE_COMPSS_API_IMPL);
-        cp.importPackage(LoaderConstants.PACKAGE_COMPSS_LOADER);
-        cp.importPackage(LoaderConstants.PACKAGE_COMPSS_LOADER_TOTAL);
-        return cp;
-    }
-
-    private static void addVariables(ClassPool cp, CtClass appClass, String itApiVar, String itSRVar, String itORVar,
-        String itAppIdVar) throws NotFoundException, CannotCompileException {
-        CtClass itApiClass = cp.get(LoaderConstants.CLASS_COMPSSRUNTIME_API);
-        CtField itApiField = new CtField(itApiClass, itApiVar, appClass);
-        itApiField.setModifiers(Modifier.PRIVATE | Modifier.STATIC);
-        appClass.addField(itApiField);
-
-        CtClass itSRClass = cp.get(LoaderConstants.CLASS_STREAM_REGISTRY);
-        CtField itSRField = new CtField(itSRClass, itSRVar, appClass);
-        itSRField.setModifiers(Modifier.PRIVATE | Modifier.STATIC);
-        appClass.addField(itSRField);
-
-        CtClass itORClass = cp.get(LoaderConstants.CLASS_OBJECT_REGISTRY);
-        CtField itORField = new CtField(itORClass, itORVar, appClass);
-        itORField.setModifiers(Modifier.PRIVATE | Modifier.STATIC);
-        appClass.addField(itORField);
-
-        CtClass appIdClass = cp.get(LoaderConstants.CLASS_APP_ID);
-        CtField appIdField = new CtField(appIdClass, itAppIdVar, appClass);
-        appIdField.setModifiers(Modifier.PRIVATE | Modifier.STATIC);
-        appClass.addField(appIdField);
-    }
-
-    private static void instrumentClass(ClassPool cp, CtClass appClass, Class<?> annotItf, String itApiVar,
-        String itSRVar, String itORVar, String itAppIdVar, String originalClassName)
-        throws ClassNotFoundException, NotFoundException, CannotCompileException {
-        Method[] remoteMethods = annotItf.getMethods();
-
-        CtMethod[] instrCandidates = appClass.getDeclaredMethods();
-        // Candidates to be instrumented if they are not remote
-        ITAppEditor itAppEditor;
-        itAppEditor = new ITAppEditor(remoteMethods, instrCandidates, itApiVar, itSRVar, itORVar, itAppIdVar, appClass,
-            originalClassName);
-
-        /*
-         * Create Code Converter
-         */
-        CodeConverter converter = new CodeConverter();
-        CtClass arrayWatcher = cp.get(LoaderConstants.CLASS_ARRAY_ACCESS_WATCHER);
-        CodeConverter.DefaultArrayAccessReplacementMethodNames names;
-        names = new CodeConverter.DefaultArrayAccessReplacementMethodNames();
-        converter.replaceArrayAccess(arrayWatcher, (CodeConverter.ArrayAccessReplacementMethodNames) names);
-
-        /*
-         * Find the methods declared in the application class that will be instrumented - Main - Constructors - Methods
-         * that are not in the remote list
-         */
-        for (CtMethod m : instrCandidates) {
-            m.instrument(converter);
-            m.instrument(itAppEditor);
-        }
-
-        // Instrument constructors
-        for (CtConstructor c : appClass.getDeclaredConstructors()) {
-            c.instrument(converter);
-            c.instrument(itAppEditor);
-        }
-    }
-
-    private static void addModifyVariablesMethod(CtClass appClass, String itApiVar, String itSRVar, String itORVar,
-        String itAppIdVar) throws CannotCompileException, NotFoundException {
-
-        StringBuilder methodBody = new StringBuilder();
-        methodBody.append("public static void printCOMPSsVariables() { ");
-        methodBody.append("System.out.println(\"Api Var: \" + ").append(itApiVar).append(");");
-        methodBody.append("System.out.println(\"SR Var: \" + ").append(itSRVar).append(");");
-        methodBody.append("System.out.println(\"OR Var: \" + ").append(itORVar).append(");");
-        methodBody.append("System.out.println(\"App Id: \" + ").append(itAppIdVar).append(");");
-        methodBody.append("}");
-        CtMethod m;
-        m = CtNewMethod.make(methodBody.toString(), appClass);
-        appClass.addMethod(m);
-
-        methodBody = new StringBuilder();
-        methodBody.append("public static void setCOMPSsVariables( ").append(LoaderConstants.CLASS_COMPSSRUNTIME_API)
-            .append(" runtime" + ", ").append(LoaderConstants.CLASS_LOADERAPI).append(" loader" + ", ")
-            .append(LoaderConstants.CLASS_APP_ID).append(" appId" + ") {");
-        methodBody.append(itApiVar).append("= runtime;");
-        methodBody.append(itSRVar).append("= loader.getStreamRegistry();");
-        methodBody.append(itORVar).append("= loader.getObjectRegistry();");
-        methodBody.append(itAppIdVar).append("= appId;");
-        methodBody.append("}");
-        m = CtNewMethod.make(methodBody.toString(), appClass);
-        appClass.addMethod(m);
     }
 
     @Override

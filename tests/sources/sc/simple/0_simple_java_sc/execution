@@ -9,13 +9,17 @@
   compss_module=$6
   queue=$7
   qos=$8
+  project_name=$9
   #Execution_envs should be the last parameter because it is a list
-  execution_envs=$9
+  execution_envs=${10}
   if [ "$queue" != 'none' ]; then
-          runcompss_opts="${runcompss_opts} --queue=${queue}"
+    runcompss_opts="${runcompss_opts} --queue=${queue}"
   fi
   if [ "$qos" != 'none' ]; then
 	  runcompss_opts="${runcompss_opts} --qos=${qos}"
+  fi
+  if [ "$project_name" != 'none' ]; then
+    runcompss_opts="${runcompss_opts} --project_name=${project_name}"
   fi
 
   # Global variables

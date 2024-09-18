@@ -190,7 +190,7 @@ def execute_tests(cmd_args, compss_cfg):
         print("[INFO] File coverage_rc generated")
     # Execute all the deployed tests
     results = []
-    
+
     for test_dir in sorted(os.listdir(execution_sanbdox)):
         old_runcompss_opts = compss_cfg.runcompss_opts
         if cmd_args.coverage:
@@ -251,6 +251,7 @@ def execute_tests_sc(cmd_args, compss_cfg):
     runcompss_opts = compss_cfg.get_runcompss_opts()
     queue = compss_cfg.get_queue()
     qos = compss_cfg.get_qos()
+    project_name = compss_cfg.get_project_name()
     batch = compss_cfg.get_batch()
 
     # Initialize tests results vars
@@ -274,7 +275,7 @@ def execute_tests_sc(cmd_args, compss_cfg):
         results_script = os.path.join(remote_dir,REMOTE_SCRIPTS_REL_PATH, "results.py")
 
         #Add more parameters before exec_env. Let exec_envs for the last argument
-        remote_cmd = "python " + enqueue_tests_script + " " + remote_dir + " " + runcompss_bin + " " + comm + " " + runcompss_opts + " " + module + " " + queue + " " + qos + " " + str(start) + " " + str(end) + " " + exec_envs
+        remote_cmd = "python " + enqueue_tests_script + " " + remote_dir + " " + runcompss_bin + " " + comm + " " + runcompss_opts + " " + module + " " + queue + " " + qos + " " + project_name + " " + str(start) + " " + str(end) + " " + exec_envs
         cmd = "ssh " + username + " " + "'" + remote_cmd + "'"
         print("Executing command:" + cmd)
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
@@ -368,7 +369,7 @@ def execute_tests_cli(cmd_args, compss_cfg, compss_cfg_sc):
         print("[INFO] File coverage_rc generated")
     # Execute all the deployed tests
     results = []
-    
+
     for test_dir in sorted(os.listdir(execution_sanbdox)):
         old_runcompss_opts = compss_cfg.runcompss_opts
         if cmd_args.coverage:

@@ -21,9 +21,10 @@ if user_opts == "none" :
 module = sys.argv[5]
 queue = sys.argv[6]
 qos = sys.argv[7]
-start = int(sys.argv[8])
-end = int(sys.argv[9])
-execution_envs = sys.argv[10:] #python3
+project_name = sys.argv[8]
+start = int(sys.argv[9])
+end = int(sys.argv[10])
+execution_envs = sys.argv[11:] #python3
 #module = sys.argv[6] #COMPSs/2.6
 #master_working_dir = sys.argv[9]
 #worker_working_dir = sys.argv[10]
@@ -66,7 +67,9 @@ for test_dir in sorted(os.listdir(tests_apps_dir)):
            str(test_logs_path),
            str(module),
            str(queue),
-           str(qos), #Add more parameters here. Let exec_envs for the last argument
+           str(qos),
+           str(project_name),
+           #Add more parameters here. Let execution_envs_str for the last argument
            str(execution_envs_str)]
 
     #exec_env = os.environ.copy()

@@ -9,13 +9,17 @@
   compss_module=$6
   queue=$7
   qos=$8
+  project_name=$9
   #Execution_envs should be the last parameter because it is a list
-  execution_envs=$9
+  execution_envs=${10}
   if [ "$queue" != 'none' ]; then
-          runcompss_opts="${runcompss_opts} --queue=${queue}"
+    runcompss_opts="${runcompss_opts} --queue=${queue}"
   fi
   if [ "$qos" != 'none' ]; then
-          runcompss_opts="${runcompss_opts} --qos=${qos}"
+    runcompss_opts="${runcompss_opts} --qos=${qos}"
+  fi
+  if [ "$project_name" != 'none' ]; then
+    runcompss_opts="${runcompss_opts} --project_name=${project_name}"
   fi
 
 
@@ -24,16 +28,12 @@
 
   #----------------------------------------------------------------------------------
   # Load COMPSs module + application
-  export COMPSS_PYTHON_VERSION=3-ML
-  # module use /apps/modules/modulefiles/tools/COMPSs/.custom/
-  # module load Trunkness
+  export COMPSS_PYTHON_VERSION=3.12.1
   module load ${compss_module}
 
   # module load xxx
-#  module load impi
   export COMPSS_MPIRUN_TYPE="openmpi"
   export MDCU=48
-  export COMPSS_PYTHON_VERSION=3
   module load singularity/3.5.2
 
   #----------------------------------------------------------------------------------

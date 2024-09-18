@@ -223,11 +223,13 @@ class COMPSsSCConfiguration(COMPSsConfiguration):
         + type: String
     :attribute qos: Quality of Service for the execution of tests
         + type: String
-    :attribute qos: Queue used for the execution of tests
+    :attribute queue: Queue used for the execution of tests
+        + type: String
+    :attribute project_name: Project name used for the execution of tests
         + type: String
     """
 
-    def __init__(self, remote_working_dir=None, compss_module=DEFAULT_COMPSS_MODULE, queue='none', qos='none',
+    def __init__(self, remote_working_dir=None, compss_module=DEFAULT_COMPSS_MODULE, queue='none', qos='none', project_name='none',
                  user=None, java_home=None, compss_home=DEFAULT_COMPSS_HOME, target_base_dir=None,
                  comm=DEFAULT_COMM, runcompss_opts=None, execution_envs=DEFAULT_SC_EXECUTION_ENVS, batch="0"):
         COMPSsConfiguration.__init__(self, user, java_home, compss_home, target_base_dir, comm, runcompss_opts, execution_envs)
@@ -242,6 +244,7 @@ class COMPSsSCConfiguration(COMPSsConfiguration):
             print("[WARN] Ovewriting COMPSs Module to test")
         self.qos = qos
         self.queue = queue
+        self.project_name = project_name
         self.batch = int(batch)
 
     def get_remote_working_dir(self):
@@ -279,6 +282,16 @@ class COMPSsSCConfiguration(COMPSsConfiguration):
             + type: String
         """
         return self.queue
+
+    def get_project_name(self):
+        """
+        Returns the project name used for the execution of tests
+
+        :return: The project name name
+            + type: String
+        """
+        return self.project_name
+
     def get_batch(self):
         """
         Returns the batch size used for the execution of tests

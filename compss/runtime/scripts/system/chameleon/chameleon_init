@@ -13,10 +13,10 @@ extra_configure() {
   ____ ___  __  __ ____  ____
  / ___/ _ \\|  \\/  |  _ \\/ ___| ___
 | |  | | | | |\\/| | |_) \\___ \\/ __|
-| |__| |_| | |  | |  __/ ___) \\__ \\ 
+| |__| |_| | |  | |  __/ ___) \\__ \\
 \\ \\____\\___/|_|  |_|_|   |____/|___/
 
-Welcome to COMPSs v2.1 at Chameleon!
+Welcome to COMPSs v3.1 at Chameleon!
 EOT
 
   echo "127.0.1.1       COMPSsMaster" >> /etc/hosts

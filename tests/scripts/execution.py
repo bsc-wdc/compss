@@ -1,13 +1,8 @@
-#!/usr/bin/python
-
-# -*- coding: utf-8 -*-
-
-# For better print formatting
-from __future__ import print_function
+#!/usr/bin/env python3
 
 # Imports
-import math
 import os
+import subprocess
 from enum import Enum
 
 from constants import RUNCOMPSS_REL_PATH
@@ -23,6 +18,7 @@ from constants import PYCOMPSS_SRC_DIR
 ############################################
 # ERROR CLASS
 ############################################
+
 
 class TestExecutionError(Exception):
     """
@@ -48,11 +44,12 @@ class TestExecutionError(Exception):
 # HELPER CLASS
 ############################################
 
+
 class ExitValue(Enum):
-    OK = 0,
-    OK_RETRY = 1,
-    SKIP = 2,
-    UNSUPPORTED = 3,
+    OK = (0,)
+    OK_RETRY = (1,)
+    SKIP = (2,)
+    UNSUPPORTED = (3,)
     FAIL = 4
 
 
@@ -110,50 +107,89 @@ def get_exit_code(exit_value):
     # FAIL
     return 1
 
+
 def generate_coverage_reports(jacoco_lib_path, coverage_report_path, compss_home_path):
     import subprocess
+
     print("[INFO] Generating Coverage reports (" + coverage_report_path + ")...")
     print("[INFO] Merging jacoco reports...")
-    coverageBashCommand = "java -jar " + jacoco_lib_path + "/jacococli.jar merge "+coverage_report_path+"/*.exec --destfile "+coverage_report_path+"/temp/jacocoreport.exec"
-    output = subprocess.check_output(['bash','-c', coverageBashCommand])
+    coverage_bash_command = (
+        "java -jar "
+        + jacoco_lib_path
+        + "/jacococli.jar merge "
+        + coverage_report_path
+        + "/*.exec --destfile "
+        + coverage_report_path
+        + "/temp/jacocoreport.exec"
+    )
+    output = subprocess.check_output(["bash", "-c", coverage_bash_command])
 
-    coverageBashCommand = "rm -r "+coverage_report_path+"/*.exec"
-    output = subprocess.check_output(['bash','-c', coverageBashCommand])
+    coverage_bash_command = "rm -r " + coverage_report_path + "/*.exec"
+    output = subprocess.check_output(["bash", "-c", coverage_bash_command])
 
-    coverageBashCommand = "mv "+coverage_report_path+"/temp/jacocoreport.exec "+coverage_report_path
-    output = subprocess.check_output(['bash','-c',coverageBashCommand])
-    output = subprocess.check_output(['bash','-c',"rm -r " + coverage_report_path + "/temp"])
+    coverage_bash_command = (
+        "mv " + coverage_report_path + "/temp/jacocoreport.exec " + coverage_report_path
+    )
+    output = subprocess.check_output(["bash", "-c", coverage_bash_command])
+    output = subprocess.check_output(
+        ["bash", "-c", "rm -r " + coverage_report_path + "/temp"]
+    )
 
-    coverageBashCommand = "coverage combine --rcfile=" + coverage_report_path + "/coverage_rc"
+    coverage_bash_command = (
+        "coverage combine --rcfile=" + coverage_report_path + "/coverage_rc"
+    )
     try:
-        print("[INFO] Merging combining python reports (" + coverageBashCommand + ")...")
-        subprocess.check_output(['bash','-c', coverageBashCommand])
+        print(
+            "[INFO] Merging combining python reports (" + coverage_bash_command + ")..."
+        )
+        subprocess.check_output(["bash", "-c", coverage_bash_command])
 
-        coverageBashCommand = "coverage xml --rcfile=" + coverage_report_path + "/coverage_rc"
-        print("[INFO] Merging generating cobertura xml report ("+ coverageBashCommand + ")...")
-        subprocess.check_output(['bash','-c', coverageBashCommand])
+        coverage_bash_command = (
+            "coverage xml --rcfile=" + coverage_report_path + "/coverage_rc"
+        )
+        print(
+            "[INFO] Merging generating cobertura xml report ("
+            + coverage_bash_command
+            + ")..."
+        )
+        subprocess.check_output(["bash", "-c", coverage_bash_command])
         # Not required with [paths] tag in coverage_rc
-        for i in ["2","3"]:
-            coverageBashCommand = "sed -i \'s#"+compss_home_path+"Bindings/python/"+i+"#src#g\' " + coverage_report_path + "/coverage.xml"
-            print("[INFO] Correcting path to source paths (" + coverageBashCommand + ")...")
-            subprocess.check_output(['bash','-c', coverageBashCommand])
+        for i in ["2", "3"]:
+            coverage_bash_command = (
+                "sed -i 's#"
+                + compss_home_path
+                + "Bindings/python/"
+                + i
+                + "#src#g' "
+                + coverage_report_path
+                + "/coverage.xml"
+            )
+            print(
+                "[INFO] Correcting path to source paths ("
+                + coverage_bash_command
+                + ")..."
+            )
+            subprocess.check_output(["bash", "-c", coverage_bash_command])
     except subprocess.CalledProcessError as e:
         print("Error generating coverage report")
         print(e)
+
 
 def create_coverage_file(coverage_rc_path, tests_output_path):
     fin = open(CONFIGURATIONS_DIR + "/coverage_rc", "rt")
     fout = open(coverage_rc_path, "w")
     for line in fin:
-        line = line.replace('@TEST_OUTPUT_PATH@', tests_output_path)
-        line = line.replace('@PYCOMPSS_SRC_PATH@', PYCOMPSS_SRC_DIR)
+        line = line.replace("@TEST_OUTPUT_PATH@", tests_output_path)
+        line = line.replace("@PYCOMPSS_SRC_PATH@", PYCOMPSS_SRC_DIR)
         fout.write(line)
     fin.close()
     fout.close()
 
+
 ############################################
 # PUBLIC METHODS
 ############################################
+
 
 def execute_tests(cmd_args, compss_cfg):
     """
@@ -162,11 +198,13 @@ def execute_tests(cmd_args, compss_cfg):
 
     :param cmd_args: Object representing the command line arguments
         + type: argparse.Namespace
-    :param compss_cfg:  Object representing the COMPSs test configuration options available in the given cfg file
+    :param compss_cfg:  Object representing the COMPSs test configuration options available
+                        in the given cfg file
         + type: COMPSsConfiguration
     :return: An ExitValue object indicating the exit status of the WORST test execution
         + type: ExitValue
-    :raise TestExecutionError: If an error is encountered when creating the necessary structures to launch the test
+    :raise TestExecutionError: If an error is encountered when creating the necessary
+                               structures to launch the test
     """
     # Load deployment structure folder paths
     compss_logs_root = compss_cfg.get_compss_log_dir()
@@ -179,14 +217,22 @@ def execute_tests(cmd_args, compss_cfg):
         print("[INFO] Coverage mode enabled")
         try:
             os.makedirs(coverage_path)
-        except OSError:
-            raise TestExecutionError("[ERROR] Cannot create coverage dir " + str(coverage_path))
+        except OSError as exc:
+            raise TestExecutionError(
+                f"[ERROR] Cannot create coverage dir {coverage_path}"
+            ) from exc
 
-        coverage_expression = "--coverage=" + jaccoco_lib_path + "/jacocoagent.jar=destfile="+ coverage_path +"/report_id.exec"
-        #coverage_paths[2] = coverage_paths[2].replace("#","@")
-        #coverage_expression = "--coverage="+coverage_paths[0]+"/jacocoagent.jar=destfile="+coverage_paths[1]+"/report_id.exec"+"#"+coverage_paths[2]
-        print("[INFO] Coverage expression: "+coverage_expression)
-        create_coverage_file(coverage_path+"/coverage_rc", target_base_dir)
+        coverage_expression = (
+            "--coverage="
+            + jaccoco_lib_path
+            + "/jacocoagent.jar=destfile="
+            + coverage_path
+            + "/report_id.exec"
+        )
+        # coverage_paths[2] = coverage_paths[2].replace("#","@")
+        # coverage_expression = "--coverage="+coverage_paths[0]+"/jacocoagent.jar=destfile="+coverage_paths[1]+"/report_id.exec"+"#"+coverage_paths[2]
+        print("[INFO] Coverage expression: " + coverage_expression)
+        create_coverage_file(coverage_path + "/coverage_rc", target_base_dir)
         print("[INFO] File coverage_rc generated")
     # Execute all the deployed tests
     results = []
@@ -199,10 +245,17 @@ def execute_tests(cmd_args, compss_cfg):
             if old_runcompss_opts is None:
                 compss_cfg.runcompss_opts = coverage_expression
             else:
-                compss_cfg.runcompss_opts = compss_cfg.runcompss_opts + " " + coverage_expression
-            print("[INFO] Modified runcompss_opt with coverage: "+compss_cfg.runcompss_opts)
+                compss_cfg.runcompss_opts = (
+                    compss_cfg.runcompss_opts + " " + coverage_expression
+                )
+            print(
+                "[INFO] Modified runcompss_opt with coverage: "
+                + compss_cfg.runcompss_opts
+            )
         test_path = os.path.join(execution_sanbdox, test_dir)
-        ev, exec_time = _execute_test(test_dir, test_path, compss_logs_root, cmd_args, compss_cfg)
+        ev, exec_time = _execute_test(
+            test_dir, test_path, compss_logs_root, cmd_args, compss_cfg
+        )
         results.append((test_dir, ev, exec_time))
         compss_cfg.runcompss_opts = old_runcompss_opts
         if cmd_args.fail_fast and ev == ExitValue.FAIL:
@@ -212,7 +265,15 @@ def execute_tests(cmd_args, compss_cfg):
             break
 
     # Process test results
-    headers = ["Test\nG. Id", " Test \nFamily", " Test  \nFam. Id", "Test Name", "Test Exec.\n  Folder", " Test\nResult", "Execution\n Time (s)"]
+    headers = [
+        "Test\nG. Id",
+        " Test \nFamily",
+        " Test  \nFam. Id",
+        "Test Name",
+        "Test Exec.\n  Folder",
+        " Test\nResult",
+        "Execution\n Time (s)",
+    ]
     results_info = []
     global_ev = ExitValue.OK
     for test_dir, ev, test_time in results:
@@ -222,12 +283,25 @@ def execute_tests(cmd_args, compss_cfg):
         ev_color_str = str_exit_value_coloured(ev)
         # Retrieve test information
         test_global_num = int("".join(x for x in test_dir if x.isdigit()))
-        test_name, _, family_dir, num_family = cmd_args.test_numbers["global"][test_global_num]
+        test_name, _, family_dir, num_family = cmd_args.test_numbers["global"][
+            test_global_num
+        ]
         # Append all information for rendering
-        results_info.append([test_global_num, family_dir, num_family, test_name, test_dir, ev_color_str, test_time])
+        results_info.append(
+            [
+                test_global_num,
+                family_dir,
+                num_family,
+                test_name,
+                test_dir,
+                ev_color_str,
+                test_time,
+            ]
+        )
 
     # Print result summary table
     from tabulate import tabulate
+
     print()
     print("----------------------------------------")
     print("TEST RESULTS SUMMARY:")
@@ -236,17 +310,23 @@ def execute_tests(cmd_args, compss_cfg):
     print("----------------------------------------")
 
     if cmd_args.coverage:
-        generate_coverage_reports(jaccoco_lib_path, coverage_path, compss_cfg.get_compss_home())
+        generate_coverage_reports(
+            jaccoco_lib_path, coverage_path, compss_cfg.get_compss_home()
+        )
     # Return if any test has failed
     return global_ev
+
 
 def execute_tests_sc(cmd_args, compss_cfg):
     import subprocess
     import polling
+
     username = compss_cfg.get_user()
     module = compss_cfg.get_compss_module()
     comm = compss_cfg.get_comm()
-    remote_dir = os.path.join(compss_cfg.get_remote_working_dir(), DEFAULT_REL_TARGET_TESTS_DIR)
+    remote_dir = os.path.join(
+        compss_cfg.get_remote_working_dir(), DEFAULT_REL_TARGET_TESTS_DIR
+    )
     exec_envs = compss_cfg.get_execution_envs_str()
     runcompss_opts = compss_cfg.get_runcompss_opts()
     queue = compss_cfg.get_queue()
@@ -255,33 +335,73 @@ def execute_tests_sc(cmd_args, compss_cfg):
     batch = compss_cfg.get_batch()
 
     # Initialize tests results vars
-    headers = ["Test\nG. Id", " Test \nFamily", " Test  \nFam. Id", "Test Name", "Test Exec.\n  Folder", "Test \nJobID", " Test Exec.\nEnvironment", " Test\nResult"]
+    headers = [
+        "Test\nG. Id",
+        " Test \nFamily",
+        " Test  \nFam. Id",
+        "Test Name",
+        "Test Exec.\n  Folder",
+        "Test \nJobID",
+        " Test Exec.\nEnvironment",
+        " Test\nResult",
+    ]
     results_info = []
     global_ev = ExitValue.OK
 
-    #Calculate max tests
+    # Calculate max tests
     num_tests = len(os.listdir(os.path.join(compss_cfg.get_target_base_dir(), "apps")))
     if batch == 0:
         batch = num_tests
     start = 0
-    while (start <= num_tests):
+    while start <= num_tests:
         end = start + batch
         if end > num_tests:
             end = num_tests
         if runcompss_opts is None:
             runcompss_opts = "none"
         runcompss_bin = "enqueue_compss"
-        enqueue_tests_script = os.path.join(remote_dir,REMOTE_SCRIPTS_REL_PATH,"enqueue_tests.py")
-        results_script = os.path.join(remote_dir,REMOTE_SCRIPTS_REL_PATH, "results.py")
+        enqueue_tests_script = os.path.join(
+            remote_dir, REMOTE_SCRIPTS_REL_PATH, "enqueue_tests.py"
+        )
+        results_script = os.path.join(remote_dir, REMOTE_SCRIPTS_REL_PATH, "results.py")
 
-        #Add more parameters before exec_env. Let exec_envs for the last argument
-        remote_cmd = "python " + enqueue_tests_script + " " + remote_dir + " " + runcompss_bin + " " + comm + " " + runcompss_opts + " " + module + " " + queue + " " + qos + " " + project_name + " " + str(start) + " " + str(end) + " " + exec_envs
+        # Add more parameters before exec_env. Let exec_envs for the last argument
+        remote_cmd = (
+            "python "
+            + enqueue_tests_script
+            + " "
+            + remote_dir
+            + " "
+            + runcompss_bin
+            + " "
+            + comm
+            + " "
+            + runcompss_opts
+            + " "
+            + module
+            + " "
+            + queue
+            + " "
+            + qos
+            + " "
+            + project_name
+            + " "
+            + str(start)
+            + " "
+            + str(end)
+            + " "
+            + exec_envs
+        )
         cmd = "ssh " + username + " " + "'" + remote_cmd + "'"
         print("Executing command:" + cmd)
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        process = subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
+        )
         out, err = process.communicate()
-        if process.returncode != 0 :
-            print("[ERROR] Executing command: \nOUT:\n" + str(out) + "\nERR:\n" + str(err))
+        if process.returncode != 0:
+            print(
+                "[ERROR] Executing command: \nOUT:\n" + str(out) + "\nERR:\n" + str(err)
+            )
             exit(1)
         out = str(out)
         print("[INFO] Executing tests on Supercomputer:")
@@ -290,20 +410,46 @@ def execute_tests_sc(cmd_args, compss_cfg):
         for job in jobs:
             print("[INFO] Waiting for job {}".format(job))
             try:
-                polling.poll(lambda: not subprocess.check_output('ssh {} "squeue -h -j {}"'.format(username, job), shell=True), step=30, poll_forever=True)
+                polling.poll(
+                    lambda: not subprocess.check_output(
+                        'ssh {} "squeue -h -j {}"'.format(username, job), shell=True
+                    ),
+                    step=30,
+                    poll_forever=True,
+                )
             except Exception:
-                print ("[WARN] Error getting status of job " + job)
+                print("[WARN] Error getting status of job " + job)
         print("[INFO] All jobs finished")
         print("[INFO] Checking results")
-        cmd = "ssh "+username+" "+"'python " + results_script + " " + remote_dir + " " + str(start) + " " + str(end) + "'"
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        cmd = (
+            "ssh "
+            + username
+            + " "
+            + "'python "
+            + results_script
+            + " "
+            + remote_dir
+            + " "
+            + str(start)
+            + " "
+            + str(end)
+            + "'"
+        )
+        process = subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
+        )
         out, err = process.communicate()
-        if process.returncode != 0 :
-            print("[ERROR] Failure in tests results \nOUT:\n" + str(out) + "\nERR:\n" + str(err))
-        cmd = "scp "+username+":"+os.path.join(remote_dir,"outs.csv")+" /tmp"
+        if process.returncode != 0:
+            print(
+                "[ERROR] Failure in tests results \nOUT:\n"
+                + str(out)
+                + "\nERR:\n"
+                + str(err)
+            )
+        cmd = "scp " + username + ":" + os.path.join(remote_dir, "outs.csv") + " /tmp"
         subprocess.check_output(cmd, shell=True)
         # Process test results
-        with open("/tmp/outs.csv",'r') as res_file:
+        with open("/tmp/outs.csv", "r") as res_file:
             for line in res_file:
                 print("Checking line: " + line)
                 test_dir, environment, job_id, exit_value = line.split(",")
@@ -319,12 +465,26 @@ def execute_tests_sc(cmd_args, compss_cfg):
                 ev_color_str = str_exit_value_coloured(ev)
                 # Retrieve test information
                 test_global_num = int("".join(x for x in test_dir if x.isdigit()))
-                test_name, _, family_dir, num_family = cmd_args.test_numbers["global"][test_global_num]
+                test_name, _, family_dir, num_family = cmd_args.test_numbers["global"][
+                    test_global_num
+                ]
                 # Append all information for rendering
-                results_info.append([test_global_num, family_dir, num_family, test_name, test_dir, job_id, environment, ev_color_str])
+                results_info.append(
+                    [
+                        test_global_num,
+                        family_dir,
+                        num_family,
+                        test_name,
+                        test_dir,
+                        job_id,
+                        environment,
+                        ev_color_str,
+                    ]
+                )
         start = end + 1
     # Print result summary table
     from tabulate import tabulate
+
     print()
     print("----------------------------------------")
     print("TEST RESULTS SUMMARY:")
@@ -358,14 +518,22 @@ def execute_tests_cli(cmd_args, compss_cfg, compss_cfg_sc):
         print("[INFO] Coverage mode enabled")
         try:
             os.makedirs(coverage_path)
-        except OSError:
-            raise TestExecutionError("[ERROR] Cannot create coverage dir " + str(coverage_path))
+        except OSError as exc:
+            raise TestExecutionError(
+                f"[ERROR] Cannot create coverage dir {coverage_path}"
+            ) from exc
 
-        coverage_expression = "--coverage=" + jaccoco_lib_path + "/jacocoagent.jar=destfile="+ coverage_path +"/report_id.exec"
-        #coverage_paths[2] = coverage_paths[2].replace("#","@")
-        #coverage_expression = "--coverage="+coverage_paths[0]+"/jacocoagent.jar=destfile="+coverage_paths[1]+"/report_id.exec"+"#"+coverage_paths[2]
-        print("[INFO] Coverage expression: "+coverage_expression)
-        create_coverage_file(coverage_path+"/coverage_rc", target_base_dir)
+        coverage_expression = (
+            "--coverage="
+            + jaccoco_lib_path
+            + "/jacocoagent.jar=destfile="
+            + coverage_path
+            + "/report_id.exec"
+        )
+        # coverage_paths[2] = coverage_paths[2].replace("#","@")
+        # coverage_expression = "--coverage="+coverage_paths[0]+"/jacocoagent.jar=destfile="+coverage_paths[1]+"/report_id.exec"+"#"+coverage_paths[2]
+        print("[INFO] Coverage expression: " + coverage_expression)
+        create_coverage_file(coverage_path + "/coverage_rc", target_base_dir)
         print("[INFO] File coverage_rc generated")
     # Execute all the deployed tests
     results = []
@@ -378,10 +546,22 @@ def execute_tests_cli(cmd_args, compss_cfg, compss_cfg_sc):
             if old_runcompss_opts is None:
                 compss_cfg.runcompss_opts = coverage_expression
             else:
-                compss_cfg.runcompss_opts = compss_cfg.runcompss_opts + " " + coverage_expression
-            print("[INFO] Modified runcompss_opt with coverage: "+compss_cfg.runcompss_opts)
+                compss_cfg.runcompss_opts = (
+                    compss_cfg.runcompss_opts + " " + coverage_expression
+                )
+            print(
+                "[INFO] Modified runcompss_opt with coverage: "
+                + compss_cfg.runcompss_opts
+            )
         test_path = os.path.join(execution_sanbdox, test_dir)
-        ev, exec_time = _execute_test(test_dir, test_path, compss_logs_root, cmd_args, compss_cfg, compss_cfg_sc=compss_cfg_sc)
+        ev, exec_time = _execute_test(
+            test_dir,
+            test_path,
+            compss_logs_root,
+            cmd_args,
+            compss_cfg,
+            compss_cfg_sc=compss_cfg_sc,
+        )
         results.append((test_dir, ev, exec_time))
         compss_cfg.runcompss_opts = old_runcompss_opts
         if cmd_args.fail_fast and ev == ExitValue.FAIL:
@@ -391,7 +571,15 @@ def execute_tests_cli(cmd_args, compss_cfg, compss_cfg_sc):
             break
 
     # Process test results
-    headers = ["Test\nG. Id", " Test \nFamily", " Test  \nFam. Id", "Test Name", "Test Exec.\n  Folder", " Test\nResult", "Execution\n Time (s)"]
+    headers = [
+        "Test\nG. Id",
+        " Test \nFamily",
+        " Test  \nFam. Id",
+        "Test Name",
+        "Test Exec.\n  Folder",
+        " Test\nResult",
+        "Execution\n Time (s)",
+    ]
     results_info = []
     global_ev = ExitValue.OK
     for test_dir, ev, test_time in results:
@@ -401,12 +589,25 @@ def execute_tests_cli(cmd_args, compss_cfg, compss_cfg_sc):
         ev_color_str = str_exit_value_coloured(ev)
         # Retrieve test information
         test_global_num = int("".join(x for x in test_dir if x.isdigit()))
-        test_name, _, family_dir, num_family = cmd_args.test_numbers["global"][test_global_num]
+        test_name, _, family_dir, num_family = cmd_args.test_numbers["global"][
+            test_global_num
+        ]
         # Append all information for rendering
-        results_info.append([test_global_num, family_dir, num_family, test_name, test_dir, ev_color_str, test_time])
+        results_info.append(
+            [
+                test_global_num,
+                family_dir,
+                num_family,
+                test_name,
+                test_dir,
+                ev_color_str,
+                test_time,
+            ]
+        )
 
     # Print result summary table
     from tabulate import tabulate
+
     print()
     print("----------------------------------------")
     print("TEST RESULTS SUMMARY:")
@@ -415,15 +616,21 @@ def execute_tests_cli(cmd_args, compss_cfg, compss_cfg_sc):
     print("----------------------------------------")
 
     if cmd_args.coverage:
-        generate_coverage_reports(jaccoco_lib_path, coverage_path, compss_cfg.get_compss_home())
+        generate_coverage_reports(
+            jaccoco_lib_path, coverage_path, compss_cfg.get_compss_home()
+        )
     # Return if any test has failed
     return global_ev
+
 
 ############################################
 # INTERNAL METHODS
 ############################################
 
-def _execute_test(test_name, test_path, compss_logs_root, cmd_args, compss_cfg, compss_cfg_sc=None):
+
+def _execute_test(
+    test_name, test_path, compss_logs_root, cmd_args, compss_cfg, compss_cfg_sc=None
+):
     """
     Executes the given test with the given options and retrieves its exit value
 
@@ -441,7 +648,8 @@ def _execute_test(test_name, test_path, compss_logs_root, cmd_args, compss_cfg, 
         + type: ExitValue
     :return: Time spent on the test execution
         + type: Long
-    :raise TestExecutionError: If an error is encountered when creating the necessary structures to launch the test
+    :raise TestExecutionError: If an error is encountered when creating the necessary
+                               structures to launch the test
     """
     import time
 
@@ -462,15 +670,31 @@ def _execute_test(test_name, test_path, compss_logs_root, cmd_args, compss_cfg, 
     start_time = time.time()
     while test_ev == ExitValue.FAIL and retry <= max_retries:
         if __debug__:
-            print("[DEBUG] Executing test " + str(test_name) + " Retry: " + str(retry) + "/" + str(max_retries))
+            print(
+                "[DEBUG] Executing test "
+                + str(test_name)
+                + " Retry: "
+                + str(retry)
+                + "/"
+                + str(max_retries)
+            )
         # Create logs folder for current retry
         test_logs_path = os.path.join(logs_sanbdox, test_name + "_" + str(retry))
         try:
             os.makedirs(test_logs_path)
-        except OSError:
-            raise TestExecutionError("[ERROR] Cannot create application log dir " + str(test_logs_path))
+        except OSError as exc:
+            raise TestExecutionError(
+                f"[ERROR] Cannot create application log dir {test_logs_path}"
+            ) from exc
         # Execute test specific execution file
-        test_ev = _execute_test_cmd(test_path, test_logs_path, compss_logs_root, retry, compss_cfg, compss_cfg_sc=compss_cfg_sc)
+        test_ev = _execute_test_cmd(
+            test_path,
+            test_logs_path,
+            compss_logs_root,
+            retry,
+            compss_cfg,
+            compss_cfg_sc=compss_cfg_sc,
+        )
         # Clean orphan processes (if any)
         _clean_procs(compss_cfg)
         # Sleep between executions
@@ -483,7 +707,9 @@ def _execute_test(test_name, test_path, compss_logs_root, cmd_args, compss_cfg, 
     return test_ev, "%.3f" % (end_time - start_time)
 
 
-def _execute_test_cmd(test_path, test_logs_path, compss_logs_root, retry, compss_cfg, compss_cfg_sc=None):
+def _execute_test_cmd(
+    test_path, test_logs_path, compss_logs_root, retry, compss_cfg, compss_cfg_sc=None
+):
     """
     Executes the execution script of a given test
 
@@ -504,21 +730,25 @@ def _execute_test_cmd(test_path, test_logs_path, compss_logs_root, retry, compss
     # Create command
     execution_script_path = os.path.join(test_path, "execution")
     if not os.path.isfile(execution_script_path):
-        raise TestExecutionError("[ERROR] Cannot find execution script " + str(execution_script_path))
+        raise TestExecutionError(
+            "[ERROR] Cannot find execution script " + str(execution_script_path)
+        )
 
     runcompss_bin = compss_cfg.get_compss_home() + RUNCOMPSS_REL_PATH
     runcompss_user_opts = compss_cfg.get_runcompss_opts()
     if runcompss_user_opts is None:
         runcompss_user_opts = ""
-    cmd = [str(execution_script_path),
-           str(runcompss_bin),
-           str(compss_cfg.get_comm()),
-           str(runcompss_user_opts),
-           str(test_path),
-           str(compss_logs_root),
-           str(test_logs_path),
-           str(retry),
-           str(compss_cfg.get_execution_envs_str())]
+    cmd = [
+        str(execution_script_path),
+        str(runcompss_bin),
+        str(compss_cfg.get_comm()),
+        str(runcompss_user_opts),
+        str(test_path),
+        str(compss_logs_root),
+        str(test_logs_path),
+        str(retry),
+        str(compss_cfg.get_execution_envs_str()),
+    ]
 
     if compss_cfg_sc:
         username = compss_cfg_sc.get_user()
@@ -530,6 +760,7 @@ def _execute_test_cmd(test_path, test_logs_path, compss_logs_root, retry, compss
     # Invoke execution script
 
     import subprocess
+
     try:
         exec_env = os.environ.copy()
         exec_env["JAVA_HOME"] = compss_cfg.get_java_home()
@@ -564,7 +795,6 @@ def _clean_procs(compss_cfg):
     clean_procs_bin = compss_cfg.get_compss_home() + CLEAN_PROCS_REL_PATH
     cmd = [clean_procs_bin]
 
-    import subprocess
     try:
         p = subprocess.Popen(cmd)
         p.communicate()
@@ -573,5 +803,7 @@ def _clean_procs(compss_cfg):
         exit_value = -1
 
     if exit_value != 0:
-        print("[WARN] Captured error while executing clean_compss_procs between test executions. Proceeding anyways...")
+        print(
+            "[WARN] Captured error while executing clean_compss_procs between test executions. Proceeding anyways..."
+        )
         print("[WARN] clean_compss_procs command EXIT_VALUE: " + str(exit_value))

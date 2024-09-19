@@ -3,6 +3,7 @@
 # Imports
 import time
 import os
+import subprocess
 
 from arguments import get_sc_args
 from arguments import ArgumentExit
@@ -46,26 +47,33 @@ def launch_tests():
     # Compile and Deploy tests
     compile_and_deploy_tests(cmd_args, compss_cfg, TESTS_SC_DIR)
 
-    _copy_to_sc(cmd_args, compss_cfg)
+    _copy_to_sc(compss_cfg)
 
     # Execute tests
     return execute_tests_sc(cmd_args, compss_cfg)
 
-def _copy_to_sc(cmd_args, compss_cfg):
+
+def _copy_to_sc(compss_cfg):
     compss_cfg.print_vars()
     username = compss_cfg.get_user()
-    remote_dir = os.path.join(compss_cfg.get_remote_working_dir(),DEFAULT_REL_TARGET_TESTS_DIR)
+    remote_dir = os.path.join(
+        compss_cfg.get_remote_working_dir(), DEFAULT_REL_TARGET_TESTS_DIR
+    )
     target_base_dir = compss_cfg.get_target_base_dir()
-    import subprocess
-    output = subprocess.check_output(["cp", "-R", os.path.join(SCRIPT_DIR,REMOTE_SCRIPTS_REL_PATH),  target_base_dir])
-    output = subprocess.check_output(["ssh",username,"rm -rf {}".format(remote_dir)])
-    output = subprocess.check_output(["scp","-r",target_base_dir,username+":"+remote_dir])
+    _ = subprocess.check_output(
+        ["cp", "-R", os.path.join(SCRIPT_DIR, REMOTE_SCRIPTS_REL_PATH), target_base_dir]
+    )
+    _ = subprocess.check_output(["ssh", username, "rm -rf {}".format(remote_dir)])
+    _ = subprocess.check_output(
+        ["scp", "-r", target_base_dir, username + ":" + remote_dir]
+    )
     print("[INFO] All tests deployed to Supercomputer")
 
 
 ############################################
 # MAIN FUNCTION
 ############################################
+
 
 def main():
     """
@@ -125,8 +133,8 @@ def main():
         print()
         print("----------------------------------------")
         print("[INFO] Tests finished")
-        print("[INFO]    - Success = " + str_exit_value_coloured(ev))
-        print("[INFO]    - Elapsed time = %.2f" % elapsed_time)
+        print(f"[INFO]    - Success = {str_exit_value_coloured(ev)}")
+        print(f"[INFO]    - Elapsed time = {elapsed_time}")
         print("----------------------------------------")
         exit(get_exit_code(ev))
 

@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python3
 
 import shutil
 import os
@@ -118,8 +118,6 @@ def _deploy(source_path, test_exec_sandbox_global, test_num):
     print("[INFO] Deployment of " + str(source_path) + " completed")
 
 
-def
-
 def execute_tests_sc():
 	import subprocess
 	import polling
@@ -128,8 +126,8 @@ def execute_tests_sc():
 	cfg_file = "MN.cfg"
 	cfg_file = os.path.join(CONFIGURATIONS_DIR, cfg_file)
 	config.read(cfg_file)
-    	cfg_vars = {k: v for k, v in config.items("SUPERCOMPUTER")}
-	username = cfg_vars["username"]
+    cfg_vars = {k: v for k, v in config.items("SUPERCOMPUTER")}
+    username = cfg_vars["username"]
 	module = cfg_vars["module"]
 	comm = cfg_vars["comm"]
 	deploy_path = cfg_vars["deploy_path"]
@@ -139,11 +137,11 @@ def execute_tests_sc():
 	master_working_dir = cfg_vars["master_working_dir"]
 	worker_working_dir = cfg_vars["worker_working_dir"]
 
-        cmd = "ssh "+username+" "+"'python loop.py "+deploy_path+" "+runcompss_bin+" "+comm+" "+runcompss_opts+" "+".COMPSs"+" "+str(1)+" "+str(exec_envs)+" "+module+" "+master_working_dir+" "+worker_working_dir+"'"
-	print(cmd)
-	process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-    	out, err = process.communicate()
-    	out = str(out)
+    cmd = "ssh "+username+" "+"'python loop.py "+deploy_path+" "+runcompss_bin+" "+comm+" "+runcompss_opts+" "+".COMPSs"+" "+str(1)+" "+str(exec_envs)+" "+module+" "+master_working_dir+" "+worker_working_dir+"'"
+    print(cmd)
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    out, err = process.communicate()
+	out = str(out)
 	print("[INFO] Executing tests on Supercomputer:")
 	import subprocess
 	jobs = out.split()
@@ -168,89 +166,91 @@ def execute_tests_sc():
 	data = pd.read_csv("/tmp/outs.csv")
 	print(data)
 
+	# sys.exit()
 
-	sys.exit()
 
 def main():
 
+    target_base_dir = "/home/sergi/tests_execution_sandbox"
 
-target_base_dir = "/home/sergi/tests_execution_sandbox"
+    try:
+        shutil.rmtree(target_base_dir)
+    except Exception:
+        print("[ERROR] Cannot clean target directory "+str(target_base_dir))
 
-try:
-	shutil.rmtree(target_base_dir)
-except Exception:
-	print("[ERROR] Cannot clean target directory "+str(target_base_dir))
+    compss_log_dir = "/home/sergi/.COMPSs"
 
-compss_log_dir = "/home/sergi/.COMPSs"
+    try:
+        os.makedirs(target_base_dir)
+    except OSError:
+        raise TestCompilationError("Error, cannot create base deployment directory "+ str(target_base_dir))
 
-try:
-	os.makedirs(target_base_dir)
-except OSError:
-	raise TestCompilationError("Error, cannot create base deployment directory "+ str(target_base_dir))
+    tests_exec_sandbox = os.path.join(target_base_dir, "apps")
+    try:
+        os.makedirs(tests_exec_sandbox)
+    except OSError:
+        raise TestCompilationError("Error cannot create executing sandbox deloyment directory "+str(tests_exec_sandbox))
 
-tests_exec_sandbox = os.path.join(target_base_dir, "apps")
-try:
-	os.makedirs(tests_exec_sandbox)
-except OSError:
-	raise TestCompilationError(
-			"Error cannot create executing sandbox deloyment directory "+str(tests_exec_sandbox))
+    tests_logs = os.path.join(target_base_dir, "logs")
 
-tests_logs = os.path.join(target_base_dir, "logs")
+    try:
+        os.makedirs(tests_logs)
+    except OSError:
+        raise TestCompilationError("Error cannot create log deployment directory "+str(tests_logs))
+    print("[INFO] deployment structure created")
 
-try:
-	os.makedirs(tests_logs)
-except OSError:
-	raise TestCompilationError("Error cannot create log deployment directory "+str(tests_logs))
-print("[INFO] deployment structure created")
+    TESTS_DIR = "../sources"
 
-TESTS_DIR = "../sources"
+    test_numbers = {"global": {}}
+    num_global = 1
+    compiled_tests = []
+    for family_dir in sorted(os.listdir(TESTS_DIR)):
+        family_path = os.path.join(TESTS_DIR, family_dir)
+        if os.path.isdir(family_path):
+            test_numbers[family_dir] = {}
+            num_family = 1
+            for test_dir in sorted(os.listdir(family_path)):
+                test_path = os.path.join(family_path, test_dir)
+                if test_dir != ".target" and test_dir != ".settings" and test_dir != "target" and test_dir != ".idea" and os.path.isdir(test_path):
+                    test_numbers["global"][num_global] = (test_dir, test_path, family_dir, num_family)
+                    test_numbers[family_dir][num_family] = (test_dir, test_path, num_global)
+                    num_global = num_global + 1
+                    num_family = num_family + 1
 
-test_numbers = {"global": {}}
-num_global = 1
-compiled_tests = []
-for family_dir in sorted(os.listdir(TESTS_DIR)):
-	family_path = os.path.join(TESTS_DIR, family_dir)
-	if os.path.isdir(family_path):
-		test_numbers[family_dir] = {}
-		num_family = 1
-		for test_dir in sorted(os.listdir(family_path)):
-			test_path = os.path.join(family_path, test_dir)
-			if test_dir != ".target" and test_dir != ".settings" and test_dir != "target" and test_dir != ".idea" and os.path.isdir(test_path):
-				test_numbers["global"][num_global] = (test_dir, test_path, family_dir, num_family)
-				test_numbers[family_dir][num_family] = (test_dir, test_path, num_global)
-				num_global = num_global + 1
-				num_family = num_family + 1
+    tests = ['99','100']
 
-tests = ['99','100']
-
-for test in tests:
-	test_num = int(test)
-	if test_num not in test_numbers["global"].keys():
-		raise TestCompilationError("Error invalid test number "+str(test_num))
-	test_dir, test_path, family_dir, family_num = test_numbers["global"][test_num]
-	print("[INFO] Compiling specific test")
-	_compile(test_path)
+    for test in tests:
+        test_num = int(test)
+        if test_num not in test_numbers["global"].keys():
+        	raise TestCompilationError("Error invalid test number "+str(test_num))
+        test_dir, test_path, family_dir, family_num = test_numbers["global"][test_num]
+        print("[INFO] Compiling specific test")
+        _compile(test_path)
         compiled_tests.append((test_dir, test_path, test_num))
-for test_dir, test_path, test_global_num in compiled_tests:
-	print("[INFO] Deploying test " + str(test_dir))
+    for test_dir, test_path, test_global_num in compiled_tests:
+        print("[INFO] Deploying test " + str(test_dir))
         _deploy(test_path, tests_exec_sandbox, test_global_num)
 
 
-print("[INFO] Tests locally deployed")
-print("[INFO] Deploying to SUPERCOMPUTER")
-cfg_file = "MN.cfg"
-cfg_file = os.path.join(CONFIGURATIONS_DIR, cfg_file)
-print("[INFO] Loading values from " + str(cfg_file))
-import configparser
-config = configparser.ConfigParser()
-config.read(cfg_file)
-# Load default variables
-cfg_vars = {k: v for k, v in config.items("SUPERCOMPUTER")}
-username = cfg_vars["username"]
-deploy_path = cfg_vars["deploy_path"]
-import subprocess
-output = subprocess.check_output(["ssh",username,"rm -rf {}/tests_execution_sandbox".format(deploy_path)])
-output = subprocess.check_output(["scp","-r",target_base_dir,username+":"+deploy_path])
+    print("[INFO] Tests locally deployed")
+    print("[INFO] Deploying to SUPERCOMPUTER")
+    cfg_file = "MN.cfg"
+    cfg_file = os.path.join(CONFIGURATIONS_DIR, cfg_file)
+    print("[INFO] Loading values from " + str(cfg_file))
+    import configparser
+    config = configparser.ConfigParser()
+    config.read(cfg_file)
+    # Load default variables
+    cfg_vars = {k: v for k, v in config.items("SUPERCOMPUTER")}
+    username = cfg_vars["username"]
+    deploy_path = cfg_vars["deploy_path"]
+    import subprocess
+    output = subprocess.check_output(["ssh",username,"rm -rf {}/tests_execution_sandbox".format(deploy_path)])
+    output = subprocess.check_output(["scp","-r",target_base_dir,username+":"+deploy_path])
 
-print("[INFO] All tests deployed to Supercomputer")
-execute_tests_mn()
+    print("[INFO] All tests deployed to Supercomputer")
+    execute_tests_mn()
+
+
+if __name__=="__main__":
+    main()

@@ -1,9 +1,4 @@
-#!/usr/bin/python
-
-# -*- coding: utf-8 -*-
-
-# For better print formatting
-from __future__ import print_function
+#!/usr/bin/env python3
 
 # Imports
 import time

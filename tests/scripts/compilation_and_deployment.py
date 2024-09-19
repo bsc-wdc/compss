@@ -1,17 +1,16 @@
-#!/usr/bin/python
-
-# -*- coding: utf-8 -*-
-
-# For better print formatting
-from __future__ import print_function
+#!/usr/bin/env python3
 
 # Imports
 import os
+import shutil
+import subprocess
+import time
 
 
 ############################################
 # ERROR CLASSES
 ############################################
+
 
 class TestCompilationError(Exception):
     """
@@ -57,6 +56,7 @@ class TestDeploymentError(Exception):
 # PUBLIC METHODS
 ############################################
 
+
 def compile_and_deploy_tests(cmd_args, compss_cfg, tests_dir):
     """
     Compiles and deploys the required tests
@@ -72,28 +72,25 @@ def compile_and_deploy_tests(cmd_args, compss_cfg, tests_dir):
     # Cleaning previous deployment
     print()
     print("[INFO] Cleaning deployment structure...")
-    import shutil
     target_base_dir = compss_cfg.get_target_base_dir()
     try:
-        print("[WARN] Script is attempting to erase " + str(target_base_dir))
+        print(f"[WARN] Script is attempting to erase {target_base_dir}")
         print("[WARN] You have 5s to abort...")
-        import time
         # time.sleep(5) #  uncomment
-        print("[WARN] Erasing deployment structure " + str(target_base_dir))
+        print(f"[WARN] Erasing deployment structure {target_base_dir}")
         shutil.rmtree(target_base_dir)
     except Exception:
-        print("[ERROR] Cannot clean target directory " + str(target_base_dir))
+        print(f"[ERROR] Cannot clean target directory {target_base_dir}")
         print("        Trying to proceed anyways...")
     compss_log_dir = compss_cfg.get_compss_log_dir()
     try:
-        print("[WARN] Script is attempting to erase " + str(compss_log_dir))
+        print(f"[WARN] Script is attempting to erase {compss_log_dir}")
         print("[WARN] You have 5s to abort...")
-        import time
         # time.sleep(5) #  uncomment
-        print("[WARN] Erasing COMPSs log root directory " + str(compss_log_dir))
+        print(f"[WARN] Erasing COMPSs log root directory {compss_log_dir}")
         shutil.rmtree(compss_log_dir)
     except Exception:
-        print("[ERROR] Cannot clean COMPSs log root directory " + str(compss_log_dir))
+        print(f"[ERROR] Cannot clean COMPSs log root directory {compss_log_dir}")
         print("        Trying to proceed anyways...")
 
     print("[INFO] Deployment structure cleaned")
@@ -102,21 +99,26 @@ def compile_and_deploy_tests(cmd_args, compss_cfg, tests_dir):
     print("[INFO] Creating deployment structure...")
     try:
         os.makedirs(target_base_dir)
-    except OSError:
-        raise TestCompilationError("[ERROR] Cannot create base deployment directory: " + str(target_base_dir))
+    except OSError as exc:
+        raise TestCompilationError(
+            f"[ERROR] Cannot create base deployment directory: {target_base_dir}"
+        ) from exc
 
     tests_exec_sandbox = os.path.join(target_base_dir, "apps")
     try:
         os.makedirs(tests_exec_sandbox)
-    except OSError:
+    except OSError as exc:
         raise TestCompilationError(
-            "[ERROR] Cannot create executing sandbox deployment directory: " + str(tests_exec_sandbox))
+            f"[ERROR] Cannot create executing sandbox deployment directory: {tests_exec_sandbox}"
+        ) from exc
 
     tests_logs = os.path.join(target_base_dir, "logs")
     try:
         os.makedirs(tests_logs)
-    except OSError:
-        raise TestCompilationError("[ERROR] Cannot create log deployment directory: " + str(tests_logs))
+    except OSError as exc:
+        raise TestCompilationError(
+            f"[ERROR] Cannot create log deployment directory: {tests_logs}"
+        ) from exc
     print("[INFO] Deployment structure created")
 
     # Compile and deploy tests
@@ -135,6 +137,7 @@ def compile_and_deploy_tests(cmd_args, compss_cfg, tests_dir):
 # INTERNAL METHODS
 ############################################
 
+
 def _compile_and_deploy_all(cmd_args, compss_cfg, tests_dir):
     """
     Compiles and deploys all tests
@@ -150,7 +153,7 @@ def _compile_and_deploy_all(cmd_args, compss_cfg, tests_dir):
     # Compile all test families
     print("[INFO] Compiling all test families...")
     for family in cmd_args.families:
-        print("[INFO] Compiling all tests in family " + family)
+        print(f"[INFO] Compiling all tests in family {family}")
         family_path = os.path.join(tests_dir, family)
         _compile(family_path, compss_cfg)
     print("[INFO] Tests compiled")
@@ -167,7 +170,9 @@ def _compile_and_deploy_all(cmd_args, compss_cfg, tests_dir):
         print("[INFO] Deploying all tests in family " + family)
         for test_num, test_info in cmd_args.test_numbers[family].items():
             test_dir, test_path, test_global_num = test_info
-            _deploy(test_path, tests_exec_sandbox, test_global_num, cmd_args, compss_cfg)
+            _deploy(
+                test_path, tests_exec_sandbox, test_global_num, cmd_args, compss_cfg
+            )
     print("[INFO] Tests deployed")
 
 
@@ -205,13 +210,17 @@ def _compile_and_deploy_specific(cmd_args, compss_cfg):
             print("[INFO] Specific test detected as global number")
             test_num = int(test)
             if test_num not in cmd_args.test_numbers["global"].keys():
-                raise TestCompilationError("[ERROR] Invalid test number " + str(test_num))
-            test_dir, test_path, family_dir, family_num = cmd_args.test_numbers["global"][test_num]
+                raise TestCompilationError(f"[ERROR] Invalid test number {test_num}")
+            test_dir, test_path, family_dir, family_num = cmd_args.test_numbers[
+                "global"
+            ][test_num]
         else:
             # Check if it is a valid family
             family_dir, test_num_or_name = test.split(":")
             if family_dir not in cmd_args.test_numbers.keys():
-                raise TestCompilationError("[ERROR] Invalid family " + str(family_dir) + " on specific test")
+                raise TestCompilationError(
+                    f"[ERROR] Invalid family {family_dir} on specific test"
+                )
 
             # Check if its a family number or name
             try:
@@ -225,8 +234,14 @@ def _compile_and_deploy_specific(cmd_args, compss_cfg):
                 print("[INFO] Specific test detected as family number")
                 family_num = int(test_num_or_name)
                 if family_num not in cmd_args.test_numbers[family_dir].keys():
-                    raise TestCompilationError("[ERROR] Invalid family number " + str(family_num) + " on specific test")
-                test_dir, test_path, test_num = cmd_args.test_numbers[family_dir][family_num]
+                    raise TestCompilationError(
+                        "[ERROR] Invalid family number "
+                        + str(family_num)
+                        + " on specific test"
+                    )
+                test_dir, test_path, test_num = cmd_args.test_numbers[family_dir][
+                    family_num
+                ]
             else:
                 # Test is family:name
                 print("[INFO] Specific test detected as test name")
@@ -241,20 +256,22 @@ def _compile_and_deploy_specific(cmd_args, compss_cfg):
                     test_num = tn
                     family_num = nf
                 else:
-                    raise TestCompilationError("[ERROR] Invalid test name " + str(test_dir) + " on specific test")
+                    raise TestCompilationError(
+                        f"[ERROR] Invalid test name {test_dir} on specific test"
+                    )
 
         # Check if it must be skipped
         skip_file_path = os.path.join(test_path, "skip")
         if cmd_args.skip and os.path.isfile(skip_file_path):
-            print("[WARN] Test " + test_dir + " will be skipped")
+            print(f"[WARN] Test {test_dir} will be skipped")
         else:
             # Compile otherwise
             print("[INFO] Compiling specific test")
-            print("[INFO]   - number: " + str(test_num))
-            print("[INFO]   - family: " + str(family_dir))
-            print("[INFO]   - family_number: " + str(family_num))
-            print("[INFO]   - name: " + str(test_dir))
-            print("[INFO]   - path: " + str(test_path))
+            print(f"[INFO]   - number: {test_num}")
+            print(f"[INFO]   - family: {family_dir}")
+            print(f"[INFO]   - family_number: {family_num}")
+            print(f"[INFO]   - name: {test_dir}")
+            print(f"[INFO]   - path: {test_path}")
             _compile(test_path, compss_cfg)
         # Add the test for deployment (in any case)
         compiled_tests.append((test_dir, test_path, test_num))
@@ -265,9 +282,9 @@ def _compile_and_deploy_specific(cmd_args, compss_cfg):
     target_base_dir = compss_cfg.get_target_base_dir()
     tests_exec_sandbox = os.path.join(target_base_dir, "apps")
     if __debug__:
-        print("[DEBUG]   - target_dir : " + str(tests_exec_sandbox))
+        print(f"[DEBUG]   - target_dir : {tests_exec_sandbox}")
     for test_dir, test_path, test_global_num in compiled_tests:
-        print("[INFO] Deploying test " + str(test_dir))
+        print(f"[INFO] Deploying test {test_dir}")
         _deploy(test_path, tests_exec_sandbox, test_global_num, cmd_args, compss_cfg)
 
 
@@ -276,7 +293,8 @@ def _compile(working_dir, compss_cfg):
     Compiles the sources available in the given working directory
 
     :param working_dir: Path to source to compile
-    :param compss_cfg:  Object representing the COMPSs test configuration options available in the given cfg file
+    :param compss_cfg: Object representing the COMPSs test configuration
+                       options available in the given cfg file
         + type: COMPSsConfiguration
     :return:
     :raise TestCompilationError: If any compilation error has raised
@@ -286,8 +304,6 @@ def _compile(working_dir, compss_cfg):
     if not os.path.isfile(pom_file):
         print("[WARN] No pom.xml file found. Skipping compilation")
     else:
-        import subprocess
-
         cmd = ["mvn", "-U", "clean", "install"]
         exec_env = os.environ.copy()
         exec_env["JAVA_HOME"] = compss_cfg.get_java_home()
@@ -297,12 +313,14 @@ def _compile(working_dir, compss_cfg):
         exit_value = p.returncode
 
         # Log command exit_value/output/error
-        print("[INFO] Compilation command EXIT_VALUE: " + str(exit_value))
+        print(f"[INFO] Compilation command EXIT_VALUE: {exit_value}")
 
         # Raise an exception if command has failed
         if exit_value != 0:
-            raise TestCompilationError("[ERROR] Compile command has failed with exit value: " + str(exit_value))
-        print("[INFO] Compilation of " + working_dir + " successful")
+            raise TestCompilationError(
+                f"[ERROR] Compile command has failed with exit value: {exit_value}"
+            )
+        print(f"[INFO] Compilation of {working_dir} successful")
 
 
 def _deploy(source_path, test_exec_sandbox_global, test_num, cmd_args, compss_cfg):
@@ -320,11 +338,15 @@ def _deploy(source_path, test_exec_sandbox_global, test_num, cmd_args, compss_cf
     :raise TestCompilationError: If any compilation error has raised
     """
 
-    test_exec_sandbox = os.path.join(test_exec_sandbox_global, "app" + "{:03d}".format(test_num))
+    test_exec_sandbox = os.path.join(
+        test_exec_sandbox_global, "app" + "{:03d}".format(test_num)
+    )
     try:
         os.makedirs(test_exec_sandbox)
-    except OSError:
-        raise TestDeploymentError("[ERROR] Cannot create base execution sandbox directory: " + str(test_exec_sandbox))
+    except OSError as exc:
+        raise TestDeploymentError(
+            f"[ERROR] Cannot create base execution sandbox directory: {test_exec_sandbox}"
+        ) from exc
 
     print("[INFO] Deploying " + str(source_path) + " to " + str(test_exec_sandbox))
 
@@ -332,18 +354,18 @@ def _deploy(source_path, test_exec_sandbox_global, test_num, cmd_args, compss_cf
     skip_file_path = os.path.join(source_path, "skip")
     if cmd_args.skip and os.path.isfile(skip_file_path):
         # Deploy only the skip file
-        from shutil import copyfile
-        copyfile(skip_file_path, os.path.join(test_exec_sandbox, "skip"))
+        shutil.copyfile(skip_file_path, os.path.join(test_exec_sandbox, "skip"))
     else:
         # Regular deploy
 
         # Search deploy script
         deploy_script_path = os.path.join(source_path, "deploy")
         if not os.path.isfile(deploy_script_path):
-            raise TestDeploymentError("[ERROR] Cannot find deploy script " + str(deploy_script_path))
+            raise TestDeploymentError(
+                f"[ERROR] Cannot find deploy script {deploy_script_path}"
+            )
 
         # Invoke deploy script
-        import subprocess
         cmd = [deploy_script_path, source_path, test_exec_sandbox]
         exec_env = os.environ.copy()
         exec_env["JAVA_HOME"] = compss_cfg.get_java_home()
@@ -353,9 +375,11 @@ def _deploy(source_path, test_exec_sandbox_global, test_num, cmd_args, compss_cf
         exit_value = p.returncode
 
         # Log command exit_value/output/error
-        print("[INFO] Deployment command EXIT_VALUE: " + str(exit_value))
+        print("[INFO] Deployment command EXIT_VALUE: {exit_value}")
 
         # Raise an exception if command has failed
         if exit_value != 0:
-            raise TestDeploymentError("[ERROR] Deployment command has failed with exit value: " + str(exit_value))
-        print("[INFO] Deployment of " + str(source_path) + " completed")
+            raise TestDeploymentError(
+                f"[ERROR] Deployment command has failed with exit value: {exit_value}"
+            )
+        print(f"[INFO] Deployment of {source_path} completed")

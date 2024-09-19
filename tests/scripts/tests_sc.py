@@ -63,9 +63,9 @@ def _copy_to_sc(compss_cfg):
     _ = subprocess.check_output(
         ["cp", "-R", os.path.join(SCRIPT_DIR, REMOTE_SCRIPTS_REL_PATH), target_base_dir]
     )
-    _ = subprocess.check_output(["ssh", username, "rm -rf {}".format(remote_dir)])
+    _ = subprocess.check_output(["ssh", username, f"rm -rf {remote_dir}"])
     _ = subprocess.check_output(
-        ["scp", "-r", target_base_dir, username + ":" + remote_dir]
+        ["scp", "-r", target_base_dir, f"{username}:{remote_dir}"]
     )
     print("[INFO] All tests deployed to Supercomputer")
 
@@ -119,8 +119,8 @@ def main():
         print("----------------------------------------")
         exit(13)
     except TestExecutionError as tee:
-        # WARN: This is received when there is an infrastructure issue executing the tests, not when the
-        # tests fail themselves
+        # WARN: This is received when there is an infrastructure issue
+        # executing the tests, not when the tests fail themselves
         print("----------------------------------------")
         print("[ERROR] Cannot execute tests")
         print(tee)

@@ -1,9 +1,4 @@
-#!/usr/bin/python3
-
-# -*- coding: utf-8 -*-
-
-# For better print formatting
-from __future__ import print_function
+#!/usr/bin/env python3
 
 # Imports
 import time
@@ -57,6 +52,7 @@ def launch_tests():
 # MAIN FUNCTION
 ############################################
 
+
 def main():
     """
     Main method to execute the tests workflow
@@ -101,8 +97,8 @@ def main():
         print("----------------------------------------")
         exit(13)
     except TestExecutionError as tee:
-        # WARN: This is received when there is an infrastructure issue executing the tests, not when the
-        # tests fail themselves
+        # WARN: This is received when there is an infrastructure issue
+        # executing the tests, not when the tests fail themselves
         print("----------------------------------------")
         print("[ERROR] Cannot execute tests")
         print(tee)
@@ -115,8 +111,8 @@ def main():
         print()
         print("----------------------------------------")
         print("[INFO] Tests finished")
-        print("[INFO]    - Success = " + str_exit_value_coloured(ev))
-        print("[INFO]    - Elapsed time = %.2f" % elapsed_time)
+        print(f"[INFO]    - Success = {str_exit_value_coloured(ev)}")
+        print(f"[INFO]    - Elapsed time = {elapsed_time}")
         print("----------------------------------------")
         exit(get_exit_code(ev))
 

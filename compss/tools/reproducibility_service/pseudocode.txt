@@ -1,0 +1,54 @@
+"""
+Just a pseudocode to show the main steps of the workflow. This is not a real code, and it is not intended to be executed.
+"""
+# Getting the crate
+link = ask_user_for_ro-crate_link:
+if link.startswith('http'):
+    download_and_unzip in Workflow/
+    crate_path = Workflow/
+elif zipfile.is_zipfile(link):
+    unzip in Workflow/
+    crate_path = Workflow/
+elif os.path.isdir(link):
+    check_that_exists(ro-crate-metadata.json, application_sources/, compss_submission_command_line.txt, any_name.yaml)  # os.path.isdir and isfile
+    crate_path = link  # Use the original crate folder, without modifying it
+else:
+    report_error_wrong_crate
+
+
+# Preparing files and verifiying
+if data_persistence:
+    check_that_exists(dataset/)  # os.path.isdir
+	verified = verify_all_object_files_from_ro-crate with dataset/
+    # If the crate was already a dir in the local machine, not only contentSize, but also dateModified can be verified. Rest of cases, only contentSize.
+	if not verified:  # Check if any files still not verified can be found in the remote datasets. This code could go inside verify_all_object_files_from_ro-crate
+		if remote_files_exist:
+			download_files to remote_datasets/
+			verified = verify_missing_files with remote_dataset/
+    if not verified:
+        error_report_files_missing_or_wrong
+
+if not data_persistence:
+    print CreateAction["name"]  # Show the user, where the original run was made
+    verified = verify_all_object_files_from_ro-crate with their_original_paths  # Check if they can be accessed, exist, and have the same contentSize and dateModified
+    if not verified:
+        repeat_remote_files_steps_from above  # download and verify missing files
+    if not verified:
+        error_report_files_missing_or_wrong
+
+
+# Resubmission
+if verified:
+    match = check_compss_version  # compare installed COMPSs version with the one used in the ro-crate-metadata.json
+    if not match:
+        print_warning to the user
+
+    build_new_command  # but leaving outputs in Results/ NOT overwriting the original or downloaded crate
+    print_used_flags_for_the_run
+    if flags_must_be_changed:
+        ask_the_user_for_the_new_flags
+    resubmit_application  # Use runcompss if no SLURM is detected (can be tested running 'squeue'), enqueue_compss if SLURM is detecte
+
+
+# Possible final step for the future
+check_all_result_files_from_ro-crate  # diff files at CreateAction["result"] to the new results created by the application

@@ -54,7 +54,8 @@ public final class ITAppModifier {
         Long.parseLong(System.getProperty(COMPSsConstants.COMPSS_WALL_CLOCK_LIMIT, "0"));
 
 
-    private ITAppModifier() {}
+    private ITAppModifier() {
+    }
 
     /**
      * Modify method.

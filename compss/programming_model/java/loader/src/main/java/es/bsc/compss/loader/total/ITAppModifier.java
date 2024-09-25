@@ -37,7 +37,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
-public class ITAppModifier {
+public final class ITAppModifier {
 
     // Logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.LOADER);
@@ -54,10 +54,13 @@ public class ITAppModifier {
         Long.parseLong(System.getProperty(COMPSsConstants.COMPSS_WALL_CLOCK_LIMIT, "0"));
 
 
+    private ITAppModifier() {
+    }
+
     /**
      * Modify method.
      */
-    private CtClass modify(String appName, String originalClassName, Class<?> annotItf, boolean threadIdAsAppId,
+    private static CtClass modify(String appName, String originalClassName, Class<?> annotItf, boolean threadIdAsAppId,
         boolean useNewAppClassName, boolean isMainClass)
         throws NotFoundException, CannotCompileException, ClassNotFoundException {
         // Use the application editor to include the COMPSs API calls on the application code
@@ -105,8 +108,8 @@ public class ITAppModifier {
      * @param isMainClass Whether the calling class is the main application class
      * @return Instrumented class
      */
-    public Class<?> modifyToMemory(String appName, String originalClassName, Class<?> annotItf, boolean threadIdAsAppId,
-        boolean useNewAppClassName, boolean returnOrigClass, boolean isMainClass)
+    public static Class<?> modifyToMemory(String appName, String originalClassName, Class<?> annotItf,
+        boolean threadIdAsAppId, boolean useNewAppClassName, boolean returnOrigClass, boolean isMainClass)
         throws NotFoundException, CannotCompileException, ClassNotFoundException {
         CtClass appClass =
             modify(appName, originalClassName, annotItf, threadIdAsAppId, useNewAppClassName, isMainClass);
@@ -134,8 +137,8 @@ public class ITAppModifier {
      *            nested)
      * @param isMainClass Whether the calling class is the main application class
      */
-    public void modifyToFile(String appName, String originalClassName, Class<?> annotItf, boolean threadIdAsAppId,
-        boolean useNewAppClassName, boolean isMainClass)
+    public static void modifyToFile(String appName, String originalClassName, Class<?> annotItf,
+        boolean threadIdAsAppId, boolean useNewAppClassName, boolean isMainClass)
         throws NotFoundException, CannotCompileException, ClassNotFoundException {
         CtClass appClass =
             modify(appName, originalClassName, annotItf, threadIdAsAppId, useNewAppClassName, isMainClass);

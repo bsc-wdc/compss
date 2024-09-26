@@ -340,6 +340,7 @@ class COMPSsSCConfiguration(COMPSsConfiguration):
         print(f"[INFO]   - remote_dir: {self.remote_working_dir}")
         print(f"[INFO]   - queue: {self.queue}")
         print(f"[INFO]   - qos: {self.qos}")
+        print(f"[INFO]   - project_name: {self.project_name}")
         print(f"[INFO]   - batch: {self.batch}")
 
 

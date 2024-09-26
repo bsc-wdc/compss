@@ -81,7 +81,7 @@ def compile_and_deploy_tests(cmd_args, compss_cfg, tests_dir):
         shutil.rmtree(target_base_dir)
     except Exception:
         print(f"[ERROR] Cannot clean target directory {target_base_dir}")
-        print("        Trying to proceed anyways...")
+        print("         Trying to proceed anyways...")
     compss_log_dir = compss_cfg.get_compss_log_dir()
     try:
         print(f"[WARN] Script is attempting to erase {compss_log_dir}")
@@ -91,7 +91,7 @@ def compile_and_deploy_tests(cmd_args, compss_cfg, tests_dir):
         shutil.rmtree(compss_log_dir)
     except Exception:
         print(f"[ERROR] Cannot clean COMPSs log root directory {compss_log_dir}")
-        print("        Trying to proceed anyways...")
+        print("         Trying to proceed anyways...")
 
     print("[INFO] Deployment structure cleaned")
 
@@ -164,10 +164,10 @@ def _compile_and_deploy_all(cmd_args, compss_cfg, tests_dir):
     target_base_dir = compss_cfg.get_target_base_dir()
     tests_exec_sandbox = os.path.join(target_base_dir, "apps")
     if __debug__:
-        print("[DEBUG]   - target_dir : " + str(tests_exec_sandbox))
+        print(f"[DEBUG]   - target_dir : {tests_exec_sandbox}")
 
     for family in cmd_args.families:
-        print("[INFO] Deploying all tests in family " + family)
+        print(f"[INFO] Deploying all tests in family {family}")
         for test_num, test_info in cmd_args.test_numbers[family].items():
             test_dir, test_path, test_global_num = test_info
             _deploy(

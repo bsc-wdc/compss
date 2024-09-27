@@ -2,7 +2,9 @@
 
 # Imports
 import os
+import polling
 import subprocess
+import sys
 from enum import Enum
 
 from constants import RUNCOMPSS_REL_PATH
@@ -318,9 +320,6 @@ def execute_tests(cmd_args, compss_cfg):
 
 
 def execute_tests_sc(cmd_args, compss_cfg):
-    import subprocess
-    import polling
-
     username = compss_cfg.get_user()
     module = compss_cfg.get_compss_module()
     comm = compss_cfg.get_comm()
@@ -392,23 +391,25 @@ def execute_tests_sc(cmd_args, compss_cfg):
             + " "
             + exec_envs
         )
-        cmd = "ssh " + username + " " + "'" + remote_cmd + "'"
-        print("Executing command:" + cmd)
+        cmd = f"ssh {username} '{remote_cmd}'"
+        print(f"Executing command: {cmd}")
         process = subprocess.Popen(
             cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
         )
         out, err = process.communicate()
         if process.returncode != 0:
-            print(
-                "[ERROR] Executing command: \nOUT:\n" + str(out) + "\nERR:\n" + str(err)
-            )
-            exit(1)
-        out = str(out)
+            print("[ERROR] Executing command: {cmd}")
+            print(f"[ERROR] OUT: {out}")
+            print(f"[ERROR] ERR: {err}")
+            sys.exit(1)
+        print(f"out: {out}")
+        print(f"err: {err}")
+        out = str(out.decode())
         print("[INFO] Executing tests on Supercomputer:")
-        jobs = out.split()
-        print("[INFO] Jobs: {}".format(str(jobs)))
+        jobs = out.split("\n")[:-1]
+        print(f"[INFO] Jobs: {jobs}")
         for job in jobs:
-            print("[INFO] Waiting for job {}".format(job))
+            print(f"[INFO] Waiting for job {job}")
             try:
                 polling.poll(
                     lambda: not subprocess.check_output(
@@ -418,7 +419,7 @@ def execute_tests_sc(cmd_args, compss_cfg):
                     poll_forever=True,
                 )
             except Exception:
-                print("[WARN] Error getting status of job " + job)
+                print(f"[WARN] Error getting status of job {job}")
         print("[INFO] All jobs finished")
         print("[INFO] Checking results")
         cmd = (
@@ -440,13 +441,11 @@ def execute_tests_sc(cmd_args, compss_cfg):
         )
         out, err = process.communicate()
         if process.returncode != 0:
-            print(
-                "[ERROR] Failure in tests results \nOUT:\n"
-                + str(out)
-                + "\nERR:\n"
-                + str(err)
-            )
-        cmd = "scp " + username + ":" + os.path.join(remote_dir, "outs.csv") + " /tmp"
+            print("[ERROR] Failure in tests results")
+            print(f"[ERROR] OUT: {out}")
+            print(f"[ERROR] ERR: {err}")
+        outs_file = os.path.join(remote_dir, "outs.csv")
+        cmd = f"scp {username}:{outs_file} /tmp"
         results = True
         try:
             subprocess.check_output(cmd, shell=True)
@@ -456,9 +455,9 @@ def execute_tests_sc(cmd_args, compss_cfg):
             results = False
         if results:
             # Process test results
-            with open("/tmp/outs.csv", "r") as res_file:
+            with open("/tmp/outs.csv", "r", encoding="UTF-8") as res_file:
                 for line in res_file:
-                    print("Checking line: " + line)
+                    print(f"Checking line: {line}")
                     test_dir, environment, job_id, exit_value = line.split(",")
                     if int(exit_value) == 0:
                         ev = ExitValue.OK

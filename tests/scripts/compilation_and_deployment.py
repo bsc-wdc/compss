@@ -91,7 +91,7 @@ def compile_and_deploy_tests(cmd_args, compss_cfg, tests_dir):
         shutil.rmtree(compss_log_dir)
     except Exception:
         print(f"[ERROR] Cannot clean COMPSs log root directory {compss_log_dir}")
-        print("         Trying to proceed anyways...")
+        print("        Trying to proceed anyways...")
 
     print("[INFO] Deployment structure cleaned")
 
@@ -348,15 +348,17 @@ def _deploy(source_path, test_exec_sandbox_global, test_num, cmd_args, compss_cf
             f"[ERROR] Cannot create base execution sandbox directory: {test_exec_sandbox}"
         ) from exc
 
-    print("[INFO] Deploying " + str(source_path) + " to " + str(test_exec_sandbox))
+    print(f"[INFO] Deploying {source_path} to {test_exec_sandbox}")
 
     # Check if test will be skipped
     skip_file_path = os.path.join(source_path, "skip")
     if cmd_args.skip and os.path.isfile(skip_file_path):
         # Deploy only the skip file
+        print("[INFO] This test will be skipped")
         shutil.copyfile(skip_file_path, os.path.join(test_exec_sandbox, "skip"))
     else:
         # Regular deploy
+        print("[INFO] This test will be performed")
 
         # Search deploy script
         deploy_script_path = os.path.join(source_path, "deploy")
@@ -370,12 +372,13 @@ def _deploy(source_path, test_exec_sandbox_global, test_num, cmd_args, compss_cf
         exec_env = os.environ.copy()
         exec_env["JAVA_HOME"] = compss_cfg.get_java_home()
         exec_env["COMPSS_HOME"] = compss_cfg.get_compss_home()
+        print(f"[INFO] cmd: {cmd}")
         p = subprocess.Popen(cmd, cwd=source_path, env=exec_env)
         p.communicate()
         exit_value = p.returncode
 
         # Log command exit_value/output/error
-        print("[INFO] Deployment command EXIT_VALUE: {exit_value}")
+        print(f"[INFO] Deployment command EXIT_VALUE: {exit_value}")
 
         # Raise an exception if command has failed
         if exit_value != 0:

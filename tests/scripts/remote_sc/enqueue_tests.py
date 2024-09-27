@@ -47,7 +47,7 @@ def main():
         os.mkdir(logs_base_dir)
 
     queue_file = os.path.join(tests_base_dir, ".queue.txt")
-    with open(queue_file, "w+") as f:
+    with open(queue_file, "w+", encoding="UTF-8") as f:
         test_num = 0
         for test_dir in sorted(os.listdir(tests_apps_dir)):
             # Check if this test must be executed in this batch
@@ -84,12 +84,13 @@ def main():
 
             try:
                 process = subprocess.Popen(
-                    cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                    cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
                 )
                 out, err = process.communicate()
                 if process.returncode != 0:
-                    print("[ERROR] Executing test " + str(cmd) + "\n" + str(err))
-                    exit(1)
+                    print(f"[ERROR] Executing test {cmd}")
+                    print(f"[ERROR] {err}")
+                    sys.exit(1)
                 out = out.split("\n")
                 job_id = "-1"
                 environment = "none"
@@ -100,11 +101,12 @@ def main():
                     if x.startswith("Submitted batch job"):
                         job_id = x.split(" ")
                         job_id = job_id[-1]
-                        f.write(job_id + " " + test_dir + " " + environment + "\n")
+                        f.write(f"{job_id} {test_dir} {environment}\n")
                         # printing job_id for being captured by the execute_sc_tests
                         print(job_id)
             except Exception as e:
-                print("[ERROR] Executing test " + str(cmd) + "\n" + str(e))
+                print(f"[ERROR] Executing test {cmd}")
+                print(f"[ERROR] {e}")
                 sys.exit(1)
 
 

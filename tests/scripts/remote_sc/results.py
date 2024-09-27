@@ -16,15 +16,19 @@ def main():
     tests_base_dir = os.path.join(target_base_dir, "apps")
     logs_base_dir = os.path.join(target_base_dir, "logs")
 
-    with open(os.path.join(target_base_dir, ".queue.txt"), "r") as f:
-
+    queue_file = os.path.join(target_base_dir, ".queue.txt")
+    with open(queue_file, "r", encoding="UTF-8") as f:
         processes_apps = f.read(-1).split("\n")
+        print(f"[WRITING RESULTS] processes_apps: {processes_apps}")
         processes_apps.pop()
 
-        Path(os.path.join(target_base_dir, OUTS), "w").touch()
+        outs_file = os.path.join(target_base_dir, OUTS)
+        Path(outs_file, "w").touch()
+        print(f"[WRITING RESULTS] outs_file: {outs_file}")
 
         test_num = 0
         for log_dir in sorted(os.listdir(tests_base_dir)):
+            print(f"[WRITING RESULTS] log_dir: {log_dir}")
             # Check if this test must be executed in this batch
             if test_num < start:
                 test_num += 1
@@ -35,42 +39,36 @@ def main():
                 test_num += 1
             skip_file = os.path.join(logs_base_dir, log_dir, "skip")
             if os.path.isfile(skip_file):
-                print("Skip test " + log_dir + " results.")
-                with open(os.path.join(target_base_dir, OUTS), "a") as file:
-                    file.write(log_dir + ",none,none,2\n")
+                print(f"[WRITING RESULTS] Skip test {log_dir} results.")
+                with open(outs_file, "a", encoding="UTF-8") as file:
+                    file.write(f"{log_dir},none,none,2\n")
                 continue
+            else:
+                print(f"[WRITING RESULTS] Checking test {log_dir} results.")
             processes = []
             for process in sorted(
                 os.listdir(os.path.join(logs_base_dir, log_dir, ".COMPSs"))
             ):
                 processes.append(process)
+            print(f"[WRITING RESULTS] Processes: {processes}")
             for process in processes:
-                output_log_path = os.path.join(
-                    logs_base_dir, log_dir, f"compss-{process}.out"
-                )
-                error_log_path = os.path.join(
-                    logs_base_dir, log_dir, f"compss-{process}.err"
-                )
+                print(f"[WRITING RESULTS] - Process: {process}")
+                output_log_path = os.path.join(logs_base_dir, log_dir, f"compss-{process}.out")
+                error_log_path = os.path.join(logs_base_dir, log_dir, f"compss-{process}.err")
                 runtime_path = os.path.join(logs_base_dir, log_dir, ".COMPSs", process)
                 matching = [s for s in processes_apps if process in s]
                 l = matching[0].split()
 
                 result_path = os.path.join(tests_base_dir, l[1], "result")
                 cmd = [result_path, output_log_path, error_log_path, runtime_path]
+                print(f"[WRITING RESULTS] - cmd: {cmd}")
                 process = subprocess.Popen(cmd)
                 process.communicate()
                 exit_value = process.returncode
-                with open(os.path.join(target_base_dir, OUTS), "a") as file:
-                    file.write(
-                        str(l[1])
-                        + ","
-                        + str(l[2])
-                        + ","
-                        + str(l[0])
-                        + ","
-                        + str(exit_value)
-                        + "\n"
-                    )
+                print(f"[WRITING RESULTS] - l: {l}")
+                print(f"[WRITING RESULTS] - exit_value: {exit_value}")
+                with open(outs_file, "a", encoding="UTF-8") as file:
+                    file.write(f"{l[1]},{l[2]},{l[0]},{exit_value}\n")
 
 
 if __name__ == "__main__":

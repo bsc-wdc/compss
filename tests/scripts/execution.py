@@ -6,6 +6,7 @@ import polling
 import subprocess
 import sys
 from enum import Enum
+from tabulate import tabulate
 
 from constants import RUNCOMPSS_REL_PATH
 from constants import ENQUEUE_COMPSS_REL_PATH
@@ -302,8 +303,6 @@ def execute_tests(cmd_args, compss_cfg):
         )
 
     # Print result summary table
-    from tabulate import tabulate
-
     print()
     print("----------------------------------------")
     print("TEST RESULTS SUMMARY:")
@@ -398,7 +397,7 @@ def execute_tests_sc(cmd_args, compss_cfg):
         )
         out, err = process.communicate()
         if process.returncode != 0:
-            print("[ERROR] Executing command: {cmd}")
+            print(f"[ERROR] Executing command: {cmd}")
             print(f"[ERROR] OUT: {out}")
             print(f"[ERROR] ERR: {err}")
             sys.exit(1)
@@ -408,91 +407,93 @@ def execute_tests_sc(cmd_args, compss_cfg):
         print("[INFO] Executing tests on Supercomputer:")
         jobs = out.split("\n")[:-1]
         print(f"[INFO] Jobs: {jobs}")
-        for job in jobs:
-            print(f"[INFO] Waiting for job {job}")
-            try:
-                polling.poll(
-                    lambda: not subprocess.check_output(
-                        'ssh {} "squeue -h -j {}"'.format(username, job), shell=True
-                    ),
-                    step=30,
-                    poll_forever=True,
-                )
-            except Exception:
-                print(f"[WARN] Error getting status of job {job}")
-        print("[INFO] All jobs finished")
-        print("[INFO] Checking results")
-        cmd = (
-            "ssh "
-            + username
-            + " "
-            + "'python "
-            + results_script
-            + " "
-            + remote_dir
-            + " "
-            + str(start)
-            + " "
-            + str(end)
-            + "'"
-        )
-        process = subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
-        )
-        out, err = process.communicate()
-        if process.returncode != 0:
-            print("[ERROR] Failure in tests results")
-            print(f"[ERROR] OUT: {out}")
-            print(f"[ERROR] ERR: {err}")
-        outs_file = os.path.join(remote_dir, "outs.csv")
-        cmd = f"scp {username}:{outs_file} /tmp"
-        results = True
-        try:
-            subprocess.check_output(cmd, shell=True)
-        except subprocess.CalledProcessError as e:
-            print("WARNING: outs.csv has not been generated. Probably the family of tests is completely skip.")
-            print(e.output)
-            results = False
-        if results:
-            # Process test results
-            with open("/tmp/outs.csv", "r", encoding="UTF-8") as res_file:
-                for line in res_file:
-                    print(f"Checking line: {line}")
-                    test_dir, environment, job_id, exit_value = line.split(",")
-                    if int(exit_value) == 0:
-                        ev = ExitValue.OK
-                    elif int(exit_value) == 2:
-                        ev = ExitValue.SKIP
-                    else:
-                        ev = ExitValue.FAIL
-                    # Update global exit value
-                    global_ev = _merge_exit_values(global_ev, ev)
-                    # Colour the test exit value
-                    ev_color_str = str_exit_value_coloured(ev)
-                    # Retrieve test information
-                    test_global_num = int("".join(x for x in test_dir if x.isdigit()))
-                    test_name, _, family_dir, num_family = cmd_args.test_numbers["global"][
-                        test_global_num
-                    ]
-                    # Append all information for rendering
-                    results_info.append(
-                        [
-                            test_global_num,
-                            family_dir,
-                            num_family,
-                            test_name,
-                            test_dir,
-                            job_id,
-                            environment,
-                            ev_color_str,
-                        ]
+        if len(jobs) > 0:
+            for job in jobs:
+                print(f"[INFO] Waiting for job {job}")
+                try:
+                    polling.poll(
+                        lambda: not subprocess.check_output(
+                            'ssh {} "squeue -h -j {}"'.format(username, job), shell=True
+                        ),
+                        step=30,
+                        poll_forever=True,
                     )
+                except Exception:
+                    print(f"[WARN] Error getting status of job {job}")
+            print("[INFO] All jobs finished")
+            print("[INFO] Checking results")
+            cmd = (
+                "ssh "
+                + username
+                + " "
+                + "'python "
+                + results_script
+                + " "
+                + remote_dir
+                + " "
+                + str(start)
+                + " "
+                + str(end)
+                + "'"
+            )
+            process = subprocess.Popen(
+                cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
+            )
+            out, err = process.communicate()
+            if process.returncode != 0:
+                print("[ERROR] Failure in tests results")
+                print(f"[ERROR] OUT: {out}")
+                print(f"[ERROR] ERR: {err}")
+            outs_file = os.path.join(remote_dir, "outs.csv")
+            cmd = f"scp {username}:{outs_file} /tmp"
+            results = True
+            try:
+                subprocess.check_output(cmd, shell=True)
+            except subprocess.CalledProcessError as e:
+                print("WARNING: outs.csv has not been generated. Probably the family of tests is completely skip.")
+                print(e.output)
+                results = False
+            if results:
+                # Process test results
+                with open("/tmp/outs.csv", "r", encoding="UTF-8") as res_file:
+                    for line in res_file:
+                        print(f"Checking line: {line}")
+                        test_dir, environment, job_id, exit_value = line.split(",")
+                        if int(exit_value) == 0:
+                            ev = ExitValue.OK
+                        elif int(exit_value) == 2:
+                            ev = ExitValue.SKIP
+                        else:
+                            ev = ExitValue.FAIL
+                        # Update global exit value
+                        global_ev = _merge_exit_values(global_ev, ev)
+                        # Colour the test exit value
+                        ev_color_str = str_exit_value_coloured(ev)
+                        # Retrieve test information
+                        test_global_num = int("".join(x for x in test_dir if x.isdigit()))
+                        test_name, _, family_dir, num_family = cmd_args.test_numbers["global"][
+                            test_global_num
+                        ]
+                        # Append all information for rendering
+                        results_info.append(
+                            [
+                                test_global_num,
+                                family_dir,
+                                num_family,
+                                test_name,
+                                test_dir,
+                                job_id,
+                                environment,
+                                ev_color_str,
+                            ]
+                        )
+            else:
+                print("WARNING: Could not process outs.csv")
         else:
-            print("WARNING: Could not process outs.csv")
+            print("[ERROR] All tests in family are skipped or family is empty")
         start = end + 1
-    # Print result summary table
-    from tabulate import tabulate
 
+    # Print result summary table
     print()
     print("----------------------------------------")
     print("TEST RESULTS SUMMARY:")
@@ -614,8 +615,6 @@ def execute_tests_cli(cmd_args, compss_cfg, compss_cfg_sc):
         )
 
     # Print result summary table
-    from tabulate import tabulate
-
     print()
     print("----------------------------------------")
     print("TEST RESULTS SUMMARY:")

@@ -54,19 +54,26 @@ def launch_tests():
 
 
 def _copy_to_sc(compss_cfg):
+    print(f"[INFO] Copy to SC: {compss_cfg}")
     compss_cfg.print_vars()
     username = compss_cfg.get_user()
     remote_dir = os.path.join(
         compss_cfg.get_remote_working_dir(), DEFAULT_REL_TARGET_TESTS_DIR
     )
     target_base_dir = compss_cfg.get_target_base_dir()
-    _ = subprocess.check_output(
-        ["cp", "-R", os.path.join(SCRIPT_DIR, REMOTE_SCRIPTS_REL_PATH), target_base_dir]
-    )
-    _ = subprocess.check_output(["ssh", username, f"rm -rf {remote_dir}"])
-    _ = subprocess.check_output(
-        ["scp", "-r", target_base_dir, f"{username}:{remote_dir}"]
-    )
+    print(f"[INFO] Username: {username}")
+    print(f"[INFO] Remote dir: {remote_dir}")
+    print(f"[INFO] Target dir: {target_base_dir}")
+    print("[INFO] Copying...")
+    cp_cmd = ["cp", "-R", os.path.join(SCRIPT_DIR, REMOTE_SCRIPTS_REL_PATH), target_base_dir]
+    print(f"CP: {cp_cmd}")
+    _ = subprocess.check_output(cp_cmd)
+    ssh_cmd = ["ssh", username, f"rm -rf {remote_dir}"]
+    print(f"SSH: {ssh_cmd}")
+    _ = subprocess.check_output(ssh_cmd)
+    scp_cmd = ["scp", "-r", target_base_dir, f"{username}:{remote_dir}"]
+    print(f"SCP: {scp_cmd}")
+    _ = subprocess.check_output(scp_cmd)
     print("[INFO] All tests deployed to Supercomputer")
 
 

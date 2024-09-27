@@ -13,6 +13,7 @@ def main():
     target_base_dir = sys.argv[1]
     start = int(sys.argv[2])
     end = int(sys.argv[3])
+
     tests_base_dir = os.path.join(target_base_dir, "apps")
     logs_base_dir = os.path.join(target_base_dir, "logs")
 

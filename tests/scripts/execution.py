@@ -84,6 +84,28 @@ def str_exit_value_coloured(exit_value):
     return colour_red + exit_value.name + colour_white
 
 
+
+def str_exit_value(exit_value):
+    """
+    Returns the string representation of the exit_value object
+
+    :param exit_value: ExitValue object
+        + type: ExitValue
+    :return: The string representation of the exit_value object
+        + type: String
+    """
+    if exit_value == ExitValue.OK:
+        return exit_value.name
+    if exit_value == ExitValue.OK_RETRY:
+        return exit_value.name
+    if exit_value == ExitValue.SKIP:
+        return exit_value.name
+    if exit_value == ExitValue.UNSUPPORTED:
+        return exit_value.name
+    # FAIL
+    return exit_value.name
+
+
 def _merge_exit_values(ev1, ev2):
     """
     Merges the given two exit values preserving the worst result
@@ -283,7 +305,7 @@ def execute_tests(cmd_args, compss_cfg):
         # Update global exit value
         global_ev = _merge_exit_values(global_ev, ev)
         # Colour the test exit value
-        ev_color_str = str_exit_value_coloured(ev)
+        ev_color_str = str_exit_value(ev)
         # Retrieve test information
         test_global_num = int("".join(x for x in test_dir if x.isdigit()))
         test_name, _, family_dir, num_family = cmd_args.test_numbers["global"][
@@ -468,7 +490,7 @@ def execute_tests_sc(cmd_args, compss_cfg):
                         # Update global exit value
                         global_ev = _merge_exit_values(global_ev, ev)
                         # Colour the test exit value
-                        ev_color_str = str_exit_value_coloured(ev)
+                        ev_color_str = str_exit_value(ev)
                         # Retrieve test information
                         test_global_num = int("".join(x for x in test_dir if x.isdigit()))
                         test_name, _, family_dir, num_family = cmd_args.test_numbers["global"][
@@ -595,7 +617,7 @@ def execute_tests_cli(cmd_args, compss_cfg, compss_cfg_sc):
         # Update global exit value
         global_ev = _merge_exit_values(global_ev, ev)
         # Colour the test exit value
-        ev_color_str = str_exit_value_coloured(ev)
+        ev_color_str = str_exit_value(ev)
         # Retrieve test information
         test_global_num = int("".join(x for x in test_dir if x.isdigit()))
         test_name, _, family_dir, num_family = cmd_args.test_numbers["global"][
@@ -765,9 +787,6 @@ def _execute_test_cmd(
     if __debug__:
         print("[DEBUG] Test execution command: " + str(cmd))
     # Invoke execution script
-
-    import subprocess
-
     try:
         exec_env = os.environ.copy()
         exec_env["JAVA_HOME"] = compss_cfg.get_java_home()

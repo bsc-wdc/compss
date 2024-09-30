@@ -466,54 +466,56 @@ def execute_tests_sc(cmd_args, compss_cfg):
                 print("[ERROR] Failure in tests results")
                 print(f"[ERROR] OUT: {out}")
                 print(f"[ERROR] ERR: {err}")
-            outs_file = os.path.join(remote_dir, "outs.csv")
-            cmd = f"scp {username}:{outs_file} /tmp"
-            results = True
-            try:
-                subprocess.check_output(cmd, shell=True)
-            except subprocess.CalledProcessError as e:
-                print("WARNING: outs.csv has not been generated. Probably the family of tests is completely skip.")
-                print(e.output)
-                results = False
-            if results:
-                # Process test results
-                with open("/tmp/outs.csv", "r", encoding="UTF-8") as res_file:
-                    for line in res_file:
-                        print(f"Checking line: {line}")
-                        test_dir, environment, job_id, exit_value = line.split(",")
-                        if int(exit_value) == 0:
-                            ev = ExitValue.OK
-                        elif int(exit_value) == 2:
-                            ev = ExitValue.SKIP
-                        else:
-                            ev = ExitValue.FAIL
-                        # Update global exit value
-                        global_ev = _merge_exit_values(global_ev, ev)
-                        # Colour the test exit value
-                        ev_color_str = str_exit_value(ev)
-                        # Retrieve test information
-                        test_global_num = int("".join(x for x in test_dir if x.isdigit()))
-                        test_name, _, family_dir, num_family = cmd_args.test_numbers["global"][
-                            test_global_num
-                        ]
-                        # Append all information for rendering
-                        results_info.append(
-                            [
-                                test_global_num,
-                                family_dir,
-                                num_family,
-                                test_name,
-                                test_dir,
-                                job_id,
-                                environment,
-                                ev_color_str,
-                            ]
-                        )
-            else:
-                print("WARNING: Could not process outs.csv")
         else:
             print("[ERROR] All tests in family are skipped or family is empty")
         start = end + 1
+
+    outs_file = os.path.join(remote_dir, "outs.csv")
+    cmd = f"scp {username}:{outs_file} /tmp"
+    results = True
+    try:
+        subprocess.check_output(cmd, shell=True)
+    except subprocess.CalledProcessError as e:
+        print("WARNING: outs.csv has not been generated.")
+        print(e.output)
+        results = False
+    else:
+        print("WARNING: Could not process outs.csv")
+
+    if results:
+        # Process test results
+        with open("/tmp/outs.csv", "r", encoding="UTF-8") as res_file:
+            for line in res_file:
+                print(f"Checking line: {line}")
+                test_dir, environment, job_id, exit_value = line.split(",")
+                if int(exit_value) == 0:
+                    ev = ExitValue.OK
+                elif int(exit_value) == 2:
+                    ev = ExitValue.SKIP
+                else:
+                    ev = ExitValue.FAIL
+                # Update global exit value
+                global_ev = _merge_exit_values(global_ev, ev)
+                # Get the test exit value
+                ev_color_str = str_exit_value(ev)
+                # Retrieve test information
+                test_global_num = int("".join(x for x in test_dir if x.isdigit()))
+                test_name, _, family_dir, num_family = cmd_args.test_numbers["global"][
+                    test_global_num
+                ]
+                # Append all information for rendering
+                results_info.append(
+                    [
+                        test_global_num,
+                        family_dir,
+                        num_family,
+                        test_name,
+                        test_dir,
+                        job_id,
+                        environment,
+                        ev_color_str,
+                    ]
+                )
 
     # Print result summary table
     print()

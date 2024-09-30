@@ -24,7 +24,7 @@ def main():
         processes_apps.pop()
 
         outs_file = os.path.join(target_base_dir, OUTS)
-        Path(outs_file, "w").touch()
+        Path(outs_file).touch()
         print(f"[WRITING RESULTS] outs_file: {outs_file}")
 
         test_num = 0

@@ -33,8 +33,8 @@
 
   # module load xxx
   export COMPSS_MPIRUN_TYPE="openmpi"
-  export MDCU=48
-  module load singularity/3.5.2
+  export MDCU=112
+  module load singularity/3.11.5
 
   #----------------------------------------------------------------------------------
   # Run application
@@ -46,7 +46,7 @@
 
   echo "*** RUNNING OPENMPI"
   module unload impi
-  module load openmpi/4.0.1
+  module load openmpi/4.1.5
   export COMPSS_MPIRUN_TYPE="openmpi"
 
 #  for exec_env in ${execution_envs}; do

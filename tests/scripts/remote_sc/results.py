@@ -39,6 +39,7 @@ def main():
             else:
                 test_num += 1
             skip_file = os.path.join(logs_base_dir, log_dir, "skip")
+            print(f"[WRITING RESULTS] Checking if test is skipped: {skip_file} ?")
             if os.path.isfile(skip_file):
                 print(f"[WRITING RESULTS] Skip test {log_dir} results.")
                 with open(outs_file, "a", encoding="UTF-8") as file:
@@ -69,7 +70,10 @@ def main():
                 print(f"[WRITING RESULTS] - l: {l}")
                 print(f"[WRITING RESULTS] - exit_value: {exit_value}")
                 with open(outs_file, "a", encoding="UTF-8") as file:
-                    file.write(f"{l[1]},{l[2]},{l[0]},{exit_value}\n")
+                    try:
+                        file.write(f"{l[1]},{l[2]},{l[0]},{exit_value}\n")
+                    except IndexError:
+                        file.write(f"{l[1]},undefined,{l[0]},2\n")
 
 
 if __name__ == "__main__":

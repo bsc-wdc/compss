@@ -27,7 +27,7 @@ from rocrate.model.contextentity import ContextEntity
 
 def add_person_definition(
     compss_crate: ROCrate, contact_type: str, yaml_author: dict, info_yaml: str
-) -> bool:
+) -> (bool, dict):
     """
     Check if a specified person has enough defined terms to be added in the RO-Crate.
 
@@ -36,7 +36,7 @@ def add_person_definition(
     :param yaml_author: Content of the YAML file describing the user
     :param info_yaml: Name of the YAML file specified by the user
 
-    :returns: If the person is valid. It is added if True
+    :returns: If the person is valid and added. Also returns updated details for the person
     """
 
     # Expected Person fields
@@ -52,15 +52,17 @@ def add_person_definition(
     org_dict = {}
     remote_orcid = None
     remote_org = None
+    remote_org_name = None
     remote_mail = None
     remote_url = None
+    remote_all_names = None
     searched_author = False
 
     if "name" in yaml_author:
         person_dict["name"] = yaml_author["name"]
         if not "orcid" in yaml_author:
             # If we have a name, but not an ORCID, search by name
-            remote_orcid, remote_org, remote_mail = search_orcid(yaml_author["name"])
+            remote_orcid, remote_org, remote_mail, remote_all_names = search_orcid(yaml_author["name"])
             searched_author = True
             if remote_orcid:
                 yaml_author["orcid"] = remote_orcid
@@ -71,7 +73,7 @@ def add_person_definition(
         if "orcid" in yaml_author:
             # If we have an ORCID but not a name, we can try to complete the name info, searching by ORCID,
             # since the user has specified it
-            remote_name, remote_org, remote_mail = search_by_orcid(yaml_author["orcid"])
+            remote_name, remote_org, remote_mail, remote_all_names = search_by_orcid(yaml_author["orcid"])
             searched_author = True
             if remote_name:
                 yaml_author["name"] = remote_name
@@ -81,7 +83,7 @@ def add_person_definition(
         print(
             f"PROVENANCE | ERROR in your {info_yaml} file. A 'Person' is ignored, since it has no 'orcid' defined"
         )
-        return False
+        return False, yaml_author
 
     if not "e-mail" in yaml_author and remote_mail:
         yaml_author["e-mail"] = remote_mail
@@ -117,7 +119,7 @@ def add_person_definition(
                 else:
                     # Should not enter here, all authors should have orcid at this point
                     if "name" in yaml_author:
-                        remote_orcid, remote_org, remote_mail = search_orcid(
+                        remote_orcid, remote_org, remote_mail, remote_all_names = search_orcid(
                             yaml_author["name"]
                         )
             remote_ror, remote_org_name, remote_url = search_ror(remote_org)
@@ -147,9 +149,19 @@ def add_person_definition(
             print(
                 f"PROVENANCE | WARNING in your {info_yaml} file. 'organisation_name' not defined for an 'Organisation'"
             )
+
+    if remote_all_names:
+        person_dict["givenName"] = remote_all_names["given-names"]
+        person_dict["familyName"] = remote_all_names["family-names"]
+        yaml_author["givenName"] = remote_all_names["given-names"]
+        yaml_author["familyName"] = remote_all_names["family-names"]
+
+    if searched_author or remote_org_name:
+        yaml_author["Updated"] = True
+
     compss_crate.add(Person(compss_crate, yaml_author["orcid"], person_dict))
 
-    return True
+    return True, yaml_author
 
 
 def root_entity(
@@ -162,9 +174,10 @@ def root_entity(
     :param yaml_content: Content of the YAML file specified by the user
     :param info_yaml: Name of the YAML file specified by the user
 
-    :returns: 'COMPSs Workflow Information' and 'Authors' sections, as defined in the YAML
+    :returns: The updated yaml_content, and a list of author @id's
     """
 
+    updated_authors = False
     # Get Sections
     compss_wf_info = yaml_content["COMPSs Workflow Information"]
     authors_info = []
@@ -195,7 +208,11 @@ def root_entity(
     for author in authors_info:
         if "orcid" in author and author["orcid"] in author_list:
             break
-        if add_person_definition(compss_crate, "Author", author, info_yaml):
+        added_person, author = add_person_definition(compss_crate, "Author", author, info_yaml)
+        if "Updated" in author:
+            # Updated with online search
+            updated_authors = True
+        if added_person:
             author_list.append(author["orcid"])
             if "ror" in author and author["ror"] not in org_list:
                 org_list.append(author["ror"])
@@ -221,7 +238,11 @@ def root_entity(
     if len(crate_author_list) == 0:
         print(f"PROVENANCE | WARNING: No valid 'Authors' specified in {info_yaml}")
 
-    return compss_wf_info, crate_author_list
+    if updated_authors:
+        yaml_content["Authors"] = authors_info
+        yaml_content["Updated"] = True
+
+    return yaml_content, crate_author_list
 
 
 def get_main_entities(
@@ -541,7 +562,7 @@ def get_manually_defined_software_requirements(
     return software_requirements_list
 
 
-def search_orcid(person_name: str) -> (str, str, str):
+def search_orcid(person_name: str) -> (str, str, str, dict):
     """
     Search at orcid.org the first ORCID matching the person's name
 
@@ -562,7 +583,9 @@ def search_orcid(person_name: str) -> (str, str, str):
     res_institution = None
     orcid = None
     e_mail = None
+    all_names = {}
     # Submit the GET request
+
     try:
         print(
             f"PROVENANCE | PERSON '{person_name}': Searching ORCID, Organisation and e-Mail"
@@ -579,6 +602,8 @@ def search_orcid(person_name: str) -> (str, str, str):
                     res_institution = (
                         list_institutions[0] if len(list_institutions) > 0 else None
                     )
+                    all_names["given-names"] = str(result.get("given-names"))
+                    all_names["family-names"] = str(result.get("family-names"))
                     obtained_full_name = (
                         str(result.get("given-names"))
                         + " "
@@ -588,7 +613,7 @@ def search_orcid(person_name: str) -> (str, str, str):
                     e_mail = list_emails[0] if list_emails else None
                     if obtained_full_name.lower() == person_name.lower():
                         print(
-                            f"PROVENANCE | Fetched data. Name: {obtained_full_name}, ORCID: {orcid}, Organisation: {res_institution}, e-Mail: {e_mail}"
+                            f"PROVENANCE | Fetched data. Given name(s): {all_names['given-names']}, Family name(s): {all_names['family-names']}, ORCID: {orcid}, Organisation: {res_institution}, e-Mail: {e_mail}"
                         )
                     else:
                         print(
@@ -605,7 +630,7 @@ def search_orcid(person_name: str) -> (str, str, str):
             print(
                 f"PROVENANCE | Searching ORCID for person '{person_name}'. Request error {response.status_code}"
             )
-        return orcid, res_institution, e_mail
+        return orcid, res_institution, e_mail, all_names
     except requests.exceptions.Timeout:
         print(
             f"PROVENANCE | Searching ORCID for person '{person_name}'. Request timeout"
@@ -614,10 +639,10 @@ def search_orcid(person_name: str) -> (str, str, str):
         print(
             f"PROVENANCE | Searching ORCID for person '{person_name}'. Request exception: {e}"
         )
-    return orcid, res_institution, e_mail
+    return orcid, res_institution, e_mail, all_names
 
 
-def search_by_orcid(orcid_str: str) -> (str, str, str):
+def search_by_orcid(orcid_str: str) -> (str, str, str, dict):
     """
     Search at orcid.org the first ORCID matching the ORCID reference provided
 
@@ -641,6 +666,7 @@ def search_by_orcid(orcid_str: str) -> (str, str, str):
     res_institution = None
     obtained_full_name = None
     e_mail = None
+    all_names = {}
     # Submit the GET request
     try:
         print(
@@ -657,6 +683,8 @@ def search_by_orcid(orcid_str: str) -> (str, str, str):
                     res_institution = (
                         list_institutions[0] if len(list_institutions) > 0 else None
                     )
+                    all_names["given-names"] = str(result.get("given-names"))
+                    all_names["family-names"] = str(result.get("family-names"))
                     obtained_full_name = (
                         str(result.get("given-names"))
                         + " "
@@ -665,7 +693,7 @@ def search_by_orcid(orcid_str: str) -> (str, str, str):
                     list_emails = result.get("email")
                     e_mail = list_emails[0] if list_emails else None
                     print(
-                        f"PROVENANCE | Fetched data. Name: {obtained_full_name}, Organisation: {res_institution}, e-Mail: {e_mail}"
+                        f"PROVENANCE | Fetched data. Given name(s): {all_names['given-names']}, Family name(s): {all_names['family-names']}, Organisation: {res_institution}, e-Mail: {e_mail}"
                     )
                     break
             else:
@@ -676,14 +704,14 @@ def search_by_orcid(orcid_str: str) -> (str, str, str):
             print(
                 f"PROVENANCE | Searching Name for ORCID '{orcid_str}'. Request error {response.status_code}"
             )
-        return obtained_full_name, res_institution, e_mail
+        return obtained_full_name, res_institution, e_mail, all_names
     except requests.exceptions.Timeout:
         print(f"PROVENANCE | Searching Name for ORCID '{orcid_str}'. Request timeout")
     except requests.exceptions.RequestException as e:
         print(
             f"PROVENANCE | Searching Name for ORCID '{orcid_str}'. Request exception: {e}"
         )
-    return obtained_full_name, res_institution, e_mail
+    return obtained_full_name, res_institution, e_mail, all_names
 
 
 def search_ror(org_name: str) -> (str, str, str):

@@ -431,17 +431,18 @@ def execute_tests_sc(cmd_args, compss_cfg):
         print(f"[INFO] Jobs: {jobs}")
         if len(jobs) > 0:
             for job in jobs:
-                print(f"[INFO] Waiting for job {job}")
-                try:
-                    polling.poll(
-                        lambda: not subprocess.check_output(
-                            'ssh {} "squeue -h -j {}"'.format(username, job), shell=True
-                        ),
-                        step=30,
-                        poll_forever=True,
-                    )
-                except Exception:
-                    print(f"[WARN] Error getting status of job {job}")
+                if job != "0":
+                    print(f"[INFO] Waiting for job {job}")
+                    try:
+                        polling.poll(
+                            lambda: not subprocess.check_output(
+                                'ssh {} "squeue -h -j {}"'.format(username, job), shell=True
+                            ),
+                            step=30,
+                            poll_forever=True,
+                        )
+                    except Exception:
+                        print(f"[WARN] Error getting status of job {job}")
             print("[INFO] All jobs finished")
             print("[INFO] Checking results")
             cmd = (

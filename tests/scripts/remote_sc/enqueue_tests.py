@@ -61,7 +61,7 @@ def main():
             if os.path.isfile(skip_file):
                 create_log_skip_file(test_logs_path)
                 f.write(f"skip {test_dir} none\n")
-                print("-1")
+                print("0")
                 continue
             execution_envs_str = " ".join(str(x) for x in execution_envs)
             execution_script_path = os.path.join(test_path, "execution")

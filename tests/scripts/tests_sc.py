@@ -67,13 +67,16 @@ def _copy_to_sc(compss_cfg):
     print("[INFO] Copying...")
     cp_cmd = ["cp", "-R", os.path.join(SCRIPT_DIR, REMOTE_SCRIPTS_REL_PATH), target_base_dir]
     print(f"CP: {cp_cmd}")
-    _ = subprocess.check_output(cp_cmd)
+    output = subprocess.check_output(cp_cmd)
+    print(f"[INFO] CP OUT: {output}")
     ssh_cmd = ["ssh", username, f"rm -rf {remote_dir}"]
     print(f"SSH: {ssh_cmd}")
-    _ = subprocess.check_output(ssh_cmd)
+    output = subprocess.check_output(ssh_cmd)
+    print(f"[INFO] SSH OUT: {output}")
     scp_cmd = ["scp", "-r", target_base_dir, f"{username}:{remote_dir}"]
     print(f"SCP: {scp_cmd}")
-    _ = subprocess.check_output(scp_cmd)
+    output = subprocess.check_output(scp_cmd)
+    print(f"[INFO] SCP OUT: {output}")
     print("[INFO] All tests deployed to Supercomputer")
 
 

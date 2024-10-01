@@ -38,15 +38,6 @@ def main():
     # master_working_dir = sys.argv[9]
     # worker_working_dir = sys.argv[10]
 
-    # Clean previous logs base dir
-    process = subprocess.Popen(["rm", "-rf", tests_base_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    out, err = process.communicate()
-    if process.returncode != 0:
-        print("[ERROR] Removing previous tests_base_dir")
-        print(f"[ERROR] out: {out}")
-        print(f"[ERROR] err: {err}")
-        sys.exit(1)
-
     # Start deploying tests
     if not os.path.exists(logs_base_dir):
         os.mkdir(logs_base_dir)

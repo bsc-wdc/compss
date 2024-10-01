@@ -38,11 +38,16 @@ def main():
     # master_working_dir = sys.argv[9]
     # worker_working_dir = sys.argv[10]
 
-    # output = subprocess.check_output("rm -f tests_execution_sandbox/.queue", shell=True)
-    # output = subprocess.check_output("rm -rf {}".format(master_working_dir), shell=True)
-    # output = subprocess.check_output("rm -rf {}".format(os.path.join(compss_logs_root,".COMPSs")), shell=True)
-    # output = subprocess.check_output("rm -rf {}".format(logs_base_dir), shell=True)
+    # Clean previous logs base dir
+    process = subprocess.Popen(["rm", "-rf", tests_base_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    out, err = process.communicate()
+    if process.returncode != 0:
+        print("[ERROR] Removing previous tests_base_dir")
+        print(f"[ERROR] out: {out}")
+        print(f"[ERROR] err: {err}")
+        sys.exit(1)
 
+    # Start deploying tests
     if not os.path.exists(logs_base_dir):
         os.mkdir(logs_base_dir)
 

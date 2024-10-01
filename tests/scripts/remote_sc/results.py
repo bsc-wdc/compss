@@ -30,6 +30,7 @@ def main():
         test_num = 0
         for log_dir in sorted(os.listdir(tests_base_dir)):
             print(f"[WRITING RESULTS] log_dir: {log_dir}")
+            print(f"[WRITING RESULTS] test_num: {test_num} - start: {start} - end: {end}")
             # Check if this test must be executed in this batch
             if test_num < start:
                 test_num += 1

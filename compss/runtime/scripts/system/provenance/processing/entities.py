@@ -113,7 +113,7 @@ def add_person_definition(
             if not searched_author:
                 # No previous author search has been done, search now
                 if "orcid" in yaml_author:
-                    remote_name, remote_org, remote_mail = search_by_orcid(
+                    remote_name, remote_org, remote_mail, remote_all_names = search_by_orcid(
                         yaml_author["orcid"]
                     )
                 else:
@@ -155,6 +155,12 @@ def add_person_definition(
         person_dict["familyName"] = remote_all_names["family-names"]
         yaml_author["givenName"] = remote_all_names["given-names"]
         yaml_author["familyName"] = remote_all_names["family-names"]
+
+    # givenName and familyName are optional for the user, but, if they set them, we get them
+    if "givenName" in yaml_author:
+        person_dict["givenName"] = yaml_author["givenName"]
+    if "familyName" in yaml_author:
+        person_dict["familyName"] = yaml_author["familyName"]
 
     if searched_author or remote_org_name:
         yaml_author["Updated"] = True

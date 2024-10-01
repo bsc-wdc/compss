@@ -50,5 +50,20 @@ This is an automatic reproducibility service designed to help reproduce COMPSs w
 3. The `data_persistence = False` examples are only supposed to work on the original SLURM cluster where paths related to the experiment are accessible (i.e. the new Submitter may need to request access permissions).
 
 ---
+### How to Use via Chameleon
 
+If you're unsure how to create an instance on Chameleon, please refer to the official documentation: [Chameleon Documentation](https://chameleoncloud.readthedocs.io/en/latest/index.html).
+
+To utilize this service or run any COMPSs experiments, you can create an instance of the Ubuntu 22.04 appliance with COMPSs 3.3.1 pre-installed. You can find the appliance here: [Ubuntu 22.04 with COMPSs 3.3.1](https://www.chameleoncloud.org/appliances/121/).
+
+After successfully creating an instance of the appliance, execute the following command to set up the environment:
+```bash
+sudo ./working_scripts/basic_config.sh start
+```
+
+Once the setup is complete, you can proceed to run any COMPSs experiments of your choice.
+
+> **Note:** Since Chameleon allows access to remote networks, you can directly clone the Reproducibility Service as well as the RO-Crate of the experiment you want to reproduce.
+
+---
 I hope you find this service helpful!

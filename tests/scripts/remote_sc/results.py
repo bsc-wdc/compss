@@ -30,7 +30,9 @@ def main():
         test_num = 0
         for log_dir in sorted(os.listdir(tests_base_dir)):
             print(f"[WRITING RESULTS] log_dir: {log_dir}")
-            print(f"[WRITING RESULTS] test_num: {test_num} - start: {start} - end: {end}")
+            print(
+                f"[WRITING RESULTS] test_num: {test_num} - start: {start} - end: {end}"
+            )
             # Check if this test must be executed in this batch
             if test_num < start:
                 test_num += 1
@@ -56,8 +58,12 @@ def main():
             print(f"[WRITING RESULTS] Processes: {processes}")
             for process in processes:
                 print(f"[WRITING RESULTS] - Process: {process}")
-                output_log_path = os.path.join(logs_base_dir, log_dir, f"compss-{process}.out")
-                error_log_path = os.path.join(logs_base_dir, log_dir, f"compss-{process}.err")
+                output_log_path = os.path.join(
+                    logs_base_dir, log_dir, f"compss-{process}.out"
+                )
+                error_log_path = os.path.join(
+                    logs_base_dir, log_dir, f"compss-{process}.err"
+                )
                 runtime_path = os.path.join(logs_base_dir, log_dir, ".COMPSs", process)
                 matching = [s for s in processes_apps if process in s]
                 l = matching[0].split()

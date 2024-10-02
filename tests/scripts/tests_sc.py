@@ -65,7 +65,12 @@ def _copy_to_sc(compss_cfg):
     print(f"[INFO] Remote dir: {remote_dir}")
     print(f"[INFO] Target dir: {target_base_dir}")
     print("[INFO] Copying...")
-    cp_cmd = ["cp", "-R", os.path.join(SCRIPT_DIR, REMOTE_SCRIPTS_REL_PATH), target_base_dir]
+    cp_cmd = [
+        "cp",
+        "-R",
+        os.path.join(SCRIPT_DIR, REMOTE_SCRIPTS_REL_PATH),
+        target_base_dir,
+    ]
     print(f"CP: {cp_cmd}")
     output = subprocess.check_output(cp_cmd)
     print(f"[INFO] CP OUT: {output}")

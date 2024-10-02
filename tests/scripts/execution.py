@@ -84,7 +84,6 @@ def str_exit_value_coloured(exit_value):
     return colour_red + exit_value.name + colour_white
 
 
-
 def str_exit_value(exit_value):
     """
     Returns the string representation of the exit_value object
@@ -436,7 +435,8 @@ def execute_tests_sc(cmd_args, compss_cfg):
                     try:
                         polling.poll(
                             lambda: not subprocess.check_output(
-                                'ssh {} "squeue -h -j {}"'.format(username, job), shell=True
+                                'ssh {} "squeue -h -j {}"'.format(username, job),
+                                shell=True,
                             ),
                             step=30,
                             poll_forever=True,

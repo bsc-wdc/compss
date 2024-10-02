@@ -2,7 +2,6 @@
 
 # Imports
 import os
-import polling
 import subprocess
 import sys
 from enum import Enum
@@ -340,6 +339,8 @@ def execute_tests(cmd_args, compss_cfg):
 
 
 def execute_tests_sc(cmd_args, compss_cfg):
+    import polling
+
     username = compss_cfg.get_user()
     module = compss_cfg.get_compss_module()
     comm = compss_cfg.get_comm()

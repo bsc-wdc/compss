@@ -1,12 +1,9 @@
-#!/usr/bin/python
-
-# -*- coding: utf-8 -*-
-
-# For better print formatting
-from __future__ import print_function
+#!/usr/bin/env python3
 
 # Imports
+import configparser
 import os
+import getpass
 
 from constants import DEFAULT_CFG_EXTENSION
 from constants import CONFIGURATIONS_DIR
@@ -22,6 +19,7 @@ from constants import DEFAULT_REL_COMPSS_LOG_DIR
 ############################################
 # ERROR CLASS
 ############################################
+
 
 class ConfigurationError(Exception):
     """
@@ -47,6 +45,7 @@ class ConfigurationError(Exception):
 # HELPER CLASS
 ############################################
 
+
 class COMPSsConfiguration:
     """
     Class containing the configuration options provided by the COMPSs test configuration file
@@ -69,8 +68,16 @@ class COMPSsConfiguration:
         + type: List<String>
     """
 
-    def __init__(self, user=None, java_home=None, compss_home=DEFAULT_COMPSS_HOME, target_base_dir=None,
-                 comm=DEFAULT_COMM, runcompss_opts=None, execution_envs=DEFAULT_EXECUTION_ENVS):
+    def __init__(
+        self,
+        user=None,
+        java_home=None,
+        compss_home=DEFAULT_COMPSS_HOME,
+        target_base_dir=None,
+        comm=DEFAULT_COMM,
+        runcompss_opts=None,
+        execution_envs=DEFAULT_EXECUTION_ENVS,
+    ):
         """
         Initializes the COMPSsConfiguration class with the given options
 
@@ -86,7 +93,6 @@ class COMPSsConfiguration:
 
         # Either we receive a user from cfg or we load it from current user (always defined)
         if user is None:
-            import getpass
             self.user = getpass.getuser()
         else:
             self.user = user
@@ -99,7 +105,8 @@ class COMPSsConfiguration:
             self.java_home = os.getenv("JAVA_HOME", None)
             if self.java_home is None:
                 raise ConfigurationError(
-                    "[ERROR] Undefined variable JAVA_HOME in both the configuration file and the environment")
+                    "[ERROR] Undefined variable JAVA_HOME in both the configuration file and the environment"
+                )
 
         # Store COMPSs_HOME (always defined because it has a default value)
         self.compss_home = compss_home
@@ -201,16 +208,17 @@ class COMPSsConfiguration:
             + type: String
         """
 
-        return ' '.join(str(x) for x in self.execution_envs)
+        return " ".join(str(x) for x in self.execution_envs)
 
     def print_vars(self):
-        print("[INFO]   - user: " + str(self.user))
-        print("[INFO]   - java_home: " + str(self.java_home))
-        print("[INFO]   - compss_home: " + str(self.compss_home))
-        print("[INFO]   - target_dir: " + str(self.target_base_dir))
-        print("[INFO]   - comm: " + str(self.comm))
-        print("[INFO]   - runcompss_opts: " + str(self.runcompss_opts))
-        print("[INFO]   - execution_envs: " + str(self.execution_envs))
+        """Show the variables."""
+        print(f"[INFO]   - user: {self.user}")
+        print(f"[INFO]   - java_home: {self.java_home}")
+        print(f"[INFO]   - compss_home: {self.compss_home}")
+        print(f"[INFO]   - target_dir: {self.target_base_dir}")
+        print(f"[INFO]   - comm: {self.comm}")
+        print(f"[INFO]   - runcompss_opts: {self.runcompss_opts}")
+        print(f"[INFO]   - execution_envs: {self.execution_envs}")
 
 
 class COMPSsSCConfiguration(COMPSsConfiguration):
@@ -223,25 +231,50 @@ class COMPSsSCConfiguration(COMPSsConfiguration):
         + type: String
     :attribute qos: Quality of Service for the execution of tests
         + type: String
-    :attribute qos: Queue used for the execution of tests
+    :attribute queue: Queue used for the execution of tests
+        + type: String
+    :attribute project_name: Project name used for the execution of tests
         + type: String
     """
 
-    def __init__(self, remote_working_dir=None, compss_module=DEFAULT_COMPSS_MODULE, queue='none', qos='none',
-                 user=None, java_home=None, compss_home=DEFAULT_COMPSS_HOME, target_base_dir=None,
-                 comm=DEFAULT_COMM, runcompss_opts=None, execution_envs=DEFAULT_SC_EXECUTION_ENVS, batch="0"):
-        COMPSsConfiguration.__init__(self, user, java_home, compss_home, target_base_dir, comm, runcompss_opts, execution_envs)
+    def __init__(
+        self,
+        remote_working_dir=None,
+        compss_module=DEFAULT_COMPSS_MODULE,
+        queue="none",
+        qos="none",
+        project_name="none",
+        user=None,
+        java_home=None,
+        compss_home=DEFAULT_COMPSS_HOME,
+        target_base_dir=None,
+        comm=DEFAULT_COMM,
+        runcompss_opts=None,
+        execution_envs=DEFAULT_SC_EXECUTION_ENVS,
+        batch="0",
+    ):
+        COMPSsConfiguration.__init__(
+            self,
+            user,
+            java_home,
+            compss_home,
+            target_base_dir,
+            comm,
+            runcompss_opts,
+            execution_envs,
+        )
 
         if remote_working_dir is None:
-                raise ConfigurationError("[ERROR] Undefined variable remote_working_dir")
+            raise ConfigurationError("[ERROR] Undefined variable remote_working_dir")
         self.remote_working_dir = remote_working_dir
         self.compss_module = os.getenv("TEST_COMPSS_MODULE", None)
         if self.compss_module is None:
             self.compss_module = compss_module
         else:
-            print("[WARN] Ovewriting COMPSs Module to test")
+            print("[WARN] Overwriting COMPSs Module to test")
         self.qos = qos
         self.queue = queue
+        self.project_name = project_name
         self.batch = int(batch)
 
     def get_remote_working_dir(self):
@@ -279,6 +312,16 @@ class COMPSsSCConfiguration(COMPSsConfiguration):
             + type: String
         """
         return self.queue
+
+    def get_project_name(self):
+        """
+        Returns the project name used for the execution of tests
+
+        :return: The project name name
+            + type: String
+        """
+        return self.project_name
+
     def get_batch(self):
         """
         Returns the batch size used for the execution of tests
@@ -293,24 +336,30 @@ class COMPSsSCConfiguration(COMPSsConfiguration):
         Prints de configuration variables
         """
         COMPSsConfiguration.print_vars(self)
-        print("[INFO]   - compss_modules: " + str(self.compss_module))
-        print("[INFO]   - remote_dir: " + str(self.remote_working_dir))
-        print("[INFO]   - queue: " + str(self.queue))
-        print("[INFO]   - qos: " + str(self.qos))
-        print("[INFO]   - batch: " + str(self.batch))
+        print(f"[INFO]   - compss_modules: {self.compss_module}")
+        print(f"[INFO]   - remote_dir: {self.remote_working_dir}")
+        print(f"[INFO]   - queue: {self.queue}")
+        print(f"[INFO]   - qos: {self.qos}")
+        print(f"[INFO]   - project_name: {self.project_name}")
+        print(f"[INFO]   - batch: {self.batch}")
+
 
 ############################################
 # PUBLIC METHODS
 ############################################
 
+
 def load_configuration_file(cfg_file):
     """
     Loads the configuration file provided in the cfg_file path
 
-    :param cfg_file: Path to the configuration file (relative or absolute, with or without extension)
-    :return: An object representing the COMPSs test configuration options available in the given cfg file
+    :param cfg_file: Path to the configuration file
+                     (relative or absolute, with or without extension)
+    :return: An object representing the COMPSs test configuration
+             options available in the given cfg file
         + type: COMPSsConfiguration
-    :raise ConfigurationError: If the provided file path is invalid or there is an error when loading the cfg content
+    :raise ConfigurationError: If the provided file path is invalid or there
+                               is an error when loading the cfg content
     """
     print()
     print("[INFO] Loading configuration file...")
@@ -319,7 +368,6 @@ def load_configuration_file(cfg_file):
 
     # Load cfg values
     print("[INFO] Loading values from " + str(cfg_file))
-    import configparser
     config = configparser.ConfigParser()
     config.read(cfg_file)
     # Load default variables
@@ -339,6 +387,7 @@ def load_configuration_file(cfg_file):
 
     return compss_cfg
 
+
 def load_sc_configuration_file(cfg_file):
     """
     Loads the configuration file provided in the cfg_file path
@@ -354,8 +403,7 @@ def load_sc_configuration_file(cfg_file):
     cfg_file = _check_file(cfg_file)
 
     # Load cfg values
-    print("[INFO] Loading values from " + str(cfg_file))
-    import configparser
+    print(f"[INFO] Loading values from {cfg_file}")
     config = configparser.ConfigParser()
     config.read(cfg_file)
     # Load default variables
@@ -364,7 +412,7 @@ def load_sc_configuration_file(cfg_file):
     _check_common_vars(cfg_vars, config)
 
     if __debug__:
-        print("[DEBUG] Retrieved CFG variables: " + str(cfg_vars))
+        print(f"[DEBUG] Retrieved CFG variables: {cfg_vars}")
 
     # Create COMPSs Configuration
     compss_cfg = COMPSsSCConfiguration(**cfg_vars)
@@ -375,36 +423,41 @@ def load_sc_configuration_file(cfg_file):
 
     return compss_cfg
 
+
 def _check_file(cfg_file):
     # Fix extension and absolute path
     if __debug__:
-        print("[DEBUG] Checking cfg_file path: " + str(cfg_file))
+        print(f"[DEBUG] Checking cfg_file path: {cfg_file}")
 
     cfg_basename, cfg_extension = os.path.splitext(cfg_file)
     if cfg_extension is None or not cfg_extension:
         if __debug__:
-            print("[DEBUG] Adding default extension " + str(DEFAULT_CFG_EXTENSION))
+            print(f"[DEBUG] Adding default extension {DEFAULT_CFG_EXTENSION}")
         cfg_extension = DEFAULT_CFG_EXTENSION
         cfg_file = cfg_basename + cfg_extension
     if not os.path.isabs(cfg_file):
         cfg_file = os.path.join(CONFIGURATIONS_DIR, cfg_file)
 
     if __debug__:
-        print("[DEBUG] Complete cfg_file path: " + str(cfg_file))
+        print(f"[DEBUG] Complete cfg_file path: {cfg_file}")
 
     # Check file existence
     if not os.path.isfile(cfg_file):
-        raise ConfigurationError("[ERROR] File " + str(cfg_file) + " does not exist")
+        raise ConfigurationError(f"[ERROR] File {cfg_file} does not exist")
     return cfg_file
 
 
 def _check_common_vars(cfg_vars, config):
     # Load comm variables
     if "comm" not in cfg_vars.keys():
-        raise ConfigurationError("[ERROR] CFG file does not define comm variable under DEFAULT scope")
+        raise ConfigurationError(
+            "[ERROR] CFG file does not define comm variable under DEFAULT scope"
+        )
     comm_adaptor = cfg_vars["comm"]
     if comm_adaptor not in config.sections():
-        raise ConfigurationError("[ERROR] CFG file does not define adaptor scope " + str(comm_adaptor))
+        raise ConfigurationError(
+            f"[ERROR] CFG file does not define adaptor scope {comm_adaptor}"
+        )
     comm_adaptor_vars = {k: v for k, v in config.items(comm_adaptor)}
     cfg_vars.update(comm_adaptor_vars)
     # Fix execution environments (if any)

@@ -1,13 +1,9 @@
-#!/usr/bin/python
-
-# -*- coding: utf-8 -*-
-
-# For better print formatting
-from __future__ import print_function
+#!/usr/bin/env python3
 
 # Imports
 import time
 import os
+import subprocess
 
 from arguments import get_sc_args
 from arguments import ArgumentExit
@@ -51,26 +47,48 @@ def launch_tests():
     # Compile and Deploy tests
     compile_and_deploy_tests(cmd_args, compss_cfg, TESTS_SC_DIR)
 
-    _copy_to_sc(cmd_args, compss_cfg)
+    _copy_to_sc(compss_cfg)
 
     # Execute tests
     return execute_tests_sc(cmd_args, compss_cfg)
 
-def _copy_to_sc(cmd_args, compss_cfg):
+
+def _copy_to_sc(compss_cfg):
+    print(f"[INFO] Copy to SC: {compss_cfg}")
     compss_cfg.print_vars()
     username = compss_cfg.get_user()
-    remote_dir = os.path.join(compss_cfg.get_remote_working_dir(),DEFAULT_REL_TARGET_TESTS_DIR)
+    remote_dir = os.path.join(
+        compss_cfg.get_remote_working_dir(), DEFAULT_REL_TARGET_TESTS_DIR
+    )
     target_base_dir = compss_cfg.get_target_base_dir()
-    import subprocess
-    output = subprocess.check_output(["cp", "-R", os.path.join(SCRIPT_DIR,REMOTE_SCRIPTS_REL_PATH),  target_base_dir])
-    output = subprocess.check_output(["ssh",username,"rm -rf {}".format(remote_dir)])
-    output = subprocess.check_output(["scp","-r",target_base_dir,username+":"+remote_dir])
+    print(f"[INFO] Username: {username}")
+    print(f"[INFO] Remote dir: {remote_dir}")
+    print(f"[INFO] Target dir: {target_base_dir}")
+    print("[INFO] Copying...")
+    cp_cmd = [
+        "cp",
+        "-R",
+        os.path.join(SCRIPT_DIR, REMOTE_SCRIPTS_REL_PATH),
+        target_base_dir,
+    ]
+    print(f"CP: {cp_cmd}")
+    output = subprocess.check_output(cp_cmd)
+    print(f"[INFO] CP OUT: {output}")
+    ssh_cmd = ["ssh", username, f"rm -rf {remote_dir}"]
+    print(f"SSH: {ssh_cmd}")
+    output = subprocess.check_output(ssh_cmd)
+    print(f"[INFO] SSH OUT: {output}")
+    scp_cmd = ["scp", "-r", target_base_dir, f"{username}:{remote_dir}"]
+    print(f"SCP: {scp_cmd}")
+    output = subprocess.check_output(scp_cmd)
+    print(f"[INFO] SCP OUT: {output}")
     print("[INFO] All tests deployed to Supercomputer")
 
 
 ############################################
 # MAIN FUNCTION
 ############################################
+
 
 def main():
     """
@@ -116,8 +134,8 @@ def main():
         print("----------------------------------------")
         exit(13)
     except TestExecutionError as tee:
-        # WARN: This is received when there is an infrastructure issue executing the tests, not when the
-        # tests fail themselves
+        # WARN: This is received when there is an infrastructure issue
+        # executing the tests, not when the tests fail themselves
         print("----------------------------------------")
         print("[ERROR] Cannot execute tests")
         print(tee)
@@ -130,8 +148,8 @@ def main():
         print()
         print("----------------------------------------")
         print("[INFO] Tests finished")
-        print("[INFO]    - Success = " + str_exit_value_coloured(ev))
-        print("[INFO]    - Elapsed time = %.2f" % elapsed_time)
+        print(f"[INFO]    - Success = {str_exit_value_coloured(ev)}")
+        print(f"[INFO]    - Elapsed time = {elapsed_time}")
         print("----------------------------------------")
         exit(get_exit_code(ev))
 

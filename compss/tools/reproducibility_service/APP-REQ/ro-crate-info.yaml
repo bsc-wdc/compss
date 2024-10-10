@@ -1,0 +1,33 @@
+# NOTE: NO NEED TO FILL BELOW INFORMATION AS IT WILL BE FILLED AUTOMATICALLY BY THE RS SERVICE
+COMPSs Workflow Information:
+  name: Name of your COMPSs application
+  description: Detailed description of your COMPSs application
+  license: Apache-2.0
+  sources: [/absolute_path_to/dir_1/, relative_path_to/dir_2/, main_file.py, relative_path/aux_file_1.py, /abs_path/aux_file_2.py]
+  sources_main_file: my_main_file.py
+  # CURRENTLY ONLY DATA PERSISTENCE FALSE IS SUPPORTED BY THE RS SERVICE
+  data_persistence: False
+
+# NOTE: AUTHORS INFORMATION WILL BE EXTRACTED FROM THE CRATE
+Authors:
+  - name: Author_1 Name
+    e-mail: author_1@email.com
+    orcid: https://orcid.org/XXXX-XXXX-XXXX-XXXX
+    organisation_name: Institution_1 name
+    ror: https://ror.org/XXXXXXXXX
+      # Find them in ror.org
+  - name: Author_2 Name
+    e-mail: author2@email.com
+    orcid: https://orcid.org/YYYY-YYYY-YYYY-YYYY
+    organisation_name: Institution_2 name
+    ror: https://ror.org/YYYYYYYYY
+      # Find them in ror.org
+
+# NOTE: PLEASE FILL THE SUBMITTER INFORMATION
+Submitter:
+  name: Name
+  e-mail: submitter@email.com
+  orcid: https://orcid.org/XXXX-XXXX-XXXX-XXXX
+  organisation_name: Submitter Institution name
+  ror: https://ror.org/XXXXXXXXX
+    # Find them in ror.org

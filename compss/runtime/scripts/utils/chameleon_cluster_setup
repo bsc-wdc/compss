@@ -1,4 +1,4 @@
-#!/bin/bash -e
+  #!/bin/bash -e
 
   #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   #
@@ -12,20 +12,14 @@
   #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 
-  # Setting up COMPSs_HOME
-  if [ -z "${COMPSS_HOME}" ]; then
-    COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../.. && pwd )/"
-  fi
-  if [ ! "${COMPSS_HOME: -1}" = "/" ]; then
-    COMPSS_HOME="${COMPSS_HOME}/"
-  fi
-  export COMPSS_HOME=${COMPSS_HOME}
+  # Setting up COMPSS_HOME
+  export COMPSS_HOME="/opt/COMPSs/"
 
   ##########################################################
   # Script variables
   user=cc
   instanceCreationTime=10        # Iterations over 30s
-  sshUpTime=8			# Iterations over 30s
+  sshUpTime=8                    # Iterations over 30s
   randomID=$RANDOM
   tmpFile=/tmp/compss-workers-${randomID}.tmp
   HALF_MIN=30s
@@ -38,30 +32,29 @@
   sleep 2s
 
   # Prompt messages to get information
-  echo "Provide the name of the COMPSs Master Instance (this instance):"
-  read -r masterName
-  echo "Provide the reservation ID to deploy COMPSs:"
-  read -r reservationId
-  echo "Provide the number of COMPSs Workers:"
-  read -r numWorkers
-  echo " "
+  read -rp "Provide the name of the COMPSs Master Instance (this instance): " masterName
+  read -rp "Provide the reservation ID to deploy COMPSs: " reservationId
+  read -rp "Provide the number of COMPSs Workers: " numWorkers
+  echo "Type  1 if connected via fabnetv4 network otherwise type 2 if connected via sharednet1"
+  read choice
+
+  NETWORK="sharednet1"
 
   ##########################################################
   # Retrieve other information
   echo "* Retrieving configuration parameters from Chameleon..."
-  image=$(nova show "$masterName" | grep image | tr "|" "\\t" | awk '{ print $2 }')
-  netId=$(neutron net-list | grep sharednet1 | tr "|" "\\t" | awk '{ print $1 }')
-
+  image=$(openstack server show "$masterName" -f value -c image | awk '{print $2}' | sed 's/[()]//g')
+  netId=$(openstack network list | grep "$NETWORK" | awk '{print $2}')
 
   ##########################################################
-  # Launch workers 
+  # Launch workers
   echo "* Launching workers..."
   # Insert COMPSs Master key to OpenStack. Create workers with COMPSsMaster key authorized
-  nova keypair-add --pub_key /home/cc/.ssh/id_rsa.pub COMPSsMaster${randomID}
+  openstack keypair create --public-key /home/cc/.ssh/id_rsa.pub COMPSsMaster${randomID}
 
   # Create workers
   for (( i=1; i<=numWorkers; i++ )); do
-    cmd="nova boot --flavor baremetal --image $image --key-name COMPSsMaster${randomID} --nic net-id=$netId --hint reservation=$reservationId COMPSsWorker$i"
+    cmd="openstack server create --flavor baremetal --image $image --key-name COMPSsMaster${randomID} --nic net-id=$netId --hint reservation=$reservationId COMPSsWorker$i"
     echo "$cmd"
     $cmd
     sleep $SLEEP_BETWEEN_WORKER_CREATION
@@ -78,15 +71,13 @@
 
   for (( i=1; i<=numWorkers; i++ )); do
     # Wait for each worker
-    cmd_status=$(nova list | grep "COMPSsWorker$i" | tr "|" "\\t" | awk '{ print $3 }')
+    cmd_status=$(openstack server list | grep "COMPSsWorker$i" | awk '{print $6}')
     while [ "$cmd_status" != "ACTIVE" ]; do
       sleep ${HALF_MIN}
-      cmd_status=$(nova list | grep "COMPSsWorker$i" | tr "|" "\\t" | awk '{ print $3 }')
+      cmd_status=$(openstack server list | grep "COMPSsWorker$i" | awk '{print $6}')
     done
     echo "   - COMPSsWorker$i is ACTIVE"
   done
-
-
   ##########################################################
   # Retrieving COMPSs Workers information
   echo "* Retrieving COMPSs Workers information..."
@@ -94,18 +85,36 @@
   echo "# Automatically added hostnames by chameleon_cluster_setup" > $tmpFile
   workerIPs=""
   for (( i=1; i<=numWorkers; i++ )); do
-    workerIP=$(nova show COMPSsWorker$i | grep "network" | tr "|" "\\t" | awk '{ print $3 }' | tr "," "\\t" | awk '{ print $1 }')
+    workerIP=$(openstack server show COMPSsWorker$i -f value -c addresses | tr ',' '\n' | grep -oP '\d+\.\d+\.\d+\.\d+' | head -n 1)
     # Update worker list
     workerIPs="$workerIPs $workerIP"
-    # Update hosts tmp file"
-    echo "$workerIP	COMPSsWorker$i" >> $tmpFile
+    # Update hosts tmp file
+    echo "$workerIP       COMPSsWorker$i" >> $tmpFile
     # Log worker IP
     echo "   - COMPSsWorker$i has IP = $workerIP"
   done
 
+  echo "Debugging Information:"
+  echo "user=$user"
+  echo "instanceCreationTime=$instanceCreationTime"
+  echo "sshUpTime=$sshUpTime"
+  echo "randomID=$randomID"
+  echo "tmpFile=$tmpFile"
+  echo "HALF_MIN=$HALF_MIN"
+  echo "SLEEP_BETWEEN_WORKER_CREATION=$SLEEP_BETWEEN_WORKER_CREATION"
+  echo "masterName=$masterName"
+  echo "reservationId=$reservationId"
+  echo "numWorkers=$numWorkers"
+  echo "NETWORK=$NETWORK"
+  echo "image=$image"
+  echo "netId=$netId"
+  echo "workerIPS=$workerIPs"
+  echo " "
+
+
   # Adding configuration to COMPSs Master /etc/hosts file
-  sudo /bin/bash -c "cat $tmpFile >> /etc/hosts"
-  masterIP=$(nova show "$masterName" | grep "network" | tr "|" "\\t" | awk '{ print $3 }' | tr "," "\\t" | awk '{ print $1 }')
+  sudo bash -c "cat $tmpFile >> /etc/hosts"
+  masterIP=$(openstack server show "$masterName" -f value -c addresses | tr ',' '\n' | grep -oP '\d+\.\d+\.\d+\.\d+' | head -n 1)
   echo "$masterIP     COMPSsMaster" >> $tmpFile
 
   # Configuring COMPSs Workers
@@ -117,16 +126,13 @@
   printf "\\n"
 
   for workerIP in $workerIPs; do
-    scp -o StrictHostKeyChecking=no $tmpFile $user@"$workerIP":$tmpFile
-    # shellcheck disable=SC2029
-    ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no $user@"$workerIP" "sudo /bin/bash -c 'cat $tmpFile >> /etc/hosts'"
-    # shellcheck disable=SC2029
-    ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no $user@"$workerIP" "rm -f $tmpFile"
-  done 
+      scp -o StrictHostKeyChecking=no $tmpFile $user@$workerIP:$tmpFile
+      ssh -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no $user@$workerIP "sudo bash -c 'cat $tmpFile >> /etc/hosts'"
+      ssh -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no $user@$workerIP "rm -f $tmpFile"
+  done
 
   # Clean tmpfile
   rm -f $tmpFile
-
 
   ##########################################################
   # Update COMPSs project / resources files
@@ -135,14 +141,11 @@
   resources="${COMPSS_HOME}Runtime/configuration/xml/resources/default_resources.xml"
 
   echo ""
-  echo "Provide the application path:"
-  read -r appDir
+  read -rp "Provide the application path: " appDir
 
   #
   # PROJECT.XML
   #
-  # shellcheck source=../system/xmls/generate_project.sh
-  # shellcheck disable=SC1091
   source "${COMPSS_HOME}Runtime/scripts/system/xmls/generate_project.sh"
 
   # Init project file
@@ -150,10 +153,11 @@
   # Add header (from generate_project.sh)
   add_header
   # Add master information (from generate_project.sh)
-  add_master_node ""
+  add_master_node 4 1 0 16 ""
   # Add workers (from generate_project.sh)
   for (( i=1; i<=numWorkers; i++ )); do
-    add_compute_node "COMPSsWorker$i" "/opt/COMPSs/" "/tmp/COMPSsWorker$i" "$user" "$appDir" "" "" "" ""
+  echo "$i"
+  add_compute_node "COMPSsWorker$i" "/opt/COMPSs/" "/tmp/COMPSsWorker$i" "$user" "$appDir" "" "" "" ""
   done
   # Close project (from generate_project.sh)
   add_footer
@@ -161,24 +165,21 @@
   #
   # RESOURCES.XML
   #
-  # shellcheck source=../system/xmls/generate_resources.sh
-  # shellcheck disable=SC1091
   source "${COMPSS_HOME}Runtime/scripts/system/xmls/generate_resources.sh"
-  
+
   # Init resources file
   init "${resources}"
   # Add header (from generate_resources.sh)
   add_header
   # Add workers
   for (( i=1; i<=numWorkers; i++ )); do
-    add_compute_node "COMPSsWorker$i" "24" "0" "0" "125" "43001" "43102" "" ""
+    echo "$i"
+    add_compute_node "COMPSsWorker$i" "24" "0" "125" "43001" "43102" "" ""
   done
   # Close resources (from generate_resources.sh)
   add_footer
-
 
   ##########################################################
   # End
   echo "SUCCESS!"
   exit
-

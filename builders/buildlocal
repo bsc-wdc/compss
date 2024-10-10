@@ -719,6 +719,7 @@ install_compss() {
   mkdir -p ${targetDir}/Tools/monitor
   mkdir -p ${targetDir}/Tools/storage
   mkdir -p ${targetDir}/Tools/tracing
+  mkdir -p ${targetDir}/Tools/reproducibility_service
   mkdir -p ${targetDir}/Bindings
   mkdir -p ${targetDir}/Bindings/bindings-common
 
@@ -897,6 +898,10 @@ install_compss() {
     cd "${SCRIPT_DIR}"
     mv "${TMP_DIR}/jacoco" "${targetDir}/Tools/"
   fi
+
+  # REPRODUCIBILITY SERVICE
+  echo "--- Deploying Reproducibility Service"
+  cp -r "${TMP_DIR}/compss/tools/reproducibility_service/" "${targetDir}/Tools/reproducibility_service/"
 
   # BINDINGS DEPLOYMENT
   if [ "${bindings}" == "true" ] || [ "${pycompss}" == "true" ]; then

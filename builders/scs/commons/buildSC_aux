@@ -138,6 +138,7 @@
   mkdir -p "${targetDir}/Tools"
   mkdir -p "${targetDir}/Tools/monitor"
   mkdir -p "${targetDir}/Tools/storage"
+  mkdir -p "${targetDir}/Tools/reproducibility_service"
   mkdir -p "${targetDir}/Bindings"
   mkdir -p "${targetDir}/Bindings/bindings-common"
   mkdir -p "${targetDir}/cli"
@@ -297,6 +298,10 @@
   cp "${TMP_DIR}"/compss/tools/monitor/target/classes/compss-monitor.conf "${targetDir}"/Tools/monitor/apache-tomcat/conf/
   cp "${TMP_DIR}"/compss/tools/monitor/target/classes/server.xml "${targetDir}"/Tools/monitor/apache-tomcat/conf/
   cp "${TMP_DIR}"/compss/tools/monitor/target/classes/*log4j* "${targetDir}"/Tools/monitor/
+
+  # REPRODUCIBILITY SERVICE
+  echo "--- Deploying Reproducibility Service"
+  cp -r "${TMP_DIR}/compss/tools/reproducibility_service/" "${targetDir}/Tools/reproducibility_service/"
 
   # BINDINGS DEPLOYMENT
   # - Binding-common

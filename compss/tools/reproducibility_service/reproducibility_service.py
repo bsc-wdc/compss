@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 #
 #  Copyright 2002-2024 Barcelona Supercomputing Center (www.bsc.es)
 #
@@ -13,7 +14,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-#  Authors: Archit Dabral and Raül Sirvent
 
 
 """

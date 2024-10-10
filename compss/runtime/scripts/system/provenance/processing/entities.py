@@ -266,7 +266,7 @@ def get_main_entities(
     :param info_yaml: Name of the YAML file specified by the user
     :param dp_log: Full path to the dataprovenance.log file
 
-    :returns: COMPSs version, main COMPSs file name, COMPSs profile file name
+    :returns: COMPSs version, main COMPSs file name, COMPSs profile file name, updated wf_info
     """
 
     # Build the whole source files list in list_of_sources, and get a backup main entity, in case we can't find one
@@ -303,7 +303,6 @@ def get_main_entities(
     if not any(key in wf_info for key in keys):
         print(f"PROVENANCE | WARNING: No 'sources' defined at {info_yaml}. Only the mainEntity will be added as source file")
 
-    # We try directly to add the mainEntity identified in dataprovenance.log, if exists in the CWD tree
     with open(dp_log, "r", encoding="UTF-8") as dp_file:
         compss_v = next(dp_file).rstrip()  # First line, COMPSs version number
         second_line = next(dp_file).rstrip()
@@ -325,32 +324,6 @@ def get_main_entities(
             )
         third_line = next(dp_file).rstrip()
         out_profile_fn = Path(third_line)
-
-    # if os.path.isfile(detected_app):
-    #    main_entity = detected_app
-
-    # SEARCH THE FILE WITH WALK INSTEAD
-    found_file = find_subpath_in_cwd(detected_app)
-    print(f"FOUND_FILE IS: {found_file}")
-    if found_file:
-        main_entity = fn_detected_app
-        list_of_sources.append(found_file)
-        # Update wf_info so add_application_source_files works fine later
-        if "sources" in wf_info:
-            if isinstance(wf_info["sources"], list):
-                wf_info["sources"].append(found_file)
-            else:
-                tmp_list = []
-                tmp_list.append(wf_info["sources"])  # Single element
-                tmp_list.append(found_file)
-                wf_info["sources"] = tmp_list
-        else:
-            wf_info["sources"] = found_file
-    else:
-        print(
-            f"PROVENANCE | WARNING: The detected 'mainEntity' has not been found in Current Working Directory. "
-            f"A backup 'mainEntity' will be added if possible"
-        )
 
     # Find a backup_main_entity while building the full list of source files
     for source in yaml_sources_list:
@@ -445,13 +418,27 @@ def get_main_entities(
                     f"PROVENANCE | WARNING: The file defined at sources_main_file is assigned as 'mainEntity': {resolved_sources_main_file}"
                 )
             else:
-                print(
-                    f"PROVENANCE | WARNING: The file defined at sources_main_file "
-                    f"({resolved_sources_main_file}) in {info_yaml} does not match with the "
-                    f"automatically identified 'mainEntity' ({main_entity})"
-                )
+                if main_entity == resolved_sources_main_file:
+                    print(f"PROVENANCE | The file automatically identified as 'mainEntity' matches the one specified by the user with 'sources_main_file': {main_entity}")
+                else:
+                    print(
+                        f"PROVENANCE | WARNING: The file defined at 'sources_main_file' "
+                        f"({resolved_sources_main_file}) in {info_yaml} does not match with the "
+                        f"automatically identified 'mainEntity' ({main_entity})"
+                    )
             main_entity = resolved_sources_main_file
             found = True
+            # Update wf_info so add_application_source_files works fine later
+            if "sources" in wf_info:
+                if isinstance(wf_info["sources"], list):
+                    wf_info["sources"].append(resolved_sources_main_file)
+                else:
+                    tmp_list = []
+                    tmp_list.append(wf_info["sources"])  # Single element
+                    tmp_list.append(resolved_sources_main_file)
+                    wf_info["sources"] = tmp_list
+            else:
+                wf_info["sources"] = resolved_sources_main_file
         else:
             # If the file defined in sources_main_file is not directly found, try to find it in 'sources'
             # if sources_main_file is an absolute path, the join has no effect
@@ -507,6 +494,33 @@ def get_main_entities(
                 )
                 # If we identified the mainEntity automatically, we select it when the one defined
                 # by the user is not found
+
+    if main_entity is None:
+        print(
+            f"PROVENANCE | WARNING: The detected 'mainEntity' has not been found in the list of 'sources' provided in {info_yaml}. "
+            f"Current Working Directory will be searched to find the 'mainEntity'")
+        # Last chance. If mainEntity still not found, try to find it in CWD
+        # We try directly to add the mainEntity identified in dataprovenance.log, if exists in the CWD tree
+        found_file = find_subpath_in_cwd(detected_app)
+        if found_file:
+            main_entity = found_file
+            # list_of_sources.append(found_file)
+            # Update wf_info so add_application_source_files works fine later
+            if "sources" in wf_info:
+                if isinstance(wf_info["sources"], list):
+                    wf_info["sources"].append(found_file)
+                else:
+                    tmp_list = []
+                    tmp_list.append(wf_info["sources"])  # Single element
+                    tmp_list.append(found_file)
+                    wf_info["sources"] = tmp_list
+            else:
+                wf_info["sources"] = found_file
+        else:
+            print(
+                f"PROVENANCE | WARNING: The detected 'mainEntity' has not been found in Current Working Directory. "
+                f"A backup 'mainEntity' will be added if possible"
+            )
 
     if main_entity is None:
         # When neither identified, nor defined by user: get backup if exists

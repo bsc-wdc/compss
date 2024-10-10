@@ -138,6 +138,10 @@ def find_subpath_in_cwd(sub_path: str) -> str:
         potential_path = os.path.join(current_path, sub_path)
         # Check if this potential path exists and is a file
         if os.path.isfile(potential_path):
+            if __debug__:
+                print(
+                    f"PROVENANCE DEBUG | mainEntity '{sub_path}' has been found at '{current_path}'"
+                )
             return potential_path
     return None
 

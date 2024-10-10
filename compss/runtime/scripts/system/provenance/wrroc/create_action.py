@@ -298,7 +298,7 @@ def wrroc_create_action(
                 f"PROVENANCE | WARNING: No 'Authors' or 'Agent' specified in {info_yaml}"
             )
 
-    if "Updated" in agent_entity:
+    if "Agent" in yaml_content and "Updated" in agent_entity:
         # Write updated YAML to disk
         with open("GENERATED_" + info_yaml, "w", encoding="utf-8") as f_y:
             yaml.dump(yaml_content, f_y, default_flow_style=False)

@@ -24,6 +24,8 @@ the process of reproducing computational experiments and workflows. It integrate
 and modules to ensure that experiments can be consistently and accurately reproduced, either using
 existing datasets or new ones.
 
+Authors: Archit Dabral and Raül Sirvent
+
 """
 
 import os

@@ -348,9 +348,9 @@ def get_main_entities(
             wf_info["sources"] = found_file
     else:
         print(
-            f"PROVENANCE | ERROR: No 'sources' defined at {info_yaml}, and detected 'mainEntity' not found in Current Working Directory"
+            f"PROVENANCE | WARNING: The detected 'mainEntity' has not been found in Current Working Directory. "
+            f"A backup 'mainEntity' will be added if possible"
         )
-        raise KeyError(f"No 'sources' key defined at {info_yaml}")
 
     # Find a backup_main_entity while building the full list of source files
     for source in yaml_sources_list:

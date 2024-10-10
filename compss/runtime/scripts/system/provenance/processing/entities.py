@@ -24,6 +24,8 @@ from rocrate.rocrate import ROCrate
 from rocrate.model.person import Person
 from rocrate.model.contextentity import ContextEntity
 
+from utils.common_paths import find_subpath_in_cwd
+
 
 def add_person_definition(
     compss_crate: ROCrate, contact_type: str, yaml_author: dict, info_yaml: str
@@ -253,7 +255,7 @@ def root_entity(
 
 def get_main_entities(
     wf_info: dict, info_yaml: str, dp_log: str
-) -> typing.Tuple[str, str, str]:
+) -> typing.Tuple[str, str, str, dict]:
     """
     Get COMPSs version and mainEntity from dataprovenance.log first lines
     3 First lines expected format: compss_version_number\n main_entity\n output_profile_file\n
@@ -296,34 +298,59 @@ def get_main_entities(
         else:
             yaml_sources_list.append(wf_info["sources_dir"])
 
+    # If no sources are defined, define automatically the main_entity or return warning
     keys = ["sources", "files", "sources_dir"]
     if not any(key in wf_info for key in keys):
-        # If no sources are defined, define automatically the main_entity or return error
-        # We try directly to add the mainEntity identified in dataprovenance.log, if exists in the CWD
-        with open(dp_log, "r", encoding="UTF-8") as dp_file:
-            compss_v = next(dp_file).rstrip()  # First line, COMPSs version number
-            second_line = next(dp_file).rstrip()
-            # Second, main_entity. Use better rstrip, just in case there is no '\n'
-            if second_line.endswith(".py"):
-                # Python. Line contains only the file name, need to locate it
-                detected_app = second_line
-            else:  # Java app. Need to fix filename first
-                # Translate identified main entity matmul.files.Matmul to a comparable path
-                me_file_name = second_line.split(".")[-1]
-                detected_app = me_file_name + ".java"
-            if __debug__:
-                print(
-                    f"PROVENANCE DEBUG | Detected app when no 'sources' defined is: {detected_app}"
-                )
-            third_line = next(dp_file).rstrip()
-            out_profile_fn = Path(third_line)
-        if os.path.isfile(detected_app):
-            main_entity = detected_app
-        else:
+        print(f"PROVENANCE | WARNING: No 'sources' defined at {info_yaml}. Only the mainEntity will be added as source file")
+
+    # We try directly to add the mainEntity identified in dataprovenance.log, if exists in the CWD tree
+    with open(dp_log, "r", encoding="UTF-8") as dp_file:
+        compss_v = next(dp_file).rstrip()  # First line, COMPSs version number
+        second_line = next(dp_file).rstrip()
+        # Second, main_entity. Use better rstrip, just in case there is no '\n'
+        if second_line.endswith(".py"):
+            # Python. Line contains only the file name, need to locate it
+            fn_detected_app = second_line
+            detected_app = fn_detected_app  # No sub-paths in Python
+        else:  # Java app. Need to fix filename first
+            # Translate identified main entity matmul.files.Matmul to a comparable path
+            me_file_name = second_line.split(".")[-1]
+            fn_detected_app = me_file_name + ".java"
+            # detected_app is also used much later in the code
+            me_sub_path = second_line.replace(".", "/")
+            detected_app = me_sub_path + ".java"  # Was detected_app
+        if __debug__:
             print(
-                f"PROVENANCE | ERROR: No 'sources' defined at {info_yaml}, and detected 'mainEntity' not found in Current Working Directory"
+                f"PROVENANCE DEBUG | Detected app is: {detected_app}"
             )
-            raise KeyError(f"No 'sources' key defined at {info_yaml}")
+        third_line = next(dp_file).rstrip()
+        out_profile_fn = Path(third_line)
+
+    # if os.path.isfile(detected_app):
+    #    main_entity = detected_app
+
+    # SEARCH THE FILE WITH WALK INSTEAD
+    found_file = find_subpath_in_cwd(detected_app)
+    print(f"FOUND_FILE IS: {found_file}")
+    if found_file:
+        main_entity = fn_detected_app
+        list_of_sources.append(found_file)
+        # Update wf_info so add_application_source_files works fine later
+        if "sources" in wf_info:
+            if isinstance(wf_info["sources"], list):
+                wf_info["sources"].append(found_file)
+            else:
+                tmp_list = []
+                tmp_list.append(wf_info["sources"])  # Single element
+                tmp_list.append(found_file)
+                wf_info["sources"] = tmp_list
+        else:
+            wf_info["sources"] = found_file
+    else:
+        print(
+            f"PROVENANCE | ERROR: No 'sources' defined at {info_yaml}, and detected 'mainEntity' not found in Current Working Directory"
+        )
+        raise KeyError(f"No 'sources' key defined at {info_yaml}")
 
     # Find a backup_main_entity while building the full list of source files
     for source in yaml_sources_list:
@@ -392,22 +419,6 @@ def get_main_entities(
 
     if __debug__:
         print(f"PROVENANCE DEBUG | backup_main_entity is: {backup_main_entity}")
-
-    with open(dp_log, "r", encoding="UTF-8") as dp_file:
-        compss_v = next(dp_file).rstrip()  # First line, COMPSs version number
-        second_line = next(dp_file).rstrip()
-        # Second, main_entity. Use better rstrip, just in case there is no '\n'
-        if second_line.endswith(".py"):
-            # Python. Line contains only the file name, need to locate it
-            detected_app = second_line
-        else:  # Java app. Need to fix filename first
-            # Translate identified main entity matmul.files.Matmul to a comparable path
-            me_sub_path = second_line.replace(".", "/")
-            detected_app = me_sub_path + ".java"
-        if __debug__:
-            print(f"PROVENANCE DEBUG | Detected app is: {detected_app}")
-        third_line = next(dp_file).rstrip()
-        out_profile_fn = Path(third_line)
 
     for file in list_of_sources:  # Try to find the identified mainEntity
         if file.endswith(detected_app):
@@ -516,7 +527,9 @@ def get_main_entities(
         f"PROVENANCE | COMPSs version: '{compss_v}', out_profile: '{out_profile_fn.name}', main_entity: '{main_entity}'"
     )
 
-    return compss_v, main_entity, out_profile_fn.name
+    print(f"wf_info IS: {wf_info}")
+
+    return compss_v, main_entity, out_profile_fn.name, wf_info
 
 
 def get_manually_defined_software_requirements(

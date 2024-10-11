@@ -16,6 +16,7 @@
 #
 import typing
 import os
+import re
 
 from urllib.parse import urlsplit
 from pathlib import Path
@@ -119,6 +120,7 @@ def get_common_paths(url_list: list) -> list:
 
     return list_common_paths
 
+
 def find_subpath_in_cwd(sub_path: str) -> str:
     """
     Find the sub path provided in the cwd
@@ -145,3 +147,12 @@ def find_subpath_in_cwd(sub_path: str) -> str:
             return potential_path
     return None
 
+
+def is_canonical(version):
+    return (
+        re.match(
+            r"^([1-9][0-9]*!)?(0|[1-9][0-9]*)(\.(0|[1-9][0-9]*))*((a|b|rc)(0|[1-9][0-9]*))?(\.post(0|[1-9][0-9]*))?(\.dev(0|[1-9][0-9]*))?$",
+            version,
+        )
+        is not None
+    )

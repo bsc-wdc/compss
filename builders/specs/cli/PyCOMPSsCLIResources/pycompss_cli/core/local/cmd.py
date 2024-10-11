@@ -220,10 +220,12 @@ def local_inspect(ro_crate_zip_or_dir: str):
                 software_requirements = e.get("softwareRequirements")
                 if isinstance(software_requirements, list):
                     for i, s in enumerate(software_requirements):
+                        version_str = s["softwareVersion"] if "softwareVersion" in s else ""
                         i_pointer = 1 if i == (len(software_requirements) - 1) else 0
-                        print(f"{prefix}{pointers[i_pointer]}{s['name']}")
+                        print(f"{prefix}{pointers[i_pointer]}{s['name']} ({version_str})")
                 else:
-                    print(f"{prefix}{pointers[1]}{software_requirements['name']}")
+                    version_str = software_requirements["softwareVersion"] if "softwareVersion" in software_requirements else ""
+                    print(f"{prefix}{pointers[1]}{software_requirements['name']} ({version_str})")
         elif "CreateAction" in e.type:
             e_create_action = e
 

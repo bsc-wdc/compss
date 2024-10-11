@@ -25,6 +25,7 @@ from rocrate.model.person import Person
 from rocrate.model.contextentity import ContextEntity
 
 from utils.common_paths import find_subpath_in_cwd
+from utils.common_paths import is_canonical
 
 
 def add_person_definition(
@@ -64,7 +65,9 @@ def add_person_definition(
         person_dict["name"] = yaml_author["name"]
         if not "orcid" in yaml_author:
             # If we have a name, but not an ORCID, search by name
-            remote_orcid, remote_org, remote_mail, remote_all_names = search_orcid(yaml_author["name"])
+            remote_orcid, remote_org, remote_mail, remote_all_names = search_orcid(
+                yaml_author["name"]
+            )
             searched_author = True
             if remote_orcid:
                 yaml_author["orcid"] = remote_orcid
@@ -75,7 +78,9 @@ def add_person_definition(
         if "orcid" in yaml_author:
             # If we have an ORCID but not a name, we can try to complete the name info, searching by ORCID,
             # since the user has specified it
-            remote_name, remote_org, remote_mail, remote_all_names = search_by_orcid(yaml_author["orcid"])
+            remote_name, remote_org, remote_mail, remote_all_names = search_by_orcid(
+                yaml_author["orcid"]
+            )
             searched_author = True
             if remote_name:
                 yaml_author["name"] = remote_name
@@ -115,14 +120,14 @@ def add_person_definition(
             if not searched_author:
                 # No previous author search has been done, search now
                 if "orcid" in yaml_author:
-                    remote_name, remote_org, remote_mail, remote_all_names = search_by_orcid(
-                        yaml_author["orcid"]
+                    remote_name, remote_org, remote_mail, remote_all_names = (
+                        search_by_orcid(yaml_author["orcid"])
                     )
                 else:
                     # Should not enter here, all authors should have orcid at this point
                     if "name" in yaml_author:
-                        remote_orcid, remote_org, remote_mail, remote_all_names = search_orcid(
-                            yaml_author["name"]
+                        remote_orcid, remote_org, remote_mail, remote_all_names = (
+                            search_orcid(yaml_author["name"])
                         )
             remote_ror, remote_org_name, remote_url = search_ror(remote_org)
         if remote_ror:
@@ -216,7 +221,9 @@ def root_entity(
     for author in authors_info:
         if "orcid" in author and author["orcid"] in author_list:
             break
-        added_person, author = add_person_definition(compss_crate, "Author", author, info_yaml)
+        added_person, author = add_person_definition(
+            compss_crate, "Author", author, info_yaml
+        )
         if "Updated" in author:
             # Updated with online search
             updated_authors = True
@@ -301,7 +308,9 @@ def get_main_entities(
     # If no sources are defined, define automatically the main_entity or return warning
     keys = ["sources", "files", "sources_dir"]
     if not any(key in wf_info for key in keys):
-        print(f"PROVENANCE | WARNING: No 'sources' defined at {info_yaml}. Only the mainEntity will be added as source file")
+        print(
+            f"PROVENANCE | WARNING: No 'sources' defined at {info_yaml}. Only the mainEntity will be added as source file"
+        )
 
     with open(dp_log, "r", encoding="UTF-8") as dp_file:
         compss_v = next(dp_file).rstrip()  # First line, COMPSs version number
@@ -319,9 +328,7 @@ def get_main_entities(
             me_sub_path = second_line.replace(".", "/")
             detected_app = me_sub_path + ".java"  # Was detected_app
         if __debug__:
-            print(
-                f"PROVENANCE DEBUG | Detected app is: {detected_app}"
-            )
+            print(f"PROVENANCE DEBUG | Detected app is: {detected_app}")
         third_line = next(dp_file).rstrip()
         out_profile_fn = Path(third_line)
 
@@ -419,7 +426,9 @@ def get_main_entities(
                 )
             else:
                 if main_entity == resolved_sources_main_file:
-                    print(f"PROVENANCE | The file automatically identified as 'mainEntity' matches the one specified by the user with 'sources_main_file': {main_entity}")
+                    print(
+                        f"PROVENANCE | The file automatically identified as 'mainEntity' matches the one specified by the user with 'sources_main_file': {main_entity}"
+                    )
                 else:
                     print(
                         f"PROVENANCE | WARNING: The file defined at 'sources_main_file' "
@@ -498,7 +507,8 @@ def get_main_entities(
     if main_entity is None:
         print(
             f"PROVENANCE | WARNING: The detected 'mainEntity' has not been found in the list of 'sources' provided in {info_yaml}. "
-            f"Current Working Directory will be searched to find the 'mainEntity'")
+            f"Current Working Directory will be searched to find the 'mainEntity'"
+        )
         # Last chance. If mainEntity still not found, try to find it in CWD
         # We try directly to add the mainEntity identified in dataprovenance.log, if exists in the CWD tree
         found_file = find_subpath_in_cwd(detected_app)
@@ -583,11 +593,19 @@ def get_manually_defined_software_requirements(
         else:
             software_id = "#" + soft_details["name"].lower()
         software_dict["name"] = soft_details["name"]
-        software_dict["version"] = soft_details["version"]
+        if is_canonical(str(soft_details["version"])):
+            software_dict["softwareVersion"] = soft_details["version"]
+        else:
+            software_dict["version"] = soft_details["version"]
         software_requirements_list.append({"@id": software_id})
         compss_crate.add(ContextEntity(compss_crate, software_id, software_dict))
+        version_str = (
+            software_dict["softwareVersion"]
+            if "softwareVersion" in software_dict
+            else ""
+        )
         print(
-            f"PROVENANCE | 'softwareRequirements' dependency correctly added: {soft_details['name']}"
+            f"PROVENANCE | 'softwareRequirements' dependency correctly added: {soft_details['name']} ({version_str})"
         )
 
     return software_requirements_list

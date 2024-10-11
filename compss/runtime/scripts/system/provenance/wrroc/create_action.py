@@ -255,7 +255,9 @@ def wrroc_create_action(
             agent_entity = yaml_content["Agent"][0]
         else:
             agent_entity = yaml_content["Agent"]
-        added_person, agent_entity = add_person_definition(compss_crate, "Agent", agent_entity, info_yaml)
+        added_person, agent_entity = add_person_definition(
+            compss_crate, "Agent", agent_entity, info_yaml
+        )
         if added_person:
             agent = {"@id": agent_entity["orcid"]}
             agent_added = True
@@ -276,7 +278,9 @@ def wrroc_create_action(
         else:
             agent_entity = yaml_content["Submitter"]
 
-        added_person, agent_entity = add_person_definition(compss_crate, "Agent", agent_entity, info_yaml)
+        added_person, agent_entity = add_person_definition(
+            compss_crate, "Agent", agent_entity, info_yaml
+        )
         if added_person:
             agent = {"@id": agent_entity["orcid"]}
             agent_added = True

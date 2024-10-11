@@ -263,7 +263,7 @@ def local_inspect(ro_crate_zip_or_dir: str):
             print(f"{prefix}{pointers[1]}{agent_str} ({affiliation_str}) ({email_str})")
         if "instrument" in e_create_action:
             print(f"{empty_prefix}{pointers[0]}Application's main file")
-            print(f"{prefix}{pointers[1]}{e_create_action.get('instrument')['name']}")
+            print(f"{prefix}{pointers[1]}{e_create_action.get('instrument')['@id']}")
         # Parse 'name' for hostname and JOB_ID
         # "COMPSs cch_matmul_test.py execution at bsc_nvidia with JOB_ID 1930225"
         exec_info = e_create_action.get("name").split(" ")

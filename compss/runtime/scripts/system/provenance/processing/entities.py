@@ -541,8 +541,6 @@ def get_main_entities(
         f"PROVENANCE | COMPSs version: '{compss_v}', out_profile: '{out_profile_fn.name}', main_entity: '{main_entity}'"
     )
 
-    print(f"wf_info IS: {wf_info}")
-
     return compss_v, main_entity, out_profile_fn.name, wf_info
 
 

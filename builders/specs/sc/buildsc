@@ -225,7 +225,7 @@
 
   # REPRODUCIBILITY SERVICE
   echo "--- Copy Reproducibility Service"
-  cp -r "${trunk_rel_path}/compss/tools/reproducibility_service/" "${COMPSs_target}/Tools/reproducibility_service/"
+  cp -r "${trunk_rel_path}/compss/tools/reproducibility_service/" "${COMPSs_target}/Tools/"
 
   # BINDINGS DEPLOYMENT
   echo "--- Copy bindings-common files"

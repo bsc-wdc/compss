@@ -901,7 +901,7 @@ install_compss() {
 
   # REPRODUCIBILITY SERVICE
   echo "--- Deploying Reproducibility Service"
-  cp -r "${TMP_DIR}/compss/tools/reproducibility_service/" "${targetDir}/Tools/reproducibility_service/"
+  cp -r "${TMP_DIR}/compss/tools/reproducibility_service/" "${targetDir}/Tools/"
 
   # BINDINGS DEPLOYMENT
   if [ "${bindings}" == "true" ] || [ "${pycompss}" == "true" ]; then

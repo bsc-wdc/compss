@@ -87,7 +87,7 @@ show_opts() {
     --extrae_config_file_python=<path>      Sets a custom extrae config file for python. Must be in a shared disk between all COMPSs workers.
                                             Default: ${DEFAULT_EXTRAE_CONFIG_FILE_PYTHON:-Empty}
     --trace_label=<string>                  Add a label in the generated trace file. Only used in the case of tracing is activated.
-                                            Default: Applicacion name 
+                                            Default: Applicacion name
     --tracing_task_dependencies=<bool>      Adds communication lines for the task dependencies (true/false)
                                             Default: ${DEFAULT_TRACING_TASK_DEPENDENCIES}
     --generate_trace=<bool>                 Converts the events register into a trace file. Only used in the case of activated tracing.
@@ -227,6 +227,7 @@ show_opts() {
     For Java applications:   Fully qualified name of the application
     For C applications:      Path to the master binary
     For Python applications: Path to the .py file containing the main program
+    For R applications:      Path to the .R file containing the main program
 
 * Application arguments:
     Command line arguments to pass to the application. Can be empty.
@@ -264,7 +265,7 @@ arguments_error() {
 # Parses arguments from the command line
 get_args() {
   # Parse COMPSs Options
-  while getopts hvgtmdp-: flag; do    
+  while getopts hvgtmdp-: flag; do
     # Treat the argument
     case "$flag" in
       h)
@@ -817,6 +818,6 @@ if [ ${provenance} ]; then
   fi
   echo "PROVENANCE | ENDED WORKFLOW PROVENANCE SCRIPT"
 fi
-  
+
 
 unset ENQUEUE_COMPSS_ARGS

@@ -3,5 +3,6 @@ export PATH=$PATH:${COMPSS_HOME}/Runtime/scripts/user:${COMPSS_HOME}/Runtime/scr
 export CLASSPATH=$CLASSPATH:${COMPSS_HOME}/Runtime/compss-engine.jar
 export PATH=$PATH:${COMPSS_HOME}/Bindings/c/bin
 export PYTHONPATH=$PYTHONPATH:${COMPSS_HOME}/Bindings/python/:${COMPSS_HOME}/cli/lib/python3.6/site-packages/
+export R_LIBS_USER=${COMPSS_HOME}/Bindings/RCOMPSs/user_libs/:$R_LIBS_USER
 
 echo "COMPSS_HOME=${COMPSS_HOME}"

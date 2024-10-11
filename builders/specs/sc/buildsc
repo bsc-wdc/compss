@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
-  # INSTALLS ALL THE NECESSARY JARS FOR AN ADAPTOR. 
-  # REQUIRES 2 PARAMETERS: 
+  # INSTALLS ALL THE NECESSARY JARS FOR AN ADAPTOR.
+  # REQUIRES 2 PARAMETERS:
   #  $1 THE PATH TO THE COMPILED ADAPTOR ROOT FOLDER
   #  $2 PATH WHERE TO INSTALL THE ADAPTOR
   install_adaptor() {
@@ -23,7 +23,7 @@
         mkdir "${dest_path}/${adaptor_name}"/worker
         cp "${src_path}"/worker/*.jar "${dest_path}/${adaptor_name}"/worker
       fi
-      if [ -f "${src_path}"/worker/properties ]; then 
+      if [ -f "${src_path}"/worker/properties ]; then
         cp "${src_path}"/worker/properties "${dest_path}/${adaptor_name}"/worker
       fi
       if [ -d "${src_path}"/scripts/ ]; then
@@ -171,7 +171,7 @@
     cp "$scheduler" ${COMPSs_target}/Runtime/scheduler/
   done
   rm ${COMPSs_target}/Runtime/scheduler/compss-scheduler-commons.jar
-  
+
   # Storage
   echo "--- Copy storage implementations"
 
@@ -238,6 +238,8 @@
   rm -rf ${COMPSs_target}/Bindings/python/.project*
   rm -rf ${COMPSs_target}/Bindings/python/.settings*
   rm -rf ${COMPSs_target}/Bindings/python/.idea*
+  echo "--- Copy r-binding files"
+  cp -r ${trunk_rel_path}/compss/programming_model/bindings/RCOMPSs ${COMPSs_target}/Bindings/
 
   # Clean git files
   find "${COMPSs_target}" -name ".git*" -print0 | xargs -0 rm -rf # Clean git files
@@ -255,14 +257,13 @@
     tar -czf COMPSs_"${COMPSs_version}".tar.gz COMPSs
   )
 
-  # Move to final location  
+  # Move to final location
   echo " "
   echo "* Moving package to final location..."
-  mkdir -p ${packages_target}/${distribution} 
+  mkdir -p ${packages_target}/${distribution}
   mv tmp/COMPSs_"${COMPSs_version}".tar.gz ${packages_target}/${distribution}
 
   # Clean COMPSs tmp files
   echo " "
   echo "* Cleaning COMPSs tmp files"
   rm -rf tmp/
-

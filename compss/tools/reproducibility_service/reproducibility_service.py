@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-
 #
-#  Copyright 2002-2022 Barcelona Supercomputing Center (www.bsc.es)
+#  Copyright 2002-2024 Barcelona Supercomputing Center (www.bsc.es)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -15,7 +14,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-#  Authors: Archit Dabral and Raül Sirvent
 
 
 """
@@ -25,6 +23,8 @@ This module serves as the entry point for the Reproducibility Service, a tool de
 the process of reproducing computational experiments and workflows. It integrates various components
 and modules to ensure that experiments can be consistently and accurately reproduced, either using
 existing datasets or new ones.
+
+Authors: Archit Dabral and Raül Sirvent
 
 """
 

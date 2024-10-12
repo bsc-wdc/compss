@@ -24,10 +24,13 @@ from rocrate.rocrate import ROCrate
 from rocrate.model.person import Person
 from rocrate.model.contextentity import ContextEntity
 
+from utils.common_paths import find_subpath_in_cwd
+from utils.common_paths import is_canonical
+
 
 def add_person_definition(
     compss_crate: ROCrate, contact_type: str, yaml_author: dict, info_yaml: str
-) -> bool:
+) -> (bool, dict):
     """
     Check if a specified person has enough defined terms to be added in the RO-Crate.
 
@@ -36,7 +39,7 @@ def add_person_definition(
     :param yaml_author: Content of the YAML file describing the user
     :param info_yaml: Name of the YAML file specified by the user
 
-    :returns: If the person is valid. It is added if True
+    :returns: If the person is valid and added. Also returns updated details for the person
     """
 
     # Expected Person fields
@@ -52,15 +55,19 @@ def add_person_definition(
     org_dict = {}
     remote_orcid = None
     remote_org = None
+    remote_org_name = None
     remote_mail = None
     remote_url = None
+    remote_all_names = None
     searched_author = False
 
     if "name" in yaml_author:
         person_dict["name"] = yaml_author["name"]
         if not "orcid" in yaml_author:
             # If we have a name, but not an ORCID, search by name
-            remote_orcid, remote_org, remote_mail = search_orcid(yaml_author["name"])
+            remote_orcid, remote_org, remote_mail, remote_all_names = search_orcid(
+                yaml_author["name"]
+            )
             searched_author = True
             if remote_orcid:
                 yaml_author["orcid"] = remote_orcid
@@ -71,7 +78,9 @@ def add_person_definition(
         if "orcid" in yaml_author:
             # If we have an ORCID but not a name, we can try to complete the name info, searching by ORCID,
             # since the user has specified it
-            remote_name, remote_org, remote_mail = search_by_orcid(yaml_author["orcid"])
+            remote_name, remote_org, remote_mail, remote_all_names = search_by_orcid(
+                yaml_author["orcid"]
+            )
             searched_author = True
             if remote_name:
                 yaml_author["name"] = remote_name
@@ -81,7 +90,7 @@ def add_person_definition(
         print(
             f"PROVENANCE | ERROR in your {info_yaml} file. A 'Person' is ignored, since it has no 'orcid' defined"
         )
-        return False
+        return False, yaml_author
 
     if not "e-mail" in yaml_author and remote_mail:
         yaml_author["e-mail"] = remote_mail
@@ -111,14 +120,14 @@ def add_person_definition(
             if not searched_author:
                 # No previous author search has been done, search now
                 if "orcid" in yaml_author:
-                    remote_name, remote_org, remote_mail = search_by_orcid(
-                        yaml_author["orcid"]
+                    remote_name, remote_org, remote_mail, remote_all_names = (
+                        search_by_orcid(yaml_author["orcid"])
                     )
                 else:
                     # Should not enter here, all authors should have orcid at this point
                     if "name" in yaml_author:
-                        remote_orcid, remote_org, remote_mail = search_orcid(
-                            yaml_author["name"]
+                        remote_orcid, remote_org, remote_mail, remote_all_names = (
+                            search_orcid(yaml_author["name"])
                         )
             remote_ror, remote_org_name, remote_url = search_ror(remote_org)
         if remote_ror:
@@ -147,9 +156,25 @@ def add_person_definition(
             print(
                 f"PROVENANCE | WARNING in your {info_yaml} file. 'organisation_name' not defined for an 'Organisation'"
             )
+
+    if remote_all_names:
+        person_dict["givenName"] = remote_all_names["given-names"]
+        person_dict["familyName"] = remote_all_names["family-names"]
+        yaml_author["givenName"] = remote_all_names["given-names"]
+        yaml_author["familyName"] = remote_all_names["family-names"]
+
+    # givenName and familyName are optional for the user, but, if they set them, we get them
+    if "givenName" in yaml_author:
+        person_dict["givenName"] = yaml_author["givenName"]
+    if "familyName" in yaml_author:
+        person_dict["familyName"] = yaml_author["familyName"]
+
+    if searched_author or remote_org_name:
+        yaml_author["Updated"] = True
+
     compss_crate.add(Person(compss_crate, yaml_author["orcid"], person_dict))
 
-    return True
+    return True, yaml_author
 
 
 def root_entity(
@@ -162,9 +187,10 @@ def root_entity(
     :param yaml_content: Content of the YAML file specified by the user
     :param info_yaml: Name of the YAML file specified by the user
 
-    :returns: 'COMPSs Workflow Information' and 'Authors' sections, as defined in the YAML
+    :returns: The updated yaml_content, and a list of author @id's
     """
 
+    updated_authors = False
     # Get Sections
     compss_wf_info = yaml_content["COMPSs Workflow Information"]
     authors_info = []
@@ -195,7 +221,13 @@ def root_entity(
     for author in authors_info:
         if "orcid" in author and author["orcid"] in author_list:
             break
-        if add_person_definition(compss_crate, "Author", author, info_yaml):
+        added_person, author = add_person_definition(
+            compss_crate, "Author", author, info_yaml
+        )
+        if "Updated" in author:
+            # Updated with online search
+            updated_authors = True
+        if added_person:
             author_list.append(author["orcid"])
             if "ror" in author and author["ror"] not in org_list:
                 org_list.append(author["ror"])
@@ -221,12 +253,16 @@ def root_entity(
     if len(crate_author_list) == 0:
         print(f"PROVENANCE | WARNING: No valid 'Authors' specified in {info_yaml}")
 
-    return compss_wf_info, crate_author_list
+    if updated_authors:
+        yaml_content["Authors"] = authors_info
+        yaml_content["Updated"] = True
+
+    return yaml_content, crate_author_list
 
 
 def get_main_entities(
     wf_info: dict, info_yaml: str, dp_log: str
-) -> typing.Tuple[str, str, str]:
+) -> typing.Tuple[str, str, str, dict]:
     """
     Get COMPSs version and mainEntity from dataprovenance.log first lines
     3 First lines expected format: compss_version_number\n main_entity\n output_profile_file\n
@@ -237,7 +273,7 @@ def get_main_entities(
     :param info_yaml: Name of the YAML file specified by the user
     :param dp_log: Full path to the dataprovenance.log file
 
-    :returns: COMPSs version, main COMPSs file name, COMPSs profile file name
+    :returns: COMPSs version, main COMPSs file name, COMPSs profile file name, updated wf_info
     """
 
     # Build the whole source files list in list_of_sources, and get a backup main entity, in case we can't find one
@@ -269,34 +305,32 @@ def get_main_entities(
         else:
             yaml_sources_list.append(wf_info["sources_dir"])
 
+    # If no sources are defined, define automatically the main_entity or return warning
     keys = ["sources", "files", "sources_dir"]
     if not any(key in wf_info for key in keys):
-        # If no sources are defined, define automatically the main_entity or return error
-        # We try directly to add the mainEntity identified in dataprovenance.log, if exists in the CWD
-        with open(dp_log, "r", encoding="UTF-8") as dp_file:
-            compss_v = next(dp_file).rstrip()  # First line, COMPSs version number
-            second_line = next(dp_file).rstrip()
-            # Second, main_entity. Use better rstrip, just in case there is no '\n'
-            if second_line.endswith(".py"):
-                # Python. Line contains only the file name, need to locate it
-                detected_app = second_line
-            else:  # Java app. Need to fix filename first
-                # Translate identified main entity matmul.files.Matmul to a comparable path
-                me_file_name = second_line.split(".")[-1]
-                detected_app = me_file_name + ".java"
-            if __debug__:
-                print(
-                    f"PROVENANCE DEBUG | Detected app when no 'sources' defined is: {detected_app}"
-                )
-            third_line = next(dp_file).rstrip()
-            out_profile_fn = Path(third_line)
-        if os.path.isfile(detected_app):
-            main_entity = detected_app
-        else:
-            print(
-                f"PROVENANCE | ERROR: No 'sources' defined at {info_yaml}, and detected 'mainEntity' not found in Current Working Directory"
-            )
-            raise KeyError(f"No 'sources' key defined at {info_yaml}")
+        print(
+            f"PROVENANCE | WARNING: No 'sources' defined at {info_yaml}. Only the mainEntity will be added as source file"
+        )
+
+    with open(dp_log, "r", encoding="UTF-8") as dp_file:
+        compss_v = next(dp_file).rstrip()  # First line, COMPSs version number
+        second_line = next(dp_file).rstrip()
+        # Second, main_entity. Use better rstrip, just in case there is no '\n'
+        if second_line.endswith(".py"):
+            # Python. Line contains only the file name, need to locate it
+            fn_detected_app = second_line
+            detected_app = fn_detected_app  # No sub-paths in Python
+        else:  # Java app. Need to fix filename first
+            # Translate identified main entity matmul.files.Matmul to a comparable path
+            me_file_name = second_line.split(".")[-1]
+            fn_detected_app = me_file_name + ".java"
+            # detected_app is also used much later in the code
+            me_sub_path = second_line.replace(".", "/")
+            detected_app = me_sub_path + ".java"  # Was detected_app
+        if __debug__:
+            print(f"PROVENANCE DEBUG | Detected app is: {detected_app}")
+        third_line = next(dp_file).rstrip()
+        out_profile_fn = Path(third_line)
 
     # Find a backup_main_entity while building the full list of source files
     for source in yaml_sources_list:
@@ -366,22 +400,6 @@ def get_main_entities(
     if __debug__:
         print(f"PROVENANCE DEBUG | backup_main_entity is: {backup_main_entity}")
 
-    with open(dp_log, "r", encoding="UTF-8") as dp_file:
-        compss_v = next(dp_file).rstrip()  # First line, COMPSs version number
-        second_line = next(dp_file).rstrip()
-        # Second, main_entity. Use better rstrip, just in case there is no '\n'
-        if second_line.endswith(".py"):
-            # Python. Line contains only the file name, need to locate it
-            detected_app = second_line
-        else:  # Java app. Need to fix filename first
-            # Translate identified main entity matmul.files.Matmul to a comparable path
-            me_sub_path = second_line.replace(".", "/")
-            detected_app = me_sub_path + ".java"
-        if __debug__:
-            print(f"PROVENANCE DEBUG | Detected app is: {detected_app}")
-        third_line = next(dp_file).rstrip()
-        out_profile_fn = Path(third_line)
-
     for file in list_of_sources:  # Try to find the identified mainEntity
         if file.endswith(detected_app):
             if __debug__:
@@ -407,13 +425,29 @@ def get_main_entities(
                     f"PROVENANCE | WARNING: The file defined at sources_main_file is assigned as 'mainEntity': {resolved_sources_main_file}"
                 )
             else:
-                print(
-                    f"PROVENANCE | WARNING: The file defined at sources_main_file "
-                    f"({resolved_sources_main_file}) in {info_yaml} does not match with the "
-                    f"automatically identified 'mainEntity' ({main_entity})"
-                )
+                if main_entity == resolved_sources_main_file:
+                    print(
+                        f"PROVENANCE | The file automatically identified as 'mainEntity' matches the one specified by the user with 'sources_main_file': {main_entity}"
+                    )
+                else:
+                    print(
+                        f"PROVENANCE | WARNING: The file defined at 'sources_main_file' "
+                        f"({resolved_sources_main_file}) in {info_yaml} does not match with the "
+                        f"automatically identified 'mainEntity' ({main_entity})"
+                    )
             main_entity = resolved_sources_main_file
             found = True
+            # Update wf_info so add_application_source_files works fine later
+            if "sources" in wf_info:
+                if isinstance(wf_info["sources"], list):
+                    wf_info["sources"].append(resolved_sources_main_file)
+                else:
+                    tmp_list = []
+                    tmp_list.append(wf_info["sources"])  # Single element
+                    tmp_list.append(resolved_sources_main_file)
+                    wf_info["sources"] = tmp_list
+            else:
+                wf_info["sources"] = resolved_sources_main_file
         else:
             # If the file defined in sources_main_file is not directly found, try to find it in 'sources'
             # if sources_main_file is an absolute path, the join has no effect
@@ -471,6 +505,34 @@ def get_main_entities(
                 # by the user is not found
 
     if main_entity is None:
+        print(
+            f"PROVENANCE | WARNING: The detected 'mainEntity' has not been found in the list of 'sources' provided in {info_yaml}. "
+            f"Current Working Directory will be searched to find the 'mainEntity'"
+        )
+        # Last chance. If mainEntity still not found, try to find it in CWD
+        # We try directly to add the mainEntity identified in dataprovenance.log, if exists in the CWD tree
+        found_file = find_subpath_in_cwd(detected_app)
+        if found_file:
+            main_entity = found_file
+            # list_of_sources.append(found_file)
+            # Update wf_info so add_application_source_files works fine later
+            if "sources" in wf_info:
+                if isinstance(wf_info["sources"], list):
+                    wf_info["sources"].append(found_file)
+                else:
+                    tmp_list = []
+                    tmp_list.append(wf_info["sources"])  # Single element
+                    tmp_list.append(found_file)
+                    wf_info["sources"] = tmp_list
+            else:
+                wf_info["sources"] = found_file
+        else:
+            print(
+                f"PROVENANCE | WARNING: The detected 'mainEntity' has not been found in Current Working Directory. "
+                f"A backup 'mainEntity' will be added if possible"
+            )
+
+    if main_entity is None:
         # When neither identified, nor defined by user: get backup if exists
         if backup_main_entity is None:
             # We have a fatal problem
@@ -489,7 +551,7 @@ def get_main_entities(
         f"PROVENANCE | COMPSs version: '{compss_v}', out_profile: '{out_profile_fn.name}', main_entity: '{main_entity}'"
     )
 
-    return compss_v, main_entity, out_profile_fn.name
+    return compss_v, main_entity, out_profile_fn.name, wf_info
 
 
 def get_manually_defined_software_requirements(
@@ -531,17 +593,25 @@ def get_manually_defined_software_requirements(
         else:
             software_id = "#" + soft_details["name"].lower()
         software_dict["name"] = soft_details["name"]
-        software_dict["version"] = soft_details["version"]
+        if is_canonical(str(soft_details["version"])):
+            software_dict["softwareVersion"] = soft_details["version"]
+        else:
+            software_dict["version"] = soft_details["version"]
         software_requirements_list.append({"@id": software_id})
         compss_crate.add(ContextEntity(compss_crate, software_id, software_dict))
+        version_str = (
+            software_dict["softwareVersion"]
+            if "softwareVersion" in software_dict
+            else ""
+        )
         print(
-            f"PROVENANCE | 'softwareRequirements' dependency correctly added: {soft_details['name']}"
+            f"PROVENANCE | 'softwareRequirements' dependency correctly added: {soft_details['name']} ({version_str})"
         )
 
     return software_requirements_list
 
 
-def search_orcid(person_name: str) -> (str, str, str):
+def search_orcid(person_name: str) -> (str, str, str, dict):
     """
     Search at orcid.org the first ORCID matching the person's name
 
@@ -562,7 +632,9 @@ def search_orcid(person_name: str) -> (str, str, str):
     res_institution = None
     orcid = None
     e_mail = None
+    all_names = {}
     # Submit the GET request
+
     try:
         print(
             f"PROVENANCE | PERSON '{person_name}': Searching ORCID, Organisation and e-Mail"
@@ -579,6 +651,8 @@ def search_orcid(person_name: str) -> (str, str, str):
                     res_institution = (
                         list_institutions[0] if len(list_institutions) > 0 else None
                     )
+                    all_names["given-names"] = str(result.get("given-names"))
+                    all_names["family-names"] = str(result.get("family-names"))
                     obtained_full_name = (
                         str(result.get("given-names"))
                         + " "
@@ -588,7 +662,7 @@ def search_orcid(person_name: str) -> (str, str, str):
                     e_mail = list_emails[0] if list_emails else None
                     if obtained_full_name.lower() == person_name.lower():
                         print(
-                            f"PROVENANCE | Fetched data. Name: {obtained_full_name}, ORCID: {orcid}, Organisation: {res_institution}, e-Mail: {e_mail}"
+                            f"PROVENANCE | Fetched data. Given name(s): {all_names['given-names']}, Family name(s): {all_names['family-names']}, ORCID: {orcid}, Organisation: {res_institution}, e-Mail: {e_mail}"
                         )
                     else:
                         print(
@@ -605,7 +679,7 @@ def search_orcid(person_name: str) -> (str, str, str):
             print(
                 f"PROVENANCE | Searching ORCID for person '{person_name}'. Request error {response.status_code}"
             )
-        return orcid, res_institution, e_mail
+        return orcid, res_institution, e_mail, all_names
     except requests.exceptions.Timeout:
         print(
             f"PROVENANCE | Searching ORCID for person '{person_name}'. Request timeout"
@@ -614,10 +688,10 @@ def search_orcid(person_name: str) -> (str, str, str):
         print(
             f"PROVENANCE | Searching ORCID for person '{person_name}'. Request exception: {e}"
         )
-    return orcid, res_institution, e_mail
+    return orcid, res_institution, e_mail, all_names
 
 
-def search_by_orcid(orcid_str: str) -> (str, str, str):
+def search_by_orcid(orcid_str: str) -> (str, str, str, dict):
     """
     Search at orcid.org the first ORCID matching the ORCID reference provided
 
@@ -641,6 +715,7 @@ def search_by_orcid(orcid_str: str) -> (str, str, str):
     res_institution = None
     obtained_full_name = None
     e_mail = None
+    all_names = {}
     # Submit the GET request
     try:
         print(
@@ -657,6 +732,8 @@ def search_by_orcid(orcid_str: str) -> (str, str, str):
                     res_institution = (
                         list_institutions[0] if len(list_institutions) > 0 else None
                     )
+                    all_names["given-names"] = str(result.get("given-names"))
+                    all_names["family-names"] = str(result.get("family-names"))
                     obtained_full_name = (
                         str(result.get("given-names"))
                         + " "
@@ -665,7 +742,7 @@ def search_by_orcid(orcid_str: str) -> (str, str, str):
                     list_emails = result.get("email")
                     e_mail = list_emails[0] if list_emails else None
                     print(
-                        f"PROVENANCE | Fetched data. Name: {obtained_full_name}, Organisation: {res_institution}, e-Mail: {e_mail}"
+                        f"PROVENANCE | Fetched data. Given name(s): {all_names['given-names']}, Family name(s): {all_names['family-names']}, Organisation: {res_institution}, e-Mail: {e_mail}"
                     )
                     break
             else:
@@ -676,14 +753,14 @@ def search_by_orcid(orcid_str: str) -> (str, str, str):
             print(
                 f"PROVENANCE | Searching Name for ORCID '{orcid_str}'. Request error {response.status_code}"
             )
-        return obtained_full_name, res_institution, e_mail
+        return obtained_full_name, res_institution, e_mail, all_names
     except requests.exceptions.Timeout:
         print(f"PROVENANCE | Searching Name for ORCID '{orcid_str}'. Request timeout")
     except requests.exceptions.RequestException as e:
         print(
             f"PROVENANCE | Searching Name for ORCID '{orcid_str}'. Request exception: {e}"
         )
-    return obtained_full_name, res_institution, e_mail
+    return obtained_full_name, res_institution, e_mail, all_names
 
 
 def search_ror(org_name: str) -> (str, str, str):

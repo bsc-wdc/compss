@@ -19,6 +19,7 @@ import os
 import uuid
 import subprocess
 import socket
+import yaml
 
 from pathlib import Path
 from datetime import timezone
@@ -254,7 +255,10 @@ def wrroc_create_action(
             agent_entity = yaml_content["Agent"][0]
         else:
             agent_entity = yaml_content["Agent"]
-        if add_person_definition(compss_crate, "Agent", agent_entity, info_yaml):
+        added_person, agent_entity = add_person_definition(
+            compss_crate, "Agent", agent_entity, info_yaml
+        )
+        if added_person:
             agent = {"@id": agent_entity["orcid"]}
             agent_added = True
         else:
@@ -273,7 +277,11 @@ def wrroc_create_action(
             agent_entity = yaml_content["Submitter"][0]
         else:
             agent_entity = yaml_content["Submitter"]
-        if add_person_definition(compss_crate, "Agent", agent_entity, info_yaml):
+
+        added_person, agent_entity = add_person_definition(
+            compss_crate, "Agent", agent_entity, info_yaml
+        )
+        if added_person:
             agent = {"@id": agent_entity["orcid"]}
             agent_added = True
         else:
@@ -293,6 +301,11 @@ def wrroc_create_action(
             print(
                 f"PROVENANCE | WARNING: No 'Authors' or 'Agent' specified in {info_yaml}"
             )
+
+    if "Agent" in yaml_content and "Updated" in agent_entity:
+        # Write updated YAML to disk
+        with open("GENERATED_" + info_yaml, "w", encoding="utf-8") as f_y:
+            yaml.dump(yaml_content, f_y, default_flow_style=False)
 
     create_action_properties = {
         "@type": "CreateAction",

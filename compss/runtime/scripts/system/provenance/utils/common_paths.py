@@ -16,6 +16,7 @@
 #
 import typing
 import os
+import re
 
 from urllib.parse import urlsplit
 from pathlib import Path
@@ -118,3 +119,40 @@ def get_common_paths(url_list: list) -> list:
         )
 
     return list_common_paths
+
+
+def find_subpath_in_cwd(sub_path: str) -> str:
+    """
+    Find the sub path provided in the cwd
+    Ex: matmul_files.py or matmul/files/Matmul.java
+
+    :param sub_path: sub path to search
+
+    :returns: Path where the file was found, None if not found
+    """
+
+    # Get the current working directory (CWD)
+    current_directory = os.getcwd()
+
+    # Traverse each directory, subdirectory, and file starting from the CWD
+    for current_path, subdirs, files in os.walk(current_directory):
+        # Construct the full potential path by joining the current directory and the sub_path
+        potential_path = os.path.join(current_path, sub_path)
+        # Check if this potential path exists and is a file
+        if os.path.isfile(potential_path):
+            if __debug__:
+                print(
+                    f"PROVENANCE DEBUG | mainEntity '{sub_path}' has been found at '{current_path}'"
+                )
+            return potential_path
+    return None
+
+
+def is_canonical(version):
+    return (
+        re.match(
+            r"^([1-9][0-9]*!)?(0|[1-9][0-9]*)(\.(0|[1-9][0-9]*))*((a|b|rc)(0|[1-9][0-9]*))?(\.post(0|[1-9][0-9]*))?(\.dev(0|[1-9][0-9]*))?$",
+            version,
+        )
+        is not None
+    )

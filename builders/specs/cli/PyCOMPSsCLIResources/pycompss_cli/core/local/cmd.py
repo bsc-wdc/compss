@@ -18,6 +18,7 @@ import pycompss_cli.core.utils as utils
 import subprocess, os, shutil
 from typing import List
 from rocrate.rocrate import ROCrate
+from rocrate.model.contextentity import ContextEntity
 from datetime import datetime
 
 from pycompss_cli.core.cmd_helpers import command_runner
@@ -183,13 +184,15 @@ def local_inspect(ro_crate_zip_or_dir: str):
                 creators = e.get("creator")
                 for i, c in enumerate(creators):
                     author_str = c["name"] if "name" in c else c["@id"]
-                    affiliation_e = c["affiliation"] if "affiliation" in c else None
-                    if affiliation_e:
+                    affiliation_e = c["affiliation"] if "affiliation" in c else None  # Can be a str or an entity
+                    if isinstance(affiliation_e, ContextEntity):
                         affiliation_str = (
                             affiliation_e["name"]
                             if "name" in affiliation_e
                             else affiliation_e["@id"]
                         )
+                    elif isinstance(affiliation_e, str):
+                        affiliation_str = affiliation_e
                     else:
                         affiliation_str = ""
                     email_e = c["contactPoint"] if "contactPoint" in c else None
@@ -217,10 +220,12 @@ def local_inspect(ro_crate_zip_or_dir: str):
                 software_requirements = e.get("softwareRequirements")
                 if isinstance(software_requirements, list):
                     for i, s in enumerate(software_requirements):
+                        version_str = s["softwareVersion"] if "softwareVersion" in s else ""
                         i_pointer = 1 if i == (len(software_requirements) - 1) else 0
-                        print(f"{prefix}{pointers[i_pointer]}{s['name']}")
+                        print(f"{prefix}{pointers[i_pointer]}{s['name']} ({version_str})")
                 else:
-                    print(f"{prefix}{pointers[1]}{software_requirements['name']}")
+                    version_str = software_requirements["softwareVersion"] if "softwareVersion" in software_requirements else ""
+                    print(f"{prefix}{pointers[1]}{software_requirements['name']} ({version_str})")
         elif "CreateAction" in e.type:
             e_create_action = e
 
@@ -242,12 +247,14 @@ def local_inspect(ro_crate_zip_or_dir: str):
             agent_e = e_create_action.get("agent")
             agent_str = agent_e["name"] if "name" in agent_e else agent_e["@id"]
             affiliation_e = agent_e["affiliation"] if "affiliation" in agent_e else None
-            if affiliation_e:
+            if isinstance(affiliation_e, ContextEntity):
                 affiliation_str = (
                     affiliation_e["name"]
                     if "name" in affiliation_e
                     else affiliation_e["@id"]
                 )
+            elif isinstance(affiliation_e, str):
+                affiliation_str = affiliation_e
             else:
                 affiliation_str = ""
             email_e = agent_e["contactPoint"] if "contactPoint" in agent_e else None
@@ -258,7 +265,7 @@ def local_inspect(ro_crate_zip_or_dir: str):
             print(f"{prefix}{pointers[1]}{agent_str} ({affiliation_str}) ({email_str})")
         if "instrument" in e_create_action:
             print(f"{empty_prefix}{pointers[0]}Application's main file")
-            print(f"{prefix}{pointers[1]}{e_create_action.get('instrument')['name']}")
+            print(f"{prefix}{pointers[1]}{e_create_action.get('instrument')['@id']}")
         # Parse 'name' for hostname and JOB_ID
         # "COMPSs cch_matmul_test.py execution at bsc_nvidia with JOB_ID 1930225"
         exec_info = e_create_action.get("name").split(" ")

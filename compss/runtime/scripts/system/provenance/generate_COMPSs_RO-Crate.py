@@ -76,10 +76,18 @@ def main():
         raise
 
     # Generate Root entity section in the RO-Crate
-    compss_wf_info, author_list = root_entity(compss_crate, yaml_content, INFO_YAML)
+    # Can update author details from online search
+    yaml_content, author_list = root_entity(compss_crate, yaml_content, INFO_YAML)
+    if "Updated" in yaml_content:
+        # Write updated YAML to disk
+        with open("GENERATED_" + INFO_YAML, "w", encoding="utf-8") as f_y:
+            del yaml_content["Updated"]
+            yaml.dump(yaml_content, f_y, default_flow_style=False)
+
+    compss_wf_info = yaml_content["COMPSs Workflow Information"]
 
     # Get mainEntity from COMPSs runtime log dataprovenance.log
-    compss_ver, main_entity, out_profile = get_main_entities(
+    compss_ver, main_entity, out_profile, compss_wf_info = get_main_entities(
         compss_wf_info, INFO_YAML, DP_LOG
     )
 
@@ -155,6 +163,7 @@ def main():
 
     # Register execution details using WRROC profile
     # Compliance with RO-Crate WorkflowRun Level 2 profile, aka. Workflow Run Crate
+    # Can update Agent details from online search
     run_uuid = wrroc_create_action(
         compss_crate,
         main_entity,

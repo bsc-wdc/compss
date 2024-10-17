@@ -764,7 +764,7 @@ if [ ${provenance} ]; then
   echo -e "\texport PYTHONPATH=${COMPSS_HOME}Runtime/scripts/system/:\$PYTHONPATH"
   echo -e "\tpython3 ${COMPSS_HOME}Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py ${provenance_yaml} ${specific_log_dir}/dataprovenance.log"
   if [ ! -z "${BSC_MACHINE}" ]; then
-    echo "PROVENANCE | TIP for BSC cluster users: before triggering generation by hand, run first: salloc -p interactive"
+    echo "PROVENANCE | TIP for BSC cluster users: before triggering generation by hand, run first: salloc --account=<your_group> --qos=gp_debug -p interactive"
   fi
   echo "PROVENANCE | Generating graph for Workflow Provenance"
   edges=`grep "\->" ${specific_log_dir}/monitor/complete_graph.dot | wc -l`

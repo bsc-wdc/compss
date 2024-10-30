@@ -110,9 +110,14 @@ gen_traces() {
   if [ ! -d "${output_dir}" ]; then
     mkdir -p "${output_dir}"
   fi
+
   python_output_dir="${output_dir}python/"
   if [ ! -d "${python_output_dir}" ]; then
     mkdir -p "${python_output_dir}"
+  fi
+  R_output_dir="${output_dir}R/"
+  if [ ! -d "${R_output_dir}" ]; then
+    mkdir -p "${R_output_dir}"
   fi
 
   mpits="${output_dir}TRACE.mpits"
@@ -124,7 +129,6 @@ gen_traces() {
     tar -C "${tmp_dir}" -xzf "${package}"
 
     hostId=$(cat "${tmp_dir}/hostID")
-
 
     # DEAL WITH JAVA TRACE
     if [ -f "${tmp_dir}/TRACE.mpits" ]; then
@@ -142,14 +146,13 @@ gen_traces() {
       sed -i "s|${original_absolute_path}|${output_dir}|g" "${tmp_dir}/TRACE.mpits"
       cat "${tmp_dir}/TRACE.mpits" >> "${mpits}"
 
-
       set_folder=$(ls "${tmp_dir}" | grep "set" )
 
       cp -r "${tmp_dir}/${set_folder}" "${output_dir}"
       set_folders+=" ${output_dir}/${set_folder}"
 
       if [ -f "${tmp_dir}/TRACE.sym" ]; then
-      cp "${tmp_dir}/TRACE.sym" "${output_dir}"
+        cp "${tmp_dir}/TRACE.sym" "${output_dir}"
       fi
     else
       echo "Java trace information not found" 1>&2
@@ -188,6 +191,34 @@ gen_traces() {
       echo "Python trace information not found" 1>&2
     fi
 
+    # DEAL WITH R TRACE
+    R_dir="${tmp_dir}/R"
+
+    missing_mpits=""
+    if [ -d "${R_dir}" ]; then
+      R_mpits="${R_dir}/TRACE.mpits"
+      sed -i "s|//|/|g" "${R_mpits}"
+      if [ -f "${R_mpits}" ]; then
+        # rm "${R_mpits}"
+        # touch "${R_mpits}"
+        local original_absolute_path=""
+        for f in $(tar -tzf ${package} | grep "\/R\/" | grep .mpit | grep -v mpits); do
+          f=$(echo $f | cut -c2-)
+          echo "mpit file ${f} not included in the original mpits file. Adding it..." 1>&2
+          if [ "${missing_mpits}" == "" ]; then
+            missing_mpits="${tmp_dir}${f}"
+          else
+            missing_mpits="${missing_mpits} -- ${tmp_dir}${f}"
+          fi
+        done
+        R_prv="${R_output_dir}/${hostId}_R_trace.prv"
+        mpi2prv_args="${missing_mpits} -o ${R_prv}"
+        echo ${mpi2prv_args} | xargs "${extraeDir}/bin/mpi2prv"
+      fi
+    else
+      echo "R trace information not found" 1>&2
+    fi
+
     rm -rf "${tmp_dir}"
   done
 
@@ -220,6 +251,34 @@ merge_python_traces() {
       "-Dcompss.trace.logDir=${gen_tracing_log_dir}" \
       es.bsc.compss.tracing.PythonTraceMerger \
       "${out_dir}" "${trace_name}" ${python_traces}
+    endCode=$?
+  else
+    endCode=0
+  fi
+}
+
+#-------------------------------------
+# Merges the events within python traces into the main one
+# Parameters:
+# 1: directory where to find the main trace
+# 2: name of the main prv file
+# >2: list of R traces to join into the main
+#-------------------------------------
+merge_R_traces() {
+  check_genPRV_env
+
+  local out_dir=${1}
+  local trace_name=${2}
+  shift 2
+  local R_traces=${*}
+
+  if [ -n "${R_traces}" ]; then
+    ${JAVA} \
+      -cp "${COMPSS_HOME}/Tools/tracing/compss-tracing.jar:${COMPSS_HOME}/Runtime/compss-engine.jar" \
+      "-Dlog4j.configurationFile=${COMPSS_HOME}/Runtime/configuration/log/TraceMerging-log4j.${gen_tracing_log_level}" \
+      "-Dcompss.trace.logDir=${gen_tracing_log_dir}" \
+      es.bsc.compss.tracing.RTraceMerger \
+      "${out_dir}" "${trace_name}" ${R_traces}
     endCode=$?
   else
     endCode=0

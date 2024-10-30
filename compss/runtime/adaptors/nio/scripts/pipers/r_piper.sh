@@ -1,7 +1,7 @@
 #!/bin/bash
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-  
+
   ########################################
   # SCRIPT HELPER FUNCTIONS
   ########################################
@@ -38,9 +38,10 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
   pipe_processor() {
     local cmdPipe=$1
     local resultPipe=$2
+    local executorId=$3
 
-    echo "[R EXECUTOR] Launching R_executor for $cmdPipe to $resultPipe"
-    Rscript $SCRIPT_DIR/executor.R $cmdPipe $resultPipe
+    echo "[R EXECUTOR] Launching R_executor for $cmdPipe to $resultPipe with id: ${executorId}"
+    Rscript $SCRIPT_DIR/executor.R $cmdPipe $resultPipe $executorId
 
     echo "${QUIT_TAG}" > "${resultPipe}"
     echo "[R EXECUTOR] Pipe processor on $cmdPipe finished"
@@ -48,13 +49,13 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
   export_vars(){
     envars=$(echo "$1" | tr ";" "\\n")
-    for var in $envars; do 
+    for var in $envars; do
        norm_var=$(echo "$var" | tr "#" " ")
        # shellcheck disable=SC2163
        export "${norm_var}"
     done
   }
-   
+
   execute_task() {
     local tid=$1
     local sandBox=$2
@@ -68,10 +69,10 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
     echo "[R EXECUTOR] Execute task $tid" >> "$jobOut"
     echo "[R EXECUTOR]   - CMD: $* 1>> $jobOut 2>> $jobErr" >> "$jobOut"
-    
+
     export_vars "$1"
     shift 1
-    
+
     # Real task execution
     # shellcheck disable=SC2068
     $@ 1>> "$jobOut" 2>> "$jobErr"
@@ -83,7 +84,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
     # Return the result to the Runtime
     echo "${END_TASK_TAG} ${tid} ${exitValue}" >> "$resultPipe"
-  } 
+  }
 
   clean_procs() {
     # Send forced kill to subprocesses
@@ -118,18 +119,21 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
   # Arguments
   get_args "$@"
 
+  # Check if tracing
+  tracing=${EXTRAE_CONFIG_FILE-""}
+
   # Launch one process per CMDPipe
   pipe_pids=()
   i=0
   while [ $i -lt "${numPipesCMD}" ]; do
-    pipe_processor ${CMDpipes[$i]} ${RESULTpipes[$i]} &
+    pipe_processor ${CMDpipes[$i]} ${RESULTpipes[$i]} $i &
     pipe_pids[$i]=$!
     i=$((i+1))
   done
 
   # Trap if error occurs (bindings_piper sends SIGTERM -15)
   trap clean_procs SIGTERM
-  
+
   stop_received=false
   while [ "${stop_received}" = false ]; do
     read line
@@ -149,6 +153,12 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
         pipe_pid=${pipe_pids[${executor_index}]}
         if [ "${pipe_pid}" -gt 0 ]; then
           kill -9 ${pipe_pid} >/dev/null 2>/dev/null
+          #if [ "$tracing" != "" ] && [ "${executor_index}" == "0" ]; then
+          #  echo "Emitting sync event for executor: ${executor_index}"
+          #  env | grep EXTRAE
+          #  $EXTRAE_HOME/bin/extrae-cmd emit 0 8000666 $(date +%s)
+          #  $EXTRAE_HOME/bin/extrae-cmd emit 0 8000666 0
+          #fi
           wait ${pipe_pid}
           pipe_pids[${executor_index}]=-1
         fi
@@ -173,12 +183,14 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
      i=$((i+1))
   done
 
+  # $EXTRAE_HOME/bin/extrae-cmd emit 0 8000666 $(date +%s)
+  # $EXTRAE_HOME/bin/extrae-cmd emit 0 8000666 0
+
   # Exit message
   if [ $errorStatus -ne 0 ]; then
       echo "[R PIPER] Sub proccess failed"
       exit 1
-  else 
+  else
       echo "[R PIPER] Finished"
       exit 0
   fi
-

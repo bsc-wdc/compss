@@ -118,7 +118,7 @@ public abstract class TraceMerger {
             int numTraces = inputTraces.length;
             int fullyRead = 0;
             RecordScanner[] records = new RecordScanner[numTraces];
-            // Next line to write from each trace, we have to read in parallel to mantain the order
+            // Next line to write from each trace, we have to read in parallel to maintain the order
             String[] topRecords = new String[records.length];
 
             for (int traceIdx = 0; traceIdx < numTraces; traceIdx++) {
@@ -146,8 +146,11 @@ public abstract class TraceMerger {
                         if (prvLine.goesBefore(topRecords[earliestLinePos])) {
                             earliestLinePos = traceIdx;
                         }
+                    } else {
+                        LOGGER.debug("WARNING: topRecords is empty or null.");
                     }
                 }
+
                 String toWrite = topRecords[earliestLinePos];
                 eventAppedner.append(toWrite);
                 String newLine = records[earliestLinePos].next();
@@ -162,7 +165,6 @@ public abstract class TraceMerger {
                     records[earliestLinePos].close();
                 }
                 topRecords[earliestLinePos] = newLine;
-
             }
         }
     }

@@ -35,7 +35,9 @@ public class RMirror extends PipedMirror {
     private static final String R_PIPER = "r_piper.sh";
     private static final String LIBRARY_PATH_ENV = "LD_LIBRARY_PATH";
     private static final String R_LIB_RELATIVE_PATH =
-        File.separator + "Bindings" + File.separator + "r" + File.separator + "lib";
+        File.separator + "Bindings" + File.separator + "RCOMPSs" + File.separator + "lib";
+    private static final String R_LIB_DUMMY_EXTRAE_RELATIVE_PATH =
+        File.separator + "Bindings" + File.separator + "RCOMPSs" + File.separator + "dummy_extrae";
     private static final String R_LIBS_PATH_ENV = "R_LIBS";
 
 
@@ -104,6 +106,7 @@ public class RMirror extends PipedMirror {
             ldLibraryPath = ldLibraryPath.concat(":" + context.getInstallDir() + R_LIB_RELATIVE_PATH);
         }
         ldLibraryPath = ldLibraryPath.concat(":" + context.getInstallDir() + BINDINGS_RELATIVE_PATH);
+        ldLibraryPath = ldLibraryPath.concat(":" + context.getInstallDir() + R_LIB_DUMMY_EXTRAE_RELATIVE_PATH);
         Map<String, String> env = new HashMap<>();
         env.put(LIBRARY_PATH_ENV, ldLibraryPath);
         env.put(R_LIBS_PATH_ENV, rlibs);

@@ -55,7 +55,7 @@ public enum TraceEventType {
     AGENT(8_006_000, "Agents events", true),
 
     // PYTHON RELATED EVENT GROUPS
-    BINDING_TASKS_FUNC(9_000_000, "Binding events inside tasks", true), // tasks emitted from master
+    BINDING_TASKS_FUNC(9_000_000, "Binding tasks", true), // tasks emitted from master
     BINDING_INSIDE_TASKS(9_000_100, "Binding events inside tasks", true),
     BINDING_INSIDE_TASKS_CPU_AFFINITY(9_000_150, "Binding Tasks CPU affinity", true),
     BINDING_INSIDE_TASKS_CPU_COUNT(9_000_151, "Binding Tasks CPU count", true),

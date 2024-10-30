@@ -232,6 +232,14 @@ generate_trace() {
   fi
   rm -rf "${extraeWDir}/python"
 
+  echo "Joining R traces"
+  R_traces=$(find "${extraeWDir}/R" -name "*.prv")
+  merge_R_traces "${extraeWDir}" "${trace_name}" ${R_traces}
+  if [ ! "${endCode}" -eq "0" ]; then
+    exit "${endCode}"
+  fi
+  rm -rf "${extraeWDir}/R"
+
   if [ "${tracing_custom_threads}" == "true" ]; then
     echo "Customizing threads"
     rearrange_trace_threads "${extraeWDir}" "${trace_name}"

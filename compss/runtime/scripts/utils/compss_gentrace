@@ -318,6 +318,17 @@ else
 fi
 rm -rf "${out_dir}/python"
 
+# Merge R traces into main
+R_traces=$(find "${out_dir}/R" -name "*.prv" | sort -h)
+merge_R_traces "${out_dir}" "${trace_name}" ${R_traces}
+if [[ ${endCode} -ne 0 ]]; then
+  echo "FAILED merge_R_traces"
+  exit "${endCode}"
+else
+  echo "SUCCESS merge_R_traces"
+fi
+rm -rf "${out_dir}/R"
+
 # Re-arranging PRV trace with custom threads
 if [ "${custom_threads}" == "true" ]; then
   rearrange_trace_threads "${out_dir}" "${trace_name}"

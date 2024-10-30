@@ -671,12 +671,16 @@ exec_python() {
 
   if [ $endCode -ne 0 ]; then
     fatal_error "${RUNTIME_ERROR}" ${endCode}
-  fi 
+  fi
 }
 
 exec_r(){
   # Launch application
   start_tracing
+  # Even though tracing is enabled, fails with Rscript due to R
+  # interprets the Extrae's welcome message as input.
+  # So, we unset the LD_PRELOAD here and rely in the start_runtime
+  unset LD_PRELOAD
   Rscript "${fullAppPath}" ${application_args}
   endCode=$?
   stop_tracing

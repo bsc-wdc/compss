@@ -3,23 +3,13 @@
 =============================
 
 COMP Superscalar (COMPSs) is a programming model which aims to ease the development of applications for distributed infrastructures,
-such as Clusters, Grids and Clouds. COMP superscalar also features a runtime system that exploits the inherent parallelism of 
+such as Clusters, Grids and Clouds. COMP superscalar also features a runtime system that exploits the inherent parallelism of
 applications at execution time.
 
 
 Documentation
 -------------
-COMPSs documentation can be found at http://compss.bsc.es or at the Doc/ folder
-
-  * COMPSs_Installation_Manual.pdf
-
-  * COMPSs_User_Manual_App_Development.pdf
-  * COMPSs_User_Manual_App_Execution.pdf
-
-  * COMPSs_Supercomputers_Manual.pdf
-  * Tracing_Manual.pdf
-
-  * COMPSs_Developer_Manual.pdf
+COMPSs documentation can be found at http://compss.bsc.es or at https://compss-doc.readthedocs.io/en/stable/
 
 
 Installation
@@ -36,6 +26,7 @@ Dependencies
 In order to successfully run the installation script the following dependencies must be installed:
 - autotools
 - boost
+- R (if enabled)
 
 
 Usage
@@ -48,13 +39,13 @@ To check that your environment has been loaded successfully please run:
   $ runcompss -v
 
 For further information about how to execute applications please check the COMPSs User Manual available at our
-webpage (http://compss.bsc.es) or under the Doc/ directory.
- 
+webpage (http://compss.bsc.es) or at https://compss-doc.readthedocs.io/en/stable/Sections/03_Execution_Environments.html
+
 
 Sample Applications
 -------------------
 You can find extended information about COMPSs Sample applications at the Sample_Applications manual available
-at our webpage (http://compss.bsc.es) or at doc/Sample_applications.pdf
+at our webpage (http://compss.bsc.es) or at https://compss-doc.readthedocs.io/en/stable/Sections/07_Sample_Applications.html
 
 
 *****************************************
@@ -64,4 +55,3 @@ at our webpage (http://compss.bsc.es) or at doc/Sample_applications.pdf
 **   Barcelona Supercomputing Center   **
 **                BSC                  **
 *****************************************
-

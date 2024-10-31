@@ -23,7 +23,7 @@ usage() {
     echo " --no-tracing, -T            Disable tracing system installation"
     echo " --no-c-binding, -C          Disable C++ binding installation"
     echo " --no-python-binding, -P     Disable Python binding installation"
-    echo " --r-binding, -r             Enable R binding installation"
+    echo " --r-binding, -r             Enable R binding installation (Disabled by default)"
     echo " --nothing, -N               Disable all previous options"
     echo " "
     echo " Parameters:"
@@ -164,7 +164,7 @@ get_args() {
   echo "Options:"
   echo "  - Tracing: $tracing"
   echo "  - Bindings: $bindings"
-  echo "  - C_Binding: $c_binding"
+  echo "  - C Binding: $c_binding"
   echo "  - Python Binding: $python_binding"
   echo "  - R Binding: $r_binding"
   echo " "
@@ -222,15 +222,6 @@ get_args() {
       cd "${SCRIPT_DIR}"
       echo "   Success"
     fi
-
-    # Install R-binding
-    if [ "${r_binding}" == "true" ]; then
-      echo "- Install R binding"
-      cd "${SCRIPT_DIR}"/Bindings/RCOMPSs
-      ./install "${targetDir}"/Bindings/RCOMPSs
-      cd "${SCRIPT_DIR}"
-      echo "   Success"
-    fi
   fi
   if [ "${tracing}" == "true" ]; then
     # Install extrae
@@ -240,6 +231,17 @@ get_args() {
     cd "${SCRIPT_DIR}"
     echo "   Success"
   fi
+  if [ "${bindings}" == "true" ]; then
+    # Install R-binding - after extrae since it may need it
+    if [ "${r_binding}" == "true" ]; then
+      echo "- Install R binding"
+      cd "${SCRIPT_DIR}"/Bindings/RCOMPSs
+      ./install "${targetDir}"/Bindings/RCOMPSs ${tracing}
+      cd "${SCRIPT_DIR}"
+      echo "   Success"
+    fi
+  fi
+
   # Set permissions
   echo "- Set COMPSs permissions"
   chmod -R 755 "${targetDir}"

@@ -17,7 +17,9 @@
   #             <extrae_with_impi>        Extrae with impi enabled
   #             <impi_version>            IMPI module version
   #             <autoparallel>            Install the AutoParallel module
-  #             <c_binding>               Install the c-binding
+  #             <c_binding>               Install the C-binding
+  #             <extrae_no_mpi>           Extrae without mpi
+  #             <r_binding>               Install the R-binding
   #
   # ATTENTION: DO NOT EXECUTE THIS FILE. IT IS AUTOMATICALLY
   #            EXECUTED FROM buildSC script
@@ -25,7 +27,7 @@
 
   usage() {
     echo "Incorrect number of parameters"
-    echo " Usage: buildSC_aux <FullTargetPath> <modules> <unload_modules> <run_before_py3_modules> <py3_modules> <run_before_py3_other_modules> <py3_other_modules> <additionalExports> <queues_cfg> <extrae_with_openmpi> <openmpi_version> <extrae_with_impi> <impi_version> <autoparallel> <c_binding>"
+    echo " Usage: buildSC_aux <FullTargetPath> <modules> <unload_modules> <run_before_py3_modules> <py3_modules> <run_before_py3_other_modules> <py3_other_modules> <additionalExports> <queues_cfg> <extrae_with_openmpi> <openmpi_version> <extrae_with_impi> <impi_version> <autoparallel> <c_binding> <extrae_no_mpi> <r_binding>"
     echo " "
     exit 1
   }
@@ -67,7 +69,7 @@
   ####################
 
   # Get parameters
-  if [ $# -ne 17 ]; then
+  if [ $# -ne 18 ]; then
     usage
   fi
 
@@ -89,6 +91,7 @@
   autoparallel=${15}
   c_binding=${16}
   extrae_no_mpi=${17}
+  r_binding=${18}
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
   TMP_DIR=${SCRIPT_DIR}/tmp
 
@@ -245,7 +248,7 @@
   for checkpointer in ${checkpointers}; do
     cp "$checkpointer" "${targetDir}/Runtime/checkpointer/"
   done
-  
+
   # Schedulers
   echo "--- Copy schedulers"
   rm -r "${TMP_DIR}"/compss/runtime/scheduler/commons
@@ -315,7 +318,7 @@
   fi
   # - C binding
   if [ "${c_binding}" == "true" ]; then
-    echo "- Deploying c-binding files"
+    echo "- Deploying C-binding files"
     cd "${TMP_DIR}"/compss/programming_model/bindings/c || exit 1
     ./install "${targetDir}"/Bindings/c true
     ev=$?
@@ -365,23 +368,38 @@
 	   if [ "$run_before_py3_other_modules" != "ignore" ]; then
 	      echo "Running: ${run_before_py3_other_modules}"
 	      eval "${run_before_py3_other_modules}"
-           fi
+     fi
 	fi
-        for py3_mod in $py3_other_modules
-        do
-            echo "    - For $py3_mod"
-            #shellcheck disable=SC2086
-            module load ${py3_mod}
-            # If installed, unify installations (second boolean to true)
-            ./install.sh "${targetDir}"/Bindings/python false python3
-            ev=$?
-            if [ $ev -ne 0 ]; then
-              echo "ERROR: Failed to install Python-binding for Python 3"
-              exit $ev
-            fi
-            #shellcheck disable=SC2086
-            module unload ${py3_mod}
-        done
+  for py3_mod in $py3_other_modules
+    do
+        echo "    - For $py3_mod"
+        #shellcheck disable=SC2086
+        module load ${py3_mod}
+        # If installed, unify installations (second boolean to true)
+        ./install.sh "${targetDir}"/Bindings/python false python3
+        ev=$?
+        if [ $ev -ne 0 ]; then
+          echo "ERROR: Failed to install Python-binding for Python 3"
+          exit $ev
+        fi
+        #shellcheck disable=SC2086
+        module unload ${py3_mod}
+      done
+    fi
+  fi
+  cd "${SCRIPT_DIR}" || exit 1
+
+  # - R binding
+  if [ "${r_binding}" == "true" ]; then
+    echo "- Deploying R-binding files"
+    cd "${TMP_DIR}"/compss/programming_model/bindings/RCOMPSs || exit 1
+    export COMPSS_HOME=${targetDir}
+    ./install.sh "${targetDir}"/Bindings/RCOMPSs true
+    ev=$?
+    unset COMPSS_HOME
+    if [ $ev -ne 0 ]; then
+      echo "ERROR: Failed to install R-binding"
+      exit $ev
     fi
   fi
   cd "${SCRIPT_DIR}" || exit 1

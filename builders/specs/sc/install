@@ -236,7 +236,7 @@ get_args() {
     if [ "${r_binding}" == "true" ]; then
       echo "- Install R binding"
       cd "${SCRIPT_DIR}"/Bindings/RCOMPSs
-      ./install "${targetDir}"/Bindings/RCOMPSs ${tracing}
+      ./install.sh "${targetDir}"/Bindings/RCOMPSs ${tracing}
       cd "${SCRIPT_DIR}"
       echo "   Success"
     fi

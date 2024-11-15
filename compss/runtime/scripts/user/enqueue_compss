@@ -163,10 +163,10 @@ check_args() {
   if [ -z "${sc_cfg}" ]; then
     sc_cfg=${DEFAULT_SC_CFG}
   fi
-  
+
   if [ -f "${sc_cfg}" ]; then
      #sc_cfg is a file
-     local scCfgFullPath=${sc_cfg}  
+     local scCfgFullPath=${sc_cfg}
   else
      #if not check if it is one of the already installed
      if [[ ${sc_cfg} != *cfg ]]; then

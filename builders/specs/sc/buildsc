@@ -238,6 +238,7 @@
   rm -rf ${COMPSs_target}/Bindings/python/.project*
   rm -rf ${COMPSs_target}/Bindings/python/.settings*
   rm -rf ${COMPSs_target}/Bindings/python/.idea*
+  rm -rf ${COMPSs_target}/Bindings/python/src/.mypy*
   echo "--- Copy r-binding files"
   cp -r ${trunk_rel_path}/compss/programming_model/bindings/RCOMPSs ${COMPSs_target}/Bindings/
 

@@ -165,6 +165,10 @@ start_tracing() {
   if [ "${tracing}" == "${TRACING_ENABLED}" ]; then
     export LD_PRELOAD=${EXTRAE_LIB}/libpttrace.so
     export PYTHONPATH=${EXTRAE_HOME}/libexec/:${EXTRAE_HOME}/lib/:${PYTHONPATH}
+  else
+    if [ "${lang}" == "r" ]; then
+      export LD_LIBRARY_PATH=${COMPSS_HOME}/Bindings/RCOMPSs/dummy_extrae/:${LD_LIBRARY_PATH}
+    fi
   fi
 }
 

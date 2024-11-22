@@ -36,6 +36,19 @@ else
   extraeDir=$EXTRAE_HOME
 fi
 
+command_exists () {
+  type "$1" &> /dev/null ;
+}
+
+if command_exists "${extraeDir}/bin/mpi2prv" ; then
+  mpi2prv_bin="${extraeDir}/bin/mpi2prv"
+elif command_exists "${extraeDir}/bin/x86_64-linux-gnu-mpi2prv" ; then
+  mpi2prv_bin="${extraeDir}/bin/x86_64-linux-gnu-mpi2prv"
+else
+  echo "ERROR: Could not find mpi2prv or x86_64-linux-gnu-mpi2prv binary."
+  exit 1
+fi
+
 MIN_MPITS_PARALLEL_MERGE=1000
 export LD_LIBRARY_PATH=$extraeDir/lib:$LD_LIBRARY_PATH
 
@@ -86,9 +99,17 @@ mpi2prv() {
   # Check if parallel merge is available / should be used
   configuration=$("${extraeDir}"/etc/configured.sh | grep "enable-parallel-merge")
   if [ -z "${configuration}" ] || [ "${num_merge_procs}" -eq 1 ] || [ "$(wc -l < "${mpits}")" -lt ${maxMpitNumber} ] ; then
-    "${extraeDir}/bin/mpi2prv" -f "${mpits}" -no-syn -o "${prv}"
+    "${mpi2prv_bin}" -f "${mpits}" -no-syn -o "${prv}"
   else
-    mpirun -np "${num_merge_procs}" "${extraeDir}/bin/mpimpi2prv" -f "${mpits}" -no-syn -o "${prv}"
+    if command_exists "${extraeDir}/bin/mpimpi2prv" ; then
+      mpimpi2prv_bin="${extraeDir}/bin/mpimpi2prv"
+    elif command_exists "${extraeDir}/bin/x86_64-linux-gnu-mpimpi2prv" ; then
+      mpimpi2prv_bin="${extraeDir}/bin/x86_64-linux-gnu-mpimpi2prv"
+    else
+      echo "ERROR: Could not find mpimpi2prv or x86_64-linux-gnu-mpimpi2prv binary."
+      exit 1
+    fi
+    mpirun -np "${num_merge_procs}" "${mpimpi2prv_bin}" -f "${mpits}" -no-syn -o "${prv}"
   fi
 }
 
@@ -185,7 +206,7 @@ gen_traces() {
         sed -i "s|${libseqtrace_path}|${libseqtrace_new_path}|g" ${python_dir}/set-0/*.sym
         # Generate python trace
         python_prv="${python_output_dir}/${hostId}_python_trace.prv"
-        mpi2prv "${python_mpits}" "${python_prv}" "${num_merge_procs}"
+        "${mpi2prv_bin}" "${python_mpits}" "${python_prv}" "${num_merge_procs}"
       fi
     else
       echo "Python trace information not found" 1>&2
@@ -213,7 +234,7 @@ gen_traces() {
         done
         R_prv="${R_output_dir}/${hostId}_R_trace.prv"
         mpi2prv_args="${missing_mpits} -o ${R_prv}"
-        echo ${mpi2prv_args} | xargs "${extraeDir}/bin/mpi2prv"
+        echo ${mpi2prv_args} | xargs "${mpi2prv_bin}"
       fi
     else
       echo "R trace information not found" 1>&2
@@ -222,7 +243,7 @@ gen_traces() {
     rm -rf "${tmp_dir}"
   done
 
-  mpi2prv "${mpits}" "${prv}" "${num_merge_procs}"
+  "${mpi2prv_bin}" "${mpits}" "${prv}" "${num_merge_procs}"
   endCode=$?
   # cleaning
   rm -rf "${mpits}" "${output_dir}/TRACE.sym"

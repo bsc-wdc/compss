@@ -247,11 +247,11 @@
         --disable-pebs-sampling \
         --prefix="${extraeTarget}" \
         --libdir="${extraeTarget}/lib" \
-        --disable-xml \
         --disable-xmltest \
         --with-binary-type=64 \
         --host=x86_64-linux-gnu \
         --target=x86_64-linux-gnu \
+        --with-xml-prefix=/usr \
         CC=cc CFLAGS='-O3 -g -std=gnu90 -lpthread' LDFLAGS='-O3 -g -std=gnu90 -lpthread' CXX=CC CXXFLAGS='-O3 -g' F77=ftn FFLAGS='-O3 -g -std=gnu90 -lpthread'
       ev=$?
     fi

@@ -58,6 +58,8 @@ import es.bsc.compss.util.SchedulingOptimizer;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -85,7 +87,7 @@ public class TaskScheduler {
     private static final boolean DP_ENABLED = Boolean.parseBoolean(System.getProperty(COMPSsConstants.DATA_PROVENANCE));
 
     // Reference to action orchestrator (Task Dispatcher)
-    private ActionOrchestrator orchestrator;
+    private final ActionOrchestrator orchestrator;
 
     // Map of available workers and its resource schedulers
     protected final WorkersMap workers;
@@ -108,11 +110,43 @@ public class TaskScheduler {
 
     protected static final boolean DEBUG = LOGGER.isDebugEnabled();
 
+    /**
+     * Constructs the scheduler.
+     *
+     * @param schedFQN Fully Qualified name of the class implementing the scheduler
+     * @param orchestrator Element orchestrating the execution of actions
+     * @return a TaskScheduler of the specified class
+     * @throws ClassNotFoundException the schedFQN has not been loaded on the classpath
+     * @throws IllegalAccessException if this Constructor object is enforcing Java language access control and the
+     *     underlying constructor is inaccessible.
+     * @throws IllegalArgumentException if the number of actual and formal parameters differ; if an unwrapping
+     *     conversion for primitive arguments fails; or if, after possible unwrapping, a parameter value cannot be
+     *     converted to the corresponding formal parameter type by a method invocation conversion; if this constructor
+     *     pertains to an enum type.
+     * @throws InstantiationException if the class that declares the underlying constructor represents an abstract
+     *     class.
+     * @throws InvocationTargetException if the underlying constructor throws an exception.
+     * @throws ExceptionInInitializerError if the initialization provoked by this method fails.
+     */
+    public static TaskScheduler constructScheduler(String schedFQN, ActionOrchestrator orchestrator)
+        throws ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException,
+        IllegalArgumentException, ExceptionInInitializerError {
+        Class<?> schedClass = Class.forName(schedFQN);
+        Constructor<?> schedCnstr = schedClass.getDeclaredConstructors()[0];
+        TaskScheduler scheduler = (TaskScheduler) schedCnstr.newInstance(orchestrator);
+        if (DEBUG) {
+            LOGGER.debug("Loaded scheduler " + scheduler);
+        }
+        return scheduler;
+    }
 
     /**
      * Constructs a new Task Scheduler.
+     *
+     * @param orchestrator element ordering the execution of actions
      */
-    public TaskScheduler() {
+    public TaskScheduler(ActionOrchestrator orchestrator) {
+        this.orchestrator = orchestrator;
         String enableAdaptStr = System.getProperty(COMPSsConstants.EXTERNAL_ADAPTATION);
         if (enableAdaptStr != null && !enableAdaptStr.isEmpty()) {
             this.externalAdaptation = Boolean.parseBoolean(enableAdaptStr);
@@ -156,15 +190,6 @@ public class TaskScheduler {
     }
 
     /**
-     * Assigns the action orchestrator to this scheduler.
-     *
-     * @param orchestrator Associated Action Orchestrator.
-     */
-    public final void setOrchestrator(ActionOrchestrator orchestrator) {
-        this.orchestrator = orchestrator;
-    }
-
-    /**
      * Returns the Action Orchestrator assigned to this scheduler.
      *
      * @return The Action Orchestrator assigned to this scheduler.
@@ -195,8 +220,8 @@ public class TaskScheduler {
             LOGGER.error(e);
         }
     }
-    
-    protected void customSchedulerShutdown(){
+
+    protected void customSchedulerShutdown() {
         // Do nothing. Overriden if necessary by Task Scheduler extension.
     }
 
@@ -207,6 +232,7 @@ public class TaskScheduler {
      * *********************************************************************************************************
      * *********************************************************************************************************
      */
+
     /**
      * Generates the Resource Optimizer for the scheduler.
      *
@@ -290,6 +316,7 @@ public class TaskScheduler {
      * *********************************************************************************************************
      * *********************************************************************************************************
      */
+
     /**
      * New Core Elements have been detected; the Task Scheduler needs to be notified to modify any internal structure
      * using that information.
@@ -343,8 +370,8 @@ public class TaskScheduler {
         ro.coreElementsUpdated();
         customCoreElementsUpdated();
     }
-    
-    public void customCoreElementsUpdated(){
+
+    public void customCoreElementsUpdated() {
         // Do nothing. Overriden if necessary by Task Scheduler extension.
     }
 
@@ -401,6 +428,7 @@ public class TaskScheduler {
      * *********************************************************************************************************
      * *********************************************************************************************************
      */
+
     /**
      * Introduces a new action in the Scheduler system. The method should place the action in a resource hurriedly.
      *
@@ -435,7 +463,7 @@ public class TaskScheduler {
 
     /**
      * Registers an action as running and releases its stream dependencies.
-     * 
+     *
      * @param action Running AllocatableAction.
      */
     public final void actionRunning(AllocatableAction action) {
@@ -473,7 +501,7 @@ public class TaskScheduler {
         LOGGER.info("[TaskScheduler] Action completed " + action);
         // Mark action as finished
         removeFromReady(action);
-        
+
         ResourceScheduler<WorkerResourceDescription> resource;
         resource = (ResourceScheduler<WorkerResourceDescription>) action.getAssignedResource();
         List<AllocatableAction> resourceFree;
@@ -485,10 +513,10 @@ public class TaskScheduler {
         }
 
         action.relaseResourcesAndLaunchBlockedActions();
-        
+
         // We update the worker load
         workerLoadUpdate(resource);
-        
+
         // Get the data free actions and mark them as ready
         List<AllocatableAction> dataFreeActions = action.completed();
         for (AllocatableAction dataFreeAction : dataFreeActions) {
@@ -511,7 +539,7 @@ public class TaskScheduler {
 
     /**
      * Registers a COMPSs exception to the group of the task.
-     * 
+     *
      * @param action Action raising the error.
      */
     @SuppressWarnings("unchecked")
@@ -772,9 +800,10 @@ public class TaskScheduler {
      * *********************************************************************************************************
      * *********************************************************************************************************
      */
+
     /**
      * Updates the worker information.
-     * 
+     *
      * @param <T> WorkerResourceDescription
      * @param worker Worker to update.
      * @param rs Resource Update information.
@@ -853,7 +882,7 @@ public class TaskScheduler {
                 busyWorkerResources(worker, modification);
                 break;
             default:
-            
+
         }
     }
 
@@ -887,7 +916,7 @@ public class TaskScheduler {
 
     /**
      * Marks a resource update as completed.
-     * 
+     *
      * @param <T> WorkerResourceDescription.
      * @param worker Worker to update.
      * @param modification Completed modification.
@@ -910,7 +939,6 @@ public class TaskScheduler {
             default:
         }
     }
-
 
 
     private <T extends WorkerResourceDescription> void increasedWorkerResources(ResourceScheduler<T> worker,
@@ -960,7 +988,7 @@ public class TaskScheduler {
             workerStopped((ResourceScheduler<WorkerResourceDescription>) worker);
             StopWorkerAction action;
             action = new StopWorkerAction(generateSchedulingInformation(worker, null, null), worker,
-                     this, modification);
+                this, modification);
             try {
                 action.schedule((ResourceScheduler<WorkerResourceDescription>) worker, (Score) null);
                 action.tryToLaunch();
@@ -976,7 +1004,7 @@ public class TaskScheduler {
 
     private <T extends WorkerResourceDescription> void idleWorkerResources(ResourceScheduler<T> worker,
         IdleResources<T> modification) {
-        
+
         LOGGER.debug("Releasing idle resources in the worker  " + worker.getName());
 
         worker.getResource().endTask(modification.getModification());
@@ -1083,7 +1111,7 @@ public class TaskScheduler {
     }
 
     private <T extends WorkerResourceDescription> void workerStoppedToBeRestarted(Worker<T> worker,
-            ResourceScheduler<T> resource) {
+        ResourceScheduler<T> resource) {
 
         // remove the worker before re-scheduling its actions so the actions aren't
         //  assigned to the same worker before the worker is re-initialized
@@ -1222,6 +1250,7 @@ public class TaskScheduler {
      * *********************************************************************************************************
      * *********************************************************************************************************
      */
+
     /**
      * Returns the ResourceSchedulers assigned to all available workers.
      *
@@ -1295,7 +1324,8 @@ public class TaskScheduler {
         return new LinkedList<>();
     }
 
-    /** Upgrade the action because another action of the same multi-node group has been scheduled
+    /**
+     * Upgrade the action because another action of the same multi-node group has been scheduled
      * and it should be prioritised to avoid possible deadlocks.
      *
      * @param action Action to upgrade
@@ -1314,7 +1344,7 @@ public class TaskScheduler {
 
         @SuppressWarnings("unchecked")
         ResourceScheduler<WorkerResourceDescription> workerRS =
-                (ResourceScheduler<WorkerResourceDescription>) resource;
+            (ResourceScheduler<WorkerResourceDescription>) resource;
 
         Worker<WorkerResourceDescription> workerResource = workerRS.getResource();
         this.workers.remove(workerResource);
@@ -1348,6 +1378,7 @@ public class TaskScheduler {
      * *********************************************************************************************************
      * *********************************************************************************************************
      */
+
     /**
      * Returns the current workload state.
      *
@@ -1410,6 +1441,7 @@ public class TaskScheduler {
      * *********************************************************************************************************
      * *********************************************************************************************************
      */
+
     /**
      * Prints the task summary on a given logger {@code logger}.
      *
@@ -1615,8 +1647,8 @@ public class TaskScheduler {
          * cpJSON); } for (CloudInstanceTypeDescription citd : cp.getAllTypes()) { JSONObject citdJSON =
          * jsm.getJSONForCloudInstanceTypeDescription(cp, citd); if (citdJSON == null) { citdJSON = new JSONObject();
          * cpJSON.put(citd.getName(), citdJSON); } } }
-         * 
-         * 
+         *
+         *
          * int coreCount = this.offVMsProfiles.length; // Aggregate offVMs as initial Profile values for (int coreId =
          * 0; coreId < coreCount; coreId++) { int implCount = this.offVMsProfiles[coreId].length; for (int implId = 0;
          * implId < implCount; implId++) { accumulateImplementationJSON(coreId, implId, offVMsProfiles[coreId][implId]);
@@ -1626,7 +1658,7 @@ public class TaskScheduler {
 
     /**
      * Updates the ResourceScheduler with the loaded JSON information.
-     * 
+     *
      * @param rs ResourceScheduler to update.
      */
     public void updateResourceJSON(ResourceScheduler<? extends WorkerResourceDescription> rs) {
@@ -1649,7 +1681,7 @@ public class TaskScheduler {
 
     /**
      * Returns whether the external adaptation is enabled or not.
-     * 
+     *
      * @return {@literal true} if the external adaptation is enabled, {@literal false} otherwise.
      */
     public boolean isExternalAdaptationEnabled() {
@@ -1658,7 +1690,7 @@ public class TaskScheduler {
 
     /**
      * Returns the JSON representation of a cloud instance type.
-     * 
+     *
      * @param cp Cloud provider.
      * @param ctid Cloud instance type description.
      * @return The JSON representation of the given cloud instance type.
@@ -1669,7 +1701,7 @@ public class TaskScheduler {
 
     /**
      * Returns the JSON information of all the implementations.
-     * 
+     *
      * @return A JSONObject containing all the information about the implementations.
      */
     public JSONObject getJSONForImplementations() {
@@ -1677,7 +1709,9 @@ public class TaskScheduler {
     }
 
 
-    /** Get next resource to execute a distributed task.
+    /**
+     * Get next resource to execute a distributed task.
+     *
      * @param coreId CoreId of the task
      * @return resource to execute the task.
      */
@@ -1691,7 +1725,7 @@ public class TaskScheduler {
         return res;
     }
 
-    protected class WorkersMap {
+    private class WorkersMap {
 
         private final Map<Resource,
             ResourceScheduler<? extends WorkerResourceDescription>> map;

@@ -27,13 +27,16 @@ import java.util.concurrent.Semaphore;
 
 public class FakeActionOrchestrator implements ActionOrchestrator {
 
-    private final TaskScheduler ts;
+    private TaskScheduler ts;
     private final Semaphore startedWorkers = new Semaphore(0);
     private final Semaphore startingWorker = new Semaphore(0);
 
 
-    public FakeActionOrchestrator(TaskScheduler ts) {
+    public FakeActionOrchestrator() {
         super();
+    }
+
+    public void setTaskScheduler(TaskScheduler ts) {
         this.ts = ts;
     }
 

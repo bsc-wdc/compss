@@ -21,6 +21,7 @@ import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.scheduler.exceptions.BlockedActionException;
 import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
+import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.ObjectValue;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
@@ -51,9 +52,11 @@ public abstract class OrderStrictTS extends TaskScheduler {
 
     /**
      * Constructs a new Ready Scheduler instance.
+     *
+     * @param orchestrator element ordering the execution of actions
      */
-    public OrderStrictTS() {
-        super();
+    public OrderStrictTS(ActionOrchestrator orchestrator) {
+        super(orchestrator);
         LOGGER.debug("[OrderStrict] Loading OrderStrict TS");
         this.readyQueue = new PriorityQueue<>();
         this.upgradedActions = new HashSet<>();

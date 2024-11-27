@@ -21,12 +21,14 @@ import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.scheduler.exceptions.BlockedActionException;
 import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
+import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.ObjectValue;
 import es.bsc.compss.scheduler.types.Score;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.util.ActionSet;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -35,6 +37,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Set;
+
 import org.json.JSONObject;
 
 
@@ -51,9 +54,11 @@ public abstract class LookaheadTS extends TaskScheduler {
 
     /**
      * Constructs a new Ready Scheduler instance.
+     *
+     * @param orchestrator element ordering the execution of actions
      */
-    public LookaheadTS() {
-        super();
+    public LookaheadTS(ActionOrchestrator orchestrator) {
+        super(orchestrator);
         this.unassignedReadyActions = new ActionSet();
         this.upgradedActions = new HashSet<>();
         this.availableWorkers = new AvailableWorkersSet();
@@ -172,7 +177,7 @@ public abstract class LookaheadTS extends TaskScheduler {
 
     /**
      * Collects all the potential candidates to run after a task end.
-     * 
+     *
      * @param dataFreeActions actions whose data dependencies have been released by the ended action (IN)
      * @param resourceFreeActions actions whose resource dependencies have been released by the ended action (IN)
      * @param unassignedActions dependency-free actions that the scheduler has not assigned yet (INOUT)

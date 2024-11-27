@@ -18,6 +18,7 @@ package es.bsc.compss.scheduler.lookahead.mt;
 
 import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
+import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.ObjectValue;
 import es.bsc.compss.scheduler.types.Score;
@@ -34,9 +35,11 @@ public abstract class SuccessorsTS extends LookaheadTS {
 
     /**
      * Constructs a new FIFODataScheduler instance.
+     *
+     * @param orchestrator element ordering the execution of actions
      */
-    public SuccessorsTS() {
-        super();
+    public SuccessorsTS(ActionOrchestrator orchestrator) {
+        super(orchestrator);
     }
 
     /*

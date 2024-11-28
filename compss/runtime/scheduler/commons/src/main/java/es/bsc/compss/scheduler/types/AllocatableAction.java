@@ -577,7 +577,7 @@ public abstract class AllocatableAction {
      *
      * @throws InvalidSchedulingException When an invalid scheduling state has been reached.
      */
-    public void tryToLaunch() throws InvalidSchedulingException {
+    public final void tryToLaunch() throws InvalidSchedulingException {
         // Gets the lock on the action
         this.lock.lock();
 

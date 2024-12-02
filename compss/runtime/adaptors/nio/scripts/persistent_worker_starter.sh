@@ -66,6 +66,18 @@
   # Provide a name for EAR to identify the main worker process
   export EAR_APP_NAME="piper_worker(${hostName})"
 
+  echo "DEBUG PROVENANCE VALUE: ${provenance}"
+
+  echo "START PROFILING - WORKER STARTER"
+  specific_log_dir=$(echo "${logDir}" | awk -F'/' '{print $4}')
+  specific_log_dir="/home/bsc/bsc306949/.COMPSs/${specific_log_dir}"
+
+  # START PROFILING
+  if [ "${provenance}" ]; then
+    source "${COMPSS_HOME}Runtime/scripts/user/compss_profiler"
+    start_profiling
+  fi
+
   $cmd ${paramsToCOMPSsWorker} 1>"${logDir}/worker_${hostName}.out" 2>"${logDir}/worker_${hostName}.err"
 
   exitValue=$?
@@ -74,6 +86,11 @@
   fi
 
   post_launch
+
+  # STOP PROFILING
+  if [ "${provenance}" ]; then
+    stop_profiling
+  fi
 
   # Exit with the worker status (last command)
   if [ "$debug" == "true" ]; then

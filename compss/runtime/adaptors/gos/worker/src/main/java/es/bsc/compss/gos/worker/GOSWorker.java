@@ -625,4 +625,9 @@ public class GOSWorker implements InvocationContext {
     public boolean getEar() {
         return false;
     }
+
+    @Override
+    public boolean getDataProvenance() {
+        return false;
+    }
 }

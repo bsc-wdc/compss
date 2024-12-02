@@ -39,7 +39,6 @@ DEFAULT_MONITORING_INTERVAL_ARGUMENT=2000
 DEFAULT_DEBUGGER_ARGUMENT=true
 DEFAULT_SHUTDOWN_IN_NODE_FAILURE=false
 DEFAULT_PROVENANCE_YAML="ro-crate-info.yaml"
-DEFAULT_PROVENANCE_ENABLED=true
 
 APPLICATION_ERROR="ERROR: Application name not provided"
 LANGUAGE_ERROR="ERROR: Value of option --lang must be: java, c, python or r"
@@ -92,7 +91,7 @@ show_opts() {
     --extrae_config_file_python=<path>      Sets a custom extrae config file for python. Must be in a shared disk between all COMPSs workers.
                                             Default: ${DEFAULT_EXTRAE_CONFIG_FILE_PYTHON:-Empty}
     --trace_label=<string>                  Add a label in the generated trace file. Only used in the case of tracing is activated.
-                                            Default: Applicacion name
+                                            Default: Applicacion name 
     --tracing_task_dependencies=<bool>      Adds communication lines for the task dependencies (true/false)
                                             Default: ${DEFAULT_TRACING_TASK_DEPENDENCIES}
     --generate_trace=<bool>                 Converts the events register into a trace file. Only used in the case of activated tracing.
@@ -266,7 +265,7 @@ arguments_error() {
 # Parses arguments from the command line
 get_args() {
   # Parse COMPSs Options
-  while getopts hvgtmdp-: flag; do
+  while getopts hvgtmdp-: flag; do    
     # Treat the argument
     case "$flag" in
       h)
@@ -298,7 +297,7 @@ get_args() {
         # Enable provenance
         provenance_yaml=${DEFAULT_PROVENANCE_YAML}
         echo "PROVENANCE | Setting YAML to 'ro-crate-info.yaml' by default"
-        provenance=${DEFAULT_PROVENANCE_ENABLED}
+        provenance=true
         if [ -z "$output_profile" ] ; then
           echo "PROVENANCE | Setting 'output_profile' to 'App_Profile.json' by default"
           output_profile="${PWD}/App_Profile.json"
@@ -640,26 +639,11 @@ get_args() {
             # Set wall_clock_limit
             wall_clock_limit=${OPTARG//wall_clock_limit=/}
             ;;
-          data_provenance=*)
-            # Enable or disable provenance
-            provenance=${OPTARG//data_provenance=/}
-            # Enable provenance, YAML file specified as parameter
-            provenance_yaml=${DEFAULT_PROVENANCE_YAML}
-            echo "PROVENANCE | Setting YAML to '${provenance_yaml}'"
-            if [ -z "$output_profile" ] ; then
-              echo "PROVENANCE | Setting 'output_profile' to 'App_Profile.json' by default"
-              output_profile="${PWD}/App_Profile.json"
-            fi
-            if [ -z "$graph" ] ; then
-              echo "PROVENANCE | Setting 'graph' to 'true' by default"
-              graph=${DEFAULT_GRAPH_ARGUMENT}
-            fi
-            ;;
           provenance=*)
             # Enable provenance, YAML file specified as parameter
             provenance_yaml=${OPTARG//provenance=/}
             echo "PROVENANCE | Setting YAML to '${provenance_yaml}'"
-            provenance=${DEFAULT_PROVENANCE_ENABLED}
+            provenance=true
             if [ -z "$output_profile" ] ; then
               echo "PROVENANCE | Setting 'output_profile' to 'App_Profile.json' by default"
               output_profile="${PWD}/App_Profile.json"
@@ -673,7 +657,7 @@ get_args() {
             # Enable provenance
             provenance_yaml=${DEFAULT_PROVENANCE_YAML}
             echo "PROVENANCE | Setting YAML to 'ro-crate-info.yaml' by default"
-            provenance=${DEFAULT_PROVENANCE_ENABLED}
+            provenance=true
             if [ -z "$output_profile" ] ; then
               echo "PROVENANCE | Setting 'output_profile' to 'App_Profile.json' by default"
               output_profile="${PWD}/App_Profile.json"
@@ -771,17 +755,12 @@ if [ -n "${env_script_path}" ]; then
   done
 fi
 
-if [ -z "${ENQUEUE_COMPSS_ARGS}" ]; then
-  export IS_LOCAL=true
-else
-  export IS_LOCAL=false
-fi
-
-# Start the profiling process
 start_profiling
 
 # Real runtime execution
 start_compss_app
+
+stop_profiling
 
 if [ ${provenance} ]; then
   if [ -z "${ENQUEUE_COMPSS_ARGS}" ]; then
@@ -790,28 +769,11 @@ if [ ${provenance} ]; then
     echo "enqueue_compss ${ENQUEUE_COMPSS_ARGS}" > compss_submission_command_line.txt
   fi
 
-  # Stop profiling process
-  kill $PROFILING_PID
-
-  find "${specific_log_dir}/workers/" -type f -name "*.csv" -exec cp {} "${specific_log_dir}/stats/" \;
-  if [ "${log_level}" != "${DEFAULT_LOG_LEVEL_ARGUMENT}" ]; then
-    rm -r "${specific_log_dir}/workers/"
-  fi
-
-  # Check if provenance_dest_path is unset or empty
-  if [ -z "${provenance_dest_path}" ]; then
-      # Create a timestamp in the format YYYYMMDD_HHMMSS
-      timestamp=$(date +%Y%m%d_%H%M%S)
-      # Set the variable with the desired naming scheme
-      provenance_dest_path="COMPSs_RO-Crate_${timestamp}/"
-  fi
-
   echo "PROVENANCE | STARTING WORKFLOW PROVENANCE SCRIPT"
-  echo "PROVENANCE | Destination folder: ${provenance_dest_path}"
   echo "PROVENANCE | If needed, Provenance generation can be triggered by hand using the following commands:"
   echo -e "\t${COMPSS_HOME}Runtime/scripts/utils/compss_gengraph svg ${specific_log_dir}/monitor/complete_graph.dot"
   echo -e "\texport PYTHONPATH=${COMPSS_HOME}Runtime/scripts/system/:\$PYTHONPATH"
-  echo -e "\tpython3 ${COMPSS_HOME}Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py ${provenance_yaml} ${specific_log_dir} ${provenance_dest_path}"
+  echo -e "\tpython3 ${COMPSS_HOME}Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py ${provenance_yaml} ${specific_log_dir}/dataprovenance.log"
   if [ ! -z "${BSC_MACHINE}" ]; then
     echo "PROVENANCE | TIP for BSC cluster users: before triggering generation by hand, run first: salloc --account=<your_group> --qos=gp_debug -p interactive"
   fi
@@ -830,9 +792,9 @@ if [ ${provenance} ]; then
   echo "PROVENANCE | STARTING RO-CRATE GENERATION SCRIPT"
   export PYTHONPATH=${COMPSS_HOME}Runtime/scripts/system/:${PYTHONPATH}
   if [ ! -z "${COMPSS_PROV_DEBUG}" ]; then
-    python3 "${COMPSS_HOME}Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py" "${provenance_yaml}" "${specific_log_dir}" "${provenance_dest_path}"
+    python3 "${COMPSS_HOME}Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py" "${provenance_yaml}" "${specific_log_dir}/dataprovenance.log"
   else
-    python3 -O "${COMPSS_HOME}Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py" "${provenance_yaml}" "${specific_log_dir}" "${provenance_dest_path}"
+    python3 -O "${COMPSS_HOME}Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py" "${provenance_yaml}" "${specific_log_dir}/dataprovenance.log"
   fi
   if [ $? == 0 ]; then # Check if generation has ended correctly, if not, do not cleanup
     if [ "${output_profile}" == "${PWD}/App_Profile.json" ]; then # Auto-generated, user doesn't want it

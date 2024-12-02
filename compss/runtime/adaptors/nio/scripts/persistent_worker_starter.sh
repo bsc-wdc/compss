@@ -73,10 +73,9 @@
   specific_log_dir="/home/bsc/bsc306949/.COMPSs/${specific_log_dir}"
 
   # START PROFILING
-  if [ "${provenance}" ]; then
-    source "${COMPSS_HOME}Runtime/scripts/user/compss_profiler"
-    start_profiling
-  fi
+  # shellcheck disable=SC1090
+  source "${COMPSS_HOME}Runtime/scripts/user/compss_profiler"
+  start_profiling
 
   $cmd ${paramsToCOMPSsWorker} 1>"${logDir}/worker_${hostName}.out" 2>"${logDir}/worker_${hostName}.err"
 
@@ -88,9 +87,7 @@
   post_launch
 
   # STOP PROFILING
-  if [ "${provenance}" ]; then
-    stop_profiling
-  fi
+  stop_profiling
 
   # Exit with the worker status (last command)
   if [ "$debug" == "true" ]; then

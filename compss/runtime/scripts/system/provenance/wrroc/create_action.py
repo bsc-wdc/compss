@@ -19,11 +19,12 @@ import os
 import subprocess
 import socket
 import yaml
+import statistics as st
 
 from pathlib import Path
 from datetime import timezone
 from datetime import datetime
-import pytz
+import pandas as pd
 
 from rocrate.rocrate import ROCrate
 from rocrate.model.contextentity import ContextEntity
@@ -83,58 +84,34 @@ def get_stats_list(dp_path: str, start_time: datetime, end_time: datetime) -> li
     return data_list
 
 
-def add_execution(id_name: str, value: int) -> dict:
+def get_properties(id_name: str, stat: str, value: int) -> dict:
     """
-    Function that generate a new dictionary of the number of executions.
-
-    :param id_name: id of the new item
-    :param value: value of the parameter passed
-
-    :return new_item: new item referred to the number of executions data
-    """
-    # If there is no execution, it means that it haven't been executed
-    if value == 0:
-        value = None
-    new_item = {
-        "id": id_name,
-        "@type": "PropertyValue",
-        "name": "executions",
-        "propertyID": "https://w3id.org/ro/terms/compss#executions",
-        "value": str(value),
-    }
-    return new_item
-
-
-def add_time(id_name: str, name_parameter: str, value: int) -> dict:
-    """
-    Function that generate a new dictionary of the item referred to a time.
+    Function that generate a new dictionary of the item
 
     :param id_name: identifier of the Data Entity that is generated
-    :param name_parameter: the name of the parameter
+    :param stat: the name of the parameter
     :param value: value of the parameter passed
-
-    :return new_item: new item referred to a time data
+    :return: new dictionary containing the properties
     """
-    new_item = {
+    properties = {
         "id": id_name,
         "@type": "PropertyValue",
-        "name": name_parameter,
-        "propertyID": f"https://w3id.org/ro/terms/compss#{name_parameter}",
-        "unitCode": "https://qudt.org/vocab/unit/MilliSEC",
-        "value": str(value),
+        "name": stat,
+        "propertyID": f"https://w3id.org/ro/terms/compss#{stat}",
     }
-    return new_item
 
-
-def get_new_item(id_name: str, stat: str, value: int) -> dict:
     if stat == "executions":
-        return add_execution(id_name, value)
+        if value == 0:
+            value = None
     else:
-        return add_time(id_name, stat, value)
+        properties["unitCode"] = "https://qudt.org/vocab/unit/MilliSEC"
+
+    properties["value"] = str(value)
+    return properties
 
 
 def get_resource_usage_dataset(
-    dp_path: str, start_time: datetime, end_time: datetime
+        dp_path: str, start_time: datetime, end_time: datetime
 ) -> list:
     """
     Function that provides a list of the statistical data recorded
@@ -156,7 +133,7 @@ def get_resource_usage_dataset(
         except ValueError:
             value = None
         id_name = f"#{resource}.{implementation}.{stat}"
-        new_item = get_new_item(id_name, stat, value)
+        new_item = get_properties(id_name, stat, value)
         resource_dataset.append(new_item)
     return resource_dataset
 
@@ -290,6 +267,8 @@ def wrroc_create_action(
     :param run_uuid: UUID generated for this run
     """
 
+    energy_path = log_dir / "energy"
+    stats_path = log_dir / "stats"
     # Compliance with RO-Crate WorkflowRun Level 2 profile, aka. Workflow Run Crate
     # marenostrum4, nord3, ... BSC_MACHINE would also work
     host_name = os.getenv("SLURM_CLUSTER_NAME")
@@ -303,22 +282,22 @@ def wrroc_create_action(
 
     if job_id is None:
         name_property = (
-            "COMPSs " + main_entity_pathobj.name + " execution at " + host_name
+                "COMPSs " + main_entity_pathobj.name + " execution at " + host_name
         )
         userportal_url = None
         create_action_id = "#COMPSs_Workflow_Run_Crate_" + host_name + "_" + run_uuid
     else:
         name_property = (
-            "COMPSs "
-            + main_entity_pathobj.name
-            + " execution at "
-            + host_name
-            + " with JOB_ID "
-            + job_id
+                "COMPSs "
+                + main_entity_pathobj.name
+                + " execution at "
+                + host_name
+                + " with JOB_ID "
+                + job_id
         )
         userportal_url = "https://userportal.bsc.es/"  # job_id cannot be added, does not match the one in userportal
         create_action_id = (
-            "#COMPSs_Workflow_Run_Crate_" + host_name + "_SLURM_JOB_ID_" + job_id
+                "#COMPSs_Workflow_Run_Crate_" + host_name + "_SLURM_JOB_ID_" + job_id
         )
     compss_crate.root_dataset["mentions"] = {"@id": create_action_id}
 
@@ -326,14 +305,20 @@ def wrroc_create_action(
     uname = subprocess.run(["uname", "-a"], stdout=subprocess.PIPE, check=True)
     uname_out = uname.stdout.decode("utf-8")[:-1]  # Remove final '\n'
 
+    description_property = uname_out
+
+    if os.path.exists(".compss_submission_command_line"):
+        with open(".compss_submission_command_line", 'r') as file:
+            description_property = file.read()[:-1] # Remove final '\n'
+
     # SLURM interesting variables: SLURM_JOB_NAME, SLURM_JOB_QOS, SLURM_JOB_USER, SLURM_SUBMIT_DIR, SLURM_NNODES or
     # SLURM_JOB_NUM_NODES, SLURM_JOB_CPUS_PER_NODE, SLURM_MEM_PER_CPU, SLURM_JOB_NODELIST or SLURM_NODELIST.
 
     environment_property = []
     for name, value in os.environ.items():
         if (
-            name.startswith(("SLURM_JOB", "SLURM_MEM", "SLURM_SUBMIT", "COMPSS"))
-            and name != "SLURM_JOBID"
+                name.startswith(("SLURM_JOB", "SLURM_MEM", "SLURM_SUBMIT", "COMPSS"))
+                and name != "SLURM_JOBID"
         ):
             # Changed to 'environment' term in WRROC v0.4
             env_var = {}
@@ -345,11 +330,9 @@ def wrroc_create_action(
                     compss_crate,
                     "#" + name.lower(),
                     properties=env_var,
-                )
+                    )
             )
             environment_property.append({"@id": "#" + name.lower()})
-
-    description_property = uname_out
 
     resolved_main_entity = main_entity
     for entity in compss_crate.get_entities():
@@ -400,7 +383,7 @@ def wrroc_create_action(
             print(f"PROVENANCE | WARNING: 'Submitter' in {info_yaml} wrongly defined")
 
     if (
-        "Agent" not in yaml_content and "Submitter" not in yaml_content
+            "Agent" not in yaml_content and "Submitter" not in yaml_content
     ) or not agent_added:
         # Choose first author, to avoid leaving it empty. May be true most of the times
         if author_list:
@@ -438,7 +421,7 @@ def wrroc_create_action(
     with open(dp_log, "r", encoding="UTF-8") as dp_file:
         last_line = ""
         for i, line in enumerate(dp_file):
-            if i == 3:
+            if i == 2:
                 try:
                     start_time = datetime.strptime(
                         line.strip(), "%Y-%m-%dT%H:%M:%S.%f%z"
@@ -508,7 +491,30 @@ def wrroc_create_action(
                 ContextEntity(compss_crate, resource_id, properties=resource_usage)
             )
             id_name_list.append({"@id": resource_id})
-        create_action_properties["resourceUsage"] = id_name_list
+
+        # Get profiling data
+        try:
+            profiling_files_list = check_resource(stats_path)
+        except FileNotFoundError:
+            profiling_files_list = []
+        id_measure_list = []
+        if len(profiling_files_list) == 0:
+            print(f"PROVENANCE | WARNING: No profiling resource file found ")
+        else:
+            for profiling_file in profiling_files_list:
+                resource_name = profiling_file.split(".")[0].split("_")[-1]
+                resource_properties = get_resource_information(stats_path / profiling_file)
+                resource_id = '#' + resource_name
+
+                for measure in resource_properties.keys():
+                    measure_id = f'{resource_id}.{measure}'
+                    new_properties = build_info_dict_resource_usage(measure, resource_properties[measure])
+                    compss_crate.add(ContextEntity(compss_crate, measure_id, properties=new_properties))
+                    id_measure_list.append({'@id': measure_id})
+
+        id_name_list.extend(id_measure_list)
+        print(f"PROVENANCE | RO-Crate added resource profiling information ")
+
     except ValueError:
         print(f"PROVENANCE | WARNING: No statistical data found in dataprovenance.log ")
 
@@ -616,7 +622,7 @@ def wrroc_create_action(
             file_properties["name"] = "compss-" + job_id + f_suffix
             file_properties["contentSize"] = os.path.getsize(file_properties["name"])
             file_properties["description"] = (
-                "COMPSs console standard " + f_msg + " log file"
+                    "COMPSs console standard " + f_msg + " log file"
             )
             file_properties["encodingFormat"] = "text/plain"
             file_properties["about"] = create_action_id

@@ -476,7 +476,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, ErrorHandler
         if (DP_ENABLED) {
             DP_LOGGER.info(COMPSs_VERSION);
             DP_LOGGER.info(System.getProperty(COMPSsConstants.APP_NAME));
-            DP_LOGGER.info(System.getProperty(COMPSsConstants.OUTPUT_PROFILE));
+            // DP_LOGGER.info(System.getProperty(COMPSsConstants.OUTPUT_PROFILE));
             DP_LOGGER.info(Instant.now().toString());
         }
     }

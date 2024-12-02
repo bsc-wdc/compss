@@ -207,6 +207,8 @@ def main():
         f"PROVENANCE | COMPSs Workflow Provenance successfully generated in sub-folder:\n\t{DEST_FOLDER}"
     )
 
+    store_data(folder, STATS_PATH)
+
 
 if __name__ == "__main__":
 
@@ -222,6 +224,7 @@ if __name__ == "__main__":
         path_log = Path(sys.argv[2])
         DEST_FOLDER = sys.argv[3]
         DP_LOG = path_log / "dataprovenance.log"
-        COMPLETE_GRAPH = path_log / "monitor/complete_graph.svg"
-
+        path_dplog = Path(sys.argv[2])
+        COMPLETE_GRAPH = path_dplog.parent / "monitor/complete_graph.svg"
+        ENERGY_PATH = path_dplog.parent / "energy"
     main()

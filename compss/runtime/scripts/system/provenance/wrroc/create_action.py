@@ -32,6 +32,20 @@ from provenance.utils.url_fixes import fix_dir_url
 from provenance.processing.entities import add_person_definition
 
 
+unit_dict = {
+    "TIME_SEC": "https://qudt.org/vocab/unit/SEC",
+    "DC_NODE_POWER_W": "https://qudt.org/vocab/unit/W",
+    "DRAM_POWER_W": "https://qudt.org/vocab/unit/W",
+    "PCK_POWER_W": "https://qudt.org/vocab/unit/W",
+    "CPU-GFLOPS": "https://qudt.org/vocab/unit/GigaFLOPS",
+    "AVG_CPUFREQ_KHZ": "https://qudt.org/vocab/unit/KiloHZ",
+    "AVG_IMCFRQ_KHZ": "https://qudt.org/vocab/unit/KiloHZ",
+    "DEF_FREQ_KHZ": "https://qudt.org/vocab/unit/Hz",
+    "IO_MBS": "https://qudt.org/vocab/unit/MegaBYTES",
+    "MEM_GBS": "https://qudt.org/vocab/unit/GigaBYTES",
+}
+
+
 def get_stats_list(dp_path: str, start_time: datetime, end_time: datetime) -> list:
     """
     Function that provide a list of the statistical data recorded

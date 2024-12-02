@@ -308,28 +308,28 @@ def add_file_to_crate(
             )
 
         # compss_submission_command_line.txt. Old compss_command_line_arguments.txt
-        if os.path.exists("compss_submission_command_line.txt"):
-            file_properties = {}
-            file_properties["name"] = "compss_submission_command_line.txt"
-            file_properties["contentSize"] = os.path.getsize(
-                "compss_submission_command_line.txt"
-            )
-            file_properties["description"] = (
-                "COMPSs submission command line (runcompss / enqueue_compss), including flags and parameters passed to the application"
-            )
-            file_properties["encodingFormat"] = "text/plain"
-            with open("compss_submission_command_line.txt") as file, mmap(
-                file.fileno(), 0, access=ACCESS_READ
-            ) as file:
-                file_properties["sha256"] = sha256(file).hexdigest()
-            compss_crate.add_file(
-                "compss_submission_command_line.txt", properties=file_properties
-            )
-        else:
-            print(
-                "PROVENANCE | WARNING: COMPSs submission command line has not been generated.\n"
-                "\tProvenance will be generated without submission information"
-            )
+        # if os.path.exists("compss_submission_command_line.txt"):
+        #     file_properties = {}
+        #     file_properties["name"] = "compss_submission_command_line.txt"
+        #     file_properties["contentSize"] = os.path.getsize(
+        #         "compss_submission_command_line.txt"
+        #     )
+        #     file_properties["description"] = (
+        #         "COMPSs submission command line (runcompss / enqueue_compss), including flags and parameters passed to the application"
+        #     )
+        #     file_properties["encodingFormat"] = "text/plain"
+        #     with open("compss_submission_command_line.txt") as file, mmap(
+        #         file.fileno(), 0, access=ACCESS_READ
+        #     ) as file:
+        #         file_properties["sha256"] = sha256(file).hexdigest()
+        #     compss_crate.add_file(
+        #         "compss_submission_command_line.txt", properties=file_properties
+        #     )
+        # else:
+        #     print(
+        #         "PROVENANCE | WARNING: COMPSs submission command line has not been generated.\n"
+        #         "\tProvenance will be generated without submission information"
+        #     )
 
         # ro-crate-info.yaml
         if os.path.exists(info_yaml):

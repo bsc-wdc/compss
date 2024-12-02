@@ -116,7 +116,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     private final String appDirPath;
     private final String tempDirPath;
 
-    private final LanguageParams[] langParams = new LanguageParams[COMPSsConstants.Lang.values().length];
+    private final LanguageParams[] langParams = new LanguageParams[Lang.values().length];
     private boolean persistentEnabled;
 
     private ExecutionManager executionManager;
@@ -125,6 +125,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     private boolean started = false;
 
     private boolean ear = false;
+    private boolean dataProvenance = false;
 
 
     /**
@@ -170,7 +171,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         // Configure execution
         String executionType = System.getProperty(COMPSsConstants.TASK_EXECUTION);
         if (executionType == null || executionType.equals("") || executionType.equals("null")) {
-            executionType = COMPSsConstants.TaskExecution.COMPSS.toString();
+            executionType = TaskExecution.COMPSS.toString();
             LOGGER.warn("No executionType passed");
         } else {
             executionType = executionType.toUpperCase();
@@ -283,9 +284,16 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         }
         this.ear = earing.toUpperCase().compareTo("TRUE") == 0;
 
+        // PROVENANCE
+        String provenance = System.getProperty(COMPSsConstants.DATA_PROVENANCE);
+        if (provenance == null || provenance.isEmpty() || provenance.equals("null")) {
+            provenance = COMPSsDefaults.DP_ENABLED;
+        }
+        this.dataProvenance = provenance.toUpperCase().compareTo("TRUE") == 0;
+
         JavaParams javaParams = new JavaParams(classPath);
         PythonParams pyParams = new PythonParams(pythonInterpreter, pythonVersion, pythonVEnv, pythonPropagateVEnv,
-            pythonPath, pythonExtraeFile, pythonMpiWorker, pythonWorkerCache, pythonCacheProfiler);
+                pythonPath, pythonExtraeFile, pythonMpiWorker, pythonWorkerCache, pythonCacheProfiler);
         CParams cParams = new CParams(classPath);
 
         this.langParams[Lang.JAVA.ordinal()] = javaParams;
@@ -302,7 +310,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
         boolean reuse = Boolean.parseBoolean(System.getProperty(COMPSsConstants.REUSE_RESOURCES_ON_BLOCK));
         this.executionManager = new ExecutionManager(this, 0, ThreadBinder.BINDER_DISABLED, reuse, 0,
-            ThreadBinder.BINDER_DISABLED, 0, ThreadBinder.BINDER_DISABLED, 0, 0);
+                ThreadBinder.BINDER_DISABLED, 0, ThreadBinder.BINDER_DISABLED, 0, 0);
         try {
             this.executionManager.init();
         } catch (InitializationException ie) {
@@ -355,7 +363,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
     @Override
     public void sendData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData,
-        Transferable reason, EventListener listener) {
+                         Transferable reason, EventListener listener) {
 
         for (Resource targetRes : target.getHosts()) {
             COMPSsNode node = targetRes.getNode();
@@ -384,7 +392,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
      * @param listener Transfer listener.
      */
     public void obtainBindingData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData,
-        Transferable reason, EventListener listener) {
+                                  Transferable reason, EventListener listener) {
 
         BindingObject tgtBO = ((BindingObjectLocation) target).getBindingObject();
         Collection<Copy> copiesInProgress = ld.getCopiesInProgress();
@@ -394,7 +402,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                     if (copy.getTargetLoc() != null && copy.getTargetLoc().getHosts().contains(Comm.getAppHost())) {
                         if (DEBUG) {
                             LOGGER.debug(
-                                "Copy in progress tranfering " + ld.getName() + "to master. Waiting for finishing");
+                                    "Copy in progress tranfering " + ld.getName() + "to master. Waiting for finishing");
                         }
                         copy.addEventListener(new EventListener() {
 
@@ -402,15 +410,15 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                             public void notifyEnd(DataOperation fOp) {
                                 if (DEBUG) {
                                     LOGGER.debug("Master local copy " + ld.getName() + " from " + copy.getFinalTarget()
-                                        + " to " + tgtBO.getName());
+                                            + " to " + tgtBO.getName());
                                 }
                                 try {
                                     if (COMPSsMaster.this.persistentEnabled) {
                                         manageObtainBindingObjectInCache(copy.getFinalTarget(), tgtBO, tgtData, target,
-                                            reason);
+                                                reason);
                                     } else {
                                         manageObtainBindingObjectAsFile(copy.getFinalTarget(), tgtBO, tgtData, target,
-                                            reason);
+                                                reason);
                                     }
                                     listener.notifyEnd(null);
                                 } catch (Exception e) {
@@ -423,7 +431,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                             public void notifyFailure(DataOperation fOp, Exception e) {
                                 if (DEBUG) {
                                     LOGGER.debug("Master local copy " + ld.getName() + " from " + copy.getFinalTarget()
-                                        + " to " + tgtBO.getName());
+                                            + " to " + tgtBO.getName());
                                 }
                                 LOGGER.error("ERROR: managing obtain binding object at cache", e);
                                 listener.notifyFailure(fOp, e);
@@ -433,7 +441,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                     } else {
                         if (DEBUG) {
                             LOGGER.debug("Current copies are not transfering " + ld.getName()
-                                + " to master. Ignoring at this moment");
+                                    + " to master. Ignoring at this moment");
                         }
                     }
 
@@ -454,7 +462,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             if (u.getHost() == Comm.getAppHost()) {
                 if (DEBUG) {
                     LOGGER.debug("Master local copy " + ld.getName() + " from " + u.getHost().getName() + " to "
-                        + tgtBO.getName());
+                            + tgtBO.getName());
                 }
                 try {
                     if (this.persistentEnabled) {
@@ -486,7 +494,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                     try {
                         if (DEBUG) {
                             LOGGER.debug("Sending data " + ld.getName() + " from (" + node.getName() + ") " + sourcePath
-                                + " to (master) " + tgtBO.getName());
+                                    + " to (master) " + tgtBO.getName());
                         }
                         node.sendData(ld, source, target, tgtData, reason, listener);
                     } catch (Exception e) {
@@ -520,7 +528,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             if (node != this) {
                 try {
                     LOGGER.debug("Sending data " + ld.getName() + " from (" + node.getName() + ") "
-                        + sourceRes.getName() + " to (master)" + tgtBO.getName());
+                            + sourceRes.getName() + " to (master)" + tgtBO.getName());
                     node.sendData(ld, source, target, tgtData, reason, listener);
                 } catch (Exception e) {
                     LOGGER.error("Error: exception sending data", e);
@@ -531,30 +539,30 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             } else {
                 if (DEBUG) {
                     LOGGER.debug("Data " + ld.getName() + " copy in " + sourceRes.getName()
-                        + " not evaluated now. Should have been evaluated before");
+                            + " not evaluated now. Should have been evaluated before");
                 }
             }
         }
         LOGGER.warn("WARN: All posibilities checked for obtaining data " + ld.getName()
-            + " and nothing done. Releasing listeners and locks");
+                + " and nothing done. Releasing listeners and locks");
         listener.notifyEnd(null);
     }
 
     private void manageObtainBindingObjectInCache(String initialPath, BindingObject tgtBO, LogicalData tgtData,
-        DataLocation target, Transferable reason) throws Exception {
+                                                  DataLocation target, Transferable reason) throws Exception {
 
         BindingObject bo = BindingObject.generate(initialPath);
 
         if (bo.getName().equals(tgtBO.getName())) {
             if (BindingDataManager.isInBinding(tgtBO.getName())) {
                 LOGGER.debug(
-                    "Current transfer is the same as expected. Nothing to do setting data target to " + initialPath);
+                        "Current transfer is the same as expected. Nothing to do setting data target to " + initialPath);
                 reason.setDataTarget(initialPath);
             } else {
                 String tgtPath = getCompletePath(DataType.BINDING_OBJECT_T, tgtBO.getName()).getPath();
                 LOGGER.debug("Data " + tgtBO.getName() + " not in cache loading from file " + tgtPath);
                 if (BindingDataManager.loadFromFile(tgtBO.getName(), tgtPath, tgtBO.getType(),
-                    tgtBO.getElements()) != 0) {
+                        tgtBO.getElements()) != 0) {
                     throw (new Exception("Error loading object " + tgtBO.getName() + " from " + tgtPath));
                 }
                 reason.setDataTarget(target.getPath());
@@ -575,7 +583,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                 String tgtPath = getCompletePath(DataType.BINDING_OBJECT_T, tgtBO.getName()).getPath();
                 LOGGER.debug("Data " + tgtBO.getName() + " not in cache loading from file " + tgtPath);
                 if (BindingDataManager.loadFromFile(tgtBO.getName(), tgtPath, tgtBO.getType(),
-                    tgtBO.getElements()) != 0) {
+                        tgtBO.getElements()) != 0) {
                     throw (new Exception("Error loading object " + tgtBO.getName() + " from " + tgtPath));
                 }
             }
@@ -589,12 +597,12 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     }
 
     private void manageObtainBindingObjectAsFile(String initialPath, BindingObject tgtBO, LogicalData tgtData,
-        DataLocation target, Transferable reason) throws Exception {
+                                                 DataLocation target, Transferable reason) throws Exception {
 
         BindingObject bo = BindingObject.generate(initialPath);
         if (bo.getName().equals(tgtBO.getName())) {
             LOGGER
-                .debug("Current transfer is the same as expected. Nothing to do setting data target to " + initialPath);
+                    .debug("Current transfer is the same as expected. Nothing to do setting data target to " + initialPath);
             reason.setDataTarget(initialPath);
         } else {
             if (bo.getId().startsWith(File.separator)) {
@@ -641,7 +649,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     }
 
     private void handleInMemoryCopy(LogicalData ld, DataLocation src, LogicalData tgtData, DataLocation tgtLoc,
-        String tgtPath, Transferable reason, EventListener listener) {
+                                    String tgtPath, Transferable reason, EventListener listener) {
         if (ld.isAlias(tgtData)) {
             LOGGER.debug("Object already in memory. Avoiding copy and setting dataTarget to " + tgtPath);
             notifyDataObtaining(tgtPath, reason, listener);
@@ -689,7 +697,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
      * @param listener Transfer listener.
      */
     private void obtainFileData(LogicalData srcData, DataLocation srcLoc, LogicalData tgtData, DataLocation tgtLoc,
-        String tgtPath, Transferable reason, EventListener listener) {
+                                String tgtPath, Transferable reason, EventListener listener) {
         // Check if file is already on the Path
         List<MultiURI> uris = srcData.getURIs();
         for (MultiURI u : uris) {
@@ -711,7 +719,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         // Check if there are current copies in progress bringing it into the node.
         if (DEBUG) {
             LOGGER.debug(
-                "Data " + srcData.getName() + " not in memory. Checking if there is a copy to the master in progress");
+                    "Data " + srcData.getName() + " not in memory. Checking if there is a copy to the master in progress");
         }
 
         Collection<Copy> copiesInProgress = srcData.getCopiesInProgress();
@@ -767,7 +775,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     }
 
     private boolean handleSiblingCopy(LogicalData ld, LogicalData tgtData, DataLocation tgtLoc, String tgtPath,
-        Transferable reason, EventListener listener, Collection<Copy> copiesInProgress) {
+                                      Transferable reason, EventListener listener, Collection<Copy> copiesInProgress) {
 
         for (Copy copy : copiesInProgress) {
             if (copy != null) {
@@ -794,7 +802,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     }
 
     private boolean handleLocalFileCopy(LogicalData ld, MultiURI localURI, LogicalData tgtData, DataLocation tgtLoc,
-        String tgtPath, Transferable reason, EventListener listener) {
+                                        String tgtPath, Transferable reason, EventListener listener) {
         String localPath = localURI.getPath();
         try {
             if (DEBUG) {
@@ -830,14 +838,14 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                 if (reason.isSourcePreserved() || ld.countKnownAlias() > 1) {
                     if (DEBUG) {
                         LOGGER.debug("Master local copy " + ld.getName() + " from " + localURI.getHost().getName()
-                            + " to " + tgtPath);
+                                + " to " + tgtPath);
                     }
                     FileOpsManager.copySync(new File(localPath), new File(tgtPath));
 
                 } else {
                     if (DEBUG) {
                         LOGGER.debug("Master local move " + ld.getName() + " from " + localURI.getHost().getName()
-                            + " to " + tgtPath);
+                                + " to " + tgtPath);
                     }
                     try {
                         SimpleURI deletedUri = new SimpleURI(localPath);
@@ -863,13 +871,13 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             return true;
         } catch (IOException ex) {
             ErrorManager.warn(
-                "Error master local copy file from " + localURI.getPath() + " to " + tgtPath + " with replacing", ex);
+                    "Error master local copy file from " + localURI.getPath() + " to " + tgtPath + " with replacing", ex);
         }
         return false;
     }
 
     private boolean handleTransferFromSpecificRemoteLocation(LogicalData ld, DataLocation srcLoc, LogicalData tgtData,
-        DataLocation tgtLoc, Transferable reason, EventListener listener) {
+                                                             DataLocation tgtLoc, Transferable reason, EventListener listener) {
         for (Resource srcRes : srcLoc.getHosts()) {
             if (handleTransferFromSpecificRemote(ld, srcRes, srcLoc, tgtData, tgtLoc, reason, listener)) {
                 return true;
@@ -879,7 +887,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     }
 
     private boolean handleTransferFromRemote(LogicalData ld, Set<Resource> hosts, DataLocation srcLoc,
-        LogicalData tgtData, DataLocation tgtLoc, Transferable reason, EventListener listener) {
+                                             LogicalData tgtData, DataLocation tgtLoc, Transferable reason, EventListener listener) {
         for (Resource srcRes : hosts) {
             if (handleTransferFromSpecificRemote(ld, srcRes, srcLoc, tgtData, tgtLoc, reason, listener)) {
                 return true;
@@ -889,7 +897,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     }
 
     private boolean handleTransferFromSpecificRemote(LogicalData ld, Resource srcRes, DataLocation srcLoc,
-        LogicalData tgtData, DataLocation tgtLoc, Transferable reason, EventListener listener) {
+                                                     LogicalData tgtData, DataLocation tgtLoc, Transferable reason, EventListener listener) {
         COMPSsNode node = srcRes.getNode();
         if (node != this) {
             try {
@@ -916,23 +924,23 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
     @Override
     public void obtainData(LogicalData srcData, DataLocation srcLoc, DataLocation tgtLoc, LogicalData tgtData,
-        Transferable reason, EventListener listener) {
+                           Transferable reason, EventListener listener) {
         LOGGER.info("Obtain Data " + srcData.getName());
         if (DEBUG) {
             LOGGER.debug(srcData != null ? "srcData: " + srcData.toString() : "srcData is null");
             LOGGER.debug(reason != null ? "Reason: " + reason.getType() : "Reason is null");
             LOGGER
-                .debug(srcLoc != null
-                    ? "Source Data location: " + srcLoc.getType().toString() + " " + srcLoc.getProtocol().toString()
-                        + " " + srcLoc.getURIs().get(0)
-                    : "Source Data location is null");
+                    .debug(srcLoc != null
+                            ? "Source Data location: " + srcLoc.getType().toString() + " " + srcLoc.getProtocol().toString()
+                            + " " + srcLoc.getURIs().get(0)
+                            : "Source Data location is null");
             if (tgtLoc != null) {
                 if (tgtLoc.getProtocol() != ProtocolType.PERSISTENT_URI) {
                     LOGGER.debug("Target Data location: " + tgtLoc.getType().toString() + " "
-                        + tgtLoc.getProtocol().toString() + " " + tgtLoc.getURIs().get(0));
+                            + tgtLoc.getProtocol().toString() + " " + tgtLoc.getURIs().get(0));
                 } else {
                     LOGGER.debug(
-                        "Target Data location: " + tgtLoc.getType().toString() + " " + tgtLoc.getProtocol().toString());
+                            "Target Data location: " + tgtLoc.getType().toString() + " " + tgtLoc.getProtocol().toString());
                 }
             } else {
                 LOGGER.debug("Target Data location is null");
@@ -945,7 +953,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             tgtPath = tgtLoc.getURIInHost(Comm.getAppHost()).getPath();
         }
         if (reason != null && (reason.getType().equals(DataType.COLLECTION_T)
-            || reason.getType().equals(DataType.DICT_COLLECTION_T))) {
+                || reason.getType().equals(DataType.DICT_COLLECTION_T))) {
             obtainCollection(srcData, srcLoc, tgtData, tgtLoc, tgtPath, reason, listener);
             return;
         }
@@ -953,8 +961,8 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
          * Check if data is binding data
          */
         if (srcData.isBindingData() || (reason != null && reason.getType().equals(DataType.BINDING_OBJECT_T))
-            || (srcLoc != null && srcLoc.getType().equals(LocationType.BINDING))
-            || (tgtLoc != null && tgtLoc.getType().equals(LocationType.BINDING))) {
+                || (srcLoc != null && srcLoc.getType().equals(LocationType.BINDING))
+                || (tgtLoc != null && tgtLoc.getType().equals(LocationType.BINDING))) {
             obtainBindingData(srcData, srcLoc, tgtLoc, tgtData, reason, listener);
             return;
         }
@@ -982,7 +990,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     }
 
     private void obtainCollection(LogicalData srcData, DataLocation srcLoc, LogicalData tgtData, DataLocation target,
-        String tgtPath, Transferable reason, EventListener listener) {
+                                  String tgtPath, Transferable reason, EventListener listener) {
         String targetPath;
         if (target != null) {
             targetPath = target.getURIInHost(Comm.getAppHost()).getPath();
@@ -993,12 +1001,12 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             } else {
                 targetPath = srcData.getName();
                 LOGGER.warn(
-                    "No target location neither target data available. Setting targetPath to " + srcData.getName());
+                        "No target location neither target data available. Setting targetPath to " + srcData.getName());
             }
         }
         LOGGER.debug("Data " + srcData.getName()
-            + "is COLLECTION_T/DICT_COLLECTION_T nothing to tranfer. Elements already transferred."
-            + "Setting target path to " + targetPath);
+                + "is COLLECTION_T/DICT_COLLECTION_T nothing to tranfer. Elements already transferred."
+                + "Setting target path to " + targetPath);
         notifyDataObtaining(tgtPath, reason, listener);
     }
 
@@ -1011,7 +1019,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     }
 
     private void obtainDataAsynch(LogicalData srcData, DataLocation srcLoc, LogicalData tgtData, DataLocation tgtLoc,
-        String tgtPath, Transferable reason, EventListener listener) {
+                                  String tgtPath, Transferable reason, EventListener listener) {
         FileOpsManager.composedOperationAsync(new Runnable() {
 
             @Override
@@ -1033,10 +1041,10 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
     @Override
     public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res,
-        List<String> slaveWorkersNodeNames, JobListener listener, List<Integer> predecessors, Integer numSuccessors) {
+                         List<String> slaveWorkersNodeNames, JobListener listener, List<Integer> predecessors, Integer numSuccessors) {
 
         return new LocalJob(taskId, taskParams, impl, res, slaveWorkersNodeNames, listener, predecessors,
-            numSuccessors);
+                numSuccessors);
     }
 
     @Override
@@ -1221,7 +1229,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     }
 
     @Override
-    public COMPSsConstants.TaskExecution getExecutionType() {
+    public TaskExecution getExecutionType() {
         return this.executionType;
     }
 
@@ -1231,7 +1239,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     }
 
     @Override
-    public LanguageParams getLanguageParams(COMPSsConstants.Lang language) {
+    public LanguageParams getLanguageParams(Lang language) {
         return this.langParams[language.ordinal()];
     }
 
@@ -1330,7 +1338,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
     @Override
     public void storeParam(InvocationParam invParam, boolean createIfNonExistent)
-        throws UnwritableValueException, NonExistentDataException {
+            throws UnwritableValueException, NonExistentDataException {
         LocalParameter lp = (LocalParameter) invParam;
         Parameter param = lp.getParam();
         SimpleURI resultUri = null;
@@ -1415,7 +1423,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     }
 
     private SimpleURI storeFileParam(LocalParameter lp, boolean createIfNonExistent)
-        throws UnwritableValueException, NonExistentDataException {
+            throws UnwritableValueException, NonExistentDataException {
         String filepath = (String) lp.getValue();
         if (Tracer.isActivated()) {
             Tracer.emitEvent(TraceEvent.CHECK_OUT_PARAM);
@@ -1512,6 +1520,11 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     @Override
     public boolean getEar() {
         return this.ear;
+    }
+
+    @Override
+    public boolean getDataProvenance() {
+        return this.dataProvenance;
     }
 
     public void setLoaderApi(LoaderAPI loaderApi) {

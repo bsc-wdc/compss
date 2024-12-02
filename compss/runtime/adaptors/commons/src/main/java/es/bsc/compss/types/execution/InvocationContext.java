@@ -230,4 +230,10 @@ public interface InvocationContext {
      */
     public boolean getEar();
 
+    /**
+     * Returns if provenance is activated.
+     *
+     * @return If provenance is activated.
+     */
+    public boolean getDataProvenance();
 }

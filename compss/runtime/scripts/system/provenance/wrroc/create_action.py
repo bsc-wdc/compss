@@ -147,6 +147,107 @@ def get_resource_usage_dataset(
     return resource_dataset
 
 
+def build_info_dict_ear(measure_name, property, value):
+    properties_item = {
+        "@type": "PropertyValue",
+        "name": measure_name,
+        "value": str(value),
+        "propertyID": f"https://w3id.org/ro/terms/compss#{measure_name}"
+    }
+
+    if measure_name in unit_dict.keys():
+        properties_item["unitCode"] = unit_dict[measure_name]
+    elif 'DATE' in measure_name:
+        properties_item["value"] = datetime.strptime(value, "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%dT%H:%M:%S+00:00")
+
+    return properties_item
+
+def build_info_dict_resource_usage(measure_name, value):
+
+    properties_item = {
+        "@type": "PropertyValue",
+        "name": measure_name,
+        "value": str(value),
+        "propertyID": f"https://w3id.org/ro/terms/compss#{measure_name}"
+    }
+
+    if 'byte' in measure_name:
+        properties_item["unitCode"] = 'https://qudt.org/vocab/unit/BYTE'
+    else:
+        properties_item["unitCode"] = 'https://qudt.org/vocab/unit/PERCENT'
+
+    return properties_item
+
+
+def get_energy_usage_for_node(energy_file, info_list, node):
+    df = pd.read_csv(energy_file, sep=";")
+    df = df.rename(columns={"CPU-GFLOPS": "CPU_GFLOPS"})
+
+    df = df[
+        [
+            "APPID",
+            "START_DATE",
+            "END_DATE",
+            "AVG_CPUFREQ_KHZ",
+            "AVG_IMCFREQ_KHZ",
+            "DEF_FREQ_KHZ",
+            "TIME_SEC",
+            "CPI",
+            "TPI",
+            "MEM_GBS",
+            "IO_MBS",
+            "DC_NODE_POWER_W",
+            "DRAM_POWER_W",
+            "PCK_POWER_W",
+            "CYCLES",
+            "INSTRUCTIONS",
+            "CPU_GFLOPS",
+            "L1_MISSES",
+            "L2_MISSES",
+            "L3_MISSES",
+        ]
+    ]
+
+    for row in df.itertuples(index=True):
+        id = f"{getattr(row, 'APPID')}"
+        is_appid = True
+        for column in df.columns:
+            if is_appid:
+                is_appid = False
+                continue
+            info_list.append(build_info_dict_ear(node, id, column, getattr(row, column)))
+
+    return info_list
+
+def check_resource(path):
+    list_of_files = []
+    for file in os.listdir(path):
+        filename = os.fsdecode(file)
+        if filename.endswith(".csv"):
+            list_of_files.append(filename)
+    return list_of_files
+
+def get_resource_information(resource_file):
+    resource_df = pd.read_csv(resource_file)
+    cpu_avg = round(sum(resource_df['CPU']) / len(resource_df), 2)
+    cpu_max = max(resource_df['CPU'])
+    mem_avg = round(sum(resource_df['MEM']) / len(resource_df), 2)
+    mem_min = min(resource_df['MEM'])
+    mem_max = max(resource_df['MEM'])
+    byte_sent_sum = sum(resource_df['BYTE_SENT'])
+    byte_recv_sum = sum(resource_df['BYTE_RECV'])
+
+    resource_properties = {
+        'cpuAvg': cpu_avg,
+        'cpuMax': cpu_max,
+        'memAvg': mem_avg,
+        'memMin': mem_min,
+        'memMax': mem_max,
+        'byteSent': byte_sent_sum,
+        'byteRecv': byte_recv_sum,
+    }
+    return resource_properties
+
 def wrroc_create_action(
     compss_crate: ROCrate,
     main_entity: str,

@@ -397,6 +397,77 @@ def wrroc_create_action(
     except ValueError:
         print(f"PROVENANCE | WARNING: No statistical data found in dataprovenance.log ")
 
+
+    try:
+        entry_list = ['AVG_CPUFREQ_KHZ', 'AVG_IMCFREQ_KHZ', 'CPI', 'TPI', 'MEM_GBS', 'IO_MBS', 'DC_NODE_POWER_W', 'DRAM_POWER_W', 'PCK_POWER_W',
+                      'CYCLES', 'INSTRUCTIONS', "CPU_GFLOPS"]
+
+        print(f"PROVENANCE | RO-Crate adding energy data")
+
+        id_measure_list = []
+        for subdir, dirs, files in os.walk(energy_path):
+            for file in files:
+                if file.endswith('time.csv'):
+                    energy_file = Path(subdir, file)
+                    node = file.split('.')[1]
+                    df = pd.read_csv(energy_file, sep=';')
+                    # pandas library has problems in column names containing dash
+                    df = df.rename(columns={'CPU-GFLOPS': 'CPU_GFLOPS'})
+                    node_id = df['NODENAME'].iloc[0]
+                    df = df[entry_list]
+
+                    for measure in entry_list:
+                        average_value = round(st.mean(df[measure]), 2)
+
+                        measure_id = f"#{node_id}.{measure}"
+                        new_properties = build_info_dict_ear(measure, average_value)
+                        compss_crate.add(ContextEntity(compss_crate, measure_id, properties=new_properties))
+                        id_measure_list.append({"@id": measure_id})
+        id_name_list.extend(id_measure_list)
+    except ValueError:
+        print(
+            f"PROVENANCE | WARNING: Error during data retrieving in directory {energy_path}"
+        )
+        print("PROVENANCE | EAR not used")
+
+
+
+    create_action_properties["resourceUsage"] = id_name_list
+
+    #
+    # if os.path.isdir(energy_path):
+    #     try:
+    #         print(f"PROVENANCE | RO-Crate adding energy data")
+    #         # Add the resource usage to the ROCrate object
+    #         for data_file in os.listdir(energy_path):
+    #             if data_file.endswith("time.csv"):
+    #                 info_list = []
+    #                 filename = Path(energy_path, data_file)
+    #                 node = data_file.split(".")[1]
+    #                 get_energy_usage_for_node(filename, info_list, node)
+    #
+    #                 id_info_list = []
+    #                 for info_properties in info_list:
+    #                     info_id = info_properties["id"]
+    #                     del info_properties["id"]
+    #                     compss_crate.add(
+    #                         ContextEntity(
+    #                             compss_crate, info_id, properties=info_properties
+    #                         )
+    #                     )
+    #                     id_info_list.append({"@id": info_id})
+    #                     create_action_properties["resourceUsage"] = id_info_list
+    #                     compss_crate.add(
+    #                         ContextEntity(
+    #                             compss_crate, node, properties=create_action_properties
+    #                         )
+    #                     )
+    #     except ValueError:
+    #         print(
+    #             f"PROVENANCE | WARNING: Error during data retrieving in directory {energy_path}"
+    #         )
+    #         print("PROVENANCE | EAR not used")
+
     if agent:
         create_action_properties["agent"] = agent
 

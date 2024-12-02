@@ -24,6 +24,10 @@ source "${COMPSS_HOME}Runtime/scripts/system/commons/utils.sh"
 # shellcheck disable=SC1091
 source "${COMPSS_HOME}Runtime/scripts/system/runtime/compss_setup.sh"
 
+# Load profiling script
+# shellcheck disable=SC1090
+source "${COMPSS_HOME}Runtime/scripts/user/compss_profiler"
+
 
 #---------------------------------------------------
 # CONSTANTS DEFINTION
@@ -759,8 +763,13 @@ if [ -n "${env_script_path}" ]; then
     source $script
   done
 fi
+
+start_profiling
+
 # Real runtime execution
 start_compss_app
+
+stop_profiling
 
 if [ ${provenance} ]; then
   if [ -z "${ENQUEUE_COMPSS_ARGS}" ]; then

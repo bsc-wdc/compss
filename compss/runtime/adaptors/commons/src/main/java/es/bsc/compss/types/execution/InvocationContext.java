@@ -231,9 +231,9 @@ public interface InvocationContext {
     public boolean getEar();
 
     /**
-     * Returns if provenance is activated.
+     * Returns if Provenance is enabled.
      *
-     * @return If provenance is activated.
+     * @return If dataProvenance is enabled.
      */
     public boolean getDataProvenance();
 }

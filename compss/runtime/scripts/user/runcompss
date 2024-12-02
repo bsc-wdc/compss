@@ -91,7 +91,7 @@ show_opts() {
     --extrae_config_file_python=<path>      Sets a custom extrae config file for python. Must be in a shared disk between all COMPSs workers.
                                             Default: ${DEFAULT_EXTRAE_CONFIG_FILE_PYTHON:-Empty}
     --trace_label=<string>                  Add a label in the generated trace file. Only used in the case of tracing is activated.
-                                            Default: Applicacion name
+                                            Default: Applicacion name 
     --tracing_task_dependencies=<bool>      Adds communication lines for the task dependencies (true/false)
                                             Default: ${DEFAULT_TRACING_TASK_DEPENDENCIES}
     --generate_trace=<bool>                 Converts the events register into a trace file. Only used in the case of activated tracing.
@@ -265,7 +265,7 @@ arguments_error() {
 # Parses arguments from the command line
 get_args() {
   # Parse COMPSs Options
-  while getopts hvgtmdp-: flag; do
+  while getopts hvgtmdp-: flag; do    
     # Treat the argument
     case "$flag" in
       h)
@@ -639,21 +639,6 @@ get_args() {
             # Set wall_clock_limit
             wall_clock_limit=${OPTARG//wall_clock_limit=/}
             ;;
-          data_provenance=*)
-            # Enable or disable provenance
-            provenance=${OPTARG//data_provenance=/}
-            # Enable provenance, YAML file specified as parameter
-            provenance_yaml=${DEFAULT_PROVENANCE_YAML}
-            echo "PROVENANCE | Setting YAML to '${provenance_yaml}'"
-            if [ -z "$output_profile" ] ; then
-              echo "PROVENANCE | Setting 'output_profile' to 'App_Profile.json' by default"
-              output_profile="${PWD}/App_Profile.json"
-            fi
-            if [ -z "$graph" ] ; then
-              echo "PROVENANCE | Setting 'graph' to 'true' by default"
-              graph=${DEFAULT_GRAPH_ARGUMENT}
-            fi
-            ;;
           provenance=*)
             # Enable provenance, YAML file specified as parameter
             provenance_yaml=${OPTARG//provenance=/}
@@ -770,43 +755,25 @@ if [ -n "${env_script_path}" ]; then
   done
 fi
 
-# Start the profiling process
 start_profiling
 
 # Real runtime execution
 start_compss_app
 
+stop_profiling
+
 if [ ${provenance} ]; then
   if [ -z "${ENQUEUE_COMPSS_ARGS}" ]; then
-    echo "runcompss" $all_arguments > .compss_submission_command_line.txt
+    echo "runcompss" $all_arguments > compss_submission_command_line.txt
   else
-    echo "enqueue_compss ${ENQUEUE_COMPSS_ARGS}" > .compss_submission_command_line.txt
-  fi
-
-  # Stop profiling process
-  if [ -n "${PROFILING_PID}" ]; then
-    kill $PROFILING_PID
-  fi
-  kill $PROFILING_PID
-
-  find "${specific_log_dir}/workers/" -type f -name "*.csv" -exec cp {} "${specific_log_dir}/stats/" \;
-  for file in "${specific_log_dir}"stats/*.csv; do
-    if [[ "$(basename "$file")" == *"${COMPSS_MASTER_NODE}"* ]]; then
-      new_name="${file%.csv}-MASTER.csv"
-      mv "$file" "$new_name"
-      break
-    fi
-  done
-
-  if [ "${log_level}" != "${DEFAULT_LOG_LEVEL_ARGUMENT}" ]; then
-    rm -r "${specific_log_dir}/workers/"
+    echo "enqueue_compss ${ENQUEUE_COMPSS_ARGS}" > compss_submission_command_line.txt
   fi
 
   echo "PROVENANCE | STARTING WORKFLOW PROVENANCE SCRIPT"
   echo "PROVENANCE | If needed, Provenance generation can be triggered by hand using the following commands:"
   echo -e "\t${COMPSS_HOME}Runtime/scripts/utils/compss_gengraph svg ${specific_log_dir}/monitor/complete_graph.dot"
   echo -e "\texport PYTHONPATH=${COMPSS_HOME}Runtime/scripts/system/:\$PYTHONPATH"
-  echo -e "\tpython3 ${COMPSS_HOME}Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py ${provenance_yaml} ${specific_log_dir}/dataprovenance.log ${working_directory}"
+  echo -e "\tpython3 ${COMPSS_HOME}Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py ${provenance_yaml} ${specific_log_dir}/dataprovenance.log"
   if [ ! -z "${BSC_MACHINE}" ]; then
     echo "PROVENANCE | TIP for BSC cluster users: before triggering generation by hand, run first: salloc --account=<your_group> --qos=gp_debug -p interactive"
   fi
@@ -825,19 +792,19 @@ if [ ${provenance} ]; then
   echo "PROVENANCE | STARTING RO-CRATE GENERATION SCRIPT"
   export PYTHONPATH=${COMPSS_HOME}Runtime/scripts/system/:${PYTHONPATH}
   if [ ! -z "${COMPSS_PROV_DEBUG}" ]; then
-    python3 "${COMPSS_HOME}Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py" "${provenance_yaml}" "${specific_log_dir}/dataprovenance.log" "${working_directory}"
+    python3 "${COMPSS_HOME}Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py" "${provenance_yaml}" "${specific_log_dir}/dataprovenance.log"
   else
-    python3 -O "${COMPSS_HOME}Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py" "${provenance_yaml}" "${specific_log_dir}/dataprovenance.log" "${working_directory}"
+    python3 -O "${COMPSS_HOME}Runtime/scripts/system/provenance/generate_COMPSs_RO-Crate.py" "${provenance_yaml}" "${specific_log_dir}/dataprovenance.log"
   fi
   if [ $? == 0 ]; then # Check if generation has ended correctly, if not, do not cleanup
     if [ "${output_profile}" == "${PWD}/App_Profile.json" ]; then # Auto-generated, user doesn't want it
-      rm -f "${PWD}/App_Profile.json" .compss_submission_command_line.txt "${specific_log_dir}/monitor/complete_graph.svg"
+      rm -f "${PWD}/App_Profile.json" compss_submission_command_line.txt "${specific_log_dir}/monitor/complete_graph.svg"
     else
-      rm -f .compss_submission_command_line.txt "${specific_log_dir}/monitor/complete_graph.svg"
+      rm -f compss_submission_command_line.txt "${specific_log_dir}/monitor/complete_graph.svg"
     fi
   else
     echo "PROVENANCE | WORKFLOW PROVENANCE GENERATION HAS FAILED"
-    echo "PROVENANCE | Temporary files have not been erased: App_Profile.json .compss_submission_command_line.txt ${specific_log_dir}/monitor/complete_graph.svg"
+    echo "PROVENANCE | Temporary files have not been erased: App_Profile.json compss_submission_command_line.txt ${specific_log_dir}/monitor/complete_graph.svg"
   fi
   echo "PROVENANCE | ENDED WORKFLOW PROVENANCE SCRIPT"
 fi

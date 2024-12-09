@@ -373,7 +373,6 @@ worker_cmd() {
   local lot=${15}
   local streaming_backend=${16}
   local streaming_master_port=${17}
-  local provenance=${18}
 
   if [ -z "${streaming_master_port}" ] || [ "${streaming_master_port}" == "null" ]; then
     # Value will be ignored, just add a random number so that the parser does not complain
@@ -477,8 +476,7 @@ master_cmd() {
             --streaming_master_port=${streaming_master_port} \
             --jvm_master_opts=${jvm_master_opts} \
             --trace_label=${trace_label} \
-            --jvm_workers_opts=${jvm_workers_opts} \
-            --data_provenance=${provenance}"
+            --jvm_workers_opts=${jvm_workers_opts}"
   if [ -n "${master_working_dir}" ]; then
     MCMD="$MCMD --master_working_dir=${master_working_dir}"
   fi
@@ -558,17 +556,7 @@ xml_project_add_worker_in_master() {
     fi
     # Add compute node
     master_node_name=${master_node_name}${network}
-    if [ -z "${xmls_phase}" ] || [ "${xmls_phase}" == "all" ]; then
-      # Normal submission
-      add_compute_node "${master_node_name}" "${worker_install_dir}" "${worker_working_dir}" "NULL" "NULL" "${library_path}" "NULL" "NULL" "${max_tasks_per_node}"
-    else
-      # Heterogeneous submission
-      if [ "${xmls_phase}" == "fini" ]; then
-        add_compute_node_on_top "${master_node_name}" "${worker_install_dir}" "${worker_working_dir}" "NULL" "NULL" "${library_path}" "NULL" "NULL" "${max_tasks_per_node}"
-      else
-        add_compute_node "${master_node_name}" "${worker_install_dir}" "${worker_working_dir}" "NULL" "NULL" "${library_path}" "NULL" "NULL" "${max_tasks_per_node}"
-      fi
-    fi
+    add_compute_node "${master_node_name}" "${worker_install_dir}" "${worker_working_dir}" "NULL" "NULL" "${library_path}" "NULL" "NULL" "${max_tasks_per_node}"
   fi
 }
 
@@ -745,17 +733,7 @@ xml_resources_add_worker_in_master() {
     fi
     # Add compute node
     master_node_name=${master_node_name}${network}
-    if [ -z "${xmls_phase}" ] || [ "${xmls_phase}" == "all" ]; then
-      # Normal submission
-      add_compute_node "${master_node_name}" "${worker_in_master_cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${worker_in_master_memory}" "${node_storage_bandwidth}" "${worker_min_port}" "${worker_max_port}" "${REMOTE_EXECUTOR:-NULL}" "${shared_disks_info}"
-    else
-      # Heterogeneous submission
-      if [ "${xmls_phase}" == "fini" ]; then
-        add_compute_node_on_top "${master_node_name}" "${worker_in_master_cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${worker_in_master_memory}" "${node_storage_bandwidth}" "${worker_min_port}" "${worker_max_port}" "${REMOTE_EXECUTOR:-NULL}" "${shared_disks_info}"
-      else
-        add_compute_node "${master_node_name}" "${worker_in_master_cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${worker_in_master_memory}" "${node_storage_bandwidth}" "${worker_min_port}" "${worker_max_port}" "${REMOTE_EXECUTOR:-NULL}" "${shared_disks_info}"
-      fi
-    fi
+    add_compute_node "${master_node_name}" "${worker_in_master_cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${worker_in_master_memory}" "${node_storage_bandwidth}" "${worker_min_port}" "${worker_max_port}" "${REMOTE_EXECUTOR:-NULL}" "${shared_disks_info}"
   fi
 }
 
@@ -908,7 +886,7 @@ init_het_xml_files() {
   add_master_node "0" "0" "0" "NULL" "${shared_disks_info}"
   # Add workers
   if [ -n "${master_node}" ]; then
-    xml_project_add_worker_in_master
+  	xml_project_add_worker_in_master
   fi
   xml_project_add_workers
   # Add elasticity
@@ -923,7 +901,7 @@ init_het_xml_files() {
   RESOURCES_FILE=${PWD}/resources_$suffix.xml
   export RESOURCES_FILE
   if [ "${log_level}" != "off" ]; then
-    echo "[LAUNCH_COMPSS] HT-XML - Resources.xml: ${RESOURCES_FILE}"
+    echo "[LAUNCH_COMPSS] HT-XML Resources.xml: ${RESOURCES_FILE}"
   fi
   # Setup resources variables and scripts
   xml_resources_setup
@@ -932,9 +910,7 @@ init_het_xml_files() {
   # Add shared disks (from generate_resources.sh)
   add_shared_disks "${shared_disks_names}"
   # Add workers
-  if [ -n "${master_node}" ]; then
-    xml_resources_add_worker_in_master
-  fi
+  xml_resources_add_worker_in_master
   xml_resources_add_workers
   # Add elasticity
   if [ -n "${elasticity}" ]; then
@@ -1000,13 +976,11 @@ fini_het_xml_files() {
   PROJECT_FILE=${PWD}/project_$suffix.xml
   export PROJECT_FILE
   if [ "${log_level}" != "off" ]; then
-     echo "[LAUNCH_COMPSS] HT-XML - Project.xml: ${PROJECT_FILE}"
+     echo "[LAUNCH_COMPSS] HT-XML - Project.xml:   ${PROJECT_FILE}"
   fi
 
   # Setup project variables and scripts
   xml_project_setup
-  # Add worker in master if necessary
-  xml_project_add_worker_in_master
   # Close project (from generate_project.sh)
   add_footer
 
@@ -1022,15 +996,13 @@ fini_het_xml_files() {
 
   # Setup resources variables and scripts
   xml_resources_setup
-  # Add workers in master if necessary
-  xml_resources_add_worker_in_master
   # Close resources (from generate_resources.sh)
   add_footer
 
   # LOG
   if [ "${log_level}" != "off" ]; then
      # LOG
-     echo "[LAUNCH_COMPSS] HT-XML - Generation of project and resources files finished"
+     echo "[LAUNCH_COMPSS] HT-XML -Generation of project and resources files finished"
   fi
 }
 
@@ -1419,7 +1391,7 @@ get_args() {
           ear=true
           ear_flags=${OPTARG//ear=/}
           ;;
-        provenance)
+        provenance=*)
           provenance=true
           ;;
         command)
@@ -1437,13 +1409,13 @@ get_args() {
           # Added for tracing in heterogeneity
           initial_hostid=${OPTARG//initial_hostid=/}
           ;;
-        het_group=*)
-          # Added for heterogeneity
-          het_group=${OPTARG//het_group=/}
-                ;;
-              no_master)
-          no_master=true
+	het_group=*)
+	  # Addded for heterogeneity
+	  het_group=${OPTARG//het_group=/}
           ;;
+        no_master)
+	  no_master=true
+	  ;;
         gen_coredump)
           # Generate the coredump
           gen_coredump=true
@@ -2035,12 +2007,12 @@ set_variables() {
       worker_working_dir=$(mktemp -d -p "${worker_working_dir}")
     fi
     if [[ ${worker_working_dir}/ = ${SHARED_DISK_PREFIX}* ]]; then
-      CREATE_WORKING_DIRS=false
+	CREATE_WORKING_DIRS=false
     elif [[ ${worker_working_dir}/ = ${SHARED_DISK_2_PREFIX}* ]]; then
-      CREATE_WORKING_DIRS=false
+	CREATE_WORKING_DIRS=false
     else
-      echo "Setting CREATE_working_dirs to true..."
-      CREATE_WORKING_DIRS=true
+	echo "Setting CREATE_working_dirs to true..."
+	CREATE_WORKING_DIRS=true
     fi
   fi
 
@@ -2261,7 +2233,7 @@ launch() {
                 AUXILIAR_LAUNCH_PARAMS="${QARG_CPUS_PER_TASK} ${worker_in_master_cpus} "
             fi
         fi
-        if [ -n "${het_group}" ]; then
+	if [ -n "${het_group}" ]; then
             AUXILIAR_LAUNCH_PARAMS="${QARG_HET_GROUP}${het_group} ${AUXILIAR_LAUNCH_PARAMS}"
         fi
 
@@ -2296,14 +2268,14 @@ launch() {
       jvm_workers_opts_size=$(echo "${jvm_workers_opts_str}" | wc -w)
       fpga_reprogram_str=$(echo "${fpga_prog}" | tr "," " ")
       fpga_reprogram_size=$(echo "${fpga_prog}" | wc -w)
-      if [ ! -z "${master_node}" ]; then
-        master_name="${master_node}${network}"
+      if [ ! -z "${master_node}" ]; then 
+	master_name="${master_node}${network}"
       else
-        master_name="null"
+	master_name="null"
       fi
       for node in ${worker_nodes}; do
         # worker_cmd id name master_name jvmOptsSize jvmOpts cpus gpus cpuMap gpuMap lot streaming_backend streaming_master_port
-        worker_cmd $hostid "$node${network}" "${master_name}" "${jvm_workers_opts_size}" "${jvm_workers_opts_str}" "${fpga_reprogram_size}" "${fpga_reprogram_str}" "${cpus_per_node}" "${gpus_per_node}" "${fpgas_per_node}" "${cpu_affinity}" "${gpu_affinity}" "${fpga_affinity}" "${io_executors}" "${max_tasks_per_node}" "${streaming}" "${streaming_master_port}" "${provenance}"
+        worker_cmd $hostid "$node${network}" "${master_name}" "${jvm_workers_opts_size}" "${jvm_workers_opts_str}" "${fpga_reprogram_size}" "${fpga_reprogram_str}" "${cpus_per_node}" "${gpus_per_node}" "${fpgas_per_node}" "${cpu_affinity}" "${gpu_affinity}" "${fpga_affinity}" "${io_executors}" "${max_tasks_per_node}" "${streaming}" "${streaming_master_port}"
 
         if [ ! -z "${NODE_NAME_QUEUE}" ]; then
             node=$(${NODE_NAME_QUEUE} ${node})
@@ -2314,7 +2286,7 @@ launch() {
                 AUXILIAR_LAUNCH_PARAMS="${QARG_CPUS_PER_TASK} ${cpus_per_node} "
             fi
         fi
-        if [ -n "${het_group}" ]; then
+	if [ -n "${het_group}" ]; then
             AUXILIAR_LAUNCH_PARAMS="${QARG_HET_GROUP}${het_group} ${AUXILIAR_LAUNCH_PARAMS}"
         fi
 
@@ -2455,9 +2427,9 @@ load_external_compss_environment() {
       export COMPSS_UUID="${uuid}"
       export COMPSS_LOG_DIR="${specific_log_dir}"
       if [ -z "${master_working_dir}" ]; then
-        export COMPSS_MASTER_WORKING_DIR="${specific_log_dir}/tmpFiles/"
+	  export COMPSS_MASTER_WORKING_DIR="${specific_log_dir}/tmpFiles/"
       else
-        export COMPSS_MASTER_WORKING_DIR="${master_working_dir}/tmpFiles/"
+	  export COMPSS_MASTER_WORKING_DIR="${master_working_dir}/tmpFiles/"
       fi
       export COMPSS_STORAGE_CONF="${storage_conf}"
 }
@@ -2531,7 +2503,6 @@ wait_for_completion() {
   # Wait for Master and Workers to finish
   echo "[LAUNCH_COMPSS] Waiting for application completion"
   wait
-  echo "[LAUNCH_COMPSS] Finished all processes"
 }
 
 ###############################################

@@ -111,7 +111,7 @@ def get_properties(id_name: str, stat: str, value: int) -> dict:
 
 
 def get_resource_usage_dataset(
-        dp_path: str, start_time: datetime, end_time: datetime
+    dp_path: str, start_time: datetime, end_time: datetime
 ) -> list:
     """
     Function that provides a list of the statistical data recorded
@@ -143,15 +143,18 @@ def build_info_dict_ear(measure_name, property, value):
         "@type": "PropertyValue",
         "name": measure_name,
         "value": str(value),
-        "propertyID": f"https://w3id.org/ro/terms/compss#{measure_name}"
+        "propertyID": f"https://w3id.org/ro/terms/compss#{measure_name}",
     }
 
     if measure_name in unit_dict.keys():
         properties_item["unitCode"] = unit_dict[measure_name]
-    elif 'DATE' in measure_name:
-        properties_item["value"] = datetime.strptime(value, "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%dT%H:%M:%S+00:00")
+    elif "DATE" in measure_name:
+        properties_item["value"] = datetime.strptime(
+            value, "%Y-%m-%d %H:%M:%S"
+        ).strftime("%Y-%m-%dT%H:%M:%S+00:00")
 
     return properties_item
+
 
 def build_info_dict_resource_usage(measure_name, value):
 
@@ -159,13 +162,13 @@ def build_info_dict_resource_usage(measure_name, value):
         "@type": "PropertyValue",
         "name": measure_name,
         "value": str(value),
-        "propertyID": f"https://w3id.org/ro/terms/compss#{measure_name}"
+        "propertyID": f"https://w3id.org/ro/terms/compss#{measure_name}",
     }
 
-    if 'byte' in measure_name:
-        properties_item["unitCode"] = 'https://qudt.org/vocab/unit/BYTE'
+    if "byte" in measure_name:
+        properties_item["unitCode"] = "https://qudt.org/vocab/unit/BYTE"
     else:
-        properties_item["unitCode"] = 'https://qudt.org/vocab/unit/PERCENT'
+        properties_item["unitCode"] = "https://qudt.org/vocab/unit/PERCENT"
 
     return properties_item
 
@@ -206,9 +209,12 @@ def get_energy_usage_for_node(energy_file, info_list, node):
             if is_appid:
                 is_appid = False
                 continue
-            info_list.append(build_info_dict_ear(node, id, column, getattr(row, column)))
+            info_list.append(
+                build_info_dict_ear(node, id, column, getattr(row, column))
+            )
 
     return info_list
+
 
 def check_resource(path):
     list_of_files = []
@@ -218,26 +224,28 @@ def check_resource(path):
             list_of_files.append(filename)
     return list_of_files
 
+
 def get_resource_information(resource_file):
     resource_df = pd.read_csv(resource_file)
-    cpu_avg = round(sum(resource_df['CPU']) / len(resource_df), 2)
-    cpu_max = max(resource_df['CPU'])
-    mem_avg = round(sum(resource_df['MEM']) / len(resource_df), 2)
-    mem_min = min(resource_df['MEM'])
-    mem_max = max(resource_df['MEM'])
-    byte_sent_sum = sum(resource_df['BYTE_SENT'])
-    byte_recv_sum = sum(resource_df['BYTE_RECV'])
+    cpu_avg = round(sum(resource_df["CPU"]) / len(resource_df), 2)
+    cpu_max = max(resource_df["CPU"])
+    mem_avg = round(sum(resource_df["MEM"]) / len(resource_df), 2)
+    mem_min = min(resource_df["MEM"])
+    mem_max = max(resource_df["MEM"])
+    byte_sent_sum = sum(resource_df["BYTE_SENT"])
+    byte_recv_sum = sum(resource_df["BYTE_RECV"])
 
     resource_properties = {
-        'cpuAvg': cpu_avg,
-        'cpuMax': cpu_max,
-        'memAvg': mem_avg,
-        'memMin': mem_min,
-        'memMax': mem_max,
-        'byteSent': byte_sent_sum,
-        'byteRecv': byte_recv_sum,
+        "cpuAvg": cpu_avg,
+        "cpuMax": cpu_max,
+        "memAvg": mem_avg,
+        "memMin": mem_min,
+        "memMax": mem_max,
+        "byteSent": byte_sent_sum,
+        "byteRecv": byte_recv_sum,
     }
     return resource_properties
+
 
 def wrroc_create_action(
     compss_crate: ROCrate,
@@ -282,22 +290,22 @@ def wrroc_create_action(
 
     if job_id is None:
         name_property = (
-                "COMPSs " + main_entity_pathobj.name + " execution at " + host_name
+            "COMPSs " + main_entity_pathobj.name + " execution at " + host_name
         )
         userportal_url = None
         create_action_id = "#COMPSs_Workflow_Run_Crate_" + host_name + "_" + run_uuid
     else:
         name_property = (
-                "COMPSs "
-                + main_entity_pathobj.name
-                + " execution at "
-                + host_name
-                + " with JOB_ID "
-                + job_id
+            "COMPSs "
+            + main_entity_pathobj.name
+            + " execution at "
+            + host_name
+            + " with JOB_ID "
+            + job_id
         )
         userportal_url = "https://userportal.bsc.es/"  # job_id cannot be added, does not match the one in userportal
         create_action_id = (
-                "#COMPSs_Workflow_Run_Crate_" + host_name + "_SLURM_JOB_ID_" + job_id
+            "#COMPSs_Workflow_Run_Crate_" + host_name + "_SLURM_JOB_ID_" + job_id
         )
     compss_crate.root_dataset["mentions"] = {"@id": create_action_id}
 
@@ -308,8 +316,8 @@ def wrroc_create_action(
     description_property = uname_out
 
     if os.path.exists(".compss_submission_command_line"):
-        with open(".compss_submission_command_line", 'r') as file:
-            description_property = file.read()[:-1] # Remove final '\n'
+        with open(".compss_submission_command_line", "r") as file:
+            description_property = file.read()[:-1]  # Remove final '\n'
 
     # SLURM interesting variables: SLURM_JOB_NAME, SLURM_JOB_QOS, SLURM_JOB_USER, SLURM_SUBMIT_DIR, SLURM_NNODES or
     # SLURM_JOB_NUM_NODES, SLURM_JOB_CPUS_PER_NODE, SLURM_MEM_PER_CPU, SLURM_JOB_NODELIST or SLURM_NODELIST.
@@ -317,8 +325,8 @@ def wrroc_create_action(
     environment_property = []
     for name, value in os.environ.items():
         if (
-                name.startswith(("SLURM_JOB", "SLURM_MEM", "SLURM_SUBMIT", "COMPSS"))
-                and name != "SLURM_JOBID"
+            name.startswith(("SLURM_JOB", "SLURM_MEM", "SLURM_SUBMIT", "COMPSS"))
+            and name != "SLURM_JOBID"
         ):
             # Changed to 'environment' term in WRROC v0.4
             env_var = {}
@@ -330,7 +338,7 @@ def wrroc_create_action(
                     compss_crate,
                     "#" + name.lower(),
                     properties=env_var,
-                    )
+                )
             )
             environment_property.append({"@id": "#" + name.lower()})
 
@@ -383,7 +391,7 @@ def wrroc_create_action(
             print(f"PROVENANCE | WARNING: 'Submitter' in {info_yaml} wrongly defined")
 
     if (
-            "Agent" not in yaml_content and "Submitter" not in yaml_content
+        "Agent" not in yaml_content and "Submitter" not in yaml_content
     ) or not agent_added:
         # Choose first author, to avoid leaving it empty. May be true most of the times
         if author_list:
@@ -503,14 +511,22 @@ def wrroc_create_action(
         else:
             for profiling_file in profiling_files_list:
                 resource_name = profiling_file.split(".")[0].split("_")[-1]
-                resource_properties = get_resource_information(stats_path / profiling_file)
-                resource_id = '#' + resource_name
+                resource_properties = get_resource_information(
+                    stats_path / profiling_file
+                )
+                resource_id = "#" + resource_name
 
                 for measure in resource_properties.keys():
-                    measure_id = f'{resource_id}.{measure}'
-                    new_properties = build_info_dict_resource_usage(measure, resource_properties[measure])
-                    compss_crate.add(ContextEntity(compss_crate, measure_id, properties=new_properties))
-                    id_measure_list.append({'@id': measure_id})
+                    measure_id = f"{resource_id}.{measure}"
+                    new_properties = build_info_dict_resource_usage(
+                        measure, resource_properties[measure]
+                    )
+                    compss_crate.add(
+                        ContextEntity(
+                            compss_crate, measure_id, properties=new_properties
+                        )
+                    )
+                    id_measure_list.append({"@id": measure_id})
 
         id_name_list.extend(id_measure_list)
         print(f"PROVENANCE | RO-Crate added resource profiling information ")
@@ -520,21 +536,33 @@ def wrroc_create_action(
 
 
     try:
-        entry_list = ['AVG_CPUFREQ_KHZ', 'AVG_IMCFREQ_KHZ', 'CPI', 'TPI', 'MEM_GBS', 'IO_MBS', 'DC_NODE_POWER_W', 'DRAM_POWER_W', 'PCK_POWER_W',
-                      'CYCLES', 'INSTRUCTIONS', "CPU_GFLOPS"]
+        entry_list = [
+            "AVG_CPUFREQ_KHZ",
+            "AVG_IMCFREQ_KHZ",
+            "CPI",
+            "TPI",
+            "MEM_GBS",
+            "IO_MBS",
+            "DC_NODE_POWER_W",
+            "DRAM_POWER_W",
+            "PCK_POWER_W",
+            "CYCLES",
+            "INSTRUCTIONS",
+            "CPU_GFLOPS",
+        ]
 
         print(f"PROVENANCE | RO-Crate adding energy data")
 
         id_measure_list = []
         for subdir, dirs, files in os.walk(energy_path):
             for file in files:
-                if file.endswith('time.csv'):
+                if file.endswith("time.csv"):
                     energy_file = Path(subdir, file)
-                    node = file.split('.')[1]
-                    df = pd.read_csv(energy_file, sep=';')
+                    node = file.split(".")[1]
+                    df = pd.read_csv(energy_file, sep=";")
                     # pandas library has problems in column names containing dash
-                    df = df.rename(columns={'CPU-GFLOPS': 'CPU_GFLOPS'})
-                    node_id = df['NODENAME'].iloc[0]
+                    df = df.rename(columns={"CPU-GFLOPS": "CPU_GFLOPS"})
+                    node_id = df["NODENAME"].iloc[0]
                     df = df[entry_list]
 
                     for measure in entry_list:
@@ -542,7 +570,11 @@ def wrroc_create_action(
 
                         measure_id = f"#{node_id}.{measure}"
                         new_properties = build_info_dict_ear(measure, average_value)
-                        compss_crate.add(ContextEntity(compss_crate, measure_id, properties=new_properties))
+                        compss_crate.add(
+                            ContextEntity(
+                                compss_crate, measure_id, properties=new_properties
+                            )
+                        )
                         id_measure_list.append({"@id": measure_id})
         id_name_list.extend(id_measure_list)
     except ValueError:
@@ -551,11 +583,8 @@ def wrroc_create_action(
         )
         print("PROVENANCE | EAR not used")
 
-
-
     create_action_properties["resourceUsage"] = id_name_list
 
-    #
     # if os.path.isdir(energy_path):
     #     try:
     #         print(f"PROVENANCE | RO-Crate adding energy data")
@@ -622,7 +651,7 @@ def wrroc_create_action(
             file_properties["name"] = "compss-" + job_id + f_suffix
             file_properties["contentSize"] = os.path.getsize(file_properties["name"])
             file_properties["description"] = (
-                    "COMPSs console standard " + f_msg + " log file"
+                "COMPSs console standard " + f_msg + " log file"
             )
             file_properties["encodingFormat"] = "text/plain"
             file_properties["about"] = create_action_id

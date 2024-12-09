@@ -373,7 +373,6 @@ worker_cmd() {
   local lot=${15}
   local streaming_backend=${16}
   local streaming_master_port=${17}
-  local provenance=${18}
 
   if [ -z "${streaming_master_port}" ] || [ "${streaming_master_port}" == "null" ]; then
     # Value will be ignored, just add a random number so that the parser does not complain
@@ -477,8 +476,7 @@ master_cmd() {
             --streaming_master_port=${streaming_master_port} \
             --jvm_master_opts=${jvm_master_opts} \
             --trace_label=${trace_label} \
-            --jvm_workers_opts=${jvm_workers_opts} \
-            --data_provenance=${provenance}"
+            --jvm_workers_opts=${jvm_workers_opts}"
   if [ -n "${master_working_dir}" ]; then
     MCMD="$MCMD --master_working_dir=${master_working_dir}"
   fi
@@ -1393,7 +1391,7 @@ get_args() {
           ear=true
           ear_flags=${OPTARG//ear=/}
           ;;
-        provenance)
+        provenance=*)
           provenance=true
           ;;
         command)
@@ -1411,13 +1409,13 @@ get_args() {
           # Added for tracing in heterogeneity
           initial_hostid=${OPTARG//initial_hostid=/}
           ;;
-	      het_group=*)
-	        # Addded for heterogeneity
-	        het_group=${OPTARG//het_group=/}
+	het_group=*)
+	  # Addded for heterogeneity
+	  het_group=${OPTARG//het_group=/}
           ;;
         no_master)
-	        no_master=true
-	        ;;
+	  no_master=true
+	  ;;
         gen_coredump)
           # Generate the coredump
           gen_coredump=true
@@ -2214,7 +2212,6 @@ launch() {
     fi
     if [ ! -z "${master_node}" ]; then
       if [ "${worker_in_master_cpus}" -ne 0 ]; then
-        export worker_in_master_cpus
         # Worker in master node
         local jvm_worker_in_master_opts_str
         local jvm_worker_in_master_opts_size
@@ -2225,7 +2222,7 @@ launch() {
         fpga_reprogram_str=$(echo "${fpga_prog}" | tr "," " ")
         fpga_reprogram_size=$(echo "${fpga_prog}" | wc -w)
         # worker_cmd id name master_name jvmOptsSize jvmOpts cpus gpus cpuMap gpuMap lot streaming_backend streaming_master_port
-	worker_cmd "$hostid" "${master_node}${network}" "${master_node}${network}" "${jvm_worker_in_master_opts_size}" "${jvm_worker_in_master_opts_str}" "${fpga_reprogram_size}" "${fpga_reprogram_str}" "${worker_in_master_cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${cpu_affinity}" "${gpu_affinity}" "${fpga_affinity}" "${io_executors}" "${max_tasks_per_node}" "${streaming}" "${streaming_master_port}" "${provenance}"
+	worker_cmd "$hostid" "${master_node}${network}" "${master_node}${network}" "${jvm_worker_in_master_opts_size}" "${jvm_worker_in_master_opts_str}" "${fpga_reprogram_size}" "${fpga_reprogram_str}" "${worker_in_master_cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${cpu_affinity}" "${gpu_affinity}" "${fpga_affinity}" "${io_executors}" "${max_tasks_per_node}" "${streaming}" "${streaming_master_port}"
 
         if [ ! -z "${NODE_NAME_QUEUE}" ]; then
           master_node=$(${NODE_NAME_QUEUE} "${master_node}")
@@ -2271,14 +2268,14 @@ launch() {
       jvm_workers_opts_size=$(echo "${jvm_workers_opts_str}" | wc -w)
       fpga_reprogram_str=$(echo "${fpga_prog}" | tr "," " ")
       fpga_reprogram_size=$(echo "${fpga_prog}" | wc -w)
-      if [ ! -z "${master_node}" ]; then
+      if [ ! -z "${master_node}" ]; then 
 	master_name="${master_node}${network}"
       else
 	master_name="null"
       fi
       for node in ${worker_nodes}; do
         # worker_cmd id name master_name jvmOptsSize jvmOpts cpus gpus cpuMap gpuMap lot streaming_backend streaming_master_port
-        worker_cmd $hostid "$node${network}" "${master_name}" "${jvm_workers_opts_size}" "${jvm_workers_opts_str}" "${fpga_reprogram_size}" "${fpga_reprogram_str}" "${cpus_per_node}" "${gpus_per_node}" "${fpgas_per_node}" "${cpu_affinity}" "${gpu_affinity}" "${fpga_affinity}" "${io_executors}" "${max_tasks_per_node}" "${streaming}" "${streaming_master_port}" "${provenance}"
+        worker_cmd $hostid "$node${network}" "${master_name}" "${jvm_workers_opts_size}" "${jvm_workers_opts_str}" "${fpga_reprogram_size}" "${fpga_reprogram_str}" "${cpus_per_node}" "${gpus_per_node}" "${fpgas_per_node}" "${cpu_affinity}" "${gpu_affinity}" "${fpga_affinity}" "${io_executors}" "${max_tasks_per_node}" "${streaming}" "${streaming_master_port}"
 
         if [ ! -z "${NODE_NAME_QUEUE}" ]; then
             node=$(${NODE_NAME_QUEUE} ${node})

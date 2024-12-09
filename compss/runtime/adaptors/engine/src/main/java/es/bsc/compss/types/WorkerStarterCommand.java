@@ -34,60 +34,60 @@ public abstract class WorkerStarterCommand implements StarterCommand {
     // Static Environment variables
     private static final String LIB_SEPARATOR = ":";
     private static final String CLASSPATH_FROM_ENVIRONMENT = (System.getProperty(COMPSsConstants.WORKER_CP) != null
-            && !System.getProperty(COMPSsConstants.WORKER_CP).isEmpty()) ? System.getProperty(COMPSsConstants.WORKER_CP)
+        && !System.getProperty(COMPSsConstants.WORKER_CP).isEmpty()) ? System.getProperty(COMPSsConstants.WORKER_CP)
             : "";
 
     private static final String PYTHONPATH_FROM_ENVIRONMENT = (System.getProperty(COMPSsConstants.WORKER_PP) != null
-            && !System.getProperty(COMPSsConstants.WORKER_PP).isEmpty()) ? System.getProperty(COMPSsConstants.WORKER_PP)
+        && !System.getProperty(COMPSsConstants.WORKER_PP).isEmpty()) ? System.getProperty(COMPSsConstants.WORKER_PP)
             : "";
 
     private static final String LIBPATH_FROM_ENVIRONMENT = (System.getenv(COMPSsConstants.LD_LIBRARY_PATH) != null
-            && !System.getenv(COMPSsConstants.LD_LIBRARY_PATH).isEmpty()) ? System.getenv(COMPSsConstants.LD_LIBRARY_PATH)
+        && !System.getenv(COMPSsConstants.LD_LIBRARY_PATH).isEmpty()) ? System.getenv(COMPSsConstants.LD_LIBRARY_PATH)
             : "";
 
     private static final boolean IS_CPU_AFFINITY_DEFINED =
-            System.getProperty(COMPSsConstants.WORKER_CPU_AFFINITY) != null
-                    && !System.getProperty(COMPSsConstants.WORKER_CPU_AFFINITY).isEmpty();
+        System.getProperty(COMPSsConstants.WORKER_CPU_AFFINITY) != null
+            && !System.getProperty(COMPSsConstants.WORKER_CPU_AFFINITY).isEmpty();
     protected static final String CPU_AFFINITY =
-            IS_CPU_AFFINITY_DEFINED ? System.getProperty(COMPSsConstants.WORKER_CPU_AFFINITY)
-                    : ThreadBinder.BINDER_DISABLED;
+        IS_CPU_AFFINITY_DEFINED ? System.getProperty(COMPSsConstants.WORKER_CPU_AFFINITY)
+            : ThreadBinder.BINDER_DISABLED;
 
     private static final boolean IS_GPU_AFFINITY_DEFINED =
-            System.getProperty(COMPSsConstants.WORKER_GPU_AFFINITY) != null
-                    && !System.getProperty(COMPSsConstants.WORKER_GPU_AFFINITY).isEmpty();
+        System.getProperty(COMPSsConstants.WORKER_GPU_AFFINITY) != null
+            && !System.getProperty(COMPSsConstants.WORKER_GPU_AFFINITY).isEmpty();
     protected static final String GPU_AFFINITY =
-            IS_GPU_AFFINITY_DEFINED ? System.getProperty(COMPSsConstants.WORKER_GPU_AFFINITY)
-                    : ThreadBinder.BINDER_DISABLED;
+        IS_GPU_AFFINITY_DEFINED ? System.getProperty(COMPSsConstants.WORKER_GPU_AFFINITY)
+            : ThreadBinder.BINDER_DISABLED;
 
     private static final boolean IS_FPGA_AFFINITY_DEFINED =
-            System.getProperty(COMPSsConstants.WORKER_FPGA_AFFINITY) != null
-                    && !System.getProperty(COMPSsConstants.WORKER_FPGA_AFFINITY).isEmpty();
+        System.getProperty(COMPSsConstants.WORKER_FPGA_AFFINITY) != null
+            && !System.getProperty(COMPSsConstants.WORKER_FPGA_AFFINITY).isEmpty();
     protected static final String FPGA_AFFINITY =
-            IS_FPGA_AFFINITY_DEFINED ? System.getProperty(COMPSsConstants.WORKER_FPGA_AFFINITY)
-                    : ThreadBinder.BINDER_DISABLED;
+        IS_FPGA_AFFINITY_DEFINED ? System.getProperty(COMPSsConstants.WORKER_FPGA_AFFINITY)
+            : ThreadBinder.BINDER_DISABLED;
 
     private static final boolean IS_IO_EXECUTORS_DEFINED =
-            System.getProperty(COMPSsConstants.WORKER_IO_EXECUTORS) != null
-                    && !System.getProperty(COMPSsConstants.WORKER_IO_EXECUTORS).isEmpty();
+        System.getProperty(COMPSsConstants.WORKER_IO_EXECUTORS) != null
+            && !System.getProperty(COMPSsConstants.WORKER_IO_EXECUTORS).isEmpty();
     protected static final String IO_EXECUTORS =
-            IS_IO_EXECUTORS_DEFINED ? System.getProperty(COMPSsConstants.WORKER_IO_EXECUTORS) : "0";
+        IS_IO_EXECUTORS_DEFINED ? System.getProperty(COMPSsConstants.WORKER_IO_EXECUTORS) : "0";
 
     private static final String WORKER_APPDIR_FROM_ENVIRONMENT =
-            System.getProperty(COMPSsConstants.WORKER_APPDIR) != null
-                    && !System.getProperty(COMPSsConstants.WORKER_APPDIR).isEmpty()
-                    ? System.getProperty(COMPSsConstants.WORKER_APPDIR)
-                    : "";
+        System.getProperty(COMPSsConstants.WORKER_APPDIR) != null
+            && !System.getProperty(COMPSsConstants.WORKER_APPDIR).isEmpty()
+                ? System.getProperty(COMPSsConstants.WORKER_APPDIR)
+                : "";
     private static final String WORKER_ENV_SCRIPT_FROM_ENVIRONMENT =
-            System.getProperty(COMPSsConstants.WORKER_ENV_SCRIPT) != null
-                    && !System.getProperty(COMPSsConstants.WORKER_ENV_SCRIPT).isEmpty()
-                    ? System.getProperty(COMPSsConstants.WORKER_ENV_SCRIPT)
-                    : "";
+        System.getProperty(COMPSsConstants.WORKER_ENV_SCRIPT) != null
+            && !System.getProperty(COMPSsConstants.WORKER_ENV_SCRIPT).isEmpty()
+                ? System.getProperty(COMPSsConstants.WORKER_ENV_SCRIPT)
+                : "";
     private static final String WORKER_PYTHON_INTERPRETER_FROM_ENVIRONMENT =
-            System.getProperty(COMPSsConstants.PYTHON_INTERPRETER) != null
-                    && !System.getProperty(COMPSsConstants.PYTHON_INTERPRETER).isEmpty()
-                    && !System.getProperty(COMPSsConstants.PYTHON_INTERPRETER).equals("null")
-                    ? System.getProperty(COMPSsConstants.PYTHON_INTERPRETER)
-                    : "";
+        System.getProperty(COMPSsConstants.PYTHON_INTERPRETER) != null
+            && !System.getProperty(COMPSsConstants.PYTHON_INTERPRETER).isEmpty()
+            && !System.getProperty(COMPSsConstants.PYTHON_INTERPRETER).equals("null")
+                ? System.getProperty(COMPSsConstants.PYTHON_INTERPRETER)
+                : "";
 
     // Deployment ID
     protected static final String DEPLOYMENT_ID = System.getProperty(COMPSsConstants.DEPLOYMENT_ID);
@@ -148,9 +148,9 @@ public abstract class WorkerStarterCommand implements StarterCommand {
      * @param hostId tracing worker identifier
      */
     public WorkerStarterCommand(String workerName, int workerPort, String masterName, String workingDir,
-                                String installDir, String appDir, String classpathFromFile, String pythonpathFromFile, String libPathFromFile,
-                                String envScriptPathFromFile, String pythonInterpreterFromFile, int totalCPU, int totalGPU, int totalFPGA,
-                                int limitOfTasks, String hostId) {
+        String installDir, String appDir, String classpathFromFile, String pythonpathFromFile, String libPathFromFile,
+        String envScriptPathFromFile, String pythonInterpreterFromFile, int totalCPU, int totalGPU, int totalFPGA,
+        int limitOfTasks, String hostId) {
 
         this.workerName = workerName;
         this.workerPort = workerPort;
@@ -162,7 +162,7 @@ public abstract class WorkerStarterCommand implements StarterCommand {
         if (!appDir.isEmpty()) {
             if (!WORKER_APPDIR_FROM_ENVIRONMENT.isEmpty()) {
                 LOGGER.warn("Path passed via appdir option and xml AppDir field."
-                        + "The path provided by the xml will be used");
+                    + "The path provided by the xml will be used");
             }
             this.appDir = appDir;
 
@@ -175,7 +175,7 @@ public abstract class WorkerStarterCommand implements StarterCommand {
         if (!envScriptPathFromFile.isEmpty()) {
             if (!WORKER_ENV_SCRIPT_FROM_ENVIRONMENT.isEmpty()) {
                 LOGGER.warn("Path passed via env_script option and xml EnvironmentPath field."
-                        + "The path provided by the xml will be used");
+                    + "The path provided by the xml will be used");
             }
             this.workerEnvScriptPath = envScriptPathFromFile;
 
@@ -189,7 +189,7 @@ public abstract class WorkerStarterCommand implements StarterCommand {
         if (!pythonInterpreterFromFile.isEmpty()) {
             if (!WORKER_PYTHON_INTERPRETER_FROM_ENVIRONMENT.isEmpty()) {
                 LOGGER.warn("Path passed via python_interpreter option and xml PythonInterpreter field."
-                        + "The interpreter provided by the xml will be used");
+                    + "The interpreter provided by the xml will be used");
             }
             this.pythonInterpreter = pythonInterpreterFromFile;
 
@@ -261,7 +261,7 @@ public abstract class WorkerStarterCommand implements StarterCommand {
         // configure persistent_worker_c execution
         this.workerPersistentC = System.getProperty(COMPSsConstants.WORKER_PERSISTENT_C);
         if (this.workerPersistentC == null || this.workerPersistentC.isEmpty()
-                || this.workerPersistentC.equals("null")) {
+            || this.workerPersistentC.equals("null")) {
             this.workerPersistentC = COMPSsDefaults.PERSISTENT_C;
         }
 
@@ -274,13 +274,13 @@ public abstract class WorkerStarterCommand implements StarterCommand {
         // Configure python virtual environment
         this.pythonVirtualEnvironment = System.getProperty(COMPSsConstants.PYTHON_VIRTUAL_ENVIRONMENT);
         if (this.pythonVirtualEnvironment == null || this.pythonVirtualEnvironment.isEmpty()
-                || this.pythonVirtualEnvironment.equals("null")) {
+            || this.pythonVirtualEnvironment.equals("null")) {
             this.pythonVirtualEnvironment = COMPSsDefaults.PYTHON_VIRTUAL_ENVIRONMENT;
         }
         this.pythonPropagateVirtualEnvironment =
-                System.getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT);
+            System.getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT);
         if (this.pythonPropagateVirtualEnvironment == null || this.pythonPropagateVirtualEnvironment.isEmpty()
-                || this.pythonPropagateVirtualEnvironment.equals("null")) {
+            || this.pythonPropagateVirtualEnvironment.equals("null")) {
             this.pythonPropagateVirtualEnvironment = COMPSsDefaults.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT;
         }
 
@@ -299,14 +299,14 @@ public abstract class WorkerStarterCommand implements StarterCommand {
         // Configure worker cache
         this.pythonWorkerCache = System.getProperty(COMPSsConstants.PYTHON_WORKER_CACHE);
         if (this.pythonWorkerCache == null || this.pythonWorkerCache.isEmpty()
-                || this.pythonWorkerCache.equals("null")) {
+            || this.pythonWorkerCache.equals("null")) {
             this.pythonWorkerCache = COMPSsDefaults.PYTHON_WORKER_CACHE;
         }
 
         // Configure profiler cache
         this.pythonCacheProfiler = System.getProperty(COMPSsConstants.PYTHON_CACHE_PROFILER);
         if (this.pythonCacheProfiler == null || this.pythonCacheProfiler.isEmpty()
-                || this.pythonCacheProfiler.equals("null")) {
+            || this.pythonCacheProfiler.equals("null")) {
             this.pythonCacheProfiler = COMPSsDefaults.PYTHON_CACHE_PROFILER;
         }
 

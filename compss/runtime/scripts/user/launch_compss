@@ -71,6 +71,7 @@ DEFAULT_JUPYTER_NOTEBOOK=false
 DEFAULT_JUPYTER_NOTEBOOK_PATH=$HOME
 DEFAULT_IPYTHON=false
 DEFAULT_EAR=false
+DEFAULT_PROVENANCE=false
 DEFAULT_SHARED_DISK_SCHEDULER=${LA_MT_SUCC_FIFO_SCHEDULER}
 DEFAULT_LOCAL_DISK_SCHEDULER=${LA_MT_SUCC_LOCALITY_SCHEDULER}
 
@@ -448,7 +449,8 @@ worker_cmd() {
             ${python_mpi_worker} \
             ${python_worker_cache} \
             ${python_cache_profiler} \
-            ${ear}"
+            ${ear} \
+            ${provenance}"
 }
 
 ###############################################
@@ -1415,6 +1417,9 @@ get_args() {
           ear=true
           ear_flags=${OPTARG//ear=/}
           ;;
+        provenance=*)
+          provenance=true
+          ;;
         command)
           run_command=true
           ;;
@@ -1801,6 +1806,10 @@ check_args() {
     ear=${DEFAULT_EAR}
   fi
 
+  if [ -z "${provenance}" ]; then
+      provenance=${DEFAULT_PROVENANCE}
+    fi
+
   if [ -z "${run_command}" ]; then
     run_command=false
   fi
@@ -2131,6 +2140,7 @@ log_variables() {
   echo "Python worker cache        ${python_worker_cache}"
   echo "Python profiler cache      ${python_cache_profiler}"
   echo "EAR                        ${ear_flags}"
+  echo "PROVENANCE:                ${provenance}"
   echo "COMM:                      ${comm}"
   echo "Prolog:                    ${prologActions[*]}"
   echo "Epilog:                    ${epilogActions[*]}"

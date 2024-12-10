@@ -21,7 +21,7 @@ RUN cd /framework && \
     mv /root/.m2 /home/jenkins && \
     chown -R jenkins: /framework && \
     chown -R jenkins: /home/jenkins/ && \
-    python3 -m pip install --no-cache-dir rocrate==0.9.0
+    python3 -m pip install --no-cache-dir rocrate==0.9.0 roc-validator==0.4.2
 
 
 # Expose SSH port and run SSHD

@@ -413,11 +413,19 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      * Adds a new running action on the resource.
      *
      * @param action AllocatableAction to add to the resource.
+     * @return Consumed resources to host the action.
      */
-    public final void hostAction(AllocatableAction action) {
+    @SuppressWarnings("unchecked")
+    public final WorkerResourceDescription hostAction(AllocatableAction action) {
+        WorkerResourceDescription consumption = null;
+        if (action.isToReserveResources()) {
+            Worker<WorkerResourceDescription> w = (Worker<WorkerResourceDescription>) this.getResource();
+            Implementation impl = action.getAssignedImplementation();
+            consumption = w.runTask(impl.getRequirements());
+        }
         LOGGER.debug("[ResourceScheduler] Host action " + action);
         this.running.add(action);
-
+        return consumption;
     }
 
     /**
@@ -648,7 +656,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
 
     /**
      * Dumps the cores and implementations information into a JSON object.
-     * 
+     *
      * @return A dump of the cores and implementations information in JSON format.
      */
     public JSONObject toJSONObject() {
@@ -669,7 +677,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
 
     /**
      * Updates the given JSON object with the current information.
-     * 
+     *
      * @param oldResource JSON object.
      * @return Updated JSON object containing a dump of the cores and implementations.
      */
@@ -702,7 +710,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
 
     /**
      * Marks the removed flag in the resource scheduler.
-     * 
+     *
      * @param removed Boolean indicating the removed state.
      */
     public void setRemoved(boolean removed) {
@@ -711,7 +719,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
 
     /**
      * Returns whether the RS is removed or not.
-     * 
+     *
      * @return {@literal true} if the RS is removed, {@literal false} otherwise.
      */
     public boolean isRemoved() {

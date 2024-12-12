@@ -681,9 +681,8 @@ public abstract class AllocatableAction {
         this.lock.unlock();
 
         // Run
-        reserveResources();
         this.profile = this.selectedResource.generateProfileForRun(this);
-        this.selectedResource.hostAction(this);
+        this.resourceConsumption = this.selectedResource.hostAction(this);
 
         doAction();
 
@@ -724,15 +723,6 @@ public abstract class AllocatableAction {
      *         otherwise.
      */
     public abstract boolean isToReleaseResources();
-
-    @SuppressWarnings("unchecked")
-    protected void reserveResources() {
-        if (isToReserveResources()) {
-            Worker<WorkerResourceDescription> w =
-                (Worker<WorkerResourceDescription>) this.selectedResource.getResource();
-            this.resourceConsumption = w.runTask(this.selectedImpl.getRequirements());
-        }
-    }
 
     /**
      * Returns the description of the resources occupied during the action execution.

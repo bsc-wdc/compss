@@ -1006,9 +1006,7 @@ public class TaskScheduler {
         IdleResources<T> modification) {
 
         LOGGER.debug("Releasing idle resources in the worker  " + worker.getName());
-
-        worker.getResource().endTask(modification.getModification());
-        worker.tryToLaunchBlockedActions();
+        worker.idleResources(modification.getModification());
 
         // We update the worker load
         workerLoadUpdate(worker);

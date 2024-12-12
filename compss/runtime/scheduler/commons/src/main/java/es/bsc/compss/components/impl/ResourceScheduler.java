@@ -401,6 +401,20 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     }
 
     /**
+     * Returns whether there are enough resources to run an Implementation or not.
+     *
+     * @param impl implementation to run
+     * @return {@literal true} if there are enough resources to run the action, {@literal false} otherwise.
+     */
+    public boolean canHostNow(Implementation impl) {
+        try {
+            return this.myWorker.canRunNow((T) impl.getRequirements());
+        } catch (ClassCastException cce) {
+            return false;
+        }
+    }
+
+    /**
      * Returns all the hosted actions.
      *
      * @return All the hosted actions.
@@ -417,11 +431,10 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      */
     @SuppressWarnings("unchecked")
     public final WorkerResourceDescription hostAction(AllocatableAction action) {
-        WorkerResourceDescription consumption = null;
+        T consumption = null;
         if (action.isToReserveResources()) {
-            Worker<WorkerResourceDescription> w = (Worker<WorkerResourceDescription>) this.getResource();
             Implementation impl = action.getAssignedImplementation();
-            consumption = w.runTask(impl.getRequirements());
+            consumption = this.myWorker.runTask((T) impl.getRequirements());
         }
         LOGGER.debug("[ResourceScheduler] Host action " + action);
         this.running.add(action);
@@ -433,9 +446,25 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      *
      * @param action AllocatableAction to remove from the resource.
      */
+    @SuppressWarnings("unchecked")
     public final void unhostAction(AllocatableAction action) {
         LOGGER.debug("[ResourceScheduler] Unhost action " + action + " on resource " + getName());
         this.running.remove(action);
+        T consumption = (T) action.getResourceConsumption();
+        if (action.isToReleaseResources()) {
+            this.myWorker.endTask(consumption);
+        }
+        this.tryToLaunchBlockedActions();
+    }
+
+    /**
+     * Releases some resources in the node that were expected to be used by a hosted task.
+     *
+     * @param idleResources resources not being used
+     */
+    public final void idleResources(T idleResources) {
+        this.myWorker.endTask(idleResources);
+        this.tryToLaunchBlockedActions();
     }
 
     /*
@@ -502,7 +531,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      * Tries to launch blocked actions on resource. When an action cannot be launched, its successors are not tried
      */
     @SuppressWarnings("unchecked")
-    public final void tryToLaunchBlockedActions() {
+    private void tryToLaunchBlockedActions() {
         LOGGER.debug("[ResourceScheduler] Try to launch blocked actions on resource " + getName());
         while (this.hasBlockedActions()) {
             AllocatableAction firstBlocked = this.getFirstBlocked();

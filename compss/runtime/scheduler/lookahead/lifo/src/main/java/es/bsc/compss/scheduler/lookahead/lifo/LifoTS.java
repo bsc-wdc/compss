@@ -17,6 +17,7 @@
 package es.bsc.compss.scheduler.lookahead.lifo;
 
 import es.bsc.compss.scheduler.lookahead.LookaheadTS;
+import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.Score;
 import es.bsc.compss.types.resources.Worker;
@@ -32,9 +33,11 @@ public class LifoTS extends LookaheadTS {
 
     /**
      * Constructs a new FIFOScheduler instance.
+     *
+     * @param orchestrator element ordering the execution of actions
      */
-    public LifoTS() {
-        super();
+    public LifoTS(ActionOrchestrator orchestrator) {
+        super(orchestrator);
     }
 
     /*

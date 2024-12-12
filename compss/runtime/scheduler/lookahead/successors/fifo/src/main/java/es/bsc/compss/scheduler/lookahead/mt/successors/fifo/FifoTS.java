@@ -17,6 +17,7 @@
 package es.bsc.compss.scheduler.lookahead.mt.successors.fifo;
 
 import es.bsc.compss.scheduler.lookahead.mt.SuccessorsTS;
+import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.Score;
 import es.bsc.compss.types.resources.Worker;
@@ -32,9 +33,11 @@ public class FifoTS extends SuccessorsTS {
 
     /**
      * Constructs a new FIFODataScheduler instance.
+     *
+     * @param orchestrator element ordering the execution of actions
      */
-    public FifoTS() {
-        super();
+    public FifoTS(ActionOrchestrator orchestrator) {
+        super(orchestrator);
     }
 
     /*

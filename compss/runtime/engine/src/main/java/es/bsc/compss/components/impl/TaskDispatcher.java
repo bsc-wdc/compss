@@ -82,8 +82,8 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
     private static final Logger LOGGER = LogManager.getLogger(Loggers.TD_COMP);
     private static final boolean DEBUG = LOGGER.isDebugEnabled();
 
-    private static final String ERR_LOAD_SCHEDULER = "Error loading scheduler";
     private static final String ERROR_QUEUE_OFFER = "ERROR: TaskDispatcher queue offer error on ";
+    private static final String ERR_LOAD_SCHEDULER = "Error loading scheduler";
 
 
     /**
@@ -105,11 +105,12 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
         ResourceManager.load(this);
 
         // Initialize structures
-        scheduler = constructScheduler();
-        if (scheduler == null) {
-            ErrorManager.fatal(ERR_LOAD_SCHEDULER);
+        String schedFQN = System.getProperty(COMPSsConstants.SCHEDULER);
+        try {
+            scheduler = TaskScheduler.constructScheduler(schedFQN, this);
+        } catch (Exception e) {
+            ErrorManager.fatal(ERR_LOAD_SCHEDULER, e);
         }
-        scheduler.setOrchestrator(this);
 
         // Insert workers
         for (Worker<?> worker : ResourceManager.getStaticResources()) {
@@ -406,22 +407,6 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
         }
 
         Classpath.loadJarsInPath(compssHome + SCHEDULERS_REL_PATH, LOGGER);
-    }
-
-    private TaskScheduler constructScheduler() {
-        TaskScheduler scheduler = null;
-        try {
-            String schedFQN = System.getProperty(COMPSsConstants.SCHEDULER);
-            Class<?> schedClass = Class.forName(schedFQN);
-            Constructor<?> schedCnstr = schedClass.getDeclaredConstructors()[0];
-            scheduler = (TaskScheduler) schedCnstr.newInstance();
-            if (DEBUG) {
-                LOGGER.debug("Loaded scheduler " + scheduler);
-            }
-        } catch (Exception e) {
-            ErrorManager.fatal(ERR_LOAD_SCHEDULER, e);
-        }
-        return scheduler;
     }
 
 }

@@ -18,6 +18,7 @@ package es.bsc.compss.scheduler.orderstrict.fifo;
 
 import es.bsc.compss.scheduler.orderstrict.OrderStrictTS;
 import es.bsc.compss.scheduler.orderstrict.fifo.types.FIFOScore;
+import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.Score;
 import es.bsc.compss.types.resources.Worker;
@@ -33,9 +34,11 @@ public class FifoTS extends OrderStrictTS {
 
     /**
      * Constructs a new FIFOScheduler instance.
+     *
+     * @param orchestrator element ordering the execution of actions
      */
-    public FifoTS() {
-        super();
+    public FifoTS(ActionOrchestrator orchestrator) {
+        super(orchestrator);
     }
 
     /*

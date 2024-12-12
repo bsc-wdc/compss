@@ -18,6 +18,7 @@ package es.bsc.compss.scheduler.lookahead.successors.lifo;
 
 import es.bsc.compss.scheduler.lookahead.SuccessorsTS;
 
+import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.Score;
 import es.bsc.compss.types.resources.Worker;
@@ -33,9 +34,11 @@ public class LifoTS extends SuccessorsTS {
 
     /**
      * Constructs a new FIFODataScheduler instance.
+     *
+     * @param orchestrator element ordering the execution of actions
      */
-    public LifoTS() {
-        super();
+    public LifoTS(ActionOrchestrator orchestrator) {
+        super(orchestrator);
     }
 
     /*

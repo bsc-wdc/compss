@@ -577,7 +577,7 @@ public abstract class AllocatableAction {
      *
      * @throws InvalidSchedulingException When an invalid scheduling state has been reached.
      */
-    public void tryToLaunch() throws InvalidSchedulingException {
+    public final void tryToLaunch() throws InvalidSchedulingException {
         // Gets the lock on the action
         this.lock.lock();
 
@@ -631,7 +631,7 @@ public abstract class AllocatableAction {
         boolean enoughResources = false;
         if (reserve) {
             blocked = this.selectedResource.hasBlockedActions();
-            enoughResources = areEnoughResources();
+            enoughResources = this.selectedResource.canHostNow(this.selectedImpl);
         }
 
         for (MutexGroup group : this.mutexGroups) {
@@ -639,10 +639,11 @@ public abstract class AllocatableAction {
         }
 
         if (!reserve || (!blocked && enoughResources)) {
-            // register executing resource
-            this.executingResources.add(this.selectedResource);
             // Run action
             run();
+
+            // register executing resource
+            this.executingResources.add(this.selectedResource);
         } else {
             LOGGER
                 .info(this + " execution paused due to lack of resources on worker " + this.selectedResource.getName());
@@ -681,9 +682,8 @@ public abstract class AllocatableAction {
         this.lock.unlock();
 
         // Run
-        reserveResources();
         this.profile = this.selectedResource.generateProfileForRun(this);
-        this.selectedResource.hostAction(this);
+        this.resourceConsumption = this.selectedResource.hostAction(this);
 
         doAction();
 
@@ -707,17 +707,6 @@ public abstract class AllocatableAction {
     public abstract boolean isToReserveResources();
 
     /**
-     * Returns whether there are enough resources to run the action or not.
-     *
-     * @return {@literal true} if there are enough resources to run the action, {@literal false} otherwise.
-     */
-    @SuppressWarnings("unchecked")
-    protected boolean areEnoughResources() {
-        Worker<WorkerResourceDescription> w = (Worker<WorkerResourceDescription>) this.selectedResource.getResource();
-        return w.canRunNow(this.selectedImpl.getRequirements());
-    }
-
-    /**
      * Returns whether the AllocatableAction releases some resources after its execution or not.
      *
      * @return {@literal true} if the AllocatableAction releases some resources after its execution, {@literal false}
@@ -725,31 +714,13 @@ public abstract class AllocatableAction {
      */
     public abstract boolean isToReleaseResources();
 
-    @SuppressWarnings("unchecked")
-    protected void reserveResources() {
-        if (isToReserveResources()) {
-            Worker<WorkerResourceDescription> w =
-                (Worker<WorkerResourceDescription>) this.selectedResource.getResource();
-            this.resourceConsumption = w.runTask(this.selectedImpl.getRequirements());
-        }
-    }
-
     /**
      * Returns the description of the resources occupied during the action execution.
      * 
      * @return The description of the resources occupied during the action execution.
      */
-    protected final WorkerResourceDescription getResourceConsumption() {
+    public final WorkerResourceDescription getResourceConsumption() {
         return this.resourceConsumption;
-    }
-
-    @SuppressWarnings("unchecked")
-    protected void releaseResources() {
-        if (isToReleaseResources()) {
-            Worker<WorkerResourceDescription> w =
-                (Worker<WorkerResourceDescription>) this.selectedResource.getResource();
-            w.endTask(this.resourceConsumption);
-        }
     }
 
     /**
@@ -778,9 +749,7 @@ public abstract class AllocatableAction {
         switch (this.state) {
             case RUNNING:
                 // Release resources and run tasks blocked on the resource
-                releaseResources();
                 this.selectedResource.unhostAction(this);
-                this.selectedResource.tryToLaunchBlockedActions();
                 this.state = State.RUNNABLE;
                 doAbort();
                 this.selectedResource = null;
@@ -859,9 +828,7 @@ public abstract class AllocatableAction {
     public void relaseResourcesAndLaunchBlockedActions() {
         if (this.getAssignedResource() != null) {
             // Release resources and run tasks blocked on the resource
-            releaseResources();
-            selectedResource.unhostAction(this);
-            selectedResource.tryToLaunchBlockedActions();
+            this.selectedResource.unhostAction(this);
         }
     }
 
@@ -875,9 +842,7 @@ public abstract class AllocatableAction {
         this.state = State.RUNNABLE;
 
         // Release resources and run tasks blocked on the resource
-        releaseResources();
         this.selectedResource.unhostAction(this);
-        this.selectedResource.tryToLaunchBlockedActions();
 
         // Action notification
         doError();
@@ -894,9 +859,7 @@ public abstract class AllocatableAction {
 
         if (this.getAssignedResource() != null) {
             // Release resources and run tasks blocked on the resource
-            releaseResources();
-            selectedResource.unhostAction(this);
-            selectedResource.tryToLaunchBlockedActions();
+            this.selectedResource.unhostAction(this);
         }
 
         cancelAction();
@@ -1005,9 +968,7 @@ public abstract class AllocatableAction {
         } else {
             if (this.state == State.CANCELLING) {
                 // Release resources and run tasks blocked on the resource
-                releaseResources();
                 this.selectedResource.unhostAction(this);
-                this.selectedResource.tryToLaunchBlockedActions();
             }
             if (this.state != State.CANCELLED) {
                 // Mark as canceled

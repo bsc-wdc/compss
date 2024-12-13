@@ -1182,24 +1182,19 @@ public abstract class AllocatableAction {
 
     /**
      * If the action was already assigned to any resource, it unassigns it and it is removed from the scheduling.
-     * 
+     *
      * @return List of freed actions.
+     * @throws ActionNotFoundException When the action was assigned to a worker but the worker did not found it.
+     * @throws UnassignedActionException When the action is not assigned to any worker.
      */
-    public final List<AllocatableAction> unschedule() {
-        List<AllocatableAction> resourceFree;
+    public final List<AllocatableAction> unschedule() throws UnassignedActionException, ActionNotFoundException {
         if (this.selectedResource != null) {
-            try {
-                resourceFree = this.selectedResource.unscheduleAction(this);
-            } catch (ActionNotFoundException ex) {
-                // Once the action starts running should cannot be moved from the resource
-                resourceFree = new LinkedList<>();
-            }
-            // Release resources and run tasks blocked on the resource
-            this.selectedResource.unhostAction(this);
+            ResourceScheduler<? extends WorkerResourceDescription> target = this.selectedResource;
+            target.unhostAction(this);
+            return target.unscheduleAction(this);
         } else {
-            resourceFree = new LinkedList<>();
+            throw new UnassignedActionException();
         }
-        return resourceFree;
     }
 
     @Override

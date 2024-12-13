@@ -497,7 +497,12 @@ public class TaskScheduler {
 
         ResourceScheduler<WorkerResourceDescription> resource;
         resource = (ResourceScheduler<WorkerResourceDescription>) action.getAssignedResource();
-        List<AllocatableAction> resourceFree = action.unschedule();
+        List<AllocatableAction> resourceFree;
+        try {
+            resourceFree = action.unschedule();
+        } catch (UnassignedActionException | ActionNotFoundException e) {
+            resourceFree = new LinkedList<>();
+        }
 
         // We update the worker load
         workerLoadUpdate(resource);
@@ -594,11 +599,8 @@ public class TaskScheduler {
                 // Free all the dependent tasks
                 for (AllocatableAction failedAction : action.failed()) {
                     try {
-                        ResourceScheduler<?> failedResource = failedAction.getAssignedResource();
-                        if (failedResource != null) {
-                            resourceFree.addAll(failedResource.unscheduleAction(failedAction));
-                        }
-                    } catch (ActionNotFoundException anfe) {
+                        resourceFree.addAll(failedAction.unschedule());
+                    } catch (ActionNotFoundException | UnassignedActionException anfe) {
                         // Once the action starts running should cannot be moved from the resource
                     }
                 }
@@ -613,8 +615,8 @@ public class TaskScheduler {
 
         // We free the current task and get the free actions from the resource
         try {
-            resourceFree.addAll(resource.unscheduleAction(action));
-        } catch (ActionNotFoundException anfe) {
+            resourceFree.addAll(action.unschedule());
+        } catch (ActionNotFoundException | UnassignedActionException anfe) {
             // Once the action starts running should cannot be moved from the resource
         }
 
@@ -648,10 +650,9 @@ public class TaskScheduler {
         } catch (InvalidSchedulingException ise) {
             // Unschedule the task from that resource
             List<AllocatableAction> resourceFree = new LinkedList<>();
-            ResourceScheduler<?> resource = action.getAssignedResource();
             try {
-                resourceFree.addAll(resource.unscheduleAction(action));
-            } catch (ActionNotFoundException ex1) {
+                resourceFree.addAll(action.unschedule());
+            } catch (ActionNotFoundException | UnassignedActionException ex1) {
                 // Not possible
             }
             Score actionScore = generateActionScore(action);
@@ -1037,12 +1038,12 @@ public class TaskScheduler {
             }
         }
 
-        List<AllocatableAction> hostedActions =  resource.getHostedActions();
+        List<AllocatableAction> hostedActions = resource.getHostedActions();
         for (AllocatableAction action : hostedActions) {
             action.abortExecution();
             try {
-                resource.unscheduleAction(action);
-            } catch (ActionNotFoundException ex) {
+                action.unschedule();
+            } catch (ActionNotFoundException | UnassignedActionException ex) {
                 // Task was already moved from the worker. Do nothing!
                 continue;
             }
@@ -1077,8 +1078,8 @@ public class TaskScheduler {
         for (AllocatableAction action : hostedOnResource) {
             action.abortExecution();
             try {
-                resource.unscheduleAction(action);
-            } catch (ActionNotFoundException ex) {
+                action.unschedule();
+            } catch (ActionNotFoundException | UnassignedActionException ex) {
                 // Task was already moved from the worker. Do nothing!
             }
 

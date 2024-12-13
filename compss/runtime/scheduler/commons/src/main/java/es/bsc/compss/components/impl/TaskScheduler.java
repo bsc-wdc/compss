@@ -497,16 +497,7 @@ public class TaskScheduler {
 
         ResourceScheduler<WorkerResourceDescription> resource;
         resource = (ResourceScheduler<WorkerResourceDescription>) action.getAssignedResource();
-
-        List<AllocatableAction> resourceFree;
-        try {
-            resourceFree = resource.unscheduleAction(action);
-        } catch (ActionNotFoundException ex) {
-            // Once the action starts running should cannot be moved from the resource
-            resourceFree = new LinkedList<>();
-        }
-        // Release resources and run tasks blocked on the resource
-        resource.unhostAction(action);
+        List<AllocatableAction> resourceFree = action.unschedule();
 
         // We update the worker load
         workerLoadUpdate(resource);

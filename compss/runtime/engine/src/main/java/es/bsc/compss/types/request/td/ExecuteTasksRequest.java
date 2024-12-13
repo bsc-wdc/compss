@@ -160,7 +160,7 @@ public class ExecuteTasksRequest extends TDRequest {
         ActionOrchestrator orch = ts.getOrchestrator();
         if (this.task.isReduction()) {
             LOGGER.debug("Scheduling request for reduce task " + this.task.getId() + " treated as singleTask");
-            SchedulingInformation sInfo =new SchedulingInformation();
+            SchedulingInformation sInfo = new SchedulingInformation();
             // No need for a specific scheduling information
             action = new ReduceExecutionAction(sInfo, orch, this.ap, (ReduceTask) this.task, ts);
         } else {

@@ -109,12 +109,12 @@ public abstract class AllocatableAction {
     // Lock to avoid many threads to modify the same action
     private final ReentrantLock lock = new ReentrantLock();
 
-
     /*
      * ***************************************************************************************************************
      * CONSTRUCTOR
      * ***************************************************************************************************************
      */
+
 
     /**
      * Registers a new allocatable action.
@@ -424,7 +424,7 @@ public abstract class AllocatableAction {
      * Tells whether the action has to run in the same resource as another action.
      *
      * @return {@literal true} if the action scheduling is constrained to a certain resource, {@literal false}
-     *     otherwise.
+     *         otherwise.
      */
     public final boolean isTargetResourceEnforced() {
         return this.schedulingInfo.getEnforcedTargetResource() != null;
@@ -443,7 +443,7 @@ public abstract class AllocatableAction {
      * Tells if the action has to run in the same resource as another action.
      *
      * @return {@literal true} if the action scheduling is constrained to a certain resource, {@literal false}
-     *     otherwise.
+     *         otherwise.
      */
     public final boolean isSchedulingConstrained() {
         return !this.schedulingInfo.getConstrainingPredecessors().isEmpty();
@@ -651,7 +651,7 @@ public abstract class AllocatableAction {
             // task is not to stop; or the assigned resource is not the required
             if ((this.selectedResource.isRemoved() && !isToStopResource())
                 || (isSchedulingConstrained() && unrequiredResource() || isTargetResourceEnforced()
-                && this.selectedResource != this.schedulingInfo.getEnforcedTargetResource())) {
+                    && this.selectedResource != this.schedulingInfo.getEnforcedTargetResource())) {
                 // Allow other threads to access the action
                 this.lock.unlock();
                 // Notify invalid scheduling
@@ -752,7 +752,7 @@ public abstract class AllocatableAction {
      * Returns whether the AllocatableAction needs to reserve some resources for its execution or not.
      *
      * @return {@literal true} if the AllocatableAction needs to reserve some resources for its execution,
-     *     {@literal false} otherwise.
+     *         {@literal false} otherwise.
      */
     public abstract boolean isToReserveResources();
 
@@ -760,7 +760,7 @@ public abstract class AllocatableAction {
      * Returns whether the AllocatableAction releases some resources after its execution or not.
      *
      * @return {@literal true} if the AllocatableAction releases some resources after its execution, {@literal false}
-     *     otherwise.
+     *         otherwise.
      */
     public abstract boolean isToReleaseResources();
 
@@ -1129,7 +1129,7 @@ public abstract class AllocatableAction {
      * @return list of the action implementations that can run on the resource.
      */
     public abstract <T extends WorkerResourceDescription> List<Implementation>
-    getCompatibleImplementations(ResourceScheduler<T> r);
+        getCompatibleImplementations(ResourceScheduler<T> r);
 
     /**
      * Returns the action priority.

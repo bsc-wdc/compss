@@ -33,6 +33,7 @@ import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.resources.updates.ResourceUpdate;
 import es.bsc.compss.util.CoreManager;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -373,7 +374,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     /**
      * Returns true if this resource has available slots to run some task. False otherwise.
      *
-     * @return
+     * @return {@literal true} if the current worker can run something, {@literal false} otherwise
      */
     public final boolean canRunSomething() {
         return this.myWorker.canRunSomething();
@@ -385,7 +386,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      * @param impl implementation to run
      * @return {@literal true} if there are enough resources to run the action, {@literal false} otherwise.
      */
-    public boolean canHostNow(Implementation impl) {
+    private boolean canRunNow(Implementation impl) {
         try {
             return this.myWorker.canRunNow((T) impl.getRequirements());
         } catch (ClassCastException cce) {
@@ -394,12 +395,24 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     }
 
     /**
+     * Returns all the running actions.
+     *
+     * @return All the running actions.
+     */
+    public final AllocatableAction[] getRunningActions() {
+        return this.running.toArray(new AllocatableAction[running.size()]);
+    }
+
+    /**
      * Returns all the hosted actions.
      *
-     * @return All the hosted actions.
+     * @return All the running actions.
      */
-    public final AllocatableAction[] getHostedActions() {
-        return this.running.toArray(new AllocatableAction[running.size()]);
+    public final List<AllocatableAction> getHostedActions() {
+        ArrayList<AllocatableAction> hostedActions = new ArrayList<>(running.size() + this.blocked.size());
+        hostedActions.addAll(this.running);
+        hostedActions.addAll(this.blocked);
+        return hostedActions;
     }
 
     /**
@@ -423,7 +436,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
         boolean enoughResources = false;
         if (reserve) {
             blocked = this.hasBlockedActions();
-            enoughResources = this.canHostNow(action.getAssignedImplementation());
+            enoughResources = this.canRunNow(action.getAssignedImplementation());
             if (blocked || !enoughResources) {
                 this.waitOnResource(action);
                 throw new BlockedActionException();
@@ -521,7 +534,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
         while (this.hasBlockedActions()) {
             AllocatableAction firstBlocked = this.blocked.peek();
             Implementation selectedImplementation = firstBlocked.getAssignedImplementation();
-            if (firstBlocked.isToReserveResources() && !this.canHostNow(selectedImplementation)) {
+            if (firstBlocked.isToReserveResources() && !this.canRunNow(selectedImplementation)) {
                 return;
             }
             try {

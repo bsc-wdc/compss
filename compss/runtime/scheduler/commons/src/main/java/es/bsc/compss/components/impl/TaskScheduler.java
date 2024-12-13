@@ -1037,31 +1037,8 @@ public class TaskScheduler {
             }
         }
 
-        // We convert PriorityQueue -> List to obtain a shallow copy
-        List<AllocatableAction> blockedOnResource = new ArrayList<>(resource.getBlockedActions());
-        for (AllocatableAction action : blockedOnResource) {
-            action.abortExecution();
-            try {
-                resource.unscheduleAction(action);
-            } catch (ActionNotFoundException ex) {
-                // Task was already moved from the worker. Do nothing!
-                continue;
-            }
-
-            Score actionScore = generateActionScore(action);
-            try {
-                scheduleAction(action, actionScore);
-                tryToLaunch(action);
-            } catch (BlockedActionException bae) {
-                if (!action.hasDataPredecessors() && !action.hasStreamProducers()) {
-                    removeFromReady(action);
-                }
-                addToBlocked(action);
-            }
-        }
-
-        AllocatableAction[] runningOnResource = resource.getHostedActions();
-        for (AllocatableAction action : runningOnResource) {
+        List<AllocatableAction> hostedActions =  resource.getHostedActions();
+        for (AllocatableAction action : hostedActions) {
             action.abortExecution();
             try {
                 resource.unscheduleAction(action);
@@ -1095,11 +1072,9 @@ public class TaskScheduler {
         //  assigned to the same worker before the worker is re-initialized
         removeResource(resource);
 
-        // We convert PriorityQueue -> List to obtain a shallow copy
-        List<AllocatableAction> blockedOnResource = new ArrayList<>(resource.getBlockedActions());
-        AllocatableAction[] runningOnResource = resource.getHostedActions();
+        List<AllocatableAction> hostedOnResource = resource.getHostedActions();
 
-        for (AllocatableAction action : blockedOnResource) {
+        for (AllocatableAction action : hostedOnResource) {
             action.abortExecution();
             try {
                 resource.unscheduleAction(action);
@@ -1108,15 +1083,7 @@ public class TaskScheduler {
             }
 
         }
-        for (AllocatableAction action : runningOnResource) {
-            action.abortExecution();
-            try {
-                resource.unscheduleAction(action);
-            } catch (ActionNotFoundException ex) {
-                // Task was already moved from the worker. Do nothing!
-            }
 
-        }
         resource.setRemoved(false);
         resource.getResource().startingNode();
         startWorker(resource);
@@ -1126,7 +1093,7 @@ public class TaskScheduler {
             this.workers.put(worker, resource);
         }
 
-        for (AllocatableAction action : blockedOnResource) {
+        for (AllocatableAction action : hostedOnResource) {
             Score actionScore = generateActionScore(action);
             try {
                 scheduleAction(action, actionScore);
@@ -1138,20 +1105,6 @@ public class TaskScheduler {
                 addToBlocked(action);
             }
         }
-
-        for (AllocatableAction action : runningOnResource) {
-            Score actionScore = generateActionScore(action);
-            try {
-                scheduleAction(action, actionScore);
-                tryToLaunch(action);
-            } catch (BlockedActionException bae) {
-                if (!action.hasDataPredecessors()) {
-                    removeFromReady(action);
-                }
-                addToBlocked(action);
-            }
-        }
-
     }
 
     /**
@@ -1269,7 +1222,7 @@ public class TaskScheduler {
         LOGGER.info("[TaskScheduler] Get Hosted actions on worker " + worker.getName());
         ResourceScheduler<T> ui = workers.get(worker);
         if (ui != null) {
-            return ui.getHostedActions();
+            return ui.getRunningActions();
         } else {
             return new AllocatableAction[0];
         }
@@ -1391,7 +1344,7 @@ public class TaskScheduler {
                 }
             }
 
-            AllocatableAction[] runningActions = ui.getHostedActions();
+            AllocatableAction[] runningActions = ui.getRunningActions();
             long now = System.currentTimeMillis();
             for (AllocatableAction running : runningActions) {
                 if (running.getImplementations().length > 0) {
@@ -1519,7 +1472,7 @@ public class TaskScheduler {
 
         ResourceScheduler<T> ui = workers.get(worker);
         if (ui != null) {
-            AllocatableAction[] hostedActions = ui.getHostedActions();
+            AllocatableAction[] hostedActions = ui.getRunningActions();
             for (AllocatableAction action : hostedActions) {
                 runningActions.append(prefix);
                 runningActions.append("<Action>").append(action.toString()).append("</Action>");

@@ -493,6 +493,16 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
         }
     }
 
+    /*
+     * Removes a blocked action on this worker.
+     *
+     * @param action Blocked AllocatableAction.
+     */
+    public final void unwaitOnResource(AllocatableAction action) {
+        LOGGER.debug("[ResourceScheduler] Unblock action " + action + " on resource " + getName());
+        this.blocked.remove(action);
+    }
+
     /**
      * Returns whether there are blocked actions or not.
      *

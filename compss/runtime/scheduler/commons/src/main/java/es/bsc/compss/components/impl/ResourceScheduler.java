@@ -410,7 +410,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      * @return Resources allocated to host the execution of the task
      * @throws BlockedActionException the RS has not enough resources to host the action and has enqueued its execution.
      */
-    public T executeAction(AllocatableAction action) throws BlockedActionException {
+    public T hostAction(AllocatableAction action) throws BlockedActionException {
         // LOGGER.info(this + " execution starts on worker " + selectedResource.getName());
         // there are enough resources to host the actions and no waiting tasks in the queue
         boolean reserve = action.isToReserveResources();
@@ -426,7 +426,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
         }
 
         // Run action
-        return this.hostAction(action);
+        return this.runAction(action);
     }
 
     /**
@@ -436,7 +436,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      * @return Consumed resources to host the action.
      */
     @SuppressWarnings("unchecked")
-    private T hostAction(AllocatableAction action) {
+    private T runAction(AllocatableAction action) {
         T consumption = null;
         if (action.isToReserveResources()) {
             Implementation impl = action.getAssignedImplementation();
@@ -455,10 +455,13 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     @SuppressWarnings("unchecked")
     public final void unhostAction(AllocatableAction action) {
         LOGGER.debug("[ResourceScheduler] Unhost action " + action + " on resource " + getName());
-        this.running.remove(action);
-        T consumption = (T) action.getResourceConsumption();
-        if (action.isToReleaseResources()) {
-            this.myWorker.endTask(consumption);
+        if (this.running.remove(action)) {
+            T consumption = (T) action.getResourceConsumption();
+            if (action.isToReleaseResources()) {
+                this.myWorker.endTask(consumption);
+            }
+        } else {
+            this.unwaitOnResource(action);
         }
         this.tryToLaunchBlockedActions();
     }
@@ -478,12 +481,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      * BLOCKED ACTIONS MANAGEMENT
      * ***************************************************************************************************************
      */
-    /**
-     * Adds a blocked action on this worker.
-     *
-     * @param action Blocked AllocatableAction.
-     */
-    public final void waitOnResource(AllocatableAction action) {
+    private void waitOnResource(AllocatableAction action) {
         LOGGER.debug("[ResourceScheduler] Block action " + action + " on resource " + getName());
         if (!removed) {
             this.blocked.add(action);
@@ -499,12 +497,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
         }
     }
 
-    /*
-     * Removes a blocked action on this worker.
-     *
-     * @param action Blocked AllocatableAction.
-     */
-    public final void unwaitOnResource(AllocatableAction action) {
+    private void unwaitOnResource(AllocatableAction action) {
         LOGGER.debug("[ResourceScheduler] Unblock action " + action + " on resource " + getName());
         this.blocked.remove(action);
     }
@@ -528,36 +521,19 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     }
 
     /**
-     * Returns the first blocked action without removing it.
-     *
-     * @return The first blocked action.
-     */
-    public final AllocatableAction getFirstBlocked() {
-        return this.blocked.peek();
-    }
-
-    /**
-     * Removes the first blocked action.
-     */
-    public final void removeFirstBlocked() {
-        this.blocked.poll();
-    }
-
-    /**
      * Tries to launch blocked actions on resource. When an action cannot be launched, its successors are not tried
      */
     @SuppressWarnings("unchecked")
     private void tryToLaunchBlockedActions() {
         LOGGER.debug("[ResourceScheduler] Try to launch blocked actions on resource " + getName());
         while (this.hasBlockedActions()) {
-            AllocatableAction firstBlocked = this.getFirstBlocked();
+            AllocatableAction firstBlocked = this.blocked.peek();
             Implementation selectedImplementation = firstBlocked.getAssignedImplementation();
-            if (!firstBlocked.isToReserveResources()
-                || myWorker.canRunNow((T) selectedImplementation.getRequirements())) {
+            if (!firstBlocked.isToReserveResources() || this.canHostNow(selectedImplementation)) {
                 try {
-                    T consumption = this.hostAction(firstBlocked);
+                    T consumption = this.runAction(firstBlocked);
                     firstBlocked.resumeExecution(consumption);
-                    this.removeFirstBlocked();
+                    this.blocked.poll();
                 } catch (ActionNotWaitingException anwe) {
                     // Not possible. If the task is in blocked list it is waiting
                 }

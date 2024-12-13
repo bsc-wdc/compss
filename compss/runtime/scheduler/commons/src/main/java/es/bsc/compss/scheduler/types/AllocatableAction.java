@@ -662,7 +662,7 @@ public abstract class AllocatableAction {
             acquireMutexLocks();
             // Correct resource and task ready to run
             try {
-                WorkerResourceDescription consumption = this.selectedResource.executeAction(this);
+                WorkerResourceDescription consumption = this.selectedResource.hostAction(this);
                 run(consumption);
             } catch (BlockedActionException e) {
                 this.state = State.WAITING;
@@ -702,6 +702,7 @@ public abstract class AllocatableAction {
     }
 
     private void run(WorkerResourceDescription consumption) {
+        // register executing resource
         this.executingResources.add(this.selectedResource);
         this.resourceConsumption = consumption;
 
@@ -713,8 +714,6 @@ public abstract class AllocatableAction {
 
         // Run
         this.profile = this.selectedResource.generateProfileForRun(this);
-
-        // register executing resource
         doAction();
 
         // Notify the orchestrator that task is running (to free the stream data consumers if necessary)
@@ -777,19 +776,14 @@ public abstract class AllocatableAction {
      * Aborts the AllocatableAction execution.
      */
     public final void abortExecution() {
-        switch (this.state) {
-            case RUNNING:
-                // Release resources and run tasks blocked on the resource
-                this.selectedResource.unhostAction(this);
-                break;
-            case WAITING:
-                // Remove action from resources queue
-                this.selectedResource.unwaitOnResource(this);
-                break;
-            default:
-                // Action was not running -> Ignore request
-                return;
+        if (this.state != State.RUNNING && this.state != State.WAITING) {
+            // Action was not running -> Ignore request
+            return;
         }
+
+        // Release resources and run tasks blocked on the resource
+        this.selectedResource.unhostAction(this);
+
         this.state = State.RUNNABLE;
         this.executingResources.remove(this.selectedResource);
         this.selectedResource = null;

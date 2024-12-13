@@ -661,7 +661,14 @@ public abstract class AllocatableAction {
 
             acquireMutexLocks();
             // Correct resource and task ready to run
-            execute();
+            try {
+                WorkerResourceDescription consumption = this.selectedResource.executeAction(this);
+                run(consumption);
+            } catch (BlockedActionException e) {
+                this.state = State.WAITING;
+                // Allow other threads to execute the task (complete and error executor)
+                this.lock.unlock();
+            }
         } else {
             if (hasDataPredecessors()) {
                 if (DEBUG) {
@@ -678,51 +685,26 @@ public abstract class AllocatableAction {
         }
     }
 
-    private void execute() {
-        // LOGGER.info(this + " execution starts on worker " + selectedResource.getName());
-        // there are enough resources to host the actions and no waiting tasks in the queue
-        boolean reserve = isToReserveResources();
-        boolean blocked = false;
-        boolean enoughResources = false;
-        if (reserve) {
-            blocked = this.selectedResource.hasBlockedActions();
-            enoughResources = this.selectedResource.canHostNow(this.selectedImpl);
-        }
-
-        if (!reserve || (!blocked && enoughResources)) {
-            // Run action
-            run();
-        } else {
-            LOGGER
-                .info(this + " execution paused due to lack of resources on worker " + this.selectedResource.getName());
-            // Task waits on the resource queue
-            // It can only be resumed because of a task completion or error.
-            // execute won't be executed again since tryToLaunch is blocked
-            this.state = State.WAITING;
-            this.selectedResource.waitOnResource(this);
-
-            // Allow other threads to execute the task (complete and error executor)
-            this.lock.unlock();
-        }
-    }
-
     /**
      * Resumes the execution of a waiting AllocatableAction.
      *
      * @throws ActionNotWaitingException When the AllocatableAction is not in waiting state.
      */
-    public final void resumeExecution() throws ActionNotWaitingException {
+    public final void resumeExecution(WorkerResourceDescription consumption) throws ActionNotWaitingException {
         this.lock.lock();
         if (this.state == State.WAITING) {
             LOGGER.info(this + " execution resumed on worker " + this.selectedResource.getName());
-            run();
+            run(consumption);
         } else {
             this.lock.unlock();
             throw new ActionNotWaitingException();
         }
     }
 
-    private void run() {
+    private void run(WorkerResourceDescription consumption) {
+        this.executingResources.add(this.selectedResource);
+        this.resourceConsumption = consumption;
+
         // Actually runs the action. This function is called only once per action (except for reschedules)
         // Blocks other tryToLaunch
         this.state = State.RUNNING;
@@ -731,10 +713,8 @@ public abstract class AllocatableAction {
 
         // Run
         this.profile = this.selectedResource.generateProfileForRun(this);
-        this.resourceConsumption = this.selectedResource.hostAction(this);
 
         // register executing resource
-        this.executingResources.add(this.selectedResource);
         doAction();
 
         // Notify the orchestrator that task is running (to free the stream data consumers if necessary)

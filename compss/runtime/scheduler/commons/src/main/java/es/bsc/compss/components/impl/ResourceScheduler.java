@@ -20,6 +20,7 @@ import es.bsc.compss.comm.Comm;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.scheduler.exceptions.ActionNotFoundException;
 import es.bsc.compss.scheduler.exceptions.ActionNotWaitingException;
+import es.bsc.compss.scheduler.exceptions.BlockedActionException;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.Profile;
 import es.bsc.compss.scheduler.types.Score;
@@ -402,13 +403,40 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     }
 
     /**
+     * Requests the execution of an AllocatableAction on the resource. If there are not enough available resources, the
+     * action gets blocked and raises an exception; otherwise, the RS reserves the necessary resources to host it.
+     *
+     * @param action action to execute
+     * @return Resources allocated to host the execution of the task
+     * @throws BlockedActionException the RS has not enough resources to host the action and has enqueued its execution.
+     */
+    public T executeAction(AllocatableAction action) throws BlockedActionException {
+        // LOGGER.info(this + " execution starts on worker " + selectedResource.getName());
+        // there are enough resources to host the actions and no waiting tasks in the queue
+        boolean reserve = action.isToReserveResources();
+        boolean blocked = false;
+        boolean enoughResources = false;
+        if (reserve) {
+            blocked = this.hasBlockedActions();
+            enoughResources = this.canHostNow(action.getAssignedImplementation());
+            if (blocked || !enoughResources) {
+                this.waitOnResource(action);
+                throw new BlockedActionException();
+            }
+        }
+
+        // Run action
+        return this.hostAction(action);
+    }
+
+    /**
      * Adds a new running action on the resource.
      *
      * @param action AllocatableAction to add to the resource.
      * @return Consumed resources to host the action.
      */
     @SuppressWarnings("unchecked")
-    public final WorkerResourceDescription hostAction(AllocatableAction action) {
+    private T hostAction(AllocatableAction action) {
         T consumption = null;
         if (action.isToReserveResources()) {
             Implementation impl = action.getAssignedImplementation();
@@ -527,7 +555,8 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
             if (!firstBlocked.isToReserveResources()
                 || myWorker.canRunNow((T) selectedImplementation.getRequirements())) {
                 try {
-                    firstBlocked.resumeExecution();
+                    T consumption = this.hostAction(firstBlocked);
+                    firstBlocked.resumeExecution(consumption);
                     this.removeFirstBlocked();
                 } catch (ActionNotWaitingException anwe) {
                     // Not possible. If the task is in blocked list it is waiting

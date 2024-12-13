@@ -491,19 +491,13 @@ public class TaskScheduler {
         }
     }
 
-    /**
-     * Registers an action as completed and releases all the resource and data dependencies.
-     *
-     * @param action Action that has finished
-     */
-    @SuppressWarnings("unchecked")
-    public final void actionCompleted(AllocatableAction action) {
-        LOGGER.info("[TaskScheduler] Action completed " + action);
+    private List<AllocatableAction> actionFinished(AllocatableAction action) {
         // Mark action as finished
         removeFromReady(action);
 
         ResourceScheduler<WorkerResourceDescription> resource;
         resource = (ResourceScheduler<WorkerResourceDescription>) action.getAssignedResource();
+
         List<AllocatableAction> resourceFree;
         try {
             resourceFree = resource.unscheduleAction(action);
@@ -511,15 +505,19 @@ public class TaskScheduler {
             // Once the action starts running should cannot be moved from the resource
             resourceFree = new LinkedList<>();
         }
-
         // Release resources and run tasks blocked on the resource
         resource.unhostAction(action);
 
         // We update the worker load
         workerLoadUpdate(resource);
+        return resourceFree;
+    }
 
-        // Get the data free actions and mark them as ready
-        List<AllocatableAction> dataFreeActions = action.completed();
+    private <T extends WorkerResourceDescription> void handleReadinessAndDependencyFreeActions(
+        List<AllocatableAction> dataFreeActions,
+        List<AllocatableAction> resourceFreeActions,
+        ResourceScheduler<T> resource) {
+
         for (AllocatableAction dataFreeAction : dataFreeActions) {
             addToReady(dataFreeAction);
         }
@@ -529,7 +527,7 @@ public class TaskScheduler {
         // Actions can only be scheduled and those that remain blocked must be added to the blockedCandidates list
         // and those that remain unassigned must be added to the unassigned list
 
-        handleDependencyFreeActions(dataFreeActions, resourceFree, blockedCandidates, resource);
+        handleDependencyFreeActions(dataFreeActions, resourceFreeActions, blockedCandidates, resource);
         for (AllocatableAction aa : blockedCandidates) {
             if (!aa.hasDataPredecessors() && !aa.hasStreamProducers()) {
                 removeFromReady(aa);
@@ -538,51 +536,37 @@ public class TaskScheduler {
         }
     }
 
+
+    /**
+     * Registers an action as completed and releases all the resource and data dependencies.
+     *
+     * @param action Action that has finished
+     */
+    public final void actionCompleted(AllocatableAction action) {
+        LOGGER.info("[TaskScheduler] Action completed " + action);
+        ResourceScheduler<? extends WorkerResourceDescription> resource = action.getAssignedResource();
+        List<AllocatableAction> resourceFreeActions = actionFinished(action);
+
+        // Get the data free actions and mark them as ready
+        List<AllocatableAction> dataFreeActions = action.completed();
+
+        handleReadinessAndDependencyFreeActions(dataFreeActions, resourceFreeActions, resource);
+    }
+
     /**
      * Registers a COMPSs exception to the group of the task.
      *
      * @param action Action raising the error.
      */
-    @SuppressWarnings("unchecked")
     public final void exceptionOnAction(AllocatableAction action, COMPSsException e) {
         LOGGER.info("[TaskScheduler] Exception on action " + action);
-        // Mark action as finished
-        removeFromReady(action);
-
-        ResourceScheduler<WorkerResourceDescription> resource;
-        resource = (ResourceScheduler<WorkerResourceDescription>) action.getAssignedResource();
-        List<AllocatableAction> resourceFree;
-        try {
-            resourceFree = resource.unscheduleAction(action);
-        } catch (ActionNotFoundException ex) {
-            // Once the action starts running should cannot be moved from the resource
-            resourceFree = new LinkedList<>();
-        }
-
-        // Release resources and run tasks blocked on the resource
-        resource.unhostAction(action);
-
-        // We update the worker load
-        workerLoadUpdate(resource);
+        ResourceScheduler<? extends WorkerResourceDescription> resource = action.getAssignedResource();
+        List<AllocatableAction> resourceFreeActions = actionFinished(action);
 
         // Get the data free actions and mark them as ready
         List<AllocatableAction> dataFreeActions = action.exception(e);
-        for (AllocatableAction dataFreeAction : dataFreeActions) {
-            addToReady(dataFreeAction);
-        }
 
-
-        // Schedule data free actions
-        List<AllocatableAction> blockedCandidates = new LinkedList<>();
-        // Actions can only be scheduled and those that remain blocked must be added to the blockedCandidates list
-        // and those that remain unassigned must be added to the unassigned list
-        handleDependencyFreeActions(dataFreeActions, resourceFree, blockedCandidates, resource);
-        for (AllocatableAction aa : blockedCandidates) {
-            if (!aa.hasDataPredecessors() && !aa.hasStreamProducers()) {
-                removeFromReady(aa);
-            }
-            addToBlocked(aa);
-        }
+        handleReadinessAndDependencyFreeActions(dataFreeActions, resourceFreeActions, resource);
     }
 
     /**

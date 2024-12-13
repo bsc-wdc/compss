@@ -236,18 +236,30 @@ public abstract class AllocatableAction {
      * @return {@code true} if there are data predecessors, {@code false} otherwise.
      */
     public final boolean hasDataPredecessors() {
-        boolean canceled = false;
-        LinkedList<AllocatableAction> cancelled = new LinkedList<>();
-        for (AllocatableAction aa : this.dataPredecessors) {
-            canceled = checkIfCanceled(aa);
-            if (canceled == true) {
-                cancelled.add(aa);
+        Iterator<AllocatableAction> producers = this.dataPredecessors.iterator();
+        while (producers.hasNext()) {
+            AllocatableAction aa = producers.next();
+            if (checkIfCanceled(aa)) {
+                producers.remove();
             }
         }
-        for (AllocatableAction aa : cancelled) {
-            this.dataPredecessors.remove(aa);
-        }
         return !this.dataPredecessors.isEmpty();
+    }
+
+    /**
+     * Returns whether there are stream data predecessors or not.
+     *
+     * @return {@code true} if there are stream data predecessors, {@code false} otherwise.
+     */
+    public final boolean hasDataStreamProducers() {
+        Iterator<AllocatableAction> producers = this.streamDataProducers.iterator();
+        while (producers.hasNext()) {
+            AllocatableAction aa = producers.next();
+            if (checkIfCanceled(aa)) {
+                producers.remove();
+            }
+        }
+        return !this.streamDataProducers.isEmpty();
     }
 
     /**
@@ -645,9 +657,12 @@ public abstract class AllocatableAction {
         } else {
             if (hasDataPredecessors()) {
                 if (DEBUG) {
-                    LOGGER.debug(DBG_PREFIX + "Action " + this + " not executed because data predecessors");
+                    LOGGER.debug(DBG_PREFIX + "Action " + this + " not executed because data dependencies");
                     for (AllocatableAction aa : getDataPredecessors()) {
                         LOGGER.debug("\n Predecessor: " + aa);
+                    }
+                    for (AllocatableAction aa : getStreamDataProducers()) {
+                        LOGGER.debug("\n Producer: " + aa);
                     }
                 }
             }

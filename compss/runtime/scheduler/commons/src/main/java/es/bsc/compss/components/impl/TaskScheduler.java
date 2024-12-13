@@ -512,7 +512,8 @@ public class TaskScheduler {
             resourceFree = new LinkedList<>();
         }
 
-        action.relaseResourcesAndLaunchBlockedActions();
+        // Release resources and run tasks blocked on the resource
+        resource.unhostAction(action);
 
         // We update the worker load
         workerLoadUpdate(resource);
@@ -558,14 +559,18 @@ public class TaskScheduler {
             resourceFree = new LinkedList<>();
         }
 
+        // Release resources and run tasks blocked on the resource
+        resource.unhostAction(action);
+
+        // We update the worker load
+        workerLoadUpdate(resource);
+
         // Get the data free actions and mark them as ready
         List<AllocatableAction> dataFreeActions = action.exception(e);
         for (AllocatableAction dataFreeAction : dataFreeActions) {
             addToReady(dataFreeAction);
         }
 
-        // We update the worker load
-        workerLoadUpdate(resource);
 
         // Schedule data free actions
         List<AllocatableAction> blockedCandidates = new LinkedList<>();

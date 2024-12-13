@@ -823,16 +823,6 @@ public abstract class AllocatableAction {
     }
 
     /**
-     * Operations to perform for releasing the resources.
-     */
-    public void relaseResourcesAndLaunchBlockedActions() {
-        if (this.getAssignedResource() != null) {
-            // Release resources and run tasks blocked on the resource
-            this.selectedResource.unhostAction(this);
-        }
-    }
-
-    /**
      * Operations to perform when AA has raised an error. Calls specific operation doError.
      *
      * @throws FailedActionException When the task fails.
@@ -856,11 +846,6 @@ public abstract class AllocatableAction {
     public final List<AllocatableAction> exception(COMPSsException e) {
         // Mark as finished
         this.state = State.FAILED;
-
-        if (this.getAssignedResource() != null) {
-            // Release resources and run tasks blocked on the resource
-            this.selectedResource.unhostAction(this);
-        }
 
         cancelAction();
 

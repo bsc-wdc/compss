@@ -142,7 +142,6 @@ public abstract class AllocatableAction {
      * ORCHESTRATOR OPERATIONS
      * ***************************************************************************************************************
      */
-
     /**
      * Notify action running to the orchestrator.
      */
@@ -182,7 +181,7 @@ public abstract class AllocatableAction {
     /*
      * ***************************************************************************************************************
      * DATA DEPENDENCIES OPERATIONS
-     * 
+     *
      * This operations are only executed by the main thread of the Task Dispatcher
      * ***************************************************************************************************************
      */
@@ -215,7 +214,7 @@ public abstract class AllocatableAction {
 
     /**
      * Returns the list of stream producers.
-     * 
+     *
      * @return The stream producers.
      */
     public final List<AllocatableAction> getStreamDataProducers() {
@@ -224,7 +223,7 @@ public abstract class AllocatableAction {
 
     /**
      * Returns the list of stream consumers.
-     * 
+     *
      * @return The stream consumers.
      */
     public final List<AllocatableAction> getStreamDataConsumers() {
@@ -253,7 +252,7 @@ public abstract class AllocatableAction {
 
     /**
      * Returns if the task was cancelled.
-     * 
+     *
      * @param aa Allocatable action.
      * @return {@literal true} if the action was canceled {@literal false} otherwise.
      */
@@ -261,7 +260,7 @@ public abstract class AllocatableAction {
 
     /**
      * Returns whether there are stream producers or not.
-     * 
+     *
      * @return {@code true} if there are stream producers, {@code false} otherwise.
      */
     public final boolean hasStreamProducers() {
@@ -289,20 +288,8 @@ public abstract class AllocatableAction {
     }
 
     /**
-     * Registers the action into a mutexGroup.
-     * 
-     * @param group group to which the task belongs
-     */
-    protected void addToMutexGroup(MutexGroup group) {
-        if (!this.mutexGroups.contains(group)) {
-            this.mutexGroups.add(group);
-        }
-        group.addMember(this);
-    }
-
-    /**
      * Adds a stream producer.
-     * 
+     *
      * @param predecessor Stream producer Allocatable Action.
      */
     public final void addStreamProducer(AllocatableAction predecessor) {
@@ -359,6 +346,60 @@ public abstract class AllocatableAction {
 
     /*
      * ***************************************************************************************************************
+     * MUTEX GROUPS OPERATIONS
+     *
+     * This operations are only executed by the main thread of the Task Dispatcher
+     * ***************************************************************************************************************
+     */
+    /**
+     * Registers the action into a mutexGroup.
+     *
+     * @param group group to which the task belongs
+     */
+    protected final void addToMutexGroup(MutexGroup group) {
+        if (!this.mutexGroups.contains(group)) {
+            this.mutexGroups.add(group);
+        }
+        group.addMember(this);
+    }
+
+    private boolean areMutexLocksAvailable() {
+        for (MutexGroup group : this.mutexGroups) {
+            if (!group.testLock(this)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void acquireMutexLocks() {
+        for (MutexGroup group : this.mutexGroups) {
+            group.acquireLock(this);
+        }
+    }
+
+    /**
+     * Releases all the mutex locks for the action and update the released list parameters with all the dependency-free
+     * tasks that can now be executed.
+     *
+     * @param released List where data-dependency, lock-free actions will be added.
+     */
+    private void releaseMutexLocks(List<AllocatableAction> released) {
+        for (MutexGroup group : this.mutexGroups) {
+            group.removeMember(this);
+            for (AllocatableAction aa : group.getMembers()) {
+                if (!aa.hasDataPredecessors()) {
+                    if (!released.contains(aa)) {
+                        released.add(aa);
+                    }
+                }
+            }
+            group.releaseLock();
+        }
+    }
+
+    /*
+     * ***************************************************************************************************************
      * RESOURCES MANAGEMENT OPERATIONS
      * ***************************************************************************************************************
      */
@@ -374,7 +415,7 @@ public abstract class AllocatableAction {
 
     /**
      * Returns the enforced resource.
-     * 
+     *
      * @return The enforced resource.
      */
     public final ResourceScheduler<? extends WorkerResourceDescription> getEnforcedTargetResource() {
@@ -614,15 +655,6 @@ public abstract class AllocatableAction {
         }
     }
 
-    private boolean areMutexLocksAvailable() {
-        for (MutexGroup group : this.mutexGroups) {
-            if (!group.testLock(this)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     private void execute() {
         // LOGGER.info(this + " execution starts on worker " + selectedResource.getName());
         // there are enough resources to host the actions and no waiting tasks in the queue
@@ -633,10 +665,7 @@ public abstract class AllocatableAction {
             blocked = this.selectedResource.hasBlockedActions();
             enoughResources = this.selectedResource.canHostNow(this.selectedImpl);
         }
-
-        for (MutexGroup group : this.mutexGroups) {
-            group.acquireLock(this);
-        }
+        acquireMutexLocks();
 
         if (!reserve || (!blocked && enoughResources)) {
             // Run action
@@ -660,7 +689,7 @@ public abstract class AllocatableAction {
 
     /**
      * Resumes the execution of a waiting AllocatableAction.
-     * 
+     *
      * @throws ActionNotWaitingException When the AllocatableAction is not in waiting state.
      */
     public final void resumeExecution() throws ActionNotWaitingException {
@@ -716,7 +745,7 @@ public abstract class AllocatableAction {
 
     /**
      * Returns the description of the resources occupied during the action execution.
-     * 
+     *
      * @return The description of the resources occupied during the action execution.
      */
     public final WorkerResourceDescription getResourceConsumption() {
@@ -725,7 +754,7 @@ public abstract class AllocatableAction {
 
     /**
      * Returns the executing resources of the current AllocatableAction.
-     * 
+     *
      * @return The executing resources of the current AllocatableAction.
      */
     public final List<ResourceScheduler<? extends WorkerResourceDescription>> getExecutingResources() {
@@ -780,7 +809,7 @@ public abstract class AllocatableAction {
 
     /**
      * Operations to perform when AA's execution has started.
-     * 
+     *
      * @return Freed stream dependency actions.
      */
     public final List<AllocatableAction> executionStarted() {
@@ -805,31 +834,11 @@ public abstract class AllocatableAction {
         // Mark as finished
         this.state = State.FINISHED;
         List<AllocatableAction> freeActions = releaseDataSuccessors();
+        releaseMutexLocks(freeActions);
 
-        for (MutexGroup group : this.mutexGroups) {
-            group.removeMember(this);
-            for (AllocatableAction aa : group.getMembers()) {
-                if (!aa.hasDataPredecessors()) {
-                    if (!freeActions.contains(aa)) {
-                        freeActions.add(aa);
-                    }
-                }
-            }
-            group.releaseLock();
-        }
         // Action notification
         doCompleted();
         return freeActions;
-    }
-
-    /**
-     * Operations to perform for releasing the resources.
-     */
-    public void relaseResourcesAndLaunchBlockedActions() {
-        if (this.getAssignedResource() != null) {
-            // Release resources and run tasks blocked on the resource
-            this.selectedResource.unhostAction(this);
-        }
     }
 
     /**
@@ -856,11 +865,6 @@ public abstract class AllocatableAction {
     public final List<AllocatableAction> exception(COMPSsException e) {
         // Mark as finished
         this.state = State.FAILED;
-
-        if (this.getAssignedResource() != null) {
-            // Release resources and run tasks blocked on the resource
-            this.selectedResource.unhostAction(this);
-        }
 
         cancelAction();
 
@@ -933,17 +937,7 @@ public abstract class AllocatableAction {
         // Release data dependencies of the task of all the successors that need to be executed
         List<AllocatableAction> releasedSuccessors = releaseDataSuccessors();
 
-        for (MutexGroup group : this.mutexGroups) {
-            group.removeMember(this);
-            for (AllocatableAction aa : group.getMembers()) {
-                if (!aa.hasDataPredecessors()) {
-                    if (!releasedSuccessors.contains(aa)) {
-                        releasedSuccessors.add(aa);
-                    }
-                }
-            }
-            group.releaseLock();
-        }
+        releaseMutexLocks(releasedSuccessors);
         this.dataPredecessors.clear();
 
         return releasedSuccessors;
@@ -1027,7 +1021,7 @@ public abstract class AllocatableAction {
 
     /**
      * Cancels a running execution.
-     * 
+     *
      * @throws Exception Unstarted node exception.
      */
     protected abstract void stopAction() throws Exception;
@@ -1051,7 +1045,7 @@ public abstract class AllocatableAction {
 
     /**
      * Triggers a COMPSs exception on a job.
-     * 
+     *
      * @param e Exception arisen during the action
      * @return Other Allocatable actions to be cancelled due to the exception
      */
@@ -1064,7 +1058,7 @@ public abstract class AllocatableAction {
 
     /**
      * Triggers the cancellation action notification.
-     * 
+     *
      * @return if cancellation must be forwarded to successors
      */
     protected abstract boolean doCanceled();
@@ -1123,7 +1117,7 @@ public abstract class AllocatableAction {
 
     /**
      * Returns the action's MultiNodeGroup priority.
-     * 
+     *
      * @return The action's MultiNodeGroup priority.
      */
     public abstract long getGroupPriority();

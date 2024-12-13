@@ -42,8 +42,10 @@ command_exists () {
 
 if command_exists "${extraeDir}/bin/mpi2prv" ; then
   mpi2prv_bin="${extraeDir}/bin/mpi2prv"
+  mpimpi2prv_bin="${extraeDir}/bin/mpimpi2prv"
 elif command_exists "${extraeDir}/bin/x86_64-linux-gnu-mpi2prv" ; then
   mpi2prv_bin="${extraeDir}/bin/x86_64-linux-gnu-mpi2prv"
+  mpimpi2prv_bin="${extraeDir}/bin/x86_64-linux-gnu-mpimpi2prv"
 else
   echo "ERROR: Could not find mpi2prv or x86_64-linux-gnu-mpi2prv binary."
   exit 1
@@ -70,7 +72,6 @@ check_genPRV_env(){
   if [ ! "${gen_tracing_log_dir: -1}" == "/" ]; then
     gen_tracing_log_dir="${gen_tracing_log_dir}/"
   fi
-
 }
 
 #-------------------------------------
@@ -101,14 +102,6 @@ mpi2prv() {
   if [ -z "${configuration}" ] || [ "${num_merge_procs}" -eq 1 ] || [ "$(wc -l < "${mpits}")" -lt ${maxMpitNumber} ] ; then
     "${mpi2prv_bin}" -f "${mpits}" -no-syn -o "${prv}"
   else
-    if command_exists "${extraeDir}/bin/mpimpi2prv" ; then
-      mpimpi2prv_bin="${extraeDir}/bin/mpimpi2prv"
-    elif command_exists "${extraeDir}/bin/x86_64-linux-gnu-mpimpi2prv" ; then
-      mpimpi2prv_bin="${extraeDir}/bin/x86_64-linux-gnu-mpimpi2prv"
-    else
-      echo "ERROR: Could not find mpimpi2prv or x86_64-linux-gnu-mpimpi2prv binary."
-      exit 1
-    fi
     mpirun -np "${num_merge_procs}" "${mpimpi2prv_bin}" -f "${mpits}" -no-syn -o "${prv}"
   fi
 }
@@ -131,7 +124,6 @@ gen_traces() {
   if [ ! -d "${output_dir}" ]; then
     mkdir -p "${output_dir}"
   fi
-
   python_output_dir="${output_dir}python/"
   if [ ! -d "${python_output_dir}" ]; then
     mkdir -p "${python_output_dir}"
@@ -142,7 +134,7 @@ gen_traces() {
   fi
 
   mpits="${output_dir}TRACE.mpits"
-  prv="${output_dir}/${trace_name}.prv"
+  prv="${output_dir}${trace_name}.prv"
 
   set_folders=""
   for package in ${packages[*]}; do
@@ -156,7 +148,7 @@ gen_traces() {
       sed -i "s|//|/|g" "${tmp_dir}/TRACE.mpits"
       local original_absolute_path=""
       for f in $(tar -tzf ${package} | grep .mpit | grep -v mpits); do
-        f=$(echo $f |cut -c2-)
+        f=$(echo $f | cut -c2-)
         grep=$(grep "${f}" "${tmp_dir}/TRACE.mpits" | awk '{print $1}')
         original_absolute_path=${grep//$f/}
         if [ -n "${original_absolute_path}" ]; then
@@ -173,7 +165,7 @@ gen_traces() {
       set_folders+=" ${output_dir}/${set_folder}"
 
       if [ -f "${tmp_dir}/TRACE.sym" ]; then
-        cp "${tmp_dir}/TRACE.sym" "${output_dir}"
+      cp "${tmp_dir}/TRACE.sym" "${output_dir}"
       fi
     else
       echo "Java trace information not found" 1>&2
@@ -206,7 +198,7 @@ gen_traces() {
         sed -i "s|${libseqtrace_path}|${libseqtrace_new_path}|g" ${python_dir}/set-0/*.sym
         # Generate python trace
         python_prv="${python_output_dir}/${hostId}_python_trace.prv"
-        "${mpi2prv_bin}" "${python_mpits}" "${python_prv}" "${num_merge_procs}"
+        mpi2prv "${python_mpits}" "${python_prv}" "${num_merge_procs}"
       fi
     else
       echo "Python trace information not found" 1>&2
@@ -243,7 +235,7 @@ gen_traces() {
     rm -rf "${tmp_dir}"
   done
 
-  "${mpi2prv_bin}" "${mpits}" "${prv}" "${num_merge_procs}"
+  mpi2prv "${mpits}" "${prv}" "${num_merge_procs}"
   endCode=$?
   # cleaning
   rm -rf "${mpits}" "${output_dir}/TRACE.sym"
@@ -326,7 +318,6 @@ rearrange_trace_threads() {
     "${out_dir}" "${trace_name}"
   endCode=$?
 }
-
 
 #-------------------------------------
 # Joins several traces as a single one

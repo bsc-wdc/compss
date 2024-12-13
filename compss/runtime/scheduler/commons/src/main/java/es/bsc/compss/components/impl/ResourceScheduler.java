@@ -21,6 +21,7 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.scheduler.exceptions.ActionNotFoundException;
 import es.bsc.compss.scheduler.exceptions.ActionNotWaitingException;
 import es.bsc.compss.scheduler.exceptions.BlockedActionException;
+import es.bsc.compss.scheduler.exceptions.InvalidSchedulingException;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.Profile;
 import es.bsc.compss.scheduler.types.Score;
@@ -31,7 +32,6 @@ import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.resources.updates.ResourceUpdate;
 import es.bsc.compss.util.CoreManager;
-import es.bsc.compss.util.ErrorManager;
 
 import java.util.Comparator;
 import java.util.HashMap;
@@ -409,8 +409,13 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      * @param action action to execute
      * @return Resources allocated to host the execution of the task
      * @throws BlockedActionException the RS has not enough resources to host the action and has enqueued its execution.
+     * @throws InvalidSchedulingException the RS has been removed.
      */
-    public T hostAction(AllocatableAction action) throws BlockedActionException {
+    public T hostAction(AllocatableAction action) throws BlockedActionException, InvalidSchedulingException {
+        if (removed && !action.isToStopResource()) {
+            LOGGER.warn("[ResourceScheduler] Action " + this + " submitted to removed resource " + this.getName());
+            throw new InvalidSchedulingException();
+        }
         // LOGGER.info(this + " execution starts on worker " + selectedResource.getName());
         // there are enough resources to host the actions and no waiting tasks in the queue
         boolean reserve = action.isToReserveResources();
@@ -483,18 +488,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      */
     private void waitOnResource(AllocatableAction action) {
         LOGGER.debug("[ResourceScheduler] Block action " + action + " on resource " + getName());
-        if (!removed) {
-            this.blocked.add(action);
-        } else {
-            LOGGER.warn("[ResourceScheduler] Blocked action " + action + " on removed resource " + getName()
-                + ". Trying to reschedule... ");
-            try {
-                unscheduleAction(action);
-                action.schedule(generateBlockedScore(action));
-            } catch (Exception e) {
-                ErrorManager.error("Error rescheduling action to a removed resource", e);
-            }
-        }
+        this.blocked.add(action);
     }
 
     private void unwaitOnResource(AllocatableAction action) {

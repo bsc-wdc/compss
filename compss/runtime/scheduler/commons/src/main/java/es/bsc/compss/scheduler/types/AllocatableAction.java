@@ -668,6 +668,9 @@ public abstract class AllocatableAction {
                 this.state = State.WAITING;
                 // Allow other threads to execute the task (complete and error executor)
                 this.lock.unlock();
+            } catch (InvalidSchedulingException ise) {
+                this.lock.unlock();
+                throw ise;
             }
         } else {
             if (hasDataPredecessors()) {

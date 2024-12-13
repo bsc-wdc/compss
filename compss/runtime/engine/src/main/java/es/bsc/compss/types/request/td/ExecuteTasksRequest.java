@@ -21,6 +21,7 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.CoreElement;
@@ -155,21 +156,21 @@ public class ExecuteTasksRequest extends TDRequest {
 
     private <T extends WorkerResourceDescription> void submitSingleTask(TaskScheduler ts,
         ResourceScheduler<T> specificResource) {
-
+        ExecutionAction action;
+        ActionOrchestrator orch = ts.getOrchestrator();
         if (this.task.isReduction()) {
             LOGGER.debug("Scheduling request for reduce task " + this.task.getId() + " treated as singleTask");
+            SchedulingInformation sInfo = new SchedulingInformation();
             // No need for a specific scheduling information
-            ReduceExecutionAction action = new ReduceExecutionAction(new SchedulingInformation(), ts.getOrchestrator(),
-                this.ap, (ReduceTask) this.task, ts);
-            ts.newAllocatableAction(action);
+            action = new ReduceExecutionAction(sInfo, orch, this.ap, (ReduceTask) this.task, ts);
         } else {
             LOGGER.debug("Scheduling request for task " + this.task.getId() + " treated as singleTask");
-            ExecutionAction action = new ExecutionAction(
-                ts.generateSchedulingInformation(specificResource, this.task.getParameters(),
-                    this.task.getTaskDescription().getCoreElement().getCoreId()),
-                ts.getOrchestrator(), this.ap, this.task);
-            ts.newAllocatableAction(action);
+            int coreId = this.task.getTaskDescription().getCoreElement().getCoreId();
+            SchedulingInformation sInfo =
+                ts.generateSchedulingInformation(specificResource, this.task.getParameters(), coreId);
+            action = new ExecutionAction(sInfo, orch, this.ap, this.task);
         }
+        ts.newAllocatableAction(action);
     }
 
     private <T extends WorkerResourceDescription> void submitMultiNodeTask(TaskScheduler ts, int numNodes,

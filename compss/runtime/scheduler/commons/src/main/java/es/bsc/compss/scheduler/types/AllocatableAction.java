@@ -109,12 +109,13 @@ public abstract class AllocatableAction {
     // Lock to avoid many threads to modify the same action
     private final ReentrantLock lock = new ReentrantLock();
 
-
     /*
      * ***************************************************************************************************************
      * CONSTRUCTOR
      * ***************************************************************************************************************
      */
+
+
     /**
      * Registers a new allocatable action.
      *
@@ -142,6 +143,7 @@ public abstract class AllocatableAction {
      * ORCHESTRATOR OPERATIONS
      * ***************************************************************************************************************
      */
+
     /**
      * Notify action running to the orchestrator.
      */
@@ -185,6 +187,7 @@ public abstract class AllocatableAction {
      * This operations are only executed by the main thread of the Task Dispatcher
      * ***************************************************************************************************************
      */
+
     /**
      * Returns the AA id.
      *
@@ -236,18 +239,30 @@ public abstract class AllocatableAction {
      * @return {@code true} if there are data predecessors, {@code false} otherwise.
      */
     public final boolean hasDataPredecessors() {
-        boolean canceled = false;
-        LinkedList<AllocatableAction> cancelled = new LinkedList<>();
-        for (AllocatableAction aa : this.dataPredecessors) {
-            canceled = checkIfCanceled(aa);
-            if (canceled == true) {
-                cancelled.add(aa);
+        Iterator<AllocatableAction> producers = this.dataPredecessors.iterator();
+        while (producers.hasNext()) {
+            AllocatableAction aa = producers.next();
+            if (checkIfCanceled(aa)) {
+                producers.remove();
             }
         }
-        for (AllocatableAction aa : cancelled) {
-            this.dataPredecessors.remove(aa);
-        }
         return !this.dataPredecessors.isEmpty();
+    }
+
+    /**
+     * Returns whether there are stream data predecessors or not.
+     *
+     * @return {@code true} if there are stream data predecessors, {@code false} otherwise.
+     */
+    public final boolean hasDataStreamProducers() {
+        Iterator<AllocatableAction> producers = this.streamDataProducers.iterator();
+        while (producers.hasNext()) {
+            AllocatableAction aa = producers.next();
+            if (checkIfCanceled(aa)) {
+                producers.remove();
+            }
+        }
+        return !this.streamDataProducers.isEmpty();
     }
 
     /**
@@ -351,6 +366,7 @@ public abstract class AllocatableAction {
      * This operations are only executed by the main thread of the Task Dispatcher
      * ***************************************************************************************************************
      */
+
     /**
      * Registers the action into a mutexGroup.
      *
@@ -403,6 +419,7 @@ public abstract class AllocatableAction {
      * RESOURCES MANAGEMENT OPERATIONS
      * ***************************************************************************************************************
      */
+
     /**
      * Tells whether the action has to run in the same resource as another action.
      *
@@ -489,6 +506,7 @@ public abstract class AllocatableAction {
      * EXECUTION AND LIFECYCLE MANAGEMENT
      * ***************************************************************************************************************
      */
+
     /**
      * Returns whether the AllocatableAction is pending or not.
      *
@@ -640,14 +658,19 @@ public abstract class AllocatableAction {
                 LOGGER.debug("Action " + this + " incorrectly scheduled. Throwing exception.");
                 throw new InvalidSchedulingException();
             }
+
+            acquireMutexLocks();
             // Correct resource and task ready to run
             execute();
         } else {
             if (hasDataPredecessors()) {
                 if (DEBUG) {
-                    LOGGER.debug(DBG_PREFIX + "Action " + this + " not executed because data predecessors");
+                    LOGGER.debug(DBG_PREFIX + "Action " + this + " not executed because data dependencies");
                     for (AllocatableAction aa : getDataPredecessors()) {
                         LOGGER.debug("\n Predecessor: " + aa);
+                    }
+                    for (AllocatableAction aa : getStreamDataProducers()) {
+                        LOGGER.debug("\n Producer: " + aa);
                     }
                 }
             }
@@ -665,14 +688,10 @@ public abstract class AllocatableAction {
             blocked = this.selectedResource.hasBlockedActions();
             enoughResources = this.selectedResource.canHostNow(this.selectedImpl);
         }
-        acquireMutexLocks();
 
         if (!reserve || (!blocked && enoughResources)) {
             // Run action
             run();
-
-            // register executing resource
-            this.executingResources.add(this.selectedResource);
         } else {
             LOGGER
                 .info(this + " execution paused due to lack of resources on worker " + this.selectedResource.getName());
@@ -714,6 +733,8 @@ public abstract class AllocatableAction {
         this.profile = this.selectedResource.generateProfileForRun(this);
         this.resourceConsumption = this.selectedResource.hostAction(this);
 
+        // register executing resource
+        this.executingResources.add(this.selectedResource);
         doAction();
 
         // Notify the orchestrator that task is running (to free the stream data consumers if necessary)
@@ -766,6 +787,7 @@ public abstract class AllocatableAction {
      * EXECUTION TRIGGERS
      * ***************************************************************************************************************
      */
+
     /**
      * Triggers the action execution.
      */
@@ -779,18 +801,19 @@ public abstract class AllocatableAction {
             case RUNNING:
                 // Release resources and run tasks blocked on the resource
                 this.selectedResource.unhostAction(this);
-                this.state = State.RUNNABLE;
-                doAbort();
-                this.selectedResource = null;
                 break;
             case WAITING:
-                this.state = State.RUNNABLE;
-                doAbort();
+                // Remove action from resources queue
+                this.selectedResource.unwaitOnResource(this);
                 break;
             default:
                 // Action was not running -> Ignore request
-                break;
+                return;
         }
+        this.state = State.RUNNABLE;
+        this.executingResources.remove(this.selectedResource);
+        this.selectedResource = null;
+        doAbort();
     }
 
     private List<AllocatableAction> releaseDataSuccessors() {

@@ -462,10 +462,6 @@ public class ExecutionAction extends AllocatableAction implements JobListener<Pa
 
     @Override
     protected void doAbort() {
-        ResourceScheduler target = this.getAssignedResource();
-        if (target != null) {
-            this.getExecutingResources().remove(target);
-        }
         TaskMonitor monitor = this.task.getTaskMonitor();
         monitor.onAbortedExecution();
     }

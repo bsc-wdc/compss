@@ -370,28 +370,6 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      * ***************************************************************************************************************
      */
     /**
-     * Returns the number of tasks of type {@code taskId} that this resource is running.
-     *
-     * @param coreId Core Id.
-     * @return Number of tasks of the given core Id.
-     */
-    public final int getNumTasks(int coreId) {
-        int taskCount = -1;
-        if (coreId < profiles.length) {
-            taskCount = 0;
-            for (AllocatableAction aa : this.getHostedActions()) {
-                if (aa != null) {
-                    Integer cId = aa.getCoreId();
-                    if (cId != null && cId == coreId) {
-                        taskCount++;
-                    }
-                }
-            }
-        }
-        return taskCount;
-    }
-
-    /**
      * Returns true if this resource has available slots to run some task. False otherwise.
      *
      * @return
@@ -491,6 +469,16 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
                 ErrorManager.error("Error rescheduling action to a removed resource", e);
             }
         }
+    }
+
+    /*
+     * Removes a blocked action on this worker.
+     *
+     * @param action Blocked AllocatableAction.
+     */
+    public final void unwaitOnResource(AllocatableAction action) {
+        LOGGER.debug("[ResourceScheduler] Unblock action " + action + " on resource " + getName());
+        this.blocked.remove(action);
     }
 
     /**

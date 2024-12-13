@@ -517,22 +517,20 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     /**
      * Tries to launch blocked actions on resource. When an action cannot be launched, its successors are not tried
      */
-    @SuppressWarnings("unchecked")
     private void tryToLaunchBlockedActions() {
         LOGGER.debug("[ResourceScheduler] Try to launch blocked actions on resource " + getName());
         while (this.hasBlockedActions()) {
             AllocatableAction firstBlocked = this.blocked.peek();
             Implementation selectedImplementation = firstBlocked.getAssignedImplementation();
-            if (!firstBlocked.isToReserveResources() || this.canHostNow(selectedImplementation)) {
-                try {
-                    T consumption = this.runAction(firstBlocked);
-                    firstBlocked.resumeExecution(consumption);
-                    this.blocked.poll();
-                } catch (ActionNotWaitingException anwe) {
-                    // Not possible. If the task is in blocked list it is waiting
-                }
-            } else {
-                break;
+            if (firstBlocked.isToReserveResources() && !this.canHostNow(selectedImplementation)) {
+                return;
+            }
+            try {
+                T consumption = this.runAction(firstBlocked);
+                firstBlocked.resumeExecution(consumption);
+                this.blocked.poll();
+            } catch (ActionNotWaitingException anwe) {
+                // Not possible. If the task is in blocked list it is waiting
             }
         }
     }

@@ -652,6 +652,8 @@ public abstract class AllocatableAction {
                 LOGGER.debug("Action " + this + " incorrectly scheduled. Throwing exception.");
                 throw new InvalidSchedulingException();
             }
+
+            acquireMutexLocks();
             // Correct resource and task ready to run
             execute();
         } else {
@@ -680,7 +682,6 @@ public abstract class AllocatableAction {
             blocked = this.selectedResource.hasBlockedActions();
             enoughResources = this.selectedResource.canHostNow(this.selectedImpl);
         }
-        acquireMutexLocks();
 
         if (!reserve || (!blocked && enoughResources)) {
             // Run action

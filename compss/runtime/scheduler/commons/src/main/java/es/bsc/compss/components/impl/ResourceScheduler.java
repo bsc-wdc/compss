@@ -457,7 +457,6 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      *
      * @param action AllocatableAction to remove from the resource.
      */
-    @SuppressWarnings("unchecked")
     public final void unhostAction(AllocatableAction action) {
         LOGGER.debug("[ResourceScheduler] Unhost action " + action + " on resource " + getName());
         if (this.running.remove(action)) {

@@ -491,14 +491,7 @@ public class TaskScheduler {
         }
     }
 
-    /**
-     * Registers an action as completed and releases all the resource and data dependencies.
-     *
-     * @param action Action that has finished
-     */
-    @SuppressWarnings("unchecked")
-    public final void actionCompleted(AllocatableAction action) {
-        LOGGER.info("[TaskScheduler] Action completed " + action);
+    private List<AllocatableAction> actionFinished(AllocatableAction action) {
         // Mark action as finished
         removeFromReady(action);
 
@@ -506,20 +499,21 @@ public class TaskScheduler {
         resource = (ResourceScheduler<WorkerResourceDescription>) action.getAssignedResource();
         List<AllocatableAction> resourceFree;
         try {
-            resourceFree = resource.unscheduleAction(action);
-        } catch (ActionNotFoundException ex) {
-            // Once the action starts running should cannot be moved from the resource
+            resourceFree = action.unschedule();
+        } catch (UnassignedActionException | ActionNotFoundException e) {
             resourceFree = new LinkedList<>();
         }
 
-        // Release resources and run tasks blocked on the resource
-        resource.unhostAction(action);
-
         // We update the worker load
         workerLoadUpdate(resource);
+        return resourceFree;
+    }
 
-        // Get the data free actions and mark them as ready
-        List<AllocatableAction> dataFreeActions = action.completed();
+    private <T extends WorkerResourceDescription> void handleReadinessAndDependencyFreeActions(
+        List<AllocatableAction> dataFreeActions,
+        List<AllocatableAction> resourceFreeActions,
+        ResourceScheduler<T> resource) {
+
         for (AllocatableAction dataFreeAction : dataFreeActions) {
             addToReady(dataFreeAction);
         }
@@ -529,7 +523,7 @@ public class TaskScheduler {
         // Actions can only be scheduled and those that remain blocked must be added to the blockedCandidates list
         // and those that remain unassigned must be added to the unassigned list
 
-        handleDependencyFreeActions(dataFreeActions, resourceFree, blockedCandidates, resource);
+        handleDependencyFreeActions(dataFreeActions, resourceFreeActions, blockedCandidates, resource);
         for (AllocatableAction aa : blockedCandidates) {
             if (!aa.hasDataPredecessors() && !aa.hasStreamProducers()) {
                 removeFromReady(aa);
@@ -538,51 +532,37 @@ public class TaskScheduler {
         }
     }
 
+
+    /**
+     * Registers an action as completed and releases all the resource and data dependencies.
+     *
+     * @param action Action that has finished
+     */
+    public final void actionCompleted(AllocatableAction action) {
+        LOGGER.info("[TaskScheduler] Action completed " + action);
+        ResourceScheduler<? extends WorkerResourceDescription> resource = action.getAssignedResource();
+        List<AllocatableAction> resourceFreeActions = actionFinished(action);
+
+        // Get the data free actions and mark them as ready
+        List<AllocatableAction> dataFreeActions = action.completed();
+
+        handleReadinessAndDependencyFreeActions(dataFreeActions, resourceFreeActions, resource);
+    }
+
     /**
      * Registers a COMPSs exception to the group of the task.
      *
      * @param action Action raising the error.
      */
-    @SuppressWarnings("unchecked")
     public final void exceptionOnAction(AllocatableAction action, COMPSsException e) {
         LOGGER.info("[TaskScheduler] Exception on action " + action);
-        // Mark action as finished
-        removeFromReady(action);
-
-        ResourceScheduler<WorkerResourceDescription> resource;
-        resource = (ResourceScheduler<WorkerResourceDescription>) action.getAssignedResource();
-        List<AllocatableAction> resourceFree;
-        try {
-            resourceFree = resource.unscheduleAction(action);
-        } catch (ActionNotFoundException ex) {
-            // Once the action starts running should cannot be moved from the resource
-            resourceFree = new LinkedList<>();
-        }
-
-        // Release resources and run tasks blocked on the resource
-        resource.unhostAction(action);
-
-        // We update the worker load
-        workerLoadUpdate(resource);
+        ResourceScheduler<? extends WorkerResourceDescription> resource = action.getAssignedResource();
+        List<AllocatableAction> resourceFreeActions = actionFinished(action);
 
         // Get the data free actions and mark them as ready
         List<AllocatableAction> dataFreeActions = action.exception(e);
-        for (AllocatableAction dataFreeAction : dataFreeActions) {
-            addToReady(dataFreeAction);
-        }
 
-
-        // Schedule data free actions
-        List<AllocatableAction> blockedCandidates = new LinkedList<>();
-        // Actions can only be scheduled and those that remain blocked must be added to the blockedCandidates list
-        // and those that remain unassigned must be added to the unassigned list
-        handleDependencyFreeActions(dataFreeActions, resourceFree, blockedCandidates, resource);
-        for (AllocatableAction aa : blockedCandidates) {
-            if (!aa.hasDataPredecessors() && !aa.hasStreamProducers()) {
-                removeFromReady(aa);
-            }
-            addToBlocked(aa);
-        }
+        handleReadinessAndDependencyFreeActions(dataFreeActions, resourceFreeActions, resource);
     }
 
     /**
@@ -619,11 +599,8 @@ public class TaskScheduler {
                 // Free all the dependent tasks
                 for (AllocatableAction failedAction : action.failed()) {
                     try {
-                        ResourceScheduler<?> failedResource = failedAction.getAssignedResource();
-                        if (failedResource != null) {
-                            resourceFree.addAll(failedResource.unscheduleAction(failedAction));
-                        }
-                    } catch (ActionNotFoundException anfe) {
+                        resourceFree.addAll(failedAction.unschedule());
+                    } catch (ActionNotFoundException | UnassignedActionException anfe) {
                         // Once the action starts running should cannot be moved from the resource
                     }
                 }
@@ -638,8 +615,8 @@ public class TaskScheduler {
 
         // We free the current task and get the free actions from the resource
         try {
-            resourceFree.addAll(resource.unscheduleAction(action));
-        } catch (ActionNotFoundException anfe) {
+            resourceFree.addAll(action.unschedule());
+        } catch (ActionNotFoundException | UnassignedActionException anfe) {
             // Once the action starts running should cannot be moved from the resource
         }
 
@@ -673,10 +650,9 @@ public class TaskScheduler {
         } catch (InvalidSchedulingException ise) {
             // Unschedule the task from that resource
             List<AllocatableAction> resourceFree = new LinkedList<>();
-            ResourceScheduler<?> resource = action.getAssignedResource();
             try {
-                resourceFree.addAll(resource.unscheduleAction(action));
-            } catch (ActionNotFoundException ex1) {
+                resourceFree.addAll(action.unschedule());
+            } catch (ActionNotFoundException | UnassignedActionException ex1) {
                 // Not possible
             }
             Score actionScore = generateActionScore(action);
@@ -1062,35 +1038,12 @@ public class TaskScheduler {
             }
         }
 
-        // We convert PriorityQueue -> List to obtain a shallow copy
-        List<AllocatableAction> blockedOnResource = new ArrayList<>(resource.getBlockedActions());
-        for (AllocatableAction action : blockedOnResource) {
+        List<AllocatableAction> hostedActions = resource.getHostedActions();
+        for (AllocatableAction action : hostedActions) {
             action.abortExecution();
             try {
-                resource.unscheduleAction(action);
-            } catch (ActionNotFoundException ex) {
-                // Task was already moved from the worker. Do nothing!
-                continue;
-            }
-
-            Score actionScore = generateActionScore(action);
-            try {
-                scheduleAction(action, actionScore);
-                tryToLaunch(action);
-            } catch (BlockedActionException bae) {
-                if (!action.hasDataPredecessors() && !action.hasStreamProducers()) {
-                    removeFromReady(action);
-                }
-                addToBlocked(action);
-            }
-        }
-
-        AllocatableAction[] runningOnResource = resource.getHostedActions();
-        for (AllocatableAction action : runningOnResource) {
-            action.abortExecution();
-            try {
-                resource.unscheduleAction(action);
-            } catch (ActionNotFoundException ex) {
+                action.unschedule();
+            } catch (ActionNotFoundException | UnassignedActionException ex) {
                 // Task was already moved from the worker. Do nothing!
                 continue;
             }
@@ -1120,28 +1073,18 @@ public class TaskScheduler {
         //  assigned to the same worker before the worker is re-initialized
         removeResource(resource);
 
-        // We convert PriorityQueue -> List to obtain a shallow copy
-        List<AllocatableAction> blockedOnResource = new ArrayList<>(resource.getBlockedActions());
-        AllocatableAction[] runningOnResource = resource.getHostedActions();
+        List<AllocatableAction> hostedOnResource = resource.getHostedActions();
 
-        for (AllocatableAction action : blockedOnResource) {
+        for (AllocatableAction action : hostedOnResource) {
             action.abortExecution();
             try {
-                resource.unscheduleAction(action);
-            } catch (ActionNotFoundException ex) {
+                action.unschedule();
+            } catch (ActionNotFoundException | UnassignedActionException ex) {
                 // Task was already moved from the worker. Do nothing!
             }
 
         }
-        for (AllocatableAction action : runningOnResource) {
-            action.abortExecution();
-            try {
-                resource.unscheduleAction(action);
-            } catch (ActionNotFoundException ex) {
-                // Task was already moved from the worker. Do nothing!
-            }
 
-        }
         resource.setRemoved(false);
         resource.getResource().startingNode();
         startWorker(resource);
@@ -1151,7 +1094,7 @@ public class TaskScheduler {
             this.workers.put(worker, resource);
         }
 
-        for (AllocatableAction action : blockedOnResource) {
+        for (AllocatableAction action : hostedOnResource) {
             Score actionScore = generateActionScore(action);
             try {
                 scheduleAction(action, actionScore);
@@ -1163,20 +1106,6 @@ public class TaskScheduler {
                 addToBlocked(action);
             }
         }
-
-        for (AllocatableAction action : runningOnResource) {
-            Score actionScore = generateActionScore(action);
-            try {
-                scheduleAction(action, actionScore);
-                tryToLaunch(action);
-            } catch (BlockedActionException bae) {
-                if (!action.hasDataPredecessors()) {
-                    removeFromReady(action);
-                }
-                addToBlocked(action);
-            }
-        }
-
     }
 
     /**
@@ -1294,7 +1223,7 @@ public class TaskScheduler {
         LOGGER.info("[TaskScheduler] Get Hosted actions on worker " + worker.getName());
         ResourceScheduler<T> ui = workers.get(worker);
         if (ui != null) {
-            return ui.getHostedActions();
+            return ui.getRunningActions();
         } else {
             return new AllocatableAction[0];
         }
@@ -1416,7 +1345,7 @@ public class TaskScheduler {
                 }
             }
 
-            AllocatableAction[] runningActions = ui.getHostedActions();
+            AllocatableAction[] runningActions = ui.getRunningActions();
             long now = System.currentTimeMillis();
             for (AllocatableAction running : runningActions) {
                 if (running.getImplementations().length > 0) {
@@ -1544,7 +1473,7 @@ public class TaskScheduler {
 
         ResourceScheduler<T> ui = workers.get(worker);
         if (ui != null) {
-            AllocatableAction[] hostedActions = ui.getHostedActions();
+            AllocatableAction[] hostedActions = ui.getRunningActions();
             for (AllocatableAction action : hostedActions) {
                 runningActions.append(prefix);
                 runningActions.append("<Action>").append(action.toString()).append("</Action>");

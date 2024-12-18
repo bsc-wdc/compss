@@ -55,12 +55,12 @@ def main():
     :returns: None
     """
 
+    generate_plots(STATS_PATH)
+
     exec_time = time.time()
     yaml_template = get_yaml_template()
     compss_crate = ROCrate()
     end_time = iso_now()
-
-    generate_plots(STATS_PATH)
 
     # First, read values defined by user from ro-crate-info.yaml
     try:
@@ -99,7 +99,6 @@ def main():
     # This must be done before adding the Workflow to the RO-Crate
     ins, outs = process_accessed_files(DP_LOG)
 
-    auxiliary_file_list = []
     # Add application source files to the RO-Crate, that will also be physically in the crate
     add_application_source_files(
         compss_crate,
@@ -109,7 +108,7 @@ def main():
         out_profile,
         INFO_YAML,
         COMPLETE_GRAPH,
-        auxiliary_file_list,
+        PLOTS_PATH
     )
 
     # Add in and out files, not to be physically copied in the Crate by default (data_persistence = False)
@@ -131,8 +130,8 @@ def main():
     list_common_paths = []
     part_time = time.time()
     if (
-        "data_persistence" in compss_wf_info
-        and compss_wf_info["data_persistence"] is True
+            "data_persistence" in compss_wf_info
+            and compss_wf_info["data_persistence"] is True
     ):
         persistence = True
         list_common_paths = get_common_paths(ins_and_outs)
@@ -170,7 +169,6 @@ def main():
     # Register execution details using WRROC profile
     # Compliance with RO-Crate WorkflowRun Level 2 profile, aka. Workflow Run Crate
     # Can update Agent details from online search
-    part_time = time.time()
     run_uuid = wrroc_create_action(
         compss_crate,
         main_entity,
@@ -179,13 +177,10 @@ def main():
         fixed_outs,
         yaml_content,
         INFO_YAML,
-        path_log,
+        DP_LOG,
+        ENERGY_PATH,
+        STATS_PATH,
         datetime.fromisoformat(end_time),
-        auxiliary_file_list,
-    )
-    print(
-        f"PROVENANCE | RO-Crate adding CreateAction TIME: "
-        f"{time.time() - part_time} s"
     )
 
     # Set RO-Crate conformance to profiles
@@ -197,36 +192,36 @@ def main():
 
     # Dump to file
     part_time = time.time()
-    # folder = "COMPSs_RO-Crate_" + run_uuid + "/"
+    folder = "COMPSs_RO-Crate_" + run_uuid + "/"
     sys.stdout.flush()  # All pending stdout to the log file
-    compss_crate.write(DEST_FOLDER)
-    store_data(DEST_FOLDER, STATS_PATH, compss_crate)
-
+    compss_crate.write(folder)
     print(f"PROVENANCE | RO-Crate writing to disk TIME: {time.time() - part_time} s")
     print(
         f"PROVENANCE | Workflow Provenance generation TOTAL EXECUTION TIME: {time.time() - exec_time} s"
     )
     print(
-        f"PROVENANCE | COMPSs Workflow Provenance successfully generated in sub-folder:\n\t{DEST_FOLDER}"
+        f"PROVENANCE | COMPSs Workflow Provenance successfully generated in sub-folder:\n\t{folder}"
     )
+
+    store_data(folder, STATS_PATH)
 
 
 if __name__ == "__main__":
 
-    # Usage: python /path_to/generate_COMPSs_RO-Crate.py ro-crate-info.yaml /path_to/dataprovenance.log /dest/folder/
+    # Usage: python /path_to/generate_COMPSs_RO-Crate.py ro-crate-info.yaml /path_to/dataprovenance.log
     if len(sys.argv) != 4:
         print(
             "PROVENANCE | Usage: python /path_to/generate_COMPSs_RO-Crate.py "
-            "/path_to/your_info.yaml /path_to/log_dir/dataprovenance.log /path_to/result_folder/"
+            "/path_to/your_info.yaml /path_to/dataprovenance.log"
         )
         sys.exit()
     else:
         INFO_YAML = sys.argv[1]
-        path_log = Path(sys.argv[2])
-        DEST_FOLDER = sys.argv[3]
-        DP_LOG = path_log / "dataprovenance.log"
-        COMPLETE_GRAPH = path_log / "monitor/complete_graph.svg"
-        ENERGY_PATH = path_log / "energy/"
-        STATS_PATH = path_log / "stats/"
-        PLOTS_PATH = path_log / "stats/plots/"
+        DP_LOG = sys.argv[2]
+        STATS_PATH = Path(sys.argv[3])
+        path_dplog = Path(sys.argv[2])
+        COMPLETE_GRAPH = path_dplog.parent / "monitor/complete_graph.svg"
+        # STATS_PATH = path_dplog.parent / "stats"
+        ENERGY_PATH = path_dplog.parent / "energy"
+        PLOTS_PATH = path_dplog.parent / "stats/plots"
     main()

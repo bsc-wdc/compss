@@ -43,6 +43,8 @@ from provenance.file_adding.datasets import (
 )
 from provenance.wrroc.create_action import wrroc_create_action
 from provenance.wrroc.profile import set_profile_details
+from provenance.wrroc.store_data import store_data
+from provenance.wrroc.profiling_plots import generate_plots
 
 
 def main():
@@ -53,6 +55,8 @@ def main():
 
     :returns: None
     """
+
+    generate_plots(STATS_PATH)
 
     exec_time = time.time()
     yaml_template = get_yaml_template()
@@ -109,6 +113,7 @@ def main():
         out_profile,
         INFO_YAML,
         COMPLETE_GRAPH,
+        PLOTS_PATH
     )
 
     # Add in and out files, not to be physically copied in the Crate by default (data_persistence = False)
@@ -130,8 +135,8 @@ def main():
     list_common_paths = []
     part_time = time.time()
     if (
-        "data_persistence" in compss_wf_info
-        and compss_wf_info["data_persistence"] is True
+            "data_persistence" in compss_wf_info
+            and compss_wf_info["data_persistence"] is True
     ):
         persistence = True
         list_common_paths = get_common_paths(ins_and_outs)
@@ -227,4 +232,5 @@ if __name__ == "__main__":
         path_dplog = Path(sys.argv[2])
         COMPLETE_GRAPH = path_dplog.parent / "monitor/complete_graph.svg"
         ENERGY_PATH = path_dplog.parent / "energy"
+        PLOTS_PATH = path_dplog.parent / "stats/plots"
     main()

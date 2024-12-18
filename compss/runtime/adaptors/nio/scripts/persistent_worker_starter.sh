@@ -67,8 +67,11 @@
   export EAR_APP_NAME="piper_worker(${hostName})"
 
   echo "START PROFILING - WORKER STARTER"
-  specific_log_dir=$(echo "${logDir}" | awk -F'/' '{print $4}')
-  specific_log_dir="/home/bsc/bsc306949/.COMPSs/${specific_log_dir}"
+  # To remove
+  # specific_log_dir=$(echo "${logDir}" | awk -F'/' '{print $4}')
+  # specific_log_dir="/home/bsc/bsc306949/.COMPSs/${specific_log_dir}"
+
+  echo "THIS IS LOG DIR ${logDir}"
 
   # START PROFILING
   # shellcheck disable=SC1090
@@ -85,7 +88,7 @@
   post_launch
 
   # STOP PROFILING
-  stop_profiling
+  # stop_profiling
 
   # Exit with the worker status (last command)
   if [ "$debug" == "true" ]; then

@@ -2,17 +2,27 @@
 
 start_profiling() {
   if [ ${provenance} ]; then
-    profiling_status=$(echo "${specific_log_dir}.status_profiling")
-    # echo $profiling_status
-    echo true >$profiling_status
-    python3 "${COMPSS_HOME}Runtime/scripts/system/profiling/profiler.py" ${profiling_status} ${specific_log_dir} ${resFile} &
-    PROFILING_PID=$!
+    # specific_log_dir=$(pwd)
+    # profiling_status=$(echo "${specific_log_dir}/.status_profiling")
+    if [ -z "${logDir}" ]; then
+      working_directory="$(dirname ${wdir_in_master})/stats"
+      mkdir $working_directory
+    else
+      working_directory="${logDir}"
+    fi
+    echo "PROFILING STATUS FILE ${working_directory}"
+
+    # echo true >$profiling_status
+    # python3 "${COMPSS_HOME}Runtime/scripts/system/profiling/profiler.py" ${profiling_status} ${specific_log_dir} ${resFile} &
+
+    python3 "${COMPSS_HOME}Runtime/scripts/system/profiling/profiler.py" "${working_directory}" &
+    # PROFILING_PID=$!
   fi
 }
 
 stop_profiling() {
   if [ ${provenance} ]; then
-    echo false > $profiling_status
+    # echo false > $profiling_status
     wait $PROFILING_PID
     # rm $profiling_status
     echo "PROVENANCE | ENDED PROFILING SCRIPT"

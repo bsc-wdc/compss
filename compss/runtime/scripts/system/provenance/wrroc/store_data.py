@@ -17,7 +17,7 @@
 import os
 from pathlib import Path
 
-import pymongo
+# import pymongo
 import json
 from rocrate.rocrate import ROCrate
 
@@ -43,8 +43,8 @@ def write_data_db(data, name_coll):
 def write_data_local_db(data, application_name):
     try:
         with open(
-            f"/home/ngiacomi/Documents/applications-test/ProvenanceStats/{application_name}.json",
-            "r",
+                f"/home/ngiacomi/Documents/applications-test/ProvenanceStats/{application_name}.json",
+                "r",
         ) as json_object:
             content = json.load(json_object)
     except FileNotFoundError:
@@ -53,8 +53,8 @@ def write_data_local_db(data, application_name):
     content.append(data)
 
     with open(
-        f"/home/ngiacomi/Documents/applications-test/ProvenanceStats/{application_name}.json",
-        "w",
+            f"/home/ngiacomi/Documents/applications-test/ProvenanceStats/{application_name}.json",
+            "w",
     ) as json_object:
         json.dump(content, json_object, indent=4)
 
@@ -170,8 +170,10 @@ def store_data(compss_path: str, stats_path: Path):
                 total += int(final_dict[n][stat])
             final_dict["overall"][stat] = str(total)
 
-    os.makedirs(stats_path, exist_ok=True)
+    # NOT necessary anymore
+    # os.makedirs(stats_path, exist_ok=True)
+
     with open(stats_path / "stats.json", "w") as out_json:
         json.dump(final_dict, out_json, indent=4)
 
-    write_data_local_db(final_dict, application_name)
+    # write_data_local_db(final_dict, application_name)

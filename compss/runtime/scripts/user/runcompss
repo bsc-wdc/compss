@@ -39,6 +39,7 @@ DEFAULT_MONITORING_INTERVAL_ARGUMENT=2000
 DEFAULT_DEBUGGER_ARGUMENT=true
 DEFAULT_SHUTDOWN_IN_NODE_FAILURE=false
 DEFAULT_PROVENANCE_YAML="ro-crate-info.yaml"
+DEFAULT_PROVENANCE_ENABLED=true
 
 APPLICATION_ERROR="ERROR: Application name not provided"
 LANGUAGE_ERROR="ERROR: Value of option --lang must be: java, c, python or r"
@@ -222,9 +223,6 @@ show_opts() {
                                             Default: ${DEFAULT_SHUTDOWN_IN_NODE_FAILURE}
     --provenance=<yaml>, --provenance, -p   Generate COMPSs workflow provenance data in RO-Crate format using a YAML configuration file. Automatically activates --graph and --output_profile.
                                             Default: ro-crate-info.yaml
-    --provenance-folder=<path>              Path where the workflow provenance will be generated
-                                            Default: COMPSs_RO-Crate_[timestamp]
-
 
 * Application name:
     For Java applications:   Fully qualified name of the application
@@ -300,7 +298,7 @@ get_args() {
         # Enable provenance
         provenance_yaml=${DEFAULT_PROVENANCE_YAML}
         echo "PROVENANCE | Setting YAML to 'ro-crate-info.yaml' by default"
-        provenance=true
+        provenance=${DEFAULT_PROVENANCE_ENABLED}
         if [ -z "$output_profile" ] ; then
           echo "PROVENANCE | Setting 'output_profile' to 'App_Profile.json' by default"
           output_profile="${PWD}/App_Profile.json"
@@ -642,11 +640,25 @@ get_args() {
             # Set wall_clock_limit
             wall_clock_limit=${OPTARG//wall_clock_limit=/}
             ;;
+          data_provenance=*)
+            # Enable or disable provenance
+            provenance=${OPTARG//data_provenance=/}
+            # Enable provenance, YAML file specified as parameter
+            provenance_yaml=${DEFAULT_PROVENANCE_YAML}
+            echo "PROVENANCE | Setting YAML to '${provenance_yaml}'"
+            if [ -z "$output_profile" ] ; then
+              echo "PROVENANCE | Setting 'output_profile' to 'App_Profile.json' by default"
+              output_profile="${PWD}/App_Profile.json"
+            fi
+            if [ -z "$graph" ] ; then
+              echo "PROVENANCE | Setting 'graph' to 'true' by default"
+              graph=${DEFAULT_GRAPH_ARGUMENT}
+            fi
+            ;;
           provenance=*)
             # Enable provenance, YAML file specified as parameter
-            provenance_yaml=${OPTARG//provenance=/}
+            provenance_yaml=${DEFAULT_PROVENANCE_YAML}
             echo "PROVENANCE | Setting YAML to '${provenance_yaml}'"
-            provenance=true
             if [ -z "$output_profile" ] ; then
               echo "PROVENANCE | Setting 'output_profile' to 'App_Profile.json' by default"
               output_profile="${PWD}/App_Profile.json"
@@ -660,7 +672,7 @@ get_args() {
             # Enable provenance
             provenance_yaml=${DEFAULT_PROVENANCE_YAML}
             echo "PROVENANCE | Setting YAML to 'ro-crate-info.yaml' by default"
-            provenance=true
+            provenance=${DEFAULT_PROVENANCE_ENABLED}
             if [ -z "$output_profile" ] ; then
               echo "PROVENANCE | Setting 'output_profile' to 'App_Profile.json' by default"
               output_profile="${PWD}/App_Profile.json"
@@ -669,12 +681,6 @@ get_args() {
               echo "PROVENANCE | Setting 'graph' to 'true' by default"
               graph=${DEFAULT_GRAPH_ARGUMENT}
             fi
-            ;;
-          provenance-folder=*)
-            # Generate provenance in a specified directory
-            provenance_dest_path=${OPTARG//provenance-folder=/}
-            echo "PROVENANCE | Setting provenance folder to '${provenance_dest_path}'"
-            provenance=true
             ;;
           *)
             # Flag didn't match any patern. Raise exception
@@ -764,18 +770,25 @@ if [ -n "${env_script_path}" ]; then
   done
 fi
 
+echo "DEBUG PROVENANCE ${provenance}"
+
 start_profiling
 
 # Real runtime execution
 start_compss_app
 
-stop_profiling
+# stop_profiling
 
 if [ ${provenance} ]; then
   if [ -z "${ENQUEUE_COMPSS_ARGS}" ]; then
     echo "runcompss" $all_arguments > compss_submission_command_line.txt
   else
     echo "enqueue_compss ${ENQUEUE_COMPSS_ARGS}" > compss_submission_command_line.txt
+  fi
+
+  find "${specific_log_dir}/workers/" -type f -name "*.csv" -exec cp {} "${specific_log_dir}/stats/" \;
+  if [ "${log_level}" != "${DEFAULT_LOG_LEVEL_ARGUMENT}" ]; then
+    rm -r "${specific_log_dir}/workers/"
   fi
 
   # Check if provenance_dest_path is unset or empty

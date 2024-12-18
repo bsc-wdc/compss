@@ -786,7 +786,7 @@ def create_init_config_file(
                 extrae_xml_path,
                 extrae_xml_final_path,
                 extrae_trace_path,
-                compss_home
+                compss_home,
             )
             if extrae_cfg == "null":
                 os.environ["EXTRAE_CONFIG_FILE"] = extrae_xml_final_path
@@ -866,10 +866,10 @@ def __process_extrae_file(
     for i, line in enumerate(extrae_xml_data):
         if "{{EXTRAE_HOME}}" in line:
             # Sed with real path
-            extrae_home = str(os.path.join(compss_home, "Dependencies", "extrae"))
-            extrae_xml_data[i] = line.replace(
-                "{{EXTRAE_HOME}}", extrae_home
+            extrae_home = str(
+                os.path.join(compss_home, "Dependencies", "extrae")
             )
+            extrae_xml_data[i] = line.replace("{{EXTRAE_HOME}}", extrae_home)
         if "{{TRACE_OUTPUT_DIR}}" in line:
             # Sed with real path
             extrae_xml_data[i] = line.replace(

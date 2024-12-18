@@ -392,6 +392,14 @@ EOT
   }
 
   clean_env() {
+    if [ "${tracing}" == "true" ]; then
+      unset LD_PRELOAD
+      unset EXTRAE_HOME
+      unset EXTRAE_LIB
+      unset EXTRAE_CONFIG_FILE
+      unset EXTRAE_USE_POSIX_CLOCK
+      unset AFTER_EXTRAE_LD_PRELOAD
+    fi
     if [ "$eraseWD" = "true" ]; then
       if [ "$debug" == "true" ]; then
         echo "[persistent_worker.sh] Clean WD ${workingDir}"

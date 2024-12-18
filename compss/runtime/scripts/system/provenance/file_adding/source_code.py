@@ -31,15 +31,16 @@ from provenance.processing.entities import get_manually_defined_software_require
 
 
 def add_file_to_crate(
-    compss_crate: ROCrate,
-    wf_info: dict,
-    file_name: str,
-    compss_ver: str,
-    main_entity: str,
-    out_profile: str,
-    in_sources_dir: str,
-    complete_graph: Path,
-    info_yaml: str,
+        compss_crate: ROCrate,
+        wf_info: dict,
+        file_name: str,
+        compss_ver: str,
+        main_entity: str,
+        out_profile: str,
+        in_sources_dir: str,
+        complete_graph: str,
+        plots_path: str,
+        info_yaml: str,
 ) -> str:
     """
     Get details of a file, and add it physically to the Crate. The file will be an application source file, so,
@@ -52,7 +53,7 @@ def add_file_to_crate(
     :param out_profile: COMPSs application profile output
     :param in_sources_dir: Path to the defined sources_dir. May be passed empty, so there is no sub-folder structure
         to be respected
-    :param complete_graph: Path object to the file containing the workflow diagram
+    :param complete_graph: Full path to the file containing the workflow diagram
     :param info_yaml: Name of the YAML file specified by the user
 
     :returns: Path where the file has been stored in the crate
@@ -256,7 +257,7 @@ def add_file_to_crate(
 
             # Adding checksum for the file. sha3_256 is stronger, but slower and not installed by default in may systems
             with open(complete_graph) as file, mmap(
-                file.fileno(), 0, access=ACCESS_READ
+                    file.fileno(), 0, access=ACCESS_READ
             ) as file:
                 file_properties["sha256"] = sha256(file).hexdigest()
 
@@ -266,6 +267,33 @@ def add_file_to_crate(
                 "PROVENANCE | WARNING: complete_graph.svg file not found.\n"
                 "\tProvenance will be generated without image property"
             )
+
+        plots_path = str(plots_path)
+        if os.path.exists(plots_path):
+            for root, _, files in os.walk(plots_path):
+                for file in files:
+                    if file.endswith('.png'):
+                        full_path = os.path.join(root, file)
+                        relative_path = os.path.relpath(full_path, plots_path.split('/plots')[0])
+
+                        with open(full_path, 'rb') as f:
+                            content = f.read()
+                            file_properties = {
+                                'name': relative_path,
+                                'contentSize': os.stat(full_path).st_size,
+                                '@type': 'image/png',
+                                'encodingFormat': [
+                                    'image/png',
+                                    {
+                                        '@id': 'https://www.nationalarchives.gov.uk/PRONOM/fmt/11'
+                                    }
+                                ],
+                                'sha256': sha256(content).hexdigest(),
+                            }
+
+                        compss_crate.add_file(full_path, dest_path=relative_path, properties=file_properties)
+        else:
+            print('Plots folder does not exist')
 
         # out_profile
         if os.path.exists(out_profile):
@@ -295,7 +323,7 @@ def add_file_to_crate(
 
             # Adding checksum for the file. sha3_256 is stronger, but slower and not installed by default in may systems
             with open(out_profile) as file, mmap(
-                file.fileno(), 0, access=ACCESS_READ
+                    file.fileno(), 0, access=ACCESS_READ
             ) as file:
                 file_properties["sha256"] = sha256(file).hexdigest()
 
@@ -332,38 +360,33 @@ def add_file_to_crate(
         #     )
 
         # ro-crate-info.yaml
-        if os.path.exists(info_yaml):
-            yaml_path = Path(info_yaml)
-            file_properties = {}
-            file_properties["name"] = yaml_path.name
-            file_properties["contentSize"] = os.path.getsize(yaml_path)
-            file_properties["description"] = (
-                "COMPSs Workflow Provenance YAML configuration file"
-            )
-            file_properties["encodingFormat"] = [
-                "YAML",
-                {"@id": "https://www.nationalarchives.gov.uk/PRONOM/fmt/818"},
-            ]
+        yaml_path = Path(info_yaml)
+        file_properties = {}
+        file_properties["name"] = yaml_path.name
+        file_properties["contentSize"] = os.path.getsize(yaml_path)
+        file_properties["description"] = (
+            "COMPSs Workflow Provenance YAML configuration file"
+        )
+        file_properties["encodingFormat"] = [
+            "YAML",
+            {"@id": "https://www.nationalarchives.gov.uk/PRONOM/fmt/818"},
+        ]
 
-            # Add YAML as ContextEntity
-            compss_crate.add(
-                ContextEntity(
-                    compss_crate,
-                    "https://www.nationalarchives.gov.uk/PRONOM/fmt/818",
-                    {"@type": "WebSite", "name": "YAML"},
-                )
+        # Add YAML as ContextEntity
+        compss_crate.add(
+            ContextEntity(
+                compss_crate,
+                "https://www.nationalarchives.gov.uk/PRONOM/fmt/818",
+                {"@type": "WebSite", "name": "YAML"},
             )
+        )
 
-            with open(info_yaml) as file, mmap(
+        with open(info_yaml) as file, mmap(
                 file.fileno(), 0, access=ACCESS_READ
-            ) as file:
-                file_properties["sha256"] = sha256(file).hexdigest()
+        ) as file:
+            file_properties["sha256"] = sha256(file).hexdigest()
 
-            compss_crate.add_file(yaml_path, properties=file_properties)
-        else:
-            print(
-                "PROVENANCE | WARNING: YAML configuration file was not added to the crate."
-            )
+        compss_crate.add_file(yaml_path, properties=file_properties)
 
         return ""
 
@@ -373,13 +396,14 @@ def add_file_to_crate(
 
 
 def add_application_source_files(
-    compss_crate: ROCrate,
-    compss_wf_info: dict,
-    compss_ver: str,
-    main_entity: str,
-    out_profile: str,
-    info_yaml: str,
-    complete_graph: str,
+        compss_crate: ROCrate,
+        compss_wf_info: dict,
+        compss_ver: str,
+        main_entity: str,
+        out_profile: str,
+        info_yaml: str,
+        complete_graph: str,
+        plots_path: str
 ) -> None:
     """
     Add all application source files as part of the crate. This means, to include them physically in the resulting
@@ -457,7 +481,7 @@ def add_application_source_files(
                 # Can't continue, we need to traverse the parent directory. Luckily, files won't be added twice
             added_dirs.append(resolved_source)
             for root, dirs, files in os.walk(
-                resolved_source, topdown=True, followlinks=True
+                    resolved_source, topdown=True, followlinks=True
             ):
                 if root.endswith("__pycache__") or root.endswith(".git"):
                     continue  # We skip __pycache__ and .git subdirectories
@@ -476,6 +500,7 @@ def add_application_source_files(
                             out_profile,
                             resolved_source,
                             complete_graph,
+                            plots_path,
                             info_yaml,
                         )
                         added_files.append(resolved_file)
@@ -504,6 +529,7 @@ def add_application_source_files(
                             out_profile,
                             resolved_source,
                             complete_graph,
+                            plots_path,
                             info_yaml,
                         )
             if not os.listdir(resolved_source):
@@ -524,6 +550,7 @@ def add_application_source_files(
                     out_profile,
                     resolved_source,
                     complete_graph,
+                    plots_path,
                     info_yaml,
                 )
         elif os.path.isfile(resolved_source):
@@ -537,6 +564,7 @@ def add_application_source_files(
                     out_profile,
                     "",
                     complete_graph,
+                    plots_path,
                     info_yaml,
                 )
                 added_files.append(resolved_source)
@@ -561,6 +589,7 @@ def add_application_source_files(
             out_profile,
             "",
             complete_graph,
+            plots_path,
             info_yaml,
         )
         added_files.append(main_entity)

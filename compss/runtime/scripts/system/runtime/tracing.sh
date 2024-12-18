@@ -104,7 +104,7 @@ check_tracing_setup () {
   if [ -z "${tracing_generate_trace}" ]; then
     tracing_generate_trace="${DEFAULT_GENERATE_TRACE}"
   fi
-   
+
   if [ -z "${tracing_delete_packages}" ]; then
     tracing_delete_packages="${DEFAULT_TRACING_DELETE_PACKAGES}"
   fi
@@ -117,7 +117,9 @@ check_tracing_setup () {
     fi
     extrae_xml_final_path="${exec_dir}/cfgfiles/extrae.xml"
     mkdir -p "${exec_dir}/cfgfiles"
-    sed "s+{{TRACE_OUTPUT_DIR}}+${exec_dir}/trace+g" "${extraeFile}" > "${extrae_xml_final_path}"
+    cp "${extraeFile}" "${extrae_xml_final_path}"
+    sed -i "s+{{EXTRAE_HOME}}+${EXTRAE_HOME}+g" "${extrae_xml_final_path}"
+    sed -i "s+{{TRACE_OUTPUT_DIR}}+${exec_dir}/trace+g" "${extrae_xml_final_path}"
     extraeFile="${extrae_xml_final_path}"
     extraeWDir=$(grep "final-directory" "${extraeFile}" | cut -d'>' -f2 | rev| cut -c18- |rev)
   else
@@ -160,7 +162,7 @@ EOT
 # STARTS TRACING ENGINE
 #----------------------------------------------
 start_tracing() {
-  if [ "${tracing}" == "${TRACING_ENABLED}" ]; then   
+  if [ "${tracing}" == "${TRACING_ENABLED}" ]; then
     export LD_PRELOAD=${EXTRAE_LIB}/libpttrace.so
     export PYTHONPATH=${EXTRAE_HOME}/libexec/:${EXTRAE_HOME}/lib/:${PYTHONPATH}
   fi
@@ -181,7 +183,7 @@ stop_tracing() {
       fi
       trace_name="${trace_name}_compss"
       echo "Creating trace..."
-      
+
       log_level="${LOG_LEVEL_DEBUG}"
       if [ ! "${log_level}" == "${LOG_LEVEL_OFF}" ]; then
         out_redirect="${specific_log_dir}/traceMerger.log"
@@ -221,7 +223,7 @@ generate_trace() {
   if [ ! "${endCode}" -eq "0" ]; then
     exit "${endCode}"
   fi
-  
+
   echo "Joining python traces"
   python_traces=$(find "${extraeWDir}/python" -name "*.prv")
   merge_python_traces "${extraeWDir}" "${trace_name}" ${python_traces}
@@ -235,7 +237,7 @@ generate_trace() {
     rearrange_trace_threads "${extraeWDir}" "${trace_name}"
     if [ ! "${endCode}" -eq "0" ]; then
       exit "${endCode}"
-    fi    
+    fi
   fi
 }
 

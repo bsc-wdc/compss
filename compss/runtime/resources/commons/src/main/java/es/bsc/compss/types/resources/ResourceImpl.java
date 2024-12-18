@@ -585,7 +585,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource, No
 
         COMPSsNode masterNode = Comm.getAppHost().getNode();
 
-        // TODO: this block should prolly be on the obtain data function
+        // TODO: this block should probably be on the obtain data function
         Path pathPath = Paths.get(folderPath);
         try {
             Files.createDirectories(pathPath);

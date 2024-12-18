@@ -87,7 +87,7 @@ public class LogicalData {
     private boolean isBeingSaved;
     private boolean isBindingData;
 
-    // Elements monitoring chages on this data's locations.
+    // Elements monitoring changes on this data's locations.
     private LinkedList<LocationMonitor> locMonitors;
 
     private boolean accessedByMain;

@@ -1,9 +1,9 @@
 <?xml version='1.0'?>
 
 <trace enabled="yes"
+ home="{{EXTRAE_HOME}}"
  initial-mode="detail"
  type="paraver"
- xml-parser-id="Id: xml-parse.c 3918 2016-03-11 14:59:01Z harald $"
 >
 
   <user-functions enabled="no" list="{{PATH}}/function-list" exclude-automatic-functions="no">
@@ -37,7 +37,8 @@
   <counters enabled="yes">
     <cpu enabled="yes" starting-set-distribution="1">
       <set enabled="yes" domain="all" changeat-time="0ms">
-        PAPI_TOT_INS,PAPI_TOT_CYC,PAPI_L1_DCM,PAPI_L2_DCM,PAPI_L3_TCM,PAPI_BR_INS,PAPI_BR_MSP,RESOURCE_STALLS
+        PAPI_TOT_INS,PAPI_TOT_CYC,PAPI_L1_DCM,PAPI_L2_DCM,PAPI_L3_TCM,PAPI_BR_INS,PAPI_BR_MSP
+        <!--RESOURCE_STALLS-->
       </set>
     </cpu>
   </counters>

@@ -46,6 +46,9 @@
     slot=$2
     #echo "trace::emit-end,  emit $slot $eventType 0"
     "$extraeDir"/bin/extrae-cmd emit "$slot" "$eventType" 0
+
+    #echo "trace::fini, fini"
+    "$extraeDir"/bin/extrae-cmd fini
     endCode=$?
 
   elif [ "$action" == "init" ]; then
@@ -68,7 +71,7 @@
     shift 1
 
     package_path=$1
-    
+
     # These lines are commented because on NIOWorker extrae opens an additional process
     # that never creates the mpit file
 
@@ -93,6 +96,8 @@
 
     if [ -d "./python" ] ; then
         if [ -f "./python/TRACE.mpits" ]; then
+          # Include a copy of the libseqtrace.so
+          cp "${extraeDir}/lib/libseqtrace.so" "./python/.libseqtrace-subprocess.so"
           files+=" ./python"
         fi
     fi
@@ -105,8 +110,8 @@
 
     endCode=$?
     # shellcheck disable=SC2086
-    rm -rf ${files}
-  else 
+    #rm -rf ${files}
+  else
     echo 1>&2 "Unknown tracing action"
     exit 1
   fi

@@ -32,6 +32,8 @@ import os
 import sys
 from contextlib import contextmanager
 
+from pycompss.util.exceptions import StandardOutputError
+from pycompss.util.exceptions import StandardErrorError
 from pycompss.util.typing_helper import typing
 
 LIBC = ctypes.CDLL(None)  # noqa
@@ -190,7 +192,11 @@ def ipython_std_redirector(
     :param err_filename: Error output file filename (where to redirect stderr)
     :return: Generator
     """
+    if sys.__stdout__ is None:
+        raise StandardOutputError()
     stdout = sys.__stdout__
+    if sys.__stderr__ is None:
+        raise StandardErrorError()
     stderr = sys.__stderr__
     try:
         stdout_fd = stdout.fileno()
@@ -212,6 +218,8 @@ def ipython_std_redirector(
         # Flush the C-level buffer stdout
         LIBC.fflush(C_STDOUT)
         # Flush and close sys.__stdout__ (also closes the file descriptor)
+        if sys.__stdout__ is None:
+            raise StandardOutputError()
         sys.__stdout__.flush()
         sys.__stdout__.close()
         sys.stdout.flush()
@@ -232,6 +240,8 @@ def ipython_std_redirector(
         # Flush the C-level buffer stderr
         LIBC.fflush(C_STDERR)
         # Flush and close sys.__stderr__ (also closes the file descriptor)
+        if sys.__stderr__ is None:
+            raise StandardErrorError()
         sys.__stderr__.flush()
         sys.__stderr__.close()
         sys.stderr.flush()

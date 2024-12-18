@@ -98,6 +98,14 @@ class CancelError(Exception):
     """Cancel error exception class."""
 
 
+class StandardOutputError(Exception):
+    """Stdout error exception class."""
+
+
+class StandardErrorError(Exception):
+    """Stderr error exception class."""
+
+
 def task_timed_out(signum: int, frame: typing.Any) -> None:
     """Task time out signal handler.
 

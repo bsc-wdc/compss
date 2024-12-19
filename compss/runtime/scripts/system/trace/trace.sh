@@ -110,7 +110,7 @@
 
     endCode=$?
     # shellcheck disable=SC2086
-    #rm -rf ${files}
+    rm -rf ${files}
   else
     echo 1>&2 "Unknown tracing action"
     exit 1

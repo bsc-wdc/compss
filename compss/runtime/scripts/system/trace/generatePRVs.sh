@@ -166,7 +166,7 @@ gen_traces() {
         local original_absolute_path=""
         # Find missing mpits in TRACE.mpits
         for f in $(tar -tzf ${package} | grep python | grep .mpit | grep -v mpits); do
-          f=$(echo $f |cut -c2-)
+          f=$(echo $f | cut -c2-)
           grep=$(grep "${f}" "${python_mpits}" | awk '{print $1}')
           original_absolute_path=${grep//$f/}
           if [ -z "${original_absolute_path}" ]; then

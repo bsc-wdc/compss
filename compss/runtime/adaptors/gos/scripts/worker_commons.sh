@@ -442,16 +442,21 @@ setup_extrae() {
         baseConfigFile="${extraeFile}"
     fi
 
-
-    tracing_output_dir="${workingDir}"
-    mkdir -p "${tracing_output_dir}"
-    extraeFile="${workingDir}/extrae.xml"
-    escaped_tracing_output_dir=$(echo "${tracing_output_dir}" | sed 's_/_\\/_g')
-    sed "s/{{TRACE_OUTPUT_DIR}}/${escaped_tracing_output_dir}/g" "${baseConfigFile}" > "${extraeFile}"
-
     if [ -z "$EXTRAE_HOME" ]; then
       export EXTRAE_HOME=${SCRIPT_DIR}/../../../../../Dependencies/extrae/
     fi
+
+    tracing_output_dir="${workingDir}"
+    mkdir -p "${tracing_output_dir}"
+
+    extraeFile="${workingDir}/extrae.xml"
+    cp "${baseConfigFile}" "${extraeFile}"
+
+    escaped_extrae_home=$(echo "${EXTRAE_HOME}" | sed 's_/_\\/_g')
+    sed -i "s/{{EXTRAE_HOME}}/${escaped_extrae_home}/g" "${extraeFile}"
+
+    escaped_tracing_output_dir=$(echo "${tracing_output_dir}" | sed 's_/_\\/_g')
+    sed -i "s/{{TRACE_OUTPUT_DIR}}/${escaped_tracing_output_dir}/g" "${extraeFile}"
 
     export EXTRAE_LIB=${EXTRAE_HOME}/lib
     export LD_LIBRARY_PATH=${EXTRAE_LIB}:${LD_LIBRARY_PATH}
@@ -577,7 +582,7 @@ set_env() {
 
     # Look for the JVM Library
     if [ -n "${JAVA_HOME}" ]; then
-      if [ -d "${JAVA_HOME}/jre/lib/" ]; then #Java 8 case 
+      if [ -d "${JAVA_HOME}/jre/lib/" ]; then #Java 8 case
         libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.so | head -n 1)
         if [ -z "$libjava" ]; then
           libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.dylib | head -n 1)
@@ -693,5 +698,3 @@ get_all_parameters(){
   get_invocation_params ${remainingParams[@]}
 
 }
-
-

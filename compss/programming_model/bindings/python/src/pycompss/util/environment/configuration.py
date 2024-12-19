@@ -783,7 +783,10 @@ def create_init_config_file(
                 extrae_xml_final_path_dir, extrae_xml_name
             )
             got_extrae_final_directory = __process_extrae_file(
-                extrae_xml_path, extrae_xml_final_path, extrae_trace_path
+                extrae_xml_path,
+                extrae_xml_final_path,
+                extrae_trace_path,
+                compss_home,
             )
             if extrae_cfg == "null":
                 os.environ["EXTRAE_CONFIG_FILE"] = extrae_xml_final_path
@@ -846,12 +849,14 @@ def __process_extrae_file(
     extrae_xml_path: str,
     extrae_xml_final_path: str,
     extrae_trace_path: str,
+    compss_home: str,
 ) -> str:
     """Sed and grep extrae file.
 
     :param extrae_xml_path: Source extrae xml file path.
     :param extrae_xml_final_path: Destination extrae xml file path.
     :param extrae_trace_path: Extrae trace working directory
+    :param compss_home: COMPSs home directory
     :return: final_directory from extrae_xml_path
     """
     got_extrae_final_directory = "null"
@@ -859,6 +864,12 @@ def __process_extrae_file(
         extrae_xml_data = extrae_xml_fd.readlines()
     # Look for final-directory
     for i, line in enumerate(extrae_xml_data):
+        if "{{EXTRAE_HOME}}" in line:
+            # Sed with real path
+            extrae_home = str(
+                os.path.join(compss_home, "Dependencies", "extrae")
+            )
+            extrae_xml_data[i] = line.replace("{{EXTRAE_HOME}}", extrae_home)
         if "{{TRACE_OUTPUT_DIR}}" in line:
             # Sed with real path
             extrae_xml_data[i] = line.replace(

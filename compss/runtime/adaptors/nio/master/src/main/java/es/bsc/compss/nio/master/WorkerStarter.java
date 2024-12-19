@@ -415,6 +415,7 @@ public class WorkerStarter {
                 // Regular clean up
                 String sandboxWorkingDir = this.nw.getWorkingDir();
                 String[] command = getCleanWorkerWorkingDir(sandboxWorkingDir);
+                LOGGER.info("getCleanWorkerWorkingDir generated this: " + command);
                 if (command != null) {
                     executeCommand(this.nw.getUser(), this.nw.getName(), command);
                 }

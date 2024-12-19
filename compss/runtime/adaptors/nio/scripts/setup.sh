@@ -220,15 +220,21 @@
           baseConfigFile="${extraeFile}"
       fi
 
-      tracing_output_dir="${workingDir}"
-      mkdir -p "${tracing_output_dir}"
-      extraeFile="${workingDir}/extrae.xml"
-      escaped_tracing_output_dir=$(echo "${tracing_output_dir}" | sed 's_/_\\/_g')
-      sed "s/{{TRACE_OUTPUT_DIR}}/${escaped_tracing_output_dir}/g" "${baseConfigFile}" > "${extraeFile}"
-
       if [ -z "$EXTRAE_HOME" ]; then
         export EXTRAE_HOME=${COMPSS_HOME}/Dependencies/extrae/
       fi
+
+      tracing_output_dir="${workingDir}"
+      mkdir -p "${tracing_output_dir}"
+
+      extraeFile="${workingDir}/extrae.xml"
+      cp "${baseConfigFile}" "${extraeFile}"
+
+      escaped_extrae_home=$(echo "${EXTRAE_HOME}" | sed 's_/_\\/_g')
+      sed -i "s/{{EXTRAE_HOME}}/${escaped_extrae_home}/g" "${extraeFile}"
+
+      escaped_tracing_output_dir=$(echo "${tracing_output_dir}" | sed 's_/_\\/_g')
+      sed -i "s/{{TRACE_OUTPUT_DIR}}/${escaped_tracing_output_dir}/g" "${extraeFile}"
 
       export EXTRAE_LIB=${EXTRAE_HOME}/lib
       export LD_LIBRARY_PATH=${EXTRAE_LIB}:${LD_LIBRARY_PATH}
@@ -250,22 +256,22 @@
     # Set lib path
     if [ "${envScriptPath}" != "null" ]; then
         if [ "$debug" == "true" ]; then
-		echo "[persistent_worker.sh] Loading environment scripts"
+            echo "[persistent_worker.sh] Loading environment scripts"
         fi
         scripts=$(echo "${envScriptPath}" | tr ":" " ")
         echo "${scripts}"
         for script in ${scripts}
         do
-	   if [ "$debug" == "true" ]; then
-           	echo "[persistent_worker.sh] Loading ${script}"
-	   fi
-           source "$script"
+            if [ "$debug" == "true" ]; then
+                echo "[persistent_worker.sh] Loading ${script}"
+            fi
+            source "$script"
         done
     fi
 
     # Create sandbox
     if [ ! -d "$workingDir" ]; then
-  	mkdir -p "$workingDir"
+        mkdir -p "$workingDir"
     fi
     export COMPSS_WORKING_DIR=$workingDir
     mkdir -p "$workingDir"/log
@@ -308,7 +314,7 @@
 
     # Set the classpath
     if [ "$cp" == "null" ]; then
-  	cp=""
+      cp=""
     fi
 
     # Coredump
@@ -344,12 +350,12 @@
     fi
 
     if [ "$lang" = "c" ] && [ "${persistentBinding}" = "true" ]; then
-    	generate_jvm_opts_file
-        # shellcheck disable=SC2034
-    	cmd="${appDir}/worker/nio_worker_c"
+      generate_jvm_opts_file
+      # shellcheck disable=SC2034
+      cmd="${appDir}/worker/nio_worker_c"
     else
-        # shellcheck disable=SC2034
-        cmd="$JAVA ${worker_jvm_flags} -classpath $CLASSPATH:${worker_jar} ${main_worker_class}"
+      # shellcheck disable=SC2034
+      cmd="$JAVA ${worker_jvm_flags} -classpath $CLASSPATH:${worker_jar} ${main_worker_class}"
     fi
 
   }
@@ -386,6 +392,14 @@ EOT
   }
 
   clean_env() {
+    if [ "${tracing}" == "true" ]; then
+      unset LD_PRELOAD
+      unset EXTRAE_HOME
+      unset EXTRAE_LIB
+      unset EXTRAE_CONFIG_FILE
+      unset EXTRAE_USE_POSIX_CLOCK
+      unset AFTER_EXTRAE_LD_PRELOAD
+    fi
     if [ "$eraseWD" = "true" ]; then
       if [ "$debug" == "true" ]; then
         echo "[persistent_worker.sh] Clean WD ${workingDir}"
@@ -424,7 +438,7 @@ EOT
         fi
       else
         if [ "$debug" == "true" ]; then
-          echo "[persistent_worker.sh] Not Cleaning parent WD because doesn't exists"
+          echo "[persistent_worker.sh] Not Cleaning tmp WD because doesn't exists"
         fi
       fi
     else

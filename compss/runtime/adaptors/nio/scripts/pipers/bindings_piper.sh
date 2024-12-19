@@ -82,21 +82,27 @@ export_tracing() {
             baseConfigFile="${pythonExtraeFile}"
         fi
 
+        dependencies_path="${SCRIPT_DIR}/../../../../../../Dependencies"
+
         # determine path for customized extrae config file
         workerConfigFile="$(pwd)/extrae_python_worker.xml"
 
-        escapedConfigPath=$(echo "${configPath}" | sed 's_/_\\/_g')
-        sed "s/{{PATH}}/${escapedConfigPath}/g" "${baseConfigFile}" > "${workerConfigFile}"
+        cp "${baseConfigFile}" "${workerConfigFile}"
+
+        escaped_extrae_home=$(echo "${dependencies_path}/extrae" | sed 's_/_\\/_g')
+        sed -i "s/{{EXTRAE_HOME}}/${escaped_extrae_home}/g" "${workerConfigFile}"
+
+        escaped_config_path=$(echo "${configPath}" | sed 's_/_\\/_g')
+        sed -i "s/{{PATH}}/${escaped_config_path}/g" "${workerConfigFile}"
 
         escaped_tracing_output_dir=$(echo "${tracing_output_dir}" | sed 's_/_\\/_g')
-        sed  -i "s/{{TRACE_OUTPUT_DIR}}/${escaped_tracing_output_dir}/g" "${workerConfigFile}"
+        sed -i "s/{{TRACE_OUTPUT_DIR}}/${escaped_tracing_output_dir}/g" "${workerConfigFile}"
 
         echo "Using extrae config file: $workerConfigFile"
         echo "Using extrae output directory: ${tracing_output_dir}"
 
         if [ "$mpiWorker" == "true" ]; then
             # Exporting variables for MPI Python worker
-            dependencies_path="${SCRIPT_DIR}/../../../../../../Dependencies"
             libmpitrace="lib/libmpitrace.so"
             if [ -f "${dependencies_path}/extrae/${libmpitrace}" ]; then
                 # If the normal installation contains libmpitrace.so
@@ -123,9 +129,10 @@ export_tracing() {
         else
             # Exporting variables for multi-processing Python worker
             unset EXTRAE_SKIP_AUTO_LIBRARY_INITIALIZE
+            export EXTRAE_HOME=${dependencies_path}/extrae
             export EXTRAE_CONFIG_FILE=${workerConfigFile}
             export EXTRAE_USE_POSIX_CLOCK=0
-            export PYTHONPATH=${SCRIPT_DIR}/../../../../../../Dependencies/extrae/libexec/:${SCRIPT_DIR}/../../../../../../Dependencies/extrae/lib/:${PYTHONPATH}
+            export PYTHONPATH=${dependencies_path}/extrae/libexec/:${dependencies_path}/extrae/lib/:${PYTHONPATH}
         fi
 
     fi

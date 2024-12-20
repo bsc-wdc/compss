@@ -254,7 +254,7 @@ public abstract class AllocatableAction {
      *
      * @return {@code true} if there are stream data predecessors, {@code false} otherwise.
      */
-    public final boolean hasDataStreamProducers() {
+    public final boolean hasStreamProducers() {
         Iterator<AllocatableAction> producers = this.streamDataProducers.iterator();
         while (producers.hasNext()) {
             AllocatableAction aa = producers.next();
@@ -272,16 +272,7 @@ public abstract class AllocatableAction {
      * @return {@literal true} if the action was canceled {@literal false} otherwise.
      */
     public abstract boolean checkIfCanceled(AllocatableAction aa);
-
-    /**
-     * Returns whether there are stream producers or not.
-     *
-     * @return {@code true} if there are stream producers, {@code false} otherwise.
-     */
-    public final boolean hasStreamProducers() {
-        return !this.streamDataProducers.isEmpty();
-    }
-
+    
     /**
      * Adds a data predecessor.
      *

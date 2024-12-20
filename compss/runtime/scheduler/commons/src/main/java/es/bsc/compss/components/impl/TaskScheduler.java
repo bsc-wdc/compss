@@ -380,7 +380,7 @@ public class TaskScheduler {
      *
      * @param action AllocatableAction.
      */
-    protected void addToReady(AllocatableAction action) {
+    private void addToReady(AllocatableAction action) {
         LOGGER.debug("[TaskScheduler] Add action " + action + " to ready count");
         Integer coreId = action.getCoreId();
         if (coreId != null) {
@@ -396,7 +396,7 @@ public class TaskScheduler {
      *
      * @param action AllocatableAction.
      */
-    protected void removeFromReady(AllocatableAction action) {
+    private void removeFromReady(AllocatableAction action) {
         LOGGER.info("[TaskScheduler] Remove action " + action + " from ready count");
         if (action.getImplementations() != null) {
             if (action.getImplementations().length > 0) {
@@ -416,7 +416,7 @@ public class TaskScheduler {
      *
      * @param action Blocked AllocatableAction.
      */
-    public void addToBlocked(AllocatableAction action) {
+    public final void addToBlocked(AllocatableAction action) {
         LOGGER.warn("[TaskScheduler] Blocked Action: " + action);
         this.blockedActions.addAction(action);
         if (!action.hasDataPredecessors() && !action.hasStreamProducers()) {
@@ -424,6 +424,22 @@ public class TaskScheduler {
         }
     }
 
+    /**
+     * Removes from the blocked list all the actions compatible with the resource.
+     *
+     * @param resource resource that could allocate the blocked tasks
+     * @return list all the actions compatible with the resource.
+     */
+    protected final List<AllocatableAction> removeCompatibleFromBlocked(Worker resource) {
+        List<AllocatableAction> unblockedActions = this.blockedActions.removeAllCompatibleActions(resource);
+
+        for (AllocatableAction action : unblockedActions) {
+            if (!action.hasDataPredecessors() && !action.hasStreamProducers()) {
+                addToReady(action);
+            }
+        }
+        return unblockedActions;
+    }
     /*
      * *********************************************************************************************************
      * *********************************************************************************************************
@@ -913,13 +929,7 @@ public class TaskScheduler {
         } else {
             // Inspect blocked actions to be freed
             List<AllocatableAction> unblockedActions;
-            unblockedActions = this.blockedActions.removeAllCompatibleActions(worker.getResource());
-
-            for (AllocatableAction action : unblockedActions) {
-                if (!action.hasDataPredecessors() && !action.hasStreamProducers()) {
-                    addToReady(action);
-                }
-            }
+            unblockedActions = this.removeCompatibleFromBlocked(worker.getResource());
 
             // Update worker features
             LinkedList<AllocatableAction> blockedActions = new LinkedList<>();

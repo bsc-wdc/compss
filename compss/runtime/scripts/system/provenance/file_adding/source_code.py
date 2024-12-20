@@ -39,7 +39,6 @@ def add_file_to_crate(
         out_profile: str,
         in_sources_dir: str,
         complete_graph: str,
-        plots_path: str,
         info_yaml: str,
 ) -> str:
     """
@@ -268,33 +267,6 @@ def add_file_to_crate(
                 "\tProvenance will be generated without image property"
             )
 
-        plots_path = str(plots_path)
-        if os.path.exists(plots_path):
-            for root, _, files in os.walk(plots_path):
-                for file in files:
-                    if file.endswith('.png'):
-                        full_path = os.path.join(root, file)
-                        relative_path = os.path.relpath(full_path, plots_path.split('/plots')[0])
-
-                        with open(full_path, 'rb') as f:
-                            content = f.read()
-                            file_properties = {
-                                'name': relative_path,
-                                'contentSize': os.stat(full_path).st_size,
-                                '@type': 'image/png',
-                                'encodingFormat': [
-                                    'image/png',
-                                    {
-                                        '@id': 'https://www.nationalarchives.gov.uk/PRONOM/fmt/11'
-                                    }
-                                ],
-                                'sha256': sha256(content).hexdigest(),
-                            }
-
-                        compss_crate.add_file(full_path, dest_path=relative_path, properties=file_properties)
-        else:
-            print('Plots folder does not exist')
-
         # out_profile
         if os.path.exists(out_profile):
             file_properties = {}
@@ -403,7 +375,6 @@ def add_application_source_files(
         out_profile: str,
         info_yaml: str,
         complete_graph: str,
-        plots_path: str
 ) -> None:
     """
     Add all application source files as part of the crate. This means, to include them physically in the resulting
@@ -500,7 +471,6 @@ def add_application_source_files(
                             out_profile,
                             resolved_source,
                             complete_graph,
-                            plots_path,
                             info_yaml,
                         )
                         added_files.append(resolved_file)
@@ -529,7 +499,6 @@ def add_application_source_files(
                             out_profile,
                             resolved_source,
                             complete_graph,
-                            plots_path,
                             info_yaml,
                         )
             if not os.listdir(resolved_source):
@@ -550,7 +519,6 @@ def add_application_source_files(
                     out_profile,
                     resolved_source,
                     complete_graph,
-                    plots_path,
                     info_yaml,
                 )
         elif os.path.isfile(resolved_source):
@@ -564,7 +532,6 @@ def add_application_source_files(
                     out_profile,
                     "",
                     complete_graph,
-                    plots_path,
                     info_yaml,
                 )
                 added_files.append(resolved_source)
@@ -589,7 +556,6 @@ def add_application_source_files(
             out_profile,
             "",
             complete_graph,
-            plots_path,
             info_yaml,
         )
         added_files.append(main_entity)

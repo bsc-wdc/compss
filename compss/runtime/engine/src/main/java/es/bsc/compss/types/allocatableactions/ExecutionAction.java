@@ -582,9 +582,9 @@ public class ExecutionAction extends AllocatableAction implements JobListener<Pa
         List<Implementation> coreImpls = ce.getImplementations();
 
         int coreImplsSize = coreImpls.size();
-        Implementation[] impls = (Implementation[]) new Implementation[coreImplsSize];
+        Implementation[] impls = new Implementation[coreImplsSize];
         for (int i = 0; i < coreImplsSize; ++i) {
-            impls[i] = (Implementation) coreImpls.get(i);
+            impls[i] = coreImpls.get(i);
         }
         return impls;
     }

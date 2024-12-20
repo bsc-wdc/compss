@@ -1185,7 +1185,9 @@ public abstract class AllocatableAction {
     public final List<AllocatableAction> unschedule() throws UnassignedActionException, ActionNotFoundException {
         if (this.selectedResource != null) {
             ResourceScheduler<? extends WorkerResourceDescription> target = this.selectedResource;
-            target.unhostAction(this);
+            if (this.state == State.RUNNING || this.state == State.WAITING) {
+                target.unhostAction(this);
+            }
             return target.unscheduleAction(this);
         } else {
             throw new UnassignedActionException();

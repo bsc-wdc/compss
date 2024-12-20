@@ -419,6 +419,9 @@ public class TaskScheduler {
     public void addToBlocked(AllocatableAction action) {
         LOGGER.warn("[TaskScheduler] Blocked Action: " + action);
         this.blockedActions.addAction(action);
+        if (!action.hasDataPredecessors() && !action.hasStreamProducers()) {
+            removeFromReady(action);
+        }
     }
 
     /*
@@ -445,9 +448,6 @@ public class TaskScheduler {
             scheduleAction(action, actionScore);
             tryToLaunch(action);
         } catch (BlockedActionException bae) {
-            if (!action.hasDataPredecessors() && !action.hasStreamProducers()) {
-                removeFromReady(action);
-            }
             addToBlocked(action);
         }
     }
@@ -519,9 +519,6 @@ public class TaskScheduler {
 
         handleDependencyFreeActions(dataFreeActions, resourceFreeActions, blockedCandidates, resource);
         for (AllocatableAction aa : blockedCandidates) {
-            if (!aa.hasDataPredecessors() && !aa.hasStreamProducers()) {
-                removeFromReady(aa);
-            }
             addToBlocked(aa);
         }
     }
@@ -941,9 +938,6 @@ public class TaskScheduler {
         LinkedList<AllocatableAction> blockedActions = new LinkedList<>();
         this.workerFeaturesUpdate(worker, modification.getModification(), unblockedActions, blockedActions);
         for (AllocatableAction action : blockedActions) {
-            if (!action.hasDataPredecessors() && !action.hasStreamProducers()) {
-                removeFromReady(action);
-            }
             addToBlocked(action);
         }
 
@@ -1027,9 +1021,6 @@ public class TaskScheduler {
                 scheduleAction(action, actionScore);
                 tryToLaunch(action);
             } catch (BlockedActionException bae) {
-                if (!action.hasDataPredecessors()) {
-                    removeFromReady(action);
-                }
                 addToBlocked(action);
             }
         }
@@ -1074,9 +1065,6 @@ public class TaskScheduler {
                 scheduleAction(action, actionScore);
                 tryToLaunch(action);
             } catch (BlockedActionException bae) {
-                if (!action.hasDataPredecessors() && !action.hasStreamProducers()) {
-                    removeFromReady(action);
-                }
                 addToBlocked(action);
             }
         }
@@ -1141,9 +1129,6 @@ public class TaskScheduler {
                 scheduleAction(action, actionScore);
                 tryToLaunch(action);
             } catch (BlockedActionException bae) {
-                if (!action.hasDataPredecessors()) {
-                    removeFromReady(action);
-                }
                 addToBlocked(action);
             }
         }

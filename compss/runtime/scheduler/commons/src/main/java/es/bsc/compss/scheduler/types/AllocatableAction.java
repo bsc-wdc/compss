@@ -350,6 +350,33 @@ public abstract class AllocatableAction {
         }
     }
 
+    private List<AllocatableAction> releaseDataSuccessors() {
+        // Release data dependencies of the task
+        List<AllocatableAction> freeTasks = new LinkedList<>();
+        for (AllocatableAction aa : this.dataSuccessors) {
+            aa.dataPredecessorDone(this);
+            if (!aa.hasDataPredecessors() && !aa.hasStreamProducers()) {
+                freeTasks.add(aa);
+            }
+        }
+
+        this.dataSuccessors.clear();
+        return freeTasks;
+    }
+
+    private List<AllocatableAction> releaseStreamDataConsumers() {
+        // Release producer from consumers and check if stream consumers are free
+        List<AllocatableAction> freeActions = new LinkedList<>();
+        for (AllocatableAction aa : this.streamDataConsumers) {
+            aa.streamDataProducerStarted(this);
+            if (!aa.hasStreamProducers() && !aa.hasDataPredecessors()) {
+                freeActions.add(aa);
+            }
+        }
+
+        return freeActions;
+    }
+
     /*
      * ***************************************************************************************************************
      * MUTEX GROUPS OPERATIONS
@@ -784,36 +811,13 @@ public abstract class AllocatableAction {
         doAbort();
     }
 
-    private List<AllocatableAction> releaseDataSuccessors() {
-        // Release data dependencies of the task
-        List<AllocatableAction> freeTasks = new LinkedList<>();
-        for (AllocatableAction aa : this.dataSuccessors) {
-            aa.dataPredecessorDone(this);
-            if (!aa.hasDataPredecessors() && !aa.hasStreamProducers()) {
-                freeTasks.add(aa);
-            }
-        }
-
-        this.dataSuccessors.clear();
-        return freeTasks;
-    }
-
     /**
      * Operations to perform when AA's execution has started.
      *
      * @return Freed stream dependency actions.
      */
     public final List<AllocatableAction> executionStarted() {
-        // Release producer from consumers and check if stream consumers are free
-        List<AllocatableAction> freeActions = new LinkedList<>();
-        for (AllocatableAction aa : this.streamDataConsumers) {
-            aa.streamDataProducerStarted(this);
-            if (!aa.hasStreamProducers() && !aa.hasDataPredecessors()) {
-                freeActions.add(aa);
-            }
-        }
-
-        return freeActions;
+        return this.releaseStreamDataConsumers();
     }
 
     /**

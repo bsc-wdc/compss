@@ -1130,11 +1130,6 @@ public class TaskScheduler {
             ObjectValue<AllocatableAction> obj = sortedCompatibleActions.poll();
             Score actionScore = obj.getScore();
             AllocatableAction action = obj.getObject();
-
-            if (!action.hasDataPredecessors() && !action.hasStreamProducers()) {
-                addToReady(action);
-            }
-
             try {
                 scheduleAction(action, actionScore);
                 tryToLaunch(action);

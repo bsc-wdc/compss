@@ -336,13 +336,13 @@ public abstract class AllocatableAction {
      *
      * @param finishedAction Finished Allocatable Action.
      */
-    private void streamDataProducerDone(AllocatableAction finishedAction) {
+    private void streamDataProducerStarted(AllocatableAction finishedAction) {
         Iterator<AllocatableAction> it = this.streamDataProducers.iterator();
         while (it.hasNext()) {
             AllocatableAction aa = it.next();
             if (aa == finishedAction) {
                 if (DEBUG) {
-                    LOGGER.debug("Removing stream poducer action " + aa.getId() + " from action " + this.getId());
+                    LOGGER.debug("Removing stream producer action " + aa.getId() + " from action " + this.getId());
                 }
                 it.remove();
                 break;
@@ -807,7 +807,7 @@ public abstract class AllocatableAction {
         // Release producer from consumers and check if stream consumers are free
         List<AllocatableAction> freeActions = new LinkedList<>();
         for (AllocatableAction aa : this.streamDataConsumers) {
-            aa.streamDataProducerDone(this);
+            aa.streamDataProducerStarted(this);
             if (!aa.hasStreamProducers() && !aa.hasDataPredecessors()) {
                 freeActions.add(aa);
             }

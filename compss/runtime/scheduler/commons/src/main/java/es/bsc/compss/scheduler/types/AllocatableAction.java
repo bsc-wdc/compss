@@ -272,7 +272,7 @@ public abstract class AllocatableAction {
      * @return {@literal true} if the action was canceled {@literal false} otherwise.
      */
     public abstract boolean checkIfCanceled(AllocatableAction aa);
-    
+
     /**
      * Adds a data predecessor.
      *

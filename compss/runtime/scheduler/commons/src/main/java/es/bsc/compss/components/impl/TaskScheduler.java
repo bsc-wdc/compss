@@ -380,7 +380,7 @@ public class TaskScheduler {
      *
      * @param action AllocatableAction.
      */
-    protected void addToReady(AllocatableAction action) {
+    private void addToReady(AllocatableAction action) {
         LOGGER.debug("[TaskScheduler] Add action " + action + " to ready count");
         Integer coreId = action.getCoreId();
         if (coreId != null) {
@@ -396,7 +396,7 @@ public class TaskScheduler {
      *
      * @param action AllocatableAction.
      */
-    protected void removeFromReady(AllocatableAction action) {
+    private void removeFromReady(AllocatableAction action) {
         LOGGER.info("[TaskScheduler] Remove action " + action + " from ready count");
         if (action.getImplementations() != null) {
             if (action.getImplementations().length > 0) {
@@ -416,11 +416,30 @@ public class TaskScheduler {
      *
      * @param action Blocked AllocatableAction.
      */
-    public void addToBlocked(AllocatableAction action) {
+    public final void addToBlocked(AllocatableAction action) {
         LOGGER.warn("[TaskScheduler] Blocked Action: " + action);
         this.blockedActions.addAction(action);
+        if (!action.hasDataPredecessors() && !action.hasStreamProducers()) {
+            removeFromReady(action);
+        }
     }
 
+    /**
+     * Removes from the blocked list all the actions compatible with the resource.
+     *
+     * @param resource resource that could allocate the blocked tasks
+     * @return list all the actions compatible with the resource.
+     */
+    protected final List<AllocatableAction> removeCompatibleFromBlocked(Worker resource) {
+        List<AllocatableAction> unblockedActions = this.blockedActions.removeAllCompatibleActions(resource);
+
+        for (AllocatableAction action : unblockedActions) {
+            if (!action.hasDataPredecessors() && !action.hasStreamProducers()) {
+                addToReady(action);
+            }
+        }
+        return unblockedActions;
+    }
     /*
      * *********************************************************************************************************
      * *********************************************************************************************************
@@ -434,7 +453,7 @@ public class TaskScheduler {
      *
      * @param action Action to be scheduled.
      */
-    public void newAllocatableAction(AllocatableAction action) {
+    public final void newAllocatableAction(AllocatableAction action) {
         LOGGER.info("[TaskScheduler] Registering new AllocatableAction " + action);
         if (!action.hasDataPredecessors() && !action.hasStreamProducers()) {
             addToReady(action);
@@ -445,9 +464,6 @@ public class TaskScheduler {
             scheduleAction(action, actionScore);
             tryToLaunch(action);
         } catch (BlockedActionException bae) {
-            if (!action.hasDataPredecessors() && !action.hasStreamProducers()) {
-                removeFromReady(action);
-            }
             addToBlocked(action);
         }
     }
@@ -475,19 +491,7 @@ public class TaskScheduler {
             for (AllocatableAction fAction : freeActions) {
                 addToReady(fAction);
             }
-
-            // Schedule data free actions
-            List<AllocatableAction> blockedCandidates = new LinkedList<>();
-            // Actions can only be scheduled and those that remain blocked must be added to the blockedCandidates list
-            // and those that remain unassigned must be added to the unassigned list
-            handleDependencyFreeActions(freeActions, new LinkedList<>(), blockedCandidates,
-                action.getAssignedResource());
-            for (AllocatableAction aa : blockedCandidates) {
-                if (!aa.hasDataPredecessors() && !aa.hasStreamProducers()) {
-                    removeFromReady(aa);
-                }
-                addToBlocked(aa);
-            }
+            handleDependencyFreeActionsAndBlock(freeActions, new LinkedList<>(), action.getAssignedResource());
         }
     }
 
@@ -517,7 +521,13 @@ public class TaskScheduler {
         for (AllocatableAction dataFreeAction : dataFreeActions) {
             addToReady(dataFreeAction);
         }
+        handleDependencyFreeActionsAndBlock(dataFreeActions, resourceFreeActions, resource);
+    }
 
+    private <T extends WorkerResourceDescription> void handleDependencyFreeActionsAndBlock(
+        List<AllocatableAction> dataFreeActions,
+        List<AllocatableAction> resourceFreeActions,
+        ResourceScheduler<T> resource) {
         // Schedule data free actions
         List<AllocatableAction> blockedCandidates = new LinkedList<>();
         // Actions can only be scheduled and those that remain blocked must be added to the blockedCandidates list
@@ -525,13 +535,9 @@ public class TaskScheduler {
 
         handleDependencyFreeActions(dataFreeActions, resourceFreeActions, blockedCandidates, resource);
         for (AllocatableAction aa : blockedCandidates) {
-            if (!aa.hasDataPredecessors() && !aa.hasStreamProducers()) {
-                removeFromReady(aa);
-            }
             addToBlocked(aa);
         }
     }
-
 
     /**
      * Registers an action as completed and releases all the resource and data dependencies.
@@ -630,16 +636,8 @@ public class TaskScheduler {
 
         }
 
-        List<AllocatableAction> blockedCandidates = new LinkedList<>();
-
         if (action.getOnFailure() != OnFailure.CANCEL_SUCCESSORS && !action.isCancelled()) {
-            handleDependencyFreeActions(dataFreeActions, resourceFree, blockedCandidates, resource);
-            for (AllocatableAction aa : blockedCandidates) {
-                if (!aa.hasDataPredecessors() && !aa.hasStreamProducers()) {
-                    removeFromReady(aa);
-                }
-                addToBlocked(aa);
-            }
+            handleDependencyFreeActionsAndBlock(dataFreeActions, resourceFree, resource);
         }
     }
 
@@ -931,13 +929,7 @@ public class TaskScheduler {
         } else {
             // Inspect blocked actions to be freed
             List<AllocatableAction> unblockedActions;
-            unblockedActions = this.blockedActions.removeAllCompatibleActions(worker.getResource());
-
-            for (AllocatableAction action : unblockedActions) {
-                if (!action.hasDataPredecessors() && !action.hasStreamProducers()) {
-                    addToReady(action);
-                }
-            }
+            unblockedActions = this.removeCompatibleFromBlocked(worker.getResource());
 
             // Update worker features
             LinkedList<AllocatableAction> blockedActions = new LinkedList<>();
@@ -956,9 +948,6 @@ public class TaskScheduler {
         LinkedList<AllocatableAction> blockedActions = new LinkedList<>();
         this.workerFeaturesUpdate(worker, modification.getModification(), unblockedActions, blockedActions);
         for (AllocatableAction action : blockedActions) {
-            if (!action.hasDataPredecessors() && !action.hasStreamProducers()) {
-                removeFromReady(action);
-            }
             addToBlocked(action);
         }
 
@@ -992,20 +981,9 @@ public class TaskScheduler {
         // We update the worker load
         workerLoadUpdate(worker);
 
-        // Schedule data free actions
-        List<AllocatableAction> blockedCandidates = new LinkedList<>();
         List<AllocatableAction> dataFreeActions = new LinkedList<>();
         List<AllocatableAction> resourceFree = new LinkedList<>();
-        // Actions can only be scheduled and those that remain blocked must be added to the blockedCandidates list
-        // and those that remain unassigned must be added to the unassigned list
-
-        handleDependencyFreeActions(dataFreeActions, resourceFree, blockedCandidates, worker);
-        for (AllocatableAction aa : blockedCandidates) {
-            if (!aa.hasDataPredecessors() && !aa.hasStreamProducers()) {
-                removeFromReady(aa);
-            }
-            addToBlocked(aa);
-        }
+        handleDependencyFreeActionsAndBlock(dataFreeActions, resourceFree, worker);
     }
 
     /**
@@ -1053,9 +1031,6 @@ public class TaskScheduler {
                 scheduleAction(action, actionScore);
                 tryToLaunch(action);
             } catch (BlockedActionException bae) {
-                if (!action.hasDataPredecessors()) {
-                    removeFromReady(action);
-                }
                 addToBlocked(action);
             }
         }
@@ -1100,9 +1075,6 @@ public class TaskScheduler {
                 scheduleAction(action, actionScore);
                 tryToLaunch(action);
             } catch (BlockedActionException bae) {
-                if (!action.hasDataPredecessors() && !action.hasStreamProducers()) {
-                    removeFromReady(action);
-                }
                 addToBlocked(action);
             }
         }
@@ -1158,18 +1130,10 @@ public class TaskScheduler {
             ObjectValue<AllocatableAction> obj = sortedCompatibleActions.poll();
             Score actionScore = obj.getScore();
             AllocatableAction action = obj.getObject();
-
-            if (!action.hasDataPredecessors() && !action.hasStreamProducers()) {
-                addToReady(action);
-            }
-
             try {
                 scheduleAction(action, actionScore);
                 tryToLaunch(action);
             } catch (BlockedActionException bae) {
-                if (!action.hasDataPredecessors()) {
-                    removeFromReady(action);
-                }
                 addToBlocked(action);
             }
         }

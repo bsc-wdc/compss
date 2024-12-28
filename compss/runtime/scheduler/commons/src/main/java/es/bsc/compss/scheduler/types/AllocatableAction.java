@@ -254,7 +254,7 @@ public abstract class AllocatableAction {
      *
      * @return {@code true} if there are stream data predecessors, {@code false} otherwise.
      */
-    public final boolean hasDataStreamProducers() {
+    public final boolean hasStreamProducers() {
         Iterator<AllocatableAction> producers = this.streamDataProducers.iterator();
         while (producers.hasNext()) {
             AllocatableAction aa = producers.next();
@@ -272,15 +272,6 @@ public abstract class AllocatableAction {
      * @return {@literal true} if the action was canceled {@literal false} otherwise.
      */
     public abstract boolean checkIfCanceled(AllocatableAction aa);
-
-    /**
-     * Returns whether there are stream producers or not.
-     *
-     * @return {@code true} if there are stream producers, {@code false} otherwise.
-     */
-    public final boolean hasStreamProducers() {
-        return !this.streamDataProducers.isEmpty();
-    }
 
     /**
      * Adds a data predecessor.
@@ -345,18 +336,45 @@ public abstract class AllocatableAction {
      *
      * @param finishedAction Finished Allocatable Action.
      */
-    private void streamDataProducerDone(AllocatableAction finishedAction) {
+    private void streamDataProducerStarted(AllocatableAction finishedAction) {
         Iterator<AllocatableAction> it = this.streamDataProducers.iterator();
         while (it.hasNext()) {
             AllocatableAction aa = it.next();
             if (aa == finishedAction) {
                 if (DEBUG) {
-                    LOGGER.debug("Removing stream poducer action " + aa.getId() + " from action " + this.getId());
+                    LOGGER.debug("Removing stream producer action " + aa.getId() + " from action " + this.getId());
                 }
                 it.remove();
                 break;
             }
         }
+    }
+
+    private List<AllocatableAction> releaseDataSuccessors() {
+        // Release data dependencies of the task
+        List<AllocatableAction> freeTasks = new LinkedList<>();
+        for (AllocatableAction aa : this.dataSuccessors) {
+            aa.dataPredecessorDone(this);
+            if (!aa.hasDataPredecessors() && !aa.hasStreamProducers()) {
+                freeTasks.add(aa);
+            }
+        }
+
+        this.dataSuccessors.clear();
+        return freeTasks;
+    }
+
+    private List<AllocatableAction> releaseStreamDataConsumers() {
+        // Release producer from consumers and check if stream consumers are free
+        List<AllocatableAction> freeActions = new LinkedList<>();
+        for (AllocatableAction aa : this.streamDataConsumers) {
+            aa.streamDataProducerStarted(this);
+            if (!aa.hasStreamProducers() && !aa.hasDataPredecessors()) {
+                freeActions.add(aa);
+            }
+        }
+
+        return freeActions;
     }
 
     /*
@@ -793,36 +811,13 @@ public abstract class AllocatableAction {
         doAbort();
     }
 
-    private List<AllocatableAction> releaseDataSuccessors() {
-        // Release data dependencies of the task
-        List<AllocatableAction> freeTasks = new LinkedList<>();
-        for (AllocatableAction aa : this.dataSuccessors) {
-            aa.dataPredecessorDone(this);
-            if (!aa.hasDataPredecessors() && !aa.hasStreamProducers()) {
-                freeTasks.add(aa);
-            }
-        }
-
-        this.dataSuccessors.clear();
-        return freeTasks;
-    }
-
     /**
      * Operations to perform when AA's execution has started.
      *
      * @return Freed stream dependency actions.
      */
     public final List<AllocatableAction> executionStarted() {
-        // Release producer from consumers and check if stream consumers are free
-        List<AllocatableAction> freeActions = new LinkedList<>();
-        for (AllocatableAction aa : this.streamDataConsumers) {
-            aa.streamDataProducerDone(this);
-            if (!aa.hasStreamProducers() && !aa.hasDataPredecessors()) {
-                freeActions.add(aa);
-            }
-        }
-
-        return freeActions;
+        return this.releaseStreamDataConsumers();
     }
 
     /**
@@ -1190,7 +1185,9 @@ public abstract class AllocatableAction {
     public final List<AllocatableAction> unschedule() throws UnassignedActionException, ActionNotFoundException {
         if (this.selectedResource != null) {
             ResourceScheduler<? extends WorkerResourceDescription> target = this.selectedResource;
-            target.unhostAction(this);
+            if (this.state == State.RUNNING || this.state == State.WAITING) {
+                target.unhostAction(this);
+            }
             return target.unscheduleAction(this);
         } else {
             throw new UnassignedActionException();

@@ -771,6 +771,11 @@ if [ -n "${env_script_path}" ]; then
 fi
 
 echo "DEBUG PROVENANCE ${provenance}"
+if [ -z "${ENQUEUE_COMPSS_ARGS}" ]; then
+  IS_LOCAL=true
+else
+  IS_LOCAL=false
+fi
 
 start_profiling
 

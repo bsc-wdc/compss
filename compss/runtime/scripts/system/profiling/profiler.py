@@ -46,7 +46,9 @@ def main():
 
     computing_units = None
     # hostname = "localhost"
-    hostname = str(subprocess.check_output("hostname", shell=True, universal_newlines=True)).strip()
+
+    is_local = os.getenv("IS_LOCAL")
+    hostname = "localhost" if is_local else str(subprocess.check_output("hostname", shell=True, universal_newlines=True)).strip()
 
     # is_bsc = os.getenv('BSC_MACHINE')
     # hostname = hostname if is_bsc else 'localhost'

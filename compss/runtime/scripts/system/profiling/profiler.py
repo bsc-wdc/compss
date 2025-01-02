@@ -20,7 +20,11 @@ def profiling_function(
         prev_bytes_sent,
         prev_bytes_recv,
 ):
-    cpu_avg = psutil.cpu_percent(interval=interval)
+    logical_processors = psutil.cpu_count(logical=True)
+    physical_cores = psutil.cpu_count(logical=False)
+    multiplication_factor = float(round(logical_processors / physical_cores, 2))
+    cpu_avg = psutil.cpu_percent(interval=interval) * multiplication_factor
+    cpu_avg = cpu_avg if cpu_avg < 100 else 100
     # cpus = psutil.cpu_percent(interval=interval, percpu=True)
     # if computing_units is None:
     #     computing_units = len(cpus)

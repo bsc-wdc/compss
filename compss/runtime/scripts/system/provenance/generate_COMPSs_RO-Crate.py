@@ -107,8 +107,7 @@ def main():
         main_entity,
         out_profile,
         INFO_YAML,
-        COMPLETE_GRAPH,
-        PLOTS_PATH
+        COMPLETE_GRAPH
     )
 
     # Add in and out files, not to be physically copied in the Crate by default (data_persistence = False)
@@ -180,6 +179,7 @@ def main():
         DP_LOG,
         ENERGY_PATH,
         STATS_PATH,
+        PLOTS_PATH,
         datetime.fromisoformat(end_time),
     )
 

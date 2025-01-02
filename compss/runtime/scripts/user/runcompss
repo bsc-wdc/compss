@@ -782,6 +782,7 @@ if [ ${provenance} ]; then
   else
     echo "enqueue_compss ${ENQUEUE_COMPSS_ARGS}" > .compss_submission_command_line.txt
   fi
+  kill $PROFILING_PID
 
   # Stop profiling process
   if [ -n "${PROFILING_PID}" ]; then

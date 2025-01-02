@@ -80,7 +80,7 @@ def plot_results(folder_pathname):
         # if machine_name.strip().upper() == master_node:
         #     machine_name += '(MASTER)'
         if master_node:
-            machine_name += '(MASTER)'
+            machine_name += "-MASTER"
 
         df = pd.read_csv(csv_resources)
         cpu_usage = df["CPU"]
@@ -99,21 +99,27 @@ def plot_results(folder_pathname):
 
         build_plot('CPU usage', timestamps, cpu_usage, name_dataset='CPU', measure='CPU %')
         plt.savefig(output_path+'/cpu.png')
+        plt.close()
 
         build_plot('Memory usage', timestamps, mem_usage, name_dataset='MEM', measure='Memory %')
         plt.savefig(output_path + '/mem.png')
+        plt.close()
 
         build_plot('Data transferred: bytes sent', timestamps, byte_sent, name_dataset='BYTE_SENT', measure='Byte (B)')
         plt.savefig(output_path + '/bytes_sent.png')
+        plt.close()
 
         build_plot('Data transferred: bytes received', timestamps, byte_recv, name_dataset='BYTE_RECV', measure='Byte (B)')
         plt.savefig(output_path + '/bytes_received.png')
+        plt.close()
 
         build_plot('Disk usage: bytes written', timestamps, byte_write_disk, name_dataset='BYTE_WRITE_DISK', measure='Byte (B)')
         plt.savefig(output_path + '/bytes_written.png')
+        plt.close()
 
         build_plot('Disk usage: bytes read', timestamps, byte_read_disk, name_dataset='BYTE_READ_DISK', measure='Byte (B)')
         plt.savefig(output_path + '/bytes_read.png')
+        plt.close()
 
     return plots_pathname
 

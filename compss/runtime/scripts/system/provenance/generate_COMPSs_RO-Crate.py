@@ -112,8 +112,7 @@ def main():
         main_entity,
         out_profile,
         INFO_YAML,
-        COMPLETE_GRAPH,
-        PLOTS_PATH
+        COMPLETE_GRAPH
     )
 
     # Add in and out files, not to be physically copied in the Crate by default (data_persistence = False)
@@ -183,7 +182,7 @@ def main():
         fixed_outs,
         yaml_content,
         INFO_YAML,
-        path_log,
+        path_plog,
         datetime.fromisoformat(end_time),
         run_uuid,
     )

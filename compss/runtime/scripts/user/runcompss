@@ -787,6 +787,7 @@ if [ ${provenance} ]; then
   if [ -n "${PROFILING_PID}" ]; then
     kill $PROFILING_PID
   fi
+  kill $PROFILING_PID
 
   find "${specific_log_dir}/workers/" -type f -name "*.csv" -exec cp {} "${specific_log_dir}/stats/" \;
   for file in "${specific_log_dir}"stats/*.csv; do

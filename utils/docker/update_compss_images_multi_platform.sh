@@ -25,12 +25,12 @@ for img in $default_images; do
    echo "Building image ${img}"
    if $first; then
 	  #docker build --no-cache --target ${img} -t compss/${img}:${version} .
-	  docker buildx build --no-cache --builder ${builder} --target ${img} --platform ${platforms} ${flag} -t compss/${img}:${version} .
+	  docker buildx build --no-cache --builder ${builder} --target ${img} --platform ${platforms} ${flag} -t compss/${img}:${version} . > out_${img}.txt 2>&1 | tee out_${img}.txt
 	  first=false
    fi
    #docker build --target ${img} -t compss/${img}:${version} .
    #if $push; then
    #	docker push compss/${img}:${version}
    #fi
-   docker buildx build --builder ${builder} --target ${img} --platform ${platforms} ${flag} -t compss/${img}:${version} .
+   docker buildx build --builder ${builder} --target ${img} --platform ${platforms} ${flag} -t compss/${img}:${version} . > out_2_${img}.txt 2>&1 | tee out_2_${img}.txt
 done

@@ -127,13 +127,12 @@ public class MultiNodeDefinition implements AbstractMethodImplementationDefiniti
     }
 
     @Override
-    public String toMethodDefinitionFormat() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("[DECLARING CLASS=").append(this.declaringClass);
-        sb.append(", METHOD NAME=").append(this.methodName);
-        sb.append(", PPN=").append(this.ppn);
-        sb.append("]");
-
+    public String toJSON() {
+        StringBuilder sb = new StringBuilder("{\"type\":\"MULTI_NODE\",");
+        sb.append("\"declaring_class\":\"").append(this.declaringClass).append("\",");
+        sb.append("\"method_name\":\"").append(this.methodName).append("\",");
+        sb.append("\"ppn\":").append(this.ppn).append("");
+        sb.append("}");
         return sb.toString();
     }
 

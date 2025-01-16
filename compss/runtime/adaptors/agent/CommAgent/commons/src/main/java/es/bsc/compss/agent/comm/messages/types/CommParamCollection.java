@@ -101,9 +101,26 @@ public class CommParamCollection extends CommParam
         }
     }
 
+    /**
+     * Dumps the internal information into the given StringBuilder.
+     *
+     * @param sb StringBuilder where to dump the internal information.
+     */
+    protected void dumpInternalInfo(StringBuilder sb) {
+        sb.append("\"elements\":[");
+        for (CommParam p : this.collectionParameters) {
+            sb.append(p.toString() + ",");
+        }
+        sb.append("],");
+        super.dumpInternalInfo(sb);
+    }
+
     @Override
     public String toString() {
-        return super.toString() + "[" + collectionParameters.toString() + "]";
+        StringBuilder sb = new StringBuilder("{");
+        dumpInternalInfo(sb);
+        sb.append("}");
+        return sb.toString();
     }
 
 }

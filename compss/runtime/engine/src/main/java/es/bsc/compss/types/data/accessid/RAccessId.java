@@ -109,10 +109,10 @@ public class RAccessId extends EngineDataAccessId implements ReadingDataAccessId
 
     @Override
     public String toDebugString() {
-        StringBuilder sb = new StringBuilder("");
-        sb.append("Access:").append("\n");
-        sb.append("  * Type: R").append("\n");
-        sb.append("  * Read Datum: d").append(this.getDataId()).append("v").append(this.getRVersionId()).append("\n");
+        StringBuilder sb = new StringBuilder("{");
+        sb.append("\"type\":\"R\",");
+        sb.append("\"read_datum\":\"d").append(this.getDataId()).append("v").append(this.getRVersionId()).append("\"");
+        sb.append("}");
         return sb.toString();
     }
 

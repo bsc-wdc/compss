@@ -97,7 +97,7 @@ public class CommandNIOTaskDone extends RetriableCommand {
 
     @Override
     public String toString() {
-        return "Job" + this.tr.getJobId() + " finishes " + (this.successful ? "properly" : "with some errors")
+        return "Job " + this.tr.getJobId() + " finishes " + (this.successful ? "properly" : "with some errors")
             + " with task results: " + tr.toString();
     }
 

@@ -49,7 +49,7 @@ public class ContainerDescription implements Serializable {
 
     /**
      * Create a Container Description.
-     * 
+     *
      * @param engine Container engine.
      * @param image Container image.
      */
@@ -61,7 +61,7 @@ public class ContainerDescription implements Serializable {
 
     /**
      * Get the container options.
-     * 
+     *
      * @return the container options
      */
     public String getOptions() {
@@ -70,7 +70,7 @@ public class ContainerDescription implements Serializable {
 
     /**
      * Set the container options.
-     * 
+     *
      * @param options Container options.
      */
     public void setOptions(String options) {
@@ -79,7 +79,7 @@ public class ContainerDescription implements Serializable {
 
     /**
      * Returns the associated container engine.
-     * 
+     *
      * @return The associated container engine.
      */
     public ContainerEngine getEngine() {
@@ -88,7 +88,7 @@ public class ContainerDescription implements Serializable {
 
     /**
      * Sets a new container engine.
-     * 
+     *
      * @param engine New container engine.
      */
     public void setEngine(ContainerEngine engine) {
@@ -97,7 +97,7 @@ public class ContainerDescription implements Serializable {
 
     /**
      * Returns the associated container image.
-     * 
+     *
      * @return The associated container image.
      */
     public String getImage() {
@@ -106,11 +106,20 @@ public class ContainerDescription implements Serializable {
 
     /**
      * Sets a new container image.
-     * 
+     *
      * @param image New container image.
      */
     public void setImage(String image) {
         this.image = image;
+    }
+
+    /**
+     * Describes the container description as a JSON.
+     * 
+     * @return JSON representing the state of the Container Description.
+     */
+    public String toJSON() {
+        return "{" + "\"engine\":\"" + this.engine.toString() + "\"," + "\"image\":\"" + this.image + "\"" + "}";
     }
 
     @Override

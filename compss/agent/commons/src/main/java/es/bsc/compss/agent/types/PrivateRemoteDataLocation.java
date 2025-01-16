@@ -76,6 +76,7 @@ public class PrivateRemoteDataLocation implements RemoteDataLocation {
     }
 
     public String toString() {
-        return "RESOURCE = [" + (this.resource == null ? "null" : this.resource.toString()) + "], PATH =" + this.path;
+        return "{\"resource\":" + (this.resource == null ? "null" : this.resource) + "," + "\"path\":\"" + this.path
+            + "\"}";
     }
 }

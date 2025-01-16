@@ -20,6 +20,7 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -67,7 +68,7 @@ public class NIOTaskResult implements Externalizable {
 
     /**
      * Adds a new parameter result to the task results.
-     * 
+     *
      * @param pr task result to be added
      */
     public void addParamResult(NIOResult pr) {
@@ -89,14 +90,20 @@ public class NIOTaskResult implements Externalizable {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("[JOB_RESULT ");
-        sb.append("[JOB ID= ").append(this.jobId).append("]");
-        sb.append("[PARAM_RESULTS");
-        for (NIOResult param : this.results) {
-            sb.append(" ").append(param);
+        StringBuilder sb = new StringBuilder("{");
+        sb.append("\"job_id\":").append(this.jobId).append(",");
+        sb.append("\"params\":[");
+        Iterator<NIOResult> itr = this.results.iterator();
+        if (itr.hasNext()) {
+            NIOResult nr = itr.next();
+            sb.append(nr);
+            while (itr.hasNext()) {
+                nr = itr.next();
+                sb.append("," + nr);
+            }
         }
         sb.append("]");
-        sb.append("]");
+        sb.append("}");
         return sb.toString();
     }
 

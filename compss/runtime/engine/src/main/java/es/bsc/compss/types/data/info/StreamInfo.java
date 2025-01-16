@@ -80,9 +80,6 @@ public class StreamInfo extends DataInfo<StreamData> {
                 ErrorManager.warn("Unsupported type of access (" + mode + ") for stream " + this.dataId);
                 daId = null;
         }
-        if (DEBUG && daId != null) {
-            LOGGER.debug(daId.toDebugString());
-        }
         return daId;
     }
 

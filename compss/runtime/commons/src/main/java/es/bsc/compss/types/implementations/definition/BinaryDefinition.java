@@ -152,13 +152,13 @@ public class BinaryDefinition implements AbstractMethodImplementationDefinition 
     }
 
     @Override
-    public String toMethodDefinitionFormat() {
+    public String toJSON() {
         StringBuilder sb = new StringBuilder();
-        sb.append("[BINARY=").append(this.binary);
-        sb.append("\t   PARAMS=").append(this.params);
-        sb.append("\t   CONTAINER=").append(this.container);
-        sb.append("]");
-
+        sb.append("{\"type\":\"BINARY\",");
+        sb.append("\"binary\":\"").append(this.binary).append("\",");
+        sb.append("\"params\":\"").append(this.params).append("\",");
+        sb.append("\"container\":").append(this.container);
+        sb.append("}");
         return sb.toString();
     }
 

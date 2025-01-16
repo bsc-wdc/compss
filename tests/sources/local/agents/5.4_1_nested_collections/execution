@@ -61,10 +61,7 @@ compss_agent_start_service \
    "nested_collection_detection"
 
 
-  job1_method=$( grep "METHOD NAME" "${agent1_log_dir}/jobs/job1_NEW.out" | cut -d '=' -f3)
-  if [ -n "${job1_method}" ]; then
-    job1_method="${job1_method::-1}"
-  fi
+  job1_method=$( grep "\"method_name\"" "${agent1_log_dir}/jobs/job1_NEW.out" | cut -c 24- | jq -r '.method_name')
   if [ ! "${job1_method}" == "main" ]; then
     echo "Unexpected method (${job1_method}) for job 1." > >(tee -a "${error_log}")
     exit 1
@@ -75,22 +72,10 @@ compss_agent_start_service \
     echo "COMPSs has generated ${created_jobs} tasks and only 5 expected." > >(tee -a "${error_log}")
     exit 1
   fi 
-  job2_method=$( grep "METHOD NAME" "${agent1_log_dir}/jobs/job2_NEW.out" | cut -d '=' -f3)
-  if [ -n "${job2_method}" ]; then
-    job2_method="${job2_method::-1}"
-  fi
-  job3_method=$( grep "METHOD NAME" "${agent1_log_dir}/jobs/job3_NEW.out" | cut -d '=' -f3)
-  if [ -n "${job3_method}" ]; then
-    job3_method="${job3_method::-1}"
-  fi
-  job4_method=$( grep "METHOD NAME" "${agent1_log_dir}/jobs/job4_NEW.out" | cut -d '=' -f3)
-  if [ -n "${job4_method}" ]; then
-    job4_method="${job4_method::-1}"
-  fi
-  job5_method=$( grep "METHOD NAME" "${agent1_log_dir}/jobs/job4_NEW.out" | cut -d '=' -f3)
-  if [ -n "${job5_method}" ]; then
-    job4_method="${job5_method::-1}"
-  fi
+  job2_method=$( grep "\"method_name\"" "${agent1_log_dir}/jobs/job2_NEW.out" | cut -c 24- | jq -r '.method_name')
+  job3_method=$( grep "\"method_name\"" "${agent1_log_dir}/jobs/job3_NEW.out" | cut -c 24- | jq -r '.method_name')
+  job4_method=$( grep "\"method_name\"" "${agent1_log_dir}/jobs/job4_NEW.out" | cut -c 24- | jq -r '.method_name')
+  job5_method=$( grep "\"method_name\"" "${agent1_log_dir}/jobs/job4_NEW.out" | cut -c 24- | jq -r '.method_name')
   
 sleep 5 
   printIntColl_value=$( grep printIntCollResult: ${agent1_log_dir}/jobs/* | cut -d ":" -f3)

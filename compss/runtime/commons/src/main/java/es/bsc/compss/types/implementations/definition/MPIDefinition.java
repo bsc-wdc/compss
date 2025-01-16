@@ -139,16 +139,15 @@ public class MPIDefinition extends CommonMPIDefinition implements AbstractMethod
     }
 
     @Override
-    public String toMethodDefinitionFormat() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("[MPI RUNNER=").append(this.mpiRunner);
-        sb.append(", MPI_PPN=").append(this.ppn);
-        sb.append(", MPI_FLAGS=").append(this.mpiFlags);
-        sb.append(", BINARY=").append(this.binary);
-        sb.append(", PARAMS=").append(this.params);
-        sb.append(", CONTAINER=").append(this.container);
-        sb.append(" ]");
-
+    public String toJSON() {
+        StringBuilder sb = new StringBuilder("{\"type\":\"MPI\",");
+        sb.append("\"mpi_runner\":\"").append(this.mpiRunner).append("\",");
+        sb.append("\"mpi_ppn\":").append(this.ppn).append(",");
+        sb.append("\"mpi_flags\":\"").append(this.mpiFlags).append("\",");
+        sb.append("\"binary\":\"").append(this.binary).append("\",");
+        sb.append("\"params\":\"").append(this.params).append("\",");
+        sb.append("\"container\":").append(this.container);
+        sb.append("}");
         return sb.toString();
     }
 

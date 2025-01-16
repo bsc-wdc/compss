@@ -146,16 +146,18 @@ public abstract class DependencyParameter<T extends AccessParams> extends Parame
 
     @Override
     public boolean register(Task task, boolean isConstraining) {
-        boolean hasParamEdge = false;
-
         // Inform the Data Manager about the new accesses
         EngineDataAccessId daId;
         AccessParams access = this.getAccess();
         daId = access.register();
-
+        if (DEBUG) {
+            LOGGER.debug("Registered parameter access {" + "\"source\":{" + "\"app\":" + task.getApplication().getId()
+                + "," + "\"task\":" + task.getId() + "," + "\"parameter\":\"" + this.getName() + "\"}," + "\"access\":"
+                + daId.toDebugString() + "}");
+        }
         // Add parameter dependencies
         this.setDataAccessId(daId);
-        hasParamEdge = addDependencies(task, isConstraining, this);
+        boolean hasParamEdge = addDependencies(task, isConstraining);
 
         // Return data Id
         return hasParamEdge;
@@ -182,44 +184,43 @@ public abstract class DependencyParameter<T extends AccessParams> extends Parame
         return access.getData().delete(app);
     }
 
-    private boolean addDependencies(Task currentTask, boolean isConstraining, DependencyParameter dp) {
+    private boolean addDependencies(Task currentTask, boolean isConstraining) {
         // Add dependencies to the graph and register output values for future dependencies
         boolean hasParamEdge = false;
-        EngineDataAccessId daId = dp.getDataAccessId();
-        int dataId = daId.getDataId();
-        DataInfo di = dp.getDataAccessId().getAccessedDataInfo();
-        switch (dp.getAccess().getMode()) {
+        EngineDataAccessId daId = this.getDataAccessId();
+        DataInfo di = daId.getAccessedDataInfo();
+        switch (this.getAccess().getMode()) {
             case R:
-                hasParamEdge = checkInputDependency(currentTask, dp, false, dataId, di, isConstraining);
+                hasParamEdge = checkInputDependency(currentTask, false, di, isConstraining);
                 break;
             case RW:
-                hasParamEdge = checkInputDependency(currentTask, dp, false, dataId, di, isConstraining);
-                registerOutputValues(currentTask, dp, false, di);
+                hasParamEdge = checkInputDependency(currentTask, false, di, isConstraining);
+                registerOutputValues(currentTask, false, di);
                 break;
             case W:
                 // Register output values
-                registerOutputValues(currentTask, dp, false, di);
+                registerOutputValues(currentTask, false, di);
                 break;
             case C:
-                hasParamEdge = checkInputDependency(currentTask, dp, true, dataId, di, isConstraining);
-                registerOutputValues(currentTask, dp, true, di);
+                hasParamEdge = checkInputDependency(currentTask, true, di, isConstraining);
+                registerOutputValues(currentTask, true, di);
                 break;
             case CV:
-                hasParamEdge = checkInputDependency(currentTask, dp, false, dataId, di, isConstraining);
-                registerOutputValues(currentTask, dp, false, di);
+                hasParamEdge = checkInputDependency(currentTask, false, di, isConstraining);
+                registerOutputValues(currentTask, false, di);
                 break;
         }
         return hasParamEdge;
     }
 
-    private boolean checkInputDependency(Task currentTask, DependencyParameter dp, boolean isConcurrent, int dataId,
-        DataInfo di, boolean isConstraining) {
+    private boolean checkInputDependency(Task currentTask, boolean isConcurrent, DataInfo di, boolean isConstraining) {
         if (DEBUG) {
+            int dataId = di.getDataId();
             LOGGER.debug("Checking READ dependency for datum " + dataId + " and task " + currentTask.getId());
         }
         boolean hasEdge = false;
         if (di != null) {
-            hasEdge = di.readValue(currentTask, dp, isConcurrent);
+            hasEdge = di.readValue(currentTask, this, isConcurrent);
             if (isConstraining) {
                 AbstractTask lastWriter = di.getLastVersionProducer();
                 currentTask.setEnforcingTask((Task) lastWriter);
@@ -227,9 +228,10 @@ public abstract class DependencyParameter<T extends AccessParams> extends Parame
         } else {
             // Task is free
             if (DEBUG) {
+                int dataId = di.getDataId();
                 LOGGER.debug("There is no last writer for datum " + dataId);
             }
-            currentTask.registerFreeParam(dp);
+            currentTask.registerFreeParam(this);
         }
         return hasEdge;
     }
@@ -238,21 +240,20 @@ public abstract class DependencyParameter<T extends AccessParams> extends Parame
      * Registers the output values of the task {@code currentTask}.
      *
      * @param currentTask Task.
-     * @param dp Dependency Parameter.
      * @param isConcurrent data access was done in concurrent mode
      * @param di AccessInfo related to the data being accessed
      */
-    private void registerOutputValues(Task currentTask, DependencyParameter dp, boolean isConcurrent, DataInfo di) {
+    private void registerOutputValues(Task currentTask, boolean isConcurrent, DataInfo di) {
         int currentTaskId = currentTask.getId();
-        int dataId = dp.getDataAccessId().getDataId();
-
         if (DEBUG) {
+            int dataId = di.getDataId();
             LOGGER.debug("Checking WRITE dependency for datum " + dataId + " and task " + currentTaskId);
         }
 
-        di.writeValue(currentTask, dp, isConcurrent);
+        di.writeValue(currentTask, this, isConcurrent);
 
         if (DEBUG) {
+            int dataId = di.getDataId();
             LOGGER.debug("New writer for datum " + dataId + " is task " + currentTaskId);
         }
     }
@@ -268,7 +269,7 @@ public abstract class DependencyParameter<T extends AccessParams> extends Parame
 
         if (DEBUG) {
             int currentTaskId = task.getId();
-            LOGGER.debug("Removing writters info for datum " + dataId + " and task " + currentTaskId);
+            LOGGER.debug("Removing writers info for datum " + dataId + " and task " + currentTaskId);
         }
 
         switch (this.getDirection()) {

@@ -246,7 +246,7 @@ if [ ! "${created_jobs_ag_3}" == "6" ]; then
   exit 1
 fi 
 
-#METHOD NAMES
+#\"method_name\"S
 
 OLD_IFS=$IFS
 IFS=$'\n'
@@ -280,12 +280,11 @@ correct_method_names_3=(
 
 
 
+method_names_agent_1=($(grep --no-filename "\"method_name\"" ${agent1_log_dir}jobs/*.out | cut -c 24- | jq -r '.method_name'))
 
-method_names_agent_1=($(grep "METHOD NAME" ${agent1_log_dir}jobs/*.out))
+method_names_agent_2=($(grep --no-filename "\"method_name\"" ${agent2_log_dir}jobs/*.out | cut -c 24- | jq -r '.method_name'))
 
-method_names_agent_2=($(grep "METHOD NAME" ${agent2_log_dir}jobs/*.out))
-
-method_names_agent_3=($(grep "METHOD NAME" ${agent3_log_dir}jobs/*.out))
+method_names_agent_3=($(grep --no-filename "\"method_name\"" ${agent3_log_dir}jobs/*.out | cut -c 24- | jq -r '.method_name'))
 
 
 
@@ -303,18 +302,8 @@ if [ ${#correct_method_names_3[@]} != ${#method_names_agent_3[@]} ]; then
 fi
 
 
-
-echo "correct_method_names_3[0]: ${correct_method_names_3[0]}"
-echo "correct_method_names_3[1]: ${correct_method_names_3[1]}"
-echo "correct_method_names_3[2]: ${correct_method_names_3[2]}"
-echo "correct_method_names_3[3]: ${correct_method_names_3[3]}"
-echo "correct_method_names_3[4]: ${correct_method_names_3[4]}"
-echo "correct_method_names_3[5]: ${correct_method_names_3[5]}"
-echo "correct_method_names_3[6]: ${correct_method_names_3[6]}"
-
 for (( i=0; i<=${#correct_method_names_1[@]}-1; i++ )); do
-  m_n=$(echo ${method_names_agent_1[$i]} | cut -d '=' -f3)
-  m_n=${m_n::-1}
+  m_n=$(echo ${method_names_agent_1[$i]})
   echo "m_n: $m_n"
   
   if [ $m_n != ${correct_method_names_1[$i]} ]; then
@@ -324,8 +313,7 @@ for (( i=0; i<=${#correct_method_names_1[@]}-1; i++ )); do
 done
 
 for (( i=0; i<=${#method_names_agent_2[@]}-1; i++ )); do
-  m_n=$(echo ${method_names_agent_2[$i]} | cut -d '=' -f3)
-  m_n=${m_n::-1}
+  m_n=$(echo ${method_names_agent_2[$i]})
   echo "m_n: $m_n"
 
   found=false
@@ -342,8 +330,7 @@ for (( i=0; i<=${#method_names_agent_2[@]}-1; i++ )); do
 done
 
 for (( i=0; i<=${#correct_method_names_3[@]}-1; i++ )); do
-  m_n=$(echo ${method_names_agent_3[$i]} | cut -d '=' -f3)
-  m_n=${m_n::-1}
+  m_n=$(echo ${method_names_agent_3[$i]})
   echo "m_n: $m_n"
 
   found=false

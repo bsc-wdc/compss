@@ -69,7 +69,7 @@ public class AbstractMethodImplementation extends Implementation {
     }
 
     public String getMethodDefinition() {
-        return getDescription().getDefinition().toMethodDefinitionFormat();
+        return getDescription().getDefinition().toJSON();
     }
 
     public MethodType getMethodType() {

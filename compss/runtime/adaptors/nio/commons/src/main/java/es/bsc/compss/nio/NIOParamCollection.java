@@ -98,6 +98,16 @@ public class NIOParamCollection extends NIOParam implements InvocationParamColle
         }
     }
 
+    /**
+     * Dumps the internal information into the given StringBuilder.
+     *
+     * @param sb StringBuilder where to dump the internal information.
+     */
+    protected void dumpInternalInfo(StringBuilder sb) {
+        sb.append("\"elements\":[],");
+        super.dumpInternalInfo(sb);
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("[COLL_PARAM");

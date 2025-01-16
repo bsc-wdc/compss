@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedList;
 
 
@@ -54,11 +55,18 @@ public class RemoteDataInformation implements Externalizable {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("RemoteData " + renaming + " @ {");
-        for (RemoteDataLocation source : this.sources) {
-            sb.append("[" + source.toString() + "] ");
+        StringBuilder sb = new StringBuilder("{" + "\"renaming\":\"" + renaming + "\"");
+        sb.append(",\"sources\":[");
+        Iterator<RemoteDataLocation> itr = this.sources.iterator();
+        if (itr.hasNext()) {
+            RemoteDataLocation source = itr.next();
+            sb.append(source);
+            while (itr.hasNext()) {
+                source = itr.next();
+                sb.append("," + source);
+            }
         }
-        sb.append(" }");
+        sb.append(" ]" + "}");
         return sb.toString();
     }
 

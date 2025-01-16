@@ -172,18 +172,18 @@ public class PythonMPIDefinition extends CommonMPIDefinition implements Abstract
     }
 
     @Override
-    public String toMethodDefinitionFormat() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("[DECLARING CLASS=").append(this.declaringClass);
-        sb.append(", METHOD NAME=").append(this.methodName);
-        sb.append(", MPI RUNNER=").append(this.mpiRunner);
-        sb.append(", MPI PPN=").append(this.ppn);
-        sb.append(", MPI FLAGS=").append(this.mpiFlags);
-        sb.append(", SCALE_BY_CU=").append(this.scaleByCU);
-        sb.append(", PARAMS=").append(this.params);
-        sb.append(", FAIL_BY_EV=").append(this.failByEV);
-        sb.append(", Collection Layouts=").append(this.cls.length);
-
+    public String toJSON() {
+        StringBuilder sb = new StringBuilder("{\"type\":\"PYTHON_MPI\",");
+        sb.append("\"declaring_class\":\"").append(this.declaringClass).append("\",");
+        sb.append("\"method_name\":\"").append(this.methodName).append("\",");
+        sb.append("\"mpi_runner\":\"").append(this.mpiRunner).append("\",");
+        sb.append("\"mpi_ppn\":").append(this.ppn).append(",");
+        sb.append("\"mpi_flags\":\"").append(this.mpiFlags).append("\",");
+        sb.append("\"scale_by_cu\":").append(this.scaleByCU).append(",");
+        sb.append("\"params\":\"").append(this.params).append("\",");
+        sb.append("\"fail_by_ev\":").append(this.failByEV).append(",");
+        sb.append("\"collection_layouts\":").append(this.cls.length);
+        sb.append("}");
         return sb.toString();
     }
 

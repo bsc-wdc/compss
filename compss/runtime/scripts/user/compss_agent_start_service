@@ -350,6 +350,7 @@ compute_agent_setup() {
     agent_name="${agent_name_prefix}${agent_id}"
   fi
 
+  agent_exec_label="${agent_name}"
   agent_log="${log_dir}/${agent_name}"
   agent_log_output="${agent_log}.outputlog"
   agent_log_error="${agent_log}.errorlog"
@@ -401,6 +402,7 @@ start_agent() {
 specific_agent_start_command="${agentStartCommand}
     --hostname=${agent_name}
     --log_dir=${agent_log}
+    --execution_label=${agent_exec_label}
     --rest_port=${agent_rest_port}
     --comm_port=${agent_comm_port}"
 

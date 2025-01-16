@@ -186,10 +186,8 @@
       exit 1
     fi
 
-    job1_method=$( grep "METHOD NAME" "${agent1_log_dir}/jobs/job1_NEW.out" | cut -d '=' -f3)
-    job1_method="${job1_method::-1}"
-    job2_method=$( grep "METHOD NAME" "${agent1_log_dir}/jobs/job2_NEW.out" | cut -d '=' -f3)
-    job2_method="${job2_method::-1}"
+    job1_method=$( grep "\"method_name\"" "${agent1_log_dir}/jobs/job1_NEW.out" | cut -c 24- | jq -r '.method_name')
+    job2_method=$( grep "\"method_name\"" "${agent1_log_dir}/jobs/job2_NEW.out" | cut -c 24- | jq -r '.method_name')
 
     if [ ! "${job1_method}" == "main" ]; then
       echo "Unexpected method (${job1_method}) for job 1." > >(tee -a "${error_log}")

@@ -58,7 +58,7 @@ public class ResourcesPropertyAdaptorTypeSerializable extends ResourcesPropertyA
 
     @Override
     public String toString() {
-        return "name=" + this.getName() + ", value=" + this.getValue();
+        return "{\"name\":\"" + this.getName() + "\", \"value\":\"" + this.getValue() + "\"}";
     }
 
 }

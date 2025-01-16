@@ -186,25 +186,18 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
     }
 
     @Override
-    public String toMethodDefinitionFormat() {
-        StringBuilder sb = new StringBuilder();
-
-        sb.append("[MPMDMPI").append(this.mpiRunner);
-        sb.append(", MPI RUNNER=").append(this.mpiRunner);
-        sb.append(", WORKING DIR=").append(this.workingDir);
-        sb.append(", PPN=").append(this.ppn);
-        sb.append(", FAIL_BY_EV=").append(this.failByEV);
-        sb.append(", NUM_OF_PROGRAMS=").append(this.programs.length);
-        sb.append(", CONTAINER=").append(this.container);
-
-        sb.append(", PROGRAMS= [\n");
+    public String toJSON() {
+        StringBuilder sb = new StringBuilder("{\"type\":\"MPMD_MPI\",");
+        sb.append("\"mpi_runner\":\"").append(this.mpiRunner).append("\",");
+        sb.append("\"working_dir\":\"").append(this.workingDir).append("\",");
+        sb.append("\"mpi_ppn\":").append(this.ppn).append(",");
+        sb.append("\"fail_by_ev\":").append(this.failByEV).append(",");
+        sb.append("\"container\":").append(this.container).append(",");
+        sb.append("\"programs\":[");
         for (MPIProgram program : this.getPrograms()) {
-            sb.append("\t").append(program.toString()).append(", \n");
+            sb.append("\"").append(program.toString()).append("\",");
         }
-        sb.append(" \t ]\n");
-
-        sb.append("]");
-
+        sb.append("]}");
         return sb.toString();
     }
 

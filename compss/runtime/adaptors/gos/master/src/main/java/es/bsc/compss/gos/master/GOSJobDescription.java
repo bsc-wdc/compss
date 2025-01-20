@@ -52,6 +52,7 @@ public class GOSJobDescription {
     private ArrayList<String> queues;
     private String cfg;
     private String qos;
+    private String projectName;
     private long maxExecTime;
     private String reservation;
     private String killDir;
@@ -276,7 +277,7 @@ public class GOSJobDescription {
      */
     public void setCFG(Object fileCFG) {
         String t = (String) fileCFG;
-        if (t.equals("null") || t.isEmpty()) {
+        if (fileCFG == null || t.isEmpty() || t.equals("null")) {
             this.cfg = "";
         } else {
             this.cfg = t;
@@ -294,7 +295,7 @@ public class GOSJobDescription {
      */
     public void setQOS(Object qos) {
         String t = (String) qos;
-        if (t.equals("null") || t.isEmpty()) {
+        if (qos == null || t.isEmpty() || t.equals("null")) {
             this.qos = "false";
         } else {
             this.qos = t;
@@ -306,13 +307,31 @@ public class GOSJobDescription {
     }
 
     /**
+     * Sets project name.
+     *
+     * @param projectName the project name
+     */
+    public void setProjectName(Object projectName) {
+        String t = (String) projectName;
+        if (projectName == null || t.isEmpty() || t.equals("null")) {
+            this.projectName = "";
+        } else {
+            this.projectName = t;
+        }
+    }
+
+    public String getProjectName() {
+        return this.projectName;
+    }
+
+    /**
      * Sets max exec time.
      *
      * @param time the time
      */
     public void setMaxExecTime(Object time) {
         Long t = (Long) time;
-        if (t == null || t < 1) {
+        if (time == null || t < 1) {
             this.maxExecTime = 30;
         } else {
             this.maxExecTime = t;
@@ -330,7 +349,7 @@ public class GOSJobDescription {
      */
     public void setReservation(Object reservation) {
         String r = (String) reservation;
-        if (reservation == null || r.isEmpty()) {
+        if (reservation == null || r.isEmpty() || r.equals("null")) {
             this.reservation = "disabled";
         } else {
             this.reservation = r;

@@ -186,6 +186,7 @@ public class GOSJob extends JobImpl<GOSWorkerNode> {
                 LOGGER.debug("      * MaxExecTime: " + jobDescription.getMaxExecTime());
                 LOGGER.debug("      * QOS: " + jobDescription.getQOS());
                 LOGGER.debug("      * CFG: " + jobDescription.getCFG());
+                LOGGER.debug("      * ProjectName: " + jobDescription.getProjectName());
             }
             LOGGER.debug("  * Executable: " + jobDescription.getExecutable());
 
@@ -233,6 +234,7 @@ public class GOSJob extends JobImpl<GOSWorkerNode> {
             jd.setCFG(getConfig().getProjectProperty("FileCFG"));
             jd.setQOS(getConfig().getProjectProperty("QOS"));
             jd.setReservation(getConfig().getProjectProperty("Reservation"));
+            jd.setProjectName(getConfig().getProjectProperty("ProjectName"));
             long timeout = getTimeOut();
             if (timeout > 0) {
                 jd.setMaxExecTime((long) (timeout / 60));
@@ -638,6 +640,7 @@ public class GOSJob extends JobImpl<GOSWorkerNode> {
         sb.append(" --reservation=").append(jd.getReservation());
         sb.append(" --job_name=").append(getJobId());
         sb.append(" --qos=").append(jd.getQOS());
+        sb.append(" --project_name=").append(jd.getProjectName());
 
         MethodResourceDescription mrd = (MethodResourceDescription) this.impl.getRequirements();
 

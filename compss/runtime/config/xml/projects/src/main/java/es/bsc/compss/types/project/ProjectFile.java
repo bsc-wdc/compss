@@ -1365,6 +1365,7 @@ public class ProjectFile {
                                 adaptorBatchProperties.put("QOS", properties.getQOS());
                                 adaptorBatchProperties.put("Reservation", properties.getReservation());
                                 adaptorBatchProperties.put("FileCFG", properties.getFileCFG());
+                                adaptorBatchProperties.put("ProjectName", properties.getProjectName());
                             }
                         }
                     }

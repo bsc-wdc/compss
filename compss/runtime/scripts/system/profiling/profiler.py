@@ -1,4 +1,5 @@
 import subprocess, psutil, os, sys
+import socket
 import xml.etree.ElementTree as ET
 from datetime import datetime
 
@@ -52,7 +53,7 @@ def main():
     # hostname = "localhost"
 
     is_local = os.getenv("IS_LOCAL")
-    hostname = "localhost" if is_local else str(subprocess.check_output("hostname", shell=True, universal_newlines=True)).strip()
+    hostname = "localhost" if is_local else socket.gethostname()
 
     # is_bsc = os.getenv('BSC_MACHINE')
     # hostname = hostname if is_bsc else 'localhost'

@@ -118,6 +118,14 @@ def store_data(compss_path: str, stats_path: Path, crate: ROCrate):
 
     final_dict["Command"] = command_launched
 
+    command_launched = 'not found'
+    for e in crate.contextual_entities:
+        if "#COMPSs_Workflow_Run" in str(e):
+            command_launched = str(e.properties().get('description'))
+            break
+
+    final_dict['command'] = command_launched
+
     for e in crate.contextual_entities:
         if not (str(e.type) in forbidden_types or type(e.type) is list):
             if e.type == "ContactPoint":

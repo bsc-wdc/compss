@@ -14,26 +14,13 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-import typing
-import time
 import os
-import json
-import sys
 
-from pathlib import Path
-from hashlib import sha256
-from mmap import mmap, ACCESS_READ
-
-from rocrate.rocrate import ROCrate
-from rocrate.model.contextentity import ContextEntity
-
-from provenance.processing.entities import get_manually_defined_software_requirements
 import matplotlib.pyplot as plt
-from matplotlib.ticker import MaxNLocator
 import pandas as pd
 
 
-def build_plot(title, time_list, value_list, name_dataset, measure):
+def build_plot(title, time_list, value_list, name_dataset, measure, num_entries):
     plt.style.use('ggplot')
     fig, ax = plt.subplots(figsize=(12, 8))
 
@@ -42,8 +29,12 @@ def build_plot(title, time_list, value_list, name_dataset, measure):
         measure='Megabyte (MB)'
 
     ax.plot(time_list, value_list, marker='.', linestyle='-', label=name_dataset)
-    ax.xaxis.set_major_locator(MaxNLocator(integer=True, nbins=5))  # Limit to 5 ticks
-    plt.xticks(time_list, labels=[f"{i}" for i in time_list], rotation=80)
+
+    step = int(num_entries / 60) + 1
+    labels = [f"{time_list[i]}" for i in range(0, len(time_list), step)]
+    time_list = [i for i in range(0, len(time_list), step)]
+
+    plt.xticks(time_list, labels=labels, rotation=80)
     plt.subplots_adjust(top=0.95, bottom=0.25)
 
     ax.set_title(title, fontsize=20)
@@ -83,6 +74,8 @@ def plot_results(folder_pathname):
             machine_name += "-MASTER"
 
         df = pd.read_csv(csv_resources)
+        df_lenght = len(df)
+
         cpu_usage = df["CPU"]
         mem_usage = df["MEM"]
         byte_sent = df["BYTE_SENT"]
@@ -97,27 +90,27 @@ def plot_results(folder_pathname):
         output_path = plots_pathname + machine_name
         os.makedirs(output_path, exist_ok=True)
 
-        build_plot('CPU usage', timestamps, cpu_usage, name_dataset='CPU', measure='CPU %')
+        build_plot('CPU usage', timestamps, cpu_usage, name_dataset='CPU', measure='CPU %', num_entries=df_lenght)
         plt.savefig(output_path+'/cpu.png')
         plt.close()
 
-        build_plot('Memory usage', timestamps, mem_usage, name_dataset='MEM', measure='Memory %')
+        build_plot('Memory usage', timestamps, mem_usage, name_dataset='MEM', measure='Memory %', num_entries=df_lenght)
         plt.savefig(output_path + '/mem.png')
         plt.close()
 
-        build_plot('Data transferred: bytes sent', timestamps, byte_sent, name_dataset='BYTE_SENT', measure='Byte (B)')
+        build_plot('Data transferred: bytes sent', timestamps, byte_sent, name_dataset='BYTE_SENT', measure='Byte (B)', num_entries=df_lenght)
         plt.savefig(output_path + '/bytes_sent.png')
         plt.close()
 
-        build_plot('Data transferred: bytes received', timestamps, byte_recv, name_dataset='BYTE_RECV', measure='Byte (B)')
+        build_plot('Data transferred: bytes received', timestamps, byte_recv, name_dataset='BYTE_RECV', measure='Byte (B)', num_entries=df_lenght)
         plt.savefig(output_path + '/bytes_received.png')
         plt.close()
 
-        build_plot('Disk usage: bytes written', timestamps, byte_write_disk, name_dataset='BYTE_WRITE_DISK', measure='Byte (B)')
+        build_plot('Disk usage: bytes written', timestamps, byte_write_disk, name_dataset='BYTE_WRITE_DISK', measure='Byte (B)', num_entries=df_lenght)
         plt.savefig(output_path + '/bytes_written.png')
         plt.close()
 
-        build_plot('Disk usage: bytes read', timestamps, byte_read_disk, name_dataset='BYTE_READ_DISK', measure='Byte (B)')
+        build_plot('Disk usage: bytes read', timestamps, byte_read_disk, name_dataset='BYTE_READ_DISK', measure='Byte (B)', num_entries=df_lenght)
         plt.savefig(output_path + '/bytes_read.png')
         plt.close()
 

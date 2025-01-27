@@ -47,6 +47,7 @@ def main():
     # log_dir = sys.argv[2]
     # config_file = sys.argv[3]
 
+    profiling_interval = int(os.getenv("COMPSS_PROFILING_INTERVAL"))
     compss_home = os.getenv("COMPSS_HOME")
 
     computing_units = None
@@ -108,7 +109,7 @@ def main():
             )
 
             new_entry, ref_byte_sent, ref_byte_recv = profiling_function(
-                5,
+                profiling_interval,
                 computing_units,
                 byte_read,
                 byte_write,

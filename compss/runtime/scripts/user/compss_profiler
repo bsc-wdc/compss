@@ -4,6 +4,11 @@ start_profiling() {
   if [ ${provenance} ]; then
     # specific_log_dir=$(pwd)
     # profiling_status=$(echo "${specific_log_dir}/.status_profiling")
+
+    if [ -z "${COMPSS_PROFILING_INTERVAL}" ]; then
+      export COMPSS_PROFILING_INTERVAL=5
+    fi
+
     if [ -z "${logDir}" ]; then
       working_directory="$(dirname ${wdir_in_master})/stats"
       mkdir $working_directory

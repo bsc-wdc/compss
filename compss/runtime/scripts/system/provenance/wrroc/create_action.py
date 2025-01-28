@@ -353,6 +353,8 @@ def wrroc_create_action(
             env_var["@type"] = "PropertyValue"
             env_var["name"] = name
             env_var["value"] = value
+            if "COMPSS_PROFILING_INTERVAL" == name:
+                env_var["unitCode"] = "https://qudt.org/vocab/unit/SEC"
             compss_crate.add(
                 ContextEntity(
                     compss_crate,

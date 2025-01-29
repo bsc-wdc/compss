@@ -10,6 +10,6 @@ path="$1/lib/python${version}/site-packages/"
 mkdir -p ${path}
 
 export PYTHONPATH=${path}:$PYTHONPATH
-python3 setup.py install --prefix=$1 --record installed_files.txt
+python3 -m pip install . --target $1 --no-deps
 
 echo "----- Installation finished -----"

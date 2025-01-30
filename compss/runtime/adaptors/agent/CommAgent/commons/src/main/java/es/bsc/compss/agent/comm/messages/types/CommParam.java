@@ -122,10 +122,22 @@ public class CommParam extends NIOParam implements ApplicationParameter, Externa
         remoteData = (RemoteDataInformation) oi.readObject();
     }
 
+    /**
+     * Dumps the internal information into the given StringBuilder.
+     *
+     * @param sb StringBuilder where to dump the internal information.
+     */
+    protected void dumpInternalInfo(StringBuilder sb) {
+        sb.append("\"remoteData\":" + (remoteData == null ? "null" : remoteData) + ",");
+        super.dumpInternalInfo(sb);
+    }
+
     @Override
     public String toString() {
-        return "CommParam: [ remoteData: " + (remoteData == null ? "null" : remoteData.toString()) + "," + "NIOParam: ["
-            + super.toString() + "] ]";
+        StringBuilder sb = new StringBuilder("{");
+        dumpInternalInfo(sb);
+        sb.append("}");
+        return sb.toString();
     }
 
 }

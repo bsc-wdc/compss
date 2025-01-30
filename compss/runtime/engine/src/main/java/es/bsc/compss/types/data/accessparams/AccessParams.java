@@ -160,23 +160,34 @@ public abstract class AccessParams<D extends DataParams> implements Serializable
      * @return The registered access Id.
      */
     public final EngineDataAccessId register() {
+        if (DEBUG) {
+            LOGGER.debug("Registering access " + this.getDataDescription());
+        }
         DataInfo dInfo = this.data.getRegisteredData(this.app);
         if (dInfo == null) {
             if (DEBUG) {
                 LOGGER.debug("FIRST access to " + this.getDataDescription());
             }
-
             dInfo = this.data.register(this.app);
+            if (DEBUG) {
+                LOGGER.debug("Registered new data {\"data_id\":" + dInfo.getDataId() + "," + "\"description\":\""
+                    + this.getDataDescription() + "\"}");
+            }
             DataVersion dv = dInfo.getCurrentDataVersion();
             this.registerValueForVersion(dv);
         } else {
             if (DEBUG) {
-                LOGGER.debug("Another access to " + this.getDataDescription());
+                LOGGER.debug("Subsequent access to data {\"data_id\":" + dInfo.getDataId() + "," + "\"description\":\""
+                    + this.getDataDescription() + "\"}");
             }
         }
         this.externalRegister();
 
         EngineDataAccessId daId = dInfo.willAccess(this.mode);
+
+        if (DEBUG && daId != null) {
+            LOGGER.debug("Registered " + daId.toDebugString());
+        }
         return daId;
     }
 

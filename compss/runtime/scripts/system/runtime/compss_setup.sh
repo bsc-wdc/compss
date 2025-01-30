@@ -347,6 +347,7 @@ EOT
 -javaagent:${COMPSS_HOME}/Runtime/compss-engine.jar
 -Dcompss.to.file=false
 -Dcompss.appName=${appName}
+-Dcompss.exec.label=${exec_label}
 -Dcompss.data_provenance=${provenance}
 -Dcompss.uuid=${uuid}
 -Dcompss.shutdown_in_node_failure=${shutdown_in_node_failure}

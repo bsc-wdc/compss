@@ -377,39 +377,40 @@ public class NIOTask implements Externalizable, Invocation {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("[TASK ");
-        sb.append("[LANG= ").append(this.lang).append("]");
-        sb.append("[TASK TYPE= ").append(this.taskType).append("]");
-        sb.append("[TASK ID= ").append(this.taskId).append("]");
-        sb.append("[JOB ID= ").append(this.jobId).append("]");
-        sb.append("[HISTORY= ").append(this.history).append("]");
-        sb.append("[IMPLEMENTATION= ").append(this.impl.getMethodDefinition()).append("]");
-        sb.append("[PARALLELISM SOURCE= ").append(this.parallelismSource).append("]");
-        sb.append(" [PARAMS ");
+        StringBuilder sb = new StringBuilder("{");
+        sb.append("\"lang\":\"").append(this.lang).append("\",");
+        sb.append("\"task_type\":\"").append(this.taskType).append("\",");
+        sb.append("\"task_id\":").append(this.taskId).append(",");
+        sb.append("\"job_id\":").append(this.jobId).append(",");
+        sb.append("\"history\":\"").append(this.history).append("\",");
+        sb.append("\"implementation\":").append(this.impl.getMethodDefinition()).append(",");
+        sb.append("\"parallelism_source\":")
+            .append(this.parallelismSource == null ? "null" : "\"" + this.parallelismSource + "\"").append(",");
+        sb.append("\"params\":[");
         for (NIOParam param : this.arguments) {
             sb.append(param);
         }
-        sb.append(" ] ");
-        sb.append(" [TARGET ");
+        sb.append(" ],\"target\":");
         if (target != null) {
             sb.append(target);
+        } else {
+            sb.append("null");
         }
-        sb.append(" ] ");
-        sb.append(" [RESULTS ");
+        sb.append(",\"results\":[");
         for (NIOParam param : this.results) {
             sb.append(param);
         }
-        sb.append("]");
+        sb.append("],");
 
-        sb.append("[REQUIREMENTS= ").append(this.reqs).append("]");
+        sb.append("\"requirements\":{").append(this.reqs).append("},");
 
-        sb.append("[SLAVE_WORKERS_NODE_NAMES= ");
+        sb.append("\"slave_workers_node_names\":[");
         for (String name : this.slaveWorkersNodeNames) {
-            sb.append("[SW_NAME=").append(name).append("]");
+            sb.append("{\"sw_name\":").append(name).append("}");
         }
         sb.append("]");
 
-        sb.append("]");
+        sb.append("}");
         return sb.toString();
     }
 

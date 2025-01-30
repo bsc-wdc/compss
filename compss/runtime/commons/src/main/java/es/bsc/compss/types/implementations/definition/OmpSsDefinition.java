@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.implementations.definition;
 
+import es.bsc.compss.types.MPIProgram;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.util.EnvironmentLoader;
@@ -116,12 +117,11 @@ public class OmpSsDefinition implements AbstractMethodImplementationDefinition {
     }
 
     @Override
-    public String toMethodDefinitionFormat() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("[BINARY=").append(this.binary);
-        sb.append(", FAIL_BY_EV=").append(this.failByEV);
-        sb.append("]");
-
+    public String toJSON() {
+        StringBuilder sb = new StringBuilder("{\"type\":\"OMPSs\",");
+        sb.append("\"binary\":\"").append(this.binary).append("\",");
+        sb.append("\"fail_by_ev\":").append(this.failByEV);
+        sb.append("}");
         return sb.toString();
     }
 

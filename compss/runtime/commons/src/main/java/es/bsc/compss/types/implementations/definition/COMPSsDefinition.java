@@ -212,17 +212,17 @@ public class COMPSsDefinition implements AbstractMethodImplementationDefinition 
     }
 
     @Override
-    public String toMethodDefinitionFormat() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("[RUNCOMPSS=").append(this.runcompss);
-        sb.append(", FLAGS=").append(this.flags);
-        sb.append(", APP_NAME=").append(this.appName);
-        sb.append(", APP_PARAMS=").append(this.appParams);
-        sb.append(", WORKER_IN_MASTER=").append(this.workerInMaster);
-        sb.append(", WORKING_DIR=").append(this.workingDir);
-        sb.append(", FAIL_BY_EV=").append(this.failByEV);
-        sb.append(", PARENT_APP_ID=").append(this.parentAppId);
-        sb.append("]");
+    public String toJSON() {
+        StringBuilder sb = new StringBuilder("{\"type\":\"COMPSs\",");
+        sb.append("\"runcompss\":\"").append(this.runcompss).append("\",");
+        sb.append("\"flags\":\"").append(this.flags).append("\",");
+        sb.append("\"app_name\":\"").append(this.appName).append("\",");
+        sb.append("\"app_params\":\"").append(this.appParams).append("\",");
+        sb.append("\"worker_in_master\":\"").append(this.workerInMaster).append("\",");
+        sb.append("\"working_dir\":\"").append(this.workingDir).append("\",");
+        sb.append("\"fail_by_ev\":").append(this.failByEV).append(",");
+        sb.append("\"parent_app_id\":\"").append(this.parentAppId).append("\"");
+        sb.append("}");
 
         return sb.toString();
     }

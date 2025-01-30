@@ -102,11 +102,10 @@ public class OpenCLDefinition implements AbstractMethodImplementationDefinition 
     }
 
     @Override
-    public String toMethodDefinitionFormat() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("[KERNEL=").append(this.kernel);
-        sb.append("]");
-
+    public String toJSON() {
+        StringBuilder sb = new StringBuilder("{\"type\":\"OPENCL\",");
+        sb.append("\"kernel\":\"").append(this.kernel).append("\"");
+        sb.append("}");
         return sb.toString();
     }
 

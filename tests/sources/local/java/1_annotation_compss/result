@@ -148,7 +148,7 @@
   fi
   
   # Check that flags are correctly setup
-  if ! grep -q "FLAGS=-d" "${target_log_folder}"/jobs/job3_NEW.out; then
+  if ! grep -q "\"flags\":\"-d\"" "${target_log_folder}/jobs/job3_NEW.out"; then
     echo "[ERROR] Flags are not correctly setup" | tee -a "${output_file}"
     exit 1
   fi

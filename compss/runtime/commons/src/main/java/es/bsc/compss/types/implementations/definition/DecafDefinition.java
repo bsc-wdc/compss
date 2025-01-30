@@ -158,14 +158,13 @@ public class DecafDefinition extends CommonMPIDefinition implements AbstractMeth
     }
 
     @Override
-    public String toMethodDefinitionFormat() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("[MPI RUNNER=").append(this.mpiRunner);
-        sb.append(", DF_SCRIPT=").append(this.dfScript);
-        sb.append(", DF_EXECUTOR=").append(this.dfExecutor);
-        sb.append(", DF_LIBRARY=").append(this.dfLib);
-        sb.append("]");
-
+    public String toJSON() {
+        StringBuilder sb = new StringBuilder("{\"type\":\"DECAF\",");
+        sb.append("\"mpi_runner\":\"").append(this.mpiRunner).append("\",");
+        sb.append("\"df_script\":\"").append(this.dfScript).append("\",");
+        sb.append("\"df_executor\":\"").append(this.dfExecutor).append("\",");
+        sb.append("\"df_library\":\"").append(this.dfLib).append("\"");
+        sb.append("}");
         return sb.toString();
     }
 

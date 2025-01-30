@@ -81,9 +81,6 @@ public abstract class StandardDataInfo<T extends DataParams> extends DataInfo<T>
                 }
                 break;
         }
-        if (DEBUG && daId != null) {
-            LOGGER.debug(daId.toDebugString());
-        }
         return daId;
     }
 

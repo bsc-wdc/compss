@@ -17,15 +17,18 @@
 package es.bsc.compss.agent.comm.messages.types;
 
 import es.bsc.compss.agent.types.ApplicationResult;
+import es.bsc.compss.agent.types.RemoteDataInformation;
 import es.bsc.compss.agent.types.RemoteDataLocation;
 import es.bsc.compss.nio.NIOResult;
 import es.bsc.compss.nio.NIOUri;
 import es.bsc.compss.types.resources.Resource;
+import es.bsc.compss.types.resources.jaxb.ResourcesPropertyAdaptorType;
 
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedList;
 
 
@@ -64,10 +67,28 @@ public class CommResult extends NIOResult implements ApplicationResult {
         sources = (Collection<RemoteDataLocation>) in.readObject();
     }
 
-    @Override
-    public String toString() {
-        return "CommResult[remoteData: " + (this.sources == null ? "[ null ]" : this.sources.toString()) + " "
-            + "nioResult: " + super.toString() + "]";
+    protected void dumpContent(StringBuilder sb) {
+        sb.append("\"remote_data\":[");
+        if (this.sources != null) {
+            Iterator<RemoteDataLocation> itr = this.sources.iterator();
+            if (itr.hasNext()) {
+                RemoteDataLocation loc = itr.next();
+                sb.append(loc);
+                while (itr.hasNext()) {
+                    loc = itr.next();
+                    sb.append("," + loc);
+                }
+            }
+        }
+        sb.append("],");
+        super.dumpContent(sb);
     }
 
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("{");
+        dumpContent(sb);
+        sb.append("}");
+        return sb.toString();
+    }
 }

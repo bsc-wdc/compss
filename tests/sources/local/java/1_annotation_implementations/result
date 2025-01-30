@@ -2,12 +2,15 @@
 
   parse_job() {
     local job_file="${1}"
-    job_type=$(grep "Method type" "${job_file}" | awk '{print $4}')
+    echo ${job_file}
+    job_type=$(grep "Method definition" "${job_file}" | cut -c 24- | jq -r '.type')
     case "${job_type}" in 
       "METHOD")
-        job_impl=$(grep "Method definition" "${job_file}" | tr "[" "\\t" | tr "," "\\t" | tr "=" "\\t" | awk '{ print $6 }')
+        echo "    METHOD"
+        job_impl=$(grep "Method definition" "${job_file}" | cut -c 24- | jq -r '.declaring_class')
       ;;
       "BINARY" | "MPI")      
+        echo "    ${job_type}"
         job_impl=${job_type}
       ;;
       *)

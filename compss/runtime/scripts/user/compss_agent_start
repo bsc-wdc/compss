@@ -131,6 +131,8 @@ show_opts() {
 
     -d, --debug                             Enable debug. (Default: disabled)
 
+    --execution_label="string"              Label used to identify the data of this execution. (Default: current timestamp)
+
     --hostname                              Name with which itself and other agents will identify the agent.
 
     --jvm_opts="string"                     Extra options for the COMPSs Runtime JVM. Each option separed by "," and without blank spaces (Notice the quotes)
@@ -308,6 +310,10 @@ parse_options() {
           debug)
             # Enable debug in log level
             log_level=${DEFAULT_LOG_LEVEL_ARGUMENT}
+            ;;
+          execution_label=*)
+            # Label used to identify the data of this execution
+            exec_label=${OPTARG//execution_label=/}
             ;;
           generate_trace=*)
             # Specify if the tracing system merges the events in a trace file

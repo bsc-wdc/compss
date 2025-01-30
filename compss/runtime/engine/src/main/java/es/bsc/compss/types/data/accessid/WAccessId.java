@@ -99,10 +99,11 @@ public class WAccessId extends EngineDataAccessId implements WritingDataAccessId
 
     @Override
     public String toDebugString() {
-        StringBuilder sb = new StringBuilder("");
-        sb.append("Access:").append("\n");
-        sb.append("  * Type: W").append("\n");
-        sb.append("  * Write Datum: d").append(this.getDataId()).append("v").append(this.getWVersionId()).append("\n");
+        int dataId = this.getDataId();
+        StringBuilder sb = new StringBuilder("{");
+        sb.append("\"type\":\"W\",");
+        sb.append("\"write_datum\":\"d").append(dataId).append("v").append(this.getWVersionId()).append("\"");
+        sb.append("}");
         return sb.toString();
     }
 

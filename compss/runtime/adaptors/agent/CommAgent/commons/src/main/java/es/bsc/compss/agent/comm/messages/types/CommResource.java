@@ -83,8 +83,17 @@ public class CommResource extends Resource<Void, ResourcesExternalAdaptorPropert
     }
 
     @Override
+    protected void dumpContent(StringBuilder sb) {
+        super.dumpContent(sb);
+        sb.append(",\"port\":").append(port);
+    }
+
+    @Override
     public String toString() {
-        return super.toString() + ", PORT = " + port;
+        StringBuilder sb = new StringBuilder("{");
+        this.dumpContent(sb);
+        sb.append("}");
+        return sb.toString();
     }
 
 }

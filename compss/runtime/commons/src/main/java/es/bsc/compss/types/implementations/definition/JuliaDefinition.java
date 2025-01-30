@@ -184,11 +184,11 @@ public class JuliaDefinition implements AbstractMethodImplementationDefinition {
     }
 
     @Override
-    public String toMethodDefinitionFormat() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("[JULIA_EXECUTOR=").append(this.juliaExecutor);
-        sb.append(", JULIA_SCRIPT=").append(this.juliaScript);
-        sb.append("]");
+    public String toJSON() {
+        StringBuilder sb = new StringBuilder("{\"type\":\"JULIA\",");
+        sb.append("\"julia_executor\":\"").append(this.juliaExecutor).append("\",");
+        sb.append("\"julia_script\":\"").append(this.juliaScript).append("\"");
+        sb.append("}");
         return sb.toString();
     }
 

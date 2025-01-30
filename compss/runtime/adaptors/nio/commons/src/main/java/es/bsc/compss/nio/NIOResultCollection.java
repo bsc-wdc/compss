@@ -21,6 +21,7 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.Iterator;
 import java.util.List;
 
 
@@ -70,21 +71,26 @@ public class NIOResultCollection extends NIOResult implements Externalizable {
         this.elements = (List<NIOResult>) oi.readObject();
     }
 
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder("[COLLECTION");
-        sb.append(" URIS=").append(getUris());
-        sb.append(" ELEMENTS=[");
-        boolean many = false;
-        for (NIOResult nr : this.elements) {
-            if (many) {
-                sb.append(", ");
+    protected void dumpContent(StringBuilder sb) {
+        super.dumpContent(sb);
+        sb.append(",\"elements\":[");
+        Iterator<NIOResult> itr = this.elements.iterator();
+        if (itr.hasNext()) {
+            NIOResult nr = itr.next();
+            sb.append(nr);
+            while (itr.hasNext()) {
+                nr = itr.next();
+                sb.append("," + nr);
             }
-            sb.append(nr.toString());
-            many = true;
         }
         sb.append("]");
-        sb.append("]");
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("{");
+        dumpContent(sb);
+        sb.append("}");
         return sb.toString();
     }
 

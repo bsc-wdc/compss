@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedList;
 
 
@@ -43,7 +44,7 @@ public class NIOResult implements Externalizable {
 
     /**
      * Creates a new NIOResult instance.
-     * 
+     *
      * @param location location that will be set as path in the uri where the result is available
      */
     public NIOResult(String location) {
@@ -55,7 +56,7 @@ public class NIOResult implements Externalizable {
 
     /**
      * Creates a new NIOResult instance.
-     * 
+     *
      * @param uri uri where the result is available
      */
     public NIOResult(NIOUri uri) {
@@ -89,8 +90,25 @@ public class NIOResult implements Externalizable {
         uris = (Collection<NIOUri>) oi.readObject();
     }
 
+    protected void dumpContent(StringBuilder sb) {
+        sb.append("\"uris\":[");
+        Iterator<NIOUri> itr = this.uris.iterator();
+        if (itr.hasNext()) {
+            NIOUri uri = itr.next();
+            sb.append(uri);
+            while (itr.hasNext()) {
+                uri = itr.next();
+                sb.append("," + uri);
+            }
+        }
+        sb.append("]");
+    }
+
     @Override
     public String toString() {
-        return "[URIS=" + uris + "]";
+        StringBuilder sb = new StringBuilder("{");
+        dumpContent(sb);
+        sb.append("}");
+        return sb.toString();
     }
 }

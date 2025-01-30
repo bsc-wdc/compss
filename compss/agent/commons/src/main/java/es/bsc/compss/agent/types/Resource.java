@@ -119,11 +119,19 @@ public class Resource<P, R> implements Externalizable {
         this.resourceConf = (R) oi.readObject();
     }
 
+    protected void dumpContent(StringBuilder sb) {
+        sb.append("\"name\":\"").append(name).append("\",");
+        sb.append("\"adaptor\":\"").append(adaptor).append("\",");
+        sb.append("\"project\":").append(projectConf == null ? "null" : projectConf.toString()).append(",");
+        sb.append("\"resources\":").append(resourceConf == null ? "null" : resourceConf.toString());
+    }
+
     @Override
     public String toString() {
-        return "NAME = " + name + ", ADAPTOR = " + adaptor + ", PROJECT = "
-            + (projectConf == null ? "null" : projectConf.toString()) + ", RESOURCES = "
-            + (resourceConf == null ? "null" : resourceConf.toString());
+        StringBuilder sb = new StringBuilder("{");
+        this.dumpContent(sb);
+        sb.append("}");
+        return sb.toString();
     }
 
 }

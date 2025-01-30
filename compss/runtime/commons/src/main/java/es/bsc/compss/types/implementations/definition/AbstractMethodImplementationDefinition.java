@@ -28,7 +28,7 @@ public interface AbstractMethodImplementationDefinition extends ImplementationDe
 
     public MethodType getMethodType();
 
-    public String toMethodDefinitionFormat();
+    public String toJSON();
 
     /**
      * Method to append AbstractMethodDefinition properties to an arguments list.

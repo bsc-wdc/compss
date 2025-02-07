@@ -319,6 +319,7 @@ def local_inspect(ro_crate_list: list):
                     i_pointer = 1 if i == (len(env_list) - 1) else 0
                     print(f"{prefix}{pointers[i_pointer]}{env_item[0]} = {env_item[1]}")
 
+            # Resource Usage
             usage_e = e_create_action.get("resourceUsage")
             usage_list = []
             if usage_e:

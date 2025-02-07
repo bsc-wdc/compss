@@ -121,8 +121,10 @@ def store_data(compss_path: str, stats_path: Path):
                     id_stat = e.id.replace("#", "").split(".")
                     node = id_stat[0]
                     nodes.append(node)
-                    function_name = id_stat[1] + "." + id_stat[2]
-                    stat = id_stat[3]
+                    # function_name = id_stat[1] + "." + id_stat[2]
+                    function_name = id_stat[1]
+                    stat = id_stat[2]
+                    # stat = id_stat[3]
 
                     if entry_name == "executionTime":
                         application_name = function_name.split(".")[0]

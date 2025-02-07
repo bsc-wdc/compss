@@ -57,6 +57,8 @@ description_plots = {
     'mem': 'Plot of the amount of memory used during the execution',
 }
 
+LANGUAGES_EXTENSION = (".java", ".py")
+
 
 def get_stats_list(dp_path: str, start_time: datetime, end_time: datetime) -> list:
     """
@@ -86,8 +88,9 @@ def get_stats_list(dp_path: str, start_time: datetime, end_time: datetime) -> li
             start_time = start_time.timestamp()
             end_time = end_time.timestamp()
             execution_time = int((end_time - start_time) * 1000)
+            app_name = application_name.split('.')[0]
             data_list.append(
-                ["overall", application_name, "executionTime", str(execution_time)]
+                ["overall", app_name, "executionTime", str(execution_time)]
             )
         except TypeError:
             print("PROVENANCE | WARNING: could not retrieve execution time")
@@ -470,9 +473,19 @@ def wrroc_create_action(
         with open("GENERATED_" + info_yaml, "w", encoding="utf-8") as f_y:
             yaml.dump(yaml_content, f_y, default_flow_style=False)
 
+    base_path = os.path.dirname(main_entity)
+    in_sources_dir = str(Path(base_path).name)
+    new_root = f"application_sources/{in_sources_dir}/"
+    auxiliary_files = []
+    for root, dirs, files in os.walk(base_path):
+        for file in files:
+            if file.endswith(LANGUAGES_EXTENSION) and os.stat(os.path.join(root, file)).st_size > 0:
+                aux_file = new_root + str(Path(os.path.join(root, file)).name)
+                auxiliary_files.append({"@id": aux_file})
+
     create_action_properties = {
         "@type": "CreateAction",
-        "instrument": {"@id": resolved_main_entity},  # Resolved path of the main file
+        "instrument": auxiliary_files,  # Resolved path of the main file
         "actionStatus": {"@id": "http://schema.org/CompletedActionStatus"},
         "endTime": end_time.isoformat(),  # endTime of the application corresponds to the start of the provenance generation
         "name": name_property,
@@ -551,7 +564,6 @@ def wrroc_create_action(
         # Get profiling data
         try:
             profiling_files_list = check_resource(stats_path)
-            print(profiling_files_list)
         except FileNotFoundError:
             profiling_files_list = []
         id_measure_list = []

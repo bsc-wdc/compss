@@ -96,7 +96,7 @@ def store_data(compss_path: str, stats_path: Path):
             command_launched = str(e.properties().get('description'))
             break
 
-    final_dict['command'] = command_launched
+    final_dict['Command'] = command_launched
 
     for e in crate.contextual_entities:
         if not (str(e.type) in forbidden_types or type(e.type) is list):

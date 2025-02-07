@@ -151,218 +151,219 @@ def local_app_deploy(local_source: str, app_dir: str, dest_dir: str = None):
     print("App deployed from " + local_source + " to " + dst)
 
 
-def local_inspect(ro_crate_zip_or_dir: str):
-    try:
-        crate = ROCrate(ro_crate_zip_or_dir)
-    except Exception as e:
-        print(f"Error loading the RO-Crate: {e}")
-        raise
+def local_inspect(ro_crate_list: list):
+    for ro_crate_zip_or_dir in ro_crate_list:
+        print(
+            f"================================================================================"
+        )
+        try:
+            crate = ROCrate(ro_crate_zip_or_dir)
+        except Exception as e:
+            print(f"Error loading the RO-Crate from {ro_crate_zip_or_dir} : {e}")
+            continue
 
-    pointers = ["├── ", "└── "]
-    follow_prefix = "│   "
-    empty_prefix = "    "
+        pointers = ["├── ", "└── "]
+        follow_prefix = "│   "
+        empty_prefix = "    "
 
-    print(
-        f"================================================================================"
-    )
-    print(f"{ro_crate_zip_or_dir}")
+        print(f"{ro_crate_zip_or_dir}")
 
-    prefix = follow_prefix
-    profiles = []
-    e_create_action = None
-    i_pointer = 0
+        prefix = follow_prefix
+        profiles = []
+        e_create_action = None
+        i_pointer = 0
 
-    for e in crate.get_entities():
-        if e.id == "./":
-            publish_time = datetime.fromisoformat(e.get("datePublished"))
-            print(f"{pointers[0]}Date Published")
-            print(f"{prefix}{pointers[1]}{publish_time.strftime('%A, %d of %B of %Y - %H:%M %Z')}")
-            print(f"{pointers[0]}Name")
-            print(f"{prefix}{pointers[1]}{e.get('name')}")
-            if "creator" in e:
-                print(f"{pointers[0]}Authors")
-                creators = e.get("creator")
-                for i, c in enumerate(creators):
-                    author_str = c["name"] if "name" in c else c["@id"]
-                    affiliation_e = c["affiliation"] if "affiliation" in c else None  # Can be a str or an entity
-                    if isinstance(affiliation_e, ContextEntity):
-                        affiliation_str = (
-                            affiliation_e["name"]
-                            if "name" in affiliation_e
-                            else affiliation_e["@id"]
-                        )
-                    elif isinstance(affiliation_e, str):
-                        affiliation_str = affiliation_e
+        for e in crate.get_entities():
+            if e.id == "./":
+                publish_time = datetime.fromisoformat(e.get("datePublished"))
+                print(f"{pointers[0]}Date Published")
+                print(f"{prefix}{pointers[1]}{publish_time.strftime('%A, %d of %B of %Y - %H:%M %Z')}")
+                print(f"{pointers[0]}Name")
+                print(f"{prefix}{pointers[1]}{e.get('name')}")
+                if "creator" in e:
+                    print(f"{pointers[0]}Authors")
+                    creators = e.get("creator")
+                    for i, c in enumerate(creators):
+                        author_str = c["name"] if "name" in c else c["@id"]
+                        affiliation_e = c["affiliation"] if "affiliation" in c else None  # Can be a str or an entity
+                        if isinstance(affiliation_e, ContextEntity):
+                            affiliation_str = (
+                                affiliation_e["name"]
+                                if "name" in affiliation_e
+                                else affiliation_e["@id"]
+                            )
+                        elif isinstance(affiliation_e, str):
+                            affiliation_str = affiliation_e
+                        else:
+                            affiliation_str = ""
+                        email_e = c["contactPoint"] if "contactPoint" in c else None
+                        if email_e:
+                            email_str = (
+                                email_e["email"] if "email" in email_e else email_e["@id"]
+                            )
+                        else:
+                            email_str = ""
+                        i_pointer = 1 if i == (len(creators) - 1) else 0
+                        print(f"{prefix}{pointers[i_pointer]}{author_str} ({affiliation_str}) ({email_str})")
+                desc_str = e.get("description")
+                if "license" in e:
+                    print(f"{pointers[0]}License")
+                    print(f"{prefix}{pointers[1]}{e.get('license')}")
+            elif e.type == "CreativeWork":
+                if e.id.startswith("https"):
+                    profiles.append(f"{e['name']} ({e['version']})")
+            elif e.id == "#compss":
+                print(f"{pointers[0]}COMPSs Runtime version")
+                print(f"{prefix}{pointers[1]}{e.get('version', '')}")
+            elif "ComputationalWorkflow" in e.type:
+                if "softwareRequirements" in e:
+                    print(f"{pointers[0]}Software Dependencies")
+                    software_requirements = e.get("softwareRequirements")
+                    if isinstance(software_requirements, list):
+                        for i, s in enumerate(software_requirements):
+                            version_str = s["softwareVersion"] if "softwareVersion" in s else ""
+                            i_pointer = 1 if i == (len(software_requirements) - 1) else 0
+                            print(f"{prefix}{pointers[i_pointer]}{s['name']} ({version_str})")
                     else:
-                        affiliation_str = ""
-                    email_e = c["contactPoint"] if "contactPoint" in c else None
-                    if email_e:
-                        email_str = (
-                            email_e["email"] if "email" in email_e else email_e["@id"]
-                        )
-                    else:
-                        email_str = ""
-                    i_pointer = 1 if i == (len(creators) - 1) else 0
-                    print(f"{prefix}{pointers[i_pointer]}{author_str} ({affiliation_str}) ({email_str})")
-            desc_str = e.get("description")
-            if "license" in e:
-                print(f"{pointers[0]}License")
-                print(f"{prefix}{pointers[1]}{e.get('license')}")
-        elif e.type == "CreativeWork":
-            if e.id.startswith("https"):
-                profiles.append(f"{e['name']} ({e['version']})")
-        elif e.id == "#compss":
-            print(f"{pointers[0]}COMPSs Runtime version")
-            print(f"{prefix}{pointers[1]}{e.get('version', '')}")
-        elif "ComputationalWorkflow" in e.type:
-            if "softwareRequirements" in e:
-                print(f"{pointers[0]}Software Dependencies")
-                software_requirements = e.get("softwareRequirements")
-                if isinstance(software_requirements, list):
-                    for i, s in enumerate(software_requirements):
-                        version_str = s["softwareVersion"] if "softwareVersion" in s else ""
-                        i_pointer = 1 if i == (len(software_requirements) - 1) else 0
-                        print(f"{prefix}{pointers[i_pointer]}{s['name']} ({version_str})")
+                        version_str = software_requirements["softwareVersion"] if "softwareVersion" in software_requirements else ""
+                        print(f"{prefix}{pointers[1]}{software_requirements['name']} ({version_str})")
+            elif "CreateAction" in e.type:
+                e_create_action = e
+
+        if len(profiles) > 0:
+            print(f"{pointers[0]}RO-Crate Profiles compliance")
+            for i, prof in enumerate(profiles):
+                i_pointer = 1 if i == (len(profiles) - 1) else 0
+                print(f"{prefix}{pointers[i_pointer]}{prof}")
+
+        if desc_str:
+            print(f"{pointers[0]}Description")
+            print(f"{prefix}{pointers[1]}{desc_str}")
+
+        prefix = empty_prefix + follow_prefix
+        if e_create_action:
+            print(f"{pointers[1]}CreateAction (execution details)")
+            if "agent" in e_create_action:
+                print(f"{empty_prefix}{pointers[0]}Agent")
+                agent_e = e_create_action.get("agent")
+                agent_str = agent_e["name"] if "name" in agent_e else agent_e["@id"]
+                affiliation_e = agent_e["affiliation"] if "affiliation" in agent_e else None
+                if isinstance(affiliation_e, ContextEntity):
+                    affiliation_str = (
+                        affiliation_e["name"]
+                        if "name" in affiliation_e
+                        else affiliation_e["@id"]
+                    )
+                elif isinstance(affiliation_e, str):
+                    affiliation_str = affiliation_e
                 else:
-                    version_str = software_requirements["softwareVersion"] if "softwareVersion" in software_requirements else ""
-                    print(f"{prefix}{pointers[1]}{software_requirements['name']} ({version_str})")
-        elif "CreateAction" in e.type:
-            e_create_action = e
+                    affiliation_str = ""
+                email_e = agent_e["contactPoint"] if "contactPoint" in agent_e else None
+                if email_e:
+                    email_str = email_e["email"] if "email" in email_e else email_e["@id"]
+                else:
+                    email_str = ""
+                print(f"{prefix}{pointers[1]}{agent_str} ({affiliation_str}) ({email_str})")
+            if "instrument" in e_create_action:
+                print(f"{empty_prefix}{pointers[0]}Application's main file")
+                print(f"{prefix}{pointers[1]}{e_create_action.get('instrument')['@id']}")
+            # Parse 'name' for hostname and JOB_ID
+            # "COMPSs cch_matmul_test.py execution at bsc_nvidia with JOB_ID 1930225"
+            exec_info = e_create_action.get("name").split(" ")
+            # Hostname included from COMPSs 3.2 version
+            if exec_info[4] != "for":
+                print(f"{empty_prefix}{pointers[0]}Hostname")
+                print(f"{prefix}{pointers[1]}{exec_info[4]}")
+            if len(exec_info) == 8:
+                print(f"{empty_prefix}{pointers[0]}Job ID")
+                print(f"{prefix}{pointers[1]}{exec_info[7]}")
 
-    if len(profiles) > 0:
-        print(f"{pointers[0]}RO-Crate Profiles compliance")
-        for i, prof in enumerate(profiles):
-            i_pointer = 1 if i == (len(profiles) - 1) else 0
-            print(f"{prefix}{pointers[i_pointer]}{prof}")
+            # Environment
+            if "description" in e_create_action:
+                print(f"{empty_prefix}{pointers[0]}Description (machine details)")
+                print(f"{prefix}{pointers[1]}{e_create_action.get('description', '')}")
+            environment = e_create_action.get("environment")
+            env_list = []
+            if environment:
+                for env in environment:
+                    env_list.append((env.get("name"), env.get("value")))
+                print(f"{empty_prefix}{pointers[0]}Environment")
+                for i, env_item in enumerate(env_list):
+                    i_pointer = 1 if i == (len(env_list) - 1) else 0
+                    print(f"{prefix}{pointers[i_pointer]}{env_item[0]} = {env_item[1]}")
 
-    if desc_str:
-        print(f"{pointers[0]}Description")
-        print(f"{prefix}{pointers[1]}{desc_str}")
+            usage_e = e_create_action.get("resourceUsage")
+            usage_list = []
+            if usage_e:
+                for usage in usage_e:
+                    usage_list.append((usage.get("@id", ""), usage.get("value", "")))
+                print(f"{empty_prefix}{pointers[0]}Resource Usage")
+                for i, ru_item in enumerate(usage_list):
+                    i_pointer = 1 if i == (len(usage_list) - 1) else 0
+                    print(f"{prefix}{pointers[i_pointer]}{ru_item[0]} = {ru_item[1]}")
 
-    prefix = empty_prefix + follow_prefix
-    if e_create_action:
-        print(f"{pointers[1]}CreateAction (execution details)")
-        if "agent" in e_create_action:
-            print(f"{empty_prefix}{pointers[0]}Agent")
-            agent_e = e_create_action.get("agent")
-            agent_str = agent_e["name"] if "name" in agent_e else agent_e["@id"]
-            affiliation_e = agent_e["affiliation"] if "affiliation" in agent_e else None
-            if isinstance(affiliation_e, ContextEntity):
-                affiliation_str = (
-                    affiliation_e["name"]
-                    if "name" in affiliation_e
-                    else affiliation_e["@id"]
-                )
-            elif isinstance(affiliation_e, str):
-                affiliation_str = affiliation_e
-            else:
-                affiliation_str = ""
-            email_e = agent_e["contactPoint"] if "contactPoint" in agent_e else None
-            if email_e:
-                email_str = email_e["email"] if "email" in email_e else email_e["@id"]
-            else:
-                email_str = ""
-            print(f"{prefix}{pointers[1]}{agent_str} ({affiliation_str}) ({email_str})")
-        if "instrument" in e_create_action:
-            print(f"{empty_prefix}{pointers[0]}Application's main file")
-            print(f"{prefix}{pointers[1]}{e_create_action.get('instrument')['@id']}")
-        # Parse 'name' for hostname and JOB_ID
-        # "COMPSs cch_matmul_test.py execution at bsc_nvidia with JOB_ID 1930225"
-        exec_info = e_create_action.get("name").split(" ")
-        # Hostname included from COMPSs 3.2 version
-        if exec_info[4] != "for":
-            print(f"{empty_prefix}{pointers[0]}Hostname")
-            print(f"{prefix}{pointers[1]}{exec_info[4]}")
-        if len(exec_info) == 8:
-            print(f"{empty_prefix}{pointers[0]}Job ID")
-            print(f"{prefix}{pointers[1]}{exec_info[7]}")
+            # Times
+            e_start_time = e_create_action.get("startTime")
+            if e_start_time:
+                start_time = datetime.fromisoformat(e_start_time)
+                print(f"{empty_prefix}{pointers[0]}Start Time")
+                print(f"{prefix}{pointers[1]}{start_time.strftime('%A, %d of %B of %Y - %H:%M:%S %Z')}")
+            end_time = datetime.fromisoformat(e_create_action.get("endTime"))
+            print(f"{empty_prefix}{pointers[0]}End Time")
+            print(f"{prefix}{pointers[1]}{end_time.strftime('%A, %d of %B of %Y - %H:%M:%S %Z')}")
+            # total_time = datetime.fromisoformat(endTime) - datetime.fromisoformat(startTime)
+            if e_start_time:
+                total_time = end_time - start_time
+                print(f"{empty_prefix}{pointers[0]}TOTAL EXECUTION TIME")
+                print(f"{prefix}{pointers[1]}{total_time} s")
 
-        # Environment
-        if "description" in e_create_action:
-            print(f"{empty_prefix}{pointers[0]}Description (machine details)")
-            print(f"{prefix}{pointers[1]}{e_create_action.get('description', '')}")
-        environment = e_create_action.get("environment")
-        env_list = []
-        if environment:
-            for env in environment:
-                env_list.append((env.get("name"), env.get("value")))
-            print(f"{empty_prefix}{pointers[0]}Environment")
-            for i, env_item in enumerate(env_list):
-                i_pointer = 1 if i == (len(env_list) - 1) else 0
-                print(f"{prefix}{pointers[i_pointer]}{env_item[0]} = {env_item[1]}")
+            # The 'object' list in the JSON can contain "File" objects, but also strings referencing remote files
+            # wf_inputs = e.get('object')
+            # inputs_list = []
+            # for i, wf_in in enumerate(wf_inputs):
+            #     if isinstance(wf_in, File):
+            #         name = wf_in.get('name')
+            #     else:
+            #         name = wf_in
+            #     print(f"Name: {name}")
+            #     inputs_list.append(name)
+            # print(f"\tList of needed inputs: {inputs_list}")
 
-        usage_e = e_create_action.get("resourceUsage")
-        usage_list = []
-        if usage_e:
-            for usage in usage_e:
-                usage_list.append((usage.get("@id", ""), usage.get("value", "")))
-            print(f"{empty_prefix}{pointers[0]}Resource Usage")
-            for i, ru_item in enumerate(usage_list):
-                i_pointer = 1 if i == (len(usage_list) - 1) else 0
-                print(f"{prefix}{pointers[i_pointer]}{ru_item[0]} = {ru_item[1]}")
+            # Inputs and Outputs
+            wf_inputs = e_create_action.get("object")
+            if wf_inputs:
+                if not e_create_action.get("result"):
+                    prefix = 2 * empty_prefix
+                    print(f"{empty_prefix}{pointers[1]}INPUTS")
+                else:
+                    print(f"{empty_prefix}{pointers[0]}INPUTS")
+                for i, wf_in in enumerate(wf_inputs):
+                    if isinstance(wf_in, str):
+                        # Backwards compatible with COMPSs 3.0
+                        continue
+                    i_pointer = 1 if i == (len(wf_inputs) - 1) else 0
+                    if "contentSize" in wf_in:
+                        print(f"{prefix}{pointers[i_pointer]}{wf_in.get('@id')} ({int(wf_in['contentSize']):,} bytes)")
+                    else:
+                        print(f"{prefix}{pointers[i_pointer]}{wf_in.get('@id')}")
 
-        # Times
-        e_start_time = e_create_action.get("startTime")
-        if e_start_time:
-            start_time = datetime.fromisoformat(e_start_time)
-            print(f"{empty_prefix}{pointers[0]}Start Time")
-            print(f"{prefix}{pointers[1]}{start_time.strftime('%A, %d of %B of %Y - %H:%M:%S %Z')}")
-        end_time = datetime.fromisoformat(e_create_action.get("endTime"))
-        print(f"{empty_prefix}{pointers[0]}End Time")
-        print(f"{prefix}{pointers[1]}{end_time.strftime('%A, %d of %B of %Y - %H:%M:%S %Z')}")
-        # total_time = datetime.fromisoformat(endTime) - datetime.fromisoformat(startTime)
-        if e_start_time:
-            total_time = end_time - start_time
-            print(f"{empty_prefix}{pointers[0]}TOTAL EXECUTION TIME")
-            print(f"{prefix}{pointers[1]}{total_time} s")
-
-        # The 'object' list in the JSON can contain "File" objects, but also strings referencing remote files
-        # wf_inputs = e.get('object')
-        # inputs_list = []
-        # for i, wf_in in enumerate(wf_inputs):
-        #     if isinstance(wf_in, File):
-        #         name = wf_in.get('name')
-        #     else:
-        #         name = wf_in
-        #     print(f"Name: {name}")
-        #     inputs_list.append(name)
-        # print(f"\tList of needed inputs: {inputs_list}")
-
-        # Inputs and Outputs
-        wf_inputs = e_create_action.get("object")
-        if wf_inputs:
-            if not e_create_action.get("result"):
+            wf_outputs = e_create_action.get("result")
+            if wf_outputs:
                 prefix = 2 * empty_prefix
-                print(f"{empty_prefix}{pointers[1]}INPUTS")
-            else:
-                print(f"{empty_prefix}{pointers[0]}INPUTS")
-            for i, wf_in in enumerate(wf_inputs):
-                if isinstance(wf_in, str):
-                    # Backwards compatible with COMPSs 3.0
-                    continue
-                i_pointer = 1 if i == (len(wf_inputs) - 1) else 0
-                if "contentSize" in wf_in:
-                    print(f"{prefix}{pointers[i_pointer]}{wf_in.get('@id')} ({int(wf_in['contentSize']):,} bytes)")
-                else:
-                    print(f"{prefix}{pointers[i_pointer]}{wf_in.get('@id')}")
+                print(f"{empty_prefix}{pointers[1]}OUTPUTS")
+                for i, wf_out in enumerate(wf_outputs):
+                    if isinstance(wf_out, str):
+                        # Backwards compatible with COMPSs 3.0
+                        continue
+                    i_pointer = 1 if i == (len(wf_outputs) - 1) else 0
+                    if "contentSize" in wf_out:
+                        print(f"{prefix}{pointers[i_pointer]}{wf_out.get('@id')} ({int(wf_out['contentSize']):,} bytes)")
+                    else:
+                        print(f"{prefix}{pointers[i_pointer]}{wf_out.get('@id')}")
 
-        wf_outputs = e_create_action.get("result")
-        if wf_outputs:
-            prefix = 2 * empty_prefix
-            print(f"{empty_prefix}{pointers[1]}OUTPUTS")
-            for i, wf_out in enumerate(wf_outputs):
-                if isinstance(wf_out, str):
-                    # Backwards compatible with COMPSs 3.0
-                    continue
-                i_pointer = 1 if i == (len(wf_outputs) - 1) else 0
-                if "contentSize" in wf_out:
-                    print(f"{prefix}{pointers[i_pointer]}{wf_out.get('@id')} ({int(wf_out['contentSize']):,} bytes)")
-                else:
-                    print(f"{prefix}{pointers[i_pointer]}{wf_out.get('@id')}")
+        print(
+            f"================================================================================"
+        )
 
-    print(
-        f"================================================================================"
-    )
-
-    # meta = crate.dereference("ro-crate-metadata.json")
-    # print(meta["conformsTo"])
+        # meta = crate.dereference("ro-crate-metadata.json")
+        # print(meta["conformsTo"])

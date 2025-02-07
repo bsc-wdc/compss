@@ -30,6 +30,8 @@ from rocrate.model.contextentity import ContextEntity
 from provenance.processing.entities import get_manually_defined_software_requirements
 
 
+LANGUAGES_EXTENSION = (".java", ".py")
+
 def add_file_to_crate(
         compss_crate: ROCrate,
         wf_info: dict,
@@ -59,9 +61,30 @@ def add_file_to_crate(
     """
 
     file_path = Path(file_name)
+
+    base_path = os.path.dirname(file_path)
+    new_root = str(Path(in_sources_dir).name)
+    path_main_file = str(Path(file_path).name)
+    main_file = f'application_sources/{new_root}/{path_main_file}'
+
+    auxiliary_files = []
+    for root, dirs, files in os.walk(base_path):
+        for file in files:
+            if file.endswith(LANGUAGES_EXTENSION) and os.stat(os.path.join(root, file)).st_size > 0:
+                if in_sources_dir:
+                    new_root = str(Path(in_sources_dir).name)
+                    aux_file = str(Path(os.path.join(root, file)).name)
+                    path_aux_file = f'application_sources/{new_root}/{aux_file}'
+                else:
+                    aux_file = str(Path(os.path.join(root, file)).name)
+                    path_aux_file = f'application_sources/{aux_file}'
+                if path_aux_file != main_file:
+                    auxiliary_files.append({"@id": path_aux_file})
+
     file_properties = {
         "name": file_path.name,
         "contentSize": os.path.getsize(file_name),
+        "hasPart": auxiliary_files,
     }
 
     # main_entity has its absolute path, as well as file_name

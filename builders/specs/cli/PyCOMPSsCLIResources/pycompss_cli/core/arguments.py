@@ -287,7 +287,7 @@ def parse_sys_argv():
     # INSPECT
     parser_environment = subparsers.add_parser("inspect",
                                                aliases=["ins"],
-                                               help="Inspect an RO-Crate from a COMPSs application run.",  # noqa: E501
+                                               help="Inspect RO-Crate(s) from a COMPSs application run.",  # noqa: E501
                                                parents=[parent_parser],
                                                formatter_class=FORMATTER_CLASS)
 
@@ -295,7 +295,8 @@ def parse_sys_argv():
 
     parser_environment.add_argument("ro_crate",
                                  type=str,
-                                 help="Folder or zip file containing the RO-Crate")
+                                 nargs='+',
+                                 help="Folder or zip file(s) containing the RO-Crate(s)")
 
     # Check if the user does not include any argument
     if len(sys.argv) < 2:

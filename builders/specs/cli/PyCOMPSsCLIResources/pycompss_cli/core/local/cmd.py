@@ -41,8 +41,8 @@ METRICS_UNITS = {
     'memAvg': '%',
     'memMax': '%',
     'memMin': '%',
-    'byteSent': 'byte',
-    'byteRecv': 'byte',
+    'byteSent': 'bytes',
+    'byteRecv': 'bytes',
 }
 
 # ############# #

@@ -312,6 +312,7 @@ def local_inspect(ro_crate_list: list):
                 print(f"{prefix}{pointers[1]}{exec_info[7]}")
 
             # Environment
+            master_node_name = None
             if "description" in e_create_action:
                 print(f"{empty_prefix}{pointers[0]}Description (machine details)")
                 print(f"{prefix}{pointers[1]}{e_create_action.get('description', '')}")
@@ -324,6 +325,8 @@ def local_inspect(ro_crate_list: list):
                 for i, env_item in enumerate(env_list):
                     i_pointer = 1 if i == (len(env_list) - 1) else 0
                     print(f"{prefix}{pointers[i_pointer]}{env_item[0]} = {env_item[1]}")
+                    if env_item[0].strip() == "COMPSS_MASTER_NODE":
+                        master_node_name = env_item[1]
 
             # Resource Usage
             usage_e = e_create_action.get("resourceUsage")
@@ -344,6 +347,7 @@ def local_inspect(ro_crate_list: list):
                 overall_list = []
                 for entry in final_list:
                     entry[0] = entry[0].split("-")[0] if '-' in entry[0] else entry[0]
+                    entry[0] = f"{entry[0]}-MASTER" if master_node_name == entry[0] else entry[0]
                     if entry[0] == 'overall':
                         if entry[-2] == 'executionTime':
                             if entry[-3] != application_main_file:

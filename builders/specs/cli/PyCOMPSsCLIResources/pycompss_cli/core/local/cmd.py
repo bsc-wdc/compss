@@ -319,47 +319,47 @@ def local_inspect(ro_crate_list: list):
                     i_pointer = 1 if i == (len(env_list) - 1) else 0
                     print(f"{prefix}{pointers[i_pointer]}{env_item[0]} = {env_item[1]}")
 
-        usage_e = e_create_action.get("resourceUsage")
-        usage_list = []
-        if usage_e:
-            for usage in usage_e:
-                usage_list.append((usage.get("@id", ""), usage.get("value", "")))
-            print(f"{empty_prefix}{pointers[0]}Resource Usage")
+            usage_e = e_create_action.get("resourceUsage")
+            usage_list = []
+            if usage_e:
+                for usage in usage_e:
+                    usage_list.append((usage.get("@id", ""), usage.get("value", "")))
+                print(f"{empty_prefix}{pointers[0]}Resource Usage")
 
-            final_list = []
+                final_list = []
 
-            for i, ru_item in enumerate(usage_list):
-                ru_list = ru_item[0].split(".")
-                ru_list[0] = ru_list[0][1:]
-                ru_list.append(ru_item[1])
-                final_list.append(ru_list)
+                for i, ru_item in enumerate(usage_list):
+                    ru_list = ru_item[0].split(".")
+                    ru_list[0] = ru_list[0][1:]
+                    ru_list.append(ru_item[1])
+                    final_list.append(ru_list)
 
-            overall_list = []
-            for entry in final_list:
-                entry[0] = entry[0].split("-")[0] if '-' in entry[0] else entry[0]
-                if entry[0] == 'overall':
-                    overall_list.append(entry)
+                overall_list = []
+                for entry in final_list:
+                    entry[0] = entry[0].split("-")[0] if '-' in entry[0] else entry[0]
+                    if entry[0] == 'overall':
+                        overall_list.append(entry)
 
-            final_list = [x for x in final_list if x not in overall_list]
+                final_list = [x for x in final_list if x not in overall_list]
 
-            result = {}
-            for row in final_list:
-                current_level = result
-                for i, key in enumerate(row[:-2]):
-                    if key not in current_level:
-                        current_level[key] = {}
-                    current_level = current_level[key]
-                current_level[row[-2]] = row[-1]
+                result = {}
+                for row in final_list:
+                    current_level = result
+                    for i, key in enumerate(row[:-2]):
+                        if key not in current_level:
+                            current_level[key] = {}
+                        current_level = current_level[key]
+                    current_level[row[-2]] = row[-1]
 
-            for row in overall_list:
-                current_level = result
-                for i, key in enumerate(row[:-2]):
-                    if key not in current_level:
-                        current_level[key] = {}
-                    current_level = current_level[key]
-                current_level[row[-2]] = row[-1]
+                for row in overall_list:
+                    current_level = result
+                    for i, key in enumerate(row[:-2]):
+                        if key not in current_level:
+                            current_level[key] = {}
+                        current_level = current_level[key]
+                    current_level[row[-2]] = row[-1]
 
-            resources_tree(result)
+                resources_tree(result)
 
             # Times
             e_start_time = e_create_action.get("startTime")

@@ -60,7 +60,11 @@ def resources_tree(jsonData, name='', file=None, prefix=empty_prefix, last=False
             resources_tree(jsonData[key], key, file, prefix, last, isfirst=False)
     else:
         unit = METRICS_UNITS[name] if name in METRICS_UNITS.keys() else ''
-        name = name + f' = {jsonData} {unit}'
+        try:
+            int_value = int(jsonData)
+            name = name + f' = {int_value:,} {unit}'
+        except ValueError:
+            name = name + f' = {jsonData} {unit}'
         print(prefix, pointers[1] if last else pointers[0], name, sep="", file=file)
 
 def local_deploy_compss(working_dir: str = "") -> None:

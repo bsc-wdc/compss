@@ -203,6 +203,7 @@ def local_inspect(ro_crate_list: list):
         profiles = []
         e_create_action = None
         i_pointer = 0
+        application_main_file = None
 
         for e in crate.get_entities():
             if e.id == "./":
@@ -296,6 +297,7 @@ def local_inspect(ro_crate_list: list):
                     email_str = ""
                 print(f"{prefix}{pointers[1]}{agent_str} ({affiliation_str}) ({email_str})")
             if "instrument" in e_create_action:
+                application_main_file = e_create_action.get('instrument')['@id'].split("/")[-1].split(".")[0]
                 print(f"{empty_prefix}{pointers[0]}Application's main file")
                 print(f"{prefix}{pointers[1]}{e_create_action.get('instrument')['@id']}")
             # Parse 'name' for hostname and JOB_ID
@@ -343,6 +345,9 @@ def local_inspect(ro_crate_list: list):
                 for entry in final_list:
                     entry[0] = entry[0].split("-")[0] if '-' in entry[0] else entry[0]
                     if entry[0] == 'overall':
+                        if entry[-2] == 'executionTime':
+                            if entry[-3] != application_main_file:
+                                del entry[-3]
                         overall_list.append(entry)
 
                 final_list = [x for x in final_list if x not in overall_list]

@@ -56,6 +56,7 @@ description_plots = {
     'bytes_received': 'Plot of the amount of data received across the network during the execution',
     'cpu': 'Plot of the percentage of cpu used during the execution',
     'mem': 'Plot of the amount of memory used during the execution',
+    'disk_usage': 'Plot of the cumulative amount of data read and written on the disk during the execution',
 }
 
 LANGUAGES_EXTENSION = (".java", ".py")
@@ -275,6 +276,7 @@ def wrroc_create_action(
         stats_path: str,
         plots_path: str,
         end_time: datetime,
+        auxiliary_file_list : list,
 ) -> str:
     """
     Add a CreateAction term to the ROCrate to make it compliant with WRROC.  RO-Crate WorkflowRun Level 2 profile,
@@ -291,6 +293,7 @@ def wrroc_create_action(
     :param dp_log: Full path to the dataprovenance.log file
     :param stats_path: path of the statistics folder
     :param end_time: Time where the COMPSs application execution ended
+    :param auxiliary_file_list: list of the auxiliary file contained in the instruments
 
     :returns: UUID generated for this run
     """
@@ -476,19 +479,15 @@ def wrroc_create_action(
         with open("GENERATED_" + info_yaml, "w", encoding="utf-8") as f_y:
             yaml.dump(yaml_content, f_y, default_flow_style=False)
 
-    base_path = os.path.dirname(main_entity)
-    in_sources_dir = str(Path(base_path).name)
-    new_root = f"application_sources/{in_sources_dir}/"
-    auxiliary_files = []
-    for root, dirs, files in os.walk(base_path):
-        for file in files:
-            if file.endswith(LANGUAGES_EXTENSION) and os.stat(os.path.join(root, file)).st_size > 0:
-                aux_file = new_root + str(Path(os.path.join(root, file)).name)
-                auxiliary_files.append({"@id": aux_file})
+    instrument_list = []
+    instrument_list.append({"@id": resolved_main_entity})
+
+    for aux_file in auxiliary_file_list:
+        instrument_list.append({"@id": aux_file})
 
     create_action_properties = {
         "@type": "CreateAction",
-        "instrument": auxiliary_files,  # Resolved path of the main file
+        "instrument": instrument_list,  # Resolved path of the main file
         "actionStatus": {"@id": "http://schema.org/CompletedActionStatus"},
         "endTime": end_time.isoformat(),  # endTime of the application corresponds to the start of the provenance generation
         "name": name_property,

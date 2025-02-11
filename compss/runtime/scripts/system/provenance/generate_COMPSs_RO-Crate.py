@@ -99,6 +99,7 @@ def main():
     # This must be done before adding the Workflow to the RO-Crate
     ins, outs = process_accessed_files(DP_LOG)
 
+    auxiliary_file_list = []
     # Add application source files to the RO-Crate, that will also be physically in the crate
     add_application_source_files(
         compss_crate,
@@ -107,7 +108,8 @@ def main():
         main_entity,
         out_profile,
         INFO_YAML,
-        COMPLETE_GRAPH
+        COMPLETE_GRAPH,
+        auxiliary_file_list,
     )
 
     # Add in and out files, not to be physically copied in the Crate by default (data_persistence = False)
@@ -181,6 +183,7 @@ def main():
         STATS_PATH,
         PLOTS_PATH,
         datetime.fromisoformat(end_time),
+        auxiliary_file_list,
     )
 
     # Set RO-Crate conformance to profiles

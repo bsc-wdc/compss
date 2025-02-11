@@ -42,6 +42,7 @@ def add_file_to_crate(
         in_sources_dir: str,
         complete_graph: str,
         info_yaml: str,
+        auxiliary_file_list: list,
 ) -> str:
     """
     Get details of a file, and add it physically to the Crate. The file will be an application source file, so,
@@ -56,35 +57,16 @@ def add_file_to_crate(
         to be respected
     :param complete_graph: Full path to the file containing the workflow diagram
     :param info_yaml: Name of the YAML file specified by the user
+    :param auxiliary_file_list: list of the auxiliary file contained in the hasPart
 
     :returns: Path where the file has been stored in the crate
     """
 
     file_path = Path(file_name)
 
-    base_path = os.path.dirname(file_path)
-    new_root = str(Path(in_sources_dir).name)
-    path_main_file = str(Path(file_path).name)
-    main_file = f'application_sources/{new_root}/{path_main_file}'
-
-    auxiliary_files = []
-    for root, dirs, files in os.walk(base_path):
-        for file in files:
-            if file.endswith(LANGUAGES_EXTENSION) and os.stat(os.path.join(root, file)).st_size > 0:
-                if in_sources_dir:
-                    new_root = str(Path(in_sources_dir).name)
-                    aux_file = str(Path(os.path.join(root, file)).name)
-                    path_aux_file = f'application_sources/{new_root}/{aux_file}'
-                else:
-                    aux_file = str(Path(os.path.join(root, file)).name)
-                    path_aux_file = f'application_sources/{aux_file}'
-                if path_aux_file != main_file:
-                    auxiliary_files.append({"@id": path_aux_file})
-
     file_properties = {
         "name": file_path.name,
         "contentSize": os.path.getsize(file_name),
-        "hasPart": auxiliary_files,
     }
 
     # main_entity has its absolute path, as well as file_name
@@ -200,6 +182,7 @@ def add_file_to_crate(
         path_in_crate = "application_sources/" + file_path.name
 
     if file_name != main_entity:
+        auxiliary_file_list.append(path_in_crate)
         if __debug__:
             print(f"PROVENANCE DEBUG | Adding auxiliary source file: {file_name}")
         compss_crate.add_file(
@@ -398,6 +381,7 @@ def add_application_source_files(
         out_profile: str,
         info_yaml: str,
         complete_graph: str,
+        auxiliary_file_list: list,
 ) -> None:
     """
     Add all application source files as part of the crate. This means, to include them physically in the resulting
@@ -410,6 +394,7 @@ def add_application_source_files(
     :param out_profile: COMPSs application profile output file
     :param info_yaml: Name of the YAML file specified by the user
     :param complete_graph: Full path to the file containing the workflow diagram
+    :param auxiliary_file_list: list of the auxiliary file contained in the hasPart
 
     :returns: None
     """
@@ -495,6 +480,7 @@ def add_application_source_files(
                             resolved_source,
                             complete_graph,
                             info_yaml,
+                            auxiliary_file_list,
                         )
                         added_files.append(resolved_file)
                     else:
@@ -523,6 +509,7 @@ def add_application_source_files(
                             resolved_source,
                             complete_graph,
                             info_yaml,
+                            auxiliary_file_list,
                         )
             if not os.listdir(resolved_source):
                 # The root directory itself is empty
@@ -543,6 +530,7 @@ def add_application_source_files(
                     resolved_source,
                     complete_graph,
                     info_yaml,
+                    auxiliary_file_list,
                 )
         elif os.path.isfile(resolved_source):
             if resolved_source not in added_files:
@@ -556,6 +544,7 @@ def add_application_source_files(
                     "",
                     complete_graph,
                     info_yaml,
+                    auxiliary_file_list,
                 )
                 added_files.append(resolved_source)
             else:
@@ -580,16 +569,16 @@ def add_application_source_files(
             "",
             complete_graph,
             info_yaml,
+            auxiliary_file_list,
         )
         added_files.append(main_entity)
 
     # Add auxiliary files as hasPart to the ComputationalWorkflow main file
     # Not working well when an application has several versions (ex: Java matmul files, objects, arrays)
-    # for e in compss_crate.data_entities:
-    #     if 'ComputationalWorkflow' in e.type:
-    #         for file in crate_paths:
-    #             if file is not "":
-    #                 e.append_to("hasPart", {"@id": file})
+    for e in compss_crate.data_entities:
+        if 'ComputationalWorkflow' in e.type:
+            for file in auxiliary_file_list:
+                e.append_to("hasPart", {"@id": file})
 
     print(f"PROVENANCE | Application source files detected ({len(added_files)})")
     if __debug__:

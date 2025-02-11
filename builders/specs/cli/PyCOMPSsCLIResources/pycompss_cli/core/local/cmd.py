@@ -314,7 +314,7 @@ def local_inspect(ro_crate_list: list):
             # Environment
             master_node_name = None
             if "description" in e_create_action:
-                print(f"{empty_prefix}{pointers[0]}Description (machine details)")
+                print(f"{empty_prefix}{pointers[0]}Description (submission command line)")
                 print(f"{prefix}{pointers[1]}{e_create_action.get('description', '')}")
             environment = e_create_action.get("environment")
             env_list = []

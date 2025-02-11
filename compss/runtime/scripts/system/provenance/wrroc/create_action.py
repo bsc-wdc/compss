@@ -16,6 +16,7 @@
 #
 import typing
 import os
+import uuid
 import subprocess
 import socket
 import yaml
@@ -55,6 +56,7 @@ description_plots = {
     'bytes_received': 'Plot of the amount of data received across the network during the execution',
     'cpu': 'Plot of the percentage of cpu used during the execution',
     'mem': 'Plot of the amount of memory used during the execution',
+    'disk_usage': 'Plot of the cumulative amount of data read and written on the disk during the execution',
 }
 
 LANGUAGES_EXTENSION = (".java", ".py")
@@ -271,8 +273,8 @@ def wrroc_create_action(
     info_yaml: str,
     log_dir: Path,
     end_time: datetime,
-    run_uuid: str,
-):
+    auxiliary_file_list: list,
+) -> str:
     """
     Add a CreateAction term to the ROCrate to make it compliant with WRROC.  RO-Crate WorkflowRun Level 2 profile,
     aka. Workflow Run Crate.
@@ -288,7 +290,9 @@ def wrroc_create_action(
     :param dp_log: Full path to the dataprovenance.log file
     :param stats_path: path of the statistics folder
     :param end_time: Time where the COMPSs application execution ended
-    :param run_uuid: UUID generated for this run
+    :param auxiliary_file_list: list of the auxiliary file contained in the instruments
+
+    :returns: UUID generated for this run
     """
 
     energy_path = log_dir / "energy"
@@ -304,6 +308,8 @@ def wrroc_create_action(
     job_id = os.getenv("SLURM_JOB_ID")
 
     main_entity_pathobj = Path(main_entity)
+
+    run_uuid = str(uuid.uuid4())
 
     if job_id is None:
         name_property = (
@@ -473,19 +479,15 @@ def wrroc_create_action(
         with open("GENERATED_" + info_yaml, "w", encoding="utf-8") as f_y:
             yaml.dump(yaml_content, f_y, default_flow_style=False)
 
-    base_path = os.path.dirname(main_entity)
-    in_sources_dir = str(Path(base_path).name)
-    new_root = f"application_sources/{in_sources_dir}/"
-    auxiliary_files = []
-    for root, dirs, files in os.walk(base_path):
-        for file in files:
-            if file.endswith(LANGUAGES_EXTENSION) and os.stat(os.path.join(root, file)).st_size > 0:
-                aux_file = new_root + str(Path(os.path.join(root, file)).name)
-                auxiliary_files.append({"@id": aux_file})
+    instrument_list = []
+    instrument_list.append({"@id": resolved_main_entity})
+
+    for aux_file in auxiliary_file_list:
+        instrument_list.append({"@id": aux_file})
 
     create_action_properties = {
         "@type": "CreateAction",
-        "instrument": auxiliary_files,  # Resolved path of the main file
+        "instrument": instrument_list,  # Resolved path of the main file
         "actionStatus": {"@id": "http://schema.org/CompletedActionStatus"},
         "endTime": end_time.isoformat(),  # endTime of the application corresponds to the start of the provenance generation
         "name": name_property,
@@ -717,46 +719,4 @@ def wrroc_create_action(
             file_properties["about"] = create_action_id
             compss_crate.add_file(file_properties["name"], properties=file_properties)
 
-    # Add Paraver trace files if they have been generated in PRV_DIR/ folder
-    compss_wf_info = yaml_content["COMPSs Workflow Information"]
-    if (
-        "trace_persistence" in compss_wf_info
-        and compss_wf_info["trace_persistence"] is True
-    ):
-        prv_persist = True
-    else:
-        prv_persist = False
-    prv_dir = log_dir / "trace/"
-    if prv_dir.exists() and prv_dir.is_dir():
-        print(f"PROVENANCE | RO-Crate adding PARAVER trace files")
-        if not prv_persist:
-            print(
-                f"PROVENANCE | RO-Crate PARAVER trace files persistence is False (trace_persistence)"
-            )
-        for file in prv_dir.iterdir():
-            if file.is_file():
-                file_properties = {}
-                file_properties["name"] = file.name
-                file_properties["contentSize"] = file.stat().st_size
-                file_properties["description"] = "PARAVER trace files"
-                file_properties["encodingFormat"] = "text/plain"
-                file_properties["about"] = create_action_id
-                if prv_persist:
-                    crate_path = "trace/" + file.name
-                    compss_crate.add_file(
-                        source=file.resolve(),
-                        dest_path=crate_path,
-                        properties=file_properties,
-                    )
-                else:
-                    file_url = "file://" + socket.gethostname() + str(file.resolve())
-                    compss_crate.add_file(
-                        source=file_url,
-                        fetch_remote=False,
-                        validate_url=False,
-                        properties=file_properties,
-                    )
-    elif prv_persist:
-        print(
-            f"PROVENANCE | WARNING: PARAVER trace files not found at COMPSs log dir, and trace_persistence is True at the Workflow Provenance YAML file"
-        )
+    return run_uuid

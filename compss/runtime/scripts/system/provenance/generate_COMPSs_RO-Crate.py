@@ -16,9 +16,9 @@
 #
 
 """
-The generate_COMPSs_RO-Crate.py module generates the resulting RO-Crate metadata from a COMPSs application run
-following the Workflow Run Crate profile specification. Takes as parameters the ro-crate-info.yaml, and the
-dataprovenance.log generated from the run.
+    The generate_COMPSs_RO-Crate.py module generates the resulting RO-Crate metadata from a COMPSs application run
+    following the Workflow Run Crate profile specification. Takes as parameters the ro-crate-info.yaml, and the
+    dataprovenance.log generated from the run.
 """
 from datetime import datetime
 from pathlib import Path
@@ -26,7 +26,6 @@ from pathlib import Path
 import yaml
 import time
 import sys
-import uuid
 
 from rocrate.rocrate import ROCrate
 from rocrate.utils import iso_now
@@ -64,7 +63,6 @@ def main():
     end_time = iso_now()
 
     # First, read values defined by user from ro-crate-info.yaml
-    run_uuid = str(uuid.uuid4())
     try:
         with open(INFO_YAML, "r", encoding="utf-8") as f_p:
             try:
@@ -76,13 +74,10 @@ def main():
         with open("ro-crate-info_TEMPLATE.yaml", "w", encoding="utf-8") as f_t:
             f_t.write(yaml_template)
             print(
-                f"PROVENANCE | WARNING: YAML file {INFO_YAML} not found in your working directory. A template"
-                " has been generated in file ro-crate-info_TEMPLATE.yaml so you can provide more details on the experiment. "
-                "Your run will be recorded with a generated experiment name"
+                f"PROVENANCE | ERROR: YAML file {INFO_YAML} not found in your working directory. A template"
+                " has been generated in file ro-crate-info_TEMPLATE.yaml"
             )
-            yaml_content = {
-                "COMPSs Workflow Information": {"name": "COMPSs experiment " + run_uuid}
-            }
+        raise
 
     # Generate Root entity section in the RO-Crate
     # Can update author details from online search
@@ -104,6 +99,7 @@ def main():
     # This must be done before adding the Workflow to the RO-Crate
     ins, outs = process_accessed_files(DP_LOG)
 
+    auxiliary_file_list = []
     # Add application source files to the RO-Crate, that will also be physically in the crate
     add_application_source_files(
         compss_crate,
@@ -112,7 +108,8 @@ def main():
         main_entity,
         out_profile,
         INFO_YAML,
-        COMPLETE_GRAPH
+        COMPLETE_GRAPH,
+        auxiliary_file_list,
     )
 
     # Add in and out files, not to be physically copied in the Crate by default (data_persistence = False)
@@ -174,7 +171,7 @@ def main():
     # Compliance with RO-Crate WorkflowRun Level 2 profile, aka. Workflow Run Crate
     # Can update Agent details from online search
     part_time = time.time()
-    wrroc_create_action(
+    run_uuid = wrroc_create_action(
         compss_crate,
         main_entity,
         author_list,
@@ -184,7 +181,7 @@ def main():
         INFO_YAML,
         path_plog,
         datetime.fromisoformat(end_time),
-        run_uuid,
+        auxiliary_file_list,
     )
     print(
         f"PROVENANCE | RO-Crate adding CreateAction TIME: "

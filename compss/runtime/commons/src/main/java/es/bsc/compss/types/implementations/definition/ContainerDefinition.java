@@ -16,11 +16,9 @@
  */
 package es.bsc.compss.types.implementations.definition;
 
-import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.TaskType;
-import es.bsc.compss.types.resources.ContainerDescription;
-import es.bsc.compss.types.resources.ContainerDescription.ContainerEngine;
+import es.bsc.compss.types.implementations.definition.ContainerDescription.ContainerEngine;
 import es.bsc.compss.util.EnvironmentLoader;
 
 import java.io.IOException;
@@ -211,7 +209,7 @@ public class ContainerDefinition implements AbstractMethodImplementationDefiniti
     @Override
     public String toJSON() {
         StringBuilder sb = new StringBuilder("{\"type\":\"CONTAINER\",");
-        sb.append("\"container\":").append(this.container);
+        sb.append("\"container\":").append(this.container.toJSON());
         sb.append("}");
         return sb.toString();
     }

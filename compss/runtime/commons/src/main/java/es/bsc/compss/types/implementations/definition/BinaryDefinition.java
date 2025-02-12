@@ -20,7 +20,6 @@ package es.bsc.compss.types.implementations.definition;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.TaskType;
-import es.bsc.compss.types.resources.ContainerDescription;
 import es.bsc.compss.util.EnvironmentLoader;
 
 import java.io.IOException;
@@ -157,7 +156,7 @@ public class BinaryDefinition implements AbstractMethodImplementationDefinition 
         sb.append("{\"type\":\"BINARY\",");
         sb.append("\"binary\":\"").append(this.binary).append("\",");
         sb.append("\"params\":\"").append(this.params).append("\",");
-        sb.append("\"container\":").append(this.container);
+        sb.append("\"container\":").append(this.container.toJSON());
         sb.append("}");
         return sb.toString();
     }

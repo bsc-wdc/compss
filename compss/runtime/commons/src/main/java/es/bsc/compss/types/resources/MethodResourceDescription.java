@@ -2128,20 +2128,20 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         sb.append("\"software\":[");
         Iterator<String> swItr = this.appSoftware.iterator();
         if (swItr.hasNext()) {
-            sb.append(swItr.next());
+            sb.append("\"").append(swItr.next()).append("\"");
         }
         while (swItr.hasNext()) {
-            sb.append(",").append(swItr.next());
+            sb.append(",\"").append(swItr.next()).append("\"");
         }
         sb.append("],");
 
         sb.append("\"host_queues\":[");
         Iterator<String> queuesItr = this.hostQueues.iterator();
         if (queuesItr.hasNext()) {
-            sb.append(queuesItr.next());
+            sb.append("\"").append(queuesItr.next()).append("\"");
         }
         while (queuesItr.hasNext()) {
-            sb.append(",").append(queuesItr.next());
+            sb.append(",\"").append(queuesItr.next()).append("\"");
         }
         sb.append("],");
 
@@ -2160,12 +2160,12 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         Processor p;
         if (procItr.hasNext()) {
             p = procItr.next();
-            dumpProcessor(p, sb);
+            sb.append(p.toString());
         }
         while (procItr.hasNext()) {
             sb.append(",");
             p = procItr.next();
-            dumpProcessor(p, sb);
+            sb.append(p.toString());
         }
         sb.append("],");
         sb.append("\"general_counts\":{");
@@ -2180,18 +2180,6 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         sb.append("}");
     }
 
-    private void dumpProcessor(Processor p, StringBuilder sb) {
-        sb.append("{");
-        sb.append("\"type\":\"").append(p.getType().toString()).append("\",");
-        sb.append("\"computing_units\":").append(p.getComputingUnits()).append(",");
-        sb.append("\"speed\":").append(p.getSpeed()).append(",");
-        sb.append("\"internal_memory\":").append(p.getInternalMemory()).append(",");
-        sb.append("\"architecture\":\"").append(p.getArchitecture()).append("\",");
-        sb.append("\"prop_name\":\"").append(p.getPropName()).append("\",");
-        sb.append("\"prop_value\":\"").append(p.getPropValue()).append("\"");
-        sb.append("}");
-    }
-
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("{");
@@ -2203,28 +2191,36 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     @Override
     public String getDynamicDescription() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(" Processor: ");
-        // Processor
-
-        for (Processor pThis : this.processors) {
-            sb.append(pThis.getComputingUnits() + " " + pThis.getArchitecture() + " cores");
+        StringBuilder sb = new StringBuilder("{");
+        sb.append("\"processors\":[");
+        // Processors
+        Iterator<Processor> procItr = this.processors.iterator();
+        Processor p;
+        if (procItr.hasNext()) {
+            p = procItr.next();
+            sb.append("{\"computing_units\":").append(p.getComputingUnits()).append(",");
+            sb.append("\"architecture\":\"").append(p.getArchitecture()).append("\"}");
+        }
+        while (procItr.hasNext()) {
+            p = procItr.next();
+            sb.append(",{\"computing_units\":").append(p.getComputingUnits()).append(",");
+            sb.append("\"architecture\":\"").append(p.getArchitecture()).append("\"}");
         }
 
         // Memory
-        sb.append(" Memory: ");
+        sb.append(",\"memory\":");
         if (this.memorySize != UNASSIGNED_FLOAT) {
             sb.append(this.memorySize);
         } else {
-            sb.append("Unassigned");
+            sb.append("\"Unassigned\"");
         }
 
         // Storage Bandwidth
-        sb.append(" Storage Bandwidth: ");
+        sb.append(",\"storage_bandwidth\":");
         if (this.storageBW != UNASSIGNED_INT) {
             sb.append(this.storageBW);
         } else {
-            sb.append("Unassigned");
+            sb.append("\"Unassigned\"");
         }
         return sb.toString();
     }

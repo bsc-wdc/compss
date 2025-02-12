@@ -402,7 +402,7 @@ public class NIOTask implements Externalizable, Invocation {
         }
         sb.append("],");
 
-        sb.append("\"requirements\":{").append(this.reqs).append("},");
+        sb.append("\"requirements\":").append(this.reqs).append(",");
 
         sb.append("\"slave_workers_node_names\":[");
         for (String name : this.slaveWorkersNodeNames) {

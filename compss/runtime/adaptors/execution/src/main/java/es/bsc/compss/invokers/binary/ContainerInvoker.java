@@ -36,7 +36,7 @@ import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.definition.ContainerDefinition;
 import es.bsc.compss.types.implementations.definition.ContainerDefinition.ContainerExecutionType;
-import es.bsc.compss.types.resources.ContainerDescription;
+import es.bsc.compss.types.implementations.definition.ContainerDescription;
 
 import java.io.File;
 import java.io.PrintStream;

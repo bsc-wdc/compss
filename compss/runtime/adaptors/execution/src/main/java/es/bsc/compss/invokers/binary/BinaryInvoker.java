@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.invokers.binary;
 
-import static es.bsc.compss.types.resources.ContainerDescription.ContainerEngine.SINGULARITY;
+import static es.bsc.compss.types.implementations.definition.ContainerDescription.ContainerEngine.SINGULARITY;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.exceptions.InvokeExecutionException;
@@ -35,7 +35,7 @@ import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.definition.BinaryDefinition;
-import es.bsc.compss.types.resources.ContainerDescription;
+import es.bsc.compss.types.implementations.definition.ContainerDescription;
 
 import java.io.PrintStream;
 import java.util.ArrayList;

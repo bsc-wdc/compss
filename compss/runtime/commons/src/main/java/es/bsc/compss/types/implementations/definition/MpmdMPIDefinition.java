@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.types.implementations.definition;
 
-import static es.bsc.compss.types.resources.ContainerDescription.ContainerEngine.SINGULARITY;
+import static es.bsc.compss.types.implementations.definition.ContainerDescription.ContainerEngine.SINGULARITY;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsPaths;
@@ -24,7 +24,6 @@ import es.bsc.compss.types.MPIProgram;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.TaskType;
-import es.bsc.compss.types.resources.ContainerDescription;
 import es.bsc.compss.util.EnvironmentLoader;
 
 import java.io.BufferedWriter;
@@ -192,7 +191,7 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
         sb.append("\"working_dir\":\"").append(this.workingDir).append("\",");
         sb.append("\"mpi_ppn\":").append(this.ppn).append(",");
         sb.append("\"fail_by_ev\":").append(this.failByEV).append(",");
-        sb.append("\"container\":").append(this.container).append(",");
+        sb.append("\"container\":").append(this.container.toJSON()).append(",");
         sb.append("\"programs\":[");
         for (MPIProgram program : this.getPrograms()) {
             sb.append("\"").append(program.toString()).append("\",");

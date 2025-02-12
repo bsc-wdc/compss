@@ -15,7 +15,7 @@
  *
  */
 
-package es.bsc.compss.types.resources;
+package es.bsc.compss.types.implementations.definition;
 
 import java.io.Serializable;
 

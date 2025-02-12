@@ -126,6 +126,12 @@ public class HTTPDefinition implements ImplementationDefinition {
     }
 
     @Override
+    public String toJSON() {
+        return "{\"service_name\":\"" + serviceName + "\"," + "\"resource\":\"" + this.resource + "\","
+            + "\"request\":\"" + this.request + "\"" + "}";
+    }
+
+    @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         this.request = (String) in.readObject();
         this.resource = (String) in.readObject();

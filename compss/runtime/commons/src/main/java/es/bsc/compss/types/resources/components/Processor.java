@@ -312,14 +312,9 @@ public class Processor implements Serializable {
 
     @Override
     public String toString() {
-        return "{" +
-                "\"type\":\"" + this.getType().toString() + "\"," +
-                "\"computing_units\":" + this.getComputingUnits() + "," +
-                "\"speed\":" + this.getSpeed() + "," +
-                "\"internal_memory\":" + this.getInternalMemory() + "," +
-                "\"architecture\":\"" + this.getArchitecture() + "\"," +
-                "\"prop_name\":\"" + this.getPropName() + "\"," +
-                "\"prop_value\":\"" + this.getPropValue() + "\"" +
-                "}";
+        return "{" + "\"type\":\"" + this.getType().toString() + "\"," + "\"computing_units\":"
+            + this.getComputingUnits() + "," + "\"speed\":" + this.getSpeed() + "," + "\"internal_memory\":"
+            + this.getInternalMemory() + "," + "\"architecture\":\"" + this.getArchitecture() + "\","
+            + "\"prop_name\":\"" + this.getPropName() + "\"," + "\"prop_value\":\"" + this.getPropValue() + "\"" + "}";
     }
 }

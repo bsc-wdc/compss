@@ -263,7 +263,7 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
 
     /**
      * Returns whether the implementation is to be run locally or can be offloaded.
-     * 
+     *
      * @return {@literal true} if the implementation is to be run locally; {@literal false} otherwise
      */
     public boolean isLocal() {
@@ -322,6 +322,17 @@ public class ImplementationDescription<T extends WorkerResourceDescription, D ex
         out.writeObject(this.implDefinition);
         out.writeObject(this.prolog);
         out.writeObject(this.epilog);
+    }
+
+    /**
+     * Returns a JSON representation of the implementation description.
+     * 
+     * @return JSON representation
+     */
+    public String toJSON() {
+        return "{" + "\"signature\":\"" + this.signature + "\"," + "\"local\":" + this.isLocal + ","
+            + "\"constraints\":" + this.constraints + "," + "\"definition\":" + this.implDefinition.toJSON() + ","
+            + "\"prolog\":" + this.prolog + "," + "\"epilog\":" + this.epilog + "}";
     }
 
     @Override

@@ -156,7 +156,7 @@ public class BinaryDefinition implements AbstractMethodImplementationDefinition 
         sb.append("{\"type\":\"BINARY\",");
         sb.append("\"binary\":\"").append(this.binary).append("\",");
         sb.append("\"params\":\"").append(this.params).append("\",");
-        sb.append("\"container\":").append(this.container.toJSON());
+        sb.append("\"container\":").append(this.container == null ? null : this.container.toJSON());
         sb.append("}");
         return sb.toString();
     }

@@ -191,7 +191,7 @@ public class MpmdMPIDefinition extends CommonMPIDefinition implements AbstractMe
         sb.append("\"working_dir\":\"").append(this.workingDir).append("\",");
         sb.append("\"mpi_ppn\":").append(this.ppn).append(",");
         sb.append("\"fail_by_ev\":").append(this.failByEV).append(",");
-        sb.append("\"container\":").append(this.container.toJSON()).append(",");
+        sb.append("\"container\":").append(this.container == null ? null : this.container.toJSON()).append(",");
         sb.append("\"programs\":[");
         for (MPIProgram program : this.getPrograms()) {
             sb.append("\"").append(program.toString()).append("\",");

@@ -209,7 +209,7 @@ public class ContainerDefinition implements AbstractMethodImplementationDefiniti
     @Override
     public String toJSON() {
         StringBuilder sb = new StringBuilder("{\"type\":\"CONTAINER\",");
-        sb.append("\"container\":").append(this.container.toJSON());
+        sb.append("\"container\":").append(this.container == null ? null : this.container.toJSON());
         sb.append("}");
         return sb.toString();
     }

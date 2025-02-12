@@ -206,7 +206,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
 
     /**
      * Cancels the execution of a set of tasks.
-     * 
+     *
      * @param task task to cancel
      * @param listener object to notify when the tasks have been cancelled
      */
@@ -352,7 +352,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
     public void registerNewCoreElement(CoreElementDefinition ced) {
 
         if (DEBUG) {
-            LOGGER.debug("Registering new CoreElement");
+            LOGGER.debug("Requesting the registration of new CoreElement " + ced);
         }
 
         Semaphore sem = new Semaphore(0);

@@ -54,17 +54,17 @@ public class MPIDefinition extends CommonMPIDefinition implements AbstractMethod
 
     /**
      * Creates a new MPIImplementation instance from the given parameters.
-     * 
-     * @param binary MPI binary path.
+     *
+     * @param binary     MPI binary path.
      * @param workingDir Binary working directory.
-     * @param mpiRunner Path to the MPI command.
-     * @param ppn Process per node.
-     * @param scaleByCU Scale by computing units property.
-     * @param params params string to be appended to the end of the command.
-     * @param failByEV Flag to enable failure with EV.
+     * @param mpiRunner  Path to the MPI command.
+     * @param ppn        Process per node.
+     * @param scaleByCU  Scale by computing units property.
+     * @param params     params string to be appended to the end of the command.
+     * @param failByEV   Flag to enable failure with EV.
      */
     public MPIDefinition(String binary, String workingDir, String mpiRunner, int ppn, String mpiFlags,
-        boolean scaleByCU, String params, boolean failByEV) {
+                         boolean scaleByCU, String params, boolean failByEV) {
         super(workingDir, mpiRunner, ppn, mpiFlags, scaleByCU, failByEV);
         this.binary = binary;
         this.params = params;
@@ -72,10 +72,10 @@ public class MPIDefinition extends CommonMPIDefinition implements AbstractMethod
 
     /**
      * Creates a new Definition from string array.
-     * 
+     *
      * @param implTypeArgs String array.
-     * @param offset Element from the beginning of the string array.
-     * @param container String array for container description.
+     * @param offset       Element from the beginning of the string array.
+     * @param container    String array for container description.
      */
     public MPIDefinition(String[] implTypeArgs, int offset, String[] container) {
         this.binary = EnvironmentLoader.loadFromEnvironment(implTypeArgs[offset]);
@@ -112,7 +112,7 @@ public class MPIDefinition extends CommonMPIDefinition implements AbstractMethod
 
     /**
      * Returns the binary path.
-     * 
+     *
      * @return The binary path.
      */
     public String getBinary() {
@@ -145,7 +145,7 @@ public class MPIDefinition extends CommonMPIDefinition implements AbstractMethod
         sb.append("\"mpi_flags\":\"").append(this.mpiFlags).append("\",");
         sb.append("\"binary\":\"").append(this.binary).append("\",");
         sb.append("\"params\":\"").append(this.params).append("\",");
-        sb.append("\"container\":").append(this.container.toJSON());
+        sb.append("\"container\":").append(this.container == null ? null : this.container.toJSON());
         sb.append("}");
         return sb.toString();
     }

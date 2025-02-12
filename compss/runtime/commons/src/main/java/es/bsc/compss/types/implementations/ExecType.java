@@ -101,4 +101,10 @@ public class ExecType implements Externalizable {
         this.params = (String) in.readObject();
         this.failByExitValue = in.readBoolean();
     }
+
+    @Override
+    public String toString() {
+        return "{\"binary\":\"" + this.binary + "\",\"params\":\"" + this.params + "\",\"fail_by_exit\":"
+            + this.failByExitValue + "}";
+    }
 }
